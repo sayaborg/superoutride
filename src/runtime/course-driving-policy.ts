@@ -9,16 +9,3 @@ export const COURSE_DRIVING_POLICY = Object.freeze({
   // Player plus the product's sixteen rivals; retain three recent reader layouts per actor.
   readerCacheSize: 17 * 3,
 });
-
-/** Development course settings, resolved here until authored Session presets replace them. */
-export const COURSE_PLAY_SETTINGS = Object.freeze({
-  rivalCount: 2,
-  lapCount: 2,
-  touringSpeed: 45,
-  standingSpeed: 0,
-  playerS: 45,
-  playerL: 0,
-  rivalFirstS: 55,
-  rivalSpacing: 12,
-  rivalLane: 2,
-});

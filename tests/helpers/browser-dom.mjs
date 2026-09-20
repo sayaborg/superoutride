@@ -1,6 +1,8 @@
 import { SelectorElement as Element } from './fake-selector-dom.mjs';
 export function installBrowserDom(t, search = '') {
-  const frames = [];
+  const frames = new Map();
+  let nextFrame = 0,
+    now = 0;
   const ids = [
     'game',
     'sound-toggle',
@@ -39,8 +41,12 @@ export function installBrowserDom(t, search = '') {
     navigator: { maxTouchPoints: 0 },
     matchMedia: () => ({ matches: false }),
     location: { search },
-    performance: { now: () => 0 },
-    requestAnimationFrame: (callback) => frames.push(callback),
+    performance: { now: () => now },
+    requestAnimationFrame: (callback) => {
+      frames.set(++nextFrame, callback);
+      return nextFrame;
+    },
+    cancelAnimationFrame: (id) => frames.delete(id),
   })) {
     const original = Object.getOwnPropertyDescriptor(globalThis, key);
     Object.defineProperty(globalThis, key, { configurable: true, value });
@@ -53,9 +59,11 @@ export function installBrowserDom(t, search = '') {
     elements,
     calls,
     win,
-    frame(now = 0) {
-      const callback = frames.shift();
+    frame(time = 0) {
+      const [id, callback] = frames.entries().next().value ?? [];
       if (!callback) throw new Error('animation loop did not schedule a frame');
+      frames.delete(id);
+      now = time;
       callback(now);
     },
   };

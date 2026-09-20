@@ -1,5 +1,6 @@
-import type { CompiledCourse } from '../compiler/compiled-course.js';
-import { createCourseRaceProgress } from './course-race-progress.js';
+import type { ResolvedCourseSession } from './course-session.js';
+import { createCheckpointClock } from '../gameplay/checkpoint-clock.js';
+import { createCourseRaceProgress, type CourseRaceEvent, type CourseRaceAdmission } from './course-race-progress.js';
 import { createCourseForkField } from './course-fork-field.js';
 import { createCameraRig, type CameraRig, type CameraState } from '../camera/camera.js';
 import {
@@ -15,7 +16,6 @@ import {
   rankRaceProgress,
   formatRaceTime,
 } from '../gameplay/race-session.js';
-import { compileSessionConfiguration } from '../gameplay/session-configuration.js';
 import {
   RECOVERY_PROFILE,
   createRecoveryState,
@@ -28,10 +28,8 @@ import type { DrivingInput } from '../input/driving-input.js';
 import { createArcadeVehicle, type ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
 import { createDynamicVehicleCourseSprite } from '../render/dynamic-vehicle-sprite.js';
 import { createSpriteAssets } from '../visual/sprite-assets.js';
-import type { CompiledArcadeVehicleProfile } from '../physics/vehicle-profiles.js';
-import type { TorqueProtectionPolicy } from '../physics/torque-protection.js';
+import type { SessionVehicle } from '../gameplay/session-configuration.js';
 import type { CourseSprite } from '../render/course-sprite.js';
-import { COURSE_PLAY_SETTINGS } from './course-driving-policy.js';
 import { createRivalRoster } from './rival-roster.js';
 import type { createCourseDrivingGraph } from './course-driving-session.js';
 
@@ -44,22 +42,17 @@ interface Actor {
 
 /** Field composition over shared course readers, ordinary mechanics and ordered physical gates. */
 export function createCourseRace(options: {
-  readonly course: CompiledCourse;
+  readonly session: ResolvedCourseSession;
   readonly player: Actor;
   readonly playerSession: Session;
   readonly createSession: () => Session;
-  readonly rivalCount: number;
-  readonly lapCount: number;
-  readonly rival: {
-    readonly profile: CompiledArcadeVehicleProfile;
-    readonly torqueProtection: TorqueProtectionPolicy;
-    readonly kind: 'car' | 'bike';
-  };
+  readonly rival: SessionVehicle;
 }) {
-  const { course } = options;
+  const { course, configuration, grid, initialSpeed, budgets } = options.session;
+  const clock = createCheckpointClock(budgets?.initialMs ?? null);
   const entryS = course.entry.ports.find((p) => p.kind === 'entry')!.anchor.s;
   const rivalKind = options.rival.kind;
-  const progress = createCourseRaceProgress(course, options.lapCount);
+  const progress = createCourseRaceProgress(course, configuration.lapCount);
   const forks = createCourseForkField(course.sections);
   const competitor = (id: string, actor: Actor, session: Session, targetL: number) => ({
     id,
@@ -74,26 +67,27 @@ export function createCourseRace(options: {
     timing: createRaceSessionState(),
     finishElapsedSeconds: null as number | null,
   });
-  const player = competitor('PLAYER', options.player, options.playerSession, COURSE_PLAY_SETTINGS.playerL);
-  const rivals = createRivalRoster(compileSessionConfiguration({ rivalCount: options.rivalCount })).map(
-    ({ actorId, rivalIndex }) => {
-      const session = options.createSession();
-      const targetL = (rivalIndex % 2 ? 1 : -1) * COURSE_PLAY_SETTINGS.rivalLane;
-      const profile = options.rival;
-      const vehicle = createArcadeVehicle(profile.profile, session.view.world, {
-        s: COURSE_PLAY_SETTINGS.rivalFirstS + rivalIndex * COURSE_PLAY_SETTINGS.rivalSpacing,
-        l: targetL,
-        initialSpeed: COURSE_PLAY_SETTINGS.standingSpeed,
-        torqueProtection: profile.torqueProtection,
-      });
-      return competitor(
-        actorId,
-        { vehicle, recovery: createRecoveryState(vehicle), cameraRig: createCameraRig() },
-        session,
-        targetL,
-      );
-    },
-  );
+  const player = competitor('PLAYER', options.player, options.playerSession, grid[0]!.l);
+  const rivals = createRivalRoster(configuration).map(({ actorId, rivalIndex }) => {
+    const session = options.createSession();
+    const slot = grid[rivalIndex + 1]!;
+    const targetL = slot.l;
+    const profile = options.rival;
+    const vehicle = createArcadeVehicle(profile.profile, session.view.world, {
+      s: slot.anchor.s,
+      l: targetL,
+      initialSpeed,
+      torqueProtection: profile.torqueProtection,
+      steeringCalibration: profile.steeringCalibration,
+      tireFrictionCalibration: profile.tireFrictionCalibration,
+    });
+    return competitor(
+      actorId,
+      { vehicle, recovery: createRecoveryState(vehicle), cameraRig: createCameraRig() },
+      session,
+      targetL,
+    );
+  });
   const assets = createSpriteAssets();
   const resync = (c: typeof player) => c.observer.resync();
   const lane = (c: typeof player, s: number) => forks.targetL(c.session.history.active.section, s, c.targetL);
@@ -171,14 +165,33 @@ export function createCourseRace(options: {
   };
   const current = { x: 0, z: 0, s: 0 };
   const observed = { rivals: visible, sprites };
+  let events: readonly CourseRaceEvent[] = [];
+  let pendingExpiry = Infinity,
+    stepStart = 0;
+  const admitPlayer: CourseRaceAdmission = (event) => {
+    if (stepStart + event.u * stepDuration > pendingExpiry) return false;
+    if (event.landmark && !event.finish && budgets) pendingExpiry += budgets.after(event.landmark, event.lap) / 1000;
+    return true;
+  };
+  let stepDuration = 0;
+
   return Object.freeze({
     player,
     rivals,
+    clock,
+    get events() {
+      return events;
+    },
+    start: () => clock.start(),
     forks,
     get recoveryL() {
       return lane(player, player.actor.vehicle.course.s);
     },
     advance(input: DrivingInput, dt: number) {
+      if (clock.status !== 'RUNNING') return false;
+      stepStart = clock.elapsedSeconds;
+      stepDuration = dt;
+      pendingExpiry = clock.expirySeconds ?? Infinity;
       move(motions[0]!, input, dt);
       for (let i = 1; i < motions.length; i += 1) {
         const motion = motions[i]!;
@@ -198,10 +211,25 @@ export function createCourseRace(options: {
         current.s = c.actor.vehicle.course.s;
         const transition = c.session.observeStep(c.actor, previous, motion.recovered);
         motion.recovered ||= transition === 'recovered';
-        const update = motion.recovered ? (resync(c), null) : c.observer.update(current, section);
+        const update = motion.recovered
+          ? (resync(c), null)
+          : c.observer.update(current, section, c === player ? admitPlayer : undefined);
         if (c.finishElapsedSeconds === null) {
           advanceRaceSession(c.timing, c.progress, update, dt);
           if (update?.justFinished) c.finishElapsedSeconds = c.timing.elapsedSeconds;
+        }
+        if (c === player) {
+          events = update?.events ?? [];
+          clock.advance(
+            dt,
+            events.map((event) => ({
+              gate: event.landmark,
+              lap: event.lap,
+              u: event.u,
+              finish: event.finish,
+              awardMs: event.finish ? 0 : (budgets?.after(event.landmark, event.lap) ?? 0),
+            })),
+          );
         }
         if (transition) resync(c);
       }
@@ -237,17 +265,23 @@ export function createCourseRace(options: {
         })),
       );
       const rank = standings.find((s) => s.competitorId === player.id)!.rank;
-      let state = 'FINISH';
+      let state: string = clock.status;
+      if (clock.status === 'GOAL' || clock.status === 'GAME_OVER')
+        return `${clock.status.replace('_', ' ')} · P${rank}/${rivals.length + 1} · ${formatRaceTime(clock.elapsedSeconds)}`;
+      if (clock.status === 'READY') return 'READY';
       if (player.progress.status !== 'FINISHED') {
         if (course.type === 'CIRCUIT')
-          state = `LAP ${Math.min(options.lapCount, player.progress.acceptedFinishCount + 1)}/${options.lapCount}`;
+          state = `LAP ${Math.min(configuration.lapCount, player.progress.acceptedFinishCount + 1)}/${configuration.lapCount}`;
         else {
           const choice = course.entry.fork ? (forks.choice(course.entry.fork)?.source.carriageway.id ?? 'OPEN') : 'GO';
           state = `ROUTE ${choice}`;
         }
       }
       const start = player.timing.elapsedSeconds < 1 ? 'GO · ' : '';
-      return `${start}${state} · P${rank}/${rivals.length + 1} · ${formatRaceTime(player.timing.elapsedSeconds)}`;
+      const remaining = clock.remainingSeconds;
+      const countdown = remaining === null ? '' : ` · TIME ${Math.ceil(remaining)}`;
+      const extension = clock.extensionMs > 0 ? ` · TIME EXTEND +${(clock.extensionMs / 1000).toFixed(1)}` : '';
+      return `${start}${state}${countdown}${extension} · P${rank}/${rivals.length + 1} · ${formatRaceTime(clock.elapsedSeconds)}`;
     },
   });
 }

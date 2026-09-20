@@ -11,7 +11,8 @@ The new [CourseDocument root](../src/main-course.ts), the default `?mode=linear`
 compiles the graph, and assembles the [shared scene](../src/runtime/course-scene.ts). The scene creates
 occurrence driving readers (a single Section is a graph with no Links), saved presentation and the ordinary renderer. The headless CLI uses
 this same assembly. The SEAM selection drives the two-Section split through a rotated/translated Link. CIRCUIT uses a
-2 km source lap, a standing start, two required laps and two development rivals.
+2 km source lap; its saved CLASSIC preset selects two laps and two development rivals. All four
+selections use the same standing-start Session, settings, checkpoint clock and results.
 The development course is a finite 2.94 km LINEAR with 132 row-generated
 scenery instances, two environments, varying widths, shoulders, left/right turns and height changes.
 The shell retains vehicle selection, input, camera lifecycle, audio and HUD. Completed resident ground
@@ -30,7 +31,7 @@ Product CourseDocuments and image bytes live in `content/`. Regression inputs an
 live in `src/dev/fixtures` and `src/dev/diagnostics`. [Raster authoring](../src/course/raster-turtle.ts)
 owns line/arc subdivision and radius provenance. [DEV](../src/dev/README.md) owns the fixture boundary.
 
-## CourseDocument v8: implemented compiler boundary
+## CourseDocument v9: implemented compiler boundary
 
 [Admission and serialization](../src/course/course-document.ts),
 [geometry recipe](../src/course/course-geometry.ts),
@@ -57,9 +58,9 @@ array order is saved input, including meaningful primitive, knot and stamp order
 fork lock/closure anchors to the saved presentation/reference subset. Live field/actor state remains
 outside the document.
 
-| Record           | Exact v8 fields                                                                                                                                                                                                                                                   |
+| Record           | Exact v9 fields                                                                                                                                                                                                                                                   |
 | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| CourseDocument   | `format: "superoutride.course"`, `version: 8`, `reference`, `id`, `units: {length: "m", angle: "deg"}`, `geometryRecipe: {id, version}`, `type: "LINEAR" \| "BRANCH" \| "CIRCUIT"`, `entrySectionId`, `sections`, `links`, `assets`, `sceneryInstances`           |
+| CourseDocument   | `format: "superoutride.course"`, `version: 9`, `reference`, `id`, `units: {length: "m", angle: "deg"}`, `geometryRecipe: {id, version}`, `type: "LINEAR" \| "BRANCH" \| "CIRCUIT"`, `entrySectionId`, `sections`, `links`, `assets`, `sceneryInstances`, `rules`  |
 | Section          | `id`, `start: {x, z, heading}`, `guide: {margin, mMin}`, `primitives`, `boundaries`, `bands`, `height: [{anchor, y}, ...]`, `physicalBindings: [{bandId, sections: [{anchor, material}, ...]}, ...]`, `carriageways`, `ports`, `assetIds`, `presentation`, `fork` |
 | Straight         | `id`, `kind: "straight"`, `length`                                                                                                                                                                                                                                |
 | Circular arc     | `id`, `kind: "arc"`, `radius`, `turn` (signed degrees)                                                                                                                                                                                                            |
@@ -105,8 +106,8 @@ admission. References resolve within their declared scope, never by array positi
 Empty arrays and unresolved references may be saved as drafts; successful compilation requires complete
 semantic input. A well-formed but unavailable geometry recipe may also be saved, and fails compilation
 with `unsupported_version`. Schema/format and unit mismatches fail admission. Earlier schemas are explicitly
-unsupported. Geometry fixtures explicitly select v8 with `presentation: null`, `fork: null` and an empty
-scenery-instance collection; no appearance or fork controls are inferred from physical Bands.
+unsupported. Geometry fixtures explicitly select v9 with `presentation: null`, `fork: null` and an empty
+scenery-instance collection, and `rules: null`; no appearance or fork controls are inferred from physical Bands.
 There is no implicit root from declaration order or compatibility interpretation.
 
 Stamp IDs and scenery-placement IDs have separate Section-local scopes. Appearance resolves canonical
@@ -131,6 +132,27 @@ with deeply frozen indexed sources. Aliased descriptors share one source, includ
 [Image admission](image-assets.md#course-image-source-admission) owns validation, resource limits and
 asset diagnostics. Document drafts still save without bytes. An empty asset list is sufficient for a
 geometry fixture, not a claim of complete presentation. No mutable pixel buffers enter this product.
+
+### Authored Session rules
+
+`rules` is null for a geometry draft, or owns `grid`, `checkpoints`, `finishes`, `maxLaps`
+and `classic`. The grid is an ordered array of at most 17 `{anchor,l}` slots in the entry Section;
+slot zero is the player, then rivals in roster order. Every slot is supported, at/after entry and
+before the first required gate. No initial speed is authored: Sessions use standing starts.
+
+Checkpoints and finishes each contain `{id,sectionId,carriagewayId,anchor}`. Landmark IDs are unique
+across both arrays. Compilation resolves canonical Section/Carriageway/primitive references and the
+positive supported pavement bounds. Gates lie after entry and no later than the ownership exit;
+checkpoints are strictly ordered within each Section. Every terminal Section has exactly one FINISH,
+continuations have none, and circuit FINISH coincides with its loop exit. There need not be a checkpoint
+at a Section boundary or in a fork approach. Gate planes use the authored Carriageway width, separately
+from the Guide's wider projection envelope. The existing oriented world-crossing tolerance applies.
+
+`maxLaps` is an integer in 1–99 (the finite reference-work bound); non-circuits require 1.
+`classic` contains `vehicleId`, `rivalCount` (0–16), `lapCount` and a positive finite
+`timeMargin` no greater than 10. Preset/grid/lap consistency is a compilation check. Vehicle catalog
+resolution belongs to the composition root, not the course compiler. Compiled rules retain one immutable
+interval per canonical Section, canonical landmarks and resolved grid anchors, never copied lap sources.
 
 ### Domains and admission limits
 
@@ -483,7 +505,7 @@ one reference graph, not a RouteDag, recursive successor tree or JSON-serializab
 
 `sourceSha256` hashes normalized saved input. `buildSha256` hashes `{sourceSha256, compiler,
 geometryRecipe}`, including the full pinned recipe descriptor. The compiler identity is
-`superoutride.course-compiler` version 15, including the Link recipe v1, physical recipe v2, image-source
+`superoutride.course-compiler` version 16, including the Link recipe v1, physical recipe v2, image-source
 admission recipe v1 and presentation recipe v3 descriptors.
 Recipe descriptors contain stable IDs, integer semantic versions and operative numeric/data parameters,
 not explanatory English. Versions pin the documented height, ownership, geometry and overlap behavior;
@@ -544,23 +566,111 @@ not repeat, and lateral width tolerance is independent of direction.
 [Circuit race progress](../src/gameplay/circuit-race-progress.ts) compiles one source-local gate set and
 counts accepted finishes. It reuses that set after a loop-frame resync; source geometry and gates are
 never expanded into lap copies. The entry crossing earns no lap. Missing checkpoints, reverse motion,
-recovery and replacement grant no new credit. Completed race progress remains fixed while driving
-continues after FINISH.
+recovery and replacement grant no new credit. Accepted progress remains fixed after FINISH. The Session stops the field after the player reaches
+GOAL or GAME OVER; results retain the final validated ranking and precise event time.
 
 The circuit field uses the existing rival driver, mechanics, roster, race timing and
 ranking. Every actor owns a bounded traversal over the same graph reader factory. At most the actual
 predecessor, active occurrence and selected successor are retained on the 2 km source. A cumulative
 rigid frame transform and chainage offset map observations into the player's current frame for
 ordinary rival sprites and positional audio; these mappings grant no progress. The browser shows lap,
-rank, elapsed time and FINISH. Timing starts with the standing-start signal and stops separately for
-each accepted finish. `COURSE_PLAY_SETTINGS` owns rival/lap counts, initial speed, grid and lateral targets; production
-Session presets and AI reference qualification remain later milestones.
+rank, elapsed time and FINISH. Timing starts with the explicit START signal and records each accepted finish at its within-step
+intersection fraction. Resolved Session configuration owns roster/laps/clock and vehicle references;
+authored grid slots own starting coordinates and ordinary lateral targets. Physics alone owns motion.
 
 BRANCH progress composes one shared ordered checkpoint/exit gate set per canonical Section.
 A completed source interval advances to the chosen successor only after the actor changes frame;
-reverse and recovery resync observations while preserving earned progress. The development terminal
+reverse and recovery resync observations while preserving earned progress. The saved development terminal
 goal is 60 m before the final source end. CIRCUIT and BRANCH share field mechanics, observation,
-ranking and timing composition; course presets remain deferred.
+ranking, timing and resolved Session composition. Continuation gates award no clock extension.
+
+## Session and reference timing
+
+### Resolved Session
+
+The browser implements CLASSIC and CUSTOM. CLASSIC resolves its saved vehicle, rivals, laps and
+checkpoint clock. CUSTOM selects a catalog vehicle, 0–16 rivals, 1 through the authored maximum laps,
+and clock on/off. Traffic and TIME ATTACK remain outside this slice. Saved reference runs cover every
+catalog vehicle and admitted route/lap prefix before a timed Session can activate. All starting
+calibration and protection values come from the unchanged browser defaults; player and rivals share
+that resolved vehicle configuration. DEV vehicle/physics controls are locked for the Session.
+
+START begins the standing run. PAUSE and a hidden document suspend input/audio/ticks; resume resets
+the frame scheduler without catch-up. GOAL/GAME OVER stops the field and shows rank/time, with NEW
+SESSION returning to setup. Recovery costs simulation time and grants no gates. No records are persisted
+or claimed competitively eligible while calibration/difficulty acceptance remains pending.
+
+Resolution binds immutable course/vehicle/calibration references, roster, standing grid, finite lap
+target and checkpoint budgets. Reject unsupported combinations before activation. Roots compose this
+data; lower layers receive policies/readers. Traffic, seeded policies and record eligibility remain
+product targets.
+
+Course rules own landmarks/order, grid/finish and permitted laps. CLASSIC references them and supplies
+vehicle, roster, lap and margin defaults. Gameplay owns start timing, completion and results.
+Remaining product decisions stay in [Product](product.md#6-remaining-product-decisions).
+
+### Reference times and clock
+
+Run each admitted route/start/lap configuration continuously with the product fixed step, without rivals
+or traffic. Record accepted crossing times including within-step fractions and derive intervals from
+consecutive crossings. Keep start/later-lap arrival classes distinct. Crashed, recovered, incomplete or
+unqualified runs cannot certify budgets.
+
+Reference identity includes simulation-relevant course geometry/compiler identity, vehicle, calibration,
+assist, driver, step, start and seed inputs. Changes invalidate affected outputs. Retain accepted results
+and identity; qualification separately establishes comparable capability use and checkpoint difficulty.
+
+For each budget state, take the maximum upcoming-interval duration across admitted continuous histories
+sharing that state and its legal next checkpoint/finish alternatives. Distinguish arrival classes where
+start/lap conditions require it. This deliberately makes shorter alternatives easier. Enumerate finite
+admitted routes/laps; steering intention is not a budget input.
+
+```text
+budgetMs(state) = ceil(1000*positiveFiniteMargin(course)*referenceSeconds(state))
+```
+
+Start receives its initial budget. Each newly accepted non-finish checkpoint adds the upcoming budget,
+retaining unused time without a cap. FINISH adds none. Grant each occurrence at most once. Preserve
+precise event times for ordering and round only awarded budgets to integer milliseconds. Ordered physical observers admit every consecutive gate crossed in one fixed step, retaining each
+intersection fraction. A deadline rejected crossing cannot raise the validated progress floor. Process expiry
+and gates chronologically; a valid checkpoint/FINISH wins an exact expiry tie. Earlier expiry ends the
+run. Explicit pause/loading consumes neither simulation time nor catch-up time.
+
+Reference-driver acceptance has three stages: reproducible completion, comparable capability use and
+accepted difficulty. Rival difficulty changes a defined planning/input policy rather than forces.
+Production timed presets stay uncertified until these gates pass. Development courses carry an explicit
+1.35 margin for playable evaluation; this is not production difficulty acceptance.
+
+### Offline envelopes and reference driving
+
+The file/CLI workflow measures each catalog vehicle using ordinary production physics at the browser's
+1/60 s step, flat asphalt, standing acceleration and full braking with unchanged calibration/assist.
+Maximum speed requires eight consecutive half-second gains below 0.002 m/s, with a 240 s work limit.
+Acceleration/braking retain speed-indexed observations; lateral trials sample 5 m/s then 10 m/s spacing
+and maximum speed, with seven steering requests, two seconds settling and two seconds observation.
+Their planar velocity turning acceleration is measured directly. Accepted trials retain speed within
+12% (or 1 m/s at low speed), sideslip below 0.2 radians and body-up above 0.25; the maximum accepted
+mean is the operational lateral envelope, not an analytic tire-force claim. Small-input gain supplies
+the steering controller. Envelope output preserves numeric measurement data and exact inputs.
+
+The deterministic reference driver uses a contiguous 5 m curvature lattice over 480 m, a braking
+constraint from measured deceleration, 90% lateral-envelope utilization and full-throttle straights.
+A speed-dependent pursuit controller outputs canonical steering/throttle/brake only. It never alters
+pose, forces or calibration. All runs begin at the player grid without rivals/traffic, traverse their
+chosen route physically through the same field lock and occurrence commits, and reject recovery,
+wrong-route selection, timeout or unsupported FINISH. Output contains precise landmark times and an
+optional 10 Hz speed/position/utilization trace. The envelope and driver are offline fitting/validation
+inputs; course compilation and runtime perform no tuning or fitting.
+
+Saved numeric reference products in `content/reference` bind course/compiler build identity, a digest
+of simulation/planning/traversal sources, the full resolved vehicle/calibration/assist identity and driver
+policy. Build checks the source digest and admits all catalog entries; browser admission checks the
+course, vehicle and driver identities, finite positive intervals, complete ordered landmarks, every
+route and every lap prefix. Publication rejects incomplete, stale or recovered products. Consumers
+resolve landmark IDs once to canonical references. A continuous maximum-lap run supplies exact prefixes;
+no independently restarted sectors or synthesized steady laps are substituted. Reference generation is
+explicit offline work, not a build-time or browser simulation. Reproducible car/bike replay and measured
+capability use are executable evidence; human difficulty acceptance remains separate.
 
 ## Recovery
 
@@ -873,46 +983,6 @@ checkpoint or lap. Height/topology also disambiguate overpass contacts. Tunnel/b
 ordinary content. Validate mapped road/shoulder/support bands, Guide domains and nonadjacent intersections,
 separately classifying intentional overpasses/lap copies. Traffic/barrier response has its own interaction
 contract; player/rivals retain common vehicle mechanics.
-
-### Resolved Session
-
-Resolve mode/preset/settings into immutable course/vehicle/calibration references, roster, traffic/driver
-policy, seed, start/finish policy, finite lap target, checkpoint budgets and record eligibility. Reject
-unsupported combinations before activation. Roots compose this data; lower layers receive policies/readers.
-
-Course rules own landmarks/order, grid/finish and permitted laps. CLASSIC references them and supplies
-vehicle, roster, traffic and margin defaults. Gameplay owns start timing, completion and results.
-Remaining product decisions stay in [Product](product.md#6-remaining-product-decisions).
-
-### Reference times and clock
-
-Run each admitted route/start/lap configuration continuously with the product fixed step, without rivals
-or traffic. Record accepted crossing times including within-step fractions and derive intervals from
-consecutive crossings. Keep start/later-lap arrival classes distinct. Crashed, recovered, incomplete or
-unqualified runs cannot certify budgets.
-
-Reference identity includes simulation-relevant course geometry/compiler identity, vehicle, calibration,
-assist, driver, step, start and seed inputs. Changes invalidate affected outputs. Retain accepted results
-and identity; qualification separately establishes comparable capability use and checkpoint difficulty.
-
-For each budget state, take the maximum upcoming-interval duration across admitted continuous histories
-sharing that state and its legal next checkpoint/finish alternatives. Distinguish arrival classes where
-start/lap conditions require it. This deliberately makes shorter alternatives easier. Enumerate finite
-admitted routes/laps; steering intention is not a budget input.
-
-```text
-budgetMs(state) = ceil(1000*positiveFiniteMargin(course)*referenceSeconds(state))
-```
-
-Start receives its initial budget. Each newly accepted non-finish checkpoint adds the upcoming budget,
-retaining unused time without a cap. FINISH adds none. Grant each occurrence at most once. Preserve
-precise event times for ordering and round only awarded budgets to integer milliseconds. Process expiry
-and gates chronologically; a valid checkpoint/FINISH wins an exact expiry tie. Earlier expiry ends the
-run. Explicit pause/loading consumes neither simulation time nor catch-up time.
-
-Reference-driver acceptance has three stages: reproducible completion, comparable capability use and
-accepted difficulty. Rival difficulty changes a defined planning/input policy rather than forces.
-Timed presets stay uncertified until these gates pass.
 
 ### Authoring documents and assets
 

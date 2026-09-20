@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 8,
+  "version": 9,
   "id": "provisional-linear",
   "reference": {
     "source": {
@@ -978,5 +978,157 @@
       "sha256": "62855977eee911de53ec4c6e812caef99cea45bad42fd53f6ac575fb435ad71d"
     }
   ],
-  "sceneryInstances": []
+  "sceneryInstances": [],
+  "rules": {
+    "grid": [
+      {
+        "anchor": {
+          "kind": "absolute",
+          "s": 45
+        },
+        "l": 0
+      },
+      {
+        "anchor": {
+          "kind": "absolute",
+          "s": 55
+        },
+        "l": -2
+      },
+      {
+        "anchor": {
+          "kind": "absolute",
+          "s": 67
+        },
+        "l": 2
+      },
+      {
+        "anchor": {
+          "kind": "absolute",
+          "s": 79
+        },
+        "l": -2
+      },
+      {
+        "anchor": {
+          "kind": "absolute",
+          "s": 91
+        },
+        "l": 2
+      },
+      {
+        "anchor": {
+          "kind": "absolute",
+          "s": 103
+        },
+        "l": -2
+      },
+      {
+        "anchor": {
+          "kind": "absolute",
+          "s": 115
+        },
+        "l": 2
+      },
+      {
+        "anchor": {
+          "kind": "absolute",
+          "s": 127
+        },
+        "l": -2
+      },
+      {
+        "anchor": {
+          "kind": "absolute",
+          "s": 139
+        },
+        "l": 2
+      },
+      {
+        "anchor": {
+          "kind": "absolute",
+          "s": 151
+        },
+        "l": -2
+      },
+      {
+        "anchor": {
+          "kind": "absolute",
+          "s": 163
+        },
+        "l": 2
+      },
+      {
+        "anchor": {
+          "kind": "absolute",
+          "s": 175
+        },
+        "l": -2
+      },
+      {
+        "anchor": {
+          "kind": "absolute",
+          "s": 187
+        },
+        "l": 2
+      },
+      {
+        "anchor": {
+          "kind": "absolute",
+          "s": 199
+        },
+        "l": -2
+      },
+      {
+        "anchor": {
+          "kind": "absolute",
+          "s": 211
+        },
+        "l": 2
+      },
+      {
+        "anchor": {
+          "kind": "absolute",
+          "s": 223
+        },
+        "l": -2
+      },
+      {
+        "anchor": {
+          "kind": "absolute",
+          "s": 235
+        },
+        "l": 2
+      }
+    ],
+    "checkpoints": [
+      {
+        "id": "coastal-trial-CP1",
+        "sectionId": "coastal-trial",
+        "carriagewayId": "road",
+        "anchor": {
+          "kind": "absolute",
+          "s": 1455.9155428582208
+        }
+      }
+    ],
+    "finishes": [
+      {
+        "id": "coastal-trial-FINISH",
+        "sectionId": "coastal-trial",
+        "carriagewayId": "road",
+        "anchor": {
+          "kind": "absolute",
+          "s": 2880.3310857164415
+        }
+      }
+    ],
+    "maxLaps": 1,
+    "classic": {
+      "vehicleId": "TESTAROSSA",
+      "rivalCount": 0,
+      "lapCount": 1,
+      "timeMargin": 1.35
+    }
+  }
 }

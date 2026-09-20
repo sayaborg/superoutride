@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 8,
+  "version": 9,
   "reference": null,
   "id": "provisional-branch",
   "units": {
@@ -1962,5 +1962,175 @@
       "id": "right-closed",
       "assetId": "fork-closed"
     }
-  ]
+  ],
+  "rules": {
+    "grid": [
+      {
+        "anchor": {
+          "kind": "absolute",
+          "s": 45
+        },
+        "l": 0
+      },
+      {
+        "anchor": {
+          "kind": "absolute",
+          "s": 55
+        },
+        "l": -2
+      },
+      {
+        "anchor": {
+          "kind": "absolute",
+          "s": 67
+        },
+        "l": 2
+      },
+      {
+        "anchor": {
+          "kind": "absolute",
+          "s": 79
+        },
+        "l": -2
+      },
+      {
+        "anchor": {
+          "kind": "absolute",
+          "s": 91
+        },
+        "l": 2
+      },
+      {
+        "anchor": {
+          "kind": "absolute",
+          "s": 103
+        },
+        "l": -2
+      },
+      {
+        "anchor": {
+          "kind": "absolute",
+          "s": 115
+        },
+        "l": 2
+      },
+      {
+        "anchor": {
+          "kind": "absolute",
+          "s": 127
+        },
+        "l": -2
+      },
+      {
+        "anchor": {
+          "kind": "absolute",
+          "s": 139
+        },
+        "l": 2
+      },
+      {
+        "anchor": {
+          "kind": "absolute",
+          "s": 151
+        },
+        "l": -2
+      },
+      {
+        "anchor": {
+          "kind": "absolute",
+          "s": 163
+        },
+        "l": 2
+      },
+      {
+        "anchor": {
+          "kind": "absolute",
+          "s": 175
+        },
+        "l": -2
+      },
+      {
+        "anchor": {
+          "kind": "absolute",
+          "s": 187
+        },
+        "l": 2
+      },
+      {
+        "anchor": {
+          "kind": "absolute",
+          "s": 199
+        },
+        "l": -2
+      },
+      {
+        "anchor": {
+          "kind": "absolute",
+          "s": 211
+        },
+        "l": 2
+      },
+      {
+        "anchor": {
+          "kind": "absolute",
+          "s": 223
+        },
+        "l": -2
+      },
+      {
+        "anchor": {
+          "kind": "absolute",
+          "s": 235
+        },
+        "l": 2
+      }
+    ],
+    "checkpoints": [
+      {
+        "id": "left-path-CP1",
+        "sectionId": "left-path",
+        "carriagewayId": "road",
+        "anchor": {
+          "kind": "absolute",
+          "s": 500
+        }
+      },
+      {
+        "id": "right-path-CP1",
+        "sectionId": "right-path",
+        "carriagewayId": "road",
+        "anchor": {
+          "kind": "absolute",
+          "s": 600
+        }
+      },
+      {
+        "id": "shared-finish-CP1",
+        "sectionId": "shared-finish",
+        "carriagewayId": "road",
+        "anchor": {
+          "kind": "absolute",
+          "s": 570
+        }
+      }
+    ],
+    "finishes": [
+      {
+        "id": "shared-finish-FINISH",
+        "sectionId": "shared-finish",
+        "carriagewayId": "road",
+        "anchor": {
+          "kind": "absolute",
+          "s": 1040
+        }
+      }
+    ],
+    "maxLaps": 1,
+    "classic": {
+      "vehicleId": "TESTAROSSA",
+      "rivalCount": 2,
+      "lapCount": 1,
+      "timeMargin": 1.35
+    }
+  }
 }

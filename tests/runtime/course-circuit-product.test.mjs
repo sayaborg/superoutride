@@ -1,3 +1,5 @@
+import { resolveCourseSession } from '../../dist/runtime/course-session.js';
+import { browserSessionVehicle } from '../../dist/browser/session-vehicle.js';
 import { testGround } from '../helpers/resident-ground.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -34,14 +36,17 @@ function fixture() {
 test('standing player and rival physically finish a transformed source lap with shared content and bounded histories', () => {
   const { scene, actor } = fixture();
   const race = createCourseRace({
-    course,
+    session: resolveCourseSession(
+      course,
+      { mode: 'CUSTOM', rivalCount: 1, lapCount: 1, countdown: false },
+      browserSessionVehicle(entry),
+    ),
     player: actor,
     playerSession: scene.session,
     createSession: scene.createActorSession,
-    rivalCount: 1,
-    lapCount: 1,
-    rival: { profile: entry.profile, torqueProtection: entry.torqueProtection, kind: 'car' },
+    rival: browserSessionVehicle(entry),
   });
+  race.start();
   assert.equal(actor.vehicle.longitudinalSpeed, 0);
   assert.equal(race.rivals[0].actor.vehicle.longitudinalSpeed, 0);
   assert.equal(
@@ -50,15 +55,16 @@ test('standing player and rival physically finish a transformed source lap with 
   );
   const target = new SoftwareSurface(320, 240);
   let visibleRival = false;
-  for (let tick = 0; tick < 8000; tick++) {
-    race.advance(sampleRivalDrivingInput(scene.world.guide, actor.vehicle), 1 / 120);
-    const camera = updateCamera(actor.cameraRig, scene.world, actor.vehicle, CURRENT_CAMERA_PROFILE, 1 / 120);
+  for (let tick = 0; tick < 4000; tick++) {
+    race.advance(sampleRivalDrivingInput(scene.world.guide, actor.vehicle), 1 / 60);
+    const camera = updateCamera(actor.cameraRig, scene.world, actor.vehicle, CURRENT_CAMERA_PROFILE, 1 / 60);
     if (tick % 600 === 0) {
       const observation = race.observe(camera);
       visibleRival ||= observation.sprites.some((s) => s.sRender > camera.s && s.sRender < camera.s + 200);
       const frame = scene.render(target, actor.vehicle, camera, 'car', observation.sprites);
       assert.ok(frame.terrainOutputPixels > 1000);
     }
+    if (race.clock.status === 'GOAL') break;
     for (const session of [scene.session, race.rivals[0].session]) {
       const history = session.history;
       assert.ok(history.occurrences.length + history.selected.length <= 3);
@@ -72,7 +78,7 @@ test('standing player and rival physically finish a transformed source lap with 
   assert.equal(actor.recovery.recoveries, 0);
   assert.equal(race.rivals[0].actor.recovery.recoveries, 0);
   assert.equal(scene.history.active.ordinal, 1);
-  assert.ok(race.label().startsWith('FINISH'));
+  assert.ok(race.label().startsWith('GOAL'));
   const earned = [
     race.player.progress.sProgress,
     race.player.progress.validatedProgressFloor,
@@ -80,7 +86,7 @@ test('standing player and rival physically finish a transformed source lap with 
   ];
   recoverVehicle(scene.world, actor.vehicle, { state: actor.recovery, reason: 'manual' });
   race.resyncPlayer();
-  for (let tick = 0; tick < 10; tick++) race.advance({ steering: 0, throttle: false, brake: false }, 1 / 120);
+  for (let tick = 0; tick < 10; tick++) race.advance({ steering: 0, throttle: false, brake: false }, 1 / 60);
   assert.deepEqual(
     [race.player.progress.sProgress, race.player.progress.validatedProgressFloor, race.player.finishElapsedSeconds],
     earned,

@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 8,
+  "version": 9,
   "reference": null,
   "id": "linked-linear",
   "units": {
@@ -934,5 +934,6 @@
     }
   ],
   "assets": [],
-  "sceneryInstances": []
+  "sceneryInstances": [],
+  "rules": null
 }

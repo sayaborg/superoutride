@@ -42,6 +42,7 @@ export function compilePhysicalRaceGate(
   kind: PhysicalRaceGateKind,
   name: string,
   s: number,
+  bounds?: { readonly left: number; readonly right: number },
 ): PhysicalRaceGate {
   if (!Number.isInteger(index) || index < 0) {
     throw new RangeError('physical race gate index must be a non-negative integer');
@@ -57,12 +58,14 @@ export function compilePhysicalRaceGate(
     throw new RangeError('physical race gate chainage must be within the Guide [0,length] domain');
   }
 
-  const centerSample = guidePathToWorld(guide, s, 0);
+  if (bounds && (![bounds.left, bounds.right].every(Number.isFinite) || bounds.right <= bounds.left))
+    throw new RangeError('Gate bounds require finite positive width');
+  const centerSample = guidePathToWorld(guide, s, bounds ? (bounds.left + bounds.right) / 2 : 0);
   const geometry = compileWorldCrossingGate({
     id: name,
     center: centerSample,
     heading: centerSample.heading,
-    halfWidth: guideEnvelopeAt(guide.envelope, s),
+    halfWidth: bounds ? (bounds.right - bounds.left) / 2 : guideEnvelopeAt(guide.envelope, s),
   });
   return Object.freeze({
     index,

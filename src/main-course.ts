@@ -4,13 +4,16 @@ import { mustGet } from './browser/dom.js';
 import { readCourseDocument } from './course/course-document.js';
 import { courseGroundPreflight, readCourseGround } from './compiler/course-ground.js';
 import { compileCourseDocument } from './compiler/compiled-course.js';
-import { advanceVehicleWithRecovery, RECOVERY_PROFILE } from './gameplay/recovery.js';
+import { RECOVERY_PROFILE } from './gameplay/recovery.js';
 import type { DrivingInput } from './input/driving-input.js';
 import { deriveVehicleSpriteFamily } from './render/vehicle-presentation.js';
-import { DEFAULT_VEHICLE_CATALOG_ENTRY } from './vehicle/vehicle-catalog.js';
+import { VEHICLE_CATALOG } from './vehicle/vehicle-catalog.js';
 import { createCourseRace } from './runtime/course-race.js';
 import { createCoursePerformanceHud } from './browser/course-performance-hud.js';
-import { COURSE_PLAY_SETTINGS } from './runtime/course-driving-policy.js';
+import { resolveCourseSession } from './runtime/course-session.js';
+import { readCourseReference } from './runtime/course-reference.js';
+import { browserSessionVehicle } from './browser/session-vehicle.js';
+import { readBrowserSessionSettings, mountCourseSessionControls } from './browser/course-session-controls.js';
 import { createCourseScene } from './runtime/course-scene.js';
 
 const canvas = mustGet<HTMLCanvasElement>('game');
@@ -49,85 +52,110 @@ try {
     manifest,
     await fetchBytes(new URL(`ground/${mode}.bin`, root)),
   );
-  const scene = createCourseScene(compiled.value.entry, ground);
-  const racing = source.value.type !== 'LINEAR';
-  const shell = createBrowserDrivingShell(scene.world, COURSE_PLAY_SETTINGS.playerL, {
-    s: COURSE_PLAY_SETTINGS.playerS,
-    initialSpeed: racing ? COURSE_PLAY_SETTINGS.standingSpeed : COURSE_PLAY_SETTINGS.touringSpeed,
-  });
-  const race = racing
-    ? createCourseRace({
-        course: compiled.value,
-        player: shell,
-        playerSession: scene.session,
-        createSession: scene.createActorSession,
-        rivalCount: COURSE_PLAY_SETTINGS.rivalCount,
-        lapCount: COURSE_PLAY_SETTINGS.lapCount,
-        rival: {
-          profile: DEFAULT_VEHICLE_CATALOG_ENTRY.profile,
-          torqueProtection: DEFAULT_VEHICLE_CATALOG_ENTRY.torqueProtection,
-          kind: deriveVehicleSpriteFamily(DEFAULT_VEHICLE_CATALOG_ENTRY),
-        },
-      })
+  const course = compiled.value;
+  if (!course.rules) throw new RangeError('Playable courses require saved Session rules');
+  const parameters = new URLSearchParams(location.search);
+  const settings = readBrowserSessionSettings(parameters, course.rules.classic);
+  const preset = readBrowserSessionSettings(new URLSearchParams(), course.rules.classic);
+  const entry = VEHICLE_CATALOG.find((v) => v.profile.id === settings.vehicleId)!;
+  const vehicle = browserSessionVehicle(entry);
+  const budgets = settings.countdown
+    ? await readCourseReference(
+        course,
+        vehicle,
+        JSON.parse(
+          new TextDecoder('utf-8', { fatal: true }).decode(
+            await fetchBytes(new URL('reference/' + mode + '.json', root)),
+          ),
+        ),
+      )
     : null;
-  const raceStatus = race ? document.createElement('output') : null;
-  if (raceStatus) {
-    raceStatus.setAttribute('role', 'status');
-    raceStatus.setAttribute('aria-live', 'off');
-    raceStatus.className = 'course-status';
-    canvas.insertAdjacentElement('afterend', raceStatus);
-  }
+  const session = resolveCourseSession(course, settings, vehicle, budgets);
+  const scene = createCourseScene(course.entry, ground);
+  const slot = session.grid[0]!;
+  const shell = createBrowserDrivingShell(scene.world, slot.l, {
+    s: slot.anchor.s,
+    initialSpeed: session.initialSpeed,
+    vehicle,
+  });
+  const race = createCourseRace({
+    session,
+    player: shell,
+    playerSession: scene.session,
+    createSession: scene.createActorSession,
+    rival: vehicle,
+  });
+  const raceStatus = document.createElement('output');
+  raceStatus.setAttribute('role', 'status');
+  raceStatus.setAttribute('aria-label', 'Session status');
+  raceStatus.setAttribute('aria-live', 'off');
+  raceStatus.className = 'course-status';
+  canvas.insertAdjacentElement('afterend', raceStatus);
   const lifecycle = shell.mountControls({
     world: () => scene.world,
     recoveryProfile: RECOVERY_PROFILE,
-    recoveryL: race ? () => race.recoveryL : undefined,
+    configurationLocked: true,
+    canRecover: () => race.clock.status === 'RUNNING' && !manualPause && !document.hidden,
+    recoveryL: () => race.recoveryL,
     resync: () => {
       scene.recoverAtEntry(shell.vehicle, shell.recovery);
-      if (race) race.resyncPlayer();
-      else scene.observeStep(shell, shell.vehicle, true);
+      race.resyncPlayer();
     },
   });
   const performanceHud = createCoursePerformanceHud(canvas, scene.metrics, scene.groundMetrics);
-  const previous = { x: 0, z: 0 };
   let input: DrivingInput = { steering: 0, throttle: false, brake: false };
+  let manualPause = false;
+  const tick = (dt: number) => {
+    const started = performance.now();
+    input = shell.inputManager.sample();
+    lifecycle.update(dt, race.advance(input, dt));
+    performanceHud.step(performance.now() - started);
+  };
+  const render = () => {
+    const started = performance.now(),
+      observations = race.observe(lifecycle.camera);
+    const result = scene.render(
+      shell.framebuffer,
+      shell.vehicle,
+      lifecycle.camera,
+      deriveVehicleSpriteFamily(shell.presentation),
+      observations.sprites,
+    );
+    shell.present(mode, input, lifecycle.camera, result.playerScreenY, observations.rivals);
+    raceStatus.textContent = race.label();
+    performanceHud.frame(started);
+    if (race.clock.status === 'GOAL' || race.clock.status === 'GAME_OVER') {
+      controls.complete();
+      shell.stop();
+      shell.inputManager.setSuspended(true);
+    }
+  };
+  const suspend = () => {
+    shell.stop();
+    shell.inputManager.setSuspended(true);
+  };
+  const controls = mountCourseSessionControls(canvas, settings, preset, course.rules.maxLaps, {
+    start: () => {
+      shell.inputManager.setSuspended(true);
+      shell.inputManager.setSuspended(false);
+      race.start();
+    },
+    pause: (paused) => {
+      manualPause = paused;
+      if (paused) {
+        suspend();
+        raceStatus.textContent = 'PAUSED';
+      } else shell.start(tick, render);
+    },
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) suspend();
+    else if (!manualPause && (race.clock.status === 'RUNNING' || race.clock.status === 'READY'))
+      shell.start(tick, render);
+  });
   status.remove();
-  shell.start(
-    (dt) => {
-      const started = performance.now();
-      input = shell.inputManager.sample();
-      if (race) {
-        lifecycle.update(dt, race.advance(input, dt));
-        performanceHud.step(performance.now() - started);
-        return;
-      }
-      previous.x = shell.vehicle.x;
-      previous.z = shell.vehicle.z;
-      const recovered = advanceVehicleWithRecovery(scene.world, shell.vehicle, {
-        state: shell.recovery,
-        input,
-        dt,
-        profile: RECOVERY_PROFILE,
-      });
-      const entryRecovered = scene.recoverAtEntry(shell.vehicle, shell.recovery);
-      const transition = scene.observeStep(shell, previous, recovered !== null || entryRecovered);
-      lifecycle.update(dt, recovered !== null || entryRecovered || transition === 'recovered');
-      performanceHud.step(performance.now() - started);
-    },
-    () => {
-      const started = performance.now();
-      const observations = race?.observe(lifecycle.camera);
-      const result = scene.render(
-        shell.framebuffer,
-        shell.vehicle,
-        lifecycle.camera,
-        deriveVehicleSpriteFamily(shell.presentation),
-        observations?.sprites,
-      );
-      shell.present(mode, input, lifecycle.camera, result.playerScreenY, observations?.rivals);
-      if (raceStatus && race) raceStatus.textContent = race.label();
-      performanceHud.frame(started);
-    },
-  );
+  shell.start(tick, render);
+  if (parameters.get('autostart') === '1') controls.begin();
 } catch (error) {
   console.error('Course could not start', error);
   status.textContent = `Course could not start: ${error instanceof Error ? error.message : String(error)} `;

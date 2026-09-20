@@ -23,6 +23,7 @@ import {
 } from './course-image-source.js';
 import { COURSE_PRESENTATION_RECIPE, compileCoursePresentation } from './course-presentation.js';
 import type { CourseSceneryInstance } from '../visual/course-presentation.js';
+import { compileCourseRules } from './course-rules.js';
 import { compileCourseFork } from './course-fork.js';
 
 interface SectionDraft extends Omit<CompiledSection, 'ports' | 'incoming' | 'outgoing' | 'fork'> {
@@ -37,6 +38,7 @@ export interface CompiledCourse {
   readonly id: string;
   readonly type: CourseDocument['type'];
   readonly reference: CourseDocument['reference'];
+  readonly rules: ReturnType<typeof compileCourseRules>;
   readonly identity: {
     readonly sourceSha256: string;
     readonly buildSha256: string;
@@ -52,7 +54,7 @@ export interface CompiledCourse {
 
 const COURSE_COMPILER = Object.freeze({
   id: 'superoutride.course-compiler',
-  version: 15,
+  version: 16,
   links: COURSE_LINK_RECIPE,
   physical: COURSE_PHYSICAL_RECIPE,
   images: COURSE_IMAGE_SOURCE_RECIPE,
@@ -302,6 +304,7 @@ export async function compileCourseDocument(
     drafts.forEach((draft, index) => {
       draft.section.fork = forks[index]!;
     });
+    const rules = compileCourseRules(document, sections, entry);
     // Close every cycle before freezing/publication. No draft or construction table escapes.
     for (const section of sections) {
       Object.freeze(section.ports);
@@ -320,6 +323,7 @@ export async function compileCourseDocument(
         id: document.id,
         type: document.type,
         reference: document.reference,
+        rules,
         identity: Object.freeze({
           sourceSha256,
           buildSha256,

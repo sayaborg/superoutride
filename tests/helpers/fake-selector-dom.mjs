@@ -51,12 +51,24 @@ export class SelectorElement {
   replaceChildren(...children) {
     this.children = children;
   }
+  append(...children) {
+    this.children.push(...children);
+  }
+  querySelectorAll(tag) {
+    return this.children.flatMap((c) => [
+      ...(c.tagName?.toLowerCase() === tag ? [c] : []),
+      ...(c.querySelectorAll?.(tag) ?? []),
+    ]);
+  }
   appendChild(child) {
     this.children.push(child);
     return child;
   }
   emit(name, event = {}) {
     for (const listener of this.listeners.get(name) ?? []) listener(event);
+  }
+  focus() {
+    this.focused = true;
   }
   click() {
     if (!this.disabled) this.emit('click');

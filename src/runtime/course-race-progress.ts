@@ -1,8 +1,8 @@
 import type { CompiledCourse } from '../compiler/compiled-course.js';
 import type { CompiledSection } from '../compiler/course-graph.js';
+import type { CompiledCourseLandmark } from '../compiler/course-rules.js';
 import { guidePathToWorld } from '../core/guide-curve.js';
 import {
-  compileCircuitRaceRules,
   createCircuitRaceProgressState,
   updateCircuitRaceProgress,
   resyncCircuitRaceProgress,
@@ -17,49 +17,92 @@ import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
 import type { createCourseDrivingGraph } from './course-driving-session.js';
 type Session = ReturnType<ReturnType<typeof createCourseDrivingGraph>['createSession']>;
 
-/** Upper-level race composition; canonical source gates are shared by every competitor. */
+export type CourseRaceAdmission = (event: {
+  readonly landmark: CompiledCourseLandmark | null;
+  readonly lap: number;
+  readonly u: number;
+  readonly finish: boolean;
+}) => boolean;
+
+export interface CourseRaceEvent {
+  readonly landmark: CompiledCourseLandmark;
+  readonly lap: number;
+  readonly u: number;
+  readonly finish: boolean;
+}
+
+/** Gate geometry is prepared once from authored rules; frame transitions never award clock credit. */
 export function createCourseRaceProgress(course: CompiledCourse, lapCount: number) {
+  if (!course.rules) throw new RangeError('Driving Session requires authored course rules');
   const entryS = (section: CompiledSection) => section.ports.find((p) => p.kind === 'entry')!.anchor.s;
   const sample = (vehicle: ArcadeVehicleState) => ({ x: vehicle.x, z: vehicle.z, s: vehicle.course.s });
+  const rules = new Map(
+    course.rules.intervals.map(({ section, checkpoints, finish }) => {
+      const authored = [...checkpoints, ...(finish ? [finish] : [])];
+      const end = Math.min(...section.outgoing.map((l) => l.source.anchor.s));
+      const lap = compileOrderedRaceCourseRules(section.guide, [
+        ...authored.map((g) => ({
+          kind: g === finish ? ('finish' as const) : ('checkpoint' as const),
+          name: g.id,
+          s: g.anchor.s,
+          bounds: g,
+        })),
+        ...(finish ? [] : [{ kind: 'finish' as const, name: section.id + ':EXIT', s: end }]),
+      ]);
+      const landmarks = new Map(lap.gates.slice(0, authored.length).map((gate, i) => [gate, authored[i]!]));
+      return [section, { lap, landmarks }] as const;
+    }),
+  );
+  const events = (
+    update: ReturnType<typeof updateOrderedRaceProgress>,
+    section: CompiledSection,
+    lap: number,
+    terminal: boolean,
+  ): readonly CourseRaceEvent[] =>
+    update.acceptedCrossings.flatMap(({ gate, u }) => {
+      const landmark = rules.get(section)!.landmarks.get(gate);
+      return landmark ? [{ landmark, lap, u, finish: terminal && gate.kind === 'finish' }] : [];
+    });
   if (course.type === 'CIRCUIT') {
     const section = course.entry,
       loop = section.outgoing[0]!;
-    const start = loop.destination.anchor.s,
-      finish = loop.source.anchor.s;
-    const rules = compileCircuitRaceRules(section.guide, {
+    const circuit = {
       id: course.id,
       lapCount,
-      entryS: start,
-      finishS: finish,
-      checkpointChainages: [0.25, 0.5, 0.75].map((f) => start + (finish - start) * f),
-    });
+      entryS: entryS(section),
+      lapLength: loop.source.anchor.s - entryS(section),
+      lap: rules.get(section)!.lap,
+    };
     return (_session: Session, vehicle: () => ArcadeVehicleState) => {
-      const state = createCircuitRaceProgressState(rules, sample(vehicle()));
+      const state = createCircuitRaceProgressState(circuit, sample(vehicle()));
       return {
         state,
-        update: (current = sample(vehicle())) => updateCircuitRaceProgress(state, rules, current),
-        resync: () => resyncCircuitRaceProgress(state, rules, sample(vehicle())),
+        update(current = sample(vehicle()), observedSection = section, accept?: CourseRaceAdmission) {
+          if (observedSection !== section) return null;
+          const lap = state.acceptedFinishCount + 1;
+          const update = updateCircuitRaceProgress(
+            state,
+            circuit,
+            current,
+            (crossing) =>
+              !accept ||
+              accept({
+                landmark: rules.get(section)!.landmarks.get(crossing.gate) ?? null,
+                lap,
+                u: crossing.u,
+                finish: crossing.gate.kind === 'finish' && lap === lapCount,
+              }),
+          );
+          return { ...update, events: events(update, section, lap, lap === lapCount) };
+        },
+        resync: () => resyncCircuitRaceProgress(state, circuit, sample(vehicle())),
       };
     };
   }
-  const rules = new Map(
-    course.sections.map((section) => {
-      const finish = section.outgoing.length
-        ? Math.min(...section.outgoing.map((l) => l.source.anchor.s))
-        : section.raster.length - 60;
-      return [
-        section,
-        compileOrderedRaceCourseRules(section.guide, [
-          { kind: 'checkpoint', name: `${section.id}:CP`, s: (entryS(section) + finish) / 2 },
-          { kind: 'finish', name: `${section.id}:END`, s: finish },
-        ]),
-      ] as const;
-    }),
-  );
   return (session: Session, vehicle: () => ArcadeVehicleState) => {
     let expected = course.entry,
       base = 0;
-    let local = createOrderedRaceProgressState(rules.get(expected)!, sample(vehicle()));
+    let local = createOrderedRaceProgressState(rules.get(expected)!.lap, sample(vehicle()));
     const state = {
       status: 'RUNNING' as 'RUNNING' | 'FINISHED',
       acceptedFinishCount: 0,
@@ -77,11 +120,28 @@ export function createCourseRaceProgress(course: CompiledCourse, lapCount: numbe
     publish();
     return {
       state,
-      update(current = sample(vehicle()), section = session.history.active.section) {
+      update(current = sample(vehicle()), section = session.history.active.section, accept?: CourseRaceAdmission) {
         if (section !== expected || state.status === 'FINISHED') return null;
-        const update = updateOrderedRaceProgress(local, rules.get(expected)!, current);
+        const update = updateOrderedRaceProgress(
+          local,
+          rules.get(expected)!.lap,
+          current,
+          (crossing) =>
+            !accept ||
+            accept({
+              landmark: rules.get(section)!.landmarks.get(crossing.gate) ?? null,
+              lap: 1,
+              u: crossing.u,
+              finish: crossing.gate.kind === 'finish' && expected.outgoing.length === 0,
+            }),
+        );
         publish();
-        return { ...update, status: state.status, justFinished: update.justFinished && expected.outgoing.length === 0 };
+        return {
+          ...update,
+          status: state.status,
+          justFinished: update.justFinished && expected.outgoing.length === 0,
+          events: events(update, section, 1, expected.outgoing.length === 0),
+        };
       },
       resync() {
         if (state.status === 'FINISHED') return;
@@ -95,10 +155,10 @@ export function createCourseRaceProgress(course: CompiledCourse, lapCount: numbe
           expected = active.section;
           const s = entryS(expected),
             p = guidePathToWorld(expected.guide, s, 0);
-          local = createOrderedRaceProgressState(rules.get(expected)!, { ...p, s });
+          local = createOrderedRaceProgressState(rules.get(expected)!.lap, { ...p, s });
           local.sProgress = s;
         }
-        if (active.section === expected) resyncOrderedRaceProgress(local, rules.get(expected)!, sample(vehicle()));
+        if (active.section === expected) resyncOrderedRaceProgress(local, rules.get(expected)!.lap, sample(vehicle()));
       },
     };
   };

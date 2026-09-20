@@ -1,3 +1,5 @@
+import { resolveCourseSession } from '../../dist/runtime/course-session.js';
+import { browserSessionVehicle } from '../../dist/browser/session-vehicle.js';
 import { testGround } from '../helpers/resident-ground.mjs';
 import { courseBoundaryAt } from '../../dist/course/course-bands.js';
 import assert from 'node:assert/strict';
@@ -41,14 +43,17 @@ function fixture(entry = VEHICLE_CATALOG[0], rivalCount = 1) {
   const actor = { vehicle, recovery: createRecoveryState(vehicle), cameraRig: createCameraRig() };
   const rival = VEHICLE_CATALOG[0];
   const race = createCourseRace({
-    course,
+    session: resolveCourseSession(
+      course,
+      { mode: 'CUSTOM', rivalCount, lapCount: 1, countdown: false },
+      browserSessionVehicle(entry),
+    ),
     player: actor,
     playerSession: scene.session,
     createSession: scene.createActorSession,
-    lapCount: 2,
-    rivalCount,
-    rival: { profile: rival.profile, torqueProtection: rival.torqueProtection, kind: 'car' },
+    rival: browserSessionVehicle(rival),
   });
+  race.start();
   return { scene, actor, race };
 }
 test('all eligible world crossings choose once by u then stable ID, including the half-open median and zero rivals', () => {
@@ -134,19 +139,19 @@ for (const [entry, side, rivalCount] of [
     let seenPath = null,
       seenMerge = false,
       seenLocked = false;
-    for (let tick = 0; tick < 12000; tick++) {
+    for (let tick = 0; tick < 6000; tick++) {
       race.advance(
         sampleRivalDrivingInput(scene.world.guide, actor.vehicle, (s) =>
           race.forks.targetL(scene.history.active.section, s, side),
         ),
-        1 / 120,
+        1 / 60,
       );
       const selected = race.forks.choice(fork);
       seenLocked ||= selected !== null;
       if (scene.history.active.ordinal === 1) seenPath = scene.history.active.section;
       if (scene.history.active.ordinal === 2) seenMerge = true;
       if (tick % 1200 === 0) {
-        const camera = updateCamera(actor.cameraRig, scene.world, actor.vehicle, CURRENT_CAMERA_PROFILE, 1 / 120);
+        const camera = updateCamera(actor.cameraRig, scene.world, actor.vehicle, CURRENT_CAMERA_PROFILE, 1 / 60);
         const observed = race.observe(camera);
         assert.ok(
           scene.render(
@@ -158,21 +163,22 @@ for (const [entry, side, rivalCount] of [
           ).terrainOutputPixels > 1000,
         );
       }
-      if ([race.player, ...race.rivals].every((c) => c.progress.status === 'FINISHED')) break;
+      if (race.clock.status === 'GOAL') break;
     }
     assert.equal(seenLocked, true);
     assert.equal(seenMerge, true);
     const selected = race.forks.choice(fork);
-    assert.equal(selected, fork.regions[side < 0 ? 0 : 1].link);
-    assert.equal(seenPath, selected.destination.section);
+    assert.equal(selected === fork.regions[side < 0 ? 0 : 1].link, true);
+    assert.equal(seenPath === selected.destination.section, true);
     assert.equal(scene.history.active.section, selected.destination.section.outgoing[0].destination.section);
     for (const c of [race.player, ...race.rivals]) {
-      assert.equal(c.progress.status, 'FINISHED');
+      assert.ok(c.progress.sProgress > 0);
+      if (c === race.player) assert.equal(c.progress.status, 'FINISHED');
       assert.equal(c.actor.recovery.recoveries, 0);
       assert.equal(c.session.history.active.section, scene.history.active.section);
       assert.ok(c.session.history.occurrences.length + c.session.history.selected.length <= 4);
     }
-    assert.ok(race.label().startsWith('FINISH'));
+    assert.ok(race.label().startsWith('GOAL'));
     const earned = [
       race.player.progress.sProgress,
       race.player.progress.validatedProgressFloor,
@@ -186,10 +192,19 @@ for (const [entry, side, rivalCount] of [
     });
     actor.recovery = createRecoveryState(actor.vehicle);
     race.resyncPlayer();
-    for (let tick = 0; tick < 30; tick++) race.advance({ steering: 0, throttle: false, brake: false }, 1 / 120);
+    for (let tick = 0; tick < 30; tick++) {
+      const previous = { x: actor.vehicle.x, z: actor.vehicle.z };
+      advanceVehicleWithRecovery(scene.world, actor.vehicle, {
+        state: actor.recovery,
+        input: { steering: 0, throttle: false, brake: false },
+        dt: 1 / 60,
+      });
+      scene.observeStep(actor, previous, false);
+      race.resyncPlayer();
+    }
     assert.equal(
-      scene.history.active.section,
-      seenPath,
+      scene.history.active.section === seenPath,
+      true,
       'reverse uses the actual chosen predecessor of the shared merge',
     );
     assert.deepEqual(

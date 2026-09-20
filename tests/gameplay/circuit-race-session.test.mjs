@@ -105,8 +105,8 @@ test('generic race session records circuit checkpoint and physical lap-boundary 
     ['checkpoint', 'finish'],
   );
   assert.equal(session.boundaryTimings.length, 1);
-  assert.equal(session.boundaryTimings[0].elapsedSeconds, 0.5);
-  assert.equal(session.boundaryTimings[0].intervalSeconds, 0.5);
-  assert.equal(session.bestBoundaryIntervalSeconds, 0.5);
+  assert.equal(session.boundaryTimings[0].elapsedSeconds, 0.375);
+  assert.equal(session.boundaryTimings[0].intervalSeconds, 0.375);
+  assert.equal(session.bestBoundaryIntervalSeconds, 0.375);
   assert.equal(state.acceptedFinishCount, 1);
 });

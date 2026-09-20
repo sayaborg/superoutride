@@ -1,3 +1,5 @@
+import { resolveCourseSession } from '../../dist/runtime/course-session.js';
+import { browserSessionVehicle } from '../../dist/browser/session-vehicle.js';
 import { Session } from 'node:inspector/promises';
 import { loadCourse, loadCourseGround, options, finite } from '../course/authoring-io.mjs';
 import { createCourseScene } from '../../dist/runtime/course-scene.js';
@@ -42,14 +44,17 @@ for (const mode of modes) {
   };
   player.recovery = createRecoveryState(player.vehicle);
   const race = createCourseRace({
-    course,
+    session: resolveCourseSession(
+      course,
+      { mode: 'CUSTOM', rivalCount, lapCount: course.rules.maxLaps, countdown: false },
+      browserSessionVehicle(vehicle),
+    ),
     player,
     playerSession: scene.session,
     createSession: scene.createActorSession,
-    rivalCount,
-    lapCount: 2,
-    rival: { profile: vehicle.profile, torqueProtection: vehicle.torqueProtection, kind: 'car' },
+    rival: browserSessionVehicle(vehicle),
   });
+  race.start();
   const setupMilliseconds = performance.now() - started;
   // Begin at a representative curve, handoff or fork; setup/reposition cost is excluded from driving cost.
   const s = course.entry.fork ? course.entry.fork.lock.s - 15 : (course.entry.outgoing[0]?.source.anchor.s ?? 900) - 15;

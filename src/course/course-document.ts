@@ -133,9 +133,29 @@ export interface SectionDocument {
   readonly fork: null | { readonly lock: CourseAnchor; readonly closure: CourseAnchor };
 }
 
+export interface CourseLandmarkDocument {
+  readonly id: string;
+  readonly sectionId: string;
+  readonly carriagewayId: string;
+  readonly anchor: CourseAnchor;
+}
+
+interface CourseRulesDocument {
+  readonly grid: readonly { readonly anchor: CourseAnchor; readonly l: number }[];
+  readonly checkpoints: readonly CourseLandmarkDocument[];
+  readonly finishes: readonly CourseLandmarkDocument[];
+  readonly maxLaps: number;
+  readonly classic: {
+    readonly vehicleId: string;
+    readonly rivalCount: number;
+    readonly lapCount: number;
+    readonly timeMargin: number;
+  };
+}
+
 export interface CourseDocument {
   readonly format: 'superoutride.course';
-  readonly version: 8;
+  readonly version: 9;
   readonly id: string;
   readonly reference: null | {
     readonly source: { readonly kind: 'video' | 'analyzed-data'; readonly location: string; readonly edition: string };
@@ -151,6 +171,7 @@ export interface CourseDocument {
   readonly geometryRecipe: GeometryRecipeIdentity;
   readonly type: 'LINEAR' | 'BRANCH' | 'CIRCUIT';
   readonly entrySectionId: string;
+  readonly rules: CourseRulesDocument | null;
   readonly sections: readonly SectionDocument[];
   readonly links: readonly LinkDocument[];
   readonly assets: readonly CourseAssetReference[];
@@ -197,7 +218,7 @@ function record(value: unknown, path: string, fields: readonly string[]): Record
   for (const key of Object.keys(result)) {
     if (!fields.includes(key)) {
       const escaped = key.replaceAll('~', '~0').replaceAll('/', '~1');
-      fail('unsupported_feature', `${path}/${escaped}`, `Field ${key} is not supported by CourseDocument v8`);
+      fail('unsupported_feature', `${path}/${escaped}`, `Field ${key} is not supported by CourseDocument v9`);
     }
   }
   for (const key of fields) {
@@ -587,13 +608,49 @@ function section(value: unknown, path: string): SectionDocument {
   });
 }
 
+function rules(value: unknown, path: string): CourseRulesDocument | null {
+  if (value === null) return null;
+  const v = record(value, path, ['grid', 'checkpoints', 'finishes', 'maxLaps', 'classic']);
+  const c = record(v.classic, path + '/classic', ['vehicleId', 'rivalCount', 'lapCount', 'timeMargin']);
+  const integer = (value: unknown, at: string, min: number, max: number) => {
+    const n = number(value, at, min, max);
+    if (!Number.isInteger(n)) fail('invalid_numeric_domain', at, 'Expected an integer');
+    return n;
+  };
+  const landmark = (value: unknown, at: string): CourseLandmarkDocument => {
+    const g = record(value, at, ['id', 'sectionId', 'carriagewayId', 'anchor']);
+    return Object.freeze({
+      id: id(g.id, at + '/id'),
+      sectionId: id(g.sectionId, at + '/sectionId'),
+      carriagewayId: id(g.carriagewayId, at + '/carriagewayId'),
+      anchor: anchor(g.anchor, at + '/anchor'),
+    });
+  };
+  return Object.freeze({
+    grid: array(v.grid, path + '/grid', 17, (value, at) => {
+      const slot = record(value, at, ['anchor', 'l']);
+      return Object.freeze({ anchor: anchor(slot.anchor, at + '/anchor'), l: number(slot.l, at + '/l', -1000, 1000) });
+    }),
+    checkpoints: identified(v.checkpoints, path + '/checkpoints', 256, landmark),
+    finishes: identified(v.finishes, path + '/finishes', 16, landmark),
+    maxLaps: integer(v.maxLaps, path + '/maxLaps', 1, 99),
+    classic: Object.freeze({
+      vehicleId: id(c.vehicleId, path + '/classic/vehicleId'),
+      rivalCount: integer(c.rivalCount, path + '/classic/rivalCount', 0, 16),
+      lapCount: integer(c.lapCount, path + '/classic/lapCount', 1, 99),
+      timeMargin: number(c.timeMargin, path + '/classic/timeMargin', 0, 10, true),
+    }),
+  });
+}
+
 /** Own and normalize schema-valid authoring, including semantically incomplete drafts. */
 export function readCourseDocument(input: unknown): CourseResult<CourseDocument> {
   try {
     // Reject an identified older schema before requiring the current schema's fields.
     if (input && typeof input === 'object' && Object.hasOwn(input, 'version'))
-      literal((input as Record<string, unknown>).version, 8, '/version', 'unsupported_version');
+      literal((input as Record<string, unknown>).version, 9, '/version', 'unsupported_version');
     const v = record(input, '', [
+      'rules',
       'format',
       'version',
       'id',
@@ -608,7 +665,7 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
       'sceneryInstances',
     ]);
     const format = literal(v.format, 'superoutride.course', '/format', 'unsupported_format');
-    const version = literal(v.version, 8, '/version', 'unsupported_version');
+    const version = literal(v.version, 9, '/version', 'unsupported_version');
     const units = record(v.units, '/units', ['length', 'angle']);
     const recipe = record(v.geometryRecipe, '/geometryRecipe', ['id', 'version']);
     const recipeVersion = number(recipe.version, '/geometryRecipe/version', 1, 65535);
@@ -628,6 +685,7 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
       geometryRecipe: Object.freeze({ id: id(recipe.id, '/geometryRecipe/id'), version: recipeVersion }),
       type: v.type,
       entrySectionId: id(v.entrySectionId, '/entrySectionId'),
+      rules: rules(v.rules, '/rules'),
       sections: identified(v.sections, '/sections', COURSE_DOCUMENT_LIMITS.sections, section),
       links: identified(v.links, '/links', COURSE_DOCUMENT_LIMITS.links, (item, at) => {
         const link = record(item, at, ['id', 'source', 'destination', 'overlap']);

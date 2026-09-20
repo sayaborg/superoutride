@@ -171,7 +171,7 @@ binds those sources; overlap/picture continuity and Link readiness remain unqual
 
 ## Saved course presentation
 
-CourseDocument v8 and presentation recipe v3 admit explicit Band paint profiles, static A/B mappings,
+CourseDocument and presentation recipe v3 admit explicit Band paint profiles, static A/B mappings,
 ordered stamps, environment/background profiles, shared scenery identities and state-selected road signs. [Content](content-and-gameplay.md#wire-fields-and-scopes)
 owns exact fields/reference scopes. Ground and background bindings require one normalized master;
 sprite LOD pyramids remain scenery inputs. Source assets resolve to the same canonical records as

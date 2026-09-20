@@ -65,14 +65,40 @@ of video reconstruction. Its current preview directory is reproducible from the 
 Open `http://localhost:8000/?mode=linear` for the same assembly. Build stages course/image and completed-ground bytes
 in `dist/content`; Pages verifies version, commit-versioned boot and every content SHA-256 digest.
 
+## Offline Session references
+
+Compile the current modules, then use the product physics without a browser. A stale reference can
+make a complete build fail until this explicit regeneration is performed:
+
+```sh
+npx tsc -p tsconfig.json
+node tools/course/course.mjs envelope TESTAROSSA --out /tmp/testarossa-envelope.json
+node tools/course/course.mjs reference content/courses/linear.course.json --vehicle VFR750R --laps 1 --route 0 --out /tmp/reference-run.json
+node tools/course/course.mjs reference-build content/courses/circuit.course.json --out content/reference/circuit.json
+```
+
+`envelope` writes numeric acceleration/braking observations and a speed-indexed lateral envelope.
+`reference` runs one selected finite route/lap configuration and writes accepted interval times plus a
+10 Hz speed/position trace. `reference-build` explicitly measures all catalog vehicles and continuously
+runs every route through the authored maximum laps; it publishes only a complete successful product.
+This potentially long offline job is never part of `npm test` or browser loading. Run it again after
+simulation-relevant inputs change. Build rejects stale source/vehicle/course identity and stages the
+numeric products with all other delivered content hashes. [Content](content-and-gameplay.md#offline-envelopes-and-reference-driving)
+owns measurement, timing aggregation and qualification semantics.
+
+Reference validation adds representative Testarossa/VFR750R continuous replay and adversarial clock,
+landmark/order, stale-input and coverage checks. Existing field integrations use the actual 60 Hz
+product step and stop when Session results appear. Mechanics keeps its separate immutable multi-rate
+coverage. Device performance and human difficulty acceptance remain separate from offline completion.
+
 ## CourseDocument compiler
 
 `npm run course -- compile content/courses/linear.course.json` reads saved JSON and exact image
 bytes through the public admission/compiler boundary. It returns machine-readable identities,
 counts, resident-ground capacity accounting or structured diagnostics and leaves source unchanged. `compile:course` remains a basic
 compiler report for geometry-only inputs, accepting only the source and optional image directory.
-[Content](content-and-gameplay.md#coursedocument-v8-implemented-compiler-boundary) owns schema v8,
-compiler v15, canonical references, admission limits and failure semantics.
+[Content](content-and-gameplay.md#coursedocument-v9-implemented-compiler-boundary) owns schema v9,
+compiler v16, canonical references, admission limits and failure semantics.
 
 The product root's contact/step guard admission and local geometry checks are covered by direct
 causal tests. Ground samples prefiltered resident images. Longer view consumers read source-owned spans.

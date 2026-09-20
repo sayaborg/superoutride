@@ -77,7 +77,7 @@ test('production CLI renders saved car and bike scenes at curves and strip edges
 });
 
 for (const mode of ['linear', 'seam', 'circuit', 'branch'])
-  test(`actual ${mode} browser root loads saved content and runs input, recovery, vehicle selection and frame rendering`, async (t) => {
+  test(`actual ${mode} browser root loads saved content and runs Session input, recovery, locked configuration and frame rendering`, async (t) => {
     const dom = installBrowserDom(t, `?mode=${mode}`);
     const requests = [];
     t.mock.method(globalThis, 'fetch', async (url) => {
@@ -91,7 +91,8 @@ for (const mode of ['linear', 'seam', 'circuit', 'branch'])
       element.append = (...children) => element.children.push(...children);
       return element;
     };
-    dom.elements.get('game').insertAdjacentElement = () => {};
+    const panels = [];
+    dom.elements.get('game').insertAdjacentElement = (_, element) => panels.push(element);
     await import(`../../dist/main-course.js?${mode}`);
     assert.ok(requests.some((url) => url.endsWith(`/courses/${mode}.course.json`)));
     assert.equal(requests.filter((url) => url.endsWith('.course.json')).length, 1);
@@ -104,17 +105,30 @@ for (const mode of ['linear', 'seam', 'circuit', 'branch'])
       ).size,
     );
     assert.equal(requests.filter((url) => url.includes('/ground/')).length, 2);
+    assert.equal(requests.filter((url) => url.includes('/reference/')).length, 1);
     const startupRequests = requests.length;
+    const setup = panels.find((p) => p.getAttribute('aria-label') === 'Session setup');
+    assert.ok(setup);
+    setup.emit('submit', { preventDefault() {} });
     dom.win.emit('keydown', { code: 'ArrowUp', preventDefault() {} });
     dom.frame(17);
     dom.frame(34);
     dom.elements
       .get('vehicle-selector-buttons')
       .children.find((e) => e.textContent === 'RC30')
-      .emit('click');
+      .click();
+    assert.ok(dom.elements.get('vehicle-selector-buttons').children.every((b) => b.disabled));
     for (let i = 0; i < 10; i += 1) dom.win.emit('keydown', { code: 'Backspace', preventDefault() {} });
     dom.frame(51);
     assert.ok(dom.calls.filter((c) => c[0] === 'putImageData').length >= 4);
+    const toolbar = panels.find((p) => p.className === 'session-actions');
+    const sessionStatus = panels.find((p) => p.getAttribute('aria-label') === 'Session status');
+    toolbar.children[0].click();
+    assert.equal(sessionStatus.textContent, 'PAUSED');
+    assert.throws(() => dom.frame(10_000), /did not schedule/);
+    toolbar.children[0].click();
+    assert.notEqual(sessionStatus.textContent, 'PAUSED');
+    dom.frame(68);
     assert.equal(requests.length, startupRequests, 'fixed steps/rendering/recovery never fetch ground');
   });
 

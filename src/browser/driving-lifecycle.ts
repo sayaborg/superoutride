@@ -14,6 +14,8 @@ interface DrivingPlayer {
 }
 
 export interface DrivingLifecycleOptions {
+  readonly configurationLocked?: boolean;
+  readonly canRecover?: () => boolean;
   readonly world: () => VehicleWorld;
   readonly recoveryProfile: Readonly<RecoveryProfile>;
   readonly recoveryL?: () => number;

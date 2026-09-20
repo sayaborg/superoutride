@@ -1,3 +1,4 @@
+import type { SessionVehicle } from '../gameplay/session-configuration.js';
 import { createAudioLifecycle } from './audio-lifecycle.js';
 import { createDrivingLifecycle, type DrivingLifecycleOptions } from './driving-lifecycle.js';
 import type { CameraRig } from '../camera/camera.js';
@@ -53,7 +54,7 @@ interface BrowserDrivingShell {
 export function createBrowserDrivingShell(
   runtime: VehicleWorld,
   startL: number,
-  spawn: { readonly initialSpeed?: number; readonly s?: number } = {},
+  spawn: { readonly initialSpeed?: number; readonly s?: number; readonly vehicle?: SessionVehicle } = {},
 ): BrowserDrivingShell {
   const canvas = mustGet<HTMLCanvasElement>('game');
   canvas.width = LOGICAL_WIDTH;
@@ -65,12 +66,14 @@ export function createBrowserDrivingShell(
   const imageData = ctx.createImageData(LOGICAL_WIDTH, LOGICAL_HEIGHT);
   const framebuffer = new SoftwareSurface(LOGICAL_WIDTH, LOGICAL_HEIGHT, new Uint32Array(imageData.data.buffer));
   const inputManager = new InputManager();
-  let vehicle = createArcadeVehicle(DEFAULT_VEHICLE_CATALOG_ENTRY.profile, runtime, {
+  const selected = spawn.vehicle;
+  let vehicle = createArcadeVehicle(selected?.profile ?? DEFAULT_VEHICLE_CATALOG_ENTRY.profile, runtime, {
     s: spawn.s ?? 45,
     l: startL,
     initialSpeed: spawn.initialSpeed ?? 45,
-    tireFrictionCalibration: DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION,
-    torqueProtection: DEFAULT_VEHICLE_CATALOG_ENTRY.torqueProtection,
+    tireFrictionCalibration: selected?.tireFrictionCalibration ?? DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION,
+    steeringCalibration: selected?.steeringCalibration,
+    torqueProtection: selected?.torqueProtection ?? DEFAULT_VEHICLE_CATALOG_ENTRY.torqueProtection,
   });
   let recovery = createRecoveryState(vehicle);
   const cameraRig = createCameraRig();
@@ -131,7 +134,7 @@ export function createBrowserDrivingShell(
     mountControls(options: DrivingLifecycleOptions) {
       const lifecycle = createDrivingLifecycle(this, options);
       const selectVehicleProfile = (profile: Readonly<CompiledArcadeVehicleProfile>) => {
-        if (profile.id === vehicle.profile.id) return;
+        if (options.configurationLocked || profile.id === vehicle.profile.id) return;
         lifecycle.replace(profile);
         vehicleSelector.setActive(vehicle.profile.id);
       };
@@ -158,20 +161,32 @@ export function createBrowserDrivingShell(
       );
       const tireContainer = mustGet('tire-friction-selector-buttons');
       const tireFrictionControls = mountBrowserTireFrictionControls(tireContainer, () => vehicle);
+      if (options.configurationLocked) {
+        for (const id of [
+          'vehicle-selector-buttons',
+          'steering-offset-selector-buttons',
+          'max-steer-selector-buttons',
+          'steering-response-selector-buttons',
+          'tire-friction-selector-buttons',
+        ]) {
+          const container = mustGet(id);
+          for (const child of Array.from(container.querySelectorAll('button'))) child.disabled = true;
+        }
+      }
       window.addEventListener('keydown', (event) => {
         if (event.repeat) return;
         if (browserRequestsCameraYawToggle(event.code)) {
           cameraYawSelector.setActive(toggleCameraYawMode(cameraRig));
           return;
         }
-        if (steeringCalibrationControls.handleKey(event.code)) return;
-        if (tireFrictionControls.handleKey(event.code)) return;
+        if (!options.configurationLocked && steeringCalibrationControls.handleKey(event.code)) return;
+        if (!options.configurationLocked && tireFrictionControls.handleKey(event.code)) return;
         const selectedProfile = browserVehicleProfileForKey(event.code);
         if (selectedProfile !== null) {
           selectVehicleProfile(selectedProfile);
         } else if (event.code === BROWSER_RECOVERY_CODE) {
           event.preventDefault();
-          lifecycle.recover();
+          if (options.canRecover?.() ?? true) lifecycle.recover();
         }
       });
       return lifecycle;

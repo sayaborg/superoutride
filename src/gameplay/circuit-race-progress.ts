@@ -65,8 +65,13 @@ export function createCircuitRaceProgressState(rules: CircuitRaceRules, initial:
 }
 
 /** Source-frame world motion alone validates gates. Occurrence identity never supplies lap credit. */
-export function updateCircuitRaceProgress(state: CircuitRaceProgressState, rules: CircuitRaceRules, current: Sample) {
-  const update = updateOrderedRaceProgress(state.lap, rules.lap, current);
+export function updateCircuitRaceProgress(
+  state: CircuitRaceProgressState,
+  rules: CircuitRaceRules,
+  current: Sample,
+  accept?: Parameters<typeof updateOrderedRaceProgress>[3],
+) {
+  const update = updateOrderedRaceProgress(state.lap, rules.lap, current, accept);
   const justFinishedLap = update.justFinished;
   if (justFinishedLap) state.acceptedFinishCount += 1;
   if (state.acceptedFinishCount >= rules.lapCount) state.status = 'FINISHED';

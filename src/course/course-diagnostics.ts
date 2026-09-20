@@ -47,7 +47,8 @@ type CourseDiagnosticCode =
   | 'invalid_image_role'
   | 'invalid_profile'
   | 'invalid_placement'
-  | 'invalid_fork';
+  | 'invalid_fork'
+  | 'invalid_rules';
 
 interface InputDiagnostic {
   readonly kind: 'input';

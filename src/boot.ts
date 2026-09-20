@@ -36,6 +36,7 @@ function navigateToCourseMode(targetMode: BrowserCourseModeSelection): void {
   if (targetMode.query === selectedMode.query) return;
   const next = new URL(location.href);
   next.searchParams.set('mode', targetMode.query);
+  for (const key of ['session', 'vehicle', 'rivals', 'laps', 'clock', 'autostart']) next.searchParams.delete(key);
   location.assign(next.href);
 }
 

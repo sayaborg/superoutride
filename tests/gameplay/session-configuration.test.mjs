@@ -9,12 +9,12 @@ test('each route structure pairs with 0/1/16 opponents without changing or recom
     const course = Object.freeze({ id: `TEST_${routeKind}`, routeKind });
     const before = structuredClone(course);
     for (const rivalCount of [0, 1, 16]) {
-      const session = compileSessionConfiguration({ rivalCount });
+      const session = compileSessionConfiguration({ mode: 'CUSTOM', rivalCount, lapCount: 1, countdown: false });
       const selection = { course, session };
       assert.equal(selection.course, course);
       assert.deepEqual(course, before);
       assert.equal(Object.hasOwn(course, 'rivalCount'), false);
-      assert.deepEqual(Object.keys(session), ['rivalCount']);
+      assert.deepEqual(session, { mode: 'CUSTOM', rivalCount, lapCount: 1, countdown: false });
       const roster = createRivalRoster(selection.session);
       assert.equal(roster.length, rivalCount);
       assert.equal(1 + roster.length, rivalCount + 1, 'player is separate from opponents');

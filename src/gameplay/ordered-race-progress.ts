@@ -20,6 +20,7 @@ interface OrderedRaceGateAuthoring {
   readonly name: string;
   /** Monotonically increasing chainage on one finite open Guide. */
   readonly s: number;
+  readonly bounds?: { readonly left: number; readonly right: number };
 }
 
 /**
@@ -75,6 +76,7 @@ interface OrderedRaceProgressUpdate {
   readonly event: OrderedRaceProgressEvent;
   readonly status: OrderedRaceProgressStatus;
   readonly acceptedGate: PhysicalRaceGate | null;
+  readonly acceptedCrossings: readonly PhysicalRaceGateCrossing[];
   readonly direction: RaceMotionDirection;
   readonly window: OrderedRaceProgressWindow;
   readonly justFinished: boolean;
@@ -102,7 +104,7 @@ export function compileOrderedRaceCourseRules(
     previousS = gate.s;
     if (names.has(gate.name)) throw new RangeError('ordered race gate names must be unique');
     names.add(gate.name);
-    return compilePhysicalRaceGate(guide, index, gate.kind, gate.name, gate.s);
+    return compilePhysicalRaceGate(guide, index, gate.kind, gate.name, gate.s, gate.bounds);
   });
 
   if (gates[gates.length - 1]!.kind !== 'finish') {
@@ -170,6 +172,7 @@ export function updateOrderedRaceProgress(
   state: OrderedRaceProgressState,
   rules: OrderedRaceCourseRules,
   currentSample: OrderedRaceProgressSample,
+  accept?: (crossing: PhysicalRaceGateCrossing) => boolean,
 ): OrderedRaceProgressUpdate {
   const current = checkedSample(currentSample, rules.courseLength);
   state.direction = classifyPhysicalRaceMotionDirection(rules.guide, current.s, state.previous, current);
@@ -182,6 +185,7 @@ export function updateOrderedRaceProgress(
       event: state.lastEvent,
       status: state.status,
       acceptedGate: null,
+      acceptedCrossings: [],
       direction: state.direction,
       window,
       justFinished: false,
@@ -199,7 +203,7 @@ export function updateOrderedRaceProgress(
     .sort((a, b) => a.u - b.u);
 
   let acceptedCrossing: PhysicalRaceGateCrossing | null = null;
-  let forwardCrossingSeen = false;
+  const acceptedCrossings: PhysicalRaceGateCrossing[] = [];
   let justFinished = false;
 
   for (const crossing of crossings) {
@@ -209,20 +213,15 @@ export function updateOrderedRaceProgress(
       continue;
     }
 
-    if (forwardCrossingSeen) {
-      state.shortcutViolationCount += 1;
-      state.lastEvent = 'SHORTCUT_REJECTED';
-      continue;
-    }
-    forwardCrossingSeen = true;
-
     if (crossing.gate.index !== state.nextGateIndex) {
       state.shortcutViolationCount += 1;
       state.lastEvent = 'SHORTCUT_REJECTED';
       continue;
     }
 
+    if (accept && !accept(crossing)) break;
     acceptedCrossing = crossing;
+    acceptedCrossings.push(crossing);
     state.acceptedGateCount += 1;
     state.validatedProgressFloor = crossing.gate.s;
     state.nextGateIndex += 1;
@@ -256,6 +255,7 @@ export function updateOrderedRaceProgress(
     event: state.lastEvent,
     status: state.status,
     acceptedGate: acceptedCrossing?.gate ?? null,
+    acceptedCrossings,
     direction: state.direction,
     window,
     justFinished,

@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 8,
+  "version": 9,
   "reference": null,
   "id": "partition-example",
   "units": {
@@ -429,5 +429,6 @@
     }
   ],
   "assets": [],
-  "sceneryInstances": []
+  "sceneryInstances": [],
+  "rules": null
 }

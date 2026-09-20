@@ -1,4 +1,4 @@
-import type { PhysicalRaceGate } from './physical-race-gate.js';
+import type { PhysicalRaceGateCrossing, PhysicalRaceGate } from './physical-race-gate.js';
 
 const RANK_PROGRESS_TOLERANCE_METERS = 1e-9;
 const RACE_TIME_TOLERANCE_SECONDS = 1e-9;
@@ -34,6 +34,8 @@ interface RaceSessionProgressView {
 /** Minimal already-validated gate contract needed by timing. */
 interface RaceSessionUpdateView {
   readonly acceptedGate: PhysicalRaceGate | null;
+  readonly acceptedCrossings?: readonly PhysicalRaceGateCrossing[];
+  readonly justFinished?: boolean;
 }
 
 interface RaceRankingInput {
@@ -64,8 +66,7 @@ export function createRaceSessionState(): RaceSessionState {
  *
  * Timing consumes only already-validated physical gate results. It has no dependency on
  * legacy closed-course wrapping, CircuitTopology, RouteDag or renderer state.
- * Gate timestamps are quantized to the physics tick that reports the accepted physical
- * crossing. This bounded <=dt timing resolution is intentional and deterministic.
+ * Accepted world-plane intersection fractions retain precise within-step timing.
  */
 export function advanceRaceSession(
   session: RaceSessionState,
@@ -77,33 +78,37 @@ export function advanceRaceSession(
   if (!Number.isFinite(progress.validatedProgressFloor)) {
     throw new RangeError('race session validatedProgressFloor must be finite');
   }
+  const start = session.elapsedSeconds;
   session.elapsedSeconds += dt;
 
-  const gate = update?.acceptedGate;
-  if (!gate) return;
+  const crossings = update?.acceptedCrossings ?? (update?.acceptedGate ? [{ gate: update.acceptedGate, u: 1 }] : []);
+  for (const { gate, u } of crossings) {
+    const at = start + u * dt;
 
-  const gateTiming: ValidatedGateTiming = {
-    gateName: gate.name,
-    gateKind: gate.kind,
-    elapsedSeconds: session.elapsedSeconds,
-    validatedProgressFloor: progress.validatedProgressFloor,
-  };
-  session.gateTimings.push(gateTiming);
+    const gateTiming: ValidatedGateTiming = {
+      gateName: gate.name,
+      gateKind: gate.kind,
+      elapsedSeconds: at,
+      validatedProgressFloor: progress.validatedProgressFloor,
+    };
+    session.gateTimings.push(gateTiming);
 
-  if (gate.kind !== 'finish') return;
+    if (gate.kind !== 'finish') continue;
 
-  const intervalSeconds = session.elapsedSeconds - session.lastBoundarySeconds;
-  const boundary: CourseBoundaryTiming = {
-    index: session.boundaryTimings.length,
-    elapsedSeconds: session.elapsedSeconds,
-    intervalSeconds,
-  };
-  session.boundaryTimings.push(boundary);
-  session.lastBoundarySeconds = session.elapsedSeconds;
-  session.bestBoundaryIntervalSeconds =
-    session.bestBoundaryIntervalSeconds === null
-      ? intervalSeconds
-      : Math.min(session.bestBoundaryIntervalSeconds, intervalSeconds);
+    const intervalSeconds = at - session.lastBoundarySeconds;
+    const boundary: CourseBoundaryTiming = {
+      index: session.boundaryTimings.length,
+      elapsedSeconds: at,
+      intervalSeconds,
+    };
+    session.boundaryTimings.push(boundary);
+    session.lastBoundarySeconds = at;
+    session.bestBoundaryIntervalSeconds =
+      session.bestBoundaryIntervalSeconds === null
+        ? intervalSeconds
+        : Math.min(session.bestBoundaryIntervalSeconds, intervalSeconds);
+  }
+  if (update?.justFinished && crossings.length) session.elapsedSeconds = start + crossings.at(-1)!.u * dt;
 }
 
 /**
