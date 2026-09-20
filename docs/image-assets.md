@@ -2,8 +2,7 @@
 
 This document owns implemented image formats/compilers and the separately scoped Course Editor image
 target. [Architecture](architecture.md) owns projection, logical metric extent, anchors and LOD lattices;
-[development](development.md)
-owns commands and evidence. Moving these contracts here changes neither current assets nor runtime behavior.
+[development](development.md) owns commands and evidence.
 
 ## Completed sprite images
 
@@ -142,7 +141,7 @@ PNG -> session -> master/LOD -> product reader boundary.
 
 ## Course image-source admission
 
-The [course image compiler](../src/compiler/course-image-source.ts) now admits saved image bytes into
+The [course image compiler](../src/compiler/course-image-source.ts) admits saved image bytes into
 the immutable CourseDocument graph. Each declared lowercase SHA-256 requires one explicit
 `{sha256, bytes: Uint8Array}` input; repeated descriptors may share that input. It snapshots the complete
 bounded input set before asynchronous hashing, verifies the exact bytes, decodes UTF-8 JSON and invokes
@@ -151,7 +150,7 @@ the existing sprite image validator. It performs no I/O, normalization, palette 
 Canonical asset descriptors own deeply frozen indexed `SpriteLodDocument` sources. Section membership
 resolves directly to these objects; descriptors sharing a digest share one source. No decoded mutable
 pixel array is published through the graph. An ordinary sprite consumer can decode its own workspace
-through `readSpriteLodAsset`; that workspace cannot alter the source. Ground composition will consume
+through `readSpriteLodAsset`; that workspace cannot alter the source. Ground composition consumes
 the normalized master only, not the sprite's lower levels.
 
 Admission limits are 256 supplied digests, 8 MiB per saved input, 64 MiB total encoded inputs,
@@ -166,8 +165,8 @@ asset indices and the supplied input index when applicable. They do not invent J
 CourseDocument. Failure publishes no graph. Wrong API types/domains throw TypeError/RangeError;
 unexpected platform failures propagate.
 
-This verifies source integrity and immutable sharing. The saved presentation subset below separately
-binds those sources; overlap/picture continuity and Link readiness remain unqualified. Completed ground uses the separate resident compiler below.
+Source admission verifies integrity and immutable sharing, not overlap/picture continuity or Link
+readiness. Saved presentation binds those sources; completed ground uses the separate resident compiler below.
 
 ## Saved course presentation
 
@@ -193,7 +192,7 @@ integer cell identities throughout the strip. This is a static saved pattern, no
 animation; the immutable master is unchanged.
 
 Stamps resolve their anchor to s and retain the authored l. Convert their sprite anchor to top-left
-using `(anchorAxis+0.5)/40`, then apply the target `floor(40*coordinate+0.5)` rule on each axis. Store
+using `(anchorAxis+0.5)/40`, then apply `floor(40*coordinate+0.5)` on each axis. Store
 the resulting integer grid position with its resolved anchor provenance. Sample the unrotated master
 at that placement, clipped by the finite strip; later opaque stamp texels overwrite earlier paint or
 stamps, while transparent texels preserve the previous color. GroundBase outside the strip remains a
@@ -203,7 +202,7 @@ Background masters must be opaque; the saved horizon is an image row, horizontal
 positive pixels/radian, and yaw origin is converted from Section-frame degrees once. Environment
 profiles are independent of Band paint/material changes. Scenery retains source anchors, lateral
 position and height offset with canonical instance identity; geometric placement/visibility across
-occurrences is a subsequent view/qualification responsibility.
+occurrences is a separate view/qualification responsibility.
 
 This supplies complete data for this declared subset and a point-color source evaluator. It does not
 generate dimensioned markings, boundary treatments or repair scatter, filter output
@@ -211,10 +210,10 @@ images, create resident records, or certify common-content overlap. Those unsupp
 fail admission. Geometry-only fixtures retain explicit absent presentation rather than guessed art.
 
 The separate [presentation-domain qualifier](content-and-gameplay.md#declared-presentation-query-domains)
-now compares the admitted subset's complete source patterns, static phase, ordered stamps, environments
+compares the admitted subset's complete source patterns, static phase, ordered stamps, environments
 and shared scenery over explicit camera/filter/anchor domains. Actual fork/merge renderer comparisons
-use those saved images. This does not select a filtering recipe, publish resident records or qualify
-general occurrence-mapped presentation.
+use those saved images. This source-domain qualification does not select a filtering recipe, publish
+resident records or qualify general occurrence-mapped presentation.
 
 ## Resident ground
 
@@ -223,10 +222,8 @@ validates the manifest before acquiring the payload, then validates and owns the
 starting ticks. The headless driving scene uses the same resident readers. `course-ground-source`
 remains the independent offline point-field oracle; driving performs no source-paint evaluation.
 
-## Course Editor target
-
-The completed-ground lattice, filter and wire layout below are implemented. Broader authoring features
-remain targets; real-art review and named-device capacity/performance remain separate acceptance gates.
+The completed-ground lattice, filter and wire layout below are implemented. Real-art review and
+named-device capacity/performance remain separate acceptance gates.
 Geometry, physical materials, sprite metrics and sprite image-reader contracts retain their owners.
 
 ### Source and completed images
@@ -264,6 +261,7 @@ then each Section's row-major Uint32 directory followed by its row-major Uint16 
 order. Section order is the compiled graph's validated declaration order. Manifest grids and build
 identity bind that order at admission; consumers receive canonical Section references.
 
+**Unimplemented target; current compilation evaluates each source-cell row exactly:**
 The P1 paint cutover quantizes each Band boundary to one lateral source-texel offset per 1.6 m
 chainage tile row. Only paint changes: physical Band boundaries, Guide and classifications remain exact.
 Boundary tiles therefore belong to a finite offset/material vocabulary. Repairs and stamps follow the
@@ -273,14 +271,13 @@ same finite vocabulary on the 1.6 m grid; exceptional stamps receive a measured 
 
 The resident reader adopts the renderer's existing `selectLevel(deltaSEffective)` contract. Start at
 L0 and advance while `deltaSEffective >= 0.2 * 4^k`, clamped to available levels. Equality coarsens.
-Collapsed rows contribute their complete effective chainage footprint. The earlier two-axis selector
-candidate is superseded by this actual consumer contract; camera and renderer stay unchanged.
+Collapsed rows contribute their complete effective chainage footprint. Camera and renderer stay unchanged.
 
 Recipe `superoutride.resident-rgb555` v1 composes source cells on the 40x40 texel/m lattice. Cell centres
 select the half-open Band and saved image texel; finite edges clip area, and the last chainage cell uses
 its clipped centre. Static A/B and ordered stamps retain the saved source rules above. Area integration
 averages the RGB555 codec's decoded 8-bit encoded-sRGB channels, then rounds through the shared framebuffer
-and RGB555 codecs. This deliberately changes source-preview pixels; mechanics and renderer oracles are unchanged.
+and RGB555 codecs. Mechanics and renderer oracles are unchanged.
 
 Every level integrates the original composed cells. Near filters use tile-local summed areas; coarse
 filters use rolling rows of unquantized channel/area sums, crossing tile and material boundaries.
@@ -290,20 +287,6 @@ guards; filtering clips only at its outer domain. These filters do not enlarge t
 Runtime performs nearest completed-texel lookup. It retains row addresses across each scanline through
 the existing reader API and shares one immutable RGB555-to-framebuffer lookup. Real-art and motion review
 remain required for the chosen filter. No interpolation or acquisition occurs in a pixel query.
-
-### Ground composition and stamp placement
-
-Saved pixel composition is ordered: material fills/static A/B/seeded repair scatter; then boundary
-treatments and dimensioned markings; then ordered stamps, with later opaque pixels covering earlier
-ones. Save phase origins, seeds, widths and order. Geometry regenerates procedural content; independent
-stamps remain saved placements. Boundary treatment is offline rasterization along an authored curve.
-
-Quantize each resolved stamp top-left coordinate as `gridIndex=floor(40*coordinateMeters+0.5)`:
-half-cell ties point toward the positive axis, including negative coordinates. Show the resolved
-edge `gridIndex/40` in the editor while retaining the saved anchor's meaning through geometry edits.
-This applies only to ground-image placement. Road geometry, vehicles, physical boundaries and rule
-landmarks retain their coordinates. Bitmap shape supplies orientation/extent; placement adds no
-runtime rotation, scale, skew or stretch.
 
 ### Static A/B recipe
 
@@ -335,11 +318,27 @@ before the pixel loop. [Course loading](content-and-gameplay.md#course-loading) 
 [capacity](development.md#capacity-model) owns accounting, including switch peaks and the intentional
 RGB555-versus-indexed storage tradeoff.
 
+## Course Editor target
+
+### Ground composition and stamp placement
+
+Unimplemented authoring targets are seeded repair scatter, boundary treatments and dimensioned
+markings. Their target composition order is material fills/static A/B/seeded repair scatter, then
+boundary treatments and dimensioned markings, then the implemented ordered stamps. Later opaque pixels
+cover earlier ones. Save phase origins, seeds, widths and order. Geometry regenerates procedural
+content; independent stamps remain saved placements. Boundary treatment is offline rasterization along
+an authored curve. Unsupported authoring fields fail admission; ordinary saved paint and stamps are
+implemented in [saved course presentation](#saved-course-presentation).
+
+The unimplemented inspection editor displays each stamp's resolved edge `gridIndex/40` while retaining
+its saved anchor's meaning through geometry edits. Ground-image placement alone is quantized; road
+geometry, vehicles, physical boundaries and rule landmarks retain their coordinates. Bitmap shape
+supplies orientation/extent; placement adds no runtime rotation, scale, skew or stretch.
+
 ### Remaining technical gates
 
-The lattice, selector, encoded-sRGB area recipe and packed layout are implemented. Real-art review,
-whole-application measurements and named-device acceptance remain open. Existing camera/source metrics
-stay fixed; whole-application measurements establish device budgets.
+Real-art review, whole-application measurements and named-device acceptance remain open. Existing
+camera/source metrics stay fixed; whole-application measurements establish device budgets.
 Revise contracts explicitly in this owner and causal tests. Vehicle lamp states remain deferred:
 a later design may select immutable SINGLE-sprite variants from observations, without a shared mutable
 palette or a general animation scheduler.
