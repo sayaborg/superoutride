@@ -23,6 +23,9 @@
   median, p95 and render allocation; otherwise record the cause in Open decisions and stop replacement.
   Report 50/100/200 m interval counts, dictionary bytes/levels, count distributions and distant stills.
   Prove cross-Section footprint composition and open sides causally before implementing replacement.
+  The [offline cross-section preflight](../tools/performance/band-cross-section-report.mjs) diagnoses exact
+  affine averages and the initial count budgets, not renderer acceptance. Real row footprints, render
+  timing/allocation repetitions, transition proof and distant stills remain pending.
 - **Ground replacement — Pending feasibility:** ordered colored Bands own all ground, with RGB555 or
   transparency, optional physical role, and explicit open outer sides. Role-bearing Bands retain the
   current gap-free/nonoverlapping partition admission; visual-only Bands may overlap in paint order.
@@ -84,6 +87,9 @@ K reviews time margins/rival speed → traffic, collisions and movable/fixed obj
 
 ## Open decisions
 
+- **Ground interval bound — Before replacement:** exact-affine trial maxima are 175/179 in LINEAR/SEAM
+  (Node 22 host, not acceptance). Choose pixel-error-bounded lateral simplification or authored variation limits;
+  recommend the former with coverage/transition proofs, not a higher gate. Renderer comparison remains pending.
 - **Audio — K:** all six selectable models (`hopf`, `contact`, `hybrid`, `spectral`, `modal`, `unified`) reach the production worklet; reconcile this with `audio.md`'s "no inactive legacy model" contract. Choose an explicitly supported model set or retire alternatives; recommend K selects the supported set before a separate audio change. Audio and its hashes remain frozen.
 - **Progress — Separate PR:** `src/runtime/course-race-progress.ts` branches between circuit and ordered progress. Retain separate engines or represent loops with ordered progress; recommend proving lap, gate, recovery and clock equivalence before removing the topology-specific branch.
 - **Pages — Separate PR:** retain or remove `_site/dist` fallback and published `dist/dev`, and choose rebuilt-output or uploaded-artifact verification. Recommend commit-versioned product-only delivery and verification of the uploaded artifact, without deploy-time `npm ci && npm run build`; CI/Pages are unchanged here.
