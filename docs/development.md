@@ -1,6 +1,6 @@
 # Development, validation and release
 
-Current implementation is described below. The [Course Editor target](#course-editor-target-validation) is a separately scoped future contract. Activate each change only with its executable coverage; this document does not report that the target is already implemented.
+Implemented workflows and validation contracts are described below. The [Course Editor target](#course-editor-target-validation) identifies outstanding acceptance evidence. Activate changes only with executable coverage; implementation, host measurements and device acceptance remain distinct.
 
 ## Local workflow
 
@@ -27,8 +27,8 @@ Fixed Float64 PCM hashes preserve an accepted trace in its reference environment
 and same-host paired replay establish different evidence. Keep those distinctions when updating the
 execution environment. Reproduce baseline and candidate together before classifying a mismatch;
 retain the failure evidence and review any replacement contract explicitly. Do not refresh a hash,
-round samples or relax a valid assertion merely to make an unsupported run pass. This course-authoring
-preparation neither changes synthesis nor resumes deferred method selection or calibration.
+round samples or relax a valid assertion merely to make an unsupported run pass. Audio model selection
+and calibration require K's separate decision, recorded in [NEXT](NEXT.md#open-decisions).
 
 ## Agent production tools
 
@@ -126,7 +126,7 @@ GC events are correlated with measured frame intervals, including the slowest fr
 This Node host measurement excludes browser, audio and compositor work and cannot certify a phone.
 `npm test` runs scene budget checks after its parallel suite. The P1 goals are 0.2 MB/frame, 3 ms
 median fixed step and 10 ms frame p95. A separate 0.65 MB allocation regression ceiling protects the
-measured reduction while the remaining target gap is an Open decision; it does not certify P1 completion.
+reduction without certifying P1 completion; [NEXT](NEXT.md#current-state) records the unmet acceptance.
 
 The browser HUD displays FPS, maximum CPU frame/step time and frame interval over each half-second,
 plus the scene's lifetime maximum seam commit. Check LINEAR curves/hills, SEAM forward/reverse,
@@ -143,13 +143,13 @@ product blitter, including continuous depth, subpixel anchor offsets and odd/thi
 It can load a completed LOD JSON and download the currently loaded record. The 8 MiB preview-file
 limit is a local admission policy, not a production asset or smartphone memory budget.
 
-[Architecture](architecture.md#sprite-lod-metric-and-read-contract) owns dimensions, mapping,
-palette/index validation and the interchange schema. The preview neither filters imported images
-nor certifies transition quality. Synthetic colors deliberately identify selected levels. The
+[Architecture](architecture.md#sprite-lod-metric-and-read-contract) owns dimensions and mapping;
+[Image assets](image-assets.md#completed-sprite-images) owns palette/index validation and the schema.
+The preview neither filters imported images nor certifies transition quality. Synthetic colors deliberately identify selected levels. The
 product's current source-art pixels remain covered by the fixed reference; causal LOD tests cover
-the new read/blit contract, including course sprites, dynamic vehicles and the player in one Painter.
-The historical renderer input bridge maps a single level to its original `pixels` field and rejects
-multi-level input. It never changes pixel values, reference outputs or reported workload.
+the read/blit contract, including course sprites, dynamic vehicles and the player in one Painter.
+The immutable renderer reference adapter maps a single level to its `pixels` field and rejects
+multi-level input. It preserves pixel values, reference outputs and reported workload.
 
 ## Sprite LOD file compiler
 
@@ -162,7 +162,7 @@ npm run build:sprite-lod -- master.json recipe.json output.json
 The master uses the completed-image schema with exactly one normalized level. A recipe explicitly
 supplies, for example, `{"colorSpace":"linear-srgb","coverageThreshold":0.5}`. This is a comparison
 example, not an approved default. `encoded-srgb` is the other implemented color-space choice.
-[Architecture](architecture.md#offline-sprite-lod-authoring-recipe) owns the exact integration,
+[Image assets](image-assets.md#offline-sprite-lod-authoring-recipe) owns the exact integration,
 coverage and authored-palette rules. Save the recipe alongside source art; the runtime artifact
 contains only completed images. Output must be a new path, preserving the source, recipe and prior
 product on failure. The command reports the output digest, bytes and level count.
@@ -177,7 +177,7 @@ authoring inputs before play through the same source and LOD functions.
 After building, the declared `build:sprite-source` entry imports a static 8-bit PNG into an editable,
 single-level master. Supply a PNG already prepared in sRGB; this adapter does not convert embedded
 color profiles. The command uses the pinned `pngjs` decoder with checksum validation and checks
-source size/dimensions before decoding. [Architecture](architecture.md#external-sprite-source-normalization)
+source size/dimensions before decoding. [Image assets](image-assets.md#external-sprite-source-normalization)
 owns metric rounding, crop, anchor, alpha, palette and admission rules.
 
 For example, an existing 160 by 100 pixel crop representing 2 m can use this source recipe:
@@ -224,7 +224,7 @@ bundled decoder inside that commit. The existing LOD comparison viewer stays rea
    history. Restore means original alpha, not forced opacity.
 4. Generate a candidate palette and edit its RGB555 values as needed. Choose source and LOD color
    spaces and coverage separately. Generation is explicit; editing the crop/mask does not silently
-   regenerate the palette. [Architecture](architecture.md#sprite-tool-authoring-session) owns the
+   regenerate the palette. [Image assets](image-assets.md#sprite-tool-authoring-session) owns the
    candidate algorithm, session format and admission limits.
 5. Build the master and full LOD series, then inspect depth changes in the product-blitter preview.
    Any image/recipe edit clears the preview and disables old exports until rebuilding.
@@ -235,19 +235,19 @@ bundled decoder inside that commit. The existing LOD comparison viewer stays rea
    replay, or feed the exported master and LOD recipe to `build:sprite-lod`.
 
 The synthetic color study exercises PNG decoding, palette reduction, partial alpha and thin geometry;
-it is not production art or real-art quality acceptance. The first GUI has rectangle masking, crop,
+it is not production art or real-art quality acceptance. The GUI implements rectangle masking, crop,
 metric/anchor controls and palette editing. Freehand retouch, variant sets, course placement, image
-Material/Decal composition and Course Editor are subsequent work, not hidden runtime features.
+Material/Decal composition and Course Editor remain targets.
 
 ## Validation contracts
 
-Causal regressions exercise real physics, physical gates, handoffs, recovery, camera, rendering and input lifecycle. Boundary tests enforce the DEV dependency direction and forbidden alternate coordinate authorities. Document hygiene discovers all maintained Markdown files and validates local links. Current specifications are checked, not the preservation of chronological reports. General implementations must be reachable from a browser composition root or a declared asset-compiler entry. The M3/M4 reservation is empty; retained general components have actual product consumers. The declared offline entries are `compile:course` for CourseDocument graphs, `build:sprite-source` for PNG normalization and `build:sprite-lod` for completed sprite images, plus `tools/graphics/sprite-tool.mjs` as the authoring-side image compiler. Tests do not establish production use. Diagnostics and fixtures belong to their explicit DEV owners and need real test/tool consumers. Independently, exports must have named consumers resolved by TypeScript across source, tests and tools (including inline HTML modules); unused signature types remain module-local. This export check detects unused API but does not authorize a second implementation. Dynamic whole-module enumeration alone does not justify a named public API.
+Causal regressions exercise real physics, physical gates, handoffs, recovery, camera, rendering and input lifecycle. Boundary tests enforce the DEV dependency direction and forbidden alternate coordinate authorities. Document hygiene discovers all maintained Markdown files and validates local file targets; heading anchors also require review when moving sections. General implementations must be reachable from a browser composition root or a declared asset-compiler entry. The declared offline entries are `compile:course` for CourseDocument graphs, `build:sprite-source` for PNG normalization and `build:sprite-lod` for completed sprite images, plus `tools/graphics/sprite-tool.mjs` as the authoring-side image compiler. Tests do not establish production use. Diagnostics and fixtures belong to their explicit DEV owners and need real test/tool consumers. Independently, exports must have named consumers resolved by TypeScript across source, tests and tools (including inline HTML modules); unused signature types remain module-local. This export check detects unused API but does not authorize a second implementation. Dynamic whole-module enumeration alone does not justify a named public API.
 
-Geometry regressions are organized by projection, terrain generation, Raster/Guide geometry, sprites and key ownership rather than development milestones. Primitive, adapter and full-renderer checks retain their distinct causal scenarios. Shared numerical assertions require explicit tolerances; relative scaling and strict comparison remain call-site choices.
+Geometry regressions are organized by projection, terrain generation, Raster/Guide geometry, sprites and key ownership. Primitive, adapter and full-renderer checks retain their distinct causal scenarios. Shared numerical assertions require explicit tolerances; relative scaling and strict comparison remain call-site choices.
 
-Some tests use explicitly fixed calibration fixtures so a failure can be reproduced after player defaults change. That does not make the old values product defaults. Do not rewrite such fixtures merely to improve their outcomes. A removed obsolete renderer or archived-document hash is different: preserve current primitive/integration coverage and delete the superseded implementation/preservation requirement.
+Fixed calibration fixtures make failures reproducible independently of player defaults. Preserve their causal inputs rather than rewriting values to improve outcomes. Current primitive and integration coverage owns behavior; chronological reports are PR evidence.
 
-The [workflow](../.github/workflows/pages.yml) builds a pinned, immutable released reference on the same Node/host and supplies `HOT_PATH_BASELINE_BUILD` to tests. [Exact-trace comparison](../tools/performance/hot-path-probe.mjs) covers signed wheel solves and nine-profile steering/pedal sequences at 60/120/240 Hz; it compares serialized results without tolerances or schema masking. Diagnostic input adapters accept the pinned constructor and update signatures; the unchanged terrain framebuffer fixture separately preserves projection output. These bridges change inputs only, never reference outputs, state hashes, pixels or result metrics. Local runs without that environment test determinism only; they are not historical equivalence evidence. The immutable reference pins the accepted vehicle force/control law and renderer output before structural cleanup. It is a regression oracle, not a release archive. Keep its SHA fixed in the workflow variable throughout the playable-course milestones. Refactors, API cleanup and tuning must not silently reset this oracle or normalize away differences.
+The [workflow](../.github/workflows/pages.yml) builds a pinned, immutable released reference on the same Node/host and supplies `HOT_PATH_BASELINE_BUILD` to tests. [Exact-trace comparison](../tools/performance/hot-path-probe.mjs) covers signed wheel solves and nine-profile steering/pedal sequences at 60/120/240 Hz; it compares serialized results without tolerances or schema masking. Diagnostic input adapters accept the pinned constructor and update signatures; the unchanged terrain framebuffer fixture separately preserves projection output. These bridges change inputs only, never reference outputs, state hashes, pixels or result metrics. Local runs without that environment test determinism only, not reference equivalence. The immutable reference pins the accepted vehicle force/control law and renderer output. Keep its SHA fixed in the workflow variable throughout the playable-course milestones. Refactors, API cleanup and tuning must not reset this oracle or normalize away differences.
 
 Focused audio verification after building uses:
 
@@ -255,7 +255,7 @@ Focused audio verification after building uses:
 node --test 'tests/audio/*.test.mjs'
 ```
 
-This is a focused diagnostic, not a replacement for full `npm test`. The [browser audio probe](../tools/audio/audio-browser.html) checks the real worklet graph over HTTP. Acoustic profile switches preserve bounded voice counts. The architecture checks recognize static worker-module URLs. Tire audio subscriptions must preserve the complete physical snapshot; the fixed historical equivalence oracle is unchanged. Presentation-anchor checks permit the optional rival observation argument without changing the anchor requirement.
+This is a focused diagnostic, not a replacement for full `npm test`. The [browser audio probe](../tools/audio/audio-browser.html) checks the real worklet graph over HTTP. Acoustic profile switches preserve bounded voice counts. The architecture checks recognize static worker-module URLs. Tire audio subscriptions preserve the complete physical snapshot and the fixed equivalence oracle. Presentation-anchor checks permit the optional rival observation argument without changing the anchor requirement.
 
 For a paired host timing comparison, run `node tools/performance/hot-path-probe.mjs REFERENCE_BUILD dist`. It warms both builds, alternates five pairs and rejects different traces before reporting medians. It includes serialization overhead and does not certify a browser or device frame budget.
 
@@ -278,7 +278,7 @@ The [torque protection probe](../tools/physics/torque-protection-probe.mjs) comp
 Build before listening. Serve over HTTP (for example `python3 -m http.server 8000`); DEV exposes model-specific friction controls plus independent ENG/TIRE mix levels.
 Other numeric tire timbre settings remain source data. [Calibration](calibration.md#tire-audio-tuning) maps their
 owners, [audio](tire-audio.md#player-tire-synthesis) defines each method, and
-[NEXT](NEXT.md#current-state) records feedback and tuning priorities.
+[NEXT](NEXT.md#open-decisions) records the pending model-selection decision.
 
 In the game, select MODAL for the Q-only method or HYBRID for the listening reference.
 HYBRID and SPECTRAL expose R/S/Q buttons. MODAL exposes only Q; R/S sources are absent. Compare its Q with HYBRID Q (R and S off)
@@ -294,14 +294,12 @@ Reload resets model/component/tuning/mix choices.
 | SPECTRAL S/Q audition       | One asphalt contact, manual observations or shared synthetic replays; omits R                             | [tire-spectral-browser.html](../tools/audio/tire-spectral-browser.html)                                                                          |
 | SPECTRAL R/S/Q render       | One synthetic contact, rotation sweep and grip recovery, separate R/S/Q/mix WAVs                          | `node tools/audio/tire-response-render.mjs /absolute/rsq-output - 48000`                                                                         |
 | Six-model comparison render | Same synthetic trace; HOPF, CONTACT friction, SPECTRAL S/Q, HYBRID R/S/Q, MODAL Q and UNIFIED R/Q outputs | `node tools/audio/tire-spectral-render.mjs /absolute/sq-output 48000`                                                                            |
-| HOPF reference              | Original tire audition and regeneration                                                                   | [tire-browser.html](../tools/audio/tire-browser.html); `node tools/audio/tire-render.mjs /absolute/hopf.wav`                                     |
+| HOPF reference              | Tire audition and regeneration                                                                           | [tire-browser.html](../tools/audio/tire-browser.html); `node tools/audio/tire-render.mjs /absolute/hopf.wav`                                     |
 | CONTACT reference           | Four road/friction/axle taps with representative controls                                                 | [tire-contact-browser.html](../tools/audio/tire-contact-browser.html); `node tools/audio/tire-contact-render.mjs /absolute/contact-output 48000` |
 | CONTACT characterization    | Steady pitch/harmonics and interference windows                                                           | `node tools/audio/tire-contact-characterize.mjs dist`                                                                                            |
 
 The diagnostic HTML pages are local tools, **not published Pages HTML**. They import the same compiled
-kernels as the game, not frozen historical copies. In particular the SPECTRAL S/Q page includes current
-Q response changes; earlier WAV approval does not mean it still produces old transient PCM.
-`mix` in the SPECTRAL S/Q renderer means S+Q, whereas `mix` in the R/S/Q renderer includes R.
+kernels as the game. `mix` in the SPECTRAL S/Q renderer means S+Q, whereas `mix` in the R/S/Q renderer includes R.
 HYBRID R/S/Q/mix outputs isolate rolling, sliding friction, squeal and their sum. `hybrid-friction`
 is S+Q. `modal-friction` is the entire MODAL Q output; compare it with `hybrid-squeal` for Q-only listening.
 UNIFIED retains `unified-road`, `unified-friction` and `unified-mix` taps.
@@ -336,13 +334,10 @@ node tools/audio/tire-spectral-equivalence.mjs /absolute/reference/dist hybrid
 
 The [exact comparison](../tools/audio/tire-spectral-equivalence.mjs) defaults to SPECTRAL; the optional
 `spectral|hybrid` argument selects the model. It checks every finite Float64 R/S/Q sample and their
-sum on the shared traces plus surface/reverse/support transitions, both seeds and 44.1/48 kHz. Use
-`hybrid` to verify a shared-R extraction against the retained pre-edit build. It requires the same
-selected-model eight-input kernel/surface contract; it does not reinterpret old APIs, normalize
-outputs or use tolerances. This is a same-model cleanup check, **not** a condition that an intentional
-sound tune or replacement must preserve obsolete PCM. MODAL is an intentional new waveform,
-not a target of reference equality. Keep causal mechanics, observation, lifecycle,
-component controls and numerical tests even when a reviewed tune deliberately changes waveforms.
+sum on the shared traces plus surface/reverse/support transitions, both seeds and 44.1/48 kHz. It requires
+the same selected-model eight-input kernel/surface contract, with no output normalization or tolerance.
+This is a same-model cleanup check. An explicitly reviewed waveform change requires independent causal
+mechanics, observation, lifecycle, component-control and numerical evidence rather than cross-model PCM equality.
 
 ### Integrated tire replay probe
 
@@ -354,7 +349,7 @@ It outputs metrics, not a WAV or a comprehensive understeer/oversteer listening 
 renderer elapsed time or iteration ceiling certifies target-device performance or perceived loudness.
 
 Focused spectral/response tests are `node --test 'tests/audio/tire-spectral*.test.mjs' tests/audio/tire-response.test.mjs`.
-They supplement the complete `npm test` and unchanged historical mechanics/render oracle; listening,
+They supplement the complete `npm test` and unchanged mechanics/render oracle; listening,
 measured spectrum/transients, exact cleanup equality, host throughput and device play remain separate evidence.
 
 ### Low-speed input probe
@@ -381,13 +376,12 @@ GitHub Actions checkout logs/artifacts and Git/PR refs are release evidence. Kee
 
 ## Browser delivery
 
-Published HTML also links its stylesheet under `build/<commit>/styles.css`. Staging copies that same
+Published HTML links its stylesheet under `build/<commit>/styles.css`. Staging copies that same
 source CSS into the immutable build and rewrites only the published link; local HTML keeps `styles.css`.
-This prevents a newly deployed DEV layout from reading an independently cached older stylesheet.
 The staging regression executes the actual workflow commands against temporary inputs and checks both
 the versioned CSS link/content and complete ESM/fallback copies. Root CSS remains a fallback for cached clients.
 
-Pages stages complete ESM builds under `build/<commit>/` and publishes version.txt. Index loads that versioned boot path; all relative imports remain within the same build. The dist path is an explicit fallback for cached index/fetch failure. Each deployment contains only its current SHA under build/, plus the same build under dist/; versioned paths isolate caches and are not a retained rollback history. Preserve this coherent-build design. Do not strip modules based only on direct boot imports: course roots are dynamically selected and assets/diagnostics have separate consumers.
+Pages stages complete ESM builds under `build/<commit>/` and publishes version.txt. Index loads that versioned boot path; all relative imports remain within the same build. The dist path is an explicit fallback for cached index/fetch failure. Each deployment contains only its current SHA under build/, plus the same build under dist/; versioned paths isolate caches and are not a retained rollback history. Course roots are dynamically selected and assets/diagnostics have separate consumers. [NEXT](NEXT.md#open-decisions) records the separate Pages delivery and artifact-verification decision.
 
 For a reported failure, distinguish source logic, emitted build, deployed artifact and browser/cache state. Do not blame cache without evidence, and do not claim public endpoint verification from local tests alone.
 
@@ -409,11 +403,11 @@ Tests are grouped by responsibility under `tests/`; helpers and small authored f
 separate. `npm test` discovers `tests/**/*.test.mjs` recursively, so grouping does not remove tests
 from the suite. Stage depth and child-side names describe actual topology scenarios, not milestones.
 
-## Course Editor target validation
+## Course content qualification
 
-This target chapter defines Course Editor validation. The repository's existing full validation and
-exact-head release commands remain mandatory. This chapter defines additional evidence and capacity
-accounting; [NEXT](NEXT.md) alone owns implementation order. No new command or completed test is implied.
+The following validation contracts define required causal evidence and capacity accounting, not a
+claim that every production course, artwork or device has passed. The full validation and exact-head
+release commands remain mandatory. [NEXT](NEXT.md) alone owns implementation order.
 
 ### Image and geometry acceptance
 
@@ -447,7 +441,7 @@ asphalt, grass boundaries, hills and collapsed crests. The product renderer is t
 Keep the immutable mechanics reference. Intentional changed-ground pixels get an explicit rendering
 contract revision and independent causal expectations; neither a rewritten golden image alone nor
 resetting a mechanics baseline proves correctness. The current Sprite Tool and source/LOD tests remain.
-Actual integration tests must cover the real roots/adapters as they are replaced.
+Actual integration tests cover the real roots and adapters.
 
 ### Capacity model
 
@@ -517,13 +511,11 @@ retires the old instance; it does not keep two live courses or stream ground dur
 unique tiles and Section count alongside frame/step/seam timing and sampled allocations. The browser HUD
 shows the admitted resident set. Build stages `ground/<course>.json` and `.bin`; the published-content
 verifier hashes both along with source documents/images. The small independent source-area oracle,
-actual browser root, and car/bike seam tests qualify this cutover. Named-device 60 fps remains separate.
+actual browser root, and car/bike seam tests provide causal coverage. Named-device 60 fps remains separate.
 
-### Remaining evidence gates
+## Course Editor target validation
 
-The Gate 1 CourseDocument schema and ranges are implemented and tested in their declared subset;
-future wire additions require matching admission and causal coverage before GUI dependence. Implemented
-LOD/filter/packing choices retain a separate real-art and device acceptance gate. Seam/consumer/transfer envelopes
-require causal geometry/physics tests. Reference AI and timed presets require their three acceptance
-stages. Interaction/traffic definitions and device budgets remain explicit prerequisites for complete
-product-play acceptance, not blockers to independent file/compiler work.
+Real-art, full three-way consumer/transfer envelopes, reference-AI capability/difficulty and named-device
+full-load acceptance remain outstanding. Interaction/traffic definitions and device budgets are prerequisites
+for complete product-play acceptance. Future wire additions require matching admission and causal coverage
+before GUI dependence. These acceptance gates do not block independent file/compiler work.
