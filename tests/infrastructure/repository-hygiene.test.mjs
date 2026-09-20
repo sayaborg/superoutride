@@ -136,12 +136,15 @@ function documentReferences(source) {
     .filter(Boolean);
 }
 
-test('all maintained Markdown has valid UTF-8 and existing local link targets', async () => {
+test('all maintained Markdown has valid UTF-8, local targets and milestone-independent topic contracts', async () => {
   const decoder = new TextDecoder('utf-8', { fatal: true });
   const missing = [];
   for (const file of await currentDocuments()) {
     const source = decoder.decode(await readFile(file));
     assert.doesNotMatch(source, /\uFFFD/, `encoding damage: ${file}`);
+    if (file !== path.join(repositoryRoot, currentHandoff)) {
+      assert.doesNotMatch(source, /\b(?:M\d+(?:[._]\d+)*|[PN]\d+)\b/, `milestone outside NEXT: ${file}`);
+    }
     for (const reference of documentReferences(source)) {
       const target = path.resolve(path.dirname(file), reference);
       if (!(await pathExists(target))) missing.push(`${path.relative(repositoryRoot, file)}: ${reference}`);

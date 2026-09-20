@@ -262,7 +262,7 @@ order. Section order is the compiled graph's validated declaration order. Manife
 identity bind that order at admission; consumers receive canonical Section references.
 
 **Unimplemented target; current compilation evaluates each source-cell row exactly:**
-The P1 paint cutover quantizes each Band boundary to one lateral source-texel offset per 1.6 m
+The target paint compiler quantizes each Band boundary to one lateral source-texel offset per 1.6 m
 chainage tile row. Only paint changes: physical Band boundaries, Guide and classifications remain exact.
 Boundary tiles therefore belong to a finite offset/material vocabulary. Repairs and stamps follow the
 same finite vocabulary on the 1.6 m grid; exceptional stamps receive a measured unique-tile budget.

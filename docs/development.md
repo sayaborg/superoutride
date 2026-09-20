@@ -6,6 +6,9 @@ Implemented workflows and validation contracts are described below. The [Course 
 
 Use Node.js 24 (package engines and engine-strict enforce the supported major). Run `npm install` and complete `npm test` at every implementation milestone and release candidate; CI uses `npm ci` for the lockfile. `npm run check` runs lint, formatting and strict type checks; `npm run format` applies the shared formatting rules. `npm run build` clears dist and compiles TypeScript ESM; `npm test` runs lint, formatting, the build and the complete executable suite. [Build outputs](#build-outputs) separates production modules from generated fixtures. Serve the repository over HTTP, for example `python3 -m http.server 8000`. Generated dist, dependencies and Pages staging are not source files.
 
+Lint uses `typescript-eslint` recommended rules with explicit project differences, including constant bindings and switch fallthrough checks. `prefer-const` preserves bindings read by cleanup callbacks before initialization; registration order remains unchanged. Type checking also enforces `noImplicitReturns`, `noFallthroughCasesInSwitch` and `verbatimModuleSyntax`.
+Inline scripts in `tools/**/*.html` are excluded from ESLint because the configured parser accepts module files, not HTML; the existing parsed dependency/export checks still inspect their imports and consumers.
+
 Follow [AGENTS](../AGENTS.md) for the branch, architecture and release gates.
 
 For engine tuning, open `http://localhost:8000/?mode=linear` and open DEV to adjust ENGINE
@@ -33,6 +36,7 @@ and calibration require K's separate decision, recorded in [NEXT](NEXT.md#open-d
 ## Agent production tools
 
 Use Node 24 and `npm run build`. The shared scene supplies the same camera/renderer in Node and the browser.
+After building, `node tools/performance/course-capacity.mjs` measures synthetic long-curve, primitive-limit and raster-limit compilation, local windows and peak RSS; it is a geometry diagnostic, not a ground or device budget.
 The current LINEAR can be rebuilt entirely from the saved analyzed-data observations and recipe
 (run `npm run format` before committing generated JSON):
 
@@ -124,12 +128,12 @@ and V8 sampled allocation bytes in a separate 30-frame pass (including collected
 Function and exclusive physics/view/driver/progress/render categories use separate heap and CPU passes.
 GC events are correlated with measured frame intervals, including the slowest frame. Allocation is an estimate, not retained heap growth. Setup and explicit repositioning are excluded.
 This Node host measurement excludes browser, audio and compositor work and cannot certify a phone.
-`npm test` runs scene budget checks after its parallel suite. The P1 goals are 0.2 MB/frame, 3 ms
+`npm test` runs scene budget checks after its parallel suite. Performance targets are 0.2 MB/frame, 3 ms
 median fixed step and 10 ms frame p95. A separate 0.65 MB allocation regression ceiling protects the
-reduction without certifying P1 completion; [NEXT](NEXT.md#current-state) records the unmet acceptance.
+reduction without certifying performance acceptance; [NEXT](NEXT.md#current-state) records the unmet acceptance.
 
-The browser HUD displays FPS, maximum CPU frame/step time and frame interval over each half-second,
-plus the scene's lifetime maximum seam commit. Check LINEAR curves/hills, SEAM forward/reverse,
+[Browser](browser.md#performance-hud) owns the HUD's displayed observations and reporting windows.
+Check LINEAR curves/hills, SEAM forward/reverse,
 CIRCUIT lap seams and BRANCH lock/closure on an iPhone-class device. Acceptance requires sustained
 60 fps and each seam commit within 16.67 ms, with actual browser/audio work included. Report host
 measurements and human device evidence separately; an unmeasured device remains unqualified.
@@ -508,8 +512,8 @@ buffers and the rest of the application require process/device measurements. A f
 retires the old instance; it does not keep two live courses or stream ground during play.
 
 `node tools/performance/course-scene.mjs --frames 180 --rivals 16` reports payload/resident/load accounting,
-unique tiles and Section count alongside frame/step/seam timing and sampled allocations. The browser HUD
-shows the admitted resident set. Build stages `ground/<course>.json` and `.bin`; the published-content
+unique tiles and Section count alongside frame/step/seam timing and sampled allocations. [Browser](browser.md#performance-hud)
+owns the resident-set display. Build stages `ground/<course>.json` and `.bin`; the published-content
 verifier hashes both along with source documents/images. The small independent source-area oracle,
 actual browser root, and car/bike seam tests provide causal coverage. Named-device 60 fps remains separate.
 

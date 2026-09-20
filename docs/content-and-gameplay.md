@@ -15,7 +15,7 @@ this same assembly. The SEAM selection drives the two-Section split through a ro
 selections use the same standing-start Session, settings, checkpoint clock and results.
 The development course is a finite 2.94 km LINEAR with 132 row-generated
 scenery instances, two environments, varying widths, shoulders, left/right turns and height changes.
-The shell retains vehicle selection, input, camera lifecycle, audio and HUD. Completed resident ground
+[Browser](browser.md) owns shell composition, scheduling, input adaptation and HUD. Completed resident ground
 supplies filtered levels; all inputs finish loading and validation before ticks. A failed load/compile offers retry. An authored entry Port retains at least 30 m of source behind the
 playable entrance. Reverse travel or repeated manual recovery past that entrance uses ordinary
 legal-route recovery to the Port before camera observation, without progress credit.
@@ -41,7 +41,7 @@ publication used by the file/CLI workflow and shared scene. The [constant LINEAR
 [varying LINEAR example](../tests/fixtures/varying-linear.course.json),
 [linked LINEAR example](../tests/fixtures/linked-linear.course.json) and
 [transformed loop](../tests/fixtures/transformed-loop.course.json) are executable inputs for
-the [offline entry](development.md#course-document-compiler). A compiled document is geometry/reference
+the [offline entry](development.md#coursedocument-compiler). A compiled document is geometry/reference
 data with explicit height/physical content and verified indexed image sources, not a ready driving
 Session or completed resident ground product.
 
@@ -172,7 +172,7 @@ Compilation caps each Section at 16384 Raster segments, 16384 mapped-band partit
 cells and 100000 m of compiled chainage, checking subdivision counts before emitting vertices and
 partition size before constructing cells. A Link admits at most 8192 overlap cells.
 These authoring limits bound work and diagnostics, not master-course or target-device acceptance.
-The [capacity diagnostic](development.md#course-geometry-capacity) measures host cost reproducibly.
+The [capacity diagnostic](development.md#agent-production-tools) measures host cost reproducibly.
 
 ### Supported geometry and recipe
 
@@ -1025,7 +1025,7 @@ through the current full-page course switch. [Development](development.md#capaci
 
 ### Shared reference and rival driver
 
-P1 (3) is unimplemented: one performance-envelope policy serves reference and rivals, taking vehicle
+Unimplemented target: one performance-envelope policy serves reference and rivals, taking vehicle
 envelope, utilization, speed cap and target lane as inputs. Reference utilization remains 0.9; rivals
 use one lower provisional default, with no per-course or vehicle speed tuning. View windows derive
 their reach from the shared driver's actual lookahead. Planning scratch storage belongs to each actor

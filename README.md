@@ -19,12 +19,10 @@ Open `http://localhost:8000/`. Build validates and stages course JSON, images an
 
 ## Controls
 
-Left/right arrows steer. Up or X accelerates; down or Z brakes. Backspace recovers the vehicle.
-On touchscreens, the left half controls steering and the right half controls throttle (up) and brake (down). Each finger's initial position is its origin; 64 CSS pixels gives full input.
-
-Choose CLASSIC or CUSTOM, vehicle, 0–16 rivals, laps and checkpoint clock in Session setup, then press START.
-PAUSE suspends the run; GOAL or GAME OVER shows the result. NEW SESSION returns to setup.
-Open DEV for camera and sound controls; vehicle/physics calibration stays fixed during a Session. The performance HUD shows FPS, frame/step time and the maximum seam commit time, plus resident ground bytes/tiles/Sections. Key 1 selects LINEAR; key 2 selects the two-Section SEAM trial; key 3 selects the two-lap CIRCUIT with two rivals; key 4 selects BRANCH with two paths and a shared finish. D, M and ACT use minus/value/plus controls; steps wrap at their limits. Physics and audio tuning remain deferred (DEV_UNCALIBRATED).
+[Browser controls](docs/browser.md) owns keyboard/touch operation, course selection, Session setup,
+URL parameters, pause/resume and the performance HUD. [Audio](docs/audio.md) owns sound controls;
+[Calibration](docs/calibration.md) owns the locked Session calibration and DEV selectors.
+Physics and audio tuning remain deferred (DEV_UNCALIBRATED).
 
 ## Authoring and tools
 

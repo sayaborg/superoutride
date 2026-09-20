@@ -51,6 +51,8 @@ Run complete Node 24 `npm test` (including lint, format and build) for every rel
 
 Open a PR targeting main. Obtain complete green CI on the exact feature head, including documentation and validation changes. Re-fetch main. Release only when ahead > 0, behind = 0 and merge base is current main. Move main to the validated SHA with `force=false`; never manufacture an extra merge commit. Verify main SHA = PR head SHA = PR merge SHA, then verify main-push CI and Pages on that SHA, including version.txt, commit-versioned boot, and delivered CourseDocument/image SHA-256 digests. Rebase/revalidate if main moved. Never force main or release an unvalidated SHA.
 
+After a PR is reflected in main, retire its remote work branch. Fetch main and the branch again and verify the exact branch head is contained in main (`git merge-base --is-ancestor` or the equivalent commit comparison). Delete only that verified branch; never delete main. Retain and report branches with uncontained or uncertain heads, concurrent changes, or unavailable deletion access. Do not treat a merged PR label as proof that a branch's current head is included.
+
 CI workflow checkout and artifacts are release evidence. The working tree keeps current specifications and the current restart checkpoint, not an accumulating release archive. A documentation-only follow-up is still a new SHA and needs CI before release. Do not embed a commit's own SHA in its source as a supposed exact-head record.
 
 When investigating a browser problem, distinguish source, build artifact, deployment and browser display/cache evidence. Preserve complete commit-versioned ESM builds. Do not claim a public deployment was inspected unless its workflow, artifact or endpoint was actually checked.
