@@ -468,7 +468,10 @@ body {
   background: #101820dd;
   color: #fff;
   font: 11px monospace;
-  white-space: nowrap;
+  width: max-content;
+  max-width: calc(100vw - 16px);
+  white-space: normal;
+  text-align: center;
   padding: 3px 6px;
   pointer-events: none;
 }
