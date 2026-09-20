@@ -19,7 +19,7 @@
 - **N4 — Pending:** a Left/Middle/Right fork course using ordinary lock, median, closure recovery, exit, merge and retarget rules; publicly drive start to results.
 - **N5 — Pending:** timeline observations, template-free fit and current-envelope validation; synthetic tools first if footage is absent, then a public video-derived course with timing tables and same-time images.
 - **N1–N3 — Complete:** published shared scene, resident ground, authored Sessions, checkpoint clocks and reference driving; K accepted the standing-start-to-results flow on device.
-- **P1 (1) — Implementation complete, acceptance open:** physics/projection/progress/terrain storage reuse and completed-ground scanline batching; measurements above remain below the required acceptance.
+- **P1 (1) — Implementation complete, acceptance open:** physics/projection/progress/terrain storage reuse and completed-ground scanline batching; acceptance criteria remain unmet.
 - **P1 (4) — Complete:** automatic cached references, one envelope per vehicle, compact browser budgets and untracked previews.
 
 Playable completion requires a publicly drivable Pages URL and human driving. After N5: real content production → K reviews reference difficulty/time margins/rival speed → collisions/interactions and traffic → inspection/fine-adjustment GUI.
