@@ -7,7 +7,7 @@ image formats and compilation.
 
 ## Composition and data ownership
 
-The new [CourseDocument root](../src/main-course.ts), the default `?mode=linear` selection, loads saved JSON/images,
+The [CourseDocument root](../src/main-course.ts), the default `?mode=linear` selection, loads saved JSON/images,
 compiles the graph, and assembles the [shared scene](../src/runtime/course-scene.ts). The scene creates
 occurrence driving readers (a single Section is a graph with no Links), saved presentation and the ordinary renderer. The headless CLI uses
 this same assembly. The SEAM selection drives the two-Section split through a rotated/translated Link. CIRCUIT uses a
@@ -36,8 +36,8 @@ owns line/arc subdivision and radius provenance. [DEV](../src/dev/README.md) own
 [Admission and serialization](../src/course/course-document.ts),
 [geometry recipe](../src/course/course-geometry.ts),
 [course compilation](../src/compiler/compiled-course.ts) and
-[project transactions](../src/authoring/course-project.ts) implement Gate 1 independently of the current
-driving roots. The [constant LINEAR example](../tests/fixtures/linear.course.json) and
+[project transactions](../src/authoring/course-project.ts) implement saved-document compilation and
+publication used by the file/CLI workflow and shared scene. The [constant LINEAR example](../tests/fixtures/linear.course.json) and
 [varying LINEAR example](../tests/fixtures/varying-linear.course.json),
 [linked LINEAR example](../tests/fixtures/linked-linear.course.json) and
 [transformed loop](../tests/fixtures/transformed-loop.course.json) are executable inputs for
@@ -105,9 +105,9 @@ Band, Carriageway and Port IDs each have a separate Section-local scope. Duplica
 admission. References resolve within their declared scope, never by array position or naming convention.
 Empty arrays and unresolved references may be saved as drafts; successful compilation requires complete
 semantic input. A well-formed but unavailable geometry recipe may also be saved, and fails compilation
-with `unsupported_version`. Schema/format and unit mismatches fail admission. Earlier schemas are explicitly
-unsupported. Geometry fixtures explicitly select v9 with `presentation: null`, `fork: null` and an empty
-scenery-instance collection, and `rules: null`; no appearance or fork controls are inferred from physical Bands.
+with `unsupported_version`. Schema/format and unit mismatches fail admission. Geometry fixtures select
+v9 with `presentation: null`, `fork: null`, an empty scenery-instance collection and `rules: null`;
+no appearance or fork controls are inferred from physical Bands.
 There is no implicit root from declaration order or compatibility interpretation.
 
 Stamp IDs and scenery-placement IDs have separate Section-local scopes. Appearance resolves canonical
@@ -126,7 +126,7 @@ They follow the referenced varying Boundary on the selected side. Expansion shar
 creates deterministic Section/row/index instances, and is limited to 4096 total Section placements.
 Unsupported repair scatter and dimensioned marking/boundary recipes receive diagnostics.
 
-Asset references bind exact saved sprite-image bytes by lowercase SHA-256. Compilation now requires
+Asset references bind exact saved sprite-image bytes by lowercase SHA-256. Compilation requires
 explicit saved bytes for every declared digest and resolves Section membership to canonical descriptors
 with deeply frozen indexed sources. Aliased descriptors share one source, including at merges/loops.
 [Image admission](image-assets.md#course-image-source-admission) owns validation, resource limits and
@@ -171,18 +171,16 @@ per Section: 2048 plan primitives, 32 Boundaries, 256 knots per Boundary, 32 Ban
 Compilation caps each Section at 16384 Raster segments, 16384 mapped-band partition
 cells and 100000 m of compiled chainage, checking subdivision counts before emitting vertices and
 partition size before constructing cells. A Link admits at most 8192 overlap cells.
-These authoring limits bound work and diagnostics. Product's one-Section CIRCUIT is retained:
-the synthetic 20.8 km high-turn workload exceeds the former 2048-segment ceiling, and exact new primitive/
-segment ceilings have executable admission coverage. This is not master-course or target-device approval;
-the [capacity diagnostic](development.md#course-geometry-capacity) measures host cost reproducibly.
+These authoring limits bound work and diagnostics, not master-course or target-device acceptance.
+The [capacity diagnostic](development.md#course-geometry-capacity) measures host cost reproducibly.
 
 ### Supported geometry and recipe
 
 The accepted recipe is `superoutride.raster-guide` version 4. It pins `RasterTurtle` version 1 and
 the existing Raster arithmetic: straight segments use `ceil(length/50)` equal steps; arcs use
 `ceil(abs(turnDegrees)/5)` equal angular steps computed in authored degrees, then convert angles with
-`PI/180`. Initial heading also uses degrees. The retained turtle radian API remains available to
-existing development content; it is not a second document interpretation.
+`PI/180`. Initial heading also uses degrees. The turtle radian API is a separate source-authoring
+entry, not another document interpretation.
 
 Arc radius provenance covers its initial and emitted vertices. A following arc overwrites the shared
 vertex's provenance with its own radius. Turtle accumulation remains its sequential analytic chord
@@ -216,14 +214,13 @@ each Raster interval, so its boundary extrema prove local non-inversion. Varying
 interpolated miter map are quadratic, not straight corner-to-corner lines. Source admission proves
 local non-inversion, Band ownership and Guide metrics; it does not require global geographical
 injectivity. Repeated/crossing XZ positions at different chainages remain distinct source addresses.
-This explicitly supersedes v3's whole-Section separated-hull requirement. Consumer-window separation
-below replaces that requirement without removing inversion or ambiguity checks.
+Consumer-window separation supplies the separately scoped ambiguity check.
 
 The derived Guide envelope interpolates the maximum absolute active boundary position plus margin
 at these stations. Both closed incident cells contribute at a transition, including zero-area
 birth/death points; dormant profile portions do not contribute. This is a conservative upper bound
 between knots, not another authored width. The Core
-[local-envelope contract](architecture.md#target-local-guide-envelope) checks each complete fillet;
+[local-envelope contract](architecture.md#local-guide-envelope-qualification) checks each complete fillet;
 a distant wide straight does not widen a tight bend. The margin covers only the explicitly admitted
 chart domain: no contact/vehicle query envelope or physical binding is inferred here.
 `courseBoundaryAt` and `courseBandAt` expose ordinary canonical data readers. The latter takes the
@@ -232,11 +229,8 @@ the owning Band or null for a gap/outside: longitudinal membership is `[start,en
 ending at Section length includes that terminal; lateral membership is `[left,right)`. At a partition
 switch only starting and continuing Bands own points. Invalid/nonfinite queries throw RangeError.
 No role implies grip, paint or lock eligibility.
-Legacy physical/paint/junction edge classification remains unchanged until the combined runtime cutover.
 
-Recipes v1/v2/v3 are not silently reinterpreted. Their documents remain saveable but compilation reports
-`unsupported_version`; changing to v4 is an explicit source edit that invalidates prior output.
-The checked-in fixtures explicitly select v4 and retain their rulers and fillet geometry.
+Unsupported recipe versions report `unsupported_version`; an explicit recipe edit invalidates prior output.
 Raster/Guide authoring-domain rejections are RangeError; internal coverage/reader invariants retain Error.
 
 ### Consumer-local geometry qualification
@@ -263,7 +257,7 @@ Both mappings are checked independently; failed admission publishes no partial v
 Exceeding it returns `resource_limit`, not success with a truncated window. It is a work bound, not
 a fixed distance guard. The consumer owner must include its entire candidate/search range and query
 envelope, preserve occurrence and seed identity, and keep queries within the qualified chart domain.
-This offline single-source proof does not yet establish actual driving query containment, multi-occurrence
+This offline single-source proof does not establish actual driving query containment, multi-occurrence
 window validity, neighboring-actor height selection or presentation visibility. A geographically crossing
 Section can qualify small windows around each passage while a window containing both fails. Height and
 the actual traversal disambiguate grade-separated contacts; global nearest-road fallback is not permitted.
@@ -287,8 +281,8 @@ graph above Course and Physics; material types do not propagate through Port/Lin
 [Band surface adapter](../src/physics/band-surface-reader.ts) receives only the partition and bindings.
 It uses canonical half-open Band ownership, returning VOID outside/in gaps. Its conservative support
 bound includes active supported profile endpoints and interior Boundary knots, not dormant/VOID portions.
-No geometry is copied and no reader resolves an ID. This offline facet does not replace the legacy
-SurfaceMap or adapt occurrence/frame mappings for contact, projection or terrain.
+No geometry is copied and no reader resolves an ID. Runtime supplies occurrence/frame mappings for
+contact, projection and terrain independently of this source-local physical facet.
 
 ### Contact and fixed-step guard admission
 
@@ -302,7 +296,7 @@ and recovery windows concatenate spans and never enlarge the common guard.
 #### Authored fork controls and coverage
 
 Section `fork` is explicit `null` (no admitted controls) or `{lock, closure}`, both ordinary anchors.
-Null remains useful for geometry-only fork fixtures and cannot qualify a runtime route lock. Compiler v11
+Null remains useful for geometry-only fork fixtures and cannot qualify a runtime route lock. Compiler
 resolves anchors once, then compiles the static fork against the canonical outgoing Links. Require two
 or three exits, entry before lock, and `0 < lock < closure < every exit seam`. The admitted parallel-zone
 subset lies in an authored straight outside Guide fillets. Its active Bands retain constant edges,
@@ -351,10 +345,9 @@ an interior knot, short coverage gap or mismatched Raster miter cannot escape th
 
 This product certifies only the selected Carriageway's pavement geometry. It does not certify other
 roads, shoulders, medians, physical bindings, height, images, material phase or scenery, nor sufficient
-consumer/transfer guards. A compiled Link is **not admission for a driving transition**. Complete
-common-content overlap, parent-specific visibility, consumer/content qualification and atomic runtime commit remain required
-before cutover. The bounded geometry view below provides occurrence/history foundations only. Existing same-world stage continuation and
-runtime readers remain unchanged.
+consumer/transfer guards. A compiled Link is **not admission for a driving transition**. Driving admission
+requires common-content overlap, parent-specific visibility, consumer/content qualification and the
+atomic runtime commit described below.
 
 ### Offline topology
 
@@ -509,9 +502,9 @@ geometryRecipe}`, including the full pinned recipe descriptor. The compiler iden
 admission recipe v1 and presentation recipe v3 descriptors.
 Recipe descriptors contain stable IDs, integer semantic versions and operative numeric/data parameters,
 not explanatory English. Versions pin the documented height, ownership, geometry and overlap behavior;
-the physical descriptor also includes the existing material definitions. Section geometry recipe v4
-revises admission without changing Raster/Guide arithmetic. Height/material edits invalidate source and build identity.
-All inputs currently conservatively invalidate the complete
+the physical descriptor also includes the existing material definitions. Geometry recipe v4 pins
+Raster/Guide arithmetic and admission. Height/material edits invalidate source and build identity.
+All inputs conservatively invalidate the complete
 product. Rebuilds on the supported execution contract reproduce values and identities, but allocate
 distinct graph objects. Changes to compiler/recipe semantics require a version revision; unsupported
 recipes never silently migrate. Existing numerical-environment limits in Development apply.
@@ -524,15 +517,14 @@ Links and fork controls collect expected semantic errors in document/declaration
 phase completes its independent siblings; failed phases stop dependent construction. No placeholder
 geometry or unresolved object is supplied to generate downstream cascades.
 
-Compiler v12 replaces the former catch-all semantic code with explicit causes: empty course/Section,
+Semantic diagnostics identify explicit causes: empty course/Section,
 Raster/Guide geometry, anchor/boundary/domain/width, Band overlap/coverage/transition, shared Boundary,
 mapped inversion, Carriageway membership, height/physical binding, Port/Link/topology and unrepresentable
 overlap. Clients use `code` and `path`, without parsing English messages. The diagnostic union in
 `course-diagnostics.ts` enumerates these codes alongside shape/version/reference/resource and supported
-presentation codes. Every validation call supplies its cause explicitly. Existing invalid-input and
-geometry predicates remain in force; this reporting contract supersedes single-error semantic compilation.
-Literal format/unit failures never claim to be version failures. Separate Link qualification diagnostics
-and multi-failure behavior are specified above. Traversal/view failures use their runtime-specific
+presentation codes. Every validation call supplies its cause explicitly. Invalid-input and geometry
+predicates remain in force. Literal format/unit failures never claim to be version failures. Separate
+Link qualification diagnostics and multi-failure behavior are specified above. Traversal/view failures use their runtime-specific
 reasons, while project `no_source`/`stale_source` outcomes are `{ok: false, reason}` without document
 diagnostics. Wrong API shapes/domains use TypeError/RangeError. Compiler adapters translate known geometry RangeErrors only; unexpected platform and invariant
 exceptions propagate. Failure returns no partial product.
@@ -553,8 +545,7 @@ digest wait. The project does not retain a mutable input-byte cache; callers sup
 each build. Missing/corrupt inputs preserve prior publication and stale generations cannot install.
 
 Core, physics and renderer receive ordinary readers/data. The shared scene and race composition own
-live graph traversal and session state. Further GUI integration
-are separate acceptance gates.
+live graph traversal and session state. GUI integration remains an unimplemented target below.
 
 ## Gates and race progress
 
@@ -677,12 +668,6 @@ restarted sectors and synthesized steady laps cannot substitute. Reproducible ca
 executable evidence. K will reconsider reference difficulty, the provisional 1.35 time margin and rival
 speed together after real courses exist; agents retain their current values without tuning.
 
-The P1 driver cutover uses one performance-envelope policy for reference and rivals. Its inputs are
-vehicle envelope, utilization, speed cap and target lane. Reference utilization remains 0.9; rivals use
-one lower provisional default, with no per-course or vehicle speed tuning. The old fixed-speed rival
-policy is removed at that cutover. View windows derive their reach from the shared driver's actual
-lookahead; planning scratch storage belongs to each actor and obeys the scene allocation budget.
-
 ## Recovery
 
 [Recovery](../src/gameplay/recovery.ts) is an explicit gameplay discontinuity observing support, falling,
@@ -721,9 +706,10 @@ extensions; raw reference pixels never become committed game assets.
 
 ### Time-based remaster target
 
-The reference video's timeline is authoritative for perceived course pacing, not its physical scale.
-For the intended vehicle profile, preserve each interval's duration, turn direction/order, speed ratio
-to maximum speed, corner severity, and the times of hills, environments, scenery and checkpoints.
+This workflow is unimplemented. The reference video's timeline is authoritative for perceived course
+pacing, not its physical scale. For the intended vehicle profile, preserve each interval's duration,
+turn direction/order, speed ratio to maximum speed, corner severity, and the times of hills,
+environments, scenery and checkpoints.
 Observations record interval start/duration, direction, speed ratio `r` and headroom class
 (relaxed / fast / limit); landmark observations use timestamps.
 
@@ -793,10 +779,7 @@ scales are explicit fitting inputs and are recorded in CourseDocument `reference
 intermediate-file digest and remaster departures. Fitting validates and compiles before atomically
 replacing output. Compiler/runtime consume completed authored data and never estimate or fit it.
 
-## Course Editor target
-
-This target owns authoring, compiled-course relationships and gameplay transactions. Current paths
-above remain until their corresponding cutover passes [NEXT](NEXT.md) and its causal evidence.
+## Course authoring contracts
 
 ### Sections, ports and topology
 
@@ -815,8 +798,8 @@ and heading. The same upright transform/overlap checks apply to loops, merges an
 identity applies only when port frames already match. Closure requires neither snapping, a fitted
 connector nor stretching the authored path. Local heights, cross-sections and presentation must agree.
 Real-circuit fidelity is a separate reference requirement. Scored lap span is positive exit-minus-entry
-source chainage, excluding guards. Initial Sessions retain finite lap targets; unlimited CUSTOM remains
-unselected. A bounded view reuses one lap source regardless of scored count.
+source chainage, excluding guards. Sessions have finite lap targets. A bounded view reuses one lap
+source regardless of scored count.
 
 ### Compiled-course reference graph
 
@@ -844,7 +827,7 @@ Independent public inputs and changing numerical observations still require thei
 
 ### Authored plan primitives
 
-The initial format uses an ordered sequence of identified straights/circular arcs and one Section
+The format uses an ordered sequence of identified straights/circular arcs and one Section
 start position/heading. Straights store positive length; arcs positive radius and nonzero signed turn.
 The existing Raster compiler derives endpoints/headings. Other curves use explicitly authored piecewise
 approximations with recorded reference departures. Unsupported primitives receive diagnostics; adding
@@ -863,10 +846,10 @@ current turtle's 50 m straight steps, maximum 5-degree arc steps and degree/radi
 part of its recipe, not invisible defaults that may change under the same identity.
 
 Changing that recipe invalidates geometry, anchored placements/landmarks, ground and reference-time
-outputs that depend on it. Reopen with the saved recipe or report an unsupported version. Recompiling with a different tessellation produces a new source/build identity and reports anchor
-displacement. The current pre-production version policy above requires no migration implementation. Absolute s values otherwise retain their numeric
-value; primitive-fraction anchors follow the named primitive. Neither silently guarantees an unchanged
-world point after a ruler change. Exact wire fields are established by the versioned reader at Gate 1.
+outputs that depend on it. Reopen with the saved recipe or report an unsupported version. The
+pre-production version policy above requires no migration implementation. Absolute s values retain
+their numeric value; primitive-fraction anchors follow the named primitive. Neither silently guarantees
+an unchanged world point after a ruler change. The versioned reader owns exact wire fields.
 
 ### Cross-section and variable-width authoring
 
@@ -889,14 +872,14 @@ Active bands have positive width and ordered noncrossing boundaries. Zero width 
 an explicit birth/death endpoint and owns no area. A split may change the partition at a shared station
 with continuous union of pavement/median bands. At the lock line all candidate roads and separating
 medians have positive width, and physical bindings supply a supported crossable median. Gates/grids
-use supported positive-width regions. [Target lateral ownership](architecture.md#target-lateral-boundary-ownership)
+use supported positive-width regions. [Lateral ownership](architecture.md#lateral-boundary-ownership)
 applies equally to physical, source-visual and lock-region point classification.
 
 Compile paint, physical support and route intent through their own readers over these references.
 Evaluate varying boundaries as authored; unsupported features are diagnosed rather than replaced with
 constant-width sections. Check knots, activation changes and mapped-band interiors for inversion or
 intersection. [Architecture](architecture.md#compiled-boundary-geometry) owns geometric partitioning
-and the [local Guide envelope](architecture.md#target-local-guide-envelope) that permits a wide straight
+and the [local Guide envelope](architecture.md#local-guide-envelope-qualification) that permits a wide straight
 fork and a distant tight curve in one Section.
 
 ### Occurrences and frame commit
@@ -906,7 +889,7 @@ identifies the actual incoming Link/lap and retains coverage required by admitte
 Reverse traversal follows the inverse of the visited Link.
 
 A forward oriented seam crossing commits that actor's next occurrence/frame. Field locking chooses
-the legal successor while the old frame stays active until the actor's seam. Commit transforms pose,
+the legal successor while the current frame stays active until the actor's seam. Commit transforms pose,
 velocities, world angular quantities, previous observations, contact/projection caches and camera
 follow state coherently. Body-local values and accepted progress stay unchanged. Recompute derived
 observations from their owners; the basis change adds no physical crossing or motion.
@@ -923,20 +906,19 @@ open readers with one source-to-view address mapping. Source Sections/assets are
 view construction does not allocate all scored laps or copy shared image data. Keep graph choice and
 occurrence history above the renderer and integrator.
 
-Compatible neighboring occurrences share a local interaction frame. Rendering/contact use transformed
-geometry and validated source identity; ranking uses accepted progress. Unrelated geographic overlaps
-do not cause vehicle contact. Shared scenery/actors retain stable instance identity. A neighboring
-actor is visible when its transformed bounds enter the view, independent of package equality.
+Compatible neighboring occurrences share a local observation frame. Rendering uses transformed
+geometry and validated source identity; ranking uses accepted progress. Shared scenery/actors retain
+stable instance identity. A neighboring actor is visible when its transformed bounds enter the view,
+independent of package equality. Collision/interaction qualification remains a target below.
 
 ### Seam and overlap
 
 A seam lies in an authored horizontal straight. Its practical common guard (about 30 m) certifies
 physical and presentation agreement at contacts and over one fixed step. Camera/render, driver and
 recovery windows follow concatenated occurrence spans, switching source at the seam; those entire
-windows need not fit the common guard. Increasing fixture overlap to 500 m is not a valid substitute.
-Sources retain matching height, Band/material, paint phase and shared scenery in their common region.
-The transform preserves camera/world state and grants no progress. Parent-specific content uses the
-ordinary span view and the exit-presentation contract below.
+windows need not fit the common guard. Sources retain matching height, Band/material, paint phase
+and shared scenery in their common region. The transform preserves camera/world state and grants no
+progress. Parent-specific content uses the ordinary span view and the exit-presentation contract below.
 
 ### Fork lock and handoff
 
@@ -945,7 +927,7 @@ fixed after route choice. Require `lock < closure < exit seam` for every exit. T
 player plus rivals in every mode; traffic does not vote. With zero rivals, the player is the whole field.
 
 Partition supported lock-line space at separating median centerlines, associating each region with
-one positive-width carriageway. Use the [half-open rule](architecture.md#target-lateral-boundary-ownership):
+one positive-width carriageway. Use the [half-open rule](architecture.md#lateral-boundary-ownership):
 an exact shared boundary belongs to its right-hand region; unsupported/outside crossings select none.
 Compile this partition from geometry, independent of steering intent or nearest-center guesses.
 
@@ -977,30 +959,20 @@ Qualify the actual product presentation over admitted camera offset/yaw/height. 
 only matching common overlap, without parent-specific tails or variants. Every incoming Link of a merge
 uses this same check; inverse traversal uses actual predecessor history under the same envelope.
 
-Separately derive lock-to-closure distance from vehicle, speed, initial-state and material envelopes,
-including outer-to-outer travel at three-way forks. The ideal zero-initial/final-lateral-speed bound is
-`t=2*sqrt(D/a)`, distance `v*t`: D=30 m, a=5 m/s2 and v=70 m/s gives about 343 m; D=60 m gives about
-485 m. These are conditional lower bounds, separate from visibility.
-
-Qualify response time, bike attitude, combined tire demand, yaw/slip, vehicle width and median transitions
-through deterministic physics scenarios. Record admitted envelopes/margins and remaster departures.
-
-### Gates, grade separation and interaction
-
-Known occurrence, neighborhood and height select gate/surface candidates. Actual oriented physical
-crossing remains required; release, reverse, recovery, frame rebinding and raw s changes grant no
-checkpoint or lap. Height/topology also disambiguate overpass contacts. Tunnel/background effects are
-ordinary content. Validate mapped road/shoulder/support bands, Guide domains and nonadjacent intersections,
-separately classifying intentional overpasses/lap copies. Traffic/barrier response has its own interaction
-contract; player/rivals retain common vehicle mechanics.
+Content qualification separately derives lock-to-closure distance from vehicle, speed, initial-state
+and material envelopes, including outer-to-outer travel at three-way forks. The ideal
+zero-initial/final-lateral-speed bound is `t=2*sqrt(D/a)`, distance `v*t`: D=30 m, a=5 m/s2 and v=70 m/s
+gives about 343 m; D=60 m gives about 485 m. These are conditional lower bounds, separate from visibility.
+Full admitted-envelope qualification of response time, bike attitude, combined tire demand, yaw/slip,
+vehicle width and median transitions remains a target, not a result supplied by these bounds.
 
 ### Authoring documents and assets
 
 CourseDocument owns identity/references, geometry/profiles, Links, anchors, composition, rules and presets.
 Source assets own saved bytes or edited normalized masters, recipes, identity and provenance. CompiledCourse
-owns derived graph/readers/images. Editor state owns selections, panels, view and transient undo.
+owns derived graph/readers and admitted indexed sources; the resident compiler owns completed ground.
 
-The versioned schema defines ID scopes, units, seeds, phases, stamp order and the pinned geometry recipe.
+The versioned schema defines ID scopes, units, phases, stamp order and the pinned geometry recipe.
 Display names are labels. Geometry, pixels and resolved Sessions are generated products. Sprite Tool's
 local image session retains its existing scope. One public compiler composes small domain compilers,
 resolves references as specified above and exposes actionable structured diagnostics. Exact wire fields,
@@ -1008,19 +980,19 @@ resource limits and packed encoding are validated before GUI dependence; documen
 is independent of runtime schema version.
 
 Appearance/physical bindings may share boundary references while owning independent values and change
-points. Editor conveniences may initialize both. Explicit physical regions alone change support/friction;
-paint and repairs otherwise remain visual. Validate accidental mismatches separately from intentional
-visible-unsupported or transparent-supported content. New physical material names need defined mechanics.
+points. Explicit physical regions alone change support/friction; paint and repairs otherwise remain
+visual. Validate accidental mismatches separately from intentional visible-unsupported or
+transparent-supported content. New physical material names need defined mechanics.
 
 ### Anchors and saved composition
 
 A placement/landmark stores absolute Section s or a primitive ID plus fraction. Resolve to `(s,l)` through
 the pinned geometry recipe. Deleted/missing anchors are errors. Only ground-image top-left positions
-receive [image placement rounding](image-assets.md#ground-composition-and-stamp-placement).
+receive [image placement rounding](image-assets.md#saved-course-presentation).
 
-Save layers, source phases, repair scatter seeds and stamp order. Image assets owns pixel order and
-A/B derivation. Pattern rows compile to stable ordinary instances, shared through overlap. Source
-variants match repeat borders after normalization. `repairDensity` changes visuals only.
+Save source phases and stamp order. Image assets owns pixel order and A/B derivation. Pattern rows
+compile to stable ordinary instances, shared through overlap. Repair scatter and its controls remain
+unimplemented image-authoring targets.
 
 ### Save, invalidation and preview
 
@@ -1029,13 +1001,13 @@ Malformed imports preserve the project. Save/reopen reproduces inputs and produc
 compiler/recipe and supported execution contract. Ordering/digests depend on saved input, not clocks
 or filesystem enumeration. Saved bytes define replay under the pinned supported version; the pre-production policy above owns version changes.
 
-Edits invalidate dependent products. Preview shows its source/build identity; stale products cannot be
-exported or played as the edited course. Failed builds preserve source and prior valid products. Publish
-a complete successful build atomically. Reimport explicitly resolves conflicts with edited masters.
+Edits invalidate dependent products. Preview results identify their source/build identity; stale products
+cannot be exported or played as the edited course. Failed builds preserve source and prior valid products.
+Publish a complete successful build atomically. Reimport explicitly resolves conflicts with edited masters.
 
-The 2D plan is an authoring view. Driving preview uses the product compiler/readers, projection, rendering
-and mechanics. Browser/Node adapters call shared pure functions. External image generation is sufficient;
-opening a saved image does not upload it.
+Driving preview uses the product compiler/readers, projection, rendering and mechanics. Browser/Node
+adapters call shared pure functions. External image generation is sufficient; opening a saved image
+does not upload it.
 
 ### Course loading
 
@@ -1048,3 +1020,36 @@ preserves coherent state or a loading display, and offers retry/exit. Stale arri
 Resume with a fresh clock and cleared input ownership. Capacity failures are explicit before play,
 without a hidden switch to streaming or lower-quality art. Retain content identity and failure handling
 through the current full-page course switch. [Development](development.md#capacity-model) owns residency/switch peaks.
+
+## Course Editor target
+
+### Shared reference and rival driver
+
+P1 (3) is unimplemented: one performance-envelope policy serves reference and rivals, taking vehicle
+envelope, utilization, speed cap and target lane as inputs. Reference utilization remains 0.9; rivals
+use one lower provisional default, with no per-course or vehicle speed tuning. View windows derive
+their reach from the shared driver's actual lookahead. Planning scratch storage belongs to each actor
+and obeys the scene allocation budget. Current reference and rival implementations remain separate.
+
+### Inspection and authoring
+
+The inspection GUI is unimplemented. Editor state owns selections, panels, view and transient undo;
+its 2D plan is an authoring view, not another driving engine. Report anchor displacement after an
+explicit geometry-recipe change while retaining the pre-production no-migration policy. Editor
+conveniences may initialize independent appearance and physical bindings without merging their authority.
+
+[Image authoring targets](image-assets.md#course-editor-target) own repair scatter, dimensioned markings,
+boundary treatments and inspection display. Saved repair seeds and `repairDensity` are targets, not
+admitted CourseDocument fields; they affect visuals only. Source variants require repeat-border
+qualification after normalization. Full three-way lateral-transfer envelope qualification records
+response, bike attitude, tire demand, yaw/slip, width, median transitions, margins and remaster departures
+through deterministic physics scenarios.
+
+### Gates, grade separation and interaction
+
+Grade-separation and interaction qualification remains a target. Known occurrence, neighborhood and
+height must distinguish gate/surface candidates and overpass contacts. Unrelated geographic overlaps
+must not cause vehicle contact. Tunnel/background effects are ordinary content. Qualify mapped
+road/shoulder/support bands, Guide domains and nonadjacent intersections, separately classifying
+intentional overpasses/lap copies. Traffic, vehicle and barrier response requires its own interaction
+contract; player/rivals retain common vehicle mechanics. Current pass-through behavior is unchanged.
