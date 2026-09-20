@@ -16,5 +16,7 @@ for (const report of result.reports) {
     remainingTargets: sceneBudgetFailures(report, SCENE_TARGETS),
   };
   console.log(JSON.stringify(summary));
-  assert.deepEqual(sceneBudgetFailures(report), [], `${report.mode}: measured P1 regression budget`);
 }
+
+for (const report of result.reports)
+  assert.deepEqual(sceneBudgetFailures(report), [], `${report.mode}: measured scene regression budget`);
