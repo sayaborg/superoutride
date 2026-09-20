@@ -126,21 +126,21 @@ recovery, both fork paths and actual merge predecessors. Exit frames are compare
 scene to prove parent-specific pixels have left the ordinary camera. Physics/audio tests separately
 retain the immutable nine-profile traces and hashes.
 
-Consumer-local geometry tests replace the obsolete whole-Section intersection rejection with paired
-cases: the same XZ reached at two source intervals retains distinct seeded projections/physical height,
-each small window qualifies, and a window containing both passages reports ambiguity for Raster and
-Guide. Preserve local inversion failures. Exercise clipped cells, both arc directions, varying widths,
-closed query endpoints, independent mapping diagnostics, exact resource ceilings and no partial results.
-Synthetic long/capacity fixtures prove bounded one-Section admission, not named-master content acceptance.
+Consumer-local geometry tests use paired cases: the same XZ reached at two source intervals retains
+distinct seeded projections/physical height, each small window qualifies, and a window containing both
+passages reports ambiguity for Raster and Guide. Preserve local inversion failures. Exercise clipped
+cells, both arc directions, varying widths, closed query endpoints, independent mapping diagnostics,
+exact resource ceilings and no partial results. Synthetic long/capacity fixtures prove bounded
+one-Section admission, not named-master content acceptance.
 
 The [geometry identity](content-and-gameplay.md#geometry-identity-and-anchor-replay) tests distinguish
 recipe changes from unchanged builds. Reopening the same document reproduces its ruler and anchors;
 a changed subdivision recipe invalidates dependent products and requires a new identity under the pre-production version policy.
 
-The [target lateral partition](architecture.md#target-lateral-boundary-ownership) is tested immediately
+The [lateral partition](architecture.md#lateral-boundary-ownership) is tested immediately
 below, at and above every shared and outer edge, including a median-center lock boundary. Rendering
 source classification, physical support and route regions use the same ownership rule; image filtering
-is checked against its own area-coverage contract. Existing current edge behavior remains covered until cutover.
+is checked against its own area-coverage contract.
 
 Active-Band tests cross both sides of each longitudinal switch as well as every lateral edge.
 Exercise zero-width birth/death, positive-width partition replacement, staggered partial domains and
@@ -148,7 +148,7 @@ continuous occupied unions including interior gaps. Verify per-cell carriageway 
 that changing declaration order cannot make a partial first Band define the Section domain. Coverage,
 interior-zero, overlap and discontinuity failures must preserve the current project.
 
-The [local Guide envelope](architecture.md#target-local-guide-envelope) is tested on a narrow tight
+The [local Guide envelope](architecture.md#local-guide-envelope-qualification) is tested on a narrow tight
 curve and a distant wide straight fork in one Section, on a locally invalid wide bend, across envelope
 knots/fillet interiors, and through translated or linked frames. Compare explicit constant-envelope
 input with the existing accepted geometry and preserve out-of-domain/recovery behavior.
