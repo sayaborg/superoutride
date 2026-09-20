@@ -1,8 +1,8 @@
 # Core architecture and rendering contract
 
-This document owns coordinates, geometry, projection, metric scale and layer boundaries. Current
-implementation is described first; [Course Editor targets](#course-editor-target) take effect at their
-validated cutover. [Image assets](image-assets.md) owns image formats and compilation,
+This document owns coordinates, geometry, projection, metric scale and layer boundaries. Implemented
+contracts are described below; [Course Editor targets](#course-editor-target) identify remaining
+qualification. [Image assets](image-assets.md) owns image formats and compilation,
 [content and gameplay](content-and-gameplay.md) owns course transactions and authoring semantics.
 
 ## Coordinates and open geometry
@@ -73,8 +73,8 @@ injective XZ map; distinct chainages may cross geographically without being the 
 
 Current compilation covers finite vertices/miters, the turn limit, Guide metrics, fillet overlap and
 supported envelopes. The offline [local-window proof](content-and-gameplay.md#consumer-local-geometry-qualification)
-checks mapped Raster Bands and Guide envelopes. [NEXT](NEXT.md#milestones) records pending actual
-consumer/multi-occurrence qualification. Occurrence, local seed and height distinguish passages;
+checks mapped Raster Bands and Guide envelopes. Source compilation and actual consumer/multi-occurrence
+qualification are separate contracts. Occurrence, local seed and height distinguish passages;
 world-nearest matching cannot replace those authorities.
 
 At a roundoff-size fillet join, lookup retains the adjacent segment. Omitted intervals and compiled
@@ -199,18 +199,6 @@ Projection keeps continuous display extent/anchor. Pixel rasterization and image
 still step; there is no crossfade. [Image interchange](image-assets.md#completed-sprite-images) owns
 the exact reader schema and palettes. Current programmer art remains single-level.
 
-### Offline sprite LOD authoring recipe
-
-The [image compiler contract](image-assets.md#offline-sprite-lod-authoring-recipe) owns this recipe.
-
-### External sprite source normalization
-
-The [image source contract](image-assets.md#external-sprite-source-normalization) owns PNG normalization.
-
-### Sprite Tool authoring session
-
-The [image session contract](image-assets.md#sprite-tool-authoring-session) owns the saved tool format.
-
 ## Layer and computation rules
 
 Core owns Raster/Guide, height and finite source operations. Course owns shared boundary geometry.
@@ -230,11 +218,9 @@ The implemented [document/compiler boundary](content-and-gameplay.md#coursedocum
 uses `src/compiler/compiled-course.ts` over Course-owned documents/geometry and existing Core readers.
 Compiler owns the immutable reference graph, Ports/Links and static content qualification; Authoring
 owns the live project transaction, and Runtime owns mutable traversal/view composition. Compiler resolves
-Physics-owned material records once; concrete Section/Port/Link types no longer propagate a material
-parameter through the topology. The narrow Course physical-profile primitive remains reusable.
+Physics-owned material records once; concrete Section/Port/Link types bind those records. The narrow Course physical-profile primitive remains reusable.
 Compiler also admits saved image sources through Graphics' existing sprite validator, resolving assets
-to concrete immutable indexed-source records without another generic parameter through Ports/Links.
-Image admission uses the Graphics validator; lower Course geometry still has no image dependency.
+to concrete immutable indexed-source records. Image admission uses the Graphics validator; lower Course geometry still has no image dependency.
 Presentation compilation uses the Graphics source metric and Visual's ordinary immutable data
 facets. Compiler binds Groundmap products to canonical Section references once; Groundmap consumes
 ordinary source facets without importing the graph. Appearance, outside GroundBase, scenery identity and physical support remain distinct.
@@ -270,19 +256,13 @@ have distinct authority. The offline source-paint reader evaluates canonical ref
 renderer consumes only a synchronous resident color reader and finite strip dimensions. Browser scenes
 and headless previews use the same completed-ground assembly. Missing physical support is VOID regardless of paint.
 
-## Accepted authoring target
+## Course frames and compiled geometry
 
-The [target geometry](#course-editor-target), [target images](image-assets.md#course-editor-target) and
-[course model](content-and-gameplay.md#course-editor-target) are implemented at the gates in NEXT.
-Source-camera/variant sampling and real-art filter acceptance remain open; SINGLE presentation remains.
-
-## Course Editor target
-
-This section owns target frame and geometric reader contracts. Local Guide envelopes and the offline
-Boundary/active-Band and geometric Port/Link subsets are implemented. Offline bounded geometry views
-now share source readers through occurrence mappings. Complete content/consumer qualification, runtime
-Link commits and joint physical/visual edge cutovers remain pending. [Content](content-and-gameplay.md#course-editor-target) owns authored
-records and transactions; [image assets](image-assets.md#course-editor-target) owns image products.
+Compiled Boundaries, Port/Link transforms and bounded occurrence readers are implemented. The shared
+scene consumes occurrence driving readers and commits frame changes through the runtime transaction.
+[Content](content-and-gameplay.md) owns authored records and transactions;
+[image assets](image-assets.md) owns image products. Source qualification and consumer admission have
+separate scopes.
 
 ### Frame transform and coordinates
 
@@ -311,8 +291,8 @@ original source rather than resmoothing clipped nodes. Only bounded Raster/heigh
 retained; geometry is not retessellated. The scoped
 [common-guard adapter](content-and-gameplay.md#common-guard-occurrence-driving-view) adds one qualified
 neighbor, stable occurrence/native-segment seeds and saved presentation through the same mapping.
-Its search distinguishes ownership seams from incomplete window candidates. Complete runtime pose/
-consumer admission and multi-neighbor geometry remain required. Window addresses are not race credit.
+Its search distinguishes ownership seams from incomplete window candidates. Runtime pose/consumer
+admission and multi-neighbor geometry have separate qualification requirements. Window addresses are not race credit.
 
 Render's source-presentation preview owns image decoding, color conversion and reusable image workspaces.
 It receives ordinary saved presentation, Raster and height facets. Runtime maps its narrow results;
@@ -322,7 +302,7 @@ neither the renderer nor the preview receives a CompiledCourse or occurrence gra
 
 [Authored boundaries](content-and-gameplay.md#cross-section-and-variable-width-authoring) compile into
 immutable piecewise-linear readers on the one Raster s ruler. Width/center are derived. Constant and
-varying widths share one target representation. Partition at Raster heading, render-height and relevant
+varying widths share one representation. Partition at Raster heading, render-height and relevant
 boundary knots/activation changes. Use the existing Raster/miter or Guide mapping at the responsible
 consumer. Validate mapped-band interiors as well as endpoints. Paint changes alone do not split shape.
 
@@ -336,25 +316,19 @@ driving readers' finite-endpoint or lateral classification contracts.
 Terrain consumes and projects the compiled view's bounds once and exposes source-to-span mapping to
 the final-color reader. A visible marking is paint, not another geometric road-edge authority.
 
-### Target local Guide envelope
+### Local Guide envelope qualification
 
 The Core profile, full-fillet validation, query clamping and conservative support containment are
 implemented and covered by [local-envelope tests](../tests/geometry/local-guide-envelope.test.mjs).
-Playable source data remains constant. The CourseDocument compiler derives varying profiles offline;
-consumer-specific contact extents and Link-transformed views remain later Gate 2 work.
+The CourseDocument compiler derives varying profiles; consumer admission checks contact extents and
+Link-transformed views independently of source compilation.
 
-Use a longitudinal chart envelope `L(s)` in the underlying Guide basis, replacing the Section-wide
-`lMax` constraint at the target cutover. Its immutable conservative profile encloses the supported
-bands and admitted contact/projection queries plus an explicit positive chart margin. Resolve source
-origins/Link transforms before computing that bound; visual ground extent is an independent quantity.
-A constant profile represents the existing constant-envelope case.
-
-Keep the same pointwise metric `J = mu*(1-kappa*l) >= mMin`. For each complete fillet interval I,
-use `L_I = sup(L(s), s in I)` in `Rmin = L_I/(1-mMin/mu)`. Validate the final interval at all relevant
-knots and interior extrema, including its trim extent; sampling only the corner station is insufficient.
-Circular provenance continues to determine authored-arc radii. A fallback corner uses a conservative
-bound over its adjacent finite Raster intervals before construction, followed by the complete-interval
-check. Trims, coverage and opposite-turn clearance retain their existing constraints.
+The [Guide envelope](#raster-and-guide) encloses supported bands and admitted contact/projection
+queries plus an explicit positive chart margin. Resolve source origins and Link transforms before
+computing that bound; visual ground extent is independent. Validate each complete fillet interval,
+including its trim extent, at all relevant knots and interior extrema; sampling only the corner station
+is insufficient. A fallback corner uses a conservative bound over its adjacent finite Raster intervals
+before construction, followed by the complete-interval check.
 
 The envelope is domain metadata, not a force, a new centerline or a lateral clamp. Each reader uses
 the bound at its actual query chainage. Invalid inputs/queries remain explicit; ordinary excursion and
@@ -363,7 +337,7 @@ distant tight bend, while a wide locally tight bend can still be rejected. For p
 the complete interval's extrema are its clipped endpoints and interior knots. Existing constant-input
 geometry and ordinary unclamped projection retain their numerical behavior.
 
-### Target lateral boundary ownership
+### Lateral boundary ownership
 
 Point classification uses half-open lateral regions `[left(s), right(s))`, with shared boundaries
 resolved from the same compiled Boundary object. At a shared edge the region on its right owns the
@@ -376,38 +350,14 @@ ownership. A zero-width birth/death endpoint owns no area. Existing finite-chain
 and the oriented gate's forward/reverse plane-crossing rule remain separate contracts.
 
 Numerical tolerances validate geometric agreement and source endpoints. They do not enlarge adjacent
-classification intervals or choose between two owners. In particular, a median-center lock tie goes
-to the right-hand zone in the target. Migrate source classification, support and gate membership as one
-explicit behavior revision with below/at/above-edge tests; retain the current rules until that cutover.
+classification intervals or choose between two owners. A median-center lock tie belongs to the
+right-hand zone. Source classification, support and gate membership require below/at/above-edge coverage.
 
-### Source and completed images
+## Course Editor target
 
-[Image assets](image-assets.md#source-and-completed-images) owns the common source and completed-color formats.
-
-### Source lattice and tile dictionary
-
-[Image assets](image-assets.md#source-lattice-and-tile-dictionary) owns the completed output lattice.
-
-### Ground LOD and filter
-
-[Image assets](image-assets.md#ground-lod-and-filter) owns filtering and ground level selection.
-
-### Ground composition and stamp placement
-
-[Image assets](image-assets.md#ground-composition-and-stamp-placement) owns pixel composition and placement rounding.
-
-### Static A/B recipe
-
-[Image assets](image-assets.md#static-ab-recipe) owns the single saved-recipe workflow.
-
-### Bounded compilation and resident data
-
-[Image assets](image-assets.md#bounded-compilation-and-resident-data) owns completed target data;
-[course loading](content-and-gameplay.md#course-loading) owns activation and replacement.
-
-### Remaining technical gates
-
-[Test design](test-design.md#course-editor-acceptance-additions) and
-[development](development.md#course-editor-target-validation) define evidence for graph, geometry,
-image and loading cutovers. [Image candidates](image-assets.md#remaining-technical-gates) retain their
-separate quality/format gates. Target changes preserve the unchanged mechanics reference.
+Source-camera/variant sampling and real-art filter acceptance remain open; SINGLE presentation remains
+implemented. [Image acceptance](image-assets.md#remaining-technical-gates),
+[test design](test-design.md#course-editor-acceptance-additions) and
+[development](development.md#course-editor-target-validation) define the outstanding quality and
+consumer evidence. [NEXT](NEXT.md#milestones) orders the remaining playable content gates.
+Target changes preserve the unchanged mechanics reference.
