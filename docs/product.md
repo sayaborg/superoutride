@@ -234,7 +234,7 @@ semantics; [validation](development.md) owns evidence. Work order belongs only t
 | Rival intent      | Deterministic or seeded route preferences; lock authority is already specified above.         |
 | Interaction       | Vehicle/traffic/barrier response, track limits, corner cutting and traffic behaviour.         |
 | Records/results   | Eligibility categories, ranking/tie display, continue, persistence and ghosts.                |
-| Art               | Production artwork, new physical materials, background and tunnel content.           |
+| Art               | Production artwork, new physical materials, background and tunnel content.                    |
 | Shell             | Front end, HUD, music, progression, naming/distribution and future input devices.             |
 
 Technical candidates and their evidence gates are listed by their owners, not repeated here.
