@@ -96,14 +96,10 @@ export function createCourseRace(options: {
     );
   });
   const assets = options.sprites;
-  const brakePalettes = new Map(
-    rivals.map((c) => [
-      c.id,
-      options.rival.profile.id === 'TESTAROSSA'
-        ? createVehiclePaletteVariant(assets.car, assets.car.assets[0]![0]!.paletteChoices[1]!)
-        : assets[rivalKind],
-    ]),
-  );
+  const brakingAssets =
+    options.rival.profile.id === 'TESTAROSSA'
+      ? createVehiclePaletteVariant(assets.car, assets.car.assets[0]![0]!.paletteChoices[1]!)
+      : assets[rivalKind];
   const resync = (c: typeof player) => c.observer.resync();
   const lane = (c: typeof player, s: number) => forks.targetL(c.session.history.active.section, s, c.targetL);
   const competitors = [player, ...rivals];
@@ -297,7 +293,7 @@ export function createCourseRace(options: {
             c.id,
             c.vehicle,
             camera.yaw,
-            actorInputs.get(c.id)?.input.brake ? brakePalettes.get(c.id)! : assets[rivalKind],
+            actorInputs.get(c.id)?.input.brake ? brakingAssets : assets[rivalKind],
             player.session.view.world.height,
           ),
         );
