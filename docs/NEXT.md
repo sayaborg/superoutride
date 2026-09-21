@@ -17,14 +17,14 @@
 - **Background and indexed images — Implemented, acceptance pending:** release requires full Node 24 tests,
   immutable comparisons, exact-head CI and verified Pages delivery. K checks all four public modes for
   per-tile palettes, distant scenery stability and Testarossa braking lamps; ground feasibility is independent.
-- **Ground feasibility — Resolved-slab preflight implemented:** draft PR #238 has ordered slabs, span interiors,
-  a polygon oracle and packed near dictionaries. Far rows and whole-plane scene comparison remain pending.
-  Compare resident, prior filtered
-  intervals and resolved-slab/row-raster ground using the common filter. Replace the whole plane, including
-  open sides; prove ordered arrows/cliffs, exact-oracle bounds, Section ownership and <1 px transitions.
+- **Ground feasibility — Revised whole-plane trial fails qualification:** draft PR #238 includes resolved near
+  slabs, normalized far rows, finite ownership domains, ordered arrow/cliff stills and three-way measurements.
+  A kinked open edge jumps 80 pixels at near/far selection; fixed-frame moving paint differs by six pixels.
+  The strict <1 px gate and resident performance ceilings remain unchanged; current-head CI owns timings.
   [Runtime target](architecture.md#colored-ground-runtime-target) and [budgets](development.md#colored-ground-trial-budgets)
-  own the design and unchanged qualification gates. Report three fresh-process repetitions and packed bytes.
-  Failure leaves the resident baseline unchanged and presents the cause and options to K.
+  remain targets, not an adopted product format. Packed near/far data and all repetitions are PR evidence.
+  The independent diagnostic workflow stays on this unmerged draft only; retire it with the trial or integrate
+  its command into existing performance validation when K resolves ground representation.
 - **Ground replacement — Gated:** only after all feasibility conditions pass, admit colored optional-role/open
   Bands, convert four courses and remove resident ground, old images, source appearance, build/delivery/HUD,
   stale capacity/quantization targets and corresponding tests together. Publish arrow/cliff/marking checks.
@@ -41,6 +41,10 @@
   movable/fixed-object interactions, followed by an inspection/fine-adjustment GUI.
 
 ## Open decisions
+
+- **Ground — K:** retain resident ground, or revise near/far filtering to share a projected footprint before another trial.
+  Exact moving-width normalization plus bucket reconstruction does not match the near box at a kink (80 px; limit <1).
+  Recommend retaining the released resident implementation until an explicitly revised algorithm qualifies; no authored restriction or budget increase is adopted.
 
 - **Audio — K:** all six selectable models (`hopf`, `contact`, `hybrid`, `spectral`, `modal`, `unified`) reach the production worklet; reconcile this with `audio.md`'s "no inactive legacy model" contract. Choose an explicitly supported model set or retire alternatives; recommend K selects the supported set before a separate audio change. Audio and its hashes remain frozen.
 - **Progress — Separate PR:** `src/runtime/course-race-progress.ts` branches between circuit and ordered progress. Retain separate engines or represent loops with ordered progress; recommend proving lap, gate, recovery and clock equivalence before removing the topology-specific branch.

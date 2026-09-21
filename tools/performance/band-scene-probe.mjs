@@ -8,7 +8,7 @@ import { unpackRgba } from '../../dist/graphics/software-surface.js';
 import { createBandSceneProbe } from './band-scene-setup.mjs';
 import { summarizeSceneProfile } from './scene-profile.mjs';
 
-const flags = options(process.argv.slice(2), ['--mode', '--variant', '--out']);
+const flags = options(process.argv.slice(2), ['--mode', '--variant', '--out', '--visuals']);
 const mode = flags.get('--mode');
 const variant = flags.get('--variant');
 const frames = 300;
@@ -97,10 +97,8 @@ const allocation = summarizeSceneProfile(profile, allocationFrames);
 probe.trial?.captureRows(true);
 probe.render();
 const trial = probe.trial?.report() ?? null;
-if (flags.has('--out')) {
-  const out = flags.get('--out');
-  await mkdir(out, { recursive: true });
-  // PPM is a disposable, lossless still; no preview image is committed.
+let visualEvidence = null;
+async function writeStill(file) {
   const data = Buffer.alloc(probe.target.pixels.length * 3);
   for (let i = 0; i < probe.target.pixels.length; i++) {
     const { r, g, b } = unpackRgba(probe.target.pixels[i]);
@@ -108,7 +106,23 @@ if (flags.has('--out')) {
     data[i * 3 + 1] = g;
     data[i * 3 + 2] = b;
   }
-  await writeFile(`${out}/${mode}-${variant}.ppm`, Buffer.concat([Buffer.from('P6\n320 240\n255\n'), data]));
+  await writeFile(file, Buffer.concat([Buffer.from('P6\n320 240\n255\n'), data]));
+}
+if (flags.has('--out')) {
+  const out = flags.get('--out');
+  await mkdir(out, { recursive: true });
+  await writeStill(`${out}/${mode}-${variant}.ppm`);
+  if (variant === 'revised') {
+    for (const [index, data] of probe.trial.packed().entries()) {
+      await writeFile(`${out}/${mode}-section${index}-near.bin`, data.near);
+      for (const [range, bytes] of data.far.entries())
+        await writeFile(`${out}/${mode}-section${index}-far${range}.bin`, bytes);
+    }
+    if (flags.has('--visuals')) {
+      visualEvidence = await probe.visualEvidence();
+      await writeStill(`${out}/${mode}-revised-arrow-cliff.ppm`);
+    }
+  }
 }
 const rows = trial?.rows.filter((row) => row.sections > 0) ?? [];
 const probes = [50, 100, 200].map((distance) => ({
@@ -145,5 +159,6 @@ console.log(
     resident: probe.scene.groundMetrics,
     rowProbes: probes,
     trial,
+    visualEvidence,
   }),
 );

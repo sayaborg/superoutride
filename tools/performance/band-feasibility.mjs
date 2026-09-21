@@ -5,12 +5,13 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { options } from '../course/authoring-io.mjs';
 import { measureBandTransition } from './band-transition-probe.mjs';
+import { measureRevisedBandQualification } from './band-revised-qualification.mjs';
 
 const flags = options(process.argv.slice(2), ['--out']);
 if (!flags.has('--out')) throw new RangeError('An external output directory is required');
 const out = path.resolve(flags.get('--out'));
 const probe = fileURLToPath(new URL('./band-scene-probe.mjs', import.meta.url));
-const variants = ['resident', 'direct', 'filtered'];
+const variants = ['resident', 'filtered', 'revised'];
 const modes = ['linear', 'seam', 'circuit', 'branch'];
 const runs = [];
 await mkdir(out, { recursive: true });
@@ -21,7 +22,16 @@ for (let repetition = 0; repetition < 3; repetition++) {
       const variant = variants[(order + repetition) % variants.length];
       const result = spawnSync(
         process.execPath,
-        [probe, '--mode', mode, '--variant', variant, '--out', `${out}/stills/${repetition + 1}`],
+        [
+          probe,
+          '--mode',
+          mode,
+          '--variant',
+          variant,
+          '--out',
+          `${out}/stills/${repetition + 1}`,
+          ...(repetition === 2 && variant === 'revised' ? ['--visuals', 'true'] : []),
+        ],
         { encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 },
       );
       if (result.error) throw result.error;
@@ -55,10 +65,10 @@ const comparisons = modes.map((mode) => {
       gc: group.map((run) => run.gc),
     };
   });
-  const first = selected.find((run) => run.variant === 'filtered');
+  const first = selected.find((run) => run.variant === 'revised');
   const performanceQualified = [1, 2, 3].every((repetition) => {
     const baseline = selected.find((run) => run.variant === 'resident' && run.repetition === repetition);
-    const candidate = selected.find((run) => run.variant === 'filtered' && run.repetition === repetition);
+    const candidate = selected.find((run) => run.variant === 'revised' && run.repetition === repetition);
     return (
       candidate.render.median <= baseline.render.median &&
       candidate.render.p95 <= baseline.render.p95 &&
@@ -70,38 +80,47 @@ const comparisons = modes.map((mode) => {
     stateSha256: first.stateSha256,
     reports,
     performanceQualified,
-    intervalBudgetQualified: first.trial.maximumIntervals <= 32,
-    activeBudgetQualified: first.trial.sections.every((section) => section.maximumActive <= 64),
+    nearBudgetQualified: first.trial.sections.every((section) => section.maximumIntervals <= 64),
+    farBudgetQualified: first.trial.sections.every((section) =>
+      section.far.every((range) => range.levels.every((level) => level.rowLength <= level.structuralMaximum)),
+    ),
     representation: {
-      dictionaryJsonBytes: first.trial.dictionaryBytes,
-      directoryUint32Bytes: first.trial.directoryBytes,
-      maximumIntervals: first.trial.maximumIntervals,
+      residentPayloadBytes: first.resident,
+      nearPackedBytes: first.trial.sections.reduce((sum, section) => sum + section.near.packedBytes, 0),
+      farPackedBytes: first.trial.sections.reduce(
+        (sum, section) => sum + section.far.reduce((n, range) => n + range.packedBytes, 0),
+        0,
+      ),
       sections: first.trial.sections,
     },
-    actualRowProbes: first.rowProbes,
+    actualRowProbes: selected
+      .filter((run) => run.variant === 'revised')
+      .map((run) => ({ repetition: run.repetition, probes: run.rowProbes })),
   };
 });
-const transition = measureBandTransition();
+const priorTransition = measureBandTransition();
+const transition = measureRevisedBandQualification();
 const result = {
   node: process.version,
   sha: process.env.EXPECTED_SHA ?? null,
   repetitions: 3,
   frames: 300,
   rivals: 16,
-  scope: 'Offline inner-strip substitution in the unchanged product renderer; outside GroundBase is retained',
+  scope:
+    'Revised entire ground plane replaces the ground primitive; resident and prior filtered inner-strip controls remain unchanged',
   method:
     'Sequential fresh processes, rotated variant order, 30 warmup frames; separate 30-frame V8 sampled allocation pass',
   limits:
-    'Host only; shared hardware contention and phone performance are not certified. Dictionary JSON is not packed residency.',
+    'Host only; physical-hardware exclusivity and phone performance are not certified. Packed files are actual bytes; mutable workspaces and VM metadata are not included.',
   comparisons,
   transition,
+  priorTransition,
   qualified:
-    comparisons.every((row) => row.performanceQualified && row.intervalBudgetQualified && row.activeBudgetQualified) &&
+    comparisons.every((row) => row.performanceQualified && row.nearBudgetQualified && row.farBudgetQualified) &&
     transition.qualified,
   remaining: [
-    'whole-plane renderer/open-side integration',
-    'real-content transition and motion review',
-    'arrow/cliff product-scene stills',
+    'general real-content projective transition and motion acceptance beyond the recorded causal cases',
+    'K ground-representation decision if any qualification condition fails',
     'K device acceptance',
   ],
 };

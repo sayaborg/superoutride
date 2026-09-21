@@ -36,6 +36,8 @@ export function createResolvedSlabRaster(width) {
   if (!Number.isInteger(width) || width <= 0) throw new RangeError('Positive integer row width required');
   const area = new Float64Array(width * 4),
     touched = new Uint8Array(width);
+  const projected0 = { offset: 0, scale: 0 },
+    projected1 = { offset: 0, scale: 0 };
   const contributions = [],
     pool = [];
   function edge(x, weight, red, green, blue) {
@@ -47,7 +49,7 @@ export function createResolvedSlabRaster(width) {
     touched[x] = 1;
   }
   return Object.freeze({
-    sample(pixels, offset, count, start, end, lateral, stepL, spans, trace) {
+    sample(pixels, offset, count, start, end, lateral, stepL, spans, trace, projection) {
       if (!(end > start) || !(stepL > 0) || !Number.isInteger(count) || count < 0 || count > width)
         throw new RangeError('Invalid resolved row footprint');
       contributions.length = 0;
@@ -66,13 +68,16 @@ export function createResolvedSlabRaster(width) {
           const index = contributions.length;
           let c = pool[index];
           if (!c) {
-            c = { slab: null, first: 0, last: 0, lateral: 0 };
+            c = { slab: null, first: 0, last: 0, lateral: 0, origin: 0, frameFirst: 0, frameLast: 0 };
             pool.push(c);
           }
           c.slab = slab;
           c.first = first;
           c.last = last;
           c.lateral = lateral + span.sourceLateralOrigin;
+          c.origin = span.sourceLateralOrigin;
+          c.frameFirst = lo + (first - a);
+          c.frameLast = hi - (b - last);
           contributions.push(c);
         }
       }
@@ -92,13 +97,25 @@ export function createResolvedSlabRaster(width) {
         const t0 = (first - slab.start) / (slab.end - slab.start),
           t1 = (last - slab.start) / (slab.end - slab.start);
         const weight = (last - first) / total;
+        if (projection) {
+          projection.at(c.frameFirst, projected0);
+          projection.at(c.frameLast, projected1);
+        }
         if (trace) trace.maximumIntervals = Math.max(trace.maximumIntervals, slab.intervals.length);
         for (const piece of slab.intervals) {
           if (piece.color === null) continue;
-          const l0 = (at(piece.left0, piece.left1, t0) - c.lateral) / stepL + 0.5;
-          const l1 = (at(piece.left0, piece.left1, t1) - c.lateral) / stepL + 0.5;
-          const r0 = (at(piece.right0, piece.right1, t0) - c.lateral) / stepL + 0.5;
-          const r1 = (at(piece.right0, piece.right1, t1) - c.lateral) / stepL + 0.5;
+          const l0 = projection
+            ? projected0.offset + projected0.scale * (at(piece.left0, piece.left1, t0) - c.origin)
+            : (at(piece.left0, piece.left1, t0) - c.lateral) / stepL + 0.5;
+          const l1 = projection
+            ? projected1.offset + projected1.scale * (at(piece.left0, piece.left1, t1) - c.origin)
+            : (at(piece.left0, piece.left1, t1) - c.lateral) / stepL + 0.5;
+          const r0 = projection
+            ? projected0.offset + projected0.scale * (at(piece.right0, piece.right1, t0) - c.origin)
+            : (at(piece.right0, piece.right1, t0) - c.lateral) / stepL + 0.5;
+          const r1 = projection
+            ? projected1.offset + projected1.scale * (at(piece.right0, piece.right1, t1) - c.origin)
+            : (at(piece.right0, piece.right1, t1) - c.lateral) / stepL + 0.5;
           const firstPixel = piece.openLeft ? 0 : Math.max(0, Math.floor(Math.min(l0, l1)));
           const lastPixel = piece.openRight ? count : Math.min(count, Math.ceil(Math.max(r0, r1)));
           const innerFirst = piece.openLeft ? 0 : Math.max(firstPixel, Math.ceil(Math.max(l0, l1)));
