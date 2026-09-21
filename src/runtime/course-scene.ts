@@ -13,17 +13,16 @@ import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
 import type { VehicleRenderReadState } from '../physics/vehicle-contract.js';
 import { createRenderWorkspace, renderDriving } from '../render/renderer.js';
 import type { CourseSprite } from '../render/course-sprite.js';
-import { createSpriteAssets } from '../visual/sprite-assets.js';
+import type { SpriteAssets } from '../visual/sprite-assets.js';
 import { createCourseDrivingGraph } from './course-driving-session.js';
 
 /** One graph assembly for every course, including a single Section without Links. */
-export function createCourseScene(section: CompiledSection, ground: CourseGround) {
+export function createCourseScene(section: CompiledSection, ground: CourseGround, assets: SpriteAssets) {
   const graph = createCourseDrivingGraph(section, ground);
   const session = graph.createSession();
   const entry = section.ports.find((port) => port.kind === 'entry');
   if (!entry || entry.anchor.s < CURRENT_CAMERA_PROFILE.dCam)
     throw new RangeError('Driving requires an entry Port with camera space behind it');
-  const assets = createSpriteAssets();
   const renderWorkspace = createRenderWorkspace();
   const worldSprites: CourseSprite[] = [];
   let lastView: typeof session.view | null = null;
@@ -56,7 +55,8 @@ export function createCourseScene(section: CompiledSection, ground: CourseGround
       vehicle: VehicleRenderReadState,
       camera: CameraState,
       playerKind: 'car' | 'bike',
-      others: readonly CourseSprite[] = [],
+      others: readonly CourseSprite[],
+      appearance: SpriteAssets = assets,
     ) {
       const view = session.view;
       const { world, geometry, presentation } = view;
@@ -90,7 +90,7 @@ export function createCourseScene(section: CompiledSection, ground: CourseGround
           terrainProfile,
           groundProfile: presentation.groundProfile,
           worldSprites,
-          assets,
+          assets: appearance,
           playerKind,
         },
         { ground: presentation.ground, workspace: renderWorkspace },

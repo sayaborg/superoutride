@@ -1,3 +1,5 @@
+import { createTestBackground } from '../helpers/tile-background.mjs';
+import { createTestSpriteAssets } from '../helpers/sprite-assets.mjs';
 import { near } from '../helpers/assert.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -10,8 +12,7 @@ import { SoftwareSurface } from '../../dist/graphics/software-surface.js';
 import { createDynamicVehicleCourseSprite } from '../../dist/render/dynamic-vehicle-sprite.js';
 import { createRenderSpaceCamera, mapPhysicalHeightToRender } from '../../dist/render/render-height-space.js';
 import { renderSourceGround as renderDriving } from '../../dist/dev/diagnostics/source-ground-render.js';
-import { createFarBackground } from '../../dist/visual/far-background.js';
-import { createSpriteAssets } from '../../dist/visual/sprite-assets.js';
+
 import { createTestCar } from '../helpers/vehicle-fixture.mjs';
 
 const cameraProfile = {
@@ -56,14 +57,14 @@ test('player and camera share render height space while suspension displacement 
   const result = renderDriving(
     surface,
     {
-      background: createFarBackground(),
+      background: createTestBackground(),
       guide: parent.guide,
       camera,
       vehicle: car,
       terrainProfile: parent.terrainProfile,
       groundProfile: parent.groundProfile,
       worldSprites: [],
-      assets: createSpriteAssets(),
+      assets: createTestSpriteAssets(),
       playerKind: 'car',
     },
     {},
@@ -81,7 +82,7 @@ test('dynamic rival adapter maps physical anchors into the same render road spac
     'RIVAL',
     car,
     car.yaw,
-    createSpriteAssets().car,
+    createTestSpriteAssets().car,
     parent.heightProfile,
   );
   const expected =

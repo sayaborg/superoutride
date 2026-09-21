@@ -154,19 +154,52 @@ vertical-follow time constant 0.22 s and correction bound 4 m. These are present
 
 ## Ground and background
 
-Completed resident RGB555 supplies prefiltered levels through the existing ground reader. It returns the
-environment GroundBase for sample centers outside the finite half-open paint strip. Transparent
-GroundBase preserves the background pixel. Camera, terrain projection, coverage and sprite algorithms,
-including their existing framebuffer oracles, remain unchanged.
+The current resident RGB555 reader supplies completed prefiltered ground. Outside its finite half-open
+paint strip, the environment GroundBase selects an opaque fill or transparency. Appearance is separate
+from physical support/friction. Transparent ground retains BG below as well as above its horizon.
+[Image assets](image-assets.md#resident-ground) owns this shipped recipe and its source composition.
 
-Ground appearance and SurfaceMap support/friction are independent. Each emitted terrain line uses
-GroundBase outside its finite ground strip. Each side selects a solid color or transparency;
-transparency retains farther content. Far Background is a complete image, including below its horizon,
-aligned by its source-horizon anchor. Yaw scrolls it; camera roll and alpha blending remain absent.
-The [background format](../src/visual/far-background.ts) owns 640x320 pixels, horizon row 126 and yaw
-density 200 source pixels/radian. Yaw density and focal length have different units.
-An explicit background `yawOriginRadians` expresses its pan origin in the current frame; existing
-backgrounds retain origin zero. A frame change transforms that origin with the camera yaw.
+The [single infinite BG](image-assets.md#infinite-tiled-background) uses authored tile patterns and
+palettes. [Drawing](../src/visual/tile-background.ts) follows the existing camera horizon and transforms
+its yaw origin with the camera frame. There is no finite-distance background or runtime art generation.
+
+The shared 2.5–200 m ground/sprite render interval and fork lookahead remain unchanged; when enclosing
+structures extend beyond it, make distance a course attribute, never a per-material setting that can
+leave structures floating beyond their road.
+
+### Colored ground runtime target
+
+This is a gated offline trial, not the current resident reader. Its authored Band contract belongs to
+[Content](content-and-gameplay.md#colored-ground-authoring-target); budgets belong to
+[Development](development.md#colored-ground-trial-budgets). No physical classification or force changes.
+
+Compile the ordered Band list, not a per-pixel Band loop. For near rows, split chainage at activations,
+boundary knots and crossings required to resolve affine edge order. Resolve later-over-earlier paint
+into nonoverlapping affine lateral intervals, including transparency and open outer sides, then intern
+equal interval lists. A row spanning a slab boundary splits only there and combines lengths. Project
+interval endpoints at both row-footprint ends; fill common interior spans directly and integrate only
+pixels swept by an edge with clipped affine integrals. Work is screen width plus resolved edge work,
+not screen width times overlapping Bands.
+
+For far rows, compile one-dimensional, box-filtered row rasters. Longitudinal buckets begin at 1.6 m
+and double until the observed maximum render footprint is covered. At width w, lateral sampling is
+`d/f` with `d=sqrt(w*f*h)` for the current camera calibration. Store RGB555 and 8-bit opaque coverage,
+not exact subpixel interval arrangements. Normalize lateral u between the exact outer road edges;
+this removes road-width changes from the average. At runtime, restore those edges at the exact station.
+Rows are interned, with a Uint32 bucket-to-row directory per level. Open-side tails retain their declared
+color/transparency rather than a GroundBase fallback.
+
+Use [common log-footprint and linear color rules](image-assets.md#common-prefilter-rules). Interpolate
+adjacent bucket centers, adjacent levels, and lateral samples without bucket/level steps. Interpolation
+weights opaque color by coverage, then applies the common threshold and normalizes only opaque color;
+there is no framebuffer intermediate alpha. Entirely transparent rows skip ground processing.
+
+Footprints below 1.6 m use slabs; larger footprints use row rasters. Causal tests must bound the switch,
+moving open edges and Section ownership transitions below one destination pixel, including adversarial
+moving edges. Exact ordered rectangle integration remains the compile/test oracle, never a runtime
+fallback. The trial must cover the entire ground plane, ownership-clipped Section spans, arrows and
+transparent cliffs, and must beat or equal the resident timing/allocation baselines in every mode before
+this target can replace the resident implementation.
 
 ## Sprites and Painter
 
@@ -203,10 +236,11 @@ The anchor `(aX,aY)` stays in master texel-center coordinates. Level k derives e
 Every level represents `worldWidth` by `worldWidth*H/W` meters. Storage or opaque bounds do not
 redefine physical dimensions.
 
-Starting at L0, coarsen while `g <= 1/(sqrt(2)*2^k)`, clamped to available levels. Equality coarsens.
+Select one level using the [common footprint exponent](image-assets.md#common-prefilter-rules), with
+master footprint `rho=1/g` and geometric-mean boundaries; exact boundary equality selects the coarser level.
 Projection keeps continuous display extent/anchor. Pixel rasterization and image color/coverage can
 still step; there is no crossfade. [Image interchange](image-assets.md#completed-sprite-images) owns
-the exact reader schema and palettes. Current programmer art remains single-level.
+the exact reader schema and palettes. All shipped sprites receive full direct-master LOD at build time; runtime never creates a missing level.
 
 ## Layer and computation rules
 
@@ -223,7 +257,7 @@ imports, including types. Product roots load saved content; fixtures and diagnos
 ordinary narrow readers to physics, camera and rendering; compilers own static preparation.
 Course topology and product choices belong in composition/gameplay, not pixel loops or mechanics.
 The compiled course graph is an upper-level owner; its lower-level reader facets preserve this graph.
-The implemented [document/compiler boundary](content-and-gameplay.md#coursedocument-v9-implemented-compiler-boundary)
+The implemented [document/compiler boundary](content-and-gameplay.md#coursedocument-v10-implemented-compiler-boundary)
 uses `src/compiler/compiled-course.ts` over Course-owned documents/geometry and existing Core readers.
 Compiler owns the immutable reference graph, Ports/Links and static content qualification; Authoring
 owns the live project transaction, and Runtime owns mutable traversal/view composition. Compiler resolves

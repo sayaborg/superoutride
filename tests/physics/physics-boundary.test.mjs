@@ -1,3 +1,5 @@
+import { createTestBackground } from '../helpers/tile-background.mjs';
+import { createTestSpriteAssets } from '../helpers/sprite-assets.mjs';
 import { createPlanarCoordinateSample } from '../../dist/core/planar-sample.js';
 import { deg } from '../helpers/assert.mjs';
 import assert from 'node:assert/strict';
@@ -15,8 +17,6 @@ import { driveMeasuredVehicle } from '../helpers/envelope-driving.mjs';
 import { SoftwareSurface } from '../../dist/graphics/software-surface.js';
 import { createDynamicVehicleCourseSprite } from '../../dist/render/dynamic-vehicle-sprite.js';
 import { renderSourceGround as renderDriving } from '../../dist/dev/diagnostics/source-ground-render.js';
-import { createFarBackground } from '../../dist/visual/far-background.js';
-import { createSpriteAssets } from '../../dist/visual/sprite-assets.js';
 
 function makePlainVehicle(guide, height, s = 90) {
   const p = guidePathToWorld(guide, s, 0, createPlanarCoordinateSample());
@@ -60,7 +60,7 @@ test('plain world-state object supplies camera, rival input, dynamic sprite and 
   assert.equal(typeof input.throttle, 'boolean');
   assert.equal(typeof input.brake, 'boolean');
 
-  const assets = createSpriteAssets();
+  const assets = createTestSpriteAssets();
   const rivalSprite = createDynamicVehicleCourseSprite('PLAIN', vehicle, camera.yaw, assets.car, height);
   assert.equal(rivalSprite.x, vehicle.x);
   assert.equal(rivalSprite.y, height.sampleRender(vehicle.course.s).y);
@@ -71,7 +71,7 @@ test('plain world-state object supplies camera, rival input, dynamic sprite and 
   const stats = renderDriving(
     target,
     {
-      background: createFarBackground(),
+      background: createTestBackground(),
       guide,
       camera,
       vehicle,

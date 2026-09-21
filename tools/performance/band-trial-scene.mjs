@@ -1,6 +1,5 @@
 import { renderDriving, createRenderWorkspace } from '../../dist/render/renderer.js';
 import { createRenderSpaceCamera } from '../../dist/render/render-height-space.js';
-import { createSpriteAssets } from '../../dist/visual/sprite-assets.js';
 import { createCourseGeometryView } from '../../dist/runtime/course-geometry-view.js';
 import { computeForwardVisibleInterval } from '../../dist/terrain/terrain-line.js';
 import {
@@ -40,7 +39,7 @@ export function trialRowInterval(line, camera, terrain, height, visible, out, he
 /** Offline adapter only. The ordinary renderer still owns camera, terrain, Painter and sprites.
  * Its outside-strip GroundBase remains unchanged: this is not a whole-plane replacement certificate.
  */
-export function createBandTrialScene(scene, course, filtered) {
+export function createBandTrialScene(scene, course, filtered, assets) {
   const sources = course.sections.map((section) => ({
     section,
     id: section.id,
@@ -56,7 +55,6 @@ export function createBandTrialScene(scene, course, filtered) {
   );
   const raster = createBandRowRaster(320, pyramid, filtered);
   const workspace = createRenderWorkspace();
-  const assets = createSpriteAssets();
   const worldSprites = [];
   const interval = { start: 0, end: 0 };
   const heightScratch = { y: 0, grade: 0, segmentIndex: 0, sStart: 0, sEnd: 0 };

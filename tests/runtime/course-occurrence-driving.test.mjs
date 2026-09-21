@@ -1,3 +1,4 @@
+import { createTestSpriteAssets } from '../helpers/sprite-assets.mjs';
 import { createPlanarCoordinateSample } from '../../dist/core/planar-sample.js';
 import { createGuideProjectionWorkspace } from '../../dist/core/guide-curve.js';
 import { testGround } from '../helpers/resident-ground.mjs';
@@ -22,7 +23,7 @@ import { commonPresentationDocument } from '../helpers/course-common-presentatio
 import { cameraProfile, courseDrivingFixture } from '../helpers/course-driving-fixture.mjs';
 import { coursePresentationScene } from '../helpers/course-presentation-scene.mjs';
 import { SoftwareSurface } from '../../dist/graphics/software-surface.js';
-import { createSpriteAssets } from '../../dist/visual/sprite-assets.js';
+
 import { renderDriving } from '../../dist/render/renderer.js';
 import { createCameraRig, updateCamera } from '../../dist/camera/camera.js';
 import { selectGroundLevel } from '../../dist/groundmap/resident-ground.js';
@@ -286,7 +287,7 @@ test('projection rejects a window clipped inside a candidate even when the seed 
 test('saved presentation maps once across a selected seam and actual complete frames survive moving windows', async () => {
   const f = await fixture(),
     port = f.c.links[0].source;
-  const assets = createSpriteAssets(),
+  const assets = createTestSpriteAssets(),
     pixels = [new SoftwareSurface(320, 240), new SoftwareSurface(320, 240), new SoftwareSurface(320, 240)];
   const retained = ok(f.source.createView(view(f).geometry));
   const observed = { queries: 0, maxL: 0 };

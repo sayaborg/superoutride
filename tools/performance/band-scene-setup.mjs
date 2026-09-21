@@ -1,3 +1,4 @@
+import { readVehicleSprites } from '../course/read-vehicle-sprites.mjs';
 import { readFile } from 'node:fs/promises';
 import { loadCourse, loadCourseGround } from '../course/authoring-io.mjs';
 import { browserSessionVehicle } from '../../dist/browser/session-vehicle.js';
@@ -29,7 +30,8 @@ export async function createBandSceneProbe(mode, variant, rivals) {
     sessionVehicle,
     JSON.parse(await readFile(`dist/content/envelopes/${vehicle.profile.id}.json`, 'utf8')),
   );
-  const scene = createCourseScene(course.entry, ground);
+  const assets = await readVehicleSprites();
+  const scene = createCourseScene(course.entry, ground, assets);
   const player = {
     vehicle: createArcadeVehicle(vehicle.profile, scene.world, {
       ...sessionVehicle,
@@ -48,6 +50,7 @@ export async function createBandSceneProbe(mode, variant, rivals) {
   );
   const driver = compileEnvelopeDriver(envelope, session.rivalUtilization, envelope.maximumSpeed);
   const race = createCourseRace({
+    sprites: assets,
     session,
     player,
     playerSession: scene.session,
@@ -67,7 +70,7 @@ export async function createBandSceneProbe(mode, variant, rivals) {
   }
   const target = new SoftwareSurface(320, 240);
   const workspace = createEnvelopeDriverWorkspace();
-  const trial = variant === 'resident' ? null : createBandTrialScene(scene, course, variant === 'filtered');
+  const trial = variant === 'resident' ? null : createBandTrialScene(scene, course, variant === 'filtered', assets);
   const renderer = trial ?? scene;
   let camera;
   let recovered = false;

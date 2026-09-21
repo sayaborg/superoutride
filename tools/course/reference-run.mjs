@@ -1,3 +1,4 @@
+import { readVehicleSprites } from './read-vehicle-sprites.mjs';
 import { REFERENCE_DRIVER } from '../../dist/runtime/reference-driving-policy.js';
 import { createCourseScene } from '../../dist/runtime/course-scene.js';
 import { createCourseRace } from '../../dist/runtime/course-race.js';
@@ -14,6 +15,7 @@ import {
 import { createCameraRig } from '../../dist/camera/camera.js';
 import { SIM_DT } from '../../dist/browser/frame-loop.js';
 import { courseBoundaryAt } from '../../dist/course/course-bands.js';
+const spriteAssets = await readVehicleSprites();
 
 /** Enumerate canonical finite alternatives; one continuous run per history, no stitched sectors. */
 export function courseReferenceRoutes(course) {
@@ -32,7 +34,7 @@ export function courseReferenceRoutes(course) {
 }
 
 export function runCourseReference(course, ground, entry, envelope, route, lapCount, capture = false) {
-  const scene = createCourseScene(course.entry, ground),
+  const scene = createCourseScene(course.entry, ground, spriteAssets),
     vehicleConfiguration = browserSessionVehicle(entry);
   const session = resolveCourseSession(
     course,
@@ -48,6 +50,7 @@ export function runCourseReference(course, ground, entry, envelope, route, lapCo
   });
   const actor = { vehicle, recovery: createRecoveryState(vehicle), cameraRig: createCameraRig() };
   const race = createCourseRace({
+    sprites: spriteAssets,
     session,
     player: actor,
     playerSession: scene.session,

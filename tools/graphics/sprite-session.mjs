@@ -1,6 +1,6 @@
 import { rgba, unpackRgba } from '../../dist/graphics/software-surface.js';
 import { normalizeSpriteSource } from '../../dist/graphics/sprite-source-compiler.js';
-import { compileSpriteLodWithAuthoredPalette } from '../../dist/graphics/sprite-lod-compiler.js';
+import { compileSpriteLod } from '../../dist/graphics/sprite-lod-compiler.js';
 
 export const SPRITE_EDITOR_PIXEL_LIMIT = 1024 * 1024;
 export const SPRITE_EDITOR_AXIS_LIMIT = 4096;
@@ -17,7 +17,7 @@ export class SpriteSession {
   #undo = [];
   #redo = [];
 
-  constructor(source, recipe, lodRecipe) {
+  constructor(source, recipe) {
     if (
       ![source.width, source.height].every((v) => Number.isSafeInteger(v) && v > 0 && v <= SPRITE_EDITOR_AXIS_LIMIT) ||
       source.width * source.height > SPRITE_EDITOR_PIXEL_LIMIT ||
@@ -27,7 +27,7 @@ export class SpriteSession {
       throw new RangeError('Editor source must fit 4096 pixels per axis and 1048576 pixels total');
     this.#source = { ...source, pixels: source.pixels.slice() };
     this.#hidden = new Uint8Array(source.pixels.length);
-    this.updateSettings(recipe, lodRecipe);
+    this.updateSettings(recipe);
   }
   get settings() {
     return structuredClone(this.#settings);
@@ -53,8 +53,8 @@ export class SpriteSession {
       }
     return { ...this.#source, pixels };
   }
-  updateSettings(recipe, lodRecipe) {
-    this.#settings = structuredClone({ recipe, lodRecipe });
+  updateSettings(recipe) {
+    this.#settings = structuredClone({ recipe });
     this.#products = null;
   }
   mask(rect, hide) {
@@ -110,9 +110,9 @@ export class SpriteSession {
   }
   compile() {
     this.#products = null;
-    const { recipe, lodRecipe } = this.#settings;
+    const { recipe } = this.#settings;
     const master = normalizeSpriteSource(this.image, recipe);
-    const lod = compileSpriteLodWithAuthoredPalette(master, lodRecipe);
+    const lod = compileSpriteLod(master);
     this.#products = { master, lod };
     return this.products;
   }
@@ -126,15 +126,15 @@ export class SpriteSession {
     }
     return {
       format: 'superoutride.sprite-session',
-      version: 1,
+      version: 2,
       source: { width: this.#source.width, height: this.#source.height, rgbaBase64: encode(bytes) },
       hiddenBase64: encode(this.#hidden),
       ...this.settings,
     };
   }
   static fromDocument(document) {
-    exact(document, ['format', 'version', 'source', 'hiddenBase64', 'recipe', 'lodRecipe']);
-    if (document.format !== 'superoutride.sprite-session' || document.version !== 1)
+    exact(document, ['format', 'version', 'source', 'hiddenBase64', 'recipe']);
+    if (document.format !== 'superoutride.sprite-session' || document.version !== 2)
       throw new RangeError('Unsupported sprite session format/version');
     exact(document.source, ['width', 'height', 'rgbaBase64']);
     const { width, height, rgbaBase64 } = document.source;
@@ -148,7 +148,7 @@ export class SpriteSession {
     if (hidden.some((v) => v > 1)) throw new RangeError('Session mask must contain only 0 or 1');
     const pixels = new Uint32Array(width * height);
     for (let i = 0; i < pixels.length; i++) pixels[i] = rgba(...bytes.subarray(i * 4, i * 4 + 4));
-    const session = new SpriteSession({ width, height, pixels }, document.recipe, document.lodRecipe);
+    const session = new SpriteSession({ width, height, pixels }, document.recipe);
     session.#hidden = hidden;
     session.compile();
     return session;

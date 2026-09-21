@@ -1,3 +1,4 @@
+import { palette16 } from './indexed-images.mjs';
 import { compileCourseDocument } from '../../dist/compiler/compiled-course.js';
 import { coursePortLateral } from '../../dist/compiler/course-links.js';
 import { presentationDocument } from './course-presentation-documents.mjs';
@@ -23,14 +24,14 @@ export async function commonPresentationDocument(name = 'linked-linear', configu
       const band = geometry.sections[index].bandPartition.bands[i];
       if (binding.sections[0].paint === null) continue;
       binding.sections[0].paint.phaseL = (band.left.knots.at(-1).l + band.right.knots.at(-1).l) / 2;
-      binding.sections[0].paint.alternate = { paletteRgb555: [0, 0x001f, 0x7fff], spanS: 5, spanL: 2 };
+      binding.sections[0].paint.alternate = { paletteRgb555: palette16([0, 0x001f, 0x7fff]), spanS: 5, spanL: 2 };
     }
   }
   const instances = new Set();
   for (const link of geometry.links) {
     const instanceId = `entry-${link.destination.section.id}`;
     if (!instances.has(instanceId)) {
-      document.sceneryInstances.push({ id: instanceId, assetId: 'tree' });
+      document.sceneryInstances.push({ id: instanceId, assetId: 'tree', paletteRgb555: null });
       instances.add(instanceId);
     }
     for (const port of [link.source, link.destination]) {

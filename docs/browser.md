@@ -80,6 +80,18 @@ unchanged resolved settings starts in place; changed settings reload with their 
 `autostart=1`. NEW SESSION preserves the settings but removes `autostart`. Session controls isolate
 keyboard events and carry `data-driving-input="ignore"` so form interaction is not driving input.
 
+## Indexed image readiness and checks
+
+The completed vehicle sprite library is loaded and admitted before ticks, alongside digest-verified
+course content. Sprite LOD is produced by build, not during driving. Each environment selects the single
+infinite tiled BG; placeholder tile palettes deliberately differ. [Image assets](image-assets.md) owns
+the formats, common filter and immutable palette substitutions.
+
+In each registered mode, inspect BG tile-color changes and distant trees/signs while moving. Select
+Testarossa and brake to see its precomputed lamp palette; rivals use their own brake observations.
+The normal and braking sets are immutable choices prepared before driving. These checks are human
+acceptance, not a claim of tested phone frame rate or guaranteed survival of every subpixel feature.
+
 ## Performance HUD
 
 The [performance HUD](../src/browser/course-performance-hud.ts) reports the current browser instance:

@@ -1,3 +1,4 @@
+import { readSpriteAssets, createVehiclePaletteVariant } from './visual/sprite-assets.js';
 import { createBrowserDrivingShell } from './browser/driving-shell.js';
 import { selectBrowserCourseMode } from './browser/course-mode-selection.js';
 import { mustGet } from './browser/dom.js';
@@ -82,7 +83,19 @@ try {
       )
     : null;
   const session = resolveCourseSession(course, settings, vehicle, budgets);
-  const scene = createCourseScene(course.entry, ground);
+  const sprites = readSpriteAssets(
+    JSON.parse(
+      new TextDecoder('utf-8', { fatal: true }).decode(await fetchBytes(new URL('sprites/vehicles.json', root))),
+    ),
+  );
+  const braking =
+    vehicle.profile.id === 'TESTAROSSA'
+      ? Object.freeze({
+          ...sprites,
+          car: createVehiclePaletteVariant(sprites.car, sprites.car.assets[0]![0]!.paletteChoices[1]!),
+        })
+      : sprites;
+  const scene = createCourseScene(course.entry, ground, sprites);
   const slot = session.grid[0]!;
   const shell = createBrowserDrivingShell(scene.world, slot.l, {
     s: slot.anchor.s,
@@ -96,6 +109,7 @@ try {
     createSession: scene.createActorSession,
     rival: vehicle,
     rivalEnvelope,
+    sprites,
   });
   const raceStatus = document.createElement('output');
   raceStatus.setAttribute('role', 'status');
@@ -132,6 +146,7 @@ try {
       lifecycle.camera,
       deriveVehicleSpriteFamily(shell.presentation),
       observations.sprites,
+      input.brake ? braking : sprites,
     );
     shell.present(mode, input, lifecycle.camera, result.playerScreenY, observations.rivals);
     raceStatus.textContent = race.label();

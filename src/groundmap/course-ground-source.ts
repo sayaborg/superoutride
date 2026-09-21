@@ -6,7 +6,7 @@ const repeat = (value: number, period: number) => ((value % period) + period) % 
 
 function color(source: SpriteLodDocument, x: number, y: number, palette = source.levels[0]!.paletteRgb555) {
   const index = source.levels[0]!.indices[y * source.width + x]!;
-  return index === 0 ? null : palette[index - 1]!;
+  return index === 0 ? null : palette[index]!;
 }
 
 function samplePaint(paint: CoursePaint, s: number, l: number, sourceLateralOrigin: number) {

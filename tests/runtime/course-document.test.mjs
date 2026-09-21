@@ -294,7 +294,7 @@ test('scoped duplicate identities and every missing reference family fail before
   duplicateSection.sections.push(structuredClone(duplicateSection.sections[0]));
   failure(readCourseDocument(duplicateSection), 'duplicate_id', '/sections/1/id');
   const duplicateAsset = fixture();
-  const a = { id: 'same', format: 'superoutride.sprite-lod', version: 1, sha256: 'a'.repeat(64) };
+  const a = { id: 'same', format: 'superoutride.sprite-lod', version: 2, sha256: 'a'.repeat(64) };
   duplicateAsset.assets = [a, a];
   failure(readCourseDocument(duplicateAsset), 'duplicate_id', '/assets/1/id');
   for (const [change, at] of [

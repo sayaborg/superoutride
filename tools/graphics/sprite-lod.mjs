@@ -2,7 +2,6 @@ import { CURRENT_FOCAL_LENGTH_PIXELS, pixelsPerMeterAtDepth } from '../../dist/c
 import { createSpriteLodFixture } from '../../dist/dev/fixtures/sprite-lod.js';
 import { SoftwareSurface, rgba } from '../../dist/graphics/software-surface.js';
 import {
-  createSpriteAsset,
   drawScaledSprite,
   readSpriteLodAsset,
   selectSpriteLevel,
@@ -15,16 +14,7 @@ const contexts = ['lod', 'master'].map((id) => element(id).getContext('2d'));
 let documentSource, asset, master, animation;
 function load(source) {
   const next = readSpriteLodAsset(source);
-  const level = next.levels[0];
-  master = createSpriteAsset(
-    next.name,
-    next.width,
-    next.height,
-    level.pixels,
-    next.anchorX,
-    next.anchorY,
-    next.worldWidthMeters,
-  );
+  master = readSpriteLodAsset({ ...source, levels: [source.levels[0]] });
   asset = next;
   documentSource = source;
   element('error').textContent = '';

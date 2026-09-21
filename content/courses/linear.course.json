@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 9,
+  "version": 10,
   "id": "provisional-linear",
   "reference": {
     "source": {
@@ -12,697 +12,227 @@
       "location": "../authoring/linear.observations.json",
       "sha256": "220fd79fc3fc31216339aef96c18640c35497a9d6a3900f73a75ed143c7f2370"
     },
-    "calibration": {
-      "distanceScale": 1.05,
-      "curvatureScale": 0.94,
-      "heightScale": 0.8
-    },
+    "calibration": { "distanceScale": 1.05, "curvatureScale": 0.94, "heightScale": 0.8 },
     "remasterDeviations": [
       "Synthetic provisional course; no claim of reproducing external footage.",
       "Rebuild uses distance 1.05, curvature 0.94 and height 0.80; width and separately saved assets remain authored.",
       "Curvature intervals become constant-curvature primitives; the saved Raster recipe discretizes arcs."
     ]
   },
-  "units": {
-    "length": "m",
-    "angle": "deg"
-  },
-  "geometryRecipe": {
-    "id": "superoutride.raster-guide",
-    "version": 4
-  },
+  "units": { "length": "m", "angle": "deg" },
+  "geometryRecipe": { "id": "superoutride.raster-guide", "version": 4 },
   "type": "LINEAR",
   "entrySectionId": "coastal-trial",
   "sections": [
     {
       "id": "coastal-trial",
-      "start": {
-        "x": 0,
-        "z": 0,
-        "heading": 0
-      },
-      "guide": {
-        "margin": 4,
-        "mMin": 0.1
-      },
+      "start": { "x": 0, "z": 0, "heading": 0 },
+      "guide": { "margin": 4, "mMin": 0.1 },
       "primitives": [
-        {
-          "id": "fit-001",
-          "kind": "straight",
-          "length": 420
-        },
-        {
-          "id": "fit-002",
-          "kind": "arc",
-          "radius": 372.3404255319149,
-          "turn": 39.467473801076466
-        },
-        {
-          "id": "fit-003",
-          "kind": "straight",
-          "length": 525
-        },
-        {
-          "id": "fit-004",
-          "kind": "arc",
-          "radius": 425.531914893617,
-          "turn": -64.13464492674932
-        },
-        {
-          "id": "fit-005",
-          "kind": "straight",
-          "length": 524.9999999999998
-        },
-        {
-          "id": "fit-006",
-          "kind": "arc",
-          "radius": 372.3404255319149,
-          "turn": 24.66717112567278
-        },
-        {
-          "id": "fit-007",
-          "kind": "straight",
-          "length": 577.5
-        }
+        { "id": "fit-001", "kind": "straight", "length": 420 },
+        { "id": "fit-002", "kind": "arc", "radius": 372.3404255319149, "turn": 39.467473801076466 },
+        { "id": "fit-003", "kind": "straight", "length": 525 },
+        { "id": "fit-004", "kind": "arc", "radius": 425.531914893617, "turn": -64.13464492674932 },
+        { "id": "fit-005", "kind": "straight", "length": 524.9999999999998 },
+        { "id": "fit-006", "kind": "arc", "radius": 372.3404255319149, "turn": 24.66717112567278 },
+        { "id": "fit-007", "kind": "straight", "length": 577.5 }
       ],
       "boundaries": [
         {
           "id": "outer-left",
           "knots": [
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-001",
-                "fraction": 0
-              },
-              "l": -20
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-007",
-                "fraction": 1
-              },
-              "l": -20
-            }
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 }, "l": -20 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 1 }, "l": -20 }
           ]
         },
         {
           "id": "shoulder-left",
           "knots": [
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-001",
-                "fraction": 0
-              },
-              "l": -9
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-002",
-                "fraction": 0
-              },
-              "l": -9
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-003",
-                "fraction": 0.4
-              },
-              "l": -12
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-004",
-                "fraction": 0
-              },
-              "l": -12
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-005",
-                "fraction": 0.4999999999999998
-              },
-              "l": -8
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-006",
-                "fraction": 0
-              },
-              "l": -8
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-007",
-                "fraction": 1
-              },
-              "l": -9
-            }
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 }, "l": -9 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-002", "fraction": 0 }, "l": -9 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-003", "fraction": 0.4 }, "l": -12 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-004", "fraction": 0 }, "l": -12 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-005", "fraction": 0.4999999999999998 }, "l": -8 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-006", "fraction": 0 }, "l": -8 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 1 }, "l": -9 }
           ]
         },
         {
           "id": "road-left",
           "knots": [
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-001",
-                "fraction": 0
-              },
-              "l": -7
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-002",
-                "fraction": 0
-              },
-              "l": -7
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-003",
-                "fraction": 0.4
-              },
-              "l": -10
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-004",
-                "fraction": 0
-              },
-              "l": -10
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-005",
-                "fraction": 0.4999999999999998
-              },
-              "l": -6
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-006",
-                "fraction": 0
-              },
-              "l": -6
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-007",
-                "fraction": 1
-              },
-              "l": -7
-            }
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 }, "l": -7 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-002", "fraction": 0 }, "l": -7 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-003", "fraction": 0.4 }, "l": -10 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-004", "fraction": 0 }, "l": -10 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-005", "fraction": 0.4999999999999998 }, "l": -6 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-006", "fraction": 0 }, "l": -6 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 1 }, "l": -7 }
           ]
         },
         {
           "id": "center-left",
           "knots": [
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-001",
-                "fraction": 0
-              },
-              "l": -0.1
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-007",
-                "fraction": 1
-              },
-              "l": -0.1
-            }
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 }, "l": -0.1 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 1 }, "l": -0.1 }
           ]
         },
         {
           "id": "center-right",
           "knots": [
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-001",
-                "fraction": 0
-              },
-              "l": 0.1
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-007",
-                "fraction": 1
-              },
-              "l": 0.1
-            }
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 }, "l": 0.1 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 1 }, "l": 0.1 }
           ]
         },
         {
           "id": "road-right",
           "knots": [
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-001",
-                "fraction": 0
-              },
-              "l": 7
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-002",
-                "fraction": 0
-              },
-              "l": 7
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-003",
-                "fraction": 0.4
-              },
-              "l": 10
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-004",
-                "fraction": 0
-              },
-              "l": 10
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-005",
-                "fraction": 0.4999999999999998
-              },
-              "l": 6
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-006",
-                "fraction": 0
-              },
-              "l": 6
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-007",
-                "fraction": 1
-              },
-              "l": 7
-            }
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 }, "l": 7 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-002", "fraction": 0 }, "l": 7 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-003", "fraction": 0.4 }, "l": 10 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-004", "fraction": 0 }, "l": 10 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-005", "fraction": 0.4999999999999998 }, "l": 6 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-006", "fraction": 0 }, "l": 6 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 1 }, "l": 7 }
           ]
         },
         {
           "id": "shoulder-right",
           "knots": [
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-001",
-                "fraction": 0
-              },
-              "l": 9
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-002",
-                "fraction": 0
-              },
-              "l": 9
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-003",
-                "fraction": 0.4
-              },
-              "l": 12
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-004",
-                "fraction": 0
-              },
-              "l": 12
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-005",
-                "fraction": 0.4999999999999998
-              },
-              "l": 8
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-006",
-                "fraction": 0
-              },
-              "l": 8
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-007",
-                "fraction": 1
-              },
-              "l": 9
-            }
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 }, "l": 9 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-002", "fraction": 0 }, "l": 9 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-003", "fraction": 0.4 }, "l": 12 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-004", "fraction": 0 }, "l": 12 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-005", "fraction": 0.4999999999999998 }, "l": 8 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-006", "fraction": 0 }, "l": 8 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 1 }, "l": 9 }
           ]
         },
         {
           "id": "outer-right",
           "knots": [
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-001",
-                "fraction": 0
-              },
-              "l": 20
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-007",
-                "fraction": 1
-              },
-              "l": 20
-            }
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 }, "l": 20 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 1 }, "l": 20 }
           ]
         }
       ],
       "bands": [
         {
           "id": "grass-left",
-          "start": {
-            "kind": "primitive",
-            "primitiveId": "fit-001",
-            "fraction": 0
-          },
-          "end": {
-            "kind": "primitive",
-            "primitiveId": "fit-007",
-            "fraction": 1
-          },
+          "start": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 },
+          "end": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 1 },
           "leftBoundaryId": "outer-left",
           "rightBoundaryId": "shoulder-left",
           "role": "shoulder"
         },
         {
           "id": "kerb-left",
-          "start": {
-            "kind": "primitive",
-            "primitiveId": "fit-001",
-            "fraction": 0
-          },
-          "end": {
-            "kind": "primitive",
-            "primitiveId": "fit-007",
-            "fraction": 1
-          },
+          "start": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 },
+          "end": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 1 },
           "leftBoundaryId": "shoulder-left",
           "rightBoundaryId": "road-left",
           "role": "shoulder"
         },
         {
           "id": "lane-left",
-          "start": {
-            "kind": "primitive",
-            "primitiveId": "fit-001",
-            "fraction": 0
-          },
-          "end": {
-            "kind": "primitive",
-            "primitiveId": "fit-007",
-            "fraction": 1
-          },
+          "start": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 },
+          "end": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 1 },
           "leftBoundaryId": "road-left",
           "rightBoundaryId": "center-left",
           "role": "pavement"
         },
         {
           "id": "center",
-          "start": {
-            "kind": "primitive",
-            "primitiveId": "fit-001",
-            "fraction": 0
-          },
-          "end": {
-            "kind": "primitive",
-            "primitiveId": "fit-007",
-            "fraction": 1
-          },
+          "start": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 },
+          "end": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 1 },
           "leftBoundaryId": "center-left",
           "rightBoundaryId": "center-right",
           "role": "pavement"
         },
         {
           "id": "lane-right",
-          "start": {
-            "kind": "primitive",
-            "primitiveId": "fit-001",
-            "fraction": 0
-          },
-          "end": {
-            "kind": "primitive",
-            "primitiveId": "fit-007",
-            "fraction": 1
-          },
+          "start": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 },
+          "end": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 1 },
           "leftBoundaryId": "center-right",
           "rightBoundaryId": "road-right",
           "role": "pavement"
         },
         {
           "id": "kerb-right",
-          "start": {
-            "kind": "primitive",
-            "primitiveId": "fit-001",
-            "fraction": 0
-          },
-          "end": {
-            "kind": "primitive",
-            "primitiveId": "fit-007",
-            "fraction": 1
-          },
+          "start": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 },
+          "end": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 1 },
           "leftBoundaryId": "road-right",
           "rightBoundaryId": "shoulder-right",
           "role": "shoulder"
         },
         {
           "id": "grass-right",
-          "start": {
-            "kind": "primitive",
-            "primitiveId": "fit-001",
-            "fraction": 0
-          },
-          "end": {
-            "kind": "primitive",
-            "primitiveId": "fit-007",
-            "fraction": 1
-          },
+          "start": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 },
+          "end": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 1 },
           "leftBoundaryId": "shoulder-right",
           "rightBoundaryId": "outer-right",
           "role": "shoulder"
         }
       ],
       "height": [
-        {
-          "anchor": {
-            "kind": "primitive",
-            "primitiveId": "fit-001",
-            "fraction": 0
-          },
-          "y": 0
-        },
-        {
-          "anchor": {
-            "kind": "primitive",
-            "primitiveId": "fit-002",
-            "fraction": 0
-          },
-          "y": 0
-        },
-        {
-          "anchor": {
-            "kind": "primitive",
-            "primitiveId": "fit-003",
-            "fraction": 0.5
-          },
-          "y": 11.200000000000001
-        },
-        {
-          "anchor": {
-            "kind": "primitive",
-            "primitiveId": "fit-004",
-            "fraction": 0
-          },
-          "y": 11.200000000000001
-        },
-        {
-          "anchor": {
-            "kind": "primitive",
-            "primitiveId": "fit-005",
-            "fraction": 0.5999999999999999
-          },
-          "y": -4
-        },
-        {
-          "anchor": {
-            "kind": "primitive",
-            "primitiveId": "fit-006",
-            "fraction": 0
-          },
-          "y": -4
-        },
-        {
-          "anchor": {
-            "kind": "primitive",
-            "primitiveId": "fit-007",
-            "fraction": 0.5
-          },
-          "y": 0
-        },
-        {
-          "anchor": {
-            "kind": "primitive",
-            "primitiveId": "fit-007",
-            "fraction": 1
-          },
-          "y": 0
-        }
+        { "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 }, "y": 0 },
+        { "anchor": { "kind": "primitive", "primitiveId": "fit-002", "fraction": 0 }, "y": 0 },
+        { "anchor": { "kind": "primitive", "primitiveId": "fit-003", "fraction": 0.5 }, "y": 11.200000000000001 },
+        { "anchor": { "kind": "primitive", "primitiveId": "fit-004", "fraction": 0 }, "y": 11.200000000000001 },
+        { "anchor": { "kind": "primitive", "primitiveId": "fit-005", "fraction": 0.5999999999999999 }, "y": -4 },
+        { "anchor": { "kind": "primitive", "primitiveId": "fit-006", "fraction": 0 }, "y": -4 },
+        { "anchor": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 0.5 }, "y": 0 },
+        { "anchor": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 1 }, "y": 0 }
       ],
       "physicalBindings": [
         {
           "bandId": "grass-left",
           "sections": [
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-001",
-                "fraction": 0
-              },
-              "material": "GRASS"
-            }
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 }, "material": "GRASS" }
           ]
         },
         {
           "bandId": "kerb-left",
           "sections": [
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-001",
-                "fraction": 0
-              },
-              "material": "ASPHALT"
-            }
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 }, "material": "ASPHALT" }
           ]
         },
         {
           "bandId": "lane-left",
           "sections": [
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-001",
-                "fraction": 0
-              },
-              "material": "ASPHALT"
-            }
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 }, "material": "ASPHALT" }
           ]
         },
         {
           "bandId": "center",
           "sections": [
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-001",
-                "fraction": 0
-              },
-              "material": "ASPHALT"
-            }
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 }, "material": "ASPHALT" }
           ]
         },
         {
           "bandId": "lane-right",
           "sections": [
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-001",
-                "fraction": 0
-              },
-              "material": "ASPHALT"
-            }
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 }, "material": "ASPHALT" }
           ]
         },
         {
           "bandId": "kerb-right",
           "sections": [
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-001",
-                "fraction": 0
-              },
-              "material": "ASPHALT"
-            }
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 }, "material": "ASPHALT" }
           ]
         },
         {
           "bandId": "grass-right",
           "sections": [
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-001",
-                "fraction": 0
-              },
-              "material": "GRASS"
-            }
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 }, "material": "GRASS" }
           ]
         }
       ],
-      "carriageways": [
-        {
-          "id": "road",
-          "bandIds": ["lane-left", "center", "lane-right"]
-        }
-      ],
+      "carriageways": [{ "id": "road", "bandIds": ["lane-left", "center", "lane-right"] }],
       "ports": [
         {
           "id": "start",
           "kind": "entry",
-          "anchor": {
-            "kind": "primitive",
-            "primitiveId": "fit-001",
-            "fraction": 0.075
-          },
+          "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0.075 },
           "carriagewayId": "road"
         }
       ],
@@ -717,17 +247,8 @@
               "bandId": "grass-left",
               "sections": [
                 {
-                  "anchor": {
-                    "kind": "primitive",
-                    "primitiveId": "fit-001",
-                    "fraction": 0
-                  },
-                  "paint": {
-                    "assetId": "grass",
-                    "phaseS": 0,
-                    "phaseL": -500,
-                    "alternate": null
-                  }
+                  "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 },
+                  "paint": { "assetId": "grass", "phaseS": 0, "phaseL": -500, "alternate": null }
                 }
               ]
             },
@@ -735,17 +256,16 @@
               "bandId": "kerb-left",
               "sections": [
                 {
-                  "anchor": {
-                    "kind": "primitive",
-                    "primitiveId": "fit-001",
-                    "fraction": 0
-                  },
+                  "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 },
                   "paint": {
                     "assetId": "shoulder",
                     "phaseS": 0,
                     "phaseL": -500,
                     "alternate": {
-                      "paletteRgb555": [24806],
+                      "paletteRgb555": [
+                        0, 24806, 24806, 24806, 24806, 24806, 24806, 24806, 24806, 24806, 24806, 24806, 24806, 24806,
+                        24806, 24806
+                      ],
                       "spanS": 4,
                       "spanL": 1000
                     }
@@ -757,17 +277,8 @@
               "bandId": "lane-left",
               "sections": [
                 {
-                  "anchor": {
-                    "kind": "primitive",
-                    "primitiveId": "fit-001",
-                    "fraction": 0
-                  },
-                  "paint": {
-                    "assetId": "asphalt",
-                    "phaseS": 0,
-                    "phaseL": -500,
-                    "alternate": null
-                  }
+                  "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 },
+                  "paint": { "assetId": "asphalt", "phaseS": 0, "phaseL": -500, "alternate": null }
                 }
               ]
             },
@@ -775,17 +286,15 @@
               "bandId": "center",
               "sections": [
                 {
-                  "anchor": {
-                    "kind": "primitive",
-                    "primitiveId": "fit-001",
-                    "fraction": 0
-                  },
+                  "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 },
                   "paint": {
                     "assetId": "stripe",
                     "phaseS": 0,
                     "phaseL": -500,
                     "alternate": {
-                      "paletteRgb555": [9548],
+                      "paletteRgb555": [
+                        0, 9548, 9548, 9548, 9548, 9548, 9548, 9548, 9548, 9548, 9548, 9548, 9548, 9548, 9548, 9548
+                      ],
                       "spanS": 5,
                       "spanL": 1000
                     }
@@ -797,17 +306,8 @@
               "bandId": "lane-right",
               "sections": [
                 {
-                  "anchor": {
-                    "kind": "primitive",
-                    "primitiveId": "fit-001",
-                    "fraction": 0
-                  },
-                  "paint": {
-                    "assetId": "asphalt",
-                    "phaseS": 0,
-                    "phaseL": -500,
-                    "alternate": null
-                  }
+                  "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 },
+                  "paint": { "assetId": "asphalt", "phaseS": 0, "phaseL": -500, "alternate": null }
                 }
               ]
             },
@@ -815,17 +315,16 @@
               "bandId": "kerb-right",
               "sections": [
                 {
-                  "anchor": {
-                    "kind": "primitive",
-                    "primitiveId": "fit-001",
-                    "fraction": 0
-                  },
+                  "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 },
                   "paint": {
                     "assetId": "shoulder",
                     "phaseS": 0,
                     "phaseL": -500,
                     "alternate": {
-                      "paletteRgb555": [24806],
+                      "paletteRgb555": [
+                        0, 24806, 24806, 24806, 24806, 24806, 24806, 24806, 24806, 24806, 24806, 24806, 24806, 24806,
+                        24806, 24806
+                      ],
                       "spanS": 4,
                       "spanL": 1000
                     }
@@ -837,17 +336,8 @@
               "bandId": "grass-right",
               "sections": [
                 {
-                  "anchor": {
-                    "kind": "primitive",
-                    "primitiveId": "fit-001",
-                    "fraction": 0
-                  },
-                  "paint": {
-                    "assetId": "grass",
-                    "phaseS": 0,
-                    "phaseL": -500,
-                    "alternate": null
-                  }
+                  "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 },
+                  "paint": { "assetId": "grass", "phaseS": 0, "phaseL": -500, "alternate": null }
                 }
               ]
             }
@@ -856,52 +346,26 @@
         },
         "environments": [
           {
-            "anchor": {
-              "kind": "primitive",
-              "primitiveId": "fit-001",
-              "fraction": 0
-            },
+            "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 },
             "name": "COASTAL TRIAL",
             "groundBaseLeft": 9799,
             "groundBaseRight": 9799,
-            "background": {
-              "assetId": "coast-sky",
-              "horizonY": 112,
-              "pixelsPerRadian": 180,
-              "yawOrigin": 0
-            }
+            "background": { "assetId": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
           },
           {
-            "anchor": {
-              "kind": "primitive",
-              "primitiveId": "fit-004",
-              "fraction": 0
-            },
+            "anchor": { "kind": "primitive", "primitiveId": "fit-004", "fraction": 0 },
             "name": "HIGHLAND TRIAL",
             "groundBaseLeft": 9799,
             "groundBaseRight": 9799,
-            "background": {
-              "assetId": "hill-sky",
-              "horizonY": 112,
-              "pixelsPerRadian": 180,
-              "yawOrigin": 0
-            }
+            "background": { "assetId": "hill-sky", "horizonY": 320, "yawOrigin": 0 }
           }
         ],
         "sceneryRows": [
           {
             "id": "fit-row-1",
             "assetId": "tree",
-            "start": {
-              "kind": "primitive",
-              "primitiveId": "fit-001",
-              "fraction": 0.2
-            },
-            "end": {
-              "kind": "primitive",
-              "primitiveId": "fit-007",
-              "fraction": 0.8
-            },
+            "start": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0.2 },
+            "end": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 0.8 },
             "spacing": 42,
             "boundaryId": "road-left",
             "side": "left",
@@ -911,16 +375,8 @@
           {
             "id": "fit-row-2",
             "assetId": "tree",
-            "start": {
-              "kind": "primitive",
-              "primitiveId": "fit-001",
-              "fraction": 0.2
-            },
-            "end": {
-              "kind": "primitive",
-              "primitiveId": "fit-007",
-              "fraction": 0.8
-            },
+            "start": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0.2 },
+            "end": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 0.8 },
             "spacing": 42,
             "boundaryId": "road-right",
             "side": "right",
@@ -938,178 +394,73 @@
     {
       "id": "asphalt",
       "format": "superoutride.sprite-lod",
-      "version": 1,
-      "sha256": "80f4123dc8bf8915a3bb157f55b9c423750b247cbf57320eb9f495cc1d4023cf"
+      "version": 2,
+      "sha256": "45d46abc6aeda4f61ea38829a51f9f2f1d043e623b414d2007ee4c63f6ba08c3"
     },
     {
       "id": "grass",
       "format": "superoutride.sprite-lod",
-      "version": 1,
-      "sha256": "cd2b58011652171b2f992916de35c6a2dcd3417595321195ecfcfb83ea56202d"
+      "version": 2,
+      "sha256": "a8cd935c0f9cad31a2457edbbe64d3ad4f15433db1ee855120256cbe6a6b4f3f"
     },
     {
       "id": "stripe",
       "format": "superoutride.sprite-lod",
-      "version": 1,
-      "sha256": "4745c7a855746606aa84aea872886710298c26235edd6a35880e422dc08e5d80"
+      "version": 2,
+      "sha256": "3418c8d3e78f50049943fcb8835786cca7d9a8f51fd33f3c885b8dd184c6bad7"
     },
     {
       "id": "shoulder",
       "format": "superoutride.sprite-lod",
-      "version": 1,
-      "sha256": "4d524095692e109ed8ad3252c55ffe75e060f82a25f624af32d2a90667f62f5c"
+      "version": 2,
+      "sha256": "23f4784edaf0a761a7f2b216423a407bc747f449dfeebab9190bdc2d19082142"
     },
     {
       "id": "coast-sky",
-      "format": "superoutride.sprite-lod",
+      "format": "superoutride.tile-background",
       "version": 1,
-      "sha256": "fb491676ffca4fe3faff3a98fcdc1cd58c2c591623487b209f6f54b1774c99d7"
+      "sha256": "0e4c15f03d93e1202735af76ae62f620d6adb0ae060236670fd58feff95fad00"
     },
     {
       "id": "hill-sky",
-      "format": "superoutride.sprite-lod",
+      "format": "superoutride.tile-background",
       "version": 1,
-      "sha256": "a0b67327be563bfa8b77ca4a13b58216ea061df18a86288d4f9a4be5826021bf"
+      "sha256": "ba3335624824ef3af6169e92f832bf4adeb870a5e5f2f7db3dcfa40aab4b635e"
     },
     {
       "id": "tree",
       "format": "superoutride.sprite-lod",
-      "version": 1,
-      "sha256": "62855977eee911de53ec4c6e812caef99cea45bad42fd53f6ac575fb435ad71d"
+      "version": 2,
+      "sha256": "b09289be3a424ac827c49569aff8e5f3ece795a33de77f26527d8e0a572028ab"
     }
   ],
   "sceneryInstances": [],
   "rules": {
     "grid": [
-      {
-        "anchor": {
-          "kind": "absolute",
-          "s": 45
-        },
-        "l": 0
-      },
-      {
-        "anchor": {
-          "kind": "absolute",
-          "s": 55
-        },
-        "l": -2
-      },
-      {
-        "anchor": {
-          "kind": "absolute",
-          "s": 67
-        },
-        "l": 2
-      },
-      {
-        "anchor": {
-          "kind": "absolute",
-          "s": 79
-        },
-        "l": -2
-      },
-      {
-        "anchor": {
-          "kind": "absolute",
-          "s": 91
-        },
-        "l": 2
-      },
-      {
-        "anchor": {
-          "kind": "absolute",
-          "s": 103
-        },
-        "l": -2
-      },
-      {
-        "anchor": {
-          "kind": "absolute",
-          "s": 115
-        },
-        "l": 2
-      },
-      {
-        "anchor": {
-          "kind": "absolute",
-          "s": 127
-        },
-        "l": -2
-      },
-      {
-        "anchor": {
-          "kind": "absolute",
-          "s": 139
-        },
-        "l": 2
-      },
-      {
-        "anchor": {
-          "kind": "absolute",
-          "s": 151
-        },
-        "l": -2
-      },
-      {
-        "anchor": {
-          "kind": "absolute",
-          "s": 163
-        },
-        "l": 2
-      },
-      {
-        "anchor": {
-          "kind": "absolute",
-          "s": 175
-        },
-        "l": -2
-      },
-      {
-        "anchor": {
-          "kind": "absolute",
-          "s": 187
-        },
-        "l": 2
-      },
-      {
-        "anchor": {
-          "kind": "absolute",
-          "s": 199
-        },
-        "l": -2
-      },
-      {
-        "anchor": {
-          "kind": "absolute",
-          "s": 211
-        },
-        "l": 2
-      },
-      {
-        "anchor": {
-          "kind": "absolute",
-          "s": 223
-        },
-        "l": -2
-      },
-      {
-        "anchor": {
-          "kind": "absolute",
-          "s": 235
-        },
-        "l": 2
-      }
+      { "anchor": { "kind": "absolute", "s": 45 }, "l": 0 },
+      { "anchor": { "kind": "absolute", "s": 55 }, "l": -2 },
+      { "anchor": { "kind": "absolute", "s": 67 }, "l": 2 },
+      { "anchor": { "kind": "absolute", "s": 79 }, "l": -2 },
+      { "anchor": { "kind": "absolute", "s": 91 }, "l": 2 },
+      { "anchor": { "kind": "absolute", "s": 103 }, "l": -2 },
+      { "anchor": { "kind": "absolute", "s": 115 }, "l": 2 },
+      { "anchor": { "kind": "absolute", "s": 127 }, "l": -2 },
+      { "anchor": { "kind": "absolute", "s": 139 }, "l": 2 },
+      { "anchor": { "kind": "absolute", "s": 151 }, "l": -2 },
+      { "anchor": { "kind": "absolute", "s": 163 }, "l": 2 },
+      { "anchor": { "kind": "absolute", "s": 175 }, "l": -2 },
+      { "anchor": { "kind": "absolute", "s": 187 }, "l": 2 },
+      { "anchor": { "kind": "absolute", "s": 199 }, "l": -2 },
+      { "anchor": { "kind": "absolute", "s": 211 }, "l": 2 },
+      { "anchor": { "kind": "absolute", "s": 223 }, "l": -2 },
+      { "anchor": { "kind": "absolute", "s": 235 }, "l": 2 }
     ],
     "checkpoints": [
       {
         "id": "coastal-trial-CP1",
         "sectionId": "coastal-trial",
         "carriagewayId": "road",
-        "anchor": {
-          "kind": "absolute",
-          "s": 1455.9155428582208
-        }
+        "anchor": { "kind": "absolute", "s": 1455.9155428582208 }
       }
     ],
     "finishes": [
@@ -1117,18 +468,10 @@
         "id": "coastal-trial-FINISH",
         "sectionId": "coastal-trial",
         "carriagewayId": "road",
-        "anchor": {
-          "kind": "absolute",
-          "s": 2880.3310857164415
-        }
+        "anchor": { "kind": "absolute", "s": 2880.3310857164415 }
       }
     ],
     "maxLaps": 1,
-    "classic": {
-      "vehicleId": "TESTAROSSA",
-      "rivalCount": 0,
-      "lapCount": 1,
-      "timeMargin": 1.35
-    }
+    "classic": { "vehicleId": "TESTAROSSA", "rivalCount": 0, "lapCount": 1, "timeMargin": 1.35 }
   }
 }

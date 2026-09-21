@@ -10,15 +10,15 @@ const { createStadiumGuide } = await load('dev/fixtures/raster-courses');
 const { createHillDipHeightProfile } = await load('dev/fixtures/hill-dip-height');
 const { createCliffVisualProfile } = await load('dev/fixtures/cliff-visual');
 const { guidePathToWorld } = await load('core/guide-curve');
-const { createFarBackground } = await load('visual/far-background');
-const { createSpriteAssets } = await load('visual/sprite-assets');
+const { createTestBackground } = await import('../helpers/tile-background.mjs');
+const { createTestSpriteAssets } = await import('../helpers/sprite-assets.mjs');
 const { renderSourceGround: renderDriving } = await load('dev/diagnostics/source-ground-render');
 const { SoftwareSurface } = await load('graphics/software-surface');
 const guide = createStadiumGuide(),
   height = createHillDipHeightProfile(guide.length),
   visual = createCliffVisualProfile(guide.length);
-const background = createFarBackground(),
-  assets = createSpriteAssets();
+const background = createTestBackground(),
+  assets = createTestSpriteAssets();
 const ground = {
   groundLeft: 12,
   groundRight: 12,
@@ -74,8 +74,9 @@ for (const s of [25, 45, 80, 105, 120, 155, 230, 275, 350, 440, 500, 520, 610, 6
       sha256: createHash('sha256').update(new Uint8Array(surface.pixels.buffer)).digest('hex'),
     });
   }
-test('terrain interval traversal preserves the complete pre-change framebuffer across hills, cliffs and curves', async () => {
-  // Captured before the boundary traversal change from the inspected 979282e release.
+test('terrain interval traversal preserves the complete indexed-image framebuffer across hills, cliffs and curves', async () => {
+  // Image reference uses the authored tiled background, RGB555 masters and build-generated sprite LOD.
+  // Terrain traversal, physical inputs and camera are unchanged; this is not a mechanics/audio oracle.
   const reference = JSON.parse(await readFile(new URL('../fixtures/terrain-pixels.json', import.meta.url), 'utf8'));
   assert.deepEqual(samples, reference);
 });

@@ -1,3 +1,5 @@
+import { createTestBackground } from '../helpers/tile-background.mjs';
+import { createTestSpriteAssets } from '../helpers/sprite-assets.mjs';
 import { createStadiumScene } from '../helpers/stadium-scene.mjs';
 import { deg } from '../helpers/assert.mjs';
 import assert from 'node:assert/strict';
@@ -10,15 +12,13 @@ import { createRoadsideSprites } from '../../dist/dev/fixtures/projection-scener
 import { SoftwareSurface } from '../../dist/graphics/software-surface.js';
 
 import { renderSourceGround as renderDriving } from '../../dist/dev/diagnostics/source-ground-render.js';
-import { createFarBackground } from '../../dist/visual/far-background.js';
-import { createSpriteAssets } from '../../dist/visual/sprite-assets.js';
 
 describe('sprite presentation', () => {
   const { guide, height, cameraProfile, groundProfile, terrainProfile } = createStadiumScene();
 
-  const assets = createSpriteAssets();
+  const assets = createTestSpriteAssets();
 
-  const background = createFarBackground();
+  const background = createTestBackground();
 
   test('current renderer draws merged world sprites and a yaw-variant player into the software framebuffer', () => {
     const vehicle = renderPose(guide, 420);

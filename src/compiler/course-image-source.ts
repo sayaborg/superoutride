@@ -1,12 +1,13 @@
 import { contentDigest } from '../core/content-digest.js';
 import { CourseAssetError, courseFailures, courseSuccess, type CourseResult } from '../course/course-diagnostics.js';
 import { COURSE_DOCUMENT_LIMITS, type CourseAssetReference } from '../course/course-document.js';
+import { TileBackgroundImage, type TileBackgroundDocument } from '../graphics/tile-background-image.js';
 import { readSpriteLodAsset, spriteLodLayout, type SpriteLodDocument } from '../graphics/sprite.js';
 
 /** Offline source admission bounds, not resident image/device budgets or art-quality settings. */
 export const COURSE_IMAGE_SOURCE_RECIPE = Object.freeze({
   id: 'superoutride.course-image-source',
-  version: 1,
+  version: 2,
   maxEncodedBytes: 8 * 1024 * 1024,
   maxTotalEncodedBytes: 64 * 1024 * 1024,
   maxMasterTexels: 1024 * 1024,
@@ -20,7 +21,7 @@ export interface CourseAssetBytes {
 
 /** Canonical descriptor and owned indexed source. No mutable decoded buffer enters the graph. */
 export interface CompiledCourseImageSource extends CourseAssetReference {
-  readonly source: SpriteLodDocument;
+  readonly source: SpriteLodDocument | TileBackgroundDocument;
 }
 
 /** References have passed document admission; all caller bytes are owned before the first await. */
@@ -71,7 +72,7 @@ export async function compileCourseImageSources(
     const input = supplied.get(sha256)!;
     return { sha256, inputIndex: input.inputIndex, bytes: new Uint8Array(input.bytes) };
   });
-  const sources = new Map<string, SpriteLodDocument>();
+  const sources = new Map<string, SpriteLodDocument | TileBackgroundDocument>();
   let levelTexels = 0;
   for (const { sha256, inputIndex, bytes } of owned) {
     if ((await contentDigest(bytes)) !== sha256) {
@@ -112,20 +113,34 @@ export async function compileCourseImageSources(
       }
     }
     try {
-      readSpriteLodAsset(value);
+      if ((value as { format?: string } | null)?.format === 'superoutride.tile-background') {
+        const background = value as TileBackgroundDocument;
+        if (
+          Array.isArray(background.patterns) &&
+          background.patterns.length * 256 + levelTexels > COURSE_IMAGE_SOURCE_RECIPE.maxTotalLevelTexels
+        ) {
+          error('resource_limit', sha256, 'Background patterns exceed source texel admission', inputIndex);
+          continue;
+        }
+        new TileBackgroundImage(value);
+        levelTexels += background.patterns.length * 256;
+      } else readSpriteLodAsset(value);
     } catch (cause) {
       if (!(cause instanceof RangeError)) throw cause;
       error('asset_invalid_image', sha256, cause.message, inputIndex);
       continue;
     }
-    const source = value as SpriteLodDocument;
-    for (const level of source.levels) {
-      Object.freeze(level.paletteRgb555);
-      Object.freeze(level.indices);
-      Object.freeze(level);
+    const source = value as SpriteLodDocument | TileBackgroundDocument;
+    if (
+      required
+        .get(sha256)!
+        .some((index) => references[index]!.format !== source.format || references[index]!.version !== source.version)
+    ) {
+      error('asset_invalid_image', sha256, 'Saved image format must match its declared reference', inputIndex);
+      continue;
     }
-    Object.freeze(source.levels);
-    sources.set(sha256, Object.freeze(source));
+    freezeSource(source);
+    sources.set(sha256, source);
   }
   if (errors.length) return courseFailures(errors);
   return courseSuccess(
@@ -133,4 +148,11 @@ export async function compileCourseImageSources(
       references.map((reference) => Object.freeze({ ...reference, source: sources.get(reference.sha256)! })),
     ),
   );
+}
+
+/** JSON ownership is established at admission, including nested mixture pairs and tile bindings. */
+function freezeSource(value: unknown): void {
+  if (!value || typeof value !== 'object') return;
+  for (const child of Object.values(value)) freezeSource(child);
+  Object.freeze(value);
 }

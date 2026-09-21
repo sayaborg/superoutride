@@ -1,18 +1,15 @@
+import { levelPixels } from '../helpers/indexed-images.mjs';
+import { createTestSpriteAssets } from '../helpers/sprite-assets.mjs';
 import { deg, near } from '../helpers/assert.mjs';
 import assert from 'node:assert/strict';
 import test, { describe } from 'node:test';
 
 import { countOpaqueSpriteColors } from '../../dist/graphics/sprite.js';
 
-import {
-  createSpriteAssets,
-  selectBankVariant,
-  selectVehicleSprite,
-  selectYawVariant,
-} from '../../dist/visual/sprite-assets.js';
+import { selectBankVariant, selectVehicleSprite, selectYawVariant } from '../../dist/visual/sprite-assets.js';
 
 describe('sprite presentation', () => {
-  const assets = createSpriteAssets();
+  const assets = createTestSpriteAssets();
 
   test('programmer-art sprite assets obey <=15 opaque colors plus transparent', () => {
     const all = [assets.tree, assets.sign, assets.guardrail, assets.building];
@@ -21,7 +18,7 @@ describe('sprite presentation', () => {
     for (const asset of all) {
       assert.ok(countOpaqueSpriteColors(asset) <= 15, `${asset.name} exceeds 15 opaque colors`);
       assert.ok(
-        [...asset.levels[0].pixels].some((pixel) => pixel === 0),
+        [...levelPixels(asset.levels[0])].some((pixel) => pixel === 0),
         `${asset.name} has no transparent texel`,
       );
     }

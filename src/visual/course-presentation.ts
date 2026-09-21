@@ -1,5 +1,6 @@
 import type { CompiledBand, CompiledBandPartition, CompiledCarriageway } from '../course/course-bands.js';
 import type { CompiledCourseAnchor } from '../course/course-geometry.js';
+import type { TileBackgroundDocument } from '../graphics/tile-background-image.js';
 import { type SpriteLodDocument } from '../graphics/sprite.js';
 
 /** Ordinary indexed-image facet; a compiler's canonical asset record structurally supplies it. */
@@ -38,6 +39,7 @@ export interface CourseGroundSourceData {
 
 export interface CourseSceneryInstance {
   readonly id: string;
+  readonly paletteRgb555: readonly number[] | null;
   readonly asset: IndexedSource;
 }
 
@@ -49,7 +51,7 @@ export interface CoursePresentation {
     readonly groundBaseLeft: number | null;
     readonly groundBaseRight: number | null;
     readonly background: {
-      readonly asset: IndexedSource;
+      readonly asset: { readonly source: TileBackgroundDocument };
       readonly horizonY: number;
       readonly pixelsPerRadian: number;
       readonly yawOriginRadians: number;

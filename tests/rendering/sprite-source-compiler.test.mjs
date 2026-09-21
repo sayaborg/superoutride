@@ -1,3 +1,4 @@
+import { palette16 } from '../helpers/indexed-images.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { mkdtemp, readFile, writeFile, rm } from 'node:fs/promises';
@@ -6,14 +7,13 @@ import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { PNG } from 'pngjs';
 import { normalizeSpriteSource } from '../../dist/graphics/sprite-source-compiler.js';
-import { compileSpriteLodWithAuthoredPalette } from '../../dist/graphics/sprite-lod-compiler.js';
+import { compileSpriteLod } from '../../dist/graphics/sprite-lod-compiler.js';
 import { readSpriteLodAsset, drawScaledSprite } from '../../dist/graphics/sprite.js';
 import { SoftwareSurface, rgba } from '../../dist/graphics/software-surface.js';
 
 const red = rgba(255, 0, 0),
   white = rgba(255, 255, 255),
   black = rgba(0, 0, 0);
-const encoded = { colorSpace: 'encoded-srgb', coverageThreshold: 0.5 };
 const image = (width, height, pixels = Array(width * height).fill(red)) => ({
   width,
   height,
@@ -21,13 +21,12 @@ const image = (width, height, pixels = Array(width * height).fill(red)) => ({
 });
 const recipe = (width, height, changes = {}) => ({
   format: 'superoutride.sprite-source',
-  version: 1,
+  version: 2,
   name: 'IMPORTED',
   crop: { x: 0, y: 0, width, height },
   widthMeters: width / 40,
   anchor: { x: (width - 1) / 2, y: height - 1 },
-  paletteRgb555: [0x7c00],
-  filter: encoded,
+  paletteRgb555: palette16([0x7c00]),
   ...changes,
 });
 const indices = (output) => output.levels[0].indices;
@@ -45,12 +44,12 @@ test('metric source normalization maps a 2 m crop to 80 texels and the existing 
   assert.equal(output.height, 50);
   assert.equal(output.anchorX, 39.5);
   assert.equal(output.anchorY, 49.5);
-  const asset = readSpriteLodAsset(compileSpriteLodWithAuthoredPalette(output, encoded));
+  const asset = readSpriteLodAsset(compileSpriteLod(output));
   assert.equal(asset.worldWidthMeters, 2);
   assert.equal(drawScaledSprite(new SoftwareSurface(320, 240), asset, 160, 200, 40).outputSamples, 80 * 50);
   assert.deepEqual({ source, settings }, original);
-  output.levels[0].paletteRgb555[0] = 0;
-  assert.equal(settings.paletteRgb555[0], 0x7c00);
+  output.levels[0].paletteRgb555[1] = 0;
+  assert.equal(settings.paletteRgb555[1], 0x7c00);
 });
 
 test('fractional source footprints integrate area rather than point-sample or stretch', () => {
@@ -59,7 +58,7 @@ test('fractional source footprints integrate area rather than point-sample or st
     source,
     recipe(3, 1, {
       widthMeters: 2 / 40,
-      paletteRgb555: [0, 0x294a, 0x7fff],
+      paletteRgb555: palette16([0, 0x4e73, 0x7fff]),
     }),
   );
   // Each output cell covers 1.5 input pixels. Its opaque average is 1/3 white.
@@ -67,24 +66,15 @@ test('fractional source footprints integrate area rather than point-sample or st
   assert.equal(output.height, 1);
 });
 
-test('source alpha weights color separately from coverage, including invisible RGB and equality', () => {
+test('source alpha uses the common half-coverage threshold and normalizes visible linear color', () => {
   const source = image(2, 1, [red, rgba(0, 255, 255, 0)]);
-  const settings = recipe(2, 1, { widthMeters: 1 / 40, paletteRgb555: [0x7c00, 0x4000] });
-  // Half the footprint is empty rightward; half is padding below: exactly 1/4 coverage.
-  assert.deepEqual(
-    indices(normalizeSpriteSource(source, { ...settings, filter: { ...encoded, coverageThreshold: 0.25 } })),
-    [1],
-  );
+  const settings = recipe(2, 1, { widthMeters: 1 / 40, paletteRgb555: palette16([0x7c00, 0x4000]) });
+  // The half-height crop covers half the output footprint: one opaque cell is only 1/4.
   assert.deepEqual(indices(normalizeSpriteSource(source, settings)), [0]);
   const partial = image(2, 1, [rgba(255, 0, 0, 128), rgba(0, 255, 255, 0)]);
   assert.deepEqual(indices(normalizeSpriteSource(partial, recipe(2, 1))), [1, 0]);
-  const alphaMix = image(2, 2, [rgba(255, 0, 0, 128), rgba(0, 0, 255, 64), 0, 0]);
-  const mixRecipe = recipe(2, 2, {
-    widthMeters: 1 / 40,
-    paletteRgb555: [0x540a, 0x4010, 0],
-    filter: { ...encoded, coverageThreshold: 0.1 },
-  });
-  // Opaque color is 2/3 red, 1/3 blue; averaging hidden black or ignoring alpha gives another entry.
+  const alphaMix = image(2, 2, [red, rgba(0, 0, 255, 128), red, rgba(0, 0, 255, 128)]);
+  const mixRecipe = recipe(2, 2, { widthMeters: 1 / 40, paletteRgb555: palette16([0x6813, 0x540a, 0x4010]) });
   assert.deepEqual(indices(normalizeSpriteSource(alphaMix, mixRecipe)), [1]);
 });
 
@@ -93,16 +83,7 @@ test('uniform source scaling keeps the fractional final row as coverage and maps
   const output = normalizeSpriteSource(image(4, 3), settings);
   assert.deepEqual([output.width, output.height, output.anchorX, output.anchorY], [2, 2, -0.25, 0.75]);
   assert.deepEqual(indices(output), [1, 1, 1, 1]);
-  const strict = normalizeSpriteSource(image(4, 3), { ...settings, filter: { ...encoded, coverageThreshold: 1 } });
-  assert.deepEqual(indices(strict), [1, 1, 0, 0]);
-  // Integer overlap coordinates make an opaque 7:3 resample stay opaque at threshold 1.
-  const fractional = normalizeSpriteSource(
-    image(3, 3),
-    recipe(3, 3, {
-      widthMeters: 7 / 40,
-      filter: { ...encoded, coverageThreshold: 1 },
-    }),
-  );
+  const fractional = normalizeSpriteSource(image(3, 3), recipe(3, 3, { widthMeters: 7 / 40 }));
   assert.ok(indices(fractional).every((value) => value === 1));
 });
 
@@ -113,7 +94,7 @@ test('integer enlargement preserves source cells, crop exclusion and source metr
     recipe(3, 2, {
       crop: { x: 1, y: 0, width: 2, height: 2 },
       widthMeters: 4 / 40,
-      paletteRgb555: [0x7c00, 0x7fff],
+      paletteRgb555: palette16([0x7c00, 0x7fff]),
     }),
   );
   assert.deepEqual(indices(output), [1, 1, 2, 2, 1, 1, 2, 2, 2, 2, 1, 1, 2, 2, 1, 1]);
@@ -122,20 +103,17 @@ test('integer enlargement preserves source cells, crop exclusion and source metr
   assert.equal(readSpriteLodAsset(rounded).worldWidthMeters, 1.975);
 });
 
-test('source and LOD compilers share explicit color-space averages and palette tie ordering', () => {
+test('source normalization uses the common linear average and stable palette tie ordering', () => {
   const source = image(2, 2, [black, white, white, black]);
-  const settings = recipe(2, 2, { widthMeters: 1 / 40, paletteRgb555: [0, 0x7fff, 0x4210, 0x5ef7] });
-  assert.deepEqual(indices(normalizeSpriteSource(source, settings)), [3]);
-  assert.deepEqual(
-    indices(normalizeSpriteSource(source, { ...settings, filter: { ...encoded, colorSpace: 'linear-srgb' } })),
-    [4],
-  );
-  for (const palette of [
+  const settings = recipe(2, 2, { widthMeters: 1 / 40, paletteRgb555: palette16([0, 0x7fff, 0x4210, 0x5ef7]) });
+  assert.deepEqual(indices(normalizeSpriteSource(source, settings)), [4]);
+  for (const colors of [
     [0, 0x7fff],
     [0x7fff, 0],
   ]) {
+    const palette = palette16(colors);
     const output = normalizeSpriteSource(source, { ...settings, paletteRgb555: palette });
-    assert.equal(palette[indices(output)[0] - 1], 0);
+    assert.equal(palette[indices(output)[0]], 0);
   }
 });
 
@@ -146,7 +124,7 @@ test('invalid source recipes and admission limits fail before producing a master
     null,
     {},
     { ...settings, format: 'other' },
-    { ...settings, version: 2 },
+    { ...settings, version: 1 },
     { ...settings, crop: { ...settings.crop, rotation: 1 } },
     { ...settings, crop: { ...settings.crop, x: 0.5 } },
     { ...settings, crop: { ...settings.crop, x: 1 } },
@@ -158,16 +136,16 @@ test('invalid source recipes and admission limits fail before producing a master
     { ...settings, anchor: { x: NaN, y: 0 } },
     { ...settings, filter: {} },
     { ...settings, paletteRgb555: [0, 0] },
-    { ...settings, paletteRgb555: Array.from({ length: 16 }, (_, i) => i) },
+    { ...settings, paletteRgb555: Array.from({ length: 17 }, (_, i) => i) },
     { ...settings, paletteRgb555: Array(1) },
     { ...settings, scale: 2 },
   ]) {
     assert.throws(() => normalizeSpriteSource(source, bad), RangeError);
   }
   assert.throws(() => normalizeSpriteSource({ ...source, pixels: new Uint32Array(3) }, settings), /source image/);
-  assert.throws(() => normalizeSpriteSource(source, { ...settings, paletteRgb555: [] }), /opaque source/);
+  assert.throws(() => normalizeSpriteSource(source, { ...settings, paletteRgb555: [] }), /16/);
   assert.deepEqual(
-    indices(normalizeSpriteSource(image(2, 2, [0, 0, 0, 0]), { ...settings, paletteRgb555: [] })),
+    indices(normalizeSpriteSource(image(2, 2, [0, 0, 0, 0]), { ...settings, paletteRgb555: palette16([]) })),
     [0, 0, 0, 0],
   );
 });
@@ -179,17 +157,15 @@ test('PNG source CLI produces a reproducible editable master accepted by the LOD
     recipePath = join(directory, 'source.json');
   const masterPath = join(directory, 'master.json'),
     otherPath = join(directory, 'other.json');
-  const filterPath = join(directory, 'filter.json'),
-    productPath = join(directory, 'product.json');
+  const productPath = join(directory, 'product.json');
   const png = PNG.sync.write({
     width: 2,
     height: 2,
     data: Buffer.from([255, 0, 0, 255, 0, 255, 255, 0, 255, 0, 0, 128, 0, 0, 0, 255]),
   });
-  const settings = recipe(2, 2, { paletteRgb555: [0x7c00, 0] });
+  const settings = recipe(2, 2, { paletteRgb555: palette16([0x7c00, 0]) });
   await writeFile(sourcePath, png);
   await writeFile(recipePath, JSON.stringify(settings));
-  await writeFile(filterPath, JSON.stringify(encoded));
   const sourceTool = new URL('../../tools/build/build-sprite-source.mjs', import.meta.url).pathname;
   const lodTool = new URL('../../tools/build/build-sprite-lod.mjs', import.meta.url).pathname;
   const run = (path) =>
@@ -202,7 +178,7 @@ test('PNG source CLI produces a reproducible editable master accepted by the LOD
   assert.equal(report.width, 2);
   assert.equal(report.height, 2);
   assert.equal(report.levels, 1);
-  execFileSync(process.execPath, [lodTool, masterPath, filterPath, productPath], { stdio: 'pipe' });
+  execFileSync(process.execPath, [lodTool, masterPath, productPath], { stdio: 'pipe' });
   assert.equal(readSpriteLodAsset(JSON.parse(await readFile(productPath, 'utf8'))).levels.length, 2);
   assert.throws(() => run(sourcePath), /overwrite source/);
   assert.throws(() => run(recipePath), /overwrite source/);

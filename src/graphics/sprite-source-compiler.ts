@@ -1,5 +1,10 @@
 import { createSpriteAreaFilter } from './sprite-area-filter.js';
-import { readSpritePaletteRgb555, SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from './sprite.js';
+import {
+  readSpritePaletteRgb555,
+  spriteIdentityMixtures,
+  SPRITE_SOURCE_TEXELS_PER_METER,
+  type SpriteLodDocument,
+} from './sprite.js';
 
 /** Shared decoded-image admission, also checked by file adapters before allocation. */
 export const SPRITE_SOURCE_PIXEL_LIMIT = 16 * 1024 * 1024;
@@ -22,17 +27,8 @@ export function normalizeSpriteSource(image: SourceImage, recipe: unknown): Spri
     image.pixels.length !== image.width * image.height
   )
     throw new RangeError('source image requires positive dimensions and matching RGBA pixels');
-  const settings = record(recipe, [
-    'format',
-    'version',
-    'name',
-    'crop',
-    'widthMeters',
-    'anchor',
-    'paletteRgb555',
-    'filter',
-  ]);
-  if (settings.format !== 'superoutride.sprite-source' || settings.version !== 1)
+  const settings = record(recipe, ['format', 'version', 'name', 'crop', 'widthMeters', 'anchor', 'paletteRgb555']);
+  if (settings.format !== 'superoutride.sprite-source' || settings.version !== 2)
     throw new RangeError('unsupported sprite source recipe format/version');
   if (typeof settings.name !== 'string' || !settings.name.trim()) throw new RangeError('sprite name is required');
   const crop = record(settings.crop, ['x', 'y', 'width', 'height']);
@@ -68,7 +64,7 @@ export function normalizeSpriteSource(image: SourceImage, recipe: unknown): Spri
   const anchorY = (finite(anchor.y) + 0.5 - y) * scale - 0.5;
   if (!Number.isFinite(anchorX) || !Number.isFinite(anchorY)) throw new RangeError('mapped anchor must be finite');
   const paletteRgb555 = readSpritePaletteRgb555(settings.paletteRgb555);
-  const filter = createSpriteAreaFilter(paletteRgb555, settings.filter);
+  const filter = createSpriteAreaFilter(paletteRgb555);
   const indices = Array<number>(width * height).fill(0);
   for (let dy = 0; dy < height; dy++)
     for (let dx = 0; dx < width; dx++) {
@@ -82,13 +78,14 @@ export function normalizeSpriteSource(image: SourceImage, recipe: unknown): Spri
     }
   return {
     format: 'superoutride.sprite-lod',
-    version: 1,
+    version: 2,
     name: settings.name,
     width,
     height,
     anchorX,
     anchorY,
-    levels: [{ paletteRgb555, indices }],
+    variants: [],
+    levels: [{ paletteRgb555, indices, mixtures: spriteIdentityMixtures() }],
   };
 }
 

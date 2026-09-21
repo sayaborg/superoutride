@@ -1,3 +1,6 @@
+import { createCoursePresentationPreview } from '../../dist/render/course-presentation-preview.js';
+import { palette16, masterDocument } from '../helpers/indexed-images.mjs';
+import { compileSpriteLod } from '../../dist/graphics/sprite-lod-compiler.js';
 import assert from 'node:assert/strict';
 import { mkdtemp, readFile, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -82,7 +85,7 @@ test('ground, environment and shared scenery resolve canonical references with i
 test('source paint preserves 40-texel metric phase, transparency, opaque black and static A/B without changing pixels', async () => {
   const fixture = await presentationDocument();
   const paint = fixture.document.sections[0].presentation.ground.bands[0].sections[0].paint;
-  paint.alternate = { paletteRgb555: [0, 0x001f, 0x7fff], spanS: 10, spanL: 2 };
+  paint.alternate = { paletteRgb555: palette16([0, 0x001f, 0x7fff]), spanS: 10, spanL: 2 };
   const product = await compile(fixture),
     source = createCourseGroundSource(product.entry.presentation.ground);
   assert.equal(source.sample(0.0125, 0.0125), 0x1111);
@@ -101,7 +104,11 @@ test('appearance profiles and half-open Band edges are independent of physical b
     section = fixture.document.sections[0];
   section.presentation.ground.bands[0].sections[0].paint.phaseL = -0.03125;
   section.presentation.ground.bands[0].sections.push({ anchor: at(50), paint: null });
-  section.presentation.ground.bands[1].sections[0].paint.assetId = 'sky';
+  const solid = savedImageInput('solid-ground', masterDocument(1, 1, [0x001f], [1]));
+  fixture.document.assets.push(solid.reference);
+  fixture.inputs.push(solid.input);
+  section.assetIds.push('solid-ground');
+  section.presentation.ground.bands[1].sections[0].paint.assetId = 'solid-ground';
   const product = await compile(fixture),
     p = product.entry.presentation,
     source = createCourseGroundSource(p.ground);
@@ -232,7 +239,7 @@ test('missing and inconsistent presentation stays a semantic draft and fails bef
     ],
     [
       (p) => {
-        p.environments[0].background.horizonY = 100;
+        p.environments[0].background.horizonY = 640;
       },
       'invalid_image_role',
     ],
@@ -259,7 +266,7 @@ test('missing and inconsistent presentation stays a semantic draft and fails bef
 test('ground/background reject lower sprite pyramids and malformed placement coordinates without substituting content', async () => {
   const fixture = await presentationDocument(),
     source = structuredClone(fixture.images[0].source);
-  source.levels.push({ paletteRgb555: [0], indices: [1, 1] });
+  source.levels = compileSpriteLod(source).levels;
   const image = savedImageInput('tile', source);
   fixture.document.assets[0] = image.reference;
   fixture.inputs[0] = image.input;
@@ -309,4 +316,41 @@ test('public compiler reports actual saved presentation and source color without
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
+});
+
+test('declared scenery instance palettes bind all completed levels once without recoloring shared patterns', async () => {
+  const fixture = await presentationDocument('linear');
+  const master = structuredClone(fixture.images[1].source);
+  const variant = [...master.levels[0].paletteRgb555];
+  variant[2] = 0x001f;
+  master.variants = [variant];
+  const completed = savedImageInput('tree', compileSpriteLod(master));
+  fixture.document.assets[1] = completed.reference;
+  fixture.inputs[1] = completed.input;
+  fixture.document.sceneryInstances.push({ id: 'blue-tree', assetId: 'tree', paletteRgb555: variant });
+  const placements = fixture.document.sections[0].presentation.scenery;
+  placements.push({ ...placements[0], id: 'near-blue-tree', instanceId: 'blue-tree', l: -8 });
+  const product = await compile(fixture),
+    section = product.entry;
+  const preview = createCoursePresentationPreview();
+  const geometry = { raster: section.raster, length: section.raster.length };
+  const first = preview.createSource(section.presentation, geometry, section.height);
+  const second = preview.createSource(section.presentation, geometry, section.height);
+  const a = first.sprites[0].sprite.asset,
+    b = first.sprites[1].sprite.asset;
+  assert.ok(a.levels.length > 1);
+  assert.equal(b, second.sprites[1].sprite.asset, 'instance selection is computed once');
+  for (let k = 0; k < a.levels.length; k++) assert.equal(a.levels[k].pattern, b.levels[k].pattern);
+  assert.notDeepEqual(
+    a.levels.at(-1).paletteRgb555,
+    b.levels.at(-1).paletteRgb555,
+    'one replacement reaches coarse mixtures',
+  );
+  variant[2] = 0x03e0;
+  assert.equal(product.sceneryInstances[1].paletteRgb555[2], 0x001f);
+  assert.equal(
+    (await compileCourseDocument(fixture.document, fixture.inputs)).ok,
+    false,
+    'undeclared variants require recompilation',
+  );
 });

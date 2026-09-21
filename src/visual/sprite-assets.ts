@@ -1,56 +1,80 @@
 import { clamp, wrapAngle } from '../core/math.js';
-import { rgba } from '../graphics/software-surface.js';
-import { createSpriteAsset, SPRITE_TRANSPARENT, type SpriteAsset } from '../graphics/sprite.js';
+import {
+  createSpritePaletteVariant,
+  readSpriteLodAsset,
+  spriteLodLayout,
+  type SpriteAsset,
+} from '../graphics/sprite.js';
 
 export interface VehicleSpriteSet {
-  kind: 'car' | 'bike';
-  yawVariants: number;
-  bankVariants: number;
-  assets: readonly (readonly SpriteAsset[])[];
+  readonly kind: 'car' | 'bike';
+  readonly yawVariants: number;
+  readonly bankVariants: number;
+  readonly assets: readonly (readonly SpriteAsset[])[];
 }
-
 export interface SpriteAssets {
-  tree: SpriteAsset;
-  sign: SpriteAsset;
-  guardrail: SpriteAsset;
-  building: SpriteAsset;
-  car: VehicleSpriteSet;
-  bike: VehicleSpriteSet;
+  readonly car: VehicleSpriteSet;
+  readonly bike: VehicleSpriteSet;
 }
 
-const SPRITE_COLORS = {
-  dark: rgba(18, 23, 27),
-  tire: rgba(12, 14, 16),
-  chrome: rgba(196, 211, 218),
-  carBody: rgba(236, 82, 56),
-  carHighlight: rgba(255, 159, 92),
-  tail: rgba(255, 48, 42),
-  head: rgba(255, 239, 164),
-  glass: rgba(74, 120, 139),
-  rider: rgba(244, 216, 161),
-  riderSuit: rgba(50, 83, 149),
-  bikeBody: rgba(232, 197, 43),
-  trunk: rgba(93, 62, 39),
-  leafA: rgba(37, 116, 51),
-  leafB: rgba(70, 151, 67),
-  signFace: rgba(238, 240, 229),
-  signMark: rgba(42, 87, 173),
-  concrete: rgba(130, 130, 126),
-  building: rgba(188, 157, 106),
-} as const;
-
-const YAW_VARIANTS = 24;
-const BIKE_BANK_VARIANTS = 5;
-
-export function createSpriteAssets(): SpriteAssets {
-  return {
-    tree: createTreeAsset(),
-    sign: createSignAsset(),
-    guardrail: createGuardrailAsset(),
-    building: createBuildingAsset(),
-    car: createCarSet(),
-    bike: createBikeSet(),
+/** Admission of the build's completed sprite library. No image generation or filtering at runtime. */
+export function readSpriteAssets(value: unknown): SpriteAssets {
+  const library = record(value, ['format', 'version', 'sprites', 'car', 'bike']);
+  if (library.format !== 'superoutride.vehicle-sprites' || library.version !== 1 || !Array.isArray(library.sprites))
+    throw new RangeError('unsupported vehicle sprite library');
+  const sprites = Array.from(library.sprites, (source: unknown) => {
+    const asset = readSpriteLodAsset(source);
+    if (asset.levels.length !== spriteLodLayout(asset.width, asset.height).length)
+      throw new RangeError('shipped sprites require the complete build-generated pyramid');
+    return asset;
+  });
+  const set = (value: unknown, kind: 'car' | 'bike'): VehicleSpriteSet => {
+    const source = record(value, ['kind', 'yawVariants', 'bankVariants', 'assets']);
+    const yawVariants = source.yawVariants,
+      bankVariants = source.bankVariants;
+    if (
+      source.kind !== kind ||
+      typeof yawVariants !== 'number' ||
+      !Number.isSafeInteger(yawVariants) ||
+      yawVariants < 1 ||
+      typeof bankVariants !== 'number' ||
+      !Number.isSafeInteger(bankVariants) ||
+      bankVariants < 1 ||
+      !Array.isArray(source.assets) ||
+      source.assets.length !== yawVariants
+    )
+      throw new RangeError('vehicle sprite set needs complete positive yaw/bank dimensions');
+    const assets = Array.from(source.assets, (row: unknown) => {
+      if (!Array.isArray(row) || row.length !== bankVariants) throw new RangeError('vehicle sprite row is incomplete');
+      return Object.freeze(
+        Array.from(row, (id: unknown) => {
+          if (typeof id !== 'number' || !Number.isSafeInteger(id) || id < 0 || !sprites[id])
+            throw new RangeError('vehicle sprite binding must name an existing pattern');
+          return sprites[id]!;
+        }),
+      );
+    });
+    return Object.freeze({ kind, yawVariants, bankVariants, assets: Object.freeze(assets) });
   };
+  return Object.freeze({ car: set(library.car, 'car'), bike: set(library.bike, 'bike') });
+}
+
+/** An instance binds one semantic base palette to every yaw/bank image and level once. */
+export function createVehiclePaletteVariant(set: VehicleSpriteSet, palette: readonly number[]): VehicleSpriteSet {
+  const images = new Map<SpriteAsset, SpriteAsset>();
+  const assets = set.assets.map((row) =>
+    Object.freeze(
+      row.map((asset) => {
+        let variant = images.get(asset);
+        if (!variant) {
+          variant = createSpritePaletteVariant(asset, palette);
+          images.set(asset, variant);
+        }
+        return variant;
+      }),
+    ),
+  );
+  return Object.freeze({ ...set, assets: Object.freeze(assets) });
 }
 
 export function selectYawVariant(relativeYaw: number, count: number): number {
@@ -58,12 +82,6 @@ export function selectYawVariant(relativeYaw: number, count: number): number {
   const angle = wrapAngle(relativeYaw);
   const normalized = angle < 0 ? angle + Math.PI * 2 : angle;
   return Math.round((normalized / (Math.PI * 2)) * count) % count;
-}
-
-function yawAngleForVariant(index: number, count: number): number {
-  if (!Number.isInteger(count) || count < 1) throw new RangeError('yaw variant count must be >= 1');
-  const wrapped = ((index % count) + count) % count;
-  return wrapAngle((wrapped / count) * Math.PI * 2);
 }
 
 export function selectBankVariant(bank: number, count: number): number {
@@ -87,148 +105,11 @@ export function selectVehicleSprite(
   };
 }
 
-function createTreeAsset(): SpriteAsset {
-  const b = bitmap(7, 11);
-  for (let y = 1; y <= 7; y += 1) {
-    const radius = y <= 3 ? 2 : 3;
-    for (let x = 3 - radius; x <= 3 + radius; x += 1) {
-      if (x >= 0 && x < 7 && Math.abs(x - 3) + Math.abs(y - 4) < 6) {
-        b.set(x, y, (x + y) % 2 ? SPRITE_COLORS.leafA : SPRITE_COLORS.leafB);
-      }
-    }
-  }
-  b.fillRect(3, 7, 3, 10, SPRITE_COLORS.trunk);
-  return createSpriteAsset('TREE', 7, 11, b.pixels, undefined, undefined, 2.5);
-}
-
-function createSignAsset(): SpriteAsset {
-  const b = bitmap(9, 8);
-  b.fillRect(1, 0, 7, 4, SPRITE_COLORS.signFace);
-  b.fillRect(2, 1, 6, 1, SPRITE_COLORS.signMark);
-  b.fillRect(4, 2, 4, 3, SPRITE_COLORS.signMark);
-  b.fillRect(4, 5, 4, 7, SPRITE_COLORS.concrete);
-  return createSpriteAsset('SIGN', 9, 8, b.pixels, undefined, undefined, 1.8);
-}
-
-function createGuardrailAsset(): SpriteAsset {
-  const b = bitmap(9, 4);
-  b.fillRect(0, 0, 8, 1, SPRITE_COLORS.chrome);
-  b.fillRect(1, 2, 1, 3, SPRITE_COLORS.concrete);
-  b.fillRect(7, 2, 7, 3, SPRITE_COLORS.concrete);
-  return createSpriteAsset('GUARDRAIL', 9, 4, b.pixels, undefined, undefined, 3.0);
-}
-
-function createBuildingAsset(): SpriteAsset {
-  const b = bitmap(11, 10);
-  b.fillRect(1, 2, 9, 9, SPRITE_COLORS.building);
-  b.fillRect(0, 1, 10, 2, SPRITE_COLORS.dark);
-  for (let y = 4; y <= 7; y += 3) {
-    for (let x = 2; x <= 8; x += 3) b.fillRect(x, y, x + 1, y + 1, SPRITE_COLORS.glass);
-  }
-  return createSpriteAsset('BUILDING', 11, 10, b.pixels, undefined, undefined, 8.0);
-}
-
-function createCarSet(): VehicleSpriteSet {
-  const rows: SpriteAsset[][] = [];
-  for (let yawIndex = 0; yawIndex < YAW_VARIANTS; yawIndex += 1) {
-    const angle = yawAngleForVariant(yawIndex, YAW_VARIANTS);
-    rows.push([createCarVariant(angle, yawIndex)]);
-  }
-  return { kind: 'car', yawVariants: YAW_VARIANTS, bankVariants: 1, assets: rows };
-}
-
-function createCarVariant(angle: number, yawIndex: number): SpriteAsset {
-  // 80 source pixels across 2.0 m. At player depth this is 1:1 by definition.
-  const width = 80;
-  const height = 56;
-  const b = bitmap(width, height);
-  const side = Math.sin(angle);
-  const facing = Math.cos(angle);
-  const roofShift = Math.round(side * 11);
-
-  // Programmer art only; the fixed metric property is the 80 px / 2.0 m metric reference.
-  for (let y = 20; y <= 50; y += 1) {
-    const t = (y - 20) / 30;
-    const half = Math.round(23 + t * 16);
-    b.fillRect(40 - half, y, 40 + half, y, SPRITE_COLORS.carBody);
-  }
-  b.fillRect(18 + roofShift, 12, 61 + roofShift, 30, SPRITE_COLORS.carHighlight);
-  b.fillRect(24 + roofShift, 15, 55 + roofShift, 25, SPRITE_COLORS.glass);
-  b.fillRect(0, 45, 10, 55, SPRITE_COLORS.tire);
-  b.fillRect(69, 45, 79, 55, SPRITE_COLORS.tire);
-  b.fillRect(14, 36, 65, 40, SPRITE_COLORS.dark);
-  if (facing >= 0) {
-    b.fillRect(14, 39, 23, 44, SPRITE_COLORS.tail);
-    b.fillRect(56, 39, 65, 44, SPRITE_COLORS.tail);
-  } else {
-    b.fillRect(14, 39, 23, 44, SPRITE_COLORS.head);
-    b.fillRect(56, 39, 65, 44, SPRITE_COLORS.head);
-  }
-  return createSpriteAsset(`CAR_YAW_${yawIndex}`, width, height, b.pixels, undefined, undefined, 2.0);
-}
-
-function createBikeSet(): VehicleSpriteSet {
-  const rows: SpriteAsset[][] = [];
-  for (let yawIndex = 0; yawIndex < YAW_VARIANTS; yawIndex += 1) {
-    const angle = yawAngleForVariant(yawIndex, YAW_VARIANTS);
-    const banks: SpriteAsset[] = [];
-    for (let bankIndex = 0; bankIndex < BIKE_BANK_VARIANTS; bankIndex += 1) {
-      const normalizedBank = (bankIndex / (BIKE_BANK_VARIANTS - 1)) * 2 - 1;
-      banks.push(createBikeVariant(angle, normalizedBank, yawIndex, bankIndex));
-    }
-    rows.push(banks);
-  }
-  return { kind: 'bike', yawVariants: YAW_VARIANTS, bankVariants: BIKE_BANK_VARIANTS, assets: rows };
-}
-
-function createBikeVariant(angle: number, bank: number, yawIndex: number, bankIndex: number): SpriteAsset {
-  // DEV physical width 0.80 m, authored at the same 40 source-pixel/m reference density.
-  const width = 32;
-  const height = 64;
-  const b = bitmap(width, height);
-  const side = Math.sin(angle);
-  const lean = Math.round(bank * 8 + side * 4);
-  const cx = 16;
-  b.fillRect(cx - 2, 50, cx + 2, 63, SPRITE_COLORS.tire);
-  b.fillRect(cx - 4, 43, cx + 4, 55, SPRITE_COLORS.chrome);
-  b.fillRect(cx - 8, 36, cx + 8, 50, SPRITE_COLORS.bikeBody);
-  const riderX = Math.round(clamp(cx + lean, 7, 25));
-  b.fillRect(riderX - 4, 13, riderX + 4, 21, SPRITE_COLORS.rider);
-  b.fillRect(riderX - 7, 22, riderX + 7, 38, SPRITE_COLORS.riderSuit);
-  b.fillRect(riderX - 10, 31, riderX + 10, 36, SPRITE_COLORS.riderSuit);
-  return createSpriteAsset(
-    `BIKE_YAW_${yawIndex}_BANK_${bankIndex}`,
-    width,
-    height,
-    b.pixels,
-    undefined,
-    undefined,
-    0.8,
-  );
-}
-
-function bitmap(
-  width: number,
-  height: number,
-): {
-  pixels: Uint32Array;
-  set: (x: number, y: number, color: number) => void;
-  fillRect: (x0: number, y0: number, x1: number, y1: number, color: number) => void;
-} {
-  const pixels = new Uint32Array(width * height);
-  pixels.fill(SPRITE_TRANSPARENT);
-  const set = (x: number, y: number, color: number): void => {
-    if (x < 0 || x >= width || y < 0 || y >= height) return;
-    pixels[y * width + x] = color >>> 0;
-  };
-  const fillRect = (x0: number, y0: number, x1: number, y1: number, color: number): void => {
-    const left = Math.max(0, Math.min(x0, x1));
-    const right = Math.min(width - 1, Math.max(x0, x1));
-    const top = Math.max(0, Math.min(y0, y1));
-    const bottom = Math.min(height - 1, Math.max(y0, y1));
-    for (let y = top; y <= bottom; y += 1) {
-      for (let x = left; x <= right; x += 1) set(x, y, color);
-    }
-  };
-  return { pixels, set, fillRect };
+function record(value: unknown, keys: readonly string[]): Record<string, unknown> {
+  if (!value || typeof value !== 'object' || Array.isArray(value))
+    throw new RangeError('vehicle sprite library record required');
+  const source = value as Record<string, unknown>;
+  if (Object.keys(source).length !== keys.length || keys.some((key) => !Object.hasOwn(source, key)))
+    throw new RangeError('vehicle sprite library has missing or unknown fields');
+  return source;
 }

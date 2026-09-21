@@ -1,3 +1,5 @@
+import { createTestBackground } from '../helpers/tile-background.mjs';
+import { createTestSpriteAssets } from '../helpers/sprite-assets.mjs';
 import { createStadiumScene } from '../helpers/stadium-scene.mjs';
 
 import assert from 'node:assert/strict';
@@ -11,8 +13,7 @@ import { SoftwareSurface } from '../../dist/graphics/software-surface.js';
 
 import { renderSourceGround as renderDriving } from '../../dist/dev/diagnostics/source-ground-render.js';
 import { generateTerrainLines } from '../../dist/terrain/terrain-line.js';
-import { createFarBackground, drawFarBackground } from '../../dist/visual/far-background.js';
-import { createSpriteAssets } from '../../dist/visual/sprite-assets.js';
+import { drawTileBackground } from '../../dist/visual/tile-background.js';
 
 describe('hill and cliff scenery', () => {
   const { guide, height, cameraProfile, groundProfile, terrainProfile } = createStadiumScene();
@@ -20,10 +21,10 @@ describe('hill and cliff scenery', () => {
   test('cliff GroundBase_L TRANSPARENT preserves Far Background below horizon while right GroundBase paints rock', () => {
     const vehicle = renderPose(guide, 520);
     const camera = terrainCamera(guide, height, vehicle, cameraProfile);
-    const background = createFarBackground();
+    const background = createTestBackground();
     const expectedBackground = new SoftwareSurface(320, 240);
     const actual = new SoftwareSurface(320, 240);
-    drawFarBackground(expectedBackground, background, camera);
+    drawTileBackground(expectedBackground, background, camera);
     vehicle.y = height.samplePhysics(vehicle.course.s);
     renderDriving(
       actual,
@@ -35,7 +36,7 @@ describe('hill and cliff scenery', () => {
         terrainProfile,
         groundProfile,
         worldSprites: [],
-        assets: createSpriteAssets(),
+        assets: createTestSpriteAssets(),
         playerKind: 'car',
       },
       {},
@@ -53,9 +54,10 @@ describe('hill and cliff scenery', () => {
   });
 
   test('Far Background is a full image with meaningful pixels below its horizon', () => {
-    const background = createFarBackground();
-    const above = background.surface.getPixel(100, background.sourceHorizonY - 40);
-    const below = background.surface.getPixel(100, background.sourceHorizonY + 40);
-    assert.notEqual(above, below);
+    const background = createTestBackground();
+    const pixels = new Uint32Array(2);
+    background.image.paintRow(pixels, 0, 100, background.sourceHorizonY - 40, 1);
+    background.image.paintRow(pixels, 1, 100, background.sourceHorizonY + 40, 1);
+    assert.notEqual(pixels[0], pixels[1]);
   });
 });

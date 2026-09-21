@@ -2,17 +2,18 @@ import type { HeightProfileReader } from '../core/height-profile.js';
 import type { RasterGeometry } from '../core/raster-coordinate-reader.js';
 import { createCourseGroundSource } from '../groundmap/course-ground-source.js';
 import { rgb555ToRgba } from '../graphics/rgb555.js';
-import { readSpriteLodAsset, type SpriteLodDocument } from '../graphics/sprite.js';
-import { SoftwareSurface } from '../graphics/software-surface.js';
+import { readSpriteLodAsset, createSpritePaletteVariant, type SpriteLodDocument } from '../graphics/sprite.js';
+import { TileBackgroundImage, type TileBackgroundDocument } from '../graphics/tile-background-image.js';
 import type { CoursePresentation } from '../visual/course-presentation.js';
 import { VisualProfile } from '../visual/visual-profile.js';
 import { compileCourseSprite } from './course-sprite.js';
 
-/** Offline level-zero presentation from ordinary saved facets; image workspaces are shared per preview. */
+/** Presentation from ordinary saved facets; completed sprite levels and immutable image readers are shared. */
 export function createCoursePresentationPreview() {
   // Decoded preview workspaces are borrowed read-only. Canonical saved sources remain immutable.
   const images = new Map<SpriteLodDocument, ReturnType<typeof readSpriteLodAsset>>();
-  const backgroundSurfaces = new Map<SpriteLodDocument, SoftwareSurface>();
+  const backgrounds = new Map<TileBackgroundDocument, TileBackgroundImage>();
+  const instances = new Map<CoursePresentation['scenery'][number]['instance'], ReturnType<typeof readSpriteLodAsset>>();
   const image = (source: SpriteLodDocument) => {
     let decoded = images.get(source);
     if (!decoded) {
@@ -20,6 +21,15 @@ export function createCoursePresentationPreview() {
       images.set(source, decoded);
     }
     return decoded;
+  };
+  const instanceImage = (instance: CoursePresentation['scenery'][number]['instance']) => {
+    let asset = instances.get(instance);
+    if (!asset) {
+      const source = image(instance.asset.source);
+      asset = instance.paletteRgb555 === null ? source : createSpritePaletteVariant(source, instance.paletteRgb555);
+      instances.set(instance, asset);
+    }
+    return asset;
   };
   const createSource = (p: CoursePresentation, geometry: RasterGeometry, height: HeightProfileReader) => {
     if (!p || !p.ground || !Array.isArray(p.environments) || !Array.isArray(p.scenery) || !geometry?.raster || !height)
@@ -51,17 +61,14 @@ export function createCoursePresentationPreview() {
       backgrounds: Object.freeze(
         p.environments.map((e) => {
           const source = e.background.asset.source;
-          let surface = backgroundSurfaces.get(source);
-          if (!surface) {
-            const decoded = image(source);
-            surface = new SoftwareSurface(decoded.width, decoded.height);
-            surface.pixels.set(decoded.levels[0]!.pixels);
-            backgroundSurfaces.set(source, surface);
+          let background = backgrounds.get(source);
+          if (!background) {
+            background = new TileBackgroundImage(source);
+            backgrounds.set(source, background);
           }
           return Object.freeze({
-            surface,
+            image: background,
             sourceHorizonY: e.background.horizonY,
-            pixelsPerRadian: e.background.pixelsPerRadian,
             yawOriginRadians: e.background.yawOriginRadians,
           });
         }),
@@ -77,7 +84,7 @@ export function createCoursePresentationPreview() {
                 s: placement.anchor.s,
                 l: placement.l,
                 groundOffset: placement.groundOffset,
-                asset: image(placement.instance.asset.source),
+                asset: instanceImage(placement.instance),
               }),
             ),
           }),

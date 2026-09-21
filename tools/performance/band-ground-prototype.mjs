@@ -4,7 +4,7 @@ const channels = (color) => [10, 5, 0].map((shift) => Math.round((((color >>> sh
 const interpolate = (a, b, t) => a + (b - a) * t;
 
 /** Restore the retired direct trial's vector input and arrangement; no product format changes. */
-export function courseTrialBands(section) {
+export function courseTrialBands(section, wholePlane = false) {
   const bands = [];
   const constant = (l) => ({
     knots: [
@@ -26,7 +26,15 @@ export function courseTrialBands(section) {
     while (start < band.end.s) {
       const cell = period ? Math.floor((start - phase + 1e-9) / period) : 0;
       const end = period ? Math.min(band.end.s, phase + (cell + 1) * period) : band.end.s;
-      bands.push({ start, end, left, right, color: colors[((cell % colors.length) + colors.length) % colors.length] });
+      bands.push({
+        start,
+        end,
+        left,
+        right,
+        color: colors[((cell % colors.length) + colors.length) % colors.length],
+        openLeft: wholePlane && grass && band.left.id === 'outer-left',
+        openRight: wholePlane && grass && band.right.id === 'outer-right',
+      });
       start = end;
     }
   }

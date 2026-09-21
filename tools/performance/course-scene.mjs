@@ -1,3 +1,4 @@
+import { readVehicleSprites } from '../course/read-vehicle-sprites.mjs';
 import { resolveCourseSession } from '../../dist/runtime/course-session.js';
 import { browserSessionVehicle } from '../../dist/browser/session-vehicle.js';
 import { Session } from 'node:inspector/promises';
@@ -19,6 +20,7 @@ import { readVehicleEnvelope } from '../../dist/runtime/vehicle-envelope.js';
 import { readFile } from 'node:fs/promises';
 import { SoftwareSurface } from '../../dist/graphics/software-surface.js';
 import { summarizeSceneProfile } from './scene-profile.mjs';
+const spriteAssets = await readVehicleSprites();
 
 const flags = options(process.argv.slice(2), ['--frames', '--rivals', '--mode', '--compare']);
 const frames = finite(Number(flags.get('--frames') ?? 300), '/frames', 60, 10000);
@@ -46,7 +48,7 @@ for (const mode of modes)
       JSON.parse(await readFile(`dist/content/envelopes/${vehicle.profile.id}.json`, 'utf8')),
     );
     const started = performance.now();
-    const scene = createCourseScene(course.entry, ground);
+    const scene = createCourseScene(course.entry, ground, spriteAssets);
     const player = {
       vehicle: createArcadeVehicle(vehicle.profile, scene.world, {
         ...sessionVehicle,
@@ -65,6 +67,7 @@ for (const mode of modes)
     );
     const driver = compileEnvelopeDriver(envelope, session.rivalUtilization, envelope.maximumSpeed);
     const race = createCourseRace({
+      sprites: spriteAssets,
       session,
       player,
       playerSession: scene.session,

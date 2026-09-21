@@ -1,3 +1,5 @@
+import { levelPixels } from '../helpers/indexed-images.mjs';
+import { createTestSpriteAssets } from '../helpers/sprite-assets.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -13,7 +15,6 @@ import {
 } from '../../dist/core/presentation-scale.js';
 import { SoftwareSurface } from '../../dist/graphics/software-surface.js';
 import { drawScaledSprite } from '../../dist/graphics/sprite.js';
-import { createSpriteAssets } from '../../dist/visual/sprite-assets.js';
 
 test('canonical player presentation is exactly 2.0 m = 80 px', () => {
   assert.equal(CAR_WIDTH_METERS, 2);
@@ -35,7 +36,7 @@ test('future FOV changes move D_cam and cannot change the 40 px/m player referen
 
 test('car physical width is 2.0 m and car source asset is authored 80 px wide', () => {
   assert.equal(CAR_WIDTH_METERS, 2);
-  const assets = createSpriteAssets();
+  const assets = createTestSpriteAssets();
   const rear = assets.car.assets[0][0];
   assert.equal(rear.worldWidthMeters, 2);
   assert.equal(rear.width, 80);
@@ -45,7 +46,7 @@ test('car physical width is 2.0 m and car source asset is authored 80 px wide', 
   let maxX = -1;
   for (let y = 0; y < rear.height; y += 1) {
     for (let x = 0; x < rear.width; x += 1) {
-      if (rear.levels[0].pixels[y * rear.width + x] !== 0) {
+      if (levelPixels(rear.levels[0])[y * rear.width + x] !== 0) {
         minX = Math.min(minX, x);
         maxX = Math.max(maxX, x);
       }
@@ -55,7 +56,7 @@ test('car physical width is 2.0 m and car source asset is authored 80 px wide', 
 });
 
 test('player-depth car source bitmap is drawn 1:1 while nearer objects enlarge by pseudo-depth only', () => {
-  const assets = createSpriteAssets();
+  const assets = createTestSpriteAssets();
   const car = assets.car.assets[0][0];
   const target = new SoftwareSurface(320, 240);
 

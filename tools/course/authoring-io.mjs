@@ -3,6 +3,7 @@ import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { readCourseDocument } from '../../dist/course/course-document.js';
 import { compileCourseDocument } from '../../dist/compiler/compiled-course.js';
+import { compileCourseImages } from './compile-course-images.mjs';
 import { readCourseImages } from './read-course-images.mjs';
 
 export class AuthoringError extends Error {
@@ -49,7 +50,8 @@ export async function loadCourse(file, imagesDirectory) {
   if (!admitted.ok) throw new AuthoringError(admitted.diagnostics);
   const directory = imagesDirectory ?? path.resolve(path.dirname(file), '../images');
   const images = await readCourseImages(admitted.value.assets, directory);
-  const compiled = await compileCourseDocument(admitted.value, images);
+  const prepared = await compileCourseImages(admitted.value, images);
+  const compiled = await compileCourseDocument(prepared.document, prepared.images);
   if (!compiled.ok) throw new AuthoringError(compiled.diagnostics);
   return { document: admitted.value, course: compiled.value, images };
 }

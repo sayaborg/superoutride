@@ -13,7 +13,11 @@ for (const [entry, owners, restricted = {}] of [
     ['core', 'course', 'compiler', 'visual'],
     { visual: ['visual/course-presentation.js'] },
   ],
-  ['compiler/course-image-source.ts', ['core', 'course', 'graphics'], { graphics: ['graphics/sprite.js'] }],
+  [
+    'compiler/course-image-source.ts',
+    ['core', 'course', 'graphics'],
+    { graphics: ['graphics/sprite.js', 'graphics/tile-background-image.js'] },
+  ],
   ['compiler/course-physical-content.ts', ['core', 'course', 'physics'], { physics: ['physics/surface-map.js'] }],
   ['compiler/course-physical-overlap.ts', ['course', 'compiler', 'physics'], { physics: ['physics/surface-map.js'] }],
   ['compiler/course-overlap-domain.ts', ['course', 'compiler']],
@@ -32,7 +36,10 @@ for (const [entry, owners, restricted = {}] of [
   [
     'compiler/course-presentation.ts',
     ['core', 'course', 'compiler', 'graphics', 'visual'],
-    { graphics: ['graphics/sprite.js'], visual: ['visual/course-presentation.js'] },
+    {
+      graphics: ['graphics/sprite.js', 'graphics/tile-background-image.js'],
+      visual: ['visual/course-presentation.js'],
+    },
   ],
   ['compiler/course-links.ts', ['core', 'course', 'compiler']],
   ['authoring/course-project.ts', ['course', 'compiler']],

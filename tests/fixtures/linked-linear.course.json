@@ -1,142 +1,57 @@
 {
   "format": "superoutride.course",
-  "version": 9,
+  "version": 10,
   "reference": null,
   "id": "linked-linear",
-  "units": {
-    "length": "m",
-    "angle": "deg"
-  },
-  "geometryRecipe": {
-    "id": "superoutride.raster-guide",
-    "version": 4
-  },
+  "units": { "length": "m", "angle": "deg" },
+  "geometryRecipe": { "id": "superoutride.raster-guide", "version": 4 },
   "type": "LINEAR",
   "entrySectionId": "source",
   "sections": [
     {
       "id": "source",
-      "start": {
-        "x": 10,
-        "z": 20,
-        "heading": 0
-      },
-      "guide": {
-        "margin": 2,
-        "mMin": 0.1
-      },
-      "primitives": [
-        {
-          "id": "line",
-          "kind": "straight",
-          "length": 300
-        }
-      ],
+      "start": { "x": 10, "z": 20, "heading": 0 },
+      "guide": { "margin": 2, "mMin": 0.1 },
+      "primitives": [{ "id": "line", "kind": "straight", "length": 300 }],
       "boundaries": [
         {
           "id": "left",
           "knots": [
-            {
-              "anchor": {
-                "kind": "absolute",
-                "s": 0
-              },
-              "l": -4
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "line",
-                "fraction": 1
-              },
-              "l": -4
-            }
+            { "anchor": { "kind": "absolute", "s": 0 }, "l": -4 },
+            { "anchor": { "kind": "primitive", "primitiveId": "line", "fraction": 1 }, "l": -4 }
           ]
         },
         {
           "id": "right",
           "knots": [
-            {
-              "anchor": {
-                "kind": "absolute",
-                "s": 0
-              },
-              "l": 6
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "line",
-                "fraction": 1
-              },
-              "l": 6
-            }
+            { "anchor": { "kind": "absolute", "s": 0 }, "l": 6 },
+            { "anchor": { "kind": "primitive", "primitiveId": "line", "fraction": 1 }, "l": 6 }
           ]
         }
       ],
       "bands": [
         {
           "id": "road",
-          "start": {
-            "kind": "absolute",
-            "s": 0
-          },
-          "end": {
-            "kind": "primitive",
-            "primitiveId": "line",
-            "fraction": 1
-          },
+          "start": { "kind": "absolute", "s": 0 },
+          "end": { "kind": "primitive", "primitiveId": "line", "fraction": 1 },
           "leftBoundaryId": "left",
           "rightBoundaryId": "right",
           "role": "pavement"
         }
       ],
       "height": [
-        {
-          "anchor": {
-            "kind": "absolute",
-            "s": 0
-          },
-          "y": 0
-        },
-        {
-          "anchor": {
-            "kind": "primitive",
-            "primitiveId": "line",
-            "fraction": 1
-          },
-          "y": 0
-        }
+        { "anchor": { "kind": "absolute", "s": 0 }, "y": 0 },
+        { "anchor": { "kind": "primitive", "primitiveId": "line", "fraction": 1 }, "y": 0 }
       ],
       "physicalBindings": [
-        {
-          "bandId": "road",
-          "sections": [
-            {
-              "anchor": {
-                "kind": "absolute",
-                "s": 0
-              },
-              "material": "ASPHALT"
-            }
-          ]
-        }
+        { "bandId": "road", "sections": [{ "anchor": { "kind": "absolute", "s": 0 }, "material": "ASPHALT" }] }
       ],
-      "carriageways": [
-        {
-          "id": "road",
-          "bandIds": ["road"]
-        }
-      ],
+      "carriageways": [{ "id": "road", "bandIds": ["road"] }],
       "ports": [
         {
           "id": "out",
           "kind": "exit",
-          "anchor": {
-            "kind": "primitive",
-            "primitiveId": "line",
-            "fraction": 0.6666666666666666
-          },
+          "anchor": { "kind": "primitive", "primitiveId": "line", "fraction": 0.6666666666666666 },
           "carriagewayId": "road"
         }
       ],
@@ -146,129 +61,44 @@
     },
     {
       "id": "destination",
-      "start": {
-        "x": 400,
-        "z": -200,
-        "heading": 90
-      },
-      "guide": {
-        "margin": 2,
-        "mMin": 0.1
-      },
-      "primitives": [
-        {
-          "id": "line",
-          "kind": "straight",
-          "length": 300
-        }
-      ],
+      "start": { "x": 400, "z": -200, "heading": 90 },
+      "guide": { "margin": 2, "mMin": 0.1 },
+      "primitives": [{ "id": "line", "kind": "straight", "length": 300 }],
       "boundaries": [
         {
           "id": "left",
           "knots": [
-            {
-              "anchor": {
-                "kind": "absolute",
-                "s": 0
-              },
-              "l": -10
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "line",
-                "fraction": 1
-              },
-              "l": -10
-            }
+            { "anchor": { "kind": "absolute", "s": 0 }, "l": -10 },
+            { "anchor": { "kind": "primitive", "primitiveId": "line", "fraction": 1 }, "l": -10 }
           ]
         },
         {
           "id": "right",
           "knots": [
-            {
-              "anchor": {
-                "kind": "absolute",
-                "s": 0
-              },
-              "l": 0
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "line",
-                "fraction": 1
-              },
-              "l": 0
-            }
+            { "anchor": { "kind": "absolute", "s": 0 }, "l": 0 },
+            { "anchor": { "kind": "primitive", "primitiveId": "line", "fraction": 1 }, "l": 0 }
           ]
         }
       ],
       "bands": [
         {
           "id": "road",
-          "start": {
-            "kind": "absolute",
-            "s": 0
-          },
-          "end": {
-            "kind": "primitive",
-            "primitiveId": "line",
-            "fraction": 1
-          },
+          "start": { "kind": "absolute", "s": 0 },
+          "end": { "kind": "primitive", "primitiveId": "line", "fraction": 1 },
           "leftBoundaryId": "left",
           "rightBoundaryId": "right",
           "role": "pavement"
         }
       ],
       "height": [
-        {
-          "anchor": {
-            "kind": "absolute",
-            "s": 0
-          },
-          "y": 0
-        },
-        {
-          "anchor": {
-            "kind": "primitive",
-            "primitiveId": "line",
-            "fraction": 1
-          },
-          "y": 0
-        }
+        { "anchor": { "kind": "absolute", "s": 0 }, "y": 0 },
+        { "anchor": { "kind": "primitive", "primitiveId": "line", "fraction": 1 }, "y": 0 }
       ],
       "physicalBindings": [
-        {
-          "bandId": "road",
-          "sections": [
-            {
-              "anchor": {
-                "kind": "absolute",
-                "s": 0
-              },
-              "material": "ASPHALT"
-            }
-          ]
-        }
+        { "bandId": "road", "sections": [{ "anchor": { "kind": "absolute", "s": 0 }, "material": "ASPHALT" }] }
       ],
-      "carriageways": [
-        {
-          "id": "road",
-          "bandIds": ["road"]
-        }
-      ],
-      "ports": [
-        {
-          "id": "in",
-          "kind": "entry",
-          "anchor": {
-            "kind": "absolute",
-            "s": 60
-          },
-          "carriagewayId": "road"
-        }
-      ],
+      "carriageways": [{ "id": "road", "bandIds": ["road"] }],
+      "ports": [{ "id": "in", "kind": "entry", "anchor": { "kind": "absolute", "s": 60 }, "carriagewayId": "road" }],
       "assetIds": [],
       "presentation": null,
       "fork": null
@@ -277,18 +107,9 @@
   "links": [
     {
       "id": "join",
-      "source": {
-        "sectionId": "source",
-        "portId": "out"
-      },
-      "destination": {
-        "sectionId": "destination",
-        "portId": "in"
-      },
-      "overlap": {
-        "behind": 30,
-        "ahead": 30
-      }
+      "source": { "sectionId": "source", "portId": "out" },
+      "destination": { "sectionId": "destination", "portId": "in" },
+      "overlap": { "behind": 30, "ahead": 30 }
     }
   ],
   "assets": [],

@@ -1,3 +1,4 @@
+import { createTestSpriteAssets } from '../helpers/sprite-assets.mjs';
 import { testGround } from '../helpers/resident-ground.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -27,7 +28,7 @@ const input = { steering: 0, throttle: false, brake: false };
 for (const entry of [VEHICLE_CATALOG[0], VEHICLE_CATALOG.find((e) => e.profile.id === 'VFR750R')]) {
   test(`saved two-Section ${entry.profile.id} commits once with invariant mechanics and picture, reverses and recovers`, () => {
     assert.deepEqual(course.links[0].overlap, { behind: 30, ahead: 30 });
-    const scene = createCourseScene(course.entry, ground);
+    const scene = createCourseScene(course.entry, ground, createTestSpriteAssets());
     const spawn = (s, initialSpeed, l = 0) =>
       createArcadeVehicle(entry.profile, scene.world, { s, l, initialSpeed, torqueProtection: entry.torqueProtection });
     const actor = { vehicle: spawn(course.links[0].source.anchor.s - 2, 20), cameraRig: createCameraRig() };
@@ -44,7 +45,7 @@ for (const entry of [VEHICLE_CATALOG[0], VEHICLE_CATALOG.find((e) => e.profile.i
       const oldCamera = updateCamera(oldRig, scene.world, actor.vehicle, CURRENT_CAMERA_PROFILE, dt);
       const crossing = scene.history.active.ordinal === 0 && actor.vehicle.course.s >= course.links[0].source.anchor.s;
       if (crossing)
-        scene.render(beforePixels, actor.vehicle, oldCamera, entry.profile.id === 'VFR750R' ? 'bike' : 'car');
+        scene.render(beforePixels, actor.vehicle, oldCamera, entry.profile.id === 'VFR750R' ? 'bike' : 'car', []);
       const direction = scene.observeStep(actor, previous, false);
       const camera = updateCamera(actor.cameraRig, scene.world, actor.vehicle, CURRENT_CAMERA_PROFILE, dt);
       if (!direction) continue;
@@ -64,7 +65,7 @@ for (const entry of [VEHICLE_CATALOG[0], VEHICLE_CATALOG.find((e) => e.profile.i
         else assert.deepEqual(actor.vehicle[key], oldState[key], key);
       }
       assert.equal(actor.cameraRig.verticalCorrection, oldRig.verticalCorrection);
-      scene.render(afterPixels, actor.vehicle, camera, entry.profile.id === 'VFR750R' ? 'bike' : 'car');
+      scene.render(afterPixels, actor.vehicle, camera, entry.profile.id === 'VFR750R' ? 'bike' : 'car', []);
       const differences = beforePixels.pixels.reduce((n, p, i) => n + (p !== afterPixels.pixels[i] ? 1 : 0), 0);
       assert.ok(differences <= 2, `${differences} pixels differ under rigid reframing`);
       assert.equal(scene.history.active.section, course.sections[1]);
@@ -79,7 +80,7 @@ for (const entry of [VEHICLE_CATALOG[0], VEHICLE_CATALOG.find((e) => e.profile.i
       const recovered = advanceVehicleWithRecovery(scene.world, actor.vehicle, { state: actor.recovery, input, dt });
       if (scene.observeStep(actor, previous, recovered !== null) === 'reverse') reversed = true;
       const camera = updateCamera(actor.cameraRig, scene.world, actor.vehicle, CURRENT_CAMERA_PROFILE, dt);
-      scene.render(afterPixels, actor.vehicle, camera, entry.profile.id === 'VFR750R' ? 'bike' : 'car');
+      scene.render(afterPixels, actor.vehicle, camera, entry.profile.id === 'VFR750R' ? 'bike' : 'car', []);
     }
     assert.equal(reversed, true);
     assert.equal(scene.history.active.section, course.entry);
@@ -93,12 +94,12 @@ for (const entry of [VEHICLE_CATALOG[0], VEHICLE_CATALOG.find((e) => e.profile.i
     assert.equal(actor.recovery.recoveries, 1);
     assert.equal(actor.recovery.lastReason, 'manual');
     const camera = updateCamera(actor.cameraRig, scene.world, actor.vehicle, CURRENT_CAMERA_PROFILE, dt);
-    scene.render(afterPixels, actor.vehicle, camera, entry.profile.id === 'VFR750R' ? 'bike' : 'car');
+    scene.render(afterPixels, actor.vehicle, camera, entry.profile.id === 'VFR750R' ? 'bike' : 'car', []);
   });
 }
 
 test('sixteen actors share immutable readers while occurrence state and recovery remain independent', () => {
-  const scene = createCourseScene(course.entry, ground);
+  const scene = createCourseScene(course.entry, ground, createTestSpriteAssets());
   const sessions = Array.from({ length: 16 }, () => scene.createActorSession());
   for (const session of sessions) {
     assert.equal(session.view.world, scene.world);

@@ -37,7 +37,8 @@ Apply these conventions to new or substantively changed interfaces. A spelling-o
 Playable changes require a publicly drivable Pages URL. Offline qualification alone does not
 complete a playable milestone. [NEXT](docs/NEXT.md) alone owns the current work order.
 
-Preserve physics, audio, input, camera, sprites and Sprite Tool. Never advance
+Preserve physics, audio, input and camera. Sprite and Sprite Tool changes are limited to the approved
+indexed-image, palette-variant and common-prefilter contracts in Image assets. Never advance
 `HOT_PATH_REFERENCE_SHA`, alter mechanics/audio hashes or normalize their results. Tuning remains
 paused. Existing certification is subordinate to actual root consumers; add no unused certification
 interfaces and remove unused qualification when their root consumer is retired. Use one or two vehicle profiles for new integration

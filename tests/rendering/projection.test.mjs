@@ -1,3 +1,5 @@
+import { createTestBackground } from '../helpers/tile-background.mjs';
+import { createTestSpriteAssets } from '../helpers/sprite-assets.mjs';
 import { createPlanarCoordinateSample } from '../../dist/core/planar-sample.js';
 import { deg, near } from '../helpers/assert.mjs';
 import assert from 'node:assert/strict';
@@ -15,10 +17,8 @@ import { SoftwareSurface } from '../../dist/graphics/software-surface.js';
 
 import { renderSourceGround as renderDriving } from '../../dist/dev/diagnostics/source-ground-render.js';
 
-import { createFarBackground } from '../../dist/visual/far-background.js';
 import { createTestCar } from '../helpers/vehicle-fixture.mjs';
 import { createRoadsideSprites } from '../../dist/dev/fixtures/projection-scenery.js';
-import { createSpriteAssets } from '../../dist/visual/sprite-assets.js';
 
 describe('open coordinate geometry', () => {
   test('pseudo projection keeps same-s same-height anchors at identical depth, scale and Y', () => {
@@ -129,9 +129,9 @@ describe('physical player projection', () => {
   }
 
   test('renderer projects player from physical Y and keeps player depth/scale chainage-only', () => {
-    const assets = createSpriteAssets();
+    const assets = createTestSpriteAssets();
     const world = createRoadsideSprites(guide, height, assets);
-    const background = createFarBackground();
+    const background = createTestBackground();
     const car = createTestCar(guide, height, surfaces, 520);
     placeCar(car, 520, -8, 20);
     // Force an airborne offset to prove renderer consumes vehicle.y rather than Y_render.

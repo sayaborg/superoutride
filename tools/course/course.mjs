@@ -1,3 +1,4 @@
+import { readVehicleSprites } from './read-vehicle-sprites.mjs';
 import { referenceCommand } from './reference-command.mjs';
 import path from 'node:path';
 import { PNG } from 'pngjs';
@@ -18,6 +19,7 @@ import {
   atomicWrite,
   reportError,
 } from './authoring-io.mjs';
+const spriteAssets = await readVehicleSprites();
 
 const [verb, file, ...args] = process.argv.slice(2);
 try {
@@ -73,7 +75,7 @@ try {
         stations = Array.from({ length: count }, (_, i) => start + i * step);
       } else stations = [finite(Number(opts.get('--s') ?? 45), '/s', 0, section.raster.length)];
       const l = finite(Number(opts.get('--l') ?? 0), '/l', -1000, 1000),
-        scene = createCourseScene(section, await loadCourseGround(course, file));
+        scene = createCourseScene(section, await loadCourseGround(course, file), spriteAssets);
       if (opts.has('--exit')) {
         const link = section.outgoing.find((l) => l.id === opts.get('--exit'));
         requireInput(link, '/exit', 'Exit must name a canonical outgoing Link');
@@ -90,7 +92,7 @@ try {
         });
         const camera = updateCamera(createCameraRig(), scene.world, vehicle, CURRENT_CAMERA_PROFILE, 1 / 60),
           target = new SoftwareSurface(320, 240);
-        const stats = scene.render(target, vehicle, camera, deriveVehicleSpriteFamily(entry)),
+        const stats = scene.render(target, vehicle, camera, deriveVehicleSpriteFamily(entry), []),
           png = new PNG({ width: 320, height: 240 });
         png.data = Buffer.from(target.pixels.buffer);
         const output = sequence ? path.join(destination, `${String(i).padStart(4, '0')}.png`) : destination;

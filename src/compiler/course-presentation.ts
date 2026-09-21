@@ -2,11 +2,12 @@ import { COURSE_DOCUMENT_LIMITS, type CourseAnchor, type PresentationDocument } 
 import { courseBoundaryAt, type CompiledBandPartition, type CompiledCarriageway } from '../course/course-bands.js';
 import type { CompiledCourseAnchor } from '../course/course-geometry.js';
 import { CourseInputError, requireCourse } from '../course/course-diagnostics.js';
+import { BACKGROUND_HEIGHT, BACKGROUND_PIXELS_PER_RADIAN } from '../graphics/tile-background-image.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../graphics/sprite.js';
 import type { CoursePresentation, CourseSceneryInstance, CoursePaint } from '../visual/course-presentation.js';
 import type { CompiledCourseImageSource } from './course-image-source.js';
 
-export const COURSE_PRESENTATION_RECIPE = Object.freeze({ id: 'superoutride.course-presentation', version: 3 });
+export const COURSE_PRESENTATION_RECIPE = Object.freeze({ id: 'superoutride.course-presentation', version: 4 });
 
 /** Resolve saved presentation through canonical geometry/assets; no inferred role-derived paint. */
 export function compileCoursePresentation(
@@ -24,13 +25,18 @@ export function compileCoursePresentation(
   const image = (id: string, at: string, master = false) => {
     const asset = assetTable.get(id);
     if (!asset) throw new CourseInputError('unresolved_reference', at, 'Image must belong to this Section');
+    if (asset.source.format !== 'superoutride.sprite-lod')
+      throw new CourseInputError('invalid_image_role', at, 'Ground and scenery require sprite patterns');
+    const sprite = asset as typeof asset & {
+      readonly source: Extract<typeof asset.source, { format: 'superoutride.sprite-lod' }>;
+    };
     requireCourse(
       !master || asset.source.levels.length === 1,
       at,
-      'Ground and background require a normalized master, not a sprite LOD pyramid',
+      'Ground requires a normalized master, not a sprite LOD pyramid',
       'invalid_image_role',
     );
-    return asset;
+    return sprite;
   };
   const ordered = (anchors: readonly CompiledCourseAnchor[], start: number, end: number, at: string) => {
     requireCourse(
@@ -125,17 +131,21 @@ export function compileCoursePresentation(
   const environments = source.environments.map((environment, i) => {
     const at = `${path}/environments/${i}`,
       b = environment.background,
-      asset = image(b.assetId, `${at}/background/assetId`, true);
+      asset = assetTable.get(b.assetId);
+    if (!asset) throw new CourseInputError('unresolved_reference', `${at}/background/assetId`, 'Unknown background');
+    if (asset.source.format !== 'superoutride.tile-background')
+      throw new CourseInputError(
+        'invalid_image_role',
+        `${at}/background/assetId`,
+        'Background requires the single tiled plane format',
+      );
+    const tiled = asset as typeof asset & {
+      readonly source: Extract<typeof asset.source, { format: 'superoutride.tile-background' }>;
+    };
     requireCourse(
-      Number.isInteger(b.horizonY) && b.horizonY < asset.source.height,
+      Number.isInteger(b.horizonY) && b.horizonY < BACKGROUND_HEIGHT,
       `${at}/background/horizonY`,
       'Background horizon must be an image row',
-      'invalid_image_role',
-    );
-    requireCourse(
-      asset.source.levels[0]!.indices.every((index) => index !== 0),
-      `${at}/background/assetId`,
-      'Background master must provide opaque frame coverage',
       'invalid_image_role',
     );
     return Object.freeze({
@@ -144,9 +154,9 @@ export function compileCoursePresentation(
       groundBaseLeft: environment.groundBaseLeft,
       groundBaseRight: environment.groundBaseRight,
       background: Object.freeze({
-        asset,
+        asset: tiled,
         horizonY: b.horizonY,
-        pixelsPerRadian: b.pixelsPerRadian,
+        pixelsPerRadian: BACKGROUND_PIXELS_PER_RADIAN,
         yawOriginRadians: (b.yawOrigin * Math.PI) / 180,
       }),
     });
@@ -214,7 +224,7 @@ export function compileCoursePresentation(
       scenery.push(
         Object.freeze({
           id,
-          instance: Object.freeze({ id, asset }),
+          instance: Object.freeze({ id, asset, paletteRgb555: null }),
           unselected: null,
           anchor: Object.freeze({ kind: 'absolute' as const, s }),
           l: courseBoundaryAt(boundary, s) + (row.side === 'left' ? -row.offset : row.offset),

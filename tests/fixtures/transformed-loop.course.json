@@ -1,162 +1,62 @@
 {
   "format": "superoutride.course",
-  "version": 9,
+  "version": 10,
   "reference": null,
   "id": "transformed-loop",
-  "units": {
-    "length": "m",
-    "angle": "deg"
-  },
-  "geometryRecipe": {
-    "id": "superoutride.raster-guide",
-    "version": 4
-  },
+  "units": { "length": "m", "angle": "deg" },
+  "geometryRecipe": { "id": "superoutride.raster-guide", "version": 4 },
   "type": "CIRCUIT",
   "entrySectionId": "lap",
   "sections": [
     {
       "id": "lap",
-      "start": {
-        "x": -70,
-        "z": 25,
-        "heading": -20
-      },
-      "guide": {
-        "margin": 2,
-        "mMin": 0.1
-      },
+      "start": { "x": -70, "z": 25, "heading": -20 },
+      "guide": { "margin": 2, "mMin": 0.1 },
       "primitives": [
-        {
-          "id": "approach",
-          "kind": "straight",
-          "length": 200
-        },
-        {
-          "id": "bend",
-          "kind": "arc",
-          "radius": 100,
-          "turn": 90
-        },
-        {
-          "id": "runout",
-          "kind": "straight",
-          "length": 200
-        }
+        { "id": "approach", "kind": "straight", "length": 200 },
+        { "id": "bend", "kind": "arc", "radius": 100, "turn": 90 },
+        { "id": "runout", "kind": "straight", "length": 200 }
       ],
       "boundaries": [
         {
           "id": "left",
           "knots": [
-            {
-              "anchor": {
-                "kind": "absolute",
-                "s": 0
-              },
-              "l": -4
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "runout",
-                "fraction": 1
-              },
-              "l": -4
-            }
+            { "anchor": { "kind": "absolute", "s": 0 }, "l": -4 },
+            { "anchor": { "kind": "primitive", "primitiveId": "runout", "fraction": 1 }, "l": -4 }
           ]
         },
         {
           "id": "right",
           "knots": [
-            {
-              "anchor": {
-                "kind": "absolute",
-                "s": 0
-              },
-              "l": 4
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "runout",
-                "fraction": 1
-              },
-              "l": 4
-            }
+            { "anchor": { "kind": "absolute", "s": 0 }, "l": 4 },
+            { "anchor": { "kind": "primitive", "primitiveId": "runout", "fraction": 1 }, "l": 4 }
           ]
         }
       ],
       "bands": [
         {
           "id": "road",
-          "start": {
-            "kind": "absolute",
-            "s": 0
-          },
-          "end": {
-            "kind": "primitive",
-            "primitiveId": "runout",
-            "fraction": 1
-          },
+          "start": { "kind": "absolute", "s": 0 },
+          "end": { "kind": "primitive", "primitiveId": "runout", "fraction": 1 },
           "leftBoundaryId": "left",
           "rightBoundaryId": "right",
           "role": "pavement"
         }
       ],
       "height": [
-        {
-          "anchor": {
-            "kind": "absolute",
-            "s": 0
-          },
-          "y": 0
-        },
-        {
-          "anchor": {
-            "kind": "primitive",
-            "primitiveId": "runout",
-            "fraction": 1
-          },
-          "y": 0
-        }
+        { "anchor": { "kind": "absolute", "s": 0 }, "y": 0 },
+        { "anchor": { "kind": "primitive", "primitiveId": "runout", "fraction": 1 }, "y": 0 }
       ],
       "physicalBindings": [
-        {
-          "bandId": "road",
-          "sections": [
-            {
-              "anchor": {
-                "kind": "absolute",
-                "s": 0
-              },
-              "material": "ASPHALT"
-            }
-          ]
-        }
+        { "bandId": "road", "sections": [{ "anchor": { "kind": "absolute", "s": 0 }, "material": "ASPHALT" }] }
       ],
-      "carriageways": [
-        {
-          "id": "road",
-          "bandIds": ["road"]
-        }
-      ],
+      "carriageways": [{ "id": "road", "bandIds": ["road"] }],
       "ports": [
-        {
-          "id": "in",
-          "kind": "entry",
-          "anchor": {
-            "kind": "absolute",
-            "s": 100
-          },
-          "carriagewayId": "road"
-        },
+        { "id": "in", "kind": "entry", "anchor": { "kind": "absolute", "s": 100 }, "carriagewayId": "road" },
         {
           "id": "out",
           "kind": "exit",
-          "anchor": {
-            "kind": "primitive",
-            "primitiveId": "runout",
-            "fraction": 0.5
-          },
+          "anchor": { "kind": "primitive", "primitiveId": "runout", "fraction": 0.5 },
           "carriagewayId": "road"
         }
       ],
@@ -168,18 +68,9 @@
   "links": [
     {
       "id": "lap-loop",
-      "source": {
-        "sectionId": "lap",
-        "portId": "out"
-      },
-      "destination": {
-        "sectionId": "lap",
-        "portId": "in"
-      },
-      "overlap": {
-        "behind": 30,
-        "ahead": 30
-      }
+      "source": { "sectionId": "lap", "portId": "out" },
+      "destination": { "sectionId": "lap", "portId": "in" },
+      "overlap": { "behind": 30, "ahead": 30 }
     }
   ],
   "assets": [],
