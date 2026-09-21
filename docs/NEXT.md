@@ -19,7 +19,8 @@
   immutable comparisons, exact-head CI and verified Pages delivery. K checks all four public modes for
   per-tile palettes, distant scenery stability and Testarossa braking lamps; ground feasibility is independent.
 - **Ground correctness repair — In progress:** draft PR #238 preserves the recovered original trial and the
-  newer whole-plane reader. Both near and far consume resolved slabs; their different filter footprints are diagnosed. Repair them,
+  newer whole-plane reader. Both near and far consume resolved slabs; separate diagnostics isolate lost bucket phase and
+  moving-frame normalization of a different lateral footprint. Repair both,
   preserve the 6 px cliff and 11 px prior counterexamples plus the 80 px kinked-edge failure, and prove <1 px
   continuity and exact-oracle bounds without changing product gates or interval budgets. Record three
   fresh-process repetitions; resident-relative rendering time/allocation are optimization targets, not gates.
@@ -43,8 +44,8 @@
 ## Open decisions
 
 - **Filter reconstruction — Design revision required:** retain the exact row-footprint box while replacing phase-losing bucket-center reconstruction, or use resolved-span evaluation throughout. Band adoption is settled; the <1 px/oracle gates remain unchanged.
-  Exact bucket means already shift the saved cliff by 5.238 px; identical far rows can represent center footprints with coverage 0 or 0.75. A shared painter alone cannot repair that loss.
-  Recommend footprint-clipped range composition from the same resolved slabs, with filtered rows used only for their represented domains; qualify normalization and partial ranges before product integration.
+  Bucket means shift the saved cliff by 5.238 px (6 raster pixels); moving-frame normalization independently shifts a kink by 80 px. Identical far rows also represent exact coverage 0 or 0.75.
+  Recommend projected-footprint range composition from the same resolved slabs; use cached rows only for the same represented longitudinal and lateral support. An explicit runtime-target revision and full requalification precede replacement.
 
 - **Audio — K:** all six selectable models (`hopf`, `contact`, `hybrid`, `spectral`, `modal`, `unified`) reach the production worklet; reconcile this with `audio.md`'s "no inactive legacy model" contract. Choose an explicitly supported model set or retire alternatives; recommend K selects the supported set before a separate audio change. Audio and its hashes remain frozen.
 - **Progress — Separate PR:** `src/runtime/course-race-progress.ts` branches between circuit and ordered progress. Retain separate engines or represent loops with ordered progress; recommend proving lap, gate, recovery and clock equivalence before removing the topology-specific branch.
