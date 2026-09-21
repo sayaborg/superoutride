@@ -1,5 +1,4 @@
-import { rgbaToRgb555 } from './rgb555.js';
-import { rgba, unpackRgba } from './software-surface.js';
+import { unpackRgba } from './software-surface.js';
 
 /** One coverage rule for direct-master box filters; exact equality is opaque. */
 export const IMAGE_OPAQUE_COVERAGE = 0.5;
@@ -21,8 +20,12 @@ function encodedByte(value: number): number {
   return Math.round(255 * (c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055));
 }
 
+function linearToChannel5(value: number): number {
+  return Math.round((encodedByte(value) * 31) / 255);
+}
+
 export function linearToRgb555(red: number, green: number, blue: number): number {
-  return rgbaToRgb555(rgba(encodedByte(red), encodedByte(green), encodedByte(blue)));
+  return (linearToChannel5(red) << 10) | (linearToChannel5(green) << 5) | linearToChannel5(blue);
 }
 
 /** rho counts source units covered by a destination pixel; representation chooses rounding/interpolation. */
