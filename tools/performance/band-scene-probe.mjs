@@ -100,6 +100,7 @@ const trial = probe.trial?.report() ?? null;
 if (flags.has('--out')) {
   const out = flags.get('--out');
   await mkdir(out, { recursive: true });
+  await probe.trial?.writeProducts?.(`${out}/${mode}-packed`);
   // PPM is a disposable, lossless still; no preview image is committed.
   const data = Buffer.alloc(probe.target.pixels.length * 3);
   for (let i = 0; i < probe.target.pixels.length; i++) {

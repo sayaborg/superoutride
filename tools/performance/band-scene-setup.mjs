@@ -18,11 +18,12 @@ import {
 } from '../../dist/gameplay/envelope-driver.js';
 import { SoftwareSurface } from '../../dist/graphics/software-surface.js';
 import { createBandTrialScene } from './band-trial-scene.mjs';
+import { createRevisedBandScene } from './band-revised-scene.mjs';
 
 /** Match the ordinary course-scene probe's driver, field, step, warmup and starting region. */
-export async function createBandSceneProbe(mode, variant, rivals) {
+export async function createBandSceneProbe(mode, variant, rivals, paint) {
   if (!['linear', 'seam', 'circuit', 'branch'].includes(mode)) throw new RangeError('Unknown course mode');
-  if (!['resident', 'direct', 'filtered'].includes(variant)) throw new RangeError('Unknown ground variant');
+  if (!['resident', 'direct', 'filtered', 'revised'].includes(variant)) throw new RangeError('Unknown ground variant');
   const { course } = await loadCourse(`content/courses/${mode}.course.json`);
   const ground = await loadCourseGround(course, `content/courses/${mode}.course.json`);
   const sessionVehicle = browserSessionVehicle(vehicle);
@@ -70,7 +71,12 @@ export async function createBandSceneProbe(mode, variant, rivals) {
   }
   const target = new SoftwareSurface(320, 240);
   const workspace = createEnvelopeDriverWorkspace();
-  const trial = variant === 'resident' ? null : createBandTrialScene(scene, course, variant === 'filtered', assets);
+  const trial =
+    variant === 'resident'
+      ? null
+      : variant === 'revised'
+        ? await createRevisedBandScene(scene, course, assets, paint)
+        : createBandTrialScene(scene, course, variant === 'filtered', assets);
   const renderer = trial ?? scene;
   let camera;
   let recovered = false;

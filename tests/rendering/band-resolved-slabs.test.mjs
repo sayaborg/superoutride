@@ -162,3 +162,22 @@ test('budget 64 rejects rather than truncates complex paint, and invalid boundar
   const source = compileResolvedBands([band(0, 1, 1)], 8);
   assert.ok(source.maximumIntervals <= 64);
 });
+
+test('near span endpoints use the provided two-depth projection rather than representative-row scale', () => {
+  const source = compileResolvedBands([band(-2, 2, 32767)], 8);
+  const pixels = new Uint32Array(64).fill(background);
+  const projected = [band(16, 24, 32767, { left: boundary(16, 40), right: boundary(24, 64) })];
+  const projection = {
+    prepare(a, b, out) {
+      out.x0 = 20 + 4 * a;
+      out.x1 = 20 + 4 * b;
+      out.scale0 = 2 + 0.5 * a;
+      out.scale1 = 2 + 0.5 * b;
+    },
+  };
+  createResolvedSlabRaster(64).sample(pixels, 0, 64, 1.1, 2.31, 0, 1, [span(source)], null, projection);
+  for (let x = 0; x < 64; x++) {
+    const expected = integrateOrderedBandBox(projected, 1.1, 2.31, x, x + 1);
+    assert.equal(pixels[x], expected.coverage >= 0.5 ? rgb555ToRgba(32767) : background, `pixel ${x}`);
+  }
+});

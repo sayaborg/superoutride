@@ -5,12 +5,13 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { options } from '../course/authoring-io.mjs';
 import { measureBandTransition } from './band-transition-probe.mjs';
+import { measureNormalizedTransition } from './band-normalized-transition.mjs';
 
 const flags = options(process.argv.slice(2), ['--out']);
 if (!flags.has('--out')) throw new RangeError('An external output directory is required');
 const out = path.resolve(flags.get('--out'));
 const probe = fileURLToPath(new URL('./band-scene-probe.mjs', import.meta.url));
-const variants = ['resident', 'direct', 'filtered'];
+const variants = ['resident', 'filtered', 'revised'];
 const modes = ['linear', 'seam', 'circuit', 'branch'];
 const runs = [];
 await mkdir(out, { recursive: true });
@@ -55,10 +56,10 @@ const comparisons = modes.map((mode) => {
       gc: group.map((run) => run.gc),
     };
   });
-  const first = selected.find((run) => run.variant === 'filtered');
+  const first = selected.find((run) => run.variant === 'revised');
   const performanceQualified = [1, 2, 3].every((repetition) => {
     const baseline = selected.find((run) => run.variant === 'resident' && run.repetition === repetition);
-    const candidate = selected.find((run) => run.variant === 'filtered' && run.repetition === repetition);
+    const candidate = selected.find((run) => run.variant === 'revised' && run.repetition === repetition);
     return (
       candidate.render.median <= baseline.render.median &&
       candidate.render.p95 <= baseline.render.p95 &&
@@ -70,39 +71,43 @@ const comparisons = modes.map((mode) => {
     stateSha256: first.stateSha256,
     reports,
     performanceQualified,
-    intervalBudgetQualified: first.trial.maximumIntervals <= 32,
-    activeBudgetQualified: first.trial.sections.every((section) => section.maximumActive <= 64),
+    intervalBudgetQualified: first.trial.maximumIntervals <= 64,
+    farRowBudgetQualified: first.trial.sections.every((section) =>
+      section.ranges.every((range) => range.levels.every((level) => level.rowLength <= level.structuralBound)),
+    ),
     representation: {
-      dictionaryJsonBytes: first.trial.dictionaryBytes,
-      directoryUint32Bytes: first.trial.directoryBytes,
+      nearPackedBytes: first.trial.nearBytes,
+      farPackedBytes: first.trial.farBytes,
       maximumIntervals: first.trial.maximumIntervals,
       sections: first.trial.sections,
     },
     actualRowProbes: first.rowProbes,
   };
 });
-const transition = measureBandTransition();
+const transition = measureNormalizedTransition();
+const historicalTransitionControl = measureBandTransition();
 const result = {
   node: process.version,
   sha: process.env.EXPECTED_SHA ?? null,
   repetitions: 3,
   frames: 300,
   rivals: 16,
-  scope: 'Offline inner-strip substitution in the unchanged product renderer; outside GroundBase is retained',
+  scope:
+    'Resident / prior finite-strip pyramid control / revised whole-plane resolved slabs and normalized row rasters. Only a disposable ground-row body is instrumented; product source is unchanged',
   method:
     'Sequential fresh processes, rotated variant order, 30 warmup frames; separate 30-frame V8 sampled allocation pass',
   limits:
-    'Host only; shared hardware contention and phone performance are not certified. Dictionary JSON is not packed residency.',
+    'Host only; shared hardware contention and phone performance are not certified. Packed near/far files exclude renderer-owned decoded linear buffers; ownership-specific dictionaries are counted separately.',
   comparisons,
   transition,
+  historicalTransitionControl,
   qualified:
-    comparisons.every((row) => row.performanceQualified && row.intervalBudgetQualified && row.activeBudgetQualified) &&
+    comparisons.every((row) => row.performanceQualified && row.intervalBudgetQualified && row.farRowBudgetQualified) &&
     transition.qualified,
   remaining: [
-    'whole-plane renderer/open-side integration',
-    'real-content transition and motion review',
-    'arrow/cliff product-scene stills',
-    'K device acceptance',
+    'near/far ordered cliff counterexample fails the unchanged subpixel gate',
+    'general real-content transition, Section seam and runtime oracle bounds remain unqualified',
+    'CI repetition and K ground decision are required before any production replacement',
   ],
 };
 await writeFile(`${out}/summary.json`, JSON.stringify(result, null, 2));

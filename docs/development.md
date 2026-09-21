@@ -537,3 +537,16 @@ resident, the prior interval-pyramid trial and the revised full-ground reader. E
 resident render median, p95 and render allocation. Record 50/100/200 m row costs, actual packed data sizes,
 level counts, ordered-paint/oracle errors and subpixel ownership/filter transitions. A failed trial leaves
 resident ground in place pending K's explicit adoption decision, without increasing any gate.
+
+The offline `node tools/performance/band-feasibility.mjs --out <external-directory>` command runs the
+three-way comparison and reports failed qualification explicitly. `node tools/performance/band-visual-proof.mjs --out <external-directory>` renders separate synthetic arrows/cliffs; these are not the timed course inputs.
+The experiment replaces only the built renderer's ground-row function body in a disposable `dist/`
+module, removed immediately after import so it cannot enter a staged site. A structural test proves every other renderer byte and its public exports stay unchanged;
+product renderer source, camera, Painter and sprites are not edited for the trial.
+
+Packed far files count the header, affine normalization frames, level descriptors, exact RGB555/coverage
+row dictionary, two constant open-tail samples per row and ownership-specific bucket directories.
+Each row has `ceil(maximumWidth/spacing)+2` samples; the two tails make the otherwise open plane finite
+in storage. Distinct static ownership ranges are counted separately, including repeated dictionaries.
+Report the renderer's decoded premultiplied linear buffers separately from these packed bytes; the
+trial does not claim that file size equals retained VM memory or implement a production binary loader.

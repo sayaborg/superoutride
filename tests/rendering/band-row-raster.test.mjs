@@ -13,6 +13,10 @@ import { createCourseGeometryTraversal } from '../../dist/runtime/course-occurre
 import { createCourseGeometryView } from '../../dist/runtime/course-geometry-view.js';
 import { coursePortLateral } from '../../dist/compiler/course-links.js';
 
+import { compileResolvedBands } from '../../tools/performance/band-resolved-slabs.mjs';
+import { compileNormalizedBandRows } from '../../tools/performance/band-normalized-rows.mjs';
+import { createNormalizedRowRaster } from '../../tools/performance/band-filtered-raster.mjs';
+
 const background = rgb555ToRgba(1234);
 const rectangle = (start, end, rgb, left = -10, right = 10) => ({
   start,
@@ -138,12 +142,52 @@ test('one source split through actual transformed Link spans retains the same co
     const spans = view.value.spans.map((s) => ({ ...s, source: bySection.get(s.occurrence.section) }));
     return row(f, spans, s - 32, s + 32, l, 0.25, 16);
   };
+  const revisedSources = new Map(
+    course.sections.map((section, index) => {
+      const length = section.raster.length;
+      const edge = (l) => ({
+        knots: [
+          { anchor: { s: 0 }, l },
+          { anchor: { s: length }, l },
+        ],
+      });
+      const source = compileResolvedBands(
+        [{ start: 0, end: length, left: edge(-10), right: edge(10), color: index ? 31 : 31744 }],
+        length,
+      );
+      return [
+        section,
+        compileNormalizedBandRows(source, [{ start: 0, end: length, left0: -10, left1: -10, right0: 10, right1: 10 }], {
+          start: 0,
+          end: length,
+          maximumFootprint: 204.8,
+          focalLength: 200,
+          cameraHeight: 2.85,
+        }),
+      ];
+    }),
+  );
+  const revisedRaster = createNormalizedRowRaster(16, [...revisedSources.values()]);
+  const revisedSample = (s, l) => {
+    const mapped = createCourseGeometryView(traversal.snapshot(), 'retained');
+    assert.ok(mapped.ok);
+    const spans = mapped.value.spans.map((span) => ({ ...span, pyramid: revisedSources.get(span.occurrence.section) }));
+    const pixels = new Uint32Array(16).fill(background);
+    revisedRaster.sample(pixels, 0, 16, s - 32, s + 32, s, l, 0.25, spans);
+    return pixels;
+  };
+  const revisedBefore = revisedSample(link.source.anchor.s, 0);
   const before = sample(link.source.anchor.s, 0);
   assert.ok(traversal.forward().ok);
   const after = sample(link.destination.anchor.s, coursePortLateral(link.destination) - coursePortLateral(link.source));
   assert.deepEqual(after, before);
+  assert.deepEqual(
+    revisedSample(link.destination.anchor.s, coursePortLateral(link.destination) - coursePortLateral(link.source)),
+    revisedBefore,
+  );
   assert.ok(traversal.reverse().ok);
   assert.deepEqual(sample(link.source.anchor.s, 0), before);
+  assert.deepEqual(revisedSample(link.source.anchor.s, 0), revisedBefore);
 });
 
 test('actual perspective row endpoints are asymmetric about the representative chainage', () => {
