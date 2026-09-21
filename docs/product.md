@@ -180,7 +180,7 @@ whole-course budget; there is no hidden switch to streaming or lower-quality run
 
 Static A/B variation follows the single [saved-recipe workflow](image-assets.md#static-ab-recipe).
 Ground palette animation, cycling and driving-time theme recolouring are outside this revision.
-Tail/brake lamps remain a possible later vehicle visual state, not a general palette-animation project.
+Testarossa brake lamps select immutable instance palettes under the adopted image contract; general palette animation remains outside scope.
 
 ### Materials, asphalt and scenery
 
@@ -234,9 +234,9 @@ semantics; [validation](development.md) owns evidence. Work order belongs only t
 | Rival intent      | Deterministic or seeded route preferences; lock authority is already specified above.         |
 | Interaction       | Vehicle/traffic/barrier response, track limits, corner cutting and traffic behaviour.         |
 | Records/results   | Eligibility categories, ranking/tie display, continue, persistence and ghosts.                |
-| Art               | Production filters/palettes, new physical materials, background and tunnel content.           |
+| Art               | Production artwork, new physical materials, background and tunnel content.           |
 | Shell             | Front end, HUD, music, progression, naming/distribution and future input devices.             |
 
 Technical candidates and their evidence gates are listed by their owners, not repeated here.
-Rolling starts, lamp states, ghosts and new input devices remain outside the initial editor slice.
+Rolling starts, additional lamp states, ghosts and new input devices remain outside the initial editor slice.
 Existing tire and audio tuning stays deferred under the repository's current checkpoint.

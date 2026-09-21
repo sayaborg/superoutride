@@ -7,16 +7,16 @@
 - The unchanged allocation regression ceiling is 650,000 bytes/frame; the 200,000-byte product target is open.
 - Fixed-step median and frame p95 have met CI targets; current-candidate validation and device checks are separate.
 - The measured-envelope driver is shared by references and rivals; K's CIRCUIT acceptance is pending.
-- Indexed sprites, build-generated LOD, immutable palette variants and one tiled BG are implemented in the candidate.
+- Indexed sprites, build-generated LOD, immutable palette variants and one tiled BG are implemented; K acceptance is pending.
 - Vehicle parameters remain `DEV_UNCALIBRATED`; physics/audio references, input, camera and render distances are unchanged.
 - Generated image/ground/envelope/reference products are disposable; only authoring inputs are committed.
 
 ## Milestones
 
 - **Shared scene, Sessions, allocation reduction and envelope driver — Implemented:** existing public flow; K checks CIRCUIT rivals.
-- **Background and indexed images — Release validation in progress:** full Node 24 tests, immutable comparisons,
-  exact-head CI and Pages delivery must pass. K checks all four modes for per-tile palettes, distant scenery
-  stability and Testarossa braking lamps. This work does not depend on ground feasibility.
+- **Background and indexed images — Implemented, acceptance pending:** release requires full Node 24 tests,
+  immutable comparisons, exact-head CI and verified Pages delivery. K checks all four public modes for
+  per-tile palettes, distant scenery stability and Testarossa braking lamps; ground feasibility is independent.
 - **Ground feasibility — Revised offline trial pending:** on draft PR #238, compare resident, prior filtered
   intervals and resolved-slab/row-raster ground using the common filter. Replace the whole plane, including
   open sides; prove ordered arrows/cliffs, exact-oracle bounds, Section ownership and <1 px transitions.
