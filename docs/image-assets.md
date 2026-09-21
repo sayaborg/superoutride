@@ -18,7 +18,7 @@ The completed sprite record is:
 
 ```text
 { format: "superoutride.sprite-lod", version: 2, name,
-  width: W, height: H, anchorX, anchorY, variants: [basePalette16, ...],
+  width: W, height: H, anchorX, anchorY, variants: [alternatePalette16, ...],
   levels: [{ paletteRgb555: [16 RGB555 integers], indices: [row-major indices],
              mixtures: [[], [[baseIndex, weight], ...], ...] }, ...] }
 ```
