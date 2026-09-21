@@ -28,6 +28,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           ref: ${{ env.EXPECTED_SHA }}
+          persist-credentials: false
       - name: Verify exact checkout
         run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
       - name: Setup Node
@@ -55,3 +56,18 @@ jobs:
           name: band-feasibility-${{ env.EXPECTED_SHA }}
           path: ${{ runner.temp }}/band-evidence
           retention-days: 7
+      - name: Capture isolated reproduction inputs
+        run: |
+          mkdir -p "$RUNNER_TEMP/band-workspace"
+          git archive --format=tar.gz HEAD > "$RUNNER_TEMP/band-workspace/source.tar.gz"
+          tar -czf "$RUNNER_TEMP/band-workspace/dependencies.tar.gz" node_modules .cache/course-reference
+          cp "$(command -v node)" "$RUNNER_TEMP/band-workspace/node"
+          gzip "$RUNNER_TEMP/band-workspace/node"
+          printf '%s\n' "$EXPECTED_SHA" > "$RUNNER_TEMP/band-workspace/source-sha.txt"
+          node --version > "$RUNNER_TEMP/band-workspace/node-version.txt"
+      - name: Upload isolated reproduction inputs
+        uses: actions/upload-artifact@v5
+        with:
+          name: band-workspace-${{ env.EXPECTED_SHA }}
+          path: ${{ runner.temp }}/band-workspace
+          retention-days: 1
