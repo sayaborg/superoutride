@@ -1,0 +1,66 @@
+name: Offline Band feasibility
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tools/performance/band-*.mjs'
+      - 'tests/rendering/band-*.test.mjs'
+      - '.github/workflows/band-feasibility.yml'
+      - 'docs/NEXT.md'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: band-feasibility-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - name: Checkout exact diagnostic source
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ env.EXPECTED_SHA }}
+      - name: Verify exact checkout
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - name: Install dependencies
+        run: npm ci
+      - name: Restore generated references
+        uses: actions/cache@v4
+        with:
+          path: .cache/course-reference
+          key: course-reference-${{ runner.os }}-node24-${{ env.EXPECTED_SHA }}
+          restore-keys: course-reference-${{ runner.os }}-node24-
+      - name: Build current inputs
+        run: npm run build
+      - name: Causal diagnostic tests
+        run: node --test tests/rendering/band-*.test.mjs
+      - name: Sequential three-way comparison
+        run: node tools/performance/band-feasibility.mjs --out "$RUNNER_TEMP/band-evidence"
+      - name: Preserve formatting suggestions without changing measured source
+        if: always()
+        run: |
+          mkdir -p "$RUNNER_TEMP/band-evidence/formatted"
+          for file in tools/performance/band-*.mjs tests/rendering/band-*.test.mjs .github/workflows/band-feasibility.yml; do
+            mkdir -p "$RUNNER_TEMP/band-evidence/formatted/$(dirname "$file")"
+            node node_modules/prettier/bin/prettier.cjs "$file" > "$RUNNER_TEMP/band-evidence/formatted/$file"
+          done
+          git diff --exit-code
+      - name: Upload diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: band-feasibility-${{ env.EXPECTED_SHA }}
+          path: ${{ runner.temp }}/band-evidence
+          retention-days: 7
