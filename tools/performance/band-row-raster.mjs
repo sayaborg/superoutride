@@ -190,8 +190,12 @@ export function createBandRowRaster(width, pyramid, filtered) {
               const l1 = interpolate(band.left0, band.left1, t1);
               const r0 = interpolate(band.right0, band.right1, t0);
               const r1 = interpolate(band.right0, band.right1, t1);
-              const first = band.openLeft ? 0 : Math.max(0, Math.floor((Math.min(l0, l1) - localLateral) / stepL + 0.5));
-              const last = band.openRight ? count - 1 : Math.min(count - 1, Math.floor((Math.max(r0, r1) - localLateral) / stepL + 0.5));
+              const first = band.openLeft
+                ? 0
+                : Math.max(0, Math.floor((Math.min(l0, l1) - localLateral) / stepL + 0.5));
+              const last = band.openRight
+                ? count - 1
+                : Math.min(count - 1, Math.floor((Math.max(r0, r1) - localLateral) / stepL + 0.5));
               const red = band.rgb[0];
               const green = band.rgb[1];
               const blue = band.rgb[2];

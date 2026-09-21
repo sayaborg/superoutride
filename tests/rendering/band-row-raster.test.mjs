@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createBandArea, compileCrossSectionPyramids, resolveBandArea } from '../../tools/performance/band-cross-section.mjs';
+import {
+  createBandArea,
+  compileCrossSectionPyramids,
+  resolveBandArea,
+} from '../../tools/performance/band-cross-section.mjs';
 import { createBandRowRaster, integrateBandRectangle } from '../../tools/performance/band-row-raster.mjs';
 import { trialRowInterval } from '../../tools/performance/band-trial-scene.mjs';
 import { rgb555ToRgba } from '../../dist/graphics/rgb555.js';
@@ -44,7 +48,12 @@ test('direct row sweep equals an independent rectangle integral for oblique and 
     rectangle(4, 8, [0, 255, 66], -1, 1),
   ];
   const f = fixture([{ id: 'a', length: 8, slabs }]);
-  for (const [a, b] of [[0, 0.8], [0.7, 2], [3.5, 4.5], [0, 8]]) {
+  for (const [a, b] of [
+    [0, 0.8],
+    [0.7, 2],
+    [3.5, 4.5],
+    [0, 8],
+  ]) {
     const pixels = row(f, [span(f.sources[0])], a, b, -3, 0.25, 32, false);
     for (let x = 0; x < pixels.length; x++) {
       const left = -3 + (x - 0.5) * 0.25;
@@ -68,25 +77,35 @@ test('two subthreshold Section contributions become opaque only after compositio
 });
 
 test('far boundary buckets cannot import non-owned Section guard colors', () => {
-  const f = fixture([{
-    id: 'owned',
-    length: 8,
-    slabs: [rectangle(0, 2, [255, 0, 0]), rectangle(2, 6, [0, 0, 0]), rectangle(6, 8, [0, 255, 0])],
-  }]);
+  const f = fixture([
+    {
+      id: 'owned',
+      length: 8,
+      slabs: [rectangle(0, 2, [255, 0, 0]), rectangle(2, 6, [0, 0, 0]), rectangle(6, 8, [0, 255, 0])],
+    },
+  ]);
   const spans = [span(f.sources[0], 2, 6)];
   assert.equal(row(f, spans, 1, 7, 0, 1)[0], rgb555ToRgba(0));
   assert.equal(row(f, spans, 0, 8, 0, 1)[0], background, 'half transparent retains BG at equality');
 });
 
 test('open outer sides and transparent rows work at arbitrary finite screen coordinates', () => {
-  const f = fixture([{
-    id: 'open',
-    length: 8,
-    slabs: [{ start: 0, end: 8, pieces: [
-      { openLeft: true, right0: -1, right1: -1, rgb: [0, 0, 0] },
-      { left0: 1, left1: 1, openRight: true, rgb: [255, 255, 255] },
-    ] }],
-  }]);
+  const f = fixture([
+    {
+      id: 'open',
+      length: 8,
+      slabs: [
+        {
+          start: 0,
+          end: 8,
+          pieces: [
+            { openLeft: true, right0: -1, right1: -1, rgb: [0, 0, 0] },
+            { left0: 1, left1: 1, openRight: true, rgb: [255, 255, 255] },
+          ],
+        },
+      ],
+    },
+  ]);
   for (const filtered of [false, true]) {
     const spans = [span(f.sources[0])];
     assert.equal(row(f, spans, 0, 4, -1e6, 1, 1, filtered)[0], rgb555ToRgba(0));
@@ -99,7 +118,11 @@ test('open outer sides and transparent rows work at arbitrary finite screen coor
 
 test('one source split through actual transformed Link spans retains the same composed row after reframe', async () => {
   const { course } = await loadCourse('content/courses/seam.course.json');
-  const traversal = createCourseGeometryTraversal(course.entry, { retainBehind: 500, selectAhead: 500, maxOccurrences: 8 });
+  const traversal = createCourseGeometryTraversal(course.entry, {
+    retainBehind: 500,
+    selectAhead: 500,
+    maxOccurrences: 8,
+  });
   const link = course.entry.outgoing[0];
   assert.ok(traversal.select(traversal.snapshot().active, link).ok);
   const inputs = course.sections.map((section, index) => ({
@@ -126,7 +149,15 @@ test('one source split through actual transformed Link spans retains the same co
 test('actual perspective row endpoints are asymmetric about the representative chainage', () => {
   const camera = { centerY: 120, focalLength: 200, pitch: 0, s: 0, y: 2.85 };
   const line = { s: 76, d: 76, y: 127, renderHeight: 0, sourceFootprint: { collapsed: false } };
-  const out = trialRowInterval(line, camera, {}, { sampleRender: () => ({ grade: 0 }) }, { dStart: 2.5, dEnd: 200 }, {}, {});
+  const out = trialRowInterval(
+    line,
+    camera,
+    {},
+    { sampleRender: () => ({ grade: 0 }) },
+    { dStart: 2.5, dEnd: 200 },
+    {},
+    {},
+  );
   assert.equal(out.start, 570 / 8);
   assert.equal(out.end, 570 / 7);
   assert.ok(Math.abs((out.start + out.end) / 2 - line.s) > 0.3);
@@ -134,8 +165,22 @@ test('actual perspective row endpoints are asymmetric about the representative c
 
 test('collapsed rows preserve their complete actual interval rather than a centered surrogate', () => {
   const camera = { centerY: 120, focalLength: 200, pitch: 0, s: 0, y: 2.85 };
-  const line = { s: 16, d: 16, y: 155, renderHeight: 0, sourceFootprint: { collapsed: true, deltaS: 1, deltaSCollapse: 30 } };
-  const out = trialRowInterval(line, camera, { boundaries: [10, 40] }, { sampleRender: () => ({ grade: 0 }) }, { dStart: 2.5, dEnd: 200 }, {}, {});
+  const line = {
+    s: 16,
+    d: 16,
+    y: 155,
+    renderHeight: 0,
+    sourceFootprint: { collapsed: true, deltaS: 1, deltaSCollapse: 30 },
+  };
+  const out = trialRowInterval(
+    line,
+    camera,
+    { boundaries: [10, 40] },
+    { sampleRender: () => ({ grade: 0 }) },
+    { dStart: 2.5, dEnd: 200 },
+    {},
+    {},
+  );
   assert.deepEqual(out, { start: 10, end: 40 });
 });
 

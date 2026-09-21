@@ -48,15 +48,6 @@ jobs:
         run: node --test tests/rendering/band-*.test.mjs
       - name: Sequential three-way comparison
         run: node tools/performance/band-feasibility.mjs --out "$RUNNER_TEMP/band-evidence"
-      - name: Preserve formatting suggestions without changing measured source
-        if: always()
-        run: |
-          mkdir -p "$RUNNER_TEMP/band-evidence/formatted"
-          for file in tools/performance/band-*.mjs tests/rendering/band-*.test.mjs .github/workflows/band-feasibility.yml; do
-            mkdir -p "$RUNNER_TEMP/band-evidence/formatted/$(dirname "$file")"
-            node node_modules/prettier/bin/prettier.cjs "$file" > "$RUNNER_TEMP/band-evidence/formatted/$file"
-          done
-          git diff --exit-code
       - name: Upload diagnostic evidence
         if: always()
         uses: actions/upload-artifact@v5

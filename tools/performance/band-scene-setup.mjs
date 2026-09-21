@@ -56,9 +56,7 @@ export async function createBandSceneProbe(mode, variant, rivals) {
     rivalEnvelope: envelope,
   });
   race.start();
-  const s = course.entry.fork
-    ? course.entry.fork.lock.s - 15
-    : (course.entry.outgoing[0]?.source.anchor.s ?? 900) - 15;
+  const s = course.entry.fork ? course.entry.fork.lock.s - 15 : (course.entry.outgoing[0]?.source.anchor.s ?? 900) - 15;
   for (const c of [race.player, ...race.rivals]) {
     recoverVehicleToGuideCoordinate(c.session.view.world, c.actor.vehicle, {
       state: c.actor.recovery,

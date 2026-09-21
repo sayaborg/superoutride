@@ -17,15 +17,15 @@
 - **Allocation reduction — Complete:** caller-owned outputs/workspaces pass the unchanged regression gate; no rebaseline.
 - **Envelope driver — Awaiting device acceptance:** K competes against Testarossa rivals in public CIRCUIT;
   Session utilization is 0.75 and reference utilization is 0.9. The shared driver retains its 5 m rolling cache.
-- **Ground feasibility — Blocked on the prerequisites above:** extend the offline Band trial with a
-  cross-section pyramid before changing product formats. Compare resident, direct Band and filtered Band
-  rendering in three uncontended repetitions. All four modes must equal or improve current render
-  median, p95 and render allocation; otherwise record the cause in Open decisions and stop replacement.
-  Report 50/100/200 m interval counts, dictionary bytes/levels, count distributions and distant stills.
-  Prove cross-Section footprint composition and open sides causally before implementing replacement.
-  The [offline cross-section preflight](../tools/performance/band-cross-section-report.mjs) diagnoses exact
-  affine averages and the initial count budgets, not renderer acceptance. Real row footprints, render
-  timing/allocation repetitions, transition proof and distant stills remain pending.
+- **Ground feasibility — Failed qualification; replacement blocked:** the [offline comparison](../tools/performance/band-feasibility.mjs)
+  now runs resident, direct Band and filtered Band rendering in three sequential fresh-process repetitions.
+  Each mode retains 300 frames, 30 warmup frames, 16 rivals and a separate 30-frame allocation pass.
+  Its independent CI job saves all measurements, distributions, actual row footprints and lossless stills.
+  The trial substitutes only the finite strip; existing outside GroundBase remains. Source-span composition,
+  non-owned guard exclusion, open-side row integration and complete collapsed footprints have causal tests.
+  A synthetic transition counterexample fails the subpixel requirement despite meeting the interval budget.
+  Preserve the unchanged timing/allocation gates and initial 64/32 budgets. Do not start replacement.
+  Whole-plane integration, arrow/cliff scene stills and real-content motion acceptance remain unqualified.
 - **Ground replacement — Pending feasibility:** ordered colored Bands own all ground, with RGB555 or
   transparency, optional physical role, and explicit open outer sides. Role-bearing Bands retain the
   current gap-free/nonoverlapping partition admission; visual-only Bands may overlap in paint order.
@@ -87,10 +87,16 @@ K reviews time margins/rival speed → traffic, collisions and movable/fixed obj
 
 ## Open decisions
 
-- **Ground interval bound — Before replacement:** exact-affine trial maxima are 175/179 in LINEAR/SEAM
-  (Node 22 host, not acceptance). Choose pixel-error-bounded lateral simplification or authored variation limits;
-  recommend the former with coverage/transition proofs, not a higher gate. Renderer comparison remains pending.
+- **Ground performance — Before replacement:** CI run 35551787400 (Node 24, three repetitions) reports render median ms
+  resident/filtered: LINEAR 1.587/2.627, SEAM 1.693/2.695, CIRCUIT 1.609/2.541, BRANCH 1.962/2.587.
+  Retain resident or revise area evaluation/storage; recommend a separately measured revision, not a higher gate.
+- **Ground interval bound — Before replacement:** exact-affine maxima are 332/341 in LINEAR/SEAM across eight levels.
+  Choose pixel-error-bounded lateral simplification or authored variation limits; recommend the former with
+  coverage/transition proofs. Initial 64/32 budgets remain unchanged; raw dictionary JSON is not packed residency.
+- **Ground transitions — Before replacement:** one moving open edge with two intervals jumps 11 pixels at a bucket
+  threshold; direct integration moves zero. Choose exact range composition or explicit variation limits;
+  recommend qualifying exact range composition and seam ownership before changing product formats.
 - **Audio — K:** all six selectable models (`hopf`, `contact`, `hybrid`, `spectral`, `modal`, `unified`) reach the production worklet; reconcile this with `audio.md`'s "no inactive legacy model" contract. Choose an explicitly supported model set or retire alternatives; recommend K selects the supported set before a separate audio change. Audio and its hashes remain frozen.
 - **Progress — Separate PR:** `src/runtime/course-race-progress.ts` branches between circuit and ordered progress. Retain separate engines or represent loops with ordered progress; recommend proving lap, gate, recovery and clock equivalence before removing the topology-specific branch.
-- **Pages — Separate PR:** retain or remove `_site/dist` fallback and published `dist/dev`, and choose rebuilt-output or uploaded-artifact verification. Recommend commit-versioned product-only delivery and verification of the uploaded artifact, without deploy-time `npm ci && npm run build`; CI/Pages are unchanged here.
+- **Pages — Separate PR:** retain or remove `_site/dist` fallback and published `dist/dev`, and choose rebuilt-output or uploaded-artifact verification. Recommend commit-versioned product-only delivery and verification of the uploaded artifact, without deploy-time `npm ci && npm run build`; delivery is unchanged here.
 - **UI language — K:** choose English throughout or permit Japanese in DEV panels only; recommend English for consistent labels, tooltips and accessibility text. Current mixed-language strings remain unchanged until that decision.

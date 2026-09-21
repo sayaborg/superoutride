@@ -100,7 +100,7 @@ const trial = probe.trial?.report() ?? null;
 if (flags.has('--out')) {
   const out = flags.get('--out');
   await mkdir(out, { recursive: true });
-  // PPM is a disposable, lossless still; the comparison runner also writes PNG using the pinned codec.
+  // PPM is a disposable, lossless still; no preview image is committed.
   const data = Buffer.alloc(probe.target.pixels.length * 3);
   for (let i = 0; i < probe.target.pixels.length; i++) {
     const { r, g, b } = unpackRgba(probe.target.pixels[i]);

@@ -10,14 +10,16 @@ export function measureBandTransition() {
   };
   const pyramid = compileCrossSectionPyramids([source], { minimumWidth: 1.6, maximumFootprint: 8 });
   source.pyramid = pyramid.sections[0];
-  const spans = [{
-    source,
-    frameStart: 0,
-    frameEnd: 64,
-    sourceRange: { start: 0, end: 64 },
-    sourceLateralOrigin: 0,
-    sourceChainageInFrame: (s) => s,
-  }];
+  const spans = [
+    {
+      source,
+      frameStart: 0,
+      frameEnd: 64,
+      sourceRange: { start: 0, end: 64 },
+      sourceLateralOrigin: 0,
+      sourceChainageInFrame: (s) => s,
+    },
+  ];
   const filtered = createBandRowRaster(320, pyramid, true);
   const direct = createBandRowRaster(320, pyramid, false);
   const before = new Uint32Array(320);

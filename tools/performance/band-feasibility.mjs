@@ -19,15 +19,19 @@ for (let repetition = 0; repetition < 3; repetition++) {
   for (const mode of modes) {
     for (let order = 0; order < variants.length; order++) {
       const variant = variants[(order + repetition) % variants.length];
-      const result = spawnSync(process.execPath, [
-        probe, '--mode', mode, '--variant', variant, '--out', `${out}/stills/${repetition + 1}`,
-      ], { encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 });
+      const result = spawnSync(
+        process.execPath,
+        [probe, '--mode', mode, '--variant', variant, '--out', `${out}/stills/${repetition + 1}`],
+        { encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 },
+      );
       if (result.error) throw result.error;
       if (result.status !== 0) throw new Error(`Probe failed: ${result.stderr || result.stdout}`);
       const run = { repetition: repetition + 1, ...JSON.parse(result.stdout) };
       runs.push(run);
       await writeFile(`${out}/${repetition + 1}-${mode}-${variant}.json`, JSON.stringify(run, null, 2));
-      console.error(`${repetition + 1} ${mode} ${variant}: render ${run.render.median.toFixed(3)} ms, ${Math.round(run.renderBytesPerFrame)} B/frame`);
+      console.error(
+        `${repetition + 1} ${mode} ${variant}: render ${run.render.median.toFixed(3)} ms, ${Math.round(run.renderBytesPerFrame)} B/frame`,
+      );
     }
   }
 }
@@ -55,9 +59,11 @@ const comparisons = modes.map((mode) => {
   const performanceQualified = [1, 2, 3].every((repetition) => {
     const baseline = selected.find((run) => run.variant === 'resident' && run.repetition === repetition);
     const candidate = selected.find((run) => run.variant === 'filtered' && run.repetition === repetition);
-    return candidate.render.median <= baseline.render.median &&
+    return (
+      candidate.render.median <= baseline.render.median &&
       candidate.render.p95 <= baseline.render.p95 &&
-      candidate.renderBytesPerFrame <= baseline.renderBytesPerFrame;
+      candidate.renderBytesPerFrame <= baseline.renderBytesPerFrame
+    );
   });
   return {
     mode,
@@ -83,12 +89,21 @@ const result = {
   frames: 300,
   rivals: 16,
   scope: 'Offline inner-strip substitution in the unchanged product renderer; outside GroundBase is retained',
-  method: 'Sequential fresh processes, rotated variant order, 30 warmup frames; separate 30-frame V8 sampled allocation pass',
-  limits: 'Host only; shared hardware contention and phone performance are not certified. Dictionary JSON is not packed residency.',
+  method:
+    'Sequential fresh processes, rotated variant order, 30 warmup frames; separate 30-frame V8 sampled allocation pass',
+  limits:
+    'Host only; shared hardware contention and phone performance are not certified. Dictionary JSON is not packed residency.',
   comparisons,
   transition,
-  qualified: comparisons.every((row) => row.performanceQualified && row.intervalBudgetQualified && row.activeBudgetQualified) && transition.qualified,
-  remaining: ['whole-plane renderer/open-side integration', 'real-content transition and motion review', 'arrow/cliff product-scene stills', 'K device acceptance'],
+  qualified:
+    comparisons.every((row) => row.performanceQualified && row.intervalBudgetQualified && row.activeBudgetQualified) &&
+    transition.qualified,
+  remaining: [
+    'whole-plane renderer/open-side integration',
+    'real-content transition and motion review',
+    'arrow/cliff product-scene stills',
+    'K device acceptance',
+  ],
 };
 await writeFile(`${out}/summary.json`, JSON.stringify(result, null, 2));
 console.log(JSON.stringify(result, null, 2));

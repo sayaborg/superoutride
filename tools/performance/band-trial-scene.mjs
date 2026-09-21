@@ -14,9 +14,7 @@ import { createBandRowRaster } from './band-row-raster.mjs';
 
 function boundaryDepth(row, a, b, visible) {
   const value = b / (row - a);
-  return value > 0 && Number.isFinite(value)
-    ? Math.min(visible.dEnd, Math.max(visible.dStart, value))
-    : visible.dEnd;
+  return value > 0 && Number.isFinite(value) ? Math.min(visible.dEnd, Math.max(visible.dStart, value)) : visible.dEnd;
 }
 
 /** Read actual row endpoints, not s +/- deltaS/2 (perspective is nonlinear in s). */
@@ -53,7 +51,9 @@ export function createBandTrialScene(scene, course, filtered) {
     minimumWidth: 1.6,
     maximumFootprint: CURRENT_RENDER_FAR_DEPTH_METERS - CURRENT_RENDER_NEAR_DEPTH_METERS,
   });
-  const bySection = new Map(sources.map((source, index) => [source.section, { ...source, pyramid: pyramid.sections[index] }]));
+  const bySection = new Map(
+    sources.map((source, index) => [source.section, { ...source, pyramid: pyramid.sections[index] }]),
+  );
   const raster = createBandRowRaster(320, pyramid, filtered);
   const workspace = createRenderWorkspace();
   const assets = createSpriteAssets();
@@ -77,7 +77,15 @@ export function createBandTrialScene(scene, course, filtered) {
     kMax: pyramid.sections[0].levels.length - 1,
     selectLevel(deltaS) {
       currentLine = workspace.terrain.lines[rowIndex++];
-      trialRowInterval(currentLine, renderCamera, workspace.terrain, terrainProfile.height, visible, interval, heightScratch);
+      trialRowInterval(
+        currentLine,
+        renderCamera,
+        workspace.terrain,
+        terrainProfile.height,
+        visible,
+        interval,
+        heightScratch,
+      );
       trace = capture
         ? { y: currentLine.y, distance: currentLine.d, deltaS, start: interval.start, end: interval.end }
         : null;
@@ -118,7 +126,13 @@ export function createBandTrialScene(scene, course, filtered) {
       worldSprites.length = staticCount;
       worldSprites.push(...others);
       renderCamera = createRenderSpaceCamera(world.height, camera);
-      visible = computeForwardVisibleInterval(geometry, renderCamera.yaw, renderCamera.s, terrainProfile.dMin, terrainProfile.dMax);
+      visible = computeForwardVisibleInterval(
+        geometry,
+        renderCamera.yaw,
+        renderCamera.s,
+        terrainProfile.dMin,
+        terrainProfile.dMax,
+      );
       rowIndex = 0;
       if (capture) rows = [];
       return renderDriving(
@@ -150,7 +164,10 @@ export function createBandTrialScene(scene, course, filtered) {
           bandCount: source.bandCount,
           maximumActive: source.maximumActive,
           distributionMetres: source.distributionMetres,
-          levels: pyramid.sections[index].levels.map(({ indices, ...level }) => ({ ...level, buckets: indices.length })),
+          levels: pyramid.sections[index].levels.map(({ indices, ...level }) => ({
+            ...level,
+            buckets: indices.length,
+          })),
         })),
         rows,
       };
