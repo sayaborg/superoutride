@@ -6,51 +6,111 @@ target. [Architecture](architecture.md) owns projection, logical metric extent, 
 
 ## Completed sprite images
 
-The [metric/read contract](architecture.md#sprite-lod-metric-and-read-contract) defines the top-left,
-untrimmed octave lattice and geometric-mean selection. The accepted completed-image record is:
+The [metric/read contract](architecture.md#sprite-lod-metric-and-read-contract) owns the logical frame,
+anchors and untrimmed octave lattice. Indexed sprites and background tiles share
+[packed patterns](../src/graphics/indexed-image.ts): two 4-bit indices per byte, high nibble first.
+Index 0 is always transparent; indices 1 through 15 are opaque. Each palette has exactly 16 RGB555
+entries. Slot 0 is unused, even on background tiles; RGB555 zero at another slot is opaque black.
+Drawing reads `palette[index]`, with a tile palette beginning at `paletteId << 4`. Palette counts have
+no separate format limit. Source JSON retains row-major index arrays; readers privately pack them.
+
+The completed sprite record is:
 
 ```text
-{ format: "superoutride.sprite-lod", version: 1, name,
-  width: W, height: H, anchorX, anchorY,
-  levels: [{ paletteRgb555: [opaque RGB555 integers], indices: [row-major indices] }, ...] }
+{ format: "superoutride.sprite-lod", version: 2, name,
+  width: W, height: H, anchorX, anchorY, variants: [basePalette16, ...],
+  levels: [{ paletteRgb555: [16 RGB555 integers], indices: [row-major indices],
+             mixtures: [[], [[baseIndex, weight], ...], ...] }, ...] }
 ```
 
-Normalize the master to `SPRITE_SOURCE_TEXELS_PER_METER` (40); derive physical width from W once.
-Each level has at most 15 distinct opaque RGB555 integers in 0..32767. Index 0 is transparent and
-1..15 addresses that level's opaque palette. RGB555 value zero is opaque black. Index-array length
-exactly covers the derived storage lattice. The reader owns decoded buffers, freezes metadata and
-publishes pixels as read-only. Unknown fields, nonfinite anchors, invalid dimensions, missing/extra
-levels and out-of-range indices fail before rendering. V1 retains transparent canvas margins and has
-no crop, per-level dimensions/anchor, rotation or scale fields.
+Each level has at most 15 opaque colors. Master width at 40 texels/m determines physical width once.
+Level zero retains the authored palette, pattern and identity mixtures for slots 1..15. A coarse
+slot stores a positive-weight mixture of the original opaque slots, summing to one; unused coarse
+slots have empty mixtures. Its normal color is that mixture evaluated in the original palette.
+The coarse palette may contain new mixed colors. Slot numbers have semantic meaning, so distinct
+slots may have equal colors and must not be silently deduplicated in the master.
 
-The format represents per-level palettes. Its current compiler recipe retains one authored palette;
-production palette sharing/reduction remains a separate art decision. This interchange does not define
-cross-asset project migration or packed production encoding. [LOD tests](../tests/rendering/sprite-lod.test.mjs)
-and the [shared-blitter preview](../tools/graphics/sprite-lod.html) consume this exact format.
+`variants` declares every alternative semantic base palette used by this image. Each has the same
+16-slot arrangement. Applying a mixture in the shared linear color space to any declared base
+palette produces every replacement level palette; the index patterns are common to all variants.
+Mixing before or after base-palette substitution agrees before quantization/reduction. Per-instance
+replacement palettes are computed once at placement, never in a draw. Selecting the normal or
+braking immutable palette set uses observations, not shared mutable palettes or a generic scheduler.
+Testarossa supplies the current brake-lamp demonstration; vehicle parameters and inputs are unchanged.
+
+The reader owns its packed buffers and freezes palette/mixture metadata. Malformed dimensions,
+anchors, index arrays, palettes, mixtures, undeclared replacements and unknown fields fail admission.
+Coarse palette values must agree with their mixture. There is no per-level crop, anchor, rotation or
+scale field. A normalized one-level master is legal input; every shipped sprite has a full build-generated
+pyramid. Only normalized masters and variant declarations are committed, never their generated LOD.
+
+## Common prefilter rules
+
+The [image filter](../src/graphics/image-filter.ts) is the sole owner of direct-master box-filter
+color conversion, opacity threshold and footprint scale. Average light in linear-sRGB, decoding
+RGB555 through a 32-entry channel table; encode the result back to sRGB before RGB555 rounding.
+Opaque coverage is area weighted. Coverage at least 0.5 is opaque, including equality; normalize
+color by opaque area only. Hidden RGB and the background do not contribute. There are no per-material
+color-space or threshold controls. Every level filters the master, never a preceding rounded level.
+
+The common scale is `rho`, source units covered by one destination pixel, and its `log2(rho)`.
+Sprites count master texels and select the nearest integer exponent, with midpoint ties coarsening.
+Direct-color ground counts 1.6 m longitudinal units and interpolates between the floor exponent and
+its successor using the fractional exponent. The representations, not different scale authorities,
+determine which of those operations is possible.
+
+| Operation                          | Indexed sprites                  | Direct-color ground target                          |
+| ---------------------------------- | -------------------------------- | --------------------------------------------------- |
+| Averaged color                     | At most 15 mixtures per level    | RGB555, new colors allowed                          |
+| Opacity threshold                  | At compilation, per texel        | After runtime coverage interpolation                |
+| Within/between-level interpolation | None; nearest texel in one level | Linear in the common color space                    |
+| Octave spacing                     | Both axes `2^k`                  | Chainage `1.6*2^k` m, lateral projected pixel width |
+
+The resident ground recipe below remains the currently shipped, independently specified baseline.
+The revised Band feasibility reader must use these common rules; its adoption is gated separately in
+[Architecture](architecture.md#colored-ground-runtime-target). Neither a successful sprite build nor
+this decision certifies that trial.
 
 ## Offline sprite LOD authoring recipe
 
-The [compiler](../src/graphics/sprite-lod-compiler.ts) accepts one normalized indexed master and emits
-a full octave series in the same schema. Shared `spriteLodLayout` owns dimensions for compilation,
-reading and fixtures. Master pixels, logical extent and anchor remain unchanged.
+The [compiler](../src/graphics/sprite-lod-compiler.ts) accepts one normalized master and its declared
+base variants. Each octave integrates exact master index counts over its clipped logical boxes.
+The resulting normalized mixtures retain area weights. If at most 15 mixtures remain, do not reduce
+or substitute them. Otherwise use deterministic divisive clustering: compare squared linear color
+distance in every declared base palette and take the maximum; split the greatest area-weighted-error
+group around its farthest representatives. Representatives are area-weighted mixture centroids.
+Stable input order resolves exact ties. This prevents base-only similarity from erasing a lamp that
+is distinct in another variant. Adding a variant requires rebuilding the generated LOD.
 
-Each saved recipe explicitly provides `colorSpace` (`encoded-srgb` or `linear-srgb`) and
-`coverageThreshold` in (0,1]. Each level integrates axis-aligned boxes directly from the master,
-clipping partial edge cells to the logical frame. Transparent texels contribute coverage area;
-color averages include opaque samples. Threshold equality is opaque; zero coverage is transparent.
-Thresholding alone does not preserve silhouette area or guarantee survival of thin parts.
+The [causal tests](../tests/rendering/sprite-lod-compiler.test.mjs) cover direct-master boxes, partial
+edges, half coverage, linear black/white averaging, substitution before reduction, retained lamp color
+after reduction, determinism and file preservation. No dithering or runtime filtering is introduced.
 
-The [area filter](../src/graphics/sprite-area-filter.ts) owns coverage, color averaging and palette
-selection for normalization and LOD. Encoded mode averages shared RGB555-decoder 8-bit sRGB values;
-linear mode applies the [sRGB transfer function](https://www.w3.org/TR/css-color-4/#color-conversion-code)
-before averaging. Both select the nearest authored color by squared RGB distance in the selected
-space; an exact tie selects the lower RGB555 integer. Every level retains palette values/order.
-The recipe creates no new colors or dither, filters directly from the master, and runs before play.
+The build generates complete course-scenery and vehicle LOD. `content/sprites/vehicles.json` is a
+normalized-master dictionary with yaw/bank bindings, not another image representation. Its completed
+library is generated under `dist/content/sprites/`; every manifest-listed image is digest verified.
+Course ground swatches remain masters consumed by the resident ground compiler, not sprite LOD.
+The offline compiler and Sprite Tool use these same functions without a separate LOD recipe file.
 
-[Compiler tests](../tests/rendering/sprite-lod-compiler.test.mjs) cover independent color-space results,
-direct-master filtering, alpha/partial edges, tie ordering, determinism and file preservation.
-Build-generated checker/coverage samples support comparison; real-art filter/coverage acceptance and
-final variant palette policy remain open.
+## Infinite tiled background
+
+BG is one plane at infinity, selected by the existing environment background binding. It has no
+plane list, finite distance or parallax coefficient. Finite mountains, cities and tunnel entrances
+belong to world scenery sprites. Composition is BG, ground, then sprites; a transparent ground region
+can reveal BG below the horizon.
+
+The [tile image](../src/graphics/tile-background-image.ts) owns an 80 by 40 map of 16 by 16 patterns:
+1280 by 640 pixels. Each tile binds an existing pattern and a 16-entry palette. Its authored record is
+`{format: "superoutride.tile-background", version: 1, name, patterns: [{indices}], palettes, tiles}`,
+where each row-major tile is `[patternId,paletteId]`. Pattern 0-index transparency has the same meaning
+as on sprites. Tiles have no LOD because their angular scale is fixed. The two placeholder environments
+reuse patterns with visibly different per-tile palettes.
+
+Horizontal wrapping covers 360 degrees with `1280/(2*pi)` pixels/radian. Only yaw and pitch scroll
+BG; translation has no effect. The environment authors its source `horizonY` and yaw origin. The
+existing screen horizon `120 - 200*sin(pitch)` remains unchanged, with 320 source rows above and below
+the placeholder horizon. Near the zenith/nadir the sine projection compresses detail; author those
+tiles as solid colors or very gentle gradients. Frame changes transform yaw origin with camera yaw.
 
 ## External sprite source normalization
 
@@ -61,9 +121,9 @@ animation and perspective correction remain outside this file workflow. The pinn
 offline/tool dependency, separate from the driving runtime.
 
 ```text
-{ format: "superoutride.sprite-source", version: 1, name,
+{ format: "superoutride.sprite-source", version: 2, name,
   crop: { x, y, width, height }, widthMeters,
-  anchor: { x, y }, paletteRgb555, filter: { colorSpace, coverageThreshold } }
+  anchor: { x, y }, paletteRgb555 }
 ```
 
 Crop is an integer source-pixel rectangle inside the decoded image. `widthMeters` calibrates the
@@ -79,10 +139,9 @@ units express rational footprints without epsilon padding. Box integration also 
 source cells have constant color/coverage. Straight alpha weights opaque color before binary coverage
 thresholding; zero-alpha RGB contributes no background color.
 
-The author supplies at most 15 distinct RGB555 colors. An empty palette is valid only for a fully
-transparent resulting master. Palette generation is an explicit preceding action, not inferred during
-normalization. Output is one normalized level, ready for review/editing and the LOD compiler. Source
-and LOD recipes are separate saved inputs, including independent coverage thresholds.
+The author supplies a 16-entry palette with an unused zero slot and 15 opaque slots. Fully transparent
+masters retain that same palette shape. Palette generation is an explicit preceding action, not inferred during
+normalization. Output is one normalized level, ready for review/editing and the LOD compiler. Normalization uses the common fixed prefilter rules; LOD takes the resulting master directly.
 
 Unknown/missing fields, malformed palettes and invalid crop, anchor or metric values fail before
 output. Source admission is 16,777,216 decoded pixels and 1,048,576 master texels. PNG admission is
@@ -101,28 +160,29 @@ It performs no canvas decode, profile conversion, CDN loading or image upload. T
 the same decode path as imported images.
 
 The [candidate palette generator](../src/graphics/sprite-palette.ts) is alpha-weighted median cut in
-encoded RGB555, independent of filter color space. Only visible samples inside the integer crop count.
+encoded RGB555, as an authoring candidate, not a box-filter color-space choice. Only visible samples inside the integer crop count.
 Quantize channels through the common codec and accumulate integer alpha weights. If the histogram fits
 1..15 requested colors, retain exact codes. Otherwise select the box with largest channel range,
 then greatest alpha weight, then lowest contained code. Choose its widest channel with R/G/B tie order,
 sort by channel then code, and split at the first cumulative weight reaching half, clamped to leave
 both halves nonempty. Repeat to requested box count. Each output is the alpha-weighted RGB555-channel
 mean rounded to nearest with upward ties. Deduplicate and sort codes. Fully transparent crops yield
-an empty palette; coincident means may reduce its size. There is no dither.
+16 zero entries; otherwise unused opaque slots repeat the first candidate. Coincident means may reduce
+the number of distinct colors. There is no dither.
 
 The generated palette becomes an editable saved value. Mask/crop changes leave it unchanged until
 explicit regeneration. This deterministic candidate is not final art acceptance or variant sharing.
 
 The [session](../tools/graphics/sprite-session.mjs) retains original straight-alpha pixels, a binary
-hidden mask and separate source/LOD recipes. Hide sets alpha to zero; restore retrieves original alpha,
+hidden mask and one source-normalization recipe. Hide sets alpha to zero; restore retrieves original alpha,
 including semitransparent/invisible RGB. Mask undo/redo admits 32 operations and 8 MiB saved mask bytes.
 New mask edits discard redo; no-ops consume no history. Source/recipe changes invalidate products,
 clear preview and disable export until build. Failed imports preserve the session; only the newest
 pending import may install.
 
 ```text
-{ format: "superoutride.sprite-session", version: 1,
-  source: { width, height, rgbaBase64 }, hiddenBase64, recipe, lodRecipe }
+{ format: "superoutride.sprite-session", version: 2,
+  source: { width, height, rgbaBase64 }, hiddenBase64, recipe }
 ```
 
 `rgbaBase64` contains original row-major R,G,B,A bytes independent of host endianness. `hiddenBase64`
@@ -133,9 +193,8 @@ completed indexed images. There is no autosave or implicit overwrite. Cross-asse
 identity/migration is a separate contract.
 
 Editor admission is 1,048,576 source pixels, 4096 per axis, 32 MiB PNG and 16 MiB session JSON. Larger
-Node-source admission remains available. A known crop width and explicit source/LOD color spaces are
-required. Bottom-center anchor and threshold 0.5 are visible starting controls, not inferred vehicle
-sizes or approved art policies. Preview uses the product scale/blitter. [Authoring tests](../tests/rendering/sprite-authoring.test.mjs)
+Node-source admission remains available. A known crop width is required. Bottom-center anchor is an editable starting control, not inferred
+vehicle size. The shared fixed color space and threshold are displayed, not user-selectable. Preview uses the product scale/blitter. [Authoring tests](../tests/rendering/sprite-authoring.test.mjs)
 cover palette ties/alpha, mask history/invalidation, portable sessions, decode parity and the complete
 PNG -> session -> master/LOD -> product reader boundary.
 
@@ -145,9 +204,9 @@ The [course image compiler](../src/compiler/course-image-source.ts) admits saved
 the immutable CourseDocument graph. Each declared lowercase SHA-256 requires one explicit
 `{sha256, bytes: Uint8Array}` input; repeated descriptors may share that input. It snapshots the complete
 bounded input set before asynchronous hashing, verifies the exact bytes, decodes UTF-8 JSON and invokes
-the existing sprite image validator. It performs no I/O, normalization, palette generation or filtering.
+the matching sprite or tile-background validator. It performs no I/O, normalization, palette generation or filtering.
 
-Canonical asset descriptors own deeply frozen indexed `SpriteLodDocument` sources. Section membership
+Canonical asset descriptors own deeply frozen indexed sprite or tile-background sources. Section membership
 resolves directly to these objects; descriptors sharing a digest share one source. No decoded mutable
 pixel array is published through the graph. An ordinary sprite consumer can decode its own workspace
 through `readSpriteLodAsset`; that workspace cannot alter the source. Ground composition consumes
@@ -170,10 +229,10 @@ readiness. Saved presentation binds those sources; completed ground uses the sep
 
 ## Saved course presentation
 
-CourseDocument and presentation recipe v3 admit explicit Band paint profiles, static A/B mappings,
+CourseDocument and presentation recipe v4 admit explicit Band paint profiles, static A/B mappings,
 ordered stamps, environment/background profiles, shared scenery identities and state-selected road signs. [Content](content-and-gameplay.md#wire-fields-and-scopes)
-owns exact fields/reference scopes. Ground and background bindings require one normalized master;
-sprite LOD pyramids remain scenery inputs. Source assets resolve to the same canonical records as
+owns exact fields/reference scopes. Ground bindings require one normalized sprite master; background bindings require a tile map.
+Scenery accepts completed sprite pyramids. Source assets resolve to the same canonical records as
 Section membership, and scenery placements share a course-wide instance/asset record.
 
 The ordinary [source evaluator](../src/groundmap/course-ground-source.ts) returns RGB555 on the finite
@@ -185,7 +244,7 @@ For image A, x/y indices are the positive-modulo wrap of `floor(40*(l-phaseL))` 
 not geometry anchors. Source row direction is increasing s. Transparent index zero reveals the base;
 RGB555 zero remains opaque black.
 
-An alternate maps every opaque A slot to one explicit RGB555 value, preserving transparent indices
+An alternate has the same 16-entry layout and maps every opaque A slot to one explicit RGB555 value, preserving transparent indices
 and geometry. Duplicate mapped colors are permitted. B is selected when the sum of the signed stripe
 indices `floor((s-phaseS)/spanS)` and `floor((l-phaseL)/spanL)` is odd. Positive finite spans retain safe
 integer cell identities throughout the strip. This is a static saved pattern, not runtime palette
@@ -198,8 +257,8 @@ at that placement, clipped by the finite strip; later opaque stamp texels overwr
 stamps, while transparent texels preserve the previous color. GroundBase outside the strip remains a
 separate environment value, not the strip's base or a physical support field.
 
-Background masters must be opaque; the saved horizon is an image row, horizontal pan density is
-positive pixels/radian, and yaw origin is converted from Section-frame degrees once. Environment
+Background tile maps retain binary transparency; the saved horizon is an image row and yaw origin is
+converted from Section-frame degrees once. Angular density belongs to the fixed BG format. Environment
 profiles are independent of Band paint/material changes. Scenery retains source anchors, lateral
 position and height offset with canonical instance identity; geometric placement/visibility across
 occurrences is a separate view/qualification responsibility.
@@ -231,7 +290,7 @@ Geometry, physical materials, sprite metrics and sprite image-reader contracts r
 Normalized sprite masters, ground swatches and stamps use 40 source texels/m in both axes, RGB555,
 at most 15 distinct opaque colors, and transparent index 0. RGB555 zero is opaque black. Even a fully
 opaque ground swatch has at most 15 colors. Reuse PNG admission, crop/metric/anchor normalization,
-explicit palette/coverage recipes and the common color codec. Ground consumes normalized masters,
+explicit source palettes, the common normalization filter and the shared color codec. Ground consumes normalized masters,
 not sprite LOD images.
 
 Completed sprites retain their indexed-image/anchor contract. Completed ground at every level contains
@@ -292,8 +351,7 @@ remain required for the chosen filter. No interpolation or acquisition occurs in
 
 A normalized indexed image A plus one saved color-mapping recipe are the two authoring inputs.
 Each opaque slot maps to an explicit RGB555 value; transparency and index-pattern geometry stay fixed.
-B is reproducible output, not an independently edited original. Duplicate target colors can be
-compacted by the shared image validator. Shape-changing repairs remain separate source images.
+B is reproducible output, not an independently edited original. Duplicate target colors retain their semantic slots. Shape-changing repairs remain separate source images.
 
 Pattern phase selects static A/B during composition. Mixed-material and inside-tile stripe boundaries
 resolve to completed colors before filtering. Ground runtime uses no palette banks, cycling, animation
@@ -339,6 +397,5 @@ supplies orientation/extent; placement adds no runtime rotation, scale, skew or 
 
 Real-art review, whole-application measurements and named-device acceptance remain open. Existing
 camera/source metrics stay fixed; whole-application measurements establish device budgets.
-Revise contracts explicitly in this owner and causal tests. Vehicle lamp states remain deferred:
-a later design may select immutable SINGLE-sprite variants from observations, without a shared mutable
-palette or a general animation scheduler.
+Revise contracts explicitly in this owner and causal tests. Device checks cover distant scenery stability, per-tile palettes and braking lamps. A filter/format
+contract is not a claim that every thin feature survives every projected scale.

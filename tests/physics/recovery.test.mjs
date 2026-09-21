@@ -1,3 +1,5 @@
+import { createTestBackground } from '../helpers/tile-background.mjs';
+import { createTestSpriteAssets } from '../helpers/sprite-assets.mjs';
 import { drivingEnvironment } from '../helpers/driving-environment.mjs';
 
 import assert from 'node:assert/strict';
@@ -9,11 +11,10 @@ import { createRecoveryState, recoverVehicle, updateRecovery } from '../../dist/
 import { SoftwareSurface } from '../../dist/graphics/software-surface.js';
 import { renderSourceGround as renderDriving } from '../../dist/dev/diagnostics/source-ground-render.js';
 import { deriveVehicleLeanRadians } from '../../dist/render/vehicle-presentation.js';
-import { createFarBackground } from '../../dist/visual/far-background.js';
+
 import { createTestBike, createTestCar, updateTestVehicle } from '../helpers/vehicle-fixture.mjs';
 
 import { createRoadsideSprites } from '../../dist/dev/fixtures/projection-scenery.js';
-import { createSpriteAssets } from '../../dist/visual/sprite-assets.js';
 
 const { guide, height, surfaces, cameraProfile, groundProfile, terrainProfile } = drivingEnvironment();
 
@@ -26,9 +27,9 @@ test('sustained steering into VOID recovers before the player sprite can disappe
   const car = createTestCar(guide, height, surfaces, 45);
   const recovery = createRecoveryState(car);
   const rig = createCameraRig();
-  const assets = createSpriteAssets();
+  const assets = createTestSpriteAssets();
   const world = createRoadsideSprites(guide, height, assets);
-  const background = createFarBackground();
+  const background = createTestBackground();
   const target = new SoftwareSurface(320, 240);
   let camera = updateCamera(rig, { guide, height }, car, cameraProfile, 1 / 60);
   let minimumWritten = Infinity;

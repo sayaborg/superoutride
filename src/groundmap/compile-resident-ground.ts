@@ -49,7 +49,7 @@ function sourceRows(data: CourseGroundSourceData, originCell: number, width: num
           alternate && (odd + repeat(Math.floor((l - paint.phaseL) / alternate.spanL), 2)) % 2
             ? alternate.paletteRgb555
             : source.levels[0]!.paletteRgb555;
-        pixels[x] = index ? palette[index - 1]! : data.baseRgb555;
+        pixels[x] = index ? palette[index]! : data.baseRgb555;
       }
       row = { id: nextId++, pixels };
       if (templates.size >= rowLimit) templates.delete(templates.keys().next().value!);
@@ -92,7 +92,7 @@ function sourceRows(data: CourseGroundSourceData, originCell: number, width: num
         x++
       ) {
         const index = level.indices[(cellY - stamp.gridS) * source.width + x + originCell - stamp.gridL]!;
-        if (index) row[x] = level.paletteRgb555[index - 1]!;
+        if (index) row[x] = level.paletteRgb555[index]!;
       }
     }
     // A bounded row cache is a compilation optimization, not a source or final-image authority.

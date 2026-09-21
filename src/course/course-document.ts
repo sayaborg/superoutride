@@ -49,8 +49,8 @@ interface LinkDocument {
 /** External content identity only; no I/O or claim of payload readiness at this boundary. */
 export interface CourseAssetReference {
   readonly id: string;
-  readonly format: 'superoutride.sprite-lod';
-  readonly version: 1;
+  readonly format: 'superoutride.sprite-lod' | 'superoutride.tile-background';
+  readonly version: 1 | 2;
   readonly sha256: string;
 }
 
@@ -89,7 +89,6 @@ export interface PresentationDocument {
     readonly background: {
       readonly assetId: string;
       readonly horizonY: number;
-      readonly pixelsPerRadian: number;
       readonly yawOrigin: number;
     };
   }[];
@@ -155,7 +154,7 @@ interface CourseRulesDocument {
 
 export interface CourseDocument {
   readonly format: 'superoutride.course';
-  readonly version: 9;
+  readonly version: 10;
   readonly id: string;
   readonly reference: null | {
     readonly source: { readonly kind: 'video' | 'analyzed-data'; readonly location: string; readonly edition: string };
@@ -175,7 +174,11 @@ export interface CourseDocument {
   readonly sections: readonly SectionDocument[];
   readonly links: readonly LinkDocument[];
   readonly assets: readonly CourseAssetReference[];
-  readonly sceneryInstances: readonly { readonly id: string; readonly assetId: string }[];
+  readonly sceneryInstances: readonly {
+    readonly id: string;
+    readonly assetId: string;
+    readonly paletteRgb555: readonly number[] | null;
+  }[];
 }
 
 /** Admission limits, independent of eventual game/device content budgets. */
@@ -218,7 +221,7 @@ function record(value: unknown, path: string, fields: readonly string[]): Record
   for (const key of Object.keys(result)) {
     if (!fields.includes(key)) {
       const escaped = key.replaceAll('~', '~0').replaceAll('/', '~1');
-      fail('unsupported_feature', `${path}/${escaped}`, `Field ${key} is not supported by CourseDocument v9`);
+      fail('unsupported_feature', `${path}/${escaped}`, `Field ${key} is not supported by CourseDocument v10`);
     }
   }
   for (const key of fields) {
@@ -399,7 +402,7 @@ function paint(value: unknown, path: string): PaintDocument | null {
   if (v.alternate !== null) {
     const a = record(v.alternate, `${path}/alternate`, ['paletteRgb555', 'spanS', 'spanL']);
     alternate = Object.freeze({
-      paletteRgb555: array(a.paletteRgb555, `${path}/alternate/paletteRgb555`, 15, rgb555),
+      paletteRgb555: array(a.paletteRgb555, `${path}/alternate/paletteRgb555`, 16, rgb555),
       spanS: number(a.spanS, `${path}/alternate/spanS`, 0, COURSE_DOCUMENT_LIMITS.lengthMeters, true),
       spanL: number(a.spanL, `${path}/alternate/spanL`, 0, COURSE_DOCUMENT_LIMITS.lateralMeters, true),
     });
@@ -453,7 +456,7 @@ function presentation(value: unknown, path: string): PresentationDocument | null
     }),
     environments: array(v.environments, `${path}/environments`, COURSE_DOCUMENT_LIMITS.knots, (item, at) => {
       const e = record(item, at, ['anchor', 'name', 'groundBaseLeft', 'groundBaseRight', 'background']);
-      const b = record(e.background, `${at}/background`, ['assetId', 'horizonY', 'pixelsPerRadian', 'yawOrigin']);
+      const b = record(e.background, `${at}/background`, ['assetId', 'horizonY', 'yawOrigin']);
       return Object.freeze({
         anchor: anchor(e.anchor, `${at}/anchor`),
         name: id(e.name, `${at}/name`),
@@ -462,13 +465,6 @@ function presentation(value: unknown, path: string): PresentationDocument | null
         background: Object.freeze({
           assetId: id(b.assetId, `${at}/background/assetId`),
           horizonY: number(b.horizonY, `${at}/background/horizonY`, 0, Number.MAX_SAFE_INTEGER),
-          pixelsPerRadian: number(
-            b.pixelsPerRadian,
-            `${at}/background/pixelsPerRadian`,
-            0,
-            COURSE_DOCUMENT_LIMITS.coordinateMeters,
-            true,
-          ),
           yawOrigin: number(b.yawOrigin, `${at}/background/yawOrigin`, -360, 360),
         }),
       });
@@ -648,7 +644,7 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
   try {
     // Reject an identified older schema before requiring the current schema's fields.
     if (input && typeof input === 'object' && Object.hasOwn(input, 'version'))
-      literal((input as Record<string, unknown>).version, 9, '/version', 'unsupported_version');
+      literal((input as Record<string, unknown>).version, 10, '/version', 'unsupported_version');
     const v = record(input, '', [
       'rules',
       'format',
@@ -665,7 +661,7 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
       'sceneryInstances',
     ]);
     const format = literal(v.format, 'superoutride.course', '/format', 'unsupported_format');
-    const version = literal(v.version, 9, '/version', 'unsupported_version');
+    const version = literal(v.version, 10, '/version', 'unsupported_version');
     const units = record(v.units, '/units', ['length', 'angle']);
     const recipe = record(v.geometryRecipe, '/geometryRecipe', ['id', 'version']);
     const recipeVersion = number(recipe.version, '/geometryRecipe/version', 1, 65535);
@@ -713,8 +709,14 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
           fail('invalid_shape', `${at}/sha256`, 'Expected lowercase SHA-256 of saved sprite-lod bytes');
         return Object.freeze({
           id: id(a.id, `${at}/id`),
-          format: literal(a.format, 'superoutride.sprite-lod', `${at}/format`, 'unsupported_format'),
-          version: literal(a.version, 1, `${at}/version`, 'unsupported_version'),
+          format:
+            a.format === 'superoutride.tile-background'
+              ? a.format
+              : literal(a.format, 'superoutride.sprite-lod', `${at}/format`, 'unsupported_format'),
+          version:
+            a.format === 'superoutride.tile-background'
+              ? literal(a.version, 1, `${at}/version`, 'unsupported_version')
+              : literal(a.version, 2, `${at}/version`, 'unsupported_version'),
           sha256: a.sha256,
         });
       }),
@@ -723,8 +725,16 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
         '/sceneryInstances',
         COURSE_DOCUMENT_LIMITS.placements,
         (item, at) => {
-          const instance = record(item, at, ['id', 'assetId']);
-          return Object.freeze({ id: id(instance.id, `${at}/id`), assetId: id(instance.assetId, `${at}/assetId`) });
+          const instance = record(item, at, ['id', 'assetId', 'paletteRgb555']);
+          const palette =
+            instance.paletteRgb555 === null ? null : array(instance.paletteRgb555, `${at}/paletteRgb555`, 16, rgb555);
+          if (palette !== null && palette.length !== 16)
+            fail('invalid_shape', `${at}/paletteRgb555`, 'Expected 16 indexed palette slots');
+          return Object.freeze({
+            id: id(instance.id, `${at}/id`),
+            assetId: id(instance.assetId, `${at}/assetId`),
+            paletteRgb555: palette,
+          });
         },
       ),
     });

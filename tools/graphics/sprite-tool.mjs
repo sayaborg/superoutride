@@ -32,11 +32,7 @@ const settingIds = [
   'meters',
   'anchor-x',
   'anchor-y',
-  'source-space',
-  'source-coverage',
   'palette',
-  'lod-space',
-  'lod-coverage',
 ];
 let session,
   asset,
@@ -73,18 +69,16 @@ function readSettings() {
   return {
     recipe: {
       format: 'superoutride.sprite-source',
-      version: 1,
+      version: 2,
       name: el('name').value,
       crop: crop(),
       widthMeters: number('meters'),
       anchor: { x: number('anchor-x'), y: number('anchor-y') },
       paletteRgb555: readPalette(),
-      filter: { colorSpace: el('source-space').value, coverageThreshold: number('source-coverage') },
     },
-    lodRecipe: { colorSpace: el('lod-space').value, coverageThreshold: number('lod-coverage') },
   };
 }
-function writeSettings({ recipe, lodRecipe }) {
+function writeSettings({ recipe }) {
   const values = {
     name: recipe.name,
     'crop-x': recipe.crop.x,
@@ -94,11 +88,7 @@ function writeSettings({ recipe, lodRecipe }) {
     meters: recipe.widthMeters ?? '',
     'anchor-x': recipe.anchor.x,
     'anchor-y': recipe.anchor.y,
-    'source-space': recipe.filter.colorSpace,
-    'source-coverage': recipe.filter.coverageThreshold,
     palette: recipe.paletteRgb555.map(hex).join(', '),
-    'lod-space': lodRecipe.colorSpace,
-    'lod-coverage': lodRecipe.coverageThreshold,
   };
   for (const [id, value] of Object.entries(values)) el(id).value = value;
 }
@@ -108,18 +98,20 @@ function controls() {
   el('mask').disabled = !session || pending;
   el('undo').disabled = !session?.canUndo;
   el('redo').disabled = !session?.canRedo;
-  for (const id of ['source-recipe', 'lod-recipe', 'master-export', 'lod-export']) el(id).disabled = !asset || pending;
+  for (const id of ['source-recipe', 'master-export', 'lod-export']) el(id).disabled = !asset || pending;
 }
 function swatches() {
   el('swatches').replaceChildren();
   try {
-    for (const value of readPalette()) {
-      const { r, g, b } = unpackRgba(rgb555ToRgba(value));
+    for (const [index, value] of readPalette().entries()) {
       const swatch = document.createElement('span');
       swatch.className = 'swatch';
-      swatch.title = hex(value);
-      swatch.setAttribute('aria-label', hex(value));
-      swatch.style.backgroundColor = `rgb(${r} ${g} ${b})`;
+      swatch.title = index === 0 ? '0: transparent (unused palette entry)' : `${index}: ${hex(value)}`;
+      swatch.setAttribute('aria-label', swatch.title);
+      if (index !== 0) {
+        const { r, g, b } = unpackRgba(rgb555ToRgba(value));
+        swatch.style.backgroundColor = `rgb(${r} ${g} ${b})`;
+      }
       el('swatches').append(swatch);
     }
   } catch {
@@ -165,7 +157,7 @@ function drawPreview() {
 }
 function edited() {
   asset = undefined;
-  session?.updateSettings(null, null);
+  session?.updateSettings(null);
   el('status').textContent = 'Changes not built. Build again to update the preview and exports.';
   el('error').textContent = '';
   controls();
@@ -185,8 +177,8 @@ function attempt(action) {
 function compile() {
   asset = undefined;
   controls();
-  const { recipe, lodRecipe } = readSettings();
-  session.updateSettings(recipe, lodRecipe);
+  const { recipe } = readSettings();
+  session.updateSettings(recipe);
   const products = session.compile();
   asset = readSpriteLodAsset(products.lod);
   el('status').textContent =
@@ -239,24 +231,22 @@ async function open(load) {
 async function pngSession(bytes, name, example = false) {
   const image = await decodeSpritePng(bytes, PNG, SPRITE_EDITOR_PIXEL_LIMIT, SPRITE_EDITOR_AXIS_LIMIT);
   const rect = { x: 0, y: 0, width: image.width, height: image.height };
-  const filter = { colorSpace: example ? 'encoded-srgb' : '', coverageThreshold: 0.5 };
   const recipe = {
     format: 'superoutride.sprite-source',
-    version: 1,
+    version: 2,
     name,
     crop: rect,
     widthMeters: example ? 2.4 : null,
     anchor: { x: (image.width - 1) / 2, y: image.height - 1 },
     paletteRgb555: example ? generateSpritePalette(image, rect, 15) : [],
-    filter,
   };
-  const next = new SpriteSession(image, recipe, filter);
+  const next = new SpriteSession(image, recipe);
   if (example) next.compile();
   return {
     next,
     label: example
       ? 'Example loaded and built. Try hiding a rectangle or changing the size.'
-      : 'PNG loaded. Set its known crop width, color spaces and palette, then build.',
+      : 'PNG loaded. Set its known crop width and palette, then build.',
   };
 }
 el('example').addEventListener('click', () =>
@@ -404,10 +394,7 @@ for (const [id, key] of [
       download(`${basename()}.${key}.json`, products[key]);
     }),
   );
-for (const [id, key] of [
-  ['source-recipe', 'recipe'],
-  ['lod-recipe', 'lodRecipe'],
-])
+for (const [id, key] of [['source-recipe', 'recipe']])
   el(id).addEventListener('click', () =>
     attempt(() => {
       if (!session.products) throw new Error('Build the current settings before export.');

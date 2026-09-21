@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { createSpriteLodFilterFixture } from '../../dist/dev/fixtures/sprite-lod.js';
-import { compileSpriteLodWithAuthoredPalette } from '../../dist/graphics/sprite-lod-compiler.js';
+import { compileSpriteLod } from '../../dist/graphics/sprite-lod-compiler.js';
 import { createSpriteSourceFixture } from '../../dist/dev/fixtures/sprite-source.js';
 import { unpackRgba } from '../../dist/graphics/software-surface.js';
 import { PNG } from 'pngjs';
@@ -42,14 +42,26 @@ await writeFile(
   PNG.sync.write({ width: sample.width, height: sample.height, data: bytes }),
 );
 
-// Comparison recipes are explicit diagnostic inputs. The browser reads completed products only.
-for (const [name, colorSpace] of [
-  ['encoded', 'encoded-srgb'],
-  ['linear', 'linear-srgb'],
-]) {
-  const product = compileSpriteLodWithAuthoredPalette(createSpriteLodFilterFixture(), {
-    colorSpace,
-    coverageThreshold: 0.5,
-  });
-  await writeFile(new URL(`sprite-lod-${name}.json`, output), JSON.stringify(product) + '\n');
-}
+// One shared production filter; the browser receives completed products only.
+await writeFile(
+  new URL('sprite-lod-linear.json', output),
+  JSON.stringify(compileSpriteLod(createSpriteLodFilterFixture())) + '\n',
+);
+
+const masters = JSON.parse(await readFile(new URL('../../content/sprites/vehicles.json', import.meta.url), 'utf8'));
+const product = { ...masters, sprites: masters.sprites.map(compileSpriteLod) };
+const library = new URL('../../dist/content/sprites/vehicles.json', import.meta.url);
+await mkdir(new URL('./', library), { recursive: true });
+const libraryBytes = JSON.stringify(product) + '\n';
+await writeFile(library, libraryBytes);
+const levels = product.sprites.flatMap((sprite) => sprite.levels.slice(1));
+console.log(
+  JSON.stringify({
+    spriteMasters: masters.sprites.length,
+    spriteLevels: product.sprites.reduce((n, s) => n + s.levels.length, 0),
+    masterJsonBytes: Buffer.byteLength(JSON.stringify(masters) + '\n'),
+    deliveredJsonBytes: Buffer.byteLength(libraryBytes),
+    addedLodPatternBytes: levels.reduce((n, level) => n + Math.ceil(level.indices.length / 2), 0),
+    addedLodRgb555PaletteBytes: levels.length * 32,
+  }),
+);

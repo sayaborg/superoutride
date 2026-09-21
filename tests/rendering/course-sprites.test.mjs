@@ -1,3 +1,4 @@
+import { createTestSpriteAssets } from '../helpers/sprite-assets.mjs';
 import { createStadiumScene } from '../helpers/stadium-scene.mjs';
 import { near } from '../helpers/assert.mjs';
 import assert from 'node:assert/strict';
@@ -9,12 +10,10 @@ import { createRoadsideSprites } from '../../dist/dev/fixtures/projection-scener
 
 import { collectVisibleCourseSprites, compileCourseSprite } from '../../dist/render/course-sprite.js';
 
-import { createSpriteAssets } from '../../dist/visual/sprite-assets.js';
-
 describe('sprite presentation', () => {
   const { guide, height, cameraProfile } = createStadiumScene();
 
-  const assets = createSpriteAssets();
+  const assets = createTestSpriteAssets();
 
   test('course-attached sprite compiler snaps ground anchor to Y_render and keeps s_render', () => {
     const source = { name: 'PROBE', s: 125, l: 7, groundOffset: 1.25, asset: assets.sign };

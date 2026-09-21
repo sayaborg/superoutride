@@ -1,3 +1,4 @@
+import { createTestSpriteAssets } from '../helpers/sprite-assets.mjs';
 import { createPlanarCoordinateSample } from '../../dist/core/planar-sample.js';
 import { resolveCourseSession } from '../../dist/runtime/course-session.js';
 import { browserSessionVehicle } from '../../dist/browser/session-vehicle.js';
@@ -34,7 +35,7 @@ const course = result.value,
 const ground = await testGround(course, 'branch');
 const point = (s, l) => guidePathToWorld(course.entry.guide, s, l, createPlanarCoordinateSample());
 function fixture(entry = VEHICLE_CATALOG[0], rivalCount = 1) {
-  const scene = createCourseScene(course.entry, ground);
+  const scene = createCourseScene(course.entry, ground, createTestSpriteAssets());
   const vehicle = createArcadeVehicle(entry.profile, scene.world, {
     ...browserSessionVehicle(entry),
     s: 45,
@@ -45,6 +46,7 @@ function fixture(entry = VEHICLE_CATALOG[0], rivalCount = 1) {
   const actor = { vehicle, recovery: createRecoveryState(vehicle), cameraRig: createCameraRig() };
   const rival = VEHICLE_CATALOG[0];
   const race = createCourseRace({
+    sprites: createTestSpriteAssets(),
     session: resolveCourseSession(
       course,
       { mode: 'CUSTOM', rivalCount, lapCount: 1, countdown: false },
@@ -79,7 +81,7 @@ test('all eligible world crossings choose once by u then stable ID, including th
     [[['PLAYER', 249, 251, 131]], null],
     [[['PLAYER', 251, 249, 5]], null],
   ]) {
-    const scene = createCourseScene(course.entry, ground),
+    const scene = createCourseScene(course.entry, ground, createTestSpriteAssets()),
       field = createCourseForkField(course.sections);
     const entries = motions.map(([id, start, end, l]) => ({
       id,
@@ -220,7 +222,7 @@ test('every fork exit and merge seam keeps a 30 m guard and clears parent-specif
   const entry = VEHICLE_CATALOG[0];
   for (const link of course.links)
     for (const offset of [-1, 1]) {
-      const scene = createCourseScene(link.source.section, ground);
+      const scene = createCourseScene(link.source.section, ground, createTestSpriteAssets());
       if (link.source.section.fork) scene.session.prepareChoice(link).commit();
       const lateral =
         link.source.carriageway.bands
@@ -256,15 +258,21 @@ test('every fork exit and merge seam keeps a 30 m guard and clears parent-specif
           null,
         );
         const oldCamera = updateCamera({ ...actor.cameraRig }, scene.world, vehicle, CURRENT_CAMERA_PROFILE, 1 / 120);
-        if (vehicle.course.s >= link.source.anchor.s) scene.render(before, vehicle, oldCamera, 'car');
+        if (vehicle.course.s >= link.source.anchor.s) scene.render(before, vehicle, oldCamera, 'car', []);
         const direction = scene.observeStep(actor, previous, false);
         const camera = updateCamera(actor.cameraRig, scene.world, vehicle, CURRENT_CAMERA_PROFILE, 1 / 120);
         if (!direction) continue;
         assert.equal(direction, 'forward');
         committed = true;
         assert.deepEqual(link.overlap, { behind: 30, ahead: 30 });
-        scene.render(after, vehicle, camera, 'car');
-        createCourseScene(link.destination.section, ground).render(successorOnly, vehicle, camera, 'car');
+        scene.render(after, vehicle, camera, 'car', []);
+        createCourseScene(link.destination.section, ground, createTestSpriteAssets()).render(
+          successorOnly,
+          vehicle,
+          camera,
+          'car',
+          [],
+        );
         for (const [pixels, reason] of [
           [before, 'rigid frame commit'],
           [successorOnly, 'parent-specific pixels cleared'],
@@ -287,5 +295,8 @@ test('the actual driving graph rejects a fork whose undecided approach cannot su
     await readCourseImages(source.assets, new URL('../../content/images/', import.meta.url).pathname),
   );
   assert.equal(compiled.ok, true, JSON.stringify(compiled.diagnostics));
-  assert.throws(() => createCourseScene(compiled.value.entry, ground), /pre-lock render and driver/);
+  assert.throws(
+    () => createCourseScene(compiled.value.entry, ground, createTestSpriteAssets()),
+    /pre-lock render and driver/,
+  );
 });

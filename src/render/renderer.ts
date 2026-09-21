@@ -12,7 +12,7 @@ import {
   type TerrainLine,
   type TerrainVisualProfile,
 } from '../terrain/terrain-line.js';
-import { drawFarBackground, type FarBackground } from '../visual/far-background.js';
+import { drawTileBackground, type TileBackground } from '../visual/tile-background.js';
 import { selectVehicleSprite, type SpriteAssets } from '../visual/sprite-assets.js';
 import { collectVisibleCourseSprites, type CourseSpriteSource, type VisibleCourseSprite } from './course-sprite.js';
 import { createRenderSpaceCamera, mapPhysicalHeightToRender } from './render-height-space.js';
@@ -71,7 +71,7 @@ export interface GroundColorReader {
 }
 
 interface RenderScene {
-  readonly background: FarBackground;
+  readonly background: TileBackground;
   readonly guide: RasterGeometry;
   readonly camera: PseudoCamera;
   readonly vehicle: VehicleRenderReadState;
@@ -99,7 +99,7 @@ export function renderDriving(
   { observeWorkload = false, ground, workspace = createRenderWorkspace() }: RenderOptions,
 ): RenderResult {
   const { renderCamera, terrain } = prepareTerrain(guide, camera, terrainProfile, workspace);
-  drawFarBackground(target, background, renderCamera);
+  drawTileBackground(target, background, renderCamera);
   const visible = computeForwardVisibleInterval(
     guide,
     renderCamera.yaw,

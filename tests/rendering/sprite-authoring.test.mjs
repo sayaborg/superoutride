@@ -1,3 +1,4 @@
+import { palette16 } from '../helpers/indexed-images.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
@@ -10,32 +11,30 @@ import { createSpriteSourceFixture } from '../../dist/dev/fixtures/sprite-source
 import { SpriteSession } from '../../tools/graphics/sprite-session.mjs';
 import { decodeSpritePng } from '../../tools/graphics/sprite-png.mjs';
 
-const filter = { colorSpace: 'encoded-srgb', coverageThreshold: 0.5 };
 const image = (pixels) => ({ width: pixels.length, height: 1, pixels: Uint32Array.from(pixels) });
 const full = (image) => ({ x: 0, y: 0, width: image.width, height: image.height });
 const recipe = (image) => ({
   format: 'superoutride.sprite-source',
-  version: 1,
+  version: 2,
   name: 'STUDY',
   crop: full(image),
   widthMeters: image.width / 40,
   anchor: { x: (image.width - 1) / 2, y: image.height - 1 },
   paletteRgb555: generateSpritePalette(image, full(image), 15),
-  filter,
 });
 const pixel = { x: 0, y: 0, width: 1, height: 1 };
 
 test('palette generation counts only cropped visible alpha, preserves small palettes and has deterministic split ties', () => {
   const source = image([rgba(255, 0, 0), rgba(0, 0, 255), rgba(0, 255, 0), rgba(255, 255, 255, 0)]);
-  assert.deepEqual(generateSpritePalette(source, full(source), 15), [31, 992, 31744]);
-  assert.deepEqual(generateSpritePalette(source, full(source), 2), [0x0210, 0x7c00]);
+  assert.deepEqual(generateSpritePalette(source, full(source), 15), palette16([31, 992, 31744]));
+  assert.deepEqual(generateSpritePalette(source, full(source), 2), palette16([0x0210, 0x7c00]));
   const reversed = image([...source.pixels].reverse());
-  assert.deepEqual(generateSpritePalette(reversed, full(reversed), 2), [0x0210, 0x7c00]);
-  assert.deepEqual(generateSpritePalette(source, { x: 1, y: 0, width: 1, height: 1 }, 15), [31]);
+  assert.deepEqual(generateSpritePalette(reversed, full(reversed), 2), palette16([0x0210, 0x7c00]));
+  assert.deepEqual(generateSpritePalette(source, { x: 1, y: 0, width: 1, height: 1 }, 15), palette16([31]));
   const weighted = image([rgba(255, 0, 0), rgba(0, 0, 255, 85), rgba(0, 255, 0, 0)]);
-  assert.deepEqual(generateSpritePalette(weighted, full(weighted), 1), [0x5c08]);
+  assert.deepEqual(generateSpritePalette(weighted, full(weighted), 1), palette16([0x5c08]));
   const empty = image([rgba(255, 255, 255, 0)]);
-  assert.deepEqual(generateSpritePalette(empty, full(empty), 15), []);
+  assert.deepEqual(generateSpritePalette(empty, full(empty), 15), palette16([]));
   for (const count of [0, 16, 1.5, NaN]) assert.throws(() => generateSpritePalette(source, full(source), count));
   assert.throws(() => generateSpritePalette(source, { ...full(source), x: 1 }, 15));
   assert.throws(() => generateSpritePalette({ ...source, pixels: new Uint32Array(1) }, full(source), 15));
@@ -44,7 +43,7 @@ test('palette generation counts only cropped visible alpha, preserves small pale
 test('mask edits preserve original straight alpha, undo/redo causality and invalidate completed products', () => {
   const source = image([rgba(255, 0, 0, 128), rgba(0, 0, 255), rgba(0, 255, 0, 0)]);
   const original = structuredClone(source),
-    session = new SpriteSession(source, recipe(source), filter);
+    session = new SpriteSession(source, recipe(source));
   const initial = session.compile();
   assert.ok(session.products);
   assert.equal(session.mask(pixel, true), true);
@@ -67,7 +66,7 @@ test('mask edits preserve original straight alpha, undo/redo causality and inval
   session.mask(pixel, false);
   assert.equal(session.image.pixels[0], original.pixels[0], 'session owns its original');
   session.compile();
-  session.updateSettings({ ...recipe(original), widthMeters: 0 }, filter);
+  session.updateSettings({ ...recipe(original), widthMeters: 0 });
   assert.equal(session.products, null);
   assert.throws(() => session.compile());
   assert.equal(session.products, null, 'failed compile cannot expose prior products');
@@ -75,24 +74,24 @@ test('mask edits preserve original straight alpha, undo/redo causality and inval
 
 test('mask undo history is bounded by both operation count and stored bytes', () => {
   const source = image([rgba(255, 0, 0)]),
-    session = new SpriteSession(source, recipe(source), filter);
+    session = new SpriteSession(source, recipe(source));
   for (let i = 0; i < 40; i++) session.mask(pixel, i % 2 === 0);
   let steps = 0;
   while (session.undo()) steps++;
   assert.equal(steps, 32);
   const large = { width: 1024, height: 1024, pixels: new Uint32Array(1024 * 1024) };
-  const bounded = new SpriteSession(large, null, null);
+  const bounded = new SpriteSession(large, null);
   for (let i = 0; i < 10; i++) bounded.mask(full(large), i % 2 === 0);
   steps = 0;
   while (bounded.undo()) steps++;
   assert.equal(steps, 8);
   assert.throws(() => bounded.mask({ ...pixel, x: 1024 }, true));
-  assert.throws(() => new SpriteSession({ width: 4097, height: 1, pixels: new Uint32Array(4097) }, null, null));
+  assert.throws(() => new SpriteSession({ width: 4097, height: 1, pixels: new Uint32Array(4097) }, null));
 });
 
 test('session round trip owns portable original RGBA, restores mask and recipes, and reproduces exact products', () => {
   const source = image([rgba(17, 29, 91, 128), rgba(255, 0, 0), rgba(0, 255, 0, 0)]);
-  const session = new SpriteSession(source, recipe(source), { ...filter, colorSpace: 'linear-srgb' });
+  const session = new SpriteSession(source, recipe(source));
   session.mask(pixel, true);
   const products = session.compile(),
     document = session.toDocument();
@@ -108,12 +107,12 @@ test('session round trip owns portable original RGBA, restores mask and recipes,
   assert.equal(restored.settings.recipe.name, 'STUDY');
   for (const change of [
     (doc) => (doc.extra = true),
-    (doc) => (doc.version = 2),
+    (doc) => (doc.version = 1),
     (doc) => (doc.source.width = 1e9),
     (doc) => (doc.source.rgbaBase64 = 'AAAA'),
     (doc) => (doc.hiddenBase64 = btoa('\x02\0\0')),
     (doc) => (doc.recipe.scale = 2),
-    (doc) => (doc.lodRecipe.colorSpace = 'unknown'),
+    (doc) => (doc.lodRecipe = {}),
   ]) {
     const bad = session.toDocument();
     change(bad);
@@ -128,9 +127,9 @@ test('the shipped Node and browser PNG decoders feed identical pixels into the a
   const [node, browser] = await Promise.all([decodeSpritePng(bytes, PNG), decodeSpritePng(bytes, BrowserPNG)]);
   assert.deepEqual(node, createSpriteSourceFixture());
   assert.deepEqual(browser, node);
-  const session = new SpriteSession(browser, recipe(browser), filter);
+  const session = new SpriteSession(browser, recipe(browser));
   const product = session.compile();
-  assert.equal(product.master.levels[0].paletteRgb555.length, 15);
+  assert.equal(product.master.levels[0].paletteRgb555.length, 16);
   const decoded = readSpriteLodAsset(product.lod);
   assert.equal(decoded.worldWidthMeters, 2.4);
   assert.equal(decoded.levels.length, 8);

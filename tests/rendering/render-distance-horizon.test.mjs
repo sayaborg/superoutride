@@ -14,9 +14,12 @@ import {
 } from '../../dist/core/presentation-scale.js';
 import { horizonY } from '../../dist/core/projection.js';
 import { compileRasterPath } from '../../dist/core/raster-path.js';
-import { rgba, SoftwareSurface } from '../../dist/graphics/software-surface.js';
+import { backgroundDocument, palette16 } from '../helpers/indexed-images.mjs';
+import { TileBackgroundImage } from '../../dist/graphics/tile-background-image.js';
+import { rgb555ToRgba } from '../../dist/graphics/rgb555.js';
+import { SoftwareSurface } from '../../dist/graphics/software-surface.js';
 import { computeForwardVisibleInterval } from '../../dist/terrain/terrain-line.js';
-import { drawFarBackground } from '../../dist/visual/far-background.js';
+import { drawTileBackground } from '../../dist/visual/tile-background.js';
 
 const flatCamera = Object.freeze({
   x: 0,
@@ -58,17 +61,17 @@ test('current flat-camera geometric horizon is exact and independent of far dept
 });
 
 test('Far Background source horizon follows the geometric horizon to raster rounding', () => {
-  const sky = rgba(10, 20, 30);
-  const ground = rgba(90, 80, 70);
-  const sourceHorizonY = 10;
-  const source = new SoftwareSurface(4, 20);
-  for (let y = 0; y < source.height; y += 1) {
-    for (let x = 0; x < source.width; x += 1) {
-      source.setPixel(x, y, y < sourceHorizonY ? sky : ground);
-    }
-  }
+  const ground = rgb555ToRgba(0x2d45);
+  const sourceHorizonY = 320;
+  const document = backgroundDocument(0x0443);
+  document.palettes.push(palette16([0x2d45]));
+  document.tiles = Array.from({ length: 3200 }, (_, i) => [0, i < 1600 ? 0 : 1]);
   const target = new SoftwareSurface(4, 240);
-  drawFarBackground(target, { surface: source, sourceHorizonY, pixelsPerRadian: 200 }, flatCamera);
+  drawTileBackground(
+    target,
+    { image: new TileBackgroundImage(document), sourceHorizonY, yawOriginRadians: 0 },
+    flatCamera,
+  );
 
   let firstGroundRow = -1;
   for (let y = 0; y < target.height; y += 1) {

@@ -35,9 +35,9 @@ if (!result.ok) {
         images: result.value.assets.map(({ id, sha256, source }) => ({
           id,
           sha256,
-          width: source.width,
-          height: source.height,
-          levels: source.levels.length,
+          width: source.format === 'superoutride.sprite-lod' ? source.width : 1280,
+          height: source.format === 'superoutride.sprite-lod' ? source.height : 640,
+          levels: source.format === 'superoutride.sprite-lod' ? source.levels.length : 1,
         })),
         identity: result.value.identity,
         sections: result.value.sections.map((section) => ({

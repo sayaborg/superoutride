@@ -102,8 +102,8 @@ coverage. Device performance and human difficulty acceptance remain separate fro
 bytes through the public admission/compiler boundary. It returns machine-readable identities,
 counts, resident-ground capacity accounting or structured diagnostics and leaves source unchanged. `compile:course` remains a basic
 compiler report for geometry-only inputs, accepting only the source and optional image directory.
-[Content](content-and-gameplay.md#coursedocument-v9-implemented-compiler-boundary) owns schema v9,
-compiler v16, canonical references, admission limits and failure semantics.
+[Content](content-and-gameplay.md#coursedocument-v10-implemented-compiler-boundary) owns schema v10,
+compiler v17, canonical references, admission limits and failure semantics.
 
 The product root's contact/step guard admission and local geometry checks are covered by direct
 causal tests. Ground samples prefiltered resident images. Longer view consumers read source-owned spans.
@@ -149,32 +149,27 @@ limit is a local admission policy, not a production asset or smartphone memory b
 
 [Architecture](architecture.md#sprite-lod-metric-and-read-contract) owns dimensions and mapping;
 [Image assets](image-assets.md#completed-sprite-images) owns palette/index validation and the schema.
-The preview neither filters imported images nor certifies transition quality. Synthetic colors deliberately identify selected levels. The
-product's current source-art pixels remain covered by the fixed reference; causal LOD tests cover
-the read/blit contract, including course sprites, dynamic vehicles and the player in one Painter.
-The immutable renderer reference adapter maps a single level to its `pixels` field and rejects
-multi-level input. It preserves pixel values, reference outputs and reported workload.
+The preview neither filters imported images nor certifies transition quality. Synthetic colors deliberately identify selected levels. The image reference is updated only for approved authored BG/palette/LOD changes, with reasons in the
+PR. Mechanics/audio immutable references never follow image changes. Causal LOD tests exercise course
+sprites, dynamic vehicles and the player through the ordinary Painter and blitter.
 
 ## Sprite LOD file compiler
 
 `build:sprite-lod` is a declared offline compiler entry. After a build, run:
 
 ```sh
-npm run build:sprite-lod -- master.json recipe.json output.json
+npm run build:sprite-lod -- master.json output.json
 ```
 
-The master uses the completed-image schema with exactly one normalized level. A recipe explicitly
-supplies, for example, `{"colorSpace":"linear-srgb","coverageThreshold":0.5}`. This is a comparison
-example, not an approved default. `encoded-srgb` is the other implemented color-space choice.
-[Image assets](image-assets.md#offline-sprite-lod-authoring-recipe) owns the exact integration,
-coverage and authored-palette rules. Save the recipe alongside source art; the runtime artifact
-contains only completed images. Output must be a new path, preserving the source, recipe and prior
-product on failure. The command reports the output digest, bytes and level count.
+The master uses the completed-image schema with exactly one normalized level and all semantic base
+variants declared. [Image assets](image-assets.md#offline-sprite-lod-authoring-recipe) owns the common
+fixed filter and mixture-reduction rules; there is no separate LOD recipe. Output must be a new path,
+preserving the source and prior product on failure. The command reports digest, bytes and level count.
 
-`npm run build` also compiles checker/coverage comparison samples for the preview using explicit
-diagnostic recipes. Select either compiled checker in the preview to compare it with its master.
-That diagnostic viewer performs no image filtering. The separate Sprite Tool below compiles
-authoring inputs before play through the same source and LOD functions.
+Build generates every shipped scenery/vehicle pyramid, plus the linear checker preview. Commit only
+normalized masters and variant declarations. Report added pattern bytes, RGB555 palette bytes and actual
+serialized output bytes separately; mixture metadata and source JSON are not packed binary savings.
+The read-only preview compares a completed image with its master and performs no filtering.
 
 ## Sprite PNG source compiler
 
@@ -189,23 +184,22 @@ For example, an existing 160 by 100 pixel crop representing 2 m can use this sou
 ```json
 {
   "format": "superoutride.sprite-source",
-  "version": 1,
+  "version": 2,
   "name": "example-object",
   "crop": { "x": 0, "y": 0, "width": 160, "height": 100 },
   "widthMeters": 2,
   "anchor": { "x": 79.5, "y": 99.5 },
-  "paletteRgb555": [0, 32767, 31744],
-  "filter": { "colorSpace": "linear-srgb", "coverageThreshold": 0.5 }
+  "paletteRgb555": [0, 0, 32767, 31744, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 }
 ```
 
-The palette and threshold above are illustrative, not production-art defaults. Choose the palette
+The palette above is illustrative, not production art; slot zero is unused. Choose the palette
 for the actual image, and preserve the PNG and recipe separately from the normalized master.
-Then run the two offline steps, using a separate explicit LOD recipe described above:
+Then run the two offline steps, using the fixed shared filter:
 
 ```sh
 npm run build:sprite-source -- source.png source-recipe.json master.json
-npm run build:sprite-lod -- master.json lod-recipe.json sprite-lod.json
+npm run build:sprite-lod -- master.json sprite-lod.json
 ```
 
 Both commands refuse to overwrite input or existing output files and report dimensions, byte count,
@@ -226,17 +220,16 @@ bundled decoder inside that commit. The existing LOD comparison viewer stays rea
    **Use crop bottom center** sets a visible starting reference without changing physical data.
 3. Drag or enter a rectangular selection, then hide/restore it. Undo/redo retains bounded mask
    history. Restore means original alpha, not forced opacity.
-4. Generate a candidate palette and edit its RGB555 values as needed. Choose source and LOD color
-   spaces and coverage separately. Generation is explicit; editing the crop/mask does not silently
+4. Generate a candidate palette and edit its RGB555 values as needed. The fixed linear color space and half-coverage rule are displayed. Generation is explicit; editing the crop/mask does not silently
    regenerate the palette. [Image assets](image-assets.md#sprite-tool-authoring-session) owns the
    candidate algorithm, session format and admission limits.
 5. Build the master and full LOD series, then inspect depth changes in the product-blitter preview.
    Any image/recipe edit clears the preview and disables old exports until rebuilding.
-6. Save the editable session and export the master, LOD or either explicit recipe separately.
+6. Save the editable session and export the master, LOD or source recipe separately.
    Session reopening restores the original pixels, mask and settings and reproduces the products.
    Mask history is not serialized. The source recipe describes normalization of the **masked** image;
    applying it to the unmasked original PNG is not a replay of mask edits. Use the session for that
-   replay, or feed the exported master and LOD recipe to `build:sprite-lod`.
+   replay, or feed the exported master to `build:sprite-lod`.
 
 The synthetic color study exercises PNG decoding, palette reduction, partial alpha and thin geometry;
 it is not production art or real-art quality acceptance. The GUI implements rectangle masking, crop,
@@ -523,3 +516,24 @@ Real-art, full three-way consumer/transfer envelopes, reference-AI capability/di
 full-load acceptance remain outstanding. Interaction/traffic definitions and device budgets are prerequisites
 for complete product-play acceptance. Future wire additions require matching admission and causal coverage
 before GUI dependence. These acceptance gates do not block independent file/compiler work.
+
+For an isolated before/candidate scene comparison, run
+`node tools/performance/repeat-course-scene.mjs --out <directory> --baseline <built-checkout>`.
+It records three fresh-process repetitions with rotated variant order, complete per-run allocation/GC
+and median/min/max summaries; setup and builds must finish before timing starts.
+
+## Colored ground trial budgets
+
+This target is not resident-ground admission. A resolved near slab has at most 64 nonoverlapping
+intervals. Far row lengths are bounded by lateral extent divided by the level's projected pixel spacing;
+there is no far-interval budget because that representation stores no intervals. Build reports maxima
+and distributions per course, each level's row length and packed dictionary/directory bytes. Over-budget
+content fails with a diagnostic; measurements never silently increase a ceiling.
+
+Qualification uses three fresh-process repetitions per mode/variant, 300 measured frames after 30 warmup
+frames, 16 fully simulated rivals and a separate 30-frame allocation pass. Run children serially on an
+otherwise idle runner; report median/p95 ranges and host limitations, with CI as the reference. Compare
+resident, the prior interval-pyramid trial and the revised full-ground reader. Each mode must meet or beat
+resident render median, p95 and render allocation. Record 50/100/200 m row costs, actual packed data sizes,
+level counts, ordered-paint/oracle errors and subpixel ownership/filter transitions. A failed trial leaves
+resident ground in place pending K's explicit adoption decision, without increasing any gate.

@@ -146,7 +146,7 @@ test('ordered source-lattice stamps and canonical scenery identity cannot be rep
   f.document.sections[1].presentation.ground.stamps[0].l += 0.025;
   failure(qualify(await compile(f)), 'presentation_ground_mismatch');
   const g = await commonPresentationDocument();
-  g.document.sceneryInstances.push({ id: 'lookalike', assetId: 'tree' });
+  g.document.sceneryInstances.push({ id: 'lookalike', assetId: 'tree', paletteRgb555: null });
   g.document.sections[1].presentation.scenery[0].instanceId = 'lookalike';
   failure(qualify(await compile(g)), 'presentation_scenery_mismatch');
   const h = await commonPresentationDocument();

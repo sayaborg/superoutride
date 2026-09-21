@@ -20,16 +20,12 @@ test('built Sprite LOD preview resolves every module within the same complete bu
   }
   const html = await readFile(new URL('../../dist/tools/graphics/sprite-lod.html', import.meta.url), 'utf8');
   assert.match(html, /src="sprite-lod\.mjs"/);
-  const samples = await Promise.all(
-    ['encoded', 'linear'].map(async (name) => {
-      const source = JSON.parse(
-        await readFile(new URL(`../../dist/tools/graphics/sprite-lod-${name}.json`, import.meta.url), 'utf8'),
-      );
-      return readSpriteLodAsset(source);
-    }),
+  const sample = readSpriteLodAsset(
+    JSON.parse(await readFile(new URL('../../dist/tools/graphics/sprite-lod-linear.json', import.meta.url), 'utf8')),
   );
-  assert.deepEqual(samples[0].levels[0].pixels, samples[1].levels[0].pixels);
-  assert.notDeepEqual(samples[0].levels[1].pixels, samples[1].levels[1].pixels);
+  assert.ok(sample.levels.length > 1);
+  assert.equal(sample.levels[1].paletteRgb555.length, 16);
+  assert.doesNotMatch(html, /encoded-srgb|sprite-lod-encoded/);
 });
 
 test('published Sprite Tool keeps its transitive modules and decoder in the same complete build', async () => {

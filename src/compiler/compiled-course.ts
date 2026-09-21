@@ -54,7 +54,7 @@ export interface CompiledCourse {
 
 const COURSE_COMPILER = Object.freeze({
   id: 'superoutride.course-compiler',
-  version: 16,
+  version: 17,
   links: COURSE_LINK_RECIPE,
   physical: COURSE_PHYSICAL_RECIPE,
   images: COURSE_IMAGE_SOURCE_RECIPE,
@@ -267,12 +267,26 @@ export async function compileCourseDocument(
     if (!images.ok) return images;
     const assets = new Map(images.value.map((asset) => [asset.id, asset]));
     const sceneryInstances = Object.freeze(
-      compileStage(document.sceneryInstances, (instance, index) =>
-        Object.freeze({
-          id: instance.id,
-          asset: reference(assets, instance.assetId, `/sceneryInstances/${index}/assetId`),
-        }),
-      ),
+      compileStage(document.sceneryInstances, (instance, index) => {
+        const path = `/sceneryInstances/${index}/assetId`;
+        const asset = reference(assets, instance.assetId, path);
+        if (asset.source.format !== 'superoutride.sprite-lod')
+          throw new CourseInputError('invalid_image_role', path, 'Scenery requires a sprite image');
+        const sprite = asset as typeof asset & {
+          readonly source: Extract<typeof asset.source, { format: 'superoutride.sprite-lod' }>;
+        };
+        const palette = instance.paletteRgb555;
+        requireCourse(
+          palette === null ||
+            [sprite.source.levels[0]!.paletteRgb555, ...sprite.source.variants].some((choice) =>
+              choice.every((value, i) => i === 0 || value === palette[i]),
+            ),
+          path,
+          'Instance palette must participate in the compiled LOD variant set',
+          'appearance_binding',
+        );
+        return Object.freeze({ id: instance.id, asset: sprite, paletteRgb555: palette });
+      }),
     );
     const instances = new Map(sceneryInstances.map((instance) => [instance.id, instance]));
     const drafts = compileStage(document.sections, (section, index) =>

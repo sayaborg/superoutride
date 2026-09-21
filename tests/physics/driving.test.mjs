@@ -1,3 +1,4 @@
+import { createTestSpriteAssets } from '../helpers/sprite-assets.mjs';
 import { createPlanarCoordinateSample } from '../../dist/core/planar-sample.js';
 import { deg, near } from '../helpers/assert.mjs';
 import { drivingEnvironment } from '../helpers/driving-environment.mjs';
@@ -14,8 +15,6 @@ import { SurfaceMap } from '../../dist/physics/surface-map.js';
 import { deriveVehicleLeanRadians, deriveVehicleNormalizedBank } from '../../dist/render/vehicle-presentation.js';
 
 import { createTestBike, createTestCar, updateTestVehicle } from '../helpers/vehicle-fixture.mjs';
-
-import { createSpriteAssets } from '../../dist/visual/sprite-assets.js';
 
 const { guide, height, surfaces, cameraProfile } = drivingEnvironment();
 
@@ -168,7 +167,7 @@ test('BIKE profile surface response changes through the common physical material
 test('BIKE derived presentation lean selects a non-center yaw x bank sprite variant', () => {
   const bike = createTestBike(guide, height, surfaces, 100);
   bike.lateralAcceleration = 4; // : bank follows observed G, not yaw alone.
-  const assets = createSpriteAssets();
+  const assets = createTestSpriteAssets();
   const normalizedBank = deriveVehicleNormalizedBank(bike);
   const bankCount = assets.bike.bankVariants;
   const bankIndex = Math.round((Math.max(-1, Math.min(1, normalizedBank)) + 1) * 0.5 * (bankCount - 1));

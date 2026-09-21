@@ -165,7 +165,8 @@ physical gates and vehicles at the crossing.
 
 Sprite masters, ground swatches and stamps use the same source convention: RGB555, at most 15 opaque
 colours plus transparent index 0, and 40 source texels per metre in both axes. This limit applies to
-each normalized image, not the completed course. Existing screen and player-scale contracts remain.
+each sprite level and each BG tile, not the completed course. Coarse sprite palettes may contain
+filtered mixtures while retaining the per-level 15-opaque-color limit. Existing screen and player-scale contracts remain.
 
 Completed ground uses the static colour representation defined by the
 [image contract](image-assets.md#source-and-completed-images).

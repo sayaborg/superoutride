@@ -1,3 +1,4 @@
+import { masterDocument, backgroundDocument } from './indexed-images.mjs';
 import { readFile } from 'node:fs/promises';
 import { imageInput, savedImageInput } from './course-image-input.mjs';
 
@@ -6,24 +7,15 @@ export async function presentationDocument(name = 'linked-linear') {
   const document = JSON.parse(await readFile(new URL(`../fixtures/${name}.course.json`, import.meta.url), 'utf8'));
   const tile = imageInput('tile'),
     scenery = imageInput('tree');
-  const background = savedImageInput('sky', {
-    ...imageInput().source,
-    name: 'sky',
-    levels: [{ paletteRgb555: [0x001f], indices: Array(8).fill(1) }],
-  });
+  const background = savedImageInput('sky', backgroundDocument());
   const stamp = savedImageInput('stamp', {
-    format: 'superoutride.sprite-lod',
-    version: 1,
-    name: 'stamp',
-    width: 2,
-    height: 2,
+    ...masterDocument(2, 2, [0x7fff, 0], [1, 0, 0, 2], 'stamp'),
     anchorX: -0.5,
     anchorY: -0.5,
-    levels: [{ paletteRgb555: [0x7fff, 0], indices: [1, 0, 0, 2] }],
   });
   const images = [tile, scenery, background, stamp];
   document.assets = images.map((image) => image.reference);
-  document.sceneryInstances = [{ id: 'shared-tree', assetId: 'tree' }];
+  document.sceneryInstances = [{ id: 'shared-tree', assetId: 'tree', paletteRgb555: null }];
   for (const section of document.sections) {
     section.assetIds = document.assets.map((asset) => asset.id);
     section.presentation = {
@@ -45,7 +37,7 @@ export async function presentationDocument(name = 'linked-linear') {
           name: 'coast',
           groundBaseLeft: 0x1234,
           groundBaseRight: null,
-          background: { assetId: 'sky', horizonY: 1, pixelsPerRadian: 200, yawOrigin: section.start.heading },
+          background: { assetId: 'sky', horizonY: 320, yawOrigin: section.start.heading },
         },
       ],
       sceneryRows: [],

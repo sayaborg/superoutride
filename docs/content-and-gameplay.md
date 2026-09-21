@@ -31,7 +31,7 @@ Product CourseDocuments and image bytes live in `content/`. Regression inputs an
 live in `src/dev/fixtures` and `src/dev/diagnostics`. [Raster authoring](../src/course/raster-turtle.ts)
 owns line/arc subdivision and radius provenance. [DEV](../src/dev/README.md) owns the fixture boundary.
 
-## CourseDocument v9: implemented compiler boundary
+## CourseDocument v10: implemented compiler boundary
 
 [Admission and serialization](../src/course/course-document.ts),
 [geometry recipe](../src/course/course-geometry.ts),
@@ -58,7 +58,7 @@ array order is saved input, including meaningful primitive, knot and stamp order
 fork lock/closure anchors to the saved presentation/reference subset. Live field/actor state remains
 outside the document.
 
-| Record           | Exact v9 fields                                                                                                                                                                                                                                                   |
+| Record           | Exact v10 fields                                                                                                                                                                                                                                                  |
 | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | CourseDocument   | `format: "superoutride.course"`, `version: 9`, `reference`, `id`, `units: {length: "m", angle: "deg"}`, `geometryRecipe: {id, version}`, `type: "LINEAR" \| "BRANCH" \| "CIRCUIT"`, `entrySectionId`, `sections`, `links`, `assets`, `sceneryInstances`, `rules`  |
 | Section          | `id`, `start: {x, z, heading}`, `guide: {margin, mMin}`, `primitives`, `boundaries`, `bands`, `height: [{anchor, y}, ...]`, `physicalBindings: [{bandId, sections: [{anchor, material}, ...]}, ...]`, `carriageways`, `ports`, `assetIds`, `presentation`, `fork` |
@@ -71,8 +71,8 @@ outside the document.
 | Carriageway      | `id`, `bandIds`                                                                                                                                                                                                                                                   |
 | Port             | `id`, `kind: "entry" \| "exit"`, `anchor`, `carriagewayId`                                                                                                                                                                                                        |
 | Link             | `id`, `source: {sectionId, portId}`, `destination: {sectionId, portId}`, `overlap: {behind, ahead}`                                                                                                                                                               |
-| Asset reference  | `id`, `format: "superoutride.sprite-lod"`, `version: 1`, `sha256`                                                                                                                                                                                                 |
-| Scenery instance | `id`, `assetId`                                                                                                                                                                                                                                                   |
+| Asset reference  | `id`, `format: "superoutride.sprite-lod"`, `version: 2` or `"superoutride.tile-background"`, `version: 1`, `sha256`                                                                                                                                               |
+| Scenery instance | `id`, `assetId`, `paletteRgb555` (null or one declared base-palette replacement)                                                                                                                                                                                  |
 
 `reference` is explicit null or `{source: {kind: "video" | "analyzed-data", location, edition},
 observations: {location, sha256}, calibration: {distanceScale, curvatureScale, heightScale},
@@ -83,17 +83,17 @@ identity; it performs no inference. Observation SHA-256 addresses the exact inte
 
 `presentation` is either explicit `null` (geometry/physical-only source, not ready presentation), or:
 
-| Record            | Fields                                                                               |
-| ----------------- | ------------------------------------------------------------------------------------ |
-| Presentation      | `ground`, `environments`, `scenery`, `sceneryRows`                                   |
-| Ground            | positive `left`, `right` extents, `baseRgb555`, `bands`, ordered `stamps`            |
-| Appearance Band   | `bandId`, `sections: [{anchor, paint}, ...]`                                         |
-| Paint             | `null` (reveal base), or `{assetId, phaseS, phaseL, alternate}`                      |
-| Alternate         | `null` (A only), or `{paletteRgb555, spanS, spanL}`                                  |
-| Stamp             | `id`, `assetId`, `anchor`, `l`                                                       |
-| Environment       | `anchor`, `name`, `groundBaseLeft`, `groundBaseRight`, `background`                  |
-| Background        | `assetId`, `horizonY`, `pixelsPerRadian`, `yawOrigin` (degrees in the Section frame) |
-| Scenery placement | `id`, `instanceId`, `unselectedCarriagewayId`, `anchor`, `l`, `groundOffset`         |
+| Record            | Fields                                                                       |
+| ----------------- | ---------------------------------------------------------------------------- |
+| Presentation      | `ground`, `environments`, `scenery`, `sceneryRows`                           |
+| Ground            | positive `left`, `right` extents, `baseRgb555`, `bands`, ordered `stamps`    |
+| Appearance Band   | `bandId`, `sections: [{anchor, paint}, ...]`                                 |
+| Paint             | `null` (reveal base), or `{assetId, phaseS, phaseL, alternate}`              |
+| Alternate         | `null` (A only), or `{paletteRgb555, spanS, spanL}`                          |
+| Stamp             | `id`, `assetId`, `anchor`, `l`                                               |
+| Environment       | `anchor`, `name`, `groundBaseLeft`, `groundBaseRight`, `background`          |
+| Background        | `assetId`, `horizonY`, `yawOrigin` (degrees in the Section frame)            |
+| Scenery placement | `id`, `instanceId`, `unselectedCarriagewayId`, `anchor`, `l`, `groundOffset` |
 
 GroundBase values are explicit RGB555 integers or `null` for transparency. Ground/source composition
 and image roles are specified in [Image assets](image-assets.md#saved-course-presentation).
@@ -106,7 +106,7 @@ admission. References resolve within their declared scope, never by array positi
 Empty arrays and unresolved references may be saved as drafts; successful compilation requires complete
 semantic input. A well-formed but unavailable geometry recipe may also be saved, and fails compilation
 with `unsupported_version`. Schema/format and unit mismatches fail admission. Geometry fixtures select
-v9 with `presentation: null`, `fork: null`, an empty scenery-instance collection and `rules: null`;
+v10 with `presentation: null`, `fork: null`, an empty scenery-instance collection and `rules: null`;
 no appearance or fork controls are inferred from physical Bands.
 There is no implicit root from declaration order or compatibility interpretation.
 
@@ -126,7 +126,7 @@ They follow the referenced varying Boundary on the selected side. Expansion shar
 creates deterministic Section/row/index instances, and is limited to 4096 total Section placements.
 Unsupported repair scatter and dimensioned marking/boundary recipes receive diagnostics.
 
-Asset references bind exact saved sprite-image bytes by lowercase SHA-256. Compilation requires
+Asset references bind exact saved indexed-image bytes by lowercase SHA-256. Compilation requires
 explicit saved bytes for every declared digest and resolves Section membership to canonical descriptors
 with deeply frozen indexed sources. Aliased descriptors share one source, including at merges/loops.
 [Image admission](image-assets.md#course-image-source-admission) owns validation, resource limits and
@@ -173,6 +173,19 @@ cells and 100000 m of compiled chainage, checking subdivision counts before emit
 partition size before constructing cells. A Link admits at most 8192 overlap cells.
 These authoring limits bound work and diagnostics, not master-course or target-device acceptance.
 The [capacity diagnostic](development.md#agent-production-tools) measures host cost reproducibly.
+
+### Colored ground authoring target
+
+Pending whole-plane renderer qualification, ground will be an ordered list of colored Bands using the
+existing start/end anchors and left/right boundary curves. Each adds RGB555-or-transparent color and
+an optional pavement/shoulder/median role; later Bands cover earlier ones. Only role-bearing Bands enter
+the unchanged gap-free, nonoverlapping physical partition admission. Visual-only Bands may overlap.
+The outermost left/right Band may declare an open outer side without infinite coordinates. GroundBase
+is retired only with adoption. Grass, pavement, kerbs, markings, arrows, text and transparent cliffs use
+this one expression. Authoring may expand longitudinal repeats and s-monotone polygon pieces at compile
+time; expanded Bands are generated, not committed. No PNG-to-Band converter is part of the design.
+[Architecture](architecture.md#colored-ground-runtime-target) owns the conditional runtime representation.
+The currently admitted schema above retains the resident ground format until that gate passes.
 
 ### Supported geometry and recipe
 
@@ -498,8 +511,8 @@ one reference graph, not a RouteDag, recursive successor tree or JSON-serializab
 
 `sourceSha256` hashes normalized saved input. `buildSha256` hashes `{sourceSha256, compiler,
 geometryRecipe}`, including the full pinned recipe descriptor. The compiler identity is
-`superoutride.course-compiler` version 16, including the Link recipe v1, physical recipe v2, image-source
-admission recipe v1 and presentation recipe v3 descriptors.
+`superoutride.course-compiler` version 17, including the Link recipe v1, physical recipe v2, image-source
+admission recipe v2 and presentation recipe v4 descriptors.
 Recipe descriptors contain stable IDs, integer semantic versions and operative numeric/data parameters,
 not explanatory English. Versions pin the documented height, ownership, geometry and overlap behavior;
 the physical descriptor also includes the existing material definitions. Geometry recipe v4 pins

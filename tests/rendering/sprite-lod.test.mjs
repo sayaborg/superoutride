@@ -1,8 +1,12 @@
+import { masterDocument } from '../helpers/indexed-images.mjs';
+import { rgbaToRgb555 } from '../../dist/graphics/rgb555.js';
+import { levelPixels } from '../helpers/indexed-images.mjs';
+import { createTestBackground } from '../helpers/tile-background.mjs';
+import { createTestSpriteAssets } from '../helpers/sprite-assets.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createStraightReferenceWorld } from '../../dist/dev/fixtures/straight-world.js';
-import { createFarBackground } from '../../dist/visual/far-background.js';
-import { createSpriteAssets } from '../../dist/visual/sprite-assets.js';
+
 import { compileCourseSprite } from '../../dist/render/course-sprite.js';
 import { createDynamicVehicleCourseSprite } from '../../dist/render/dynamic-vehicle-sprite.js';
 import { renderDriving } from '../../dist/render/renderer.js';
@@ -97,7 +101,7 @@ test('odd storage edges never stretch the logical frame or move the shared ancho
     for (const depth of [2.5, 5, 7.07106781185, 7.07106781188, 10, 20, 40, 56.56854249, 80, 160, 200]) {
       const ppm = 200 / depth;
       const k = selectSpriteLevel(asset, ppm),
-        color = rgb555ToRgba(source.levels[k].paletteRgb555[0]);
+        color = rgb555ToRgba(source.levels[k].paletteRgb555[1]);
       const solid = createSpriteAsset(
         'INDEPENDENT_LOGICAL_RECTANGLE',
         width,
@@ -131,8 +135,11 @@ test('odd storage edges never stretch the logical frame or move the shared ancho
 });
 
 test('selected-level nearest sampling preserves transparent holes and opaque RGB555 black', () => {
-  const source = createSpriteLodFixture(8, 8);
-  source.levels[1] = { paletteRgb555: [0, 0x7fff], indices: [1, 0, 2, 0, 0, 2, 0, 1, 1, 0, 2, 0, 0, 2, 0, 1] };
+  const source = masterDocument(8, 8, [0, 0x7fff], Array(64).fill(1));
+  source.levels.push({
+    ...structuredClone(source.levels[0]),
+    indices: [1, 0, 2, 0, 0, 2, 0, 1, 1, 0, 2, 0, 0, 2, 0, 1],
+  });
   const asset = readSpriteLodAsset(source),
     bg = rgba(17, 25, 33),
     target = new SoftwareSurface(20, 20);
@@ -144,18 +151,18 @@ test('selected-level nearest sampling preserves transparent holes and opaque RGB
       const index = source.levels[1].indices[y * 4 + x];
       assert.equal(
         target.getPixel(8 + x, 6 + y),
-        index === 0 ? bg : rgb555ToRgba(source.levels[1].paletteRgb555[index - 1]),
+        index === 0 ? bg : rgb555ToRgba(source.levels[1].paletteRgb555[index]),
       );
     }
   assert.equal(stats.outputSamples, 16);
   assert.equal(stats.writtenPixels, 8);
-  for (const pixel of asset.levels[1].pixels) assert.ok([0, 255].includes(unpackRgba(pixel).a));
+  for (const pixel of levelPixels(asset.levels[1])) assert.ok([0, 255].includes(unpackRgba(pixel).a));
 });
 
 test('LOD reader rejects malformed metadata, palettes, indices and transform/scale authorities', () => {
   const cases = [
     (s) => {
-      s.version = 2;
+      s.version = 1;
     },
     (s) => {
       s.format = 'other';
@@ -197,7 +204,7 @@ test('LOD reader rejects malformed metadata, palettes, indices and transform/sca
       s.levels[1].crop = [0, 0, 1, 1];
     },
     (s) => {
-      s.levels[0].paletteRgb555 = Array.from({ length: 16 }, (_, i) => i);
+      s.levels[0].paletteRgb555 = Array.from({ length: 17 }, (_, i) => i);
     },
     (s) => {
       s.levels[0].paletteRgb555 = [1, 1];
@@ -209,7 +216,7 @@ test('LOD reader rejects malformed metadata, palettes, indices and transform/sca
       s.levels[0].paletteRgb555 = [-1];
     },
     (s) => {
-      s.levels[0].indices[0] = 2;
+      s.levels[0].indices[0] = 16;
     },
     (s) => {
       s.levels[0].indices[0] = 0.5;
@@ -230,8 +237,8 @@ test('LOD reader rejects malformed metadata, palettes, indices and transform/sca
     assert.throws(() => readSpriteLodAsset(sparse), RangeError);
   }
   const transparent = createSpriteLodFixture(1, 1);
-  transparent.levels = [{ paletteRgb555: [], indices: [0] }];
-  assert.equal(readSpriteLodAsset(transparent).levels[0].pixels[0], 0);
+  transparent.levels[0].indices = [0];
+  assert.equal(levelPixels(readSpriteLodAsset(transparent).levels[0])[0], 0);
 });
 
 test('compiled metadata and decoded pixels are detached from caller-owned source arrays', () => {
@@ -239,7 +246,7 @@ test('compiled metadata and decoded pixels are detached from caller-owned source
     asset = readSpriteLodAsset(source);
   source.levels[0].indices.fill(0);
   source.anchorX = 999;
-  assert.equal(asset.levels[0].pixels[0], rgb555ToRgba(0x03e0));
+  assert.equal(levelPixels(asset.levels[0])[0], rgb555ToRgba(0x03e0));
   assert.equal(asset.anchorX, 39.5);
   assert.ok(Object.isFrozen(asset));
   assert.ok(Object.isFrozen(asset.levels));
@@ -247,7 +254,7 @@ test('compiled metadata and decoded pixels are detached from caller-owned source
   const pixels = new Uint32Array([123]),
     single = createSpriteAsset('SINGLE', 1, 1, pixels, 0, 0, 1);
   pixels[0] = 0;
-  assert.equal(single.levels[0].pixels[0], 123);
+  assert.equal(levelPixels(single.levels[0])[0], rgb555ToRgba(rgbaToRgb555(123)));
 });
 
 test('course sprites, dynamic rivals and player use the same LOD blitter inside the full Painter', () => {
@@ -256,10 +263,10 @@ test('course sprites, dynamic rivals and player use the same LOD blitter inside 
   const source = createSpriteLodFixture(81, 57),
     asset = readSpriteLodAsset(source);
   const set = { kind: 'car', yawVariants: 1, bankVariants: 1, assets: [[asset]] };
-  const assets = { ...createSpriteAssets(), car: set },
+  const assets = { ...createTestSpriteAssets(), car: set },
     vehicle = renderPose(guide, 80);
   vehicle.y = height.samplePhysics(vehicle.course.s);
-  const background = createFarBackground();
+  const background = createTestBackground();
   for (const distance of [5, 10, 20, 40]) {
     const camera = terrainCamera(guide, height, vehicle, {
       dCam: distance,
@@ -283,7 +290,7 @@ test('course sprites, dynamic rivals and player use the same LOD blitter inside 
         'EXPECTED_COLOR',
         81,
         57,
-        new Uint32Array(81 * 57).fill(rgb555ToRgba(source.levels[k].paletteRgb555[0])),
+        new Uint32Array(81 * 57).fill(rgb555ToRgba(source.levels[k].paletteRgb555[1])),
         asset.anchorX,
         asset.anchorY,
         asset.worldWidthMeters,

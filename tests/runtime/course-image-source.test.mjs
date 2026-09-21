@@ -1,3 +1,4 @@
+import { levelPixels } from '../helpers/indexed-images.mjs';
 import assert from 'node:assert/strict';
 import { readFile, writeFile, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -106,15 +107,15 @@ test('admitted source uses the ordinary sprite reader and actual blitter with op
   const result = drawScaledSprite(target, asset, 2, 1.5, 40);
   assert.equal(result.writtenPixels, 6);
   assert.equal(asset.worldWidthMeters, 0.1);
-  assert.equal(asset.levels[0].pixels[0], SPRITE_TRANSPARENT);
-  assert.notEqual(asset.levels[0].pixels[1], SPRITE_TRANSPARENT);
+  assert.equal(levelPixels(asset.levels[0])[0], SPRITE_TRANSPARENT);
+  assert.notEqual(levelPixels(asset.levels[0])[1], SPRITE_TRANSPARENT);
   assert.deepEqual(
     [...target.pixels],
     image.source.levels[0].indices.map((index) =>
-      index ? rgb555ToRgba(image.source.levels[0].paletteRgb555[index - 1]) : background,
+      index ? rgb555ToRgba(image.source.levels[0].paletteRgb555[index]) : background,
     ),
   );
-  asset.levels[0].pixels.fill(0);
+  levelPixels(asset.levels[0]).fill(0);
   assert.deepEqual(product.assets[0].source, image.source, 'decoded consumer workspace cannot mutate the source');
 });
 
@@ -174,7 +175,7 @@ test('shared image admission retains the complete existing format, palette, latt
       s.crop = {};
     },
     (s) => {
-      s.version = 2;
+      s.version = 1;
     },
     (s) => {
       s.anchorX = 'center';
@@ -183,7 +184,7 @@ test('shared image admission retains the complete existing format, palette, latt
       s.levels[0].indices.pop();
     },
     (s) => {
-      s.levels[0].indices[0] = 4;
+      s.levels[0].indices[0] = 16;
     },
     (s) => {
       s.levels[0].paletteRgb555 = [0, 0, 2];
@@ -197,10 +198,12 @@ test('shared image admission retains the complete existing format, palette, latt
   ]) {
     const source = imageInput().source;
     change(source);
-    failures(await compile([savedImageInput('invalid', source)]), ['asset_invalid_image']);
+    const invalid = savedImageInput('invalid', source);
+    invalid.reference.version = 2;
+    failures(await compile([invalid]), ['asset_invalid_image']);
   }
   const transparent = imageInput().source;
-  transparent.levels[0] = { paletteRgb555: [], indices: Array(8).fill(0) };
+  transparent.levels[0].indices = Array(8).fill(0);
   ok(await compile([savedImageInput('transparent', transparent)]));
 });
 
@@ -225,7 +228,7 @@ test('unique-source texel accounting admits the exact total and rejects the next
     ...imageInput().source,
     width: 1024,
     height: 1024,
-    levels: [{ paletteRgb555: [], indices: Array(1024 * 1024).fill(0) }],
+    levels: [{ ...imageInput().source.levels[0], indices: Array(1024 * 1024).fill(0) }],
   };
   const images = Array.from({ length: 8 }, (_, i) =>
     savedImageInput(`master-${i}`, { ...source, name: `master-${i}` }),

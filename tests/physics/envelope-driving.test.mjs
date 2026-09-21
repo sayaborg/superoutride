@@ -1,3 +1,4 @@
+import { createTestSpriteAssets } from '../helpers/sprite-assets.mjs';
 import { createPlanarCoordinateSample } from '../../dist/core/planar-sample.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -12,13 +13,13 @@ import {
 } from '../../dist/gameplay/envelope-driver.js';
 import { createDynamicVehicleCourseSprite } from '../../dist/render/dynamic-vehicle-sprite.js';
 import { deriveVehicleNormalizedBank, deriveVehicleSpriteFamily } from '../../dist/render/vehicle-presentation.js';
-import { createSpriteAssets, selectVehicleSprite } from '../../dist/visual/sprite-assets.js';
+import { selectVehicleSprite } from '../../dist/visual/sprite-assets.js';
 import { createTestCar, updateTestVehicle } from '../helpers/vehicle-fixture.mjs';
 import { driveMeasuredVehicle, testEnvelope } from '../helpers/envelope-driving.mjs';
 test('rival presentation uses supplied metadata and the same presentation-only bank primitive', () => {
   const guide = createStadiumGuide();
   const height = createHillDipHeightProfile(guide.length);
-  const assets = createSpriteAssets();
+  const assets = createTestSpriteAssets();
   const vehicle = { ...fakeCar(guide, 50), longitudinalSpeed: 30, yawRate: 0.2 };
   const before = structuredClone(vehicle);
   for (const presentationFamily of ['CAR', 'BIKE']) {
@@ -49,7 +50,7 @@ function fakeCar(guide, s, l = 0, speed = 45) {
 
 test('dynamic rival render adapter preserves road-relative physical height in ordinary CourseSprite', () => {
   const guide = createStadiumGuide();
-  const assets = createSpriteAssets();
+  const assets = createTestSpriteAssets();
   const height = createHillDipHeightProfile(guide.length);
   const car = fakeCar(guide, 123, 2, 50);
   car.y = 1.25;
@@ -65,15 +66,15 @@ test('dynamic rival render adapter preserves road-relative physical height in or
 
 test('dynamic rival orientation chooses a discrete existing yaw asset rather than runtime bitmap rotation', () => {
   const guide = createStadiumGuide();
-  const assets = createSpriteAssets();
+  const assets = createTestSpriteAssets();
   const height = createHillDipHeightProfile(guide.length);
   const car = fakeCar(guide, 123, 0, 50);
   const rear = createDynamicVehicleCourseSprite('RIVAL', car, car.yaw, assets.car, height);
   const side = createDynamicVehicleCourseSprite('RIVAL', car, car.yaw - Math.PI / 2, assets.car, height);
 
   assert.notEqual(rear.asset.name, side.asset.name);
-  assert.match(rear.asset.name, /^CAR_YAW_/);
-  assert.match(side.asset.name, /^CAR_YAW_/);
+  assert.ok(assets.car.assets.flat().includes(rear.asset));
+  assert.ok(assets.car.assets.flat().includes(side.asset));
 });
 test('rival controller drives through the first crest/bend with causal release and recontact', () => {
   const guide = createStadiumGuide();

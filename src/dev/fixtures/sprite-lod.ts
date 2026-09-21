@@ -1,24 +1,30 @@
-import { spriteLodLayout, type SpriteLodDocument } from '../../graphics/sprite.js';
+import { spriteIdentityMixtures, spriteLodLayout, type SpriteLodDocument } from '../../graphics/sprite.js';
 
-/** Deliberately distinct solid colors identify levels; these are not image-filter quality samples. */
-export function createSpriteLodFixture(width = 80, height = 56) {
+/** Distinct semantic palette slots identify levels; not a filtered-art quality sample. */
+export function createSpriteLodFixture(width = 80, height = 56): SpriteLodDocument {
   const colors = [0x03e0, 0x001f, 0x7c00, 0x7fe0, 0x7c1f, 0x03ff, 0x4210, 0x7fff];
+  const palette = [0, ...colors, ...Array<number>(15 - colors.length).fill(0)];
   return {
     format: 'superoutride.sprite-lod',
-    version: 1,
+    version: 2,
     name: `METRIC_${width}_${height}`,
     width,
     height,
     anchorX: (width - 1) / 2,
     anchorY: height - 1,
-    levels: spriteLodLayout(width, height).map((level, k) => ({
-      paletteRgb555: [colors[k % colors.length]!],
-      indices: Array<number>(level.width * level.height).fill(1),
-    })),
+    variants: [],
+    levels: spriteLodLayout(width, height).map((level, k) => {
+      const slot = (k % colors.length) + 1;
+      return {
+        paletteRgb555: k === 0 ? palette : [0, palette[slot]!, ...Array<number>(14).fill(0)],
+        mixtures: k === 0 ? spriteIdentityMixtures() : [[], [[slot, 1]], ...Array.from({ length: 14 }, () => [])],
+        indices: Array<number>(level.width * level.height).fill(1),
+      };
+    }),
   };
 }
 
-/** High-frequency paint and thin binary coverage for explicit offline recipe comparisons. */
+/** High-frequency paint and thin coverage for the shared direct-master filter diagnostic. */
 export function createSpriteLodFilterFixture(): SpriteLodDocument {
   const width = 80,
     height = 56,
@@ -28,12 +34,19 @@ export function createSpriteLodFilterFixture(): SpriteLodDocument {
   for (let y = 2; y < 12; y++) indices[y * width + 40] = 5;
   return {
     format: 'superoutride.sprite-lod',
-    version: 1,
+    version: 2,
     name: 'FILTER_CHECKER',
     width,
     height,
     anchorX: 39.5,
     anchorY: 55,
-    levels: [{ paletteRgb555: [0, 0x7fff, 0x4210, 0x5ef7, 0x7c00, 0x4000], indices }],
+    variants: [],
+    levels: [
+      {
+        paletteRgb555: [0, 0, 0x7fff, 0x4210, 0x5ef7, 0x7c00, 0x4000, ...Array<number>(9).fill(0)],
+        indices,
+        mixtures: spriteIdentityMixtures(),
+      },
+    ],
   };
 }

@@ -1,3 +1,4 @@
+import { createTestSpriteAssets } from '../helpers/sprite-assets.mjs';
 import { createBodyKinematicsWorkspace } from '../../dist/physics/arcade-vehicle-physics.js';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
@@ -13,7 +14,7 @@ import {
   deriveVehicleLeanRadians as lean,
 } from '../../dist/render/vehicle-presentation.js';
 import { VEHICLE_CATALOG } from '../../dist/vehicle/vehicle-catalog.js';
-import { createSpriteAssets, selectVehicleSprite } from '../../dist/visual/sprite-assets.js';
+import { selectVehicleSprite } from '../../dist/visual/sprite-assets.js';
 import { createTerrainProbe, runTerrainProbe } from '../../tools/physics/torque-protection-terrain-probe.mjs';
 import { withHighBikeCg, withHighBikeCgEntry } from '../helpers/bike-cg-reference.mjs';
 const bikes = VEHICLE_CATALOG.filter((e) => e.presentationFamily === 'BIKE');
@@ -106,7 +107,7 @@ test('real sideslip acceleration and world sprite bank share the observed outer-
   assert.ok(Math.abs(a) > 1);
   assert.ok(Math.abs(lean(v) - Math.atan2(a, g)) < 1e-12);
   assert.ok(Math.abs(lean(v) - Math.atan2(v.longitudinalSpeed * v.yawRate, g)) > 0.01);
-  const assets = createSpriteAssets();
+  const assets = createTestSpriteAssets();
   const sprite = createDynamicVehicleCourseSprite(
     'bike',
     v,

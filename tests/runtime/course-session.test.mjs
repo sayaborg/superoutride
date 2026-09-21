@@ -1,3 +1,4 @@
+import { createTestSpriteAssets } from '../helpers/sprite-assets.mjs';
 import { testEnvelope } from '../helpers/envelope-driving.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -131,7 +132,7 @@ test('expired physical crossing cannot award progress or checkpoint time', () =>
   const vehicle = browserSessionVehicle(VEHICLE_CATALOG[0]);
   const budgets = { initialMs: 1, after: () => 1000 };
   const session = resolveCourseSession(course, settings, vehicle, budgets),
-    scene = createCourseScene(course.entry, ground);
+    scene = createCourseScene(course.entry, ground, createTestSpriteAssets());
   const first = course.rules.intervals[0].checkpoints[0];
   const car = createArcadeVehicle(vehicle.profile, scene.world, {
     ...vehicle,
@@ -141,6 +142,7 @@ test('expired physical crossing cannot award progress or checkpoint time', () =>
   });
   const actor = { vehicle: car, recovery: createRecoveryState(car), cameraRig: createCameraRig() };
   const race = createCourseRace({
+    sprites: createTestSpriteAssets(),
     session,
     player: actor,
     playerSession: scene.session,

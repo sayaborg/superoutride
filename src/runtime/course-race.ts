@@ -27,7 +27,7 @@ import {
 import type { DrivingInput } from '../input/driving-input.js';
 import { createArcadeVehicle, type ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
 import { createDynamicVehicleCourseSprite } from '../render/dynamic-vehicle-sprite.js';
-import { createSpriteAssets } from '../visual/sprite-assets.js';
+import { createVehiclePaletteVariant, type SpriteAssets } from '../visual/sprite-assets.js';
 import type { SessionVehicle } from '../gameplay/session-configuration.js';
 import type { CourseSprite } from '../render/course-sprite.js';
 import { createRivalRoster } from './rival-roster.js';
@@ -48,6 +48,7 @@ export function createCourseRace(options: {
   readonly createSession: () => Session;
   readonly rival: SessionVehicle;
   readonly rivalEnvelope?: VehicleEnvelope;
+  readonly sprites: SpriteAssets;
 }) {
   const { course, configuration, grid, initialSpeed, budgets } = options.session;
   if (configuration.rivalCount && !options.rivalEnvelope)
@@ -94,7 +95,15 @@ export function createCourseRace(options: {
       targetL,
     );
   });
-  const assets = createSpriteAssets();
+  const assets = options.sprites;
+  const brakePalettes = new Map(
+    rivals.map((c) => [
+      c.id,
+      options.rival.profile.id === 'TESTAROSSA'
+        ? createVehiclePaletteVariant(assets.car, assets.car.assets[0]![0]!.paletteChoices[1]!)
+        : assets[rivalKind],
+    ]),
+  );
   const resync = (c: typeof player) => c.observer.resync();
   const lane = (c: typeof player, s: number) => forks.targetL(c.session.history.active.section, s, c.targetL);
   const competitors = [player, ...rivals];
@@ -114,6 +123,7 @@ export function createCourseRace(options: {
     },
     input: (s: number) => lane(c, s),
   }));
+  const actorInputs = new Map(motions.map((motion) => [motion.c.id, motion.step]));
   const move = (motion: (typeof motions)[number], input: DrivingInput, dt: number) => {
     const { c, previous } = motion;
     const { actor, session } = c;
@@ -287,7 +297,7 @@ export function createCourseRace(options: {
             c.id,
             c.vehicle,
             camera.yaw,
-            assets[rivalKind],
+            actorInputs.get(c.id)?.input.brake ? brakePalettes.get(c.id)! : assets[rivalKind],
             player.session.view.world.height,
           ),
         );

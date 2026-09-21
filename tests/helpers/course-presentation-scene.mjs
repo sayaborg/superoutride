@@ -1,3 +1,4 @@
+import { TileBackgroundImage } from '../../dist/graphics/tile-background-image.js';
 import { createPlanarCoordinateSample } from '../../dist/core/planar-sample.js';
 import assert from 'node:assert/strict';
 import { coursePortLateral } from '../../dist/compiler/course-links.js';
@@ -10,7 +11,6 @@ import { readSpriteLodAsset } from '../../dist/graphics/sprite.js';
 import { rgb555ToRgba } from '../../dist/graphics/rgb555.js';
 import { VisualProfile } from '../../dist/visual/visual-profile.js';
 import { renderDriving } from '../../dist/render/renderer.js';
-import { SoftwareSurface } from '../../dist/graphics/software-surface.js';
 import {
   compileCourseSprite,
   createCourseSpriteObservation,
@@ -80,14 +80,10 @@ export function coursePresentationScene(
       groundBaseRight: base(e.groundBaseRight),
     })),
   );
-  const environment = p.environments[0],
-    backgroundImage = readSpriteLodAsset(environment.background.asset.source);
-  const surface = new SoftwareSurface(backgroundImage.width, backgroundImage.height);
-  surface.pixels.set(backgroundImage.levels[0].pixels);
+  const environment = p.environments[0];
   const background = {
-    surface,
+    image: new TileBackgroundImage(environment.background.asset.source),
     sourceHorizonY: environment.background.horizonY,
-    pixelsPerRadian: environment.background.pixelsPerRadian,
     yawOriginRadians: environment.background.yawOriginRadians,
   };
   const worldSprites = from

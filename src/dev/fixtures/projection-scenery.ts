@@ -2,12 +2,12 @@ import type { GuidePath } from '../../core/guide-curve.js';
 import type { HeightProfileReader } from '../../core/height-profile.js';
 import type { SpriteAsset } from '../../graphics/sprite.js';
 import { compileCourseSprite, type CourseSprite, type CourseSpriteAuthoring } from '../../render/course-sprite.js';
-import type { SpriteAssets } from '../../visual/sprite-assets.js';
+import type { createProjectionSpriteAssets } from './projection-sprite-assets.js';
 
 export function createRoadsideSprites(
   guide: GuidePath,
   height: HeightProfileReader,
-  assets: SpriteAssets,
+  assets: ReturnType<typeof createProjectionSpriteAssets>,
 ): CourseSprite[] {
   const authored: CourseSpriteAuthoring[] = [];
   let serial = 0;

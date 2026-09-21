@@ -49,7 +49,7 @@ export function generateSpritePalette(
       weight,
       channels: [(code >>> 10) & 31, (code >>> 5) & 31, code & 31],
     }));
-  if (bins.length <= maxColors) return bins.map((bin) => bin.code);
+  if (bins.length <= maxColors) return paddedPalette(bins.map((bin) => bin.code));
   const boxes = [box(bins)];
   while (boxes.length < maxColors) {
     // Priority: greatest channel range, total alpha, then lowest contained RGB555 code.
@@ -69,16 +69,18 @@ export function generateSpritePalette(
     } while (split < sorted.length - 1 && weight < selected.weight / 2);
     boxes.push(box(sorted.slice(0, split)), box(sorted.slice(split)));
   }
-  return [
-    ...new Set(
-      boxes.map(({ bins, weight }) => {
-        const mean = [0, 1, 2].map((axis) =>
-          Math.round(bins.reduce((sum, bin) => sum + bin.weight * bin.channels[axis]!, 0) / weight),
-        );
-        return (mean[0]! << 10) | (mean[1]! << 5) | mean[2]!;
-      }),
-    ),
-  ].sort((a, b) => a - b);
+  return paddedPalette(
+    [
+      ...new Set(
+        boxes.map(({ bins, weight }) => {
+          const mean = [0, 1, 2].map((axis) =>
+            Math.round(bins.reduce((sum, bin) => sum + bin.weight * bin.channels[axis]!, 0) / weight),
+          );
+          return (mean[0]! << 10) | (mean[1]! << 5) | mean[2]!;
+        }),
+      ),
+    ].sort((a, b) => a - b),
+  );
 }
 
 function box(bins: readonly ColorBin[]) {
@@ -98,4 +100,8 @@ function box(bins: readonly ColorBin[]) {
   const range = Math.max(...ranges),
     axis = ranges.indexOf(range); // R, then G, then B on ties.
   return { bins, weight, minimum, range, axis };
+}
+
+function paddedPalette(colors: readonly number[]): number[] {
+  return [0, ...colors, ...Array<number>(15 - colors.length).fill(colors[0] ?? 0)];
 }

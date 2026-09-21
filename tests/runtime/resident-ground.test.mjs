@@ -1,3 +1,4 @@
+import { palette16 } from '../helpers/indexed-images.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { compileResidentGround } from '../../dist/groundmap/compile-resident-ground.js';
@@ -20,12 +21,12 @@ function source(length = 3.315) {
     ],
   });
   const band = { start: { s: 0 }, end: { s: length }, left: boundary(-0.32, -0.28), right: boundary(1.1, 1.6) };
-  const image = { width: 2, height: 2, levels: [{ paletteRgb555: [0, 32767, 31], indices: [1, 2, 3, 0] }] };
+  const image = { width: 2, height: 2, levels: [{ paletteRgb555: palette16([0, 32767, 31]), indices: [1, 2, 3, 0] }] };
   const paint = {
     asset: { source: image },
     phaseS: 0.013,
     phaseL: -0.027,
-    alternate: { paletteRgb555: [1024, 992, 31744], spanS: 0.225, spanL: 0.15 },
+    alternate: { paletteRgb555: palette16([1024, 992, 31744]), spanS: 0.225, spanL: 0.15 },
   };
   return {
     partition: { length, bands: [band] },
@@ -196,7 +197,7 @@ test('equal L0 with different directly filtered lower levels remains two diction
     phaseS: 0,
     phaseL: 0,
     alternate: null,
-    asset: { source: { width: 2, height: 4, levels: [{ paletteRgb555: [0, 1], indices }] } },
+    asset: { source: { width: 2, height: 4, levels: [{ paletteRgb555: [0, 0, 1, ...Array(13).fill(0)], indices }] } },
   });
   const data = {
     partition: { length, bands: [a, b] },

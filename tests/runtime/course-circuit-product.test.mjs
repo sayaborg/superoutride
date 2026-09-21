@@ -1,3 +1,4 @@
+import { createTestSpriteAssets } from '../helpers/sprite-assets.mjs';
 import { resolveCourseSession } from '../../dist/runtime/course-session.js';
 import { browserSessionVehicle } from '../../dist/browser/session-vehicle.js';
 import { testGround } from '../helpers/resident-ground.mjs';
@@ -24,7 +25,7 @@ assert.equal(result.ok, true, JSON.stringify(result.diagnostics));
 const course = result.value;
 const ground = await testGround(course, 'circuit');
 function fixture() {
-  const scene = createCourseScene(course.entry, ground);
+  const scene = createCourseScene(course.entry, ground, createTestSpriteAssets());
   const vehicle = createArcadeVehicle(entry.profile, scene.world, {
     ...browserSessionVehicle(entry),
     s: 45,
@@ -37,6 +38,7 @@ function fixture() {
 test('standing player and rival physically finish a transformed source lap with shared content and bounded histories', () => {
   const { scene, actor } = fixture();
   const race = createCourseRace({
+    sprites: createTestSpriteAssets(),
     session: resolveCourseSession(
       course,
       { mode: 'CUSTOM', rivalCount: 1, lapCount: 1, countdown: false },

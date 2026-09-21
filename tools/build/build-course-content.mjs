@@ -1,9 +1,10 @@
 import { buildCourseReferences } from './build-course-reference.mjs';
-import { cp, mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { readCourseDocument } from '../../dist/course/course-document.js';
 import { compileCourseDocument } from '../../dist/compiler/compiled-course.js';
 import { compileCourseGround } from '../../dist/compiler/course-ground.js';
+import { compileCourseImages } from '../course/compile-course-images.mjs';
 import { readCourseImages } from '../course/read-course-images.mjs';
 
 const content = new URL('../../content/', import.meta.url);
@@ -22,10 +23,19 @@ for (const name of (await readdir(new URL('courses/', content))).sort()) {
   const bytes = await readFile(new URL(`courses/${name}`, content));
   const document = readCourseDocument(JSON.parse(bytes));
   if (!document.ok) throw new Error(JSON.stringify(document.diagnostics));
-  const compiled = await compileCourseDocument(
+  const prepared = await compileCourseImages(
     document.value,
     await readCourseImages(document.value.assets, new URL('images/', content).pathname),
   );
+  const compiled = await compileCourseDocument(prepared.document, prepared.images);
+  await stage(`courses/${name}`, prepared.document);
+  for (const image of prepared.images) {
+    const path = `images/${image.sha256}.json`;
+    if (entries.some((entry) => entry.path === path)) continue;
+    await mkdir(new URL('images/', destination), { recursive: true });
+    await writeFile(new URL(path, destination), image.bytes);
+    entries.push({ path, sha256: image.sha256 });
+  }
   if (!compiled.ok) throw new Error(JSON.stringify(compiled.diagnostics));
   const ground = await compileCourseGround(compiled.value);
   await mkdir(new URL('ground/', destination), { recursive: true });
@@ -46,17 +56,12 @@ for (const name of (await readdir(new URL('courses/', content))).sort()) {
   );
 }
 await buildCourseReferences(courses, stage);
-for (const directory of ['courses', 'images']) {
-  await mkdir(new URL(`${directory}/`, destination), { recursive: true });
-  for (const name of (await readdir(new URL(`${directory}/`, content))).sort()) {
-    const path = `${directory}/${name}`;
-    const source = new URL(path, content);
-    const sha256 = createHash('sha256')
-      .update(await readFile(source))
-      .digest('hex');
-    await cp(source, new URL(path, destination));
-    entries.push({ path, sha256 });
-  }
-}
+const spriteLibraryPath = 'sprites/vehicles.json';
+entries.push({
+  path: spriteLibraryPath,
+  sha256: createHash('sha256')
+    .update(await readFile(new URL(spriteLibraryPath, destination)))
+    .digest('hex'),
+});
 await writeFile(new URL('manifest.json', destination), JSON.stringify({ version: 1, files: entries }) + '\n');
 console.log(`Validated and staged ${entries.length} course content files`);
