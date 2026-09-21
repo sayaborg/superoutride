@@ -3,6 +3,7 @@ import { compileBandFrame, compileBandRowPyramid } from './band-row-pyramid.mjs'
 import { createFilteredBandRaster } from './band-filtered-raster.mjs';
 import { createResolvedSlabRaster } from './band-slab-raster.mjs';
 import { integrateOrderedBandBox } from './band-area-oracle.mjs';
+import { diagnoseBandFootprint, diagnoseBandPhaseLoss } from './band-footprint-diagnostic.mjs';
 
 const curve = (points) => ({ knots: points.map(([s, l]) => ({ anchor: { s }, l })) });
 function study(movingFrame, kink) {
@@ -108,6 +109,8 @@ export function measureRevisedBandQualification() {
       'Synthetic ordered open-edge tests; 0.25 m/pixel, 320 pixels; independent rectangle oracle. Not general real-content visual acceptance.',
     limits: { maximumDisplacementPixelsExclusive: 1 },
     transitions,
+    footprintDiagnostic: diagnoseBandFootprint(),
+    phaseDiagnostic: diagnoseBandPhaseLoss(),
     qualified: transitions.every(
       (t) =>
         t.octave.displacementPixels < 1 && t.nearFar.displacementPixels < 1 && t.exactOracle.displacementPixels < 1,

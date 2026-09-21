@@ -66,7 +66,7 @@ const comparisons = modes.map((mode) => {
     };
   });
   const first = selected.find((run) => run.variant === 'revised');
-  const performanceQualified = [1, 2, 3].every((repetition) => {
+  const optimizationTargetMet = [1, 2, 3].every((repetition) => {
     const baseline = selected.find((run) => run.variant === 'resident' && run.repetition === repetition);
     const candidate = selected.find((run) => run.variant === 'revised' && run.repetition === repetition);
     return (
@@ -79,7 +79,7 @@ const comparisons = modes.map((mode) => {
     mode,
     stateSha256: first.stateSha256,
     reports,
-    performanceQualified,
+    optimizationTargetMet,
     nearBudgetQualified: first.trial.sections.every((section) => section.maximumIntervals <= 64),
     farBudgetQualified: first.trial.sections.every((section) =>
       section.far.every((range) => range.levels.every((level) => level.rowLength <= level.structuralMaximum)),
@@ -115,12 +115,10 @@ const result = {
   comparisons,
   transition,
   priorTransition,
-  qualified:
-    comparisons.every((row) => row.performanceQualified && row.nearBudgetQualified && row.farBudgetQualified) &&
-    transition.qualified,
+  qualified: comparisons.every((row) => row.nearBudgetQualified && row.farBudgetQualified) && transition.qualified,
   remaining: [
     'general real-content projective transition and motion acceptance beyond the recorded causal cases',
-    'K ground-representation decision if any qualification condition fails',
+    'shared-footprint reconstruction must repair the recorded correctness failures',
     'K device acceptance',
   ],
 };

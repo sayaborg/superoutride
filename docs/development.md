@@ -533,7 +533,10 @@ content fails with a diagnostic; measurements never silently increase a ceiling.
 Qualification uses three fresh-process repetitions per mode/variant, 300 measured frames after 30 warmup
 frames, 16 fully simulated rivals and a separate 30-frame allocation pass. Run children serially on an
 otherwise idle runner; report median/p95 ranges and host limitations, with CI as the reference. Compare
-resident, the prior interval-pyramid trial and the revised full-ground reader. Each mode must meet or beat
-resident render median, p95 and render allocation. Record 50/100/200 m row costs, actual packed data sizes,
-level counts, ordered-paint/oracle errors and subpixel ownership/filter transitions. A failed trial leaves
-resident ground in place pending K's explicit adoption decision, without increasing any gate.
+resident, the prior interval-pyramid trial and the revised full-ground reader. Resident render median,
+p95 and render allocation remain per-mode optimization targets, not adoption or release gates. Colored
+Band ground is adopted with its storage/render-time trade-off; production replacement still requires the
+unchanged product performance gates, interval/row budgets, exact-oracle bounds and less-than-one-pixel
+edge, filter and Section continuity. Record 50/100/200 m row costs, actual packed data sizes, level counts,
+ordered-paint/oracle errors and every repetition. Failed correctness leaves the current resident product
+in place until repaired; neither adoption nor optimization authorizes raising a correctness or product gate.

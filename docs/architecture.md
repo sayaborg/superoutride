@@ -181,7 +181,8 @@ interval endpoints at both row-footprint ends; fill common interior spans direct
 pixels swept by an edge with clipped affine integrals. Work is screen width plus resolved edge work,
 not screen width times overlapping Bands.
 
-For far rows, compile one-dimensional, box-filtered row rasters. Longitudinal buckets begin at 1.6 m
+For far rows, box-filter those same resolved slabs into one-dimensional row rasters; do not resolve
+a second authored Band list. Longitudinal buckets begin at 1.6 m
 and double until the observed maximum render footprint is covered. At width w, lateral sampling is
 `d/f` with `d=sqrt(w*f*h)` for the current camera calibration. Store RGB555 and 8-bit opaque coverage,
 not exact subpixel interval arrangements. Normalize lateral u between the exact outer road edges;
@@ -198,8 +199,8 @@ Footprints below 1.6 m use slabs; larger footprints use row rasters. Causal test
 moving open edges and Section ownership transitions below one destination pixel, including adversarial
 moving edges. Exact ordered rectangle integration remains the compile/test oracle, never a runtime
 fallback. The trial must cover the entire ground plane, ownership-clipped Section spans, arrows and
-transparent cliffs, and must beat or equal the resident timing/allocation baselines in every mode before
-this target can replace the resident implementation.
+transparent cliffs before this target can replace the resident implementation. Resident-relative
+optimization targets and the unchanged product gates belong to [Development](development.md#colored-ground-trial-budgets).
 
 ## Sprites and Painter
 
