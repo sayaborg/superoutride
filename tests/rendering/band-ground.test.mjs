@@ -48,6 +48,12 @@ test('last declaration wins regardless of activation order; transparent Bands er
   );
   const tails = row(whole(ground), { s: 9, l: -1e6, stepL: 2e6, count: 2, filter: 'POINT' }).pixels;
   assert.deepEqual(Array.from(tails), [rgb555ToRgba(RED), rgb555ToRgba(RED)]);
+  // At this finite edge, edge - 1 rounds back onto the edge; no interior witness is needed.
+  const open = compileBandGround(1, [piece(0, 1, null, 1e16, RED), piece(0, 1, 1e16, null, BLUE)]);
+  assert.deepEqual(Array.from(row(whole(open), { s: 0.5, l: 0, stepL: 2e16, count: 2, filter: 'POINT' }).pixels), [
+    rgb555ToRgba(RED),
+    rgb555ToRgba(BLUE),
+  ]);
 });
 
 test('crossing affine edges resolve into immutable slabs; changing input cannot change the published field', () => {

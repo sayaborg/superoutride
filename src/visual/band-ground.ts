@@ -130,17 +130,11 @@ export function resolveBandSlabs(length: number, pieces: readonly BandPiece[]): 
           re = distinct[k];
         const l = le?.x ?? -Infinity,
           r = re?.x ?? Infinity;
-        const witness = !Number.isFinite(l)
-          ? !Number.isFinite(r)
-            ? 0
-            : r - 1
-          : !Number.isFinite(r)
-            ? l + 1
-            : l + (r - l) / 2;
         let color: number | null = null;
         for (let n = active.length - 1; n >= 0; n--) {
           const p = active[n]!.piece;
-          if (bandEdgeAt(p, 'left', middle) <= witness && witness < bandEdgeAt(p, 'right', middle)) {
+          // Every edge already bounds a cell; interval containment avoids an unrepresentable interior witness.
+          if (bandEdgeAt(p, 'left', middle) <= l && r <= bandEdgeAt(p, 'right', middle)) {
             color = p.color;
             break;
           }
