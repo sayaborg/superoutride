@@ -1,9 +1,9 @@
-import type { CourseDocument, CourseLandmarkDocument } from '../course/course-document.js';
-import { requireCourse } from '../course/course-diagnostics.js';
-import { resolveCourseAnchor, type CompiledCourseAnchor } from '../course/course-geometry.js';
-import { courseBoundaryAt, type CompiledCarriageway } from '../course/course-regions.js';
-import { coursePhysicalMaterialAt } from '../course/course-physical-binding.js';
-import { createRegionSurfaceReader } from '../physics/region-surface-reader.js';
+import type { CourseDocument, CourseLandmarkDocument } from '../course-document.js';
+import { requireCourse } from '../course-diagnostics.js';
+import { resolveCourseAnchor, type CompiledCourseAnchor } from '../course-geometry.js';
+import { courseBoundaryAt, type CompiledCarriageway } from '../course-regions.js';
+import { coursePhysicalMaterialAt } from '../course-physical-binding.js';
+import { createRegionSurfaceReader } from '../region-surface-reader.js';
 import type { CompiledSection } from './course-graph.js';
 
 export interface CompiledCourseLandmark {

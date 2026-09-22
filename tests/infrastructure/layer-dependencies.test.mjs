@@ -33,8 +33,8 @@ const legacyDependencies = {
   authoring: ['course', 'compiler'],
   physics: ['core', 'course', 'input'],
   vehicle: ['physics'],
-  camera: ['core', 'physics'],
-  gameplay: ['core', 'input', 'physics'],
+  camera: ['core', 'course', 'physics'],
+  gameplay: ['core', 'course', 'input', 'physics'],
   visual: ['core', 'course', 'graphics', 'image'],
   terrain: ['core', 'course', 'visual'],
   render: ['camera', 'core', 'course', 'graphics', 'image', 'physics', 'terrain', 'vehicle', 'visual'],
@@ -60,11 +60,14 @@ const knownLayers = new Set([...layers, ...legacyLayers]);
 
 // RGBA codecs and the blitter's target still share the legacy framebuffer module.
 // These exact existing imports stay visible until that mixed responsibility is separated.
-const imageSurfaceImports = new Set([
+const deferredImports = new Set([
   'image/image-filter.ts -> graphics/software-surface.js',
   'image/rgb555.ts -> graphics/software-surface.js',
   'image/sprite-palette.ts -> graphics/software-surface.js',
   'image/sprite.ts -> graphics/software-surface.js',
+  // Compile and sampling share private coefficients; separating them needs a read boundary.
+  // Keep their existing implementation together until 5-4e instead of exporting mutable storage.
+  'course/band-ground.ts -> graphics/display-settings.js',
 ]);
 
 function layerOf(relative) {
@@ -75,7 +78,7 @@ function layerOf(relative) {
 
 test('engine ownership follows an acyclic dependency direction, including type imports', async () => {
   const graph = new Map();
-  const seenImageSurfaceImports = new Set();
+  const seenDeferredImports = new Set();
   for (const file of await collectFiles(sourceRoot, ['.ts'])) {
     const relative = path.relative(sourceRoot, file).split(path.sep).join('/');
     const layer = layerOf(relative);
@@ -101,8 +104,8 @@ test('engine ownership follows an acyclic dependency direction, including type i
           const edge = `${relative} -> ${targetFile}`;
           if (rank.has(layer) && rank.has(target)) {
             assert.ok(rank.get(target) < rank.get(layer), `upward domain dependency: ${edge}`);
-          } else if (imageSurfaceImports.has(edge)) {
-            seenImageSurfaceImports.add(edge);
+          } else if (deferredImports.has(edge)) {
+            seenDeferredImports.add(edge);
           } else {
             const allowed = layer === 'shell' ? legacyLayers : (legacyDependencies[layer] ?? []);
             assert.ok(allowed.includes(target), `legacy layer dependency: ${edge}`);
@@ -114,7 +117,7 @@ test('engine ownership follows an acyclic dependency direction, including type i
     }
     visit(syntax);
   }
-  assert.deepEqual(seenImageSurfaceImports, imageSurfaceImports, 'remove resolved framebuffer import exceptions');
+  assert.deepEqual(seenDeferredImports, deferredImports, 'remove resolved deferred import exceptions');
   const complete = new Set();
   function visit(layer, trail = []) {
     assert.ok(!trail.includes(layer), `layer cycle: ${[...trail, layer].join(' -> ')}`);

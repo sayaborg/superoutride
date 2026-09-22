@@ -1,5 +1,5 @@
-import { courseBoundaryAt } from '../course/course-regions.js';
-import { requireCourse } from '../course/course-diagnostics.js';
+import { courseBoundaryAt } from '../course-regions.js';
+import { requireCourse } from '../course-diagnostics.js';
 import type { CompiledLink, CompiledPort } from './course-graph.js';
 import { coursePortLateral } from './course-links.js';
 import type { CourseQueryExtent } from './course-consumer-demand.js';

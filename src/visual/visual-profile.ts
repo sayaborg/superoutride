@@ -1,4 +1,4 @@
-import { compileOpenProfile, openProfileChainage, profileIndexAt } from '../core/open-profile.js';
+import { compileOpenProfile, openProfileChainage, profileIndexAt } from '../course/geometry/open-profile.js';
 import { nonEmptyId } from '../core/validation.js';
 
 interface VisualSection {

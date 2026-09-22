@@ -1,8 +1,8 @@
 import { createPlanarCoordinateSample } from '../core/planar-sample.js';
-import type { CompiledCourse } from '../compiler/compiled-course.js';
-import type { CompiledSection } from '../compiler/course-graph.js';
-import type { CompiledCourseLandmark } from '../compiler/course-rules.js';
-import { guidePathToWorld } from '../core/guide-curve.js';
+import type { CompiledCourse } from '../course/compiler/compiled-course.js';
+import type { CompiledSection } from '../course/compiler/course-graph.js';
+import type { CompiledCourseLandmark } from '../course/compiler/course-rules.js';
+import { guidePathToWorld } from '../course/geometry/guide-curve.js';
 import {
   createCircuitRaceProgressState,
   updateCircuitRaceProgress,

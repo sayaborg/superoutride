@@ -1,5 +1,5 @@
 import { createPlanarCoordinateSample } from '../core/planar-sample.js';
-import { guideCoordinateDomain, guideCoordinateToWorld } from '../core/guide-coordinate-frame.js';
+import { guideCoordinateDomain, guideCoordinateToWorld } from '../course/geometry/guide-coordinate-frame.js';
 import { clamp } from '../core/math.js';
 import type { DrivingInput } from '../input/driving-input.js';
 import {

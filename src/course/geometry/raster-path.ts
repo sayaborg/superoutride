@@ -1,6 +1,6 @@
-import type { Writable } from './writable.js';
-import { headingFromDelta, normalFromHeading, wrapAngle, type Vec2 } from './math.js';
-import { GEOMETRY_SAMPLING_TOLERANCE_METERS } from './tolerances.js';
+import type { Writable } from '../../core/writable.js';
+import { headingFromDelta, normalFromHeading, wrapAngle, type Vec2 } from '../../core/math.js';
+import { GEOMETRY_SAMPLING_TOLERANCE_METERS } from '../../core/tolerances.js';
 
 export interface RasterVertex extends Vec2 {
   // Optional editor/compiler circular-arc provenance.

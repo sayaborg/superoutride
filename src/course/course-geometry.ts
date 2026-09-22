@@ -1,4 +1,4 @@
-import { compileRasterPath, type RasterPath } from '../core/raster-path.js';
+import { compileRasterPath, type RasterPath } from './geometry/raster-path.js';
 import { CourseInputError } from './course-diagnostics.js';
 import {
   COURSE_DOCUMENT_LIMITS,

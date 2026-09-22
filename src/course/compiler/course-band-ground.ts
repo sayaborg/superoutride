@@ -1,6 +1,6 @@
-import type { BandElementDocument } from '../course/course-document.js';
-import { CourseInputError } from '../course/course-diagnostics.js';
-import { compileBandGround, type BandPiece } from '../visual/band-ground.js';
+import type { BandElementDocument } from '../course-document.js';
+import { CourseInputError } from '../course-diagnostics.js';
+import { compileBandGround, type BandPiece } from '../band-ground.js';
 
 /** A small authored 5 by 7 block alphabet; rows expand to runs of Bands. */
 const GLYPHS: Readonly<Record<string, string>> = Object.freeze({

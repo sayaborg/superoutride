@@ -1,14 +1,14 @@
-import type { GuidePath } from '../core/guide-curve.js';
-import type { RasterPath } from '../core/raster-path.js';
-import type { HeightProfileReader } from '../core/height-profile.js';
-import type { PlanarPose, PlanarTransform } from '../core/planar-transform.js';
-import type { SectionDocument } from '../course/course-document.js';
+import type { GuidePath } from '../geometry/guide-curve.js';
+import type { RasterPath } from '../geometry/raster-path.js';
+import type { HeightProfileReader } from '../geometry/height-profile.js';
+import type { PlanarPose, PlanarTransform } from '../../core/planar-transform.js';
+import type { SectionDocument } from '../course-document.js';
 import type { CompiledCourseImageSource } from './course-image-source.js';
-import type { CoursePresentation } from '../visual/course-presentation.js';
-import type { CompiledCourseAnchor, CompiledPlanPrimitive } from '../course/course-geometry.js';
-import type { CompiledBoundary, CompiledRegionPartition, CompiledCarriageway } from '../course/course-regions.js';
-import type { CompiledPhysicalBinding } from '../course/course-physical-binding.js';
-import type { SurfaceMaterial } from '../physics/surface-map.js';
+import type { CoursePresentation } from '../course-presentation.js';
+import type { CompiledCourseAnchor, CompiledPlanPrimitive } from '../course-geometry.js';
+import type { CompiledBoundary, CompiledRegionPartition, CompiledCarriageway } from '../course-regions.js';
+import type { CompiledPhysicalBinding } from '../course-physical-binding.js';
+import type { SurfaceMaterial } from '../surface-material.js';
 
 /** Canonical reusable node, including back-references. Topology may intentionally cycle. */
 export interface CompiledSection {

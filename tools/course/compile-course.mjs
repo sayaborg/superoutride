@@ -1,8 +1,8 @@
 import { readFile } from 'node:fs/promises';
 import { readCourseImages } from './read-course-images.mjs';
 import { parseCourseDocument } from '../../dist/course/course-document.js';
-import { createCourseProject } from '../../dist/authoring/course-project.js';
-import { createRegionSurfaceReader } from '../../dist/physics/region-surface-reader.js';
+import { createCourseProject } from '../../dist/course/course-project.js';
+import { createRegionSurfaceReader } from '../../dist/course/region-surface-reader.js';
 import { courseFailures, CourseAssetError } from '../../dist/course/course-diagnostics.js';
 const [sourcePath, flag, imageDirectory, ...extra] = process.argv.slice(2);
 if (!sourcePath || (flag !== undefined && (flag !== '--images' || !imageDirectory)) || extra.length)

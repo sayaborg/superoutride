@@ -1,5 +1,5 @@
-import { bandEdgeAt, type BandGround, type BandPiece } from '../visual/band-ground.js';
-import { requireCourse } from '../course/course-diagnostics.js';
+import { bandEdgeAt, type BandGround, type BandPiece } from '../band-ground.js';
+import { requireCourse } from '../course-diagnostics.js';
 import type { CompiledLink } from './course-graph.js';
 import type { CourseQueryExtent } from './course-consumer-demand.js';
 import { coursePortLateral } from './course-links.js';

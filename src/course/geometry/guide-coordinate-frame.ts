@@ -1,5 +1,5 @@
-import { createPlanarCoordinateSample } from './planar-sample.js';
-import type { Writable } from './writable.js';
+import { createPlanarCoordinateSample } from '../../core/planar-sample.js';
+import type { Writable } from '../../core/writable.js';
 import {
   createGuideProjectionWorkspace,
   guidePathToWorld,
@@ -8,7 +8,7 @@ import {
   type GuidePath,
   type GuideSample,
 } from './guide-curve.js';
-import type { Vec2 } from './math.js';
+import type { Vec2 } from '../../core/math.js';
 import { guideEnvelopeAt } from './guide-envelope.js';
 
 /**

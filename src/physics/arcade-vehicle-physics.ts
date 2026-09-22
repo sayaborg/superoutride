@@ -1,9 +1,9 @@
 import { createSurfaceGeometryWorkspace } from './vehicle-dynamics.js';
-import { createGuideProjectionWorkspace } from '../core/guide-curve.js';
+import { createGuideProjectionWorkspace } from '../course/geometry/guide-curve.js';
 import { createPlanarCoordinateSample } from '../core/planar-sample.js';
 import { type Writable } from '../core/writable.js';
 import { publishVehicleTireObservation } from './vehicle-tire-observation.js';
-import { guideCoordinateToWorld } from '../core/guide-coordinate-frame.js';
+import { guideCoordinateToWorld } from '../course/geometry/guide-coordinate-frame.js';
 import { clamp, wrapAngle } from '../core/math.js';
 import type { DrivingInput } from '../input/driving-input.js';
 import { createAutomaticPowertrainState, updateAutomaticPowertrain } from './automatic-powertrain.js';

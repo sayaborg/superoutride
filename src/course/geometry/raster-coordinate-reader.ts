@@ -1,4 +1,4 @@
-import type { Writable } from './writable.js';
+import type { Writable } from '../../core/writable.js';
 import { rasterPathToWorld, type CourseWorldSample, type RasterPath } from './raster-path.js';
 
 /** Read-only segment metadata and point mapping, without source vertices or topology. */

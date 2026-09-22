@@ -1,4 +1,4 @@
-import type { SurfaceType } from './surface-map.js';
+import type { SurfaceType } from '../course/surface-material.js';
 import type { WheelSolveResult } from './tire-wheel.js';
 import type { ContactObservation } from './vehicle-dynamics.js';
 

@@ -1,10 +1,10 @@
-import { HeightProfile } from '../core/height-profile.js';
-import type { SectionDocument, CourseAnchor } from '../course/course-document.js';
-import type { CompiledCourseAnchor } from '../course/course-geometry.js';
-import type { CompiledRegion } from '../course/course-regions.js';
-import type { CompiledPhysicalBinding } from '../course/course-physical-binding.js';
-import { CourseInputError, requireCourse } from '../course/course-diagnostics.js';
-import { SURFACE_MATERIALS, type SurfaceMaterial, type SurfaceType } from '../physics/surface-map.js';
+import { HeightProfile } from '../geometry/height-profile.js';
+import type { SectionDocument, CourseAnchor } from '../course-document.js';
+import type { CompiledCourseAnchor } from '../course-geometry.js';
+import type { CompiledRegion } from '../course-regions.js';
+import type { CompiledPhysicalBinding } from '../course-physical-binding.js';
+import { CourseInputError, requireCourse } from '../course-diagnostics.js';
+import { SURFACE_MATERIALS, type SurfaceMaterial, type SurfaceType } from '../surface-material.js';
 
 export const COURSE_PHYSICAL_RECIPE = Object.freeze({
   id: 'superoutride.course-physical',

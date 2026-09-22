@@ -3,10 +3,10 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { loadCourse } from '../../tools/course/authoring-io.mjs';
 import { compileCourseImages } from '../../tools/course/compile-course-images.mjs';
-import { compileCourseDocument } from '../../dist/compiler/compiled-course.js';
+import { compileCourseDocument } from '../../dist/course/compiler/compiled-course.js';
 import { readCourseDocument } from '../../dist/course/course-document.js';
-import { createRegionSurfaceReader } from '../../dist/physics/region-surface-reader.js';
-import { createBandGroundSampler, createBandRenderMetrics } from '../../dist/visual/band-ground.js';
+import { createRegionSurfaceReader } from '../../dist/course/region-surface-reader.js';
+import { createBandGroundSampler, createBandRenderMetrics } from '../../dist/course/band-ground.js';
 
 test('visual Bands can erase all ground without changing structural Regions, support or material readings', async () => {
   const file = fileURLToPath(new URL('../../content/courses/ribbon-coast.course.json', import.meta.url));

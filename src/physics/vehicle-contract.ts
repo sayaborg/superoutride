@@ -1,6 +1,6 @@
-import type { GuideCoordinateSource } from '../core/guide-coordinate-frame.js';
-import type { CourseCoordinate } from '../core/guide-curve.js';
-import type { HeightProfileReader } from '../core/height-profile.js';
+import type { GuideCoordinateSource } from '../course/geometry/guide-coordinate-frame.js';
+import type { CourseCoordinate } from '../course/geometry/guide-curve.js';
+import type { HeightProfileReader } from '../course/geometry/height-profile.js';
 import type { SurfaceMapReader } from './surface-map.js';
 
 /** Active physical readers; content/chart selection is resolved by composition. */

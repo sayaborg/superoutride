@@ -1,18 +1,19 @@
-import { createGuideProjectionWorkspace } from '../core/guide-curve.js';
+import { createGuideProjectionWorkspace } from '../course/geometry/guide-curve.js';
 import { createPlanarCoordinateSample } from '../core/planar-sample.js';
 import { type Writable } from '../core/writable.js';
-import { SURFACE_MATERIALS } from './surface-map.js';
+import { SURFACE_MATERIALS } from '../course/surface-material.js';
 import { resetVehicleTireObservation } from './vehicle-tire-observation.js';
 import {
   guideCoordinateMetricsAt,
   guideCoordinateToWorld,
   locateWorldOnGuideCoordinateLocal,
   type GuideCoordinateSource,
-} from '../core/guide-coordinate-frame.js';
-import type { CourseCoordinate } from '../core/guide-curve.js';
-import type { HeightProfileReader } from '../core/height-profile.js';
+} from '../course/geometry/guide-coordinate-frame.js';
+import type { CourseCoordinate } from '../course/geometry/guide-curve.js';
+import type { HeightProfileReader } from '../course/geometry/height-profile.js';
 import type { AutomaticPowertrainState } from './automatic-powertrain.js';
-import type { SurfaceMapReader, SurfaceMaterial, SurfaceType } from './surface-map.js';
+import type { SurfaceMapReader } from './surface-map.js';
+import type { SurfaceMaterial, SurfaceType } from '../course/surface-material.js';
 import type { CompiledTireProfile } from './tire-wheel.js';
 import {
   add3,

@@ -1,5 +1,5 @@
-import type { RasterVertex } from '../core/raster-path.js';
-import { MAX_RASTER_VERTEX_TURN_DEGREES } from '../core/raster-path.js';
+import type { RasterVertex } from './geometry/raster-path.js';
+import { MAX_RASTER_VERTEX_TURN_DEGREES } from './geometry/raster-path.js';
 import { finite, positiveFinite } from '../core/validation.js';
 
 /** Pinned authoring behavior; a behavior change requires a new recipe version. */

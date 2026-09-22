@@ -1,4 +1,4 @@
-import type { HeightProfileReader } from '../core/height-profile.js';
+import type { HeightProfileReader } from '../course/geometry/height-profile.js';
 import { wrapAngle } from '../core/math.js';
 import type { VehicleWorldPoseRead } from '../physics/vehicle-contract.js';
 import { selectVehicleSprite, type VehicleSpriteSet } from '../image/sprite-assets.js';

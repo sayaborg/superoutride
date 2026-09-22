@@ -1,14 +1,14 @@
 import { createDisplaySettings, type DisplaySettings } from '../graphics/display-settings.js';
-import type { CourseGround } from '../compiler/course-ground.js';
+import type { CourseGround } from '../course/compiler/course-ground.js';
 import {
   LOGICAL_HEIGHT,
   CURRENT_RENDER_NEAR_DEPTH_METERS,
   CURRENT_RENDER_FAR_DEPTH_METERS,
 } from '../core/presentation-scale.js';
-import type { CompiledSection } from '../compiler/course-graph.js';
+import type { CompiledSection } from '../course/compiler/course-graph.js';
 import type { CameraState } from '../camera/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../camera/current-camera-profile.js';
-import { coursePortLateral } from '../compiler/course-links.js';
+import { coursePortLateral } from '../course/compiler/course-links.js';
 import { recoverVehicleToGuideCoordinate, type RecoveryState } from '../gameplay/recovery.js';
 import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
 import type { VehicleRenderReadState } from '../physics/vehicle-contract.js';

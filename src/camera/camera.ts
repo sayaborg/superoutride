@@ -1,5 +1,5 @@
 import { createPlanarCoordinateSample } from '../core/planar-sample.js';
-import { guideCoordinateToWorld } from '../core/guide-coordinate-frame.js';
+import { guideCoordinateToWorld } from '../course/geometry/guide-coordinate-frame.js';
 import { clamp, wrapAngle } from '../core/math.js';
 import type { PseudoCamera } from '../core/projection.js';
 import type { VehicleCameraReadState, VehicleWorld } from '../physics/vehicle-contract.js';

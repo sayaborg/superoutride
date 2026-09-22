@@ -1,5 +1,5 @@
-import { contentDigest } from '../core/content-digest.js';
-import { compileGuidePath, type GuidePath } from '../core/guide-curve.js';
+import { contentDigest } from '../../core/content-digest.js';
+import { compileGuidePath, type GuidePath } from '../geometry/guide-curve.js';
 import {
   CourseInputError,
   courseFailure,
@@ -7,11 +7,11 @@ import {
   courseSuccess,
   requireCourse,
   type CourseResult,
-} from '../course/course-diagnostics.js';
-import { readCourseDocument, type CourseDocument, type SectionDocument } from '../course/course-document.js';
-import { COURSE_GEOMETRY_RECIPE, compileCourseGeometry, resolveCourseAnchor } from '../course/course-geometry.js';
-import { compileCourseRegionGeometry } from '../course/course-region-geometry.js';
-import type { CompiledBoundary, CompiledRegion, CompiledCarriageway } from '../course/course-regions.js';
+} from '../course-diagnostics.js';
+import { readCourseDocument, type CourseDocument, type SectionDocument } from '../course-document.js';
+import { COURSE_GEOMETRY_RECIPE, compileCourseGeometry, resolveCourseAnchor } from '../course-geometry.js';
+import { compileCourseRegionGeometry } from '../course-region-geometry.js';
+import type { CompiledBoundary, CompiledRegion, CompiledCarriageway } from '../course-regions.js';
 import type { CompiledSection, CompiledPort, CompiledLink } from './course-graph.js';
 import { COURSE_PHYSICAL_RECIPE, compileCoursePhysicalContent } from './course-physical-content.js';
 import { COURSE_LINK_RECIPE, compileCoursePort, compileCourseLink, validateCourseTopology } from './course-links.js';
@@ -22,7 +22,7 @@ import {
   type CompiledCourseImageSource,
 } from './course-image-source.js';
 import { COURSE_PRESENTATION_RECIPE, compileCoursePresentation } from './course-presentation.js';
-import type { CourseSceneryInstance } from '../visual/course-presentation.js';
+import type { CourseSceneryInstance } from '../course-presentation.js';
 import { compileCourseRules } from './course-rules.js';
 import { compileCourseFork } from './course-fork.js';
 

@@ -1,7 +1,7 @@
 import type { Writable } from '../core/writable.js';
-import type { GuidePath } from '../core/guide-curve.js';
+import type { GuidePath } from '../course/geometry/guide-curve.js';
 import { clamp, type Vec2 } from '../core/math.js';
-import { openProfileChainage } from '../core/open-profile.js';
+import { openProfileChainage } from '../course/geometry/open-profile.js';
 import {
   classifyPhysicalRaceMotionDirection,
   compilePhysicalRaceGate,

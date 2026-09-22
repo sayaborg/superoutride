@@ -1,5 +1,5 @@
 import { createPlanarCoordinateSample } from '../core/planar-sample.js';
-import { guideCoordinateToWorld, type GuideCoordinateSource } from '../core/guide-coordinate-frame.js';
+import { guideCoordinateToWorld, type GuideCoordinateSource } from '../course/geometry/guide-coordinate-frame.js';
 import { wrapAngle } from '../core/math.js';
 import { transformPlanarPoint, transformPlanarVector, type PlanarTransform } from '../core/planar-transform.js';
 import type { ArcadeVehicleState } from './arcade-vehicle-physics.js';

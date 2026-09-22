@@ -1,4 +1,4 @@
-import type { HeightProfileReader } from '../core/height-profile.js';
+import type { HeightProfileReader } from '../course/geometry/height-profile.js';
 import type { PseudoCamera } from '../core/projection.js';
 
 /**

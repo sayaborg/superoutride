@@ -1,4 +1,4 @@
-import { CourseInputError, courseFailure, courseSuccess, requireCourse } from '../course/course-diagnostics.js';
+import { CourseInputError, courseFailure, courseSuccess, requireCourse } from '../course-diagnostics.js';
 
 export interface CourseQueryExtent {
   readonly behind: number;

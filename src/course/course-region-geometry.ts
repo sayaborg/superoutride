@@ -1,6 +1,6 @@
-import type { GuideEnvelope } from '../core/guide-envelope.js';
+import type { GuideEnvelope } from './geometry/guide-envelope.js';
 import { tangentFromHeading, type Vec2 } from '../core/math.js';
-import type { RasterPath } from '../core/raster-path.js';
+import type { RasterPath } from './geometry/raster-path.js';
 import { COURSE_DOCUMENT_LIMITS } from './course-document.js';
 import { CourseInputError, requireCourse } from './course-diagnostics.js';
 import {

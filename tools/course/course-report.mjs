@@ -1,8 +1,8 @@
 import { createPlanarCoordinateSample } from '../../dist/core/planar-sample.js';
 import path from 'node:path';
 import { plotCourseReport } from './plot-report.mjs';
-import { guidePathToWorld, sampleGuidePath } from '../../dist/core/guide-curve.js';
-import { guideCoordinateMetricsAt } from '../../dist/core/guide-coordinate-frame.js';
+import { guidePathToWorld, sampleGuidePath } from '../../dist/course/geometry/guide-curve.js';
+import { guideCoordinateMetricsAt } from '../../dist/course/geometry/guide-coordinate-frame.js';
 import { courseBoundaryAt } from '../../dist/course/course-regions.js';
 import { atomicWrite, finite, requireInput } from './authoring-io.mjs';
 

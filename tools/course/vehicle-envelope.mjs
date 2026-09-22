@@ -1,7 +1,7 @@
 import { createBodyKinematicsWorkspace } from '../../dist/physics/arcade-vehicle-physics.js';
-import { compileGuidePath } from '../../dist/core/guide-curve.js';
-import { compileRasterPath } from '../../dist/core/raster-path.js';
-import { HeightProfile } from '../../dist/core/height-profile.js';
+import { compileGuidePath } from '../../dist/course/geometry/guide-curve.js';
+import { compileRasterPath } from '../../dist/course/geometry/raster-path.js';
+import { HeightProfile } from '../../dist/course/geometry/height-profile.js';
 import { SurfaceMap } from '../../dist/physics/surface-map.js';
 import { createArcadeVehicle } from '../../dist/physics/arcade-vehicle-physics.js';
 import { DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION } from '../../dist/browser/tire-friction-selection.js';

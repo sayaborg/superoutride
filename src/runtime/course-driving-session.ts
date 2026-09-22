@@ -1,10 +1,10 @@
-import type { CourseGround } from '../compiler/course-ground.js';
+import type { CourseGround } from '../course/compiler/course-ground.js';
 import type { CameraRig } from '../camera/camera.js';
-import type { CompiledLink, CompiledSection } from '../compiler/course-graph.js';
+import type { CompiledLink, CompiledSection } from '../course/compiler/course-graph.js';
 import type { CompiledCarriageway } from '../course/course-regions.js';
-import { coursePortLateral } from '../compiler/course-links.js';
-import { compileCoursePhysicalDomains } from '../compiler/course-physical-overlap.js';
-import { compileCoursePresentationDomains } from '../compiler/course-presentation-overlap.js';
+import { coursePortLateral } from '../course/compiler/course-links.js';
+import { compileCoursePhysicalDomains } from '../course/compiler/course-physical-overlap.js';
+import { compileCoursePresentationDomains } from '../course/compiler/course-presentation-overlap.js';
 import { compilePlanarTransform, composePlanarTransforms, invertPlanarTransform } from '../core/planar-transform.js';
 import { clamp, wrapAngle, type Vec2 } from '../core/math.js';
 import { CURRENT_RENDER_FAR_DEPTH_METERS } from '../core/presentation-scale.js';
@@ -15,8 +15,8 @@ import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
 import { reframeVehicle } from '../physics/vehicle-reframe.js';
 import { createCourseDrivingSource } from './course-driving-view.js';
 import { COURSE_DRIVING_POLICY } from './course-driving-policy.js';
-import { createCourseGeometryView } from './course-geometry-view.js';
-import { createCourseGeometryTraversal, type CourseOccurrenceHistory } from './course-occurrence.js';
+import { createCourseGeometryView } from '../course/course-geometry-view.js';
+import { createCourseGeometryTraversal, type CourseOccurrenceHistory } from '../course/course-occurrence.js';
 
 interface DrivingActor {
   readonly vehicle: ArcadeVehicleState;

@@ -1,9 +1,9 @@
 import { createPlanarCoordinateSample } from '../core/planar-sample.js';
-import { sampleGuideSegment, type GuidePath } from '../core/guide-curve.js';
-import { guideEnvelopeRange } from '../core/guide-envelope.js';
+import { sampleGuideSegment, type GuidePath } from './geometry/guide-curve.js';
+import { guideEnvelopeRange } from './geometry/guide-envelope.js';
 import { normalFromHeading, wrapAngle, type Vec2 } from '../core/math.js';
-import { profileIndexAt } from '../core/open-profile.js';
-import { rasterPathToWorld, type RasterPath } from '../core/raster-path.js';
+import { profileIndexAt } from './geometry/open-profile.js';
+import { rasterPathToWorld, type RasterPath } from './geometry/raster-path.js';
 import { GEOMETRY_SAMPLING_TOLERANCE_METERS } from '../core/tolerances.js';
 import { courseBoundaryAt, type CompiledRegionPartition, type CompiledBoundary } from './course-regions.js';
 

@@ -1,6 +1,6 @@
 import { createPlanarCoordinateSample } from '../core/planar-sample.js';
-import { guidePathToWorld, sampleGuidePath, type GuidePath } from '../core/guide-curve.js';
-import { guideEnvelopeAt } from '../core/guide-envelope.js';
+import { guidePathToWorld, sampleGuidePath, type GuidePath } from '../course/geometry/guide-curve.js';
+import { guideEnvelopeAt } from '../course/geometry/guide-envelope.js';
 import { dot, subtract, tangentFromHeading, type Vec2 } from '../core/math.js';
 
 import { compileWorldCrossingGate, observeWorldCrossingGate } from './world-crossing-gate.js';

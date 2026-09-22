@@ -1,7 +1,7 @@
 import { createPlanarCoordinateSample } from '../core/planar-sample.js';
-import { guidePathToWorld } from '../core/guide-curve.js';
-import { guideEnvelopeAt } from '../core/guide-envelope.js';
-import { rasterPathToWorld } from '../core/raster-path.js';
+import { guidePathToWorld } from './geometry/guide-curve.js';
+import { guideEnvelopeAt } from './geometry/guide-envelope.js';
+import { rasterPathToWorld } from './geometry/raster-path.js';
 import { wrapAngle } from '../core/math.js';
 import {
   compilePlanarTransform,
@@ -10,8 +10,8 @@ import {
   transformPlanarPoint,
   type PlanarTransform,
 } from '../core/planar-transform.js';
-import { courseRegionAt } from '../course/course-regions.js';
-import { coursePortLateral } from '../compiler/course-links.js';
+import { courseRegionAt } from './course-regions.js';
+import { coursePortLateral } from './compiler/course-links.js';
 import type { CourseOccurrence, CourseOccurrenceHistory } from './course-occurrence.js';
 
 interface Extent {

@@ -1,6 +1,6 @@
 import type { RegionDocument } from './course-document.js';
 import type { CompiledCourseAnchor } from './course-geometry.js';
-import type { RasterPath } from '../core/raster-path.js';
+import type { RasterPath } from './geometry/raster-path.js';
 
 export interface CompiledBoundary {
   readonly id: string;

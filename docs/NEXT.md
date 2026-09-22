@@ -8,7 +8,7 @@
 - Build currently generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **5-4b — Layers: course**. PR 5-4a is complete.
+Next PR: **5-4c — Layers: audio, vehicle and input**. PR 5-4b is complete.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Current contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -49,14 +49,23 @@ The dependency check includes type-only imports.
   `raster-*`, `height-profile`, `open-profile`), and runtime occurrences/geometry views.
 - **5-4c — Audio, vehicle and input:** consolidate physics/vehicle and move vehicle operation types
   from input to vehicle.
-- **5-4d — Race:** consolidate gameplay and runtime progress, timing and driver responsibilities.
+- **5-4d — Race:** consolidate gameplay and runtime progress, timing and driver responsibilities,
+  including course-fork-field (field-wide crossing order, route locking and recovery targets).
 - **5-4e — View and shell:** consolidate camera, terrain, render, remaining visual code, runtime scene
   composition, browser and startup. Move core projection/presentation-scale and graphics painter-merge,
-  software-surface and display-settings. Remove all old directories and their transitional dependency
-  rules, and update the README structure table and architecture layer section.
+  software-surface and display-settings. Resolve the four exact image-to-graphics imports: move RGBA
+  conversion functions from software-surface into image and the framebuffer into view; keep sprite
+  image/LOD formats in image and move sprite drawing into view. Separate Band sampling from
+  course/band-ground while preserving private compiled coefficient storage. This currently retains
+  the exact course/band-ground.ts -> graphics/display-settings.js type dependency: a safe split needs
+  a read boundary beyond declaration relocation, not an exported mutable WeakMap or coefficient buffers.
+  Remove all old directories and their transitional dependency rules, and update the README structure
+  table and architecture layer section.
 
 During migration, existing legacy-directory boundaries remain checked alongside the nine-domain order.
-Keep file moves separate from logic/export changes; report dependencies that file moves cannot resolve.
+Existing functions, types and constants may move between files when responsibilities are mixed;
+keep their logic and signatures intact. Do not introduce new interfaces or other abstractions in 5-4.
+Report dependencies requiring such changes as exact source/target exceptions, not layer-wide allowances.
 Authoring-only sprite compilers, course-project, course-reference and dev fixtures stay in the appropriate
 product domains during 5-4; separating them from product code belongs to 5-5. Vocabulary changes belong to 5-6.
 

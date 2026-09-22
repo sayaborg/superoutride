@@ -1,12 +1,7 @@
-import { courseSuccess, type CourseResult } from '../course/course-diagnostics.js';
-import {
-  parseCourseDocument,
-  readCourseDocument,
-  saveCourseDocument,
-  type CourseDocument,
-} from '../course/course-document.js';
-import { compileCourseDocument, type CompiledCourse } from '../compiler/compiled-course.js';
-import type { CourseAssetBytes } from '../compiler/course-image-source.js';
+import { courseSuccess, type CourseResult } from './course-diagnostics.js';
+import { parseCourseDocument, readCourseDocument, saveCourseDocument, type CourseDocument } from './course-document.js';
+import { compileCourseDocument, type CompiledCourse } from './compiler/compiled-course.js';
+import type { CourseAssetBytes } from './compiler/course-image-source.js';
 
 interface CourseProjectState {
   readonly source: CourseDocument | null;

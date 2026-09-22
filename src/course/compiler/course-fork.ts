@@ -1,10 +1,10 @@
-import { createPlanarCoordinateSample } from '../core/planar-sample.js';
-import { SPRITE_SOURCE_TEXELS_PER_METER } from '../image/sprite.js';
-import { guidePathToWorld } from '../core/guide-curve.js';
-import { courseBoundaryAt } from '../course/course-regions.js';
-import { requireCourse } from '../course/course-diagnostics.js';
-import type { CompiledCourseAnchor } from '../course/course-geometry.js';
-import { coursePhysicalMaterialAt } from '../course/course-physical-binding.js';
+import { createPlanarCoordinateSample } from '../../core/planar-sample.js';
+import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../image/sprite.js';
+import { guidePathToWorld } from '../geometry/guide-curve.js';
+import { courseBoundaryAt } from '../course-regions.js';
+import { requireCourse } from '../course-diagnostics.js';
+import type { CompiledCourseAnchor } from '../course-geometry.js';
+import { coursePhysicalMaterialAt } from '../course-physical-binding.js';
 import type { CompiledFork, CompiledSection } from './course-graph.js';
 import { requireCourseStraightSpan } from './course-links.js';
 

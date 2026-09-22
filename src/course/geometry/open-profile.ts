@@ -1,6 +1,6 @@
-import { SOURCE_ENDPOINT_TOLERANCE_METERS } from './tolerances.js';
+import { SOURCE_ENDPOINT_TOLERANCE_METERS } from '../../core/tolerances.js';
 
-import { finite, positiveFinite } from './validation.js';
+import { finite, positiveFinite } from '../../core/validation.js';
 
 /** Immutable ordered source entries. Height nodes include L; constant sections exclude it. */
 export function compileOpenProfile<T extends object, K extends keyof T>(

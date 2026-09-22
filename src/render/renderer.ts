@@ -1,7 +1,7 @@
-export { BAND_ACTIVE_LIMIT } from '../visual/band-ground.js';
-import { createBandRenderMetrics, type BandRenderMetrics } from '../visual/band-ground.js';
+export { BAND_ACTIVE_LIMIT } from '../course/band-ground.js';
+import { createBandRenderMetrics, type BandRenderMetrics } from '../course/band-ground.js';
 import { DEFAULT_BAND_RENDER_MODE, type BandRenderMode } from '../graphics/display-settings.js';
-import type { RasterGeometry } from '../core/raster-coordinate-reader.js';
+import type { RasterGeometry } from '../course/geometry/raster-coordinate-reader.js';
 import { wrapAngle } from '../core/math.js';
 import { pseudoProject, type PseudoCamera } from '../core/projection.js';
 import { mergeTerrainAndSprites } from '../graphics/painter-merge.js';

@@ -1,13 +1,13 @@
 import { compareCourseBandOverlap } from './course-band-overlap.js';
-import { wrapAngle } from '../core/math.js';
+import { wrapAngle } from '../../core/math.js';
 import {
   CourseInputError,
   CourseQualificationError,
   courseFailures,
   courseSuccess,
   requireCourse,
-} from '../course/course-diagnostics.js';
-import type { CoursePresentation } from '../visual/course-presentation.js';
+} from '../course-diagnostics.js';
+import type { CoursePresentation } from '../course-presentation.js';
 import type { CompiledLink, CompiledPort } from './course-graph.js';
 import { COURSE_LINK_RECIPE, coursePortLateral } from './course-links.js';
 import { compileCourseConsumerDemand, type CourseQueryExtent } from './course-consumer-demand.js';

@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { compileCourseImageSources } from '../../dist/compiler/course-image-source.js';
+import { compileCourseImageSources } from '../../dist/course/compiler/course-image-source.js';
 import { compileSpriteLod } from '../../dist/image/sprite-lod-compiler.js';
 import { readCourseDocument } from '../../dist/course/course-document.js';
 

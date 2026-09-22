@@ -1,8 +1,8 @@
 import { createPlanarCoordinateSample } from '../core/planar-sample.js';
-import type { RasterGeometry } from '../core/raster-coordinate-reader.js';
-import type { HeightProfileReader } from '../core/height-profile.js';
+import type { RasterGeometry } from '../course/geometry/raster-coordinate-reader.js';
+import type { HeightProfileReader } from '../course/geometry/height-profile.js';
 import { pseudoDepth, pseudoProject, type PseudoCamera, type PseudoProjection } from '../core/projection.js';
-import { rasterCoordinateToWorld } from '../core/raster-coordinate-reader.js';
+import { rasterCoordinateToWorld } from '../course/geometry/raster-coordinate-reader.js';
 import type { SpriteAsset } from '../image/sprite.js';
 
 interface CourseSpriteAuthoring {

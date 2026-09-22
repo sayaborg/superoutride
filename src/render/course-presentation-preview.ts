@@ -1,8 +1,8 @@
-import type { HeightProfileReader } from '../core/height-profile.js';
-import type { RasterGeometry } from '../core/raster-coordinate-reader.js';
+import type { HeightProfileReader } from '../course/geometry/height-profile.js';
+import type { RasterGeometry } from '../course/geometry/raster-coordinate-reader.js';
 import { readSpriteLodAsset, createSpritePaletteVariant, type SpriteLodDocument } from '../image/sprite.js';
 import { TileBackgroundImage, type TileBackgroundDocument } from '../image/tile-background-image.js';
-import type { CoursePresentation } from '../visual/course-presentation.js';
+import type { CoursePresentation } from '../course/course-presentation.js';
 import { VisualProfile } from '../visual/visual-profile.js';
 import { compileCourseSprite } from './course-sprite.js';
 

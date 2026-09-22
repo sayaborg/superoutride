@@ -1,8 +1,8 @@
-import type { RasterGeometry } from '../core/raster-coordinate-reader.js';
-import type { HeightProfileReader } from '../core/height-profile.js';
-import { profileIndexAt } from '../core/open-profile.js';
+import type { RasterGeometry } from '../course/geometry/raster-coordinate-reader.js';
+import type { HeightProfileReader } from '../course/geometry/height-profile.js';
+import { profileIndexAt } from '../course/geometry/open-profile.js';
 import { horizonY, pseudoProject, type PseudoCamera } from '../core/projection.js';
-import { rasterCoordinateToWorld } from '../core/raster-coordinate-reader.js';
+import { rasterCoordinateToWorld } from '../course/geometry/raster-coordinate-reader.js';
 import { PIXEL_EDGE_TOLERANCE, SOURCE_ENDPOINT_TOLERANCE_METERS } from '../core/tolerances.js';
 import type { VisualProfileReader } from '../visual/visual-profile.js';
 

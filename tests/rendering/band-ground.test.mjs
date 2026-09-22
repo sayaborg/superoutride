@@ -5,7 +5,7 @@ import {
   compileBandGround,
   createBandGroundSampler,
   createBandRenderMetrics,
-} from '../../dist/visual/band-ground.js';
+} from '../../dist/course/band-ground.js';
 import { BAND_RENDER_MODES } from '../../dist/graphics/display-settings.js';
 import { linearToRgb555 } from '../../dist/image/image-filter.js';
 import { rgb555ToRgba } from '../../dist/image/rgb555.js';

@@ -1,6 +1,6 @@
 import { createReadStream } from 'node:fs';
 import path from 'node:path';
-import { COURSE_IMAGE_SOURCE_RECIPE } from '../../dist/compiler/course-image-source.js';
+import { COURSE_IMAGE_SOURCE_RECIPE } from '../../dist/course/compiler/course-image-source.js';
 import { CourseAssetError } from '../../dist/course/course-diagnostics.js';
 
 /** Bounded I/O over admitted digest filenames; the compiler checks exact bytes and image semantics. */

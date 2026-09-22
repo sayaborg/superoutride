@@ -1,8 +1,15 @@
-import { createPlanarCoordinateSample } from './planar-sample.js';
-import type { Writable } from './writable.js';
-import { clamp, headingFromDelta, normalFromHeading, tangentFromHeading, wrapAngle, type Vec2 } from './math.js';
+import { createPlanarCoordinateSample } from '../../core/planar-sample.js';
+import type { Writable } from '../../core/writable.js';
+import {
+  clamp,
+  headingFromDelta,
+  normalFromHeading,
+  tangentFromHeading,
+  wrapAngle,
+  type Vec2,
+} from '../../core/math.js';
 import { sampleRasterPathInto, type RasterPath } from './raster-path.js';
-import { GEOMETRY_SAMPLING_TOLERANCE_METERS } from './tolerances.js';
+import { GEOMETRY_SAMPLING_TOLERANCE_METERS } from '../../core/tolerances.js';
 import { compileGuideEnvelope, guideEnvelopeAt, guideEnvelopeRange, type GuideEnvelope } from './guide-envelope.js';
 
 const ARC_CENTER_TOLERANCE_METERS = 1e-9;

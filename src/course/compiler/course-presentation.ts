@@ -1,10 +1,10 @@
 import { compileCourseBandGround } from './course-band-ground.js';
-import { COURSE_DOCUMENT_LIMITS, type CourseAnchor, type PresentationDocument } from '../course/course-document.js';
-import { courseBoundaryAt, type CompiledRegionPartition, type CompiledCarriageway } from '../course/course-regions.js';
-import type { CompiledCourseAnchor } from '../course/course-geometry.js';
-import { CourseInputError, requireCourse } from '../course/course-diagnostics.js';
-import { BACKGROUND_HEIGHT, BACKGROUND_PIXELS_PER_RADIAN } from '../image/tile-background-image.js';
-import type { CoursePresentation, CourseSceneryInstance } from '../visual/course-presentation.js';
+import { COURSE_DOCUMENT_LIMITS, type CourseAnchor, type PresentationDocument } from '../course-document.js';
+import { courseBoundaryAt, type CompiledRegionPartition, type CompiledCarriageway } from '../course-regions.js';
+import type { CompiledCourseAnchor } from '../course-geometry.js';
+import { CourseInputError, requireCourse } from '../course-diagnostics.js';
+import { BACKGROUND_HEIGHT, BACKGROUND_PIXELS_PER_RADIAN } from '../../image/tile-background-image.js';
+import type { CoursePresentation, CourseSceneryInstance } from '../course-presentation.js';
 import type { CompiledCourseImageSource } from './course-image-source.js';
 
 export const COURSE_PRESENTATION_RECIPE = Object.freeze({ id: 'superoutride.course-presentation', version: 6 });

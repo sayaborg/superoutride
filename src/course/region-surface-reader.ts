@@ -1,6 +1,6 @@
-import { courseRegionAt, courseBoundaryAt, type CompiledRegionPartition } from '../course/course-regions.js';
-import { coursePhysicalMaterialAt, type CompiledPhysicalBinding } from '../course/course-physical-binding.js';
-import { SURFACE_MATERIALS, type SurfaceMaterial } from './surface-map.js';
+import { courseRegionAt, courseBoundaryAt, type CompiledRegionPartition } from './course-regions.js';
+import { coursePhysicalMaterialAt, type CompiledPhysicalBinding } from './course-physical-binding.js';
+import { SURFACE_MATERIALS, type SurfaceMaterial } from './surface-material.js';
 
 /** Adapter over admitted ordinary facets. No course graph, ID join, role inference or copied geometry. */
 export function createRegionSurfaceReader(

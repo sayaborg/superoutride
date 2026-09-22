@@ -2,7 +2,7 @@ import { readFile, mkdir, writeFile, rename, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { readCourseDocument } from '../../dist/course/course-document.js';
-import { compileCourseDocument } from '../../dist/compiler/compiled-course.js';
+import { compileCourseDocument } from '../../dist/course/compiler/compiled-course.js';
 import { compileCourseImages } from './compile-course-images.mjs';
 import { readCourseImages } from './read-course-images.mjs';
 
@@ -79,6 +79,6 @@ export function reportError(error) {
 
 /** Authored Band fields are compiled with the course and shared by all previews. */
 export async function loadCourseGround(course) {
-  const { createCourseGround } = await import('../../dist/compiler/course-ground.js');
+  const { createCourseGround } = await import('../../dist/course/compiler/course-ground.js');
   return createCourseGround(course);
 }

@@ -1,7 +1,7 @@
 import { createPlanarCoordinateSample } from '../core/planar-sample.js';
-import type { CompiledFork, CompiledLink, CompiledSection } from '../compiler/course-graph.js';
+import type { CompiledFork, CompiledLink, CompiledSection } from '../course/compiler/course-graph.js';
 import { courseRegionAt, courseBoundaryAt, type CompiledCarriageway } from '../course/course-regions.js';
-import { guidePathToWorld } from '../core/guide-curve.js';
+import { guidePathToWorld } from '../course/geometry/guide-curve.js';
 import type { Vec2 } from '../core/math.js';
 import { compileWorldCrossingGate, observeWorldCrossingGate } from '../gameplay/world-crossing-gate.js';
 import type { createCourseDrivingGraph } from './course-driving-session.js';

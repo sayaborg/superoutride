@@ -1,6 +1,6 @@
 import type { BandGround } from './band-ground.js';
-import type { CompiledCarriageway } from '../course/course-regions.js';
-import type { CompiledCourseAnchor } from '../course/course-geometry.js';
+import type { CompiledCarriageway } from './course-regions.js';
+import type { CompiledCourseAnchor } from './course-geometry.js';
 import type { TileBackgroundDocument } from '../image/tile-background-image.js';
 import { type SpriteLodDocument } from '../image/sprite.js';
 

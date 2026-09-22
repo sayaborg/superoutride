@@ -1,5 +1,5 @@
 import { invertPlanarTransform } from '../core/planar-transform.js';
-import type { CompiledLink, CompiledSection } from '../compiler/course-graph.js';
+import type { CompiledLink, CompiledSection } from './compiler/course-graph.js';
 
 /** One traversal instance, which may be selected before it is visited. Never a source copy. */
 export interface CourseOccurrence {

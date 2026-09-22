@@ -1,5 +1,5 @@
-import type { CompiledCourse } from '../compiler/compiled-course.js';
-import type { CompiledCourseLandmark } from '../compiler/course-rules.js';
+import type { CompiledCourse } from '../course/compiler/compiled-course.js';
+import type { CompiledCourseLandmark } from '../course/compiler/course-rules.js';
 import {
   compileSessionConfiguration,
   type SessionConfiguration,

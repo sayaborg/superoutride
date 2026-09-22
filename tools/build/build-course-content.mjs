@@ -2,7 +2,7 @@ import { buildCourseReferences } from './build-course-reference.mjs';
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { readCourseDocument } from '../../dist/course/course-document.js';
-import { compileCourseDocument } from '../../dist/compiler/compiled-course.js';
+import { compileCourseDocument } from '../../dist/course/compiler/compiled-course.js';
 import { compileCourseImages } from '../course/compile-course-images.mjs';
 import { readCourseImages } from '../course/read-course-images.mjs';
 

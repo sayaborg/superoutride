@@ -4,7 +4,7 @@ import {
   guideCoordinateDomain,
   guideCoordinateToWorld,
   type GuideCoordinateSource,
-} from '../core/guide-coordinate-frame.js';
+} from '../course/geometry/guide-coordinate-frame.js';
 import type { DrivingInput } from '../input/driving-input.js';
 import type { VehicleCameraReadState } from '../physics/vehicle-contract.js';
 

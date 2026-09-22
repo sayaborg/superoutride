@@ -1,14 +1,14 @@
-import { createPlanarCoordinateSample } from '../core/planar-sample.js';
-import { guidePathToWorld } from '../core/guide-curve.js';
-import { rasterPathToWorld } from '../core/raster-path.js';
-import { wrapAngle, type Vec2 } from '../core/math.js';
-import { compilePlanarTransform, transformPlanarPoint } from '../core/planar-transform.js';
-import { courseBoundaryAt, type CompiledBoundary, type CompiledCarriageway } from '../course/course-regions.js';
-import { requireCourse } from '../course/course-diagnostics.js';
-import type { CompiledCourseAnchor } from '../course/course-geometry.js';
+import { createPlanarCoordinateSample } from '../../core/planar-sample.js';
+import { guidePathToWorld } from '../geometry/guide-curve.js';
+import { rasterPathToWorld } from '../geometry/raster-path.js';
+import { wrapAngle, type Vec2 } from '../../core/math.js';
+import { compilePlanarTransform, transformPlanarPoint } from '../../core/planar-transform.js';
+import { courseBoundaryAt, type CompiledBoundary, type CompiledCarriageway } from '../course-regions.js';
+import { requireCourse } from '../course-diagnostics.js';
+import type { CompiledCourseAnchor } from '../course-geometry.js';
 import type { CompiledLink, CompiledPort, CompiledSection } from './course-graph.js';
-import type { CourseDocument, SectionDocument } from '../course/course-document.js';
-import { compileCourseOverlapStations } from '../course/course-overlap-stations.js';
+import type { CourseDocument, SectionDocument } from '../course-document.js';
+import { compileCourseOverlapStations } from '../course-overlap-stations.js';
 
 export const COURSE_LINK_RECIPE = Object.freeze({
   id: 'superoutride.carriageway-link',

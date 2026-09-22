@@ -1,5 +1,5 @@
 import { profileIndexAt } from './open-profile.js';
-import { GEOMETRY_SAMPLING_TOLERANCE_METERS } from './tolerances.js';
+import { GEOMETRY_SAMPLING_TOLERANCE_METERS } from '../../core/tolerances.js';
 
 export type GuideEnvelope = readonly { readonly s: number; readonly lMax: number }[];
 

@@ -1,16 +1,16 @@
-import { courseRegionAt } from '../course/course-regions.js';
+import { courseRegionAt } from '../course-regions.js';
 import {
   courseFailures,
   CourseInputError,
   CourseQualificationError,
   courseSuccess,
   requireCourse,
-} from '../course/course-diagnostics.js';
+} from '../course-diagnostics.js';
 import type { CompiledLink, CompiledPort } from './course-graph.js';
 import { COURSE_LINK_RECIPE, coursePortLateral } from './course-links.js';
-import { compileCourseOverlapStations } from '../course/course-overlap-stations.js';
-import { coursePhysicalMaterialAt } from '../course/course-physical-binding.js';
-import { SURFACE_MATERIALS } from '../physics/surface-map.js';
+import { compileCourseOverlapStations } from '../course-overlap-stations.js';
+import { coursePhysicalMaterialAt } from '../course-physical-binding.js';
+import { SURFACE_MATERIALS } from '../surface-material.js';
 import { compileCoursePhysicalDemand } from './course-physical-demand.js';
 import { COURSE_PHYSICAL_RECIPE } from './course-physical-content.js';
 import {

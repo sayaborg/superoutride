@@ -1,34 +1,34 @@
-import { createBandGroundSampler } from '../visual/band-ground.js';
+import { createBandGroundSampler } from '../course/band-ground.js';
 import type { Writable } from '../core/writable.js';
-import type { CourseCoordinate } from '../core/guide-curve.js';
+import type { CourseCoordinate } from '../course/geometry/guide-curve.js';
 import { createPlanarCoordinateSample } from '../core/planar-sample.js';
-import type { CourseGround } from '../compiler/course-ground.js';
-import { guideCoordinateMetricsAt, type GuideCoordinateReader } from '../core/guide-coordinate-frame.js';
+import type { CourseGround } from '../course/compiler/course-ground.js';
+import { guideCoordinateMetricsAt, type GuideCoordinateReader } from '../course/geometry/guide-coordinate-frame.js';
 import {
   guideSegmentBounds,
   sampleGuideSegment,
   guidePathToWorld,
   projectWorldOnGuideInterval,
   sampleGuidePath,
-} from '../core/guide-curve.js';
+} from '../course/geometry/guide-curve.js';
 import { dot, subtract, tangentFromHeading, normalFromHeading, wrapAngle, type Vec2 } from '../core/math.js';
 import { invertPlanarTransform, transformPlanarPoint } from '../core/planar-transform.js';
-import { rasterPathToWorld } from '../core/raster-path.js';
-import type { RasterCoordinateReader, RasterGeometry } from '../core/raster-coordinate-reader.js';
-import type { HeightProfileReader } from '../core/height-profile.js';
-import { profileIndexAt } from '../core/open-profile.js';
+import { rasterPathToWorld } from '../course/geometry/raster-path.js';
+import type { RasterCoordinateReader, RasterGeometry } from '../course/geometry/raster-coordinate-reader.js';
+import type { HeightProfileReader } from '../course/geometry/height-profile.js';
+import { profileIndexAt } from '../course/geometry/open-profile.js';
 import { COURSE_DOCUMENT_LIMITS } from '../course/course-document.js';
 import { compileCourseGeometryWindow } from '../course/course-geometry-window.js';
-import type { CompiledSection } from '../compiler/course-graph.js';
-import { compileCoursePhysicalDomains } from '../compiler/course-physical-overlap.js';
-import { compileCoursePresentationDomains } from '../compiler/course-presentation-overlap.js';
-import { createRegionSurfaceReader } from '../physics/region-surface-reader.js';
+import type { CompiledSection } from '../course/compiler/course-graph.js';
+import { compileCoursePhysicalDomains } from '../course/compiler/course-physical-overlap.js';
+import { compileCoursePresentationDomains } from '../course/compiler/course-presentation-overlap.js';
+import { createRegionSurfaceReader } from '../course/region-surface-reader.js';
 import type { VehicleWorld } from '../physics/vehicle-contract.js';
 import { createCoursePresentationPreview } from '../render/course-presentation-preview.js';
 import type { BandGroundReader } from '../render/renderer.js';
 import type { VisualProfileReader } from '../visual/visual-profile.js';
-import type { CourseGeometryView } from './course-geometry-view.js';
-import type { CourseOccurrence } from './course-occurrence.js';
+import type { CourseGeometryView } from '../course/course-geometry-view.js';
+import type { CourseOccurrence } from '../course/course-occurrence.js';
 
 type Physical = Extract<ReturnType<typeof compileCoursePhysicalDomains>, { ok: true }>['value'];
 type Presentation = Extract<ReturnType<typeof compileCoursePresentationDomains>, { ok: true }>['value'];
