@@ -1,241 +1,101 @@
 # Procedural audio
 
-## Authority and scope
+Audio is read-only presentation of completed vehicle observations. Its pressure-like pulses,
+pipe dimensions and output gains form an authored acoustic surrogate rather than measured vehicle
+sound. [Tire audio](tire-audio.md) owns UNIFIED synthesis, [Calibration](calibration.md) owns numeric
+settings, [Browser](browser.md#sound-controls) owns operation, and
+[Development](development.md#audio-audition) owns audition commands and workflow.
 
-Audio is a read-only presentation layer. Physics owns RPM, actuators, wheel motion, load and slip work; audio owns oscillator, envelope and filter state. Audio imports only Core. Vehicle binds
-acoustic profiles, and browser composition adapts completed physical observations. Audio never writes
-motion, gearing, recovery or race progress, and never repeats the authoritative vehicle contact or tire solves.
+## Observations and profiles
 
-The engine provides the current sample-free listening baseline; its parameters remain provisional.
-[Tire audio](tire-audio.md) owns UNIFIED synthesis, numerical limits and tire controls. [The checkpoint](NEXT.md#current-state) owns listening priorities.
-Keep the engine waveform and fixed voice/lifecycle boundaries unchanged; target-device performance
-and listening acceptance remain separate from automated numerical checks.
+The [acoustic observation](../src/audio/vehicle-audio-observation.ts) contains RPM, excitation,
+position and tire inputs. The browser supplies completed observations once per presented frame.
+Physics owns RPM, actuators, contact loads, wheel motion and dissipated work; audio owns oscillator,
+filter and envelope state. Player tire observations use the optional physical observation channel;
+rival sound uses engine observations.
 
-**Interpretation rule:** reference-derived coefficients use the explicit assumptions below; authored
-coefficients, pipe geometry and acoustic output are listening conventions. Neither category represents
-measured vehicle acoustics. Pulse strength is dimensionless, not pressure or acoustic power. This rule
-applies to every profile, coefficient and UI readout unless a measurement is explicitly identified.
+A [vehicle audio profile](../src/audio/vehicle-audio-profile.ts) contains one or two revolutions per
+cycle, ordered firing phases, collector membership, primary lengths and a common outlet length per
+collector. Phase count determines cylinder count. The vehicle catalog binds these profiles to the
+same sample-free engine kernel. Firing rows identify events and collector groups.
 
-## Source ownership
+## Engine synthesis
 
-- [Acoustic settings](../src/audio/exhaust-acoustics.ts): `ExhaustTuning`, defaults, kernel domains,
-  narrower UI domains, steps, validation, reference conditions and fixed exhaust coefficients.
-- [Waveguide](../src/audio/exhaust-waveguide.ts): pulse integration, delay storage, scattering and output.
-  [Profile compiler](../src/audio/vehicle-audio-profile.ts) validates/freezes bounded firing and pipe data;
-  the [vehicle catalog](../src/vehicle/vehicle-catalog.ts) owns authored bindings.
-- [Engine voice](../src/audio/engine-voice.ts) and [processor](../src/audio/exhaust-processor.ts): faded
-  replacement, k-rate RPM/load transport and native-rate rendering. Changes use explicit tuning-value
-  equality; returning to the active values cancels a pending replacement without resetting the kernel.
-- [Tire audio](tire-audio.md#source-ownership): observation mapping, shared primitives and UNIFIED synthesis.
-- [Presentation policy](../src/audio/audio-presentation.ts): shared timing, audible radius and rival mix.
-  [Audio engine](../src/audio/audio-engine.ts): fixed voices and master graph.
-- [Browser adapter](../src/browser/vehicle-audio.ts), [lifecycle](../src/browser/audio-lifecycle.ts) and
-  [controls](../src/browser/audio-tuning-controls.ts): observation copies, permission/failure boundary,
-  labels and interaction. Numeric tuning ranges are not redefined by the UI.
+The voice bounds RPM by the profile's idle and redline. Excitation follows actuator throttle multiplied
+by the delivered-drive/output-drive torque fraction. Closed throttle has a positive excitation floor;
+stronger excitation shortens pulse rise time, while decay time is independent of load.
 
-The [consumer contract](../src/audio/vehicle-audio-observation.ts) has acoustic inputs only. The adapter
-reuses two observation slots once per presented frame, not per catch-up tick. Player observation
-subscribes to [optional tire telemetry](../src/physics/vehicle-tire-observation.ts); rivals read engines
-only. The next completed physics tick populates the subscription. A WeakMap holds output caches outside
-the unchanged physical snapshot; recovery clears them and unobserved vehicles skip telemetry work.
-The [restart checkpoint](NEXT.md) owns continuation priorities, not another sound specification.
+At each firing, `strength = max(0, excitation + pulseVariation*r)` for seeded xorshift32 `r` in `[-1,1)`.
+Variation is an absolute fraction of full excitation. The same seed and input history reproduce the
+same event sequence; random draws occur at firing events.
 
-## Synthesis
+The pulse model is:
 
-Every vehicle uses one kernel. A profile contains cycle revolutions (1 or 2), ordered firing phases,
-collector membership, primary lengths and one common outlet length per collector. Cylinder count is
-the phase count. There are no recordings, PCM loops, vehicle-ID branches or per-vehicle pulse multipliers.
+```text
+p' = -p/decayTime
+r' = (p-r)/riseTime
+```
 
-Base pulse strength is 1. Smoothed excitation controls amplitude and rise time: the closed-throttle
-floor remains nonzero, while stronger excitation rises faster. Decay is load-independent. The adapter
-supplies actuator throttle times delivered-drive/output-drive torque fraction; this is a control proxy,
-not cylinder load or `engineTorque / maxTorque(RPM)`. The voice clamps observed RPM to idle/redline.
+Firing resets `p` and keeps `r` continuous. Exact exponential evolution across fractional firing times
+supplies the sample-average pulse to the pipe. Rise and decay are independent positive time constants.
 
-At each firing, `strength = max(0, excitation + pulseVariation * r)`, with seeded xorshift32 `r` in
-[-1, 1). Variation is an absolute fraction of full excitation, including at closed throttle. Default
-variation is 0.20 and default closed excitation is 0.22. Below the variation amount, zero clipping raises
-the mean strength. Variation never changes firing times, RPM, geometry or time constants. Zero variation
-restores settled periodic output; otherwise determinism means the same seed and input history. Reset
-owns one seed; random draws occur only at firing events.
+The [waveguide](../src/audio/exhaust-waveguide.ts) has bidirectional primary and outlet delays rounded
+to the nearest sample at the reference wave speed. Each traversal multiplies amplitude by
+`exp(-attenuationPerMeter*length)`. Equal-admittance collector scattering uses
+`p = 2*sum(incoming)/portCount` and `outgoing = p-incoming`.
 
-The pulse solves `p' = -p / decayTime` and `r' = (p - r) / riseTime`. Firing resets `p` and preserves
-continuous `r`. Exact exponential evolution resolves both parts of a fractional firing sample; the
-pipe receives the sample average of `r`, not a rounded event or point sample. Full-sample coefficients
-are shared across cylinders; a short Taylor limit handles nearly equal rates. Two extra exponentials
-are evaluated at a firing, and one preallocated array holds emission averages. Rise/decay are independent
-positive time constants, not ordered start/end timestamps.
+The source reflection varies from +0.94 to -0.3 through the aperture `16*u²*(1-u)²` over 0.23 firing
+cycles, then returns to its closed value. The aperture has continuous value and slope and a window
+mean of 8/15. Source and outlet low-pass filters act inside their return paths. The listening pickup
+sums outgoing and low-passed outgoing waves, with collector mixing divided by `sqrt(collectorCount)`.
 
-Primary and outlet pipes are bidirectional delays, rounded to the nearest sample at the fixed reference
-wave speed. Each traversal applies `exp(-attenuationPerMeter * length)`. Collector scattering is
-`p = 2 * sum(incoming) / portCount`, then `outgoing = p - incoming`: the
-[equal-admittance junction](https://www.dsprelated.com/freebooks/pasp/Lossless_Scattering.html).
-The source uses a bounded periodic reflection envelope; the outlet uses negative filtered reflection.
-Both boundary LPFs remain inside their return paths. The listening pickup sums outgoing and low-passed
-outgoing waves and divides the bank sum by `sqrt(bankCount)`.
-
-Porsche's six alternates banks: 120-degree global and 240-degree per-bank intervals, as shown in
-[its firing-order illustration](https://newsroom.porsche.com/christophorus/en/2017/383/model-kit-refinement-boxer-911.html).
-Separate banks do not imply uneven firing. RC30/BMW grouping and pipe lengths are sketches. Vespa uses
-one revolution per cycle without a tuned expansion chamber. Intake, full muffler chambers, turbo flow,
-fuel cut, backfire, temperature/pressure simulation and timing jitter are absent.
-
-### Adopted native-rate waveguide
-
-One acoustic step runs per output sample, normally 44.1 or 48 kHz. All cylinders retain full primary
-paths, pulse states, return LPFs and phase-dependent reflection; all collectors retain both outlet
-paths. There is no forced device rate, quality selector, alternate topology or inactive legacy model.
-Controls update every sample inside the kernel; k-rate worklet parameters supply their targets.
-Sample averaging reduces source aliasing but is not brick-wall bandlimiting. Integer delays, very short
-pulses and nonlinear stages retain approximation/aliasing limits. The render loop allocates no objects.
-Inactive processors output zero; invalid replacement profiles silence them; stop releases the model.
+Each acoustic step runs at the output sample rate. Integer pipe delays, the pulse approximation and
+native-rate nonlinear stages define the model's temporal and spectral resolution.
 
 ## Output conditioning
 
 ```text
-Bank mixing -> 18 Hz DC removal -> soft clipping -> final one-pole LPF -> voice/master gain -> compressor
+Collector mix -> 18 Hz DC removal -> soft clipping -> final low-pass filter
+              -> voice/master gain -> compressor
 ```
 
-Soft clipping is `y = 0.65 * x / (1 + abs(x))`: small-signal gain 0.65, asymptotic bounds ±0.65 and
-increasing compression. It has no envelope, load-dependent drive or hard threshold. The final filter
-uses `tone += a * (y - tone)`, `a = 1 - exp(-2*pi*outputCutoffHz/sampleRate)`, approximately -6 dB/oct.
-It is outside feedback and independent of `returnCutoffHz`. It cannot remove already folded aliases;
-clip oversampling and antiderivative antialiasing are not active. The master compressor has separate
-attack/release and is not a guaranteed hard peak limiter; fixed gains retain headroom.
+Soft clipping uses `y = 0.65*x/(1+abs(x))`, with small-signal gain 0.65 and asymptotic bounds ±0.65.
+The final filter uses `tone += a*(y-tone)`, where `a = 1-exp(-2*pi*outputCutoffHz/sampleRate)`.
+It is independent of the boundary return filter. The master compressor supplies envelope-based
+compression. Output depends on the profile, RPM, excitation and fixed mix gains.
 
-Bank normalization does not equalize vehicle loudness or ensure monotonic RMS with RPM. Do not add
-per-vehicle gains or automatic normalization merely to hide that difference: those would intentionally
-revise the listening baseline. Use fixed-gain audition for final mix calibration;
-kernel dBFS is not perceptual loudness or the level after the complete game graph.
+## Reference coefficients
 
-## Player tire synthesis
+The default pipe coefficients are **480 m/s wave speed, -1 outlet reflection, 3100 Hz return cutoff
+and 0.03 Np/m attenuation**. [Exhaust acoustics](../src/audio/exhaust-acoustics.ts) derives them for
+an unflanged 50 mm internal-diameter pipe, 573.15 K air at 101325 Pa, `gamma=1.4`, `R=287 J/(kg K)`,
+`Pr=0.71` and a 500 Hz loss reference.
 
-[Tire audio](tire-audio.md) owns UNIFIED synthesis, its observation mapping, numerical contracts and
-approximation limits. [NEXT](NEXT.md) owns open tuning work.
+The derivation uses `c=sqrt(gamma*R*T)`, the open-end negative reflection limit,
+`fc=c/(2*pi*radius)` and
+`alpha=sqrt(pi*f*nu)/(radius*c)*(1+(gamma-1)/sqrt(Pr))`. Sutherland viscosity uses
+`mu0=1.716e-5 Pa s`, `T0=273 K` and `S=111 K`; density is `p/(R*T)` and `nu=mu/density`.
+The resulting loss is about 0.034 Np/m before rounding. These are fixed reference coefficients.
 
-## Mixing and lifetime
+## Current mix and lifetime
 
-The graph has fixed player/rival engine slots and one player tire worklet: three worklets (including just one tire worklet) and no
-AudioNode oscillators regardless of actor count. Only the nearest rival inside 100 physical world meters
-is selected. Gain uses 3D distance and pan uses lateral displacement in the player's yaw frame; raster
-depth and local stage chainage never enter the policy. Rival changes fade before slot reuse. Other actors
-have no audio nodes. There is no Doppler, occlusion or spatial reflection model.
+[Audio engine](../src/audio/audio-engine.ts) owns three fixed worklets: player engine, selected rival
+engine and player tires. The nearest rival within 100 physical world metres occupies the rival slot.
+Its gain uses 3D distance and its pan uses lateral displacement in the player's yaw frame.
+A rival change fades before reusing the slot. ENG, TIRE and MASTER independently multiply their
+current outputs. Component output switches leave synthesis state running.
 
-Construction does not create an AudioContext. Mouse press, touch/pen release, touchend or a keyboard
-gesture starts/resumes it; touch pointerdown alone is not activation. See
-[WebKit activation](https://webkit.org/blog/13862/the-user-activation-api/). SOUND START starts or resumes;
-SOUND ON/OFF then toggles mute. Hidden/stopped shells suspend audio, mute fades before suspension, and
-page-cache restoration follows current visibility. Pending resume and module load are independent;
-disposal closes the context and releases any late graph without waiting for permission.
+The shared control-following constant is 25 ms and transition duration is 90 ms. Engine profile/tuning
+replacement fades to silence before installing a new kernel. New settings supersede pending values;
+returning to active values cancels pending replacement. Tire replacement is specified in
+[Tire audio](tire-audio.md#tuning-replacement).
 
-The lifecycle is the failure boundary for presentation updates and gain/tuning synchronization. On an
-audio exception it retires the graph, closes the context even if node cleanup fails, and shows SOUND RETRY.
-The driving frame continues; a later gesture retries. Retired initialization promises cannot clear or
-close a newer graph. [Parameter following](../src/audio/audio-parameter.ts) detects native
-`cancelAndHoldAtTime` once per parameter. Where absent, it reads the evaluated value before
-`cancelScheduledValues` and anchors it with `setValueAtTime`, then retargets. This fallback is for
-**currentTime retargeting**, not arbitrary future-time holds; see
-[API availability](https://developer.mozilla.org/en-US/docs/Web/API/AudioParam/cancelAndHoldAtTime).
+Construction leaves the AudioContext unopened. An eligible user gesture starts or resumes audio.
+Hidden or stopped shells suspend it; mute fades before suspension. Disposal closes the context,
+including a graph completing initialization after disposal. Module URLs resolve within the selected
+commit-versioned build.
 
-Shared presentation timing owns the 25 ms control constant and 90 ms transition duration. Profile/tuning
-replacements, rival handoff and mute suspension retain their existing fades. Rapid tuning changes
-supersede pending values; muted/loading changes apply when resumed. Unsupported AudioWorklet browsers
-remain playable with SOUND UNAVAILABLE and no sample fallback.
-
-Retain the platform audio session. iPhone silent mode may suppress output while context state says
-running. Disable silent mode, raise media volume and tap SOUND START for device checks; do not bypass
-this with session overrides or silent media assets. See [WebKit's report](https://bugs.webkit.org/show_bug.cgi?id=237322).
-Module URLs remain relative to import.meta.url inside complete commit-versioned ESM builds.
-
-## Shared tuning
-
-### Mobile DEV panel and tire audition controls
-
-DEV is a native, initially closed disclosure overlay. Its body scrolls independently within the safe
-viewport; opening it never shrinks the game. All selectors and audio controls remain available in every
-orientation. Controls have touch-size targets. UI-owned pointer starts are excluded from driving;
-keydown stays inside the panel, while keyup can release an already-held driving key. Escape closes
-from any control.
-
-MASTER retains its 35% default. Independent ENG and TIRE sliders multiply their buses, from 0 to 100%,
-initially 100%; ENG includes the nearest rival. They do not alter synthesis, voice-switch envelopes,
-component state or each other's level. Ordinary gain following avoids steps; zero does not stop DSP.
-
-[Tire session tuning](tire-audio.md#session-tuning) owns tire replacement, reset and
-session semantics. [Calibration](calibration.md#tire-audio-tuning) maps controls to their source owners.
-
-### Engine controls
-
-[Acoustic settings](../src/audio/exhaust-acoustics.ts) own defaults, validated kernel domains and optional
-narrower UI bounds in `EXHAUST_TUNING_RANGES`. The controls read these values directly. Their presentation
-summary is below; the source table, not this summary or tests, is the numeric authority.
-
-| Key                   | Default   | UI interval / step | Provenance                                 |
-| --------------------- | --------- | ------------------ | ------------------------------------------ |
-| `outletReflection`    | -1        | -1–0 / 0.01        | Reference: open-end pressure limit         |
-| `returnCutoffHz`      | 3100 Hz   | 500–10000 / 100 Hz | Reference: low-frequency magnitude match   |
-| `attenuationPerMeter` | 0.03 Np/m | 0–0.30 / 0.01 Np/m | Reference: rounded constant-loss surrogate |
-| `closedExcitation`    | 0.22      | 0.01–1 / 0.01      | Authored                                   |
-| `outputCutoffHz`      | 7300 Hz   | 100–12000 / 100 Hz | Authored final listening filter            |
-| `pulseVariation`      | ±20%      | ±0–40% / 1%        | Authored absolute event variation          |
-| `pulseRiseMs`         | 0.20 ms   | 0.01–2 / 0.01 ms   | Authored full-excitation rise              |
-| `pulseDecayMs`        | 5 ms      | 0.1–30 / 0.1 ms    | Authored decay                             |
-
-The kernel deliberately also accepts return cutoff down to 100 Hz, attenuation up to 1 and any positive
-closed excitation up to 1. Explicit undefined overrides retain defaults; all values must be finite and
-inside their domain. Validation returns a frozen copy.
-
-Game and audition share eight minus/plus controls and reset. Integer step indices avoid decimal drift;
-buttons stop at limits without wrapping/repeat timers. Vehicle changes preserve tuning; page/course
-reload restores defaults. Each game step uses the shared replacement fade; audition applies committed
-settings to the next playback. VOL spans 0–100% in 1% steps, initially 35%, with normal gain smoothing.
-Native keyboard activation does not leak into driving controls; disposal removes listeners. Read-only
-profile rows report cycle, cylinder count, idle/redline, firing phases/intervals, grouping and path lengths.
-Rows identify firing events, not manufacturer cylinder numbers or verified left/right banks.
-
-## Reference conditions for default coefficients
-
-Assume a 50 mm internal-diameter unflanged circular pipe, 573.15 K air, 101325 Pa, gamma 1.4,
-R = 287 J/(kg K), Pr = 0.71 and a 500 Hz reference for constant loss. Gas composition, thermal gradients,
-mean flow, real pipe diameters and large-amplitude gas dynamics are outside this surrogate.
-
-- [Ideal-gas sound speed](https://www.grc.nasa.gov/www/k-12/VirtualAero/BottleRocket/airplane/sound.html):
-  `c = sqrt(gamma*R*T)`, rounded to 480 m/s.
-- [Silva et al., Eq. 10](https://arxiv.org/abs/0811.3625): unflanged `|R| = 1 - (ka)²/2 + ...`.
-  Negative DC reflection and a one-pole magnitude match give `fc = c/(2*pi*a)`, rounded to 3100 Hz.
-  This does not match full radiation impedance or end-correction phase (low-frequency 0.6133a).
-- [Circular-duct attenuation](https://doi.org/10.1186/s13362-018-0057-0):
-  `alpha = sqrt(pi*f*nu)/(a*c) * (1 + (gamma-1)/sqrt(Pr))`.
-  [Sutherland air coefficients](https://doc.comsol.com/6.4/doc/com.comsol.help.cfd/cfd_ug_fluidflow_high_mach.08.46.html)
-  use mu0 = 1.716e-5 Pa s, T0 = 273 K and S = 111 K; density is `p/(R*T)` and `nu = mu/density`.
-  Alpha is about 0.034 Np/m at 500 Hz, rounded to 0.03. Real frequency dependence is not simulated.
-
-Allowing outlet reflection -1 retains propagation, boundary-filter and source-termination losses.
-Positive outlet reflection would define a different termination and is not allowed.
-
-## Provisional boundary and output interpretation
-
-[Reflectance](https://www.dsprelated.com/freebooks/pasp/Reflectance_Impedance.html) is
-`R = (Z-Z0)/(Z+Z0)`. Authored source endpoints +0.94 and -0.3 correspond to positive real impedance
-ratios near 32.3 and 0.538. Over 0.23 firing cycles, the aperture is `16*u²*(1-u)²`, then zero;
-it has continuous value/slope, peak 1 and window mean 8/15, using arithmetic without cylinder trigonometry.
-This is an acoustic boundary envelope, not valve timing, lift or flow. Reusing one LPF coefficient for
-both boundaries is an economy. Bank normalization, control response and output conditioning are authored
-presentation choices; none changes mechanical inertia or establishes calibrated loudness.
-
-## Audition and limits
-
-Run the standing checks in the [development workflow](development.md). They check build/startup and
-layer dependencies, not listening acceptance or universal device audio support.
-
-Use [engine audition](../tools/audio/audio-browser.html) for catalog profiles, steady RPM/load and
-acceleration/coast. Playback uses fixed gain, not measured-output normalization.
-[Tire audition](../tools/audio/tire-browser.html) uses [authored scenarios](../tools/audio/tire-scenarios.mjs)
-for independent axles, rolling, cornering, wheel lock, loose surfaces and release through the game voice.
-Both auditions render at 48 kHz; game audio uses the device's supported native rate.
-Actual speaker listening, Safari/iOS/Android behavior and simultaneous gameplay cost require device review.
-
-## Minimal implementation boundary
-
-Keep one exhaust waveguide and one delay primitive, with no exhaust method flags or vehicle branches.
-Tires use one UNIFIED source pair. Past experiments and run results belong in Git and PR/CI evidence,
-not an accumulating documentation archive.
+An audio failure closes the affected graph and exposes retry while driving continues. A late result
+from an older initialization cannot replace or close a newer graph. Invalid processor replacements
+produce silence. Browsers without AudioWorklet support remain playable with unavailable sound.
+The browser's normal audio session and device output controls determine audible output.

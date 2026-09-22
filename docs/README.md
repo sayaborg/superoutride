@@ -1,48 +1,23 @@
-# Specifications and current implementation
+# Specification index
 
-This is the sole specification index. Product defines the intended game; topic documents own their
-technical contracts. NEXT owns current state, K's decisions and ordered implementation work.
+Each concept has one owning document. Topic specifications describe the current implementation;
+[NEXT](NEXT.md) owns future requirements and the ordered work.
 
-| Document                                        | Authority                                                                              |
-| ----------------------------------------------- | -------------------------------------------------------------------------------------- |
-| [Product](product.md)                           | Content, play, visible behavior and authoring scope                                    |
-| [Development contract](../AGENTS.md)            | Design, construction/documentation conventions, checks and release procedure           |
-| [Architecture](architecture.md)                 | Coordinates, Raster/Guide geometry, projection, metric scale and layer boundaries      |
-| [Image assets](image-assets.md)                 | Sprite/ground source formats, image compilation, Sprite Tool sessions and ground tiles |
-| [Vehicle physics](vehicle-physics.md)           | Common mechanics, steering and torque constraints                                      |
-| [Content and gameplay](content-and-gameplay.md) | Course compilation, authoring semantics, route/race transactions and recovery          |
-| [Browser](browser.md)                           | Boot/shell composition, scheduling, URL settings, HUD and keyboard/touch adaptation    |
-| [Audio](audio.md)                               | Procedural sound, observations, fixed voices and browser lifetime                      |
-| [Tire audio](tire-audio.md)                     | Tire synthesis mechanisms, primitives and numerical/physical limits                    |
-| [Calibration](calibration.md)                   | Vehicle defaults and tire-audio tuning ownership                                       |
-| [Development](development.md)                   | Commands and build outputs                                                             |
-| [NEXT](NEXT.md)                                 | Current restart point and ordered work                                                 |
+| Document                                        | Owns                                                                                                          |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| [Product](product.md)                           | The current game's content, play and visible behavior                                                         |
+| [Architecture](architecture.md)                 | Coordinates, geometry, projection, camera metric, rendering contracts and layer boundaries                    |
+| [Content and gameplay](content-and-gameplay.md) | Course vocabulary and schema, reference identities, topology, occurrences, Session rules, timing and recovery |
+| [Image assets](image-assets.md)                 | Image and Sprite Tool save formats, normalization, palettes, LOD compilation and resident-ground encoding     |
+| [Vehicle physics](vehicle-physics.md)           | Mechanical state, contact, tire and wheel laws, powertrain, protection and steering                           |
+| [Audio](audio.md)                               | Engine synthesis, acoustic observations, the current sound graph and audio lifetime                           |
+| [Tire audio](tire-audio.md)                     | UNIFIED rolling/friction synthesis, signal domains and tuning-replacement semantics                           |
+| [Calibration](calibration.md)                   | Current vehicle and acoustic tuning values, units, ranges and meanings                                        |
+| [Browser](browser.md)                           | Display, scheduling, keyboard/touch input, URL settings, HUD and DEV controls                                 |
+| [Development](development.md)                   | Commands, audition workflow, source-file conventions and generated/delivered outputs                          |
+| [Development contract](../AGENTS.md)            | Design and construction conventions, standing checks and release procedure                                    |
+| [NEXT](NEXT.md)                                 | Current restart point, future requirements, production selections and ordered work                            |
 
-On restart, read AGENTS, Product, Architecture and NEXT, then the relevant topic. Types, compilers and
-checks enforce those contracts. Resolve a conflict in its owning topic and implementation;
-a newer date or repeated wording does not create another authority.
-
-The [tire sound evidence note](tire-squeal-research.md) supports mechanism discussion. Tire audio owns
-methods, Calibration owns controls, and NEXT owns ordered work. Current contracts and one
-checkpoint live here; historical audits, experiments and release records live in Git/PR/CI.
-
-## Vocabulary
-
-These definitions identify the CourseDocument model; topic documents own their precise contracts.
-
-| Term            | Meaning                                                              |
-| --------------- | -------------------------------------------------------------------- |
-| Section         | One reusable authored road/content chart                             |
-| Link            | Directed port-to-port connection with compiled transform             |
-| Port            | Oriented connection anchor in a Section                              |
-| Occurrence      | A traversal of a Section with actual incoming Link and history       |
-| Frame           | Coordinate basis for position, orientation and vectors               |
-| View            | Bounded continuous reader over occurrence spans                      |
-| Boundary / Band | Longitudinal edge profile / region between edges                     |
-| Carriageway     | Group of pavement Bands associated with a road or exit               |
-| CompiledCourse  | Validated immutable reference graph with resolved readers and assets |
-| Commit          | Per-actor change of occurrence/frame after physical seam crossing    |
-
-Positive lateral coordinates point right in their named frame. APIs distinguish source/target Port
-coordinates, transforms and carriageway centers. An original stage or checkpoint interval need not
-be a Section. Product topology uses LINEAR, CIRCUIT and BRANCH.
+On restart, read [AGENTS](../AGENTS.md), this index, NEXT and the relevant topic specifications,
+then inspect current Git, PR and CI state. A contract changes in its owning document together with
+its implementation. Git and PRs hold historical decisions, audits and release evidence.

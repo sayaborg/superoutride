@@ -4,31 +4,32 @@ Use Node.js 24. [AGENTS](../AGENTS.md) owns checks and release procedure.
 
 ## Commands
 
-| Command                       | Purpose                                                                            |
-| ----------------------------- | ---------------------------------------------------------------------------------- |
-| `npm ci`                      | Install locked dependencies.                                                       |
-| `npm run check`               | Run lint, format checking and strict type checking.                                |
-| `npm run lint`                | Lint source, tests and tools.                                                      |
-| `npm run format`              | Format maintained files.                                                           |
-| `npm run format:check`        | Check formatting.                                                                  |
-| `npm run build`               | Clear dist, compile TypeScript, build graphics tools and generate course content.  |
-| `npm test`                    | Run lint, format, strict TypeScript build, startup smoke and acyclic layer checks. |
-| `python3 -m http.server 8000` | Serve the checkout, game and tools over HTTP.                                      |
+| Command                       | Purpose                                                          |
+| ----------------------------- | ---------------------------------------------------------------- |
+| `npm ci`                      | Install locked dependencies                                      |
+| `npm run check`               | Lint, format check and strict type check                         |
+| `npm run lint`                | Lint source, tests and tools                                     |
+| `npm run format`              | Format maintained files                                          |
+| `npm run format:check`        | Check formatting                                                 |
+| `npm run build`               | Clear dist, compile TypeScript, build tools and generate content |
+| `npm test`                    | Lint, format, build, startup smoke and acyclic layer checks      |
+| `python3 -m http.server 8000` | Serve the checkout, game and tools                               |
 
 ### Course commands
 
-Run these after building. Generated previews and reports are disposable.
+Run after building:
 
 ```sh
 npm run course -- compile content/courses/linear.course.json
-npm run course -- render content/courses/linear.course.json --s 1200 --l 0 --vehicle TESTAROSSA --out /tmp/course.png
+npm run course -- render content/courses/linear.course.json --s 100 --l 0 --vehicle TESTAROSSA --out /tmp/course.png
 npm run course -- report content/courses/linear.course.json --step 25 --out /tmp/course-report
 node tools/course/fit.mjs observations.json recipe.json --out course.course.json
 node tools/course/measure.mjs request.json --out observations.json
 ```
 
 `npm run compile:course -- <source.json> [image-directory]` reports geometry-only compiler output.
-[Content and gameplay](content-and-gameplay.md#agent-authoring) owns input/output semantics.
+[Content and gameplay](content-and-gameplay.md#observation-and-fitting-formats) owns saved tool formats.
+The render command uses the shared product scene; reports and preview images are disposable outputs.
 
 ### Graphics tools
 
@@ -39,33 +40,43 @@ The file compilers are `npm run build:sprite-source -- <arguments>` and
 ### Audio audition
 
 Serve the checkout and open [engine audition](../tools/audio/audio-browser.html) or
-[UNIFIED tire audition](../tools/audio/tire-browser.html). Both use the production audio voices at
-fixed playback gain. Tire scenarios expose front/rear/both output; the game DEV panel provides
-UNIFIED tuning and R/Q controls. These are listening tools, not automated quality or level gates.
+[UNIFIED tire audition](../tools/audio/tire-browser.html). Both use production voices and render at
+48 kHz with fixed playback gain; game audio uses the device's supported native rate.
+
+For engine adjustment, select a catalog profile and compare steady RPM/excitation with acceleration
+and coast. Commit settings before the next audition playback. Keep playback gain fixed when comparing
+timbre or output level. For tire adjustment, use independent front/rear/both scenarios for rolling,
+cornering, wheel lock, loose surfaces and release. R/Q output controls isolate the two components.
+[Calibration](calibration.md) gives values; the audio specifications define their effect.
+
+On a device, check media volume and silent mode, then use SOUND START. Browser context state and audible
+speaker output are separate observations. Record device/browser, scenario, settings and listening
+findings with the change. [NEXT](NEXT.md) owns outstanding tuning and device work.
+
+## Source-file conventions
+
+Authored CourseDocuments and independent game assets live under `content/`. Reference videos,
+extracted frames and pixel-bearing reference data stay in ignored `reference-media/` directories or
+outside the checkout. This includes pixel arrays, masks and crops stored in JSON or other containers.
+Only numeric observations, scalar calibration and source/edition descriptions are committed as
+reference evidence. Product-renderer previews and reports are generated outputs.
 
 ## Build outputs
 
-`dist/` contains compiled ESM and the built Sprite Tool/LOD preview. `dist/content/` contains validated course
-JSON, compiled images/sprites, completed resident RGB555 ground and the content manifest. These are generated
-outputs; authored sources remain under `content/`.
+`dist/` contains compiled ESM and graphics tools. `dist/content/` contains course JSON, compiled
+images/sprites, completed resident RGB555 ground and the content manifest. Build also generates
+vehicle envelopes, continuous reference runs and game time budgets. Matching disposable data under
+`.cache/course-reference/` is reused; changed inputs regenerate it. Browsers load these products.
 
-Build also generates current vehicle envelopes, continuous AI reference runs and game time budgets. It reuses
-matching disposable entries from `.cache/course-reference/` and regenerates them when their inputs change.
-This is game-data generation, not a timing regression test. The flat asphalt world in
-`tools/course/vehicle-envelope.mjs` uses `SurfaceMap` for these measurements. Browsers load the selected vehicle's envelope and
-budget without running the reference simulation.
+| Output                                         | Use                                      |
+| ---------------------------------------------- | ---------------------------------------- |
+| `dist/content/envelopes/<vehicle>.json`        | Rival driving envelopes                  |
+| `dist/content/budgets/<course>/<vehicle>.json` | Timed Session budgets                    |
+| `dist/offline/reference/<course>.json`         | Full reference runs, excluded from Pages |
+| `_site/build/<commit>/`                        | Complete commit-versioned Pages build    |
+| `_site/version.txt`                            | Published build identifier               |
 
-| Output                                         | Use                                                    |
-| ---------------------------------------------- | ------------------------------------------------------ |
-| `dist/content/envelopes/<vehicle>.json`        | Driving envelopes used by rivals.                      |
-| `dist/content/budgets/<course>/<vehicle>.json` | Initial and checkpoint time limits for timed Sessions. |
-| `dist/offline/reference/<course>.json`         | Full generated reference runs; excluded from Pages.    |
-| `_site/build/<commit>/`                        | Commit-versioned Pages build.                          |
-| `_site/version.txt`                            | Published build identifier.                            |
-
-Dependencies, caches, dist, previews and Pages staging are not committed source.
-
-Pages stages only the commit-versioned build. After deployment,
-`node tools/build/verify-published-site.mjs <Pages URL> <commit>` checks the public version and
-starts the served game in headless Chrome. It does not rebuild or compare asset digests.
-`CHROME_BIN` can select a Chromium executable for local use.
+Dependencies, caches, dist, previews and Pages staging are generated rather than committed source.
+Pages serves one complete commit-versioned ESM build, including its relative module URLs.
+After deployment, `node tools/build/verify-published-site.mjs <Pages URL> <commit>` checks the public
+version and starts the served game in headless Chrome. `CHROME_BIN` selects a local Chromium executable.

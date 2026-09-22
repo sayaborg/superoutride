@@ -1,131 +1,109 @@
-# Browser
+# Browser operation
 
-This document owns browser composition, scheduling, course selection, Session URL controls, HUD
-presentation and device input adaptation. [Content and gameplay](content-and-gameplay.md) owns
-Session rules, clocks, progress, loading admission and recovery. [Audio](audio.md) owns audio lifetime
-and its DEV panels; [Calibration](calibration.md) owns calibration values and selectors. Those
-contracts remain at their owners rather than being duplicated here.
+This document owns display, scheduling, keyboard/touch input, URL settings, HUD and DEV controls.
+[Content and gameplay](content-and-gameplay.md) owns Session rules and loading,
+[Audio](audio.md) owns audio lifetime, and [Calibration](calibration.md) owns numeric settings.
 
-## Boot and composition
+## Display and scheduling
 
-The HTML entry resolves the build containing [boot](../src/boot.ts); [Development](development.md)
-owns commit-versioned delivery and fallback. Boot selects the course, mounts its selector, isolates
-DEV keyboard events and owns full-page course navigation. It imports the selected composition entry;
-every current course uses `main-course.js`.
+The logical canvas is 320×240 with image smoothing disabled. A shared driving scene supplies the game
+and headless previews. All selected course, image, ground and Session inputs are ready before driving
+starts. A failed load displays status and Retry; an incomplete Session stays inactive.
 
-The [driving composition](../src/main-course.ts) loads saved course and image inputs, compiles the
-graph, preflights the ground manifest before acquiring its payload, and resolves Session settings,
-vehicle and required time budgets. It assembles the shared scene, race and browser shell only after
-successful admission. Loading failure leaves a visible status and Retry action; no partial driving
-Session starts. Course loading invariants belong to [Content and gameplay](content-and-gameplay.md#course-loading).
+The browser accumulates nonnegative elapsed time capped at 0.25 s per animation callback. Simulation
+uses fixed 1/60 s steps; fractional remainder carries forward. One render follows the completed
+steps, including callbacks with no simulation step. Starting renders immediately with a fresh clock.
+Loading and setup leave the race clock stopped until START.
 
-The [shell](../src/browser/driving-shell.ts) owns the canvas, reusable framebuffer, input adapters,
-player/recovery instance, camera rig, audio lifecycle and presentation wiring. Route decisions, field
-advancement and race state are supplied by the composition and Runtime, not another browser physics
-loop. The logical canvas is 320x240 with smoothing disabled. Camera observation and recovery
-resynchronization use the shared [driving lifecycle](../src/browser/driving-lifecycle.ts).
-
-## Frame progress and lifecycle
-
-The [frame loop](../src/browser/frame-loop.ts) accumulates nonnegative wall-clock elapsed time,
-capped at 0.25 seconds per animation callback. Simulation always receives the fixed `1/60` second
-step. Fractional remainder carries to the next callback; one render follows the completed steps,
-including callbacks with no simulation step. Generation checks reject stale callbacks and stop
-further catch-up or rendering when the loop stops during a tick.
-
-Starting the shell retires its previous scheduler, resumes input/audio, renders immediately and starts
-a fresh scheduler with zero accumulated time. Loading and Session setup do not advance the race clock
-before START. Manual PAUSE and document hiding stop scheduling/audio and suspend input. Returning to a
-visible document resumes only a READY or RUNNING Session that is not manually paused. RESUME starts a
-fresh clock, without simulating the pause interval or restoring held input. Gameplay owns the meaning
-of START, GOAL, GAME OVER and accepted event times.
-
-Completion stops the field and input, hides PAUSE and retains the result. NEW SESSION reloads setup.
-Page hiding stops the shell; a persisted page restored from browser history reloads rather than
-reviving its previous graph. These lifecycle rules do not replace the separate audio gesture and
-failure/retry contract in [Audio](audio.md).
+PAUSE and document hiding suspend scheduling, input and audio. Visibility resumes a READY or RUNNING
+Session only when it is not manually paused. RESUME starts a fresh clock with cleared held input.
+Completion stops the field, hides PAUSE and displays results. NEW SESSION returns to setup.
+A persisted page restored from browser history reloads the page.
 
 ## Selection and URL parameters
 
-[Course selection](../src/browser/course-mode-selection.ts) owns the query/label/key mapping:
-`linear` / LINEAR / 1, `seam` / SEAM / 2, `circuit` / CIRCUIT / 3 and `branch` / BRANCH / 4.
-Both digit-row and numeric-keypad shortcuts work; repeated keydown is ignored. Missing or unknown
-`mode` selects the first registered course, currently LINEAR. Selecting the active course is a no-op.
-Selecting another course preserves the URL except that it changes `mode` and deletes `session`,
-`vehicle`, `rivals`, `laps`, `clock` and `autostart`, then performs full-page navigation.
+The current course selector maps `linear` / LINEAR / 1, `seam` / SEAM / 2,
+`circuit` / CIRCUIT / 3 and `branch` / BRANCH / 4. Digit-row and numeric-keypad shortcuts work;
+repeated keydown is ignored. Missing or unknown `mode` selects the first entry, LINEAR.
+Selecting the active course does nothing. Selecting another performs full-page navigation, changes
+`mode`, removes `session`, `vehicle`, `rivals`, `laps`, `clock` and `autostart`, and preserves other URL data.
 
-[Session controls](../src/browser/course-session-controls.ts) read these case-sensitive parameters:
+Session parameters are case-sensitive:
 
-- `mode`: a registered lowercase course query. This is course selection, not Session mode.
-- `session`: `CLASSIC` or `CUSTOM`, default `CLASSIC`. Any other value is rejected.
-- `vehicle`: an exact vehicle-catalog profile ID, such as `TESTAROSSA`, for CUSTOM; absence uses the saved preset.
-- `rivals`: CUSTOM rival count, parsed with `Number`; absence uses the preset. Session admission requires an integer from 0 through 16 and sufficient authored grid slots.
-- `laps`: CUSTOM lap count, parsed with `Number`; absence uses the preset. Session admission requires a positive integer within the authored course limit; non-circuits use one lap.
-- `clock`: CUSTOM checkpoint clock. Exactly `off` disables it; absence or any other value enables it. The setup control emits `on` or `off`.
-- `autostart`: exactly `1` begins the admitted Session after loading; other values leave setup visible. It does not grant browser audio permission.
+| Parameter   | Meaning                                                                                       |
+| ----------- | --------------------------------------------------------------------------------------------- |
+| `mode`      | Lowercase registered course query; independent of Session mode                                |
+| `session`   | `CLASSIC` or `CUSTOM`, default `CLASSIC`; other values fail                                   |
+| `vehicle`   | Exact catalog profile ID for CUSTOM, such as `TESTAROSSA`; absent uses preset                 |
+| `rivals`    | CUSTOM count parsed with `Number`; integer 0–16 within grid capacity; absent uses preset      |
+| `laps`      | CUSTOM count parsed with `Number`; positive integer within course limit; non-circuits use one |
+| `clock`     | CUSTOM countdown: exactly `off` disables it, all other values enable it                       |
+| `autostart` | Exactly `1` starts after loading; other values show setup                                     |
 
-CLASSIC always uses the course's saved vehicle, rivals and laps with the checkpoint clock enabled;
-it ignores their individual query overrides. CUSTOM exposes the settings above. Invalid vehicle,
-numeric or course/Session combinations fail admission rather than being clamped into another run.
-The setup form locks preset fields in CLASSIC and disables laps when the course permits only one.
-
-For example, this query selects a standing-start SEAM run with sixteen rivals and no checkpoint clock:
+CLASSIC uses the saved vehicle, rivals and laps with countdown enabled, ignoring their individual
+query overrides. CUSTOM exposes those settings. Invalid vehicle, numeric or course/Session combinations
+produce an error. Setup locks preset fields in CLASSIC and disables a single-lap course's lap control.
 
 ```text
 ?mode=seam&session=CUSTOM&vehicle=TESTAROSSA&rivals=16&laps=1&clock=off&autostart=1
 ```
 
-Append it to the local or public game URL. Omitting `autostart` exposes setup for inspection. Submitting
-unchanged resolved settings starts in place; changed settings reload with their query values and
-`autostart=1`. NEW SESSION preserves the settings but removes `autostart`. Session controls isolate
-keyboard events and carry `data-driving-input="ignore"` so form interaction is not driving input.
+Submitting equal resolved settings starts in place. Changed settings reload with their query values
+and `autostart=1`. NEW SESSION preserves settings and removes `autostart`.
+Autostart affects gameplay; sound still requires an eligible browser gesture.
 
-## Indexed image readiness and checks
+## Driving input
 
-The completed vehicle sprite library is loaded and admitted before ticks, alongside digest-verified
-course content. Sprite LOD is produced by build, not during driving. Each environment selects the single
-infinite tiled BG; placeholder tile palettes deliberately differ. [Image assets](image-assets.md) owns
-the formats, common filter and immutable palette substitutions.
+Left/right arrows steer, Up or X accelerates, and Down or Z brakes. Backspace requests recovery when
+the active composition permits it. The latest still-held pedal wins; releasing it exposes the earlier
+held pedal. Steering uses the latest source and does not revive a superseded direction on release.
+Boolean pedal input and numeric input in `[0,1]` have the same canonical meaning.
 
-In each registered mode, inspect BG tile-color changes and distant trees/signs while moving. Select
-Testarossa and brake to see its precomputed lamp palette; rivals use their own brake observations.
-The normal and braking sets are immutable choices prepared before driving. These checks are human
-acceptance, not a claim of tested phone frame rate or guaranteed survival of every subpixel feature.
+Touch pointers starting outside UI elements marked `data-driving-input="ignore"` control driving.
+The viewport's left half selects steering; the midpoint and right half select pedals. Each pointer's
+role and origin are fixed until release, with at most one steering and one pedal pointer at once.
+
+Horizontal displacement maps steering to `[-1,1]`. Upward displacement supplies throttle and downward
+displacement supplies brake. Full scale is 64 CSS pixels, with larger displacement saturated.
+Touching the origin owns neutral input. Held touch supplies direct analog displacement; release uses
+the ordinary actuator release behavior. Release, cancellation, suspension, blur and page hiding clear
+the corresponding ownership and visible origin/vector indicators.
 
 ## Performance HUD
 
-The [performance HUD](../src/browser/course-performance-hud.ts) reports the current browser instance:
-FPS, maximum CPU frame time, maximum single fixed-step time, maximum frame interval, lifetime maximum
-seam-commit time, admitted ground MiB, unique ground tiles and Section count, followed by `loaded once`.
-The first frame updates immediately; subsequent reports summarize approximately half-second windows.
+The HUD displays FPS, maximum CPU frame time, maximum fixed-step time, maximum frame interval,
+lifetime maximum seam-commit time, resident ground MiB, unique tile count and Section count,
+followed by `loaded once`. The first frame reports immediately, then approximately every half second.
 
-CPU frame time adds fixed-step work since the previous render to rendering/presentation work. Frame
-interval measures time between completed frames, not just CPU work. FPS and frame/step/interval maxima
-reset with each reporting window; seam maximum remains cumulative. Ground MiB means resident bytes
-divided by 1,048,576, not transfer size. The HUD does not display allocation rate, a median or p95.
-[Development](development.md) owns performance targets, diagnostics and named-device acceptance.
+CPU time adds fixed-step work since the preceding render to rendering/presentation work. Frame
+interval is elapsed time between completed frames. FPS and frame/step/interval maxima reset each
+reporting window; seam maximum is cumulative. Ground MiB is resident bytes divided by 1,048,576.
 
-## Driving input and DEV controls
+## DEV controls
 
-Left/right arrows steer; Up or X accelerates and Down or Z brakes. Backspace requests recovery only
-when the active composition permits it. [InputManager](../src/input/input-manager.ts) composes keyboard
-and touch through shared steering and pedal arbiters; it does not create a second physical input path.
+DEV is an initially closed disclosure overlay. Its body scrolls within the safe viewport without
+resizing the game. UI pointer starts stay outside driving input. Keydown is isolated, while keyup
+can release an already-held driving key. Escape closes the panel and returns focus to its summary.
+Session-owned vehicle and physics controls are locked; camera and sound controls remain available.
 
-[Touch input](../src/input/touch-input.ts) accepts touch pointers beginning outside an element path
-marked `data-driving-input="ignore"`. A pointer beginning in the viewport's left half controls steering;
-at the midpoint or in the right half it controls pedals. The initial role and origin remain fixed
-until release, with at most one pointer for each role and both roles usable simultaneously.
+Tire and steering selectors use minus/value/plus controls. Their choices wrap at range endpoints;
+ACT selects traversal time in seconds. Y/U/T step D/M/ACT forward. Vehicle replacement carries active
+tire calibration. The selectable body-yaw and movement-yaw cameras use the same projection.
+[Calibration](calibration.md#vehicle-settings) lists values, units and ranges.
 
-Horizontal displacement maps steering to [-1, 1]. Upward displacement gives throttle and downward
-displacement gives brake, never both. Full scale is 64 CSS pixels, independently of backing-store
-resolution; displacement beyond it saturates. Touching the origin immediately owns a neutral request.
-Held touch publishes direct analog requests; release removes that source and retains the ordinary
-actuator release behavior. Pointer release/cancellation clears the corresponding role. Suspension,
-blur, page hiding and a hidden document reset input ownership and indicators.
+### Sound controls
 
-Origin/vector indicators use runtime-generated `touch-analog-steering` and `touch-analog-pedal` classes;
-those selectors are live even though their complete names are absent from literal source strings.
-The DEV disclosure overlays rather than resizes the game, isolates keyboard events and closes on Escape
-with focus returned to its summary. Camera and sound controls remain available while Session-owned
-vehicle and physics settings are locked. Audio controls remain specified in [Audio](audio.md), and
-steering/tire selectors and their wrap behavior remain specified in [Calibration](calibration.md).
+A mouse press, touch/pen release, touchend or eligible keyboard gesture starts/resumes sound.
+Touch pointerdown alone does not activate it. SOUND START starts or resumes; SOUND ON/OFF then mutes
+or unmutes. SOUND RETRY offers a new initialization after failure. SOUND UNAVAILABLE indicates that
+the browser lacks the required audio support while gameplay remains usable.
+
+MASTER, ENG and TIRE independently control the complete output, engine output and tire output.
+A zero gain silences that output while DSP continues. R and Q buttons independently switch rolling
+and friction output for both axles. Their labels and pressed states show ON/OFF, and unavailable audio
+disables them. [Tire audio](tire-audio.md#tuning-replacement) owns faded output and replacement semantics.
+
+Engine tuning exposes eight minus/plus controls and reset. Buttons stop at limits; vehicle changes
+preserve settings, and page/course reload restores defaults. UNIFIED controls use the acoustic ranges
+and reset that model's defaults. Profile rows show cycle, cylinder count, idle/redline, firing phases,
+collector grouping and path lengths. [Calibration](calibration.md) lists the numeric settings.
