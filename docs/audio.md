@@ -112,8 +112,8 @@ kernel dBFS is not perceptual loudness or the level after the complete game grap
 ## Player tire synthesis
 
 [Tire audio](tire-audio.md) owns the six retained mechanisms, their observation mappings, numerical
-contracts, approximation limits and relative computation. Model selection is provisional; the
-[restart checkpoint](NEXT.md#current-state) owns deferred acceptance and tuning decisions.
+contracts, approximation limits and relative computation. [NEXT](NEXT.md) owns the planned retirement
+of alternatives to unified and the open tuning work.
 
 ## Mixing and lifetime
 

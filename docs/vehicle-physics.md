@@ -2,7 +2,7 @@
 
 CAR and BIKE use one two-station arcade solver. The model is a game approximation, not a complete real vehicle or motorcycle simulator. Mass, geometry, inertia, suspension, wheel, brakes, drag, fixed drive split and powertrain are compiled profile data. Browser calibration and torque-protection policy are explicit instance/composition inputs. There is no vehicle-ID branch inside the tire or wheel solver.
 
-The mechanics and control laws in this document are frozen; parameter calibration remains open. A future structural defect must be corrected with its causal regression and an explicit specification revision, never hidden by tuning. Compiled profiles own immutable snapshots, including nested actuator rates, ratios and torque points. Equal authored settings mean equal values; sharing the original authoring object's identity is not a mechanics invariant.
+This document describes the current mechanics and control laws. Physics tuning is open work in [NEXT](NEXT.md#current-state). Correct structural defects in the responsible model and specification rather than hiding them through tuning. Compiled profiles own immutable snapshots, including nested actuator rates, ratios and torque points. Equal authored settings mean equal values; sharing the original authoring object's identity is not a mechanics invariant.
 
 ## State and integration
 
@@ -134,4 +134,4 @@ HUD reads raw request, actuator, automatic steering, requested/delivered offset,
 
 Bike lean is presentation: `atan2(lateralAcceleration,g)`, with discrete bank variants using the normalized angle and a ground-anchored debug line. Bike CG is currently 30% of wheelbase. There is no physical roll, rider shift or tire-camber thrust. Graphics/sound read observations rather than add a second physics authority. Final wheel-solve rolling speed, slip speed and per-station surface are published through an optional read-only [observation channel](../src/physics/vehicle-tire-observation.ts) for [audio](audio.md). Its caches live outside the unchanged vehicle/control snapshot; recovery resets them and no mechanical solve consumes them.
 
-[Calibration](calibration.md) lists current settings; [NEXT](NEXT.md#milestones) owns open acceptance work. [Recovery](content-and-gameplay.md) defines the explicit gameplay reset boundary.
+[Calibration](calibration.md) lists current settings; [NEXT](NEXT.md#current-state) owns open acceptance work. [Recovery](content-and-gameplay.md) defines the explicit gameplay reset boundary.

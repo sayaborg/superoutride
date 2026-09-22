@@ -1,6 +1,6 @@
 # Calibration and tuning ownership
 
-The vehicle values below are a playtest starting point for the [common vehicle model](vehicle-physics.md). [NEXT](NEXT.md#milestones) owns handling status and acceptance limits; the values are not a real-vehicle claim.
+The vehicle values below are a playtest starting point for the [common vehicle model](vehicle-physics.md). [NEXT](NEXT.md#current-state) owns handling status and acceptance limits; the values are not a real-vehicle claim.
 
 ## Current player settings
 
@@ -38,7 +38,7 @@ Before accepting a tune, compare coast, acceleration, braking, held turns, rever
 
 The available [terrain probe](../tools/physics/torque-protection-terrain-probe.mjs), [braking/yaw probe](../tools/physics/braking-yaw-probe.mjs) and [drift control probe](../tools/physics/drift-control-probe.mjs) use the production solver. Check each tool's arguments in source. Diagnostic probes intentionally omit gameplay recovery when measuring raw model-domain exits. Tests with explicit coefficients are fixed causal fixtures, not assertions that those values are the current browser default.
 
-Open calibration and device acceptance work is tracked only in [NEXT](NEXT.md#milestones).
+Open calibration and device acceptance work is tracked only in [NEXT](NEXT.md#current-state).
 
 ## Tire audio tuning
 

@@ -253,10 +253,9 @@ for reproducible render/probe commands. HOPF and CONTACT remain unmodified audib
 
 ### HYBRID game synthesis
 
-HYBRID remains the R/S/Q waveform reference
-for evaluating MODAL. The shared R extraction preserves its sound; this new comparison does not
-retune HYBRID or HOPF/CONTACT/SPECTRAL. The frozen mechanics/rendering oracle and read-only
-observation/lifecycle boundaries remain binding.
+HYBRID provides an R/S/Q comparison with MODAL through shared rolling synthesis. Tire audio consumes
+read-only physical observations and follows the common lifecycle boundary. [NEXT](NEXT.md) owns the
+planned retirement of alternatives to unified.
 
 The [kernel](../src/audio/tire-hybrid-model.ts) receives one `TireSoundObservation` and surface identity.
 It neither instantiates HOPF nor receives a second, precomputed HOPF excitation/pitch stream.
@@ -551,7 +550,7 @@ Offline renderer `elapsedMs` and `maxIterations` are diagnostics, not average it
 cost or target-device certification. Do not infer a measured speed ratio from operation counts.
 Lower-rate stepping or one/two Newton iterations are unvalidated proposals: they require convergence,
 root-domain, spectrum/aliasing and transient checks, not an argument from fundamental pitch alone.
-Current construction accepts 44.1–192 kHz. Sound selection and tuning are [deferred](NEXT.md#current-state) while visual presentation is developed.
+Current construction accepts 44.1–192 kHz. [NEXT](NEXT.md) owns the unified-only decision and open tuning work.
 
 ### Session tuning
 

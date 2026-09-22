@@ -239,4 +239,4 @@ semantics; [validation](development.md) owns evidence. Work order belongs only t
 
 Technical candidates and their evidence gates are listed by their owners, not repeated here.
 Rolling starts, additional lamp states, ghosts and new input devices remain outside the initial editor slice.
-Existing tire and audio tuning stays deferred under the repository's current checkpoint.
+Physics and tire-audio tuning are open work in [NEXT](NEXT.md#current-state).
