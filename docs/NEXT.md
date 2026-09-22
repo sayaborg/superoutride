@@ -2,45 +2,81 @@
 
 ## Current state
 
-- Four modes share one compiled graph scene, all-Section resident RGB555 and a complete Session flow.
-- Compiled readers are immutable; occurrence, actor, field lock and Session state are separate.
-- The unchanged allocation regression ceiling is 650,000 bytes/frame; the 200,000-byte product target is open.
-- Fixed-step median and frame p95 have met CI targets; current-candidate validation and device checks are separate.
-- The measured-envelope driver is shared by references and rivals; K's CIRCUIT acceptance is pending.
-- Indexed sprites, build-generated LOD, immutable palette variants and one tiled BG are implemented; K acceptance is pending.
-- Vehicle parameters remain `DEV_UNCALIBRATED`; physics/audio references, input, camera and render distances are unchanged.
-- Generated image/ground/envelope/reference products are disposable; only authoring inputs are committed.
+- The game uses one compiled graph scene, resident RGB555 ground, indexed sprites and a complete Session flow.
+- BG uses the current single infinite plane: 80×40 tiles, 1280×640 pixels and sine mapping.
+- Build generates vehicle envelopes and game time budgets; generated products are disposable.
+- Stage 1 removes the tuning freeze, frozen-reference oracle and performance tests without changing runtime behavior.
+  Remaining regression tests stay until Stage 2. Vehicle parameters still carry `DEV_UNCALIBRATED`; physics and
+  tire-audio tuning are open work. BGM, wind and sound effects are not implemented yet.
 
-## Milestones
+K's decisions below govern the remaining work, including where existing topic target sections differ.
+Stage 3 reconciles those specifications. Implement the stages in order.
 
-- **Shared scene, Sessions, allocation reduction and envelope driver — Implemented:** existing public flow; K checks CIRCUIT rivals.
-- **Background and indexed images — Implemented, acceptance pending:** release requires full Node 24 tests,
-  immutable comparisons, exact-head CI and verified Pages delivery. K checks all four public modes for
-  per-tile palettes, distant scenery stability and Testarossa braking lamps; ground feasibility is independent.
-- **Ground feasibility — Revised offline trial pending:** on draft PR #238, compare resident, prior filtered
-  intervals and resolved-slab/row-raster ground using the common filter. Replace the whole plane, including
-  open sides; prove ordered arrows/cliffs, exact-oracle bounds, Section ownership and <1 px transitions.
-  [Runtime target](architecture.md#colored-ground-runtime-target) and [budgets](development.md#colored-ground-trial-budgets)
-  own the design and unchanged qualification gates. Report three fresh-process repetitions and packed bytes.
-  Failure leaves the resident baseline unchanged and presents the cause and options to K.
-- **Ground replacement — Gated:** only after all feasibility conditions pass, admit colored optional-role/open
-  Bands, convert four courses and remove resident ground, old images, source appearance, build/delivery/HUD,
-  stale capacity/quantization targets and corresponding tests together. Publish arrow/cliff/marking checks.
-- **Rendering ownership — With replacement:** consolidate image/presentation owners and duplicate names;
-  remove groundmap entirely unless a surviving responsibility is justified.
-- **Remaining performance — After ground decision:** remeasure allocation, fixed-step median, frame p95 and GC;
-  move seam timing outside engine state or inject its clock. Never simplify rival physics or substeps.
-- **Structural cleanup — Separate changes:** split driving-source responsibilities, split Content by owner,
-  and inventory test-only exports without changing behavior or measurement.
-- **Three-way fork — Pending:** ordinary Left/Middle/Right rules and a public start-to-results route.
-- **Video reconstruction — Pending:** timeline observations, template-free fit and current-envelope replay;
-  synthetic tools first without footage, utilization 0.55/0.75/0.95, save observations and fit inputs only.
-- **After reconstruction:** produce content, K reviews time margins/rival speed, then implement traffic and
-  movable/fixed-object interactions, followed by an inspection/fine-adjustment GUI.
+## Stage 2 — Remove dormant code and checks
 
-## Open decisions
+- Keep only `unified` tire audio and make it the default. Remove `tire-contact-model`, `stochastic-resonator`,
+  `tire-hybrid-*`, `tire-modal-model`, `tire-spectral-*` and every other non-unified model, together with their
+  branches, selection UI, documentation, tools and tests.
+- Give shared components used by unified neutral names independent of a synthesis method.
+- Remove remaining comparison/proof tools: equivalence, spectral/contact, benchmarks and physics probes.
+- Reduce `src/dev` fixtures and diagnostics. Reduce tests to the three standing checks in AGENTS plus a justified minimum.
+- Remove old-cache compatibility: the Pages `_site/dist` fallback and `audio-lifecycle.ts` older-cached-index handling.
+  Keep delivery verification minimal.
+- Decide whether any work from PR #238 should be reused, then close it. Also resolve the unmerged `indexed-background`
+  branch; preserve useful work before removal.
 
-- **Audio — K:** all six selectable models (`hopf`, `contact`, `hybrid`, `spectral`, `modal`, `unified`) reach the production worklet; reconcile this with `audio.md`'s "no inactive legacy model" contract. Choose an explicitly supported model set or retire alternatives; recommend K selects the supported set before a separate audio change. Audio and its hashes remain frozen.
-- **Progress — Separate PR:** `src/runtime/course-race-progress.ts` branches between circuit and ordered progress. Retain separate engines or represent loops with ordered progress; recommend proving lap, gate, recovery and clock equivalence before removing the topology-specific branch.
-- **Pages — Separate PR:** retain or remove `_site/dist` fallback and published `dist/dev`, and choose rebuilt-output or uploaded-artifact verification. Recommend commit-versioned product-only delivery and verification of the uploaded artifact, without deploy-time `npm ci && npm run build`; CI/Pages are unchanged here.
-- **UI language — K:** choose English throughout or permit Japanese in DEV panels only; recommend English for consistent labels, tooltips and accessibility text. Current mixed-language strings remain unchanged until that decision.
+## Stage 3 — Reorganize normative documents
+
+- Keep present-tense specifications; remove repeated procedure, freezes, history and negative qualifications.
+- Remove topic target chapters and centralize goals here.
+- Rewrite Product §4 and Architecture's ground section with the Band requirements in Stage 4.
+- Limit Content and gameplay to data meaning and rules. Delete `tire-squeal-research.md`.
+
+## Stage 4 — Replace ground with Bands
+
+- Make Bands the canonical course schema and implement their rendering under the requirements below.
+- Remove resident ground, groundmap, GroundBase, tile dictionaries, paint/stamp systems and their build, HUD and
+  documentation paths together.
+- Replace the old development courses with provisional courses authored in the new schema. Remove course-specific
+  numbers from documentation. Generated expansions are build products, not committed source.
+
+### Band requirements
+
+- Ground is an ordered list of colored Bands. Later Bands cover earlier ones; colors are direct RGB555 or transparent.
+- Physical classification is independent of appearance.
+- Bands replace the entire ground plane, including the open outside on both sides.
+- Preblend along s over power-of-two intervals. Aim for exact lateral integration along l; compare multiple methods
+  and choose the implementation from those results.
+- Threshold transparent edges. Transparent areas reveal BG even below the horizon.
+- Start with at most 64 active Bands and finalize the limit on real devices.
+- Express arrows, letters, curbs and cliffs with Bands. Expand authored constructs at compile time and do not commit
+  the expansions.
+
+## Stage 5 — Simplify structure
+
+- Replace the three forms of `GuideCoordinateSource` with one reader.
+- Unify circuit and ordered progress engines; remove synthetic `':EXIT'` gates.
+- Move running geometry proofs (`course-driving-view` calls to `compileCourseGeometryWindow`) to compilation.
+- Consolidate validation into one layer and minimize version/hash management.
+- Clarify physics responsibilities and names (`arcade-vehicle-physics` / `vehicle-dynamics`), and remove physics
+  dependencies on course and input.
+- Give surface properties one representation: remove `SurfaceMap`, assign material definitions one owner, and
+  distinguish the `SHOULDER` role from material names.
+- Give tuning values one authority, including running setters and the `DEV_UNCALIBRATED` label.
+- Retain both body-fixed yaw and movement-direction yaw cameras; clarify their roles and names. A product selector
+  may be added later.
+- Give rendering concepts one owner and one name: resolve the meanings of presentation, BG splitting and the boundary
+  between runtime and authoring. Unify the two course-sprite paths.
+- Remove unnecessary indirection in `boot.ts` and define the product/DEV UI boundary.
+
+## Stage 6 — Close specification gaps
+
+- Implement TIME ATTACK.
+- Make course selection data-driven, clarify the `mode` parameter name and remove SEAM from the choices.
+- Define audio buses for BGM, environmental/wind audio and sound effects.
+- Make all UI English, including DEV panels and tools.
+
+## Stage 7 — Produce product courses
+
+Create the product courses using the new schema and authoring workflow, then review their appearance, driving
+experience and time margins on real devices.

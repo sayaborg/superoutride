@@ -51,9 +51,8 @@ provides run-in/runout for camera, drawing and handoff. Occurrence views compose
 
 Core's `hypot2`/`hypot3` own fixed-arity distance and speed norms in the physics/gameplay hot path.
 They retain the supported Node runtime's bit-exact `Math.hypot` oracle. Compilation, authored ruler
-construction and offline diagnostics use `Math.hypot`; frozen camera/audio algorithms retain their
-existing arithmetic. Numerical owner changes require exact regression evidence, not a blanket
-replacement. The envelope driver uses `hypot2` for planar speed and distance.
+construction and offline diagnostics use `Math.hypot`. Camera/audio algorithms use their own numerical
+owners. The envelope driver uses `hypot2` for planar speed and distance.
 
 ## Numerical threshold ownership
 
@@ -169,9 +168,9 @@ leave structures floating beyond their road.
 
 ### Colored ground runtime target
 
-This is a gated offline trial, not the current resident reader. Its authored Band contract belongs to
-[Content](content-and-gameplay.md#colored-ground-authoring-target); budgets belong to
-[Development](development.md#colored-ground-trial-budgets). No physical classification or force changes.
+The current renderer is resident RGB555. [NEXT](NEXT.md#stage-4--replace-ground-with-bands) owns the approved
+replacement requirements; Stage 3 will reconcile this target section and the
+[authored target](content-and-gameplay.md#colored-ground-authoring-target) with that decision.
 
 Compile the ordered Band list, not a per-pixel Band loop. For near rows, split chainage at activations,
 boundary knots and crossings required to resolve affine edge order. Resolve later-over-earlier paint
@@ -398,8 +397,5 @@ right-hand zone. Source classification, support and gate membership require belo
 ## Course Editor target
 
 Source-camera/variant sampling and real-art filter acceptance remain open.
-[Image acceptance](image-assets.md#remaining-technical-gates),
-[test design](test-design.md#course-editor-acceptance-additions) and
-[development](development.md#course-editor-target-validation) define the outstanding quality and
-consumer evidence. [NEXT](NEXT.md#milestones) orders the remaining playable content gates.
-Target changes preserve the unchanged mechanics reference.
+[Image assets](image-assets.md#remaining-technical-gates) describes the current image contracts.
+[NEXT](NEXT.md) owns the remaining work; [AGENTS](../AGENTS.md#checks) owns the check policy.

@@ -3,7 +3,7 @@ import tseslint from 'typescript-eslint';
 const files = ['src/**/*.ts', 'tests/**/*.mjs', 'tools/**/*.mjs'];
 
 export default [
-  { ignores: ['dist/**', 'node_modules/**', '_site/**', '.audit-baseline/**'] },
+  { ignores: ['dist/**', 'node_modules/**', '_site/**'] },
   ...tseslint.configs.recommended.map((config) => ({ ...config, files })),
   {
     files,

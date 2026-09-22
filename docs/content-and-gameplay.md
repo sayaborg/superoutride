@@ -41,7 +41,7 @@ publication used by the file/CLI workflow and shared scene. The [constant LINEAR
 [varying LINEAR example](../tests/fixtures/varying-linear.course.json),
 [linked LINEAR example](../tests/fixtures/linked-linear.course.json) and
 [transformed loop](../tests/fixtures/transformed-loop.course.json) are executable inputs for
-the [offline entry](development.md#coursedocument-compiler). A compiled document is geometry/reference
+the [offline entry](development.md#course-commands). A compiled document is geometry/reference
 data with explicit height/physical content and verified indexed image sources, not a ready driving
 Session or completed resident ground product.
 
@@ -172,7 +172,6 @@ Compilation caps each Section at 16384 Raster segments, 16384 mapped-band partit
 cells and 100000 m of compiled chainage, checking subdivision counts before emitting vertices and
 partition size before constructing cells. A Link admits at most 8192 overlap cells.
 These authoring limits bound work and diagnostics, not master-course or target-device acceptance.
-The [capacity diagnostic](development.md#agent-production-tools) measures host cost reproducibly.
 
 ### Colored ground authoring target
 
@@ -659,7 +658,7 @@ the steering controller. Envelope output preserves numeric measurement data and 
 
 One envelope driver serves reference runs and live rivals with a measured envelope, utilization,
 speed cap and target lane as explicit inputs. Session owns the provisional rival utilization 0.75;
-reference composition owns 0.9. Vehicle/course-specific speed tuning is deferred. A contiguous 5 m
+reference composition owns 0.9. A contiguous 5 m
 lattice covers at most 480 m; windows derive from this actual query limit, including pursuit steering.
 Each actor retains a bounded ring of curvature speed limits. Adjacent new cells share Guide samples;
 repeated ticks reuse cells and the precomputed minimum braking bound. Changing the immutable Guide,
@@ -685,9 +684,8 @@ Build validates complete ordered landmarks, every admitted route and every maxim
 recovery and incomplete products. It derives compact integer-millisecond budgets for the browser;
 loading resolves landmark IDs once against the current course and vehicle identities. Full runs and
 optional traces remain offline products. Continuous maximum-lap runs supply exact prefixes; independently
-restarted sectors and synthesized steady laps cannot substitute. Reproducible car/bike replay remains
-executable evidence. K will reconsider reference difficulty, the provisional 1.35 time margin and rival
-speed together after real courses exist; agents retain their current values without tuning.
+restarted sectors and synthesized steady laps cannot substitute. These runs generate game time limits.
+Reference difficulty, the provisional 1.35 time margin and rival speed remain tuning work in [NEXT](NEXT.md).
 
 ## Recovery
 
@@ -1040,7 +1038,7 @@ and reusing one lap source. Physics/topology have their own data. Replacement su
 preserves coherent state or a loading display, and offers retry/exit. Stale arrivals cannot install.
 Resume with a fresh clock and cleared input ownership. Capacity failures are explicit before play,
 without a hidden switch to streaming or lower-quality art. Retain content identity and failure handling
-through the current full-page course switch. [Development](development.md#capacity-model) owns residency/switch peaks.
+through the current full-page course switch. [Development](development.md#build-outputs) lists generated outputs.
 
 ## Course Editor target
 

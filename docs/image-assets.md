@@ -373,8 +373,7 @@ prove deduplication. Geometry and SurfaceMap remain independent of image storage
 A ready course has all branches and one source lap resident, with shared records counted once.
 Sampling is synchronous and performs neither acquisition nor prefiltering. Resolve row/span addresses
 before the pixel loop. [Course loading](content-and-gameplay.md#course-loading) owns activation/retry;
-[capacity](development.md#capacity-model) owns accounting, including switch peaks and the intentional
-RGB555-versus-indexed storage tradeoff.
+[Development](development.md#build-outputs) lists the generated outputs.
 
 ## Course Editor target
 

@@ -22,11 +22,11 @@ Open `http://localhost:8000/`. Build validates and stages course JSON, images an
 [Browser controls](docs/browser.md) owns keyboard/touch operation, course selection, Session setup,
 URL parameters, pause/resume and the performance HUD. [Audio](docs/audio.md) owns sound controls;
 [Calibration](docs/calibration.md) owns the locked Session calibration and DEV selectors.
-Physics and audio tuning remain deferred (DEV_UNCALIBRATED).
+Physics and tire-audio tuning are open work; current values are labelled DEV_UNCALIBRATED.
 
 ## Authoring and tools
 
-The [production CLI](docs/development.md#agent-production-tools) measures calibrated frames, fits saved observations, compiles CourseDocuments, renders PNG sequences through the browser scene and reports profiles/plan views. Product content lives in `content/courses` and `content/images`.
+The [production CLI](docs/development.md#course-commands) measures calibrated frames, fits saved observations, compiles CourseDocuments, renders PNG sequences through the browser scene and reports profiles/plan views. Product content lives in `content/courses` and `content/images`.
 The [Sprite Tool](tools/graphics/sprite-tool.html) and [Sprite LOD preview](tools/graphics/sprite-lod.html) retain the existing image authoring workflow.
 [Audio audition](tools/audio/audio-browser.html) uses the same local HTTP server.
 

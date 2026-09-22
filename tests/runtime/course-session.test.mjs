@@ -4,7 +4,6 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 import { loadCourse, loadCourseGround } from '../../tools/course/authoring-io.mjs';
-import { runCourseReference } from '../../tools/course/reference-run.mjs';
 import { compileCourseDocument } from '../../dist/compiler/compiled-course.js';
 import { readCourseReference } from '../../dist/runtime/course-reference.js';
 import { resolveCourseSession } from '../../dist/runtime/course-session.js';
@@ -160,20 +159,6 @@ test('expired physical crossing cannot award progress or checkpoint time', () =>
   race.advance({ steering: 1, throttle: true, brake: false }, 1 / 60);
   assert.deepEqual({ x: car.x, z: car.z, time: race.clock.elapsedSeconds }, before);
 });
-
-for (const index of [0, 5])
-  test(`continuous ${VEHICLE_CATALOG[index].profile.id} replay reproduces saved accepted times with production inputs`, async () => {
-    const entry = VEHICLE_CATALOG[index],
-      saved = reference.vehicles.find((v) => v.vehicleId === entry.profile.id);
-    const { envelope } = JSON.parse(
-      await readFile(new URL(`../../dist/content/envelopes/${entry.profile.id}.json`, import.meta.url)),
-    );
-    const run = runCourseReference(course, ground, entry, envelope, [], 1);
-    assert.deepEqual(run.events, saved.runs[0].events);
-    assert.equal(run.elapsedSeconds, saved.runs[0].elapsedSeconds);
-    assert.equal(run.metrics.recoveries, 0);
-    assert.ok(run.metrics.maximumSpeed > envelope.maximumSpeed * 0.9);
-  });
 
 test('browser budgets equal admitted continuous runs and reject incomplete, duplicate or foreign intervals', async () => {
   const { readCourseTimeBudgets, courseBudgetLandmarks } = await import('../../dist/runtime/course-time-budgets.js');

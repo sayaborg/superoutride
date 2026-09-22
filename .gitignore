@@ -2,7 +2,6 @@
 /dist/
 /_site/
 .DS_Store
-/.audit-baseline/
 /.test-assets/
 
 # External course references: videos, extracted frames and any pixel-bearing measurements.

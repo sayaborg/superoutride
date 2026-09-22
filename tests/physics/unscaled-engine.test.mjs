@@ -1,8 +1,6 @@
 import assert from 'node:assert/strict';
 import { readdir, readFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
 import test from 'node:test';
-import { pathToFileURL } from 'node:url';
 import * as engine from '../../dist/physics/automatic-powertrain.js';
 import { VEHICLE_CATALOG } from '../../dist/vehicle/vehicle-catalog.js';
 
@@ -29,26 +27,6 @@ test('every engine directly samples its authored curve through throttle, ratios 
               engine.engineRevLimiterScale(p, s.engineRpm),
           );
         }
-  }
-});
-test('same-engine pinned direct-powertrain traces equal the former multiplier-one mechanics exactly', async () => {
-  const path = process.env.HOT_PATH_BASELINE_BUILD;
-  if (process.env.CI) assert.ok(path);
-  const before = path ? await import(pathToFileURL(resolve(path, 'physics/automatic-powertrain.js')).href) : engine;
-  for (const {
-    profile: { powertrain: p },
-  } of VEHICLE_CATALOG) {
-    const a = engine.createAutomaticPowertrainState(p),
-      b = before.createAutomaticPowertrainState(p);
-    for (let tick = 0; tick < 500; tick++) {
-      const omega = (tick < 250 ? tick : 500 - tick) * 2,
-        pedal = (tick % 7) / 6;
-      assert.equal(
-        engine.updateAutomaticPowertrain(a, p, omega, pedal, 1 / 120),
-        before.updateAutomaticPowertrain(b, p, omega, pedal, 1 / 120),
-      );
-      for (const key of fields) assert.equal(a[key], b[key], key);
-    }
   }
 });
 test('multiplier exports, source state, key and browser module are removed', async () => {
