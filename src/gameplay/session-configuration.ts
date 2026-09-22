@@ -1,7 +1,7 @@
-import type { CompiledArcadeVehicleProfile } from '../physics/vehicle-profiles.js';
-import type { TorqueProtectionPolicy } from '../physics/torque-protection.js';
-import type { ArcadeSteeringCalibrationInput } from '../physics/vehicle-calibration.js';
-import type { ArcadeTireFrictionCalibrationState } from '../physics/tire-friction-calibration.js';
+import type { CompiledArcadeVehicleProfile } from '../vehicle/physics/vehicle-profiles.js';
+import type { TorqueProtectionPolicy } from '../vehicle/physics/torque-protection.js';
+import type { ArcadeSteeringCalibrationInput } from '../vehicle/physics/vehicle-calibration.js';
+import type { ArcadeTireFrictionCalibrationState } from '../vehicle/physics/tire-friction-calibration.js';
 
 export interface SessionVehicle {
   readonly profile: CompiledArcadeVehicleProfile;

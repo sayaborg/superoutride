@@ -1,5 +1,5 @@
 import { BROWSER_VEHICLE_KEYS } from './key-bindings.js';
-import type { CompiledArcadeVehicleProfile, VehicleProfileId } from '../physics/vehicle-profiles.js';
+import type { CompiledArcadeVehicleProfile, VehicleProfileId } from '../vehicle/physics/vehicle-profiles.js';
 import {
   VEHICLE_CATALOG,
   formatVehicleCatalogLine,

@@ -29,15 +29,13 @@ const rank = new Map(layers.map((layer, index) => [layer, index]));
 // Remove this table and the legacy directory names in 5-4e.
 const legacyDependencies = {
   graphics: ['core'],
-  compiler: ['core', 'course', 'image', 'physics', 'visual'],
+  compiler: ['core', 'course', 'image', 'vehicle', 'visual'],
   authoring: ['course', 'compiler'],
-  physics: ['core', 'course', 'input'],
-  vehicle: ['physics'],
-  camera: ['core', 'course', 'physics'],
-  gameplay: ['core', 'course', 'input', 'physics'],
+  camera: ['core', 'course', 'vehicle'],
+  gameplay: ['core', 'course', 'input', 'vehicle'],
   visual: ['core', 'course', 'graphics', 'image'],
   terrain: ['core', 'course', 'visual'],
-  render: ['camera', 'core', 'course', 'graphics', 'image', 'physics', 'terrain', 'vehicle', 'visual'],
+  render: ['camera', 'core', 'course', 'graphics', 'image', 'terrain', 'vehicle', 'visual'],
   runtime: [
     'camera',
     'core',
@@ -47,13 +45,13 @@ const legacyDependencies = {
     'graphics',
     'image',
     'input',
-    'physics',
+    'vehicle',
     'render',
     'terrain',
     'visual',
   ],
   dev: ['graphics', 'image'],
-  browser: ['audio', 'camera', 'core', 'gameplay', 'graphics', 'image', 'input', 'physics', 'render', 'vehicle'],
+  browser: ['audio', 'camera', 'core', 'gameplay', 'graphics', 'image', 'input', 'render', 'vehicle'],
 };
 const legacyLayers = Object.keys(legacyDependencies).filter((layer) => !rank.has(layer));
 const knownLayers = new Set([...layers, ...legacyLayers]);

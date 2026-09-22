@@ -1,6 +1,6 @@
-import { assertExclusivePedalInput, normalizedPedalRequest, type DrivingInput } from '../input/driving-input.js';
-import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
-import { VEHICLE_GRAVITY } from '../physics/vehicle-dynamics.js';
+import { assertExclusivePedalInput, normalizedPedalRequest, type DrivingInput } from '../vehicle/driving-input.js';
+import type { ArcadeVehicleState } from '../vehicle/physics/arcade-vehicle-physics.js';
+import { VEHICLE_GRAVITY } from '../vehicle/physics/vehicle-dynamics.js';
 import { formatBrowserCourseSelector, type BrowserCourseModeQuery } from './course-mode-selection.js';
 import {
   formatMaxRoadWheelSteerSelector,

@@ -1,4 +1,4 @@
-import type { Writable } from '../core/writable.js';
+import type { Writable } from '../../core/writable.js';
 const WHEEL_BISECTION_ITERATIONS = 60;
 
 import { validateTireCharacteristics, type CompiledTireCharacteristics } from './tire-friction-calibration.js';

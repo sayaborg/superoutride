@@ -7,7 +7,7 @@ import { pseudoProject, type PseudoCamera } from '../core/projection.js';
 import { mergeTerrainAndSprites } from '../graphics/painter-merge.js';
 import { SoftwareSurface } from '../graphics/software-surface.js';
 import { drawScaledSprite, type SpriteScanlineObserver } from '../image/sprite.js';
-import type { VehicleRenderReadState } from '../physics/vehicle-contract.js';
+import type { VehicleRenderReadState } from '../vehicle/physics/vehicle-contract.js';
 import {
   computeForwardVisibleInterval,
   generateTerrainLines,

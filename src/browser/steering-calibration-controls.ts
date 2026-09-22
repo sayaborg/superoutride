@@ -1,9 +1,9 @@
-import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
+import type { ArcadeVehicleState } from '../vehicle/physics/arcade-vehicle-physics.js';
 import {
   setArcadeVehicleMaxRoadWheelSteer,
   setArcadeVehicleSteeringOffsetMax,
   setArcadeVehicleSymmetricSteeringActuatorRate,
-} from '../physics/vehicle-calibration.js';
+} from '../vehicle/physics/vehicle-calibration.js';
 import {
   mountMobileMaxRoadWheelSteerSelector,
   mountMobileSteeringOffsetSelector,

@@ -15,7 +15,7 @@ import {
   createOrderedRaceProgressWorkspace,
   resyncOrderedRaceProgress,
 } from '../gameplay/ordered-race-progress.js';
-import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
+import type { ArcadeVehicleState } from '../vehicle/physics/arcade-vehicle-physics.js';
 import type { createCourseDrivingGraph } from './course-driving-session.js';
 type Session = ReturnType<ReturnType<typeof createCourseDrivingGraph>['createSession']>;
 

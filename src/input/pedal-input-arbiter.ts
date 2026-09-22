@@ -1,4 +1,4 @@
-import { normalizedPedalRequest, type PedalInput, type PedalRequest } from './driving-input.js';
+import { normalizedPedalRequest, type PedalInput, type PedalRequest } from '../vehicle/driving-input.js';
 
 export type PedalChannel = 'throttle' | 'brake';
 

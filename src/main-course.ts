@@ -8,7 +8,7 @@ import { readCourseDocument } from './course/course-document.js';
 import { createCourseGround } from './course/compiler/course-ground.js';
 import { compileCourseDocument } from './course/compiler/compiled-course.js';
 import { RECOVERY_PROFILE } from './gameplay/recovery.js';
-import type { DrivingInput } from './input/driving-input.js';
+import type { DrivingInput } from './vehicle/driving-input.js';
 import { deriveVehicleSpriteFamily } from './render/vehicle-presentation.js';
 import { VEHICLE_CATALOG } from './vehicle/vehicle-catalog.js';
 import { createCourseRace } from './runtime/course-race.js';

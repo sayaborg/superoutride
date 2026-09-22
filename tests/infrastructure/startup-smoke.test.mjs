@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { loadCourse, loadCourseGround } from '../../tools/course/authoring-io.mjs';
 import { readVehicleSprites } from '../../tools/course/read-vehicle-sprites.mjs';
 import { createCourseScene } from '../../dist/runtime/course-scene.js';
-import { createArcadeVehicle, updateArcadeVehicle } from '../../dist/physics/arcade-vehicle-physics.js';
+import { createArcadeVehicle, updateArcadeVehicle } from '../../dist/vehicle/physics/arcade-vehicle-physics.js';
 import { VEHICLE_CATALOG } from '../../dist/vehicle/vehicle-catalog.js';
 import { createCameraRig, updateCamera } from '../../dist/camera/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../../dist/camera/current-camera-profile.js';

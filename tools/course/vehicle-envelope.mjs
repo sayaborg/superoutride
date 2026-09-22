@@ -1,16 +1,16 @@
-import { createBodyKinematicsWorkspace } from '../../dist/physics/arcade-vehicle-physics.js';
+import { createBodyKinematicsWorkspace } from '../../dist/vehicle/physics/arcade-vehicle-physics.js';
 import { compileGuidePath } from '../../dist/course/geometry/guide-curve.js';
 import { compileRasterPath } from '../../dist/course/geometry/raster-path.js';
 import { HeightProfile } from '../../dist/course/geometry/height-profile.js';
-import { SurfaceMap } from '../../dist/physics/surface-map.js';
-import { createArcadeVehicle } from '../../dist/physics/arcade-vehicle-physics.js';
+import { SurfaceMap } from '../../dist/vehicle/physics/surface-map.js';
+import { createArcadeVehicle } from '../../dist/vehicle/physics/arcade-vehicle-physics.js';
 import { DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION } from '../../dist/browser/tire-friction-selection.js';
 import {
   DEFAULT_BROWSER_MAX_ROAD_WHEEL_STEER,
   DEFAULT_BROWSER_STEERING_OFFSET,
   DEFAULT_BROWSER_STEERING_RESPONSE_RATE,
 } from '../../dist/browser/steering-calibration-selection.js';
-import { updateArcadeVehicle, arcadeBodyKinematics } from '../../dist/physics/arcade-vehicle-physics.js';
+import { updateArcadeVehicle, arcadeBodyKinematics } from '../../dist/vehicle/physics/arcade-vehicle-physics.js';
 import { SIM_DT } from '../../dist/browser/frame-loop.js';
 import { wrapAngle } from '../../dist/core/math.js';
 

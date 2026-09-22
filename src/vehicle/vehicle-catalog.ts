@@ -4,8 +4,8 @@ import {
   ROAD_TORQUE_POLICY,
   TWO_WHEEL_TORQUE_POLICY,
   type TorqueProtectionPolicy,
-} from '../physics/torque-protection.js';
-import { type CompiledArcadeVehicleProfile, type VehicleProfileId } from '../physics/vehicle-profiles.js';
+} from './physics/torque-protection.js';
+import { type CompiledArcadeVehicleProfile, type VehicleProfileId } from './physics/vehicle-profiles.js';
 import {
   BMW_R80_GS_PARIS_DAKAR_VEHICLE_PROFILE,
   CHEVROLET_CORVETTE_C4_VEHICLE_PROFILE,

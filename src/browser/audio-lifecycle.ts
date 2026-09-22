@@ -5,7 +5,7 @@ import { createNumberStepper } from './number-stepper.js';
 import { createAudioEngine } from '../audio/audio-engine.js';
 import { TIRE_COMPONENTS } from '../audio/tire-sound-controls.js';
 import { AUDIO_TIMING, rivalAudioGain, rivalAudioPan } from '../audio/audio-presentation.js';
-import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
+import type { ArcadeVehicleState } from '../vehicle/physics/arcade-vehicle-physics.js';
 import { vehicleCatalogEntryForId } from '../vehicle/vehicle-catalog.js';
 import {
   createVehicleAudioObservation,

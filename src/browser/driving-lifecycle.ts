@@ -1,9 +1,9 @@
 import { resetCameraRig, updateCamera, type CameraRig } from '../camera/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../camera/current-camera-profile.js';
 import { recoverVehicle, type RecoveryProfile, type RecoveryState } from '../gameplay/recovery.js';
-import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
-import type { VehicleWorld } from '../physics/vehicle-contract.js';
-import type { CompiledArcadeVehicleProfile } from '../physics/vehicle-profiles.js';
+import type { ArcadeVehicleState } from '../vehicle/physics/arcade-vehicle-physics.js';
+import type { VehicleWorld } from '../vehicle/physics/vehicle-contract.js';
+import type { CompiledArcadeVehicleProfile } from '../vehicle/physics/vehicle-profiles.js';
 import { SIM_DT } from './frame-loop.js';
 
 interface DrivingPlayer {

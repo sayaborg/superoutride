@@ -2,7 +2,7 @@ import { createPlanarCoordinateSample } from '../core/planar-sample.js';
 import { guideCoordinateToWorld } from '../course/geometry/guide-coordinate-frame.js';
 import { clamp, wrapAngle } from '../core/math.js';
 import type { PseudoCamera } from '../core/projection.js';
-import type { VehicleCameraReadState, VehicleWorld } from '../physics/vehicle-contract.js';
+import type { VehicleCameraReadState, VehicleWorld } from '../vehicle/physics/vehicle-contract.js';
 
 const MIN_VERTICAL_RESPONSE_SECONDS = 1e-4;
 

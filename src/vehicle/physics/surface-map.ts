@@ -1,5 +1,5 @@
-import { compileOpenProfile, openProfileChainage, profileIndexAt } from '../course/geometry/open-profile.js';
-import { SURFACE_MATERIALS, type SurfaceMaterial, type SurfaceType } from '../course/surface-material.js';
+import { compileOpenProfile, openProfileChainage, profileIndexAt } from '../../course/geometry/open-profile.js';
+import { SURFACE_MATERIALS, type SurfaceMaterial, type SurfaceType } from '../../course/surface-material.js';
 
 const BAND_OVERLAP_TOLERANCE_METERS = 1e-9;
 

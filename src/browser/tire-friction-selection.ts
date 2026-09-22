@@ -4,7 +4,7 @@ import {
   readTireCharacteristics,
   type ArcadeTireFrictionCalibrationState,
   type TireCharacteristics,
-} from '../physics/tire-friction-calibration.js';
+} from '../vehicle/physics/tire-friction-calibration.js';
 import { BROWSER_CALIBRATION_KEYS } from './key-bindings.js';
 
 const SELECTOR_GRID_TOLERANCE = 1e-9;

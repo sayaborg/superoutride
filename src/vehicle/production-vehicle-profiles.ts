@@ -1,6 +1,6 @@
-import type { DrivingActuatorProfile } from '../physics/driving-actuator.js';
-import type { TireCharacteristics } from '../physics/tire-friction-calibration.js';
-import { compileArcadeVehicleProfile, type ArcadeVehicleProfile } from '../physics/vehicle-profiles.js';
+import type { DrivingActuatorProfile } from './physics/driving-actuator.js';
+import type { TireCharacteristics } from './physics/tire-friction-calibration.js';
+import { compileArcadeVehicleProfile, type ArcadeVehicleProfile } from './physics/vehicle-profiles.js';
 
 /** Product-authored values; generic mechanics imports no catalog or production data. */
 const DEG = Math.PI / 180;

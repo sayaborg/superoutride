@@ -23,7 +23,7 @@ import type { CompiledSection } from '../course/compiler/course-graph.js';
 import { compileCoursePhysicalDomains } from '../course/compiler/course-physical-overlap.js';
 import { compileCoursePresentationDomains } from '../course/compiler/course-presentation-overlap.js';
 import { createRegionSurfaceReader } from '../course/region-surface-reader.js';
-import type { VehicleWorld } from '../physics/vehicle-contract.js';
+import type { VehicleWorld } from '../vehicle/physics/vehicle-contract.js';
 import { createCoursePresentationPreview } from '../render/course-presentation-preview.js';
 import type { BandGroundReader } from '../render/renderer.js';
 import type { VisualProfileReader } from '../visual/visual-profile.js';

@@ -1,11 +1,11 @@
 import { createSurfaceGeometryWorkspace } from './vehicle-dynamics.js';
-import { createGuideProjectionWorkspace } from '../course/geometry/guide-curve.js';
-import { createPlanarCoordinateSample } from '../core/planar-sample.js';
-import { type Writable } from '../core/writable.js';
+import { createGuideProjectionWorkspace } from '../../course/geometry/guide-curve.js';
+import { createPlanarCoordinateSample } from '../../core/planar-sample.js';
+import { type Writable } from '../../core/writable.js';
 import { publishVehicleTireObservation } from './vehicle-tire-observation.js';
-import { guideCoordinateToWorld } from '../course/geometry/guide-coordinate-frame.js';
-import { clamp, wrapAngle } from '../core/math.js';
-import type { DrivingInput } from '../input/driving-input.js';
+import { guideCoordinateToWorld } from '../../course/geometry/guide-coordinate-frame.js';
+import { clamp, wrapAngle } from '../../core/math.js';
+import type { DrivingInput } from '../driving-input.js';
 import { createAutomaticPowertrainState, updateAutomaticPowertrain } from './automatic-powertrain.js';
 import { createDrivingActuatorState, updateDrivingActuators, type DrivingActuatorState } from './driving-actuator.js';
 import { createSteeringLimitWorkspace, limitSteeringInput } from './steering-input-limiter.js';
@@ -37,7 +37,7 @@ import {
   type ContactObservation,
   type VehicleDynamicsState,
 } from './vehicle-dynamics.js';
-import { WORLD_UP, add3, cross3, dot3, normalize3, scale3 } from '../core/vector3.js';
+import { WORLD_UP, add3, cross3, dot3, normalize3, scale3 } from '../../core/vector3.js';
 import { drivenWheelOmega, type CompiledArcadeVehicleProfile } from './vehicle-profiles.js';
 
 import {

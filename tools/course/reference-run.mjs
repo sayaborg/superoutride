@@ -4,7 +4,7 @@ import { createCourseScene } from '../../dist/runtime/course-scene.js';
 import { createCourseRace } from '../../dist/runtime/course-race.js';
 import { resolveCourseSession } from '../../dist/runtime/course-session.js';
 import { browserSessionVehicle } from '../../dist/browser/session-vehicle.js';
-import { createArcadeVehicle } from '../../dist/physics/arcade-vehicle-physics.js';
+import { createArcadeVehicle } from '../../dist/vehicle/physics/arcade-vehicle-physics.js';
 import { createRecoveryState } from '../../dist/gameplay/recovery.js';
 import {
   createEnvelopeDriverWorkspace,

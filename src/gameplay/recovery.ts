@@ -1,16 +1,16 @@
 import { createPlanarCoordinateSample } from '../core/planar-sample.js';
 import { guideCoordinateDomain, guideCoordinateToWorld } from '../course/geometry/guide-coordinate-frame.js';
 import { clamp } from '../core/math.js';
-import type { DrivingInput } from '../input/driving-input.js';
+import type { DrivingInput } from '../vehicle/driving-input.js';
 import {
   arcadeBodyKinematics,
   createBodyKinematicsWorkspace,
   updateArcadeVehicle,
   type ArcadeVehicleState,
-} from '../physics/arcade-vehicle-physics.js';
-import { createAutomaticPowertrainState } from '../physics/automatic-powertrain.js';
-import { resetDrivingActuatorState } from '../physics/driving-actuator.js';
-import type { VehicleWorld } from '../physics/vehicle-contract.js';
+} from '../vehicle/physics/arcade-vehicle-physics.js';
+import { createAutomaticPowertrainState } from '../vehicle/physics/automatic-powertrain.js';
+import { resetDrivingActuatorState } from '../vehicle/physics/driving-actuator.js';
+import type { VehicleWorld } from '../vehicle/physics/vehicle-contract.js';
 import {
   VehicleOutsideModelError,
   VEHICLE_GRAVITY,
@@ -18,9 +18,9 @@ import {
   resetVehicleControlState,
   sampleSurfaceGeometryAtCoordinate,
   createSurfaceGeometryWorkspace,
-} from '../physics/vehicle-dynamics.js';
+} from '../vehicle/physics/vehicle-dynamics.js';
 import { add3, dot3, scale3 } from '../core/vector3.js';
-import { drivenWheelOmega } from '../physics/vehicle-profiles.js';
+import { drivenWheelOmega } from '../vehicle/physics/vehicle-profiles.js';
 
 type RecoveryReason =
   | 'unsupported-time'

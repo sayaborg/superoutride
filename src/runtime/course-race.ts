@@ -24,8 +24,8 @@ import {
   sampleEnvelopeDrivingInput,
   type VehicleEnvelope,
 } from '../gameplay/envelope-driver.js';
-import type { DrivingInput } from '../input/driving-input.js';
-import { createArcadeVehicle, type ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
+import type { DrivingInput } from '../vehicle/driving-input.js';
+import { createArcadeVehicle, type ArcadeVehicleState } from '../vehicle/physics/arcade-vehicle-physics.js';
 import { createDynamicVehicleCourseSprite } from '../render/dynamic-vehicle-sprite.js';
 import { createVehiclePaletteVariant, type SpriteAssets } from '../image/sprite-assets.js';
 import type { SessionVehicle } from '../gameplay/session-configuration.js';

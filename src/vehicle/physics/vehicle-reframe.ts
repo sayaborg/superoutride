@@ -1,7 +1,7 @@
-import { createPlanarCoordinateSample } from '../core/planar-sample.js';
-import { guideCoordinateToWorld, type GuideCoordinateSource } from '../course/geometry/guide-coordinate-frame.js';
-import { wrapAngle } from '../core/math.js';
-import { transformPlanarPoint, transformPlanarVector, type PlanarTransform } from '../core/planar-transform.js';
+import { createPlanarCoordinateSample } from '../../core/planar-sample.js';
+import { guideCoordinateToWorld, type GuideCoordinateSource } from '../../course/geometry/guide-coordinate-frame.js';
+import { wrapAngle } from '../../core/math.js';
+import { transformPlanarPoint, transformPlanarVector, type PlanarTransform } from '../../core/planar-transform.js';
 import type { ArcadeVehicleState } from './arcade-vehicle-physics.js';
 
 /** A rigid change of observation frame. Forces, body scalars and contact memory are unchanged. */

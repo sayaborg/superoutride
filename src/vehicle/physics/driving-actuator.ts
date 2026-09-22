@@ -1,4 +1,4 @@
-import { clamp } from '../core/math.js';
+import { clamp } from '../../core/math.js';
 import {
   assertExclusivePedalInput,
   clampSteering,
@@ -6,7 +6,7 @@ import {
   normalizedPedalRequest,
   type DrivingInput,
   type DrivingInputApplyMode,
-} from '../input/driving-input.js';
+} from '../driving-input.js';
 
 const ACTUATOR_TARGET_TOLERANCE = 1e-12;
 

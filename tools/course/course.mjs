@@ -3,7 +3,7 @@ import { referenceCommand } from './reference-command.mjs';
 import path from 'node:path';
 import { PNG } from 'pngjs';
 import { createCourseScene } from '../../dist/runtime/course-scene.js';
-import { createArcadeVehicle } from '../../dist/physics/arcade-vehicle-physics.js';
+import { createArcadeVehicle } from '../../dist/vehicle/physics/arcade-vehicle-physics.js';
 import { VEHICLE_CATALOG } from '../../dist/vehicle/vehicle-catalog.js';
 import { createCameraRig, updateCamera } from '../../dist/camera/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../../dist/camera/current-camera-profile.js';

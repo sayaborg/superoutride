@@ -1,7 +1,7 @@
-import { observeVehicleTires } from '../physics/vehicle-tire-observation.js';
+import { observeVehicleTires } from '../vehicle/physics/vehicle-tire-observation.js';
 import { RIVAL_AUDIBLE_METERS } from '../audio/audio-presentation.js';
 import type { TireAudioObservation, VehicleAudioObservation } from '../audio/vehicle-audio-observation.js';
-import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
+import type { ArcadeVehicleState } from '../vehicle/physics/arcade-vehicle-physics.js';
 
 type Mutable<T> = { -readonly [Key in keyof T]: T[Key] };
 type Observation = Mutable<Omit<VehicleAudioObservation, 'front' | 'rear'>> & {

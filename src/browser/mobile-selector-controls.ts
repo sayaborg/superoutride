@@ -1,5 +1,5 @@
 import { type CameraYawMode } from '../camera/camera.js';
-import type { ArcadeTireFrictionCalibrationState } from '../physics/tire-friction-calibration.js';
+import type { ArcadeTireFrictionCalibrationState } from '../vehicle/physics/tire-friction-calibration.js';
 import {
   createMobileCameraYawSelectorModel,
   createMobileCourseSelectorModel,
@@ -12,7 +12,7 @@ import {
 } from './mobile-selector-model.js';
 import { cycleSelectorChoice, sameSelectorValue } from './selector-values.js';
 
-import type { CompiledArcadeVehicleProfile, VehicleProfileId } from '../physics/vehicle-profiles.js';
+import type { CompiledArcadeVehicleProfile, VehicleProfileId } from '../vehicle/physics/vehicle-profiles.js';
 import {
   BROWSER_COURSE_MODES,
   type BrowserCourseModeQuery,

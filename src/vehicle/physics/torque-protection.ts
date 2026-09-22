@@ -1,4 +1,4 @@
-import { type Writable } from '../core/writable.js';
+import { type Writable } from '../../core/writable.js';
 const SUPPORT_BISECTION_ITERATIONS = 12;
 
 import {
@@ -11,7 +11,7 @@ import {
   type WheelSolveResult,
 } from './tire-wheel.js';
 import { VEHICLE_GRAVITY, type BodyKinematics, type ContactObservation } from './vehicle-dynamics.js';
-import { add3, cross3, dot3, scale3, sub3, WORLD_UP } from '../core/vector3.js';
+import { add3, cross3, dot3, scale3, sub3, WORLD_UP } from '../../core/vector3.js';
 import type { CompiledArcadeVehicleProfile } from './vehicle-profiles.js';
 import { createWrenchWorkspace, evaluateVehicleWrench, type VehicleWrench } from './vehicle-wrench.js';
 

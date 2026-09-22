@@ -1,4 +1,4 @@
-import { clamp } from '../core/math.js';
+import { clamp } from '../../core/math.js';
 
 interface EngineTorquePoint {
   readonly rpm: number;

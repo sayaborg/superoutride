@@ -14,7 +14,7 @@ use a local heightfield approximation. The model separates these inputs:
 
 ## State and integration
 
-[Arcade vehicle physics](../src/physics/arcade-vehicle-physics.ts) owns world position/velocity,
+[Arcade vehicle physics](../src/vehicle/physics/arcade-vehicle-physics.ts) owns world position/velocity,
 yaw/pitch and their rates, wheel angular speeds, rack angle, three normalized actuators and automatic
 gear state. Course coordinates, contact loads, accelerations and HUD quantities are observations.
 Compiled profiles and their nested data are immutable snapshots.

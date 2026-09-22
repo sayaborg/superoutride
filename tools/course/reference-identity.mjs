@@ -11,7 +11,8 @@ export async function referenceModelIdentity() {
       else if (e.name.endsWith('.ts')) files.push(path + e.name);
     }
   };
-  for (const path of ['src/core/', 'src/course/', 'src/physics/', 'src/gameplay/', 'src/runtime/']) await collect(path);
+  for (const path of ['src/core/', 'src/course/', 'src/vehicle/physics/', 'src/gameplay/', 'src/runtime/'])
+    await collect(path);
   files.push(
     'src/browser/frame-loop.ts',
     'src/browser/session-vehicle.ts',

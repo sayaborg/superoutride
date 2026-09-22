@@ -1,4 +1,4 @@
-import type { DrivingInput } from './driving-input.js';
+import type { DrivingInput } from '../vehicle/driving-input.js';
 import { PedalInputArbiter, type PedalChannel } from './pedal-input-arbiter.js';
 import { SteeringInputArbiter, type SteeringDirection } from './steering-input-arbiter.js';
 

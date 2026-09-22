@@ -5,8 +5,8 @@ import {
   guideCoordinateToWorld,
   type GuideCoordinateSource,
 } from '../course/geometry/guide-coordinate-frame.js';
-import type { DrivingInput } from '../input/driving-input.js';
-import type { VehicleCameraReadState } from '../physics/vehicle-contract.js';
+import type { DrivingInput } from '../vehicle/driving-input.js';
+import type { VehicleCameraReadState } from '../vehicle/physics/vehicle-contract.js';
 
 export interface VehicleEnvelope {
   readonly maximumSpeed: number;

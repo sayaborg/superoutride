@@ -1,5 +1,5 @@
-import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
-import { setArcadeVehicleTireFrictionCalibration } from '../physics/tire-friction-calibration.js';
+import type { ArcadeVehicleState } from '../vehicle/physics/arcade-vehicle-physics.js';
+import { setArcadeVehicleTireFrictionCalibration } from '../vehicle/physics/tire-friction-calibration.js';
 import { mountMobileTireCalibrationSelector } from './mobile-selector-controls.js';
 import {
   BROWSER_TIRE_AXES,

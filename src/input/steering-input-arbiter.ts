@@ -1,4 +1,4 @@
-import { clampSteering } from './driving-input.js';
+import { clampSteering } from '../vehicle/driving-input.js';
 
 export type SteeringDirection = -1 | 1;
 
