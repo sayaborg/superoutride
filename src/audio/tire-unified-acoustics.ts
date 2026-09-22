@@ -36,9 +36,6 @@ export const UNIFIED_SURFACES = Object.freeze({
   SAND: Object.freeze({ roughness: 1.1, susceptibility: 0.02 }),
 } satisfies Record<(typeof TIRE_SOUND_SURFACES)[number], Readonly<{ roughness: number; susceptibility: number }>>);
 
-/** Numerical support only; no listening threshold or emergency output clamp. */
-export const UNIFIED_DOMAIN = Object.freeze({ minRate: 44100, maxRate: 192000 });
-
 /** Authored audition bounds, NOT measured tire ranges. All combinations retain passive modes. */
 export const UNIFIED_TUNING_RANGES = Object.freeze({
   feedbackMaximumPerSecond: {
@@ -62,6 +59,8 @@ export const UNIFIED_TUNING_RANGES = Object.freeze({
 export type UnifiedTuning = Readonly<Record<keyof typeof UNIFIED_TUNING_RANGES, number>>;
 
 export function resolveUnifiedTuning(value: Partial<UnifiedTuning> = {}): UnifiedTuning {
+  if (value === null || typeof value !== 'object' || Array.isArray(value))
+    throw new TypeError('tire tuning must be an object');
   const result = {} as Record<keyof UnifiedTuning, number>;
   for (const key of Object.keys(UNIFIED_TUNING_RANGES) as (keyof UnifiedTuning)[]) {
     const range = UNIFIED_TUNING_RANGES[key];

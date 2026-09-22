@@ -1,11 +1,13 @@
 import type { TIRE_SOUND_SURFACES } from './tire-sound-observation.js';
 
 /**
- * Shared HYBRID/UNIFIED rolling source. Every value is an authored listening choice ("magic number"),
+ * Rotation-driven rolling source. Every value is an authored listening choice ("magic number"),
  * not a measured tread order, texture length, acoustic efficiency or material property.
  * Timing, filtering and texture belong to R independently of friction synthesis.
  */
 export const ROLLING_SETTINGS = Object.freeze({
+  bandStreams: Object.freeze([8, 9]),
+  textureStream: 10,
   controlHz: 1000,
   toneSeconds: 0.02,
   orders: Object.freeze([4, 12]),

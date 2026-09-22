@@ -1,15 +1,55 @@
 import { createBodyKinematicsWorkspace } from '../../dist/physics/arcade-vehicle-physics.js';
-import { createFlatProbe } from '../physics/drift-control-probe.mjs';
+import { compileGuidePath } from '../../dist/core/guide-curve.js';
+import { compileRasterPath } from '../../dist/core/raster-path.js';
+import { HeightProfile } from '../../dist/core/height-profile.js';
+import { SurfaceMap } from '../../dist/physics/surface-map.js';
+import { createArcadeVehicle } from '../../dist/physics/arcade-vehicle-physics.js';
+import { DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION } from '../../dist/browser/tire-friction-selection.js';
+import {
+  DEFAULT_BROWSER_MAX_ROAD_WHEEL_STEER,
+  DEFAULT_BROWSER_STEERING_OFFSET,
+  DEFAULT_BROWSER_STEERING_RESPONSE_RATE,
+} from '../../dist/browser/steering-calibration-selection.js';
 import { updateArcadeVehicle, arcadeBodyKinematics } from '../../dist/physics/arcade-vehicle-physics.js';
 import { SIM_DT } from '../../dist/browser/frame-loop.js';
 import { wrapAngle } from '../../dist/core/math.js';
 
+/** The finite flat world used only to generate game driving envelopes. */
+function createEnvelopeRun(entry, initialSpeed) {
+  const guide = compileGuidePath(
+    compileRasterPath([
+      { x: 0, z: -10000 },
+      { x: 0, z: 10000 },
+    ]),
+    { lMax: 5000, mMin: 0.25, dCam: 5 },
+  );
+  const height = new HeightProfile(guide.length, [
+    { s: 0, y: 0 },
+    { s: guide.length, y: 0 },
+  ]);
+  const surfaces = new SurfaceMap(guide.length, [
+    { sStart: 0, name: 'Envelope asphalt', bands: [{ lMin: -5000, lMax: 5000, type: 'ASPHALT' }] },
+  ]);
+  const world = { guide, height, surfaces };
+  const rate = DEFAULT_BROWSER_STEERING_RESPONSE_RATE;
+  const vehicle = createArcadeVehicle(entry.profile, world, {
+    s: 10000,
+    l: 0,
+    initialSpeed,
+    torqueProtection: entry.torqueProtection,
+    tireFrictionCalibration: DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION,
+    steeringCalibration: {
+      maxRoadWheelSteer: DEFAULT_BROWSER_MAX_ROAD_WHEEL_STEER,
+      steeringOffsetMax: DEFAULT_BROWSER_STEERING_OFFSET,
+      steeringActuatorResponse: { applyRate: rate, releaseRate: rate },
+    },
+  });
+  return { vehicle, world };
+}
+
 /** Flat asphalt, production control/protection, ordinary inputs; no imposed velocity or force during measurement. */
 export function measureVehicleEnvelope(entry) {
-  const make = (initialSpeed) => {
-    const p = createFlatProbe({ profile: entry.profile, initialSpeed, torqueProtection: entry.torqueProtection });
-    return { vehicle: p.vehicle, world: { guide: p.guide, height: p.height, surfaces: p.surface } };
-  };
+  const make = (initialSpeed) => createEnvelopeRun(entry, initialSpeed);
   const step = (p, input) => updateArcadeVehicle(p.world, p.vehicle, input, SIM_DT);
   const run = make(0),
     acceleration = [],

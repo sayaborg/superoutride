@@ -2,14 +2,12 @@
 
 ## Authority and scope
 
-Audio is a read-only presentation layer. Physics owns RPM, actuators, wheel motion, load and tire
-utilization; audio owns oscillator, envelope and filter state. Audio imports only Core. Vehicle binds
+Audio is a read-only presentation layer. Physics owns RPM, actuators, wheel motion, load and slip work; audio owns oscillator, envelope and filter state. Audio imports only Core. Vehicle binds
 acoustic profiles, and browser composition adapts completed physical observations. Audio never writes
 motion, gearing, recovery or race progress, and never repeats the authoritative vehicle contact or tire solves.
 
 The engine provides the current sample-free listening baseline; its parameters remain provisional.
-[Tire audio](tire-audio.md) owns the selectable synthesis methods, reload default, numerical limits
-and model-specific controls. [The checkpoint](NEXT.md#current-state) owns listening priorities.
+[Tire audio](tire-audio.md) owns UNIFIED synthesis, numerical limits and tire controls. [The checkpoint](NEXT.md#current-state) owns listening priorities.
 Keep the engine waveform and fixed voice/lifecycle boundaries unchanged; target-device performance
 and listening acceptance remain separate from automated numerical checks.
 
@@ -28,7 +26,7 @@ applies to every profile, coefficient and UI readout unless a measurement is exp
 - [Engine voice](../src/audio/engine-voice.ts) and [processor](../src/audio/exhaust-processor.ts): faded
   replacement, k-rate RPM/load transport and native-rate rendering. Changes use explicit tuning-value
   equality; returning to the active values cancels a pending replacement without resetting the kernel.
-- [Tire audio](tire-audio.md#source-ownership): mappings, shared primitives and six comparison kernels.
+- [Tire audio](tire-audio.md#source-ownership): observation mapping, shared primitives and UNIFIED synthesis.
 - [Presentation policy](../src/audio/audio-presentation.ts): shared timing, audible radius and rival mix.
   [Audio engine](../src/audio/audio-engine.ts): fixed voices and master graph.
 - [Browser adapter](../src/browser/vehicle-audio.ts), [lifecycle](../src/browser/audio-lifecycle.ts) and
@@ -57,7 +55,7 @@ At each firing, `strength = max(0, excitation + pulseVariation * r)`, with seede
 [-1, 1). Variation is an absolute fraction of full excitation, including at closed throttle. Default
 variation is 0.20 and default closed excitation is 0.22. Below the variation amount, zero clipping raises
 the mean strength. Variation never changes firing times, RPM, geometry or time constants. Zero variation
-restores settled periodic tests; otherwise determinism means the same seed and input history. Reset
+restores settled periodic output; otherwise determinism means the same seed and input history. Reset
 owns one seed; random draws occur only at firing events.
 
 The pulse solves `p' = -p / decayTime` and `r' = (p - r) / riseTime`. Firing resets `p` and preserves
@@ -106,18 +104,17 @@ attack/release and is not a guaranteed hard peak limiter; fixed gains retain hea
 
 Bank normalization does not equalize vehicle loudness or ensure monotonic RMS with RPM. Do not add
 per-vehicle gains or automatic normalization merely to hide that difference: those would intentionally
-revise the listening baseline. Use the fixed-gain level diagnostic below before final mix calibration;
+revise the listening baseline. Use fixed-gain audition for final mix calibration;
 kernel dBFS is not perceptual loudness or the level after the complete game graph.
 
 ## Player tire synthesis
 
-[Tire audio](tire-audio.md) owns the six retained mechanisms, their observation mappings, numerical
-contracts, approximation limits and relative computation. [NEXT](NEXT.md) owns the planned retirement
-of alternatives to unified and the open tuning work.
+[Tire audio](tire-audio.md) owns UNIFIED synthesis, its observation mapping, numerical contracts and
+approximation limits. [NEXT](NEXT.md) owns open tuning work.
 
 ## Mixing and lifetime
 
-The graph has fixed player/rival engine slots and one player tire worklet: three worklets (including just one switchable tire worklet) and no
+The graph has fixed player/rival engine slots and one player tire worklet: three worklets (including just one tire worklet) and no
 AudioNode oscillators regardless of actor count. Only the nearest rival inside 100 physical world meters
 is selected. Gain uses 3D distance and pan uses lateral displacement in the player's yaw frame; raster
 depth and local stage chainage never enter the policy. Rival changes fade before slot reuse. Other actors
@@ -163,7 +160,7 @@ MASTER retains its 35% default. Independent ENG and TIRE sliders multiply their 
 initially 100%; ENG includes the nearest rival. They do not alter synthesis, voice-switch envelopes,
 component state or each other's level. Ordinary gain following avoids steps; zero does not stop DSP.
 
-[Tire session tuning](tire-audio.md#session-tuning) owns model-specific replacement, reset and
+[Tire session tuning](tire-audio.md#session-tuning) owns tire replacement, reset and
 session semantics. [Calibration](calibration.md#tire-audio-tuning) maps controls to their source owners.
 
 ### Engine controls
@@ -185,8 +182,7 @@ summary is below; the source table, not this summary or tests, is the numeric au
 
 The kernel deliberately also accepts return cutoff down to 100 Hz, attenuation up to 1 and any positive
 closed excitation up to 1. Explicit undefined overrides retain defaults; all values must be finite and
-inside their domain. Validation returns a frozen copy. Tests exercise boundaries and UI inclusion without
-repeating a separate bounds table.
+inside their domain. Validation returns a frozen copy.
 
 Game and audition share eight minus/plus controls and reset. Integer step indices avoid decimal drift;
 buttons stop at limits without wrapping/repeat timers. Vehicle changes preserve tuning; page/course
@@ -226,39 +222,20 @@ This is an acoustic boundary envelope, not valve timing, lift or flow. Reusing o
 both boundaries is an economy. Bank normalization, control response and output conditioning are authored
 presentation choices; none changes mechanical inertia or establishes calibrated loudness.
 
-## Verification and limits
+## Audition and limits
 
-Run the full [development workflow](development.md), including the unchanged historical physics/render
-oracle. [Audio tests](../tests/audio/audio.test.mjs), [lifetime tests](../tests/audio/audio-lifecycle.test.mjs),
-[audit regressions](../tests/audio/audio-audit.test.mjs) and [waveguide tests](../tests/audio/exhaust-waveguide.test.mjs)
-cover read-only observation, native/fallback control paths, frame survival, retry races, bounded voices,
-profile/tuning replacement, finite sustained feedback and output conditioning. They are not listening
-acceptance or universal device support claims.
+Run the standing checks in the [development workflow](development.md). They check build/startup and
+layer dependencies, not listening acceptance or universal device audio support.
 
-Use [engine audition](../tools/audio/audio-browser.html) for all nine profiles at 44.1/48 kHz, steady RPM/load
-and acceleration/coast. Fixed gain evaluates load; optional RMS matching compares timbre only.
-[Level diagnostics](../tools/audio/exhaust-levels.mjs) report kernel RMS/peak with one-second settling and
-measurement, reset seed and default tuning. `node tools/audio/exhaust-levels.mjs [build-directory]` writes JSON;
-compare vehicle/RPM/load rows before intentionally revising mix levels. Out-of-profile RPMs are omitted.
-
-[Tire audition](../tools/audio/tire-browser.html), [shared scenarios](../tools/audio/tire-scenarios.mjs) and
-[offline rendering](../tools/audio/tire-render.mjs) compare independent axles, rolling, cornering, wheel lock,
-loose surfaces and release. Generated WAVs are review outputs, never production assets.
-`node tools/audio/tire-render.mjs /absolute/output.wav` optionally accepts a prior kernel for comparison.
-
-[Host timing](../tools/audio/exhaust-performance.mjs) uses warmed paired runs, not phone certification.
-[Spectral diagnostics](../tools/audio/exhaust-quality.mjs) inspect coherent source/clip-input/output signals
-with zero variation. Energy outside true harmonics detects inharmonic aliasing, not folded components
-coincident with genuine harmonics or total aliasing. FFT and independent pulse-integration regressions
-retain their own causal coverage. Actual speaker listening, Safari/iOS/Android behavior and simultaneous
-gameplay CPU budget remain separate checks.
+Use [engine audition](../tools/audio/audio-browser.html) for catalog profiles, steady RPM/load and
+acceleration/coast. Playback uses fixed gain, not measured-output normalization.
+[Tire audition](../tools/audio/tire-browser.html) uses [authored scenarios](../tools/audio/tire-scenarios.mjs)
+for independent axles, rolling, cornering, wheel lock, loose surfaces and release through the game voice.
+Both auditions render at 48 kHz; game audio uses the device's supported native rate.
+Actual speaker listening, Safari/iOS/Android behavior and simultaneous gameplay cost require device review.
 
 ## Minimal implementation boundary
 
 Keep one exhaust waveguide and one delay primitive, with no exhaust method flags or vehicle branches.
-The explicitly requested tire comparison selector belongs to voice/worklet composition, not either sample kernel.
-For a sound-preserving change, run `node tools/audio/exhaust-equivalence.mjs /absolute/previous/exhaust-waveguide.js`
-after building, also with `--zero-variation`. The reference must share the profile/pulse contract;
-[exact comparison](../tools/audio/exhaust-equivalence.mjs) covers rates, vehicles, overrides and RPM/load transitions.
-Do not use equivalence language for an intentional synthesis change. Past experiments and run results
-belong in Git and PR/CI evidence, not an accumulating documentation archive.
+Tires use one UNIFIED source pair. Past experiments and run results belong in Git and PR/CI evidence,
+not an accumulating documentation archive.

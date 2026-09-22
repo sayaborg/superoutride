@@ -22,14 +22,7 @@
             <button id="sound-toggle" class="selector-button" type="button" aria-pressed="true">SOUND START</button>
             <span>MASTER</span>
             <div id="sound-volume"></div>
-            <button
-              id="tire-sound-toggle"
-              class="selector-button"
-              type="button"
-              title="タイヤ音の比較方式を切り替えます。既定はHYBRID。MODALはQのみ、UNIFIEDはRとQを生成します。"
-            >
-              TIRES: HYBRID
-            </button>
+            <span class="selector-label">TIRES: UNIFIED</span>
             <div
               id="tire-component-controls"
               class="selector-buttons"
@@ -91,8 +84,8 @@
       // One top-level boot selects LINEAR / SEAM / CIRCUIT / BRANCH with 1/2/3/4.
       // Lower engine layers receive only the ordinary runtime objects selected by that boot.
       const entryName = 'boot.js';
-      const fallbackEntry = `./dist/${entryName}`;
-      let entry = fallbackEntry;
+      const localEntry = `./dist/${entryName}`;
+      let entry = localEntry;
 
       try {
         const response = await fetch(`./version.txt?t=${Date.now()}`, { cache: 'no-store' });
@@ -100,7 +93,7 @@
           const version = (await response.text()).trim();
           if (/^[0-9a-f]{40}$/.test(version)) {
             // Import the complete build from a commit-specific directory. Relative ESM imports
-            // therefore inherit the versioned path instead of reusing stale /dist/*.js modules.
+            // therefore inherit the versioned path without mixing modules from different commits.
             entry = `./build/${version}/${entryName}`;
           }
         }
@@ -108,13 +101,7 @@
         // Local development has no version.txt; use the normal tsc output below.
       }
 
-      try {
-        await import(entry);
-      } catch (error) {
-        console.error('Versioned SUPER OUTRIDE boot failed; trying development fallback.', error);
-        if (entry !== fallbackEntry) await import(`${fallbackEntry}?t=${Date.now()}`);
-        else throw error;
-      }
+      await import(entry);
     </script>
   </body>
 </html>

@@ -23,13 +23,11 @@ legal-route recovery to the Port before camera observation, without progress cre
 The [vehicle catalog](../src/vehicle/vehicle-catalog.ts) owns nine production identities and their
 [compiled profiles](../src/vehicle/production-vehicle-profiles.ts). Model, manufacturer, identifier,
 specification and period are distinct fields. Presentation uses car/bike metadata. Browser
-[key bindings](../src/browser/key-bindings.ts) own shortcuts; input owns driving aliases and tests check
-collisions. Testarossa is the current default player/fixed rival. Shared starting tire calibration is
+[key bindings](../src/browser/key-bindings.ts) own shortcuts; input owns driving aliases. Testarossa is the current default player/fixed rival. Shared starting tire calibration is
 not a requirement that finished vehicles have identical tires.
 
-Product CourseDocuments and image bytes live in `content/`. Regression inputs and read-only probes
-live in `src/dev/fixtures` and `src/dev/diagnostics`. [Raster authoring](../src/course/raster-turtle.ts)
-owns line/arc subdivision and radius provenance. [DEV](../src/dev/README.md) owns the fixture boundary.
+Product CourseDocuments and image bytes live in `content/`. [Raster authoring](../src/course/raster-turtle.ts)
+owns line/arc subdivision and radius provenance. [DEV](../src/dev/README.md) contains only Sprite Tool/LOD preview fixtures.
 
 ## CourseDocument v10: implemented compiler boundary
 
@@ -37,11 +35,8 @@ owns line/arc subdivision and radius provenance. [DEV](../src/dev/README.md) own
 [geometry recipe](../src/course/course-geometry.ts),
 [course compilation](../src/compiler/compiled-course.ts) and
 [project transactions](../src/authoring/course-project.ts) implement saved-document compilation and
-publication used by the file/CLI workflow and shared scene. The [constant LINEAR example](../tests/fixtures/linear.course.json) and
-[varying LINEAR example](../tests/fixtures/varying-linear.course.json),
-[linked LINEAR example](../tests/fixtures/linked-linear.course.json) and
-[transformed loop](../tests/fixtures/transformed-loop.course.json) are executable inputs for
-the [offline entry](development.md#course-commands). A compiled document is geometry/reference
+publication used by the file/CLI workflow and shared scene. The saved development courses in
+`content/courses` are inputs for the [offline entry](development.md#course-commands). A compiled document is geometry/reference
 data with explicit height/physical content and verified indexed image sources, not a ready driving
 Session or completed resident ground product.
 

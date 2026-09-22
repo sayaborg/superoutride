@@ -5,25 +5,15 @@
 - The game uses one compiled graph scene, resident RGB555 ground, indexed sprites and a complete Session flow.
 - BG uses the current single infinite plane: 80×40 tiles, 1280×640 pixels and sine mapping.
 - Build generates vehicle envelopes and game time budgets; generated products are disposable.
-- Stage 1 removes the tuning freeze, frozen-reference oracle and performance tests without changing runtime behavior.
-  Remaining regression tests stay until Stage 2. Vehicle parameters still carry `DEV_UNCALIBRATED`; physics and
-  tire-audio tuning are open work. BGM, wind and sound effects are not implemented yet.
+- Stage 2 keeps only UNIFIED tire sound and its R/Q controls. Shared noise primitives live in `src/audio/noise.ts`.
+- The standing checks are strict TypeScript/lint/format/build, a three-frame saved-course startup smoke and parsed
+  acyclic layer dependencies. Authoring tools and the two browser auditions remain; preview fixtures are sprite-only.
+- Pages uses a commit-versioned build with public-version and browser-startup verification.
+- Vehicle parameters still carry `DEV_UNCALIBRATED`; physics and tire-audio tuning are open work.
+  BGM, wind and sound effects are not implemented yet. The next task is Stage 3.
 
 K's decisions below govern the remaining work, including where existing topic target sections differ.
 Stage 3 reconciles those specifications. Implement the stages in order.
-
-## Stage 2 — Remove dormant code and checks
-
-- Keep only `unified` tire audio and make it the default. Remove `tire-contact-model`, `stochastic-resonator`,
-  `tire-hybrid-*`, `tire-modal-model`, `tire-spectral-*` and every other non-unified model, together with their
-  branches, selection UI, documentation, tools and tests.
-- Give shared components used by unified neutral names independent of a synthesis method.
-- Remove remaining comparison/proof tools: equivalence, spectral/contact, benchmarks and physics probes.
-- Reduce `src/dev` fixtures and diagnostics. Reduce tests to the three standing checks in AGENTS plus a justified minimum.
-- Remove old-cache compatibility: the Pages `_site/dist` fallback and `audio-lifecycle.ts` older-cached-index handling.
-  Keep delivery verification minimal.
-- Decide whether any work from PR #238 should be reused, then close it. Also resolve the unmerged `indexed-background`
-  branch; preserve useful work before removal.
 
 ## Stage 3 — Reorganize normative documents
 
@@ -35,6 +25,11 @@ Stage 3 reconciles those specifications. Implement the stages in order.
 ## Stage 4 — Replace ground with Bands
 
 - Make Bands the canonical course schema and implement their rendering under the requirements below.
+- Reuse reference: closed [PR #238](https://github.com/sayaborg/superoutride/pull/238), head
+  `07e576e3dddff79c9e46a5369faed4205e706f41`, contains ordered slab resolution and swept-edge integration
+  (`band-resolved-slabs.mjs`, `band-slab-raster.mjs`). Its moving-normalization/footprint examples explain why
+  cached averages must represent the actual sampled area. These are design references, not an adopted renderer,
+  schema, interval limit or acceptance gate; select the Stage 4 method from the required comparisons.
 - Remove resident ground, groundmap, GroundBase, tile dictionaries, paint/stamp systems and their build, HUD and
   documentation paths together.
 - Replace the old development courses with provisional courses authored in the new schema. Remove course-specific

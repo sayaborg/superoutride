@@ -82,9 +82,7 @@ group around its farthest representatives. Representatives are area-weighted mix
 Stable input order resolves exact ties. This prevents base-only similarity from erasing a lamp that
 is distinct in another variant. Adding a variant requires rebuilding the generated LOD.
 
-The [causal tests](../tests/rendering/sprite-lod-compiler.test.mjs) cover direct-master boxes, partial
-edges, half coverage, linear black/white averaging, substitution before reduction, retained lamp color
-after reduction, determinism and file preservation. No dithering or runtime filtering is introduced.
+No dithering or runtime filtering is introduced.
 
 The build generates complete course-scenery and vehicle LOD. `content/sprites/vehicles.json` is a
 normalized-master dictionary with yaw/bank bindings, not another image representation. Its completed
@@ -146,8 +144,6 @@ normalization. Output is one normalized level, ready for review/editing and the 
 Unknown/missing fields, malformed palettes and invalid crop, anchor or metric values fail before
 output. Source admission is 16,777,216 decoded pixels and 1,048,576 master texels. PNG admission is
 32 MiB encoded input and 8-bit channels. These are tool limits, not runtime-format/device budgets.
-[Regressions](../tests/rendering/sprite-source-compiler.test.mjs) cover dimensions, footprints, alpha,
-anchors, padding, color space, preservation and PNG -> master -> LOD -> product reader.
 
 ## Sprite Tool authoring session
 
@@ -194,9 +190,7 @@ identity/migration is a separate contract.
 
 Editor admission is 1,048,576 source pixels, 4096 per axis, 32 MiB PNG and 16 MiB session JSON. Larger
 Node-source admission remains available. A known crop width is required. Bottom-center anchor is an editable starting control, not inferred
-vehicle size. The shared fixed color space and threshold are displayed, not user-selectable. Preview uses the product scale/blitter. [Authoring tests](../tests/rendering/sprite-authoring.test.mjs)
-cover palette ties/alpha, mask history/invalidation, portable sessions, decode parity and the complete
-PNG -> session -> master/LOD -> product reader boundary.
+vehicle size. The shared fixed color space and threshold are displayed, not user-selectable. Preview uses the product scale/blitter.
 
 ## Course image-source admission
 
@@ -336,7 +330,7 @@ Recipe `superoutride.resident-rgb555` v1 composes source cells on the 40x40 texe
 select the half-open Band and saved image texel; finite edges clip area, and the last chainage cell uses
 its clipped centre. Static A/B and ordered stamps retain the saved source rules above. Area integration
 averages the RGB555 codec's decoded 8-bit encoded-sRGB channels, then rounds through the shared framebuffer
-and RGB555 codecs. Mechanics and renderer oracles are unchanged.
+and RGB555 codecs.
 
 Every level integrates the original composed cells. Near filters use tile-local summed areas; coarse
 filters use rolling rows of unquantized channel/area sums, crossing tile and material boundaries.
@@ -368,7 +362,7 @@ limits. Neither a whole-source image nor a whole-Section floating-point image is
 The completed manifest binds format/compiler/input identity, finite domains, grids, tile records,
 coarse images and lengths/digests. Include the course geometry identity in dependent image identities.
 Validate assets before publishing immutable readers. Exact bytes, rather than digest equality alone,
-prove deduplication. Geometry and SurfaceMap remain independent of image storage.
+prove deduplication. Geometry and physical classification remain independent of image storage.
 
 A ready course has all branches and one source lap resident, with shared records counted once.
 Sampling is synchronous and performs neither acquisition nor prefiltering. Resolve row/span addresses

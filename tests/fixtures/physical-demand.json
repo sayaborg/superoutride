@@ -1,9 +1,0 @@
-{
-  "pose": { "behind": 2, "ahead": 2, "left": 2, "right": 2 },
-  "step": { "behind": 1, "ahead": 4, "left": 0.5, "right": 0.5 },
-  "consumers": {
-    "contact": { "behind": 2, "ahead": 3, "left": 1, "right": 1 },
-    "driverLookahead": { "behind": 0, "ahead": 20, "left": 0, "right": 0 },
-    "reverseRecovery": { "behind": 20, "ahead": 10, "left": 2.5, "right": 2.5 }
-  }
-}

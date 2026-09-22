@@ -49,10 +49,6 @@ export class TireUnifiedSynthesis {
     this.outputFollow = 1 - Math.exp((-2 * Math.PI * settings.outputCutoffHz) / rate);
   }
 
-  get frictionEnergy(): number {
-    return this.friction.energy;
-  }
-
   update(value: TireSoundObservation, surfaceIndex = 0): void {
     const S = this.settings;
     try {
@@ -77,7 +73,6 @@ export class TireUnifiedSynthesis {
     this.targetFeedback =
       (S.feedbackMaximumPerSecond * material.susceptibility * work * saturate(slip, S.slipHalfMps)) /
       (1 + (slip / S.slipRolloffMps) ** 2);
-    // Demand rho is not a second grip/onset authority. Accepted work already includes force/load.
   }
 
   private release(): void {

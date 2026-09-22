@@ -3,15 +3,7 @@ import { mountTireTuningControls } from './tire-tuning-controls.js';
 import { createRangeControl } from './range-control.js';
 import { createNumberStepper } from './number-stepper.js';
 import { createAudioEngine } from '../audio/audio-engine.js';
-import {
-  DEFAULT_TIRE_SOUND_MODEL,
-  TIRE_SOUND_MODELS,
-  TIRE_SOUND_CONTROLS,
-  TIRE_COMPONENTS,
-  tireComponentAvailable,
-  tireComponentDescription,
-  type TireSoundModel,
-} from '../audio/tire-sound-controls.js';
+import { TIRE_COMPONENTS } from '../audio/tire-sound-controls.js';
 import { AUDIO_TIMING, rivalAudioGain, rivalAudioPan } from '../audio/audio-presentation.js';
 import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
 import { vehicleCatalogEntryForId } from '../vehicle/vehicle-catalog.js';
@@ -29,17 +21,15 @@ const GESTURE_EVENTS = ['pointerdown', 'pointerup', 'touchend', 'keydown'] as co
 export function createAudioLifecycle() {
   const button = document.getElementById('sound-toggle');
   const volumeContainer = document.getElementById('sound-volume');
-  const tireButton = document.getElementById('tire-sound-toggle');
-  let tireModel: TireSoundModel = DEFAULT_TIRE_SOUND_MODEL;
-  const componentState = { road: true, scrub: true, squeal: true };
+  const componentState = { road: true, squeal: true };
   const componentHost = document.getElementById('tire-component-controls');
-  const componentButtons = TIRE_COMPONENTS.map(({ key, label }) => {
+  const componentButtons = TIRE_COMPONENTS.map(({ key, label, description }) => {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'selector-button';
     button.id = `tire-component-${key}`;
     const toggle = (): void => {
-      if (disposed || !supported || !tireComponentAvailable(tireModel, key)) return;
+      if (disposed || !supported) return;
       componentState[key] = !componentState[key];
       showComponents();
       unlock();
@@ -48,7 +38,7 @@ export function createAudioLifecycle() {
     button.addEventListener('click', toggle);
     button.addEventListener('keydown', tireKey);
     componentHost?.appendChild(button);
-    return { key, label, button, toggle };
+    return { key, label, description, button, toggle };
   });
   let context: AudioContext | null = null;
   let engine: Awaited<ReturnType<typeof createAudioEngine>> | null = null;
@@ -135,41 +125,22 @@ export function createAudioLifecycle() {
   function showComponents(): void {
     componentHost?.setAttribute(
       'aria-label',
-      `Tire sound components: ${TIRE_SOUND_CONTROLS[tireModel].components.map(({ label, description }) => `${label} ${description}`).join(', ') || 'none'}`,
+      `Tire sound components: ${TIRE_COMPONENTS.map(({ label, description }) => `${label} ${description}`).join(', ')}`,
     );
-    for (const { key, label, button } of componentButtons) {
+    for (const { key, label, description, button } of componentButtons) {
       const on = componentState[key];
-      const description = tireComponentDescription(tireModel, key);
       button.textContent = `${label}: ${on ? 'ON' : 'OFF'}`;
       button.setAttribute('aria-pressed', String(on));
-      button.setAttribute('aria-label', `${description ?? label}: ${on ? 'on' : 'off'}. ${tireModel.toUpperCase()}.`);
-      button.title = `${label}: ${description ?? 'Unavailable'}. Both axles. Other components are not normalized.`;
-      if (description === undefined) button.setAttribute('hidden', '');
-      else button.removeAttribute('hidden');
-      if (!supported || description === undefined) button.setAttribute('disabled', '');
-      else button.removeAttribute('disabled');
+      button.setAttribute('aria-label', `${description}: ${on ? 'on' : 'off'}.`);
+      button.title = `${label}: ${description}. Both axles. Other components are not normalized.`;
+      button.disabled = !supported;
     }
-  }
-  function showTireModel(): void {
-    showComponents();
-    tireTuning?.setModel(tireModel);
-    tireTuning?.setEnabled(supported);
-    if (!tireButton) return;
-    tireButton.textContent = `TIRES: ${tireModel.toUpperCase()}`;
-    tireButton.removeAttribute('aria-pressed'); // Also retire the boolean state on an older cached index.
-    tireButton.setAttribute('aria-label', `Tire sound model: ${tireModel.toUpperCase()}. Activate to cycle models.`);
-    if (!supported) tireButton.setAttribute('disabled', '');
-  }
-  function toggleTires(): void {
-    tireModel = TIRE_SOUND_MODELS[(TIRE_SOUND_MODELS.indexOf(tireModel) + 1) % TIRE_SOUND_MODELS.length]!;
-    showTireModel();
-    unlock();
-    sync();
   }
   function tireKey(event: Event): void {
     event.stopPropagation();
   }
-  showTireModel();
+  showComponents();
+  tireTuning?.setEnabled(supported);
   function audible(): boolean {
     return enabled && active && !document.hidden && !disposed;
   }
@@ -213,7 +184,6 @@ export function createAudioLifecycle() {
     if (!context || !engine) return;
     try {
       if (tuningControls) engine.setTuning(tuningControls.read());
-      engine.setTireModel(tireModel);
       const tireSettings = tireTuning?.read();
       if (tireSettings) engine.setTireTuning(tireSettings);
       engine.setMix(engineVolume, tireVolume);
@@ -304,8 +274,6 @@ export function createAudioLifecycle() {
     window.removeEventListener('pageshow', show);
     document.removeEventListener('visibilitychange', visibility);
     button?.removeEventListener('click', toggle);
-    tireButton?.removeEventListener('click', toggleTires);
-    tireButton?.removeEventListener('keydown', tireKey);
     for (const { button, toggle } of componentButtons) {
       button.removeEventListener('click', toggle);
       button.removeEventListener('keydown', tireKey);
@@ -326,8 +294,6 @@ export function createAudioLifecycle() {
   window.addEventListener('pageshow', show);
   document.addEventListener('visibilitychange', visibility);
   button?.addEventListener('click', toggle);
-  tireButton?.addEventListener('click', toggleTires);
-  tireButton?.addEventListener('keydown', tireKey);
   return {
     update(player: ArcadeVehicleState, actors: readonly { readonly vehicle: ArcadeVehicleState }[]): void {
       if (!engine || !context || context.state !== 'running' || !audible()) return;

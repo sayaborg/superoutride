@@ -43,6 +43,6 @@ The [Sprite Tool](tools/graphics/sprite-tool.html) and [Sprite LOD preview](tool
 | `src/graphics`, `src/visual`, `src/terrain`, `src/render` | Images, projection and rendering                        |
 | `src/groundmap`                                           | Offline ground compilation and resident RGB555 readers  |
 | `src/browser`                                             | Controls, scheduling and driving shell                  |
-| `src/dev`                                                 | Regression fixtures and diagnostics                     |
+| `src/dev`                                                 | Sprite authoring preview fixtures                       |
 
-`src/main-course.ts` is the sole driving composition root. Parsed repository hygiene checks enforce layer boundaries.
+`src/main-course.ts` is the sole driving composition root. Parsed layer checks enforce acyclic dependencies, including type-only imports.

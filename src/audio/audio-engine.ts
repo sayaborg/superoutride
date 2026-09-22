@@ -2,8 +2,8 @@ import { clamp } from '../core/math.js';
 import { follow } from './audio-parameter.js';
 import type { ExhaustTuning } from './exhaust-acoustics.js';
 import { createTireVoice } from './tire-voice.js';
-import type { TireTuning } from './tire-tuning.js';
-import type { TireSoundModel, TireComponents } from './tire-sound-controls.js';
+import type { UnifiedTuning } from './tire-unified-acoustics.js';
+import type { TireComponents } from './tire-sound-controls.js';
 import { createEngineVoice } from './engine-voice.js';
 import type { VehicleAudioProfile } from './vehicle-audio-profile.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
@@ -47,10 +47,7 @@ export async function createAudioEngine(context: AudioContext) {
       player.setTuning(value);
       rival.setTuning(value);
     },
-    setTireModel(model: TireSoundModel): void {
-      tires.setModel(model);
-    },
-    setTireTuning(value: TireTuning): void {
+    setTireTuning(value: UnifiedTuning): void {
       tires.setTuning(value);
     },
     setMix(engine: number, tire: number): void {

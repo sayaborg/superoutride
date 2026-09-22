@@ -1,5 +1,6 @@
-import { RandomStream } from './spectral-noise.js';
-import { UNIFIED_DOMAIN } from './tire-unified-acoustics.js';
+import { RandomStream } from './noise.js';
+// Numerical support of the friction solver, independent of listening coefficients.
+const RATE_DOMAIN = Object.freeze({ minRate: 44100, maxRate: 192000 });
 
 interface Mode {
   readonly frequencyHz: number;
@@ -35,7 +36,7 @@ export class FrictionResonator {
   private readonly parameters: Parameters;
 
   constructor(rate: number, parameters: Parameters, seed: number) {
-    if (!Number.isInteger(rate) || rate < UNIFIED_DOMAIN.minRate || rate > UNIFIED_DOMAIN.maxRate)
+    if (!Number.isInteger(rate) || rate < RATE_DOMAIN.minRate || rate > RATE_DOMAIN.maxRate)
       throw new RangeError('unsupported unified rate');
     if (
       !Number.isFinite(parameters.feedbackMaximumPerSecond) ||
@@ -94,12 +95,6 @@ export class FrictionResonator {
     this.noisePole = Math.exp((-2 * Math.PI * parameters.noiseBandwidthHz) / rate);
     // Stationary variance-one AR(1) with variance-1/3 uniform innovations; no output normalization.
     this.noiseInjection = Math.sqrt(3 * (1 - this.noisePole ** 2));
-  }
-
-  get energy(): number {
-    let sum = 0;
-    for (let i = 0; i < this.x.length; i++) sum += this.x[i]! ** 2 + this.v[i]! ** 2;
-    return sum / 2;
   }
 
   private passive(): void {

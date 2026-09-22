@@ -1,5 +1,5 @@
 /** Numerical support, not listening controls; expanding it needs domain/aliasing validation. */
-export const SPECTRAL_BAND_DOMAIN = Object.freeze({
+export const NOISE_BAND_DOMAIN = Object.freeze({
   minRate: 44100,
   maxRate: 192000,
   minimumBandwidthHz: 50,
@@ -10,7 +10,7 @@ export const SPECTRAL_BAND_DOMAIN = Object.freeze({
 /** Bounded, reproducible stream. Separate seed/state per band and modulation source. */
 export class RandomStream {
   constructor(private state: number) {
-    if (!Number.isInteger(state) || state < 1 || state > 0xffffffff) throw new RangeError('invalid spectral seed');
+    if (!Number.isInteger(state) || state < 1 || state > 0xffffffff) throw new RangeError('invalid noise seed');
     this.state |= 0;
   }
   sample(): number {
@@ -22,7 +22,7 @@ export class RandomStream {
 }
 
 /** Isotropic AR(1) rotation; B is nominal pole bandwidth, not exact wide-band FWHM. */
-export class SpectralBand {
+export class NoiseBand {
   private x = 0;
   private y = 0;
   private cosine = 0;
@@ -33,30 +33,27 @@ export class SpectralBand {
     private readonly rate: number,
     seed: number,
   ) {
-    if (!Number.isInteger(rate) || rate < SPECTRAL_BAND_DOMAIN.minRate || rate > SPECTRAL_BAND_DOMAIN.maxRate)
-      throw new RangeError('unsupported spectral rate');
+    if (!Number.isInteger(rate) || rate < NOISE_BAND_DOMAIN.minRate || rate > NOISE_BAND_DOMAIN.maxRate)
+      throw new RangeError('unsupported noise rate');
     this.random = new RandomStream(seed);
-    this.configure(1000, SPECTRAL_BAND_DOMAIN.minimumBandwidthHz);
+    this.configure(1000, NOISE_BAND_DOMAIN.minimumBandwidthHz);
   }
   configure(frequency: number, bandwidth: number): void {
     if (
       !Number.isFinite(frequency) ||
       frequency <= 0 ||
-      frequency >= SPECTRAL_BAND_DOMAIN.maximumFrequencyRateFraction * this.rate ||
+      frequency >= NOISE_BAND_DOMAIN.maximumFrequencyRateFraction * this.rate ||
       !Number.isFinite(bandwidth) ||
-      bandwidth < SPECTRAL_BAND_DOMAIN.minimumBandwidthHz ||
-      bandwidth > SPECTRAL_BAND_DOMAIN.maximumBandwidthHz
+      bandwidth < NOISE_BAND_DOMAIN.minimumBandwidthHz ||
+      bandwidth > NOISE_BAND_DOMAIN.maximumBandwidthHz
     )
-      throw new RangeError('invalid spectral band');
+      throw new RangeError('invalid noise band');
     const r = Math.exp((-Math.PI * bandwidth) / this.rate);
     const angle = (2 * Math.PI * frequency) / this.rate;
     this.cosine = r * Math.cos(angle);
     this.sine = r * Math.sin(angle);
     // Uniform [-1,1] has variance 1/3. This is analytic source scaling, never measured-output AGC.
     this.injection = Math.sqrt(3 * (1 - r * r));
-  }
-  get squaredNorm(): number {
-    return this.x * this.x + this.y * this.y;
   }
   sample(amplitude: number): number {
     if (!Number.isFinite(amplitude) || amplitude < 0 || amplitude > 1) throw new RangeError('invalid band excitation');
@@ -91,28 +88,15 @@ export class SmoothRandom {
   }
 }
 
-function spectralSeedSequence(seed: number): () => number {
+/** Derive a reproducible independent stream from an authored nonnegative stream ID. */
+export function deriveNoiseSeed(seed: number, stream: number): number {
+  if (!Number.isSafeInteger(stream) || stream < 0) throw new RangeError('invalid noise stream ID');
   const seeds = new RandomStream(seed);
-  // Consecutive xorshift states are adjacent positions in the SAME stream. Permute them
-  // before seeding bands so their per-sample draws are not shared at short fixed lags.
-  // Xor shifts and odd multipliers form a bijection fixing zero; nonzero seeds remain nonzero.
-  return (): number => {
-    let value = Math.floor((seeds.sample() + 1) * 2147483648);
-    value = Math.imul(value ^ (value >>> 16), 0x7feb352d);
-    value = Math.imul(value ^ (value >>> 15), 0x846ca68b);
-    return (value ^ (value >>> 16)) >>> 0;
-  };
-}
-
-/** Stable component seed identities shared across compositions; no unused bands need to run. */
-export function spectralComponentSeeds(seed: number) {
-  const next = spectralSeedSequence(seed);
-  return {
-    scrub: [next(), next()] as const,
-    squeal: [next(), next(), next(), next()] as const,
-    wander: next(),
-    scrubTexture: next(),
-    road: [next(), next()] as const,
-    roadTexture: next(),
-  };
+  let value = 0;
+  for (let i = 0; i <= stream; i++) value = Math.floor((seeds.sample() + 1) * 2147483648);
+  // Permute adjacent xorshift states before using them as separate per-sample streams.
+  // The bijection fixes zero, so nonzero seeds stay nonzero.
+  value = Math.imul(value ^ (value >>> 16), 0x7feb352d);
+  value = Math.imul(value ^ (value >>> 15), 0x846ca68b);
+  return (value ^ (value >>> 16)) >>> 0;
 }

@@ -68,13 +68,6 @@
         <option value="rev">加速 → アクセルOFF</option>
       </select></label
     >
-    <label
-      >音量比較
-      <select id="level">
-        <option value="fixed">固定音量（開度の比較）</option>
-        <option value="matched">音量を揃える（音色の比較）</option>
-      </select></label
-    >
     <p>採用済みの軽量ウェーブガイドです。パラメータは調整中です。</p>
     <button id="play" type="button">再生</button>
     <button id="stop" type="button">停止</button>
@@ -110,8 +103,6 @@
       </table>
       <p id="vehicle-pulse"></p>
     </fieldset>
-    <button id="run" type="button">設定を全車種で検証</button>
-    <pre id="result">Ready</pre>
     <script type="module">
       import {
         REFLECTION_REFERENCE,
@@ -124,7 +115,6 @@
       import { createEngineVoice } from '../../dist/audio/engine-voice.js';
       import { VEHICLE_CATALOG } from '../../dist/vehicle/vehicle-catalog.js';
       import { createVehicleAudioObservation } from '../../dist/browser/vehicle-audio.js';
-      const result = document.getElementById('result');
       const vehicle = document.getElementById('vehicle');
       for (const entry of VEHICLE_CATALOG) {
         const option = document.createElement('option');
@@ -180,7 +170,6 @@
       const listening = document.getElementById('listening');
       function stop() {
         request++;
-        if (result.textContent === '検証中') result.textContent = '検証中止';
         playing?.stop();
         playing?.disconnect();
         playing = null;
@@ -195,7 +184,6 @@
           await playback.resume();
           const tuning = readTuning();
           const scenario = document.getElementById('scenario').value;
-          const level = document.getElementById('level').value;
           const entry = VEHICLE_CATALOG[Number(vehicle.value)];
           const context = new OfflineAudioContext(1, 4 * 48000, 48000);
           const state = createVehicleAudioObservation();
@@ -232,18 +220,11 @@
           voice?.dispose();
           if (current !== request) return;
           const samples = rendered.getChannelData(0).subarray(48000);
-          let power = 0,
-            peak = 0;
-          for (const value of samples) {
-            power += value * value;
-            peak = Math.max(peak, Math.abs(value));
-          }
-          const scale = level === 'matched' ? Math.min(0.12 / Math.sqrt(power / samples.length), 0.85 / peak) : 0.6;
           const buffer = playback.createBuffer(1, samples.length, 48000);
           const output = buffer.getChannelData(0);
           for (let i = 0; i < output.length; i++) {
             const fade = Math.min(1, i / 960, (output.length - 1 - i) / 960);
-            output[i] = samples[i] * scale * fade;
+            output[i] = samples[i] * 0.6 * fade;
           }
           playing = playback.createBufferSource();
           playing.buffer = buffer;
@@ -265,88 +246,6 @@
         stop();
         void playback?.close();
       });
-
-      async function verify() {
-        stop();
-        const current = request;
-        const tuning = readTuning();
-        const button = document.getElementById('run');
-        button.disabled = true;
-        result.textContent = '検証中';
-        try {
-          const rows = [];
-          for (const sampleRate of [44100, 48000]) {
-            for (const entry of VEHICLE_CATALOG) {
-              const amplitudes = [];
-              for (const [rpm, throttle] of [0, 3000, 6000].flatMap((rpm) => [
-                [rpm, 0],
-                [rpm, 1],
-              ])) {
-                const context = new OfflineAudioContext(1, sampleRate / 2, sampleRate);
-                await context.audioWorklet.addModule(new URL('../../dist/audio/exhaust-processor.js', import.meta.url));
-                const voice = createEngineVoice(context, context.destination, {
-                  profile: entry.sound,
-                  tuning,
-                });
-                const observation = createVehicleAudioObservation();
-                Object.assign(observation, {
-                  rpm,
-                  drive: throttle,
-                  idleRpm: entry.profile.powertrain.idleRpm,
-                  redlineRpm: entry.profile.powertrain.redlineRpm,
-                });
-                voice.update(observation, entry.sound);
-                const rendered = await context.startRendering();
-                const samples = rendered.getChannelData(0);
-                let peak = 0,
-                  power = 0,
-                  crossings = 0;
-                for (let i = (sampleRate / 4) | 0; i < samples.length; i++) {
-                  const value = samples[i];
-                  if (!Number.isFinite(value)) throw new Error('nonfinite sample');
-                  peak = Math.max(peak, Math.abs(value));
-                  power += value * value;
-                  if (samples[i - 1] <= 0 && value > 0) crossings++;
-                }
-                const rms = Math.sqrt(power / (samples.length - ((sampleRate / 4) | 0)));
-                if (!(rms > 0.0001 && peak < 1)) throw new Error(`invalid output: ${entry.profile.id} ${rpm}`);
-                const frequency =
-                  Math.max(observation.idleRpm, Math.min(rpm, observation.redlineRpm)) /
-                  (60 * entry.sound.cycleRevolutions);
-                const lag = sampleRate / frequency;
-                function periodicError(offset) {
-                  let difference = 0,
-                    reference = 0;
-                  for (let i = (sampleRate / 4) | 0; i + offset + 1 < samples.length; i++) {
-                    const shifted = i + offset,
-                      index = Math.floor(shifted),
-                      fraction = shifted - index;
-                    const value = samples[index] * (1 - fraction) + samples[index + 1] * fraction;
-                    difference += (samples[i] - value) ** 2;
-                    reference += samples[i] ** 2;
-                  }
-                  return difference / reference;
-                }
-                const error = periodicError(lag);
-                amplitudes.push({ rpm, throttle, peak, rms, crossings, periodicError: error });
-                voice.dispose();
-                if (current !== request) return;
-              }
-              rows.push({
-                vehicle: entry.profile.id,
-                sampleRate,
-                amplitudes,
-              });
-            }
-          }
-          result.textContent = JSON.stringify({ status: 'PASS', tuning, rows }, null, 2);
-        } catch (error) {
-          if (current === request) result.textContent = JSON.stringify({ status: 'FAIL', error: String(error) });
-        } finally {
-          button.disabled = false;
-        }
-      }
-      document.getElementById('run').onclick = verify;
     </script>
   </body>
 </html>

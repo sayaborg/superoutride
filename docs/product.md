@@ -52,7 +52,7 @@ Excluded: _Hang-On_ (1985) as a separate entry, Rad Mobile, Racing Hero, OutRun 
 OutRun 2 SP, Power Drift, Virtua Racing, Daytona USA, Sega Rally, Manx TT and Scud Race.
 
 Provisional CourseDocuments exercise product features without attempting to reproduce a master
-course. Minimal immutable-oracle worlds remain as test fixtures.
+course.
 
 ### Reference and remaster scope
 

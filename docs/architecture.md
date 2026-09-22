@@ -37,9 +37,9 @@ offset metric; physics consumes these geometric observations without opening Gui
 Terrain/rendering consume the narrower `RasterGeometry` facet (finite length, segment stations/headings
 and point mapping), not Guide fillets or the compiled course graph.
 
-RasterPath, GuidePath, HeightProfile, VisualProfile, SurfaceMap and saved paint have the
+RasterPath, GuidePath, HeightProfile, VisualProfile and saved paint have the
 finite domain `[0,L]`. Their source readers share 1e-9 m endpoint normalization through
-`openProfileChainage`, including SurfaceMap. Raster/Guide geometric
+`openProfileChainage`. Raster/Guide geometric
 sampling retains its separate 1e-8 m tolerance. Constructors reject nonfinite authoring before endpoint
 normalization and own immutable copies. Tolerances affect sampling, not topology or awarded progress.
 
@@ -50,7 +50,7 @@ provides run-in/runout for camera, drawing and handoff. Occurrence views compose
 ## Numerical norm convention
 
 Core's `hypot2`/`hypot3` own fixed-arity distance and speed norms in the physics/gameplay hot path.
-They retain the supported Node runtime's bit-exact `Math.hypot` oracle. Compilation, authored ruler
+They retain the supported Node runtime's `Math.hypot` results. Compilation, authored ruler
 construction and offline diagnostics use `Math.hypot`. Camera/audio algorithms use their own numerical
 owners. The envelope driver uses `hypot2` for planar speed and distance.
 
@@ -251,8 +251,8 @@ Guide containment. The vehicle catalog owns presentation-family metadata.
 Audio owns procedural sound and read contracts; vehicle binds acoustic profiles and browser adapts
 physical observations. Audio imports Core; physics stays independent of audio. The root loads course JSON, source images and completed ground before publishing the scene.
 
-The [hygiene graph](../tests/infrastructure/repository-hygiene.test.mjs) enforces acyclic directory
-imports, including types. Product roots load saved content; fixtures and diagnostics remain test/tool inputs. Runtime supplies
+The [layer graph](../tests/infrastructure/layer-dependencies.test.mjs) enforces acyclic directory
+imports, including types. Product roots load saved content; sprite preview fixtures remain tool inputs. Runtime supplies
 ordinary narrow readers to physics, camera and rendering; compilers own static preparation.
 Course topology and product choices belong in composition/gameplay, not pixel loops or mechanics.
 The compiled course graph is an upper-level owner; its lower-level reader facets preserve this graph.
@@ -280,15 +280,14 @@ and saved image identities without a dependency from authoring geometry to image
 ## Compiled profile and asset boundaries
 
 Surface, visual and height profiles own ordered immutable inputs and binary lookup.
-SurfaceMap validates physical bands. Terrain merges explicit change points into adjacent positive
+Terrain merges explicit change points into adjacent positive
 intervals, eliminating exact duplicates while retaining distinct authored intervals. Traversal uses
 those intervals directly, without cursor nudges.
 
 Sprite construction checks dimensions, buffers, finite anchors and positive physical width. Compiled
 products retain owned immutable metadata and explicit buffer ownership. Reachability from a product
-root or declared compiler identifies use; tests/tools separately consume diagnostics and fixtures.
-Painter, metric, gate and coordinate regressions remain executable. Build cost, steady-state draw
-cost and instrumentation cost are measured separately.
+root or declared compiler identifies use; authoring tools separately consume preview fixtures.
+The startup smoke compiles a saved course and renders a few frames through the shared scene.
 
 ## Ground authoring boundaries
 
@@ -360,7 +359,7 @@ the final-color reader. A visible marking is paint, not another geometric road-e
 ### Local Guide envelope qualification
 
 The Core profile, full-fillet validation, query clamping and conservative support containment are
-implemented and covered by [local-envelope tests](../tests/geometry/local-guide-envelope.test.mjs).
+implemented.
 The CourseDocument compiler derives varying profiles; consumer admission checks contact extents and
 Link-transformed views independently of source compilation.
 

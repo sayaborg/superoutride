@@ -15,12 +15,8 @@ export function createVehicleAudioObservation(): Observation {
     wheelSpeed: 0,
     wheelAngularSpeed: 0,
     load: 0,
-    referenceLoad: 1,
-    travelSpeed: 0,
-    slipSpeed: 0,
     longitudinalPower: 0,
     lateralPower: 0,
-    utilization: 0,
     surface: 'VOID',
   });
   return { rpm: 0, idleRpm: 1000, redlineRpm: 7000, drive: 0, front: tire(), rear: tire() };
@@ -42,32 +38,21 @@ export function readEngineAudio(vehicle: ArcadeVehicleState, result: Observation
 export function readVehicleAudio(vehicle: ArcadeVehicleState, result: Observation): void {
   readEngineAudio(vehicle, result);
   const tires = observeVehicleTires(vehicle);
-  const { control } = vehicle;
   result.front.load = vehicle.frontNormalLoad;
-  const frontSuspension = vehicle.profile.frontStation.suspension;
-  result.front.referenceLoad = frontSuspension.springRate * frontSuspension.qStatic;
   result.front.longitudinalVelocity = tires.front.longitudinalVelocity;
   result.front.lateralVelocity = tires.front.lateralVelocity;
   result.front.wheelSpeed = tires.front.wheelSpeed;
   result.front.wheelAngularSpeed = tires.front.wheelAngularSpeed;
-  result.front.travelSpeed = tires.front.travelSpeed;
-  result.front.slipSpeed = tires.front.slipSpeed;
   result.front.longitudinalPower = tires.front.longitudinalPower;
   result.front.lateralPower = tires.front.lateralPower;
-  result.front.utilization = control.frontUtilization;
   result.front.surface = tires.front.surface;
   result.rear.load = vehicle.rearNormalLoad;
-  const rearSuspension = vehicle.profile.rearStation.suspension;
-  result.rear.referenceLoad = rearSuspension.springRate * rearSuspension.qStatic;
   result.rear.longitudinalVelocity = tires.rear.longitudinalVelocity;
   result.rear.lateralVelocity = tires.rear.lateralVelocity;
   result.rear.wheelSpeed = tires.rear.wheelSpeed;
   result.rear.wheelAngularSpeed = tires.rear.wheelAngularSpeed;
-  result.rear.travelSpeed = tires.rear.travelSpeed;
-  result.rear.slipSpeed = tires.rear.slipSpeed;
   result.rear.longitudinalPower = tires.rear.longitudinalPower;
   result.rear.lateralPower = tires.rear.lateralPower;
-  result.rear.utilization = control.rearUtilization;
   result.rear.surface = tires.rear.surface;
 }
 

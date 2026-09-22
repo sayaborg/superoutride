@@ -36,8 +36,6 @@ Change profile authoring for persistent vehicle differences. Change the browser 
 
 Before accepting a tune, compare coast, acceleration, braking, held turns, reversal and neutral release over multiple speeds and time steps; include both turn directions, low grip, crests and recontact. Record input schedules and actual quantities (speed, sideslip, yaw/pitch rate, loads and delivered torques), not only a subjective final screenshot.
 
-The available [terrain probe](../tools/physics/torque-protection-terrain-probe.mjs), [braking/yaw probe](../tools/physics/braking-yaw-probe.mjs) and [drift control probe](../tools/physics/drift-control-probe.mjs) use the production solver. Check each tool's arguments in source. Diagnostic probes intentionally omit gameplay recovery when measuring raw model-domain exits. Tests with explicit coefficients are fixed causal fixtures, not assertions that those values are the current browser default.
-
 Open calibration and device acceptance work is tracked only in [NEXT](NEXT.md#current-state).
 
 ## Tire audio tuning
@@ -45,35 +43,16 @@ Open calibration and device acceptance work is tracked only in [NEXT](NEXT.md#cu
 Tire sound is presentation calibration, separate from the GX/PX/GY/PY/KN physical tire law above.
 The [audio contract](tire-audio.md#player-tire-synthesis) owns equations and signal paths;
 [NEXT](NEXT.md#current-state) owns feedback and listening acceptance;
-[development](development.md#tire-comparison-tools) owns reproducible commands. [Tire audio](tire-audio.md#shared-comparison-and-transport) owns method selection and the reload default.
+[development](development.md#audio-audition) owns the audition entry points. [Tire audio](tire-audio.md#shared-transport) owns the sole UNIFIED input path.
 
 Every non-derived acoustic coefficient and material value is an authored magic number, not a measured
 tire property. Units make a surrogate interpretable without establishing physical validity. Accepted
 slip work is an available-energy cue, not sound power; do not multiply friction excitation by load
-again. Computed MODAL modal energy and HYBRID's scalar energy state are diagnostics in their own
-normalized models, not joules or mutually calibrated quantities.
-
-### MODAL Q-only candidate
-
-[MODAL settings](../src/audio/tire-modal-acoustics.ts) own all coefficients, surface values and validated DEV sliders. These are authored parameters, not measured tire properties.
-[Audio](tire-audio.md#modal-game-synthesis) owns the equations and numerical limits.
-
-| Tuning concern       | Settings                                               | Coupling                                                                                                                |
-| -------------------- | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
-| Onset and saturation | `feedbackMaximum`, `saturation`                        | Feedback/loss ratio determines instability; saturation bounds the same sound states.                                    |
-| Work/slip response   | `powerReferenceWatts`, `slipHalfMps`, `slipRolloffMps` | Work controls forcing and feedback; slip shapes feedback. No vehicle-speed gate or second load multiplier.              |
-| Irregularity         | `noiseRms`, `bandwidthHz`                              | Noise excites the same resonators during rubbing and squeal. Bandwidth changes damping, noise scaling and growth speed. |
-| Pitch                | `pitchBaseHz`, `wanderDepth`                           | Four harmonic centers track an explicitly authored slip/directional-work curve, with shared slow wander.                |
-| Listening level      | `outputGain`                                           | Output level only, not instability. TIRE bus volume is separate.                                                        |
-
-Source-only values include harmonic weights, pitch excursions, slip/wheel bandwidth response, surface
-roughness/susceptibility, control timing and output filters. Weak-work forcing is linear near zero.
-Positive controls follow; zero support/slip/work immediately releases forcing without clearing vibration.
-Compare Q with HYBRID Q at fixed volume. No measurement establishes correct tire parameters or realism.
+again.
 
 ### UNIFIED friction
 
-[UNIFIED acoustics](../src/audio/tire-unified-acoustics.ts) owns all new friction coefficients.
+[UNIFIED acoustics](../src/audio/tire-unified-acoustics.ts) owns all friction coefficients.
 Both modal states receive one nonlinear friction input. Do not create separate rubbing/squeal gains,
 extra onset gates or a second amplitude envelope when tuning their continuous transition.
 
@@ -82,8 +61,8 @@ law. `powerReferenceWatts` controls the work half-response point; it is not an a
 or a replacement for output gain.
 
 [Tire observation](../src/audio/tire-sound-observation.ts) owns bounded transport and audition defaults,
-not replacement physics. [Spectral noise](../src/audio/spectral-noise.ts) owns numerical band support;
-The [stochastic resonator](../src/audio/stochastic-resonator.ts) reuses the supported band rate/frequency domain.
+not replacement physics. [Noise primitives](../src/audio/noise.ts) own numerical rolling-band support;
+the [friction resonator](../src/audio/friction-resonator.ts) owns its solver-rate domain.
 Do not widen domains or alter rates as an ordinary timbre adjustment.
 
 [Tire component controls](tire-audio.md#component-output-controls) own output switching;

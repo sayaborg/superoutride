@@ -6,13 +6,9 @@ export interface TireAudioObservation {
   /** Accepted wheel angular velocity, rad/s; not vehicle speed. */
   readonly wheelAngularSpeed: number;
   readonly load: number;
-  readonly referenceLoad: number;
-  readonly travelSpeed: number;
-  readonly slipSpeed: number;
   /** Dissipated longitudinal/lateral slip power in watts, from the accepted tire solve. */
   readonly longitudinalPower: number;
   readonly lateralPower: number;
-  readonly utilization: number;
   readonly surface: 'ASPHALT' | 'SHOULDER' | 'GRASS' | 'DIRT' | 'SAND' | 'VOID';
 }
 export interface VehicleAudioObservation {

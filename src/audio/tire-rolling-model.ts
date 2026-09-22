@@ -1,4 +1,4 @@
-import { SpectralBand, SmoothRandom, spectralComponentSeeds, SPECTRAL_BAND_DOMAIN } from './spectral-noise.js';
+import { NoiseBand, SmoothRandom, deriveNoiseSeed, NOISE_BAND_DOMAIN } from './noise.js';
 import { ROLLING_SETTINGS as S, ROLLING_SURFACES } from './tire-rolling-acoustics.js';
 import {
   TIRE_SOUND_SURFACES,
@@ -12,7 +12,7 @@ const MATERIAL_KEYS = Object.keys(ROLLING_SURFACES.ASPHALT) as (keyof Material)[
 
 /** Rotation-driven R, shared by composition without constructing or processing friction voices. */
 export class TireRollingSynthesis {
-  private readonly bands: SpectralBand[];
+  private readonly bands: NoiseBand[];
   private readonly texture: SmoothRandom;
   private readonly material: Material = { ...ROLLING_SURFACES.ASPHALT };
   private targetMaterial: Readonly<Material> = ROLLING_SURFACES.ASPHALT;
@@ -38,9 +38,8 @@ export class TireRollingSynthesis {
     private readonly rate: number,
     seed: number,
   ) {
-    const seeds = spectralComponentSeeds(seed);
-    this.bands = seeds.road.map((value) => new SpectralBand(rate, value));
-    this.texture = new SmoothRandom(seeds.roadTexture);
+    this.bands = S.bandStreams.map((stream) => new NoiseBand(rate, deriveNoiseSeed(seed, stream)));
+    this.texture = new SmoothRandom(deriveNoiseSeed(seed, S.textureStream));
     this.attack = 1 - Math.exp(-1 / (rate * S.attackSeconds));
     this.release = 1 - Math.exp(-1 / (rate * S.releaseSeconds));
     this.tone = 1 - Math.exp(-1 / (S.controlHz * S.toneSeconds));
@@ -90,7 +89,7 @@ export class TireRollingSynthesis {
         this.texture.step(this.wheelAngularSpeed === 0 ? 0 : textureRate / S.controlHz);
     for (let i = 0; i < this.bands.length; i++) {
       const hz = Math.max(S.minimumHz, S.orders[i]! * this.wheelFrequency);
-      this.bands[i]!.configure(hz, Math.max(SPECTRAL_BAND_DOMAIN.minimumBandwidthHz, hz * S.bandwidthRatio));
+      this.bands[i]!.configure(hz, Math.max(NOISE_BAND_DOMAIN.minimumBandwidthHz, hz * S.bandwidthRatio));
     }
   }
 

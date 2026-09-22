@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>SUPER OUTRIDE — Tire audition</title>
+    <title>SUPER OUTRIDE — UNIFIED tire audition</title>
     <style>
       body {
         font: 16px system-ui;
@@ -37,7 +37,7 @@
     </style>
   </head>
   <body>
-    <h1>タイヤ音の試聴</h1>
+    <h1>UNIFIED タイヤ音の試聴</h1>
     <p>
       直進 → 横滑り → 回復 → ロック → 土 →
       停止。前後それぞれの音を確認できます。試聴用の入力値で、走行物理の再現ではありません。
@@ -50,9 +50,7 @@
         <option value="rear">後輪のみ</option>
       </select></label
     >
-    <div>
-      <button id="play">試聴する</button><button id="stop">停止</button><button id="verify">音声出力を検証</button>
-    </div>
+    <div><button id="play">試聴する</button><button id="stop">停止</button></div>
     <pre id="result">待機中</pre>
     <p><a href="audio-browser.html">エンジン音の調整</a> · <a href="../../?mode=circuit">ゲームで確認</a></p>
     <script type="module">
@@ -113,36 +111,6 @@
           playing.onended = () => {
             if (current === generation) result.textContent = '再生終了';
           };
-        } catch (error) {
-          if (current === generation) result.textContent = String(error);
-        }
-      };
-      document.getElementById('verify').onclick = async () => {
-        stop();
-        const current = generation;
-        result.textContent = '検証中';
-        try {
-          const lines = [];
-          for (const rate of [44100, 48000])
-            for (const axle of ['front', 'rear', 'both']) {
-              const buffer = await render(rate, axle);
-              const data = buffer.getChannelData(0);
-              let peak = 0,
-                energy = 0,
-                tail = 0;
-              for (let i = 0; i < data.length; i++) {
-                const x = data[i];
-                if (!Number.isFinite(x)) throw Error('nonfinite output');
-                peak = Math.max(peak, Math.abs(x));
-                energy += x * x;
-                if (i > rate * (seconds - 1)) tail += x * x;
-              }
-              if (!(peak > 0.01 && peak < 0.7 && tail < 1e-12)) throw Error(`invalid output ${rate} ${axle}`);
-              lines.push(
-                `${rate} Hz / ${axle}: PASS · peak ${peak.toFixed(4)} · RMS ${Math.sqrt(energy / data.length).toFixed(4)}`,
-              );
-            }
-          if (current === generation) result.textContent = lines.join('\n');
         } catch (error) {
           if (current === generation) result.textContent = String(error);
         }

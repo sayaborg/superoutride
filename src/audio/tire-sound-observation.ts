@@ -14,7 +14,6 @@ export const TIRE_SOUND_INPUTS = Object.freeze({
   load: Object.freeze({ min: 0, max: 30000, step: 100, value: 4000, label: 'Accepted normal load (N)' }),
   longitudinalPower: Object.freeze({ min: 0, max: 1000000, step: 100, value: 0, label: 'Longitudinal slip work (W)' }),
   lateralPower: Object.freeze({ min: 0, max: 1000000, step: 100, value: 12000, label: 'Lateral slip work (W)' }),
-  demand: Object.freeze({ min: 0, max: 50, step: 0.05, value: 1.5, label: 'Demand rho (not grip remaining)' }),
 });
 export type TireSoundObservation = { readonly [K in keyof typeof TIRE_SOUND_INPUTS]: number };
 export const TIRE_SOUND_INPUT_KEYS = Object.freeze(Object.keys(TIRE_SOUND_INPUTS) as (keyof TireSoundObservation)[]);
