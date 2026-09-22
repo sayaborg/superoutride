@@ -1,0 +1,35 @@
+name: Stage 4 offline workspace
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  workspace:
+    if: github.head_ref == 'codex/stage4a-band-ground-20260922'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: npm ci
+      - name: Package source and local verification tools without credentials
+        run: |
+          mkdir -p /tmp/stage4-workspace
+          git archive HEAD | tar -x -C /tmp/stage4-workspace
+          cp -a node_modules /tmp/stage4-workspace/
+          cp "$(command -v node)" /tmp/stage4-workspace/node24
+          git rev-parse HEAD > /tmp/stage4-workspace/SOURCE_SHA
+          tar -C /tmp/stage4-workspace -czf /tmp/stage4-workspace.tar.gz .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage4-workspace
+          path: /tmp/stage4-workspace.tar.gz
+          retention-days: 1
