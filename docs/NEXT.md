@@ -163,8 +163,8 @@ space. Record margins and remaster departures with the content.
 | Grade separation | Occurrence/neighborhood/height selection of surfaces, landmarks and contacts at nearby crossings                    |
 | Records/results  | Eligibility, ranking/ties, continue, persistence and ghosts                                                         |
 | Art              | Production assets, new physical materials and tunnel/background content                                             |
-| BG transitions   | Consider wipes or dissolves for environment changes; palette fades are not expected                                |
-| Shell            | Front end, product HUD separate from DEV UI/HUD, music, progression, naming/distribution and future input devices    |
+| BG transitions   | Consider wipes or dissolves for environment changes; palette fades are not expected                                 |
+| Shell            | Front end, product HUD separate from DEV UI/HUD, music, progression, naming/distribution and future input devices   |
 
 Design traffic and collision/interaction response together. Traffic does not participate in competitive
 route locking. Product CLASSIC presets include sixteen motorcycle rivals for Super Hang-On and zero
