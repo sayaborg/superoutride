@@ -63,6 +63,7 @@ try {
   );
   requireInput(
     section.presentation &&
+      section.presentation.ground.kind === 'resident' &&
       section.presentation.ground.stamps.length === 0 &&
       section.presentation.scenery.length === 0,
     '/template/presentation',
@@ -70,11 +71,11 @@ try {
     'fit',
   );
   requireInput(
-    source.bandPartition.bands.every((b) => b.start.s === 0 && b.end.s === source.raster.length) &&
+    source.regionPartition.regions.every((b) => b.start.s === 0 && b.end.s === source.raster.length) &&
       section.physicalBindings.every((b) => b.sections.length === 1) &&
-      section.presentation.ground.bands.every((b) => b.sections.length === 1),
-    '/template/bands',
-    'Template Bands and constant bindings must span the source',
+      section.presentation.ground.regions.every((b) => b.sections.length === 1),
+    '/template/regions',
+    'Template Regions and constant bindings must span the source',
     'fit',
   );
   const scales = {
@@ -146,11 +147,11 @@ try {
     return { s: p.s, value: y * scales.heightScale };
   });
   section.height = compact(heights).map((p) => ({ anchor: anchor(p.s), y: p.value }));
-  for (const b of section.bands) {
+  for (const b of section.regions) {
     b.start = first;
     b.end = last;
   }
-  for (const binding of [...section.physicalBindings, ...section.presentation.ground.bands])
+  for (const binding of [...section.physicalBindings, ...section.presentation.ground.regions])
     binding.sections[0].anchor = first;
   requireInput(
     Array.isArray(recipe.ports) && recipe.ports.length === section.ports.length,

@@ -1,9 +1,9 @@
 import type { CourseDocument, CourseLandmarkDocument } from '../course/course-document.js';
 import { requireCourse } from '../course/course-diagnostics.js';
 import { resolveCourseAnchor, type CompiledCourseAnchor } from '../course/course-geometry.js';
-import { courseBoundaryAt, type CompiledCarriageway } from '../course/course-bands.js';
+import { courseBoundaryAt, type CompiledCarriageway } from '../course/course-regions.js';
 import { coursePhysicalMaterialAt } from '../course/course-physical-binding.js';
-import { createBandSurfaceReader } from '../physics/band-surface-reader.js';
+import { createRegionSurfaceReader } from '../physics/region-surface-reader.js';
 import type { CompiledSection } from './course-graph.js';
 
 export interface CompiledCourseLandmark {
@@ -49,16 +49,16 @@ export function compileCourseRules(
       path,
       'Landmark must lie after entry and no later than its ownership exit',
     );
-    const bands = carriageway.bands.filter((b) => b.start.s <= anchor.s && anchor.s < b.end.s);
-    check(bands.length > 0, path, 'Landmark requires pavement');
-    const left = Math.min(...bands.map((b) => courseBoundaryAt(b.left, anchor.s)));
-    const right = Math.max(...bands.map((b) => courseBoundaryAt(b.right, anchor.s)));
+    const regions = carriageway.regions.filter((b) => b.start.s <= anchor.s && anchor.s < b.end.s);
+    check(regions.length > 0, path, 'Landmark requires pavement');
+    const left = Math.min(...regions.map((b) => courseBoundaryAt(b.left, anchor.s)));
+    const right = Math.max(...regions.map((b) => courseBoundaryAt(b.right, anchor.s)));
     check(
       right > left &&
-        bands.every(
+        regions.every(
           (b) =>
             coursePhysicalMaterialAt(
-              section.physicalBindings.find((p) => p.band === b)!,
+              section.physicalBindings.find((p) => p.region === b)!,
               anchor.s,
             ).supported,
         ),
@@ -99,7 +99,7 @@ export function compileCourseRules(
     }
     return Object.freeze({ section, checkpoints: Object.freeze(gates), finish });
   });
-  const surface = createBandSurfaceReader(entry.bandPartition, entry.physicalBindings);
+  const surface = createRegionSurfaceReader(entry.regionPartition, entry.physicalBindings);
   check(
     source.grid.length > source.classic.rivalCount,
     '/rules/grid',

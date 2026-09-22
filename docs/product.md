@@ -5,10 +5,12 @@ Cars and motorcycles share vehicle mechanics. [NEXT](NEXT.md) contains future pr
 
 ## 1. Courses and vehicles
 
-The game loads saved CourseDocuments through one shared driving scene. The browser offers LINEAR,
-SEAM, CIRCUIT and BRANCH development selections. LINEAR and SEAM are finite routes, CIRCUIT has a
-finite lap target, and BRANCH contains forks and merges. SEAM exposes a connection between local
-course frames. Course geometry, height, width, roadside rows and environment changes are authored data.
+The game loads saved CourseDocuments through one shared driving scene. RIBBON COAST is a finite
+linear route, RIBBON FORK contains a fork and merge, and RIBBON RING has a finite lap target. These
+provisional courses include ordered ground colors, repeated markings, arrows, lettering, curbs and
+transparent cliff/bridge exteriors. They are not reproductions of selected production references.
+The four LEGACY LINEAR, SEAM, CIRCUIT and BRANCH selections temporarily retain resident ground.
+Course geometry, height, width, roadside rows and environment changes are authored data.
 [Content and gameplay](content-and-gameplay.md) owns their definitions and rules.
 
 The vehicle catalog supplies car and motorcycle profiles with model, manufacturer, identifier,
@@ -36,7 +38,7 @@ road. Vehicles and roadside objects are pass-through. Recovery preserves earned 
 
 The view combines a tiled background, road and scenery sprites with the player and HUD. Testarossa
 brake lamps select a saved palette. Engine sound and player tire sound follow physical observations.
-The HUD shows race state and current performance measurements; a DEV overlay exposes camera and sound controls.
+The HUD shows race state and current performance measurements; a DEV overlay exposes camera, sound and Band-filter controls.
 
 Courses and assets are saved files. The CLI compiles courses, reports diagnostics and renders previews
 through the game scene. The Sprite Tool edits image inputs and exports compiled sprites.
@@ -44,7 +46,12 @@ through the game scene. The Sprite Tool edits image inputs and exports compiled 
 
 ## 4. Ground
 
-The game loads completed resident RGB555 ground before driving. Inside each finite painted strip,
-completed colors supply the visible surface; outside it, the environment supplies a left/right color
-or transparency. Transparent outside areas reveal the background. Physical support and friction use
-separate authored bindings. [Image assets](image-assets.md#resident-ground) owns the current encoding and filter.
+Ground on the provisional courses is an ordered list of colored Bands covering the whole plane,
+including open outer sides. Later Bands replace earlier colors or erase them to transparency. Transparent
+areas reveal the background below as well as above the horizon. Physical Regions and their support/friction
+bindings are independent of the visual Bands. [Content and gameplay](content-and-gameplay.md#band-ground)
+owns authoring; [Architecture](architecture.md#band-rendering) owns preblending and pixel filtering.
+
+The legacy selections still load resident RGB555 strips and environment outside fills before driving.
+Their [encoding and filter](image-assets.md#resident-ground) coexist with Bands during Stage 4a;
+[NEXT](NEXT.md#stage-4--replace-ground-with-bands) records the remaining removal after the lateral comparison.

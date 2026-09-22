@@ -26,7 +26,7 @@ export const ENVELOPE_DRIVER = Object.freeze({
   lookahead: 480,
   spacing: 5,
   responseSeconds: 0.45,
-  speedDeadband: 0.15,
+  speedDeadregion: 0.15,
 });
 
 export function envelopeAt(
@@ -150,7 +150,7 @@ export function sampleEnvelopeDrivingInput(
       ? 0
       : clamp(acceleration / envelopeAt(envelope, Math.max(speed, 5), workspace.envelope).steeringGain, -1, 1);
   workspace.input.steering = steering;
-  workspace.input.throttle = speed < targetSpeed - ENVELOPE_DRIVER.speedDeadband;
-  workspace.input.brake = speed > targetSpeed + ENVELOPE_DRIVER.speedDeadband;
+  workspace.input.throttle = speed < targetSpeed - ENVELOPE_DRIVER.speedDeadregion;
+  workspace.input.brake = speed > targetSpeed + ENVELOPE_DRIVER.speedDeadregion;
   return workspace.input;
 }

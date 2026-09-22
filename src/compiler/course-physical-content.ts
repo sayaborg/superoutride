@@ -1,7 +1,7 @@
 import { HeightProfile } from '../core/height-profile.js';
 import type { SectionDocument, CourseAnchor } from '../course/course-document.js';
 import type { CompiledCourseAnchor } from '../course/course-geometry.js';
-import type { CompiledBand } from '../course/course-bands.js';
+import type { CompiledRegion } from '../course/course-regions.js';
 import type { CompiledPhysicalBinding } from '../course/course-physical-binding.js';
 import { CourseInputError, requireCourse } from '../course/course-diagnostics.js';
 import { SURFACE_MATERIALS, type SurfaceMaterial, type SurfaceType } from '../physics/surface-map.js';
@@ -17,7 +17,7 @@ export const COURSE_PHYSICAL_RECIPE = Object.freeze({
 export function compileCoursePhysicalContent(
   source: SectionDocument,
   length: number,
-  bands: readonly CompiledBand[],
+  regions: readonly CompiledRegion[],
   resolve: (anchor: CourseAnchor, path: string) => CompiledCourseAnchor,
   path: string,
 ) {
@@ -41,19 +41,20 @@ export function compileCoursePhysicalContent(
     );
   }
   const height = Object.freeze(new HeightProfile(length, nodes));
-  const table = new Map(bands.map((band) => [band.id, band]));
-  const assigned = new Set<CompiledBand>();
+  const table = new Map(regions.map((region) => [region.id, region]));
+  const assigned = new Set<CompiledRegion>();
   const physicalBindings = source.physicalBindings.map((binding, i): CompiledPhysicalBinding<SurfaceMaterial> => {
     const at = `${path}/physicalBindings/${i}`,
-      band = table.get(binding.bandId);
-    if (!band) throw new CourseInputError('unresolved_reference', `${at}/bandId`, 'Unknown physical Band reference');
+      region = table.get(binding.regionId);
+    if (!region)
+      throw new CourseInputError('unresolved_reference', `${at}/regionId`, 'Unknown physical Region reference');
     requireCourse(
-      !assigned.has(band),
-      `${at}/bandId`,
-      'Each Band needs exactly one physical binding',
+      !assigned.has(region),
+      `${at}/regionId`,
+      'Each Region needs exactly one physical binding',
       'physical_binding',
     );
-    assigned.add(band);
+    assigned.add(region);
     requireCourse(
       binding.sections.length > 0,
       `${at}/sections`,
@@ -66,17 +67,17 @@ export function compileCoursePhysicalContent(
         throw new CourseInputError('unresolved_reference', `${nodePath}/material`, 'Unknown physical material');
       const anchor = resolve(section.anchor, `${nodePath}/anchor`);
       requireCourse(
-        anchor.s >= band.start.s && anchor.s < band.end.s,
+        anchor.s >= region.start.s && anchor.s < region.end.s,
         `${nodePath}/anchor`,
-        'Material change must lie inside the active Band',
+        'Material change must lie inside the active Region',
         'invalid_profile',
       );
       return Object.freeze({ anchor, material: SURFACE_MATERIALS[section.material as SurfaceType] });
     });
     requireCourse(
-      sections[0]!.anchor.s === band.start.s,
+      sections[0]!.anchor.s === region.start.s,
       `${at}/sections/0/anchor`,
-      'Material profile must begin at Band activation',
+      'Material profile must begin at Region activation',
       'invalid_profile',
     );
     for (let j = 1; j < sections.length; j += 1)
@@ -86,12 +87,12 @@ export function compileCoursePhysicalContent(
         'Material changes must be strictly increasing',
         'invalid_profile',
       );
-    return Object.freeze({ band, sections: Object.freeze(sections) });
+    return Object.freeze({ region, sections: Object.freeze(sections) });
   });
   requireCourse(
-    assigned.size === bands.length,
+    assigned.size === regions.length,
     `${path}/physicalBindings`,
-    'Every Band requires an explicit physical binding',
+    'Every Region requires an explicit physical binding',
     'physical_binding',
   );
   return Object.freeze({ height, physicalBindings: Object.freeze(physicalBindings) });

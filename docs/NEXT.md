@@ -2,38 +2,45 @@
 
 ## Current state
 
-- The game uses one compiled graph scene, resident RGB555 ground, indexed sprites and CLASSIC/CUSTOM Session flow.
+- The game uses one compiled graph scene, indexed sprites and CLASSIC/CUSTOM Session flow.
+- Stage 4a introduces ordered colored Bands, independent physical Regions, compile-time constructs,
+  dyadic s preblending and live POINT / BOX / TENT lateral comparison. BOX is provisional, not K's selection.
+- RIBBON COAST, RIBBON FORK and RIBBON RING are provisional playable Band courses. The four legacy
+  resident-ground courses and their groundmap/build/HUD paths temporarily coexist for this comparison.
 - BG is one infinite tiled plane with sine mapping. Build generates vehicle envelopes and game time budgets.
 - Tire audio uses UNIFIED with R/Q output controls. Authoring tools and both browser auditions are available.
 - Standing checks cover strict TypeScript, lint, formatting, build, saved-course startup and acyclic layers.
   Pages uses a commit-versioned build with public-version and browser-startup verification.
-- Stage 3 is complete: specifications are organized by current implementation with one owner per concept.
-  The next implementation task is Stage 4. Vehicle settings carry `DEV_UNCALIBRATED`; physics, tire sound
-  and difficulty tuning remain open. TIME ATTACK, traffic, BGM, wind and sound effects are future work.
+- Stages 1–3 are complete. Vehicle settings carry `DEV_UNCALIBRATED`; physics, tire sound and difficulty
+  tuning remain open. TIME ATTACK, traffic, BGM, wind and sound effects remain future work.
 
-Implement the numbered stages in order. The goals below are future requirements, not descriptions of
-available features. Development and release procedure belongs to AGENTS.
-
-## Stage 3 — Reorganize normative documents
-
-- Describe current formats, meanings, game rules and public contracts in their owning documents.
-- Keep Product §4, Architecture, Image assets and the Content ground schema on the current resident
-  implementation. The colored Band specification belongs to Stage 4 together with its implementation.
-- Centralize future requirements here; keep audit rationale and results in the PR.
+Implement the numbered stages in order. Current contracts belong to the topic specifications;
+development and release procedure belongs to AGENTS. PRs hold rationale and verification evidence.
 
 ## Stage 4 — Replace ground with Bands
 
-- Make colored Bands the canonical ground schema and implement their rendering under the requirements below.
-  Update Product §4, Architecture, Image assets and Content's ground schema with that implementation.
-- Reuse reference: closed [PR #238](https://github.com/sayaborg/superoutride/pull/238), head
-  `07e576e3dddff79c9e46a5369faed4205e706f41`, contains ordered slab resolution and swept-edge integration
-  (`band-resolved-slabs.mjs`, `band-slab-raster.mjs`). Its moving-normalization/footprint examples explain
-  why cached averages must represent the sampled area. Select the method from the required comparisons;
-  the reference does not prescribe a renderer, schema or interval limit.
-- Remove resident ground, groundmap, GroundBase, tile dictionaries, paint/stamp systems and their build,
-  HUD and documentation paths together.
-- Replace development courses with provisional courses authored in the new schema. Generated expansions
-  are build products rather than committed source.
+### 4a — Introduction and device comparison
+
+[PR #243](https://github.com/sayaborg/superoutride/pull/243) introduces the Band schema, renderer,
+provisional courses and comparison HUD. [Browser](browser.md#band-comparison) describes same-scene
+switching; [Architecture](architecture.md#band-rendering) defines the three kernels. K compares the
+methods on real devices and chooses the lateral method. No final choice or capacity verdict is implied
+by the provisional default or local measurements.
+
+Reuse reference: closed [PR #238](https://github.com/sayaborg/superoutride/pull/238), head
+`07e576e3dddff79c9e46a5369faed4205e706f41`, contains ordered slab resolution and swept-edge integration
+(`band-resolved-slabs.mjs`, `band-slab-raster.mjs`). Its moving-normalization/footprint examples explain
+why cached averages must represent the sampled area. The reference does not prescribe a renderer,
+schema or interval limit.
+
+### 4b — Remove the legacy path after K chooses
+
+Do not start this step before K's lateral-method selection. Keep only that method and remove the
+other candidates. Remove resident ground, groundmap, GroundBase, tile dictionaries, paint/stamp systems
+and all related build, HUD and documentation paths together. Remove the four old development courses
+and the obsolete fit/observation inputs, retaining the new provisional courses. Update Product §4,
+Architecture, Image assets, Content and this checkpoint with the remaining Band-only implementation.
+Generated expansions remain compiler products, not committed source. Stages 5+ remain outside this work.
 
 ### Band requirements
 

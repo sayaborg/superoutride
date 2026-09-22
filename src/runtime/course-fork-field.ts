@@ -1,6 +1,6 @@
 import { createPlanarCoordinateSample } from '../core/planar-sample.js';
 import type { CompiledFork, CompiledLink, CompiledSection } from '../compiler/course-graph.js';
-import { courseBandAt, courseBoundaryAt, type CompiledCarriageway } from '../course/course-bands.js';
+import { courseRegionAt, courseBoundaryAt, type CompiledCarriageway } from '../course/course-regions.js';
 import { guidePathToWorld } from '../core/guide-curve.js';
 import type { Vec2 } from '../core/math.js';
 import { compileWorldCrossingGate, observeWorldCrossingGate } from '../gameplay/world-crossing-gate.js';
@@ -10,10 +10,10 @@ type Session = ReturnType<ReturnType<typeof createCourseDrivingGraph>['createSes
 function center(road: CompiledCarriageway, s: number) {
   let left = Infinity,
     right = -Infinity;
-  for (const band of road.bands)
-    if (band.start.s <= s && band.end.s >= s) {
-      left = Math.min(left, courseBoundaryAt(band.left, s));
-      right = Math.max(right, courseBoundaryAt(band.right, s));
+  for (const region of road.regions)
+    if (region.start.s <= s && region.end.s >= s) {
+      left = Math.min(left, courseBoundaryAt(region.left, s));
+      right = Math.max(right, courseBoundaryAt(region.right, s));
     }
   return (left + right) / 2;
 }
@@ -76,7 +76,7 @@ export function createCourseForkField(sections: readonly CompiledSection[]) {
         locks.get(fork)?.source.carriageway ??
         fork.regions[lane < 0 ? 0 : fork.regions.length - 1]!.link.source.carriageway;
       const at = Math.min(section.raster.length, Math.max(0, s));
-      if (!road.bands.some((b) => b.start.s <= at && b.end.s >= at))
+      if (!road.regions.some((b) => b.start.s <= at && b.end.s >= at))
         road = section.ports.find((p) => p.kind === 'entry')!.carriageway;
       return center(road, at);
     },
@@ -85,8 +85,8 @@ export function createCourseForkField(sections: readonly CompiledSection[]) {
         fork = section.fork;
       const link = fork && locks.get(fork);
       if (!fork || !link || s < fork.closure.s) return null;
-      const band = courseBandAt(section.bandPartition, Math.min(s, section.raster.length), l);
-      return band?.role === 'pavement' && !link.source.carriageway.bands.includes(band)
+      const region = courseRegionAt(section.regionPartition, Math.min(s, section.raster.length), l);
+      return region?.role === 'pavement' && !link.source.carriageway.regions.includes(region)
         ? { s, l: center(link.source.carriageway, s) }
         : null;
     },

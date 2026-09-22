@@ -1,4 +1,4 @@
-import { courseBandAt } from '../course/course-bands.js';
+import { courseRegionAt } from '../course/course-regions.js';
 import {
   courseFailures,
   CourseInputError,
@@ -16,7 +16,7 @@ import { COURSE_PHYSICAL_RECIPE } from './course-physical-content.js';
 import {
   requireCanonicalCourseLinks,
   courseOverlapRuler,
-  courseOverlapBandRegions,
+  courseOverlapRegions,
   courseOverlapHeight,
 } from './course-overlap-domain.js';
 
@@ -34,9 +34,9 @@ function ruler(port: CompiledPort, overlap: CompiledLink['overlap'], domain?: La
 
 /** Geometry cells are shared; supported material equality belongs to the physical proof. */
 function regions(port: CompiledPort, start: number, end: number, domain?: LateralDomain) {
-  const result = courseOverlapBandRegions(port, start, end, domain).flatMap(({ band, ...edges }) => {
-    const binding = port.section.physicalBindings.find((binding) => binding.band === band);
-    if (!binding) throw new Error('Compiled Band has no physical binding');
+  const result = courseOverlapRegions(port, start, end, domain).flatMap(({ region, ...edges }) => {
+    const binding = port.section.physicalBindings.find((binding) => binding.region === region);
+    if (!binding) throw new Error('Compiled Region has no physical binding');
     const material = coursePhysicalMaterialAt(binding, start);
     return material.supported ? [{ ...edges, material }] : [];
   });
@@ -94,10 +94,10 @@ function qualify(links: readonly CompiledLink[], demand: Demand) {
         path,
       );
       const material = (port: CompiledPort, s: number, l: number) => {
-        const band = courseBandAt(port.section.bandPartition, s, l, coursePortLateral(port));
-        if (!band) return SURFACE_MATERIALS.VOID;
-        const binding = port.section.physicalBindings.find((candidate) => candidate.band === band);
-        if (!binding) throw new Error('Compiled Band has no physical binding');
+        const region = courseRegionAt(port.section.regionPartition, s, l, coursePortLateral(port));
+        if (!region) return SURFACE_MATERIALS.VOID;
+        const binding = port.section.physicalBindings.find((candidate) => candidate.region === region);
+        if (!binding) throw new Error('Compiled Region has no physical binding');
         return coursePhysicalMaterialAt(binding, s);
       };
       const compareEdges = (source: number, destination: number) => {

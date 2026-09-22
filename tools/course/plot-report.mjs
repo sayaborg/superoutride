@@ -28,29 +28,29 @@ const svg = (width, height, title, content) =>
 
 export function plotCourseReport(data) {
   const x = scale([0, data.lengthMeters], 100, 1140);
-  let bands =
+  let regions =
     text(40, 30, `${data.course} / ${data.section}`, 'font-size="21"') +
     text(40, 52, `Compiled source profiles · ${data.lengthMeters.toFixed(1)} m`);
   function panel(top, title, series, domains) {
     const ys = domains ?? series.flatMap((s) => s.values.filter((p) => p !== null).map((p) => p[1]));
     const limits = range(ys.length ? ys : [0, 1]);
     const y = scale(limits, top + 120, top + 25);
-    bands += text(100, top + 8, title, 'font-weight="bold"');
+    regions += text(100, top + 8, title, 'font-weight="bold"');
     for (let i = 0; i <= 4; i += 1) {
       const v = limits[0] + ((limits[1] - limits[0]) * i) / 4;
-      bands += line(100, y(v), 1140, y(v)) + text(90, y(v) + 4, v.toPrecision(3), 'text-anchor="end"');
+      regions += line(100, y(v), 1140, y(v)) + text(90, y(v) + 4, v.toPrecision(3), 'text-anchor="end"');
     }
     for (let i = 0; i <= 5; i += 1) {
       const s = (data.lengthMeters * i) / 5;
-      bands += line(x(s), top + 25, x(s), top + 120) + text(x(s), top + 138, s.toFixed(0), 'text-anchor="middle"');
+      regions += line(x(s), top + 25, x(s), top + 120) + text(x(s), top + 138, s.toFixed(0), 'text-anchor="middle"');
     }
     for (let i = 0; i < series.length; i += 1) {
       const seriesColor = colors[i % colors.length];
-      bands += path(
+      regions += path(
         series[i].values.map((p) => p && [x(p[0]), y(p[1])]),
         seriesColor,
       );
-      bands += text(100 + (i % 4) * 265, top + 158 + Math.floor(i / 4) * 16, series[i].name, `fill="${seriesColor}"`);
+      regions += text(100 + (i % 4) * 265, top + 158 + Math.floor(i / 4) * 16, series[i].name, `fill="${seriesColor}"`);
     }
     return top + 182 + Math.floor((Math.max(series.length, 1) - 1) / 4) * 16;
   }
@@ -77,7 +77,7 @@ export function plotCourseReport(data) {
     sceneryRange,
   );
   for (const p of data.scenery)
-    bands += line(
+    regions += line(
       x(p.s),
       sceneryY(p.l) - 4,
       x(p.s),
@@ -85,13 +85,13 @@ export function plotCourseReport(data) {
       colors[assets.indexOf(p.asset) % colors.length],
     );
   top = Math.max(top, sceneryTop + 182);
-  bands += text(100, top + 8, 'Environment', 'font-weight="bold"');
+  regions += text(100, top + 8, 'Environment', 'font-weight="bold"');
   data.environments.forEach((e, i) => {
     const end = data.environments[i + 1]?.s ?? data.lengthMeters;
-    bands += `<rect x="${x(e.s)}" y="${top + 25}" width="${x(end) - x(e.s)}" height="45" fill="${colors[i % colors.length]}" opacity="0.2"/>`;
-    bands += text((x(e.s) + x(end)) / 2, top + 53, e.name, 'text-anchor="middle"');
+    regions += `<rect x="${x(e.s)}" y="${top + 25}" width="${x(end) - x(e.s)}" height="45" fill="${colors[i % colors.length]}" opacity="0.2"/>`;
+    regions += text((x(e.s) + x(end)) / 2, top + 53, e.name, 'text-anchor="middle"');
   });
-  bands += text(620, top + 96, 'Source station s (m)', 'text-anchor="middle"');
+  regions += text(620, top + 96, 'Source station s (m)', 'text-anchor="middle"');
 
   const [xmin, xmax] = range(data.samples.map((p) => p.x));
   const [zmin, zmax] = range(data.samples.map((p) => p.z));
@@ -116,7 +116,7 @@ export function plotCourseReport(data) {
   const ruler = 100 / k;
   plan += line(70, 1050, 170, 1050, '#203040') + text(70, 1072, `${ruler.toPrecision(3)} m · x right / z up`);
   return {
-    bands: svg(1200, top + 120, `${data.course} profiles`, bands),
+    regions: svg(1200, top + 120, `${data.course} profiles`, regions),
     plan: svg(840, 1100, `${data.section} plan`, plan),
   };
 }

@@ -37,23 +37,25 @@ for (const name of (await readdir(new URL('courses/', content))).sort()) {
     entries.push({ path, sha256: image.sha256 });
   }
   if (!compiled.ok) throw new Error(JSON.stringify(compiled.diagnostics));
-  const ground = await compileCourseGround(compiled.value);
-  await mkdir(new URL('ground/', destination), { recursive: true });
-  for (const [suffix, data] of [
-    ['json', JSON.stringify(ground.manifest) + '\n'],
-    ['bin', ground.payload],
-  ]) {
-    const path = `ground/${name.replace('.course.json', '')}.${suffix}`;
-    await writeFile(new URL(path, destination), data);
-    entries.push({ path, sha256: createHash('sha256').update(data).digest('hex') });
+  if (compiled.value.entry.presentation?.ground.kind === 'resident') {
+    const ground = await compileCourseGround(compiled.value);
+    await mkdir(new URL('ground/', destination), { recursive: true });
+    for (const [suffix, data] of [
+      ['json', JSON.stringify(ground.manifest) + '\n'],
+      ['bin', ground.payload],
+    ]) {
+      const path = `ground/${name.replace('.course.json', '')}.${suffix}`;
+      await writeFile(new URL(path, destination), data);
+      entries.push({ path, sha256: createHash('sha256').update(data).digest('hex') });
+    }
+    console.log(`${name}: ${ground.manifest.uniqueTiles} resident ground tiles, ${ground.manifest.byteLength} bytes`);
+  } else {
+    console.log(`${name}: Band ground compiled; no resident payload`);
   }
   courses.push({
     course: compiled.value,
     stem: name.replace('.course.json', ''),
   });
-  console.log(
-    `${name}: ${ground.manifest.uniqueTiles} unique ground tiles, ${ground.manifest.byteLength} payload bytes`,
-  );
 }
 await buildCourseReferences(courses, stage);
 const spriteLibraryPath = 'sprites/vehicles.json';

@@ -1,7 +1,7 @@
 import type { CourseGround } from '../compiler/course-ground.js';
 import type { CameraRig } from '../camera/camera.js';
 import type { CompiledLink, CompiledSection } from '../compiler/course-graph.js';
-import type { CompiledCarriageway } from '../course/course-bands.js';
+import type { CompiledCarriageway } from '../course/course-regions.js';
 import { coursePortLateral } from '../compiler/course-links.js';
 import { compileCoursePhysicalDomains } from '../compiler/course-physical-overlap.js';
 import { compileCoursePresentationDomains } from '../compiler/course-presentation-overlap.js';

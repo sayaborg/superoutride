@@ -6,7 +6,7 @@ import type { SectionDocument } from '../course/course-document.js';
 import type { CompiledCourseImageSource } from './course-image-source.js';
 import type { CoursePresentation } from '../visual/course-presentation.js';
 import type { CompiledCourseAnchor, CompiledPlanPrimitive } from '../course/course-geometry.js';
-import type { CompiledBoundary, CompiledBandPartition, CompiledCarriageway } from '../course/course-bands.js';
+import type { CompiledBoundary, CompiledRegionPartition, CompiledCarriageway } from '../course/course-regions.js';
 import type { CompiledPhysicalBinding } from '../course/course-physical-binding.js';
 import type { SurfaceMaterial } from '../physics/surface-map.js';
 
@@ -17,7 +17,7 @@ export interface CompiledSection {
   readonly raster: RasterPath;
   readonly guide: GuidePath;
   readonly boundaries: readonly CompiledBoundary[];
-  readonly bandPartition: CompiledBandPartition;
+  readonly regionPartition: CompiledRegionPartition;
   readonly height: HeightProfileReader;
   readonly physicalBindings: readonly CompiledPhysicalBinding<SurfaceMaterial>[];
   readonly carriageways: readonly CompiledCarriageway[];

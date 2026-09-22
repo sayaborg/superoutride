@@ -27,7 +27,7 @@ Source-array inspection and global projection belong to source authoring. Terrai
 
 Vec2/Vec3 are readonly values. Sampling APIs with caller-owned outputs return borrowed observations
 valid until those outputs are reused. Compiled sources are immutable; actors and consumers own live state.
-RasterPath, GuidePath, HeightProfile, VisualProfile and saved paint have finite domain `[0,L]`.
+RasterPath, GuidePath, HeightProfile, VisualProfile and ground appearance have finite domain `[0,L]`.
 Profile endpoints normalize within 1e-9 m; Raster/Guide sampling uses 1e-8 m. Nonfinite source values fail.
 The adjacent segment supplies an endpoint basis; interior vertices own turns and fillets.
 
@@ -71,7 +71,7 @@ A positive straight longer than sampling tolerance is a real primitive. At round
 lookup uses the adjacent segment within the reader's sampling tolerance.
 
 `GuidePath.envelope` is one immutable piecewise-linear bound. Constant input becomes two equal knots.
-Course geometry derives the bound from active Band edges plus an explicit positive margin, using both
+Course geometry derives the bound from active Region edges plus an explicit positive margin, using both
 incident cells at transitions. Complete fillets include clipped endpoints, interior knots and extrema.
 Each query uses its local bound. The envelope is a coordinate domain; physical support comes from material bindings.
 
@@ -82,7 +82,7 @@ edges. Shape partitions include Raster vertices, height/boundary knots and activ
 Varying edges under the interpolated miter map are quadratic. Closed-cell Jacobian extrema establish
 local non-inversion; paint changes alone do not divide geometry.
 
-`compileCourseGeometryWindow` accepts canonical Raster, Guide and Band-partition readers and a
+`compileCourseGeometryWindow` accepts canonical Raster, Guide and Region-partition readers and a
 positive closed source interval. It returns an immutable `local-geometry` result for those references
 and that interval. Mismatched readers or out-of-domain intervals fail. Nonadjacent Raster/Guide
 construction hulls must separate within geometric sampling tolerance; otherwise `ambiguous_geometry`
@@ -91,8 +91,8 @@ identifies the mapping and both source intervals. The limit is 1024 cells per ma
 
 Point regions are half-open laterally: `[left(s),right(s))`. A shared edge belongs to the region on
 its right; the outer left edge is included and the outer right edge is outside. Zero-width endpoints
-own no area. Gaps use the consumer's outside result: physical VOID, environment ground fill or no
-eligible lock region. Closed bounds used for geometric containment and clipped areas used by image
+own no area. Gaps use the consumer's outside result: physical VOID or no eligible lock region.
+Visual Bands do not use Region membership and can cover the entire lateral plane. Closed bounds used for geometric containment and clipped areas used by image
 filters do not change point ownership.
 
 ## Height and projection
@@ -127,14 +127,62 @@ base pitch, player anchor row 190, 0.22 s vertical-follow time constant and 4 m 
 
 ## Ground and background
 
-The renderer samples synchronous completed resident RGB555 ground inside a finite painted strip.
-Outside that strip, left/right environment GroundBase values supply a color or transparency.
-Transparent ground reveals BG below as well as above the horizon. Physical support is independent.
-[Image assets](image-assets.md#resident-ground) owns the saved composition, lattice and filter.
-
 BG is one infinite tiled plane. Yaw and pitch change its view; translation does not.
 An occurrence frame change transforms the background yaw origin with the camera frame.
 [Image assets](image-assets.md#infinite-tiled-background) owns its format and angular mapping.
+Transparent ground makes no ground write, preserving the underlying Painter image, including BG
+below the horizon. Physical support is independent of all ground colors.
+
+### Band rendering
+
+Compilation expands the [authored constructs](content-and-gameplay.md#band-ground) to affine Band
+pieces. It divides the s ruler at activations, knots and lateral-edge crossings, then resolves the
+last declared covering Band. Resolved spans are disjoint, cover the open lateral plane and coalesce
+adjacent equal colors; transparent upper Bands erase lower colors before filtering. The active count
+includes hidden declarations, not just the visible resolved spans.
+
+The compiler averages resolved colors over complete dyadic s intervals: `[k*2^n,(k+1)*2^n]` metres,
+starting at one metre. Profiles store premultiplied linear-sRGB channels and coverage as piecewise-linear
+functions of fixed source-l coordinates. An edge that moves across an interval becomes a ramp rather
+than a relocated hard edge. Equal complete profiles share private coefficient storage and per-level
+indices. Resolved records and public metadata are deeply immutable; mutable numeric buffers remain
+behind the compiled product's read boundary.
+
+A row uses the terrain projection's representative s and effective s footprint. The occurrence reader
+clips that centered interval to source-owned view spans, maps each lateral origin and decomposes the
+remaining ranges into complete cached dyadic intervals. At most two partial one-metre ends per source
+range integrate the resolved affine edges directly. Section tails and sub-metre footprints use the
+same rule; zero-length footprints read the instantaneous resolved slab. Unowned overlap guards do not
+contribute. Actual source lengths weight all contributions before coverage thresholding or color
+normalization. Changes in dyadic decomposition do not change the mathematical sampled interval.
+This is a separable source-(s,l) row footprint, not integration over a full perspective pixel polygon.
+
+A projected `[-1,+1]` metre ruler supplies the affine screen-to-l map; it does not clip the ground.
+The entire target row reads the resulting lateral function with the selected kernel:
+
+| Filter | Lateral read at pixel center x and metre-per-pixel width w   |
+| ------ | ------------------------------------------------------------ |
+| POINT  | Value at x; no lateral antialiasing                          |
+| BOX    | Exact mean over `[x-w/2,x+w/2]`                              |
+| TENT   | Exact integral with weight `(1-abs(l-x)/w)/w` on `[x-w,x+w]` |
+
+The row workspace resolves weighted profile events once, then batches constant spans with direct
+fills or transparent skips. Only ramp and kernel-boundary pixels integrate lateral segments; TENT
+uses the product of the linear profile and linear kernel. No pixel loops over original authored Bands.
+The three methods share the same s preblend, source ownership, geometry and color law.
+
+RGB555 decodes through the common linear-sRGB channel table. Contributions stay premultiplied until
+final coverage is known. Coverage at least the shared 0.5 threshold is opaque, allowing 64 machine
+epsilons of relative row-area roundoff at equality. Opaque RGB divides by opaque area once, encodes
+sRGB and rounds to RGB555; transparent pixels leave the existing image unchanged. Hidden colors and
+BG do not enter the average. [Browser](browser.md#band-comparison) owns live selection and HUD observations.
+
+### Legacy resident path
+
+The four legacy selections still sample completed resident RGB555 inside a finite painted strip.
+Outside it, left/right environment GroundBase supplies a color or transparency. Its distinct
+[composition, lattice and filter](image-assets.md#resident-ground) remain available during Stage 4a.
+The Band path neither loads these payloads nor uses GroundBase.
 
 ## Sprites and Painter
 
@@ -192,9 +240,9 @@ local projection seeds identify both occurrence and native segment.
 
 Core owns finite geometry, height, transforms and shared numeric/color-independent primitives.
 Course owns saved course values and boundary geometry. Graphics owns colors, indexed images, the
-framebuffer and blitting. Visual owns visual profiles and image presentation data; Terrain projects
-bounds; Render assembles drawing. Groundmap owns source-paint composition, completed-ground compilation
-and resident readers.
+framebuffer and blitting. Visual owns visual profiles, compiled Band color fields/sampling and image
+presentation data; Terrain projects bounds; Render assembles drawing. Groundmap owns the legacy
+source-paint composition, completed-ground compilation and resident readers.
 
 Physics owns mechanics and surface interpretation and currently imports Core, Course and Input.
 Input owns normalized driver requests. Camera consumes Core and Physics. Gameplay consumes Core,
@@ -202,7 +250,7 @@ Input and Physics for drivers, crossings, progress and recovery. Audio depends o
 Physics profiles and Audio profiles.
 
 Compiler consumes Core, Course, Graphics, Groundmap, Physics and Visual to publish the immutable
-course reference graph. Authoring consumes Course and Compiler for project transactions. Runtime
+course reference graph, including expansion of authored Band constructs. Authoring consumes Course and Compiler for project transactions. Runtime
 composes occurrences and the shared scene from compiled readers and the geometry, mechanics, gameplay
 and rendering layers. Browser adapts input, scheduling and presentation; product roots compose course
 and vehicle choices. Dev contains graphics-only preview fixtures.

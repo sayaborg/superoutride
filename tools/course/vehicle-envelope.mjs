@@ -28,7 +28,7 @@ function createEnvelopeRun(entry, initialSpeed) {
     { s: guide.length, y: 0 },
   ]);
   const surfaces = new SurfaceMap(guide.length, [
-    { sStart: 0, name: 'Envelope asphalt', bands: [{ lMin: -5000, lMax: 5000, type: 'ASPHALT' }] },
+    { sStart: 0, name: 'Envelope asphalt', regions: [{ lMin: -5000, lMax: 5000, type: 'ASPHALT' }] },
   ]);
   const world = { guide, height, surfaces };
   const rate = DEFAULT_BROWSER_STEERING_RESPONSE_RATE;

@@ -1,5 +1,6 @@
+import { compareCourseBandOverlap } from './course-band-overlap.js';
 import { wrapAngle } from '../core/math.js';
-import { courseBandAt } from '../course/course-bands.js';
+import { courseRegionAt } from '../course/course-regions.js';
 import { compileCourseOverlapStations } from '../course/course-overlap-stations.js';
 import {
   CourseInputError,
@@ -9,14 +10,14 @@ import {
   requireCourse,
 } from '../course/course-diagnostics.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../graphics/sprite.js';
-import type { CoursePaint, CoursePresentation } from '../visual/course-presentation.js';
+import type { CoursePaint, CoursePresentation, CourseGroundSourceData } from '../visual/course-presentation.js';
 import type { CompiledLink, CompiledPort } from './course-graph.js';
 import { COURSE_LINK_RECIPE, coursePortLateral } from './course-links.js';
 import { compileCourseConsumerDemand, type CourseQueryExtent } from './course-consumer-demand.js';
 import {
   requireCanonicalCourseLinks,
   courseOverlapRuler,
-  courseOverlapBandRegions,
+  courseOverlapRegions,
   courseOverlapHeight,
 } from './course-overlap-domain.js';
 
@@ -25,7 +26,18 @@ const COURSE_PRESENTATION_OVERLAP_RECIPE = Object.freeze({
   version: 1,
 });
 const consumers = ['cameraRender', 'groundFilter', 'scenery'] as const;
-type AppearanceBinding = CoursePresentation['ground']['bands'][number];
+type AppearanceBinding = CourseGroundSourceData['regions'][number];
+type ResidentPresentation = Omit<CoursePresentation, 'ground'> & { readonly ground: CourseGroundSourceData };
+function residentPresentation(port: CompiledPort): ResidentPresentation {
+  const p = presentation(port);
+  requireCourse(
+    p.ground.kind === 'resident',
+    '',
+    'Expected resident ground on both sides',
+    'presentation_ground_mismatch',
+  );
+  return { ...p, ground: p.ground };
+}
 
 function at<T extends { readonly anchor: { readonly s: number } }>(profile: readonly T[], s: number): T {
   let index = 0;
@@ -65,16 +77,16 @@ function samePaint(a: CoursePaint | null, b: CoursePaint | null, ap: CompiledPor
   return Number.isSafeInteger(s) && Number.isSafeInteger(l) && ((s % 2) + (l % 2)) % 2 === 0;
 }
 
-function binding(p: CoursePresentation, band: AppearanceBinding['band']): AppearanceBinding {
-  const value = p.ground.bands.find((value) => value.band === band);
-  if (!value) throw new Error('Compiled Band has no appearance binding');
+function binding(p: ResidentPresentation, region: AppearanceBinding['region']): AppearanceBinding {
+  const value = p.ground.regions.find((value) => value.region === region);
+  if (!value) throw new Error('Compiled Region has no appearance binding');
   return value;
 }
 
 function regions(port: CompiledPort, start: number, end: number, domain: CourseQueryExtent) {
-  const p = presentation(port);
-  const pieces = courseOverlapBandRegions(port, start, end, domain).flatMap(({ band, ...edges }) => {
-    const paint = at(binding(p, band).sections, start).paint;
+  const p = residentPresentation(port);
+  const pieces = courseOverlapRegions(port, start, end, domain).flatMap(({ region, ...edges }) => {
+    const paint = at(binding(p, region).sections, start).paint;
     return paint === null ? [] : [{ ...edges, paint }];
   });
   const merged: typeof pieces = [];
@@ -93,12 +105,55 @@ function regions(port: CompiledPort, start: number, end: number, domain: CourseQ
   return merged;
 }
 
+function sameEnvironment(link: CompiledLink, as: number, bs: number) {
+  const ap = link.source,
+    bp = link.destination;
+  const ae = at(presentation(ap).environments, as),
+    be = at(presentation(bp).environments, bs);
+  requireCourse(
+    ae.name === be.name &&
+      ae.groundBaseLeft === be.groundBaseLeft &&
+      ae.groundBaseRight === be.groundBaseRight &&
+      ae.background.asset.source === be.background.asset.source &&
+      ae.background.horizonY === be.background.horizonY &&
+      ae.background.pixelsPerRadian === be.background.pixelsPerRadian &&
+      Math.abs(
+        wrapAngle(
+          ae.background.yawOriginRadians - ap.pose.heading - (be.background.yawOriginRadians - bp.pose.heading),
+        ),
+      ) <= COURSE_LINK_RECIPE.headingToleranceRadians,
+    '',
+    'Environment/background or frame-relative pan origin disagrees',
+    'presentation_environment_mismatch',
+  );
+}
+
 function groundAndEnvironment(link: CompiledLink, domain: CourseQueryExtent): void {
+  const a = presentation(link.source),
+    b = presentation(link.destination);
+  if (a.ground.kind === 'resident' && b.ground.kind === 'resident') return residentGroundAndEnvironment(link, domain);
+  requireCourse(
+    a.ground.kind === 'bands' && b.ground.kind === 'bands',
+    '',
+    'Linked Sections use one ground kind',
+    'presentation_ground_mismatch',
+  );
+  requireCourse(
+    courseOverlapHeight(link.source, link.overlap, '') === courseOverlapHeight(link.destination, link.overlap, ''),
+    '',
+    'Presentation height disagrees',
+    'presentation_ground_mismatch',
+  );
+  const stations = compareCourseBandOverlap(link, a.ground, b.ground, domain);
+  for (const delta of stations) sameEnvironment(link, link.source.anchor.s + delta, link.destination.anchor.s + delta);
+}
+
+function residentGroundAndEnvironment(link: CompiledLink, domain: CourseQueryExtent): void {
   const { source: ap, destination: bp } = link,
-    a = presentation(ap),
-    b = presentation(bp);
+    a = residentPresentation(ap),
+    b = residentPresentation(bp);
   for (const port of [ap, bp]) {
-    const p = presentation(port),
+    const p = residentPresentation(port),
       origin = coursePortLateral(port);
     requireCourse(
       origin - domain.left >= -p.ground.left && origin + domain.right < p.ground.right,
@@ -120,17 +175,17 @@ function groundAndEnvironment(link: CompiledLink, domain: CourseQueryExtent): vo
     'presentation_ground_mismatch',
   );
   const ruler = (port: CompiledPort) => {
-    const p = presentation(port);
+    const p = residentPresentation(port);
     return courseOverlapRuler(port, link.overlap, domain, [
-      ...p.ground.bands.flatMap((b) => b.sections.map((s) => s.anchor.s)),
+      ...p.ground.regions.flatMap((b) => b.sections.map((s) => s.anchor.s)),
       ...p.environments.map((e) => e.anchor.s),
     ]);
   };
   const stations = compileCourseOverlapStations(ruler(ap), ruler(bp), link.overlap, '');
   const compareEdges = (as: number, bs: number) => {
     const paint = (port: CompiledPort, s: number, l: number) => {
-      const band = courseBandAt(port.section.bandPartition, s, l, coursePortLateral(port));
-      return band ? at(binding(presentation(port), band).sections, s).paint : null;
+      const region = courseRegionAt(port.section.regionPartition, s, l, coursePortLateral(port));
+      return region ? at(binding(residentPresentation(port), region).sections, s).paint : null;
     };
     for (const l of [-domain.left, domain.right])
       requireCourse(
@@ -141,24 +196,7 @@ function groundAndEnvironment(link: CompiledLink, domain: CourseQueryExtent): vo
       );
   };
   for (const [i, station] of stations.entries()) {
-    const ae = at(a.environments, station.source),
-      be = at(b.environments, station.destination);
-    requireCourse(
-      ae.name === be.name &&
-        ae.groundBaseLeft === be.groundBaseLeft &&
-        ae.groundBaseRight === be.groundBaseRight &&
-        ae.background.asset.source === be.background.asset.source &&
-        ae.background.horizonY === be.background.horizonY &&
-        ae.background.pixelsPerRadian === be.background.pixelsPerRadian &&
-        Math.abs(
-          wrapAngle(
-            ae.background.yawOriginRadians - ap.pose.heading - (be.background.yawOriginRadians - bp.pose.heading),
-          ),
-        ) <= COURSE_LINK_RECIPE.headingToleranceRadians,
-      '',
-      'Environment/background or frame-relative pan origin disagrees',
-      'presentation_environment_mismatch',
-    );
+    sameEnvironment(link, station.source, station.destination);
     compareEdges(station.source, station.destination);
     for (const end of [station, ...(stations[i + 1] ? [stations[i + 1]!] : [])]) {
       requireCourse(
@@ -203,7 +241,9 @@ function stamps(port: CompiledPort, overlap: CompiledLink['overlap'], domain: Co
   const density = SPRITE_SOURCE_TEXELS_PER_METER,
     s = port.anchor.s * density,
     l = coursePortLateral(port) * density;
-  return presentation(port).ground.stamps.flatMap((stamp) => {
+  const p = presentation(port);
+  if (p.ground.kind === 'bands') return [];
+  return p.ground.stamps.flatMap((stamp) => {
     const source = stamp.asset.source,
       left = stamp.gridL - l,
       start = stamp.gridS - s;

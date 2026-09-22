@@ -2,14 +2,14 @@
   "format": "superoutride.course",
   "version": 11,
   "reference": null,
-  "id": "provisional-circuit",
+  "id": "ribbon-ring",
   "units": { "length": "m", "angle": "deg" },
   "geometryRecipe": { "id": "superoutride.raster-guide", "version": 4 },
   "type": "CIRCUIT",
-  "entrySectionId": "loop-trial",
+  "entrySectionId": "ring-road",
   "sections": [
     {
-      "id": "loop-trial",
+      "id": "ring-road",
       "start": { "x": 0, "z": 0, "heading": 0 },
       "guide": { "margin": 4, "mMin": 0.1 },
       "primitives": [
@@ -186,129 +186,141 @@
         { "id": "entry", "kind": "entry", "anchor": { "kind": "absolute", "s": 30 }, "carriagewayId": "road" },
         { "id": "exit", "kind": "exit", "anchor": { "kind": "absolute", "s": 2030 }, "carriagewayId": "road" }
       ],
-      "assetIds": ["asphalt", "grass", "stripe", "shoulder", "coast-sky", "hill-sky", "tree"],
+      "assetIds": ["coast-sky", "tree"],
       "fork": null,
       "presentation": {
         "ground": {
-          "kind": "resident",
-          "left": 60,
-          "right": 60,
-          "baseRgb555": 9799,
-          "regions": [
+          "kind": "bands",
+          "bands": [
             {
-              "regionId": "grass-left",
-              "sections": [
-                {
-                  "anchor": { "kind": "primitive", "primitiveId": "approach", "fraction": 0 },
-                  "paint": { "assetId": "grass", "phaseS": 0, "phaseL": -500, "alternate": null }
-                }
+              "kind": "band",
+              "color": 5575,
+              "knots": [
+                { "s": 0, "left": null, "right": null },
+                { "s": 2099.999999999999, "left": null, "right": null }
               ]
             },
             {
-              "regionId": "kerb-left",
-              "sections": [
-                {
-                  "anchor": { "kind": "primitive", "primitiveId": "approach", "fraction": 0 },
-                  "paint": {
-                    "assetId": "shoulder",
-                    "phaseS": 0,
-                    "phaseL": -500,
-                    "alternate": {
-                      "paletteRgb555": [
-                        0, 24806, 24806, 24806, 24806, 24806, 24806, 24806, 24806, 24806, 24806, 24806, 24806, 24806,
-                        24806, 24806
-                      ],
-                      "spanS": 4,
-                      "spanL": 1000
-                    }
-                  }
-                }
+              "kind": "band",
+              "color": 9548,
+              "knots": [
+                { "s": 0, "left": -9, "right": -7 },
+                { "s": 2099.999999999999, "left": -9, "right": -7 }
               ]
             },
             {
-              "regionId": "lane-left",
-              "sections": [
-                {
-                  "anchor": { "kind": "primitive", "primitiveId": "approach", "fraction": 0 },
-                  "paint": { "assetId": "asphalt", "phaseS": 0, "phaseL": -500, "alternate": null }
-                }
+              "kind": "band",
+              "color": 9548,
+              "knots": [
+                { "s": 0, "left": -7, "right": -0.1 },
+                { "s": 2099.999999999999, "left": -7, "right": -0.1 }
               ]
             },
             {
-              "regionId": "center",
-              "sections": [
-                {
-                  "anchor": { "kind": "primitive", "primitiveId": "approach", "fraction": 0 },
-                  "paint": {
-                    "assetId": "stripe",
-                    "phaseS": 0,
-                    "phaseL": -500,
-                    "alternate": {
-                      "paletteRgb555": [
-                        0, 9548, 9548, 9548, 9548, 9548, 9548, 9548, 9548, 9548, 9548, 9548, 9548, 9548, 9548, 9548
-                      ],
-                      "spanS": 5,
-                      "spanL": 1000
-                    }
-                  }
-                }
+              "kind": "band",
+              "color": 9548,
+              "knots": [
+                { "s": 0, "left": -0.1, "right": 0.1 },
+                { "s": 2099.999999999999, "left": -0.1, "right": 0.1 }
               ]
             },
             {
-              "regionId": "lane-right",
-              "sections": [
-                {
-                  "anchor": { "kind": "primitive", "primitiveId": "approach", "fraction": 0 },
-                  "paint": { "assetId": "asphalt", "phaseS": 0, "phaseL": -500, "alternate": null }
-                }
+              "kind": "band",
+              "color": 9548,
+              "knots": [
+                { "s": 0, "left": 0.1, "right": 7 },
+                { "s": 2099.999999999999, "left": 0.1, "right": 7 }
               ]
             },
             {
-              "regionId": "kerb-right",
-              "sections": [
-                {
-                  "anchor": { "kind": "primitive", "primitiveId": "approach", "fraction": 0 },
-                  "paint": {
-                    "assetId": "shoulder",
-                    "phaseS": 0,
-                    "phaseL": -500,
-                    "alternate": {
-                      "paletteRgb555": [
-                        0, 24806, 24806, 24806, 24806, 24806, 24806, 24806, 24806, 24806, 24806, 24806, 24806, 24806,
-                        24806, 24806
-                      ],
-                      "spanS": 4,
-                      "spanL": 1000
-                    }
-                  }
-                }
+              "kind": "band",
+              "color": 9548,
+              "knots": [
+                { "s": 0, "left": 7, "right": 9 },
+                { "s": 2099.999999999999, "left": 7, "right": 9 }
               ]
             },
             {
-              "regionId": "grass-right",
-              "sections": [
+              "kind": "curb",
+              "start": 100,
+              "end": 1940,
+              "left": -8,
+              "right": -7,
+              "stripe": 3,
+              "colors": [27781, 32765]
+            },
+            { "kind": "curb", "start": 100, "end": 1940, "left": 7, "right": 8, "stripe": 3, "colors": [27781, 32765] },
+            {
+              "kind": "repeat",
+              "every": 25,
+              "count": 72,
+              "elements": [
                 {
-                  "anchor": { "kind": "primitive", "primitiveId": "approach", "fraction": 0 },
-                  "paint": { "assetId": "grass", "phaseS": 0, "phaseL": -500, "alternate": null }
+                  "kind": "band",
+                  "color": 32765,
+                  "knots": [
+                    { "s": 120, "left": -0.1, "right": 0.1 },
+                    { "s": 130, "left": -0.1, "right": 0.1 }
+                  ]
                 }
+              ]
+            },
+            { "kind": "text", "s": 66, "l": -5.6, "text": "RING", "height": 3.2, "color": 32765 },
+            { "kind": "arrow", "s": 108, "l": -3, "width": 3, "length": 12, "direction": "forward", "color": 32765 },
+            { "kind": "arrow", "s": 108, "l": 3, "width": 3, "length": 12, "direction": "forward", "color": 32765 },
+            {
+              "kind": "repeat",
+              "every": 4,
+              "count": 6,
+              "elements": [
+                {
+                  "kind": "band",
+                  "color": 32765,
+                  "knots": [
+                    { "s": 249, "left": -7, "right": 7 },
+                    { "s": 251, "left": -7, "right": 7 }
+                  ]
+                },
+                {
+                  "kind": "band",
+                  "color": 9548,
+                  "knots": [
+                    { "s": 251, "left": -7, "right": 0 },
+                    { "s": 253, "left": -7, "right": 0 }
+                  ]
+                }
+              ]
+            },
+            { "kind": "text", "s": 290, "l": -4.6, "text": "LAP", "height": 3.2, "color": 32765 },
+            {
+              "kind": "band",
+              "color": null,
+              "knots": [
+                { "s": 950, "left": 18, "right": null },
+                { "s": 1110, "left": 18, "right": null }
+              ]
+            },
+            {
+              "kind": "band",
+              "color": null,
+              "knots": [
+                { "s": 1200, "left": null, "right": -35 },
+                { "s": 1250, "left": null, "right": -9 },
+                { "s": 1410, "left": null, "right": -9 },
+                { "s": 1450, "left": null, "right": -35 }
               ]
             }
-          ],
-          "stamps": []
+          ]
         },
         "environments": [
           {
             "anchor": { "kind": "primitive", "primitiveId": "approach", "fraction": 0 },
-            "name": "CIRCUIT TRIAL",
-            "groundBaseLeft": 9799,
-            "groundBaseRight": 9799,
+            "name": "RIBBON RING",
             "background": { "assetId": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
           },
           {
             "anchor": { "kind": "primitive", "primitiveId": "runout", "fraction": 0 },
-            "name": "CIRCUIT TRIAL",
-            "groundBaseLeft": 9799,
-            "groundBaseRight": 9799,
+            "name": "RIBBON RING",
             "background": { "assetId": "coast-sky", "horizonY": 320, "yawOrigin": 180 }
           }
         ],
@@ -343,47 +355,17 @@
   "links": [
     {
       "id": "loop",
-      "source": { "sectionId": "loop-trial", "portId": "exit" },
-      "destination": { "sectionId": "loop-trial", "portId": "entry" },
+      "source": { "sectionId": "ring-road", "portId": "exit" },
+      "destination": { "sectionId": "ring-road", "portId": "entry" },
       "overlap": { "behind": 30, "ahead": 30 }
     }
   ],
   "assets": [
     {
-      "id": "asphalt",
-      "format": "superoutride.sprite-lod",
-      "version": 2,
-      "sha256": "45d46abc6aeda4f61ea38829a51f9f2f1d043e623b414d2007ee4c63f6ba08c3"
-    },
-    {
-      "id": "grass",
-      "format": "superoutride.sprite-lod",
-      "version": 2,
-      "sha256": "a8cd935c0f9cad31a2457edbbe64d3ad4f15433db1ee855120256cbe6a6b4f3f"
-    },
-    {
-      "id": "stripe",
-      "format": "superoutride.sprite-lod",
-      "version": 2,
-      "sha256": "3418c8d3e78f50049943fcb8835786cca7d9a8f51fd33f3c885b8dd184c6bad7"
-    },
-    {
-      "id": "shoulder",
-      "format": "superoutride.sprite-lod",
-      "version": 2,
-      "sha256": "23f4784edaf0a761a7f2b216423a407bc747f449dfeebab9190bdc2d19082142"
-    },
-    {
       "id": "coast-sky",
       "format": "superoutride.tile-background",
       "version": 1,
       "sha256": "0e4c15f03d93e1202735af76ae62f620d6adb0ae060236670fd58feff95fad00"
-    },
-    {
-      "id": "hill-sky",
-      "format": "superoutride.tile-background",
-      "version": 1,
-      "sha256": "ba3335624824ef3af6169e92f832bf4adeb870a5e5f2f7db3dcfa40aab4b635e"
     },
     {
       "id": "tree",
@@ -415,33 +397,33 @@
     ],
     "checkpoints": [
       {
-        "id": "loop-trial-CP1",
-        "sectionId": "loop-trial",
+        "id": "ring-road-CP1",
+        "sectionId": "ring-road",
         "carriagewayId": "road",
         "anchor": { "kind": "absolute", "s": 530 }
       },
       {
-        "id": "loop-trial-CP2",
-        "sectionId": "loop-trial",
+        "id": "ring-road-CP2",
+        "sectionId": "ring-road",
         "carriagewayId": "road",
         "anchor": { "kind": "absolute", "s": 1030 }
       },
       {
-        "id": "loop-trial-CP3",
-        "sectionId": "loop-trial",
+        "id": "ring-road-CP3",
+        "sectionId": "ring-road",
         "carriagewayId": "road",
         "anchor": { "kind": "absolute", "s": 1530 }
       }
     ],
     "finishes": [
       {
-        "id": "loop-trial-FINISH",
-        "sectionId": "loop-trial",
+        "id": "ring-road-FINISH",
+        "sectionId": "ring-road",
         "carriagewayId": "road",
         "anchor": { "kind": "absolute", "s": 2030 }
       }
     ],
-    "maxLaps": 99,
+    "maxLaps": 3,
     "classic": { "vehicleId": "TESTAROSSA", "rivalCount": 2, "lapCount": 2, "timeMargin": 1.35 }
   }
 }

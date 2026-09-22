@@ -3,7 +3,7 @@ import { guidePathToWorld } from '../core/guide-curve.js';
 import { rasterPathToWorld } from '../core/raster-path.js';
 import { wrapAngle, type Vec2 } from '../core/math.js';
 import { compilePlanarTransform, transformPlanarPoint } from '../core/planar-transform.js';
-import { courseBoundaryAt, type CompiledBoundary, type CompiledCarriageway } from '../course/course-bands.js';
+import { courseBoundaryAt, type CompiledBoundary, type CompiledCarriageway } from '../course/course-regions.js';
 import { requireCourse } from '../course/course-diagnostics.js';
 import type { CompiledCourseAnchor } from '../course/course-geometry.js';
 import type { CompiledLink, CompiledPort, CompiledSection } from './course-graph.js';
@@ -23,7 +23,7 @@ function edges(
   end: number,
   path: string,
 ): readonly [CompiledBoundary, CompiledBoundary] {
-  const bands = carriageway.bands
+  const regions = carriageway.regions
     .filter((b) => b.start.s <= start && b.end.s >= end && (end > start || start < b.end.s))
     .sort(
       (a, b) =>
@@ -32,13 +32,13 @@ function edges(
         (courseBoundaryAt(b.left, start) + courseBoundaryAt(b.left, end)),
     );
   requireCourse(
-    bands.length > 0,
+    regions.length > 0,
     path,
     `Carriageway ${JSON.stringify(carriageway.id)} does not cover [${start}, ${end}]`,
     'invalid_carriageway',
   );
-  const left = bands[0]!.left,
-    right = bands.at(-1)!.right;
+  const left = regions[0]!.left,
+    right = regions.at(-1)!.right;
   for (const s of [start, end])
     requireCourse(
       courseBoundaryAt(right, s) > courseBoundaryAt(left, s),
@@ -129,7 +129,7 @@ function guard(port: CompiledPort, behind: number, ahead: number, path: string):
   return [
     ...section.raster.vertexS,
     ...section.guide.segments.flatMap((s) => [s.sStart, s.sEnd]),
-    ...port.carriageway.bands.flatMap((b) => [
+    ...port.carriageway.regions.flatMap((b) => [
       b.start.s,
       b.end.s,
       ...[b.left, b.right].flatMap((v) => v.knots.map((k) => k.anchor.s)),

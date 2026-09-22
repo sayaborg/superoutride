@@ -79,7 +79,9 @@ export function reportError(error) {
 
 /** Reuse a matching build artifact; edited/new authoring inputs compile before preview starts. */
 export async function loadCourseGround(course, file) {
-  const { compileCourseGround, readCourseGround } = await import('../../dist/compiler/course-ground.js');
+  const { compileCourseGround, readCourseGround, createBandCourseGround } =
+    await import('../../dist/compiler/course-ground.js');
+  if (course.entry.presentation?.ground.kind === 'bands') return createBandCourseGround(course);
   const stem = path.basename(file).replace(/\.course\.json$/, '');
   const root = new URL('../../dist/content/ground/', import.meta.url);
   let compiled;

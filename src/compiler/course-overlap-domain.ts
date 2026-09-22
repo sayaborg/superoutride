@@ -1,4 +1,4 @@
-import { courseBoundaryAt } from '../course/course-bands.js';
+import { courseBoundaryAt } from '../course/course-regions.js';
 import { requireCourse } from '../course/course-diagnostics.js';
 import type { CompiledLink, CompiledPort } from './course-graph.js';
 import { coursePortLateral } from './course-links.js';
@@ -25,16 +25,16 @@ export function courseOverlapRuler(
   profileStations: readonly number[],
 ) {
   const crossings: number[] = [];
-  const bands = port.section.bandPartition.bands;
+  const regions = port.section.regionPartition.regions;
   if (domain) {
     const origin = coursePortLateral(port);
-    for (const band of bands)
-      for (const boundary of [band.left, band.right]) {
+    for (const region of regions)
+      for (const boundary of [region.left, region.right]) {
         for (let i = 1; i < boundary.knots.length; i += 1) {
           const a = boundary.knots[i - 1]!,
             b = boundary.knots[i]!;
-          const start = Math.max(a.anchor.s, band.start.s, port.anchor.s - overlap.behind);
-          const end = Math.min(b.anchor.s, band.end.s, port.anchor.s + overlap.ahead);
+          const start = Math.max(a.anchor.s, region.start.s, port.anchor.s - overlap.behind);
+          const end = Math.min(b.anchor.s, region.end.s, port.anchor.s + overlap.ahead);
           if (end <= start) continue;
           const l0 = courseBoundaryAt(boundary, start) - origin,
             l1 = courseBoundaryAt(boundary, end) - origin;
@@ -56,10 +56,10 @@ export function courseOverlapRuler(
     seam: port.anchor.s,
     stations: [
       ...crossings,
-      ...bands.flatMap((band) => [
-        band.start.s,
-        band.end.s,
-        ...[band.left, band.right].flatMap((b) => b.knots.map((k) => k.anchor.s)),
+      ...regions.flatMap((region) => [
+        region.start.s,
+        region.end.s,
+        ...[region.left, region.right].flatMap((b) => b.knots.map((k) => k.anchor.s)),
       ]),
       ...profileStations,
     ],
@@ -67,23 +67,23 @@ export function courseOverlapRuler(
 }
 
 /** Linear clipped edges on one already partitioned cell, or exact half-open station ownership. */
-export function courseOverlapBandRegions(port: CompiledPort, start: number, end: number, domain?: LateralDomain) {
+export function courseOverlapRegions(port: CompiledPort, start: number, end: number, domain?: LateralDomain) {
   const origin = coursePortLateral(port),
     point = start === end;
   const clip = (l: number) => (domain ? Math.max(-domain.left, Math.min(domain.right, l)) : l);
-  return port.section.bandPartition.bands
-    .flatMap((band) => {
+  return port.section.regionPartition.regions
+    .flatMap((region) => {
       if (
-        band.start.s > start ||
-        band.end.s < end ||
-        (point && start === band.end.s && start !== port.section.bandPartition.length)
+        region.start.s > start ||
+        region.end.s < end ||
+        (point && start === region.end.s && start !== port.section.regionPartition.length)
       )
         return [];
-      const left = clip(courseBoundaryAt(band.left, start) - origin),
-        right = clip(courseBoundaryAt(band.right, start) - origin);
-      const leftEnd = clip(courseBoundaryAt(band.left, end) - origin),
-        rightEnd = clip(courseBoundaryAt(band.right, end) - origin);
-      return left === right && leftEnd === rightEnd ? [] : [{ band, left, right, leftEnd, rightEnd }];
+      const left = clip(courseBoundaryAt(region.left, start) - origin),
+        right = clip(courseBoundaryAt(region.right, start) - origin);
+      const leftEnd = clip(courseBoundaryAt(region.left, end) - origin),
+        rightEnd = clip(courseBoundaryAt(region.right, end) - origin);
+      return left === right && leftEnd === rightEnd ? [] : [{ region, left, right, leftEnd, rightEnd }];
     })
     .sort((a, b) => a.left + a.leftEnd - (b.left + b.leftEnd));
 }

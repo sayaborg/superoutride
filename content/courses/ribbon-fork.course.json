@@ -2,14 +2,14 @@
   "format": "superoutride.course",
   "version": 11,
   "reference": null,
-  "id": "provisional-branch",
+  "id": "ribbon-fork",
   "units": { "length": "m", "angle": "deg" },
   "geometryRecipe": { "id": "superoutride.raster-guide", "version": 4 },
   "type": "BRANCH",
-  "entrySectionId": "fork-approach",
+  "entrySectionId": "junction-road",
   "sections": [
     {
-      "id": "fork-approach",
+      "id": "junction-road",
       "start": { "x": 0, "z": 0, "heading": 0 },
       "guide": { "margin": 4, "mMin": 0.1 },
       "primitives": [{ "id": "run", "kind": "straight", "length": 1600 }],
@@ -184,106 +184,96 @@
         { "id": "left", "kind": "exit", "anchor": { "kind": "absolute", "s": 1500 }, "carriagewayId": "LEFT" },
         { "id": "right", "kind": "exit", "anchor": { "kind": "absolute", "s": 1500 }, "carriagewayId": "RIGHT" }
       ],
-      "assetIds": [
-        "asphalt",
-        "grass",
-        "stripe",
-        "shoulder",
-        "coast-sky",
-        "hill-sky",
-        "tree",
-        "fork-warning",
-        "fork-closed"
-      ],
+      "assetIds": ["coast-sky", "tree", "fork-warning", "fork-closed"],
       "fork": { "lock": { "kind": "absolute", "s": 250 }, "closure": { "kind": "absolute", "s": 650 } },
       "presentation": {
         "ground": {
-          "kind": "resident",
-          "left": 180,
-          "right": 180,
-          "baseRgb555": 9799,
-          "regions": [
+          "kind": "bands",
+          "bands": [
             {
-              "regionId": "initial",
-              "sections": [
-                {
-                  "anchor": { "kind": "absolute", "s": 0 },
-                  "paint": { "assetId": "asphalt", "phaseS": 0, "phaseL": 0, "alternate": null }
-                }
+              "kind": "band",
+              "color": 5575,
+              "knots": [
+                { "s": 0, "left": null, "right": null },
+                { "s": 1600, "left": null, "right": null }
               ]
             },
             {
-              "regionId": "initial-grass-left",
-              "sections": [
-                {
-                  "anchor": { "kind": "absolute", "s": 0 },
-                  "paint": { "assetId": "grass", "phaseS": 0, "phaseL": 0, "alternate": null }
-                }
+              "kind": "band",
+              "color": 9548,
+              "knots": [
+                { "s": 0, "left": -7, "right": 7 },
+                { "s": 100, "left": -7, "right": 7 }
               ]
             },
             {
-              "regionId": "initial-grass-right",
-              "sections": [
-                {
-                  "anchor": { "kind": "absolute", "s": 0 },
-                  "paint": { "assetId": "grass", "phaseS": 0, "phaseL": 0, "alternate": null }
-                }
+              "kind": "band",
+              "color": 9548,
+              "knots": [
+                { "s": 100, "left": -7, "right": 0 },
+                { "s": 200, "left": -9, "right": -2 },
+                { "s": 650, "left": -9, "right": -2 },
+                { "s": 1250, "left": -63.5, "right": -56.5 },
+                { "s": 1600, "left": -63.5, "right": -56.5 }
               ]
             },
             {
-              "regionId": "left-road",
-              "sections": [
-                {
-                  "anchor": { "kind": "absolute", "s": 100 },
-                  "paint": { "assetId": "asphalt", "phaseS": 0, "phaseL": 0, "alternate": null }
-                }
+              "kind": "band",
+              "color": 9548,
+              "knots": [
+                { "s": 100, "left": 0, "right": 7 },
+                { "s": 200, "left": 2, "right": 9 },
+                { "s": 650, "left": 2, "right": 9 },
+                { "s": 1250, "left": 56.5, "right": 63.5 },
+                { "s": 1600, "left": 56.5, "right": 63.5 }
               ]
             },
+            { "kind": "text", "s": 63, "l": -5, "text": "FORK", "height": 2.8, "color": 32765 },
+            { "kind": "arrow", "s": 120, "l": -3, "width": 3, "length": 12, "direction": "left", "color": 32765 },
+            { "kind": "arrow", "s": 120, "l": 3, "width": 3, "length": 12, "direction": "right", "color": 32765 },
             {
-              "regionId": "right-road",
-              "sections": [
-                {
-                  "anchor": { "kind": "absolute", "s": 100 },
-                  "paint": { "assetId": "asphalt", "phaseS": 0, "phaseL": 0, "alternate": null }
-                }
-              ]
+              "kind": "curb",
+              "start": 215,
+              "end": 610,
+              "left": -9.6,
+              "right": -9,
+              "stripe": 4,
+              "colors": [32765, 27781]
             },
             {
-              "regionId": "median",
-              "sections": [
-                {
-                  "anchor": { "kind": "absolute", "s": 100 },
-                  "paint": { "assetId": "grass", "phaseS": 0, "phaseL": 0, "alternate": null }
-                }
-              ]
+              "kind": "curb",
+              "start": 215,
+              "end": 610,
+              "left": 9,
+              "right": 9.6,
+              "stripe": 4,
+              "colors": [32765, 27781]
             },
+            { "kind": "text", "s": 350, "l": -7.5, "text": "SEA", "height": 1.4, "color": 32765 },
+            { "kind": "text", "s": 350, "l": 3.5, "text": "PARK", "height": 1.4, "color": 32765 },
             {
-              "regionId": "grass-left",
-              "sections": [
+              "kind": "repeat",
+              "every": 30,
+              "count": 10,
+              "elements": [
                 {
-                  "anchor": { "kind": "absolute", "s": 100 },
-                  "paint": { "assetId": "grass", "phaseS": 0, "phaseL": 0, "alternate": null }
-                }
-              ]
-            },
-            {
-              "regionId": "grass-right",
-              "sections": [
-                {
-                  "anchor": { "kind": "absolute", "s": 100 },
-                  "paint": { "assetId": "grass", "phaseS": 0, "phaseL": 0, "alternate": null }
-                }
+                  "kind": "arrow",
+                  "s": 280,
+                  "l": -5.5,
+                  "width": 2,
+                  "length": 9,
+                  "direction": "forward",
+                  "color": 32765
+                },
+                { "kind": "arrow", "s": 280, "l": 5.5, "width": 2, "length": 9, "direction": "forward", "color": 32765 }
               ]
             }
-          ],
-          "stamps": []
+          ]
         },
         "environments": [
           {
             "anchor": { "kind": "absolute", "s": 0 },
-            "name": "BRANCH TRIAL",
-            "groundBaseLeft": 9799,
-            "groundBaseRight": 9799,
+            "name": "RIBBON FORK",
             "background": { "assetId": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
           }
         ],
@@ -348,7 +338,7 @@
       }
     },
     {
-      "id": "left-path",
+      "id": "cliff-route",
       "start": { "x": 1000, "z": 500, "heading": -20 },
       "guide": { "margin": 4, "mMin": 0.1 },
       "primitives": [{ "id": "run", "kind": "straight", "length": 1000 }],
@@ -422,82 +412,83 @@
         { "id": "entry", "kind": "entry", "anchor": { "kind": "absolute", "s": 100 }, "carriagewayId": "road" },
         { "id": "exit", "kind": "exit", "anchor": { "kind": "absolute", "s": 900 }, "carriagewayId": "road" }
       ],
-      "assetIds": [
-        "asphalt",
-        "grass",
-        "stripe",
-        "shoulder",
-        "coast-sky",
-        "hill-sky",
-        "tree",
-        "fork-warning",
-        "fork-closed"
-      ],
+      "assetIds": ["coast-sky", "tree", "fork-warning", "fork-closed"],
       "fork": null,
       "presentation": {
         "ground": {
-          "kind": "resident",
-          "left": 180,
-          "right": 180,
-          "baseRgb555": 9799,
-          "regions": [
+          "kind": "bands",
+          "bands": [
             {
-              "regionId": "road",
-              "sections": [
-                {
-                  "anchor": { "kind": "absolute", "s": 0 },
-                  "paint": { "assetId": "asphalt", "phaseS": 0, "phaseL": 0, "alternate": null }
-                }
+              "kind": "band",
+              "color": 5575,
+              "knots": [
+                { "s": 0, "left": null, "right": null },
+                { "s": 1000.0000000000001, "left": null, "right": null }
               ]
             },
             {
-              "regionId": "grass-left",
-              "sections": [
-                {
-                  "anchor": { "kind": "absolute", "s": 0 },
-                  "paint": { "assetId": "grass", "phaseS": 0, "phaseL": 0, "alternate": null }
-                }
+              "kind": "band",
+              "color": 9548,
+              "knots": [
+                { "s": 0, "left": -3.5, "right": 3.5 },
+                { "s": 1000.0000000000001, "left": -3.5, "right": 3.5 }
+              ]
+            },
+            { "kind": "text", "s": 185, "l": -2.6, "text": "SEA", "height": 1.8, "color": 32765 },
+            { "kind": "arrow", "s": 218, "l": 0, "width": 2, "length": 10, "direction": "forward", "color": 32765 },
+            {
+              "kind": "curb",
+              "start": 200,
+              "end": 790,
+              "left": -4.1,
+              "right": -3.5,
+              "stripe": 3,
+              "colors": [32765, 27781]
+            },
+            {
+              "kind": "curb",
+              "start": 200,
+              "end": 790,
+              "left": 3.5,
+              "right": 4.1,
+              "stripe": 3,
+              "colors": [32765, 27781]
+            },
+            {
+              "kind": "band",
+              "color": null,
+              "knots": [
+                { "s": 270, "left": 30, "right": null },
+                { "s": 350, "left": 5, "right": null },
+                { "s": 620, "left": 5, "right": null },
+                { "s": 700, "left": 30, "right": null }
               ]
             },
             {
-              "regionId": "grass-right",
-              "sections": [
-                {
-                  "anchor": { "kind": "absolute", "s": 0 },
-                  "paint": { "assetId": "grass", "phaseS": 0, "phaseL": 0, "alternate": null }
-                }
+              "kind": "band",
+              "color": null,
+              "knots": [
+                { "s": 310, "left": null, "right": -30 },
+                { "s": 370, "left": null, "right": -5 },
+                { "s": 570, "left": null, "right": -5 },
+                { "s": 660, "left": null, "right": -30 }
               ]
             }
-          ],
-          "stamps": []
+          ]
         },
         "environments": [
           {
             "anchor": { "kind": "absolute", "s": 0 },
-            "name": "BRANCH TRIAL",
-            "groundBaseLeft": 9799,
-            "groundBaseRight": 9799,
+            "name": "RIBBON FORK",
             "background": { "assetId": "coast-sky", "horizonY": 320, "yawOrigin": -20 }
           }
         ],
-        "sceneryRows": [
-          {
-            "id": "left-path-trees",
-            "assetId": "tree",
-            "start": { "kind": "absolute", "s": 160 },
-            "end": { "kind": "absolute", "s": 830 },
-            "spacing": 45,
-            "boundaryId": "road-left",
-            "side": "left",
-            "offset": 8,
-            "groundOffset": 0
-          }
-        ],
+        "sceneryRows": [],
         "scenery": []
       }
     },
     {
-      "id": "right-path",
+      "id": "garden-route",
       "start": { "x": -800, "z": 300, "heading": 20 },
       "guide": { "margin": 4, "mMin": 0.1 },
       "primitives": [{ "id": "run", "kind": "straight", "length": 1200 }],
@@ -571,67 +562,74 @@
         { "id": "entry", "kind": "entry", "anchor": { "kind": "absolute", "s": 100 }, "carriagewayId": "road" },
         { "id": "exit", "kind": "exit", "anchor": { "kind": "absolute", "s": 1100 }, "carriagewayId": "road" }
       ],
-      "assetIds": [
-        "asphalt",
-        "grass",
-        "stripe",
-        "shoulder",
-        "coast-sky",
-        "hill-sky",
-        "tree",
-        "fork-warning",
-        "fork-closed"
-      ],
+      "assetIds": ["coast-sky", "tree", "fork-warning", "fork-closed"],
       "fork": null,
       "presentation": {
         "ground": {
-          "kind": "resident",
-          "left": 180,
-          "right": 180,
-          "baseRgb555": 9799,
-          "regions": [
+          "kind": "bands",
+          "bands": [
             {
-              "regionId": "road",
-              "sections": [
+              "kind": "band",
+              "color": 5575,
+              "knots": [
+                { "s": 0, "left": null, "right": null },
+                { "s": 1200.0000000000002, "left": null, "right": null }
+              ]
+            },
+            {
+              "kind": "band",
+              "color": 9548,
+              "knots": [
+                { "s": 0, "left": -3.5, "right": 3.5 },
+                { "s": 1200.0000000000002, "left": -3.5, "right": 3.5 }
+              ]
+            },
+            { "kind": "text", "s": 185, "l": -2.6, "text": "PARK", "height": 1.4, "color": 32765 },
+            {
+              "kind": "repeat",
+              "every": 30,
+              "count": 24,
+              "elements": [
                 {
-                  "anchor": { "kind": "absolute", "s": 0 },
-                  "paint": { "assetId": "asphalt", "phaseS": 0, "phaseL": 0, "alternate": null }
+                  "kind": "band",
+                  "color": 32765,
+                  "knots": [
+                    { "s": 220, "left": -0.08, "right": 0.08 },
+                    { "s": 230, "left": -0.08, "right": 0.08 }
+                  ]
                 }
               ]
             },
             {
-              "regionId": "grass-left",
-              "sections": [
-                {
-                  "anchor": { "kind": "absolute", "s": 0 },
-                  "paint": { "assetId": "grass", "phaseS": 0, "phaseL": 0, "alternate": null }
-                }
-              ]
+              "kind": "curb",
+              "start": 200,
+              "end": 1010,
+              "left": -4.1,
+              "right": -3.5,
+              "stripe": 5,
+              "colors": [32765, 27781]
             },
             {
-              "regionId": "grass-right",
-              "sections": [
-                {
-                  "anchor": { "kind": "absolute", "s": 0 },
-                  "paint": { "assetId": "grass", "phaseS": 0, "phaseL": 0, "alternate": null }
-                }
-              ]
+              "kind": "curb",
+              "start": 200,
+              "end": 1010,
+              "left": 3.5,
+              "right": 4.1,
+              "stripe": 5,
+              "colors": [32765, 27781]
             }
-          ],
-          "stamps": []
+          ]
         },
         "environments": [
           {
             "anchor": { "kind": "absolute", "s": 0 },
-            "name": "BRANCH TRIAL",
-            "groundBaseLeft": 9799,
-            "groundBaseRight": 9799,
+            "name": "RIBBON FORK",
             "background": { "assetId": "coast-sky", "horizonY": 320, "yawOrigin": 20 }
           }
         ],
         "sceneryRows": [
           {
-            "id": "right-path-trees",
+            "id": "garden-route-trees",
             "assetId": "tree",
             "start": { "kind": "absolute", "s": 160 },
             "end": { "kind": "absolute", "s": 1030 },
@@ -646,7 +644,7 @@
       }
     },
     {
-      "id": "shared-finish",
+      "id": "home-road",
       "start": { "x": 2000, "z": -1000, "heading": 0 },
       "guide": { "margin": 4, "mMin": 0.1 },
       "primitives": [{ "id": "run", "kind": "straight", "length": 1100 }],
@@ -719,67 +717,66 @@
       "ports": [
         { "id": "entry", "kind": "entry", "anchor": { "kind": "absolute", "s": 100 }, "carriagewayId": "road" }
       ],
-      "assetIds": [
-        "asphalt",
-        "grass",
-        "stripe",
-        "shoulder",
-        "coast-sky",
-        "hill-sky",
-        "tree",
-        "fork-warning",
-        "fork-closed"
-      ],
+      "assetIds": ["coast-sky", "tree", "fork-warning", "fork-closed"],
       "fork": null,
       "presentation": {
         "ground": {
-          "kind": "resident",
-          "left": 180,
-          "right": 180,
-          "baseRgb555": 9799,
-          "regions": [
+          "kind": "bands",
+          "bands": [
             {
-              "regionId": "road",
-              "sections": [
+              "kind": "band",
+              "color": 5575,
+              "knots": [
+                { "s": 0, "left": null, "right": null },
+                { "s": 1100, "left": null, "right": null }
+              ]
+            },
+            {
+              "kind": "band",
+              "color": 9548,
+              "knots": [
+                { "s": 0, "left": -3.5, "right": 3.5 },
+                { "s": 1100, "left": -3.5, "right": 3.5 }
+              ]
+            },
+            { "kind": "text", "s": 190, "l": -2.4, "text": "HOME", "height": 1.4, "color": 32765 },
+            { "kind": "arrow", "s": 230, "l": 0, "width": 2, "length": 10, "direction": "forward", "color": 32765 },
+            {
+              "kind": "repeat",
+              "every": 30,
+              "count": 24,
+              "elements": [
                 {
-                  "anchor": { "kind": "absolute", "s": 0 },
-                  "paint": { "assetId": "asphalt", "phaseS": 0, "phaseL": 0, "alternate": null }
+                  "kind": "band",
+                  "color": 32765,
+                  "knots": [
+                    { "s": 240, "left": -0.08, "right": 0.08 },
+                    { "s": 250, "left": -0.08, "right": 0.08 }
+                  ]
                 }
               ]
             },
             {
-              "regionId": "grass-left",
-              "sections": [
-                {
-                  "anchor": { "kind": "absolute", "s": 0 },
-                  "paint": { "assetId": "grass", "phaseS": 0, "phaseL": 0, "alternate": null }
-                }
+              "kind": "band",
+              "color": 32765,
+              "knots": [
+                { "s": 995, "left": -3.5, "right": 3.5 },
+                { "s": 997, "left": -3.5, "right": 3.5 }
               ]
             },
-            {
-              "regionId": "grass-right",
-              "sections": [
-                {
-                  "anchor": { "kind": "absolute", "s": 0 },
-                  "paint": { "assetId": "grass", "phaseS": 0, "phaseL": 0, "alternate": null }
-                }
-              ]
-            }
-          ],
-          "stamps": []
+            { "kind": "text", "s": 980, "l": -2.4, "text": "GOAL", "height": 1.4, "color": 32765 }
+          ]
         },
         "environments": [
           {
             "anchor": { "kind": "absolute", "s": 0 },
-            "name": "BRANCH TRIAL",
-            "groundBaseLeft": 9799,
-            "groundBaseRight": 9799,
+            "name": "RIBBON FORK",
             "background": { "assetId": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
           }
         ],
         "sceneryRows": [
           {
-            "id": "shared-finish-trees",
+            "id": "home-road-trees",
             "assetId": "tree",
             "start": { "kind": "absolute", "s": 160 },
             "end": { "kind": "absolute", "s": 930 },
@@ -797,65 +794,35 @@
   "links": [
     {
       "id": "left-exit",
-      "source": { "sectionId": "fork-approach", "portId": "left" },
-      "destination": { "sectionId": "left-path", "portId": "entry" },
+      "source": { "sectionId": "junction-road", "portId": "left" },
+      "destination": { "sectionId": "cliff-route", "portId": "entry" },
       "overlap": { "behind": 30, "ahead": 30 }
     },
     {
       "id": "left-merge",
-      "source": { "sectionId": "left-path", "portId": "exit" },
-      "destination": { "sectionId": "shared-finish", "portId": "entry" },
+      "source": { "sectionId": "cliff-route", "portId": "exit" },
+      "destination": { "sectionId": "home-road", "portId": "entry" },
       "overlap": { "behind": 30, "ahead": 30 }
     },
     {
       "id": "right-exit",
-      "source": { "sectionId": "fork-approach", "portId": "right" },
-      "destination": { "sectionId": "right-path", "portId": "entry" },
+      "source": { "sectionId": "junction-road", "portId": "right" },
+      "destination": { "sectionId": "garden-route", "portId": "entry" },
       "overlap": { "behind": 30, "ahead": 30 }
     },
     {
       "id": "right-merge",
-      "source": { "sectionId": "right-path", "portId": "exit" },
-      "destination": { "sectionId": "shared-finish", "portId": "entry" },
+      "source": { "sectionId": "garden-route", "portId": "exit" },
+      "destination": { "sectionId": "home-road", "portId": "entry" },
       "overlap": { "behind": 30, "ahead": 30 }
     }
   ],
   "assets": [
     {
-      "id": "asphalt",
-      "format": "superoutride.sprite-lod",
-      "version": 2,
-      "sha256": "45d46abc6aeda4f61ea38829a51f9f2f1d043e623b414d2007ee4c63f6ba08c3"
-    },
-    {
-      "id": "grass",
-      "format": "superoutride.sprite-lod",
-      "version": 2,
-      "sha256": "a8cd935c0f9cad31a2457edbbe64d3ad4f15433db1ee855120256cbe6a6b4f3f"
-    },
-    {
-      "id": "stripe",
-      "format": "superoutride.sprite-lod",
-      "version": 2,
-      "sha256": "3418c8d3e78f50049943fcb8835786cca7d9a8f51fd33f3c885b8dd184c6bad7"
-    },
-    {
-      "id": "shoulder",
-      "format": "superoutride.sprite-lod",
-      "version": 2,
-      "sha256": "23f4784edaf0a761a7f2b216423a407bc747f449dfeebab9190bdc2d19082142"
-    },
-    {
       "id": "coast-sky",
       "format": "superoutride.tile-background",
       "version": 1,
       "sha256": "0e4c15f03d93e1202735af76ae62f620d6adb0ae060236670fd58feff95fad00"
-    },
-    {
-      "id": "hill-sky",
-      "format": "superoutride.tile-background",
-      "version": 1,
-      "sha256": "ba3335624824ef3af6169e92f832bf4adeb870a5e5f2f7db3dcfa40aab4b635e"
     },
     {
       "id": "tree",
@@ -904,28 +871,28 @@
     ],
     "checkpoints": [
       {
-        "id": "left-path-CP1",
-        "sectionId": "left-path",
+        "id": "cliff-route-CP1",
+        "sectionId": "cliff-route",
         "carriagewayId": "road",
         "anchor": { "kind": "absolute", "s": 500 }
       },
       {
-        "id": "right-path-CP1",
-        "sectionId": "right-path",
+        "id": "garden-route-CP1",
+        "sectionId": "garden-route",
         "carriagewayId": "road",
         "anchor": { "kind": "absolute", "s": 600 }
       },
       {
-        "id": "shared-finish-CP1",
-        "sectionId": "shared-finish",
+        "id": "home-road-CP1",
+        "sectionId": "home-road",
         "carriagewayId": "road",
         "anchor": { "kind": "absolute", "s": 570 }
       }
     ],
     "finishes": [
       {
-        "id": "shared-finish-FINISH",
-        "sectionId": "shared-finish",
+        "id": "home-road-FINISH",
+        "sectionId": "home-road",
         "carriagewayId": "road",
         "anchor": { "kind": "absolute", "s": 1040 }
       }

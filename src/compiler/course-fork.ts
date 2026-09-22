@@ -1,7 +1,7 @@
 import { createPlanarCoordinateSample } from '../core/planar-sample.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../graphics/sprite.js';
 import { guidePathToWorld } from '../core/guide-curve.js';
-import { courseBoundaryAt } from '../course/course-bands.js';
+import { courseBoundaryAt } from '../course/course-regions.js';
 import { requireCourse } from '../course/course-diagnostics.js';
 import type { CompiledCourseAnchor } from '../course/course-geometry.js';
 import { coursePhysicalMaterialAt } from '../course/course-physical-binding.js';
@@ -52,11 +52,11 @@ export function compileCourseFork(
     guidePathToWorld(section.guide, lock.s, 0, createPlanarCoordinateSample()).heading,
     path,
   );
-  const bands = section.bandPartition.bands.filter((b) => b.start.s <= lock.s && b.end.s > lock.s);
-  check(bands.length > 0, 'Lock line needs supported Bands');
-  for (const band of bands) {
-    check(band.end.s > closure.s, 'Parallel-zone Bands must include closure in their half-open domains');
-    for (const boundary of [band.left, band.right]) {
+  const regions = section.regionPartition.regions.filter((b) => b.start.s <= lock.s && b.end.s > lock.s);
+  check(regions.length > 0, 'Lock line needs supported Regions');
+  for (const region of regions) {
+    check(region.end.s > closure.s, 'Parallel-zone Regions must include closure in their half-open domains');
+    for (const boundary of [region.left, region.right]) {
       const value = courseBoundaryAt(boundary, lock.s);
       check(
         courseBoundaryAt(boundary, closure.s) === value &&
@@ -64,16 +64,20 @@ export function compileCourseFork(
         'Lock-to-closure boundaries must remain parallel',
       );
     }
-    const binding = section.physicalBindings.find((b) => b.band === band);
-    if (!binding) throw new Error('Compiled Band has no physical binding');
+    const binding = section.physicalBindings.find((b) => b.region === region);
+    if (!binding) throw new Error('Compiled Region has no physical binding');
     check(
       coursePhysicalMaterialAt(binding, lock.s).supported &&
         binding.sections.every((s) => s.anchor.s <= lock.s || s.anchor.s > closure.s || s.material.supported),
       'Parallel-zone roads and medians must remain supported',
     );
   }
-  const ordered = bands
-    .map((band) => ({ band, left: courseBoundaryAt(band.left, lock.s), right: courseBoundaryAt(band.right, lock.s) }))
+  const ordered = regions
+    .map((region) => ({
+      region,
+      left: courseBoundaryAt(region.left, lock.s),
+      right: courseBoundaryAt(region.right, lock.s),
+    }))
     .filter((b) => b.right > b.left)
     .sort((a, b) => a.left - b.left);
   check(
@@ -82,14 +86,14 @@ export function compileCourseFork(
   );
   const roads = section.outgoing
     .map((link) => {
-      const parts = ordered.filter((b) => link.source.carriageway.bands.includes(b.band));
+      const parts = ordered.filter((b) => link.source.carriageway.regions.includes(b.region));
       check(parts.length > 0, 'Each exit carriageway must have positive width at lock');
       return { link, left: parts[0]!.left, right: parts.at(-1)!.right };
     })
     .sort((a, b) => a.left - b.left);
   check(
     ordered.every(
-      (b) => b.band.role !== 'pavement' || roads.some((r) => r.link.source.carriageway.bands.includes(b.band)),
+      (b) => b.region.role !== 'pavement' || roads.some((r) => r.link.source.carriageway.regions.includes(b.region)),
     ),
     'Every lock-line pavement belongs to an exit carriageway',
   );
@@ -98,7 +102,7 @@ export function compileCourseFork(
     const left = roads[i - 1]!.right,
       right = roads[i]!.left;
     check(
-      right > left && ordered.filter((b) => b.left < right && b.right > left).every((b) => b.band.role === 'median'),
+      right > left && ordered.filter((b) => b.left < right && b.right > left).every((b) => b.region.role === 'median'),
       'Exit carriageways need a positive supported separating median',
     );
     cuts.push(left + (right - left) / 2);

@@ -3,7 +3,7 @@ import path from 'node:path';
 import { plotCourseReport } from './plot-report.mjs';
 import { guidePathToWorld, sampleGuidePath } from '../../dist/core/guide-curve.js';
 import { guideCoordinateMetricsAt } from '../../dist/core/guide-coordinate-frame.js';
-import { courseBoundaryAt } from '../../dist/course/course-bands.js';
+import { courseBoundaryAt } from '../../dist/course/course-regions.js';
 import { atomicWrite, finite, requireInput } from './authoring-io.mjs';
 
 export async function courseReport(course, section, directory, step = 10) {
@@ -77,10 +77,10 @@ export async function courseReport(course, section, directory, step = 10) {
     ].join('\n') + '\n';
   await atomicWrite(path.join(directory, 'report.txt'), text);
   const plots = plotCourseReport(report);
-  await atomicWrite(path.join(directory, 'bands.svg'), plots.bands);
+  await atomicWrite(path.join(directory, 'regions.svg'), plots.regions);
   await atomicWrite(path.join(directory, 'plan.svg'), plots.plan);
   return {
     directory,
-    files: ['report.json', 'report.txt', 'bands.svg', 'plan.svg'].map((f) => path.join(directory, f)),
+    files: ['report.json', 'report.txt', 'regions.svg', 'plan.svg'].map((f) => path.join(directory, f)),
   };
 }

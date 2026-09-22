@@ -10,8 +10,8 @@ import {
 } from '../course/course-diagnostics.js';
 import { readCourseDocument, type CourseDocument, type SectionDocument } from '../course/course-document.js';
 import { COURSE_GEOMETRY_RECIPE, compileCourseGeometry, resolveCourseAnchor } from '../course/course-geometry.js';
-import { compileCourseBandGeometry } from '../course/course-band-geometry.js';
-import type { CompiledBoundary, CompiledBand, CompiledCarriageway } from '../course/course-bands.js';
+import { compileCourseRegionGeometry } from '../course/course-region-geometry.js';
+import type { CompiledBoundary, CompiledRegion, CompiledCarriageway } from '../course/course-regions.js';
 import type { CompiledSection, CompiledPort, CompiledLink } from './course-graph.js';
 import { COURSE_PHYSICAL_RECIPE, compileCoursePhysicalContent } from './course-physical-content.js';
 import { COURSE_LINK_RECIPE, compileCoursePort, compileCourseLink, validateCourseTopology } from './course-links.js';
@@ -54,7 +54,7 @@ export interface CompiledCourse {
 
 const COURSE_COMPILER = Object.freeze({
   id: 'superoutride.course-compiler',
-  version: 17,
+  version: 18,
   links: COURSE_LINK_RECIPE,
   physical: COURSE_PHYSICAL_RECIPE,
   images: COURSE_IMAGE_SOURCE_RECIPE,
@@ -117,12 +117,12 @@ function compileSection(
     return Object.freeze({ id: source.id, knots: Object.freeze(knots) });
   });
   const boundaryTable = new Map(boundaries.map((boundary) => [boundary.id, boundary]));
-  requireCourse(section.bands.length > 0, `${path}/bands`, 'A Section requires bands', 'invalid_band_domain');
-  const bands = compileStage(section.bands, (source, index): CompiledBand => {
-    const at = `${path}/bands/${index}`;
+  requireCourse(section.regions.length > 0, `${path}/regions`, 'A Section requires regions', 'invalid_region_domain');
+  const regions = compileStage(section.regions, (source, index): CompiledRegion => {
+    const at = `${path}/regions/${index}`;
     const start = resolve(source.start, `${at}/start`);
     const end = resolve(source.end, `${at}/end`);
-    requireCourse(end.s > start.s, at, 'Band interval must have positive length', 'invalid_band_domain');
+    requireCourse(end.s > start.s, at, 'Region interval must have positive length', 'invalid_region_domain');
     const left = reference(boundaryTable, source.leftBoundaryId, `${at}/leftBoundaryId`);
     const right = reference(boundaryTable, source.rightBoundaryId, `${at}/rightBoundaryId`);
     for (const [key, boundary] of [
@@ -132,49 +132,55 @@ function compileSection(
       requireCourse(
         boundary.knots[0]!.anchor.s <= start.s && boundary.knots.at(-1)!.anchor.s >= end.s,
         `${at}/${key}`,
-        `Boundary ${JSON.stringify(boundary.id)} must cover Band's closed interval [${start.s}, ${end.s}]`,
+        `Boundary ${JSON.stringify(boundary.id)} must cover Region's closed interval [${start.s}, ${end.s}]`,
         'invalid_boundary',
       );
     return Object.freeze({ id: source.id, start, end, left, right, role: source.role });
   });
-  const bandTable = new Map(bands.map((band) => [band.id, band]));
-  const assigned = new Set<CompiledBand>();
+  const regionTable = new Map(regions.map((region) => [region.id, region]));
+  const assigned = new Set<CompiledRegion>();
   const carriageways = compileStage(section.carriageways, (source, index): CompiledCarriageway => {
     const at = `${path}/carriageways/${index}`;
     requireCourse(
-      source.bandIds.length > 0,
-      `${at}/bandIds`,
-      'Carriageway needs at least one pavement Band',
+      source.regionIds.length > 0,
+      `${at}/regionIds`,
+      'Carriageway needs at least one pavement Region',
       'invalid_carriageway',
     );
-    const members = compileStage(source.bandIds, (id, i) => {
-      const band = reference(bandTable, id, `${at}/bandIds/${i}`);
+    const members = compileStage(source.regionIds, (id, i) => {
+      const region = reference(regionTable, id, `${at}/regionIds/${i}`);
       requireCourse(
-        band.role === 'pavement',
-        `${at}/bandIds/${i}`,
-        'Carriageways group pavement Bands',
+        region.role === 'pavement',
+        `${at}/regionIds/${i}`,
+        'Carriageways group pavement Regions',
         'invalid_carriageway',
       );
       requireCourse(
-        !assigned.has(band),
-        `${at}/bandIds/${i}`,
-        'Pavement Band must belong to exactly one Carriageway',
+        !assigned.has(region),
+        `${at}/regionIds/${i}`,
+        'Pavement Region must belong to exactly one Carriageway',
         'invalid_carriageway',
       );
-      return band;
+      return region;
     });
     if (new Set(members).size !== members.length)
-      throw new CourseInputError('invalid_carriageway', `${at}/bandIds`, 'Carriageway membership must be unique');
-    members.forEach((band) => assigned.add(band));
-    return Object.freeze({ id: source.id, bands: Object.freeze(members) });
+      throw new CourseInputError('invalid_carriageway', `${at}/regionIds`, 'Carriageway membership must be unique');
+    members.forEach((region) => assigned.add(region));
+    return Object.freeze({ id: source.id, regions: Object.freeze(members) });
   });
   requireCourse(
-    assigned.size > 0 && bands.every((band) => band.role !== 'pavement' || assigned.has(band)),
+    assigned.size > 0 && regions.every((region) => region.role !== 'pavement' || assigned.has(region)),
     `${path}/carriageways`,
-    'Every pavement Band needs one Carriageway',
+    'Every pavement Region needs one Carriageway',
     'invalid_carriageway',
   );
-  const { partition, envelope } = compileCourseBandGeometry(raster, bands, carriageways, section.guide.margin, path);
+  const { partition, envelope } = compileCourseRegionGeometry(
+    raster,
+    regions,
+    carriageways,
+    section.guide.margin,
+    path,
+  );
   let guide: GuidePath;
   try {
     guide = compileGuidePath(raster, {
@@ -199,8 +205,8 @@ function compileSection(
     raster,
     guide,
     boundaries: Object.freeze(boundaries),
-    bandPartition: partition,
-    ...compileCoursePhysicalContent(section, raster.length, bands, resolve, path),
+    regionPartition: partition,
+    ...compileCoursePhysicalContent(section, raster.length, regions, resolve, path),
     carriageways: Object.freeze(carriageways),
     assets: Object.freeze(sectionAssets),
     presentation: compileCoursePresentation(
@@ -293,6 +299,13 @@ export async function compileCourseDocument(
       compileSection(section, assets, instances, `/sections/${index}`),
     );
     const sections = drafts.map((draft) => draft.section);
+    requireCourse(
+      new Set(sections.flatMap((section) => (section.presentation ? [section.presentation.ground.kind] : []))).size <=
+        1,
+      '/sections',
+      'One course cannot mix resident and Band ground Sections',
+      'appearance_binding',
+    );
     const sectionTable = new Map(sections.map((section) => [section.id, section]));
     const portTables = new Map(
       sections.map((section) => [section, new Map(section.ports.map((port) => [port.id, port]))]),

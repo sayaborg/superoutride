@@ -1,9 +1,10 @@
+import { mountBandControls } from './browser/band-controls.js';
 import { readSpriteAssets, createVehiclePaletteVariant } from './visual/sprite-assets.js';
 import { createBrowserDrivingShell } from './browser/driving-shell.js';
 import { selectBrowserCourseMode } from './browser/course-mode-selection.js';
 import { mustGet } from './browser/dom.js';
 import { readCourseDocument } from './course/course-document.js';
-import { courseGroundPreflight, readCourseGround } from './compiler/course-ground.js';
+import { courseGroundPreflight, readCourseGround, createBandCourseGround } from './compiler/course-ground.js';
 import { compileCourseDocument } from './compiler/compiled-course.js';
 import { RECOVERY_PROFILE } from './gameplay/recovery.js';
 import type { DrivingInput } from './input/driving-input.js';
@@ -44,16 +45,21 @@ try {
   );
   const compiled = await compileCourseDocument(source.value, images);
   if (!compiled.ok) throw new Error(JSON.stringify(compiled.diagnostics));
-  const groundManifest = await fetchBytes(new URL(`ground/${mode}.json`, root));
-  const { manifest } = courseGroundPreflight(
-    compiled.value,
-    JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(groundManifest)),
-  );
-  const ground = await readCourseGround(
-    compiled.value,
-    manifest,
-    await fetchBytes(new URL(`ground/${mode}.bin`, root)),
-  );
+  const ground =
+    compiled.value.entry.presentation?.ground.kind === 'bands'
+      ? createBandCourseGround(compiled.value)
+      : await (async () => {
+          const groundManifest = await fetchBytes(new URL(`ground/${mode}.json`, root));
+          const { manifest } = courseGroundPreflight(
+            compiled.value,
+            JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(groundManifest)),
+          );
+          return await readCourseGround(
+            compiled.value,
+            manifest,
+            await fetchBytes(new URL(`ground/${mode}.bin`, root)),
+          );
+        })();
   const course = compiled.value;
   if (!course.rules) throw new RangeError('Playable courses require saved Session rules');
   const parameters = new URLSearchParams(location.search);
@@ -149,8 +155,8 @@ try {
       input.brake ? braking : sprites,
     );
     shell.present(mode, input, lifecycle.camera, result.playerScreenY, observations.rivals);
-    raceStatus.textContent = race.label();
-    performanceHud.frame(started);
+    raceStatus.textContent = manualPause ? 'PAUSED' : race.label();
+    performanceHud.frame(started, result.bandGround);
     if (race.clock.status === 'GOAL' || race.clock.status === 'GAME_OVER') {
       controls.complete();
       shell.stop();
@@ -180,6 +186,11 @@ try {
     else if (!manualPause && (race.clock.status === 'RUNNING' || race.clock.status === 'READY'))
       shell.start(tick, render);
   });
+  if (ground.kind === 'bands')
+    mountBandControls(scene.bandFilter, (value) => {
+      scene.setBandFilter(value);
+      render();
+    });
   status.remove();
   shell.start(tick, render);
   if (parameters.get('autostart') === '1') controls.begin();

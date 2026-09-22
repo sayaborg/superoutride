@@ -13,8 +13,9 @@ export async function compileCourseImages(document, inputs) {
     const presentation = section.presentation;
     if (!presentation) continue;
     for (const row of presentation.sceneryRows) sceneryIds.add(row.assetId);
-    for (const band of presentation.ground.bands)
-      for (const slice of band.sections) if (slice.paint) groundIds.add(slice.paint.assetId);
+    if (presentation.ground.kind !== 'resident') continue;
+    for (const region of presentation.ground.regions)
+      for (const slice of region.sections) if (slice.paint) groundIds.add(slice.paint.assetId);
     for (const stamp of presentation.ground.stamps) groundIds.add(stamp.assetId);
   }
   const original = new Map(inputs.map((input) => [input.sha256, input]));

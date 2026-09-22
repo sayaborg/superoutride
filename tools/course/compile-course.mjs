@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { readCourseImages } from './read-course-images.mjs';
 import { parseCourseDocument } from '../../dist/course/course-document.js';
 import { createCourseProject } from '../../dist/authoring/course-project.js';
-import { createBandSurfaceReader } from '../../dist/physics/band-surface-reader.js';
+import { createRegionSurfaceReader } from '../../dist/physics/region-surface-reader.js';
 import { courseFailures, CourseAssetError } from '../../dist/course/course-diagnostics.js';
 import { createCourseGroundSource } from '../../dist/groundmap/course-ground-source.js';
 const [sourcePath, flag, imageDirectory, ...extra] = process.argv.slice(2);
@@ -44,10 +44,11 @@ if (!result.ok) {
           id: section.id,
           length: section.raster.length,
           segments: section.raster.segments.length,
-          bands: section.bandPartition.bands.length,
+          regions: section.regionPartition.regions.length,
           heightNodes: section.height.nodes.length,
           physicalBindings: section.physicalBindings.length,
-          maxSupportedAbsL: createBandSurfaceReader(section.bandPartition, section.physicalBindings).maxSupportedAbsL,
+          maxSupportedAbsL: createRegionSurfaceReader(section.regionPartition, section.physicalBindings)
+            .maxSupportedAbsL,
           carriageways: section.carriageways.length,
           ports: section.ports.length,
           fork:
@@ -62,11 +63,16 @@ if (!result.ok) {
             section.presentation === null
               ? null
               : {
-                  bandBindings: section.presentation.ground.bands.length,
-                  stamps: section.presentation.ground.stamps.length,
+                  ...(section.presentation.ground.kind === 'bands'
+                    ? { kind: 'bands', ...section.presentation.ground.metrics }
+                    : {
+                        kind: 'resident',
+                        regionBindings: section.presentation.ground.regions.length,
+                        stamps: section.presentation.ground.stamps.length,
+                        groundOriginRgb555: createCourseGroundSource(section.presentation.ground).sample(0, 0),
+                      }),
                   environments: section.presentation.environments.length,
                   scenery: section.presentation.scenery.length,
-                  groundOriginRgb555: createCourseGroundSource(section.presentation.ground).sample(0, 0),
                 },
         })),
       },

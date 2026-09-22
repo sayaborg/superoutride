@@ -1,4 +1,4 @@
-import type { BandDocument } from './course-document.js';
+import type { RegionDocument } from './course-document.js';
 import type { CompiledCourseAnchor } from './course-geometry.js';
 import type { RasterPath } from '../core/raster-path.js';
 
@@ -7,26 +7,26 @@ export interface CompiledBoundary {
   readonly knots: readonly { readonly anchor: CompiledCourseAnchor; readonly l: number }[];
 }
 
-export interface CompiledBand {
+export interface CompiledRegion {
   readonly id: string;
   readonly start: CompiledCourseAnchor;
   readonly end: CompiledCourseAnchor;
   readonly left: CompiledBoundary;
   readonly right: CompiledBoundary;
-  readonly role: BandDocument['role'];
+  readonly role: RegionDocument['role'];
 }
 
 export interface CompiledCarriageway {
   readonly id: string;
-  readonly bands: readonly CompiledBand[];
+  readonly regions: readonly CompiledRegion[];
 }
 
-/** Narrow finite-domain facet; no Band is privileged as the Section's domain authority. */
-export interface CompiledBandPartition {
-  /** Canonical geometry against which the mapped Bands were admitted. */
+/** Narrow finite-domain facet; no Region is privileged as the Section's domain authority. */
+export interface CompiledRegionPartition {
+  /** Canonical geometry against which the mapped Regions were admitted. */
   readonly raster: RasterPath;
   readonly length: number;
-  readonly bands: readonly CompiledBand[];
+  readonly regions: readonly CompiledRegion[];
 }
 
 /** Canonical resolved knots are the authority; neither widths nor centers are independently stored. */
@@ -51,26 +51,26 @@ export function courseBoundaryAt(boundary: CompiledBoundary, s: number): number 
 }
 
 /** Half-open ownership; l is in the chart whose zero is sourceLateralOrigin in source coordinates. */
-export function courseBandAt(
-  partition: CompiledBandPartition,
+export function courseRegionAt(
+  partition: CompiledRegionPartition,
   s: number,
   l: number,
   sourceLateralOrigin = 0,
-): CompiledBand | null {
-  if (typeof sourceLateralOrigin !== 'number') throw new TypeError('Band lateral origin must be numeric');
+): CompiledRegion | null {
+  if (typeof sourceLateralOrigin !== 'number') throw new TypeError('Region lateral origin must be numeric');
   if (!Number.isFinite(l) || !Number.isFinite(sourceLateralOrigin))
-    throw new RangeError('Band lateral query and origin must be finite');
+    throw new RangeError('Region lateral query and origin must be finite');
   if (!Number.isFinite(s) || s < 0 || s > partition.length)
-    throw new RangeError('Band query must be within its finite Section domain');
-  for (let i = 0; i < partition.bands.length; i++) {
-    const band = partition.bands[i]!;
+    throw new RangeError('Region query must be within its finite Section domain');
+  for (let i = 0; i < partition.regions.length; i++) {
+    const region = partition.regions[i]!;
     if (
-      s >= band.start.s &&
-      (s < band.end.s || (s === partition.length && s === band.end.s)) &&
-      l >= courseBoundaryAt(band.left, s) - sourceLateralOrigin &&
-      l < courseBoundaryAt(band.right, s) - sourceLateralOrigin
+      s >= region.start.s &&
+      (s < region.end.s || (s === partition.length && s === region.end.s)) &&
+      l >= courseBoundaryAt(region.left, s) - sourceLateralOrigin &&
+      l < courseBoundaryAt(region.right, s) - sourceLateralOrigin
     )
-      return band;
+      return region;
   }
   return null;
 }

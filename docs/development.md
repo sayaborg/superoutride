@@ -20,9 +20,9 @@ Use Node.js 24. [AGENTS](../AGENTS.md) owns checks and release procedure.
 Run after building:
 
 ```sh
-npm run course -- compile content/courses/linear.course.json
-npm run course -- render content/courses/linear.course.json --s 100 --l 0 --vehicle TESTAROSSA --out /tmp/course.png
-npm run course -- report content/courses/linear.course.json --step 25 --out /tmp/course-report
+npm run course -- compile content/courses/ribbon-coast.course.json
+npm run course -- render content/courses/ribbon-coast.course.json --s 100 --l 0 --vehicle TESTAROSSA --out /tmp/course.png
+npm run course -- report content/courses/ribbon-coast.course.json --step 25 --out /tmp/course-report
 node tools/course/fit.mjs observations.json recipe.json --out course.course.json
 node tools/course/measure.mjs request.json --out observations.json
 ```
@@ -64,7 +64,10 @@ reference evidence. Product-renderer previews and reports are generated outputs.
 ## Build outputs
 
 `dist/` contains compiled ESM and graphics tools. `dist/content/` contains course JSON, compiled
-images/sprites, completed resident RGB555 ground and the content manifest. Build also generates
+images/sprites and the content manifest. Only legacy courses include completed resident RGB555 payloads.
+Band course JSON retains authored constructs; the shared compiler expands them and builds immutable
+preblend fields before browser driving or headless rendering. Expanded Bands and their profiles are
+in-memory compiler products, not committed files or an additional delivered image format. Build also generates
 vehicle envelopes, continuous reference runs and game time budgets. Matching disposable data under
 `.cache/course-reference/` is reused; changed inputs regenerate it. Browsers load these products.
 

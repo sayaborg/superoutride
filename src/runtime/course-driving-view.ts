@@ -1,3 +1,4 @@
+import { createBandGroundSampler } from '../visual/band-ground.js';
 import type { Writable } from '../core/writable.js';
 import type { CourseCoordinate } from '../core/guide-curve.js';
 import { createPlanarCoordinateSample } from '../core/planar-sample.js';
@@ -22,10 +23,10 @@ import { compileCourseGeometryWindow } from '../course/course-geometry-window.js
 import type { CompiledSection } from '../compiler/course-graph.js';
 import { compileCoursePhysicalDomains } from '../compiler/course-physical-overlap.js';
 import { compileCoursePresentationDomains } from '../compiler/course-presentation-overlap.js';
-import { createBandSurfaceReader } from '../physics/band-surface-reader.js';
+import { createRegionSurfaceReader } from '../physics/region-surface-reader.js';
 import type { VehicleWorld } from '../physics/vehicle-contract.js';
 import { createCoursePresentationPreview } from '../render/course-presentation-preview.js';
-import type { GroundColorReader } from '../render/renderer.js';
+import type { GroundColorReader, BandGroundReader } from '../render/renderer.js';
 import type { VisualProfileReader } from '../visual/visual-profile.js';
 import type { CourseGeometryView } from './course-geometry-view.js';
 import type { CourseOccurrence } from './course-occurrence.js';
@@ -55,11 +56,11 @@ export function createCourseDrivingSource(resident: CourseGround, physical: Phys
     physical.links.some((l) => !presentation.links.includes(l))
   )
     throw new RangeError('Driving qualifications must refer to the same canonical Links');
-  const surfaces = new Map<CompiledSection, ReturnType<typeof createBandSurfaceReader>>();
+  const surfaces = new Map<CompiledSection, ReturnType<typeof createRegionSurfaceReader>>();
   const surface = (section: CompiledSection) => {
     let value = surfaces.get(section);
     if (!value) {
-      value = createBandSurfaceReader(section.bandPartition, section.physicalBindings);
+      value = createRegionSurfaceReader(section.regionPartition, section.physicalBindings);
       surfaces.set(section, value);
     }
     return value;
@@ -114,7 +115,7 @@ export function createCourseDrivingSource(resident: CourseGround, physical: Phys
       ...span,
       sourceFromView: invertPlanarTransform(span.viewFromSource),
       surface: surface(span.occurrence.section),
-      ground: resident.forSection(span.occurrence.section),
+      residentGround: resident.kind === 'resident' ? resident.forSection(span.occurrence.section) : null,
       presentation: sourcePresentation(span.occurrence.section),
       backgrounds: sourcePresentation(span.occurrence.section).backgrounds.map((background) =>
         Object.freeze({
@@ -441,46 +442,61 @@ export function createCourseDrivingSource(resident: CourseGround, physical: Phys
         return (visualSections[index + 1]?.sStart ?? range.end) - s;
       },
     });
-    const ground: GroundColorReader = Object.freeze({
-      kind: 'baked',
-      kMax: resident.kMax,
-      selectLevel: (deltaS: number) => selectGroundLevel(deltaS, resident.kMax),
-      sampleAtLevel(s: number, l: number, level: number) {
-        const mapping = mappingAt(s);
-        const sourceS = mapping.sourceChainageInFrame(s);
-        const sourceL = l + mapping.sourceLateralOrigin;
-        const { left, right } = mapping.ground.domain;
-        if (sourceL >= left && sourceL < right) return mapping.ground.sampleAtLevel(sourceS, sourceL, level);
-        const environment = mapping.presentation.visual.sample(sourceS);
-        const base = sourceL < left ? environment.groundBaseLeft : environment.groundBaseRight;
-        return base.kind === 'color' ? base.color : null;
-      },
-      sampleSpan(
-        pixels: Uint32Array,
-        offset: number,
-        count: number,
-        s: number,
-        l: number,
-        stepL: number,
-        level: number,
-      ) {
-        const mapping = mappingAt(s),
-          sourceS = mapping.sourceChainageInFrame(s);
-        const environment = mapping.presentation.visual.sample(sourceS);
-        mapping.ground.sampleSpan(
-          pixels,
-          offset,
-          count,
-          sourceS,
-          l,
-          stepL,
-          level,
-          mapping.sourceLateralOrigin,
-          environment.groundBaseLeft.kind === 'color' ? environment.groundBaseLeft.color : null,
-          environment.groundBaseRight.kind === 'color' ? environment.groundBaseRight.color : null,
-        );
-      },
-    });
+    const ground: GroundColorReader | BandGroundReader =
+      resident.kind === 'bands'
+        ? Object.freeze({
+            kind: 'bands' as const,
+            ...createBandGroundSampler(
+              mapped.map((mapping) => ({
+                ground: resident.forSection(mapping.occurrence.section),
+                frameStart: mapping.frameStart,
+                sourceStart: mapping.sourceRange.start,
+                sourceEnd: mapping.sourceRange.end,
+                lateralOrigin: mapping.sourceLateralOrigin,
+              })),
+            ),
+          })
+        : Object.freeze({
+            kind: 'baked',
+            kMax: resident.kMax,
+            selectLevel: (deltaS: number) => selectGroundLevel(deltaS, resident.kMax),
+            sampleAtLevel(s: number, l: number, level: number) {
+              const mapping = mappingAt(s);
+              const sourceS = mapping.sourceChainageInFrame(s);
+              const sourceL = l + mapping.sourceLateralOrigin;
+              const { left, right } = mapping.residentGround!.domain;
+              if (sourceL >= left && sourceL < right)
+                return mapping.residentGround!.sampleAtLevel(sourceS, sourceL, level);
+              const environment = mapping.presentation.visual.sample(sourceS);
+              const base = sourceL < left ? environment.groundBaseLeft : environment.groundBaseRight;
+              return base.kind === 'color' ? base.color : null;
+            },
+            sampleSpan(
+              pixels: Uint32Array,
+              offset: number,
+              count: number,
+              s: number,
+              l: number,
+              stepL: number,
+              level: number,
+            ) {
+              const mapping = mappingAt(s),
+                sourceS = mapping.sourceChainageInFrame(s);
+              const environment = mapping.presentation.visual.sample(sourceS);
+              mapping.residentGround!.sampleSpan(
+                pixels,
+                offset,
+                count,
+                sourceS,
+                l,
+                stepL,
+                level,
+                mapping.sourceLateralOrigin,
+                environment.groundBaseLeft.kind === 'color' ? environment.groundBaseLeft.color : null,
+                environment.groundBaseRight.kind === 'color' ? environment.groundBaseRight.color : null,
+              );
+            },
+          });
     const scenery = mapped.flatMap((mapping) =>
       mapping.presentation.sprites
         .filter(({ sprite }) => {
@@ -500,10 +516,13 @@ export function createCourseDrivingSource(resident: CourseGround, physical: Phys
           }),
         ),
     );
-    const groundProfile = Object.freeze({
-      groundLeft: Math.min(...mapped.map((m) => -m.presentation.ground.domain.left + m.sourceLateralOrigin)),
-      groundRight: Math.min(...mapped.map((m) => m.presentation.ground.domain.right - m.sourceLateralOrigin)),
-    });
+    const groundProfile =
+      resident.kind === 'bands'
+        ? Object.freeze({ groundLeft: 1, groundRight: 1 })
+        : Object.freeze({
+            groundLeft: Math.min(...mapped.map((m) => -m.presentation.ground.domain.left + m.sourceLateralOrigin)),
+            groundRight: Math.min(...mapped.map((m) => m.presentation.ground.domain.right - m.sourceLateralOrigin)),
+          });
     if (groundProfile.groundLeft + groundProfile.groundRight <= 0)
       return Object.freeze({ ok: false as const, reason: 'presentation_strip_disjoint' as const });
     return Object.freeze({

@@ -41,10 +41,13 @@ export function compileBrowserCourseModes(
 }
 
 export const BROWSER_COURSE_MODES = compileBrowserCourseModes([
-  { ...BROWSER_COURSE_KEYS.linear, label: 'LINEAR', query: 'linear' },
-  { digitCode: 'Digit2', numpadCode: 'Numpad2', label: 'SEAM', query: 'seam' },
-  { digitCode: 'Digit3', numpadCode: 'Numpad3', label: 'CIRCUIT', query: 'circuit' },
-  { digitCode: 'Digit4', numpadCode: 'Numpad4', label: 'BRANCH', query: 'branch' },
+  { digitCode: 'Digit5', numpadCode: 'Numpad5', label: 'RIBBON COAST', query: 'ribbon-coast' },
+  { digitCode: 'Digit6', numpadCode: 'Numpad6', label: 'RIBBON RING', query: 'ribbon-ring' },
+  { digitCode: 'Digit7', numpadCode: 'Numpad7', label: 'RIBBON FORK', query: 'ribbon-fork' },
+  { ...BROWSER_COURSE_KEYS.linear, label: 'LEGACY LINEAR', query: 'linear' },
+  { digitCode: 'Digit2', numpadCode: 'Numpad2', label: 'LEGACY SEAM', query: 'seam' },
+  { digitCode: 'Digit3', numpadCode: 'Numpad3', label: 'LEGACY CIRCUIT', query: 'circuit' },
+  { digitCode: 'Digit4', numpadCode: 'Numpad4', label: 'LEGACY BRANCH', query: 'branch' },
 ]);
 
 export function formatBrowserCourseSelector(activeQuery: BrowserCourseModeQuery): string {

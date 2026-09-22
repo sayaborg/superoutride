@@ -22,9 +22,11 @@ A persisted page restored from browser history reloads the page.
 
 ## Selection and URL parameters
 
-The current course selector maps `linear` / LINEAR / 1, `seam` / SEAM / 2,
-`circuit` / CIRCUIT / 3 and `branch` / BRANCH / 4. Digit-row and numeric-keypad shortcuts work;
-repeated keydown is ignored. Missing or unknown `mode` selects the first entry, LINEAR.
+The current course selector maps `ribbon-coast` / RIBBON COAST / 5, `ribbon-ring` / RIBBON RING / 6
+and `ribbon-fork` / RIBBON FORK / 7. The resident selections remain as `linear` / LEGACY LINEAR / 1,
+`seam` / LEGACY SEAM / 2, `circuit` / LEGACY CIRCUIT / 3 and `branch` / LEGACY BRANCH / 4.
+Digit-row and numeric-keypad shortcuts work; repeated keydown is ignored. Missing or unknown `mode`
+selects the first entry, RIBBON COAST.
 Selecting the active course does nothing. Selecting another performs full-page navigation, changes
 `mode`, removes `session`, `vehicle`, `rivals`, `laps`, `clock` and `autostart`, and preserves other URL data.
 
@@ -45,7 +47,7 @@ query overrides. CUSTOM exposes those settings. Invalid vehicle, numeric or cour
 produce an error. Setup locks preset fields in CLASSIC and disables a single-lap course's lap control.
 
 ```text
-?mode=seam&session=CUSTOM&vehicle=TESTAROSSA&rivals=16&laps=1&clock=off&autostart=1
+?mode=ribbon-coast&session=CUSTOM&vehicle=TESTAROSSA&rivals=16&laps=1&clock=off&autostart=1
 ```
 
 Submitting equal resolved settings starts in place. Changed settings reload with their query values
@@ -71,13 +73,22 @@ the corresponding ownership and visible origin/vector indicators.
 
 ## Performance HUD
 
-The HUD displays FPS, maximum CPU frame time, maximum fixed-step time, maximum frame interval,
-lifetime maximum seam-commit time, resident ground MiB, unique tile count and Section count,
-followed by `loaded once`. The first frame reports immediately, then approximately every half second.
+The HUD displays FPS, maximum CPU frame time, maximum fixed-step time, maximum frame interval and
+lifetime maximum seam-commit time. The first frame reports immediately, then approximately every half second.
+
+For Bands it also displays the selected filter, the reporting window's maximum visible active count,
+the compiled course maximum and active limit, maximum ground-sampling CPU milliseconds, the latest
+frame's largest reused s exponent and lateral-segment work count, coefficient/index MiB, expanded
+piece count and unique profile count. Coefficient/index bytes are numeric storage, not total JavaScript
+heap or total scene memory. The visible count includes hidden Bands in each contributing source slab;
+it is a maximum, not a sum over pixels or Sections. Lateral work counts actual integrated segments or
+batched constant runs, not original Bands. These are measurements, not device performance verdicts.
+
+Legacy courses instead show resident ground MiB, unique tile and Section counts, followed by `loaded once`.
 
 CPU time adds fixed-step work since the preceding render to rendering/presentation work. Frame
 interval is elapsed time between completed frames. FPS and frame/step/interval maxima reset each
-reporting window; seam maximum is cumulative. Ground MiB is resident bytes divided by 1,048,576.
+reporting window; seam maximum is cumulative. All MiB values divide the corresponding bytes by 1,048,576.
 
 ## DEV controls
 
@@ -90,6 +101,18 @@ Tire and steering selectors use minus/value/plus controls. Their choices wrap at
 ACT selects traversal time in seconds. Y/U/T step D/M/ACT forward. Vehicle replacement carries active
 tire calibration. The selectable body-yaw and movement-yaw cameras use the same projection.
 [Calibration](calibration.md#vehicle-settings) lists values, units and ranges.
+
+### Band comparison
+
+On a Band course, DEV contains POINT, BOX and TENT buttons with the selected button pressed.
+BOX is the provisional default, not a final product choice. A click changes only the lateral kernel
+and immediately redraws the current scene, including while paused. Camera, vehicle, Session and
+occurrence history are preserved; there is no reload, restart or course recompile. The controls use
+the DEV input isolation above. Page/course reload restores BOX. Legacy courses have no Band selector.
+
+Compare the same paused scene first, then compare motion on the same course and vehicle. Coast's
+lettering and bridge, Fork's route arrows and Ring's repeated curbs provide different edge patterns.
+[Architecture](architecture.md#band-rendering) defines the kernels; the HUD reports their actual work.
 
 ### Sound controls
 

@@ -10,7 +10,7 @@ import {
   transformPlanarPoint,
   type PlanarTransform,
 } from '../core/planar-transform.js';
-import { courseBandAt } from '../course/course-bands.js';
+import { courseRegionAt } from '../course/course-regions.js';
 import { coursePortLateral } from '../compiler/course-links.js';
 import type { CourseOccurrence, CourseOccurrenceHistory } from './course-occurrence.js';
 
@@ -180,14 +180,14 @@ export function createCourseGeometryView(history: CourseOccurrenceHistory, deman
         b = Math.min(length, cuts[i + 1]!);
       if (b < a) return [];
       // Preserve classification stations. Continuous Core geometry retains its own sampling tolerance;
-      // nearby roundoff-size fillet joins are not extra Band ownership boundaries.
+      // nearby roundoff-size fillet joins are not extra Region ownership boundaries.
       const stations = new Map<number, number>();
       const frameStations = new Map<number, number>();
       for (const s of new Set([
         sourceStart,
         sourceEnd,
         ...section.boundaries.flatMap((boundary) => boundary.knots.map((knot) => knot.anchor.s)),
-        ...section.bandPartition.bands.flatMap((band) => [band.start.s, band.end.s]),
+        ...section.regionPartition.regions.flatMap((region) => [region.start.s, region.end.s]),
       ])) {
         if (s < sourceStart || s > sourceEnd) continue;
         const mapped = s === sourceStart ? cuts[i]! : s === sourceEnd ? cuts[i + 1]! : viewS(mapping, s);
@@ -324,10 +324,10 @@ export function createCourseGeometryView(history: CourseOccurrenceHistory, deman
             return { left: -limit - span.mapping.sourceLateralOrigin, right: limit - span.mapping.sourceLateralOrigin };
           },
         }),
-        bandAt(s: number, l: number) {
+        regionAt(s: number, l: number) {
           const { span, address } = resolve(s, l);
-          return courseBandAt(
-            address.occurrence.section.bandPartition,
+          return courseRegionAt(
+            address.occurrence.section.regionPartition,
             address.sourceS,
             l,
             span.mapping.sourceLateralOrigin,

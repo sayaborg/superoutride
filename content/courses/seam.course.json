@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 10,
+  "version": 11,
   "reference": null,
   "id": "provisional-seam",
   "units": { "length": "m", "angle": "deg" },
@@ -91,7 +91,7 @@
           ]
         }
       ],
-      "bands": [
+      "regions": [
         {
           "id": "grass-left",
           "start": { "kind": "primitive", "primitiveId": "start", "fraction": 0 },
@@ -157,49 +157,49 @@
       ],
       "physicalBindings": [
         {
-          "bandId": "grass-left",
+          "regionId": "grass-left",
           "sections": [
             { "anchor": { "kind": "primitive", "primitiveId": "start", "fraction": 0 }, "material": "GRASS" }
           ]
         },
         {
-          "bandId": "kerb-left",
+          "regionId": "kerb-left",
           "sections": [
             { "anchor": { "kind": "primitive", "primitiveId": "start", "fraction": 0 }, "material": "ASPHALT" }
           ]
         },
         {
-          "bandId": "lane-left",
+          "regionId": "lane-left",
           "sections": [
             { "anchor": { "kind": "primitive", "primitiveId": "start", "fraction": 0 }, "material": "ASPHALT" }
           ]
         },
         {
-          "bandId": "center",
+          "regionId": "center",
           "sections": [
             { "anchor": { "kind": "primitive", "primitiveId": "start", "fraction": 0 }, "material": "ASPHALT" }
           ]
         },
         {
-          "bandId": "lane-right",
+          "regionId": "lane-right",
           "sections": [
             { "anchor": { "kind": "primitive", "primitiveId": "start", "fraction": 0 }, "material": "ASPHALT" }
           ]
         },
         {
-          "bandId": "kerb-right",
+          "regionId": "kerb-right",
           "sections": [
             { "anchor": { "kind": "primitive", "primitiveId": "start", "fraction": 0 }, "material": "ASPHALT" }
           ]
         },
         {
-          "bandId": "grass-right",
+          "regionId": "grass-right",
           "sections": [
             { "anchor": { "kind": "primitive", "primitiveId": "start", "fraction": 0 }, "material": "GRASS" }
           ]
         }
       ],
-      "carriageways": [{ "id": "road", "bandIds": ["lane-left", "center", "lane-right"] }],
+      "carriageways": [{ "id": "road", "regionIds": ["lane-left", "center", "lane-right"] }],
       "ports": [
         {
           "id": "start",
@@ -218,12 +218,13 @@
       "fork": null,
       "presentation": {
         "ground": {
+          "kind": "resident",
           "left": 60,
           "right": 60,
           "baseRgb555": 9799,
-          "bands": [
+          "regions": [
             {
-              "bandId": "grass-left",
+              "regionId": "grass-left",
               "sections": [
                 {
                   "anchor": { "kind": "primitive", "primitiveId": "start", "fraction": 0 },
@@ -232,7 +233,7 @@
               ]
             },
             {
-              "bandId": "kerb-left",
+              "regionId": "kerb-left",
               "sections": [
                 {
                   "anchor": { "kind": "primitive", "primitiveId": "start", "fraction": 0 },
@@ -253,7 +254,7 @@
               ]
             },
             {
-              "bandId": "lane-left",
+              "regionId": "lane-left",
               "sections": [
                 {
                   "anchor": { "kind": "primitive", "primitiveId": "start", "fraction": 0 },
@@ -262,7 +263,7 @@
               ]
             },
             {
-              "bandId": "center",
+              "regionId": "center",
               "sections": [
                 {
                   "anchor": { "kind": "primitive", "primitiveId": "start", "fraction": 0 },
@@ -282,7 +283,7 @@
               ]
             },
             {
-              "bandId": "lane-right",
+              "regionId": "lane-right",
               "sections": [
                 {
                   "anchor": { "kind": "primitive", "primitiveId": "start", "fraction": 0 },
@@ -291,7 +292,7 @@
               ]
             },
             {
-              "bandId": "kerb-right",
+              "regionId": "kerb-right",
               "sections": [
                 {
                   "anchor": { "kind": "primitive", "primitiveId": "start", "fraction": 0 },
@@ -312,7 +313,7 @@
               ]
             },
             {
-              "bandId": "grass-right",
+              "regionId": "grass-right",
               "sections": [
                 {
                   "anchor": { "kind": "primitive", "primitiveId": "start", "fraction": 0 },
@@ -452,7 +453,7 @@
           ]
         }
       ],
-      "bands": [
+      "regions": [
         {
           "id": "grass-left",
           "start": { "kind": "primitive", "primitiveId": "ridge", "fraction": 0 },
@@ -520,49 +521,49 @@
       ],
       "physicalBindings": [
         {
-          "bandId": "grass-left",
+          "regionId": "grass-left",
           "sections": [
             { "anchor": { "kind": "primitive", "primitiveId": "ridge", "fraction": 0 }, "material": "GRASS" }
           ]
         },
         {
-          "bandId": "kerb-left",
+          "regionId": "kerb-left",
           "sections": [
             { "anchor": { "kind": "primitive", "primitiveId": "ridge", "fraction": 0 }, "material": "ASPHALT" }
           ]
         },
         {
-          "bandId": "lane-left",
+          "regionId": "lane-left",
           "sections": [
             { "anchor": { "kind": "primitive", "primitiveId": "ridge", "fraction": 0 }, "material": "ASPHALT" }
           ]
         },
         {
-          "bandId": "center",
+          "regionId": "center",
           "sections": [
             { "anchor": { "kind": "primitive", "primitiveId": "ridge", "fraction": 0 }, "material": "ASPHALT" }
           ]
         },
         {
-          "bandId": "lane-right",
+          "regionId": "lane-right",
           "sections": [
             { "anchor": { "kind": "primitive", "primitiveId": "ridge", "fraction": 0 }, "material": "ASPHALT" }
           ]
         },
         {
-          "bandId": "kerb-right",
+          "regionId": "kerb-right",
           "sections": [
             { "anchor": { "kind": "primitive", "primitiveId": "ridge", "fraction": 0 }, "material": "ASPHALT" }
           ]
         },
         {
-          "bandId": "grass-right",
+          "regionId": "grass-right",
           "sections": [
             { "anchor": { "kind": "primitive", "primitiveId": "ridge", "fraction": 0 }, "material": "GRASS" }
           ]
         }
       ],
-      "carriageways": [{ "id": "road", "bandIds": ["lane-left", "center", "lane-right"] }],
+      "carriageways": [{ "id": "road", "regionIds": ["lane-left", "center", "lane-right"] }],
       "ports": [
         {
           "id": "entry",
@@ -575,12 +576,13 @@
       "fork": null,
       "presentation": {
         "ground": {
+          "kind": "resident",
           "left": 60,
           "right": 60,
           "baseRgb555": 9799,
-          "bands": [
+          "regions": [
             {
-              "bandId": "grass-left",
+              "regionId": "grass-left",
               "sections": [
                 {
                   "anchor": { "kind": "primitive", "primitiveId": "ridge", "fraction": 0 },
@@ -589,7 +591,7 @@
               ]
             },
             {
-              "bandId": "kerb-left",
+              "regionId": "kerb-left",
               "sections": [
                 {
                   "anchor": { "kind": "primitive", "primitiveId": "ridge", "fraction": 0 },
@@ -610,7 +612,7 @@
               ]
             },
             {
-              "bandId": "lane-left",
+              "regionId": "lane-left",
               "sections": [
                 {
                   "anchor": { "kind": "primitive", "primitiveId": "ridge", "fraction": 0 },
@@ -619,7 +621,7 @@
               ]
             },
             {
-              "bandId": "center",
+              "regionId": "center",
               "sections": [
                 {
                   "anchor": { "kind": "primitive", "primitiveId": "ridge", "fraction": 0 },
@@ -639,7 +641,7 @@
               ]
             },
             {
-              "bandId": "lane-right",
+              "regionId": "lane-right",
               "sections": [
                 {
                   "anchor": { "kind": "primitive", "primitiveId": "ridge", "fraction": 0 },
@@ -648,7 +650,7 @@
               ]
             },
             {
-              "bandId": "kerb-right",
+              "regionId": "kerb-right",
               "sections": [
                 {
                   "anchor": { "kind": "primitive", "primitiveId": "ridge", "fraction": 0 },
@@ -669,7 +671,7 @@
               ]
             },
             {
-              "bandId": "grass-right",
+              "regionId": "grass-right",
               "sections": [
                 {
                   "anchor": { "kind": "primitive", "primitiveId": "ridge", "fraction": 0 },

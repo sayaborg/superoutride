@@ -7,16 +7,20 @@ owns image formats and compilation; [Browser](browser.md) owns operation and URL
 ## Course vocabulary
 
 A Section is a reusable finite road/content chart. A Boundary is a longitudinal lateral-edge profile;
-a Band is a region between two Boundaries with an active interval and a structural role. A Carriageway
-groups pavement Bands. A Port is an oriented connection anchor in a Section; a Link connects an exit
+a Region is a structural partition between two Boundaries with an active interval and role. A Carriageway
+groups pavement Regions. A Port is an oriented connection anchor in a Section; a Link connects an exit
 Port to an entry Port. An occurrence is a traversal of a Section with a particular incoming Link and
 history. A view is a bounded reader over occurrence spans in one frame. CompiledCourse is the immutable
 reference graph. An actor's frame commit changes its occurrence and coordinate basis after a physical seam crossing.
 
+A Band is a colored visual strip with its own edges and active interval. Bands are ordered and may
+overlap or erase earlier colors; they do not refer to physical Regions. Regions remain nonoverlapping
+structural partitions with material bindings. One concept has one name in both source and compiled data.
+
 Checkpoints, starts, finishes and environment changes are independent of Section boundaries.
 Source identity, traversal identity and race credit are distinct.
 
-## CourseDocument v10
+## CourseDocument v11
 
 The saved format is compact UTF-8 JSON. All declared fields are required; explicit null represents
 absent optional content. Unknown fields fail. Arrays preserve saved order; object-property order and
@@ -24,7 +28,7 @@ whitespace do not affect identity. Normalized records use schema field order and
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 10,
+  format: "superoutride.course", version: 11,
   reference, id, units: {length: "m", angle: "deg"},
   geometryRecipe: {id, version},
   type: "LINEAR" | "BRANCH" | "CIRCUIT", entrySectionId,
@@ -32,8 +36,8 @@ CourseDocument {
 }
 Section {
   id, start: {x, z, heading}, guide: {margin, mMin}, primitives,
-  boundaries, bands, height: [{anchor, y}],
-  physicalBindings: [{bandId, sections: [{anchor, material}]}],
+  boundaries, regions, height: [{anchor, y}],
+  physicalBindings: [{regionId, sections: [{anchor, material}]}],
   carriageways, ports, assetIds, presentation, fork
 }
 ```
@@ -47,14 +51,14 @@ Section {
 | Absolute anchor  | `kind: "absolute"`, `s`                                                                          |
 | Primitive anchor | `kind: "primitive"`, `primitiveId`, `fraction`                                                   |
 | Boundary         | `id`, `knots: [{anchor,l}]`                                                                      |
-| Band             | `id`, `start`, `end`, `leftBoundaryId`, `rightBoundaryId`, `role`                                |
-| Carriageway      | `id`, `bandIds`                                                                                  |
+| Region           | `id`, `start`, `end`, `leftBoundaryId`, `rightBoundaryId`, `role`                                |
+| Carriageway      | `id`, `regionIds`                                                                                |
 | Port             | `id`, `kind: "entry" \| "exit"`, `anchor`, `carriagewayId`                                       |
 | Link             | `id`, `source: {sectionId,portId}`, `destination: {sectionId,portId}`, `overlap: {behind,ahead}` |
 | Asset reference  | `id`, `format`, `version`, lowercase `sha256`                                                    |
 | Scenery instance | `id`, `assetId`, `paletteRgb555` (null or one declared base-palette replacement)                 |
 
-Band roles are `pavement`, `shoulder` or `median`. Asset formats are
+Region roles are `pavement`, `shoulder` or `median`. Asset formats are
 `superoutride.sprite-lod` version 2 and `superoutride.tile-background` version 1.
 
 `reference` is null or:
@@ -74,7 +78,7 @@ These values participate in source identity; compilation consumes the saved geom
 
 IDs are opaque nonblank strings without surrounding whitespace and compare exactly. Course ID is
 external identity. Section, Link, asset and scenery-instance IDs each have a document-wide scope.
-Primitive, Boundary, Band, Carriageway and Port IDs each have their own Section-local scope; stamp,
+Primitive, Boundary, Region, Carriageway and Port IDs each have their own Section-local scope; stamp,
 placement and row IDs also have their declared Section-local scopes. Duplicate IDs fail. References
 resolve in their named scopes rather than by array position.
 
@@ -84,26 +88,70 @@ A geometry draft uses `presentation: null`, `fork: null`, `rules: null` and expl
 
 ### Saved presentation
 
-`presentation` is null or the following resident-ground/scenery data:
+`presentation` is null or `{ground,environments,scenery,sceneryRows}`. Every presented Section in a
+course uses the same ground kind; mixing Band and resident Sections fails compilation. Shared records are:
 
-| Record             | Fields                                                                                     |
-| ------------------ | ------------------------------------------------------------------------------------------ |
-| Presentation       | `ground`, `environments`, `scenery`, `sceneryRows`                                         |
-| Ground             | positive `left`, `right`, opaque `baseRgb555`, `bands`, ordered `stamps`                   |
-| Appearance binding | `bandId`, `sections: [{anchor,paint}]`                                                     |
-| Paint              | null, or `{assetId,phaseS,phaseL,alternate}`                                               |
-| Alternate          | null, or `{paletteRgb555,spanS,spanL}`                                                     |
-| Stamp              | `id`, `assetId`, `anchor`, `l`                                                             |
-| Environment        | `anchor`, `name`, `groundBaseLeft`, `groundBaseRight`, `background`                        |
-| Background         | `assetId`, `horizonY`, Section-frame degree `yawOrigin`                                    |
-| Scenery placement  | `id`, `instanceId`, `unselectedCarriagewayId`, `anchor`, `l`, `groundOffset`               |
-| Scenery row        | `id`, `assetId`, `start`, `end`, `spacing`, `boundaryId`, `side`, `offset`, `groundOffset` |
+| Record            | Fields                                                                                     |
+| ----------------- | ------------------------------------------------------------------------------------------ |
+| Background        | `assetId`, `horizonY`, Section-frame degree `yawOrigin`                                    |
+| Scenery placement | `id`, `instanceId`, `unselectedCarriagewayId`, `anchor`, `l`, `groundOffset`               |
+| Scenery row       | `id`, `assetId`, `start`, `end`, `spacing`, `boundaryId`, `side`, `offset`, `groundOffset` |
 
-GroundBase values are RGB555 integers or null for transparency. Null paint reveals the strip base.
-Every Band has one appearance binding beginning at activation, with later changes strictly before its end.
 Environment profiles begin at zero. Assets belong to the referencing Section and resolve to canonical
-sprite/background descriptors. [Image assets](image-assets.md#saved-course-presentation) owns phase,
-A/B, stamp rounding and source-composition rules.
+sprite/background descriptors. Ground-kind-specific environment fields are defined below.
+
+#### Band ground
+
+The canonical colored ground is `{kind:"bands",bands:[elements...]}`. Array order is Painter order:
+a later covering Band replaces the earlier color, including when its own color is transparent.
+Uncovered ground is transparent. All Band s/l coordinates are Section-local metres, independent of
+Boundaries, Region roles, physical materials and legacy image phases.
+
+| Element  | Fields and meaning                                                                                               |
+| -------- | ---------------------------------------------------------------------------------------------------------------- |
+| `band`   | `color`, `knots:[{s,left,right}]`; affine edges between consecutive knots                                        |
+| `repeat` | positive `every`, integer `count`, `elements`; expand in copy order, shifting each copy by `index*every` along s |
+| `arrow`  | `s`, `l`, positive `width`, `length`, `direction`, opaque `color`; normalized forward/left/right arrow           |
+| `text`   | `s`, `l`, `text`, positive `height`, opaque `color`; built-in 5-by-7 cell lettering                              |
+| `curb`   | `start`, `end`, `left`, `right`, positive `stripe`, two opaque `colors`; alternating rectangular runs            |
+
+Band `color` is RGB555 integer 0 through 32767 or null for transparency. Zero is opaque black.
+Null `left` means an open negative side; null `right` an open positive side. Open flags stay consistent
+through a Band's knots. Finite edges obey `left <= right`; zero-width taper endpoints are allowed.
+There are 2 through 256 strictly increasing knots, inside `[0,Section.length]`. The active interval
+runs from the first to the last knot. Interior ownership is half-open; the final endpoint is sampled
+from its adjacent slab. An empty list describes a transparent plane, and an all-open Band fills it.
+Cliffs and bridge exteriors are ordinary transparent Bands, including sloping or open edges.
+
+An arrow's s is its near bounding edge and l its lateral center. Width and length are its final
+lateral/longitudinal bounding dimensions. Direction is `forward`, `left` or `right`; its polygon is
+split into affine Band pieces. Text s/l denotes the near/left edge of its bounding cells. Height
+covers seven cells, horizontal advance is six cells per character and supported text is uppercase
+A–Z, digits 0–9 and spaces, from 1 through 64 characters. Foreground row runs become rectangular Bands.
+A curb alternates its two colors from start; the last stripe clips to end. Nested repetitions preserve
+declaration order and count includes the original placement. All resulting intervals must fit the Section.
+
+Each element array admits 4096 records, repeat count is 1 through 4096 and nesting is at most eight.
+Expansion visits at most 65536 constructs and publishes at most 65536 affine pieces. Compilation
+rejects more than 64 simultaneously active expanded Bands, including covered ones. Resolved slab and
+cached dyadic-cell counts each admit 1048576 per Section; unique profile coefficient storage is at
+most 64 MiB per Section. Limits reject rather than truncate authored content. Source constructs are
+saved; their expanded lists, resolved slabs and preblended profiles are compiler products only.
+[Architecture](architecture.md#band-rendering) owns the averaging, immutable storage and pixel kernels.
+
+Band environments contain only `{anchor,name,background}`. They have no GroundBase fields, and ground
+has no asset references, stamps, paint or Region bindings. Scenery and BG retain their shared image formats.
+
+#### Legacy resident ground
+
+The four legacy course inputs use `{kind:"resident",left,right,baseRgb555,regions,stamps}`.
+Positive left/right bound a finite strip; baseRgb555 is opaque. Each appearance binding is
+`{regionId,sections:[{anchor,paint}]}` and begins at Region activation; later changes precede its end.
+Paint is null or `{assetId,phaseS,phaseL,alternate}`, with alternate null or `{paletteRgb555,spanS,spanL}`.
+A stamp is `{id,assetId,anchor,l}`. Resident environments additionally require `groundBaseLeft` and
+`groundBaseRight`, RGB555 or null. Null paint exposes the opaque strip base, unlike a transparent Band.
+[Image assets](image-assets.md#saved-course-presentation) owns this path's phase, A/B and stamp rules.
+It temporarily coexists with Bands during Stage 4a; [NEXT](NEXT.md) owns its remaining removal.
 
 Scenery placements resolve document-wide instances. `unselectedCarriagewayId` is null for ordinary
 scenery or names a canonical exit Carriageway. Such signs lie from lock through closure, before the
@@ -141,9 +189,9 @@ and produce positive representable intervals.
 
 `COURSE_DOCUMENT_LIMITS` defines 4 MiB UTF-8 JSON, 128 UTF-16 code units per ID, 16 Sections,
 48 Links and 256 assets. Each Section admits 2048 plan primitives, 32 Boundaries, 256 knots per
-Boundary, 32 Bands, 16 Carriageways, 4 Ports, 256 asset references, 256 height nodes, 32 physical
+Boundary, 32 Regions, 16 Carriageways, 4 Ports, 256 asset references, 256 height nodes, 32 physical
 bindings and 256 material changes per binding. Compiled Section limits are 16384 Raster segments,
-16384 mapped-band cells and 100000 m chainage. A Link admits 8192 overlap cells.
+16384 mapped-region cells and 100000 m chainage. A Link admits 8192 overlap cells.
 
 ## Geometry recipe and bindings
 
@@ -157,26 +205,26 @@ primitive order. Each primitive has a resolved interval. Fractions 0 and 1 use i
 interior fractions use `start+fraction*(end-start)`. Absolute anchors keep their numeric chainage.
 The recipe identity participates in every dependent build identity.
 
-Boundary knots are strictly increasing and cover every referencing Band's closed interval.
-Interpolation is linear; width and center are derived. A Band has positive length and positive
-interior width; zero width is permitted at its own start/end only. Bands are nonoverlapping and
-shared edges reference one Boundary. Every pavement Band belongs to exactly one Carriageway, whose
+Boundary knots are strictly increasing and cover every referencing Region's closed interval.
+Interpolation is linear; width and center are derived. A Region has positive length and positive
+interior width; zero width is permitted at its own start/end only. Regions are nonoverlapping and
+shared edges reference one Boundary. Every pavement Region belongs to exactly one Carriageway, whose
 active members form a contiguous group in each longitudinal cell.
 
-Every open Section cell has active Band coverage. Across an activation change, both the complete
-Band union and the pavement/median union are continuous. Positive-width replacements and zero-width
+Every open Section cell has active Region coverage. Across an activation change, both the complete
+Region union and the pavement/median union are continuous. Positive-width replacements and zero-width
 birth/death endpoints use the same rule. Roles name structure; appearance and physical bindings supply values.
 [Architecture](architecture.md#boundary-geometry-and-local-windows) owns mapped geometry and point ownership.
 
-`courseBoundaryAt` samples the canonical edge. `courseBandAt` reads the Section's canonical
-`bandPartition` and returns the owning Band or null outside/in gaps. Longitudinal membership is
-`[start,end)`, with the terminal included when the Band ends at Section length. At a switch,
-starting/continuing Bands own the point. Invalid or nonfinite queries fail with RangeError.
+`courseBoundaryAt` samples the canonical edge. `courseRegionAt` reads the Section's canonical
+`regionPartition` and returns the owning Region or null outside/in gaps. Longitudinal membership is
+`[start,end)`, with the terminal included when the Region ends at Section length. At a switch,
+starting/continuing Regions own the point. Invalid or nonfinite queries fail with RangeError.
 
 Height nodes resolve on the same ruler, are strictly increasing and include exactly zero and L.
 They produce finite render and physical grades through Core HeightProfile.
 
-Every Band has one explicit piecewise-constant physical binding beginning at its activation;
+Every Region has one explicit piecewise-constant physical binding beginning at its activation;
 subsequent changes precede its end. Materials are ASPHALT, SHOULDER, GRASS, DIRT, SAND or VOID.
 Missing, duplicate, unknown or uncovered bindings fail. Outside/gaps are VOID. Supported bounds
 include active supported endpoints and interior Boundary knots. Ground appearance remains independent.
@@ -206,20 +254,20 @@ topology through its transform; its endpoint world positions/headings may differ
 
 `compileCoursePhysicalDomains` and `compileCoursePresentationDomains` bind the root's explicit
 contact and fixed-step envelopes over canonical Links. A driving source requires both results.
-Within the common guard, height, supported materials, Band edges, source paint/phase, BG and shared
+Within the common guard, height, supported materials, Region edges, resolved Band colors or legacy source paint/phase, BG and shared
 scenery agree. The current root supplies 30 m guards. Longer camera/render, driver and recovery reads
 use source-owned occurrence spans. Domain mismatches identify the Link and affected consumer.
 
 ## Compiled identity and project publication
 
-CompiledCourse contains canonical Section, primitive, Boundary, Band, Carriageway, Port, Link,
+CompiledCourse contains canonical Section, primitive, Boundary, Region, Carriageway, Port, Link,
 asset and landmark references. Merges reuse the same successor; loops refer to the same source.
 Owned records and arrays are immutable, including nested image data. Live actor, route-lock and
 clock state belong to Sessions. Object identity is local to a compilation; cross-build identity uses digests.
 
 `sourceSha256` hashes normalized input. `buildSha256` hashes `{sourceSha256,compiler,geometryRecipe}`.
-The compiler is `superoutride.course-compiler` version 17, incorporating Link recipe v1, physical
-recipe v2, image-source recipe v2 and presentation recipe v4. Descriptors include semantic versions
+The compiler is `superoutride.course-compiler` version 18, incorporating Link recipe v1, physical
+recipe v2, image-source recipe v2 and presentation recipe v5. Descriptors include semantic versions
 and operative numeric/data parameters, including material definitions. Source or compiler/recipe
 changes invalidate dependent products.
 
@@ -421,7 +469,8 @@ frame SHA-256, centers/horizon, HUD mismatch and geometric residuals. Scenery an
 `sceneryKinds:[{kind,assetId,leftBoundaryId,rightBoundaryId}]` and
 `environments:[{label,templateName}]`.
 
-The fitter produces one LINEAR Section with full-length Bands and constant bindings, scenery rows
+The current fitter requires a legacy resident-ground template; it does not generate Band constructs.
+It produces one LINEAR Section with full-length Regions and constant bindings, scenery rows
 and environment profiles. Curvature intervals become straight/circular primitives; width supplies
 Boundary factors/offsets and height comes from observations or integrated grade. Generated anchors
 are primitive-relative. Checkpoint annotations are output observations, distinct from runtime rules.
@@ -431,9 +480,11 @@ in `reference`. Output is replaced atomically after successful compilation; fail
 ## Course loading
 
 All selected-course inputs, complete ground for reachable Sections and generated vehicle/timing data
-are ready before ticks. Shared records and the single circuit source are loaded once. The manifest
-must match the current course/build, finite grids and capacity; the payload must match length,
-digest, RGB555 domains and tile references. Failure publishes no partial reader or Session.
+are ready before ticks. Band courses expand their saved constructs and build private preblend fields
+with the shared compiler; they load no resident-ground manifest or payload. Shared records and the
+single circuit source are loaded once. For a legacy resident course, the ground manifest must match
+the current course/build, finite grids and capacity; its payload must match length, digest, RGB555
+domains and tile references. Failure publishes no partial reader or Session.
 
 Replacement suspends input, audio and ticks, shows coherent loading/failure state and supports retry.
 Stale arrivals cannot replace a newer selection. Resume uses a fresh clock and cleared input ownership.

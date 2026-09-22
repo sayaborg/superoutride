@@ -1,31 +1,15 @@
 {
   "format": "superoutride.course",
   "version": 11,
-  "id": "provisional-linear",
-  "reference": {
-    "source": {
-      "kind": "analyzed-data",
-      "location": "https://github.com/sayaborg/superoutride/blob/4ebd1cb1ecf1964b938b7dc00a2dee0b62f168b5/content/courses/linear.course.json",
-      "edition": "M4 provisional LINEAR; original synthetic trial, not a real or game course"
-    },
-    "observations": {
-      "location": "../authoring/linear.observations.json",
-      "sha256": "220fd79fc3fc31216339aef96c18640c35497a9d6a3900f73a75ed143c7f2370"
-    },
-    "calibration": { "distanceScale": 1.05, "curvatureScale": 0.94, "heightScale": 0.8 },
-    "remasterDeviations": [
-      "Synthetic provisional course; no claim of reproducing external footage.",
-      "Rebuild uses distance 1.05, curvature 0.94 and height 0.80; width and separately saved assets remain authored.",
-      "Curvature intervals become constant-curvature primitives; the saved Raster recipe discretizes arcs."
-    ]
-  },
+  "id": "ribbon-coast",
+  "reference": null,
   "units": { "length": "m", "angle": "deg" },
   "geometryRecipe": { "id": "superoutride.raster-guide", "version": 4 },
   "type": "LINEAR",
-  "entrySectionId": "coastal-trial",
+  "entrySectionId": "coast-road",
   "sections": [
     {
-      "id": "coastal-trial",
+      "id": "coast-road",
       "start": { "x": 0, "z": 0, "heading": 0 },
       "guide": { "margin": 4, "mMin": 0.1 },
       "primitives": [
@@ -236,128 +220,231 @@
           "carriagewayId": "road"
         }
       ],
-      "assetIds": ["asphalt", "grass", "stripe", "shoulder", "coast-sky", "hill-sky", "tree"],
+      "assetIds": ["coast-sky", "hill-sky", "tree"],
       "presentation": {
         "ground": {
-          "kind": "resident",
-          "left": 60,
-          "right": 60,
-          "baseRgb555": 9799,
-          "regions": [
+          "kind": "bands",
+          "bands": [
             {
-              "regionId": "grass-left",
-              "sections": [
+              "kind": "band",
+              "color": 5575,
+              "knots": [
+                { "s": 0, "left": null, "right": null },
+                { "s": 2940.3310857164415, "left": null, "right": null }
+              ]
+            },
+            {
+              "kind": "band",
+              "color": 9548,
+              "knots": [
+                { "s": 0, "left": -9, "right": -7 },
+                { "s": 420.00000000000006, "left": -9, "right": -7 },
+                { "s": 886.4027733339532, "left": -12, "right": -10 },
+                { "s": 1201.4027733339533, "left": -12, "right": -10 },
+                { "s": 1940.0793523827224, "left": -8, "right": -6 },
+                { "s": 2202.5793523827215, "left": -8, "right": -6 },
+                { "s": 2940.3310857164415, "left": -9, "right": -7 }
+              ]
+            },
+            {
+              "kind": "band",
+              "color": 9548,
+              "knots": [
+                { "s": 0, "left": -7, "right": -0.1 },
+                { "s": 420.00000000000006, "left": -7, "right": -0.1 },
+                { "s": 886.4027733339532, "left": -10, "right": -0.1 },
+                { "s": 1201.4027733339533, "left": -10, "right": -0.1 },
+                { "s": 1940.0793523827224, "left": -6, "right": -0.1 },
+                { "s": 2202.5793523827215, "left": -6, "right": -0.1 },
+                { "s": 2940.3310857164415, "left": -7, "right": -0.1 }
+              ]
+            },
+            {
+              "kind": "band",
+              "color": 9548,
+              "knots": [
+                { "s": 0, "left": -0.1, "right": 0.1 },
+                { "s": 2940.3310857164415, "left": -0.1, "right": 0.1 }
+              ]
+            },
+            {
+              "kind": "band",
+              "color": 9548,
+              "knots": [
+                { "s": 0, "left": 0.1, "right": 7 },
+                { "s": 420.00000000000006, "left": 0.1, "right": 7 },
+                { "s": 886.4027733339532, "left": 0.1, "right": 10 },
+                { "s": 1201.4027733339533, "left": 0.1, "right": 10 },
+                { "s": 1940.0793523827224, "left": 0.1, "right": 6 },
+                { "s": 2202.5793523827215, "left": 0.1, "right": 6 },
+                { "s": 2940.3310857164415, "left": 0.1, "right": 7 }
+              ]
+            },
+            {
+              "kind": "band",
+              "color": 9548,
+              "knots": [
+                { "s": 0, "left": 7, "right": 9 },
+                { "s": 420.00000000000006, "left": 7, "right": 9 },
+                { "s": 886.4027733339532, "left": 10, "right": 12 },
+                { "s": 1201.4027733339533, "left": 10, "right": 12 },
+                { "s": 1940.0793523827224, "left": 6, "right": 8 },
+                { "s": 2202.5793523827215, "left": 6, "right": 8 },
+                { "s": 2940.3310857164415, "left": 7, "right": 9 }
+              ]
+            },
+            {
+              "kind": "curb",
+              "start": 0,
+              "end": 410,
+              "left": -7.8,
+              "right": -7,
+              "stripe": 3,
+              "colors": [27781, 32765]
+            },
+            { "kind": "curb", "start": 0, "end": 410, "left": 7, "right": 7.8, "stripe": 3, "colors": [27781, 32765] },
+            {
+              "kind": "repeat",
+              "every": 24,
+              "count": 113,
+              "elements": [
                 {
-                  "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 },
-                  "paint": { "assetId": "grass", "phaseS": 0, "phaseL": -500, "alternate": null }
+                  "kind": "band",
+                  "color": 32765,
+                  "knots": [
+                    { "s": 210, "left": -0.1, "right": 0.1 },
+                    { "s": 220, "left": -0.1, "right": 0.1 }
+                  ]
                 }
               ]
             },
             {
-              "regionId": "kerb-left",
-              "sections": [
+              "kind": "band",
+              "color": 3377,
+              "knots": [
+                { "s": 62, "left": -6, "right": 6 },
+                { "s": 80, "left": -6, "right": 6 }
+              ]
+            },
+            { "kind": "text", "s": 68, "l": -4.2, "text": "RIDE", "height": 2.4, "color": 32765 },
+            { "kind": "arrow", "s": 108, "l": -3, "width": 3, "length": 12, "direction": "forward", "color": 32765 },
+            { "kind": "arrow", "s": 108, "l": 3, "width": 3, "length": 12, "direction": "forward", "color": 32765 },
+            {
+              "kind": "repeat",
+              "every": 120,
+              "count": 20,
+              "elements": [
                 {
-                  "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 },
-                  "paint": {
-                    "assetId": "shoulder",
-                    "phaseS": 0,
-                    "phaseL": -500,
-                    "alternate": {
-                      "paletteRgb555": [
-                        0, 24806, 24806, 24806, 24806, 24806, 24806, 24806, 24806, 24806, 24806, 24806, 24806, 24806,
-                        24806, 24806
-                      ],
-                      "spanS": 4,
-                      "spanL": 1000
-                    }
-                  }
+                  "kind": "arrow",
+                  "s": 200,
+                  "l": -3,
+                  "width": 3,
+                  "length": 12,
+                  "direction": "forward",
+                  "color": 32765
+                },
+                { "kind": "arrow", "s": 200, "l": 3, "width": 3, "length": 12, "direction": "forward", "color": 32765 }
+              ]
+            },
+            {
+              "kind": "band",
+              "color": null,
+              "knots": [
+                { "s": 280, "left": 25, "right": null },
+                { "s": 325, "left": 8, "right": null },
+                { "s": 440, "left": 8, "right": null },
+                { "s": 490, "left": 16, "right": null },
+                { "s": 600, "left": 25, "right": null }
+              ]
+            },
+            {
+              "kind": "band",
+              "color": null,
+              "knots": [
+                { "s": 320, "left": null, "right": -25 },
+                { "s": 350, "left": null, "right": -8 },
+                { "s": 415, "left": null, "right": -8 },
+                { "s": 470, "left": null, "right": -25 }
+              ]
+            },
+            {
+              "kind": "band",
+              "color": 13740,
+              "knots": [
+                { "s": 350, "left": -8, "right": 8 },
+                { "s": 415, "left": -8, "right": 8 }
+              ]
+            },
+            {
+              "kind": "curb",
+              "start": 350,
+              "end": 415,
+              "left": -7.6,
+              "right": -7.1,
+              "stripe": 2,
+              "colors": [32765, 27781]
+            },
+            {
+              "kind": "curb",
+              "start": 350,
+              "end": 415,
+              "left": 7.1,
+              "right": 7.6,
+              "stripe": 2,
+              "colors": [32765, 27781]
+            },
+            { "kind": "text", "s": 371, "l": -5.2, "text": "BRIDGE", "height": 2, "color": 32765 },
+            { "kind": "arrow", "s": 401, "l": 0, "width": 3, "length": 10, "direction": "forward", "color": 32765 },
+            {
+              "kind": "repeat",
+              "every": 0.38,
+              "count": 32,
+              "elements": [
+                {
+                  "kind": "band",
+                  "color": 24237,
+                  "knots": [
+                    { "s": 150, "left": -6, "right": -5.85 },
+                    { "s": 150.18, "left": -6, "right": -5.85 }
+                  ]
+                },
+                {
+                  "kind": "band",
+                  "color": 24237,
+                  "knots": [
+                    { "s": 150, "left": 5.85, "right": 6 },
+                    { "s": 150.18, "left": 5.85, "right": 6 }
+                  ]
                 }
               ]
             },
             {
-              "regionId": "lane-left",
-              "sections": [
-                {
-                  "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 },
-                  "paint": { "assetId": "asphalt", "phaseS": 0, "phaseL": -500, "alternate": null }
-                }
+              "kind": "band",
+              "color": 3575,
+              "knots": [
+                { "s": 655, "left": -6, "right": -2 },
+                { "s": 705, "left": 2, "right": 6 }
               ]
             },
             {
-              "regionId": "center",
-              "sections": [
-                {
-                  "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 },
-                  "paint": {
-                    "assetId": "stripe",
-                    "phaseS": 0,
-                    "phaseL": -500,
-                    "alternate": {
-                      "paletteRgb555": [
-                        0, 9548, 9548, 9548, 9548, 9548, 9548, 9548, 9548, 9548, 9548, 9548, 9548, 9548, 9548, 9548
-                      ],
-                      "spanS": 5,
-                      "spanL": 1000
-                    }
-                  }
-                }
-              ]
-            },
-            {
-              "regionId": "lane-right",
-              "sections": [
-                {
-                  "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 },
-                  "paint": { "assetId": "asphalt", "phaseS": 0, "phaseL": -500, "alternate": null }
-                }
-              ]
-            },
-            {
-              "regionId": "kerb-right",
-              "sections": [
-                {
-                  "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 },
-                  "paint": {
-                    "assetId": "shoulder",
-                    "phaseS": 0,
-                    "phaseL": -500,
-                    "alternate": {
-                      "paletteRgb555": [
-                        0, 24806, 24806, 24806, 24806, 24806, 24806, 24806, 24806, 24806, 24806, 24806, 24806, 24806,
-                        24806, 24806
-                      ],
-                      "spanS": 4,
-                      "spanL": 1000
-                    }
-                  }
-                }
-              ]
-            },
-            {
-              "regionId": "grass-right",
-              "sections": [
-                {
-                  "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 },
-                  "paint": { "assetId": "grass", "phaseS": 0, "phaseL": -500, "alternate": null }
-                }
+              "kind": "band",
+              "color": 32765,
+              "knots": [
+                { "s": 655, "left": 2, "right": 2.4 },
+                { "s": 705, "left": -2.4, "right": -2 }
               ]
             }
-          ],
-          "stamps": []
+          ]
         },
         "environments": [
           {
             "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 },
-            "name": "COASTAL TRIAL",
-            "groundBaseLeft": 9799,
-            "groundBaseRight": 9799,
+            "name": "RIBBON COAST",
             "background": { "assetId": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
           },
           {
             "anchor": { "kind": "primitive", "primitiveId": "fit-004", "fraction": 0 },
-            "name": "HIGHLAND TRIAL",
-            "groundBaseLeft": 9799,
-            "groundBaseRight": 9799,
+            "name": "RIBBON COAST",
             "background": { "assetId": "hill-sky", "horizonY": 320, "yawOrigin": 0 }
           }
         ],
@@ -365,7 +452,7 @@
           {
             "id": "fit-row-1",
             "assetId": "tree",
-            "start": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0.2 },
+            "start": { "kind": "absolute", "s": 800 },
             "end": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 0.8 },
             "spacing": 42,
             "boundaryId": "road-left",
@@ -376,7 +463,7 @@
           {
             "id": "fit-row-2",
             "assetId": "tree",
-            "start": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0.2 },
+            "start": { "kind": "absolute", "s": 800 },
             "end": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 0.8 },
             "spacing": 42,
             "boundaryId": "road-right",
@@ -392,30 +479,6 @@
   ],
   "links": [],
   "assets": [
-    {
-      "id": "asphalt",
-      "format": "superoutride.sprite-lod",
-      "version": 2,
-      "sha256": "45d46abc6aeda4f61ea38829a51f9f2f1d043e623b414d2007ee4c63f6ba08c3"
-    },
-    {
-      "id": "grass",
-      "format": "superoutride.sprite-lod",
-      "version": 2,
-      "sha256": "a8cd935c0f9cad31a2457edbbe64d3ad4f15433db1ee855120256cbe6a6b4f3f"
-    },
-    {
-      "id": "stripe",
-      "format": "superoutride.sprite-lod",
-      "version": 2,
-      "sha256": "3418c8d3e78f50049943fcb8835786cca7d9a8f51fd33f3c885b8dd184c6bad7"
-    },
-    {
-      "id": "shoulder",
-      "format": "superoutride.sprite-lod",
-      "version": 2,
-      "sha256": "23f4784edaf0a761a7f2b216423a407bc747f449dfeebab9190bdc2d19082142"
-    },
     {
       "id": "coast-sky",
       "format": "superoutride.tile-background",
@@ -458,16 +521,16 @@
     ],
     "checkpoints": [
       {
-        "id": "coastal-trial-CP1",
-        "sectionId": "coastal-trial",
+        "id": "coast-road-CP1",
+        "sectionId": "coast-road",
         "carriagewayId": "road",
         "anchor": { "kind": "absolute", "s": 1455.9155428582208 }
       }
     ],
     "finishes": [
       {
-        "id": "coastal-trial-FINISH",
-        "sectionId": "coastal-trial",
+        "id": "coast-road-FINISH",
+        "sectionId": "coast-road",
         "carriagewayId": "road",
         "anchor": { "kind": "absolute", "s": 2880.3310857164415 }
       }

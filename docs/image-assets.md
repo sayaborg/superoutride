@@ -44,8 +44,10 @@ area-weighted; coverage at least 0.5, including equality, is opaque. Color norma
 hidden RGB and background contribute no color. Every level filters its master directly.
 
 Footprint `rho` is source units covered per destination pixel, with octave exponent `log2(rho)`.
-Sprites use master texels and nearest-exponent selection. The current resident-ground recipe has its
-own encoded-sRGB integration and chainage-level rule under [Resident ground](#resident-ground).
+Sprites use master texels and nearest-exponent selection. Bands share the linear-sRGB codecs and
+coverage threshold; [Architecture](architecture.md#band-rendering) owns their source-domain preblend
+and lateral kernels. The legacy resident-ground recipe retains its separate encoded-sRGB integration
+and chainage-level rule under [Resident ground](#resident-ground).
 
 ## Sprite LOD compilation
 
@@ -57,7 +59,7 @@ stable input order resolves ties. Variant edits invalidate the generated pyramid
 
 `content/sprites/vehicles.json` is a normalized-master dictionary with yaw/bank bindings.
 Its generated library is under `dist/content/sprites/`; manifest-listed images are digest checked.
-Ground swatches supply normalized masters to the resident compiler.
+Legacy ground swatches supply normalized masters to the resident compiler; Bands have no ground image inputs.
 
 ## Infinite tiled background
 
@@ -153,10 +155,12 @@ Failure publishes no graph. Decoded consumer workspaces cannot mutate the saved 
 
 ## Saved course presentation
 
-Ground bindings use normalized sprite masters; background bindings use tile maps; scenery uses
-sprite levels. [Content and gameplay](content-and-gameplay.md#saved-presentation) owns exact fields.
+Background bindings use tile maps and scenery uses sprite levels. Band ground contains direct
+colors and authoring constructs, not image references. [Content and gameplay](content-and-gameplay.md#saved-presentation)
+owns exact fields. The following ground bindings, phases and stamps belong only to the legacy
+resident schema, whose swatches use normalized sprite masters.
 
-The resident source strip is `[-left,right)`. Its opaque `baseRgb555` is covered by the active Band's
+The resident source strip is `[-left,right)`. Its opaque `baseRgb555` is covered by the active Region's
 paint profile. Null paint or transparent texels reveal the base. At 40 texels/m, source image indices
 are positive-modulo `floor(40*(l-phaseL))` and `floor(40*(s-phaseS))`; source rows run toward increasing s.
 Phases are saved metre origins.
@@ -172,7 +176,10 @@ left/right color-or-transparent fills. Background horizons and yaw origins belon
 
 ## Resident ground
 
-Build produces a complete RGB555 payload and manifest for all reachable Sections. Driving and headless
+This encoding remains only for the four legacy course selections during Stage 4a. Band courses use
+no resident payload, tile dictionary, ground swatch or GroundBase.
+
+For a resident course, build produces a complete RGB555 payload and manifest for all reachable Sections. Driving and headless
 previews use synchronous resident readers; all bytes are ready before ticks. The manifest binds course/build
 identity, Section order/domains, grids, dictionary/coarse layouts, lengths and digests.
 [Course loading](content-and-gameplay.md#course-loading) owns activation and failure handling.
@@ -189,7 +196,7 @@ Uint32 directory and row-major Uint16 coarse images in level order. Sections fol
 Completed ground colors are direct RGB555; their count is independent of source palette size.
 
 Recipe `superoutride.resident-rgb555` v1 composes source cells at 40 by 40 texels/m. Clipped cell centers
-select Band/paint/phase and stamps. Every output level averages the original composed cells by area
+select Region/paint/phase and stamps. Every output level averages the original composed cells by area
 in decoded 8-bit encoded-sRGB, then rounds through the framebuffer/RGB555 codecs. Coarse filters cross
 tile/material boundaries and clip to the finite Section domain, including its authored guards.
 

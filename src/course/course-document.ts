@@ -1,5 +1,7 @@
 import { CourseInputError, courseFailure, courseSuccess, type CourseResult } from './course-diagnostics.js';
 
+export const COURSE_DOCUMENT_VERSION = 11;
+
 interface GeometryRecipeIdentity {
   readonly id: string;
   readonly version: number;
@@ -18,7 +20,7 @@ interface BoundaryDocument {
   readonly knots: readonly { readonly anchor: CourseAnchor; readonly l: number }[];
 }
 
-export interface BandDocument {
+export interface RegionDocument {
   readonly id: string;
   readonly start: CourseAnchor;
   readonly end: CourseAnchor;
@@ -29,7 +31,7 @@ export interface BandDocument {
 
 interface CarriagewayDocument {
   readonly id: string;
-  readonly bandIds: readonly string[];
+  readonly regionIds: readonly string[];
 }
 
 interface PortDocument {
@@ -65,27 +67,70 @@ interface PaintDocument {
   };
 }
 
-export interface PresentationDocument {
-  readonly ground: {
-    readonly left: number;
-    readonly right: number;
-    readonly baseRgb555: number;
-    readonly bands: readonly {
-      readonly bandId: string;
-      readonly sections: readonly { readonly anchor: CourseAnchor; readonly paint: PaintDocument | null }[];
-    }[];
-    readonly stamps: readonly {
-      readonly id: string;
-      readonly assetId: string;
-      readonly anchor: CourseAnchor;
+export interface BandDocument {
+  readonly kind: 'band';
+  readonly color: number | null;
+  readonly knots: readonly { readonly s: number; readonly left: number | null; readonly right: number | null }[];
+}
+export type BandElementDocument =
+  | BandDocument
+  | {
+      readonly kind: 'repeat';
+      readonly every: number;
+      readonly count: number;
+      readonly elements: readonly BandElementDocument[];
+    }
+  | {
+      readonly kind: 'arrow';
+      readonly s: number;
       readonly l: number;
-    }[];
-  };
+      readonly width: number;
+      readonly length: number;
+      readonly direction: 'forward' | 'left' | 'right';
+      readonly color: number;
+    }
+  | {
+      readonly kind: 'text';
+      readonly s: number;
+      readonly l: number;
+      readonly text: string;
+      readonly height: number;
+      readonly color: number;
+    }
+  | {
+      readonly kind: 'curb';
+      readonly start: number;
+      readonly end: number;
+      readonly left: number;
+      readonly right: number;
+      readonly stripe: number;
+      readonly colors: readonly number[];
+    };
+
+export interface ResidentGroundDocument {
+  readonly kind: 'resident';
+  readonly left: number;
+  readonly right: number;
+  readonly baseRgb555: number;
+  readonly regions: readonly {
+    readonly regionId: string;
+    readonly sections: readonly { readonly anchor: CourseAnchor; readonly paint: PaintDocument | null }[];
+  }[];
+  readonly stamps: readonly {
+    readonly id: string;
+    readonly assetId: string;
+    readonly anchor: CourseAnchor;
+    readonly l: number;
+  }[];
+}
+
+export interface PresentationDocument {
+  readonly ground: ResidentGroundDocument | { readonly kind: 'bands'; readonly bands: readonly BandElementDocument[] };
   readonly environments: readonly {
     readonly anchor: CourseAnchor;
     readonly name: string;
-    readonly groundBaseLeft: number | null;
-    readonly groundBaseRight: number | null;
+    readonly groundBaseLeft?: number | null;
+    readonly groundBaseRight?: number | null;
     readonly background: {
       readonly assetId: string;
       readonly horizonY: number;
@@ -119,10 +164,10 @@ export interface SectionDocument {
   readonly guide: { readonly margin: number; readonly mMin: number };
   readonly primitives: readonly PlanPrimitive[];
   readonly boundaries: readonly BoundaryDocument[];
-  readonly bands: readonly BandDocument[];
+  readonly regions: readonly RegionDocument[];
   readonly height: readonly { readonly anchor: CourseAnchor; readonly y: number }[];
   readonly physicalBindings: readonly {
-    readonly bandId: string;
+    readonly regionId: string;
     readonly sections: readonly { readonly anchor: CourseAnchor; readonly material: string }[];
   }[];
   readonly carriageways: readonly CarriagewayDocument[];
@@ -154,7 +199,7 @@ interface CourseRulesDocument {
 
 export interface CourseDocument {
   readonly format: 'superoutride.course';
-  readonly version: 10;
+  readonly version: typeof COURSE_DOCUMENT_VERSION;
   readonly id: string;
   readonly reference: null | {
     readonly source: { readonly kind: 'video' | 'analyzed-data'; readonly location: string; readonly edition: string };
@@ -189,7 +234,7 @@ export const COURSE_DOCUMENT_LIMITS = Object.freeze({
   primitives: 2048,
   boundaries: 32,
   knots: 256,
-  bands: 32,
+  regions: 32,
   carriageways: 16,
   ports: 4,
   links: 48,
@@ -200,7 +245,7 @@ export const COURSE_DOCUMENT_LIMITS = Object.freeze({
   lateralMeters: 1000,
   heightMeters: 10000,
   rasterSegments: 16384,
-  bandCells: 16384,
+  regionCells: 16384,
   linkCells: 8192,
 });
 
@@ -221,7 +266,7 @@ function record(value: unknown, path: string, fields: readonly string[]): Record
   for (const key of Object.keys(result)) {
     if (!fields.includes(key)) {
       const escaped = key.replaceAll('~', '~0').replaceAll('/', '~1');
-      fail('unsupported_feature', `${path}/${escaped}`, `Field ${key} is not supported by CourseDocument v10`);
+      fail('unsupported_feature', `${path}/${escaped}`, `Field ${key} is not supported by CourseDocument v11`);
     }
   }
   for (const key of fields) {
@@ -367,7 +412,7 @@ function boundary(value: unknown, path: string): BoundaryDocument {
   });
 }
 
-function band(value: unknown, path: string): BandDocument {
+function region(value: unknown, path: string): RegionDocument {
   const v = record(value, path, ['id', 'start', 'end', 'leftBoundaryId', 'rightBoundaryId', 'role']);
   if (v.role !== 'pavement' && v.role !== 'shoulder' && v.role !== 'median')
     fail('unsupported_feature', `${path}/role`, 'Supported roles are pavement, shoulder and median');
@@ -382,10 +427,10 @@ function band(value: unknown, path: string): BandDocument {
 }
 
 function carriageway(value: unknown, path: string): CarriagewayDocument {
-  const v = record(value, path, ['id', 'bandIds']);
+  const v = record(value, path, ['id', 'regionIds']);
   return Object.freeze({
     id: id(v.id, `${path}/id`),
-    bandIds: array(v.bandIds, `${path}/bandIds`, COURSE_DOCUMENT_LIMITS.bands, id),
+    regionIds: array(v.regionIds, `${path}/regionIds`, COURSE_DOCUMENT_LIMITS.regions, id),
   });
 }
 
@@ -425,43 +470,147 @@ function paint(value: unknown, path: string): PaintDocument | null {
   });
 }
 
+function bandElement(value: unknown, path: string, depth = 0): BandElementDocument {
+  if (depth > 8) fail('resource_limit', path, 'Band construct nesting exceeds eight levels');
+  const kind = value && typeof value === 'object' ? (value as Record<string, unknown>).kind : undefined;
+  const metre = (value: unknown, at: string, positive = false) =>
+    number(value, at, 0, COURSE_DOCUMENT_LIMITS.lengthMeters, positive);
+  const lateral = (value: unknown, at: string) =>
+    number(value, at, -COURSE_DOCUMENT_LIMITS.lateralMeters, COURSE_DOCUMENT_LIMITS.lateralMeters);
+  if (kind === 'band') {
+    const v = record(value, path, ['kind', 'color', 'knots']);
+    return Object.freeze({
+      kind,
+      color: v.color === null ? null : rgb555(v.color, `${path}/color`),
+      knots: array(v.knots, `${path}/knots`, COURSE_DOCUMENT_LIMITS.knots, (item, at) => {
+        const knot = record(item, at, ['s', 'left', 'right']);
+        return Object.freeze({
+          s: metre(knot.s, `${at}/s`),
+          left: knot.left === null ? null : lateral(knot.left, `${at}/left`),
+          right: knot.right === null ? null : lateral(knot.right, `${at}/right`),
+        });
+      }),
+    });
+  }
+  if (kind === 'repeat') {
+    const v = record(value, path, ['kind', 'every', 'count', 'elements']);
+    const count = metre(v.count, `${path}/count`, true);
+    if (!Number.isInteger(count) || count > 4096)
+      fail('resource_limit', `${path}/count`, 'Repeat count must be an integer from 1 through 4096');
+    return Object.freeze({
+      kind,
+      count,
+      every: metre(v.every, `${path}/every`, true),
+      elements: array(v.elements, `${path}/elements`, 4096, (item, at) => bandElement(item, at, depth + 1)),
+    });
+  }
+  if (kind === 'arrow') {
+    const v = record(value, path, ['kind', 's', 'l', 'width', 'length', 'direction', 'color']);
+    if (v.direction !== 'forward' && v.direction !== 'left' && v.direction !== 'right')
+      fail('invalid_shape', `${path}/direction`, 'Arrow direction is forward, left or right');
+    return Object.freeze({
+      kind,
+      s: metre(v.s, `${path}/s`),
+      l: lateral(v.l, `${path}/l`),
+      width: metre(v.width, `${path}/width`, true),
+      length: metre(v.length, `${path}/length`, true),
+      direction: v.direction,
+      color: rgb555(v.color, `${path}/color`),
+    });
+  }
+  if (kind === 'text') {
+    const v = record(value, path, ['kind', 's', 'l', 'text', 'height', 'color']);
+    if (typeof v.text !== 'string' || !/^[A-Z0-9 ]{1,64}$/.test(v.text))
+      fail('invalid_shape', `${path}/text`, 'Ground text supports 1–64 uppercase ASCII letters, digits or spaces');
+    return Object.freeze({
+      kind,
+      s: metre(v.s, `${path}/s`),
+      l: lateral(v.l, `${path}/l`),
+      text: v.text,
+      height: metre(v.height, `${path}/height`, true),
+      color: rgb555(v.color, `${path}/color`),
+    });
+  }
+  if (kind === 'curb') {
+    const v = record(value, path, ['kind', 'start', 'end', 'left', 'right', 'stripe', 'colors']);
+    const colors = array(v.colors, `${path}/colors`, 2, rgb555);
+    if (colors.length !== 2) fail('invalid_shape', `${path}/colors`, 'A curb needs two RGB555 colors');
+    return Object.freeze({
+      kind,
+      start: metre(v.start, `${path}/start`),
+      end: metre(v.end, `${path}/end`),
+      left: lateral(v.left, `${path}/left`),
+      right: lateral(v.right, `${path}/right`),
+      stripe: metre(v.stripe, `${path}/stripe`, true),
+      colors,
+    });
+  }
+  return fail('unsupported_feature', `${path}/kind`, 'Unknown Band authoring construct');
+}
+
+function groundDocument(value: unknown, path: string): PresentationDocument['ground'] {
+  const kind = value && typeof value === 'object' ? (value as Record<string, unknown>).kind : undefined;
+  if (kind === 'resident') return residentGround(value, path);
+  if (kind === 'bands') {
+    const v = record(value, path, ['kind', 'bands']);
+    return Object.freeze({ kind, bands: array(v.bands, `${path}/bands`, 4096, (item, at) => bandElement(item, at)) });
+  }
+  return fail('unsupported_feature', `${path}/kind`, 'Ground kind must be bands or resident');
+}
+
+function residentGround(value: unknown, path: string): ResidentGroundDocument {
+  const g = record(value, path, ['kind', 'left', 'right', 'baseRgb555', 'regions', 'stamps']);
+  return Object.freeze({
+    kind: 'resident' as const,
+    left: number(g.left, `${path}/left`, 0, COURSE_DOCUMENT_LIMITS.lateralMeters, true),
+    right: number(g.right, `${path}/right`, 0, COURSE_DOCUMENT_LIMITS.lateralMeters, true),
+    baseRgb555: rgb555(g.baseRgb555, `${path}/baseRgb555`),
+    regions: array(g.regions, `${path}/regions`, COURSE_DOCUMENT_LIMITS.regions, (item, at) => {
+      const b = record(item, at, ['regionId', 'sections']);
+      return Object.freeze({
+        regionId: id(b.regionId, `${at}/regionId`),
+        sections: array(b.sections, `${at}/sections`, COURSE_DOCUMENT_LIMITS.knots, (item, at) => {
+          const s = record(item, at, ['anchor', 'paint']);
+          return Object.freeze({ anchor: anchor(s.anchor, `${at}/anchor`), paint: paint(s.paint, `${at}/paint`) });
+        }),
+      });
+    }),
+    stamps: identified(g.stamps, `${path}/stamps`, COURSE_DOCUMENT_LIMITS.placements, (item, at) => {
+      const s = record(item, at, ['id', 'assetId', 'anchor', 'l']);
+      return Object.freeze({
+        id: id(s.id, `${at}/id`),
+        assetId: id(s.assetId, `${at}/assetId`),
+        anchor: anchor(s.anchor, `${at}/anchor`),
+        l: number(s.l, `${at}/l`, -COURSE_DOCUMENT_LIMITS.lateralMeters, COURSE_DOCUMENT_LIMITS.lateralMeters),
+      });
+    }),
+  });
+}
+
 function presentation(value: unknown, path: string): PresentationDocument | null {
   if (value === null) return null;
   const v = record(value, path, ['ground', 'environments', 'scenery', 'sceneryRows']);
-  const g = record(v.ground, `${path}/ground`, ['left', 'right', 'baseRgb555', 'bands', 'stamps']);
+  const ground = groundDocument(v.ground, `${path}/ground`);
   return Object.freeze({
-    ground: Object.freeze({
-      left: number(g.left, `${path}/ground/left`, 0, COURSE_DOCUMENT_LIMITS.lateralMeters, true),
-      right: number(g.right, `${path}/ground/right`, 0, COURSE_DOCUMENT_LIMITS.lateralMeters, true),
-      baseRgb555: rgb555(g.baseRgb555, `${path}/ground/baseRgb555`),
-      bands: array(g.bands, `${path}/ground/bands`, COURSE_DOCUMENT_LIMITS.bands, (item, at) => {
-        const b = record(item, at, ['bandId', 'sections']);
-        return Object.freeze({
-          bandId: id(b.bandId, `${at}/bandId`),
-          sections: array(b.sections, `${at}/sections`, COURSE_DOCUMENT_LIMITS.knots, (item, at) => {
-            const s = record(item, at, ['anchor', 'paint']);
-            return Object.freeze({ anchor: anchor(s.anchor, `${at}/anchor`), paint: paint(s.paint, `${at}/paint`) });
-          }),
-        });
-      }),
-      stamps: identified(g.stamps, `${path}/ground/stamps`, COURSE_DOCUMENT_LIMITS.placements, (item, at) => {
-        const s = record(item, at, ['id', 'assetId', 'anchor', 'l']);
-        return Object.freeze({
-          id: id(s.id, `${at}/id`),
-          assetId: id(s.assetId, `${at}/assetId`),
-          anchor: anchor(s.anchor, `${at}/anchor`),
-          l: number(s.l, `${at}/l`, -COURSE_DOCUMENT_LIMITS.lateralMeters, COURSE_DOCUMENT_LIMITS.lateralMeters),
-        });
-      }),
-    }),
+    ground,
     environments: array(v.environments, `${path}/environments`, COURSE_DOCUMENT_LIMITS.knots, (item, at) => {
-      const e = record(item, at, ['anchor', 'name', 'groundBaseLeft', 'groundBaseRight', 'background']);
+      const e = record(
+        item,
+        at,
+        ground.kind === 'resident'
+          ? ['anchor', 'name', 'groundBaseLeft', 'groundBaseRight', 'background']
+          : ['anchor', 'name', 'background'],
+      );
       const b = record(e.background, `${at}/background`, ['assetId', 'horizonY', 'yawOrigin']);
       return Object.freeze({
         anchor: anchor(e.anchor, `${at}/anchor`),
         name: id(e.name, `${at}/name`),
-        groundBaseLeft: e.groundBaseLeft === null ? null : rgb555(e.groundBaseLeft, `${at}/groundBaseLeft`),
-        groundBaseRight: e.groundBaseRight === null ? null : rgb555(e.groundBaseRight, `${at}/groundBaseRight`),
+        ...(ground.kind === 'resident'
+          ? {
+              groundBaseLeft: e.groundBaseLeft === null ? null : rgb555(e.groundBaseLeft, `${at}/groundBaseLeft`),
+              groundBaseRight: e.groundBaseRight === null ? null : rgb555(e.groundBaseRight, `${at}/groundBaseRight`),
+            }
+          : {}),
         background: Object.freeze({
           assetId: id(b.assetId, `${at}/background/assetId`),
           horizonY: number(b.horizonY, `${at}/background/horizonY`, 0, Number.MAX_SAFE_INTEGER),
@@ -526,7 +675,7 @@ function section(value: unknown, path: string): SectionDocument {
     'guide',
     'primitives',
     'boundaries',
-    'bands',
+    'regions',
     'height',
     'physicalBindings',
     'carriageways',
@@ -554,7 +703,7 @@ function section(value: unknown, path: string): SectionDocument {
     }),
     primitives: identified(v.primitives, `${path}/primitives`, COURSE_DOCUMENT_LIMITS.primitives, primitive),
     boundaries: identified(v.boundaries, `${path}/boundaries`, COURSE_DOCUMENT_LIMITS.boundaries, boundary),
-    bands: identified(v.bands, `${path}/bands`, COURSE_DOCUMENT_LIMITS.bands, band),
+    regions: identified(v.regions, `${path}/regions`, COURSE_DOCUMENT_LIMITS.regions, region),
     height: array(v.height, `${path}/height`, COURSE_DOCUMENT_LIMITS.knots, (item, at) => {
       const node = record(item, at, ['anchor', 'y']);
       return Object.freeze({
@@ -565,11 +714,11 @@ function section(value: unknown, path: string): SectionDocument {
     physicalBindings: array(
       v.physicalBindings,
       `${path}/physicalBindings`,
-      COURSE_DOCUMENT_LIMITS.bands,
+      COURSE_DOCUMENT_LIMITS.regions,
       (item, at) => {
-        const binding = record(item, at, ['bandId', 'sections']);
+        const binding = record(item, at, ['regionId', 'sections']);
         return Object.freeze({
-          bandId: id(binding.bandId, `${at}/bandId`),
+          regionId: id(binding.regionId, `${at}/regionId`),
           sections: array(binding.sections, `${at}/sections`, COURSE_DOCUMENT_LIMITS.knots, (item, at) => {
             const section = record(item, at, ['anchor', 'material']);
             return Object.freeze({
@@ -644,7 +793,7 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
   try {
     // Reject an identified older schema before requiring the current schema's fields.
     if (input && typeof input === 'object' && Object.hasOwn(input, 'version'))
-      literal((input as Record<string, unknown>).version, 10, '/version', 'unsupported_version');
+      literal((input as Record<string, unknown>).version, COURSE_DOCUMENT_VERSION, '/version', 'unsupported_version');
     const v = record(input, '', [
       'rules',
       'format',
@@ -661,7 +810,7 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
       'sceneryInstances',
     ]);
     const format = literal(v.format, 'superoutride.course', '/format', 'unsupported_format');
-    const version = literal(v.version, 10, '/version', 'unsupported_version');
+    const version = literal(v.version, COURSE_DOCUMENT_VERSION, '/version', 'unsupported_version');
     const units = record(v.units, '/units', ['length', 'angle']);
     const recipe = record(v.geometryRecipe, '/geometryRecipe', ['id', 'version']);
     const recipeVersion = number(recipe.version, '/geometryRecipe/version', 1, 65535);

@@ -1,6 +1,5 @@
 import type { HeightProfileReader } from '../core/height-profile.js';
 import type { RasterGeometry } from '../core/raster-coordinate-reader.js';
-import { createCourseGroundSource } from '../groundmap/course-ground-source.js';
 import { rgb555ToRgba } from '../graphics/rgb555.js';
 import { readSpriteLodAsset, createSpritePaletteVariant, type SpriteLodDocument } from '../graphics/sprite.js';
 import { TileBackgroundImage, type TileBackgroundDocument } from '../graphics/tile-background-image.js';
@@ -34,20 +33,20 @@ export function createCoursePresentationPreview() {
   const createSource = (p: CoursePresentation, geometry: RasterGeometry, height: HeightProfileReader) => {
     if (!p || !p.ground || !Array.isArray(p.environments) || !Array.isArray(p.scenery) || !geometry?.raster || !height)
       throw new TypeError('Presentation preview requires compiled content, Raster and height readers');
-    if (p.ground.partition.length !== geometry.length || height.courseLength !== geometry.length)
+    if (
+      (p.ground.kind === 'resident' ? p.ground.partition.length : p.ground.length) !== geometry.length ||
+      height.courseLength !== geometry.length
+    )
       throw new RangeError('Presentation preview facets must share their source ruler');
-    const ground = createCourseGroundSource(p.ground);
+
     const base = (color: number | null) =>
       color === null ? ({ kind: 'transparent' } as const) : ({ kind: 'color', color: rgb555ToRgba(color) } as const);
     return Object.freeze({
       ground: Object.freeze({
-        domain: ground.domain,
-        sample(s: number, l: number) {
-          return rgb555ToRgba(ground.sample(s, l));
-        },
-        sampleInChart(s: number, l: number, sourceLateralOrigin: number) {
-          return rgb555ToRgba(ground.sampleInChart(s, l, sourceLateralOrigin));
-        },
+        domain:
+          p.ground.kind === 'resident'
+            ? Object.freeze({ left: -p.ground.left, right: p.ground.right })
+            : Object.freeze({ left: -1, right: 1 }),
       }),
       visual: new VisualProfile(
         geometry.length,

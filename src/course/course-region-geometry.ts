@@ -5,19 +5,19 @@ import { COURSE_DOCUMENT_LIMITS } from './course-document.js';
 import { CourseInputError, requireCourse } from './course-diagnostics.js';
 import {
   courseBoundaryAt,
-  type CompiledBand,
-  type CompiledBandPartition,
+  type CompiledRegion,
+  type CompiledRegionPartition,
   type CompiledCarriageway,
-} from './course-bands.js';
+} from './course-regions.js';
 
 function cross(a: Vec2, b: Vec2): number {
   return a.x * b.z - a.z * b.x;
 }
-function unionAt(bands: readonly CompiledBand[], s: number): [number, number][] {
+function unionAt(regions: readonly CompiledRegion[], s: number): [number, number][] {
   const result: [number, number][] = [];
-  for (const band of bands) {
-    const left = courseBoundaryAt(band.left, s),
-      right = courseBoundaryAt(band.right, s);
+  for (const region of regions) {
+    const left = courseBoundaryAt(region.left, s),
+      right = courseBoundaryAt(region.right, s);
     if (left === right) continue;
     const previous = result.at(-1);
     if (previous && previous[1] === left) previous[1] = right;
@@ -26,7 +26,7 @@ function unionAt(bands: readonly CompiledBand[], s: number): [number, number][] 
   return result;
 }
 
-function sameUnion(a: readonly CompiledBand[], b: readonly CompiledBand[], s: number): boolean {
+function sameUnion(a: readonly CompiledRegion[], b: readonly CompiledRegion[], s: number): boolean {
   const left = unionAt(a, s),
     right = unionAt(b, s);
   return (
@@ -35,32 +35,32 @@ function sameUnion(a: readonly CompiledBand[], b: readonly CompiledBand[], s: nu
 }
 
 /** Prove each active strip and its transitions; construction cells never become an independent public authority. */
-export function compileCourseBandGeometry(
+export function compileCourseRegionGeometry(
   raster: RasterPath,
-  bands: readonly CompiledBand[],
+  regions: readonly CompiledRegion[],
   carriageways: readonly CompiledCarriageway[],
   margin: number,
   sectionPath: string,
-): { readonly partition: CompiledBandPartition; readonly envelope: GuideEnvelope } {
-  const path = `${sectionPath}/bands`;
-  const boundaries = [...new Set(bands.flatMap((band) => [band.left, band.right]))];
+): { readonly partition: CompiledRegionPartition; readonly envelope: GuideEnvelope } {
+  const path = `${sectionPath}/regions`;
+  const boundaries = [...new Set(regions.flatMap((region) => [region.left, region.right]))];
   const stations = [
     ...new Set([
       ...raster.vertexS,
       ...boundaries.flatMap((b) => b.knots.map((k) => k.anchor.s)),
-      ...bands.flatMap((b) => [b.start.s, b.end.s]),
+      ...regions.flatMap((b) => [b.start.s, b.end.s]),
     ]),
   ].sort((a, b) => a - b);
-  if (stations.length - 1 > COURSE_DOCUMENT_LIMITS.bandCells)
+  if (stations.length - 1 > COURSE_DOCUMENT_LIMITS.regionCells)
     throw new CourseInputError(
       'resource_limit',
       path,
-      `Mapped band partition exceeds ${COURSE_DOCUMENT_LIMITS.bandCells} cells`,
+      `Mapped region partition exceeds ${COURSE_DOCUMENT_LIMITS.regionCells} cells`,
     );
   const spans = stations.slice(0, -1).map((sStart, index) => {
     const sEnd = stations[index + 1]!;
-    const ordered = bands
-      .filter((band) => band.start.s <= sStart && band.end.s >= sEnd)
+    const ordered = regions
+      .filter((region) => region.start.s <= sStart && region.end.s >= sEnd)
       .sort(
         (a, b) =>
           courseBoundaryAt(a.left, sStart) +
@@ -70,19 +70,19 @@ export function compileCourseBandGeometry(
     requireCourse(
       ordered.length > 0,
       path,
-      `Section requires active Bands throughout [${sStart}, ${sEnd}]`,
-      'band_coverage_gap',
+      `Section requires active Regions throughout [${sStart}, ${sEnd}]`,
+      'region_coverage_gap',
     );
     for (const s of [sStart, sEnd]) {
       for (let i = 0; i < ordered.length; i += 1) {
-        const band = ordered[i]!;
-        const left = courseBoundaryAt(band.left, s),
-          right = courseBoundaryAt(band.right, s);
+        const region = ordered[i]!;
+        const left = courseBoundaryAt(region.left, s),
+          right = courseBoundaryAt(region.right, s);
         requireCourse(
-          right > left || (right === left && (s === band.start.s || s === band.end.s)),
+          right > left || (right === left && (s === region.start.s || s === region.end.s)),
           path,
-          `Band ${JSON.stringify(band.id)} needs positive width except at its birth/death endpoint; s=${s}`,
-          'invalid_band_width',
+          `Region ${JSON.stringify(region.id)} needs positive width except at its birth/death endpoint; s=${s}`,
+          'invalid_region_width',
         );
         if (i > 0) {
           const previous = ordered[i - 1]!;
@@ -90,43 +90,43 @@ export function compileCourseBandGeometry(
           requireCourse(
             edge <= left,
             path,
-            `Bands ${JSON.stringify(previous.id)} and ${JSON.stringify(band.id)} overlap at s=${s}`,
-            'band_overlap',
+            `Regions ${JSON.stringify(previous.id)} and ${JSON.stringify(region.id)} overlap at s=${s}`,
+            'region_overlap',
           );
-          const endpoint = s === band.start.s || s === band.end.s || s === previous.start.s || s === previous.end.s;
+          const endpoint = s === region.start.s || s === region.end.s || s === previous.start.s || s === previous.end.s;
           requireCourse(
-            edge !== left || previous.right === band.left || endpoint,
+            edge !== left || previous.right === region.left || endpoint,
             path,
-            `Adjacent Bands must reference the same canonical shared Boundary at s=${s}`,
+            `Adjacent Regions must reference the same canonical shared Boundary at s=${s}`,
             'shared_boundary_required',
           );
         }
       }
     }
     for (let i = 0; i < ordered.length; i += 1) {
-      const band = ordered[i]!;
+      const region = ordered[i]!;
       requireCourse(
-        courseBoundaryAt(band.right, sStart) -
-          courseBoundaryAt(band.left, sStart) +
-          (courseBoundaryAt(band.right, sEnd) - courseBoundaryAt(band.left, sEnd)) >
+        courseBoundaryAt(region.right, sStart) -
+          courseBoundaryAt(region.left, sStart) +
+          (courseBoundaryAt(region.right, sEnd) - courseBoundaryAt(region.left, sEnd)) >
           0,
         path,
-        `Band ${JSON.stringify(band.id)} has zero width throughout [${sStart}, ${sEnd}]`,
-        'invalid_band_width',
+        `Region ${JSON.stringify(region.id)} has zero width throughout [${sStart}, ${sEnd}]`,
+        'invalid_region_width',
       );
       if (i > 0) {
         const previous = ordered[i - 1]!;
         requireCourse(
-          previous.right === band.left ||
-            [sStart, sEnd].some((s) => courseBoundaryAt(previous.right, s) !== courseBoundaryAt(band.left, s)),
+          previous.right === region.left ||
+            [sStart, sEnd].some((s) => courseBoundaryAt(previous.right, s) !== courseBoundaryAt(region.left, s)),
           path,
-          'Adjacent Bands must reference the same canonical shared Boundary',
+          'Adjacent Regions must reference the same canonical shared Boundary',
           'shared_boundary_required',
         );
       }
     }
     carriageways.forEach((carriageway, i) => {
-      const members = ordered.filter((band) => carriageway.bands.includes(band));
+      const members = ordered.filter((region) => carriageway.regions.includes(region));
       for (let j = 1; j < members.length; j += 1)
         requireCourse(
           members[j - 1]!.right === members[j]!.left,
@@ -144,8 +144,8 @@ export function compileCourseBandGeometry(
     requireCourse(
       sameUnion(before, after, s),
       path,
-      `Active Band union must be continuous at s=${s}`,
-      'band_transition_discontinuity',
+      `Active Region union must be continuous at s=${s}`,
+      'region_transition_discontinuity',
     );
     requireCourse(
       sameUnion(
@@ -155,7 +155,7 @@ export function compileCourseBandGeometry(
       ),
       path,
       `Pavement/median union must be continuous at s=${s}`,
-      'band_transition_discontinuity',
+      'region_transition_discontinuity',
     );
   }
   const envelope = stations.map((s, i) => {
@@ -187,14 +187,14 @@ export function compileCourseBandGeometry(
         requireCourse(
           cross(m, tangent) + l * cross(m, derivative) > 0,
           path,
-          `Mapped band envelope inverts on Raster segment ${segmentIndex} at s=${s}`,
-          'mapped_band_inversion',
+          `Mapped region envelope inverts on Raster segment ${segmentIndex} at s=${s}`,
+          'mapped_region_inversion',
         );
       }
     }
   }
   return Object.freeze({
-    partition: Object.freeze({ raster, length: raster.length, bands: Object.freeze([...bands]) }),
+    partition: Object.freeze({ raster, length: raster.length, regions: Object.freeze([...regions]) }),
     envelope: Object.freeze(envelope),
   });
 }

@@ -24,7 +24,7 @@ export const SURFACE_MATERIALS: Readonly<Record<SurfaceType, SurfaceMaterial>> =
   VOID: Object.freeze({ type: 'VOID', supported: false, gripFactor: 0, rollingResistance: 0 }),
 });
 
-export interface SurfaceBand {
+export interface SurfaceRegion {
   readonly lMin: number;
   readonly lMax: number;
   readonly type: Exclude<SurfaceType, 'VOID'>;
@@ -33,7 +33,7 @@ export interface SurfaceBand {
 export interface SurfaceSection {
   readonly sStart: number;
   readonly name: string;
-  readonly bands: readonly SurfaceBand[];
+  readonly regions: readonly SurfaceRegion[];
 }
 
 interface SurfaceSample {
@@ -44,7 +44,7 @@ interface SurfaceSample {
 
 /** Minimal read-only physics contract for SurfaceMap(s,l). */
 export interface SurfaceMapReader {
-  /** Conservative bound in this reader's local lateral frame, including all supported bands. */
+  /** Conservative bound in this reader's local lateral frame, including all supported regions. */
   readonly maxSupportedAbsL: number;
   sample(s: number, l: number): SurfaceSample;
 }
@@ -65,14 +65,14 @@ export class SurfaceMap implements SurfaceMapReader {
     this.sections = compileOpenProfile(
       sections.map((section) => ({
         ...section,
-        bands: compileSurfaceBands(section.bands),
+        regions: compileSurfaceRegions(section.regions),
       })),
       { length: courseLength, chainage: 'sStart', label: 'surface profile' },
     );
     let extent = 0;
     for (const section of this.sections)
-      for (const band of section.bands) {
-        extent = Math.max(extent, Math.abs(band.lMin), Math.abs(band.lMax));
+      for (const region of section.regions) {
+        extent = Math.max(extent, Math.abs(region.lMin), Math.abs(region.lMax));
       }
     this.maxSupportedAbsL = extent;
   }
@@ -82,11 +82,11 @@ export class SurfaceMap implements SurfaceMapReader {
     const local = this.normalizeChainage(s);
     const section = this.sectionAtLocal(local);
 
-    for (let i = 0; i < section.bands.length; i += 1) {
-      const band = section.bands[i]!;
-      if (l >= band.lMin && l <= band.lMax) {
-        const material = SURFACE_MATERIALS[band.type];
-        return { sectionName: section.name, type: band.type, material };
+    for (let i = 0; i < section.regions.length; i += 1) {
+      const region = section.regions[i]!;
+      if (l >= region.lMin && l <= region.lMax) {
+        const material = SURFACE_MATERIALS[region.type];
+        return { sectionName: section.name, type: region.type, material };
       }
     }
     return { sectionName: section.name, type: 'VOID', material: SURFACE_MATERIALS.VOID };
@@ -105,20 +105,20 @@ export class SurfaceMap implements SurfaceMapReader {
   }
 }
 
-/** One physical-band compiler for both physical authoring and runtime SurfaceMap sources. */
-function compileSurfaceBands(bands: readonly SurfaceBand[]): readonly SurfaceBand[] {
-  const copied = bands.map((band) => ({ ...band })).sort((a, b) => a.lMin - b.lMin);
+/** One physical-region compiler for both physical authoring and runtime SurfaceMap sources. */
+function compileSurfaceRegions(regions: readonly SurfaceRegion[]): readonly SurfaceRegion[] {
+  const copied = regions.map((region) => ({ ...region })).sort((a, b) => a.lMin - b.lMin);
   for (let i = 0; i < copied.length; i += 1) {
-    const band = copied[i]!;
-    if (!Number.isFinite(band.lMin) || !Number.isFinite(band.lMax) || !(band.lMax > band.lMin)) {
-      throw new RangeError('surface band must have finite positive width');
+    const region = copied[i]!;
+    if (!Number.isFinite(region.lMin) || !Number.isFinite(region.lMax) || !(region.lMax > region.lMin)) {
+      throw new RangeError('surface region must have finite positive width');
     }
-    if (!Object.hasOwn(SURFACE_MATERIALS, band.type) || !SURFACE_MATERIALS[band.type].supported) {
-      throw new RangeError('surface band must name a supported material');
+    if (!Object.hasOwn(SURFACE_MATERIALS, region.type) || !SURFACE_MATERIALS[region.type].supported) {
+      throw new RangeError('surface region must name a supported material');
     }
-    if (i > 0 && band.lMin < copied[i - 1]!.lMax - BAND_OVERLAP_TOLERANCE_METERS) {
-      throw new Error('surface bands must not overlap');
+    if (i > 0 && region.lMin < copied[i - 1]!.lMax - BAND_OVERLAP_TOLERANCE_METERS) {
+      throw new Error('surface regions must not overlap');
     }
   }
-  return Object.freeze(copied.map((band) => Object.freeze(band)));
+  return Object.freeze(copied.map((region) => Object.freeze(region)));
 }

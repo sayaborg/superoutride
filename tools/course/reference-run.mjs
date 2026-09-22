@@ -14,7 +14,7 @@ import {
 } from '../../dist/gameplay/envelope-driver.js';
 import { createCameraRig } from '../../dist/camera/camera.js';
 import { SIM_DT } from '../../dist/browser/frame-loop.js';
-import { courseBoundaryAt } from '../../dist/course/course-bands.js';
+import { courseBoundaryAt } from '../../dist/course/course-regions.js';
 const spriteAssets = await readVehicleSprites();
 
 /** Enumerate canonical finite alternatives; one continuous run per history, no stitched sectors. */
@@ -118,7 +118,7 @@ export function runCourseReference(course, ground, entry, envelope, route, lapCo
   }
   // Center following is verified against pavement; telemetry is descriptive, not force authority.
   const finalSection = scene.history.active.section;
-  const lateralBounds = finalSection.bandPartition.bands
+  const lateralBounds = finalSection.regionPartition.regions
     .filter((b) => b.role === 'pavement' && b.start.s <= vehicle.course.s && b.end.s >= vehicle.course.s)
     .map((b) => [courseBoundaryAt(b.left, vehicle.course.s), courseBoundaryAt(b.right, vehicle.course.s)]);
   if (!lateralBounds.some(([left, right]) => vehicle.course.l >= left && vehicle.course.l < right))

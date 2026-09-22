@@ -1,3 +1,10 @@
+export { BAND_FILTERS, BAND_ACTIVE_LIMIT, BAND_DEFAULT_FILTER } from '../visual/band-ground.js';
+import {
+  BAND_DEFAULT_FILTER,
+  createBandRenderMetrics,
+  type BandRenderMetrics,
+  type BandFilter,
+} from '../visual/band-ground.js';
 import type { RasterGeometry } from '../core/raster-coordinate-reader.js';
 import { wrapAngle } from '../core/math.js';
 import { pseudoProject, type PseudoCamera } from '../core/projection.js';
@@ -23,6 +30,7 @@ const MIN_TEXTURE_SPAN_PIXELS = 1e-8;
 type PlayerVisualKind = 'car' | 'bike';
 
 interface RenderResult {
+  bandGround: (BandRenderMetrics & { filter: BandFilter; milliseconds: number }) | null;
   terrainLineCount: number;
   terrainOutputPixels: number;
   visibleSpriteCount: number;
@@ -70,6 +78,21 @@ export interface GroundColorReader {
   ): void;
 }
 
+export interface BandGroundReader {
+  readonly kind: 'bands';
+  sampleSpan(
+    pixels: Uint32Array,
+    offset: number,
+    count: number,
+    s: number,
+    l: number,
+    stepL: number,
+    deltaS: number,
+    filter: BandFilter,
+    stats: BandRenderMetrics,
+  ): void;
+}
+
 interface RenderScene {
   readonly background: TileBackground;
   readonly guide: RasterGeometry;
@@ -83,20 +106,30 @@ interface RenderScene {
 }
 
 export function createRenderWorkspace() {
-  return { terrain: createTerrainWorkspace(), terrainStats: { outputPixels: 0, groundMapLevel: 0 } };
+  return {
+    terrain: createTerrainWorkspace(),
+    terrainStats: { outputPixels: 0, groundMapLevel: 0 },
+    bands: createBandRenderMetrics(),
+  };
 }
 
 interface RenderOptions {
   readonly workspace?: ReturnType<typeof createRenderWorkspace>;
   readonly observeWorkload?: boolean;
   /** Final compiled color field in scene-local coordinates; never source-rebased or repainted. */
-  readonly ground: GroundColorReader;
+  readonly ground: GroundColorReader | BandGroundReader;
+  readonly bandFilter?: BandFilter;
 }
 
 export function renderDriving(
   target: SoftwareSurface,
   { background, guide, camera, vehicle, terrainProfile, groundProfile, worldSprites, assets, playerKind }: RenderScene,
-  { observeWorkload = false, ground, workspace = createRenderWorkspace() }: RenderOptions,
+  {
+    observeWorkload = false,
+    ground,
+    workspace = createRenderWorkspace(),
+    bandFilter = BAND_DEFAULT_FILTER,
+  }: RenderOptions,
 ): RenderResult {
   const { renderCamera, terrain } = prepareTerrain(guide, camera, terrainProfile, workspace);
   drawTileBackground(target, background, renderCamera);
@@ -115,7 +148,7 @@ export function renderDriving(
         terrainOutputByRow: new Uint32Array(target.height),
         spriteOutputByScanline: new Uint32Array(target.height),
         spriteWrittenByScanline: new Uint32Array(target.height),
-        groundMapLevelHistogram: new Uint32Array(ground.kMax + 1),
+        groundMapLevelHistogram: new Uint32Array(ground.kind === 'bands' ? 1 : ground.kMax + 1),
       }
     : undefined;
   let terrainOutputPixels = 0;
@@ -131,11 +164,35 @@ export function renderDriving(
       observation.spriteWrittenByScanline[screenY]! += writtenPixels;
     });
 
+  const bandStats = workspace.bands;
+  bandStats.activeBands = bandStats.preblendLevel = bandStats.profileSegments = bandStats.outputPixels = 0;
+  let bandMilliseconds = 0;
   mergeTerrainAndSprites(
     terrain,
     sprites,
     (line) => {
-      const stats = drawTerrainLine(target, line, groundProfile, ground, workspace.terrainStats);
+      let stats = workspace.terrainStats;
+      if (ground.kind === 'bands') {
+        const started = performance.now();
+        const span = line.xGroundR - line.xGroundL;
+        const step = (groundProfile.groundLeft + groundProfile.groundRight) / span;
+        const lateral = -groundProfile.groundLeft + (0.5 - line.xGroundL) * step;
+        const before = bandStats.outputPixels;
+        ground.sampleSpan(
+          target.pixels,
+          line.y * target.width,
+          target.width,
+          line.s,
+          lateral,
+          step,
+          line.sourceFootprint.deltaSEffective,
+          bandFilter,
+          bandStats,
+        );
+        stats.outputPixels = bandStats.outputPixels - before;
+        stats.groundMapLevel = 0;
+        bandMilliseconds += performance.now() - started;
+      } else stats = drawTerrainLine(target, line, groundProfile, ground, stats);
       terrainOutputPixels += stats.outputPixels;
       groundMapMaxLevel = Math.max(groundMapMaxLevel, stats.groundMapLevel);
       if (observation) {
@@ -207,6 +264,7 @@ export function renderDriving(
   }
 
   return {
+    bandGround: ground.kind === 'bands' ? { ...bandStats, filter: bandFilter, milliseconds: bandMilliseconds } : null,
     terrainLineCount: terrain.length,
     terrainOutputPixels,
     visibleSpriteCount: sprites.length,

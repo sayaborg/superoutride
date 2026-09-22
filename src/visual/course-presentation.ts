@@ -1,4 +1,5 @@
-import type { CompiledBand, CompiledBandPartition, CompiledCarriageway } from '../course/course-bands.js';
+import type { BandGround } from './band-ground.js';
+import type { CompiledRegion, CompiledRegionPartition, CompiledCarriageway } from '../course/course-regions.js';
 import type { CompiledCourseAnchor } from '../course/course-geometry.js';
 import type { TileBackgroundDocument } from '../graphics/tile-background-image.js';
 import { type SpriteLodDocument } from '../graphics/sprite.js';
@@ -19,12 +20,13 @@ export interface CoursePaint {
   };
 }
 export interface CourseGroundSourceData {
-  readonly partition: CompiledBandPartition;
+  readonly kind: 'resident';
+  readonly partition: CompiledRegionPartition;
   readonly left: number;
   readonly right: number;
   readonly baseRgb555: number;
-  readonly bands: readonly {
-    readonly band: CompiledBand;
+  readonly regions: readonly {
+    readonly region: CompiledRegion;
     readonly sections: readonly { readonly anchor: CompiledCourseAnchor; readonly paint: CoursePaint | null }[];
   }[];
   readonly stamps: readonly {
@@ -44,7 +46,7 @@ export interface CourseSceneryInstance {
 }
 
 export interface CoursePresentation {
-  readonly ground: CourseGroundSourceData;
+  readonly ground: CourseGroundSourceData | BandGround;
   readonly environments: readonly {
     readonly anchor: CompiledCourseAnchor;
     readonly name: string;

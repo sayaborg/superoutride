@@ -1,4 +1,4 @@
-import { courseBoundaryAt } from '../course/course-bands.js';
+import { courseBoundaryAt } from '../course/course-regions.js';
 import { contentDigest } from '../core/content-digest.js';
 import { rgba } from '../graphics/software-surface.js';
 import { rgbaToRgb555 } from '../graphics/rgb555.js';
@@ -61,15 +61,15 @@ function sourceRows(data: CourseGroundSourceData, originCell: number, width: num
     const s = Math.min(cellY + 0.5, (cellY + data.partition.length * 40) / 2) / 40;
     const layers: { start: number; end: number; row: Uint16Array }[] = [];
     let key = '';
-    for (const binding of data.bands) {
-      const band = binding.band;
-      if (s < band.start.s || s >= band.end.s) continue;
+    for (const binding of data.regions) {
+      const region = binding.region;
+      if (s < region.start.s || s >= region.end.s) continue;
       let index = binding.sections.length - 1;
       while (index > 0 && binding.sections[index]!.anchor.s > s) index--;
       const paint = binding.sections[index]!.paint;
       if (!paint) continue;
-      const start = Math.max(0, Math.ceil(courseBoundaryAt(band.left, s) * 40 - originCell - 0.5));
-      const end = Math.min(width, Math.ceil(courseBoundaryAt(band.right, s) * 40 - originCell - 0.5));
+      const start = Math.max(0, Math.ceil(courseBoundaryAt(region.left, s) * 40 - originCell - 0.5));
+      const end = Math.min(width, Math.ceil(courseBoundaryAt(region.right, s) * 40 - originCell - 0.5));
       const row = template(paint, s);
       key += `${start},${end},${row.id};`;
       layers.push({ start, end, row: row.pixels });
