@@ -43,6 +43,24 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Package temporary offline validation workspace
+        if: github.event_name == 'pull_request'
+        run: |
+          mkdir -p "$RUNNER_TEMP/band-validation/source" "$RUNNER_TEMP/band-validation/node"
+          git archive HEAD | tar -x -C "$RUNNER_TEMP/band-validation/source"
+          cp -a node_modules "$RUNNER_TEMP/band-validation/source/"
+          cp -a "$(dirname "$(dirname "$(command -v node)")")"/. "$RUNNER_TEMP/band-validation/node/"
+          git rev-parse HEAD > "$RUNNER_TEMP/band-validation/source-sha.txt"
+          tar -czf "$RUNNER_TEMP/band-validation.tar.gz" -C "$RUNNER_TEMP/band-validation" .
+
+      - name: Upload temporary offline validation workspace
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: band-offline-validation
+          path: ${{ runner.temp }}/band-validation.tar.gz
+          retention-days: 1
+
       - name: Restore generated reference cache
         uses: actions/cache@v4
         with:
