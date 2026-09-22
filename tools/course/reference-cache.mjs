@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { atomicWrite } from './authoring-io.mjs';
 
-export const referenceCacheDirectory = new URL('../../.cache/course-reference/', import.meta.url);
+const referenceCacheDirectory = new URL('../../.cache/course-reference/', import.meta.url);
 export const digest = (value) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 /** Vehicle values are an independent key component; editing one profile cannot invalidate its peers. */
 export function referenceCacheKey(courseBuildSha256, vehicleSha256, driver, physicsSha256) {

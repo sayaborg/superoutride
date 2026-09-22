@@ -51,9 +51,7 @@ function entry(value: VehicleCatalogEntry): Readonly<VehicleCatalogEntry> {
   });
 }
 
-export function compileVehicleCatalog(
-  values: readonly VehicleCatalogEntry[],
-): readonly Readonly<VehicleCatalogEntry>[] {
+function compileVehicleCatalog(values: readonly VehicleCatalogEntry[]): readonly Readonly<VehicleCatalogEntry>[] {
   const ids = new Set<string>();
   for (const value of values) {
     if (ids.has(value.profile.id)) throw new RangeError(`duplicate vehicle id: ${value.profile.id}`);

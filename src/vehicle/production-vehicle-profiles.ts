@@ -14,7 +14,7 @@ const REFERENCE_TIRE: Readonly<TireCharacteristics> = Object.freeze({
   peakSlipY: (1.26 * 1.35) / 9.75,
   knee: 0.74,
 });
-export const COMMON_SELECTABLE_VEHICLE_TIRE = Object.freeze({
+const COMMON_SELECTABLE_VEHICLE_TIRE = Object.freeze({
   frontTire: REFERENCE_TIRE,
   rearTire: REFERENCE_TIRE,
   lowSpeedRegularization: 1.0,
@@ -47,7 +47,7 @@ const BIKE_STEERING = Object.freeze({
 });
 
 /** 1989 European/ROW five-bolt Ferrari Testarossa reference. */
-export const FERRARI_TESTAROSSA_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
+const FERRARI_TESTAROSSA_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
   id: 'TESTAROSSA',
   mass: 1625,
   yawInertia: 3100,
@@ -250,7 +250,7 @@ export const VOLKSWAGEN_GOLF_GTI_16V_VEHICLE_PROFILE = compileArcadeVehicleProfi
 );
 
 /** 1988 European road-going Lancia Delta HF Integrale 8V, 185 PS. */
-export const LANCIA_DELTA_HF_INTEGRALE_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
+const LANCIA_DELTA_HF_INTEGRALE_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
   id: 'DELTA_HF_INTEGRALE',
   mass: 1290,
   yawInertia: 1980,
@@ -301,7 +301,7 @@ export const LANCIA_DELTA_HF_INTEGRALE_VEHICLE_PROFILE = compileArcadeVehiclePro
 );
 
 /** 1988 export/ROW full-power Honda VFR750R using the factory RC30 six-speed ratios. */
-export const HONDA_VFR750R_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
+const HONDA_VFR750R_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
   id: 'VFR750R',
   mass: 276,
   yawInertia: 180,
@@ -350,7 +350,7 @@ export const HONDA_VFR750R_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = O
 export const HONDA_VFR750R_VEHICLE_PROFILE = compileArcadeVehicleProfile(HONDA_VFR750R_VEHICLE_AUTHORING);
 
 /** 1985 European road BMW R 80 G/S Paris-Dakar with the 32-litre tank. */
-export const BMW_R80_GS_PARIS_DAKAR_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
+const BMW_R80_GS_PARIS_DAKAR_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
   id: 'R80_GS_PARIS_DAKAR',
   mass: 280,
   yawInertia: 215,
@@ -401,7 +401,7 @@ export const BMW_R80_GS_PARIS_DAKAR_VEHICLE_PROFILE = compileArcadeVehicleProfil
 );
 
 /** 1988 US Harley-Davidson FXRT Sport Glide with Evolution 1340 power. */
-export const HARLEY_DAVIDSON_FXRT_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
+const HARLEY_DAVIDSON_FXRT_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
   id: 'FXRT_SPORT_GLIDE',
   mass: 380,
   yawInertia: 285,
@@ -450,7 +450,7 @@ export const HARLEY_DAVIDSON_FXRT_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfi
 export const HARLEY_DAVIDSON_FXRT_VEHICLE_PROFILE = compileArcadeVehicleProfile(HARLEY_DAVIDSON_FXRT_VEHICLE_AUTHORING);
 
 /** 1985 Italian/European full-power Vespa PX 200 E Arcobaleno, frame type VSX1T. */
-export const VESPA_PX200E_ARCOBALENO_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
+const VESPA_PX200E_ARCOBALENO_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
   id: 'PX200E_ARCOBALENO',
   mass: 190,
   yawInertia: 98,

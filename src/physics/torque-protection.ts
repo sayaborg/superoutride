@@ -50,7 +50,7 @@ export function resolveTorqueProtectionPolicy(policy: TorqueProtectionPolicy): R
  * P is an explicitly selected control boundary (not a claim of a universal optimal slip).
  * Below tire v0 ABS leaves the ordinary signed brake atom responsible for stopping/holding.
  */
-export function limitWheelTorques(
+function limitWheelTorques(
   input: WheelSolveInput,
   out: Writable<WheelSolveInput>,
   scratch: ReturnType<typeof createTireForceScratch>,
@@ -108,7 +108,7 @@ interface ProtectedWheelPair {
  * q'' + 2*w*q' + w*w*(q-reserve*qStatic) >= 0, w from the existing suspension frequency.
  * No synthetic normal load; gravity, wheel reaction and current angular motion are retained.
  */
-export function supportCompressionMargin(
+function supportCompressionMargin(
   profile: CompiledArcadeVehicleProfile,
   body: BodyKinematics,
   contact: ContactObservation,

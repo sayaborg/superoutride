@@ -38,7 +38,7 @@ const VEHICLE_PROJECTION_SEARCH_RADIUS = 5;
 type VehicleContactId = 'FRONT' | 'REAR';
 
 /** Output cache for presentation/DEV only. Physics never consumes this object as an authority. */
-export interface VehicleControlState {
+interface VehicleControlState {
   /** Canonical input observation. */
   steeringRequest: number;
   steeringActuator: number;

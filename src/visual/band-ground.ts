@@ -10,7 +10,7 @@ import { rgb555ToRgba } from '../graphics/rgb555.js';
 
 export const BAND_ACTIVE_LIMIT = 64;
 /** Smallest cached interval in metres; partial ends use exact resolved edges, not resampled cells. */
-export const BAND_BASE_STEP = 1;
+const BAND_BASE_STEP = 1;
 const MAX_CELLS = 1_048_576;
 const MAX_COEFFICIENT_BYTES = 64 * 1024 * 1024;
 /** Numerical integration roundoff at the shared half-coverage tie, measured relative to row area. */
@@ -26,7 +26,7 @@ export interface BandPiece {
   readonly rightEnd: number | null;
   readonly color: number | null;
 }
-export interface BandSlab {
+interface BandSlab {
   readonly start: number;
   readonly end: number;
   readonly active: number;
@@ -72,7 +72,7 @@ export function bandEdgeAt(piece: BandPiece, side: 'left' | 'right', s: number):
 }
 
 /** Split first at activation/knots, then at every affine edge crossing; declaration order remains authoritative. */
-export function resolveBandSlabs(length: number, pieces: readonly BandPiece[]): readonly BandSlab[] {
+function resolveBandSlabs(length: number, pieces: readonly BandPiece[]): readonly BandSlab[] {
   if (!(length > 0) || !Number.isFinite(length)) throw new RangeError('Band field length must be positive and finite');
   for (const p of pieces) {
     if (!(p.start >= 0 && p.end > p.start && p.end <= length) || !Number.isFinite(p.end))
@@ -359,7 +359,7 @@ export function compileBandGround(length: number, pieces: readonly BandPiece[]):
 const storage = new WeakMap<BandGround, { readonly levels: readonly Level[]; readonly profiles: readonly Profile[] }>();
 
 /** One source-owned interval in the renderer's ruler; lateralOrigin maps view l to source l. */
-export interface BandSourceSpan {
+interface BandSourceSpan {
   readonly ground: BandGround;
   readonly frameStart: number;
   readonly sourceStart: number;

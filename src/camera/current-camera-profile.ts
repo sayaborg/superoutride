@@ -1,11 +1,11 @@
 import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS } from '../core/presentation-scale.js';
 import type { CameraProfile } from './camera.js';
 
-export const CURRENT_CAMERA_BASE_DOWN_PITCH_RADIANS = (12 * Math.PI) / 180;
-export const CURRENT_CAMERA_PLAYER_TARGET_Y = 190;
+const CURRENT_CAMERA_BASE_DOWN_PITCH_RADIANS = (12 * Math.PI) / 180;
+const CURRENT_CAMERA_PLAYER_TARGET_Y = 190;
 
 /** Flat-road height that frames the player ground anchor at target Y without correction. */
-export const CURRENT_CAMERA_HEIGHT_METERS =
+const CURRENT_CAMERA_HEIGHT_METERS =
   ((CURRENT_CAMERA_PLAYER_TARGET_Y -
     120 +
     CURRENT_FOCAL_LENGTH_PIXELS * Math.sin(CURRENT_CAMERA_BASE_DOWN_PITCH_RADIANS)) *

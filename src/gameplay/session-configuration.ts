@@ -19,7 +19,7 @@ export interface SessionConfiguration {
   readonly countdown: boolean;
 }
 
-export const MAX_RIVAL_COUNT = 16;
+const MAX_RIVAL_COUNT = 16;
 
 export function compileSessionConfiguration(authoring: SessionConfiguration): Readonly<SessionConfiguration> {
   if (authoring.mode !== 'CLASSIC' && authoring.mode !== 'CUSTOM')

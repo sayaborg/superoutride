@@ -9,7 +9,7 @@ export interface BrowserCourseModeSelection {
 }
 
 /** The first saved course is the default; every selection uses the shared product root. */
-export function compileBrowserCourseModes(
+function compileBrowserCourseModes(
   entries: readonly Omit<BrowserCourseModeSelection, 'entryName'>[],
 ): readonly BrowserCourseModeSelection[] {
   const queries = new Set<string>(),

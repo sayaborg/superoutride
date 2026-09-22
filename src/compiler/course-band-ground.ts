@@ -44,7 +44,7 @@ const GLYPHS: Readonly<Record<string, string>> = Object.freeze({
 const EXPANSION_LIMIT = 65536;
 
 /** Expand saved constructs in list order; output is a disposable compiler product. */
-export function expandCourseBands(
+function expandCourseBands(
   elements: readonly BandElementDocument[],
   length: number,
   path: string,

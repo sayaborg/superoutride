@@ -15,7 +15,7 @@ export interface BrowserVehicleProfileSelection {
   readonly profile: Readonly<CompiledArcadeVehicleProfile>;
 }
 
-export function createBrowserVehicleProfileSelections(
+function createBrowserVehicleProfileSelections(
   catalog: readonly Readonly<VehicleCatalogEntry>[],
   keys: Readonly<Record<string, string>> = BROWSER_VEHICLE_KEYS,
 ): readonly BrowserVehicleProfileSelection[] {

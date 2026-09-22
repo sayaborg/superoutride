@@ -21,7 +21,7 @@ interface TouchPedalRequests {
 /** Compact touch calibration. CSS px is independent of backing-store/device pixel ratio. */
 const TOUCH_ANALOG_FULL_SCALE_DISTANCE_PX = 64;
 
-export function touchAnalogFullScaleDistance(viewportWidth: number, viewportHeight: number): number {
+function touchAnalogFullScaleDistance(viewportWidth: number, viewportHeight: number): number {
   if (
     !(viewportWidth > 0) ||
     !(viewportHeight > 0) ||
@@ -33,12 +33,12 @@ export function touchAnalogFullScaleDistance(viewportWidth: number, viewportHeig
   return TOUCH_ANALOG_FULL_SCALE_DISTANCE_PX;
 }
 
-export function touchSteeringRequest(startX: number, currentX: number, fullScaleDistance: number): number {
+function touchSteeringRequest(startX: number, currentX: number, fullScaleDistance: number): number {
   assertFiniteTouchAxis(startX, currentX, fullScaleDistance);
   return clamp((currentX - startX) / fullScaleDistance, -1, 1);
 }
 
-export function touchPedalRequests(startY: number, currentY: number, fullScaleDistance: number): TouchPedalRequests {
+function touchPedalRequests(startY: number, currentY: number, fullScaleDistance: number): TouchPedalRequests {
   assertFiniteTouchAxis(startY, currentY, fullScaleDistance);
   const axis = clamp((startY - currentY) / fullScaleDistance, -1, 1);
   return axis >= 0 ? { throttle: axis, brake: 0 } : { throttle: 0, brake: -axis };

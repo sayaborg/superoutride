@@ -15,7 +15,6 @@ import {
 } from './tire-friction-calibration.js';
 import { regularizedTireSlipAngle, type WheelSolveInput } from './tire-wheel.js';
 import {
-  assertArcadeSteeringAngleCalibration,
   createArcadeSteeringCalibration,
   steeringAutomaticMax,
   type ArcadeSteeringCalibrationInput,
@@ -36,7 +35,6 @@ import {
   vehicleSpeed,
   type BodyKinematics,
   type ContactObservation,
-  type VehicleControlState,
   type VehicleDynamicsState,
 } from './vehicle-dynamics.js';
 import { WORLD_UP, add3, cross3, dot3, normalize3, scale3 } from '../core/vector3.js';
@@ -368,44 +366,13 @@ export function updateArcadeVehicle(
   vehicle.lateralAcceleration = dot3(velocityDelta, finalBody.right) / dt;
 }
 
-export function stepTravelDirectionSteering(
-  roadWheelAngle: number,
-  steeringOffset: number,
-  bodyTravelDirection: number,
-  calibration: ArcadeSteeringCalibrationState,
-  dt: number,
-  profile: Pick<CompiledArcadeVehicleProfile, 'steeringResponseTau'>,
-): number {
-  if (!(dt > 0) || !Number.isFinite(dt)) throw new RangeError('vehicle steering dt must be finite and > 0');
-  if (!Number.isFinite(roadWheelAngle) || !Number.isFinite(steeringOffset) || !Number.isFinite(bodyTravelDirection)) {
-    throw new RangeError('vehicle steering inputs must be finite');
-  }
-  assertArcadeSteeringAngleCalibration(calibration);
-  const target = travelDirectionSteeringTarget(steeringOffset, bodyTravelDirection, calibration);
-  const response = 1 - Math.exp(-dt / profile.steeringResponseTau);
-  return stepSteeringRack(roadWheelAngle, target, response, calibration.maxRoadWheelSteer);
-}
-
 /** Shared rack expression; public callers validate once before entering this primitive. */
 function stepSteeringRack(current: number, target: number, response: number, maximum: number): number {
   return clamp(current + (target - current) * response, -maximum, maximum);
 }
 
-export function travelDirectionSteeringTarget(
-  steeringOffset: number,
-  bodyTravelDirection: number,
-  calibration: ArcadeSteeringCalibrationState,
-): number {
-  if (!Number.isFinite(steeringOffset) || !Number.isFinite(bodyTravelDirection)) {
-    throw new RangeError('vehicle steering target inputs must be finite');
-  }
-  const automaticMax = steeringAutomaticMax(calibration);
-  const automaticSteer = clamp(bodyTravelDirection, -automaticMax, automaticMax);
-  return clamp(automaticSteer + steeringOffset, -calibration.maxRoadWheelSteer, calibration.maxRoadWheelSteer);
-}
-
 /** Body-CG travel direction in the body-pitch plane; finite and zero at rest. */
-export function vehicleBodyTravelDirection(body: BodyKinematics, lowSpeedRegularization: number): number {
+function vehicleBodyTravelDirection(body: BodyKinematics, lowSpeedRegularization: number): number {
   if (!(lowSpeedRegularization > 0) || !Number.isFinite(lowSpeedRegularization)) {
     throw new RangeError('vehicle travel-direction regularization must be finite and > 0');
   }
@@ -553,5 +520,3 @@ function installArcadeVehicleDerivedAccessors(vehicle: ArcadeVehicleState): Arca
   Object.defineProperties(vehicle, derivedProperties);
   return vehicle;
 }
-
-export type { VehicleControlState };

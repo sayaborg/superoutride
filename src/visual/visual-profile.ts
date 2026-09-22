@@ -1,7 +1,7 @@
 import { compileOpenProfile, openProfileChainage, profileIndexAt } from '../core/open-profile.js';
 import { nonEmptyId } from '../core/validation.js';
 
-export interface VisualSection {
+interface VisualSection {
   readonly sStart: number;
   readonly name: string;
 }

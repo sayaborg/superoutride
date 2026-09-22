@@ -2,7 +2,7 @@
 export const SIM_DT = 1 / 60;
 
 /** Bound catch-up after a suspended tab; simulation itself always receives SIM_DT. */
-export const MAX_FRAME_ELAPSED_SECONDS = 0.25;
+const MAX_FRAME_ELAPSED_SECONDS = 0.25;
 
 interface FrameClock {
   now(): number;

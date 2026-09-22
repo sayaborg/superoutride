@@ -115,7 +115,7 @@ const observationWorkspaces = new WeakMap<
 >();
 
 /** Gameplay observes derived load/support facts; it never changes the ordinary physics law. */
-export function updateRecovery(
+function updateRecovery(
   world: VehicleWorld,
   vehicle: ArcadeVehicleState,
   {

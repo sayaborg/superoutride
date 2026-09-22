@@ -1,6 +1,6 @@
-export const TOUCH_INTERFACE_MAX_SHORT_SIDE_PX = 720;
+const TOUCH_INTERFACE_MAX_SHORT_SIDE_PX = 720;
 
-export function isTouchInterface(
+function isTouchInterface(
   maxTouchPoints: number,
   coarsePointer: boolean,
   viewportWidth: number,

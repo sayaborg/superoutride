@@ -13,10 +13,10 @@ import { formatVehicleProfileSelector } from './vehicle-profile-selection.js';
 const G_SENSOR_RANGE = 2;
 const CONTROL_METER_WIDTH = 58;
 const CONTROL_METER_HEIGHT = 7;
-export const HUD_INPUT_ACCEL_COLOR = '#4c9cff';
-export const HUD_INPUT_BRAKE_COLOR = '#ff535d';
-export const HUD_DELIVERED_COLOR = '#7ee0ff';
-export const HUD_PROTECTION_CUT_COLOR = '#ff535d';
+const HUD_INPUT_ACCEL_COLOR = '#4c9cff';
+const HUD_INPUT_BRAKE_COLOR = '#ff535d';
+const HUD_DELIVERED_COLOR = '#7ee0ff';
+const HUD_PROTECTION_CUT_COLOR = '#ff535d';
 
 /** Common 0..1 torque-equivalent scale; request = delivered + protection reduction.
  * The limit tick is authored capacity/share, not a tire-force or available-grip estimate.
@@ -51,7 +51,7 @@ interface VehicleDebugHudModel {
   readonly lateralG: number;
 }
 
-export function createVehicleDebugHudModel(
+function createVehicleDebugHudModel(
   activeCourseQuery: BrowserCourseModeQuery,
   input: DrivingInput,
   vehicle: ArcadeVehicleState,
@@ -147,7 +147,7 @@ export function drawVehicleDebugHud(
 }
 
 /** Read-only request/response graphics. No drawn value feeds input or mechanics. */
-export function drawVehicleControlGraphics(
+function drawVehicleControlGraphics(
   ctx: CanvasRenderingContext2D,
   model: Pick<
     VehicleDebugHudModel,
@@ -271,7 +271,7 @@ function drawHudText(ctx: CanvasRenderingContext2D, text: string, x: number, y: 
   ctx.fillText(text, x, y);
 }
 
-export function drawTopDownGSensor(
+function drawTopDownGSensor(
   ctx: CanvasRenderingContext2D,
   model: Pick<VehicleDebugHudModel, 'longitudinalG' | 'lateralG'>,
   centerX: number,
@@ -296,7 +296,7 @@ export function drawTopDownGSensor(
 }
 
 /** Felt inertial load is opposite body acceleration: forward acceleration moves the dot rearward. */
-export function gSensorPoint(
+function gSensorPoint(
   model: Pick<VehicleDebugHudModel, 'longitudinalG' | 'lateralG'>,
   centerX: number,
   centerY: number,

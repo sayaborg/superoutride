@@ -78,13 +78,13 @@ export interface CourseCoordinate {
 const GUIDE_COMPILATION_TOLERANCE_METERS = 1e-7;
 const ZERO_TURN_RADIANS = 1e-10;
 
-export function filletMetric(turn: number): number {
+function filletMetric(turn: number): number {
   const absTurn = Math.abs(turn);
   if (absTurn < ZERO_TURN_RADIANS) return 1;
   return absTurn / (2 * Math.tan(absTurn * 0.5));
 }
 
-export function minimumGuideRadius(lMax: number, mMin: number, mu: number): number {
+function minimumGuideRadius(lMax: number, mMin: number, mu: number): number {
   if (![lMax, mMin, mu].every(Number.isFinite)) throw new RangeError('Guide chart metrics must be finite');
   if (!(lMax > 0)) throw new RangeError('lMax must be > 0');
   if (!(mMin > 0 && mMin < mu)) throw new RangeError('Core requires 0 < mMin < mu');
@@ -265,16 +265,6 @@ export function guidePathToWorld(
   out.z = out.z + -Math.sin(out.heading) * l;
   out.l = l;
   return out;
-}
-
-export function locateWorldOnGuideGlobal(
-  guide: GuidePath,
-  world: Vec2,
-  clampL: boolean,
-  out: CourseCoordinate,
-  workspace: ReturnType<typeof createGuideProjectionWorkspace>,
-): CourseCoordinate {
-  return bestCandidate(guide, world, 0, guide.segments.length - 1, clampL, out, workspace);
 }
 
 export function locateWorldOnGuideLocal(

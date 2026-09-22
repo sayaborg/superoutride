@@ -31,7 +31,7 @@ export const BROWSER_TIRE_AXES: readonly BrowserTireAxis[] = Object.freeze(
   ].map((axis) => Object.freeze(axis)) as BrowserTireAxis[],
 );
 
-export const DEFAULT_BROWSER_TIRE_CHARACTERISTICS: Readonly<TireCharacteristics> = Object.freeze({
+const DEFAULT_BROWSER_TIRE_CHARACTERISTICS: Readonly<TireCharacteristics> = Object.freeze({
   gripX: 5.0,
   peakSlipX: 0.2,
   gripY: 2.5,
@@ -48,7 +48,7 @@ function browserTireAxis(id: BrowserTireCalibrationAxis): BrowserTireAxis {
   return axis;
 }
 
-export function browserTireCalibrationForAxis(
+function browserTireCalibrationForAxis(
   id: BrowserTireCalibrationAxis,
   value: number,
   current: ArcadeTireFrictionCalibrationState,

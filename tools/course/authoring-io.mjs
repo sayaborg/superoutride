@@ -6,7 +6,7 @@ import { compileCourseDocument } from '../../dist/compiler/compiled-course.js';
 import { compileCourseImages } from './compile-course-images.mjs';
 import { readCourseImages } from './read-course-images.mjs';
 
-export class AuthoringError extends Error {
+class AuthoringError extends Error {
   constructor(diagnostics) {
     super(diagnostics[0]?.message ?? 'Authoring failed');
     this.diagnostics = diagnostics;

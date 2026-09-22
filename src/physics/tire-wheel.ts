@@ -56,7 +56,7 @@ type TireForceScratch = ReturnType<typeof createTireForceScratch>;
 export function createTireForceScratch() {
   return { sx: 0, sy: 0, referenceSpeed: 0, dx: 0, dy: 0, fx: 0, fy: 0, capacityX: 0, capacityY: 0, rho: 0, omega: 0 };
 }
-export function createTireForceResult() {
+function createTireForceResult() {
   return { sx: 0, sy: 0, referenceSpeed: 0, dx: 0, dy: 0, fx: 0, fy: 0, capacityX: 0, capacityY: 0, rho: 0 };
 }
 function readTireForce(s: TireForceScratch, out: Writable<TireForceResult>): TireForceResult {
@@ -98,76 +98,9 @@ function tireReferenceSpeed(vx: number, v0: number): number {
     throw new RangeError('tire velocity must be finite and low-speed regularization > 0');
   return hypot2(vx, v0);
 }
-export function deriveTireSlip(
-  omega: number,
-  rollingRadius: number,
-  longitudinalVelocity: number,
-  lateralVelocity: number,
-  lowSpeedRegularization: number,
-  out: Writable<TireSlip>,
-): TireSlip {
-  const referenceSpeed = tireReferenceSpeed(longitudinalVelocity, lowSpeedRegularization);
-  if (
-    !Number.isFinite(omega) ||
-    !Number.isFinite(rollingRadius) ||
-    !Number.isFinite(lateralVelocity) ||
-    !(rollingRadius > 0)
-  )
-    throw new RangeError('tire motion must be finite and rolling radius > 0');
-  writeSlip(omega, rollingRadius, longitudinalVelocity, lateralVelocity, referenceSpeed, out);
-  return out;
-}
 export function regularizedTireSlipAngle(vx: number, vy: number, v0: number): number {
   if (!Number.isFinite(vy)) throw new RangeError('tire lateral velocity must be finite');
   return Math.atan2(-vy, tireReferenceSpeed(vx, v0));
-}
-export function tireLinearDemand(
-  omega: number,
-  rollingRadius: number,
-  longitudinalVelocity: number,
-  lateralVelocity: number,
-  normalLoad: number,
-  tire: CompiledTireProfile,
-  characteristics: CompiledTireCharacteristics,
-  out: Writable<TireDemand>,
-): TireDemand {
-  if (!Number.isFinite(normalLoad)) throw new RangeError('tire normal load must be finite');
-  deriveTireSlip(omega, rollingRadius, longitudinalVelocity, lateralVelocity, tire.lowSpeedRegularization, out);
-  writeDemand(out, normalLoad, characteristics);
-  return out;
-}
-/** One load-homogeneous, dissipative two-axis force. */
-export function evaluateTireForce(
-  omega: number,
-  rollingRadius: number,
-  longitudinalVelocity: number,
-  lateralVelocity: number,
-  normalLoad: number,
-  gripFactor: number,
-  tire: CompiledTireProfile,
-  characteristics: CompiledTireCharacteristics,
-  result: Writable<TireForceResult>,
-  out: TireForceScratch,
-): TireForceResult {
-  validateTireCharacteristics(characteristics);
-  if (!Number.isFinite(gripFactor)) throw new RangeError('surface grip must be finite');
-  const demand = tireLinearDemand(
-    omega,
-    rollingRadius,
-    longitudinalVelocity,
-    lateralVelocity,
-    normalLoad,
-    tire,
-    characteristics,
-    result,
-  );
-  out.sx = demand.sx;
-  out.sy = demand.sy;
-  out.referenceSpeed = demand.referenceSpeed;
-  out.dx = demand.dx;
-  out.dy = demand.dy;
-  forceFromDemand(out, normalLoad, gripFactor, characteristics);
-  return readTireForce(out, result);
 }
 function evaluateTireForceValidated(input: WheelSolveInput, out: TireForceScratch): void {
   const omega = out.omega,
@@ -209,7 +142,7 @@ function forceFromDemand(
 }
 
 /** Exact algebraic simplification of the retained C1 Hermite shoulder, for any 0<a<1. */
-export function radialC1Magnitude(rho: number, a: number): number {
+function radialC1Magnitude(rho: number, a: number): number {
   if (!Number.isFinite(a) || !(a > 0 && a < 1) || Number.isNaN(rho)) {
     throw new RangeError('radial knee must lie in (0,1) and demand cannot be NaN');
   }
@@ -220,7 +153,7 @@ export function radialC1Magnitude(rho: number, a: number): number {
 }
 
 /** Surface rolling resistance remains a separate continuous wheel torque. */
-export function rollingResistanceTorque(
+function rollingResistanceTorque(
   omega: number,
   rollingRadius: number,
   normalLoad: number,
@@ -325,20 +258,6 @@ function netTorqueAtOmega(input: WheelSolveInput, scratch: TireForceScratch, res
       input.rollingResistance,
       input.tire.lowSpeedRegularization,
     );
-}
-
-/** Linear-region lateral reserve in the same demand ellipse; diagnostic only. */
-export function usefulLateralCapacity(
-  longitudinalLinearDemand: number,
-  normalLoad: number,
-  gripFactor: number,
-  tire: CompiledTireProfile,
-  characteristics: CompiledTireCharacteristics = tire,
-): number {
-  const bx = tireForceCapacity(normalLoad, gripFactor, characteristics.muX);
-  const by = tireForceCapacity(normalLoad, gripFactor, characteristics.muY);
-  if (!(bx > 0)) return 0;
-  return by * Math.sqrt(Math.max(0, characteristics.rhoKnee ** 2 - (longitudinalLinearDemand / bx) ** 2));
 }
 
 export function validateCompiledTireProfile(tire: CompiledTireProfile): void {

@@ -8,7 +8,7 @@ import { GEOMETRY_SAMPLING_TOLERANCE_METERS } from '../core/tolerances.js';
 import { courseBoundaryAt, type CompiledRegionPartition, type CompiledBoundary } from './course-regions.js';
 
 /** Work bound, not a distance guard or a promise that a product consumer fits. */
-export const COURSE_GEOMETRY_WINDOW_LIMITS = Object.freeze({ cellsPerMapping: 1024 });
+const COURSE_GEOMETRY_WINDOW_LIMITS = Object.freeze({ cellsPerMapping: 1024 });
 
 interface GeometrySource {
   readonly raster: RasterPath;

@@ -72,7 +72,7 @@ export function validateSymmetricSteeringActuatorRateProfile(profile: Normalized
  * One bounded asymmetric response primitive for steering, throttle and brake.
  * A nonzero steering reversal uses applyRate continuously through neutral.
  */
-export function stepNormalizedActuator(
+function stepNormalizedActuator(
   current: number,
   target: number,
   dt: number,

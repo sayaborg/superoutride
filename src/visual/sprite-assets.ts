@@ -77,14 +77,14 @@ export function createVehiclePaletteVariant(set: VehicleSpriteSet, palette: read
   return Object.freeze({ ...set, assets: Object.freeze(assets) });
 }
 
-export function selectYawVariant(relativeYaw: number, count: number): number {
+function selectYawVariant(relativeYaw: number, count: number): number {
   if (!Number.isInteger(count) || count < 1) throw new RangeError('yaw variant count must be >= 1');
   const angle = wrapAngle(relativeYaw);
   const normalized = angle < 0 ? angle + Math.PI * 2 : angle;
   return Math.round((normalized / (Math.PI * 2)) * count) % count;
 }
 
-export function selectBankVariant(bank: number, count: number): number {
+function selectBankVariant(bank: number, count: number): number {
   if (!Number.isInteger(count) || count < 1) throw new RangeError('bank variant count must be >= 1');
   if (count === 1) return 0;
   const t = (clamp(bank, -1, 1) + 1) * 0.5;

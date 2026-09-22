@@ -88,7 +88,7 @@ export function updateAutomaticPowertrain(
 }
 
 /** Single state-free averaged fuel-cut law: full through upshift RPM, C1 zero at redline. */
-export function engineRevLimiterScale(
+function engineRevLimiterScale(
   profile: Pick<AutomaticPowertrainProfile, 'upshiftRpm' | 'redlineRpm'>,
   rpm: number,
 ): number {
@@ -97,10 +97,7 @@ export function engineRevLimiterScale(
 }
 
 /** No-stall launch approximation: use the idle torque below idle, without inventing engine RPM. */
-export function sampleEngineTorque(
-  profile: Pick<AutomaticPowertrainProfile, 'idleRpm' | 'torqueCurve'>,
-  rpm: number,
-): number {
+function sampleEngineTorque(profile: Pick<AutomaticPowertrainProfile, 'idleRpm' | 'torqueCurve'>, rpm: number): number {
   const curve = profile.torqueCurve;
   const sampleRpm = Math.max(profile.idleRpm, rpm);
   if (sampleRpm <= curve[0]!.rpm) return curve[0]!.torqueNewtonMeters;

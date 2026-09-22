@@ -22,7 +22,7 @@ export const BROWSER_CALIBRATION_KEYS = Object.freeze({
   KNEE: 'KeyN',
 });
 
-export const BROWSER_CAMERA_YAW_TOGGLE_CODE = 'KeyP';
+const BROWSER_CAMERA_YAW_TOGGLE_CODE = 'KeyP';
 
 export function browserRequestsCameraYawToggle(code: string): boolean {
   return code === BROWSER_CAMERA_YAW_TOGGLE_CODE;

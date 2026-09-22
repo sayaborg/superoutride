@@ -23,7 +23,7 @@ export interface CameraProfile {
 
 export type CameraYawMode = 'BODY_FIXED' | 'MOVEMENT_FOLLOW';
 
-export const DEFAULT_CAMERA_YAW_MODE: CameraYawMode = 'BODY_FIXED';
+const DEFAULT_CAMERA_YAW_MODE: CameraYawMode = 'BODY_FIXED';
 
 export interface CameraRig {
   yawMode: CameraYawMode;
@@ -83,7 +83,7 @@ export function toggleCameraYawMode(rig: CameraRig): CameraYawMode {
  * Camera pitch follows the body separately. Movement yaw remains the alternate camera direction
  * and the body-fixed overlay direction; neither use changes authoritative vehicle attitude.
  */
-export function movementYawInBodyPitchFrame(
+function movementYawInBodyPitchFrame(
   vehicleYaw: number,
   bodyPitch: number,
   velocityX: number,

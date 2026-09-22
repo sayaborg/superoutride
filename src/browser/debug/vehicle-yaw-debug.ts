@@ -13,7 +13,7 @@ interface VehicleYawDebugModel {
   readonly directionY: number;
 }
 
-export function createVehicleYawDebugModel(
+function createVehicleYawDebugModel(
   directionYaw: number,
   cameraYaw: number,
   subject: VehicleYawDebugSubject = 'BODY',
@@ -31,7 +31,7 @@ export function createVehicleYawDebugModel(
   };
 }
 
-export function createCameraYawDebugModel(
+function createCameraYawDebugModel(
   vehicleYaw: number,
   movementYaw: number,
   cameraYaw: number,

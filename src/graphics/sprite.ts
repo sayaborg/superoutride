@@ -1,10 +1,9 @@
 import { PIXEL_EDGE_TOLERANCE } from '../core/tolerances.js';
 import { SoftwareSurface } from './software-surface.js';
-import { rgbaToRgb555 } from './rgb555.js';
 import { IndexedPattern, readIndexedPalette, indexedPaletteRgba } from './indexed-image.js';
 import { evaluatePaletteMixture, linearToRgb555, selectImageLodLevel, type PaletteMixture } from './image-filter.js';
 
-export const SPRITE_TRANSPARENT = 0;
+const SPRITE_TRANSPARENT = 0;
 export const SPRITE_SOURCE_TEXELS_PER_METER = 40;
 
 export interface SpriteLodDocument {
@@ -62,49 +61,6 @@ interface SpriteDrawStats {
   clipped: boolean;
 }
 export type SpriteScanlineObserver = (screenY: number, outputSamples: number, writtenPixels: number) => void;
-
-/** Source/fixture constructor; all runtime assets still use the same packed indexed representation. */
-export function createSpriteAsset(
-  name: string,
-  width: number,
-  height: number,
-  pixels: Uint32Array,
-  anchorX: number | undefined,
-  anchorY: number | undefined,
-  worldWidthMeters: number,
-): SpriteAsset {
-  spriteLodLayout(width, height);
-  if (!(pixels instanceof Uint32Array) || pixels.length !== width * height)
-    throw new RangeError('sprite pixel buffer size mismatch');
-  if (!(worldWidthMeters > 0) || !Number.isFinite(worldWidthMeters))
-    throw new RangeError('sprite worldWidthMeters must be finite and > 0');
-  const palette = Array<number>(16).fill(0),
-    colors = new Map<number, number>();
-  const indices = Array.from(pixels, (pixel) => {
-    if (pixel === SPRITE_TRANSPARENT) return 0;
-    const color = rgbaToRgb555(pixel);
-    let index = colors.get(color);
-    if (index === undefined) {
-      index = colors.size + 1;
-      if (index > 15) throw new RangeError('sprite requires at most 15 opaque colors');
-      colors.set(color, index);
-      palette[index] = color;
-    }
-    return index;
-  });
-  const asset = readSpriteLodAsset({
-    format: 'superoutride.sprite-lod',
-    version: 2,
-    name,
-    width,
-    height,
-    anchorX: anchorX ?? (width - 1) * 0.5,
-    anchorY: anchorY ?? height - 1,
-    variants: [],
-    levels: [{ paletteRgb555: palette, indices, mixtures: spriteIdentityMixtures() }],
-  });
-  return Object.freeze({ ...asset, worldWidthMeters });
-}
 
 /** Completed-image admission: filtering is never performed by the reader or blitter. */
 export function readSpriteLodAsset(value: unknown): SpriteAsset {
@@ -243,19 +199,6 @@ function spriteRecord(value: unknown, keys: readonly string[]): Record<string, u
 export function selectSpriteLevel(asset: SpriteAsset, pixelsPerMeter: number): number {
   const scale = pixelsPerMeter * (asset.worldWidthMeters / asset.width);
   return selectImageLodLevel(scale, asset.levels.length - 1);
-}
-
-export function countOpaqueSpriteColors(asset: SpriteAsset): number {
-  return Math.max(
-    ...asset.levels.map((level) => {
-      const colors = new Set<number>();
-      for (let i = 0; i < level.width * level.height; i++) {
-        const index = level.pattern.indexAt(i);
-        if (index) colors.add(level.paletteRgb555[index]!);
-      }
-      return colors.size;
-    }),
-  );
 }
 
 export function drawScaledSprite(

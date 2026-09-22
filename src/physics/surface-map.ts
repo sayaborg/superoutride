@@ -24,13 +24,13 @@ export const SURFACE_MATERIALS: Readonly<Record<SurfaceType, SurfaceMaterial>> =
   VOID: Object.freeze({ type: 'VOID', supported: false, gripFactor: 0, rollingResistance: 0 }),
 });
 
-export interface SurfaceRegion {
+interface SurfaceRegion {
   readonly lMin: number;
   readonly lMax: number;
   readonly type: Exclude<SurfaceType, 'VOID'>;
 }
 
-export interface SurfaceSection {
+interface SurfaceSection {
   readonly sStart: number;
   readonly name: string;
   readonly regions: readonly SurfaceRegion[];

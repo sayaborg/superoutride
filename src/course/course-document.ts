@@ -1,6 +1,6 @@
 import { CourseInputError, courseFailure, courseSuccess, type CourseResult } from './course-diagnostics.js';
 
-export const COURSE_DOCUMENT_VERSION = 12;
+const COURSE_DOCUMENT_VERSION = 12;
 
 interface GeometryRecipeIdentity {
   readonly id: string;
@@ -56,7 +56,7 @@ export interface CourseAssetReference {
   readonly sha256: string;
 }
 
-export interface BandDocument {
+interface BandDocument {
   readonly kind: 'band';
   readonly color: number | null;
   readonly knots: readonly { readonly s: number; readonly left: number | null; readonly right: number | null }[];

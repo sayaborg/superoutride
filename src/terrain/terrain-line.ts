@@ -7,7 +7,6 @@ import { PIXEL_EDGE_TOLERANCE, SOURCE_ENDPOINT_TOLERANCE_METERS } from '../core/
 import type { VisualProfileReader } from '../visual/visual-profile.js';
 
 const VISIBLE_INTERVAL_TOLERANCE_METERS = 1e-9;
-const MIN_INVERTIBLE_SPAN_PIXELS = 1e-9;
 const ROW_SAMPLE_DENOMINATOR_TOLERANCE_PIXELS = 1e-10;
 const DEPTH_INTERVAL_TOLERANCE_METERS = 1e-7;
 const FLAT_HEIGHT_COEFFICIENT_TOLERANCE_PIXEL_METERS = 1e-12;
@@ -81,30 +80,6 @@ export function computeForwardVisibleInterval(
   return out;
 }
 
-export function lateralToScreenX(
-  l: number,
-  xGroundL: number,
-  xGroundR: number,
-  groundLeft: number,
-  groundRight: number,
-): number {
-  const width = groundLeft + groundRight;
-  if (!(width > 0)) throw new RangeError('ground lateral width must be > 0');
-  return xGroundL + ((l + groundLeft) / width) * (xGroundR - xGroundL);
-}
-
-export function screenXToLateral(
-  x: number,
-  xGroundL: number,
-  xGroundR: number,
-  groundLeft: number,
-  groundRight: number,
-): number {
-  const dx = xGroundR - xGroundL;
-  if (Math.abs(dx) < MIN_INVERTIBLE_SPAN_PIXELS) throw new RangeError('degenerate horizontal span');
-  return -groundLeft + ((x - xGroundL) / dx) * (groundLeft + groundRight);
-}
-
 export interface TerrainVisualProfile {
   screenHeight: number;
   dMin: number;
@@ -129,7 +104,7 @@ interface TerrainLineSourceFootprint {
   collapsed: boolean;
 }
 
-export interface TerrainLine extends TerrainLineGeometry {
+interface TerrainLine extends TerrainLineGeometry {
   sectionName: string;
   renderHeight: number;
   sourceFootprint: TerrainLineSourceFootprint;
@@ -259,7 +234,7 @@ function projectedTerrainSpanRows(bY: number, d0: number, d1: number): number {
  * For integer output row y, Delta s = |s(y+1)-s(y)| at its screen boundaries.
  * The footprint is clipped only by the current forward near/far interval.
  */
-export function computeTerrainRowDeltaS(row: number, aY: number, bY: number, dMin: number, dMax: number): number {
+function computeTerrainRowDeltaS(row: number, aY: number, bY: number, dMin: number, dMax: number): number {
   if (!Number.isFinite(row) || !Number.isFinite(aY) || !Number.isFinite(bY)) {
     throw new RangeError('terrain footprint inputs must be finite');
   }

@@ -8,10 +8,6 @@ export function positiveFinite(value: number, label: string): void {
   if (!Number.isFinite(value) || value <= 0) throw new RangeError(`${label} must be finite and > 0`);
 }
 
-export function positiveInteger(value: number, label: string): void {
-  if (!Number.isInteger(value) || value <= 0) throw new RangeError(`${label} must be a positive integer`);
-}
-
 export function nonEmptyId(value: string, label: string): void {
   if (typeof value !== 'string' || value.trim().length === 0)
     throw new RangeError(`${label} must be a non-empty string`);

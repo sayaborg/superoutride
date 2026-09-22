@@ -134,7 +134,7 @@ export function compileRasterPath(vertices: readonly RasterVertex[]): RasterPath
   });
 }
 
-export function sampleRasterPath(path: RasterPath, s: number, out: Writable<RasterSample>): RasterSample {
+function sampleRasterPath(path: RasterPath, s: number, out: Writable<RasterSample>): RasterSample {
   sampleRasterPathInto(path, s, out);
   return out;
 }

@@ -3,7 +3,6 @@ import type { Writable } from './writable.js';
 import {
   createGuideProjectionWorkspace,
   guidePathToWorld,
-  locateWorldOnGuideGlobal,
   locateWorldOnGuideLocal,
   type CourseCoordinate,
   type GuidePath,
@@ -97,17 +96,6 @@ export function guideCoordinateToWorld(
   guidePathToWorld(guide, s, localL + lateralOrigin, out);
   out.l = localL;
   return out;
-}
-
-export function locateWorldOnGuideCoordinateGlobal(
-  source: GuidePathSource,
-  world: Vec2,
-  clampL: boolean,
-  out: CourseCoordinate,
-  workspace: ReturnType<typeof createGuideProjectionWorkspace>,
-): CourseCoordinate {
-  const guide = guideCoordinateCurve(source);
-  return toLocalCoordinate(source, locateWorldOnGuideGlobal(guide, world, false, out, workspace), clampL);
 }
 
 export function locateWorldOnGuideCoordinateLocal(
