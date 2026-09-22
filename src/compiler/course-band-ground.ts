@@ -2,7 +2,7 @@ import type { BandElementDocument } from '../course/course-document.js';
 import { CourseInputError } from '../course/course-diagnostics.js';
 import { compileBandGround, type BandPiece } from '../visual/band-ground.js';
 
-/** A small authored 5 by 7 block alphabet; rows are runs of Bands, not a ground image/stamp. */
+/** A small authored 5 by 7 block alphabet; rows expand to runs of Bands. */
 const GLYPHS: Readonly<Record<string, string>> = Object.freeze({
   A: '01110/10001/10001/11111/10001/10001/10001',
   B: '11110/10001/10001/11110/10001/10001/11110',

@@ -3,7 +3,6 @@ import type { Writable } from '../core/writable.js';
 import type { CourseCoordinate } from '../core/guide-curve.js';
 import { createPlanarCoordinateSample } from '../core/planar-sample.js';
 import type { CourseGround } from '../compiler/course-ground.js';
-import { selectGroundLevel } from '../groundmap/resident-ground.js';
 import { guideCoordinateMetricsAt, type GuideCoordinateReader } from '../core/guide-coordinate-frame.js';
 import {
   guideSegmentBounds,
@@ -26,7 +25,7 @@ import { compileCoursePresentationDomains } from '../compiler/course-presentatio
 import { createRegionSurfaceReader } from '../physics/region-surface-reader.js';
 import type { VehicleWorld } from '../physics/vehicle-contract.js';
 import { createCoursePresentationPreview } from '../render/course-presentation-preview.js';
-import type { GroundColorReader, BandGroundReader } from '../render/renderer.js';
+import type { BandGroundReader } from '../render/renderer.js';
 import type { VisualProfileReader } from '../visual/visual-profile.js';
 import type { CourseGeometryView } from './course-geometry-view.js';
 import type { CourseOccurrence } from './course-occurrence.js';
@@ -43,7 +42,7 @@ const seed = (ordinal: number, index: number) => {
 };
 
 /** Native source readers are shared; only bounded mapping/observation metadata is constructed per view. */
-export function createCourseDrivingSource(resident: CourseGround, physical: Physical, presentation: Presentation) {
+export function createCourseDrivingSource(fields: CourseGround, physical: Physical, presentation: Presentation) {
   if (
     !physical ||
     physical.scope !== 'physical-query-domain' ||
@@ -115,7 +114,6 @@ export function createCourseDrivingSource(resident: CourseGround, physical: Phys
       ...span,
       sourceFromView: invertPlanarTransform(span.viewFromSource),
       surface: surface(span.occurrence.section),
-      residentGround: resident.kind === 'resident' ? resident.forSection(span.occurrence.section) : null,
       presentation: sourcePresentation(span.occurrence.section),
       backgrounds: sourcePresentation(span.occurrence.section).backgrounds.map((background) =>
         Object.freeze({
@@ -442,61 +440,18 @@ export function createCourseDrivingSource(resident: CourseGround, physical: Phys
         return (visualSections[index + 1]?.sStart ?? range.end) - s;
       },
     });
-    const ground: GroundColorReader | BandGroundReader =
-      resident.kind === 'bands'
-        ? Object.freeze({
-            kind: 'bands' as const,
-            ...createBandGroundSampler(
-              mapped.map((mapping) => ({
-                ground: resident.forSection(mapping.occurrence.section),
-                frameStart: mapping.frameStart,
-                sourceStart: mapping.sourceRange.start,
-                sourceEnd: mapping.sourceRange.end,
-                lateralOrigin: mapping.sourceLateralOrigin,
-              })),
-            ),
-          })
-        : Object.freeze({
-            kind: 'baked',
-            kMax: resident.kMax,
-            selectLevel: (deltaS: number) => selectGroundLevel(deltaS, resident.kMax),
-            sampleAtLevel(s: number, l: number, level: number) {
-              const mapping = mappingAt(s);
-              const sourceS = mapping.sourceChainageInFrame(s);
-              const sourceL = l + mapping.sourceLateralOrigin;
-              const { left, right } = mapping.residentGround!.domain;
-              if (sourceL >= left && sourceL < right)
-                return mapping.residentGround!.sampleAtLevel(sourceS, sourceL, level);
-              const environment = mapping.presentation.visual.sample(sourceS);
-              const base = sourceL < left ? environment.groundBaseLeft : environment.groundBaseRight;
-              return base.kind === 'color' ? base.color : null;
-            },
-            sampleSpan(
-              pixels: Uint32Array,
-              offset: number,
-              count: number,
-              s: number,
-              l: number,
-              stepL: number,
-              level: number,
-            ) {
-              const mapping = mappingAt(s),
-                sourceS = mapping.sourceChainageInFrame(s);
-              const environment = mapping.presentation.visual.sample(sourceS);
-              mapping.residentGround!.sampleSpan(
-                pixels,
-                offset,
-                count,
-                sourceS,
-                l,
-                stepL,
-                level,
-                mapping.sourceLateralOrigin,
-                environment.groundBaseLeft.kind === 'color' ? environment.groundBaseLeft.color : null,
-                environment.groundBaseRight.kind === 'color' ? environment.groundBaseRight.color : null,
-              );
-            },
-          });
+    const ground: BandGroundReader = Object.freeze({
+      kind: 'bands' as const,
+      ...createBandGroundSampler(
+        mapped.map((mapping) => ({
+          ground: fields.forSection(mapping.occurrence.section),
+          frameStart: mapping.frameStart,
+          sourceStart: mapping.sourceRange.start,
+          sourceEnd: mapping.sourceRange.end,
+          lateralOrigin: mapping.sourceLateralOrigin,
+        })),
+      ),
+    });
     const scenery = mapped.flatMap((mapping) =>
       mapping.presentation.sprites
         .filter(({ sprite }) => {
@@ -516,15 +471,7 @@ export function createCourseDrivingSource(resident: CourseGround, physical: Phys
           }),
         ),
     );
-    const groundProfile =
-      resident.kind === 'bands'
-        ? Object.freeze({ groundLeft: 1, groundRight: 1 })
-        : Object.freeze({
-            groundLeft: Math.min(...mapped.map((m) => -m.presentation.ground.domain.left + m.sourceLateralOrigin)),
-            groundRight: Math.min(...mapped.map((m) => m.presentation.ground.domain.right - m.sourceLateralOrigin)),
-          });
-    if (groundProfile.groundLeft + groundProfile.groundRight <= 0)
-      return Object.freeze({ ok: false as const, reason: 'presentation_strip_disjoint' as const });
+    const groundProfile = Object.freeze({ groundLeft: 1, groundRight: 1 });
     return Object.freeze({
       ok: true as const,
       value: Object.freeze({

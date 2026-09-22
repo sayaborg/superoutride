@@ -1,6 +1,6 @@
 import { CourseInputError, courseFailure, courseSuccess, type CourseResult } from './course-diagnostics.js';
 
-export const COURSE_DOCUMENT_VERSION = 11;
+export const COURSE_DOCUMENT_VERSION = 12;
 
 interface GeometryRecipeIdentity {
   readonly id: string;
@@ -56,17 +56,6 @@ export interface CourseAssetReference {
   readonly sha256: string;
 }
 
-interface PaintDocument {
-  readonly assetId: string;
-  readonly phaseS: number;
-  readonly phaseL: number;
-  readonly alternate: null | {
-    readonly paletteRgb555: readonly number[];
-    readonly spanS: number;
-    readonly spanL: number;
-  };
-}
-
 export interface BandDocument {
   readonly kind: 'band';
   readonly color: number | null;
@@ -107,30 +96,11 @@ export type BandElementDocument =
       readonly colors: readonly number[];
     };
 
-export interface ResidentGroundDocument {
-  readonly kind: 'resident';
-  readonly left: number;
-  readonly right: number;
-  readonly baseRgb555: number;
-  readonly regions: readonly {
-    readonly regionId: string;
-    readonly sections: readonly { readonly anchor: CourseAnchor; readonly paint: PaintDocument | null }[];
-  }[];
-  readonly stamps: readonly {
-    readonly id: string;
-    readonly assetId: string;
-    readonly anchor: CourseAnchor;
-    readonly l: number;
-  }[];
-}
-
 export interface PresentationDocument {
-  readonly ground: ResidentGroundDocument | { readonly kind: 'bands'; readonly bands: readonly BandElementDocument[] };
+  readonly ground: { readonly kind: 'bands'; readonly bands: readonly BandElementDocument[] };
   readonly environments: readonly {
     readonly anchor: CourseAnchor;
     readonly name: string;
-    readonly groundBaseLeft?: number | null;
-    readonly groundBaseRight?: number | null;
     readonly background: {
       readonly assetId: string;
       readonly horizonY: number;
@@ -440,36 +410,6 @@ function rgb555(value: unknown, path: string): number {
   return color;
 }
 
-function paint(value: unknown, path: string): PaintDocument | null {
-  if (value === null) return null;
-  const v = record(value, path, ['assetId', 'phaseS', 'phaseL', 'alternate']);
-  let alternate: PaintDocument['alternate'] = null;
-  if (v.alternate !== null) {
-    const a = record(v.alternate, `${path}/alternate`, ['paletteRgb555', 'spanS', 'spanL']);
-    alternate = Object.freeze({
-      paletteRgb555: array(a.paletteRgb555, `${path}/alternate/paletteRgb555`, 16, rgb555),
-      spanS: number(a.spanS, `${path}/alternate/spanS`, 0, COURSE_DOCUMENT_LIMITS.lengthMeters, true),
-      spanL: number(a.spanL, `${path}/alternate/spanL`, 0, COURSE_DOCUMENT_LIMITS.lateralMeters, true),
-    });
-  }
-  return Object.freeze({
-    assetId: id(v.assetId, `${path}/assetId`),
-    phaseS: number(
-      v.phaseS,
-      `${path}/phaseS`,
-      -COURSE_DOCUMENT_LIMITS.lengthMeters,
-      COURSE_DOCUMENT_LIMITS.lengthMeters,
-    ),
-    phaseL: number(
-      v.phaseL,
-      `${path}/phaseL`,
-      -COURSE_DOCUMENT_LIMITS.lateralMeters,
-      COURSE_DOCUMENT_LIMITS.lateralMeters,
-    ),
-    alternate,
-  });
-}
-
 function bandElement(value: unknown, path: string, depth = 0): BandElementDocument {
   if (depth > 8) fail('resource_limit', path, 'Band construct nesting exceeds eight levels');
   const kind = value && typeof value === 'object' ? (value as Record<string, unknown>).kind : undefined;
@@ -550,41 +490,11 @@ function bandElement(value: unknown, path: string, depth = 0): BandElementDocume
 
 function groundDocument(value: unknown, path: string): PresentationDocument['ground'] {
   const kind = value && typeof value === 'object' ? (value as Record<string, unknown>).kind : undefined;
-  if (kind === 'resident') return residentGround(value, path);
   if (kind === 'bands') {
     const v = record(value, path, ['kind', 'bands']);
     return Object.freeze({ kind, bands: array(v.bands, `${path}/bands`, 4096, (item, at) => bandElement(item, at)) });
   }
-  return fail('unsupported_feature', `${path}/kind`, 'Ground kind must be bands or resident');
-}
-
-function residentGround(value: unknown, path: string): ResidentGroundDocument {
-  const g = record(value, path, ['kind', 'left', 'right', 'baseRgb555', 'regions', 'stamps']);
-  return Object.freeze({
-    kind: 'resident' as const,
-    left: number(g.left, `${path}/left`, 0, COURSE_DOCUMENT_LIMITS.lateralMeters, true),
-    right: number(g.right, `${path}/right`, 0, COURSE_DOCUMENT_LIMITS.lateralMeters, true),
-    baseRgb555: rgb555(g.baseRgb555, `${path}/baseRgb555`),
-    regions: array(g.regions, `${path}/regions`, COURSE_DOCUMENT_LIMITS.regions, (item, at) => {
-      const b = record(item, at, ['regionId', 'sections']);
-      return Object.freeze({
-        regionId: id(b.regionId, `${at}/regionId`),
-        sections: array(b.sections, `${at}/sections`, COURSE_DOCUMENT_LIMITS.knots, (item, at) => {
-          const s = record(item, at, ['anchor', 'paint']);
-          return Object.freeze({ anchor: anchor(s.anchor, `${at}/anchor`), paint: paint(s.paint, `${at}/paint`) });
-        }),
-      });
-    }),
-    stamps: identified(g.stamps, `${path}/stamps`, COURSE_DOCUMENT_LIMITS.placements, (item, at) => {
-      const s = record(item, at, ['id', 'assetId', 'anchor', 'l']);
-      return Object.freeze({
-        id: id(s.id, `${at}/id`),
-        assetId: id(s.assetId, `${at}/assetId`),
-        anchor: anchor(s.anchor, `${at}/anchor`),
-        l: number(s.l, `${at}/l`, -COURSE_DOCUMENT_LIMITS.lateralMeters, COURSE_DOCUMENT_LIMITS.lateralMeters),
-      });
-    }),
-  });
+  return fail('unsupported_feature', `${path}/kind`, 'Ground kind must be bands');
 }
 
 function presentation(value: unknown, path: string): PresentationDocument | null {
@@ -594,23 +504,11 @@ function presentation(value: unknown, path: string): PresentationDocument | null
   return Object.freeze({
     ground,
     environments: array(v.environments, `${path}/environments`, COURSE_DOCUMENT_LIMITS.knots, (item, at) => {
-      const e = record(
-        item,
-        at,
-        ground.kind === 'resident'
-          ? ['anchor', 'name', 'groundBaseLeft', 'groundBaseRight', 'background']
-          : ['anchor', 'name', 'background'],
-      );
+      const e = record(item, at, ['anchor', 'name', 'background']);
       const b = record(e.background, `${at}/background`, ['assetId', 'horizonY', 'yawOrigin']);
       return Object.freeze({
         anchor: anchor(e.anchor, `${at}/anchor`),
         name: id(e.name, `${at}/name`),
-        ...(ground.kind === 'resident'
-          ? {
-              groundBaseLeft: e.groundBaseLeft === null ? null : rgb555(e.groundBaseLeft, `${at}/groundBaseLeft`),
-              groundBaseRight: e.groundBaseRight === null ? null : rgb555(e.groundBaseRight, `${at}/groundBaseRight`),
-            }
-          : {}),
         background: Object.freeze({
           assetId: id(b.assetId, `${at}/background/assetId`),
           horizonY: number(b.horizonY, `${at}/background/horizonY`, 0, Number.MAX_SAFE_INTEGER),

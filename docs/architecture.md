@@ -148,54 +148,41 @@ than a relocated hard edge. Equal complete profiles share private coefficient st
 indices. Resolved records and public metadata are deeply immutable; mutable numeric buffers remain
 behind the compiled product's read boundary.
 
-A row uses the terrain projection's representative s and effective s footprint. Longitudinal selection
-is independent of the lateral kernel. In EXACT mode, the occurrence reader clips that centered interval
-to source-owned view spans, maps each lateral origin and decomposes the remaining ranges into complete
-cached dyadic intervals. At most two partial one-metre ends per source
-range integrate the resolved affine edges directly. Section tails and sub-metre footprints use the
-same rule; zero-length footprints read the instantaneous resolved slab. Unowned overlap guards do not
-contribute. Actual source lengths weight all contributions before coverage thresholding or color
-normalization. Changes in dyadic decomposition do not change the mathematical sampled interval.
-This is a separable source-(s,l) row footprint, not integration over a full perspective pixel polygon.
+A row uses the terrain projection's representative s and effective depth footprint `deltaS`.
+A projected `[-1,+1]` metre ruler supplies the affine screen-to-l map; it does not clip ground.
+The product has one complete mode, not independently configurable s/l kernels:
 
-LEVEL uses the shared [nearest-octave selector](#shared-image-level-selection) with `rho = deltaS / 1 m`.
-For `rho >= 1`, it reads only the cached cell containing the representative source s at the selected
-exponent, with no cell or level interpolation. The source owning s supplies the profile and lateral
-origin; a seam belongs to its successor. It does not blend neighboring occurrence sources. A profile
-remains in source-l coordinates, so LEVEL reads it directly without row-event composition or sorting.
+| Mode        | Longitudinal read                                               | Lateral read at pixel center x and width w |
+| ----------- | --------------------------------------------------------------- | ------------------------------------------ |
+| POINT-POINT | Instantaneous resolved Bands at the row's s for every footprint | Value at x                                 |
+| LEVEL-POINT | One cached dyadic cell, or instantaneous Bands when `rho < 1`   | Value at x                                 |
+| EXACT-BOX   | Exact integral over the row's centered depth interval           | Exact mean over `[x-w/2,x+w/2]`            |
 
-Only complete dyadic cells exist in the compiled data. At Section tails, the available prefix consists
-of levels whose containing cell exists; selection clamps to that prefix. The final closed endpoint
-uses the preceding cell. For `rho < 1`, or a fractional-metre tail without a cached containing cell,
-LEVEL reads the instantaneous resolved slab at s without longitudinal mixing. Its already ordered
-spans supply a piecewise-constant lateral profile. No additional precomputation or cache is required.
+POINT-POINT and LEVEL-POINT use the source owning s and its lateral origin; a seam belongs to its
+successor. The instantaneous read follows the ordered resolved slab without preblending or sorting.
+LEVEL-POINT uses `rho = deltaS / 1 m` with the [shared image selector](#shared-image-level-selection).
+It reads only the containing cell, without cell/level interpolation or mixing neighboring occurrences.
+Only complete dyadic cells exist. At Section tails, the available prefix contains levels whose
+containing cell exists; selection clamps to that prefix. The final closed endpoint uses the preceding
+cell. A fractional-metre tail without a containing cell uses the instantaneous read.
 
-A projected `[-1,+1]` metre ruler supplies the affine screen-to-l map; it does not clip the ground.
-The entire target row reads the resulting lateral function with the selected kernel:
+EXACT-BOX clips the centered depth interval to source-owned view spans, maps their lateral origins
+and decomposes the ranges into complete cached dyadic intervals. At most two partial one-metre
+ends per source range integrate resolved affine edges directly. Sub-metre footprints use the same
+rule; zero-length footprints use the instantaneous slab. Unowned overlap guards do not contribute.
+Actual source lengths weight all contributions before coverage or color normalization. This is a
+separable source-(s,l) row footprint, not a full perspective pixel polygon. Dyadic decomposition
+does not change the mathematical integral.
 
-| Filter | Lateral read at pixel center x and metre-per-pixel width w   |
-| ------ | ------------------------------------------------------------ |
-| POINT  | Value at x; no lateral antialiasing                          |
-| BOX    | Exact mean over `[x-w/2,x+w/2]`                              |
-| TENT   | Exact integral with weight `(1-abs(l-x)/w)/w` on `[x-w,x+w]` |
-
-EXACT's row workspace resolves weighted profile events once. Both longitudinal modes then batch
-constant spans with direct fills or transparent skips. Only ramp and kernel-boundary pixels integrate lateral segments; TENT
-uses the product of the linear profile and linear kernel. No pixel loops over original authored Bands.
-All three lateral methods accept either longitudinal mode and share geometry and the color law.
+The exact row workspace composes weighted profile events once; the other modes read their source
+profile directly. All modes batch constant spans with fills or transparent skips. Only varying
+profiles and box-boundary pixels need individual evaluation. No pixel loops over authored Bands.
 
 RGB555 decodes through the common linear-sRGB channel table. Contributions stay premultiplied until
 final coverage is known. Coverage at least the shared 0.5 threshold is opaque, allowing 64 machine
 epsilons of relative row-area roundoff at equality. Opaque RGB divides by opaque area once, encodes
 sRGB and rounds to RGB555; transparent pixels leave the existing image unchanged. Hidden colors and
-BG do not enter the average. [Browser](browser.md#band-comparison) owns live selection and HUD observations.
-
-### Legacy resident path
-
-The four legacy selections still sample completed resident RGB555 inside a finite painted strip.
-Outside it, left/right environment GroundBase supplies a color or transparency. Its distinct
-[composition, lattice and filter](image-assets.md#resident-ground) remain available during Stage 4a.
-The Band path neither loads these payloads nor uses GroundBase.
+BG do not enter the average. [Browser](browser.md#ground-display-setting) owns live selection and HUD observations.
 
 ## Sprites and Painter
 
@@ -230,7 +217,7 @@ LOD for shipped sprites.
 ### Shared image level selection
 
 Graphics' `selectImageLodLevel(scale, maxLevel)` is the single nearest-octave selection rule used by
-both sprites and Band LEVEL. `scale = 1/rho`: destination pixels per master texel for sprites, or
+both sprites and LEVEL-POINT. `scale = 1/rho`: destination pixels per master texel for sprites, or
 `1 m / deltaS` for Bands. It selects the nearest integer `log2(rho)` exponent, clamped to the available
 prefix `0..maxLevel`. There is one level per octave. At the geometric-mean boundary
 `scale = 2^(-n)/sqrt(2)`, it selects the coarser exponent `n+1`. No interpolation occurs.
@@ -262,16 +249,15 @@ local projection seeds identify both occurrence and native segment.
 
 Core owns finite geometry, height, transforms and shared numeric/color-independent primitives.
 Course owns saved course values and boundary geometry. Graphics owns colors, indexed images, the
-framebuffer and blitting. Visual owns visual profiles, compiled Band color fields/sampling and image
-presentation data; Terrain projects bounds; Render assembles drawing. Groundmap owns the legacy
-source-paint composition, completed-ground compilation and resident readers.
+framebuffer, blitting and product display settings (`graphics/display-settings.ts`). Visual owns visual profiles, compiled Band color fields/sampling and image
+presentation data; Terrain projects bounds; Render assembles drawing.
 
 Physics owns mechanics and surface interpretation and currently imports Core, Course and Input.
 Input owns normalized driver requests. Camera consumes Core and Physics. Gameplay consumes Core,
 Input and Physics for drivers, crossings, progress and recovery. Audio depends on Core; Vehicle binds
 Physics profiles and Audio profiles.
 
-Compiler consumes Core, Course, Graphics, Groundmap, Physics and Visual to publish the immutable
+Compiler consumes Core, Course, Graphics, Physics and Visual to publish the immutable
 course reference graph, including expansion of authored Band constructs. Authoring consumes Course and Compiler for project transactions. Runtime
 composes occurrences and the shared scene from compiled readers and the geometry, mechanics, gameplay
 and rendering layers. Browser adapts input, scheduling and presentation; product roots compose course

@@ -1,11 +1,4 @@
-import {
-  BAND_FILTERS,
-  BAND_DEFAULT_FILTER,
-  type BandFilter,
-  BAND_S_MODES,
-  BAND_DEFAULT_S_MODE,
-  type BandSMode,
-} from '../visual/band-ground.js';
+import { createDisplaySettings, type DisplaySettings } from '../graphics/display-settings.js';
 import type { CourseGround } from '../compiler/course-ground.js';
 import {
   LOGICAL_HEIGHT,
@@ -25,15 +18,18 @@ import type { SpriteAssets } from '../visual/sprite-assets.js';
 import { createCourseDrivingGraph } from './course-driving-session.js';
 
 /** One graph assembly for every course, including a single Section without Links. */
-export function createCourseScene(section: CompiledSection, ground: CourseGround, assets: SpriteAssets) {
+export function createCourseScene(
+  section: CompiledSection,
+  ground: CourseGround,
+  assets: SpriteAssets,
+  displaySettings: DisplaySettings = createDisplaySettings(),
+) {
   const graph = createCourseDrivingGraph(section, ground);
   const session = graph.createSession();
   const entry = section.ports.find((port) => port.kind === 'entry');
   if (!entry || entry.anchor.s < CURRENT_CAMERA_PROFILE.dCam)
     throw new RangeError('Driving requires an entry Port with camera space behind it');
   const renderWorkspace = createRenderWorkspace();
-  let bandFilter: BandFilter = BAND_DEFAULT_FILTER;
-  let bandSMode: BandSMode = BAND_DEFAULT_S_MODE;
   const worldSprites: CourseSprite[] = [];
   let lastView: typeof session.view | null = null;
   let lastClosed: typeof session.closedCarriageways | null = null;
@@ -41,20 +37,6 @@ export function createCourseScene(section: CompiledSection, ground: CourseGround
   let terrainProfile: Parameters<typeof renderDriving>[1]['terrainProfile'];
   return Object.freeze({
     session,
-    get bandFilter() {
-      return bandFilter;
-    },
-    setBandFilter(value: BandFilter) {
-      if (!BAND_FILTERS.includes(value)) throw new RangeError('Unknown Band lateral filter');
-      bandFilter = value;
-    },
-    get bandSMode() {
-      return bandSMode;
-    },
-    setBandSMode(value: BandSMode) {
-      if (!BAND_S_MODES.includes(value)) throw new RangeError('Unknown Band longitudinal mode');
-      bandSMode = value;
-    },
     metrics: graph.metrics,
     groundMetrics: ground.metrics,
     createActorSession: graph.createSession,
@@ -117,7 +99,7 @@ export function createCourseScene(section: CompiledSection, ground: CourseGround
           assets: appearance,
           playerKind,
         },
-        { ground: presentation.ground, workspace: renderWorkspace, bandFilter, bandSMode },
+        { ground: presentation.ground, workspace: renderWorkspace, bandMode: displaySettings.bandMode },
       );
     },
   });

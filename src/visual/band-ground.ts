@@ -1,3 +1,4 @@
+import type { BandRenderMode } from '../graphics/display-settings.js';
 import { SOURCE_ENDPOINT_TOLERANCE_METERS } from '../core/tolerances.js';
 import {
   IMAGE_OPAQUE_COVERAGE,
@@ -7,12 +8,6 @@ import {
 } from '../graphics/image-filter.js';
 import { rgb555ToRgba } from '../graphics/rgb555.js';
 
-export const BAND_FILTERS = Object.freeze(['POINT', 'BOX', 'TENT'] as const);
-export type BandFilter = (typeof BAND_FILTERS)[number];
-export const BAND_DEFAULT_FILTER: BandFilter = 'BOX';
-export const BAND_S_MODES = Object.freeze(['EXACT', 'LEVEL'] as const);
-export type BandSMode = (typeof BAND_S_MODES)[number];
-export const BAND_DEFAULT_S_MODE: BandSMode = 'EXACT';
 export const BAND_ACTIVE_LIMIT = 64;
 /** Smallest cached interval in metres; partial ends use exact resolved edges, not resampled cells. */
 export const BAND_BASE_STEP = 1;
@@ -40,19 +35,11 @@ export interface BandSlab {
 
 export interface BandRenderMetrics {
   activeBands: number;
-  preblendLevel: number;
-  preblendMinLevel: number | null;
-  pointRows: number;
-  profileSegments: number;
   outputPixels: number;
 }
 export function createBandRenderMetrics(): BandRenderMetrics {
   return {
     activeBands: 0,
-    preblendLevel: 0,
-    preblendMinLevel: null,
-    pointRows: 0,
-    profileSegments: 0,
     outputPixels: 0,
   };
 }
@@ -280,42 +267,25 @@ function nodeAt(profile: Profile, x: number): number {
   }
   return lo - 1;
 }
-function point(profile: Profile, x: number, out: Float64Array, weight: number, stats: BandRenderMetrics) {
+function point(profile: Profile, x: number, out: Float64Array) {
   const i = nodeAt(profile, x) * 9;
-  stats.profileSegments++;
   for (let c = 0; c < 4; c++)
-    out[c]! +=
-      weight *
-      (i < 0 ? profile.base[c]! : profile.data[i + 1 + c]! + profile.data[i + 5 + c]! * (x - profile.data[i]!));
+    out[c]! += i < 0 ? profile.base[c]! : profile.data[i + 1 + c]! + profile.data[i + 5 + c]! * (x - profile.data[i]!);
 }
-/** Stable local integration of two affine functions; no cancellation of large global antiderivatives. */
-function integrate(
-  profile: Profile,
-  a: number,
-  b: number,
-  ka: number,
-  kb: number,
-  out: Float64Array,
-  weight: number,
-  stats: BandRenderMetrics,
-) {
+/** Exact local box mean of the piecewise-affine profile, without global antiderivative cancellation. */
+function integrate(profile: Profile, a: number, b: number, out: Float64Array) {
   const data = profile.data;
   let index = nodeAt(profile, a),
     x = a;
   while (x < b) {
     const end = Math.min(b, index + 1 < profile.count ? data[(index + 1) * 9]! : Infinity);
-    const t0 = (x - a) / (b - a),
-      t1 = (end - a) / (b - a),
-      k0 = ka + (kb - ka) * t0,
-      k1 = ka + (kb - ka) * t1;
-    const extent = end - x,
+    const weight = (end - x) / (b - a),
       i = index * 9;
     for (let c = 0; c < 4; c++) {
       const v0 = i < 0 ? profile.base[c]! : data[i + 1 + c]! + data[i + 5 + c]! * (x - data[i]!);
       const v1 = i < 0 ? profile.base[c]! : data[i + 1 + c]! + data[i + 5 + c]! * (end - data[i]!);
-      out[c]! += weight * (((v0 * (2 * k0 + k1) + v1 * (k0 + 2 * k1)) * extent) / 6);
+      out[c]! += (v0 + v1) * 0.5 * weight;
     }
-    stats.profileSegments++;
     x = end;
     index++;
   }
@@ -540,7 +510,7 @@ function appendExact(
   }
 }
 
-/** LEVEL's instantaneous profile follows already resolved span order; no event composition or sorting. */
+/** The instantaneous profile follows already resolved span order; no event composition or sorting. */
 function readPointProfile(
   profile: { base: number[]; data: Float64Array; count: number },
   ground: BandGround,
@@ -550,7 +520,6 @@ function readPointProfile(
   const slab = ground.slabs[slabAt(ground.slabs, s)]!;
   profile.count = slab.spans.length - 1;
   stats.activeBands = Math.max(stats.activeBands, slab.active);
-  stats.pointRows++;
   for (let i = 0; i < slab.spans.length; i++) {
     const piece = slab.spans[i]!,
       color = piece.color;
@@ -565,7 +534,7 @@ function readPointProfile(
   return profile;
 }
 
-/** EXACT integrates the owned row interval; LEVEL reads one existing profile at the representative s. */
+/** Each product mode selects its complete longitudinal/lateral read, never independent kernels. */
 export function createBandGroundSampler(sources: readonly BandSourceSpan[]) {
   if (sources.length === 0) throw new RangeError('Band sampling requires source-owned intervals');
   const spans = sources.map((source, i) => {
@@ -612,7 +581,6 @@ export function createBandGroundSampler(sources: readonly BandSourceSpan[]) {
         cell = index / 2 ** level;
       row.addProfile(span.profiles[source.indices[cell]!]!, source.step, span.lateralOrigin);
       stats.activeBands = Math.max(stats.activeBands, source.active[cell]!);
-      stats.preblendLevel = Math.max(stats.preblendLevel, level);
       index += 2 ** level;
     }
     if (fullEnd * BAND_BASE_STEP < b)
@@ -628,17 +596,16 @@ export function createBandGroundSampler(sources: readonly BandSourceSpan[]) {
       l: number,
       stepL: number,
       deltaS: number,
-      filter: BandFilter,
+      mode: BandRenderMode,
       stats: BandRenderMetrics,
-      sMode: BandSMode = BAND_DEFAULT_S_MODE,
     ) {
       let profile: Profile;
       let normalization = 1;
-      if (sMode === 'LEVEL') {
+      if (mode !== 'EXACT-BOX') {
         const span = spans.find((p) => p.frameEnd > s) ?? spans.at(-1)!;
         const at = Math.max(0, Math.min(span.ground.length, span.sourceStart + s - span.frameStart));
         let selected: Profile | undefined;
-        if (deltaS >= BAND_BASE_STEP && span.levels.length) {
+        if (mode === 'LEVEL-POINT' && deltaS >= BAND_BASE_STEP && span.levels.length) {
           for (let level = selectImageLodLevel(BAND_BASE_STEP / deltaS, span.levels.length - 1); level >= 0; level--) {
             const source = span.levels[level]!;
             // The final closed endpoint belongs to the preceding cell; other boundaries belong to the next.
@@ -646,8 +613,6 @@ export function createBandGroundSampler(sources: readonly BandSourceSpan[]) {
             if (cell >= source.indices.length) continue;
             selected = span.profiles[source.indices[cell]!]!;
             stats.activeBands = Math.max(stats.activeBands, source.active[cell]!);
-            stats.preblendMinLevel = Math.min(stats.preblendMinLevel ?? level, level);
-            stats.preblendLevel = Math.max(stats.preblendLevel, level);
             break;
           }
         }
@@ -674,7 +639,7 @@ export function createBandGroundSampler(sources: readonly BandSourceSpan[]) {
       }
       const width = Math.abs(stepL);
       const threshold = (IMAGE_OPAQUE_COVERAGE - COVERAGE_ROUNDOFF) * normalization;
-      const support = filter === 'POINT' ? 0 : filter === 'BOX' ? width / 2 : width;
+      const support = mode === 'EXACT-BOX' ? width / 2 : 0;
       for (let x = 0; x < count;) {
         const node = nodeAt(profile, l - support),
           at = node * 9;
@@ -694,20 +659,14 @@ export function createBandGroundSampler(sources: readonly BandSourceSpan[]) {
           const distance = stepL > 0 ? boundary - support - l : l - support - boundary;
           const run = Math.min(count - x, Math.max(1, Math.ceil(distance / width)));
           for (let c = 0; c < 4; c++) sample[c] = node < 0 ? profile.base[c]! : profile.data[at + 1 + c]!;
-          stats.profileSegments++;
           writeBandPixels(pixels, offset + x, run, sample, threshold, colorCache, stats);
           x += run;
           l += stepL * run;
           continue;
         }
         sample.fill(0);
-        if (filter === 'POINT' || width === 0) point(profile, l, sample, 1, stats);
-        else if (filter === 'BOX')
-          integrate(profile, l - width / 2, l + width / 2, 1 / width, 1 / width, sample, 1, stats);
-        else {
-          integrate(profile, l - width, l, 0, 1 / width, sample, 1, stats);
-          integrate(profile, l, l + width, 1 / width, 0, sample, 1, stats);
-        }
+        if (mode !== 'EXACT-BOX' || width === 0) point(profile, l, sample);
+        else integrate(profile, l - width / 2, l + width / 2, sample);
         writeBandPixels(pixels, offset + x, 1, sample, threshold, colorCache, stats);
         x++;
         l += stepL;

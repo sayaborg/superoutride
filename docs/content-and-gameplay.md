@@ -20,7 +20,7 @@ structural partitions with material bindings. One concept has one name in both s
 Checkpoints, starts, finishes and environment changes are independent of Section boundaries.
 Source identity, traversal identity and race credit are distinct.
 
-## CourseDocument v11
+## CourseDocument v12
 
 The saved format is compact UTF-8 JSON. All declared fields are required; explicit null represents
 absent optional content. Unknown fields fail. Arrays preserve saved order; object-property order and
@@ -28,7 +28,7 @@ whitespace do not affect identity. Normalized records use schema field order and
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 11,
+  format: "superoutride.course", version: 12,
   reference, id, units: {length: "m", angle: "deg"},
   geometryRecipe: {id, version},
   type: "LINEAR" | "BRANCH" | "CIRCUIT", entrySectionId,
@@ -78,8 +78,8 @@ These values participate in source identity; compilation consumes the saved geom
 
 IDs are opaque nonblank strings without surrounding whitespace and compare exactly. Course ID is
 external identity. Section, Link, asset and scenery-instance IDs each have a document-wide scope.
-Primitive, Boundary, Region, Carriageway and Port IDs each have their own Section-local scope; stamp,
-placement and row IDs also have their declared Section-local scopes. Duplicate IDs fail. References
+Primitive, Boundary, Region, Carriageway and Port IDs each have their own Section-local scope;
+scenery placement and row IDs also have their declared Section-local scopes. Duplicate IDs fail. References
 resolve in their named scopes rather than by array position.
 
 Schema-valid drafts may contain empty arrays, unresolved references or an unavailable geometry recipe.
@@ -88,8 +88,8 @@ A geometry draft uses `presentation: null`, `fork: null`, `rules: null` and expl
 
 ### Saved presentation
 
-`presentation` is null or `{ground,environments,scenery,sceneryRows}`. Every presented Section in a
-course uses the same ground kind; mixing Band and resident Sections fails compilation. Shared records are:
+`presentation` is null or `{ground,environments,scenery,sceneryRows}`. Ground is always a Band field.
+The other presentation records are:
 
 | Record            | Fields                                                                                     |
 | ----------------- | ------------------------------------------------------------------------------------------ |
@@ -98,14 +98,15 @@ course uses the same ground kind; mixing Band and resident Sections fails compil
 | Scenery row       | `id`, `assetId`, `start`, `end`, `spacing`, `boundaryId`, `side`, `offset`, `groundOffset` |
 
 Environment profiles begin at zero. Assets belong to the referencing Section and resolve to canonical
-sprite/background descriptors. Ground-kind-specific environment fields are defined below.
+sprite/background descriptors. Each environment is `{anchor,name,background}`; environment changes
+affect BG and labels, independently of ground colors.
 
 #### Band ground
 
 The canonical colored ground is `{kind:"bands",bands:[elements...]}`. Array order is Painter order:
 a later covering Band replaces the earlier color, including when its own color is transparent.
 Uncovered ground is transparent. All Band s/l coordinates are Section-local metres, independent of
-Boundaries, Region roles, physical materials and legacy image phases.
+Boundaries, Region roles and physical materials.
 
 | Element  | Fields and meaning                                                                                               |
 | -------- | ---------------------------------------------------------------------------------------------------------------- |
@@ -139,19 +140,8 @@ most 64 MiB per Section. Limits reject rather than truncate authored content. So
 saved; their expanded lists, resolved slabs and preblended profiles are compiler products only.
 [Architecture](architecture.md#band-rendering) owns the averaging, immutable storage and pixel kernels.
 
-Band environments contain only `{anchor,name,background}`. They have no GroundBase fields, and ground
-has no asset references, stamps, paint or Region bindings. Scenery and BG retain their shared image formats.
-
-#### Legacy resident ground
-
-The four legacy course inputs use `{kind:"resident",left,right,baseRgb555,regions,stamps}`.
-Positive left/right bound a finite strip; baseRgb555 is opaque. Each appearance binding is
-`{regionId,sections:[{anchor,paint}]}` and begins at Region activation; later changes precede its end.
-Paint is null or `{assetId,phaseS,phaseL,alternate}`, with alternate null or `{paletteRgb555,spanS,spanL}`.
-A stamp is `{id,assetId,anchor,l}`. Resident environments additionally require `groundBaseLeft` and
-`groundBaseRight`, RGB555 or null. Null paint exposes the opaque strip base, unlike a transparent Band.
-[Image assets](image-assets.md#saved-course-presentation) owns this path's phase, A/B and stamp rules.
-It temporarily coexists with Bands during Stage 4a; [NEXT](NEXT.md) owns its remaining removal.
+Ground colors and constructs reference neither assets nor Regions. Scenery and BG retain their
+shared image formats.
 
 Scenery placements resolve document-wide instances. `unselectedCarriagewayId` is null for ordinary
 scenery or names a canonical exit Carriageway. Such signs lie from lock through closure, before the
@@ -160,7 +150,7 @@ common exit guard, and appear when the field selects another exit. Their state f
 Rows use a half-open interval with placements at `start+index*spacing`. The side is left/right;
 nonnegative offset follows the corresponding side of the referenced varying Boundary. Expanded
 Section/row/index identities are deterministic. The total expanded Section placement count is at most 4096.
-Each stamp, scenery and document instance collection admits 4096 records; profiles admit 256 nodes.
+Each scenery and document instance collection admits 4096 records; profiles admit 256 nodes.
 Unsupported presentation fields produce diagnostics.
 
 ### Authored Session rules
@@ -254,7 +244,7 @@ topology through its transform; its endpoint world positions/headings may differ
 
 `compileCoursePhysicalDomains` and `compileCoursePresentationDomains` bind the root's explicit
 contact and fixed-step envelopes over canonical Links. A driving source requires both results.
-Within the common guard, height, supported materials, Region edges, resolved Band colors or legacy source paint/phase, BG and shared
+Within the common guard, height, supported materials, Region edges, resolved Band colors, BG and shared
 scenery agree. The current root supplies 30 m guards. Longer camera/render, driver and recovery reads
 use source-owned occurrence spans. Domain mismatches identify the Link and affected consumer.
 
@@ -425,7 +415,7 @@ Physics' typed suspension-travel exit requests this gameplay discontinuity. Know
 occurrence identity. Observers resynchronize once, suppress reset crossing credit and update the player
 camera before rendering. Unrelated internal faults propagate.
 
-## Observation and fitting formats
+## Observation formats
 
 ### Course observations
 
@@ -462,29 +452,12 @@ per-channel RGB difference; ambiguous road runs or missing/tied HUD digits fail.
 calibrated planar pinhole approximation, horizon-based grade and integrated HUD speed. Output records
 frame SHA-256, centers/horizon, HUD mismatch and geometric residuals. Scenery and semantic landmarks are authored observations.
 
-### Distance-based fitting
-
-`superoutride.course-fit` version 1 contains relative `template`, `curvatureTolerance`,
-`boundaries:[{id,widthFactor,offsetMeters}]`, `ports:[{id,s}]`,
-`sceneryKinds:[{kind,assetId,leftBoundaryId,rightBoundaryId}]` and
-`environments:[{label,templateName}]`.
-
-The current fitter requires a legacy resident-ground template; it does not generate Band constructs.
-It produces one LINEAR Section with full-length Regions and constant bindings, scenery rows
-and environment profiles. Curvature intervals become straight/circular primitives; width supplies
-Boundary factors/offsets and height comes from observations or integrated grade. Generated anchors
-are primitive-relative. Checkpoint annotations are output observations, distinct from runtime rules.
-Distance/curvature/height scales, source edition, observation digest and remaster departures are saved
-in `reference`. Output is replaced atomically after successful compilation; failures preserve prior output.
-
 ## Course loading
 
-All selected-course inputs, complete ground for reachable Sections and generated vehicle/timing data
-are ready before ticks. Band courses expand their saved constructs and build private preblend fields
-with the shared compiler; they load no resident-ground manifest or payload. Shared records and the
-single circuit source are loaded once. For a legacy resident course, the ground manifest must match
-the current course/build, finite grids and capacity; its payload must match length, digest, RGB555
-domains and tile references. Failure publishes no partial reader or Session.
+All selected-course inputs and generated vehicle/timing data are ready before ticks. The shared
+compiler expands saved Band constructs and builds immutable fields for every reachable Section.
+Aliases share canonical records and each reusable Section's field; repeated circuit occurrences
+reuse the single source. Input or compilation failure publishes no partial reader or Session.
 
 Replacement suspends input, audio and ticks, shows coherent loading/failure state and supports retry.
 Stale arrivals cannot replace a newer selection. Resume uses a fresh clock and cleared input ownership.

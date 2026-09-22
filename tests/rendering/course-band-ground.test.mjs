@@ -29,19 +29,12 @@ test('visual Bands can erase all ground without changing structural Regions, sup
   const sampler = createBandGroundSampler([
     { ground: b.presentation.ground, frameStart: 0, sourceStart: 0, sourceEnd: b.raster.length, lateralOrigin: 0 },
   ]);
-  sampler.sampleSpan(pixels, 0, 320, 350, -40, 0.25, 32, 'BOX', createBandRenderMetrics());
+  sampler.sampleSpan(pixels, 0, 320, 350, -40, 0.25, 32, 'EXACT-BOX', createBandRenderMetrics());
   assert.ok(
     pixels.every((p) => p === 0xabcdef01),
     'transparent plane must preserve the existing BG/Painter pixels',
   );
 
-  const oldName = structuredClone(document);
-  oldName.sections[0].bands = oldName.sections[0].regions;
-  delete oldName.sections[0].regions;
-  assert.equal(readCourseDocument(oldName).ok, false);
-  const groundBase = structuredClone(document);
-  groundBase.sections[0].presentation.environments[0].groundBaseLeft = 0;
-  assert.equal(readCourseDocument(groundBase).ok, false);
   const invalidText = structuredClone(document);
   invalidText.sections[0].presentation.ground.bands = [
     { kind: 'text', s: 40, l: 0, height: 7, text: 'lowercase', color: 32767 },

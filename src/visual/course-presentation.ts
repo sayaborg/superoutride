@@ -1,5 +1,5 @@
 import type { BandGround } from './band-ground.js';
-import type { CompiledRegion, CompiledRegionPartition, CompiledCarriageway } from '../course/course-regions.js';
+import type { CompiledCarriageway } from '../course/course-regions.js';
 import type { CompiledCourseAnchor } from '../course/course-geometry.js';
 import type { TileBackgroundDocument } from '../graphics/tile-background-image.js';
 import { type SpriteLodDocument } from '../graphics/sprite.js';
@@ -9,36 +9,6 @@ interface IndexedSource {
   readonly source: SpriteLodDocument;
 }
 
-export interface CoursePaint {
-  readonly asset: IndexedSource;
-  readonly phaseS: number;
-  readonly phaseL: number;
-  readonly alternate: null | {
-    readonly paletteRgb555: readonly number[];
-    readonly spanS: number;
-    readonly spanL: number;
-  };
-}
-export interface CourseGroundSourceData {
-  readonly kind: 'resident';
-  readonly partition: CompiledRegionPartition;
-  readonly left: number;
-  readonly right: number;
-  readonly baseRgb555: number;
-  readonly regions: readonly {
-    readonly region: CompiledRegion;
-    readonly sections: readonly { readonly anchor: CompiledCourseAnchor; readonly paint: CoursePaint | null }[];
-  }[];
-  readonly stamps: readonly {
-    readonly id: string;
-    readonly asset: IndexedSource;
-    readonly anchor: CompiledCourseAnchor;
-    readonly l: number;
-    readonly gridS: number;
-    readonly gridL: number;
-  }[];
-}
-
 export interface CourseSceneryInstance {
   readonly id: string;
   readonly paletteRgb555: readonly number[] | null;
@@ -46,12 +16,10 @@ export interface CourseSceneryInstance {
 }
 
 export interface CoursePresentation {
-  readonly ground: CourseGroundSourceData | BandGround;
+  readonly ground: BandGround;
   readonly environments: readonly {
     readonly anchor: CompiledCourseAnchor;
     readonly name: string;
-    readonly groundBaseLeft: number | null;
-    readonly groundBaseRight: number | null;
     readonly background: {
       readonly asset: { readonly source: TileBackgroundDocument };
       readonly horizonY: number;

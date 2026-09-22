@@ -53,7 +53,7 @@ try {
     const section = opts.has('--section') ? course.sections.find((s) => s.id === opts.get('--section')) : course.entry;
     requireInput(section, '/section', 'Unknown Section');
     if (verb === 'compile') {
-      result.ground = (await loadCourseGround(course, file)).metrics;
+      result.ground = (await loadCourseGround(course)).metrics;
     } else if (verb === 'render') {
       const entry = opts.has('--vehicle')
         ? VEHICLE_CATALOG.find((e) => e.profile.id === opts.get('--vehicle'))
@@ -75,7 +75,7 @@ try {
         stations = Array.from({ length: count }, (_, i) => start + i * step);
       } else stations = [finite(Number(opts.get('--s') ?? 45), '/s', 0, section.raster.length)];
       const l = finite(Number(opts.get('--l') ?? 0), '/l', -1000, 1000),
-        scene = createCourseScene(section, await loadCourseGround(course, file), spriteAssets);
+        scene = createCourseScene(section, await loadCourseGround(course), spriteAssets);
       if (opts.has('--exit')) {
         const link = section.outgoing.find((l) => l.id === opts.get('--exit'));
         requireInput(link, '/exit', 'Exit must name a canonical outgoing Link');

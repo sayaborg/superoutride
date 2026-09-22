@@ -54,7 +54,7 @@ export interface CompiledCourse {
 
 const COURSE_COMPILER = Object.freeze({
   id: 'superoutride.course-compiler',
-  version: 18,
+  version: 19,
   links: COURSE_LINK_RECIPE,
   physical: COURSE_PHYSICAL_RECIPE,
   images: COURSE_IMAGE_SOURCE_RECIPE,
@@ -299,13 +299,6 @@ export async function compileCourseDocument(
       compileSection(section, assets, instances, `/sections/${index}`),
     );
     const sections = drafts.map((draft) => draft.section);
-    requireCourse(
-      new Set(sections.flatMap((section) => (section.presentation ? [section.presentation.ground.kind] : []))).size <=
-        1,
-      '/sections',
-      'One course cannot mix resident and Band ground Sections',
-      'appearance_binding',
-    );
     const sectionTable = new Map(sections.map((section) => [section.id, section]));
     const portTables = new Map(
       sections.map((section) => [section, new Map(section.ports.map((port) => [port.id, port]))]),

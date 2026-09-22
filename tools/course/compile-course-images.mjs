@@ -8,15 +8,10 @@ export async function compileCourseImages(document, inputs) {
   const admitted = await compileCourseImageSources(document.assets, inputs);
   if (!admitted.ok) throw new Error(JSON.stringify(admitted.diagnostics));
   const sceneryIds = new Set(document.sceneryInstances.map((instance) => instance.assetId));
-  const groundIds = new Set();
   for (const section of document.sections) {
     const presentation = section.presentation;
     if (!presentation) continue;
     for (const row of presentation.sceneryRows) sceneryIds.add(row.assetId);
-    if (presentation.ground.kind !== 'resident') continue;
-    for (const region of presentation.ground.regions)
-      for (const slice of region.sections) if (slice.paint) groundIds.add(slice.paint.assetId);
-    for (const stamp of presentation.ground.stamps) groundIds.add(stamp.assetId);
   }
   const original = new Map(inputs.map((input) => [input.sha256, input]));
   const products = new Map(),
@@ -24,8 +19,6 @@ export async function compileCourseImages(document, inputs) {
   const assets = admitted.value.map((asset) => {
     let input = original.get(asset.sha256);
     if (sceneryIds.has(asset.id)) {
-      if (groundIds.has(asset.id))
-        throw new RangeError('A ground master and a sprite pyramid require separate image identities');
       if (asset.source.format !== 'superoutride.sprite-lod') throw new RangeError('Scenery requires a sprite master');
       if (!cache.has(asset.sha256)) {
         const product = compileSpriteLod(asset.source);

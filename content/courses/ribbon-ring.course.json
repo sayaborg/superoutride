@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 11,
+  "version": 12,
   "reference": null,
   "id": "ribbon-ring",
   "units": { "length": "m", "angle": "deg" },

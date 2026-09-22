@@ -11,10 +11,6 @@ export const BROWSER_VEHICLE_KEYS: Readonly<Record<string, string>> = Object.fre
   PX200E_ARCOBALENO: 'KeyV',
 });
 
-export const BROWSER_COURSE_KEYS = Object.freeze({
-  linear: Object.freeze({ digitCode: 'Digit1', numpadCode: 'Numpad1' }),
-});
-
 export const BROWSER_CALIBRATION_KEYS = Object.freeze({
   D: 'KeyY',
   M: 'KeyU',

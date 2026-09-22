@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 11,
+  "version": 12,
   "id": "ribbon-coast",
   "reference": null,
   "units": { "length": "m", "angle": "deg" },

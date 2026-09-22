@@ -1,20 +1,8 @@
 import { compileOpenProfile, openProfileChainage, profileIndexAt } from '../core/open-profile.js';
 import { nonEmptyId } from '../core/validation.js';
 
-export type GroundBase = { readonly kind: 'color'; readonly color: number } | { readonly kind: 'transparent' };
-
-function compileGroundBase(base: GroundBase): GroundBase {
-  if (base.kind === 'transparent') return Object.freeze({ kind: 'transparent' });
-  if (base.kind !== 'color' || !Number.isInteger(base.color) || base.color < 0 || base.color > 0xffffffff) {
-    throw new RangeError('GroundBase color must be uint32');
-  }
-  return Object.freeze({ kind: 'color', color: base.color });
-}
-
 export interface VisualSection {
   readonly sStart: number;
-  readonly groundBaseLeft: GroundBase;
-  readonly groundBaseRight: GroundBase;
   readonly name: string;
 }
 
@@ -36,11 +24,7 @@ export class VisualProfile implements VisualProfileReader {
     this.sections = compileOpenProfile(
       sections.map((section) => {
         nonEmptyId(section.name, 'visual section name');
-        return {
-          ...section,
-          groundBaseLeft: compileGroundBase(section.groundBaseLeft),
-          groundBaseRight: compileGroundBase(section.groundBaseRight),
-        };
+        return { ...section };
       }),
       { length: courseLength, chainage: 'sStart', label: 'visual profile' },
     );

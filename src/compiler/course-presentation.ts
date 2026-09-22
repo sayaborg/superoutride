@@ -4,13 +4,12 @@ import { courseBoundaryAt, type CompiledRegionPartition, type CompiledCarriagewa
 import type { CompiledCourseAnchor } from '../course/course-geometry.js';
 import { CourseInputError, requireCourse } from '../course/course-diagnostics.js';
 import { BACKGROUND_HEIGHT, BACKGROUND_PIXELS_PER_RADIAN } from '../graphics/tile-background-image.js';
-import { SPRITE_SOURCE_TEXELS_PER_METER } from '../graphics/sprite.js';
-import type { CoursePresentation, CourseSceneryInstance, CoursePaint } from '../visual/course-presentation.js';
+import type { CoursePresentation, CourseSceneryInstance } from '../visual/course-presentation.js';
 import type { CompiledCourseImageSource } from './course-image-source.js';
 
-export const COURSE_PRESENTATION_RECIPE = Object.freeze({ id: 'superoutride.course-presentation', version: 5 });
+export const COURSE_PRESENTATION_RECIPE = Object.freeze({ id: 'superoutride.course-presentation', version: 6 });
 
-/** Resolve saved presentation through canonical geometry/assets; no inferred role-derived paint. */
+/** Resolve saved Bands, environment and scenery through canonical geometry/assets. */
 export function compileCoursePresentation(
   source: PresentationDocument | null,
   partition: CompiledRegionPartition,
@@ -23,20 +22,14 @@ export function compileCoursePresentation(
 ): CoursePresentation | null {
   if (source === null) return null;
   const assetTable = new Map(assets.map((asset) => [asset.id, asset]));
-  const image = (id: string, at: string, master = false) => {
+  const image = (id: string, at: string) => {
     const asset = assetTable.get(id);
     if (!asset) throw new CourseInputError('unresolved_reference', at, 'Image must belong to this Section');
     if (asset.source.format !== 'superoutride.sprite-lod')
-      throw new CourseInputError('invalid_image_role', at, 'Ground and scenery require sprite patterns');
+      throw new CourseInputError('invalid_image_role', at, 'Scenery requires sprite patterns');
     const sprite = asset as typeof asset & {
       readonly source: Extract<typeof asset.source, { format: 'superoutride.sprite-lod' }>;
     };
-    requireCourse(
-      !master || asset.source.levels.length === 1,
-      at,
-      'Ground requires a normalized master, not a sprite LOD pyramid',
-      'invalid_image_role',
-    );
     return sprite;
   };
   const ordered = (anchors: readonly CompiledCourseAnchor[], start: number, end: number, at: string) => {
@@ -54,97 +47,7 @@ export function compileCoursePresentation(
         'invalid_profile',
       );
   };
-  const groundSource = source.ground;
-  const ground =
-    groundSource.kind === 'bands'
-      ? compileCourseBandGround(groundSource.bands, partition.length, `${path}/ground/bands`)
-      : (() => {
-          const regionTable = new Map(partition.regions.map((region) => [region.id, region])),
-            assigned = new Set();
-          const regions = groundSource.regions.map((binding, i) => {
-            const at = `${path}/ground/regions/${i}`,
-              region = regionTable.get(binding.regionId);
-            if (!region)
-              throw new CourseInputError('unresolved_reference', `${at}/regionId`, 'Unknown appearance Region');
-            requireCourse(
-              !assigned.has(region),
-              `${at}/regionId`,
-              'Each Region has one explicit appearance binding',
-              'appearance_binding',
-            );
-            assigned.add(region);
-            const sections = binding.sections.map((section, j) => {
-              const atSection = `${at}/sections/${j}`,
-                anchor = resolve(section.anchor, `${atSection}/anchor`);
-              let paint: CoursePaint | null = null;
-              if (section.paint !== null) {
-                const p = section.paint,
-                  asset = image(p.assetId, `${atSection}/paint/assetId`, true);
-                if (p.alternate) {
-                  requireCourse(
-                    p.alternate.paletteRgb555.length === asset.source.levels[0]!.paletteRgb555.length,
-                    `${atSection}/paint/alternate/paletteRgb555`,
-                    'A/B mapping needs one explicit color for each opaque source slot',
-                    'appearance_binding',
-                  );
-                  for (const coordinate of [0, partition.length])
-                    requireCourse(
-                      Number.isSafeInteger(Math.floor((coordinate - p.phaseS) / p.alternate.spanS)),
-                      `${atSection}/paint/alternate/spanS`,
-                      'A/B chainage phase must retain integer cell identity',
-                      'invalid_numeric_domain',
-                    );
-                  for (const coordinate of [-groundSource.left, groundSource.right])
-                    requireCourse(
-                      Number.isSafeInteger(Math.floor((coordinate - p.phaseL) / p.alternate.spanL)),
-                      `${atSection}/paint/alternate/spanL`,
-                      'A/B lateral phase must retain integer cell identity',
-                      'invalid_numeric_domain',
-                    );
-                }
-                paint = Object.freeze({ asset, phaseS: p.phaseS, phaseL: p.phaseL, alternate: p.alternate });
-              }
-              return Object.freeze({ anchor, paint });
-            });
-            ordered(
-              sections.map((s) => s.anchor),
-              region.start.s,
-              region.end.s,
-              `${at}/sections`,
-            );
-            return Object.freeze({ region, sections: Object.freeze(sections) });
-          });
-          requireCourse(
-            assigned.size === partition.regions.length,
-            `${path}/ground/regions`,
-            'Every Region needs an appearance binding; explicit null paint reveals the base',
-            'appearance_binding',
-          );
-          const stamps = groundSource.stamps.map((stamp, i) => {
-            const at = `${path}/ground/stamps/${i}`,
-              asset = image(stamp.assetId, `${at}/assetId`, true),
-              anchor = resolve(stamp.anchor, `${at}/anchor`),
-              density = SPRITE_SOURCE_TEXELS_PER_METER;
-            const gridS = Math.floor(density * (anchor.s - (asset.source.anchorY + 0.5) / density) + 0.5),
-              gridL = Math.floor(density * (stamp.l - (asset.source.anchorX + 0.5) / density) + 0.5);
-            requireCourse(
-              Number.isSafeInteger(gridS) && Number.isSafeInteger(gridL),
-              at,
-              'Resolved stamp top-left must fit the source lattice',
-              'invalid_placement',
-            );
-            return Object.freeze({ id: stamp.id, asset, anchor, l: stamp.l, gridS, gridL });
-          });
-          return Object.freeze({
-            kind: 'resident' as const,
-            partition,
-            left: groundSource.left,
-            right: groundSource.right,
-            baseRgb555: groundSource.baseRgb555,
-            regions: Object.freeze(regions),
-            stamps: Object.freeze(stamps),
-          });
-        })();
+  const ground = compileCourseBandGround(source.ground.bands, partition.length, `${path}/ground/bands`);
   const environments = source.environments.map((environment, i) => {
     const at = `${path}/environments/${i}`,
       b = environment.background,
@@ -168,8 +71,6 @@ export function compileCoursePresentation(
     return Object.freeze({
       anchor: resolve(environment.anchor, `${at}/anchor`),
       name: environment.name,
-      groundBaseLeft: environment.groundBaseLeft ?? null,
-      groundBaseRight: environment.groundBaseRight ?? null,
       background: Object.freeze({
         asset: tiled,
         horizonY: b.horizonY,

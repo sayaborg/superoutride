@@ -3,56 +3,28 @@
 ## Current state
 
 - The game uses one compiled graph scene, indexed sprites and CLASSIC/CUSTOM Session flow.
-- Stage 4a introduces ordered colored Bands, independent physical Regions, compile-time constructs,
-  dyadic s preblending and live EXACT / LEVEL longitudinal and POINT / BOX / TENT lateral comparison.
-  EXACT / BOX is provisional, not K's selection.
-- RIBBON COAST, RIBBON FORK and RIBBON RING are provisional playable Band courses. The four legacy
-  resident-ground courses and their groundmap/build/HUD paths temporarily coexist for this comparison.
+- Ground is Band-only. The product display setting has three modes, with LEVEL-POINT as the default;
+  [Architecture](architecture.md#band-rendering) owns their definitions and shared image level selection.
+- RIBBON COAST, RIBBON FORK and RIBBON RING are the only provisional playable courses. FORK transfers
+  from its shortened parent chart to separate route Sections after a short divergence.
 - BG is one infinite tiled plane with sine mapping. Build generates vehicle envelopes and game time budgets.
 - Tire audio uses UNIFIED with R/Q output controls. Authoring tools and both browser auditions are available.
 - Standing checks cover strict TypeScript, lint, formatting, build, saved-course startup and acyclic layers.
   Pages uses a commit-versioned build with public-version and browser-startup verification.
-- Stages 1–3 are complete. Vehicle settings carry `DEV_UNCALIBRATED`; physics, tire sound and difficulty
+- Stages 1–4 are complete. Vehicle settings carry `DEV_UNCALIBRATED`; physics, tire sound and difficulty
   tuning remain open. TIME ATTACK, traffic, BGM, wind and sound effects remain future work.
 
 Implement the numbered stages in order. Current contracts belong to the topic specifications;
 development and release procedure belongs to AGENTS. PRs hold rationale and verification evidence.
 
-## Stage 4 — Replace ground with Bands
+## Stage 4 — Replace ground with Bands — complete
 
-### 4a — Introduction and device comparison
-
-[PR #243](https://github.com/sayaborg/superoutride/pull/243) introduces the Band schema, renderer,
-provisional courses and comparison HUD. [Browser](browser.md#band-comparison) describes same-scene
-switching; [Architecture](architecture.md#band-rendering) defines the sampling methods.
-[PR #244](https://github.com/sayaborg/superoutride/pull/244) adds independent EXACT / LEVEL s comparison,
-shared sprite/Band octave selection and current/recent-maximum timing. K compares all six combinations
-on real devices and chooses both the s-direction and l-direction methods. No final choice or capacity
-verdict is implied by the provisional default or local measurements.
-
-Reuse reference: closed [PR #238](https://github.com/sayaborg/superoutride/pull/238), head
-`07e576e3dddff79c9e46a5369faed4205e706f41`, contains ordered slab resolution and swept-edge integration
-(`band-resolved-slabs.mjs`, `band-slab-raster.mjs`). Its moving-normalization/footprint examples explain
-why cached averages must represent the sampled area. The reference does not prescribe a renderer,
-schema or interval limit.
-
-### 4b — Remove the legacy path after K chooses
-
-Stage 4b is waiting for K's selections in **both the s direction and the l direction**. Do not start
-this step before both choices are made. Keep only those methods and remove the other candidates. Remove resident ground, groundmap, GroundBase, tile dictionaries, paint/stamp systems
-and all related build, HUD and documentation paths together. Remove the four old development courses
-and the obsolete fit/observation inputs, retaining the new provisional courses. Update Product §4,
-Architecture, Image assets, Content and this checkpoint with the remaining Band-only implementation.
-Generated expansions remain compiler products, not committed source. Stages 5+ remain outside this work.
-
-### Band requirements
-
-- Ground is an ordered list of colored Bands. Later Bands cover earlier ones; colors are direct RGB555 or transparent.
-- Physical classification is independent of appearance. Bands cover the entire ground plane, including open outer sides.
-- Preblend along s over power-of-two intervals. Aim for exact lateral integration along l; compare methods and select one.
-- Threshold transparent edges. Transparent areas reveal BG even below the horizon.
-- Start with at most 64 active Bands and finalize the limit on real devices.
-- Express arrows, letters, curbs and cliffs with Bands. Expand authored constructs at compile time.
+Ordered color Bands and independent physical Regions are the sole ground representation.
+The product setting, DEV adapter, sampling-time/active-count HUD and provisional courses are in place.
+Ground definitions belong to Product, Architecture, Image assets and Content; operation belongs to Browser.
+The current active limit is 64. Whole-application capacity and motion quality still need named-device
+assessment in Stage 7; local tests do not establish a device budget. Continue with Stage 5, not new
+sampling candidates or ground payload formats.
 
 ## Stage 5 — Simplify structure
 
@@ -74,7 +46,7 @@ Generated expansions remain compiler products, not committed source. Stages 5+ r
 
 - Implement TIME ATTACK with zero rivals, traffic off, elapsed-time recording and player vehicle choice.
   Define record eligibility from the complete resolved configuration, including differences from CUSTOM.
-- Make course selection data-driven, clarify the `mode` parameter name and remove SEAM from the choices.
+- Make course selection data-driven and clarify the `mode` parameter name.
 - Define audio buses for BGM, environmental/wind audio and sound effects.
 - Make all UI English, including DEV panels and tools.
 

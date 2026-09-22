@@ -4,7 +4,7 @@ import type { CompiledLink } from './course-graph.js';
 import type { CourseQueryExtent } from './course-consumer-demand.js';
 import { coursePortLateral } from './course-links.js';
 
-/** Prove the resolved color field on the shared guard, independently of physical Regions or hidden paint. */
+/** Prove the resolved color field on the shared guard, independently of physical Regions or hidden colors. */
 export function compareCourseBandOverlap(link: CompiledLink, a: BandGround, b: BandGround, domain: CourseQueryExtent) {
   const ports = [link.source, link.destination],
     grounds = [a, b],

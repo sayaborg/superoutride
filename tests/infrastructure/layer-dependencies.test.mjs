@@ -25,7 +25,7 @@ const layerDependencies = {
   core: [],
   graphics: ['core'],
   course: ['core'],
-  compiler: ['core', 'course', 'graphics', 'groundmap', 'physics', 'visual'],
+  compiler: ['core', 'course', 'graphics', 'physics', 'visual'],
   authoring: ['course', 'compiler'],
   input: ['core'],
   physics: ['core', 'course', 'input'],
@@ -35,15 +35,14 @@ const layerDependencies = {
   gameplay: ['core', 'input', 'physics'],
   visual: ['core', 'course', 'graphics'],
   terrain: ['core', 'course', 'visual'],
-  groundmap: ['core', 'course', 'graphics', 'terrain', 'visual'],
-  render: ['camera', 'core', 'course', 'graphics', 'groundmap', 'physics', 'terrain', 'vehicle', 'visual'],
+  render: ['camera', 'core', 'course', 'graphics', 'physics', 'terrain', 'vehicle', 'visual'],
   runtime: [
     'camera',
     'core',
     'course',
     'compiler',
     'gameplay',
-    'groundmap',
+    'graphics',
     'input',
     'physics',
     'render',
@@ -51,7 +50,7 @@ const layerDependencies = {
     'visual',
   ],
   dev: ['graphics'],
-  browser: ['audio', 'camera', 'core', 'gameplay', 'graphics', 'groundmap', 'input', 'physics', 'render', 'vehicle'],
+  browser: ['audio', 'camera', 'core', 'gameplay', 'graphics', 'input', 'physics', 'render', 'vehicle'],
 };
 
 test('engine ownership follows an acyclic dependency direction, including type imports', async () => {

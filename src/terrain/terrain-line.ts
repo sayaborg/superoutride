@@ -4,7 +4,7 @@ import { profileIndexAt } from '../core/open-profile.js';
 import { horizonY, pseudoProject, type PseudoCamera } from '../core/projection.js';
 import { rasterCoordinateToWorld } from '../core/raster-coordinate-reader.js';
 import { PIXEL_EDGE_TOLERANCE, SOURCE_ENDPOINT_TOLERANCE_METERS } from '../core/tolerances.js';
-import type { GroundBase, VisualProfileReader } from '../visual/visual-profile.js';
+import type { VisualProfileReader } from '../visual/visual-profile.js';
 
 const VISIBLE_INTERVAL_TOLERANCE_METERS = 1e-9;
 const MIN_INVERTIBLE_SPAN_PIXELS = 1e-9;
@@ -122,7 +122,7 @@ interface TerrainLineSourceFootprint {
   deltaS: number;
   /** Clipped chainage interval represented by a collapsed row. */
   deltaSCollapse: number;
-  /** max(deltaS, deltaSCollapse), authoritative for shared GroundMap LOD. */
+  /** max(deltaS, deltaSCollapse), authoritative for Band sampling. */
   deltaSEffective: number;
   /** Exact one-output-pixel lateral footprint from the scanline affine mapping. */
   deltaL: number;
@@ -130,8 +130,6 @@ interface TerrainLineSourceFootprint {
 }
 
 export interface TerrainLine extends TerrainLineGeometry {
-  groundBaseLeft: GroundBase;
-  groundBaseRight: GroundBase;
   sectionName: string;
   renderHeight: number;
   sourceFootprint: TerrainLineSourceFootprint;
@@ -315,8 +313,6 @@ function createTerrainLine(
       y: 0,
       xGroundL: 0,
       xGroundR: 0,
-      groundBaseLeft: section.groundBaseLeft,
-      groundBaseRight: section.groundBaseRight,
       sectionName: '',
       renderHeight: 0,
       sourceFootprint: { deltaS: 0, deltaSCollapse: 0, deltaSEffective: 0, deltaL: 0, collapsed: false },
@@ -328,8 +324,6 @@ function createTerrainLine(
   line.y = y;
   line.xGroundL = projectedLeft.x;
   line.xGroundR = projectedRight.x;
-  line.groundBaseLeft = section.groundBaseLeft;
-  line.groundBaseRight = section.groundBaseRight;
   line.sectionName = section.name;
   line.renderHeight = renderHeight;
   line.sourceFootprint.deltaS = deltaS;

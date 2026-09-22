@@ -9,8 +9,11 @@ The game loads saved CourseDocuments through one shared driving scene. RIBBON CO
 linear route, RIBBON FORK contains a fork and merge, and RIBBON RING has a finite lap target. These
 provisional courses include ordered ground colors, repeated markings, arrows, lettering, curbs and
 transparent cliff/bridge exteriors. They are not reproductions of selected production references.
-The four LEGACY LINEAR, SEAM, CIRCUIT and BRANCH selections temporarily retain resident ground.
-Course geometry, height, width, roadside rows and environment changes are authored data.
+RIBBON FORK's parent chart is 800 m long: lock is at s=250 m, closure at s=550 m, divergence ends
+at s=710 m and both route Ports are at s=750 m. The remaining 50 m is source guard, not a continuing
+playable parent road. The left/right Sections then run independently before the shared home Section.
+RIBBON RING's entry-to-exit lap span is 2000 m. Course geometry, height, width, roadside rows and
+environment changes are authored data.
 [Content and gameplay](content-and-gameplay.md) owns their definitions and rules.
 
 The vehicle catalog supplies car and motorcycle profiles with model, manufacturer, identifier,
@@ -38,7 +41,7 @@ road. Vehicles and roadside objects are pass-through. Recovery preserves earned 
 
 The view combines a tiled background, road and scenery sprites with the player and HUD. Testarossa
 brake lamps select a saved palette. Engine sound and player tire sound follow physical observations.
-The HUD shows race state and current performance measurements; a DEV overlay exposes camera, sound and Band-filter controls.
+The HUD shows race state and current performance measurements; a DEV overlay exposes camera, sound and ground display controls.
 
 Courses and assets are saved files. The CLI compiles courses, reports diagnostics and renders previews
 through the game scene. The Sprite Tool edits image inputs and exports compiled sprites.
@@ -46,12 +49,14 @@ through the game scene. The Sprite Tool edits image inputs and exports compiled 
 
 ## 4. Ground
 
-Ground on the provisional courses is an ordered list of colored Bands covering the whole plane,
+Ground is an ordered list of colored Bands covering the whole plane,
 including open outer sides. Later Bands replace earlier colors or erase them to transparency. Transparent
 areas reveal the background below as well as above the horizon. Physical Regions and their support/friction
 bindings are independent of the visual Bands. [Content and gameplay](content-and-gameplay.md#band-ground)
 owns authoring; [Architecture](architecture.md#band-rendering) owns preblending and pixel filtering.
 
-The legacy selections still load resident RGB555 strips and environment outside fills before driving.
-Their [encoding and filter](image-assets.md#resident-ground) coexist with Bands during Stage 4a;
-[NEXT](NEXT.md#stage-4--replace-ground-with-bands) records the remaining removal after the lateral comparison.
+The product ground-display setting defaults to LEVEL-POINT. Its current control is in DEV, and
+switching redraws the current scene without changing vehicle state, camera or Session progress.
+[Browser](browser.md#ground-display-setting) owns operation and setting lifetime. The three rendering
+modes are defined only in the rendering contract linked above. Ground contains no image assets;
+lettering, arrows, curbs and cliff edges expand from saved Band constructs.

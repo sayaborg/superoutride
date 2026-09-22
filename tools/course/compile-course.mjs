@@ -4,7 +4,6 @@ import { parseCourseDocument } from '../../dist/course/course-document.js';
 import { createCourseProject } from '../../dist/authoring/course-project.js';
 import { createRegionSurfaceReader } from '../../dist/physics/region-surface-reader.js';
 import { courseFailures, CourseAssetError } from '../../dist/course/course-diagnostics.js';
-import { createCourseGroundSource } from '../../dist/groundmap/course-ground-source.js';
 const [sourcePath, flag, imageDirectory, ...extra] = process.argv.slice(2);
 if (!sourcePath || (flag !== undefined && (flag !== '--images' || !imageDirectory)) || extra.length)
   throw new TypeError('Usage: compile-course.mjs CourseDocument.json [--images directory]');
@@ -63,14 +62,8 @@ if (!result.ok) {
             section.presentation === null
               ? null
               : {
-                  ...(section.presentation.ground.kind === 'bands'
-                    ? { kind: 'bands', ...section.presentation.ground.metrics }
-                    : {
-                        kind: 'resident',
-                        regionBindings: section.presentation.ground.regions.length,
-                        stamps: section.presentation.ground.stamps.length,
-                        groundOriginRgb555: createCourseGroundSource(section.presentation.ground).sample(0, 0),
-                      }),
+                  kind: 'bands',
+                  ...section.presentation.ground.metrics,
                   environments: section.presentation.environments.length,
                   scenery: section.presentation.scenery.length,
                 },

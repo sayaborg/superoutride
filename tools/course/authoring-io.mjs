@@ -77,21 +77,8 @@ export function reportError(error) {
   process.exitCode = 1;
 }
 
-/** Reuse a matching build artifact; edited/new authoring inputs compile before preview starts. */
-export async function loadCourseGround(course, file) {
-  const { compileCourseGround, readCourseGround, createBandCourseGround } =
-    await import('../../dist/compiler/course-ground.js');
-  if (course.entry.presentation?.ground.kind === 'bands') return createBandCourseGround(course);
-  const stem = path.basename(file).replace(/\.course\.json$/, '');
-  const root = new URL('../../dist/content/ground/', import.meta.url);
-  let compiled;
-  try {
-    const manifest = JSON.parse(await readFile(new URL(`${stem}.json`, root), 'utf8'));
-    if (manifest.identity === course.identity.buildSha256)
-      compiled = { manifest, payload: new Uint8Array(await readFile(new URL(`${stem}.bin`, root))) };
-  } catch (error) {
-    if (error.code !== 'ENOENT') throw error;
-  }
-  compiled ??= await compileCourseGround(course);
-  return readCourseGround(course, compiled.manifest, compiled.payload);
+/** Authored Band fields are compiled with the course and shared by all previews. */
+export async function loadCourseGround(course) {
+  const { createCourseGround } = await import('../../dist/compiler/course-ground.js');
+  return createCourseGround(course);
 }

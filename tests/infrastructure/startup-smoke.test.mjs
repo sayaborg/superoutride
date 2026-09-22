@@ -9,13 +9,16 @@ import { VEHICLE_CATALOG } from '../../dist/vehicle/vehicle-catalog.js';
 import { createCameraRig, updateCamera } from '../../dist/camera/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../../dist/camera/current-camera-profile.js';
 import { deriveVehicleSpriteFamily } from '../../dist/render/vehicle-presentation.js';
+import { BAND_RENDER_MODES, createDisplaySettings } from '../../dist/graphics/display-settings.js';
 import { SoftwareSurface } from '../../dist/graphics/software-surface.js';
 
-for (const stem of ['linear', 'ribbon-coast', 'ribbon-fork', 'ribbon-ring'])
+for (const stem of ['ribbon-coast', 'ribbon-fork', 'ribbon-ring'])
   test(`${stem} compiles and starts through the shared driving scene`, async () => {
     const file = fileURLToPath(new URL(`../../content/courses/${stem}.course.json`, import.meta.url));
     const { course } = await loadCourse(file);
-    const scene = createCourseScene(course.entry, await loadCourseGround(course, file), await readVehicleSprites());
+    const settings = createDisplaySettings();
+    assert.equal(settings.bandMode, 'LEVEL-POINT');
+    const scene = createCourseScene(course.entry, await loadCourseGround(course), await readVehicleSprites(), settings);
     const entry = VEHICLE_CATALOG[0];
     const port = course.entry.ports.find((port) => port.kind === 'entry');
     const vehicle = createArcadeVehicle(entry.profile, scene.world, {
@@ -31,23 +34,18 @@ for (const stem of ['linear', 'ribbon-coast', 'ribbon-fork', 'ribbon-ring'])
       const camera = updateCamera(rig, scene.world, vehicle, CURRENT_CAMERA_PROFILE, 1 / 60);
       target.pixels.fill(0);
       const result = scene.render(target, vehicle, camera, deriveVehicleSpriteFamily(entry), []);
-      if (stem.startsWith('ribbon-')) {
-        assert.ok(result.bandGround.outputPixels > 0);
-        const before = JSON.stringify(vehicle),
-          history = scene.history,
-          view = scene.session.view;
-        for (const filter of ['POINT', 'BOX', 'TENT']) {
-          scene.setBandFilter(filter);
-          assert.equal(
-            scene.render(target, vehicle, camera, deriveVehicleSpriteFamily(entry), []).bandGround.filter,
-            filter,
-          );
-          assert.equal(JSON.stringify(vehicle), before);
-          assert.equal(scene.history, history);
-          assert.equal(scene.session.view, view);
-        }
-        assert.throws(() => scene.setBandFilter('UNKNOWN'), RangeError);
+      assert.ok(result.bandGround.outputPixels > 0);
+      const before = JSON.stringify(vehicle),
+        history = scene.history,
+        view = scene.session.view;
+      for (const mode of BAND_RENDER_MODES) {
+        settings.setBandMode(mode);
+        assert.equal(scene.render(target, vehicle, camera, deriveVehicleSpriteFamily(entry), []).bandGround.mode, mode);
+        assert.equal(JSON.stringify(vehicle), before);
+        assert.equal(scene.history, history);
+        assert.equal(scene.session.view, view);
       }
+      assert.throws(() => settings.setBandMode('UNKNOWN'), RangeError);
       assert.ok([vehicle.x, vehicle.y, vehicle.z, camera.s].every(Number.isFinite));
       assert.ok(
         target.pixels.some((pixel) => pixel !== 0),

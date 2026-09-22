@@ -3,7 +3,6 @@ import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { readCourseDocument } from '../../dist/course/course-document.js';
 import { compileCourseDocument } from '../../dist/compiler/compiled-course.js';
-import { compileCourseGround } from '../../dist/compiler/course-ground.js';
 import { compileCourseImages } from '../course/compile-course-images.mjs';
 import { readCourseImages } from '../course/read-course-images.mjs';
 
@@ -37,21 +36,7 @@ for (const name of (await readdir(new URL('courses/', content))).sort()) {
     entries.push({ path, sha256: image.sha256 });
   }
   if (!compiled.ok) throw new Error(JSON.stringify(compiled.diagnostics));
-  if (compiled.value.entry.presentation?.ground.kind === 'resident') {
-    const ground = await compileCourseGround(compiled.value);
-    await mkdir(new URL('ground/', destination), { recursive: true });
-    for (const [suffix, data] of [
-      ['json', JSON.stringify(ground.manifest) + '\n'],
-      ['bin', ground.payload],
-    ]) {
-      const path = `ground/${name.replace('.course.json', '')}.${suffix}`;
-      await writeFile(new URL(path, destination), data);
-      entries.push({ path, sha256: createHash('sha256').update(data).digest('hex') });
-    }
-    console.log(`${name}: ${ground.manifest.uniqueTiles} resident ground tiles, ${ground.manifest.byteLength} bytes`);
-  } else {
-    console.log(`${name}: Band ground compiled; no resident payload`);
-  }
+  console.log(`${name}: Band ground compiled`);
   courses.push({
     course: compiled.value,
     stem: name.replace('.course.json', ''),

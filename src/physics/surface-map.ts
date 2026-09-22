@@ -52,7 +52,7 @@ export interface SurfaceMapReader {
 /**
  * General runtime SurfaceMap(s,l): an open [0, courseLength] chainage domain containing
  * piecewise-constant authored terrain.
- * Saved paint pixels and GroundBase paint remain independent.
+ * Visual Band colors remain independent.
  */
 export class SurfaceMap implements SurfaceMapReader {
   readonly sections: readonly SurfaceSection[];
