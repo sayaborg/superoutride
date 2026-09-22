@@ -33,9 +33,8 @@ The adjacent segment supplies an endpoint basis; interior vertices own turns and
 
 ## Numerical conventions
 
-Core's `hypot2` and `hypot3` return bit-identical results to the supported Node runtime's `Math.hypot`
-for their fixed-arity physics/gameplay uses. Compilation and authored rulers use `Math.hypot`;
-camera and audio use their own numerical owners.
+Euclidean norms use `Math.hypot`. Nonfinite inputs and extreme magnitudes follow the
+runtime's standard `Math.hypot` behavior.
 
 [Core tolerances](../src/core/tolerances.ts) defines shared endpoint, geometric, lateral-boundary,
 pixel-edge and texel-spacing tolerances. Other thresholds belong to their dimensional algorithms:

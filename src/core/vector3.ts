@@ -1,4 +1,3 @@
-import { hypot3 } from './norm.js';
 import { type Writable } from './writable.js';
 export interface Vec3 {
   readonly x: number;
@@ -44,7 +43,7 @@ export function cross3(a: Vec3, b: Vec3, out: Writable<Vec3> = { x: 0, y: 0, z: 
 }
 
 export function magnitude3(v: Vec3): number {
-  return hypot3(v.x, v.y, v.z);
+  return Math.hypot(v.x, v.y, v.z);
 }
 
 export function normalize3(v: Vec3, out: Writable<Vec3> = { x: 0, y: 0, z: 0 }): Writable<Vec3> {

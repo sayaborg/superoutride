@@ -1,5 +1,4 @@
 import type { Writable } from '../core/writable.js';
-import { hypot2 } from '../core/norm.js';
 const WHEEL_BISECTION_ITERATIONS = 60;
 
 import { validateTireCharacteristics, type CompiledTireCharacteristics } from './tire-friction-calibration.js';
@@ -96,7 +95,7 @@ function writeDemand(
 function tireReferenceSpeed(vx: number, v0: number): number {
   if (!Number.isFinite(vx) || !Number.isFinite(v0) || !(v0 > 0))
     throw new RangeError('tire velocity must be finite and low-speed regularization > 0');
-  return hypot2(vx, v0);
+  return Math.hypot(vx, v0);
 }
 export function regularizedTireSlipAngle(vx: number, vy: number, v0: number): number {
   if (!Number.isFinite(vy)) throw new RangeError('tire lateral velocity must be finite');
@@ -127,7 +126,7 @@ function forceFromDemand(
   if (!(capacityX > 0) || !(capacityY > 0)) return;
   const x = (characteristics.kX * out.sx) / characteristics.muX;
   const y = (characteristics.kY * out.sy) / characteristics.muY;
-  const length = hypot2(x, y),
+  const length = Math.hypot(x, y),
     rho = length / gripFactor;
   if (length === 0) return;
   out.rho = rho;
@@ -162,7 +161,7 @@ function rollingResistanceTorque(
 ): number {
   if (!(normalLoad > 0) || !(rollingResistance > 0)) return 0;
   const rollingSpeed = rollingRadius * omega;
-  const smoothSign = rollingSpeed / Math.sqrt(rollingSpeed ** 2 + lowSpeedRegularization ** 2);
+  const smoothSign = rollingSpeed / Math.hypot(rollingSpeed, lowSpeedRegularization);
   return rollingResistance * normalLoad * rollingRadius * smoothSign;
 }
 
@@ -195,7 +194,7 @@ export function solveWheelOmega(
     dt,
   } = input;
   // Contact velocity is fixed throughout the scalar solve, including its final force evaluation.
-  scratch.referenceSpeed = hypot2(input.longitudinalVelocity, input.tire.lowSpeedRegularization);
+  scratch.referenceSpeed = Math.hypot(input.longitudinalVelocity, input.tire.lowSpeedRegularization);
   scratch.omega = 0;
   netTorqueAtOmega(input, scratch, residual);
   const atZero = residual[0]! - driveTorque;
@@ -240,7 +239,7 @@ export function wheelRequiredNetTorque(
   validateWheelSolveInput(input);
   if (!Number.isFinite(omega)) throw new RangeError('trial wheel speed must be finite');
   scratch.omega = omega;
-  scratch.referenceSpeed = hypot2(input.longitudinalVelocity, input.tire.lowSpeedRegularization);
+  scratch.referenceSpeed = Math.hypot(input.longitudinalVelocity, input.tire.lowSpeedRegularization);
   netTorqueAtOmega(input, scratch, residual);
   return residual[0]!;
 }

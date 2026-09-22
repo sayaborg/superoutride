@@ -1,6 +1,5 @@
 import { createGuideProjectionWorkspace } from '../core/guide-curve.js';
 import { createPlanarCoordinateSample } from '../core/planar-sample.js';
-import { hypot2 } from '../core/norm.js';
 import { type Writable } from '../core/writable.js';
 import { SURFACE_MATERIALS } from './surface-map.js';
 import { resetVehicleTireObservation } from './vehicle-tire-observation.js';
@@ -211,7 +210,7 @@ export function resetVehicleControlState(vehicle: VehicleDynamicsState): void {
 }
 
 export function vehicleSpeed(vehicle: VehicleDynamicsState): number {
-  return hypot2(vehicle.velocityX, vehicle.velocityZ);
+  return Math.hypot(vehicle.velocityX, vehicle.velocityZ);
 }
 
 export function bodyFrameVelocity(vehicle: VehicleDynamicsState, forward: Vec3, right: Vec3): BodyFrameVelocity {

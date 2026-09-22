@@ -1,4 +1,3 @@
-import { hypot2 } from '../core/norm.js';
 import { clamp } from '../core/math.js';
 import type { CompiledTireCharacteristics } from './tire-friction-calibration.js';
 import type { BodyKinematics, ContactObservation } from './vehicle-dynamics.js';
@@ -56,7 +55,7 @@ export function limitSteeringInput(
   const c0 = (A / scale + B / scale) / 2;
   const cc = (A / scale - B / scale) / 2,
     cs = C / scale;
-  const radius = hypot2(cc, cs);
+  const radius = Math.hypot(cc, cs);
   if (radius === 0) return requestedOffset;
   const cos2 = ca * ca - sa * sa,
     sin2 = 2 * ca * sa;

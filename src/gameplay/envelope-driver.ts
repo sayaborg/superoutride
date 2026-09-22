@@ -1,4 +1,3 @@
-import { hypot2 } from '../core/norm.js';
 import { createPlanarCoordinateSample } from '../core/planar-sample.js';
 import { clamp, wrapAngle } from '../core/math.js';
 import {
@@ -86,7 +85,7 @@ export function sampleEnvelopeDrivingInput(
 ): DrivingInput {
   const domain = guideCoordinateDomain(guide),
     s = car.course.s;
-  const speed = hypot2(car.longitudinalSpeed, car.lateralSpeed);
+  const speed = Math.hypot(car.longitudinalSpeed, car.lateralSpeed);
   const { envelope, speedCap, braking, utilization } = driver;
   if (workspace.guide !== guide || workspace.lane !== targetL || workspace.driver !== driver) {
     workspace.cells.fill(NaN);
@@ -114,7 +113,7 @@ export function sampleEnvelopeDrivingInput(
       }
       const b = guideCoordinateToWorld(guide, bS, typeof targetL === 'number' ? targetL : targetL(bS), workspace.b);
       const curvature =
-        Math.abs(wrapAngle(b.heading - previousHeading)) / Math.max(0.01, hypot2(b.x - previousX, b.z - previousZ));
+        Math.abs(wrapAngle(b.heading - previousHeading)) / Math.max(0.01, Math.hypot(b.x - previousX, b.z - previousZ));
       previousS = bS;
       previousX = b.x;
       previousZ = b.z;
@@ -143,7 +142,7 @@ export function sampleEnvelopeDrivingInput(
   );
   const travelYaw = car.yaw + Math.atan2(car.lateralSpeed, Math.max(0.1, car.longitudinalSpeed));
   const angle = wrapAngle(Math.atan2(target.x - car.x, target.z - car.z) - travelYaw);
-  const distance = Math.max(1, hypot2(target.x - car.x, target.z - car.z));
+  const distance = Math.max(1, Math.hypot(target.x - car.x, target.z - car.z));
   const acceleration = (2 * Math.sin(angle) * Math.max(25, speed ** 2)) / distance;
   const steering =
     car.longitudinalSpeed <= 0

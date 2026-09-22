@@ -1,4 +1,3 @@
-import { hypot2 } from '../core/norm.js';
 import type { WheelSolveResult } from './tire-wheel.js';
 import {
   contactForceWorld,
@@ -36,7 +35,7 @@ export function evaluateVehicleWrench(
   a.x = body.velocity.x;
   a.y = 0;
   a.z = body.velocity.z;
-  const planarSpeed = hypot2(a.x, a.z);
+  const planarSpeed = Math.hypot(a.x, a.z);
   const aeroForce = scale3(a, -profile.quadraticDrag * planarSpeed, a);
   b.x = 0;
   b.y = -profile.mass * VEHICLE_GRAVITY;

@@ -1,4 +1,3 @@
-import { hypot2 } from '../core/norm.js';
 import { type Writable } from '../core/writable.js';
 const SUPPORT_BISECTION_ITERATIONS = 12;
 
@@ -64,7 +63,7 @@ function limitWheelTorques(
   }
   if (!(input.normalLoad > 0) || !(input.gripFactor > 0)) return input;
   const tire = input.characteristics ?? input.tire;
-  const referenceSpeed = hypot2(input.longitudinalVelocity, input.tire.lowSpeedRegularization);
+  const referenceSpeed = Math.hypot(input.longitudinalVelocity, input.tire.lowSpeedRegularization);
   const slip = (input.gripFactor * (2 - tire.rhoKnee) * tire.muX) / tire.kX;
   const vx = input.longitudinalVelocity,
     radius = input.rollingRadius;

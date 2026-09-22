@@ -1,4 +1,3 @@
-import { hypot2 } from '../core/norm.js';
 import type { Writable } from '../core/writable.js';
 import type { GuidePath } from '../core/guide-curve.js';
 import { clamp, type Vec2 } from '../core/math.js';
@@ -230,7 +229,7 @@ export function updateOrderedRaceProgress(
 
   const crossings = workspace.crossings;
   crossings.length = 0;
-  const pad = hypot2(current.x - previous.x, current.z - previous.z) + GATE_CANDIDATE_PADDING_METERS;
+  const pad = Math.hypot(current.x - previous.x, current.z - previous.z) + GATE_CANDIDATE_PADDING_METERS;
   const low = Math.min(previous.s, current.s) - pad,
     high = Math.max(previous.s, current.s) + pad;
   for (const gate of rules.gates)

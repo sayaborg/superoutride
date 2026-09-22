@@ -78,7 +78,7 @@ export class FrictionResonator {
         throw new RangeError('friction modes must be finite, passive and underdamped');
       this.omega[i] = omega;
       this.b[i] = mode.participation;
-      norm += mode.participation ** 2;
+      norm = Math.hypot(norm, mode.participation);
       // Exact passive half-step. Fixed modal data avoids parametric energy from retuned stiffness.
       const wd = Math.sqrt(omega * omega - halfDamping * halfDamping);
       const decay = Math.exp((-halfDamping * this.dt) / 2);
@@ -90,7 +90,7 @@ export class FrictionResonator {
     }
     if (!(norm > 0)) throw new RangeError('friction port must couple at least one mode');
     // Normalize once: port scale is owned by forcing/feedback, not duplicated in modal participation.
-    for (let i = 0; i < count; i++) this.b[i] = this.b[i]! / Math.sqrt(norm);
+    for (let i = 0; i < count; i++) this.b[i] = this.b[i]! / norm;
     this.random = new RandomStream(seed);
     this.noisePole = Math.exp((-2 * Math.PI * parameters.noiseBandwidthHz) / rate);
     // Stationary variance-one AR(1) with variance-1/3 uniform innovations; no output normalization.

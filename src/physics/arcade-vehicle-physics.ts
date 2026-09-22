@@ -378,7 +378,7 @@ function vehicleBodyTravelDirection(body: BodyKinematics, lowSpeedRegularization
   }
   const longitudinal = dot3(body.velocity, body.forward);
   const lateral = dot3(body.velocity, body.right);
-  return Math.atan2(lateral, Math.sqrt(longitudinal * longitudinal + lowSpeedRegularization ** 2));
+  return Math.atan2(lateral, Math.hypot(longitudinal, lowSpeedRegularization));
 }
 
 export function createBodyKinematicsWorkspace() {

@@ -1,5 +1,4 @@
 import { createPlanarCoordinateSample } from './planar-sample.js';
-import { hypot2 } from './norm.js';
 import type { Writable } from './writable.js';
 import { clamp, headingFromDelta, normalFromHeading, tangentFromHeading, wrapAngle, type Vec2 } from './math.js';
 import { sampleRasterPathInto, type RasterPath } from './raster-path.js';
@@ -470,7 +469,7 @@ function projectWorldToGuideSegment(
     if (!corner.center) throw new Error('arc corner missing center');
     const radialX = world.x - corner.center.x,
       radialZ = world.z - corner.center.z;
-    const radialLength = hypot2(radialX, radialZ);
+    const radialLength = Math.hypot(radialX, radialZ);
     const qStart = start === segment.sStart ? segment.qStart : qForCornerS(corner, start);
     const qEnd = end === segment.sEnd ? segment.qEnd : qForCornerS(corner, end);
     let q: number;

@@ -8,7 +8,7 @@
 - Build currently generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **5-3 — Distance helpers**. PR 5-2 is complete.
+Next PR: **5-4a — Layers**. PR 5-3 is complete.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Current contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -20,7 +20,7 @@ Simplify the foundations without changing behavior.
 
 - **5-1 — NEXT and small remnants:** reorganize the checkpoint and remove small documentation/comment remnants.
 - **5-2 — Dead code and exports:** remove dead code and simplify exports.
-- **5-3 — Distance helpers:** unify `hypot2` / `hypot3`.
+- **5-3 — Distance helpers:** unify Euclidean norms on `Math.hypot`.
 - **5-4a–e — Layers:** move files only, grouping responsibilities into about nine domain layers:
   core / course / image / vehicle / audio / input / race / view / shell.
 - **5-5a–c — TypeScript tools:** stop importing `dist/` and separate authoring code from product code.
