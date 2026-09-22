@@ -3,7 +3,7 @@ import type { CompiledFork, CompiledLink, CompiledSection } from '../course/comp
 import { courseRegionAt, courseBoundaryAt, type CompiledCarriageway } from '../course/course-regions.js';
 import { guidePathToWorld } from '../course/geometry/guide-curve.js';
 import type { Vec2 } from '../core/math.js';
-import { compileWorldCrossingGate, observeWorldCrossingGate } from '../gameplay/world-crossing-gate.js';
+import { compileWorldCrossingGate, observeWorldCrossingGate } from './world-crossing-gate.js';
 import type { createCourseDrivingGraph } from './course-driving-session.js';
 type Session = ReturnType<ReturnType<typeof createCourseDrivingGraph>['createSession']>;
 

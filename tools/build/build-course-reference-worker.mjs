@@ -1,9 +1,9 @@
 import { parentPort, workerData } from 'node:worker_threads';
 import { VEHICLE_CATALOG } from '../../dist/vehicle/vehicle-catalog.js';
 import { browserSessionVehicle } from '../../dist/browser/session-vehicle.js';
-import { REFERENCE_DRIVER } from '../../dist/runtime/reference-driving-policy.js';
-import { readCourseReference } from '../../dist/runtime/course-reference.js';
-import { courseBudgetLandmarks, readCourseTimeBudgets } from '../../dist/runtime/course-time-budgets.js';
+import { REFERENCE_DRIVER } from '../../dist/race/reference-driving-policy.js';
+import { readCourseReference } from '../../dist/race/course-reference.js';
+import { courseBudgetLandmarks, readCourseTimeBudgets } from '../../dist/race/course-time-budgets.js';
 import { cachedReference, referenceCacheKey, digest } from '../course/reference-cache.mjs';
 import { measureVehicleEnvelope } from '../course/vehicle-envelope.mjs';
 import { runCourseReference, courseReferenceRoutes } from '../course/reference-run.mjs';

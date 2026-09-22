@@ -7,14 +7,14 @@ import {
   createCircuitRaceProgressState,
   updateCircuitRaceProgress,
   resyncCircuitRaceProgress,
-} from '../gameplay/circuit-race-progress.js';
+} from './circuit-race-progress.js';
 import {
   compileOrderedRaceCourseRules,
   createOrderedRaceProgressState,
   updateOrderedRaceProgress,
   createOrderedRaceProgressWorkspace,
   resyncOrderedRaceProgress,
-} from '../gameplay/ordered-race-progress.js';
+} from './ordered-race-progress.js';
 import type { ArcadeVehicleState } from '../vehicle/physics/arcade-vehicle-physics.js';
 import type { createCourseDrivingGraph } from './course-driving-session.js';
 type Session = ReturnType<ReturnType<typeof createCourseDrivingGraph>['createSession']>;

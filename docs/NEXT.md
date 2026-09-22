@@ -8,7 +8,9 @@
 - Build currently generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **5-4d — Layers: race**. PR 5-4c is complete.
+Next PR: **5-4d — Layers: race**. PR 5-4c is complete; the 5-4d draft is not released.
+The draft moves the race files but the dependency check rejects its remaining driving-view import.
+Keep main on the published 5-4c commit until that dependency has an agreed placement or exception.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Current contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -22,6 +24,7 @@ Simplify the foundations without changing behavior.
 - **5-2 — Dead code and exports:** remove dead code and simplify exports.
 - **5-3 — Distance helpers:** unify Euclidean norms on `Math.hypot`.
 - **5-4a–e — Layers:** move files only into the nine domains defined below.
+- **5-4f — Race/view boundary:** move camera ownership and sprite assembly out of race without changing behavior.
 - **5-5a–c — TypeScript tools:** stop importing `dist/` and separate authoring code from product code.
 - **5-6 — Vocabulary:** define reserved terms such as Profile, mode and presentation, and rename accordingly.
 
@@ -60,11 +63,18 @@ The dependency check includes type-only imports.
   the exact course/band-ground.ts -> graphics/display-settings.js type dependency: a safe split needs
   a read boundary beyond declaration relocation, not an exported mutable WeakMap or coefficient buffers.
   Remove all old directories and their transitional dependency rules, and update the README structure
-  table and architecture layer section.
+  table and architecture layer section. Carry the exact race camera/render exceptions forward to their
+  relocated paths until 5-4f; removing legacy directory rules does not resolve those responsibilities.
+- **5-4f — Race/view boundary:** view or whole-scene composition owns cameras, not actor state.
+  The camera owner applies seam coordinate changes to its own camera. Race publishes actor observations
+  only (position, attitude, vehicle and palette variant); view assembles sprites. Remove all exact
+  race-to-camera/render exceptions introduced in 5-4d, following their paths after 5-4e.
+  This PR includes logic changes while preserving behavior.
 
 During migration, existing legacy-directory boundaries remain checked alongside the nine-domain order.
 Existing functions, types and constants may move between files when responsibilities are mixed;
-keep their logic and signatures intact. Do not introduce new interfaces or other abstractions in 5-4.
+keep their logic and signatures intact. Do not introduce new interfaces or other abstractions in 5-4a–e;
+5-4f is the explicit behavior-preserving logic-change exception.
 Report dependencies requiring such changes as exact source/target exceptions, not layer-wide allowances.
 Authoring-only sprite compilers, course-project, course-reference and dev fixtures stay in the appropriate
 product domains during 5-4; separating them from product code belongs to 5-5. Vocabulary changes belong to 5-6.

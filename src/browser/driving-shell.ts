@@ -1,11 +1,11 @@
-import type { SessionVehicle } from '../gameplay/session-configuration.js';
+import type { SessionVehicle } from '../race/session-configuration.js';
 import { createAudioLifecycle } from './audio-lifecycle.js';
 import { createDrivingLifecycle, type DrivingLifecycleOptions } from './driving-lifecycle.js';
 import type { CameraRig } from '../camera/camera.js';
 import { createCameraRig, setCameraYawMode, toggleCameraYawMode, type CameraState } from '../camera/camera.js';
 import { LOGICAL_HEIGHT, LOGICAL_WIDTH } from '../core/presentation-scale.js';
-import type { RecoveryState } from '../gameplay/recovery.js';
-import { createRecoveryState } from '../gameplay/recovery.js';
+import type { RecoveryState } from '../race/recovery.js';
+import { createRecoveryState } from '../race/recovery.js';
 import { SoftwareSurface } from '../graphics/software-surface.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import { InputManager } from '../input/input-manager.js';

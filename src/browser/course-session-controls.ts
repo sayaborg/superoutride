@@ -1,4 +1,4 @@
-import { compileSessionConfiguration, type SessionConfiguration } from '../gameplay/session-configuration.js';
+import { compileSessionConfiguration, type SessionConfiguration } from '../race/session-configuration.js';
 import { VEHICLE_CATALOG } from '../vehicle/vehicle-catalog.js';
 
 interface BrowserSessionSettings extends SessionConfiguration {

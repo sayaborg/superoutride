@@ -1,4 +1,4 @@
-import type { SessionVehicle } from '../gameplay/session-configuration.js';
+import type { SessionVehicle } from '../race/session-configuration.js';
 import type { VehicleCatalogEntry } from '../vehicle/vehicle-catalog.js';
 import { DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION } from './tire-friction-selection.js';
 import {

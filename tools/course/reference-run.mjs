@@ -1,17 +1,17 @@
 import { readVehicleSprites } from './read-vehicle-sprites.mjs';
-import { REFERENCE_DRIVER } from '../../dist/runtime/reference-driving-policy.js';
+import { REFERENCE_DRIVER } from '../../dist/race/reference-driving-policy.js';
 import { createCourseScene } from '../../dist/runtime/course-scene.js';
-import { createCourseRace } from '../../dist/runtime/course-race.js';
-import { resolveCourseSession } from '../../dist/runtime/course-session.js';
+import { createCourseRace } from '../../dist/race/course-race.js';
+import { resolveCourseSession } from '../../dist/race/course-session.js';
 import { browserSessionVehicle } from '../../dist/browser/session-vehicle.js';
 import { createArcadeVehicle } from '../../dist/vehicle/physics/arcade-vehicle-physics.js';
-import { createRecoveryState } from '../../dist/gameplay/recovery.js';
+import { createRecoveryState } from '../../dist/race/recovery.js';
 import {
   createEnvelopeDriverWorkspace,
   sampleEnvelopeDrivingInput,
   envelopeAt,
   compileEnvelopeDriver,
-} from '../../dist/gameplay/envelope-driver.js';
+} from '../../dist/race/envelope-driver.js';
 import { createCameraRig } from '../../dist/camera/camera.js';
 import { SIM_DT } from '../../dist/browser/frame-loop.js';
 import { courseBoundaryAt } from '../../dist/course/course-regions.js';

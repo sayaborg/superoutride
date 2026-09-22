@@ -2,7 +2,7 @@ import { writeFile, mkdir } from 'node:fs/promises';
 import { Worker } from 'node:worker_threads';
 import { availableParallelism } from 'node:os';
 import { VEHICLE_CATALOG } from '../../dist/vehicle/vehicle-catalog.js';
-import { REFERENCE_DRIVER } from '../../dist/runtime/reference-driving-policy.js';
+import { REFERENCE_DRIVER } from '../../dist/race/reference-driving-policy.js';
 import { referenceModelIdentity } from '../course/reference-identity.mjs';
 
 /** Build authority: independent vehicle jobs share no mutable mechanics or course state. */

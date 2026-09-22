@@ -1,6 +1,6 @@
 import { contentDigest } from '../core/content-digest.js';
-import type { SessionVehicle } from '../gameplay/session-configuration.js';
-import type { VehicleEnvelope } from '../gameplay/envelope-driver.js';
+import type { SessionVehicle } from './session-configuration.js';
+import type { VehicleEnvelope } from './envelope-driver.js';
 
 /** Admit only the measured rows needed by driving; offline measurement traces stay outside the live graph. */
 export async function readVehicleEnvelope(vehicle: SessionVehicle, input: unknown): Promise<VehicleEnvelope> {

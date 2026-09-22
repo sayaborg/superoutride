@@ -1,4 +1,4 @@
-import type { SessionConfiguration } from '../gameplay/session-configuration.js';
+import type { SessionConfiguration } from './session-configuration.js';
 
 interface RivalRosterEntry {
   readonly actorId: string;

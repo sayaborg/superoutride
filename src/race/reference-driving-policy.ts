@@ -1,4 +1,4 @@
-import { ENVELOPE_DRIVER } from '../gameplay/envelope-driver.js';
+import { ENVELOPE_DRIVER } from './envelope-driver.js';
 
 /** Offline reference policy is part of the reference identity, not vehicle mechanics. */
 export const REFERENCE_DRIVER = Object.freeze({ ...ENVELOPE_DRIVER, utilization: 0.9 });

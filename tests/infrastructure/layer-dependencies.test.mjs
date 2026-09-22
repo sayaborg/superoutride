@@ -25,14 +25,13 @@ async function collectFiles(directory, suffixes) {
 const layers = ['core', 'image', 'audio', 'course', 'vehicle', 'input', 'race', 'view', 'shell'];
 const rank = new Map(layers.map((layer, index) => [layer, index]));
 
-// Only edges involving directories still awaiting 5-4b–e use the existing boundaries.
+// Only edges involving directories still awaiting 5-4e use the existing boundaries.
 // Remove this table and the legacy directory names in 5-4e.
 const legacyDependencies = {
   graphics: ['core'],
   compiler: ['core', 'course', 'image', 'vehicle', 'visual'],
   authoring: ['course', 'compiler'],
   camera: ['core', 'course', 'vehicle'],
-  gameplay: ['core', 'course', 'input', 'vehicle'],
   visual: ['core', 'course', 'graphics', 'image'],
   terrain: ['core', 'course', 'visual'],
   render: ['camera', 'core', 'course', 'graphics', 'image', 'terrain', 'vehicle', 'visual'],
@@ -41,7 +40,7 @@ const legacyDependencies = {
     'core',
     'course',
     'compiler',
-    'gameplay',
+    'race',
     'graphics',
     'image',
     'input',
@@ -51,7 +50,7 @@ const legacyDependencies = {
     'visual',
   ],
   dev: ['graphics', 'image'],
-  browser: ['audio', 'camera', 'core', 'gameplay', 'graphics', 'image', 'input', 'render', 'vehicle'],
+  browser: ['audio', 'camera', 'core', 'race', 'graphics', 'image', 'input', 'render', 'vehicle'],
 };
 const legacyLayers = Object.keys(legacyDependencies).filter((layer) => !rank.has(layer));
 const knownLayers = new Set([...layers, ...legacyLayers]);
@@ -66,6 +65,11 @@ const deferredImports = new Set([
   // Compile and sampling share private coefficients; separating them needs a read boundary.
   // Keep their existing implementation together until 5-4e instead of exporting mutable storage.
   'course/band-ground.ts -> graphics/display-settings.js',
+  // Actors still own camera rigs and race still constructs sprites; separate these in 5-4f.
+  'race/course-driving-session.ts -> camera/camera.js',
+  'race/course-race.ts -> camera/camera.js',
+  'race/course-race.ts -> render/dynamic-vehicle-sprite.js',
+  'race/course-race.ts -> render/course-sprite.js',
 ]);
 
 function layerOf(relative) {

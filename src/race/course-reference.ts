@@ -1,7 +1,7 @@
 import { contentDigest } from '../core/content-digest.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import type { CompiledCourseLandmark } from '../course/compiler/course-rules.js';
-import type { SessionVehicle } from '../gameplay/session-configuration.js';
+import type { SessionVehicle } from './session-configuration.js';
 import { REFERENCE_DRIVER } from './reference-driving-policy.js';
 import type { CourseTimeBudgets } from './course-session.js';
 

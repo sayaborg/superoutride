@@ -8,12 +8,12 @@ import { compileCoursePresentationDomains } from '../course/compiler/course-pres
 import { compilePlanarTransform, composePlanarTransforms, invertPlanarTransform } from '../core/planar-transform.js';
 import { clamp, wrapAngle, type Vec2 } from '../core/math.js';
 import { CURRENT_RENDER_FAR_DEPTH_METERS } from '../core/presentation-scale.js';
-import { ENVELOPE_DRIVER } from '../gameplay/envelope-driver.js';
-import { compileWorldCrossingGate, observeWorldCrossingPlane } from '../gameplay/world-crossing-gate.js';
-import { RECOVERY_PROFILE, recoverVehicleToGuideCoordinate, type RecoveryState } from '../gameplay/recovery.js';
+import { ENVELOPE_DRIVER } from './envelope-driver.js';
+import { compileWorldCrossingGate, observeWorldCrossingPlane } from './world-crossing-gate.js';
+import { RECOVERY_PROFILE, recoverVehicleToGuideCoordinate, type RecoveryState } from './recovery.js';
 import type { ArcadeVehicleState } from '../vehicle/physics/arcade-vehicle-physics.js';
 import { reframeVehicle } from '../vehicle/physics/vehicle-reframe.js';
-import { createCourseDrivingSource } from './course-driving-view.js';
+import { createCourseDrivingSource } from '../runtime/course-driving-view.js';
 import { COURSE_DRIVING_POLICY } from './course-driving-policy.js';
 import { createCourseGeometryView } from '../course/course-geometry-view.js';
 import { createCourseGeometryTraversal, type CourseOccurrenceHistory } from '../course/course-occurrence.js';

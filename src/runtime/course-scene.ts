@@ -9,13 +9,13 @@ import type { CompiledSection } from '../course/compiler/course-graph.js';
 import type { CameraState } from '../camera/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../camera/current-camera-profile.js';
 import { coursePortLateral } from '../course/compiler/course-links.js';
-import { recoverVehicleToGuideCoordinate, type RecoveryState } from '../gameplay/recovery.js';
+import { recoverVehicleToGuideCoordinate, type RecoveryState } from '../race/recovery.js';
 import type { ArcadeVehicleState } from '../vehicle/physics/arcade-vehicle-physics.js';
 import type { VehicleRenderReadState } from '../vehicle/physics/vehicle-contract.js';
 import { createRenderWorkspace, renderDriving } from '../render/renderer.js';
 import type { CourseSprite } from '../render/course-sprite.js';
 import type { SpriteAssets } from '../image/sprite-assets.js';
-import { createCourseDrivingGraph } from './course-driving-session.js';
+import { createCourseDrivingGraph } from '../race/course-driving-session.js';
 
 /** One graph assembly for every course, including a single Section without Links. */
 export function createCourseScene(

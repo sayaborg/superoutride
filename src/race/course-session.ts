@@ -4,7 +4,7 @@ import {
   compileSessionConfiguration,
   type SessionConfiguration,
   type SessionVehicle,
-} from '../gameplay/session-configuration.js';
+} from './session-configuration.js';
 export interface CourseTimeBudgets {
   readonly initialMs: number;
   after(gate: CompiledCourseLandmark, lap: number): number;
