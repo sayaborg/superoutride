@@ -1,0 +1,35 @@
+name: Stage 4b development workspace
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  workspace:
+    if: github.head_ref == 'codex/stage4b-band-ground-20260923'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: npm ci
+      - name: Export source and test runtime without credentials
+        run: |
+          mkdir -p "$RUNNER_TEMP/stage4b/repo" "$RUNNER_TEMP/stage4b/node24/bin"
+          git archive HEAD | tar -x -C "$RUNNER_TEMP/stage4b/repo"
+          cp -a node_modules "$RUNNER_TEMP/stage4b/repo/"
+          cp "$(command -v node)" "$RUNNER_TEMP/stage4b/node24/bin/node"
+          git rev-parse HEAD > "$RUNNER_TEMP/stage4b/source-sha.txt"
+          tar -czf "$RUNNER_TEMP/stage4b-workspace.tar.gz" -C "$RUNNER_TEMP/stage4b" .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage4b-workspace
+          path: ${{ runner.temp }}/stage4b-workspace.tar.gz
+          retention-days: 1
