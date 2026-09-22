@@ -64,8 +64,7 @@ export function createRaceSessionState(): RaceSessionState {
  * Advance deterministic gameplay time from the fixed simulation delta.
  * Browser wall-clock/frame time is never timing authority.
  *
- * Timing consumes only already-validated physical gate results. It has no dependency on
- * legacy closed-course wrapping, CircuitTopology, RouteDag or renderer state.
+ * Timing consumes only already-validated physical gate results.
  * Accepted world-plane intersection fractions retain precise within-step timing.
  */
 export function advanceRaceSession(

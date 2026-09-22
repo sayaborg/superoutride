@@ -2,55 +2,95 @@
 
 ## Current state
 
-- The game uses one compiled graph scene, indexed sprites and CLASSIC/CUSTOM Session flow.
-- Ground is Band-only. The product display setting has three modes, with LEVEL-POINT as the default;
-  [Architecture](architecture.md#band-rendering) owns their definitions and shared image level selection.
-- RIBBON COAST, RIBBON FORK and RIBBON RING are the only provisional playable courses. FORK transfers
-  from its shortened parent chart to separate route Sections after a short divergence.
-- BG is one infinite tiled plane with sine mapping. Build generates vehicle envelopes and game time budgets.
-- Tire audio uses UNIFIED with R/Q output controls. Authoring tools and both browser auditions are available.
-- Standing checks cover strict TypeScript, lint, formatting, build, saved-course startup and acyclic layers.
-  Pages uses a commit-versioned build with public-version and browser-startup verification.
-- Stages 1–4 are complete. Vehicle settings carry `DEV_UNCALIBRATED`; physics, tire sound and difficulty
-  tuning remain open. TIME ATTACK, traffic, BGM, wind and sound effects remain future work.
+- One compiled graph scene serves RIBBON COAST, RIBBON FORK and RIBBON RING with CLASSIC/CUSTOM Sessions.
+- Ground is Band-only, with LEVEL-POINT as the default of three display modes; sprites are indexed.
+  BG is one infinite tiled plane with sine mapping.
+- Build currently generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
+- TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Implement the numbered stages in order. Current contracts belong to the topic specifications;
-development and release procedure belongs to AGENTS. PRs hold rationale and verification evidence.
+Next PR: **5-2 — Dead code and exports**. PR 5-1 is complete.
 
-## Stage 4 — Replace ground with Bands — complete
+Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
+Current contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
+PRs hold rationale and verification evidence.
 
-Ordered color Bands and independent physical Regions are the sole ground representation.
-The product setting, DEV adapter, sampling-time/active-count HUD and provisional courses are in place.
-Ground definitions belong to Product, Architecture, Image assets and Content; operation belongs to Browser.
-The current active limit is 64. Whole-application capacity and motion quality still need named-device
-assessment in Stage 7; local tests do not establish a device budget. Continue with Stage 5, not new
-sampling candidates or ground payload formats.
+## Stage 5 — Reorganize foundations
 
-## Stage 5 — Simplify structure
+Simplify the foundations without changing behavior.
 
-- Replace the three forms of `GuideCoordinateSource` with one reader.
-- Unify circuit and ordered progress engines; remove synthetic `':EXIT'` gates.
-- Move running geometry checks (`course-driving-view` calls to `compileCourseGeometryWindow`) to compilation.
-- Consolidate validation into one layer and minimize version/hash management.
-- Clarify physics responsibilities and names (`arcade-vehicle-physics` / `vehicle-dynamics`), and remove physics
-  dependencies on course and input.
-- Give surface properties one representation: remove `SurfaceMap`, assign material definitions one owner,
-  and distinguish the `SHOULDER` role from material names.
-- Give tuning values one authority, including running setters and the `DEV_UNCALIBRATED` label.
-- Retain body-fixed yaw and movement-direction yaw cameras; clarify their roles and names. A product selector may follow.
-- Give rendering concepts one owner and one name: resolve presentation, BG splitting and the runtime/authoring boundary.
-  Unify the two course-sprite paths.
-- Remove unnecessary indirection in `boot.ts` and define the product/DEV UI boundary.
+- **5-1 — NEXT and small remnants:** reorganize the checkpoint and remove small documentation/comment remnants.
+- **5-2 — Dead code and exports:** remove dead code and simplify exports.
+- **5-3 — Distance helpers:** unify `hypot2` / `hypot3`.
+- **5-4a–e — Layers:** move files only, grouping responsibilities into about nine domain layers:
+  core / course / image / vehicle / audio / input / race / view / shell.
+- **5-5a–c — TypeScript tools:** stop importing `dist/` and separate authoring code from product code.
+- **5-6 — Vocabulary:** define reserved terms such as Profile, mode and presentation, and rename accordingly.
 
-## Stage 6 — Close specification gaps
+## Stage 6 — Authoritative geometry
 
-- Implement TIME ATTACK with zero rivals, traffic off, elapsed-time recording and player vehicle choice.
-  Define record eligibility from the complete resolved configuration, including differences from CUSTOM.
-- Make course selection data-driven and clarify the `mode` parameter name.
-- Define audio buses for BGM, environmental/wind audio and sound effects.
-- Make all UI English, including DEV panels and tools.
+Make authored plan and vertical geometry authoritative, with rendering-only approximations and simpler connections.
 
-## Stage 7 — Produce product courses
+- **6-1 — Plan authority:** authored straights and circular arcs, arc-length s, and Raster as a rendering-only derivative.
+- **6-2 — Geometry remnants:** remove fillet reconstruction, μ, mMin, the `guide` field and running geometry proofs.
+- **6-3 — Vertical alignment:** parabolas from PVIs and author-specified vertical curve lengths;
+  physics and camera use the authority, while rendering uses a polyline approximation.
+- **6-4 — Section seams:** replace overlaps with cut lines; remove Port and `Section.start`.
+- **6-5 — Views and occurrences:** minimize their procedures.
+
+## Stage 7 — Course format v13
+
+Unify authored coordinates, appearance, delivery and progress in the course format.
+
+- **7-1 — Coordinates and variation:** use Anchor and Lateral position types, and knot sequences for variation along s.
+- **7-2 — Section layers:** plan / structure / profile / appearance; give Regions material knots and carriagewayId,
+  and remove role.
+- **7-3 — Appearance elements:** one list and shared repeat for band / arrow / text / curb / sprite.
+- **7-4 — Course identity:** derive kind from the graph, remove production provenance, and simplify nulls and limits.
+- **7-5 — Delivery identity:** one manifest, one version per format and one image path.
+- **7-6 — Band cells:** truncate preblend cells at the Section end.
+- **7-7 — Progress and validation:** unify progress and consolidate validation into one layer.
+
+## Stage 8 — Vehicles and materials
+
+Give vehicles, tires, tuning and materials explicit data definitions, and treat airborne driving as normal state.
+
+- **8-1 — Vehicle data:** saved vehicle definitions and independent tire definitions.
+- **8-2 — DEV tuning:** replace definitions rather than mutate running settings.
+- **8-3 — Materials:** one material-definition table.
+- **8-4 — Jumps and recovery:** normal airborne state, revised recovery conditions and suspension limits.
+
+## Stage 9 — Audio
+
+Separate the audio scene from the browser and organize sound around replaceable definitions.
+
+- **9-1 — Audio scene:** move voice allocation and spatialization from the browser layer to the audio layer.
+- **9-2 — Sound graph:** sources, voices and buses that can accommodate BGM, environmental audio and effects.
+- **9-3 — Audio tuning:** use definition replacement consistently.
+
+## Stage 10 — Shell
+
+Define persistent player settings, data-driven Sessions and product presentation independently of DEV.
+
+- **10-1 — Framebuffer:** RGB555.
+- **10-2 — Player settings:** a persistent settings model.
+- **10-3 — Session rules:** one settings record, modes as rule data and TIME ATTACK; CUSTOM has no time limit.
+- **10-4 — Cameras:** define camera methods, allowing later changes and mode-specific choices.
+- **10-5 — Navigation:** screen transitions within one page.
+- **10-6 — Product HUD:** draw it inside the game frame, separately from DEV UI and HUD.
+- **10-7 — Language:** make all UI English.
+
+## Stage 11 — Production pipeline
+
+Build a shared authoring core and tools, with author-confirmed content independent of build-time reference driving.
+
+- **11-1 — Authoring foundation:** core and CLI.
+- **11-2 — Workbench:** workbench and sprite module.
+- **11-3 — Course editor.**
+- **11-4 — Definition modules:** vehicles and audio.
+- **11-5 — Time limits and CI:** tool reference driving proposes limits; the author confirms and saves one
+  CLASSIC-only set per course. Builds do not run reference driving. Simplify CI.
+
+## Stage 12 — Produce product courses
 
 Create the selected courses using the Band schema and file/CLI authoring workflow. Review appearance,
 driving experience and time margins on real devices. The following production and authoring goals are
@@ -93,17 +133,18 @@ migration readers; replace development inputs with the corresponding version.
 
 Develop production scenery, BG and tunnel artwork. Inspect distant scenery, source-camera/variant
 sampling, palettes and braking lamps on real devices. Preserve the authoring goals of dimensioned
-markings, boundary treatments and seeded visual variation through the Stage 4 Band model; ground
+markings, boundary treatments and seeded visual variation through the Band model; ground
 appearance and physical bindings stay independent. Saved generated artwork and recipes are inputs,
 with descriptive provenance and reproducible builds; an embedded image-generation service is optional.
 
 ### Calibration, time margins and forks
 
 Tune physical parameters, tire sound and driver difficulty, including vehicle-specific tire settings.
-Use continuous reference runs that complete reproducibly and use different vehicles' capabilities
-comparably; tune checkpoint margins from the resulting driving experience. Review the complete
-sixteen-rival scene with graphics and audio on named devices. Establish device capacity/performance
-budgets from the whole application.
+Use continuous tool reference runs that complete reproducibly and use different vehicles' capabilities
+comparably; review proposed checkpoint margins against the resulting driving experience. The author confirms
+one CLASSIC time-limit set per course and saves it in the course; CUSTOM has no time limit. Reference driving
+stays outside builds. Review the complete sixteen-rival scene with graphics and audio on named devices.
+Establish device capacity/performance budgets from the whole application.
 
 Review fork transfer over vehicle, speed, initial-state and material ranges, including three-way
 outer-to-outer travel, response time, bike attitude, combined tire demand, yaw/slip, width and median
@@ -116,13 +157,14 @@ space. Record margins and remaster departures with the content.
 | ---------------- | ------------------------------------------------------------------------------------------------------------------- |
 | References       | Exact editions/layout evidence, tolerances and remaster departures                                                  |
 | Presets          | CLASSIC vehicles, rosters, checkpoints, laps, margins and traffic settings                                          |
-| CUSTOM           | Exposed rival vehicle/difficulty choices and lap configurations                                                     |
+| CUSTOM           | Exposed rival vehicle/difficulty choices and lap configurations; no time limit                                      |
 | Rival intent     | Deterministic or seeded route preferences                                                                           |
 | Interaction      | Traffic, rival/vehicle response, movable objects including cones, fixed roadside objects, barriers and track limits |
 | Grade separation | Occurrence/neighborhood/height selection of surfaces, landmarks and contacts at nearby crossings                    |
 | Records/results  | Eligibility, ranking/ties, continue, persistence and ghosts                                                         |
 | Art              | Production assets, new physical materials and tunnel/background content                                             |
-| Shell            | Front end, HUD, music, progression, naming/distribution and future input devices                                    |
+| BG transitions   | Consider wipes or dissolves for environment changes; palette fades are not expected                                |
+| Shell            | Front end, product HUD separate from DEV UI/HUD, music, progression, naming/distribution and future input devices    |
 
 Design traffic and collision/interaction response together. Traffic does not participate in competitive
 route locking. Product CLASSIC presets include sixteen motorcycle rivals for Super Hang-On and zero

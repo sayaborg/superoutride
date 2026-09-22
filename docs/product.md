@@ -9,11 +9,8 @@ The game loads saved CourseDocuments through one shared driving scene. RIBBON CO
 linear route, RIBBON FORK contains a fork and merge, and RIBBON RING has a finite lap target. These
 provisional courses include ordered ground colors, repeated markings, arrows, lettering, curbs and
 transparent cliff/bridge exteriors. They are not reproductions of selected production references.
-RIBBON FORK's parent chart is 800 m long: lock is at s=250 m, closure at s=550 m, divergence ends
-at s=710 m and both route Ports are at s=750 m. The remaining 50 m is source guard, not a continuing
-playable parent road. The left/right Sections then run independently before the shared home Section.
-RIBBON RING's entry-to-exit lap span is 2000 m. Course geometry, height, width, roadside rows and
-environment changes are authored data.
+RIBBON FORK's left/right Sections run independently before the shared home Section.
+Course geometry, height, width, roadside rows and environment changes are authored data.
 [Content and gameplay](content-and-gameplay.md) owns their definitions and rules.
 
 The vehicle catalog supplies car and motorcycle profiles with model, manufacturer, identifier,

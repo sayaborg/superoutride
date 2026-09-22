@@ -43,6 +43,12 @@ AI reference driving generates game time limits, not test timing baselines.
 
 ## Work and release
 
+- Give each PR one purpose. Keep moves/renames, deletions and logic changes in separate PRs.
+- Keep logic changes small enough to read in one review. If they would exceed that scope, split the work
+  and report the split instead of broadening the PR.
+- Keep the game playable after every PR. If old and new implementations temporarily coexist, remove
+  the old implementation in the final PR of the same stage and name that cleanup in NEXT.
+
 Inspect main and active PR/CI state, preserve unrelated local changes, and work on a `codex/` feature branch.
 Review the diff and run Node 24 `npm test`. Open a PR and obtain green CI on its exact head. Recheck main;
 if it moved, update the branch and validate again. Fast-forward main to the validated head without a merge
