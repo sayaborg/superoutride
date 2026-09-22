@@ -21,21 +21,23 @@ async function collectFiles(directory, suffixes) {
   return files;
 }
 
-const layerDependencies = {
-  core: [],
+// Lower domains precede their consumers. Imports within one domain are unrestricted.
+const layers = ['core', 'image', 'audio', 'course', 'vehicle', 'input', 'race', 'view', 'shell'];
+const rank = new Map(layers.map((layer, index) => [layer, index]));
+
+// Only edges involving directories still awaiting 5-4b–e use the existing boundaries.
+// Remove this table and the legacy directory names in 5-4e.
+const legacyDependencies = {
   graphics: ['core'],
-  course: ['core'],
-  compiler: ['core', 'course', 'graphics', 'physics', 'visual'],
+  compiler: ['core', 'course', 'image', 'physics', 'visual'],
   authoring: ['course', 'compiler'],
-  input: ['core'],
   physics: ['core', 'course', 'input'],
-  audio: ['core'],
-  vehicle: ['physics', 'audio'],
+  vehicle: ['physics'],
   camera: ['core', 'physics'],
   gameplay: ['core', 'input', 'physics'],
-  visual: ['core', 'course', 'graphics'],
+  visual: ['core', 'course', 'graphics', 'image'],
   terrain: ['core', 'course', 'visual'],
-  render: ['camera', 'core', 'course', 'graphics', 'physics', 'terrain', 'vehicle', 'visual'],
+  render: ['camera', 'core', 'course', 'graphics', 'image', 'physics', 'terrain', 'vehicle', 'visual'],
   runtime: [
     'camera',
     'core',
@@ -43,23 +45,40 @@ const layerDependencies = {
     'compiler',
     'gameplay',
     'graphics',
+    'image',
     'input',
     'physics',
     'render',
     'terrain',
     'visual',
   ],
-  dev: ['graphics'],
-  browser: ['audio', 'camera', 'core', 'gameplay', 'graphics', 'input', 'physics', 'render', 'vehicle'],
+  dev: ['graphics', 'image'],
+  browser: ['audio', 'camera', 'core', 'gameplay', 'graphics', 'image', 'input', 'physics', 'render', 'vehicle'],
 };
+const legacyLayers = Object.keys(legacyDependencies).filter((layer) => !rank.has(layer));
+const knownLayers = new Set([...layers, ...legacyLayers]);
+
+// RGBA codecs and the blitter's target still share the legacy framebuffer module.
+// These exact existing imports stay visible until that mixed responsibility is separated.
+const imageSurfaceImports = new Set([
+  'image/image-filter.ts -> graphics/software-surface.js',
+  'image/rgb555.ts -> graphics/software-surface.js',
+  'image/sprite-palette.ts -> graphics/software-surface.js',
+  'image/sprite.ts -> graphics/software-surface.js',
+]);
+
+function layerOf(relative) {
+  const layer = relative.includes('/') ? relative.split('/')[0] : 'shell';
+  assert.ok(knownLayers.has(layer), `unowned layer: ${relative}`);
+  return layer;
+}
 
 test('engine ownership follows an acyclic dependency direction, including type imports', async () => {
   const graph = new Map();
+  const seenImageSurfaceImports = new Set();
   for (const file of await collectFiles(sourceRoot, ['.ts'])) {
-    const relative = path.relative(sourceRoot, file);
-    const layer = relative.split(path.sep)[0];
-    if (!relative.includes(path.sep)) continue;
-    assert.ok(Object.hasOwn(layerDependencies, layer), `unowned layer: ${layer}`);
+    const relative = path.relative(sourceRoot, file).split(path.sep).join('/');
+    const layer = layerOf(relative);
     const targets = graph.get(layer) ?? new Set();
     graph.set(layer, targets);
     const syntax = ts.createSourceFile(file, await readFile(file, 'utf8'), ts.ScriptTarget.Latest, true);
@@ -72,10 +91,22 @@ test('engine ownership follows an acyclic dependency direction, including type i
             : ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword
               ? node.arguments[0]
               : undefined;
-      if (ref && ts.isStringLiteral(ref) && ref.text.startsWith('.')) {
-        const target = path.relative(sourceRoot, path.resolve(path.dirname(file), ref.text)).split(path.sep)[0];
+      if (ref && ts.isStringLiteralLike(ref) && ref.text.startsWith('.')) {
+        const targetFile = path
+          .relative(sourceRoot, path.resolve(path.dirname(file), ref.text))
+          .split(path.sep)
+          .join('/');
+        const target = layerOf(targetFile);
         if (target !== layer) {
-          assert.ok(layerDependencies[layer].includes(target), `${relative} imports ${target}`);
+          const edge = `${relative} -> ${targetFile}`;
+          if (rank.has(layer) && rank.has(target)) {
+            assert.ok(rank.get(target) < rank.get(layer), `upward domain dependency: ${edge}`);
+          } else if (imageSurfaceImports.has(edge)) {
+            seenImageSurfaceImports.add(edge);
+          } else {
+            const allowed = layer === 'shell' ? legacyLayers : (legacyDependencies[layer] ?? []);
+            assert.ok(allowed.includes(target), `legacy layer dependency: ${edge}`);
+          }
           targets.add(target);
         }
       }
@@ -83,6 +114,7 @@ test('engine ownership follows an acyclic dependency direction, including type i
     }
     visit(syntax);
   }
+  assert.deepEqual(seenImageSurfaceImports, imageSurfaceImports, 'remove resolved framebuffer import exceptions');
   const complete = new Set();
   function visit(layer, trail = []) {
     assert.ok(!trail.includes(layer), `layer cycle: ${[...trail, layer].join(' -> ')}`);

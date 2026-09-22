@@ -1,5 +1,5 @@
 import { horizonY, type PseudoCamera } from '../core/projection.js';
-import { BACKGROUND_PIXELS_PER_RADIAN, type TileBackgroundImage } from '../graphics/tile-background-image.js';
+import { BACKGROUND_PIXELS_PER_RADIAN, type TileBackgroundImage } from '../image/tile-background-image.js';
 import type { SoftwareSurface } from '../graphics/software-surface.js';
 
 export interface TileBackground {

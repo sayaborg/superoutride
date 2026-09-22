@@ -6,7 +6,7 @@ import { wrapAngle } from '../core/math.js';
 import { pseudoProject, type PseudoCamera } from '../core/projection.js';
 import { mergeTerrainAndSprites } from '../graphics/painter-merge.js';
 import { SoftwareSurface } from '../graphics/software-surface.js';
-import { drawScaledSprite, type SpriteScanlineObserver } from '../graphics/sprite.js';
+import { drawScaledSprite, type SpriteScanlineObserver } from '../image/sprite.js';
 import type { VehicleRenderReadState } from '../physics/vehicle-contract.js';
 import {
   computeForwardVisibleInterval,
@@ -15,7 +15,7 @@ import {
   type TerrainVisualProfile,
 } from '../terrain/terrain-line.js';
 import { drawTileBackground, type TileBackground } from '../visual/tile-background.js';
-import { selectVehicleSprite, type SpriteAssets } from '../visual/sprite-assets.js';
+import { selectVehicleSprite, type SpriteAssets } from '../image/sprite-assets.js';
 import { collectVisibleCourseSprites, type CourseSpriteSource, type VisibleCourseSprite } from './course-sprite.js';
 import { createRenderSpaceCamera, mapPhysicalHeightToRender } from './render-height-space.js';
 import { deriveVehicleNormalizedBank } from './vehicle-presentation.js';

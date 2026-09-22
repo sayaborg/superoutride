@@ -1,10 +1,5 @@
 import { clamp, wrapAngle } from '../core/math.js';
-import {
-  createSpritePaletteVariant,
-  readSpriteLodAsset,
-  spriteLodLayout,
-  type SpriteAsset,
-} from '../graphics/sprite.js';
+import { createSpritePaletteVariant, readSpriteLodAsset, spriteLodLayout, type SpriteAsset } from './sprite.js';
 
 export interface VehicleSpriteSet {
   readonly kind: 'car' | 'bike';

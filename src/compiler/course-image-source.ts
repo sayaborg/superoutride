@@ -1,8 +1,8 @@
 import { contentDigest } from '../core/content-digest.js';
 import { CourseAssetError, courseFailures, courseSuccess, type CourseResult } from '../course/course-diagnostics.js';
 import { COURSE_DOCUMENT_LIMITS, type CourseAssetReference } from '../course/course-document.js';
-import { TileBackgroundImage, type TileBackgroundDocument } from '../graphics/tile-background-image.js';
-import { readSpriteLodAsset, spriteLodLayout, type SpriteLodDocument } from '../graphics/sprite.js';
+import { TileBackgroundImage, type TileBackgroundDocument } from '../image/tile-background-image.js';
+import { readSpriteLodAsset, spriteLodLayout, type SpriteLodDocument } from '../image/sprite.js';
 
 /** Offline source admission bounds, not resident image/device budgets or art-quality settings. */
 export const COURSE_IMAGE_SOURCE_RECIPE = Object.freeze({

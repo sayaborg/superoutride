@@ -1,5 +1,5 @@
 import { createPlanarCoordinateSample } from '../core/planar-sample.js';
-import { SPRITE_SOURCE_TEXELS_PER_METER } from '../graphics/sprite.js';
+import { SPRITE_SOURCE_TEXELS_PER_METER } from '../image/sprite.js';
 import { guidePathToWorld } from '../core/guide-curve.js';
 import { courseBoundaryAt } from '../course/course-regions.js';
 import { requireCourse } from '../course/course-diagnostics.js';

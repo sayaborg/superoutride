@@ -5,8 +5,8 @@ import {
   linearToRgb555,
   rgb555LinearChannel,
   selectImageLodLevel,
-} from '../graphics/image-filter.js';
-import { rgb555ToRgba } from '../graphics/rgb555.js';
+} from '../image/image-filter.js';
+import { rgb555ToRgba } from '../image/rgb555.js';
 
 export const BAND_ACTIVE_LIMIT = 64;
 /** Smallest cached interval in metres; partial ends use exact resolved edges, not resampled cells. */

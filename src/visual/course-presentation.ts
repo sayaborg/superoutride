@@ -1,8 +1,8 @@
 import type { BandGround } from './band-ground.js';
 import type { CompiledCarriageway } from '../course/course-regions.js';
 import type { CompiledCourseAnchor } from '../course/course-geometry.js';
-import type { TileBackgroundDocument } from '../graphics/tile-background-image.js';
-import { type SpriteLodDocument } from '../graphics/sprite.js';
+import type { TileBackgroundDocument } from '../image/tile-background-image.js';
+import { type SpriteLodDocument } from '../image/sprite.js';
 
 /** Ordinary indexed-image facet; a compiler's canonical asset record structurally supplies it. */
 interface IndexedSource {

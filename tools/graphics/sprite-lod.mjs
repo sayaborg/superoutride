@@ -6,7 +6,7 @@ import {
   readSpriteLodAsset,
   selectSpriteLevel,
   SPRITE_SOURCE_TEXELS_PER_METER,
-} from '../../dist/graphics/sprite.js';
+} from '../../dist/image/sprite.js';
 
 const element = (id) => document.getElementById(id);
 const surfaces = [new SoftwareSurface(320, 240), new SoftwareSurface(320, 240)];

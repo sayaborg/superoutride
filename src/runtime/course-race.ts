@@ -27,7 +27,7 @@ import {
 import type { DrivingInput } from '../input/driving-input.js';
 import { createArcadeVehicle, type ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
 import { createDynamicVehicleCourseSprite } from '../render/dynamic-vehicle-sprite.js';
-import { createVehiclePaletteVariant, type SpriteAssets } from '../visual/sprite-assets.js';
+import { createVehiclePaletteVariant, type SpriteAssets } from '../image/sprite-assets.js';
 import type { SessionVehicle } from '../gameplay/session-configuration.js';
 import type { CourseSprite } from '../render/course-sprite.js';
 import { createRivalRoster } from './rival-roster.js';

@@ -3,7 +3,7 @@ import { COURSE_DOCUMENT_LIMITS, type CourseAnchor, type PresentationDocument } 
 import { courseBoundaryAt, type CompiledRegionPartition, type CompiledCarriageway } from '../course/course-regions.js';
 import type { CompiledCourseAnchor } from '../course/course-geometry.js';
 import { CourseInputError, requireCourse } from '../course/course-diagnostics.js';
-import { BACKGROUND_HEIGHT, BACKGROUND_PIXELS_PER_RADIAN } from '../graphics/tile-background-image.js';
+import { BACKGROUND_HEIGHT, BACKGROUND_PIXELS_PER_RADIAN } from '../image/tile-background-image.js';
 import type { CoursePresentation, CourseSceneryInstance } from '../visual/course-presentation.js';
 import type { CompiledCourseImageSource } from './course-image-source.js';
 

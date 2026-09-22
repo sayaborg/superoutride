@@ -8,7 +8,7 @@
 - Build currently generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **5-4a — Layers**. PR 5-3 is complete.
+Next PR: **5-4b — Layers: course**. PR 5-4a is complete.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Current contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -21,10 +21,44 @@ Simplify the foundations without changing behavior.
 - **5-1 — NEXT and small remnants:** reorganize the checkpoint and remove small documentation/comment remnants.
 - **5-2 — Dead code and exports:** remove dead code and simplify exports.
 - **5-3 — Distance helpers:** unify Euclidean norms on `Math.hypot`.
-- **5-4a–e — Layers:** move files only, grouping responsibilities into about nine domain layers:
-  core / course / image / vehicle / audio / input / race / view / shell.
+- **5-4a–e — Layers:** move files only into the nine domains defined below.
 - **5-5a–c — TypeScript tools:** stop importing `dist/` and separate authoring code from product code.
 - **5-6 — Vocabulary:** define reserved terms such as Profile, mode and presentation, and rename accordingly.
+
+### Layer order and ownership (5-4)
+
+Group by domain, with definition, compilation and runtime representation inside each domain.
+An upper layer may depend only on lower layers; dependencies within one layer are unrestricted.
+The dependency check includes type-only imports.
+
+| Order | Layer   | Responsibility                                                                                                                   |
+| ----- | ------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| 1     | core    | General mathematics, vectors, planar transforms, validation helpers and tolerances                                               |
+| 2     | image   | Indexed images, RGB555, palettes, sprite/LOD formats, BG tiles and image filters                                                 |
+| 3     | audio   | Sound synthesis and audio engines                                                                                                |
+| 4     | course  | Course documents, compilation including Band expansion, road geometry (Guide, Raster and height), occurrences and geometry views |
+| 5     | vehicle | Vehicle mechanics, definitions, catalog and the operation types accepted by vehicles                                             |
+| 6     | input   | Keyboard/touch adapters producing vehicle operation requests                                                                     |
+| 7     | race    | Sessions, progress, gates, timing, drivers, recovery, reference driving and envelopes                                            |
+| 8     | view    | Cameras, projection, ground rows, Band sampling, sprite placement, drawing composition and framebuffer                           |
+| 9     | shell   | DOM, frame loop, HUD, DEV, startup and whole-scene composition                                                                   |
+
+- **5-4a — Definitions, core and image:** introduce the ordered-domain dependency check and move
+  image formats into image. Keep the road geometry and projection files in core until their assigned PRs.
+- **5-4b — Course:** consolidate course, compiler and authoring, core road geometry (`guide-*`,
+  `raster-*`, `height-profile`, `open-profile`), and runtime occurrences/geometry views.
+- **5-4c — Audio, vehicle and input:** consolidate physics/vehicle and move vehicle operation types
+  from input to vehicle.
+- **5-4d — Race:** consolidate gameplay and runtime progress, timing and driver responsibilities.
+- **5-4e — View and shell:** consolidate camera, terrain, render, remaining visual code, runtime scene
+  composition, browser and startup. Move core projection/presentation-scale and graphics painter-merge,
+  software-surface and display-settings. Remove all old directories and their transitional dependency
+  rules, and update the README structure table and architecture layer section.
+
+During migration, existing legacy-directory boundaries remain checked alongside the nine-domain order.
+Keep file moves separate from logic/export changes; report dependencies that file moves cannot resolve.
+Authoring-only sprite compilers, course-project, course-reference and dev fixtures stay in the appropriate
+product domains during 5-4; separating them from product code belongs to 5-5. Vocabulary changes belong to 5-6.
 
 ## Stage 6 — Authoritative geometry
 

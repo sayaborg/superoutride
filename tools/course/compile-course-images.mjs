@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { compileCourseImageSources } from '../../dist/compiler/course-image-source.js';
-import { compileSpriteLod } from '../../dist/graphics/sprite-lod-compiler.js';
+import { compileSpriteLod } from '../../dist/image/sprite-lod-compiler.js';
 import { readCourseDocument } from '../../dist/course/course-document.js';
 
 /** Build-only image compilation; derived course references bind the exact delivered LOD bytes. */

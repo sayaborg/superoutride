@@ -14,7 +14,7 @@ import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
 import type { VehicleRenderReadState } from '../physics/vehicle-contract.js';
 import { createRenderWorkspace, renderDriving } from '../render/renderer.js';
 import type { CourseSprite } from '../render/course-sprite.js';
-import type { SpriteAssets } from '../visual/sprite-assets.js';
+import type { SpriteAssets } from '../image/sprite-assets.js';
 import { createCourseDrivingGraph } from './course-driving-session.js';
 
 /** One graph assembly for every course, including a single Section without Links. */

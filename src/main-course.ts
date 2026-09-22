@@ -1,6 +1,6 @@
 import { createDisplaySettings } from './graphics/display-settings.js';
 import { mountBandControls } from './browser/band-controls.js';
-import { readSpriteAssets, createVehiclePaletteVariant } from './visual/sprite-assets.js';
+import { readSpriteAssets, createVehiclePaletteVariant } from './image/sprite-assets.js';
 import { createBrowserDrivingShell } from './browser/driving-shell.js';
 import { selectBrowserCourseMode } from './browser/course-mode-selection.js';
 import { mustGet } from './browser/dom.js';

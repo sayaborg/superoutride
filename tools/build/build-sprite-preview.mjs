@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { createSpriteLodFilterFixture } from '../../dist/dev/fixtures/sprite-lod.js';
-import { compileSpriteLod } from '../../dist/graphics/sprite-lod-compiler.js';
+import { compileSpriteLod } from '../../dist/image/sprite-lod-compiler.js';
 import { createSpriteSourceFixture } from '../../dist/dev/fixtures/sprite-source.js';
 import { unpackRgba } from '../../dist/graphics/software-surface.js';
 import { PNG } from 'pngjs';

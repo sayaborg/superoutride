@@ -1,5 +1,5 @@
 import { PIXEL_EDGE_TOLERANCE } from '../core/tolerances.js';
-import { SoftwareSurface } from './software-surface.js';
+import { SoftwareSurface } from '../graphics/software-surface.js';
 import { IndexedPattern, readIndexedPalette, indexedPaletteRgba } from './indexed-image.js';
 import { evaluatePaletteMixture, linearToRgb555, selectImageLodLevel, type PaletteMixture } from './image-filter.js';
 

@@ -1,4 +1,4 @@
-import { rgba, unpackRgba } from './software-surface.js';
+import { rgba, unpackRgba } from '../graphics/software-surface.js';
 
 /** Pack the framebuffer's RGBA value into opaque RGB555 storage. */
 export function rgbaToRgb555(color: number): number {

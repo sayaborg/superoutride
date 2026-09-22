@@ -1,6 +1,6 @@
 import { rgba, unpackRgba } from '../../dist/graphics/software-surface.js';
-import { normalizeSpriteSource } from '../../dist/graphics/sprite-source-compiler.js';
-import { compileSpriteLod } from '../../dist/graphics/sprite-lod-compiler.js';
+import { normalizeSpriteSource } from '../../dist/image/sprite-source-compiler.js';
+import { compileSpriteLod } from '../../dist/image/sprite-lod-compiler.js';
 
 export const SPRITE_EDITOR_PIXEL_LIMIT = 1024 * 1024;
 export const SPRITE_EDITOR_AXIS_LIMIT = 4096;

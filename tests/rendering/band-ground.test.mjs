@@ -7,9 +7,9 @@ import {
   createBandRenderMetrics,
 } from '../../dist/visual/band-ground.js';
 import { BAND_RENDER_MODES } from '../../dist/graphics/display-settings.js';
-import { linearToRgb555 } from '../../dist/graphics/image-filter.js';
-import { rgb555ToRgba } from '../../dist/graphics/rgb555.js';
-import { selectSpriteLevel } from '../../dist/graphics/sprite.js';
+import { linearToRgb555 } from '../../dist/image/image-filter.js';
+import { rgb555ToRgba } from '../../dist/image/rgb555.js';
+import { selectSpriteLevel } from '../../dist/image/sprite.js';
 
 const BG = 0x44332211,
   WHITE = 32767,

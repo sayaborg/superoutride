@@ -3,7 +3,7 @@ import type { RasterGeometry } from '../core/raster-coordinate-reader.js';
 import type { HeightProfileReader } from '../core/height-profile.js';
 import { pseudoDepth, pseudoProject, type PseudoCamera, type PseudoProjection } from '../core/projection.js';
 import { rasterCoordinateToWorld } from '../core/raster-coordinate-reader.js';
-import type { SpriteAsset } from '../graphics/sprite.js';
+import type { SpriteAsset } from '../image/sprite.js';
 
 interface CourseSpriteAuthoring {
   name: string;

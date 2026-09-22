@@ -1,5 +1,5 @@
 import { rgbaToRgb555 } from './rgb555.js';
-import { unpackRgba } from './software-surface.js';
+import { unpackRgba } from '../graphics/software-surface.js';
 import { SPRITE_SOURCE_PIXEL_LIMIT } from './sprite-source-compiler.js';
 
 interface ColorBin {
