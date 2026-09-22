@@ -2,7 +2,7 @@ import { PIXEL_EDGE_TOLERANCE } from '../core/tolerances.js';
 import { SoftwareSurface } from './software-surface.js';
 import { rgbaToRgb555 } from './rgb555.js';
 import { IndexedPattern, readIndexedPalette, indexedPaletteRgba } from './indexed-image.js';
-import { evaluatePaletteMixture, linearToRgb555, imageLodExponent, type PaletteMixture } from './image-filter.js';
+import { evaluatePaletteMixture, linearToRgb555, selectImageLodLevel, type PaletteMixture } from './image-filter.js';
 
 export const SPRITE_TRANSPARENT = 0;
 export const SPRITE_SOURCE_TEXELS_PER_METER = 40;
@@ -242,14 +242,7 @@ function spriteRecord(value: unknown, keys: readonly string[]): Record<string, u
 /** Geometric-mean transitions; the exact boundary selects the coarser level. */
 export function selectSpriteLevel(asset: SpriteAsset, pixelsPerMeter: number): number {
   const scale = pixelsPerMeter * (asset.worldWidthMeters / asset.width);
-  if (!(scale > 0) || !Number.isFinite(scale)) throw new RangeError('sprite scale must be finite and positive');
-  let level = Math.min(asset.levels.length - 1, Math.floor(imageLodExponent(1 / scale)));
-  let boundary = Math.SQRT1_2 * 2 ** -level;
-  while (level + 1 < asset.levels.length && scale <= boundary) {
-    level += 1;
-    boundary *= 0.5;
-  }
-  return level;
+  return selectImageLodLevel(scale, asset.levels.length - 1);
 }
 
 export function countOpaqueSpriteColors(asset: SpriteAsset): number {

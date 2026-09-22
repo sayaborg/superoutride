@@ -1,10 +1,18 @@
 import { SOURCE_ENDPOINT_TOLERANCE_METERS } from '../core/tolerances.js';
-import { IMAGE_OPAQUE_COVERAGE, linearToRgb555, rgb555LinearChannel } from '../graphics/image-filter.js';
+import {
+  IMAGE_OPAQUE_COVERAGE,
+  linearToRgb555,
+  rgb555LinearChannel,
+  selectImageLodLevel,
+} from '../graphics/image-filter.js';
 import { rgb555ToRgba } from '../graphics/rgb555.js';
 
 export const BAND_FILTERS = Object.freeze(['POINT', 'BOX', 'TENT'] as const);
 export type BandFilter = (typeof BAND_FILTERS)[number];
 export const BAND_DEFAULT_FILTER: BandFilter = 'BOX';
+export const BAND_S_MODES = Object.freeze(['EXACT', 'LEVEL'] as const);
+export type BandSMode = (typeof BAND_S_MODES)[number];
+export const BAND_DEFAULT_S_MODE: BandSMode = 'EXACT';
 export const BAND_ACTIVE_LIMIT = 64;
 /** Smallest cached interval in metres; partial ends use exact resolved edges, not resampled cells. */
 export const BAND_BASE_STEP = 1;
@@ -33,11 +41,20 @@ export interface BandSlab {
 export interface BandRenderMetrics {
   activeBands: number;
   preblendLevel: number;
+  preblendMinLevel: number | null;
+  pointRows: number;
   profileSegments: number;
   outputPixels: number;
 }
 export function createBandRenderMetrics(): BandRenderMetrics {
-  return { activeBands: 0, preblendLevel: 0, profileSegments: 0, outputPixels: 0 };
+  return {
+    activeBands: 0,
+    preblendLevel: 0,
+    preblendMinLevel: null,
+    pointRows: 0,
+    profileSegments: 0,
+    outputPixels: 0,
+  };
 }
 
 interface Profile {
@@ -523,7 +540,32 @@ function appendExact(
   }
 }
 
-/** Sampling is independent of how the requested interval decomposes, so changing the dyadic level cannot relocate edges. */
+/** LEVEL's instantaneous profile follows already resolved span order; no event composition or sorting. */
+function readPointProfile(
+  profile: { base: number[]; data: Float64Array; count: number },
+  ground: BandGround,
+  s: number,
+  stats: BandRenderMetrics,
+): Profile {
+  const slab = ground.slabs[slabAt(ground.slabs, s)]!;
+  profile.count = slab.spans.length - 1;
+  stats.activeBands = Math.max(stats.activeBands, slab.active);
+  stats.pointRows++;
+  for (let i = 0; i < slab.spans.length; i++) {
+    const piece = slab.spans[i]!,
+      color = piece.color;
+    const target = i === 0 ? profile.base : profile.data;
+    const at = i === 0 ? 0 : (i - 1) * 9 + 1;
+    if (i > 0) profile.data[at - 1] = bandEdgeAt(piece, 'left', s);
+    target[at] = color === null ? 0 : rgb555LinearChannel(color >>> 10);
+    target[at + 1] = color === null ? 0 : rgb555LinearChannel((color >>> 5) & 31);
+    target[at + 2] = color === null ? 0 : rgb555LinearChannel(color & 31);
+    target[at + 3] = color === null ? 0 : 1;
+  }
+  return profile;
+}
+
+/** EXACT integrates the owned row interval; LEVEL reads one existing profile at the representative s. */
 export function createBandGroundSampler(sources: readonly BandSourceSpan[]) {
   if (sources.length === 0) throw new RangeError('Band sampling requires source-owned intervals');
   const spans = sources.map((source, i) => {
@@ -546,6 +588,7 @@ export function createBandGroundSampler(sources: readonly BandSourceSpan[]) {
     return { ...source, frameEnd: frameStart + (sourceEnd - sourceStart), ...product };
   });
   const row = new BandRow(),
+    pointProfile = { base: [0, 0, 0, 0], data: new Float64Array(9 * 2 * BAND_ACTIVE_LIMIT), count: 0 },
     sample = new Float64Array(4),
     colorCache = new Float64Array([NaN, NaN, NaN, NaN, 0]);
   const first = spans[0]!.frameStart,
@@ -587,25 +630,49 @@ export function createBandGroundSampler(sources: readonly BandSourceSpan[]) {
       deltaS: number,
       filter: BandFilter,
       stats: BandRenderMetrics,
+      sMode: BandSMode = BAND_DEFAULT_S_MODE,
     ) {
-      row.reset();
-      const start = Math.max(first, s - deltaS / 2),
-        end = Math.min(last, s + deltaS / 2);
-      let area = 0;
-      if (end > start) {
-        for (const span of spans) {
-          const a = Math.max(start, span.frameStart),
-            b = Math.min(end, span.frameEnd);
-          if (b > a) area += append(span, a, b, stats);
-        }
-      } else {
+      let profile: Profile;
+      let normalization = 1;
+      if (sMode === 'LEVEL') {
         const span = spans.find((p) => p.frameEnd > s) ?? spans.at(-1)!;
         const at = Math.max(0, Math.min(span.ground.length, span.sourceStart + s - span.frameStart));
-        appendExact(row, span.ground, at, at, span.lateralOrigin, stats, true);
-      }
-      const profile = row.finish(),
-        width = Math.abs(stepL),
+        let selected: Profile | undefined;
+        if (deltaS >= BAND_BASE_STEP && span.levels.length) {
+          for (let level = selectImageLodLevel(BAND_BASE_STEP / deltaS, span.levels.length - 1); level >= 0; level--) {
+            const source = span.levels[level]!;
+            // The final closed endpoint belongs to the preceding cell; other boundaries belong to the next.
+            const cell = at === span.ground.length ? Math.ceil(at / source.step) - 1 : Math.floor(at / source.step);
+            if (cell >= source.indices.length) continue;
+            selected = span.profiles[source.indices[cell]!]!;
+            stats.activeBands = Math.max(stats.activeBands, source.active[cell]!);
+            stats.preblendMinLevel = Math.min(stats.preblendMinLevel ?? level, level);
+            stats.preblendLevel = Math.max(stats.preblendLevel, level);
+            break;
+          }
+        }
+        profile = selected ?? readPointProfile(pointProfile, span.ground, at, stats);
+        l += span.lateralOrigin;
+      } else {
+        row.reset();
+        const start = Math.max(first, s - deltaS / 2),
+          end = Math.min(last, s + deltaS / 2);
+        let area = 0;
+        if (end > start) {
+          for (const span of spans) {
+            const a = Math.max(start, span.frameStart),
+              b = Math.min(end, span.frameEnd);
+            if (b > a) area += append(span, a, b, stats);
+          }
+        } else {
+          const span = spans.find((p) => p.frameEnd > s) ?? spans.at(-1)!;
+          const at = Math.max(0, Math.min(span.ground.length, span.sourceStart + s - span.frameStart));
+          appendExact(row, span.ground, at, at, span.lateralOrigin, stats, true);
+        }
+        profile = row.finish();
         normalization = area > 0 ? area : 1;
+      }
+      const width = Math.abs(stepL);
       const threshold = (IMAGE_OPAQUE_COVERAGE - COVERAGE_ROUNDOFF) * normalization;
       const support = filter === 'POINT' ? 0 : filter === 'BOX' ? width / 2 : width;
       for (let x = 0; x < count;) {

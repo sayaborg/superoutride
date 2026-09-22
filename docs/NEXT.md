@@ -4,7 +4,8 @@
 
 - The game uses one compiled graph scene, indexed sprites and CLASSIC/CUSTOM Session flow.
 - Stage 4a introduces ordered colored Bands, independent physical Regions, compile-time constructs,
-  dyadic s preblending and live POINT / BOX / TENT lateral comparison. BOX is provisional, not K's selection.
+  dyadic s preblending and live EXACT / LEVEL longitudinal and POINT / BOX / TENT lateral comparison.
+  EXACT / BOX is provisional, not K's selection.
 - RIBBON COAST, RIBBON FORK and RIBBON RING are provisional playable Band courses. The four legacy
   resident-ground courses and their groundmap/build/HUD paths temporarily coexist for this comparison.
 - BG is one infinite tiled plane with sine mapping. Build generates vehicle envelopes and game time budgets.
@@ -23,9 +24,11 @@ development and release procedure belongs to AGENTS. PRs hold rationale and veri
 
 [PR #243](https://github.com/sayaborg/superoutride/pull/243) introduces the Band schema, renderer,
 provisional courses and comparison HUD. [Browser](browser.md#band-comparison) describes same-scene
-switching; [Architecture](architecture.md#band-rendering) defines the three kernels. K compares the
-methods on real devices and chooses the lateral method. No final choice or capacity verdict is implied
-by the provisional default or local measurements.
+switching; [Architecture](architecture.md#band-rendering) defines the sampling methods.
+[PR #244](https://github.com/sayaborg/superoutride/pull/244) adds independent EXACT / LEVEL s comparison,
+shared sprite/Band octave selection and current/recent-maximum timing. K compares all six combinations
+on real devices and chooses both the s-direction and l-direction methods. No final choice or capacity
+verdict is implied by the provisional default or local measurements.
 
 Reuse reference: closed [PR #238](https://github.com/sayaborg/superoutride/pull/238), head
 `07e576e3dddff79c9e46a5369faed4205e706f41`, contains ordered slab resolution and swept-edge integration
@@ -35,8 +38,8 @@ schema or interval limit.
 
 ### 4b — Remove the legacy path after K chooses
 
-Do not start this step before K's lateral-method selection. Keep only that method and remove the
-other candidates. Remove resident ground, groundmap, GroundBase, tile dictionaries, paint/stamp systems
+Stage 4b is waiting for K's selections in **both the s direction and the l direction**. Do not start
+this step before both choices are made. Keep only those methods and remove the other candidates. Remove resident ground, groundmap, GroundBase, tile dictionaries, paint/stamp systems
 and all related build, HUD and documentation paths together. Remove the four old development courses
 and the obsolete fit/observation inputs, retaining the new provisional courses. Update Product §4,
 Architecture, Image assets, Content and this checkpoint with the remaining Band-only implementation.

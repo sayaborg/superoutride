@@ -76,10 +76,15 @@ the corresponding ownership and visible origin/vector indicators.
 The HUD displays FPS, maximum CPU frame time, maximum fixed-step time, maximum frame interval and
 lifetime maximum seam-commit time. The first frame reports immediately, then approximately every half second.
 
-For Bands it also displays the selected filter, the reporting window's maximum visible active count,
-the compiled course maximum and active limit, maximum ground-sampling CPU milliseconds, the latest
-frame's largest reused s exponent and lateral-segment work count, coefficient/index MiB, expanded
-piece count and unique profile count. Coefficient/index bytes are numeric storage, not total JavaScript
+For Bands it also displays the selected longitudinal (s) and lateral (l) methods, the reporting window's
+maximum visible active count, the compiled course maximum and active limit, the latest frame's
+ground-sampling CPU milliseconds and the maximum over the most recent 120 rendered frames (`max120`).
+Changing either method clears that Band timing history and reports the new selection immediately,
+including while paused. EXACT shows the latest frame's largest reused s exponent; LEVEL shows the
+minimum–maximum cached exponent actually used and the number of instantaneous point-read rows.
+`none` means that frame used no cached cell. L0 is a 1 m cell, L1 is 2 m, and so on; point reads are
+listed separately. The HUD also reports lateral-segment work, coefficient/index MiB, expanded piece
+count and unique profile count. Coefficient/index bytes are numeric storage, not total JavaScript
 heap or total scene memory. The visible count includes hidden Bands in each contributing source slab;
 it is a maximum, not a sum over pixels or Sections. Lateral work counts actual integrated segments or
 batched constant runs, not original Bands. These are measurements, not device performance verdicts.
@@ -104,11 +109,13 @@ tire calibration. The selectable body-yaw and movement-yaw cameras use the same 
 
 ### Band comparison
 
-On a Band course, DEV contains POINT, BOX and TENT buttons with the selected button pressed.
-BOX is the provisional default, not a final product choice. A click changes only the lateral kernel
-and immediately redraws the current scene, including while paused. Camera, vehicle, Session and
-occurrence history are preserved; there is no reload, restart or course recompile. The controls use
-the DEV input isolation above. Page/course reload restores BOX. Legacy courses have no Band selector.
+On a Band course, DEV contains two independent button groups: **Band longitudinal (s)** has EXACT
+and LEVEL; **Band lateral (l)** has POINT, BOX and TENT. Each group marks its selected button pressed.
+EXACT / BOX is the provisional default, not a final product choice. A click changes only its selected
+sampling direction and immediately redraws the current scene, including before START and while paused.
+Camera, vehicle, Session and occurrence history are preserved; there is no reload, restart or course
+recompile. The controls use the DEV input isolation above. Page/course reload restores EXACT / BOX.
+Legacy courses have no Band selector.
 
 Compare the same paused scene first, then compare motion on the same course and vehicle. Coast's
 lettering and bridge, Fork's route arrows and Ring's repeated curbs provide different edge patterns.

@@ -10,6 +10,7 @@ import {
 import { expandCourseBands } from '../../dist/compiler/course-band-ground.js';
 import { linearToRgb555, rgb555LinearChannel } from '../../dist/graphics/image-filter.js';
 import { rgb555ToRgba } from '../../dist/graphics/rgb555.js';
+import { selectSpriteLevel } from '../../dist/graphics/sprite.js';
 import { unpackRgba } from '../../dist/graphics/software-surface.js';
 
 const BG = 0x44332211;
@@ -26,10 +27,10 @@ const piece = (start, end, left, right, color, leftEnd = left, rightEnd = right)
   color,
 });
 const whole = (ground) => [{ ground, frameStart: 0, sourceStart: 0, sourceEnd: ground.length, lateralOrigin: 0 }];
-function row(sources, { s = 4, l = -4, stepL = 0.25, deltaS = 0, count = 32, filter = 'BOX' } = {}) {
+function row(sources, { s = 4, l = -4, stepL = 0.25, deltaS = 0, count = 32, filter = 'BOX', sMode = 'EXACT' } = {}) {
   const pixels = new Uint32Array(count).fill(BG),
     stats = createBandRenderMetrics();
-  createBandGroundSampler(sources).sampleSpan(pixels, 0, count, s, l, stepL, deltaS, filter, stats);
+  createBandGroundSampler(sources).sampleSpan(pixels, 0, count, s, l, stepL, deltaS, filter, stats, sMode);
   return { pixels, stats };
 }
 
@@ -275,4 +276,60 @@ test('authoring expands nested repeats, arrow directions, text runs and alternat
     () => expandCourseBands([{ kind: 'repeat', count: 65536, every: 1, elements: [run, run] }], 65537, '/bands'),
     /exceed/,
   );
+});
+
+test('LEVEL shares sprite octave selection and reads only the cell containing s; geometric ties are coarse', () => {
+  const ground = compileBandGround(
+    16,
+    Array.from({ length: 16 }, (_, i) => piece(i, i + 1, null, null, [RED, BLUE, WHITE][i % 3])),
+  );
+  const sprite = { width: 1, worldWidthMeters: 1, levels: new Array(5) };
+  for (const [deltaS, expected] of [
+    [1, 0],
+    [Math.SQRT2 * (1 - 1e-10), 0],
+    [Math.SQRT2, 1],
+    [2, 1],
+    [2 * Math.SQRT2, 2],
+    [4 * Math.SQRT2, 3],
+    [8 * Math.SQRT2, 4],
+    [64, 4],
+  ]) {
+    assert.equal(selectSpriteLevel(sprite, 1 / deltaS), expected);
+    for (const s of [0.2, 4.6, 12.25])
+      for (const filter of BAND_FILTERS) {
+        const got = row(whole(ground), { s, deltaS, filter, sMode: 'LEVEL' });
+        assert.equal(got.stats.preblendMinLevel, expected);
+        assert.equal(got.stats.preblendLevel, expected);
+        assert.equal(got.stats.pointRows, 0);
+        const step = 2 ** expected,
+          center = (Math.floor(s / step) + 0.5) * step;
+        assert.deepEqual(got.pixels, row(whole(ground), { s: center, deltaS: step, filter }).pixels);
+      }
+  }
+});
+
+test('LEVEL reads instantaneous Bands below one metre, owns the seam at s, and clamps to existing tail cells', () => {
+  const ground = compileBandGround(6.5, [piece(0, 6.5, null, null, RED), piece(0.5, 6.5, -3, 1, BLUE, 3, 7)]);
+  const rebased = [{ ...whole(ground)[0], frameStart: 100, lateralOrigin: 7 }];
+  for (const filter of BAND_FILTERS)
+    for (const s of [0.45, 0.6, 4.2])
+      for (const deltaS of [0, 0.99]) {
+        const got = row(rebased, { s: s + 100, l: -11, deltaS, filter, sMode: 'LEVEL' });
+        assert.equal(got.stats.preblendMinLevel, null);
+        assert.equal(got.stats.pointRows, 1);
+        assert.deepEqual(got.pixels, row(whole(ground), { s, deltaS: 0, filter }).pixels);
+      }
+  const tail = row(whole(ground), { s: 4.2, deltaS: 4, sMode: 'LEVEL' });
+  assert.equal(tail.stats.preblendMinLevel, 1);
+  assert.deepEqual(tail.pixels, row(whole(ground), { s: 5, deltaS: 2 }).pixels);
+  for (const s of [6.25, 6.5]) {
+    const got = row(whole(ground), { s, deltaS: 4, sMode: 'LEVEL' });
+    assert.equal(got.stats.pointRows, 1);
+    assert.deepEqual(got.pixels, row(whole(ground), { s }).pixels);
+  }
+  const red = compileBandGround(8, [piece(0, 8, null, null, RED)]);
+  const blue = compileBandGround(8, [piece(0, 8, null, null, BLUE)]);
+  const sources = [...whole(red), { ...whole(blue)[0], frameStart: 8 }];
+  assert.ok(row(sources, { s: 8, deltaS: 4, sMode: 'LEVEL' }).pixels.every((p) => p === rgb555ToRgba(BLUE)));
+  assert.ok(row(sources, { s: 16, deltaS: 4, sMode: 'LEVEL' }).pixels.every((p) => p === rgb555ToRgba(BLUE)));
 });

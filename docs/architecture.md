@@ -148,14 +148,27 @@ than a relocated hard edge. Equal complete profiles share private coefficient st
 indices. Resolved records and public metadata are deeply immutable; mutable numeric buffers remain
 behind the compiled product's read boundary.
 
-A row uses the terrain projection's representative s and effective s footprint. The occurrence reader
-clips that centered interval to source-owned view spans, maps each lateral origin and decomposes the
-remaining ranges into complete cached dyadic intervals. At most two partial one-metre ends per source
+A row uses the terrain projection's representative s and effective s footprint. Longitudinal selection
+is independent of the lateral kernel. In EXACT mode, the occurrence reader clips that centered interval
+to source-owned view spans, maps each lateral origin and decomposes the remaining ranges into complete
+cached dyadic intervals. At most two partial one-metre ends per source
 range integrate the resolved affine edges directly. Section tails and sub-metre footprints use the
 same rule; zero-length footprints read the instantaneous resolved slab. Unowned overlap guards do not
 contribute. Actual source lengths weight all contributions before coverage thresholding or color
 normalization. Changes in dyadic decomposition do not change the mathematical sampled interval.
 This is a separable source-(s,l) row footprint, not integration over a full perspective pixel polygon.
+
+LEVEL uses the shared [nearest-octave selector](#shared-image-level-selection) with `rho = deltaS / 1 m`.
+For `rho >= 1`, it reads only the cached cell containing the representative source s at the selected
+exponent, with no cell or level interpolation. The source owning s supplies the profile and lateral
+origin; a seam belongs to its successor. It does not blend neighboring occurrence sources. A profile
+remains in source-l coordinates, so LEVEL reads it directly without row-event composition or sorting.
+
+Only complete dyadic cells exist in the compiled data. At Section tails, the available prefix consists
+of levels whose containing cell exists; selection clamps to that prefix. The final closed endpoint
+uses the preceding cell. For `rho < 1`, or a fractional-metre tail without a cached containing cell,
+LEVEL reads the instantaneous resolved slab at s without longitudinal mixing. Its already ordered
+spans supply a piecewise-constant lateral profile. No additional precomputation or cache is required.
 
 A projected `[-1,+1]` metre ruler supplies the affine screen-to-l map; it does not clip the ground.
 The entire target row reads the resulting lateral function with the selected kernel:
@@ -166,10 +179,10 @@ The entire target row reads the resulting lateral function with the selected ker
 | BOX    | Exact mean over `[x-w/2,x+w/2]`                              |
 | TENT   | Exact integral with weight `(1-abs(l-x)/w)/w` on `[x-w,x+w]` |
 
-The row workspace resolves weighted profile events once, then batches constant spans with direct
-fills or transparent skips. Only ramp and kernel-boundary pixels integrate lateral segments; TENT
+EXACT's row workspace resolves weighted profile events once. Both longitudinal modes then batch
+constant spans with direct fills or transparent skips. Only ramp and kernel-boundary pixels integrate lateral segments; TENT
 uses the product of the linear profile and linear kernel. No pixel loops over original authored Bands.
-The three methods share the same s preblend, source ownership, geometry and color law.
+All three lateral methods accept either longitudinal mode and share geometry and the color law.
 
 RGB555 decodes through the common linear-sRGB channel table. Contributions stay premultiplied until
 final coverage is known. Coverage at least the shared 0.5 threshold is opaque, allowing 64 machine
@@ -209,10 +222,19 @@ The master anchor `(aX,aY)` maps per axis to `(a+0.5)/2^k-0.5`.
 Default anchor is `((W-1)/2,H-1)`; fractional and outside-frame anchors are valid.
 Every level represents `worldWidth` by `worldWidth*H/W` metres, independent of opaque/storage bounds.
 
-For master footprint `rho=1/g`, select the nearest integer `log2(rho)` exponent within the available
-levels; geometric-mean ties select the coarser level. Display extent and anchor remain continuous;
-texels and palette coverage are discrete. Builds supply full direct-master LOD for shipped sprites.
+For master footprint `rho=1/g`, sprites use the shared nearest-octave selector below. Display extent
+and anchor remain continuous; texels and palette coverage are discrete. Builds supply full direct-master
+LOD for shipped sprites.
 [Image assets](image-assets.md#completed-sprite-images) owns the level/mixture encoding.
+
+### Shared image level selection
+
+Graphics' `selectImageLodLevel(scale, maxLevel)` is the single nearest-octave selection rule used by
+both sprites and Band LEVEL. `scale = 1/rho`: destination pixels per master texel for sprites, or
+`1 m / deltaS` for Bands. It selects the nearest integer `log2(rho)` exponent, clamped to the available
+prefix `0..maxLevel`. There is one level per octave. At the geometric-mean boundary
+`scale = 2^(-n)/sqrt(2)`, it selects the coarser exponent `n+1`. No interpolation occurs.
+Band's instantaneous sub-metre read is analogous to sprite master magnification, not a cached 1 m cell.
 
 ## Course frames
 

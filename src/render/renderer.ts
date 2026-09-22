@@ -1,6 +1,14 @@
-export { BAND_FILTERS, BAND_ACTIVE_LIMIT, BAND_DEFAULT_FILTER } from '../visual/band-ground.js';
+export {
+  BAND_FILTERS,
+  BAND_ACTIVE_LIMIT,
+  BAND_DEFAULT_FILTER,
+  BAND_S_MODES,
+  BAND_DEFAULT_S_MODE,
+} from '../visual/band-ground.js';
 import {
   BAND_DEFAULT_FILTER,
+  BAND_DEFAULT_S_MODE,
+  type BandSMode,
   createBandRenderMetrics,
   type BandRenderMetrics,
   type BandFilter,
@@ -30,7 +38,7 @@ const MIN_TEXTURE_SPAN_PIXELS = 1e-8;
 type PlayerVisualKind = 'car' | 'bike';
 
 interface RenderResult {
-  bandGround: (BandRenderMetrics & { filter: BandFilter; milliseconds: number }) | null;
+  bandGround: (BandRenderMetrics & { filter: BandFilter; sMode: BandSMode; milliseconds: number }) | null;
   terrainLineCount: number;
   terrainOutputPixels: number;
   visibleSpriteCount: number;
@@ -90,6 +98,7 @@ export interface BandGroundReader {
     deltaS: number,
     filter: BandFilter,
     stats: BandRenderMetrics,
+    sMode?: BandSMode,
   ): void;
 }
 
@@ -119,6 +128,7 @@ interface RenderOptions {
   /** Final compiled color field in scene-local coordinates; never source-rebased or repainted. */
   readonly ground: GroundColorReader | BandGroundReader;
   readonly bandFilter?: BandFilter;
+  readonly bandSMode?: BandSMode;
 }
 
 export function renderDriving(
@@ -129,6 +139,7 @@ export function renderDriving(
     ground,
     workspace = createRenderWorkspace(),
     bandFilter = BAND_DEFAULT_FILTER,
+    bandSMode = BAND_DEFAULT_S_MODE,
   }: RenderOptions,
 ): RenderResult {
   const { renderCamera, terrain } = prepareTerrain(guide, camera, terrainProfile, workspace);
@@ -165,7 +176,13 @@ export function renderDriving(
     });
 
   const bandStats = workspace.bands;
-  bandStats.activeBands = bandStats.preblendLevel = bandStats.profileSegments = bandStats.outputPixels = 0;
+  bandStats.activeBands =
+    bandStats.preblendLevel =
+    bandStats.profileSegments =
+    bandStats.outputPixels =
+    bandStats.pointRows =
+      0;
+  bandStats.preblendMinLevel = null;
   let bandMilliseconds = 0;
   mergeTerrainAndSprites(
     terrain,
@@ -188,6 +205,7 @@ export function renderDriving(
           line.sourceFootprint.deltaSEffective,
           bandFilter,
           bandStats,
+          bandSMode,
         );
         stats.outputPixels = bandStats.outputPixels - before;
         stats.groundMapLevel = 0;
@@ -264,7 +282,10 @@ export function renderDriving(
   }
 
   return {
-    bandGround: ground.kind === 'bands' ? { ...bandStats, filter: bandFilter, milliseconds: bandMilliseconds } : null,
+    bandGround:
+      ground.kind === 'bands'
+        ? { ...bandStats, filter: bandFilter, sMode: bandSMode, milliseconds: bandMilliseconds }
+        : null,
     terrainLineCount: terrain.length,
     terrainOutputPixels,
     visibleSpriteCount: sprites.length,

@@ -20,7 +20,8 @@ python3 -m http.server 8000
 
 Open `http://localhost:8000/`. Build stages saved content, completed sprites and Session data under
 `dist/content/`, plus resident RGB555 payloads for legacy courses only. Band constructs compile to
-immutable color fields before driving starts. DEV provides immediate POINT / BOX / TENT comparison.
+immutable color fields before driving starts. DEV independently switches EXACT / LEVEL along s and
+POINT / BOX / TENT along l, with immediate redraw and timing observations.
 
 ## Controls and authoring
 

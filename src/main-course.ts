@@ -187,10 +187,18 @@ try {
       shell.start(tick, render);
   });
   if (ground.kind === 'bands')
-    mountBandControls(scene.bandFilter, (value) => {
-      scene.setBandFilter(value);
-      render();
-    });
+    mountBandControls(
+      scene.bandSMode,
+      scene.bandFilter,
+      (value) => {
+        scene.setBandSMode(value);
+        render();
+      },
+      (value) => {
+        scene.setBandFilter(value);
+        render();
+      },
+    );
   status.remove();
   shell.start(tick, render);
   if (parameters.get('autostart') === '1') controls.begin();

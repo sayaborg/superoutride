@@ -1,4 +1,11 @@
-import { BAND_FILTERS, BAND_DEFAULT_FILTER, type BandFilter } from '../visual/band-ground.js';
+import {
+  BAND_FILTERS,
+  BAND_DEFAULT_FILTER,
+  type BandFilter,
+  BAND_S_MODES,
+  BAND_DEFAULT_S_MODE,
+  type BandSMode,
+} from '../visual/band-ground.js';
 import type { CourseGround } from '../compiler/course-ground.js';
 import {
   LOGICAL_HEIGHT,
@@ -26,6 +33,7 @@ export function createCourseScene(section: CompiledSection, ground: CourseGround
     throw new RangeError('Driving requires an entry Port with camera space behind it');
   const renderWorkspace = createRenderWorkspace();
   let bandFilter: BandFilter = BAND_DEFAULT_FILTER;
+  let bandSMode: BandSMode = BAND_DEFAULT_S_MODE;
   const worldSprites: CourseSprite[] = [];
   let lastView: typeof session.view | null = null;
   let lastClosed: typeof session.closedCarriageways | null = null;
@@ -39,6 +47,13 @@ export function createCourseScene(section: CompiledSection, ground: CourseGround
     setBandFilter(value: BandFilter) {
       if (!BAND_FILTERS.includes(value)) throw new RangeError('Unknown Band lateral filter');
       bandFilter = value;
+    },
+    get bandSMode() {
+      return bandSMode;
+    },
+    setBandSMode(value: BandSMode) {
+      if (!BAND_S_MODES.includes(value)) throw new RangeError('Unknown Band longitudinal mode');
+      bandSMode = value;
     },
     metrics: graph.metrics,
     groundMetrics: ground.metrics,
@@ -102,7 +117,7 @@ export function createCourseScene(section: CompiledSection, ground: CourseGround
           assets: appearance,
           playerKind,
         },
-        { ground: presentation.ground, workspace: renderWorkspace, bandFilter },
+        { ground: presentation.ground, workspace: renderWorkspace, bandFilter, bandSMode },
       );
     },
   });

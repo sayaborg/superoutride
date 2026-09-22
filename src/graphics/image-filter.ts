@@ -34,6 +34,18 @@ export function imageLodExponent(rho: number): number {
   return Math.max(0, Math.log2(rho));
 }
 
+/** One level per octave. scale = 1/rho; geometric-mean equality selects the coarser level. */
+export function selectImageLodLevel(scale: number, maxLevel: number): number {
+  if (!(scale > 0) || !Number.isFinite(scale)) throw new RangeError('image scale must be finite and positive');
+  let level = Math.min(maxLevel, Math.floor(imageLodExponent(1 / scale)));
+  let boundary = Math.SQRT1_2 * 2 ** -level;
+  while (level < maxLevel && scale <= boundary) {
+    level += 1;
+    boundary *= 0.5;
+  }
+  return level;
+}
+
 /** Offline straight-alpha source integral. Coordinates may use integer rational-overlap units. */
 export function integrateImageBox(
   pixels: Uint32Array,

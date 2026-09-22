@@ -1,4 +1,4 @@
-import { BAND_ACTIVE_LIMIT, BAND_DEFAULT_FILTER, type renderDriving } from '../render/renderer.js';
+import { BAND_ACTIVE_LIMIT, BAND_DEFAULT_FILTER, BAND_DEFAULT_S_MODE, type renderDriving } from '../render/renderer.js';
 type BandObservation = NonNullable<ReturnType<typeof renderDriving>['bandGround']>;
 /** Host measurements; the HUD reports observations and makes no device qualification claim. */
 export function createCoursePerformanceHud(
@@ -35,7 +35,8 @@ export function createCoursePerformanceHud(
     stepMax = 0,
     intervalMax = 0;
   let band: BandObservation | null = null;
-  let bandMax = 0,
+  const recentBandTimes = new Float64Array(120);
+  let bandIndex = 0,
     activeMax = 0;
   return {
     step(milliseconds: number) {
@@ -43,10 +44,15 @@ export function createCoursePerformanceHud(
       stepMax = Math.max(stepMax, milliseconds);
     },
     frame(started: number, observation: BandObservation | null = null) {
-      const filterChanged = band?.filter !== observation?.filter;
+      const filterChanged = band?.filter !== observation?.filter || band?.sMode !== observation?.sMode;
+      if (filterChanged) {
+        recentBandTimes.fill(0);
+        bandIndex = activeMax = 0;
+      }
       band = observation;
       if (band) {
-        bandMax = Math.max(bandMax, band.milliseconds);
+        recentBandTimes[bandIndex] = band.milliseconds;
+        bandIndex = (bandIndex + 1) % recentBandTimes.length;
         activeMax = Math.max(activeMax, band.activeBands);
       }
       const now = performance.now();
@@ -58,12 +64,18 @@ export function createCoursePerformanceHud(
       if (reported && !filterChanged && now - first < 500) return;
       reported = true;
       const fps = (frames * 1000) / Math.max(1, now - first);
+      const levelRange =
+        band === null || band.preblendMinLevel === null ? 'none' : `L${band.preblendMinLevel}–L${band.preblendLevel}`;
+      const levels =
+        band?.sMode === 'LEVEL'
+          ? `s levels ${levelRange} / point ${band.pointRows} rows`
+          : `s max L${band?.preblendLevel ?? 0}`;
       const detail =
         ground.kind === 'resident'
           ? `ground ${(ground.residentBytes / 1048576).toFixed(1)} MiB / ${ground.uniqueTiles} tiles / ${ground.sectionCount} sections · loaded once`
-          : `Bands ${band?.filter ?? BAND_DEFAULT_FILTER} · active ${activeMax} visible / ${ground.maxActiveBands} course max / ${BAND_ACTIVE_LIMIT} limit · ground ${bandMax.toFixed(2)} ms · s L${band?.preblendLevel ?? 0} · l spans ${band?.profileSegments ?? 0} · ${((ground.coefficientBytes + ground.directoryBytes) / 1048576).toFixed(2)} MiB coefficients+index · ${ground.expandedBands} expanded / ${ground.profiles} profiles`;
+          : `Bands s ${band?.sMode ?? BAND_DEFAULT_S_MODE} / l ${band?.filter ?? BAND_DEFAULT_FILTER} · active ${activeMax} visible / ${ground.maxActiveBands} course max / ${BAND_ACTIVE_LIMIT} limit · ground ${(band?.milliseconds ?? 0).toFixed(2)} ms / max120 ${Math.max(...recentBandTimes).toFixed(2)} ms · ${levels} · l spans ${band?.profileSegments ?? 0} · ${((ground.coefficientBytes + ground.directoryBytes) / 1048576).toFixed(2)} MiB coefficients+index · ${ground.expandedBands} expanded / ${ground.profiles} profiles`;
       output.textContent = `${fps.toFixed(0)} fps · frame ${frameMax.toFixed(1)} ms · step ${stepMax.toFixed(1)} ms · seam ${metrics.seamCommitMaxMilliseconds.toFixed(1)} ms · interval ${intervalMax.toFixed(1)} ms · ${detail}`;
-      bandMax = activeMax = 0;
+      activeMax = 0;
       first = now;
       frames = 0;
       frameMax = stepMax = intervalMax = 0;
