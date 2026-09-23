@@ -585,11 +585,8 @@ function section(value: unknown, path: string): SectionDocument {
     'fork',
   ]);
   const start = record(v.start, `${path}/start`, ['x', 'z', 'heading']);
-  const guide = record(v.guide, `${path}/guide`, ['margin', 'mMin']);
   const fork = v.fork === null ? null : record(v.fork, `${path}/fork`, ['lock', 'closure']);
   const limit = COURSE_DOCUMENT_LIMITS.coordinateMeters;
-  const mMin = number(guide.mMin, `${path}/guide/mMin`, 0, 1, true);
-  if (mMin === 1) fail('invalid_numeric_domain', `${path}/guide/mMin`, 'Guide mMin must be less than one');
   return Object.freeze({
     id: id(v.id, `${path}/id`),
     start: Object.freeze({
