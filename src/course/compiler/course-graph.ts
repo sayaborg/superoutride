@@ -1,4 +1,4 @@
-import type { PlanCoordinateReader } from '../geometry/plan-coordinate.js';
+import type { SectionPlanCoordinateReader } from '../geometry/plan-coordinate.js';
 import type { GuidePath } from '../geometry/guide-curve.js';
 import type { RasterPath } from '../geometry/raster-path.js';
 import type { HeightProfileReader } from '../geometry/height-profile.js';
@@ -17,7 +17,7 @@ export interface CompiledSection {
   readonly primitives: readonly CompiledPlanPrimitive[];
   readonly raster: RasterPath;
   readonly guide: GuidePath;
-  readonly coordinates: PlanCoordinateReader;
+  readonly coordinates: SectionPlanCoordinateReader;
   readonly boundaries: readonly CompiledBoundary[];
   readonly regionPartition: CompiledRegionPartition;
   readonly height: HeightProfileReader;

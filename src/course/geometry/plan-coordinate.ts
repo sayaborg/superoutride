@@ -56,6 +56,23 @@ export interface PlanCoordinateReader {
   ): PlanCoordinateProjection;
 }
 
+/** A closed native projection interval, with its complete extent and centerline bounds. */
+export interface PlanProjectionCandidate {
+  readonly seed: PlanProjectionSeed;
+  readonly start: number;
+  readonly end: number;
+  readonly extent: { readonly start: number; readonly end: number };
+  readonly bounds: { readonly left: number; readonly right: number; readonly back: number; readonly front: number };
+  project(world: Vec2, out: PlanCoordinateProjection, workspace: PlanProjectionWorkspace): PlanCoordinateProjection;
+}
+
+/** Section-side queries used to assemble occurrence readers without inspecting geometry. */
+export interface SectionPlanCoordinateReader extends PlanCoordinateReader {
+  /** Native seeds are dense integers in [0, seedCount), ordered along s. */
+  readonly seedCount: number;
+  projectionCandidates(start: number, end: number): readonly PlanProjectionCandidate[];
+}
+
 export function createPlanCoordinateSample(): PlanCoordinateSample {
   return { x: 0, z: 0, s: 0, l: 0, heading: 0, seed: -1 };
 }
