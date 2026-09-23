@@ -421,7 +421,7 @@
               "color": 5575,
               "knots": [
                 { "s": 0, "left": null, "right": null },
-                { "s": 1000.0000000000001, "left": null, "right": null }
+                { "s": 1000, "left": null, "right": null }
               ]
             },
             {
@@ -429,7 +429,7 @@
               "color": 9548,
               "knots": [
                 { "s": 0, "left": -3.5, "right": 3.5 },
-                { "s": 1000.0000000000001, "left": -3.5, "right": 3.5 }
+                { "s": 1000, "left": -3.5, "right": 3.5 }
               ]
             },
             { "kind": "text", "s": 185, "l": -2.6, "text": "SEA", "height": 1.8, "color": 32765 },
@@ -570,7 +570,7 @@
               "color": 5575,
               "knots": [
                 { "s": 0, "left": null, "right": null },
-                { "s": 1200.0000000000002, "left": null, "right": null }
+                { "s": 1200, "left": null, "right": null }
               ]
             },
             {
@@ -578,7 +578,7 @@
               "color": 9548,
               "knots": [
                 { "s": 0, "left": -3.5, "right": 3.5 },
-                { "s": 1200.0000000000002, "left": -3.5, "right": 3.5 }
+                { "s": 1200, "left": -3.5, "right": 3.5 }
               ]
             },
             { "kind": "text", "s": 185, "l": -2.6, "text": "PARK", "height": 1.4, "color": 32765 },
