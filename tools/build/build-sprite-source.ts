@@ -1,8 +1,8 @@
 import { readFile, stat } from 'node:fs/promises';
 import { PNG } from 'pngjs';
-import { normalizeSpriteSource } from '../../dist/image/sprite-source-compiler.js';
+import { normalizeSpriteSource } from '../../src/image/sprite-source-compiler.js';
 import { decodeSpritePng, SPRITE_PNG_BYTE_LIMIT } from '../graphics/sprite-png.mjs';
-import { writeSpriteArtifact } from './write-sprite-artifact.mjs';
+import { writeSpriteArtifact } from './write-sprite-artifact.js';
 
 const [sourcePath, recipePath, outputPath, ...extra] = process.argv.slice(2);
 if (!sourcePath || !recipePath || !outputPath || extra.length)

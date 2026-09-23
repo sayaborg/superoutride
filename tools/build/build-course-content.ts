@@ -1,16 +1,17 @@
-import { buildCourseReferences } from './build-course-reference.mjs';
+import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
+import { buildCourseReferences } from './build-course-reference.js';
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
-import { readCourseDocument } from '../../dist/course/course-document.js';
-import { compileCourseDocument } from '../../dist/course/compiler/compiled-course.js';
+import { readCourseDocument } from '../../src/course/course-document.js';
+import { compileCourseDocument } from '../../src/course/compiler/compiled-course.js';
 import { compileCourseImages } from '../course/compile-course-images.mjs';
 import { readCourseImages } from '../course/read-course-images.mjs';
 
 const content = new URL('../../content/', import.meta.url);
 const destination = new URL('../../dist/content/', import.meta.url);
-const entries = [];
-const courses = [];
-async function stage(path, product) {
+const entries: { path: string; sha256: string }[] = [];
+const courses: { course: CompiledCourse; stem: string }[] = [];
+async function stage(path: string, product: unknown) {
   const data = JSON.stringify(product) + '\n';
   const target = new URL(path, destination);
   await mkdir(new URL('./', target), { recursive: true });
@@ -19,7 +20,7 @@ async function stage(path, product) {
 }
 for (const name of (await readdir(new URL('courses/', content))).sort()) {
   if (!name.endsWith('.course.json')) continue;
-  const bytes = await readFile(new URL(`courses/${name}`, content));
+  const bytes = await readFile(new URL(`courses/${name}`, content), 'utf8');
   const document = readCourseDocument(JSON.parse(bytes));
   if (!document.ok) throw new Error(JSON.stringify(document.diagnostics));
   const prepared = await compileCourseImages(

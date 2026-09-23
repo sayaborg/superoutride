@@ -6,16 +6,16 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 
 const [site, sha] = process.argv.slice(2);
-if (!site || !/^[0-9a-f]{40}$/.test(sha ?? ''))
-  throw new Error('Usage: verify-published-site.mjs <Pages URL> <commit>');
+if (!site || !sha || !/^[0-9a-f]{40}$/.test(sha))
+  throw new Error('Usage: verify-published-site.ts <Pages URL> <commit>');
 const root = new URL(site.endsWith('/') ? site : `${site}/`);
 assert.ok(['http:', 'https:'].includes(root.protocol), 'Expected an HTTP site');
 const run = promisify(execFile);
-let failure;
+let failure: unknown;
 for (let attempt = 1; attempt <= 10; attempt++) {
-  let profile;
+  let profile: string | undefined;
   try {
-    const response = await fetch(new URL(`version.txt?verify=${sha}`, root), {
+    const response: Response = await fetch(new URL(`version.txt?verify=${sha}`, root), {
       cache: 'no-store',
       signal: AbortSignal.timeout(30000),
     });
@@ -41,13 +41,13 @@ for (let attempt = 1; attempt <= 10; attempt++) {
     );
     // The Session output is populated by the first completed shared-scene render, not static HTML.
     const status = stdout.match(/<output\b[^>]*aria-label="Session status"[^>]*>([\s\S]*?)<\/output>/)?.[1];
-    assert.ok(status?.trim(), 'Published game did not reach its first rendered Session frame');
+    assert.ok(status && status.trim(), 'Published game did not reach its first rendered Session frame');
     console.log(JSON.stringify({ publishedCommit: sha, started: true, status: status.trim() }));
     failure = null;
     break;
   } catch (error) {
     failure = error;
-    console.error(`Published startup attempt ${attempt}: ${error.message}`);
+    console.error(`Published startup attempt ${attempt}: ${error instanceof Error ? error.message : String(error)}`);
     if (attempt < 10) await new Promise((resolve) => setTimeout(resolve, 5000));
   } finally {
     if (profile) await rm(profile, { recursive: true, force: true });

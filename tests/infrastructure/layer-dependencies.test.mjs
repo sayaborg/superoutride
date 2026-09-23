@@ -2,21 +2,21 @@ import assert from 'node:assert/strict';
 import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import test from 'node:test';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import ts from 'typescript';
 
 const repositoryRoot = fileURLToPath(new URL('../..', import.meta.url));
 const sourceRoot = path.join(repositoryRoot, 'src');
+const toolRoot = path.join(repositoryRoot, 'tools');
+const relativePath = (file) => path.relative(repositoryRoot, file).split(path.sep).join('/');
 
-async function collectFiles(directory, suffixes) {
+async function collectFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
   const files = [];
   for (const entry of entries) {
     const target = path.join(directory, entry.name);
-    if (entry.isDirectory()) files.push(...(await collectFiles(target, suffixes)));
-    else if (entry.isFile() && suffixes.some((suffix) => entry.name.endsWith(suffix))) {
-      files.push(target);
-    }
+    if (entry.isDirectory()) files.push(...(await collectFiles(target)));
+    else if (entry.isFile() && /\.(?:[cm]?[jt]s|tsx|html)$/.test(entry.name)) files.push(target);
   }
   return files;
 }
@@ -26,12 +26,121 @@ const layers = ['core', 'image', 'audio', 'course', 'vehicle', 'input', 'race', 
 const rank = new Map(layers.map((layer, index) => [layer, index]));
 
 function layerOf(relative) {
-  const layer = relative.split('/')[0];
-  assert.ok(relative.includes('/') && rank.has(layer), `unowned layer: ${relative}`);
+  const layer = relative.split('/')[1];
+  assert.ok(rank.has(layer), `unowned layer: ${relative}`);
   return layer;
 }
 
-test('engine ownership follows an acyclic dependency direction, including type imports', async () => {
+function moduleReferences(file, text) {
+  if (file.endsWith('.html')) {
+    const references = new Set();
+    // Extract script containers only; module dependencies inside them are parsed as JavaScript.
+    for (const [, attributes, body] of text.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)) {
+      const src = attributes.match(/(?:^|\s)src\s*=\s*(["'])(.*?)\1/i)?.[2];
+      if (src) references.add(src);
+      else for (const ref of moduleReferences(`${file}.mjs`, body)) references.add(ref);
+    }
+    return [...references];
+  }
+  const syntax = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true);
+  const references = new Set();
+  function visit(node) {
+    let ref;
+    if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) ref = node.moduleSpecifier;
+    else if (ts.isImportTypeNode(node) && ts.isLiteralTypeNode(node.argument)) ref = node.argument.literal;
+    else if (ts.isImportEqualsDeclaration(node) && ts.isExternalModuleReference(node.moduleReference))
+      ref = node.moduleReference.expression;
+    else if (
+      ts.isCallExpression(node) &&
+      (node.expression.kind === ts.SyntaxKind.ImportKeyword ||
+        (ts.isIdentifier(node.expression) && node.expression.text === 'require'))
+    )
+      ref = node.arguments[0];
+    else if (
+      (ts.isNewExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === 'Worker') ||
+      (ts.isCallExpression(node) &&
+        ts.isPropertyAccessExpression(node.expression) &&
+        node.expression.name.text === 'addModule')
+    ) {
+      const entry = node.arguments?.[0];
+      ref =
+        entry && ts.isNewExpression(entry) && ts.isIdentifier(entry.expression) && entry.expression.text === 'URL'
+          ? entry.arguments?.[0]
+          : entry;
+    }
+    if (ref && ts.isStringLiteralLike(ref)) references.add(ref.text);
+    ts.forEachChild(node, visit);
+  }
+  visit(syntax);
+  return [...references];
+}
+
+function dependencyTarget(file, ref, options) {
+  if (ref.startsWith('.') || ref.startsWith('/') || ref.startsWith('file:'))
+    return relativePath(fileURLToPath(new URL(ref, pathToFileURL(file))));
+  const resolved = ts.resolveModuleName(ref, file, options, ts.sys).resolvedModule;
+  return resolved ? relativePath(resolved.resolvedFileName) : null;
+}
+
+function checkDirection(from, to, exceptions = new Set()) {
+  const edge = `${from} -> ${to}`;
+  if (from.startsWith('src/')) {
+    assert.ok(!to.startsWith('tools/'), `product depends on authoring: ${edge}`);
+    if (to.startsWith('src/')) {
+      const source = layerOf(from),
+        target = layerOf(to);
+      assert.ok(source === target || rank.get(target) < rank.get(source), `upward domain dependency: ${edge}`);
+    }
+  }
+  if (from.startsWith('tools/') && to.startsWith('dist/'))
+    assert.ok(exceptions.has(edge), `tool imports delivery output: ${edge}`);
+}
+
+test('module discovery includes type imports, re-exports, dynamic imports and worker entries', () => {
+  const text = `
+    import type { A } from './a.js';
+    export type { B } from './b.js';
+    type C = import('./c.js').C;
+    const d = import('./d.js');
+    const e = require('./e.cjs');
+    import f = require('./f.cjs');
+    new Worker(new URL('./worker.ts', import.meta.url));
+    context.audioWorklet.addModule(new URL('./processor.js', import.meta.url));
+    new URL('../../dist/content/', import.meta.url);
+    // import './not-a-dependency.js';
+  `;
+  assert.deepEqual(moduleReferences('fixture.ts', text), [
+    './a.js',
+    './b.js',
+    './c.js',
+    './d.js',
+    './e.cjs',
+    './f.cjs',
+    './worker.ts',
+    './processor.js',
+  ]);
+});
+
+test('HTML tool scripts include inline imports, module sources and worklet entries', () => {
+  const text = `<script type="module" src="./external.mjs"></script>
+    <script type="module">import './inline.js';
+      context.audioWorklet.addModule(new URL('./worklet.js', import.meta.url));</script>`;
+  assert.deepEqual(moduleReferences('fixture.html', text), ['./external.mjs', './inline.js', './worklet.js']);
+});
+
+test('root and layer direction rejects inverse dependencies without broad exemptions', () => {
+  assert.throws(() => checkDirection('src/core/a.ts', 'tools/build/b.ts'), /product depends on authoring/);
+  assert.throws(() => checkDirection('src/core/a.ts', 'src/image/b.ts'), /upward domain dependency/);
+  assert.throws(() => checkDirection('tools/build/a.ts', 'dist/core/b.js'), /tool imports delivery output/);
+  const exceptions = new Set(['tools/course/a.mjs -> dist/core/b.js']);
+  assert.doesNotThrow(() => checkDirection('tools/course/a.mjs', 'dist/core/b.js', exceptions));
+  assert.throws(() => checkDirection('tools/course/a.mjs', 'dist/core/c.js', exceptions));
+  assert.throws(() => checkDirection('tools/course/b.mjs', 'dist/core/b.js', exceptions));
+  assert.doesNotThrow(() => checkDirection('tools/build/a.ts', 'src/core/b.ts'));
+  assert.doesNotThrow(() => checkDirection('src/image/a.ts', 'src/core/b.ts'));
+});
+
+test('engine and authoring dependencies follow their declared directions, including type imports', async () => {
   const entries = await readdir(sourceRoot, { withFileTypes: true });
   assert.deepEqual(
     entries
@@ -45,38 +154,52 @@ test('engine ownership follows an acyclic dependency direction, including type i
     entries.every((entry) => entry.isDirectory()),
     'src has no root-level files',
   );
+
+  const pairs = JSON.parse(await readFile(new URL('./tool-dependency-exceptions.json', import.meta.url), 'utf8'));
+  const exceptions = new Set(pairs.map(([from, to]) => `${from} -> ${to}`));
+  assert.equal(exceptions.size, pairs.length, 'exception pairs are unique');
+  for (const [from, to] of pairs) {
+    assert.match(
+      from,
+      /^tools\/(course|graphics|audio)\/.*\.(?:mjs|html)$/,
+      'only unmigrated JavaScript or HTML may have exceptions',
+    );
+    assert.ok(to.startsWith('dist/'), 'exceptions name one delivery module');
+  }
+  const used = new Set();
   const graph = new Map();
-  for (const file of await collectFiles(sourceRoot, ['.ts'])) {
-    const relative = path.relative(sourceRoot, file).split(path.sep).join('/');
-    const layer = layerOf(relative);
-    const targets = graph.get(layer) ?? new Set();
-    graph.set(layer, targets);
-    const syntax = ts.createSourceFile(file, await readFile(file, 'utf8'), ts.ScriptTarget.Latest, true);
-    function visit(node) {
-      const ref =
-        ts.isImportDeclaration(node) || ts.isExportDeclaration(node)
-          ? node.moduleSpecifier
-          : ts.isImportTypeNode(node) && ts.isLiteralTypeNode(node.argument)
-            ? node.argument.literal
-            : ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword
-              ? node.arguments[0]
-              : undefined;
-      if (ref && ts.isStringLiteralLike(ref) && ref.text.startsWith('.')) {
-        const targetFile = path
-          .relative(sourceRoot, path.resolve(path.dirname(file), ref.text))
-          .split(path.sep)
-          .join('/');
-        const target = layerOf(targetFile);
-        if (target !== layer) {
-          const edge = `${relative} -> ${targetFile}`;
-          assert.ok(rank.get(target) < rank.get(layer), `upward domain dependency: ${edge}`);
+  for (const root of [sourceRoot, toolRoot]) {
+    const configPath = path.join(repositoryRoot, root === sourceRoot ? 'tsconfig.json' : 'tsconfig.tools.json');
+    const config = ts.getParsedCommandLineOfConfigFile(
+      configPath,
+      {},
+      {
+        ...ts.sys,
+        onUnRecoverableConfigFileDiagnostic: (diagnostic) =>
+          assert.fail(ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n')),
+      },
+    );
+    assert.ok(config, 'dependency resolution has a valid TypeScript configuration');
+    for (const file of await collectFiles(root)) {
+      const from = relativePath(file);
+      for (const ref of moduleReferences(file, await readFile(file, 'utf8'))) {
+        const to = dependencyTarget(file, ref, config.options);
+        if (!to) continue;
+        checkDirection(from, to, exceptions);
+        const edge = `${from} -> ${to}`;
+        if (exceptions.has(edge)) used.add(edge);
+        if (from.startsWith('src/') && to.startsWith('src/')) {
+          const source = layerOf(from),
+            target = layerOf(to);
+          if (source === target) continue;
+          const targets = graph.get(source) ?? new Set();
           targets.add(target);
+          graph.set(source, targets);
         }
       }
-      ts.forEachChild(node, visit);
     }
-    visit(syntax);
   }
+  assert.deepEqual([...used].sort(), [...exceptions].sort(), 'remove stale migration exceptions');
   const complete = new Set();
   function visit(layer, trail = []) {
     assert.ok(!trail.includes(layer), `layer cycle: ${[...trail, layer].join(' -> ')}`);

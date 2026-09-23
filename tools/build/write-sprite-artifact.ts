@@ -1,8 +1,9 @@
+import type { SpriteLodDocument } from '../../src/image/sprite.js';
 import { writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 
-export async function writeSpriteArtifact(outputPath, inputs, product) {
+export async function writeSpriteArtifact(outputPath: string, inputs: readonly string[], product: SpriteLodDocument) {
   if (inputs.some((path) => resolve(path) === resolve(outputPath)))
     throw new Error('Sprite output must not overwrite source or recipe');
   const bytes = JSON.stringify(product) + '\n';

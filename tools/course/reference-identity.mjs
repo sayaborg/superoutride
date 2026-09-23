@@ -24,7 +24,7 @@ export async function referenceModelIdentity() {
     'src/shell/tire-friction-selection.ts',
     'tools/course/reference-run.mjs',
     'tools/course/vehicle-envelope.mjs',
-    'tools/build/build-course-reference-worker.mjs',
+    'tools/build/build-course-reference-worker.ts',
   );
   const hash = createHash('sha256');
   for (const file of files.sort()) hash.update(file + '\0').update(await readFile(new URL(file, root)));

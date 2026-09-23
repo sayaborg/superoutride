@@ -1,6 +1,6 @@
 import tseslint from 'typescript-eslint';
 
-const files = ['src/**/*.ts', 'tests/**/*.mjs', 'tools/**/*.mjs'];
+const files = ['src/**/*.ts', 'tests/**/*.mjs', 'tools/**/*.ts', 'tools/**/*.mts', 'tools/**/*.mjs'];
 
 export default [
   { ignores: ['dist/**', 'node_modules/**', '_site/**'] },

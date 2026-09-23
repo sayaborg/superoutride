@@ -9,6 +9,7 @@ then the responsible source, types, compilers and checks. The repository is the 
 All repository documentation is written in English. Architectural elegance, simplicity and consistency
 are the highest design priorities. The documentation index assigns one owner to each specification;
 this file owns development conventions and release procedure. NEXT owns the ordered work.
+Remove completed PR descriptions and completed stage sections from NEXT; keep their rationale and evidence in PRs.
 
 - Give each decision one owning layer and each concept one authority; avoid duplicate state or coordinates.
 - Keep product, mode, vehicle and course branches out of general engine layers.

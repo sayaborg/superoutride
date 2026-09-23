@@ -8,7 +8,7 @@
 - Build currently generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **5-5a — TypeScript tools: direct source imports**. PR 5-4f is complete.
+Next PR: **5-5b — TypeScript course tools and authoring ownership**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Current contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -18,22 +18,17 @@ PRs hold rationale and verification evidence.
 
 Simplify the foundations without changing behavior.
 
-- **5-1 — NEXT and small remnants:** reorganize the checkpoint and remove small documentation/comment remnants.
-- **5-2 — Dead code and exports:** remove dead code and simplify exports.
-- **5-3 — Distance helpers:** unify Euclidean norms on `Math.hypot`.
-- **5-4a–e — Layers:** completed nine-domain placement; see [Architecture](architecture.md#layer-boundaries).
-- **5-4f — Race/view boundary:** separate physical/rendering sources, camera ownership and sprite assembly
-  without changing behavior.
-- **5-5a–c — TypeScript tools:** stop importing `dist/` and separate authoring code from product code.
+- **5-5b — Course tools:** migrate `tools/course` to TypeScript and direct source imports; move
+  course-project, course-reference and their authoring-only dependencies from `src` to `tools`.
+  Remove the corresponding temporary declarations and exact dependency exceptions.
+- **5-5c — Graphics and audio tools:** migrate `tools/graphics` and `tools/audio`; move authoring-only
+  sprite compilers and fixtures out of `src`. Keep shared image limits in the product, remove the
+  sprite-palette dependency on sprite-source-compiler, and remove the remaining migration declarations
+  and dependency exceptions. Preserve a coherent browser-tool delivery path.
 - **5-6 — Vocabulary:** define reserved terms such as Profile, mode and presentation, and rename accordingly.
 
-5-4f is complete in two review-sized PRs: observer camera/actor sprites (5-4f-1), then physical/rendering
-sources (5-4f-2). Race has no dependency on view and the layer check has no exceptions.
-[Architecture](architecture.md#layer-boundaries) owns the current boundaries.
-
-Authoring-only sprite compilers, fixtures, course-project and course-reference remain in their
-product domains until 5-5. Vocabulary changes belong to 5-6. Band compiler/sampler separation belongs
-to 7-6 and preserves private compiled coefficient storage.
+Band compiler/sampler separation belongs to 7-6 and preserves private compiled coefficient storage.
+Reference driving remains in builds until 11-5.
 
 ## Stage 6 — Authoritative geometry
 

@@ -255,8 +255,13 @@ views do not require presentation, and race does not create rendering readers fo
 
 ## Layer boundaries
 
-Source is organized by domain. Definition, compilation and runtime representation belong inside
-that domain; an upper domain depends only on lower domains, and same-domain imports are unrestricted.
+There are two source roots: `src` for the product and `tools` for authoring and build programs.
+Product code never imports tools. TypeScript tools import product source, not its `dist/` delivery output;
+writing generated artifacts to `dist/` is not a module dependency. Both roots share strict compiler
+options and lint rules. [Development](development.md#typescript-tools) owns execution and checking commands.
+
+Product source is organized by domain. Shared definitions, product compilation and runtime representation
+belong inside that domain; an upper domain depends only on lower domains, and same-domain imports are unrestricted.
 
 | Order | Layer   | Responsibility                                                                                                   |
 | ----- | ------- | ---------------------------------------------------------------------------------------------------------------- |
@@ -270,10 +275,18 @@ that domain; an upper domain depends only on lower domains, and same-domain impo
 | 8     | view    | Cameras, projection, ground rows, sprite placement, drawing composition and framebuffer                          |
 | 9     | shell   | DOM, frame loop, HUD, DEV, startup and whole-scene composition                                                   |
 
-The [layer check](../tests/infrastructure/layer-dependencies.test.mjs) includes type-only imports,
-re-exports, inline import types and literal dynamic imports. Source has exactly these nine directories;
-startup files belong to shell. Every cross-domain import follows the order and participates in the
-layer-cycle check. There are no dependency exceptions.
+The [dependency check](../tests/infrastructure/layer-dependencies.test.mjs) parses imports, type-only
+imports, re-exports, inline import types, literal dynamic imports, CommonJS references, worker entries
+and worklet modules. It also examines scripts in tool HTML and resolves TypeScript module aliases.
+Product source has exactly these nine directories; startup files belong to shell. Every cross-domain
+import follows the order and participates in the layer-cycle check, without product-layer exceptions.
+
+Unmigrated course/graphics/audio JavaScript and HTML have exact importer/target pairs in
+[the temporary tool exceptions](../tests/infrastructure/tool-dependency-exceptions.json).
+No TypeScript tool or product-to-tool reference is exempt. New pairs fail unless explicitly listed;
+unused pairs also fail. These legacy helpers can still introduce transitive delivery dependencies in
+build scripts until their scheduled migration. Authoring-only sprite compilers/fixtures, course-project
+and course-reference still occupy product domains pending that work in [NEXT](NEXT.md).
 
 Shell owns the observer's camera, and race actors contain no camera state. A committed frame
 transform is observed by the camera owner before its next update. Race publishes camera-independent

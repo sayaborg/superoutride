@@ -108,10 +108,13 @@ jobs:
         with:
           node-version: 24
 
+      - name: Install delivery verifier dependencies
+        run: npm ci
+
       - name: Verify published version and startup
         env:
           PAGES_URL: ${{ steps.deployment.outputs.page_url }}
-        run: node tools/build/verify-published-site.mjs "$PAGES_URL" "$GITHUB_SHA"
+        run: node --import tsx tools/build/verify-published-site.ts "$PAGES_URL" "$GITHUB_SHA"
 
       - name: Delete merged feature branch
         if: github.ref == 'refs/heads/main'

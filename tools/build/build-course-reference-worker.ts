@@ -1,16 +1,17 @@
+import type { CourseReferenceJob, CourseReferenceResult } from './build-course-reference.js';
 import { parentPort, workerData } from 'node:worker_threads';
-import { VEHICLE_CATALOG } from '../../dist/vehicle/vehicle-catalog.js';
-import { browserSessionVehicle } from '../../dist/shell/session-vehicle.js';
-import { REFERENCE_DRIVER } from '../../dist/race/reference-driving-policy.js';
-import { readCourseReference } from '../../dist/race/course-reference.js';
-import { courseBudgetLandmarks, readCourseTimeBudgets } from '../../dist/race/course-time-budgets.js';
+import { VEHICLE_CATALOG } from '../../src/vehicle/vehicle-catalog.js';
+import { browserSessionVehicle } from '../../src/shell/session-vehicle.js';
+import { REFERENCE_DRIVER } from '../../src/race/reference-driving-policy.js';
+import { readCourseReference } from '../../src/race/course-reference.js';
+import { courseBudgetLandmarks, readCourseTimeBudgets } from '../../src/race/course-time-budgets.js';
 import { cachedReference, referenceCacheKey, digest } from '../course/reference-cache.mjs';
 import { measureVehicleEnvelope } from '../course/vehicle-envelope.mjs';
 import { runCourseReference, courseReferenceRoutes } from '../course/reference-run.mjs';
 import { loadCourse, loadCourseGround } from '../course/authoring-io.mjs';
 
-const { vehicleId, stems, physicsSha256 } = workerData;
-const entry = VEHICLE_CATALOG.find((v) => v.profile.id === vehicleId);
+const { vehicleId, stems, physicsSha256 } = workerData as CourseReferenceJob;
+const entry = VEHICLE_CATALOG.find((v) => v.profile.id === vehicleId)!;
 const vehicle = browserSessionVehicle(entry),
   vehicleSha256 = digest(vehicle);
 let hits = 0,
@@ -22,8 +23,10 @@ const envelope = await cachedReference(
 );
 if (envelope.hit) hits++;
 else misses++;
-const products = [{ path: `envelopes/${vehicleId}.json`, value: { vehicleSha256, envelope: envelope.value } }],
-  references = [];
+const products: CourseReferenceResult['products'] = [
+    { path: `envelopes/${vehicleId}.json`, value: { vehicleSha256, envelope: envelope.value } },
+  ],
+  references: CourseReferenceResult['references'] = [];
 for (const stem of stems) {
   const file = new URL(`../../content/courses/${stem}.course.json`, import.meta.url).pathname;
   const { course } = await loadCourse(file);
@@ -31,7 +34,7 @@ for (const stem of stems) {
   const cached = await cachedReference('runs', key, async () => {
     const ground = await loadCourseGround(course, file);
     return courseReferenceRoutes(course).map((route) =>
-      runCourseReference(course, ground, entry, envelope.value, route, course.rules.maxLaps),
+      runCourseReference(course, ground, entry, envelope.value, route, course.rules!.maxLaps),
     );
   });
   if (cached.hit) hits++;
@@ -61,4 +64,4 @@ for (const stem of stems) {
   products.push({ path: `budgets/${stem}/${vehicleId}.json`, value: product });
   references.push({ stem, candidate });
 }
-parentPort.postMessage({ vehicleId, products, references, hits, misses });
+parentPort!.postMessage({ vehicleId, products, references, hits, misses } satisfies CourseReferenceResult);
