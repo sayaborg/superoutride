@@ -50,6 +50,8 @@ AI reference driving generates game time limits, not test timing baselines.
 - Keep the game playable after every PR. If old and new implementations temporarily coexist, remove
   the old implementation in the final PR of the same stage and name that cleanup in NEXT.
 
+- Before fast-forwarding main, remove temporary diagnostic, formatting and other work-only commits from the feature branch; feature-branch history may be rewritten, but main history must not be rewritten.
+
 Inspect main and active PR/CI state, preserve unrelated local changes, and work on a `codex/` feature branch.
 Review the diff and run Node 24 `npm test`. Open a PR and obtain green CI on its exact head. Recheck main;
 if it moved, update the branch and validate again. Fast-forward main to the validated head without a merge
