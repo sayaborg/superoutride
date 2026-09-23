@@ -77,7 +77,8 @@ export function createPlanCoordinateReader(
       end: length,
       lateralAt(s: number, out: Writable<PlanLateralBounds>) {
         if (typeof s !== 'number') throw new TypeError('Plan chainage must be numeric');
-        if (!Number.isFinite(s) || s < 0 || s > length) throw new RangeError('Plan chainage is outside the Section domain');
+        if (!Number.isFinite(s) || s < 0 || s > length)
+          throw new RangeError('Plan chainage is outside the Section domain');
         return lateralAt(s, out);
       },
     }),
@@ -94,7 +95,8 @@ export function createPlanCoordinateReader(
       return out;
     },
     metricsAt(s: number, l: number, seed: PlanProjectionSeed, out: Writable<PlanCoordinateMetrics>) {
-      if (!Number.isFinite(s) || s < 0 || s > length) throw new RangeError('Plan chainage is outside the Section domain');
+      if (!Number.isFinite(s) || s < 0 || s > length)
+        throw new RangeError('Plan chainage is outside the Section domain');
       if (!Number.isInteger(seed) || seed < 0 || seed >= primitives.length)
         throw new RangeError('Projection seed does not identify a plan primitive');
       const primitive = primitives[seed]!;
@@ -103,17 +105,24 @@ export function createPlanCoordinateReader(
       out.offsetMetric = 1 - primitive.curvature * l;
       return out;
     },
-    locateLocal(
-      world: Vec2,
-      previousSeed: PlanProjectionSeed,
-      searchRadius: number,
-      out: PlanCoordinateProjection,
-    ) {
-      if (!world || typeof world.x !== 'number' || typeof world.z !== 'number' || typeof previousSeed !== 'number' || typeof searchRadius !== 'number')
+    locateLocal(world: Vec2, previousSeed: PlanProjectionSeed, searchRadius: number, out: PlanCoordinateProjection) {
+      if (
+        !world ||
+        typeof world.x !== 'number' ||
+        typeof world.z !== 'number' ||
+        typeof previousSeed !== 'number' ||
+        typeof searchRadius !== 'number'
+      )
         throw new TypeError('Projection requires numeric world position and seed/radius');
       if (!Number.isFinite(world.x) || !Number.isFinite(world.z))
         throw new RangeError('Projection world coordinates must be finite');
-      if (!Number.isSafeInteger(previousSeed) || previousSeed < 0 || previousSeed >= primitives.length || !Number.isSafeInteger(searchRadius) || searchRadius < 0)
+      if (
+        !Number.isSafeInteger(previousSeed) ||
+        previousSeed < 0 ||
+        previousSeed >= primitives.length ||
+        !Number.isSafeInteger(searchRadius) ||
+        searchRadius < 0
+      )
         throw new RangeError('Projection requires an admitted seed and nonnegative search radius');
       const first = Math.max(0, previousSeed - searchRadius);
       const last = Math.min(primitives.length - 1, previousSeed + searchRadius);

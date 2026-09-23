@@ -34,13 +34,10 @@ function physicalProduct(links) {
 }
 
 test('native plan reader supplies authored arc length, asymmetric bounds and primitive projection', () => {
-  const plan = compilePlanPath(
-    { x: 0, z: 0, heading: 0 },
-    [
-      { id: 'straight', kind: 'straight', length: 100 },
-      { id: 'bend', kind: 'arc', radius: 100, turn: 10 },
-    ],
-  );
+  const plan = compilePlanPath({ x: 0, z: 0, heading: 0 }, [
+    { id: 'straight', kind: 'straight', length: 100 },
+    { id: 'bend', kind: 'arc', radius: 100, turn: 10 },
+  ]);
   const reader = createPlanCoordinateReader(plan.primitives, plan.length, (s, out) =>
     Object.assign(out, { left: -4 - s / 100, right: 6 + s / 200 }),
   );

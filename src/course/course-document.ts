@@ -235,7 +235,11 @@ function record(value: unknown, path: string, fields: readonly string[]): Record
   for (const key of Object.keys(result)) {
     if (!fields.includes(key)) {
       const escaped = key.replaceAll('~', '~0').replaceAll('/', '~1');
-      fail('unsupported_feature', `${path}/${escaped}`, `Field ${key} is not supported by CourseDocument v${COURSE_DOCUMENT_VERSION}`);
+      fail(
+        'unsupported_feature',
+        `${path}/${escaped}`,
+        `Field ${key} is not supported by CourseDocument v${COURSE_DOCUMENT_VERSION}`,
+      );
     }
   }
   for (const key of fields) {

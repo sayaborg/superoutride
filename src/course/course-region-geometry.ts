@@ -33,7 +33,9 @@ function unionAt(regions: readonly CompiledRegion[], s: number): [number, number
 function sameUnion(a: readonly CompiledRegion[], b: readonly CompiledRegion[], s: number): boolean {
   const left = unionAt(a, s);
   const right = unionAt(b, s);
-  return left.length === right.length && left.every((range, i) => range[0] === right[i]![0] && range[1] === right[i]![1]);
+  return (
+    left.length === right.length && left.every((range, i) => range[0] === right[i]![0] && range[1] === right[i]![1])
+  );
 }
 
 function lateralDomain(regions: readonly CompiledRegion[], stations: readonly number[]): CompiledPlanLateralDomain {
@@ -42,11 +44,11 @@ function lateralDomain(regions: readonly CompiledRegion[], stations: readonly nu
   return Object.freeze({
     stations: Object.freeze([...stations]),
     lateralAt(s: number, out: Writable<{ left: number; right: number }>) {
-      if (!Number.isFinite(s) || s < start || s > end) throw new RangeError('Plan lateral domain query is outside the Section');
+      if (!Number.isFinite(s) || s < start || s > end)
+        throw new RangeError('Plan lateral domain query is outside the Section');
       const active = regions.filter((region) => region.start.s <= s && region.end.s >= s);
       if (!active.length) throw new Error('Admitted Region partition lost coordinate-domain coverage');
-      out.left =
-        Math.min(...active.map((region) => courseBoundaryAt(region.left, s))) - PLAN_COORDINATE_MARGIN_METERS;
+      out.left = Math.min(...active.map((region) => courseBoundaryAt(region.left, s))) - PLAN_COORDINATE_MARGIN_METERS;
       out.right =
         Math.max(...active.map((region) => courseBoundaryAt(region.right, s))) + PLAN_COORDINATE_MARGIN_METERS;
       return out;

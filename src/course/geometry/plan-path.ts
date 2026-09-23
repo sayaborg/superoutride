@@ -110,7 +110,10 @@ export function samplePlanPrimitive(
   s: number,
   out: Writable<PlanPathSample>,
 ): PlanPathSample {
-  if (s < primitive.sStart - GEOMETRY_SAMPLING_TOLERANCE_METERS || s > primitive.sEnd + GEOMETRY_SAMPLING_TOLERANCE_METERS)
+  if (
+    s < primitive.sStart - GEOMETRY_SAMPLING_TOLERANCE_METERS ||
+    s > primitive.sEnd + GEOMETRY_SAMPLING_TOLERANCE_METERS
+  )
     throw new RangeError('plan primitive sample is outside its interval');
   const clamped = clamp(s, primitive.sStart, primitive.sEnd);
   const ds = clamped - primitive.sStart;
@@ -165,7 +168,13 @@ export function projectPlanPrimitiveInterval(
   out: Writable<PlanPathProjection>,
   sample: Writable<PlanPathSample>,
 ): PlanPathProjection {
-  if (!world || typeof world.x !== 'number' || typeof world.z !== 'number' || typeof start !== 'number' || typeof end !== 'number')
+  if (
+    !world ||
+    typeof world.x !== 'number' ||
+    typeof world.z !== 'number' ||
+    typeof start !== 'number' ||
+    typeof end !== 'number'
+  )
     throw new TypeError('plan projection requires numeric world coordinates and bounds');
   if (
     !Number.isFinite(world.x) ||

@@ -1,17 +1,7 @@
 import { compileRasterPath, type RasterPath } from './geometry/raster-path.js';
-import { createPlanarCoordinateSample } from '../core/planar-sample.js';
 import { CourseInputError } from './course-diagnostics.js';
-import {
-  COURSE_DOCUMENT_LIMITS,
-  type CourseAnchor,
-  type SectionDocument,
-} from './course-document.js';
-import {
-  compilePlanPath,
-  samplePlanPath,
-  type CompiledPlanPrimitive,
-  type PlanPath,
-} from './geometry/plan-path.js';
+import { COURSE_DOCUMENT_LIMITS, type CourseAnchor, type SectionDocument } from './course-document.js';
+import { compilePlanPath, samplePlanPath, type CompiledPlanPrimitive, type PlanPath } from './geometry/plan-path.js';
 
 export const COURSE_GEOMETRY_RECIPE = Object.freeze({
   id: 'superoutride.plan-raster',
@@ -61,7 +51,7 @@ export function compileCourseGeometry(
   if (plan.length > COURSE_DOCUMENT_LIMITS.lengthMeters)
     throw new CourseInputError('resource_limit', `${path}/primitives`, 'Compiled ruler exceeds 100000 m');
 
-  const sample = createPlanarCoordinateSample();
+  const sample = { x: 0, z: 0, s: 0, heading: 0, primitiveIndex: -1 };
   const first = samplePlanPath(plan, 0, sample);
   const vertices = [{ x: first.x, z: first.z }];
   const stations = [0];

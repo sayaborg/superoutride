@@ -56,7 +56,11 @@ const VERTEX_TURN_TOLERANCE_RADIANS = 1e-8;
 export function compileRasterPath(vertices: readonly RasterVertex[], stations?: readonly number[]): RasterPath {
   if (vertices.length < 2) throw new RangeError('open raster path requires at least 2 vertices');
   if (stations && stations.length !== vertices.length) throw new RangeError('raster stations must match vertices');
-  if (stations && (stations[0] !== 0 || stations.some((value, i) => !Number.isFinite(value) || (i > 0 && !(value > stations[i - 1]!)))))
+  if (
+    stations &&
+    (stations[0] !== 0 ||
+      stations.some((value, i) => !Number.isFinite(value) || (i > 0 && !(value > stations[i - 1]!))))
+  )
     throw new RangeError('raster stations must be finite, start at zero and increase strictly');
 
   const copied = vertices.map((vertex) => {
