@@ -54,7 +54,8 @@ test('native plan reader supplies authored arc length, asymmetric bounds and pri
   const observed = projection();
   const candidates = reader.projectionCandidates(25, 110);
   assert.ok(Object.isFrozen(candidates));
-  assert.equal(candidates.length, 2);
+  assert.equal(candidates.length, 3);
+  assert.equal(candidates[0].seed, candidates[1].seed);
   assert.equal(candidates[0].start, 25);
   assert.equal(candidates[0].extent.start, 0);
   assert.equal(candidates.at(-1).end, 110);

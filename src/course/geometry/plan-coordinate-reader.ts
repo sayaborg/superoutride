@@ -28,6 +28,8 @@ interface NativePlanDomain {
   lateralAt(s: number, out: Writable<PlanLateralBounds>): PlanLateralBounds;
 }
 
+const PLAN_PROJECTION_CANDIDATE_MAX_METERS = 50;
+
 /** A Section reader over its authored straight/circular plan authority. */
 export function createPlanCoordinateReader(
   primitives: readonly CompiledPlanPrimitive[],
@@ -52,23 +54,45 @@ export function createPlanCoordinateReader(
           const a = Math.max(start, primitive.sStart);
           const b = Math.min(end, primitive.sEnd);
           if (!(b > a)) return [];
-          return [
-            Object.freeze({
-              seed: primitive.index,
-              start: a,
-              end: b,
-              extent: Object.freeze({ start: primitive.sStart, end: primitive.sEnd }),
-              bounds: Object.freeze(planPrimitiveBounds(primitive, a, b, candidateSampleA, candidateSampleB)),
-              project(world: Vec2, out: PlanCoordinateProjection) {
-                projectPlanPrimitiveInterval(primitive, world, a, b, project, projectionSample);
-                out.s = project.s;
-                out.l = project.l;
-                out.seed = primitive.index;
-                out.distanceSquared = project.distanceSquared;
-                return out;
-              },
-            }),
-          ];
+          const chunkCount = Math.ceil((primitive.sEnd - primitive.sStart) / PLAN_PROJECTION_CANDIDATE_MAX_METERS);
+          const chunkLength = (primitive.sEnd - primitive.sStart) / chunkCount;
+          const first = Math.max(0, Math.floor((a - primitive.sStart) / chunkLength));
+          const result = [];
+          for (let chunk = first; chunk < chunkCount; chunk += 1) {
+            const chunkStart = primitive.sStart + chunk * chunkLength;
+            const chunkEnd = chunk + 1 === chunkCount ? primitive.sEnd : primitive.sStart + (chunk + 1) * chunkLength;
+            const candidateStart = Math.max(a, chunkStart);
+            const candidateEnd = Math.min(b, chunkEnd);
+            if (!(candidateEnd > candidateStart)) continue;
+            result.push(
+              Object.freeze({
+                seed: primitive.index,
+                start: candidateStart,
+                end: candidateEnd,
+                extent: Object.freeze({ start: primitive.sStart, end: primitive.sEnd }),
+                bounds: Object.freeze(
+                  planPrimitiveBounds(primitive, candidateStart, candidateEnd, candidateSampleA, candidateSampleB),
+                ),
+                project(world: Vec2, out: PlanCoordinateProjection) {
+                  projectPlanPrimitiveInterval(
+                    primitive,
+                    world,
+                    candidateStart,
+                    candidateEnd,
+                    project,
+                    projectionSample,
+                  );
+                  out.s = project.s;
+                  out.l = project.l;
+                  out.seed = primitive.index;
+                  out.distanceSquared = project.distanceSquared;
+                  return out;
+                },
+              }),
+            );
+            if (chunkEnd >= b) break;
+          }
+          return result;
         }),
       );
     },
@@ -171,8 +195,14 @@ export function createMappedPlanCoordinateReader(view: CourseGeometryView, mappi
       .projectionCandidates(mapping.sourceRange.start, mapping.sourceRange.end)
       .map((native) => ({ mapping, native, seed: planSeed(mapping.occurrence.ordinal, native.seed) })),
   );
-  const candidateIndices = new Map(candidates.map((c, i) => [c.seed, i]));
+  const candidateIndices = new Map<number, number[]>();
+  candidates.forEach((candidate, index) => {
+    const indices = candidateIndices.get(candidate.seed);
+    if (indices) indices.push(index);
+    else candidateIndices.set(candidate.seed, [index]);
+  });
   const coordinateSample = createPlanCoordinateSample();
+  const anchorProjection = { s: 0, l: 0, seed: -1, distanceSquared: 0 };
   const lateralBounds = { left: 0, right: 0 };
   const reader: PlanCoordinateReader = Object.freeze({
     domain: Object.freeze({
@@ -233,8 +263,38 @@ export function createMappedPlanCoordinateReader(view: CourseGeometryView, mappi
         throw new TypeError('Projection requires numeric world position and seed/radius');
       if (!Number.isSafeInteger(previousSeed) || !Number.isSafeInteger(searchRadius) || searchRadius < 0)
         throw new RangeError('Projection requires an exact seed and nonnegative search radius');
-      const at = candidateIndices.get(previousSeed);
-      if (at === undefined) throw new RangeError('Projection seed is outside the retained occurrence window');
+      const seedIndices = candidateIndices.get(previousSeed);
+      if (!seedIndices) throw new RangeError('Projection seed is outside the retained occurrence window');
+      const seeded = candidates[seedIndices[0]]!;
+      const seededMapping = seeded.mapping;
+      const sourceFromView = seededMapping.sourceFromView;
+      local.x = sourceFromView.cosine * world.x + sourceFromView.sine * world.z + sourceFromView.translation.x;
+      local.z = -sourceFromView.sine * world.x + sourceFromView.cosine * world.z + sourceFromView.translation.z;
+      const nativeSeed = previousSeed - seededMapping.occurrence.ordinal * seedStride;
+      seededMapping.occurrence.section.coordinates.locateLocal(
+        local,
+        nativeSeed,
+        0,
+        anchorProjection,
+        workspace,
+      );
+      const at = seedIndices.reduce((best, index) => {
+        const candidate = candidates[index]!.native;
+        const distance =
+          anchorProjection.s < candidate.start
+            ? candidate.start - anchorProjection.s
+            : anchorProjection.s > candidate.end
+              ? anchorProjection.s - candidate.end
+              : 0;
+        const current = candidates[best]!.native;
+        const bestDistance =
+          anchorProjection.s < current.start
+            ? current.start - anchorProjection.s
+            : anchorProjection.s > current.end
+              ? anchorProjection.s - current.end
+              : 0;
+        return distance < bestDistance ? index : best;
+      }, seedIndices[0]!);
       if (
         (at - searchRadius < 0 && range.start > view.availableRange.start) ||
         (at + searchRadius >= candidates.length && range.end < view.availableRange.end)
@@ -244,7 +304,7 @@ export function createMappedPlanCoordinateReader(view: CourseGeometryView, mappi
       let bestS = 0;
       let bestL = 0;
       let bestDistance = Infinity;
-      let previousMapping: (typeof mapped)[number] | null = null;
+      let previousMapping: (typeof mapped)[number] | null = seededMapping;
       const first = Math.max(0, at - searchRadius);
       const last = Math.min(candidates.length - 1, at + searchRadius);
       let bestIndex = -1;
