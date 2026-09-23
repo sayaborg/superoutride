@@ -320,7 +320,10 @@ function checkedSample(
     s = openProfileChainage(sample.s, courseLength, 'ordered race progress');
   } catch (error) {
     if (error instanceof RangeError)
-      throw new RangeError(`ordered race diagnostic: sample.s=${sample.s}, courseLength=${courseLength}`, { cause: error });
+      throw new RangeError(
+        `ordered race diagnostic: sample.s=${sample.s}, courseLength=${courseLength}`,
+        { cause: error },
+      );
     throw error;
   }
   out.x = sample.x;
