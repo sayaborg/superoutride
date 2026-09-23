@@ -3,694 +3,223 @@
   "version": 13,
   "id": "ribbon-coast",
   "reference": null,
-  "units": {
-    "length": "m",
-    "angle": "deg"
-  },
-  "geometryRecipe": {
-    "id": "superoutride.plan-raster",
-    "version": 1
-  },
+  "units": { "length": "m", "angle": "deg" },
+  "geometryRecipe": { "id": "superoutride.plan-raster", "version": 1 },
   "type": "LINEAR",
   "entrySectionId": "coast-road",
   "sections": [
     {
       "id": "coast-road",
-      "start": {
-        "x": 0,
-        "z": 0,
-        "heading": 0
-      },
+      "start": { "x": 0, "z": 0, "heading": 0 },
       "primitives": [
-        {
-          "id": "fit-001",
-          "kind": "straight",
-          "length": 420
-        },
-        {
-          "id": "fit-002",
-          "kind": "arc",
-          "radius": 372.3404255319149,
-          "turn": 39.467473801076466
-        },
-        {
-          "id": "fit-003",
-          "kind": "straight",
-          "length": 525
-        },
-        {
-          "id": "fit-004",
-          "kind": "arc",
-          "radius": 425.531914893617,
-          "turn": -64.13464492674932
-        },
-        {
-          "id": "fit-005",
-          "kind": "straight",
-          "length": 524.9999999999998
-        },
-        {
-          "id": "fit-006",
-          "kind": "arc",
-          "radius": 372.3404255319149,
-          "turn": 24.66717112567278
-        },
-        {
-          "id": "fit-007",
-          "kind": "straight",
-          "length": 577.5
-        }
+        { "id": "fit-001", "kind": "straight", "length": 420 },
+        { "id": "fit-002", "kind": "arc", "radius": 372.3404255319149, "turn": 39.467473801076466 },
+        { "id": "fit-003", "kind": "straight", "length": 525 },
+        { "id": "fit-004", "kind": "arc", "radius": 425.531914893617, "turn": -64.13464492674932 },
+        { "id": "fit-005", "kind": "straight", "length": 524.9999999999998 },
+        { "id": "fit-006", "kind": "arc", "radius": 372.3404255319149, "turn": 24.66717112567278 },
+        { "id": "fit-007", "kind": "straight", "length": 577.5 }
       ],
       "boundaries": [
         {
           "id": "outer-left",
           "knots": [
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-001",
-                "fraction": 0
-              },
-              "l": -20
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-007",
-                "fraction": 1
-              },
-              "l": -20
-            }
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 }, "l": -20 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 1 }, "l": -20 }
           ]
         },
         {
           "id": "shoulder-left",
           "knots": [
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-001",
-                "fraction": 0
-              },
-              "l": -9
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-002",
-                "fraction": 0
-              },
-              "l": -9
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-003",
-                "fraction": 0.4
-              },
-              "l": -12
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-004",
-                "fraction": 0
-              },
-              "l": -12
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-005",
-                "fraction": 0.4999999999999998
-              },
-              "l": -8
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-006",
-                "fraction": 0
-              },
-              "l": -8
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-007",
-                "fraction": 1
-              },
-              "l": -9
-            }
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 }, "l": -9 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-002", "fraction": 0 }, "l": -9 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-003", "fraction": 0.4 }, "l": -12 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-004", "fraction": 0 }, "l": -12 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-005", "fraction": 0.4999999999999998 }, "l": -8 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-006", "fraction": 0 }, "l": -8 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 1 }, "l": -9 }
           ]
         },
         {
           "id": "road-left",
           "knots": [
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-001",
-                "fraction": 0
-              },
-              "l": -7
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-002",
-                "fraction": 0
-              },
-              "l": -7
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-003",
-                "fraction": 0.4
-              },
-              "l": -10
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-004",
-                "fraction": 0
-              },
-              "l": -10
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-005",
-                "fraction": 0.4999999999999998
-              },
-              "l": -6
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-006",
-                "fraction": 0
-              },
-              "l": -6
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-007",
-                "fraction": 1
-              },
-              "l": -7
-            }
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 }, "l": -7 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-002", "fraction": 0 }, "l": -7 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-003", "fraction": 0.4 }, "l": -10 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-004", "fraction": 0 }, "l": -10 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-005", "fraction": 0.4999999999999998 }, "l": -6 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-006", "fraction": 0 }, "l": -6 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 1 }, "l": -7 }
           ]
         },
         {
           "id": "center-left",
           "knots": [
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-001",
-                "fraction": 0
-              },
-              "l": -0.1
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-007",
-                "fraction": 1
-              },
-              "l": -0.1
-            }
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 }, "l": -0.1 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 1 }, "l": -0.1 }
           ]
         },
         {
           "id": "center-right",
           "knots": [
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-001",
-                "fraction": 0
-              },
-              "l": 0.1
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-007",
-                "fraction": 1
-              },
-              "l": 0.1
-            }
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 }, "l": 0.1 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 1 }, "l": 0.1 }
           ]
         },
         {
           "id": "road-right",
           "knots": [
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-001",
-                "fraction": 0
-              },
-              "l": 7
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-002",
-                "fraction": 0
-              },
-              "l": 7
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-003",
-                "fraction": 0.4
-              },
-              "l": 10
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-004",
-                "fraction": 0
-              },
-              "l": 10
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-005",
-                "fraction": 0.4999999999999998
-              },
-              "l": 6
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-006",
-                "fraction": 0
-              },
-              "l": 6
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-007",
-                "fraction": 1
-              },
-              "l": 7
-            }
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 }, "l": 7 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-002", "fraction": 0 }, "l": 7 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-003", "fraction": 0.4 }, "l": 10 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-004", "fraction": 0 }, "l": 10 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-005", "fraction": 0.4999999999999998 }, "l": 6 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-006", "fraction": 0 }, "l": 6 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 1 }, "l": 7 }
           ]
         },
         {
           "id": "shoulder-right",
           "knots": [
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-001",
-                "fraction": 0
-              },
-              "l": 9
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-002",
-                "fraction": 0
-              },
-              "l": 9
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-003",
-                "fraction": 0.4
-              },
-              "l": 12
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-004",
-                "fraction": 0
-              },
-              "l": 12
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-005",
-                "fraction": 0.4999999999999998
-              },
-              "l": 8
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-006",
-                "fraction": 0
-              },
-              "l": 8
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-007",
-                "fraction": 1
-              },
-              "l": 9
-            }
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 }, "l": 9 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-002", "fraction": 0 }, "l": 9 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-003", "fraction": 0.4 }, "l": 12 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-004", "fraction": 0 }, "l": 12 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-005", "fraction": 0.4999999999999998 }, "l": 8 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-006", "fraction": 0 }, "l": 8 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 1 }, "l": 9 }
           ]
         },
         {
           "id": "outer-right",
           "knots": [
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-001",
-                "fraction": 0
-              },
-              "l": 20
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-007",
-                "fraction": 1
-              },
-              "l": 20
-            }
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 }, "l": 20 },
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 1 }, "l": 20 }
           ]
         }
       ],
       "regions": [
         {
           "id": "grass-left",
-          "start": {
-            "kind": "primitive",
-            "primitiveId": "fit-001",
-            "fraction": 0
-          },
-          "end": {
-            "kind": "primitive",
-            "primitiveId": "fit-007",
-            "fraction": 1
-          },
+          "start": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 },
+          "end": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 1 },
           "leftBoundaryId": "outer-left",
           "rightBoundaryId": "shoulder-left",
           "role": "shoulder"
         },
         {
           "id": "kerb-left",
-          "start": {
-            "kind": "primitive",
-            "primitiveId": "fit-001",
-            "fraction": 0
-          },
-          "end": {
-            "kind": "primitive",
-            "primitiveId": "fit-007",
-            "fraction": 1
-          },
+          "start": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 },
+          "end": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 1 },
           "leftBoundaryId": "shoulder-left",
           "rightBoundaryId": "road-left",
           "role": "shoulder"
         },
         {
           "id": "lane-left",
-          "start": {
-            "kind": "primitive",
-            "primitiveId": "fit-001",
-            "fraction": 0
-          },
-          "end": {
-            "kind": "primitive",
-            "primitiveId": "fit-007",
-            "fraction": 1
-          },
+          "start": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 },
+          "end": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 1 },
           "leftBoundaryId": "road-left",
           "rightBoundaryId": "center-left",
           "role": "pavement"
         },
         {
           "id": "center",
-          "start": {
-            "kind": "primitive",
-            "primitiveId": "fit-001",
-            "fraction": 0
-          },
-          "end": {
-            "kind": "primitive",
-            "primitiveId": "fit-007",
-            "fraction": 1
-          },
+          "start": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 },
+          "end": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 1 },
           "leftBoundaryId": "center-left",
           "rightBoundaryId": "center-right",
           "role": "pavement"
         },
         {
           "id": "lane-right",
-          "start": {
-            "kind": "primitive",
-            "primitiveId": "fit-001",
-            "fraction": 0
-          },
-          "end": {
-            "kind": "primitive",
-            "primitiveId": "fit-007",
-            "fraction": 1
-          },
+          "start": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 },
+          "end": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 1 },
           "leftBoundaryId": "center-right",
           "rightBoundaryId": "road-right",
           "role": "pavement"
         },
         {
           "id": "kerb-right",
-          "start": {
-            "kind": "primitive",
-            "primitiveId": "fit-001",
-            "fraction": 0
-          },
-          "end": {
-            "kind": "primitive",
-            "primitiveId": "fit-007",
-            "fraction": 1
-          },
+          "start": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 },
+          "end": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 1 },
           "leftBoundaryId": "road-right",
           "rightBoundaryId": "shoulder-right",
           "role": "shoulder"
         },
         {
           "id": "grass-right",
-          "start": {
-            "kind": "primitive",
-            "primitiveId": "fit-001",
-            "fraction": 0
-          },
-          "end": {
-            "kind": "primitive",
-            "primitiveId": "fit-007",
-            "fraction": 1
-          },
+          "start": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 },
+          "end": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 1 },
           "leftBoundaryId": "shoulder-right",
           "rightBoundaryId": "outer-right",
           "role": "shoulder"
         }
       ],
       "height": [
-        {
-          "anchor": {
-            "kind": "primitive",
-            "primitiveId": "fit-001",
-            "fraction": 0
-          },
-          "y": 0
-        },
-        {
-          "anchor": {
-            "kind": "primitive",
-            "primitiveId": "fit-002",
-            "fraction": 0
-          },
-          "y": 0
-        },
-        {
-          "anchor": {
-            "kind": "primitive",
-            "primitiveId": "fit-003",
-            "fraction": 0.5
-          },
-          "y": 11.200000000000001
-        },
-        {
-          "anchor": {
-            "kind": "primitive",
-            "primitiveId": "fit-004",
-            "fraction": 0
-          },
-          "y": 11.200000000000001
-        },
-        {
-          "anchor": {
-            "kind": "primitive",
-            "primitiveId": "fit-005",
-            "fraction": 0.5999999999999999
-          },
-          "y": -4
-        },
-        {
-          "anchor": {
-            "kind": "primitive",
-            "primitiveId": "fit-006",
-            "fraction": 0
-          },
-          "y": -4
-        },
-        {
-          "anchor": {
-            "kind": "primitive",
-            "primitiveId": "fit-007",
-            "fraction": 0.5
-          },
-          "y": 0
-        },
-        {
-          "anchor": {
-            "kind": "primitive",
-            "primitiveId": "fit-007",
-            "fraction": 1
-          },
-          "y": 0
-        }
+        { "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 }, "y": 0 },
+        { "anchor": { "kind": "primitive", "primitiveId": "fit-002", "fraction": 0 }, "y": 0 },
+        { "anchor": { "kind": "primitive", "primitiveId": "fit-003", "fraction": 0.5 }, "y": 11.200000000000001 },
+        { "anchor": { "kind": "primitive", "primitiveId": "fit-004", "fraction": 0 }, "y": 11.200000000000001 },
+        { "anchor": { "kind": "primitive", "primitiveId": "fit-005", "fraction": 0.5999999999999999 }, "y": -4 },
+        { "anchor": { "kind": "primitive", "primitiveId": "fit-006", "fraction": 0 }, "y": -4 },
+        { "anchor": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 0.5 }, "y": 0 },
+        { "anchor": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 1 }, "y": 0 }
       ],
       "physicalBindings": [
         {
           "regionId": "grass-left",
           "sections": [
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-001",
-                "fraction": 0
-              },
-              "material": "GRASS"
-            }
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 }, "material": "GRASS" }
           ]
         },
         {
           "regionId": "kerb-left",
           "sections": [
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-001",
-                "fraction": 0
-              },
-              "material": "ASPHALT"
-            }
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 }, "material": "ASPHALT" }
           ]
         },
         {
           "regionId": "lane-left",
           "sections": [
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-001",
-                "fraction": 0
-              },
-              "material": "ASPHALT"
-            }
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 }, "material": "ASPHALT" }
           ]
         },
         {
           "regionId": "center",
           "sections": [
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-001",
-                "fraction": 0
-              },
-              "material": "ASPHALT"
-            }
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 }, "material": "ASPHALT" }
           ]
         },
         {
           "regionId": "lane-right",
           "sections": [
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-001",
-                "fraction": 0
-              },
-              "material": "ASPHALT"
-            }
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 }, "material": "ASPHALT" }
           ]
         },
         {
           "regionId": "kerb-right",
           "sections": [
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-001",
-                "fraction": 0
-              },
-              "material": "ASPHALT"
-            }
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 }, "material": "ASPHALT" }
           ]
         },
         {
           "regionId": "grass-right",
           "sections": [
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "fit-001",
-                "fraction": 0
-              },
-              "material": "GRASS"
-            }
+            { "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 }, "material": "GRASS" }
           ]
         }
       ],
-      "carriageways": [
-        {
-          "id": "road",
-          "regionIds": [
-            "lane-left",
-            "center",
-            "lane-right"
-          ]
-        }
-      ],
+      "carriageways": [{ "id": "road", "regionIds": ["lane-left", "center", "lane-right"] }],
       "ports": [
         {
           "id": "start",
           "kind": "entry",
-          "anchor": {
-            "kind": "primitive",
-            "primitiveId": "fit-001",
-            "fraction": 0.075
-          },
+          "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0.075 },
           "carriagewayId": "road"
         }
       ],
-      "assetIds": [
-        "coast-sky",
-        "hill-sky",
-        "tree"
-      ],
+      "assetIds": ["coast-sky", "hill-sky", "tree"],
       "presentation": {
         "ground": {
           "kind": "bands",
@@ -699,196 +228,68 @@
               "kind": "band",
               "color": 5575,
               "knots": [
-                {
-                  "s": 0,
-                  "left": null,
-                  "right": null
-                },
-                {
-                  "s": 2940.3310857164415,
-                  "left": null,
-                  "right": null
-                }
+                { "s": 0, "left": null, "right": null },
+                { "s": 2940.3310857164415, "left": null, "right": null }
               ]
             },
             {
               "kind": "band",
               "color": 9548,
               "knots": [
-                {
-                  "s": 0,
-                  "left": -9,
-                  "right": -7
-                },
-                {
-                  "s": 420.00000000000006,
-                  "left": -9,
-                  "right": -7
-                },
-                {
-                  "s": 886.4027733339532,
-                  "left": -12,
-                  "right": -10
-                },
-                {
-                  "s": 1201.4027733339533,
-                  "left": -12,
-                  "right": -10
-                },
-                {
-                  "s": 1940.0793523827224,
-                  "left": -8,
-                  "right": -6
-                },
-                {
-                  "s": 2202.5793523827215,
-                  "left": -8,
-                  "right": -6
-                },
-                {
-                  "s": 2940.3310857164415,
-                  "left": -9,
-                  "right": -7
-                }
+                { "s": 0, "left": -9, "right": -7 },
+                { "s": 420.00000000000006, "left": -9, "right": -7 },
+                { "s": 886.4027733339532, "left": -12, "right": -10 },
+                { "s": 1201.4027733339533, "left": -12, "right": -10 },
+                { "s": 1940.0793523827224, "left": -8, "right": -6 },
+                { "s": 2202.5793523827215, "left": -8, "right": -6 },
+                { "s": 2940.3310857164415, "left": -9, "right": -7 }
               ]
             },
             {
               "kind": "band",
               "color": 9548,
               "knots": [
-                {
-                  "s": 0,
-                  "left": -7,
-                  "right": -0.1
-                },
-                {
-                  "s": 420.00000000000006,
-                  "left": -7,
-                  "right": -0.1
-                },
-                {
-                  "s": 886.4027733339532,
-                  "left": -10,
-                  "right": -0.1
-                },
-                {
-                  "s": 1201.4027733339533,
-                  "left": -10,
-                  "right": -0.1
-                },
-                {
-                  "s": 1940.0793523827224,
-                  "left": -6,
-                  "right": -0.1
-                },
-                {
-                  "s": 2202.5793523827215,
-                  "left": -6,
-                  "right": -0.1
-                },
-                {
-                  "s": 2940.3310857164415,
-                  "left": -7,
-                  "right": -0.1
-                }
+                { "s": 0, "left": -7, "right": -0.1 },
+                { "s": 420.00000000000006, "left": -7, "right": -0.1 },
+                { "s": 886.4027733339532, "left": -10, "right": -0.1 },
+                { "s": 1201.4027733339533, "left": -10, "right": -0.1 },
+                { "s": 1940.0793523827224, "left": -6, "right": -0.1 },
+                { "s": 2202.5793523827215, "left": -6, "right": -0.1 },
+                { "s": 2940.3310857164415, "left": -7, "right": -0.1 }
               ]
             },
             {
               "kind": "band",
               "color": 9548,
               "knots": [
-                {
-                  "s": 0,
-                  "left": -0.1,
-                  "right": 0.1
-                },
-                {
-                  "s": 2940.3310857164415,
-                  "left": -0.1,
-                  "right": 0.1
-                }
+                { "s": 0, "left": -0.1, "right": 0.1 },
+                { "s": 2940.3310857164415, "left": -0.1, "right": 0.1 }
               ]
             },
             {
               "kind": "band",
               "color": 9548,
               "knots": [
-                {
-                  "s": 0,
-                  "left": 0.1,
-                  "right": 7
-                },
-                {
-                  "s": 420.00000000000006,
-                  "left": 0.1,
-                  "right": 7
-                },
-                {
-                  "s": 886.4027733339532,
-                  "left": 0.1,
-                  "right": 10
-                },
-                {
-                  "s": 1201.4027733339533,
-                  "left": 0.1,
-                  "right": 10
-                },
-                {
-                  "s": 1940.0793523827224,
-                  "left": 0.1,
-                  "right": 6
-                },
-                {
-                  "s": 2202.5793523827215,
-                  "left": 0.1,
-                  "right": 6
-                },
-                {
-                  "s": 2940.3310857164415,
-                  "left": 0.1,
-                  "right": 7
-                }
+                { "s": 0, "left": 0.1, "right": 7 },
+                { "s": 420.00000000000006, "left": 0.1, "right": 7 },
+                { "s": 886.4027733339532, "left": 0.1, "right": 10 },
+                { "s": 1201.4027733339533, "left": 0.1, "right": 10 },
+                { "s": 1940.0793523827224, "left": 0.1, "right": 6 },
+                { "s": 2202.5793523827215, "left": 0.1, "right": 6 },
+                { "s": 2940.3310857164415, "left": 0.1, "right": 7 }
               ]
             },
             {
               "kind": "band",
               "color": 9548,
               "knots": [
-                {
-                  "s": 0,
-                  "left": 7,
-                  "right": 9
-                },
-                {
-                  "s": 420.00000000000006,
-                  "left": 7,
-                  "right": 9
-                },
-                {
-                  "s": 886.4027733339532,
-                  "left": 10,
-                  "right": 12
-                },
-                {
-                  "s": 1201.4027733339533,
-                  "left": 10,
-                  "right": 12
-                },
-                {
-                  "s": 1940.0793523827224,
-                  "left": 6,
-                  "right": 8
-                },
-                {
-                  "s": 2202.5793523827215,
-                  "left": 6,
-                  "right": 8
-                },
-                {
-                  "s": 2940.3310857164415,
-                  "left": 7,
-                  "right": 9
-                }
+                { "s": 0, "left": 7, "right": 9 },
+                { "s": 420.00000000000006, "left": 7, "right": 9 },
+                { "s": 886.4027733339532, "left": 10, "right": 12 },
+                { "s": 1201.4027733339533, "left": 10, "right": 12 },
+                { "s": 1940.0793523827224, "left": 6, "right": 8 },
+                { "s": 2202.5793523827215, "left": 6, "right": 8 },
+                { "s": 2940.3310857164415, "left": 7, "right": 9 }
               ]
             },
             {
@@ -898,23 +299,9 @@
               "left": -7.8,
               "right": -7,
               "stripe": 3,
-              "colors": [
-                27781,
-                32765
-              ]
+              "colors": [27781, 32765]
             },
-            {
-              "kind": "curb",
-              "start": 0,
-              "end": 410,
-              "left": 7,
-              "right": 7.8,
-              "stripe": 3,
-              "colors": [
-                27781,
-                32765
-              ]
-            },
+            { "kind": "curb", "start": 0, "end": 410, "left": 7, "right": 7.8, "stripe": 3, "colors": [27781, 32765] },
             {
               "kind": "repeat",
               "every": 24,
@@ -924,16 +311,8 @@
                   "kind": "band",
                   "color": 32765,
                   "knots": [
-                    {
-                      "s": 210,
-                      "left": -0.1,
-                      "right": 0.1
-                    },
-                    {
-                      "s": 220,
-                      "left": -0.1,
-                      "right": 0.1
-                    }
+                    { "s": 210, "left": -0.1, "right": 0.1 },
+                    { "s": 220, "left": -0.1, "right": 0.1 }
                   ]
                 }
               ]
@@ -942,44 +321,13 @@
               "kind": "band",
               "color": 3377,
               "knots": [
-                {
-                  "s": 62,
-                  "left": -6,
-                  "right": 6
-                },
-                {
-                  "s": 80,
-                  "left": -6,
-                  "right": 6
-                }
+                { "s": 62, "left": -6, "right": 6 },
+                { "s": 80, "left": -6, "right": 6 }
               ]
             },
-            {
-              "kind": "text",
-              "s": 68,
-              "l": -4.2,
-              "text": "RIDE",
-              "height": 2.4,
-              "color": 32765
-            },
-            {
-              "kind": "arrow",
-              "s": 108,
-              "l": -3,
-              "width": 3,
-              "length": 12,
-              "direction": "forward",
-              "color": 32765
-            },
-            {
-              "kind": "arrow",
-              "s": 108,
-              "l": 3,
-              "width": 3,
-              "length": 12,
-              "direction": "forward",
-              "color": 32765
-            },
+            { "kind": "text", "s": 68, "l": -4.2, "text": "RIDE", "height": 2.4, "color": 32765 },
+            { "kind": "arrow", "s": 108, "l": -3, "width": 3, "length": 12, "direction": "forward", "color": 32765 },
+            { "kind": "arrow", "s": 108, "l": 3, "width": 3, "length": 12, "direction": "forward", "color": 32765 },
             {
               "kind": "repeat",
               "every": 120,
@@ -994,88 +342,36 @@
                   "direction": "forward",
                   "color": 32765
                 },
-                {
-                  "kind": "arrow",
-                  "s": 200,
-                  "l": 3,
-                  "width": 3,
-                  "length": 12,
-                  "direction": "forward",
-                  "color": 32765
-                }
+                { "kind": "arrow", "s": 200, "l": 3, "width": 3, "length": 12, "direction": "forward", "color": 32765 }
               ]
             },
             {
               "kind": "band",
               "color": null,
               "knots": [
-                {
-                  "s": 280,
-                  "left": 25,
-                  "right": null
-                },
-                {
-                  "s": 325,
-                  "left": 8,
-                  "right": null
-                },
-                {
-                  "s": 440,
-                  "left": 8,
-                  "right": null
-                },
-                {
-                  "s": 490,
-                  "left": 16,
-                  "right": null
-                },
-                {
-                  "s": 600,
-                  "left": 25,
-                  "right": null
-                }
+                { "s": 280, "left": 25, "right": null },
+                { "s": 325, "left": 8, "right": null },
+                { "s": 440, "left": 8, "right": null },
+                { "s": 490, "left": 16, "right": null },
+                { "s": 600, "left": 25, "right": null }
               ]
             },
             {
               "kind": "band",
               "color": null,
               "knots": [
-                {
-                  "s": 320,
-                  "left": null,
-                  "right": -25
-                },
-                {
-                  "s": 350,
-                  "left": null,
-                  "right": -8
-                },
-                {
-                  "s": 415,
-                  "left": null,
-                  "right": -8
-                },
-                {
-                  "s": 470,
-                  "left": null,
-                  "right": -25
-                }
+                { "s": 320, "left": null, "right": -25 },
+                { "s": 350, "left": null, "right": -8 },
+                { "s": 415, "left": null, "right": -8 },
+                { "s": 470, "left": null, "right": -25 }
               ]
             },
             {
               "kind": "band",
               "color": 13740,
               "knots": [
-                {
-                  "s": 350,
-                  "left": -8,
-                  "right": 8
-                },
-                {
-                  "s": 415,
-                  "left": -8,
-                  "right": 8
-                }
+                { "s": 350, "left": -8, "right": 8 },
+                { "s": 415, "left": -8, "right": 8 }
               ]
             },
             {
@@ -1085,10 +381,7 @@
               "left": -7.6,
               "right": -7.1,
               "stripe": 2,
-              "colors": [
-                32765,
-                27781
-              ]
+              "colors": [32765, 27781]
             },
             {
               "kind": "curb",
@@ -1097,28 +390,10 @@
               "left": 7.1,
               "right": 7.6,
               "stripe": 2,
-              "colors": [
-                32765,
-                27781
-              ]
+              "colors": [32765, 27781]
             },
-            {
-              "kind": "text",
-              "s": 371,
-              "l": -5.2,
-              "text": "BRIDGE",
-              "height": 2,
-              "color": 32765
-            },
-            {
-              "kind": "arrow",
-              "s": 401,
-              "l": 0,
-              "width": 3,
-              "length": 10,
-              "direction": "forward",
-              "color": 32765
-            },
+            { "kind": "text", "s": 371, "l": -5.2, "text": "BRIDGE", "height": 2, "color": 32765 },
+            { "kind": "arrow", "s": 401, "l": 0, "width": 3, "length": 10, "direction": "forward", "color": 32765 },
             {
               "kind": "repeat",
               "every": 0.38,
@@ -1128,32 +403,16 @@
                   "kind": "band",
                   "color": 24237,
                   "knots": [
-                    {
-                      "s": 150,
-                      "left": -6,
-                      "right": -5.85
-                    },
-                    {
-                      "s": 150.18,
-                      "left": -6,
-                      "right": -5.85
-                    }
+                    { "s": 150, "left": -6, "right": -5.85 },
+                    { "s": 150.18, "left": -6, "right": -5.85 }
                   ]
                 },
                 {
                   "kind": "band",
                   "color": 24237,
                   "knots": [
-                    {
-                      "s": 150,
-                      "left": 5.85,
-                      "right": 6
-                    },
-                    {
-                      "s": 150.18,
-                      "left": 5.85,
-                      "right": 6
-                    }
+                    { "s": 150, "left": 5.85, "right": 6 },
+                    { "s": 150.18, "left": 5.85, "right": 6 }
                   ]
                 }
               ]
@@ -1162,77 +421,38 @@
               "kind": "band",
               "color": 3575,
               "knots": [
-                {
-                  "s": 655,
-                  "left": -6,
-                  "right": -2
-                },
-                {
-                  "s": 705,
-                  "left": 2,
-                  "right": 6
-                }
+                { "s": 655, "left": -6, "right": -2 },
+                { "s": 705, "left": 2, "right": 6 }
               ]
             },
             {
               "kind": "band",
               "color": 32765,
               "knots": [
-                {
-                  "s": 655,
-                  "left": 2,
-                  "right": 2.4
-                },
-                {
-                  "s": 705,
-                  "left": -2.4,
-                  "right": -2
-                }
+                { "s": 655, "left": 2, "right": 2.4 },
+                { "s": 705, "left": -2.4, "right": -2 }
               ]
             }
           ]
         },
         "environments": [
           {
-            "anchor": {
-              "kind": "primitive",
-              "primitiveId": "fit-001",
-              "fraction": 0
-            },
+            "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 },
             "name": "RIBBON COAST",
-            "background": {
-              "assetId": "coast-sky",
-              "horizonY": 320,
-              "yawOrigin": 0
-            }
+            "background": { "assetId": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
           },
           {
-            "anchor": {
-              "kind": "primitive",
-              "primitiveId": "fit-004",
-              "fraction": 0
-            },
+            "anchor": { "kind": "primitive", "primitiveId": "fit-004", "fraction": 0 },
             "name": "RIBBON COAST",
-            "background": {
-              "assetId": "hill-sky",
-              "horizonY": 320,
-              "yawOrigin": 0
-            }
+            "background": { "assetId": "hill-sky", "horizonY": 320, "yawOrigin": 0 }
           }
         ],
         "sceneryRows": [
           {
             "id": "fit-row-1",
             "assetId": "tree",
-            "start": {
-              "kind": "absolute",
-              "s": 800
-            },
-            "end": {
-              "kind": "primitive",
-              "primitiveId": "fit-007",
-              "fraction": 0.8
-            },
+            "start": { "kind": "absolute", "s": 800 },
+            "end": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 0.8 },
             "spacing": 42,
             "boundaryId": "road-left",
             "side": "left",
@@ -1242,15 +462,8 @@
           {
             "id": "fit-row-2",
             "assetId": "tree",
-            "start": {
-              "kind": "absolute",
-              "s": 800
-            },
-            "end": {
-              "kind": "primitive",
-              "primitiveId": "fit-007",
-              "fraction": 0.8
-            },
+            "start": { "kind": "absolute", "s": 800 },
+            "end": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 0.8 },
             "spacing": 42,
             "boundaryId": "road-right",
             "side": "right",
@@ -1287,135 +500,30 @@
   "sceneryInstances": [],
   "rules": {
     "grid": [
-      {
-        "anchor": {
-          "kind": "absolute",
-          "s": 45
-        },
-        "l": 0
-      },
-      {
-        "anchor": {
-          "kind": "absolute",
-          "s": 55
-        },
-        "l": -2
-      },
-      {
-        "anchor": {
-          "kind": "absolute",
-          "s": 67
-        },
-        "l": 2
-      },
-      {
-        "anchor": {
-          "kind": "absolute",
-          "s": 79
-        },
-        "l": -2
-      },
-      {
-        "anchor": {
-          "kind": "absolute",
-          "s": 91
-        },
-        "l": 2
-      },
-      {
-        "anchor": {
-          "kind": "absolute",
-          "s": 103
-        },
-        "l": -2
-      },
-      {
-        "anchor": {
-          "kind": "absolute",
-          "s": 115
-        },
-        "l": 2
-      },
-      {
-        "anchor": {
-          "kind": "absolute",
-          "s": 127
-        },
-        "l": -2
-      },
-      {
-        "anchor": {
-          "kind": "absolute",
-          "s": 139
-        },
-        "l": 2
-      },
-      {
-        "anchor": {
-          "kind": "absolute",
-          "s": 151
-        },
-        "l": -2
-      },
-      {
-        "anchor": {
-          "kind": "absolute",
-          "s": 163
-        },
-        "l": 2
-      },
-      {
-        "anchor": {
-          "kind": "absolute",
-          "s": 175
-        },
-        "l": -2
-      },
-      {
-        "anchor": {
-          "kind": "absolute",
-          "s": 187
-        },
-        "l": 2
-      },
-      {
-        "anchor": {
-          "kind": "absolute",
-          "s": 199
-        },
-        "l": -2
-      },
-      {
-        "anchor": {
-          "kind": "absolute",
-          "s": 211
-        },
-        "l": 2
-      },
-      {
-        "anchor": {
-          "kind": "absolute",
-          "s": 223
-        },
-        "l": -2
-      },
-      {
-        "anchor": {
-          "kind": "absolute",
-          "s": 235
-        },
-        "l": 2
-      }
+      { "anchor": { "kind": "absolute", "s": 45 }, "l": 0 },
+      { "anchor": { "kind": "absolute", "s": 55 }, "l": -2 },
+      { "anchor": { "kind": "absolute", "s": 67 }, "l": 2 },
+      { "anchor": { "kind": "absolute", "s": 79 }, "l": -2 },
+      { "anchor": { "kind": "absolute", "s": 91 }, "l": 2 },
+      { "anchor": { "kind": "absolute", "s": 103 }, "l": -2 },
+      { "anchor": { "kind": "absolute", "s": 115 }, "l": 2 },
+      { "anchor": { "kind": "absolute", "s": 127 }, "l": -2 },
+      { "anchor": { "kind": "absolute", "s": 139 }, "l": 2 },
+      { "anchor": { "kind": "absolute", "s": 151 }, "l": -2 },
+      { "anchor": { "kind": "absolute", "s": 163 }, "l": 2 },
+      { "anchor": { "kind": "absolute", "s": 175 }, "l": -2 },
+      { "anchor": { "kind": "absolute", "s": 187 }, "l": 2 },
+      { "anchor": { "kind": "absolute", "s": 199 }, "l": -2 },
+      { "anchor": { "kind": "absolute", "s": 211 }, "l": 2 },
+      { "anchor": { "kind": "absolute", "s": 223 }, "l": -2 },
+      { "anchor": { "kind": "absolute", "s": 235 }, "l": 2 }
     ],
     "checkpoints": [
       {
         "id": "coast-road-CP1",
         "sectionId": "coast-road",
         "carriagewayId": "road",
-        "anchor": {
-          "kind": "absolute",
-          "s": 1455.9155428582208
-        }
+        "anchor": { "kind": "absolute", "s": 1455.9155428582208 }
       }
     ],
     "finishes": [
@@ -1423,18 +531,10 @@
         "id": "coast-road-FINISH",
         "sectionId": "coast-road",
         "carriagewayId": "road",
-        "anchor": {
-          "kind": "absolute",
-          "s": 2880.3310857164415
-        }
+        "anchor": { "kind": "absolute", "s": 2880.3310857164415 }
       }
     ],
     "maxLaps": 1,
-    "classic": {
-      "vehicleId": "TESTAROSSA",
-      "rivalCount": 0,
-      "lapCount": 1,
-      "timeMargin": 1.35
-    }
+    "classic": { "vehicleId": "TESTAROSSA", "rivalCount": 0, "lapCount": 1, "timeMargin": 1.35 }
   }
 }

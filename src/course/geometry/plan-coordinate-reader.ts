@@ -2,7 +2,6 @@ import type { Writable } from '../../core/writable.js';
 import type { Vec2 } from '../../core/math.js';
 import { normalFromHeading } from '../../core/math.js';
 import type { PlanarTransform } from '../../core/planar-transform.js';
-import { createPlanarCoordinateSample } from '../../core/planar-sample.js';
 import {
   planPrimitiveBounds,
   projectPlanPrimitiveInterval,
@@ -109,7 +108,6 @@ export function createPlanCoordinateReader(
       previousSeed: PlanProjectionSeed,
       searchRadius: number,
       out: PlanCoordinateProjection,
-      _workspace: PlanProjectionWorkspace,
     ) {
       if (!world || typeof world.x !== 'number' || typeof world.z !== 'number' || typeof previousSeed !== 'number' || typeof searchRadius !== 'number')
         throw new TypeError('Projection requires numeric world position and seed/radius');
