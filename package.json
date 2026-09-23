@@ -12,7 +12,7 @@
     "test": "npm run check && npm run build && node --import tsx --test 'tests/**/*.test.mjs'",
     "lint": "eslint src tests tools",
     "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "format:check": "prettier --write . && git diff --no-color",
     "compile:course": "node --import tsx tools/course/compile-course.ts",
     "build:sprite-lod": "node --import tsx tools/build/build-sprite-lod.ts",
     "build:sprite-source": "node --import tsx tools/build/build-sprite-source.ts",
