@@ -31,7 +31,7 @@ occurrences. `CompiledSection.coordinates` and `VehicleWorld.coordinates` expose
   their own frame.
 - `locateLocal(world,seed,searchRadius,out,workspace)` projects within a finite local neighborhood,
   without lateral clamping or a global-search fallback. Seeds come from this reader's samples or
-  projections, not from consumer arithmetic; mapped seeds identify an occurrence and its native segment.
+  projections, not from consumer arithmetic; mapped seeds identify an occurrence and its native primitive.
   Spawn and recovery supply known seeds. Invalid or unretained projection seeds fail explicitly.
 
 `PlanCoordinateSample` and `PlanCoordinateProjection` are borrowed observations in caller-owned outputs.
@@ -261,7 +261,7 @@ A bounded occurrence view maps retained/selected source spans into its active fr
 source/view chainage anchors, a Boundary-derived lateral origin and an upright transform. Source
 identity, occurrence and frame are distinct, including laps. Successors own seams. Unrepresentable
 station collisions fail explicitly. Narrow geometry/height/presentation readers share this mapping;
-local projection seeds identify both occurrence and native segment.
+local projection seeds identify both occurrence and native primitive.
 
 `createCourseDrivingReaders` owns the physical world, coordinate/height readers and an immutable
 mapping of those same occurrence spans. Its motion guard uses the physical pose/step domain.

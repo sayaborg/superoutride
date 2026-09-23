@@ -201,7 +201,7 @@ compilation requires `1-kappa*l > 0` throughout this physical coordinate domain 
 `plan_coordinate_inversion` with Section, primitive and s when the condition fails. The recipe identity
 participates in every dependent build identity.
 
-Boundary knots are strictly increasingBoundary knots are strictly increasing and cover every referencing Region's closed interval.
+Boundary knots are strictly increasing and cover every referencing Region's closed interval.
 Interpolation is linear; width and center are derived. A Region has positive length and positive
 interior width; zero width is permitted at its own start/end only. Regions are nonoverlapping and
 shared edges reference one Boundary. Every pavement Region belongs to exactly one Carriageway, whose
