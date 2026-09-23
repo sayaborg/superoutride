@@ -1,5 +1,5 @@
 import type { SurfaceMapReader, SurfaceSample } from '../../course/vehicle-world.js';
-import { compileOpenProfile, openProfileChainage, profileIndexAt } from '../../course/geometry/open-profile.js';
+import { compileKnotSequence, knotSequenceChainage, knotIndexAt } from '../../course/geometry/knot-sequence.js';
 import { SURFACE_MATERIALS, type SurfaceType } from '../../course/surface-material.js';
 
 const BAND_OVERLAP_TOLERANCE_METERS = 1e-9;
@@ -28,7 +28,7 @@ export class SurfaceMap implements SurfaceMapReader {
     readonly courseLength: number,
     sections: readonly SurfaceSection[],
   ) {
-    this.sections = compileOpenProfile(
+    this.sections = compileKnotSequence(
       sections.map((section) => ({
         ...section,
         regions: compileSurfaceRegions(section.regions),
@@ -57,11 +57,11 @@ export class SurfaceMap implements SurfaceMapReader {
   }
 
   private normalizeChainage(s: number): number {
-    return openProfileChainage(s, this.courseLength, 'surface');
+    return knotSequenceChainage(s, this.courseLength, 'surface');
   }
 
   private sectionAtLocal(local: number): SurfaceSection {
-    return this.sections[profileIndexAt(this.sections, 'sStart', local)]!;
+    return this.sections[knotIndexAt(this.sections, 'sStart', local)]!;
   }
 }
 

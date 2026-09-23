@@ -2,8 +2,8 @@ import { SOURCE_ENDPOINT_TOLERANCE_METERS } from '../../core/tolerances.js';
 
 import { finite, positiveFinite } from '../../core/validation.js';
 
-/** Immutable ordered source entries. Height nodes include L; constant sections exclude it. */
-export function compileOpenProfile<T extends object, K extends keyof T>(
+/** Immutable ordered entries. Endpoint knots include L; piecewise-constant sections exclude it. */
+export function compileKnotSequence<T extends object, K extends keyof T>(
   entries: readonly T[],
   options: { length: number; chainage: K; label: string; endNode?: boolean },
 ): readonly Readonly<T>[] {
@@ -28,7 +28,7 @@ export function compileOpenProfile<T extends object, K extends keyof T>(
   for (let i = 0; i < copied.length; i += 1) {
     const s = copied[i]![chainage] as number;
     if (s < 0 || s > length || (!endNode && s === length)) {
-      throw new RangeError(`${label} entry outside open profile`);
+      throw new RangeError(`${label} entry outside its station domain`);
     }
     if (i > 0 && s <= (copied[i - 1]![chainage] as number)) {
       throw new Error(`${label} entries must be unique`);
@@ -38,7 +38,7 @@ export function compileOpenProfile<T extends object, K extends keyof T>(
 }
 
 /** Last entry starting at or before s. The owning reader validates the open domain first. */
-export function profileIndexAt<T, K extends keyof T>(entries: readonly T[], chainage: K, s: number): number {
+export function knotIndexAt<T, K extends keyof T>(entries: readonly T[], chainage: K, s: number): number {
   let low = 0;
   let high = entries.length;
   while (low < high) {
@@ -49,9 +49,9 @@ export function profileIndexAt<T, K extends keyof T>(entries: readonly T[], chai
   return Math.max(0, low - 1);
 }
 
-/** Source-profile endpoint normalization; length is validated by the owning source constructor.
+/** Station endpoint normalization; length is validated by the owning constructor.
  * Plan/Raster sampling has a separate geometric tolerance. Never wraps. */
-export function openProfileChainage(s: number, courseLength: number, label: string): number {
+export function knotSequenceChainage(s: number, courseLength: number, label: string): number {
   if (!Number.isFinite(s)) throw new RangeError(`${label} chainage must be finite`);
   if (s < -SOURCE_ENDPOINT_TOLERANCE_METERS || s > courseLength + SOURCE_ENDPOINT_TOLERANCE_METERS) {
     throw new RangeError(`${label} chainage is outside [0, courseLength]`);

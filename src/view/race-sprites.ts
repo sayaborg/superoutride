@@ -1,4 +1,4 @@
-import type { HeightProfileReader } from '../course/geometry/height-profile.js';
+import type { ProfileReader, ProfilePolylineReader } from '../course/geometry/profile.js';
 import type { RasterGeometry } from '../course/geometry/raster-coordinate-reader.js';
 import { createVehiclePaletteVariant, type SpriteAssets } from '../image/sprite-assets.js';
 import type { RaceActorObservation } from '../race/course-race.js';
@@ -20,7 +20,8 @@ export function createRaceSprites(assets: SpriteAssets, rival: SessionVehicle) {
     actors: readonly RaceActorObservation[],
     camera: CameraState,
     geometry: RasterGeometry,
-    height: HeightProfileReader,
+    height: ProfileReader,
+    renderHeight: ProfilePolylineReader,
   ) => {
     sprites.length = 0;
     for (const actor of actors) {
@@ -37,6 +38,7 @@ export function createRaceSprites(assets: SpriteAssets, rival: SessionVehicle) {
           actor.paletteVariant === 'braking' ? brakingAssets : assets[actor.kind],
           geometry,
           height,
+          renderHeight,
           position,
         ),
       );

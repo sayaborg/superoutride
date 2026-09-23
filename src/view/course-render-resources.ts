@@ -1,4 +1,4 @@
-import type { HeightProfileReader } from '../course/geometry/height-profile.js';
+import type { ProfileReader, ProfilePolylineReader } from '../course/geometry/profile.js';
 import type { RasterGeometry } from '../course/geometry/raster-coordinate-reader.js';
 import { readSpriteLodAsset, createSpritePaletteVariant, type SpriteLodDocument } from '../image/sprite.js';
 import { TileBackgroundImage, type TileBackgroundDocument } from '../image/tile-background-image.js';
@@ -29,7 +29,12 @@ export function createCourseRenderResources() {
     }
     return asset;
   };
-  const createSectionReaders = (p: CoursePresentation, geometry: RasterGeometry, height: HeightProfileReader) => {
+  const createSectionReaders = (
+    p: CoursePresentation,
+    geometry: RasterGeometry,
+    height: ProfileReader,
+    renderHeight: ProfilePolylineReader,
+  ) => {
     if (!p || !p.ground || !Array.isArray(p.environments) || !Array.isArray(p.scenery) || !geometry?.raster || !height)
       throw new TypeError('Section rendering requires compiled content, Raster and height readers');
     if (p.ground.length !== geometry.length || height.courseLength !== geometry.length)
@@ -64,7 +69,7 @@ export function createCourseRenderResources() {
             l: placement.l,
             unselected: placement.unselected,
             sprite: Object.freeze(
-              compileCourseSprite(geometry, height, {
+              compileCourseSprite(geometry, height, renderHeight, {
                 name: placement.instance.id,
                 s: placement.anchor.s,
                 l: placement.l,

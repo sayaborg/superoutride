@@ -1,4 +1,4 @@
-import type { HeightProfileReader } from '../course/geometry/height-profile.js';
+import type { ProfileReader, ProfilePolylineReader } from '../course/geometry/profile.js';
 import { rasterCoordinateToWorld, type RasterGeometry } from '../course/geometry/raster-coordinate-reader.js';
 import { createPlanarCoordinateSample } from '../core/planar-sample.js';
 import { CURRENT_CAMERA_DISTANCE_METERS } from './display-scale.js';
@@ -9,27 +9,29 @@ import type { PseudoCamera } from './projection.js';
  * piecewise-linear road surface. Physics and camera authority remain untouched.
  */
 function mapPhysicalHeightToRender(
-  height: HeightProfileReader,
+  height: ProfileReader,
+  renderHeight: ProfilePolylineReader,
   s: number,
   physicalY: number,
   out: ReturnType<typeof createRenderSpacePosition>,
 ): number {
-  const physicalRoadY = height.samplePhysics(s);
-  const renderRoadY = height.sampleRender(s, out.heightSample).y;
+  const physicalRoadY = height.sample(s);
+  const renderRoadY = renderHeight.sample(s, out.heightSample).y;
   return renderRoadY + (physicalY - physicalRoadY);
 }
 
 /** One road-relative mapping for every position drawn in the scene. Orientation stays physical. */
 export function mapToRenderSpace(
   geometry: RasterGeometry,
-  height: HeightProfileReader,
+  height: ProfileReader,
+  renderHeight: ProfilePolylineReader,
   s: number,
   l: number,
   physicalY: number,
   out: ReturnType<typeof createRenderSpacePosition>,
 ) {
   rasterCoordinateToWorld(geometry.raster, s, l, out);
-  out.y = mapPhysicalHeightToRender(height, s, physicalY, out);
+  out.y = mapPhysicalHeightToRender(height, renderHeight, s, physicalY, out);
   return out;
 }
 
@@ -44,15 +46,24 @@ export function createRenderSpacePosition() {
 /** The camera follows the mapped player position along the selected physical yaw ray. */
 export function createRenderSpaceCamera(
   geometry: RasterGeometry,
-  height: HeightProfileReader,
+  height: ProfileReader,
+  renderHeight: ProfilePolylineReader,
   camera: PseudoCamera,
   player: { readonly course: { readonly s: number; readonly l: number } },
   position: ReturnType<typeof createRenderSpacePosition>,
   cameraPosition: ReturnType<typeof createRenderSpacePosition>,
   out: PseudoCamera,
 ): PseudoCamera {
-  mapToRenderSpace(geometry, height, player.course.s, player.course.l, height.samplePhysics(player.course.s), position);
-  mapToRenderSpace(geometry, height, camera.s, 0, camera.y, cameraPosition);
+  mapToRenderSpace(
+    geometry,
+    height,
+    renderHeight,
+    player.course.s,
+    player.course.l,
+    height.sample(player.course.s),
+    position,
+  );
+  mapToRenderSpace(geometry, height, renderHeight, camera.s, 0, camera.y, cameraPosition);
   Object.assign(out, camera);
   out.x = position.x - CURRENT_CAMERA_DISTANCE_METERS * Math.sin(camera.yaw);
   out.y = cameraPosition.y;

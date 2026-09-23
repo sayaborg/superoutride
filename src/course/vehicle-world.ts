@@ -1,5 +1,5 @@
 import type { PlanCoordinateReader } from './geometry/plan-coordinate.js';
-import type { HeightProfileReader } from './geometry/height-profile.js';
+import type { ProfileReader } from './geometry/profile.js';
 import type { SurfaceMaterial, SurfaceType } from './surface-material.js';
 
 export interface SurfaceSample {
@@ -16,6 +16,6 @@ export interface SurfaceMapReader {
 /** Active physical readers; content/chart selection is resolved by composition. */
 export interface VehicleWorld {
   readonly coordinates: PlanCoordinateReader;
-  readonly height: HeightProfileReader;
+  readonly height: ProfileReader;
   readonly surfaces: SurfaceMapReader;
 }

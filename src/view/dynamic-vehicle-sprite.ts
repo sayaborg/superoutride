@@ -1,4 +1,4 @@
-import type { HeightProfileReader } from '../course/geometry/height-profile.js';
+import type { ProfileReader, ProfilePolylineReader } from '../course/geometry/profile.js';
 import type { RasterGeometry } from '../course/geometry/raster-coordinate-reader.js';
 import { wrapAngle } from '../core/math.js';
 import type { VehicleWorldPoseRead } from '../vehicle/physics/vehicle-contract.js';
@@ -14,12 +14,21 @@ export function createDynamicVehicleCourseSprite(
   cameraYaw: number,
   spriteSet: VehicleSpriteSet,
   geometry: RasterGeometry,
-  height: HeightProfileReader,
+  height: ProfileReader,
+  renderHeight: ProfilePolylineReader,
   position = createRenderSpacePosition(),
 ): CourseSprite {
   const relativeYaw = wrapAngle(vehicle.yaw - cameraYaw);
   const selected = selectVehicleSprite(spriteSet, relativeYaw, deriveVehicleNormalizedBank(vehicle));
-  mapToRenderSpace(geometry, height, vehicle.course.s, vehicle.course.l, vehicle.renderY ?? vehicle.y, position);
+  mapToRenderSpace(
+    geometry,
+    height,
+    renderHeight,
+    vehicle.course.s,
+    vehicle.course.l,
+    vehicle.renderY ?? vehicle.y,
+    position,
+  );
   return {
     name,
     x: position.x,

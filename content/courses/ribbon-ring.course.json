@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 13,
+  "version": 14,
   "reference": null,
   "id": "ribbon-ring",
   "units": { "length": "m", "angle": "deg" },
@@ -133,8 +133,8 @@
         }
       ],
       "height": [
-        { "anchor": { "kind": "primitive", "primitiveId": "approach", "fraction": 0 }, "y": 0 },
-        { "anchor": { "kind": "primitive", "primitiveId": "runout", "fraction": 1 }, "y": 0 }
+        { "anchor": { "kind": "primitive", "primitiveId": "approach", "fraction": 0 }, "y": 0, "curveLength": 0 },
+        { "anchor": { "kind": "primitive", "primitiveId": "runout", "fraction": 1 }, "y": 0, "curveLength": 0 }
       ],
       "physicalBindings": [
         {

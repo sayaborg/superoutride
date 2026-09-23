@@ -178,6 +178,7 @@ export function renderDriving(
 
   const playerPosition = mapToRenderSpace(
     guide,
+    terrainParameters.physicalHeight,
     terrainParameters.height,
     vehicle.course.s,
     vehicle.course.l,
@@ -253,6 +254,7 @@ function prepareTerrain(
 ) {
   const renderCamera = createRenderSpaceCamera(
     guide,
+    terrainParameters.physicalHeight,
     terrainParameters.height,
     camera,
     vehicle,

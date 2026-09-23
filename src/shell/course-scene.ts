@@ -122,7 +122,8 @@ export function createCourseScene(
           dMin: RENDER_NEAR_DEPTH_METERS,
           dMax: RENDER_FAR_DEPTH_METERS,
           ...presentation.groundRuler,
-          height: world.height,
+          height: view.renderHeight,
+          physicalHeight: world.height,
           visual: presentation.visual,
         };
         lastView = view;

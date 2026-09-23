@@ -43,7 +43,7 @@ if (!result.ok) {
           length: section.raster.length,
           segments: section.raster.segments.length,
           regions: section.regionPartition.regions.length,
-          heightNodes: section.height.nodes.length,
+          heightNodes: section.height.knots.length,
           physicalBindings: section.physicalBindings.length,
           lateralBoundsAtStart: section.coordinates.domain.lateralAt(section.coordinates.domain.start, {
             left: 0,

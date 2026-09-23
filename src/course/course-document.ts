@@ -1,6 +1,6 @@
 import { CourseInputError, courseFailure, courseSuccess, type CourseResult } from './course-diagnostics.js';
 
-const COURSE_DOCUMENT_VERSION = 13;
+const COURSE_DOCUMENT_VERSION = 14;
 
 interface GeometryRecipeIdentity {
   readonly id: string;
@@ -134,7 +134,7 @@ export interface SectionDocument {
   readonly primitives: readonly PlanPrimitive[];
   readonly boundaries: readonly BoundaryDocument[];
   readonly regions: readonly RegionDocument[];
-  readonly height: readonly { readonly anchor: CourseAnchor; readonly y: number }[];
+  readonly height: readonly { readonly anchor: CourseAnchor; readonly y: number; readonly curveLength: number }[];
   readonly physicalBindings: readonly {
     readonly regionId: string;
     readonly sections: readonly { readonly anchor: CourseAnchor; readonly material: string }[];
@@ -598,10 +598,16 @@ function section(value: unknown, path: string): SectionDocument {
     boundaries: identified(v.boundaries, `${path}/boundaries`, COURSE_DOCUMENT_LIMITS.boundaries, boundary),
     regions: identified(v.regions, `${path}/regions`, COURSE_DOCUMENT_LIMITS.regions, region),
     height: array(v.height, `${path}/height`, COURSE_DOCUMENT_LIMITS.knots, (item, at) => {
-      const node = record(item, at, ['anchor', 'y']);
+      const node = record(item, at, ['anchor', 'y', 'curveLength']);
       return Object.freeze({
         anchor: anchor(node.anchor, `${at}/anchor`),
         y: number(node.y, `${at}/y`, -COURSE_DOCUMENT_LIMITS.heightMeters, COURSE_DOCUMENT_LIMITS.heightMeters),
+        curveLength: number(
+          node.curveLength,
+          `${at}/curveLength`,
+          -COURSE_DOCUMENT_LIMITS.lengthMeters,
+          COURSE_DOCUMENT_LIMITS.lengthMeters,
+        ),
       });
     }),
     physicalBindings: array(

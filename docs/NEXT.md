@@ -8,7 +8,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **6-6 — Vertical alignment**.
+Next PR: **6-7 — Band tail cells**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -18,7 +18,6 @@ PRs hold rationale and verification evidence.
 
 Make authored plan and vertical geometry authoritative, with rendering-only approximations and simpler connections.
 
-- **6-6 — Vertical alignment:** PVIs and parabolas, allowing zero curve lengths with endpoint curve lengths set to zero; polyline rendering with separate authoritative and rendering Readers; rename HeightProfile/OpenProfile replacements according to the glossary.
 - **6-7 — Band tail cells:** truncate preblend cells at the Section end and separate compilation from sampling while preserving private compiled coefficient storage.
 - **6-8 — Cut-line seams:** replace overlaps with cut lines, remove Port, `Section.start` and overlap machinery, rename `Link.source` according to the glossary, and review the straight requirement for parallel fork intervals. Rewrite provisional course lengths as round authored values rather than old-ruler compensation values such as `524.9207...`.
 - **6-9 — Views and occurrences:** minimize their procedures and name occurrence-view replacements (`createView`, `CourseGeometryView` and their adapters) according to the glossary. Limit Section-only `locateLocal` scanning to the search window interval.
@@ -66,6 +65,7 @@ Define persistent player settings, data-driven Sessions and product display inde
 - **10-3 — Session rules:** one settings record, modes as rule data and TIME ATTACK; CUSTOM has no time limit.
 - **10-4 — Cameras:** define camera methods, allowing later changes and mode-specific choices.
   Rename camera yaw mode and current-camera-profile names according to the glossary.
+  Use the camera definition's `dCam` for the display-side rearward offset instead of `CURRENT_CAMERA_DISTANCE_METERS` from `display-scale.ts`.
 - **10-5 — Navigation:** screen transitions within one page; rename the URL mode parameter and
   course-selection names according to the glossary.
 - **10-6 — Product HUD:** draw it inside the game frame, separately from DEV UI and HUD.

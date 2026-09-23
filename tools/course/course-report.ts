@@ -38,7 +38,8 @@ export async function courseReport(course: CompiledCourse, section: CompiledSect
       0,
       length,
       ...Array.from({ length: Math.ceil(length / step) }, (_, i) => i * step),
-      ...section.height.nodes.map((n) => n.s),
+      ...section.height.knots.map((n) => n.s),
+      ...section.renderHeight.knots.map((n) => n.s),
       ...section.boundaries.flatMap((b) => b.knots.map((k) => k.anchor.s)),
     ]),
   ].sort((a, b) => a - b);
@@ -48,7 +49,7 @@ export async function courseReport(course: CompiledCourse, section: CompiledSect
     return {
       s,
       curvaturePerMeter: section.coordinates.metricsAt(s, 0, metric).curvature,
-      heightMeters: section.height.samplePhysics(s),
+      heightMeters: section.height.sample(s),
       x: world.x,
       z: world.z,
       boundaries: section.boundaries.map((b) =>

@@ -141,7 +141,7 @@ function updateRecovery(
 
   state.unsupportedTime += dt;
   const desiredCgHeight = vehicle.profile.desiredCgHeight;
-  const expectedCgY = height.samplePhysics(vehicle.course.s) + desiredCgHeight;
+  const expectedCgY = height.sample(vehicle.course.s) + desiredCgHeight;
   const fallDistance = Math.max(0, expectedCgY - vehicle.y);
   const surfaceDistance =
     (vehicle.x - surface.point.x) * surface.normal.x +

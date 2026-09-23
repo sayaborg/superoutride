@@ -74,7 +74,7 @@ function scenery(port: CompiledPort, overlap: CompiledLink['overlap'], domain: C
         instance: placement.instance,
         s,
         l,
-        y: port.section.height.sampleRender(placement.anchor.s).y + placement.groundOffset,
+        y: port.section.renderHeight.sample(placement.anchor.s).y + placement.groundOffset,
       },
     ];
   });

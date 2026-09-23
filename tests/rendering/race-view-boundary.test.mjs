@@ -95,6 +95,7 @@ test('race actors have no cameras and view assembles sixteen rival sprites from 
     camera,
     scene.session.view.geometry,
     scene.world.height,
+    scene.session.view.renderHeight,
   );
   assert.equal(sprites.length, observed.rivals.length);
   assert.deepEqual(

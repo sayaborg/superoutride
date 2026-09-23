@@ -3,7 +3,7 @@ import type { VehicleCatalogEntry } from '../../src/vehicle/vehicle-catalog.js';
 import type { DrivingInput } from '../../src/vehicle/driving-input.js';
 import { createBodyKinematicsWorkspace } from '../../src/vehicle/physics/arcade-vehicle-physics.js';
 import { compilePlanPath } from '../../src/course/geometry/plan-path.js';
-import { HeightProfile } from '../../src/course/geometry/height-profile.js';
+import { Profile } from '../../src/course/geometry/profile.js';
 import { SurfaceMap } from '../../src/vehicle/physics/surface-map.js';
 import { createArcadeVehicle } from '../../src/vehicle/physics/arcade-vehicle-physics.js';
 import { DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION } from '../../src/shell/tire-friction-selection.js';
@@ -26,9 +26,9 @@ function createEnvelopeRun(entry: Readonly<VehicleCatalogEntry>, initialSpeed: n
     out.right = 5000;
     return out;
   });
-  const height = new HeightProfile(coordinates.domain.end, [
-    { s: 0, y: 0 },
-    { s: coordinates.domain.end, y: 0 },
+  const height = new Profile(coordinates.domain.end, [
+    { s: 0, y: 0, curveLength: 0 },
+    { s: coordinates.domain.end, y: 0, curveLength: 0 },
   ]);
   const surfaces = new SurfaceMap(coordinates.domain.end, [
     { sStart: 0, name: 'Envelope asphalt', regions: [{ lMin: -5000, lMax: 5000, type: 'ASPHALT' }] },

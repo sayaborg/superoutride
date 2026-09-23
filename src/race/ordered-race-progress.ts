@@ -1,7 +1,7 @@
 import type { Writable } from '../core/writable.js';
 import type { PlanCoordinateReader } from '../course/geometry/plan-coordinate.js';
 import { clamp, type Vec2 } from '../core/math.js';
-import { openProfileChainage } from '../course/geometry/open-profile.js';
+import { knotSequenceChainage } from '../course/geometry/knot-sequence.js';
 import {
   classifyPhysicalRaceMotionDirection,
   compilePhysicalRaceGate,
@@ -315,7 +315,7 @@ function checkedSample(
   if (!Number.isFinite(sample.x) || !Number.isFinite(sample.z) || !Number.isFinite(sample.s)) {
     throw new RangeError('ordered race progress sample must be finite');
   }
-  const s = openProfileChainage(sample.s, courseLength, 'ordered race progress');
+  const s = knotSequenceChainage(sample.s, courseLength, 'ordered race progress');
   out.x = sample.x;
   out.z = sample.z;
   out.s = s;

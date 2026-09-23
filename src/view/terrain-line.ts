@@ -1,6 +1,6 @@
 import type { RasterGeometry } from '../course/geometry/raster-coordinate-reader.js';
-import type { HeightProfileReader } from '../course/geometry/height-profile.js';
-import { profileIndexAt } from '../course/geometry/open-profile.js';
+import type { ProfilePolylineReader } from '../course/geometry/profile.js';
+import { knotIndexAt } from '../course/geometry/knot-sequence.js';
 import { horizonY, pseudoProject, type PseudoCamera } from './projection.js';
 import { rasterCoordinateToWorld } from '../course/geometry/raster-coordinate-reader.js';
 import { PIXEL_EDGE_TOLERANCE, SOURCE_ENDPOINT_TOLERANCE_METERS } from '../core/tolerances.js';
@@ -62,7 +62,7 @@ export function computeForwardVisibleInterval(
   const end = sCamera + dEnd;
   const start = sCamera + dMin;
   const segments = guide.raster.segments;
-  for (let index = profileIndexAt(segments, 'sStart', start); index < segments.length; index += 1) {
+  for (let index = knotIndexAt(segments, 'sStart', start); index < segments.length; index += 1) {
     const segment = segments[index]!;
     if (segment.sStart >= end - VISIBLE_INTERVAL_TOLERANCE_METERS) break;
     const facing = Math.cos(segment.heading - cameraYaw);
@@ -86,7 +86,8 @@ export interface TerrainRenderParameters {
   dMax: number;
   groundLeft: number;
   groundRight: number;
-  height: HeightProfileReader;
+  height: ProfilePolylineReader;
+  physicalHeight: import('../course/geometry/profile.js').ProfileReader;
   visual: VisualProfileReader;
   /** Collapse threshold in destination scanline units. Defaults to one row. */
   thinSpanScreenRows?: number;
@@ -162,7 +163,7 @@ export function generateTerrainLines(
   // Use authored boundaries directly: rounding cannot strand a cursor before a vertex.
   boundaries.push(start, end);
   appendVisibleBoundaries(boundaries, guide.raster.segments, 'sStart', start, end);
-  appendVisibleBoundaries(boundaries, parameters.height.nodes, 's', start, end);
+  appendVisibleBoundaries(boundaries, parameters.height.knots, 's', start, end);
   appendVisibleBoundaries(boundaries, parameters.visual.sections, 'sStart', start, end);
   boundaries.sort(ascending);
   let count = 0;
@@ -176,7 +177,7 @@ export function generateTerrainLines(
     const intervalLength = intervalEnd - local;
     const d0 = local - camera.s;
     const d1 = intervalEnd - camera.s;
-    const heightStart = parameters.height.sampleRender(local, workspace.height);
+    const heightStart = parameters.height.sample(local, workspace.height);
     const grade = heightStart.grade;
     const yIntercept = heightStart.y - grade * d0;
     const aY = yH - f * grade * cosPitch;
@@ -268,7 +269,7 @@ function createTerrainLine(
   workspace: TerrainWorkspace,
 ): TerrainLine | null {
   const s = camera.s + d;
-  const renderHeight = parameters.height.sampleRender(s, workspace.height).y;
+  const renderHeight = parameters.height.sample(s, workspace.height).y;
   rasterCoordinateToWorld(guide.raster, s, -parameters.groundLeft, workspace.left);
   rasterCoordinateToWorld(guide.raster, s, parameters.groundRight, workspace.right);
   workspace.left.y = renderHeight;
@@ -317,7 +318,7 @@ function appendVisibleBoundaries<T, K extends keyof T>(
   start: number,
   end: number,
 ): void {
-  for (let i = profileIndexAt(entries, key, start) + 1; i < entries.length; i += 1) {
+  for (let i = knotIndexAt(entries, key, start) + 1; i < entries.length; i += 1) {
     const s = entries[i]![key] as number;
     if (s >= end) break;
     out.push(s);

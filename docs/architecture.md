@@ -46,7 +46,7 @@ Terrain and rendering use `RasterGeometry`: finite length, segment stations/head
 
 Vec2/Vec3 are readonly values. Sampling APIs with caller-owned outputs return borrowed observations
 valid until those outputs are reused. Compiled sources are immutable; actors and consumers own live state.
-RasterPath, HeightProfile, VisualProfile and ground appearance have finite domain `[0,L]`.
+RasterPath, Profile, VisualProfile and ground appearance have finite domain `[0,L]`.
 Profile endpoints normalize within 1e-9 m; plan/Raster sampling uses 1e-8 m. Nonfinite source values fail.
 At a primitive or Raster boundary, the successor owns the interior station; the terminal endpoint uses
 the final primitive/segment.
@@ -116,8 +116,20 @@ filters do not change point ownership.
 
 ## Height and projection
 
-Ground height is `Y(s,l)=Y(s)`. Rendering uses piecewise-linear height; physics and camera use the
-same smooth HeightProfile. `mapToRenderSpace` in `src/view/render-space-mapping.ts` maps every drawn
+Ground height is `Y(s,l)=Y(s)`. Authored Profile Knots are PVIs `(sᵢ,yᵢ,Lᵢ)`.
+Between PVIs, tangent grade is `gᵢ=(yᵢ₊₁-yᵢ)/(sᵢ₊₁-sᵢ)`. For a nonzero
+curve of length `Lᵢ`, let `x=s-(sᵢ-Lᵢ/2)`, `g₋=gᵢ₋₁`, and `g₊=gᵢ`.
+The authoritative parabola is `Y=yᵢ-g₋Lᵢ/2+g₋x+(g₊-g₋)x²/(2Lᵢ)` and
+`dY/ds=g₋+(g₊-g₋)x/Lᵢ`. Between curve tangencies,
+`Y=yᵢ+gᵢ(s-sᵢ)` and `dY/ds=gᵢ`. A zero-length curve is a grade corner
+at its PVI. Endpoint curves have zero length; adjacent curves do not overlap.
+
+`ProfileReader` gives physics and camera analytic Y and dY/ds.
+`ProfilePolylineReader` gives rendering a derived linear Y, grade and distance
+until its next vertex. Its stations include each curve tangency and each
+zero-length PVI. Each positive-length parabola is divided into `ceil(L/2 m)`
+equal intervals (maximum 2 m). Vertices sample the authoritative profile at
+exactly the same s. `mapToRenderSpace` in `src/view/render-space-mapping.ts` maps every drawn
 position from road-relative `(s,l,physicalY)`: its XZ comes from the view Raster Reader and its Y
 preserves physical clearance above local ground against rendering height. Ground rows, Band and
 Region positions use the same Raster ruler as vehicles and course sprites. Orientation remains the

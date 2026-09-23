@@ -88,21 +88,29 @@ export function courseOverlapRegions(port: CompiledPort, start: number, end: num
     .sort((a, b) => a.left + a.leftEnd - (b.left + b.leftEnd));
 }
 
-/** Complete source height segments, not a seam-centre sample; also bounds smooth camera/physical height. */
+/** The complete analytic interval must be horizontal, including each parabola. */
 export function courseOverlapHeight(port: CompiledPort, overlap: CompiledLink['overlap'], path: string): number {
   const start = port.anchor.s - overlap.behind,
     end = port.anchor.s + overlap.ahead;
-  const nodes = port.section.height.nodes;
-  for (let i = 1; i < nodes.length; i += 1) {
-    const a = nodes[i - 1]!,
-      b = nodes[i]!;
-    if (a.s < end && b.s > start)
-      requireCourse(
-        a.y === b.y,
-        path,
-        'Common overlap must be horizontal throughout the complete height segments intersecting its guard',
-        'nonhorizontal_overlap',
-      );
+  const profile = port.section.height;
+  const stations = [
+    start,
+    end,
+    ...profile.knots.flatMap((k) => [k.s - k.curveLength / 2, k.s, k.s + k.curveLength / 2]),
+  ]
+    .filter((s) => s >= start && s <= end)
+    .sort((a, b) => a - b);
+  const y = profile.sample(start);
+  for (let i = 1; i < stations.length; i++) {
+    const a = stations[i - 1]!,
+      b = stations[i]!;
+    if (b === a) continue;
+    requireCourse(
+      profile.sampleDifferential((a + b) / 2).dYdS === 0 && profile.sample(a) === y && profile.sample(b) === y,
+      path,
+      'Common overlap must be horizontal throughout its guard',
+      'nonhorizontal_overlap',
+    );
   }
-  return port.section.height.samplePhysics(port.anchor.s);
+  return profile.sample(port.anchor.s);
 }

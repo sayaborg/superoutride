@@ -192,7 +192,7 @@ export function updateCamera(
     profile.focalLength / profile.dCam,
   );
 
-  const groundHeight = height.sampleCamera(sCamera);
+  const groundHeight = height.sample(sCamera);
   const baseY = groundHeight + profile.height;
   // Body pitch is nose-up-positive; pseudo-camera pitch is downward-positive. Subtracting the
   // body angle keeps the authored base view pitch constant relative to the vehicle, leaving yaw as

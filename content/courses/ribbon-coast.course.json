@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 13,
+  "version": 14,
   "id": "ribbon-coast",
   "reference": null,
   "units": { "length": "m", "angle": "deg" },
@@ -157,14 +157,26 @@
         }
       ],
       "height": [
-        { "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 }, "y": 0 },
-        { "anchor": { "kind": "primitive", "primitiveId": "fit-002", "fraction": 0 }, "y": 0 },
-        { "anchor": { "kind": "primitive", "primitiveId": "fit-003", "fraction": 0.5 }, "y": 11.200000000000001 },
-        { "anchor": { "kind": "primitive", "primitiveId": "fit-004", "fraction": 0 }, "y": 11.200000000000001 },
-        { "anchor": { "kind": "primitive", "primitiveId": "fit-005", "fraction": 0.5999999999999999 }, "y": -4 },
-        { "anchor": { "kind": "primitive", "primitiveId": "fit-006", "fraction": 0 }, "y": -4 },
-        { "anchor": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 0.5 }, "y": 0 },
-        { "anchor": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 1 }, "y": 0 }
+        { "anchor": { "kind": "primitive", "primitiveId": "fit-001", "fraction": 0 }, "y": 0, "curveLength": 0 },
+        { "anchor": { "kind": "primitive", "primitiveId": "fit-002", "fraction": 0 }, "y": 0, "curveLength": 24 },
+        {
+          "anchor": { "kind": "primitive", "primitiveId": "fit-003", "fraction": 0.5 },
+          "y": 11.200000000000001,
+          "curveLength": 24
+        },
+        {
+          "anchor": { "kind": "primitive", "primitiveId": "fit-004", "fraction": 0 },
+          "y": 11.200000000000001,
+          "curveLength": 24
+        },
+        {
+          "anchor": { "kind": "primitive", "primitiveId": "fit-005", "fraction": 0.5999999999999999 },
+          "y": -4,
+          "curveLength": 24
+        },
+        { "anchor": { "kind": "primitive", "primitiveId": "fit-006", "fraction": 0 }, "y": -4, "curveLength": 24 },
+        { "anchor": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 0.5 }, "y": 0, "curveLength": 24 },
+        { "anchor": { "kind": "primitive", "primitiveId": "fit-007", "fraction": 1 }, "y": 0, "curveLength": 0 }
       ],
       "physicalBindings": [
         {

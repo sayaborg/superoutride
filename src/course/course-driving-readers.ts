@@ -4,7 +4,7 @@ import { dot, subtract, tangentFromHeading, normalFromHeading, wrapAngle, type V
 import { invertPlanarTransform } from '../core/planar-transform.js';
 import { rasterPathToWorld } from './geometry/raster-path.js';
 import type { RasterCoordinateReader, RasterGeometry } from './geometry/raster-coordinate-reader.js';
-import type { HeightProfileReader } from './geometry/height-profile.js';
+import type { ProfileReader, ProfilePolylineReader } from './geometry/profile.js';
 import type { CompiledSection } from './compiler/course-graph.js';
 import type { compileCoursePhysicalDomains } from './compiler/course-physical-overlap.js';
 import { createRegionSurfaceReader } from './region-surface-reader.js';
@@ -80,45 +80,51 @@ export function createCourseDrivingReaders(physical: Physical) {
       headingInFrame,
     });
 
-    const nodes = mapped
+    const renderKnots = mapped
       .flatMap((mapping) => {
         const section = mapping.occurrence.section;
         return [
           ...new Set([
             mapping.sourceRange.start,
-            ...section.height.nodes
+            ...section.renderHeight.knots
               .map((n) => n.s)
               .filter((s) => s > mapping.sourceRange.start && s < mapping.sourceRange.end),
             mapping.sourceRange.end,
           ]),
-        ].map((s) => Object.freeze({ s: activeS(mapping, s), y: section.height.sampleRender(s).y }));
+        ].map((s) => Object.freeze({ s: activeS(mapping, s), y: section.renderHeight.sample(s).y }));
       })
       .filter((n, i, list) => i === 0 || n.s !== list[i - 1]!.s);
-    const height: HeightProfileReader = Object.freeze({
+    const renderHeight: ProfilePolylineReader = Object.freeze({
       courseLength: view.availableRange.end,
-      nodes: Object.freeze(nodes),
-      sampleRender(s: number, out = { y: 0, grade: 0, segmentIndex: 0, sStart: 0, sEnd: 0 }) {
+      knots: Object.freeze(renderKnots),
+      sample(s: number, out = { y: 0, grade: 0, segmentIndex: 0, sStart: 0, sEnd: 0 }) {
         const m = mappingAt(s);
-        m.occurrence.section.height.sampleRender(m.sourceChainageInFrame(s), out);
+        m.occurrence.section.renderHeight.sample(m.sourceChainageInFrame(s), out);
         out.sStart = activeS(m, Math.max(m.sourceRange.start, out.sStart));
         out.sEnd = activeS(m, Math.min(m.sourceRange.end, out.sEnd));
         return out;
       },
-      samplePhysics(s: number) {
-        const m = mappingAt(s);
-        return m.occurrence.section.height.samplePhysics(m.sourceChainageInFrame(s));
-      },
-      samplePhysicsDifferential(s: number, out = { y: 0, dYdS: 0 }) {
-        const m = mappingAt(s);
-        return m.occurrence.section.height.samplePhysicsDifferential(m.sourceChainageInFrame(s), out);
-      },
-      sampleCamera(s: number) {
-        const m = mappingAt(s);
-        return m.occurrence.section.height.sampleCamera(m.sourceChainageInFrame(s));
-      },
-      distanceToNextRenderNode(s: number) {
+      distanceToNextKnot(s: number) {
         const { address, mapping, section } = resolve(s, 0);
-        return Math.min(section.height.distanceToNextRenderNode(address.sourceS), mapping.frameEnd - s);
+        return Math.min(section.renderHeight.distanceToNextKnot(address.sourceS), mapping.frameEnd - s);
+      },
+    });
+    const height: ProfileReader = Object.freeze({
+      courseLength: view.availableRange.end,
+      knots: Object.freeze(
+        mapped.flatMap((m) =>
+          m.occurrence.section.height.knots
+            .filter((k) => k.s >= m.sourceRange.start && k.s <= m.sourceRange.end)
+            .map((k) => Object.freeze({ ...k, s: activeS(m, k.s) })),
+        ),
+      ),
+      sample(s: number) {
+        const m = mappingAt(s);
+        return m.occurrence.section.height.sample(m.sourceChainageInFrame(s));
+      },
+      sampleDifferential(s: number, out = { y: 0, dYdS: 0 }) {
+        const m = mappingAt(s);
+        return m.occurrence.section.height.sampleDifferential(m.sourceChainageInFrame(s), out);
       },
     });
     const raster: RasterCoordinateReader = Object.freeze({
@@ -172,11 +178,12 @@ export function createCourseDrivingReaders(physical: Physical) {
         frame: active,
         range,
         world,
+        renderHeight,
         geometry,
         mapping: Object.freeze({ mapped, check, mappingAt, resolve, activeS }),
         metadata: Object.freeze({
           rasterSegments: raster.segments.length,
-          heightNodes: nodes.length,
+          heightNodes: renderKnots.length,
         }),
       }),
     });

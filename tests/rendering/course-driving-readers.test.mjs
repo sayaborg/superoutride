@@ -88,7 +88,7 @@ test('rendering overlays the same immutable occurrence mappings across forward a
         if (s < view.range.start || s > view.range.end) continue;
         const owner = view.mapping.mappingAt(s);
         assert.equal(view.mapping.resolve(s, 0).address.occurrence, owner.occurrence);
-        assert.ok(Number.isFinite(view.world.height.sampleCamera(s)));
+        assert.ok(Number.isFinite(view.world.height.sample(s)));
         assert.ok(result.value.visual.sample(s));
         assert.ok(result.value.backgroundAt(s));
       }

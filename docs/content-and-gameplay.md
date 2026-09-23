@@ -20,7 +20,7 @@ structural partitions with material bindings. One concept has one name in both s
 Checkpoints, starts, finishes and environment changes are independent of Section boundaries.
 Source identity, traversal identity and race credit are distinct.
 
-## CourseDocument v13
+## CourseDocument v14
 
 The saved format is compact UTF-8 JSON. All declared fields are required; explicit null represents
 absent optional content. Unknown fields fail. Arrays preserve saved order; object-property order and
@@ -28,7 +28,7 @@ whitespace do not affect identity. Normalized records use schema field order and
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 13,
+  format: "superoutride.course", version: 14,
   reference, id, units: {length: "m", angle: "deg"},
   geometryRecipe: {id, version},
   type: "LINEAR" | "BRANCH" | "CIRCUIT", entrySectionId,
@@ -36,7 +36,7 @@ CourseDocument {
 }
 Section {
   id, start: {x, z, heading}, primitives,
-  boundaries, regions, height: [{anchor, y}],
+  boundaries, regions, height: [{anchor, y, curveLength}],
   physicalBindings: [{regionId, sections: [{anchor, material}]}],
   carriageways, ports, assetIds, presentation, fork
 }
@@ -184,7 +184,7 @@ bindings and 256 material changes per binding. Compiled Section limits are 16384
 
 ## Geometry recipe and bindings
 
-The saved `geometryRecipe` field is `{id,version}`; CourseDocument v13 admits
+The saved `geometryRecipe` field is `{id,version}`; CourseDocument v14 admits
 `superoutride.plan-raster` version 1. The saved straight, circular-arc, absolute-anchor and
 primitive-anchor fields are listed above. [Architecture](architecture.md#plan-authority-and-raster)
 owns their planar interpretation, Raster derivation, coordinate domain and geometric validation.
@@ -208,8 +208,9 @@ birth/death endpoints use the same rule. Roles name structure; appearance and ph
 `[start,end)`, with the terminal included when the Region ends at Section length. At a switch,
 starting/continuing Regions own the point. Invalid or nonfinite queries fail with RangeError.
 
-Height nodes resolve on the same ruler, are strictly increasing and include exactly zero and L.
-They produce finite render and physical grades through Core HeightProfile.
+Profile Knots resolve on the same ruler, increase strictly and include exactly zero and L.
+`curveLength` is nonnegative in metres; endpoint lengths are zero and adjacent curves do not overlap.
+[Architecture](architecture.md#height-and-projection) defines the analytic profile and derived rendering polyline.
 
 Every Region has one explicit piecewise-constant physical binding beginning at its activation;
 subsequent changes precede its end. Materials are ASPHALT, SHOULDER, GRASS, DIRT, SAND or VOID.

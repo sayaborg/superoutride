@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 13,
+  "version": 14,
   "reference": null,
   "id": "ribbon-fork",
   "units": { "length": "m", "angle": "deg" },
@@ -149,8 +149,8 @@
         }
       ],
       "height": [
-        { "anchor": { "kind": "absolute", "s": 0 }, "y": 0 },
-        { "anchor": { "kind": "primitive", "primitiveId": "run", "fraction": 1 }, "y": 0 }
+        { "anchor": { "kind": "absolute", "s": 0 }, "y": 0, "curveLength": 0 },
+        { "anchor": { "kind": "primitive", "primitiveId": "run", "fraction": 1 }, "y": 0, "curveLength": 0 }
       ],
       "physicalBindings": [
         { "regionId": "initial", "sections": [{ "anchor": { "kind": "absolute", "s": 0 }, "material": "ASPHALT" }] },
@@ -397,8 +397,8 @@
         }
       ],
       "height": [
-        { "anchor": { "kind": "absolute", "s": 0 }, "y": 0 },
-        { "anchor": { "kind": "primitive", "primitiveId": "run", "fraction": 1 }, "y": 0 }
+        { "anchor": { "kind": "absolute", "s": 0 }, "y": 0, "curveLength": 0 },
+        { "anchor": { "kind": "primitive", "primitiveId": "run", "fraction": 1 }, "y": 0, "curveLength": 0 }
       ],
       "physicalBindings": [
         { "regionId": "road", "sections": [{ "anchor": { "kind": "absolute", "s": 0 }, "material": "ASPHALT" }] },
@@ -546,8 +546,8 @@
         }
       ],
       "height": [
-        { "anchor": { "kind": "absolute", "s": 0 }, "y": 0 },
-        { "anchor": { "kind": "primitive", "primitiveId": "run", "fraction": 1 }, "y": 0 }
+        { "anchor": { "kind": "absolute", "s": 0 }, "y": 0, "curveLength": 0 },
+        { "anchor": { "kind": "primitive", "primitiveId": "run", "fraction": 1 }, "y": 0, "curveLength": 0 }
       ],
       "physicalBindings": [
         { "regionId": "road", "sections": [{ "anchor": { "kind": "absolute", "s": 0 }, "material": "ASPHALT" }] },
@@ -701,8 +701,8 @@
         }
       ],
       "height": [
-        { "anchor": { "kind": "absolute", "s": 0 }, "y": 0 },
-        { "anchor": { "kind": "primitive", "primitiveId": "run", "fraction": 1 }, "y": 0 }
+        { "anchor": { "kind": "absolute", "s": 0 }, "y": 0, "curveLength": 0 },
+        { "anchor": { "kind": "primitive", "primitiveId": "run", "fraction": 1 }, "y": 0, "curveLength": 0 }
       ],
       "physicalBindings": [
         { "regionId": "road", "sections": [{ "anchor": { "kind": "absolute", "s": 0 }, "material": "ASPHALT" }] },

@@ -8,7 +8,7 @@ import {
 import { type Writable } from '../../core/writable.js';
 import { SURFACE_MATERIALS } from '../../course/surface-material.js';
 import { resetVehicleTireObservation } from './vehicle-tire-observation.js';
-import type { HeightProfileReader } from '../../course/geometry/height-profile.js';
+import type { ProfileReader } from '../../course/geometry/profile.js';
 import type { AutomaticPowertrainState } from './automatic-powertrain.js';
 import type { SurfaceMapReader } from '../../course/vehicle-world.js';
 import type { SurfaceMaterial, SurfaceType } from '../../course/surface-material.js';
@@ -256,7 +256,7 @@ export function createSurfaceGeometryWorkspace() {
 
 export function sampleSurfaceGeometryAtCoordinate(
   coordinates: PlanCoordinateReader,
-  height: HeightProfileReader,
+  height: ProfileReader,
   surfaces: SurfaceMapReader,
   coordinate: PlanCoordinateProjection,
   workspace: ReturnType<typeof createSurfaceGeometryWorkspace>,
@@ -265,7 +265,7 @@ export function sampleSurfaceGeometryAtCoordinate(
   const planSample = coordinates.toWorld(coordinate.s, coordinate.l, workspace.planSample);
   const { curvature, offsetMetric } = coordinates.metricsAt(coordinate.s, coordinate.l, workspace.metrics);
   if (!(offsetMetric > 0)) throw new RangeError('surface offset metric A=1-kappa*l must remain > 0');
-  const heightSample = height.samplePhysicsDifferential(coordinate.s, workspace.height);
+  const heightSample = height.sampleDifferential(coordinate.s, workspace.height);
   const heightDerivativeByS = heightSample.dYdS;
   const horizontalTangent = out.horizontalTangent,
     right = out.right;
@@ -342,7 +342,7 @@ type ContactWorkspace = ReturnType<typeof createContactWorkspace>;
 /** One ordinary contact solve; reusable storage changes no physical operation. */
 export function deriveContactObservation(
   coordinates: PlanCoordinateReader,
-  height: HeightProfileReader,
+  height: ProfileReader,
   surfaces: SurfaceMapReader,
   body: BodyKinematics,
   station: ContactStationProfile,

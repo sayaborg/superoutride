@@ -1,5 +1,5 @@
 import type { RasterGeometry } from '../course/geometry/raster-coordinate-reader.js';
-import type { HeightProfileReader } from '../course/geometry/height-profile.js';
+import type { ProfileReader, ProfilePolylineReader } from '../course/geometry/profile.js';
 import { pseudoDepth, pseudoProject, type PseudoCamera, type PseudoProjection } from './projection.js';
 import { createRenderSpacePosition, mapToRenderSpace } from './render-space-mapping.js';
 import type { SpriteAsset } from '../image/sprite.js';
@@ -35,14 +35,23 @@ export type CourseSpriteInput = readonly CourseSprite[] | CourseSpriteReader;
 
 export function compileCourseSprite(
   guide: RasterGeometry,
-  height: HeightProfileReader,
+  height: ProfileReader,
+  renderHeight: ProfilePolylineReader,
   source: CourseSpriteAuthoring,
 ): CourseSprite {
   const physicalY =
     source.y === undefined
-      ? height.samplePhysics(source.s) + (source.groundOffset ?? 0)
-      : source.y + height.samplePhysics(source.s) - height.sampleRender(source.s).y;
-  const position = mapToRenderSpace(guide, height, source.s, source.l, physicalY, createRenderSpacePosition());
+      ? height.sample(source.s) + (source.groundOffset ?? 0)
+      : source.y + height.sample(source.s) - renderHeight.sample(source.s).y;
+  const position = mapToRenderSpace(
+    guide,
+    height,
+    renderHeight,
+    source.s,
+    source.l,
+    physicalY,
+    createRenderSpacePosition(),
+  );
   return {
     name: source.name,
     x: position.x,

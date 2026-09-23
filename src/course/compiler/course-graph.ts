@@ -1,6 +1,6 @@
 import type { SectionPlanCoordinateReader } from '../geometry/plan-coordinate.js';
 import type { RasterPath } from '../geometry/raster-path.js';
-import type { HeightProfileReader } from '../geometry/height-profile.js';
+import type { ProfileReader, ProfilePolylineReader } from '../geometry/profile.js';
 import type { PlanarPose, PlanarTransform } from '../../core/planar-transform.js';
 import type { SectionDocument } from '../course-document.js';
 import type { CompiledCourseImageSource } from './course-image-source.js';
@@ -18,7 +18,8 @@ export interface CompiledSection {
   readonly coordinates: SectionPlanCoordinateReader;
   readonly boundaries: readonly CompiledBoundary[];
   readonly regionPartition: CompiledRegionPartition;
-  readonly height: HeightProfileReader;
+  readonly height: ProfileReader;
+  readonly renderHeight: ProfilePolylineReader;
   readonly physicalBindings: readonly CompiledPhysicalBinding<SurfaceMaterial>[];
   readonly carriageways: readonly CompiledCarriageway[];
   readonly assets: readonly CompiledCourseImageSource[];

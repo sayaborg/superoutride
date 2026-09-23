@@ -4,7 +4,7 @@ import type { CompiledSection } from '../course/compiler/course-graph.js';
 import type { compileCoursePhysicalDomains } from '../course/compiler/course-physical-overlap.js';
 import type { compileCoursePresentationDomains } from '../course/compiler/course-presentation-overlap.js';
 import type { createCourseDrivingReaders } from '../course/course-driving-readers.js';
-import { profileIndexAt } from '../course/geometry/open-profile.js';
+import { knotIndexAt } from '../course/geometry/knot-sequence.js';
 import type { VisualProfileReader } from '../course/visual-profile.js';
 import { transformPlanarPoint } from '../core/planar-transform.js';
 import { createCourseRenderResources } from './course-render-resources.js';
@@ -41,6 +41,7 @@ export function createCourseDrivingViewSource(fields: CourseGround, physical: Ph
         section.presentation,
         { length: section.raster.length, raster: section.raster },
         section.height,
+        section.renderHeight,
       );
       presentations.set(section, value);
     }
@@ -84,11 +85,11 @@ export function createCourseDrivingViewSource(fields: CourseGround, physical: Ph
       sections: visualSections,
       sample(s: number) {
         check(s);
-        return visualSections[profileIndexAt(visualSections, 'sStart', s)]!;
+        return visualSections[knotIndexAt(visualSections, 'sStart', s)]!;
       },
       distanceToNextSection(s: number) {
         check(s);
-        const index = profileIndexAt(visualSections, 'sStart', s);
+        const index = knotIndexAt(visualSections, 'sStart', s);
         return (visualSections[index + 1]?.sStart ?? range.end) - s;
       },
     });
@@ -149,7 +150,7 @@ export function createCourseDrivingViewSource(fields: CourseGround, physical: Ph
           const { address, mapping: physicalMapping } = resolve(s, 0),
             mapping = presentationAt.get(physicalMapping)!,
             source = mapping.presentation,
-            background = source.backgrounds[profileIndexAt(source.visual.sections, 'sStart', address.sourceS)]!;
+            background = source.backgrounds[knotIndexAt(source.visual.sections, 'sStart', address.sourceS)]!;
           return mapping.backgrounds[source.backgrounds.indexOf(background)]!;
         },
       }),
