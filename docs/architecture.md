@@ -23,32 +23,22 @@ distance along an offset or sloping path is different.
 occurrences. `CompiledSection.coordinates` and `VehicleWorld.coordinates` expose this same type:
 
 - `domain.start` and `domain.end` bound the admitted s interval; `domain.lateralAt(s,out)` gives its
-  closed asymmetric `[left,right]` bounds. A Section takes the outermost active Region edges and adds
-  `PLAN_COORDINATE_MARGIN_METERS` (4 m) on each outside edge. An occurrence subtracts its mapped
-  lateral origin from both edges. Coordinate bounds do not define material support.
+  closed asymmetric `[left,right]` bounds. An occurrence subtracts its mapped lateral origin from both
+  edges. Coordinate bounds do not define material support.
 - `toWorld(s,l,out)` reads world X/Z, heading and a `PlanProjectionSeed`. `metricsAt(s,l,seed,out)`
   reads `kappa`, centerline metric 1 and offset metric `J = 1-kappa*l`. Native and mapped readers use
   their own frame.
 - `locateLocal(world,seed,searchRadius,out,workspace)` projects within a finite local neighborhood,
-  without lateral clamping or a global-search fallback. Seeds come from this reader's samples or
-  projections, not from consumer arithmetic; mapped seeds identify an occurrence and its native primitive.
-  Spawn and recovery supply known seeds. Invalid or unretained projection seeds fail explicitly.
+  without lateral clamping or a global-search fallback. The seed must have been issued by the same Reader
+  and remain admitted by its Window. Invalid seeds, radii or retained coverage fail explicitly.
 
 `PlanCoordinateSample` and `PlanCoordinateProjection` are borrowed observations in caller-owned outputs.
-`PlanProjectionWorkspace` holds reusable numerical scratch, separate from vehicle state. The Section
-implementation owns the authored primitive geometry. Its `SectionPlanCoordinateReader` extends the common
-query contract with `seedCount` and `projectionCandidates(start,end)`; mapped readers use only these
-Section queries, not primitive-kind branches. Native seeds are dense primitive indices in
-`[0,seedCount)`, ordered along s.
-
-Candidate queries require a closed interval inside the Section domain and return an immutable ordered
-list of positive-length intersections. Each candidate exposes its clipped interval, complete native
-extent, conservative centerline XZ bounds and `project(world,out,workspace)`. Projection stays inside
-that clipped interval, returns native s/l and seed, and reports squared distance to the native centerline
-without lateral clamping. Candidate records and their nested bounds/extents are immutable.
-Occurrence seed capacity comes from the complete admitted physical product's Section Readers, including
-the active Section, rather than the retained window. Rebuilding a window preserves retained seed identities.
-Geometry construction and its geometric proofs inspect their compiled primitives.
+`PlanProjectionWorkspace` holds reusable numerical scratch, separate from vehicle state.
+`SectionPlanCoordinateReader` adds `seedCount` and `projectionCandidates(start,end)` for mapped
+composition. The requested interval must lie inside the Section domain. Candidate queries return
+source-ordered positive-length coverage of that interval; candidate projection remains inside its interval
+and returns native s/l/seed without lateral clamping. Invalid intervals or incomplete retained search
+coverage fail explicitly. Geometry construction and its geometric proofs inspect compiled primitives.
 Terrain and rendering use `RasterGeometry`: finite length, segment stations/headings and point mapping.
 
 Vec2/Vec3 are readonly values. Sampling APIs with caller-owned outputs return borrowed observations
@@ -75,7 +65,9 @@ A straight has `kappa=0`. A circular arc of radius `R` and signed turn has
 `kappa=sign(turn)/R`; its length is `R*abs(turnRadians)`. Primitive-anchor fractions therefore advance
 linearly in true arc length. Section projection onto a straight or circular arc uses closed-form geometry.
 
-The physical coordinate chart must satisfy `J = 1-kappa*l > 0` across its complete lateral domain.
+At each s, the Section lateral domain runs from the leftmost active Region edge minus
+`PLAN_COORDINATE_MARGIN_METERS` to the rightmost active Region edge plus that margin; the margin is 4 m.
+The physical coordinate chart must satisfy `J = 1-kappa*l > 0` across this complete lateral domain.
 Compilation checks every circular primitive against all incident Region-domain stations. A failure is the
 structured `plan_coordinate_inversion` authoring diagnostic and identifies the Section, primitive and s.
 This condition belongs to the physical plan chart only.
@@ -95,15 +87,14 @@ local seed and height identify a passage.
 
 Boundary profiles are piecewise linear on the authoritative s ruler. Width and center are derived from
 their edges. Region validation divides at boundary knots and activation changes; paint changes do not
-divide physical geometry. The old Raster-Jacobian authoring rejection is not part of this contract.
+divide physical geometry.
 
 `compileCourseGeometryWindow` accepts the canonical Raster, Section coordinate Reader, compiled
 primitives and Region partition over a positive closed source interval. It returns an immutable
 `local-geometry` result for those references and that interval. Mismatched rulers or out-of-domain
 intervals fail. Nonadjacent Raster/plan construction hulls must separate within geometric sampling
 tolerance; otherwise `ambiguous_geometry` identifies the mapping and both source intervals. The limit
-is 1024 cells per mapping; `resource_limit` reports an excess. These conservative runtime window checks
-remain until Stage 6-4.
+is 1024 cells per mapping; `resource_limit` reports an excess.
 
 Point regions are half-open laterally: `[left(s),right(s))`. A shared edge belongs to the region on
 its right; the outer left edge is included and the outer right edge is outside. Zero-width endpoints
@@ -133,14 +124,14 @@ hills to overdraw earlier rows. A degenerate thin span occupies one row with its
 ## Camera and fixed metric
 
 The player reference is 2 m wide, 80 source texels and 80 screen pixels:
-`f/D_cam=40 px/m`, `D_cam=f/40`. Current `f=200 px`, `D_cam=5 m` and near/far depths are 2.5/200 m.
+`f/D_cam=40 px/m`, `D_cam=f/40`. `f=200 px`, `D_cam=5 m` and near/far depths are 2.5/200 m.
 FOV changes preserve this metric. Ground and sprites share this depth interval.
 
 Camera chainage is `s_vehicle-D_cam`; its XZ offset uses body yaw by default or movement yaw as the
 alternate. The observer's shell owns the camera rig; rivals have no camera. After a committed
 frame change the shell applies the reported yaw rotation to yaw and movementYaw before the next
 camera update. Camera vertical state is unchanged by the frame transform. Horizontal centering follows projection. Vertical follow is bounded and smoothed, body
-pitch offsets downward base pitch, and camera roll is zero. Current camera values are 12 degrees
+pitch offsets downward base pitch, and camera roll is zero. Camera values are 12 degrees
 base pitch, player anchor row 190, 0.22 s vertical-follow time constant and 4 m correction bound.
 
 ## Ground and background

@@ -77,13 +77,13 @@ The derivation uses `c=sqrt(gamma*R*T)`, the open-end negative reflection limit,
 `mu0=1.716e-5 Pa s`, `T0=273 K` and `S=111 K`; density is `p/(R*T)` and `nu=mu/density`.
 The resulting loss is about 0.034 Np/m before rounding. These are fixed reference coefficients.
 
-## Current mix and lifetime
+## Mix and lifetime
 
 [Audio engine](../src/audio/audio-engine.ts) owns three fixed worklets: player engine, selected rival
 engine and player tires. The nearest rival within 100 physical world metres occupies the rival slot.
 Its gain uses 3D distance and its pan uses lateral displacement in the player's yaw frame.
 A rival change fades before reusing the slot. ENG, TIRE and MASTER independently multiply their
-current outputs. Component output switches leave synthesis state running.
+outputs. Component output switches leave synthesis state running.
 
 The shared control-following constant is 25 ms and transition duration is 90 ms. Engine profile/tuning
 replacement fades to silence before installing a new kernel. New settings supersede pending values;

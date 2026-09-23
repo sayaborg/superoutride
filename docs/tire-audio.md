@@ -4,7 +4,7 @@ UNIFIED is an authored sound surrogate with independent front and rear sources. 
 rotation-driven rolling output R and a shared-friction resonator output Q. Coefficients describe this
 normalized acoustic model rather than measured rubber properties or acoustic power.
 [Audio](audio.md) owns the graph and lifetime, [Calibration](calibration.md#unified-tire-settings) owns
-current values, and [Browser](browser.md#sound-controls) owns controls.
+values, and [Browser](browser.md#sound-controls) owns controls.
 
 ## Observation transport
 

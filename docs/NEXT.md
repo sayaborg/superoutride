@@ -5,13 +5,13 @@
 - One compiled graph scene serves RIBBON COAST, RIBBON FORK and RIBBON RING with CLASSIC/CUSTOM Sessions.
 - Ground is Band-only, with LEVEL-POINT as the default of three display methods; sprites are indexed.
   BG is one infinite tiled plane with sine mapping.
-- Build currently generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
+- Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
 Next PR: **6-3 — Rendering-space mapping**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
-Current contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
+Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
 PRs hold rationale and verification evidence.
 
 ## Stage 6 — Authoritative geometry
@@ -19,15 +19,15 @@ PRs hold rationale and verification evidence.
 Make authored plan and vertical geometry authoritative, with rendering-only approximations and simpler connections.
 
 - **6-3 — Rendering-space mapping:** derive vehicle and camera positions from (s, l, h), with orientation from physical yaw.
-- **6-4 — Coordinate-domain injectivity:** check injectivity at compilation and remove runtime geometry checks.
-- **6-5 — Dead planar remnants:** remove `src/course/geometry/guide-curve.ts`, `src/course/geometry/guide-envelope.ts`, `src/course/raster-turtle.ts`, Raster `sourceRadius` provenance and Guide-era unused projection-workspace scratch; then simplify any now-redundant metric surface. Keep live geometry-window and `maxSupportedAbsL` work in their owning later stages.
+- **6-4 — Coordinate-domain injectivity:** check injectivity at compilation and remove runtime geometry checks. Redefine projection search range in one unit: Section Readers count primitives while mapped Readers count 50 m candidates, with `PLAN_PROJECTION_CANDIDATE_MAX_METERS` adding a second tier. Make injectivity checks independent of Raster subdivision.
+- **6-5 — Dead planar remnants:** remove `src/course/geometry/guide-curve.ts`, `src/course/geometry/guide-envelope.ts`, `src/course/raster-turtle.ts`, Raster `sourceRadius` provenance, Guide-era unused projection-workspace scratch and `maxSupportedAbsL`; make tool reporting read the coordinate domain, then simplify any metric surface made redundant by those deletions. Geometry-window removal belongs to 6-4.
 - **6-6 — Vertical alignment:** PVIs and parabolas, allowing zero curve lengths with endpoint curve lengths set to zero; polyline rendering with separate authoritative and rendering Readers; rename HeightProfile/OpenProfile replacements according to the glossary.
 - **6-7 — Band tail cells:** truncate preblend cells at the Section end and separate compilation from sampling while preserving private compiled coefficient storage.
-- **6-8 — Cut-line seams:** replace overlaps with cut lines, remove Port, `Section.start` and overlap machinery, rename `Link.source` according to the glossary, and review the straight requirement for parallel fork intervals.
-- **6-9 — Views and occurrences:** minimize their procedures and name occurrence-view replacements (`createView`, `CourseGeometryView` and their adapters) according to the glossary.
+- **6-8 — Cut-line seams:** replace overlaps with cut lines, remove Port, `Section.start` and overlap machinery, rename `Link.source` according to the glossary, and review the straight requirement for parallel fork intervals. Rewrite provisional course lengths as round authored values rather than old-ruler compensation values such as `524.9207...`.
+- **6-9 — Views and occurrences:** minimize their procedures and name occurrence-view replacements (`createView`, `CourseGeometryView` and their adapters) according to the glossary. Define occurrence seed capacity from one value.
 - **6-10 — Local tolerances:** clarify each tolerance's basis and owning algorithm.
 
-## Stage 7 — Course format v14
+## Stage 7 — Course format
 
 Unify authored coordinates, appearance, delivery and progress in the course format.
 

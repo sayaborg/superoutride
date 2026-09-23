@@ -22,7 +22,7 @@ A persisted page restored from browser history reloads the page.
 
 ## Selection and URL parameters
 
-The current course selector maps `ribbon-coast` / RIBBON COAST / 1, `ribbon-ring` / RIBBON RING / 2
+The course selector maps `ribbon-coast` / RIBBON COAST / 1, `ribbon-ring` / RIBBON RING / 2
 and `ribbon-fork` / RIBBON FORK / 3.
 Digit-row and numeric-keypad shortcuts work; repeated keydown is ignored. Missing or unknown `mode`
 selects the first entry, RIBBON COAST.

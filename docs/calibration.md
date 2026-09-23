@@ -1,6 +1,6 @@
-# Current calibration values
+# Calibration values
 
-These tables describe the current authored settings. [Vehicle physics](vehicle-physics.md),
+These tables describe the authored settings. [Vehicle physics](vehicle-physics.md),
 [Audio](audio.md) and [Tire audio](tire-audio.md) define their models;
 [Browser](browser.md#dev-controls) defines the controls.
 
@@ -25,7 +25,7 @@ PX and PY are dimensionless slips. The defaults give `kX = kY = 31.5` under the
 The [tire selector](../src/shell/tire-friction-selection.ts) and
 [steering selector](../src/shell/steering-calibration-selection.ts) supply these browser values.
 
-| Setting               | Current value    | Meaning                                                      |
+| Setting               | Value            | Meaning                                                      |
 | --------------------- | ---------------- | ------------------------------------------------------------ |
 | Bike CG position      | 30% of wheelbase | Longitudinal CG location in the bike profiles                |
 | Handwheel ratio       | 18:1             | HUD road-wheel-to-handwheel conversion                       |

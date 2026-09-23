@@ -9,7 +9,7 @@ use a local heightfield approximation. The model separates these inputs:
 | Instance calibration     | Tire GX/PX/GY/PY/KN, driver steering offset D, mechanical rack bound M and steering traversal time ACT                |
 | Composition policy       | Fixed update step, TCS/ABS and two-wheel support protection                                                           |
 
-[Calibration](calibration.md) owns current values and selector ranges.
+[Calibration](calibration.md) owns values and selector ranges.
 [Content and gameplay](content-and-gameplay.md#recovery) owns recovery outside the mechanical domain.
 
 ## State and integration
@@ -34,9 +34,9 @@ Profile compilation requires positive finite quantities and feasible geometry.
 
 ## Surface and contact
 
-For Guide centerline metric `mu`, curvature `kappa`, lateral coordinate `l` and height derivative `h'`,
-require `A=1-kappa*l > 0`. Surface normal is proportional to
-`worldUp*A-horizontalTangent*(h'/mu)`; grade is `atan2(h'/mu,A)`.
+For centerline metric 1, curvature `kappa`, lateral coordinate `l` and height derivative `h'`,
+require `J=1-kappa*l > 0`. Surface normal is proportional to
+`worldUp*J-horizontalTangent*h'`; grade is `atan2(h',J)`.
 
 The free suspension reach offset is `forward*axleOffset-up*freeReach`, with velocity
 `v+omega cross offset`. Supported material and an upright body permit unilateral contact:

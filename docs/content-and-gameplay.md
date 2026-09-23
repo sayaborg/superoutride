@@ -184,22 +184,11 @@ bindings and 256 material changes per binding. Compiled Section limits are 16384
 
 ## Geometry recipe and bindings
 
-The geometry recipe is `superoutride.plan-raster` version 1. The authored straight/circular primitive
-sequence defines the Section plan. Straight length is its authored length; a circular arc has true length
-`radius*abs(turnRadians)`. Each primitive has that exact resolved interval, and primitive-anchor fractions
-use `start+fraction*(end-start)`. Absolute anchors keep their numeric true-chainage value.
-
-Raster is derived for drawing only. Straights emit `ceil(length/50)` equal-s intervals and arcs emit
-`ceil(abs(turnDegrees)/5)` equal-angle intervals. Every emitted vertex is an exact point on the
-authoritative primitive at the same s station, so Raster and plan have the same Section length even though
-a Raster segment is a chord.
-
-The Section coordinate domain at s is
-`[leftmost active Region edge - 4 m, rightmost active Region edge + 4 m]`. The 4 m value is the
-engine constant `PLAN_COORDINATE_MARGIN_METERS`, not authored data. For every circular primitive,
-compilation requires `1-kappa*l > 0` throughout this physical coordinate domain and reports
-`plan_coordinate_inversion` with Section, primitive and s when the condition fails. The recipe identity
-participates in every dependent build identity.
+The saved `geometryRecipe` field is `{id,version}`; CourseDocument v13 admits
+`superoutride.plan-raster` version 1. The saved straight, circular-arc, absolute-anchor and
+primitive-anchor fields are listed above. [Architecture](architecture.md#plan-authority-and-raster)
+owns their planar interpretation, Raster derivation, coordinate domain and geometric validation.
+The recipe identity participates in every dependent build identity.
 
 Boundary knots are strictly increasing and cover every referencing Region's closed interval.
 Interpolation is linear; width and center are derived. A Region has positive length and positive
@@ -254,7 +243,7 @@ and supplies the same pose/step bounds to each. The course-owned physical source
 physical result; the view-owned rendering source checks their canonical Link agreement. Race uses
 the physical motion guard, which covers the root's identical shared pose/step domain.
 Within the common guard, height, supported materials, Region edges, resolved Band colors, BG and shared
-scenery agree. The current root supplies 30 m guards. Longer camera/render, driver and recovery reads
+scenery agree. The root supplies 30 m guards. Longer camera/render, driver and recovery reads
 use source-owned occurrence spans. Domain mismatches identify the Link and affected consumer.
 
 ## Compiled identity and project publication
@@ -365,8 +354,7 @@ independent of crossing direction; race gates use supported Carriageway width ra
 
 Ordered progress follows authored checkpoints and continuation/exit gates. Circuit progress reuses
 one source-local gate set for each lap and counts valid finishes; grid release earns no lap.
-BRANCH advances its completed Section interval only after the actor changes frame. The current
-ordered-progress implementation includes synthetic `:EXIT` continuation gates. They grant no clock extension.
+BRANCH advances its completed Section interval only after the actor changes frame. Ordered progress includes synthetic `:EXIT` continuation gates. They grant no clock extension.
 Missing checkpoints, reverse, recovery and replacement grant no new credit. Earned progress remains
 fixed after FINISH. Rival positions/audio use the player's observation frame; ranking uses validated progress.
 
@@ -411,10 +399,10 @@ run; a valid checkpoint or FINISH wins an exact expiry tie. Rejected late crossi
 Generated envelopes contain maximum speed and speed-indexed acceleration, braking and lateral-response
 observations for each vehicle configuration. The driver consumes an envelope, utilization, speed cap
 and lane; it reads a contiguous 5 m lattice up to 480 m ahead and publishes canonical steering,
-throttle and brake. [Calibration](calibration.md) lists current utilization values.
+throttle and brake. [Calibration](calibration.md) lists utilization values.
 
 The same driver serves reference runs and live rivals. Generated runs contain precise landmark times
-and optional 10 Hz position/speed/utilization traces. The browser loads current envelopes and compact
+and optional 10 Hz position/speed/utilization traces. The browser loads generated envelopes and compact
 integer-millisecond budgets. [Development](development.md#build-outputs) owns generated file locations.
 
 ## Recovery

@@ -52,7 +52,7 @@ areas reveal the background below as well as above the horizon. Physical Regions
 bindings are independent of the visual Bands. [Content and gameplay](content-and-gameplay.md#band-ground)
 owns authoring; [Architecture](architecture.md#band-rendering) owns preblending and pixel filtering.
 
-The product ground-display setting defaults to LEVEL-POINT. Its current control is in DEV, and
+The product ground-display setting defaults to LEVEL-POINT. DEV provides its control, and
 switching redraws the current scene without changing vehicle state, camera or Session progress.
 [Browser](browser.md#ground-display-setting) owns operation and setting lifetime. The three rendering
 modes are defined only in the rendering contract linked above. Ground contains no image assets;
