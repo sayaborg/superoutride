@@ -18,7 +18,7 @@ Course `(s,l)` is an observation. Raster and Guide share plan chainage `s`; phys
 an offset or sloping path is different.
 
 `PlanCoordinateReader` is the planar query interface for both a compiled Section and its mapped
-occurrences. `CompiledSection.coordinates` and `VehicleWorld.coordinates` expose this same type:
+occurrences. `CompiledSection.coordinates` and `VehicleWorld.coordinates` share this same contract:
 
 - `domain.start` and `domain.end` bound the admitted s interval; `domain.lateralAt(s,out)` gives its
   closed `[left,right]` coordinate bounds. A Section uses its Guide envelope, and an occurrence
@@ -31,10 +31,23 @@ occurrences. `CompiledSection.coordinates` and `VehicleWorld.coordinates` expose
   Spawn and recovery supply known seeds. Invalid or unretained projection seeds fail explicitly.
 
 `PlanCoordinateSample` and `PlanCoordinateProjection` are borrowed observations in caller-owned outputs.
-`PlanProjectionWorkspace` holds reusable numerical scratch, separate from vehicle state. The native and
-mapped implementations own Guide access; ordinary consumers do not inspect Guide arrays or branch on
-reader representation. Geometry construction and its geometric proofs inspect their compiled primitives.
+`PlanProjectionWorkspace` holds reusable numerical scratch, separate from vehicle state. A Section exposes
+`SectionPlanCoordinateReader`, which extends this contract with ordered projection candidates and native
+seed metadata. The native implementation owns Guide access; the mapped reader uses only the Section
+reader contract. Geometry construction and its geometric proofs inspect their compiled primitives.
 Terrain and rendering use `RasterGeometry`: finite length, segment stations/headings and point mapping.
+
+`projectionCandidates(start,end)` returns immutable positive-length intersections with an admitted
+Section interval, in native seed order. Each candidate publishes its clipped and complete native s
+intervals, conservative native-centerline bounds and a projection operation. Projection clamps s to
+the clipped interval, leaves l unclamped and returns squared distance to the native centerline.
+Geometry-specific primitives and numerical caches stay private to that operation.
+
+Native seeds are integers in `[0,seedCount)`. `seedCapacity` bounds their compiler-wide numbering and
+is common to Sections composed by one mapped reader. A mapped seed pairs the occurrence ordinal with
+its native seed using that capacity; the mapped reader neither counts Raster segments nor interprets
+primitive kinds. Native projection, occurrence transforms, lateral-origin translation and retained-window
+coverage each remain owned by their respective reader or mapping.
 
 Vec2/Vec3 are readonly values. Sampling APIs with caller-owned outputs return borrowed observations
 valid until those outputs are reused. Compiled sources are immutable; actors and consumers own live state.

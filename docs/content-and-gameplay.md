@@ -258,8 +258,12 @@ asset and landmark references. Merges reuse the same successor; loops refer to t
 Owned records and arrays are immutable, including nested image data. Live actor, route-lock and
 clock state belong to Sessions. Object identity is local to a compilation; cross-build identity uses digests.
 
+`CompiledSection.coordinates` supplies the common planar reader and the Section-only projection
+queries used by occurrence composition. These queries expose admitted intervals and projections, not
+Guide primitives; [Architecture](architecture.md#coordinates-and-readers) owns their contract.
+
 `sourceSha256` hashes normalized input. `buildSha256` hashes `{sourceSha256,compiler,geometryRecipe}`.
-The compiler is `superoutride.course-compiler` version 18, incorporating Link recipe v1, physical
+The compiler is `superoutride.course-compiler` version 19, incorporating Link recipe v1, physical
 recipe v2, image-source recipe v2 and presentation recipe v5. Descriptors include semantic versions
 and operative numeric/data parameters, including material definitions. Source or compiler/recipe
 changes invalidate dependent products.

@@ -8,7 +8,7 @@
 - Build currently generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **6-2 — Plan authority**.
+Next PR: **6-2b — Plan authority**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Current contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -18,8 +18,7 @@ PRs hold rationale and verification evidence.
 
 Make authored plan and vertical geometry authoritative, with rendering-only approximations and simpler connections.
 
-- **6-1 — Coordinate Reader unification:** completed; one PlanCoordinateReader for native Sections and mapped occurrences.
-- **6-2 — Plan authority:** authored straights and circular arcs, arc-length s, rendering-only Raster, asymmetric coordinate domains with J > 0, and engine-constant margins; name Guide/Raster replacements according to the glossary.
+- **6-2b — Plan authority:** authored straights and circular arcs, arc-length s, rendering-only Raster, asymmetric coordinate domains with J > 0, and engine-constant margins; name Guide/Raster replacements according to the glossary.
 - **6-3 — Rendering-space mapping:** derive vehicle and camera positions from (s, l, h), with orientation from physical yaw.
 - **6-4 — Coordinate-domain injectivity:** check injectivity at compilation and remove runtime geometry checks.
 - **6-5 — Guide remnants:** remove fillet reconstruction, μ, mMin, the `guide` field, envelope, `maxSupportedAbsL`, geometry-window checks and metric; name remaining Guide/Raster replacements according to the glossary.

@@ -56,6 +56,34 @@ export interface PlanCoordinateReader {
   ): PlanCoordinateProjection;
 }
 
+/** One clipped native projection interval; geometry and numerical caches stay private. */
+export interface PlanProjectionCandidate {
+  readonly seed: PlanProjectionSeed;
+  readonly start: number;
+  readonly end: number;
+  readonly nativeStart: number;
+  readonly nativeEnd: number;
+  /** Conservative native centerline bounds for this clipped interval. */
+  readonly bounds: {
+    readonly left: number;
+    readonly right: number;
+    readonly back: number;
+    readonly front: number;
+  };
+  /** Clamp s to this interval; return unclamped l and squared distance to the native centerline. */
+  project(world: Vec2, out: PlanCoordinateProjection, workspace: PlanProjectionWorkspace): PlanCoordinateProjection;
+}
+
+/** Section-only queries used to compose mapped readers without inspecting their geometry. */
+export interface SectionPlanCoordinateReader extends PlanCoordinateReader {
+  /** Native seeds are the integers in [0, seedCount), ordered along s. */
+  readonly seedCount: number;
+  /** Common to all Sections from the same compiler, independent of retained intervals. */
+  readonly seedCapacity: number;
+  /** Positive-length intersections with an admitted s interval, in native seed order. */
+  projectionCandidates(start: number, end: number): readonly PlanProjectionCandidate[];
+}
+
 export function createPlanCoordinateSample(): PlanCoordinateSample {
   return { x: 0, z: 0, s: 0, l: 0, heading: 0, seed: -1 };
 }
