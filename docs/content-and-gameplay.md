@@ -188,6 +188,8 @@ The saved `geometryRecipe` field is `{id,version}`; CourseDocument v13 admits
 `superoutride.plan-raster` version 1. The saved straight, circular-arc, absolute-anchor and
 primitive-anchor fields are listed above. [Architecture](architecture.md#plan-authority-and-raster)
 owns their planar interpretation, Raster derivation, coordinate domain and geometric validation.
+An overpass is authored as separate Sections for its passages; the coordinate-domain condition
+is specified in [Architecture](architecture.md#plan-authority-and-raster).
 The recipe identity participates in every dependent build identity.
 
 Boundary knots are strictly increasing and cover every referencing Region's closed interval.
@@ -199,7 +201,7 @@ active members form a contiguous group in each longitudinal cell.
 Every open Section cell has active Region coverage. Across an activation change, both the complete
 Region union and the pavement/median union are continuous. Positive-width replacements and zero-width
 birth/death endpoints use the same rule. Roles name structure; appearance and physical bindings supply values.
-[Architecture](architecture.md#boundary-geometry-and-local-windows) owns mapped geometry and point ownership.
+[Architecture](architecture.md#boundary-geometry-and-point-ownership) owns mapped geometry and point ownership.
 
 `courseBoundaryAt` samples the canonical edge. `courseRegionAt` reads the Section's canonical
 `regionPartition` and returns the owning Region or null outside/in gaps. Longitudinal membership is

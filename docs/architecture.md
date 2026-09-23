@@ -67,34 +67,35 @@ linearly in true arc length. Section projection onto a straight or circular arc 
 
 At each s, the Section lateral domain runs from the leftmost active Region edge minus
 `PLAN_COORDINATE_MARGIN_METERS` to the rightmost active Region edge plus that margin; the margin is 4 m.
-The physical coordinate chart must satisfy `J = 1-kappa*l > 0` across this complete lateral domain.
-Compilation checks every circular primitive against all incident Region-domain stations. A failure is the
-structured `plan_coordinate_inversion` authoring diagnostic and identifies the Section, primitive and s.
-This condition belongs to the physical plan chart only.
+The map from `(s,l)` in the entire closed Section coordinate domain to world XZ is injective:
+different coordinate pairs occupy different points. The local part of this condition is
+`J = 1-kappa*l > 0` throughout the domain. Compilation checks every circular primitive at
+incident domain stations and checks separated longitudinal cells against one another using
+conservative plan envelopes. `plan_coordinate_inversion` reports a local metric failure;
+`plan_coordinate_overlap` reports the Section and two overlapping s intervals. An overpass
+uses separate Sections for its two passages.
 
 Raster is a rendering-only polyline derived from that authority. Straights use at most 50 m per segment
 and arcs at most 5 authored degrees per segment. Every Raster vertex is sampled on the authoritative
 centerline at an authoritative s station. Raster and plan therefore share the same ruler and Section length;
 inside one Raster segment X/Z is interpolated linearly in s. Its miter basis supplies rendered lateral
-positions. Raster geometry is not subjected to the physical `J > 0` condition.
+positions. Raster geometry is not subjected to coordinate-domain injectivity: Bands are drawn by row.
+Occurrences, local seeds and height identify passages through compiled Sections.
 
-A Section is a local chart; different chainages can occupy the same XZ position. Source compilation
-establishes local geometry and metrics. A consumer additionally requires complete query coverage and
-unambiguous mapped geometry over its bounded window, including occurrence transforms. Occurrence,
-local seed and height identify a passage.
-
-## Boundary geometry and local windows
+## Boundary geometry and point ownership
 
 Boundary profiles are piecewise linear on the authoritative s ruler. Width and center are derived from
 their edges. Region validation divides at boundary knots and activation changes; paint changes do not
 divide physical geometry.
 
-`compileCourseGeometryWindow` accepts the canonical Raster, Section coordinate Reader, compiled
-primitives and Region partition over a positive closed source interval. It returns an immutable
-`local-geometry` result for those references and that interval. Mismatched rulers or out-of-domain
-intervals fail. Nonadjacent Raster/plan construction hulls must separate within geometric sampling
-tolerance; otherwise `ambiguous_geometry` identifies the mapping and both source intervals. The limit
-is 1024 cells per mapping; `resource_limit` reports an excess.
+The compilation check divides the authoritative straight and circular plan at primitive ends,
+domain knots and at most five degrees per arc cell. Adjacent cells share their endpoint and are
+locally covered by the positive Jacobian; separated cells must have disjoint conservative
+envelopes. A chord envelope is padded by `max|F''| * deltaS² / 8` for each linearly varying
+lateral edge, bounding the exact curve between its endpoints. The envelope comparison uses
+the geometric sampling tolerance of `1e-8` m for floating-point separation near shared
+coordinates; this tolerance does not replace the curvature bound. Its cells do not depend on
+Raster vertices.
 
 Point regions are half-open laterally: `[left(s),right(s))`. A shared edge belongs to the region on
 its right; the outer left edge is included and the outer right edge is outside. Zero-width endpoints
