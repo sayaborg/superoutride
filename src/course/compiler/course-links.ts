@@ -68,7 +68,7 @@ export function compileCoursePort(
   path: string,
 ): CompiledPort {
   requireCourse(
-    anchor.s > 0 && anchor.s < section.raster.length,
+    anchor.s > 0 && anchor.s < section.coordinates.domain.end,
     `${path}/anchor`,
     'Port must lie inside the finite Section domain',
     'invalid_port',
@@ -101,9 +101,6 @@ export function requireCourseStraightSpan(
         'Overlap must lie in authored straight primitives',
         'nonstraight_overlap',
       );
-  for (const segment of section.guide.segments)
-    if (segment.sStart < end && segment.sEnd > start)
-      requireCourse(segment.kind === 'straight', path, 'Overlap intersects a Guide fillet', 'nonstraight_overlap');
   for (const segment of section.raster.segments)
     if (segment.sStart < end && segment.sStart + segment.length > start)
       requireCourse(
@@ -120,7 +117,7 @@ function guard(port: CompiledPort, behind: number, ahead: number, path: string):
     start = seam - behind,
     end = seam + ahead;
   requireCourse(
-    start >= 0 && start < seam && end > seam && end <= section.raster.length,
+    start >= 0 && start < seam && end > seam && end <= section.coordinates.domain.end,
     path,
     `Overlap [${start}, ${end}] must fit Section ${JSON.stringify(section.id)} with representable extent on both sides`,
     'invalid_overlap',
@@ -128,7 +125,6 @@ function guard(port: CompiledPort, behind: number, ahead: number, path: string):
   requireCourseStraightSpan(section, start, end, port.pose.heading, path);
   return [
     ...section.raster.vertexS,
-    ...section.guide.segments.flatMap((s) => [s.sStart, s.sEnd]),
     ...port.carriageway.regions.flatMap((b) => [
       b.start.s,
       b.end.s,
@@ -137,7 +133,7 @@ function guard(port: CompiledPort, behind: number, ahead: number, path: string):
   ].filter((s) => s > start && s < end);
 }
 
-/** Entire matched pavement envelope, for both Raster and Guide, not just seam-center agreement. */
+/** Entire matched pavement envelope, for both rendering Raster and authoritative plan. */
 export function compileCourseLink(
   id: string,
   source: CompiledPort,
@@ -184,7 +180,7 @@ export function compileCourseLink(
         }
       });
     for (const side of [0, 1] as const) {
-      for (const reader of ['raster', 'guide'] as const) {
+      for (const reader of ['raster', 'plan'] as const) {
         const point = (p: CompiledPort, b: CompiledBoundary, s: number): Vec2 => {
           const l = courseBoundaryAt(b, s);
           return reader === 'raster'

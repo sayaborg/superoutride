@@ -1,6 +1,6 @@
 import { CourseInputError, courseFailure, courseSuccess, type CourseResult } from './course-diagnostics.js';
 
-const COURSE_DOCUMENT_VERSION = 12;
+const COURSE_DOCUMENT_VERSION = 13;
 
 interface GeometryRecipeIdentity {
   readonly id: string;
@@ -131,7 +131,6 @@ export interface PresentationDocument {
 export interface SectionDocument {
   readonly id: string;
   readonly start: { readonly x: number; readonly z: number; readonly heading: number };
-  readonly guide: { readonly margin: number; readonly mMin: number };
   readonly primitives: readonly PlanPrimitive[];
   readonly boundaries: readonly BoundaryDocument[];
   readonly regions: readonly RegionDocument[];
@@ -236,7 +235,7 @@ function record(value: unknown, path: string, fields: readonly string[]): Record
   for (const key of Object.keys(result)) {
     if (!fields.includes(key)) {
       const escaped = key.replaceAll('~', '~0').replaceAll('/', '~1');
-      fail('unsupported_feature', `${path}/${escaped}`, `Field ${key} is not supported by CourseDocument v11`);
+      fail('unsupported_feature', `${path}/${escaped}`, `Field ${key} is not supported by CourseDocument v${COURSE_DOCUMENT_VERSION}`);
     }
   }
   for (const key of fields) {
@@ -570,7 +569,6 @@ function section(value: unknown, path: string): SectionDocument {
   const v = record(value, path, [
     'id',
     'start',
-    'guide',
     'primitives',
     'boundaries',
     'regions',
@@ -594,10 +592,6 @@ function section(value: unknown, path: string): SectionDocument {
       x: number(start.x, `${path}/start/x`, -limit, limit),
       z: number(start.z, `${path}/start/z`, -limit, limit),
       heading: number(start.heading, `${path}/start/heading`, -360, 360),
-    }),
-    guide: Object.freeze({
-      margin: number(guide.margin, `${path}/guide/margin`, 0, COURSE_DOCUMENT_LIMITS.lateralMeters, true),
-      mMin,
     }),
     primitives: identified(v.primitives, `${path}/primitives`, COURSE_DOCUMENT_LIMITS.primitives, primitive),
     boundaries: identified(v.boundaries, `${path}/boundaries`, COURSE_DOCUMENT_LIMITS.boundaries, boundary),

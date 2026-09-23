@@ -1,10 +1,10 @@
 import { createPlanarCoordinateSample } from '../core/planar-sample.js';
-import { sampleGuideSegment, type GuidePath } from './geometry/guide-curve.js';
-import { guideEnvelopeRange } from './geometry/guide-envelope.js';
-import { normalFromHeading, wrapAngle, type Vec2 } from '../core/math.js';
+import type { Vec2 } from '../core/math.js';
 import { profileIndexAt } from './geometry/open-profile.js';
 import { rasterPathToWorld, type RasterPath } from './geometry/raster-path.js';
 import { GEOMETRY_SAMPLING_TOLERANCE_METERS } from '../core/tolerances.js';
+import type { SectionPlanCoordinateReader } from './geometry/plan-coordinate.js';
+import type { CompiledPlanPrimitive } from './geometry/plan-path.js';
 import { courseBoundaryAt, type CompiledRegionPartition, type CompiledBoundary } from './course-regions.js';
 
 /** Work bound, not a distance guard or a promise that a product consumer fits. */
@@ -12,7 +12,8 @@ const COURSE_GEOMETRY_WINDOW_LIMITS = Object.freeze({ cellsPerMapping: 1024 });
 
 interface GeometrySource {
   readonly raster: RasterPath;
-  readonly guide: GuidePath;
+  readonly coordinates: SectionPlanCoordinateReader;
+  readonly primitives: readonly CompiledPlanPrimitive[];
   readonly regionPartition: CompiledRegionPartition;
 }
 interface Interval {
@@ -29,7 +30,7 @@ interface Cell extends Interval {
 }
 interface GeometryWindowDiagnostic {
   readonly code: 'resource_limit' | 'ambiguous_geometry';
-  readonly mapping: 'raster' | 'guide';
+  readonly mapping: 'raster' | 'plan';
   readonly message: string;
   readonly intervals?: readonly Interval[];
 }
@@ -37,7 +38,7 @@ interface CompiledGeometryWindow {
   readonly scope: 'local-geometry';
   readonly source: GeometrySource;
   readonly interval: Interval;
-  readonly cells: { readonly raster: number; readonly guide: number };
+  readonly cells: { readonly raster: number; readonly plan: number };
 }
 type GeometryWindowResult =
   | { readonly ok: true; readonly value: CompiledGeometryWindow }
@@ -82,9 +83,8 @@ function separated(a: readonly Vec2[], b: readonly Vec2[]): boolean {
 function conflict(cells: readonly Cell[]): readonly Interval[] | null {
   for (let i = 0; i < cells.length; i += 1) {
     for (let j = i + 1; j < cells.length; j += 1) {
-      const a = cells[i]!,
-        b = cells[j]!;
-      // Admitted positive Jacobians separate incident cells at their common cross-section.
+      const a = cells[i]!;
+      const b = cells[j]!;
       if (b.segmentIndex - a.segmentIndex <= 1) continue;
       const tolerance = GEOMETRY_SAMPLING_TOLERANCE_METERS;
       if (
@@ -101,30 +101,41 @@ function conflict(cells: readonly Cell[]): readonly Interval[] | null {
   return null;
 }
 
-function rasterCells(source: GeometrySource, interval: Interval): Cell[] | null {
-  const { raster, regionPartition } = source,
-    { sStart, sEnd } = interval;
-  const boundaries = [...new Set(regionPartition.regions.flatMap((region) => [region.left, region.right]))];
-  const stations = new Set([sStart, sEnd]);
+function boundaries(source: GeometrySource): readonly CompiledBoundary[] {
+  return [...new Set(source.regionPartition.regions.flatMap((region) => [region.left, region.right]))];
+}
+
+function stations(source: GeometrySource, interval: Interval): number[] | null {
+  const { raster, regionPartition, primitives } = source;
+  const { sStart, sEnd } = interval;
+  const values = new Set([sStart, sEnd]);
   const add = (s: number) => {
-    if (s > sStart && s < sEnd) stations.add(s);
+    if (s > sStart && s < sEnd) values.add(s);
   };
   const first = profileIndexAt(raster.segments, 'sStart', sStart);
   for (let i = first + 1; i < raster.segments.length && raster.segments[i]!.sStart < sEnd; i += 1)
     add(raster.segments[i]!.sStart);
-  for (const boundary of boundaries) for (const knot of boundary.knots) add(knot.anchor.s);
+  for (const boundary of boundaries(source)) for (const knot of boundary.knots) add(knot.anchor.s);
   for (const region of regionPartition.regions) {
     add(region.start.s);
     add(region.end.s);
   }
-  if (stations.size - 1 > COURSE_GEOMETRY_WINDOW_LIMITS.cellsPerMapping) return null;
-  const sorted = [...stations].sort((a, b) => a - b);
-  let index = first;
+  for (const primitive of primitives) {
+    add(primitive.sStart);
+    add(primitive.sEnd);
+  }
+  if (values.size - 1 > COURSE_GEOMETRY_WINDOW_LIMITS.cellsPerMapping) return null;
+  return [...values].sort((a, b) => a - b);
+}
+
+function rasterCells(source: GeometrySource, interval: Interval, sorted: readonly number[]): Cell[] {
+  const { raster, regionPartition } = source;
+  let index = profileIndexAt(raster.segments, 'sStart', interval.sStart);
   return sorted.slice(0, -1).map((start, i) => {
     const end = sorted[i + 1]!;
     while (index + 1 < raster.segments.length && raster.segments[index + 1]!.sStart <= start) index += 1;
     const regions = regionPartition.regions
-      .filter((b) => b.start.s <= start && b.end.s >= end)
+      .filter((region) => region.start.s <= start && region.end.s >= end)
       .sort(
         (a, b) =>
           courseBoundaryAt(a.left, start) +
@@ -134,62 +145,58 @@ function rasterCells(source: GeometrySource, interval: Interval): Cell[] | null 
       );
     if (!regions.length) throw new Error('Admitted partition lost active coverage');
     const edge = (boundary: CompiledBoundary): Vec2[] => {
-      const l0 = courseBoundaryAt(boundary, start),
-        l1 = courseBoundaryAt(boundary, end);
-      const p = rasterPathToWorld(raster, start, l0, createPlanarCoordinateSample()),
-        q = rasterPathToWorld(raster, end, l1, createPlanarCoordinateSample());
+      const l0 = courseBoundaryAt(boundary, start);
+      const l1 = courseBoundaryAt(boundary, end);
+      const p = rasterPathToWorld(raster, start, l0, createPlanarCoordinateSample());
+      const q = rasterPathToWorld(raster, end, l1, createPlanarCoordinateSample());
       const mid = rasterPathToWorld(raster, (start + end) / 2, (l0 + l1) / 2, createPlanarCoordinateSample());
-      // Exact quadratic Bernstein enclosure, not a sampled-corner approximation.
       return [p, { x: 2 * mid.x - (p.x + q.x) / 2, z: 2 * mid.z - (p.z + q.z) / 2 }, q];
     };
     return cell(index, start, end, [...edge(regions[0]!.left), ...edge(regions.at(-1)!.right)]);
   });
 }
 
-function guideCells(guide: GuidePath, interval: Interval): Cell[] | null {
-  const selected = guide.segments.filter((s) => s.sStart < interval.sEnd && s.sEnd > interval.sStart);
-  if (selected.length > COURSE_GEOMETRY_WINDOW_LIMITS.cellsPerMapping) return null;
-  return selected.map((segment) => {
-    const start = Math.max(interval.sStart, segment.sStart),
-      end = Math.min(interval.sEnd, segment.sEnd);
-    const extent = guideEnvelopeRange(guide.envelope, start, end).max;
-    const a = sampleGuideSegment(guide, segment, start, createPlanarCoordinateSample()),
-      b = sampleGuideSegment(guide, segment, end, createPlanarCoordinateSample());
-    const edge = (l: number): Vec2[] => {
-      const na = normalFromHeading(a.heading),
-        nb = normalFromHeading(b.heading);
-      const p = { x: a.x + na.x * l, z: a.z + na.z * l };
-      const q = { x: b.x + nb.x * l, z: b.z + nb.z * l };
-      if (segment.kind === 'straight') return [p, q];
-      const corner = guide.corners[segment.cornerIndex]!;
-      if (!corner.center) throw new Error('Admitted Guide arc lost its center');
-      const halfTurn = wrapAngle(b.heading - a.heading) / 2;
-      const n = normalFromHeading(a.heading + halfTurn);
-      const radius = corner.radius - Math.sign(corner.turn) * l;
-      // The endpoints and intersection of their tangents enclose the complete circular arc.
-      const distance = (-Math.sign(corner.turn) * radius) / Math.cos(halfTurn);
-      return [p, { x: corner.center.x + n.x * distance, z: corner.center.z + n.z * distance }, q];
-    };
-    return cell(segment.index, start, end, [...edge(-extent), ...edge(extent)]);
+function planCells(source: GeometrySource, sorted: readonly number[]): Cell[] {
+  const lateralA = { left: 0, right: 0 };
+  const lateralB = { left: 0, right: 0 };
+  return sorted.slice(0, -1).map((start, i) => {
+    const end = sorted[i + 1]!;
+    const candidates = source.coordinates.projectionCandidates(start, end);
+    if (!candidates.length) throw new Error('Admitted plan lost projection coverage');
+    const left = Math.min(...candidates.map((candidate) => candidate.bounds.left));
+    const right = Math.max(...candidates.map((candidate) => candidate.bounds.right));
+    const back = Math.min(...candidates.map((candidate) => candidate.bounds.back));
+    const front = Math.max(...candidates.map((candidate) => candidate.bounds.front));
+    source.coordinates.domain.lateralAt(start, lateralA);
+    source.coordinates.domain.lateralAt(end, lateralB);
+    const extent = Math.max(
+      Math.abs(lateralA.left),
+      Math.abs(lateralA.right),
+      Math.abs(lateralB.left),
+      Math.abs(lateralB.right),
+    );
+    return cell(i, start, end, [
+      { x: left - extent, z: back - extent },
+      { x: left - extent, z: front + extent },
+      { x: right + extent, z: front + extent },
+      { x: right + extent, z: back - extent },
+    ]);
   });
 }
 
 /**
  * Qualify one closed source-chainage window, not the Section as a geographic map. The caller owns
  * actual consumer coverage, occurrence/height selection and keeping all queries inside this window.
- * Ordinary geometric ambiguity is a structured qualification failure, not an authoring JSON pointer.
  */
 export function compileCourseGeometryWindow(source: GeometrySource, interval: Interval): GeometryWindowResult {
   if (
     !source ||
     !source.raster ||
-    !source.guide ||
+    !source.coordinates ||
+    !Array.isArray(source.primitives) ||
     !source.regionPartition ||
     !Array.isArray(source.raster.segments) ||
     !Array.isArray(source.raster.vertexS) ||
-    !Array.isArray(source.guide.segments) ||
-    !Array.isArray(source.guide.corners) ||
-    !Array.isArray(source.guide.envelope) ||
     !source.regionPartition.raster ||
     !Array.isArray(source.regionPartition.regions) ||
     !interval ||
@@ -197,18 +204,24 @@ export function compileCourseGeometryWindow(source: GeometrySource, interval: In
     typeof interval.sEnd !== 'number'
   )
     throw new TypeError('Geometry window requires compiled reader facets and numeric interval endpoints');
-  const { raster, guide, regionPartition } = source,
-    { sStart, sEnd } = interval;
-  if (guide.raster !== raster || regionPartition.raster !== raster || regionPartition.length !== raster.length)
-    throw new RangeError('Geometry window facets must share the canonical Raster ruler');
+  const { raster, coordinates, regionPartition } = source;
+  const { sStart, sEnd } = interval;
+  if (
+    regionPartition.raster !== raster ||
+    regionPartition.length !== raster.length ||
+    coordinates.domain.start !== 0 ||
+    coordinates.domain.end !== raster.length
+  )
+    throw new RangeError('Geometry window facets must share the canonical Section ruler');
   if (![sStart, sEnd].every(Number.isFinite) || sStart < 0 || sEnd > raster.length || !(sEnd > sStart))
     throw new RangeError('Geometry window must have positive extent inside the source ruler');
-  const rasterWindow = rasterCells(source, interval),
-    guideWindow = guideCells(guide, interval);
+  const ruler = stations(source, interval);
+  const rasterWindow = ruler ? rasterCells(source, interval, ruler) : null;
+  const planWindow = ruler ? planCells(source, ruler) : null;
   const diagnostics: GeometryWindowDiagnostic[] = [];
   for (const [mapping, cells] of [
     ['raster', rasterWindow],
-    ['guide', guideWindow],
+    ['plan', planWindow],
   ] as const) {
     if (!cells)
       diagnostics.push(
@@ -236,9 +249,9 @@ export function compileCourseGeometryWindow(source: GeometrySource, interval: In
     ok: true,
     value: Object.freeze({
       scope: 'local-geometry',
-      source: Object.freeze({ raster, guide, regionPartition }),
+      source: Object.freeze({ raster, coordinates, primitives: source.primitives, regionPartition }),
       interval: Object.freeze({ sStart, sEnd }),
-      cells: Object.freeze({ raster: rasterWindow!.length, guide: guideWindow!.length }),
+      cells: Object.freeze({ raster: rasterWindow!.length, plan: planWindow!.length }),
     }),
   });
 }

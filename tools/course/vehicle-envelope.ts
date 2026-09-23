@@ -2,8 +2,7 @@ import { createPlanCoordinateReader } from '../../src/course/geometry/plan-coord
 import type { VehicleCatalogEntry } from '../../src/vehicle/vehicle-catalog.js';
 import type { DrivingInput } from '../../src/vehicle/driving-input.js';
 import { createBodyKinematicsWorkspace } from '../../src/vehicle/physics/arcade-vehicle-physics.js';
-import { compileGuidePath } from '../../src/course/geometry/guide-curve.js';
-import { compileRasterPath } from '../../src/course/geometry/raster-path.js';
+import { compilePlanPath } from '../../src/course/geometry/plan-path.js';
 import { HeightProfile } from '../../src/course/geometry/height-profile.js';
 import { SurfaceMap } from '../../src/vehicle/physics/surface-map.js';
 import { createArcadeVehicle } from '../../src/vehicle/physics/arcade-vehicle-physics.js';
@@ -19,14 +18,15 @@ import { wrapAngle } from '../../src/core/math.js';
 
 /** The finite flat world used only to generate game driving envelopes. */
 function createEnvelopeRun(entry: Readonly<VehicleCatalogEntry>, initialSpeed: number) {
-  const guide = compileGuidePath(
-    compileRasterPath([
-      { x: 0, z: -10000 },
-      { x: 0, z: 10000 },
-    ]),
-    { lMax: 5000, mMin: 0.25, dCam: 5 },
+  const plan = compilePlanPath(
+    { x: 0, z: -10000, heading: 0 },
+    [{ id: 'envelope-straight', kind: 'straight', length: 20000 }],
   );
-  const coordinates = createPlanCoordinateReader(guide);
+  const coordinates = createPlanCoordinateReader(plan.primitives, plan.length, (_s, out) => {
+    out.left = -5000;
+    out.right = 5000;
+    return out;
+  });
   const height = new HeightProfile(coordinates.domain.end, [
     { s: 0, y: 0 },
     { s: coordinates.domain.end, y: 0 },

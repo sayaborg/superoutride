@@ -46,11 +46,7 @@ export async function courseReport(course: CompiledCourse, section: CompiledSect
     const world = section.coordinates.toWorld(s, 0, createPlanCoordinateSample());
     return {
       s,
-      curvaturePerMeter: section.coordinates.metricsAt(s, 0, world.seed, {
-        curvature: 0,
-        metric: 1,
-        offsetMetric: 1,
-      }).curvature,
+      curvaturePerMeter: section.primitives[world.seed]!.curvature,
       heightMeters: section.height.samplePhysics(s),
       x: world.x,
       z: world.z,
