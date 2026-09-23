@@ -53,8 +53,11 @@ const MIN_RASTER_SEGMENT_METERS = 1e-9;
 const MIN_MITER_DENOMINATOR = 1e-9;
 const VERTEX_TURN_TOLERANCE_RADIANS = 1e-8;
 
-export function compileRasterPath(vertices: readonly RasterVertex[]): RasterPath {
+export function compileRasterPath(vertices: readonly RasterVertex[], stations?: readonly number[]): RasterPath {
   if (vertices.length < 2) throw new RangeError('open raster path requires at least 2 vertices');
+  if (stations && stations.length !== vertices.length) throw new RangeError('raster stations must match vertices');
+  if (stations && (stations[0] !== 0 || stations.some((value, i) => !Number.isFinite(value) || (i > 0 && !(value > stations[i - 1]!)))))
+    throw new RangeError('raster stations must be finite, start at zero and increase strictly');
 
   const copied = vertices.map((vertex) => {
     if (![vertex.x, vertex.z].every(Number.isFinite)) {
@@ -74,12 +77,15 @@ export function compileRasterPath(vertices: readonly RasterVertex[]): RasterPath
     const end = copied[i + 1]!;
     const dx = end.x - start.x;
     const dz = end.z - start.z;
-    const length = Math.hypot(dx, dz);
-    if (!Number.isFinite(length) || !Number.isFinite(s + length)) {
+    const chordLength = Math.hypot(dx, dz);
+    const length = stations ? stations[i + 1]! - stations[i]! : chordLength;
+    if (!Number.isFinite(chordLength) || !Number.isFinite(length) || !Number.isFinite(s + length)) {
       throw new RangeError('raster path length must be finite');
     }
-    if (!(length > MIN_RASTER_SEGMENT_METERS)) throw new RangeError(`raster segment ${i} has zero length`);
+    if (!(chordLength > MIN_RASTER_SEGMENT_METERS) || !(length > MIN_RASTER_SEGMENT_METERS))
+      throw new RangeError(`raster segment ${i} has zero length`);
 
+    if (stations) s = stations[i]!;
     vertexS[i] = s;
     segments.push({
       index: i,
@@ -89,7 +95,7 @@ export function compileRasterPath(vertices: readonly RasterVertex[]): RasterPath
       length,
       heading: headingFromDelta(dx, dz),
     });
-    s += length;
+    s = stations ? stations[i + 1]! : s + length;
   }
   vertexS[copied.length - 1] = s;
 
@@ -152,8 +158,10 @@ export function sampleRasterPathInto(path: RasterPath, s: number, out: Writable<
   const start = path.vertices[segment.startVertexIndex]!;
   const ds = sLocal - segment.sStart;
 
-  out.x = start.x + Math.sin(segment.heading) * ds;
-  out.z = start.z + Math.cos(segment.heading) * ds;
+  const end = path.vertices[segment.endVertexIndex]!;
+  const t = ds / segment.length;
+  out.x = start.x + (end.x - start.x) * t;
+  out.z = start.z + (end.z - start.z) * t;
   out.s = sLocal;
   out.segmentIndex = segmentIndex;
   out.heading = segment.heading;

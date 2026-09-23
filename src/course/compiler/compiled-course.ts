@@ -1,6 +1,5 @@
 import { createPlanCoordinateReader } from '../geometry/plan-coordinate-reader.js';
 import { contentDigest } from '../../core/content-digest.js';
-import { compileGuidePath, type GuidePath } from '../geometry/guide-curve.js';
 import {
   CourseInputError,
   courseFailure,
@@ -55,7 +54,7 @@ export interface CompiledCourse {
 
 const COURSE_COMPILER = Object.freeze({
   id: 'superoutride.course-compiler',
-  version: 19,
+  version: 20,
   links: COURSE_LINK_RECIPE,
   physical: COURSE_PHYSICAL_RECIPE,
   images: COURSE_IMAGE_SOURCE_RECIPE,
@@ -98,10 +97,10 @@ function compileSection(
   instances: ReadonlyMap<string, CourseSceneryInstance>,
   path: string,
 ) {
-  const { raster, primitives } = compileCourseGeometry(section, path);
+  const { raster, primitives, length } = compileCourseGeometry(section, path);
   const primitiveTable = new Map(primitives.map((primitive) => [primitive.source.id, primitive]));
   const resolve = (anchor: Parameters<typeof resolveCourseAnchor>[0], at: string) =>
-    resolveCourseAnchor(anchor, primitiveTable, raster.length, at);
+    resolveCourseAnchor(anchor, primitiveTable, length, at);
   const boundaries = compileStage(section.boundaries, (source, index): CompiledBoundary => {
     const at = `${path}/boundaries/${index}`;
     requireCourse(source.knots.length >= 2, `${at}/knots`, 'Boundary needs at least two knots', 'invalid_boundary');
@@ -175,24 +174,14 @@ function compileSection(
     'Every pavement Region needs one Carriageway',
     'invalid_carriageway',
   );
-  const { partition, envelope } = compileCourseRegionGeometry(
+  const { partition, lateralDomain } = compileCourseRegionGeometry(
+    section.id,
     raster,
+    primitives,
     regions,
     carriageways,
-    section.guide.margin,
     path,
   );
-  let guide: GuidePath;
-  try {
-    guide = compileGuidePath(raster, {
-      envelope,
-      mMin: section.guide.mMin,
-    });
-  } catch (error) {
-    if (error instanceof RangeError)
-      throw new CourseInputError('invalid_guide_geometry', `${path}/guide`, error.message);
-    throw error;
-  }
   const sectionAssets = section.assetIds.map((id, i) => reference(assets, id, `${path}/assetIds/${i}`));
   requireCourse(
     new Set(sectionAssets).size === sectionAssets.length,
@@ -204,11 +193,10 @@ function compileSection(
     id: section.id,
     primitives,
     raster,
-    guide,
-    coordinates: createPlanCoordinateReader(guide),
+    coordinates: createPlanCoordinateReader(primitives, length, lateralDomain.lateralAt),
     boundaries: Object.freeze(boundaries),
     regionPartition: partition,
-    ...compileCoursePhysicalContent(section, raster.length, regions, resolve, path),
+    ...compileCoursePhysicalContent(section, length, regions, resolve, path),
     carriageways: Object.freeze(carriageways),
     assets: Object.freeze(sectionAssets),
     presentation: compileCoursePresentation(

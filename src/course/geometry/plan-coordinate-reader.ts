@@ -1,16 +1,15 @@
 import type { Writable } from '../../core/writable.js';
 import type { Vec2 } from '../../core/math.js';
+import { normalFromHeading } from '../../core/math.js';
 import type { PlanarTransform } from '../../core/planar-transform.js';
 import { createPlanarCoordinateSample } from '../../core/planar-sample.js';
-import { guideEnvelopeAt } from './guide-envelope.js';
 import {
-  guidePathToWorld,
-  locateWorldOnGuideLocal,
-  guideSegmentBounds,
-  sampleGuideSegment,
-  projectWorldOnGuideInterval,
-  type GuidePath,
-} from './guide-curve.js';
+  planPrimitiveBounds,
+  projectPlanPrimitiveInterval,
+  samplePlanPath,
+  type CompiledPlanPrimitive,
+  type PlanPath,
+} from './plan-path.js';
 import {
   createPlanCoordinateSample,
   type PlanCoordinateReader,
@@ -24,48 +23,49 @@ import {
 } from './plan-coordinate.js';
 import type { CourseGeometryView } from '../course-geometry-view.js';
 
-/** A Section reader over its compiled planar geometry. */
-export function createPlanCoordinateReader(guide: GuidePath): SectionPlanCoordinateReader {
-  const sample = createPlanarCoordinateSample();
+interface NativePlanDomain {
+  readonly start: number;
+  readonly end: number;
+  lateralAt(s: number, out: Writable<PlanLateralBounds>): PlanLateralBounds;
+}
+
+/** A Section reader over its authored straight/circular plan authority. */
+export function createPlanCoordinateReader(
+  primitives: readonly CompiledPlanPrimitive[],
+  length: number,
+  lateralAt: NativePlanDomain['lateralAt'],
+): SectionPlanCoordinateReader {
+  const plan: PlanPath = Object.freeze({ primitives, length });
+  const sample = { x: 0, z: 0, s: 0, heading: 0, primitiveIndex: -1 };
+  const projectionSample = { x: 0, z: 0, s: 0, heading: 0, primitiveIndex: -1 };
+  const candidateSampleA = { x: 0, z: 0, s: 0, heading: 0, primitiveIndex: -1 };
+  const candidateSampleB = { x: 0, z: 0, s: 0, heading: 0, primitiveIndex: -1 };
+  const project = { s: 0, l: 0, primitiveIndex: -1, distanceSquared: 0 };
   return Object.freeze({
-    seedCount: guide.segments.length,
+    seedCount: primitives.length,
     projectionCandidates(start: number, end: number) {
       if (typeof start !== 'number' || typeof end !== 'number')
         throw new TypeError('Projection interval endpoints must be numeric');
-      if (!(start >= 0 && end >= start && end <= guide.length))
+      if (!(start >= 0 && end >= start && end <= length))
         throw new RangeError('Projection interval must lie inside the Section domain');
       return Object.freeze(
-        guide.segments.flatMap((segment) => {
-          const a = Math.max(start, segment.sStart),
-            b = Math.min(end, segment.sEnd);
+        primitives.flatMap((primitive) => {
+          const a = Math.max(start, primitive.sStart);
+          const b = Math.min(end, primitive.sEnd);
           if (!(b > a)) return [];
-          const origin =
-            segment.kind === 'straight'
-              ? sampleGuideSegment(guide, segment, segment.sStart, createPlanarCoordinateSample())
-              : undefined;
           return [
             Object.freeze({
-              seed: segment.index,
+              seed: primitive.index,
               start: a,
               end: b,
-              extent: Object.freeze({ start: segment.sStart, end: segment.sEnd }),
-              bounds: Object.freeze(guideSegmentBounds(guide, segment, a, b)),
-              project(world: Vec2, out: PlanCoordinateProjection, workspace: PlanProjectionWorkspace) {
-                projectWorldOnGuideInterval(
-                  guide,
-                  segment.index,
-                  world,
-                  a,
-                  b,
-                  workspace.projected,
-                  workspace.projectionSample,
-                  origin,
-                  workspace.values,
-                );
-                out.s = workspace.values[0]!;
-                out.l = workspace.values[1]!;
-                out.seed = segment.index;
-                out.distanceSquared = workspace.values[3]!;
+              extent: Object.freeze({ start: primitive.sStart, end: primitive.sEnd }),
+              bounds: Object.freeze(planPrimitiveBounds(primitive, a, b, candidateSampleA, candidateSampleB)),
+              project(world: Vec2, out: PlanCoordinateProjection) {
+                projectPlanPrimitiveInterval(primitive, world, a, b, project, projectionSample);
+                out.s = project.s;
+                out.l = project.l;
+                out.seed = primitive.index;
+                out.distanceSquared = project.distanceSquared;
                 return out;
               },
             }),
@@ -75,37 +75,33 @@ export function createPlanCoordinateReader(guide: GuidePath): SectionPlanCoordin
     },
     domain: Object.freeze({
       start: 0,
-      end: guide.length,
+      end: length,
       lateralAt(s: number, out: Writable<PlanLateralBounds>) {
-        const limit = guideEnvelopeAt(guide.envelope, s);
-        out.left = -limit;
-        out.right = limit;
-        return out;
+        if (typeof s !== 'number') throw new TypeError('Plan chainage must be numeric');
+        if (!Number.isFinite(s) || s < 0 || s > length) throw new RangeError('Plan chainage is outside the Section domain');
+        return lateralAt(s, out);
       },
     }),
     toWorld(s: number, l: number, out: PlanCoordinateSample) {
-      sample.segmentIndex = out.seed;
-      guidePathToWorld(guide, s, l + 0, sample);
-      out.x = sample.x;
-      out.z = sample.z;
+      if (!Number.isFinite(l)) throw new RangeError('Plan lateral coordinate must be finite');
+      samplePlanPath(plan, s, sample);
+      const normal = normalFromHeading(sample.heading);
+      out.x = sample.x + normal.x * l;
+      out.z = sample.z + normal.z * l;
       out.s = sample.s;
       out.heading = sample.heading;
       out.l = l;
-      out.seed = sample.segmentIndex;
+      out.seed = sample.primitiveIndex;
       return out;
     },
-    metricsAt(_s: number, l: number, seed: PlanProjectionSeed, out: Writable<PlanCoordinateMetrics>) {
-      const segment = guide.segments[seed]!;
-      let curvature = 0,
-        metric = 1;
-      if (segment.kind === 'arc') {
-        const corner = guide.corners[segment.cornerIndex]!;
-        curvature = Math.sign(corner.turn) / corner.radius;
-        metric = corner.mu;
-      }
-      out.curvature = curvature;
-      out.metric = metric;
-      out.offsetMetric = 1 - curvature * (l + 0);
+    metricsAt(s: number, l: number, seed: PlanProjectionSeed, out: Writable<PlanCoordinateMetrics>) {
+      if (!Number.isFinite(s) || s < 0 || s > length) throw new RangeError('Plan chainage is outside the Section domain');
+      if (!Number.isInteger(seed) || seed < 0 || seed >= primitives.length)
+        throw new RangeError('Projection seed does not identify a plan primitive');
+      const primitive = primitives[seed]!;
+      out.curvature = primitive.curvature;
+      out.metric = 1;
+      out.offsetMetric = 1 - primitive.curvature * l;
       return out;
     },
     locateLocal(
@@ -113,13 +109,29 @@ export function createPlanCoordinateReader(guide: GuidePath): SectionPlanCoordin
       previousSeed: PlanProjectionSeed,
       searchRadius: number,
       out: PlanCoordinateProjection,
-      workspace: PlanProjectionWorkspace,
+      _workspace: PlanProjectionWorkspace,
     ) {
-      const result = locateWorldOnGuideLocal(guide, world, previousSeed, searchRadius, workspace.projected, workspace);
-      out.s = result.s;
-      out.l = result.l - 0;
-      out.seed = result.segmentIndex;
-      out.distanceSquared = result.distanceSquared;
+      if (!world || typeof world.x !== 'number' || typeof world.z !== 'number' || typeof previousSeed !== 'number' || typeof searchRadius !== 'number')
+        throw new TypeError('Projection requires numeric world position and seed/radius');
+      if (!Number.isFinite(world.x) || !Number.isFinite(world.z))
+        throw new RangeError('Projection world coordinates must be finite');
+      if (!Number.isSafeInteger(previousSeed) || previousSeed < 0 || previousSeed >= primitives.length || !Number.isSafeInteger(searchRadius) || searchRadius < 0)
+        throw new RangeError('Projection requires an admitted seed and nonnegative search radius');
+      const first = Math.max(0, previousSeed - searchRadius);
+      const last = Math.min(primitives.length - 1, previousSeed + searchRadius);
+      let found = false;
+      for (let index = first; index <= last; index += 1) {
+        const primitive = primitives[index]!;
+        projectPlanPrimitiveInterval(primitive, world, primitive.sStart, primitive.sEnd, project, projectionSample);
+        if (!found || project.distanceSquared < out.distanceSquared) {
+          out.s = project.s;
+          out.l = project.l;
+          out.seed = index;
+          out.distanceSquared = project.distanceSquared;
+          found = true;
+        }
+      }
+      if (!found) throw new Error('Admitted plan projection lost its candidates');
       return out;
     },
   });
@@ -184,8 +196,8 @@ export function createMappedPlanCoordinateReader(view: CourseGeometryView, mappi
     },
     metricsAt(s: number, l: number, projectionSeed: PlanProjectionSeed, out: Writable<PlanCoordinateMetrics>) {
       if (typeof projectionSeed !== 'number') throw new TypeError('Projection seed must be numeric');
-      const mapping = mappingAt(s),
-        section = mapping.occurrence.section;
+      const mapping = mappingAt(s);
+      const section = mapping.occurrence.section;
       const index = projectionSeed - mapping.occurrence.ordinal * seedStride;
       if (!Number.isInteger(index) || index < 0 || index >= section.coordinates.seedCount)
         throw new RangeError('Projection seed does not belong to the addressed occurrence');
@@ -222,14 +234,13 @@ export function createMappedPlanCoordinateReader(view: CourseGeometryView, mappi
       )
         throw new RangeError('Driving window does not cover the complete seeded search');
       let best: (typeof candidates)[number] | null = null;
-      let bestS = 0,
-        bestL = 0,
-        bestDistance = Infinity;
+      let bestS = 0;
+      let bestL = 0;
+      let bestDistance = Infinity;
       let previousMapping: (typeof mapped)[number] | null = null;
-      const first = Math.max(0, at - searchRadius),
-        last = Math.min(candidates.length - 1, at + searchRadius);
+      const first = Math.max(0, at - searchRadius);
+      const last = Math.min(candidates.length - 1, at + searchRadius);
       let bestIndex = -1;
-      // The retained seed is usually nearest. Remaining ties still prefer the original source order.
       for (let cursor = first - 1; cursor <= last; cursor += 1) {
         const i = cursor < first ? at : cursor;
         if (cursor === at) continue;
@@ -254,8 +265,8 @@ export function createMappedPlanCoordinateReader(view: CourseGeometryView, mappi
           if (dx * dx + dz * dz > bestDistance) continue;
         }
         native.project(local, out, workspace);
-        const projectedS = out.s,
-          projectedL = out.l;
+        const projectedS = out.s;
+        const projectedL = out.l;
         const origin = mapping.sourceLateralOrigin;
         let distanceSquared = out.distanceSquared;
         if (origin !== 0) {

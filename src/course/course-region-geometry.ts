@@ -1,8 +1,8 @@
-import type { GuideEnvelope } from './geometry/guide-envelope.js';
-import { tangentFromHeading, type Vec2 } from '../core/math.js';
+import type { Writable } from '../core/writable.js';
 import type { RasterPath } from './geometry/raster-path.js';
 import { COURSE_DOCUMENT_LIMITS } from './course-document.js';
 import { CourseInputError, requireCourse } from './course-diagnostics.js';
+import type { CompiledPlanPrimitive } from './geometry/plan-path.js';
 import {
   courseBoundaryAt,
   type CompiledRegion,
@@ -10,14 +10,18 @@ import {
   type CompiledCarriageway,
 } from './course-regions.js';
 
-function cross(a: Vec2, b: Vec2): number {
-  return a.x * b.z - a.z * b.x;
+export const PLAN_COORDINATE_MARGIN_METERS = 4;
+
+export interface CompiledPlanLateralDomain {
+  readonly stations: readonly number[];
+  lateralAt(s: number, out: Writable<{ left: number; right: number }>): { left: number; right: number };
 }
+
 function unionAt(regions: readonly CompiledRegion[], s: number): [number, number][] {
   const result: [number, number][] = [];
   for (const region of regions) {
-    const left = courseBoundaryAt(region.left, s),
-      right = courseBoundaryAt(region.right, s);
+    const left = courseBoundaryAt(region.left, s);
+    const right = courseBoundaryAt(region.right, s);
     if (left === right) continue;
     const previous = result.at(-1);
     if (previous && previous[1] === left) previous[1] = right;
@@ -27,28 +31,74 @@ function unionAt(regions: readonly CompiledRegion[], s: number): [number, number
 }
 
 function sameUnion(a: readonly CompiledRegion[], b: readonly CompiledRegion[], s: number): boolean {
-  const left = unionAt(a, s),
-    right = unionAt(b, s);
-  return (
-    left.length === right.length && left.every((range, i) => range[0] === right[i]![0] && range[1] === right[i]![1])
-  );
+  const left = unionAt(a, s);
+  const right = unionAt(b, s);
+  return left.length === right.length && left.every((range, i) => range[0] === right[i]![0] && range[1] === right[i]![1]);
 }
 
-/** Prove each active strip and its transitions; construction cells never become an independent public authority. */
+function lateralDomain(regions: readonly CompiledRegion[], stations: readonly number[]): CompiledPlanLateralDomain {
+  const start = stations[0]!;
+  const end = stations.at(-1)!;
+  return Object.freeze({
+    stations: Object.freeze([...stations]),
+    lateralAt(s: number, out: Writable<{ left: number; right: number }>) {
+      if (!Number.isFinite(s) || s < start || s > end) throw new RangeError('Plan lateral domain query is outside the Section');
+      const active = regions.filter((region) => region.start.s <= s && region.end.s >= s);
+      if (!active.length) throw new Error('Admitted Region partition lost coordinate-domain coverage');
+      out.left =
+        Math.min(...active.map((region) => courseBoundaryAt(region.left, s))) - PLAN_COORDINATE_MARGIN_METERS;
+      out.right =
+        Math.max(...active.map((region) => courseBoundaryAt(region.right, s))) + PLAN_COORDINATE_MARGIN_METERS;
+      return out;
+    },
+  });
+}
+
+function validatePlanMetric(
+  sectionId: string,
+  primitives: readonly CompiledPlanPrimitive[],
+  domain: CompiledPlanLateralDomain,
+  sectionPath: string,
+): void {
+  const bounds = { left: 0, right: 0 };
+  for (const primitive of primitives) {
+    if (primitive.curvature === 0) continue;
+    const stations = [
+      primitive.sStart,
+      ...domain.stations.filter((s) => s > primitive.sStart && s < primitive.sEnd),
+      primitive.sEnd,
+    ];
+    for (const s of stations) {
+      domain.lateralAt(s, bounds);
+      const l = primitive.curvature > 0 ? bounds.right : bounds.left;
+      const metric = 1 - primitive.curvature * l;
+      requireCourse(
+        metric > 0,
+        `${sectionPath}/primitives/${primitive.index}`,
+        `Section ${JSON.stringify(sectionId)} primitive ${JSON.stringify(primitive.source.id)} has 1 - kappa*l <= 0 at s=${s}`,
+        'plan_coordinate_inversion',
+      );
+    }
+  }
+}
+
+/** Prove structural Region relationships and derive the physical coordinate domain. */
 export function compileCourseRegionGeometry(
+  sectionId: string,
   raster: RasterPath,
+  primitives: readonly CompiledPlanPrimitive[],
   regions: readonly CompiledRegion[],
   carriageways: readonly CompiledCarriageway[],
-  margin: number,
   sectionPath: string,
-): { readonly partition: CompiledRegionPartition; readonly envelope: GuideEnvelope } {
+): { readonly partition: CompiledRegionPartition; readonly lateralDomain: CompiledPlanLateralDomain } {
   const path = `${sectionPath}/regions`;
   const boundaries = [...new Set(regions.flatMap((region) => [region.left, region.right]))];
   const stations = [
     ...new Set([
-      ...raster.vertexS,
-      ...boundaries.flatMap((b) => b.knots.map((k) => k.anchor.s)),
-      ...regions.flatMap((b) => [b.start.s, b.end.s]),
+      0,
+      raster.length,
+      ...boundaries.flatMap((boundary) => boundary.knots.map((knot) => knot.anchor.s)),
+      ...regions.flatMap((region) => [region.start.s, region.end.s]),
     ]),
   ].sort((a, b) => a - b);
   if (stations.length - 1 > COURSE_DOCUMENT_LIMITS.regionCells)
@@ -76,8 +126,8 @@ export function compileCourseRegionGeometry(
     for (const s of [sStart, sEnd]) {
       for (let i = 0; i < ordered.length; i += 1) {
         const region = ordered[i]!;
-        const left = courseBoundaryAt(region.left, s),
-          right = courseBoundaryAt(region.right, s);
+        const left = courseBoundaryAt(region.left, s);
+        const right = courseBoundaryAt(region.right, s);
         requireCourse(
           right > left || (right === left && (s === region.start.s || s === region.end.s)),
           path,
@@ -138,9 +188,9 @@ export function compileCourseRegionGeometry(
     return { sStart, sEnd, ordered };
   });
   for (let i = 1; i < spans.length; i += 1) {
-    const before = spans[i - 1]!.ordered,
-      after = spans[i]!.ordered,
-      s = spans[i]!.sStart;
+    const before = spans[i - 1]!.ordered;
+    const after = spans[i]!.ordered;
+    const s = spans[i]!.sStart;
     requireCourse(
       sameUnion(before, after, s),
       path,
@@ -149,8 +199,8 @@ export function compileCourseRegionGeometry(
     );
     requireCourse(
       sameUnion(
-        before.filter((b) => b.role !== 'shoulder'),
-        after.filter((b) => b.role !== 'shoulder'),
+        before.filter((region) => region.role !== 'shoulder'),
+        after.filter((region) => region.role !== 'shoulder'),
         s,
       ),
       path,
@@ -158,43 +208,10 @@ export function compileCourseRegionGeometry(
       'region_transition_discontinuity',
     );
   }
-  const envelope = stations.map((s, i) => {
-    // Include both closed sides of a transition, including zero-area birth/death points.
-    const incident = [...(spans[i - 1]?.ordered ?? []), ...(spans[i]?.ordered ?? [])];
-    const extent = Math.max(
-      ...incident.flatMap((b) => [Math.abs(courseBoundaryAt(b.left, s)), Math.abs(courseBoundaryAt(b.right, s))]),
-    );
-    return Object.freeze({ s, lMax: extent + margin });
-  });
-  let segmentIndex = 0;
-  for (const { sStart, sEnd, ordered } of spans) {
-    while (segmentIndex + 1 < raster.segments.length && raster.vertexS[segmentIndex + 1]! <= sStart) segmentIndex += 1;
-    const segment = raster.segments[segmentIndex]!;
-    const a = raster.vertexMiters[segment.startVertexIndex]!,
-      b = raster.vertexMiters[segment.endVertexIndex]!;
-    const derivative = { x: (b.x - a.x) / segment.length, z: (b.z - a.z) / segment.length };
-    const tangent = tangentFromHeading(segment.heading);
-    for (const boundary of [ordered[0]!.left, ordered.at(-1)!.right]) {
-      const l0 = courseBoundaryAt(boundary, sStart),
-        l1 = courseBoundaryAt(boundary, sEnd);
-      for (const [s, l] of [
-        [sStart, l0],
-        [sEnd, l1],
-      ] as const) {
-        const t = (s - segment.sStart) / segment.length;
-        const m = { x: a.x + (b.x - a.x) * t, z: a.z + (b.z - a.z) * t };
-        // The Raster map's Jacobian is affine in (s,l); linear edges need only these extrema.
-        requireCourse(
-          cross(m, tangent) + l * cross(m, derivative) > 0,
-          path,
-          `Mapped region envelope inverts on Raster segment ${segmentIndex} at s=${s}`,
-          'mapped_region_inversion',
-        );
-      }
-    }
-  }
+  const domain = lateralDomain(regions, stations);
+  validatePlanMetric(sectionId, primitives, domain, sectionPath);
   return Object.freeze({
     partition: Object.freeze({ raster, length: raster.length, regions: Object.freeze([...regions]) }),
-    envelope: Object.freeze(envelope),
+    lateralDomain: domain,
   });
 }

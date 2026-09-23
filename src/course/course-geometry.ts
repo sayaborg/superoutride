@@ -1,24 +1,25 @@
 import { compileRasterPath, type RasterPath } from './geometry/raster-path.js';
+import { createPlanarCoordinateSample } from '../core/planar-sample.js';
 import { CourseInputError } from './course-diagnostics.js';
 import {
   COURSE_DOCUMENT_LIMITS,
   type CourseAnchor,
-  type PlanPrimitive,
   type SectionDocument,
 } from './course-document.js';
-import { RASTER_TURTLE_RECIPE, RasterTurtle } from './raster-turtle.js';
+import {
+  compilePlanPath,
+  samplePlanPath,
+  type CompiledPlanPrimitive,
+  type PlanPath,
+} from './geometry/plan-path.js';
 
 export const COURSE_GEOMETRY_RECIPE = Object.freeze({
-  id: 'superoutride.raster-guide',
-  version: 4,
-  turtle: RASTER_TURTLE_RECIPE,
+  id: 'superoutride.plan-raster',
+  version: 1,
+  raster: Object.freeze({ straightStepMeters: 50, arcStepDegrees: 5 }),
 });
 
-export interface CompiledPlanPrimitive {
-  readonly source: PlanPrimitive;
-  readonly sStart: number;
-  readonly sEnd: number;
-}
+export type { CompiledPlanPrimitive } from './geometry/plan-path.js';
 
 export type CompiledCourseAnchor =
   | { readonly kind: 'absolute'; readonly s: number }
@@ -29,55 +30,59 @@ export type CompiledCourseAnchor =
       readonly fraction: number;
     };
 
-/** RangeError is a known Core authoring-domain rejection; invariant/Error and platform failures propagate. */
+function rasterStepCount(primitive: CompiledPlanPrimitive): number {
+  return primitive.source.kind === 'straight'
+    ? Math.ceil((primitive.sEnd - primitive.sStart) / COURSE_GEOMETRY_RECIPE.raster.straightStepMeters)
+    : Math.ceil(Math.abs(primitive.source.turn) / COURSE_GEOMETRY_RECIPE.raster.arcStepDegrees);
+}
+
+/** Compile the authored primitive sequence as the plan authority, then derive the rendering Raster on the same s ruler. */
 export function compileCourseGeometry(
   section: SectionDocument,
   path: string,
 ): {
   readonly raster: RasterPath;
   readonly primitives: readonly CompiledPlanPrimitive[];
+  readonly length: number;
 } {
   if (section.primitives.length === 0)
     throw new CourseInputError('empty_section', `${path}/primitives`, 'A Section requires at least one plan primitive');
-  let segmentCount = 0;
-  for (const primitive of section.primitives) {
-    segmentCount +=
-      primitive.kind === 'straight'
-        ? Math.ceil(primitive.length / RASTER_TURTLE_RECIPE.straightStepMeters)
-        : Math.ceil(Math.abs(primitive.turn) / RASTER_TURTLE_RECIPE.arcStepDegrees);
-  }
+  const plan: PlanPath = compilePlanPath(
+    { x: section.start.x, z: section.start.z, heading: section.start.heading * (Math.PI / 180) },
+    section.primitives,
+  );
+  const segmentCount = plan.primitives.reduce((sum, primitive) => sum + rasterStepCount(primitive), 0);
   if (segmentCount > COURSE_DOCUMENT_LIMITS.rasterSegments)
     throw new CourseInputError(
       'resource_limit',
       `${path}/primitives`,
       `Section exceeds ${COURSE_DOCUMENT_LIMITS.rasterSegments} Raster segments`,
     );
-  const turtle = new RasterTurtle({ x: section.start.x, z: section.start.z }, section.start.heading * (Math.PI / 180));
-  const intervals = section.primitives.map((primitive) => {
-    const start = turtle.vertices.length - 1;
-    if (primitive.kind === 'straight') turtle.appendStraight(primitive.length);
-    else turtle.appendArcDegrees(primitive.radius, primitive.turn);
-    return { start, end: turtle.vertices.length - 1 };
-  });
+  if (plan.length > COURSE_DOCUMENT_LIMITS.lengthMeters)
+    throw new CourseInputError('resource_limit', `${path}/primitives`, 'Compiled ruler exceeds 100000 m');
+
+  const sample = createPlanarCoordinateSample();
+  const first = samplePlanPath(plan, 0, sample);
+  const vertices = [{ x: first.x, z: first.z }];
+  const stations = [0];
+  for (const primitive of plan.primitives) {
+    const steps = rasterStepCount(primitive);
+    for (let step = 1; step <= steps; step += 1) {
+      const s = primitive.sStart + ((primitive.sEnd - primitive.sStart) * step) / steps;
+      const point = samplePlanPath(plan, s, sample);
+      vertices.push({ x: point.x, z: point.z });
+      stations.push(s);
+    }
+  }
   let raster: RasterPath;
   try {
-    raster = compileRasterPath(turtle.vertices);
+    raster = compileRasterPath(vertices, stations);
   } catch (error) {
     if (error instanceof RangeError)
       throw new CourseInputError('invalid_raster_geometry', `${path}/primitives`, error.message);
     throw error;
   }
-  if (raster.length > COURSE_DOCUMENT_LIMITS.lengthMeters)
-    throw new CourseInputError('resource_limit', `${path}/primitives`, 'Compiled ruler exceeds 100000 m');
-  return Object.freeze({
-    raster,
-    primitives: Object.freeze(
-      section.primitives.map((source, index) => {
-        const interval = intervals[index]!;
-        return Object.freeze({ source, sStart: raster.vertexS[interval.start]!, sEnd: raster.vertexS[interval.end]! });
-      }),
-    ),
-  });
+  return Object.freeze({ raster, primitives: plan.primitives, length: plan.length });
 }
 
 export function resolveCourseAnchor(
