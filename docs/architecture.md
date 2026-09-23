@@ -31,9 +31,19 @@ occurrences. `CompiledSection.coordinates` and `VehicleWorld.coordinates` expose
   Spawn and recovery supply known seeds. Invalid or unretained projection seeds fail explicitly.
 
 `PlanCoordinateSample` and `PlanCoordinateProjection` are borrowed observations in caller-owned outputs.
-`PlanProjectionWorkspace` holds reusable numerical scratch, separate from vehicle state. The native and
-mapped implementations own Guide access; ordinary consumers do not inspect Guide arrays or branch on
-reader representation. Geometry construction and its geometric proofs inspect their compiled primitives.
+`PlanProjectionWorkspace` holds reusable numerical scratch, separate from vehicle state. The Section
+implementation owns Guide access. Its `SectionPlanCoordinateReader` extends the common query contract
+with `seedCount` and `projectionCandidates(start,end)`; mapped readers use only these Section queries,
+not geometry arrays or kind branches. Native seeds are dense integers in `[0,seedCount)`, ordered along s.
+
+Candidate queries require a closed interval inside the Section domain and return an immutable ordered
+list of positive-length intersections. Each candidate exposes its clipped interval, complete native
+extent, conservative centerline XZ bounds and `project(world,out,workspace)`. Projection stays inside
+that clipped interval, returns native s/l and seed, and reports squared distance to the native centerline
+without lateral clamping. Candidate records and their nested bounds/extents are immutable.
+Occurrence seed capacity comes from the complete admitted physical product's Section Readers, including
+the active Section, rather than the retained window. Rebuilding a window preserves retained seed identities.
+Geometry construction and its geometric proofs inspect their compiled primitives.
 Terrain and rendering use `RasterGeometry`: finite length, segment stations/headings and point mapping.
 
 Vec2/Vec3 are readonly values. Sampling APIs with caller-owned outputs return borrowed observations

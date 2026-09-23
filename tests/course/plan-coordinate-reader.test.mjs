@@ -60,6 +60,22 @@ test('native plan reader supplies varying bounds, metric and unclamped seeded pr
   const point = createPlanCoordinateSample();
   const workspace = createPlanProjectionWorkspace();
   const observed = projection();
+  const candidates = reader.projectionCandidates(25, 175);
+  assert.ok(Object.isFrozen(candidates));
+  assert.equal(candidates.length, reader.seedCount);
+  assert.equal(candidates[0].start, 25);
+  assert.equal(candidates[0].extent.start, 0);
+  assert.equal(candidates.at(-1).end, 175);
+  assert.equal(candidates.at(-1).extent.end, reader.domain.end);
+  for (const candidate of candidates) {
+    assert.ok(Object.isFrozen(candidate) && Object.isFrozen(candidate.extent) && Object.isFrozen(candidate.bounds));
+    const s = (candidate.start + candidate.end) / 2;
+    reader.toWorld(s, 2, point);
+    assert.equal(candidate.project(point, observed, workspace), observed);
+    near(observed.s, s);
+    near(observed.l, 2);
+    assert.equal(observed.seed, candidate.seed);
+  }
   for (const s of [0, 50, 100, 150, reader.domain.end]) {
     assert.equal(reader.toWorld(s, 2, point), point);
     assert.equal(reader.locateLocal(point, point.seed, 0, observed, workspace), observed);
@@ -175,6 +191,12 @@ test('occurrence plan reader maps domains, poses, metrics and projection seeds t
   const restricted = bounded.value.world.coordinates;
   assert.equal(restricted.domain.start, 50);
   assert.equal(restricted.domain.end, 100);
+  const retainedSeed = reader.toWorld(75, 1, point).seed;
+  assert.equal(restricted.toWorld(75, 1, native).seed, retainedSeed);
+  assert.deepEqual(
+    restricted.metricsAt(75, 1, retainedSeed, metrics()),
+    reader.metricsAt(75, 1, retainedSeed, metrics()),
+  );
   assert.throws(() => restricted.toWorld(49, 0, point), RangeError);
   assert.throws(() => restricted.domain.lateralAt(101, { left: 0, right: 0 }), RangeError);
 });
