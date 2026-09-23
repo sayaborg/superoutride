@@ -129,7 +129,7 @@ interface SurfaceGeometryObservation {
   readonly curvature: number;
   readonly metric: number;
   readonly offsetMetric: number;
-  readonly heightDerivativeByPlanArc: number;
+  readonly heightDerivativeByS: number;
   readonly gradeAngle: number;
   readonly material: SurfaceMaterial;
   readonly surfaceType: SurfaceType;
@@ -242,7 +242,7 @@ export function createSurfaceGeometryWorkspace() {
       curvature: 0,
       metric: 1,
       offsetMetric: 1,
-      heightDerivativeByPlanArc: 0,
+      heightDerivativeByS: 0,
       gradeAngle: 0,
       material: SURFACE_MATERIALS.VOID,
       surfaceType: 'VOID' as SurfaceType,
@@ -268,7 +268,7 @@ export function sampleSurfaceGeometryAtCoordinate(
   const { curvature, metric, offsetMetric } = coordinates.metricsAt(coordinate.s, coordinate.l, workspace.metrics);
   if (!(offsetMetric > 0)) throw new RangeError('surface offset metric A=1-kappa*l must remain > 0');
   const heightSample = height.samplePhysicsDifferential(coordinate.s, workspace.height);
-  const heightDerivativeByPlanArc = heightSample.dYdS / metric;
+  const heightDerivativeByS = heightSample.dYdS / metric;
   const horizontalTangent = out.horizontalTangent,
     right = out.right;
   horizontalTangent.x = Math.sin(planSample.heading);
@@ -280,14 +280,14 @@ export function sampleSurfaceGeometryAtCoordinate(
   normalize3(
     add3(
       scale3(horizontalTangent, offsetMetric, workspace.a),
-      scale3(WORLD_UP, heightDerivativeByPlanArc, workspace.b),
+      scale3(WORLD_UP, heightDerivativeByS, workspace.b),
       workspace.a,
     ),
     out.tangent,
   );
   normalize3(
     add3(
-      scale3(horizontalTangent, -heightDerivativeByPlanArc, workspace.a),
+      scale3(horizontalTangent, -heightDerivativeByS, workspace.a),
       scale3(WORLD_UP, offsetMetric, workspace.b),
       workspace.a,
     ),
@@ -301,8 +301,8 @@ export function sampleSurfaceGeometryAtCoordinate(
   out.curvature = curvature;
   out.metric = metric;
   out.offsetMetric = offsetMetric;
-  out.heightDerivativeByPlanArc = heightDerivativeByPlanArc;
-  out.gradeAngle = Math.atan2(heightDerivativeByPlanArc, offsetMetric);
+  out.heightDerivativeByS = heightDerivativeByS;
+  out.gradeAngle = Math.atan2(heightDerivativeByS, offsetMetric);
   out.material = sample.material;
   out.surfaceType = sample.type;
   return out;

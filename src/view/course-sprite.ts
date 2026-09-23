@@ -1,7 +1,7 @@
 import type { RasterGeometry } from '../course/geometry/raster-coordinate-reader.js';
 import type { HeightProfileReader } from '../course/geometry/height-profile.js';
 import { pseudoDepth, pseudoProject, type PseudoCamera, type PseudoProjection } from './projection.js';
-import { mapToRenderSpace } from './render-height-space.js';
+import { mapToRenderSpace } from './render-space-mapping.js';
 import type { SpriteAsset } from '../image/sprite.js';
 
 interface CourseSpriteAuthoring {

@@ -18,7 +18,7 @@ import {
 import { drawTileBackground, type TileBackground } from './tile-background.js';
 import { selectVehicleSprite, type SpriteAssets } from '../image/sprite-assets.js';
 import { collectVisibleCourseSprites, type CourseSpriteInput, type VisibleCourseSprite } from './course-sprite.js';
-import { createRenderSpaceCamera, mapToRenderSpace } from './render-height-space.js';
+import { createRenderSpaceCamera, mapToRenderSpace } from './render-space-mapping.js';
 import { deriveVehicleNormalizedBank } from './vehicle-visuals.js';
 
 type PlayerVisualKind = 'car' | 'bike';

@@ -4,7 +4,7 @@ import { wrapAngle } from '../core/math.js';
 import type { VehicleWorldPoseRead } from '../vehicle/physics/vehicle-contract.js';
 import { selectVehicleSprite, type VehicleSpriteSet } from '../image/sprite-assets.js';
 import type { CourseSprite } from './course-sprite.js';
-import { mapToRenderSpace } from './render-height-space.js';
+import { mapToRenderSpace } from './render-space-mapping.js';
 import { deriveVehicleNormalizedBank, type VehicleTurnObservation } from './vehicle-visuals.js';
 
 /** Rendering adapter only. Physical x/y/z remains the CG authority. */
