@@ -14,17 +14,21 @@ t = (sin(psi), cos(psi))
 n = (cos(psi), -sin(psi))
 ```
 
-Course `(s,l)` is an observation. Raster and Guide share plan chainage `s`; physical distance along
-an offset or sloping path is different.
+A Section's authored straight/circular primitive sequence is the planar authority. `s` is true arc length
+along that centerline and positive `l` is distance along its right normal. With centerline `C(s)`,
+normal `N(s)` and signed curvature `kappa`, planar coordinates are `C(s) + l*N(s)`; physical
+distance along an offset or sloping path is different.
 
 `PlanCoordinateReader` is the planar query interface for both a compiled Section and its mapped
 occurrences. `CompiledSection.coordinates` and `VehicleWorld.coordinates` expose this same type:
 
 - `domain.start` and `domain.end` bound the admitted s interval; `domain.lateralAt(s,out)` gives its
-  closed `[left,right]` coordinate bounds. A Section uses its Guide envelope, and an occurrence
-  subtracts its mapped lateral origin from both edges. Coordinate bounds do not define material support.
+  closed asymmetric `[left,right]` bounds. A Section takes the outermost active Region edges and adds
+  `PLAN_COORDINATE_MARGIN_METERS` (4 m) on each outside edge. An occurrence subtracts its mapped
+  lateral origin from both edges. Coordinate bounds do not define material support.
 - `toWorld(s,l,out)` reads world X/Z, heading and a `PlanProjectionSeed`. `metricsAt(s,l,seed,out)`
-  reads curvature, centerline metric and offset metric. Native and mapped readers use their own frame.
+  reads `kappa`, centerline metric 1 and offset metric `J = 1-kappa*l`. Native and mapped readers use
+  their own frame.
 - `locateLocal(world,seed,searchRadius,out,workspace)` projects within a finite local neighborhood,
   without lateral clamping or a global-search fallback. Seeds come from this reader's samples or
   projections, not from consumer arithmetic; mapped seeds identify an occurrence and its native segment.
@@ -32,9 +36,10 @@ occurrences. `CompiledSection.coordinates` and `VehicleWorld.coordinates` expose
 
 `PlanCoordinateSample` and `PlanCoordinateProjection` are borrowed observations in caller-owned outputs.
 `PlanProjectionWorkspace` holds reusable numerical scratch, separate from vehicle state. The Section
-implementation owns Guide access. Its `SectionPlanCoordinateReader` extends the common query contract
-with `seedCount` and `projectionCandidates(start,end)`; mapped readers use only these Section queries,
-not geometry arrays or kind branches. Native seeds are dense integers in `[0,seedCount)`, ordered along s.
+implementation owns the authored primitive geometry. Its `SectionPlanCoordinateReader` extends the common
+query contract with `seedCount` and `projectionCandidates(start,end)`; mapped readers use only these
+Section queries, not primitive-kind branches. Native seeds are dense primitive indices in
+`[0,seedCount)`, ordered along s.
 
 Candidate queries require a closed interval inside the Section domain and return an immutable ordered
 list of positive-length intersections. Each candidate exposes its clipped interval, complete native
@@ -48,9 +53,10 @@ Terrain and rendering use `RasterGeometry`: finite length, segment stations/head
 
 Vec2/Vec3 are readonly values. Sampling APIs with caller-owned outputs return borrowed observations
 valid until those outputs are reused. Compiled sources are immutable; actors and consumers own live state.
-RasterPath, GuidePath, HeightProfile, VisualProfile and ground appearance have finite domain `[0,L]`.
-Profile endpoints normalize within 1e-9 m; Raster/Guide sampling uses 1e-8 m. Nonfinite source values fail.
-The adjacent segment supplies an endpoint basis; interior vertices own turns and fillets.
+RasterPath, HeightProfile, VisualProfile and ground appearance have finite domain `[0,L]`.
+Profile endpoints normalize within 1e-9 m; plan/Raster sampling uses 1e-8 m. Nonfinite source values fail.
+At a primitive or Raster boundary, the successor owns the interior station; the terminal endpoint uses
+the final primitive/segment.
 
 ## Numerical conventions
 
@@ -59,55 +65,45 @@ runtime's standard `Math.hypot` behavior.
 
 [Core tolerances](../src/core/tolerances.ts) defines shared endpoint, geometric, lateral-boundary,
 pixel-edge and texel-spacing tolerances. Other thresholds belong to their dimensional algorithms:
-turn/fillet construction, depth inversion, world crossings, event ordering, solver residuals and control response.
+plan projection, depth inversion, world crossings, event ordering, solver residuals and control response.
 A sampling tolerance changes neither point ownership nor earned progress.
 
-## Raster and Guide
+## Plan authority and Raster
 
-Raster is a polyline with at most 10 degrees of heading change at an interior vertex. Independent
-left/right bounds use its exact miter map; a constant-width corner has ratio `1/cos(Delta/2)`.
-Mapped strips require finite joins and positive local Jacobians. A Section is a local chart;
-different chainages can occupy the same XZ position.
+Each compiled plan primitive retains its author record, exact s interval, starting pose and signed curvature.
+A straight has `kappa=0`. A circular arc of radius `R` and signed turn has
+`kappa=sign(turn)/R`; its length is `R*abs(turnRadians)`. Primitive-anchor fractions therefore advance
+linearly in true arc length. Section projection onto a straight or circular arc uses closed-form geometry.
 
-Source compilation establishes local geometry and metrics. A consumer additionally requires complete
-query coverage, the root's contact/fixed-step domain and unambiguous mapped geometry over its bounded
-window, including occurrence transforms. Occurrence, local seed and height identify a passage.
+The physical coordinate chart must satisfy `J = 1-kappa*l > 0` across its complete lateral domain.
+Compilation checks every circular primitive against all incident Region-domain stations. A failure is the
+structured `plan_coordinate_inversion` authoring diagnostic and identifies the Section, primitive and s.
+This condition belongs to the physical plan chart only.
 
-Guide rounds corners with straight/circular fillets while rendered road geometry stays Raster.
-For turn `Delta`, radius `R`, lateral bound `L(s)` and minimum metric `mMin`:
+Raster is a rendering-only polyline derived from that authority. Straights use at most 50 m per segment
+and arcs at most 5 authored degrees per segment. Every Raster vertex is sampled on the authoritative
+centerline at an authoritative s station. Raster and plan therefore share the same ruler and Section length;
+inside one Raster segment X/Z is interpolated linearly in s. Its miter basis supplies rendered lateral
+positions. Raster geometry is not subjected to the physical `J > 0` condition.
 
-```text
-mu = abs(Delta)/(2*tan(abs(Delta)/2))    (mu = 1 at zero turn)
-kappa = sign(Delta)/R
-J = mu*(1-kappa*l)
-Rmin = sup(L(s), over the complete fillet)/(1-mMin/mu)
-trim = R*tan(abs(Delta)/2)
-maximum Guide/Raster deviation = R*(sec(abs(Delta)/2)-1)
-```
-
-Require `0 < mMin < mu`, `J >= mMin`, nonoverlapping adjacent trims and the intervening straight
-required for opposite-curvature fillets. Guide is G1; parameter speed changes between 1 and `mu`.
-A positive straight longer than sampling tolerance is a real primitive. At roundoff-size joins,
-lookup uses the adjacent segment within the reader's sampling tolerance.
-
-`GuidePath.envelope` is one immutable piecewise-linear bound. Constant input becomes two equal knots.
-Course geometry derives the bound from active Region edges plus an explicit positive margin, using both
-incident cells at transitions. Complete fillets include clipped endpoints, interior knots and extrema.
-Each query uses its local bound. The envelope is a coordinate domain; physical support comes from material bindings.
+A Section is a local chart; different chainages can occupy the same XZ position. Source compilation
+establishes local geometry and metrics. A consumer additionally requires complete query coverage and
+unambiguous mapped geometry over its bounded window, including occurrence transforms. Occurrence,
+local seed and height identify a passage.
 
 ## Boundary geometry and local windows
 
-Boundary profiles are piecewise linear on the Raster ruler. Width and center are derived from their
-edges. Shape partitions include Raster vertices, height/boundary knots and activation changes.
-Varying edges under the interpolated miter map are quadratic. Closed-cell Jacobian extrema establish
-local non-inversion; paint changes alone do not divide geometry.
+Boundary profiles are piecewise linear on the authoritative s ruler. Width and center are derived from
+their edges. Region validation divides at boundary knots and activation changes; paint changes do not
+divide physical geometry. The old Raster-Jacobian authoring rejection is not part of this contract.
 
-`compileCourseGeometryWindow` accepts canonical Raster, Guide and Region-partition readers and a
-positive closed source interval. It returns an immutable `local-geometry` result for those references
-and that interval. Mismatched readers or out-of-domain intervals fail. Nonadjacent Raster/Guide
-construction hulls must separate within geometric sampling tolerance; otherwise `ambiguous_geometry`
-identifies the mapping and both source intervals. The limit is 1024 cells per mapping;
-`resource_limit` reports an excess. These are conservative bounded-window results.
+`compileCourseGeometryWindow` accepts the canonical Raster, Section coordinate Reader, compiled
+primitives and Region partition over a positive closed source interval. It returns an immutable
+`local-geometry` result for those references and that interval. Mismatched rulers or out-of-domain
+intervals fail. Nonadjacent Raster/plan construction hulls must separate within geometric sampling
+tolerance; otherwise `ambiguous_geometry` identifies the mapping and both source intervals. The limit
+is 1024 cells per mapping; `resource_limit` reports an excess. These conservative runtime window checks
+remain until Stage 6-4.
 
 Point regions are half-open laterally: `[left(s),right(s))`. A shared edge belongs to the region on
 its right; the outer left edge is included and the outer right edge is outside. Zero-width endpoints

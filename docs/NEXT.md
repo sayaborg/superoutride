@@ -8,7 +8,7 @@
 - Build currently generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **6-2b — Plan authority**.
+Next PR: **6-3 — Rendering-space mapping**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Current contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -18,17 +18,16 @@ PRs hold rationale and verification evidence.
 
 Make authored plan and vertical geometry authoritative, with rendering-only approximations and simpler connections.
 
-- **6-2b — Plan authority:** replace the Section coordinate implementation with authored straights and circular arcs, arc-length s, rendering-only Raster, asymmetric coordinate domains with J > 0, and one 4 m engine margin. Remove the saved `guide` field, advance the document version, and update the three provisional courses, geometric consumers and tools. Mapped coordinate composition consumes the Section Reader contract. Update the 6-5 list to the actual unused code after this replacement.
 - **6-3 — Rendering-space mapping:** derive vehicle and camera positions from (s, l, h), with orientation from physical yaw.
 - **6-4 — Coordinate-domain injectivity:** check injectivity at compilation and remove runtime geometry checks.
-- **6-5 — Guide remnants:** remove unused fillet reconstruction, μ, mMin, envelope, `maxSupportedAbsL`, geometry-window checks and metric; name remaining Guide/Raster replacements according to the glossary. The precise unused-source list is established by 6-2b; Guide construction still serves the current Section implementation.
+- **6-5 — Dead planar remnants:** remove `src/course/geometry/guide-curve.ts`, `src/course/geometry/guide-envelope.ts`, `src/course/raster-turtle.ts`, Raster `sourceRadius` provenance and Guide-era unused projection-workspace scratch; then simplify any now-redundant metric surface. Keep live geometry-window and `maxSupportedAbsL` work in their owning later stages.
 - **6-6 — Vertical alignment:** PVIs and parabolas, allowing zero curve lengths with endpoint curve lengths set to zero; polyline rendering with separate authoritative and rendering Readers; rename HeightProfile/OpenProfile replacements according to the glossary.
 - **6-7 — Band tail cells:** truncate preblend cells at the Section end and separate compilation from sampling while preserving private compiled coefficient storage.
 - **6-8 — Cut-line seams:** replace overlaps with cut lines, remove Port, `Section.start` and overlap machinery, rename `Link.source` according to the glossary, and review the straight requirement for parallel fork intervals.
 - **6-9 — Views and occurrences:** minimize their procedures and name occurrence-view replacements (`createView`, `CourseGeometryView` and their adapters) according to the glossary.
 - **6-10 — Local tolerances:** clarify each tolerance's basis and owning algorithm.
 
-## Stage 7 — Course format v13
+## Stage 7 — Course format v14
 
 Unify authored coordinates, appearance, delivery and progress in the course format.
 

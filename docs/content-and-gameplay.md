@@ -20,7 +20,7 @@ structural partitions with material bindings. One concept has one name in both s
 Checkpoints, starts, finishes and environment changes are independent of Section boundaries.
 Source identity, traversal identity and race credit are distinct.
 
-## CourseDocument v12
+## CourseDocument v13
 
 The saved format is compact UTF-8 JSON. All declared fields are required; explicit null represents
 absent optional content. Unknown fields fail. Arrays preserve saved order; object-property order and
@@ -28,14 +28,14 @@ whitespace do not affect identity. Normalized records use schema field order and
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 12,
+  format: "superoutride.course", version: 13,
   reference, id, units: {length: "m", angle: "deg"},
   geometryRecipe: {id, version},
   type: "LINEAR" | "BRANCH" | "CIRCUIT", entrySectionId,
   sections, links, assets, sceneryInstances, rules
 }
 Section {
-  id, start: {x, z, heading}, guide: {margin, mMin}, primitives,
+  id, start: {x, z, heading}, primitives,
   boundaries, regions, height: [{anchor, y}],
   physicalBindings: [{regionId, sections: [{anchor, material}]}],
   carriageways, ports, assetIds, presentation, fork
@@ -173,8 +173,7 @@ lap values must agree. The composition root resolves vehicle IDs against the cat
 All numbers are finite. Length/radius and Link overlap extents are in `(0,100000]` m. Start X/Z are
 within +/-1000000 m; start heading and nonzero arc turn are within +/-360 degrees. Absolute anchors
 are in `[0,100000]` m and primitive fractions in `[0,1]`. Lateral values are within +/-1000 m;
-heights within +/-10000 m. Guide margin is in `(0,1000]` m and `0 < mMin < 1`.
-Recipe versions are integers from 1 through 65535. Resolved values must also fit their finite Section
+heights within +/-10000 m. Recipe versions are integers from 1 through 65535. Resolved values must also fit their finite Section
 and produce positive representable intervals.
 
 `COURSE_DOCUMENT_LIMITS` defines 4 MiB UTF-8 JSON, 128 UTF-16 code units per ID, 16 Sections,
@@ -185,17 +184,24 @@ bindings and 256 material changes per binding. Compiled Section limits are 16384
 
 ## Geometry recipe and bindings
 
-The geometry recipe is `superoutride.raster-guide` version 4, using RasterTurtle version 1.
-Straights emit `ceil(length/50)` equal steps; arcs emit `ceil(abs(turnDegrees)/5)` equal angular
-steps in authored degrees, converted with `PI/180`. Arc radius provenance covers the initial and
-emitted vertices; a following arc supplies the shared vertex's radius.
+The geometry recipe is `superoutride.plan-raster` version 1. The authored straight/circular primitive
+sequence defines the Section plan. Straight length is its authored length; a circular arc has true length
+`radius*abs(turnRadians)`. Each primitive has that exact resolved interval, and primitive-anchor fractions
+use `start+fraction*(end-start)`. Absolute anchors keep their numeric true-chainage value.
 
-The document ruler is the sequential `Math.hypot` sum of emitted Raster vertex differences in
-primitive order. Each primitive has a resolved interval. Fractions 0 and 1 use its exact endpoints;
-interior fractions use `start+fraction*(end-start)`. Absolute anchors keep their numeric chainage.
-The recipe identity participates in every dependent build identity.
+Raster is derived for drawing only. Straights emit `ceil(length/50)` equal-s intervals and arcs emit
+`ceil(abs(turnDegrees)/5)` equal-angle intervals. Every emitted vertex is an exact point on the
+authoritative primitive at the same s station, so Raster and plan have the same Section length even though
+a Raster segment is a chord.
 
-Boundary knots are strictly increasing and cover every referencing Region's closed interval.
+The Section coordinate domain at s is
+`[leftmost active Region edge - 4 m, rightmost active Region edge + 4 m]`. The 4 m value is the
+engine constant `PLAN_COORDINATE_MARGIN_METERS`, not authored data. For every circular primitive,
+compilation requires `1-kappa*l > 0` throughout this physical coordinate domain and reports
+`plan_coordinate_inversion` with Section, primitive and s when the condition fails. The recipe identity
+participates in every dependent build identity.
+
+Boundary knots are strictly increasingBoundary knots are strictly increasing and cover every referencing Region's closed interval.
 Interpolation is linear; width and center are derived. A Region has positive length and positive
 interior width; zero width is permitted at its own start/end only. Regions are nonoverlapping and
 shared edges reference one Boundary. Every pavement Region belongs to exactly one Carriageway, whose
@@ -222,13 +228,13 @@ include active supported endpoints and interior Boundary knots. Ground appearanc
 ## Ports, Links and topology
 
 A Port lies strictly inside its Section and references a positive-width Carriageway. Its pose uses
-the outer-edge center and forward Guide heading. Each Link connects an exit to an entry using the
+the outer-edge center and authoritative plan heading. Each Link connects an exit to an entry using the
 [Port-derived upright transform](architecture.md#course-frames).
 
 Link recipe `superoutride.carriageway-link` version 1 requires positive overlap extents fitting both
-charts, authored straight guards outside Guide fillets and Raster headings agreeing within 1e-10 radians.
+charts, authored straight primitives throughout each guard and Raster headings agreeing within 1e-10 radians.
 Selected Carriageways have positive contiguous pavement coverage and matching transformed Raster and
-Guide outer edges throughout the overlap, within 1e-7 m. Internal pavement subdivisions may differ.
+authoritative-plan outer edges throughout the overlap, within 1e-7 m. Internal pavement subdivisions may differ.
 Distinct source stations must remain representable in the common seam-relative ruler.
 
 The graph has an explicit entry. Each Section has at most one entry Port shared by incoming merge
@@ -259,7 +265,7 @@ Owned records and arrays are immutable, including nested image data. Live actor,
 clock state belong to Sessions. Object identity is local to a compilation; cross-build identity uses digests.
 
 `sourceSha256` hashes normalized input. `buildSha256` hashes `{sourceSha256,compiler,geometryRecipe}`.
-The compiler is `superoutride.course-compiler` version 18, incorporating Link recipe v1, physical
+The compiler is `superoutride.course-compiler` version 20, incorporating Link recipe v1, physical
 recipe v2, image-source recipe v2 and presentation recipe v5. Descriptors include semantic versions
 and operative numeric/data parameters, including material definitions. Source or compiler/recipe
 changes invalidate dependent products.
@@ -327,7 +333,7 @@ entrance returns to its supported Port before the camera observes it.
 
 Section `fork` is null or `{lock,closure}` anchors. Controls require two or three exits and
 `entry < lock < closure < every exit seam`, with positive lock chainage. The parallel-zone subset
-is straight and outside Guide fillets. Through closure, edges are constant, roads have positive
+is contained in authored straight primitives. Through closure, edges are constant, roads have positive
 width, and explicit physical bindings support the roads, separating medians and connecting space.
 Invalid controls produce `invalid_fork`.
 
@@ -355,7 +361,7 @@ common overlap; reverse traversal follows the actual predecessor.
 
 World gates observe oriented plane crossings. Forward is negative to zero/positive; reverse is
 positive to zero/negative. Arrival counts once and departure does not repeat it. Width tolerance is
-independent of crossing direction; race gates use supported Carriageway width rather than Guide envelope width.
+independent of crossing direction; race gates use supported Carriageway width rather than coordinate-domain width.
 
 Ordered progress follows authored checkpoints and continuation/exit gates. Circuit progress reuses
 one source-local gate set for each lap and counts valid finishes; grid release earns no lap.
