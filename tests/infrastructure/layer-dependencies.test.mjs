@@ -82,7 +82,7 @@ function dependencyTarget(file, ref, options) {
   return resolved ? relativePath(resolved.resolvedFileName) : null;
 }
 
-function checkDirection(from, to, exceptions = new Set()) {
+function checkDirection(from, to) {
   const edge = `${from} -> ${to}`;
   if (from.startsWith('src/')) {
     assert.ok(!to.startsWith('tools/'), `product depends on authoring: ${edge}`);
@@ -92,8 +92,7 @@ function checkDirection(from, to, exceptions = new Set()) {
       assert.ok(source === target || rank.get(target) < rank.get(source), `upward domain dependency: ${edge}`);
     }
   }
-  if (from.startsWith('tools/') && to.startsWith('dist/'))
-    assert.ok(exceptions.has(edge), `tool imports delivery output: ${edge}`);
+  assert.ok(!to.startsWith('dist/'), `source imports delivery output: ${edge}`);
 }
 
 test('module discovery includes type imports, re-exports, dynamic imports and worker entries', () => {
@@ -131,11 +130,10 @@ test('HTML tool scripts include inline imports, module sources and worklet entri
 test('root and layer direction rejects inverse dependencies without broad exemptions', () => {
   assert.throws(() => checkDirection('src/core/a.ts', 'tools/build/b.ts'), /product depends on authoring/);
   assert.throws(() => checkDirection('src/core/a.ts', 'src/image/b.ts'), /upward domain dependency/);
-  assert.throws(() => checkDirection('tools/build/a.ts', 'dist/core/b.js'), /tool imports delivery output/);
-  const exceptions = new Set(['tools/graphics/a.mjs -> dist/core/b.js']);
-  assert.doesNotThrow(() => checkDirection('tools/graphics/a.mjs', 'dist/core/b.js', exceptions));
-  assert.throws(() => checkDirection('tools/graphics/a.mjs', 'dist/core/c.js', exceptions));
-  assert.throws(() => checkDirection('tools/graphics/b.mjs', 'dist/core/b.js', exceptions));
+  assert.throws(() => checkDirection('tools/build/a.ts', 'dist/core/b.js'), /source imports delivery output/);
+  assert.throws(() => checkDirection('src/image/a.ts', 'dist/core/b.js'), /source imports delivery output/);
+  assert.throws(() => checkDirection('tools/graphics/a.ts', 'dist/core/b.js'), /source imports delivery output/);
+  assert.throws(() => checkDirection('tools/audio/a.ts', 'dist/core/b.js'), /source imports delivery output/);
   assert.doesNotThrow(() => checkDirection('tools/build/a.ts', 'src/core/b.ts'));
   assert.doesNotThrow(() => checkDirection('src/image/a.ts', 'src/core/b.ts'));
 });
@@ -155,18 +153,6 @@ test('engine and authoring dependencies follow their declared directions, includ
     'src has no root-level files',
   );
 
-  const pairs = JSON.parse(await readFile(new URL('./tool-dependency-exceptions.json', import.meta.url), 'utf8'));
-  const exceptions = new Set(pairs.map(([from, to]) => `${from} -> ${to}`));
-  assert.equal(exceptions.size, pairs.length, 'exception pairs are unique');
-  for (const [from, to] of pairs) {
-    assert.match(
-      from,
-      /^tools\/(graphics|audio)\/.*\.(?:mjs|html)$/,
-      'only unmigrated JavaScript or HTML may have exceptions',
-    );
-    assert.ok(to.startsWith('dist/'), 'exceptions name one delivery module');
-  }
-  const used = new Set();
   const graph = new Map();
   for (const root of [sourceRoot, toolRoot]) {
     const configPath = path.join(repositoryRoot, root === sourceRoot ? 'tsconfig.json' : 'tsconfig.tools.json');
@@ -185,9 +171,7 @@ test('engine and authoring dependencies follow their declared directions, includ
       for (const ref of moduleReferences(file, await readFile(file, 'utf8'))) {
         const to = dependencyTarget(file, ref, config.options);
         if (!to) continue;
-        checkDirection(from, to, exceptions);
-        const edge = `${from} -> ${to}`;
-        if (exceptions.has(edge)) used.add(edge);
+        checkDirection(from, to);
         if (from.startsWith('src/') && to.startsWith('src/')) {
           const source = layerOf(from),
             target = layerOf(to);
@@ -199,7 +183,6 @@ test('engine and authoring dependencies follow their declared directions, includ
       }
     }
   }
-  assert.deepEqual([...used].sort(), [...exceptions].sort(), 'remove stale migration exceptions');
   const complete = new Set();
   function visit(layer, trail = []) {
     assert.ok(!trail.includes(layer), `layer cycle: ${[...trail, layer].join(' -> ')}`);

@@ -1,4 +1,4 @@
-import { rgba } from '../rgb555.js';
+import { rgba } from '../../../src/image/rgb555.js';
 
 /** An image-processing study, not production art or a vehicle dimensional reference. */
 export function createSpriteSourceFixture() {

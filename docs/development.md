@@ -27,12 +27,11 @@ product's `.js` module specifiers to TypeScript source without a tool compilatio
 not replace the strict `tsc` check. Reference workers and tests consuming typed course helpers use the same loader.
 Those tests import product source too, so a process has one module identity for compiled course objects.
 Test files remain JavaScript. Build clears `dist`,
-compiles the product, stages graphics, then generates course/reference content in that order.
+compiles the product, builds browser tools and sprite content, then generates course/reference content in that order.
 
-Course tools are TypeScript and consume product source directly. Graphics/audio tools keep their
-current JavaScript execution and browser staging. `tools/graphics/sprite-png.d.mts` describes the one
-legacy helper interface consumed by a TypeScript build script; its implementation remains JavaScript.
-Its migration and declaration removal are scheduled in [NEXT](NEXT.md#stage-5--reorganize-foundations).
+All authoring implementations are TypeScript. Browser entries and worklet adapters are bundled from
+source with pinned esbuild; bundling does not replace type checking. The browser build uses pngjs's
+pinned browser distribution for the same PNG codec API used by Node file compilers.
 
 ### Course commands
 
@@ -50,17 +49,29 @@ node --import tsx tools/course/measure.ts request.json --out observations.json
 [Content and gameplay](content-and-gameplay.md#observation-formats) owns saved tool formats.
 The render command uses the shared product scene; reports and preview images are disposable outputs.
 
-### Graphics tools
+### Browser tools
 
-Serve the checkout and open `tools/graphics/sprite-tool.html` or `tools/graphics/sprite-lod.html`.
+Run `npm run build`, then serve the repository root with `python3 -m http.server 8000`.
+Open the generated pages, not the source HTML templates:
+
+| Tool            | Local URL                                                    |
+| --------------- | ------------------------------------------------------------ |
+| Sprite Tool     | `http://localhost:8000/dist/tools/graphics/sprite-tool.html` |
+| LOD preview     | `http://localhost:8000/dist/tools/graphics/sprite-lod.html`  |
+| Engine audition | `http://localhost:8000/dist/tools/audio/audio-browser.html`  |
+| Tire audition   | `http://localhost:8000/dist/tools/audio/tire-browser.html`   |
+
+On Pages these same `tools/...` paths live beneath `build/<commit>/`, where `<commit>` is the
+published `version.txt` value. Each tool, its shared chunks, worklets, stylesheet and sample assets
+resolve within that one build. The ordinary build command is the only generation step.
+
 The file compilers are `npm run build:sprite-source -- <arguments>` and
 `npm run build:sprite-lod -- <arguments>`; [Image assets](image-assets.md) owns their formats.
 
 ### Audio audition
 
-Serve the checkout and open [engine audition](../tools/audio/audio-browser.html) or
-[UNIFIED tire audition](../tools/audio/tire-browser.html). Both use production voices and render at
-48 kHz with fixed playback gain; game audio uses the device's supported native rate.
+Both auditions use production voices and render at 48 kHz with fixed playback gain; game audio uses
+the device's supported native rate. [Browser tools](#browser-tools) gives the build and opening instructions.
 
 For engine adjustment, select a catalog profile and compare steady RPM/excitation with acceleration
 and coast. Commit settings before the next audition playback. Keep playback gain fixed when comparing
@@ -82,7 +93,7 @@ reference evidence. Product-renderer previews and reports are generated outputs.
 
 ## Build outputs
 
-`dist/` contains compiled product ESM and staged browser graphics tools, not Node build-script output. `dist/content/` contains course JSON, compiled
+`dist/` contains compiled product ESM and bundled browser graphics/audio tools, not Node build-script output. `dist/content/` contains course JSON, compiled
 images/sprites and the content manifest. Course JSON retains authored Band constructs; the shared compiler expands them and builds immutable
 preblend fields before browser driving or headless rendering. Expanded Bands and their profiles are
 in-memory compiler products, not committed files or an additional delivered image format. Build also generates

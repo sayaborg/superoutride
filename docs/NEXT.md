@@ -8,7 +8,7 @@
 - Build currently generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **5-5c — TypeScript graphics/audio tools and authoring ownership**.
+Next PR: **5-6 — Vocabulary**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Current contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -18,10 +18,6 @@ PRs hold rationale and verification evidence.
 
 Simplify the foundations without changing behavior.
 
-- **5-5c — Graphics and audio tools:** migrate `tools/graphics` and `tools/audio`; move authoring-only
-  sprite compilers and fixtures out of `src`. Keep shared image limits in the product, remove the
-  sprite-palette dependency on sprite-source-compiler, and remove the remaining migration declarations
-  and dependency exceptions. Preserve a coherent browser-tool delivery path.
 - **5-6 — Vocabulary:** define reserved terms such as Profile, mode and presentation, and rename accordingly.
 
 Band compiler/sampler separation belongs to 7-6 and preserves private compiled coefficient storage.

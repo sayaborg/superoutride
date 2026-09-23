@@ -2,7 +2,7 @@ import type { CourseDocument } from '../../src/course/course-document.js';
 import type { CourseAssetBytes } from '../../src/course/compiler/course-image-source.js';
 import { createHash } from 'node:crypto';
 import { compileCourseImageSources } from '../../src/course/compiler/course-image-source.js';
-import { compileSpriteLod } from '../../src/image/sprite-lod-compiler.js';
+import { compileSpriteLod } from '../graphics/sprite-lod-compiler.js';
 import { readCourseDocument } from '../../src/course/course-document.js';
 
 /** Build-only image compilation; derived course references bind the exact delivered LOD bytes. */

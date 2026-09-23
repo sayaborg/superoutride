@@ -1,5 +1,10 @@
-import { IMAGE_OPAQUE_COVERAGE, evaluatePaletteMixture, linearToRgb555, type PaletteMixture } from './image-filter.js';
-import { readSpriteLodAsset, spriteLodLayout, type SpriteLodDocument } from './sprite.js';
+import {
+  IMAGE_OPAQUE_COVERAGE,
+  evaluatePaletteMixture,
+  linearToRgb555,
+  type PaletteMixture,
+} from '../../src/image/image-filter.js';
+import { readSpriteLodAsset, spriteLodLayout, type SpriteLodDocument } from '../../src/image/sprite.js';
 
 interface MixtureBin {
   readonly mixture: PaletteMixture;

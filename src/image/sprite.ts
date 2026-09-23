@@ -18,11 +18,6 @@ export interface SpriteLodDocument {
   }[];
 }
 
-/** One identity mapping for normalized masters, including an unused transparent slot. */
-export function spriteIdentityMixtures(): PaletteMixture[] {
-  return Array.from({ length: 16 }, (_, index) => (index === 0 ? [] : [[index, 1]]));
-}
-
 export function spriteLodLayout(width: number, height: number) {
   if (!(width > 0 && height > 0 && Number.isInteger(width) && Number.isInteger(height)))
     throw new RangeError('sprite dimensions must be positive integers');
@@ -171,10 +166,6 @@ export function createSpritePaletteVariant(asset: SpriteAsset, palette: readonly
     return Object.freeze({ ...level, paletteRgb555, paletteRgba: indexedPaletteRgba(paletteRgb555) });
   });
   return Object.freeze({ ...asset, levels: Object.freeze(levels) });
-}
-
-export function readSpritePaletteRgb555(value: unknown): number[] {
-  return [...readIndexedPalette(value)];
 }
 
 function spriteRecord(value: unknown, keys: readonly string[]): Record<string, unknown> {

@@ -1,14 +1,20 @@
-import { rgba } from '../../dist/image/rgb555.js';
-import { SPRITE_SOURCE_PIXEL_LIMIT } from '../../dist/image/sprite-source-compiler.js';
+import type { PNG as PngDecoder } from 'pngjs';
+import { rgba } from '../../src/image/rgb555.js';
+import { SPRITE_SOURCE_PIXEL_LIMIT } from './sprite-source-compiler.js';
 
 export const SPRITE_PNG_BYTE_LIMIT = 32 * 1024 * 1024;
 
 /** Same pinned pngjs decoder in Node and the authoring browser; no canvas color conversion. */
-export async function decodeSpritePng(bytes, PNG, pixelLimit = SPRITE_SOURCE_PIXEL_LIMIT, axisLimit = Infinity) {
+export async function decodeSpritePng(
+  bytes: Uint8Array,
+  PNG: typeof PngDecoder,
+  pixelLimit = SPRITE_SOURCE_PIXEL_LIMIT,
+  axisLimit = Infinity,
+) {
   if (!(bytes instanceof Uint8Array) || bytes.length > SPRITE_PNG_BYTE_LIMIT)
     throw new RangeError('PNG exceeds 32 MiB');
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  const type = (offset) => String.fromCharCode(...bytes.subarray(offset, offset + 4));
+  const type = (offset: number) => String.fromCharCode(...bytes.subarray(offset, offset + 4));
   if (
     bytes.length < 33 ||
     [137, 80, 78, 71, 13, 10, 26, 10].some((b, i) => bytes[i] !== b) ||
@@ -38,10 +44,17 @@ export async function decodeSpritePng(bytes, PNG, pixelLimit = SPRITE_SOURCE_PIX
   }
   if (offset !== bytes.length) throw new RangeError('truncated PNG chunk');
   // prepare sRGB sources before import: pngjs does not apply gamma/ICC conversion here.
-  const decoded = await new Promise((resolve, reject) => {
-    new PNG({ checkCRC: true }).parse(bytes, (error, value) => (error ? reject(error) : resolve(value)));
+  const decoded = await new Promise<PngDecoder>((resolve, reject) => {
+    // pngjs accepts Uint8Array at runtime; its published types only name Buffer.
+    new PNG({ checkCRC: true }).parse(bytes as Buffer, (error, value) => (error ? reject(error) : resolve(value)));
   });
   const pixels = new Uint32Array(width * height);
-  for (let i = 0; i < pixels.length; i++) pixels[i] = rgba(...decoded.data.subarray(i * 4, i * 4 + 4));
+  for (let i = 0; i < pixels.length; i++)
+    pixels[i] = rgba(
+      decoded.data[i * 4]!,
+      decoded.data[i * 4 + 1]!,
+      decoded.data[i * 4 + 2]!,
+      decoded.data[i * 4 + 3]!,
+    );
   return { width, height, pixels };
 }

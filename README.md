@@ -31,9 +31,8 @@ audio auditions. Authored content lives under `content/`; generated outputs are 
 
 ## Structure
 
-`src/` is the product root; `tools/` is the authoring/build root. TypeScript build and course tools consume product
-source and share its strict type/lint checks. [Development](docs/development.md#typescript-tools)
-describes execution and the remaining JavaScript tool migration.
+`src/` is the product root; `tools/` is the authoring/build root. TypeScript tools consume product source and share its strict type/lint checks. [Development](docs/development.md#typescript-tools)
+describes execution and browser-tool delivery.
 
 | Directory     | Responsibility                                                                                                   |
 | ------------- | ---------------------------------------------------------------------------------------------------------------- |

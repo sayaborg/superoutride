@@ -1,6 +1,8 @@
+import type { TireAudioObservation } from '../../src/audio/vehicle-audio-observation.js';
+
 // Authored acoustic observations for auditions, not a driving simulation.
 export const TIRE_AUDITION_SECONDS = 9;
-export const TIRE_AUDITION_PHASES = [
+export const TIRE_AUDITION_PHASES: readonly Partial<TireAudioObservation>[] = [
   {
     load: 4000,
     longitudinalVelocity: 25,

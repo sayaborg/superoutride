@@ -1,5 +1,5 @@
-import { readIndexedPalette } from './indexed-image.js';
-import { IMAGE_OPAQUE_COVERAGE, integrateImageBox, rgb555LinearChannel } from './image-filter.js';
+import { readIndexedPalette } from '../../src/image/indexed-image.js';
+import { IMAGE_OPAQUE_COVERAGE, integrateImageBox, rgb555LinearChannel } from '../../src/image/image-filter.js';
 
 /** Source normalization chooses the closest authored slot; LOD instead retains palette mixtures. */
 export function createSpriteAreaFilter(palette: readonly number[]) {

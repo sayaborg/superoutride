@@ -1,4 +1,5 @@
-import { spriteIdentityMixtures, spriteLodLayout, type SpriteLodDocument } from '../sprite.js';
+import { spriteIdentityMixtures } from '../sprite-source-compiler.js';
+import { spriteLodLayout, type SpriteLodDocument } from '../../../src/image/sprite.js';
 
 /** Distinct semantic palette slots identify levels; not a filtered-art quality sample. */
 export function createSpriteLodFixture(width = 80, height = 56): SpriteLodDocument {

@@ -256,7 +256,7 @@ views do not require presentation, and race does not create rendering readers fo
 ## Layer boundaries
 
 There are two source roots: `src` for the product and `tools` for authoring and build programs.
-Product code never imports tools. TypeScript tools import product source, not its `dist/` delivery output;
+Product code never imports tools. Neither root imports executable modules from `dist/`; tools use product source.
 Reading or writing generated content under `dist/` is not a module dependency. Both roots share strict compiler
 options and lint rules. [Development](development.md#typescript-tools) owns execution and checking commands.
 
@@ -281,14 +281,11 @@ and worklet modules. It also examines scripts in tool HTML and resolves TypeScri
 Product source has exactly these nine directories; startup files belong to shell. Every cross-domain
 import follows the order and participates in the layer-cycle check, without product-layer exceptions.
 
-Unmigrated graphics/audio JavaScript and HTML have exact importer/target pairs in
-[the temporary tool exceptions](../tests/infrastructure/tool-dependency-exceptions.json).
-No TypeScript tool or product-to-tool reference is exempt. New pairs fail unless explicitly listed;
-unused pairs also fail. These legacy helpers can still introduce transitive delivery dependencies in
-build scripts until their scheduled migration. Course project sessions, text parsing/saving and reference
+There are no dependency exceptions. Course project sessions, text parsing/saving and reference
 production belong to `tools/course`; the product retains shared course admission, live driving policy,
-and envelope/time-budget readers. Authoring-only sprite compilers/fixtures remain in product domains
-pending their migration in [NEXT](NEXT.md).
+and envelope/time-budget readers. Sprite normalization, palette generation, LOD compilation and
+fixtures belong to `tools/graphics`. Shared image formats, filters, codecs and product limits remain
+in `src/image`; authoring-only limits stay with the tools.
 
 Shell owns the observer's camera, and race actors contain no camera state. A committed frame
 transform is observed by the camera owner before its next update. Race publishes camera-independent
@@ -298,4 +295,4 @@ presentation products and owns the combined pre-lock render/driver query-depth a
 RGBA conversion, sprite images and LOD formats belong
 to image; framebuffer writes and sprite drawing belong to view. Band modes, compiled color fields
 and their still-co-located sampler belong to course; view owns display settings and consumes that sampler.
-Environment profiles are course data. Authoring-only sprite fixtures currently reside in image.
+Environment profiles are course data.

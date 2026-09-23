@@ -1,18 +1,33 @@
+import { readIndexedPalette } from '../../src/image/indexed-image.js';
+import type { PaletteMixture } from '../../src/image/image-filter.js';
 import { createSpriteAreaFilter } from './sprite-area-filter.js';
-import {
-  readSpritePaletteRgb555,
-  spriteIdentityMixtures,
-  SPRITE_SOURCE_TEXELS_PER_METER,
-  type SpriteLodDocument,
-} from './sprite.js';
+import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../src/image/sprite.js';
 
 /** Shared decoded-image admission, also checked by file adapters before allocation. */
 export const SPRITE_SOURCE_PIXEL_LIMIT = 16 * 1024 * 1024;
 
-interface SourceImage {
+export interface SourceImage {
   readonly width: number;
   readonly height: number;
   readonly pixels: Uint32Array;
+}
+
+export interface SpriteCrop {
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
+}
+
+/** Editable source settings; compilation rejects incomplete or invalid values. */
+export interface SpriteSourceRecipe {
+  readonly format: 'superoutride.sprite-source';
+  readonly version: 2;
+  readonly name: string;
+  readonly crop: SpriteCrop;
+  readonly widthMeters: number | null;
+  readonly anchor: { readonly x: number; readonly y: number };
+  readonly paletteRgb555: readonly number[];
 }
 
 /** Crop and normalize decoded straight-alpha sRGB pixels into one editable indexed master. */
@@ -102,4 +117,13 @@ function finite(value: unknown): number {
   if (typeof value !== 'number' || !Number.isFinite(value))
     throw new RangeError('source recipe numbers must be finite');
   return value;
+}
+
+/** One identity mapping for normalized masters, including an unused transparent slot. */
+export function spriteIdentityMixtures(): PaletteMixture[] {
+  return Array.from({ length: 16 }, (_, index) => (index === 0 ? [] : [[index, 1]]));
+}
+
+export function readSpritePaletteRgb555(value: unknown): number[] {
+  return [...readIndexedPalette(value)];
 }

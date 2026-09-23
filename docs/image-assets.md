@@ -50,6 +50,10 @@ and pixel reads.
 
 ## Sprite LOD compilation
 
+Source normalization, candidate palettes, LOD compilation and diagnostic fixtures are authoring code
+under `tools/graphics`. `src/image` owns the shared image readers, saved formats, filters and codecs.
+The browser tools and Node file compilers consume those same TypeScript implementations.
+
 The compiler integrates exact master index counts in each clipped octave box. Fifteen or fewer
 mixtures pass through directly. Larger sets use deterministic divisive clustering: squared linear-color
 distance is the maximum across all declared base palettes; the greatest area-weighted-error group
