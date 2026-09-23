@@ -192,8 +192,7 @@ export function createCourseRace(options: {
         (centerX - playerCenter.x) * playerNormalX +
         (centerZ - playerCenter.z) * playerNormalZ +
         vehicle.course.l * Math.cos(rivalHeading - playerCenter.heading);
-      coordinate.seed = vehicle.course.seed;
-      coordinate.distanceSquared = vehicle.course.distanceSquared;
+      coordinate.inDomain = vehicle.course.inDomain;
       observation.vehicle.course = coordinate;
       observation.vehicle.velocityX = transform.cosine * vehicle.velocityX + transform.sine * vehicle.velocityZ;
       observation.vehicle.velocityZ = -transform.sine * vehicle.velocityX + transform.cosine * vehicle.velocityZ;

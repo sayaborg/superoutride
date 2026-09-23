@@ -1,5 +1,5 @@
 import { createSurfaceGeometryWorkspace } from './vehicle-dynamics.js';
-import { createPlanProjectionWorkspace, createPlanCoordinateSample } from '../../course/geometry/plan-coordinate.js';
+import { createPlanProjectionWorkspace } from '../../course/geometry/plan-coordinate.js';
 import { type Writable } from '../../core/writable.js';
 import { publishVehicleTireObservation } from './vehicle-tire-observation.js';
 import { clamp, wrapAngle } from '../../core/math.js';
@@ -109,8 +109,7 @@ export function createArcadeVehicle(
   const coordinate = {
     s,
     l,
-    seed: coordinates.toWorld(s, l, createPlanCoordinateSample()).seed,
-    distanceSquared: 0,
+    inDomain: true,
   };
   const surface = sampleSurfaceGeometryAtCoordinate(
     coordinates,
@@ -145,7 +144,7 @@ export function createArcadeVehicle(
     rearWheelOmega: rearOmega,
     actuator: createDrivingActuatorState(),
     torqueProtection: resolveTorqueProtectionPolicy(torqueProtection),
-    course: initializePlanCoordinateObservation(coordinates, position.x, position.z, coordinate.seed),
+    course: initializePlanCoordinateObservation(coordinates, position.x, position.z, s),
     surfaceType: surface.surfaceType,
     longitudinalAcceleration: 0,
     lateralAcceleration: 0,
@@ -203,7 +202,7 @@ export function updateArcadeVehicle(
       body,
       profile.frontStation,
       vehicle.frontSteerAngle,
-      vehicle.course.seed,
+      vehicle.course.s,
       workspace.front,
     );
     const automaticSteer = clamp(bodyTravelDirection, -automaticMax, automaticMax);
@@ -234,7 +233,7 @@ export function updateArcadeVehicle(
       body,
       profile.rearStation,
       0,
-      vehicle.course.seed,
+      vehicle.course.s,
       workspace.rear,
     );
 

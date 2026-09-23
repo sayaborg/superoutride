@@ -17,13 +17,6 @@ type Physical = Extract<ReturnType<typeof compileCoursePhysicalDomains>, { ok: t
 export function createCourseDrivingReaders(physical: Physical) {
   if (!physical || physical.scope !== 'physical-query-domain')
     throw new TypeError('Driving readers require a physical query-domain product');
-  const linkedSeedCount = Math.max(
-    0,
-    ...physical.links.flatMap((link) => [
-      link.source.section.coordinates.seedCount,
-      link.destination.section.coordinates.seedCount,
-    ]),
-  );
   const surfaces = new Map<CompiledSection, ReturnType<typeof createRegionSurfaceReader>>();
   const surface = (section: CompiledSection) => {
     let value = surfaces.get(section);
@@ -80,9 +73,8 @@ export function createCourseDrivingReaders(physical: Physical) {
       mapping.occurrence === active
         ? heading
         : wrapAngle(heading + Math.atan2(mapping.viewFromSource.sine, mapping.viewFromSource.cosine));
-    const { reader: coordinates, seedCount } = createMappedPlanCoordinateReader(view, {
+    const coordinates = createMappedPlanCoordinateReader(view, {
       mapped,
-      seedStride: Math.max(linkedSeedCount, active.section.coordinates.seedCount),
       mappingAt,
       activeS,
       headingInFrame,
@@ -184,7 +176,6 @@ export function createCourseDrivingReaders(physical: Physical) {
         geometry,
         mapping: Object.freeze({ mapped, check, mappingAt, resolve, activeS }),
         metadata: Object.freeze({
-          planSeeds: seedCount,
           rasterSegments: raster.segments.length,
           heightNodes: nodes.length,
         }),

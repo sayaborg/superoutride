@@ -32,6 +32,8 @@ export interface PlanPathProjection {
   l: number;
   primitiveIndex: number;
   distanceSquared: number;
+  /** The perpendicular foot lies within the requested interval before endpoint clamping. */
+  isFoot: boolean;
 }
 
 export function compilePlanPath(
@@ -153,7 +155,7 @@ function nearestArcDelta(rawHeading: number, startHeading: number, turn: number)
   const clippedAlternate = clamp(alternate, 0, extent);
   const primaryError = Math.abs(primary - clippedPrimary);
   const alternateError = Math.abs(alternate - clippedAlternate);
-  return sign * (alternateError < primaryError ? clippedAlternate : clippedPrimary);
+  return sign * (alternateError < primaryError ? alternate : primary);
 }
 
 export function projectPlanPrimitiveInterval(
@@ -183,11 +185,11 @@ export function projectPlanPrimitiveInterval(
   )
     throw new RangeError('Projection interval must have positive extent inside its source primitive');
 
-  let s: number;
+  let rawS: number;
   if (primitive.source.kind === 'straight') {
     const tangent = tangentFromHeading(primitive.start.heading);
     const along = (world.x - primitive.start.x) * tangent.x + (world.z - primitive.start.z) * tangent.z;
-    s = clamp(primitive.sStart + along, start, end);
+    rawS = primitive.sStart + along;
   } else {
     const center = primitive.center;
     if (!center) throw new Error('compiled arc lost its center');
@@ -204,9 +206,10 @@ export function projectPlanPrimitiveInterval(
       const delta = nearestArcDelta(rawHeading, primitive.start.heading, turn);
       q = turn === 0 ? 0 : delta / turn;
     }
-    s = clamp(primitive.sStart + q * (primitive.sEnd - primitive.sStart), start, end);
+    rawS = primitive.sStart + q * (primitive.sEnd - primitive.sStart);
   }
 
+  const s = clamp(rawS, start, end);
   samplePlanPrimitive(primitive, s, sample);
   const dx = world.x - sample.x;
   const dz = world.z - sample.z;
@@ -215,6 +218,7 @@ export function projectPlanPrimitiveInterval(
   out.l = dx * normal.x + dz * normal.z;
   out.primitiveIndex = primitive.index;
   out.distanceSquared = dx * dx + dz * dz;
+  out.isFoot = rawS >= start && rawS <= end;
   return out;
 }
 

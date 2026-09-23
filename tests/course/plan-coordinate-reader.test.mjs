@@ -26,16 +26,10 @@ test('arc projection is independent of accumulated heading winding', () => {
   const primitive = plan.primitives.at(-1);
   const s = primitive.sStart + (primitive.sEnd - primitive.sStart) * 0.37;
   const point = reader.toWorld(s, 2, createPlanCoordinateSample());
-  const projected = reader.locateLocal(
-    point,
-    point.seed,
-    0,
-    { s: 0, l: 0, seed: -1, distanceSquared: 0 },
-    createPlanProjectionWorkspace(),
-  );
+  const projected = reader.locateLocal(point, s, { s: 0, l: 0, inDomain: false }, createPlanProjectionWorkspace());
 
   near(projected.s, s);
   near(projected.l, 2);
-  assert.equal(projected.seed, point.seed);
+  assert.equal(projected.inDomain, true);
   assert.ok(Math.abs(point.heading) <= Math.PI);
 });

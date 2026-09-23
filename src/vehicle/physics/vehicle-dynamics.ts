@@ -4,7 +4,6 @@ import {
   type PlanCoordinateReader,
   type PlanCoordinateProjection,
   type PlanProjectionWorkspace,
-  type PlanProjectionSeed,
 } from '../../course/geometry/plan-coordinate.js';
 import { type Writable } from '../../core/writable.js';
 import { SURFACE_MATERIALS } from '../../course/surface-material.js';
@@ -31,8 +30,6 @@ const MIN_PROJECTED_TIRE_DIRECTION_LENGTH = 1e-8;
 
 export const VEHICLE_GRAVITY = 9.80665;
 export const VEHICLE_SUBSTEPS = 12;
-/** Complete local-projection neighborhood, also used by bounded-reader admission. */
-const VEHICLE_PROJECTION_SEARCH_RADIUS = 5;
 
 type VehicleContactId = 'FRONT' | 'REAR';
 
@@ -227,13 +224,7 @@ export function refreshPlanCoordinateObservation(
   vehicle: VehicleDynamicsState,
   workspace: PlanProjectionWorkspace,
 ): void {
-  vehicle.course = coordinates.locateLocal(
-    vehicle,
-    vehicle.course.seed,
-    VEHICLE_PROJECTION_SEARCH_RADIUS,
-    vehicle.course,
-    workspace,
-  );
+  vehicle.course = coordinates.locateLocal(vehicle, vehicle.course.s, vehicle.course, workspace);
 }
 
 const vector = () => ({ x: 0, y: 0, z: 0 });
@@ -242,7 +233,7 @@ const vector = () => ({ x: 0, y: 0, z: 0 });
 export function createSurfaceGeometryWorkspace() {
   return {
     value: {
-      coordinate: { s: 0, l: 0, seed: -1, distanceSquared: 0 },
+      coordinate: { s: 0, l: 0, inDomain: false },
       point: vector(),
       horizontalTangent: vector(),
       right: vector(),
@@ -274,12 +265,7 @@ export function sampleSurfaceGeometryAtCoordinate(
 ): SurfaceGeometryObservation {
   const out = workspace.value;
   const planSample = coordinates.toWorld(coordinate.s, coordinate.l, workspace.planSample);
-  const { curvature, metric, offsetMetric } = coordinates.metricsAt(
-    coordinate.s,
-    coordinate.l,
-    planSample.seed,
-    workspace.metrics,
-  );
+  const { curvature, metric, offsetMetric } = coordinates.metricsAt(coordinate.s, coordinate.l, workspace.metrics);
   if (!(offsetMetric > 0)) throw new RangeError('surface offset metric A=1-kappa*l must remain > 0');
   const heightSample = height.samplePhysicsDifferential(coordinate.s, workspace.height);
   const heightDerivativeByPlanArc = heightSample.dYdS / metric;
@@ -364,7 +350,7 @@ export function deriveContactObservation(
   body: BodyKinematics,
   station: ContactStationProfile,
   steerAngle: number,
-  previousSeed: PlanProjectionSeed,
+  previousS: number,
   workspace: ContactWorkspace,
 ): ContactObservation {
   const { value: out, a, b, freeOffset } = workspace;
@@ -372,8 +358,7 @@ export function deriveContactObservation(
   const reachPoint = add3(body.position, freeOffset, out.reachPoint);
   const coordinate = coordinates.locateLocal(
     reachPoint,
-    previousSeed,
-    VEHICLE_PROJECTION_SEARCH_RADIUS,
+    previousS,
     workspace.surface.value.coordinate,
     workspace.surface.projection,
   );
@@ -537,15 +522,9 @@ export function initializePlanCoordinateObservation(
   coordinates: PlanCoordinateReader,
   x: number,
   z: number,
-  seed: PlanProjectionSeed,
+  previousS: number,
 ): PlanCoordinateProjection {
-  return coordinates.locateLocal(
-    { x, z },
-    seed,
-    2,
-    { s: 0, l: 0, seed: -1, distanceSquared: 0 },
-    createPlanProjectionWorkspace(),
-  );
+  return coordinates.locateLocal({ x, z }, previousS, { s: 0, l: 0, inDomain: false }, createPlanProjectionWorkspace());
 }
 
 function bumpStopForce(q: number, suspension: SuspensionStationProfile): number {

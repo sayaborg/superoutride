@@ -1,4 +1,3 @@
-import { createPlanCoordinateSample } from '../course/geometry/plan-coordinate.js';
 import { clamp } from '../core/math.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import {
@@ -226,8 +225,7 @@ export function recoverVehicleToPlanCoordinate(
   const coordinate = {
     s: target.s,
     l: target.l,
-    seed: coordinates.toWorld(target.s, target.l, createPlanCoordinateSample()).seed,
-    distanceSquared: 0,
+    inDomain: true,
   };
   const surface = sampleSurfaceGeometryAtCoordinate(
     coordinates,
@@ -255,7 +253,7 @@ export function recoverVehicleToPlanCoordinate(
   vehicle.velocityZ = velocity.z;
 
   reconstructVehicle(vehicle, surface.point, surface.normal, yaw, surface.gradeAngle, speed);
-  vehicle.course = initializePlanCoordinateObservation(coordinates, vehicle.x, vehicle.z, coordinate.seed);
+  vehicle.course = initializePlanCoordinateObservation(coordinates, vehicle.x, vehicle.z, target.s);
 
   state.lastSafeS = target.s;
   state.unsupportedTime = 0;

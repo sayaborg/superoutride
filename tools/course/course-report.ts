@@ -42,11 +42,12 @@ export async function courseReport(course: CompiledCourse, section: CompiledSect
       ...section.boundaries.flatMap((b) => b.knots.map((k) => k.anchor.s)),
     ]),
   ].sort((a, b) => a - b);
+  const metric = { curvature: 0, metric: 1, offsetMetric: 1 };
   const samples = stations.map((s) => {
     const world = section.coordinates.toWorld(s, 0, createPlanCoordinateSample());
     return {
       s,
-      curvaturePerMeter: section.primitives[world.seed]!.curvature,
+      curvaturePerMeter: section.coordinates.metricsAt(s, 0, metric).curvature,
       heightMeters: section.height.samplePhysics(s),
       x: world.x,
       z: world.z,

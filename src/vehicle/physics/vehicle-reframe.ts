@@ -22,7 +22,6 @@ export function reframeVehicle(
   vehicle.course = {
     s: coordinate.s,
     l: coordinate.l,
-    seed: coordinate.seed,
-    distanceSquared: vehicle.course.distanceSquared,
+    inDomain: vehicle.course.inDomain,
   };
 }

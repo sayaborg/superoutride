@@ -3,21 +3,22 @@ import type { Vec2 } from '../../core/math.js';
 import { normalFromHeading } from '../../core/math.js';
 import type { PlanarTransform } from '../../core/planar-transform.js';
 import {
-  planPrimitiveBounds,
+  planPrimitiveIndexAt,
   projectPlanPrimitiveInterval,
   samplePlanPath,
   type CompiledPlanPrimitive,
   type PlanPath,
 } from './plan-path.js';
 import {
-  createPlanCoordinateSample,
+  PLAN_PROJECTION_WINDOW_METERS,
   type PlanCoordinateReader,
   type SectionPlanCoordinateReader,
   type PlanCoordinateSample,
   type PlanCoordinateProjection,
   type PlanCoordinateMetrics,
   type PlanProjectionWorkspace,
-  type PlanProjectionSeed,
+  type PlanProjectionCandidate,
+  type PlanProjectionCandidateSample,
   type PlanLateralBounds,
 } from './plan-coordinate.js';
 import type { CourseGeometryView } from '../course-geometry-view.js';
@@ -28,7 +29,18 @@ interface NativePlanDomain {
   lateralAt(s: number, out: Writable<PlanLateralBounds>): PlanLateralBounds;
 }
 
-const PLAN_PROJECTION_CANDIDATE_MAX_METERS = 50;
+function checkProjection(world: Vec2, previousS: number, start: number, end: number): void {
+  if (!world || typeof world.x !== 'number' || typeof world.z !== 'number' || typeof previousS !== 'number')
+    throw new TypeError('Projection requires a world point and previous chainage');
+  if (
+    !Number.isFinite(world.x) ||
+    !Number.isFinite(world.z) ||
+    !Number.isFinite(previousS) ||
+    previousS < start ||
+    previousS > end
+  )
+    throw new RangeError('Projection requires finite coordinates and an admitted previous chainage');
+}
 
 /** A Section reader over its authored straight/circular plan authority. */
 export function createPlanCoordinateReader(
@@ -39,60 +51,32 @@ export function createPlanCoordinateReader(
   const plan: PlanPath = Object.freeze({ primitives, length });
   const sample = { x: 0, z: 0, s: 0, heading: 0, primitiveIndex: -1 };
   const projectionSample = { x: 0, z: 0, s: 0, heading: 0, primitiveIndex: -1 };
-  const candidateSampleA = { x: 0, z: 0, s: 0, heading: 0, primitiveIndex: -1 };
-  const candidateSampleB = { x: 0, z: 0, s: 0, heading: 0, primitiveIndex: -1 };
-  const project = { s: 0, l: 0, primitiveIndex: -1, distanceSquared: 0 };
-  return Object.freeze({
-    seedCount: primitives.length,
+  const projected = { s: 0, l: 0, primitiveIndex: -1, distanceSquared: 0, isFoot: false };
+  const bounds = { left: 0, right: 0 };
+  const reader: SectionPlanCoordinateReader = Object.freeze({
     projectionCandidates(start: number, end: number) {
       if (typeof start !== 'number' || typeof end !== 'number')
         throw new TypeError('Projection interval endpoints must be numeric');
       if (!(start >= 0 && end >= start && end <= length))
         throw new RangeError('Projection interval must lie inside the Section domain');
       return Object.freeze(
-        primitives.flatMap((primitive) => {
-          const a = Math.max(start, primitive.sStart);
-          const b = Math.min(end, primitive.sEnd);
+        primitives.flatMap((primitive): PlanProjectionCandidate[] => {
+          const a = Math.max(start, primitive.sStart),
+            b = Math.min(end, primitive.sEnd);
           if (!(b > a)) return [];
-          const chunkCount = Math.ceil((primitive.sEnd - primitive.sStart) / PLAN_PROJECTION_CANDIDATE_MAX_METERS);
-          const chunkLength = (primitive.sEnd - primitive.sStart) / chunkCount;
-          const first = Math.max(0, Math.floor((a - primitive.sStart) / chunkLength));
-          const result = [];
-          for (let chunk = first; chunk < chunkCount; chunk += 1) {
-            const chunkStart = primitive.sStart + chunk * chunkLength;
-            const chunkEnd = chunk + 1 === chunkCount ? primitive.sEnd : primitive.sStart + (chunk + 1) * chunkLength;
-            const candidateStart = Math.max(a, chunkStart);
-            const candidateEnd = Math.min(b, chunkEnd);
-            if (!(candidateEnd > candidateStart)) continue;
-            result.push(
-              Object.freeze({
-                seed: primitive.index,
-                start: candidateStart,
-                end: candidateEnd,
-                extent: Object.freeze({ start: primitive.sStart, end: primitive.sEnd }),
-                bounds: Object.freeze(
-                  planPrimitiveBounds(primitive, candidateStart, candidateEnd, candidateSampleA, candidateSampleB),
-                ),
-                project(world: Vec2, out: PlanCoordinateProjection) {
-                  projectPlanPrimitiveInterval(
-                    primitive,
-                    world,
-                    candidateStart,
-                    candidateEnd,
-                    project,
-                    projectionSample,
-                  );
-                  out.s = project.s;
-                  out.l = project.l;
-                  out.seed = primitive.index;
-                  out.distanceSquared = project.distanceSquared;
-                  return out;
-                },
-              }),
-            );
-            if (chunkEnd >= b) break;
-          }
-          return result;
+          return [
+            Object.freeze({
+              start: a,
+              end: b,
+              project(world: Vec2, from: number, to: number, out: PlanProjectionCandidateSample) {
+                projectPlanPrimitiveInterval(primitive, world, from, to, projected, projectionSample);
+                out.s = projected.s;
+                out.l = projected.l;
+                out.isFoot = projected.isFoot;
+                out.distanceSquared = projected.distanceSquared;
+              },
+            }),
+          ];
         }),
       );
     },
@@ -115,268 +99,150 @@ export function createPlanCoordinateReader(
       out.s = sample.s;
       out.heading = sample.heading;
       out.l = l;
-      out.seed = sample.primitiveIndex;
       return out;
     },
-    metricsAt(s: number, l: number, seed: PlanProjectionSeed, out: Writable<PlanCoordinateMetrics>) {
-      if (!Number.isFinite(s) || s < 0 || s > length)
-        throw new RangeError('Plan chainage is outside the Section domain');
-      if (!Number.isInteger(seed) || seed < 0 || seed >= primitives.length)
-        throw new RangeError('Projection seed does not identify a plan primitive');
-      const primitive = primitives[seed]!;
+    metricsAt(s: number, l: number, out: Writable<PlanCoordinateMetrics>) {
+      if (!Number.isFinite(s) || s < 0 || s > length || !Number.isFinite(l))
+        throw new RangeError('Plan metric requires finite coordinates in the Section');
+      const primitive = primitives[planPrimitiveIndexAt(plan, s)]!;
       out.curvature = primitive.curvature;
       out.metric = 1;
       out.offsetMetric = 1 - primitive.curvature * l;
       return out;
     },
-    locateLocal(world: Vec2, previousSeed: PlanProjectionSeed, searchRadius: number, out: PlanCoordinateProjection) {
-      if (
-        !world ||
-        typeof world.x !== 'number' ||
-        typeof world.z !== 'number' ||
-        typeof previousSeed !== 'number' ||
-        typeof searchRadius !== 'number'
-      )
-        throw new TypeError('Projection requires numeric world position and seed/radius');
-      if (!Number.isFinite(world.x) || !Number.isFinite(world.z))
-        throw new RangeError('Projection world coordinates must be finite');
-      if (
-        !Number.isSafeInteger(previousSeed) ||
-        previousSeed < 0 ||
-        previousSeed >= primitives.length ||
-        !Number.isSafeInteger(searchRadius) ||
-        searchRadius < 0
-      )
-        throw new RangeError('Projection requires an admitted seed and nonnegative search radius');
-      const first = Math.max(0, previousSeed - searchRadius);
-      const last = Math.min(primitives.length - 1, previousSeed + searchRadius);
-      let found = false;
-      for (let index = first; index <= last; index += 1) {
-        const primitive = primitives[index]!;
-        projectPlanPrimitiveInterval(primitive, world, primitive.sStart, primitive.sEnd, project, projectionSample);
-        if (!found || project.distanceSquared < out.distanceSquared) {
-          out.s = project.s;
-          out.l = project.l;
-          out.seed = index;
-          out.distanceSquared = project.distanceSquared;
-          found = true;
-        }
+    locateLocal(world: Vec2, previousS: number, out: PlanCoordinateProjection, workspace: PlanProjectionWorkspace) {
+      checkProjection(world, previousS, 0, length);
+      const from = Math.max(0, previousS - PLAN_PROJECTION_WINDOW_METERS);
+      const to = Math.min(length, previousS + PLAN_PROJECTION_WINDOW_METERS);
+      const candidate = workspace.candidate;
+      let bestDistance = Infinity,
+        bestInDomain = false,
+        found = false;
+      for (const primitive of primitives) {
+        const a = Math.max(from, primitive.sStart),
+          b = Math.min(to, primitive.sEnd);
+        if (!(b > a)) continue;
+        projectPlanPrimitiveInterval(primitive, world, a, b, projected, projectionSample);
+        reader.domain.lateralAt(projected.s, bounds);
+        const inDomain = projected.isFoot && projected.l >= bounds.left && projected.l <= bounds.right;
+        if (
+          found &&
+          ((bestInDomain && !inDomain) || (bestInDomain === inDomain && projected.distanceSquared >= bestDistance))
+        )
+          continue;
+        candidate.s = projected.s;
+        candidate.l = projected.l;
+        candidate.isFoot = projected.isFoot;
+        candidate.distanceSquared = projected.distanceSquared;
+        out.s = candidate.s;
+        out.l = candidate.l;
+        out.inDomain = inDomain;
+        bestDistance = candidate.distanceSquared;
+        bestInDomain = inDomain;
+        found = true;
       }
-      if (!found) throw new Error('Admitted plan projection lost its candidates');
+      if (!found) throw new Error('Admitted Section projection lost its candidates');
       return out;
     },
   });
+  return reader;
 }
 
 type PlanCoordinateSpan = CourseGeometryView['spans'][number] & { readonly sourceFromView: PlanarTransform };
 interface PlanCoordinateMapping {
   readonly mapped: readonly PlanCoordinateSpan[];
-  /** One native seed capacity for the admitted physical product, independent of the retained window. */
-  readonly seedStride: number;
   mappingAt(s: number): PlanCoordinateSpan;
   activeS(mapping: PlanCoordinateSpan, s: number): number;
   headingInFrame(mapping: PlanCoordinateSpan, heading: number): number;
 }
 
-/** The same reader contract over the caller's admitted occurrence mapping. */
-export function createMappedPlanCoordinateReader(view: CourseGeometryView, mapping: PlanCoordinateMapping) {
-  const { mapped, seedStride, mappingAt, activeS, headingInFrame } = mapping;
-  if (!Number.isSafeInteger(seedStride) || seedStride < 1)
-    throw new RangeError('Occurrence projection requires a positive exact seed capacity');
-  const planSeed = (ordinal: number, index: number) => {
-    const value = ordinal * seedStride + index;
-    if (!Number.isSafeInteger(value) || value < 0 || index >= seedStride)
-      throw new RangeError('Occurrence projection seed exceeds its exact integer domain');
-    return value;
-  };
+/** Compose native Section candidates in the admitted occurrence frame. */
+export function createMappedPlanCoordinateReader(
+  view: CourseGeometryView,
+  mapping: PlanCoordinateMapping,
+): PlanCoordinateReader {
+  const { mapped, mappingAt, activeS, headingInFrame } = mapping;
   const range = view.activeRange;
-  const candidates = mapped.flatMap((mapping) =>
-    mapping.occurrence.section.coordinates
-      .projectionCandidates(mapping.sourceRange.start, mapping.sourceRange.end)
-      .map((native) => ({ mapping, native, seed: planSeed(mapping.occurrence.ordinal, native.seed) })),
+  const candidates = mapped.flatMap((span) =>
+    span.occurrence.section.coordinates
+      .projectionCandidates(span.sourceRange.start, span.sourceRange.end)
+      .map((native) => ({ span, native, start: activeS(span, native.start), end: activeS(span, native.end) })),
   );
-  const candidateIndices = new Map<number, number[]>();
-  const candidateCoverage = new Map<PlanCoordinateSpan, Map<number, { start: number; end: number }>>();
-  candidates.forEach((candidate, index) => {
-    const indices = candidateIndices.get(candidate.seed);
-    if (indices) indices.push(index);
-    else candidateIndices.set(candidate.seed, [index]);
-    let bySeed = candidateCoverage.get(candidate.mapping);
-    if (!bySeed) {
-      bySeed = new Map();
-      candidateCoverage.set(candidate.mapping, bySeed);
-    }
-    const coverage = bySeed.get(candidate.native.seed);
-    if (coverage) {
-      coverage.start = Math.min(coverage.start, candidate.native.start);
-      coverage.end = Math.max(coverage.end, candidate.native.end);
-    } else {
-      bySeed.set(candidate.native.seed, { start: candidate.native.start, end: candidate.native.end });
-    }
-  });
-  const coordinateSample = createPlanCoordinateSample();
-  const anchorProjection = { s: 0, l: 0, seed: -1, distanceSquared: 0 };
+  const coordinateSample = { x: 0, z: 0, s: 0, l: 0, heading: 0 };
   const lateralBounds = { left: 0, right: 0 };
-  const reader: PlanCoordinateReader = Object.freeze({
+  return Object.freeze({
     domain: Object.freeze({
       ...range,
       lateralAt(s: number, out: Writable<PlanLateralBounds>) {
-        const mapping = mappingAt(s);
-        mapping.occurrence.section.coordinates.domain.lateralAt(mapping.sourceChainageInFrame(s), lateralBounds);
-        out.left = lateralBounds.left - mapping.sourceLateralOrigin;
-        out.right = lateralBounds.right - mapping.sourceLateralOrigin;
+        const span = mappingAt(s);
+        span.occurrence.section.coordinates.domain.lateralAt(span.sourceChainageInFrame(s), lateralBounds);
+        out.left = lateralBounds.left - span.sourceLateralOrigin;
+        out.right = lateralBounds.right - span.sourceLateralOrigin;
         return out;
       },
     }),
     toWorld(s: number, l: number, out: PlanCoordinateSample) {
-      const mapping = mappingAt(s);
-      const p = mapping.occurrence.section.coordinates.toWorld(
-        mapping.sourceChainageInFrame(s),
-        l + mapping.sourceLateralOrigin,
+      const span = mappingAt(s);
+      const p = span.occurrence.section.coordinates.toWorld(
+        span.sourceChainageInFrame(s),
+        l + span.sourceLateralOrigin,
         coordinateSample,
       );
-      const t = mapping.viewFromSource;
+      const t = span.viewFromSource;
       out.x = t.cosine * p.x + t.sine * p.z + t.translation.x;
       out.z = -t.sine * p.x + t.cosine * p.z + t.translation.z;
       out.s = s;
       out.l = l;
-      out.heading = headingInFrame(mapping, p.heading);
-      out.seed = planSeed(mapping.occurrence.ordinal, p.seed);
+      out.heading = headingInFrame(span, p.heading);
       return out;
     },
-    metricsAt(s: number, l: number, projectionSeed: PlanProjectionSeed, out: Writable<PlanCoordinateMetrics>) {
-      if (typeof projectionSeed !== 'number') throw new TypeError('Projection seed must be numeric');
-      const mapping = mappingAt(s);
-      const section = mapping.occurrence.section;
-      const index = projectionSeed - mapping.occurrence.ordinal * seedStride;
-      if (!Number.isInteger(index) || index < 0 || index >= section.coordinates.seedCount)
-        throw new RangeError('Projection seed does not belong to the addressed occurrence');
-      return section.coordinates.metricsAt(
-        mapping.sourceChainageInFrame(s),
-        l + mapping.sourceLateralOrigin,
-        index,
+    metricsAt(s: number, l: number, out: Writable<PlanCoordinateMetrics>) {
+      const span = mappingAt(s);
+      return span.occurrence.section.coordinates.metricsAt(
+        span.sourceChainageInFrame(s),
+        l + span.sourceLateralOrigin,
         out,
       );
     },
-    locateLocal(
-      world: Vec2,
-      previousSeed: PlanProjectionSeed,
-      searchRadius: number,
-      out: PlanCoordinateProjection,
-      workspace: PlanProjectionWorkspace,
-    ) {
-      const { local } = workspace;
-      if (
-        !world ||
-        typeof world.x !== 'number' ||
-        typeof world.z !== 'number' ||
-        typeof previousSeed !== 'number' ||
-        typeof searchRadius !== 'number'
-      )
-        throw new TypeError('Projection requires numeric world position and seed/radius');
-      if (!Number.isSafeInteger(previousSeed) || !Number.isSafeInteger(searchRadius) || searchRadius < 0)
-        throw new RangeError('Projection requires an exact seed and nonnegative search radius');
-      const seedIndices = candidateIndices.get(previousSeed);
-      if (!seedIndices) throw new RangeError('Projection seed is outside the retained occurrence window');
-      const seeded = candidates[seedIndices[0]!]!;
-      const seededMapping = seeded.mapping;
-      const sourceFromView = seededMapping.sourceFromView;
-      local.x = sourceFromView.cosine * world.x + sourceFromView.sine * world.z + sourceFromView.translation.x;
-      local.z = -sourceFromView.sine * world.x + sourceFromView.cosine * world.z + sourceFromView.translation.z;
-      const nativeSeed = previousSeed - seededMapping.occurrence.ordinal * seedStride;
-      seededMapping.occurrence.section.coordinates.locateLocal(local, nativeSeed, 0, anchorProjection, workspace);
-      const at = seedIndices.reduce((best, index) => {
-        const candidate = candidates[index]!.native;
-        const distance =
-          anchorProjection.s < candidate.start
-            ? candidate.start - anchorProjection.s
-            : anchorProjection.s > candidate.end
-              ? anchorProjection.s - candidate.end
-              : 0;
-        const current = candidates[best]!.native;
-        const bestDistance =
-          anchorProjection.s < current.start
-            ? current.start - anchorProjection.s
-            : anchorProjection.s > current.end
-              ? anchorProjection.s - current.end
-              : 0;
-        return distance < bestDistance ? index : best;
-      }, seedIndices[0]!);
-      if (
-        (at - searchRadius < 0 && range.start > view.availableRange.start) ||
-        (at + searchRadius >= candidates.length && range.end < view.availableRange.end)
-      )
-        throw new RangeError('Driving window does not cover the complete seeded search');
-      let best: (typeof candidates)[number] | null = null;
-      let bestS = 0;
-      let bestL = 0;
-      let bestDistance = Infinity;
-      let previousMapping: (typeof mapped)[number] | null = seededMapping;
-      const first = Math.max(0, at - searchRadius);
-      const last = Math.min(candidates.length - 1, at + searchRadius);
-      let bestIndex = -1;
-      for (let cursor = first - 1; cursor <= last; cursor += 1) {
-        const i = cursor < first ? at : cursor;
-        if (cursor === at) continue;
-        const candidate = candidates[i]!;
-        const { mapping, native } = candidate;
-        const coverage = candidateCoverage.get(mapping)?.get(native.seed);
+    locateLocal(world: Vec2, previousS: number, out: PlanCoordinateProjection, workspace: PlanProjectionWorkspace) {
+      checkProjection(world, previousS, range.start, range.end);
+      const from = previousS - PLAN_PROJECTION_WINDOW_METERS;
+      const to = previousS + PLAN_PROJECTION_WINDOW_METERS;
+      const { local, candidate: projected, bounds } = workspace;
+      let bestDistance = Infinity,
+        bestInDomain = false,
+        bestOwner = false,
+        found = false;
+      for (const { span, native, start, end } of candidates) {
+        const a = Math.max(start, from),
+          b = Math.min(end, to);
+        if (!(b > a)) continue;
+        const t = span.sourceFromView;
+        local.x = t.cosine * world.x + t.sine * world.z + t.translation.x;
+        local.z = -t.sine * world.x + t.cosine * world.z + t.translation.z;
+        native.project(local, span.sourceChainageInFrame(a), span.sourceChainageInFrame(b), projected);
+        const s = activeS(span, projected.s);
+        const l = projected.l - span.sourceLateralOrigin;
+        span.occurrence.section.coordinates.domain.lateralAt(projected.s, bounds);
+        const inDomain = projected.isFoot && projected.l >= bounds.left && projected.l <= bounds.right;
+        const owner = mappingAt(s) === span;
         if (
-          !coverage ||
-          coverage.start > Math.max(mapping.sourceOwnership.start, native.extent.start) ||
-          coverage.end < Math.min(mapping.sourceOwnership.end, native.extent.end)
+          found &&
+          ((bestInDomain && !inDomain) ||
+            (bestInDomain === inDomain &&
+              ((bestOwner && !owner) || (bestOwner === owner && projected.distanceSquared >= bestDistance))))
         )
-          throw new RangeError('Driving window clips a seeded projection primitive');
-        const section = mapping.occurrence.section;
-        if (previousMapping !== mapping) {
-          const t = mapping.sourceFromView;
-          local.x = t.cosine * world.x + t.sine * world.z + t.translation.x;
-          local.z = -t.sine * world.x + t.cosine * world.z + t.translation.z;
-          previousMapping = mapping;
-        }
-        if (best && mapping.sourceLateralOrigin === 0) {
-          const bounds = native.bounds;
-          const dx = Math.max(bounds.left - local.x, 0, local.x - bounds.right);
-          const dz = Math.max(bounds.back - local.z, 0, local.z - bounds.front);
-          if (dx * dx + dz * dz > bestDistance) continue;
-        }
-        native.project(local, out, workspace);
-        const projectedS = out.s;
-        const projectedL = out.l;
-        const origin = mapping.sourceLateralOrigin;
-        let distanceSquared = out.distanceSquared;
-        if (origin !== 0) {
-          const center = section.coordinates.toWorld(projectedS, 0, coordinateSample);
-          distanceSquared =
-            (local.x - center.x - Math.cos(center.heading) * origin) ** 2 +
-            (local.z - center.z - -Math.sin(center.heading) * origin) ** 2;
-        }
-        if (best && (distanceSquared > bestDistance || (distanceSquared === bestDistance && i > bestIndex))) continue;
-        best = candidate;
-        bestIndex = i;
-        bestS = activeS(mapping, projectedS);
-        bestL = projectedL - origin;
-        bestDistance = distanceSquared;
+          continue;
+        out.s = s;
+        out.l = l;
+        out.inDomain = inDomain;
+        bestDistance = projected.distanceSquared;
+        bestInDomain = inDomain;
+        bestOwner = owner;
+        found = true;
       }
-      if (!best) throw new Error('Admitted driving projection lost its candidates');
-      out.s = bestS;
-      out.l = bestL;
-      out.distanceSquared = bestDistance;
-      const canonical = mappingAt(out.s);
-      out.seed =
-        canonical.occurrence === best.mapping.occurrence
-          ? best.seed
-          : planSeed(
-              canonical.occurrence.ordinal,
-              canonical.occurrence.section.coordinates.toWorld(
-                canonical.sourceChainageInFrame(out.s),
-                0,
-                coordinateSample,
-              ).seed,
-            );
+      if (!found) throw new Error('Admitted mapped projection lost its candidates');
       return out;
     },
   });
-
-  return Object.freeze({ reader, seedCount: candidates.length });
 }

@@ -47,11 +47,16 @@ function lateralDomain(regions: readonly CompiledRegion[], stations: readonly nu
     lateralAt(s: number, out: Writable<{ left: number; right: number }>) {
       if (!Number.isFinite(s) || s < start || s > end)
         throw new RangeError('Plan lateral domain query is outside the Section');
-      const active = regions.filter((region) => region.start.s <= s && region.end.s >= s);
-      if (!active.length) throw new Error('Admitted Region partition lost coordinate-domain coverage');
-      out.left = Math.min(...active.map((region) => courseBoundaryAt(region.left, s))) - PLAN_COORDINATE_MARGIN_METERS;
-      out.right =
-        Math.max(...active.map((region) => courseBoundaryAt(region.right, s))) + PLAN_COORDINATE_MARGIN_METERS;
+      let left = Infinity;
+      let right = -Infinity;
+      for (const region of regions) {
+        if (region.start.s > s || region.end.s < s) continue;
+        left = Math.min(left, courseBoundaryAt(region.left, s));
+        right = Math.max(right, courseBoundaryAt(region.right, s));
+      }
+      if (left === Infinity) throw new Error('Admitted Region partition lost coordinate-domain coverage');
+      out.left = left - PLAN_COORDINATE_MARGIN_METERS;
+      out.right = right + PLAN_COORDINATE_MARGIN_METERS;
       return out;
     },
   });
