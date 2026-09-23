@@ -11,7 +11,7 @@ import {
   BAND_BASE_STEP,
   bandEdgeAt,
   type BandGround,
-  type BandCellSink,
+  type BandCellTarget,
 } from '../course/band-ground.js';
 import type { BandRenderMethod } from './display-settings.js';
 
@@ -82,6 +82,13 @@ class BandRow {
   private readonly values = new Float64Array(4);
   private readonly slopes = new Float64Array(4);
   private readonly compare = (a: number, b: number) => this.events[a * 9]! - this.events[b * 9]!;
+  private readonly cellField: BandCellTarget = {
+    base: [0, 0, 0, 0],
+    data: new Float64Array(9 * 256),
+    count: 0,
+    length: 0,
+    active: 0,
+  };
   reset() {
     this.field.base.fill(0);
     this.field.count = 0;
@@ -99,36 +106,22 @@ class BandRow {
     return i;
   }
   addCell(ground: BandGround, level: number, s: number, lateralOrigin: number) {
-    let weight = 0;
-    let previousX = 0;
-    const previousValues = new Float64Array(4);
-    const previousSlopes = new Float64Array(4);
-    let first = true;
-    const sink: BandCellSink = {
-      base: (length, r, g, b, a) => {
-        weight = length;
-        const values = [r, g, b, a];
-        for (let c = 0; c < 4; c++) {
-          this.field.base[c]! += weight * values[c]!;
-          previousValues[c] = values[c]!;
-        }
-      },
-      node: (x, r, g, b, a, dr, dg, db, dc) => {
-        const values = [r, g, b, a],
-          slopes = [dr, dg, db, dc];
-        const event = this.event(x - lateralOrigin);
-        for (let c = 0; c < 4; c++) {
-          const oldValue = first ? previousValues[c]! : previousValues[c]! + previousSlopes[c]! * (x - previousX);
-          this.events[event + 1 + c] = weight * (values[c]! - oldValue);
-          this.events[event + 5 + c] = weight * (slopes[c]! - previousSlopes[c]!);
-          previousValues[c] = values[c]!;
-          previousSlopes[c] = slopes[c]!;
-        }
-        previousX = x;
-        first = false;
-      },
-    };
-    const cell = ground.reader.read(level, s, sink);
+    const cell = this.cellField;
+    ground.reader.read(level, s, cell);
+    const weight = cell.length;
+    for (let c = 0; c < 4; c++) this.field.base[c]! += weight * cell.base[c]!;
+    const data = cell.data;
+    for (let i = 0; i < cell.count; i++) {
+      const at = i * 9,
+        previous = at - 9,
+        event = this.event(data[at]! - lateralOrigin);
+      for (let c = 0; c < 4; c++) {
+        const oldSlope = i === 0 ? 0 : data[previous + 5 + c]!;
+        const oldValue = i === 0 ? cell.base[c]! : data[previous + 1 + c]! + oldSlope * (data[at]! - data[previous]!);
+        this.events[event + 1 + c] = weight * (data[at + 1 + c]! - oldValue);
+        this.events[event + 5 + c] = weight * (data[at + 5 + c]! - oldSlope);
+      }
+    }
     return cell.active;
   }
   addEdge(a: number, b: number, weight: number, color: number, lateralOrigin: number) {
@@ -253,6 +246,7 @@ function readPointField(
     target[at + 1] = color === null ? 0 : rgb555LinearChannel((color >>> 5) & 31);
     target[at + 2] = color === null ? 0 : rgb555LinearChannel(color & 31);
     target[at + 3] = color === null ? 0 : 1;
+    if (i > 0) field.data.fill(0, at + 4, at + 8);
   }
   return field;
 }
@@ -279,11 +273,21 @@ export function createBandGroundSampler(intervals: readonly BandFieldSpan[]) {
     return { ...input, frameEnd: frameStart + (nativeEnd - nativeStart) };
   });
   const row = new BandRow(),
-    pointField = { base: [0, 0, 0, 0], data: new Float64Array(9 * 2 * BAND_ACTIVE_LIMIT), count: 0 },
+    pointField: BandCellTarget = {
+      base: [0, 0, 0, 0],
+      data: new Float64Array(9 * 2 * BAND_ACTIVE_LIMIT),
+      count: 0,
+      length: 0,
+      active: 0,
+    },
     sample = new Float64Array(4),
     colorCache = new Float64Array([NaN, NaN, NaN, NaN, 0]);
   const first = spans[0]!.frameStart,
     last = spans.at(-1)!.frameEnd;
+  const spanAt = (s: number) => {
+    for (const span of spans) if (span.frameEnd > s) return span;
+    return spans[spans.length - 1]!;
+  };
   const append = (span: (typeof spans)[number], start: number, end: number, stats: BandRenderMetrics) => {
     const a = Math.max(0, span.nativeStart + start - span.frameStart),
       b = Math.min(span.ground.length, span.nativeStart + end - span.frameStart);
@@ -324,29 +328,12 @@ export function createBandGroundSampler(intervals: readonly BandFieldSpan[]) {
       let field: BandLateralField;
       let normalization = 1;
       if (method !== 'EXACT-BOX') {
-        const span = spans.find((p) => p.frameEnd > s) ?? spans.at(-1)!;
+        const span = spanAt(s);
         const at = Math.max(0, Math.min(span.ground.length, span.nativeStart + s - span.frameStart));
         if (method === 'LEVEL-POINT' && deltaS >= BAND_BASE_STEP) {
           const level = selectImageLodLevel(BAND_BASE_STEP / deltaS, span.ground.reader.levelCount - 1);
-          pointField.count = 0;
-          const selected = span.ground.reader.read(level, at, {
-            base(_length, r, g, b, a) {
-              pointField.base[0] = r;
-              pointField.base[1] = g;
-              pointField.base[2] = b;
-              pointField.base[3] = a;
-            },
-            node(x, r, g, b, a, dr, dg, db, dc) {
-              const i = pointField.count++ * 9;
-              if (i + 9 > pointField.data.length) {
-                const grown = new Float64Array(pointField.data.length * 2);
-                grown.set(pointField.data);
-                pointField.data = grown;
-              }
-              pointField.data.set([x, r, g, b, a, dr, dg, db, dc], i);
-            },
-          });
-          stats.activeBands = Math.max(stats.activeBands, selected.active);
+          span.ground.reader.read(level, at, pointField);
+          stats.activeBands = Math.max(stats.activeBands, pointField.active);
           field = pointField;
         } else field = readPointField(pointField, span.ground, at, stats);
         l += span.lateralOrigin;
@@ -362,7 +349,7 @@ export function createBandGroundSampler(intervals: readonly BandFieldSpan[]) {
             if (b > a) area += append(span, a, b, stats);
           }
         } else {
-          const span = spans.find((p) => p.frameEnd > s) ?? spans.at(-1)!;
+          const span = spanAt(s);
           const at = Math.max(0, Math.min(span.ground.length, span.nativeStart + s - span.frameStart));
           appendExact(row, span.ground, at, at, span.lateralOrigin, stats, true);
         }

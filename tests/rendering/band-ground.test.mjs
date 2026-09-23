@@ -139,3 +139,28 @@ test('row batching and lateral rebasing match individual pixels in either scan d
       );
     }
 });
+
+test('interleaved cached and instantaneous rows do not inherit lateral slopes', () => {
+  let seed = 1;
+  const random = () => (seed = (Math.imul(1664525, seed) + 1013904223) >>> 0) / 2 ** 32;
+  const pieces = [piece(0, 128, null, null, RED)];
+  for (let k = 0; k < 12; k++) {
+    const left = -25 + random() * 50,
+      right = left + 1 + random() * 12,
+      leftEnd = -25 + random() * 50,
+      rightEnd = leftEnd + 1 + random() * 12;
+    pieces.push(piece(0, 128, left, right, k % 5 === 0 ? null : Math.floor(random() * 32768), leftEnd, rightEnd));
+  }
+  const intervals = whole(compileBandGround(128, pieces));
+  const sampler = createBandGroundSampler(intervals);
+  const draw = (reader, s, deltaS, method) => {
+    const pixels = new Uint32Array(320);
+    reader.sampleSpan(pixels, 0, 320, s, -40, 0.25, deltaS, method, createBandRenderMetrics());
+    return pixels;
+  };
+  draw(sampler, 4, 20, 'LEVEL-POINT');
+  assert.deepEqual(
+    draw(sampler, 5, 0.3, 'POINT-POINT'),
+    draw(createBandGroundSampler(intervals), 5, 0.3, 'POINT-POINT'),
+  );
+});

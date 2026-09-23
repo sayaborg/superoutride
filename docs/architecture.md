@@ -186,8 +186,8 @@ is averaged over its actual length. The top level has one cell spanning the Sect
 Lateral fields store premultiplied linear-sRGB channels and coverage as piecewise-linear
 functions of fixed source-l coordinates. An edge that moves across an interval becomes a ramp rather
 than a relocated hard edge. Equal lateral fields share private coefficient storage and per-level indices.
-Resolved records and public metadata are deeply immutable. The compiled product supplies a Reader that delivers scalar
-base and node coefficients, cell length and active count; mutable numeric buffers and views stay private.
+Resolved records and public metadata are deeply immutable. The compiled product supplies a Reader that copies
+base and node coefficients, cell length and active count into view-owned reusable scratch; compiled numeric buffers stay private.
 The view layer owns row sampling and display-method selection.
 
 A row uses the terrain projection's representative s and effective depth footprint `deltaS`.

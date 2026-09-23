@@ -250,28 +250,17 @@ export interface BandGround {
   };
 }
 
-/** Scalar coefficient delivery; no mutable compiled buffer or its view leaves the product. */
-export interface BandCellSink {
-  base(length: number, r: number, g: number, b: number, coverage: number): void;
-  node(
-    x: number,
-    r: number,
-    g: number,
-    b: number,
-    coverage: number,
-    dr: number,
-    dg: number,
-    db: number,
-    dc: number,
-  ): void;
+/** Caller-owned scratch; copying coefficients never exposes the compiled buffers. */
+export interface BandCellTarget {
+  base: number[];
+  data: Float64Array;
+  count: number;
+  length: number;
+  active: number;
 }
 export interface BandGroundCellReader {
   readonly levelCount: number;
-  read(
-    level: number,
-    s: number,
-    sink: BandCellSink,
-  ): { readonly step: number; readonly length: number; readonly active: number };
+  read(level: number, s: number, target: BandCellTarget): void;
 }
 
 /** Compile all s levels before driving. Storage is private; each renderer owns its sampling scratch. */
@@ -320,29 +309,19 @@ export function compileBandGround(length: number, pieces: readonly BandPiece[]):
   });
   const reader: BandGroundCellReader = Object.freeze({
     levelCount: levels.length,
-    read(level: number, s: number, sink: BandCellSink) {
+    read(level: number, s: number, target: BandCellTarget) {
       const input = levels[level];
       if (!input || !(s >= 0 && s <= length)) throw new RangeError('Band cell read outside compiled field');
       const cell = Math.min(input.indices.length - 1, Math.floor(s / input.step));
       const field = lateralFields[input.indices[cell]!]!;
       const cellLength = Math.min(input.step, length - cell * input.step);
-      sink.base(cellLength, field.base[0]!, field.base[1]!, field.base[2]!, field.base[3]!);
-      for (let i = 0; i < field.count; i++) {
-        const at = i * 9,
-          data = field.data;
-        sink.node(
-          data[at]!,
-          data[at + 1]!,
-          data[at + 2]!,
-          data[at + 3]!,
-          data[at + 4]!,
-          data[at + 5]!,
-          data[at + 6]!,
-          data[at + 7]!,
-          data[at + 8]!,
-        );
-      }
-      return { step: input.step, length: cellLength, active: input.active[cell]! };
+      target.length = cellLength;
+      target.active = input.active[cell]!;
+      target.count = field.count;
+      for (let c = 0; c < 4; c++) target.base[c] = field.base[c]!;
+      if (target.data.length < field.data.length)
+        target.data = new Float64Array(2 ** Math.ceil(Math.log2(field.data.length)));
+      target.data.set(field.data);
     },
   });
   return Object.freeze({ kind: 'bands' as const, length, slabs, metrics, reader });
