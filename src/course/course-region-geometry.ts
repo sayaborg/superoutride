@@ -2,6 +2,7 @@ import type { Writable } from '../core/writable.js';
 import type { RasterPath } from './geometry/raster-path.js';
 import { COURSE_DOCUMENT_LIMITS } from './course-document.js';
 import { CourseInputError, requireCourse } from './course-diagnostics.js';
+import { validatePlanDomainInjectivity } from './plan-domain-injectivity.js';
 import type { CompiledPlanPrimitive } from './geometry/plan-path.js';
 import {
   courseBoundaryAt,
@@ -212,6 +213,7 @@ export function compileCourseRegionGeometry(
   }
   const domain = lateralDomain(regions, stations);
   validatePlanMetric(sectionId, primitives, domain, sectionPath);
+  validatePlanDomainInjectivity(sectionId, primitives, domain, sectionPath);
   return Object.freeze({
     partition: Object.freeze({ raster, length: raster.length, regions: Object.freeze([...regions]) }),
     lateralDomain: domain,

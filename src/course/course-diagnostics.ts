@@ -21,6 +21,7 @@ type CourseDiagnosticCode =
   | 'shared_boundary_required'
   | 'region_transition_discontinuity'
   | 'plan_coordinate_inversion'
+  | 'plan_coordinate_overlap'
   | 'invalid_carriageway'
   | 'duplicate_membership'
   | 'invalid_height'
@@ -55,6 +56,8 @@ interface InputDiagnostic {
   /** JSON Pointer into the submitted authoring input; empty means the root. */
   readonly path: string;
   readonly message: string;
+  readonly section?: string;
+  readonly intervals?: readonly { readonly sStart: number; readonly sEnd: number }[];
 }
 
 interface QualificationDiagnostic {
@@ -114,9 +117,17 @@ export type CourseResult<T> =
 export class CourseInputError extends Error {
   readonly diagnostic: InputDiagnostic;
 
-  constructor(code: CourseDiagnosticCode, path: string, message: string) {
+  constructor(
+    code: CourseDiagnosticCode,
+    path: string,
+    message: string,
+    overlap?: {
+      readonly section: string;
+      readonly intervals: readonly { readonly sStart: number; readonly sEnd: number }[];
+    },
+  ) {
     super(message);
-    this.diagnostic = Object.freeze({ kind: 'input', code, path, message });
+    this.diagnostic = Object.freeze({ kind: 'input', code, path, message, ...overlap });
   }
 }
 
