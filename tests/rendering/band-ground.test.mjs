@@ -6,7 +6,7 @@ import {
   createBandGroundSampler,
   createBandRenderMetrics,
 } from '../../dist/course/band-ground.js';
-import { BAND_RENDER_MODES } from '../../dist/graphics/display-settings.js';
+import { BAND_RENDER_MODES } from '../../dist/course/band-ground.js';
 import { linearToRgb555 } from '../../dist/image/image-filter.js';
 import { rgb555ToRgba } from '../../dist/image/rgb555.js';
 import { selectSpriteLevel } from '../../dist/image/sprite.js';

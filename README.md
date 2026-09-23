@@ -31,17 +31,17 @@ audio auditions. Authored content lives under `content/`; generated outputs are 
 
 ## Structure
 
-| Directory                                                 | Responsibility                                    |
-| --------------------------------------------------------- | ------------------------------------------------- |
-| `src/core`, `src/course`                                  | Coordinates, geometry and saved course schema     |
-| `src/compiler`, `src/authoring`                           | Immutable course graph and authoring transactions |
-| `src/runtime`                                             | Occurrences, driving readers and shared scene     |
-| `src/physics`, `src/vehicle`                              | Mechanics and vehicle profiles                    |
-| `src/input`, `src/camera`, `src/audio`                    | Input, camera observation and sound               |
-| `src/gameplay`                                            | Recovery, progress, timing and drivers            |
-| `src/graphics`, `src/visual`, `src/terrain`, `src/render` | Images, projection and rendering                  |
-| `src/browser`                                             | Controls, scheduling and driving shell            |
-| `src/dev`                                                 | Sprite authoring preview fixtures                 |
+| Directory     | Responsibility                                                                                                   |
+| ------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `src/core`    | General mathematics, vectors, planar transforms, validation helpers and tolerances                               |
+| `src/image`   | Indexed images, RGB555/RGBA codecs, palettes, sprite/LOD formats, BG tiles and image filters                     |
+| `src/audio`   | Sound synthesis and audio engines                                                                                |
+| `src/course`  | Course documents and compilation, road geometry, materials, occurrences, environment profiles and geometry views |
+| `src/vehicle` | Vehicle mechanics, definitions, catalog and accepted operation requests                                          |
+| `src/input`   | Keyboard/touch adapters and arbitration producing vehicle operation requests                                     |
+| `src/race`    | Sessions, progress, gates, timing, drivers, recovery, reference driving and envelopes                            |
+| `src/view`    | Cameras, projection, ground rows, sprite placement, drawing composition and framebuffer                          |
+| `src/shell`   | DOM, frame loop, HUD, DEV, startup and whole-scene composition                                                   |
 
-`src/main-course.ts` is the driving composition root. [Architecture](docs/architecture.md#layer-boundaries)
-defines the current layer dependencies.
+`src/shell/boot.ts` selects the entry; `src/shell/main-course.ts` is the driving composition root.
+[Architecture](docs/architecture.md#layer-boundaries) defines the domain order and dependency rules.

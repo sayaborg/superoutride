@@ -1,8 +1,8 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { createSpriteLodFilterFixture } from '../../dist/dev/fixtures/sprite-lod.js';
+import { createSpriteLodFilterFixture } from '../../dist/image/fixtures/sprite-lod.js';
 import { compileSpriteLod } from '../../dist/image/sprite-lod-compiler.js';
-import { createSpriteSourceFixture } from '../../dist/dev/fixtures/sprite-source.js';
-import { unpackRgba } from '../../dist/graphics/software-surface.js';
+import { createSpriteSourceFixture } from '../../dist/image/fixtures/sprite-source.js';
+import { unpackRgba } from '../../dist/image/rgb555.js';
 import { PNG } from 'pngjs';
 
 // Stage the same diagnostic under the coherent build root; no unversioned module import remains.

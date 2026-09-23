@@ -2,7 +2,7 @@ import type { ResolvedCourseSession } from './course-session.js';
 import { createCheckpointClock } from './checkpoint-clock.js';
 import { createCourseRaceProgress, type CourseRaceEvent, type CourseRaceAdmission } from './course-race-progress.js';
 import { createCourseForkField } from './course-fork-field.js';
-import { createCameraRig, type CameraRig, type CameraState } from '../camera/camera.js';
+import { createCameraRig, type CameraRig, type CameraState } from '../view/camera.js';
 import { composePlanarTransforms, invertPlanarTransform } from '../core/planar-transform.js';
 import { wrapAngle } from '../core/math.js';
 import { advanceRaceSession, createRaceSessionState, rankRaceProgress, formatRaceTime } from './race-session.js';
@@ -21,10 +21,10 @@ import {
 } from './envelope-driver.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import { createArcadeVehicle, type ArcadeVehicleState } from '../vehicle/physics/arcade-vehicle-physics.js';
-import { createDynamicVehicleCourseSprite } from '../render/dynamic-vehicle-sprite.js';
+import { createDynamicVehicleCourseSprite } from '../view/dynamic-vehicle-sprite.js';
 import { createVehiclePaletteVariant, type SpriteAssets } from '../image/sprite-assets.js';
 import type { SessionVehicle } from './session-configuration.js';
-import type { CourseSprite } from '../render/course-sprite.js';
+import type { CourseSprite } from '../view/course-sprite.js';
 import { createRivalRoster } from './rival-roster.js';
 import type { createCourseDrivingGraph } from './course-driving-session.js';
 

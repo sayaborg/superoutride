@@ -1,4 +1,8 @@
-import type { BandRenderMode } from '../graphics/display-settings.js';
+/** Band sampling choices. */
+export const BAND_RENDER_MODES = Object.freeze(['POINT-POINT', 'LEVEL-POINT', 'EXACT-BOX'] as const);
+
+export type BandRenderMode = (typeof BAND_RENDER_MODES)[number];
+
 import { SOURCE_ENDPOINT_TOLERANCE_METERS } from '../core/tolerances.js';
 import {
   IMAGE_OPAQUE_COVERAGE,

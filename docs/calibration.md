@@ -22,8 +22,8 @@ The browser supplies this common starting calibration for cars and bikes.
 
 PX and PY are dimensionless slips. The defaults give `kX = kY = 31.5` under the
 [tire law](vehicle-physics.md#tire-law). Automatic steering has the derived budget `M-D`.
-The [tire selector](../src/browser/tire-friction-selection.ts) and
-[steering selector](../src/browser/steering-calibration-selection.ts) supply these browser values.
+The [tire selector](../src/shell/tire-friction-selection.ts) and
+[steering selector](../src/shell/steering-calibration-selection.ts) supply these browser values.
 
 | Setting               | Current value    | Meaning                                                      |
 | --------------------- | ---------------- | ------------------------------------------------------------ |

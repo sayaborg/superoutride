@@ -111,10 +111,10 @@
         OUTPUT,
       } from '../../dist/audio/exhaust-acoustics.js';
       import { AUDIO_TIMING } from '../../dist/audio/audio-presentation.js';
-      import { mountAudioTuningControls } from '../../dist/browser/audio-tuning-controls.js';
+      import { mountAudioTuningControls } from '../../dist/shell/audio-tuning-controls.js';
       import { createEngineVoice } from '../../dist/audio/engine-voice.js';
       import { VEHICLE_CATALOG } from '../../dist/vehicle/vehicle-catalog.js';
-      import { createVehicleAudioObservation } from '../../dist/browser/vehicle-audio.js';
+      import { createVehicleAudioObservation } from '../../dist/shell/vehicle-audio.js';
       const vehicle = document.getElementById('vehicle');
       for (const entry of VEHICLE_CATALOG) {
         const option = document.createElement('option');

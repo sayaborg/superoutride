@@ -11,13 +11,17 @@ export async function referenceModelIdentity() {
       else if (e.name.endsWith('.ts')) files.push(path + e.name);
     }
   };
-  for (const path of ['src/core/', 'src/course/', 'src/vehicle/physics/', 'src/race/', 'src/runtime/'])
-    await collect(path);
+  for (const path of ['src/core/', 'src/course/', 'src/vehicle/physics/', 'src/race/']) await collect(path);
   files.push(
-    'src/browser/frame-loop.ts',
-    'src/browser/session-vehicle.ts',
-    'src/browser/steering-calibration-selection.ts',
-    'src/browser/tire-friction-selection.ts',
+    'src/view/projection.ts',
+    'src/view/presentation-scale.ts',
+    'src/view/camera.ts',
+    'src/view/course-driving-view.ts',
+    'src/shell/course-scene.ts',
+    'src/shell/frame-loop.ts',
+    'src/shell/session-vehicle.ts',
+    'src/shell/steering-calibration-selection.ts',
+    'src/shell/tire-friction-selection.ts',
     'tools/course/reference-run.mjs',
     'tools/course/vehicle-envelope.mjs',
     'tools/build/build-course-reference-worker.mjs',

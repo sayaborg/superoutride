@@ -2,13 +2,13 @@ import { readVehicleSprites } from './read-vehicle-sprites.mjs';
 import { referenceCommand } from './reference-command.mjs';
 import path from 'node:path';
 import { PNG } from 'pngjs';
-import { createCourseScene } from '../../dist/runtime/course-scene.js';
+import { createCourseScene } from '../../dist/shell/course-scene.js';
 import { createArcadeVehicle } from '../../dist/vehicle/physics/arcade-vehicle-physics.js';
 import { VEHICLE_CATALOG } from '../../dist/vehicle/vehicle-catalog.js';
-import { createCameraRig, updateCamera } from '../../dist/camera/camera.js';
-import { CURRENT_CAMERA_PROFILE } from '../../dist/camera/current-camera-profile.js';
-import { deriveVehicleSpriteFamily } from '../../dist/render/vehicle-presentation.js';
-import { SoftwareSurface } from '../../dist/graphics/software-surface.js';
+import { createCameraRig, updateCamera } from '../../dist/view/camera.js';
+import { CURRENT_CAMERA_PROFILE } from '../../dist/view/current-camera-profile.js';
+import { deriveVehicleSpriteFamily } from '../../dist/view/vehicle-presentation.js';
+import { SoftwareSurface } from '../../dist/view/software-surface.js';
 import { courseReport } from './course-report.mjs';
 import {
   options,

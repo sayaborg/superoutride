@@ -1,4 +1,4 @@
-import { rgba } from '../../dist/graphics/software-surface.js';
+import { rgba } from '../../dist/image/rgb555.js';
 import { SPRITE_SOURCE_PIXEL_LIMIT } from '../../dist/image/sprite-source-compiler.js';
 
 export const SPRITE_PNG_BYTE_LIMIT = 32 * 1024 * 1024;

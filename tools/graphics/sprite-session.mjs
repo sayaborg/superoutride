@@ -1,4 +1,4 @@
-import { rgba, unpackRgba } from '../../dist/graphics/software-surface.js';
+import { rgba, unpackRgba } from '../../dist/image/rgb555.js';
 import { normalizeSpriteSource } from '../../dist/image/sprite-source-compiler.js';
 import { compileSpriteLod } from '../../dist/image/sprite-lod-compiler.js';
 

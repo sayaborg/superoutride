@@ -1,4 +1,4 @@
-import { unpackRgba } from '../graphics/software-surface.js';
+import { unpackRgba } from './rgb555.js';
 
 /** One coverage rule for direct-master box filters; exact equality is opaque. */
 export const IMAGE_OPAQUE_COVERAGE = 0.5;

@@ -1,14 +1,15 @@
 import { PNG } from '../../dist/tools/graphics/png-codec.mjs';
-import { CURRENT_FOCAL_LENGTH_PIXELS, pixelsPerMeterAtDepth } from '../../dist/core/presentation-scale.js';
-import { SoftwareSurface, rgba, unpackRgba } from '../../dist/graphics/software-surface.js';
+import { CURRENT_FOCAL_LENGTH_PIXELS, pixelsPerMeterAtDepth } from '../../dist/view/presentation-scale.js';
+import { SoftwareSurface } from '../../dist/view/software-surface.js';
+import { rgba, unpackRgba } from '../../dist/image/rgb555.js';
 import { rgb555ToRgba } from '../../dist/image/rgb555.js';
 import {
   readSpriteLodAsset,
   readSpritePaletteRgb555,
-  drawScaledSprite,
   selectSpriteLevel,
   SPRITE_SOURCE_TEXELS_PER_METER,
 } from '../../dist/image/sprite.js';
+import { drawScaledSprite } from '../../dist/view/sprite.js';
 import { generateSpritePalette } from '../../dist/image/sprite-palette.js';
 import { decodeSpritePng, SPRITE_PNG_BYTE_LIMIT } from './sprite-png.mjs';
 import {

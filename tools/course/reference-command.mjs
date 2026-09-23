@@ -1,5 +1,5 @@
 import { VEHICLE_CATALOG } from '../../dist/vehicle/vehicle-catalog.js';
-import { browserSessionVehicle } from '../../dist/browser/session-vehicle.js';
+import { browserSessionVehicle } from '../../dist/shell/session-vehicle.js';
 import { REFERENCE_DRIVER } from '../../dist/race/reference-driving-policy.js';
 import { measureVehicleEnvelope } from './vehicle-envelope.mjs';
 import { courseReferenceRoutes, runCourseReference } from './reference-run.mjs';

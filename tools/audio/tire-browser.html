@@ -55,7 +55,7 @@
     <p><a href="audio-browser.html">エンジン音の調整</a> · <a href="../../?mode=ribbon-ring">ゲームで確認</a></p>
     <script type="module">
       import { createTireVoice } from '../../dist/audio/tire-voice.js';
-      import { createVehicleAudioObservation } from '../../dist/browser/vehicle-audio.js';
+      import { createVehicleAudioObservation } from '../../dist/shell/vehicle-audio.js';
       import { TIRE_AUDITION_PHASES as phases, TIRE_AUDITION_SECONDS as seconds } from './tire-scenarios.mjs';
       const result = document.getElementById('result');
       let playback,

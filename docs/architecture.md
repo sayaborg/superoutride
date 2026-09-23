@@ -215,7 +215,7 @@ LOD for shipped sprites.
 
 ### Shared image level selection
 
-Graphics' `selectImageLodLevel(scale, maxLevel)` is the single nearest-octave selection rule used by
+Image's `selectImageLodLevel(scale, maxLevel)` is the single nearest-octave selection rule used by
 both sprites and LEVEL-POINT. `scale = 1/rho`: destination pixels per master texel for sprites, or
 `1 m / deltaS` for Bands. It selects the nearest integer `log2(rho)` exponent, clamped to the available
 prefix `0..maxLevel`. There is one level per octave. At the geometric-mean boundary
@@ -246,22 +246,29 @@ local projection seeds identify both occurrence and native segment.
 
 ## Layer boundaries
 
-Core owns finite geometry, height, transforms and shared numeric/color-independent primitives.
-Course owns saved course values and boundary geometry. Graphics owns colors, indexed images, the
-framebuffer, blitting and product display settings (`graphics/display-settings.ts`). Visual owns visual profiles, compiled Band color fields/sampling and image
-presentation data; Terrain projects bounds; Render assembles drawing.
+Source is organized by domain. Definition, compilation and runtime representation belong inside
+that domain; an upper domain depends only on lower domains, and same-domain imports are unrestricted.
 
-Physics owns mechanics and surface interpretation and currently imports Core, Course and Input.
-Input owns normalized driver requests. Camera consumes Core and Physics. Gameplay consumes Core,
-Input and Physics for drivers, crossings, progress and recovery. Audio depends on Core; Vehicle binds
-Physics profiles and Audio profiles.
+| Order | Layer   | Responsibility                                                                                                   |
+| ----- | ------- | ---------------------------------------------------------------------------------------------------------------- |
+| 1     | core    | General mathematics, vectors, planar transforms, validation helpers and tolerances                               |
+| 2     | image   | Indexed images, RGB555/RGBA codecs, palettes, sprite/LOD formats, BG tiles and image filters                     |
+| 3     | audio   | Sound synthesis and audio engines                                                                                |
+| 4     | course  | Course documents and compilation, road geometry, materials, occurrences, environment profiles and geometry views |
+| 5     | vehicle | Vehicle mechanics, definitions, catalog and accepted operation requests                                          |
+| 6     | input   | Keyboard/touch adapters and arbitration producing vehicle operation requests                                     |
+| 7     | race    | Sessions, progress, gates, timing, drivers, recovery, reference driving and envelopes                            |
+| 8     | view    | Cameras, projection, ground rows, sprite placement, drawing composition and framebuffer                          |
+| 9     | shell   | DOM, frame loop, HUD, DEV, startup and whole-scene composition                                                   |
 
-Compiler consumes Core, Course, Graphics, Physics and Visual to publish the immutable
-course reference graph, including expansion of authored Band constructs. Authoring consumes Course and Compiler for project transactions. Runtime
-composes occurrences and the shared scene from compiled readers and the geometry, mechanics, gameplay
-and rendering layers. Browser adapts input, scheduling and presentation; product roots compose course
-and vehicle choices. Dev contains graphics-only preview fixtures.
+The [layer check](../tests/infrastructure/layer-dependencies.test.mjs) includes type-only imports,
+re-exports, inline import types and literal dynamic imports. Source has exactly these nine directories;
+startup files belong to shell. Known exact source/target exceptions are omitted from the layer-cycle
+graph; every other dependency is checked, and unused exceptions fail the check.
 
-Dependencies are acyclic, including type imports, under the
-[layer contract](../tests/infrastructure/layer-dependencies.test.mjs). Core, mechanics and pixel loops
-receive narrow readers/data. The compiler has no dependency on Runtime, Authoring, Vehicle, Render or Gameplay.
+Five exact race-to-view imports remain: actors own camera rigs, race constructs rival sprites,
+and the driving source combines physical and rendering readers. They are the only exceptions;
+[NEXT](NEXT.md) owns their boundary separation. RGBA conversion, sprite images and LOD formats belong
+to image; framebuffer writes and sprite drawing belong to view. Band modes, compiled color fields
+and their still-co-located sampler belong to course; view owns display settings and consumes that sampler.
+Environment profiles are course data. Authoring-only sprite fixtures currently reside in image.

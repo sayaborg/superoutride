@@ -8,7 +8,7 @@
 - Build currently generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **5-4e — Layers: view and shell**. PR 5-4d is complete.
+Next PR: **5-4f — Race/view boundary**. PR 5-4e is complete.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Current contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -21,70 +21,39 @@ Simplify the foundations without changing behavior.
 - **5-1 — NEXT and small remnants:** reorganize the checkpoint and remove small documentation/comment remnants.
 - **5-2 — Dead code and exports:** remove dead code and simplify exports.
 - **5-3 — Distance helpers:** unify Euclidean norms on `Math.hypot`.
-- **5-4a–e — Layers:** move files only into the nine domains defined below.
+- **5-4a–e — Layers:** completed nine-domain placement; see [Architecture](architecture.md#layer-boundaries).
 - **5-4f — Race/view boundary:** separate physical/rendering sources, camera ownership and sprite assembly
   without changing behavior.
 - **5-5a–c — TypeScript tools:** stop importing `dist/` and separate authoring code from product code.
 - **5-6 — Vocabulary:** define reserved terms such as Profile, mode and presentation, and rename accordingly.
 
-### Layer order and ownership (5-4)
+### Remaining race/view boundary (5-4f)
 
-Group by domain, with definition, compilation and runtime representation inside each domain.
-An upper layer may depend only on lower layers; dependencies within one layer are unrestricted.
-The dependency check includes type-only imports.
+The nine-domain order and dependency rules are in [Architecture](architecture.md#layer-boundaries).
+5-4a–e placement is complete. Five exact race-to-view imports remain (paths relative to src):
 
-| Order | Layer   | Responsibility                                                                                                                   |
-| ----- | ------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| 1     | core    | General mathematics, vectors, planar transforms, validation helpers and tolerances                                               |
-| 2     | image   | Indexed images, RGB555, palettes, sprite/LOD formats, BG tiles and image filters                                                 |
-| 3     | audio   | Sound synthesis and audio engines                                                                                                |
-| 4     | course  | Course documents, compilation including Band expansion, road geometry (Guide, Raster and height), occurrences and geometry views |
-| 5     | vehicle | Vehicle mechanics, definitions, catalog and the operation types accepted by vehicles                                             |
-| 6     | input   | Keyboard/touch adapters producing vehicle operation requests                                                                     |
-| 7     | race    | Sessions, progress, gates, timing, drivers, recovery, reference driving and envelopes                                            |
-| 8     | view    | Cameras, projection, ground rows, Band sampling, sprite placement, drawing composition and framebuffer                           |
-| 9     | shell   | DOM, frame loop, HUD, DEV, startup and whole-scene composition                                                                   |
+| Source                           | Target                           |
+| -------------------------------- | -------------------------------- |
+| `race/course-driving-session.ts` | `view/camera.js`                 |
+| `race/course-race.ts`            | `view/camera.js`                 |
+| `race/course-race.ts`            | `view/dynamic-vehicle-sprite.js` |
+| `race/course-race.ts`            | `view/course-sprite.js`          |
+| `race/course-driving-session.ts` | `view/course-driving-view.js`    |
 
-- **5-4a — Definitions, core and image:** introduce the ordered-domain dependency check and move
-  image formats into image. Keep the road geometry and projection files in core until their assigned PRs.
-- **5-4b — Course:** consolidate course, compiler and authoring, core road geometry (`guide-*`,
-  `raster-*`, `height-profile`, `open-profile`), and runtime occurrences/geometry views.
-- **5-4c — Audio, vehicle and input:** consolidate physics/vehicle and move vehicle operation types
-  from input to vehicle.
-- **5-4d — Race:** consolidate gameplay and runtime progress, timing and driver responsibilities,
-  including course-fork-field (field-wide crossing order, route locking and recovery targets).
-- **5-4e — View and shell:** consolidate camera, terrain, render, remaining visual code, runtime scene
-  composition, browser and startup. Move core projection/presentation-scale and graphics painter-merge,
-  software-surface and display-settings. Resolve the four exact image-to-graphics imports: move RGBA
-  conversion functions from software-surface into image and the framebuffer into view; keep sprite
-  image/LOD formats in image and move sprite drawing into view. Separate Band sampling from
-  course/band-ground while preserving private compiled coefficient storage. This currently retains
-  the exact course/band-ground.ts -> graphics/display-settings.js type dependency: a safe split needs
-  a read boundary beyond declaration relocation, not an exported mutable WeakMap or coefficient buffers.
-  Remove all old directories and their transitional dependency rules, and update the README structure
-  table and architecture layer section. Move runtime/course-driving-view.ts into view and update the
-  exact race/course-driving-session.ts -> runtime/course-driving-view.js exception to its new target.
-  Carry all five exact race camera/render/driving-view exceptions forward to their relocated paths
-  until 5-4f; removing legacy directory rules does not resolve those responsibilities.
-- **5-4f — Race/view boundary:** view or whole-scene composition owns cameras, not actor state.
-  The camera owner applies seam coordinate changes to its own camera. Race publishes actor observations
-  only (position, attitude, vehicle and palette variant); view assembles sprites.
-  Split createCourseDrivingSource into a physical source in course (VehicleWorld, Region/material
-  readings and coordinate readers) and a rendering source in view (Band sampling, presentation and
-  VisualProfile). Race sessions depend only on the physical source. Remove all five exact race
-  exceptions introduced in 5-4d, including the driving-source dependency, following their paths after
-  5-4e. This PR includes logic changes while preserving behavior. Keep the source split minimal:
-  Stage 6 (6-1, 6-4 and 6-5) substantially replaces its geometry, seams and views.
+View or whole-scene composition owns cameras, not actor state. The camera owner applies seam
+coordinate changes to its own camera. Race publishes actor observations only (position, attitude,
+vehicle and palette variant); view assembles sprites.
 
-During migration, existing legacy-directory boundaries remain checked alongside the nine-domain order.
-Exact exception pairs are excluded from the layer-cycle graph; every other dependency remains checked.
-Unused exceptions must be removed.
-Existing functions, types and constants may move between files when responsibilities are mixed;
-keep their logic and signatures intact. Do not introduce new interfaces or other abstractions in 5-4a–e;
-5-4f is the explicit behavior-preserving logic-change exception.
-Report dependencies requiring such changes as exact source/target exceptions, not layer-wide allowances.
-Authoring-only sprite compilers, course-project, course-reference and dev fixtures stay in the appropriate
-product domains during 5-4; separating them from product code belongs to 5-5. Vocabulary changes belong to 5-6.
+Split createCourseDrivingSource into a physical source in course (VehicleWorld, Region/material
+readings and coordinate readers) and a rendering source in view (Band sampling, presentation and
+VisualProfile). Race sessions depend only on the physical source. Remove all five exact race exceptions,
+including camera query-depth coupling and the combined driving-source dependency. This PR includes
+logic changes while preserving behavior. Keep the source split minimal: Stage 6 (6-1, 6-4 and 6-5)
+substantially replaces its geometry, seams and views.
+
+Authoring-only sprite compilers, fixtures, course-project and course-reference remain in their
+product domains until 5-5. Vocabulary changes belong to 5-6. Band compiler/sampler separation belongs
+to 7-6 and preserves private compiled coefficient storage.
 
 ## Stage 6 — Authoritative geometry
 
@@ -107,7 +76,8 @@ Unify authored coordinates, appearance, delivery and progress in the course form
 - **7-3 — Appearance elements:** one list and shared repeat for band / arrow / text / curb / sprite.
 - **7-4 — Course identity:** derive kind from the graph, remove production provenance, and simplify nulls and limits.
 - **7-5 — Delivery identity:** one manifest, one version per format and one image path.
-- **7-6 — Band cells:** truncate preblend cells at the Section end.
+- **7-6 — Band cells:** truncate preblend cells at the Section end; separate compilation from sampling
+  while preserving private compiled coefficient storage.
 - **7-7 — Progress and validation:** unify progress and consolidate validation into one layer.
 
 ## Stage 8 — Vehicles and materials

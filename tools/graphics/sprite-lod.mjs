@@ -1,12 +1,9 @@
-import { CURRENT_FOCAL_LENGTH_PIXELS, pixelsPerMeterAtDepth } from '../../dist/core/presentation-scale.js';
-import { createSpriteLodFixture } from '../../dist/dev/fixtures/sprite-lod.js';
-import { SoftwareSurface, rgba } from '../../dist/graphics/software-surface.js';
-import {
-  drawScaledSprite,
-  readSpriteLodAsset,
-  selectSpriteLevel,
-  SPRITE_SOURCE_TEXELS_PER_METER,
-} from '../../dist/image/sprite.js';
+import { CURRENT_FOCAL_LENGTH_PIXELS, pixelsPerMeterAtDepth } from '../../dist/view/presentation-scale.js';
+import { createSpriteLodFixture } from '../../dist/image/fixtures/sprite-lod.js';
+import { SoftwareSurface } from '../../dist/view/software-surface.js';
+import { rgba } from '../../dist/image/rgb555.js';
+import { drawScaledSprite } from '../../dist/view/sprite.js';
+import { readSpriteLodAsset, selectSpriteLevel, SPRITE_SOURCE_TEXELS_PER_METER } from '../../dist/image/sprite.js';
 
 const element = (id) => document.getElementById(id);
 const surfaces = [new SoftwareSurface(320, 240), new SoftwareSurface(320, 240)];

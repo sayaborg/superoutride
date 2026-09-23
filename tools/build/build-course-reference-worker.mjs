@@ -1,6 +1,6 @@
 import { parentPort, workerData } from 'node:worker_threads';
 import { VEHICLE_CATALOG } from '../../dist/vehicle/vehicle-catalog.js';
-import { browserSessionVehicle } from '../../dist/browser/session-vehicle.js';
+import { browserSessionVehicle } from '../../dist/shell/session-vehicle.js';
 import { REFERENCE_DRIVER } from '../../dist/race/reference-driving-policy.js';
 import { readCourseReference } from '../../dist/race/course-reference.js';
 import { courseBudgetLandmarks, readCourseTimeBudgets } from '../../dist/race/course-time-budgets.js';

@@ -1,9 +1,9 @@
 import { readVehicleSprites } from './read-vehicle-sprites.mjs';
 import { REFERENCE_DRIVER } from '../../dist/race/reference-driving-policy.js';
-import { createCourseScene } from '../../dist/runtime/course-scene.js';
+import { createCourseScene } from '../../dist/shell/course-scene.js';
 import { createCourseRace } from '../../dist/race/course-race.js';
 import { resolveCourseSession } from '../../dist/race/course-session.js';
-import { browserSessionVehicle } from '../../dist/browser/session-vehicle.js';
+import { browserSessionVehicle } from '../../dist/shell/session-vehicle.js';
 import { createArcadeVehicle } from '../../dist/vehicle/physics/arcade-vehicle-physics.js';
 import { createRecoveryState } from '../../dist/race/recovery.js';
 import {
@@ -12,8 +12,8 @@ import {
   envelopeAt,
   compileEnvelopeDriver,
 } from '../../dist/race/envelope-driver.js';
-import { createCameraRig } from '../../dist/camera/camera.js';
-import { SIM_DT } from '../../dist/browser/frame-loop.js';
+import { createCameraRig } from '../../dist/view/camera.js';
+import { SIM_DT } from '../../dist/shell/frame-loop.js';
 import { courseBoundaryAt } from '../../dist/course/course-regions.js';
 const spriteAssets = await readVehicleSprites();
 
