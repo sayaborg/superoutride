@@ -1,8 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { compileRasterPath } from '../../src/course/geometry/raster-path.js';
-import { compileGuidePath } from '../../src/course/geometry/guide-curve.js';
+import { compilePlanPath } from '../../src/course/geometry/plan-path.js';
 import { createPlanCoordinateReader } from '../../src/course/geometry/plan-coordinate-reader.js';
 import {
   createPlanCoordinateSample,
@@ -34,38 +33,34 @@ function physicalProduct(links) {
   return result.value;
 }
 
-test('native plan reader supplies varying bounds, metric and unclamped seeded projection', () => {
-  const turn = Math.PI / 36;
-  const raster = compileRasterPath([
-    { x: 0, z: 0 },
-    { x: 0, z: 100 },
-    { x: 100 * Math.sin(turn), z: 100 + 100 * Math.cos(turn) },
-  ]);
-  const reader = createPlanCoordinateReader(
-    compileGuidePath(raster, {
-      envelope: [
-        { s: 0, lMax: 4 },
-        { s: raster.length, lMax: 6 },
-      ],
-      mMin: 0.5,
-    }),
+test('native plan reader supplies authored arc length, asymmetric bounds and primitive projection', () => {
+  const plan = compilePlanPath(
+    { x: 0, z: 0, heading: 0 },
+    [
+      { id: 'straight', kind: 'straight', length: 100 },
+      { id: 'bend', kind: 'arc', radius: 100, turn: 10 },
+    ],
+  );
+  const reader = createPlanCoordinateReader(plan.primitives, plan.length, (s, out) =>
+    Object.assign(out, { left: -4 - s / 100, right: 6 + s / 200 }),
   );
   assert.ok(Object.isFrozen(reader));
   assert.ok(Object.isFrozen(reader.domain));
   assert.equal(reader.domain.start, 0);
-  assert.equal(reader.domain.end, raster.length);
+  assert.equal(reader.domain.end, 100 + (100 * 10 * Math.PI) / 180);
   const bounds = { left: 0, right: 0 };
   assert.equal(reader.domain.lateralAt(50, bounds), bounds);
-  assert.deepEqual(bounds, { left: -4.5, right: 4.5 });
+  assert.deepEqual(bounds, { left: -4.5, right: 6.25 });
+
   const point = createPlanCoordinateSample();
   const workspace = createPlanProjectionWorkspace();
   const observed = projection();
-  const candidates = reader.projectionCandidates(25, 175);
+  const candidates = reader.projectionCandidates(25, 110);
   assert.ok(Object.isFrozen(candidates));
-  assert.equal(candidates.length, reader.seedCount);
+  assert.equal(candidates.length, 2);
   assert.equal(candidates[0].start, 25);
   assert.equal(candidates[0].extent.start, 0);
-  assert.equal(candidates.at(-1).end, 175);
+  assert.equal(candidates.at(-1).end, 110);
   assert.equal(candidates.at(-1).extent.end, reader.domain.end);
   for (const candidate of candidates) {
     assert.ok(Object.isFrozen(candidate) && Object.isFrozen(candidate.extent) && Object.isFrozen(candidate.bounds));
@@ -76,20 +71,21 @@ test('native plan reader supplies varying bounds, metric and unclamped seeded pr
     near(observed.l, 2);
     assert.equal(observed.seed, candidate.seed);
   }
-  for (const s of [0, 50, 100, 150, reader.domain.end]) {
+
+  for (const s of [0, 50, 100, 110, reader.domain.end]) {
     assert.equal(reader.toWorld(s, 2, point), point);
     assert.equal(reader.locateLocal(point, point.seed, 0, observed, workspace), observed);
     near(observed.s, s);
     near(observed.l, 2);
     assert.equal(observed.seed, point.seed);
     const differential = reader.metricsAt(s, 2, point.seed, metrics());
-    assert.ok(differential.metric > 0);
+    assert.equal(differential.metric, 1);
     assert.equal(differential.offsetMetric, 1 - differential.curvature * 2);
-    if (s === 100) assert.ok(differential.curvature > 0);
+    if (s > 100) assert.ok(differential.curvature > 0);
   }
   reader.toWorld(50, 9, point);
   reader.locateLocal(point, point.seed, 0, observed, workspace);
-  assert.equal(observed.l, 9, 'projection does not clamp to the coordinate envelope');
+  assert.equal(observed.l, 9, 'projection does not clamp to the coordinate domain');
   assert.equal(observed.distanceSquared, 81);
   assert.throws(() => reader.locateLocal(point, -1, 0, observed, workspace), RangeError);
   assert.throws(() => reader.locateLocal(point, point.seed, -1, observed, workspace), RangeError);
