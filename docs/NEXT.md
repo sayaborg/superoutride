@@ -8,7 +8,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **6-3 — Rendering-space mapping**.
+Next PR: **6-4 — Coordinate-domain injectivity**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -18,7 +18,6 @@ PRs hold rationale and verification evidence.
 
 Make authored plan and vertical geometry authoritative, with rendering-only approximations and simpler connections.
 
-- **6-3 — Rendering-space mapping:** derive vehicle and camera positions from (s, l, h), with orientation from physical yaw.
 - **6-4 — Coordinate-domain injectivity:** check injectivity at compilation and remove runtime geometry checks. Redefine projection search range in one unit: Section Readers count primitives while mapped Readers count 50 m candidates, with `PLAN_PROJECTION_CANDIDATE_MAX_METERS` adding a second tier. Make injectivity checks independent of Raster subdivision.
 - **6-5 — Dead planar remnants:** remove `src/course/geometry/guide-curve.ts`, `src/course/geometry/guide-envelope.ts`, `src/course/raster-turtle.ts`, Raster `sourceRadius` provenance, Guide-era unused projection-workspace scratch and `maxSupportedAbsL`; make tool reporting read the coordinate domain, then simplify any metric surface made redundant by those deletions. Geometry-window removal belongs to 6-4.
 - **6-6 — Vertical alignment:** PVIs and parabolas, allowing zero curve lengths with endpoint curve lengths set to zero; polyline rendering with separate authoritative and rendering Readers; rename HeightProfile/OpenProfile replacements according to the glossary.

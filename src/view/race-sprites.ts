@@ -1,4 +1,5 @@
 import type { HeightProfileReader } from '../course/geometry/height-profile.js';
+import type { RasterGeometry } from '../course/geometry/raster-coordinate-reader.js';
 import { createVehiclePaletteVariant, type SpriteAssets } from '../image/sprite-assets.js';
 import type { RaceActorObservation } from '../race/course-race.js';
 import type { SessionVehicle } from '../race/session-configuration.js';
@@ -13,7 +14,12 @@ export function createRaceSprites(assets: SpriteAssets, rival: SessionVehicle) {
       ? createVehiclePaletteVariant(assets.car, assets.car.assets[0]![0]!.paletteChoices[1]!)
       : assets[rival.kind];
   const sprites: CourseSprite[] = [];
-  return (actors: readonly RaceActorObservation[], camera: CameraState, height: HeightProfileReader) => {
+  return (
+    actors: readonly RaceActorObservation[],
+    camera: CameraState,
+    geometry: RasterGeometry,
+    height: HeightProfileReader,
+  ) => {
     sprites.length = 0;
     for (const actor of actors)
       sprites.push(
@@ -22,6 +28,7 @@ export function createRaceSprites(assets: SpriteAssets, rival: SessionVehicle) {
           actor.vehicle,
           camera.yaw,
           actor.paletteVariant === 'braking' ? brakingAssets : assets[actor.kind],
+          geometry,
           height,
         ),
       );

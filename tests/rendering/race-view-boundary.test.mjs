@@ -90,7 +90,12 @@ test('race actors have no cameras and view assembles sixteen rival sprites from 
   assert.ok(!('sprites' in observed));
   assert.equal(observed.rivals.length, 16);
   const camera = updateCamera(createCameraRig(), scene.world, vehicle, CURRENT_CAMERA_PROFILE, 1 / 60);
-  const sprites = createRaceSprites(assets, profile)(observed.rivals, camera, scene.world.height);
+  const sprites = createRaceSprites(assets, profile)(
+    observed.rivals,
+    camera,
+    scene.session.view.geometry,
+    scene.world.height,
+  );
   assert.equal(sprites.length, observed.rivals.length);
   assert.deepEqual(
     sprites.map((s) => s.name),

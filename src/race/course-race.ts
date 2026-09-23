@@ -4,6 +4,7 @@ import { createCourseRaceProgress, type CourseRaceEvent, type CourseRaceAdmissio
 import { createCourseForkField } from './course-fork-field.js';
 import { composePlanarTransforms, invertPlanarTransform, type PlanarTransform } from '../core/planar-transform.js';
 import { wrapAngle } from '../core/math.js';
+import { createPlanCoordinateSample } from '../course/geometry/plan-coordinate.js';
 import { advanceRaceSession, createRaceSessionState, rankRaceProgress, formatRaceTime } from './race-session.js';
 import {
   RECOVERY_SETTINGS,
@@ -138,6 +139,8 @@ export function createCourseRace(options: {
     return true;
   };
   const visible: RaceActorObservation[] = [];
+  const playerCenter = createPlanCoordinateSample();
+  const rivalCenter = createPlanCoordinateSample();
   const pool = rivals.map((c) => ({
     id: c.id,
     kind: options.rival.kind,
@@ -175,7 +178,20 @@ export function createCourseRace(options: {
       observation.vehicle.x = transform.cosine * vehicle.x + transform.sine * vehicle.z + transform.translation.x;
       observation.vehicle.z = -transform.sine * vehicle.x + transform.cosine * vehicle.z + transform.translation.z;
       coordinate.s = s;
-      coordinate.l = vehicle.course.l;
+      // At the known shared station, express the rival's authoritative center and lateral
+      // offset against the player's center and normal. This is a local frame conversion,
+      // including the carriageway-origin shift at a Section seam; no global projection.
+      player.session.view.world.coordinates.toWorld(s, 0, playerCenter);
+      c.session.view.world.coordinates.toWorld(vehicle.course.s, 0, rivalCenter);
+      const centerX = transform.cosine * rivalCenter.x + transform.sine * rivalCenter.z + transform.translation.x;
+      const centerZ = -transform.sine * rivalCenter.x + transform.cosine * rivalCenter.z + transform.translation.z;
+      const playerNormalX = Math.cos(playerCenter.heading);
+      const playerNormalZ = -Math.sin(playerCenter.heading);
+      const rivalHeading = rivalCenter.heading + Math.atan2(transform.sine, transform.cosine);
+      coordinate.l =
+        (centerX - playerCenter.x) * playerNormalX +
+        (centerZ - playerCenter.z) * playerNormalZ +
+        vehicle.course.l * Math.cos(rivalHeading - playerCenter.heading);
       coordinate.seed = vehicle.course.seed;
       coordinate.distanceSquared = vehicle.course.distanceSquared;
       observation.vehicle.course = coordinate;

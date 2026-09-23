@@ -18,7 +18,7 @@ import {
 import { drawTileBackground, type TileBackground } from './tile-background.js';
 import { selectVehicleSprite, type SpriteAssets } from '../image/sprite-assets.js';
 import { collectVisibleCourseSprites, type CourseSpriteInput, type VisibleCourseSprite } from './course-sprite.js';
-import { createRenderSpaceCamera, mapPhysicalHeightToRender } from './render-height-space.js';
+import { createRenderSpaceCamera, mapToRenderSpace } from './render-height-space.js';
 import { deriveVehicleNormalizedBank } from './vehicle-visuals.js';
 
 type PlayerVisualKind = 'car' | 'bike';
@@ -103,7 +103,7 @@ export function renderDriving(
     bandMethod = DEFAULT_BAND_RENDER_METHOD,
   }: RenderOptions,
 ): RenderResult {
-  const { renderCamera, terrain } = prepareTerrain(guide, camera, terrainParameters, workspace);
+  const { renderCamera, terrain } = prepareTerrain(guide, camera, vehicle, terrainParameters, workspace);
   drawTileBackground(target, background, renderCamera);
   const visible = computeForwardVisibleInterval(
     guide,
@@ -172,15 +172,14 @@ export function renderDriving(
     },
   );
 
-  const playerRenderY = mapPhysicalHeightToRender(
+  const playerPosition = mapToRenderSpace(
+    guide,
     terrainParameters.height,
     vehicle.course.s,
+    vehicle.course.l,
     vehicle.renderY ?? vehicle.y,
   );
-  const playerProjection = pseudoProject(
-    { x: vehicle.x, y: playerRenderY, z: vehicle.z, s: vehicle.course.s },
-    renderCamera,
-  );
+  const playerProjection = pseudoProject(playerPosition, renderCamera);
   const playerSet = playerKind === 'bike' ? assets.bike : assets.car;
   const relativeYaw = wrapAngle(vehicle.yaw - renderCamera.yaw);
   const normalizedBank = playerKind === 'bike' ? deriveVehicleNormalizedBank(vehicle) : 0;
@@ -243,10 +242,11 @@ export function renderDriving(
 function prepareTerrain(
   guide: RasterGeometry,
   camera: PseudoCamera,
+  vehicle: VehicleRenderReadState,
   terrainParameters: TerrainRenderParameters,
   workspace: ReturnType<typeof createRenderWorkspace>,
 ) {
-  const renderCamera = createRenderSpaceCamera(terrainParameters.height, camera);
+  const renderCamera = createRenderSpaceCamera(guide, terrainParameters.height, camera, vehicle);
 
   const terrain = generateTerrainLines(guide, renderCamera, terrainParameters, workspace.terrain);
   return { renderCamera, terrain };

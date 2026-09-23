@@ -105,7 +105,11 @@ filters do not change point ownership.
 ## Height and projection
 
 Ground height is `Y(s,l)=Y(s)`. Rendering uses piecewise-linear height; physics and camera use the
-same smooth HeightProfile. Render-height mapping preserves physical clearance above local ground.
+same smooth HeightProfile. `mapToRenderSpace` in `src/view/render-height-space.ts` maps every drawn
+position from road-relative `(s,l,physicalY)`: its XZ comes from the view Raster Reader and its Y
+preserves physical clearance above local ground against rendering height. Ground rows, Band and
+Region positions use the same Raster ruler as vehicles and course sprites. Orientation remains the
+physical yaw; Raster segment headings do not replace vehicle or camera yaw.
 
 ```text
 d = s_object-s_camera                    d > 0
@@ -127,8 +131,10 @@ The player reference is 2 m wide, 80 source texels and 80 screen pixels:
 `f/D_cam=40 px/m`, `D_cam=f/40`. `f=200 px`, `D_cam=5 m` and near/far depths are 2.5/200 m.
 FOV changes preserve this metric. Ground and sprites share this depth interval.
 
-Camera chainage is `s_vehicle-D_cam`; its XZ offset uses body yaw by default or movement yaw as the
-alternate. The observer's shell owns the camera rig; rivals have no camera. After a committed
+Camera chainage is `s_vehicle-D_cam`; its drawn XZ is the mapped player's XZ minus `D_cam` along
+body yaw by default or movement yaw as the alternate. The camera rig retains its physical XZ and
+vertical follow; only the renderer uses the mapped camera. The observer's shell owns the camera rig;
+rivals have no camera. After a committed
 frame change the shell applies the reported yaw rotation to yaw and movementYaw before the next
 camera update. Camera vertical state is unchanged by the frame transform. Horizontal centering follows projection. Vertical follow is bounded and smoothed, body
 pitch offsets downward base pitch, and camera roll is zero. Camera values are 12 degrees

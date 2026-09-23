@@ -1,8 +1,7 @@
-import { createPlanarCoordinateSample } from '../core/planar-sample.js';
 import type { RasterGeometry } from '../course/geometry/raster-coordinate-reader.js';
 import type { HeightProfileReader } from '../course/geometry/height-profile.js';
 import { pseudoDepth, pseudoProject, type PseudoCamera, type PseudoProjection } from './projection.js';
-import { rasterCoordinateToWorld } from '../course/geometry/raster-coordinate-reader.js';
+import { mapToRenderSpace } from './render-height-space.js';
 import type { SpriteAsset } from '../image/sprite.js';
 
 interface CourseSpriteAuthoring {
@@ -39,14 +38,17 @@ export function compileCourseSprite(
   height: HeightProfileReader,
   source: CourseSpriteAuthoring,
 ): CourseSprite {
-  const plan = rasterCoordinateToWorld(guide.raster, source.s, source.l, createPlanarCoordinateSample());
-  const y = source.y ?? height.sampleRender(source.s).y + (source.groundOffset ?? 0);
+  const physicalY =
+    source.y === undefined
+      ? height.samplePhysics(source.s) + (source.groundOffset ?? 0)
+      : source.y + height.samplePhysics(source.s) - height.sampleRender(source.s).y;
+  const position = mapToRenderSpace(guide, height, source.s, source.l, physicalY);
   return {
     name: source.name,
-    x: plan.x,
-    y,
-    z: plan.z,
-    sRender: plan.s,
+    x: position.x,
+    y: position.y,
+    z: position.z,
+    sRender: position.s,
     asset: source.asset,
   };
 }
