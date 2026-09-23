@@ -265,19 +265,13 @@ export function createMappedPlanCoordinateReader(view: CourseGeometryView, mappi
         throw new RangeError('Projection requires an exact seed and nonnegative search radius');
       const seedIndices = candidateIndices.get(previousSeed);
       if (!seedIndices) throw new RangeError('Projection seed is outside the retained occurrence window');
-      const seeded = candidates[seedIndices[0]]!;
+      const seeded = candidates[seedIndices[0]!]!;
       const seededMapping = seeded.mapping;
       const sourceFromView = seededMapping.sourceFromView;
       local.x = sourceFromView.cosine * world.x + sourceFromView.sine * world.z + sourceFromView.translation.x;
       local.z = -sourceFromView.sine * world.x + sourceFromView.cosine * world.z + sourceFromView.translation.z;
       const nativeSeed = previousSeed - seededMapping.occurrence.ordinal * seedStride;
-      seededMapping.occurrence.section.coordinates.locateLocal(
-        local,
-        nativeSeed,
-        0,
-        anchorProjection,
-        workspace,
-      );
+      seededMapping.occurrence.section.coordinates.locateLocal(local, nativeSeed, 0, anchorProjection, workspace);
       const at = seedIndices.reduce((best, index) => {
         const candidate = candidates[index]!.native;
         const distance =
