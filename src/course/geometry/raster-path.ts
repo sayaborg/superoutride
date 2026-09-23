@@ -53,13 +53,12 @@ const MIN_RASTER_SEGMENT_METERS = 1e-9;
 const MIN_MITER_DENOMINATOR = 1e-9;
 const VERTEX_TURN_TOLERANCE_RADIANS = 1e-8;
 
-export function compileRasterPath(vertices: readonly RasterVertex[], stations?: readonly number[]): RasterPath {
+export function compileRasterPath(vertices: readonly RasterVertex[], stations: readonly number[]): RasterPath {
   if (vertices.length < 2) throw new RangeError('open raster path requires at least 2 vertices');
-  if (stations && stations.length !== vertices.length) throw new RangeError('raster stations must match vertices');
+  if (stations.length !== vertices.length) throw new RangeError('raster stations must match vertices');
   if (
-    stations &&
-    (stations[0] !== 0 ||
-      stations.some((value, i) => !Number.isFinite(value) || (i > 0 && !(value > stations[i - 1]!))))
+    stations[0] !== 0 ||
+    stations.some((value, i) => !Number.isFinite(value) || (i > 0 && !(value > stations[i - 1]!)))
   )
     throw new RangeError('raster stations must be finite, start at zero and increase strictly');
 
@@ -82,14 +81,14 @@ export function compileRasterPath(vertices: readonly RasterVertex[], stations?: 
     const dx = end.x - start.x;
     const dz = end.z - start.z;
     const chordLength = Math.hypot(dx, dz);
-    const length = stations ? stations[i + 1]! - stations[i]! : chordLength;
+    const length = stations[i + 1]! - stations[i]!;
     if (!Number.isFinite(chordLength) || !Number.isFinite(length) || !Number.isFinite(s + length)) {
       throw new RangeError('raster path length must be finite');
     }
     if (!(chordLength > MIN_RASTER_SEGMENT_METERS) || !(length > MIN_RASTER_SEGMENT_METERS))
       throw new RangeError(`raster segment ${i} has zero length`);
 
-    if (stations) s = stations[i]!;
+    s = stations[i]!;
     vertexS[i] = s;
     segments.push({
       index: i,
@@ -99,7 +98,7 @@ export function compileRasterPath(vertices: readonly RasterVertex[], stations?: 
       length,
       heading: headingFromDelta(dx, dz),
     });
-    s = stations ? stations[i + 1]! : s + length;
+    s = stations[i + 1]!;
   }
   vertexS[copied.length - 1] = s;
 

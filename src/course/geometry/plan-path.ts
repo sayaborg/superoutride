@@ -1,4 +1,4 @@
-import { clamp, normalFromHeading, tangentFromHeading, type Vec2 } from '../../core/math.js';
+import { clamp, normalFromHeading, tangentFromHeading, wrapAngle, type Vec2 } from '../../core/math.js';
 import type { Writable } from '../../core/writable.js';
 import { GEOMETRY_SAMPLING_TOLERANCE_METERS } from '../../core/tolerances.js';
 import type { PlanPrimitive } from '../course-document.js';
@@ -40,7 +40,7 @@ export function compilePlanPath(
 ): PlanPath {
   let x = start.x;
   let z = start.z;
-  let heading = start.heading;
+  let heading = wrapAngle(start.heading);
   let s = 0;
   const primitives = sources.map((source, index): CompiledPlanPrimitive => {
     const primitiveStart = Object.freeze({ x, z, heading });
@@ -62,7 +62,7 @@ export function compilePlanPath(
         x: x + sign * source.radius * normal.x,
         z: z + sign * source.radius * normal.z,
       });
-      heading += turn;
+      heading = wrapAngle(heading + turn);
       x = center.x - sign * source.radius * Math.cos(heading);
       z = center.z + sign * source.radius * Math.sin(heading);
     }
@@ -125,7 +125,7 @@ export function samplePlanPrimitive(
   } else {
     const turn = primitive.source.turn * (Math.PI / 180);
     const q = primitive.sEnd === primitive.sStart ? 0 : ds / (primitive.sEnd - primitive.sStart);
-    heading += turn * q;
+    heading = wrapAngle(heading + turn * q);
     const sign = Math.sign(turn);
     const center = primitive.center;
     if (!center) throw new Error('compiled arc lost its center');
@@ -144,20 +144,16 @@ export function samplePlanPath(path: PlanPath, s: number, out: Writable<PlanPath
 }
 
 function nearestArcDelta(rawHeading: number, startHeading: number, turn: number): number {
-  const minimum = Math.min(0, turn);
-  const maximum = Math.max(0, turn);
-  let best = clamp(rawHeading - startHeading, minimum, maximum);
-  let bestError = Infinity;
-  for (let winding = -2; winding <= 2; winding += 1) {
-    const candidate = rawHeading - startHeading + winding * TAU;
-    const clipped = clamp(candidate, minimum, maximum);
-    const error = Math.abs(candidate - clipped);
-    if (error < bestError || (error === bestError && Math.abs(clipped) < Math.abs(best))) {
-      best = clipped;
-      bestError = error;
-    }
-  }
-  return best;
+  const sign = Math.sign(turn);
+  const extent = Math.abs(turn);
+  const wrapped = wrapAngle(sign * (rawHeading - startHeading));
+  const primary = wrapped < 0 ? wrapped + TAU : wrapped;
+  const alternate = primary - TAU;
+  const clippedPrimary = clamp(primary, 0, extent);
+  const clippedAlternate = clamp(alternate, 0, extent);
+  const primaryError = Math.abs(primary - clippedPrimary);
+  const alternateError = Math.abs(alternate - clippedAlternate);
+  return sign * (alternateError < primaryError ? clippedAlternate : clippedPrimary);
 }
 
 export function projectPlanPrimitiveInterval(
