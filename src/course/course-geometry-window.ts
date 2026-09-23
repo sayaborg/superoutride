@@ -1,5 +1,5 @@
 import { createPlanarCoordinateSample } from '../core/planar-sample.js';
-import type { Vec2 } from '../core/math.js';
+import { normalFromHeading, tangentFromHeading, type Vec2 } from '../core/math.js';
 import { profileIndexAt } from './geometry/open-profile.js';
 import { rasterPathToWorld, type RasterPath } from './geometry/raster-path.js';
 import { GEOMETRY_SAMPLING_TOLERANCE_METERS } from '../core/tolerances.js';
@@ -159,41 +159,39 @@ function rasterCells(source: GeometrySource, interval: Interval, sorted: readonl
 function planCells(source: GeometrySource, sorted: readonly number[]): Cell[] {
   const lateralA = { left: 0, right: 0 };
   const lateralB = { left: 0, right: 0 };
+  const cross = (a: Vec2, b: Vec2) => a.x * b.z - a.z * b.x;
   return sorted.slice(0, -1).map((start, i) => {
     const end = sorted[i + 1]!;
-    const candidates = source.coordinates.projectionCandidates(start, end);
-    if (!candidates.length) throw new Error('Admitted plan lost projection coverage');
-    source.coordinates.domain.lateralAt(start, lateralA);
-    source.coordinates.domain.lateralAt(end, lateralB);
     const primitive = source.primitives.find((candidate) => candidate.sStart <= start && candidate.sEnd >= end);
     if (!primitive) throw new Error('Admitted plan cell crossed a primitive boundary');
-    if (primitive.source.kind === 'straight') {
-      const point = (s: number, l: number): Vec2 => {
-        const p = source.coordinates.toWorld(s, l, createPlanCoordinateSample());
-        return { x: p.x, z: p.z };
+    source.coordinates.domain.lateralAt(start, lateralA);
+    source.coordinates.domain.lateralAt(end, lateralB);
+
+    const edge = (lStart: number, lEnd: number): Vec2[] => {
+      const a = source.coordinates.toWorld(start, lStart, createPlanCoordinateSample());
+      const b = source.coordinates.toWorld(end, lEnd, createPlanCoordinateSample());
+      const p = { x: a.x, z: a.z };
+      const q = { x: b.x, z: b.z };
+      if (primitive.curvature === 0) return [p, q];
+      const slope = (lEnd - lStart) / (end - start);
+      const derivative = (heading: number, l: number): Vec2 => {
+        const tangent = tangentFromHeading(heading);
+        const normal = normalFromHeading(heading);
+        const metric = 1 - primitive.curvature * l;
+        return { x: metric * tangent.x + slope * normal.x, z: metric * tangent.z + slope * normal.z };
       };
-      return cell(i, start, end, [
-        point(start, lateralA.left),
-        point(start, lateralA.right),
-        point(end, lateralB.right),
-        point(end, lateralB.left),
-      ]);
-    }
-    const left = Math.min(...candidates.map((candidate) => candidate.bounds.left));
-    const right = Math.max(...candidates.map((candidate) => candidate.bounds.right));
-    const back = Math.min(...candidates.map((candidate) => candidate.bounds.back));
-    const front = Math.max(...candidates.map((candidate) => candidate.bounds.front));
-    const extent = Math.max(
-      Math.abs(lateralA.left),
-      Math.abs(lateralA.right),
-      Math.abs(lateralB.left),
-      Math.abs(lateralB.right),
-    );
+      const da = derivative(a.heading, lStart);
+      const db = derivative(b.heading, lEnd);
+      const denominator = cross(da, db);
+      if (denominator === 0) throw new Error('Positive-metric circular plan edge lost tangent rotation');
+      const delta = { x: q.x - p.x, z: q.z - p.z };
+      const t = cross(delta, db) / denominator;
+      return [p, { x: p.x + t * da.x, z: p.z + t * da.z }, q];
+    };
+
     return cell(i, start, end, [
-      { x: left - extent, z: back - extent },
-      { x: left - extent, z: front + extent },
-      { x: right + extent, z: front + extent },
-      { x: right + extent, z: back - extent },
+      ...edge(lateralA.left, lateralB.left),
+      ...edge(lateralA.right, lateralB.right),
     ]);
   });
 }
