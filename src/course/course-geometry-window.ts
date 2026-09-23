@@ -3,7 +3,7 @@ import type { Vec2 } from '../core/math.js';
 import { profileIndexAt } from './geometry/open-profile.js';
 import { rasterPathToWorld, type RasterPath } from './geometry/raster-path.js';
 import { GEOMETRY_SAMPLING_TOLERANCE_METERS } from '../core/tolerances.js';
-import type { SectionPlanCoordinateReader } from './geometry/plan-coordinate.js';
+import { createPlanCoordinateSample, type SectionPlanCoordinateReader } from './geometry/plan-coordinate.js';
 import type { CompiledPlanPrimitive } from './geometry/plan-path.js';
 import { courseBoundaryAt, type CompiledRegionPartition, type CompiledBoundary } from './course-regions.js';
 
@@ -163,12 +163,26 @@ function planCells(source: GeometrySource, sorted: readonly number[]): Cell[] {
     const end = sorted[i + 1]!;
     const candidates = source.coordinates.projectionCandidates(start, end);
     if (!candidates.length) throw new Error('Admitted plan lost projection coverage');
+    source.coordinates.domain.lateralAt(start, lateralA);
+    source.coordinates.domain.lateralAt(end, lateralB);
+    const primitive = source.primitives.find((candidate) => candidate.sStart <= start && candidate.sEnd >= end);
+    if (!primitive) throw new Error('Admitted plan cell crossed a primitive boundary');
+    if (primitive.source.kind === 'straight') {
+      const point = (s: number, l: number): Vec2 => {
+        const p = source.coordinates.toWorld(s, l, createPlanCoordinateSample());
+        return { x: p.x, z: p.z };
+      };
+      return cell(i, start, end, [
+        point(start, lateralA.left),
+        point(start, lateralA.right),
+        point(end, lateralB.right),
+        point(end, lateralB.left),
+      ]);
+    }
     const left = Math.min(...candidates.map((candidate) => candidate.bounds.left));
     const right = Math.max(...candidates.map((candidate) => candidate.bounds.right));
     const back = Math.min(...candidates.map((candidate) => candidate.bounds.back));
     const front = Math.max(...candidates.map((candidate) => candidate.bounds.front));
-    source.coordinates.domain.lateralAt(start, lateralA);
-    source.coordinates.domain.lateralAt(end, lateralB);
     const extent = Math.max(
       Math.abs(lateralA.left),
       Math.abs(lateralA.right),
