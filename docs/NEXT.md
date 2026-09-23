@@ -72,7 +72,7 @@ Define persistent player settings, data-driven Sessions and product display inde
   Rename camera yaw mode and current-camera-profile names according to the glossary.
 - **10-5 — Navigation:** screen transitions within one page; rename the URL mode parameter and
   course-selection names according to the glossary.
-- **10-6 — Product HUD:** draw it inside the game frame, separately from DEV UI/HUD.
+- **10-6 — Product HUD:** draw it inside the game frame, separately from DEV UI and HUD.
 - **10-7 — Language:** make all UI English.
 
 ## Stage 11 — Production pipeline
