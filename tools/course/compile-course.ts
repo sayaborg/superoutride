@@ -1,7 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { readCourseImages } from './read-course-images.js';
 import { createCourseProject, parseCourseDocument } from './course-project.js';
-import { createRegionSurfaceReader } from '../../src/course/region-surface-reader.js';
 import { courseFailures, CourseAssetError } from '../../src/course/course-diagnostics.js';
 const [sourcePath, flag, imageDirectory, ...extra] = process.argv.slice(2);
 if (!sourcePath || (flag !== undefined && (flag !== '--images' || !imageDirectory)) || extra.length)
@@ -46,8 +45,7 @@ if (!result.ok) {
           regions: section.regionPartition.regions.length,
           heightNodes: section.height.nodes.length,
           physicalBindings: section.physicalBindings.length,
-          maxSupportedAbsL: createRegionSurfaceReader(section.regionPartition, section.physicalBindings)
-            .maxSupportedAbsL,
+          lateralBounds: section.coordinates.domain.lateralAt(0, { left: 0, right: 0 }),
           carriageways: section.carriageways.length,
           ports: section.ports.length,
           fork:

@@ -2,10 +2,7 @@ import type { Writable } from '../../core/writable.js';
 import { headingFromDelta, normalFromHeading, wrapAngle, type Vec2 } from '../../core/math.js';
 import { GEOMETRY_SAMPLING_TOLERANCE_METERS } from '../../core/tolerances.js';
 
-export interface RasterVertex extends Vec2 {
-  // Optional editor/compiler circular-arc provenance.
-  sourceRadius?: number;
-}
+export type RasterVertex = Vec2;
 
 interface RasterSegment {
   index: number;
@@ -65,9 +62,6 @@ export function compileRasterPath(vertices: readonly RasterVertex[], stations: r
   const copied = vertices.map((vertex) => {
     if (![vertex.x, vertex.z].every(Number.isFinite)) {
       throw new RangeError('raster vertex coordinates must be finite');
-    }
-    if (vertex.sourceRadius !== undefined && (!(vertex.sourceRadius > 0) || !Number.isFinite(vertex.sourceRadius))) {
-      throw new RangeError('raster vertex sourceRadius must be finite and > 0');
     }
     return Object.freeze({ ...vertex });
   });

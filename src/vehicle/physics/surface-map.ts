@@ -23,7 +23,6 @@ interface SurfaceSection {
  */
 export class SurfaceMap implements SurfaceMapReader {
   readonly sections: readonly SurfaceSection[];
-  readonly maxSupportedAbsL: number;
 
   constructor(
     readonly courseLength: number,
@@ -36,12 +35,6 @@ export class SurfaceMap implements SurfaceMapReader {
       })),
       { length: courseLength, chainage: 'sStart', label: 'surface profile' },
     );
-    let extent = 0;
-    for (const section of this.sections)
-      for (const region of section.regions) {
-        extent = Math.max(extent, Math.abs(region.lMin), Math.abs(region.lMax));
-      }
-    this.maxSupportedAbsL = extent;
   }
 
   sample(s: number, l: number): SurfaceSample {

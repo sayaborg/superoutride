@@ -157,7 +157,6 @@ export function createCourseDrivingReaders(physical: Physical) {
       coordinates,
       height,
       surfaces: Object.freeze({
-        maxSupportedAbsL: Math.max(...mapped.map((m) => m.surface.maxSupportedAbsL + Math.abs(m.sourceLateralOrigin))),
         sample(s: number, l: number) {
           const m = mappingAt(s);
           return m.surface.sampleInChart(m.sourceChainageInFrame(s), l, m.sourceLateralOrigin);

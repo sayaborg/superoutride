@@ -10,8 +10,6 @@ export interface SurfaceSample {
 
 /** Minimal read-only physics contract for SurfaceMap(s,l). */
 export interface SurfaceMapReader {
-  /** Conservative bound in this reader's local lateral frame, including all supported regions. */
-  readonly maxSupportedAbsL: number;
   sample(s: number, l: number): SurfaceSample;
 }
 
