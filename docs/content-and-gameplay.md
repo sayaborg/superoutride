@@ -308,8 +308,10 @@ The optional `selectUnique` preparation extends unique continuations in that pro
 
 A physical seam crossing requests the actor transition. Its contact pose and one-step motion fit
 the motion guard, and destination readers must be available. Commit transforms world position,
-velocity, orientation and camera yaw, and rebases course/recovery observations atomically. Body-local
-state, wheel/control scalars, camera vertical state and earned progress are invariant under the basis change.
+velocity and orientation, and rebases course/recovery observations atomically. The session returns
+the committed direction and destination-from-source transform. Race exposes the player transform
+with the fixed-step recovery result, or from manual resynchronization; it never applies that transform
+to a camera. Body-local state, wheel/control scalars and earned progress are invariant under the basis change.
 Physics owns `reframeVehicle`; [Architecture](architecture.md#course-frames) owns its transform.
 
 An exhausted motion domain or unavailable destination uses legal-route recovery on the retained

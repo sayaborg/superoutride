@@ -8,7 +8,7 @@
 - Build currently generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **5-4f — Race/view boundary**. PR 5-4e is complete.
+Next PR: **5-4f-2 — Physical/rendering source boundary**. PR 5-4f-1 (camera ownership and actor sprites) is complete.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Current contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -30,23 +30,21 @@ Simplify the foundations without changing behavior.
 ### Remaining race/view boundary (5-4f)
 
 The nine-domain order and dependency rules are in [Architecture](architecture.md#layer-boundaries).
-5-4a–e placement is complete. Five exact race-to-view imports remain (paths relative to src):
+5-4a–e placement is complete. 5-4f is split into camera/actor presentation (5-4f-1) and source separation
+(5-4f-2). Two exact race-to-view imports remain (paths relative to src):
 
-| Source                           | Target                           |
-| -------------------------------- | -------------------------------- |
-| `race/course-driving-session.ts` | `view/camera.js`                 |
-| `race/course-race.ts`            | `view/camera.js`                 |
-| `race/course-race.ts`            | `view/dynamic-vehicle-sprite.js` |
-| `race/course-race.ts`            | `view/course-sprite.js`          |
-| `race/course-driving-session.ts` | `view/course-driving-view.js`    |
+| Source                           | Target                        |
+| -------------------------------- | ----------------------------- |
+| `race/course-driving-session.ts` | `view/camera.js`              |
+| `race/course-driving-session.ts` | `view/course-driving-view.js` |
 
-View or whole-scene composition owns cameras, not actor state. The camera owner applies seam
-coordinate changes to its own camera. Race publishes actor observations only (position, attitude,
-vehicle and palette variant); view assembles sprites.
+Camera ownership and actor sprite assembly are separated. Shell owns the observer's camera; race
+returns committed frame transforms and camera-independent actor observations. View assembles sprites.
+The remaining camera import supplies only the query-depth limit; move that admission to composition.
 
 Split createCourseDrivingSource into a physical source in course (VehicleWorld, Region/material
 readings and coordinate readers) and a rendering source in view (Band sampling, presentation and
-VisualProfile). Race sessions depend only on the physical source. Remove all five exact race exceptions,
+VisualProfile). Race sessions depend only on the physical source. Remove both remaining exact race exceptions,
 including camera query-depth coupling and the combined driving-source dependency. This PR includes
 logic changes while preserving behavior. Keep the source split minimal: Stage 6 (6-1, 6-4 and 6-5)
 substantially replaces its geometry, seams and views.

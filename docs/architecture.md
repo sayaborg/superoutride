@@ -120,7 +120,9 @@ The player reference is 2 m wide, 80 source texels and 80 screen pixels:
 FOV changes preserve this metric. Ground and sprites share this depth interval.
 
 Camera chainage is `s_vehicle-D_cam`; its XZ offset uses body yaw by default or movement yaw as the
-alternate. Horizontal centering follows projection. Vertical follow is bounded and smoothed, body
+alternate. The observer's shell owns the camera rig; rivals have no camera. After a committed
+frame change the shell applies the reported yaw rotation to yaw and movementYaw before the next
+camera update. Camera vertical state is unchanged by the frame transform. Horizontal centering follows projection. Vertical follow is bounded and smoothed, body
 pitch offsets downward base pitch, and camera roll is zero. Current presentation values are 12 degrees
 base pitch, player anchor row 190, 0.22 s vertical-follow time constant and 4 m correction bound.
 
@@ -266,8 +268,10 @@ re-exports, inline import types and literal dynamic imports. Source has exactly 
 startup files belong to shell. Known exact source/target exceptions are omitted from the layer-cycle
 graph; every other dependency is checked, and unused exceptions fail the check.
 
-Five exact race-to-view imports remain: actors own camera rigs, race constructs rival sprites,
-and the driving source combines physical and rendering readers. They are the only exceptions;
+Shell owns the observer's camera, and race actors contain no camera state. A committed frame
+transform is observed by the camera owner before its next update. Race publishes camera-independent
+actor observations; view owns rival sprite selection and assembly. Two exact race-to-view imports
+remain for the query-depth limit and combined physical/rendering source. They are the only exceptions;
 [NEXT](NEXT.md) owns their boundary separation. RGBA conversion, sprite images and LOD formats belong
 to image; framebuffer writes and sprite drawing belong to view. Band modes, compiled color fields
 and their still-co-located sampler belong to course; view owns display settings and consumes that sampler.

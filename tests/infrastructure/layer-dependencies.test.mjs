@@ -25,13 +25,9 @@ async function collectFiles(directory, suffixes) {
 const layers = ['core', 'image', 'audio', 'course', 'vehicle', 'input', 'race', 'view', 'shell'];
 const rank = new Map(layers.map((layer, index) => [layer, index]));
 
-// Actors still own cameras and race still constructs sprites; separate these in 5-4f.
-// createCourseDrivingSource also combines physical and rendering sources until 5-4f.
+// The remaining query-depth and combined physical/rendering sources are separated in 5-4f-2.
 const deferredImports = new Set([
   'race/course-driving-session.ts -> view/camera.js',
-  'race/course-race.ts -> view/camera.js',
-  'race/course-race.ts -> view/dynamic-vehicle-sprite.js',
-  'race/course-race.ts -> view/course-sprite.js',
   'race/course-driving-session.ts -> view/course-driving-view.js',
 ]);
 

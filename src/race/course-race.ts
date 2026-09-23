@@ -2,8 +2,7 @@ import type { ResolvedCourseSession } from './course-session.js';
 import { createCheckpointClock } from './checkpoint-clock.js';
 import { createCourseRaceProgress, type CourseRaceEvent, type CourseRaceAdmission } from './course-race-progress.js';
 import { createCourseForkField } from './course-fork-field.js';
-import { createCameraRig, type CameraRig, type CameraState } from '../view/camera.js';
-import { composePlanarTransforms, invertPlanarTransform } from '../core/planar-transform.js';
+import { composePlanarTransforms, invertPlanarTransform, type PlanarTransform } from '../core/planar-transform.js';
 import { wrapAngle } from '../core/math.js';
 import { advanceRaceSession, createRaceSessionState, rankRaceProgress, formatRaceTime } from './race-session.js';
 import {
@@ -21,10 +20,7 @@ import {
 } from './envelope-driver.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import { createArcadeVehicle, type ArcadeVehicleState } from '../vehicle/physics/arcade-vehicle-physics.js';
-import { createDynamicVehicleCourseSprite } from '../view/dynamic-vehicle-sprite.js';
-import { createVehiclePaletteVariant, type SpriteAssets } from '../image/sprite-assets.js';
 import type { SessionVehicle } from './session-configuration.js';
-import type { CourseSprite } from '../view/course-sprite.js';
 import { createRivalRoster } from './rival-roster.js';
 import type { createCourseDrivingGraph } from './course-driving-session.js';
 
@@ -32,7 +28,14 @@ type Session = ReturnType<ReturnType<typeof createCourseDrivingGraph>['createSes
 interface Actor {
   readonly vehicle: ArcadeVehicleState;
   readonly recovery: RecoveryState;
-  readonly cameraRig: CameraRig;
+}
+
+/** Borrowed actor state in the observer's active frame, valid until the next observe(). */
+export interface RaceActorObservation {
+  readonly id: string;
+  readonly vehicle: ArcadeVehicleState;
+  readonly kind: SessionVehicle['kind'];
+  readonly paletteVariant: 'base' | 'braking';
 }
 
 /** Field composition over shared course readers, ordinary mechanics and ordered physical gates. */
@@ -43,7 +46,6 @@ export function createCourseRace(options: {
   readonly createSession: () => Session;
   readonly rival: SessionVehicle;
   readonly rivalEnvelope?: VehicleEnvelope;
-  readonly sprites: SpriteAssets;
 }) {
   const { course, configuration, grid, initialSpeed, budgets } = options.session;
   if (configuration.rivalCount && !options.rivalEnvelope)
@@ -53,7 +55,6 @@ export function createCourseRace(options: {
     : null;
   const clock = createCheckpointClock(budgets?.initialMs ?? null);
   const entryS = course.entry.ports.find((p) => p.kind === 'entry')!.anchor.s;
-  const rivalKind = options.rival.kind;
   const progress = createCourseRaceProgress(course, configuration.lapCount);
   const forks = createCourseForkField(course.sections);
   const competitor = (id: string, actor: Actor, session: Session, targetL: number) => ({
@@ -83,18 +84,8 @@ export function createCourseRace(options: {
       steeringCalibration: profile.steeringCalibration,
       tireFrictionCalibration: profile.tireFrictionCalibration,
     });
-    return competitor(
-      actorId,
-      { vehicle, recovery: createRecoveryState(vehicle), cameraRig: createCameraRig() },
-      session,
-      targetL,
-    );
+    return competitor(actorId, { vehicle, recovery: createRecoveryState(vehicle) }, session, targetL);
   });
-  const assets = options.sprites;
-  const brakingAssets =
-    options.rival.profile.id === 'TESTAROSSA'
-      ? createVehiclePaletteVariant(assets.car, assets.car.assets[0]![0]!.paletteChoices[1]!)
-      : assets[rivalKind];
   const resync = (c: typeof player) => c.observer.resync();
   const lane = (c: typeof player, s: number) => forks.targetL(c.session.history.active.section, s, c.targetL);
   const competitors = [player, ...rivals];
@@ -146,10 +137,11 @@ export function createCourseRace(options: {
     });
     return true;
   };
-  const visible: { id: string; vehicle: ArcadeVehicleState }[] = [];
-  const sprites: CourseSprite[] = [];
+  const visible: RaceActorObservation[] = [];
   const pool = rivals.map((c) => ({
     id: c.id,
+    kind: options.rival.kind,
+    paletteVariant: 'base' as 'base' | 'braking',
     vehicle: { ...c.actor.vehicle, course: { ...c.actor.vehicle.course } },
     playerFrame: player.session.referenceFromFrame,
     rivalFrame: c.session.referenceFromFrame,
@@ -190,11 +182,14 @@ export function createCourseRace(options: {
       observation.vehicle.velocityX = transform.cosine * vehicle.velocityX + transform.sine * vehicle.velocityZ;
       observation.vehicle.velocityZ = -transform.sine * vehicle.velocityX + transform.cosine * vehicle.velocityZ;
       observation.vehicle.yaw = wrapAngle(vehicle.yaw + Math.atan2(transform.sine, transform.cosine));
+      observation.paletteVariant = actorInputs.get(c.id)?.input.brake ? 'braking' : 'base';
       visible.push(observation);
     }
   };
   const current = { x: 0, z: 0, s: 0 };
-  const observed = { rivals: visible, sprites };
+  const observed = { rivals: visible };
+  // Borrowed fixed-step observation; the camera owner consumes it before the next advance.
+  const stepObservation = { recovered: false, frameChange: null as PlanarTransform | null };
   const noEvents: readonly CourseRaceEvent[] = Object.freeze([]);
   let events = noEvents;
   const clockEvents: { gate: CourseRaceEvent['landmark']; lap: number; u: number; finish: boolean; awardMs: number }[] =
@@ -221,7 +216,9 @@ export function createCourseRace(options: {
       return lane(player, player.actor.vehicle.course.s);
     },
     advance(input: DrivingInput, dt: number) {
-      if (clock.status !== 'RUNNING') return false;
+      stepObservation.recovered = false;
+      stepObservation.frameChange = null;
+      if (clock.status !== 'RUNNING') return stepObservation;
       stepStart = clock.elapsedSeconds;
       stepDuration = dt;
       pendingExpiry = clock.expirySeconds ?? Infinity;
@@ -258,6 +255,8 @@ export function createCourseRace(options: {
           if (update?.justFinished) c.finishElapsedSeconds = c.timing.elapsedSeconds;
         }
         if (c === player) {
+          stepObservation.frameChange =
+            transition && transition !== 'recovered' ? transition.destinationFromSource : null;
           events = update?.events ?? noEvents;
           clockEvents.length = 0;
           for (const event of events)
@@ -272,26 +271,17 @@ export function createCourseRace(options: {
         }
         if (transition) resync(c);
       }
-      return motions[0]!.recovered;
+      stepObservation.recovered = motions[0]!.recovered;
+      return stepObservation;
     },
     resyncPlayer() {
       legalRecovery(player);
-      player.session.observeStep(player.actor, player.actor.vehicle, true);
+      const transition = player.session.observeStep(player.actor, player.actor.vehicle, true);
       resync(player);
+      return transition && transition !== 'recovered' ? transition.destinationFromSource : null;
     },
-    observe(camera: CameraState) {
+    observe() {
       observations();
-      sprites.length = 0;
-      for (const c of visible)
-        sprites.push(
-          createDynamicVehicleCourseSprite(
-            c.id,
-            c.vehicle,
-            camera.yaw,
-            actorInputs.get(c.id)?.input.brake ? brakingAssets : assets[rivalKind],
-            player.session.view.world.height,
-          ),
-        );
       return observed;
     },
     label() {

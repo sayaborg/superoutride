@@ -1,12 +1,11 @@
 import type { CourseGround } from '../course/compiler/course-ground.js';
-import type { CameraRig } from '../view/camera.js';
 import type { CompiledLink, CompiledSection } from '../course/compiler/course-graph.js';
 import type { CompiledCarriageway } from '../course/course-regions.js';
 import { coursePortLateral } from '../course/compiler/course-links.js';
 import { compileCoursePhysicalDomains } from '../course/compiler/course-physical-overlap.js';
 import { compileCoursePresentationDomains } from '../course/compiler/course-presentation-overlap.js';
 import { compilePlanarTransform, composePlanarTransforms, invertPlanarTransform } from '../core/planar-transform.js';
-import { clamp, wrapAngle, type Vec2 } from '../core/math.js';
+import { clamp, type Vec2 } from '../core/math.js';
 import { CURRENT_RENDER_FAR_DEPTH_METERS } from '../view/camera.js';
 import { ENVELOPE_DRIVER } from './envelope-driver.js';
 import { compileWorldCrossingGate, observeWorldCrossingPlane } from './world-crossing-gate.js';
@@ -21,7 +20,6 @@ import { createCourseGeometryTraversal, type CourseOccurrenceHistory } from '../
 interface DrivingActor {
   readonly vehicle: ArcadeVehicleState;
   readonly recovery: RecoveryState;
-  readonly cameraRig: CameraRig;
 }
 function required<T>(result: { readonly ok: true; readonly value: T } | { readonly ok: false }): T {
   if (!result.ok) throw new RangeError(`Course driving admission failed: ${JSON.stringify(result)}`);
@@ -175,9 +173,8 @@ function createSession(
     const from = direction === 'forward' ? link.source : link.destination;
     const to = direction === 'forward' ? link.destination : link.source;
     const transform = movement.destinationFromSource;
-    const yaw = Math.atan2(transform.sine, transform.cosine);
     const rebase = (s: number) => to.anchor.s + (s - from.anchor.s);
-    const { vehicle, recovery, cameraRig } = actor;
+    const { vehicle, recovery } = actor;
     const nextS = rebase(vehicle.course.s);
     if (nextS < next.range.start || nextS > next.range.end) return recover(actor, candidate);
     if (!movement.commit().ok) return recover(actor, candidate);
@@ -189,15 +186,13 @@ function createSession(
       vehicle.course.l + coursePortLateral(to) - coursePortLateral(from),
     );
     recovery.lastSafeS = rebase(recovery.lastSafeS);
-    cameraRig.yaw = wrapAngle(cameraRig.yaw + yaw);
-    cameraRig.movementYaw = wrapAngle(cameraRig.movementYaw + yaw);
     referenceSOffset += from.anchor.s - to.anchor.s;
     referenceFromFrame = composePlanarTransforms(referenceFromFrame, invertPlanarTransform(transform));
     view = next;
     gates = prepareGates();
     metrics.seamCommits += 1;
     metrics.seamCommitMaxMilliseconds = Math.max(metrics.seamCommitMaxMilliseconds, performance.now() - started);
-    return direction;
+    return Object.freeze({ direction, destinationFromSource: transform });
   };
   return Object.freeze({
     prepareChoice(link: CompiledLink) {

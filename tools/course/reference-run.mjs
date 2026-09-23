@@ -12,7 +12,6 @@ import {
   envelopeAt,
   compileEnvelopeDriver,
 } from '../../dist/race/envelope-driver.js';
-import { createCameraRig } from '../../dist/view/camera.js';
 import { SIM_DT } from '../../dist/shell/frame-loop.js';
 import { courseBoundaryAt } from '../../dist/course/course-regions.js';
 const spriteAssets = await readVehicleSprites();
@@ -48,9 +47,8 @@ export function runCourseReference(course, ground, entry, envelope, route, lapCo
     l: slot.l,
     initialSpeed: 0,
   });
-  const actor = { vehicle, recovery: createRecoveryState(vehicle), cameraRig: createCameraRig() };
+  const actor = { vehicle, recovery: createRecoveryState(vehicle) };
   const race = createCourseRace({
-    sprites: spriteAssets,
     session,
     player: actor,
     playerSession: scene.session,

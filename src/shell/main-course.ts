@@ -1,3 +1,5 @@
+import { reframeCamera } from '../view/camera.js';
+import { createRaceSprites } from '../view/race-sprites.js';
 import { createDisplaySettings } from '../view/display-settings.js';
 import { mountBandControls } from './band-controls.js';
 import { readSpriteAssets, createVehiclePaletteVariant } from '../image/sprite-assets.js';
@@ -98,13 +100,18 @@ try {
   });
   const race = createCourseRace({
     session,
-    player: shell,
+    player: {
+      get vehicle() {
+        return shell.vehicle;
+      },
+      recovery: shell.recovery,
+    },
     playerSession: scene.session,
     createSession: scene.createActorSession,
     rival: vehicle,
     rivalEnvelope,
-    sprites,
   });
+  const raceSprites = createRaceSprites(sprites, vehicle);
   const raceStatus = document.createElement('output');
   raceStatus.setAttribute('role', 'status');
   raceStatus.setAttribute('aria-label', 'Session status');
@@ -119,7 +126,7 @@ try {
     recoveryL: () => race.recoveryL,
     resync: () => {
       scene.recoverAtEntry(shell.vehicle, shell.recovery);
-      race.resyncPlayer();
+      reframeCamera(shell.cameraRig, race.resyncPlayer());
     },
   });
   const performanceHud = createCoursePerformanceHud(canvas, scene.metrics, scene.groundMetrics);
@@ -128,18 +135,20 @@ try {
   const tick = (dt: number) => {
     const started = performance.now();
     input = shell.inputManager.sample();
-    lifecycle.update(dt, race.advance(input, dt));
+    const step = race.advance(input, dt);
+    reframeCamera(shell.cameraRig, step.frameChange);
+    lifecycle.update(dt, step.recovered);
     performanceHud.step(performance.now() - started);
   };
   const render = () => {
     const started = performance.now(),
-      observations = race.observe(lifecycle.camera);
+      observations = race.observe();
     const result = scene.render(
       shell.framebuffer,
       shell.vehicle,
       lifecycle.camera,
       deriveVehicleSpriteFamily(shell.presentation),
-      observations.sprites,
+      raceSprites(observations.rivals, lifecycle.camera, scene.world.height),
       input.brake ? braking : sprites,
     );
     shell.present(mode, input, lifecycle.camera, result.playerScreenY, observations.rivals);
