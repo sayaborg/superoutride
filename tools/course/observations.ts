@@ -1,8 +1,40 @@
-import { finite, requireInput } from './authoring-io.mjs';
+export interface CourseObservations {
+  format: 'superoutride.course-observations';
+  version: 1;
+  id: string;
+  source: { kind: 'video' | 'analyzed-data'; location: string; edition: string };
+  calibration: Record<string, unknown>;
+  samples: {
+    s: number;
+    timeSeconds: number | null;
+    curvaturePerMeter: number;
+    grade: number;
+    roadWidthMeters: number;
+    heightMeters: number | null;
+  }[];
+  sceneryRows: {
+    startS: number;
+    endS: number;
+    spacingMeters: number;
+    offsetMeters: number;
+    groundOffsetMeters: number;
+    side: 'left' | 'right';
+    kind: string;
+  }[];
+  environments: { s: number; label: string }[];
+  checkpoints: { s: number; name: string }[];
+  remasterDeviations: string[];
+  measurements: unknown[];
+}
+
+import { finite, requireInput } from './authoring-io.js';
 
 /** Source-neutral offline observations; compiler/runtime never estimate these values. */
-export function readObservations(input) {
-  const check = (condition, path, message) => requireInput(condition, path, message, 'observation');
+export function readObservations(value: unknown): CourseObservations {
+  // Existing field and range checks admit the untrusted saved observation without changing its representation.
+  const input = value as CourseObservations;
+  const check = (condition: unknown, path: string, message: string) =>
+    requireInput(condition, path, message, 'observation');
   check(
     input?.format === 'superoutride.course-observations' && input.version === 1,
     '/format',
@@ -10,7 +42,7 @@ export function readObservations(input) {
   );
   check(typeof input.id === 'string' && input.id.trim(), '/id', 'Observation ID is required');
   check(['video', 'analyzed-data'].includes(input.source?.kind), '/source/kind', 'Source is video or analyzed-data');
-  for (const key of ['location', 'edition'])
+  for (const key of ['location', 'edition'] as const)
     check(
       typeof input.source[key] === 'string' && input.source[key].trim(),
       `/source/${key}`,
@@ -32,7 +64,7 @@ export function readObservations(input) {
     finite(s.s, `/samples/${i}/s`, 0, 100000);
     check(s.s >= previous, `/samples/${i}/s`, 'Station samples must be ordered');
     previous = s.s;
-    for (const k of ['curvaturePerMeter', 'grade']) finite(s[k], `/samples/${i}/${k}`);
+    for (const k of ['curvaturePerMeter', 'grade'] as const) finite(s[k], `/samples/${i}/${k}`);
     finite(s.roadWidthMeters, `/samples/${i}/roadWidthMeters`, 0.1, 2000);
     if (s.heightMeters !== null) finite(s.heightMeters, `/samples/${i}/heightMeters`, -10000, 10000);
     if (s.timeSeconds !== null) {
@@ -42,12 +74,12 @@ export function readObservations(input) {
     }
   }
   check(
-    input.samples[0].s === 0 && previous > 0,
+    input.samples[0]!.s === 0 && previous > 0,
     '/samples',
     'Observations span a positive distance from station zero',
   );
-  const station = (s, p) => finite(s, p, 0, previous);
-  for (const key of ['sceneryRows', 'environments', 'checkpoints', 'remasterDeviations', 'measurements'])
+  const station = (s: unknown, p: string) => finite(s, p, 0, previous);
+  for (const key of ['sceneryRows', 'environments', 'checkpoints', 'remasterDeviations', 'measurements'] as const)
     check(Array.isArray(input[key]), `/${key}`, 'Expected an explicit array');
   for (const [i, row] of input.sceneryRows.entries()) {
     const p = `/sceneryRows/${i}`;
@@ -63,9 +95,9 @@ export function readObservations(input) {
       'Row needs a kind and side',
     );
   }
-  for (const key of ['environments', 'checkpoints']) {
+  for (const key of ['environments', 'checkpoints'] as const) {
     let at = -1;
-    for (const [i, item] of input[key].entries()) {
+    for (const [i, item] of (input[key] as readonly { s: number; label?: string; name?: string }[]).entries()) {
       station(item.s, `/${key}/${i}/s`);
       check(item.s > at, `/${key}/${i}/s`, 'Landmarks must strictly increase');
       at = item.s;

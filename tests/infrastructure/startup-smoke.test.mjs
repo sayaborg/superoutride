@@ -1,17 +1,17 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { loadCourse, loadCourseGround } from '../../tools/course/authoring-io.mjs';
-import { readVehicleSprites } from '../../tools/course/read-vehicle-sprites.mjs';
-import { createCourseScene } from '../../dist/shell/course-scene.js';
-import { createArcadeVehicle, updateArcadeVehicle } from '../../dist/vehicle/physics/arcade-vehicle-physics.js';
-import { VEHICLE_CATALOG } from '../../dist/vehicle/vehicle-catalog.js';
-import { createCameraRig, updateCamera } from '../../dist/view/camera.js';
-import { CURRENT_CAMERA_PROFILE } from '../../dist/view/current-camera-profile.js';
-import { deriveVehicleSpriteFamily } from '../../dist/view/vehicle-presentation.js';
-import { BAND_RENDER_MODES } from '../../dist/course/band-ground.js';
-import { createDisplaySettings } from '../../dist/view/display-settings.js';
-import { SoftwareSurface } from '../../dist/view/software-surface.js';
+import { loadCourse, loadCourseGround } from '../../tools/course/authoring-io.ts';
+import { readVehicleSprites } from '../../tools/course/read-vehicle-sprites.ts';
+import { createCourseScene } from '../../src/shell/course-scene.js';
+import { createArcadeVehicle, updateArcadeVehicle } from '../../src/vehicle/physics/arcade-vehicle-physics.js';
+import { VEHICLE_CATALOG } from '../../src/vehicle/vehicle-catalog.js';
+import { createCameraRig, updateCamera } from '../../src/view/camera.js';
+import { CURRENT_CAMERA_PROFILE } from '../../src/view/current-camera-profile.js';
+import { deriveVehicleSpriteFamily } from '../../src/view/vehicle-presentation.js';
+import { BAND_RENDER_MODES } from '../../src/course/band-ground.js';
+import { createDisplaySettings } from '../../src/view/display-settings.js';
+import { SoftwareSurface } from '../../src/view/software-surface.js';
 
 for (const stem of ['ribbon-coast', 'ribbon-fork', 'ribbon-ring'])
   test(`${stem} compiles and starts through the shared driving scene`, async () => {

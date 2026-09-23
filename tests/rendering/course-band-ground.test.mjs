@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { loadCourse } from '../../tools/course/authoring-io.mjs';
-import { compileCourseImages } from '../../tools/course/compile-course-images.mjs';
-import { compileCourseDocument } from '../../dist/course/compiler/compiled-course.js';
-import { readCourseDocument } from '../../dist/course/course-document.js';
-import { createRegionSurfaceReader } from '../../dist/course/region-surface-reader.js';
-import { createBandGroundSampler, createBandRenderMetrics } from '../../dist/course/band-ground.js';
+import { loadCourse } from '../../tools/course/authoring-io.ts';
+import { compileCourseImages } from '../../tools/course/compile-course-images.ts';
+import { compileCourseDocument } from '../../src/course/compiler/compiled-course.js';
+import { readCourseDocument } from '../../src/course/course-document.js';
+import { createRegionSurfaceReader } from '../../src/course/region-surface-reader.js';
+import { createBandGroundSampler, createBandRenderMetrics } from '../../src/course/band-ground.js';
 
 test('visual Bands can erase all ground without changing structural Regions, support or material readings', async () => {
   const file = fileURLToPath(new URL('../../content/courses/ribbon-coast.course.json', import.meta.url));

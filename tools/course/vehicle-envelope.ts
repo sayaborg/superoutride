@@ -1,21 +1,23 @@
-import { createBodyKinematicsWorkspace } from '../../dist/vehicle/physics/arcade-vehicle-physics.js';
-import { compileGuidePath } from '../../dist/course/geometry/guide-curve.js';
-import { compileRasterPath } from '../../dist/course/geometry/raster-path.js';
-import { HeightProfile } from '../../dist/course/geometry/height-profile.js';
-import { SurfaceMap } from '../../dist/vehicle/physics/surface-map.js';
-import { createArcadeVehicle } from '../../dist/vehicle/physics/arcade-vehicle-physics.js';
-import { DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION } from '../../dist/shell/tire-friction-selection.js';
+import type { VehicleCatalogEntry } from '../../src/vehicle/vehicle-catalog.js';
+import type { DrivingInput } from '../../src/vehicle/driving-input.js';
+import { createBodyKinematicsWorkspace } from '../../src/vehicle/physics/arcade-vehicle-physics.js';
+import { compileGuidePath } from '../../src/course/geometry/guide-curve.js';
+import { compileRasterPath } from '../../src/course/geometry/raster-path.js';
+import { HeightProfile } from '../../src/course/geometry/height-profile.js';
+import { SurfaceMap } from '../../src/vehicle/physics/surface-map.js';
+import { createArcadeVehicle } from '../../src/vehicle/physics/arcade-vehicle-physics.js';
+import { DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION } from '../../src/shell/tire-friction-selection.js';
 import {
   DEFAULT_BROWSER_MAX_ROAD_WHEEL_STEER,
   DEFAULT_BROWSER_STEERING_OFFSET,
   DEFAULT_BROWSER_STEERING_RESPONSE_RATE,
-} from '../../dist/shell/steering-calibration-selection.js';
-import { updateArcadeVehicle, arcadeBodyKinematics } from '../../dist/vehicle/physics/arcade-vehicle-physics.js';
-import { SIM_DT } from '../../dist/shell/frame-loop.js';
-import { wrapAngle } from '../../dist/core/math.js';
+} from '../../src/shell/steering-calibration-selection.js';
+import { updateArcadeVehicle, arcadeBodyKinematics } from '../../src/vehicle/physics/arcade-vehicle-physics.js';
+import { SIM_DT } from '../../src/shell/frame-loop.js';
+import { wrapAngle } from '../../src/core/math.js';
 
 /** The finite flat world used only to generate game driving envelopes. */
-function createEnvelopeRun(entry, initialSpeed) {
+function createEnvelopeRun(entry: Readonly<VehicleCatalogEntry>, initialSpeed: number) {
   const guide = compileGuidePath(
     compileRasterPath([
       { x: 0, z: -10000 },
@@ -48,9 +50,10 @@ function createEnvelopeRun(entry, initialSpeed) {
 }
 
 /** Flat asphalt, production control/protection, ordinary inputs; no imposed velocity or force during measurement. */
-export function measureVehicleEnvelope(entry) {
-  const make = (initialSpeed) => createEnvelopeRun(entry, initialSpeed);
-  const step = (p, input) => updateArcadeVehicle(p.world, p.vehicle, input, SIM_DT);
+export function measureVehicleEnvelope(entry: Readonly<VehicleCatalogEntry>) {
+  const make = (initialSpeed: number) => createEnvelopeRun(entry, initialSpeed);
+  const step = (p: ReturnType<typeof createEnvelopeRun>, input: DrivingInput) =>
+    updateArcadeVehicle(p.world, p.vehicle, input, SIM_DT);
   const run = make(0),
     acceleration = [],
     braking = [];
@@ -116,14 +119,14 @@ export function measureVehicleEnvelope(entry) {
     );
     if (!admissible.length) throw new RangeError(`${entry.profile.id}: no stable lateral measurement at ${speed} m/s`);
     const lateral = Math.max(...admissible.map((t) => t.lateral));
-    const nearest = (rows) =>
+    const nearest = (rows: readonly { speed: number; value: number }[]) =>
       rows.reduce((best, r) => (Math.abs(r.speed - speed) < Math.abs(best.speed - speed) ? r : best)).value;
     samples.push({
       speed,
       acceleration: Math.max(0, nearest(acceleration)),
       braking: nearest(braking),
       lateral,
-      steeringGain: trials[0].lateral / trials[0].steering,
+      steeringGain: trials[0]!.lateral / trials[0]!.steering,
     });
   }
   return {

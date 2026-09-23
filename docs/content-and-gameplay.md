@@ -274,7 +274,8 @@ schema reports a deterministic first error; independent semantic failures follow
 Expected failures include shape, version, reference, resource, geometry, coverage, material, topology
 and presentation errors. Failed compilation publishes no partial product.
 
-`createCourseProject` owns live source/publication state. `editDocument` installs a schema-valid
+`tools/course/course-project.ts` owns live source/publication state through `createCourseProject`,
+and text parsing/saving through the shared product document reader. `editDocument` installs a schema-valid
 immutable draft; a changed normalized value makes the prior product stale, while an equal value
 keeps it current. `save` accepts semantic drafts. `importDocument` installs parsed source and compiled
 product together on success. Failed imports/builds preserve source and prior successful output.
@@ -378,6 +379,8 @@ Recovery consumes simulation time and grants no crossing credit. Results are ses
 
 ### Reference times and clock
 
+`tools/course` owns reference generation, its policy and report-to-budget admission. The product
+reads completed envelopes and time budgets and owns live Session driving policy.
 Build-generated continuous reference runs use product physics, the configured start and finite routes/laps,
 with the reference driver alone. Each successful run supplies ordered crossing times, including within-step
 fractions. Recovery, wrong-route choice, timeout or incomplete FINISH invalidates a timing product.

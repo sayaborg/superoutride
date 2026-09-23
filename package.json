@@ -9,14 +9,14 @@
   "scripts": {
     "build": "node --import tsx tools/build/clean-dist.ts && tsc -p tsconfig.json && node --import tsx tools/build/build-sprite-preview.ts && node --import tsx tools/build/build-course-content.ts",
     "check": "npm run lint && npm run format:check && tsc -p tsconfig.json --noEmit && tsc -p tsconfig.tools.json && npm run check:dependencies",
-    "test": "npm run check && npm run build && node --test 'tests/**/*.test.mjs'",
+    "test": "npm run check && npm run build && node --import tsx --test 'tests/**/*.test.mjs'",
     "lint": "eslint src tests tools",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "compile:course": "node tools/course/compile-course.mjs",
+    "compile:course": "node --import tsx tools/course/compile-course.ts",
     "build:sprite-lod": "node --import tsx tools/build/build-sprite-lod.ts",
     "build:sprite-source": "node --import tsx tools/build/build-sprite-source.ts",
-    "course": "node tools/course/course.mjs",
+    "course": "node --import tsx tools/course/course.ts",
     "check:dependencies": "node --test tests/infrastructure/layer-dependencies.test.mjs"
   },
   "devDependencies": {

@@ -1,26 +1,32 @@
-import { readVehicleSprites } from './read-vehicle-sprites.mjs';
-import { REFERENCE_DRIVER } from '../../dist/race/reference-driving-policy.js';
-import { createCourseScene } from '../../dist/shell/course-scene.js';
-import { createCourseRace } from '../../dist/race/course-race.js';
-import { resolveCourseSession } from '../../dist/race/course-session.js';
-import { browserSessionVehicle } from '../../dist/shell/session-vehicle.js';
-import { createArcadeVehicle } from '../../dist/vehicle/physics/arcade-vehicle-physics.js';
-import { createRecoveryState } from '../../dist/race/recovery.js';
+type CompiledSection = CompiledCourse['sections'][number];
+type CompiledLink = CompiledCourse['links'][number];
+import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
+import type { CourseGround } from '../../src/course/compiler/course-ground.js';
+import type { VehicleCatalogEntry } from '../../src/vehicle/vehicle-catalog.js';
+import type { VehicleEnvelope } from '../../src/race/envelope-driver.js';
+import { readVehicleSprites } from './read-vehicle-sprites.js';
+import { REFERENCE_DRIVER } from './reference-driving-policy.js';
+import { createCourseScene } from '../../src/shell/course-scene.js';
+import { createCourseRace } from '../../src/race/course-race.js';
+import { resolveCourseSession } from '../../src/race/course-session.js';
+import { browserSessionVehicle } from '../../src/shell/session-vehicle.js';
+import { createArcadeVehicle } from '../../src/vehicle/physics/arcade-vehicle-physics.js';
+import { createRecoveryState } from '../../src/race/recovery.js';
 import {
   createEnvelopeDriverWorkspace,
   sampleEnvelopeDrivingInput,
   envelopeAt,
   compileEnvelopeDriver,
-} from '../../dist/race/envelope-driver.js';
-import { SIM_DT } from '../../dist/shell/frame-loop.js';
-import { courseBoundaryAt } from '../../dist/course/course-regions.js';
+} from '../../src/race/envelope-driver.js';
+import { SIM_DT } from '../../src/shell/frame-loop.js';
+import { courseBoundaryAt } from '../../src/course/course-regions.js';
 const spriteAssets = await readVehicleSprites();
 
 /** Enumerate canonical finite alternatives; one continuous run per history, no stitched sectors. */
-export function courseReferenceRoutes(course) {
+export function courseReferenceRoutes(course: CompiledCourse) {
   if (course.type === 'CIRCUIT') return [[]];
-  const routes = [];
-  const visit = (section, links) => {
+  const routes: CompiledLink[][] = [];
+  const visit = (section: CompiledSection, links: CompiledLink[]) => {
     if (routes.length >= 256) throw new RangeError('Reference work is limited to 256 finite routes');
     if (!section.outgoing.length) {
       routes.push(links);
@@ -32,7 +38,15 @@ export function courseReferenceRoutes(course) {
   return routes;
 }
 
-export function runCourseReference(course, ground, entry, envelope, route, lapCount, capture = false) {
+export function runCourseReference(
+  course: CompiledCourse,
+  ground: CourseGround,
+  entry: Readonly<VehicleCatalogEntry>,
+  envelope: VehicleEnvelope,
+  route: readonly CompiledLink[],
+  lapCount: number,
+  capture = false,
+) {
   const scene = createCourseScene(course.entry, ground, spriteAssets),
     vehicleConfiguration = browserSessionVehicle(entry);
   const session = resolveCourseSession(
@@ -40,7 +54,7 @@ export function runCourseReference(course, ground, entry, envelope, route, lapCo
     { mode: 'CUSTOM', rivalCount: 0, lapCount, countdown: false },
     vehicleConfiguration,
   );
-  const slot = session.grid[0];
+  const slot = session.grid[0]!;
   const vehicle = createArcadeVehicle(entry.profile, scene.world, {
     ...vehicleConfiguration,
     s: slot.anchor.s,
@@ -62,7 +76,7 @@ export function runCourseReference(course, ground, entry, envelope, route, lapCo
     maximumSpeed = 0,
     maximumLateralUtilization = 0;
   const planned = new Map(route.map((link) => [link.source.section, link]));
-  const lane = (s) => {
+  const lane = (s: number) => {
     const section = scene.history.active.section,
       link = planned.get(section);
     const fallback =
@@ -118,7 +132,7 @@ export function runCourseReference(course, ground, entry, envelope, route, lapCo
   const finalSection = scene.history.active.section;
   const lateralBounds = finalSection.regionPartition.regions
     .filter((b) => b.role === 'pavement' && b.start.s <= vehicle.course.s && b.end.s >= vehicle.course.s)
-    .map((b) => [courseBoundaryAt(b.left, vehicle.course.s), courseBoundaryAt(b.right, vehicle.course.s)]);
+    .map((b) => [courseBoundaryAt(b.left, vehicle.course.s), courseBoundaryAt(b.right, vehicle.course.s)] as const);
   if (!lateralBounds.some(([left, right]) => vehicle.course.l >= left && vehicle.course.l < right))
     throw new RangeError('Reference FINISH lies outside pavement');
   return {

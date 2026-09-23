@@ -1,7 +1,12 @@
-import { courseSuccess, type CourseResult } from './course-diagnostics.js';
-import { parseCourseDocument, readCourseDocument, saveCourseDocument, type CourseDocument } from './course-document.js';
-import { compileCourseDocument, type CompiledCourse } from './compiler/compiled-course.js';
-import type { CourseAssetBytes } from './compiler/course-image-source.js';
+import {
+  CourseInputError,
+  courseFailure,
+  courseSuccess,
+  type CourseResult,
+} from '../../src/course/course-diagnostics.js';
+import { COURSE_DOCUMENT_LIMITS, readCourseDocument, type CourseDocument } from '../../src/course/course-document.js';
+import { compileCourseDocument, type CompiledCourse } from '../../src/course/compiler/compiled-course.js';
+import type { CourseAssetBytes } from '../../src/course/compiler/course-image-source.js';
 
 interface CourseProjectState {
   readonly source: CourseDocument | null;
@@ -58,4 +63,27 @@ export function createCourseProject() {
       return state.compiled ? courseSuccess(state.compiled) : stale();
     },
   });
+}
+
+export function parseCourseDocument(text: string): CourseResult<CourseDocument> {
+  if (typeof text !== 'string') throw new TypeError('CourseDocument JSON must be a string');
+  if (
+    text.length > COURSE_DOCUMENT_LIMITS.jsonBytes ||
+    new TextEncoder().encode(text).byteLength > COURSE_DOCUMENT_LIMITS.jsonBytes
+  ) {
+    return courseFailure(new CourseInputError('resource_limit', '', 'Document exceeds 4 MiB UTF-8'));
+  }
+  let input: unknown;
+  try {
+    input = JSON.parse(text);
+  } catch (error) {
+    if (error instanceof SyntaxError) return courseFailure(new CourseInputError('parse_failure', '', error.message));
+    throw error;
+  }
+  return readCourseDocument(input);
+}
+
+function saveCourseDocument(input: unknown): CourseResult<string> {
+  const result = readCourseDocument(input);
+  return result.ok ? courseSuccess(JSON.stringify(result.value)) : result;
 }

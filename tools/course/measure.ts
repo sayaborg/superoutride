@@ -1,20 +1,58 @@
+import type { CourseObservations } from './observations.js';
+
+type Rgb = readonly [number, number, number];
+interface PaletteModel {
+  palette: readonly Rgb[];
+  tolerance: number;
+}
+interface MeasurementCalibration {
+  camera: { focalLengthPixels: number; heightMeters: number; centerXPixels: number; horizonReferencePixels: number };
+  horizon: PaletteModel & { top: number; bottom: number; columns: readonly number[] };
+  road: PaletteModel & {
+    left: number;
+    right: number;
+    maxGapPixels: number;
+    minWidthPixels: number;
+    rows: readonly number[];
+  };
+  hud: PaletteModel & {
+    digitWidth: number;
+    digitHeight: number;
+    spacing: number;
+    count: number;
+    x: number;
+    y: number;
+    maxMismatchFraction: number;
+    templates: Record<string, readonly string[]>;
+  };
+}
+interface MeasurementRequest {
+  format: 'superoutride.frame-measurement';
+  version: 1;
+  id: string;
+  source: CourseObservations['source'];
+  calibration: MeasurementCalibration;
+  frames: { path: string; timeSeconds: number }[];
+  environmentLabel: string;
+}
+
 import path from 'node:path';
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { PNG } from 'pngjs';
-import { options, jsonFile, requireInput, finite, atomicWrite, reportError } from './authoring-io.mjs';
-import { readObservations } from './observations.mjs';
+import { options, jsonFile, requireInput, finite, atomicWrite, reportError } from './authoring-io.js';
+import { readObservations } from './observations.js';
 
-const integer = (n, p, min, max) => {
+const integer = (n: unknown, p: string, min: number, max: number) => {
   finite(n, p, min, max);
   requireInput(Number.isInteger(n), p, 'Expected an integer');
-  return n;
+  return n as number;
 };
-const median = (values) => {
+const median = (values: readonly number[]) => {
   const v = [...values].sort((a, b) => a - b);
-  return (v[Math.floor((v.length - 1) / 2)] + v[Math.ceil((v.length - 1) / 2)]) / 2;
+  return (v[Math.floor((v.length - 1) / 2)]! + v[Math.ceil((v.length - 1) / 2)]!) / 2;
 };
-function palette(value, p) {
+function palette(value: unknown, p: string): asserts value is readonly Rgb[] {
   requireInput(
     Array.isArray(value) && value.length > 0 && value.length <= 256,
     p,
@@ -25,7 +63,7 @@ function palette(value, p) {
     color.forEach((n) => integer(n, p, 0, 255));
   }
 }
-function quadratic(points) {
+function quadratic(points: readonly { x: number; z: number }[]): [number, number, number] {
   // Solve x = a + b*z + c*z*z with deterministic partial pivoting.
   const rows = Array.from({ length: 3 }, (_, i) => [
     ...Array.from({ length: 3 }, (_, j) => points.reduce((v, p) => v + p.z ** (i + j), 0)),
@@ -33,20 +71,20 @@ function quadratic(points) {
   ]);
   for (let i = 0; i < 3; i++) {
     let pivot = i;
-    for (let j = i + 1; j < 3; j++) if (Math.abs(rows[j][i]) > Math.abs(rows[pivot][i])) pivot = j;
-    [rows[i], rows[pivot]] = [rows[pivot], rows[i]];
-    requireInput(Math.abs(rows[i][i]) > 1e-10, '/road/rows', 'Degenerate road projection');
-    const d = rows[i][i];
-    for (let k = i; k < 4; k++) rows[i][k] /= d;
+    for (let j = i + 1; j < 3; j++) if (Math.abs(rows[j]![i]!) > Math.abs(rows[pivot]![i]!)) pivot = j;
+    [rows[i], rows[pivot]] = [rows[pivot]!, rows[i]!];
+    requireInput(Math.abs(rows[i]![i]!) > 1e-10, '/road/rows', 'Degenerate road projection');
+    const d = rows[i]![i]!;
+    for (let k = i; k < 4; k++) rows[i]![k]! /= d;
     for (let j = 0; j < 3; j++)
       if (j !== i) {
-        const a = rows[j][i];
-        for (let k = i; k < 4; k++) rows[j][k] -= a * rows[i][k];
+        const a = rows[j]![i]!;
+        for (let k = i; k < 4; k++) rows[j]![k]! -= a * rows[i]![k]!;
       }
   }
-  return rows.map((r) => r[3]);
+  return rows.map((r) => r[3]!) as [number, number, number];
 }
-function measure(png, c) {
+function measure(png: Pick<PNG, 'width' | 'height' | 'data'>, c: MeasurementCalibration) {
   const { width: w, height: h } = png,
     cam = c.camera,
     sky = c.horizon,
@@ -61,13 +99,13 @@ function measure(png, c) {
     ['horizon', sky],
     ['road', road],
     ['hud', hud],
-  ]) {
+  ] as const) {
     palette(model.palette, `/${key}/palette`);
     finite(model.tolerance, `/${key}/tolerance`, 0, 255);
   }
-  const matches = (x, y, model) => {
+  const matches = (x: number, y: number, model: PaletteModel) => {
     const at = (y * w + x) * 4;
-    return model.palette.some((rgb) => rgb.every((v, i) => Math.abs(png.data[at + i] - v) <= model.tolerance));
+    return model.palette.some((rgb) => rgb.every((v, i) => Math.abs(png.data[at + i]! - v) <= model.tolerance));
   };
   integer(sky.top, '/horizon/top', 0, h - 2);
   integer(sky.bottom, '/horizon/bottom', sky.top + 1, h - 1);
@@ -99,19 +137,19 @@ function measure(png, c) {
   );
   const centers = road.rows.map((y) => {
     integer(y, '/road/rows', Math.floor(horizon) + 1, h - 1);
-    const runs = [];
-    let start = null,
-      last = null;
+    const runs: { left: number; right: number }[] = [];
+    let start: number | null = null,
+      last: number | null = null;
     for (let x = road.left; x <= road.right; x++)
       if (matches(x, y, road)) {
-        if (start !== null && x - last > road.maxGapPixels + 1) {
-          runs.push({ left: start, right: last });
+        if (start !== null && x - last! > road.maxGapPixels + 1) {
+          runs.push({ left: start, right: last! });
           start = null;
         }
         if (start === null) start = x;
         last = x;
       }
-    if (start !== null) runs.push({ left: start, right: last });
+    if (start !== null) runs.push({ left: start, right: last! });
     const candidates = runs
       .filter((r) => r.right - r.left + 1 >= road.minWidthPixels)
       .map((r) => ({ ...r, center: (r.left + r.right) / 2 }))
@@ -119,11 +157,11 @@ function measure(png, c) {
     requireInput(
       candidates.length &&
         (!candidates[1] ||
-          Math.abs(candidates[0].center - cam.centerXPixels) !== Math.abs(candidates[1].center - cam.centerXPixels)),
+          Math.abs(candidates[0]!.center - cam.centerXPixels) !== Math.abs(candidates[1].center - cam.centerXPixels)),
       '/road/rows',
       'Road run missing or ambiguous',
     );
-    const r = candidates[0],
+    const r = candidates[0]!,
       z = (cam.focalLengthPixels * cam.heightMeters) / (y - horizon);
     return {
       y,
@@ -172,12 +210,12 @@ function measure(png, c) {
       }))
       .sort((a, b) => a.error - b.error || a.digit.localeCompare(b.digit));
     requireInput(
-      scores[0].error <= hud.maxMismatchFraction && scores[0].error < scores[1].error,
+      scores[0]!.error <= hud.maxMismatchFraction && scores[0]!.error < scores[1]!.error,
       '/hud',
       'HUD digit missing or ambiguous',
     );
-    digits += scores[0].digit;
-    mismatches.push(scores[0].error);
+    digits += scores[0]!.digit;
+    mismatches.push(scores[0]!.error);
   }
   requireInput(digits.length, '/hud', 'HUD speed is blank');
   const [a, b, d] = quadratic(centers);
@@ -196,10 +234,14 @@ function measure(png, c) {
 }
 const [file, ...args] = process.argv.slice(2);
 try {
-  requireInput(file, '/arguments', 'Usage: measure.mjs request.json --out observations.json');
+  requireInput(
+    file,
+    '/arguments',
+    'Usage: node --import tsx tools/course/measure.ts request.json --out observations.json',
+  );
   const opts = options(args, ['--out']);
   requireInput(opts.has('--out'), '/out', 'Observation output is required');
-  const request = (await jsonFile(file)).value;
+  const request = (await jsonFile(file)).value as MeasurementRequest;
   requireInput(
     request.format === 'superoutride.frame-measurement' && request.version === 1,
     '/format',
@@ -214,7 +256,7 @@ try {
   let station = 0;
   for (const [i, frame] of request.frames.entries()) {
     finite(frame.timeSeconds, `/frames/${i}/timeSeconds`, 0);
-    requireInput(!i || frame.timeSeconds > request.frames[i - 1].timeSeconds, '/frames', 'Frame times must increase');
+    requireInput(!i || frame.timeSeconds > request.frames[i - 1]!.timeSeconds, '/frames', 'Frame times must increase');
     const bytes = await readFile(path.resolve(path.dirname(file), frame.path));
     requireInput(
       bytes.length >= 24 &&
@@ -226,8 +268,8 @@ try {
     const value = measure(PNG.sync.read(bytes), request.calibration);
     if (i)
       station +=
-        ((value.speedKph + measurements.at(-1).speedKph) / 2 / 3.6) *
-        (frame.timeSeconds - request.frames[i - 1].timeSeconds);
+        ((value.speedKph + measurements.at(-1)!.speedKph) / 2 / 3.6) *
+        (frame.timeSeconds - request.frames[i - 1]!.timeSeconds);
     measurements.push({
       path: frame.path,
       sha256: createHash('sha256').update(bytes).digest('hex'),
@@ -258,11 +300,11 @@ try {
     ],
     measurements,
   });
-  await atomicWrite(opts.get('--out'), JSON.stringify(observations, null, 2) + '\n');
+  await atomicWrite(opts.get('--out')!, JSON.stringify(observations, null, 2) + '\n');
   console.log(
     JSON.stringify({
       ok: true,
-      output: path.resolve(opts.get('--out')),
+      output: path.resolve(opts.get('--out')!),
       frames: measurements.length,
       lengthMeters: station,
     }),

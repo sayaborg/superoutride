@@ -132,10 +132,10 @@ test('root and layer direction rejects inverse dependencies without broad exempt
   assert.throws(() => checkDirection('src/core/a.ts', 'tools/build/b.ts'), /product depends on authoring/);
   assert.throws(() => checkDirection('src/core/a.ts', 'src/image/b.ts'), /upward domain dependency/);
   assert.throws(() => checkDirection('tools/build/a.ts', 'dist/core/b.js'), /tool imports delivery output/);
-  const exceptions = new Set(['tools/course/a.mjs -> dist/core/b.js']);
-  assert.doesNotThrow(() => checkDirection('tools/course/a.mjs', 'dist/core/b.js', exceptions));
-  assert.throws(() => checkDirection('tools/course/a.mjs', 'dist/core/c.js', exceptions));
-  assert.throws(() => checkDirection('tools/course/b.mjs', 'dist/core/b.js', exceptions));
+  const exceptions = new Set(['tools/graphics/a.mjs -> dist/core/b.js']);
+  assert.doesNotThrow(() => checkDirection('tools/graphics/a.mjs', 'dist/core/b.js', exceptions));
+  assert.throws(() => checkDirection('tools/graphics/a.mjs', 'dist/core/c.js', exceptions));
+  assert.throws(() => checkDirection('tools/graphics/b.mjs', 'dist/core/b.js', exceptions));
   assert.doesNotThrow(() => checkDirection('tools/build/a.ts', 'src/core/b.ts'));
   assert.doesNotThrow(() => checkDirection('src/image/a.ts', 'src/core/b.ts'));
 });
@@ -161,7 +161,7 @@ test('engine and authoring dependencies follow their declared directions, includ
   for (const [from, to] of pairs) {
     assert.match(
       from,
-      /^tools\/(course|graphics|audio)\/.*\.(?:mjs|html)$/,
+      /^tools\/(graphics|audio)\/.*\.(?:mjs|html)$/,
       'only unmigrated JavaScript or HTML may have exceptions',
     );
     assert.ok(to.startsWith('dist/'), 'exceptions name one delivery module');

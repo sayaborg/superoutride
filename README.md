@@ -31,7 +31,7 @@ audio auditions. Authored content lives under `content/`; generated outputs are 
 
 ## Structure
 
-`src/` is the product root; `tools/` is the authoring/build root. TypeScript build tools consume product
+`src/` is the product root; `tools/` is the authoring/build root. TypeScript build and course tools consume product
 source and share its strict type/lint checks. [Development](docs/development.md#typescript-tools)
 describes execution and the remaining JavaScript tool migration.
 
@@ -43,7 +43,7 @@ describes execution and the remaining JavaScript tool migration.
 | `src/course`  | Course documents and compilation, road geometry, materials, occurrences, environment profiles and geometry views |
 | `src/vehicle` | Vehicle mechanics, definitions, catalog and accepted operation requests                                          |
 | `src/input`   | Keyboard/touch adapters and arbitration producing vehicle operation requests                                     |
-| `src/race`    | Sessions, progress, gates, timing, drivers, recovery, reference driving and envelopes                            |
+| `src/race`    | Sessions, progress, gates, timing, drivers, recovery and envelopes                                               |
 | `src/view`    | Cameras, projection, ground rows, sprite placement, drawing composition and framebuffer                          |
 | `src/shell`   | DOM, frame loop, HUD, DEV, startup and whole-scene composition                                                   |
 

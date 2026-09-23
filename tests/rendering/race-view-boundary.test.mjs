@@ -1,21 +1,21 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { loadCourse, loadCourseGround } from '../../tools/course/authoring-io.mjs';
-import { readVehicleSprites } from '../../tools/course/read-vehicle-sprites.mjs';
-import { createCourseScene } from '../../dist/shell/course-scene.js';
-import { createArcadeVehicle } from '../../dist/vehicle/physics/arcade-vehicle-physics.js';
-import { VEHICLE_CATALOG } from '../../dist/vehicle/vehicle-catalog.js';
-import { browserSessionVehicle } from '../../dist/shell/session-vehicle.js';
-import { createRecoveryState } from '../../dist/race/recovery.js';
-import { createCourseRace } from '../../dist/race/course-race.js';
-import { resolveCourseSession } from '../../dist/race/course-session.js';
-import { readVehicleEnvelope } from '../../dist/race/vehicle-envelope.js';
+import { loadCourse, loadCourseGround } from '../../tools/course/authoring-io.ts';
+import { readVehicleSprites } from '../../tools/course/read-vehicle-sprites.ts';
+import { createCourseScene } from '../../src/shell/course-scene.js';
+import { createArcadeVehicle } from '../../src/vehicle/physics/arcade-vehicle-physics.js';
+import { VEHICLE_CATALOG } from '../../src/vehicle/vehicle-catalog.js';
+import { browserSessionVehicle } from '../../src/shell/session-vehicle.js';
+import { createRecoveryState } from '../../src/race/recovery.js';
+import { createCourseRace } from '../../src/race/course-race.js';
+import { resolveCourseSession } from '../../src/race/course-session.js';
+import { readVehicleEnvelope } from '../../src/race/vehicle-envelope.js';
 import { readFile } from 'node:fs/promises';
-import { createCameraRig, reframeCamera, updateCamera } from '../../dist/view/camera.js';
-import { CURRENT_CAMERA_PROFILE } from '../../dist/view/current-camera-profile.js';
-import { createRaceSprites } from '../../dist/view/race-sprites.js';
-import { wrapAngle } from '../../dist/core/math.js';
+import { createCameraRig, reframeCamera, updateCamera } from '../../src/view/camera.js';
+import { CURRENT_CAMERA_PROFILE } from '../../src/view/current-camera-profile.js';
+import { createRaceSprites } from '../../src/view/race-sprites.js';
+import { wrapAngle } from '../../src/core/math.js';
 
 async function setup() {
   const file = fileURLToPath(new URL('../../content/courses/ribbon-ring.course.json', import.meta.url));

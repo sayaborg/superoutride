@@ -1,12 +1,35 @@
-import { createPlanarCoordinateSample } from '../../dist/core/planar-sample.js';
-import path from 'node:path';
-import { plotCourseReport } from './plot-report.mjs';
-import { guidePathToWorld, sampleGuidePath } from '../../dist/course/geometry/guide-curve.js';
-import { guideCoordinateMetricsAt } from '../../dist/course/geometry/guide-coordinate-frame.js';
-import { courseBoundaryAt } from '../../dist/course/course-regions.js';
-import { atomicWrite, finite, requireInput } from './authoring-io.mjs';
+import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 
-export async function courseReport(course, section, directory, step = 10) {
+type CompiledSection = CompiledCourse['sections'][number];
+
+export interface CourseReport {
+  course: string;
+  section: string;
+  lengthMeters: number;
+  identity: CompiledCourse['identity'];
+  reference: CompiledCourse['reference'];
+  boundaries: string[];
+  samples: {
+    s: number;
+    curvaturePerMeter: number;
+    heightMeters: number;
+    x: number;
+    z: number;
+    boundaries: (number | null)[];
+  }[];
+  scenery: { s: number; l: number; asset: string; state: string | null }[];
+  environments: { s: number; name: string }[];
+  primitives: { id: string; kind: string; start: number; end: number }[];
+}
+import { createPlanarCoordinateSample } from '../../src/core/planar-sample.js';
+import path from 'node:path';
+import { plotCourseReport } from './plot-report.js';
+import { guidePathToWorld, sampleGuidePath } from '../../src/course/geometry/guide-curve.js';
+import { guideCoordinateMetricsAt } from '../../src/course/geometry/guide-coordinate-frame.js';
+import { courseBoundaryAt } from '../../src/course/course-regions.js';
+import { atomicWrite, finite, requireInput } from './authoring-io.js';
+
+export async function courseReport(course: CompiledCourse, section: CompiledSection, directory: string, step = 10) {
   finite(step, '/step', 0.01, 100000);
   requireInput(Math.ceil(section.raster.length / step) <= 4096, '/step', 'Report is limited to 4096 regular stations');
   const stations = [
@@ -32,11 +55,11 @@ export async function courseReport(course, section, directory, step = 10) {
       x: world.x,
       z: world.z,
       boundaries: section.boundaries.map((b) =>
-        s < b.knots[0].anchor.s || s > b.knots.at(-1).anchor.s ? null : courseBoundaryAt(b, s),
+        s < b.knots[0]!.anchor.s || s > b.knots.at(-1)!.anchor.s ? null : courseBoundaryAt(b, s),
       ),
     };
   });
-  const report = {
+  const report: CourseReport = {
     course: course.id,
     section: section.id,
     lengthMeters: section.raster.length,
@@ -44,13 +67,13 @@ export async function courseReport(course, section, directory, step = 10) {
     reference: course.reference,
     boundaries: section.boundaries.map((b) => b.id),
     samples,
-    scenery: section.presentation.scenery.map((p) => ({
+    scenery: section.presentation!.scenery.map((p) => ({
       s: p.anchor.s,
       l: p.l,
       asset: p.instance.asset.source.name,
       state: p.unselected?.id ?? null,
     })),
-    environments: section.presentation.environments.map((e) => ({ s: e.anchor.s, name: e.name })),
+    environments: section.presentation!.environments.map((e) => ({ s: e.anchor.s, name: e.name })),
     primitives: section.primitives.map((p) => ({ id: p.source.id, kind: p.source.kind, start: p.sStart, end: p.sEnd })),
   };
   const json = path.join(directory, 'report.json');

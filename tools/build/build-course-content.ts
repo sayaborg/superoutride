@@ -4,8 +4,8 @@ import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { readCourseDocument } from '../../src/course/course-document.js';
 import { compileCourseDocument } from '../../src/course/compiler/compiled-course.js';
-import { compileCourseImages } from '../course/compile-course-images.mjs';
-import { readCourseImages } from '../course/read-course-images.mjs';
+import { compileCourseImages } from '../course/compile-course-images.js';
+import { readCourseImages } from '../course/read-course-images.js';
 
 const content = new URL('../../content/', import.meta.url);
 const destination = new URL('../../dist/content/', import.meta.url);

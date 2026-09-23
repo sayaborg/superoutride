@@ -2,12 +2,12 @@ import { writeFile, mkdir } from 'node:fs/promises';
 import { Worker } from 'node:worker_threads';
 import { availableParallelism } from 'node:os';
 import { VEHICLE_CATALOG } from '../../src/vehicle/vehicle-catalog.js';
-import { REFERENCE_DRIVER } from '../../src/race/reference-driving-policy.js';
-import { referenceModelIdentity } from '../course/reference-identity.mjs';
+import { REFERENCE_DRIVER } from '../course/reference-driving-policy.js';
+import { referenceModelIdentity } from '../course/reference-identity.js';
 
 import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import type { VehicleProfileId } from '../../src/vehicle/physics/vehicle-profiles.js';
-import type { runCourseReference } from '../course/reference-run.mjs';
+import type { runCourseReference } from '../course/reference-run.js';
 
 export interface CourseReferenceJob {
   readonly vehicleId: VehicleProfileId;

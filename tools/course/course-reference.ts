@@ -1,9 +1,9 @@
-import { contentDigest } from '../core/content-digest.js';
-import type { CompiledCourse } from '../course/compiler/compiled-course.js';
-import type { CompiledCourseLandmark } from '../course/compiler/course-rules.js';
-import type { SessionVehicle } from './session-configuration.js';
+import { contentDigest } from '../../src/core/content-digest.js';
+import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
+import type { CompiledCourseLandmark } from '../../src/course/compiler/course-rules.js';
+import type { SessionVehicle } from '../../src/race/session-configuration.js';
 import { REFERENCE_DRIVER } from './reference-driving-policy.js';
-import type { CourseTimeBudgets } from './course-session.js';
+import type { CourseTimeBudgets } from '../../src/race/course-session.js';
 
 /** Untrusted saved numeric results are resolved to the current canonical landmarks once, before play. */
 export async function readCourseReference(

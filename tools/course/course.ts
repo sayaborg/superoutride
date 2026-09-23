@@ -1,15 +1,25 @@
-import { readVehicleSprites } from './read-vehicle-sprites.mjs';
-import { referenceCommand } from './reference-command.mjs';
+import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
+import type { CourseGround } from '../../src/course/compiler/course-ground.js';
+interface RenderFrame {
+  output: string;
+  section: string;
+  s: number;
+  l: number;
+  vehicle: string;
+  stats: ReturnType<ReturnType<typeof createCourseScene>['render']>;
+}
+import { readVehicleSprites } from './read-vehicle-sprites.js';
+import { referenceCommand } from './reference-command.js';
 import path from 'node:path';
 import { PNG } from 'pngjs';
-import { createCourseScene } from '../../dist/shell/course-scene.js';
-import { createArcadeVehicle } from '../../dist/vehicle/physics/arcade-vehicle-physics.js';
-import { VEHICLE_CATALOG } from '../../dist/vehicle/vehicle-catalog.js';
-import { createCameraRig, updateCamera } from '../../dist/view/camera.js';
-import { CURRENT_CAMERA_PROFILE } from '../../dist/view/current-camera-profile.js';
-import { deriveVehicleSpriteFamily } from '../../dist/view/vehicle-presentation.js';
-import { SoftwareSurface } from '../../dist/view/software-surface.js';
-import { courseReport } from './course-report.mjs';
+import { createCourseScene } from '../../src/shell/course-scene.js';
+import { createArcadeVehicle } from '../../src/vehicle/physics/arcade-vehicle-physics.js';
+import { VEHICLE_CATALOG } from '../../src/vehicle/vehicle-catalog.js';
+import { createCameraRig, updateCamera } from '../../src/view/camera.js';
+import { CURRENT_CAMERA_PROFILE } from '../../src/view/current-camera-profile.js';
+import { deriveVehicleSpriteFamily } from '../../src/view/vehicle-presentation.js';
+import { SoftwareSurface } from '../../src/view/software-surface.js';
+import { courseReport } from './course-report.js';
 import {
   options,
   loadCourse,
@@ -18,18 +28,18 @@ import {
   finite,
   atomicWrite,
   reportError,
-} from './authoring-io.mjs';
+} from './authoring-io.js';
 const spriteAssets = await readVehicleSprites();
 
 const [verb, file, ...args] = process.argv.slice(2);
 try {
-  if (['envelope', 'reference'].includes(verb)) {
-    console.log(JSON.stringify(await referenceCommand(verb, file, args)));
+  if (['envelope', 'reference'].includes(verb!)) {
+    console.log(JSON.stringify(await referenceCommand(verb!, file!, args)));
   } else {
     requireInput(
-      ['compile', 'render', 'report'].includes(verb) && file,
+      ['compile', 'render', 'report'].includes(verb!) && file,
       '/arguments',
-      'Usage: course.mjs compile|render|report course.json [options]',
+      'Usage: npm run course -- compile|render|report course.json [options]',
     );
     const flags =
       verb === 'compile'
@@ -39,7 +49,16 @@ try {
           : ['--images', '--section', '--s', '--l', '--vehicle', '--out', '--start', '--end', '--step', '--exit'];
     const opts = options(args, flags),
       { course } = await loadCourse(file, opts.get('--images'));
-    const result = {
+    const result: {
+      ok: boolean;
+      course: string;
+      identity: CompiledCourse['identity'];
+      reference: CompiledCourse['reference'];
+      sections: { id: string; length: number; scenery: number }[];
+      ground?: CourseGround['metrics'];
+      render?: RenderFrame | { frames: RenderFrame[] };
+      report?: Awaited<ReturnType<typeof courseReport>>;
+    } = {
       ok: true,
       course: course.id,
       identity: course.identity,
@@ -82,7 +101,7 @@ try {
         scene.session.prepareChoice(link).commit();
       }
       const destination = path.resolve(opts.get('--out') ?? (sequence ? 'frames' : 'frame.png'));
-      const frames = [];
+      const frames: RenderFrame[] = [];
       for (const [i, s] of stations.entries()) {
         const vehicle = createArcadeVehicle(entry.profile, scene.world, {
           s,

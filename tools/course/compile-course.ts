@@ -1,24 +1,24 @@
 import { readFile } from 'node:fs/promises';
-import { readCourseImages } from './read-course-images.mjs';
-import { parseCourseDocument } from '../../dist/course/course-document.js';
-import { createCourseProject } from '../../dist/course/course-project.js';
-import { createRegionSurfaceReader } from '../../dist/course/region-surface-reader.js';
-import { courseFailures, CourseAssetError } from '../../dist/course/course-diagnostics.js';
+import { readCourseImages } from './read-course-images.js';
+import { createCourseProject, parseCourseDocument } from './course-project.js';
+import { createRegionSurfaceReader } from '../../src/course/region-surface-reader.js';
+import { courseFailures, CourseAssetError } from '../../src/course/course-diagnostics.js';
 const [sourcePath, flag, imageDirectory, ...extra] = process.argv.slice(2);
 if (!sourcePath || (flag !== undefined && (flag !== '--images' || !imageDirectory)) || extra.length)
-  throw new TypeError('Usage: compile-course.mjs CourseDocument.json [--images directory]');
+  throw new TypeError('Usage: npm run compile:course -- CourseDocument.json [--images directory]');
 const project = createCourseProject();
 const sourceText = await readFile(sourcePath, 'utf8');
-let result = parseCourseDocument(sourceText);
-if (result.ok) {
+const parsed = parseCourseDocument(sourceText);
+let result: Awaited<ReturnType<typeof project.importDocument>>;
+if (parsed.ok) {
   try {
-    const inputs = imageDirectory ? await readCourseImages(result.value.assets, imageDirectory) : [];
+    const inputs = imageDirectory ? await readCourseImages(parsed.value.assets, imageDirectory) : [];
     result = await project.importDocument(sourceText, inputs);
   } catch (error) {
     if (!(error instanceof CourseAssetError)) throw error;
     result = courseFailures([error]);
   }
-}
+} else result = parsed;
 if (!result.ok) {
   console.error(JSON.stringify(result, null, 2));
   process.exitCode = 1;

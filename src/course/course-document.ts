@@ -793,26 +793,3 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
     throw error;
   }
 }
-
-export function parseCourseDocument(text: string): CourseResult<CourseDocument> {
-  if (typeof text !== 'string') throw new TypeError('CourseDocument JSON must be a string');
-  if (
-    text.length > COURSE_DOCUMENT_LIMITS.jsonBytes ||
-    new TextEncoder().encode(text).byteLength > COURSE_DOCUMENT_LIMITS.jsonBytes
-  ) {
-    return courseFailure(new CourseInputError('resource_limit', '', 'Document exceeds 4 MiB UTF-8'));
-  }
-  let input: unknown;
-  try {
-    input = JSON.parse(text);
-  } catch (error) {
-    if (error instanceof SyntaxError) return courseFailure(new CourseInputError('parse_failure', '', error.message));
-    throw error;
-  }
-  return readCourseDocument(input);
-}
-
-export function saveCourseDocument(input: unknown): CourseResult<string> {
-  const result = readCourseDocument(input);
-  return result.ok ? courseSuccess(JSON.stringify(result.value)) : result;
-}

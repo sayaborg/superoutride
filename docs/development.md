@@ -22,25 +22,28 @@ Node globals, and `tsconfig.tools.json` checks TypeScript tools with Node types 
 Both roots use the same lint rules. `npm run check:dependencies` checks the boundaries described in
 [Architecture](architecture.md#layer-boundaries); `check` and CI's `npm test` include it.
 
-Run a TypeScript tool with `node --import tsx tools/build/<name>.ts`. The pinned loader resolves the
+Run a TypeScript tool with `node --import tsx tools/<domain>/<name>.ts`. The pinned loader resolves the
 product's `.js` module specifiers to TypeScript source without a tool compilation directory; it does
-not replace the strict `tsc` check. Reference workers inherit the same loader. Build clears `dist`,
+not replace the strict `tsc` check. Reference workers and tests consuming typed course helpers use the same loader.
+Those tests import product source too, so a process has one module identity for compiled course objects.
+Test files remain JavaScript. Build clears `dist`,
 compiles the product, stages graphics, then generates course/reference content in that order.
 
-The remaining JavaScript course/graphics/audio tools keep their current execution and browser staging.
-Explicit `.d.mts` declarations describe the eight legacy helper interfaces consumed by TypeScript build
-scripts; their implementations remain JavaScript. Their migration and declaration removal are scheduled
-in [NEXT](NEXT.md#stage-5--reorganize-foundations).
+Course tools are TypeScript and consume product source directly. Graphics/audio tools keep their
+current JavaScript execution and browser staging. `tools/graphics/sprite-png.d.mts` describes the one
+legacy helper interface consumed by a TypeScript build script; its implementation remains JavaScript.
+Its migration and declaration removal are scheduled in [NEXT](NEXT.md#stage-5--reorganize-foundations).
 
 ### Course commands
 
-Run after building:
+Run after building the completed vehicle sprite library (read as content data, not imported code):
 
 ```sh
 npm run course -- compile content/courses/ribbon-coast.course.json
 npm run course -- render content/courses/ribbon-coast.course.json --s 100 --l 0 --vehicle TESTAROSSA --out /tmp/course.png
 npm run course -- report content/courses/ribbon-coast.course.json --step 25 --out /tmp/course-report
-node tools/course/measure.mjs request.json --out observations.json
+npm run course -- reference content/courses/ribbon-coast.course.json --out /tmp/reference.json
+node --import tsx tools/course/measure.ts request.json --out observations.json
 ```
 
 `npm run compile:course -- <source.json> [--images directory]` reports the compiled course.

@@ -2,13 +2,13 @@ import type { CourseReferenceJob, CourseReferenceResult } from './build-course-r
 import { parentPort, workerData } from 'node:worker_threads';
 import { VEHICLE_CATALOG } from '../../src/vehicle/vehicle-catalog.js';
 import { browserSessionVehicle } from '../../src/shell/session-vehicle.js';
-import { REFERENCE_DRIVER } from '../../src/race/reference-driving-policy.js';
-import { readCourseReference } from '../../src/race/course-reference.js';
+import { REFERENCE_DRIVER } from '../course/reference-driving-policy.js';
+import { readCourseReference } from '../course/course-reference.js';
 import { courseBudgetLandmarks, readCourseTimeBudgets } from '../../src/race/course-time-budgets.js';
-import { cachedReference, referenceCacheKey, digest } from '../course/reference-cache.mjs';
-import { measureVehicleEnvelope } from '../course/vehicle-envelope.mjs';
-import { runCourseReference, courseReferenceRoutes } from '../course/reference-run.mjs';
-import { loadCourse, loadCourseGround } from '../course/authoring-io.mjs';
+import { cachedReference, referenceCacheKey, digest } from '../course/reference-cache.js';
+import { measureVehicleEnvelope } from '../course/vehicle-envelope.js';
+import { runCourseReference, courseReferenceRoutes } from '../course/reference-run.js';
+import { loadCourse, loadCourseGround } from '../course/authoring-io.js';
 
 const { vehicleId, stems, physicsSha256 } = workerData as CourseReferenceJob;
 const entry = VEHICLE_CATALOG.find((v) => v.profile.id === vehicleId)!;
@@ -32,7 +32,7 @@ for (const stem of stems) {
   const { course } = await loadCourse(file);
   const key = referenceCacheKey(course.identity.buildSha256, vehicleSha256, REFERENCE_DRIVER, physicsSha256);
   const cached = await cachedReference('runs', key, async () => {
-    const ground = await loadCourseGround(course, file);
+    const ground = await loadCourseGround(course);
     return courseReferenceRoutes(course).map((route) =>
       runCourseReference(course, ground, entry, envelope.value, route, course.rules!.maxLaps),
     );

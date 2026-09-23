@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises';
-import { readSpriteAssets } from '../../dist/image/sprite-assets.js';
+import { readSpriteAssets } from '../../src/image/sprite-assets.js';
 
 /** A headless composition root loads the same completed library as the browser, before measurement. */
 export async function readVehicleSprites() {
