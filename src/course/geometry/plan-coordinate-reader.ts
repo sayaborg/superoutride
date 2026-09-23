@@ -196,10 +196,23 @@ export function createMappedPlanCoordinateReader(view: CourseGeometryView, mappi
       .map((native) => ({ mapping, native, seed: planSeed(mapping.occurrence.ordinal, native.seed) })),
   );
   const candidateIndices = new Map<number, number[]>();
+  const candidateCoverage = new Map<PlanCoordinateSpan, Map<number, { start: number; end: number }>>();
   candidates.forEach((candidate, index) => {
     const indices = candidateIndices.get(candidate.seed);
     if (indices) indices.push(index);
     else candidateIndices.set(candidate.seed, [index]);
+    let bySeed = candidateCoverage.get(candidate.mapping);
+    if (!bySeed) {
+      bySeed = new Map();
+      candidateCoverage.set(candidate.mapping, bySeed);
+    }
+    const coverage = bySeed.get(candidate.native.seed);
+    if (coverage) {
+      coverage.start = Math.min(coverage.start, candidate.native.start);
+      coverage.end = Math.max(coverage.end, candidate.native.end);
+    } else {
+      bySeed.set(candidate.native.seed, { start: candidate.native.start, end: candidate.native.end });
+    }
   });
   const coordinateSample = createPlanCoordinateSample();
   const anchorProjection = { s: 0, l: 0, seed: -1, distanceSquared: 0 };
@@ -307,11 +320,13 @@ export function createMappedPlanCoordinateReader(view: CourseGeometryView, mappi
         if (cursor === at) continue;
         const candidate = candidates[i]!;
         const { mapping, native } = candidate;
+        const coverage = candidateCoverage.get(mapping)?.get(native.seed);
         if (
-          native.start > Math.max(mapping.sourceOwnership.start, native.extent.start) ||
-          native.end < Math.min(mapping.sourceOwnership.end, native.extent.end)
+          !coverage ||
+          coverage.start > Math.max(mapping.sourceOwnership.start, native.extent.start) ||
+          coverage.end < Math.min(mapping.sourceOwnership.end, native.extent.end)
         )
-          throw new RangeError('Driving window clips a seeded projection candidate');
+          throw new RangeError('Driving window clips a seeded projection primitive');
         const section = mapping.occurrence.section;
         if (previousMapping !== mapping) {
           const t = mapping.sourceFromView;
