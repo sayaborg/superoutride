@@ -30,9 +30,8 @@ export function compileCourseRules(
   );
   const resolve = (section: CompiledSection, anchor: CourseLandmarkDocument['anchor'], path: string) =>
     resolveCourseAnchor(anchor, tables.get(section)!, section.raster.length, path);
-  const entryS = (section: CompiledSection) => section.ports.find((p) => p.kind === 'entry')?.anchor.s ?? 0;
   const endS = (section: CompiledSection) =>
-    Math.min(section.raster.length, ...section.outgoing.map((l) => l.source.anchor.s));
+    Math.min(section.raster.length, ...section.outgoing.map((l) => l.from.anchor.s));
   const compile = (g: CourseLandmarkDocument, path: string): CompiledCourseLandmark => {
     const section = sections.find((s) => s.id === g.sectionId);
     requireCourse(section !== undefined, path + '/sectionId', 'Unknown landmark Section', 'unresolved_reference');
@@ -45,11 +44,11 @@ export function compileCourseRules(
     );
     const anchor = resolve(section, g.anchor, path + '/anchor');
     check(
-      anchor.s > entryS(section) && anchor.s <= endS(section),
+      anchor.s > 0 && anchor.s <= endS(section),
       path,
       'Landmark must lie after entry and no later than its ownership exit',
     );
-    const regions = carriageway.regions.filter((b) => b.start.s <= anchor.s && anchor.s < b.end.s);
+    const regions = carriageway.regions.filter((b) => b.start.s <= anchor.s && anchor.s <= b.end.s);
     check(regions.length > 0, path, 'Landmark requires pavement');
     const left = Math.min(...regions.map((b) => courseBoundaryAt(b.left, anchor.s)));
     const right = Math.max(...regions.map((b) => courseBoundaryAt(b.right, anchor.s)));
@@ -88,7 +87,7 @@ export function compileCourseRules(
     const finish = goals[0] ?? null;
     if (document.type === 'CIRCUIT')
       check(finish!.anchor.s === endS(section), '/rules/finishes', 'Circuit FINISH must coincide with its loop exit');
-    let previous = entryS(section);
+    let previous = 0;
     for (const gate of gates) {
       check(
         gate.anchor.s > previous && gate.anchor.s < (finish?.anchor.s ?? endS(section)),
@@ -109,11 +108,7 @@ export function compileCourseRules(
   const firstGate = first.checkpoints[0]?.anchor.s ?? first.finish?.anchor.s ?? endS(entry);
   const grid = source.grid.map((slot, i) => {
     const anchor = resolve(entry, slot.anchor, `/rules/grid/${i}/anchor`);
-    check(
-      anchor.s >= entryS(entry) && anchor.s < firstGate,
-      `/rules/grid/${i}`,
-      'Grid must lie between entry and the first gate',
-    );
+    check(anchor.s >= 0 && anchor.s < firstGate, `/rules/grid/${i}`, 'Grid must lie between entry and the first gate');
     check(surface.sample(anchor.s, slot.l).material.supported, `/rules/grid/${i}`, 'Grid must be supported');
     return Object.freeze({ anchor, l: slot.l });
   });

@@ -64,7 +64,7 @@ export function createCourseGeometryTraversal(entry: CompiledSection, limits: Tr
     const activeIndex = occurrences.indexOf(active);
     const itinerary = [...occurrences, ...selected],
       index = itinerary.indexOf(from);
-    if (!from || !link || !link.source || !link.destination)
+    if (!from || !link || !link.from || !link.to)
       throw new TypeError('Selection requires an occurrence and compiled Link');
     if (index < activeIndex || !from.section.outgoing.includes(link))
       throw new RangeError('Selection requires a retained forward occurrence and its canonical outgoing Link');
@@ -78,13 +78,13 @@ export function createCourseGeometryTraversal(entry: CompiledSection, limits: Tr
     let distance = 0;
     for (let i = activeIndex + 1; i <= index; i += 1) {
       const outgoing = i === index ? link : itinerary[i + 1]!.incoming!;
-      distance += outgoing.source.anchor.s - itinerary[i]!.incoming!.destination.anchor.s;
+      distance += outgoing.from.anchor.s - itinerary[i]!.incoming!.to.anchor.s;
     }
     if (!Number.isFinite(distance) || distance > selectAhead)
       return failure('selection_limit', 'Selection exceeds the admitted forward distance');
     const ordinal = from.ordinal + 1;
     if (!Number.isSafeInteger(ordinal)) return failure('identity_exhausted', 'Occurrence ordinal is not representable');
-    const to = Object.freeze({ ordinal, section: link.destination.section, incoming: link });
+    const to = Object.freeze({ ordinal, section: link.to.section, incoming: link });
     return success({
       history: Object.freeze({ ...before, selected: Object.freeze([...selected, to]) }),
       occurrence: to,
@@ -122,8 +122,8 @@ export function createCourseGeometryTraversal(entry: CompiledSection, limits: Tr
       while (first > 0 && distance < retainBehind) {
         const incoming = retained[first]!.incoming!;
         first -= 1;
-        const previousEntry = retained[first]!.incoming?.destination.anchor.s ?? 0;
-        distance += incoming.source.anchor.s - previousEntry;
+        const previousEntry = retained[first]!.incoming?.to.anchor.s ?? 0;
+        distance += incoming.from.anchor.s - previousEntry;
       }
       retained = Object.freeze(retained.slice(first));
     }

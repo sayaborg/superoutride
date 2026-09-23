@@ -6,7 +6,7 @@ import {
   courseSuccess,
   requireCourse,
 } from '../course-diagnostics.js';
-import type { CompiledLink, CompiledPort } from './course-graph.js';
+import type { CompiledLink, LegacyOverlapLink, CompiledPort } from './course-graph.js';
 import { COURSE_LINK_RECIPE, coursePortLateral } from './course-links.js';
 import { compileCourseOverlapStations } from '../course-overlap-stations.js';
 import { coursePhysicalMaterialAt } from '../course-physical-binding.js';
@@ -23,7 +23,7 @@ import {
 type Demand = Extract<ReturnType<typeof compileCoursePhysicalDemand>, { ok: true }>['value'];
 type LateralDomain = Pick<Demand['bounds'], 'left' | 'right'>;
 
-function ruler(port: CompiledPort, overlap: CompiledLink['overlap'], domain?: LateralDomain) {
+function ruler(port: CompiledPort, overlap: LegacyOverlapLink['overlap'], domain?: LateralDomain) {
   return courseOverlapRuler(
     port,
     overlap,
@@ -56,7 +56,7 @@ function regions(port: CompiledPort, start: number, end: number, domain?: Latera
   return merged;
 }
 
-function qualify(links: readonly CompiledLink[], demand: Demand) {
+function qualify(links: readonly LegacyOverlapLink[], demand: Demand) {
   requireCanonicalCourseLinks(links);
   const errors: CourseQualificationError[] = [];
   links.forEach((link, index) => {
@@ -78,8 +78,8 @@ function qualify(links: readonly CompiledLink[], demand: Demand) {
           );
         if (missing.length) return;
       }
-      const aHeight = courseOverlapHeight(link.source, link.overlap, `${path}/source/height`);
-      const bHeight = courseOverlapHeight(link.destination, link.overlap, `${path}/destination/height`);
+      const aHeight = courseOverlapHeight(link.from, link.overlap, `${path}/source/height`);
+      const bHeight = courseOverlapHeight(link.to, link.overlap, `${path}/destination/height`);
       requireCourse(
         Math.abs(aHeight - bHeight) <= tolerance,
         `${path}/height`,
@@ -88,8 +88,8 @@ function qualify(links: readonly CompiledLink[], demand: Demand) {
       );
       const domain = demand?.bounds;
       const stations = compileCourseOverlapStations(
-        ruler(link.source, link.overlap, domain),
-        ruler(link.destination, link.overlap, domain),
+        ruler(link.from, link.overlap, domain),
+        ruler(link.to, link.overlap, domain),
         link.overlap,
         path,
       );
@@ -104,7 +104,7 @@ function qualify(links: readonly CompiledLink[], demand: Demand) {
         if (!domain) return;
         for (const l of [-domain.left, domain.right])
           requireCourse(
-            material(link.source, source, l) === material(link.destination, destination, l),
+            material(link.from, source, l) === material(link.to, destination, l),
             `${path}/physicalBindings`,
             'Closed lateral-domain edge has different half-open material ownership',
             'physical_support_mismatch',
@@ -117,8 +117,8 @@ function qualify(links: readonly CompiledLink[], demand: Demand) {
           'Physical overlap cells must remain representable in both rulers',
           'unrepresentable_overlap',
         );
-        const a = regions(link.source, start.source, end.source, domain),
-          b = regions(link.destination, start.destination, end.destination, domain);
+        const a = regions(link.from, start.source, end.source, domain),
+          b = regions(link.to, start.destination, end.destination, domain);
         requireCourse(
           a.length === b.length &&
             a.every((region, i) => {
@@ -169,15 +169,16 @@ function qualify(links: readonly CompiledLink[], demand: Demand) {
 export function compileCoursePhysicalDomains(links: readonly CompiledLink[], input: unknown) {
   const demand = compileCoursePhysicalDemand(input);
   if (!demand.ok) return demand;
-  const result = qualify(links, demand.value);
-  return result.ok
-    ? courseSuccess(
-        Object.freeze({
-          scope: 'physical-query-domain' as const,
-          recipe: COURSE_PHYSICAL_RECIPE.overlap,
-          links: result.value,
-          demand: demand.value,
-        }),
-      )
-    : result;
+  // Cut lines need no shared physical interval; the overlap qualifier remains unused until 6-8b.
+  return courseSuccess(
+    Object.freeze({
+      scope: 'physical-query-domain' as const,
+      recipe: COURSE_PHYSICAL_RECIPE.overlap,
+      links: Object.freeze([...links]),
+      demand: demand.value,
+    }),
+  );
 }
+
+// Retained overlap qualifier is removed in 6-8b.
+void qualify;

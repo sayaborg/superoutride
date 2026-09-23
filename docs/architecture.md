@@ -14,7 +14,7 @@ t = (sin(psi), cos(psi))
 n = (cos(psi), -sin(psi))
 ```
 
-A Section's authored straight/circular primitive sequence is the planar authority. `s` is true arc length
+A Section begins at X=Z=0 with heading zero. Its authored straight/circular primitive sequence is the planar authority. `s` is true arc length
 along that centerline and positive `l` is distance along its right normal. With centerline `C(s)`,
 normal `N(s)` and signed curvature `kappa`, planar coordinates are `C(s) + l*N(s)`; physical
 distance along an offset or sloping path is different.
@@ -211,7 +211,7 @@ EXACT-BOX clips the centered depth interval to source-owned view spans, maps the
 and decomposes the ranges into cached dyadic intervals, including truncated tail cells.
 Partial one-metre ends outside a complete cell integrate resolved affine edges directly.
 Sub-metre footprints use the same rule; zero-length footprints use the instantaneous slab.
-Unowned overlap guards do not contribute.
+Every cut ends one owned interval and starts the next.
 Actual source lengths weight all contributions before coverage or color normalization. This is a
 separable source-(s,l) row footprint, not a full perspective pixel polygon. Dyadic decomposition
 does not change the mathematical integral.
@@ -267,7 +267,7 @@ Band's instantaneous sub-metre read is analogous to sprite master magnification,
 
 ## Course frames
 
-Oriented Ports derive the upright transform `destinationFromSource`. With yaw rotation `R`:
+The outgoing Carriageway center at `s=L` and incoming center at `s=0` derive the upright transform `destinationFromSource`. With yaw rotation `R`:
 
 ```text
 t = pDestination-R*pSource
@@ -278,7 +278,7 @@ inverse translation = -transpose(R)*t
 ```
 
 The transform preserves world up, gravity and metric length. Source and destination height agree
-in the common seam domain. World-expressed state follows the transform; body-local values remain invariant.
+at the cut line, as do their longitudinal grades. World-expressed state follows the transform; body-local values remain invariant.
 [Content and gameplay](content-and-gameplay.md#occurrences-and-frame-commit) owns atomic actor transitions.
 
 A bounded occurrence view maps retained/selected source spans into its active frame. A span pairs

@@ -1,12 +1,17 @@
 import { bandEdgeAt, type BandGround, type BandPiece } from '../band-ground.js';
 import { requireCourse } from '../course-diagnostics.js';
-import type { CompiledLink } from './course-graph.js';
+import type { LegacyOverlapLink } from './course-graph.js';
 import type { CourseQueryExtent } from './course-consumer-demand.js';
 import { coursePortLateral } from './course-links.js';
 
 /** Prove the resolved color field on the shared guard, independently of physical Regions or hidden colors. */
-export function compareCourseBandOverlap(link: CompiledLink, a: BandGround, b: BandGround, domain: CourseQueryExtent) {
-  const ports = [link.source, link.destination],
+export function compareCourseBandOverlap(
+  link: LegacyOverlapLink,
+  a: BandGround,
+  b: BandGround,
+  domain: CourseQueryExtent,
+) {
+  const ports = [link.from, link.to],
     grounds = [a, b],
     cuts = new Set([-link.overlap.behind, link.overlap.ahead]);
   grounds.forEach((ground, i) => {

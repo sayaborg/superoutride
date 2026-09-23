@@ -1,18 +1,18 @@
 import { courseBoundaryAt } from '../course-regions.js';
 import { requireCourse } from '../course-diagnostics.js';
-import type { CompiledLink, CompiledPort } from './course-graph.js';
+import type { LegacyOverlapLink, CompiledPort } from './course-graph.js';
 import { coursePortLateral } from './course-links.js';
 import type { CourseQueryExtent } from './course-consumer-demand.js';
 
 type LateralDomain = Pick<CourseQueryExtent, 'left' | 'right'>;
 
-export function requireCanonicalCourseLinks(links: readonly CompiledLink[]): void {
+export function requireCanonicalCourseLinks(links: readonly LegacyOverlapLink[]): void {
   if (!Array.isArray(links)) throw new TypeError('Qualification requires a canonical Link array');
   if (new Set(links).size !== links.length) throw new RangeError('Qualification Links must be unique');
   for (const link of links) {
-    if (!link || typeof link !== 'object' || !link.source || !link.destination)
+    if (!link || typeof link !== 'object' || !link.from || !link.to)
       throw new TypeError('Qualification requires compiled Link objects');
-    if (!link.source.section.outgoing.includes(link) || !link.destination.section.incoming.includes(link))
+    if (!link.from.section.outgoing.includes(link) || !link.to.section.incoming.includes(link))
       throw new RangeError('Qualification requires canonical compiled Link references');
   }
 }
@@ -20,7 +20,7 @@ export function requireCanonicalCourseLinks(links: readonly CompiledLink[]): voi
 /** All activation/knot/domain-edge crossings; content owners contribute their own profile stations. */
 export function courseOverlapRuler(
   port: CompiledPort,
-  overlap: CompiledLink['overlap'],
+  overlap: LegacyOverlapLink['overlap'],
   domain: LateralDomain | undefined,
   profileStations: readonly number[],
 ) {
@@ -89,7 +89,7 @@ export function courseOverlapRegions(port: CompiledPort, start: number, end: num
 }
 
 /** The complete analytic interval must be horizontal, including each parabola. */
-export function courseOverlapHeight(port: CompiledPort, overlap: CompiledLink['overlap'], path: string): number {
+export function courseOverlapHeight(port: CompiledPort, overlap: LegacyOverlapLink['overlap'], path: string): number {
   const start = port.anchor.s - overlap.behind,
     end = port.anchor.s + overlap.ahead;
   const profile = port.section.height;

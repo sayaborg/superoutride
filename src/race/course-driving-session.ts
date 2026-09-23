@@ -1,6 +1,6 @@
 import type { CompiledLink, CompiledSection } from '../course/compiler/course-graph.js';
 import type { CompiledCarriageway } from '../course/course-regions.js';
-import { coursePortLateral } from '../course/compiler/course-links.js';
+import { courseCutLateral } from '../course/compiler/course-links.js';
 import { compilePlanarTransform, composePlanarTransforms, invertPlanarTransform } from '../core/planar-transform.js';
 import { clamp, type Vec2 } from '../core/math.js';
 import { compileWorldCrossingGate, observeWorldCrossingPlane } from './world-crossing-gate.js';
@@ -87,15 +87,15 @@ function createSession(
     closedCarriageways = Object.freeze(
       [...history.occurrences, ...history.selected].flatMap((o) => {
         const link = o.incoming;
-        return link?.source.section.fork
-          ? link.source.section.outgoing.filter((other) => other !== link).map((other) => other.source.carriageway)
+        return link?.from.section.fork
+          ? link.from.section.outgoing.filter((other) => other !== link).map((other) => other.from.carriageway)
           : [];
       }),
     );
     return [
-      ...(successor ? [{ direction: 'forward' as const, successor, port: successor.incoming!.source }] : []),
+      ...(successor ? [{ direction: 'forward' as const, successor, port: successor.incoming!.from }] : []),
       ...(index > 0
-        ? [{ direction: 'reverse' as const, successor: history.active, port: history.active.incoming!.destination }]
+        ? [{ direction: 'reverse' as const, successor: history.active, port: history.active.incoming!.to }]
         : []),
     ].map((candidate) => ({
       ...candidate,
@@ -119,7 +119,7 @@ function createSession(
     recoverVehicleToPlanCoordinate(view.world, actor.vehicle, {
       state: actor.recovery,
       reason: 'wrong-course',
-      target: { s, l: coursePortLateral(candidate.port) },
+      target: { s, l: courseCutLateral(candidate.port) },
     });
     return 'recovered' as const;
   };
@@ -133,8 +133,8 @@ function createSession(
     if (!admitted.ok) return recover(actor, candidate);
     const next = admitted.value;
     const link = direction === 'forward' ? movement.to.incoming! : movement.from.incoming!;
-    const from = direction === 'forward' ? link.source : link.destination;
-    const to = direction === 'forward' ? link.destination : link.source;
+    const from = direction === 'forward' ? link.from : link.to;
+    const to = direction === 'forward' ? link.to : link.from;
     const transform = movement.destinationFromSource;
     const rebase = (s: number) => to.anchor.s + (s - from.anchor.s);
     const { vehicle, recovery } = actor;
@@ -146,7 +146,7 @@ function createSession(
       next.world.coordinates,
       transform,
       nextS,
-      vehicle.course.l + coursePortLateral(to) - coursePortLateral(from),
+      vehicle.course.l + courseCutLateral(to) - courseCutLateral(from),
     );
     recovery.lastSafeS = rebase(recovery.lastSafeS);
     referenceSOffset += from.anchor.s - to.anchor.s;
@@ -161,8 +161,8 @@ function createSession(
     prepareChoice(link: CompiledLink) {
       const history = traversal.snapshot();
       const from =
-        history.occurrences.find((o) => o.ordinal >= history.active.ordinal && o.section === link.source.section) ??
-        history.selected.find((o) => o.section === link.source.section);
+        history.occurrences.find((o) => o.ordinal >= history.active.ordinal && o.section === link.from.section) ??
+        history.selected.find((o) => o.section === link.from.section);
       if (!from) throw new RangeError('Route choice needs its retained forward occurrence');
       const choice = required(traversal.prepareSelection(from, link));
       const next = required(makeView(choice.history));

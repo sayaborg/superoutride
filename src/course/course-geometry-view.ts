@@ -5,7 +5,7 @@ import {
   type PlanarTransform,
 } from '../core/planar-transform.js';
 import { courseRegionAt } from './course-regions.js';
-import { coursePortLateral } from './compiler/course-links.js';
+import { courseCutLateral } from './compiler/course-links.js';
 import type { CourseOccurrence, CourseOccurrenceHistory } from './course-occurrence.js';
 
 interface Extent {
@@ -56,7 +56,7 @@ export function createCourseGeometryView(history: CourseOccurrenceHistory, deman
     if (
       !current.incoming ||
       !previous.section.outgoing.includes(current.incoming) ||
-      current.incoming.destination.section !== current.section ||
+      current.incoming.to.section !== current.section ||
       current.ordinal !== previous.ordinal + 1
     )
       throw new RangeError('History must preserve canonical visited Link references and occurrence order');
@@ -105,10 +105,9 @@ export function createCourseGeometryView(history: CourseOccurrenceHistory, deman
         previous.viewFromSource,
         invertPlanarTransform(link.destinationFromSource),
       ),
-      sourceAnchorS: link.destination.anchor.s,
-      viewAnchorS: viewS(previous, link.source.anchor.s),
-      sourceLateralOrigin:
-        previous.sourceLateralOrigin + coursePortLateral(link.destination) - coursePortLateral(link.source),
+      sourceAnchorS: link.to.anchor.s,
+      viewAnchorS: viewS(previous, link.from.anchor.s),
+      sourceLateralOrigin: previous.sourceLateralOrigin + courseCutLateral(link.to) - courseCutLateral(link.from),
     };
   }
   for (let i = index - 1; i >= 0; i -= 1) {
@@ -118,21 +117,20 @@ export function createCourseGeometryView(history: CourseOccurrenceHistory, deman
     mappings[i] = {
       occurrence,
       viewFromSource: composePlanarTransforms(next.viewFromSource, link.destinationFromSource),
-      sourceAnchorS: link.source.anchor.s,
-      viewAnchorS: viewS(next, link.destination.anchor.s),
-      sourceLateralOrigin:
-        next.sourceLateralOrigin + coursePortLateral(link.source) - coursePortLateral(link.destination),
+      sourceAnchorS: link.from.anchor.s,
+      viewAnchorS: viewS(next, link.to.anchor.s),
+      sourceLateralOrigin: next.sourceLateralOrigin + courseCutLateral(link.from) - courseCutLateral(link.to),
     };
   }
   const first = mappings[0]!,
     last = mappings.at(-1)!;
-  const availableStart = viewS(first, first.occurrence.incoming?.destination.anchor.s ?? 0);
+  const availableStart = viewS(first, first.occurrence.incoming?.to.anchor.s ?? 0);
   // An unresolved successor never silently reads a parent's runout as the selected next road.
   const availableEnd = viewS(
     last,
     Math.min(
       last.occurrence.section.raster.length,
-      ...last.occurrence.section.outgoing.map((link) => link.source.anchor.s),
+      ...last.occurrence.section.outgoing.map((link) => link.from.anchor.s),
     ),
   );
   if (retained) {
@@ -156,7 +154,7 @@ export function createCourseGeometryView(history: CourseOccurrenceHistory, deman
     const length = end - start;
     const frameCuts = [
       availableStart,
-      ...mappings.slice(1).map((mapping) => viewS(mapping, mapping.occurrence.incoming!.destination.anchor.s)),
+      ...mappings.slice(1).map((mapping) => viewS(mapping, mapping.occurrence.incoming!.to.anchor.s)),
       availableEnd,
     ];
     const cuts = frameCuts.map((s) => s - start);
@@ -165,11 +163,11 @@ export function createCourseGeometryView(history: CourseOccurrenceHistory, deman
     const spans = mappings.flatMap((original, i) => {
       const mapping = Object.freeze({ ...original, viewAnchorS: original.viewAnchorS - start });
       const section = mapping.occurrence.section;
-      const sourceStart = mapping.occurrence.incoming?.destination.anchor.s ?? 0;
+      const sourceStart = mapping.occurrence.incoming?.to.anchor.s ?? 0;
       const sourceEnd =
         i + 1 < mappings.length
-          ? mappings[i + 1]!.occurrence.incoming!.source.anchor.s
-          : Math.min(section.raster.length, ...section.outgoing.map((link) => link.source.anchor.s));
+          ? mappings[i + 1]!.occurrence.incoming!.from.anchor.s
+          : Math.min(section.raster.length, ...section.outgoing.map((link) => link.from.anchor.s));
       const a = Math.max(0, cuts[i]!),
         b = Math.min(length, cuts[i + 1]!);
       if (b < a) return [];

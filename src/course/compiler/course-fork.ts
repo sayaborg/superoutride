@@ -1,11 +1,9 @@
-import { createPlanCoordinateSample } from '../geometry/plan-coordinate.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../image/sprite.js';
 import { courseBoundaryAt } from '../course-regions.js';
 import { requireCourse } from '../course-diagnostics.js';
 import type { CompiledCourseAnchor } from '../course-geometry.js';
 import { coursePhysicalMaterialAt } from '../course-physical-binding.js';
 import type { CompiledFork, CompiledSection } from './course-graph.js';
-import { requireCourseStraightSpan } from './course-links.js';
 
 /** Resolve parallel-zone geometry after canonical outgoing Links exist, before publication. */
 export function compileCourseFork(
@@ -22,35 +20,21 @@ export function compileCourseFork(
   const check = (condition: boolean, message: string) => requireCourse(condition, path, message, 'invalid_fork');
   check(section.outgoing.length >= 2, 'A fork requires two or three canonical exits');
   check(
-    lock.s > 0 && lock.s < closure.s && section.outgoing.every((l) => closure.s < l.source.anchor.s),
+    lock.s > 0 && lock.s < closure.s && closure.s < section.raster.length,
     'Fork anchors require 0 < lock < closure < every exit seam',
-  );
-  check(
-    section.incoming.every((l) => l.destination.anchor.s < lock.s),
-    'Fork lock must follow its entry',
   );
   for (const placement of conditional) {
     check(
-      section.outgoing.some((link) => link.source.carriageway === placement.unselected),
+      section.outgoing.some((link) => link.from.carriageway === placement.unselected),
       'Road sign state must name a canonical exit carriageway',
     );
     check(placement.anchor.s >= lock.s && placement.anchor.s <= closure.s, 'Road signs lie between lock and closure');
     check(
-      section.outgoing.every(
-        (link) =>
-          placement.anchor.s + placement.instance.asset.source.width / SPRITE_SOURCE_TEXELS_PER_METER <
-          link.source.anchor.s - link.overlap.behind,
-      ),
-      'State-selected signs must precede common exit guards',
+      placement.anchor.s + placement.instance.asset.source.width / SPRITE_SOURCE_TEXELS_PER_METER <
+        section.raster.length,
+      'State-selected signs must precede the exit cut',
     );
   }
-  requireCourseStraightSpan(
-    section,
-    lock.s,
-    closure.s,
-    section.coordinates.toWorld(lock.s, 0, createPlanCoordinateSample()).heading,
-    path,
-  );
   const regions = section.regionPartition.regions.filter((b) => b.start.s <= lock.s && b.end.s > lock.s);
   check(regions.length > 0, 'Lock line needs supported Regions');
   for (const region of regions) {
@@ -85,14 +69,14 @@ export function compileCourseFork(
   );
   const roads = section.outgoing
     .map((link) => {
-      const parts = ordered.filter((b) => link.source.carriageway.regions.includes(b.region));
+      const parts = ordered.filter((b) => link.from.carriageway.regions.includes(b.region));
       check(parts.length > 0, 'Each exit carriageway must have positive width at lock');
       return { link, left: parts[0]!.left, right: parts.at(-1)!.right };
     })
     .sort((a, b) => a.left - b.left);
   check(
     ordered.every(
-      (b) => b.region.role !== 'pavement' || roads.some((r) => r.link.source.carriageway.regions.includes(b.region)),
+      (b) => b.region.role !== 'pavement' || roads.some((r) => r.link.from.carriageway.regions.includes(b.region)),
     ),
     'Every lock-line pavement belongs to an exit carriageway',
   );

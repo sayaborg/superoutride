@@ -54,7 +54,7 @@ export async function readCourseReference(
       routes.push(history);
       return;
     }
-    for (const link of section.outgoing) enumerate(link.destination.section, [...history, link]);
+    for (const link of section.outgoing) enumerate(link.to.section, [...history, link]);
   };
   if (course.type === 'CIRCUIT') routes.push([]);
   else enumerate(course.entry, []);
@@ -70,7 +70,7 @@ export async function readCourseReference(
     fail(route !== undefined, 'unknown route');
     fail(run.lapCount === course.rules.maxLaps && record(run.metrics).recoveries === 0, 'incomplete or recovered run');
     const events = array(run.events).map(record);
-    const itinerary = [course.entry, ...route!.map((l) => l.destination.section)];
+    const itinerary = [course.entry, ...route!.map((l) => l.to.section)];
     const expected: { gate: CompiledCourseLandmark; lap: number }[] = [];
     for (let lap = 1; lap <= course.rules.maxLaps; lap++)
       for (const section of itinerary) {

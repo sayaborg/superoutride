@@ -50,7 +50,7 @@ if (!result.ok) {
             right: 0,
           }),
           carriageways: section.carriageways.length,
-          ports: section.ports.length,
+          outgoingLinks: section.outgoing.length,
           fork:
             section.fork === null
               ? null

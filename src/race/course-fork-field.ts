@@ -72,11 +72,11 @@ export function createCourseForkField(sections: readonly CompiledSection[]) {
       const fork = section.fork;
       if (!fork) return lane;
       let road =
-        locks.get(fork)?.source.carriageway ??
-        fork.regions[lane < 0 ? 0 : fork.regions.length - 1]!.link.source.carriageway;
+        locks.get(fork)?.from.carriageway ??
+        fork.regions[lane < 0 ? 0 : fork.regions.length - 1]!.link.from.carriageway;
       const at = Math.min(section.coordinates.domain.end, Math.max(section.coordinates.domain.start, s));
       if (!road.regions.some((b) => b.start.s <= at && b.end.s >= at))
-        road = section.ports.find((p) => p.kind === 'entry')!.carriageway;
+        road = section.carriageways.find((c) => c.regions.some((r) => r.start.s === 0 && r.end.s > 0))!;
       return center(road, at);
     },
     legalTarget(session: Session, s: number, l: number) {
@@ -85,8 +85,8 @@ export function createCourseForkField(sections: readonly CompiledSection[]) {
       const link = fork && locks.get(fork);
       if (!fork || !link || s < fork.closure.s) return null;
       const region = courseRegionAt(section.regionPartition, Math.min(s, section.coordinates.domain.end), l);
-      return region?.role === 'pavement' && !link.source.carriageway.regions.includes(region)
-        ? { s, l: center(link.source.carriageway, s) }
+      return region?.role === 'pavement' && !link.from.carriageway.regions.includes(region)
+        ? { s, l: center(link.from.carriageway, s) }
         : null;
     },
   });

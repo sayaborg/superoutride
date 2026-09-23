@@ -8,7 +8,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **6-8 — Cut-line seams**.
+Next PR: **6-8b — Remove unused overlap machinery**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -18,8 +18,8 @@ PRs hold rationale and verification evidence.
 
 Make authored plan and vertical geometry authoritative, with rendering-only approximations and simpler connections.
 
-- **6-8 — Cut-line seams:** replace overlaps with cut lines, remove Port, `Section.start` and overlap machinery, rename `Link.source` according to the glossary, and review the straight requirement for parallel fork intervals. Rewrite provisional course lengths as round authored values rather than old-ruler compensation values such as `524.9207...`.
-- **6-9 — Views and occurrences:** minimize their procedures and name occurrence-view replacements (`createView`, `CourseGeometryView` and their adapters) according to the glossary. Limit Section-only `locateLocal` scanning to the search window interval.
+- **6-8b — Remove unused overlap machinery:** delete `course-overlap-stations.ts`, `course-band-overlap.ts`, `course-overlap-domain.ts` and the unreachable qualifiers/helpers in `course-physical-overlap.ts` and `course-presentation-overlap.ts`. Move the two live query-domain wrappers to appropriately named modules. Remove `CompiledPort`, `LegacyOverlapLink`, `coursePortLateral`, the unused `positionToleranceMeters` and `headingToleranceRadians` aliases, `COURSE_PHYSICAL_RECIPE.overlap`, overlap-only diagnostic codes (`invalid_port`, `nonstraight_overlap`, `invalid_overlap`, `overlap_geometry_mismatch`, `unrepresentable_overlap`, `nonhorizontal_overlap`, `physical_height_mismatch`, `physical_support_mismatch`, `presentation_missing`, `presentation_ground_mismatch`, `presentation_phase_mismatch`, `presentation_environment_mismatch`, `presentation_scenery_mismatch`) and `COURSE_DOCUMENT_LIMITS.linkCells`. Retain the live consumer demand and cut-line checks.
+- **6-9 — Views and occurrences:** simplify cut-line motion admission, physical gates, recovery, occurrence prepare/commit and view span assembly, currently changed only as needed to read full `[0,L]` ownership, cut-line crossings and end-to-start chainage rebasing. Minimize their procedures and name occurrence-view replacements (`createView`, `CourseGeometryView` and their adapters) according to the glossary. Limit Section-only `locateLocal` scanning to the search window interval.
 - **6-10 — Local tolerances:** clarify each tolerance's basis and owning algorithm, including the `1e-14` tangent-intersection threshold in `plan-domain-injectivity.ts`.
 
 ## Stage 7 — Course format

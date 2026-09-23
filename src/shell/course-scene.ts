@@ -11,7 +11,7 @@ import { RENDER_NEAR_DEPTH_METERS, RENDER_FAR_DEPTH_METERS } from '../view/camer
 import type { CompiledSection } from '../course/compiler/course-graph.js';
 import type { CameraState } from '../view/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../view/current-camera-profile.js';
-import { coursePortLateral } from '../course/compiler/course-links.js';
+import { courseCutLateral, entryCut } from '../course/compiler/course-links.js';
 import { recoverVehicleToPlanCoordinate, type RecoveryState } from '../race/recovery.js';
 import type { ArcadeVehicleState } from '../vehicle/physics/arcade-vehicle-physics.js';
 import type { VehicleRenderReadState } from '../vehicle/physics/vehicle-contract.js';
@@ -31,12 +31,13 @@ export function createCourseScene(
   ground: CourseGround,
   assets: SpriteAssets,
   displaySettings: DisplaySettings = createDisplaySettings(),
+  rearmostGridS = CURRENT_CAMERA_PROFILE.dCam,
 ) {
   const sections = new Set<CompiledSection>();
   const visit = (section: CompiledSection) => {
     if (sections.has(section)) return;
     sections.add(section);
-    section.outgoing.forEach((link) => visit(link.destination.section));
+    section.outgoing.forEach((link) => visit(link.to.section));
   };
   visit(section);
   const links = [...sections].flatMap((section) => section.outgoing);
@@ -45,7 +46,7 @@ export function createCourseScene(
     if (
       section.fork &&
       section.fork.lock.s + Math.max(RENDER_FAR_DEPTH_METERS, ENVELOPE_DRIVER.lookahead) + step.ahead >
-        Math.min(...section.outgoing.map((link) => link.source.anchor.s))
+        Math.min(...section.outgoing.map((link) => link.from.anchor.s))
     )
       throw new RangeError('Fork parent must cover pre-lock render and driver queries through one fixed step');
   }
@@ -69,9 +70,9 @@ export function createCourseScene(
   const graph = createCourseDrivingGraph(section, readers);
   const session = graph.createSession();
   required(rendering.createView(session.view));
-  const entry = section.ports.find((port) => port.kind === 'entry');
-  if (!entry || entry.anchor.s < CURRENT_CAMERA_PROFILE.dCam)
-    throw new RangeError('Driving requires an entry Port with camera space behind it');
+  const entry = entryCut(section, '/entrySectionId');
+  if (rearmostGridS < CURRENT_CAMERA_PROFILE.dCam)
+    throw new RangeError('Driving requires the rearmost grid position to have camera space behind it');
   const renderWorkspace = createRenderWorkspace();
   const worldSprites: CourseSprite[] = [];
   let lastView: typeof session.view | null = null;
@@ -95,7 +96,7 @@ export function createCourseScene(
       recoverVehicleToPlanCoordinate(session.view.world, vehicle, {
         state: recovery,
         reason: 'wrong-course',
-        target: { s: entry.anchor.s, l: coursePortLateral(entry) },
+        target: { s: entry.anchor.s, l: courseCutLateral(entry) },
       });
       return true;
     },

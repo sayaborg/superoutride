@@ -12,9 +12,15 @@ import { readCourseDocument, type CourseDocument, type SectionDocument } from '.
 import { COURSE_GEOMETRY_RECIPE, compileCourseGeometry, resolveCourseAnchor } from '../course-geometry.js';
 import { compileCourseRegionGeometry } from '../course-region-geometry.js';
 import type { CompiledBoundary, CompiledRegion, CompiledCarriageway } from '../course-regions.js';
-import type { CompiledSection, CompiledPort, CompiledLink } from './course-graph.js';
+import type { CompiledSection, CompiledLink } from './course-graph.js';
 import { COURSE_PHYSICAL_RECIPE, compileCoursePhysicalContent } from './course-physical-content.js';
-import { COURSE_LINK_RECIPE, compileCoursePort, compileCourseLink, validateCourseTopology } from './course-links.js';
+import {
+  COURSE_LINK_RECIPE,
+  compileCourseCut,
+  entryCut,
+  compileCourseLink,
+  validateCourseTopology,
+} from './course-links.js';
 import {
   COURSE_IMAGE_SOURCE_RECIPE,
   compileCourseImageSources,
@@ -26,8 +32,7 @@ import type { CourseSceneryInstance } from '../course-presentation.js';
 import { compileCourseRules } from './course-rules.js';
 import { compileCourseFork } from './course-fork.js';
 
-interface SectionDraft extends Omit<CompiledSection, 'ports' | 'incoming' | 'outgoing' | 'fork'> {
-  readonly ports: CompiledPort[];
+interface SectionDraft extends Omit<CompiledSection, 'incoming' | 'outgoing' | 'fork'> {
   readonly incoming: CompiledLink[];
   readonly outgoing: CompiledLink[];
   fork: CompiledSection['fork'];
@@ -54,7 +59,7 @@ export interface CompiledCourse {
 
 const COURSE_COMPILER = Object.freeze({
   id: 'superoutride.course-compiler',
-  version: 20,
+  version: 21,
   links: COURSE_LINK_RECIPE,
   physical: COURSE_PHYSICAL_RECIPE,
   images: COURSE_IMAGE_SOURCE_RECIPE,
@@ -209,24 +214,10 @@ function compileSection(
       section.id,
       carriageways,
     ),
-    ports: [],
     incoming: [],
     outgoing: [],
     fork: null,
   };
-  const carriagewayTable = new Map(carriageways.map((road) => [road.id, road]));
-  result.ports.push(
-    ...compileStage(section.ports, (port, index) => {
-      const at = `${path}/ports/${index}`;
-      return compileCoursePort(
-        port,
-        result,
-        resolve(port.anchor, `${at}/anchor`),
-        reference(carriagewayTable, port.carriagewayId, `${at}/carriagewayId`),
-        at,
-      );
-    }),
-  );
   return {
     section: result,
     fork:
@@ -290,21 +281,29 @@ export async function compileCourseDocument(
     );
     const sections = drafts.map((draft) => draft.section);
     const sectionTable = new Map(sections.map((section) => [section.id, section]));
-    const portTables = new Map(
-      sections.map((section) => [section, new Map(section.ports.map((port) => [port.id, port]))]),
-    );
     const entry = reference(sectionTable, document.entrySectionId, '/entrySectionId');
-    const resolvePort = (endpoint: CourseDocument['links'][number]['source'], path: string) => {
-      const section = reference(sectionTable, endpoint.sectionId, `${path}/sectionId`);
-      return { section, port: reference(portTables.get(section)!, endpoint.portId, `${path}/portId`) };
-    };
+    // Every destination and the course entrance has one unambiguous entry cross-section.
+    const entrances = new Map(
+      sections
+        .filter((s) => s === entry || document.links.some((l) => l.to.sectionId === s.id))
+        .map((s) => [
+          s,
+          entryCut(s, `/sections/${document.sections.findIndex((item) => item.id === s.id)}/carriageways`),
+        ]),
+    );
     const links = compileStage(document.links, (source, index) => {
       const path = `/links/${index}`;
-      const from = resolvePort(source.source, `${path}/source`),
-        to = resolvePort(source.destination, `${path}/destination`);
-      const link = compileCourseLink(source.id, from.port, to.port, source.overlap, path);
-      from.section.outgoing.push(link);
-      to.section.incoming.push(link);
+      const from = reference(sectionTable, source.from.sectionId, `${path}/from/sectionId`);
+      const to = reference(sectionTable, source.to.sectionId, `${path}/to/sectionId`);
+      const road = reference(
+        new Map(from.carriageways.map((r) => [r.id, r])),
+        source.from.carriagewayId,
+        `${path}/from/carriagewayId`,
+      );
+      const cut = compileCourseCut(from, road, from.raster.length, `${path}/from`);
+      const link = compileCourseLink(source.id, cut, entrances.get(to)!, path);
+      from.outgoing.push(link);
+      to.incoming.push(link);
       return link;
     });
     validateCourseTopology(document.type, entry, sections, links);
@@ -317,7 +316,6 @@ export async function compileCourseDocument(
     const rules = compileCourseRules(document, sections, entry);
     // Close every cycle before freezing/publication. No draft or construction table escapes.
     for (const section of sections) {
-      Object.freeze(section.ports);
       Object.freeze(section.incoming);
       Object.freeze(section.outgoing);
       Object.freeze(section);

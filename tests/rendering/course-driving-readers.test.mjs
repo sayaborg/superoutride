@@ -41,7 +41,7 @@ test('course physical source drives a race session without any presentation or i
   const session = createCourseDrivingGraph(compiled.value.entry, source).createSession();
   assert.ok(!('presentation' in session.view));
   const profile = VEHICLE_CATALOG[0];
-  const s = compiled.value.entry.ports.find((port) => port.kind === 'entry').anchor.s;
+  const s = 10;
   const vehicle = createArcadeVehicle(profile.profile, session.view.world, { s, l: 0, initialSpeed: 0 });
   const actor = { vehicle, recovery: createRecoveryState(vehicle) };
   for (let i = 0; i < 60; i++) {
@@ -101,8 +101,8 @@ test('rendering overlays the same immutable occurrence mappings across forward a
   const profile = VEHICLE_CATALOG[0].profile;
   const link = course.entry.outgoing[0];
   for (const [direction, port, sign] of [
-    ['forward', link.source, 1],
-    ['reverse', link.destination, -1],
+    ['forward', link.from, 1],
+    ['reverse', link.to, -1],
   ]) {
     const previous = session.view.world.coordinates.toWorld(port.anchor.s - sign, 0, createPlanCoordinateSample());
     const vehicle = createArcadeVehicle(profile, session.view.world, {

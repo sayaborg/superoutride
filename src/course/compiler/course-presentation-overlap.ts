@@ -1,17 +1,11 @@
 import { compareCourseBandOverlap } from './course-band-overlap.js';
 import { wrapAngle } from '../../core/math.js';
-import {
-  CourseInputError,
-  CourseQualificationError,
-  courseFailures,
-  courseSuccess,
-  requireCourse,
-} from '../course-diagnostics.js';
+import { courseSuccess, requireCourse } from '../course-diagnostics.js';
 import type { CoursePresentation } from '../course-presentation.js';
-import type { CompiledLink, CompiledPort } from './course-graph.js';
+import type { CompiledLink, LegacyOverlapLink, CompiledPort } from './course-graph.js';
 import { COURSE_LINK_RECIPE, coursePortLateral } from './course-links.js';
 import { compileCourseConsumerDemand, type CourseQueryExtent } from './course-consumer-demand.js';
-import { requireCanonicalCourseLinks, courseOverlapHeight } from './course-overlap-domain.js';
+import { courseOverlapHeight } from './course-overlap-domain.js';
 
 const COURSE_PRESENTATION_OVERLAP_RECIPE = Object.freeze({
   id: 'superoutride.presentation-overlap',
@@ -30,9 +24,9 @@ function presentation(port: CompiledPort): CoursePresentation {
   return p;
 }
 
-function sameEnvironment(link: CompiledLink, as: number, bs: number) {
-  const ap = link.source,
-    bp = link.destination;
+function sameEnvironment(link: LegacyOverlapLink, as: number, bs: number) {
+  const ap = link.from,
+    bp = link.to;
   const ae = at(presentation(ap).environments, as),
     be = at(presentation(bp).environments, bs);
   requireCourse(
@@ -51,20 +45,20 @@ function sameEnvironment(link: CompiledLink, as: number, bs: number) {
   );
 }
 
-function groundAndEnvironment(link: CompiledLink, domain: CourseQueryExtent): void {
-  const a = presentation(link.source),
-    b = presentation(link.destination);
+function groundAndEnvironment(link: LegacyOverlapLink, domain: CourseQueryExtent): void {
+  const a = presentation(link.from),
+    b = presentation(link.to);
   requireCourse(
-    courseOverlapHeight(link.source, link.overlap, '') === courseOverlapHeight(link.destination, link.overlap, ''),
+    courseOverlapHeight(link.from, link.overlap, '') === courseOverlapHeight(link.to, link.overlap, ''),
     '',
     'Presentation height disagrees',
     'presentation_ground_mismatch',
   );
   const stations = compareCourseBandOverlap(link, a.ground, b.ground, domain);
-  for (const delta of stations) sameEnvironment(link, link.source.anchor.s + delta, link.destination.anchor.s + delta);
+  for (const delta of stations) sameEnvironment(link, link.from.anchor.s + delta, link.to.anchor.s + delta);
 }
 
-function scenery(port: CompiledPort, overlap: CompiledLink['overlap'], domain: CourseQueryExtent) {
+function scenery(port: CompiledPort, overlap: LegacyOverlapLink['overlap'], domain: CourseQueryExtent) {
   const result = presentation(port).scenery.flatMap((placement) => {
     const s = placement.anchor.s - port.anchor.s,
       l = placement.l - coursePortLateral(port);
@@ -89,53 +83,19 @@ function scenery(port: CompiledPort, overlap: CompiledLink['overlap'], domain: C
 
 /** Explicit source/filter/anchor query domains only; actual camera containment and runtime readiness are separate. */
 export function compileCoursePresentationDomains(links: readonly CompiledLink[], input: unknown) {
-  requireCanonicalCourseLinks(links);
   const demand = compileCourseConsumerDemand(input, consumers);
   if (!demand.ok) return demand;
-  const errors: CourseQualificationError[] = [];
-  for (const [index, link] of links.entries()) {
-    const missing = demand.value.requirements.filter(
-      ({ bounds }) => bounds.behind > link.overlap.behind || bounds.ahead > link.overlap.ahead,
-    );
-    for (const { consumer, bounds } of missing)
-      errors.push(
-        new CourseQualificationError(
-          'coverage_gap',
-          index,
-          `Required [-${bounds.behind}, ${bounds.ahead}] exceeds common guard [-${link.overlap.behind}, ${link.overlap.ahead}]`,
-          consumer,
-        ),
-      );
-    if (missing.length) continue;
-    try {
-      const domain = demand.value.bounds;
-      groundAndEnvironment(link, domain);
-      const as = scenery(link.source, link.overlap, domain),
-        bs = scenery(link.destination, link.overlap, domain);
-      const destination = new Map(bs.map((p) => [p.instance, p]));
-      requireCourse(
-        as.length === bs.length &&
-          as.every((p) => {
-            const q = destination.get(p.instance);
-            return q !== undefined && p.s === q.s && p.l === q.l && p.y === q.y;
-          }),
-        '',
-        'Scenery identity or mapped placement disagrees',
-        'presentation_scenery_mismatch',
-      );
-    } catch (error) {
-      if (!(error instanceof CourseInputError)) throw error;
-      errors.push(new CourseQualificationError(error.diagnostic.code, index, error.message));
-    }
-  }
-  return errors.length
-    ? courseFailures<never>(errors)
-    : courseSuccess(
-        Object.freeze({
-          scope: 'presentation-query-domain' as const,
-          recipe: COURSE_PRESENTATION_OVERLAP_RECIPE,
-          links: Object.freeze([...links]),
-          demand: demand.value,
-        }),
-      );
+  // Cut lines do not require shared appearance or a presentation overlap guard.
+  return courseSuccess(
+    Object.freeze({
+      scope: 'presentation-query-domain' as const,
+      recipe: COURSE_PRESENTATION_OVERLAP_RECIPE,
+      links: Object.freeze([...links]),
+      demand: demand.value,
+    }),
+  );
 }
+
+// Retained overlap helpers are removed in 6-8b.
+void groundAndEnvironment;
+void scenery;

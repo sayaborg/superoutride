@@ -91,7 +91,13 @@ try {
         })
       : sprites;
   const displaySettings = createDisplaySettings();
-  const scene = createCourseScene(course.entry, ground, sprites, displaySettings);
+  const scene = createCourseScene(
+    course.entry,
+    ground,
+    sprites,
+    displaySettings,
+    Math.min(...(course.rules?.grid.map((slot) => slot.anchor.s) ?? [Infinity])),
+  );
   const slot = session.grid[0]!;
   const shell = createBrowserDrivingShell(scene.world, slot.l, {
     s: slot.anchor.s,

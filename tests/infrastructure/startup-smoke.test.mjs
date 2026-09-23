@@ -21,9 +21,8 @@ for (const stem of ['ribbon-coast', 'ribbon-fork', 'ribbon-ring'])
     assert.equal(settings.bandMethod, 'LEVEL-POINT');
     const scene = createCourseScene(course.entry, await loadCourseGround(course), await readVehicleSprites(), settings);
     const entry = VEHICLE_CATALOG[0];
-    const port = course.entry.ports.find((port) => port.kind === 'entry');
     const vehicle = createArcadeVehicle(entry.profile, scene.world, {
-      s: port.anchor.s,
+      s: course.rules.grid[0].anchor.s,
       l: 0,
       initialSpeed: 0,
       torqueProtection: entry.torqueProtection,

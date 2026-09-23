@@ -55,7 +55,7 @@ export function createCourseRace(options: {
     ? compileEnvelopeDriver(options.rivalEnvelope, options.session.rivalUtilization, options.rivalEnvelope.maximumSpeed)
     : null;
   const clock = createCheckpointClock(budgets?.initialMs ?? null);
-  const entryS = course.entry.ports.find((p) => p.kind === 'entry')!.anchor.s;
+  const entryS = 0;
   const progress = createCourseRaceProgress(course, configuration.lapCount);
   const forks = createCourseForkField(course.sections);
   const competitor = (id: string, actor: Actor, session: Session, targetL: number) => ({
@@ -259,7 +259,8 @@ export function createCourseRace(options: {
         const section = c.session.history.active.section;
         current.x = c.actor.vehicle.x;
         current.z = c.actor.vehicle.z;
-        current.s = c.actor.vehicle.course.s;
+        // The crossing step can finish just beyond the source cut before the gate commits.
+        current.s = Math.max(0, Math.min(section.raster.length, c.actor.vehicle.course.s));
         const transition = c.session.observeStep(c.actor, previous, motion.recovered);
         motion.recovered ||= transition === 'recovered';
         const update = motion.recovered
@@ -317,7 +318,7 @@ export function createCourseRace(options: {
         if (course.type === 'CIRCUIT')
           state = `LAP ${Math.min(configuration.lapCount, player.progress.acceptedFinishCount + 1)}/${configuration.lapCount}`;
         else {
-          const choice = course.entry.fork ? (forks.choice(course.entry.fork)?.source.carriageway.id ?? 'OPEN') : 'GO';
+          const choice = course.entry.fork ? (forks.choice(course.entry.fork)?.from.carriageway.id ?? 'OPEN') : 'GO';
           state = `ROUTE ${choice}`;
         }
       }

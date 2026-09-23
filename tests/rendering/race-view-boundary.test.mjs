@@ -36,8 +36,8 @@ test('committed forward/reverse seams publish transforms without owning or mutat
   rig.verticalCorrection = 0.8;
   rig.initialized = true;
   for (const [direction, port, sign] of [
-    ['forward', link.source, 1],
-    ['reverse', link.destination, -1],
+    ['forward', link.from, 1],
+    ['reverse', link.to, -1],
   ]) {
     const previous = spawn(port.anchor.s - sign);
     const vehicle = spawn(port.anchor.s + sign);

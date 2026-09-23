@@ -35,12 +35,11 @@ export interface CourseRaceEvent {
 /** Gate geometry is prepared once from authored rules; frame transitions never award clock credit. */
 export function createCourseRaceProgress(course: CompiledCourse, lapCount: number) {
   if (!course.rules) throw new RangeError('Driving Session requires authored course rules');
-  const entryS = (section: CompiledSection) => section.ports.find((p) => p.kind === 'entry')!.anchor.s;
   const sample = (vehicle: ArcadeVehicleState) => ({ x: vehicle.x, z: vehicle.z, s: vehicle.course.s });
   const rules = new Map(
     course.rules.intervals.map(({ section, checkpoints, finish }) => {
       const authored = [...checkpoints, ...(finish ? [finish] : [])];
-      const end = Math.min(...section.outgoing.map((l) => l.source.anchor.s));
+      const end = Math.min(...section.outgoing.map((l) => l.from.anchor.s));
       const lap = compileOrderedRaceCourseRules(section.coordinates, [
         ...authored.map((g) => ({
           kind: g === finish ? ('finish' as const) : ('checkpoint' as const),
@@ -73,8 +72,8 @@ export function createCourseRaceProgress(course: CompiledCourse, lapCount: numbe
     const circuit = {
       id: course.id,
       lapCount,
-      entryS: entryS(section),
-      lapLength: loop.source.anchor.s - entryS(section),
+      entryS: 0,
+      lapLength: loop.from.anchor.s - 0,
       lap: rules.get(section)!.lap,
     };
     return (_session: Session, vehicle: () => ArcadeVehicleState) => {
@@ -121,8 +120,8 @@ export function createCourseRaceProgress(course: CompiledCourse, lapCount: numbe
       sProgress: 0,
     };
     const publish = () => {
-      state.validatedProgressFloor = base + Math.max(0, local.validatedProgressFloor - entryS(expected));
-      state.sProgress = base + Math.max(0, local.sProgress - entryS(expected));
+      state.validatedProgressFloor = base + Math.max(0, local.validatedProgressFloor - 0);
+      state.sProgress = base + Math.max(0, local.sProgress - 0);
       if (local.status === 'FINISHED' && expected.outgoing.length === 0) {
         state.status = 'FINISHED';
         state.acceptedFinishCount = 1;
@@ -157,14 +156,10 @@ export function createCourseRaceProgress(course: CompiledCourse, lapCount: numbe
       resync() {
         if (state.status === 'FINISHED') return;
         const active = session.history.active;
-        if (
-          active.section !== expected &&
-          local.status === 'FINISHED' &&
-          active.incoming?.source.section === expected
-        ) {
-          base += local.validatedProgressFloor - entryS(expected);
+        if (active.section !== expected && local.status === 'FINISHED' && active.incoming?.from.section === expected) {
+          base += local.validatedProgressFloor - 0;
           expected = active.section;
-          const s = entryS(expected),
+          const s = 0,
             p = expected.coordinates.toWorld(s, 0, createPlanCoordinateSample());
           local = createOrderedRaceProgressState(rules.get(expected)!.lap, { ...p, s });
           local.sProgress = s;

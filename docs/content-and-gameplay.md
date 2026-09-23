@@ -8,8 +8,7 @@ owns image formats and compilation; [Browser](browser.md) owns operation and URL
 
 A Section is a reusable finite road/content chart. A Boundary is a longitudinal lateral-edge profile;
 a Region is a structural partition between two Boundaries with an active interval and role. A Carriageway
-groups pavement Regions. A Port is an oriented connection anchor in a Section; a Link connects an exit
-Port to an entry Port. An occurrence is a traversal of a Section with a particular incoming Link and
+groups pavement Regions. A Link connects one Carriageway at a Section end to another Section start. An occurrence is a traversal of a Section with a particular incoming Link and
 history. A view is a bounded reader over occurrence spans in one frame. CompiledCourse is the immutable
 reference graph. An actor's frame commit changes its occurrence and coordinate basis after a physical seam crossing.
 
@@ -20,7 +19,7 @@ structural partitions with material bindings. One concept has one name in both s
 Checkpoints, starts, finishes and environment changes are independent of Section boundaries.
 Source identity, traversal identity and race credit are distinct.
 
-## CourseDocument v14
+## CourseDocument v15
 
 The saved format is compact UTF-8 JSON. All declared fields are required; explicit null represents
 absent optional content. Unknown fields fail. Arrays preserve saved order; object-property order and
@@ -28,35 +27,34 @@ whitespace do not affect identity. Normalized records use schema field order and
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 14,
+  format: "superoutride.course", version: 15,
   reference, id, units: {length: "m", angle: "deg"},
   geometryRecipe: {id, version},
   type: "LINEAR" | "BRANCH" | "CIRCUIT", entrySectionId,
   sections, links, assets, sceneryInstances, rules
 }
 Section {
-  id, start: {x, z, heading}, primitives,
+  id, primitives,
   boundaries, regions, height: [{anchor, y, curveLength}],
   physicalBindings: [{regionId, sections: [{anchor, material}]}],
-  carriageways, ports, assetIds, presentation, fork
+  carriageways, assetIds, presentation, fork
 }
 ```
 
 ### Geometry and reference records
 
-| Record           | Fields                                                                                           |
-| ---------------- | ------------------------------------------------------------------------------------------------ |
-| Straight         | `id`, `kind: "straight"`, `length`                                                               |
-| Circular arc     | `id`, `kind: "arc"`, `radius`, signed degree `turn`                                              |
-| Absolute anchor  | `kind: "absolute"`, `s`                                                                          |
-| Primitive anchor | `kind: "primitive"`, `primitiveId`, `fraction`                                                   |
-| Boundary         | `id`, `knots: [{anchor,l}]`                                                                      |
-| Region           | `id`, `start`, `end`, `leftBoundaryId`, `rightBoundaryId`, `role`                                |
-| Carriageway      | `id`, `regionIds`                                                                                |
-| Port             | `id`, `kind: "entry" \| "exit"`, `anchor`, `carriagewayId`                                       |
-| Link             | `id`, `source: {sectionId,portId}`, `destination: {sectionId,portId}`, `overlap: {behind,ahead}` |
-| Asset reference  | `id`, `format`, `version`, lowercase `sha256`                                                    |
-| Scenery instance | `id`, `assetId`, `paletteRgb555` (null or one declared base-palette replacement)                 |
+| Record           | Fields                                                                           |
+| ---------------- | -------------------------------------------------------------------------------- |
+| Straight         | `id`, `kind: "straight"`, `length`                                               |
+| Circular arc     | `id`, `kind: "arc"`, `radius`, signed degree `turn`                              |
+| Absolute anchor  | `kind: "absolute"`, `s`                                                          |
+| Primitive anchor | `kind: "primitive"`, `primitiveId`, `fraction`                                   |
+| Boundary         | `id`, `knots: [{anchor,l}]`                                                      |
+| Region           | `id`, `start`, `end`, `leftBoundaryId`, `rightBoundaryId`, `role`                |
+| Carriageway      | `id`, `regionIds`                                                                |
+| Link             | `id`, `from: {sectionId,carriagewayId}`, `to: {sectionId}`                       |
+| Asset reference  | `id`, `format`, `version`, lowercase `sha256`                                    |
+| Scenery instance | `id`, `assetId`, `paletteRgb555` (null or one declared base-palette replacement) |
 
 Region roles are `pavement`, `shoulder` or `median`. Asset formats are
 `superoutride.sprite-lod` version 2 and `superoutride.tile-background` version 1.
@@ -78,7 +76,7 @@ These values participate in source identity; compilation consumes the saved geom
 
 IDs are opaque nonblank strings without surrounding whitespace and compare exactly. Course ID is
 external identity. Section, Link, asset and scenery-instance IDs each have a document-wide scope.
-Primitive, Boundary, Region, Carriageway and Port IDs each have their own Section-local scope;
+Primitive, Boundary, Region and Carriageway IDs each have their own Section-local scope;
 scenery placement and row IDs also have their declared Section-local scopes. Duplicate IDs fail. References
 resolve in their named scopes rather than by array position.
 
@@ -145,7 +143,7 @@ shared image formats.
 
 Scenery placements resolve document-wide instances. `unselectedCarriagewayId` is null for ordinary
 scenery or names a canonical exit Carriageway. Such signs lie from lock through closure, before the
-common exit guard, and appear when the field selects another exit. Their state follows occurrence history.
+exit cut, and appear when the field selects another exit. Their state follows occurrence history.
 
 Rows use a half-open interval with placements at `start+index*spacing`. The side is left/right;
 nonnegative offset follows the corresponding side of the referenced varying Boundary. Expanded
@@ -170,21 +168,20 @@ lap values must agree. The composition root resolves vehicle IDs against the cat
 
 ### Numeric and resource domains
 
-All numbers are finite. Length/radius and Link overlap extents are in `(0,100000]` m. Start X/Z are
-within +/-1000000 m; start heading and nonzero arc turn are within +/-360 degrees. Absolute anchors
+All numbers are finite. Length/radius are in `(0,100000]` m; nonzero arc turn is within +/-360 degrees. Absolute anchors
 are in `[0,100000]` m and primitive fractions in `[0,1]`. Lateral values are within +/-1000 m;
 heights within +/-10000 m. Recipe versions are integers from 1 through 65535. Resolved values must also fit their finite Section
 and produce positive representable intervals.
 
 `COURSE_DOCUMENT_LIMITS` defines 4 MiB UTF-8 JSON, 128 UTF-16 code units per ID, 16 Sections,
 48 Links and 256 assets. Each Section admits 2048 plan primitives, 32 Boundaries, 256 knots per
-Boundary, 32 Regions, 16 Carriageways, 4 Ports, 256 asset references, 256 height nodes, 32 physical
+Boundary, 32 Regions, 16 Carriageways, 256 asset references, 256 height nodes, 32 physical
 bindings and 256 material changes per binding. Compiled Section limits are 16384 Raster segments,
-16384 mapped-region cells and 100000 m chainage. A Link admits 8192 overlap cells.
+16384 mapped-region cells and 100000 m chainage.
 
 ## Geometry recipe and bindings
 
-The saved `geometryRecipe` field is `{id,version}`; CourseDocument v14 admits
+The saved `geometryRecipe` field is `{id,version}`; CourseDocument v15 admits
 `superoutride.plan-raster` version 1. The saved straight, circular-arc, absolute-anchor and
 primitive-anchor fields are listed above. [Architecture](architecture.md#plan-authority-and-raster)
 owns their planar interpretation, Raster derivation, coordinate domain and geometric validation.
@@ -217,47 +214,39 @@ subsequent changes precede its end. Materials are ASPHALT, SHOULDER, GRASS, DIRT
 Missing, duplicate, unknown or uncovered bindings fail. Outside/gaps are VOID. Supported bounds
 include active supported endpoints and interior Boundary knots. Ground appearance remains independent.
 
-## Ports, Links and topology
+## Cut lines, Links and topology
 
-A Port lies strictly inside its Section and references a positive-width Carriageway. Its pose uses
-the outer-edge center and authoritative plan heading. Each Link connects an exit to an entry using the
-[Port-derived upright transform](architecture.md#course-frames).
+Each Section starts at plan pose `(0,0,0)` and owns its full `[0,L]` ruler. Its entry is the cut
+at `s=0`; its outgoing cut is `(s=L, Carriageway)`. The course entry and every Link destination
+have exactly one positive-width Carriageway at `s=0`. Every outgoing Link names a positive-width
+Carriageway at `s=L`; outgoing Links from one Section use distinct Carriageways. Violations produce
+structured compilation diagnostics.
 
-Link recipe `superoutride.carriageway-link` version 1 requires positive overlap extents fitting both
-charts, authored straight primitives throughout each guard and Raster headings agreeing within 1e-10 radians.
-Selected Carriageways have positive contiguous pavement coverage and matching transformed Raster and
-authoritative-plan outer edges throughout the overlap, within 1e-7 m. Internal pavement subdivisions may differ.
-Distinct source stations must remain representable in the common seam-relative ruler.
+`from` identifies the outgoing Section and Carriageway; `to` identifies the destination Section.
+The rigid yaw/translation maps the outgoing Carriageway center and heading at `L` to the unique
+incoming center and heading at zero. Each Link independently checks that transformed left and right
+edges match within 1e-7 m, heights within 1e-8 m and profile grades within 1e-10.
+These bounds cover double-precision evaluation of boundaries, plan coordinates and rigid rotation
+at the admitted 1,000,000 m coordinate limit; they are not a visual or driving allowance.
+Other Region boundaries, materials, Bands and appearance may change at the cut.
 
-The graph has an explicit entry. Each Section has at most one entry Port shared by incoming merge
-Links. Every exit has exactly one outgoing Link and follows entry with positive chainage span.
-Fork exits use distinct Carriageways; terminal Sections have no exits. All Sections are reachable.
+The graph has an explicit entry. All Sections are reachable. LINEAR is a finite chain with at most
+one incoming/outgoing Link per Section. BRANCH is a finite acyclic graph with two/three-way forks
+and merges. Their entry has no incoming Link. CIRCUIT is one Section with an end-to-start loop;
+its endpoint poses may differ in native coordinates.
 
-LINEAR is a finite chain with at most one incoming/outgoing Link per Section. BRANCH is a finite
-acyclic graph with two/three-way forks and merges. Their entry has no incoming Link.
-CIRCUIT is one Section with an exit-to-entry loop and a positive source lap span. The loop closes
-topology through its transform; its endpoint world positions/headings may differ.
-
-### Contact and presentation domains
-
-`compileCoursePhysicalDomains` and `compileCoursePresentationDomains` bind the root's explicit
-contact and fixed-step envelopes over canonical Links. Shell binds both results over the same Links
-and supplies the same pose/step bounds to each. The course-owned physical source requires only the
-physical result; the view-owned rendering source checks their canonical Link agreement. Race uses
-the physical motion guard, which covers the root's identical shared pose/step domain.
-Within the common guard, height, supported materials, Region edges, resolved Band colors, BG and shared
-scenery agree. The root supplies 30 m guards. Longer camera/render, driver and recovery reads
-use source-owned occurrence spans. Domain mismatches identify the Link and affected consumer.
+Physical and presentation domain records carry the root's query bounds and canonical Links to
+readers. Source-owned occurrence spans cover the cut without shared guard content.
 
 ## Compiled identity and project publication
 
-CompiledCourse contains canonical Section, primitive, Boundary, Region, Carriageway, Port, Link,
+CompiledCourse contains canonical Section, primitive, Boundary, Region, Carriageway, Link,
 asset and landmark references. Merges reuse the same successor; loops refer to the same source.
 Owned records and arrays are immutable, including nested image data. Live actor, route-lock and
 clock state belong to Sessions. Object identity is local to a compilation; cross-build identity uses digests.
 
 `sourceSha256` hashes normalized input. `buildSha256` hashes `{sourceSha256,compiler,geometryRecipe}`.
-The compiler is `superoutride.course-compiler` version 20, incorporating Link recipe v1, physical
+The compiler is `superoutride.course-compiler` version 21, incorporating Link recipe v2, physical
 recipe v2, image-source recipe v2 and presentation recipe v5. Descriptors include semantic versions
 and operative numeric/data parameters, including material definitions. Source or compiler/recipe
 changes invalidate dependent products.
@@ -291,7 +280,7 @@ successor; repeating the same selection is idempotent. Replacing a selected/visi
 `selection_locked`. `forward()` requires an existing successor or returns `selection_required`.
 Reverse follows the inverse visited Link, including at merges; re-entry uses that same occurrence.
 
-`retainBehind` is reverse-history distance from the latest entered Port. `selectAhead` bounds forward
+`retainBehind` is reverse-history distance from the latest entered Section start. `selectAhead` bounds forward
 selection beyond the active exit; the adjacent occurrence covers the seam even at zero ahead distance.
 `maxOccurrences` is at least two and bounds total retained metadata. Complete intersecting occurrences
 are retained. Exceeding bounds yields `selection_limit` or `occurrence_limit`; reverse beyond retained
@@ -318,8 +307,8 @@ Physics owns `reframeVehicle`; [Architecture](architecture.md#course-frames) own
 
 An exhausted motion domain or unavailable destination uses legal-route recovery on the retained
 selected approach, leaving the active frame and earned progress intact. Recovery/replacement resynchronize
-observations. A source entry retains at least 30 m run-in; reverse/manual recovery past the playable
-entrance returns to its supported Port before the camera observes it.
+observations. The rearmost grid position is at least `D_cam` from the entry cut;
+reverse/manual recovery past the playable entrance returns to its supported entry before rendering.
 
 ## Fork lock and handoff
 
@@ -343,11 +332,10 @@ Rivals immediately follow the selected Carriageway center. Unselected roads show
 signs. At/beyond closure, actors on losing pavement recover at the same chainage onto the selected
 road; progress observations resynchronize. Geometry stays static.
 
-Before lock, parent/common content covers all required queries through fixed-step advance:
-`requiredEnd <= commonEnd <= earliestExitSeam`. After lock the selected Link extends the view.
-At every exit, `parentSpecificVisibleEnd <= exitSeam`; the exclusive visibility end describes approach
-positions, so no parent-specific roads/scenery contribute at the seam. Shared successors use matching
-common overlap; reverse traversal follows the actual predecessor.
+Before lock, the parent covers all required queries through fixed-step advance:
+`requiredEnd <= parentEnd`. After lock the selected Link extends the view.
+At every exit, the parent owns its whole `[0,L]` interval. The successor starts at the cut;
+reverse traversal follows the actual predecessor.
 
 ## Physical crossings and progress
 

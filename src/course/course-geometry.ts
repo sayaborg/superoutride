@@ -37,10 +37,7 @@ export function compileCourseGeometry(
 } {
   if (section.primitives.length === 0)
     throw new CourseInputError('empty_section', `${path}/primitives`, 'A Section requires at least one plan primitive');
-  const plan: PlanPath = compilePlanPath(
-    { x: section.start.x, z: section.start.z, heading: section.start.heading * (Math.PI / 180) },
-    section.primitives,
-  );
+  const plan: PlanPath = compilePlanPath({ x: 0, z: 0, heading: 0 }, section.primitives);
   const segmentCount = plan.primitives.reduce((sum, primitive) => sum + rasterStepCount(primitive), 0);
   if (segmentCount > COURSE_DOCUMENT_LIMITS.rasterSegments)
     throw new CourseInputError(

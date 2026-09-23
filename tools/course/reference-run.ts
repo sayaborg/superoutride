@@ -32,7 +32,7 @@ export function courseReferenceRoutes(course: CompiledCourse) {
       routes.push(links);
       return;
     }
-    for (const link of section.outgoing) visit(link.destination.section, [...links, link]);
+    for (const link of section.outgoing) visit(link.to.section, [...links, link]);
   };
   visit(course.entry, []);
   return routes;
@@ -75,7 +75,7 @@ export function runCourseReference(
     distance = 0,
     maximumSpeed = 0,
     maximumLateralUtilization = 0;
-  const planned = new Map(route.map((link) => [link.source.section, link]));
+  const planned = new Map(route.map((link) => [link.from.section, link]));
   const lane = (s: number) => {
     const section = scene.history.active.section,
       link = planned.get(section);

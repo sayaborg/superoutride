@@ -196,11 +196,11 @@ export function createCourseDrivingReaders(physical: Physical) {
         return Object.freeze({ ok: false as const, reason: 'unqualified_links' as const });
       if (
         frame !== successor &&
-        !(frame.ordinal === successor.ordinal - 1 && frame.section === successor.incoming.source.section)
+        !(frame.ordinal === successor.ordinal - 1 && frame.section === successor.incoming.from.section)
       )
         return Object.freeze({ ok: false as const, reason: 'unqualified_window' as const });
       const link = successor.incoming!,
-        port = frame === successor ? link.destination : link.source;
+        port = frame === successor ? link.to : link.from;
       const observe = (point: Vec2) => {
         if (!point || typeof point.x !== 'number' || typeof point.z !== 'number')
           throw new TypeError('Seam motion requires numeric world points');

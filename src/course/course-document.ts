@@ -1,6 +1,6 @@
 import { CourseInputError, courseFailure, courseSuccess, type CourseResult } from './course-diagnostics.js';
 
-const COURSE_DOCUMENT_VERSION = 14;
+const COURSE_DOCUMENT_VERSION = 15;
 
 interface GeometryRecipeIdentity {
   readonly id: string;
@@ -34,18 +34,10 @@ interface CarriagewayDocument {
   readonly regionIds: readonly string[];
 }
 
-interface PortDocument {
-  readonly id: string;
-  readonly kind: 'entry' | 'exit';
-  readonly anchor: CourseAnchor;
-  readonly carriagewayId: string;
-}
-
 interface LinkDocument {
   readonly id: string;
-  readonly source: { readonly sectionId: string; readonly portId: string };
-  readonly destination: { readonly sectionId: string; readonly portId: string };
-  readonly overlap: { readonly behind: number; readonly ahead: number };
+  readonly from: { readonly sectionId: string; readonly carriagewayId: string };
+  readonly to: { readonly sectionId: string };
 }
 
 /** External content identity only; no I/O or claim of payload readiness at this boundary. */
@@ -130,7 +122,6 @@ export interface PresentationDocument {
 
 export interface SectionDocument {
   readonly id: string;
-  readonly start: { readonly x: number; readonly z: number; readonly heading: number };
   readonly primitives: readonly PlanPrimitive[];
   readonly boundaries: readonly BoundaryDocument[];
   readonly regions: readonly RegionDocument[];
@@ -140,7 +131,6 @@ export interface SectionDocument {
     readonly sections: readonly { readonly anchor: CourseAnchor; readonly material: string }[];
   }[];
   readonly carriageways: readonly CarriagewayDocument[];
-  readonly ports: readonly PortDocument[];
   readonly assetIds: readonly string[];
   readonly presentation: PresentationDocument | null;
   readonly fork: null | { readonly lock: CourseAnchor; readonly closure: CourseAnchor };
@@ -205,7 +195,6 @@ export const COURSE_DOCUMENT_LIMITS = Object.freeze({
   knots: 256,
   regions: 32,
   carriageways: 16,
-  ports: 4,
   links: 48,
   assets: 256,
   placements: 4096,
@@ -572,28 +561,19 @@ function presentation(value: unknown, path: string): PresentationDocument | null
 function section(value: unknown, path: string): SectionDocument {
   const v = record(value, path, [
     'id',
-    'start',
     'primitives',
     'boundaries',
     'regions',
     'height',
     'physicalBindings',
     'carriageways',
-    'ports',
     'assetIds',
     'presentation',
     'fork',
   ]);
-  const start = record(v.start, `${path}/start`, ['x', 'z', 'heading']);
   const fork = v.fork === null ? null : record(v.fork, `${path}/fork`, ['lock', 'closure']);
-  const limit = COURSE_DOCUMENT_LIMITS.coordinateMeters;
   return Object.freeze({
     id: id(v.id, `${path}/id`),
-    start: Object.freeze({
-      x: number(start.x, `${path}/start/x`, -limit, limit),
-      z: number(start.z, `${path}/start/z`, -limit, limit),
-      heading: number(start.heading, `${path}/start/heading`, -360, 360),
-    }),
     primitives: identified(v.primitives, `${path}/primitives`, COURSE_DOCUMENT_LIMITS.primitives, primitive),
     boundaries: identified(v.boundaries, `${path}/boundaries`, COURSE_DOCUMENT_LIMITS.boundaries, boundary),
     regions: identified(v.regions, `${path}/regions`, COURSE_DOCUMENT_LIMITS.regions, region),
@@ -629,17 +609,6 @@ function section(value: unknown, path: string): SectionDocument {
       },
     ),
     carriageways: identified(v.carriageways, `${path}/carriageways`, COURSE_DOCUMENT_LIMITS.carriageways, carriageway),
-    ports: identified(v.ports, `${path}/ports`, COURSE_DOCUMENT_LIMITS.ports, (item, at) => {
-      const p = record(item, at, ['id', 'kind', 'anchor', 'carriagewayId']);
-      if (p.kind !== 'entry' && p.kind !== 'exit')
-        fail('unsupported_feature', `${at}/kind`, 'Port kind must be entry or exit');
-      return Object.freeze({
-        id: id(p.id, `${at}/id`),
-        kind: p.kind,
-        anchor: anchor(p.anchor, `${at}/anchor`),
-        carriagewayId: id(p.carriagewayId, `${at}/carriagewayId`),
-      });
-    }),
     assetIds: array(v.assetIds, `${path}/assetIds`, COURSE_DOCUMENT_LIMITS.assets, id),
     presentation: presentation(v.presentation, `${path}/presentation`),
     fork:
@@ -732,23 +701,16 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
       rules: rules(v.rules, '/rules'),
       sections: identified(v.sections, '/sections', COURSE_DOCUMENT_LIMITS.sections, section),
       links: identified(v.links, '/links', COURSE_DOCUMENT_LIMITS.links, (item, at) => {
-        const link = record(item, at, ['id', 'source', 'destination', 'overlap']);
-        const endpoint = (value: unknown, path: string) => {
-          const p = record(value, path, ['sectionId', 'portId']);
-          return Object.freeze({
-            sectionId: id(p.sectionId, `${path}/sectionId`),
-            portId: id(p.portId, `${path}/portId`),
-          });
-        };
-        const overlap = record(link.overlap, `${at}/overlap`, ['behind', 'ahead']);
+        const link = record(item, at, ['id', 'from', 'to']);
+        const from = record(link.from, `${at}/from`, ['sectionId', 'carriagewayId']);
+        const to = record(link.to, `${at}/to`, ['sectionId']);
         return Object.freeze({
           id: id(link.id, `${at}/id`),
-          source: endpoint(link.source, `${at}/source`),
-          destination: endpoint(link.destination, `${at}/destination`),
-          overlap: Object.freeze({
-            behind: number(overlap.behind, `${at}/overlap/behind`, 0, COURSE_DOCUMENT_LIMITS.lengthMeters, true),
-            ahead: number(overlap.ahead, `${at}/overlap/ahead`, 0, COURSE_DOCUMENT_LIMITS.lengthMeters, true),
+          from: Object.freeze({
+            sectionId: id(from.sectionId, `${at}/from/sectionId`),
+            carriagewayId: id(from.carriagewayId, `${at}/from/carriagewayId`),
           }),
+          to: Object.freeze({ sectionId: id(to.sectionId, `${at}/to/sectionId`) }),
         });
       }),
       assets: identified(v.assets, '/assets', COURSE_DOCUMENT_LIMITS.assets, (item, at) => {
