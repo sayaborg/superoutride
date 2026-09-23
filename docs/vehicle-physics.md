@@ -37,6 +37,9 @@ Profile compilation requires positive finite quantities and feasible geometry.
 For centerline metric 1, curvature `kappa`, lateral coordinate `l` and height derivative `h'`,
 require `J=1-kappa*l > 0`. Surface normal is proportional to
 `worldUp*J-horizontalTangent*h'`; grade is `atan2(h',J)`.
+The vehicle keeps its last observed s for the next center and contact projection. Spawn and
+recovery supply their known s, and a frame commit maps that s into the new occurrence frame.
+The projection's `inDomain` observation does not change the existing support and recovery rules.
 
 The free suspension reach offset is `forward*axleOffset-up*freeReach`, with velocity
 `v+omega cross offset`. Supported material and an upright body permit unilateral contact:

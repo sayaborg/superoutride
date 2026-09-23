@@ -25,20 +25,23 @@ occurrences. `CompiledSection.coordinates` and `VehicleWorld.coordinates` expose
 - `domain.start` and `domain.end` bound the admitted s interval; `domain.lateralAt(s,out)` gives its
   closed asymmetric `[left,right]` bounds. An occurrence subtracts its mapped lateral origin from both
   edges. Coordinate bounds do not define material support.
-- `toWorld(s,l,out)` reads world X/Z, heading and a `PlanProjectionSeed`. `metricsAt(s,l,seed,out)`
-  reads `kappa`, centerline metric 1 and offset metric `J = 1-kappa*l`. Native and mapped readers use
-  their own frame.
-- `locateLocal(world,seed,searchRadius,out,workspace)` projects within a finite local neighborhood,
-  without lateral clamping or a global-search fallback. The seed must have been issued by the same Reader
-  and remain admitted by its Window. Invalid seeds, radii or retained coverage fail explicitly.
+- `toWorld(s,l,out)` reads world X/Z and heading. `metricsAt(s,l,out)` reads `kappa`,
+  centerline metric 1 and offset metric `J = 1-kappa*l`. Both are determined by `(s,l)`;
+  at a primitive boundary the successor owns the station. Native and mapped readers use their own frame.
+- `locateLocal(world,previousS,out,workspace)` searches only primitive intervals intersecting
+  `[previousS-50 m,previousS+50 m]`. A perpendicular foot inside its interval and the closed
+  lateral domain wins over a closer centerline foot outside the domain. No endpoint-clamped point
+  counts as an inside-domain foot. If none qualifies, the nearest candidate is returned with
+  `inDomain:false`, without lateral clamping or a global search. Invalid world points or previous
+  chainages fail explicitly.
 
 `PlanCoordinateSample` and `PlanCoordinateProjection` are borrowed observations in caller-owned outputs.
 `PlanProjectionWorkspace` holds reusable numerical scratch, separate from vehicle state.
-`SectionPlanCoordinateReader` adds `seedCount` and `projectionCandidates(start,end)` for mapped
-composition. The requested interval must lie inside the Section domain. Candidate queries return
-source-ordered positive-length coverage of that interval; candidate projection remains inside its interval
-and returns native s/l/seed without lateral clamping. Invalid intervals or incomplete retained search
-coverage fail explicitly. Geometry construction and its geometric proofs inspect compiled primitives.
+`SectionPlanCoordinateReader` adds `projectionCandidates(start,end)` for mapped composition.
+The requested interval lies inside the Section domain. Candidate queries return source-ordered
+primitive intervals; each candidate projects a bounded subinterval and reports whether its foot
+was inside that subinterval before endpoint clamping. Geometry construction and its geometric
+proofs inspect compiled primitives.
 Terrain and rendering use `RasterGeometry`: finite length, segment stations/headings and point mapping.
 
 Vec2/Vec3 are readonly values. Sampling APIs with caller-owned outputs return borrowed observations
@@ -64,6 +67,13 @@ Each compiled plan primitive retains its author record, exact s interval, starti
 A straight has `kappa=0`. A circular arc of radius `R` and signed turn has
 `kappa=sign(turn)/R`; its length is `R*abs(turnRadians)`. Primitive-anchor fractions therefore advance
 linearly in true arc length. Section projection onto a straight or circular arc uses closed-form geometry.
+The projection window `W = 50 m` is measured in chainage in both native and mapped Readers.
+At the fixed frame step and twelve vehicle substeps, longitudinal travel is a few metres even at
+the provisional vehicles' highest speeds. Fifty metres also covers front/rear contact offsets
+and amplified chainage motion near a small positive `J`; grade-separated passages must be
+authored more than 50 m apart on the view ruler so their other passage stays outside the window.
+The projection result's `inDomain` reports geometric membership only; recovery retains its
+separate support and safety conditions.
 
 At each s, the Section lateral domain runs from the leftmost active Region edge minus
 `PLAN_COORDINATE_MARGIN_METERS` to the rightmost active Region edge plus that margin; the margin is 4 m.
@@ -80,7 +90,8 @@ and arcs at most 5 authored degrees per segment. Every Raster vertex is sampled 
 centerline at an authoritative s station. Raster and plan therefore share the same ruler and Section length;
 inside one Raster segment X/Z is interpolated linearly in s. Its miter basis supplies rendered lateral
 positions. Raster geometry is not subjected to coordinate-domain injectivity: Bands are drawn by row.
-Occurrences, local seeds and height identify passages through compiled Sections.
+Occurrences and height identify passages through compiled Sections; previous s keeps projection
+on the local passage.
 
 ## Boundary geometry and point ownership
 
@@ -259,7 +270,7 @@ A bounded occurrence view maps retained/selected source spans into its active fr
 source/view chainage anchors, a Boundary-derived lateral origin and an upright transform. Source
 identity, occurrence and frame are distinct, including laps. Successors own seams. Unrepresentable
 station collisions fail explicitly. Narrow geometry/height/presentation readers share this mapping;
-local projection seeds identify both occurrence and native primitive.
+previous chainage selects the local projection window on the active view ruler.
 
 `createCourseDrivingReaders` owns the physical world, coordinate/height readers and an immutable
 mapping of those same occurrence spans. Its motion guard uses the physical pose/step domain.
