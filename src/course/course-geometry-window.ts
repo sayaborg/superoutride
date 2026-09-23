@@ -189,10 +189,7 @@ function planCells(source: GeometrySource, sorted: readonly number[]): Cell[] {
       return [p, { x: p.x + t * da.x, z: p.z + t * da.z }, q];
     };
 
-    return cell(i, start, end, [
-      ...edge(lateralA.left, lateralB.left),
-      ...edge(lateralA.right, lateralB.right),
-    ]);
+    return cell(i, start, end, [...edge(lateralA.left, lateralB.left), ...edge(lateralA.right, lateralB.right)]);
   });
 }
 

@@ -14,7 +14,7 @@
       "primitives": [
         { "id": "approach", "kind": "straight", "length": 650 },
         { "id": "bend", "kind": "arc", "radius": 260, "turn": 180 },
-        { "id": "runout", "kind": "straight", "length": 633.4450685209101 }
+        { "id": "runout", "kind": "straight", "length": 633.1859100666538 }
       ],
       "boundaries": [
         {

@@ -14,11 +14,11 @@
       "primitives": [
         { "id": "fit-001", "kind": "straight", "length": 420 },
         { "id": "fit-002", "kind": "arc", "radius": 372.3404255319149, "turn": 39.467473801076466 },
-        { "id": "fit-003", "kind": "straight", "length": 525 },
+        { "id": "fit-003", "kind": "straight", "length": 524.9207756257772 },
         { "id": "fit-004", "kind": "arc", "radius": 425.531914893617, "turn": -64.13464492674932 },
-        { "id": "fit-005", "kind": "straight", "length": 524.9999999999998 },
+        { "id": "fit-005", "kind": "straight", "length": 524.8528690193006 },
         { "id": "fit-006", "kind": "arc", "radius": 372.3404255319149, "turn": 24.66717112567278 },
-        { "id": "fit-007", "kind": "straight", "length": 577.5 }
+        { "id": "fit-007", "kind": "straight", "length": 577.4504847661108 }
       ],
       "boundaries": [
         {
