@@ -315,7 +315,14 @@ function checkedSample(
   if (!Number.isFinite(sample.x) || !Number.isFinite(sample.z) || !Number.isFinite(sample.s)) {
     throw new RangeError('ordered race progress sample must be finite');
   }
-  const s = openProfileChainage(sample.s, courseLength, 'ordered race progress');
+  let s: number;
+  try {
+    s = openProfileChainage(sample.s, courseLength, 'ordered race progress');
+  } catch (error) {
+    if (error instanceof RangeError)
+      throw new RangeError(`ordered race diagnostic: sample.s=${sample.s}, courseLength=${courseLength}`, { cause: error });
+    throw error;
+  }
   out.x = sample.x;
   out.z = sample.z;
   out.s = s;
