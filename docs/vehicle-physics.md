@@ -34,7 +34,7 @@ Profile compilation requires positive finite quantities and feasible geometry.
 
 ## Surface and contact
 
-For centerline metric 1, curvature `kappa`, lateral coordinate `l` and height derivative `h'`,
+For curvature `kappa`, lateral coordinate `l` and height derivative `h'=dY/ds`,
 require `J=1-kappa*l > 0`. Surface normal is proportional to
 `worldUp*J-horizontalTangent*h'`; grade is `atan2(h',J)`.
 The vehicle keeps its last observed s for the next center and contact projection. Spawn and

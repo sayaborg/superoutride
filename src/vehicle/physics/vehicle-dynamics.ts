@@ -127,7 +127,6 @@ interface SurfaceGeometryObservation {
   readonly tangent: Vec3;
   readonly normal: Vec3;
   readonly curvature: number;
-  readonly metric: number;
   readonly offsetMetric: number;
   readonly heightDerivativeByS: number;
   readonly gradeAngle: number;
@@ -240,7 +239,6 @@ export function createSurfaceGeometryWorkspace() {
       tangent: vector(),
       normal: vector(),
       curvature: 0,
-      metric: 1,
       offsetMetric: 1,
       heightDerivativeByS: 0,
       gradeAngle: 0,
@@ -250,7 +248,7 @@ export function createSurfaceGeometryWorkspace() {
     planSample: createPlanCoordinateSample(),
     projection: createPlanProjectionWorkspace(),
     height: { y: 0, dYdS: 0 },
-    metrics: { curvature: 0, metric: 1, offsetMetric: 1 },
+    metrics: { curvature: 0, offsetMetric: 1 },
     a: vector(),
     b: vector(),
   };
@@ -265,10 +263,10 @@ export function sampleSurfaceGeometryAtCoordinate(
 ): SurfaceGeometryObservation {
   const out = workspace.value;
   const planSample = coordinates.toWorld(coordinate.s, coordinate.l, workspace.planSample);
-  const { curvature, metric, offsetMetric } = coordinates.metricsAt(coordinate.s, coordinate.l, workspace.metrics);
+  const { curvature, offsetMetric } = coordinates.metricsAt(coordinate.s, coordinate.l, workspace.metrics);
   if (!(offsetMetric > 0)) throw new RangeError('surface offset metric A=1-kappa*l must remain > 0');
   const heightSample = height.samplePhysicsDifferential(coordinate.s, workspace.height);
-  const heightDerivativeByS = heightSample.dYdS / metric;
+  const heightDerivativeByS = heightSample.dYdS;
   const horizontalTangent = out.horizontalTangent,
     right = out.right;
   horizontalTangent.x = Math.sin(planSample.heading);
@@ -299,7 +297,6 @@ export function sampleSurfaceGeometryAtCoordinate(
   out.point.y = heightSample.y;
   out.point.z = planSample.z;
   out.curvature = curvature;
-  out.metric = metric;
   out.offsetMetric = offsetMetric;
   out.heightDerivativeByS = heightDerivativeByS;
   out.gradeAngle = Math.atan2(heightDerivativeByS, offsetMetric);

@@ -50,7 +50,7 @@ export function profileIndexAt<T, K extends keyof T>(entries: readonly T[], chai
 }
 
 /** Source-profile endpoint normalization; length is validated by the owning source constructor.
- * Raster/Guide sampling has a separate geometric tolerance. Never wraps. */
+ * Plan/Raster sampling has a separate geometric tolerance. Never wraps. */
 export function openProfileChainage(s: number, courseLength: number, label: string): number {
   if (!Number.isFinite(s)) throw new RangeError(`${label} chainage must be finite`);
   if (s < -SOURCE_ENDPOINT_TOLERANCE_METERS || s > courseLength + SOURCE_ENDPOINT_TOLERANCE_METERS) {

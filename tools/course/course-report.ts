@@ -42,7 +42,7 @@ export async function courseReport(course: CompiledCourse, section: CompiledSect
       ...section.boundaries.flatMap((b) => b.knots.map((k) => k.anchor.s)),
     ]),
   ].sort((a, b) => a - b);
-  const metric = { curvature: 0, metric: 1, offsetMetric: 1 };
+  const metric = { curvature: 0, offsetMetric: 1 };
   const samples = stations.map((s) => {
     const world = section.coordinates.toWorld(s, 0, createPlanCoordinateSample());
     return {

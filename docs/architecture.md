@@ -25,8 +25,8 @@ occurrences. `CompiledSection.coordinates` and `VehicleWorld.coordinates` expose
 - `domain.start` and `domain.end` bound the admitted s interval; `domain.lateralAt(s,out)` gives its
   closed asymmetric `[left,right]` bounds. An occurrence subtracts its mapped lateral origin from both
   edges. Coordinate bounds do not define material support.
-- `toWorld(s,l,out)` reads world X/Z and heading. `metricsAt(s,l,out)` reads `kappa`,
-  centerline metric 1 and offset metric `J = 1-kappa*l`. Both are determined by `(s,l)`;
+- `toWorld(s,l,out)` reads world X/Z and heading. `metricsAt(s,l,out)` reads `kappa`
+  and offset metric `J = 1-kappa*l`. Both are determined by `(s,l)`;
   at a primitive boundary the successor owns the station. Native and mapped readers use their own frame.
 - `locateLocal(world,previousS,out,workspace)` searches only primitive intervals intersecting
   `[previousS-50 m,previousS+50 m]`. A perpendicular foot inside its interval and the closed
@@ -117,7 +117,7 @@ filters do not change point ownership.
 ## Height and projection
 
 Ground height is `Y(s,l)=Y(s)`. Rendering uses piecewise-linear height; physics and camera use the
-same smooth HeightProfile. `mapToRenderSpace` in `src/view/render-height-space.ts` maps every drawn
+same smooth HeightProfile. `mapToRenderSpace` in `src/view/render-space-mapping.ts` maps every drawn
 position from road-relative `(s,l,physicalY)`: its XZ comes from the view Raster Reader and its Y
 preserves physical clearance above local ground against rendering height. Ground rows, Band and
 Region positions use the same Raster ruler as vehicles and course sprites. Orientation remains the

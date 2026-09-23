@@ -1,7 +1,7 @@
 import type { RasterGeometry } from '../course/geometry/raster-coordinate-reader.js';
 import type { HeightProfileReader } from '../course/geometry/height-profile.js';
 import { pseudoDepth, pseudoProject, type PseudoCamera, type PseudoProjection } from './projection.js';
-import { mapToRenderSpace } from './render-space-mapping.js';
+import { createRenderSpacePosition, mapToRenderSpace } from './render-space-mapping.js';
 import type { SpriteAsset } from '../image/sprite.js';
 
 interface CourseSpriteAuthoring {
@@ -42,7 +42,7 @@ export function compileCourseSprite(
     source.y === undefined
       ? height.samplePhysics(source.s) + (source.groundOffset ?? 0)
       : source.y + height.samplePhysics(source.s) - height.sampleRender(source.s).y;
-  const position = mapToRenderSpace(guide, height, source.s, source.l, physicalY);
+  const position = mapToRenderSpace(guide, height, source.s, source.l, physicalY, createRenderSpacePosition());
   return {
     name: source.name,
     x: position.x,

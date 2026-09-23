@@ -6,6 +6,7 @@ import type { SessionVehicle } from '../race/session-configuration.js';
 import type { CameraState } from './camera.js';
 import type { CourseSprite } from './course-sprite.js';
 import { createDynamicVehicleCourseSprite } from './dynamic-vehicle-sprite.js';
+import { createRenderSpacePosition } from './render-space-mapping.js';
 
 /** Observer-owned sprite assembly over camera-independent race observations. */
 export function createRaceSprites(assets: SpriteAssets, rival: SessionVehicle) {
@@ -14,6 +15,7 @@ export function createRaceSprites(assets: SpriteAssets, rival: SessionVehicle) {
       ? createVehiclePaletteVariant(assets.car, assets.car.assets[0]![0]!.paletteChoices[1]!)
       : assets[rival.kind];
   const sprites: CourseSprite[] = [];
+  const positions = new Map<string, ReturnType<typeof createRenderSpacePosition>>();
   return (
     actors: readonly RaceActorObservation[],
     camera: CameraState,
@@ -21,7 +23,12 @@ export function createRaceSprites(assets: SpriteAssets, rival: SessionVehicle) {
     height: HeightProfileReader,
   ) => {
     sprites.length = 0;
-    for (const actor of actors)
+    for (const actor of actors) {
+      let position = positions.get(actor.id);
+      if (!position) {
+        position = createRenderSpacePosition();
+        positions.set(actor.id, position);
+      }
       sprites.push(
         createDynamicVehicleCourseSprite(
           actor.id,
@@ -30,8 +37,10 @@ export function createRaceSprites(assets: SpriteAssets, rival: SessionVehicle) {
           actor.paletteVariant === 'braking' ? brakingAssets : assets[actor.kind],
           geometry,
           height,
+          position,
         ),
       );
+    }
     return sprites;
   };
 }

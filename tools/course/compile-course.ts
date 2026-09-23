@@ -45,7 +45,10 @@ if (!result.ok) {
           regions: section.regionPartition.regions.length,
           heightNodes: section.height.nodes.length,
           physicalBindings: section.physicalBindings.length,
-          lateralBounds: section.coordinates.domain.lateralAt(0, { left: 0, right: 0 }),
+          lateralBoundsAtStart: section.coordinates.domain.lateralAt(section.coordinates.domain.start, {
+            left: 0,
+            right: 0,
+          }),
           carriageways: section.carriageways.length,
           ports: section.ports.length,
           fork:

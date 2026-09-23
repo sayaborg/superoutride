@@ -106,7 +106,6 @@ export function createPlanCoordinateReader(
         throw new RangeError('Plan metric requires finite coordinates in the Section');
       const primitive = primitives[planPrimitiveIndexAt(plan, s)]!;
       out.curvature = primitive.curvature;
-      out.metric = 1;
       out.offsetMetric = 1 - primitive.curvature * l;
       return out;
     },

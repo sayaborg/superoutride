@@ -8,7 +8,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **6-5 — Dead planar remnants**.
+Next PR: **6-6 — Vertical alignment**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -18,11 +18,10 @@ PRs hold rationale and verification evidence.
 
 Make authored plan and vertical geometry authoritative, with rendering-only approximations and simpler connections.
 
-- **6-5 — Dead planar remnants:** remove `src/course/geometry/guide-curve.ts`, `src/course/geometry/guide-envelope.ts`, `src/course/raster-turtle.ts`, Raster `sourceRadius` provenance, Guide-era unused projection-workspace scratch and `maxSupportedAbsL`; make tool reporting read the coordinate domain, then simplify any metric surface made redundant by those deletions. Rename `render-height-space.ts` to match its contents, avoid per-call objects in `mapToRenderSpace`, and use `D_cam` directly for camera setback.
 - **6-6 — Vertical alignment:** PVIs and parabolas, allowing zero curve lengths with endpoint curve lengths set to zero; polyline rendering with separate authoritative and rendering Readers; rename HeightProfile/OpenProfile replacements according to the glossary.
 - **6-7 — Band tail cells:** truncate preblend cells at the Section end and separate compilation from sampling while preserving private compiled coefficient storage.
 - **6-8 — Cut-line seams:** replace overlaps with cut lines, remove Port, `Section.start` and overlap machinery, rename `Link.source` according to the glossary, and review the straight requirement for parallel fork intervals. Rewrite provisional course lengths as round authored values rather than old-ruler compensation values such as `524.9207...`.
-- **6-9 — Views and occurrences:** minimize their procedures and name occurrence-view replacements (`createView`, `CourseGeometryView` and their adapters) according to the glossary.
+- **6-9 — Views and occurrences:** minimize their procedures and name occurrence-view replacements (`createView`, `CourseGeometryView` and their adapters) according to the glossary. Limit Section-only `locateLocal` scanning to the search window interval.
 - **6-10 — Local tolerances:** clarify each tolerance's basis and owning algorithm, including the `1e-14` tangent-intersection threshold in `plan-domain-injectivity.ts`.
 
 ## Stage 7 — Course format
@@ -36,8 +35,7 @@ Unify authored coordinates, appearance, delivery and progress in the course form
   Rename CoursePresentation and associated visual records according to the glossary.
 - **7-4 — Course identity:** derive kind from the graph, remove production provenance, and simplify nulls and limits.
 - **7-5 — Delivery identity:** one manifest, one version per format and one image path.
-- **7-6 — Progress and validation:** unify progress and consolidate validation into one layer.
-- **7-7 — Diagnostics:** place the `CourseInputError` fields currently dedicated to coordinate-overlap diagnostics in a structured diagnostic variant.
+- **7-6 — Progress and validation:** unify progress and consolidate validation into one layer, placing the `CourseInputError` fields currently dedicated to coordinate-overlap diagnostics in a structured diagnostic variant.
 
 ## Stage 8 — Vehicles and materials
 
@@ -47,7 +45,7 @@ Give vehicles, tires, tuning and materials explicit data definitions, and treat 
   Rename vehicle/tire/powertrain/actuator Profiles and Arcade prefixes according to the glossary.
 - **8-2 — DEV tuning:** replace definitions rather than mutate running settings.
 - **8-3 — Materials:** one material-definition table.
-- **8-4 — Jumps and recovery:** normal airborne state, revised recovery conditions and suspension limits.
+- **8-4 — Jumps and recovery:** normal airborne state, revised recovery conditions and suspension limits; treat contact points outside the coordinate domain as unsupported without reading geometry, make the physics `offsetMetric <= 0` RangeError unreachable, and use `inDomain` for recovery conditions.
 
 ## Stage 9 — Audio
 

@@ -14,7 +14,7 @@ export interface RasterCoordinateReader {
 
 type RasterCoordinateSource = RasterPath | RasterCoordinateReader;
 
-/** Terrain needs Raster only. Existing GuidePath objects satisfy this structural facet. */
+/** Raster mapping shared by terrain, sprites and vehicles. */
 export interface RasterGeometry {
   readonly length: number;
   readonly raster: RasterCoordinateSource;

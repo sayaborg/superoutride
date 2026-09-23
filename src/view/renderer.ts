@@ -18,7 +18,7 @@ import {
 import { drawTileBackground, type TileBackground } from './tile-background.js';
 import { selectVehicleSprite, type SpriteAssets } from '../image/sprite-assets.js';
 import { collectVisibleCourseSprites, type CourseSpriteInput, type VisibleCourseSprite } from './course-sprite.js';
-import { createRenderSpaceCamera, mapToRenderSpace } from './render-space-mapping.js';
+import { createRenderSpaceCamera, createRenderSpacePosition, mapToRenderSpace } from './render-space-mapping.js';
 import { deriveVehicleNormalizedBank } from './vehicle-visuals.js';
 
 type PlayerVisualKind = 'car' | 'bike';
@@ -82,6 +82,10 @@ export function createRenderWorkspace() {
   return {
     terrain: createTerrainWorkspace(),
     bands: createBandRenderMetrics(),
+    playerPosition: createRenderSpacePosition(),
+    cameraPlayerPosition: createRenderSpacePosition(),
+    cameraPosition: createRenderSpacePosition(),
+    renderCamera: { x: 0, y: 0, z: 0, yaw: 0, pitch: 0, s: 0, focalLength: 0, centerX: 0, centerY: 0 },
   };
 }
 
@@ -178,6 +182,7 @@ export function renderDriving(
     vehicle.course.s,
     vehicle.course.l,
     vehicle.renderY ?? vehicle.y,
+    workspace.playerPosition,
   );
   const playerProjection = pseudoProject(playerPosition, renderCamera);
   const playerSet = playerKind === 'bike' ? assets.bike : assets.car;
@@ -246,7 +251,15 @@ function prepareTerrain(
   terrainParameters: TerrainRenderParameters,
   workspace: ReturnType<typeof createRenderWorkspace>,
 ) {
-  const renderCamera = createRenderSpaceCamera(guide, terrainParameters.height, camera, vehicle);
+  const renderCamera = createRenderSpaceCamera(
+    guide,
+    terrainParameters.height,
+    camera,
+    vehicle,
+    workspace.cameraPlayerPosition,
+    workspace.cameraPosition,
+    workspace.renderCamera,
+  );
 
   const terrain = generateTerrainLines(guide, renderCamera, terrainParameters, workspace.terrain);
   return { renderCamera, terrain };

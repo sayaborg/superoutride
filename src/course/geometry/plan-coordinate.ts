@@ -17,7 +17,6 @@ export interface PlanCoordinateDomain {
 
 export interface PlanCoordinateMetrics {
   readonly curvature: number;
-  readonly metric: number;
   readonly offsetMetric: number;
 }
 
