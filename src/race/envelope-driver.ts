@@ -1,10 +1,5 @@
-import { createPlanarCoordinateSample } from '../core/planar-sample.js';
+import { createPlanCoordinateSample, type PlanCoordinateReader } from '../course/geometry/plan-coordinate.js';
 import { clamp, wrapAngle } from '../core/math.js';
-import {
-  guideCoordinateDomain,
-  guideCoordinateToWorld,
-  type GuideCoordinateSource,
-} from '../course/geometry/guide-coordinate-frame.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import type { VehicleCameraReadState } from '../vehicle/physics/vehicle-contract.js';
 
@@ -63,33 +58,33 @@ const CACHE_SIZE = Math.ceil(ENVELOPE_DRIVER.lookahead / ENVELOPE_DRIVER.spacing
 
 export function createEnvelopeDriverWorkspace() {
   return {
-    guide: null as GuideCoordinateSource | null,
+    coordinates: null as PlanCoordinateReader | null,
     lane: null as Lane | null,
     driver: null as Driver | null,
     cells: new Float64Array(CACHE_SIZE).fill(NaN),
     speedsSquared: new Float64Array(CACHE_SIZE),
-    a: createPlanarCoordinateSample(),
-    b: createPlanarCoordinateSample(),
-    target: createPlanarCoordinateSample(),
+    a: createPlanCoordinateSample(),
+    b: createPlanCoordinateSample(),
+    target: createPlanCoordinateSample(),
     envelope: { acceleration: 0, braking: 0, lateral: 0, steeringGain: 0 },
     input: { steering: 0, throttle: false, brake: false },
   };
 }
 
 export function sampleEnvelopeDrivingInput(
-  guide: GuideCoordinateSource,
+  coordinates: PlanCoordinateReader,
   car: VehicleCameraReadState,
   driver: Driver,
   targetL: Lane = 0,
   workspace: ReturnType<typeof createEnvelopeDriverWorkspace>,
 ): DrivingInput {
-  const domain = guideCoordinateDomain(guide),
+  const domain = coordinates.domain,
     s = car.course.s;
   const speed = Math.hypot(car.longitudinalSpeed, car.lateralSpeed);
   const { envelope, speedCap, braking, utilization } = driver;
-  if (workspace.guide !== guide || workspace.lane !== targetL || workspace.driver !== driver) {
+  if (workspace.coordinates !== coordinates || workspace.lane !== targetL || workspace.driver !== driver) {
     workspace.cells.fill(NaN);
-    workspace.guide = guide;
+    workspace.coordinates = coordinates;
     workspace.lane = targetL;
     workspace.driver = driver;
   }
@@ -106,12 +101,12 @@ export function sampleEnvelopeDrivingInput(
     const index = ((cell % CACHE_SIZE) + CACHE_SIZE) % CACHE_SIZE;
     if (workspace.cells[index] !== cell) {
       if (aS !== previousS) {
-        const a = guideCoordinateToWorld(guide, aS, typeof targetL === 'number' ? targetL : targetL(aS), workspace.a);
+        const a = coordinates.toWorld(aS, typeof targetL === 'number' ? targetL : targetL(aS), workspace.a);
         previousX = a.x;
         previousZ = a.z;
         previousHeading = a.heading;
       }
-      const b = guideCoordinateToWorld(guide, bS, typeof targetL === 'number' ? targetL : targetL(bS), workspace.b);
+      const b = coordinates.toWorld(bS, typeof targetL === 'number' ? targetL : targetL(bS), workspace.b);
       const curvature =
         Math.abs(wrapAngle(b.heading - previousHeading)) / Math.max(0.01, Math.hypot(b.x - previousX, b.z - previousZ));
       previousS = bS;
@@ -134,8 +129,7 @@ export function sampleEnvelopeDrivingInput(
   const targetSpeed = Math.sqrt(targetSquared);
   const lookahead = Math.min(ENVELOPE_DRIVER.lookahead, Math.max(8, speed * ENVELOPE_DRIVER.responseSeconds));
   const targetS = Math.min(domain.end, s + lookahead);
-  const target = guideCoordinateToWorld(
-    guide,
+  const target = coordinates.toWorld(
     targetS,
     typeof targetL === 'number' ? targetL : targetL(targetS),
     workspace.target,

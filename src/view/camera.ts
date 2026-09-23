@@ -1,6 +1,5 @@
 import type { PlanarTransform } from '../core/planar-transform.js';
-import { createPlanarCoordinateSample } from '../core/planar-sample.js';
-import { guideCoordinateToWorld } from '../course/geometry/guide-coordinate-frame.js';
+import { createPlanCoordinateSample } from '../course/geometry/plan-coordinate.js';
 import { clamp, wrapAngle } from '../core/math.js';
 import type { PseudoCamera } from './projection.js';
 import type { VehicleWorld } from '../course/vehicle-world.js';
@@ -39,8 +38,8 @@ export interface CameraRig {
 }
 
 export interface CameraState extends PseudoCamera {
-  readonly guideHeadingAtCar: number;
-  readonly vehicleGuideYawDelta: number;
+  readonly planHeadingAtCar: number;
+  readonly vehiclePlanYawDelta: number;
   readonly cameraVehicleYawDelta: number;
   readonly bodyPitch: number;
   readonly yawMode: CameraYawMode;
@@ -60,7 +59,7 @@ interface BodyPitchMovementYaw {
   readonly inPlaneSpeed: number;
 }
 
-const guideWorkspaces = new WeakMap<CameraRig, { point: ReturnType<typeof createPlanarCoordinateSample> }>();
+const planWorkspaces = new WeakMap<CameraRig, { point: ReturnType<typeof createPlanCoordinateSample> }>();
 
 export function createCameraRig(yawMode: CameraYawMode = DEFAULT_CAMERA_YAW_MODE): CameraRig {
   return { yawMode, yaw: 0, movementYaw: 0, verticalCorrection: 0, initialized: false };
@@ -129,7 +128,7 @@ function movementYawInBodyPitchFrame(
 
 export function updateCamera(
   rig: CameraRig,
-  { guide, height }: Pick<VehicleWorld, 'guide' | 'height'>,
+  { coordinates, height }: Pick<VehicleWorld, 'coordinates' | 'height'>,
   vehicle: VehicleCameraReadState,
   profile: CameraProfile,
   dt: number,
@@ -139,13 +138,13 @@ export function updateCamera(
     throw new RangeError('camera direction speed minimum must be finite and >= 0');
   }
 
-  let workspace = guideWorkspaces.get(rig);
+  let workspace = planWorkspaces.get(rig);
   if (!workspace) {
-    workspace = { point: createPlanarCoordinateSample() };
-    guideWorkspaces.set(rig, workspace);
+    workspace = { point: createPlanCoordinateSample() };
+    planWorkspaces.set(rig, workspace);
   }
-  const guideAtCar = guideCoordinateToWorld(guide, vehicle.course.s, 0, workspace.point);
-  const vehicleGuideYawDelta = wrapAngle(vehicle.yaw - guideAtCar.heading);
+  const planAtCar = coordinates.toWorld(vehicle.course.s, 0, workspace.point);
+  const vehiclePlanYawDelta = wrapAngle(vehicle.yaw - planAtCar.heading);
   const bodyPitch = vehicle.sprungPitch ?? 0;
 
   if (!rig.initialized) {
@@ -180,7 +179,7 @@ export function updateCamera(
   const sCamera = vehicle.course.s - profile.dCam;
   // The camera occupies the selected yaw ray behind the authoritative vehicle position. Its
   // camera-right displacement to the player is therefore exactly zero, so player X is centerX by
-  // construction without a safety-camera override or Guide-lateral second authority.
+  // construction without a safety-camera override or second lateral-coordinate authority.
   const cameraX = vehicle.x - profile.dCam * Math.sin(rig.yaw);
   const cameraZ = vehicle.z - profile.dCam * Math.cos(rig.yaw);
   const playerScreenX = projectedPlayerX(
@@ -226,8 +225,8 @@ export function updateCamera(
     focalLength: profile.focalLength,
     centerX: profile.centerX,
     centerY: profile.centerY,
-    guideHeadingAtCar: guideAtCar.heading,
-    vehicleGuideYawDelta,
+    planHeadingAtCar: planAtCar.heading,
+    vehiclePlanYawDelta,
     cameraVehicleYawDelta: wrapAngle(vehicle.yaw - rig.yaw),
     bodyPitch,
     yawMode: rig.yawMode,

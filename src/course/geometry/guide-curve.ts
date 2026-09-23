@@ -10,7 +10,7 @@ import {
 } from '../../core/math.js';
 import { sampleRasterPathInto, type RasterPath } from './raster-path.js';
 import { GEOMETRY_SAMPLING_TOLERANCE_METERS } from '../../core/tolerances.js';
-import { compileGuideEnvelope, guideEnvelopeAt, guideEnvelopeRange, type GuideEnvelope } from './guide-envelope.js';
+import { compileGuideEnvelope, guideEnvelopeRange, type GuideEnvelope } from './guide-envelope.js';
 
 const ARC_CENTER_TOLERANCE_METERS = 1e-9;
 
@@ -68,13 +68,13 @@ export interface GuidePath {
   readonly mMin: number;
 }
 
-export interface GuideSample extends Vec2 {
+interface GuideSample extends Vec2 {
   s: number;
   heading: number;
   segmentIndex: number;
 }
 
-export interface CourseCoordinate {
+interface GuideProjection {
   s: number;
   l: number;
   segmentIndex: number;
@@ -237,13 +237,11 @@ export function compileGuidePath(path: RasterPath, options: GuideCompileOptions)
 }
 
 /** Mutable numerical search storage belongs to a consumer, never to the compiled curve. */
-export function createGuideProjectionWorkspace() {
-  return {
-    sample: createPlanarCoordinateSample(),
-    candidate: { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 },
-  };
+interface GuideProjectionWorkspace {
+  readonly sample: ReturnType<typeof createPlanarCoordinateSample>;
+  readonly candidate: GuideProjection;
 }
-export function sampleGuidePath(guide: GuidePath, s: number, out: Writable<GuideSample>): GuideSample {
+function sampleGuidePath(guide: GuidePath, s: number, out: Writable<GuideSample>): GuideSample {
   sampleGuidePathInto(guide, s, out);
   return out;
 }
@@ -278,17 +276,15 @@ export function locateWorldOnGuideLocal(
   world: Vec2,
   previousSegmentIndex: number,
   searchRadius: number,
-  clampL: boolean,
-  out: CourseCoordinate,
-  workspace: ReturnType<typeof createGuideProjectionWorkspace>,
-): CourseCoordinate {
+  out: GuideProjection,
+  workspace: GuideProjectionWorkspace,
+): GuideProjection {
   checkGuideLocalSearch(guide, previousSegmentIndex, searchRadius);
   return bestCandidate(
     guide,
     world,
     Math.max(0, previousSegmentIndex - searchRadius),
     Math.min(guide.segments.length - 1, previousSegmentIndex + searchRadius),
-    clampL,
     out,
     workspace,
   );
@@ -314,20 +310,18 @@ export function projectWorldOnGuideInterval(
   world: Vec2,
   start: number,
   end: number,
-  clampL: boolean,
-  out: CourseCoordinate,
+  out: GuideProjection,
   sample: ReturnType<typeof createPlanarCoordinateSample>,
   straightOrigin?: GuideSample,
   buffer?: Float64Array,
-): CourseCoordinate {
+): GuideProjection {
   if (
     !world ||
     typeof world.x !== 'number' ||
     typeof world.z !== 'number' ||
     typeof start !== 'number' ||
     typeof end !== 'number' ||
-    typeof segmentIndex !== 'number' ||
-    typeof clampL !== 'boolean'
+    typeof segmentIndex !== 'number'
   )
     throw new TypeError('Guide interval projection requires numeric coordinates, segment and bounds');
   if (!Number.isInteger(segmentIndex) || segmentIndex < 0 || segmentIndex >= guide.segments.length)
@@ -343,7 +337,7 @@ export function projectWorldOnGuideInterval(
     end <= start
   )
     throw new RangeError('Projection interval must have positive extent inside its source segment');
-  return projectWorldToGuideSegment(guide, segment, world, clampL, start, end, out, sample, straightOrigin, buffer);
+  return projectWorldToGuideSegment(guide, segment, world, start, end, out, sample, straightOrigin, buffer);
 }
 
 export function sampleGuideSegment(
@@ -383,10 +377,9 @@ function bestCandidate(
   world: Vec2,
   firstIndex: number,
   lastIndex: number,
-  clampL: boolean,
-  out: CourseCoordinate,
-  workspace: ReturnType<typeof createGuideProjectionWorkspace>,
-): CourseCoordinate {
+  out: GuideProjection,
+  workspace: GuideProjectionWorkspace,
+): GuideProjection {
   if (!Number.isFinite(world.x) || !Number.isFinite(world.z)) {
     throw new RangeError('world projection coordinates must be finite');
   }
@@ -397,7 +390,6 @@ function bestCandidate(
       guide,
       segment,
       world,
-      clampL,
       segment.sStart,
       segment.sEnd,
       workspace.candidate,
@@ -448,14 +440,13 @@ function projectWorldToGuideSegment(
   guide: GuidePath,
   segment: GuideSegment,
   world: Vec2,
-  clampL: boolean,
   start: number,
   end: number,
-  out: CourseCoordinate,
+  out: GuideProjection,
   sample: ReturnType<typeof createPlanarCoordinateSample>,
   straightOrigin?: GuideSample,
   buffer?: Float64Array,
-): CourseCoordinate {
+): GuideProjection {
   if (segment.kind === 'straight') {
     let originX: number, originZ: number, heading: number;
     if (straightOrigin) {
@@ -492,8 +483,7 @@ function projectWorldToGuideSegment(
     dz = world.z - sample.z;
   const rawL = dx * Math.cos(sample.heading) + dz * -Math.sin(sample.heading);
   const s = sample.s;
-  const limit = clampL ? guideEnvelopeAt(guide.envelope, s) : 0;
-  const l = clampL ? clamp(rawL, -limit, limit) : rawL;
+  const l = rawL;
   const distance = dx * dx + dz * dz;
   if (buffer) {
     buffer[0] = s;

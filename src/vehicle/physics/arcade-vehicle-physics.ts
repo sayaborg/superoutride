@@ -1,9 +1,7 @@
 import { createSurfaceGeometryWorkspace } from './vehicle-dynamics.js';
-import { createGuideProjectionWorkspace } from '../../course/geometry/guide-curve.js';
-import { createPlanarCoordinateSample } from '../../core/planar-sample.js';
+import { createPlanProjectionWorkspace, createPlanCoordinateSample } from '../../course/geometry/plan-coordinate.js';
 import { type Writable } from '../../core/writable.js';
 import { publishVehicleTireObservation } from './vehicle-tire-observation.js';
-import { guideCoordinateToWorld } from '../../course/geometry/guide-coordinate-frame.js';
 import { clamp, wrapAngle } from '../../core/math.js';
 import type { DrivingInput } from '../driving-input.js';
 import { createAutomaticPowertrainState, updateAutomaticPowertrain } from './automatic-powertrain.js';
@@ -27,8 +25,8 @@ import {
   createVehicleControlState,
   createContactWorkspace,
   deriveContactObservation,
-  initializeGuideObservation,
-  refreshGuideObservation,
+  initializePlanCoordinateObservation,
+  refreshPlanCoordinateObservation,
   reorientContactObservation,
   representativeSurfaceType,
   sampleSurfaceGeometryAtCoordinate,
@@ -39,7 +37,6 @@ import {
 } from './vehicle-dynamics.js';
 import { WORLD_UP, add3, cross3, dot3, normalize3, scale3 } from '../../core/vector3.js';
 import { drivenWheelOmega, type CompiledArcadeVehicleProfile } from './vehicle-profiles.js';
-
 import {
   UNPROTECTED_TORQUE_POLICY,
   resolveTorqueProtectionPolicy,
@@ -94,7 +91,7 @@ interface VehicleSpawnOptions {
 
 export function createArcadeVehicle(
   profile: CompiledArcadeVehicleProfile,
-  { guide, height, surfaces }: VehicleWorld,
+  { coordinates, height, surfaces }: VehicleWorld,
   {
     s = 45,
     l = 0,
@@ -112,11 +109,11 @@ export function createArcadeVehicle(
   const coordinate = {
     s,
     l,
-    segmentIndex: guideCoordinateToWorld(guide, s, l, createPlanarCoordinateSample()).segmentIndex,
+    seed: coordinates.toWorld(s, l, createPlanCoordinateSample()).seed,
     distanceSquared: 0,
   };
   const surface = sampleSurfaceGeometryAtCoordinate(
-    guide,
+    coordinates,
     height,
     surfaces,
     coordinate,
@@ -148,7 +145,7 @@ export function createArcadeVehicle(
     rearWheelOmega: rearOmega,
     actuator: createDrivingActuatorState(),
     torqueProtection: resolveTorqueProtectionPolicy(torqueProtection),
-    course: initializeGuideObservation(guide, position.x, position.z, coordinate.segmentIndex),
+    course: initializePlanCoordinateObservation(coordinates, position.x, position.z, coordinate.seed),
     surfaceType: surface.surfaceType,
     longitudinalAcceleration: 0,
     lateralAcceleration: 0,
@@ -165,7 +162,7 @@ export function createArcadeVehicle(
 }
 
 export function updateArcadeVehicle(
-  { guide, height, surfaces }: VehicleWorld,
+  { coordinates, height, surfaces }: VehicleWorld,
   vehicle: ArcadeVehicleState,
   input: DrivingInput,
   dt: number,
@@ -200,13 +197,13 @@ export function updateArcadeVehicle(
     const bodyTravelDirection = vehicleBodyTravelDirection(body, profile.steeringLowSpeedRegularization);
     const steeringOffset = vehicle.actuator.steering * vehicle.steeringCalibration.steeringOffsetMax;
     const frontBeforeSteer = deriveContactObservation(
-      guide,
+      coordinates,
       height,
       surfaces,
       body,
       profile.frontStation,
       vehicle.frontSteerAngle,
-      vehicle.course.segmentIndex,
+      vehicle.course.seed,
       workspace.front,
     );
     const automaticSteer = clamp(bodyTravelDirection, -automaticMax, automaticMax);
@@ -231,13 +228,13 @@ export function updateArcadeVehicle(
     );
     const front = reorientContactObservation(frontBeforeSteer, body, vehicle.frontSteerAngle, workspace.front);
     const rear = deriveContactObservation(
-      guide,
+      coordinates,
       height,
       surfaces,
       body,
       profile.rearStation,
       0,
-      vehicle.course.segmentIndex,
+      vehicle.course.seed,
       workspace.rear,
     );
 
@@ -306,7 +303,7 @@ export function updateArcadeVehicle(
     vehicle.z += vehicle.velocityZ * substep;
     vehicle.yaw = wrapAngle(vehicle.yaw + vehicle.yawRate * substep);
     vehicle.pitch = wrapAngle(vehicle.pitch + vehicle.pitchRate * substep);
-    refreshGuideObservation(guide, vehicle, workspace.projection);
+    refreshPlanCoordinateObservation(coordinates, vehicle, workspace.projection);
 
     // Output-only cache: observers consume one completed outer update, never an inner trial.
     if (step === VEHICLE_SUBSTEPS - 1) {
@@ -435,7 +432,7 @@ function createStepWorkspace(vehicle: ArcadeVehicleState) {
   const frontRequest = request(vehicle.profile.frontStation.tire),
     rearRequest = request(vehicle.profile.rearStation.tire);
   return {
-    projection: createGuideProjectionWorkspace(),
+    projection: createPlanProjectionWorkspace(),
     velocityDelta: { x: 0, y: 0, z: 0 },
     body: createBodyKinematicsWorkspace(),
     steering: createSteeringLimitWorkspace(),

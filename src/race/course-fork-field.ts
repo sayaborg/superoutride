@@ -1,7 +1,6 @@
-import { createPlanarCoordinateSample } from '../core/planar-sample.js';
+import { createPlanCoordinateSample } from '../course/geometry/plan-coordinate.js';
 import type { CompiledFork, CompiledLink, CompiledSection } from '../course/compiler/course-graph.js';
 import { courseRegionAt, courseBoundaryAt, type CompiledCarriageway } from '../course/course-regions.js';
-import { guidePathToWorld } from '../course/geometry/guide-curve.js';
 import type { Vec2 } from '../core/math.js';
 import { compileWorldCrossingGate, observeWorldCrossingGate } from './world-crossing-gate.js';
 import type { createCourseDrivingGraph } from './course-driving-session.js';
@@ -25,7 +24,7 @@ export function createCourseForkField(sections: readonly CompiledSection[]) {
   for (const section of sections) {
     const fork = section.fork;
     if (!fork) continue;
-    const pose = guidePathToWorld(section.guide, fork.lock.s, 0, createPlanarCoordinateSample());
+    const pose = section.coordinates.toWorld(fork.lock.s, 0, createPlanCoordinateSample());
     gates.set(
       fork,
       compileWorldCrossingGate({
@@ -75,7 +74,7 @@ export function createCourseForkField(sections: readonly CompiledSection[]) {
       let road =
         locks.get(fork)?.source.carriageway ??
         fork.regions[lane < 0 ? 0 : fork.regions.length - 1]!.link.source.carriageway;
-      const at = Math.min(section.raster.length, Math.max(0, s));
+      const at = Math.min(section.coordinates.domain.end, Math.max(section.coordinates.domain.start, s));
       if (!road.regions.some((b) => b.start.s <= at && b.end.s >= at))
         road = section.ports.find((p) => p.kind === 'entry')!.carriageway;
       return center(road, at);
@@ -85,7 +84,7 @@ export function createCourseForkField(sections: readonly CompiledSection[]) {
         fork = section.fork;
       const link = fork && locks.get(fork);
       if (!fork || !link || s < fork.closure.s) return null;
-      const region = courseRegionAt(section.regionPartition, Math.min(s, section.raster.length), l);
+      const region = courseRegionAt(section.regionPartition, Math.min(s, section.coordinates.domain.end), l);
       return region?.role === 'pavement' && !link.source.carriageway.regions.includes(region)
         ? { s, l: center(link.source.carriageway, s) }
         : null;

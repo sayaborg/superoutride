@@ -9,7 +9,7 @@ import {
   RECOVERY_SETTINGS,
   createRecoveryState,
   advanceVehicleWithRecovery,
-  recoverVehicleToGuideCoordinate,
+  recoverVehicleToPlanCoordinate,
   type RecoveryState,
 } from './recovery.js';
 import {
@@ -118,7 +118,7 @@ export function createCourseRace(options: {
     motion.step.dt = dt;
     let recovered = advanceVehicleWithRecovery(session.view.world, actor.vehicle, motion.step) !== null;
     if (session.history.active.ordinal === 0 && actor.vehicle.course.s < entryS) {
-      recoverVehicleToGuideCoordinate(session.view.world, actor.vehicle, {
+      recoverVehicleToPlanCoordinate(session.view.world, actor.vehicle, {
         state: actor.recovery,
         reason: 'wrong-course',
         target: { s: entryS, l: lane(c, entryS) },
@@ -130,7 +130,7 @@ export function createCourseRace(options: {
   const legalRecovery = (c: typeof player) => {
     const target = forks.legalTarget(c.session, c.actor.vehicle.course.s, c.actor.vehicle.course.l);
     if (!target) return false;
-    recoverVehicleToGuideCoordinate(c.session.view.world, c.actor.vehicle, {
+    recoverVehicleToPlanCoordinate(c.session.view.world, c.actor.vehicle, {
       state: c.actor.recovery,
       reason: 'wrong-course',
       target,
@@ -176,7 +176,7 @@ export function createCourseRace(options: {
       observation.vehicle.z = -transform.sine * vehicle.x + transform.cosine * vehicle.z + transform.translation.z;
       coordinate.s = s;
       coordinate.l = vehicle.course.l;
-      coordinate.segmentIndex = vehicle.course.segmentIndex;
+      coordinate.seed = vehicle.course.seed;
       coordinate.distanceSquared = vehicle.course.distanceSquared;
       observation.vehicle.course = coordinate;
       observation.vehicle.velocityX = transform.cosine * vehicle.velocityX + transform.sine * vehicle.velocityZ;
@@ -228,7 +228,7 @@ export function createCourseRace(options: {
         move(
           motion,
           sampleEnvelopeDrivingInput(
-            motion.session.view.world.guide,
+            motion.session.view.world.coordinates,
             motion.c.actor.vehicle,
             driver!,
             motion.input,

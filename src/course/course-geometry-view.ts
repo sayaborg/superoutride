@@ -1,13 +1,7 @@
-import { createPlanarCoordinateSample } from '../core/planar-sample.js';
-import { guidePathToWorld } from './geometry/guide-curve.js';
-import { guideEnvelopeAt } from './geometry/guide-envelope.js';
-import { rasterPathToWorld } from './geometry/raster-path.js';
-import { wrapAngle } from '../core/math.js';
 import {
   compilePlanarTransform,
   composePlanarTransforms,
   invertPlanarTransform,
-  transformPlanarPoint,
   type PlanarTransform,
 } from '../core/planar-transform.js';
 import { courseRegionAt } from './course-regions.js';
@@ -245,21 +239,6 @@ export function createCourseGeometryView(history: CourseOccurrenceHistory, deman
       if (!span || s > span.end) throw new Error('Validated view has a coverage hole');
       return { span, address: span.address(s, l) };
     };
-    const read = (kind: 'guide' | 'raster', s: number, l: number) => {
-      const { span, address } = resolve(s, l);
-      const section = address.occurrence.section;
-      const point =
-        kind === 'guide'
-          ? guidePathToWorld(section.guide, address.sourceS, address.sourceL, createPlanarCoordinateSample())
-          : rasterPathToWorld(section.raster, address.sourceS, address.sourceL, createPlanarCoordinateSample());
-      const transform = span.mapping.viewFromSource;
-      return {
-        ...transformPlanarPoint(transform, point),
-        s,
-        l,
-        heading: wrapAngle(point.heading + Math.atan2(transform.sine, transform.cosine)),
-      };
-    };
     return Object.freeze({
       ok: true as const,
       value: Object.freeze({
@@ -313,17 +292,6 @@ export function createCourseGeometryView(history: CourseOccurrenceHistory, deman
           if (!span || s > span.frameEnd) throw new Error('Validated frame view has a coverage hole');
           return span.addressInFrame(s, l);
         },
-        // These ordinary point readers expose no topology, occurrence, assets or CompiledCourse.
-        geometry: Object.freeze({
-          length,
-          rasterAt: (s: number, l: number) => read('raster', s, l),
-          guideAt: (s: number, l: number) => read('guide', s, l),
-          guideBoundsAt(s: number) {
-            const { span, address } = resolve(s, 0);
-            const limit = guideEnvelopeAt(address.occurrence.section.guide.envelope, address.sourceS);
-            return { left: -limit - span.mapping.sourceLateralOrigin, right: limit - span.mapping.sourceLateralOrigin };
-          },
-        }),
         regionAt(s: number, l: number) {
           const { span, address } = resolve(s, l);
           return courseRegionAt(

@@ -1,5 +1,4 @@
-import { createPlanarCoordinateSample } from '../../core/planar-sample.js';
-import { guideCoordinateToWorld, type GuideCoordinateSource } from '../../course/geometry/guide-coordinate-frame.js';
+import { createPlanCoordinateSample, type PlanCoordinateReader } from '../../course/geometry/plan-coordinate.js';
 import { wrapAngle } from '../../core/math.js';
 import { transformPlanarPoint, transformPlanarVector, type PlanarTransform } from '../../core/planar-transform.js';
 import type { ArcadeVehicleState } from './arcade-vehicle-physics.js';
@@ -7,12 +6,12 @@ import type { ArcadeVehicleState } from './arcade-vehicle-physics.js';
 /** A rigid change of observation frame. Forces, body scalars and contact memory are unchanged. */
 export function reframeVehicle(
   vehicle: ArcadeVehicleState,
-  guide: GuideCoordinateSource,
+  coordinates: PlanCoordinateReader,
   transform: PlanarTransform,
   s: number,
   l: number,
 ): void {
-  const coordinate = guideCoordinateToWorld(guide, s, l, createPlanarCoordinateSample());
+  const coordinate = coordinates.toWorld(s, l, createPlanCoordinateSample());
   const position = transformPlanarPoint(transform, vehicle);
   const velocity = transformPlanarVector(transform, { x: vehicle.velocityX, z: vehicle.velocityZ });
   vehicle.x = position.x;
@@ -23,7 +22,7 @@ export function reframeVehicle(
   vehicle.course = {
     s: coordinate.s,
     l: coordinate.l,
-    segmentIndex: coordinate.segmentIndex,
+    seed: coordinate.seed,
     distanceSquared: vehicle.course.distanceSquared,
   };
 }

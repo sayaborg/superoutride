@@ -1,6 +1,5 @@
-import { createPlanarCoordinateSample } from '../../core/planar-sample.js';
+import { createPlanCoordinateSample } from '../geometry/plan-coordinate.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../image/sprite.js';
-import { guidePathToWorld } from '../geometry/guide-curve.js';
 import { courseBoundaryAt } from '../course-regions.js';
 import { requireCourse } from '../course-diagnostics.js';
 import type { CompiledCourseAnchor } from '../course-geometry.js';
@@ -49,7 +48,7 @@ export function compileCourseFork(
     section,
     lock.s,
     closure.s,
-    guidePathToWorld(section.guide, lock.s, 0, createPlanarCoordinateSample()).heading,
+    section.coordinates.toWorld(lock.s, 0, createPlanCoordinateSample()).heading,
     path,
   );
   const regions = section.regionPartition.regions.filter((b) => b.start.s <= lock.s && b.end.s > lock.s);

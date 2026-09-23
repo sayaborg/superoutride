@@ -1,20 +1,10 @@
-import type { Writable } from '../core/writable.js';
-import type { CourseCoordinate } from './geometry/guide-curve.js';
 import { createPlanarCoordinateSample } from '../core/planar-sample.js';
-import { guideCoordinateMetricsAt, type GuideCoordinateReader } from './geometry/guide-coordinate-frame.js';
-import {
-  guideSegmentBounds,
-  sampleGuideSegment,
-  guidePathToWorld,
-  projectWorldOnGuideInterval,
-  sampleGuidePath,
-} from './geometry/guide-curve.js';
+import { createMappedPlanCoordinateReader } from './geometry/plan-coordinate-reader.js';
 import { dot, subtract, tangentFromHeading, normalFromHeading, wrapAngle, type Vec2 } from '../core/math.js';
 import { invertPlanarTransform } from '../core/planar-transform.js';
 import { rasterPathToWorld } from './geometry/raster-path.js';
 import type { RasterCoordinateReader, RasterGeometry } from './geometry/raster-coordinate-reader.js';
 import type { HeightProfileReader } from './geometry/height-profile.js';
-import { COURSE_DOCUMENT_LIMITS } from './course-document.js';
 import { compileCourseGeometryWindow } from './course-geometry-window.js';
 import type { CompiledSection } from './compiler/course-graph.js';
 import type { compileCoursePhysicalDomains } from './compiler/course-physical-overlap.js';
@@ -24,15 +14,6 @@ import type { CourseGeometryView } from './course-geometry-view.js';
 import type { CourseOccurrence } from './course-occurrence.js';
 
 type Physical = Extract<ReturnType<typeof compileCoursePhysicalDomains>, { ok: true }>['value'];
-// At most one straight per Raster segment and one fillet per vertex. Occurrence ordinals do not wrap.
-const seedStride = 2 * COURSE_DOCUMENT_LIMITS.rasterSegments;
-const seed = (ordinal: number, index: number) => {
-  const value = ordinal * seedStride + index;
-  if (!Number.isSafeInteger(value) || value < 0 || index >= seedStride)
-    throw new RangeError('Occurrence projection seed exceeds its exact integer domain');
-  return value;
-};
-
 /** Native physical readers and occurrence mappings shared by race and rendering. */
 export function createCourseDrivingReaders(physical: Physical) {
   if (!physical || physical.scope !== 'physical-query-domain')
@@ -110,182 +91,11 @@ export function createCourseDrivingReaders(physical: Physical) {
       mapping.occurrence === active
         ? heading
         : wrapAngle(heading + Math.atan2(mapping.viewFromSource.sine, mapping.viewFromSource.cosine));
-    const candidates = mapped.flatMap((mapping) =>
-      mapping.occurrence.section.guide.segments.flatMap((segment) => {
-        const start = Math.max(mapping.sourceRange.start, segment.sStart),
-          end = Math.min(mapping.sourceRange.end, segment.sEnd);
-        return end > start
-          ? [
-              {
-                mapping,
-                segment,
-                start,
-                end,
-                bounds: guideSegmentBounds(mapping.occurrence.section.guide, segment, start, end),
-                seed: seed(mapping.occurrence.ordinal, segment.index),
-                origin:
-                  segment.kind === 'straight'
-                    ? sampleGuideSegment(
-                        mapping.occurrence.section.guide,
-                        segment,
-                        segment.sStart,
-                        createPlanarCoordinateSample(),
-                      )
-                    : undefined,
-              },
-            ]
-          : [];
-      }),
-    );
-    const candidateIndices = new Map(candidates.map((c, i) => [c.seed, i]));
-    const sourceSample = createPlanarCoordinateSample();
-    const projectionSample = createPlanarCoordinateSample();
-    const projected = { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 };
-    const local = { x: 0, z: 0 };
-    const projectionValues = new Float64Array(4);
-    const guide: GuideCoordinateReader = Object.freeze({
-      domain: view.availableRange,
-      toWorld(s: number, l: number, out: ReturnType<typeof createPlanarCoordinateSample>) {
-        const mapping = mappingAt(s);
-        const p = guidePathToWorld(
-          mapping.occurrence.section.guide,
-          mapping.sourceChainageInFrame(s),
-          l + mapping.sourceLateralOrigin,
-          sourceSample,
-        );
-        const t = mapping.viewFromSource;
-        out.x = t.cosine * p.x + t.sine * p.z + t.translation.x;
-        out.z = -t.sine * p.x + t.cosine * p.z + t.translation.z;
-        out.s = s;
-        out.l = l;
-        out.heading = headingInFrame(mapping, p.heading);
-        out.segmentIndex = seed(mapping.occurrence.ordinal, p.segmentIndex);
-        return out;
-      },
-      metricsAt(
-        s: number,
-        l: number,
-        segmentIndex: number,
-        out: Writable<ReturnType<typeof guideCoordinateMetricsAt>>,
-      ) {
-        if (typeof segmentIndex !== 'number') throw new TypeError('Projection seed must be numeric');
-        const mapping = mappingAt(s),
-          section = mapping.occurrence.section;
-        const index = segmentIndex - mapping.occurrence.ordinal * seedStride;
-        if (!Number.isInteger(index) || index < 0 || index >= section.guide.segments.length)
-          throw new RangeError('Projection seed does not belong to the addressed occurrence');
-        return guideCoordinateMetricsAt(
-          section.guide,
-          mapping.sourceChainageInFrame(s),
-          l + mapping.sourceLateralOrigin,
-          index,
-          out,
-        );
-      },
-      locateLocal(
-        world: Vec2,
-        previousSegmentIndex: number,
-        searchRadius: number,
-        clampL: boolean,
-        out: CourseCoordinate,
-      ) {
-        if (
-          !world ||
-          typeof world.x !== 'number' ||
-          typeof world.z !== 'number' ||
-          typeof previousSegmentIndex !== 'number' ||
-          typeof searchRadius !== 'number' ||
-          typeof clampL !== 'boolean'
-        )
-          throw new TypeError('Projection requires numeric world position, seed/radius and boolean clamping');
-        if (!Number.isSafeInteger(previousSegmentIndex) || !Number.isSafeInteger(searchRadius) || searchRadius < 0)
-          throw new RangeError('Projection requires an exact seed and nonnegative search radius');
-        const at = candidateIndices.get(previousSegmentIndex);
-        if (at === undefined) throw new RangeError('Projection seed is outside the retained occurrence window');
-        if (
-          (at - searchRadius < 0 && range.start > view.availableRange.start) ||
-          (at + searchRadius >= candidates.length && range.end < view.availableRange.end)
-        )
-          throw new RangeError('Driving window does not cover the complete seeded search');
-        let best: (typeof candidates)[number] | null = null;
-        let bestS = 0,
-          bestL = 0,
-          bestDistance = Infinity;
-        let previousMapping: (typeof mapped)[number] | null = null;
-        const first = Math.max(0, at - searchRadius),
-          last = Math.min(candidates.length - 1, at + searchRadius);
-        let bestIndex = -1;
-        // The retained seed is usually nearest. Remaining ties still prefer the original source order.
-        for (let cursor = first - 1; cursor <= last; cursor += 1) {
-          const i = cursor < first ? at : cursor;
-          if (cursor === at) continue;
-          const candidate = candidates[i]!;
-          const { mapping, segment, start, end } = candidate;
-          if (
-            start > Math.max(mapping.sourceOwnership.start, segment.sStart) ||
-            end < Math.min(mapping.sourceOwnership.end, segment.sEnd)
-          )
-            throw new RangeError('Driving window clips a seeded projection candidate');
-          const section = mapping.occurrence.section;
-          if (previousMapping !== mapping) {
-            const t = mapping.sourceFromView;
-            local.x = t.cosine * world.x + t.sine * world.z + t.translation.x;
-            local.z = -t.sine * world.x + t.cosine * world.z + t.translation.z;
-            previousMapping = mapping;
-          }
-          if (best && mapping.sourceLateralOrigin === 0) {
-            const bounds = candidate.bounds;
-            const dx = Math.max(bounds.left - local.x, 0, local.x - bounds.right);
-            const dz = Math.max(bounds.back - local.z, 0, local.z - bounds.front);
-            if (dx * dx + dz * dz > bestDistance) continue;
-          }
-          projectWorldOnGuideInterval(
-            section.guide,
-            segment.index,
-            local,
-            start,
-            end,
-            clampL,
-            projected,
-            projectionSample,
-            candidate.origin,
-            projectionValues,
-          );
-          const projectedS = projectionValues[0]!,
-            projectedL = projectionValues[1]!;
-          const origin = mapping.sourceLateralOrigin;
-          let distanceSquared = projectionValues[3]!;
-          if (origin !== 0) {
-            const center = sampleGuidePath(section.guide, projectedS, sourceSample);
-            distanceSquared =
-              (local.x - center.x - Math.cos(center.heading) * origin) ** 2 +
-              (local.z - center.z - -Math.sin(center.heading) * origin) ** 2;
-          }
-          if (best && (distanceSquared > bestDistance || (distanceSquared === bestDistance && i > bestIndex))) continue;
-          best = candidate;
-          bestIndex = i;
-          bestS = activeS(mapping, projectedS);
-          bestL = projectedL - origin;
-          bestDistance = distanceSquared;
-        }
-        if (!best) throw new Error('Admitted driving projection lost its candidates');
-        out.s = bestS;
-        out.l = bestL;
-        out.distanceSquared = bestDistance;
-        const canonical = mappingAt(out.s);
-        out.segmentIndex =
-          canonical.occurrence === best.mapping.occurrence
-            ? best.seed
-            : seed(
-                canonical.occurrence.ordinal,
-                sampleGuidePath(
-                  canonical.occurrence.section.guide,
-                  canonical.sourceChainageInFrame(out.s),
-                  sourceSample,
-                ).segmentIndex,
-              );
-        return out;
-      },
+    const { reader: coordinates, seedCount } = createMappedPlanCoordinateReader(view, {
+      mapped,
+      mappingAt,
+      activeS,
+      headingInFrame,
     });
 
     const nodes = mapped
@@ -362,7 +172,7 @@ export function createCourseDrivingReaders(physical: Physical) {
       },
     });
     const world: VehicleWorld = Object.freeze({
-      guide,
+      coordinates,
       height,
       surfaces: Object.freeze({
         maxSupportedAbsL: Math.max(...mapped.map((m) => m.surface.maxSupportedAbsL + Math.abs(m.sourceLateralOrigin))),
@@ -384,7 +194,7 @@ export function createCourseDrivingReaders(physical: Physical) {
         geometry,
         mapping: Object.freeze({ mapped, check, mappingAt, resolve, activeS }),
         metadata: Object.freeze({
-          guideSegments: candidates.length,
+          planSeeds: seedCount,
           rasterSegments: raster.segments.length,
           heightNodes: nodes.length,
         }),

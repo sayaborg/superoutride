@@ -1,4 +1,4 @@
-import type { GuideCoordinateSource } from './geometry/guide-coordinate-frame.js';
+import type { PlanCoordinateReader } from './geometry/plan-coordinate.js';
 import type { HeightProfileReader } from './geometry/height-profile.js';
 import type { SurfaceMaterial, SurfaceType } from './surface-material.js';
 
@@ -17,7 +17,7 @@ export interface SurfaceMapReader {
 
 /** Active physical readers; content/chart selection is resolved by composition. */
 export interface VehicleWorld {
-  readonly guide: GuideCoordinateSource;
+  readonly coordinates: PlanCoordinateReader;
   readonly height: HeightProfileReader;
   readonly surfaces: SurfaceMapReader;
 }

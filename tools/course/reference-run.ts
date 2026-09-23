@@ -91,7 +91,7 @@ export function runCourseReference(
   for (let tick = 0; tick < maxTicks; tick++) {
     const section = scene.history.active.section,
       startSeconds = race.clock.elapsedSeconds;
-    const input = sampleEnvelopeDrivingInput(scene.world.guide, vehicle, driver, lane, workspace);
+    const input = sampleEnvelopeDrivingInput(scene.world.coordinates, vehicle, driver, lane, workspace);
     race.advance(input, SIM_DT);
     if (actor.recovery.recoveries)
       throw new RangeError(`${entry.profile.id}: reference recovered at ${section.id}:${vehicle.course.s}`);

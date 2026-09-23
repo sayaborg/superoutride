@@ -1,8 +1,8 @@
-import type { CourseCoordinate } from '../../course/geometry/guide-curve.js';
+import type { PlanCoordinateProjection } from '../../course/geometry/plan-coordinate.js';
 
 /**
  * Read-only world pose consumed outside concrete vehicle physics.
- * World x/y/z is the physical CG authority. `course` is a derived Guide observation cache only.
+ * World x/y/z is the physical CG authority. `course` is a derived plan coordinate observation cache only.
  */
 export interface VehicleWorldPoseRead {
   readonly x: number;
@@ -12,7 +12,7 @@ export interface VehicleWorldPoseRead {
   readonly velocityX?: number;
   readonly velocityY?: number;
   readonly velocityZ?: number;
-  readonly course: CourseCoordinate;
+  readonly course: PlanCoordinateProjection;
   /** Derived visual anchor. It follows the CG in flight but preserves static sprite ground contact. */
   readonly renderY?: number;
 }

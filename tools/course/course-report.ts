@@ -1,3 +1,4 @@
+import { createPlanCoordinateSample } from '../../src/course/geometry/plan-coordinate.js';
 import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 
 type CompiledSection = CompiledCourse['sections'][number];
@@ -21,32 +22,31 @@ export interface CourseReport {
   environments: { s: number; name: string }[];
   primitives: { id: string; kind: string; start: number; end: number }[];
 }
-import { createPlanarCoordinateSample } from '../../src/core/planar-sample.js';
+
 import path from 'node:path';
 import { plotCourseReport } from './plot-report.js';
-import { guidePathToWorld, sampleGuidePath } from '../../src/course/geometry/guide-curve.js';
-import { guideCoordinateMetricsAt } from '../../src/course/geometry/guide-coordinate-frame.js';
+
 import { courseBoundaryAt } from '../../src/course/course-regions.js';
 import { atomicWrite, finite, requireInput } from './authoring-io.js';
 
 export async function courseReport(course: CompiledCourse, section: CompiledSection, directory: string, step = 10) {
   finite(step, '/step', 0.01, 100000);
-  requireInput(Math.ceil(section.raster.length / step) <= 4096, '/step', 'Report is limited to 4096 regular stations');
+  const length = section.coordinates.domain.end;
+  requireInput(Math.ceil(length / step) <= 4096, '/step', 'Report is limited to 4096 regular stations');
   const stations = [
     ...new Set([
       0,
-      section.raster.length,
-      ...Array.from({ length: Math.ceil(section.raster.length / step) }, (_, i) => i * step),
+      length,
+      ...Array.from({ length: Math.ceil(length / step) }, (_, i) => i * step),
       ...section.height.nodes.map((n) => n.s),
       ...section.boundaries.flatMap((b) => b.knots.map((k) => k.anchor.s)),
     ]),
   ].sort((a, b) => a - b);
   const samples = stations.map((s) => {
-    const guide = sampleGuidePath(section.guide, s, createPlanarCoordinateSample()),
-      world = guidePathToWorld(section.guide, s, 0, createPlanarCoordinateSample());
+    const world = section.coordinates.toWorld(s, 0, createPlanCoordinateSample());
     return {
       s,
-      curvaturePerMeter: guideCoordinateMetricsAt(section.guide, s, 0, guide.segmentIndex, {
+      curvaturePerMeter: section.coordinates.metricsAt(s, 0, world.seed, {
         curvature: 0,
         metric: 1,
         offsetMetric: 1,
@@ -62,7 +62,7 @@ export async function courseReport(course: CompiledCourse, section: CompiledSect
   const report: CourseReport = {
     course: course.id,
     section: section.id,
-    lengthMeters: section.raster.length,
+    lengthMeters: length,
     identity: course.identity,
     reference: course.reference,
     boundaries: section.boundaries.map((b) => b.id),

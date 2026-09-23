@@ -12,7 +12,7 @@ import type { CompiledSection } from '../course/compiler/course-graph.js';
 import type { CameraState } from '../view/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../view/current-camera-profile.js';
 import { coursePortLateral } from '../course/compiler/course-links.js';
-import { recoverVehicleToGuideCoordinate, type RecoveryState } from '../race/recovery.js';
+import { recoverVehicleToPlanCoordinate, type RecoveryState } from '../race/recovery.js';
 import type { ArcadeVehicleState } from '../vehicle/physics/arcade-vehicle-physics.js';
 import type { VehicleRenderReadState } from '../vehicle/physics/vehicle-contract.js';
 import { createRenderWorkspace, renderDriving } from '../view/renderer.js';
@@ -92,7 +92,7 @@ export function createCourseScene(
     observeStep: session.observeStep,
     recoverAtEntry(vehicle: ArcadeVehicleState, recovery: RecoveryState): boolean {
       if (session.history.active.ordinal !== 0 || vehicle.course.s >= entry.anchor.s) return false;
-      recoverVehicleToGuideCoordinate(session.view.world, vehicle, {
+      recoverVehicleToPlanCoordinate(session.view.world, vehicle, {
         state: recovery,
         reason: 'wrong-course',
         target: { s: entry.anchor.s, l: coursePortLateral(entry) },

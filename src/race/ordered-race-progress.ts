@@ -1,5 +1,5 @@
 import type { Writable } from '../core/writable.js';
-import type { GuidePath } from '../course/geometry/guide-curve.js';
+import type { PlanCoordinateReader } from '../course/geometry/plan-coordinate.js';
 import { clamp, type Vec2 } from '../core/math.js';
 import { openProfileChainage } from '../course/geometry/open-profile.js';
 import {
@@ -19,18 +19,18 @@ const GATE_CANDIDATE_PADDING_METERS = 1e-7;
 interface OrderedRaceGateAuthoring {
   readonly kind: PhysicalRaceGateKind;
   readonly name: string;
-  /** Monotonically increasing chainage on one finite open Guide. */
+  /** Monotonically increasing chainage on one finite open plan coordinate. */
   readonly s: number;
   readonly bounds?: { readonly left: number; readonly right: number };
 }
 
 /**
- * Generic ordered race boundaries on a finite open Guide.
+ * Generic ordered race boundaries on a finite open plan coordinate.
  *
  * Callers reuse this physical gate sequence and own traversal or finite lap counts.
  */
 interface OrderedRaceCourseRules {
-  readonly guide: GuidePath;
+  readonly coordinates: PlanCoordinateReader;
   readonly courseLength: number;
   readonly gates: readonly PhysicalRaceGate[];
 }
@@ -84,11 +84,11 @@ interface OrderedRaceProgressUpdate {
 }
 
 /**
- * Compile an explicit finite sequence of physical race gates on one ordinary open Guide.
+ * Compile an explicit finite sequence of physical race gates on one ordinary open plan coordinate.
  * Gate chainages must be strictly increasing. The final boundary must be a physical finish.
  */
 export function compileOrderedRaceCourseRules(
-  guide: GuidePath,
+  coordinates: PlanCoordinateReader,
   authoredGates: readonly OrderedRaceGateAuthoring[],
 ): OrderedRaceCourseRules {
   if (authoredGates.length === 0) throw new RangeError('ordered race requires at least one gate');
@@ -96,8 +96,8 @@ export function compileOrderedRaceCourseRules(
   const names = new Set<string>();
   let previousS = -Infinity;
   const gates = authoredGates.map((gate, index) => {
-    if (!Number.isFinite(gate.s) || !(gate.s > 0) || gate.s > guide.length) {
-      throw new RangeError('ordered race gate chainage must satisfy 0 < s <= Guide length');
+    if (!Number.isFinite(gate.s) || !(gate.s > 0) || gate.s > coordinates.domain.end) {
+      throw new RangeError('ordered race gate chainage must satisfy 0 < s <= plan coordinate length');
     }
     if (!(gate.s > previousS)) {
       throw new RangeError('ordered race gate chainages must be strictly increasing');
@@ -105,7 +105,7 @@ export function compileOrderedRaceCourseRules(
     previousS = gate.s;
     if (names.has(gate.name)) throw new RangeError('ordered race gate names must be unique');
     names.add(gate.name);
-    return compilePhysicalRaceGate(guide, index, gate.kind, gate.name, gate.s, gate.bounds);
+    return compilePhysicalRaceGate(coordinates, index, gate.kind, gate.name, gate.s, gate.bounds);
   });
 
   if (gates[gates.length - 1]!.kind !== 'finish') {
@@ -113,8 +113,8 @@ export function compileOrderedRaceCourseRules(
   }
 
   return Object.freeze({
-    guide,
-    courseLength: guide.length,
+    coordinates,
+    courseLength: coordinates.domain.end,
     gates: Object.freeze(gates),
   });
 }
@@ -194,7 +194,7 @@ const crossingOrder = (a: PhysicalRaceGateCrossing, b: PhysicalRaceGateCrossing)
  * 2. disambiguating which repeated physical gate instance belongs to this finite window span.
  *
  * A gate still validates only when the actual previous→current world segment crosses its
- * transverse physical plane inside the Guide envelope and in authored order.
+ * transverse physical plane inside the plan coordinate envelope and in authored order.
  */
 export function updateOrderedRaceProgress(
   state: OrderedRaceProgressState,
@@ -207,7 +207,7 @@ export function updateOrderedRaceProgress(
   const previous = state.previous;
   const result = workspace.update;
   workspace.acceptedCrossings.length = 0;
-  state.direction = classifyPhysicalRaceMotionDirection(rules.guide, current.s, state.previous, current);
+  state.direction = classifyPhysicalRaceMotionDirection(rules.coordinates, current.s, state.previous, current);
 
   if (state.status === 'FINISHED') {
     state.previous = current;

@@ -12,7 +12,7 @@ import { COURSE_DRIVING_POLICY } from '../../src/race/course-driving-policy.js';
 import { createCourseDrivingViewSource } from '../../src/view/course-driving-view.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../../src/vehicle/physics/arcade-vehicle-physics.js';
 import { VEHICLE_CATALOG } from '../../src/vehicle/vehicle-catalog.js';
-import { createPlanarCoordinateSample } from '../../src/core/planar-sample.js';
+import { createPlanCoordinateSample } from '../../src/course/geometry/plan-coordinate.js';
 import { createRecoveryState } from '../../src/race/recovery.js';
 
 function physicalProduct(links) {
@@ -104,7 +104,7 @@ test('rendering overlays the same immutable occurrence mappings across forward a
     ['forward', link.source, 1],
     ['reverse', link.destination, -1],
   ]) {
-    const previous = session.view.world.guide.toWorld(port.anchor.s - sign, 0, createPlanarCoordinateSample());
+    const previous = session.view.world.coordinates.toWorld(port.anchor.s - sign, 0, createPlanCoordinateSample());
     const vehicle = createArcadeVehicle(profile, session.view.world, {
       s: port.anchor.s + sign,
       l: 0,

@@ -1,5 +1,4 @@
-import { createPlanarCoordinateSample } from '../core/planar-sample.js';
-import { guideCoordinateDomain, guideCoordinateToWorld } from '../course/geometry/guide-coordinate-frame.js';
+import { createPlanCoordinateSample } from '../course/geometry/plan-coordinate.js';
 import { clamp } from '../core/math.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import {
@@ -14,7 +13,7 @@ import type { VehicleWorld } from '../course/vehicle-world.js';
 import {
   VehicleOutsideModelError,
   VEHICLE_GRAVITY,
-  initializeGuideObservation,
+  initializePlanCoordinateObservation,
   resetVehicleControlState,
   sampleSurfaceGeometryAtCoordinate,
   createSurfaceGeometryWorkspace,
@@ -125,13 +124,13 @@ function updateRecovery(
     target = null,
   }: RecoveryOptions & { dt: number; target?: RecoveryTarget | null },
 ): RecoveryReason | null {
-  const { guide, height, surfaces } = world;
+  const { coordinates, height, surfaces } = world;
   let workspace = observationWorkspaces.get(vehicle);
   if (!workspace) {
     workspace = { surface: createSurfaceGeometryWorkspace(), body: createBodyKinematicsWorkspace() };
     observationWorkspaces.set(vehicle, workspace);
   }
-  const surface = sampleSurfaceGeometryAtCoordinate(guide, height, surfaces, vehicle.course, workspace.surface);
+  const surface = sampleSurfaceGeometryAtCoordinate(coordinates, height, surfaces, vehicle.course, workspace.surface);
   // Single-wheel support is allowed. Only an overturned pose bypasses the ordinary support check;
   // stale contact telemetry must not make an inverted vehicle a new safe recovery checkpoint.
   const overturned = dot3(arcadeBodyKinematics(vehicle, workspace.body).up, surface.normal) <= 0;
@@ -175,7 +174,7 @@ export function recoverVehicle(
     target = null,
   }: RecoveryOptions & { reason?: RecoveryReason; target?: RecoveryTarget | null },
 ): void {
-  recoverVehicleToGuideCoordinate(world, vehicle, {
+  recoverVehicleToPlanCoordinate(world, vehicle, {
     state,
     target: target ?? sameChartRecoveryTarget(world, vehicle, state, settings),
     reason,
@@ -189,17 +188,17 @@ function sameChartRecoveryTarget(
   state: RecoveryState,
   settings: RecoverySettings,
 ): RecoveryTarget {
-  const { guide } = world;
-  const domain = guideCoordinateDomain(guide);
+  const { coordinates } = world;
+  const domain = coordinates.domain;
   if (!Number.isFinite(state.lastSafeS) || state.lastSafeS < domain.start || state.lastSafeS > domain.end) {
-    throw new RangeError('recovery lastSafeS must lie within the active Guide domain');
+    throw new RangeError('recovery lastSafeS must lie within the active plan coordinate domain');
   }
   if (!Number.isFinite(vehicle.course.s)) {
     throw new RangeError('recovery vehicle chainage observation must be finite');
   }
   // Airborne world motion can advance well beyond the last loaded station. Recovering only from
   // lastSafeS can place the vehicle back on the same launch face forever. Preserve the farther
-  // causal Guide observation, then backtrack once into the ordinary supported reconstruction.
+  // causal plan coordinate observation, then backtrack once into the ordinary supported reconstruction.
   const recoveryBaseS = clamp(Math.max(state.lastSafeS, vehicle.course.s), domain.start, domain.end);
   return { s: Math.max(domain.start, recoveryBaseS - settings.backtrackDistance), l: settings.targetL ?? 0 };
 }
@@ -208,7 +207,7 @@ function sameChartRecoveryTarget(
  * Explicit gameplay discontinuity: reconstruct a complete safe authoritative vehicle state at one
  * authored supported coordinate. No contact phase, tire memory or route progress is manufactured.
  */
-export function recoverVehicleToGuideCoordinate(
+export function recoverVehicleToPlanCoordinate(
   world: VehicleWorld,
   vehicle: ArcadeVehicleState,
   {
@@ -218,20 +217,20 @@ export function recoverVehicleToGuideCoordinate(
     settings = RECOVERY_SETTINGS,
   }: RecoveryOptions & { target: RecoveryTarget; reason: RecoveryReason },
 ): void {
-  const { guide, height, surfaces } = world;
-  const domain = guideCoordinateDomain(guide);
+  const { coordinates, height, surfaces } = world;
+  const domain = coordinates.domain;
   if (![target.s, target.l].every(Number.isFinite)) throw new RangeError('recovery target coordinate must be finite');
   if (target.s < domain.start || target.s > domain.end)
-    throw new RangeError('recovery target chainage must lie within the active Guide domain');
+    throw new RangeError('recovery target chainage must lie within the active plan coordinate domain');
 
   const coordinate = {
     s: target.s,
     l: target.l,
-    segmentIndex: guideCoordinateToWorld(guide, target.s, target.l, createPlanarCoordinateSample()).segmentIndex,
+    seed: coordinates.toWorld(target.s, target.l, createPlanCoordinateSample()).seed,
     distanceSquared: 0,
   };
   const surface = sampleSurfaceGeometryAtCoordinate(
-    guide,
+    coordinates,
     height,
     surfaces,
     coordinate,
@@ -256,7 +255,7 @@ export function recoverVehicleToGuideCoordinate(
   vehicle.velocityZ = velocity.z;
 
   reconstructVehicle(vehicle, surface.point, surface.normal, yaw, surface.gradeAngle, speed);
-  vehicle.course = initializeGuideObservation(guide, vehicle.x, vehicle.z, coordinate.segmentIndex);
+  vehicle.course = initializePlanCoordinateObservation(coordinates, vehicle.x, vehicle.z, coordinate.seed);
 
   state.lastSafeS = target.s;
   state.unsupportedTime = 0;

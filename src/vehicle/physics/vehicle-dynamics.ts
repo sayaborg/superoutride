@@ -1,15 +1,14 @@
-import { createGuideProjectionWorkspace } from '../../course/geometry/guide-curve.js';
-import { createPlanarCoordinateSample } from '../../core/planar-sample.js';
+import {
+  createPlanProjectionWorkspace,
+  createPlanCoordinateSample,
+  type PlanCoordinateReader,
+  type PlanCoordinateProjection,
+  type PlanProjectionWorkspace,
+  type PlanProjectionSeed,
+} from '../../course/geometry/plan-coordinate.js';
 import { type Writable } from '../../core/writable.js';
 import { SURFACE_MATERIALS } from '../../course/surface-material.js';
 import { resetVehicleTireObservation } from './vehicle-tire-observation.js';
-import {
-  guideCoordinateMetricsAt,
-  guideCoordinateToWorld,
-  locateWorldOnGuideCoordinateLocal,
-  type GuideCoordinateSource,
-} from '../../course/geometry/guide-coordinate-frame.js';
-import type { CourseCoordinate } from '../../course/geometry/guide-curve.js';
 import type { HeightProfileReader } from '../../course/geometry/height-profile.js';
 import type { AutomaticPowertrainState } from './automatic-powertrain.js';
 import type { SurfaceMapReader } from '../../course/vehicle-world.js';
@@ -71,7 +70,7 @@ interface VehicleControlState {
   rearUtilization: number;
 }
 
-/** Shared public world-state fields. `course` is a derived Guide cache, never world authority. */
+/** Shared public world-state fields. `course` is a derived plan coordinate cache, never world authority. */
 export interface VehicleDynamicsState {
   x: number;
   y: number;
@@ -79,7 +78,7 @@ export interface VehicleDynamicsState {
   velocityX: number;
   velocityY: number;
   velocityZ: number;
-  course: CourseCoordinate;
+  course: PlanCoordinateProjection;
   surfaceType: SurfaceType;
   longitudinalAcceleration: number;
   lateralAcceleration: number;
@@ -124,7 +123,7 @@ export interface BodyKinematics {
 }
 
 interface SurfaceGeometryObservation {
-  readonly coordinate: CourseCoordinate;
+  readonly coordinate: PlanCoordinateProjection;
   readonly point: Vec3;
   readonly horizontalTangent: Vec3;
   readonly right: Vec3;
@@ -223,17 +222,15 @@ export function bodyFrameVelocity(vehicle: VehicleDynamicsState, forward: Vec3, 
   };
 }
 
-export function refreshGuideObservation(
-  guide: GuideCoordinateSource,
+export function refreshPlanCoordinateObservation(
+  coordinates: PlanCoordinateReader,
   vehicle: VehicleDynamicsState,
-  workspace: ReturnType<typeof createGuideProjectionWorkspace>,
+  workspace: PlanProjectionWorkspace,
 ): void {
-  vehicle.course = locateWorldOnGuideCoordinateLocal(
-    guide,
+  vehicle.course = coordinates.locateLocal(
     vehicle,
-    vehicle.course.segmentIndex,
+    vehicle.course.seed,
     VEHICLE_PROJECTION_SEARCH_RADIUS,
-    false,
     vehicle.course,
     workspace,
   );
@@ -245,7 +242,7 @@ const vector = () => ({ x: 0, y: 0, z: 0 });
 export function createSurfaceGeometryWorkspace() {
   return {
     value: {
-      coordinate: { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 },
+      coordinate: { s: 0, l: 0, seed: -1, distanceSquared: 0 },
       point: vector(),
       horizontalTangent: vector(),
       right: vector(),
@@ -259,8 +256,8 @@ export function createSurfaceGeometryWorkspace() {
       material: SURFACE_MATERIALS.VOID,
       surfaceType: 'VOID' as SurfaceType,
     },
-    guide: createPlanarCoordinateSample(),
-    projection: createGuideProjectionWorkspace(),
+    planSample: createPlanCoordinateSample(),
+    projection: createPlanProjectionWorkspace(),
     height: { y: 0, dYdS: 0 },
     metrics: { curvature: 0, metric: 1, offsetMetric: 1 },
     a: vector(),
@@ -269,19 +266,18 @@ export function createSurfaceGeometryWorkspace() {
 }
 
 export function sampleSurfaceGeometryAtCoordinate(
-  guide: GuideCoordinateSource,
+  coordinates: PlanCoordinateReader,
   height: HeightProfileReader,
   surfaces: SurfaceMapReader,
-  coordinate: CourseCoordinate,
+  coordinate: PlanCoordinateProjection,
   workspace: ReturnType<typeof createSurfaceGeometryWorkspace>,
 ): SurfaceGeometryObservation {
   const out = workspace.value;
-  const guideSample = guideCoordinateToWorld(guide, coordinate.s, coordinate.l, workspace.guide);
-  const { curvature, metric, offsetMetric } = guideCoordinateMetricsAt(
-    guide,
+  const planSample = coordinates.toWorld(coordinate.s, coordinate.l, workspace.planSample);
+  const { curvature, metric, offsetMetric } = coordinates.metricsAt(
     coordinate.s,
     coordinate.l,
-    guideSample.segmentIndex,
+    planSample.seed,
     workspace.metrics,
   );
   if (!(offsetMetric > 0)) throw new RangeError('surface offset metric A=1-kappa*l must remain > 0');
@@ -289,12 +285,12 @@ export function sampleSurfaceGeometryAtCoordinate(
   const heightDerivativeByPlanArc = heightSample.dYdS / metric;
   const horizontalTangent = out.horizontalTangent,
     right = out.right;
-  horizontalTangent.x = Math.sin(guideSample.heading);
+  horizontalTangent.x = Math.sin(planSample.heading);
   horizontalTangent.y = 0;
-  horizontalTangent.z = Math.cos(guideSample.heading);
-  right.x = Math.cos(guideSample.heading);
+  horizontalTangent.z = Math.cos(planSample.heading);
+  right.x = Math.cos(planSample.heading);
   right.y = 0;
-  right.z = -Math.sin(guideSample.heading);
+  right.z = -Math.sin(planSample.heading);
   normalize3(
     add3(
       scale3(horizontalTangent, offsetMetric, workspace.a),
@@ -313,9 +309,9 @@ export function sampleSurfaceGeometryAtCoordinate(
   );
   const sample = surfaces.sample(coordinate.s, coordinate.l);
   out.coordinate = coordinate;
-  out.point.x = guideSample.x;
+  out.point.x = planSample.x;
   out.point.y = heightSample.y;
-  out.point.z = guideSample.z;
+  out.point.z = planSample.z;
   out.curvature = curvature;
   out.metric = metric;
   out.offsetMetric = offsetMetric;
@@ -362,28 +358,26 @@ type ContactWorkspace = ReturnType<typeof createContactWorkspace>;
 
 /** One ordinary contact solve; reusable storage changes no physical operation. */
 export function deriveContactObservation(
-  guide: GuideCoordinateSource,
+  coordinates: PlanCoordinateReader,
   height: HeightProfileReader,
   surfaces: SurfaceMapReader,
   body: BodyKinematics,
   station: ContactStationProfile,
   steerAngle: number,
-  previousSegmentIndex: number,
+  previousSeed: PlanProjectionSeed,
   workspace: ContactWorkspace,
 ): ContactObservation {
   const { value: out, a, b, freeOffset } = workspace;
   add3(scale3(body.forward, station.forwardOffset, a), scale3(body.up, -station.freeReachDown, b), freeOffset);
   const reachPoint = add3(body.position, freeOffset, out.reachPoint);
-  const coordinate = locateWorldOnGuideCoordinateLocal(
-    guide,
+  const coordinate = coordinates.locateLocal(
     reachPoint,
-    previousSegmentIndex,
+    previousSeed,
     VEHICLE_PROJECTION_SEARCH_RADIUS,
-    false,
     workspace.surface.value.coordinate,
     workspace.surface.projection,
   );
-  sampleSurfaceGeometryAtCoordinate(guide, height, surfaces, coordinate, workspace.surface);
+  sampleSurfaceGeometryAtCoordinate(coordinates, height, surfaces, coordinate, workspace.surface);
   const surface = workspace.surface.value;
   const reachVelocity = add3(body.velocity, cross3(body.omegaWorld, freeOffset, a), out.reachVelocity);
   const gap = dot3(sub3(reachPoint, surface.point, a), surface.normal);
@@ -539,20 +533,18 @@ export function representativeSurfaceType(contacts: readonly ContactObservation[
 }
 
 /** Reproject the reconstructed CG near its known placement; overlapping charts are not interchangeable. */
-export function initializeGuideObservation(
-  guide: GuideCoordinateSource,
+export function initializePlanCoordinateObservation(
+  coordinates: PlanCoordinateReader,
   x: number,
   z: number,
-  segmentIndex: number,
-): CourseCoordinate {
-  return locateWorldOnGuideCoordinateLocal(
-    guide,
+  seed: PlanProjectionSeed,
+): PlanCoordinateProjection {
+  return coordinates.locateLocal(
     { x, z },
-    segmentIndex,
+    seed,
     2,
-    false,
-    { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 },
-    createGuideProjectionWorkspace(),
+    { s: 0, l: 0, seed: -1, distanceSquared: 0 },
+    createPlanProjectionWorkspace(),
   );
 }
 

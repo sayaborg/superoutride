@@ -1,8 +1,7 @@
-import { createPlanarCoordinateSample } from '../core/planar-sample.js';
+import { createPlanCoordinateSample } from '../course/geometry/plan-coordinate.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import type { CompiledSection } from '../course/compiler/course-graph.js';
 import type { CompiledCourseLandmark } from '../course/compiler/course-rules.js';
-import { guidePathToWorld } from '../course/geometry/guide-curve.js';
 import {
   createCircuitRaceProgressState,
   updateCircuitRaceProgress,
@@ -42,7 +41,7 @@ export function createCourseRaceProgress(course: CompiledCourse, lapCount: numbe
     course.rules.intervals.map(({ section, checkpoints, finish }) => {
       const authored = [...checkpoints, ...(finish ? [finish] : [])];
       const end = Math.min(...section.outgoing.map((l) => l.source.anchor.s));
-      const lap = compileOrderedRaceCourseRules(section.guide, [
+      const lap = compileOrderedRaceCourseRules(section.coordinates, [
         ...authored.map((g) => ({
           kind: g === finish ? ('finish' as const) : ('checkpoint' as const),
           name: g.id,
@@ -166,7 +165,7 @@ export function createCourseRaceProgress(course: CompiledCourse, lapCount: numbe
           base += local.validatedProgressFloor - entryS(expected);
           expected = active.section;
           const s = entryS(expected),
-            p = guidePathToWorld(expected.guide, s, 0, createPlanarCoordinateSample());
+            p = expected.coordinates.toWorld(s, 0, createPlanCoordinateSample());
           local = createOrderedRaceProgressState(rules.get(expected)!.lap, { ...p, s });
           local.sProgress = s;
         }

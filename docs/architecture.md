@@ -15,15 +15,26 @@ n = (cos(psi), -sin(psi))
 ```
 
 Course `(s,l)` is an observation. Raster and Guide share plan chainage `s`; physical distance along
-an offset or sloping path is different. Local projection uses a previous segment and a finite clipped
-search neighborhood. Spawn and recovery supply known seeds. Invalid seeds fail explicitly.
-Optional lateral clamping acts in the Guide basis before a frame's lateral-origin subtraction;
-ordinary physical projection is unclamped.
+an offset or sloping path is different.
 
-`GuideCoordinateSource` supports a GuidePath, a constant-origin frame and a `GuideCoordinateReader`.
-The common reader exposes a finite domain, point/metric sampling and seeded local projection.
-Source-array inspection and global projection belong to source authoring. Terrain and rendering use
-`RasterGeometry`: finite length, segment stations/headings and point mapping.
+`PlanCoordinateReader` is the planar query interface for both a compiled Section and its mapped
+occurrences. `CompiledSection.coordinates` and `VehicleWorld.coordinates` expose this same type:
+
+- `domain.start` and `domain.end` bound the admitted s interval; `domain.lateralAt(s,out)` gives its
+  closed `[left,right]` coordinate bounds. A Section uses its Guide envelope, and an occurrence
+  subtracts its mapped lateral origin from both edges. Coordinate bounds do not define material support.
+- `toWorld(s,l,out)` reads world X/Z, heading and a `PlanProjectionSeed`. `metricsAt(s,l,seed,out)`
+  reads curvature, centerline metric and offset metric. Native and mapped readers use their own frame.
+- `locateLocal(world,seed,searchRadius,out,workspace)` projects within a finite local neighborhood,
+  without lateral clamping or a global-search fallback. Seeds come from this reader's samples or
+  projections, not from consumer arithmetic; mapped seeds identify an occurrence and its native segment.
+  Spawn and recovery supply known seeds. Invalid or unretained projection seeds fail explicitly.
+
+`PlanCoordinateSample` and `PlanCoordinateProjection` are borrowed observations in caller-owned outputs.
+`PlanProjectionWorkspace` holds reusable numerical scratch, separate from vehicle state. The native and
+mapped implementations own Guide access; ordinary consumers do not inspect Guide arrays or branch on
+reader representation. Geometry construction and its geometric proofs inspect their compiled primitives.
+Terrain and rendering use `RasterGeometry`: finite length, segment stations/headings and point mapping.
 
 Vec2/Vec3 are readonly values. Sampling APIs with caller-owned outputs return borrowed observations
 valid until those outputs are reused. Compiled sources are immutable; actors and consumers own live state.

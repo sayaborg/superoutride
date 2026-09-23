@@ -1,8 +1,6 @@
-import { createPlanarCoordinateSample } from '../core/planar-sample.js';
-import { guidePathToWorld, sampleGuidePath, type GuidePath } from '../course/geometry/guide-curve.js';
-import { guideEnvelopeAt } from '../course/geometry/guide-envelope.js';
-import { dot, subtract, tangentFromHeading, type Vec2 } from '../core/math.js';
+import { createPlanCoordinateSample, type PlanCoordinateReader } from '../course/geometry/plan-coordinate.js';
 
+import { dot, subtract, tangentFromHeading, type Vec2 } from '../core/math.js';
 import { compileWorldCrossingGate, observeWorldCrossingGate } from './world-crossing-gate.js';
 const MOTION_DIRECTION_TOLERANCE_METERS = 1e-7;
 
@@ -11,7 +9,7 @@ export type PhysicalRaceGateKind = 'checkpoint' | 'finish';
 type PhysicalRaceGateCrossingDirection = 'FORWARD' | 'REVERSE';
 
 /**
- * One physically authored transverse race boundary on an ordinary Guide chainage ruler.
+ * One physically authored transverse race boundary on the planar chainage ruler.
  *
  * The caller supplies chainage in the finite coordinate window. The gate never wraps it.
  */
@@ -34,11 +32,11 @@ export interface PhysicalRaceGateCrossing {
 }
 
 /**
- * Compile a physical race gate from the Guide itself. Gate width is the Guide envelope;
+ * Compile a physical race gate from the coordinate reader. Gate width is the coordinate domain;
  * no race-only lateral tuning authority is introduced.
  */
 export function compilePhysicalRaceGate(
-  guide: GuidePath,
+  coordinates: PlanCoordinateReader,
   index: number,
   kind: PhysicalRaceGateKind,
   name: string,
@@ -55,23 +53,19 @@ export function compilePhysicalRaceGate(
   if (typeof name !== 'string' || name.trim().length === 0) {
     throw new RangeError('physical race gate name must be non-empty');
   }
-  if (!Number.isFinite(s) || s < 0 || s > guide.length) {
-    throw new RangeError('physical race gate chainage must be within the Guide [0,length] domain');
+  if (!Number.isFinite(s) || s < coordinates.domain.start || s > coordinates.domain.end) {
+    throw new RangeError('physical race gate chainage must be within the coordinate reader domain');
   }
 
   if (bounds && (![bounds.left, bounds.right].every(Number.isFinite) || bounds.right <= bounds.left))
     throw new RangeError('Gate bounds require finite positive width');
-  const centerSample = guidePathToWorld(
-    guide,
-    s,
-    bounds ? (bounds.left + bounds.right) / 2 : 0,
-    createPlanarCoordinateSample(),
-  );
+  const gateBounds = bounds ?? coordinates.domain.lateralAt(s, { left: 0, right: 0 });
+  const centerSample = coordinates.toWorld(s, (gateBounds.left + gateBounds.right) / 2, createPlanCoordinateSample());
   const geometry = compileWorldCrossingGate({
     id: name,
     center: centerSample,
     heading: centerSample.heading,
-    halfWidth: bounds ? (bounds.right - bounds.left) / 2 : guideEnvelopeAt(guide.envelope, s),
+    halfWidth: (gateBounds.right - gateBounds.left) / 2,
   });
   return Object.freeze({
     index,
@@ -86,21 +80,21 @@ export function compilePhysicalRaceGate(
 }
 
 /**
- * Classify actual world motion against the Guide tangent at the supplied chainage.
+ * Classify actual world motion against the plan coordinate tangent at the supplied chainage.
  * Chainage selects the local tangent; world displacement remains the direction authority.
  */
 export function classifyPhysicalRaceMotionDirection(
-  guide: GuidePath,
+  coordinates: PlanCoordinateReader,
   currentS: number,
   previous: Vec2,
   current: Vec2,
 ): RaceMotionDirection {
-  if (!Number.isFinite(currentS) || currentS < 0 || currentS > guide.length) {
-    throw new RangeError('race motion chainage must be within the Guide [0,length] domain');
+  if (!Number.isFinite(currentS) || currentS < coordinates.domain.start || currentS > coordinates.domain.end) {
+    throw new RangeError('race motion chainage must be within the coordinate reader domain');
   }
   const movement = subtract(current, previous);
-  const guideSample = sampleGuidePath(guide, currentS, createPlanarCoordinateSample());
-  const tangent = tangentFromHeading(guideSample.heading);
+  const planSample = coordinates.toWorld(currentS, 0, createPlanCoordinateSample());
+  const tangent = tangentFromHeading(planSample.heading);
   const longitudinal = dot(movement, tangent);
   if (longitudinal > MOTION_DIRECTION_TOLERANCE_METERS) return 'FORWARD';
   if (longitudinal < -MOTION_DIRECTION_TOLERANCE_METERS) return 'REVERSE';

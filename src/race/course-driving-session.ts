@@ -4,7 +4,7 @@ import { coursePortLateral } from '../course/compiler/course-links.js';
 import { compilePlanarTransform, composePlanarTransforms, invertPlanarTransform } from '../core/planar-transform.js';
 import { clamp, type Vec2 } from '../core/math.js';
 import { compileWorldCrossingGate, observeWorldCrossingPlane } from './world-crossing-gate.js';
-import { RECOVERY_SETTINGS, recoverVehicleToGuideCoordinate, type RecoveryState } from './recovery.js';
+import { RECOVERY_SETTINGS, recoverVehicleToPlanCoordinate, type RecoveryState } from './recovery.js';
 import type { ArcadeVehicleState } from '../vehicle/physics/arcade-vehicle-physics.js';
 import { reframeVehicle } from '../vehicle/physics/vehicle-reframe.js';
 import type { createCourseDrivingReaders } from '../course/course-driving-readers.js';
@@ -116,7 +116,7 @@ function createSession(
       view.range.start,
       view.range.end,
     );
-    recoverVehicleToGuideCoordinate(view.world, actor.vehicle, {
+    recoverVehicleToPlanCoordinate(view.world, actor.vehicle, {
       state: actor.recovery,
       reason: 'wrong-course',
       target: { s, l: coursePortLateral(candidate.port) },
@@ -143,7 +143,7 @@ function createSession(
     if (!movement.commit().ok) return recover(actor, candidate);
     reframeVehicle(
       vehicle,
-      next.world.guide,
+      next.world.coordinates,
       transform,
       nextS,
       vehicle.course.l + coursePortLateral(to) - coursePortLateral(from),

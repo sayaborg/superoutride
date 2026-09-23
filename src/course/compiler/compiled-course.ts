@@ -1,3 +1,4 @@
+import { createPlanCoordinateReader } from '../geometry/plan-coordinate-reader.js';
 import { contentDigest } from '../../core/content-digest.js';
 import { compileGuidePath, type GuidePath } from '../geometry/guide-curve.js';
 import {
@@ -204,6 +205,7 @@ function compileSection(
     primitives,
     raster,
     guide,
+    coordinates: createPlanCoordinateReader(guide),
     boundaries: Object.freeze(boundaries),
     regionPartition: partition,
     ...compileCoursePhysicalContent(section, raster.length, regions, resolve, path),
