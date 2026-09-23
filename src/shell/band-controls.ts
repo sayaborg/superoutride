@@ -1,4 +1,4 @@
-import { BAND_RENDER_METHODS, type BandRenderMethod } from '../course/band-ground.js';
+import { BAND_RENDER_METHODS, type BandRenderMethod } from '../view/display-settings.js';
 import { DEFAULT_BAND_RENDER_METHOD } from '../view/display-settings.js';
 
 /** DEV is one adapter for the product display setting; changing it preserves the live scene. */

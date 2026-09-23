@@ -8,7 +8,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **6-7 — Band tail cells**.
+Next PR: **6-8 — Cut-line seams**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -18,7 +18,6 @@ PRs hold rationale and verification evidence.
 
 Make authored plan and vertical geometry authoritative, with rendering-only approximations and simpler connections.
 
-- **6-7 — Band tail cells:** truncate preblend cells at the Section end and separate compilation from sampling while preserving private compiled coefficient storage.
 - **6-8 — Cut-line seams:** replace overlaps with cut lines, remove Port, `Section.start` and overlap machinery, rename `Link.source` according to the glossary, and review the straight requirement for parallel fork intervals. Rewrite provisional course lengths as round authored values rather than old-ruler compensation values such as `524.9207...`.
 - **6-9 — Views and occurrences:** minimize their procedures and name occurrence-view replacements (`createView`, `CourseGeometryView` and their adapters) according to the glossary. Limit Section-only `locateLocal` scanning to the search window interval.
 - **6-10 — Local tolerances:** clarify each tolerance's basis and owning algorithm, including the `1e-14` tangent-intersection threshold in `plan-domain-injectivity.ts`.
@@ -28,6 +27,7 @@ Make authored plan and vertical geometry authoritative, with rendering-only appr
 Unify authored coordinates, appearance, delivery and progress in the course format.
 
 - **7-1 — Coordinates and variation:** use Anchor and Lateral position types, and knot sequences for variation along s.
+  Call derived `ProfilePolyline` points vertices rather than Knots; rename `knots` and `distanceToNextKnot`.
 - **7-2 — Section layers:** plan / structure / profile / appearance; give Regions material knots and carriagewayId,
   and remove role. Rename VisualProfile replacements according to the glossary.
 - **7-3 — Appearance elements:** one list and shared repeat for band / arrow / text / curb / sprite.
@@ -35,6 +35,7 @@ Unify authored coordinates, appearance, delivery and progress in the course form
 - **7-4 — Course identity:** derive kind from the graph, remove production provenance, and simplify nulls and limits.
 - **7-5 — Delivery identity:** one manifest, one version per format and one image path.
 - **7-6 — Progress and validation:** unify progress and consolidate validation into one layer, placing the `CourseInputError` fields currently dedicated to coordinate-overlap diagnostics in a structured diagnostic variant.
+  Consolidate vertical-curve validation in the compiler and `Profile` constructor into one place; admit `curveLength` from zero upward in document reading.
 
 ## Stage 8 — Vehicles and materials
 

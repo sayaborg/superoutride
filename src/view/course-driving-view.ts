@@ -1,4 +1,4 @@
-import { createBandGroundSampler } from '../course/band-ground.js';
+import { createBandGroundSampler } from './band-ground-sampler.js';
 import type { CourseGround } from '../course/compiler/course-ground.js';
 import type { CompiledSection } from '../course/compiler/course-graph.js';
 import type { compileCoursePhysicalDomains } from '../course/compiler/course-physical-overlap.js';

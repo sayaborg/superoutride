@@ -180,12 +180,15 @@ last declared covering Band. Resolved spans are disjoint, cover the open lateral
 adjacent equal colors; transparent upper Bands erase lower colors before filtering. The active count
 includes hidden declarations, not just the visible resolved spans.
 
-The compiler averages resolved colors over complete dyadic s intervals: `[k*2^n,(k+1)*2^n]` metres,
-starting at one metre. Lateral fields store premultiplied linear-sRGB channels and coverage as piecewise-linear
+The course compiler averages resolved colors over dyadic s cells starting at one metre.
+Each level has `ceil(L/2^n)` cells for Section length `L`; its last cell ends at `L` and
+is averaged over its actual length. The top level has one cell spanning the Section.
+Lateral fields store premultiplied linear-sRGB channels and coverage as piecewise-linear
 functions of fixed source-l coordinates. An edge that moves across an interval becomes a ramp rather
-than a relocated hard edge. Equal complete lateral fields share private coefficient storage and per-level
-indices. Resolved records and public metadata are deeply immutable; mutable numeric buffers remain
-behind the compiled product's read boundary.
+than a relocated hard edge. Equal lateral fields share private coefficient storage and per-level indices.
+Resolved records and public metadata are deeply immutable. The compiled product supplies a Reader that delivers scalar
+base and node coefficients, cell length and active count; mutable numeric buffers and views stay private.
+The view layer owns row sampling and display-method selection.
 
 A row uses the terrain projection's representative s and effective depth footprint `deltaS`.
 A projected `[-1,+1]` metre ruler supplies the affine screen-to-l map; it does not clip ground.
@@ -201,14 +204,14 @@ POINT-POINT and LEVEL-POINT use the source owning s and its lateral origin; a se
 successor. The instantaneous read follows the ordered resolved slab without preblending or sorting.
 LEVEL-POINT uses `rho = deltaS / 1 m` with the [shared image selector](#shared-image-level-selection).
 It reads only the containing cell, without cell/level interpolation or mixing neighboring occurrences.
-Only complete dyadic cells exist. At Section tails, the available prefix contains levels whose
-containing cell exists; selection clamps to that prefix. The final closed endpoint uses the preceding
-cell. A fractional-metre tail without a containing cell uses the instantaneous read.
+Every level covers the Section through its truncated last cell. The final closed endpoint uses
+that last cell.
 
 EXACT-BOX clips the centered depth interval to source-owned view spans, maps their lateral origins
-and decomposes the ranges into complete cached dyadic intervals. At most two partial one-metre
-ends per source range integrate resolved affine edges directly. Sub-metre footprints use the same
-rule; zero-length footprints use the instantaneous slab. Unowned overlap guards do not contribute.
+and decomposes the ranges into cached dyadic intervals, including truncated tail cells.
+Partial one-metre ends outside a complete cell integrate resolved affine edges directly.
+Sub-metre footprints use the same rule; zero-length footprints use the instantaneous slab.
+Unowned overlap guards do not contribute.
 Actual source lengths weight all contributions before coverage or color normalization. This is a
 separable source-(s,l) row footprint, not a full perspective pixel polygon. Dyadic decomposition
 does not change the mathematical integral.
@@ -331,6 +334,7 @@ actor observations; view owns rival sprite selection and assembly. Course owns V
 readers and the physical driving source. Race consumes that source only. Shell binds physical and
 presentation products and owns the combined pre-lock render/driver query-depth admission.
 RGBA conversion, sprite images and LOD formats belong
-to image; framebuffer writes and sprite drawing belong to view. Band modes, compiled color fields
-and their still-co-located sampler belong to course; view owns display settings and consumes that sampler.
+to image; framebuffer writes and sprite drawing belong to view. Compiled Band color fields
+and their scalar coefficient Reader belong to course. View owns Band row sampling and the
+three display methods; shell obtains their names from view.
 Environment profiles are course data.

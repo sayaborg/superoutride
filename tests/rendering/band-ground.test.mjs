@@ -1,12 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {
-  BAND_ACTIVE_LIMIT,
-  compileBandGround,
-  createBandGroundSampler,
-  createBandRenderMetrics,
-} from '../../dist/course/band-ground.js';
-import { BAND_RENDER_METHODS } from '../../dist/course/band-ground.js';
+import { BAND_ACTIVE_LIMIT, compileBandGround } from '../../dist/course/band-ground.js';
+import { BAND_RENDER_METHODS } from '../../dist/view/display-settings.js';
+import { createBandGroundSampler, createBandRenderMetrics } from '../../dist/view/band-ground-sampler.js';
 import { linearToRgb555 } from '../../dist/image/image-filter.js';
 import { rgb555ToRgba } from '../../dist/image/rgb555.js';
 import { selectSpriteLevel } from '../../dist/image/sprite.js';
@@ -88,14 +84,15 @@ test('POINT always reads s; LEVEL shares sprite octave selection and reads insta
   for (const s of [0.6, 4.2, 6.25, 6.5]) {
     const direct = row(whole(moving), { s, method: 'POINT-POINT' });
     assert.deepEqual(row(whole(moving), { s, deltaS: 0.99, method: 'LEVEL-POINT' }), direct);
-    if (s >= 6.25) assert.deepEqual(row(whole(moving), { s, deltaS: 4, method: 'LEVEL-POINT' }), direct);
+    if (s >= 6.25)
+      assert.deepEqual(
+        row(whole(moving), { s, deltaS: 4, method: 'LEVEL-POINT', l: -2, stepL: 0, count: 1 }),
+        row(whole(moving), { s: 5.25, deltaS: 2.5, l: -2, stepL: 0, count: 1 }),
+      );
   }
   assert.deepEqual(
     row(whole(moving), { s: 4.2, deltaS: 4, method: 'LEVEL-POINT' }),
-    Uint32Array.from(
-      { length: 32 },
-      (_, i) => row(whole(moving), { s: 5, l: -4 + i * 0.25, deltaS: 2, stepL: 0, count: 1 })[0],
-    ),
+    row(whole(moving), { s: 6.25, deltaS: 4, method: 'LEVEL-POINT' }),
   );
 });
 

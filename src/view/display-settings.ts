@@ -1,5 +1,3 @@
-import { BAND_RENDER_METHODS, type BandRenderMethod } from '../course/band-ground.js';
-
 export const DEFAULT_BAND_RENDER_METHOD: BandRenderMethod = 'LEVEL-POINT';
 
 export function createDisplaySettings(initial: BandRenderMethod = DEFAULT_BAND_RENDER_METHOD) {
@@ -18,3 +16,5 @@ export function createDisplaySettings(initial: BandRenderMethod = DEFAULT_BAND_R
   });
 }
 export type DisplaySettings = ReturnType<typeof createDisplaySettings>;
+export const BAND_RENDER_METHODS = Object.freeze(['POINT-POINT', 'LEVEL-POINT', 'EXACT-BOX'] as const);
+export type BandRenderMethod = (typeof BAND_RENDER_METHODS)[number];

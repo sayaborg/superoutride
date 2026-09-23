@@ -9,7 +9,7 @@ import { VEHICLE_CATALOG } from '../../src/vehicle/vehicle-catalog.js';
 import { createCameraRig, updateCamera } from '../../src/view/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../../src/view/current-camera-profile.js';
 import { deriveVehicleSpriteFamily } from '../../src/view/vehicle-visuals.js';
-import { BAND_RENDER_METHODS } from '../../src/course/band-ground.js';
+import { BAND_RENDER_METHODS } from '../../src/view/display-settings.js';
 import { createDisplaySettings } from '../../src/view/display-settings.js';
 import { SoftwareSurface } from '../../src/view/software-surface.js';
 

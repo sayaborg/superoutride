@@ -1,7 +1,7 @@
 export { BAND_ACTIVE_LIMIT } from '../course/band-ground.js';
-import { createBandRenderMetrics, type BandRenderMetrics } from '../course/band-ground.js';
+import { createBandRenderMetrics, type BandRenderMetrics } from './band-ground-sampler.js';
 import { DEFAULT_BAND_RENDER_METHOD } from './display-settings.js';
-import { type BandRenderMethod } from '../course/band-ground.js';
+import type { BandRenderMethod } from './display-settings.js';
 import type { RasterGeometry } from '../course/geometry/raster-coordinate-reader.js';
 import { wrapAngle } from '../core/math.js';
 import { pseudoProject, type PseudoCamera } from './projection.js';
