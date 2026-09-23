@@ -6,7 +6,7 @@ import { loadCourse, loadCourseGround } from '../../tools/course/authoring-io.ts
 import { compileCourseDocument } from '../../src/course/compiler/compiled-course.js';
 import { compileCoursePhysicalDomains } from '../../src/course/compiler/course-physical-overlap.js';
 import { compileCoursePresentationDomains } from '../../src/course/compiler/course-presentation-overlap.js';
-import { createCourseDrivingSource } from '../../src/course/course-driving-source.js';
+import { createCourseDrivingReaders } from '../../src/course/course-driving-readers.js';
 import { createCourseDrivingGraph } from '../../src/race/course-driving-session.js';
 import { COURSE_DRIVING_POLICY } from '../../src/race/course-driving-policy.js';
 import { createCourseDrivingViewSource } from '../../src/view/course-driving-view.js';
@@ -37,7 +37,7 @@ test('course physical source drives a race session without any presentation or i
   document.rules = null;
   const compiled = await compileCourseDocument(document, []);
   assert.ok(compiled.ok, JSON.stringify(compiled.ok ? null : compiled));
-  const source = createCourseDrivingSource(physicalProduct([]));
+  const source = createCourseDrivingReaders(physicalProduct([]));
   const session = createCourseDrivingGraph(compiled.value.entry, source).createSession();
   assert.ok(!('presentation' in session.view));
   const profile = VEHICLE_CATALOG[0];
@@ -67,7 +67,7 @@ test('rendering overlays the same immutable occurrence mappings across forward a
   assert.ok(presentation.ok, JSON.stringify(presentation.ok ? null : presentation));
   assert.deepEqual(physical.demand.pose, presentation.value.demand.pose);
   assert.deepEqual(physical.demand.step, presentation.value.demand.step);
-  const source = createCourseDrivingSource(physical);
+  const source = createCourseDrivingReaders(physical);
   const session = createCourseDrivingGraph(course.entry, source).createSession();
   const rendering = createCourseDrivingViewSource(await loadCourseGround(course), physical, presentation.value);
   const verify = () => {

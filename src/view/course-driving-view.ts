@@ -3,17 +3,17 @@ import type { CourseGround } from '../course/compiler/course-ground.js';
 import type { CompiledSection } from '../course/compiler/course-graph.js';
 import type { compileCoursePhysicalDomains } from '../course/compiler/course-physical-overlap.js';
 import type { compileCoursePresentationDomains } from '../course/compiler/course-presentation-overlap.js';
-import type { createCourseDrivingSource } from '../course/course-driving-source.js';
+import type { createCourseDrivingReaders } from '../course/course-driving-readers.js';
 import { profileIndexAt } from '../course/geometry/open-profile.js';
 import type { VisualProfileReader } from '../course/visual-profile.js';
 import { transformPlanarPoint } from '../core/planar-transform.js';
-import { createCoursePresentationPreview } from './course-presentation-preview.js';
+import { createCourseRenderResources } from './course-render-resources.js';
 import type { BandGroundReader } from './renderer.js';
 
 type Physical = Extract<ReturnType<typeof compileCoursePhysicalDomains>, { ok: true }>['value'];
 type Presentation = Extract<ReturnType<typeof compileCoursePresentationDomains>, { ok: true }>['value'];
 type DrivingView = Extract<
-  ReturnType<ReturnType<typeof createCourseDrivingSource>['createView']>,
+  ReturnType<ReturnType<typeof createCourseDrivingReaders>['createView']>,
   { ok: true }
 >['value'];
 
@@ -31,13 +31,13 @@ export function createCourseDrivingViewSource(fields: CourseGround, physical: Ph
     physical.links.some((l) => !presentation.links.includes(l))
   )
     throw new RangeError('Driving qualifications must refer to the same canonical Links');
-  const preview = createCoursePresentationPreview();
-  const presentations = new Map<CompiledSection, ReturnType<typeof preview.createSource>>();
+  const resources = createCourseRenderResources();
+  const presentations = new Map<CompiledSection, ReturnType<typeof resources.createSectionReaders>>();
   const sourcePresentation = (section: CompiledSection) => {
     let value = presentations.get(section);
     if (!value) {
       if (!section.presentation) throw new Error('Admitted driving view lost its presentation');
-      value = preview.createSource(
+      value = resources.createSectionReaders(
         section.presentation,
         { length: section.raster.length, raster: section.raster },
         section.height,
@@ -98,8 +98,8 @@ export function createCourseDrivingViewSource(fields: CourseGround, physical: Ph
         mapped.map((mapping) => ({
           ground: fields.forSection(mapping.occurrence.section),
           frameStart: mapping.frameStart,
-          sourceStart: mapping.sourceRange.start,
-          sourceEnd: mapping.sourceRange.end,
+          nativeStart: mapping.sourceRange.start,
+          nativeEnd: mapping.sourceRange.end,
           lateralOrigin: mapping.sourceLateralOrigin,
         })),
       ),
@@ -123,12 +123,12 @@ export function createCourseDrivingViewSource(fields: CourseGround, physical: Ph
           }),
         ),
     );
-    const groundProfile = Object.freeze({ groundLeft: 1, groundRight: 1 });
+    const groundRuler = Object.freeze({ groundLeft: 1, groundRight: 1 });
     return Object.freeze({
       ok: true as const,
       value: Object.freeze({
         ground,
-        groundProfile,
+        groundRuler,
         visual,
         worldSprites,
         conditionalSprites: Object.freeze(

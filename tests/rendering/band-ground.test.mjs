@@ -6,7 +6,7 @@ import {
   createBandGroundSampler,
   createBandRenderMetrics,
 } from '../../dist/course/band-ground.js';
-import { BAND_RENDER_MODES } from '../../dist/course/band-ground.js';
+import { BAND_RENDER_METHODS } from '../../dist/course/band-ground.js';
 import { linearToRgb555 } from '../../dist/image/image-filter.js';
 import { rgb555ToRgba } from '../../dist/image/rgb555.js';
 import { selectSpriteLevel } from '../../dist/image/sprite.js';
@@ -24,10 +24,20 @@ const piece = (start, end, left, right, color, leftEnd = left, rightEnd = right)
   rightEnd,
   color,
 });
-const whole = (ground) => [{ ground, frameStart: 0, sourceStart: 0, sourceEnd: ground.length, lateralOrigin: 0 }];
-function row(sources, { s = 4, l = -4, stepL = 0.25, deltaS = 0, count = 32, mode = 'EXACT-BOX' } = {}) {
+const whole = (ground) => [{ ground, frameStart: 0, nativeStart: 0, nativeEnd: ground.length, lateralOrigin: 0 }];
+function row(intervals, { s = 4, l = -4, stepL = 0.25, deltaS = 0, count = 32, method = 'EXACT-BOX' } = {}) {
   const pixels = new Uint32Array(count).fill(BG);
-  createBandGroundSampler(sources).sampleSpan(pixels, 0, count, s, l, stepL, deltaS, mode, createBandRenderMetrics());
+  createBandGroundSampler(intervals).sampleSpan(
+    pixels,
+    0,
+    count,
+    s,
+    l,
+    stepL,
+    deltaS,
+    method,
+    createBandRenderMetrics(),
+  );
   return pixels;
 }
 
@@ -40,7 +50,7 @@ test('ordered Bands preserve transparency, black, half-open edges, open sides an
     piece(0, 16, 1, 2, 0),
   ];
   const ground = compileBandGround(16, pieces);
-  const options = { s: 9, l: -3, stepL: 1, count: 8, mode: 'POINT-POINT' };
+  const options = { s: 9, l: -3, stepL: 1, count: 8, method: 'POINT-POINT' };
   const expected = [WHITE, BLUE, BLUE, null, 0, WHITE, WHITE, RED].map((c) => (c === null ? BG : rgb555ToRgba(c)));
   assert.deepEqual(Array.from(row(whole(ground), options)), expected);
   pieces[0].color = BLUE;
@@ -65,9 +75,9 @@ test('POINT always reads s; LEVEL shares sprite octave selection and reads insta
   const sprite = { width: 1, worldWidthMeters: 1, levels: new Array(5) };
   for (const deltaS of [0.5, 1, Math.SQRT2 * (1 - 1e-10), Math.SQRT2, 2, 2 * Math.SQRT2, 4 * Math.SQRT2, 64])
     for (const s of [0.2, 4.6, 12.25]) {
-      const direct = row(whole(ground), { s, deltaS, mode: 'POINT-POINT' });
+      const direct = row(whole(ground), { s, deltaS, method: 'POINT-POINT' });
       assert.ok(direct.every((p) => p === rgb555ToRgba([RED, BLUE, WHITE][Math.floor(s) % 3])));
-      const level = row(whole(ground), { s, deltaS, mode: 'LEVEL-POINT' });
+      const level = row(whole(ground), { s, deltaS, method: 'LEVEL-POINT' });
       const step = 2 ** selectSpriteLevel(sprite, 1 / deltaS);
       assert.deepEqual(
         level,
@@ -76,12 +86,12 @@ test('POINT always reads s; LEVEL shares sprite octave selection and reads insta
     }
   const moving = compileBandGround(6.5, [piece(0, 6.5, null, null, RED), piece(0.5, 6.5, -3, 1, BLUE, 3, 7)]);
   for (const s of [0.6, 4.2, 6.25, 6.5]) {
-    const direct = row(whole(moving), { s, mode: 'POINT-POINT' });
-    assert.deepEqual(row(whole(moving), { s, deltaS: 0.99, mode: 'LEVEL-POINT' }), direct);
-    if (s >= 6.25) assert.deepEqual(row(whole(moving), { s, deltaS: 4, mode: 'LEVEL-POINT' }), direct);
+    const direct = row(whole(moving), { s, method: 'POINT-POINT' });
+    assert.deepEqual(row(whole(moving), { s, deltaS: 0.99, method: 'LEVEL-POINT' }), direct);
+    if (s >= 6.25) assert.deepEqual(row(whole(moving), { s, deltaS: 4, method: 'LEVEL-POINT' }), direct);
   }
   assert.deepEqual(
-    row(whole(moving), { s: 4.2, deltaS: 4, mode: 'LEVEL-POINT' }),
+    row(whole(moving), { s: 4.2, deltaS: 4, method: 'LEVEL-POINT' }),
     Uint32Array.from(
       { length: 32 },
       (_, i) => row(whole(moving), { s: 5, l: -4 + i * 0.25, deltaS: 2, stepL: 0, count: 1 })[0],
@@ -96,31 +106,31 @@ test('EXACT-BOX integrates both dimensions and owned seam lengths before half-co
   const split = compileBandGround(8, [piece(0, 8, null, 0, RED), piece(0, 8, 0, null, BLUE)]);
   const half = rgb555ToRgba(linearToRgb555(0.5, 0, 0.5));
   assert.equal(row(whole(split), { s: 4, l: 0, stepL: 2, count: 1 })[0], half);
-  assert.equal(row(whole(split), { s: 4, l: 0, stepL: 2, count: 1, mode: 'LEVEL-POINT' })[0], rgb555ToRgba(BLUE));
+  assert.equal(row(whole(split), { s: 4, l: 0, stepL: 2, count: 1, method: 'LEVEL-POINT' })[0], rgb555ToRgba(BLUE));
   const red = compileBandGround(16, [piece(0, 16, null, null, RED), piece(10, 16, null, null, WHITE)]);
   const blue = compileBandGround(16, [piece(0, 16, null, null, BLUE), piece(0, 5, null, null, WHITE)]);
-  const sources = [
-    { ground: red, frameStart: 0, sourceStart: 2, sourceEnd: 10, lateralOrigin: 100 },
-    { ground: blue, frameStart: 8, sourceStart: 5, sourceEnd: 13, lateralOrigin: -20 },
+  const intervals = [
+    { ground: red, frameStart: 0, nativeStart: 2, nativeEnd: 10, lateralOrigin: 100 },
+    { ground: blue, frameStart: 8, nativeStart: 5, nativeEnd: 13, lateralOrigin: -20 },
   ];
-  assert.ok(row(sources, { s: 8, deltaS: 6 }).every((p) => p === half));
-  assert.ok(row(sources, { s: 8, deltaS: 6, mode: 'POINT-POINT' }).every((p) => p === rgb555ToRgba(BLUE)));
+  assert.ok(row(intervals, { s: 8, deltaS: 6 }).every((p) => p === half));
+  assert.ok(row(intervals, { s: 8, deltaS: 6, method: 'POINT-POINT' }).every((p) => p === rgb555ToRgba(BLUE)));
   assert.deepEqual(
-    row(sources, { s: 8, deltaS: 6, mode: 'LEVEL-POINT' }),
-    row(whole(blue), { s: 5, deltaS: 6, mode: 'LEVEL-POINT' }),
+    row(intervals, { s: 8, deltaS: 6, method: 'LEVEL-POINT' }),
+    row(whole(blue), { s: 5, deltaS: 6, method: 'LEVEL-POINT' }),
   );
 });
 
-test('row batching and lateral rebasing match individual pixels in either scan direction for all three modes', () => {
+test('row batching and lateral rebasing match individual pixels in either scan direction for all three methods', () => {
   const ground = compileBandGround(16, [
     piece(0, 16, null, null, RED),
     piece(0, 16, -2, 2, null),
     piece(0, 16, 3, 6, BLUE, -5, -2),
   ]);
-  for (const mode of BAND_RENDER_MODES)
+  for (const method of BAND_RENDER_METHODS)
     for (const stepL of [0.5, -0.5]) {
       const l = stepL > 0 ? -12 : 12;
-      const args = { s: 7.37, deltaS: 3.72, l, stepL, count: 48, mode };
+      const args = { s: 7.37, deltaS: 3.72, l, stepL, count: 48, method };
       const batch = row(whole(ground), args);
       assert.deepEqual(
         batch,

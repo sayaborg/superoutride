@@ -28,7 +28,7 @@ export function linearToRgb555(red: number, green: number, blue: number): number
   return (linearToChannel5(red) << 10) | (linearToChannel5(green) << 5) | linearToChannel5(blue);
 }
 
-/** rho counts source units covered by a destination pixel; representation chooses rounding/interpolation. */
+/** rho counts native units covered by a destination pixel; representation chooses rounding/interpolation. */
 function imageLodExponent(rho: number): number {
   if (!(rho > 0) || !Number.isFinite(rho)) throw new RangeError('image footprint must be positive and finite');
   return Math.max(0, Math.log2(rho));

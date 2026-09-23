@@ -2,20 +2,20 @@ import { RandomStream } from './noise.js';
 // Numerical support of the friction solver, independent of listening coefficients.
 const RATE_DOMAIN = Object.freeze({ minRate: 44100, maxRate: 192000 });
 
-interface Mode {
+interface Resonance {
   readonly frequencyHz: number;
   readonly dampingPerSecond: number;
   readonly participation: number;
 }
 interface Parameters {
-  readonly modes: readonly Mode[];
+  readonly resonances: readonly Resonance[];
   readonly feedbackMaximumPerSecond: number;
   readonly saturationPerSecond: number;
   readonly noiseBandwidthHz: number;
 }
 
 /**
- * One normalized friction port feeding passive modes, with rank-one nonlinear feedback.
+ * One normalized friction port feeding passive resonances, with rank-one nonlinear feedback.
  * x=omega*q, x'=omega*v, v'=-omega*x-d*v+b*F, u=sum(b*v), sum(b²)=1.
  * F=a*u-beta*u³+sigma*noise. Energy=.5*sum(x²+v²) is a model diagnostic, not joules.
  * Output is displacement at the SAME port: sum(b*x/omega), not a second oscillator/palette.
@@ -47,15 +47,15 @@ export class FrictionResonator {
       !Number.isFinite(parameters.noiseBandwidthHz) ||
       parameters.noiseBandwidthHz <= 0 ||
       parameters.noiseBandwidthHz >= rate / 2 ||
-      parameters.modes.length === 0
+      parameters.resonances.length === 0
     )
       throw new RangeError('invalid friction resonator parameters');
     this.parameters = Object.freeze({
       ...parameters,
-      modes: Object.freeze(parameters.modes.map((m) => Object.freeze({ ...m }))),
+      resonances: Object.freeze(parameters.resonances.map((m) => Object.freeze({ ...m }))),
     });
     this.dt = 1 / rate;
-    const count = parameters.modes.length;
+    const count = parameters.resonances.length;
     this.x = new Float64Array(count);
     this.v = new Float64Array(count);
     this.omega = new Float64Array(count);
@@ -65,20 +65,20 @@ export class FrictionResonator {
     this.vv = new Float64Array(count);
     let norm = 0;
     for (let i = 0; i < count; i++) {
-      const mode = parameters.modes[i]!;
-      const omega = 2 * Math.PI * mode.frequencyHz,
-        halfDamping = mode.dampingPerSecond / 2;
+      const resonance = parameters.resonances[i]!;
+      const omega = 2 * Math.PI * resonance.frequencyHz,
+        halfDamping = resonance.dampingPerSecond / 2;
       if (
-        !Number.isFinite(omega + halfDamping + mode.participation) ||
+        !Number.isFinite(omega + halfDamping + resonance.participation) ||
         omega <= 0 ||
-        mode.frequencyHz >= rate / 4 ||
+        resonance.frequencyHz >= rate / 4 ||
         halfDamping <= 0 ||
         halfDamping >= omega
       )
-        throw new RangeError('friction modes must be finite, passive and underdamped');
+        throw new RangeError('friction resonances must be finite, passive and underdamped');
       this.omega[i] = omega;
-      this.b[i] = mode.participation;
-      norm = Math.hypot(norm, mode.participation);
+      this.b[i] = resonance.participation;
+      norm = Math.hypot(norm, resonance.participation);
       // Exact passive half-step. Fixed modal data avoids parametric energy from retuned stiffness.
       const wd = Math.sqrt(omega * omega - halfDamping * halfDamping);
       const decay = Math.exp((-halfDamping * this.dt) / 2);
@@ -88,7 +88,7 @@ export class FrictionResonator {
       this.xv[i] = decay * omega * sine;
       this.vv[i] = decay * (cosine - halfDamping * sine);
     }
-    if (!(norm > 0)) throw new RangeError('friction port must couple at least one mode');
+    if (!(norm > 0)) throw new RangeError('friction port must couple at least one resonance');
     // Normalize once: port scale is owned by forcing/feedback, not duplicated in modal participation.
     for (let i = 0; i < count; i++) this.b[i] = this.b[i]! / norm;
     this.random = new RandomStream(seed);

@@ -1,7 +1,7 @@
 import type { TIRE_SOUND_SURFACES } from './tire-sound-observation.js';
 
 /**
- * Rotation-driven rolling source. Every value is an authored listening choice ("magic number"),
+ * Rotation-driven rolling generator. Every value is an authored listening choice ("magic number"),
  * not a measured tread order, texture length, acoustic efficiency or material property.
  * Timing, filtering and texture belong to R independently of friction synthesis.
  */

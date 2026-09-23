@@ -123,7 +123,7 @@ Camera chainage is `s_vehicle-D_cam`; its XZ offset uses body yaw by default or 
 alternate. The observer's shell owns the camera rig; rivals have no camera. After a committed
 frame change the shell applies the reported yaw rotation to yaw and movementYaw before the next
 camera update. Camera vertical state is unchanged by the frame transform. Horizontal centering follows projection. Vertical follow is bounded and smoothed, body
-pitch offsets downward base pitch, and camera roll is zero. Current presentation values are 12 degrees
+pitch offsets downward base pitch, and camera roll is zero. Current camera values are 12 degrees
 base pitch, player anchor row 190, 0.22 s vertical-follow time constant and 4 m correction bound.
 
 ## Ground and background
@@ -143,17 +143,17 @@ adjacent equal colors; transparent upper Bands erase lower colors before filteri
 includes hidden declarations, not just the visible resolved spans.
 
 The compiler averages resolved colors over complete dyadic s intervals: `[k*2^n,(k+1)*2^n]` metres,
-starting at one metre. Profiles store premultiplied linear-sRGB channels and coverage as piecewise-linear
+starting at one metre. Lateral fields store premultiplied linear-sRGB channels and coverage as piecewise-linear
 functions of fixed source-l coordinates. An edge that moves across an interval becomes a ramp rather
-than a relocated hard edge. Equal complete profiles share private coefficient storage and per-level
+than a relocated hard edge. Equal complete lateral fields share private coefficient storage and per-level
 indices. Resolved records and public metadata are deeply immutable; mutable numeric buffers remain
 behind the compiled product's read boundary.
 
 A row uses the terrain projection's representative s and effective depth footprint `deltaS`.
 A projected `[-1,+1]` metre ruler supplies the affine screen-to-l map; it does not clip ground.
-The product has one complete mode, not independently configurable s/l kernels:
+The product has one complete method, not independently configurable s/l kernels:
 
-| Mode        | Longitudinal read                                               | Lateral read at pixel center x and width w |
+| Method      | Longitudinal read                                               | Lateral read at pixel center x and width w |
 | ----------- | --------------------------------------------------------------- | ------------------------------------------ |
 | POINT-POINT | Instantaneous resolved Bands at the row's s for every footprint | Value at x                                 |
 | LEVEL-POINT | One cached dyadic cell, or instantaneous Bands when `rho < 1`   | Value at x                                 |
@@ -175,9 +175,9 @@ Actual source lengths weight all contributions before coverage or color normaliz
 separable source-(s,l) row footprint, not a full perspective pixel polygon. Dyadic decomposition
 does not change the mathematical integral.
 
-The exact row workspace composes weighted profile events once; the other modes read their source
-profile directly. All modes batch constant spans with fills or transparent skips. Only varying
-profiles and box-boundary pixels need individual evaluation. No pixel loops over authored Bands.
+The exact row workspace composes weighted lateral-field events once; the other methods read their native
+lateral field directly. All methods batch constant spans with fills or transparent skips. Only varying
+lateral fields and box-boundary pixels need individual evaluation. No pixel loops over authored Bands.
 
 RGB555 decodes through the common linear-sRGB channel table. Contributions stay premultiplied until
 final coverage is known. Coverage at least the shared 0.5 threshold is opaque, allowing 64 machine
@@ -190,7 +190,7 @@ BG do not enter the average. [Browser](browser.md#ground-display-setting) owns l
 Sprites have a logical master frame, physical width, a master texel-center anchor and completed levels.
 Magnification is `g=(f/d)*worldWidth/masterWidth`. Course anchors use known chainage and render height;
 actors use observed chainage and physical-clearance mapping. Yaw/bank variants are authored images.
-Rendering uses nearest sampling, binary alpha and one SINGLE sprite per vehicle; bank is presentation.
+Rendering uses nearest sampling, binary alpha and one SINGLE sprite per vehicle; bank is visual.
 
 Painter order is clear when requested, full BG, a far-to-near terrain/world-sprite merge, player, then HUD.
 At equal depth terrain draws before sprites. The player is last among world visuals.
@@ -246,7 +246,7 @@ identity, occurrence and frame are distinct, including laps. Successors own seam
 station collisions fail explicitly. Narrow geometry/height/presentation readers share this mapping;
 local projection seeds identify both occurrence and native segment.
 
-`createCourseDrivingSource` owns the physical world, coordinate/height readers and an immutable
+`createCourseDrivingReaders` owns the physical world, coordinate/height readers and an immutable
 mapping of those same occurrence spans. Its motion guard uses the physical pose/step domain.
 `createCourseDrivingViewSource` overlays Band, environment, background and scenery readers on that
 mapping; it does not select another interval or perform physical projection. It accepts only views

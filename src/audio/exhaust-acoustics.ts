@@ -79,9 +79,9 @@ export function resolveExhaustTuning(overrides: Partial<ExhaustTuning> = {}): Ex
 
 export const ACOUSTICS = Object.freeze({
   waveSpeed, // fixed air-surrogate reference; not measured temperature
-  sourceClosedReflection: 0.94, // nearly rigid effective termination; magnitude < 1 absorbs energy
-  sourceOpenReflection: -0.3, // pressure-release-like endpoint; positive impedance, not valve-flow physics
-  sourceWindowCycles: 0.23, // empirical periodic boundary; NOT valve timing
+  cylinderClosedReflection: 0.94, // nearly rigid effective termination; magnitude < 1 absorbs energy
+  cylinderOpenReflection: -0.3, // pressure-release-like endpoint; positive impedance, not valve-flow physics
+  cylinderWindowCycles: 0.23, // empirical periodic boundary; NOT valve timing
 });
 // Listening-output conditioning: DC removal and bounded amplitude; not exhaust properties.
 export const OUTPUT = Object.freeze({ dcHz: 18, ceiling: 0.65 });

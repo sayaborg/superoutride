@@ -36,9 +36,9 @@ export class TireUnifiedSynthesis {
       rate,
       {
         ...settings,
-        modes: [
-          { ...S.modes[0], frequencyHz: settings.lowFrequencyHz },
-          { ...S.modes[1], frequencyHz: settings.highFrequencyHz },
+        resonances: [
+          { ...S.resonances[0], frequencyHz: settings.lowFrequencyHz },
+          { ...S.resonances[1], frequencyHz: settings.highFrequencyHz },
         ],
       },
       seed,
@@ -52,7 +52,7 @@ export class TireUnifiedSynthesis {
   update(value: TireSoundObservation, surfaceIndex = 0): void {
     const S = this.settings;
     try {
-      // The rolling source validates and releases its own forcing on invalid observations.
+      // The rolling generator validates and releases its own forcing on invalid observations.
       this.rolling.update(value, surfaceIndex);
     } catch (error) {
       this.release();

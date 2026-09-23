@@ -3,7 +3,7 @@ import { createAudioLifecycle } from './audio-lifecycle.js';
 import { createDrivingLifecycle, type DrivingLifecycleOptions } from './driving-lifecycle.js';
 import type { CameraRig } from '../view/camera.js';
 import { createCameraRig, setCameraYawMode, toggleCameraYawMode, type CameraState } from '../view/camera.js';
-import { LOGICAL_HEIGHT, LOGICAL_WIDTH } from '../view/presentation-scale.js';
+import { LOGICAL_HEIGHT, LOGICAL_WIDTH } from '../view/display-scale.js';
 import type { RecoveryState } from '../race/recovery.js';
 import { createRecoveryState } from '../race/recovery.js';
 import { SoftwareSurface } from '../view/software-surface.js';
@@ -201,7 +201,7 @@ export function createBrowserDrivingShell(
       audio.update(vehicle, rivals);
       ctx.putImageData(imageData, 0, 0);
       drawVehicleDebugHud(ctx, query, input, vehicle);
-      if (vehicleCatalogEntryForId(vehicle.profile.id).presentationFamily === 'BIKE') {
+      if (vehicleCatalogEntryForId(vehicle.profile.id).visualFamily === 'BIKE') {
         drawVehicleLeanDebug(ctx, camera.playerScreenX, playerScreenY, vehicle);
       }
       drawVehicleYawDebug(

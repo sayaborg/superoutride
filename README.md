@@ -21,7 +21,7 @@ python3 -m http.server 8000
 Open `http://localhost:8000/`. Build stages saved content, completed sprites and Session data under
 `dist/content/`. Band constructs compile to immutable color fields before driving starts.
 The product display setting defaults to LEVEL-POINT; DEV currently provides its live selector.
-[Architecture](docs/architecture.md#band-rendering) defines the three available modes.
+[Architecture](docs/architecture.md#band-rendering) defines the three available methods.
 
 ## Controls and authoring
 

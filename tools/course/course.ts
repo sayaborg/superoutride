@@ -17,7 +17,7 @@ import { createArcadeVehicle } from '../../src/vehicle/physics/arcade-vehicle-ph
 import { VEHICLE_CATALOG } from '../../src/vehicle/vehicle-catalog.js';
 import { createCameraRig, updateCamera } from '../../src/view/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../../src/view/current-camera-profile.js';
-import { deriveVehicleSpriteFamily } from '../../src/view/vehicle-presentation.js';
+import { deriveVehicleSpriteFamily } from '../../src/view/vehicle-visuals.js';
 import { SoftwareSurface } from '../../src/view/software-surface.js';
 import { courseReport } from './course-report.js';
 import {

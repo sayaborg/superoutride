@@ -5,7 +5,7 @@ import { resolveUnifiedTuning, sameUnifiedTuning, type UnifiedTuning } from './t
 import { tireSoundParameters, TIRE_COMPONENTS, type TireComponents } from './tire-sound-controls.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
 
-/** One reusable worklet. Only tire tuning fades/replaces sources; engines, context and driving continue. */
+/** One reusable worklet. Only tire tuning fades/replaces generators; engines, context and driving continue. */
 export function createTireVoice(context: BaseAudioContext, destination: AudioNode) {
   const node = new AudioWorkletNode(context, 'vehicle-tires', {
     numberOfInputs: 0,

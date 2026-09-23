@@ -29,8 +29,8 @@ export function createCoursePerformanceHud(
       stepMax = Math.max(stepMax, milliseconds);
     },
     frame(started: number, observation: BandObservation | null = null) {
-      const modeChanged = band?.mode !== observation?.mode;
-      if (modeChanged) {
+      const methodChanged = band?.method !== observation?.method;
+      if (methodChanged) {
         recentBandTimes.fill(0);
         bandIndex = activeMax = 0;
       }
@@ -46,10 +46,10 @@ export function createCoursePerformanceHud(
       stepTotal = 0;
       last = now;
       frames += 1;
-      if (reported && !modeChanged && now - first < 500) return;
+      if (reported && !methodChanged && now - first < 500) return;
       reported = true;
       const fps = (frames * 1000) / Math.max(1, now - first);
-      const detail = `Bands ${band?.mode ?? ''} · active ${activeMax} visible / ${ground.maxActiveBands} course max / ${BAND_ACTIVE_LIMIT} limit · ground ${(band?.milliseconds ?? 0).toFixed(2)} ms / max120 ${Math.max(...recentBandTimes).toFixed(2)} ms`;
+      const detail = `Bands ${band?.method ?? ''} · active ${activeMax} visible / ${ground.maxActiveBands} course max / ${BAND_ACTIVE_LIMIT} limit · ground ${(band?.milliseconds ?? 0).toFixed(2)} ms / max120 ${Math.max(...recentBandTimes).toFixed(2)} ms`;
       output.textContent = `${fps.toFixed(0)} fps · frame ${frameMax.toFixed(1)} ms · step ${stepMax.toFixed(1)} ms · seam ${metrics.seamCommitMaxMilliseconds.toFixed(1)} ms · interval ${intervalMax.toFixed(1)} ms · ${detail}`;
       activeMax = 0;
       first = now;

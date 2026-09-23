@@ -64,18 +64,18 @@ export class KeyboardInput {
   }
 
   private setSteering(event: KeyboardEvent, down: boolean): void {
-    const source = `keyboard:${event.code}`;
+    const owner = `keyboard:${event.code}`;
     if (!down) {
-      this.steering.release(source);
+      this.steering.release(owner);
       return;
     }
     if (event.repeat) return;
     const direction: SteeringDirection = event.code === DRIVING_KEYS.left ? -1 : 1;
-    this.steering.press(source, direction);
+    this.steering.press(owner, direction);
   }
 
   private setPedal(code: string, pedal: PedalChannel, down: boolean): void {
-    this.pedals.setSource(`keyboard:${code}`, pedal, down);
+    this.pedals.setOwner(`keyboard:${code}`, pedal, down);
   }
 
   private reset(): void {

@@ -18,7 +18,7 @@ import {
   VOLKSWAGEN_GOLF_GTI_16V_VEHICLE_PROFILE,
 } from './production-vehicle-profiles.js';
 
-export type VehiclePresentationFamily = 'CAR' | 'BIKE';
+export type VehicleVisualFamily = 'CAR' | 'BIKE';
 
 interface VehicleIdentifier {
   readonly officialLabel: string;
@@ -34,14 +34,14 @@ export interface VehicleCatalogEntry {
   readonly period: string;
   readonly physicsAnchor: Readonly<{ modelYear: string; market: string }>;
   readonly profile: Readonly<CompiledArcadeVehicleProfile>;
-  readonly presentationFamily: VehiclePresentationFamily;
+  readonly visualFamily: VehicleVisualFamily;
   readonly torqueProtection: Readonly<TorqueProtectionPolicy>;
   readonly mobileLabel: string;
 }
 
 function entry(value: VehicleCatalogEntry): Readonly<VehicleCatalogEntry> {
-  if (value.presentationFamily !== 'CAR' && value.presentationFamily !== 'BIKE') {
-    throw new RangeError('vehicle presentation family must be CAR or BIKE');
+  if (value.visualFamily !== 'CAR' && value.visualFamily !== 'BIKE') {
+    throw new RangeError('vehicle visual family must be CAR or BIKE');
   }
   return Object.freeze({
     ...value,
@@ -70,7 +70,7 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     selectedSpecification: ['5-bolt wheels'],
     period: '1988½–1991',
     physicsAnchor: { modelYear: '1989', market: 'European/ROW' },
-    presentationFamily: 'CAR',
+    visualFamily: 'CAR',
     profile: FERRARI_TESTAROSSA_VEHICLE_PROFILE,
     torqueProtection: ROAD_TORQUE_POLICY,
     mobileLabel: 'F110',
@@ -83,7 +83,7 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     selectedSpecification: ['G50/50 5-speed'],
     period: '1989',
     physicsAnchor: { modelYear: '1989', market: 'European/ROW' },
-    presentationFamily: 'CAR',
+    visualFamily: 'CAR',
     profile: PORSCHE_911_TURBO_3_3_VEHICLE_PROFILE,
     torqueProtection: ROAD_TORQUE_POLICY,
     mobileLabel: '930',
@@ -96,7 +96,7 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     selectedSpecification: ['L98', 'ZF 6-speed', 'pre-facelift'],
     period: '1989–1990',
     physicsAnchor: { modelYear: '1989', market: 'US' },
-    presentationFamily: 'CAR',
+    visualFamily: 'CAR',
     profile: CHEVROLET_CORVETTE_C4_VEHICLE_PROFILE,
     torqueProtection: ROAD_TORQUE_POLICY,
     mobileLabel: 'C4',
@@ -109,7 +109,7 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     selectedSpecification: ['small bumpers'],
     period: '1986–1989',
     physicsAnchor: { modelYear: '1988', market: 'European/ROW' },
-    presentationFamily: 'CAR',
+    visualFamily: 'CAR',
     profile: VOLKSWAGEN_GOLF_GTI_16V_VEHICLE_PROFILE,
     torqueProtection: ROAD_TORQUE_POLICY,
     mobileLabel: 'GTI',
@@ -122,7 +122,7 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     selectedSpecification: ['8V', '185 PS'],
     period: '1988–1989',
     physicsAnchor: { modelYear: '1988', market: 'European/ROW' },
-    presentationFamily: 'CAR',
+    visualFamily: 'CAR',
     profile: LANCIA_DELTA_HF_INTEGRALE_VEHICLE_PROFILE,
     torqueProtection: ROAD_TORQUE_POLICY,
     mobileLabel: 'DELTA',
@@ -135,7 +135,7 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     selectedSpecification: [],
     period: '1987–1990',
     physicsAnchor: { modelYear: '1988', market: 'ROW full-power' },
-    presentationFamily: 'BIKE',
+    visualFamily: 'BIKE',
     profile: HONDA_VFR750R_VEHICLE_PROFILE,
     torqueProtection: TWO_WHEEL_TORQUE_POLICY,
     mobileLabel: 'RC30',
@@ -148,7 +148,7 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     selectedSpecification: [],
     period: '1984–1987',
     physicsAnchor: { modelYear: '1985', market: 'European/ROW' },
-    presentationFamily: 'BIKE',
+    visualFamily: 'BIKE',
     profile: BMW_R80_GS_PARIS_DAKAR_VEHICLE_PROFILE,
     torqueProtection: TWO_WHEEL_TORQUE_POLICY,
     mobileLabel: 'R80',
@@ -161,7 +161,7 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     selectedSpecification: ['Evolution 1340'],
     period: '1984–1992',
     physicsAnchor: { modelYear: '1988', market: 'US' },
-    presentationFamily: 'BIKE',
+    visualFamily: 'BIKE',
     profile: HARLEY_DAVIDSON_FXRT_VEHICLE_PROFILE,
     torqueProtection: TWO_WHEEL_TORQUE_POLICY,
     mobileLabel: 'FXRT',
@@ -174,7 +174,7 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     selectedSpecification: ['200 cc full-power'],
     period: '1983–1997',
     physicsAnchor: { modelYear: '1985', market: 'Italian/European' },
-    presentationFamily: 'BIKE',
+    visualFamily: 'BIKE',
     profile: VESPA_PX200E_ARCOBALENO_VEHICLE_PROFILE,
     torqueProtection: TWO_WHEEL_TORQUE_POLICY,
     mobileLabel: 'PX200',

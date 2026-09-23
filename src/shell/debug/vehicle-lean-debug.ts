@@ -1,11 +1,11 @@
-import { deriveVehicleLeanRadians, type VehicleTurnPresentationRead } from '../../view/vehicle-presentation.js';
+import { deriveVehicleLeanRadians, type VehicleTurnObservation } from '../../view/vehicle-visuals.js';
 
 /** Cross-sectional angle indicator at the sprite's ground anchor, in HUD pixels, not world geometry. */
 export function drawVehicleLeanDebug(
   ctx: CanvasRenderingContext2D,
   anchorX: number,
   anchorY: number,
-  vehicle: VehicleTurnPresentationRead,
+  vehicle: VehicleTurnObservation,
 ): void {
   const angle = deriveVehicleLeanRadians(vehicle);
   const length = 48;

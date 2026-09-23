@@ -34,7 +34,7 @@ type RecoveryReason =
 
 const SURFACE_PENETRATION_TOLERANCE_METERS = 1e-3;
 
-export interface RecoveryProfile {
+export interface RecoverySettings {
   maxUnsupportedTime: number;
   maxFallDistance: number;
   maxLateralExcursion: number;
@@ -46,7 +46,7 @@ export interface RecoveryProfile {
   targetL?: number;
 }
 
-export const RECOVERY_PROFILE: Readonly<RecoveryProfile> = {
+export const RECOVERY_SETTINGS: Readonly<RecoverySettings> = {
   maxUnsupportedTime: 0.72,
   maxFallDistance: 3.25,
   maxLateralExcursion: 18,
@@ -79,7 +79,7 @@ export function createRecoveryState(vehicle: ArcadeVehicleState): RecoveryState 
 
 interface RecoveryOptions {
   readonly state: RecoveryState;
-  readonly profile?: RecoveryProfile;
+  readonly settings?: RecoverySettings;
 }
 
 /** One gameplay step. A physical-domain exit recovers; unrelated faults stay visible. */
@@ -90,7 +90,7 @@ export function advanceVehicleWithRecovery(
     state,
     input,
     dt,
-    profile = RECOVERY_PROFILE,
+    settings = RECOVERY_SETTINGS,
     target = null,
   }: RecoveryOptions & { input: DrivingInput; dt: number; target?: RecoveryTarget | null },
 ): RecoveryReason | null {
@@ -98,13 +98,13 @@ export function advanceVehicleWithRecovery(
     updateArcadeVehicle(world, vehicle, input, dt);
   } catch (error) {
     if (!(error instanceof VehicleOutsideModelError)) throw error;
-    recoverVehicle(world, vehicle, { state, reason: 'suspension-travel', profile, target });
+    recoverVehicle(world, vehicle, { state, reason: 'suspension-travel', settings, target });
     return 'suspension-travel';
   }
   return updateRecovery(world, vehicle, {
     state,
     dt,
-    profile,
+    settings,
     target,
   });
 }
@@ -121,7 +121,7 @@ function updateRecovery(
   {
     state,
     dt,
-    profile = RECOVERY_PROFILE,
+    settings = RECOVERY_SETTINGS,
     target = null,
   }: RecoveryOptions & { dt: number; target?: RecoveryTarget | null },
 ): RecoveryReason | null {
@@ -156,12 +156,12 @@ function updateRecovery(
 
   let reason: RecoveryReason | null = null;
   if (overturned) reason = 'overturned';
-  else if (Math.abs(vehicle.course.l) >= profile.maxLateralExcursion) reason = 'chart-excursion';
-  else if (fallDistance >= profile.maxFallDistance) reason = 'fall-distance';
+  else if (Math.abs(vehicle.course.l) >= settings.maxLateralExcursion) reason = 'chart-excursion';
+  else if (fallDistance >= settings.maxFallDistance) reason = 'fall-distance';
   else if (penetratedSurface) reason = 'surface-penetration';
-  else if (state.unsupportedTime >= profile.maxUnsupportedTime) reason = 'unsupported-time';
+  else if (state.unsupportedTime >= settings.maxUnsupportedTime) reason = 'unsupported-time';
 
-  if (reason !== null) recoverVehicle(world, vehicle, { state, reason, profile, target });
+  if (reason !== null) recoverVehicle(world, vehicle, { state, reason, settings, target });
   return reason;
 }
 
@@ -171,15 +171,15 @@ export function recoverVehicle(
   {
     state,
     reason = 'manual',
-    profile = RECOVERY_PROFILE,
+    settings = RECOVERY_SETTINGS,
     target = null,
   }: RecoveryOptions & { reason?: RecoveryReason; target?: RecoveryTarget | null },
 ): void {
   recoverVehicleToGuideCoordinate(world, vehicle, {
     state,
-    target: target ?? sameChartRecoveryTarget(world, vehicle, state, profile),
+    target: target ?? sameChartRecoveryTarget(world, vehicle, state, settings),
     reason,
-    profile,
+    settings,
   });
 }
 
@@ -187,7 +187,7 @@ function sameChartRecoveryTarget(
   world: VehicleWorld,
   vehicle: ArcadeVehicleState,
   state: RecoveryState,
-  profile: RecoveryProfile,
+  settings: RecoverySettings,
 ): RecoveryTarget {
   const { guide } = world;
   const domain = guideCoordinateDomain(guide);
@@ -201,7 +201,7 @@ function sameChartRecoveryTarget(
   // lastSafeS can place the vehicle back on the same launch face forever. Preserve the farther
   // causal Guide observation, then backtrack once into the ordinary supported reconstruction.
   const recoveryBaseS = clamp(Math.max(state.lastSafeS, vehicle.course.s), domain.start, domain.end);
-  return { s: Math.max(domain.start, recoveryBaseS - profile.backtrackDistance), l: profile.targetL ?? 0 };
+  return { s: Math.max(domain.start, recoveryBaseS - settings.backtrackDistance), l: settings.targetL ?? 0 };
 }
 
 /**
@@ -215,7 +215,7 @@ export function recoverVehicleToGuideCoordinate(
     state,
     target,
     reason,
-    profile = RECOVERY_PROFILE,
+    settings = RECOVERY_SETTINGS,
   }: RecoveryOptions & { target: RecoveryTarget; reason: RecoveryReason },
 ): void {
   const { guide, height, surfaces } = world;
@@ -239,9 +239,9 @@ export function recoverVehicleToGuideCoordinate(
   );
   if (!surface.material.supported) throw new Error('recovery target must be physically supported');
   const speed = clamp(
-    Math.max(0, vehicle.longitudinalSpeed) * profile.speedRetention,
-    profile.minRecoverySpeed,
-    profile.maxRecoverySpeed,
+    Math.max(0, vehicle.longitudinalSpeed) * settings.speedRetention,
+    settings.minRecoverySpeed,
+    settings.maxRecoverySpeed,
   );
 
   vehicle.surfaceType = surface.surfaceType;

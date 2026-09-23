@@ -1,4 +1,4 @@
-import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS } from './presentation-scale.js';
+import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS } from './display-scale.js';
 import type { CameraProfile } from './camera.js';
 
 const CURRENT_CAMERA_BASE_DOWN_PITCH_RADIANS = (12 * Math.PI) / 180;

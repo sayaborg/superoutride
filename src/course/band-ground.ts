@@ -1,7 +1,7 @@
 /** Band sampling choices. */
-export const BAND_RENDER_MODES = Object.freeze(['POINT-POINT', 'LEVEL-POINT', 'EXACT-BOX'] as const);
+export const BAND_RENDER_METHODS = Object.freeze(['POINT-POINT', 'LEVEL-POINT', 'EXACT-BOX'] as const);
 
-export type BandRenderMode = (typeof BAND_RENDER_MODES)[number];
+export type BandRenderMethod = (typeof BAND_RENDER_METHODS)[number];
 
 import { SOURCE_ENDPOINT_TOLERANCE_METERS } from '../core/tolerances.js';
 import {
@@ -48,7 +48,7 @@ export function createBandRenderMetrics(): BandRenderMetrics {
   };
 }
 
-interface Profile {
+interface BandLateralField {
   readonly count: number;
   readonly base: readonly number[];
   /** x, premultiplied linear R/G/B/coverage, then their lateral slopes. Private owned storage. */
@@ -170,12 +170,12 @@ function resolveBandSlabs(length: number, pieces: readonly BandPiece[]): readonl
 }
 
 /** Integrating an affine edge over s yields a lateral ramp, not a relocated hard edge. */
-function profileFor(
+function lateralFieldFor(
   slabs: readonly BandSlab[],
   first: number,
   start: number,
   end: number,
-): { profile: Profile; active: number; key: string } {
+): { field: BandLateralField; active: number; key: string } {
   const base = [0, 0, 0, 0],
     events = new Map<number, Event>();
   let active = 0;
@@ -237,7 +237,7 @@ function profileFor(
         !Number.isFinite(e.x) || e.value.some((v) => !Number.isFinite(v)) || e.slope.some((v) => !Number.isFinite(v)),
     )
   )
-    throw new RangeError('Band profile coefficients must be finite and representable');
+    throw new RangeError('Band lateral field coefficients must be finite and representable');
   const key = JSON.stringify([base, sorted]);
   const data = new Float64Array(sorted.length * 9),
     values = [...base],
@@ -254,16 +254,16 @@ function profileFor(
     previous = e.x;
   });
   if (data.some((v) => !Number.isFinite(v)))
-    throw new RangeError('Band profile integrals must be finite and representable');
+    throw new RangeError('Band lateral field integrals must be finite and representable');
   // Outside all finite edges the field is constant. Remove accumulated cancellation in the final slope.
   if (sorted.length) for (let c = 0; c < 4; c++) data[(sorted.length - 1) * 9 + 5 + c] = 0;
-  return { profile: { base: Object.freeze(base), data, count: sorted.length }, active, key };
+  return { field: { base: Object.freeze(base), data, count: sorted.length }, active, key };
 }
 
-function nodeAt(profile: Profile, x: number): number {
-  const data = profile.data;
+function nodeAt(field: BandLateralField, x: number): number {
+  const data = field.data;
   let lo = 0,
-    hi = profile.count;
+    hi = field.count;
   while (lo < hi) {
     const mid = (lo + hi) >>> 1;
     if (data[mid * 9]! <= x) lo = mid + 1;
@@ -271,23 +271,23 @@ function nodeAt(profile: Profile, x: number): number {
   }
   return lo - 1;
 }
-function point(profile: Profile, x: number, out: Float64Array) {
-  const i = nodeAt(profile, x) * 9;
+function point(field: BandLateralField, x: number, out: Float64Array) {
+  const i = nodeAt(field, x) * 9;
   for (let c = 0; c < 4; c++)
-    out[c]! += i < 0 ? profile.base[c]! : profile.data[i + 1 + c]! + profile.data[i + 5 + c]! * (x - profile.data[i]!);
+    out[c]! += i < 0 ? field.base[c]! : field.data[i + 1 + c]! + field.data[i + 5 + c]! * (x - field.data[i]!);
 }
-/** Exact local box mean of the piecewise-affine profile, without global antiderivative cancellation. */
-function integrate(profile: Profile, a: number, b: number, out: Float64Array) {
-  const data = profile.data;
-  let index = nodeAt(profile, a),
+/** Exact local box mean of the piecewise-affine lateral field, without global antiderivative cancellation. */
+function integrate(field: BandLateralField, a: number, b: number, out: Float64Array) {
+  const data = field.data;
+  let index = nodeAt(field, a),
     x = a;
   while (x < b) {
-    const end = Math.min(b, index + 1 < profile.count ? data[(index + 1) * 9]! : Infinity);
+    const end = Math.min(b, index + 1 < field.count ? data[(index + 1) * 9]! : Infinity);
     const weight = (end - x) / (b - a),
       i = index * 9;
     for (let c = 0; c < 4; c++) {
-      const v0 = i < 0 ? profile.base[c]! : data[i + 1 + c]! + data[i + 5 + c]! * (x - data[i]!);
-      const v1 = i < 0 ? profile.base[c]! : data[i + 1 + c]! + data[i + 5 + c]! * (end - data[i]!);
+      const v0 = i < 0 ? field.base[c]! : data[i + 1 + c]! + data[i + 5 + c]! * (x - data[i]!);
+      const v1 = i < 0 ? field.base[c]! : data[i + 1 + c]! + data[i + 5 + c]! * (end - data[i]!);
       out[c]! += (v0 + v1) * 0.5 * weight;
     }
     x = end;
@@ -303,7 +303,7 @@ export interface BandGround {
     readonly expandedBands: number;
     readonly maxActiveBands: number;
     readonly preblendCells: number;
-    readonly profiles: number;
+    readonly lateralFields: number;
     readonly coefficientBytes: number;
     readonly directoryBytes: number;
   };
@@ -313,7 +313,7 @@ export interface BandGround {
 export function compileBandGround(length: number, pieces: readonly BandPiece[]): BandGround {
   const slabs = resolveBandSlabs(length, pieces),
     levels: Level[] = [],
-    profiles: Profile[] = [],
+    lateralFields: BandLateralField[] = [],
     intern = new Map<string, number>();
   let cells = 0,
     coefficientBytes = 0,
@@ -331,13 +331,13 @@ export function compileBandGround(length: number, pieces: readonly BandPiece[]):
       const start = i * step,
         end = Math.min(length, (i + 1) * step);
       while (slab + 1 < slabs.length && slabs[slab]!.end <= start) slab++;
-      const built = profileFor(slabs, slab, start, end);
+      const built = lateralFieldFor(slabs, slab, start, end);
       let index = intern.get(built.key);
       if (index === undefined) {
-        index = profiles.length;
+        index = lateralFields.length;
         intern.set(built.key, index);
-        profiles.push(built.profile);
-        coefficientBytes += built.profile.data.byteLength + 32;
+        lateralFields.push(built.field);
+        coefficientBytes += built.field.data.byteLength + 32;
         if (coefficientBytes > MAX_COEFFICIENT_BYTES) throw new RangeError('Band coefficient storage exceeds 64 MiB');
       }
       indices[i] = index;
@@ -350,30 +350,33 @@ export function compileBandGround(length: number, pieces: readonly BandPiece[]):
     expandedBands: pieces.length,
     maxActiveBands: slabs.reduce((max, s) => Math.max(max, s.active), 0),
     preblendCells: cells,
-    profiles: profiles.length,
+    lateralFields: lateralFields.length,
     coefficientBytes,
     directoryBytes,
   });
   const ground = Object.freeze({ kind: 'bands' as const, length, slabs, metrics });
-  storage.set(ground, { levels, profiles });
+  storage.set(ground, { levels, lateralFields });
   return ground;
 }
 
 /** Private compiled coefficients never escape through a callback, mutable collection or typed-array view. */
-const storage = new WeakMap<BandGround, { readonly levels: readonly Level[]; readonly profiles: readonly Profile[] }>();
+const storage = new WeakMap<
+  BandGround,
+  { readonly levels: readonly Level[]; readonly lateralFields: readonly BandLateralField[] }
+>();
 
-/** One source-owned interval in the renderer's ruler; lateralOrigin maps view l to source l. */
-interface BandSourceSpan {
+/** One field-owned interval in the renderer's ruler; lateralOrigin maps frame l to native l. */
+interface BandFieldSpan {
   readonly ground: BandGround;
   readonly frameStart: number;
-  readonly sourceStart: number;
-  readonly sourceEnd: number;
+  readonly nativeStart: number;
+  readonly nativeEnd: number;
   readonly lateralOrigin: number;
 }
 
-/** Persistent row scratch. Cached profiles and the at-most-two clipped leaf ends become one lateral function. */
+/** Persistent row scratch. Cached lateral fields and the at-most-two clipped leaf ends become one lateral function. */
 class BandRow {
-  readonly profile = { base: [0, 0, 0, 0], data: new Float64Array(9 * 256), count: 0 };
+  readonly field = { base: [0, 0, 0, 0], data: new Float64Array(9 * 256), count: 0 };
   private events = new Float64Array(9 * 256);
   private readonly order: number[] = [];
   private count = 0;
@@ -381,8 +384,8 @@ class BandRow {
   private readonly slopes = new Float64Array(4);
   private readonly compare = (a: number, b: number) => this.events[a * 9]! - this.events[b * 9]!;
   reset() {
-    this.profile.base.fill(0);
-    this.profile.count = 0;
+    this.field.base.fill(0);
+    this.field.count = 0;
     this.count = 0;
   }
   private event(x: number) {
@@ -396,16 +399,16 @@ class BandRow {
     this.events[i] = x;
     return i;
   }
-  addProfile(profile: Profile, weight: number, lateralOrigin: number) {
-    for (let c = 0; c < 4; c++) this.profile.base[c]! += weight * profile.base[c]!;
-    const d = profile.data;
-    for (let i = 0; i < profile.count; i++) {
+  addField(field: BandLateralField, weight: number, lateralOrigin: number) {
+    for (let c = 0; c < 4; c++) this.field.base[c]! += weight * field.base[c]!;
+    const d = field.data;
+    for (let i = 0; i < field.count; i++) {
       const at = i * 9,
         previous = at - 9,
         event = this.event(d[at]! - lateralOrigin);
       for (let c = 0; c < 4; c++) {
         const oldSlope = i === 0 ? 0 : d[previous + 5 + c]!;
-        const oldValue = i === 0 ? profile.base[c]! : d[previous + 1 + c]! + oldSlope * (d[at]! - d[previous]!);
+        const oldValue = i === 0 ? field.base[c]! : d[previous + 1 + c]! + oldSlope * (d[at]! - d[previous]!);
         this.events[event + 1 + c] = weight * (d[at + 1 + c]! - oldValue);
         this.events[event + 5 + c] = weight * (d[at + 5 + c]! - oldSlope);
       }
@@ -416,10 +419,10 @@ class BandRow {
       g = rgb555LinearChannel((color >>> 5) & 31),
       blue = rgb555LinearChannel(color & 31);
     if (a === -Infinity) {
-      this.profile.base[0]! += weight * r;
-      this.profile.base[1]! += weight * g;
-      this.profile.base[2]! += weight * blue;
-      this.profile.base[3]! += weight;
+      this.field.base[0]! += weight * r;
+      this.field.base[1]! += weight * g;
+      this.field.base[2]! += weight * blue;
+      this.field.base[3]! += weight;
       return;
     }
     if (a === Infinity) return;
@@ -442,21 +445,20 @@ class BandRow {
     }
   }
   finish() {
-    const profile = this.profile;
-    if (this.count * 9 > profile.data.length)
-      profile.data = new Float64Array(9 * 2 ** Math.ceil(Math.log2(this.count)));
+    const field = this.field;
+    if (this.count * 9 > field.data.length) field.data = new Float64Array(9 * 2 ** Math.ceil(Math.log2(this.count)));
     this.order.length = this.count;
     for (let i = 0; i < this.count; i++) this.order[i] = i;
     this.order.sort(this.compare);
     let previous = this.count ? this.events[this.order[0]! * 9]! : 0;
     const values = this.values,
       slopes = this.slopes;
-    values.set(profile.base);
+    values.set(field.base);
     slopes.fill(0);
     for (let i = 0; i < this.count;) {
       const x = this.events[this.order[i]! * 9]!,
-        at = profile.count++ * 9;
-      profile.data[at] = x;
+        at = field.count++ * 9;
+      field.data[at] = x;
       for (let c = 0; c < 4; c++) values[c]! += slopes[c]! * (x - previous);
       do {
         const event = this.order[i++]! * 9;
@@ -466,13 +468,13 @@ class BandRow {
         }
       } while (i < this.count && this.events[this.order[i]! * 9] === x);
       for (let c = 0; c < 4; c++) {
-        profile.data[at + 1 + c] = values[c]!;
-        profile.data[at + 5 + c] = slopes[c]!;
+        field.data[at + 1 + c] = values[c]!;
+        field.data[at + 5 + c] = slopes[c]!;
       }
       previous = x;
     }
-    if (profile.count) for (let c = 0; c < 4; c++) profile.data[(profile.count - 1) * 9 + 5 + c] = 0;
-    return profile;
+    if (field.count) for (let c = 0; c < 4; c++) field.data[(field.count - 1) * 9 + 5 + c] = 0;
+    return field;
   }
 }
 
@@ -514,61 +516,61 @@ function appendExact(
   }
 }
 
-/** The instantaneous profile follows already resolved span order; no event composition or sorting. */
-function readPointProfile(
-  profile: { base: number[]; data: Float64Array; count: number },
+/** The instantaneous lateral field follows already resolved span order; no event composition or sorting. */
+function readPointField(
+  field: { base: number[]; data: Float64Array; count: number },
   ground: BandGround,
   s: number,
   stats: BandRenderMetrics,
-): Profile {
+): BandLateralField {
   const slab = ground.slabs[slabAt(ground.slabs, s)]!;
-  profile.count = slab.spans.length - 1;
+  field.count = slab.spans.length - 1;
   stats.activeBands = Math.max(stats.activeBands, slab.active);
   for (let i = 0; i < slab.spans.length; i++) {
     const piece = slab.spans[i]!,
       color = piece.color;
-    const target = i === 0 ? profile.base : profile.data;
+    const target = i === 0 ? field.base : field.data;
     const at = i === 0 ? 0 : (i - 1) * 9 + 1;
-    if (i > 0) profile.data[at - 1] = bandEdgeAt(piece, 'left', s);
+    if (i > 0) field.data[at - 1] = bandEdgeAt(piece, 'left', s);
     target[at] = color === null ? 0 : rgb555LinearChannel(color >>> 10);
     target[at + 1] = color === null ? 0 : rgb555LinearChannel((color >>> 5) & 31);
     target[at + 2] = color === null ? 0 : rgb555LinearChannel(color & 31);
     target[at + 3] = color === null ? 0 : 1;
   }
-  return profile;
+  return field;
 }
 
-/** Each product mode selects its complete longitudinal/lateral read, never independent kernels. */
-export function createBandGroundSampler(sources: readonly BandSourceSpan[]) {
-  if (sources.length === 0) throw new RangeError('Band sampling requires source-owned intervals');
-  const spans = sources.map((source, i) => {
-    const product = storage.get(source.ground);
+/** Each product method selects its complete longitudinal/lateral read, never independent kernels. */
+export function createBandGroundSampler(intervals: readonly BandFieldSpan[]) {
+  if (intervals.length === 0) throw new RangeError('Band sampling requires field-owned intervals');
+  const spans = intervals.map((input, i) => {
+    const product = storage.get(input.ground);
     if (!product) throw new TypeError('Band sampling requires a compiled ground');
-    const { frameStart, sourceStart, sourceEnd, lateralOrigin } = source;
+    const { frameStart, nativeStart, nativeEnd, lateralOrigin } = input;
     if (
-      ![frameStart, sourceStart, sourceEnd, lateralOrigin].every(Number.isFinite) ||
-      !(sourceEnd > sourceStart) ||
-      sourceStart < -SOURCE_ENDPOINT_TOLERANCE_METERS ||
-      sourceEnd > source.ground.length + SOURCE_ENDPOINT_TOLERANCE_METERS
+      ![frameStart, nativeStart, nativeEnd, lateralOrigin].every(Number.isFinite) ||
+      !(nativeEnd > nativeStart) ||
+      nativeStart < -SOURCE_ENDPOINT_TOLERANCE_METERS ||
+      nativeEnd > input.ground.length + SOURCE_ENDPOINT_TOLERANCE_METERS
     )
-      throw new RangeError('Band source interval is outside its compiled ground');
+      throw new RangeError('Band field interval is outside its compiled ground');
     if (i > 0) {
-      const prior = sources[i - 1]!,
-        end = prior.frameStart + (prior.sourceEnd - prior.sourceStart);
+      const prior = intervals[i - 1]!,
+        end = prior.frameStart + (prior.nativeEnd - prior.nativeStart);
       if (Math.abs(frameStart - end) > SOURCE_ENDPOINT_TOLERANCE_METERS)
-        throw new RangeError('Band source intervals must be contiguous and ordered');
+        throw new RangeError('Band field intervals must be contiguous and ordered');
     }
-    return { ...source, frameEnd: frameStart + (sourceEnd - sourceStart), ...product };
+    return { ...input, frameEnd: frameStart + (nativeEnd - nativeStart), ...product };
   });
   const row = new BandRow(),
-    pointProfile = { base: [0, 0, 0, 0], data: new Float64Array(9 * 2 * BAND_ACTIVE_LIMIT), count: 0 },
+    pointField = { base: [0, 0, 0, 0], data: new Float64Array(9 * 2 * BAND_ACTIVE_LIMIT), count: 0 },
     sample = new Float64Array(4),
     colorCache = new Float64Array([NaN, NaN, NaN, NaN, 0]);
   const first = spans[0]!.frameStart,
     last = spans.at(-1)!.frameEnd;
   const append = (span: (typeof spans)[number], start: number, end: number, stats: BandRenderMetrics) => {
-    const a = Math.max(0, span.sourceStart + start - span.frameStart),
-      b = Math.min(span.ground.length, span.sourceStart + end - span.frameStart);
+    const a = Math.max(0, span.nativeStart + start - span.frameStart),
+      b = Math.min(span.ground.length, span.nativeStart + end - span.frameStart);
     const fullStart = Math.ceil(a / BAND_BASE_STEP),
       fullEnd = Math.floor(b / BAND_BASE_STEP);
     if (fullEnd <= fullStart) {
@@ -581,10 +583,10 @@ export function createBandGroundSampler(sources: readonly BandSourceSpan[]) {
       const remaining = Math.floor(Math.log2(fullEnd - index));
       const alignment = index === 0 ? remaining : Math.log2(index & -index);
       const level = Math.min(alignment, remaining),
-        source = span.levels[level]!,
+        input = span.levels[level]!,
         cell = index / 2 ** level;
-      row.addProfile(span.profiles[source.indices[cell]!]!, source.step, span.lateralOrigin);
-      stats.activeBands = Math.max(stats.activeBands, source.active[cell]!);
+      row.addField(span.lateralFields[input.indices[cell]!]!, input.step, span.lateralOrigin);
+      stats.activeBands = Math.max(stats.activeBands, input.active[cell]!);
       index += 2 ** level;
     }
     if (fullEnd * BAND_BASE_STEP < b)
@@ -600,27 +602,27 @@ export function createBandGroundSampler(sources: readonly BandSourceSpan[]) {
       l: number,
       stepL: number,
       deltaS: number,
-      mode: BandRenderMode,
+      method: BandRenderMethod,
       stats: BandRenderMetrics,
     ) {
-      let profile: Profile;
+      let field: BandLateralField;
       let normalization = 1;
-      if (mode !== 'EXACT-BOX') {
+      if (method !== 'EXACT-BOX') {
         const span = spans.find((p) => p.frameEnd > s) ?? spans.at(-1)!;
-        const at = Math.max(0, Math.min(span.ground.length, span.sourceStart + s - span.frameStart));
-        let selected: Profile | undefined;
-        if (mode === 'LEVEL-POINT' && deltaS >= BAND_BASE_STEP && span.levels.length) {
+        const at = Math.max(0, Math.min(span.ground.length, span.nativeStart + s - span.frameStart));
+        let selected: BandLateralField | undefined;
+        if (method === 'LEVEL-POINT' && deltaS >= BAND_BASE_STEP && span.levels.length) {
           for (let level = selectImageLodLevel(BAND_BASE_STEP / deltaS, span.levels.length - 1); level >= 0; level--) {
-            const source = span.levels[level]!;
+            const input = span.levels[level]!;
             // The final closed endpoint belongs to the preceding cell; other boundaries belong to the next.
-            const cell = at === span.ground.length ? Math.ceil(at / source.step) - 1 : Math.floor(at / source.step);
-            if (cell >= source.indices.length) continue;
-            selected = span.profiles[source.indices[cell]!]!;
-            stats.activeBands = Math.max(stats.activeBands, source.active[cell]!);
+            const cell = at === span.ground.length ? Math.ceil(at / input.step) - 1 : Math.floor(at / input.step);
+            if (cell >= input.indices.length) continue;
+            selected = span.lateralFields[input.indices[cell]!]!;
+            stats.activeBands = Math.max(stats.activeBands, input.active[cell]!);
             break;
           }
         }
-        profile = selected ?? readPointProfile(pointProfile, span.ground, at, stats);
+        field = selected ?? readPointField(pointField, span.ground, at, stats);
         l += span.lateralOrigin;
       } else {
         row.reset();
@@ -635,42 +637,42 @@ export function createBandGroundSampler(sources: readonly BandSourceSpan[]) {
           }
         } else {
           const span = spans.find((p) => p.frameEnd > s) ?? spans.at(-1)!;
-          const at = Math.max(0, Math.min(span.ground.length, span.sourceStart + s - span.frameStart));
+          const at = Math.max(0, Math.min(span.ground.length, span.nativeStart + s - span.frameStart));
           appendExact(row, span.ground, at, at, span.lateralOrigin, stats, true);
         }
-        profile = row.finish();
+        field = row.finish();
         normalization = area > 0 ? area : 1;
       }
       const width = Math.abs(stepL);
       const threshold = (IMAGE_OPAQUE_COVERAGE - COVERAGE_ROUNDOFF) * normalization;
-      const support = mode === 'EXACT-BOX' ? width / 2 : 0;
+      const support = method === 'EXACT-BOX' ? width / 2 : 0;
       for (let x = 0; x < count;) {
-        const node = nodeAt(profile, l - support),
+        const node = nodeAt(field, l - support),
           at = node * 9;
-        const next = node + 1 < profile.count ? profile.data[(node + 1) * 9]! : Infinity;
+        const next = node + 1 < field.count ? field.data[(node + 1) * 9]! : Infinity;
         // A kernel wholly inside a constant span has the same integral for every covered destination pixel.
         // Skip both pixel integration and color conversion in such interiors, including transparent spans.
         if (
           stepL !== 0 &&
           l + support < next &&
           (node < 0 ||
-            (profile.data[at + 5] === 0 &&
-              profile.data[at + 6] === 0 &&
-              profile.data[at + 7] === 0 &&
-              profile.data[at + 8] === 0))
+            (field.data[at + 5] === 0 &&
+              field.data[at + 6] === 0 &&
+              field.data[at + 7] === 0 &&
+              field.data[at + 8] === 0))
         ) {
-          const boundary = stepL > 0 ? next : node < 0 ? -Infinity : profile.data[at]!;
+          const boundary = stepL > 0 ? next : node < 0 ? -Infinity : field.data[at]!;
           const distance = stepL > 0 ? boundary - support - l : l - support - boundary;
           const run = Math.min(count - x, Math.max(1, Math.ceil(distance / width)));
-          for (let c = 0; c < 4; c++) sample[c] = node < 0 ? profile.base[c]! : profile.data[at + 1 + c]!;
+          for (let c = 0; c < 4; c++) sample[c] = node < 0 ? field.base[c]! : field.data[at + 1 + c]!;
           writeBandPixels(pixels, offset + x, run, sample, threshold, colorCache, stats);
           x += run;
           l += stepL * run;
           continue;
         }
         sample.fill(0);
-        if (mode !== 'EXACT-BOX' || width === 0) point(profile, l, sample);
-        else integrate(profile, l - width / 2, l + width / 2, sample);
+        if (method !== 'EXACT-BOX' || width === 0) point(field, l, sample);
+        else integrate(field, l - width / 2, l + width / 2, sample);
         writeBandPixels(pixels, offset + x, 1, sample, threshold, colorCache, stats);
         x++;
         l += stepL;
@@ -679,7 +681,7 @@ export function createBandGroundSampler(sources: readonly BandSourceSpan[]) {
   });
 }
 
-/** Premultiplied channels and opacity are normalized only after all source-owned intervals are combined. */
+/** Premultiplied channels and opacity are normalized only after all field-owned intervals are combined. */
 function writeBandPixels(
   pixels: Uint32Array,
   offset: number,

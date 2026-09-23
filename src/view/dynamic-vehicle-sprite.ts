@@ -4,12 +4,12 @@ import type { VehicleWorldPoseRead } from '../vehicle/physics/vehicle-contract.j
 import { selectVehicleSprite, type VehicleSpriteSet } from '../image/sprite-assets.js';
 import type { CourseSprite } from './course-sprite.js';
 import { mapPhysicalHeightToRender } from './render-height-space.js';
-import { deriveVehicleNormalizedBank, type VehicleTurnPresentationRead } from './vehicle-presentation.js';
+import { deriveVehicleNormalizedBank, type VehicleTurnObservation } from './vehicle-visuals.js';
 
 /** Rendering adapter only. Physical x/y/z remains the CG authority. */
 export function createDynamicVehicleCourseSprite(
   name: string,
-  vehicle: VehicleWorldPoseRead & VehicleTurnPresentationRead,
+  vehicle: VehicleWorldPoseRead & VehicleTurnObservation,
   cameraYaw: number,
   spriteSet: VehicleSpriteSet,
   height: HeightProfileReader,
@@ -19,7 +19,7 @@ export function createDynamicVehicleCourseSprite(
   return {
     name,
     x: vehicle.x,
-    y: mapPhysicalHeightToRender(height, vehicle.course.s, vehicle.presentationY ?? vehicle.y),
+    y: mapPhysicalHeightToRender(height, vehicle.course.s, vehicle.renderY ?? vehicle.y),
     z: vehicle.z,
     sRender: vehicle.course.s,
     asset: selected.asset,

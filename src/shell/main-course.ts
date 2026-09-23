@@ -9,9 +9,9 @@ import { mustGet } from './dom.js';
 import { readCourseDocument } from '../course/course-document.js';
 import { createCourseGround } from '../course/compiler/course-ground.js';
 import { compileCourseDocument } from '../course/compiler/compiled-course.js';
-import { RECOVERY_PROFILE } from '../race/recovery.js';
+import { RECOVERY_SETTINGS } from '../race/recovery.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
-import { deriveVehicleSpriteFamily } from '../view/vehicle-presentation.js';
+import { deriveVehicleSpriteFamily } from '../view/vehicle-visuals.js';
 import { VEHICLE_CATALOG } from '../vehicle/vehicle-catalog.js';
 import { createCourseRace } from '../race/course-race.js';
 import { createCoursePerformanceHud } from './course-performance-hud.js';
@@ -120,7 +120,7 @@ try {
   canvas.insertAdjacentElement('afterend', raceStatus);
   const lifecycle = shell.mountControls({
     world: () => scene.world,
-    recoveryProfile: RECOVERY_PROFILE,
+    recoverySettings: RECOVERY_SETTINGS,
     configurationLocked: true,
     canRecover: () => race.clock.status === 'RUNNING' && !manualPause && !document.hidden,
     recoveryL: () => race.recoveryL,
@@ -183,8 +183,8 @@ try {
     else if (!manualPause && (race.clock.status === 'RUNNING' || race.clock.status === 'READY'))
       shell.start(tick, render);
   });
-  mountBandControls(displaySettings.bandMode, (value) => {
-    displaySettings.setBandMode(value);
+  mountBandControls(displaySettings.bandMethod, (value) => {
+    displaySettings.setBandMethod(value);
     render();
   });
   status.remove();

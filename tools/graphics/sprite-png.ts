@@ -13,17 +13,17 @@ export async function decodeSpritePng(
 ) {
   if (!(bytes instanceof Uint8Array) || bytes.length > SPRITE_PNG_BYTE_LIMIT)
     throw new RangeError('PNG exceeds 32 MiB');
-  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const header = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const type = (offset: number) => String.fromCharCode(...bytes.subarray(offset, offset + 4));
   if (
     bytes.length < 33 ||
     [137, 80, 78, 71, 13, 10, 26, 10].some((b, i) => bytes[i] !== b) ||
-    view.getUint32(8) !== 13 ||
+    header.getUint32(8) !== 13 ||
     type(12) !== 'IHDR'
   )
     throw new RangeError('PNG requires a valid signature and IHDR');
-  const width = view.getUint32(16),
-    height = view.getUint32(20);
+  const width = header.getUint32(16),
+    height = header.getUint32(20);
   if (
     bytes[24] !== 8 ||
     width < 1 ||
@@ -37,7 +37,7 @@ export async function decodeSpritePng(
     );
   let offset = 8;
   for (; offset + 12 <= bytes.length;) {
-    const length = view.getUint32(offset);
+    const length = header.getUint32(offset);
     if (offset + length + 12 > bytes.length) throw new RangeError('truncated PNG chunk');
     if (type(offset + 4) === 'acTL') throw new RangeError('animated PNG input is not supported');
     offset += length + 12;

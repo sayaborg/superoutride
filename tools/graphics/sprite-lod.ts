@@ -1,6 +1,6 @@
 import { mustGet } from '../../src/shell/dom.js';
 import type { SpriteAsset, SpriteLodDocument } from '../../src/image/sprite.js';
-import { CURRENT_FOCAL_LENGTH_PIXELS, pixelsPerMeterAtDepth } from '../../src/view/presentation-scale.js';
+import { CURRENT_FOCAL_LENGTH_PIXELS, pixelsPerMeterAtDepth } from '../../src/view/display-scale.js';
 import { createSpriteLodFixture } from './fixtures/sprite-lod.js';
 import { SoftwareSurface } from '../../src/view/software-surface.js';
 import { rgba } from '../../src/image/rgb555.js';

@@ -27,12 +27,12 @@ interface RaceSessionState {
 }
 
 /** Minimal validated-progress contract needed by timing. */
-interface RaceSessionProgressView {
+interface RaceSessionProgressObservation {
   readonly validatedProgressFloor: number;
 }
 
 /** Minimal already-validated gate contract needed by timing. */
-interface RaceSessionUpdateView {
+interface RaceSessionUpdateObservation {
   readonly acceptedGate: PhysicalRaceGate | null;
   readonly acceptedCrossings?: readonly PhysicalRaceGateCrossing[];
   readonly justFinished?: boolean;
@@ -69,8 +69,8 @@ export function createRaceSessionState(): RaceSessionState {
  */
 export function advanceRaceSession(
   session: RaceSessionState,
-  progress: RaceSessionProgressView,
-  update: RaceSessionUpdateView | null,
+  progress: RaceSessionProgressObservation,
+  update: RaceSessionUpdateObservation | null,
   dt: number,
 ): void {
   if (!(dt > 0) || !Number.isFinite(dt)) throw new RangeError('race session dt must be finite and > 0');

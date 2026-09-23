@@ -68,11 +68,11 @@ export class TileBackgroundImage {
   }
 
   /** One horizontal repeat; interiors share their tile lookup instead of branching per destination pixel. */
-  paintRow(target: Uint32Array, destination: number, sourceX: number, sourceY: number, width: number): void {
-    let x = ((sourceX % this.width) + this.width) % this.width,
+  paintRow(target: Uint32Array, destination: number, imageX: number, imageY: number, width: number): void {
+    let x = ((imageX % this.width) + this.width) % this.width,
       written = 0;
-    const tileRow = (sourceY >>> 4) * BACKGROUND_TILE_COLUMNS,
-      row = (sourceY & 15) << 4;
+    const tileRow = (imageY >>> 4) * BACKGROUND_TILE_COLUMNS,
+      row = (imageY & 15) << 4;
     while (written < width) {
       const column = x & 15,
         count = Math.min(16 - column, width - written);

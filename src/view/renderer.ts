@@ -1,7 +1,7 @@
 export { BAND_ACTIVE_LIMIT } from '../course/band-ground.js';
 import { createBandRenderMetrics, type BandRenderMetrics } from '../course/band-ground.js';
-import { DEFAULT_BAND_RENDER_MODE } from './display-settings.js';
-import { type BandRenderMode } from '../course/band-ground.js';
+import { DEFAULT_BAND_RENDER_METHOD } from './display-settings.js';
+import { type BandRenderMethod } from '../course/band-ground.js';
 import type { RasterGeometry } from '../course/geometry/raster-coordinate-reader.js';
 import { wrapAngle } from '../core/math.js';
 import { pseudoProject, type PseudoCamera } from './projection.js';
@@ -13,18 +13,18 @@ import {
   computeForwardVisibleInterval,
   generateTerrainLines,
   createTerrainWorkspace,
-  type TerrainVisualProfile,
+  type TerrainRenderParameters,
 } from './terrain-line.js';
 import { drawTileBackground, type TileBackground } from './tile-background.js';
 import { selectVehicleSprite, type SpriteAssets } from '../image/sprite-assets.js';
-import { collectVisibleCourseSprites, type CourseSpriteSource, type VisibleCourseSprite } from './course-sprite.js';
+import { collectVisibleCourseSprites, type CourseSpriteInput, type VisibleCourseSprite } from './course-sprite.js';
 import { createRenderSpaceCamera, mapPhysicalHeightToRender } from './render-height-space.js';
-import { deriveVehicleNormalizedBank } from './vehicle-presentation.js';
+import { deriveVehicleNormalizedBank } from './vehicle-visuals.js';
 
 type PlayerVisualKind = 'car' | 'bike';
 
 interface RenderResult {
-  bandGround: BandRenderMetrics & { mode: BandRenderMode; milliseconds: number };
+  bandGround: BandRenderMetrics & { method: BandRenderMethod; milliseconds: number };
   terrainLineCount: number;
   terrainOutputPixels: number;
   visibleSpriteCount: number;
@@ -61,7 +61,7 @@ export interface BandGroundReader {
     l: number,
     stepL: number,
     deltaS: number,
-    mode: BandRenderMode,
+    method: BandRenderMethod,
     stats: BandRenderMetrics,
   ): void;
 }
@@ -71,9 +71,9 @@ interface RenderScene {
   readonly guide: RasterGeometry;
   readonly camera: PseudoCamera;
   readonly vehicle: VehicleRenderReadState;
-  readonly terrainProfile: TerrainVisualProfile;
-  readonly groundProfile: { readonly groundLeft: number; readonly groundRight: number };
-  readonly worldSprites: CourseSpriteSource;
+  readonly terrainParameters: TerrainRenderParameters;
+  readonly groundRuler: { readonly groundLeft: number; readonly groundRight: number };
+  readonly worldSprites: CourseSpriteInput;
   readonly assets: SpriteAssets;
   readonly playerKind: PlayerVisualKind;
 }
@@ -90,27 +90,27 @@ interface RenderOptions {
   readonly observeWorkload?: boolean;
   /** Final compiled color field in scene-local coordinates; never source-rebased or repainted. */
   readonly ground: BandGroundReader;
-  readonly bandMode?: BandRenderMode;
+  readonly bandMethod?: BandRenderMethod;
 }
 
 export function renderDriving(
   target: SoftwareSurface,
-  { background, guide, camera, vehicle, terrainProfile, groundProfile, worldSprites, assets, playerKind }: RenderScene,
+  { background, guide, camera, vehicle, terrainParameters, groundRuler, worldSprites, assets, playerKind }: RenderScene,
   {
     observeWorkload = false,
     ground,
     workspace = createRenderWorkspace(),
-    bandMode = DEFAULT_BAND_RENDER_MODE,
+    bandMethod = DEFAULT_BAND_RENDER_METHOD,
   }: RenderOptions,
 ): RenderResult {
-  const { renderCamera, terrain } = prepareTerrain(guide, camera, terrainProfile, workspace);
+  const { renderCamera, terrain } = prepareTerrain(guide, camera, terrainParameters, workspace);
   drawTileBackground(target, background, renderCamera);
   const visible = computeForwardVisibleInterval(
     guide,
     renderCamera.yaw,
     renderCamera.s,
-    terrainProfile.dMin,
-    terrainProfile.dMax,
+    terrainParameters.dMin,
+    terrainParameters.dMax,
   );
   const sprites = visible ? collectVisibleCourseSprites(worldSprites, renderCamera, visible.dStart, visible.dEnd) : [];
 
@@ -143,8 +143,8 @@ export function renderDriving(
     (line) => {
       const started = performance.now();
       const span = line.xGroundR - line.xGroundL;
-      const step = (groundProfile.groundLeft + groundProfile.groundRight) / span;
-      const lateral = -groundProfile.groundLeft + (0.5 - line.xGroundL) * step;
+      const step = (groundRuler.groundLeft + groundRuler.groundRight) / span;
+      const lateral = -groundRuler.groundLeft + (0.5 - line.xGroundL) * step;
       const before = bandStats.outputPixels;
       ground.sampleSpan(
         target.pixels,
@@ -153,8 +153,8 @@ export function renderDriving(
         line.s,
         lateral,
         step,
-        line.sourceFootprint.deltaSEffective,
-        bandMode,
+        line.footprint.deltaSEffective,
+        bandMethod,
         bandStats,
       );
       const outputPixels = bandStats.outputPixels - before;
@@ -173,9 +173,9 @@ export function renderDriving(
   );
 
   const playerRenderY = mapPhysicalHeightToRender(
-    terrainProfile.height,
+    terrainParameters.height,
     vehicle.course.s,
-    vehicle.presentationY ?? vehicle.y,
+    vehicle.renderY ?? vehicle.y,
   );
   const playerProjection = pseudoProject(
     { x: vehicle.x, y: playerRenderY, z: vehicle.z, s: vehicle.course.s },
@@ -221,7 +221,7 @@ export function renderDriving(
   }
 
   return {
-    bandGround: { ...bandStats, mode: bandMode, milliseconds: bandMilliseconds },
+    bandGround: { ...bandStats, method: bandMethod, milliseconds: bandMilliseconds },
     terrainLineCount: terrain.length,
     terrainOutputPixels,
     visibleSpriteCount: sprites.length,
@@ -230,7 +230,7 @@ export function renderDriving(
     playerOutputSamples: playerStats.outputSamples,
     playerWrittenPixels: playerStats.writtenPixels,
     playerScreenY: playerProjection.y,
-    activeSection: terrainProfile.visual.sample(vehicle.course.s).name,
+    activeSection: terrainParameters.visual.sample(vehicle.course.s).name,
     playerYawVariant: selected.yawIndex,
     playerBankVariant: selected.bankIndex,
     playerRelativeYaw: relativeYaw,
@@ -243,12 +243,12 @@ export function renderDriving(
 function prepareTerrain(
   guide: RasterGeometry,
   camera: PseudoCamera,
-  terrainProfile: TerrainVisualProfile,
+  terrainParameters: TerrainRenderParameters,
   workspace: ReturnType<typeof createRenderWorkspace>,
 ) {
-  const renderCamera = createRenderSpaceCamera(terrainProfile.height, camera);
+  const renderCamera = createRenderSpaceCamera(terrainParameters.height, camera);
 
-  const terrain = generateTerrainLines(guide, renderCamera, terrainProfile, workspace.terrain);
+  const terrain = generateTerrainLines(guide, renderCamera, terrainParameters, workspace.terrain);
   return { renderCamera, terrain };
 }
 

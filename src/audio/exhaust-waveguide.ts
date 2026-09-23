@@ -127,7 +127,7 @@ export class ExhaustWaveguide {
       if (crossed) {
         let strength = excitation;
         if (this.tuning.pulseVariation > 0) {
-          // One random draw per firing, never a continuous noise source or a timing perturbation.
+          // One random draw per firing, never a continuous noise generator or a timing perturbation.
           this.pulseSeed ^= this.pulseSeed << 13;
           this.pulseSeed ^= this.pulseSeed >>> 17;
           this.pulseSeed ^= this.pulseSeed << 5;
@@ -158,14 +158,14 @@ export class ExhaustWaveguide {
     }
     for (let i = 0; i < this.backward.length; i++) {
       const age = (this.phase - this.profile.firingPhases[i]! + 1) % 1;
-      const position = age / ACOUSTICS.sourceWindowCycles;
+      const position = age / ACOUSTICS.cylinderWindowCycles;
       const aperture = position < 1 ? position * (1 - position) : 0;
       // Unit-height quartic aperture: zero value and slope at both ends, without a trig call.
       const opening = 16 * aperture * aperture;
       this.wall[i]! += this.loss * (this.backward[i]!.read() - this.wall[i]!);
       const reflection =
-        ACOUSTICS.sourceClosedReflection +
-        (ACOUSTICS.sourceOpenReflection - ACOUSTICS.sourceClosedReflection) * opening;
+        ACOUSTICS.cylinderClosedReflection +
+        (ACOUSTICS.cylinderOpenReflection - ACOUSTICS.cylinderClosedReflection) * opening;
       const incoming = this.forward[i]!.read();
       this.forward[i]!.write(this.emission[i]! + reflection * this.wall[i]!);
       this.backward[i]!.write(this.junctions[this.banks[i]!]! - incoming);

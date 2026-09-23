@@ -57,7 +57,7 @@ Autostart affects gameplay; sound still requires an eligible browser gesture.
 
 Left/right arrows steer, Up or X accelerates, and Down or Z brakes. Backspace requests recovery when
 the active composition permits it. The latest still-held pedal wins; releasing it exposes the earlier
-held pedal. Steering uses the latest source and does not revive a superseded direction on release.
+held pedal. Steering uses the latest owner and does not revive a superseded direction on release.
 Boolean pedal input and numeric input in `[0,1]` have the same canonical meaning.
 
 Touch pointers starting outside UI elements marked `data-driving-input="ignore"` control driving.
@@ -75,14 +75,14 @@ the corresponding ownership and visible origin/vector indicators.
 The HUD displays FPS, maximum CPU frame time, maximum fixed-step time, maximum frame interval and
 lifetime maximum seam-commit time. The first frame reports immediately, then approximately every half second.
 
-The ground detail shows the selected mode, the reporting window's maximum visible active Band count,
+The ground detail shows the selected method, the reporting window's maximum visible active Band count,
 the compiled course maximum and active limit, the latest frame's ground-sampling CPU milliseconds,
-and the maximum over the most recent 120 rendered frames (`max120`). Changing mode clears this
+and the maximum over the most recent 120 rendered frames (`max120`). Changing method clears this
 ground-timing history and reports immediately, including while paused. The active count includes
 hidden declarations in each contributing source slab; it is a maximum, not a sum over pixels or
 Sections. These observations are measurements, not device-capacity verdicts.
 
-CPU time adds fixed-step work since the preceding render to rendering/presentation work. Frame
+CPU time adds fixed-step work since the preceding render to rendering/display work. Frame
 interval is elapsed time between completed frames. FPS and frame/step/interval maxima reset each
 reporting window; seam maximum is cumulative.
 
@@ -104,7 +104,7 @@ tire calibration. The selectable body-yaw and movement-yaw cameras use the same 
 The driving composition root creates one settings object; the shared scene reads it when rendering.
 The browser control is only an adapter and does not own the value or its lifetime.
 
-DEV's **Ground display** group exposes all three modes defined in
+DEV's **Ground display** group exposes all three methods defined in
 [Architecture](architecture.md#band-rendering), marking the selected button pressed. A click updates
 the single setting and redraws immediately, including before START and while paused. Camera, vehicle,
 Session and occurrence history are preserved, with no restart or course recompilation. The setting

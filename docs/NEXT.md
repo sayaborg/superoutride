@@ -3,36 +3,30 @@
 ## Current state
 
 - One compiled graph scene serves RIBBON COAST, RIBBON FORK and RIBBON RING with CLASSIC/CUSTOM Sessions.
-- Ground is Band-only, with LEVEL-POINT as the default of three display modes; sprites are indexed.
+- Ground is Band-only, with LEVEL-POINT as the default of three display methods; sprites are indexed.
   BG is one infinite tiled plane with sine mapping.
 - Build currently generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **5-6 — Vocabulary**.
+Next PR: **6-1 — Plan authority**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Current contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
 PRs hold rationale and verification evidence.
-
-## Stage 5 — Reorganize foundations
-
-Simplify the foundations without changing behavior.
-
-- **5-6 — Vocabulary:** define reserved terms such as Profile, mode and presentation, and rename accordingly.
-
-Band compiler/sampler separation belongs to 7-6 and preserves private compiled coefficient storage.
-Reference driving remains in builds until 11-5.
 
 ## Stage 6 — Authoritative geometry
 
 Make authored plan and vertical geometry authoritative, with rendering-only approximations and simpler connections.
 
 - **6-1 — Plan authority:** authored straights and circular arcs, arc-length s, and Raster as a rendering-only derivative.
+  Name the replacement Guide/Raster sources and readers according to the glossary.
 - **6-2 — Geometry remnants:** remove fillet reconstruction, μ, mMin, the `guide` field and running geometry proofs.
+  Name the remaining Guide/Raster replacements according to the glossary.
 - **6-3 — Vertical alignment:** parabolas from PVIs and author-specified vertical curve lengths;
-  physics and camera use the authority, while rendering uses a polyline approximation.
+  physics and camera use the authority, while rendering uses a polyline approximation. Rename HeightProfile/OpenProfile replacements according to the glossary.
 - **6-4 — Section seams:** replace overlaps with cut lines; remove Port and `Section.start`.
-- **6-5 — Views and occurrences:** minimize their procedures.
+- **6-5 — Views and occurrences:** minimize their procedures; name occurrence-view replacements
+  (`createView`, `CourseGeometryView` and their adapters) according to the glossary.
 
 ## Stage 7 — Course format v13
 
@@ -40,8 +34,9 @@ Unify authored coordinates, appearance, delivery and progress in the course form
 
 - **7-1 — Coordinates and variation:** use Anchor and Lateral position types, and knot sequences for variation along s.
 - **7-2 — Section layers:** plan / structure / profile / appearance; give Regions material knots and carriagewayId,
-  and remove role.
+  and remove role. Rename VisualProfile replacements according to the glossary.
 - **7-3 — Appearance elements:** one list and shared repeat for band / arrow / text / curb / sprite.
+  Rename CoursePresentation and associated visual records according to the glossary.
 - **7-4 — Course identity:** derive kind from the graph, remove production provenance, and simplify nulls and limits.
 - **7-5 — Delivery identity:** one manifest, one version per format and one image path.
 - **7-6 — Band cells:** truncate preblend cells at the Section end; separate compilation from sampling
@@ -53,6 +48,7 @@ Unify authored coordinates, appearance, delivery and progress in the course form
 Give vehicles, tires, tuning and materials explicit data definitions, and treat airborne driving as normal state.
 
 - **8-1 — Vehicle data:** saved vehicle definitions and independent tire definitions.
+  Rename vehicle/tire/powertrain/actuator Profiles and Arcade prefixes according to the glossary.
 - **8-2 — DEV tuning:** replace definitions rather than mutate running settings.
 - **8-3 — Materials:** one material-definition table.
 - **8-4 — Jumps and recovery:** normal airborne state, revised recovery conditions and suspension limits.
@@ -62,18 +58,22 @@ Give vehicles, tires, tuning and materials explicit data definitions, and treat 
 Separate the audio scene from the browser and organize sound around replaceable definitions.
 
 - **9-1 — Audio scene:** move voice allocation and spatialization from the browser layer to the audio layer.
-- **9-2 — Sound graph:** sources, voices and buses that can accommodate BGM, environmental audio and effects.
-- **9-3 — Audio tuning:** use definition replacement consistently.
+- **9-2 — Sound graph:** generators, voices and buses that can accommodate BGM, environmental audio and effects.
+  Rename audio Profiles and audio-presentation replacements according to the glossary.
+- **9-3 — Audio tuning:** use definition replacement consistently; rename remaining audio Profiles
+  and timing records according to the glossary.
 
 ## Stage 10 — Shell
 
-Define persistent player settings, data-driven Sessions and product presentation independently of DEV.
+Define persistent player settings, data-driven Sessions and product display independently of DEV.
 
 - **10-1 — Framebuffer:** RGB555.
 - **10-2 — Player settings:** a persistent settings model.
 - **10-3 — Session rules:** one settings record, modes as rule data and TIME ATTACK; CUSTOM has no time limit.
 - **10-4 — Cameras:** define camera methods, allowing later changes and mode-specific choices.
-- **10-5 — Navigation:** screen transitions within one page.
+  Rename camera yaw mode and current-camera-profile names according to the glossary.
+- **10-5 — Navigation:** screen transitions within one page; rename the URL mode parameter and
+  course-selection names according to the glossary.
 - **10-6 — Product HUD:** draw it inside the game frame, separately from DEV UI and HUD.
 - **10-7 — Language:** make all UI English.
 

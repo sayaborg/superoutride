@@ -80,7 +80,7 @@ export function computeForwardVisibleInterval(
   return out;
 }
 
-export interface TerrainVisualProfile {
+export interface TerrainRenderParameters {
   screenHeight: number;
   dMin: number;
   dMax: number;
@@ -92,8 +92,8 @@ export interface TerrainVisualProfile {
   thinSpanScreenRows?: number;
 }
 
-interface TerrainLineSourceFootprint {
-  /** Ordinary vertical source footprint for one output scanline. */
+interface TerrainLineFootprint {
+  /** Ordinary vertical native footprint for one output scanline. */
   deltaS: number;
   /** Clipped chainage interval represented by a collapsed row. */
   deltaSCollapse: number;
@@ -107,7 +107,7 @@ interface TerrainLineSourceFootprint {
 interface TerrainLine extends TerrainLineGeometry {
   sectionName: string;
   renderHeight: number;
-  sourceFootprint: TerrainLineSourceFootprint;
+  footprint: TerrainLineFootprint;
 }
 
 /** Reused by one renderer; outputs are borrowed until its next render. */
@@ -133,7 +133,7 @@ const painterOrder = (a: TerrainLine, b: TerrainLine) => b.d - a.d || a.y - b.y;
 export function generateTerrainLines(
   guide: RasterGeometry,
   camera: PseudoCamera,
-  profile: TerrainVisualProfile,
+  parameters: TerrainRenderParameters,
   workspace = createTerrainWorkspace(),
 ): TerrainLine[] {
   const { lines, boundaries } = workspace;
@@ -143,13 +143,13 @@ export function generateTerrainLines(
     guide,
     camera.yaw,
     camera.s,
-    profile.dMin,
-    profile.dMax,
+    parameters.dMin,
+    parameters.dMax,
     workspace.visible,
   );
   if (!visible) return lines;
 
-  const thinSpanScreenRows = profile.thinSpanScreenRows ?? DEFAULT_THIN_SPAN_SCREEN_ROWS;
+  const thinSpanScreenRows = parameters.thinSpanScreenRows ?? DEFAULT_THIN_SPAN_SCREEN_ROWS;
   if (!(thinSpanScreenRows > 0) || !Number.isFinite(thinSpanScreenRows)) {
     throw new RangeError('thinSpanScreenRows must be finite and > 0');
   }
@@ -162,8 +162,8 @@ export function generateTerrainLines(
   // Use authored boundaries directly: rounding cannot strand a cursor before a vertex.
   boundaries.push(start, end);
   appendVisibleBoundaries(boundaries, guide.raster.segments, 'sStart', start, end);
-  appendVisibleBoundaries(boundaries, profile.height.nodes, 's', start, end);
-  appendVisibleBoundaries(boundaries, profile.visual.sections, 'sStart', start, end);
+  appendVisibleBoundaries(boundaries, parameters.height.nodes, 's', start, end);
+  appendVisibleBoundaries(boundaries, parameters.visual.sections, 'sStart', start, end);
   boundaries.sort(ascending);
   let count = 0;
   for (let i = 0; i < boundaries.length; i++)
@@ -176,7 +176,7 @@ export function generateTerrainLines(
     const intervalLength = intervalEnd - local;
     const d0 = local - camera.s;
     const d1 = intervalEnd - camera.s;
-    const heightStart = profile.height.sampleRender(local, workspace.height);
+    const heightStart = parameters.height.sampleRender(local, workspace.height);
     const grade = heightStart.grade;
     const yIntercept = heightStart.y - grade * d0;
     const aY = yH - f * grade * cosPitch;
@@ -190,16 +190,16 @@ export function generateTerrainLines(
       const d = 2 / (1 / d0 + 1 / d1);
       const representativeY = (y0 + y1) * 0.5;
       const y = Math.floor(representativeY);
-      if (y >= 0 && y < profile.screenHeight) {
+      if (y >= 0 && y < parameters.screenHeight) {
         const deltaS = computeTerrainRowDeltaS(y, aY, bY, visible.dStart, visible.dEnd);
-        const line = createTerrainLine(guide, camera, profile, d, y, deltaS, intervalLength, true, workspace);
+        const line = createTerrainLine(guide, camera, parameters, d, y, deltaS, intervalLength, true, workspace);
         if (line) lines.push(line);
       }
     } else {
       const minY = Math.min(y0, y1);
       const maxY = Math.max(y0, y1);
       const rowStart = Math.max(0, Math.ceil(minY - 0.5 - PIXEL_EDGE_TOLERANCE));
-      const rowEnd = Math.min(profile.screenHeight - 1, Math.floor(maxY - 0.5 + PIXEL_EDGE_TOLERANCE));
+      const rowEnd = Math.min(parameters.screenHeight - 1, Math.floor(maxY - 0.5 + PIXEL_EDGE_TOLERANCE));
 
       for (let y = rowStart; y <= rowEnd; y += 1) {
         const sampleY = y + 0.5;
@@ -210,7 +210,7 @@ export function generateTerrainLines(
         if (d < visible.dStart - DEPTH_INTERVAL_TOLERANCE_METERS || d > visible.dEnd + DEPTH_INTERVAL_TOLERANCE_METERS)
           continue;
         const deltaS = computeTerrainRowDeltaS(y, aY, bY, visible.dStart, visible.dEnd);
-        const line = createTerrainLine(guide, camera, profile, d, y, deltaS, 0, false, workspace);
+        const line = createTerrainLine(guide, camera, parameters, d, y, deltaS, 0, false, workspace);
         if (line) lines.push(line);
       }
     }
@@ -259,7 +259,7 @@ function depthAtScreenBoundary(screenY: number, aY: number, bY: number, dMin: nu
 function createTerrainLine(
   guide: RasterGeometry,
   camera: PseudoCamera,
-  profile: TerrainVisualProfile,
+  parameters: TerrainRenderParameters,
   d: number,
   y: number,
   deltaS: number,
@@ -268,9 +268,9 @@ function createTerrainLine(
   workspace: TerrainWorkspace,
 ): TerrainLine | null {
   const s = camera.s + d;
-  const renderHeight = profile.height.sampleRender(s, workspace.height).y;
-  rasterCoordinateToWorld(guide.raster, s, -profile.groundLeft, workspace.left);
-  rasterCoordinateToWorld(guide.raster, s, profile.groundRight, workspace.right);
+  const renderHeight = parameters.height.sampleRender(s, workspace.height).y;
+  rasterCoordinateToWorld(guide.raster, s, -parameters.groundLeft, workspace.left);
+  rasterCoordinateToWorld(guide.raster, s, parameters.groundRight, workspace.right);
   workspace.left.y = renderHeight;
   workspace.right.y = renderHeight;
   const projectedLeft = pseudoProject(workspace.left, camera, workspace.projectedLeft);
@@ -278,8 +278,8 @@ function createTerrainLine(
   const groundSpan = projectedRight.x - projectedLeft.x;
   if (!(groundSpan > MIN_TERRAIN_SPAN_PIXELS)) return null;
 
-  const section = profile.visual.sample(s);
-  const deltaL = (profile.groundLeft + profile.groundRight) / groundSpan;
+  const section = parameters.visual.sample(s);
+  const deltaL = (parameters.groundLeft + parameters.groundRight) / groundSpan;
   let line = workspace.pool[workspace.lines.length];
   if (!line) {
     line = {
@@ -290,7 +290,7 @@ function createTerrainLine(
       xGroundR: 0,
       sectionName: '',
       renderHeight: 0,
-      sourceFootprint: { deltaS: 0, deltaSCollapse: 0, deltaSEffective: 0, deltaL: 0, collapsed: false },
+      footprint: { deltaS: 0, deltaSCollapse: 0, deltaSEffective: 0, deltaL: 0, collapsed: false },
     };
     workspace.pool.push(line);
   }
@@ -301,11 +301,11 @@ function createTerrainLine(
   line.xGroundR = projectedRight.x;
   line.sectionName = section.name;
   line.renderHeight = renderHeight;
-  line.sourceFootprint.deltaS = deltaS;
-  line.sourceFootprint.deltaSCollapse = deltaSCollapse;
-  line.sourceFootprint.deltaSEffective = Math.max(deltaS, deltaSCollapse);
-  line.sourceFootprint.deltaL = deltaL;
-  line.sourceFootprint.collapsed = collapsed;
+  line.footprint.deltaS = deltaS;
+  line.footprint.deltaSCollapse = deltaSCollapse;
+  line.footprint.deltaSEffective = Math.max(deltaS, deltaSCollapse);
+  line.footprint.deltaL = deltaL;
+  line.footprint.collapsed = collapsed;
   return line;
 }
 

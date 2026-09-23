@@ -14,7 +14,7 @@ export async function referenceModelIdentity() {
   for (const path of ['src/core/', 'src/course/', 'src/vehicle/physics/', 'src/race/']) await collect(path);
   files.push(
     'src/view/projection.ts',
-    'src/view/presentation-scale.ts',
+    'src/view/display-scale.ts',
     'src/view/camera.ts',
     'src/view/course-driving-view.ts',
     'src/shell/course-scene.ts',

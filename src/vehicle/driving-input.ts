@@ -1,5 +1,5 @@
 export type PedalRequest = boolean | number;
-export type DrivingInputApplyMode = 'RATE_LIMITED' | 'DIRECT';
+export type DrivingInputApplyMethod = 'RATE_LIMITED' | 'DIRECT';
 
 export interface PedalInput {
   readonly throttle: PedalRequest;
@@ -21,8 +21,8 @@ export interface DrivingInput {
    * pointer is actively held so displacement itself is the actuator amount; after pointer release
    * the publisher returns to RATE_LIMITED neutral and the existing releaseRate owns decay.
    */
-  readonly steeringApplyMode?: DrivingInputApplyMode;
-  readonly pedalApplyMode?: DrivingInputApplyMode;
+  readonly steeringApplyMethod?: DrivingInputApplyMethod;
+  readonly pedalApplyMethod?: DrivingInputApplyMethod;
 }
 
 export function clampSteering(value: number): number {
@@ -38,10 +38,10 @@ export function normalizedPedalRequest(request: PedalRequest): number {
   return request;
 }
 
-export function drivingInputApplyMode(mode: DrivingInputApplyMode | undefined): DrivingInputApplyMode {
-  if (mode === undefined || mode === 'RATE_LIMITED') return 'RATE_LIMITED';
-  if (mode === 'DIRECT') return mode;
-  throw new RangeError(`unsupported driving input apply mode: ${String(mode)}`);
+export function drivingInputApplyMethod(method: DrivingInputApplyMethod | undefined): DrivingInputApplyMethod {
+  if (method === undefined || method === 'RATE_LIMITED') return 'RATE_LIMITED';
+  if (method === 'DIRECT') return method;
+  throw new RangeError(`unsupported driving input apply method: ${String(method)}`);
 }
 
 /** Validate the canonical exclusive pedal contract without inventing event order downstream. */

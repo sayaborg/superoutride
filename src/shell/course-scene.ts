@@ -1,13 +1,13 @@
 import { compileCoursePhysicalDomains } from '../course/compiler/course-physical-overlap.js';
 import { compileCoursePresentationDomains } from '../course/compiler/course-presentation-overlap.js';
-import { createCourseDrivingSource } from '../course/course-driving-source.js';
+import { createCourseDrivingReaders } from '../course/course-driving-readers.js';
 import { createCourseDrivingViewSource } from '../view/course-driving-view.js';
 import { ENVELOPE_DRIVER } from '../race/envelope-driver.js';
 import { COURSE_DRIVING_POLICY } from '../race/course-driving-policy.js';
 import { createDisplaySettings, type DisplaySettings } from '../view/display-settings.js';
 import type { CourseGround } from '../course/compiler/course-ground.js';
-import { LOGICAL_HEIGHT } from '../view/presentation-scale.js';
-import { CURRENT_RENDER_NEAR_DEPTH_METERS, CURRENT_RENDER_FAR_DEPTH_METERS } from '../view/camera.js';
+import { LOGICAL_HEIGHT } from '../view/display-scale.js';
+import { RENDER_NEAR_DEPTH_METERS, RENDER_FAR_DEPTH_METERS } from '../view/camera.js';
 import type { CompiledSection } from '../course/compiler/course-graph.js';
 import type { CameraState } from '../view/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../view/current-camera-profile.js';
@@ -44,7 +44,7 @@ export function createCourseScene(
   for (const section of sections) {
     if (
       section.fork &&
-      section.fork.lock.s + Math.max(CURRENT_RENDER_FAR_DEPTH_METERS, ENVELOPE_DRIVER.lookahead) + step.ahead >
+      section.fork.lock.s + Math.max(RENDER_FAR_DEPTH_METERS, ENVELOPE_DRIVER.lookahead) + step.ahead >
         Math.min(...section.outgoing.map((link) => link.source.anchor.s))
     )
       throw new RangeError('Fork parent must cover pre-lock render and driver queries through one fixed step');
@@ -64,9 +64,9 @@ export function createCourseScene(
       consumers: { cameraRender: contact, groundFilter: zero, scenery: zero },
     }),
   );
-  const source = createCourseDrivingSource(physical);
+  const readers = createCourseDrivingReaders(physical);
   const rendering = createCourseDrivingViewSource(ground, physical, presentation);
-  const graph = createCourseDrivingGraph(section, source);
+  const graph = createCourseDrivingGraph(section, readers);
   const session = graph.createSession();
   required(rendering.createView(session.view));
   const entry = section.ports.find((port) => port.kind === 'entry');
@@ -77,7 +77,7 @@ export function createCourseScene(
   let lastView: typeof session.view | null = null;
   let lastClosed: typeof session.closedCarriageways | null = null;
   let staticSpriteCount = 0;
-  let terrainProfile: Parameters<typeof renderDriving>[1]['terrainProfile'];
+  let terrainParameters: Parameters<typeof renderDriving>[1]['terrainParameters'];
   return Object.freeze({
     session,
     metrics: graph.metrics,
@@ -117,11 +117,11 @@ export function createCourseScene(
         for (const placement of presentation.conditionalSprites)
           if (closed.includes(placement.unselected)) worldSprites.push(placement.sprite);
         staticSpriteCount = worldSprites.length;
-        terrainProfile = {
+        terrainParameters = {
           screenHeight: LOGICAL_HEIGHT,
-          dMin: CURRENT_RENDER_NEAR_DEPTH_METERS,
-          dMax: CURRENT_RENDER_FAR_DEPTH_METERS,
-          ...presentation.groundProfile,
+          dMin: RENDER_NEAR_DEPTH_METERS,
+          dMax: RENDER_FAR_DEPTH_METERS,
+          ...presentation.groundRuler,
           height: world.height,
           visual: presentation.visual,
         };
@@ -137,13 +137,13 @@ export function createCourseScene(
           guide: geometry,
           camera,
           vehicle,
-          terrainProfile,
-          groundProfile: presentation.groundProfile,
+          terrainParameters,
+          groundRuler: presentation.groundRuler,
           worldSprites,
           assets: appearance,
           playerKind,
         },
-        { ground: presentation.ground, workspace: renderWorkspace, bandMode: displaySettings.bandMode },
+        { ground: presentation.ground, workspace: renderWorkspace, bandMethod: displaySettings.bandMethod },
       );
     },
   });

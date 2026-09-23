@@ -34,9 +34,9 @@ const seed = (ordinal: number, index: number) => {
 };
 
 /** Native physical readers and occurrence mappings shared by race and rendering. */
-export function createCourseDrivingSource(physical: Physical) {
+export function createCourseDrivingReaders(physical: Physical) {
   if (!physical || physical.scope !== 'physical-query-domain')
-    throw new TypeError('Driving source requires a physical query-domain product');
+    throw new TypeError('Driving readers require a physical query-domain product');
   const surfaces = new Map<CompiledSection, ReturnType<typeof createRegionSurfaceReader>>();
   const surface = (section: CompiledSection) => {
     let value = surfaces.get(section);

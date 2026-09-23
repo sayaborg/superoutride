@@ -15,7 +15,7 @@ for (const entry of VEHICLE_CATALOG) {
 mustGet<HTMLElement>('reference-conditions').textContent =
   `基準条件（仮定）：内径 ${REFLECTION_REFERENCE.radiusMeters * 2000} mm、温度 ${(REFLECTION_REFERENCE.temperatureK - 273.15).toFixed(0)} ℃の空気、開放管端。管内損失は ${REFLECTION_REFERENCE.frequencyHz} Hzで近似。実車の測定値ではありません。全閉時の励振は音作りの設定です。`;
 mustGet<HTMLElement>('boundary-conditions').textContent =
-  `境界の仮設定：閉端側の圧力反射 ${ACOUSTICS.sourceClosedReflection}、開口側 ${ACOUSTICS.sourceOpenReflection}、開口変化の幅は発火周期の ${ACOUSTICS.sourceWindowCycles}。気筒への戻り波に周期的な境界変化を与えます。実測のバルブタイミングや流量ではありません。`;
+  `境界の仮設定：閉端側の圧力反射 ${ACOUSTICS.cylinderClosedReflection}、開口側 ${ACOUSTICS.cylinderOpenReflection}、開口変化の幅は発火周期の ${ACOUSTICS.cylinderWindowCycles}。気筒への戻り波に周期的な境界変化を与えます。実測のバルブタイミングや流量ではありません。`;
 mustGet<HTMLElement>('output-conditions').textContent =
   `音作り・出力の設定：追従 ${(AUDIO_TIMING.controlSeconds * 1000).toFixed(0)} ms。出力順：DC除去 ${OUTPUT.dcHz} Hz → ソフトクリップ（上限 ${OUTPUT.ceiling}）→ 最終LPF（一次、− / +で調整・初期値 ${DEFAULT_EXHAUST_TUNING.outputCutoffHz} Hz）。排気の物理量とは区別します。`;
 const tuningControls = mountAudioTuningControls(mustGet<HTMLElement>('tuning-controls'), () => {});

@@ -32,7 +32,7 @@ export interface VisibleCourseSprite extends CourseSprite {
 interface CourseSpriteReader {
   visible(camera: PseudoCamera, dStart: number, dEnd: number): readonly VisibleCourseSprite[];
 }
-export type CourseSpriteSource = readonly CourseSprite[] | CourseSpriteReader;
+export type CourseSpriteInput = readonly CourseSprite[] | CourseSpriteReader;
 
 export function compileCourseSprite(
   guide: RasterGeometry,
@@ -52,7 +52,7 @@ export function compileCourseSprite(
 }
 
 export function collectVisibleCourseSprites(
-  sprites: CourseSpriteSource,
+  sprites: CourseSpriteInput,
   camera: PseudoCamera,
   dStart: number,
   dEnd: number,

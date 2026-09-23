@@ -7,7 +7,7 @@ export const NOISE_BAND_DOMAIN = Object.freeze({
   maximumFrequencyRateFraction: 0.4,
 });
 
-/** Bounded, reproducible stream. Separate seed/state per band and modulation source. */
+/** Bounded, reproducible stream. Separate seed/state per band and modulation generator. */
 export class RandomStream {
   constructor(private state: number) {
     if (!Number.isInteger(state) || state < 1 || state > 0xffffffff) throw new RangeError('invalid noise seed');
@@ -52,7 +52,7 @@ export class NoiseBand {
     const angle = (2 * Math.PI * frequency) / this.rate;
     this.cosine = r * Math.cos(angle);
     this.sine = r * Math.sin(angle);
-    // Uniform [-1,1] has variance 1/3. This is analytic source scaling, never measured-output AGC.
+    // Uniform [-1,1] has variance 1/3. This is analytic excitation scaling, never measured-output AGC.
     this.injection = Math.sqrt(3 * (1 - r * r));
   }
   sample(amplitude: number): number {

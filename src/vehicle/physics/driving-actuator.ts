@@ -2,10 +2,10 @@ import { clamp } from '../../core/math.js';
 import {
   assertExclusivePedalInput,
   clampSteering,
-  drivingInputApplyMode,
+  drivingInputApplyMethod,
   normalizedPedalRequest,
   type DrivingInput,
-  type DrivingInputApplyMode,
+  type DrivingInputApplyMethod,
 } from '../driving-input.js';
 
 const ACTUATOR_TARGET_TOLERANCE = 1e-12;
@@ -121,11 +121,11 @@ export function updateDrivingActuators(
   const steeringTarget = clampSteering(input.steering);
   const throttleTarget = normalizedPedalRequest(input.throttle);
   const brakeTarget = normalizedPedalRequest(input.brake);
-  const steeringMode = drivingInputApplyMode(input.steeringApplyMode);
-  const pedalMode = drivingInputApplyMode(input.pedalApplyMode);
-  state.steering = applyRequestedActuator(state.steering, steeringTarget, dt, steeringResponse, -1, 1, steeringMode);
-  state.throttle = applyRequestedActuator(state.throttle, throttleTarget, dt, profile.throttle, 0, 1, pedalMode);
-  state.brake = applyRequestedActuator(state.brake, brakeTarget, dt, profile.brake, 0, 1, pedalMode);
+  const steeringMethod = drivingInputApplyMethod(input.steeringApplyMethod);
+  const pedalMethod = drivingInputApplyMethod(input.pedalApplyMethod);
+  state.steering = applyRequestedActuator(state.steering, steeringTarget, dt, steeringResponse, -1, 1, steeringMethod);
+  state.throttle = applyRequestedActuator(state.throttle, throttleTarget, dt, profile.throttle, 0, 1, pedalMethod);
+  state.brake = applyRequestedActuator(state.brake, brakeTarget, dt, profile.brake, 0, 1, pedalMethod);
 }
 
 function applyRequestedActuator(
@@ -135,8 +135,8 @@ function applyRequestedActuator(
   profile: NormalizedActuatorRateProfile,
   minimum: number,
   maximum: number,
-  applyMode: DrivingInputApplyMode,
+  applyMethod: DrivingInputApplyMethod,
 ): number {
-  if (applyMode === 'DIRECT') return clamp(target, minimum, maximum);
+  if (applyMethod === 'DIRECT') return clamp(target, minimum, maximum);
   return stepNormalizedActuator(current, target, dt, profile, minimum, maximum);
 }

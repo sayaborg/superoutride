@@ -80,7 +80,7 @@ export interface ArcadeVehicleState extends VehicleDynamicsState {
   readonly steerAngle: number;
   readonly supported: boolean;
   readonly sprungPitch: number;
-  readonly presentationY: number;
+  readonly renderY: number;
 }
 
 interface VehicleSpawnOptions {
@@ -508,7 +508,7 @@ const derivedProperties: PropertyDescriptorMap = {
       return this.pitch;
     },
   },
-  presentationY: {
+  renderY: {
     enumerable: true,
     get(this: ArcadeVehicleState) {
       return this.y - this.profile.desiredCgHeight;

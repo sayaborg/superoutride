@@ -14,7 +14,7 @@ export interface VehicleWorldPoseRead {
   readonly velocityZ?: number;
   readonly course: CourseCoordinate;
   /** Derived visual anchor. It follows the CG in flight but preserves static sprite ground contact. */
-  readonly presentationY?: number;
+  readonly renderY?: number;
 }
 
 /** Minimum vehicle state needed by the chase camera. */

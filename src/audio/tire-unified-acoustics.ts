@@ -16,8 +16,8 @@ export const UNIFIED_SETTINGS = Object.freeze({
   saturationPerSecond: 6000,
   noiseBandwidthHz: 600,
   noiseForcePerSecond: 1200,
-  // Fixed modal data: a shared friction port couples BOTH modes. Neither is a separate S/Q source.
-  modes: Object.freeze([
+  // Fixed modal data: a shared friction port couples BOTH resonances. Neither is a separate S/Q generator.
+  resonances: Object.freeze([
     Object.freeze({ frequencyHz: 300, dampingPerSecond: 2 * Math.PI * 500, participation: 0.45 }),
     Object.freeze({ frequencyHz: 1000, dampingPerSecond: 2 * Math.PI * 500, participation: Math.sqrt(1 - 0.45 ** 2) }),
   ] as const),
@@ -36,7 +36,7 @@ export const UNIFIED_SURFACES = Object.freeze({
   SAND: Object.freeze({ roughness: 1.1, susceptibility: 0.02 }),
 } satisfies Record<(typeof TIRE_SOUND_SURFACES)[number], Readonly<{ roughness: number; susceptibility: number }>>);
 
-/** Authored audition bounds, NOT measured tire ranges. All combinations retain passive modes. */
+/** Authored audition bounds, NOT measured tire ranges. All combinations retain passive resonances. */
 export const UNIFIED_TUNING_RANGES = Object.freeze({
   feedbackMaximumPerSecond: {
     min: 2000,
@@ -50,8 +50,8 @@ export const UNIFIED_TUNING_RANGES = Object.freeze({
   slipRolloffMps: { min: 20, max: 80, step: 1, defaultValue: UNIFIED_SETTINGS.slipRolloffMps },
   noiseBandwidthHz: { min: 100, max: 2000, step: 25, defaultValue: UNIFIED_SETTINGS.noiseBandwidthHz },
   noiseForcePerSecond: { min: 0, max: 2400, step: 25, defaultValue: UNIFIED_SETTINGS.noiseForcePerSecond },
-  lowFrequencyHz: { min: 275, max: 600, step: 5, defaultValue: UNIFIED_SETTINGS.modes[0].frequencyHz },
-  highFrequencyHz: { min: 800, max: 2400, step: 25, defaultValue: UNIFIED_SETTINGS.modes[1].frequencyHz },
+  lowFrequencyHz: { min: 275, max: 600, step: 5, defaultValue: UNIFIED_SETTINGS.resonances[0].frequencyHz },
+  highFrequencyHz: { min: 800, max: 2400, step: 25, defaultValue: UNIFIED_SETTINGS.resonances[1].frequencyHz },
   outputGainPerSecond: { min: 0, max: 1800, step: 25, defaultValue: UNIFIED_SETTINGS.outputGainPerSecond },
   outputCutoffHz: { min: 1000, max: 12000, step: 100, defaultValue: UNIFIED_SETTINGS.outputCutoffHz },
 });

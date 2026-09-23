@@ -24,7 +24,7 @@ export async function readCourseTimeBudgets(
 ): Promise<CourseTimeBudgets> {
   if (!input || typeof input !== 'object' || Array.isArray(input))
     throw new TypeError('Course time budgets must be a record');
-  const source = structuredClone(input) as {
+  const data = structuredClone(input) as {
     format: string;
     version: number;
     courseBuildSha256: string;
@@ -36,19 +36,16 @@ export async function readCourseTimeBudgets(
     if (!condition) throw new RangeError('Course time budgets: ' + message);
   };
   const positive = (value: unknown) => typeof value === 'number' && Number.isSafeInteger(value) && value > 0;
-  fail(
-    source && source.format === 'superoutride.course-time-budgets' && source.version === 1,
-    'unsupported format/version',
-  );
-  fail(source.courseBuildSha256 === course.identity.buildSha256, 'stale course identity');
+  fail(data && data.format === 'superoutride.course-time-budgets' && data.version === 1, 'unsupported format/version');
+  fail(data.courseBuildSha256 === course.identity.buildSha256, 'stale course identity');
   const vehicleSha256 = await contentDigest(new TextEncoder().encode(JSON.stringify(vehicle)));
-  fail(source.vehicleSha256 === vehicleSha256, 'stale vehicle/calibration/assist identity');
-  if (!Array.isArray(source.after)) throw new TypeError('Course time budget intervals must be an array');
-  fail(positive(source.initialMs), 'invalid initial budget');
+  fail(data.vehicleSha256 === vehicleSha256, 'stale vehicle/calibration/assist identity');
+  if (!Array.isArray(data.after)) throw new TypeError('Course time budget intervals must be an array');
+  fail(positive(data.initialMs), 'invalid initial budget');
   const expected = courseBudgetLandmarks(course),
     values = new Map<CompiledCourseLandmark, readonly number[]>();
-  fail(source.after.length === expected.length, 'incomplete interval coverage');
-  for (const row of source.after) {
+  fail(data.after.length === expected.length, 'incomplete interval coverage');
+  for (const row of data.after) {
     if (!Array.isArray(row) || row.length !== 2 || typeof row[0] !== 'string' || !Array.isArray(row[1]))
       throw new TypeError('Course time budget interval must contain a landmark and lap budgets');
     const [id, milliseconds] = row,
@@ -58,7 +55,7 @@ export async function readCourseTimeBudgets(
     for (const ms of milliseconds) fail(positive(ms), 'invalid lap budget');
     values.set(point!.gate, Object.freeze(milliseconds));
   }
-  const initialMs = source.initialMs;
+  const initialMs = data.initialMs;
   return Object.freeze({
     initialMs,
     after(gate: CompiledCourseLandmark, lap: number) {

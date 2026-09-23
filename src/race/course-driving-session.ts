@@ -4,10 +4,10 @@ import { coursePortLateral } from '../course/compiler/course-links.js';
 import { compilePlanarTransform, composePlanarTransforms, invertPlanarTransform } from '../core/planar-transform.js';
 import { clamp, type Vec2 } from '../core/math.js';
 import { compileWorldCrossingGate, observeWorldCrossingPlane } from './world-crossing-gate.js';
-import { RECOVERY_PROFILE, recoverVehicleToGuideCoordinate, type RecoveryState } from './recovery.js';
+import { RECOVERY_SETTINGS, recoverVehicleToGuideCoordinate, type RecoveryState } from './recovery.js';
 import type { ArcadeVehicleState } from '../vehicle/physics/arcade-vehicle-physics.js';
 import { reframeVehicle } from '../vehicle/physics/vehicle-reframe.js';
-import type { createCourseDrivingSource } from '../course/course-driving-source.js';
+import type { createCourseDrivingReaders } from '../course/course-driving-readers.js';
 import { COURSE_DRIVING_POLICY } from './course-driving-policy.js';
 import { createCourseGeometryView } from '../course/course-geometry-view.js';
 import { createCourseGeometryTraversal, type CourseOccurrenceHistory } from '../course/course-occurrence.js';
@@ -33,15 +33,18 @@ function sameLayout(a: CourseOccurrenceHistory, b: CourseOccurrenceHistory) {
 }
 
 /** Static readers are shared across the field; actors own only traversal and observation state. */
-export function createCourseDrivingGraph(entry: CompiledSection, source: ReturnType<typeof createCourseDrivingSource>) {
-  type View = Extract<ReturnType<typeof source.createView>, { ok: true }>['value'];
+export function createCourseDrivingGraph(
+  entry: CompiledSection,
+  readers: ReturnType<typeof createCourseDrivingReaders>,
+) {
+  type View = Extract<ReturnType<typeof readers.createView>, { ok: true }>['value'];
   const cache: { history: CourseOccurrenceHistory; view: View }[] = [];
   const makeView = (history: CourseOccurrenceHistory) => {
     const cached = cache.find((c) => sameLayout(c.history, history));
     if (cached) return { ok: true as const, value: Object.freeze({ ...cached.view, frame: history.active }) };
     const geometry = createCourseGeometryView(history, 'retained');
     if (!geometry.ok) return geometry;
-    const result = source.createView(geometry.value);
+    const result = readers.createView(geometry.value);
     if (result.ok) {
       cache.push({ history, view: result.value });
       if (cache.length > COURSE_DRIVING_POLICY.readerCacheSize) cache.shift();
@@ -49,16 +52,16 @@ export function createCourseDrivingGraph(entry: CompiledSection, source: ReturnT
     return result;
   };
   const metrics = { seamCommits: 0, seamCommitMaxMilliseconds: 0 };
-  return Object.freeze({ metrics, createSession: () => createSession(entry, source, makeView, metrics) });
+  return Object.freeze({ metrics, createSession: () => createSession(entry, readers, makeView, metrics) });
 }
 
 function createSession(
   entry: CompiledSection,
-  source: ReturnType<typeof createCourseDrivingSource>,
+  readers: ReturnType<typeof createCourseDrivingReaders>,
   makeView: (
     history: CourseOccurrenceHistory,
   ) =>
-    | ReturnType<ReturnType<typeof createCourseDrivingSource>['createView']>
+    | ReturnType<ReturnType<typeof createCourseDrivingReaders>['createView']>
     | Extract<ReturnType<typeof createCourseGeometryView>, { ok: false }>,
   metrics: { seamCommits: number; seamCommitMaxMilliseconds: number },
 ) {
@@ -103,13 +106,13 @@ function createSession(
         heading: candidate.port.pose.heading,
         halfWidth: Math.max(COURSE_DRIVING_POLICY.guard.pose.left, COURSE_DRIVING_POLICY.guard.pose.right),
       }),
-      guard: required(source.createMotionGuard(history.active, candidate.successor)),
+      guard: required(readers.createMotionGuard(history.active, candidate.successor)),
     }));
   };
   let gates = prepareGates();
   const recover = (actor: DrivingActor, candidate: (typeof gates)[number]) => {
     const s = clamp(
-      candidate.port.anchor.s + (candidate.direction === 'forward' ? -1 : 1) * RECOVERY_PROFILE.backtrackDistance,
+      candidate.port.anchor.s + (candidate.direction === 'forward' ? -1 : 1) * RECOVERY_SETTINGS.backtrackDistance,
       view.range.start,
       view.range.end,
     );

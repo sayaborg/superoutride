@@ -3,7 +3,7 @@ import { mustGet } from '../../src/shell/dom.js';
 import type { SpriteAsset } from '../../src/image/sprite.js';
 import type { SpriteSourceRecipe } from './sprite-source-compiler.js';
 import { PNG } from 'pngjs';
-import { CURRENT_FOCAL_LENGTH_PIXELS, pixelsPerMeterAtDepth } from '../../src/view/presentation-scale.js';
+import { CURRENT_FOCAL_LENGTH_PIXELS, pixelsPerMeterAtDepth } from '../../src/view/display-scale.js';
 import { SoftwareSurface } from '../../src/view/software-surface.js';
 import { rgba, unpackRgba } from '../../src/image/rgb555.js';
 import { rgb555ToRgba } from '../../src/image/rgb555.js';

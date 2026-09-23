@@ -17,29 +17,29 @@ export function readSpriteAssets(value: unknown): SpriteAssets {
   const library = record(value, ['format', 'version', 'sprites', 'car', 'bike']);
   if (library.format !== 'superoutride.vehicle-sprites' || library.version !== 1 || !Array.isArray(library.sprites))
     throw new RangeError('unsupported vehicle sprite library');
-  const sprites = Array.from(library.sprites, (source: unknown) => {
-    const asset = readSpriteLodAsset(source);
+  const sprites = Array.from(library.sprites, (recordData: unknown) => {
+    const asset = readSpriteLodAsset(recordData);
     if (asset.levels.length !== spriteLodLayout(asset.width, asset.height).length)
       throw new RangeError('shipped sprites require the complete build-generated pyramid');
     return asset;
   });
   const set = (value: unknown, kind: 'car' | 'bike'): VehicleSpriteSet => {
-    const source = record(value, ['kind', 'yawVariants', 'bankVariants', 'assets']);
-    const yawVariants = source.yawVariants,
-      bankVariants = source.bankVariants;
+    const recordData = record(value, ['kind', 'yawVariants', 'bankVariants', 'assets']);
+    const yawVariants = recordData.yawVariants,
+      bankVariants = recordData.bankVariants;
     if (
-      source.kind !== kind ||
+      recordData.kind !== kind ||
       typeof yawVariants !== 'number' ||
       !Number.isSafeInteger(yawVariants) ||
       yawVariants < 1 ||
       typeof bankVariants !== 'number' ||
       !Number.isSafeInteger(bankVariants) ||
       bankVariants < 1 ||
-      !Array.isArray(source.assets) ||
-      source.assets.length !== yawVariants
+      !Array.isArray(recordData.assets) ||
+      recordData.assets.length !== yawVariants
     )
       throw new RangeError('vehicle sprite set needs complete positive yaw/bank dimensions');
-    const assets = Array.from(source.assets, (row: unknown) => {
+    const assets = Array.from(recordData.assets, (row: unknown) => {
       if (!Array.isArray(row) || row.length !== bankVariants) throw new RangeError('vehicle sprite row is incomplete');
       return Object.freeze(
         Array.from(row, (id: unknown) => {
@@ -103,8 +103,8 @@ export function selectVehicleSprite(
 function record(value: unknown, keys: readonly string[]): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value))
     throw new RangeError('vehicle sprite library record required');
-  const source = value as Record<string, unknown>;
-  if (Object.keys(source).length !== keys.length || keys.some((key) => !Object.hasOwn(source, key)))
+  const recordData = value as Record<string, unknown>;
+  if (Object.keys(recordData).length !== keys.length || keys.some((key) => !Object.hasOwn(recordData, key)))
     throw new RangeError('vehicle sprite library has missing or unknown fields');
-  return source;
+  return recordData;
 }

@@ -13,7 +13,7 @@ export function browserSessionVehicle(entry: VehicleCatalogEntry): SessionVehicl
   return Object.freeze({
     profile: entry.profile,
     torqueProtection: entry.torqueProtection,
-    kind: entry.presentationFamily === 'CAR' ? 'car' : 'bike',
+    kind: entry.visualFamily === 'CAR' ? 'car' : 'bike',
     steeringCalibration: Object.freeze({
       maxRoadWheelSteer: DEFAULT_BROWSER_MAX_ROAD_WHEEL_STEER,
       steeringOffsetMax: DEFAULT_BROWSER_STEERING_OFFSET,

@@ -8,7 +8,7 @@ import { createEngineVoice } from './engine-voice.js';
 import type { VehicleAudioProfile } from './vehicle-audio-profile.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
 
-/** Fixed player/rival engines and one player tire worklet containing independent front/rear sources. */
+/** Fixed player/rival engines and one player tire worklet containing independent front/rear generators. */
 export async function createAudioEngine(context: AudioContext) {
   await context.audioWorklet.addModule(new URL('./vehicle-processor.js', import.meta.url));
   const master = context.createGain();

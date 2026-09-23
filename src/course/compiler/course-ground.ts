@@ -10,7 +10,7 @@ export function createCourseGround(course: CompiledCourse) {
     }),
   );
   const products = [...table.values()];
-  const sum = (key: 'expandedBands' | 'preblendCells' | 'profiles' | 'coefficientBytes' | 'directoryBytes') =>
+  const sum = (key: 'expandedBands' | 'preblendCells' | 'lateralFields' | 'coefficientBytes' | 'directoryBytes') =>
     products.reduce((n, p) => n + p.metrics[key], 0);
   return Object.freeze({
     kind: 'bands' as const,
@@ -20,7 +20,7 @@ export function createCourseGround(course: CompiledCourse) {
       expandedBands: sum('expandedBands'),
       maxActiveBands: Math.max(...products.map((p) => p.metrics.maxActiveBands)),
       preblendCells: sum('preblendCells'),
-      profiles: sum('profiles'),
+      lateralFields: sum('lateralFields'),
       coefficientBytes: sum('coefficientBytes'),
       directoryBytes: sum('directoryBytes'),
     }),

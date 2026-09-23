@@ -9,10 +9,10 @@ export async function readVehicleEnvelope(vehicle: SessionVehicle, input: unknow
       throw new TypeError('Envelope must contain records');
     return value as Record<string, unknown>;
   };
-  const source = record(input),
-    envelope = record(source.envelope);
+  const data = record(input),
+    envelope = record(data.envelope);
   const digest = await contentDigest(new TextEncoder().encode(JSON.stringify(vehicle)));
-  if (source.vehicleSha256 !== digest) throw new RangeError('Stale envelope vehicle/calibration/assist identity');
+  if (data.vehicleSha256 !== digest) throw new RangeError('Stale envelope vehicle/calibration/assist identity');
   const number = (value: unknown, positive = true): number => {
     if (typeof value !== 'number') throw new TypeError('Envelope values must be numbers');
     if (!Number.isFinite(value) || (positive ? value <= 0 : value < 0))

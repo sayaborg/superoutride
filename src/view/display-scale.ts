@@ -2,7 +2,7 @@ export const LOGICAL_WIDTH = 320;
 export const LOGICAL_HEIGHT = 240;
 
 /**
- * SUPER OUTRIDE fixed presentation scale.
+ * SUPER OUTRIDE fixed display scale.
  *
  * Canonical rule requested by design:
  *   at player depth, 2.0 m = 80 screen pixels.

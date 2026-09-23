@@ -23,18 +23,18 @@ export function transformPlanarPoint(transform: PlanarTransform, point: Vec2): V
   return { x: rotated.x + transform.translation.x, z: rotated.z + transform.translation.z };
 }
 
-/** Derive destinationFromSource; neither input pose is retained. */
-export function compilePlanarTransform(source: PlanarPose, destination: PlanarPose): PlanarTransform {
-  for (const pose of [source, destination]) {
+/** Derive the transform from one pose to another; neither input pose is retained. */
+export function compilePlanarTransform(from: PlanarPose, to: PlanarPose): PlanarTransform {
+  for (const pose of [from, to]) {
     if (!pose || [pose.x, pose.z, pose.heading].some((value) => typeof value !== 'number'))
       throw new TypeError('Planar pose requires numeric x, z and heading');
     if (![pose.x, pose.z, pose.heading].every(Number.isFinite)) throw new RangeError('Planar pose must be finite');
   }
-  const yaw = wrapAngle(destination.heading) - wrapAngle(source.heading);
+  const yaw = wrapAngle(to.heading) - wrapAngle(from.heading);
   const rotation = { cosine: Math.cos(yaw), sine: Math.sin(yaw), translation: { x: 0, z: 0 } };
-  const rotated = transformPlanarVector(rotation, source);
-  const x = destination.x - rotated.x,
-    z = destination.z - rotated.z;
+  const rotated = transformPlanarVector(rotation, from);
+  const x = to.x - rotated.x,
+    z = to.z - rotated.z;
   if (![x, z].every(Number.isFinite)) throw new RangeError('Planar transform translation must be representable');
   return Object.freeze({ ...rotation, translation: Object.freeze({ x, z }) });
 }
@@ -47,14 +47,14 @@ export function invertPlanarTransform(transform: PlanarTransform): PlanarTransfo
   return Object.freeze({ ...rotation, translation: Object.freeze({ x: -t.x, z: -t.z }) });
 }
 
-/** Apply sourceToMiddle first, then middleToDestination. */
+/** Apply originToMiddle first, then middleToDestination. */
 export function composePlanarTransforms(
   middleToDestination: PlanarTransform,
-  sourceToMiddle: PlanarTransform,
+  originToMiddle: PlanarTransform,
 ): PlanarTransform {
-  const translation = transformPlanarPoint(middleToDestination, sourceToMiddle.translation);
-  const cosine = middleToDestination.cosine * sourceToMiddle.cosine - middleToDestination.sine * sourceToMiddle.sine;
-  const sine = middleToDestination.sine * sourceToMiddle.cosine + middleToDestination.cosine * sourceToMiddle.sine;
+  const translation = transformPlanarPoint(middleToDestination, originToMiddle.translation);
+  const cosine = middleToDestination.cosine * originToMiddle.cosine - middleToDestination.sine * originToMiddle.sine;
+  const sine = middleToDestination.sine * originToMiddle.cosine + middleToDestination.cosine * originToMiddle.sine;
   if (![translation.x, translation.z, cosine, sine].every(Number.isFinite))
     throw new RangeError('Composed planar transform must be representable');
   return Object.freeze({ cosine, sine, translation: Object.freeze(translation) });

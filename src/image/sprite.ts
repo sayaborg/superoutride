@@ -49,7 +49,7 @@ export interface SpriteAsset {
 
 /** Completed-image admission: filtering is never performed by the reader or blitter. */
 export function readSpriteLodAsset(value: unknown): SpriteAsset {
-  const source = spriteRecord(value, [
+  const document = spriteRecord(value, [
     'format',
     'version',
     'name',
@@ -60,10 +60,10 @@ export function readSpriteLodAsset(value: unknown): SpriteAsset {
     'variants',
     'levels',
   ]);
-  if (source.format !== 'superoutride.sprite-lod' || source.version !== 2)
+  if (document.format !== 'superoutride.sprite-lod' || document.version !== 2)
     throw new RangeError('unsupported sprite LOD format/version');
-  if (typeof source.name !== 'string' || !source.name.trim()) throw new RangeError('sprite name is required');
-  const { width, height, anchorX, anchorY } = source;
+  if (typeof document.name !== 'string' || !document.name.trim()) throw new RangeError('sprite name is required');
+  const { width, height, anchorX, anchorY } = document;
   if (
     typeof width !== 'number' ||
     typeof height !== 'number' ||
@@ -81,14 +81,14 @@ export function readSpriteLodAsset(value: unknown): SpriteAsset {
   )
     throw new RangeError('sprite anchor must be finite');
   const layout = spriteLodLayout(width, height);
-  if (!Array.isArray(source.levels) || source.levels.length < 1 || source.levels.length > layout.length)
+  if (!Array.isArray(document.levels) || document.levels.length < 1 || document.levels.length > layout.length)
     throw new RangeError('sprite LOD count exceeds the finite master pyramid');
-  if (!Array.isArray(source.variants)) throw new RangeError('sprite variants must list every alternate base palette');
+  if (!Array.isArray(document.variants)) throw new RangeError('sprite variants must list every alternate base palette');
   const base = readIndexedPalette(
-    spriteRecord(source.levels[0], ['paletteRgb555', 'indices', 'mixtures']).paletteRgb555,
+    spriteRecord(document.levels[0], ['paletteRgb555', 'indices', 'mixtures']).paletteRgb555,
   );
-  const paletteChoices = Object.freeze([base, ...Array.from(source.variants, readIndexedPalette)]);
-  const levels = Array.from(source.levels, (value: unknown, k: number) => {
+  const paletteChoices = Object.freeze([base, ...Array.from(document.variants, readIndexedPalette)]);
+  const levels = Array.from(document.levels, (value: unknown, k: number) => {
     const level = spriteRecord(value, ['paletteRgb555', 'indices', 'mixtures']);
     const paletteRgb555 = readIndexedPalette(level.paletteRgb555);
     if (!Array.isArray(level.mixtures) || level.mixtures.length !== 16)
@@ -141,7 +141,7 @@ export function readSpriteLodAsset(value: unknown): SpriteAsset {
     });
   });
   return Object.freeze({
-    name: source.name,
+    name: document.name,
     width,
     height,
     anchorX,

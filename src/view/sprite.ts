@@ -26,7 +26,7 @@ export function drawScaledSprite(
   }
   const levelIndex = selectSpriteLevel(asset, pixelsPerMeter);
   const level = asset.levels[levelIndex]!;
-  const sourceStep = 2 ** levelIndex;
+  const masterStep = 2 ** levelIndex;
 
   const leftBoundary = xAnchor - scale * (asset.anchorX + 0.5);
   const topBoundary = yAnchor - scale * (asset.anchorY + 0.5);
@@ -52,21 +52,21 @@ export function drawScaledSprite(
   let writtenPixels = 0;
 
   for (let y = y0; y <= y1; y += 1) {
-    const sourceY = asset.anchorY + (y + 0.5 - yAnchor) * invScale;
-    const sy = Math.floor((sourceY + 0.5) / sourceStep);
+    const masterY = asset.anchorY + (y + 0.5 - yAnchor) * invScale;
+    const sy = Math.floor((masterY + 0.5) / masterStep);
     if (sy < 0 || sy >= level.height) continue;
     const targetRow = y * target.width;
-    const sourceRow = sy * level.width;
+    const patternRow = sy * level.width;
     let rowOutputSamples = 0;
     let rowWrittenPixels = 0;
 
     for (let x = x0; x <= x1; x += 1) {
-      const sourceX = asset.anchorX + (x + 0.5 - xAnchor) * invScale;
-      const sx = Math.floor((sourceX + 0.5) / sourceStep);
+      const masterX = asset.anchorX + (x + 0.5 - xAnchor) * invScale;
+      const sx = Math.floor((masterX + 0.5) / masterStep);
       if (sx < 0 || sx >= level.width) continue;
       outputSamples += 1;
       rowOutputSamples += 1;
-      const color = level.paletteRgba[level.pattern.indexAt(sourceRow + sx)]!;
+      const color = level.paletteRgba[level.pattern.indexAt(patternRow + sx)]!;
       if (color === SPRITE_TRANSPARENT) continue;
       target.pixels[targetRow + x] = color;
       writtenPixels += 1;

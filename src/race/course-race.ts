@@ -6,7 +6,7 @@ import { composePlanarTransforms, invertPlanarTransform, type PlanarTransform } 
 import { wrapAngle } from '../core/math.js';
 import { advanceRaceSession, createRaceSessionState, rankRaceProgress, formatRaceTime } from './race-session.js';
 import {
-  RECOVERY_PROFILE,
+  RECOVERY_SETTINGS,
   createRecoveryState,
   advanceVehicleWithRecovery,
   recoverVehicleToGuideCoordinate,
@@ -62,7 +62,7 @@ export function createCourseRace(options: {
     actor,
     session,
     targetL,
-    recoveryProfile: { ...RECOVERY_PROFILE, targetL },
+    recoverySettings: { ...RECOVERY_SETTINGS, targetL },
     observer: progress(session, () => actor.vehicle),
     get progress() {
       return this.observer.state;
@@ -101,7 +101,7 @@ export function createCourseRace(options: {
       state: c.actor.recovery,
       input: { steering: 0, throttle: false, brake: false } as DrivingInput,
       dt: 0,
-      profile: c.recoveryProfile,
+      profile: c.recoverySettings,
     },
     input: (s: number) => lane(c, s),
   }));
@@ -113,7 +113,7 @@ export function createCourseRace(options: {
     previous.z = actor.vehicle.z;
     previous.s = actor.vehicle.course.s;
     motion.current = actor.vehicle;
-    c.recoveryProfile.targetL = lane(c, actor.vehicle.course.s);
+    c.recoverySettings.targetL = lane(c, actor.vehicle.course.s);
     motion.step.input = input;
     motion.step.dt = dt;
     let recovered = advanceVehicleWithRecovery(session.view.world, actor.vehicle, motion.step) !== null;

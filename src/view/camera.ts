@@ -6,8 +6,8 @@ import type { PseudoCamera } from './projection.js';
 import type { VehicleWorld } from '../course/vehicle-world.js';
 import type { VehicleCameraReadState } from '../vehicle/physics/vehicle-contract.js';
 
-export const CURRENT_RENDER_NEAR_DEPTH_METERS = 2.5;
-export const CURRENT_RENDER_FAR_DEPTH_METERS = 200;
+export const RENDER_NEAR_DEPTH_METERS = 2.5;
+export const RENDER_FAR_DEPTH_METERS = 200;
 
 const MIN_VERTICAL_RESPONSE_SECONDS = 1e-4;
 
@@ -200,9 +200,9 @@ export function updateCamera(
   // the only dynamic camera-relative attitude required from the sprite set.
   const cameraPitch = profile.baseDownPitch - bodyPitch;
   const cosCameraPitch = Math.cos(cameraPitch);
-  const vehiclePresentationY = vehicle.presentationY ?? vehicle.y;
+  const vehicleRenderY = vehicle.renderY ?? vehicle.y;
   const yFrame =
-    vehiclePresentationY -
+    vehicleRenderY -
     (profile.dCam / (profile.focalLength * cosCameraPitch)) *
       (profile.centerY - profile.focalLength * Math.sin(cameraPitch) - profile.playerTargetY);
   const frameDelta = yFrame - baseY;
@@ -214,7 +214,7 @@ export function updateCamera(
   const projectedPlayerY =
     profile.centerY -
     profile.focalLength * Math.sin(cameraPitch) -
-    (profile.focalLength / profile.dCam) * (vehiclePresentationY - cameraY) * cosCameraPitch;
+    (profile.focalLength / profile.dCam) * (vehicleRenderY - cameraY) * cosCameraPitch;
 
   return {
     x: cameraX,

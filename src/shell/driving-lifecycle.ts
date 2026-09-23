@@ -1,6 +1,6 @@
 import { resetCameraRig, updateCamera, type CameraRig } from '../view/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../view/current-camera-profile.js';
-import { recoverVehicle, type RecoveryProfile, type RecoveryState } from '../race/recovery.js';
+import { recoverVehicle, type RecoverySettings, type RecoveryState } from '../race/recovery.js';
 import type { ArcadeVehicleState } from '../vehicle/physics/arcade-vehicle-physics.js';
 import type { VehicleWorld } from '../course/vehicle-world.js';
 import type { CompiledArcadeVehicleProfile } from '../vehicle/physics/vehicle-profiles.js';
@@ -17,7 +17,7 @@ export interface DrivingLifecycleOptions {
   readonly configurationLocked?: boolean;
   readonly canRecover?: () => boolean;
   readonly world: () => VehicleWorld;
-  readonly recoveryProfile: Readonly<RecoveryProfile>;
+  readonly recoverySettings: Readonly<RecoverySettings>;
   readonly recoveryL?: () => number;
   /** Replaces observation baselines after a manual discontinuity without awarding progress. */
   readonly resync?: () => void;
@@ -35,9 +35,9 @@ export function createDrivingLifecycle(player: DrivingPlayer, options: DrivingLi
     recoverVehicle(world, player.vehicle, {
       state: player.recovery,
       reason: 'manual',
-      profile: options.recoveryL
-        ? { ...options.recoveryProfile, targetL: options.recoveryL() }
-        : options.recoveryProfile,
+      settings: options.recoveryL
+        ? { ...options.recoverySettings, targetL: options.recoveryL() }
+        : options.recoverySettings,
     });
     if (profile !== undefined) player.replacePlayer(profile, world);
     resetCameraRig(player.cameraRig);

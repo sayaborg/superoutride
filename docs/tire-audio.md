@@ -28,7 +28,7 @@ at zero friction work.
 
 ## Friction synthesis
 
-[UNIFIED synthesis](../src/audio/tire-unified-model.ts) drives two passive vibration modes through one
+[UNIFIED synthesis](../src/audio/tire-unified-model.ts) drives two passive vibration resonances through one
 scalar nonlinear friction input. With `x_i=omega_i*q_i`, modal velocity `v_i` and participation
 normalized to `sum(b_i²)=1`:
 
@@ -40,7 +40,7 @@ F = a*u - beta*u³ + sigma*noise
 pickup = sum(b_i*x_i/omega_i)
 ```
 
-Both modes receive the same force, and their shared velocity couples the feedback. Colored noise
+Both resonances receive the same force, and their shared velocity couples the feedback. Colored noise
 enters that force. Damped forced vibration produces rubbing; increasing feedback counteracts modal
 loss and supports self-excitation bounded by cubic dissipation. Q covers this continuous transition.
 Modal frequencies and damping are fixed for a kernel's lifetime.
@@ -76,7 +76,7 @@ colored-noise history continues. R follows its separate rotation/support inputs.
 ### Numerical domain
 
 The [friction resonator](../src/audio/friction-resonator.ts) accepts integer sample rates from 44100
-through 192000 Hz. Modes have positive frequency below one quarter of the rate and positive
+through 192000 Hz. Resonances have positive frequency below one quarter of the rate and positive
 underdamped loss: `0 < d_i/2 < omega_i`. Participation has positive squared norm.
 Feedback maximum and saturation are positive; `feedbackMaximumPerSecond/rate < 1`.
 Noise bandwidth is positive and below Nyquist. Invalid parameters throw `RangeError`.

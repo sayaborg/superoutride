@@ -6,9 +6,9 @@ import type { CoursePresentation } from '../course/course-presentation.js';
 import { VisualProfile } from '../course/visual-profile.js';
 import { compileCourseSprite } from './course-sprite.js';
 
-/** Presentation from ordinary saved facets; completed sprite levels and immutable image readers are shared. */
-export function createCoursePresentationPreview() {
-  // Decoded preview workspaces are borrowed read-only. Canonical saved sources remain immutable.
+/** Rendering resources from ordinary saved facets; completed sprite levels and immutable image readers are shared. */
+export function createCourseRenderResources() {
+  // Decoded rendering workspaces are borrowed read-only. Canonical saved sources remain immutable.
   const images = new Map<SpriteLodDocument, ReturnType<typeof readSpriteLodAsset>>();
   const backgrounds = new Map<TileBackgroundDocument, TileBackgroundImage>();
   const instances = new Map<CoursePresentation['scenery'][number]['instance'], ReturnType<typeof readSpriteLodAsset>>();
@@ -23,17 +23,17 @@ export function createCoursePresentationPreview() {
   const instanceImage = (instance: CoursePresentation['scenery'][number]['instance']) => {
     let asset = instances.get(instance);
     if (!asset) {
-      const source = image(instance.asset.source);
-      asset = instance.paletteRgb555 === null ? source : createSpritePaletteVariant(source, instance.paletteRgb555);
+      const decoded = image(instance.asset.source);
+      asset = instance.paletteRgb555 === null ? decoded : createSpritePaletteVariant(decoded, instance.paletteRgb555);
       instances.set(instance, asset);
     }
     return asset;
   };
-  const createSource = (p: CoursePresentation, geometry: RasterGeometry, height: HeightProfileReader) => {
+  const createSectionReaders = (p: CoursePresentation, geometry: RasterGeometry, height: HeightProfileReader) => {
     if (!p || !p.ground || !Array.isArray(p.environments) || !Array.isArray(p.scenery) || !geometry?.raster || !height)
-      throw new TypeError('Presentation preview requires compiled content, Raster and height readers');
+      throw new TypeError('Section rendering requires compiled content, Raster and height readers');
     if (p.ground.length !== geometry.length || height.courseLength !== geometry.length)
-      throw new RangeError('Presentation preview facets must share their source ruler');
+      throw new RangeError('Section rendering facets must share their native ruler');
 
     return Object.freeze({
       visual: new VisualProfile(
@@ -53,7 +53,7 @@ export function createCoursePresentationPreview() {
           }
           return Object.freeze({
             image: background,
-            sourceHorizonY: e.background.horizonY,
+            imageHorizonY: e.background.horizonY,
             yawOriginRadians: e.background.yawOriginRadians,
           });
         }),
@@ -77,5 +77,5 @@ export function createCoursePresentationPreview() {
       ),
     });
   };
-  return Object.freeze({ createSource });
+  return Object.freeze({ createSectionReaders });
 }
