@@ -5,7 +5,6 @@ import { invertPlanarTransform } from '../core/planar-transform.js';
 import { rasterPathToWorld } from './geometry/raster-path.js';
 import type { RasterCoordinateReader, RasterGeometry } from './geometry/raster-coordinate-reader.js';
 import type { HeightProfileReader } from './geometry/height-profile.js';
-import { compileCourseGeometryWindow } from './course-geometry-window.js';
 import type { CompiledSection } from './compiler/course-graph.js';
 import type { compileCoursePhysicalDomains } from './compiler/course-physical-overlap.js';
 import { createRegionSurfaceReader } from './region-surface-reader.js';
@@ -34,7 +33,6 @@ export function createCourseDrivingReaders(physical: Physical) {
     }
     return value;
   };
-  const qualified = new Map<CompiledSection, Set<string>>();
   const createView = (view: CourseGeometryView) => {
     if (!view || !Array.isArray(view.spans) || !view.activeRange || !view.availableRange)
       throw new TypeError('Driving admission requires an occurrence geometry view');
@@ -46,22 +44,6 @@ export function createCourseDrivingReaders(physical: Physical) {
       const link = span.occurrence.incoming;
       if (link && !physical.links.includes(link))
         return Object.freeze({ ok: false as const, reason: 'unqualified_links' as const });
-      const section = span.occurrence.section;
-      const intervals = qualified.get(section) ?? new Set<string>();
-      const interval = `${span.sourceRange.start}:${span.sourceRange.end}`;
-      if (intervals.has(interval)) continue;
-      const proof = compileCourseGeometryWindow(section, {
-        sStart: span.sourceRange.start,
-        sEnd: span.sourceRange.end,
-      });
-      if (!proof.ok)
-        return Object.freeze({
-          ok: false as const,
-          reason: 'geometry_qualification_failed' as const,
-          diagnostics: proof.diagnostics,
-        });
-      intervals.add(interval);
-      qualified.set(section, intervals);
     }
     const mapped = Object.freeze(
       spans.map((span) =>
