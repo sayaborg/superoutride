@@ -8,7 +8,7 @@
 - Build currently generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **5-4f-2 — Physical/rendering source boundary**. PR 5-4f-1 (camera ownership and actor sprites) is complete.
+Next PR: **5-5a — TypeScript tools: direct source imports**. PR 5-4f is complete.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Current contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -27,27 +27,9 @@ Simplify the foundations without changing behavior.
 - **5-5a–c — TypeScript tools:** stop importing `dist/` and separate authoring code from product code.
 - **5-6 — Vocabulary:** define reserved terms such as Profile, mode and presentation, and rename accordingly.
 
-### Remaining race/view boundary (5-4f)
-
-The nine-domain order and dependency rules are in [Architecture](architecture.md#layer-boundaries).
-5-4a–e placement is complete. 5-4f is split into camera/actor presentation (5-4f-1) and source separation
-(5-4f-2). Two exact race-to-view imports remain (paths relative to src):
-
-| Source                           | Target                        |
-| -------------------------------- | ----------------------------- |
-| `race/course-driving-session.ts` | `view/camera.js`              |
-| `race/course-driving-session.ts` | `view/course-driving-view.js` |
-
-Camera ownership and actor sprite assembly are separated. Shell owns the observer's camera; race
-returns committed frame transforms and camera-independent actor observations. View assembles sprites.
-The remaining camera import supplies only the query-depth limit; move that admission to composition.
-
-Split createCourseDrivingSource into a physical source in course (VehicleWorld, Region/material
-readings and coordinate readers) and a rendering source in view (Band sampling, presentation and
-VisualProfile). Race sessions depend only on the physical source. Remove both remaining exact race exceptions,
-including camera query-depth coupling and the combined driving-source dependency. This PR includes
-logic changes while preserving behavior. Keep the source split minimal: Stage 6 (6-1, 6-4 and 6-5)
-substantially replaces its geometry, seams and views.
+5-4f is complete in two review-sized PRs: observer camera/actor sprites (5-4f-1), then physical/rendering
+sources (5-4f-2). Race has no dependency on view and the layer check has no exceptions.
+[Architecture](architecture.md#layer-boundaries) owns the current boundaries.
 
 Authoring-only sprite compilers, fixtures, course-project and course-reference remain in their
 product domains until 5-5. Vocabulary changes belong to 5-6. Band compiler/sampler separation belongs

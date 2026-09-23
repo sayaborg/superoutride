@@ -1,5 +1,6 @@
+import type { SurfaceMapReader, SurfaceSample } from '../../course/vehicle-world.js';
 import { compileOpenProfile, openProfileChainage, profileIndexAt } from '../../course/geometry/open-profile.js';
-import { SURFACE_MATERIALS, type SurfaceMaterial, type SurfaceType } from '../../course/surface-material.js';
+import { SURFACE_MATERIALS, type SurfaceType } from '../../course/surface-material.js';
 
 const BAND_OVERLAP_TOLERANCE_METERS = 1e-9;
 
@@ -13,19 +14,6 @@ interface SurfaceSection {
   readonly sStart: number;
   readonly name: string;
   readonly regions: readonly SurfaceRegion[];
-}
-
-interface SurfaceSample {
-  readonly sectionName: string;
-  readonly type: SurfaceType;
-  readonly material: SurfaceMaterial;
-}
-
-/** Minimal read-only physics contract for SurfaceMap(s,l). */
-export interface SurfaceMapReader {
-  /** Conservative bound in this reader's local lateral frame, including all supported regions. */
-  readonly maxSupportedAbsL: number;
-  sample(s: number, l: number): SurfaceSample;
 }
 
 /**

@@ -10,7 +10,7 @@ import {
 } from '../vehicle/physics/arcade-vehicle-physics.js';
 import { createAutomaticPowertrainState } from '../vehicle/physics/automatic-powertrain.js';
 import { resetDrivingActuatorState } from '../vehicle/physics/driving-actuator.js';
-import type { VehicleWorld } from '../vehicle/physics/vehicle-contract.js';
+import type { VehicleWorld } from '../course/vehicle-world.js';
 import {
   VehicleOutsideModelError,
   VEHICLE_GRAVITY,

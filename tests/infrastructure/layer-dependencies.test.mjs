@@ -25,12 +25,6 @@ async function collectFiles(directory, suffixes) {
 const layers = ['core', 'image', 'audio', 'course', 'vehicle', 'input', 'race', 'view', 'shell'];
 const rank = new Map(layers.map((layer, index) => [layer, index]));
 
-// The remaining query-depth and combined physical/rendering sources are separated in 5-4f-2.
-const deferredImports = new Set([
-  'race/course-driving-session.ts -> view/camera.js',
-  'race/course-driving-session.ts -> view/course-driving-view.js',
-]);
-
 function layerOf(relative) {
   const layer = relative.split('/')[0];
   assert.ok(relative.includes('/') && rank.has(layer), `unowned layer: ${relative}`);
@@ -52,7 +46,6 @@ test('engine ownership follows an acyclic dependency direction, including type i
     'src has no root-level files',
   );
   const graph = new Map();
-  const seenDeferredImports = new Set();
   for (const file of await collectFiles(sourceRoot, ['.ts'])) {
     const relative = path.relative(sourceRoot, file).split(path.sep).join('/');
     const layer = layerOf(relative);
@@ -76,20 +69,14 @@ test('engine ownership follows an acyclic dependency direction, including type i
         const target = layerOf(targetFile);
         if (target !== layer) {
           const edge = `${relative} -> ${targetFile}`;
-          if (deferredImports.has(edge)) {
-            seenDeferredImports.add(edge);
-          } else {
-            assert.ok(rank.get(target) < rank.get(layer), `upward domain dependency: ${edge}`);
-            // Known violations are excluded; every other dependency participates in cycle detection.
-            targets.add(target);
-          }
+          assert.ok(rank.get(target) < rank.get(layer), `upward domain dependency: ${edge}`);
+          targets.add(target);
         }
       }
       ts.forEachChild(node, visit);
     }
     visit(syntax);
   }
-  assert.deepEqual(seenDeferredImports, deferredImports, 'remove resolved deferred import exceptions');
   const complete = new Set();
   function visit(layer, trail = []) {
     assert.ok(!trail.includes(layer), `layer cycle: ${[...trail, layer].join(' -> ')}`);

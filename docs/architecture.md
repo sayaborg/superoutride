@@ -246,6 +246,13 @@ identity, occurrence and frame are distinct, including laps. Successors own seam
 station collisions fail explicitly. Narrow geometry/height/presentation readers share this mapping;
 local projection seeds identify both occurrence and native segment.
 
+`createCourseDrivingSource` owns the physical world, coordinate/height readers and an immutable
+mapping of those same occurrence spans. Its motion guard uses the physical pose/step domain.
+`createCourseDrivingViewSource` overlays Band, environment, background and scenery readers on that
+mapping; it does not select another interval or perform physical projection. It accepts only views
+of its canonical physical product and weakly caches rendering readers by mapping identity. Physical
+views do not require presentation, and race does not create rendering readers for rivals.
+
 ## Layer boundaries
 
 Source is organized by domain. Definition, compilation and runtime representation belong inside
@@ -265,14 +272,15 @@ that domain; an upper domain depends only on lower domains, and same-domain impo
 
 The [layer check](../tests/infrastructure/layer-dependencies.test.mjs) includes type-only imports,
 re-exports, inline import types and literal dynamic imports. Source has exactly these nine directories;
-startup files belong to shell. Known exact source/target exceptions are omitted from the layer-cycle
-graph; every other dependency is checked, and unused exceptions fail the check.
+startup files belong to shell. Every cross-domain import follows the order and participates in the
+layer-cycle check. There are no dependency exceptions.
 
 Shell owns the observer's camera, and race actors contain no camera state. A committed frame
 transform is observed by the camera owner before its next update. Race publishes camera-independent
-actor observations; view owns rival sprite selection and assembly. Two exact race-to-view imports
-remain for the query-depth limit and combined physical/rendering source. They are the only exceptions;
-[NEXT](NEXT.md) owns their boundary separation. RGBA conversion, sprite images and LOD formats belong
+actor observations; view owns rival sprite selection and assembly. Course owns VehicleWorld, surface
+readers and the physical driving source. Race consumes that source only. Shell binds physical and
+presentation products and owns the combined pre-lock render/driver query-depth admission.
+RGBA conversion, sprite images and LOD formats belong
 to image; framebuffer writes and sprite drawing belong to view. Band modes, compiled color fields
 and their still-co-located sampler belong to course; view owns display settings and consumes that sampler.
 Environment profiles are course data. Authoring-only sprite fixtures currently reside in image.

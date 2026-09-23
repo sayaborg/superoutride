@@ -1,18 +1,13 @@
-import type { CourseGround } from '../course/compiler/course-ground.js';
 import type { CompiledLink, CompiledSection } from '../course/compiler/course-graph.js';
 import type { CompiledCarriageway } from '../course/course-regions.js';
 import { coursePortLateral } from '../course/compiler/course-links.js';
-import { compileCoursePhysicalDomains } from '../course/compiler/course-physical-overlap.js';
-import { compileCoursePresentationDomains } from '../course/compiler/course-presentation-overlap.js';
 import { compilePlanarTransform, composePlanarTransforms, invertPlanarTransform } from '../core/planar-transform.js';
 import { clamp, type Vec2 } from '../core/math.js';
-import { CURRENT_RENDER_FAR_DEPTH_METERS } from '../view/camera.js';
-import { ENVELOPE_DRIVER } from './envelope-driver.js';
 import { compileWorldCrossingGate, observeWorldCrossingPlane } from './world-crossing-gate.js';
 import { RECOVERY_PROFILE, recoverVehicleToGuideCoordinate, type RecoveryState } from './recovery.js';
 import type { ArcadeVehicleState } from '../vehicle/physics/arcade-vehicle-physics.js';
 import { reframeVehicle } from '../vehicle/physics/vehicle-reframe.js';
-import { createCourseDrivingSource } from '../view/course-driving-view.js';
+import type { createCourseDrivingSource } from '../course/course-driving-source.js';
 import { COURSE_DRIVING_POLICY } from './course-driving-policy.js';
 import { createCourseGeometryView } from '../course/course-geometry-view.js';
 import { createCourseGeometryTraversal, type CourseOccurrenceHistory } from '../course/course-occurrence.js';
@@ -38,42 +33,7 @@ function sameLayout(a: CourseOccurrenceHistory, b: CourseOccurrenceHistory) {
 }
 
 /** Static readers are shared across the field; actors own only traversal and observation state. */
-export function createCourseDrivingGraph(entry: CompiledSection, ground: CourseGround) {
-  const sections = new Set<CompiledSection>();
-  const visit = (section: CompiledSection) => {
-    if (sections.has(section)) return;
-    sections.add(section);
-    section.outgoing.forEach((link) => visit(link.destination.section));
-  };
-  visit(entry);
-  const links = [...sections].flatMap((section) => section.outgoing);
-  const { pose, step, contact } = COURSE_DRIVING_POLICY.guard;
-  for (const section of sections) {
-    if (
-      section.fork &&
-      section.fork.lock.s + Math.max(CURRENT_RENDER_FAR_DEPTH_METERS, ENVELOPE_DRIVER.lookahead) + step.ahead >
-        Math.min(...section.outgoing.map((link) => link.source.anchor.s))
-    )
-      throw new RangeError('Fork parent must cover pre-lock render and driver queries through one fixed step');
-  }
-  const zero = { behind: 0, ahead: 0, left: 0, right: 0 };
-  const source = createCourseDrivingSource(
-    ground,
-    required(
-      compileCoursePhysicalDomains(links, {
-        pose,
-        step,
-        consumers: { contact, driverLookahead: zero, reverseRecovery: zero },
-      }),
-    ),
-    required(
-      compileCoursePresentationDomains(links, {
-        pose,
-        step,
-        consumers: { cameraRender: contact, groundFilter: zero, scenery: zero },
-      }),
-    ),
-  );
+export function createCourseDrivingGraph(entry: CompiledSection, source: ReturnType<typeof createCourseDrivingSource>) {
   type View = Extract<ReturnType<typeof source.createView>, { ok: true }>['value'];
   const cache: { history: CourseOccurrenceHistory; view: View }[] = [];
   const makeView = (history: CourseOccurrenceHistory) => {

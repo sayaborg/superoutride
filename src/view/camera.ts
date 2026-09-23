@@ -3,7 +3,8 @@ import { createPlanarCoordinateSample } from '../core/planar-sample.js';
 import { guideCoordinateToWorld } from '../course/geometry/guide-coordinate-frame.js';
 import { clamp, wrapAngle } from '../core/math.js';
 import type { PseudoCamera } from './projection.js';
-import type { VehicleCameraReadState, VehicleWorld } from '../vehicle/physics/vehicle-contract.js';
+import type { VehicleWorld } from '../course/vehicle-world.js';
+import type { VehicleCameraReadState } from '../vehicle/physics/vehicle-contract.js';
 
 export const CURRENT_RENDER_NEAR_DEPTH_METERS = 2.5;
 export const CURRENT_RENDER_FAR_DEPTH_METERS = 200;

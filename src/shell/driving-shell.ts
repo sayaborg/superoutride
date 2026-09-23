@@ -11,7 +11,7 @@ import type { DrivingInput } from '../vehicle/driving-input.js';
 import { InputManager } from '../input/input-manager.js';
 import type { ArcadeVehicleState } from '../vehicle/physics/arcade-vehicle-physics.js';
 import { createArcadeVehicle } from '../vehicle/physics/arcade-vehicle-physics.js';
-import type { VehicleWorld } from '../vehicle/physics/vehicle-contract.js';
+import type { VehicleWorld } from '../course/vehicle-world.js';
 import type { CompiledArcadeVehicleProfile } from '../vehicle/physics/vehicle-profiles.js';
 import { drawVehicleLeanDebug } from './debug/vehicle-lean-debug.js';
 import { drawVehicleYawDebug } from './debug/vehicle-yaw-debug.js';

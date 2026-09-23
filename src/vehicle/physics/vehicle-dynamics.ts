@@ -12,7 +12,7 @@ import {
 import type { CourseCoordinate } from '../../course/geometry/guide-curve.js';
 import type { HeightProfileReader } from '../../course/geometry/height-profile.js';
 import type { AutomaticPowertrainState } from './automatic-powertrain.js';
-import type { SurfaceMapReader } from './surface-map.js';
+import type { SurfaceMapReader } from '../../course/vehicle-world.js';
 import type { SurfaceMaterial, SurfaceType } from '../../course/surface-material.js';
 import type { CompiledTireProfile } from './tire-wheel.js';
 import {

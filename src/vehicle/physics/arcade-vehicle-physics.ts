@@ -20,7 +20,7 @@ import {
   type ArcadeSteeringCalibrationInput,
   type ArcadeSteeringCalibrationState,
 } from './vehicle-calibration.js';
-import type { VehicleWorld } from './vehicle-contract.js';
+import type { VehicleWorld } from '../../course/vehicle-world.js';
 import {
   VEHICLE_SUBSTEPS,
   bodyFrameVelocity,

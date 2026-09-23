@@ -243,7 +243,10 @@ topology through its transform; its endpoint world positions/headings may differ
 ### Contact and presentation domains
 
 `compileCoursePhysicalDomains` and `compileCoursePresentationDomains` bind the root's explicit
-contact and fixed-step envelopes over canonical Links. A driving source requires both results.
+contact and fixed-step envelopes over canonical Links. Shell binds both results over the same Links
+and supplies the same pose/step bounds to each. The course-owned physical source requires only the
+physical result; the view-owned rendering source checks their canonical Link agreement. Race uses
+the physical motion guard, which covers the root's identical shared pose/step domain.
 Within the common guard, height, supported materials, Region edges, resolved Band colors, BG and shared
 scenery agree. The current root supplies 30 m guards. Longer camera/render, driver and recovery reads
 use source-owned occurrence spans. Domain mismatches identify the Link and affected consumer.
