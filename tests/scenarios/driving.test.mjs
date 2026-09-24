@@ -22,6 +22,21 @@ for (const stem of ['ribbon-coast', 'ribbon-fork', 'ribbon-ring']) {
               seconds: 180,
             })),
             { name: 'closed Carriageway entry and recovery', policy: 'closed', rivals: 1, seconds: 180 },
+            {
+              name: 'closed Carriageway through player finish',
+              policy: 'closed',
+              finish: true,
+              rivals: 1,
+              seconds: 180,
+            },
+            {
+              name: 'finished rival stops while player waits then finishes',
+              policy: 'closed',
+              finish: true,
+              waitForStop: true,
+              rivals: 1,
+              seconds: 180,
+            },
           ]
         : [
             {

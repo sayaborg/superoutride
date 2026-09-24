@@ -54,6 +54,7 @@ export function runCourseReference(
     course,
     { mode: 'CUSTOM', rivalCount: 0, lapCount, countdown: false },
     vehicleConfiguration,
+    envelope,
   );
   const slot = session.grid[0]!;
   const vehicle = createArcadeVehicle(entry.profile, scene.world, {
@@ -67,7 +68,6 @@ export function runCourseReference(
     session,
     player: actor,
     runtime: scene.runtime,
-    rival: vehicleConfiguration,
   });
   const events = [],
     trace = [];

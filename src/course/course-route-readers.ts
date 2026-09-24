@@ -150,6 +150,7 @@ export function createCourseRouteReaders(route: CourseRoute) {
         else hi = mid;
       }
       let bestDistance = Infinity,
+        bestChange = Infinity,
         bestInside = false,
         bestOwner = false,
         found = false;
@@ -179,13 +180,16 @@ export function createCourseRouteReaders(route: CourseRoute) {
           found &&
           ((bestInside && !inside) ||
             (bestInside === inside &&
-              ((bestOwner && !owner) || (bestOwner === owner && projected.distanceSquared >= bestDistance))))
+              (inside
+                ? (bestOwner && !owner) || (bestOwner === owner && projected.distanceSquared >= bestDistance)
+                : Math.abs(s - previousS) >= bestChange)))
         )
           continue;
         out.s = s;
         out.l = projected.l - occurrence.lateralOrigin;
         out.inDomain = inside;
         bestDistance = projected.distanceSquared;
+        bestChange = Math.abs(s - previousS);
         bestInside = inside;
         bestOwner = owner;
         found = true;
@@ -203,12 +207,12 @@ export function createCourseRouteReaders(route: CourseRoute) {
           dz = world.z - endpoint.z;
         const foot = end + dx * tx + dz * tz;
         const s = Math.max(a, Math.min(b, foot));
-        const distance = (dx - (s - end) * tx) ** 2 + (dz - (s - end) * tz) ** 2;
-        if (found && (bestInside || distance >= bestDistance)) continue;
+        const change = Math.abs(s - previousS);
+        if (found && (bestInside || change >= bestChange)) continue;
         out.s = s;
         out.l = dx * tz - dz * tx;
         out.inDomain = false;
-        bestDistance = distance;
+        bestChange = change;
         found = true;
       }
       return out;

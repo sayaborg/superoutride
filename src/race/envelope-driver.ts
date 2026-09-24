@@ -16,10 +16,11 @@ export interface VehicleEnvelope {
 
 /** Input/planning policy only. The measured envelope and production mechanics retain their own authority. */
 export const ENVELOPE_DRIVER = Object.freeze({
-  version: 2,
+  version: 3,
   lookahead: 480,
   spacing: 5,
   responseSeconds: 0.45,
+  terminalClearance: 2,
   speedDeadregion: 0.15,
 });
 
@@ -77,7 +78,7 @@ export function sampleEnvelopeDrivingInput(
   driver: Driver,
   targetL: Lane = 0,
   workspace: ReturnType<typeof createEnvelopeDriverWorkspace>,
-  domain: { readonly start: number; readonly end: number },
+  domain: { readonly start: number; readonly end: number; readonly terminal: number | null },
 ): DrivingInput {
   const s = car.course.s;
   const speed = Math.hypot(car.longitudinalSpeed, car.lateralSpeed);
@@ -126,6 +127,14 @@ export function sampleEnvelopeDrivingInput(
     const distance = Math.max(0, aS - s - speed * ENVELOPE_DRIVER.responseSeconds);
     targetSquared = Math.min(targetSquared, workspace.speedsSquared[index]! + 2 * braking * distance);
   }
+  if (domain.terminal !== null) {
+    // Leave room for input response and the front contact footprint; no pose/velocity correction.
+    const distance = Math.max(
+      0,
+      domain.terminal - s - ENVELOPE_DRIVER.terminalClearance - speed * ENVELOPE_DRIVER.responseSeconds,
+    );
+    targetSquared = Math.min(targetSquared, 2 * braking * distance);
+  }
   const targetSpeed = Math.sqrt(targetSquared);
   const lookahead = Math.min(ENVELOPE_DRIVER.lookahead, Math.max(8, speed * ENVELOPE_DRIVER.responseSeconds));
   const targetS = clamp(s + lookahead, domain.start, domain.end);
@@ -144,6 +153,6 @@ export function sampleEnvelopeDrivingInput(
       : clamp(acceleration / envelopeAt(envelope, Math.max(speed, 5), workspace.envelope).steeringGain, -1, 1);
   workspace.input.steering = steering;
   workspace.input.throttle = speed < targetSpeed - ENVELOPE_DRIVER.speedDeadregion;
-  workspace.input.brake = speed > targetSpeed + ENVELOPE_DRIVER.speedDeadregion;
+  workspace.input.brake = targetSpeed === 0 || speed > targetSpeed + ENVELOPE_DRIVER.speedDeadregion;
   return workspace.input;
 }

@@ -344,7 +344,14 @@ audio observations already use the same route coordinates as the player.
 CLASSIC resolves the saved vehicle, rivals, laps and checkpoint clock. CUSTOM resolves a catalog
 vehicle, zero to sixteen rivals, permitted laps and clock on/off. Player and rivals share the resolved
 vehicle calibration and protection settings. Unsupported course/vehicle/grid/lap combinations fail before activation.
-A Session binds immutable course, vehicle, roster, grid, lap target and timing references.
+A Session binds immutable course, vehicle, roster, grid, lap target, envelope and timing references.
+Before activation, every FINISH in a Section with no outgoing Link must have at least
+`maximumSpeed² / (2*a)` metres remaining to that Section's end. Here `a` is the minimum measured
+envelope braking multiplied by the Session driver utilization (0.75). All current competitors share
+the admitted configuration and envelope, so this one requirement covers the complete field, including
+a solo player. Admission rejects insufficient runout with a RangeError naming the FINISH, vehicle,
+available metres and required metres; the browser shows this through its loading failure state.
+A circuit FINISH and an undecided fork are not terminal stopping points.
 
 START begins a standing run. PAUSE/hidden-page time consumes no simulation time. GOAL or GAME OVER
 stops the field and preserves final rank and precise event time. NEW SESSION returns to setup.
@@ -379,6 +386,16 @@ Generated envelopes contain maximum speed and speed-indexed acceleration, brakin
 observations for each vehicle configuration. The driver consumes an envelope, utilization, speed cap
 and lane; it reads a contiguous 5 m lattice up to 480 m ahead and publishes canonical steering,
 throttle and brake. [Calibration](calibration.md) lists utilization values.
+
+The driver always treats the end of a Section with no outgoing Link as a zero-speed planning point.
+The Route exposes that terminal station only when its retained tail is such a Section; loaded tails
+with outgoing Links, including undecided forks and circuit continuations, do not request a stop.
+The speed plan is bounded by `sqrt(2*a*d)`, with d reduced by the driver's response distance and a
+2 m terminal clearance for the front footprint. The driver holds the brake when its target speed is
+zero, using ordinary vehicle physics. It does not inspect finish status or introduce a finished-driving
+state. Thus a finished LINEAR/BRANCH rival decelerates and stops on the runout while the Session
+continues; a finished CIRCUIT rival keeps driving. The existing player GOAL/GAME OVER still ends
+the whole Session.
 
 The same driver serves reference runs and live rivals. Generated runs contain precise landmark times
 and optional 10 Hz position/speed/utilization traces. The browser loads generated envelopes and compact

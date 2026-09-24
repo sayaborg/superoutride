@@ -131,6 +131,7 @@ export function createPlanCoordinateReader(
       const to = Math.min(length, previousS + PLAN_PROJECTION_WINDOW_METERS);
       const candidate = workspace.candidate;
       let bestDistance = Infinity,
+        bestChange = Infinity,
         bestInDomain = false,
         found = false;
       for (let i = planPrimitiveIndexAt(plan, from); i < primitives.length; i += 1) {
@@ -144,7 +145,9 @@ export function createPlanCoordinateReader(
         const inDomain = projected.isFoot && projected.l >= bounds.left && projected.l <= bounds.right;
         if (
           found &&
-          ((bestInDomain && !inDomain) || (bestInDomain === inDomain && projected.distanceSquared >= bestDistance))
+          ((bestInDomain && !inDomain) ||
+            (bestInDomain === inDomain &&
+              (inDomain ? projected.distanceSquared >= bestDistance : Math.abs(projected.s - previousS) >= bestChange)))
         )
           continue;
         candidate.s = projected.s;
@@ -155,6 +158,7 @@ export function createPlanCoordinateReader(
         out.l = candidate.l;
         out.inDomain = inDomain;
         bestDistance = candidate.distanceSquared;
+        bestChange = Math.abs(candidate.s - previousS);
         bestInDomain = inDomain;
         found = true;
       }

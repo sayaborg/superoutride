@@ -34,7 +34,9 @@ exit, departure on the requested road side, selected fork, wrong-course recovery
 
 The three provisional courses each exercise backward motion beyond the entry and both road sides.
 Coast finishes with two rivals; fork finishes through each branch and attempts a rival-closed Carriageway;
-ring finishes three laps with two rivals. Reverse starts with -20 m/s and neutral pedals (there is no
+ring finishes three laps with two rivals. A second closed-Carriageway scenario continues through player
+finish and checks every actor for non-recovery s jumps. A third holds the recovered player on the brake
+until the finished rival has stayed below 0.05 m/s for two seconds before the terminal, then finishes. Reverse starts with -20 m/s and neutral pedals (there is no
 reverse input); lateral departures start at 30 m/s and hold steering and throttle. These are initial
 conditions through the ordinary vehicle constructor, with no pose or progress edits during a run.
 

@@ -54,6 +54,11 @@
           "id": "fit-007",
           "kind": "straight",
           "length": 577
+        },
+        {
+          "id": "terminal-runout",
+          "kind": "straight",
+          "length": 300
         }
       ],
       "boundaries": [
@@ -71,6 +76,13 @@
               "anchor": {
                 "kind": "absolute",
                 "s": 2910.1069563052547
+              },
+              "l": -20
+            },
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 3210.1069563052547
               },
               "l": -20
             }
@@ -127,6 +139,13 @@
                 "s": 2910.1069563052547
               },
               "l": -9
+            },
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 3210.1069563052547
+              },
+              "l": -9
             }
           ]
         },
@@ -181,6 +200,13 @@
                 "s": 2910.1069563052547
               },
               "l": -7
+            },
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 3210.1069563052547
+              },
+              "l": -7
             }
           ]
         },
@@ -200,6 +226,13 @@
                 "s": 2910.1069563052547
               },
               "l": -0.1
+            },
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 3210.1069563052547
+              },
+              "l": -0.1
             }
           ]
         },
@@ -217,6 +250,13 @@
               "anchor": {
                 "kind": "absolute",
                 "s": 2910.1069563052547
+              },
+              "l": 0.1
+            },
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 3210.1069563052547
               },
               "l": 0.1
             }
@@ -273,6 +313,13 @@
                 "s": 2910.1069563052547
               },
               "l": 7
+            },
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 3210.1069563052547
+              },
+              "l": 7
             }
           ]
         },
@@ -327,6 +374,13 @@
                 "s": 2910.1069563052547
               },
               "l": 9
+            },
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 3210.1069563052547
+              },
+              "l": 9
             }
           ]
         },
@@ -346,6 +400,13 @@
                 "s": 2910.1069563052547
               },
               "l": 20
+            },
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 3210.1069563052547
+              },
+              "l": 20
             }
           ]
         }
@@ -359,7 +420,7 @@
           },
           "end": {
             "kind": "absolute",
-            "s": 2910.1069563052547
+            "s": 3210.1069563052547
           },
           "leftBoundaryId": "outer-left",
           "rightBoundaryId": "shoulder-left",
@@ -373,7 +434,7 @@
           },
           "end": {
             "kind": "absolute",
-            "s": 2910.1069563052547
+            "s": 3210.1069563052547
           },
           "leftBoundaryId": "shoulder-left",
           "rightBoundaryId": "road-left",
@@ -387,7 +448,7 @@
           },
           "end": {
             "kind": "absolute",
-            "s": 2910.1069563052547
+            "s": 3210.1069563052547
           },
           "leftBoundaryId": "road-left",
           "rightBoundaryId": "center-left",
@@ -401,7 +462,7 @@
           },
           "end": {
             "kind": "absolute",
-            "s": 2910.1069563052547
+            "s": 3210.1069563052547
           },
           "leftBoundaryId": "center-left",
           "rightBoundaryId": "center-right",
@@ -415,7 +476,7 @@
           },
           "end": {
             "kind": "absolute",
-            "s": 2910.1069563052547
+            "s": 3210.1069563052547
           },
           "leftBoundaryId": "center-right",
           "rightBoundaryId": "road-right",
@@ -429,7 +490,7 @@
           },
           "end": {
             "kind": "absolute",
-            "s": 2910.1069563052547
+            "s": 3210.1069563052547
           },
           "leftBoundaryId": "road-right",
           "rightBoundaryId": "shoulder-right",
@@ -443,7 +504,7 @@
           },
           "end": {
             "kind": "absolute",
-            "s": 2910.1069563052547
+            "s": 3210.1069563052547
           },
           "leftBoundaryId": "shoulder-right",
           "rightBoundaryId": "outer-right",
@@ -511,6 +572,14 @@
           "anchor": {
             "kind": "absolute",
             "s": 2910.1069563052547
+          },
+          "y": 0,
+          "curveLength": 0
+        },
+        {
+          "anchor": {
+            "kind": "absolute",
+            "s": 3210.1069563052547
           },
           "y": 0,
           "curveLength": 0
@@ -626,6 +695,11 @@
                   "s": 2910.106956305253,
                   "left": null,
                   "right": null
+                },
+                {
+                  "s": 3210.1069563052547,
+                  "left": null,
+                  "right": null
                 }
               ]
             },
@@ -665,6 +739,11 @@
                 },
                 {
                   "s": 2910.106956305253,
+                  "left": -9,
+                  "right": -7
+                },
+                {
+                  "s": 3210.1069563052547,
                   "left": -9,
                   "right": -7
                 }
@@ -708,6 +787,11 @@
                   "s": 2910.106956305253,
                   "left": -7,
                   "right": -0.1
+                },
+                {
+                  "s": 3210.1069563052547,
+                  "left": -7,
+                  "right": -0.1
                 }
               ]
             },
@@ -722,6 +806,11 @@
                 },
                 {
                   "s": 2910.106956305253,
+                  "left": -0.1,
+                  "right": 0.1
+                },
+                {
+                  "s": 3210.1069563052547,
                   "left": -0.1,
                   "right": 0.1
                 }
@@ -765,6 +854,11 @@
                   "s": 2910.106956305253,
                   "left": 0.1,
                   "right": 7
+                },
+                {
+                  "s": 3210.1069563052547,
+                  "left": 0.1,
+                  "right": 7
                 }
               ]
             },
@@ -804,6 +898,11 @@
                 },
                 {
                   "s": 2910.106956305253,
+                  "left": 7,
+                  "right": 9
+                },
+                {
+                  "s": 3210.1069563052547,
                   "left": 7,
                   "right": 9
                 }

@@ -52,22 +52,21 @@ test('shared route keeps vehicle and camera coordinates across forward and rever
 
 test('race actors have no cameras and view assembles sixteen rival sprites from observations', async () => {
   const { course, scene, assets, profile, spawn } = await setup();
+  const envelope = await readVehicleEnvelope(
+    profile,
+    JSON.parse(await readFile(new URL('../../dist/content/envelopes/TESTAROSSA.json', import.meta.url), 'utf8')),
+  );
   const settings = resolveCourseSession(
     course,
     { mode: 'CUSTOM', rivalCount: 16, lapCount: 1, countdown: false },
     profile,
-  );
-  const envelope = await readVehicleEnvelope(
-    profile,
-    JSON.parse(await readFile(new URL('../../dist/content/envelopes/TESTAROSSA.json', import.meta.url), 'utf8')),
+    envelope,
   );
   const vehicle = spawn(settings.grid[0].anchor.s);
   const race = createCourseRace({
     session: settings,
     player: { vehicle, recovery: createRecoveryState(vehicle) },
     runtime: scene.runtime,
-    rival: profile,
-    rivalEnvelope: envelope,
   });
   for (const c of [race.player, ...race.rivals]) assert.ok(!('cameraRig' in c.actor));
   assert.equal(race.rivals.length, 16);

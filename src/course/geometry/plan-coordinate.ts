@@ -27,7 +27,7 @@ export interface PlanCoordinateSample extends Writable<Vec2> {
 export interface PlanCoordinateProjection {
   s: number;
   l: number;
-  /** False for the nearest fallback, including a clamped endpoint. */
+  /** False for the previous-chainage fallback, including a clamped endpoint. */
   inDomain: boolean;
 }
 

@@ -23,6 +23,8 @@ export interface CourseRoute {
   readonly occurrences: readonly RouteOccurrence[];
   readonly start: number;
   readonly end: number;
+  /** Null while the retained tail has successors, including an undecided fork. */
+  readonly terminal: number | null;
   /** An exact seam station belongs to the successor. Outside the retained range returns null. */
   at(s: number): RouteOccurrence | null;
   /** Add a canonical successor selected by the shared fork decision. */
@@ -97,6 +99,10 @@ export function createCourseRoute(entry: CompiledSection): CourseRoute {
     },
     get end() {
       return occurrences.at(-1)!.end;
+    },
+    get terminal() {
+      const tail = occurrences.at(-1)!;
+      return tail.section.outgoing.length === 0 ? tail.end : null;
     },
     at,
     append,

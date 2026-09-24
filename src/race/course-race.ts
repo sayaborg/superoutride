@@ -11,12 +11,7 @@ import {
   recoverVehicleToPlanCoordinate,
   type RecoveryState,
 } from './recovery.js';
-import {
-  compileEnvelopeDriver,
-  createEnvelopeDriverWorkspace,
-  sampleEnvelopeDrivingInput,
-  type VehicleEnvelope,
-} from './envelope-driver.js';
+import { compileEnvelopeDriver, createEnvelopeDriverWorkspace, sampleEnvelopeDrivingInput } from './envelope-driver.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import { createArcadeVehicle, type ArcadeVehicleState } from '../vehicle/physics/arcade-vehicle-physics.js';
 import type { SessionVehicle } from './session-configuration.js';
@@ -42,16 +37,11 @@ export function createCourseRace(options: {
   readonly session: ResolvedCourseSession;
   readonly player: Actor;
   readonly runtime: RouteRuntime;
-  readonly rival: SessionVehicle;
-  readonly rivalEnvelope?: VehicleEnvelope;
 }) {
   const { course, configuration, grid, initialSpeed, budgets } = options.session;
   const { runtime } = options;
-  if (configuration.rivalCount && !options.rivalEnvelope)
-    throw new RangeError('Rivals require a current vehicle envelope');
-  const driver = options.rivalEnvelope
-    ? compileEnvelopeDriver(options.rivalEnvelope, options.session.rivalUtilization, options.rivalEnvelope.maximumSpeed)
-    : null;
+  const { vehicle: rival, envelope } = options.session;
+  const driver = compileEnvelopeDriver(envelope, options.session.rivalUtilization, envelope.maximumSpeed);
   const clock = createCheckpointClock(budgets?.initialMs ?? null);
   const lines = createRouteCrossSections(runtime.route, course, configuration.lapCount);
   const forks = createCourseForkField(runtime.route, lines);
@@ -71,7 +61,7 @@ export function createCourseRace(options: {
   const rivals = createRivalRoster(configuration).map(({ actorId, rivalIndex }) => {
     const slot = grid[rivalIndex + 1]!;
     const targetL = slot.l;
-    const profile = options.rival;
+    const profile = rival;
     const vehicle = createArcadeVehicle(profile.profile, runtime.readers, {
       s: slot.anchor.s,
       l: targetL,
@@ -125,7 +115,7 @@ export function createCourseRace(options: {
   const visible: RaceActorObservation[] = [];
   const pool = rivals.map((c) => ({
     id: c.id,
-    kind: options.rival.kind,
+    kind: rival.kind,
     paletteVariant: 'base' as 'base' | 'braking',
     vehicle: c.actor.vehicle,
   }));
@@ -187,7 +177,7 @@ export function createCourseRace(options: {
           sampleEnvelopeDrivingInput(
             runtime.readers.coordinates,
             motion.c.actor.vehicle,
-            driver!,
+            driver,
             motion.input,
             motion.driverWorkspace,
             runtime.route,

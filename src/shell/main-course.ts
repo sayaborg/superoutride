@@ -55,16 +55,14 @@ try {
   const preset = readBrowserSessionSettings(new URLSearchParams(), course.rules.classic);
   const entry = VEHICLE_CATALOG.find((v) => v.profile.id === settings.vehicleId)!;
   const vehicle = browserSessionVehicle(entry);
-  const rivalEnvelope = settings.rivalCount
-    ? await readVehicleEnvelope(
-        vehicle,
-        JSON.parse(
-          new TextDecoder('utf-8', { fatal: true }).decode(
-            await fetchBytes(new URL(`envelopes/${vehicle.profile.id}.json`, root)),
-          ),
-        ),
-      )
-    : undefined;
+  const rivalEnvelope = await readVehicleEnvelope(
+    vehicle,
+    JSON.parse(
+      new TextDecoder('utf-8', { fatal: true }).decode(
+        await fetchBytes(new URL(`envelopes/${vehicle.profile.id}.json`, root)),
+      ),
+    ),
+  );
   const budgets = settings.countdown
     ? await readCourseTimeBudgets(
         course,
@@ -76,7 +74,7 @@ try {
         ),
       )
     : null;
-  const session = resolveCourseSession(course, settings, vehicle, budgets);
+  const session = resolveCourseSession(course, settings, vehicle, rivalEnvelope, budgets);
   const sprites = readSpriteAssets(
     JSON.parse(
       new TextDecoder('utf-8', { fatal: true }).decode(await fetchBytes(new URL('sprites/vehicles.json', root))),
@@ -106,8 +104,6 @@ try {
       recovery: shell.recovery,
     },
     runtime: scene.runtime,
-    rival: vehicle,
-    rivalEnvelope,
   });
   const raceSprites = createRaceSprites(sprites, vehicle);
   const raceStatus = document.createElement('output');

@@ -8,7 +8,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **6-12 — Local tolerances**.
+Next PR: **6-13 — Local tolerances**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -18,7 +18,7 @@ PRs hold rationale and verification evidence.
 
 Give all vehicles one route coordinate system, read its geometry and content through shared readers, and define behavior outside the retained route and coordinate domain.
 
-- **6-12 — Local tolerances:** clarify each tolerance's basis and owning algorithm, including the `1e-14` tangent-intersection threshold in `plan-domain-injectivity.ts`.
+- **6-13 — Local tolerances:** clarify each tolerance's basis and owning algorithm, including the `1e-14` tangent-intersection threshold in `plan-domain-injectivity.ts`; rename the `guide` argument in `terrain-line.ts` according to the Vocabulary.
 
 ## Stage 7 — Course format
 

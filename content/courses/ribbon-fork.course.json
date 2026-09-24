@@ -1458,6 +1458,11 @@
           "id": "run",
           "kind": "straight",
           "length": 1000
+        },
+        {
+          "id": "terminal-runout",
+          "kind": "straight",
+          "length": 300
         }
       ],
       "boundaries": [
@@ -1475,6 +1480,13 @@
               "anchor": {
                 "kind": "absolute",
                 "s": 1000
+              },
+              "l": -70
+            },
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 1300
               },
               "l": -70
             }
@@ -1496,6 +1508,13 @@
                 "s": 1000
               },
               "l": -3.5
+            },
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 1300
+              },
+              "l": -3.5
             }
           ]
         },
@@ -1513,6 +1532,13 @@
               "anchor": {
                 "kind": "absolute",
                 "s": 1000
+              },
+              "l": 3.5
+            },
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 1300
               },
               "l": 3.5
             }
@@ -1534,6 +1560,13 @@
                 "s": 1000
               },
               "l": 70
+            },
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 1300
+              },
+              "l": 70
             }
           ]
         }
@@ -1547,7 +1580,7 @@
           },
           "end": {
             "kind": "absolute",
-            "s": 1000
+            "s": 1300
           },
           "leftBoundaryId": "road-left",
           "rightBoundaryId": "road-right",
@@ -1561,7 +1594,7 @@
           },
           "end": {
             "kind": "absolute",
-            "s": 1000
+            "s": 1300
           },
           "leftBoundaryId": "outer-left",
           "rightBoundaryId": "road-left",
@@ -1575,7 +1608,7 @@
           },
           "end": {
             "kind": "absolute",
-            "s": 1000
+            "s": 1300
           },
           "leftBoundaryId": "road-right",
           "rightBoundaryId": "outer-right",
@@ -1595,6 +1628,14 @@
           "anchor": {
             "kind": "absolute",
             "s": 1000
+          },
+          "y": 0,
+          "curveLength": 0
+        },
+        {
+          "anchor": {
+            "kind": "absolute",
+            "s": 1300
           },
           "y": 0,
           "curveLength": 0
@@ -1663,6 +1704,11 @@
                   "s": 1000,
                   "left": null,
                   "right": null
+                },
+                {
+                  "s": 1300,
+                  "left": null,
+                  "right": null
                 }
               ]
             },
@@ -1677,6 +1723,11 @@
                 },
                 {
                   "s": 1000,
+                  "left": -3.5,
+                  "right": 3.5
+                },
+                {
+                  "s": 1300,
                   "left": -3.5,
                   "right": 3.5
                 }

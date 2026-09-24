@@ -74,6 +74,7 @@ export function runScenario({ course, ground }, scenario) {
     course,
     { mode: 'CUSTOM', rivalCount: scenario.rivals ?? 0, lapCount: scenario.laps ?? 1, countdown: false },
     configuration,
+    envelope,
   );
   const slot = session.grid[0];
   const vehicle = createArcadeVehicle(entry.profile, scene.world, {
@@ -87,8 +88,6 @@ export function runScenario({ course, ground }, scenario) {
     session,
     player: actor,
     runtime: scene.runtime,
-    rival: configuration,
-    rivalEnvelope: envelope,
   });
   const competitors = [race.player, ...race.rivals];
   const rig = createCameraRig();
@@ -104,6 +103,7 @@ export function runScenario({ course, ground }, scenario) {
     recoveries: [],
     choices: [],
     frames: 0,
+    stoppedRivals: [],
   };
   const lane = (s) => {
     const occurrence = scene.runtime.route.at(s);
@@ -123,6 +123,7 @@ export function runScenario({ course, ground }, scenario) {
     }
     return race.forks.targetL(s, scenario.side ?? slot.l);
   };
+  const entryPose = scene.world.coordinates.toWorld(0, 0, { x: 0, z: 0, s: 0, l: 0, heading: 0 });
   let camera;
   const render = () => {
     settings.setBandMethod(BAND_RENDER_METHODS[evidence.frames % BAND_RENDER_METHODS.length]);
@@ -133,12 +134,15 @@ export function runScenario({ course, ground }, scenario) {
   let tick = 0;
   const maxTicks = Math.ceil(scenario.seconds / SIM_DT);
   const accepted = new Set();
+  const stoppedTicks = competitors.map(() => 0);
   const progress = competitors.map(() => ({ next: -Infinity, finishes: 0 }));
   for (; tick < maxTicks; tick++) {
     const previous = competitors.map((c) => ({ s: c.actor.vehicle.course.s, recoveries: c.actor.recovery.recoveries }));
     let input;
     if (scenario.policy === 'reverse') input = idle;
     else if (scenario.policy === 'departure') input = { ...idle, steering: scenario.side, throttle: true };
+    else if (scenario.waitForStop && evidence.recoveries.length && evidence.stoppedRivals.length < race.rivals.length)
+      input = { ...idle, brake: true };
     else if (scenario.policy === 'closed' && tick * SIM_DT < 3) input = idle;
     else
       input = sampleEnvelopeDrivingInput(
@@ -174,6 +178,15 @@ export function runScenario({ course, ground }, scenario) {
       // Same one-step coverage ceiling as the scene (240 m/s); never a physics clamp.
       if (!recovered && Math.abs(v.course.s - previous[index].s) > 240 * SIM_DT)
         assert.fail(`${c.id}: route s jumped at tick ${tick}: ${previous[index].s} -> ${v.course.s}`);
+      if (index > 0 && c.progress.status === 'FINISHED' && scene.runtime.route.terminal !== null) {
+        assert.ok(v.course.s < scene.runtime.route.terminal, `${c.id}: passed the terminal`);
+        assert.ok(v.course.inDomain, `${c.id}: finished rival left the domain`);
+        assert.ok(!recovered, `${c.id}: finished rival recovered`);
+        const speed = Math.hypot(v.longitudinalSpeed, v.lateralSpeed);
+        stoppedTicks[index] = speed < 0.05 ? stoppedTicks[index] + 1 : 0;
+        if (stoppedTicks[index] >= 2 / SIM_DT && !evidence.stoppedRivals.some((r) => r.id === c.id))
+          evidence.stoppedRivals.push({ id: c.id, s: v.course.s, terminal: scene.runtime.route.terminal, speed });
+      }
       const next = c.progress.next?.s ?? (c.progress.status === 'FINISHED' ? Infinity : progress[index].next);
       assert.ok(next >= progress[index].next, `${c.id}: accepted crossing regressed at tick ${tick}`);
       assert.ok(c.progress.acceptedFinishCount >= progress[index].finishes, `${c.id}: finish count regressed`);
@@ -206,7 +219,10 @@ export function runScenario({ course, ground }, scenario) {
         evidence.choices.push(occurrence.incoming.id);
     }
     digest.update(JSON.stringify(camera));
-    evidence.outsideEntry ||= vehicle.course.s < 0;
+    evidence.outsideEntry ||=
+      (vehicle.x - entryPose.x) * Math.sin(entryPose.heading) +
+        (vehicle.z - entryPose.z) * Math.cos(entryPose.heading) <
+      0;
     evidence.outsideDomain ||= !vehicle.course.inDomain;
     const bounds = pavementBounds(scene, vehicle);
     if (bounds) {
@@ -222,7 +238,9 @@ export function runScenario({ course, ground }, scenario) {
       render();
     if (
       race.clock.status === 'GOAL' ||
-      ((scenario.policy === 'reverse' || scenario.policy === 'departure' || scenario.policy === 'closed') &&
+      ((scenario.policy === 'reverse' ||
+        scenario.policy === 'departure' ||
+        (scenario.policy === 'closed' && !scenario.finish)) &&
         evidence.recoveries.length)
     )
       break;
@@ -241,6 +259,15 @@ export function runScenario({ course, ground }, scenario) {
       evidence.recoveries.some((r) => r.reason === 'wrong-course'),
       'never entered the closed Carriageway',
     );
+  if (scenario.finish) {
+    assert.equal(race.clock.status, 'GOAL');
+    if (scenario.waitForStop)
+      assert.equal(
+        evidence.stoppedRivals.length,
+        race.rivals.length,
+        'finished rivals did not stop before player finish',
+      );
+  }
   if (scenario.policy === 'finish') {
     assert.equal(race.clock.status, 'GOAL');
     assert.equal(race.player.progress.acceptedFinishCount, scenario.laps ?? 1);

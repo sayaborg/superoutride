@@ -46,7 +46,7 @@ its endpoint position at route l=0, unit tangent and right normal, and `e` is th
 | Environment/background     | Nearest endpoint value                                                          |
 
 The tangent rays participate in the same previous-s ±50 m projection window as the retained
-primitives. In-domain feet take precedence; otherwise the nearest candidate wins. Neither a
+primitives. In-domain feet take precedence; otherwise the candidate nearest the previous s wins. Neither a
 world-origin placeholder nor a previous-s/l=0 fallback is used. These outside values do not
 create a supporting surface. Contact and recovery rules are owned by
 [Vehicle physics](vehicle-physics.md#surface-and-contact).
@@ -87,9 +87,20 @@ occurrences. `CompiledSection.coordinates` and `VehicleWorld.coordinates` expose
 - `locateLocal(world,previousS,out,workspace)` searches only primitive intervals intersecting
   `[previousS-50 m,previousS+50 m]`. A perpendicular foot inside its interval and the closed
   lateral domain wins over a closer centerline foot outside the domain. No endpoint-clamped point
-  counts as an inside-domain foot. If none qualifies, the nearest candidate is returned with
+  counts as an inside-domain foot. If none qualifies, the candidate with the smallest absolute change from previous s is returned with
   `inDomain:false`, without lateral clamping or a global search. The two endpoint tangent rays complete the route ruler
   when the window extends beyond retained occurrences.
+
+Outside the domain, both primitive feet clamped to the searched interval and endpoint-ray feet
+participate in the previous-s comparison. Exact ties retain candidate order (primitives first, then
+entry and exit rays). In-domain selection retains occurrence ownership and centerline-distance precedence.
+This follows a continuous local candidate while it remains preferred, instead of switching branches
+merely because centerline distances cross. Endpoint clamping can hold s at a boundary while world
+position continues moving. Global continuity is not guaranteed outside the injective domain: a path
+through an arc center has no unique foot; angular branch changes, ties between distinct equally near
+chainages, or the appearance of an in-domain solution on another branch can still change s discontinuously.
+The finite search window also assumes successive observations remain on the local passage. These
+singular/ambiguous cases are not resolved by a velocity or coordinate clamp.
 
 `PlanCoordinateSample` and `PlanCoordinateProjection` are borrowed observations in caller-owned outputs.
 `PlanProjectionWorkspace` holds reusable numerical scratch, separate from vehicle state.
