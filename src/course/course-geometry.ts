@@ -61,7 +61,7 @@ export function compileCourseGeometry(section: SectionDocument, path: string) {
       s += length;
     } else stations.set(pi.id, s);
   }
-  const plan = compilePlanPath({ x: 0, z: 0, heading: 0 }, geometry);
+  const plan = compilePlanPath({ x: pis[0]!.x, z: pis[0]!.z, heading: Math.atan2(edges[0]!.x, edges[0]!.z) }, geometry);
   requireCourse(
     plan.segments.every((segment) => segment.sEnd > segment.sStart && Number.isFinite(segment.curvature)),
     `${path}/pis`,

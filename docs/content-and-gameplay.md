@@ -123,7 +123,9 @@ resolve authored references.
 
 Environment profiles begin at zero. Assets belong to the referencing Section and resolve to canonical
 sprite/background descriptors. Each environment is `{at,name,background}`; environment changes
-affect BG and labels, independently of ground colors.
+affect BG and labels, independently of ground colors. Background `yawOrigin` is an absolute angle
+in the authored Section coordinate frame: zero faces +Z and positive degrees turn toward +X.
+Occurrence mapping adds the occurrence rotation to this angle.
 
 ### Strips
 
@@ -329,7 +331,8 @@ Material samples use the material type as `sectionName`.
 
 ## Cut lines, Links and topology
 
-Each Section is normalized to start at plan pose `(0,0,0)` during compilation and owns its full `[0,L]` ruler. Its entry is the cut
+Each Section retains its authored PI coordinates as its native frame and owns its full `[0,L]` ruler.
+The entry Section's native frame is the world frame. Its entry is the cut
 at `s=0`; its outgoing cut is `(s=L, Carriageway)`. The course entry and every Link destination
 have exactly one positive-width Carriageway at `s=0`. Every outgoing Link names a positive-width
 Carriageway at `s=L`; outgoing Links from one Section use distinct Carriageways. Violations produce
@@ -356,7 +359,7 @@ Owned records and arrays are immutable, including nested image data. Live actor,
 clock state belong to Sessions. Object identity is local to a compilation; cross-build identity uses digests.
 
 `sourceSha256` hashes normalized input. `buildSha256` hashes `{sourceSha256,compiler,geometryRecipe}`.
-The compiler is `superoutride.course-compiler` version 28, incorporating Link recipe v2, physical
+The compiler is `superoutride.course-compiler` version 29, incorporating Link recipe v2, physical
 recipe v3, image-source recipe v2 and presentation recipe v7. Descriptors include semantic versions
 and operative numeric/data parameters, including material definitions. Source or compiler/recipe
 changes invalidate dependent products.

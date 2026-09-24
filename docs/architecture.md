@@ -14,9 +14,10 @@ t = (sin(psi), cos(psi))
 n = (cos(psi), -sin(psi))
 ```
 
-A Section is authored as PI coordinates and radii. Compilation normalizes its first PI to X=Z=0
-and its first edge to heading zero; the supplied coordinate origin and orientation do not survive
-into the native Section frame. The derived straight/circular plan is the planar authority. `s` is true arc length
+A Section is authored as PI coordinates and radii. Its native coordinates are the authored PI
+coordinates, without origin or orientation normalization. The entry Section's native frame is the
+world frame. The plan starts at the first PI, with heading `atan2(dx,dz)` of the first edge.
+The derived straight/circular plan is the planar authority. `s` is true arc length
 along that centerline and positive `l` is distance along its right normal. With centerline `C(s)`,
 normal `N(s)` and signed curvature `kappa`, planar coordinates are `C(s) + l*N(s)`; physical
 distance along an offset or sloping path is different.
@@ -159,7 +160,7 @@ PI conversion runs only during compilation. Derived segments have no authored re
 they retain internal geometry, exact s interval, starting pose and signed curvature.
 A straight has `kappa=0`. An arc has `kappa=sign(delta)/R` and length `R*abs(delta)`.
 The temporary PI station table resolves positions, including Session landmarks, and is discarded
-before publication. The native frame is translated and rotated as described above, without scaling.
+before publication. Compilation preserves the authored native frame without translation, rotation or scaling.
 Section projection onto a straight or circular arc uses closed-form geometry.
 The projection window `W = 50 m` is measured in chainage in both native and mapped Readers.
 At the fixed frame step and twelve vehicle substeps, longitudinal travel is a few metres even at
