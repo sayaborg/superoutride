@@ -36,7 +36,7 @@ export async function compileCourseImages(document: CourseDocument, inputs: read
       input = cache.get(asset.sha256)!;
     }
     products.set(input.sha256, input);
-    return { id: asset.id, format: asset.format, version: asset.version, sha256: input.sha256 };
+    return { id: asset.id, sha256: input.sha256 };
   });
   const derived = readCourseDocument({ ...document, assets });
   if (!derived.ok) throw new Error(JSON.stringify(derived.diagnostics));

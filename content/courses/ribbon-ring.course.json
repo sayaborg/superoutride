@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 23,
+  "version": 24,
   "id": "ribbon-ring",
   "entrySectionId": "ring-outward",
   "rules": {
@@ -1702,14 +1702,10 @@
   "assets": [
     {
       "id": "coast-sky",
-      "format": "superoutride.tile-background",
-      "version": 1,
       "sha256": "0e4c15f03d93e1202735af76ae62f620d6adb0ae060236670fd58feff95fad00"
     },
     {
       "id": "tree",
-      "format": "superoutride.sprite-lod",
-      "version": 2,
       "sha256": "b09289be3a424ac827c49569aff8e5f3ece795a33de77f26527d8e0a572028ab"
     }
   ]

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { readFile } from 'node:fs/promises';
+import { readDeliveredContent } from '../../tools/course/read-content.ts';
 import { loadCourse } from '../../tools/course/authoring-io.ts';
 import { createCourseRoute } from '../../src/course/course-route.js';
 import { createCourseRouteReaders } from '../../src/course/course-route-readers.js';
@@ -48,9 +48,7 @@ test('outside projection follows previous chainage across clamped and tangent-ra
 test('Session rejects short terminal runout, including solo play; forks and loops are not terminals', async () => {
   const course = await load('ribbon-coast');
   const vehicle = browserSessionVehicle(VEHICLE_CATALOG.find((v) => v.profile.id === 'TESTAROSSA'));
-  const { envelope } = JSON.parse(
-    await readFile(new URL('../../dist/content/envelopes/TESTAROSSA.json', import.meta.url)),
-  );
+  const { envelope } = await (await readDeliveredContent()).json('envelope', 'TESTAROSSA');
   const configuration = { mode: 'CUSTOM', rivalCount: 0, lapCount: 1, countdown: false };
   assert.doesNotThrow(() => resolveCourseSession(course, configuration, vehicle, envelope));
   const short = {

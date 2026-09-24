@@ -135,15 +135,40 @@ in-memory compiler products, not committed files or an additional delivered imag
 vehicle envelopes, continuous reference runs and game time budgets. Matching disposable data under
 `.cache/course-reference/` is reused; changed inputs regenerate it. Browsers load these products.
 
+`dist/content/manifest.json` is the sole delivery index. Its own
+`format: "superoutride.content-manifest", version: 1` identifies the index format; entries have only
+`{kind, id, path, sha256}`. Kinds are `course`, `image`, `envelope` and `budget`. IDs are respectively
+the course selection key, image digest (or logical `vehicles` collection), vehicle ID and
+`<course>/<vehicle>` budget key. Entries contain no payload format/version.
+
+The shared manifest reader admits the index, resolves each logical identity to its relative path,
+and verifies the exact downloaded/read bytes against SHA-256 before JSON decoding. Missing entries
+or digest mismatches stop loading. The manifest itself is the bootstrap index inside the commit-versioned
+build; it cannot contain its own digest. Browser course availability is derived from its course entries;
+labels, shortcut keys and known-course ordering remain shell settings until stage 10-5.
+
+Only the manifest writer owns output naming. Browsers, Node consumers, startup smoke and public-site
+verification read indexed content through the shared reader, never by reconstructing output paths.
+Authoring inputs under `content/` still use explicit source filenames and image directories.
+Build first writes completed vehicle images and their manifest entry, stages courses/images, then
+runs reference workers against that index and adds envelopes/budgets before publishing the completed build.
+
 | Output                                         | Use                                      |
 | ---------------------------------------------- | ---------------------------------------- |
+| `dist/content/manifest.json`                   | Delivery index and digest authority      |
+| `dist/content/courses/<course>.course.json`    | CourseDocument v24                       |
+| `dist/content/images/<sha256>.json`            | All delivered course and vehicle images  |
 | `dist/content/envelopes/<vehicle>.json`        | Rival driving envelopes                  |
 | `dist/content/budgets/<course>/<vehicle>.json` | Timed Session budgets                    |
 | `dist/offline/reference/<course>.json`         | Full reference runs, excluded from Pages |
 | `_site/build/<commit>/`                        | Complete commit-versioned Pages build    |
 | `_site/version.txt`                            | Published build identifier               |
 
+Offline reference runs are excluded from the delivery manifest because they are build/authoring
+observations, never fetched by the game and not published to Pages. Only their delivered envelopes
+and budgets belong to the index; this keeps every manifest entry available on the published site.
+
 Dependencies, caches, dist, previews and Pages staging are generated rather than committed source.
 Pages serves one complete commit-versioned ESM build, including its relative module URLs.
 After `npm ci`, `node --import tsx tools/build/verify-published-site.ts <Pages URL> <commit>` checks the public
-version and starts the served game in headless Chrome. `CHROME_BIN` selects a local Chromium executable.
+version, verifies every indexed payload through the manifest and starts the served game in headless Chrome. `CHROME_BIN` selects a local Chromium executable.

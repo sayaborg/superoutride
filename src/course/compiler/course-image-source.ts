@@ -128,14 +128,6 @@ export async function compileCourseImageSources(
       continue;
     }
     const source = value as SpriteLodDocument | TileBackgroundDocument;
-    if (
-      required
-        .get(sha256)!
-        .some((index) => references[index]!.format !== source.format || references[index]!.version !== source.version)
-    ) {
-      error('asset_invalid_image', sha256, 'Saved image format must match its declared reference', inputIndex);
-      continue;
-    }
     freezeSource(source);
     sources.set(sha256, source);
   }

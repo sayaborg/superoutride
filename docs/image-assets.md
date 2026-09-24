@@ -61,7 +61,11 @@ splits around its farthest representatives. Representatives are area-weighted mi
 stable input order resolves ties. Variant edits invalidate the generated pyramid.
 
 `content/sprites/vehicles.json` is a normalized-master dictionary with yaw/bank bindings.
-Its generated library is under `dist/content/sprites/`; manifest-listed images are digest checked.
+Its generated library uses the same `dist/content/images/<sha256>.json` location as course images.
+The content manifest maps the logical image name `vehicles` to its path and exact-byte SHA-256;
+course images are indexed by their digest. All consumers resolve these entries through the manifest
+and verify bytes before decoding. Format and version are written only inside each image file,
+never in course asset references or manifest entries.
 Strips have no ground image inputs.
 
 ## Infinite tiled background

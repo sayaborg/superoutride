@@ -18,7 +18,7 @@ color and material overwrite independently. Compiled Sections publish their two 
 Checkpoints, starts, finishes and environment changes are independent of Section boundaries.
 Source identity, traversal identity and race credit are distinct.
 
-## CourseDocument v23
+## CourseDocument v24
 
 The saved format is compact UTF-8 JSON. All declared fields are required; explicit null represents
 absent optional content. Unknown fields fail. Arrays preserve saved order; object-property order and
@@ -26,7 +26,7 @@ whitespace do not affect identity. Normalized records use schema field order and
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 23,
+  format: "superoutride.course", version: 24,
   id,
   entrySectionId,
   sections, links, assets, rules
@@ -47,10 +47,12 @@ Section {
 | Boundary        | `id`, `knots: [{at,lateral}]`                                                              |
 | Carriageway     | `id`, `left`, `right`                                                                      |
 | Link            | `id`, `from: {sectionId,carriagewayId}`, `to: {sectionId}`                                 |
-| Asset reference | `id`, `format`, `version`, lowercase `sha256`                                              |
+| Asset reference | `id`, lowercase `sha256`                                                                   |
 
-Asset formats are
-`superoutride.sprite-lod` version 2 and `superoutride.tile-background` version 1.
+Asset references carry only logical identity and the exact saved-byte digest. Format and version
+belong exclusively to the referenced file. Compilation admits that file and checks its own format
+against each use (sprite or background). Delivery resolves digests through the content manifest;
+[Development](development.md#build-outputs) owns the index and output layout.
 
 IDs are opaque nonblank strings without surrounding whitespace and compare exactly. Course ID is
 external identity. Section, Link and asset IDs each have a document-wide scope.

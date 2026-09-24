@@ -3,7 +3,7 @@ import { COURSE_DOCUMENT_LIMITS } from './course-limits.js';
 import { SESSION_RULE_LIMITS } from './session-rules.js';
 import { CourseInputError, courseFailure, courseSuccess, type CourseResult } from './course-diagnostics.js';
 
-const COURSE_DOCUMENT_VERSION = 23;
+const COURSE_DOCUMENT_VERSION = 24;
 
 export interface CoursePosition {
   readonly pi: string;
@@ -39,8 +39,6 @@ interface LinkDocument {
 /** External content identity only; no I/O or claim of payload readiness at this boundary. */
 export interface CourseAssetReference {
   readonly id: string;
-  readonly format: 'superoutride.sprite-lod' | 'superoutride.tile-background';
-  readonly version: 1 | 2;
   readonly sha256: string;
 }
 
@@ -553,19 +551,11 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
         });
       }),
       assets: identified(v.assets, '/assets', COURSE_DOCUMENT_LIMITS.assets, (item, at) => {
-        const a = record(item, at, ['id', 'format', 'version', 'sha256']);
+        const a = record(item, at, ['id', 'sha256']);
         if (typeof a.sha256 !== 'string' || !/^[0-9a-f]{64}$/.test(a.sha256))
           fail('invalid_shape', `${at}/sha256`, 'Expected lowercase SHA-256 of saved sprite-lod bytes');
         return Object.freeze({
           id: id(a.id, `${at}/id`),
-          format:
-            a.format === 'superoutride.tile-background'
-              ? a.format
-              : literal(a.format, 'superoutride.sprite-lod', `${at}/format`, 'unsupported_format'),
-          version:
-            a.format === 'superoutride.tile-background'
-              ? literal(a.version, 1, `${at}/version`, 'unsupported_version')
-              : literal(a.version, 2, `${at}/version`, 'unsupported_version'),
           sha256: a.sha256,
         });
       }),

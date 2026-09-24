@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { fileURLToPath } from 'node:url';
-import { loadCourse, loadCourseGround } from '../../tools/course/authoring-io.ts';
+import { readDeliveredContent } from '../../tools/course/read-content.ts';
+import { loadDeliveredCourse } from '../../src/course/load-delivered-course.js';
+import { loadCourseGround } from '../../tools/course/authoring-io.ts';
 import { readVehicleSprites } from '../../tools/course/read-vehicle-sprites.ts';
 import { createCourseScene } from '../../src/shell/course-scene.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../../src/vehicle/physics/arcade-vehicle-physics.js';
@@ -13,10 +14,10 @@ import { STRIP_RENDER_METHODS } from '../../src/view/display-settings.js';
 import { createDisplaySettings } from '../../src/view/display-settings.js';
 import { SoftwareSurface } from '../../src/view/software-surface.js';
 
-for (const stem of ['ribbon-coast', 'ribbon-fork', 'ribbon-ring'])
+const content = await readDeliveredContent();
+for (const { id: stem } of content.manifest.files.filter((file) => file.kind === 'course'))
   test(`${stem} compiles and starts through the shared driving scene`, async () => {
-    const file = fileURLToPath(new URL(`../../content/courses/${stem}.course.json`, import.meta.url));
-    const { course } = await loadCourse(file);
+    const course = await loadDeliveredCourse(content, stem);
     const settings = createDisplaySettings();
     assert.equal(settings.stripMethod, 'LEVEL-POINT');
     const scene = createCourseScene(

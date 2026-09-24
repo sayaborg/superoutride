@@ -1,7 +1,8 @@
+import { loadDeliveredCourse } from '../../src/course/load-delivered-course.js';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
-import { loadCourse, loadCourseGround } from '../../tools/course/authoring-io.ts';
+import { readDeliveredContent } from '../../tools/course/read-content.ts';
+import { loadCourseGround } from '../../tools/course/authoring-io.ts';
 import { readVehicleSprites } from '../../tools/course/read-vehicle-sprites.ts';
 import { createCourseScene } from '../../src/shell/course-scene.js';
 import { createCourseRace } from '../../src/race/course-race.js';
@@ -28,13 +29,11 @@ const idle = { steering: 0, throttle: false, brake: false };
 const entry = VEHICLE_CATALOG.find((v) => v.profile.id === 'TESTAROSSA');
 const configuration = browserSessionVehicle(entry);
 const assets = await readVehicleSprites();
-const { envelope } = JSON.parse(
-  await readFile(new URL('../../dist/content/envelopes/TESTAROSSA.json', import.meta.url)),
-);
+const { envelope } = await (await readDeliveredContent()).json('envelope', 'TESTAROSSA');
 const driver = compileEnvelopeDriver(envelope, 0.75, envelope.maximumSpeed);
 
 export async function loadScenarioCourse(stem) {
-  const { course } = await loadCourse(new URL(`../../content/courses/${stem}.course.json`, import.meta.url).pathname);
+  const course = await loadDeliveredCourse(await readDeliveredContent(), stem);
   return { course, ground: await loadCourseGround(course) };
 }
 

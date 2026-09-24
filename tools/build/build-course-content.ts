@@ -1,7 +1,8 @@
 import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import { buildCourseReferences } from './build-course-reference.js';
-import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
-import { createHash } from 'node:crypto';
+import { readdir, readFile } from 'node:fs/promises';
+import { createContentWriter } from './content-manifest.js';
+import { readDeliveredContent } from '../course/read-content.js';
 import { readCourseDocument } from '../../src/course/course-document.js';
 import { compileCourseDocument } from '../../src/course/compiler/compiled-course.js';
 import { compileCourseImages } from '../course/compile-course-images.js';
@@ -9,15 +10,8 @@ import { readCourseImages } from '../course/read-course-images.js';
 
 const content = new URL('../../content/', import.meta.url);
 const destination = new URL('../../dist/content/', import.meta.url);
-const entries: { path: string; sha256: string }[] = [];
+const writer = createContentWriter(destination, (await readDeliveredContent()).manifest.files);
 const courses: { course: CompiledCourse; stem: string }[] = [];
-async function stage(path: string, product: unknown) {
-  const data = JSON.stringify(product) + '\n';
-  const target = new URL(path, destination);
-  await mkdir(new URL('./', target), { recursive: true });
-  await writeFile(target, data);
-  entries.push({ path, sha256: createHash('sha256').update(data).digest('hex') });
-}
 for (const name of (await readdir(new URL('courses/', content))).sort()) {
   if (!name.endsWith('.course.json')) continue;
   const bytes = await readFile(new URL(`courses/${name}`, content), 'utf8');
@@ -28,14 +22,8 @@ for (const name of (await readdir(new URL('courses/', content))).sort()) {
     await readCourseImages(document.value.assets, new URL('images/', content).pathname),
   );
   const compiled = await compileCourseDocument(prepared.document, prepared.images);
-  await stage(`courses/${name}`, prepared.document);
-  for (const image of prepared.images) {
-    const path = `images/${image.sha256}.json`;
-    if (entries.some((entry) => entry.path === path)) continue;
-    await mkdir(new URL('images/', destination), { recursive: true });
-    await writeFile(new URL(path, destination), image.bytes);
-    entries.push({ path, sha256: image.sha256 });
-  }
+  await writer.stage('course', name.replace('.course.json', ''), prepared.document);
+  for (const image of prepared.images) await writer.stage('image', image.sha256, null, new Uint8Array(image.bytes));
   if (!compiled.ok) throw new Error(JSON.stringify(compiled.diagnostics));
   console.log(`${name}: Strip ground compiled`);
   courses.push({
@@ -43,13 +31,8 @@ for (const name of (await readdir(new URL('courses/', content))).sort()) {
     stem: name.replace('.course.json', ''),
   });
 }
-await buildCourseReferences(courses, stage);
-const spriteLibraryPath = 'sprites/vehicles.json';
-entries.push({
-  path: spriteLibraryPath,
-  sha256: createHash('sha256')
-    .update(await readFile(new URL(spriteLibraryPath, destination)))
-    .digest('hex'),
-});
-await writeFile(new URL('manifest.json', destination), JSON.stringify({ version: 1, files: entries }) + '\n');
-console.log(`Validated and staged ${entries.length} course content files`);
+// Reference workers use the same admitted delivery for their completed vehicle images.
+await writer.save();
+await buildCourseReferences(courses, writer.stage);
+await writer.save();
+console.log('Validated and staged manifest content');

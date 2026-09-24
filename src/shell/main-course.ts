@@ -1,3 +1,4 @@
+import { browserContent } from './browser-content.js';
 import { createRaceSprites } from '../view/race-sprites.js';
 import { createDisplaySettings } from '../view/display-settings.js';
 import { mountStripControls } from './strip-controls.js';
@@ -5,9 +6,8 @@ import { readSpriteAssets, createVehiclePaletteVariant } from '../image/sprite-a
 import { createBrowserDrivingShell } from './driving-shell.js';
 import { selectBrowserCourseMode } from './course-mode-selection.js';
 import { mustGet } from './dom.js';
-import { readCourseDocument } from '../course/course-document.js';
+import { loadDeliveredCourse } from '../course/load-delivered-course.js';
 import { createCourseGround } from '../course/compiler/course-ground.js';
-import { compileCourseDocument } from '../course/compiler/compiled-course.js';
 import { RECOVERY_SETTINGS } from '../race/recovery.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import { deriveVehicleSpriteFamily } from '../view/vehicle-visuals.js';
@@ -27,59 +27,24 @@ status.setAttribute('role', 'status');
 status.textContent = 'Loading course…';
 canvas.insertAdjacentElement('afterend', status);
 
-async function fetchBytes(url: URL): Promise<Uint8Array<ArrayBuffer>> {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`Course request failed (${response.status}): ${url.pathname}`);
-  return new Uint8Array(await response.arrayBuffer());
-}
-
 try {
-  const root = new URL('../content/', import.meta.url);
+  const content = await browserContent();
   const mode = selectBrowserCourseMode(new URLSearchParams(location.search).get('mode')).query;
-  const bytes = await fetchBytes(new URL(`courses/${mode}.course.json`, root));
-  const source = readCourseDocument(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)));
-  if (!source.ok) throw new Error(JSON.stringify(source.diagnostics));
-  const images = await Promise.all(
-    [...new Set(source.value.assets.map((asset) => asset.sha256))].map(async (sha256) => ({
-      sha256,
-      bytes: await fetchBytes(new URL(`images/${sha256}.json`, root)),
-    })),
-  );
-  const compiled = await compileCourseDocument(source.value, images);
-  if (!compiled.ok) throw new Error(JSON.stringify(compiled.diagnostics));
-  const ground = createCourseGround(compiled.value);
-  const course = compiled.value;
+  const course = await loadDeliveredCourse(content, mode);
+  const ground = createCourseGround(course);
   if (!course.rules) throw new RangeError('Playable courses require saved Session rules');
   const parameters = new URLSearchParams(location.search);
   const settings = readBrowserSessionSettings(parameters, course.rules.classic);
   const preset = readBrowserSessionSettings(new URLSearchParams(), course.rules.classic);
   const entry = VEHICLE_CATALOG.find((v) => v.profile.id === settings.vehicleId)!;
   const vehicle = browserSessionVehicle(entry);
-  const rivalEnvelope = await readVehicleEnvelope(
-    vehicle,
-    JSON.parse(
-      new TextDecoder('utf-8', { fatal: true }).decode(
-        await fetchBytes(new URL(`envelopes/${vehicle.profile.id}.json`, root)),
-      ),
-    ),
-  );
+  const rivalEnvelope = await readVehicleEnvelope(vehicle, await content.json('envelope', vehicle.profile.id));
   const budgets = settings.countdown
-    ? await readCourseTimeBudgets(
-        course,
-        vehicle,
-        JSON.parse(
-          new TextDecoder('utf-8', { fatal: true }).decode(
-            await fetchBytes(new URL(`budgets/${mode}/${vehicle.profile.id}.json`, root)),
-          ),
-        ),
-      )
+    ? await readCourseTimeBudgets(course, vehicle, await content.json('budget', `${mode}/${vehicle.profile.id}`))
     : null;
   const session = resolveCourseSession(course, settings, vehicle, rivalEnvelope, budgets);
-  const sprites = readSpriteAssets(
-    JSON.parse(
-      new TextDecoder('utf-8', { fatal: true }).decode(await fetchBytes(new URL('sprites/vehicles.json', root))),
-    ),
-  );
+  const sprites = readSpriteAssets(await content.json('image', 'vehicles'));
+
   const braking =
     vehicle.profile.id === 'TESTAROSSA'
       ? Object.freeze({

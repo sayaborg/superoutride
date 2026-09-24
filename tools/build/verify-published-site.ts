@@ -1,3 +1,4 @@
+import { loadContentManifest } from '../../src/core/content-manifest.js';
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -21,6 +22,8 @@ for (let attempt = 1; attempt <= 10; attempt++) {
     });
     assert.equal(response.status, 200, 'Public version is unavailable');
     assert.equal((await response.text()).trim(), sha, 'Public version has not propagated');
+    const content = await loadContentManifest(new URL(`build/${sha}/content/`, root));
+    for (const entry of content.manifest.files) await content.bytes(entry.kind, entry.id);
     profile = await mkdtemp(path.join(tmpdir(), 'superoutride-startup-'));
     const page = new URL(root);
     page.searchParams.set('verify', sha);
@@ -42,7 +45,14 @@ for (let attempt = 1; attempt <= 10; attempt++) {
     // The Session output is populated by the first completed shared-scene render, not static HTML.
     const status = stdout.match(/<output\b[^>]*aria-label="Session status"[^>]*>([\s\S]*?)<\/output>/)?.[1];
     assert.ok(status && status.trim(), 'Published game did not reach its first rendered Session frame');
-    console.log(JSON.stringify({ publishedCommit: sha, started: true, status: status.trim() }));
+    console.log(
+      JSON.stringify({
+        publishedCommit: sha,
+        started: true,
+        verifiedFiles: content.manifest.files.length,
+        status: status.trim(),
+      }),
+    );
     failure = null;
     break;
   } catch (error) {

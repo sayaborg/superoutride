@@ -8,7 +8,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **7-6 — Delivery identity**.
+Next PR: **7-7 — Validation**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -18,12 +18,13 @@ PRs hold rationale and verification evidence.
 
 Write plan, position, lateral strips and race landmarks in one consistent authored course format.
 
-- **7-6 — Delivery identity:** use one manifest, one version per format and one image path.
 - **7-7 — Validation:** validate once at document reading/compilation boundaries, remove redundant internal defensive checks and impossible ok/failure paths, unify progress diagnostics and move coordinate-overlap `CourseInputError` fields to a structured diagnostic variant; consolidate vertical-curve validation and admit `curveLength` from zero upward in document reading.
   If a later course admits both a cycle and branches (for example a pit lane), generalize the
   cycle-closure check from walking the single circuit cycle to every directed cycle.
   Remove the surface sample `sectionName`, which now duplicates `type`.
   Report `plan_coordinate_inversion` by PI or station rather than internal segment index, and hold derived arc turns in radians.
+
+- **7-8 — Fork names:** rename `CompiledFork.regions`, which holds exit intervals, to a name matching its content.
 
 ## Stage 8 — Vehicles and materials
 

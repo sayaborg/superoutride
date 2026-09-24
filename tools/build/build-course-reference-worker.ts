@@ -24,7 +24,7 @@ const envelope = await cachedReference(
 if (envelope.hit) hits++;
 else misses++;
 const products: CourseReferenceResult['products'] = [
-    { path: `envelopes/${vehicleId}.json`, value: { vehicleSha256, envelope: envelope.value } },
+    { kind: 'envelope', id: vehicleId, value: { vehicleSha256, envelope: envelope.value } },
   ],
   references: CourseReferenceResult['references'] = [];
 for (const stem of stems) {
@@ -61,7 +61,7 @@ for (const stem of stems) {
     ]),
   };
   await readCourseTimeBudgets(course, vehicle, product);
-  products.push({ path: `budgets/${stem}/${vehicleId}.json`, value: product });
+  products.push({ kind: 'budget', id: `${stem}/${vehicleId}`, value: product });
   references.push({ stem, candidate });
 }
 parentPort!.postMessage({ vehicleId, products, references, hits, misses } satisfies CourseReferenceResult);

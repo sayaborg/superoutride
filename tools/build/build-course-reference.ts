@@ -1,3 +1,4 @@
+import type { ContentKind } from '../../src/core/content-manifest.js';
 import { writeFile, mkdir } from 'node:fs/promises';
 import { Worker } from 'node:worker_threads';
 import { availableParallelism } from 'node:os';
@@ -23,7 +24,7 @@ interface ReferenceCandidate {
 
 export interface CourseReferenceResult {
   readonly vehicleId: VehicleProfileId;
-  readonly products: { path: string; value: unknown }[];
+  readonly products: { kind: ContentKind; id: string; value: unknown }[];
   readonly references: { stem: string; candidate: ReferenceCandidate }[];
   readonly hits: number;
   readonly misses: number;
@@ -32,7 +33,7 @@ export interface CourseReferenceResult {
 /** Build authority: independent vehicle jobs share no mutable mechanics or course state. */
 export async function buildCourseReferences(
   courses: readonly { course: CompiledCourse; stem: string }[],
-  stage: (path: string, product: unknown) => Promise<void>,
+  stage: (kind: ContentKind, id: string, product: unknown) => Promise<void>,
 ) {
   const physicsSha256 = await referenceModelIdentity(),
     stems = courses.map((c) => c.stem);
@@ -80,7 +81,7 @@ export async function buildCourseReferences(
     ]),
   );
   for (const result of results) {
-    for (const product of result.products) await stage(product.path, product.value);
+    for (const product of result.products) await stage(product.kind, product.id, product.value);
     for (const { stem, candidate } of result.references) references.get(stem)!.vehicles.push(candidate);
   }
   const offline = new URL('../../dist/offline/reference/', import.meta.url);

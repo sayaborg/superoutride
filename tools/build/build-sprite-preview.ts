@@ -1,6 +1,7 @@
 import { buildBrowserTools } from './build-browser-tools.js';
 import type { SpriteLodDocument } from '../../src/image/sprite.js';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
+import { createContentWriter } from './content-manifest.js';
 import { createSpriteLodFilterFixture } from '../graphics/fixtures/sprite-lod.js';
 import { compileSpriteLod } from '../graphics/sprite-lod-compiler.js';
 import { createSpriteSourceFixture } from '../graphics/fixtures/sprite-source.js';
@@ -34,10 +35,10 @@ const masters = JSON.parse(await readFile(new URL('../../content/sprites/vehicle
   sprites: SpriteLodDocument[];
 };
 const product = { ...masters, sprites: masters.sprites.map(compileSpriteLod) };
-const library = new URL('../../dist/content/sprites/vehicles.json', import.meta.url);
-await mkdir(new URL('./', library), { recursive: true });
+const writer = createContentWriter(new URL('../../dist/content/', import.meta.url));
 const libraryBytes = JSON.stringify(product) + '\n';
-await writeFile(library, libraryBytes);
+await writer.stage('image', 'vehicles', product);
+await writer.save();
 const levels = product.sprites.flatMap((sprite) => sprite.levels.slice(1));
 console.log(
   JSON.stringify({

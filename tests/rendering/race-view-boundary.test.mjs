@@ -11,7 +11,7 @@ import { createRecoveryState } from '../../src/race/recovery.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
 import { readVehicleEnvelope } from '../../src/race/vehicle-envelope.js';
-import { readFile } from 'node:fs/promises';
+import { readDeliveredContent } from '../../tools/course/read-content.ts';
 import { createCameraRig, updateCamera } from '../../src/view/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../../src/view/current-camera-profile.js';
 import { createRaceSprites } from '../../src/view/race-sprites.js';
@@ -54,7 +54,7 @@ test('race actors have no cameras and view assembles sixteen rival sprites from 
   const { course, scene, assets, profile, spawn } = await setup();
   const envelope = await readVehicleEnvelope(
     profile,
-    JSON.parse(await readFile(new URL('../../dist/content/envelopes/TESTAROSSA.json', import.meta.url), 'utf8')),
+    await (await readDeliveredContent()).json('envelope', 'TESTAROSSA'),
   );
   const settings = resolveCourseSession(
     course,
