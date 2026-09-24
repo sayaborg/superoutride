@@ -1,5 +1,4 @@
 import { compileStationSequence, stationSequenceChainage, stationIndexAt } from './station-sequence.js';
-import { finite } from '../../core/validation.js';
 
 export interface ProfileKnot {
   readonly s: number;
@@ -40,14 +39,9 @@ export class Profile implements ProfileReader {
     readonly courseLength: number,
     knots: readonly ProfileKnot[],
   ) {
-    for (const knot of knots) {
-      finite(knot.y, 'profile knot height');
-      finite(knot.curveLength, 'profile curve length');
-    }
     this.knots = compileStationSequence(knots, {
       length: courseLength,
       chainage: 's',
-      label: 'profile',
       endNode: true,
     });
     this.#grades = Object.freeze(
@@ -58,7 +52,7 @@ export class Profile implements ProfileReader {
     return this.sampleDifferential(s, this.#scratch).y;
   }
   sampleDifferential(s: number, out = { y: 0, dYdS: 0 }): ProfileSample {
-    const local = stationSequenceChainage(s, this.courseLength, 'profile');
+    const local = stationSequenceChainage(s, this.courseLength);
     const i = Math.min(this.knots.length - 2, stationIndexAt(this.knots, 's', local));
     const next = this.knots[i + 1]!;
     const curveIndex = local < next.s - next.curveLength / 2 ? i : i + 1;
@@ -102,7 +96,7 @@ export class ProfilePolyline implements ProfilePolylineReader {
     );
   }
   sample(s: number, out = { y: 0, grade: 0, segmentIndex: 0, sStart: 0, sEnd: 0 }): ProfilePolylineSample {
-    const local = stationSequenceChainage(s, this.courseLength, 'profile polyline');
+    const local = stationSequenceChainage(s, this.courseLength);
     const i = Math.min(this.vertices.length - 2, stationIndexAt(this.vertices, 's', local));
     const a = this.vertices[i]!,
       b = this.vertices[i + 1]!;
@@ -115,7 +109,7 @@ export class ProfilePolyline implements ProfilePolylineReader {
     return out;
   }
   distanceToNextVertex(s: number): number {
-    const local = stationSequenceChainage(s, this.courseLength, 'profile polyline');
+    const local = stationSequenceChainage(s, this.courseLength);
     if (local === this.courseLength) return 0;
     return this.vertices[stationIndexAt(this.vertices, 's', local) + 1]!.s - local;
   }

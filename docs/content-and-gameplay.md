@@ -425,9 +425,12 @@ Document operations return `{ok:true,value}` or `{ok:false,diagnostics}`. Input 
 The `plan_coordinate_overlap` variant additionally requires
 `overlap: {section, intervals: [{sStart, sEnd}, ...]}`; ordinary diagnostics have no overlap fields.
 `plan_coordinate_inversion` identifies the Section's PIs and the affected station in metres, never
-an internal segment number. `invalid_gate` covers gate shape, limits, IDs, references, positions,
-ordering, Carriageway support, grid, lock/closure and circuit finish conditions. Its path identifies
-the causal gate or field; a missing gate points to its Section's `gates` collection.
+an internal segment number. `invalid_gate` identifies gate-specific rules: gate kind, gate ID uniqueness,
+counts, ordering, Carriageway support, grid, lock/closure and circuit finish conditions.
+Shared shape, numeric, reference and position rules keep their own codes (for example
+`invalid_shape`, `unresolved_reference` and `invalid_position`), with a path into the affected gate.
+Each check chooses its code explicitly; paths do not select codes and exceptions are not recoded.
+A missing gate points to its Section's `gates` collection.
 `invalid_rules` is reserved for position-free race settings. Non-gate fork constraints retain
 `invalid_fork`, addressed to the affected sprites, Strips, Boundaries or Carriageways.
 

@@ -37,9 +37,8 @@ export interface CourseRoute {
 
 const identity = compilePlanarTransform({ x: 0, z: 0, heading: 0 }, { x: 0, z: 0, heading: 0 });
 
-/** Validate the entry and canonical link at the route mutation boundary. */
+/** Assemble a route from the admitted entry and canonical successor Links. */
 export function createCourseRoute(entry: CompiledSection): CourseRoute {
-  if (!entry?.coordinates || !entry.coordinates.domain) throw new TypeError('Route requires a compiled entry Section');
   let occurrences: readonly RouteOccurrence[] = Object.freeze([
     Object.freeze({
       ordinal: 0,
@@ -62,15 +61,12 @@ export function createCourseRoute(entry: CompiledSection): CourseRoute {
       if (occurrences[mid]!.start <= s) lo = mid + 1;
       else hi = mid;
     }
-    const result = occurrences[lo - 1]!;
-    return s <= result.end ? result : null;
+    return occurrences[lo - 1]!;
   };
   const append = (link: CompiledLink): void => {
     const previous = occurrences.at(-1)!;
-    if (!previous.section.outgoing.includes(link)) throw new RangeError('Route needs a canonical outgoing Link');
     const start = previous.end;
     const end = start + link.to.section.coordinates.domain.end;
-    if (!(end > start)) throw new RangeError('Route successor must have positive length');
     const worldFromSection = composePlanarTransforms(
       previous.worldFromSection,
       invertPlanarTransform(link.destinationFromSource),

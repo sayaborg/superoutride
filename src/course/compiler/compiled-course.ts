@@ -4,7 +4,6 @@ import { createPlanCoordinateReader } from '../geometry/plan-coordinate-reader.j
 import { contentDigest } from '../../core/content-digest.js';
 import {
   CourseInputError,
-  admitGate,
   courseFailure,
   courseFailures,
   courseSuccess,
@@ -163,7 +162,7 @@ function compileSection(
             {
               kind: gate.kind,
               path: `${path}/gates/${index}`,
-              at: admitGate(() => resolve(gate.at, `${path}/gates/${index}/at`)),
+              at: resolve(gate.at, `${path}/gates/${index}/at`),
             },
           ]
         : [],

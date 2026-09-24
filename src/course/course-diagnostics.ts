@@ -112,14 +112,13 @@ export class CourseInputError extends Error {
   }
 }
 
-export function courseFailure<T>(error: CourseInputError): CourseResult<T> {
+export function courseFailure(error: CourseInputError) {
   return courseFailures([error]);
 }
 
 /** Independent admission failures in deterministic input order; never a partial product. */
-export function courseFailures<T>(errors: readonly { readonly diagnostic: CourseDiagnostic }[]): CourseResult<T> {
-  if (errors.length === 0) throw new Error('A failed admission must identify a cause');
-  return Object.freeze({ ok: false, diagnostics: Object.freeze(errors.map((error) => error.diagnostic)) });
+export function courseFailures(errors: readonly { readonly diagnostic: CourseDiagnostic }[]) {
+  return Object.freeze({ ok: false as const, diagnostics: Object.freeze(errors.map((error) => error.diagnostic)) });
 }
 
 export function requireCourse(
@@ -131,17 +130,6 @@ export function requireCourse(
   if (!condition) throw new CourseInputError(code, path, message);
 }
 
-export function courseSuccess<T>(value: T): CourseResult<T> {
-  return Object.freeze({ ok: true, value });
-}
-
-/** Gate shape, references and geometry share one author-facing code. Internal faults still propagate. */
-export function admitGate<T>(read: () => T): T {
-  try {
-    return read();
-  } catch (error) {
-    if (error instanceof CourseInputError)
-      throw new CourseInputError('invalid_gate', error.diagnostic.path, error.message);
-    throw error;
-  }
+export function courseSuccess<T>(value: T) {
+  return Object.freeze({ ok: true as const, value });
 }

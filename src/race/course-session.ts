@@ -1,11 +1,7 @@
 import { compileEnvelopeDriver, type VehicleEnvelope } from './envelope-driver.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import type { CompiledCourseLandmark } from '../course/compiler/course-rules.js';
-import {
-  compileSessionConfiguration,
-  type SessionConfiguration,
-  type SessionVehicle,
-} from './session-configuration.js';
+import type { SessionConfiguration, SessionVehicle } from './session-configuration.js';
 export interface CourseTimeBudgets {
   readonly initialMs: number;
   after(gate: CompiledCourseLandmark, lap: number): number;
@@ -21,11 +17,10 @@ export function resolveCourseSession(
 ) {
   if (!course.rules) throw new RangeError('Session requires authored rules');
   const preset = course.rules.classic;
-  const configuration = compileSessionConfiguration(
+  const configuration: Readonly<SessionConfiguration> =
     requested.mode === 'CLASSIC'
-      ? { mode: 'CLASSIC', rivalCount: preset.rivalCount, lapCount: preset.lapCount, countdown: true }
-      : requested,
-  );
+      ? Object.freeze({ mode: 'CLASSIC', rivalCount: preset.rivalCount, lapCount: preset.lapCount, countdown: true })
+      : requested;
   if (configuration.mode === 'CLASSIC' && vehicle.profile.id !== preset.vehicleId)
     throw new RangeError('CLASSIC requires its preset vehicle');
   if (configuration.lapCount > course.rules.maxLaps)

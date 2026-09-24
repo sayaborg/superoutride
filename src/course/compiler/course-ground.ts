@@ -24,9 +24,7 @@ export function createCourseGround(course: CompiledCourse) {
       directoryBytes: sum('directoryBytes'),
     }),
     forSection(section: CompiledSection) {
-      const reader = table.get(section);
-      if (!reader) throw new RangeError('Section is outside the compiled course');
-      return reader;
+      return table.get(section)!;
     },
   });
 }

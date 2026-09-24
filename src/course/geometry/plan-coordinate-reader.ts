@@ -26,19 +26,6 @@ interface NativePlanDomain {
   lateralAt(s: number, out: Writable<PlanLateralBounds>): PlanLateralBounds;
 }
 
-function checkProjection(world: Vec2, previousS: number, start: number, end: number): void {
-  if (!world || typeof world.x !== 'number' || typeof world.z !== 'number' || typeof previousS !== 'number')
-    throw new TypeError('Projection requires a world point and previous chainage');
-  if (
-    !Number.isFinite(world.x) ||
-    !Number.isFinite(world.z) ||
-    !Number.isFinite(previousS) ||
-    previousS < start ||
-    previousS > end
-  )
-    throw new RangeError('Projection requires finite coordinates and an admitted previous chainage');
-}
-
 /** A Section reader over its authored straight/circular plan authority. */
 export function createPlanCoordinateReader(
   segments: readonly CompiledPlanSegment[],
@@ -69,10 +56,6 @@ export function createPlanCoordinateReader(
       return end;
     },
     projectionCandidates(start: number, end: number) {
-      if (typeof start !== 'number' || typeof end !== 'number')
-        throw new TypeError('Projection interval endpoints must be numeric');
-      if (!(start >= 0 && end >= start && end <= length))
-        throw new RangeError('Projection interval must lie inside the Section domain');
       const candidates: PlanProjectionCandidate[] = [];
       for (let i = planSegmentIndexAt(plan, start); i < segments.length; i += 1) {
         const segment = segments[i]!;
@@ -100,14 +83,10 @@ export function createPlanCoordinateReader(
       start: 0,
       end: length,
       lateralAt(s: number, out: Writable<PlanLateralBounds>) {
-        if (typeof s !== 'number') throw new TypeError('Plan chainage must be numeric');
-        if (!Number.isFinite(s) || s < 0 || s > length)
-          throw new RangeError('Plan chainage is outside the Section domain');
         return lateralAt(s, out);
       },
     }),
     toWorld(s: number, l: number, out: PlanCoordinateSample) {
-      if (!Number.isFinite(l)) throw new RangeError('Plan lateral coordinate must be finite');
       samplePlanPath(plan, s, sample);
       const normal = normalFromHeading(sample.heading);
       out.x = sample.x + normal.x * l;
@@ -118,15 +97,12 @@ export function createPlanCoordinateReader(
       return out;
     },
     metricsAt(s: number, l: number, out: Writable<PlanCoordinateMetrics>) {
-      if (!Number.isFinite(s) || s < 0 || s > length || !Number.isFinite(l))
-        throw new RangeError('Plan metric requires finite coordinates in the Section');
       const segment = segments[planSegmentIndexAt(plan, s)]!;
       out.curvature = segment.curvature;
       out.offsetMetric = 1 - segment.curvature * l;
       return out;
     },
     locateLocal(world: Vec2, previousS: number, out: PlanCoordinateProjection, workspace: PlanProjectionWorkspace) {
-      checkProjection(world, previousS, 0, length);
       const from = Math.max(0, previousS - PLAN_PROJECTION_WINDOW_METERS);
       const to = Math.min(length, previousS + PLAN_PROJECTION_WINDOW_METERS);
       const candidate = workspace.candidate;
@@ -162,7 +138,6 @@ export function createPlanCoordinateReader(
         bestInDomain = inDomain;
         found = true;
       }
-      if (!found) throw new Error('Admitted Section projection lost its candidates');
       return out;
     },
   });

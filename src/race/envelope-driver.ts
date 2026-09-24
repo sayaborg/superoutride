@@ -47,9 +47,6 @@ export function envelopeAt(
 }
 
 export function compileEnvelopeDriver(envelope: VehicleEnvelope, utilization: number, speedCap: number) {
-  if (!Number.isFinite(utilization) || utilization <= 0 || utilization > 1)
-    throw new RangeError('Driver utilization must be in (0, 1]');
-  if (!Number.isFinite(speedCap) || speedCap <= 0) throw new RangeError('Driver speed cap must be positive');
   return Object.freeze({
     envelope,
     utilization,

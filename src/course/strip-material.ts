@@ -9,10 +9,7 @@ import {
 import { SURFACE_MATERIALS, type SurfaceMaterial } from './surface-material.js';
 
 const samples = new Map(
-  Object.values(SURFACE_MATERIALS).map((material) => [
-    material,
-    Object.freeze({ sectionName: material.type, type: material.type, material }),
-  ]),
+  Object.values(SURFACE_MATERIALS).map((material) => [material, Object.freeze({ type: material.type, material })]),
 );
 export const VOID_SURFACE = samples.get(SURFACE_MATERIALS.VOID)!;
 
@@ -31,10 +28,6 @@ export function compileStripMaterial(
 ): StripMaterial {
   const slabs = resolveStripSlabs(length, pieces, null, path);
   const sampleInChart = (s: number, l: number, lateralOrigin: number) => {
-    if (typeof s !== 'number' || typeof l !== 'number' || typeof lateralOrigin !== 'number')
-      throw new TypeError('Material coordinates and origin must be numeric');
-    if (!Number.isFinite(s) || !Number.isFinite(l) || !Number.isFinite(lateralOrigin) || s < 0 || s > length)
-      throw new RangeError('Material query must be finite and inside the Section');
     const material = stripSpanAt(slabs[stripSlabAt(slabs, s)]!, s, l, lateralOrigin).value;
     return material === null ? VOID_SURFACE : samples.get(material)!;
   };

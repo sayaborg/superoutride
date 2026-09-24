@@ -42,7 +42,6 @@ export function rankRaceProgress(inputs: readonly RaceRankingInput[]) {
 }
 
 export function formatRaceTime(seconds: number): string {
-  if (!(seconds >= 0) || !Number.isFinite(seconds)) throw new RangeError('race time must be finite and >= 0');
   const totalMilliseconds = Math.floor(seconds * 1000 + TIMER_ROUNDING_TOLERANCE_MILLISECONDS);
   const minutes = Math.floor(totalMilliseconds / 60_000);
   const secondsPart = Math.floor((totalMilliseconds % 60_000) / 1000);

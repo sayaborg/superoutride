@@ -54,9 +54,7 @@ export function createCourseRouteReaders(route: CourseRoute) {
         })),
     );
     const profileKnots = indexed.flatMap((occurrence) =>
-      occurrence.section.height.knots
-        .filter((knot) => knot.s >= 0 && knot.s <= occurrence.section.coordinates.domain.end)
-        .map((knot) => Object.freeze({ ...knot, s: routeS(occurrence, knot.s) })),
+      occurrence.section.height.knots.map((knot) => Object.freeze({ ...knot, s: routeS(occurrence, knot.s) })),
     );
     heightKnots = profileKnots.filter((knot, i) => i + 1 === profileKnots.length || knot.s !== profileKnots[i + 1]!.s);
     const displayVertices = indexed.flatMap((occurrence) => {

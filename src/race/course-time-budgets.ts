@@ -6,12 +6,11 @@ import type { CourseTimeBudgets } from './course-session.js';
 
 /** Every admitted upcoming interval, including the final lap's checkpoints. */
 export function courseBudgetLandmarks(course: CompiledCourse) {
-  if (!course.rules) throw new RangeError('Time budgets require authored rules');
   const result: { gate: CompiledCourseLandmark; laps: number }[] = [];
   for (const interval of course.gates!.intervals) {
-    for (const gate of interval.checkpoints) result.push({ gate, laps: course.rules.maxLaps });
-    if (course.type === 'CIRCUIT' && course.rules.maxLaps > 1 && interval.finish)
-      result.push({ gate: interval.finish, laps: course.rules.maxLaps - 1 });
+    for (const gate of interval.checkpoints) result.push({ gate, laps: course.rules!.maxLaps });
+    if (course.type === 'CIRCUIT' && course.rules!.maxLaps > 1 && interval.finish)
+      result.push({ gate: interval.finish, laps: course.rules!.maxLaps - 1 });
   }
   return result;
 }
@@ -59,9 +58,7 @@ export async function readCourseTimeBudgets(
   return Object.freeze({
     initialMs,
     after(gate: CompiledCourseLandmark, lap: number) {
-      const value = Number.isSafeInteger(lap) ? values.get(gate)?.[lap - 1] : undefined;
-      if (value === undefined) throw new Error('No admitted upcoming reference interval');
-      return value;
+      return values.get(gate)![lap - 1]!;
     },
   });
 }

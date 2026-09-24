@@ -8,7 +8,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **7-7b — Internal checks**.
+Next PR: **7-8 — Fork names**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -17,10 +17,6 @@ PRs hold rationale and verification evidence.
 ## Stage 7 — Course format
 
 Write plan, position, lateral strips and race landmarks in one consistent authored course format.
-
-- **7-7b — Internal checks:** remove internal defensive checks and impossible ok/failure paths behind
-  the admission boundary; hold derived arc turns in radians; remove the surface sample `sectionName`,
-  which duplicates `type`.
 
 - **7-8 — Fork names:** rename `CompiledFork.regions`, which holds exit intervals, to a name matching its content.
 

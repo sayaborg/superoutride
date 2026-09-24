@@ -3,7 +3,6 @@ import type { ProfileReader } from './geometry/profile.js';
 import type { SurfaceMaterial, SurfaceType } from './surface-material.js';
 
 export interface SurfaceSample {
-  readonly sectionName: string;
   readonly type: SurfaceType;
   readonly material: SurfaceMaterial;
 }

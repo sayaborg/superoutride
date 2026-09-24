@@ -39,7 +39,7 @@ export class SurfaceMap implements SurfaceMapReader {
         ...section,
         intervals: compileSurfaceIntervals(section.intervals),
       })),
-      { length: courseLength, chainage: 'sStart', label: 'surface profile' },
+      { length: courseLength, chainage: 'sStart' },
     );
   }
 
@@ -52,10 +52,10 @@ export class SurfaceMap implements SurfaceMapReader {
       const interval = section.intervals[i]!;
       if (l >= interval.lMin && l <= interval.lMax) {
         const material = SURFACE_MATERIALS[interval.type];
-        return { sectionName: section.name, type: interval.type, material };
+        return { type: interval.type, material };
       }
     }
-    return { sectionName: section.name, type: 'VOID', material: SURFACE_MATERIALS.VOID };
+    return { type: 'VOID', material: SURFACE_MATERIALS.VOID };
   }
 
   sectionAt(s: number): SurfaceSection {
@@ -63,7 +63,7 @@ export class SurfaceMap implements SurfaceMapReader {
   }
 
   private normalizeChainage(s: number): number {
-    return stationSequenceChainage(s, this.courseLength, 'surface');
+    return stationSequenceChainage(s, this.courseLength);
   }
 
   private sectionAtLocal(local: number): SurfaceSection {

@@ -3,7 +3,12 @@ import type { Writable } from '../../core/writable.js';
 /** Derived geometry only; never part of the saved course schema. */
 export type PlanSegmentGeometry =
   | { readonly kind: 'straight'; readonly length: number }
-  | { readonly kind: 'arc'; readonly radius: number; readonly turn: number };
+  | {
+      readonly kind: 'arc';
+      readonly radius: number;
+      /** Signed deflection in radians. */
+      readonly turn: number;
+    };
 
 const TAU = Math.PI * 2;
 // Metres: plan evaluation/endpoint arithmetic budget, about 86 ulps at 10^6 m.
@@ -65,7 +70,7 @@ export function compilePlanPath(
       x += tangent.x * length;
       z += tangent.z * length;
     } else {
-      const turn = shape.turn * (Math.PI / 180);
+      const turn = shape.turn;
       const sign = Math.sign(turn);
       length = shape.radius * Math.abs(turn);
       curvature = sign / shape.radius;
@@ -80,7 +85,6 @@ export function compilePlanPath(
     }
     const sStart = s;
     s += length;
-    if (![x, z, heading, s].every(Number.isFinite)) throw new RangeError('plan path must remain finite');
     return Object.freeze({
       index,
       geometry: Object.freeze({ ...shape }),
@@ -94,17 +98,14 @@ export function compilePlanPath(
   return Object.freeze({ segments: Object.freeze(segments), length: s });
 }
 
-function checkedPlanChainage(path: PlanPath, s: number): number {
-  if (!Number.isFinite(s)) throw new RangeError('plan chainage must be finite');
-  if (s < -PLAN_POSITION_TOLERANCE_METERS || s > path.length + PLAN_POSITION_TOLERANCE_METERS)
-    throw new RangeError(`plan chainage ${s} is outside [0, ${path.length}]`);
+function normalizePlanChainage(path: PlanPath, s: number): number {
   if (s <= 0) return 0;
   if (s >= path.length) return path.length;
   return s;
 }
 
 export function planSegmentIndexAt(path: PlanPath, s: number): number {
-  const sLocal = checkedPlanChainage(path, s);
+  const sLocal = normalizePlanChainage(path, s);
   let low = 0;
   let high = path.segments.length - 1;
   while (low <= high) {
@@ -122,8 +123,6 @@ export function samplePlanSegment(
   s: number,
   out: Writable<PlanPathSample>,
 ): PlanPathSample {
-  if (s < segment.sStart - PLAN_POSITION_TOLERANCE_METERS || s > segment.sEnd + PLAN_POSITION_TOLERANCE_METERS)
-    throw new RangeError('plan segment sample is outside its interval');
   const clamped = clamp(s, segment.sStart, segment.sEnd);
   const ds = clamped - segment.sStart;
   let heading = segment.start.heading;
@@ -132,12 +131,11 @@ export function samplePlanSegment(
     out.x = segment.start.x + tangent.x * ds;
     out.z = segment.start.z + tangent.z * ds;
   } else {
-    const turn = segment.geometry.turn * (Math.PI / 180);
-    const q = segment.sEnd === segment.sStart ? 0 : ds / (segment.sEnd - segment.sStart);
+    const turn = segment.geometry.turn;
+    const q = ds / (segment.sEnd - segment.sStart);
     heading = wrapAngle(heading + turn * q);
     const sign = Math.sign(turn);
-    const center = segment.center;
-    if (!center) throw new Error('compiled arc lost its center');
+    const center = segment.center!;
     out.x = center.x - sign * segment.geometry.radius * Math.cos(heading);
     out.z = center.z + sign * segment.geometry.radius * Math.sin(heading);
   }
@@ -148,7 +146,7 @@ export function samplePlanSegment(
 }
 
 export function samplePlanPath(path: PlanPath, s: number, out: Writable<PlanPathSample>): PlanPathSample {
-  const checked = checkedPlanChainage(path, s);
+  const checked = normalizePlanChainage(path, s);
   return samplePlanSegment(path.segments[planSegmentIndexAt(path, checked)]!, checked, out);
 }
 
@@ -173,33 +171,13 @@ export function projectPlanSegmentInterval(
   out: Writable<PlanPathProjection>,
   sample: Writable<PlanPathSample>,
 ): PlanPathProjection {
-  if (
-    !world ||
-    typeof world.x !== 'number' ||
-    typeof world.z !== 'number' ||
-    typeof start !== 'number' ||
-    typeof end !== 'number'
-  )
-    throw new TypeError('plan projection requires numeric world coordinates and bounds');
-  if (
-    !Number.isFinite(world.x) ||
-    !Number.isFinite(world.z) ||
-    !Number.isFinite(start) ||
-    !Number.isFinite(end) ||
-    start < segment.sStart ||
-    end > segment.sEnd ||
-    !(end > start)
-  )
-    throw new RangeError('Projection interval must have positive extent inside its compiled segment');
-
   let rawS: number;
   if (segment.geometry.kind === 'straight') {
     const tangent = tangentFromHeading(segment.start.heading);
     const along = (world.x - segment.start.x) * tangent.x + (world.z - segment.start.z) * tangent.z;
     rawS = segment.sStart + along;
   } else {
-    const center = segment.center;
-    if (!center) throw new Error('compiled arc lost its center');
+    const center = segment.center!;
     const radialX = world.x - center.x;
     const radialZ = world.z - center.z;
     const radialLength = Math.hypot(radialX, radialZ);
@@ -209,9 +187,9 @@ export function projectPlanSegmentInterval(
     } else {
       const sign = Math.sign(segment.geometry.turn);
       const rawHeading = Math.atan2(sign * radialZ, -sign * radialX);
-      const turn = segment.geometry.turn * (Math.PI / 180);
+      const turn = segment.geometry.turn;
       const delta = nearestArcDelta(rawHeading, segment.start.heading, turn);
-      q = turn === 0 ? 0 : delta / turn;
+      q = delta / turn;
     }
     rawS = segment.sStart + q * (segment.sEnd - segment.sStart);
   }
@@ -243,15 +221,14 @@ export function planSegmentBounds(
   let back = Math.min(a.z, b.z);
   let front = Math.max(a.z, b.z);
   if (segment.geometry.kind === 'arc') {
-    const turn = segment.geometry.turn * (Math.PI / 180);
+    const turn = segment.geometry.turn;
     const q0 = (start - segment.sStart) / (segment.sEnd - segment.sStart);
     const q1 = (end - segment.sStart) / (segment.sEnd - segment.sStart);
     const h0 = segment.start.heading + turn * q0;
     const h1 = segment.start.heading + turn * q1;
     const low = Math.min(h0, h1);
     const high = Math.max(h0, h1);
-    const center = segment.center;
-    if (!center) throw new Error('compiled arc lost its center');
+    const center = segment.center!;
     const sign = Math.sign(turn);
     const step = Math.PI / 2;
     for (let quadrant = Math.ceil(low / step); quadrant * step <= high; quadrant += 1) {

@@ -14,8 +14,6 @@ export interface CompiledCarriageway {
 /** Canonical resolved vertices are the authority; neither widths nor centers are independently stored. */
 export function courseBoundaryAt(boundary: CompiledBoundary, s: number): number {
   const vertices = boundary.vertices;
-  if (!Number.isFinite(s) || s < vertices[0]!.at.s || s > vertices.at(-1)!.at.s)
-    throw new RangeError('Boundary query must be within its finite vertex domain');
   // Search resolved positions directly without building another station table.
   let low = 0,
     high = vertices.length;

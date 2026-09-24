@@ -1,5 +1,4 @@
 import { compileStationSequence, stationSequenceChainage, stationIndexAt } from './geometry/station-sequence.js';
-import { nonEmptyId } from '../core/validation.js';
 
 interface EnvironmentInterval {
   readonly sStart: number;
@@ -20,22 +19,16 @@ export class EnvironmentTimeline implements EnvironmentReader {
     readonly courseLength: number,
     intervals: readonly EnvironmentInterval[],
   ) {
-    this.intervals = compileStationSequence(
-      intervals.map((interval) => {
-        nonEmptyId(interval.name, 'environment interval name');
-        return { ...interval };
-      }),
-      { length: courseLength, chainage: 'sStart', label: 'environment timeline' },
-    );
+    this.intervals = compileStationSequence(intervals, { length: courseLength, chainage: 'sStart' });
   }
 
   sample(s: number): EnvironmentInterval {
-    const local = stationSequenceChainage(s, this.courseLength, 'environment timeline');
+    const local = stationSequenceChainage(s, this.courseLength);
     return this.intervals[stationIndexAt(this.intervals, 'sStart', local)]!;
   }
 
   distanceToNextInterval(s: number): number {
-    const local = stationSequenceChainage(s, this.courseLength, 'environment timeline');
+    const local = stationSequenceChainage(s, this.courseLength);
     if (local === this.courseLength) return 0;
     const index = stationIndexAt(this.intervals, 'sStart', local);
     return (this.intervals[index + 1]?.sStart ?? this.courseLength) - local;

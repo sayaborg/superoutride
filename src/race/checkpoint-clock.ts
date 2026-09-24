@@ -9,8 +9,6 @@ interface CheckpointClockEvent {
 
 /** Simulation time only. Expiry and gates are ordered at their exact within-step timestamps. */
 export function createCheckpointClock(initialBudgetMs: number | null) {
-  if (initialBudgetMs !== null && (!Number.isSafeInteger(initialBudgetMs) || initialBudgetMs <= 0))
-    throw new RangeError('Initial checkpoint budget must be positive integer milliseconds or null');
   let status: 'READY' | 'RUNNING' | 'GOAL' | 'GAME_OVER' = 'READY';
   let elapsedSeconds = 0,
     deadline = initialBudgetMs === null ? Infinity : initialBudgetMs / 1000;

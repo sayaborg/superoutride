@@ -4,6 +4,16 @@ This document owns coordinate and geometry contracts, projection, camera metric,
 [Content and gameplay](content-and-gameplay.md) owns course data and game rules;
 [Image assets](image-assets.md) owns image formats and compilation.
 
+## Admission boundary
+
+Course documents and assets are checked when read and compiled; delivered manifests, vehicle
+envelopes, time budgets and external Session selections are checked at their intake. Cross-object
+Session admission relates the requested settings, course and vehicle before actors exist.
+Inside those boundaries, course/race constructors, readers and updates trust admitted data and
+internal arguments: they do not repeat shape/domain checks or retain impossible failure branches.
+Outside-route sampling and live gameplay decisions remain ordinary behavior. Vehicle-domain
+failure propagation belongs to the vehicle layer, not course/race input validation.
+
 ## Coordinates and readers
 
 World X/Y/Z is authoritative: +Y is up, yaw zero faces +Z and positive yaw turns toward +X.
@@ -17,7 +27,7 @@ n = (cos(psi), -sin(psi))
 A Section is authored as PI coordinates and radii. Its native coordinates are the authored PI
 coordinates, without origin or orientation normalization. The entry Section's native frame is the
 world frame. The plan starts at the first PI, with heading `atan2(dx,dz)` of the first edge.
-The derived straight/circular plan is the planar authority. `s` is true arc length
+The derived straight/circular plan is the planar authority; derived arc turns are stored in radians. `s` is true arc length
 along that centerline and positive `l` is distance along its right normal. With centerline `C(s)`,
 normal `N(s)` and signed curvature `kappa`, planar coordinates are `C(s) + l*N(s)`; physical
 distance along an offset or sloping path is different.

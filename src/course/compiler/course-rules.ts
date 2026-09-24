@@ -1,7 +1,7 @@
 import type { compileCourseTopology } from './course-links.js';
 import { resolveCourseLateral } from './course-lateral.js';
 import type { CourseDocument, CourseLandmarkDocument } from '../course-document.js';
-import { admitGate, requireCourse } from '../course-diagnostics.js';
+import { requireCourse } from '../course-diagnostics.js';
 import { resolveCoursePosition, type CompiledCoursePosition } from '../course-geometry.js';
 import { courseBoundaryAt, courseCarriagewayExists, type CompiledCarriageway } from '../course-boundaries.js';
 import { stripSupportsInterval } from '../strip-material.js';
@@ -26,11 +26,13 @@ export function compileCourseGates(
 ) {
   const source = document.rules;
   const check = (condition: boolean, path: string, message: string) =>
-    requireCourse(condition, path, message, path.startsWith('/rules') ? 'invalid_rules' : 'invalid_gate');
+    requireCourse(condition, path, message, 'invalid_gate');
   const authored = document.sections.flatMap((source, i) =>
     source.gates.map((gate, j) => ({ gate, section: sections[i]!, path: `/sections/${i}/gates/${j}` })),
   );
-  const starts = authored.filter((item) => item.gate.kind === 'start');
+  const starts = authored.filter(
+    (item): item is typeof item & { gate: Extract<typeof item.gate, { kind: 'start' }> } => item.gate.kind === 'start',
+  );
   if (source === null) {
     const raceGate = authored.find(
       ({ gate }) => gate.kind === 'start' || gate.kind === 'checkpoint' || gate.kind === 'finish',
@@ -49,13 +51,18 @@ export function compileCourseGates(
   );
   const start = starts[0]!;
   const startGate = start.gate;
-  if (startGate.kind !== 'start') throw new Error('Start gate selection failed');
+
   const resolve = (section: CompiledSection, position: CourseLandmarkDocument['at'], path: string) =>
-    admitGate(() => resolveCoursePosition(position, stations.get(section)!, section.coordinates.domain.end, path));
+    resolveCoursePosition(position, stations.get(section)!, section.coordinates.domain.end, path);
   const endS = (section: CompiledSection) => section.coordinates.domain.end;
   const compile = (g: CourseLandmarkDocument, section: CompiledSection, path: string): CompiledCourseLandmark => {
     const carriageway = section.carriageways.find((c) => c.id === g.carriageway);
-    requireCourse(carriageway !== undefined, path + '/carriageway', 'Unknown landmark Carriageway', 'invalid_gate');
+    requireCourse(
+      carriageway !== undefined,
+      path + '/carriageway',
+      'Unknown landmark Carriageway',
+      'unresolved_reference',
+    );
     const position = resolve(section, g.at, path + '/at');
     check(
       position.s > 0 && position.s <= endS(section),
@@ -79,8 +86,18 @@ export function compileCourseGates(
   );
   const checkpoints = landmarks.filter((g) => g.kind === 'checkpoint').map((g) => g.value);
   const finishes = landmarks.filter((g) => g.kind === 'finish').map((g) => g.value);
-  check(type === 'CIRCUIT' || source.maxLaps === 1, '/rules/maxLaps', 'Only CIRCUIT has repeated laps');
-  check(source.classic.lapCount <= source.maxLaps, '/rules/classic/lapCount', 'Preset laps exceed course limit');
+  requireCourse(
+    type === 'CIRCUIT' || source.maxLaps === 1,
+    '/rules/maxLaps',
+    'Only CIRCUIT has repeated laps',
+    'invalid_rules',
+  );
+  requireCourse(
+    source.classic.lapCount <= source.maxLaps,
+    '/rules/classic/lapCount',
+    'Preset laps exceed course limit',
+    'invalid_rules',
+  );
   const gatePath = (value: CompiledCourseLandmark) => landmarks.find((g) => g.value === value)!.path;
   const intervals = sections.map((section, index) => {
     const path = `/sections/${index}/gates`;
@@ -125,9 +142,7 @@ export function compileCourseGates(
       `${start.path}/grid/${i}`,
       'Grid must lie between entry and the first gate',
     );
-    const l = admitGate(() =>
-      resolveCourseLateral(slot.lateral, position.s, boundaries, `${start.path}/grid/${i}/lateral`),
-    );
+    const l = resolveCourseLateral(slot.lateral, position.s, boundaries, `${start.path}/grid/${i}/lateral`);
     check(surface.sample(position.s, l).material.supported, `${start.path}/grid/${i}`, 'Grid must be supported');
     return Object.freeze({ at: position, l });
   });

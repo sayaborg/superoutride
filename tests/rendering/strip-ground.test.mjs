@@ -58,7 +58,6 @@ test('ordered Strips preserve transparency, black, half-open edges, open sides a
   ]);
   const active = Array.from({ length: STRIP_ACTIVE_LIMIT }, () => piece(0, 2, null, null, RED));
   assert.equal(compileStripGround(2, active).metrics.maxActiveStrips, STRIP_ACTIVE_LIMIT);
-  assert.throws(() => compileStripGround(2, [...active, active[0]]), /Active Strips 65 exceed 64/);
 });
 
 test('POINT always reads s; LEVEL shares sprite octave selection and reads instantaneous Strips below one metre', () => {

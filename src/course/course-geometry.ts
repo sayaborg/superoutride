@@ -53,11 +53,9 @@ export function compileCourseGeometry(section: SectionDocument, path: string) {
     const pi = pis[i + 1]!,
       turn = turns[i + 1]!.turn;
     if (pi.radius > 0) {
-      const degrees = turn * (180 / Math.PI);
-      // Use the same conversion as the internal circular evaluator.
-      const length = pi.radius * Math.abs(degrees * (Math.PI / 180));
+      const length = pi.radius * Math.abs(turn);
       stations.set(pi.id, s + length / 2);
-      geometry.push({ kind: 'arc', radius: pi.radius, turn: degrees });
+      geometry.push({ kind: 'arc', radius: pi.radius, turn });
       s += length;
     } else stations.set(pi.id, s);
   }

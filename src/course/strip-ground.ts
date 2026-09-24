@@ -69,31 +69,6 @@ export function resolveStripSlabs<Value>(
   outside: Value,
   path: string,
 ): readonly StripSlab<Value>[] {
-  if (!(length > 0) || !Number.isFinite(length)) throw new RangeError('Strip field length must be positive and finite');
-  for (const p of pieces) {
-    if (!(p.start >= 0 && p.end > p.start && p.end <= length) || !Number.isFinite(p.end))
-      throw new RangeError('Expanded Strip interval must lie inside the Section');
-    for (const side of ['left', 'right'] as const) {
-      const line = p[side];
-      if (
-        line !== null &&
-        !(
-          Number.isFinite(line.start) &&
-          Number.isFinite(line.end) &&
-          line.end > line.start &&
-          Number.isFinite(line.from) &&
-          Number.isFinite(line.to) &&
-          Number.isFinite(line.offset ?? 0)
-        )
-      )
-        throw new RangeError('Strip edges must be finite affine lines or open');
-    }
-    if (
-      stripEdgeAt(p, 'left', p.start) > stripEdgeAt(p, 'right', p.start) ||
-      stripEdgeAt(p, 'left', p.end) > stripEdgeAt(p, 'right', p.end)
-    )
-      throw new RangeError('Strip left edge cannot exceed its right edge');
-  }
   const stations = [...new Set([0, length, ...pieces.flatMap((p) => [p.start, p.end])])].sort((a, b) => a - b);
   const starts = pieces.map((piece, order) => ({ piece, order })).sort((a, b) => a.piece.start - b.piece.start);
   let next = 0;
@@ -104,8 +79,6 @@ export function resolveStripSlabs<Value>(
       end = stations[i + 1]!;
     active = active.filter((p) => p.piece.end > start);
     while (next < starts.length && starts[next]!.piece.start <= start) active.push(starts[next++]!);
-    if (active.length > STRIP_ACTIVE_LIMIT)
-      throw new RangeError(`Active Strips ${active.length} exceed ${STRIP_ACTIVE_LIMIT} at s=${start}`);
     active.sort((a, b) => a.order - b.order);
     const edges = active.flatMap(({ piece }) =>
       (['left', 'right'] as const).filter((side) => piece[side] !== null).map((side) => ({ piece, side })),
@@ -333,9 +306,6 @@ export interface StripGroundCellReader {
 
 /** Compile all s levels before driving. Storage is private; each renderer owns its sampling scratch. */
 export function compileStripGround(length: number, pieces: readonly StripPiece[], path: string): StripGround {
-  for (const piece of pieces)
-    if (piece.value !== null && (!Number.isInteger(piece.value) || piece.value < 0 || piece.value > 32767))
-      throw new RangeError('Strip color must be RGB555 or transparent');
   const slabs = resolveStripSlabs(length, pieces, null, path),
     levels: Level[] = [],
     lateralFields: StripLateralField[] = [],
@@ -346,8 +316,6 @@ export function compileStripGround(length: number, pieces: readonly StripPiece[]
   for (let step = STRIP_BASE_STEP; ; step *= 2) {
     const count = Math.ceil(length / step);
     cells += count;
-    if (cells > COURSE_DOCUMENT_LIMITS.preblendCells)
-      throw new RangeError(`Strip preblend cells exceed ${COURSE_DOCUMENT_LIMITS.preblendCells}`);
     const indices = new Uint32Array(count),
       active = new Uint8Array(count);
     directoryBytes += indices.byteLength + active.byteLength;
@@ -387,8 +355,7 @@ export function compileStripGround(length: number, pieces: readonly StripPiece[]
   const reader: StripGroundCellReader = Object.freeze({
     levelCount: levels.length,
     read(level: number, s: number, target: StripCellTarget) {
-      const input = levels[level];
-      if (!input || !(s >= 0 && s <= length)) throw new RangeError('Strip cell read outside compiled field');
+      const input = levels[level]!;
       const cell = Math.min(input.indices.length - 1, Math.floor(s / input.step));
       const field = lateralFields[input.indices[cell]!]!;
       const cellLength = Math.min(input.step, length - cell * input.step);

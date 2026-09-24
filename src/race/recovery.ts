@@ -197,16 +197,10 @@ function routeRecoveryTarget(
   state: RecoveryState,
   settings: RecoverySettings,
 ): RecoveryTarget {
-  const domain = world.extent;
-  if (!Number.isFinite(state.lastSafeS)) {
-    throw new RangeError('recovery lastSafeS must be finite');
-  }
-  if (!Number.isFinite(vehicle.course.s)) {
-    throw new RangeError('recovery vehicle chainage observation must be finite');
-  }
   // Airborne world motion can advance well beyond the last loaded station. Recovering only from
   // lastSafeS can place the vehicle back on the same launch face forever. Preserve the farther
   // causal plan coordinate observation, then backtrack once into the ordinary supported reconstruction.
+  const domain = world.extent;
   const recoveryBaseS = clamp(Math.max(state.lastSafeS, vehicle.course.s), domain.start, domain.end);
   const s = Math.max(domain.start, recoveryBaseS - settings.backtrackDistance);
   const bounds = world.coordinates.domain.lateralAt(s, { left: 0, right: 0 });
@@ -228,14 +222,7 @@ export function recoverVehicleToPlanCoordinate(
   }: RecoveryOptions & { target: RecoveryTarget; reason: RecoveryReason },
 ): void {
   const { coordinates, height, surfaces } = world;
-  const domain = world.extent;
-  if (![target.s, target.l].every(Number.isFinite)) throw new RangeError('recovery target coordinate must be finite');
-  if (target.s < domain.start || target.s > domain.end)
-    throw new RangeError('recovery target chainage must lie within the active plan coordinate domain');
 
-  const bounds = coordinates.domain.lateralAt(target.s, { left: 0, right: 0 });
-  if (target.l < bounds.left || target.l > bounds.right)
-    throw new RangeError('recovery target must lie within the coordinate domain');
   const coordinate = {
     s: target.s,
     l: target.l,
@@ -248,7 +235,7 @@ export function recoverVehicleToPlanCoordinate(
     coordinate,
     createSurfaceGeometryWorkspace(),
   );
-  if (!surface.material.supported) throw new Error('recovery target must be physically supported');
+
   const speed = clamp(
     Math.max(0, vehicle.longitudinalSpeed) * settings.speedRetention,
     settings.minRecoverySpeed,

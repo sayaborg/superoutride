@@ -126,7 +126,7 @@ export function createCourseRace(options: {
       const vehicle = c.actor.vehicle;
       if (!runtime.route.at(vehicle.course.s)) continue;
       const observation = pool[i]!;
-      observation.paletteVariant = actorInputs.get(c.id)?.input.brake ? 'braking' : 'base';
+      observation.paletteVariant = actorInputs.get(c.id)!.input.brake ? 'braking' : 'base';
       visible.push(observation);
     }
   };
@@ -202,10 +202,10 @@ export function createCourseRace(options: {
         );
         if (c.finishElapsedSeconds === null) {
           advanceRaceSession(c.timing, update, dt);
-          if (update?.justFinished) c.finishElapsedSeconds = c.timing.elapsedSeconds;
+          if (update.justFinished) c.finishElapsedSeconds = c.timing.elapsedSeconds;
         }
         if (c === player) {
-          events = update?.events ?? noEvents;
+          events = update.events;
           clockEvents.length = 0;
           for (const event of events)
             clockEvents.push({

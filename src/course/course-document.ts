@@ -144,7 +144,7 @@ export interface CourseDocument {
 }
 
 function fail(code: ConstructorParameters<typeof CourseInputError>[0], path: string, message: string): never {
-  throw new CourseInputError(/^\/sections\/\d+\/gates(?:\/|$)/.test(path) ? 'invalid_gate' : code, path, message);
+  throw new CourseInputError(code, path, message);
 }
 
 function record(value: unknown, path: string, fields: readonly string[]): Record<string, unknown> {
@@ -493,7 +493,7 @@ function gate(value: unknown, path: string): CourseGateDocument {
     const v = record(value, path, ['kind', 'at']);
     return Object.freeze({ kind, at: position(v.at, `${path}/at`) });
   }
-  return fail('unsupported_feature', `${path}/kind`, 'Unknown gate kind');
+  return fail('invalid_gate', `${path}/kind`, 'Unknown gate kind');
 }
 
 function rules(value: unknown, path: string): CourseRulesDocument | null {

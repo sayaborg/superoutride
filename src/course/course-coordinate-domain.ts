@@ -27,8 +27,6 @@ function lateralDomain(material: StripMaterial, path: string): CompiledPlanLater
   return Object.freeze({
     stations: Object.freeze(stations),
     lateralAt(s: number, out: Writable<{ left: number; right: number }>) {
-      if (!Number.isFinite(s) || s < 0 || s > material.length)
-        throw new RangeError('Plan lateral domain query is outside the Section');
       const edge = edges[stripSlabAt(material.slabs, s)]!;
       out.left = stripEdgeAt(edge.left, 'left', s) - PLAN_COORDINATE_MARGIN_METERS;
       out.right = stripEdgeAt(edge.right, 'right', s) + PLAN_COORDINATE_MARGIN_METERS;

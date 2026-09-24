@@ -1,5 +1,3 @@
-import { finite, positiveFinite } from '../../core/validation.js';
-
 // Metres: endpoint arithmetic/decimal conversion budget; 1 nm is about eight ulps at 10^6 m.
 // Only normalizes station endpoints, never ownership or route progress.
 const STATION_ENDPOINT_TOLERANCE_METERS = 1e-9;
@@ -7,35 +5,14 @@ const STATION_ENDPOINT_TOLERANCE_METERS = 1e-9;
 /** Immutable ordered entries. Endpoint knots include L; piecewise-constant sections exclude it. */
 export function compileStationSequence<T extends object, K extends keyof T>(
   entries: readonly T[],
-  options: { length: number; chainage: K; label: string; endNode?: boolean },
+  options: { length: number; chainage: K; endNode?: boolean },
 ): readonly Readonly<T>[] {
-  const { length, chainage, label, endNode = false } = options;
-  positiveFinite(length, `${label} length`);
-  for (const entry of entries) finite(entry[chainage] as number, `${label} chainage`);
+  const { length, chainage, endNode = false } = options;
   const copied = entries
     .map((entry) => ({ ...entry }))
     .sort((a, b) => (a[chainage] as number) - (b[chainage] as number));
-  if (copied.length < (endNode ? 2 : 1))
-    throw new Error(`${label} requires ${endNode ? 'at least two nodes' : 'at least one section'}`);
-  if (Math.abs(copied[0]![chainage] as number) > STATION_ENDPOINT_TOLERANCE_METERS) {
-    throw new Error(`${label} must start at s=0`);
-  }
   copied[0]![chainage] = 0 as T[K];
-  if (endNode) {
-    if (Math.abs((copied.at(-1)![chainage] as number) - length) > STATION_ENDPOINT_TOLERANCE_METERS) {
-      throw new Error(`${label} must end at courseLength`);
-    }
-    copied.at(-1)![chainage] = length as T[K];
-  }
-  for (let i = 0; i < copied.length; i += 1) {
-    const s = copied[i]![chainage] as number;
-    if (s < 0 || s > length || (!endNode && s === length)) {
-      throw new RangeError(`${label} entry outside its station domain`);
-    }
-    if (i > 0 && s <= (copied[i - 1]![chainage] as number)) {
-      throw new Error(`${label} entries must be unique`);
-    }
-  }
+  if (endNode) copied.at(-1)![chainage] = length as T[K];
   return Object.freeze(copied.map((entry) => Object.freeze(entry)));
 }
 
@@ -51,13 +28,9 @@ export function stationIndexAt<T, K extends keyof T>(entries: readonly T[], chai
   return Math.max(0, low - 1);
 }
 
-/** Station endpoint normalization; length is validated by the owning constructor.
+/** Station endpoint normalization; length is admitted by the compiler.
  * Plan sampling has a separate geometric tolerance. Never wraps. */
-export function stationSequenceChainage(s: number, courseLength: number, label: string): number {
-  if (!Number.isFinite(s)) throw new RangeError(`${label} chainage must be finite`);
-  if (s < -STATION_ENDPOINT_TOLERANCE_METERS || s > courseLength + STATION_ENDPOINT_TOLERANCE_METERS) {
-    throw new RangeError(`${label} chainage is outside [0, courseLength]`);
-  }
+export function stationSequenceChainage(s: number, courseLength: number): number {
   if (Math.abs(s) <= STATION_ENDPOINT_TOLERANCE_METERS) return 0;
   if (Math.abs(s - courseLength) <= STATION_ENDPOINT_TOLERANCE_METERS) return courseLength;
   return s;
