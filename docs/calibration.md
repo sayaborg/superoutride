@@ -27,20 +27,20 @@ PX and PY are dimensionless slips. The defaults give `kX = kY = 31.5` under the
 [tire law](vehicle-physics.md#tire-law). Automatic steering has the derived budget `M-D`.
 The [tire selector](../src/shell/tire-friction-selection.ts) and
 [steering selector](../src/shell/steering-calibration-selection.ts) own only DEV choices and grid checks;
-they read the initial values from the driving definition. DEV adjustments and their transfer on
+they check the raw driving definition against those grids. The controls display the vehicle's current
+values without writing to it at startup. DEV adjustments and their transfer on
 vehicle switches remain unchanged. Tires are dimensionless coefficients per unit normal load and
 share one authored set for front and rear. Driving assists are not difficulty controls.
 
 The same definition selects travel-direction automatic steering and `wheelSlip=true` (TCS and ABS).
 Throttle traversal is 0.25 s apply / 0.125 s release; brake traversal is 0.15 s apply / 0.10 s release.
-Rates are their reciprocals, preserving the former `COMMON_ACTUATOR` values. Two-wheel support reserve
+Rates are their reciprocals. Two-wheel support reserve
 remains a form-specific 0.08 until 8-7; four-wheel support reserve is null.
 Tire and steering low-speed regularization are engine constants of 1.0 m/s; the retained road-wheel
 lag is an engine constant of 0.01 s until 8-2c, not a design setting.
 
 The full driving record participates in vehicle identity for generated envelopes, reference caches
-and time budgets. Legacy vehicle steering/actuator/tire/regularization values are unread by runtime
-consumers and remain only until 8-2b.
+and time budgets.
 
 | Setting               | Value            | Meaning                                                      |
 | --------------------- | ---------------- | ------------------------------------------------------------ |

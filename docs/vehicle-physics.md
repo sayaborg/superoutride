@@ -18,14 +18,13 @@ travel-direction steering, M=65 degrees, D=20 degrees, ACT=0.3 seconds, throttle
 Every vehicle creation receives this definition and an explicit form-specific support reserve.
 Admission converts degrees and traversal times to runtime angles/rates and compiles the tire law.
 Browser, race, reference/envelope tools, scenarios, startup smoke and image generation use the same
-input; no path falls back to the retained legacy vehicle fields or an implicit torque policy.
+input. The wheel solver receives one required tire-characteristics field from the runtime tire calibration.
 DEV can still replace live M/D/ACT and linked tire settings, preserving them on vehicle switches.
 The front/rear runtime slots remain for now; both start with the same tire coefficients.
 
 `SessionVehicle` includes the entire driving definition in `vehicleSha256`, invalidating reference
 caches and rejecting stale browser envelopes and time budgets when any driving value changes.
 The model source list also includes the driving module instead of shell selector modules.
-Legacy per-vehicle values and their compiler validation remain solely for the 8-2b cleanup.
 
 The engine owns tire and steering low-speed regularization (both 1.0 m/s) and the retained
 0.01-second rack lag in `physics/numerical-constants.ts`. They are numerical constants, not

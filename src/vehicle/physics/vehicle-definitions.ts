@@ -1,11 +1,4 @@
 import { validateAutomaticPowertrainDefinition, type AutomaticPowertrainDefinition } from './automatic-powertrain.js';
-import type { DrivingActuatorDefinition } from './driving-actuator.js';
-import {
-  validateDrivingActuatorDefinition,
-  validateSymmetricSteeringActuatorRateDefinition,
-} from './driving-actuator.js';
-import { compileTireCharacteristics, type TireCharacteristics } from './tire-friction-calibration.js';
-import { validateCompiledTire, type CompiledTire } from './tire-wheel.js';
 import { VEHICLE_GRAVITY, compileSuspensionStation, type CompiledContactStation } from './vehicle-dynamics.js';
 
 /** Opaque content identity; production membership belongs to the upper catalog. */
@@ -39,26 +32,15 @@ export interface VehicleDefinition {
   /** Fixed share of total powertrain torque sent to the front station; the remainder drives rear. */
   readonly frontDriveTorqueFraction: number;
 
-  readonly frontTire: TireCharacteristics;
-  readonly rearTire: TireCharacteristics;
-  readonly lowSpeedRegularization: number;
-
-  /** Ordinary construction defaults; browser M/D selection lives in vehicle-instance calibration. */
-  readonly maxRoadWheelSteer: number;
-  readonly steeringOffsetMax: number;
-  readonly steeringResponseTau: number;
-  /** Driver-only travel-direction regularization; independent from tire-slip regularization. */
-  readonly steeringLowSpeedRegularization: number;
   /** HUD-only handwheel presentation conversion; never consumed by mechanics. */
   readonly steeringRatio: number;
   readonly frontBrakeTorqueMax: number;
   readonly rearBrakeTorqueMax: number;
   readonly quadraticDrag: number;
-  readonly actuator: DrivingActuatorDefinition;
   readonly powertrain: AutomaticPowertrainDefinition;
 }
 
-/** Runtime body/driver data plus resolved stations; authored tire/suspension/wheel fields do not leak. */
+/** Runtime body/driver data plus resolved stations; authored suspension/wheel fields do not leak. */
 export interface CompiledVehicle extends Pick<
   VehicleDefinition,
   | 'id'
@@ -69,13 +51,8 @@ export interface CompiledVehicle extends Pick<
   | 'rearAxle'
   | 'desiredCgHeight'
   | 'frontDriveTorqueFraction'
-  | 'maxRoadWheelSteer'
-  | 'steeringOffsetMax'
-  | 'steeringResponseTau'
-  | 'steeringLowSpeedRegularization'
   | 'steeringRatio'
   | 'quadraticDrag'
-  | 'actuator'
   | 'powertrain'
 > {
   readonly frontStation: CompiledContactStation;
@@ -97,20 +74,9 @@ export function compileVehicle(definition: VehicleDefinition): Readonly<Compiled
     definition.rearWheelRadius,
     definition.frontWheelInertia,
     definition.rearWheelInertia,
-    definition.lowSpeedRegularization,
-    definition.maxRoadWheelSteer,
-    definition.steeringOffsetMax,
-    definition.steeringResponseTau,
-    definition.steeringLowSpeedRegularization,
   ];
   if (positive.some((value) => !(value > 0) || !Number.isFinite(value))) {
-    throw new RangeError('vehicle mass/inertia/geometry/wheel/tire/steering values must be finite and > 0');
-  }
-  if (!(definition.maxRoadWheelSteer < Math.PI / 2 && definition.steeringOffsetMax < Math.PI / 2)) {
-    throw new RangeError('vehicle steering angles must lie below pi/2');
-  }
-  if (!(definition.steeringOffsetMax < definition.maxRoadWheelSteer)) {
-    throw new RangeError('vehicle steering offset must remain below the mechanical road-wheel limit');
+    throw new RangeError('vehicle mass/inertia/geometry/wheel values must be finite and > 0');
   }
   if (!(definition.steeringRatio >= 0) || !Number.isFinite(definition.steeringRatio)) {
     throw new RangeError('vehicle steering ratio must be finite and >= 0');
@@ -130,8 +96,6 @@ export function compileVehicle(definition: VehicleDefinition): Readonly<Compiled
   if (!(definition.quadraticDrag >= 0) || !Number.isFinite(definition.quadraticDrag)) {
     throw new RangeError('vehicle quadratic drag must be finite and >= 0');
   }
-  validateDrivingActuatorDefinition(definition.actuator);
-  validateSymmetricSteeringActuatorRateDefinition(definition.actuator.steering);
   validateAutomaticPowertrainDefinition(definition.powertrain);
 
   const wheelbase = definition.frontAxle + definition.rearAxle;
@@ -153,17 +117,6 @@ export function compileVehicle(definition: VehicleDefinition): Readonly<Compiled
     definition.rearQTravel,
     definition.rearBumpForceMax,
   );
-  const frontTire: CompiledTire = Object.freeze({
-    ...compileTireCharacteristics(definition.frontTire),
-    lowSpeedRegularization: definition.lowSpeedRegularization,
-  });
-  const rearTire: CompiledTire = Object.freeze({
-    ...compileTireCharacteristics(definition.rearTire),
-    lowSpeedRegularization: definition.lowSpeedRegularization,
-  });
-  validateCompiledTire(frontTire);
-  validateCompiledTire(rearTire);
-
   const frontStation: CompiledContactStation = Object.freeze({
     id: 'FRONT',
     forwardOffset: definition.frontAxle,
@@ -172,7 +125,6 @@ export function compileVehicle(definition: VehicleDefinition): Readonly<Compiled
     wheelInertia: definition.frontWheelInertia,
     maxBrakeTorque: definition.frontBrakeTorqueMax,
     suspension: frontSuspension,
-    tire: frontTire,
   });
   const rearStation: CompiledContactStation = Object.freeze({
     id: 'REAR',
@@ -182,7 +134,6 @@ export function compileVehicle(definition: VehicleDefinition): Readonly<Compiled
     wheelInertia: definition.rearWheelInertia,
     maxBrakeTorque: definition.rearBrakeTorqueMax,
     suspension: rearSuspension,
-    tire: rearTire,
   });
   return Object.freeze({
     id: definition.id,
@@ -193,17 +144,8 @@ export function compileVehicle(definition: VehicleDefinition): Readonly<Compiled
     rearAxle: definition.rearAxle,
     desiredCgHeight: definition.desiredCgHeight,
     frontDriveTorqueFraction: definition.frontDriveTorqueFraction,
-    maxRoadWheelSteer: definition.maxRoadWheelSteer,
-    steeringOffsetMax: definition.steeringOffsetMax,
-    steeringResponseTau: definition.steeringResponseTau,
-    steeringLowSpeedRegularization: definition.steeringLowSpeedRegularization,
     steeringRatio: definition.steeringRatio,
     quadraticDrag: definition.quadraticDrag,
-    actuator: Object.freeze({
-      steering: Object.freeze({ ...definition.actuator.steering }),
-      throttle: Object.freeze({ ...definition.actuator.throttle }),
-      brake: Object.freeze({ ...definition.actuator.brake }),
-    }),
     powertrain: Object.freeze({
       ...definition.powertrain,
       gearRatios: Object.freeze([...definition.powertrain.gearRatios]),

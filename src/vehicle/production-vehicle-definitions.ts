@@ -1,50 +1,7 @@
-import type { DrivingActuatorDefinition } from './physics/driving-actuator.js';
-import type { TireCharacteristics } from './physics/tire-friction-calibration.js';
 import { compileVehicle, type VehicleDefinition } from './physics/vehicle-definitions.js';
 
 /** Product-authored values; generic mechanics imports no catalog or production data. */
-const DEG = Math.PI / 180;
-
-/** Stock construction seed uses equal 1.35 capacity / 9.75 stiffness.
- * Both stations currently share data; the lower law/compiler also accept distinct tire data. */
-const REFERENCE_TIRE: Readonly<TireCharacteristics> = Object.freeze({
-  gripX: 1.35,
-  peakSlipX: (1.26 * 1.35) / 9.75,
-  gripY: 1.35,
-  peakSlipY: (1.26 * 1.35) / 9.75,
-  knee: 0.74,
-});
-const COMMON_SELECTABLE_VEHICLE_TIRE = Object.freeze({
-  frontTire: REFERENCE_TIRE,
-  rearTire: REFERENCE_TIRE,
-  lowSpeedRegularization: 1.0,
-});
-
-const COMMON_ACTUATOR: Readonly<DrivingActuatorDefinition> = Object.freeze({
-  steering: Object.freeze({
-    applyRate: 1 / 0.25,
-    releaseRate: 1 / 0.25,
-  }),
-  throttle: Object.freeze({ applyRate: 1 / 0.25, releaseRate: 1 / 0.125 }),
-  brake: Object.freeze({ applyRate: 1 / 0.15, releaseRate: 1 / 0.1 }),
-});
-
-const COMMON_STEERING = Object.freeze({
-  maxRoadWheelSteer: 45 * DEG,
-  steeringResponseTau: 0.01,
-  steeringLowSpeedRegularization: 1.0,
-  steeringRatio: 18,
-});
-
-const CAR_STEERING = Object.freeze({
-  ...COMMON_STEERING,
-  steeringOffsetMax: 9.5 * DEG,
-});
-
-const BIKE_STEERING = Object.freeze({
-  ...COMMON_STEERING,
-  steeringOffsetMax: 9 * DEG,
-});
+const COMMON_STEERING = Object.freeze({ steeringRatio: 18 });
 
 /** 1989 European/ROW five-bolt Ferrari Testarossa reference. */
 const FERRARI_TESTAROSSA_VEHICLE_DEFINITION: Readonly<VehicleDefinition> = Object.freeze({
@@ -70,12 +27,10 @@ const FERRARI_TESTAROSSA_VEHICLE_DEFINITION: Readonly<VehicleDefinition> = Objec
   frontWheelInertia: 2.7,
   rearWheelInertia: 3.4,
   frontDriveTorqueFraction: 0,
-  ...COMMON_SELECTABLE_VEHICLE_TIRE,
-  ...CAR_STEERING,
+  ...COMMON_STEERING,
   frontBrakeTorqueMax: 4_800,
   rearBrakeTorqueMax: 3_000,
   quadraticDrag: 0.44,
-  actuator: COMMON_ACTUATOR,
   powertrain: {
     idleRpm: 1_000,
     redlineRpm: 6_800,
@@ -119,12 +74,10 @@ const PORSCHE_911_TURBO_3_3_VEHICLE_DEFINITION: Readonly<VehicleDefinition> = Ob
   frontWheelInertia: 2.3,
   rearWheelInertia: 3.0,
   frontDriveTorqueFraction: 0,
-  ...COMMON_SELECTABLE_VEHICLE_TIRE,
-  ...CAR_STEERING,
+  ...COMMON_STEERING,
   frontBrakeTorqueMax: 3_450,
   rearBrakeTorqueMax: 2_100,
   quadraticDrag: 0.43,
-  actuator: COMMON_ACTUATOR,
   powertrain: {
     idleRpm: 900,
     redlineRpm: 6_800,
@@ -169,12 +122,10 @@ const CHEVROLET_CORVETTE_C4_VEHICLE_DEFINITION: Readonly<VehicleDefinition> = Ob
   frontWheelInertia: 3.0,
   rearWheelInertia: 3.1,
   frontDriveTorqueFraction: 0,
-  ...COMMON_SELECTABLE_VEHICLE_TIRE,
-  ...CAR_STEERING,
+  ...COMMON_STEERING,
   frontBrakeTorqueMax: 3_850,
   rearBrakeTorqueMax: 2_150,
   quadraticDrag: 0.38,
-  actuator: COMMON_ACTUATOR,
   powertrain: {
     idleRpm: 700,
     redlineRpm: 5_200,
@@ -218,12 +169,10 @@ const VOLKSWAGEN_GOLF_GTI_16V_VEHICLE_DEFINITION: Readonly<VehicleDefinition> = 
   frontWheelInertia: 1.7,
   rearWheelInertia: 1.7,
   frontDriveTorqueFraction: 1,
-  ...COMMON_SELECTABLE_VEHICLE_TIRE,
-  ...CAR_STEERING,
+  ...COMMON_STEERING,
   frontBrakeTorqueMax: 2_350,
   rearBrakeTorqueMax: 1_050,
   quadraticDrag: 0.38,
-  actuator: COMMON_ACTUATOR,
   powertrain: {
     idleRpm: 900,
     redlineRpm: 6_800,
@@ -267,12 +216,10 @@ const LANCIA_DELTA_HF_INTEGRALE_VEHICLE_DEFINITION: Readonly<VehicleDefinition> 
   frontWheelInertia: 2.1,
   rearWheelInertia: 2.1,
   frontDriveTorqueFraction: 0.47,
-  ...COMMON_SELECTABLE_VEHICLE_TIRE,
-  ...CAR_STEERING,
+  ...COMMON_STEERING,
   frontBrakeTorqueMax: 2_950,
   rearBrakeTorqueMax: 1_600,
   quadraticDrag: 0.39,
-  actuator: COMMON_ACTUATOR,
   powertrain: {
     idleRpm: 900,
     redlineRpm: 6_500,
@@ -316,12 +263,10 @@ const HONDA_VFR750R_VEHICLE_DEFINITION: Readonly<VehicleDefinition> = Object.fre
   frontWheelInertia: 0.47,
   rearWheelInertia: 0.72,
   frontDriveTorqueFraction: 0,
-  ...COMMON_SELECTABLE_VEHICLE_TIRE,
-  ...BIKE_STEERING,
+  ...COMMON_STEERING,
   frontBrakeTorqueMax: 700,
   rearBrakeTorqueMax: 300,
   quadraticDrag: 0.24,
-  actuator: COMMON_ACTUATOR,
   powertrain: {
     idleRpm: 1_200,
     redlineRpm: 12_000,
@@ -365,12 +310,10 @@ const BMW_R80_GS_PARIS_DAKAR_VEHICLE_DEFINITION: Readonly<VehicleDefinition> = O
   frontWheelInertia: 0.62,
   rearWheelInertia: 0.82,
   frontDriveTorqueFraction: 0,
-  ...COMMON_SELECTABLE_VEHICLE_TIRE,
-  ...BIKE_STEERING,
+  ...COMMON_STEERING,
   frontBrakeTorqueMax: 720,
   rearBrakeTorqueMax: 430,
   quadraticDrag: 0.36,
-  actuator: COMMON_ACTUATOR,
   powertrain: {
     idleRpm: 950,
     redlineRpm: 7_000,
@@ -414,12 +357,10 @@ const HARLEY_DAVIDSON_FXRT_VEHICLE_DEFINITION: Readonly<VehicleDefinition> = Obj
   frontWheelInertia: 0.75,
   rearWheelInertia: 1.1,
   frontDriveTorqueFraction: 0,
-  ...COMMON_SELECTABLE_VEHICLE_TIRE,
-  ...BIKE_STEERING,
+  ...COMMON_STEERING,
   frontBrakeTorqueMax: 1_000,
   rearBrakeTorqueMax: 650,
   quadraticDrag: 0.46,
-  actuator: COMMON_ACTUATOR,
   powertrain: {
     idleRpm: 850,
     redlineRpm: 5_200,
@@ -463,12 +404,10 @@ const VESPA_PX200E_ARCOBALENO_VEHICLE_DEFINITION: Readonly<VehicleDefinition> = 
   frontWheelInertia: 0.14,
   rearWheelInertia: 0.2,
   frontDriveTorqueFraction: 0,
-  ...COMMON_SELECTABLE_VEHICLE_TIRE,
-  ...BIKE_STEERING,
+  ...COMMON_STEERING,
   frontBrakeTorqueMax: 260,
   rearBrakeTorqueMax: 180,
   quadraticDrag: 0.31,
-  actuator: COMMON_ACTUATOR,
   powertrain: {
     idleRpm: 900,
     redlineRpm: 6_500,

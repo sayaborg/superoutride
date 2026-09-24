@@ -284,7 +284,6 @@ export function updateVehicle(
     frontRequest.driveTorque = frontDriveTorque;
     frontRequest.brakeTorque = frontBrakeTorque;
     frontRequest.dt = substep;
-    frontRequest.tire = vehicle.tireFrictionCalibration.front;
     const rearRequest = workspace.rearRequest;
     rearRequest.omegaPrevious = vehicle.rearWheelOmega;
     rearRequest.inertia = compiledVehicle.rearStation.wheelInertia;
@@ -298,7 +297,6 @@ export function updateVehicle(
     rearRequest.driveTorque = rearDriveTorque;
     rearRequest.brakeTorque = rearBrakeTorque;
     rearRequest.dt = substep;
-    rearRequest.tire = vehicle.tireFrictionCalibration.rear;
     const resolved = solveProtectedWheelPair(
       compiledVehicle,
       body,
@@ -433,7 +431,7 @@ const stepWorkspaces = new WeakMap<VehicleState, ReturnType<typeof createStepWor
 function createStepWorkspace(vehicle: VehicleState) {
   const front = createContactWorkspace(vehicle.compiledVehicle.frontStation),
     rear = createContactWorkspace(vehicle.compiledVehicle.rearStation);
-  const request = (tire: WheelSolveInput['tire']): Writable<WheelSolveInput> => ({
+  const request = (characteristics: WheelSolveInput['characteristics']): Writable<WheelSolveInput> => ({
     omegaPrevious: 0,
     inertia: 1,
     rollingRadius: 1,
@@ -445,7 +443,7 @@ function createStepWorkspace(vehicle: VehicleState) {
     driveTorque: 0,
     brakeTorque: 0,
     dt: 1,
-    tire,
+    characteristics,
   });
   const frontRequest = request(vehicle.tireFrictionCalibration.front),
     rearRequest = request(vehicle.tireFrictionCalibration.rear);

@@ -1,7 +1,5 @@
 import { DRIVING_DEFINITION } from '../vehicle/driving-definition.js';
 import {
-  compileTireCharacteristics,
-  createVehicleTireFrictionCalibration,
   readTireCharacteristics,
   type VehicleTireFrictionCalibrationState,
   type TireCharacteristics,
@@ -36,10 +34,6 @@ export const BROWSER_TIRE_AXES: readonly BrowserTireAxis[] = Object.freeze(
   ].map((axis) => Object.freeze(axis)) as BrowserTireAxis[],
 );
 
-export const DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION = createVehicleTireFrictionCalibration(
-  compileTireCharacteristics(DRIVING_DEFINITION.tire),
-);
-
 function browserTireAxis(id: BrowserTireCalibrationAxis): BrowserTireAxis {
   const axis = BROWSER_TIRE_AXES.find((axis) => axis.id === id);
   if (!axis) throw new RangeError(`unknown tire axis: ${id}`);
@@ -51,8 +45,13 @@ function browserTireCalibrationForAxis(
   value: number,
   current: VehicleTireFrictionCalibrationState,
 ): TireCharacteristics {
-  const axis = browserTireAxis(id),
-    ticks = value * 100;
+  const axis = browserTireAxis(id);
+  const index = browserTireGridIndex(axis, value);
+  return { ...readTireCharacteristics(current.front), [axis.field]: (axis.min + Math.round(index) * axis.step) / 100 };
+}
+
+function browserTireGridIndex(axis: BrowserTireAxis, value: number): number {
+  const ticks = value * 100;
   const index = (ticks - axis.min) / axis.step;
   if (
     !Number.isFinite(value) ||
@@ -60,9 +59,9 @@ function browserTireCalibrationForAxis(
     ticks > axis.max + SELECTOR_TICK_TOLERANCE ||
     Math.abs(index - Math.round(index)) > SELECTOR_INDEX_TOLERANCE
   ) {
-    throw new RangeError(`${id} is outside its browser selector grid`);
+    throw new RangeError(`${axis.id} is outside its browser selector grid`);
   }
-  return { ...readTireCharacteristics(current.front), [axis.field]: (axis.min + Math.round(index) * axis.step) / 100 };
+  return index;
 }
 
 /** Both directions wrap; off-grid values move to the adjacent admissible value, not an arbitrary ID. */
@@ -98,9 +97,5 @@ export function formatTireCalibrationSelector(current: VehicleTireFrictionCalibr
 
 // Admit the authored starting values to the DEV grid without making the grid their authority.
 for (const axis of BROWSER_TIRE_AXES) {
-  browserTireCalibrationForAxis(
-    axis.id,
-    DRIVING_DEFINITION.tire[axis.field],
-    DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION,
-  );
+  browserTireGridIndex(axis, DRIVING_DEFINITION.tire[axis.field]);
 }

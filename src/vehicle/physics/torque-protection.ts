@@ -22,19 +22,6 @@ export interface TorqueProtectionPolicy {
   /** Fraction of static suspension compression reserved against pitch-induced separation. */
   readonly supportReserve: number | null;
 }
-export const UNPROTECTED_TORQUE_POLICY: Readonly<TorqueProtectionPolicy> = Object.freeze({
-  wheelSlip: false,
-  supportReserve: null,
-});
-export const ROAD_TORQUE_POLICY: Readonly<TorqueProtectionPolicy> = Object.freeze({
-  wheelSlip: true,
-  supportReserve: null,
-});
-export const TWO_WHEEL_TORQUE_POLICY: Readonly<TorqueProtectionPolicy> = Object.freeze({
-  wheelSlip: true,
-  supportReserve: 0.08,
-});
-
 export function resolveTorqueProtectionPolicy(policy: TorqueProtectionPolicy): Readonly<TorqueProtectionPolicy> {
   if (
     typeof policy.wheelSlip !== 'boolean' ||
@@ -63,7 +50,7 @@ function limitWheelTorques(
     throw new RangeError('protected requested torques must be finite nonnegative magnitudes');
   }
   if (!(input.normalLoad > 0) || !(input.gripFactor > 0)) return input;
-  const tire = input.characteristics ?? input.tire;
+  const tire = input.characteristics;
   const referenceSpeed = Math.hypot(input.longitudinalVelocity, TIRE_LOW_SPEED_REGULARIZATION);
   const slip = (input.gripFactor * (2 - tire.rhoKnee) * tire.muX) / tire.kX;
   const vx = input.longitudinalVelocity,
@@ -176,7 +163,6 @@ function prepareWheel(
   out.driveTorque = input.driveTorque;
   out.brakeTorque = input.brakeTorque;
   out.dt = input.dt;
-  out.tire = input.tire;
   if (scale !== 1) {
     out.driveTorque = input.driveTorque * scale;
     out.brakeTorque = input.brakeTorque * scale;

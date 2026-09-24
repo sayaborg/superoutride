@@ -13,9 +13,6 @@ import {
   BROWSER_MAX_STEER_CYCLE_CODE,
   BROWSER_STEERING_OFFSET_CYCLE_CODE,
   BROWSER_STEERING_RESPONSE_CYCLE_CODE,
-  DEFAULT_BROWSER_MAX_ROAD_WHEEL_STEER,
-  DEFAULT_BROWSER_STEERING_OFFSET,
-  DEFAULT_BROWSER_STEERING_RESPONSE_RATE,
   nextBrowserMaxRoadWheelSteer,
   nextBrowserSteeringOffset,
   nextBrowserSteeringResponseRate,
@@ -40,7 +37,6 @@ export function mountBrowserSteeringCalibrationControls(
   const bindings = [
     {
       code: BROWSER_STEERING_OFFSET_CYCLE_CODE,
-      initial: DEFAULT_BROWSER_STEERING_OFFSET,
       container: containers.steeringOffset,
       read: (vehicle: VehicleState) => vehicle.steeringCalibration.steeringOffsetMax,
       write: setVehicleSteeringOffsetMax,
@@ -49,7 +45,6 @@ export function mountBrowserSteeringCalibrationControls(
     },
     {
       code: BROWSER_MAX_STEER_CYCLE_CODE,
-      initial: DEFAULT_BROWSER_MAX_ROAD_WHEEL_STEER,
       container: containers.maxRoadWheelSteer,
       read: (vehicle: VehicleState) => vehicle.steeringCalibration.maxRoadWheelSteer,
       write: setVehicleMaxRoadWheelSteer,
@@ -58,7 +53,6 @@ export function mountBrowserSteeringCalibrationControls(
     },
     {
       code: BROWSER_STEERING_RESPONSE_CYCLE_CODE,
-      initial: DEFAULT_BROWSER_STEERING_RESPONSE_RATE,
       container: containers.steeringResponse,
       read: (vehicle: VehicleState) => vehicle.steeringCalibration.steeringActuatorResponse.applyRate,
       write: setVehicleSymmetricSteeringActuatorRate,
@@ -68,12 +62,12 @@ export function mountBrowserSteeringCalibrationControls(
   ];
   const keyActions = new Map<string, () => void>();
   for (const binding of bindings) {
-    binding.write(getVehicle(), binding.initial);
+    const initial = binding.read(getVehicle());
     const select = (value: number) => {
       binding.write(getVehicle(), value);
       selector.setActive(value);
     };
-    const selector = binding.mount(binding.container, binding.initial, select, documentRef);
+    const selector = binding.mount(binding.container, initial, select, documentRef);
     keyActions.set(binding.code, () => select(binding.next(binding.read(getVehicle()))));
   }
   return Object.freeze({

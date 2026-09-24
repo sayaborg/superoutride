@@ -12,7 +12,6 @@ import type { ProfileReader } from '../../course/geometry/profile.js';
 import type { AutomaticPowertrainState } from './automatic-powertrain.js';
 import type { SurfaceMapReader } from '../../course/vehicle-world.js';
 import type { SurfaceMaterial, SurfaceType } from '../../course/surface-material.js';
-import type { CompiledTire } from './tire-wheel.js';
 import {
   add3,
   cross3,
@@ -109,7 +108,6 @@ export interface CompiledContactStation {
   readonly wheelInertia: number;
   readonly maxBrakeTorque: number;
   readonly suspension: CompiledSuspensionStation;
-  readonly tire: CompiledTire;
 }
 
 export interface BodyKinematics {

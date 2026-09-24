@@ -24,18 +24,9 @@ export const BROWSER_STEERING_OFFSETS = Object.freeze(OFFSET_DEGREES.map(angle))
 export const BROWSER_MAX_ROAD_WHEEL_STEERS = Object.freeze(MAX_STEER_DEGREES.map(angle));
 export const BROWSER_STEERING_RESPONSES = Object.freeze(TRAVERSAL_SECONDS.map(response));
 
-export const DEFAULT_BROWSER_STEERING_OFFSET = mustAngleDegrees(
-  BROWSER_STEERING_OFFSETS,
-  DRIVING_DEFINITION.steeringOffsetDegrees,
-).radians;
-export const DEFAULT_BROWSER_MAX_ROAD_WHEEL_STEER = mustAngleDegrees(
-  BROWSER_MAX_ROAD_WHEEL_STEERS,
-  DRIVING_DEFINITION.maxRoadWheelSteerDegrees,
-).radians;
-export const DEFAULT_BROWSER_STEERING_RESPONSE_RATE = mustTraversalSeconds(
-  BROWSER_STEERING_RESPONSES,
-  DRIVING_DEFINITION.steeringTraversalSeconds,
-).rate;
+assertGridValue(OFFSET_DEGREES, DRIVING_DEFINITION.steeringOffsetDegrees);
+assertGridValue(MAX_STEER_DEGREES, DRIVING_DEFINITION.maxRoadWheelSteerDegrees);
+assertGridValue(TRAVERSAL_SECONDS, DRIVING_DEFINITION.steeringTraversalSeconds);
 
 export function nextBrowserSteeringOffset(currentRadians: number): number {
   return nextAngleChoice(BROWSER_STEERING_OFFSETS, currentRadians).radians;
@@ -82,19 +73,6 @@ function nextAngleChoice<Degrees extends number>(
 ): BrowserSteeringAngleSelection<Degrees> {
   return cycleSelectorChoice(choices, currentRadians, (choice) => choice.radians);
 }
-function mustAngleDegrees<Degrees extends number>(
-  choices: readonly BrowserSteeringAngleSelection<Degrees>[],
-  degrees: number,
-): BrowserSteeringAngleSelection<Degrees> {
-  const choice = choices.find((candidate) => candidate.degrees === degrees);
-  if (choice === undefined) throw new RangeError(`missing browser steering angle default: ${degrees}`);
-  return choice;
-}
-function mustTraversalSeconds(
-  choices: readonly BrowserSteeringResponseSelection[],
-  traversalSeconds: number,
-): BrowserSteeringResponseSelection {
-  const choice = choices.find((candidate) => candidate.traversalSeconds === traversalSeconds);
-  if (choice === undefined) throw new RangeError(`missing browser steering response default: ${traversalSeconds}`);
-  return choice;
+function assertGridValue(choices: readonly number[], value: number): void {
+  if (!choices.includes(value)) throw new RangeError(`driving value is outside its browser steering grid: ${value}`);
 }

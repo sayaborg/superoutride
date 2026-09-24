@@ -8,10 +8,6 @@ import { validateTireCharacteristics, type CompiledTireCharacteristics } from '.
 // The implied wheel-speed error is at most residual*dt/inertia for the monotone wheel equation.
 const WHEEL_TORQUE_RESIDUAL_NEWTON_METERS = 1e-10;
 
-export interface CompiledTire extends CompiledTireCharacteristics {
-  readonly lowSpeedRegularization: number;
-}
-
 interface TireSlip {
   readonly sx: number;
   readonly sy: number;
@@ -38,13 +34,12 @@ export interface WheelSolveInput {
   readonly lateralVelocity: number;
   readonly normalLoad: number;
   readonly gripFactor: number;
-  readonly characteristics?: CompiledTireCharacteristics;
+  readonly characteristics: CompiledTireCharacteristics;
   readonly rollingResistance: number;
   /** Actual torque delivered for this substep, after any external torque protection. */
   readonly driveTorque: number;
   readonly brakeTorque: number;
   readonly dt: number;
-  readonly tire: CompiledTireCharacteristics;
 }
 export interface WheelSolveResult {
   readonly omega: number;
@@ -108,7 +103,7 @@ function evaluateTireForceValidated(input: WheelSolveInput, out: TireForceScratc
   const omega = out.omega,
     referenceSpeed = out.referenceSpeed;
   if (!Number.isFinite(omega)) throw new RangeError('trial wheel speed must be finite');
-  const characteristics = input.characteristics ?? input.tire;
+  const characteristics = input.characteristics;
   writeSlip(omega, input.rollingRadius, input.longitudinalVelocity, input.lateralVelocity, referenceSpeed, out);
   writeDemand(out, input.normalLoad, characteristics);
   forceFromDemand(out, input.normalLoad, input.gripFactor, characteristics);
@@ -190,7 +185,7 @@ export function solveWheelOmega(
     rollingRadius,
     normalLoad,
     gripFactor,
-    characteristics = input.tire,
+    characteristics,
     rollingResistance,
     driveTorque,
     brakeTorque,
@@ -262,13 +257,6 @@ function netTorqueAtOmega(input: WheelSolveInput, scratch: TireForceScratch, res
     );
 }
 
-export function validateCompiledTire(tire: CompiledTire): void {
-  validateTireCharacteristics(tire);
-  if (!Number.isFinite(tire.lowSpeedRegularization) || !(tire.lowSpeedRegularization > 0)) {
-    throw new RangeError('tire low-speed regularization must be finite and > 0');
-  }
-}
-
 function wheelResidual(input: WheelSolveInput, scratch: TireForceScratch, positive: boolean, out: Float64Array): void {
   netTorqueAtOmega(input, scratch, out);
   const residual = out[0]! - input.driveTorque;
@@ -329,8 +317,7 @@ export function validateWheelSolveInput(input: WheelSolveInput): void {
     throw new RangeError('wheel solve inputs must be finite');
   }
   if (input.rollingResistance < 0) throw new RangeError('rolling resistance must be nonnegative');
-  validateTireCharacteristics(input.tire);
-  validateTireCharacteristics(input.characteristics ?? input.tire);
+  validateTireCharacteristics(input.characteristics);
 }
 
 function tireForceCapacity(normalLoad: number, gripFactor: number, mu: number): number {
