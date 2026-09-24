@@ -1,5 +1,5 @@
 import { createPlanCoordinateSample } from '../geometry/plan-coordinate.js';
-import { compilePlanarTransform, transformPlanarPoint } from '../../core/planar-transform.js';
+import { compilePlanarTransform, composePlanarTransforms, transformPlanarPoint } from '../../core/planar-transform.js';
 import { courseBoundaryAt, courseCarriagewayExists, type CompiledCarriageway } from '../course-boundaries.js';
 import { requireCourse } from '../course-diagnostics.js';
 import type { CompiledCut, CompiledLink, CompiledSection } from './course-graph.js';
@@ -8,9 +8,11 @@ import type { CourseDocument } from '../course-document.js';
 /** Roundoff of plan evaluation and rigid rotation over the admitted 1,000,000 m coordinate domain. */
 export const COURSE_LINK_RECIPE = Object.freeze({
   id: 'superoutride.cut-line-link',
-  version: 2,
+  version: 3,
   // Metres: rigid transform/evaluation budget; ~860 ulps at the admitted 10^6 m scale.
   edgeToleranceMeters: 1e-7,
+  // Radians: wrapped heading/composition roundoff, below 0.1 mm at a 10^6 m lever arm.
+  headingToleranceRadians: 1e-10,
   // Metres: vertical polynomial evaluation budget; ~86 ulps at the admitted 10^6 m scale.
   heightToleranceMeters: 1e-8,
   // Dimensionless dY/ds: 10^-10 absolute seam slope budget (10 nm height per 100 m).
@@ -68,6 +70,7 @@ export function entryCut(section: CompiledSection, path: string): CompiledCut {
 }
 
 export function compileCourseLink(id: string, from: CompiledCut, to: CompiledCut, path: string): CompiledLink {
+  requireCourse(from.section !== to.section, path, `Link ${id} cannot return to its own Section`, 'invalid_topology');
   const destinationFromSource = compilePlanarTransform(from.pose, to.pose);
   const [aLeft, aRight] = edges(from.carriageway, from.section.coordinates.domain.end, path);
   const [bLeft, bRight] = edges(to.carriageway, 0, path);
@@ -110,7 +113,6 @@ export function validateCourseTopology(
   type: CourseDocument['type'],
   entry: CompiledSection,
   sections: readonly CompiledSection[],
-  links: readonly CompiledLink[],
 ): void {
   for (const [index, section] of sections.entries()) {
     const path = `/sections/${index}`;
@@ -131,23 +133,27 @@ export function validateCourseTopology(
   }
   if (type === 'CIRCUIT') {
     requireCourse(
-      sections.length === 1 && links.length === 1 && links[0]!.from.section === entry && links[0]!.to.section === entry,
+      sections.length >= 2 &&
+        sections.every((section) => section.outgoing.length === 1 && section.incoming.length === 1),
       '/links',
-      'CIRCUIT requires one Section and one end-to-start loop Link',
+      'CIRCUIT requires at least two Sections, each with one incoming and one outgoing Link',
       'invalid_topology',
     );
-    return;
+  } else {
+    requireCourse(
+      entry.incoming.length === 0,
+      '/entrySectionId',
+      'Entry Section cannot have an incoming Link',
+      'invalid_topology',
+    );
   }
-  requireCourse(
-    entry.incoming.length === 0,
-    '/entrySectionId',
-    'Entry Section cannot have an incoming Link',
-    'invalid_topology',
-  );
   const visited = new Set<CompiledSection>(),
     active = new Set<CompiledSection>();
   const visit = (section: CompiledSection): void => {
-    requireCourse(!active.has(section), '/links', 'LINEAR/BRANCH topology must be acyclic', 'invalid_topology');
+    if (active.has(section)) {
+      requireCourse(type === 'CIRCUIT', '/links', 'LINEAR/BRANCH topology must be acyclic', 'invalid_topology');
+      return;
+    }
     if (visited.has(section)) return;
     active.add(section);
     for (const link of section.outgoing) visit(link.to.section);
@@ -160,5 +166,34 @@ export function validateCourseTopology(
     '/sections',
     'Every Section must be reachable from the entry Section',
     'invalid_topology',
+  );
+  if (type === 'CIRCUIT') validateCourseCycle(entry);
+}
+
+/** Topology admission proves this is the only directed cycle; acyclic merges never enter here. */
+function validateCourseCycle(entry: CompiledSection): void {
+  let transform = compilePlanarTransform({ x: 0, z: 0, heading: 0 }, { x: 0, z: 0, heading: 0 });
+  let section = entry,
+    positionTolerance = 0,
+    headingTolerance = 0;
+  do {
+    const link = section.outgoing[0]!;
+    // Rotating the accumulated translation by one uncertain Link heading adds this chord bound.
+    positionTolerance +=
+      COURSE_LINK_RECIPE.edgeToleranceMeters +
+      2 *
+        Math.sin(COURSE_LINK_RECIPE.headingToleranceRadians / 2) *
+        Math.hypot(transform.translation.x, transform.translation.z);
+    headingTolerance += COURSE_LINK_RECIPE.headingToleranceRadians;
+    transform = composePlanarTransforms(link.destinationFromSource, transform);
+    section = link.to.section;
+  } while (section !== entry);
+  const positionError = Math.hypot(transform.translation.x, transform.translation.z);
+  const headingError = Math.abs(Math.atan2(transform.sine, transform.cosine));
+  requireCourse(
+    positionError <= positionTolerance && headingError <= headingTolerance,
+    '/links',
+    `Cycle through Section ${entry.id} does not close: position ${positionError} m (limit ${positionTolerance}), heading ${headingError} rad (limit ${headingTolerance})`,
+    'cycle_not_closed',
   );
 }

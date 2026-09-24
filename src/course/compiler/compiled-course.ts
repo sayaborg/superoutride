@@ -58,7 +58,7 @@ export interface CompiledCourse {
 
 const COURSE_COMPILER = Object.freeze({
   id: 'superoutride.course-compiler',
-  version: 32,
+  version: 33,
   links: COURSE_LINK_RECIPE,
   physical: COURSE_PHYSICAL_RECIPE,
   images: COURSE_IMAGE_SOURCE_RECIPE,
@@ -206,7 +206,7 @@ export async function compileCourseDocument(
       to.incoming.push(link);
       return link;
     });
-    validateCourseTopology(document.type, entry, sections, links);
+    validateCourseTopology(document.type, entry, sections);
     const forks = compileStage(drafts, (draft, index) =>
       compileCourseFork(draft.section, draft.fork, `/sections/${index}/fork`),
     );

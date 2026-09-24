@@ -8,7 +8,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **7-5b — Cycles and laps**.
+Next PR: **7-5c — Gates and rules**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -18,7 +18,6 @@ PRs hold rationale and verification evidence.
 
 Write plan, position, lateral strips and race landmarks in one consistent authored course format.
 
-- **7-5b — Cycles and laps:** forbid Links from a Section to itself so a circuit is a cycle of two or more Sections; require every directed cycle to close geometrically at compilation (the composed Link transforms return to identity within the accumulated Link tolerance) without enumerating every cycle, staying polynomial in Sections and Links at the admitted graph size; merges of different branches are not cycles and stay unchecked; number laps by finish-line crossings along the Route, so lines up to the k-th finish crossing belong to lap k; rebuild ribbon-ring as a geometrically closed cycle of two Sections.
 - **7-5c — Gates and rules:** author start (including grid), checkpoints, finish, lock lines and closures as Section `gates`; remove `fork` and derive forking from the number of outgoing Links; leave only numeric settings in `rules`; derive course kind from the graph; simplify nulls and limits.
 - **7-6 — Delivery identity:** use one manifest, one version per format and one image path.
 - **7-7 — Validation:** validate once at document reading/compilation boundaries, remove redundant internal defensive checks and impossible ok/failure paths, unify progress diagnostics and move coordinate-overlap `CourseInputError` fields to a structured diagnostic variant; consolidate vertical-curve validation and admit `curveLength` from zero upward in document reading.

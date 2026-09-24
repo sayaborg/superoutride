@@ -39,6 +39,23 @@ export function createRouteCrossSections(route: CourseRoute, course: CompiledCou
   let indexed: readonly RouteOccurrence[] = [];
   let race: readonly RouteRaceLine[] = [];
   let forks: readonly RouteCrossSection[] = [];
+  const laps = new WeakMap<RouteOccurrence, number>();
+  // Follow finish lines from the entry even if refresh has already pruned unseen occurrences.
+  let cursor = course.entry,
+    cursorStart = 0,
+    cursorLap = 1;
+  const occurrenceLap = (occurrence: RouteOccurrence) => {
+    if (course.type !== 'CIRCUIT') return 1;
+    const known = laps.get(occurrence);
+    if (known !== undefined) return known;
+    while (cursorStart < occurrence.start) {
+      if (rules.get(cursor)!.finish) cursorLap++;
+      cursorStart += cursor.coordinates.domain.end;
+      cursor = cursor.outgoing[0]!.to.section;
+    }
+    laps.set(occurrence, cursorLap);
+    return cursorLap;
+  };
   const bounds = { left: 0, right: 0 };
   const line = (occurrence: RouteOccurrence, nativeS: number): RouteCrossSection => {
     const s = routeS(occurrence, nativeS);
@@ -58,7 +75,7 @@ export function createRouteCrossSections(route: CourseRoute, course: CompiledCou
       nextForks: RouteCrossSection[] = [];
     for (const occurrence of indexed) {
       const interval = rules.get(occurrence.section)!;
-      const lap = course.type === 'CIRCUIT' ? occurrence.ordinal + 1 : 1;
+      const lap = occurrenceLap(occurrence);
       if (lap <= lapCount) {
         for (const landmark of interval.checkpoints)
           nextRace.push(

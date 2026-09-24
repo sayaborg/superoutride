@@ -72,7 +72,7 @@ Contact reach is the ceiling of the largest `hypot(forwardOffset, freeReachDown)
   The step allowance retains the rear footprint until the next refresh. At an undecided fork the parent
   Section covers the lock plus the render/driver lookahead and step allowance.
   Pruning never changes existing stations or vehicle poses. A single-successor circuit repeats its
-  Section for successive laps. Derived projection intervals, height knots, Strip
+  ordered cycle of Sections for successive laps. Derived projection intervals, height knots, Strip
   intervals, sprite lists and environment boundaries rebuild only when the occurrence list changes.
 
 `PlanCoordinateReader` is the planar query interface for both a compiled Section and its mapped
@@ -122,13 +122,39 @@ Station-sequence endpoints normalize within their admission budget; plan samplin
 At a segment boundary, the successor owns the interior station; the terminal endpoint uses
 the final segment.
 
+## Cycle closure
+
+Topology admission first forbids self Links, checks reachability, and admits only an acyclic
+LINEAR/BRANCH graph or one unbranched CIRCUIT cycle of at least two Sections. In the latter case,
+one incoming and one outgoing Link per Section plus reachability proves there is exactly one cycle.
+The compiler follows that cycle from entry once and composes `destinationFromSource` transforms in
+traversal order. Acyclic merges are never compared for a common world embedding.
+
+For an accumulated transform `(R,t)` followed by a Link, the positional error budget increases by
+`edgeToleranceMeters + 2*sin(headingToleranceRadians/2)*|t|`; the chord term accounts for rotating
+the accumulated translation with the next Link's angular uncertainty. The angular budget increases
+by `headingToleranceRadians` per Link. These constants belong to `COURSE_LINK_RECIPE`: 1e-7 m
+translation and 1e-10 rad heading per Link. The latter is a wrapped-heading/composition roundoff
+allowance (at most 0.1 mm at a 1,000,000 m lever arm), not a driving allowance.
+The final translation norm and absolute wrapped angle `atan2(sine,cosine)` must be within those
+accumulated budgets. No correction is applied to authored geometry or Link transforms.
+
+With V Sections and E Links, topology admission uses O(V+E) time and O(V) visited/active storage;
+the closure pass uses O(V) time and O(1) additional storage. It does not enumerate cycle combinations.
+This bound holds at the admitted 128 Sections / 384 Links. Graphs with branching cycles are rejected
+by topology admission; broadening that admitted topology requires revisiting the closure proof.
+
 ## Route cross sections
 
 `createRouteCrossSections` maps each occurrence's checkpoints, finish and fork lock to fixed route
 stations with `routeS`. Its ordered lists and closed lateral bounds rebuild only when the Route's
 occurrence list changes. Bounds come from the coordinate-domain Reader at the line station, with
 successor ownership at a seam. A race line retains the canonical landmark identity for time budgets
-and its occurrence's lap number; line identity is independent of its index in a pruned list.
+and its finish-count lap number; line identity is independent of its index in a pruned list.
+For a circuit, a forward cursor follows the admitted single-successor sequence from entry and increments
+the lap only after a Section's FINISH. It advances through skipped/pruned occurrences as needed and caches
+lap numbers weakly by retained occurrence identity. Chainage additions follow the same order as the Route;
+no division by lap length or occurrence ordinal supplies lap numbers.
 
 The crossing calculation works entirely in `(s,l)`: forward arrival brackets the line's s, and
 linear interpolation supplies both the within-step fraction and the crossing l. A constant-s line

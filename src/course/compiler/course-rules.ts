@@ -67,15 +67,16 @@ export function compileCourseRules(
   const intervals = sections.map((section) => {
     const gates = checkpoints.filter((g) => g.section === section);
     const goals = finishes.filter((g) => g.section === section);
-    const terminal = section.outgoing.length === 0 || document.type === 'CIRCUIT';
+    const terminal =
+      document.type === 'CIRCUIT' ? section.outgoing[0]!.to.section === entry : section.outgoing.length === 0;
     check(
       goals.length === Number(terminal),
       '/rules/finishes',
-      'Each terminal or circuit Section needs exactly one FINISH; continuation Sections have none',
+      'Each terminal or circuit return-to-entry Section needs exactly one FINISH; other Sections have none',
     );
     const finish = goals[0] ?? null;
-    if (document.type === 'CIRCUIT')
-      check(finish!.at.s === endS(section), '/rules/finishes', 'Circuit FINISH must coincide with its loop exit');
+    if (document.type === 'CIRCUIT' && finish)
+      check(finish.at.s === endS(section), '/rules/finishes', 'Circuit FINISH must coincide with its loop exit');
     let previous = 0;
     for (const gate of gates) {
       check(

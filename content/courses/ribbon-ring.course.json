@@ -3,7 +3,7 @@
   "version": 22,
   "id": "ribbon-ring",
   "type": "CIRCUIT",
-  "entrySectionId": "ring-road",
+  "entrySectionId": "ring-outward",
   "rules": {
     "grid": [
       {
@@ -128,37 +128,37 @@
     ],
     "checkpoints": [
       {
-        "id": "ring-road-CP1",
-        "sectionId": "ring-road",
+        "id": "ring-CP1",
+        "sectionId": "ring-outward",
         "carriagewayId": "road",
         "at": {
-          "pi": "bend-1",
-          "offset": -324.20352248333654
+          "pi": "start",
+          "offset": 500
         }
       },
       {
-        "id": "ring-road-CP2",
-        "sectionId": "ring-road",
+        "id": "ring-CP2",
+        "sectionId": "ring-return",
         "carriagewayId": "road",
         "at": {
-          "pi": "bend-1",
-          "offset": 175.79647751666346
+          "pi": "start",
+          "offset": 10
         }
       },
       {
-        "id": "ring-road-CP3",
-        "sectionId": "ring-road",
+        "id": "ring-CP3",
+        "sectionId": "ring-return",
         "carriagewayId": "road",
         "at": {
-          "pi": "bend-2",
-          "offset": 267.3894325499905
+          "pi": "start",
+          "offset": 990
         }
       }
     ],
     "finishes": [
       {
-        "id": "ring-road-FINISH",
-        "sectionId": "ring-road",
+        "id": "ring-FINISH",
+        "sectionId": "ring-return",
         "carriagewayId": "road",
         "at": {
           "pi": "end",
@@ -176,7 +176,7 @@
   },
   "sections": [
     {
-      "id": "ring-road",
+      "id": "ring-outward",
       "pis": [
         {
           "id": "start",
@@ -187,19 +187,19 @@
         {
           "id": "bend-1",
           "x": 0,
-          "z": 880,
+          "z": 351.5929550333269,
           "radius": 260
         },
         {
           "id": "bend-2",
           "x": 520,
-          "z": 880,
+          "z": 351.5929550333269,
           "radius": 260
         },
         {
           "id": "end",
-          "x": 520.0000000000001,
-          "z": 57,
+          "x": 520,
+          "z": 0,
           "radius": 0
         }
       ],
@@ -391,8 +391,8 @@
             },
             {
               "at": {
-                "pi": "end",
-                "offset": 0
+                "pi": "start",
+                "offset": 1000
               },
               "left": {
                 "boundary": "outer-left",
@@ -426,8 +426,8 @@
             },
             {
               "at": {
-                "pi": "end",
-                "offset": 0
+                "pi": "start",
+                "offset": 1000
               },
               "left": {
                 "boundary": "shoulder-right",
@@ -456,7 +456,7 @@
             {
               "at": {
                 "pi": "start",
-                "offset": 1999.8140899333462
+                "offset": 1000
               },
               "left": null,
               "right": null
@@ -485,7 +485,7 @@
             {
               "at": {
                 "pi": "start",
-                "offset": 1999.8140899333462
+                "offset": 1000
               },
               "left": {
                 "boundary": "shoulder-left",
@@ -520,7 +520,7 @@
             {
               "at": {
                 "pi": "start",
-                "offset": 1999.8140899333462
+                "offset": 1000
               },
               "left": {
                 "boundary": "road-left",
@@ -555,7 +555,7 @@
             {
               "at": {
                 "pi": "start",
-                "offset": 1999.8140899333462
+                "offset": 1000
               },
               "left": {
                 "boundary": "center-left",
@@ -590,7 +590,7 @@
             {
               "at": {
                 "pi": "start",
-                "offset": 1999.8140899333462
+                "offset": 1000
               },
               "left": {
                 "boundary": "center-right",
@@ -625,7 +625,7 @@
             {
               "at": {
                 "pi": "start",
-                "offset": 1999.8140899333462
+                "offset": 1000
               },
               "left": {
                 "boundary": "road-right",
@@ -642,11 +642,11 @@
           "kind": "curb",
           "start": {
             "pi": "start",
-            "offset": 70
+            "offset": 35.0032537286169
           },
           "end": {
             "pi": "start",
-            "offset": 1909.8437993165176
+            "offset": 955.0106727071678
           },
           "left": -8,
           "right": {
@@ -660,11 +660,11 @@
           "kind": "curb",
           "start": {
             "pi": "start",
-            "offset": 70
+            "offset": 35.0032537286169
           },
           "end": {
             "pi": "start",
-            "offset": 1909.8437993165176
+            "offset": 955.0106727071678
           },
           "left": {
             "boundary": "road-right",
@@ -676,7 +676,7 @@
         },
         {
           "kind": "repeat",
-          "count": 72,
+          "count": 36,
           "every": 25,
           "elements": [
             {
@@ -687,7 +687,7 @@
                 {
                   "at": {
                     "pi": "start",
-                    "offset": 90
+                    "offset": 45.004183365364575
                   },
                   "left": {
                     "boundary": "center-left",
@@ -701,7 +701,7 @@
                 {
                   "at": {
                     "pi": "start",
-                    "offset": 100
+                    "offset": 50.00464818373842
                   },
                   "left": {
                     "boundary": "center-left",
@@ -720,7 +720,7 @@
           "kind": "text",
           "at": {
             "pi": "start",
-            "offset": 36
+            "offset": 18.001673346145832
           },
           "lateral": -5.6,
           "text": "RING",
@@ -731,7 +731,7 @@
           "kind": "arrow",
           "at": {
             "pi": "start",
-            "offset": 78
+            "offset": 39.003625583315966
           },
           "lateral": -3,
           "width": 3,
@@ -743,7 +743,7 @@
           "kind": "arrow",
           "at": {
             "pi": "start",
-            "offset": 78
+            "offset": 39.003625583315966
           },
           "lateral": 3,
           "width": 3,
@@ -752,81 +752,10 @@
           "color": 32765
         },
         {
-          "kind": "repeat",
-          "count": 6,
-          "every": 4,
-          "elements": [
-            {
-              "kind": "strip",
-              "color": 32765,
-              "material": null,
-              "knots": [
-                {
-                  "at": {
-                    "pi": "start",
-                    "offset": 219
-                  },
-                  "left": {
-                    "boundary": "road-left",
-                    "offset": 0
-                  },
-                  "right": {
-                    "boundary": "road-right",
-                    "offset": 0
-                  }
-                },
-                {
-                  "at": {
-                    "pi": "start",
-                    "offset": 221
-                  },
-                  "left": {
-                    "boundary": "road-left",
-                    "offset": 0
-                  },
-                  "right": {
-                    "boundary": "road-right",
-                    "offset": 0
-                  }
-                }
-              ]
-            },
-            {
-              "kind": "strip",
-              "color": 9548,
-              "material": null,
-              "knots": [
-                {
-                  "at": {
-                    "pi": "start",
-                    "offset": 221
-                  },
-                  "left": {
-                    "boundary": "road-left",
-                    "offset": 0
-                  },
-                  "right": 0
-                },
-                {
-                  "at": {
-                    "pi": "start",
-                    "offset": 223
-                  },
-                  "left": {
-                    "boundary": "road-left",
-                    "offset": 0
-                  },
-                  "right": 0
-                }
-              ]
-            }
-          ]
-        },
-        {
           "kind": "text",
           "at": {
             "pi": "start",
-            "offset": 260
+            "offset": 130.0120852777199
           },
           "lateral": -4.6,
           "text": "LAP",
@@ -841,7 +770,7 @@
             {
               "at": {
                 "pi": "start",
-                "offset": 920
+                "offset": 460.04276329039345
               },
               "left": 18,
               "right": null
@@ -849,7 +778,7 @@
             {
               "at": {
                 "pi": "start",
-                "offset": 1080
+                "offset": 540.050200384375
               },
               "left": 18,
               "right": null
@@ -864,7 +793,7 @@
             {
               "at": {
                 "pi": "start",
-                "offset": 1170
+                "offset": 585.0543837497395
               },
               "left": null,
               "right": -35
@@ -872,7 +801,7 @@
             {
               "at": {
                 "pi": "start",
-                "offset": 1220
+                "offset": 610.0567078416087
               },
               "left": null,
               "right": -9
@@ -880,7 +809,7 @@
             {
               "at": {
                 "pi": "start",
-                "offset": 1380
+                "offset": 690.0641449355902
               },
               "left": null,
               "right": -9
@@ -888,7 +817,7 @@
             {
               "at": {
                 "pi": "start",
-                "offset": 1420
+                "offset": 710.0660042090856
               },
               "left": null,
               "right": -35
@@ -934,18 +863,6 @@
             "horizonY": 320,
             "yawOrigin": 0
           }
-        },
-        {
-          "at": {
-            "pi": "bend-2",
-            "offset": 204.20352248333666
-          },
-          "name": "RIBBON RING",
-          "background": {
-            "assetId": "coast-sky",
-            "horizonY": 320,
-            "yawOrigin": 180
-          }
         }
       ],
       "fork": null,
@@ -953,7 +870,7 @@
         {
           "kind": "repeat",
           "every": 40,
-          "count": 49,
+          "count": 25,
           "elements": [
             {
               "kind": "sprite",
@@ -961,7 +878,7 @@
               "palette": null,
               "at": {
                 "pi": "start",
-                "offset": 35
+                "offset": 17.50162686430845
               },
               "lateral": {
                 "boundary": "road-left",
@@ -975,7 +892,7 @@
         {
           "kind": "repeat",
           "every": 40,
-          "count": 49,
+          "count": 25,
           "elements": [
             {
               "kind": "sprite",
@@ -983,7 +900,770 @@
               "palette": null,
               "at": {
                 "pi": "start",
-                "offset": 35
+                "offset": 17.50162686430845
+              },
+              "lateral": {
+                "boundary": "road-right",
+                "offset": 5
+              },
+              "groundOffset": 0,
+              "unselectedCarriagewayId": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ring-return",
+      "pis": [
+        {
+          "id": "start",
+          "x": 0,
+          "z": 0,
+          "radius": 0
+        },
+        {
+          "id": "bend-1",
+          "x": 0,
+          "z": 351.5929550333269,
+          "radius": 260
+        },
+        {
+          "id": "bend-2",
+          "x": 520,
+          "z": 351.5929550333269,
+          "radius": 260
+        },
+        {
+          "id": "end",
+          "x": 520,
+          "z": 0,
+          "radius": 0
+        }
+      ],
+      "boundaries": [
+        {
+          "id": "outer-left",
+          "knots": [
+            {
+              "at": {
+                "pi": "start",
+                "offset": 0
+              },
+              "lateral": -20
+            },
+            {
+              "at": {
+                "pi": "end",
+                "offset": 0
+              },
+              "lateral": -20
+            }
+          ]
+        },
+        {
+          "id": "shoulder-left",
+          "knots": [
+            {
+              "at": {
+                "pi": "start",
+                "offset": 0
+              },
+              "lateral": {
+                "boundary": "road-left",
+                "offset": -2
+              }
+            },
+            {
+              "at": {
+                "pi": "end",
+                "offset": 0
+              },
+              "lateral": {
+                "boundary": "road-left",
+                "offset": -2
+              }
+            }
+          ]
+        },
+        {
+          "id": "road-left",
+          "knots": [
+            {
+              "at": {
+                "pi": "start",
+                "offset": 0
+              },
+              "lateral": -7
+            },
+            {
+              "at": {
+                "pi": "end",
+                "offset": 0
+              },
+              "lateral": -7
+            }
+          ]
+        },
+        {
+          "id": "center-left",
+          "knots": [
+            {
+              "at": {
+                "pi": "start",
+                "offset": 0
+              },
+              "lateral": -0.1
+            },
+            {
+              "at": {
+                "pi": "end",
+                "offset": 0
+              },
+              "lateral": -0.1
+            }
+          ]
+        },
+        {
+          "id": "center-right",
+          "knots": [
+            {
+              "at": {
+                "pi": "start",
+                "offset": 0
+              },
+              "lateral": 0.1
+            },
+            {
+              "at": {
+                "pi": "end",
+                "offset": 0
+              },
+              "lateral": 0.1
+            }
+          ]
+        },
+        {
+          "id": "road-right",
+          "knots": [
+            {
+              "at": {
+                "pi": "start",
+                "offset": 0
+              },
+              "lateral": 7
+            },
+            {
+              "at": {
+                "pi": "end",
+                "offset": 0
+              },
+              "lateral": 7
+            }
+          ]
+        },
+        {
+          "id": "shoulder-right",
+          "knots": [
+            {
+              "at": {
+                "pi": "start",
+                "offset": 0
+              },
+              "lateral": {
+                "boundary": "road-right",
+                "offset": 2
+              }
+            },
+            {
+              "at": {
+                "pi": "end",
+                "offset": 0
+              },
+              "lateral": {
+                "boundary": "road-right",
+                "offset": 2
+              }
+            }
+          ]
+        },
+        {
+          "id": "outer-right",
+          "knots": [
+            {
+              "at": {
+                "pi": "start",
+                "offset": 0
+              },
+              "lateral": 20
+            },
+            {
+              "at": {
+                "pi": "end",
+                "offset": 0
+              },
+              "lateral": 20
+            }
+          ]
+        }
+      ],
+      "strips": [
+        {
+          "kind": "strip",
+          "color": null,
+          "material": "GRASS",
+          "knots": [
+            {
+              "at": {
+                "pi": "start",
+                "offset": 0
+              },
+              "left": {
+                "boundary": "outer-left",
+                "offset": 0
+              },
+              "right": {
+                "boundary": "shoulder-left",
+                "offset": 0
+              }
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 1000
+              },
+              "left": {
+                "boundary": "outer-left",
+                "offset": 0
+              },
+              "right": {
+                "boundary": "shoulder-left",
+                "offset": 0
+              }
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "color": null,
+          "material": "GRASS",
+          "knots": [
+            {
+              "at": {
+                "pi": "start",
+                "offset": 0
+              },
+              "left": {
+                "boundary": "shoulder-right",
+                "offset": 0
+              },
+              "right": {
+                "boundary": "outer-right",
+                "offset": 0
+              }
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 1000
+              },
+              "left": {
+                "boundary": "shoulder-right",
+                "offset": 0
+              },
+              "right": {
+                "boundary": "outer-right",
+                "offset": 0
+              }
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "color": 5575,
+          "material": null,
+          "knots": [
+            {
+              "at": {
+                "pi": "start",
+                "offset": 0
+              },
+              "left": null,
+              "right": null
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 1000
+              },
+              "left": null,
+              "right": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "color": 9548,
+          "material": "ASPHALT",
+          "knots": [
+            {
+              "at": {
+                "pi": "start",
+                "offset": 0
+              },
+              "left": {
+                "boundary": "shoulder-left",
+                "offset": 0
+              },
+              "right": {
+                "boundary": "road-left",
+                "offset": 0
+              }
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 1000
+              },
+              "left": {
+                "boundary": "shoulder-left",
+                "offset": 0
+              },
+              "right": {
+                "boundary": "road-left",
+                "offset": 0
+              }
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "color": 9548,
+          "material": "ASPHALT",
+          "knots": [
+            {
+              "at": {
+                "pi": "start",
+                "offset": 0
+              },
+              "left": {
+                "boundary": "road-left",
+                "offset": 0
+              },
+              "right": {
+                "boundary": "center-left",
+                "offset": 0
+              }
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 1000
+              },
+              "left": {
+                "boundary": "road-left",
+                "offset": 0
+              },
+              "right": {
+                "boundary": "center-left",
+                "offset": 0
+              }
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "color": 9548,
+          "material": "ASPHALT",
+          "knots": [
+            {
+              "at": {
+                "pi": "start",
+                "offset": 0
+              },
+              "left": {
+                "boundary": "center-left",
+                "offset": 0
+              },
+              "right": {
+                "boundary": "center-right",
+                "offset": 0
+              }
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 1000
+              },
+              "left": {
+                "boundary": "center-left",
+                "offset": 0
+              },
+              "right": {
+                "boundary": "center-right",
+                "offset": 0
+              }
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "color": 9548,
+          "material": "ASPHALT",
+          "knots": [
+            {
+              "at": {
+                "pi": "start",
+                "offset": 0
+              },
+              "left": {
+                "boundary": "center-right",
+                "offset": 0
+              },
+              "right": {
+                "boundary": "road-right",
+                "offset": 0
+              }
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 1000
+              },
+              "left": {
+                "boundary": "center-right",
+                "offset": 0
+              },
+              "right": {
+                "boundary": "road-right",
+                "offset": 0
+              }
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "color": 9548,
+          "material": "ASPHALT",
+          "knots": [
+            {
+              "at": {
+                "pi": "start",
+                "offset": 0
+              },
+              "left": {
+                "boundary": "road-right",
+                "offset": 0
+              },
+              "right": {
+                "boundary": "shoulder-right",
+                "offset": 0
+              }
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 1000
+              },
+              "left": {
+                "boundary": "road-right",
+                "offset": 0
+              },
+              "right": {
+                "boundary": "shoulder-right",
+                "offset": 0
+              }
+            }
+          ]
+        },
+        {
+          "kind": "curb",
+          "start": {
+            "pi": "start",
+            "offset": 35.0032537286169
+          },
+          "end": {
+            "pi": "start",
+            "offset": 955.0106727071678
+          },
+          "left": -8,
+          "right": {
+            "boundary": "road-left",
+            "offset": 0
+          },
+          "stripe": 3,
+          "colors": [27781, 32765]
+        },
+        {
+          "kind": "curb",
+          "start": {
+            "pi": "start",
+            "offset": 35.0032537286169
+          },
+          "end": {
+            "pi": "start",
+            "offset": 955.0106727071678
+          },
+          "left": {
+            "boundary": "road-right",
+            "offset": 0
+          },
+          "right": 8,
+          "stripe": 3,
+          "colors": [27781, 32765]
+        },
+        {
+          "kind": "repeat",
+          "count": 36,
+          "every": 25,
+          "elements": [
+            {
+              "kind": "strip",
+              "color": 32765,
+              "material": null,
+              "knots": [
+                {
+                  "at": {
+                    "pi": "start",
+                    "offset": 45.004183365364575
+                  },
+                  "left": {
+                    "boundary": "center-left",
+                    "offset": 0
+                  },
+                  "right": {
+                    "boundary": "center-right",
+                    "offset": 0
+                  }
+                },
+                {
+                  "at": {
+                    "pi": "start",
+                    "offset": 50.00464818373842
+                  },
+                  "left": {
+                    "boundary": "center-left",
+                    "offset": 0
+                  },
+                  "right": {
+                    "boundary": "center-right",
+                    "offset": 0
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "color": "transparent",
+          "material": null,
+          "knots": [
+            {
+              "at": {
+                "pi": "start",
+                "offset": 460.04276329039345
+              },
+              "left": 18,
+              "right": null
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 540.050200384375
+              },
+              "left": 18,
+              "right": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "color": "transparent",
+          "material": null,
+          "knots": [
+            {
+              "at": {
+                "pi": "start",
+                "offset": 585.0543837497395
+              },
+              "left": null,
+              "right": -35
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 610.0567078416087
+              },
+              "left": null,
+              "right": -9
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 690.0641449355902
+              },
+              "left": null,
+              "right": -9
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 710.0660042090856
+              },
+              "left": null,
+              "right": -35
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "count": 6,
+          "every": 4,
+          "elements": [
+            {
+              "kind": "strip",
+              "color": 32765,
+              "material": null,
+              "knots": [
+                {
+                  "at": {
+                    "pi": "start",
+                    "offset": 976
+                  },
+                  "left": {
+                    "boundary": "road-left",
+                    "offset": 0
+                  },
+                  "right": {
+                    "boundary": "road-right",
+                    "offset": 0
+                  }
+                },
+                {
+                  "at": {
+                    "pi": "start",
+                    "offset": 978
+                  },
+                  "left": {
+                    "boundary": "road-left",
+                    "offset": 0
+                  },
+                  "right": {
+                    "boundary": "road-right",
+                    "offset": 0
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "strip",
+              "color": 9548,
+              "material": null,
+              "knots": [
+                {
+                  "at": {
+                    "pi": "start",
+                    "offset": 978
+                  },
+                  "left": {
+                    "boundary": "road-left",
+                    "offset": 0
+                  },
+                  "right": 0
+                },
+                {
+                  "at": {
+                    "pi": "start",
+                    "offset": 980
+                  },
+                  "left": {
+                    "boundary": "road-left",
+                    "offset": 0
+                  },
+                  "right": 0
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "height": [
+        {
+          "at": {
+            "pi": "start",
+            "offset": 0
+          },
+          "y": 0,
+          "curveLength": 0
+        },
+        {
+          "at": {
+            "pi": "end",
+            "offset": 0
+          },
+          "y": 0,
+          "curveLength": 0
+        }
+      ],
+      "carriageways": [
+        {
+          "id": "road",
+          "left": "road-left",
+          "right": "road-right"
+        }
+      ],
+      "assetIds": ["coast-sky", "tree"],
+      "environments": [
+        {
+          "at": {
+            "pi": "start",
+            "offset": 0
+          },
+          "name": "RIBBON RING",
+          "background": {
+            "assetId": "coast-sky",
+            "horizonY": 320,
+            "yawOrigin": 0
+          }
+        }
+      ],
+      "fork": null,
+      "sprites": [
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 25,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "tree",
+              "palette": null,
+              "at": {
+                "pi": "start",
+                "offset": 17.50162686430845
+              },
+              "lateral": {
+                "boundary": "road-left",
+                "offset": -5
+              },
+              "groundOffset": 0,
+              "unselectedCarriagewayId": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 25,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "tree",
+              "palette": null,
+              "at": {
+                "pi": "start",
+                "offset": 17.50162686430845
               },
               "lateral": {
                 "boundary": "road-right",
@@ -999,13 +1679,23 @@
   ],
   "links": [
     {
-      "id": "loop",
+      "id": "outward-to-return",
       "from": {
-        "sectionId": "ring-road",
+        "sectionId": "ring-outward",
         "carriagewayId": "road"
       },
       "to": {
-        "sectionId": "ring-road"
+        "sectionId": "ring-return"
+      }
+    },
+    {
+      "id": "return-to-entry",
+      "from": {
+        "sectionId": "ring-return",
+        "carriagewayId": "road"
+      },
+      "to": {
+        "sectionId": "ring-outward"
       }
     }
   ],

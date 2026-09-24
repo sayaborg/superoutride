@@ -71,6 +71,13 @@ export async function readCourseReference(
     fail(run.lapCount === course.rules.maxLaps && record(run.metrics).recoveries === 0, 'incomplete or recovered run');
     const events = array(run.events).map(record);
     const itinerary = [course.entry, ...route!.map((l) => l.to.section)];
+    if (course.type === 'CIRCUIT') {
+      let section = course.entry.outgoing[0]!.to.section;
+      while (section !== course.entry) {
+        itinerary.push(section);
+        section = section.outgoing[0]!.to.section;
+      }
+    }
     const expected: { gate: CompiledCourseLandmark; lap: number }[] = [];
     for (let lap = 1; lap <= course.rules.maxLaps; lap++)
       for (const section of itinerary) {

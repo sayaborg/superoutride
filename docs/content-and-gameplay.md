@@ -204,7 +204,8 @@ Checkpoints and finishes contain `{id,sectionId,carriagewayId,at}` with unique I
 collections. Their saved Carriageway references resolve to supported pavement; runtime crossing width
 is the coordinate domain at the landmark. They lie after entry and no later than the
 ownership exit; checkpoints are strictly ordered within a Section. Each terminal Section has one
-FINISH; continuations have none. Circuit FINISH coincides with its loop exit.
+FINISH; continuations have none. A circuit has exactly one FINISH, at the terminal station of
+the Section whose outgoing Link returns to the entry Section. No other circuit Section has a FINISH.
 
 `maxLaps` is an integer from 1 through 99; non-circuits use 1. CLASSIC contains `vehicleId`,
 `rivalCount` (0 through 16), `lapCount` and positive finite `timeMargin` at most 10. Grid, roster and
@@ -357,8 +358,15 @@ Other boundaries, materials, Strips and appearance may change at the cut.
 
 The graph has an explicit entry. All Sections are reachable. LINEAR is a finite chain with at most
 one incoming/outgoing Link per Section. BRANCH is a finite acyclic graph with two/three-way forks
-and merges. Their entry has no incoming Link. CIRCUIT is one Section with an end-to-start loop;
-its endpoint poses may differ in native coordinates.
+and merges. Their entry has no incoming Link. Links from a Section to itself are forbidden for every type.
+CIRCUIT is one directed cycle containing the entry and at least two Sections. Each Section has exactly
+one outgoing Link; all Sections must be reachable from entry, and each has one incoming Link.
+
+Compilation requires the composition of Link transforms around the cycle to return to identity in both
+position and heading, within the accumulated `COURSE_LINK_RECIPE` translation and angular tolerances.
+Nonclosing cycles report `cycle_not_closed`, naming a Section on the cycle and both residuals and limits.
+Acyclic branch merges have no closure condition. [Architecture](architecture.md#cycle-closure)
+owns the bounded algorithm and tolerance accumulation.
 
 ## Compiled identity and project publication
 
@@ -368,7 +376,7 @@ Owned records and arrays are immutable, including nested image data. Live actor,
 clock state belong to Sessions. Object identity is local to a compilation; cross-build identity uses digests.
 
 `sourceSha256` hashes normalized input. `buildSha256` hashes `{sourceSha256,compiler}`.
-The compiler is `superoutride.course-compiler` version 32, incorporating Link recipe v2, physical
+The compiler is `superoutride.course-compiler` version 33, incorporating Link recipe v3, physical
 recipe v3, image-source recipe v2 and appearance recipe v9. Descriptors include semantic versions
 and operative numeric/data parameters, including material definitions. Source or compiler/recipe
 changes invalidate dependent products.
@@ -444,7 +452,10 @@ reverse travel stays on the selected predecessor in the same route coordinates.
 
 `createRouteCrossSections` produces ordered race and fork-lock lines from the retained Route. Each
 occurrence places its Section checkpoints and FINISH at route s; a circuit repeats those lines for
-each lap. The lists change only on route extension or pruning. The configured final lap's FINISH,
+each lap. Lap numbers count FINISH lines along the Route: every line after the (k-1)-th FINISH
+through and including the k-th FINISH belongs to lap k. Section occurrence ordinals do not determine
+laps. Pruning and reverse travel do not renumber lines. The lists change only on route extension or
+pruning. The configured final lap's FINISH,
 or the terminal Section's FINISH on a non-circuit, completes the race.
 
 `routeCrossingFraction` accepts a forward arrival when `previous.s < line.s <= current.s` and the
