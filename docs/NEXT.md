@@ -8,7 +8,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **6-9d — Outside the route and coordinate domain**.
+Next PR: **6-10 — Local tolerances**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -18,7 +18,6 @@ PRs hold rationale and verification evidence.
 
 Give all vehicles one route coordinate system, read its geometry and content through shared readers, and define behavior outside the retained route and coordinate domain.
 
-- **6-9d — Outside the route and coordinate domain:** treat out-of-domain contacts as unsupported without geometry reads, make the physics `offsetMetric <= 0` RangeError unreachable, and use `inDomain` in recovery conditions. Use one Reader layer instead of null results followed by filled-value adapters (`world`, `geometry`, `displayHeight`). Beyond either route end, extend along the endpoint tangent at the endpoint height with an empty coordinate domain (VOID material and `inDomain: false`). Remove defaults that return world origin `(0, 0)` or previous s with `l = 0`.
 - **6-10 — Local tolerances:** clarify each tolerance's basis and owning algorithm, including the `1e-14` tangent-intersection threshold in `plan-domain-injectivity.ts`.
 
 ## Stage 7 — Course format
@@ -40,7 +39,7 @@ Give vehicles, tires, tuning and materials explicit definitions, and treat airbo
 - **8-1 — Vehicle data:** saved vehicle definitions and independent tire definitions; rename vehicle/tire/powertrain/actuator Profiles and Arcade prefixes according to the glossary.
 - **8-2 — DEV tuning:** replace definitions rather than mutate running settings.
 - **8-3 — Materials:** one material-definition table.
-- **8-4 — Jumps and recovery:** normal airborne state, revised recovery conditions and suspension limits.
+- **8-4 — Jumps and recovery:** normal airborne state, remaining non-domain recovery conditions and suspension limits.
 
 ## Stage 9 — Audio
 

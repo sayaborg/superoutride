@@ -128,7 +128,7 @@ export function sampleEnvelopeDrivingInput(
   }
   const targetSpeed = Math.sqrt(targetSquared);
   const lookahead = Math.min(ENVELOPE_DRIVER.lookahead, Math.max(8, speed * ENVELOPE_DRIVER.responseSeconds));
-  const targetS = Math.min(domain.end, s + lookahead);
+  const targetS = clamp(s + lookahead, domain.start, domain.end);
   const target = coordinates.toWorld(
     targetS,
     typeof targetL === 'number' ? targetL : targetL(targetS),

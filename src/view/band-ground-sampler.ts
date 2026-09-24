@@ -1,4 +1,3 @@
-import { SOURCE_ENDPOINT_TOLERANCE_METERS } from '../core/tolerances.js';
 import {
   IMAGE_OPAQUE_COVERAGE,
   linearToRgb555,
@@ -64,12 +63,12 @@ function integrate(field: BandLateralField, a: number, b: number, out: Float64Ar
   }
 }
 
-/** One field-owned interval in the renderer's ruler; lateralOrigin maps frame l to native l. */
+/** A route interval; subtract occurrenceStart to sample its Section ground. */
 interface BandFieldSpan {
   readonly ground: BandGround;
-  readonly frameStart: number;
-  readonly nativeStart: number;
-  readonly nativeEnd: number;
+  readonly start: number;
+  readonly occurrenceStart: number;
+  readonly end: number;
   readonly lateralOrigin: number;
 }
 
@@ -253,25 +252,7 @@ function readPointField(
 
 /** Each product method selects its complete longitudinal/lateral read, never independent kernels. */
 export function createBandGroundSampler(intervals: readonly BandFieldSpan[]) {
-  if (intervals.length === 0) throw new RangeError('Band sampling requires field-owned intervals');
-  const spans = intervals.map((input, i) => {
-    if (!input.ground.reader) throw new TypeError('Band sampling requires a compiled ground');
-    const { frameStart, nativeStart, nativeEnd, lateralOrigin } = input;
-    if (
-      ![frameStart, nativeStart, nativeEnd, lateralOrigin].every(Number.isFinite) ||
-      !(nativeEnd > nativeStart) ||
-      nativeStart < -SOURCE_ENDPOINT_TOLERANCE_METERS ||
-      nativeEnd > input.ground.length + SOURCE_ENDPOINT_TOLERANCE_METERS
-    )
-      throw new RangeError('Band field interval is outside its compiled ground');
-    if (i > 0) {
-      const prior = intervals[i - 1]!,
-        end = prior.frameStart + (prior.nativeEnd - prior.nativeStart);
-      if (Math.abs(frameStart - end) > SOURCE_ENDPOINT_TOLERANCE_METERS)
-        throw new RangeError('Band field intervals must be contiguous and ordered');
-    }
-    return { ...input, frameEnd: frameStart + (nativeEnd - nativeStart) };
-  });
+  const spans = intervals;
   const row = new BandRow(),
     pointField: BandCellTarget = {
       base: [0, 0, 0, 0],
@@ -282,21 +263,21 @@ export function createBandGroundSampler(intervals: readonly BandFieldSpan[]) {
     },
     sample = new Float64Array(4),
     colorCache = new Float64Array([NaN, NaN, NaN, NaN, 0]);
-  const first = spans[0]!.frameStart,
-    last = spans.at(-1)!.frameEnd;
+  const first = spans[0]!.start,
+    last = spans.at(-1)!.end;
   const spanAt = (s: number) => {
     let lo = 0,
       hi = spans.length;
     while (lo < hi) {
       const mid = (lo + hi) >>> 1;
-      if (spans[mid]!.frameEnd > s) hi = mid;
+      if (spans[mid]!.end > s) hi = mid;
       else lo = mid + 1;
     }
     return spans[Math.min(lo, spans.length - 1)]!;
   };
   const append = (span: (typeof spans)[number], start: number, end: number, stats: BandRenderMetrics) => {
-    const a = Math.max(0, span.nativeStart + start - span.frameStart),
-      b = Math.min(span.ground.length, span.nativeStart + end - span.frameStart);
+    const a = Math.max(0, start - span.occurrenceStart),
+      b = Math.min(span.ground.length, end - span.occurrenceStart);
     const fullStart = Math.ceil(a / BAND_BASE_STEP),
       fullEnd = Math.floor(b / BAND_BASE_STEP);
     if (fullEnd <= fullStart) {
@@ -335,7 +316,7 @@ export function createBandGroundSampler(intervals: readonly BandFieldSpan[]) {
       let normalization = 1;
       if (method !== 'EXACT-BOX') {
         const span = spanAt(s);
-        const at = Math.max(0, Math.min(span.ground.length, span.nativeStart + s - span.frameStart));
+        const at = Math.max(0, Math.min(span.ground.length, s - span.occurrenceStart));
         if (method === 'LEVEL-POINT' && deltaS >= BAND_BASE_STEP) {
           const level = selectImageLodLevel(BAND_BASE_STEP / deltaS, span.ground.reader.levelCount - 1);
           span.ground.reader.read(level, at, pointField);
@@ -350,13 +331,13 @@ export function createBandGroundSampler(intervals: readonly BandFieldSpan[]) {
         let area = 0;
         if (end > start) {
           for (const span of spans) {
-            const a = Math.max(start, span.frameStart),
-              b = Math.min(end, span.frameEnd);
+            const a = Math.max(start, span.start),
+              b = Math.min(end, span.end);
             if (b > a) area += append(span, a, b, stats);
           }
         } else {
           const span = spanAt(s);
-          const at = Math.max(0, Math.min(span.ground.length, span.nativeStart + s - span.frameStart));
+          const at = Math.max(0, Math.min(span.ground.length, s - span.occurrenceStart));
           appendExact(row, span.ground, at, at, span.lateralOrigin, stats, true);
         }
         field = row.finish();

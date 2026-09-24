@@ -56,7 +56,7 @@ export function createCourseRouteVisualReaders(route: CourseRoute, fields: Cours
     const visual = Object.freeze({
       sections: Object.freeze(visualSections),
       sample(s: number) {
-        return route.at(s) ? visualSections[knotIndexAt(visualSections, 'sStart', s)]! : null;
+        return visualSections[knotIndexAt(visualSections, 'sStart', s)]!;
       },
       distanceToNextSection(s: number) {
         if (!route.at(s)) return Infinity;
@@ -67,9 +67,9 @@ export function createCourseRouteVisualReaders(route: CourseRoute, fields: Cours
     const sampler = createBandGroundSampler(
       occurrences.map((occurrence) => ({
         ground: fields.forSection(occurrence.section),
-        frameStart: occurrence.start,
-        nativeStart: 0,
-        nativeEnd: routeSectionS(occurrence, occurrence.end),
+        start: occurrence.start,
+        occurrenceStart: occurrence.start,
+        end: occurrence.end,
         lateralOrigin: occurrence.lateralOrigin,
       })),
     );
@@ -105,8 +105,7 @@ export function createCourseRouteVisualReaders(route: CourseRoute, fields: Cours
         placements.filter((p) => p.unselected !== null).map((p) => ({ unselected: p.unselected!, sprite: p.sprite })),
       ),
       backgroundAt(s: number) {
-        const occurrence = route.at(s);
-        if (!occurrence) return null;
+        const occurrence = route.at(s) ?? (s < route.start ? occurrences[0]! : occurrences.at(-1)!);
         const mappedSection = mappedByOccurrence.get(occurrence)!;
         const index = knotIndexAt(mappedSection.native.visual.sections, 'sStart', routeSectionS(occurrence, s));
         return mappedSection.backgrounds[index]!;

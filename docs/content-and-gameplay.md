@@ -280,8 +280,8 @@ extension/retention distances. Geometry/content indexes and race cross-section l
 the shared sequence changes. All actors retain their route coordinates at a seam.
 
 A driving scene requires compiled Session rules with a starting grid and checks its rearmost grid
-station against `D_cam`. Backing within `2 D_cam` of route s=0 recovers the vehicle to `3 D_cam` on
-the entry carriageway. Manual resynchronization uses the same entry positions. Recovery preserves
+station against `D_cam`. Driving beyond the entry uses the same coordinate-domain recovery rule
+as any other domain exit. Recovery preserves
 accepted cross sections and laps and suppresses crossing credit for that step.
 
 ## Fork lock and handoff
@@ -385,12 +385,13 @@ integer-millisecond budgets. [Development](development.md#build-outputs) owns ge
 
 ## Recovery
 
-Recovery observes support loss, falling, penetration, chart excursion and overturning. It reconstructs
+Recovery observes support loss, falling, penetration, coordinate-domain exit and overturning. It reconstructs
 pose, velocities, wheels, actuators, powertrain and observations at known supported coordinates while
 preserving steering/tire calibration and earned gates, locks and laps.
 
-Same-chart recovery backs off from the farther of causal current chainage and last-safe chainage.
-Wrong-route recovery uses the legal approach and the actor's backtracking/retained-speed profile.
+Route recovery backs off from the farther of causal current chainage and last-safe chainage.
+Wrong-route recovery uses the selected Carriageway at the observed station.
+[Vehicle physics](vehicle-physics.md#coordinate-domain-recovery) owns domain timing and target placement.
 Physics' typed suspension-travel exit requests this gameplay discontinuity. Known recovery coordinates use the shared route. Observers resynchronize once, suppress reset
 crossing credit and update the player
 camera before rendering. Unrelated internal faults propagate.

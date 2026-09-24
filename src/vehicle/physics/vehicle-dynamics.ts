@@ -264,7 +264,6 @@ export function sampleSurfaceGeometryAtCoordinate(
   const out = workspace.value;
   const planSample = coordinates.toWorld(coordinate.s, coordinate.l, workspace.planSample);
   const { curvature, offsetMetric } = coordinates.metricsAt(coordinate.s, coordinate.l, workspace.metrics);
-  if (!(offsetMetric > 0)) throw new RangeError('surface offset metric A=1-kappa*l must remain > 0');
   const heightSample = height.sampleDifferential(coordinate.s, workspace.height);
   const heightDerivativeByS = heightSample.dYdS;
   const horizontalTangent = out.horizontalTangent,
@@ -359,6 +358,26 @@ export function deriveContactObservation(
     workspace.surface.value.coordinate,
     workspace.surface.projection,
   );
+  if (!coordinate.inDomain) {
+    // There is no surface to sample. Clear the borrowed contact from the preceding substep.
+    const surface = workspace.surface.value;
+    surface.material = SURFACE_MATERIALS.VOID;
+    surface.surfaceType = 'VOID';
+    surface.curvature = surface.heightDerivativeByS = surface.gradeAngle = 0;
+    surface.offsetMetric = 1;
+    scale3(WORLD_UP, 0, surface.point);
+    scale3(WORLD_UP, 0, surface.horizontalTangent);
+    scale3(WORLD_UP, 0, surface.right);
+    scale3(WORLD_UP, 0, surface.tangent);
+    scale3(WORLD_UP, 0, surface.normal);
+    out.supportAvailable = out.withinReach = out.forceTransmitting = false;
+    out.gap = out.q = out.qDot = out.normalLoad = 0;
+    out.effectiveRollingRadius = station.rollingRadius;
+    Object.assign(out.contactPoint, reachPoint);
+    add3(body.velocity, cross3(body.omegaWorld, freeOffset, a), out.reachVelocity);
+    contactTireFrame(body, station, steerAngle, surface, out.reachVelocity, out, a);
+    return out;
+  }
   sampleSurfaceGeometryAtCoordinate(coordinates, height, surfaces, coordinate, workspace.surface);
   const surface = workspace.surface.value;
   const reachVelocity = add3(body.velocity, cross3(body.omegaWorld, freeOffset, a), out.reachVelocity);
@@ -439,7 +458,8 @@ function contactTireFrame(
     scale3(surface.normal, dot3(wheelForward, surface.normal), scratch),
     scratch,
   );
-  const tireFrameValid = magnitude3(tireForwardRaw) > MIN_PROJECTED_TIRE_DIRECTION_LENGTH;
+  const tireFrameValid =
+    surface.coordinate.inDomain && magnitude3(tireForwardRaw) > MIN_PROJECTED_TIRE_DIRECTION_LENGTH;
   if (tireFrameValid) {
     normalize3(tireForwardRaw, out.tireForward);
     normalize3(cross3(surface.normal, out.tireForward, out.tireRight), out.tireRight);

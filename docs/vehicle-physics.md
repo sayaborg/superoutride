@@ -38,8 +38,12 @@ For curvature `kappa`, lateral coordinate `l` and height derivative `h'=dY/ds`,
 require `J=1-kappa*l > 0`. Surface normal is proportional to
 `worldUp*J-horizontalTangent*h'`; grade is `atan2(h',J)`.
 The vehicle keeps its last observed s for the next center and contact projection. Spawn and
-recovery supply their known s, and a frame commit maps that s into the new occurrence frame.
-The projection's `inDomain` observation does not change the existing support and recovery rules.
+recovery supply their known route s. Each contact projects its free suspension reach point first.
+If `inDomain:false`, it reads no surface position, metric, normal, grade or material. Its support,
+compression, load and tire force are zero; its tire frame is invalid. Borrowed observations are
+cleared so a preceding supported substep cannot contribute stale contact forces. Wheel and body
+motion continue under the ordinary unsupported mechanics. Within the admitted coordinate domain,
+compilation guarantees J>0, so contact sampling needs no second metric-domain check.
 
 The free suspension reach offset is `forward*axleOffset-up*freeReach`, with velocity
 `v+omega cross offset`. Supported material and an upright body permit unilateral contact:
@@ -53,6 +57,22 @@ N = max(0,spring*q+damping*qDot+smoothBumpStop(q))
 At `q >= qTravel`, the solver raises `VehicleOutsideModelError`. Degenerate projection of the steered
 wheel direction onto the surface plane transmits zero tire force. The shared wrench combines contact,
 wheel reaction, gravity and planar quadratic drag for protection and integration.
+
+## Coordinate-domain recovery
+
+The vehicle center's projected `inDomain` controls the coordinate-domain recovery condition.
+A continuous 0.72 seconds outside triggers `outside-domain` recovery; returning inside resets the
+outside timer. The same condition covers lateral exits and either end of the retained Route.
+The interval matches the existing unsupported-time allowance: a short excursion can return, and
+an unsupported vehicle can visibly fall (about 2.54 m from rest under gravity) before reconstruction.
+Outside the domain, recovery does not query a fictitious surface normal or penetration plane.
+Inside it, the existing support, penetration, fall-distance, overturn and suspension-travel rules
+continue to apply; their broader airborne revision belongs to stage 8-4.
+
+Recovery clamps the farther of current and last-safe route s to the retained extent, then backs up
+8 m within it. Race composition resolves a Carriageway center at that final station, respecting
+locked forks. Manual recovery uses the same target resolver. Explicit recovery targets are admitted
+only inside the coordinate domain and on supported material. Reset steps award no crossing credit.
 
 ## Tire law
 

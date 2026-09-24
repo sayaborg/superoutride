@@ -12,12 +12,12 @@ import {
 } from './geometry/plan-coordinate.js';
 import type { CompiledSection } from './compiler/course-graph.js';
 import { rasterPathToWorld } from './geometry/raster-path.js';
-import type { VehicleWorld } from './vehicle-world.js';
-import type { ProfilePolylineReader } from './geometry/profile.js';
-import type { RasterGeometry } from './geometry/raster-coordinate-reader.js';
 import { routeS, routeSectionS, type CourseRoute, type RouteOccurrence } from './course-route.js';
 
-/** No-content results for route queries. Height holds the endpoint value, and the surface is VOID. */
+/** An inverted closed interval represents the empty coordinate domain. */
+export const EMPTY_ROUTE_DOMAIN = Object.freeze({ left: Infinity, right: -Infinity });
+
+/** The route has no material outside its coordinate domain. */
 export const ROUTE_OUTSIDE_SURFACE = Object.freeze({
   sectionName: 'OUTSIDE',
   type: SURFACE_MATERIALS.VOID.type,
@@ -30,6 +30,15 @@ export function createCourseRouteReaders(route: CourseRoute) {
   const native = { x: 0, z: 0, s: 0, l: 0, heading: 0 };
   const rasterSample = { x: 0, z: 0, s: 0, l: 0, heading: 0, segmentIndex: 0 };
   const bounds = { left: 0, right: 0 };
+  const endpoint = { x: 0, z: 0, s: 0, l: 0, heading: 0 };
+  function extend(out: PlanCoordinateSample, s: number, l: number, end: number) {
+    const tx = Math.sin(out.heading),
+      tz = Math.cos(out.heading);
+    out.x += (s - end) * tx + l * tz;
+    out.z += (s - end) * tz - l * tx;
+    out.s = s;
+    out.l = l;
+  }
   let indexed: readonly RouteOccurrence[] = [];
   let candidates: readonly {
     readonly occurrence: RouteOccurrence;
@@ -84,12 +93,14 @@ export function createCourseRouteReaders(route: CourseRoute) {
   });
   const coordinates = Object.freeze({
     domain,
-    lateralAt(s: number, out: Writable<PlanLateralBounds>): PlanLateralBounds | null {
-      return lateralAt(s, out);
-    },
-    toWorld(s: number, l: number, out: PlanCoordinateSample): PlanCoordinateSample | null {
+    toWorld(s: number, l: number, out: PlanCoordinateSample): PlanCoordinateSample {
       const occurrence = lookup(s);
-      if (!occurrence) return null;
+      if (!occurrence) {
+        const end = s < route.start ? route.start : route.end;
+        coordinates.toWorld(end, 0, out);
+        extend(out, s, l, end);
+        return out;
+      }
       occurrence.section.coordinates.toWorld(routeSectionS(occurrence, s), l + occurrence.lateralOrigin, native);
       const t = occurrence.worldFromSection;
       out.x = t.cosine * native.x + t.sine * native.z + t.translation.x;
@@ -99,18 +110,24 @@ export function createCourseRouteReaders(route: CourseRoute) {
       out.heading = heading(occurrence, native.heading);
       return out;
     },
-    metricsAt(s: number, l: number, out: Writable<PlanCoordinateMetrics>): PlanCoordinateMetrics | null {
+    metricsAt(s: number, l: number, out: Writable<PlanCoordinateMetrics>): PlanCoordinateMetrics {
       const occurrence = lookup(s);
-      return occurrence
-        ? occurrence.section.coordinates.metricsAt(routeSectionS(occurrence, s), l + occurrence.lateralOrigin, out)
-        : null;
+      if (occurrence)
+        return occurrence.section.coordinates.metricsAt(
+          routeSectionS(occurrence, s),
+          l + occurrence.lateralOrigin,
+          out,
+        );
+      out.curvature = 0;
+      out.offsetMetric = 1;
+      return out;
     },
     locateLocal(
       world: Vec2,
       previousS: number,
       out: PlanCoordinateProjection,
       workspace: PlanProjectionWorkspace,
-    ): PlanCoordinateProjection | null {
+    ): PlanCoordinateProjection {
       sync();
       const from = previousS - PLAN_PROJECTION_WINDOW_METERS;
       const to = previousS + PLAN_PROJECTION_WINDOW_METERS;
@@ -163,12 +180,37 @@ export function createCourseRouteReaders(route: CourseRoute) {
         bestOwner = owner;
         found = true;
       }
-      return found ? out : null;
+      // The two tangent rays complete the chainage ruler beyond the retained occurrences.
+      for (let side = 0; side < 2; side += 1) {
+        const end = side === 0 ? route.start : route.end;
+        const a = side === 0 ? from : Math.max(from, end);
+        const b = side === 0 ? Math.min(to, end) : to;
+        if (b <= a) continue;
+        coordinates.toWorld(end, 0, endpoint);
+        const tx = Math.sin(endpoint.heading),
+          tz = Math.cos(endpoint.heading);
+        const dx = world.x - endpoint.x,
+          dz = world.z - endpoint.z;
+        const foot = end + dx * tx + dz * tz;
+        const s = Math.max(a, Math.min(b, foot));
+        const distance = (dx - (s - end) * tx) ** 2 + (dz - (s - end) * tz) ** 2;
+        if (found && (bestInside || distance >= bestDistance)) continue;
+        out.s = s;
+        out.l = dx * tz - dz * tx;
+        out.inDomain = false;
+        bestDistance = distance;
+        found = true;
+      }
+      return out;
     },
   });
-  function lateralAt(s: number, out: Writable<PlanLateralBounds>): PlanLateralBounds | null {
+  function lateralAt(s: number, out: Writable<PlanLateralBounds>): PlanLateralBounds {
     const occurrence = lookup(s);
-    if (!occurrence) return null;
+    if (!occurrence) {
+      out.left = EMPTY_ROUTE_DOMAIN.left;
+      out.right = EMPTY_ROUTE_DOMAIN.right;
+      return out;
+    }
     occurrence.section.coordinates.domain.lateralAt(routeSectionS(occurrence, s), bounds);
     out.left = bounds.left - occurrence.lateralOrigin;
     out.right = bounds.right - occurrence.lateralOrigin;
@@ -187,7 +229,7 @@ export function createCourseRouteReaders(route: CourseRoute) {
       const occurrence = lookup(s);
       return occurrence ? occurrence.section.height.sample(routeSectionS(occurrence, s)) : endpointHeight(s);
     },
-    sampleDifferential(s: number, out: { y: number; dYdS: number }) {
+    sampleDifferential(s: number, out = { y: 0, dYdS: 0 }) {
       const occurrence = lookup(s);
       if (occurrence) return occurrence.section.height.sampleDifferential(routeSectionS(occurrence, s), out);
       out.y = endpointHeight(s);
@@ -200,9 +242,17 @@ export function createCourseRouteReaders(route: CourseRoute) {
       sync();
       return renderKnots;
     },
-    sample(s: number, out: { y: number; grade: number; segmentIndex: number; sStart: number; sEnd: number }) {
+    sample(s: number, out = { y: 0, grade: 0, segmentIndex: 0, sStart: 0, sEnd: 0 }) {
       const occurrence = lookup(s);
-      if (!occurrence) return null;
+      if (!occurrence) {
+        const end = s < route.start ? route.start : route.end;
+        renderHeight.sample(end, out);
+        out.grade = 0;
+        out.sStart = s < route.start ? -Infinity : end;
+        out.sEnd = s < route.start ? end : Infinity;
+        out.segmentIndex = -1;
+        return out;
+      }
       occurrence.section.renderHeight.sample(routeSectionS(occurrence, s), out);
       out.sStart = Math.max(occurrence.start, routeS(occurrence, out.sStart));
       out.sEnd = Math.min(occurrence.end, routeS(occurrence, out.sEnd));
@@ -212,7 +262,9 @@ export function createCourseRouteReaders(route: CourseRoute) {
       const occurrence = lookup(s);
       return occurrence
         ? Math.min(occurrence.section.renderHeight.distanceToNextKnot(routeSectionS(occurrence, s)), occurrence.end - s)
-        : Infinity;
+        : s < route.start
+          ? route.start - s
+          : Infinity;
     },
   });
   const raster = Object.freeze({
@@ -222,7 +274,13 @@ export function createCourseRouteReaders(route: CourseRoute) {
     },
     toWorld(s: number, l: number, out: typeof rasterSample) {
       const occurrence = lookup(s);
-      if (!occurrence) return null;
+      if (!occurrence) {
+        const end = s < route.start ? route.start : route.end;
+        raster.toWorld(end, 0, out);
+        extend(out, s, l, end);
+        out.segmentIndex = -1;
+        return out;
+      }
       rasterPathToWorld(
         occurrence.section.raster,
         routeSectionS(occurrence, s),
@@ -242,7 +300,8 @@ export function createCourseRouteReaders(route: CourseRoute) {
   const material = Object.freeze({
     sample(s: number, l: number) {
       const occurrence = lookup(s);
-      if (!occurrence) return ROUTE_OUTSIDE_SURFACE;
+      lateralAt(s, bounds);
+      if (!occurrence || l < bounds.left || l > bounds.right) return ROUTE_OUTSIDE_SURFACE;
       let reader = surfaces.get(occurrence.section);
       if (!reader) {
         reader = createRegionSurfaceReader(occurrence.section.regionPartition, occurrence.section.physicalBindings);
@@ -251,99 +310,13 @@ export function createCourseRouteReaders(route: CourseRoute) {
       return reader.sampleInChart(routeSectionS(occurrence, s), l, occurrence.lateralOrigin);
     },
   });
-  // The live vehicle/render contracts require filled outputs. Empty route queries use borrowed
-  // no-content observations; ordinary driving remains in the preloaded interval.
-  const worldCoordinates: VehicleWorld['coordinates'] = {
-    domain: {
-      lateralAt(s, out) {
-        if (!coordinates.lateralAt(s, out)) {
-          out.left = 0;
-          out.right = 0;
-        }
-        return out;
-      },
-    },
-    toWorld(s, l, out) {
-      if (!coordinates.toWorld(s, l, out)) {
-        out.x = 0;
-        out.z = 0;
-        out.heading = 0;
-        out.s = s;
-        out.l = l;
-      }
-      return out;
-    },
-    metricsAt(s, l, out) {
-      if (!coordinates.metricsAt(s, l, out)) {
-        out.curvature = 0;
-        out.offsetMetric = 1;
-      }
-      return out;
-    },
-    locateLocal(point, previousS, out, workspace) {
-      if (!coordinates.locateLocal(point, previousS, out, workspace)) {
-        out.s = previousS;
-        out.l = 0;
-        out.inDomain = false;
-      }
-      return out;
-    },
-  };
-  Object.freeze(worldCoordinates.domain);
-  Object.freeze(worldCoordinates);
-  const world: VehicleWorld = Object.freeze({
-    extent: route,
-    coordinates: worldCoordinates,
-    height,
-    surfaces: material,
-  });
-  const displayHeight: ProfilePolylineReader = {
-    get knots() {
-      return renderHeight.knots;
-    },
-    sample(s, out = { y: 0, grade: 0, segmentIndex: 0, sStart: 0, sEnd: 0 }) {
-      if (!renderHeight.sample(s, out)) {
-        out.y = height.sample(s);
-        out.grade = 0;
-        out.sStart = s;
-        out.sEnd = s;
-        out.segmentIndex = -1;
-      }
-      return out;
-    },
-    distanceToNextKnot: renderHeight.distanceToNextKnot,
-  };
-  Object.freeze(displayHeight);
-  const geometry: RasterGeometry = {
-    raster: {
-      get segments() {
-        return raster.segments;
-      },
-      toWorld(s, l, out) {
-        if (!raster.toWorld(s, l, out)) {
-          out.x = 0;
-          out.z = 0;
-          out.s = s;
-          out.l = l;
-          out.heading = 0;
-          out.segmentIndex = -1;
-        }
-        return out;
-      },
-    },
-  };
-  Object.freeze(geometry.raster);
-  Object.freeze(geometry);
   return Object.freeze({
-    route,
+    extent: route,
     coordinates,
     height,
     renderHeight,
     raster,
-    material,
-    world,
-    displayHeight,
-    geometry,
+    surfaces: material,
     sync,
   });
 }

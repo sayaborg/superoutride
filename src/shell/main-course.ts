@@ -108,7 +108,6 @@ try {
     runtime: scene.runtime,
     rival: vehicle,
     rivalEnvelope,
-    entryRecovery: scene.entryRecovery,
   });
   const raceSprites = createRaceSprites(sprites, vehicle);
   const raceStatus = document.createElement('output');
@@ -122,7 +121,7 @@ try {
     recoverySettings: RECOVERY_SETTINGS,
     configurationLocked: true,
     canRecover: () => race.clock.status === 'RUNNING' && !manualPause && !document.hidden,
-    recoveryL: () => race.recoveryL,
+    recoveryL: race.recoveryL,
     resync: () => {
       race.resyncPlayer();
     },
@@ -148,9 +147,9 @@ try {
       raceSprites(
         observations.rivals,
         lifecycle.camera,
-        scene.runtime.readers.geometry,
+        scene.runtime.readers,
         scene.world.height,
-        scene.runtime.readers.displayHeight,
+        scene.runtime.readers.renderHeight,
       ),
       input.brake ? braking : sprites,
     );

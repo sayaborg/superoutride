@@ -10,13 +10,11 @@ import type { CompiledSection } from '../course/compiler/course-graph.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import type { CameraState } from '../view/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../view/current-camera-profile.js';
-import { entryCut } from '../course/compiler/course-links.js';
 import type { VehicleRenderReadState } from '../vehicle/physics/vehicle-contract.js';
 import { createRenderWorkspace, renderDriving } from '../view/renderer.js';
 import type { CourseSprite } from '../view/course-sprite.js';
 import type { SpriteAssets } from '../image/sprite-assets.js';
 import { createRouteRuntime } from '../race/route-runtime.js';
-import type { VisualProfileReader } from '../course/visual-profile.js';
 
 /** One graph assembly for every course, including a single Section without Links. */
 export function createCourseScene(
@@ -29,9 +27,6 @@ export function createCourseScene(
   if (!rules?.grid.length) throw new RangeError('Driving requires saved Session rules with a starting grid');
   if (Math.min(...rules.grid.map((slot) => slot.anchor.s)) < CURRENT_CAMERA_PROFILE.dCam)
     throw new RangeError('Driving requires the rearmost grid position to have camera space behind it');
-  // The camera and step/contact readers extend behind the vehicle. Recover before either can
-  // reach the entry cut, then place the car with a full camera distance behind it again.
-  const entry = entryCut(section, '/entrySectionId');
   // Loading coverage at 240 m/s (864 km/h), not a mechanics speed clamp.
   const maximumStepMeters = 240 * SIM_DT;
   const contactReachMeters = Math.ceil(
@@ -43,13 +38,6 @@ export function createCourseScene(
       ),
     ),
   );
-  const entryRecovery = Object.freeze({
-    l: entry.lateralOrigin,
-    startS: 2 * CURRENT_CAMERA_PROFILE.dCam,
-    targetS: 3 * CURRENT_CAMERA_PROFILE.dCam,
-  });
-  if (entryRecovery.targetS > section.raster.length)
-    throw new RangeError('Driving requires an entry Section long enough for entry recovery');
   if (
     section.fork &&
     section.fork.lock.s + Math.max(RENDER_FAR_DEPTH_METERS, ENVELOPE_DRIVER.lookahead) + maximumStepMeters >
@@ -77,13 +65,11 @@ export function createCourseScene(
   let terrainParameters: Parameters<typeof renderDriving>[1]['terrainParameters'];
   return Object.freeze({
     runtime,
-    entryRecovery,
     metrics: runtime.metrics,
     groundMetrics: ground.metrics,
     get world() {
-      return runtime.readers.world;
+      return runtime.readers;
     },
-    observeStep: runtime.observeStep,
     render(
       target: Parameters<typeof renderDriving>[0],
       vehicle: VehicleRenderReadState,
@@ -92,7 +78,7 @@ export function createCourseScene(
       others: readonly CourseSprite[],
       appearance: SpriteAssets = assets,
     ) {
-      const { world, geometry, displayHeight } = runtime.readers;
+      const readers = runtime.readers;
       const presentation = rendering.read();
       const closed = runtime.closedCarriageways;
       if (lastPresentation !== presentation || lastClosed !== closed) {
@@ -106,10 +92,10 @@ export function createCourseScene(
           dMin: RENDER_NEAR_DEPTH_METERS,
           dMax: RENDER_FAR_DEPTH_METERS,
           ...presentation.groundRuler,
-          height: displayHeight,
+          height: readers.renderHeight,
           extent: runtime.route,
-          physicalHeight: world.height,
-          visual: presentation.visual as VisualProfileReader,
+          physicalHeight: readers.height,
+          visual: presentation.visual,
         };
         lastPresentation = presentation;
         lastClosed = closed;
@@ -119,8 +105,8 @@ export function createCourseScene(
       return renderDriving(
         target,
         {
-          background: presentation.backgroundAt(camera.s) ?? presentation.backgroundAt(runtime.route.start)!,
-          guide: geometry,
+          background: presentation.backgroundAt(camera.s),
+          guide: readers,
           camera,
           vehicle,
           terrainParameters,

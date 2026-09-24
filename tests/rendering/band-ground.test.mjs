@@ -20,7 +20,7 @@ const piece = (start, end, left, right, color, leftEnd = left, rightEnd = right)
   rightEnd,
   color,
 });
-const whole = (ground) => [{ ground, frameStart: 0, nativeStart: 0, nativeEnd: ground.length, lateralOrigin: 0 }];
+const whole = (ground) => [{ ground, start: 0, occurrenceStart: 0, end: ground.length, lateralOrigin: 0 }];
 function row(intervals, { s = 4, l = -4, stepL = 0.25, deltaS = 0, count = 32, method = 'EXACT-BOX' } = {}) {
   const pixels = new Uint32Array(count).fill(BG);
   createBandGroundSampler(intervals).sampleSpan(
@@ -107,8 +107,8 @@ test('EXACT-BOX integrates both dimensions and owned seam lengths before half-co
   const red = compileBandGround(16, [piece(0, 16, null, null, RED), piece(10, 16, null, null, WHITE)]);
   const blue = compileBandGround(16, [piece(0, 16, null, null, BLUE), piece(0, 5, null, null, WHITE)]);
   const intervals = [
-    { ground: red, frameStart: 0, nativeStart: 2, nativeEnd: 10, lateralOrigin: 100 },
-    { ground: blue, frameStart: 8, nativeStart: 5, nativeEnd: 13, lateralOrigin: -20 },
+    { ground: red, start: 0, occurrenceStart: -2, end: 8, lateralOrigin: 100 },
+    { ground: blue, start: 8, occurrenceStart: 3, end: 16, lateralOrigin: -20 },
   ];
   assert.ok(row(intervals, { s: 8, deltaS: 6 }).every((p) => p === half));
   assert.ok(row(intervals, { s: 8, deltaS: 6, method: 'POINT-POINT' }).every((p) => p === rgb555ToRgba(BLUE)));
@@ -135,7 +135,10 @@ test('row batching and lateral rebasing match individual pixels in either scan d
       );
       assert.deepEqual(
         batch,
-        row([{ ...whole(ground)[0], lateralOrigin: 11.75, frameStart: 100 }], { ...args, s: 107.37, l: l - 11.75 }),
+        row(
+          [{ ...whole(ground)[0], lateralOrigin: 11.75, start: 100, occurrenceStart: 100, end: 100 + ground.length }],
+          { ...args, s: 107.37, l: l - 11.75 },
+        ),
       );
     }
 });

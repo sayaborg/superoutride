@@ -68,7 +68,6 @@ export function runCourseReference(
     player: actor,
     runtime: scene.runtime,
     rival: vehicleConfiguration,
-    entryRecovery: scene.entryRecovery,
   });
   const events = [],
     trace = [];

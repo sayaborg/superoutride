@@ -72,6 +72,27 @@ export function createCourseForkField(route: CourseRoute, lines: ReturnType<type
         road = section.carriageways.find((c) => c.regions.some((r) => r.start.s === 0 && r.end.s > 0))!;
       return center(road, at) - occurrence.lateralOrigin;
     },
+    recoveryL(s: number, lane: number) {
+      const occurrence = route.at(s)!;
+      const at = routeSectionS(occurrence, s);
+      const selected = locks.get(occurrence)?.from.carriageway;
+      const active = (road: CompiledCarriageway) => road.regions.some((r) => r.start.s <= at && r.end.s >= at);
+      const road =
+        selected && active(selected)
+          ? selected
+          : (occurrence.section.carriageways.find(
+              (road) =>
+                active(road) &&
+                road.regions.some(
+                  (r) =>
+                    r.start.s <= at &&
+                    r.end.s >= at &&
+                    lane + occurrence.lateralOrigin >= courseBoundaryAt(r.left, at) &&
+                    lane + occurrence.lateralOrigin <= courseBoundaryAt(r.right, at),
+                ),
+            ) ?? occurrence.section.carriageways.find(active)!);
+      return center(road, at) - occurrence.lateralOrigin;
+    },
     legalTarget(s: number, l: number) {
       const occurrence = route.at(s);
       if (!occurrence) return null;

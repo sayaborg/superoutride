@@ -3,9 +3,8 @@ import { createCourseRoute } from '../course/course-route.js';
 import { createCourseRouteReaders } from '../course/course-route-readers.js';
 import type { CompiledCarriageway } from '../course/course-regions.js';
 import { PLAN_PROJECTION_WINDOW_METERS } from '../course/geometry/plan-coordinate.js';
-import type { ArcadeVehicleState } from '../vehicle/physics/arcade-vehicle-physics.js';
 import { ENVELOPE_DRIVER } from './envelope-driver.js';
-import { RECOVERY_SETTINGS, recoverVehicleToPlanCoordinate, type RecoveryState } from './recovery.js';
+import { RECOVERY_SETTINGS } from './recovery.js';
 
 /** One route, physical readers and loading owner shared by all actors. */
 export function createRouteRuntime(
@@ -59,21 +58,6 @@ export function createRouteRuntime(
     refresh,
     get closedCarriageways() {
       return closedCarriageways;
-    },
-    observeStep(actor: { vehicle: ArcadeVehicleState; recovery: RecoveryState }) {
-      if (!route.at(actor.vehicle.course.s)) {
-        const s = Math.min(
-          route.end - RECOVERY_SETTINGS.backtrackDistance,
-          Math.max(route.start + RECOVERY_SETTINGS.backtrackDistance, actor.recovery.lastSafeS),
-        );
-        recoverVehicleToPlanCoordinate(readers.world, actor.vehicle, {
-          state: actor.recovery,
-          reason: 'wrong-course',
-          target: { s, l: actor.vehicle.course.l },
-        });
-        return 'recovered' as const;
-      }
-      return null;
     },
   });
 }

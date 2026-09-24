@@ -24,7 +24,7 @@ type RecoveryReason =
   | 'unsupported-time'
   | 'fall-distance'
   | 'surface-penetration'
-  | 'chart-excursion'
+  | 'outside-domain'
   | 'overturned'
   | 'suspension-travel'
   | 'manual'
@@ -35,19 +35,19 @@ const SURFACE_PENETRATION_TOLERANCE_METERS = 1e-3;
 export interface RecoverySettings {
   maxUnsupportedTime: number;
   maxFallDistance: number;
-  maxLateralExcursion: number;
+  maxOutsideDomainTime: number;
   backtrackDistance: number;
   minRecoverySpeed: number;
   maxRecoverySpeed: number;
   speedRetention: number;
-  /** Ordinary same-chart recovery lane target. Explicit route recovery may still supply its own target. */
-  targetL?: number;
+  /** Resolve the supported recovery lane at the final route station. */
+  targetL?: (s: number) => number;
 }
 
 export const RECOVERY_SETTINGS: Readonly<RecoverySettings> = {
   maxUnsupportedTime: 0.72,
   maxFallDistance: 3.25,
-  maxLateralExcursion: 18,
+  maxOutsideDomainTime: 0.72,
   backtrackDistance: 8,
   minRecoverySpeed: 18,
   maxRecoverySpeed: 32,
@@ -57,6 +57,7 @@ export const RECOVERY_SETTINGS: Readonly<RecoverySettings> = {
 export interface RecoveryState {
   lastSafeS: number;
   unsupportedTime: number;
+  outsideDomainTime: number;
   recoveries: number;
   lastReason: RecoveryReason | null;
 }
@@ -70,6 +71,7 @@ export function createRecoveryState(vehicle: ArcadeVehicleState): RecoveryState 
   return {
     lastSafeS: vehicle.course.s,
     unsupportedTime: 0,
+    outsideDomainTime: 0,
     recoveries: 0,
     lastReason: null,
   };
@@ -123,6 +125,13 @@ function updateRecovery(
     target = null,
   }: RecoveryOptions & { dt: number; target?: RecoveryTarget | null },
 ): RecoveryReason | null {
+  if (!vehicle.course.inDomain) {
+    state.outsideDomainTime += dt;
+    if (state.outsideDomainTime < settings.maxOutsideDomainTime) return null;
+    recoverVehicle(world, vehicle, { state, reason: 'outside-domain', settings, target });
+    return 'outside-domain';
+  }
+  state.outsideDomainTime = 0;
   const { coordinates, height, surfaces } = world;
   let workspace = observationWorkspaces.get(vehicle);
   if (!workspace) {
@@ -149,12 +158,11 @@ function updateRecovery(
     (vehicle.z - surface.point.z) * surface.normal.z;
   // VOID is non-load-bearing, but it still shares the rendered heightfield. Letting the CG pass
   // below that authored surface makes the vehicle visibly drive under terrain while gameplay waits
-  // for the larger fall-distance/chart limits.
+  // for the larger fall-distance limits.
   const penetratedSurface = surfaceDistance < -SURFACE_PENETRATION_TOLERANCE_METERS;
 
   let reason: RecoveryReason | null = null;
   if (overturned) reason = 'overturned';
-  else if (Math.abs(vehicle.course.l) >= settings.maxLateralExcursion) reason = 'chart-excursion';
   else if (fallDistance >= settings.maxFallDistance) reason = 'fall-distance';
   else if (penetratedSurface) reason = 'surface-penetration';
   else if (state.unsupportedTime >= settings.maxUnsupportedTime) reason = 'unsupported-time';
@@ -175,21 +183,21 @@ export function recoverVehicle(
 ): void {
   recoverVehicleToPlanCoordinate(world, vehicle, {
     state,
-    target: target ?? sameChartRecoveryTarget(world, vehicle, state, settings),
+    target: target ?? routeRecoveryTarget(world, vehicle, state, settings),
     reason,
     settings,
   });
 }
 
-function sameChartRecoveryTarget(
+function routeRecoveryTarget(
   world: VehicleWorld,
   vehicle: ArcadeVehicleState,
   state: RecoveryState,
   settings: RecoverySettings,
 ): RecoveryTarget {
   const domain = world.extent;
-  if (!Number.isFinite(state.lastSafeS) || state.lastSafeS < domain.start || state.lastSafeS > domain.end) {
-    throw new RangeError('recovery lastSafeS must lie within the active plan coordinate domain');
+  if (!Number.isFinite(state.lastSafeS)) {
+    throw new RangeError('recovery lastSafeS must be finite');
   }
   if (!Number.isFinite(vehicle.course.s)) {
     throw new RangeError('recovery vehicle chainage observation must be finite');
@@ -198,7 +206,9 @@ function sameChartRecoveryTarget(
   // lastSafeS can place the vehicle back on the same launch face forever. Preserve the farther
   // causal plan coordinate observation, then backtrack once into the ordinary supported reconstruction.
   const recoveryBaseS = clamp(Math.max(state.lastSafeS, vehicle.course.s), domain.start, domain.end);
-  return { s: Math.max(domain.start, recoveryBaseS - settings.backtrackDistance), l: settings.targetL ?? 0 };
+  const s = Math.max(domain.start, recoveryBaseS - settings.backtrackDistance);
+  const bounds = world.coordinates.domain.lateralAt(s, { left: 0, right: 0 });
+  return { s, l: settings.targetL ? settings.targetL(s) : (bounds.left + bounds.right) / 2 };
 }
 
 /**
@@ -221,6 +231,9 @@ export function recoverVehicleToPlanCoordinate(
   if (target.s < domain.start || target.s > domain.end)
     throw new RangeError('recovery target chainage must lie within the active plan coordinate domain');
 
+  const bounds = coordinates.domain.lateralAt(target.s, { left: 0, right: 0 });
+  if (target.l < bounds.left || target.l > bounds.right)
+    throw new RangeError('recovery target must lie within the coordinate domain');
   const coordinate = {
     s: target.s,
     l: target.l,
@@ -256,6 +269,7 @@ export function recoverVehicleToPlanCoordinate(
 
   state.lastSafeS = target.s;
   state.unsupportedTime = 0;
+  state.outsideDomainTime = 0;
   state.recoveries += 1;
   state.lastReason = reason;
 }

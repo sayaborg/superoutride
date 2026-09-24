@@ -106,6 +106,8 @@ export function createArcadeVehicle(
     tireFrictionCalibration?.front ?? profile.frontStation.tire,
     tireFrictionCalibration?.rear ?? profile.rearStation.tire,
   );
+  const bounds = coordinates.domain.lateralAt(s, { left: 0, right: 0 });
+  if (l < bounds.left || l > bounds.right) throw new RangeError('vehicle spawn requires an in-domain coordinate');
   const coordinate = {
     s,
     l,

@@ -44,7 +44,6 @@ export function createCourseRace(options: {
   readonly runtime: RouteRuntime;
   readonly rival: SessionVehicle;
   readonly rivalEnvelope?: VehicleEnvelope;
-  readonly entryRecovery: { readonly startS: number; readonly targetS: number; readonly l: number };
 }) {
   const { course, configuration, grid, initialSpeed, budgets } = options.session;
   const { runtime } = options;
@@ -60,7 +59,7 @@ export function createCourseRace(options: {
     id,
     actor,
     targetL,
-    recoverySettings: { ...RECOVERY_SETTINGS, targetL },
+    recoverySettings: { ...RECOVERY_SETTINGS, targetL: (s: number) => forks.recoveryL(s, targetL) },
     observer: createRouteProgress(lines, actor.vehicle.course),
     get progress() {
       return this.observer.state;
@@ -73,7 +72,7 @@ export function createCourseRace(options: {
     const slot = grid[rivalIndex + 1]!;
     const targetL = slot.l;
     const profile = options.rival;
-    const vehicle = createArcadeVehicle(profile.profile, runtime.readers.world, {
+    const vehicle = createArcadeVehicle(profile.profile, runtime.readers, {
       s: slot.anchor.s,
       l: targetL,
       initialSpeed,
@@ -97,37 +96,26 @@ export function createCourseRace(options: {
       state: c.actor.recovery,
       input: { steering: 0, throttle: false, brake: false } as DrivingInput,
       dt: 0,
-      profile: c.recoverySettings,
+      settings: c.recoverySettings,
     },
     input: (s: number) => lane(c, s),
   }));
   const actorInputs = new Map(motions.map((motion) => [motion.c.id, motion.step]));
-  const recoverAtEntry = (c: typeof player, targetL?: number) => {
-    if (c.actor.vehicle.course.s >= options.entryRecovery.startS) return false;
-    recoverVehicleToPlanCoordinate(runtime.readers.world, c.actor.vehicle, {
-      state: c.actor.recovery,
-      reason: 'wrong-course',
-      target: { s: options.entryRecovery.targetS, l: targetL ?? lane(c, options.entryRecovery.targetS) },
-    });
-    return true;
-  };
   const move = (motion: (typeof motions)[number], input: DrivingInput, dt: number) => {
     const { c, previous } = motion;
     const { actor } = c;
     previous.l = actor.vehicle.course.l;
     previous.s = actor.vehicle.course.s;
     motion.current = actor.vehicle;
-    c.recoverySettings.targetL = lane(c, actor.vehicle.course.s);
     motion.step.input = input;
     motion.step.dt = dt;
-    let recovered = advanceVehicleWithRecovery(runtime.readers.world, actor.vehicle, motion.step) !== null;
-    recovered = recoverAtEntry(c) || recovered;
+    const recovered = advanceVehicleWithRecovery(runtime.readers, actor.vehicle, motion.step) !== null;
     motion.recovered = recovered;
   };
   const legalRecovery = (c: typeof player) => {
     const target = forks.legalTarget(c.actor.vehicle.course.s, c.actor.vehicle.course.l);
     if (!target) return false;
-    recoverVehicleToPlanCoordinate(runtime.readers.world, c.actor.vehicle, {
+    recoverVehicleToPlanCoordinate(runtime.readers, c.actor.vehicle, {
       state: c.actor.recovery,
       reason: 'wrong-course',
       target,
@@ -177,9 +165,7 @@ export function createCourseRace(options: {
     },
     start: () => clock.start(),
     forks,
-    get recoveryL() {
-      return lane(player, player.actor.vehicle.course.s);
-    },
+    recoveryL: (s: number) => forks.recoveryL(s, player.targetL),
     advance(input: DrivingInput, dt: number) {
       stepObservation.recovered = false;
       if (clock.status !== 'RUNNING') return stepObservation;
@@ -199,7 +185,7 @@ export function createCourseRace(options: {
         move(
           motion,
           sampleEnvelopeDrivingInput(
-            runtime.readers.world.coordinates,
+            runtime.readers.coordinates,
             motion.c.actor.vehicle,
             driver!,
             motion.input,
@@ -218,7 +204,6 @@ export function createCourseRace(options: {
       for (const motion of motions) {
         const { c } = motion;
         motion.recovered = legalRecovery(c) || motion.recovered;
-        motion.recovered ||= runtime.observeStep(c.actor) === 'recovered';
         const update = c.observer.update(
           motion.previous,
           c.actor.vehicle.course,
@@ -247,9 +232,7 @@ export function createCourseRace(options: {
       return stepObservation;
     },
     resyncPlayer() {
-      recoverAtEntry(player, options.entryRecovery.l);
       legalRecovery(player);
-      runtime.observeStep(player.actor);
       resync(player);
     },
     observe() {

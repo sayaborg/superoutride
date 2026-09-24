@@ -28,11 +28,29 @@ route interval without changing earlier route coordinates. A seam station belong
 search, read the Section, subtract the lateral origin and map X/Z and heading into route world space.
 The preparation layer supplies plan, authoritative height, rendered height, Raster, material,
 Band, sprites, visual labels and background readers. It indexes visual lists only when route
-occurrences change. Missing plan/Raster/display results are `null`, missing material is VOID,
-Band pixels are transparent, and height extends the nearest endpoint at grade zero. All actors,
-physics, race, rendering and reference driving read this one route and retain their state in its
-coordinates. The `VehicleWorld` adapter supplies borrowed empty observations to existing physics
-consumers; physical treatment of out-of-domain contacts is scheduled in 6-9d.
+occurrences change. All actors, physics, race, rendering and reference driving read these
+single-layer Readers directly and retain their state in route coordinates. The same reader set
+satisfies `VehicleWorld` and `RasterGeometry`; no result-filling adapter is involved.
+
+Outside the retained Route, the Readers use the following values. Here `P`, `T` and `N` are
+its endpoint position at route l=0, unit tangent and right normal, and `e` is that endpoint's s.
+
+| Reader                     | Outside value                                                                   |
+| -------------------------- | ------------------------------------------------------------------------------- |
+| Plan                       | `P + (s-e) T + l N`, endpoint heading, curvature 0 and J=1                      |
+| Projection                 | Project onto the endpoint tangent ray; return its s and l with `inDomain:false` |
+| Raster                     | The same straight extension using the Raster endpoint and heading               |
+| Height and render polyline | Respective endpoint height, derivative/grade 0                                  |
+| Coordinate domain          | Empty closed interval `[+Infinity,-Infinity]`, defined by `EMPTY_ROUTE_DOMAIN`  |
+| Material                   | VOID, also outside the lateral coordinate domain                                |
+| Band and sprites           | No content; Band pixels are transparent                                         |
+| Environment/background     | Nearest endpoint value                                                          |
+
+The tangent rays participate in the same previous-s ±50 m projection window as the retained
+primitives. In-domain feet take precedence; otherwise the nearest candidate wins. Neither a
+world-origin placeholder nor a previous-s/l=0 fallback is used. These outside values do not
+create a supporting surface. Contact and recovery rules are owned by
+[Vehicle physics](vehicle-physics.md#surface-and-contact).
 
 `createRouteRuntime` owns one Route and one reader set for the entire field. No actor creates a
 coordinate wrapper. Fork choice calls `route.append(link)` once; the ordinary refresh extends any
@@ -71,8 +89,8 @@ occurrences. `CompiledSection.coordinates` and `VehicleWorld.coordinates` expose
   `[previousS-50 m,previousS+50 m]`. A perpendicular foot inside its interval and the closed
   lateral domain wins over a closer centerline foot outside the domain. No endpoint-clamped point
   counts as an inside-domain foot. If none qualifies, the nearest candidate is returned with
-  `inDomain:false`, without lateral clamping or a global search. Route readers return no content
-  when the interval has no candidates.
+  `inDomain:false`, without lateral clamping or a global search. The two endpoint tangent rays complete the route ruler
+  when the window extends beyond retained occurrences.
 
 `PlanCoordinateSample` and `PlanCoordinateProjection` are borrowed observations in caller-owned outputs.
 `PlanProjectionWorkspace` holds reusable numerical scratch, separate from vehicle state.
@@ -81,7 +99,7 @@ The requested interval lies inside the Section domain. Candidate queries return 
 primitive intervals; each candidate projects a bounded subinterval and reports whether its foot
 was inside that subinterval before endpoint clamping. Geometry construction and its geometric
 proofs inspect compiled primitives.
-Terrain and rendering use `RasterGeometry`: finite length, segment stations/headings and point mapping.
+Terrain and rendering use `RasterGeometry`: segment stations/headings and point mapping; the Route owns the extent.
 
 Vec2/Vec3 are readonly values. Sampling APIs with caller-owned outputs return borrowed observations
 valid until those outputs are reused. Compiled sources are immutable; actors and consumers own live state.
@@ -124,9 +142,9 @@ The projection window `W = 50 m` is measured in chainage in both native and mapp
 At the fixed frame step and twelve vehicle substeps, longitudinal travel is a few metres even at
 the provisional vehicles' highest speeds. Fifty metres also covers front/rear contact offsets
 and amplified chainage motion near a small positive `J`; grade-separated passages must be
-authored more than 50 m apart on the view ruler so their other passage stays outside the window.
-The projection result's `inDomain` reports geometric membership only; recovery retains its
-separate support and safety conditions.
+authored more than 50 m apart on the route ruler so their other passage stays outside the window.
+The projection result's `inDomain` reports geometric membership; physics and recovery consume it
+as specified in [Vehicle physics](vehicle-physics.md#surface-and-contact).
 
 At each s, the Section lateral domain runs from the leftmost active Region edge minus
 `PLAN_COORDINATE_MARGIN_METERS` to the rightmost active Region edge plus that margin; the margin is 4 m.

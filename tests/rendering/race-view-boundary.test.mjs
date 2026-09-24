@@ -41,15 +41,12 @@ test('shared route keeps vehicle and camera coordinates across forward and rever
     [seam - 1, 0],
   ]) {
     const vehicle = spawn(s);
-    const actor = { vehicle, recovery: createRecoveryState(vehicle) };
     const before = { ...rig };
     const pose = { x: vehicle.x, z: vehicle.z, yaw: vehicle.yaw, s: vehicle.course.s, l: vehicle.course.l };
-    const transition = scene.observeStep(actor);
-    assert.equal(transition, null);
+    scene.runtime.refresh(s, s);
     assert.equal(scene.runtime.route.at(s).ordinal, ordinal);
     assert.deepEqual(rig, before, 'race must not mutate an observer camera');
     assert.deepEqual({ x: vehicle.x, z: vehicle.z, yaw: vehicle.yaw, s: vehicle.course.s, l: vehicle.course.l }, pose);
-    assert.equal(scene.observeStep(actor), null, 'no repeated transition at one station');
   }
 });
 
@@ -71,7 +68,6 @@ test('race actors have no cameras and view assembles sixteen rival sprites from 
     runtime: scene.runtime,
     rival: profile,
     rivalEnvelope: envelope,
-    entryRecovery: scene.entryRecovery,
   });
   for (const c of [race.player, ...race.rivals]) assert.ok(!('cameraRig' in c.actor));
   assert.equal(race.rivals.length, 16);
@@ -83,9 +79,9 @@ test('race actors have no cameras and view assembles sixteen rival sprites from 
   const sprites = createRaceSprites(assets, profile)(
     observed.rivals,
     camera,
-    scene.runtime.readers.geometry,
+    scene.runtime.readers,
     scene.world.height,
-    scene.runtime.readers.displayHeight,
+    scene.runtime.readers.renderHeight,
   );
   assert.equal(sprites.length, observed.rivals.length);
   assert.deepEqual(
