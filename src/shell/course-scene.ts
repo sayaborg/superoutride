@@ -9,6 +9,7 @@ import type { CourseGround } from '../course/compiler/course-ground.js';
 import { LOGICAL_HEIGHT } from '../view/display-scale.js';
 import { RENDER_NEAR_DEPTH_METERS, RENDER_FAR_DEPTH_METERS } from '../view/camera.js';
 import type { CompiledSection } from '../course/compiler/course-graph.js';
+import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import type { CameraState } from '../view/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../view/current-camera-profile.js';
 import { courseCutLateral, entryCut } from '../course/compiler/course-links.js';
@@ -30,9 +31,20 @@ export function createCourseScene(
   section: CompiledSection,
   ground: CourseGround,
   assets: SpriteAssets,
+  rules: CompiledCourse['rules'],
   displaySettings: DisplaySettings = createDisplaySettings(),
-  rearmostGridS = CURRENT_CAMERA_PROFILE.dCam,
 ) {
+  if (!rules?.grid.length) throw new RangeError('Driving requires saved Session rules with a starting grid');
+  if (Math.min(...rules.grid.map((slot) => slot.anchor.s)) < CURRENT_CAMERA_PROFILE.dCam)
+    throw new RangeError('Driving requires the rearmost grid position to have camera space behind it');
+  // The camera and step/contact readers extend behind the vehicle. Recover before either can
+  // reach the entry cut, then place the car with a full camera distance behind it again.
+  const entryRecovery = Object.freeze({
+    startS: 2 * CURRENT_CAMERA_PROFILE.dCam,
+    targetS: 3 * CURRENT_CAMERA_PROFILE.dCam,
+  });
+  if (entryRecovery.targetS > section.raster.length)
+    throw new RangeError('Driving requires an entry Section long enough for entry recovery');
   const sections = new Set<CompiledSection>();
   const visit = (section: CompiledSection) => {
     if (sections.has(section)) return;
@@ -71,8 +83,6 @@ export function createCourseScene(
   const session = graph.createSession();
   required(rendering.createView(session.view));
   const entry = entryCut(section, '/entrySectionId');
-  if (rearmostGridS < CURRENT_CAMERA_PROFILE.dCam)
-    throw new RangeError('Driving requires the rearmost grid position to have camera space behind it');
   const renderWorkspace = createRenderWorkspace();
   const worldSprites: CourseSprite[] = [];
   let lastView: typeof session.view | null = null;
@@ -81,6 +91,7 @@ export function createCourseScene(
   let terrainParameters: Parameters<typeof renderDriving>[1]['terrainParameters'];
   return Object.freeze({
     session,
+    entryRecovery,
     metrics: graph.metrics,
     groundMetrics: ground.metrics,
     createActorSession: graph.createSession,
@@ -92,11 +103,11 @@ export function createCourseScene(
     },
     observeStep: session.observeStep,
     recoverAtEntry(vehicle: ArcadeVehicleState, recovery: RecoveryState): boolean {
-      if (session.history.active.ordinal !== 0 || vehicle.course.s >= entry.anchor.s) return false;
+      if (session.history.active.ordinal !== 0 || vehicle.course.s >= entryRecovery.startS) return false;
       recoverVehicleToPlanCoordinate(session.view.world, vehicle, {
         state: recovery,
         reason: 'wrong-course',
-        target: { s: entry.anchor.s, l: courseCutLateral(entry) },
+        target: { s: entryRecovery.targetS, l: courseCutLateral(entry) },
       });
       return true;
     },

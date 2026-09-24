@@ -307,8 +307,15 @@ Physics owns `reframeVehicle`; [Architecture](architecture.md#course-frames) own
 
 An exhausted motion domain or unavailable destination uses legal-route recovery on the retained
 selected approach, leaving the active frame and earned progress intact. Recovery/replacement resynchronize
-observations. The rearmost grid position is at least `D_cam` from the entry cut;
-reverse/manual recovery past the playable entrance returns to its supported entry before rendering.
+observations. A driving scene requires compiled Session rules with a starting grid and checks
+its rearmost grid station against `D_cam`; a course without rules cannot start driving.
+When the active occurrence has no predecessor (including the first lap of a circuit), backing
+within `2 D_cam` of the entry cut recovers the vehicle to `3 D_cam` on the entry carriageway.
+The extra camera distance before the trigger protects camera and step/contact reads; the target
+leaves `2 D_cam` of camera space and supported road behind the vehicle. The camera therefore
+remains at least `D_cam` ahead of the cut when recovery starts, so the undrawn road stays
+behind the camera during ordinary backward travel. Manual
+resynchronization uses the same entry recovery positions.
 
 ## Fork lock and handoff
 

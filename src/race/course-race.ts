@@ -47,6 +47,7 @@ export function createCourseRace(options: {
   readonly createSession: () => Session;
   readonly rival: SessionVehicle;
   readonly rivalEnvelope?: VehicleEnvelope;
+  readonly entryRecovery: { readonly startS: number; readonly targetS: number };
 }) {
   const { course, configuration, grid, initialSpeed, budgets } = options.session;
   if (configuration.rivalCount && !options.rivalEnvelope)
@@ -55,7 +56,6 @@ export function createCourseRace(options: {
     ? compileEnvelopeDriver(options.rivalEnvelope, options.session.rivalUtilization, options.rivalEnvelope.maximumSpeed)
     : null;
   const clock = createCheckpointClock(budgets?.initialMs ?? null);
-  const entryS = 0;
   const progress = createCourseRaceProgress(course, configuration.lapCount);
   const forks = createCourseForkField(course.sections);
   const competitor = (id: string, actor: Actor, session: Session, targetL: number) => ({
@@ -118,11 +118,11 @@ export function createCourseRace(options: {
     motion.step.input = input;
     motion.step.dt = dt;
     let recovered = advanceVehicleWithRecovery(session.view.world, actor.vehicle, motion.step) !== null;
-    if (session.history.active.ordinal === 0 && actor.vehicle.course.s < entryS) {
+    if (session.history.active.ordinal === 0 && actor.vehicle.course.s < options.entryRecovery.startS) {
       recoverVehicleToPlanCoordinate(session.view.world, actor.vehicle, {
         state: actor.recovery,
         reason: 'wrong-course',
-        target: { s: entryS, l: lane(c, entryS) },
+        target: { s: options.entryRecovery.targetS, l: lane(c, options.entryRecovery.targetS) },
       });
       recovered = true;
     }

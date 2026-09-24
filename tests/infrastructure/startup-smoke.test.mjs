@@ -19,7 +19,13 @@ for (const stem of ['ribbon-coast', 'ribbon-fork', 'ribbon-ring'])
     const { course } = await loadCourse(file);
     const settings = createDisplaySettings();
     assert.equal(settings.bandMethod, 'LEVEL-POINT');
-    const scene = createCourseScene(course.entry, await loadCourseGround(course), await readVehicleSprites(), settings);
+    const scene = createCourseScene(
+      course.entry,
+      await loadCourseGround(course),
+      await readVehicleSprites(),
+      course.rules,
+      settings,
+    );
     const entry = VEHICLE_CATALOG[0];
     const vehicle = createArcadeVehicle(entry.profile, scene.world, {
       s: course.rules.grid[0].anchor.s,

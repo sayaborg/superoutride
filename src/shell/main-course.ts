@@ -91,13 +91,7 @@ try {
         })
       : sprites;
   const displaySettings = createDisplaySettings();
-  const scene = createCourseScene(
-    course.entry,
-    ground,
-    sprites,
-    displaySettings,
-    Math.min(...(course.rules?.grid.map((slot) => slot.anchor.s) ?? [Infinity])),
-  );
+  const scene = createCourseScene(course.entry, ground, sprites, course.rules, displaySettings);
   const slot = session.grid[0]!;
   const shell = createBrowserDrivingShell(scene.world, slot.l, {
     s: slot.anchor.s,
@@ -116,6 +110,7 @@ try {
     createSession: scene.createActorSession,
     rival: vehicle,
     rivalEnvelope,
+    entryRecovery: scene.entryRecovery,
   });
   const raceSprites = createRaceSprites(sprites, vehicle);
   const raceStatus = document.createElement('output');

@@ -47,7 +47,7 @@ export function runCourseReference(
   lapCount: number,
   capture = false,
 ) {
-  const scene = createCourseScene(course.entry, ground, spriteAssets),
+  const scene = createCourseScene(course.entry, ground, spriteAssets, course.rules),
     vehicleConfiguration = browserSessionVehicle(entry);
   const session = resolveCourseSession(
     course,
@@ -68,6 +68,7 @@ export function runCourseReference(
     playerSession: scene.session,
     createSession: scene.createActorSession,
     rival: vehicleConfiguration,
+    entryRecovery: scene.entryRecovery,
   });
   const events = [],
     trace = [];
