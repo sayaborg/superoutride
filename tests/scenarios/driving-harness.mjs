@@ -19,9 +19,9 @@ import { createCameraRig, resetCameraRig, updateCamera } from '../../src/view/ca
 import { CURRENT_CAMERA_PROFILE } from '../../src/view/current-camera-profile.js';
 import { SoftwareSurface } from '../../src/view/software-surface.js';
 import { createRaceSprites } from '../../src/view/race-sprites.js';
-import { createDisplaySettings, BAND_RENDER_METHODS } from '../../src/view/display-settings.js';
+import { createDisplaySettings, STRIP_RENDER_METHODS } from '../../src/view/display-settings.js';
 import { SIM_DT } from '../../src/shell/frame-loop.js';
-import { courseBoundaryAt, courseCarriagewayExists } from '../../src/course/course-regions.js';
+import { courseBoundaryAt, courseCarriagewayExists } from '../../src/course/course-boundaries.js';
 import { routeSectionS } from '../../src/course/course-route.js';
 
 const idle = { steering: 0, throttle: false, brake: false };
@@ -56,13 +56,13 @@ function pavementBounds(scene, vehicle) {
   const occurrence = scene.runtime.route.at(vehicle.course.s);
   if (!occurrence) return null;
   const s = routeSectionS(occurrence, vehicle.course.s);
-  const regions = occurrence.section.carriageways.filter((r) =>
+  const roads = occurrence.section.carriageways.filter((r) =>
     courseCarriagewayExists(r, s, occurrence.section.coordinates.domain.end),
   );
-  if (!regions.length) return null;
+  if (!roads.length) return null;
   return {
-    left: Math.min(...regions.map((r) => courseBoundaryAt(r.left, s))) - occurrence.lateralOrigin,
-    right: Math.max(...regions.map((r) => courseBoundaryAt(r.right, s))) - occurrence.lateralOrigin,
+    left: Math.min(...roads.map((r) => courseBoundaryAt(r.left, s))) - occurrence.lateralOrigin,
+    right: Math.max(...roads.map((r) => courseBoundaryAt(r.right, s))) - occurrence.lateralOrigin,
   };
 }
 
@@ -122,7 +122,7 @@ export function runScenario({ course, ground }, scenario) {
   const entryPose = scene.world.coordinates.toWorld(0, 0, { x: 0, z: 0, s: 0, l: 0, heading: 0 });
   let camera;
   const render = () => {
-    settings.setBandMethod(BAND_RENDER_METHODS[evidence.frames % BAND_RENDER_METHODS.length]);
+    settings.setStripMethod(STRIP_RENDER_METHODS[evidence.frames % STRIP_RENDER_METHODS.length]);
     scene.render(target, vehicle, camera, configuration.kind, sprites(race.observe().rivals, camera));
     evidence.frames++;
   };

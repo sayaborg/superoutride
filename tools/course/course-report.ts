@@ -26,7 +26,7 @@ export interface CourseReport {
 import path from 'node:path';
 import { plotCourseReport } from './plot-report.js';
 
-import { courseBoundaryAt } from '../../src/course/course-regions.js';
+import { courseBoundaryAt } from '../../src/course/course-boundaries.js';
 import { atomicWrite, finite, requireInput } from './authoring-io.js';
 
 export async function courseReport(course: CompiledCourse, section: CompiledSection, directory: string, step = 10) {
@@ -41,7 +41,7 @@ export async function courseReport(course: CompiledCourse, section: CompiledSect
       ...section.height.knots.map((n) => n.s),
       ...section.segments.flatMap((p) => [p.sStart, p.sEnd]),
       ...section.height.knots.flatMap((n) => [n.s - n.curveLength / 2, n.s + n.curveLength / 2]),
-      ...section.boundaries.flatMap((b) => b.knots.map((k) => k.at.s)),
+      ...section.boundaries.flatMap((b) => b.vertices.map((k) => k.at.s)),
     ]),
   ].sort((a, b) => a - b);
   const metric = { curvature: 0, offsetMetric: 1 };
@@ -54,7 +54,7 @@ export async function courseReport(course: CompiledCourse, section: CompiledSect
       x: world.x,
       z: world.z,
       boundaries: section.boundaries.map((b) =>
-        s < b.knots[0]!.at.s || s > b.knots.at(-1)!.at.s ? null : courseBoundaryAt(b, s),
+        s < b.vertices[0]!.at.s || s > b.vertices.at(-1)!.at.s ? null : courseBoundaryAt(b, s),
       ),
     };
   });
@@ -99,10 +99,10 @@ export async function courseReport(course: CompiledCourse, section: CompiledSect
     ].join('\n') + '\n';
   await atomicWrite(path.join(directory, 'report.txt'), text);
   const plots = plotCourseReport(report);
-  await atomicWrite(path.join(directory, 'regions.svg'), plots.regions);
+  await atomicWrite(path.join(directory, 'station-plots.svg'), plots.stationPlots);
   await atomicWrite(path.join(directory, 'plan.svg'), plots.plan);
   return {
     directory,
-    files: ['report.json', 'report.txt', 'regions.svg', 'plan.svg'].map((f) => path.join(directory, f)),
+    files: ['report.json', 'report.txt', 'station-plots.svg', 'plan.svg'].map((f) => path.join(directory, f)),
   };
 }

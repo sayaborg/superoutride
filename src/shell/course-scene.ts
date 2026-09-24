@@ -109,7 +109,7 @@ export function createCourseScene(
           assets: appearance,
           playerKind,
         },
-        { ground: presentation.ground, workspace: renderWorkspace, bandMethod: displaySettings.bandMethod },
+        { ground: presentation.ground, workspace: renderWorkspace, stripMethod: displaySettings.stripMethod },
       );
     },
   });

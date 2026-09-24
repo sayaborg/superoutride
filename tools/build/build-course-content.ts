@@ -37,7 +37,7 @@ for (const name of (await readdir(new URL('courses/', content))).sort()) {
     entries.push({ path, sha256: image.sha256 });
   }
   if (!compiled.ok) throw new Error(JSON.stringify(compiled.diagnostics));
-  console.log(`${name}: Band ground compiled`);
+  console.log(`${name}: Strip ground compiled`);
   courses.push({
     course: compiled.value,
     stem: name.replace('.course.json', ''),

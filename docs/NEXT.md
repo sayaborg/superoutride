@@ -8,7 +8,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **7-3d — Names**.
+Next PR: **7-4 — Sprites and environment**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -18,12 +18,12 @@ PRs hold rationale and verification evidence.
 
 Write plan, position, lateral strips and race landmarks in one consistent authored course format.
 
-- **7-3d — Names:** rename Band types, readers and files to Strip names; rename the cell payload field `color` (which now also holds material) to a neutral name; rename `course-regions.ts`, `LateralField` and remaining Region-named diagnostics; call compiled Boundary breakpoints vertices.
 - **7-4 — Sprites and environment:** give sprites and environment a shared repeat, and name successors to VisualProfile, CoursePresentation and their visual records according to the glossary. Include tunnels: tunnel sprites, with an environment knot switching the background inside and restoring it on exit.
   Keep authored PI coordinates as the native Section frame without normalization; the entry Section's native frame is the world frame, and background `yawOrigin` and other absolute directions use it.
 - **7-5 — Gates, rules and cycles:** author start (including grid), checkpoints, finish, lock lines and closures as Section `gates`; remove `fork` and derive forking from the number of outgoing Links; forbid Links from a Section to itself so a circuit is a cycle of two or more Sections; require every directed cycle to close geometrically at compilation (the composed Link transforms return to identity within the accumulated Link tolerance); merges of different branches are not cycles and stay unchecked; count a lap as one traversal of the cycle; rebuild ribbon-ring as a geometrically closed cycle; leave only numeric settings in `rules`; derive course kind from the graph; remove production provenance, `geometryRecipe`, `units` and `reference`; simplify nulls and limits. The directed-cycle closure check must not enumerate every cycle; it must stay polynomial in Sections and Links at the admitted graph size.
 - **7-6 — Delivery identity:** use one manifest, one version per format and one image path.
 - **7-7 — Validation:** validate once at document reading/compilation boundaries, remove redundant internal defensive checks and impossible ok/failure paths, unify progress diagnostics and move coordinate-overlap `CourseInputError` fields to a structured diagnostic variant; consolidate vertical-curve validation and admit `curveLength` from zero upward in document reading.
+  Remove the surface sample `sectionName`, which now duplicates `type`.
   Report `plan_coordinate_inversion` by PI or station rather than internal segment index, and hold derived arc turns in radians.
 
 ## Stage 8 — Vehicles and materials
@@ -126,6 +126,9 @@ comparably; review proposed checkpoint margins against the resulting driving exp
 one CLASSIC time-limit set per course and saves it in the course; CUSTOM has no time limit. Reference driving
 stays outside builds. Review the complete sixteen-rival scene with graphics and audio on named devices.
 Establish device capacity/performance budgets from the whole application.
+Measure color-table preblend memory per km on the product courses (ribbon-coast is about 0.8 MiB/km;
+a dense 21 km probe used about 121 MiB). If it exceeds the device budget, build preblend levels only
+for the route window instead of the whole Section.
 
 Review fork transfer over vehicle, speed, initial-state and material ranges, including three-way
 outer-to-outer travel, response time, bike attitude, combined tire demand, yaw/slip, width and median

@@ -1,5 +1,5 @@
-import { bandEdgeAt, bandSlabAt } from './band-ground.js';
-import type { BandMaterial } from './band-material.js';
+import { stripEdgeAt, stripSlabAt } from './strip-ground.js';
+import type { StripMaterial } from './strip-material.js';
 import type { Writable } from '../core/writable.js';
 import { CourseInputError, requireCourse } from './course-diagnostics.js';
 import { validatePlanDomainInjectivity } from './plan-domain-injectivity.js';
@@ -12,13 +12,13 @@ export interface CompiledPlanLateralDomain {
   lateralAt(s: number, out: Writable<{ left: number; right: number }>): { left: number; right: number };
 }
 
-function lateralDomain(material: BandMaterial): CompiledPlanLateralDomain {
+function lateralDomain(material: StripMaterial): CompiledPlanLateralDomain {
   const stations = [material.slabs[0]!.start, ...material.slabs.map((slab) => slab.end)];
   const edges = material.slabs.map((slab) => {
-    const spans = slab.spans.filter((span) => span.color !== null);
+    const spans = slab.spans.filter((span) => span.value !== null);
     if (!spans.length)
       throw new CourseInputError(
-        'region_coverage_gap',
+        'material_coverage_gap',
         '/sections',
         'Material table needs finite edges throughout the Section',
       );
@@ -29,9 +29,9 @@ function lateralDomain(material: BandMaterial): CompiledPlanLateralDomain {
     lateralAt(s: number, out: Writable<{ left: number; right: number }>) {
       if (!Number.isFinite(s) || s < 0 || s > material.length)
         throw new RangeError('Plan lateral domain query is outside the Section');
-      const edge = edges[bandSlabAt(material.slabs, s)]!;
-      out.left = bandEdgeAt(edge.left, 'left', s) - PLAN_COORDINATE_MARGIN_METERS;
-      out.right = bandEdgeAt(edge.right, 'right', s) + PLAN_COORDINATE_MARGIN_METERS;
+      const edge = edges[stripSlabAt(material.slabs, s)]!;
+      out.left = stripEdgeAt(edge.left, 'left', s) - PLAN_COORDINATE_MARGIN_METERS;
+      out.right = stripEdgeAt(edge.right, 'right', s) + PLAN_COORDINATE_MARGIN_METERS;
       return out;
     },
   });
@@ -40,7 +40,7 @@ function lateralDomain(material: BandMaterial): CompiledPlanLateralDomain {
 export function compileMaterialCoordinateDomain(
   sectionId: string,
   segments: readonly CompiledPlanSegment[],
-  material: BandMaterial,
+  material: StripMaterial,
   sectionPath: string,
 ): CompiledPlanLateralDomain {
   const domain = lateralDomain(material);
@@ -78,13 +78,13 @@ function validatePlanMetric(
 }
 
 /** The union of material-bearing cells has matching limits at every slab transition. */
-export function validateMaterialContinuity(material: BandMaterial, path: string): void {
-  const union = (slab: BandMaterial['slabs'][number], s: number) => {
+export function validateMaterialContinuity(material: StripMaterial, path: string): void {
+  const union = (slab: StripMaterial['slabs'][number], s: number) => {
     const result: [number, number][] = [];
     for (const span of slab.spans) {
-      if (span.color === null) continue;
-      const left = bandEdgeAt(span, 'left', s),
-        right = bandEdgeAt(span, 'right', s);
+      if (span.value === null) continue;
+      const left = stripEdgeAt(span, 'left', s),
+        right = stripEdgeAt(span, 'right', s);
       if (left === right) continue;
       const previous = result.at(-1);
       if (previous && previous[1] >= left) previous[1] = Math.max(previous[1], right);
@@ -100,7 +100,7 @@ export function validateMaterialContinuity(material: BandMaterial, path: string)
       before.length === after.length && before.every((r, j) => r[0] === after[j]![0] && r[1] === after[j]![1]),
       path,
       `Material union must be continuous at s=${s}`,
-      'region_transition_discontinuity',
+      'material_transition_discontinuity',
     );
   }
 }

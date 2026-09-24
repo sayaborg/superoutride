@@ -1,6 +1,6 @@
 import { createPlanCoordinateSample } from '../geometry/plan-coordinate.js';
 import { compilePlanarTransform, transformPlanarPoint } from '../../core/planar-transform.js';
-import { courseBoundaryAt, courseCarriagewayExists, type CompiledCarriageway } from '../course-regions.js';
+import { courseBoundaryAt, courseCarriagewayExists, type CompiledCarriageway } from '../course-boundaries.js';
 import { requireCourse } from '../course-diagnostics.js';
 import type { CompiledCut, CompiledLink, CompiledSection } from './course-graph.js';
 import type { CourseDocument } from '../course-document.js';
@@ -19,8 +19,8 @@ export const COURSE_LINK_RECIPE = Object.freeze({
 
 function edges(road: CompiledCarriageway, s: number, path: string): readonly [number, number] {
   requireCourse(
-    s >= Math.max(road.left.knots[0]!.at.s, road.right.knots[0]!.at.s) &&
-      s <= Math.min(road.left.knots.at(-1)!.at.s, road.right.knots.at(-1)!.at.s),
+    s >= Math.max(road.left.vertices[0]!.at.s, road.right.vertices[0]!.at.s) &&
+      s <= Math.min(road.left.vertices.at(-1)!.at.s, road.right.vertices.at(-1)!.at.s),
     path,
     `Carriageway ${road.id} must reach the cut line`,
     'invalid_carriageway',

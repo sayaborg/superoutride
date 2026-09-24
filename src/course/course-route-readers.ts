@@ -1,6 +1,6 @@
 import { wrapAngle, type Vec2 } from '../core/math.js';
 import type { Writable } from '../core/writable.js';
-import { VOID_SURFACE } from './band-material.js';
+import { VOID_SURFACE } from './strip-material.js';
 import {
   PLAN_PROJECTION_WINDOW_METERS,
   type PlanCoordinateMetrics,

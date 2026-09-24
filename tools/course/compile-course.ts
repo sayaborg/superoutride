@@ -56,13 +56,13 @@ if (!result.ok) {
               : {
                   lock: section.fork.lock.s,
                   closure: section.fork.closure.s,
-                  regions: section.fork.regions.map(({ link, ...region }) => ({ ...region, link: link.id })),
+                  regions: section.fork.regions.map(({ link, ...interval }) => ({ ...interval, link: link.id })),
                 },
           presentation:
             section.presentation === null
               ? null
               : {
-                  kind: 'bands',
+                  kind: 'strips',
                   ...section.color.metrics,
                   environments: section.presentation.environments.length,
                   scenery: section.presentation.scenery.length,

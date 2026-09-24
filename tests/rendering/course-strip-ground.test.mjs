@@ -5,7 +5,7 @@ import { loadCourse } from '../../tools/course/authoring-io.ts';
 import { compileCourseImages } from '../../tools/course/compile-course-images.ts';
 import { compileCourseDocument } from '../../src/course/compiler/compiled-course.js';
 import { readCourseDocument } from '../../src/course/course-document.js';
-import { createBandGroundSampler, createBandRenderMetrics } from '../../src/view/band-ground-sampler.js';
+import { createStripGroundSampler, createStripRenderMetrics } from '../../src/view/strip-ground-sampler.js';
 
 test('visual Strips can erase all ground without changing material slabs, support or material readings', async () => {
   const file = fileURLToPath(new URL('../../content/courses/ribbon-coast.course.json', import.meta.url));
@@ -28,10 +28,10 @@ test('visual Strips can erase all ground without changing material slabs, suppor
   for (const s of [0, 45, 350, 700, a.coordinates.domain.end])
     for (const l of [-100, -8, -3, 0, 3, 8, 100]) assert.deepEqual(surfaceA.sample(s, l), surfaceB.sample(s, l));
   const pixels = new Uint32Array(320).fill(0xabcdef01);
-  const sampler = createBandGroundSampler([
+  const sampler = createStripGroundSampler([
     { ground: b.color, start: 0, end: b.coordinates.domain.end, lateralOrigin: 0 },
   ]);
-  sampler.sampleSpan(pixels, 0, 320, 350, -40, 0.25, 32, 'EXACT-BOX', createBandRenderMetrics());
+  sampler.sampleSpan(pixels, 0, 320, 350, -40, 0.25, 32, 'EXACT-BOX', createStripRenderMetrics());
   assert.ok(
     pixels.every((p) => p === 0xabcdef01),
     'transparent plane must preserve the existing BG/Painter pixels',

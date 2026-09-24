@@ -1,7 +1,7 @@
 import { createPlanCoordinateSample } from './geometry/plan-coordinate.js';
 import { createPlanCoordinateReader } from './geometry/plan-coordinate-reader.js';
 import type { CompiledPlanSegment } from './geometry/plan-path.js';
-import type { CompiledPlanLateralDomain } from './course-region-geometry.js';
+import type { CompiledPlanLateralDomain } from './course-coordinate-domain.js';
 import { CourseInputError } from './course-diagnostics.js';
 import { normalFromHeading, tangentFromHeading, type Vec2 } from '../core/math.js';
 import { PLAN_POSITION_TOLERANCE_METERS } from './geometry/plan-path.js';

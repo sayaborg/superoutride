@@ -20,7 +20,7 @@ import {
   compileEnvelopeDriver,
 } from '../../src/race/envelope-driver.js';
 import { SIM_DT } from '../../src/shell/frame-loop.js';
-import { courseBoundaryAt, courseCarriagewayExists } from '../../src/course/course-regions.js';
+import { courseBoundaryAt, courseCarriagewayExists } from '../../src/course/course-boundaries.js';
 const spriteAssets = await readVehicleSprites();
 
 /** Enumerate canonical finite alternatives; one continuous run per history, no stitched sectors. */

@@ -1,12 +1,12 @@
 import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
-import { compileBandMaterial } from '../band-material.js';
+import { compileStripMaterial } from '../strip-material.js';
 import { SURFACE_MATERIALS, type SurfaceMaterial, type SurfaceType } from '../surface-material.js';
-import type { CompiledBoundary } from '../course-regions.js';
+import type { CompiledBoundary } from '../course-boundaries.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
 import { resolveLateralInterval, resolveCourseLateral } from './course-lateral.js';
 import type { StripElementDocument, CoursePosition, Lateral } from '../course-document.js';
 import { CourseInputError, requireCourse } from '../course-diagnostics.js';
-import { BAND_ACTIVE_LIMIT, compileBandGround, type BandPiece, type BandEdgeLine } from '../band-ground.js';
+import { STRIP_ACTIVE_LIMIT, compileStripGround, type StripPiece, type StripEdgeLine } from '../strip-ground.js';
 
 /** A small authored 5 by 7 block alphabet; rows expand to runs of Strips. */
 const GLYPHS: Readonly<Record<string, string>> = Object.freeze({
@@ -56,9 +56,9 @@ function expandCourseStrips(
   resolve: (at: CoursePosition, path: string) => CompiledCoursePosition,
   boundaries: ReadonlyMap<string, CompiledBoundary>,
 ) {
-  const pieces: BandPiece[] = [];
-  const materials: BandPiece<SurfaceMaterial | null>[] = [];
-  const line = (start: number, end: number, from: number, to = from): BandEdgeLine => ({ start, end, from, to });
+  const pieces: StripPiece[] = [];
+  const materials: StripPiece<SurfaceMaterial | null>[] = [];
+  const line = (start: number, end: number, from: number, to = from): StripEdgeLine => ({ start, end, from, to });
   const extents: { start: number; end: number }[] = [];
   const track = (shape: { start: number; end: number }) => {
     requireCourse(
@@ -70,14 +70,14 @@ function expandCourseStrips(
     extents.push(shape);
   };
   let work = 0;
-  const add = (piece: BandPiece) => {
+  const add = (piece: StripPiece) => {
     if (piece.start < 0 || piece.end > length)
       throw new CourseInputError('invalid_profile', path, 'Expanded Strip extends outside its Section');
     track(piece);
     pieces.push(Object.freeze(piece));
   };
   const rectangle = (start: number, end: number, left: number, right: number, color: number) =>
-    add({ start, end, left: line(start, end, left), right: line(start, end, right), color });
+    add({ start, end, left: line(start, end, left), right: line(start, end, right), value: color });
   const strip = (
     knots: readonly { s: number; left: Lateral | null; right: Lateral | null }[],
     color: number | 'transparent' | null,
@@ -132,19 +132,19 @@ function expandCourseStrips(
             );
       const left = edge('left'),
         right = edge('right');
-      const stops = [...new Set([a.s, b.s, ...[left, right].flatMap((e) => e?.knots.map((k) => k.at.s) ?? [])])].sort(
-        (a, b) => a - b,
-      );
+      const stops = [
+        ...new Set([a.s, b.s, ...[left, right].flatMap((e) => e?.vertices.map((k) => k.at.s) ?? [])]),
+      ].sort((a, b) => a - b);
       for (let j = 1; j < stops.length; j++) {
         const start = stops[j - 1]!,
           end = stops[j]!;
         const select = (edge: typeof left) =>
-          edge === null ? null : edge.lines[edge.knots.findIndex((k) => k.at.s > start) - 1]!;
+          edge === null ? null : edge.lines[edge.vertices.findIndex((k) => k.at.s > start) - 1]!;
         const shape = { start, end, left: select(left), right: select(right) };
-        if (color !== null) add({ ...shape, color: color === 'transparent' ? null : color });
+        if (color !== null) add({ ...shape, value: color === 'transparent' ? null : color });
         if (value !== null) {
           if (color === null) track(shape);
-          materials.push({ ...shape, color: value });
+          materials.push({ ...shape, value });
         }
       }
     }
@@ -260,7 +260,7 @@ function expandCourseStrips(
               end,
               left: line(start, end, atS(edges[j]!, start), atS(edges[j]!, end)),
               right: line(start, end, atS(edges[j + 1]!, start), atS(edges[j + 1]!, end)),
-              color: element.color,
+              value: element.color,
             });
         }
         break;
@@ -278,9 +278,9 @@ function expandCourseStrips(
   for (const event of events) {
     active += event.delta;
     requireCourse(
-      active <= BAND_ACTIVE_LIMIT,
+      active <= STRIP_ACTIVE_LIMIT,
       path,
-      `Active Strips exceed ${BAND_ACTIVE_LIMIT} at s=${event.s}`,
+      `Active Strips exceed ${STRIP_ACTIVE_LIMIT} at s=${event.s}`,
       'resource_limit',
     );
   }
@@ -297,8 +297,8 @@ export function compileCourseStrips(
   try {
     const { pieces, materials } = expandCourseStrips(elements, length, path, resolve, boundaries);
     return Object.freeze({
-      color: compileBandGround(length, pieces),
-      material: compileBandMaterial(length, materials),
+      color: compileStripGround(length, pieces),
+      material: compileStripMaterial(length, materials),
     });
   } catch (error) {
     if (error instanceof RangeError)

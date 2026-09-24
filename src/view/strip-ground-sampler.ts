@@ -1,4 +1,4 @@
-import { bandSlabAt } from '../course/band-ground.js';
+import { stripSlabAt } from '../course/strip-ground.js';
 import {
   IMAGE_OPAQUE_COVERAGE,
   linearToRgb555,
@@ -7,30 +7,30 @@ import {
 } from '../image/image-filter.js';
 import { rgb555ToRgba } from '../image/rgb555.js';
 import {
-  BAND_ACTIVE_LIMIT,
-  BAND_BASE_STEP,
-  bandEdgeAt,
-  type BandGround,
-  type BandCellTarget,
-} from '../course/band-ground.js';
-import type { BandRenderMethod } from './display-settings.js';
+  STRIP_ACTIVE_LIMIT,
+  STRIP_BASE_STEP,
+  stripEdgeAt,
+  type StripGround,
+  type StripCellTarget,
+} from '../course/strip-ground.js';
+import type { StripRenderMethod } from './display-settings.js';
 
 // Dimensionless coverage fraction: 64 eps (~1.42e-14) budgets rounding in the small
 // polynomial/integral evaluation at the half-coverage tie, relative to row area.
 const COVERAGE_ROUNDOFF = 64 * Number.EPSILON;
-interface BandLateralField {
+interface StripLateralField {
   readonly count: number;
   readonly base: readonly number[];
   readonly data: Float64Array;
 }
-export interface BandRenderMetrics {
-  activeBands: number;
+export interface StripRenderMetrics {
+  activeStrips: number;
   outputPixels: number;
 }
-export function createBandRenderMetrics(): BandRenderMetrics {
-  return { activeBands: 0, outputPixels: 0 };
+export function createStripRenderMetrics(): StripRenderMetrics {
+  return { activeStrips: 0, outputPixels: 0 };
 }
-function nodeAt(field: BandLateralField, x: number): number {
+function nodeAt(field: StripLateralField, x: number): number {
   const data = field.data;
   let lo = 0,
     hi = field.count;
@@ -41,13 +41,13 @@ function nodeAt(field: BandLateralField, x: number): number {
   }
   return lo - 1;
 }
-function point(field: BandLateralField, x: number, out: Float64Array) {
+function point(field: StripLateralField, x: number, out: Float64Array) {
   const i = nodeAt(field, x) * 9;
   for (let c = 0; c < 4; c++)
     out[c]! += i < 0 ? field.base[c]! : field.data[i + 1 + c]! + field.data[i + 5 + c]! * (x - field.data[i]!);
 }
 /** Exact local box mean of the piecewise-affine lateral field, without global antiderivative cancellation. */
-function integrate(field: BandLateralField, a: number, b: number, out: Float64Array) {
+function integrate(field: StripLateralField, a: number, b: number, out: Float64Array) {
   const data = field.data;
   let index = nodeAt(field, a),
     x = a;
@@ -66,15 +66,15 @@ function integrate(field: BandLateralField, a: number, b: number, out: Float64Ar
 }
 
 /** A route interval; subtract start to sample its Section ground. */
-interface BandFieldSpan {
-  readonly ground: BandGround;
+interface StripFieldSpan {
+  readonly ground: StripGround;
   readonly start: number;
   readonly end: number;
   readonly lateralOrigin: number;
 }
 
 /** Persistent row scratch. Cached lateral fields and the at-most-two clipped leaf ends become one lateral function. */
-class BandRow {
+class StripRow {
   readonly field = { base: [0, 0, 0, 0], data: new Float64Array(9 * 256), count: 0 };
   private events = new Float64Array(9 * 256);
   private readonly order: number[] = [];
@@ -82,7 +82,7 @@ class BandRow {
   private readonly values = new Float64Array(4);
   private readonly slopes = new Float64Array(4);
   private readonly compare = (a: number, b: number) => this.events[a * 9]! - this.events[b * 9]!;
-  private readonly cellField: BandCellTarget = {
+  private readonly cellField: StripCellTarget = {
     base: [0, 0, 0, 0],
     data: new Float64Array(9 * 256),
     count: 0,
@@ -105,7 +105,7 @@ class BandRow {
     this.events[i] = x;
     return i;
   }
-  addCell(ground: BandGround, level: number, s: number, lateralOrigin: number) {
+  addCell(ground: StripGround, level: number, s: number, lateralOrigin: number) {
     const cell = this.cellField;
     ground.reader.read(level, s, cell);
     const weight = cell.length;
@@ -190,26 +190,32 @@ class BandRow {
 
 /** Only a clipped endpoint leaf uses its affine edges; full dyadic cells always reuse preblended coefficients. */
 function appendExact(
-  row: BandRow,
-  ground: BandGround,
+  row: StripRow,
+  ground: StripGround,
   start: number,
   end: number,
   lateralOrigin: number,
-  stats: BandRenderMetrics,
+  stats: StripRenderMetrics,
   instant = false,
 ) {
-  for (let i = bandSlabAt(ground.slabs, start); i < ground.slabs.length; i++) {
+  for (let i = stripSlabAt(ground.slabs, start); i < ground.slabs.length; i++) {
     const slab = ground.slabs[i]!;
     if (!instant && slab.start >= end) break;
     const a = Math.max(start, slab.start),
       b = Math.min(end, slab.end),
       weight = instant ? 1 : b - a;
     if (!(weight > 0)) continue;
-    stats.activeBands = Math.max(stats.activeBands, slab.active);
+    stats.activeStrips = Math.max(stats.activeStrips, slab.active);
     for (const piece of slab.spans)
-      if (piece.color !== null) {
-        row.addEdge(bandEdgeAt(piece, 'left', a), bandEdgeAt(piece, 'left', b), weight, piece.color, lateralOrigin);
-        row.addEdge(bandEdgeAt(piece, 'right', a), bandEdgeAt(piece, 'right', b), -weight, piece.color, lateralOrigin);
+      if (piece.value !== null) {
+        row.addEdge(stripEdgeAt(piece, 'left', a), stripEdgeAt(piece, 'left', b), weight, piece.value, lateralOrigin);
+        row.addEdge(
+          stripEdgeAt(piece, 'right', a),
+          stripEdgeAt(piece, 'right', b),
+          -weight,
+          piece.value,
+          lateralOrigin,
+        );
       }
     if (instant) break;
   }
@@ -218,19 +224,19 @@ function appendExact(
 /** The instantaneous lateral field follows already resolved span order; no event composition or sorting. */
 function readPointField(
   field: { base: number[]; data: Float64Array; count: number },
-  ground: BandGround,
+  ground: StripGround,
   s: number,
-  stats: BandRenderMetrics,
-): BandLateralField {
-  const slab = ground.slabs[bandSlabAt(ground.slabs, s)]!;
+  stats: StripRenderMetrics,
+): StripLateralField {
+  const slab = ground.slabs[stripSlabAt(ground.slabs, s)]!;
   field.count = slab.spans.length - 1;
-  stats.activeBands = Math.max(stats.activeBands, slab.active);
+  stats.activeStrips = Math.max(stats.activeStrips, slab.active);
   for (let i = 0; i < slab.spans.length; i++) {
     const piece = slab.spans[i]!,
-      color = piece.color;
+      color = piece.value;
     const target = i === 0 ? field.base : field.data;
     const at = i === 0 ? 0 : (i - 1) * 9 + 1;
-    if (i > 0) field.data[at - 1] = bandEdgeAt(piece, 'left', s);
+    if (i > 0) field.data[at - 1] = stripEdgeAt(piece, 'left', s);
     target[at] = color === null ? 0 : rgb555LinearChannel(color >>> 10);
     target[at + 1] = color === null ? 0 : rgb555LinearChannel((color >>> 5) & 31);
     target[at + 2] = color === null ? 0 : rgb555LinearChannel(color & 31);
@@ -241,12 +247,12 @@ function readPointField(
 }
 
 /** Each product method selects its complete longitudinal/lateral read, never independent kernels. */
-export function createBandGroundSampler(intervals: readonly BandFieldSpan[]) {
+export function createStripGroundSampler(intervals: readonly StripFieldSpan[]) {
   const spans = intervals;
-  const row = new BandRow(),
-    pointField: BandCellTarget = {
+  const row = new StripRow(),
+    pointField: StripCellTarget = {
       base: [0, 0, 0, 0],
-      data: new Float64Array(9 * 2 * BAND_ACTIVE_LIMIT),
+      data: new Float64Array(9 * 2 * STRIP_ACTIVE_LIMIT),
       count: 0,
       length: 0,
       active: 0,
@@ -265,28 +271,28 @@ export function createBandGroundSampler(intervals: readonly BandFieldSpan[]) {
     }
     return spans[Math.min(lo, spans.length - 1)]!;
   };
-  const append = (span: (typeof spans)[number], start: number, end: number, stats: BandRenderMetrics) => {
+  const append = (span: (typeof spans)[number], start: number, end: number, stats: StripRenderMetrics) => {
     const a = Math.max(0, start - span.start),
       b = Math.min(span.ground.length, end - span.start);
-    const fullStart = Math.ceil(a / BAND_BASE_STEP),
-      fullEnd = Math.floor(b / BAND_BASE_STEP);
+    const fullStart = Math.ceil(a / STRIP_BASE_STEP),
+      fullEnd = Math.floor(b / STRIP_BASE_STEP);
     if (fullEnd <= fullStart) {
       appendExact(row, span.ground, a, b, span.lateralOrigin, stats);
       return b - a;
     }
-    if (fullStart * BAND_BASE_STEP > a)
-      appendExact(row, span.ground, a, fullStart * BAND_BASE_STEP, span.lateralOrigin, stats);
+    if (fullStart * STRIP_BASE_STEP > a)
+      appendExact(row, span.ground, a, fullStart * STRIP_BASE_STEP, span.lateralOrigin, stats);
     for (let index = fullStart; index < fullEnd;) {
       const remaining = Math.floor(Math.log2(fullEnd - index));
       const alignment = index === 0 ? remaining : Math.log2(index & -index);
       const level = Math.min(alignment, remaining);
-      stats.activeBands = Math.max(stats.activeBands, row.addCell(span.ground, level, index, span.lateralOrigin));
+      stats.activeStrips = Math.max(stats.activeStrips, row.addCell(span.ground, level, index, span.lateralOrigin));
       index += 2 ** level;
     }
-    if (fullEnd * BAND_BASE_STEP < b) {
+    if (fullEnd * STRIP_BASE_STEP < b) {
       if (b === span.ground.length) {
-        stats.activeBands = Math.max(stats.activeBands, row.addCell(span.ground, 0, fullEnd, span.lateralOrigin));
-      } else appendExact(row, span.ground, fullEnd * BAND_BASE_STEP, b, span.lateralOrigin, stats);
+        stats.activeStrips = Math.max(stats.activeStrips, row.addCell(span.ground, 0, fullEnd, span.lateralOrigin));
+      } else appendExact(row, span.ground, fullEnd * STRIP_BASE_STEP, b, span.lateralOrigin, stats);
     }
     return b - a;
   };
@@ -299,18 +305,18 @@ export function createBandGroundSampler(intervals: readonly BandFieldSpan[]) {
       l: number,
       stepL: number,
       deltaS: number,
-      method: BandRenderMethod,
-      stats: BandRenderMetrics,
+      method: StripRenderMethod,
+      stats: StripRenderMetrics,
     ) {
-      let field: BandLateralField;
+      let field: StripLateralField;
       let normalization = 1;
       if (method !== 'EXACT-BOX') {
         const span = spanAt(s);
         const at = Math.max(0, Math.min(span.ground.length, s - span.start));
-        if (method === 'LEVEL-POINT' && deltaS >= BAND_BASE_STEP) {
-          const level = selectImageLodLevel(BAND_BASE_STEP / deltaS, span.ground.reader.levelCount - 1);
+        if (method === 'LEVEL-POINT' && deltaS >= STRIP_BASE_STEP) {
+          const level = selectImageLodLevel(STRIP_BASE_STEP / deltaS, span.ground.reader.levelCount - 1);
           span.ground.reader.read(level, at, pointField);
-          stats.activeBands = Math.max(stats.activeBands, pointField.active);
+          stats.activeStrips = Math.max(stats.activeStrips, pointField.active);
           field = pointField;
         } else field = readPointField(pointField, span.ground, at, stats);
         l += span.lateralOrigin;
@@ -355,7 +361,7 @@ export function createBandGroundSampler(intervals: readonly BandFieldSpan[]) {
           const distance = stepL > 0 ? boundary - support - l : l - support - boundary;
           const run = Math.min(count - x, Math.max(1, Math.ceil(distance / width)));
           for (let c = 0; c < 4; c++) sample[c] = node < 0 ? field.base[c]! : field.data[at + 1 + c]!;
-          writeBandPixels(pixels, offset + x, run, sample, threshold, colorCache, stats);
+          writeStripPixels(pixels, offset + x, run, sample, threshold, colorCache, stats);
           x += run;
           l += stepL * run;
           continue;
@@ -363,7 +369,7 @@ export function createBandGroundSampler(intervals: readonly BandFieldSpan[]) {
         sample.fill(0);
         if (method !== 'EXACT-BOX' || width === 0) point(field, l, sample);
         else integrate(field, l - width / 2, l + width / 2, sample);
-        writeBandPixels(pixels, offset + x, 1, sample, threshold, colorCache, stats);
+        writeStripPixels(pixels, offset + x, 1, sample, threshold, colorCache, stats);
         x++;
         l += stepL;
       }
@@ -372,14 +378,14 @@ export function createBandGroundSampler(intervals: readonly BandFieldSpan[]) {
 }
 
 /** Premultiplied channels and opacity are normalized only after all field-owned intervals are combined. */
-function writeBandPixels(
+function writeStripPixels(
   pixels: Uint32Array,
   offset: number,
   count: number,
   sample: Float64Array,
   threshold: number,
   cache: Float64Array,
-  stats: BandRenderMetrics,
+  stats: StripRenderMetrics,
 ) {
   const a = sample[3]!;
   if (a < threshold) return;

@@ -9,7 +9,7 @@ import { VEHICLE_CATALOG } from '../../src/vehicle/vehicle-catalog.js';
 import { createCameraRig, updateCamera } from '../../src/view/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../../src/view/current-camera-profile.js';
 import { deriveVehicleSpriteFamily } from '../../src/view/vehicle-visuals.js';
-import { BAND_RENDER_METHODS } from '../../src/view/display-settings.js';
+import { STRIP_RENDER_METHODS } from '../../src/view/display-settings.js';
 import { createDisplaySettings } from '../../src/view/display-settings.js';
 import { SoftwareSurface } from '../../src/view/software-surface.js';
 
@@ -18,7 +18,7 @@ for (const stem of ['ribbon-coast', 'ribbon-fork', 'ribbon-ring'])
     const file = fileURLToPath(new URL(`../../content/courses/${stem}.course.json`, import.meta.url));
     const { course } = await loadCourse(file);
     const settings = createDisplaySettings();
-    assert.equal(settings.bandMethod, 'LEVEL-POINT');
+    assert.equal(settings.stripMethod, 'LEVEL-POINT');
     const scene = createCourseScene(
       course.entry,
       await loadCourseGround(course),
@@ -40,21 +40,21 @@ for (const stem of ['ribbon-coast', 'ribbon-fork', 'ribbon-ring'])
       const camera = updateCamera(rig, scene.world, vehicle, CURRENT_CAMERA_PROFILE, 1 / 60);
       target.pixels.fill(0);
       const result = scene.render(target, vehicle, camera, deriveVehicleSpriteFamily(entry), []);
-      assert.ok(result.bandGround.outputPixels > 0);
+      assert.ok(result.stripGround.outputPixels > 0);
       const before = JSON.stringify(vehicle),
         occurrences = scene.runtime.route.occurrences,
         view = scene.runtime.readers;
-      for (const method of BAND_RENDER_METHODS) {
-        settings.setBandMethod(method);
+      for (const method of STRIP_RENDER_METHODS) {
+        settings.setStripMethod(method);
         assert.equal(
-          scene.render(target, vehicle, camera, deriveVehicleSpriteFamily(entry), []).bandGround.method,
+          scene.render(target, vehicle, camera, deriveVehicleSpriteFamily(entry), []).stripGround.method,
           method,
         );
         assert.equal(JSON.stringify(vehicle), before);
         assert.equal(scene.runtime.route.occurrences, occurrences);
         assert.equal(scene.runtime.readers, view);
       }
-      assert.throws(() => settings.setBandMethod('UNKNOWN'), RangeError);
+      assert.throws(() => settings.setStripMethod('UNKNOWN'), RangeError);
       assert.ok([vehicle.x, vehicle.y, vehicle.z, camera.s].every(Number.isFinite));
       assert.ok(
         target.pixels.some((pixel) => pixel !== 0),

@@ -2,8 +2,8 @@ import { resolveCourseLateral } from './course-lateral.js';
 import type { CourseDocument, CourseLandmarkDocument } from '../course-document.js';
 import { requireCourse } from '../course-diagnostics.js';
 import { resolveCoursePosition, type CompiledCoursePosition } from '../course-geometry.js';
-import { courseBoundaryAt, courseCarriagewayExists, type CompiledCarriageway } from '../course-regions.js';
-import { bandSupportsInterval } from '../band-material.js';
+import { courseBoundaryAt, courseCarriagewayExists, type CompiledCarriageway } from '../course-boundaries.js';
+import { stripSupportsInterval } from '../strip-material.js';
 import type { CompiledSection } from './course-graph.js';
 
 export interface CompiledCourseLandmark {
@@ -49,7 +49,7 @@ export function compileCourseRules(
     const left = courseBoundaryAt(carriageway.left, position.s);
     const right = courseBoundaryAt(carriageway.right, position.s);
     check(
-      bandSupportsInterval(section.material, position.s, left, right),
+      stripSupportsInterval(section.material, position.s, left, right),
       path,
       'Landmark requires positive supported width',
     );

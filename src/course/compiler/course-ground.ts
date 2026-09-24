@@ -9,15 +9,15 @@ export function createCourseGround(course: CompiledCourse) {
     }),
   );
   const products = [...table.values()];
-  const sum = (key: 'expandedBands' | 'preblendCells' | 'lateralFields' | 'coefficientBytes' | 'directoryBytes') =>
+  const sum = (key: 'expandedStrips' | 'preblendCells' | 'lateralFields' | 'coefficientBytes' | 'directoryBytes') =>
     products.reduce((n, p) => n + p.metrics[key], 0);
   return Object.freeze({
-    kind: 'bands' as const,
+    kind: 'strips' as const,
     metrics: Object.freeze({
-      kind: 'bands' as const,
+      kind: 'strips' as const,
       sectionCount: products.length,
-      expandedBands: sum('expandedBands'),
-      maxActiveBands: Math.max(...products.map((p) => p.metrics.maxActiveBands)),
+      expandedStrips: sum('expandedStrips'),
+      maxActiveStrips: Math.max(...products.map((p) => p.metrics.maxActiveStrips)),
       preblendCells: sum('preblendCells'),
       lateralFields: sum('lateralFields'),
       coefficientBytes: sum('coefficientBytes'),

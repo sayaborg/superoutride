@@ -4,9 +4,9 @@ import type { CourseRoute } from '../course/course-route.js';
 import { routeS, routeSectionS } from '../course/course-route.js';
 import { stationIndexAt } from '../course/geometry/station-sequence.js';
 import { transformPlanarPoint } from '../core/planar-transform.js';
-import { createBandGroundSampler } from './band-ground-sampler.js';
+import { createStripGroundSampler } from './strip-ground-sampler.js';
 import { createCourseRenderResources } from './course-render-resources.js';
-import type { BandGroundReader } from './renderer.js';
+import type { StripGroundReader } from './renderer.js';
 
 /** Visual content over the same route ruler as the physical readers. Derived lists change with the route. */
 export function createCourseRouteVisualReaders(route: CourseRoute, fields: CourseGround) {
@@ -57,7 +57,7 @@ export function createCourseRouteVisualReaders(route: CourseRoute, fields: Cours
         return (visualSections[index + 1]?.sStart ?? route.end) - s;
       },
     });
-    const sampler = createBandGroundSampler(
+    const sampler = createStripGroundSampler(
       occurrences.map((occurrence) => ({
         ground: fields.forSection(occurrence.section),
         start: occurrence.start,
@@ -65,8 +65,8 @@ export function createCourseRouteVisualReaders(route: CourseRoute, fields: Cours
         lateralOrigin: occurrence.lateralOrigin,
       })),
     );
-    const ground: BandGroundReader = {
-      kind: 'bands',
+    const ground: StripGroundReader = {
+      kind: 'strips',
       sampleSpan(pixels, offset, count, s, l, stepL, deltaS, method, stats) {
         if (!route.at(s)) {
           pixels.fill(0, offset, offset + count);

@@ -1,7 +1,7 @@
 import { resolveCourseLateral } from './course-lateral.js';
 import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
 import { type CoursePosition, type PresentationDocument } from '../course-document.js';
-import type { CompiledBoundary, CompiledCarriageway } from '../course-regions.js';
+import type { CompiledBoundary, CompiledCarriageway } from '../course-boundaries.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
 import { CourseInputError, requireCourse } from '../course-diagnostics.js';
 import { BACKGROUND_HEIGHT, BACKGROUND_PIXELS_PER_RADIAN } from '../../image/tile-background-image.js';

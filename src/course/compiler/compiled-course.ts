@@ -1,4 +1,4 @@
-import { compileCourseStrips } from './course-band-ground.js';
+import { compileCourseStrips } from './course-strip-ground.js';
 import { validateCourseCarriageways } from './course-carriageways.js';
 import { createPlanCoordinateReader } from '../geometry/plan-coordinate-reader.js';
 import { contentDigest } from '../../core/content-digest.js';
@@ -12,8 +12,8 @@ import {
 } from '../course-diagnostics.js';
 import { readCourseDocument, type CourseDocument, type SectionDocument } from '../course-document.js';
 import { compileCourseGeometry, resolveCoursePosition } from '../course-geometry.js';
-import { validateMaterialContinuity, compileMaterialCoordinateDomain } from '../course-region-geometry.js';
-import type { CompiledCarriageway } from '../course-regions.js';
+import { validateMaterialContinuity, compileMaterialCoordinateDomain } from '../course-coordinate-domain.js';
+import type { CompiledCarriageway } from '../course-boundaries.js';
 import type { CompiledSection, CompiledLink } from './course-graph.js';
 import { COURSE_PHYSICAL_RECIPE, compileCoursePhysicalContent } from './course-physical-content.js';
 import {

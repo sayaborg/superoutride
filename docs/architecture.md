@@ -29,7 +29,7 @@ route interval without changing earlier route coordinates. A seam station belong
 `routeSectionS` and `routeS` own the chainage conversion; readers select an occurrence by binary
 search, read the Section, subtract the lateral origin and map X/Z and heading into route world space.
 The preparation layer supplies plan, authoritative height, ground-row height polyline, material,
-Band, sprites, visual labels and background readers. It indexes visual lists only when route
+Strip, sprites, visual labels and background readers. It indexes visual lists only when route
 occurrences change. All actors, physics, race, rendering and reference driving read these
 single-layer Readers directly and retain their state in route coordinates. The same reader set
 supplies the authoritative coordinates to physics and rendering.
@@ -44,7 +44,7 @@ its endpoint position at route l=0, unit tangent and right normal, and `e` is th
 | Height and render polyline | Respective endpoint height, derivative/grade 0                                  |
 | Coordinate domain          | Empty closed interval `[+Infinity,-Infinity]`, defined by `EMPTY_ROUTE_DOMAIN`  |
 | Material                   | VOID, also outside the lateral coordinate domain                                |
-| Band and sprites           | No content; Band pixels are transparent                                         |
+| Strip and sprites          | No content; Strip pixels are transparent                                        |
 | Environment/background     | Nearest endpoint value                                                          |
 
 The tangent rays participate in the same previous-s ±50 m projection window as the retained
@@ -71,7 +71,7 @@ Contact reach is the ceiling of the largest `hypot(forwardOffset, freeReachDown)
   The step allowance retains the rear footprint until the next refresh. At an undecided fork the parent
   Section covers the lock plus the render/driver lookahead and step allowance.
   Pruning never changes existing stations or vehicle poses. A single-successor circuit repeats its
-  Section for successive laps. Derived projection intervals, height knots, Band
+  Section for successive laps. Derived projection intervals, height knots, Strip
   intervals, sprite lists and environment boundaries rebuild only when the occurrence list changes.
 
 `PlanCoordinateReader` is the planar query interface for both a compiled Section and its mapped
@@ -196,9 +196,9 @@ on the local passage.
 
 ## Boundary geometry and point ownership
 
-Compiled Boundaries remain piecewise linear on the authoritative s ruler. Their breakpoints come
+Compiled Boundaries remain piecewise linear on the authoritative s ruler. Their vertices come
 from their own knot stations and, within each knot interval, both endpoint references' Boundary
-breakpoints, including inherited ones. Compilation evaluates and blends the endpoint Lateral
+vertices, including inherited ones. Compilation evaluates and blends the endpoint Lateral
 expressions at those stations as specified in [Content and gameplay](content-and-gameplay.md#lateral-positions).
 The published resolved l sequence is the only input to `courseBoundaryAt` and its consumers.
 Width and center are derived from
@@ -217,9 +217,9 @@ lateral edge, bounding the exact curve between its endpoints. The envelope compa
 the plan-position roundoff budget for floating-point separation near shared
 coordinates; this tolerance does not replace the curvature bound. These cells belong only to coordinate-domain validation.
 
-Point regions are half-open laterally: `[left(s),right(s))`. A shared edge belongs to the region on
+Point intervals are half-open laterally: `[left(s),right(s))`. A shared edge belongs to the interval on
 its right; the outer left edge is included and the outer right edge is outside. Zero-width endpoints
-own no area. Gaps use the consumer's outside result: physical VOID or no eligible lock region.
+own no area. Gaps use the consumer's outside result: physical VOID or no eligible lock interval.
 Visual Strips do not require material coverage and can cover the entire lateral plane. Closed bounds used for geometric containment and clipped areas used by image
 filters do not change point ownership.
 
@@ -286,10 +286,9 @@ below the horizon. Physical support is independent of all ground colors.
 
 `CompiledSection.material` contains an immutable slab table and its point reader; compiled Sections
 retain only resolved tables. Material-bearing Strips produce finite affine pieces; color-only Strips
-do not enter this table. Color and material use the same payload-independent Band slab resolver:
+do not enter this table. Color and material use the same payload-independent Strip slab resolver:
 activation and edge-crossing splits, declaration-order overwrite, equal-value span coalescing and
-binary slab/span lookup. The historical `Band*` names and cell payload field `color` are retained
-until the naming stage; its generic payload is RGB555/transparent for color or a material for physics.
+binary slab/span lookup. The generic cell payload `value` is RGB555/transparent for color or a material for physics.
 The absent-piece value is separate from explicit material VOID so finite authored extents survive.
 
 Point reads use binary search in s, then binary search in l over ordered spans. Intervals are
@@ -301,9 +300,9 @@ stations outside a finite Section fail; Route readers provide their ordinary out
 Gate/grid validation and fork compilation consume the same table. Support-interval construction
 is compiler-only; running point reads do not allocate arrays, objects or readers.
 
-### Band rendering
+### Strip rendering
 
-Compilation expands the [authored constructs](content-and-gameplay.md#strips) to affine Band
+Compilation expands the [authored constructs](content-and-gameplay.md#strips) to affine Strip
 pieces and passes them through the shared material/color slab resolver described above. Resolved spans are disjoint, cover the open lateral plane and coalesce
 adjacent equal colors; transparent upper Strips erase lower colors before filtering. The active count
 includes hidden declarations, not just the visible resolved spans.
@@ -322,11 +321,11 @@ A row uses the terrain projection's representative s and effective depth footpri
 A projected `[-1,+1]` metre ruler supplies the affine screen-to-l map; it does not clip ground.
 The product has one complete method, not independently configurable s/l kernels:
 
-| Method      | Longitudinal read                                               | Lateral read at pixel center x and width w |
-| ----------- | --------------------------------------------------------------- | ------------------------------------------ |
-| POINT-POINT | Instantaneous resolved Bands at the row's s for every footprint | Value at x                                 |
-| LEVEL-POINT | One cached dyadic cell, or instantaneous Bands when `rho < 1`   | Value at x                                 |
-| EXACT-BOX   | Exact integral over the row's centered depth interval           | Exact mean over `[x-w/2,x+w/2]`            |
+| Method      | Longitudinal read                                                | Lateral read at pixel center x and width w |
+| ----------- | ---------------------------------------------------------------- | ------------------------------------------ |
+| POINT-POINT | Instantaneous resolved Strips at the row's s for every footprint | Value at x                                 |
+| LEVEL-POINT | One cached dyadic cell, or instantaneous Strips when `rho < 1`   | Value at x                                 |
+| EXACT-BOX   | Exact integral over the row's centered depth interval            | Exact mean over `[x-w/2,x+w/2]`            |
 
 POINT-POINT and LEVEL-POINT use the source owning s and its lateral origin; a seam belongs to its
 successor. The instantaneous read follows the ordered resolved slab without preblending or sorting.
@@ -388,10 +387,10 @@ LOD for shipped sprites.
 
 Image's `selectImageLodLevel(scale, maxLevel)` is the single nearest-octave selection rule used by
 both sprites and LEVEL-POINT. `scale = 1/rho`: destination pixels per master texel for sprites, or
-`1 m / deltaS` for Bands. It selects the nearest integer `log2(rho)` exponent, clamped to the available
+`1 m / deltaS` for Strips. It selects the nearest integer `log2(rho)` exponent, clamped to the available
 prefix `0..maxLevel`. There is one level per octave. At the geometric-mean boundary
 `scale = 2^(-n)/sqrt(2)`, it selects the coarser exponent `n+1`. No interpolation occurs.
-Band's instantaneous sub-metre read is analogous to sprite master magnification, not a cached 1 m cell.
+Strip's instantaneous sub-metre read is analogous to sprite master magnification, not a cached 1 m cell.
 
 ## Course frames
 
@@ -413,7 +412,7 @@ start, lateral origin and transform, including each repeated circuit lap. The ro
 route s to Section s by subtracting the occurrence start, add the lateral origin for the Section query, then transform returned X/Z,
 heading and lateral positions into route coordinates. The successor owns the exact seam station.
 `createCourseRouteReaders` owns authoritative coordinate and height queries; `createCourseRouteVisualReaders` owns
-Band, sprite, visual and background queries. Every actor uses the same physical readers and route.
+Strip, sprite, visual and background queries. Every actor uses the same physical readers and route.
 
 ## Layer boundaries
 
@@ -454,7 +453,7 @@ actor observations; view owns rival sprite selection and assembly. Course owns V
 readers and the physical driving source. Race consumes that source only. Shell binds physical and
 presentation products and owns the combined pre-lock render/driver query-depth admission.
 RGBA conversion, sprite images and LOD formats belong
-to image; framebuffer writes and sprite drawing belong to view. Compiled Band color fields
-and their scalar coefficient Reader belong to course. View owns Band row sampling and the
+to image; framebuffer writes and sprite drawing belong to view. Compiled Strip color fields
+and their scalar coefficient Reader belong to course. View owns Strip row sampling and the
 three display methods; shell obtains their names from view.
 Environment profiles are course data.

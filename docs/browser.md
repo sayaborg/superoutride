@@ -75,7 +75,7 @@ the corresponding ownership and visible origin/vector indicators.
 The HUD displays FPS, maximum CPU frame time, maximum fixed-step time, maximum frame interval and
 route-change count (`routeChanges`) and lifetime maximum route-change time. The first frame reports immediately, then approximately every half second.
 
-The ground detail shows the selected method, the reporting window's maximum visible active Band count,
+The ground detail shows the selected method, the reporting window's maximum visible active Strip count,
 the compiled course maximum and active limit, the latest frame's ground-sampling CPU milliseconds,
 and the maximum over the most recent 120 rendered frames (`max120`). Changing method clears this
 ground-timing history and reports immediately, including while paused. The active count includes
@@ -105,7 +105,7 @@ The driving composition root creates one settings object; the shared scene reads
 The browser control is only an adapter and does not own the value or its lifetime.
 
 DEV's **Ground display** group exposes all three methods defined in
-[Architecture](architecture.md#band-rendering), marking the selected button pressed. A click updates
+[Architecture](architecture.md#strip-rendering), marking the selected button pressed. A click updates
 the single setting and redraws immediately, including before START and while paused. Camera, vehicle,
 Session and occurrence history are preserved, with no restart or course recompilation. The setting
 lasts for the loaded page; page/course reload restores the default. The controls use DEV input isolation.

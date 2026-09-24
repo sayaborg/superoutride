@@ -1,7 +1,7 @@
 import type { CompiledSection } from '../course/compiler/course-graph.js';
 import { createCourseRoute } from '../course/course-route.js';
 import { createCourseRouteReaders } from '../course/course-route-readers.js';
-import type { CompiledCarriageway } from '../course/course-regions.js';
+import type { CompiledCarriageway } from '../course/course-boundaries.js';
 import { PLAN_PROJECTION_WINDOW_METERS } from '../course/geometry/plan-coordinate.js';
 import { ENVELOPE_DRIVER } from './envelope-driver.js';
 import { RECOVERY_SETTINGS } from './recovery.js';

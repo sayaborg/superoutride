@@ -93,13 +93,13 @@ Unused row endpoints need no Boundary coverage. References may name any Boundary
 Section; declaration order does not constrain references.
 
 Boundary references must be acyclic. For each interval `[a,b]` between the Boundary's own
-resolved knot stations, compilation takes both endpoints and every interior breakpoint from
-either endpoint's referenced Boundary, including inherited breakpoints. Each endpoint defines
+resolved knot stations, compilation takes both endpoints and every interior vertex from
+either endpoint's referenced Boundary, including inherited vertices. Each endpoint defines
 an expression: a numeric Lateral is constant; a reference reads its Boundary at the evaluation
 station and adds its offset. Both references must cover the entire closed interval `[a,b]`.
 At each collected station s, evaluate the two expressions as A(s) and B(s), then store
 `A(s) + (B(s)-A(s)) * (s-a)/(b-a)` (using the endpoint expression directly at a or b).
-The published Boundary linearly interpolates these stored points; it does not continuously
+The published Boundary linearly interpolates these stored vertices; it does not continuously
 blend the two expressions between them. When both endpoint expressions refer to the same
 Boundary with the same offset, the result follows its shape exactly.
 
@@ -107,7 +107,7 @@ Document reading owns field shapes, finite numeric bounds and IDs. Compilation o
 existence, cycles, interval coverage, resolved-value bounds and expansion limits. Unknown
 Boundaries report `unresolved_reference`; cycles and insufficient coverage report
 `invalid_boundary`; resolved numeric bounds report `invalid_numeric_domain`, and expansion
-beyond the Section point budget reports `resource_limit`. Compiled Boundary points retain
+beyond the Section vertex budget reports `resource_limit`. Compiled Boundary vertices retain
 `{at: {s}, l}`; scenery and grid also retain their resolved numeric l. Runtime readers do not
 resolve authored references.
 
@@ -151,7 +151,7 @@ two finite edges. There are at least two knots (the admission ceiling is listed 
 and `[start,end)` longitudinally, including the Section terminal in the last slab.
 
 Strip edges use the same interval resolver as Boundary knots: collect the referenced Boundary
-breakpoints, evaluate both endpoint expressions there, blend, then linearly interpolate.
+vertices, evaluate both endpoint expressions there, blend, then linearly interpolate.
 When an edge references the same Boundary and offset at both knots, it retains that Boundary's
 original line and adds the offset after evaluating it. With zero offset, every edge read equals
 `courseBoundaryAt` without a rounding gap, even after unrelated slab splits.
@@ -169,7 +169,7 @@ and resolves its Lateral edges over each stripe interval. All expanded intervals
 The numeric and resource table below bounds each element array, repetition, expansion work,
 simultaneously active pieces, resolved slabs and cached fields. Covered pieces still count;
 a piece carrying both payloads counts once. Limits reject rather than truncate.
-[Architecture](architecture.md#band-rendering) owns averaging, immutable storage and pixel kernels.
+[Architecture](architecture.md#strip-rendering) owns averaging, immutable storage and pixel kernels.
 
 Scenery placements resolve document-wide instances. `unselectedCarriagewayId` is null for ordinary
 scenery or names a canonical exit Carriageway. Such signs lie from lock through closure, before the
@@ -244,7 +244,7 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | Each color/material table `stripSlabs`                                  |            1048576 | Expanded-piece budget × two endpoints × four for crossing subdivisions                                                  |
 | Section `preblendCells`                                                 |             131072 | All 1 m dyadic levels at 42000 m total fewer than 84032 cells, rounded up                                               |
 | Section `coefficientBytes`                                              |            512 MiB | Moving-edge 21 km probe uses about 121 MiB; ×2 length and ×2 profile complexity, rounded up                             |
-| Section resolved `boundaryPoints`                                       |              65536 | 32 Boundaries × 1024 knots × 2 for inherited breakpoints                                                                |
+| Section resolved `boundaryVertices`                                     |              65536 | 32 Boundaries × 1024 knots × 2 for inherited vertices                                                                   |
 | Course `grid`                                                           |                 17 | `1 + SESSION_RULE_LIMITS.rivals`; the product permits 16 rivals                                                         |
 | Course `checkpoints`                                                    |               1024 | 50 positions × 8 intermediate gates × 2, rounded up                                                                     |
 | Course `finishes`                                                       |                128 | At most one per admitted Section                                                                                        |
@@ -288,7 +288,7 @@ An overpass is authored as separate Sections for its passages; the coordinate-do
 is specified in [Architecture](architecture.md#plan-authority).
 The recipe identity participates in every dependent build identity.
 
-Boundary knots strictly increase. Their resolved points define affine edges; width and center are derived.
+Boundary knots strictly increase. Their resolved vertices define affine edges; width and center are derived.
 
 A Carriageway is `{id, left, right}`; both edge IDs resolve to Boundaries in its Section.
 Its existence interval is the intersection of those Boundary domains, with no separate range field.
@@ -307,8 +307,8 @@ read Carriageway Boundaries directly. Landmark support is checked across the ful
 Every open Section cell must have finite material coverage. At every longitudinal transition, both
 the material-bearing cell union (including explicit VOID) and the Carriageway interior union must
 have equal side limits. Positive-width replacements and zero-width birth/death endpoints follow
-the same rule. Discontinuities report `region_transition_discontinuity`; empty material coverage
-reports `region_coverage_gap`. These diagnostic names are retained until the naming stage.
+the same rule. Discontinuities report `material_transition_discontinuity` or `carriageway_transition_discontinuity`;
+empty material coverage reports `material_coverage_gap`.
 [Architecture](architecture.md#boundary-geometry-and-point-ownership) owns mapped geometry and point ownership.
 
 `courseBoundaryAt` samples the canonical edge. The compiled material table owns point reads,
@@ -408,14 +408,14 @@ supported interval between their edges; this is the separating median, defined b
 Invalid controls produce `invalid_fork`.
 
 Exit Carriageways are ordered by their actual lock-line edges. Median centers divide supported
-space into regions; outer supported shoulders belong to the outer exits. The shared half-open
+space into exit intervals; outer supported shoulders belong to the outer exits. The shared half-open
 [lateral rule](architecture.md#boundary-geometry-and-local-windows) assigns exact ties to the right.
-A crossing outside the coordinate domain or outside every fork region selects no route.
+A crossing outside the coordinate domain or outside every fork interval selects no route.
 
 The player and rivals are eligible. Lock lines use the same route-s crossing function as race lines.
 The first forward crossing in a fixed step wins, using the s-derived fraction u and then stable actor
 ID for an exact tie. Interpolated route l, shifted by the occurrence's lateral origin, selects the
-fork region. The winner appends one successor to the shared Route. Each occurrence locks once;
+fork interval. The winner appends one successor to the shared Route. Each occurrence locks once;
 checkpoint credit remains per actor.
 
 Rivals immediately follow the selected Carriageway center. Unselected roads show saved state-selected

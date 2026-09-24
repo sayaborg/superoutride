@@ -36,10 +36,13 @@ explicitly scheduled in [NEXT](NEXT.md) are replaced with their owning concepts.
 | `Window`              | A bounded query interval.                                                                                                                                                |
 | `source`              | Author-supplied data before compilation, including retained copies of that authored representation; not live readers, coordinate origins or input owners.                |
 | `presentation`        | Retired; use `appearance` for authored course visuals and a concrete rendering, display or audio name elsewhere.                                                         |
+| `Strip`               | An ordered Section surface declaration with independently optional color and material; later declarations overwrite each supplied channel.                               |
+| `Region`              | Retired; use `Strip` for surface declarations and `Carriageway` for roads between Boundaries.                                                                            |
+| `Band`                | Retired; use `Strip` for authored and compiled surface pieces, tables and readers.                                                                                       |
 | `appearance`          | Authored course visuals, independent of physical structure and materials.                                                                                                |
 | `Profile` / `profile` | A Section's vertical alignment: height and grade along s, not a parameter record or a general varying attribute.                                                         |
 | `Knot` / `Knots`      | An authored s-position/value record / ordered sequence, including vertical PVIs and Boundary knots; not a derived polyline point. Use `*Knot` and `*Knots` consistently. |
-| `vertex`              | A polyline point derived during compilation, including `ProfilePolyline` points; never authored.                                                                         |
+| `vertex`              | A polyline point derived during compilation, including compiled Boundary vertices and `ProfilePolyline` points; never authored.                                          |
 | `segment`             | A planar straight or circular arc derived from authored PIs during compilation; never authored.                                                                          |
 | `Definition`          | An author-written parameter record describing a vehicle, tire, material or sound.                                                                                        |
 | `Compiled*`           | A validated immutable product derived from authored inputs.                                                                                                              |
@@ -52,7 +55,7 @@ explicitly scheduled in [NEXT](NEXT.md) are replaced with their owning concepts.
 | `State`               | Mutable live state owned by its responsible model or consumer.                                                                                                           |
 | `Settings`            | The selected configuration applied to a running instance or its controls.                                                                                                |
 | `Policy`              | Rules consumed by an algorithm, distinct from its live state.                                                                                                            |
-| `LateralField`        | Compiled Band color and coverage as a function of lateral position.                                                                                                      |
+| `LateralField`        | A color-table cell’s preblended Strip color and coverage as a function of lateral position.                                                                              |
 | `native`              | Coordinates in the originating Section or data object's own ruler, before mapping into the shared Route.                                                                 |
 | `owner`               | The identity of an input publisher participating in arbitration.                                                                                                         |
 | `excitation`          | A signal driving an acoustic system; a live sound generator is not an authored source.                                                                                   |

@@ -1,9 +1,9 @@
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../image/sprite.js';
-import { courseBoundaryAt, courseCarriagewayExists } from '../course-regions.js';
+import { courseBoundaryAt, courseCarriagewayExists } from '../course-boundaries.js';
 import { requireCourse } from '../course-diagnostics.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
-import { bandSupportedIntervals, bandSupportsInterval } from '../band-material.js';
-import { bandEdgeAt, bandSlabAt } from '../band-ground.js';
+import { stripSupportedIntervals, stripSupportsInterval } from '../strip-material.js';
+import { stripEdgeAt, stripSlabAt } from '../strip-ground.js';
 import type { CompiledFork, CompiledSection } from './course-graph.js';
 
 /** Resolve parallel-zone geometry after canonical outgoing Links exist, before publication. */
@@ -37,7 +37,7 @@ export function compileCourseFork(
     );
   }
   const material = section.material;
-  const supported = bandSupportedIntervals(material.slabs[bandSlabAt(material.slabs, lock.s)]!, lock.s);
+  const supported = stripSupportedIntervals(material.slabs[stripSlabAt(material.slabs, lock.s)]!, lock.s);
   check(supported.length === 1, 'Supported lock space must be one continuous interval');
   const [outerLeft, outerRight] = supported[0]!;
   for (const slab of material.slabs) {
@@ -47,11 +47,11 @@ export function compileCourseFork(
     for (const span of slab.spans)
       for (const side of ['left', 'right'] as const)
         check(
-          bandEdgeAt(span, side, start) === bandEdgeAt(span, side, end),
+          stripEdgeAt(span, side, start) === stripEdgeAt(span, side, end),
           'Lock-to-closure material cross sections must remain parallel',
         );
     for (const at of [start, end]) {
-      const ranges = bandSupportedIntervals(slab, at);
+      const ranges = stripSupportedIntervals(slab, at);
       check(
         ranges.length === 1 && ranges[0]![0] === outerLeft && ranges[0]![1] === outerRight,
         'Parallel-zone roads and medians must remain supported with unchanged cross-section bounds',
@@ -69,14 +69,14 @@ export function compileCourseFork(
       const left = courseBoundaryAt(road.left, lock.s),
         right = courseBoundaryAt(road.right, lock.s);
       check(
-        bandSupportsInterval(material, lock.s, left, right),
+        stripSupportsInterval(material, lock.s, left, right),
         'Each exit carriageway must have positive supported width at lock',
       );
       for (const boundary of [road.left, road.right]) {
         const value = courseBoundaryAt(boundary, lock.s);
         check(
           courseBoundaryAt(boundary, closure.s) === value &&
-            boundary.knots.every((k) => k.at.s <= lock.s || k.at.s >= closure.s || k.l === value),
+            boundary.vertices.every((k) => k.at.s <= lock.s || k.at.s >= closure.s || k.l === value),
           'Lock-to-closure Carriageway edges must remain parallel',
         );
       }
@@ -98,7 +98,7 @@ export function compileCourseFork(
     const left = roads[i - 1]!.right,
       right = roads[i]!.left;
     check(
-      bandSupportsInterval(material, lock.s, left, right),
+      stripSupportsInterval(material, lock.s, left, right),
       'Exit carriageways need a positive supported separating median',
     );
     cuts.push(left + (right - left) / 2);

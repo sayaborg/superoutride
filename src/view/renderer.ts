@@ -1,7 +1,7 @@
-export { BAND_ACTIVE_LIMIT } from '../course/band-ground.js';
-import { createBandRenderMetrics, type BandRenderMetrics } from './band-ground-sampler.js';
-import { DEFAULT_BAND_RENDER_METHOD } from './display-settings.js';
-import type { BandRenderMethod } from './display-settings.js';
+export { STRIP_ACTIVE_LIMIT } from '../course/strip-ground.js';
+import { createStripRenderMetrics, type StripRenderMetrics } from './strip-ground-sampler.js';
+import { DEFAULT_STRIP_RENDER_METHOD } from './display-settings.js';
+import type { StripRenderMethod } from './display-settings.js';
 import type { PlanCoordinateReader } from '../course/geometry/plan-coordinate.js';
 import { wrapAngle } from '../core/math.js';
 import { pseudoProject, type PseudoCamera } from './projection.js';
@@ -24,7 +24,7 @@ import { deriveVehicleNormalizedBank } from './vehicle-visuals.js';
 type PlayerVisualKind = 'car' | 'bike';
 
 interface RenderResult {
-  bandGround: BandRenderMetrics & { method: BandRenderMethod; milliseconds: number };
+  stripGround: StripRenderMetrics & { method: StripRenderMethod; milliseconds: number };
   terrainLineCount: number;
   terrainOutputPixels: number;
   visibleSpriteCount: number;
@@ -51,8 +51,8 @@ interface RenderWorkload {
   spriteWrittenPixelsPerScanlineMax: number;
 }
 
-export interface BandGroundReader {
-  readonly kind: 'bands';
+export interface StripGroundReader {
+  readonly kind: 'strips';
   sampleSpan(
     pixels: Uint32Array,
     offset: number,
@@ -61,8 +61,8 @@ export interface BandGroundReader {
     l: number,
     stepL: number,
     deltaS: number,
-    method: BandRenderMethod,
-    stats: BandRenderMetrics,
+    method: StripRenderMethod,
+    stats: StripRenderMetrics,
   ): void;
 }
 
@@ -80,7 +80,7 @@ interface RenderScene {
 export function createRenderWorkspace() {
   return {
     terrain: createTerrainWorkspace(),
-    bands: createBandRenderMetrics(),
+    strips: createStripRenderMetrics(),
   };
 }
 
@@ -88,8 +88,8 @@ interface RenderOptions {
   readonly workspace?: ReturnType<typeof createRenderWorkspace>;
   readonly observeWorkload?: boolean;
   /** Final compiled color field in scene-local coordinates; never source-rebased or repainted. */
-  readonly ground: BandGroundReader;
-  readonly bandMethod?: BandRenderMethod;
+  readonly ground: StripGroundReader;
+  readonly stripMethod?: StripRenderMethod;
 }
 
 export function renderDriving(
@@ -99,7 +99,7 @@ export function renderDriving(
     observeWorkload = false,
     ground,
     workspace = createRenderWorkspace(),
-    bandMethod = DEFAULT_BAND_RENDER_METHOD,
+    stripMethod = DEFAULT_STRIP_RENDER_METHOD,
   }: RenderOptions,
 ): RenderResult {
   const renderCamera = camera;
@@ -135,9 +135,9 @@ export function renderDriving(
       observation.spriteWrittenByScanline[screenY]! += writtenPixels;
     });
 
-  const bandStats = workspace.bands;
-  bandStats.activeBands = bandStats.outputPixels = 0;
-  let bandMilliseconds = 0;
+  const stripStats = workspace.strips;
+  stripStats.activeStrips = stripStats.outputPixels = 0;
+  let stripMilliseconds = 0;
   mergeTerrainAndSprites(
     terrain,
     sprites,
@@ -146,7 +146,7 @@ export function renderDriving(
       const span = line.xGroundR - line.xGroundL;
       const step = 2 / span;
       const lateral = -1 + (0.5 - line.xGroundL) * step;
-      const before = bandStats.outputPixels;
+      const before = stripStats.outputPixels;
       ground.sampleSpan(
         target.pixels,
         line.y * target.width,
@@ -155,11 +155,11 @@ export function renderDriving(
         lateral,
         step,
         line.footprint.deltaSEffective,
-        bandMethod,
-        bandStats,
+        stripMethod,
+        stripStats,
       );
-      const outputPixels = bandStats.outputPixels - before;
-      bandMilliseconds += performance.now() - started;
+      const outputPixels = stripStats.outputPixels - before;
+      stripMilliseconds += performance.now() - started;
       terrainOutputPixels += outputPixels;
       if (observation) {
         observation.terrainLinesByRow[line.y]! += 1;
@@ -217,7 +217,7 @@ export function renderDriving(
   }
 
   return {
-    bandGround: { ...bandStats, method: bandMethod, milliseconds: bandMilliseconds },
+    stripGround: { ...stripStats, method: stripMethod, milliseconds: stripMilliseconds },
     terrainLineCount: terrain.length,
     terrainOutputPixels,
     visibleSpriteCount: sprites.length,

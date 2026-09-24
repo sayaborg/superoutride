@@ -25,7 +25,7 @@ The Node test runner reports total wall time and per-scenario times; these are o
 Each scenario runs twice at the browser's fixed 1/60-second step and compares a digest of every
 step's vehicle, recovery, progress and camera states plus outcome evidence. No pixel baselines or
 wall-clock metrics enter the comparison. Rendering runs every simulated second, on recovery and finish,
-and every tenth of a second outside the coordinate domain; it cycles through all three Band methods.
+and every tenth of a second outside the coordinate domain; it cycles through all three Strip methods.
 All live vehicle numeric leaves, camera values and route occurrence coordinates/transforms must remain
 finite. Each actor's s may move at most the scene's 240 m/s loading allowance per step unless recovered.
 The next pending crossing cannot move backward (an undiscovered fork successor is not a finish),
@@ -42,7 +42,7 @@ conditions through the ordinary vehicle constructor, with no pose or progress ed
 
 To add a scenario, add a policy/outcome record to the course's list, with a finite simulated work limit.
 Compose ordinary inputs in the harness, and require evidence that the intended situation occurred.
-Use authored grid slots, fork regions, Carriageways and crossing stations rather than world positions
+Use authored grid slots, fork intervals, Carriageways and crossing stations rather than world positions
 or fixed ticks to locate course features. The closed-road policy lets a rival lead for three seconds,
 then follows the other authored Carriageway until legal-route recovery.
 When course shapes change, adapt these semantic targets and bounds instead of recording a new trace hash.

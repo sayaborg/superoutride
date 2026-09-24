@@ -1,23 +1,23 @@
-import type { BandGround } from '../band-ground.js';
+import type { StripGround } from '../strip-ground.js';
 import type { SectionPlanCoordinateReader } from '../geometry/plan-coordinate.js';
 import type { ProfileReader, ProfilePolylineReader } from '../geometry/profile.js';
 import type { PlanarPose, PlanarTransform } from '../../core/planar-transform.js';
 import type { CompiledCourseImageSource } from './course-image-source.js';
 import type { CoursePresentation } from '../course-presentation.js';
 import type { CompiledCoursePosition, CompiledPlanSegment } from '../course-geometry.js';
-import type { CompiledBoundary, CompiledCarriageway } from '../course-regions.js';
-import type { BandMaterial } from '../band-material.js';
+import type { CompiledBoundary, CompiledCarriageway } from '../course-boundaries.js';
+import type { StripMaterial } from '../strip-material.js';
 
 /** Canonical reusable node, including back-references. Topology may intentionally cycle. */
 export interface CompiledSection {
-  readonly color: BandGround;
+  readonly color: StripGround;
   readonly id: string;
   readonly segments: readonly CompiledPlanSegment[];
   readonly coordinates: SectionPlanCoordinateReader;
   readonly boundaries: readonly CompiledBoundary[];
   readonly height: ProfileReader;
   readonly renderHeight: ProfilePolylineReader;
-  readonly material: BandMaterial;
+  readonly material: StripMaterial;
   readonly carriageways: readonly CompiledCarriageway[];
   readonly assets: readonly CompiledCourseImageSource[];
   readonly presentation: CoursePresentation | null;

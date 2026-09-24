@@ -1,8 +1,8 @@
-import type { BandEdgeLine } from '../band-ground.js';
+import type { StripEdgeLine } from '../strip-ground.js';
 import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
 import { type Lateral, type CoursePosition, type SectionDocument } from '../course-document.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
-import { courseBoundaryAt, type CompiledBoundary } from '../course-regions.js';
+import { courseBoundaryAt, type CompiledBoundary } from '../course-boundaries.js';
 import { requireCourse } from '../course-diagnostics.js';
 
 type BoundaryLookup = (id: string, path: string) => CompiledBoundary | undefined;
@@ -13,7 +13,7 @@ function lateralBoundary(lateral: Lateral, start: number, end: number, lookup: B
   const boundary = lookup(lateral.boundary, `${path}/boundary`);
   requireCourse(boundary !== undefined, `${path}/boundary`, 'Unknown Section Boundary', 'unresolved_reference');
   requireCourse(
-    boundary.knots[0]!.at.s <= start && boundary.knots.at(-1)!.at.s >= end,
+    boundary.vertices[0]!.at.s <= start && boundary.vertices.at(-1)!.at.s >= end,
     `${path}/boundary`,
     `Boundary must cover the referenced interval [${start}, ${end}]`,
     'invalid_boundary',
@@ -59,8 +59,8 @@ export function resolveLateralInterval(
   const right = lateralBoundary(b, start, end, lookup, path);
   const stops = new Set([start, end]);
   for (const boundary of [left, right])
-    for (const knot of boundary?.knots ?? []) if (knot.at.s > start && knot.at.s < end) stops.add(knot.at.s);
-  const knots = [...stops]
+    for (const vertex of boundary?.vertices ?? []) if (vertex.at.s > start && vertex.at.s < end) stops.add(vertex.at.s);
+  const vertices = [...stops]
     .sort((a, b) => a - b)
     .map((s) => {
       const av = lateralAt(a, left, s),
@@ -70,11 +70,11 @@ export function resolveLateralInterval(
         l: checkedLateral(s === start ? av : s === end ? bv : av + (bv - av) * ((s - start) / (end - start)), path),
       });
     });
-  const lines = knots.slice(0, -1).map((knot, i): BandEdgeLine => {
+  const lines = vertices.slice(0, -1).map((vertex, i): StripEdgeLine => {
     if (typeof a !== 'number' && typeof b !== 'number' && a.boundary === b.boundary && a.offset === b.offset) {
-      const index = left!.knots.findIndex((point) => point.at.s > knot.at.s) - 1;
-      const from = left!.knots[index]!,
-        to = left!.knots[index + 1]!;
+      const index = left!.vertices.findIndex((point) => point.at.s > vertex.at.s) - 1;
+      const from = left!.vertices[index]!,
+        to = left!.vertices[index + 1]!;
       return Object.freeze({
         start: from.at.s,
         end: to.at.s,
@@ -84,9 +84,9 @@ export function resolveLateralInterval(
         offset: a.offset,
       });
     }
-    return Object.freeze({ start: knot.at.s, end: knots[i + 1]!.at.s, from: knot.l, to: knots[i + 1]!.l });
+    return Object.freeze({ start: vertex.at.s, end: vertices[i + 1]!.at.s, from: vertex.l, to: vertices[i + 1]!.l });
   });
-  return { knots, lines };
+  return { vertices, lines };
 }
 
 /** Resolve the acyclic Section graph before material or rendering compilation. */
@@ -98,7 +98,7 @@ export function compileCourseBoundaries(
   const table = new Map(sources.map((source, i) => [source.id, { source, path: `${path}/${i}` }]));
   const compiled = new Map<string, CompiledBoundary>();
   const visiting = new Set<string>();
-  let pointCount = 0;
+  let vertexCount = 0;
   const compile: BoundaryLookup = (id, referencePath) => {
     const ready = compiled.get(id);
     if (ready) return ready;
@@ -119,22 +119,22 @@ export function compileCourseBoundaries(
         'Resolved knots must be strictly increasing',
         'invalid_boundary',
       );
-    const knots: CompiledBoundary['knots'][number][] = [];
+    const vertices: CompiledBoundary['vertices'][number][] = [];
     for (let i = 1; i < authored.length; i++) {
       const a = authored[i - 1]!,
         b = authored[i]!;
       const resolved = resolveLateralInterval(a.lateral, b.lateral, a.at.s, b.at.s, compile, `${at}/${i}/lateral`);
-      const added = resolved.knots.length - (i === 1 ? 0 : 1);
+      const added = resolved.vertices.length - (i === 1 ? 0 : 1);
       requireCourse(
-        pointCount + added <= COURSE_DOCUMENT_LIMITS.boundaryPoints,
+        vertexCount + added <= COURSE_DOCUMENT_LIMITS.boundaryVertices,
         at,
-        'Resolved Boundary points exceed the Section limit',
+        'Resolved Boundary vertices exceed the Section limit',
         'resource_limit',
       );
-      pointCount += added;
-      knots.push(...resolved.knots.slice(i === 1 ? 0 : 1));
+      vertexCount += added;
+      vertices.push(...resolved.vertices.slice(i === 1 ? 0 : 1));
     }
-    const boundary = Object.freeze({ id, knots: Object.freeze(knots) });
+    const boundary = Object.freeze({ id, vertices: Object.freeze(vertices) });
     compiled.set(id, boundary);
     visiting.delete(id);
     return boundary;

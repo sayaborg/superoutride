@@ -28,7 +28,7 @@ export const COURSE_DOCUMENT_LIMITS = Object.freeze({
   stripSlabs: 1048576,
   preblendCells: 131072,
   coefficientBytes: 512 * 1024 * 1024,
-  boundaryPoints: 65536,
+  boundaryVertices: 65536,
   grid: 1 + SESSION_RULE_LIMITS.rivals,
   checkpoints: 1024,
   finishes: graphSections,

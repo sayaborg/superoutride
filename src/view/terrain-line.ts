@@ -89,7 +89,7 @@ interface TerrainLineFootprint {
   deltaS: number;
   /** Clipped chainage interval represented by a collapsed row. */
   deltaSCollapse: number;
-  /** max(deltaS, deltaSCollapse), authoritative for Band sampling. */
+  /** max(deltaS, deltaSCollapse), authoritative for Strip sampling. */
   deltaSEffective: number;
   /** Exact one-output-pixel lateral footprint from the scanline affine mapping. */
   deltaL: number;

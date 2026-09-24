@@ -1,4 +1,4 @@
-import type { CompiledCarriageway } from './course-regions.js';
+import type { CompiledCarriageway } from './course-boundaries.js';
 import type { CompiledCoursePosition } from './course-geometry.js';
 import type { TileBackgroundDocument } from '../image/tile-background-image.js';
 import { type SpriteLodDocument } from '../image/sprite.js';

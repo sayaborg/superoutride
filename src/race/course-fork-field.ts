@@ -1,6 +1,6 @@
 import type { CompiledFork, CompiledLink } from '../course/compiler/course-graph.js';
 import { routeSectionS, type RouteOccurrence } from '../course/course-route.js';
-import { courseCarriagewayExists, courseBoundaryAt, type CompiledCarriageway } from '../course/course-regions.js';
+import { courseCarriagewayExists, courseBoundaryAt, type CompiledCarriageway } from '../course/course-boundaries.js';
 import { routeCrossingFraction, type createRouteCrossSections, type RoutePosition } from './route-cross-sections.js';
 import type { CourseRoute } from '../course/course-route.js';
 
@@ -36,11 +36,11 @@ export function createCourseForkField(route: CourseRoute, lines: ReturnType<type
           const u = routeCrossingFraction(line, motion.previous, motion.current.course);
           if (u === null || u > firstU || (u === firstU && first && motion.id >= first.id)) continue;
           const l = motion.previous.l + u * (motion.current.course.l - motion.previous.l) + occurrence.lateralOrigin;
-          const region = fork.regions.find((region) => l >= region.left && l < region.right);
-          if (!region) continue;
+          const interval = fork.regions.find((interval) => l >= interval.left && l < interval.right);
+          if (!interval) continue;
           first = motion;
           firstU = u;
-          selected = region.link;
+          selected = interval.link;
         }
         if (first) {
           route.append(selected!);

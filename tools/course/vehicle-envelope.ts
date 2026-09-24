@@ -29,7 +29,7 @@ function createEnvelopeRun(entry: Readonly<VehicleCatalogEntry>, initialSpeed: n
     { s: coordinates.domain.end, y: 0, curveLength: 0 },
   ]);
   const surfaces = new SurfaceMap(coordinates.domain.end, [
-    { sStart: 0, name: 'Envelope asphalt', regions: [{ lMin: -5000, lMax: 5000, type: 'ASPHALT' }] },
+    { sStart: 0, name: 'Envelope asphalt', intervals: [{ lMin: -5000, lMax: 5000, type: 'ASPHALT' }] },
   ]);
   const world = { extent: coordinates.domain, coordinates, height, surfaces };
   const rate = DEFAULT_BROWSER_STEERING_RESPONSE_RATE;

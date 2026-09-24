@@ -1,6 +1,6 @@
 import { createRaceSprites } from '../view/race-sprites.js';
 import { createDisplaySettings } from '../view/display-settings.js';
-import { mountBandControls } from './band-controls.js';
+import { mountStripControls } from './strip-controls.js';
 import { readSpriteAssets, createVehiclePaletteVariant } from '../image/sprite-assets.js';
 import { createBrowserDrivingShell } from './driving-shell.js';
 import { selectBrowserCourseMode } from './course-mode-selection.js';
@@ -145,7 +145,7 @@ try {
     );
     shell.present(mode, input, lifecycle.camera, result.playerScreenY, observations.rivals);
     raceStatus.textContent = manualPause ? 'PAUSED' : race.label();
-    performanceHud.frame(started, result.bandGround);
+    performanceHud.frame(started, result.stripGround);
     if (race.clock.status === 'GOAL' || race.clock.status === 'GAME_OVER') {
       controls.complete();
       shell.stop();
@@ -175,8 +175,8 @@ try {
     else if (!manualPause && (race.clock.status === 'RUNNING' || race.clock.status === 'READY'))
       shell.start(tick, render);
   });
-  mountBandControls(displaySettings.bandMethod, (value) => {
-    displaySettings.setBandMethod(value);
+  mountStripControls(displaySettings.stripMethod, (value) => {
+    displaySettings.setStripMethod(value);
     render();
   });
   status.remove();

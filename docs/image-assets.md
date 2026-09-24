@@ -44,8 +44,8 @@ area-weighted; coverage at least 0.5, including equality, is opaque. Color norma
 hidden RGB and background contribute no color. Every level filters its master directly.
 
 Footprint `rho` is source units covered per destination pixel, with octave exponent `log2(rho)`.
-Sprites use master texels and nearest-exponent selection. Bands share the linear-sRGB codecs and
-coverage threshold; [Architecture](architecture.md#band-rendering) owns their source-domain preblend
+Sprites use master texels and nearest-exponent selection. Strips share the linear-sRGB codecs and
+coverage threshold; [Architecture](architecture.md#strip-rendering) owns their source-domain preblend
 and pixel reads.
 
 ## Sprite LOD compilation
@@ -62,7 +62,7 @@ stable input order resolves ties. Variant edits invalidate the generated pyramid
 
 `content/sprites/vehicles.json` is a normalized-master dictionary with yaw/bank bindings.
 Its generated library is under `dist/content/sprites/`; manifest-listed images are digest checked.
-Bands have no ground image inputs.
+Strips have no ground image inputs.
 
 ## Infinite tiled background
 
@@ -159,7 +159,7 @@ Failure publishes no graph. Decoded consumer workspaces cannot mutate the saved 
 ## Saved course presentation
 
 Background bindings use tile maps and scenery uses sprite levels. Ground contains direct RGB555
-colors or transparency and saved Band constructs, not image references. The course compiler expands
+colors or transparency and saved Strip constructs, not image references. The course compiler expands
 the constructs and builds private numeric profiles; these are not image assets or serialized payloads.
 [Content and gameplay](content-and-gameplay.md#saved-presentation) owns the saved fields;
-[Architecture](architecture.md#band-rendering) owns ground sampling and its common color law.
+[Architecture](architecture.md#strip-rendering) owns ground sampling and its common color law.
