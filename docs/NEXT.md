@@ -11,7 +11,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **8-3 — Vehicle content**.
+Next PR: **8-3a2 — Definition consumers and identity**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -21,7 +21,10 @@ PRs hold rationale and verification evidence.
 
 Give vehicles, driving assists, tires, powertrains and materials explicit definitions, and treat airborne driving as normal state.
 
-- **8-3 — Vehicle content:** saved vehicle definitions and the game-wide driving definition, delivered through the manifest. Vehicle definitions hold form (two- or four-wheeled), dimensions, sprite and palette variants, sound reference and metadata. Replace `CAR_WIDTH_METERS` and the `TESTAROSSA` palette branches. Later game-wide design values (launch speed rule, downshift ratio, pitch limit) join the same content. Behavior unchanged.
+- **8-3a2 — Definition consumers and identity:** load vehicle and driving definitions through the manifest in every consumer; pass admitted definitions explicitly, unify vehicle form, and generate envelopes and time budgets from delivered definitions. Preserve behavior and reject stale products.
+- **8-3a3 — Remove static definitions:** delete the temporarily retained production TypeScript values and static catalog after all consumers have switched. These coexist only through 8-3a2; complete the migration before 8-3b.
+- **8-3b — Vehicle visuals:** give palette variants names in the image format; vehicle definitions reference their sprite set and normal and braking variants, and hold the handwheel ratio as presentation data; remove the `TESTAROSSA` palette branches. Behavior unchanged.
+- **8-3c — Course sprite palettes:** course sprites select image-declared palette variants by name instead of raw palettes. Behavior unchanged.
 - **8-4 — Powertrain:** launch, shift rules and rev limit, engine friction, inertia and free revving, and shift observations; audio reads engine speed without its own idle floor. Behavior changes.
 - **8-5 — Vehicle values:** published values and sources as production data with a checking tool; correct torque curves, masses and CG heights. Behavior changes.
 - **8-6 — DEV tuning:** replace definitions instead of mutating running settings, and export them. Behavior unchanged.
@@ -47,6 +50,7 @@ Define persistent player settings, data-driven Sessions and product display inde
 - **10-4 — Cameras:** define camera methods, allowing later changes and mode-specific choices.
   Rename camera yaw mode and current-camera-profile names according to the glossary.
   Use the camera definition's `dCam` for the display-side rearward offset instead of `CURRENT_CAMERA_DISTANCE_METERS` from `display-scale.ts`.
+  Define the fixed 40 px/m player-depth display scale directly instead of deriving it from `CAR_WIDTH_METERS`; vehicle dimensions arrive with collisions.
 - **10-5 — Navigation:** screen transitions within one page; rename the URL mode parameter and
   course-selection names according to the glossary.
   Pass the manifest-derived course list explicitly instead of the mutable `BROWSER_COURSE_MODES`.

@@ -1,3 +1,4 @@
+import { DefinitionDomainError } from './definition-domain-error.js';
 /** Authoring/UI values. P is pure-axis capacity onset at gripFactor=1, not body sideslip. */
 export interface TireCharacteristics {
   readonly gripX: number;
@@ -23,7 +24,7 @@ export function compileTireCharacteristics(input: TireCharacteristics): Readonly
     !Number.isFinite(knee) ||
     !(knee > 0 && knee < 1)
   ) {
-    throw new RangeError('tire G/P must be finite and > 0; knee must lie in (0,1)');
+    throw new DefinitionDomainError('/tire', 'tire G/P must be finite and > 0; knee must lie in (0,1)');
   }
   const compiled = {
     muX: gripX,
@@ -49,7 +50,10 @@ export function validateTireCharacteristics(tire: CompiledTireCharacteristics): 
     !Number.isFinite(tire.rhoKnee) ||
     !(tire.rhoKnee > 0 && tire.rhoKnee < 1)
   ) {
-    throw new RangeError('compiled tire capacities/stiffness must be finite and > 0; knee in (0,1)');
+    throw new DefinitionDomainError(
+      '/tire',
+      'compiled tire capacities/stiffness must be finite and > 0; knee in (0,1)',
+    );
   }
 }
 

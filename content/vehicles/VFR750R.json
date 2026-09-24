@@ -1,0 +1,81 @@
+{
+  "format": "superoutride.vehicle-definition",
+  "version": 1,
+  "id": "VFR750R",
+  "form": "bike",
+  "selectionOrder": 6,
+  "mechanics": {
+    "mass": 276,
+    "yawInertia": 180,
+    "pitchInertia": 205,
+    "frontAxle": 0.719,
+    "rearAxle": 0.691,
+    "desiredCgHeight": 0.423,
+    "frontRideFrequency": 2,
+    "rearRideFrequency": 2.1,
+    "frontDampingRatio": 0.42,
+    "rearDampingRatio": 0.44,
+    "frontQBump": 0.2,
+    "rearQBump": 0.2,
+    "frontQTravel": 0.45,
+    "rearQTravel": 0.45,
+    "frontBumpForceMax": 18000,
+    "rearBumpForceMax": 17000,
+    "frontWheelRadius": 0.3,
+    "rearWheelRadius": 0.331,
+    "frontWheelInertia": 0.47,
+    "rearWheelInertia": 0.72,
+    "frontDriveTorqueFraction": 0,
+    "steeringRatio": 18,
+    "frontBrakeTorqueMax": 700,
+    "rearBrakeTorqueMax": 300,
+    "quadraticDrag": 0.24,
+    "powertrain": {
+      "idleRpm": 1200,
+      "redlineRpm": 12000,
+      "upshiftRpm": 11300,
+      "downshiftRpm": 4500,
+      "finalDriveRatio": 4.8475,
+      "efficiency": 0.92,
+      "gearRatios": [2.4, 1.941, 1.631, 1.434, 1.291, 1.192],
+      "torqueCurve": [
+        {
+          "rpm": 1200,
+          "torqueNewtonMeters": 34
+        },
+        {
+          "rpm": 4000,
+          "torqueNewtonMeters": 55
+        },
+        {
+          "rpm": 7000,
+          "torqueNewtonMeters": 71
+        },
+        {
+          "rpm": 9500,
+          "torqueNewtonMeters": 70
+        },
+        {
+          "rpm": 11300,
+          "torqueNewtonMeters": 65
+        }
+      ]
+    }
+  },
+  "sound": "VFR750R",
+  "metadata": {
+    "manufacturer": "Honda",
+    "model": "VFR750R",
+    "identifier": {
+      "officialLabel": "RC30",
+      "shortLabel": "RC30"
+    },
+    "selectedSpecification": [],
+    "period": "1987–1990",
+    "physicsAnchor": {
+      "modelYear": "1988",
+      "market": "ROW full-power"
+    },
+    "mobileLabel": "RC30"
+  }
+}

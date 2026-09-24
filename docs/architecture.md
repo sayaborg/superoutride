@@ -7,7 +7,7 @@ This document owns coordinate and geometry contracts, projection, camera metric,
 ## Admission boundary
 
 Course documents and assets are checked when read and compiled; delivered manifests, vehicle
-envelopes, time budgets and external Session selections are checked at their intake. Cross-object
+definitions, envelopes, time budgets and external Session selections are checked at their intake. Cross-object
 Session admission relates the requested settings, course and vehicle before actors exist.
 Inside those boundaries, course/race constructors, readers and updates trust admitted data and
 internal arguments: they do not repeat shape/domain checks or retain impossible failure branches.
@@ -496,3 +496,13 @@ to image; framebuffer writes and sprite drawing belong to view. Compiled Strip c
 and their scalar coefficient Reader belong to course. View owns Strip row sampling and the
 three display methods; shell obtains their names from view.
 Environment timelines are course data.
+
+## Definition delivery
+
+The content manifest includes `vehicle` and `driving` entries alongside course, image, envelope and
+budget entries. The build layout authority writes `vehicles/<id>.json` and `driving/default.json`.
+Vehicle and driving documents belong to the vehicle layer; the generic manifest only resolves and
+verifies their bytes. Definition compilation resolves sound IDs through the lower audio layer's
+TypeScript sound products and returns deeply immutable records. [Vehicle physics](vehicle-physics.md#vehicle-and-driving-documents)
+owns the versioned formats and admission contract. NEXT records the temporary static-consumer
+migration and its final removal.

@@ -1,3 +1,4 @@
+import { DefinitionDomainError } from './definition-domain-error.js';
 import {
   createPlanProjectionWorkspace,
   createPlanCoordinateSample,
@@ -485,20 +486,20 @@ export function compileSuspensionStation(
   bumpForceMax: number,
 ): CompiledSuspensionStation {
   if (![staticLoad, rideFrequency, dampingRatio, qBump, qTravel, bumpForceMax].every(Number.isFinite)) {
-    throw new RangeError('suspension inputs must be finite');
+    throw new DefinitionDomainError('/mechanics', 'suspension inputs must be finite');
   }
-  if (!(staticLoad > 0)) throw new RangeError('static station load must be > 0');
-  if (!(rideFrequency > 0)) throw new RangeError('ride frequency must be > 0');
-  if (!(dampingRatio >= 0)) throw new RangeError('damping ratio must be >= 0');
+  if (!(staticLoad > 0)) throw new DefinitionDomainError('/mechanics', 'static station load must be > 0');
+  if (!(rideFrequency > 0)) throw new DefinitionDomainError('/mechanics', 'ride frequency must be > 0');
+  if (!(dampingRatio >= 0)) throw new DefinitionDomainError('/mechanics', 'damping ratio must be >= 0');
   const effectiveMass = staticLoad / VEHICLE_GRAVITY;
   const omega = 2 * Math.PI * rideFrequency;
   const springRate = omega ** 2 * effectiveMass;
   const damping = 2 * dampingRatio * Math.sqrt(springRate * effectiveMass);
   const qStatic = staticLoad / springRate;
   if (!(qStatic > 0 && qStatic < qBump && qBump < qTravel)) {
-    throw new RangeError('suspension requires 0 < qStatic < qBump < qTravel');
+    throw new DefinitionDomainError('/mechanics', 'suspension requires 0 < qStatic < qBump < qTravel');
   }
-  if (!(bumpForceMax >= 0)) throw new RangeError('bumpForceMax must be >= 0');
+  if (!(bumpForceMax >= 0)) throw new DefinitionDomainError('/mechanics', 'bumpForceMax must be >= 0');
   return Object.freeze({ springRate, damping, qStatic, qBump, qTravel, bumpForceMax });
 }
 

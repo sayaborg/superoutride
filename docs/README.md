@@ -9,7 +9,7 @@ Each concept has one owning document. Topic specifications describe the implemen
 | [Architecture](architecture.md)                 | Coordinates, geometry, projection, camera metric, rendering contracts and layer boundaries                    |
 | [Content and gameplay](content-and-gameplay.md) | Course vocabulary and schema, reference identities, topology, occurrences, Session rules, timing and recovery |
 | [Image assets](image-assets.md)                 | Image and Sprite Tool save formats, normalization, palettes, LOD compilation and image-source admission       |
-| [Vehicle physics](vehicle-physics.md)           | Mechanical state, contact, tire and wheel laws, powertrain, protection and steering                           |
+| [Vehicle physics](vehicle-physics.md)           | Vehicle/driving document formats, mechanical state, contact, tires, powertrain, protection and steering       |
 | [Audio](audio.md)                               | Engine synthesis, acoustic observations, the sound graph and audio lifetime                                   |
 | [Tire audio](tire-audio.md)                     | UNIFIED rolling/friction synthesis, signal domains and tuning-replacement semantics                           |
 | [Calibration](calibration.md)                   | Vehicle and acoustic tuning values, units, ranges and meanings                                                |
@@ -45,7 +45,7 @@ explicitly scheduled in [NEXT](NEXT.md) are replaced with their owning concepts.
 | `Knot` / `Knots`      | An authored s-position/value record / ordered sequence, including vertical PVIs and Boundary knots; not a derived polyline point. Use `*Knot` and `*Knots` consistently. |
 | `vertex`              | A polyline point derived during compilation, including compiled Boundary vertices and `ProfilePolyline` points; never authored.                                          |
 | `segment`             | A planar straight or circular arc derived from authored PIs during compilation; never authored.                                                                          |
-| `Definition`          | An author-written parameter record describing a vehicle, game-wide driving assists and tires, material or sound.                                                         |
+| `Definition`          | An author-written parameter record; vehicle and game-wide driving definitions have versioned JSON documents. Validated immutable products use `Compiled*`.               |
 | `Compiled*`           | A validated immutable product derived from authored inputs.                                                                                                              |
 | `Reader`              | A query interface over admitted data; it does not own the consumer's live simulation state.                                                                              |
 | `Route`               | The one selected, ordered sequence of Section occurrences measured from the entry; all vehicles share its chainage.                                                      |

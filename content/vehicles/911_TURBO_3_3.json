@@ -1,0 +1,85 @@
+{
+  "format": "superoutride.vehicle-definition",
+  "version": 1,
+  "id": "911_TURBO_3_3",
+  "form": "car",
+  "selectionOrder": 2,
+  "mechanics": {
+    "mass": 1410,
+    "yawInertia": 2400,
+    "pitchInertia": 2250,
+    "frontAxle": 1.409,
+    "rearAxle": 0.863,
+    "desiredCgHeight": 0.5,
+    "frontRideFrequency": 1.85,
+    "rearRideFrequency": 1.95,
+    "frontDampingRatio": 0.4,
+    "rearDampingRatio": 0.42,
+    "frontQBump": 0.19,
+    "rearQBump": 0.19,
+    "frontQTravel": 0.28,
+    "rearQTravel": 0.28,
+    "frontBumpForceMax": 82000,
+    "rearBumpForceMax": 102000,
+    "frontWheelRadius": 0.316,
+    "rearWheelRadius": 0.314,
+    "frontWheelInertia": 2.3,
+    "rearWheelInertia": 3,
+    "frontDriveTorqueFraction": 0,
+    "steeringRatio": 18,
+    "frontBrakeTorqueMax": 3450,
+    "rearBrakeTorqueMax": 2100,
+    "quadraticDrag": 0.43,
+    "powertrain": {
+      "idleRpm": 900,
+      "redlineRpm": 6800,
+      "upshiftRpm": 6400,
+      "downshiftRpm": 2900,
+      "finalDriveRatio": 4.111111111111111,
+      "efficiency": 0.89,
+      "gearRatios": [3.154, 1.789, 1.269, 0.967, 0.756],
+      "torqueCurve": [
+        {
+          "rpm": 900,
+          "torqueNewtonMeters": 125
+        },
+        {
+          "rpm": 2000,
+          "torqueNewtonMeters": 210
+        },
+        {
+          "rpm": 3000,
+          "torqueNewtonMeters": 355
+        },
+        {
+          "rpm": 4000,
+          "torqueNewtonMeters": 412
+        },
+        {
+          "rpm": 5500,
+          "torqueNewtonMeters": 384
+        },
+        {
+          "rpm": 6400,
+          "torqueNewtonMeters": 315
+        }
+      ]
+    }
+  },
+  "sound": "911_TURBO_3_3",
+  "metadata": {
+    "manufacturer": "Porsche",
+    "model": "911 Turbo 3.3",
+    "identifier": {
+      "officialLabel": "Type 930",
+      "shortLabel": "930"
+    },
+    "selectedSpecification": ["G50/50 5-speed"],
+    "period": "1989",
+    "physicsAnchor": {
+      "modelYear": "1989",
+      "market": "European/ROW"
+    },
+    "mobileLabel": "930"
+  }
+}

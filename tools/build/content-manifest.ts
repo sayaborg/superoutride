@@ -10,13 +10,17 @@ export function createContentWriter(root: URL, initial: readonly ContentEntry[] 
       const bytes = encoded ?? new TextEncoder().encode(JSON.stringify(value) + '\n');
       const sha256 = await contentDigest(bytes);
       const path =
-        kind === 'image'
-          ? `images/${sha256}.json`
-          : kind === 'course'
-            ? `courses/${id}.course.json`
-            : kind === 'envelope'
-              ? `envelopes/${id}.json`
-              : `budgets/${id}.json`;
+        kind === 'vehicle'
+          ? `vehicles/${id}.json`
+          : kind === 'driving'
+            ? `driving/${id}.json`
+            : kind === 'image'
+              ? `images/${sha256}.json`
+              : kind === 'course'
+                ? `courses/${id}.course.json`
+                : kind === 'envelope'
+                  ? `envelopes/${id}.json`
+                  : `budgets/${id}.json`;
       const entry = { kind, id, path, sha256 };
       const previous = files.find((file) => file.kind === kind && file.id === id);
       if (previous) {

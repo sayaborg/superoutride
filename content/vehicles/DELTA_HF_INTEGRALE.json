@@ -1,0 +1,78 @@
+{
+  "format": "superoutride.vehicle-definition",
+  "version": 1,
+  "id": "DELTA_HF_INTEGRALE",
+  "form": "car",
+  "selectionOrder": 5,
+  "mechanics": {
+    "mass": 1290,
+    "yawInertia": 1980,
+    "pitchInertia": 1800,
+    "frontAxle": 1.064,
+    "rearAxle": 1.411,
+    "desiredCgHeight": 0.55,
+    "frontRideFrequency": 1.7,
+    "rearRideFrequency": 1.8,
+    "frontDampingRatio": 0.4,
+    "rearDampingRatio": 0.42,
+    "frontQBump": 0.21,
+    "rearQBump": 0.21,
+    "frontQTravel": 0.32,
+    "rearQTravel": 0.32,
+    "frontBumpForceMax": 85000,
+    "rearBumpForceMax": 70000,
+    "frontWheelRadius": 0.298,
+    "rearWheelRadius": 0.298,
+    "frontWheelInertia": 2.1,
+    "rearWheelInertia": 2.1,
+    "frontDriveTorqueFraction": 0.47,
+    "steeringRatio": 18,
+    "frontBrakeTorqueMax": 2950,
+    "rearBrakeTorqueMax": 1600,
+    "quadraticDrag": 0.39,
+    "powertrain": {
+      "idleRpm": 900,
+      "redlineRpm": 6500,
+      "upshiftRpm": 6100,
+      "downshiftRpm": 2600,
+      "finalDriveRatio": 3.111111111111111,
+      "efficiency": 0.88,
+      "gearRatios": [3.5, 2.176, 1.524, 1.156, 0.917],
+      "torqueCurve": [
+        {
+          "rpm": 900,
+          "torqueNewtonMeters": 135
+        },
+        {
+          "rpm": 2000,
+          "torqueNewtonMeters": 220
+        },
+        {
+          "rpm": 3500,
+          "torqueNewtonMeters": 304
+        },
+        {
+          "rpm": 5300,
+          "torqueNewtonMeters": 247
+        },
+        {
+          "rpm": 6100,
+          "torqueNewtonMeters": 200
+        }
+      ]
+    }
+  },
+  "sound": "DELTA_HF_INTEGRALE",
+  "metadata": {
+    "manufacturer": "Lancia",
+    "model": "Delta HF Integrale",
+    "identifier": null,
+    "selectedSpecification": ["8V", "185 PS"],
+    "period": "1988–1989",
+    "physicsAnchor": {
+      "modelYear": "1988",
+      "market": "European/ROW"
+    },
+    "mobileLabel": "DELTA"
+  }
+}

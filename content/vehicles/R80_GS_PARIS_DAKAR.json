@@ -1,0 +1,78 @@
+{
+  "format": "superoutride.vehicle-definition",
+  "version": 1,
+  "id": "R80_GS_PARIS_DAKAR",
+  "form": "bike",
+  "selectionOrder": 7,
+  "mechanics": {
+    "mass": 280,
+    "yawInertia": 215,
+    "pitchInertia": 260,
+    "frontAxle": 0.776,
+    "rearAxle": 0.689,
+    "desiredCgHeight": 0.4395,
+    "frontRideFrequency": 1.65,
+    "rearRideFrequency": 1.75,
+    "frontDampingRatio": 0.38,
+    "rearDampingRatio": 0.4,
+    "frontQBump": 0.24,
+    "rearQBump": 0.22,
+    "frontQTravel": 0.38,
+    "rearQTravel": 0.35,
+    "frontBumpForceMax": 18000,
+    "rearBumpForceMax": 18000,
+    "frontWheelRadius": 0.343,
+    "rearWheelRadius": 0.33,
+    "frontWheelInertia": 0.62,
+    "rearWheelInertia": 0.82,
+    "frontDriveTorqueFraction": 0,
+    "steeringRatio": 18,
+    "frontBrakeTorqueMax": 720,
+    "rearBrakeTorqueMax": 430,
+    "quadraticDrag": 0.36,
+    "powertrain": {
+      "idleRpm": 950,
+      "redlineRpm": 7000,
+      "upshiftRpm": 6500,
+      "downshiftRpm": 2300,
+      "finalDriveRatio": 5.04,
+      "efficiency": 0.88,
+      "gearRatios": [2.6, 1.67, 1.26, 1, 0.84],
+      "torqueCurve": [
+        {
+          "rpm": 950,
+          "torqueNewtonMeters": 35
+        },
+        {
+          "rpm": 2500,
+          "torqueNewtonMeters": 52
+        },
+        {
+          "rpm": 4000,
+          "torqueNewtonMeters": 58
+        },
+        {
+          "rpm": 5500,
+          "torqueNewtonMeters": 56
+        },
+        {
+          "rpm": 6500,
+          "torqueNewtonMeters": 54
+        }
+      ]
+    }
+  },
+  "sound": "R80_GS_PARIS_DAKAR",
+  "metadata": {
+    "manufacturer": "BMW",
+    "model": "R 80 G/S Paris-Dakar",
+    "identifier": null,
+    "selectedSpecification": [],
+    "period": "1984–1987",
+    "physicsAnchor": {
+      "modelYear": "1985",
+      "market": "European/ROW"
+    },
+    "mobileLabel": "R80"
+  }
+}

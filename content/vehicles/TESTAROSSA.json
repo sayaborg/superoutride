@@ -1,0 +1,81 @@
+{
+  "format": "superoutride.vehicle-definition",
+  "version": 1,
+  "id": "TESTAROSSA",
+  "form": "car",
+  "selectionOrder": 1,
+  "mechanics": {
+    "mass": 1625,
+    "yawInertia": 3100,
+    "pitchInertia": 3000,
+    "frontAxle": 1.53,
+    "rearAxle": 1.02,
+    "desiredCgHeight": 0.48,
+    "frontRideFrequency": 1.75,
+    "rearRideFrequency": 1.85,
+    "frontDampingRatio": 0.38,
+    "rearDampingRatio": 0.4,
+    "frontQBump": 0.19,
+    "rearQBump": 0.19,
+    "frontQTravel": 0.29,
+    "rearQTravel": 0.29,
+    "frontBumpForceMax": 100000,
+    "rearBumpForceMax": 110000,
+    "frontWheelRadius": 0.316,
+    "rearWheelRadius": 0.331,
+    "frontWheelInertia": 2.7,
+    "rearWheelInertia": 3.4,
+    "frontDriveTorqueFraction": 0,
+    "steeringRatio": 18,
+    "frontBrakeTorqueMax": 4800,
+    "rearBrakeTorqueMax": 3000,
+    "quadraticDrag": 0.44,
+    "powertrain": {
+      "idleRpm": 1000,
+      "redlineRpm": 6800,
+      "upshiftRpm": 6450,
+      "downshiftRpm": 2700,
+      "finalDriveRatio": 3.5714285714285716,
+      "efficiency": 0.9,
+      "gearRatios": [2.923076923076923, 1.875, 1.4210526315789473, 1.0869565217391304, 0.8148148148148148],
+      "torqueCurve": [
+        {
+          "rpm": 1000,
+          "torqueNewtonMeters": 270
+        },
+        {
+          "rpm": 2500,
+          "torqueNewtonMeters": 405
+        },
+        {
+          "rpm": 4500,
+          "torqueNewtonMeters": 470
+        },
+        {
+          "rpm": 5800,
+          "torqueNewtonMeters": 455
+        },
+        {
+          "rpm": 6450,
+          "torqueNewtonMeters": 420
+        }
+      ]
+    }
+  },
+  "sound": "TESTAROSSA",
+  "metadata": {
+    "manufacturer": "Ferrari",
+    "model": "Testarossa",
+    "identifier": {
+      "officialLabel": "Tipo F110",
+      "shortLabel": "F110"
+    },
+    "selectedSpecification": ["5-bolt wheels"],
+    "period": "1988½–1991",
+    "physicsAnchor": {
+      "modelYear": "1989",
+      "market": "European/ROW"
+    },
+    "mobileLabel": "F110"
+  }
+}

@@ -1,3 +1,4 @@
+import { DefinitionDomainError } from './definition-domain-error.js';
 import {
   validateSymmetricSteeringActuatorRateDefinition,
   type NormalizedActuatorRateDefinition,
@@ -40,10 +41,16 @@ function assertVehicleSteeringAngleCalibration(
 ): void {
   const { maxRoadWheelSteer, steeringOffsetMax } = calibration;
   if (!(maxRoadWheelSteer > 0) || !(maxRoadWheelSteer < Math.PI / 2) || !Number.isFinite(maxRoadWheelSteer)) {
-    throw new RangeError('vehicle maximum road-wheel steer must be finite and lie in (0, pi/2)');
+    throw new DefinitionDomainError(
+      '/maxRoadWheelSteerDegrees',
+      'vehicle maximum road-wheel steer must be finite and lie in (0, pi/2)',
+    );
   }
   if (!(steeringOffsetMax > 0) || !(steeringOffsetMax < maxRoadWheelSteer) || !Number.isFinite(steeringOffsetMax)) {
-    throw new RangeError('vehicle steering offset must be finite and lie in (0, maximum steer)');
+    throw new DefinitionDomainError(
+      '/steeringOffsetDegrees',
+      'vehicle steering offset must be finite and lie in (0, maximum steer)',
+    );
   }
 }
 

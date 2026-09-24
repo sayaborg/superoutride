@@ -1,6 +1,6 @@
 import { contentDigest } from './content-digest.js';
 
-export type ContentKind = 'course' | 'image' | 'envelope' | 'budget';
+export type ContentKind = 'course' | 'image' | 'envelope' | 'budget' | 'vehicle' | 'driving';
 export interface ContentEntry {
   readonly kind: ContentKind;
   readonly id: string;
@@ -25,7 +25,7 @@ export function readContentManifest(value: unknown): ContentManifest {
     const entry = value as Partial<ContentEntry> | null;
     if (
       !entry ||
-      !['course', 'image', 'envelope', 'budget'].includes(entry.kind!) ||
+      !['course', 'image', 'envelope', 'budget', 'vehicle', 'driving'].includes(entry.kind!) ||
       typeof entry.id !== 'string' ||
       !entry.id.trim() ||
       entry.id.trim() !== entry.id ||

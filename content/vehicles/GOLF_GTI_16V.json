@@ -1,0 +1,81 @@
+{
+  "format": "superoutride.vehicle-definition",
+  "version": 1,
+  "id": "GOLF_GTI_16V",
+  "form": "car",
+  "selectionOrder": 4,
+  "mechanics": {
+    "mass": 1080,
+    "yawInertia": 1680,
+    "pitchInertia": 1500,
+    "frontAxle": 0.941,
+    "rearAxle": 1.534,
+    "desiredCgHeight": 0.53,
+    "frontRideFrequency": 1.6,
+    "rearRideFrequency": 1.7,
+    "frontDampingRatio": 0.37,
+    "rearDampingRatio": 0.39,
+    "frontQBump": 0.21,
+    "rearQBump": 0.21,
+    "frontQTravel": 0.32,
+    "rearQTravel": 0.32,
+    "frontBumpForceMax": 75000,
+    "rearBumpForceMax": 55000,
+    "frontWheelRadius": 0.289,
+    "rearWheelRadius": 0.289,
+    "frontWheelInertia": 1.7,
+    "rearWheelInertia": 1.7,
+    "frontDriveTorqueFraction": 1,
+    "steeringRatio": 18,
+    "frontBrakeTorqueMax": 2350,
+    "rearBrakeTorqueMax": 1050,
+    "quadraticDrag": 0.38,
+    "powertrain": {
+      "idleRpm": 900,
+      "redlineRpm": 6800,
+      "upshiftRpm": 6400,
+      "downshiftRpm": 2400,
+      "finalDriveRatio": 3.667,
+      "efficiency": 0.9,
+      "gearRatios": [3.455, 2.118, 1.444, 1.129, 0.912],
+      "torqueCurve": [
+        {
+          "rpm": 900,
+          "torqueNewtonMeters": 88
+        },
+        {
+          "rpm": 2500,
+          "torqueNewtonMeters": 135
+        },
+        {
+          "rpm": 4600,
+          "torqueNewtonMeters": 168
+        },
+        {
+          "rpm": 6100,
+          "torqueNewtonMeters": 160
+        },
+        {
+          "rpm": 6400,
+          "torqueNewtonMeters": 145
+        }
+      ]
+    }
+  },
+  "sound": "GOLF_GTI_16V",
+  "metadata": {
+    "manufacturer": "Volkswagen",
+    "model": "Golf GTI 16V",
+    "identifier": {
+      "officialLabel": "Mk2",
+      "shortLabel": "Mk2"
+    },
+    "selectedSpecification": ["small bumpers"],
+    "period": "1986–1989",
+    "physicsAnchor": {
+      "modelYear": "1988",
+      "market": "European/ROW"
+    },
+    "mobileLabel": "GTI"
+  }
+}

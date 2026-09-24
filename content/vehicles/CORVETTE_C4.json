@@ -1,0 +1,81 @@
+{
+  "format": "superoutride.vehicle-definition",
+  "version": 1,
+  "id": "CORVETTE_C4",
+  "form": "car",
+  "selectionOrder": 3,
+  "mechanics": {
+    "mass": 1565,
+    "yawInertia": 3000,
+    "pitchInertia": 2700,
+    "frontAxle": 1.197,
+    "rearAxle": 1.246,
+    "desiredCgHeight": 0.47,
+    "frontRideFrequency": 1.7,
+    "rearRideFrequency": 1.75,
+    "frontDampingRatio": 0.38,
+    "rearDampingRatio": 0.38,
+    "frontQBump": 0.2,
+    "rearQBump": 0.2,
+    "frontQTravel": 0.3,
+    "rearQTravel": 0.3,
+    "frontBumpForceMax": 105000,
+    "rearBumpForceMax": 92000,
+    "frontWheelRadius": 0.331,
+    "rearWheelRadius": 0.331,
+    "frontWheelInertia": 3,
+    "rearWheelInertia": 3.1,
+    "frontDriveTorqueFraction": 0,
+    "steeringRatio": 18,
+    "frontBrakeTorqueMax": 3850,
+    "rearBrakeTorqueMax": 2150,
+    "quadraticDrag": 0.38,
+    "powertrain": {
+      "idleRpm": 700,
+      "redlineRpm": 5200,
+      "upshiftRpm": 4900,
+      "downshiftRpm": 1800,
+      "finalDriveRatio": 3.45,
+      "efficiency": 0.89,
+      "gearRatios": [2.68, 1.8, 1.29, 1, 0.75, 0.5],
+      "torqueCurve": [
+        {
+          "rpm": 700,
+          "torqueNewtonMeters": 300
+        },
+        {
+          "rpm": 1600,
+          "torqueNewtonMeters": 395
+        },
+        {
+          "rpm": 3200,
+          "torqueNewtonMeters": 461
+        },
+        {
+          "rpm": 4300,
+          "torqueNewtonMeters": 405
+        },
+        {
+          "rpm": 4900,
+          "torqueNewtonMeters": 330
+        }
+      ]
+    }
+  },
+  "sound": "CORVETTE_C4",
+  "metadata": {
+    "manufacturer": "Chevrolet",
+    "model": "Corvette",
+    "identifier": {
+      "officialLabel": "C4",
+      "shortLabel": "C4"
+    },
+    "selectedSpecification": ["L98", "ZF 6-speed", "pre-facelift"],
+    "period": "1989–1990",
+    "physicsAnchor": {
+      "modelYear": "1989",
+      "market": "US"
+    },
+    "mobileLabel": "C4"
+  }
+}

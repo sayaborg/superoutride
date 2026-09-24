@@ -1,3 +1,4 @@
+import { compileVehicleDocument, compileDrivingDocument } from '../../src/vehicle/definition-document.js';
 import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import { buildCourseReferences } from './build-course-reference.js';
 import { readdir, readFile } from 'node:fs/promises';
@@ -11,6 +12,18 @@ import { readCourseImages } from '../course/read-course-images.js';
 const content = new URL('../../content/', import.meta.url);
 const destination = new URL('../../dist/content/', import.meta.url);
 const writer = createContentWriter(destination, (await readDeliveredContent()).manifest.files);
+for (const [directory, kind, compile] of [
+  ['vehicles', 'vehicle', compileVehicleDocument],
+  ['driving', 'driving', compileDrivingDocument],
+] as const) {
+  for (const name of await readdir(new URL(directory + '/', content))) {
+    if (!name.endsWith('.json')) continue;
+    const path = `content/${directory}/${name}`;
+    const result = compile(JSON.parse(await readFile(new URL(`${directory}/${name}`, content), 'utf8')), path);
+    if (!result.ok) throw new Error(JSON.stringify(result.diagnostics));
+    await writer.stage(kind, result.value.source.id, result.value.source);
+  }
+}
 const courses: { course: CompiledCourse; stem: string }[] = [];
 for (const name of (await readdir(new URL('courses/', content))).sort()) {
   if (!name.endsWith('.course.json')) continue;

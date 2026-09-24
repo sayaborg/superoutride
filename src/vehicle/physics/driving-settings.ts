@@ -1,3 +1,4 @@
+import { DefinitionDomainError } from './definition-domain-error.js';
 import type { DrivingDefinition } from '../driving-definition.js';
 import { validateDrivingActuatorDefinition } from './driving-actuator.js';
 import { compileTireCharacteristics, createVehicleTireFrictionCalibration } from './tire-friction-calibration.js';
@@ -5,7 +6,8 @@ import { createVehicleSteeringCalibration } from './vehicle-calibration.js';
 
 /** Convert explicit design input at vehicle admission; never consult a vehicle definition. */
 export function createDrivingSettings(definition: DrivingDefinition) {
-  if (definition.automaticSteering !== 'travel-direction') throw new RangeError('unsupported automatic steering');
+  if (definition.automaticSteering !== 'travel-direction')
+    throw new DefinitionDomainError('', 'unsupported automatic steering');
   if (typeof definition.wheelSlip !== 'boolean') throw new TypeError('wheelSlip must be boolean');
   const rate = 1 / definition.steeringTraversalSeconds;
   const steering = Object.freeze({ applyRate: rate, releaseRate: rate });

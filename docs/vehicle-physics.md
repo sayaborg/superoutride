@@ -208,3 +208,43 @@ rack and requested/delivered torques. Handwheel conversion is display-only. Bike
 Optional read-only tire telemetry publishes completed wheel-solve rolling/slip speeds, dissipated work,
 loads and surfaces to audio. Recovery resets those observations. Graphics, HUD and sound consume
 mechanical observations without contributing forces or alternate mechanical state.
+
+## Vehicle and driving documents
+
+`content/vehicles/<id>.json` stores one `superoutride.vehicle-definition` version 1 per vehicle.
+`content/driving/default.json` stores the sole `superoutride.driving-definition` version 1.
+[Calibration](calibration.md) owns tuning meanings and units. Document admission in
+`vehicle/definition-document.ts` publishes detached, deeply immutable source and compiled products.
+
+| Vehicle field       | Contract                                                                                                                                                                          |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`, `version` | `superoutride.vehicle-definition`, `1`                                                                                                                                            |
+| `id`                | Nonempty filename-safe identity; equal to its manifest ID                                                                                                                         |
+| `form`              | `car` or `bike`; one shared physical/display form vocabulary                                                                                                                      |
+| `selectionOrder`    | Positive safe integer, unique across the catalog; ascending selection order independent of filenames and manifest order                                                           |
+| `mechanics`         | All `VehicleDefinition` mechanical fields except `id`, including powertrain and the temporary HUD `steeringRatio`                                                                 |
+| `sound`             | Existing ID in `VEHICLE_SOUND_PROFILES`; sound definitions remain TypeScript                                                                                                      |
+| `metadata`          | Required manufacturer, model, period and mobileLabel strings; identifier (null or officialLabel/shortLabel); selectedSpecification string array; physicsAnchor (modelYear/market) |
+
+Vehicle numerical domains and cross-field relationships are those of vehicle, suspension and
+powertrain compilation: positive mass/inertia/geometry, finite nonnegative brakes/drag/damping,
+front drive fraction in [0,1], feasible static suspension compression and ordered shift/gear/torque data.
+No dimensions, sprite/palette references or support reserve are saved in this format.
+
+The driving document has `format`, `version`, `id:"default"` and the current `DrivingDefinition`
+fields: `automaticSteering:"travel-direction"`, `maxRoadWheelSteerDegrees`, `steeringOffsetDegrees`,
+`steeringTraversalSeconds`, `throttle` and `brake` (each applySeconds/releaseSeconds), boolean
+`wheelSlip`, and `tire` (gripX/peakSlipX/gripY/peakSlipY/knee). Angles are degrees, traversal times
+are seconds, and tire values are dimensionless. Require 0 < offset < maximum < 90 degrees,
+positive finite actuator rates after conversion, positive finite tire capacities/stiffness and
+0 < knee < 1. Later game-wide launch/shift and pitch rules extend this same document rather than
+creating separate assist configuration files.
+
+Both readers reject missing required fields, unknown fields, wrong shapes, unsupported formats/versions,
+invalid domains and unresolved sound IDs. Expected errors return `{ok:false,diagnostics}` containing
+`kind:"input"`, `code`, the supplied `document` filename, JSON Pointer `path` and causal `message`.
+Only explicit authored-domain failures become diagnostics; unexpected internal errors propagate.
+Success returns `{ok:true,value}`; no partial product is published. Nested arrays and records are
+copied and frozen, including powertrain gears/curve points, metadata and the driving tire/pedals.
+The shared loader verifies manifest SHA-256 before decoding and admission, checks manifest/document
+identity and selection-order uniqueness, then exposes the sorted immutable collection.

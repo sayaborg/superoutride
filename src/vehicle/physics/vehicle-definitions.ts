@@ -1,3 +1,4 @@
+import { DefinitionDomainError } from './definition-domain-error.js';
 import { validateAutomaticPowertrainDefinition, type AutomaticPowertrainDefinition } from './automatic-powertrain.js';
 import { VEHICLE_GRAVITY, compileSuspensionStation, type CompiledContactStation } from './vehicle-dynamics.js';
 
@@ -61,7 +62,7 @@ export interface CompiledVehicle extends Pick<
 
 export function compileVehicle(definition: VehicleDefinition): Readonly<CompiledVehicle> {
   if (typeof definition.id !== 'string' || definition.id.length === 0 || definition.id.trim() !== definition.id) {
-    throw new RangeError('vehicle definition id must be a nonempty trimmed string');
+    throw new DefinitionDomainError('/mechanics', 'vehicle definition id must be a nonempty trimmed string');
   }
   const positive = [
     definition.mass,
@@ -76,25 +77,28 @@ export function compileVehicle(definition: VehicleDefinition): Readonly<Compiled
     definition.rearWheelInertia,
   ];
   if (positive.some((value) => !(value > 0) || !Number.isFinite(value))) {
-    throw new RangeError('vehicle mass/inertia/geometry/wheel values must be finite and > 0');
+    throw new DefinitionDomainError('/mechanics', 'vehicle mass/inertia/geometry/wheel values must be finite and > 0');
   }
   if (!(definition.steeringRatio >= 0) || !Number.isFinite(definition.steeringRatio)) {
-    throw new RangeError('vehicle steering ratio must be finite and >= 0');
+    throw new DefinitionDomainError('/mechanics', 'vehicle steering ratio must be finite and >= 0');
   }
   if (
     !(definition.frontBrakeTorqueMax >= 0 && definition.rearBrakeTorqueMax >= 0) ||
     ![definition.frontBrakeTorqueMax, definition.rearBrakeTorqueMax].every(Number.isFinite)
   ) {
-    throw new RangeError('vehicle brake torques must be finite and >= 0');
+    throw new DefinitionDomainError('/mechanics', 'vehicle brake torques must be finite and >= 0');
   }
   if (
     !(definition.frontDriveTorqueFraction >= 0 && definition.frontDriveTorqueFraction <= 1) ||
     !Number.isFinite(definition.frontDriveTorqueFraction)
   ) {
-    throw new RangeError('vehicle front drive torque fraction must be finite and lie in [0,1]');
+    throw new DefinitionDomainError(
+      '/mechanics',
+      'vehicle front drive torque fraction must be finite and lie in [0,1]',
+    );
   }
   if (!(definition.quadraticDrag >= 0) || !Number.isFinite(definition.quadraticDrag)) {
-    throw new RangeError('vehicle quadratic drag must be finite and >= 0');
+    throw new DefinitionDomainError('/mechanics', 'vehicle quadratic drag must be finite and >= 0');
   }
   validateAutomaticPowertrainDefinition(definition.powertrain);
 

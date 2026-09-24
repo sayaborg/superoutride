@@ -1,3 +1,4 @@
+import { DefinitionDomainError } from './definition-domain-error.js';
 import { clamp } from '../../core/math.js';
 import {
   assertExclusivePedalInput,
@@ -45,12 +46,12 @@ export function resetDrivingActuatorState(state: DrivingActuatorState): void {
 export function validateDrivingActuatorDefinition(definition: DrivingActuatorDefinition): void {
   for (const name of ['steering', 'throttle', 'brake'] as const) {
     const channel = definition[name];
-    if (!channel) throw new RangeError(`${name} actuator channel is required`);
+    if (!channel) throw new DefinitionDomainError('', `${name} actuator channel is required`);
     if (!(channel.applyRate > 0) || !Number.isFinite(channel.applyRate)) {
-      throw new RangeError(`${name} actuator apply rate must be finite and > 0`);
+      throw new DefinitionDomainError('', `${name} actuator apply rate must be finite and > 0`);
     }
     if (!(channel.releaseRate > 0) || !Number.isFinite(channel.releaseRate)) {
-      throw new RangeError(`${name} actuator release rate must be finite and > 0`);
+      throw new DefinitionDomainError('', `${name} actuator release rate must be finite and > 0`);
     }
   }
 }
@@ -63,10 +64,10 @@ export function validateSymmetricSteeringActuatorRateDefinition(definition: Norm
     !(definition.releaseRate > 0) ||
     !Number.isFinite(definition.releaseRate)
   ) {
-    throw new RangeError('vehicle steering actuator rates must be finite and > 0');
+    throw new DefinitionDomainError('', 'vehicle steering actuator rates must be finite and > 0');
   }
   if (definition.applyRate !== definition.releaseRate) {
-    throw new RangeError('vehicle steering actuator apply/release rates must be symmetric');
+    throw new DefinitionDomainError('', 'vehicle steering actuator apply/release rates must be symmetric');
   }
 }
 

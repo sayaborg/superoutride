@@ -1,0 +1,81 @@
+{
+  "format": "superoutride.vehicle-definition",
+  "version": 1,
+  "id": "PX200E_ARCOBALENO",
+  "form": "bike",
+  "selectionOrder": 9,
+  "mechanics": {
+    "mass": 190,
+    "yawInertia": 98,
+    "pitchInertia": 108,
+    "frontAxle": 0.704,
+    "rearAxle": 0.531,
+    "desiredCgHeight": 0.3705,
+    "frontRideFrequency": 1.5,
+    "rearRideFrequency": 1.55,
+    "frontDampingRatio": 0.36,
+    "rearDampingRatio": 0.38,
+    "frontQBump": 0.22,
+    "rearQBump": 0.22,
+    "frontQTravel": 0.34,
+    "rearQTravel": 0.34,
+    "frontBumpForceMax": 9000,
+    "rearBumpForceMax": 10000,
+    "frontWheelRadius": 0.216,
+    "rearWheelRadius": 0.216,
+    "frontWheelInertia": 0.14,
+    "rearWheelInertia": 0.2,
+    "frontDriveTorqueFraction": 0,
+    "steeringRatio": 18,
+    "frontBrakeTorqueMax": 260,
+    "rearBrakeTorqueMax": 180,
+    "quadraticDrag": 0.31,
+    "powertrain": {
+      "idleRpm": 900,
+      "redlineRpm": 6500,
+      "upshiftRpm": 6000,
+      "downshiftRpm": 2500,
+      "finalDriveRatio": 1,
+      "efficiency": 0.84,
+      "gearRatios": [14.47, 10.28, 7.31, 5.36],
+      "torqueCurve": [
+        {
+          "rpm": 900,
+          "torqueNewtonMeters": 7
+        },
+        {
+          "rpm": 2000,
+          "torqueNewtonMeters": 12
+        },
+        {
+          "rpm": 4000,
+          "torqueNewtonMeters": 16
+        },
+        {
+          "rpm": 5700,
+          "torqueNewtonMeters": 15
+        },
+        {
+          "rpm": 6000,
+          "torqueNewtonMeters": 13
+        }
+      ]
+    }
+  },
+  "sound": "PX200E_ARCOBALENO",
+  "metadata": {
+    "manufacturer": "Vespa",
+    "model": "PX 200 E Arcobaleno",
+    "identifier": {
+      "officialLabel": "VSX1T",
+      "shortLabel": "VSX1T"
+    },
+    "selectedSpecification": ["200 cc full-power"],
+    "period": "1983–1997",
+    "physicsAnchor": {
+      "modelYear": "1985",
+      "market": "Italian/European"
+    },
+    "mobileLabel": "PX200"
+  }
+}

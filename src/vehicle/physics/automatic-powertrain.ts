@@ -1,3 +1,4 @@
+import { DefinitionDomainError } from './definition-domain-error.js';
 import { clamp } from '../../core/math.js';
 
 interface EngineTorquePoint {
@@ -142,22 +143,32 @@ export function validateAutomaticPowertrainDefinition(definition: AutomaticPower
     !(definition.finalDriveRatio > 0) ||
     !(definition.efficiency > 0 && definition.efficiency <= 1)
   ) {
-    throw new RangeError('powertrain requires 0 < idle < downshift < upshift < redline and positive drive scalars');
+    throw new DefinitionDomainError(
+      '/mechanics/powertrain',
+      'powertrain requires 0 < idle < downshift < upshift < redline and positive drive scalars',
+    );
   }
-  if (definition.gearRatios.length === 0) throw new RangeError('powertrain requires forward gear ratios');
+  if (definition.gearRatios.length === 0)
+    throw new DefinitionDomainError('/mechanics/powertrain', 'powertrain requires forward gear ratios');
   for (let i = 0; i < definition.gearRatios.length; i += 1) {
     const ratio = definition.gearRatios[i]!;
-    if (!(ratio > 0) || !Number.isFinite(ratio)) throw new RangeError('gear ratios must be finite and positive');
+    if (!(ratio > 0) || !Number.isFinite(ratio))
+      throw new DefinitionDomainError('/mechanics/powertrain', 'gear ratios must be finite and positive');
     if (i > 0) {
       const previous = definition.gearRatios[i - 1]!;
-      if (!(ratio < previous)) throw new RangeError('forward gear ratios must strictly decrease');
+      if (!(ratio < previous))
+        throw new DefinitionDomainError('/mechanics/powertrain', 'forward gear ratios must strictly decrease');
       // At unchanged wheel speed, a threshold shift cannot immediately request its inverse.
       if (!(definition.downshiftRpm < definition.upshiftRpm * (ratio / previous))) {
-        throw new RangeError('shift RPM hysteresis must exceed every adjacent gear-ratio step');
+        throw new DefinitionDomainError(
+          '/mechanics/powertrain',
+          'shift RPM hysteresis must exceed every adjacent gear-ratio step',
+        );
       }
     }
   }
-  if (definition.torqueCurve.length < 2) throw new RangeError('engine torque curve requires at least two points');
+  if (definition.torqueCurve.length < 2)
+    throw new DefinitionDomainError('/mechanics/powertrain', 'engine torque curve requires at least two points');
   for (let i = 0; i < definition.torqueCurve.length; i += 1) {
     const point = definition.torqueCurve[i]!;
     if (
@@ -166,16 +177,19 @@ export function validateAutomaticPowertrainDefinition(definition: AutomaticPower
       !Number.isFinite(point.rpm) ||
       !Number.isFinite(point.torqueNewtonMeters)
     ) {
-      throw new RangeError('engine curve requires finite positive torque and RPM within the authored range');
+      throw new DefinitionDomainError(
+        '/mechanics/powertrain',
+        'engine curve requires finite positive torque and RPM within the authored range',
+      );
     }
     if (i > 0 && point.rpm <= definition.torqueCurve[i - 1]!.rpm) {
-      throw new RangeError('engine torque curve RPM points must increase');
+      throw new DefinitionDomainError('/mechanics/powertrain', 'engine torque curve RPM points must increase');
     }
   }
   if (
     definition.torqueCurve[0]!.rpm > definition.idleRpm ||
     definition.torqueCurve[definition.torqueCurve.length - 1]!.rpm < definition.upshiftRpm
   ) {
-    throw new RangeError('engine curve must cover idle through upshift RPM');
+    throw new DefinitionDomainError('/mechanics/powertrain', 'engine curve must cover idle through upshift RPM');
   }
 }

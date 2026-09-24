@@ -1,0 +1,81 @@
+{
+  "format": "superoutride.vehicle-definition",
+  "version": 1,
+  "id": "FXRT_SPORT_GLIDE",
+  "form": "bike",
+  "selectionOrder": 8,
+  "mechanics": {
+    "mass": 380,
+    "yawInertia": 285,
+    "pitchInertia": 340,
+    "frontAxle": 0.802,
+    "rearAxle": 0.684,
+    "desiredCgHeight": 0.4458,
+    "frontRideFrequency": 1.55,
+    "rearRideFrequency": 1.6,
+    "frontDampingRatio": 0.38,
+    "rearDampingRatio": 0.4,
+    "frontQBump": 0.22,
+    "rearQBump": 0.22,
+    "frontQTravel": 0.34,
+    "rearQTravel": 0.34,
+    "frontBumpForceMax": 24000,
+    "rearBumpForceMax": 23000,
+    "frontWheelRadius": 0.286,
+    "rearWheelRadius": 0.32,
+    "frontWheelInertia": 0.75,
+    "rearWheelInertia": 1.1,
+    "frontDriveTorqueFraction": 0,
+    "steeringRatio": 18,
+    "frontBrakeTorqueMax": 1000,
+    "rearBrakeTorqueMax": 650,
+    "quadraticDrag": 0.46,
+    "powertrain": {
+      "idleRpm": 850,
+      "redlineRpm": 5200,
+      "upshiftRpm": 4800,
+      "downshiftRpm": 1700,
+      "finalDriveRatio": 3.3726,
+      "efficiency": 0.87,
+      "gearRatios": [3.21, 2.21, 1.6, 1.23, 1],
+      "torqueCurve": [
+        {
+          "rpm": 850,
+          "torqueNewtonMeters": 62
+        },
+        {
+          "rpm": 2000,
+          "torqueNewtonMeters": 84
+        },
+        {
+          "rpm": 3500,
+          "torqueNewtonMeters": 94
+        },
+        {
+          "rpm": 4500,
+          "torqueNewtonMeters": 86
+        },
+        {
+          "rpm": 4800,
+          "torqueNewtonMeters": 78
+        }
+      ]
+    }
+  },
+  "sound": "FXRT_SPORT_GLIDE",
+  "metadata": {
+    "manufacturer": "Harley-Davidson",
+    "model": "FXRT Sport Glide",
+    "identifier": {
+      "officialLabel": "FXRT",
+      "shortLabel": "FXRT"
+    },
+    "selectedSpecification": ["Evolution 1340"],
+    "period": "1984–1992",
+    "physicsAnchor": {
+      "modelYear": "1988",
+      "market": "US"
+    },
+    "mobileLabel": "FXRT"
+  }
+}
