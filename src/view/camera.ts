@@ -1,4 +1,3 @@
-import type { PlanarTransform } from '../core/planar-transform.js';
 import { createPlanCoordinateSample } from '../course/geometry/plan-coordinate.js';
 import { clamp, wrapAngle } from '../core/math.js';
 import type { PseudoCamera } from './projection.js';
@@ -70,14 +69,6 @@ export function resetCameraRig(rig: CameraRig): void {
   rig.movementYaw = 0;
   rig.verticalCorrection = 0;
   rig.initialized = false;
-}
-
-/** Apply a committed occurrence change before the observer's next camera update. */
-export function reframeCamera(rig: CameraRig, transform: PlanarTransform | null): void {
-  if (!transform) return;
-  const yaw = Math.atan2(transform.sine, transform.cosine);
-  rig.yaw = wrapAngle(rig.yaw + yaw);
-  rig.movementYaw = wrapAngle(rig.movementYaw + yaw);
 }
 
 export function setCameraYawMode(rig: CameraRig, yawMode: CameraYawMode): void {
