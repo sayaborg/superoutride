@@ -37,6 +37,7 @@ The standing checks are:
 1. Type checking, lint, formatting and build.
 2. Startup smoke: compile a course and render a few frames through the shared scene.
 3. Acyclic layer dependencies, including type-only imports.
+4. Deterministic headless driving scenarios through the product scene, race, physics and renderer.
 
 Add other tests only when a concrete need arises. Test observable behavior and compiled relationships rather
 than source spelling; use parsed dependencies for architecture checks. Assess performance on real devices.
@@ -53,6 +54,8 @@ AI reference driving generates game time limits, not test timing baselines.
 - Before fast-forwarding main, remove temporary diagnostic, formatting and other work-only commits from the feature branch; feature-branch history may be rewritten, but main history must not be rewritten.
 
 Inspect main and active PR/CI state, preserve unrelated local changes, and work on a `codex/` feature branch.
+For driving or rendering changes, verify the driving scenarios pass. When a defect is found, consider
+adding a scenario that catches the same class of defect.
 Review the diff and run Node 24 `npm test`. Open a PR and obtain green CI on its exact head. Recheck main;
 if it moved, update the branch and validate again. Fast-forward main to the validated head without a merge
 commit or force push. Verify Pages, then delete the merged feature branch. Leave unrelated or unmerged work intact.

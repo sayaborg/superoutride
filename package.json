@@ -10,6 +10,7 @@
     "build": "node --import tsx tools/build/clean-dist.ts && tsc -p tsconfig.json && node --import tsx tools/build/build-sprite-preview.ts && node --import tsx tools/build/build-course-content.ts",
     "check": "npm run lint && npm run format:check && tsc -p tsconfig.json --noEmit && tsc -p tsconfig.tools.json && npm run check:dependencies",
     "test": "npm run check && npm run build && node --import tsx --test 'tests/**/*.test.mjs'",
+    "test:scenarios": "node --import tsx --test tests/scenarios/driving.test.mjs",
     "lint": "eslint src tests tools",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

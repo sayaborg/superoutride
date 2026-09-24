@@ -73,7 +73,7 @@ the corresponding ownership and visible origin/vector indicators.
 ## Performance HUD
 
 The HUD displays FPS, maximum CPU frame time, maximum fixed-step time, maximum frame interval and
-lifetime maximum seam-commit time. The first frame reports immediately, then approximately every half second.
+route-change count (`routeChanges`) and lifetime maximum route-change time. The first frame reports immediately, then approximately every half second.
 
 The ground detail shows the selected method, the reporting window's maximum visible active Band count,
 the compiled course maximum and active limit, the latest frame's ground-sampling CPU milliseconds,

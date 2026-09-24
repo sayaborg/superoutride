@@ -8,7 +8,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **6-10 — Local tolerances**.
+Next PR: **6-11 — Authoritative-plan rendering**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -18,7 +18,8 @@ PRs hold rationale and verification evidence.
 
 Give all vehicles one route coordinate system, read its geometry and content through shared readers, and define behavior outside the retained route and coordinate domain.
 
-- **6-10 — Local tolerances:** clarify each tolerance's basis and owning algorithm, including the `1e-14` tangent-intersection threshold in `plan-domain-injectivity.ts`.
+- **6-11 — Authoritative-plan rendering:** derive ground rows, visibility, sprites, vehicles and camera directly from the authoritative plan; remove Raster compilation, Reader and route Raster plus `render-space-mapping`; retain the vertical render polyline only as an internal ground-row approximation; also remove fixed `groundRuler` values, duplicate Band interval `start`/`occurrenceStart`, repeated `route.at` searches in route Readers, and per-query `atan2` for occurrence rotation.
+- **6-12 — Local tolerances:** clarify each tolerance's basis and owning algorithm, including the `1e-14` tangent-intersection threshold in `plan-domain-injectivity.ts`.
 
 ## Stage 7 — Course format
 

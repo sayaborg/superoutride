@@ -12,8 +12,41 @@ Use Node.js 24. [AGENTS](../AGENTS.md) owns checks and release procedure.
 | `npm run format`              | Format maintained files                                             |
 | `npm run format:check`        | Check formatting                                                    |
 | `npm run build`               | Clear dist, compile TypeScript, build tools and generate content    |
-| `npm test`                    | All checks, build and startup smoke                                 |
+| `npm test`                    | All checks, build, startup smoke and driving scenarios              |
 | `python3 -m http.server 8000` | Serve the checkout, game and tools                                  |
+
+### Driving scenarios
+
+`tests/scenarios/driving.test.mjs` defines the scenarios; `driving-harness.mjs` assembles the same
+scene, race, vehicle physics, route readers, camera and rival sprite rendering as the browser.
+`npm test` runs them on every CI build. After `npm run build`, use `npm run test:scenarios` alone.
+The Node test runner reports total wall time and per-scenario times; these are observations, not timing gates.
+
+Each scenario runs twice at the browser's fixed 1/60-second step and compares a digest of every
+step's vehicle, recovery, progress and camera states plus outcome evidence. No pixel baselines or
+wall-clock metrics enter the comparison. Rendering runs every simulated second, on recovery and finish,
+and every tenth of a second outside the coordinate domain; it cycles through all three Band methods.
+All live vehicle numeric leaves, camera values and route occurrence coordinates/transforms must remain
+finite. Each actor's s may move at most the scene's 240 m/s loading allowance per step unless recovered.
+The next pending crossing cannot move backward (an undiscovered fork successor is not a finish),
+and accepted finish counts cannot decrease. Scenario-specific evidence requires actual entry/domain
+exit, departure on the requested road side, selected fork, wrong-course recovery or completed laps.
+
+The three provisional courses each exercise backward motion beyond the entry and both road sides.
+Coast finishes with two rivals; fork finishes through each branch and attempts a rival-closed Carriageway;
+ring finishes three laps with two rivals. Reverse starts with -20 m/s and neutral pedals (there is no
+reverse input); lateral departures start at 30 m/s and hold steering and throttle. These are initial
+conditions through the ordinary vehicle constructor, with no pose or progress edits during a run.
+
+To add a scenario, add a policy/outcome record to the course's list, with a finite simulated work limit.
+Compose ordinary inputs in the harness, and require evidence that the intended situation occurred.
+Use authored grid slots, fork regions, Carriageways and crossing stations rather than world positions
+or fixed ticks to locate course features. The closed-road policy lets a rival lead for three seconds,
+then follows the other authored Carriageway until legal-route recovery.
+When course shapes change, adapt these semantic targets and bounds instead of recording a new trace hash.
+Expected results are compared between fresh runs, not committed as golden hashes. A defect regression
+should fail when the original failure is temporarily reintroduced; never retain that mutation.
+Visual correctness remains a manual check.
 
 ### TypeScript tools
 
