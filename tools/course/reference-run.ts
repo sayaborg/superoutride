@@ -48,7 +48,7 @@ export function runCourseReference(
   lapCount: number,
   capture = false,
 ) {
-  const scene = createCourseScene(course.entry, ground, spriteAssets, course.rules),
+  const scene = createCourseScene(course.entry, ground, spriteAssets, course.gates),
     vehicleConfiguration = browserSessionVehicle(entry);
   const session = resolveCourseSession(
     course,

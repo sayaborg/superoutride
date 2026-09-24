@@ -69,7 +69,7 @@ function pavementBounds(scene, vehicle) {
 /** Fresh product assembly per replay; only initial conditions and input policy differ from the browser. */
 export function runScenario({ course, ground }, scenario) {
   const settings = createDisplaySettings();
-  const scene = createCourseScene(course.entry, ground, assets, course.rules, settings);
+  const scene = createCourseScene(course.entry, ground, assets, course.gates, settings);
   const session = resolveCourseSession(
     course,
     { mode: 'CUSTOM', rivalCount: scenario.rivals ?? 0, lapCount: scenario.laps ?? 1, countdown: false },

@@ -9,17 +9,24 @@ import type { CompiledFork, CompiledSection } from './course-graph.js';
 /** Resolve parallel-zone geometry after canonical outgoing Links exist, before publication. */
 export function compileCourseFork(
   section: CompiledSection,
-  positions: { readonly lock: CompiledCoursePosition; readonly closure: CompiledCoursePosition } | null,
+  controls: readonly { readonly kind: 'lock' | 'closure'; readonly at: CompiledCoursePosition }[],
   path: string,
 ): CompiledFork | null {
   const conditional = section.appearance?.sprites.filter((p) => p.unselected !== null) ?? [];
-  if (positions === null) {
+  const check = (condition: boolean, message: string) => requireCourse(condition, path, message, 'invalid_fork');
+  if (section.outgoing.length < 2) {
+    check(controls.length === 0, 'Lock and closure gates require a branching Section');
     requireCourse(conditional.length === 0, path, 'State-selected road signs require a fork', 'invalid_fork');
     return null;
   }
-  const { lock, closure } = positions;
-  const check = (condition: boolean, message: string) => requireCourse(condition, path, message, 'invalid_fork');
-  check(section.outgoing.length >= 2, 'A fork requires two or three canonical exits');
+  const locks = controls.filter((gate) => gate.kind === 'lock');
+  const closures = controls.filter((gate) => gate.kind === 'closure');
+  check(
+    locks.length === 1 && closures.length === 1,
+    'A branching Section requires exactly one lock and one closure gate',
+  );
+  const lock = locks[0]!.at,
+    closure = closures[0]!.at;
   check(
     lock.s > 0 && lock.s < closure.s && closure.s < section.coordinates.domain.end,
     'Fork positions require 0 < lock < closure < every exit seam',

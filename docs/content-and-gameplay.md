@@ -18,7 +18,7 @@ color and material overwrite independently. Compiled Sections publish their two 
 Checkpoints, starts, finishes and environment changes are independent of Section boundaries.
 Source identity, traversal identity and race credit are distinct.
 
-## CourseDocument v22
+## CourseDocument v23
 
 The saved format is compact UTF-8 JSON. All declared fields are required; explicit null represents
 absent optional content. Unknown fields fail. Arrays preserve saved order; object-property order and
@@ -26,28 +26,28 @@ whitespace do not affect identity. Normalized records use schema field order and
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 22,
+  format: "superoutride.course", version: 23,
   id,
-  type: "LINEAR" | "BRANCH" | "CIRCUIT", entrySectionId,
+  entrySectionId,
   sections, links, assets, rules
 }
 Section {
   id, pis,
   boundaries, strips, sprites, height: [{at, y, curveLength}],
-  carriageways, assetIds, environments, fork
+  carriageways, assetIds, environments, gates
 }
 ```
 
 ### Geometry and reference records
 
-| Record          | Fields                                                                                                 |
-| --------------- | ------------------------------------------------------------------------------------------------------ |
-| Plan PI         | `id`, `x`, `z`, `radius`                                                                               |
-| Position        | `at: {pi, offset}`; interval `start`/`end` and fork `lock`/`closure` use the same `{pi, offset}` value |
-| Boundary        | `id`, `knots: [{at,lateral}]`                                                                          |
-| Carriageway     | `id`, `left`, `right`                                                                                  |
-| Link            | `id`, `from: {sectionId,carriagewayId}`, `to: {sectionId}`                                             |
-| Asset reference | `id`, `format`, `version`, lowercase `sha256`                                                          |
+| Record          | Fields                                                                                     |
+| --------------- | ------------------------------------------------------------------------------------------ |
+| Plan PI         | `id`, `x`, `z`, `radius`                                                                   |
+| Position        | `at: {pi, offset}`; interval `start`/`end` and gate `at` use the same `{pi, offset}` value |
+| Boundary        | `id`, `knots: [{at,lateral}]`                                                              |
+| Carriageway     | `id`, `left`, `right`                                                                      |
+| Link            | `id`, `from: {sectionId,carriagewayId}`, `to: {sectionId}`                                 |
+| Asset reference | `id`, `format`, `version`, lowercase `sha256`                                              |
 
 Asset formats are
 `superoutride.sprite-lod` version 2 and `superoutride.tile-background` version 1.
@@ -60,7 +60,8 @@ resolve in their named scopes rather than by array position.
 
 Schema-valid drafts may contain empty arrays or unresolved references.
 Compilation requires complete semantic input.
-A geometry draft uses `environments: null`, `fork: null`, `rules: null` and explicit asset and sprite arrays.
+A geometry draft uses empty environment, sprite and race-gate arrays and `rules: null`.
+Branching Sections still require lock and closure gates.
 
 ### Lateral positions
 
@@ -97,8 +98,8 @@ resolve authored references.
 
 Section `sprites` is an ordered array of `sprite` or `repeat` elements. A sprite is
 `{kind:"sprite",image,palette,at,lateral,groundOffset,unselectedCarriagewayId}`.
-`image` names a sprite image in that Section's `assetIds`; `palette` is null for the image's base
-palette or exactly 16 RGB555 slots. A replacement must be one of the image's compiled LOD palettes
+`image` names a sprite image in that Section's `assetIds`; `palette` is an empty array for the image's
+base palette or exactly 16 RGB555 slots. A replacement must be one of the image's compiled LOD palettes
 (slot zero is transparent). `groundOffset` is height above the authoritative road height, in metres.
 Each expanded placement resolves `lateral` at its own s, so repetitions follow referenced Boundaries.
 Compilation shares one immutable resource for each image-source/palette pair across Sections;
@@ -108,10 +109,9 @@ decoded images and palette variants are shared by the renderer. Sprites have no 
 Such signs lie from lock through closure, before the exit cut, and appear when the field selects
 another exit. Their state follows the selected Links of the shared Route.
 
-Section `environments` is null or the environment element array, at the same level as `strips`
-and `sprites`. Null means a draft without compiled appearance and requires an empty sprite list,
-while preserving the authored Strips and geometry. An empty array is a schema-valid incomplete draft;
-it fails compilation because a non-null environment list must begin at s=0.
+Section `environments` is an array at the same level as `strips` and `sprites`. An empty array
+means no compiled appearance and requires an empty sprite list, while preserving authored Strips and
+geometry. A nonempty environment list must begin at s=0.
 An environment element is `{at,name,background}` or a `repeat`; background is
 `{assetId,horizonY,yawOrigin}`. The image belongs to the referencing Section and uses the tiled
 background format. After expansion, environment knots must begin at s=0 and strictly increase
@@ -193,23 +193,53 @@ simultaneously active pieces, resolved slabs and cached fields. Covered pieces s
 a piece carrying both payloads counts once. Limits reject rather than truncate.
 [Architecture](architecture.md#strip-rendering) owns averaging, immutable storage and pixel kernels.
 
-### Authored Session rules
+### Section gates and Session settings
 
-`rules` is null or `{grid,checkpoints,finishes,maxLaps,classic}`. Grid slots are ordered `{at,lateral}`
-records in the entry Section: player first, then rivals in roster order. Capacity is one player plus
-the product maximum rival count, derived from `SESSION_RULE_LIMITS`. Each is supported,
-at/after entry and before the first required landmark. Starting velocity is zero.
+Section `gates` is an array with these records. Every `at` uses the enclosing Section's Position;
+`carriageway` names a Carriageway in that Section. Only checkpoint and finish gates have IDs, and
+those IDs are unique across the whole course, including across the two kinds. They are stable keys
+for author-confirmed time limits. Array order supplies checkpoint order within each Section.
 
-Checkpoints and finishes contain `{id,sectionId,carriagewayId,at}` with unique IDs across both
-collections. Their saved Carriageway references resolve to supported pavement; runtime crossing width
-is the coordinate domain at the landmark. They lie after entry and no later than the
-ownership exit; checkpoints are strictly ordered within a Section. Each terminal Section has one
-FINISH; continuations have none. A circuit has exactly one FINISH, at the terminal station of
-the Section whose outgoing Link returns to the entry Section. No other circuit Section has a FINISH.
+| Kind         | Fields after `kind`       | Placement                                                                                                         |
+| ------------ | ------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `start`      | `grid: [{at,lateral}]`    | Exactly one, in the entry Section, when race settings exist                                                       |
+| `checkpoint` | `id`, `carriageway`, `at` | Increasing Section positions after zero, through a continuation's terminal station and strictly before its finish |
+| `finish`     | `id`, `carriageway`, `at` | One per terminal Section; in a circuit, only at the terminal station of the Section returning to entry            |
+| `lock`       | `at`                      | Exactly one in every Section with two or three outgoing Links                                                     |
+| `closure`    | `at`                      | Exactly one in every Section with two or three outgoing Links                                                     |
 
-`maxLaps` is an integer from 1 through 99; non-circuits use 1. CLASSIC contains `vehicleId`,
-`rivalCount` (0 through 16), `lapCount` and positive finite `timeMargin` at most 10. Grid, roster and
-lap values must agree. The composition root resolves vehicle IDs against the catalog.
+Grid slots are ordered player first, then rivals in roster order. Each slot must be on supported
+material, at/after entry and before the first checkpoint, finish or lock gate. The grid must hold the
+CLASSIC roster; its capacity is one player plus the product maximum rival count. Starting velocity is zero.
+Checkpoint and finish Carriageways must exist at the gate and have positive supported width across their
+edges. Runtime crossing width is the coordinate domain at the line. A checkpoint at a continuation seam
+belongs to the preceding Section, while the runtime bounds use the successor's domain at that station.
+A circuit has exactly one finish; other circuit Sections have none. The fork section below owns lock,
+closure and conditional-sign geometry. A Section with at most one outgoing Link cannot have either
+lock or closure gates.
+
+`rules` is null or `{maxLaps,classic}`. `classic` contains `{vehicleId,rivalCount,lapCount,timeMargin}`;
+these are settings without positions. `maxLaps` is an integer from 1 through 99; non-circuits use 1.
+`rivalCount` is 0 through 16; `lapCount` cannot exceed `maxLaps`; `timeMargin` is positive, finite and
+at most 10. The composition root resolves vehicle IDs against the catalog.
+
+`rules: null` means a draft without race settings. Such a draft cannot contain start, checkpoint or
+finish gates; lock and closure remain required by branching topology. With non-null rules, compilation
+requires the start, grid and finish coverage described above. Compiled `rules` retain only those settings;
+compiled `gates` provide the resolved grid and per-Section landmark intervals to race and tools.
+
+### Null meanings
+
+Empty collections are arrays: in particular, `environments: []` means no appearance and `palette: []`
+means use the image's base palette. The remaining CourseDocument nulls each have one meaning:
+
+| Field                            | Meaning of null                                                       |
+| -------------------------------- | --------------------------------------------------------------------- |
+| Course `rules`                   | Draft without race settings and without start/checkpoint/finish gates |
+| Strip `color`                    | Leave the earlier color channel unchanged                             |
+| Strip `material`                 | Leave the earlier material channel unchanged                          |
+| Strip knot `left` / `right`      | That edge is open to negative / positive lateral infinity             |
+| Sprite `unselectedCarriagewayId` | Ordinary sprite with no exit-selection condition                      |
 
 ### Numeric and resource domains
 
@@ -256,9 +286,8 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | Section `preblendCells`                                                 |             131072 | All 1 m dyadic levels at 42000 m total fewer than 84032 cells, rounded up                                               |
 | Section `coefficientBytes`                                              |            512 MiB | Moving-edge 21 km probe uses about 121 MiB; ×2 length and ×2 profile complexity, rounded up                             |
 | Section resolved `boundaryVertices`                                     |              65536 | 32 Boundaries × 1024 knots × 2 for inherited vertices                                                                   |
-| Course `grid`                                                           |                 17 | `1 + SESSION_RULE_LIMITS.rivals`; the product permits 16 rivals                                                         |
-| Course `checkpoints`                                                    |               1024 | 50 positions × 8 intermediate gates × 2, rounded up                                                                     |
-| Course `finishes`                                                       |                128 | At most one per admitted Section                                                                                        |
+| Course `gates` (also bounds each Section array)                         |               2048 | 50 stage positions × (8 checkpoints + 2 branch controls + 1 finish) × 2, plus one start, rounded up                     |
+| Start gate `startGridSlots`                                             |                 17 | `1 + SESSION_RULE_LIMITS.rivals`; player plus 16 rivals, a gameplay capacity rather than a density estimate             |
 | `lengthMeters` (chainage, signed offsets, radii and lengths)            |            42000 m | 21 km × 2                                                                                                               |
 | `coordinateMeters`                                                      |         ±1000000 m | Retains 100 km native-coordinate origin allowance × 10                                                                  |
 | `lateralMeters` / `heightMeters`                                        |   ±1000 / ±10000 m | 100 m lateral span / 1000 m elevation envelope, each × 10                                                               |
@@ -356,7 +385,11 @@ These bounds cover double-precision evaluation of boundaries, plan coordinates a
 at the admitted 1,000,000 m coordinate limit; they are not a visual or driving allowance.
 Other boundaries, materials, Strips and appearance may change at the cut.
 
-The graph has an explicit entry. All Sections are reachable. LINEAR is a finite chain with at most
+The graph has an explicit entry. All Sections are reachable. The compiler derives the course kind:
+a directed cycle selects CIRCUIT, otherwise any Section with at least two outgoing Links selects BRANCH,
+and otherwise the kind is LINEAR. A graph combining a cycle with branches is rejected as `invalid_topology`.
+The document has no authored kind selector. Compiled `course.type` publishes the derived kind.
+LINEAR is a finite chain with at most
 one incoming/outgoing Link per Section. BRANCH is a finite acyclic graph with two/three-way forks
 and merges. Their entry has no incoming Link. Links from a Section to itself are forbidden for every type.
 CIRCUIT is one directed cycle containing the entry and at least two Sections. Each Section has exactly
@@ -376,8 +409,8 @@ Owned records and arrays are immutable, including nested image data. Live actor,
 clock state belong to Sessions. Object identity is local to a compilation; cross-build identity uses digests.
 
 `sourceSha256` hashes normalized input. `buildSha256` hashes `{sourceSha256,compiler}`.
-The compiler is `superoutride.course-compiler` version 33, incorporating Link recipe v3, physical
-recipe v3, image-source recipe v2 and appearance recipe v9. Descriptors include semantic versions
+The compiler is `superoutride.course-compiler` version 34, incorporating Link recipe v3, physical
+recipe v3, image-source recipe v2 and appearance recipe v10. Descriptors include semantic versions
 and operative numeric/data parameters, including material definitions. Source or compiler/recipe
 changes invalidate dependent products.
 
@@ -411,15 +444,16 @@ and incoming Link distinguish repeated visits and retain the selected predecesso
 extension/retention distances. Geometry/content indexes and race cross-section lists rebuild when
 the shared sequence changes. All actors retain their route coordinates at a seam.
 
-A driving scene requires compiled Session rules with a starting grid and checks its rearmost grid
+A driving scene requires Session settings and compiled start gates, and checks the rearmost grid
 station against `D_cam`. Driving beyond the entry uses the same coordinate-domain recovery rule
 as any other domain exit. Recovery preserves
 accepted cross sections and laps and suppresses crossing credit for that step.
 
 ## Fork lock and handoff
 
-Section `fork` is null or `{lock,closure}` positions. Controls require two or three exits and
-`entry < lock < closure < every exit seam`, with positive lock chainage. The parallel-zone subset
+The number of outgoing Links determines branching. A Section with two or three exits requires exactly
+one `lock` and one `closure` gate with `0 < lock < closure < every exit seam`.
+The compiler builds its branch controls from those gates after Links are resolved. The parallel-zone subset
 is contained in straight parts of the plan. Through closure, edges are constant, roads have positive
 width, and the material table supplies one contiguous supported interval at lock. Through closure,
 material span edges remain parallel and the supported interval retains the same bounds. Gate and

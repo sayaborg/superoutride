@@ -9,7 +9,7 @@ import { BACKGROUND_HEIGHT, BACKGROUND_PIXELS_PER_RADIAN } from '../../image/til
 import type { CourseAppearance, CourseSpriteResource } from '../course-appearance.js';
 import type { CompiledCourseImageSource } from './course-image-source.js';
 
-export const COURSE_APPEARANCE_RECIPE = Object.freeze({ id: 'superoutride.course-appearance', version: 9 });
+export const COURSE_APPEARANCE_RECIPE = Object.freeze({ id: 'superoutride.course-appearance', version: 10 });
 
 /** Share one immutable image/palette binding across every Section in a compilation. */
 export function createCourseSpriteResources() {
@@ -55,7 +55,7 @@ export function compileCourseAppearance(
   carriageways: readonly CompiledCarriageway[],
 ): CourseAppearance | null {
   const source = section.environments;
-  if (source === null) {
+  if (source.length === 0) {
     requireCourse(section.sprites.length === 0, `${path}/sprites`, 'Sprites require environments', 'invalid_placement');
     return null;
   }
@@ -147,7 +147,11 @@ export function compileCourseAppearance(
         'Expanded sprite placement limit exceeded',
         'resource_limit',
       );
-      const instance = resource(image(placement.image, `${at}/image`), placement.palette, `${at}/palette`);
+      const instance = resource(
+        image(placement.image, `${at}/image`),
+        placement.palette.length ? placement.palette : null,
+        `${at}/palette`,
+      );
       const unselected =
         placement.unselectedCarriagewayId === null
           ? null

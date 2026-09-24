@@ -88,7 +88,7 @@ try {
         })
       : sprites;
   const displaySettings = createDisplaySettings();
-  const scene = createCourseScene(course.entry, ground, sprites, course.rules, displaySettings);
+  const scene = createCourseScene(course.entry, ground, sprites, course.gates, displaySettings);
   const slot = session.grid[0]!;
   const shell = createBrowserDrivingShell(scene.world, slot.l, {
     s: slot.at.s,

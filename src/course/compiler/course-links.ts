@@ -3,7 +3,6 @@ import { compilePlanarTransform, composePlanarTransforms, transformPlanarPoint }
 import { courseBoundaryAt, courseCarriagewayExists, type CompiledCarriageway } from '../course-boundaries.js';
 import { requireCourse } from '../course-diagnostics.js';
 import type { CompiledCut, CompiledLink, CompiledSection } from './course-graph.js';
-import type { CourseDocument } from '../course-document.js';
 
 /** Roundoff of plan evaluation and rigid rotation over the admitted 1,000,000 m coordinate domain. */
 export const COURSE_LINK_RECIPE = Object.freeze({
@@ -109,11 +108,36 @@ export function compileCourseLink(id: string, from: CompiledCut, to: CompiledCut
   return Object.freeze({ id, from, to, destinationFromSource });
 }
 
-export function validateCourseTopology(
-  type: CourseDocument['type'],
-  entry: CompiledSection,
-  sections: readonly CompiledSection[],
-): void {
+export function compileCourseTopology(entry: CompiledSection, sections: readonly CompiledSection[]) {
+  let hasCycle = false;
+  const visited = new Set<CompiledSection>(),
+    active = new Set<CompiledSection>();
+  const visit = (section: CompiledSection): void => {
+    if (active.has(section)) {
+      hasCycle = true;
+      return;
+    }
+    if (visited.has(section)) return;
+    active.add(section);
+    for (const link of section.outgoing) visit(link.to.section);
+    active.delete(section);
+    visited.add(section);
+  };
+  visit(entry);
+  requireCourse(
+    visited.size === sections.length,
+    '/sections',
+    'Every Section must be reachable from the entry Section',
+    'invalid_topology',
+  );
+  const hasBranches = sections.some((section) => section.outgoing.length >= 2);
+  requireCourse(
+    !(hasCycle && hasBranches),
+    '/links',
+    'A course cannot combine cycles and branches',
+    'invalid_topology',
+  );
+  const type = hasCycle ? 'CIRCUIT' : hasBranches ? 'BRANCH' : 'LINEAR';
   for (const [index, section] of sections.entries()) {
     const path = `/sections/${index}`;
     const exits = section.outgoing.map((link) => link.from.carriageway);
@@ -147,27 +171,8 @@ export function validateCourseTopology(
       'invalid_topology',
     );
   }
-  const visited = new Set<CompiledSection>(),
-    active = new Set<CompiledSection>();
-  const visit = (section: CompiledSection): void => {
-    if (active.has(section)) {
-      requireCourse(type === 'CIRCUIT', '/links', 'LINEAR/BRANCH topology must be acyclic', 'invalid_topology');
-      return;
-    }
-    if (visited.has(section)) return;
-    active.add(section);
-    for (const link of section.outgoing) visit(link.to.section);
-    active.delete(section);
-    visited.add(section);
-  };
-  visit(entry);
-  requireCourse(
-    visited.size === sections.length,
-    '/sections',
-    'Every Section must be reachable from the entry Section',
-    'invalid_topology',
-  );
   if (type === 'CIRCUIT') validateCourseCycle(entry);
+  return type;
 }
 
 /** Topology admission proves this is the only directed cycle; acyclic merges never enter here. */

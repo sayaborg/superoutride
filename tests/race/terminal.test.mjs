@@ -55,9 +55,9 @@ test('Session rejects short terminal runout, including solo play; forks and loop
   assert.doesNotThrow(() => resolveCourseSession(course, configuration, vehicle, envelope));
   const short = {
     ...course,
-    rules: {
-      ...course.rules,
-      intervals: course.rules.intervals.map((interval) => ({
+    gates: {
+      ...course.gates,
+      intervals: course.gates.intervals.map((interval) => ({
         ...interval,
         finish: {
           ...interval.finish,

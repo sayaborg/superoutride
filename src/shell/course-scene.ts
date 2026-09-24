@@ -21,11 +21,11 @@ export function createCourseScene(
   section: CompiledSection,
   ground: CourseGround,
   assets: SpriteAssets,
-  rules: CompiledCourse['rules'],
+  gates: CompiledCourse['gates'],
   displaySettings: DisplaySettings = createDisplaySettings(),
 ) {
-  if (!rules?.grid.length) throw new RangeError('Driving requires saved Session rules with a starting grid');
-  if (Math.min(...rules.grid.map((slot) => slot.at.s)) < CURRENT_CAMERA_PROFILE.dCam)
+  if (!gates?.grid.length) throw new RangeError('Driving requires a compiled start gate with a grid');
+  if (Math.min(...gates.grid.map((slot) => slot.at.s)) < CURRENT_CAMERA_PROFILE.dCam)
     throw new RangeError('Driving requires the rearmost grid position to have camera space behind it');
   // Loading coverage at 240 m/s (864 km/h), not a mechanics speed clamp.
   const maximumStepMeters = 240 * SIM_DT;
@@ -51,7 +51,7 @@ export function createCourseScene(
     maximumStepMeters,
     contactReachMeters,
   });
-  runtime.refresh(Math.min(...rules.grid.map((slot) => slot.at.s)), Math.max(...rules.grid.map((slot) => slot.at.s)));
+  runtime.refresh(Math.min(...gates.grid.map((slot) => slot.at.s)), Math.max(...gates.grid.map((slot) => slot.at.s)));
   const rendering = createCourseRouteVisualReaders(runtime.route, ground);
   rendering.read();
   const renderWorkspace = createRenderWorkspace();

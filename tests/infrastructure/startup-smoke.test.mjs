@@ -23,12 +23,12 @@ for (const stem of ['ribbon-coast', 'ribbon-fork', 'ribbon-ring'])
       course.entry,
       await loadCourseGround(course),
       await readVehicleSprites(),
-      course.rules,
+      course.gates,
       settings,
     );
     const entry = VEHICLE_CATALOG[0];
     const vehicle = createArcadeVehicle(entry.profile, scene.world, {
-      s: course.rules.grid[0].at.s,
+      s: course.gates.grid[0].at.s,
       l: 0,
       initialSpeed: 0,
       torqueProtection: entry.torqueProtection,

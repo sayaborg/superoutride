@@ -1,171 +1,9 @@
 {
   "format": "superoutride.course",
-  "version": 22,
+  "version": 23,
   "id": "ribbon-ring",
-  "type": "CIRCUIT",
   "entrySectionId": "ring-outward",
   "rules": {
-    "grid": [
-      {
-        "at": {
-          "pi": "start",
-          "offset": 15
-        },
-        "lateral": 0
-      },
-      {
-        "at": {
-          "pi": "start",
-          "offset": 25
-        },
-        "lateral": -2
-      },
-      {
-        "at": {
-          "pi": "start",
-          "offset": 37
-        },
-        "lateral": 2
-      },
-      {
-        "at": {
-          "pi": "start",
-          "offset": 49
-        },
-        "lateral": -2
-      },
-      {
-        "at": {
-          "pi": "start",
-          "offset": 61
-        },
-        "lateral": 2
-      },
-      {
-        "at": {
-          "pi": "start",
-          "offset": 73
-        },
-        "lateral": -2
-      },
-      {
-        "at": {
-          "pi": "start",
-          "offset": 85
-        },
-        "lateral": 2
-      },
-      {
-        "at": {
-          "pi": "start",
-          "offset": 97
-        },
-        "lateral": -2
-      },
-      {
-        "at": {
-          "pi": "start",
-          "offset": 109
-        },
-        "lateral": 2
-      },
-      {
-        "at": {
-          "pi": "start",
-          "offset": 121
-        },
-        "lateral": -2
-      },
-      {
-        "at": {
-          "pi": "start",
-          "offset": 133
-        },
-        "lateral": 2
-      },
-      {
-        "at": {
-          "pi": "start",
-          "offset": 145
-        },
-        "lateral": -2
-      },
-      {
-        "at": {
-          "pi": "start",
-          "offset": 157
-        },
-        "lateral": 2
-      },
-      {
-        "at": {
-          "pi": "start",
-          "offset": 169
-        },
-        "lateral": -2
-      },
-      {
-        "at": {
-          "pi": "start",
-          "offset": 181
-        },
-        "lateral": 2
-      },
-      {
-        "at": {
-          "pi": "start",
-          "offset": 193
-        },
-        "lateral": -2
-      },
-      {
-        "at": {
-          "pi": "start",
-          "offset": 205
-        },
-        "lateral": 2
-      }
-    ],
-    "checkpoints": [
-      {
-        "id": "ring-CP1",
-        "sectionId": "ring-outward",
-        "carriagewayId": "road",
-        "at": {
-          "pi": "start",
-          "offset": 500
-        }
-      },
-      {
-        "id": "ring-CP2",
-        "sectionId": "ring-return",
-        "carriagewayId": "road",
-        "at": {
-          "pi": "start",
-          "offset": 10
-        }
-      },
-      {
-        "id": "ring-CP3",
-        "sectionId": "ring-return",
-        "carriagewayId": "road",
-        "at": {
-          "pi": "start",
-          "offset": 990
-        }
-      }
-    ],
-    "finishes": [
-      {
-        "id": "ring-FINISH",
-        "sectionId": "ring-return",
-        "carriagewayId": "road",
-        "at": {
-          "pi": "end",
-          "offset": 0
-        }
-      }
-    ],
     "maxLaps": 3,
     "classic": {
       "vehicleId": "TESTAROSSA",
@@ -865,7 +703,6 @@
           }
         }
       ],
-      "fork": null,
       "sprites": [
         {
           "kind": "repeat",
@@ -875,7 +712,7 @@
             {
               "kind": "sprite",
               "image": "tree",
-              "palette": null,
+              "palette": [],
               "at": {
                 "pi": "start",
                 "offset": 17.50162686430845
@@ -897,7 +734,7 @@
             {
               "kind": "sprite",
               "image": "tree",
-              "palette": null,
+              "palette": [],
               "at": {
                 "pi": "start",
                 "offset": 17.50162686430845
@@ -911,6 +748,150 @@
             }
           ]
         }
+      ],
+      "gates": [
+        {
+          "kind": "start",
+          "grid": [
+            {
+              "at": {
+                "pi": "start",
+                "offset": 15
+              },
+              "lateral": 0
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 25
+              },
+              "lateral": -2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 37
+              },
+              "lateral": 2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 49
+              },
+              "lateral": -2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 61
+              },
+              "lateral": 2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 73
+              },
+              "lateral": -2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 85
+              },
+              "lateral": 2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 97
+              },
+              "lateral": -2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 109
+              },
+              "lateral": 2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 121
+              },
+              "lateral": -2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 133
+              },
+              "lateral": 2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 145
+              },
+              "lateral": -2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 157
+              },
+              "lateral": 2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 169
+              },
+              "lateral": -2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 181
+              },
+              "lateral": 2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 193
+              },
+              "lateral": -2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 205
+              },
+              "lateral": 2
+            }
+          ]
+        },
+        {
+          "kind": "checkpoint",
+          "id": "ring-CP1",
+          "carriageway": "road",
+          "at": {
+            "pi": "start",
+            "offset": 500
+          }
+        },
+        {
+          "kind": "checkpoint",
+          "id": "ring-CP2",
+          "carriageway": "road",
+          "at": {
+            "pi": "end",
+            "offset": 0
+          }
+        }
       ]
     },
     {
@@ -918,25 +899,25 @@
       "pis": [
         {
           "id": "start",
-          "x": 0,
+          "x": 520,
           "z": 0,
           "radius": 0
         },
         {
           "id": "bend-1",
-          "x": 0,
-          "z": 351.5929550333269,
+          "x": 520,
+          "z": -351.5929550333269,
           "radius": 260
         },
         {
           "id": "bend-2",
-          "x": 520,
-          "z": 351.5929550333269,
+          "x": 0,
+          "z": -351.5929550333269,
           "radius": 260
         },
         {
           "id": "end",
-          "x": 520,
+          "x": 0,
           "z": 0,
           "radius": 0
         }
@@ -1624,11 +1605,10 @@
           "background": {
             "assetId": "coast-sky",
             "horizonY": 320,
-            "yawOrigin": 0
+            "yawOrigin": 180
           }
         }
       ],
-      "fork": null,
       "sprites": [
         {
           "kind": "repeat",
@@ -1638,7 +1618,7 @@
             {
               "kind": "sprite",
               "image": "tree",
-              "palette": null,
+              "palette": [],
               "at": {
                 "pi": "start",
                 "offset": 17.50162686430845
@@ -1660,7 +1640,7 @@
             {
               "kind": "sprite",
               "image": "tree",
-              "palette": null,
+              "palette": [],
               "at": {
                 "pi": "start",
                 "offset": 17.50162686430845
@@ -1673,6 +1653,26 @@
               "unselectedCarriagewayId": null
             }
           ]
+        }
+      ],
+      "gates": [
+        {
+          "kind": "checkpoint",
+          "id": "ring-CP3",
+          "carriageway": "road",
+          "at": {
+            "pi": "start",
+            "offset": 500
+          }
+        },
+        {
+          "kind": "finish",
+          "id": "ring-FINISH",
+          "carriageway": "road",
+          "at": {
+            "pi": "end",
+            "offset": 0
+          }
         }
       ]
     }

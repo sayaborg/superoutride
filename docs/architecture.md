@@ -124,7 +124,8 @@ the final segment.
 
 ## Cycle closure
 
-Topology admission first forbids self Links, checks reachability, and admits only an acyclic
+Topology admission first forbids self Links and checks reachability; DFS detects cycles and outgoing
+Link counts detect branches. The derived kind admits only an acyclic
 LINEAR/BRANCH graph or one unbranched CIRCUIT cycle of at least two Sections. In the latter case,
 one incoming and one outgoing Link per Section plus reachability proves there is exactly one cycle.
 The compiler follows that cycle from entry once and composes `destinationFromSource` transforms in

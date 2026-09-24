@@ -81,7 +81,7 @@ export async function readCourseReference(
     const expected: { gate: CompiledCourseLandmark; lap: number }[] = [];
     for (let lap = 1; lap <= course.rules.maxLaps; lap++)
       for (const section of itinerary) {
-        const interval = course.rules.intervals.find((i) => i.section === section)!;
+        const interval = course.gates!.intervals.find((i) => i.section === section)!;
         for (const gate of [...interval.checkpoints, ...(interval.finish ? [interval.finish] : [])])
           expected.push({ gate, lap });
       }

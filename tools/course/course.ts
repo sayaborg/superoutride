@@ -92,7 +92,7 @@ try {
         stations = Array.from({ length: count }, (_, i) => start + i * step);
       } else stations = [finite(Number(opts.get('--s') ?? 45), '/s', 0, section.coordinates.domain.end)];
       const l = finite(Number(opts.get('--l') ?? 0), '/l', -1000, 1000),
-        scene = createCourseScene(section, await loadCourseGround(course), spriteAssets, course.rules);
+        scene = createCourseScene(section, await loadCourseGround(course), spriteAssets, course.gates);
       if (opts.has('--exit')) {
         const link = section.outgoing.find((l) => l.id === opts.get('--exit'));
         requireInput(link, '/exit', 'Exit must name a canonical outgoing Link');

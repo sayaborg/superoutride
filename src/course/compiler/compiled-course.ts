@@ -21,7 +21,7 @@ import {
   compileCourseCut,
   entryCut,
   compileCourseLink,
-  validateCourseTopology,
+  compileCourseTopology,
 } from './course-links.js';
 import {
   COURSE_IMAGE_SOURCE_RECIPE,
@@ -31,7 +31,7 @@ import {
 } from './course-image-source.js';
 import { COURSE_APPEARANCE_RECIPE, compileCourseAppearance, createCourseSpriteResources } from './course-appearance.js';
 import { compileCourseBoundaries } from './course-lateral.js';
-import { compileCourseRules } from './course-rules.js';
+import { compileCourseGates } from './course-rules.js';
 import { compileCourseFork } from './course-fork.js';
 
 interface SectionDraft extends Omit<CompiledSection, 'incoming' | 'outgoing' | 'fork'> {
@@ -43,8 +43,9 @@ interface SectionDraft extends Omit<CompiledSection, 'incoming' | 'outgoing' | '
 /** Upper-level immutable product. Consumers receive its ordinary reader/data facets, never this root. */
 export interface CompiledCourse {
   readonly id: string;
-  readonly type: CourseDocument['type'];
-  readonly rules: ReturnType<typeof compileCourseRules>;
+  readonly type: ReturnType<typeof compileCourseTopology>;
+  readonly rules: CourseDocument['rules'];
+  readonly gates: ReturnType<typeof compileCourseGates>;
   readonly identity: {
     readonly sourceSha256: string;
     readonly buildSha256: string;
@@ -58,7 +59,7 @@ export interface CompiledCourse {
 
 const COURSE_COMPILER = Object.freeze({
   id: 'superoutride.course-compiler',
-  version: 33,
+  version: 34,
   links: COURSE_LINK_RECIPE,
   physical: COURSE_PHYSICAL_RECIPE,
   images: COURSE_IMAGE_SOURCE_RECIPE,
@@ -152,13 +153,11 @@ function compileSection(
   return {
     section: result,
     stations,
-    fork:
-      section.fork === null
-        ? null
-        : Object.freeze({
-            lock: resolve(section.fork.lock, `${path}/fork/lock`),
-            closure: resolve(section.fork.closure, `${path}/fork/closure`),
-          }),
+    controls: section.gates.flatMap((gate, index) =>
+      gate.kind === 'lock' || gate.kind === 'closure'
+        ? [{ kind: gate.kind, at: resolve(gate.at, `${path}/gates/${index}/at`) }]
+        : [],
+    ),
   };
 }
 
@@ -206,15 +205,16 @@ export async function compileCourseDocument(
       to.incoming.push(link);
       return link;
     });
-    validateCourseTopology(document.type, entry, sections);
+    const type = compileCourseTopology(entry, sections);
     const forks = compileStage(drafts, (draft, index) =>
-      compileCourseFork(draft.section, draft.fork, `/sections/${index}/fork`),
+      compileCourseFork(draft.section, draft.controls, `/sections/${index}/gates`),
     );
     drafts.forEach((draft, index) => {
       draft.section.fork = forks[index]!;
     });
-    const rules = compileCourseRules(
+    const gates = compileCourseGates(
       document,
+      type,
       sections,
       entry,
       new Map(drafts.map((draft) => [draft.section, draft.stations])),
@@ -232,8 +232,9 @@ export async function compileCourseDocument(
     return courseSuccess(
       Object.freeze({
         id: document.id,
-        type: document.type,
-        rules,
+        type,
+        rules: document.rules,
+        gates,
         identity: Object.freeze({
           sourceSha256,
           buildSha256,

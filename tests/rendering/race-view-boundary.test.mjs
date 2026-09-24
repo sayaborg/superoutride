@@ -20,7 +20,7 @@ async function setup() {
   const file = fileURLToPath(new URL('../../content/courses/ribbon-ring.course.json', import.meta.url));
   const { course } = await loadCourse(file);
   const assets = await readVehicleSprites();
-  const scene = createCourseScene(course.entry, await loadCourseGround(course), assets, course.rules);
+  const scene = createCourseScene(course.entry, await loadCourseGround(course), assets, course.gates);
   const profile = browserSessionVehicle(VEHICLE_CATALOG.find((v) => v.profile.id === 'TESTAROSSA'));
   const spawn = (s) => createArcadeVehicle(profile.profile, scene.world, { ...profile, s, l: 0, initialSpeed: 0 });
   return { course, assets, scene, profile, spawn };

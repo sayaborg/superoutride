@@ -3,7 +3,7 @@ import { COURSE_DOCUMENT_LIMITS } from './course-limits.js';
 import { SESSION_RULE_LIMITS } from './session-rules.js';
 import { CourseInputError, courseFailure, courseSuccess, type CourseResult } from './course-diagnostics.js';
 
-const COURSE_DOCUMENT_VERSION = 22;
+const COURSE_DOCUMENT_VERSION = 23;
 
 export interface CoursePosition {
   readonly pi: string;
@@ -92,7 +92,7 @@ export interface EnvironmentDocument {
 export interface SpriteDocument {
   readonly kind: 'sprite';
   readonly image: string;
-  readonly palette: readonly number[] | null;
+  readonly palette: readonly number[];
   readonly unselectedCarriagewayId: string | null;
   readonly at: CoursePosition;
   readonly lateral: Lateral;
@@ -108,21 +108,23 @@ export interface SectionDocument {
   readonly height: readonly { readonly at: CoursePosition; readonly y: number; readonly curveLength: number }[];
   readonly carriageways: readonly CarriagewayDocument[];
   readonly assetIds: readonly string[];
-  readonly environments: readonly RepeatElement<EnvironmentDocument>[] | null;
-  readonly fork: null | { readonly lock: CoursePosition; readonly closure: CoursePosition };
+  readonly environments: readonly RepeatElement<EnvironmentDocument>[];
+  readonly gates: readonly CourseGateDocument[];
 }
 
 export interface CourseLandmarkDocument {
+  readonly kind: 'checkpoint' | 'finish';
   readonly id: string;
-  readonly sectionId: string;
-  readonly carriagewayId: string;
+  readonly carriageway: string;
   readonly at: CoursePosition;
 }
 
+export type CourseGateDocument =
+  | CourseLandmarkDocument
+  | { readonly kind: 'start'; readonly grid: readonly { readonly at: CoursePosition; readonly lateral: Lateral }[] }
+  | { readonly kind: 'lock' | 'closure'; readonly at: CoursePosition };
+
 interface CourseRulesDocument {
-  readonly grid: readonly { readonly at: CoursePosition; readonly lateral: Lateral }[];
-  readonly checkpoints: readonly CourseLandmarkDocument[];
-  readonly finishes: readonly CourseLandmarkDocument[];
   readonly maxLaps: number;
   readonly classic: {
     readonly vehicleId: string;
@@ -136,7 +138,6 @@ export interface CourseDocument {
   readonly format: 'superoutride.course';
   readonly version: typeof COURSE_DOCUMENT_VERSION;
   readonly id: string;
-  readonly type: 'LINEAR' | 'BRANCH' | 'CIRCUIT';
   readonly entrySectionId: string;
   readonly rules: CourseRulesDocument | null;
   readonly sections: readonly SectionDocument[];
@@ -406,9 +407,9 @@ function sprite(value: unknown, path: string): SpriteDocument {
     'unselectedCarriagewayId',
   ]);
   if (s.kind !== 'sprite') fail('unsupported_feature', `${path}/kind`, 'Expected sprite');
-  const palette = s.palette === null ? null : array(s.palette, `${path}/palette`, 16, rgb555);
-  if (palette !== null && palette.length !== 16)
-    fail('invalid_shape', `${path}/palette`, 'Expected 16 indexed palette slots');
+  const palette = array(s.palette, `${path}/palette`, 16, rgb555);
+  if (palette.length !== 0 && palette.length !== 16)
+    fail('invalid_shape', `${path}/palette`, 'Expected an empty palette or 16 indexed palette slots');
   return Object.freeze({
     kind: 'sprite',
     image: id(s.image, `${path}/image`),
@@ -426,7 +427,6 @@ function sprite(value: unknown, path: string): SpriteDocument {
   });
 }
 function environments(value: unknown, path: string): SectionDocument['environments'] {
-  if (value === null) return null;
   return array(value, path, COURSE_DOCUMENT_LIMITS.environmentKnots, (item, at) =>
     repeated(item, at, COURSE_DOCUMENT_LIMITS.environmentKnots, environment),
   );
@@ -443,9 +443,8 @@ function section(value: unknown, path: string): SectionDocument {
     'carriageways',
     'assetIds',
     'environments',
-    'fork',
+    'gates',
   ]);
-  const fork = v.fork === null ? null : record(v.fork, `${path}/fork`, ['lock', 'closure']);
   return Object.freeze({
     id: id(v.id, `${path}/id`),
     pis: identified(v.pis, `${path}/pis`, COURSE_DOCUMENT_LIMITS.pis, planPI),
@@ -472,41 +471,48 @@ function section(value: unknown, path: string): SectionDocument {
     carriageways: identified(v.carriageways, `${path}/carriageways`, COURSE_DOCUMENT_LIMITS.carriageways, carriageway),
     assetIds: array(v.assetIds, `${path}/assetIds`, COURSE_DOCUMENT_LIMITS.sectionAssets, id),
     environments: environments(v.environments, `${path}/environments`),
-    fork:
-      fork === null
-        ? null
-        : Object.freeze({
-            lock: position(fork.lock, `${path}/fork/lock`),
-            closure: position(fork.closure, `${path}/fork/closure`),
-          }),
+    gates: array(v.gates, `${path}/gates`, COURSE_DOCUMENT_LIMITS.gates, gate),
   });
+}
+
+function gate(value: unknown, path: string): CourseGateDocument {
+  const kind = value && typeof value === 'object' ? (value as Record<string, unknown>).kind : undefined;
+  if (kind === 'start') {
+    const v = record(value, path, ['kind', 'grid']);
+    return Object.freeze({
+      kind,
+      grid: array(v.grid, `${path}/grid`, COURSE_DOCUMENT_LIMITS.startGridSlots, (item, at) => {
+        const slot = record(item, at, ['at', 'lateral']);
+        return Object.freeze({ at: position(slot.at, `${at}/at`), lateral: lateral(slot.lateral, `${at}/lateral`) });
+      }),
+    });
+  }
+  if (kind === 'checkpoint' || kind === 'finish') {
+    const v = record(value, path, ['kind', 'id', 'carriageway', 'at']);
+    return Object.freeze({
+      kind,
+      id: id(v.id, `${path}/id`),
+      carriageway: id(v.carriageway, `${path}/carriageway`),
+      at: position(v.at, `${path}/at`),
+    });
+  }
+  if (kind === 'lock' || kind === 'closure') {
+    const v = record(value, path, ['kind', 'at']);
+    return Object.freeze({ kind, at: position(v.at, `${path}/at`) });
+  }
+  return fail('unsupported_feature', `${path}/kind`, 'Unknown gate kind');
 }
 
 function rules(value: unknown, path: string): CourseRulesDocument | null {
   if (value === null) return null;
-  const v = record(value, path, ['grid', 'checkpoints', 'finishes', 'maxLaps', 'classic']);
+  const v = record(value, path, ['maxLaps', 'classic']);
   const c = record(v.classic, path + '/classic', ['vehicleId', 'rivalCount', 'lapCount', 'timeMargin']);
   const integer = (value: unknown, at: string, min: number, max: number) => {
     const n = number(value, at, min, max);
     if (!Number.isInteger(n)) fail('invalid_numeric_domain', at, 'Expected an integer');
     return n;
   };
-  const landmark = (value: unknown, at: string): CourseLandmarkDocument => {
-    const g = record(value, at, ['id', 'sectionId', 'carriagewayId', 'at']);
-    return Object.freeze({
-      id: id(g.id, at + '/id'),
-      sectionId: id(g.sectionId, at + '/sectionId'),
-      carriagewayId: id(g.carriagewayId, at + '/carriagewayId'),
-      at: position(g.at, at + '/at'),
-    });
-  };
   return Object.freeze({
-    grid: array(v.grid, path + '/grid', COURSE_DOCUMENT_LIMITS.grid, (value, at) => {
-      const slot = record(value, at, ['at', 'lateral']);
-      return Object.freeze({ at: position(slot.at, at + '/at'), lateral: lateral(slot.lateral, at + '/lateral') });
-    }),
-    checkpoints: identified(v.checkpoints, path + '/checkpoints', COURSE_DOCUMENT_LIMITS.checkpoints, landmark),
-    finishes: identified(v.finishes, path + '/finishes', COURSE_DOCUMENT_LIMITS.finishes, landmark),
     maxLaps: integer(v.maxLaps, path + '/maxLaps', 1, SESSION_RULE_LIMITS.laps),
     classic: Object.freeze({
       vehicleId: id(c.vehicleId, path + '/classic/vehicleId'),
@@ -523,26 +529,13 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
     // Reject an identified older schema before requiring the current schema's fields.
     if (input && typeof input === 'object' && Object.hasOwn(input, 'version'))
       literal((input as Record<string, unknown>).version, COURSE_DOCUMENT_VERSION, '/version', 'unsupported_version');
-    const v = record(input, '', [
-      'rules',
-      'format',
-      'version',
-      'id',
-      'type',
-      'entrySectionId',
-      'sections',
-      'links',
-      'assets',
-    ]);
+    const v = record(input, '', ['rules', 'format', 'version', 'id', 'entrySectionId', 'sections', 'links', 'assets']);
     const format = literal(v.format, 'superoutride.course', '/format', 'unsupported_format');
     const version = literal(v.version, COURSE_DOCUMENT_VERSION, '/version', 'unsupported_version');
-    if (v.type !== 'LINEAR' && v.type !== 'BRANCH' && v.type !== 'CIRCUIT')
-      fail('unsupported_feature', '/type', 'Supported topology types are LINEAR, BRANCH and CIRCUIT');
     const result: CourseDocument = Object.freeze({
       format,
       version,
       id: id(v.id, '/id'),
-      type: v.type,
       entrySectionId: id(v.entrySectionId, '/entrySectionId'),
       rules: rules(v.rules, '/rules'),
       sections: identified(v.sections, '/sections', COURSE_DOCUMENT_LIMITS.sections, section),
@@ -576,6 +569,20 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
           sha256: a.sha256,
         });
       }),
+    });
+    const gateIds = new Set<string>();
+    let gateCount = 0;
+    result.sections.forEach((section, i) => {
+      gateCount += section.gates.length;
+      if (gateCount > COURSE_DOCUMENT_LIMITS.gates)
+        fail('resource_limit', `/sections/${i}/gates`, `Course admits at most ${COURSE_DOCUMENT_LIMITS.gates} gates`);
+      section.gates.forEach((gate, j) => {
+        if ('id' in gate) {
+          if (gateIds.has(gate.id))
+            fail('duplicate_id', `/sections/${i}/gates/${j}/id`, `Duplicate gate ID ${gate.id}`);
+          gateIds.add(gate.id);
+        }
+      });
     });
     if (new TextEncoder().encode(JSON.stringify(result)).byteLength > COURSE_DOCUMENT_LIMITS.jsonBytes)
       fail('resource_limit', '', `Document exceeds ${COURSE_DOCUMENT_LIMITS.jsonBytes} UTF-8 bytes`);

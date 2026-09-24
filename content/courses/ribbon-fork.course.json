@@ -1,171 +1,9 @@
 {
   "format": "superoutride.course",
-  "version": 22,
+  "version": 23,
   "id": "ribbon-fork",
-  "type": "BRANCH",
   "entrySectionId": "junction-road",
   "rules": {
-    "grid": [
-      {
-        "at": {
-          "pi": "start",
-          "offset": 15
-        },
-        "lateral": 0
-      },
-      {
-        "at": {
-          "pi": "start",
-          "offset": 25
-        },
-        "lateral": -2
-      },
-      {
-        "at": {
-          "pi": "start",
-          "offset": 37
-        },
-        "lateral": 2
-      },
-      {
-        "at": {
-          "pi": "start",
-          "offset": 49
-        },
-        "lateral": -2
-      },
-      {
-        "at": {
-          "pi": "start",
-          "offset": 61
-        },
-        "lateral": 2
-      },
-      {
-        "at": {
-          "pi": "start",
-          "offset": 73
-        },
-        "lateral": -2
-      },
-      {
-        "at": {
-          "pi": "start",
-          "offset": 85
-        },
-        "lateral": 2
-      },
-      {
-        "at": {
-          "pi": "start",
-          "offset": 97
-        },
-        "lateral": -2
-      },
-      {
-        "at": {
-          "pi": "start",
-          "offset": 109
-        },
-        "lateral": 2
-      },
-      {
-        "at": {
-          "pi": "start",
-          "offset": 121
-        },
-        "lateral": -2
-      },
-      {
-        "at": {
-          "pi": "start",
-          "offset": 133
-        },
-        "lateral": 2
-      },
-      {
-        "at": {
-          "pi": "start",
-          "offset": 145
-        },
-        "lateral": -2
-      },
-      {
-        "at": {
-          "pi": "start",
-          "offset": 157
-        },
-        "lateral": 2
-      },
-      {
-        "at": {
-          "pi": "start",
-          "offset": 169
-        },
-        "lateral": -2
-      },
-      {
-        "at": {
-          "pi": "start",
-          "offset": 181
-        },
-        "lateral": 2
-      },
-      {
-        "at": {
-          "pi": "start",
-          "offset": 193
-        },
-        "lateral": -2
-      },
-      {
-        "at": {
-          "pi": "start",
-          "offset": 205
-        },
-        "lateral": 2
-      }
-    ],
-    "checkpoints": [
-      {
-        "id": "cliff-route-CP1",
-        "sectionId": "cliff-route",
-        "carriagewayId": "road",
-        "at": {
-          "pi": "start",
-          "offset": 400
-        }
-      },
-      {
-        "id": "garden-route-CP1",
-        "sectionId": "garden-route",
-        "carriagewayId": "road",
-        "at": {
-          "pi": "start",
-          "offset": 500
-        }
-      },
-      {
-        "id": "home-road-CP1",
-        "sectionId": "home-road",
-        "carriagewayId": "road",
-        "at": {
-          "pi": "start",
-          "offset": 470
-        }
-      }
-    ],
-    "finishes": [
-      {
-        "id": "home-road-FINISH",
-        "sectionId": "home-road",
-        "carriagewayId": "road",
-        "at": {
-          "pi": "end",
-          "offset": -360
-        }
-      }
-    ],
     "maxLaps": 1,
     "classic": {
       "vehicleId": "TESTAROSSA",
@@ -1012,21 +850,11 @@
           }
         }
       ],
-      "fork": {
-        "lock": {
-          "pi": "start",
-          "offset": 220
-        },
-        "closure": {
-          "pi": "end",
-          "offset": -200
-        }
-      },
       "sprites": [
         {
           "kind": "sprite",
           "image": "fork-warning",
-          "palette": null,
+          "palette": [],
           "at": {
             "pi": "start",
             "offset": 250
@@ -1038,7 +866,7 @@
         {
           "kind": "sprite",
           "image": "fork-closed",
-          "palette": null,
+          "palette": [],
           "at": {
             "pi": "end",
             "offset": -200
@@ -1050,7 +878,7 @@
         {
           "kind": "sprite",
           "image": "fork-warning",
-          "palette": null,
+          "palette": [],
           "at": {
             "pi": "start",
             "offset": 250
@@ -1062,7 +890,7 @@
         {
           "kind": "sprite",
           "image": "fork-closed",
-          "palette": null,
+          "palette": [],
           "at": {
             "pi": "end",
             "offset": -200
@@ -1079,7 +907,7 @@
             {
               "kind": "sprite",
               "image": "tree",
-              "palette": null,
+              "palette": [],
               "at": {
                 "pi": "start",
                 "offset": 220
@@ -1101,7 +929,7 @@
             {
               "kind": "sprite",
               "image": "tree",
-              "palette": null,
+              "palette": [],
               "at": {
                 "pi": "start",
                 "offset": 220
@@ -1114,6 +942,146 @@
               "unselectedCarriagewayId": null
             }
           ]
+        }
+      ],
+      "gates": [
+        {
+          "kind": "start",
+          "grid": [
+            {
+              "at": {
+                "pi": "start",
+                "offset": 15
+              },
+              "lateral": 0
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 25
+              },
+              "lateral": -2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 37
+              },
+              "lateral": 2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 49
+              },
+              "lateral": -2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 61
+              },
+              "lateral": 2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 73
+              },
+              "lateral": -2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 85
+              },
+              "lateral": 2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 97
+              },
+              "lateral": -2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 109
+              },
+              "lateral": 2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 121
+              },
+              "lateral": -2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 133
+              },
+              "lateral": 2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 145
+              },
+              "lateral": -2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 157
+              },
+              "lateral": 2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 169
+              },
+              "lateral": -2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 181
+              },
+              "lateral": 2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 193
+              },
+              "lateral": -2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 205
+              },
+              "lateral": 2
+            }
+          ]
+        },
+        {
+          "kind": "lock",
+          "at": {
+            "pi": "start",
+            "offset": 220
+          }
+        },
+        {
+          "kind": "closure",
+          "at": {
+            "pi": "end",
+            "offset": -200
+          }
         }
       ]
     },
@@ -1518,8 +1486,18 @@
           }
         }
       ],
-      "fork": null,
-      "sprites": []
+      "sprites": [],
+      "gates": [
+        {
+          "kind": "checkpoint",
+          "id": "cliff-route-CP1",
+          "carriageway": "road",
+          "at": {
+            "pi": "start",
+            "offset": 400
+          }
+        }
+      ]
     },
     {
       "id": "garden-route",
@@ -1862,7 +1840,6 @@
           }
         }
       ],
-      "fork": null,
       "sprites": [
         {
           "kind": "repeat",
@@ -1872,7 +1849,7 @@
             {
               "kind": "sprite",
               "image": "tree",
-              "palette": null,
+              "palette": [],
               "at": {
                 "pi": "start",
                 "offset": 60
@@ -1885,6 +1862,17 @@
               "unselectedCarriagewayId": null
             }
           ]
+        }
+      ],
+      "gates": [
+        {
+          "kind": "checkpoint",
+          "id": "garden-route-CP1",
+          "carriageway": "road",
+          "at": {
+            "pi": "start",
+            "offset": 500
+          }
         }
       ]
     },
@@ -2309,7 +2297,6 @@
           }
         }
       ],
-      "fork": null,
       "sprites": [
         {
           "kind": "repeat",
@@ -2319,7 +2306,7 @@
             {
               "kind": "sprite",
               "image": "tree",
-              "palette": null,
+              "palette": [],
               "at": {
                 "pi": "start",
                 "offset": 60
@@ -2332,6 +2319,26 @@
               "unselectedCarriagewayId": null
             }
           ]
+        }
+      ],
+      "gates": [
+        {
+          "kind": "checkpoint",
+          "id": "home-road-CP1",
+          "carriageway": "road",
+          "at": {
+            "pi": "start",
+            "offset": 470
+          }
+        },
+        {
+          "kind": "finish",
+          "id": "home-road-FINISH",
+          "carriageway": "road",
+          "at": {
+            "pi": "end",
+            "offset": -360
+          }
         }
       ]
     }

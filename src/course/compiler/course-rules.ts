@@ -1,3 +1,4 @@
+import type { compileCourseTopology } from './course-links.js';
 import { resolveCourseLateral } from './course-lateral.js';
 import type { CourseDocument, CourseLandmarkDocument } from '../course-document.js';
 import { requireCourse } from '../course-diagnostics.js';
@@ -16,26 +17,47 @@ export interface CompiledCourseLandmark {
 }
 
 /** Canonical references and ordinary geometry; no live race, driver or vehicle catalog dependency. */
-export function compileCourseRules(
+export function compileCourseGates(
   document: CourseDocument,
+  type: ReturnType<typeof compileCourseTopology>,
   sections: readonly CompiledSection[],
   entry: CompiledSection,
   stations: ReadonlyMap<CompiledSection, ReadonlyMap<string, number>>,
 ) {
   const source = document.rules;
-  if (source === null) return null;
   const check = (condition: boolean, path: string, message: string) =>
     requireCourse(condition, path, message, 'invalid_rules');
+  const authored = document.sections.flatMap((source, i) =>
+    source.gates.map((gate, j) => ({ gate, section: sections[i]!, path: `/sections/${i}/gates/${j}` })),
+  );
+  const starts = authored.filter((item) => item.gate.kind === 'start');
+  if (source === null) {
+    const raceGate = authored.find(
+      ({ gate }) => gate.kind === 'start' || gate.kind === 'checkpoint' || gate.kind === 'finish',
+    );
+    check(
+      !raceGate,
+      raceGate?.path ?? '/rules',
+      'A draft without race settings cannot contain start, checkpoint or finish gates',
+    );
+    return null;
+  }
+  check(
+    starts.length === 1 && starts[0]!.section === entry,
+    starts[0]?.path ?? '/rules',
+    'Exactly one start gate must belong to the entry Section',
+  );
+  const start = starts[0]!;
+  const startGate = start.gate;
+  if (startGate.kind !== 'start') throw new Error('Start gate selection failed');
   const resolve = (section: CompiledSection, position: CourseLandmarkDocument['at'], path: string) =>
     resolveCoursePosition(position, stations.get(section)!, section.coordinates.domain.end, path);
   const endS = (section: CompiledSection) => section.coordinates.domain.end;
-  const compile = (g: CourseLandmarkDocument, path: string): CompiledCourseLandmark => {
-    const section = sections.find((s) => s.id === g.sectionId);
-    requireCourse(section !== undefined, path + '/sectionId', 'Unknown landmark Section', 'unresolved_reference');
-    const carriageway = section.carriageways.find((c) => c.id === g.carriagewayId);
+  const compile = (g: CourseLandmarkDocument, section: CompiledSection, path: string): CompiledCourseLandmark => {
+    const carriageway = section.carriageways.find((c) => c.id === g.carriageway);
     requireCourse(
       carriageway !== undefined,
-      path + '/carriagewayId',
+      path + '/carriageway',
       'Unknown landmark Carriageway',
       'unresolved_reference',
     );
@@ -55,33 +77,33 @@ export function compileCourseRules(
     );
     return Object.freeze({ id: g.id, section, carriageway, at: position, left, right });
   };
-  const checkpoints = source.checkpoints.map((g, i) => compile(g, `/rules/checkpoints/${i}`));
-  const finishes = source.finishes.map((g, i) => compile(g, `/rules/finishes/${i}`));
-  check(
-    new Set([...checkpoints, ...finishes].map((g) => g.id)).size === checkpoints.length + finishes.length,
-    '/rules',
-    'Landmark IDs must be unique',
+  const landmarks = authored.flatMap(({ gate, section, path }) =>
+    gate.kind === 'checkpoint' || gate.kind === 'finish'
+      ? [{ kind: gate.kind, value: compile(gate, section, path), path }]
+      : [],
   );
-  check(document.type === 'CIRCUIT' || source.maxLaps === 1, '/rules/maxLaps', 'Only CIRCUIT has repeated laps');
+  const checkpoints = landmarks.filter((g) => g.kind === 'checkpoint').map((g) => g.value);
+  const finishes = landmarks.filter((g) => g.kind === 'finish').map((g) => g.value);
+  check(type === 'CIRCUIT' || source.maxLaps === 1, '/rules/maxLaps', 'Only CIRCUIT has repeated laps');
   check(source.classic.lapCount <= source.maxLaps, '/rules/classic/lapCount', 'Preset laps exceed course limit');
-  const intervals = sections.map((section) => {
+  const intervals = sections.map((section, index) => {
+    const path = `/sections/${index}/gates`;
     const gates = checkpoints.filter((g) => g.section === section);
     const goals = finishes.filter((g) => g.section === section);
-    const terminal =
-      document.type === 'CIRCUIT' ? section.outgoing[0]!.to.section === entry : section.outgoing.length === 0;
+    const terminal = type === 'CIRCUIT' ? section.outgoing[0]!.to.section === entry : section.outgoing.length === 0;
     check(
       goals.length === Number(terminal),
-      '/rules/finishes',
+      path,
       'Each terminal or circuit return-to-entry Section needs exactly one FINISH; other Sections have none',
     );
     const finish = goals[0] ?? null;
-    if (document.type === 'CIRCUIT' && finish)
-      check(finish.at.s === endS(section), '/rules/finishes', 'Circuit FINISH must coincide with its loop exit');
+    if (type === 'CIRCUIT' && finish)
+      check(finish.at.s === endS(section), path, 'Circuit FINISH must coincide with its loop exit');
     let previous = 0;
     for (const gate of gates) {
       check(
-        gate.at.s > previous && gate.at.s < (finish?.at.s ?? endS(section)),
-        '/rules/checkpoints',
+        gate.at.s > previous && (finish ? gate.at.s < finish.at.s : gate.at.s <= endS(section)),
+        path,
         'Checkpoints must be strictly ordered inside their Section interval',
       );
       previous = gate.at.s;
@@ -90,28 +112,29 @@ export function compileCourseRules(
   });
   const surface = entry.material;
   check(
-    source.grid.length > source.classic.rivalCount,
-    '/rules/grid',
+    startGate.grid.length > source.classic.rivalCount,
+    `${start.path}/grid`,
     'Grid must contain the player and preset rivals',
   );
   const first = intervals.find((i) => i.section === entry)!;
-  const firstGate = first.checkpoints[0]?.at.s ?? first.finish?.at.s ?? endS(entry);
+  const firstGate = Math.min(
+    first.checkpoints[0]?.at.s ?? first.finish?.at.s ?? endS(entry),
+    entry.fork?.lock.s ?? Infinity,
+  );
   const boundaries = new Map(entry.boundaries.map((boundary) => [boundary.id, boundary]));
-  const grid = source.grid.map((slot, i) => {
-    const position = resolve(entry, slot.at, `/rules/grid/${i}/at`);
+  const grid = startGate.grid.map((slot, i) => {
+    const position = resolve(entry, slot.at, `${start.path}/grid/${i}/at`);
     check(
       position.s >= 0 && position.s < firstGate,
-      `/rules/grid/${i}`,
+      `${start.path}/grid/${i}`,
       'Grid must lie between entry and the first gate',
     );
-    const l = resolveCourseLateral(slot.lateral, position.s, boundaries, `/rules/grid/${i}/lateral`);
-    check(surface.sample(position.s, l).material.supported, `/rules/grid/${i}`, 'Grid must be supported');
+    const l = resolveCourseLateral(slot.lateral, position.s, boundaries, `${start.path}/grid/${i}/lateral`);
+    check(surface.sample(position.s, l).material.supported, `${start.path}/grid/${i}`, 'Grid must be supported');
     return Object.freeze({ at: position, l });
   });
   return Object.freeze({
     grid: Object.freeze(grid),
     intervals: Object.freeze(intervals),
-    maxLaps: source.maxLaps,
-    classic: source.classic,
   });
 }

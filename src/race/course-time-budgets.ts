@@ -8,7 +8,7 @@ import type { CourseTimeBudgets } from './course-session.js';
 export function courseBudgetLandmarks(course: CompiledCourse) {
   if (!course.rules) throw new RangeError('Time budgets require authored rules');
   const result: { gate: CompiledCourseLandmark; laps: number }[] = [];
-  for (const interval of course.rules.intervals) {
+  for (const interval of course.gates!.intervals) {
     for (const gate of interval.checkpoints) result.push({ gate, laps: course.rules.maxLaps });
     if (course.type === 'CIRCUIT' && course.rules.maxLaps > 1 && interval.finish)
       result.push({ gate: interval.finish, laps: course.rules.maxLaps - 1 });
