@@ -44,13 +44,11 @@ interface SectionDraft extends Omit<CompiledSection, 'incoming' | 'outgoing' | '
 export interface CompiledCourse {
   readonly id: string;
   readonly type: CourseDocument['type'];
-  readonly reference: CourseDocument['reference'];
   readonly rules: ReturnType<typeof compileCourseRules>;
   readonly identity: {
     readonly sourceSha256: string;
     readonly buildSha256: string;
     readonly compiler: typeof COURSE_COMPILER;
-    readonly geometryRecipe: CourseDocument['geometryRecipe'];
   };
   readonly sections: readonly CompiledSection[];
   readonly entry: CompiledSection;
@@ -60,7 +58,7 @@ export interface CompiledCourse {
 
 const COURSE_COMPILER = Object.freeze({
   id: 'superoutride.course-compiler',
-  version: 31,
+  version: 32,
   links: COURSE_LINK_RECIPE,
   physical: COURSE_PHYSICAL_RECIPE,
   images: COURSE_IMAGE_SOURCE_RECIPE,
@@ -173,13 +171,6 @@ export async function compileCourseDocument(
   if (!admitted.ok) return admitted;
   const document = admitted.value;
   try {
-    if (document.geometryRecipe.id !== 'superoutride.plan-raster' || document.geometryRecipe.version !== 1) {
-      throw new CourseInputError(
-        'unsupported_version',
-        '/geometryRecipe',
-        'Supported geometry identity is superoutride.plan-raster v1',
-      );
-    }
     requireCourse(document.sections.length > 0, '/sections', 'A course requires a Section', 'empty_course');
     const images = await compileCourseImageSources(document.assets, assetSources);
     if (!images.ok) return images;
@@ -236,21 +227,17 @@ export async function compileCourseDocument(
     }
     const sourceSha256 = await contentDigest(new TextEncoder().encode(JSON.stringify(document)));
     const buildSha256 = await contentDigest(
-      new TextEncoder().encode(
-        JSON.stringify({ sourceSha256, compiler: COURSE_COMPILER, geometryRecipe: document.geometryRecipe }),
-      ),
+      new TextEncoder().encode(JSON.stringify({ sourceSha256, compiler: COURSE_COMPILER })),
     );
     return courseSuccess(
       Object.freeze({
         id: document.id,
         type: document.type,
-        reference: document.reference,
         rules,
         identity: Object.freeze({
           sourceSha256,
           buildSha256,
           compiler: COURSE_COMPILER,
-          geometryRecipe: document.geometryRecipe,
         }),
         sections: Object.freeze(sections),
         entry,

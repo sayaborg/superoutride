@@ -3,7 +3,6 @@ type CourseDiagnosticCode =
   | 'invalid_shape'
   | 'unsupported_version'
   | 'unsupported_format'
-  | 'unsupported_units'
   | 'duplicate_id'
   | 'unresolved_reference'
   | 'invalid_numeric_domain'

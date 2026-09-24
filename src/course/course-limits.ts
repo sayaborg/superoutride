@@ -39,6 +39,4 @@ export const COURSE_DOCUMENT_LIMITS = Object.freeze({
   imageTotalEncodedBytes: 128 * 1024 * 1024,
   imageMasterTexels: 1024 * 1024,
   imageTotalLevelTexels: 32 * 1024 * 1024,
-  referenceDeviations: 64,
-  referenceScale: 100,
 });

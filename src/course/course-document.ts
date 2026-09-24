@@ -3,12 +3,7 @@ import { COURSE_DOCUMENT_LIMITS } from './course-limits.js';
 import { SESSION_RULE_LIMITS } from './session-rules.js';
 import { CourseInputError, courseFailure, courseSuccess, type CourseResult } from './course-diagnostics.js';
 
-const COURSE_DOCUMENT_VERSION = 21;
-
-interface GeometryRecipeIdentity {
-  readonly id: string;
-  readonly version: number;
-}
+const COURSE_DOCUMENT_VERSION = 22;
 
 export interface CoursePosition {
   readonly pi: string;
@@ -141,18 +136,6 @@ export interface CourseDocument {
   readonly format: 'superoutride.course';
   readonly version: typeof COURSE_DOCUMENT_VERSION;
   readonly id: string;
-  readonly reference: null | {
-    readonly source: { readonly kind: 'video' | 'analyzed-data'; readonly location: string; readonly edition: string };
-    readonly observations: { readonly location: string; readonly sha256: string };
-    readonly calibration: {
-      readonly distanceScale: number;
-      readonly curvatureScale: number;
-      readonly heightScale: number;
-    };
-    readonly remasterDeviations: readonly string[];
-  };
-  readonly units: { readonly length: 'm'; readonly angle: 'deg' };
-  readonly geometryRecipe: GeometryRecipeIdentity;
   readonly type: 'LINEAR' | 'BRANCH' | 'CIRCUIT';
   readonly entrySectionId: string;
   readonly rules: CourseRulesDocument | null;
@@ -199,57 +182,6 @@ function id(value: unknown, path: string): string {
   return value;
 }
 
-function referenceText(value: unknown, path: string): string {
-  if (typeof value !== 'string' || !value.trim() || value.length > 4096)
-    fail('invalid_shape', path, 'Reference text must be nonempty and at most 4096 code units');
-  return value;
-}
-
-function courseReference(value: unknown, path: string): CourseDocument['reference'] {
-  if (value === null) return null;
-  const v = record(value, path, ['source', 'observations', 'calibration', 'remasterDeviations']);
-  const source = record(v.source, `${path}/source`, ['kind', 'location', 'edition']);
-  if (source.kind !== 'video' && source.kind !== 'analyzed-data')
-    fail('unsupported_feature', `${path}/source/kind`, 'Reference source is video or analyzed-data');
-  const observations = record(v.observations, `${path}/observations`, ['location', 'sha256']);
-  if (typeof observations.sha256 !== 'string' || !/^[0-9a-f]{64}$/.test(observations.sha256))
-    fail('invalid_shape', `${path}/observations/sha256`, 'Expected exact saved observation SHA-256');
-  const c = record(v.calibration, `${path}/calibration`, ['distanceScale', 'curvatureScale', 'heightScale']);
-  return Object.freeze({
-    source: Object.freeze({
-      kind: source.kind,
-      location: referenceText(source.location, `${path}/source/location`),
-      edition: referenceText(source.edition, `${path}/source/edition`),
-    }),
-    observations: Object.freeze({
-      location: referenceText(observations.location, `${path}/observations/location`),
-      sha256: observations.sha256,
-    }),
-    calibration: Object.freeze({
-      distanceScale: number(
-        c.distanceScale,
-        `${path}/calibration/distanceScale`,
-        0,
-        COURSE_DOCUMENT_LIMITS.referenceScale,
-        true,
-      ),
-      curvatureScale: number(
-        c.curvatureScale,
-        `${path}/calibration/curvatureScale`,
-        0,
-        COURSE_DOCUMENT_LIMITS.referenceScale,
-      ),
-      heightScale: number(c.heightScale, `${path}/calibration/heightScale`, 0, COURSE_DOCUMENT_LIMITS.referenceScale),
-    }),
-    remasterDeviations: array(
-      v.remasterDeviations,
-      `${path}/remasterDeviations`,
-      COURSE_DOCUMENT_LIMITS.referenceDeviations,
-      referenceText,
-    ),
-  });
-}
-
 function number(value: unknown, path: string, min: number, max: number, exclusiveMin = false): number {
   if (typeof value !== 'number') fail('invalid_shape', path, 'Expected a number');
   if (!Number.isFinite(value) || value > max || (exclusiveMin ? value <= min : value < min)) {
@@ -262,7 +194,7 @@ function literal<T extends string | number>(
   value: unknown,
   expected: T,
   path: string,
-  code: 'unsupported_version' | 'unsupported_format' | 'unsupported_units',
+  code: 'unsupported_version' | 'unsupported_format',
 ): T {
   if (value !== expected) fail(code, path, `Expected ${JSON.stringify(expected)}`);
   return expected;
@@ -596,9 +528,6 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
       'format',
       'version',
       'id',
-      'reference',
-      'units',
-      'geometryRecipe',
       'type',
       'entrySectionId',
       'sections',
@@ -607,23 +536,12 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
     ]);
     const format = literal(v.format, 'superoutride.course', '/format', 'unsupported_format');
     const version = literal(v.version, COURSE_DOCUMENT_VERSION, '/version', 'unsupported_version');
-    const units = record(v.units, '/units', ['length', 'angle']);
-    const recipe = record(v.geometryRecipe, '/geometryRecipe', ['id', 'version']);
-    const recipeVersion = number(recipe.version, '/geometryRecipe/version', 1, 65535);
-    if (!Number.isInteger(recipeVersion))
-      fail('invalid_numeric_domain', '/geometryRecipe/version', 'Recipe version must be an integer');
     if (v.type !== 'LINEAR' && v.type !== 'BRANCH' && v.type !== 'CIRCUIT')
       fail('unsupported_feature', '/type', 'Supported topology types are LINEAR, BRANCH and CIRCUIT');
     const result: CourseDocument = Object.freeze({
       format,
       version,
       id: id(v.id, '/id'),
-      reference: courseReference(v.reference, '/reference'),
-      units: Object.freeze({
-        length: literal(units.length, 'm', '/units/length', 'unsupported_units'),
-        angle: literal(units.angle, 'deg', '/units/angle', 'unsupported_units'),
-      }),
-      geometryRecipe: Object.freeze({ id: id(recipe.id, '/geometryRecipe/id'), version: recipeVersion }),
       type: v.type,
       entrySectionId: id(v.entrySectionId, '/entrySectionId'),
       rules: rules(v.rules, '/rules'),

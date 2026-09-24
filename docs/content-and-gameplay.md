@@ -18,7 +18,7 @@ color and material overwrite independently. Compiled Sections publish their two 
 Checkpoints, starts, finishes and environment changes are independent of Section boundaries.
 Source identity, traversal identity and race credit are distinct.
 
-## CourseDocument v21
+## CourseDocument v22
 
 The saved format is compact UTF-8 JSON. All declared fields are required; explicit null represents
 absent optional content. Unknown fields fail. Arrays preserve saved order; object-property order and
@@ -26,9 +26,8 @@ whitespace do not affect identity. Normalized records use schema field order and
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 21,
-  reference, id, units: {length: "m", angle: "deg"},
-  geometryRecipe: {id, version},
+  format: "superoutride.course", version: 22,
+  id,
   type: "LINEAR" | "BRANCH" | "CIRCUIT", entrySectionId,
   sections, links, assets, rules
 }
@@ -53,29 +52,14 @@ Section {
 Asset formats are
 `superoutride.sprite-lod` version 2 and `superoutride.tile-background` version 1.
 
-`reference` is null or:
-
-```text
-{
-  source: {kind: "video" | "analyzed-data", location, edition},
-  observations: {location, sha256},
-  calibration: {distanceScale, curvatureScale, heightScale},
-  remasterDeviations: string[]
-}
-```
-
-Distance scale is positive; curvature/height scales are nonnegative; each is at most 100.
-Locations describe provenance. The observation digest identifies exact intermediate-file bytes.
-These values participate in source identity; compilation consumes the saved geometry directly.
-
 IDs are opaque nonblank strings without surrounding whitespace and compare exactly. Course ID is
 external identity. Section, Link and asset IDs each have a document-wide scope.
 PI, Boundary and Carriageway IDs each have their own Section-local scope. Sprites have no IDs.
 Duplicate IDs fail. References
 resolve in their named scopes rather than by array position.
 
-Schema-valid drafts may contain empty arrays, unresolved references or an unavailable geometry recipe.
-Compilation requires complete semantic input and reports `unsupported_version` for an unavailable recipe.
+Schema-valid drafts may contain empty arrays or unresolved references.
+Compilation requires complete semantic input.
 A geometry draft uses `environments: null`, `fork: null`, `rules: null` and explicit asset and sprite arrays.
 
 ### Lateral positions
@@ -279,7 +263,6 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | `lateralMeters` / `heightMeters`                                        |   ±1000 / ±10000 m | 100 m lateral span / 1000 m elevation envelope, each × 10                                                               |
 | `imageEncodedBytes` / `imageMasterTexels` per image                     |    8 MiB / 1048576 | Retained 1024² master allowance; up to 8 encoded bytes/master texel                                                     |
 | Unique course images `imageTotalEncodedBytes` / `imageTotalLevelTexels` | 128 MiB / 33554432 | 928 image types averaging 128×64 master texels, ×4/3 mip texels, ×2 margin; allow 4 encoded bytes/level texel, round up |
-| `referenceDeviations` / `referenceScale`                                |           64 / 100 | Retained provenance bounds; removed with `reference` in 7-5                                                             |
 
 Sprite and environment expansion each allow at most `expandedLimit * (2*repeatDepth+1)` work visits:
 one leaf plus up to one repeat node and one iteration per permitted nesting level. Strip expansion
@@ -300,25 +283,21 @@ offset. Their stations must lie in the finite Section and intervals must be posi
 Endpoint PI radii are zero; interior radii and deflections are positive, with deflection below 180 degrees.
 Neighboring tangent lengths must fit their shared edge. The touching-tangent roundoff rule belongs to
 [Architecture](architecture.md#plan-authority). Resolved Lateral values also obey the lateral ceiling.
-Palette size, RGB555 range, SHA-256 length, glyph dimensions, angle units and 16-bit recipe versions
-are format values, not entries in the resource table. Provenance strings retain their separate
-4096-code-unit bound until `reference` is removed. Session rival/lap/time-margin rules remain owned by
+Palette size, RGB555 range, SHA-256 length, glyph dimensions and angle units
+are format values, not entries in the resource table. Session rival/lap/time-margin rules remain owned by
 `SESSION_RULE_LIMITS`, shared with Session admission and controls rather than copied into document limits.
 
-CourseDocument stays at version 19: this revision changes admission policy, not record shape or meaning.
-Future limit-only revisions likewise retain the format version; the compiler identity advances to identify
+Limit-only revisions retain the format version; the compiler identity advances to identify
 the revised admission policy. Existing inputs must still satisfy the current ceilings; no migration reader
 or grandfathered limit set is provided.
 
-## Geometry recipe and bindings
+## Geometry and bindings
 
-The saved `geometryRecipe` field is `{id,version}`; CourseDocument v21 admits
-`superoutride.plan-raster` version 1. The saved PI and position fields are listed above. [Architecture](architecture.md#plan-authority)
+The saved PI and position fields are listed above. [Architecture](architecture.md#plan-authority)
 owns their authoritative planar interpretation, coordinate domain and geometric validation.
 Rendering and physics read the same plan; Section length comes from its coordinate Reader domain.
 An overpass is authored as separate Sections for its passages; the coordinate-domain condition
 is specified in [Architecture](architecture.md#plan-authority).
-The recipe identity participates in every dependent build identity.
 
 Boundary knots strictly increase. Their resolved vertices define affine edges; width and center are derived.
 
@@ -388,8 +367,8 @@ asset and landmark references plus immutable material tables. Merges reuse the s
 Owned records and arrays are immutable, including nested image data. Live actor, route-lock and
 clock state belong to Sessions. Object identity is local to a compilation; cross-build identity uses digests.
 
-`sourceSha256` hashes normalized input. `buildSha256` hashes `{sourceSha256,compiler,geometryRecipe}`.
-The compiler is `superoutride.course-compiler` version 31, incorporating Link recipe v2, physical
+`sourceSha256` hashes normalized input. `buildSha256` hashes `{sourceSha256,compiler}`.
+The compiler is `superoutride.course-compiler` version 32, incorporating Link recipe v2, physical
 recipe v3, image-source recipe v2 and appearance recipe v9. Descriptors include semantic versions
 and operative numeric/data parameters, including material definitions. Source or compiler/recipe
 changes invalidate dependent products.

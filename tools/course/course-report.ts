@@ -8,7 +8,6 @@ export interface CourseReport {
   section: string;
   lengthMeters: number;
   identity: CompiledCourse['identity'];
-  reference: CompiledCourse['reference'];
   boundaries: string[];
   samples: {
     s: number;
@@ -63,7 +62,6 @@ export async function courseReport(course: CompiledCourse, section: CompiledSect
     section: section.id,
     lengthMeters: length,
     identity: course.identity,
-    reference: course.reference,
     boundaries: section.boundaries.map((b) => b.id),
     samples,
     sprites: section.appearance!.sprites.map((p) => ({

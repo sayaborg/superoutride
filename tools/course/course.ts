@@ -53,7 +53,6 @@ try {
       ok: boolean;
       course: string;
       identity: CompiledCourse['identity'];
-      reference: CompiledCourse['reference'];
       sections: { id: string; length: number; sprites: number }[];
       ground?: CourseGround['metrics'];
       render?: RenderFrame | { frames: RenderFrame[] };
@@ -62,7 +61,6 @@ try {
       ok: true,
       course: course.id,
       identity: course.identity,
-      reference: course.reference,
       sections: course.sections.map((s) => ({
         id: s.id,
         length: s.coordinates.domain.end,

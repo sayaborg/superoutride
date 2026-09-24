@@ -1,16 +1,7 @@
 {
   "format": "superoutride.course",
-  "version": 21,
+  "version": 22,
   "id": "ribbon-coast",
-  "reference": null,
-  "units": {
-    "length": "m",
-    "angle": "deg"
-  },
-  "geometryRecipe": {
-    "id": "superoutride.plan-raster",
-    "version": 1
-  },
   "type": "LINEAR",
   "entrySectionId": "coast-road",
   "rules": {
