@@ -1,9 +1,16 @@
 import { clamp, normalFromHeading, tangentFromHeading, wrapAngle, type Vec2 } from '../../core/math.js';
 import type { Writable } from '../../core/writable.js';
-import { GEOMETRY_SAMPLING_TOLERANCE_METERS } from '../../core/tolerances.js';
 import type { PlanPrimitive } from '../course-document.js';
 
 const TAU = Math.PI * 2;
+// Metres: plan evaluation/endpoint arithmetic budget, about 86 ulps at 10^6 m.
+// Shared with conservative plan-domain separation; does not widen point ownership.
+export const PLAN_POSITION_TOLERANCE_METERS = 1e-8;
+// Dimensionless: conservative relative padding of computed extrema (1 cm at 10^6 m).
+// Covers trig/extremum evaluation roundoff; distinct from absolute sample admission.
+const PLAN_BOUNDS_RELATIVE_PADDING = 1e-8;
+// Metres: 1 nm radial ambiguity budget (about eight ulps at 10^6 m); subtracting the
+// arc center loses direction here, so projection chooses the interval midpoint.
 const ARC_CENTER_TOLERANCE_METERS = 1e-9;
 
 export interface CompiledPlanPrimitive {
@@ -86,7 +93,7 @@ export function compilePlanPath(
 
 function checkedPlanChainage(path: PlanPath, s: number): number {
   if (!Number.isFinite(s)) throw new RangeError('plan chainage must be finite');
-  if (s < -GEOMETRY_SAMPLING_TOLERANCE_METERS || s > path.length + GEOMETRY_SAMPLING_TOLERANCE_METERS)
+  if (s < -PLAN_POSITION_TOLERANCE_METERS || s > path.length + PLAN_POSITION_TOLERANCE_METERS)
     throw new RangeError(`plan chainage ${s} is outside [0, ${path.length}]`);
   if (s <= 0) return 0;
   if (s >= path.length) return path.length;
@@ -112,10 +119,7 @@ export function samplePlanPrimitive(
   s: number,
   out: Writable<PlanPathSample>,
 ): PlanPathSample {
-  if (
-    s < primitive.sStart - GEOMETRY_SAMPLING_TOLERANCE_METERS ||
-    s > primitive.sEnd + GEOMETRY_SAMPLING_TOLERANCE_METERS
-  )
+  if (s < primitive.sStart - PLAN_POSITION_TOLERANCE_METERS || s > primitive.sEnd + PLAN_POSITION_TOLERANCE_METERS)
     throw new RangeError('plan primitive sample is outside its interval');
   const clamped = clamp(s, primitive.sStart, primitive.sEnd);
   const ds = clamped - primitive.sStart;
@@ -258,6 +262,6 @@ export function planPrimitiveBounds(
     }
   }
   const padding =
-    GEOMETRY_SAMPLING_TOLERANCE_METERS * Math.max(1, Math.abs(left), Math.abs(right), Math.abs(back), Math.abs(front));
+    PLAN_BOUNDS_RELATIVE_PADDING * Math.max(1, Math.abs(left), Math.abs(right), Math.abs(back), Math.abs(front));
   return { left: left - padding, right: right + padding, back: back - padding, front: front + padding };
 }

@@ -3,6 +3,8 @@ const WHEEL_BISECTION_ITERATIONS = 60;
 
 import { validateTireCharacteristics, type CompiledTireCharacteristics } from './tire-friction-calibration.js';
 
+// N m: absolute bisection residual budget, ~55 ulps for a 10^4 N m torque balance.
+// The implied wheel-speed error is at most residual*dt/inertia for the monotone wheel equation.
 const WHEEL_TORQUE_RESIDUAL_NEWTON_METERS = 1e-10;
 
 export interface CompiledTireProfile extends CompiledTireCharacteristics {

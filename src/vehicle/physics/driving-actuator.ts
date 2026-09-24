@@ -8,6 +8,8 @@ import {
   type DrivingInputApplyMethod,
 } from '../driving-input.js';
 
+// Normalized actuator units: 10^-12 budget (~4,500 eps) absorbs repeated rate*dt additions
+// near a target; at most this much extra travel is snapped to the target.
 const ACTUATOR_TARGET_TOLERANCE = 1e-12;
 
 export interface NormalizedActuatorRateProfile {

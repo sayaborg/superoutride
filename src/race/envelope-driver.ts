@@ -3,6 +3,10 @@ import { clamp, wrapAngle } from '../core/math.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import type { VehicleCameraReadState } from '../vehicle/physics/vehicle-contract.js';
 
+// Inverse metres: curvature resolution floor (radius 10,000 km); suppresses heading
+// differencing noise. At 100 m/s the omitted lateral demand is at most 0.001 m/s^2.
+const MIN_DRIVER_CURVATURE_PER_METER = 1e-7;
+
 export interface VehicleEnvelope {
   readonly maximumSpeed: number;
   readonly rows: readonly {
@@ -115,7 +119,7 @@ export function sampleEnvelopeDrivingInput(
       previousZ = b.z;
       previousHeading = b.heading;
       let curveSpeed = speedCap;
-      if (curvature >= 1e-7)
+      if (curvature >= MIN_DRIVER_CURVATURE_PER_METER)
         for (let iteration = 0; iteration < 4; iteration++)
           curveSpeed = Math.min(
             speedCap,

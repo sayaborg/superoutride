@@ -1,5 +1,7 @@
 import type { RouteRaceEvent } from './route-progress.js';
 
+// Milliseconds: display-only budget of 0.1 ns for accumulated fixed steps at an integer-ms tie.
+// For example, 60 additions of 1/60 s err by about 1e-12 ms; ranking/deadlines remain exact.
 const TIMER_ROUNDING_TOLERANCE_MILLISECONDS = 1e-7;
 
 interface RaceRankingInput {

@@ -30,6 +30,8 @@ type RecoveryReason =
   | 'manual'
   | 'wrong-course';
 
+// Metres: 1 mm contact/recovery deadband, not floating-point epsilon.
+// At a 1/720 s vehicle substep, gravity alone contributes about 0.019 mm of displacement.
 const SURFACE_PENETRATION_TOLERANCE_METERS = 1e-3;
 
 export interface RecoverySettings {

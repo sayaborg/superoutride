@@ -2,6 +2,8 @@ import type { SurfaceMapReader, SurfaceSample } from '../../course/vehicle-world
 import { compileKnotSequence, knotSequenceChainage, knotIndexAt } from '../../course/geometry/knot-sequence.js';
 import { SURFACE_MATERIALS, type SurfaceType } from '../../course/surface-material.js';
 
+// Metres: 1 nm boundary-arithmetic budget (~eight ulps at 10^6 m) for region admission.
+// This does not snap sampled lateral coordinates or change region membership.
 const BAND_OVERLAP_TOLERANCE_METERS = 1e-9;
 
 interface SurfaceRegion {

@@ -14,7 +14,8 @@ import {
 } from '../course/band-ground.js';
 import type { BandRenderMethod } from './display-settings.js';
 
-/** Numerical integration roundoff at the shared half-coverage tie, measured relative to row area. */
+// Dimensionless coverage fraction: 64 eps (~1.42e-14) budgets rounding in the small
+// polynomial/integral evaluation at the half-coverage tie, relative to row area.
 const COVERAGE_ROUNDOFF = 64 * Number.EPSILON;
 interface BandLateralField {
   readonly count: number;

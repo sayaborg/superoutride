@@ -9,8 +9,11 @@ import type { CourseDocument } from '../course-document.js';
 export const COURSE_LINK_RECIPE = Object.freeze({
   id: 'superoutride.cut-line-link',
   version: 2,
+  // Metres: rigid transform/evaluation budget; ~860 ulps at the admitted 10^6 m scale.
   edgeToleranceMeters: 1e-7,
+  // Metres: vertical polynomial evaluation budget; ~86 ulps at the admitted 10^6 m scale.
   heightToleranceMeters: 1e-8,
+  // Dimensionless dY/ds: 10^-10 absolute seam slope budget (10 nm height per 100 m).
   gradeTolerance: 1e-10,
 });
 

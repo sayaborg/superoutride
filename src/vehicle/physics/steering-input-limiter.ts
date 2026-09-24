@@ -3,6 +3,8 @@ import type { CompiledTireCharacteristics } from './tire-friction-calibration.js
 import type { BodyKinematics, ContactObservation } from './vehicle-dynamics.js';
 import { cross3, dot3, scale3, sub3 } from '../../core/vector3.js';
 
+// Dimensionless unit-normal dot product: conditioning floor limiting inverse gain to 10^8.
+// O(eps) basis roundoff can then amplify to O(10^-8); degenerate planes retain requested steering.
 const MIN_STEERING_PLANE_DETERMINANT = 1e-8;
 
 export function createSteeringLimitWorkspace() {

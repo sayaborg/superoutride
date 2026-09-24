@@ -1,5 +1,9 @@
 import { IndexedPattern, readIndexedPalette, indexedPaletteRgba } from './indexed-image.js';
 import { evaluatePaletteMixture, linearToRgb555, selectImageLodLevel, type PaletteMixture } from './image-filter.js';
+// Dimensionless weight sum: 10^-10 normalization budget for serialized mixture sums.
+// Positive unit-total sums accumulate O(n*eps) error; this allows about 4.5e5 eps.
+const MIXTURE_WEIGHT_SUM_TOLERANCE = 1e-10;
+
 export const SPRITE_SOURCE_TEXELS_PER_METER = 40;
 
 export interface SpriteLodDocument {
@@ -116,7 +120,10 @@ export function readSpriteLodAsset(value: unknown): SpriteAsset {
           total += pair[1];
           return Object.freeze([pair[0], pair[1]] as const);
         });
-        if ((slot === 0 && mixture.length !== 0) || (mixture.length > 0 && Math.abs(total - 1) > 1e-10))
+        if (
+          (slot === 0 && mixture.length !== 0) ||
+          (mixture.length > 0 && Math.abs(total - 1) > MIXTURE_WEIGHT_SUM_TOLERANCE)
+        )
           throw new RangeError('opaque palette mixture weights must sum to one; slot zero is unused');
         if (k === 0 && slot > 0 && (mixture.length !== 1 || mixture[0]![0] !== slot || mixture[0]![1] !== 1))
           throw new RangeError('master palette mixtures must retain semantic slot identity');

@@ -7,7 +7,11 @@ import {
 } from '../vehicle/physics/tire-friction-calibration.js';
 import { BROWSER_CALIBRATION_KEYS } from './key-bindings.js';
 
-const SELECTOR_GRID_TOLERANCE = 1e-9;
+// Hundredth-value ticks: decimal conversion budget, ~8,800 ulps at the largest tick (800).
+const SELECTOR_TICK_TOLERANCE = 1e-9;
+// Dimensionless grid index: division/rounding budget of one billionth of a step.
+// Shared by grid admission and adjacent-choice selection, independent of tick step size.
+const SELECTOR_INDEX_TOLERANCE = 1e-9;
 
 export type BrowserTireCalibrationAxis = 'GX' | 'PX' | 'GY' | 'PY' | 'KNEE';
 interface BrowserTireAxis {
@@ -58,9 +62,9 @@ function browserTireCalibrationForAxis(
   const index = (ticks - axis.min) / axis.step;
   if (
     !Number.isFinite(value) ||
-    ticks < axis.min - SELECTOR_GRID_TOLERANCE ||
-    ticks > axis.max + SELECTOR_GRID_TOLERANCE ||
-    Math.abs(index - Math.round(index)) > SELECTOR_GRID_TOLERANCE
+    ticks < axis.min - SELECTOR_TICK_TOLERANCE ||
+    ticks > axis.max + SELECTOR_TICK_TOLERANCE ||
+    Math.abs(index - Math.round(index)) > SELECTOR_INDEX_TOLERANCE
   ) {
     throw new RangeError(`${id} is outside its browser selector grid`);
   }
@@ -78,7 +82,7 @@ export function stepBrowserTireCalibration(
   const index = (100 * readTireCharacteristics(current.front)[axis.field] - axis.min) / axis.step;
   const count = (axis.max - axis.min) / axis.step + 1;
   const next =
-    direction > 0 ? Math.floor(index + SELECTOR_GRID_TOLERANCE) + 1 : Math.ceil(index - SELECTOR_GRID_TOLERANCE) - 1;
+    direction > 0 ? Math.floor(index + SELECTOR_INDEX_TOLERANCE) + 1 : Math.ceil(index - SELECTOR_INDEX_TOLERANCE) - 1;
   const wrapped = ((next % count) + count) % count;
   return browserTireCalibrationForAxis(id, (axis.min + wrapped * axis.step) / 100, current);
 }

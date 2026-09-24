@@ -26,6 +26,8 @@ import {
   type Vec3,
 } from '../../core/vector3.js';
 
+// Dimensionless projected unit-vector length: normalization gain is limited to 10^8.
+// O(eps) projection error can amplify to O(10^-8); smaller directions cannot define a tire frame.
 const MIN_PROJECTED_TIRE_DIRECTION_LENGTH = 1e-8;
 
 export const VEHICLE_GRAVITY = 9.80665;

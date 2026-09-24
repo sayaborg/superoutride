@@ -7,6 +7,8 @@ import type { VehicleCameraReadState } from '../vehicle/physics/vehicle-contract
 export const RENDER_NEAR_DEPTH_METERS = 2.5;
 export const RENDER_FAR_DEPTH_METERS = 200;
 
+// Seconds: response regularization floor of 0.1 ms, not a rounding tolerance.
+// At 60 Hz exp(-dt/tau) is <5e-73, so this gives an effectively immediate finite response.
 const MIN_VERTICAL_RESPONSE_SECONDS = 1e-4;
 
 export interface CameraProfile {

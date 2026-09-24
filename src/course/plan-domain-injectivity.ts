@@ -4,7 +4,11 @@ import type { CompiledPlanPrimitive } from './geometry/plan-path.js';
 import type { CompiledPlanLateralDomain } from './course-region-geometry.js';
 import { CourseInputError } from './course-diagnostics.js';
 import { normalFromHeading, tangentFromHeading, type Vec2 } from '../core/math.js';
-import { GEOMETRY_SAMPLING_TOLERANCE_METERS } from '../core/tolerances.js';
+import { PLAN_POSITION_TOLERANCE_METERS } from './geometry/plan-path.js';
+
+// Dimensionless cross product of d(X,Z)/ds: absolute conditioning floor, ~45 eps at unit scale.
+// Below it omit the ill-conditioned intersection; the F'' chord padding still encloses the edge.
+const MIN_TANGENT_INTERSECTION_DETERMINANT = 1e-14;
 
 interface Cell {
   readonly start: number;
@@ -38,7 +42,7 @@ function separated(a: readonly Vec2[], b: readonly Vec2[], padding: number): boo
   return a.some((p, i) => {
     const q = a[(i + 1) % a.length]!;
     const length = Math.hypot(q.x - p.x, q.z - p.z);
-    return b.every((other) => turn(p, q, other) < -(padding + GEOMETRY_SAMPLING_TOLERANCE_METERS) * length);
+    return b.every((other) => turn(p, q, other) < -(padding + PLAN_POSITION_TOLERANCE_METERS) * length);
   });
 }
 
@@ -88,8 +92,8 @@ export function validatePlanDomainInjectivity(
           const da = derivative(a.heading, l0);
           const db = derivative(b.heading, l1);
           const denominator = cross(da, db);
-          // A nearly straight offset is safely enclosed by the endpoint segment and its tangent intersection.
-          if (Math.abs(denominator) < 1e-14) return [p, q];
+          // The padded chord remains conservative even when the tangent intersection is omitted.
+          if (Math.abs(denominator) < MIN_TANGENT_INTERSECTION_DETERMINANT) return [p, q];
           const delta = { x: q.x - p.x, z: q.z - p.z };
           const t = cross(delta, db) / denominator;
           return [p, { x: p.x + t * da.x, z: p.z + t * da.z }, q];
@@ -122,12 +126,12 @@ export function validatePlanDomainInjectivity(
     const a = ordered[i]!;
     for (let j = i + 1; j < ordered.length; j += 1) {
       const b = ordered[j]!;
-      if (b.minX > a.maxX + a.padding + maxPadding + GEOMETRY_SAMPLING_TOLERANCE_METERS) break;
-      if (b.minX > a.maxX + a.padding + b.padding + GEOMETRY_SAMPLING_TOLERANCE_METERS) continue;
+      if (b.minX > a.maxX + a.padding + maxPadding + PLAN_POSITION_TOLERANCE_METERS) break;
+      if (b.minX > a.maxX + a.padding + b.padding + PLAN_POSITION_TOLERANCE_METERS) continue;
       if (
         Math.abs(a.index - b.index) <= 1 ||
-        b.minZ > a.maxZ + a.padding + b.padding + GEOMETRY_SAMPLING_TOLERANCE_METERS ||
-        a.minZ > b.maxZ + a.padding + b.padding + GEOMETRY_SAMPLING_TOLERANCE_METERS
+        b.minZ > a.maxZ + a.padding + b.padding + PLAN_POSITION_TOLERANCE_METERS ||
+        a.minZ > b.maxZ + a.padding + b.padding + PLAN_POSITION_TOLERANCE_METERS
       )
         continue;
       if (separated(a.hull, b.hull, a.padding + b.padding) || separated(b.hull, a.hull, a.padding + b.padding))

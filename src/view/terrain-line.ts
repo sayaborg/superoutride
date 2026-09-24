@@ -2,14 +2,25 @@ import type { PlanCoordinateReader } from '../course/geometry/plan-coordinate.js
 import type { ProfilePolylineReader } from '../course/geometry/profile.js';
 import { knotIndexAt } from '../course/geometry/knot-sequence.js';
 import { horizonY, pseudoProject, type PseudoCamera } from './projection.js';
-import { PIXEL_EDGE_TOLERANCE } from '../core/tolerances.js';
+import { PIXEL_EDGE_TOLERANCE } from './pixel-coverage.js';
 import type { VisualProfileReader } from '../course/visual-profile.js';
 
+// Metres: chainage subtraction budget, ~eight ulps at 10^6 m; rejects numerically empty intervals.
 const VISIBLE_INTERVAL_TOLERANCE_METERS = 1e-9;
+// Pixels: row inversion conditioning floor; ~1,760 ulps at 320 px.
+// Avoids amplifying screen-coordinate cancellation by more than 10^10 /px.
 const ROW_SAMPLE_DENOMINATOR_TOLERANCE_PIXELS = 1e-10;
+// Metres: 0.1 micrometre admission budget for bY/(row-aY) inversion at interval edges.
+// Larger than direct chainage roundoff because the inverse divides by a screen-space difference.
 const DEPTH_INTERVAL_TOLERANCE_METERS = 1e-7;
+// Pixel-metres: cancellation floor in f*(heightIntercept-cameraY)*cos(pitch).
+// Below it the vertical span is <4e-13 px at the 2.5 m near plane; use zero footprint.
 const FLAT_HEIGHT_COEFFICIENT_TOLERANCE_PIXEL_METERS = 1e-12;
+// Pixels: boundary inversion floor, ~18 ulps at 320 px; caps reciprocal gain at 10^12 /px.
+// Unlike row-center admission, this clips an asymptotic footprint to the far depth.
 const BOUNDARY_DENOMINATOR_TOLERANCE_PIXELS = 1e-12;
+// Pixels: lateral inversion floor for the projected two-metre span; deltaL is then <2e7 m/px.
+// Below this subpixel resolution budget the nearly edge-on row has no stable lateral sampling.
 const MIN_TERRAIN_SPAN_PIXELS = 1e-7;
 
 interface TerrainLineGeometry {

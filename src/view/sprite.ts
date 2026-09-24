@@ -1,4 +1,4 @@
-import { PIXEL_EDGE_TOLERANCE } from '../core/tolerances.js';
+import { PIXEL_EDGE_TOLERANCE } from './pixel-coverage.js';
 import { SoftwareSurface } from './software-surface.js';
 import { selectSpriteLevel, type SpriteAsset } from '../image/sprite.js';
 
