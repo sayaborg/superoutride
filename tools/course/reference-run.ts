@@ -81,7 +81,7 @@ export function runCourseReference(
       section = occurrence.section,
       link = planned.get(section);
     const fallback =
-      link && section.fork ? (section.fork.regions.findIndex((r) => r.link === link) === 0 ? -1 : 1) : slot.l;
+      link && section.fork ? (section.fork.exits.findIndex((exit) => exit.link === link) === 0 ? -1 : 1) : slot.l;
     return race.forks.targetL(s, fallback);
   };
   const workspace = createEnvelopeDriverWorkspace();

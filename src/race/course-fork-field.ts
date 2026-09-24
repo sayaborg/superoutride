@@ -36,11 +36,11 @@ export function createCourseForkField(route: CourseRoute, lines: ReturnType<type
           const u = routeCrossingFraction(line, motion.previous, motion.current.course);
           if (u === null || u > firstU || (u === firstU && first && motion.id >= first.id)) continue;
           const l = motion.previous.l + u * (motion.current.course.l - motion.previous.l) + occurrence.lateralOrigin;
-          const interval = fork.regions.find((interval) => l >= interval.left && l < interval.right);
-          if (!interval) continue;
+          const exit = fork.exits.find((exit) => l >= exit.left && l < exit.right);
+          if (!exit) continue;
           first = motion;
           firstU = u;
-          selected = interval.link;
+          selected = exit.link;
         }
         if (first) {
           route.append(selected!);
@@ -56,7 +56,7 @@ export function createCourseForkField(route: CourseRoute, lines: ReturnType<type
         return lane + (occurrence.incoming ? occurrence.incoming.to.lateralOrigin - occurrence.lateralOrigin : 0);
       let road =
         locks.get(occurrence)?.from.carriageway ??
-        fork.regions[lane < 0 ? 0 : fork.regions.length - 1]!.link.from.carriageway;
+        fork.exits[lane < 0 ? 0 : fork.exits.length - 1]!.link.from.carriageway;
       const at = Math.min(
         section.coordinates.domain.end,
         Math.max(section.coordinates.domain.start, routeSectionS(occurrence, s)),
@@ -90,10 +90,10 @@ export function createCourseForkField(route: CourseRoute, lines: ReturnType<type
       const link = locks.get(occurrence);
       const nativeS = routeSectionS(occurrence, s);
       if (!fork || !link || nativeS < fork.closure.s) return null;
-      const closed = fork.regions.some(({ link: exit }) => {
-        const road = exit.from.carriageway;
+      const closed = fork.exits.some(({ link: exitLink }) => {
+        const road = exitLink.from.carriageway;
         return (
-          exit !== link &&
+          exitLink !== link &&
           courseCarriagewayExists(road, nativeS, section.coordinates.domain.end) &&
           l >= courseBoundaryAt(road.left, nativeS) - occurrence.lateralOrigin &&
           l <= courseBoundaryAt(road.right, nativeS) - occurrence.lateralOrigin

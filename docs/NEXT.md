@@ -3,22 +3,19 @@
 ## Current state
 
 - One compiled graph scene serves RIBBON COAST, RIBBON FORK and RIBBON RING with CLASSIC/CUSTOM Sessions.
+- Course documents use PIs, `at` positions, Lateral values, Strips, Carriageways and gates.
+  Circuits are closed cycles of two or more Sections.
+- One manifest verifies all delivered content.
 - Surface color and material are authored with Strips, with LEVEL-POINT as the default of three display methods; sprites are indexed.
   BG is one infinite tiled plane with sine mapping.
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **7-8 — Fork names**.
+Next PR: **8-1 — Vehicle data**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
 PRs hold rationale and verification evidence.
-
-## Stage 7 — Course format
-
-Write plan, position, lateral strips and race landmarks in one consistent authored course format.
-
-- **7-8 — Fork names:** rename `CompiledFork.regions`, which holds exit intervals, to a name matching its content.
 
 ## Stage 8 — Vehicles and materials
 

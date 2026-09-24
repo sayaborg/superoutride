@@ -109,7 +109,7 @@ export function runScenario({ course, ground }, scenario) {
     const fork = occurrence?.section.fork;
     if (scenario.policy === 'closed' && fork && actor.recovery.recoveries === 0) {
       // Deliberately keep approaching the opposite road after a rival locks its choice.
-      const road = fork.regions.at(-1).link.from.carriageway;
+      const road = fork.exits.at(-1).link.from.carriageway;
       const nativeS = routeSectionS(occurrence, s);
       if (courseCarriagewayExists(road, nativeS, occurrence.section.coordinates.domain.end))
         return (
@@ -270,7 +270,7 @@ export function runScenario({ course, ground }, scenario) {
     if (course.entry.fork)
       assert.equal(
         race.forks.choice(course.entry.fork),
-        course.entry.fork.regions[scenario.side < 0 ? 0 : course.entry.fork.regions.length - 1].link,
+        course.entry.fork.exits[scenario.side < 0 ? 0 : course.entry.fork.exits.length - 1].link,
       );
   }
   return {

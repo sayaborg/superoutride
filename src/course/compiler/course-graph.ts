@@ -47,7 +47,7 @@ export interface CompiledFork {
   readonly section: CompiledSection;
   readonly lock: CompiledCoursePosition;
   readonly closure: CompiledCoursePosition;
-  readonly regions: readonly {
+  readonly exits: readonly {
     readonly link: CompiledLink;
     readonly left: number;
     readonly right: number;

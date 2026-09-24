@@ -101,7 +101,7 @@ export function compileCourseFork(
       );
     }
   }
-  const roads = section.outgoing
+  const exitRoads = section.outgoing
     .map((link) => {
       const road = link.from.carriageway;
       check(
@@ -137,15 +137,15 @@ export function compileCourseFork(
           courseCarriagewayExists(road, lock.s, section.coordinates.domain.end) &&
           courseBoundaryAt(road.right, lock.s) > courseBoundaryAt(road.left, lock.s),
       )
-      .every((road) => roads.some((r) => r.link.from.carriageway === road)),
+      .every((road) => exitRoads.some((exit) => exit.link.from.carriageway === road)),
     'Every lock-line pavement belongs to an exit carriageway',
     `${path}/carriageways`,
     'invalid_fork',
   );
   const cuts: number[] = [outerLeft];
-  for (let i = 1; i < roads.length; i += 1) {
-    const left = roads[i - 1]!.right,
-      right = roads[i]!.left;
+  for (let i = 1; i < exitRoads.length; i += 1) {
+    const left = exitRoads[i - 1]!.right,
+      right = exitRoads[i]!.left;
     check(
       stripSupportsInterval(material, lock.s, left, right),
       'Exit carriageways need a positive supported separating median',
@@ -159,6 +159,8 @@ export function compileCourseFork(
     section,
     lock,
     closure,
-    regions: Object.freeze(roads.map((r, i) => Object.freeze({ link: r.link, left: cuts[i]!, right: cuts[i + 1]! }))),
+    exits: Object.freeze(
+      exitRoads.map((exit, i) => Object.freeze({ link: exit.link, left: cuts[i]!, right: cuts[i + 1]! })),
+    ),
   });
 }

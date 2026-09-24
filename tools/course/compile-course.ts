@@ -56,7 +56,7 @@ if (!result.ok) {
               : {
                   lock: section.fork.lock.s,
                   closure: section.fork.closure.s,
-                  regions: section.fork.regions.map(({ link, ...interval }) => ({ ...interval, link: link.id })),
+                  exits: section.fork.exits.map(({ link, ...exit }) => ({ ...exit, link: link.id })),
                 },
           appearance:
             section.appearance === null
