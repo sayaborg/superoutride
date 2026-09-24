@@ -35,8 +35,6 @@ export interface CompiledCut {
   readonly carriageway: CompiledCarriageway;
   readonly pose: PlanarPose;
 }
-/** Temporary type for the unused overlap modules, removed in 6-8b. */
-export type CompiledPort = CompiledCut;
 
 /** Carriageway geometry proof only; not admission for a driving transition. */
 export interface CompiledLink {
@@ -45,11 +43,6 @@ export interface CompiledLink {
   readonly to: CompiledCut;
   readonly destinationFromSource: PlanarTransform;
 }
-
-/** Only the uncalled overlap implementation references this compatibility type until 6-8b. */
-export type LegacyOverlapLink = CompiledLink & {
-  readonly overlap: { readonly behind: number; readonly ahead: number };
-};
 
 /** Static authored parallel-zone controls; no field choice or actor state. */
 export interface CompiledFork {

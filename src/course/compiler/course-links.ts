@@ -10,8 +10,6 @@ export const COURSE_LINK_RECIPE = Object.freeze({
   id: 'superoutride.cut-line-link',
   version: 2,
   edgeToleranceMeters: 1e-7,
-  positionToleranceMeters: 1e-7, // Legacy overlap modules, removed in 6-8b.
-  headingToleranceRadians: 1e-10, // Legacy overlap modules, removed in 6-8b.
   heightToleranceMeters: 1e-8,
   gradeTolerance: 1e-10,
 });
@@ -34,9 +32,6 @@ export function courseCutLateral(cut: CompiledCut): number {
   const [left, right] = edges(cut.carriageway, cut.anchor.s, '');
   return (left + right) / 2;
 }
-/** Legacy overlap modules only; removed in 6-8b. */
-export const coursePortLateral = courseCutLateral;
-
 export function compileCourseCut(
   section: CompiledSection,
   road: CompiledCarriageway,

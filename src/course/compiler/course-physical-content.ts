@@ -10,7 +10,6 @@ export const COURSE_PHYSICAL_RECIPE = Object.freeze({
   id: 'superoutride.course-physical',
   version: 2,
   materials: SURFACE_MATERIALS,
-  overlap: Object.freeze({ id: 'superoutride.physical-overlap', version: 2 }),
 });
 
 /** Static compilation resolves authored physics once; no default height or role-derived material. */

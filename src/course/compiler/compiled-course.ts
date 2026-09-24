@@ -57,11 +57,27 @@ export interface CompiledCourse {
   readonly sceneryInstances: readonly CourseSceneryInstance[];
 }
 
+// v21 is an already published content identity. Its historical descriptor stays stable while
+// the unused runtime qualifier is removed, so identical courses keep their generated artifacts.
+const COURSE_BUILD_IDENTITY_LINK_V21 = Object.freeze({
+  id: COURSE_LINK_RECIPE.id,
+  version: COURSE_LINK_RECIPE.version,
+  edgeToleranceMeters: COURSE_LINK_RECIPE.edgeToleranceMeters,
+  positionToleranceMeters: 1e-7,
+  headingToleranceRadians: 1e-10,
+  heightToleranceMeters: COURSE_LINK_RECIPE.heightToleranceMeters,
+  gradeTolerance: COURSE_LINK_RECIPE.gradeTolerance,
+});
+const COURSE_BUILD_IDENTITY_PHYSICAL_V21 = Object.freeze({
+  ...COURSE_PHYSICAL_RECIPE,
+  overlap: Object.freeze({ id: 'superoutride.physical-overlap', version: 2 }),
+});
+
 const COURSE_COMPILER = Object.freeze({
   id: 'superoutride.course-compiler',
   version: 21,
-  links: COURSE_LINK_RECIPE,
-  physical: COURSE_PHYSICAL_RECIPE,
+  links: COURSE_BUILD_IDENTITY_LINK_V21,
+  physical: COURSE_BUILD_IDENTITY_PHYSICAL_V21,
   images: COURSE_IMAGE_SOURCE_RECIPE,
   presentation: COURSE_PRESENTATION_RECIPE,
 });

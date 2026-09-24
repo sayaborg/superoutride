@@ -8,44 +8,42 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **6-8b — Remove unused overlap machinery**.
+Next PR: **6-9a — Shared route coordinates and readers**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
 PRs hold rationale and verification evidence.
 
-## Stage 6 — Authoritative geometry
+## Stage 6 — Shared route and progress
 
-Make authored plan and vertical geometry authoritative, with rendering-only approximations and simpler connections.
+Give all vehicles one route coordinate system, read its geometry and content through shared readers, then remove per-vehicle frames and seam procedures.
 
-- **6-8b — Remove unused overlap machinery:** delete `course-overlap-stations.ts`, `course-band-overlap.ts`, `course-overlap-domain.ts` and the unreachable qualifiers/helpers in `course-physical-overlap.ts` and `course-presentation-overlap.ts`. Move the two live query-domain wrappers to appropriately named modules. Remove `CompiledPort`, `LegacyOverlapLink`, `coursePortLateral`, the unused `positionToleranceMeters` and `headingToleranceRadians` aliases, `COURSE_PHYSICAL_RECIPE.overlap`, overlap-only diagnostic codes (`invalid_port`, `nonstraight_overlap`, `invalid_overlap`, `overlap_geometry_mismatch`, `unrepresentable_overlap`, `nonhorizontal_overlap`, `physical_height_mismatch`, `physical_support_mismatch`, `presentation_missing`, `presentation_ground_mismatch`, `presentation_phase_mismatch`, `presentation_environment_mismatch`, `presentation_scenery_mismatch`) and `COURSE_DOCUMENT_LIMITS.linkCells`. Retain the live consumer demand and cut-line checks.
-- **6-9 — Views and occurrences:** simplify cut-line motion admission, physical gates, recovery, occurrence prepare/commit and view span assembly, currently changed only as needed to read full `[0,L]` ownership, cut-line crossings and end-to-start chainage rebasing. Minimize their procedures and name occurrence-view replacements (`createView`, `CourseGeometryView` and their adapters) according to the glossary. Limit Section-only `locateLocal` scanning to the search window interval.
+- **6-9a — Shared route coordinates and readers:** give every vehicle one route chainage measured from the start (lap `n` occupies `[nL,(n+1)L]`); each occurrence carries its start chainage, lateral origin and world transform; append chosen branches and discard portions behind every vehicle; use binary search in route readers for bounded plan projection, height, rendered profile, Raster, material, Band, sprites and environment, returning absence outside the route or coordinate domain; switch physics, race and rendering to this route, including the current Section-only `locateLocal` search.
+- **6-9b — Cross sections and progress:** express checkpoints, finish and fork lock as constant-route-s lines; detect crossings from previous/current s inside the coordinate domain; derive progress, laps and rank from route s and remove world-coordinate gates.
+- **6-9c — Remove per-vehicle frames:** remove occurrence history/traversal, geometry views (`createView`, `CourseGeometryView` and adapters), driving-session and `vehicle-reframe` frame changes, motion guards and seam gates, consumer demand ranges and both remaining domain wrappers, `referenceSOffset`/`referenceFromFrame` and rival observation conversions, and duplicate entry recovery.
+- **6-9d — Outside the coordinate domain:** treat out-of-domain contacts as unsupported without geometry reads, make the physics `offsetMetric <= 0` RangeError unreachable, and use `inDomain` in recovery conditions.
 - **6-10 — Local tolerances:** clarify each tolerance's basis and owning algorithm, including the `1e-14` tangent-intersection threshold in `plan-domain-injectivity.ts`.
 
 ## Stage 7 — Course format
 
-Unify authored coordinates, appearance, delivery and progress in the course format.
+Write plan, position, lateral strips and race landmarks in one consistent authored course format.
 
-- **7-1 — Coordinates and variation:** use Anchor and Lateral position types, and knot sequences for variation along s.
-  Call derived `ProfilePolyline` points vertices rather than Knots; rename `knots` and `distanceToNextKnot`.
-- **7-2 — Section layers:** plan / structure / profile / appearance; give Regions material knots and carriagewayId,
-  and remove role. Rename VisualProfile replacements according to the glossary.
-- **7-3 — Appearance elements:** one list and shared repeat for band / arrow / text / curb / sprite.
-  Rename CoursePresentation and associated visual records according to the glossary.
-- **7-4 — Course identity:** derive kind from the graph, remove production provenance, and simplify nulls and limits.
-- **7-5 — Delivery identity:** one manifest, one version per format and one image path.
-- **7-6 — Progress and validation:** unify progress and consolidate validation into one layer, placing the `CourseInputError` fields currently dedicated to coordinate-overlap diagnostics in a structured diagnostic variant.
-  Consolidate vertical-curve validation in the compiler and `Profile` constructor into one place; admit `curveLength` from zero upward in document reading.
+- **7-1 — Positions:** use `at = {pi, offset}` and lateral positions (`l` or `{boundary, offset}`); author every s-varying property as knots with `at`; call derived `ProfilePolyline` points vertices and rename `knots`/`distanceToNextKnot` accordingly.
+- **7-2 — Plan:** author PI coordinates and radii like vertical PVIs, require zero endpoint radii and nonoverlapping neighboring arc tangent lengths, and close ribbon-ring geometrically.
+- **7-3 — Strips, Boundaries and Carriageways:** replace Region, role, `physicalBindings` and Band with ordered Strips whose optional color/material overwrite earlier values; require finite edges for material-bearing Strips and derive the coordinate domain from their edges plus margin; define Carriageway between two Boundaries and compile material and preblended color to the same cross-section table shape.
+- **7-4 — Sprites and environment:** give sprites and environment a shared repeat, and name successors to VisualProfile, CoursePresentation and their visual records according to the glossary.
+- **7-5 — Gates and rules:** author start (including grid), checkpoints and finish inside Sections, leave only numeric settings in `rules`, derive course kind from the graph, remove production provenance, `units` and `reference`, and simplify nulls and limits.
+- **7-6 — Delivery identity:** use one manifest, one version per format and one image path.
+- **7-7 — Validation:** validate once at document reading/compilation boundaries, remove redundant internal defensive checks and impossible ok/failure paths, unify progress diagnostics and move coordinate-overlap `CourseInputError` fields to a structured diagnostic variant; consolidate vertical-curve validation and admit `curveLength` from zero upward in document reading.
 
 ## Stage 8 — Vehicles and materials
 
-Give vehicles, tires, tuning and materials explicit data definitions, and treat airborne driving as normal state.
+Give vehicles, tires, tuning and materials explicit definitions, and treat airborne driving as normal state.
 
-- **8-1 — Vehicle data:** saved vehicle definitions and independent tire definitions.
-  Rename vehicle/tire/powertrain/actuator Profiles and Arcade prefixes according to the glossary.
+- **8-1 — Vehicle data:** saved vehicle definitions and independent tire definitions; rename vehicle/tire/powertrain/actuator Profiles and Arcade prefixes according to the glossary.
 - **8-2 — DEV tuning:** replace definitions rather than mutate running settings.
 - **8-3 — Materials:** one material-definition table.
-- **8-4 — Jumps and recovery:** normal airborne state, revised recovery conditions and suspension limits; treat contact points outside the coordinate domain as unsupported without reading geometry, make the physics `offsetMetric <= 0` RangeError unreachable, and use `inDomain` for recovery conditions.
+- **8-4 — Jumps and recovery:** normal airborne state, revised recovery conditions and suspension limits.
 
 ## Stage 9 — Audio
 
@@ -85,7 +83,7 @@ Build a shared authoring core and tools, with author-confirmed content independe
 
 ## Stage 12 — Produce product courses
 
-Create the selected courses using the Band schema and file/CLI authoring workflow. Review appearance,
+Create the selected courses using the Strip schema and file/CLI authoring workflow. Review appearance,
 driving experience and time margins on real devices. The following production and authoring goals are
 collected from the topic specifications; their order within this stage is not yet scheduled.
 

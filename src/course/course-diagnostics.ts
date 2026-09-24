@@ -26,26 +26,12 @@ type CourseDiagnosticCode =
   | 'duplicate_membership'
   | 'invalid_height'
   | 'physical_binding'
-  | 'invalid_port'
   | 'invalid_link'
   | 'seam_edge_mismatch'
   | 'seam_height_mismatch'
   | 'seam_grade_mismatch'
   | 'invalid_topology'
-  | 'nonstraight_overlap'
-  | 'invalid_overlap'
-  | 'overlap_geometry_mismatch'
-  | 'unrepresentable_overlap'
-  | 'coverage_gap'
   | 'ambiguous_geometry'
-  | 'nonhorizontal_overlap'
-  | 'physical_height_mismatch'
-  | 'physical_support_mismatch'
-  | 'presentation_missing'
-  | 'presentation_ground_mismatch'
-  | 'presentation_phase_mismatch'
-  | 'presentation_environment_mismatch'
-  | 'presentation_scenery_mismatch'
   | 'appearance_binding'
   | 'invalid_image_role'
   | 'invalid_profile'
@@ -61,14 +47,6 @@ interface InputDiagnostic {
   readonly message: string;
   readonly section?: string;
   readonly intervals?: readonly { readonly sStart: number; readonly sEnd: number }[];
-}
-
-interface QualificationDiagnostic {
-  readonly kind: 'qualification';
-  readonly code: CourseDiagnosticCode;
-  readonly linkIndex: number;
-  readonly consumer?: string;
-  readonly message: string;
 }
 
 interface AssetDiagnostic {
@@ -88,7 +66,7 @@ interface AssetDiagnostic {
   readonly message: string;
 }
 
-type CourseDiagnostic = InputDiagnostic | QualificationDiagnostic | AssetDiagnostic;
+type CourseDiagnostic = InputDiagnostic | AssetDiagnostic;
 
 /** Expected saved-asset admission failure, separately addressed from document JSON pointers. */
 export class CourseAssetError extends Error {
@@ -131,22 +109,6 @@ export class CourseInputError extends Error {
   ) {
     super(message);
     this.diagnostic = Object.freeze({ kind: 'input', code, path, message, ...overlap });
-  }
-}
-
-/** A rule failure over compiled Link references, not a fabricated pointer into CourseDocument. */
-export class CourseQualificationError extends Error {
-  readonly diagnostic: QualificationDiagnostic;
-
-  constructor(code: CourseDiagnosticCode, linkIndex: number, message: string, consumer?: string) {
-    super(message);
-    this.diagnostic = Object.freeze({
-      kind: 'qualification',
-      code,
-      linkIndex,
-      message,
-      ...(consumer === undefined ? {} : { consumer }),
-    });
   }
 }
 
