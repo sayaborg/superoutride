@@ -1,3 +1,4 @@
+import { browserSessionVehicle } from '../../src/shell/session-vehicle.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readDeliveredContent } from '../../tools/course/read-content.ts';
@@ -32,7 +33,7 @@ for (const { id: stem } of content.manifest.files.filter((file) => file.kind ===
       s: course.gates.grid[0].at.s,
       l: 0,
       initialSpeed: 0,
-      torqueProtection: entry.torqueProtection,
+      ...browserSessionVehicle(entry),
     });
     const rig = createCameraRig(),
       target = new SoftwareSurface(320, 240);

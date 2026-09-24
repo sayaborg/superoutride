@@ -45,7 +45,15 @@ function finiteState(value, path = '', seen = new Set()) {
   } else if (value && typeof value === 'object' && !seen.has(value)) {
     seen.add(value);
     for (const [key, child] of Object.entries(value)) {
-      if (['compiledVehicle', 'steeringCalibration', 'tireFrictionCalibration', 'torqueProtection'].includes(key))
+      if (
+        [
+          'compiledVehicle',
+          'steeringCalibration',
+          'tireFrictionCalibration',
+          'torqueProtection',
+          'drivingActuator',
+        ].includes(key)
+      )
         continue;
       finiteState(child, `${path}.${key}`, seen);
     }
@@ -193,7 +201,13 @@ export function runScenario({ course, ground }, scenario) {
         JSON.stringify(
           [v, c.actor.recovery, c.progress.s, Number.isFinite(next) ? next : null, c.progress.acceptedFinishCount],
           (key, value) =>
-            ['compiledVehicle', 'steeringCalibration', 'tireFrictionCalibration', 'torqueProtection'].includes(key)
+            [
+              'compiledVehicle',
+              'steeringCalibration',
+              'tireFrictionCalibration',
+              'torqueProtection',
+              'drivingActuator',
+            ].includes(key)
               ? undefined
               : value,
         ),

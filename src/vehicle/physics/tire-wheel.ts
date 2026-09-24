@@ -1,3 +1,4 @@
+import { TIRE_LOW_SPEED_REGULARIZATION } from './numerical-constants.js';
 import type { Writable } from '../../core/writable.js';
 const WHEEL_BISECTION_ITERATIONS = 60;
 
@@ -43,7 +44,7 @@ export interface WheelSolveInput {
   readonly driveTorque: number;
   readonly brakeTorque: number;
   readonly dt: number;
-  readonly tire: CompiledTire;
+  readonly tire: CompiledTireCharacteristics;
 }
 export interface WheelSolveResult {
   readonly omega: number;
@@ -196,7 +197,7 @@ export function solveWheelOmega(
     dt,
   } = input;
   // Contact velocity is fixed throughout the scalar solve, including its final force evaluation.
-  scratch.referenceSpeed = Math.hypot(input.longitudinalVelocity, input.tire.lowSpeedRegularization);
+  scratch.referenceSpeed = Math.hypot(input.longitudinalVelocity, TIRE_LOW_SPEED_REGULARIZATION);
   scratch.omega = 0;
   netTorqueAtOmega(input, scratch, residual);
   const atZero = residual[0]! - driveTorque;
@@ -241,7 +242,7 @@ export function wheelRequiredNetTorque(
   validateWheelSolveInput(input);
   if (!Number.isFinite(omega)) throw new RangeError('trial wheel speed must be finite');
   scratch.omega = omega;
-  scratch.referenceSpeed = Math.hypot(input.longitudinalVelocity, input.tire.lowSpeedRegularization);
+  scratch.referenceSpeed = Math.hypot(input.longitudinalVelocity, TIRE_LOW_SPEED_REGULARIZATION);
   netTorqueAtOmega(input, scratch, residual);
   return residual[0]!;
 }
@@ -257,7 +258,7 @@ function netTorqueAtOmega(input: WheelSolveInput, scratch: TireForceScratch, res
       input.rollingRadius,
       input.normalLoad,
       input.rollingResistance,
-      input.tire.lowSpeedRegularization,
+      TIRE_LOW_SPEED_REGULARIZATION,
     );
 }
 
@@ -328,7 +329,7 @@ export function validateWheelSolveInput(input: WheelSolveInput): void {
     throw new RangeError('wheel solve inputs must be finite');
   }
   if (input.rollingResistance < 0) throw new RangeError('rolling resistance must be nonnegative');
-  validateCompiledTire(input.tire);
+  validateTireCharacteristics(input.tire);
   validateTireCharacteristics(input.characteristics ?? input.tire);
 }
 

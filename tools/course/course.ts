@@ -1,3 +1,4 @@
+import { browserSessionVehicle } from '../../src/shell/session-vehicle.js';
 import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import type { CourseGround } from '../../src/course/compiler/course-ground.js';
 interface RenderFrame {
@@ -106,7 +107,7 @@ try {
           s,
           l,
           initialSpeed: 0,
-          torqueProtection: entry.torqueProtection,
+          ...browserSessionVehicle(entry),
         });
         const camera = updateCamera(createCameraRig(), scene.world, vehicle, CURRENT_CAMERA_PROFILE, 1 / 60),
           target = new SoftwareSurface(320, 240);

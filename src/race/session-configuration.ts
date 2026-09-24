@@ -1,15 +1,12 @@
 import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
 import type { CompiledVehicle } from '../vehicle/physics/vehicle-definitions.js';
-import type { TorqueProtectionPolicy } from '../vehicle/physics/torque-protection.js';
-import type { VehicleSteeringCalibrationInput } from '../vehicle/physics/vehicle-calibration.js';
-import type { VehicleTireFrictionCalibrationState } from '../vehicle/physics/tire-friction-calibration.js';
+import type { DrivingDefinition } from '../vehicle/driving-definition.js';
 
 export interface SessionVehicle {
   readonly compiledVehicle: CompiledVehicle;
-  readonly torqueProtection: TorqueProtectionPolicy;
+  readonly drivingDefinition: DrivingDefinition;
+  readonly supportReserve: number | null;
   readonly kind: 'car' | 'bike';
-  readonly steeringCalibration: VehicleSteeringCalibrationInput;
-  readonly tireFrictionCalibration: Readonly<VehicleTireFrictionCalibrationState>;
 }
 
 export interface SessionConfiguration {

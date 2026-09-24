@@ -1,10 +1,5 @@
 import type { VehicleAudioProfile } from '../audio/vehicle-audio-profile.js';
 import { VEHICLE_SOUND_PROFILES } from './sound-profiles.js';
-import {
-  ROAD_TORQUE_POLICY,
-  TWO_WHEEL_TORQUE_POLICY,
-  type TorqueProtectionPolicy,
-} from './physics/torque-protection.js';
 import { type CompiledVehicle, type VehicleId } from './physics/vehicle-definitions.js';
 import {
   COMPILED_BMW_R80_GS_PARIS_DAKAR_VEHICLE,
@@ -17,6 +12,8 @@ import {
   COMPILED_VESPA_PX200E_ARCOBALENO_VEHICLE,
   COMPILED_VOLKSWAGEN_GOLF_GTI_16V_VEHICLE,
 } from './production-vehicle-definitions.js';
+
+const TWO_WHEEL_SUPPORT_RESERVE = 0.08;
 
 export type VehicleVisualFamily = 'CAR' | 'BIKE';
 
@@ -35,7 +32,7 @@ export interface VehicleCatalogEntry {
   readonly physicsAnchor: Readonly<{ modelYear: string; market: string }>;
   readonly compiledVehicle: Readonly<CompiledVehicle>;
   readonly visualFamily: VehicleVisualFamily;
-  readonly torqueProtection: Readonly<TorqueProtectionPolicy>;
+  readonly supportReserve: number | null;
   readonly mobileLabel: string;
 }
 
@@ -72,7 +69,7 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     physicsAnchor: { modelYear: '1989', market: 'European/ROW' },
     visualFamily: 'CAR',
     compiledVehicle: COMPILED_FERRARI_TESTAROSSA_VEHICLE,
-    torqueProtection: ROAD_TORQUE_POLICY,
+    supportReserve: null,
     mobileLabel: 'F110',
   },
   {
@@ -85,7 +82,7 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     physicsAnchor: { modelYear: '1989', market: 'European/ROW' },
     visualFamily: 'CAR',
     compiledVehicle: COMPILED_PORSCHE_911_TURBO_3_3_VEHICLE,
-    torqueProtection: ROAD_TORQUE_POLICY,
+    supportReserve: null,
     mobileLabel: '930',
   },
   {
@@ -98,7 +95,7 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     physicsAnchor: { modelYear: '1989', market: 'US' },
     visualFamily: 'CAR',
     compiledVehicle: COMPILED_CHEVROLET_CORVETTE_C4_VEHICLE,
-    torqueProtection: ROAD_TORQUE_POLICY,
+    supportReserve: null,
     mobileLabel: 'C4',
   },
   {
@@ -111,7 +108,7 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     physicsAnchor: { modelYear: '1988', market: 'European/ROW' },
     visualFamily: 'CAR',
     compiledVehicle: COMPILED_VOLKSWAGEN_GOLF_GTI_16V_VEHICLE,
-    torqueProtection: ROAD_TORQUE_POLICY,
+    supportReserve: null,
     mobileLabel: 'GTI',
   },
   {
@@ -124,7 +121,7 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     physicsAnchor: { modelYear: '1988', market: 'European/ROW' },
     visualFamily: 'CAR',
     compiledVehicle: COMPILED_LANCIA_DELTA_HF_INTEGRALE_VEHICLE,
-    torqueProtection: ROAD_TORQUE_POLICY,
+    supportReserve: null,
     mobileLabel: 'DELTA',
   },
   {
@@ -137,7 +134,7 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     physicsAnchor: { modelYear: '1988', market: 'ROW full-power' },
     visualFamily: 'BIKE',
     compiledVehicle: COMPILED_HONDA_VFR750R_VEHICLE,
-    torqueProtection: TWO_WHEEL_TORQUE_POLICY,
+    supportReserve: TWO_WHEEL_SUPPORT_RESERVE,
     mobileLabel: 'RC30',
   },
   {
@@ -150,7 +147,7 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     physicsAnchor: { modelYear: '1985', market: 'European/ROW' },
     visualFamily: 'BIKE',
     compiledVehicle: COMPILED_BMW_R80_GS_PARIS_DAKAR_VEHICLE,
-    torqueProtection: TWO_WHEEL_TORQUE_POLICY,
+    supportReserve: TWO_WHEEL_SUPPORT_RESERVE,
     mobileLabel: 'R80',
   },
   {
@@ -163,7 +160,7 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     physicsAnchor: { modelYear: '1988', market: 'US' },
     visualFamily: 'BIKE',
     compiledVehicle: COMPILED_HARLEY_DAVIDSON_FXRT_VEHICLE,
-    torqueProtection: TWO_WHEEL_TORQUE_POLICY,
+    supportReserve: TWO_WHEEL_SUPPORT_RESERVE,
     mobileLabel: 'FXRT',
   },
   {
@@ -176,7 +173,7 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     physicsAnchor: { modelYear: '1985', market: 'Italian/European' },
     visualFamily: 'BIKE',
     compiledVehicle: COMPILED_VESPA_PX200E_ARCOBALENO_VEHICLE,
-    torqueProtection: TWO_WHEEL_TORQUE_POLICY,
+    supportReserve: TWO_WHEEL_SUPPORT_RESERVE,
     mobileLabel: 'PX200',
   },
 ]);

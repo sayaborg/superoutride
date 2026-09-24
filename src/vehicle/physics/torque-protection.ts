@@ -1,3 +1,4 @@
+import { TIRE_LOW_SPEED_REGULARIZATION } from './numerical-constants.js';
 import { type Writable } from '../../core/writable.js';
 const SUPPORT_BISECTION_ITERATIONS = 12;
 
@@ -63,7 +64,7 @@ function limitWheelTorques(
   }
   if (!(input.normalLoad > 0) || !(input.gripFactor > 0)) return input;
   const tire = input.characteristics ?? input.tire;
-  const referenceSpeed = Math.hypot(input.longitudinalVelocity, input.tire.lowSpeedRegularization);
+  const referenceSpeed = Math.hypot(input.longitudinalVelocity, TIRE_LOW_SPEED_REGULARIZATION);
   const slip = (input.gripFactor * (2 - tire.rhoKnee) * tire.muX) / tire.kX;
   const vx = input.longitudinalVelocity,
     radius = input.rollingRadius;
@@ -73,7 +74,7 @@ function limitWheelTorques(
     torqueUpper = wheelRequiredNetTorque(input, upper, scratch, residual);
     drive = Math.max(0, Math.min(drive, torqueUpper + brake));
   }
-  if (Math.abs(vx) > input.tire.lowSpeedRegularization) {
+  if (Math.abs(vx) > TIRE_LOW_SPEED_REGULARIZATION) {
     const minimumRolling = (Math.abs(vx) - slip * referenceSpeed) / radius;
     if (minimumRolling > 0) {
       const direction = Math.sign(vx);

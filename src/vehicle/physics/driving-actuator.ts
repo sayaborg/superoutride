@@ -116,7 +116,7 @@ export function updateDrivingActuators(
   input: DrivingInput,
   dt: number,
   definition: DrivingActuatorDefinition,
-  steeringResponse: NormalizedActuatorRateDefinition = definition.steering,
+  steeringResponse: NormalizedActuatorRateDefinition,
 ): void {
   if (!(dt > 0) || !Number.isFinite(dt)) throw new RangeError('actuator dt must be finite and > 0');
   assertExclusivePedalInput(input);

@@ -45,7 +45,7 @@ explicitly scheduled in [NEXT](NEXT.md) are replaced with their owning concepts.
 | `Knot` / `Knots`      | An authored s-position/value record / ordered sequence, including vertical PVIs and Boundary knots; not a derived polyline point. Use `*Knot` and `*Knots` consistently. |
 | `vertex`              | A polyline point derived during compilation, including compiled Boundary vertices and `ProfilePolyline` points; never authored.                                          |
 | `segment`             | A planar straight or circular arc derived from authored PIs during compilation; never authored.                                                                          |
-| `Definition`          | An author-written parameter record describing a vehicle, tire, material or sound.                                                                                        |
+| `Definition`          | An author-written parameter record describing a vehicle, game-wide driving assists and tires, material or sound.                                                         |
 | `Compiled*`           | A validated immutable product derived from authored inputs.                                                                                                              |
 | `Reader`              | A query interface over admitted data; it does not own the consumer's live simulation state.                                                                              |
 | `Route`               | The one selected, ordered sequence of Section occurrences measured from the entry; all vehicles share its chainage.                                                      |

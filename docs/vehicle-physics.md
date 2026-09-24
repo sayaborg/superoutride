@@ -3,13 +3,33 @@
 CAR and BIKE use one two-station vehicle solver with yaw and pitch. Contact and control constraints
 use a local heightfield approximation. The model separates these inputs:
 
-| Boundary             | Parameters                                                                                                            |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| Compiled vehicle     | Mass, geometry, inertia, suspension, wheel/brake data, drag, fixed drive split, powertrain and actuator/rack response |
-| Instance calibration | Tire GX/PX/GY/PY/KN, driver steering offset D, mechanical rack bound M and steering traversal time ACT                |
-| Composition policy   | Fixed update step, TCS/ABS and two-wheel support protection                                                           |
+| Boundary           | Parameters                                                                                           |
+| ------------------ | ---------------------------------------------------------------------------------------------------- |
+| Compiled vehicle   | Mass, geometry, inertia, suspension, wheel/brake data, drag, fixed drive split, powertrain           |
+| Driving definition | Travel-direction steering, M/D/ACT, pedal actuators, TCS/ABS and shared dimensionless per-load tires |
+| Composition policy | Fixed update step and form-specific two-wheel support protection                                     |
 
-[Calibration](calibration.md) owns values and selector ranges.
+[Driving definition](../src/vehicle/driving-definition.ts) is the sole authority for game-wide driving
+values; these are design values, not difficulty settings. Its immutable, nested plain data contains
+travel-direction steering, M=65 degrees, D=20 degrees, ACT=0.3 seconds, throttle/brake traversal times,
+`wheelSlip=true` and one common front/rear tire (GX=5, PX=0.2, GY=2.5, PY=0.1, KN=0.74).
+[Calibration](calibration.md) describes units, pedal values and the shell-owned DEV grids.
+
+Every vehicle creation receives this definition and an explicit form-specific support reserve.
+Admission converts degrees and traversal times to runtime angles/rates and compiles the tire law.
+Browser, race, reference/envelope tools, scenarios, startup smoke and image generation use the same
+input; no path falls back to the retained legacy vehicle fields or an implicit torque policy.
+DEV can still replace live M/D/ACT and linked tire settings, preserving them on vehicle switches.
+The front/rear runtime slots remain for now; both start with the same tire coefficients.
+
+`SessionVehicle` includes the entire driving definition in `vehicleSha256`, invalidating reference
+caches and rejecting stale browser envelopes and time budgets when any driving value changes.
+The model source list also includes the driving module instead of shell selector modules.
+Legacy per-vehicle values and their compiler validation remain solely for the 8-2b cleanup.
+
+The engine owns tire and steering low-speed regularization (both 1.0 m/s) and the retained
+0.01-second rack lag in `physics/numerical-constants.ts`. They are numerical constants, not
+vehicle or driving design values; 8-2c removes the rack lag.
 [Content and gameplay](content-and-gameplay.md#recovery) owns recovery outside the mechanical domain.
 
 ## State and integration
@@ -176,7 +196,7 @@ deliveredOffset = clamp(requestedOffset,allowedOffset)
 
 Including zero preserves neutral and permits partial corrective input. Degenerate, unsupported or
 zero-grip contacts return the request. Finally clamp `automatic+deliveredOffset` to +/-M and follow
-it with the compiled vehicle's exponential rack response. This is a conservative current-contact slip constraint.
+it with the engine's retained exponential rack response. This is a conservative current-contact slip constraint.
 
 ## Observations
 

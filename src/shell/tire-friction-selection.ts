@@ -1,3 +1,4 @@
+import { DRIVING_DEFINITION } from '../vehicle/driving-definition.js';
 import {
   compileTireCharacteristics,
   createVehicleTireFrictionCalibration,
@@ -35,15 +36,8 @@ export const BROWSER_TIRE_AXES: readonly BrowserTireAxis[] = Object.freeze(
   ].map((axis) => Object.freeze(axis)) as BrowserTireAxis[],
 );
 
-const DEFAULT_BROWSER_TIRE_CHARACTERISTICS: Readonly<TireCharacteristics> = Object.freeze({
-  gripX: 5.0,
-  peakSlipX: 0.2,
-  gripY: 2.5,
-  peakSlipY: 0.1,
-  knee: 0.74,
-});
 export const DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION = createVehicleTireFrictionCalibration(
-  compileTireCharacteristics(DEFAULT_BROWSER_TIRE_CHARACTERISTICS),
+  compileTireCharacteristics(DRIVING_DEFINITION.tire),
 );
 
 function browserTireAxis(id: BrowserTireCalibrationAxis): BrowserTireAxis {
@@ -100,4 +94,13 @@ export function formatTireCalibrationSelector(current: VehicleTireFrictionCalibr
   return BROWSER_TIRE_AXES.map(
     (axis) => `${axis.id === 'KNEE' ? 'KN' : axis.id}${formatTireAxisValue(axis.id, current)}`,
   ).join(' ');
+}
+
+// Admit the authored starting values to the DEV grid without making the grid their authority.
+for (const axis of BROWSER_TIRE_AXES) {
+  browserTireCalibrationForAxis(
+    axis.id,
+    DRIVING_DEFINITION.tire[axis.field],
+    DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION,
+  );
 }

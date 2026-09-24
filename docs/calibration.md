@@ -6,7 +6,10 @@ These tables describe the authored settings. [Vehicle physics](vehicle-physics.m
 
 ## Vehicle settings
 
-The browser supplies this common starting calibration for cars and bikes.
+The [game-wide driving definition](../src/vehicle/driving-definition.ts) is the single value authority
+for cars and bikes in browser, race and tools. The table documents that definition; it does not
+supply another set of defaults. The immutable record contains only authored numbers and choices,
+ready for saved content in 8-3. Derived radians, actuator rates and tire coefficients belong to admission.
 [Vehicle definitions](../src/vehicle/production-vehicle-definitions.ts) contain the per-vehicle mechanical data.
 
 | Key | Meaning                                      | Default | Selector range / step      |
@@ -23,7 +26,21 @@ The browser supplies this common starting calibration for cars and bikes.
 PX and PY are dimensionless slips. The defaults give `kX = kY = 31.5` under the
 [tire law](vehicle-physics.md#tire-law). Automatic steering has the derived budget `M-D`.
 The [tire selector](../src/shell/tire-friction-selection.ts) and
-[steering selector](../src/shell/steering-calibration-selection.ts) supply these browser values.
+[steering selector](../src/shell/steering-calibration-selection.ts) own only DEV choices and grid checks;
+they read the initial values from the driving definition. DEV adjustments and their transfer on
+vehicle switches remain unchanged. Tires are dimensionless coefficients per unit normal load and
+share one authored set for front and rear. Driving assists are not difficulty controls.
+
+The same definition selects travel-direction automatic steering and `wheelSlip=true` (TCS and ABS).
+Throttle traversal is 0.25 s apply / 0.125 s release; brake traversal is 0.15 s apply / 0.10 s release.
+Rates are their reciprocals, preserving the former `COMMON_ACTUATOR` values. Two-wheel support reserve
+remains a form-specific 0.08 until 8-7; four-wheel support reserve is null.
+Tire and steering low-speed regularization are engine constants of 1.0 m/s; the retained road-wheel
+lag is an engine constant of 0.01 s until 8-2c, not a design setting.
+
+The full driving record participates in vehicle identity for generated envelopes, reference caches
+and time budgets. Legacy vehicle steering/actuator/tire/regularization values are unread by runtime
+consumers and remain only until 8-2b.
 
 | Setting               | Value            | Meaning                                                      |
 | --------------------- | ---------------- | ------------------------------------------------------------ |

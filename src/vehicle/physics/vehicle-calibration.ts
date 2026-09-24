@@ -2,13 +2,12 @@ import {
   validateSymmetricSteeringActuatorRateDefinition,
   type NormalizedActuatorRateDefinition,
 } from './driving-actuator.js';
-import type { CompiledVehicle } from './vehicle-definitions.js';
 
 /** The selectable steering geometry/response values. Angles are road-wheel radians. */
 export interface VehicleSteeringCalibrationInput {
-  readonly maxRoadWheelSteer?: number;
-  readonly steeringOffsetMax?: number;
-  readonly steeringActuatorResponse?: NormalizedActuatorRateDefinition;
+  readonly maxRoadWheelSteer: number;
+  readonly steeringOffsetMax: number;
+  readonly steeringActuatorResponse: NormalizedActuatorRateDefinition;
 }
 
 export interface VehicleSteeringCalibrationState {
@@ -22,12 +21,11 @@ interface VehicleSteeringCalibrationOwner {
 }
 
 export function createVehicleSteeringCalibration(
-  compiledVehicle: CompiledVehicle,
-  input: VehicleSteeringCalibrationInput = {},
+  input: VehicleSteeringCalibrationInput,
 ): VehicleSteeringCalibrationState {
-  const maxRoadWheelSteer = input.maxRoadWheelSteer ?? compiledVehicle.maxRoadWheelSteer;
-  const steeringOffsetMax = input.steeringOffsetMax ?? compiledVehicle.steeringOffsetMax;
-  const steeringActuatorResponse = input.steeringActuatorResponse ?? compiledVehicle.actuator.steering;
+  const maxRoadWheelSteer = input.maxRoadWheelSteer;
+  const steeringOffsetMax = input.steeringOffsetMax;
+  const steeringActuatorResponse = input.steeringActuatorResponse;
   assertVehicleSteeringAngleCalibration({ maxRoadWheelSteer, steeringOffsetMax });
   validateSymmetricSteeringActuatorRateDefinition(steeringActuatorResponse);
   return {

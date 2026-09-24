@@ -6,12 +6,7 @@ import { compilePlanPath } from '../../src/course/geometry/plan-path.js';
 import { Profile } from '../../src/course/geometry/profile.js';
 import { SurfaceMap } from '../../src/vehicle/physics/surface-map.js';
 import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
-import { DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION } from '../../src/shell/tire-friction-selection.js';
-import {
-  DEFAULT_BROWSER_MAX_ROAD_WHEEL_STEER,
-  DEFAULT_BROWSER_STEERING_OFFSET,
-  DEFAULT_BROWSER_STEERING_RESPONSE_RATE,
-} from '../../src/shell/steering-calibration-selection.js';
+import { browserSessionVehicle } from '../../src/shell/session-vehicle.js';
 import { updateVehicle, vehicleBodyKinematics } from '../../src/vehicle/physics/vehicle-physics.js';
 import { SIM_DT } from '../../src/shell/frame-loop.js';
 import { wrapAngle } from '../../src/core/math.js';
@@ -32,18 +27,11 @@ function createEnvelopeRun(entry: Readonly<VehicleCatalogEntry>, initialSpeed: n
     { sStart: 0, name: 'Envelope asphalt', intervals: [{ lMin: -5000, lMax: 5000, type: 'ASPHALT' }] },
   ]);
   const world = { extent: coordinates.domain, coordinates, height, surfaces };
-  const rate = DEFAULT_BROWSER_STEERING_RESPONSE_RATE;
   const vehicle = createVehicle(entry.compiledVehicle, world, {
     s: 10000,
     l: 0,
     initialSpeed,
-    torqueProtection: entry.torqueProtection,
-    tireFrictionCalibration: DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION,
-    steeringCalibration: {
-      maxRoadWheelSteer: DEFAULT_BROWSER_MAX_ROAD_WHEEL_STEER,
-      steeringOffsetMax: DEFAULT_BROWSER_STEERING_OFFSET,
-      steeringActuatorResponse: { applyRate: rate, releaseRate: rate },
-    },
+    ...browserSessionVehicle(entry),
   });
   return { vehicle, world };
 }

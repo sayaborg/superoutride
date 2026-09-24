@@ -66,9 +66,8 @@ export function createCourseRace(options: {
       s: slot.at.s,
       l: targetL,
       initialSpeed,
-      torqueProtection: compiledVehicle.torqueProtection,
-      steeringCalibration: compiledVehicle.steeringCalibration,
-      tireFrictionCalibration: compiledVehicle.tireFrictionCalibration,
+      drivingDefinition: compiledVehicle.drivingDefinition,
+      supportReserve: compiledVehicle.supportReserve,
     });
     return competitor(actorId, { vehicle, recovery: createRecoveryState(vehicle) }, targetL);
   });

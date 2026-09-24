@@ -16,7 +16,7 @@ import type { CompiledVehicle } from '../vehicle/physics/vehicle-definitions.js'
 import { drawVehicleLeanDebug } from './debug/vehicle-lean-debug.js';
 import { drawVehicleYawDebug } from './debug/vehicle-yaw-debug.js';
 import type { VehicleCatalogEntry } from '../vehicle/vehicle-catalog.js';
-import { DEFAULT_VEHICLE_CATALOG_ENTRY, vehicleCatalogEntryForId } from '../vehicle/vehicle-catalog.js';
+import { vehicleCatalogEntryForId } from '../vehicle/vehicle-catalog.js';
 import type { BrowserCourseModeQuery } from './course-mode-selection.js';
 import { mustGet } from './dom.js';
 import { createFrameLoop, type FrameLoop } from './frame-loop.js';
@@ -24,7 +24,7 @@ import { BROWSER_RECOVERY_CODE, browserRequestsCameraYawToggle } from './key-bin
 import { mountMobileCameraYawSelector, mountMobileVehicleSelector } from './mobile-selector-controls.js';
 import { mountBrowserSteeringCalibrationControls } from './steering-calibration-controls.js';
 import { mountBrowserTireFrictionControls } from './tire-friction-controls.js';
-import { DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION } from './tire-friction-selection.js';
+import { browserSessionVehicle } from './session-vehicle.js';
 import { browserUsesTouchInterface } from './touch-interface.js';
 import { drawVehicleDebugHud } from './vehicle-debug-hud.js';
 import { browserVehicleForKey } from './vehicle-selection.js';
@@ -54,7 +54,7 @@ interface BrowserDrivingShell {
 export function createBrowserDrivingShell(
   runtime: VehicleWorld,
   startL: number,
-  spawn: { readonly initialSpeed?: number; readonly s?: number; readonly vehicle?: SessionVehicle } = {},
+  spawn: { readonly initialSpeed: number; readonly s: number; readonly vehicle: SessionVehicle },
 ): BrowserDrivingShell {
   const canvas = mustGet<HTMLCanvasElement>('game');
   canvas.width = LOGICAL_WIDTH;
@@ -67,13 +67,12 @@ export function createBrowserDrivingShell(
   const framebuffer = new SoftwareSurface(LOGICAL_WIDTH, LOGICAL_HEIGHT, new Uint32Array(imageData.data.buffer));
   const inputManager = new InputManager();
   const selected = spawn.vehicle;
-  let vehicle = createVehicle(selected?.compiledVehicle ?? DEFAULT_VEHICLE_CATALOG_ENTRY.compiledVehicle, runtime, {
-    s: spawn.s ?? 45,
+  let vehicle = createVehicle(selected.compiledVehicle, runtime, {
+    s: spawn.s,
     l: startL,
-    initialSpeed: spawn.initialSpeed ?? 45,
-    tireFrictionCalibration: selected?.tireFrictionCalibration ?? DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION,
-    steeringCalibration: selected?.steeringCalibration,
-    torqueProtection: selected?.torqueProtection ?? DEFAULT_VEHICLE_CATALOG_ENTRY.torqueProtection,
+    initialSpeed: spawn.initialSpeed,
+    drivingDefinition: selected.drivingDefinition,
+    supportReserve: selected.supportReserve,
   });
   let recovery = createRecoveryState(vehicle);
   const cameraRig = createCameraRig();
@@ -127,7 +126,7 @@ export function createBrowserDrivingShell(
         initialSpeed: vehicle.longitudinalSpeed,
         steeringCalibration,
         tireFrictionCalibration,
-        torqueProtection: vehicleCatalogEntryForId(compiledVehicle.id).torqueProtection,
+        ...browserSessionVehicle(vehicleCatalogEntryForId(compiledVehicle.id)),
       });
       recovery = createRecoveryState(vehicle);
     },
