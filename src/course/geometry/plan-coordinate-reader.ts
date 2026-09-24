@@ -59,26 +59,28 @@ export function createPlanCoordinateReader(
         throw new TypeError('Projection interval endpoints must be numeric');
       if (!(start >= 0 && end >= start && end <= length))
         throw new RangeError('Projection interval must lie inside the Section domain');
-      return Object.freeze(
-        primitives.flatMap((primitive): PlanProjectionCandidate[] => {
-          const a = Math.max(start, primitive.sStart),
-            b = Math.min(end, primitive.sEnd);
-          if (!(b > a)) return [];
-          return [
-            Object.freeze({
-              start: a,
-              end: b,
-              project(world: Vec2, from: number, to: number, out: PlanProjectionCandidateSample) {
-                projectPlanPrimitiveInterval(primitive, world, from, to, projected, projectionSample);
-                out.s = projected.s;
-                out.l = projected.l;
-                out.isFoot = projected.isFoot;
-                out.distanceSquared = projected.distanceSquared;
-              },
-            }),
-          ];
-        }),
-      );
+      const candidates: PlanProjectionCandidate[] = [];
+      for (let i = planPrimitiveIndexAt(plan, start); i < primitives.length; i += 1) {
+        const primitive = primitives[i]!;
+        if (primitive.sStart >= end) break;
+        const a = Math.max(start, primitive.sStart),
+          b = Math.min(end, primitive.sEnd);
+        if (!(b > a)) continue;
+        candidates.push(
+          Object.freeze({
+            start: a,
+            end: b,
+            project(world: Vec2, from: number, to: number, out: PlanProjectionCandidateSample) {
+              projectPlanPrimitiveInterval(primitive, world, from, to, projected, projectionSample);
+              out.s = projected.s;
+              out.l = projected.l;
+              out.isFoot = projected.isFoot;
+              out.distanceSquared = projected.distanceSquared;
+            },
+          }),
+        );
+      }
+      return Object.freeze(candidates);
     },
     domain: Object.freeze({
       start: 0,
@@ -117,7 +119,9 @@ export function createPlanCoordinateReader(
       let bestDistance = Infinity,
         bestInDomain = false,
         found = false;
-      for (const primitive of primitives) {
+      for (let i = planPrimitiveIndexAt(plan, from); i < primitives.length; i += 1) {
+        const primitive = primitives[i]!;
+        if (primitive.sStart >= to) break;
         const a = Math.max(from, primitive.sStart),
           b = Math.min(to, primitive.sEnd);
         if (!(b > a)) continue;

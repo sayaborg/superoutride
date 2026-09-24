@@ -8,7 +8,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **6-9a — Shared route coordinates and readers**.
+Next PR: **6-9a2 — Switch driving and rendering to shared route coordinates**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -18,9 +18,9 @@ PRs hold rationale and verification evidence.
 
 Give all vehicles one route coordinate system, read its geometry and content through shared readers, then remove per-vehicle frames and seam procedures.
 
-- **6-9a — Shared route coordinates and readers:** give every vehicle one route chainage measured from the start (lap `n` occupies `[nL,(n+1)L]`); each occurrence carries its start chainage, lateral origin and world transform; append chosen branches and discard portions behind every vehicle; use binary search in route readers for bounded plan projection, height, rendered profile, Raster, material, Band, sprites and environment, returning absence outside the route or coordinate domain; switch physics, race and rendering to this route, including the current Section-only `locateLocal` search.
+- **6-9a2 — Shared route switch:** size-bounded route extension and retention based on the camera, driver and projection extents; finish the Band, sprite and environment readers, switch all actors, physics, race, rendering and reference-run tools to one route; remove frame changes from the live path, and verify the three courses and performance on Pages. The preparatory route and physical readers were introduced in 6-9a1.
 - **6-9b — Cross sections and progress:** express checkpoints, finish and fork lock as constant-route-s lines; detect crossings from previous/current s inside the coordinate domain; derive progress, laps and rank from route s and remove world-coordinate gates.
-- **6-9c — Remove per-vehicle frames:** remove occurrence history/traversal, geometry views (`createView`, `CourseGeometryView` and adapters), driving-session and `vehicle-reframe` frame changes, motion guards and seam gates, consumer demand ranges and both remaining domain wrappers, `referenceSOffset`/`referenceFromFrame` and rival observation conversions, and duplicate entry recovery.
+- **6-9c — Remove per-vehicle frames:** remove occurrence history/traversal, geometry views (`createView`, `CourseGeometryView` and adapters), driving-session and `vehicle-reframe` frame changes, motion guards and seam gates, consumer demand ranges and both remaining domain wrappers, `referenceSOffset`/`referenceFromFrame` and rival observation conversions, and duplicate entry recovery. Remove the old occurrence-window Readers and their `sameLayout` cache, `addressInFrame` conversion, seam `prepareGates` and `createMotionGuard`, and any per-actor selected lists left after the shared route switch.
 - **6-9d — Outside the coordinate domain:** treat out-of-domain contacts as unsupported without geometry reads, make the physics `offsetMetric <= 0` RangeError unreachable, and use `inDomain` in recovery conditions.
 - **6-10 — Local tolerances:** clarify each tolerance's basis and owning algorithm, including the `1e-14` tangent-intersection threshold in `plan-domain-injectivity.ts`.
 
@@ -61,7 +61,7 @@ Define persistent player settings, data-driven Sessions and product display inde
 
 - **10-1 — Framebuffer:** RGB555.
 - **10-2 — Player settings:** a persistent settings model.
-- **10-3 — Session rules:** one settings record, modes as rule data and TIME ATTACK; CUSTOM has no time limit.
+- **10-3 — Session rules:** one settings record, modes as rule data and TIME ATTACK; CUSTOM has no time limit. Model rival lifetime (whole race, per stage or until a fork) and fork decider (first arrival or player) as Session rule components, with modes as their combinations; Cool Riders has one rival per stage, first-arrival fork choice and an all-rival final stage.
 - **10-4 — Cameras:** define camera methods, allowing later changes and mode-specific choices.
   Rename camera yaw mode and current-camera-profile names according to the glossary.
   Use the camera definition's `dCam` for the display-side rearward offset instead of `CURRENT_CAMERA_DISTANCE_METERS` from `display-scale.ts`.

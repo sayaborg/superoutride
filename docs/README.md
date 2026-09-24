@@ -42,6 +42,8 @@ explicitly scheduled in [NEXT](NEXT.md) are replaced with their owning concepts.
 | `Definition`          | An author-written parameter record describing a vehicle, tire, material or sound.                                                                         |
 | `Compiled*`           | A validated immutable product derived from authored inputs.                                                                                               |
 | `Reader`              | A query interface over admitted data; it does not own the consumer's live simulation state.                                                               |
+| `Route`               | The one selected, ordered sequence of Section occurrences measured from the entry; all vehicles share its chainage.                                       |
+| `RouteOccurrence`     | A Section visit with its route start, native start, lateral origin and world transform; repeating a Section creates a new occurrence.                     |
 | `Observation`         | A measured or derived fact at sampling time, not an independent authority.                                                                                |
 | `State`               | Mutable live state owned by its responsible model or consumer.                                                                                            |
 | `Settings`            | The selected configuration applied to a running instance or its controls.                                                                                 |
