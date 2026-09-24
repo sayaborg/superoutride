@@ -1,8 +1,7 @@
-import type { RasterGeometry } from '../course/geometry/raster-coordinate-reader.js';
+import type { PlanCoordinateReader } from '../course/geometry/plan-coordinate.js';
 import type { ProfilePolylineReader } from '../course/geometry/profile.js';
 import { knotIndexAt } from '../course/geometry/knot-sequence.js';
 import { horizonY, pseudoProject, type PseudoCamera } from './projection.js';
-import { rasterCoordinateToWorld } from '../course/geometry/raster-coordinate-reader.js';
 import { PIXEL_EDGE_TOLERANCE } from '../core/tolerances.js';
 import type { VisualProfileReader } from '../course/visual-profile.js';
 
@@ -30,14 +29,14 @@ interface ForwardVisibleInterval {
 const DEFAULT_THIN_SPAN_SCREEN_ROWS = 1;
 
 /**
- * Determine the ordinary forward renderer interval on one open GuidePath.
+ * Determine the ordinary forward renderer interval on the authoritative plan.
  *
  * The path endpoint is a geometry boundary, not a topology seam: the visible
  * interval simply ends there. Product courses author sufficient run-in/runout
  * so this clipping is not an ordinary gameplay special case.
  */
 export function computeForwardVisibleInterval(
-  guide: RasterGeometry,
+  guide: { readonly coordinates: PlanCoordinateReader },
   extent: { readonly start: number; readonly end: number },
   cameraYaw: number,
   sCamera: number,
@@ -55,22 +54,11 @@ export function computeForwardVisibleInterval(
 
   const end = sCamera + dEnd;
   const start = sCamera + dStart;
-  const segments = guide.raster.segments;
-  for (let index = knotIndexAt(segments, 'sStart', start); index < segments.length; index += 1) {
-    const segment = segments[index]!;
-    if (segment.sStart >= end - VISIBLE_INTERVAL_TOLERANCE_METERS) break;
-    const facing = Math.cos(segment.heading - cameraYaw);
-    if (facing <= 0) {
-      const facingEnd = Math.max(start, segment.sStart) - sCamera;
-      if (facingEnd <= dStart + VISIBLE_INTERVAL_TOLERANCE_METERS) return null;
-      out.dStart = dStart;
-      out.dEnd = facingEnd;
-      return out;
-    }
-  }
+  const facingEnd = guide.coordinates.forwardEnd(start, end, cameraYaw) - sCamera;
+  if (facingEnd <= dStart + VISIBLE_INTERVAL_TOLERANCE_METERS) return null;
 
   out.dStart = dStart;
-  out.dEnd = dEnd;
+  out.dEnd = facingEnd;
   return out;
 }
 
@@ -79,10 +67,7 @@ export interface TerrainRenderParameters {
   screenHeight: number;
   dMin: number;
   dMax: number;
-  groundLeft: number;
-  groundRight: number;
   height: ProfilePolylineReader;
-  physicalHeight: import('../course/geometry/profile.js').ProfileReader;
   visual: VisualProfileReader;
   /** Collapse threshold in destination scanline units. Defaults to one row. */
   thinSpanScreenRows?: number;
@@ -127,7 +112,7 @@ const ascending = (a: number, b: number) => a - b;
 const painterOrder = (a: TerrainLine, b: TerrainLine) => b.d - a.d || a.y - b.y;
 
 export function generateTerrainLines(
-  guide: RasterGeometry,
+  guide: { readonly coordinates: PlanCoordinateReader },
   camera: PseudoCamera,
   parameters: TerrainRenderParameters,
   workspace = createTerrainWorkspace(),
@@ -158,7 +143,6 @@ export function generateTerrainLines(
   const end = camera.s + visible.dEnd;
   // Use authored boundaries directly: rounding cannot strand a cursor before a vertex.
   boundaries.push(start, end);
-  appendVisibleBoundaries(boundaries, guide.raster.segments, 'sStart', start, end);
   appendVisibleBoundaries(boundaries, parameters.height.knots, 's', start, end);
   appendVisibleBoundaries(boundaries, parameters.visual.sections, 'sStart', start, end);
   boundaries.sort(ascending);
@@ -254,7 +238,7 @@ function depthAtScreenBoundary(screenY: number, aY: number, bY: number, dMin: nu
 }
 
 function createTerrainLine(
-  guide: RasterGeometry,
+  guide: { readonly coordinates: PlanCoordinateReader },
   camera: PseudoCamera,
   parameters: TerrainRenderParameters,
   d: number,
@@ -266,8 +250,8 @@ function createTerrainLine(
 ): TerrainLine | null {
   const s = camera.s + d;
   const renderHeight = parameters.height.sample(s, workspace.height).y;
-  rasterCoordinateToWorld(guide.raster, s, -parameters.groundLeft, workspace.left);
-  rasterCoordinateToWorld(guide.raster, s, parameters.groundRight, workspace.right);
+  guide.coordinates.toWorld(s, -1, workspace.left);
+  guide.coordinates.toWorld(s, 1, workspace.right);
   workspace.left.y = renderHeight;
   workspace.right.y = renderHeight;
   const projectedLeft = pseudoProject(workspace.left, camera, workspace.projectedLeft);
@@ -276,7 +260,7 @@ function createTerrainLine(
   if (!(groundSpan > MIN_TERRAIN_SPAN_PIXELS)) return null;
 
   const section = parameters.visual.sample(s);
-  const deltaL = (parameters.groundLeft + parameters.groundRight) / groundSpan;
+  const deltaL = 2 / groundSpan;
   let line = workspace.pool[workspace.lines.length];
   if (!line) {
     line = {

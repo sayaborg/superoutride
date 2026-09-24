@@ -40,8 +40,8 @@ if (!result.ok) {
         identity: result.value.identity,
         sections: result.value.sections.map((section) => ({
           id: section.id,
-          length: section.raster.length,
-          segments: section.raster.segments.length,
+          length: section.coordinates.domain.end,
+          primitives: section.primitives.length,
           regions: section.regionPartition.regions.length,
           heightNodes: section.height.knots.length,
           physicalBindings: section.physicalBindings.length,

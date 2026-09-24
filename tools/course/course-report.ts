@@ -39,7 +39,8 @@ export async function courseReport(course: CompiledCourse, section: CompiledSect
       length,
       ...Array.from({ length: Math.ceil(length / step) }, (_, i) => i * step),
       ...section.height.knots.map((n) => n.s),
-      ...section.renderHeight.knots.map((n) => n.s),
+      ...section.primitives.flatMap((p) => [p.sStart, p.sEnd]),
+      ...section.height.knots.flatMap((n) => [n.s - n.curveLength / 2, n.s + n.curveLength / 2]),
       ...section.boundaries.flatMap((b) => b.knots.map((k) => k.anchor.s)),
     ]),
   ].sort((a, b) => a - b);

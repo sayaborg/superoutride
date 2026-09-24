@@ -41,6 +41,8 @@ export interface PlanProjectionCandidateSample {
 /** One finite planar query interface in either a Section or an occurrence frame. */
 export interface PlanCoordinateReader {
   readonly domain: PlanCoordinateDomain;
+  /** First station whose tangent ceases to face yaw, or end if all face forward. */
+  forwardEnd(start: number, end: number, yaw: number): number;
   toWorld(s: number, l: number, out: PlanCoordinateSample): PlanCoordinateSample;
   metricsAt(s: number, l: number, out: Writable<PlanCoordinateMetrics>): PlanCoordinateMetrics;
   locateLocal(

@@ -126,14 +126,7 @@ export function runScenario({ course, ground }, scenario) {
   let camera;
   const render = () => {
     settings.setBandMethod(BAND_RENDER_METHODS[evidence.frames % BAND_RENDER_METHODS.length]);
-    const readers = scene.runtime.readers;
-    scene.render(
-      target,
-      vehicle,
-      camera,
-      configuration.kind,
-      sprites(race.observe().rivals, camera, readers, scene.world.height, readers.renderHeight),
-    );
+    scene.render(target, vehicle, camera, configuration.kind, sprites(race.observe().rivals, camera));
     evidence.frames++;
   };
   race.start();

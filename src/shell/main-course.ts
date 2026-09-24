@@ -144,13 +144,7 @@ try {
       shell.vehicle,
       lifecycle.camera,
       deriveVehicleSpriteFamily(shell.presentation),
-      raceSprites(
-        observations.rivals,
-        lifecycle.camera,
-        scene.runtime.readers,
-        scene.world.height,
-        scene.runtime.readers.renderHeight,
-      ),
+      raceSprites(observations.rivals, lifecycle.camera),
       input.brake ? braking : sprites,
     );
     shell.present(mode, input, lifecycle.camera, result.playerScreenY, observations.rivals);

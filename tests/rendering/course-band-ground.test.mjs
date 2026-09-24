@@ -23,11 +23,11 @@ test('visual Bands can erase all ground without changing structural Regions, sup
   assert.deepEqual(a.regionPartition, b.regionPartition);
   const surfaceA = createRegionSurfaceReader(a.regionPartition, a.physicalBindings);
   const surfaceB = createRegionSurfaceReader(b.regionPartition, b.physicalBindings);
-  for (const s of [0, 45, 350, 700, a.raster.length])
+  for (const s of [0, 45, 350, 700, a.coordinates.domain.end])
     for (const l of [-100, -8, -3, 0, 3, 8, 100]) assert.deepEqual(surfaceA.sample(s, l), surfaceB.sample(s, l));
   const pixels = new Uint32Array(320).fill(0xabcdef01);
   const sampler = createBandGroundSampler([
-    { ground: b.presentation.ground, start: 0, occurrenceStart: 0, end: b.raster.length, lateralOrigin: 0 },
+    { ground: b.presentation.ground, start: 0, end: b.coordinates.domain.end, lateralOrigin: 0 },
   ]);
   sampler.sampleSpan(pixels, 0, 320, 350, -40, 0.25, 32, 'EXACT-BOX', createBandRenderMetrics());
   assert.ok(

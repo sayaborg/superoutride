@@ -20,7 +20,7 @@ export function compileCourseFork(
   const check = (condition: boolean, message: string) => requireCourse(condition, path, message, 'invalid_fork');
   check(section.outgoing.length >= 2, 'A fork requires two or three canonical exits');
   check(
-    lock.s > 0 && lock.s < closure.s && closure.s < section.raster.length,
+    lock.s > 0 && lock.s < closure.s && closure.s < section.coordinates.domain.end,
     'Fork anchors require 0 < lock < closure < every exit seam',
   );
   for (const placement of conditional) {
@@ -31,7 +31,7 @@ export function compileCourseFork(
     check(placement.anchor.s >= lock.s && placement.anchor.s <= closure.s, 'Road signs lie between lock and closure');
     check(
       placement.anchor.s + placement.instance.asset.source.width / SPRITE_SOURCE_TEXELS_PER_METER <
-        section.raster.length,
+        section.coordinates.domain.end,
       'State-selected signs must precede the exit cut',
     );
   }

@@ -63,11 +63,10 @@ function integrate(field: BandLateralField, a: number, b: number, out: Float64Ar
   }
 }
 
-/** A route interval; subtract occurrenceStart to sample its Section ground. */
+/** A route interval; subtract start to sample its Section ground. */
 interface BandFieldSpan {
   readonly ground: BandGround;
   readonly start: number;
-  readonly occurrenceStart: number;
   readonly end: number;
   readonly lateralOrigin: number;
 }
@@ -276,8 +275,8 @@ export function createBandGroundSampler(intervals: readonly BandFieldSpan[]) {
     return spans[Math.min(lo, spans.length - 1)]!;
   };
   const append = (span: (typeof spans)[number], start: number, end: number, stats: BandRenderMetrics) => {
-    const a = Math.max(0, start - span.occurrenceStart),
-      b = Math.min(span.ground.length, end - span.occurrenceStart);
+    const a = Math.max(0, start - span.start),
+      b = Math.min(span.ground.length, end - span.start);
     const fullStart = Math.ceil(a / BAND_BASE_STEP),
       fullEnd = Math.floor(b / BAND_BASE_STEP);
     if (fullEnd <= fullStart) {
@@ -316,7 +315,7 @@ export function createBandGroundSampler(intervals: readonly BandFieldSpan[]) {
       let normalization = 1;
       if (method !== 'EXACT-BOX') {
         const span = spanAt(s);
-        const at = Math.max(0, Math.min(span.ground.length, s - span.occurrenceStart));
+        const at = Math.max(0, Math.min(span.ground.length, s - span.start));
         if (method === 'LEVEL-POINT' && deltaS >= BAND_BASE_STEP) {
           const level = selectImageLodLevel(BAND_BASE_STEP / deltaS, span.ground.reader.levelCount - 1);
           span.ground.reader.read(level, at, pointField);
@@ -337,7 +336,7 @@ export function createBandGroundSampler(intervals: readonly BandFieldSpan[]) {
           }
         } else {
           const span = spanAt(s);
-          const at = Math.max(0, Math.min(span.ground.length, s - span.occurrenceStart));
+          const at = Math.max(0, Math.min(span.ground.length, s - span.start));
           appendExact(row, span.ground, at, at, span.lateralOrigin, stats, true);
         }
         field = row.finish();

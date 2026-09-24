@@ -41,7 +41,7 @@ export function createCourseScene(
   if (
     section.fork &&
     section.fork.lock.s + Math.max(RENDER_FAR_DEPTH_METERS, ENVELOPE_DRIVER.lookahead) + maximumStepMeters >
-      section.raster.length
+      section.coordinates.domain.end
   )
     throw new RangeError('Fork parent must cover pre-lock render and driver queries through one fixed step');
   const runtime = createRouteRuntime(section, {
@@ -91,10 +91,8 @@ export function createCourseScene(
           screenHeight: LOGICAL_HEIGHT,
           dMin: RENDER_NEAR_DEPTH_METERS,
           dMax: RENDER_FAR_DEPTH_METERS,
-          ...presentation.groundRuler,
           height: readers.renderHeight,
           extent: runtime.route,
-          physicalHeight: readers.height,
           visual: presentation.visual,
         };
         lastPresentation = presentation;
@@ -110,7 +108,6 @@ export function createCourseScene(
           camera,
           vehicle,
           terrainParameters,
-          groundRuler: presentation.groundRuler,
           worldSprites,
           assets: appearance,
           playerKind,

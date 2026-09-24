@@ -53,17 +53,19 @@ export function createCourseRouteReaders(route: CourseRoute) {
     if (indexed === route.occurrences) return;
     indexed = route.occurrences;
     candidates = indexed.flatMap((occurrence) =>
-      occurrence.section.coordinates.projectionCandidates(0, occurrence.section.raster.length).map((candidate) => ({
-        occurrence,
-        start: routeS(occurrence, candidate.start),
-        end: routeS(occurrence, candidate.end),
-        native: candidate,
-      })),
+      occurrence.section.coordinates
+        .projectionCandidates(0, occurrence.section.coordinates.domain.end)
+        .map((candidate) => ({
+          occurrence,
+          start: routeS(occurrence, candidate.start),
+          end: routeS(occurrence, candidate.end),
+          native: candidate,
+        })),
     );
     rasterSegments = indexed.flatMap((occurrence) =>
       occurrence.section.raster.segments.flatMap((segment) => {
         const start = Math.max(0, segment.sStart);
-        const end = Math.min(occurrence.section.raster.length, segment.sStart + segment.length);
+        const end = Math.min(occurrence.section.coordinates.domain.end, segment.sStart + segment.length);
         return end > start
           ? [{ sStart: routeS(occurrence, start), length: end - start, heading: heading(occurrence, segment.heading) }]
           : [];
@@ -71,12 +73,12 @@ export function createCourseRouteReaders(route: CourseRoute) {
     );
     const profileKnots = indexed.flatMap((occurrence) =>
       occurrence.section.height.knots
-        .filter((knot) => knot.s >= 0 && knot.s <= occurrence.section.raster.length)
+        .filter((knot) => knot.s >= 0 && knot.s <= occurrence.section.coordinates.domain.end)
         .map((knot) => Object.freeze({ ...knot, s: routeS(occurrence, knot.s) })),
     );
     heightKnots = profileKnots.filter((knot, i) => i + 1 === profileKnots.length || knot.s !== profileKnots[i + 1]!.s);
     const displayKnots = indexed.flatMap((occurrence) => {
-      const end = occurrence.section.raster.length;
+      const end = occurrence.section.coordinates.domain.end;
       return [
         0,
         ...occurrence.section.renderHeight.knots.map((knot) => knot.s).filter((s) => s > 0 && s < end),
@@ -87,12 +89,32 @@ export function createCourseRouteReaders(route: CourseRoute) {
   };
   const lookup = (s: number) => route.at(s);
   const heading = (occurrence: RouteOccurrence, sectionHeading: number) =>
-    wrapAngle(sectionHeading + Math.atan2(occurrence.worldFromSection.sine, occurrence.worldFromSection.cosine));
+    wrapAngle(sectionHeading + occurrence.rotation);
   const domain = Object.freeze({
     lateralAt,
   });
   const coordinates = Object.freeze({
     domain,
+    forwardEnd(start: number, end: number, yaw: number) {
+      const first = lookup(start);
+      if (!first) return start;
+      const occurrences = route.occurrences;
+      for (let i = occurrences.indexOf(first); i < occurrences.length; i++) {
+        const occurrence = occurrences[i]!;
+        const a = Math.max(start, occurrence.start),
+          b = Math.min(end, occurrence.end);
+        if (b <= a) continue;
+        const nativeEnd = occurrence.section.coordinates.forwardEnd(
+          routeSectionS(occurrence, a),
+          routeSectionS(occurrence, b),
+          yaw - occurrence.rotation,
+        );
+        const result = routeS(occurrence, nativeEnd);
+        if (result < b) return result;
+        if (b === end) break;
+      }
+      return end;
+    },
     toWorld(s: number, l: number, out: PlanCoordinateSample): PlanCoordinateSample {
       const occurrence = lookup(s);
       if (!occurrence) {
@@ -300,8 +322,11 @@ export function createCourseRouteReaders(route: CourseRoute) {
   const material = Object.freeze({
     sample(s: number, l: number) {
       const occurrence = lookup(s);
-      lateralAt(s, bounds);
-      if (!occurrence || l < bounds.left || l > bounds.right) return ROUTE_OUTSIDE_SURFACE;
+      if (!occurrence) return ROUTE_OUTSIDE_SURFACE;
+      const nativeS = routeSectionS(occurrence, s);
+      occurrence.section.coordinates.domain.lateralAt(nativeS, bounds);
+      const nativeL = l + occurrence.lateralOrigin;
+      if (nativeL < bounds.left || nativeL > bounds.right) return ROUTE_OUTSIDE_SURFACE;
       let reader = surfaces.get(occurrence.section);
       if (!reader) {
         reader = createRegionSurfaceReader(occurrence.section.regionPartition, occurrence.section.physicalBindings);

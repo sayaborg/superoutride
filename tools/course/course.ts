@@ -65,7 +65,7 @@ try {
       reference: course.reference,
       sections: course.sections.map((s) => ({
         id: s.id,
-        length: s.raster.length,
+        length: s.coordinates.domain.end,
         scenery: s.presentation?.scenery.length ?? 0,
       })),
     };
@@ -86,13 +86,13 @@ try {
           '/sequence',
           'Specify start/end/step together, separately from s',
         );
-        const start = finite(Number(opts.get('--start')), '/start', 0, section.raster.length),
-          end = finite(Number(opts.get('--end')), '/end', start, section.raster.length),
+        const start = finite(Number(opts.get('--start')), '/start', 0, section.coordinates.domain.end),
+          end = finite(Number(opts.get('--end')), '/end', start, section.coordinates.domain.end),
           step = finite(Number(opts.get('--step')), '/step', 0.01);
         const count = Math.floor((end - start) / step + 1e-10) + 1;
         requireInput(count <= 240, '/sequence', 'At most 240 frames per command');
         stations = Array.from({ length: count }, (_, i) => start + i * step);
-      } else stations = [finite(Number(opts.get('--s') ?? 45), '/s', 0, section.raster.length)];
+      } else stations = [finite(Number(opts.get('--s') ?? 45), '/s', 0, section.coordinates.domain.end)];
       const l = finite(Number(opts.get('--l') ?? 0), '/l', -1000, 1000),
         scene = createCourseScene(section, await loadCourseGround(course), spriteAssets, course.rules);
       if (opts.has('--exit')) {

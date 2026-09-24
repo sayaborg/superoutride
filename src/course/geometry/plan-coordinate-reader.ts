@@ -1,6 +1,6 @@
 import type { Writable } from '../../core/writable.js';
 import type { Vec2 } from '../../core/math.js';
-import { normalFromHeading } from '../../core/math.js';
+import { normalFromHeading, wrapAngle } from '../../core/math.js';
 import {
   planPrimitiveIndexAt,
   projectPlanPrimitiveInterval,
@@ -51,6 +51,23 @@ export function createPlanCoordinateReader(
   const projected = { s: 0, l: 0, primitiveIndex: -1, distanceSquared: 0, isFoot: false };
   const bounds = { left: 0, right: 0 };
   const reader: SectionPlanCoordinateReader = Object.freeze({
+    forwardEnd(start: number, end: number, yaw: number) {
+      for (let i = planPrimitiveIndexAt(plan, start); i < primitives.length; i++) {
+        const primitive = primitives[i]!;
+        const a = Math.max(start, primitive.sStart);
+        const b = Math.min(end, primitive.sEnd);
+        if (b <= a) continue;
+        const relative = wrapAngle(primitive.start.heading + primitive.curvature * (a - primitive.sStart) - yaw);
+        if (Math.abs(relative) >= Math.PI / 2) return a;
+        if (primitive.curvature !== 0) {
+          const boundary = (Math.sign(primitive.curvature) * Math.PI) / 2;
+          const station = a + (boundary - relative) / primitive.curvature;
+          if (station <= b) return station;
+        }
+        if (b === end) break;
+      }
+      return end;
+    },
     projectionCandidates(start: number, end: number) {
       if (typeof start !== 'number' || typeof end !== 'number')
         throw new TypeError('Projection interval endpoints must be numeric');

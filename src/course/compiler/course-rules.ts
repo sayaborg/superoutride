@@ -29,8 +29,8 @@ export function compileCourseRules(
     sections.map((section) => [section, new Map(section.primitives.map((p) => [p.source.id, p]))]),
   );
   const resolve = (section: CompiledSection, anchor: CourseLandmarkDocument['anchor'], path: string) =>
-    resolveCourseAnchor(anchor, tables.get(section)!, section.raster.length, path);
-  const endS = (section: CompiledSection) => section.raster.length;
+    resolveCourseAnchor(anchor, tables.get(section)!, section.coordinates.domain.end, path);
+  const endS = (section: CompiledSection) => section.coordinates.domain.end;
   const compile = (g: CourseLandmarkDocument, path: string): CompiledCourseLandmark => {
     const section = sections.find((s) => s.id === g.sectionId);
     requireCourse(section !== undefined, path + '/sectionId', 'Unknown landmark Section', 'unresolved_reference');

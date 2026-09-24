@@ -1,5 +1,5 @@
-import type { ProfileReader, ProfilePolylineReader } from '../course/geometry/profile.js';
-import type { RasterGeometry } from '../course/geometry/raster-coordinate-reader.js';
+import type { ProfileReader } from '../course/geometry/profile.js';
+import type { PlanCoordinateReader } from '../course/geometry/plan-coordinate.js';
 import { readSpriteLodAsset, createSpritePaletteVariant, type SpriteLodDocument } from '../image/sprite.js';
 import { TileBackgroundImage, type TileBackgroundDocument } from '../image/tile-background-image.js';
 import type { CoursePresentation } from '../course/course-presentation.js';
@@ -31,14 +31,18 @@ export function createCourseRenderResources() {
   };
   const createSectionReaders = (
     p: CoursePresentation,
-    geometry: RasterGeometry,
+    geometry: { readonly coordinates: PlanCoordinateReader },
     height: ProfileReader,
-    renderHeight: ProfilePolylineReader,
   ) => {
-    if (!p || !p.ground || !Array.isArray(p.environments) || !Array.isArray(p.scenery) || !geometry?.raster || !height)
-      throw new TypeError('Section rendering requires compiled content, Raster and height readers');
-    if (p.ground.length !== geometry.raster.segments.at(-1)!.sStart + geometry.raster.segments.at(-1)!.length)
-      throw new RangeError('Section rendering facets must share their native ruler');
+    if (
+      !p ||
+      !p.ground ||
+      !Array.isArray(p.environments) ||
+      !Array.isArray(p.scenery) ||
+      !geometry?.coordinates ||
+      !height
+    )
+      throw new TypeError('Section rendering requires compiled content, plan and height readers');
 
     return Object.freeze({
       visual: new VisualProfile(
@@ -69,7 +73,7 @@ export function createCourseRenderResources() {
             l: placement.l,
             unselected: placement.unselected,
             sprite: Object.freeze(
-              compileCourseSprite(geometry, height, renderHeight, {
+              compileCourseSprite(geometry, height, {
                 name: placement.instance.id,
                 s: placement.anchor.s,
                 l: placement.l,

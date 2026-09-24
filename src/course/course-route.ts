@@ -14,6 +14,7 @@ export interface RouteOccurrence {
   readonly start: number;
   readonly end: number;
   readonly lateralOrigin: number;
+  readonly rotation: number;
   readonly worldFromSection: PlanarTransform;
   readonly sectionFromWorld: PlanarTransform;
 }
@@ -36,15 +37,16 @@ const identity = compilePlanarTransform({ x: 0, z: 0, heading: 0 }, { x: 0, z: 0
 
 /** Validate the entry and canonical link at the route mutation boundary. */
 export function createCourseRoute(entry: CompiledSection): CourseRoute {
-  if (!entry?.coordinates || !entry.raster) throw new TypeError('Route requires a compiled entry Section');
+  if (!entry?.coordinates || !entry.coordinates.domain) throw new TypeError('Route requires a compiled entry Section');
   let occurrences: readonly RouteOccurrence[] = Object.freeze([
     Object.freeze({
       ordinal: 0,
       section: entry,
       incoming: null,
       start: 0,
-      end: entry.raster.length,
+      end: entry.coordinates.domain.end,
       lateralOrigin: 0,
+      rotation: 0,
       worldFromSection: identity,
       sectionFromWorld: identity,
     }),
@@ -65,7 +67,7 @@ export function createCourseRoute(entry: CompiledSection): CourseRoute {
     const previous = occurrences.at(-1)!;
     if (!previous.section.outgoing.includes(link)) throw new RangeError('Route needs a canonical outgoing Link');
     const start = previous.end;
-    const end = start + link.to.section.raster.length;
+    const end = start + link.to.section.coordinates.domain.end;
     if (!(end > start)) throw new RangeError('Route successor must have positive length');
     const worldFromSection = composePlanarTransforms(
       previous.worldFromSection,
@@ -80,6 +82,7 @@ export function createCourseRoute(entry: CompiledSection): CourseRoute {
         start,
         end,
         lateralOrigin: previous.lateralOrigin + link.to.lateralOrigin - link.from.lateralOrigin,
+        rotation: Math.atan2(worldFromSection.sine, worldFromSection.cosine),
         worldFromSection,
         sectionFromWorld: invertPlanarTransform(worldFromSection),
       }),

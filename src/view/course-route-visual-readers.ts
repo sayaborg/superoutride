@@ -16,12 +16,7 @@ export function createCourseRouteVisualReaders(route: CourseRoute, fields: Cours
     let readers = sections.get(section);
     if (!readers) {
       if (!section.presentation) throw new Error('Driving Section requires compiled appearance');
-      readers = resources.createSectionReaders(
-        section.presentation,
-        { raster: section.raster },
-        section.height,
-        section.renderHeight,
-      );
+      readers = resources.createSectionReaders(section.presentation, section, section.height);
       sections.set(section, readers);
     }
     return readers;
@@ -38,9 +33,7 @@ export function createCourseRouteVisualReaders(route: CourseRoute, fields: Cours
         backgrounds: native.backgrounds.map((background) =>
           Object.freeze({
             ...background,
-            yawOriginRadians:
-              background.yawOriginRadians +
-              Math.atan2(occurrence.worldFromSection.sine, occurrence.worldFromSection.cosine),
+            yawOriginRadians: background.yawOriginRadians + occurrence.rotation,
           }),
         ),
       };
@@ -68,7 +61,6 @@ export function createCourseRouteVisualReaders(route: CourseRoute, fields: Cours
       occurrences.map((occurrence) => ({
         ground: fields.forSection(occurrence.section),
         start: occurrence.start,
-        occurrenceStart: occurrence.start,
         end: occurrence.end,
         lateralOrigin: occurrence.lateralOrigin,
       })),
@@ -98,7 +90,6 @@ export function createCourseRouteVisualReaders(route: CourseRoute, fields: Cours
     );
     return Object.freeze({
       ground,
-      groundRuler: Object.freeze({ groundLeft: 1, groundRight: 1 }),
       visual,
       worldSprites: Object.freeze(placements.filter((p) => p.unselected === null).map((p) => p.sprite)),
       conditionalSprites: Object.freeze(

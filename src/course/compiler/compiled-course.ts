@@ -316,7 +316,7 @@ export async function compileCourseDocument(
         source.from.carriagewayId,
         `${path}/from/carriagewayId`,
       );
-      const cut = compileCourseCut(from, road, from.raster.length, `${path}/from`);
+      const cut = compileCourseCut(from, road, from.coordinates.domain.end, `${path}/from`);
       const link = compileCourseLink(source.id, cut, entrances.get(to)!, path);
       from.outgoing.push(link);
       to.incoming.push(link);

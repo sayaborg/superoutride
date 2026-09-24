@@ -29,7 +29,7 @@ async function setup() {
 test('shared route keeps vehicle and camera coordinates across forward and reverse seams', async () => {
   const { course, scene, spawn } = await setup();
   const link = course.entry.outgoing[0];
-  const seam = link.from.section.raster.length;
+  const seam = link.from.section.coordinates.domain.end;
   scene.runtime.refresh(0, seam + 100);
   const rig = createCameraRig('MOVEMENT_FOLLOW');
   rig.yaw = 0.7;
@@ -76,13 +76,7 @@ test('race actors have no cameras and view assembles sixteen rival sprites from 
   assert.ok(!('sprites' in observed));
   assert.equal(observed.rivals.length, 16);
   const camera = updateCamera(createCameraRig(), scene.world, vehicle, CURRENT_CAMERA_PROFILE, 1 / 60);
-  const sprites = createRaceSprites(assets, profile)(
-    observed.rivals,
-    camera,
-    scene.runtime.readers,
-    scene.world.height,
-    scene.runtime.readers.renderHeight,
-  );
+  const sprites = createRaceSprites(assets, profile)(observed.rivals, camera);
   assert.equal(sprites.length, observed.rivals.length);
   assert.deepEqual(
     sprites.map((s) => s.name),
