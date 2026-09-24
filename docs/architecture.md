@@ -115,7 +115,7 @@ Terrain reads the same `PlanCoordinateReader` as physics; the Route owns the ext
 Vec2/Vec3 are readonly values. Sampling APIs with caller-owned outputs return borrowed observations
 valid until those outputs are reused. Compiled sources are immutable; actors and consumers own live state.
 Plan, Profile, VisualProfile and ground appearance have finite domain `[0,L]`.
-Profile endpoints normalize within 1e-9 m; plan sampling uses 1e-8 m. Nonfinite source values fail.
+Knot endpoints normalize within their admission budget; plan sampling has a separate geometric budget. Nonfinite source values fail.
 At a primitive boundary, the successor owns the interior station; the terminal endpoint uses
 the final primitive.
 
@@ -138,9 +138,11 @@ crossings as specified in [Content and gameplay](content-and-gameplay.md#route-c
 Euclidean norms use `Math.hypot`. Nonfinite inputs and extreme magnitudes follow the
 runtime's standard `Math.hypot` behavior.
 
-[Core tolerances](../src/core/tolerances.ts) defines shared endpoint, geometric, lateral-boundary,
-pixel-edge and texel-spacing tolerances. Other thresholds belong to their dimensional algorithms:
-plan projection, depth inversion, event ordering, solver residuals and control response.
+Each numerical tolerance is a named constant owned by its calculation's module. Its definition
+states the unit, the absorbed error or conditioning limit, and a quantitative budget or scale estimate.
+A shared calculation has one shared constant; equal numeric values with different units or purposes
+do not imply shared ownership. Fixed absolute budgets are not universal error bounds for arbitrary
+magnitudes. Solver residuals and model/response regularization are distinguished from roundoff.
 A sampling tolerance changes neither point ownership nor earned progress.
 
 ## Plan authority
@@ -190,7 +192,7 @@ domain knots and at most five degrees per arc cell. Adjacent cells share their e
 locally covered by the positive Jacobian; separated cells must have disjoint conservative
 envelopes. A chord envelope is padded by `max|F''| * deltaS² / 8` for each linearly varying
 lateral edge, bounding the exact curve between its endpoints. The envelope comparison uses
-the geometric sampling tolerance of `1e-8` m for floating-point separation near shared
+the plan-position roundoff budget for floating-point separation near shared
 coordinates; this tolerance does not replace the curvature bound. These cells belong only to coordinate-domain validation.
 
 Point regions are half-open laterally: `[left(s),right(s))`. A shared edge belongs to the region on
@@ -385,7 +387,7 @@ belong inside that domain; an upper domain depends only on lower domains, and sa
 
 | Order | Layer   | Responsibility                                                                                                         |
 | ----- | ------- | ---------------------------------------------------------------------------------------------------------------------- |
-| 1     | core    | General mathematics, vectors, planar transforms, validation helpers and tolerances                                     |
+| 1     | core    | General mathematics, vectors, planar transforms, validation helpers                                                    |
 | 2     | image   | Indexed images, RGB555/RGBA codecs, palettes, sprite/LOD formats, BG tiles and image filters                           |
 | 3     | audio   | Sound synthesis and audio engines                                                                                      |
 | 4     | course  | Course documents and compilation, road geometry, materials, occurrences, environment profiles and shared Route readers |
