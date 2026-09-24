@@ -177,17 +177,18 @@ and produce positive representable intervals.
 `COURSE_DOCUMENT_LIMITS` defines 4 MiB UTF-8 JSON, 128 UTF-16 code units per ID, 16 Sections,
 48 Links and 256 assets. Each Section admits 2048 plan primitives, 32 Boundaries, 256 knots per
 Boundary, 32 Regions, 16 Carriageways, 256 asset references, 256 height nodes, 32 physical
-bindings and 256 material changes per binding. Compiled Section limits are 16384 Raster segments,
+bindings and 256 material changes per binding. Compiled Section limits are
 16384 mapped-region cells and 100000 m chainage.
 
 ## Geometry recipe and bindings
 
 The saved `geometryRecipe` field is `{id,version}`; CourseDocument v15 admits
 `superoutride.plan-raster` version 1. The saved straight, circular-arc, absolute-anchor and
-primitive-anchor fields are listed above. [Architecture](architecture.md#plan-authority-and-raster)
-owns their planar interpretation, Raster derivation, coordinate domain and geometric validation.
+primitive-anchor fields are listed above. [Architecture](architecture.md#plan-authority)
+owns their authoritative planar interpretation, coordinate domain and geometric validation.
+Rendering and physics read the same plan; Section length comes from its coordinate Reader domain.
 An overpass is authored as separate Sections for its passages; the coordinate-domain condition
-is specified in [Architecture](architecture.md#plan-authority-and-raster).
+is specified in [Architecture](architecture.md#plan-authority).
 The recipe identity participates in every dependent build identity.
 
 Boundary knots are strictly increasing and cover every referencing Region's closed interval.
@@ -208,7 +209,7 @@ starting/continuing Regions own the point. Invalid or nonfinite queries fail wit
 
 Profile Knots resolve on the same ruler, increase strictly and include exactly zero and L.
 `curveLength` is nonnegative in metres; endpoint lengths are zero and adjacent curves do not overlap.
-[Architecture](architecture.md#height-and-projection) defines the analytic profile and derived rendering polyline.
+[Architecture](architecture.md#height-and-projection) defines the analytic profile and the polyline used only for ground-row generation.
 
 Every Region has one explicit piecewise-constant physical binding beginning at its activation;
 subsequent changes precede its end. Materials are ASPHALT, SHOULDER, GRASS, DIRT, SAND or VOID.
@@ -244,7 +245,7 @@ Owned records and arrays are immutable, including nested image data. Live actor,
 clock state belong to Sessions. Object identity is local to a compilation; cross-build identity uses digests.
 
 `sourceSha256` hashes normalized input. `buildSha256` hashes `{sourceSha256,compiler,geometryRecipe}`.
-The compiler is `superoutride.course-compiler` version 21, incorporating Link recipe v2, physical
+The compiler is `superoutride.course-compiler` version 22, incorporating Link recipe v2, physical
 recipe v2, image-source recipe v2 and presentation recipe v5. Descriptors include semantic versions
 and operative numeric/data parameters, including material definitions. Source or compiler/recipe
 changes invalidate dependent products.

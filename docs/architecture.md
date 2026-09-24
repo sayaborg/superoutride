@@ -26,11 +26,11 @@ offset and its world transform composes the Link transform. Thus a repeated circ
 route interval without changing earlier route coordinates. A seam station belongs to the successor.
 `routeSectionS` and `routeS` own the chainage conversion; readers select an occurrence by binary
 search, read the Section, subtract the lateral origin and map X/Z and heading into route world space.
-The preparation layer supplies plan, authoritative height, rendered height, Raster, material,
+The preparation layer supplies plan, authoritative height, ground-row height polyline, material,
 Band, sprites, visual labels and background readers. It indexes visual lists only when route
 occurrences change. All actors, physics, race, rendering and reference driving read these
 single-layer Readers directly and retain their state in route coordinates. The same reader set
-satisfies `VehicleWorld` and `RasterGeometry`; no result-filling adapter is involved.
+supplies the authoritative coordinates to physics and rendering.
 
 Outside the retained Route, the Readers use the following values. Here `P`, `T` and `N` are
 its endpoint position at route l=0, unit tangent and right normal, and `e` is that endpoint's s.
@@ -39,7 +39,6 @@ its endpoint position at route l=0, unit tangent and right normal, and `e` is th
 | -------------------------- | ------------------------------------------------------------------------------- |
 | Plan                       | `P + (s-e) T + l N`, endpoint heading, curvature 0 and J=1                      |
 | Projection                 | Project onto the endpoint tangent ray; return its s and l with `inDomain:false` |
-| Raster                     | The same straight extension using the Raster endpoint and heading               |
 | Height and render polyline | Respective endpoint height, derivative/grade 0                                  |
 | Coordinate domain          | Empty closed interval `[+Infinity,-Infinity]`, defined by `EMPTY_ROUTE_DOMAIN`  |
 | Material                   | VOID, also outside the lateral coordinate domain                                |
@@ -70,7 +69,7 @@ Contact reach is the ceiling of the largest `hypot(forwardOffset, freeReachDown)
   The step allowance retains the rear footprint until the next refresh. At an undecided fork the parent
   Section covers the lock plus the render/driver lookahead and step allowance.
   Pruning never changes existing stations or vehicle poses. A single-successor circuit repeats its
-  Section for successive laps. Derived projection intervals, Raster segments, height knots, Band
+  Section for successive laps. Derived projection intervals, height knots, Band
   intervals, sprite lists and environment boundaries rebuild only when the occurrence list changes.
 
 `PlanCoordinateReader` is the planar query interface for both a compiled Section and its mapped
@@ -99,14 +98,15 @@ The requested interval lies inside the Section domain. Candidate queries return 
 primitive intervals; each candidate projects a bounded subinterval and reports whether its foot
 was inside that subinterval before endpoint clamping. Geometry construction and its geometric
 proofs inspect compiled primitives.
-Terrain and rendering use `RasterGeometry`: segment stations/headings and point mapping; the Route owns the extent.
+Terrain reads the same `PlanCoordinateReader` as physics; the Route owns the extent.
+`forwardEnd(start,end,yaw)` returns the first non-forward-facing tangent station, or the interval end.
 
 Vec2/Vec3 are readonly values. Sampling APIs with caller-owned outputs return borrowed observations
 valid until those outputs are reused. Compiled sources are immutable; actors and consumers own live state.
-RasterPath, Profile, VisualProfile and ground appearance have finite domain `[0,L]`.
-Profile endpoints normalize within 1e-9 m; plan/Raster sampling uses 1e-8 m. Nonfinite source values fail.
-At a primitive or Raster boundary, the successor owns the interior station; the terminal endpoint uses
-the final primitive/segment.
+Plan, Profile, VisualProfile and ground appearance have finite domain `[0,L]`.
+Profile endpoints normalize within 1e-9 m; plan sampling uses 1e-8 m. Nonfinite source values fail.
+At a primitive boundary, the successor owns the interior station; the terminal endpoint uses
+the final primitive.
 
 ## Route cross sections
 
@@ -132,7 +132,7 @@ pixel-edge and texel-spacing tolerances. Other thresholds belong to their dimens
 plan projection, depth inversion, event ordering, solver residuals and control response.
 A sampling tolerance changes neither point ownership nor earned progress.
 
-## Plan authority and Raster
+## Plan authority
 
 Each compiled plan primitive retains its author record, exact s interval, starting pose and signed curvature.
 A straight has `kappa=0`. A circular arc of radius `R` and signed turn has
@@ -156,11 +156,15 @@ conservative plan envelopes. `plan_coordinate_inversion` reports a local metric 
 `plan_coordinate_overlap` reports the Section and two overlapping s intervals. An overpass
 uses separate Sections for its two passages.
 
-Raster is a rendering-only polyline derived from that authority. Straights use at most 50 m per segment
-and arcs at most 5 authored degrees per segment. Every Raster vertex is sampled on the authoritative
-centerline at an authoritative s station. Raster and plan therefore share the same ruler and Section length;
-inside one Raster segment X/Z is interpolated linearly in s. Its miter basis supplies rendered lateral
-positions. Raster geometry is not subjected to coordinate-domain injectivity: Bands are drawn by row.
+Rendering reads the authoritative plan directly. Each ground row maps `l=-1` and `l=+1` through
+its coordinate Reader; these two points define the affine lateral mapping for the entire row.
+Row boundaries contain only vertical-polyline vertices and environment boundaries, not plan vertices.
+Visibility ends at the first station where `abs(wrap(heading-cameraYaw)) >= pi/2`.
+On a straight the heading is constant. Within an arc, heading changes linearly with chainage;
+from a forward-facing station `a`, the first limiting station is
+`a + (sign(kappa)*pi/2 - wrap(heading(a)-cameraYaw))/kappa` when it lies in the arc.
+The Route queries successive Sections with the camera yaw rotated into each native frame.
+Occurrence rotation is computed once when the occurrence is appended.
 Occurrences and height identify passages through compiled Sections; previous s keeps projection
 on the local passage.
 
@@ -176,8 +180,7 @@ locally covered by the positive Jacobian; separated cells must have disjoint con
 envelopes. A chord envelope is padded by `max|F''| * deltaS² / 8` for each linearly varying
 lateral edge, bounding the exact curve between its endpoints. The envelope comparison uses
 the geometric sampling tolerance of `1e-8` m for floating-point separation near shared
-coordinates; this tolerance does not replace the curvature bound. Its cells do not depend on
-Raster vertices.
+coordinates; this tolerance does not replace the curvature bound. These cells belong only to coordinate-domain validation.
 
 Point regions are half-open laterally: `[left(s),right(s))`. A shared edge belongs to the region on
 its right; the outer left edge is included and the outer right edge is outside. Zero-width endpoints
@@ -195,16 +198,20 @@ The authoritative parabola is `Y=yᵢ-g₋Lᵢ/2+g₋x+(g₊-g₋)x²/(2Lᵢ)` a
 `Y=yᵢ+gᵢ(s-sᵢ)` and `dY/ds=gᵢ`. A zero-length curve is a grade corner
 at its PVI. Endpoint curves have zero length; adjacent curves do not overlap.
 
-`ProfileReader` gives physics and camera analytic Y and dY/ds.
-`ProfilePolylineReader` gives rendering a derived linear Y, grade and distance
-until its next vertex. Its stations include each curve tangency and each
-zero-length PVI. Each positive-length parabola is divided into `ceil(L/2 m)`
-equal intervals (maximum 2 m). Vertices sample the authoritative profile at
-exactly the same s. `mapToRenderSpace` in `src/view/render-space-mapping.ts` maps every drawn
-position from road-relative `(s,l,physicalY)`: its XZ comes from the route Raster Reader and its Y
-preserves physical clearance above local ground against rendering height. Ground rows, Band and
-Region positions use the same Raster ruler as vehicles and course sprites. Orientation remains the
-physical yaw; Raster segment headings do not replace vehicle or camera yaw.
+`ProfileReader` supplies authoritative Y and dY/ds to physics, vehicles, camera and course sprites.
+Vehicles retain their physical XZ and render anchor Y; course sprites use the plan mapping and
+`Y(s)+groundOffset`. The physical camera is passed directly to projection.
+`ProfilePolylineReader` is used only to generate ground rows, as an internal height approximation.
+Its vertices include curve tangencies and zero-length PVIs. Each parabola is divided into
+`ceil(L/2 m)` equal intervals (at most 2 m), sampled from the authoritative profile.
+
+For a parabola with grade change `deltaG`, length `L` and polyline interval `h`, the exact
+maximum height difference is `abs(deltaG)*h*h/(8*L)`, attained at each interval midpoint.
+Straight intervals have zero error. Thus the 2 m interval bound gives `abs(deltaG)/(2*L)` metres;
+there is no universal millimetre bound without bounds on grade change and curve length.
+Across the current saved courses the maximum is **0.0004495981255 m (0.449598 mm)** in RIBBON COAST;
+RIBBON FORK and RIBBON RING have zero error. Other objects retain authoritative height and are
+not shifted to the ground-row approximation.
 
 ```text
 d = s_object-s_camera                    d > 0
@@ -352,7 +359,7 @@ space across the cut. `RouteOccurrence` carries its own Section identity, route
 start, lateral origin and transform, including each repeated circuit lap. The route readers convert
 route s to Section s by subtracting the occurrence start, add the lateral origin for the Section query, then transform returned X/Z,
 heading and lateral positions into route coordinates. The successor owns the exact seam station.
-`createCourseRouteReaders` owns physical and Raster queries; `createCourseRouteVisualReaders` owns
+`createCourseRouteReaders` owns authoritative coordinate and height queries; `createCourseRouteVisualReaders` owns
 Band, sprite, visual and background queries. Every actor uses the same physical readers and route.
 
 ## Layer boundaries

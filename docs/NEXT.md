@@ -8,7 +8,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **6-11 — Authoritative-plan rendering**.
+Next PR: **6-12 — Local tolerances**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -18,7 +18,6 @@ PRs hold rationale and verification evidence.
 
 Give all vehicles one route coordinate system, read its geometry and content through shared readers, and define behavior outside the retained route and coordinate domain.
 
-- **6-11 — Authoritative-plan rendering:** derive ground rows, visibility, sprites, vehicles and camera directly from the authoritative plan; remove Raster compilation, Reader and route Raster plus `render-space-mapping`; retain the vertical render polyline only as an internal ground-row approximation; also remove fixed `groundRuler` values, duplicate Band interval `start`/`occurrenceStart`, repeated `route.at` searches in route Readers, and per-query `atan2` for occurrence rotation.
 - **6-12 — Local tolerances:** clarify each tolerance's basis and owning algorithm, including the `1e-14` tangent-intersection threshold in `plan-domain-injectivity.ts`.
 
 ## Stage 7 — Course format
@@ -28,6 +27,7 @@ Write plan, position, lateral strips and race landmarks in one consistent author
 - **7-1 — Positions:** use `at = {pi, offset}` and lateral positions (`l` or `{boundary, offset}`); author every s-varying property as knots with `at`; call derived `ProfilePolyline` points vertices and rename `knots`/`distanceToNextKnot` accordingly.
 - **7-2 — Plan:** author PI coordinates and radii like vertical PVIs, require zero endpoint radii and nonoverlapping neighboring arc tangent lengths, and close ribbon-ring geometrically.
 - **7-3 — Strips, Boundaries and Carriageways:** replace Region, role, `physicalBindings` and Band with ordered Strips whose optional color/material overwrite earlier values; require finite edges for material-bearing Strips and derive the coordinate domain from their edges plus margin; define Carriageway between two Boundaries and compile material and preblended color to the same cross-section table shape.
+  Derive driving-scenario road bounds and the closed Carriageway center from Carriageways rather than Region internals.
 - **7-4 — Sprites and environment:** give sprites and environment a shared repeat, and name successors to VisualProfile, CoursePresentation and their visual records according to the glossary.
 - **7-5 — Gates and rules:** author start (including grid), checkpoints and finish inside Sections, leave only numeric settings in `rules`, derive course kind from the graph, remove production provenance, `units` and `reference`, and simplify nulls and limits.
 - **7-6 — Delivery identity:** use one manifest, one version per format and one image path.
