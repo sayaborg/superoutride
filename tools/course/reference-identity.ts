@@ -22,7 +22,6 @@ export async function referenceModelIdentity() {
     'src/view/projection.ts',
     'src/view/display-scale.ts',
     'src/view/camera.ts',
-    'src/view/course-driving-view.ts',
     'src/shell/course-scene.ts',
     'src/shell/frame-loop.ts',
     'src/shell/session-vehicle.ts',

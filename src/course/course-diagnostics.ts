@@ -31,7 +31,6 @@ type CourseDiagnosticCode =
   | 'seam_height_mismatch'
   | 'seam_grade_mismatch'
   | 'invalid_topology'
-  | 'ambiguous_geometry'
   | 'appearance_binding'
   | 'invalid_image_role'
   | 'invalid_profile'

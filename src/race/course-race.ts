@@ -140,7 +140,7 @@ export function createCourseRace(options: {
     id: c.id,
     kind: options.rival.kind,
     paletteVariant: 'base' as 'base' | 'braking',
-    vehicle: { ...c.actor.vehicle, course: { ...c.actor.vehicle.course } },
+    vehicle: c.actor.vehicle,
   }));
   const observations = () => {
     visible.length = 0;
@@ -149,10 +149,6 @@ export function createCourseRace(options: {
       const vehicle = c.actor.vehicle;
       if (!player.session.route.at(vehicle.course.s)) continue;
       const observation = pool[i]!;
-      const coordinate = observation.vehicle.course;
-      Object.assign(observation.vehicle, vehicle);
-      Object.assign(coordinate, vehicle.course);
-      observation.vehicle.course = coordinate;
       observation.paletteVariant = actorInputs.get(c.id)?.input.brake ? 'braking' : 'base';
       visible.push(observation);
     }
