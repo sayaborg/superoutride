@@ -6,21 +6,32 @@ export const BAND_BASE_STEP = 1;
 const MAX_CELLS = 1_048_576;
 const MAX_COEFFICIENT_BYTES = 64 * 1024 * 1024;
 
+/** Original affine arithmetic retained when a material edge is split at unrelated stations. */
+export interface BandEdgeLine {
+  readonly start: number;
+  readonly end: number;
+  readonly from: number;
+  readonly to: number;
+}
+
 /** One affine piece of an expanded Band. Null left/right denotes the corresponding open side. */
-export interface BandPiece {
+export interface BandPiece<Value = number | null> {
   readonly start: number;
   readonly end: number;
   readonly left: number | null;
   readonly right: number | null;
   readonly leftEnd: number | null;
   readonly rightEnd: number | null;
-  readonly color: number | null;
+  /** Opaque cell payload; the historical field name is retained until the naming stage. */
+  readonly color: Value;
+  readonly leftLine?: BandEdgeLine;
+  readonly rightLine?: BandEdgeLine;
 }
-interface BandSlab {
+export interface BandSlab<Value = number | null> {
   readonly start: number;
   readonly end: number;
   readonly active: number;
-  readonly spans: readonly BandPiece[];
+  readonly spans: readonly BandPiece<Value>[];
 }
 
 interface BandLateralField {
@@ -40,7 +51,13 @@ interface Event {
   readonly slope: number[];
 }
 
-export function bandEdgeAt(piece: BandPiece, side: 'left' | 'right', s: number): number {
+export function bandEdgeAt(piece: BandPiece<unknown>, side: 'left' | 'right', s: number): number {
+  const line = piece[side === 'left' ? 'leftLine' : 'rightLine'];
+  if (line) {
+    if (s === line.start) return line.from;
+    if (s === line.end) return line.to;
+    return line.from + (line.to - line.from) * ((s - line.start) / (line.end - line.start));
+  }
   const a = piece[side],
     b = piece[side === 'left' ? 'leftEnd' : 'rightEnd'];
   return a === null
@@ -51,7 +68,11 @@ export function bandEdgeAt(piece: BandPiece, side: 'left' | 'right', s: number):
 }
 
 /** Split first at activation/knots, then at every affine edge crossing; declaration order remains authoritative. */
-function resolveBandSlabs(length: number, pieces: readonly BandPiece[]): readonly BandSlab[] {
+export function resolveBandSlabs<Value>(
+  length: number,
+  pieces: readonly BandPiece<Value>[],
+  outside: Value,
+): readonly BandSlab<Value>[] {
   if (!(length > 0) || !Number.isFinite(length)) throw new RangeError('Band field length must be positive and finite');
   for (const p of pieces) {
     if (!(p.start >= 0 && p.end > p.start && p.end <= length) || !Number.isFinite(p.end))
@@ -67,14 +88,12 @@ function resolveBandSlabs(length: number, pieces: readonly BandPiece[]): readonl
       bandEdgeAt(p, 'left', p.end) > bandEdgeAt(p, 'right', p.end)
     )
       throw new RangeError('Band left edge cannot exceed its right edge');
-    if (p.color !== null && (!Number.isInteger(p.color) || p.color < 0 || p.color > 32767))
-      throw new RangeError('Band color must be RGB555 or transparent');
   }
   const stations = [...new Set([0, length, ...pieces.flatMap((p) => [p.start, p.end])])].sort((a, b) => a - b);
   const starts = pieces.map((piece, order) => ({ piece, order })).sort((a, b) => a.piece.start - b.piece.start);
   let next = 0;
   let active: typeof starts = [];
-  const slabs: BandSlab[] = [];
+  const slabs: BandSlab<Value>[] = [];
   for (let i = 0; i + 1 < stations.length; i++) {
     const start = stations[i]!,
       end = stations[i + 1]!;
@@ -107,13 +126,13 @@ function resolveBandSlabs(length: number, pieces: readonly BandPiece[]): readonl
         .map((edge) => ({ ...edge, x: bandEdgeAt(edge.piece, edge.side, middle) }))
         .sort((x, y) => x.x - y.x);
       const distinct = ordered.filter((edge, index) => index === 0 || edge.x !== ordered[index - 1]!.x);
-      const spans: BandPiece[] = [];
+      const spans: BandPiece<Value>[] = [];
       for (let k = 0; k <= distinct.length; k++) {
         const le = distinct[k - 1],
           re = distinct[k];
         const l = le?.x ?? -Infinity,
           r = re?.x ?? Infinity;
-        let color: number | null = null;
+        let color = outside;
         for (let n = active.length - 1; n >= 0; n--) {
           const p = active[n]!.piece;
           // Every edge already bounds a cell; interval containment avoids an unrepresentable interior witness.
@@ -126,9 +145,15 @@ function resolveBandSlabs(length: number, pieces: readonly BandPiece[]): readonl
         const right = re ? bandEdgeAt(re.piece, re.side, a) : null;
         const leftEnd = le ? bandEdgeAt(le.piece, le.side, b) : null;
         const rightEnd = re ? bandEdgeAt(re.piece, re.side, b) : null;
+        const leftLine = le?.piece[le.side === 'left' ? 'leftLine' : 'rightLine'];
+        const rightLine = re?.piece[re.side === 'left' ? 'leftLine' : 'rightLine'];
+        const lines = { ...(leftLine ? { leftLine } : {}), ...(rightLine ? { rightLine } : {}) };
         const previous = spans.at(-1);
-        if (previous && previous.color === color) spans[spans.length - 1] = { ...previous, right, rightEnd };
-        else spans.push({ start: a, end: b, left, right, leftEnd, rightEnd, color });
+        if (previous && previous.color === color) {
+          const { rightLine: discarded, ...retained } = previous;
+          void discarded;
+          spans[spans.length - 1] = { ...retained, right, rightEnd, ...(rightLine ? { rightLine } : {}) };
+        } else spans.push({ start: a, end: b, left, right, leftEnd, rightEnd, color, ...lines });
       }
       slabs.push(
         Object.freeze({
@@ -142,6 +167,30 @@ function resolveBandSlabs(length: number, pieces: readonly BandPiece[]): readonl
     }
   }
   return Object.freeze(slabs);
+}
+
+/** Half-open station ownership, with the final slab also owning the Section terminal. */
+export function bandSlabAt(slabs: readonly BandSlab<unknown>[], s: number): number {
+  let lo = 0,
+    hi = slabs.length;
+  while (lo < hi) {
+    const mid = (lo + hi) >>> 1;
+    if (slabs[mid]!.start <= s) lo = mid + 1;
+    else hi = mid;
+  }
+  return Math.max(0, lo - 1);
+}
+
+/** Point ownership compares shifted edges directly, without adding an origin back to l. */
+export function bandSpanAt<Value>(slab: BandSlab<Value>, s: number, l: number, lateralOrigin = 0): BandPiece<Value> {
+  let lo = 0,
+    hi = slab.spans.length;
+  while (lo < hi) {
+    const mid = (lo + hi) >>> 1;
+    if (bandEdgeAt(slab.spans[mid]!, 'left', s) - lateralOrigin <= l) lo = mid + 1;
+    else hi = mid;
+  }
+  return slab.spans[Math.max(0, lo - 1)]!;
 }
 
 /** Integrating an affine edge over s yields a lateral ramp, not a relocated hard edge. */
@@ -265,7 +314,10 @@ export interface BandGroundCellReader {
 
 /** Compile all s levels before driving. Storage is private; each renderer owns its sampling scratch. */
 export function compileBandGround(length: number, pieces: readonly BandPiece[]): BandGround {
-  const slabs = resolveBandSlabs(length, pieces),
+  for (const piece of pieces)
+    if (piece.color !== null && (!Number.isInteger(piece.color) || piece.color < 0 || piece.color > 32767))
+      throw new RangeError('Band color must be RGB555 or transparent');
+  const slabs = resolveBandSlabs(length, pieces, null),
     levels: Level[] = [],
     lateralFields: BandLateralField[] = [],
     intern = new Map<string, number>();

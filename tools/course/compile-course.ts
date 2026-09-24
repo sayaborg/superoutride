@@ -42,9 +42,8 @@ if (!result.ok) {
           id: section.id,
           length: section.coordinates.domain.end,
           segments: section.segments.length,
-          regions: section.regionPartition.regions.length,
+          materialSlabs: section.material.slabs.length,
           heightNodes: section.height.knots.length,
-          physicalBindings: section.physicalBindings.length,
           lateralBoundsAtStart: section.coordinates.domain.lateralAt(section.coordinates.domain.start, {
             left: 0,
             right: 0,

@@ -169,8 +169,11 @@ authored more than 50 m apart on the route ruler so their other passage stays ou
 The projection result's `inDomain` reports geometric membership; physics and recovery consume it
 as specified in [Vehicle physics](vehicle-physics.md#surface-and-contact).
 
-At each s, the Section lateral domain runs from the leftmost active Region edge minus
-`PLAN_COORDINATE_MARGIN_METERS` to the rightmost active Region edge plus that margin; the margin is 4 m.
+At each s, the Section lateral domain runs from the material table's leftmost finite covered edge minus
+`PLAN_COORDINATE_MARGIN_METERS` to its rightmost finite covered edge plus that margin; the margin is 4 m.
+Explicit VOID material still contributes its authored extent; the uncovered exterior does not.
+The domain uses the material slab's half-open station ownership, including the Section terminal.
+It retains the outer span references and reads them by binary slab lookup, without scanning Regions.
 The map from `(s,l)` in the entire closed Section coordinate domain to world XZ is injective:
 different coordinate pairs occupy different points. The local part of this condition is
 `J = 1-kappa*l > 0` throughout the domain. Compilation checks every circular segment at
@@ -199,8 +202,10 @@ breakpoints, including inherited ones. Compilation evaluates and blends the endp
 expressions at those stations as specified in [Content and gameplay](content-and-gameplay.md#lateral-positions).
 The published resolved l sequence is the only input to `courseBoundaryAt` and its consumers.
 Width and center are derived from
-their edges. Region validation divides at boundary knots and activation changes; paint changes do not
-divide physical geometry.
+their edges. Region validation is a compile-time input check. Material compilation divides at Boundary
+knots and material changes, then uses the same slab resolver as color. Paint changes do not divide
+material geometry. Original affine edge coefficients are retained for material reads after splitting
+at unrelated stations, so exact Boundary ties keep the original interpolation arithmetic.
 
 The compilation check divides the authoritative straight and circular plan at segment ends,
 domain knots and at most five degrees per arc cell. Adjacent cells share their endpoint and are
@@ -275,11 +280,29 @@ Its yaw origin uses the shared route frame across every occurrence.
 Transparent ground makes no ground write, preserving the underlying Painter image, including BG
 below the horizon. Physical support is independent of all ground colors.
 
+### Material cross sections
+
+`CompiledSection.material` contains an immutable slab table and its point reader; compiled Sections
+retain neither Regions nor physical bindings. Input Region geometry and material changes produce
+finite affine pieces. Color and material use the same payload-independent Band slab resolver:
+activation and edge-crossing splits, declaration-order overwrite, equal-value span coalescing and
+binary slab/span lookup. The historical `Band*` names and cell payload field `color` are retained
+until the naming stage; its generic payload is RGB555/transparent for color or a material for physics.
+The absent-piece value is separate from explicit material VOID so finite authored extents survive.
+
+Point reads use binary search in s, then binary search in l over ordered spans. Intervals are
+`[left,right)` and `[start,end)`; the Section terminal belongs to the last slab. Uncovered cells
+read VOID. `sampleInChart` subtracts the origin from edges before comparing l, preserving exact
+shifted-boundary ties. Samples are prepared once per material and borrowed without allocations;
+`sectionName` reports the material type, including `VOID` outside coverage. Nonfinite queries or
+stations outside a finite Section fail; Route readers provide their ordinary outside VOID result.
+Gate/grid validation and fork compilation consume the same table. Support-interval construction
+is compiler-only; running point reads do not allocate arrays, objects or readers.
+
 ### Band rendering
 
 Compilation expands the [authored constructs](content-and-gameplay.md#band-ground) to affine Band
-pieces. It divides the s ruler at activations, knots and lateral-edge crossings, then resolves the
-last declared covering Band. Resolved spans are disjoint, cover the open lateral plane and coalesce
+pieces and passes them through the shared material/color slab resolver described above. Resolved spans are disjoint, cover the open lateral plane and coalesce
 adjacent equal colors; transparent upper Bands erase lower colors before filtering. The active count
 includes hidden declarations, not just the visible resolved spans.
 

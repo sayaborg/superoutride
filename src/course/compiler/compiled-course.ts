@@ -11,7 +11,7 @@ import {
 } from '../course-diagnostics.js';
 import { readCourseDocument, type CourseDocument, type SectionDocument } from '../course-document.js';
 import { compileCourseGeometry, resolveCoursePosition } from '../course-geometry.js';
-import { compileCourseRegionGeometry } from '../course-region-geometry.js';
+import { compileCourseRegionGeometry, compileMaterialCoordinateDomain } from '../course-region-geometry.js';
 import type { CompiledRegion, CompiledCarriageway } from '../course-regions.js';
 import type { CompiledSection, CompiledLink } from './course-graph.js';
 import { COURSE_PHYSICAL_RECIPE, compileCoursePhysicalContent } from './course-physical-content.js';
@@ -61,7 +61,7 @@ export interface CompiledCourse {
 
 const COURSE_COMPILER = Object.freeze({
   id: 'superoutride.course-compiler',
-  version: 25,
+  version: 26,
   links: COURSE_LINK_RECIPE,
   physical: COURSE_PHYSICAL_RECIPE,
   images: COURSE_IMAGE_SOURCE_RECIPE,
@@ -138,7 +138,9 @@ function compileSection(
     });
   });
   validateCourseCarriageways(carriageways, regions, length, `${path}/carriageways`);
-  const { partition, lateralDomain } = compileCourseRegionGeometry(section.id, length, segments, regions, path);
+  compileCourseRegionGeometry(length, regions, path);
+  const physical = compileCoursePhysicalContent(section, length, regions, resolve, path);
+  const lateralDomain = compileMaterialCoordinateDomain(section.id, segments, physical.material, path);
   const sectionAssets = section.assetIds.map((id, i) => reference(assets, id, `${path}/assetIds/${i}`));
   requireCourse(
     new Set(sectionAssets).size === sectionAssets.length,
@@ -151,13 +153,12 @@ function compileSection(
     segments,
     coordinates: createPlanCoordinateReader(segments, length, lateralDomain.lateralAt),
     boundaries: Object.freeze(boundaries),
-    regionPartition: partition,
-    ...compileCoursePhysicalContent(section, length, regions, resolve, path),
+    ...physical,
     carriageways: Object.freeze(carriageways),
     assets: Object.freeze(sectionAssets),
     presentation: compileCoursePresentation(
       section.presentation,
-      partition,
+      length,
       boundaryTable,
       sectionAssets,
       instances,

@@ -1,7 +1,7 @@
 import { resolveCourseLateral } from './course-lateral.js';
 import { compileCourseBandGround } from './course-band-ground.js';
 import { COURSE_DOCUMENT_LIMITS, type CoursePosition, type PresentationDocument } from '../course-document.js';
-import type { CompiledBoundary, CompiledRegionPartition, CompiledCarriageway } from '../course-regions.js';
+import type { CompiledBoundary, CompiledCarriageway } from '../course-regions.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
 import { CourseInputError, requireCourse } from '../course-diagnostics.js';
 import { BACKGROUND_HEIGHT, BACKGROUND_PIXELS_PER_RADIAN } from '../../image/tile-background-image.js';
@@ -13,7 +13,7 @@ export const COURSE_PRESENTATION_RECIPE = Object.freeze({ id: 'superoutride.cour
 /** Resolve saved Bands, environment and scenery through canonical geometry/assets. */
 export function compileCoursePresentation(
   source: PresentationDocument | null,
-  partition: CompiledRegionPartition,
+  length: number,
   boundaries: ReadonlyMap<string, CompiledBoundary>,
   assets: readonly CompiledCourseImageSource[],
   instances: ReadonlyMap<string, CourseSceneryInstance>,
@@ -49,7 +49,7 @@ export function compileCoursePresentation(
         'invalid_profile',
       );
   };
-  const ground = compileCourseBandGround(source.ground.bands, partition.length, `${path}/ground/bands`);
+  const ground = compileCourseBandGround(source.ground.bands, length, `${path}/ground/bands`);
   const environments = source.environments.map((environment, i) => {
     const at = `${path}/environments/${i}`,
       b = environment.background,
@@ -84,7 +84,7 @@ export function compileCoursePresentation(
   ordered(
     environments.map((e) => e.at),
     0,
-    partition.length,
+    length,
     `${path}/environments`,
   );
   const scenery = source.scenery.map((placement, i) => {

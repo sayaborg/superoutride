@@ -2,7 +2,8 @@ import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../image/sprite.js';
 import { courseBoundaryAt, courseCarriagewayExists } from '../course-regions.js';
 import { requireCourse } from '../course-diagnostics.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
-import { coursePhysicalMaterialAt } from '../course-physical-binding.js';
+import { bandSupportedIntervals, bandSupportsInterval } from '../band-material.js';
+import { bandEdgeAt, bandSlabAt } from '../band-ground.js';
 import type { CompiledFork, CompiledSection } from './course-graph.js';
 
 /** Resolve parallel-zone geometry after canonical outgoing Links exist, before publication. */
@@ -35,38 +36,28 @@ export function compileCourseFork(
       'State-selected signs must precede the exit cut',
     );
   }
-  const regions = section.regionPartition.regions.filter((b) => b.start.s <= lock.s && b.end.s > lock.s);
-  check(regions.length > 0, 'Lock line needs supported Regions');
-  for (const region of regions) {
-    check(region.end.s > closure.s, 'Parallel-zone Regions must include closure in their half-open domains');
-    for (const boundary of [region.left, region.right]) {
-      const value = courseBoundaryAt(boundary, lock.s);
+  const material = section.material;
+  const supported = bandSupportedIntervals(material.slabs[bandSlabAt(material.slabs, lock.s)]!, lock.s);
+  check(supported.length === 1, 'Supported lock space must be one continuous interval');
+  const [outerLeft, outerRight] = supported[0]!;
+  for (const slab of material.slabs) {
+    if (slab.end <= lock.s || slab.start > closure.s) continue;
+    const start = Math.max(lock.s, slab.start),
+      end = Math.min(closure.s, slab.end);
+    for (const span of slab.spans)
+      for (const side of ['left', 'right'] as const)
+        check(
+          bandEdgeAt(span, side, start) === bandEdgeAt(span, side, end),
+          'Lock-to-closure material cross sections must remain parallel',
+        );
+    for (const at of [start, end]) {
+      const ranges = bandSupportedIntervals(slab, at);
       check(
-        courseBoundaryAt(boundary, closure.s) === value &&
-          boundary.knots.every((k) => k.at.s <= lock.s || k.at.s >= closure.s || k.l === value),
-        'Lock-to-closure boundaries must remain parallel',
+        ranges.length === 1 && ranges[0]![0] === outerLeft && ranges[0]![1] === outerRight,
+        'Parallel-zone roads and medians must remain supported with unchanged cross-section bounds',
       );
     }
-    const binding = section.physicalBindings.find((b) => b.region === region);
-    if (!binding) throw new Error('Compiled Region has no physical binding');
-    check(
-      coursePhysicalMaterialAt(binding, lock.s).supported &&
-        binding.sections.every((s) => s.at.s <= lock.s || s.at.s > closure.s || s.material.supported),
-      'Parallel-zone roads and medians must remain supported',
-    );
   }
-  const ordered = regions
-    .map((region) => ({
-      region,
-      left: courseBoundaryAt(region.left, lock.s),
-      right: courseBoundaryAt(region.right, lock.s),
-    }))
-    .filter((b) => b.right > b.left)
-    .sort((a, b) => a.left - b.left);
-  check(
-    ordered.length > 0 && ordered.every((b, i) => i === 0 || ordered[i - 1]!.right === b.left),
-    'Supported lock space must be one continuous interval',
-  );
   const roads = section.outgoing
     .map((link) => {
       const road = link.from.carriageway;
@@ -77,7 +68,10 @@ export function compileCourseFork(
       );
       const left = courseBoundaryAt(road.left, lock.s),
         right = courseBoundaryAt(road.right, lock.s);
-      check(right > left, 'Each exit carriageway must have positive width at lock');
+      check(
+        bandSupportsInterval(material, lock.s, left, right),
+        'Each exit carriageway must have positive supported width at lock',
+      );
       for (const boundary of [road.left, road.right]) {
         const value = courseBoundaryAt(boundary, lock.s);
         check(
@@ -99,17 +93,17 @@ export function compileCourseFork(
       .every((road) => roads.some((r) => r.link.from.carriageway === road)),
     'Every lock-line pavement belongs to an exit carriageway',
   );
-  const cuts: number[] = [ordered[0]!.left];
+  const cuts: number[] = [outerLeft];
   for (let i = 1; i < roads.length; i += 1) {
     const left = roads[i - 1]!.right,
       right = roads[i]!.left;
     check(
-      right > left && ordered.filter((b) => b.left < right && b.right > left).every((b) => b.region.role === 'median'),
+      bandSupportsInterval(material, lock.s, left, right),
       'Exit carriageways need a positive supported separating median',
     );
     cuts.push(left + (right - left) / 2);
   }
-  cuts.push(ordered.at(-1)!.right);
+  cuts.push(outerRight);
   return Object.freeze({
     section,
     lock,

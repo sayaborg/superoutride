@@ -1,3 +1,4 @@
+import { bandSlabAt } from '../course/band-ground.js';
 import {
   IMAGE_OPAQUE_COVERAGE,
   linearToRgb555,
@@ -187,17 +188,6 @@ class BandRow {
   }
 }
 
-function slabAt(slabs: BandGround['slabs'], s: number) {
-  let lo = 0,
-    hi = slabs.length;
-  while (lo < hi) {
-    const mid = (lo + hi) >>> 1;
-    if (slabs[mid]!.start <= s) lo = mid + 1;
-    else hi = mid;
-  }
-  return Math.max(0, lo - 1);
-}
-
 /** Only a clipped endpoint leaf uses its affine edges; full dyadic cells always reuse preblended coefficients. */
 function appendExact(
   row: BandRow,
@@ -208,7 +198,7 @@ function appendExact(
   stats: BandRenderMetrics,
   instant = false,
 ) {
-  for (let i = slabAt(ground.slabs, start); i < ground.slabs.length; i++) {
+  for (let i = bandSlabAt(ground.slabs, start); i < ground.slabs.length; i++) {
     const slab = ground.slabs[i]!;
     if (!instant && slab.start >= end) break;
     const a = Math.max(start, slab.start),
@@ -232,7 +222,7 @@ function readPointField(
   s: number,
   stats: BandRenderMetrics,
 ): BandLateralField {
-  const slab = ground.slabs[slabAt(ground.slabs, s)]!;
+  const slab = ground.slabs[bandSlabAt(ground.slabs, s)]!;
   field.count = slab.spans.length - 1;
   stats.activeBands = Math.max(stats.activeBands, slab.active);
   for (let i = 0; i < slab.spans.length; i++) {

@@ -1,9 +1,11 @@
+import { bandEdgeAt, bandSlabAt } from './band-ground.js';
+import type { BandMaterial } from './band-material.js';
 import type { Writable } from '../core/writable.js';
 import { COURSE_DOCUMENT_LIMITS } from './course-document.js';
 import { CourseInputError, requireCourse } from './course-diagnostics.js';
 import { validatePlanDomainInjectivity } from './plan-domain-injectivity.js';
 import type { CompiledPlanSegment } from './geometry/plan-path.js';
-import { courseBoundaryAt, type CompiledRegion, type CompiledRegionPartition } from './course-regions.js';
+import { courseBoundaryAt, type CompiledRegion } from './course-regions.js';
 
 export const PLAN_COORDINATE_MARGIN_METERS = 4;
 
@@ -33,27 +35,41 @@ function sameUnion(a: readonly CompiledRegion[], b: readonly CompiledRegion[], s
   );
 }
 
-function lateralDomain(regions: readonly CompiledRegion[], stations: readonly number[]): CompiledPlanLateralDomain {
-  const start = stations[0]!;
-  const end = stations.at(-1)!;
+function lateralDomain(material: BandMaterial): CompiledPlanLateralDomain {
+  const stations = [material.slabs[0]!.start, ...material.slabs.map((slab) => slab.end)];
+  const edges = material.slabs.map((slab) => {
+    const spans = slab.spans.filter((span) => span.color !== null);
+    if (!spans.length)
+      throw new CourseInputError(
+        'region_coverage_gap',
+        '/sections',
+        'Material table needs finite edges throughout the Section',
+      );
+    return { left: spans[0]!, right: spans.at(-1)! };
+  });
   return Object.freeze({
-    stations: Object.freeze([...stations]),
+    stations: Object.freeze(stations),
     lateralAt(s: number, out: Writable<{ left: number; right: number }>) {
-      if (!Number.isFinite(s) || s < start || s > end)
+      if (!Number.isFinite(s) || s < 0 || s > material.length)
         throw new RangeError('Plan lateral domain query is outside the Section');
-      let left = Infinity;
-      let right = -Infinity;
-      for (const region of regions) {
-        if (region.start.s > s || region.end.s < s) continue;
-        left = Math.min(left, courseBoundaryAt(region.left, s));
-        right = Math.max(right, courseBoundaryAt(region.right, s));
-      }
-      if (left === Infinity) throw new Error('Admitted Region partition lost coordinate-domain coverage');
-      out.left = left - PLAN_COORDINATE_MARGIN_METERS;
-      out.right = right + PLAN_COORDINATE_MARGIN_METERS;
+      const edge = edges[bandSlabAt(material.slabs, s)]!;
+      out.left = bandEdgeAt(edge.left, 'left', s) - PLAN_COORDINATE_MARGIN_METERS;
+      out.right = bandEdgeAt(edge.right, 'right', s) + PLAN_COORDINATE_MARGIN_METERS;
       return out;
     },
   });
+}
+
+export function compileMaterialCoordinateDomain(
+  sectionId: string,
+  segments: readonly CompiledPlanSegment[],
+  material: BandMaterial,
+  sectionPath: string,
+): CompiledPlanLateralDomain {
+  const domain = lateralDomain(material);
+  validatePlanMetric(sectionId, segments, domain, sectionPath);
+  validatePlanDomainInjectivity(sectionId, segments, domain, sectionPath);
+  return domain;
 }
 
 function validatePlanMetric(
@@ -84,14 +100,12 @@ function validatePlanMetric(
   }
 }
 
-/** Prove structural Region relationships and derive the physical coordinate domain. */
+/** Validate structural Region inputs; no Region partition is published. */
 export function compileCourseRegionGeometry(
-  sectionId: string,
   length: number,
-  segments: readonly CompiledPlanSegment[],
   regions: readonly CompiledRegion[],
   sectionPath: string,
-): { readonly partition: CompiledRegionPartition; readonly lateralDomain: CompiledPlanLateralDomain } {
+): void {
   const path = `${sectionPath}/regions`;
   const boundaries = [...new Set(regions.flatMap((region) => [region.left, region.right]))];
   const stations = [
@@ -199,11 +213,4 @@ export function compileCourseRegionGeometry(
       'region_transition_discontinuity',
     );
   }
-  const domain = lateralDomain(regions, stations);
-  validatePlanMetric(sectionId, segments, domain, sectionPath);
-  validatePlanDomainInjectivity(sectionId, segments, domain, sectionPath);
-  return Object.freeze({
-    partition: Object.freeze({ length, regions: Object.freeze([...regions]) }),
-    lateralDomain: domain,
-  });
 }

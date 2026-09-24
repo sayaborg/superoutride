@@ -8,7 +8,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **7-3b — Strips**.
+Next PR: **7-3b2 — Strip authoring**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -18,7 +18,7 @@ PRs hold rationale and verification evidence.
 
 Write plan, position, lateral strips and race landmarks in one consistent authored course format.
 
-- **7-3b — Strips:** replace Region, role, `physicalBindings` and Band with ordered Strips whose optional color/material overwrite earlier values; author them with `at` and `Lateral` from the start; require finite edges for material-bearing Strips and derive the coordinate domain from their edges plus margin; compile material and preblended color to the same cross-section table shape; state fork medians and support checks through Carriageways and material rather than roles; remove the temporary Carriageway/pavement check. Split if the logic exceeds one review.
+- **7-3b2 — Strip authoring:** replace Region, role, `physicalBindings` and Band with ordered Section `strips` authored with `at` and `Lateral`. Each Strip's color (RGB555, `"transparent"`, or null for unchanged) and material (or null for unchanged) overwrite earlier Strips. Material-bearing Strips have finite edges. Require Carriageway interiors to be supported, and keep the continuity of the material union and the Carriageway union along s. Remove the temporary Carriageway/pavement check and all Region code.
 - **7-3c — Document limits:** re-derive document limits from the scale of the Nürburgring Nordschleife (about 20.8 km).
 - **7-3d — Names:** call compiled Boundary breakpoints vertices, since they include points derived from references.
 - **7-4 — Sprites and environment:** give sprites and environment a shared repeat, and name successors to VisualProfile, CoursePresentation and their visual records according to the glossary. Include tunnels: tunnel sprites, with an environment knot switching the background inside and restoring it on exit.

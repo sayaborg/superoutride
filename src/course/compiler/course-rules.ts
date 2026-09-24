@@ -3,7 +3,7 @@ import type { CourseDocument, CourseLandmarkDocument } from '../course-document.
 import { requireCourse } from '../course-diagnostics.js';
 import { resolveCoursePosition, type CompiledCoursePosition } from '../course-geometry.js';
 import { courseBoundaryAt, courseCarriagewayExists, type CompiledCarriageway } from '../course-regions.js';
-import { createRegionSurfaceReader } from '../region-surface-reader.js';
+import { bandSupportsInterval } from '../band-material.js';
 import type { CompiledSection } from './course-graph.js';
 
 export interface CompiledCourseLandmark {
@@ -48,22 +48,8 @@ export function compileCourseRules(
     check(courseCarriagewayExists(carriageway, position.s, endS(section)), path, 'Landmark requires a Carriageway');
     const left = courseBoundaryAt(carriageway.left, position.s);
     const right = courseBoundaryAt(carriageway.right, position.s);
-    const surface = createRegionSurfaceReader(section.regionPartition, section.physicalBindings);
-    const edges = [
-      ...new Set([
-        left,
-        right,
-        ...section.boundaries
-          .filter((boundary) => boundary.knots[0]!.at.s <= position.s && boundary.knots.at(-1)!.at.s >= position.s)
-          .map((boundary) => courseBoundaryAt(boundary, position.s))
-          .filter((l) => l > left && l < right),
-      ]),
-    ].sort((a, b) => a - b);
     check(
-      right > left &&
-        edges
-          .slice(1)
-          .every((edge, i) => surface.sample(position.s, edges[i]! + (edge - edges[i]!) / 2).material.supported),
+      bandSupportsInterval(section.material, position.s, left, right),
       path,
       'Landmark requires positive supported width',
     );
@@ -101,7 +87,7 @@ export function compileCourseRules(
     }
     return Object.freeze({ section, checkpoints: Object.freeze(gates), finish });
   });
-  const surface = createRegionSurfaceReader(entry.regionPartition, entry.physicalBindings);
+  const surface = entry.material;
   check(
     source.grid.length > source.classic.rivalCount,
     '/rules/grid',

@@ -21,12 +21,6 @@ export interface CompiledCarriageway {
   readonly right: CompiledBoundary;
 }
 
-/** Narrow finite-domain facet; no Region is privileged as the Section's domain authority. */
-export interface CompiledRegionPartition {
-  readonly length: number;
-  readonly regions: readonly CompiledRegion[];
-}
-
 /** Canonical resolved knots are the authority; neither widths nor centers are independently stored. */
 export function courseBoundaryAt(boundary: CompiledBoundary, s: number): number {
   const knots = boundary.knots;
@@ -53,29 +47,4 @@ export function courseCarriagewayExists(road: CompiledCarriageway, s: number, se
   const start = Math.max(road.left.knots[0]!.at.s, road.right.knots[0]!.at.s);
   const end = Math.min(road.left.knots.at(-1)!.at.s, road.right.knots.at(-1)!.at.s);
   return s >= start && (s < end || (s === end && end === sectionLength));
-}
-
-/** Half-open ownership; l is in the chart whose zero is sourceLateralOrigin in source coordinates. */
-export function courseRegionAt(
-  partition: CompiledRegionPartition,
-  s: number,
-  l: number,
-  sourceLateralOrigin = 0,
-): CompiledRegion | null {
-  if (typeof sourceLateralOrigin !== 'number') throw new TypeError('Region lateral origin must be numeric');
-  if (!Number.isFinite(l) || !Number.isFinite(sourceLateralOrigin))
-    throw new RangeError('Region lateral query and origin must be finite');
-  if (!Number.isFinite(s) || s < 0 || s > partition.length)
-    throw new RangeError('Region query must be within its finite Section domain');
-  for (let i = 0; i < partition.regions.length; i++) {
-    const region = partition.regions[i]!;
-    if (
-      s >= region.start.s &&
-      (s < region.end.s || (s === partition.length && s === region.end.s)) &&
-      l >= courseBoundaryAt(region.left, s) - sourceLateralOrigin &&
-      l < courseBoundaryAt(region.right, s) - sourceLateralOrigin
-    )
-      return region;
-  }
-  return null;
 }

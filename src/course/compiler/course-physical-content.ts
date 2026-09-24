@@ -2,13 +2,15 @@ import { Profile, ProfilePolyline } from '../geometry/profile.js';
 import type { SectionDocument, CoursePosition } from '../course-document.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
 import type { CompiledRegion } from '../course-regions.js';
-import type { CompiledPhysicalBinding } from '../course-physical-binding.js';
+import { compileBandMaterial } from '../band-material.js';
+import { courseBoundaryAt, type CompiledBoundary } from '../course-regions.js';
+import type { BandPiece, BandEdgeLine } from '../band-ground.js';
 import { CourseInputError, requireCourse } from '../course-diagnostics.js';
 import { SURFACE_MATERIALS, type SurfaceMaterial, type SurfaceType } from '../surface-material.js';
 
 export const COURSE_PHYSICAL_RECIPE = Object.freeze({
   id: 'superoutride.course-physical',
-  version: 2,
+  version: 3,
   materials: SURFACE_MATERIALS,
 });
 
@@ -69,7 +71,7 @@ export function compileCoursePhysicalContent(
   const renderHeight = Object.freeze(new ProfilePolyline(height));
   const table = new Map(regions.map((region) => [region.id, region]));
   const assigned = new Set<CompiledRegion>();
-  const physicalBindings = source.physicalBindings.map((binding, i): CompiledPhysicalBinding<SurfaceMaterial> => {
+  const physicalBindings = source.physicalBindings.map((binding, i) => {
     const at = `${path}/physicalBindings/${i}`,
       region = table.get(binding.regionId);
     if (!region)
@@ -121,5 +123,49 @@ export function compileCoursePhysicalContent(
     'Every Region requires an explicit physical binding',
     'physical_binding',
   );
-  return Object.freeze({ height, renderHeight, physicalBindings: Object.freeze(physicalBindings) });
+  const pieces: BandPiece<SurfaceMaterial | null>[] = [];
+  const line = (boundary: CompiledBoundary, s: number): BandEdgeLine => {
+    const index = boundary.knots.findIndex((knot, i) => i > 0 && knot.at.s > s) - 1;
+    const a = boundary.knots[index]!,
+      b = boundary.knots[index + 1]!;
+    return Object.freeze({ start: a.at.s, end: b.at.s, from: a.l, to: b.l });
+  };
+  for (const { region, sections } of physicalBindings) {
+    const stations = [
+      ...new Set([
+        region.start.s,
+        region.end.s,
+        ...[region.left, region.right]
+          .flatMap((boundary) => boundary.knots.map((k) => k.at.s))
+          .filter((s) => s > region.start.s && s < region.end.s),
+        ...sections.map((node) => node.at.s),
+      ]),
+    ].sort((a, b) => a - b);
+    let materialIndex = 0;
+    for (let i = 0; i + 1 < stations.length; i++) {
+      const start = stations[i]!,
+        end = stations[i + 1]!;
+      while (materialIndex + 1 < sections.length && sections[materialIndex + 1]!.at.s <= start) materialIndex++;
+      pieces.push({
+        start,
+        end,
+        left: courseBoundaryAt(region.left, start),
+        right: courseBoundaryAt(region.right, start),
+        leftEnd: courseBoundaryAt(region.left, end),
+        rightEnd: courseBoundaryAt(region.right, end),
+        leftLine: line(region.left, start + (end - start) / 2),
+        rightLine: line(region.right, start + (end - start) / 2),
+        color: sections[materialIndex]!.material,
+      });
+    }
+  }
+  let material;
+  try {
+    material = compileBandMaterial(length, pieces);
+  } catch (error) {
+    if (error instanceof RangeError)
+      throw new CourseInputError('invalid_profile', `${path}/physicalBindings`, error.message);
+    throw error;
+  }
+  return Object.freeze({ height, renderHeight, material });
 }

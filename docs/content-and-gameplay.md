@@ -14,7 +14,8 @@ route coordinates. CompiledCourse is the immutable reference graph. Every actor 
 
 A Band is a colored visual strip with its own edges and active interval. Bands are ordered and may
 overlap or erase earlier colors; they do not refer to physical Regions. Regions remain nonoverlapping
-structural partitions with material bindings. One concept has one name in both source and compiled data.
+structural partitions with material bindings in the saved document. They are compilation inputs only;
+compiled Sections publish material cross-section tables.
 
 Checkpoints, starts, finishes and environment changes are independent of Section boundaries.
 Source identity, traversal identity and race credit are distinct.
@@ -251,7 +252,7 @@ violations report `invalid_carriageway`, and unknown edge IDs report `unresolved
 
 Until Regions are replaced by Strips, compilation also requires the union of existing Carriageway
 interiors to equal the union of pavement Region interiors at every station. This temporary check
-reports `invalid_carriageway` and will be removed with Regions in 7-3b. It creates no membership
+reports `invalid_carriageway` and will be removed with Regions in 7-3b2. It creates no membership
 relationship. Cut lines, landmarks, fork exits, driving targets and recovery read Carriageway
 Boundaries directly. Landmark support is checked across the entire interval between those edges
 using the material surface, independently of Region roles.
@@ -261,10 +262,11 @@ Region union and the pavement/median union are continuous. Positive-width replac
 birth/death endpoints use the same rule. Roles name structure; appearance and physical bindings supply values.
 [Architecture](architecture.md#boundary-geometry-and-point-ownership) owns mapped geometry and point ownership.
 
-`courseBoundaryAt` samples the canonical edge. `courseRegionAt` reads the Section's canonical
-`regionPartition` and returns the owning Region or null outside/in gaps. Longitudinal membership is
-`[start,end)`, with the terminal included when the Region ends at Section length. At a switch,
-starting/continuing Regions own the point. Invalid or nonfinite queries fail with RangeError.
+`courseBoundaryAt` samples the canonical edge. The compiled material table owns point reads,
+with lateral `[left,right)` and longitudinal `[start,end)` membership; the Section terminal is
+included. Starting/continuing pieces own a switch. Original affine edge arithmetic and shifted
+origin comparisons preserve Boundary ownership. [Architecture](architecture.md#material-cross-sections)
+owns the common table shape and allocation-free binary readers.
 
 Profile Knots resolve on the same ruler, increase strictly and include exactly zero and L.
 `curveLength` is nonnegative in metres; endpoint lengths are zero and adjacent curves do not overlap.
@@ -272,8 +274,12 @@ Profile Knots resolve on the same ruler, increase strictly and include exactly z
 
 Every Region has one explicit piecewise-constant physical binding beginning at its activation;
 subsequent changes precede its end. Materials are ASPHALT, SHOULDER, GRASS, DIRT, SAND or VOID.
-Missing, duplicate, unknown or uncovered bindings fail. Outside/gaps are VOID. Supported bounds
-include active supported endpoints and interior Boundary knots. Ground appearance remains independent.
+Missing, duplicate, unknown or uncovered bindings fail. Compilation splits each Region at its
+Boundary knots and material changes into finite affine material pieces and resolves them through
+the same slab compiler as color. Outside/gaps read VOID. The published Section contains the material
+table, not Regions or bindings; its coordinate domain comes from the table's outer finite covered
+edges plus margin, including explicitly authored VOID extents. Ground appearance remains independent.
+Material samples use the material type as `sectionName`; they no longer expose a Region ID.
 
 ## Cut lines, Links and topology
 
@@ -298,14 +304,14 @@ its endpoint poses may differ in native coordinates.
 
 ## Compiled identity and project publication
 
-CompiledCourse contains canonical Section, plan segment, Boundary, Region, Carriageway, Link,
-asset and landmark references. Merges reuse the same successor; loops refer to the same source.
+CompiledCourse contains canonical Section, plan segment, Boundary, Carriageway, Link,
+asset and landmark references plus immutable material tables. Merges reuse the same successor; loops refer to the same source.
 Owned records and arrays are immutable, including nested image data. Live actor, route-lock and
 clock state belong to Sessions. Object identity is local to a compilation; cross-build identity uses digests.
 
 `sourceSha256` hashes normalized input. `buildSha256` hashes `{sourceSha256,compiler,geometryRecipe}`.
-The compiler is `superoutride.course-compiler` version 25, incorporating Link recipe v2, physical
-recipe v2, image-source recipe v2 and presentation recipe v7. Descriptors include semantic versions
+The compiler is `superoutride.course-compiler` version 26, incorporating Link recipe v2, physical
+recipe v3, image-source recipe v2 and presentation recipe v7. Descriptors include semantic versions
 and operative numeric/data parameters, including material definitions. Source or compiler/recipe
 changes invalidate dependent products.
 
@@ -349,7 +355,10 @@ accepted cross sections and laps and suppresses crossing credit for that step.
 Section `fork` is null or `{lock,closure}` positions. Controls require two or three exits and
 `entry < lock < closure < every exit seam`, with positive lock chainage. The parallel-zone subset
 is contained in straight parts of the plan. Through closure, edges are constant, roads have positive
-width, and explicit physical bindings support the roads, separating medians and connecting space.
+width, and the material table supplies one contiguous supported interval at lock. Through closure,
+material span edges remain parallel and the supported interval retains the same bounds. Gate and
+grid support checks also read this table. Adjacent exit Carriageways require a positive-width
+supported interval between their edges; this is the separating median, independent of Region roles.
 Invalid controls produce `invalid_fork`.
 
 Exit Carriageways are ordered by their actual lock-line edges. Median centers divide supported

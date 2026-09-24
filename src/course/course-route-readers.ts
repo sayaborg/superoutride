@@ -1,7 +1,6 @@
 import { wrapAngle, type Vec2 } from '../core/math.js';
 import type { Writable } from '../core/writable.js';
-import { SURFACE_MATERIALS } from './surface-material.js';
-import { createRegionSurfaceReader } from './region-surface-reader.js';
+import { VOID_SURFACE } from './band-material.js';
 import {
   PLAN_PROJECTION_WINDOW_METERS,
   type PlanCoordinateMetrics,
@@ -17,15 +16,10 @@ import { routeS, routeSectionS, type CourseRoute, type RouteOccurrence } from '.
 export const EMPTY_ROUTE_DOMAIN = Object.freeze({ left: Infinity, right: -Infinity });
 
 /** The route has no material outside its coordinate domain. */
-export const ROUTE_OUTSIDE_SURFACE = Object.freeze({
-  sectionName: 'OUTSIDE',
-  type: SURFACE_MATERIALS.VOID.type,
-  material: SURFACE_MATERIALS.VOID,
-});
+export const ROUTE_OUTSIDE_SURFACE = VOID_SURFACE;
 
 /** Route readers share Section lookup and conversion; their derived indexes change only with the route. */
 export function createCourseRouteReaders(route: CourseRoute) {
-  const surfaces = new Map<CompiledSection, ReturnType<typeof createRegionSurfaceReader>>();
   const native = { x: 0, z: 0, s: 0, l: 0, heading: 0 };
   const bounds = { left: 0, right: 0 };
   const endpoint = { x: 0, z: 0, s: 0, l: 0, heading: 0 };
@@ -294,12 +288,7 @@ export function createCourseRouteReaders(route: CourseRoute) {
       occurrence.section.coordinates.domain.lateralAt(nativeS, bounds);
       const nativeL = l + occurrence.lateralOrigin;
       if (nativeL < bounds.left || nativeL > bounds.right) return ROUTE_OUTSIDE_SURFACE;
-      let reader = surfaces.get(occurrence.section);
-      if (!reader) {
-        reader = createRegionSurfaceReader(occurrence.section.regionPartition, occurrence.section.physicalBindings);
-        surfaces.set(occurrence.section, reader);
-      }
-      return reader.sampleInChart(routeSectionS(occurrence, s), l, occurrence.lateralOrigin);
+      return occurrence.section.material.sampleInChart(nativeS, l, occurrence.lateralOrigin);
     },
   });
   return Object.freeze({

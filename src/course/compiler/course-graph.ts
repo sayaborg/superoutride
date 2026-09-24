@@ -4,9 +4,8 @@ import type { PlanarPose, PlanarTransform } from '../../core/planar-transform.js
 import type { CompiledCourseImageSource } from './course-image-source.js';
 import type { CoursePresentation } from '../course-presentation.js';
 import type { CompiledCoursePosition, CompiledPlanSegment } from '../course-geometry.js';
-import type { CompiledBoundary, CompiledRegionPartition, CompiledCarriageway } from '../course-regions.js';
-import type { CompiledPhysicalBinding } from '../course-physical-binding.js';
-import type { SurfaceMaterial } from '../surface-material.js';
+import type { CompiledBoundary, CompiledCarriageway } from '../course-regions.js';
+import type { BandMaterial } from '../band-material.js';
 
 /** Canonical reusable node, including back-references. Topology may intentionally cycle. */
 export interface CompiledSection {
@@ -14,10 +13,9 @@ export interface CompiledSection {
   readonly segments: readonly CompiledPlanSegment[];
   readonly coordinates: SectionPlanCoordinateReader;
   readonly boundaries: readonly CompiledBoundary[];
-  readonly regionPartition: CompiledRegionPartition;
   readonly height: ProfileReader;
   readonly renderHeight: ProfilePolylineReader;
-  readonly physicalBindings: readonly CompiledPhysicalBinding<SurfaceMaterial>[];
+  readonly material: BandMaterial;
   readonly carriageways: readonly CompiledCarriageway[];
   readonly assets: readonly CompiledCourseImageSource[];
   readonly presentation: CoursePresentation | null;
