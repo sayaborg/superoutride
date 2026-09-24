@@ -36,7 +36,7 @@ const DEFAULT_THIN_SPAN_SCREEN_ROWS = 1;
  * so this clipping is not an ordinary gameplay special case.
  */
 export function computeForwardVisibleInterval(
-  guide: { readonly coordinates: PlanCoordinateReader },
+  plan: { readonly coordinates: PlanCoordinateReader },
   extent: { readonly start: number; readonly end: number },
   cameraYaw: number,
   sCamera: number,
@@ -54,7 +54,7 @@ export function computeForwardVisibleInterval(
 
   const end = sCamera + dEnd;
   const start = sCamera + dStart;
-  const facingEnd = guide.coordinates.forwardEnd(start, end, cameraYaw) - sCamera;
+  const facingEnd = plan.coordinates.forwardEnd(start, end, cameraYaw) - sCamera;
   if (facingEnd <= dStart + VISIBLE_INTERVAL_TOLERANCE_METERS) return null;
 
   out.dStart = dStart;
@@ -112,7 +112,7 @@ const ascending = (a: number, b: number) => a - b;
 const painterOrder = (a: TerrainLine, b: TerrainLine) => b.d - a.d || a.y - b.y;
 
 export function generateTerrainLines(
-  guide: { readonly coordinates: PlanCoordinateReader },
+  plan: { readonly coordinates: PlanCoordinateReader },
   camera: PseudoCamera,
   parameters: TerrainRenderParameters,
   workspace = createTerrainWorkspace(),
@@ -121,7 +121,7 @@ export function generateTerrainLines(
   lines.length = 0;
   boundaries.length = 0;
   const visible = computeForwardVisibleInterval(
-    guide,
+    plan,
     parameters.extent,
     camera.yaw,
     camera.s,
@@ -173,7 +173,7 @@ export function generateTerrainLines(
       const y = Math.floor(representativeY);
       if (y >= 0 && y < parameters.screenHeight) {
         const deltaS = computeTerrainRowDeltaS(y, aY, bY, visible.dStart, visible.dEnd);
-        const line = createTerrainLine(guide, camera, parameters, d, y, deltaS, intervalLength, true, workspace);
+        const line = createTerrainLine(plan, camera, parameters, d, y, deltaS, intervalLength, true, workspace);
         if (line) lines.push(line);
       }
     } else {
@@ -191,7 +191,7 @@ export function generateTerrainLines(
         if (d < visible.dStart - DEPTH_INTERVAL_TOLERANCE_METERS || d > visible.dEnd + DEPTH_INTERVAL_TOLERANCE_METERS)
           continue;
         const deltaS = computeTerrainRowDeltaS(y, aY, bY, visible.dStart, visible.dEnd);
-        const line = createTerrainLine(guide, camera, parameters, d, y, deltaS, 0, false, workspace);
+        const line = createTerrainLine(plan, camera, parameters, d, y, deltaS, 0, false, workspace);
         if (line) lines.push(line);
       }
     }
@@ -238,7 +238,7 @@ function depthAtScreenBoundary(screenY: number, aY: number, bY: number, dMin: nu
 }
 
 function createTerrainLine(
-  guide: { readonly coordinates: PlanCoordinateReader },
+  plan: { readonly coordinates: PlanCoordinateReader },
   camera: PseudoCamera,
   parameters: TerrainRenderParameters,
   d: number,
@@ -250,8 +250,8 @@ function createTerrainLine(
 ): TerrainLine | null {
   const s = camera.s + d;
   const renderHeight = parameters.height.sample(s, workspace.height).y;
-  guide.coordinates.toWorld(s, -1, workspace.left);
-  guide.coordinates.toWorld(s, 1, workspace.right);
+  plan.coordinates.toWorld(s, -1, workspace.left);
+  plan.coordinates.toWorld(s, 1, workspace.right);
   workspace.left.y = renderHeight;
   workspace.right.y = renderHeight;
   const projectedLeft = pseudoProject(workspace.left, camera, workspace.projectedLeft);
