@@ -1,6 +1,7 @@
 import { createCourseRouteVisualReaders } from '../view/course-route-visual-readers.js';
 import { ENVELOPE_DRIVER } from '../race/envelope-driver.js';
-import { COURSE_DRIVING_POLICY } from '../race/course-driving-policy.js';
+import { VEHICLE_CATALOG } from '../vehicle/vehicle-catalog.js';
+import { SIM_DT } from './frame-loop.js';
 import { createDisplaySettings, type DisplaySettings } from '../view/display-settings.js';
 import type { CourseGround } from '../course/compiler/course-ground.js';
 import { LOGICAL_HEIGHT } from '../view/display-scale.js';
@@ -9,9 +10,7 @@ import type { CompiledSection } from '../course/compiler/course-graph.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import type { CameraState } from '../view/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../view/current-camera-profile.js';
-import { courseCutLateral, entryCut } from '../course/compiler/course-links.js';
-import { recoverVehicleToPlanCoordinate, type RecoveryState } from '../race/recovery.js';
-import type { ArcadeVehicleState } from '../vehicle/physics/arcade-vehicle-physics.js';
+import { entryCut } from '../course/compiler/course-links.js';
 import type { VehicleRenderReadState } from '../vehicle/physics/vehicle-contract.js';
 import { createRenderWorkspace, renderDriving } from '../view/renderer.js';
 import type { CourseSprite } from '../view/course-sprite.js';
@@ -32,7 +31,20 @@ export function createCourseScene(
     throw new RangeError('Driving requires the rearmost grid position to have camera space behind it');
   // The camera and step/contact readers extend behind the vehicle. Recover before either can
   // reach the entry cut, then place the car with a full camera distance behind it again.
+  const entry = entryCut(section, '/entrySectionId');
+  // Loading coverage at 240 m/s (864 km/h), not a mechanics speed clamp.
+  const maximumStepMeters = 240 * SIM_DT;
+  const contactReachMeters = Math.ceil(
+    Math.max(
+      ...VEHICLE_CATALOG.flatMap(({ profile }) =>
+        [profile.frontStation, profile.rearStation].map((station) =>
+          Math.hypot(station.forwardOffset, station.freeReachDown),
+        ),
+      ),
+    ),
+  );
   const entryRecovery = Object.freeze({
+    l: entry.lateralOrigin,
     startS: 2 * CURRENT_CAMERA_PROFILE.dCam,
     targetS: 3 * CURRENT_CAMERA_PROFILE.dCam,
   });
@@ -40,50 +52,38 @@ export function createCourseScene(
     throw new RangeError('Driving requires an entry Section long enough for entry recovery');
   if (
     section.fork &&
-    section.fork.lock.s +
-      Math.max(RENDER_FAR_DEPTH_METERS, ENVELOPE_DRIVER.lookahead) +
-      COURSE_DRIVING_POLICY.guard.step.ahead >
-      Math.min(...section.outgoing.map((link) => link.from.anchor.s))
+    section.fork.lock.s + Math.max(RENDER_FAR_DEPTH_METERS, ENVELOPE_DRIVER.lookahead) + maximumStepMeters >
+      section.raster.length
   )
     throw new RangeError('Fork parent must cover pre-lock render and driver queries through one fixed step');
-  const graph = createRouteRuntime(section, {
-    distance: CURRENT_CAMERA_PROFILE.dCam,
+  const runtime = createRouteRuntime(section, {
+    cameraDistance: CURRENT_CAMERA_PROFILE.dCam,
     far: RENDER_FAR_DEPTH_METERS,
     near: RENDER_NEAR_DEPTH_METERS,
+    maximumStepMeters,
+    contactReachMeters,
   });
-  graph.refresh(
+  runtime.refresh(
     Math.min(...rules.grid.map((slot) => slot.anchor.s)),
     Math.max(...rules.grid.map((slot) => slot.anchor.s)),
   );
-  const routeAccess = graph.createRouteAccess();
-  const rendering = createCourseRouteVisualReaders(graph.route, ground);
+  const rendering = createCourseRouteVisualReaders(runtime.route, ground);
   rendering.read();
-  const entry = entryCut(section, '/entrySectionId');
   const renderWorkspace = createRenderWorkspace();
   const worldSprites: CourseSprite[] = [];
   let lastPresentation: ReturnType<typeof rendering.read> | null = null;
-  let lastClosed: typeof routeAccess.closedCarriageways | null = null;
+  let lastClosed: typeof runtime.closedCarriageways | null = null;
   let staticSpriteCount = 0;
   let terrainParameters: Parameters<typeof renderDriving>[1]['terrainParameters'];
   return Object.freeze({
-    routeAccess,
+    runtime,
     entryRecovery,
-    metrics: graph.metrics,
+    metrics: runtime.metrics,
     groundMetrics: ground.metrics,
-    createActorRouteAccess: graph.createRouteAccess,
     get world() {
-      return routeAccess.view.world;
+      return runtime.readers.world;
     },
-    observeStep: routeAccess.observeStep,
-    recoverAtEntry(vehicle: ArcadeVehicleState, recovery: RecoveryState): boolean {
-      if (vehicle.course.s >= entryRecovery.startS) return false;
-      recoverVehicleToPlanCoordinate(routeAccess.view.world, vehicle, {
-        state: recovery,
-        reason: 'wrong-course',
-        target: { s: entryRecovery.targetS, l: courseCutLateral(entry) },
-      });
-      return true;
-    },
+    observeStep: runtime.observeStep,
     render(
       target: Parameters<typeof renderDriving>[0],
       vehicle: VehicleRenderReadState,
@@ -92,10 +92,9 @@ export function createCourseScene(
       others: readonly CourseSprite[],
       appearance: SpriteAssets = assets,
     ) {
-      const view = routeAccess.view;
-      const { world, geometry } = view;
+      const { world, geometry, displayHeight } = runtime.readers;
       const presentation = rendering.read();
-      const closed = routeAccess.closedCarriageways;
+      const closed = runtime.closedCarriageways;
       if (lastPresentation !== presentation || lastClosed !== closed) {
         worldSprites.length = 0;
         for (const sprite of presentation.worldSprites) worldSprites.push(sprite);
@@ -107,7 +106,8 @@ export function createCourseScene(
           dMin: RENDER_NEAR_DEPTH_METERS,
           dMax: RENDER_FAR_DEPTH_METERS,
           ...presentation.groundRuler,
-          height: view.renderHeight,
+          height: displayHeight,
+          extent: runtime.route,
           physicalHeight: world.height,
           visual: presentation.visual as VisualProfileReader,
         };
@@ -119,7 +119,7 @@ export function createCourseScene(
       return renderDriving(
         target,
         {
-          background: presentation.backgroundAt(camera.s) ?? presentation.backgroundAt(graph.route.start)!,
+          background: presentation.backgroundAt(camera.s) ?? presentation.backgroundAt(runtime.route.start)!,
           guide: geometry,
           camera,
           vehicle,

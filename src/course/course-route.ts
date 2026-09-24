@@ -4,7 +4,6 @@ import {
   invertPlanarTransform,
   type PlanarTransform,
 } from '../core/planar-transform.js';
-import { courseCutLateral } from './compiler/course-links.js';
 import type { CompiledLink, CompiledSection } from './compiler/course-graph.js';
 
 /** One selected traversal, shared by all vehicles. Stations never change when old entries are pruned. */
@@ -13,8 +12,6 @@ export interface RouteOccurrence {
   readonly section: CompiledSection;
   readonly incoming: CompiledLink | null;
   readonly start: number;
-  readonly nativeStart: number;
-  readonly nativeEnd: number;
   readonly end: number;
   readonly lateralOrigin: number;
   readonly worldFromSection: PlanarTransform;
@@ -37,10 +34,6 @@ export interface CourseRoute {
 
 const identity = compilePlanarTransform({ x: 0, z: 0, heading: 0 }, { x: 0, z: 0, heading: 0 });
 
-function lastNativeEnd(section: CompiledSection): number {
-  return Math.min(section.raster.length, ...section.outgoing.map((link) => link.from.anchor.s));
-}
-
 /** Validate the entry and canonical link at the route mutation boundary. */
 export function createCourseRoute(entry: CompiledSection): CourseRoute {
   if (!entry?.coordinates || !entry.raster) throw new TypeError('Route requires a compiled entry Section');
@@ -50,9 +43,7 @@ export function createCourseRoute(entry: CompiledSection): CourseRoute {
       section: entry,
       incoming: null,
       start: 0,
-      nativeStart: 0,
-      nativeEnd: lastNativeEnd(entry),
-      end: lastNativeEnd(entry),
+      end: entry.raster.length,
       lateralOrigin: 0,
       worldFromSection: identity,
       sectionFromWorld: identity,
@@ -73,9 +64,8 @@ export function createCourseRoute(entry: CompiledSection): CourseRoute {
   const append = (link: CompiledLink): void => {
     const previous = occurrences.at(-1)!;
     if (!previous.section.outgoing.includes(link)) throw new RangeError('Route needs a canonical outgoing Link');
-    const start = previous.start + link.from.anchor.s - previous.nativeStart;
-    const nativeStart = link.to.anchor.s;
-    const end = start + lastNativeEnd(link.to.section) - nativeStart;
+    const start = previous.end;
+    const end = start + link.to.section.raster.length;
     if (!(end > start)) throw new RangeError('Route successor must have positive length');
     const worldFromSection = composePlanarTransforms(
       previous.worldFromSection,
@@ -88,10 +78,8 @@ export function createCourseRoute(entry: CompiledSection): CourseRoute {
         section: link.to.section,
         incoming: link,
         start,
-        nativeStart,
-        nativeEnd: lastNativeEnd(link.to.section),
         end,
-        lateralOrigin: previous.lateralOrigin + courseCutLateral(link.to) - courseCutLateral(link.from),
+        lateralOrigin: previous.lateralOrigin + link.to.lateralOrigin - link.from.lateralOrigin,
         worldFromSection,
         sectionFromWorld: invertPlanarTransform(worldFromSection),
       }),
@@ -127,9 +115,9 @@ export function createCourseRoute(entry: CompiledSection): CourseRoute {
 
 /** The single route-to-Section conversion used by all route readers. */
 export function routeSectionS(occurrence: RouteOccurrence, s: number): number {
-  return occurrence.nativeStart + (s - occurrence.start);
+  return s - occurrence.start;
 }
 
 export function routeS(occurrence: RouteOccurrence, nativeS: number): number {
-  return occurrence.start + (nativeS - occurrence.nativeStart);
+  return occurrence.start + nativeS;
 }

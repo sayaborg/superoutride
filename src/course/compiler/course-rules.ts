@@ -30,8 +30,7 @@ export function compileCourseRules(
   );
   const resolve = (section: CompiledSection, anchor: CourseLandmarkDocument['anchor'], path: string) =>
     resolveCourseAnchor(anchor, tables.get(section)!, section.raster.length, path);
-  const endS = (section: CompiledSection) =>
-    Math.min(section.raster.length, ...section.outgoing.map((l) => l.from.anchor.s));
+  const endS = (section: CompiledSection) => section.raster.length;
   const compile = (g: CourseLandmarkDocument, path: string): CompiledCourseLandmark => {
     const section = sections.find((s) => s.id === g.sectionId);
     requireCourse(section !== undefined, path + '/sectionId', 'Unknown landmark Section', 'unresolved_reference');

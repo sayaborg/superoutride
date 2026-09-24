@@ -7,7 +7,6 @@ interface VisualSection {
 }
 
 export interface VisualProfileReader {
-  readonly courseLength: number;
   readonly sections: readonly VisualSection[];
   sample(s: number): VisualSection;
   distanceToNextSection(s: number): number;

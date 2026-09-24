@@ -33,7 +33,7 @@ function createEnvelopeRun(entry: Readonly<VehicleCatalogEntry>, initialSpeed: n
   const surfaces = new SurfaceMap(coordinates.domain.end, [
     { sStart: 0, name: 'Envelope asphalt', regions: [{ lMin: -5000, lMax: 5000, type: 'ASPHALT' }] },
   ]);
-  const world = { coordinates, height, surfaces };
+  const world = { extent: coordinates.domain, coordinates, height, surfaces };
   const rate = DEFAULT_BROWSER_STEERING_RESPONSE_RATE;
   const vehicle = createArcadeVehicle(entry.profile, world, {
     s: 10000,

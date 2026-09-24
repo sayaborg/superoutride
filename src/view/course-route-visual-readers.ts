@@ -18,7 +18,7 @@ export function createCourseRouteVisualReaders(route: CourseRoute, fields: Cours
       if (!section.presentation) throw new Error('Driving Section requires compiled appearance');
       readers = resources.createSectionReaders(
         section.presentation,
-        { length: section.raster.length, raster: section.raster },
+        { raster: section.raster },
         section.height,
         section.renderHeight,
       );
@@ -49,18 +49,11 @@ export function createCourseRouteVisualReaders(route: CourseRoute, fields: Cours
     const visualSections = mapped.flatMap(({ occurrence, native }) => {
       const nativeEnd = routeSectionS(occurrence, occurrence.end);
       return [
-        native.visual.sample(occurrence.nativeStart),
-        ...native.visual.sections.filter(
-          (section) => section.sStart > occurrence.nativeStart && section.sStart < nativeEnd,
-        ),
-      ].map((section) =>
-        Object.freeze({ ...section, sStart: routeS(occurrence, Math.max(section.sStart, occurrence.nativeStart)) }),
-      );
+        native.visual.sample(0),
+        ...native.visual.sections.filter((section) => section.sStart > 0 && section.sStart < nativeEnd),
+      ].map((section) => Object.freeze({ ...section, sStart: routeS(occurrence, Math.max(section.sStart, 0)) }));
     });
     const visual = Object.freeze({
-      get courseLength() {
-        return route.end;
-      },
       sections: Object.freeze(visualSections),
       sample(s: number) {
         return route.at(s) ? visualSections[knotIndexAt(visualSections, 'sStart', s)]! : null;
@@ -75,7 +68,7 @@ export function createCourseRouteVisualReaders(route: CourseRoute, fields: Cours
       occurrences.map((occurrence) => ({
         ground: fields.forSection(occurrence.section),
         frameStart: occurrence.start,
-        nativeStart: occurrence.nativeStart,
+        nativeStart: 0,
         nativeEnd: routeSectionS(occurrence, occurrence.end),
         lateralOrigin: occurrence.lateralOrigin,
       })),

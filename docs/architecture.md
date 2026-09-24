@@ -21,7 +21,7 @@ distance along an offset or sloping path is different.
 
 The shared `CourseRoute` builds an ordered sequence of `RouteOccurrence` records. Its entry starts at
 route s=0, lateral origin=0 and an identity world transform. Each successor begins at the previous
-Link's source cut: its native start is the destination cut, its lateral origin accumulates the cut
+Section's end: its Section chainage begins at zero, its lateral origin accumulates the cut
 offset and its world transform composes the Link transform. Thus a repeated circuit Section has a new
 route interval without changing earlier route coordinates. A seam station belongs to the successor.
 `routeSectionS` and `routeS` own the chainage conversion; readers select an occurrence by binary
@@ -34,20 +34,34 @@ physics, race, rendering and reference driving read this one route and retain th
 coordinates. The `VehicleWorld` adapter supplies borrowed empty observations to existing physics
 consumers; physical treatment of out-of-domain contacts is scheduled in 6-9d.
 
-`createSharedRouteDrivingGraph` extends the route through the frontmost vehicle plus 484 m:
-`max(camera dCam + 200 m far depth, driver 480 m lookahead, projection 50 m window) + 4 m
-fixed-step reach`. At an undecided fork it stops at the cut until the first arriving actor selects
-a Link, then appends that successor and resumes automatic extension. It retains the occurrence
-containing the rearmost vehicle minus 67 m: `max(camera dCam + 2.5 m near depth,
-recovery 8 m backtrack + projection 50 m window + 5 m rear contact) + 4 m fixed-step reach`.
-Pruning never changes existing stations or vehicle poses. A single-successor circuit repeats its
-Section for successive laps. Derived projection intervals, Raster segments, height knots, Band
-intervals, sprite lists and environment boundaries rebuild only when the occurrence list changes.
+`createRouteRuntime` owns one Route and one reader set for the entire field. No actor creates a
+coordinate wrapper. Fork choice calls `route.append(link)` once; the ordinary refresh extends any
+unambiguous successors and updates the closed-carriageway list. Route change metrics count refreshes
+that observe a changed occurrence list and time extension, pruning and closure-list preparation.
+
+The scene supplies loading coverage from camera dimensions, the fixed simulation period and the
+catalog's compiled contact stations. Forward coverage is
+`max(dCam + far, driver lookahead, projection window) + maximumStepMeters`: currently
+`max(dCam + 200, 480, 50) + 240 * (1/60) = 484 m`. The 240 m/s (864 km/h) coverage speed is a
+conservative loading budget above the production fleet's operating speeds; it does not clamp physics.
+Rear coverage is `max(dCam + near, recovery backtrack + projection window + contactReachMeters)
+
+- maximumStepMeters`: currently `max(dCam + 2.5, 8 + 50 + 2) + 4 = 64 m`.
+Contact reach is the ceiling of the largest `hypot(forwardOffset, freeReachDown)` across the catalog's
+  front/rear contact stations, so pitching or yawing a vehicle cannot enlarge that local reach.
+  The step allowance retains the rear footprint until the next refresh. At an undecided fork the parent
+  Section covers the lock plus the render/driver lookahead and step allowance.
+  Pruning never changes existing stations or vehicle poses. A single-successor circuit repeats its
+  Section for successive laps. Derived projection intervals, Raster segments, height knots, Band
+  intervals, sprite lists and environment boundaries rebuild only when the occurrence list changes.
 
 `PlanCoordinateReader` is the planar query interface for both a compiled Section and its mapped
 occurrences. `CompiledSection.coordinates` and `VehicleWorld.coordinates` expose this same type:
 
-- `domain.start` and `domain.end` bound the admitted s interval; `domain.lateralAt(s,out)` gives its
+- `CourseRoute.start/end` are the single retained route extent. The world composition references that
+  same object as `extent`; terrain and driver composition receive it explicitly. Route Readers publish
+  no duplicate length or station range. A compiled Section retains its native domain.
+- `domain.lateralAt(s,out)` gives the
   closed asymmetric `[left,right]` bounds. An occurrence subtracts its mapped lateral origin from both
   edges. Coordinate bounds do not define material support.
 - `toWorld(s,l,out)` reads world X/Z and heading. `metricsAt(s,l,out)` reads `kappa`
@@ -316,9 +330,9 @@ inverse translation = -transpose(R)*t
 The transform preserves world up, gravity and metric length. Source and destination height agree
 at the cut line, as do their longitudinal grades. `CourseRoute` composes the inverse Link transform
 into each successor's fixed world transform. Vehicle state remains in the entry-rooted route world
-space across the cut. `RouteOccurrence` carries its own Section identity, native interval, route
+space across the cut. `RouteOccurrence` carries its own Section identity, route
 start, lateral origin and transform, including each repeated circuit lap. The route readers convert
-route s to Section s, add the lateral origin for the Section query, then transform returned X/Z,
+route s to Section s by subtracting the occurrence start, add the lateral origin for the Section query, then transform returned X/Z,
 heading and lateral positions into route coordinates. The successor owns the exact seam station.
 `createCourseRouteReaders` owns physical and Raster queries; `createCourseRouteVisualReaders` owns
 Band, sprite, visual and background queries. Every actor uses the same physical readers and route.
@@ -333,17 +347,17 @@ options and lint rules. [Development](development.md#typescript-tools) owns exec
 Product source is organized by domain. Shared definitions, product compilation and runtime representation
 belong inside that domain; an upper domain depends only on lower domains, and same-domain imports are unrestricted.
 
-| Order | Layer   | Responsibility                                                                                                   |
-| ----- | ------- | ---------------------------------------------------------------------------------------------------------------- |
-| 1     | core    | General mathematics, vectors, planar transforms, validation helpers and tolerances                               |
-| 2     | image   | Indexed images, RGB555/RGBA codecs, palettes, sprite/LOD formats, BG tiles and image filters                     |
-| 3     | audio   | Sound synthesis and audio engines                                                                                |
-| 4     | course  | Course documents and compilation, road geometry, materials, occurrences, environment profiles and geometry views |
-| 5     | vehicle | Vehicle mechanics, definitions, catalog and accepted operation requests                                          |
-| 6     | input   | Keyboard/touch adapters and arbitration producing vehicle operation requests                                     |
-| 7     | race    | Sessions, progress, gates, timing, drivers, recovery and envelopes                                               |
-| 8     | view    | Cameras, projection, ground rows, sprite placement, drawing composition and framebuffer                          |
-| 9     | shell   | DOM, frame loop, HUD, DEV, startup and whole-scene composition                                                   |
+| Order | Layer   | Responsibility                                                                                                         |
+| ----- | ------- | ---------------------------------------------------------------------------------------------------------------------- |
+| 1     | core    | General mathematics, vectors, planar transforms, validation helpers and tolerances                                     |
+| 2     | image   | Indexed images, RGB555/RGBA codecs, palettes, sprite/LOD formats, BG tiles and image filters                           |
+| 3     | audio   | Sound synthesis and audio engines                                                                                      |
+| 4     | course  | Course documents and compilation, road geometry, materials, occurrences, environment profiles and shared Route readers |
+| 5     | vehicle | Vehicle mechanics, definitions, catalog and accepted operation requests                                                |
+| 6     | input   | Keyboard/touch adapters and arbitration producing vehicle operation requests                                           |
+| 7     | race    | Sessions, progress, gates, timing, drivers, recovery and envelopes                                                     |
+| 8     | view    | Cameras, projection, ground rows, sprite placement, drawing composition and framebuffer                                |
+| 9     | shell   | DOM, frame loop, HUD, DEV, startup and whole-scene composition                                                         |
 
 The [dependency check](../tests/infrastructure/layer-dependencies.test.mjs) parses imports, type-only
 imports, re-exports, inline import types, literal dynamic imports, CommonJS references, worker entries

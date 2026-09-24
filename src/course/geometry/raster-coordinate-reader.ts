@@ -3,7 +3,6 @@ import { rasterPathToWorld, type CourseWorldSample, type RasterPath } from './ra
 
 /** Read-only segment metadata and point mapping, without source vertices or topology. */
 export interface RasterCoordinateReader {
-  readonly length: number;
   readonly segments: readonly {
     readonly sStart: number;
     readonly length: number;
@@ -16,9 +15,6 @@ type RasterCoordinateSource = RasterPath | RasterCoordinateReader;
 
 /** Raster mapping shared by terrain, sprites and vehicles. */
 export interface RasterGeometry {
-  /** Retained route start; ordinary native geometry starts at zero. */
-  readonly start?: number;
-  readonly length: number;
   readonly raster: RasterCoordinateSource;
 }
 

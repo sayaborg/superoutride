@@ -143,7 +143,7 @@ shared image formats.
 
 Scenery placements resolve document-wide instances. `unselectedCarriagewayId` is null for ordinary
 scenery or names a canonical exit Carriageway. Such signs lie from lock through closure, before the
-exit cut, and appear when the field selects another exit. Their state follows occurrence history.
+exit cut, and appear when the field selects another exit. Their state follows the selected Links of the shared Route.
 
 Rows use a half-open interval with placements at `start+index*spacing`. The side is left/right;
 nonnegative offset follows the corresponding side of the referenced varying Boundary. Expanded
@@ -236,9 +236,6 @@ one incoming/outgoing Link per Section. BRANCH is a finite acyclic graph with tw
 and merges. Their entry has no incoming Link. CIRCUIT is one Section with an end-to-start loop;
 its endpoint poses may differ in native coordinates.
 
-Physical and presentation domain records carry the root's query bounds and canonical Links to
-readers. Source-owned occurrence spans cover the cut without shared guard content.
-
 ## Compiled identity and project publication
 
 CompiledCourse contains canonical Section, primitive, Boundary, Region, Carriageway, Link,
@@ -280,7 +277,7 @@ stations start at the entry Section's beginning and never rebase at seams. An oc
 and incoming Link distinguish repeated visits and retain the selected predecessor through merges.
 [Architecture](architecture.md#coordinates-and-readers) owns transforms, reader composition and
 extension/retention distances. Geometry/content indexes and race cross-section lists rebuild when
-the shared sequence changes. A seam needs no per-actor frame transition or synthetic exit gate.
+the shared sequence changes. All actors retain their route coordinates at a seam.
 
 A driving scene requires compiled Session rules with a starting grid and checks its rearmost grid
 station against `D_cam`. Backing within `2 D_cam` of route s=0 recovers the vehicle to `3 D_cam` on

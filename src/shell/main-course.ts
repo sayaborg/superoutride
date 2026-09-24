@@ -105,8 +105,7 @@ try {
       },
       recovery: shell.recovery,
     },
-    playerRouteAccess: scene.routeAccess,
-    createRouteAccess: scene.createActorRouteAccess,
+    runtime: scene.runtime,
     rival: vehicle,
     rivalEnvelope,
     entryRecovery: scene.entryRecovery,
@@ -125,7 +124,6 @@ try {
     canRecover: () => race.clock.status === 'RUNNING' && !manualPause && !document.hidden,
     recoveryL: () => race.recoveryL,
     resync: () => {
-      scene.recoverAtEntry(shell.vehicle, shell.recovery);
       race.resyncPlayer();
     },
   });
@@ -150,9 +148,9 @@ try {
       raceSprites(
         observations.rivals,
         lifecycle.camera,
-        scene.routeAccess.view.geometry,
+        scene.runtime.readers.geometry,
         scene.world.height,
-        scene.routeAccess.view.renderHeight,
+        scene.runtime.readers.displayHeight,
       ),
       input.brake ? braking : sprites,
     );

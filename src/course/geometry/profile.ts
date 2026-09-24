@@ -11,7 +11,6 @@ export interface ProfileSample {
   dYdS: number;
 }
 export interface ProfileReader {
-  readonly courseLength: number;
   readonly knots: readonly ProfileKnot[];
   sample(s: number): number;
   sampleDifferential(s: number, out?: ProfileSample): ProfileSample;
@@ -24,7 +23,6 @@ export interface ProfilePolylineSample {
   sEnd: number;
 }
 export interface ProfilePolylineReader {
-  readonly courseLength: number;
   readonly knots: readonly { readonly s: number; readonly y: number }[];
   sample(s: number, out?: ProfilePolylineSample): ProfilePolylineSample;
   distanceToNextKnot(s: number): number;
@@ -87,7 +85,7 @@ export class Profile implements ProfileReader {
 export class ProfilePolyline implements ProfilePolylineReader {
   readonly courseLength: number;
   readonly knots: readonly { readonly s: number; readonly y: number }[];
-  constructor(profile: ProfileReader) {
+  constructor(profile: Readonly<Profile>) {
     this.courseLength = profile.courseLength;
     const stations = new Set<number>([0, profile.courseLength]);
     for (const knot of profile.knots) {

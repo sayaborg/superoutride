@@ -37,12 +37,12 @@ export function createCourseRenderResources() {
   ) => {
     if (!p || !p.ground || !Array.isArray(p.environments) || !Array.isArray(p.scenery) || !geometry?.raster || !height)
       throw new TypeError('Section rendering requires compiled content, Raster and height readers');
-    if (p.ground.length !== geometry.length || height.courseLength !== geometry.length)
+    if (p.ground.length !== geometry.raster.segments.at(-1)!.sStart + geometry.raster.segments.at(-1)!.length)
       throw new RangeError('Section rendering facets must share their native ruler');
 
     return Object.freeze({
       visual: new VisualProfile(
-        geometry.length,
+        p.ground.length,
         p.environments.map((e) => ({
           sStart: e.anchor.s,
           name: e.name,

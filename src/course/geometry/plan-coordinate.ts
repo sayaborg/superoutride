@@ -10,8 +10,6 @@ export interface PlanLateralBounds {
 
 /** Admitted chainage interval and coordinate bounds; physical support is independent. */
 export interface PlanCoordinateDomain {
-  readonly start: number;
-  readonly end: number;
   lateralAt(s: number, out: Writable<PlanLateralBounds>): PlanLateralBounds;
 }
 
@@ -62,6 +60,7 @@ export interface PlanProjectionCandidate {
 
 /** Section-side queries used to assemble occurrence readers without inspecting geometry. */
 export interface SectionPlanCoordinateReader extends PlanCoordinateReader {
+  readonly domain: PlanCoordinateDomain & { readonly start: number; readonly end: number };
   projectionCandidates(start: number, end: number): readonly PlanProjectionCandidate[];
 }
 

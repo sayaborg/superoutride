@@ -187,8 +187,7 @@ function sameChartRecoveryTarget(
   state: RecoveryState,
   settings: RecoverySettings,
 ): RecoveryTarget {
-  const { coordinates } = world;
-  const domain = coordinates.domain;
+  const domain = world.extent;
   if (!Number.isFinite(state.lastSafeS) || state.lastSafeS < domain.start || state.lastSafeS > domain.end) {
     throw new RangeError('recovery lastSafeS must lie within the active plan coordinate domain');
   }
@@ -217,7 +216,7 @@ export function recoverVehicleToPlanCoordinate(
   }: RecoveryOptions & { target: RecoveryTarget; reason: RecoveryReason },
 ): void {
   const { coordinates, height, surfaces } = world;
-  const domain = coordinates.domain;
+  const domain = world.extent;
   if (![target.s, target.l].every(Number.isFinite)) throw new RangeError('recovery target coordinate must be finite');
   if (target.s < domain.start || target.s > domain.end)
     throw new RangeError('recovery target chainage must lie within the active plan coordinate domain');

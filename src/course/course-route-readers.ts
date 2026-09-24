@@ -44,19 +44,17 @@ export function createCourseRouteReaders(route: CourseRoute) {
     if (indexed === route.occurrences) return;
     indexed = route.occurrences;
     candidates = indexed.flatMap((occurrence) =>
-      occurrence.section.coordinates
-        .projectionCandidates(occurrence.nativeStart, occurrence.nativeEnd)
-        .map((candidate) => ({
-          occurrence,
-          start: routeS(occurrence, candidate.start),
-          end: routeS(occurrence, candidate.end),
-          native: candidate,
-        })),
+      occurrence.section.coordinates.projectionCandidates(0, occurrence.section.raster.length).map((candidate) => ({
+        occurrence,
+        start: routeS(occurrence, candidate.start),
+        end: routeS(occurrence, candidate.end),
+        native: candidate,
+      })),
     );
     rasterSegments = indexed.flatMap((occurrence) =>
       occurrence.section.raster.segments.flatMap((segment) => {
-        const start = Math.max(occurrence.nativeStart, segment.sStart);
-        const end = Math.min(occurrence.nativeEnd, segment.sStart + segment.length);
+        const start = Math.max(0, segment.sStart);
+        const end = Math.min(occurrence.section.raster.length, segment.sStart + segment.length);
         return end > start
           ? [{ sStart: routeS(occurrence, start), length: end - start, heading: heading(occurrence, segment.heading) }]
           : [];
@@ -64,17 +62,15 @@ export function createCourseRouteReaders(route: CourseRoute) {
     );
     const profileKnots = indexed.flatMap((occurrence) =>
       occurrence.section.height.knots
-        .filter((knot) => knot.s >= occurrence.nativeStart && knot.s <= occurrence.nativeEnd)
+        .filter((knot) => knot.s >= 0 && knot.s <= occurrence.section.raster.length)
         .map((knot) => Object.freeze({ ...knot, s: routeS(occurrence, knot.s) })),
     );
     heightKnots = profileKnots.filter((knot, i) => i + 1 === profileKnots.length || knot.s !== profileKnots[i + 1]!.s);
     const displayKnots = indexed.flatMap((occurrence) => {
-      const end = occurrence.nativeEnd;
+      const end = occurrence.section.raster.length;
       return [
-        occurrence.nativeStart,
-        ...occurrence.section.renderHeight.knots
-          .map((knot) => knot.s)
-          .filter((s) => s > occurrence.nativeStart && s < end),
+        0,
+        ...occurrence.section.renderHeight.knots.map((knot) => knot.s).filter((s) => s > 0 && s < end),
         end,
       ].map((s) => Object.freeze({ s: routeS(occurrence, s), y: occurrence.section.renderHeight.sample(s).y }));
     });
@@ -84,12 +80,6 @@ export function createCourseRouteReaders(route: CourseRoute) {
   const heading = (occurrence: RouteOccurrence, sectionHeading: number) =>
     wrapAngle(sectionHeading + Math.atan2(occurrence.worldFromSection.sine, occurrence.worldFromSection.cosine));
   const domain = Object.freeze({
-    get start() {
-      return route.start;
-    },
-    get end() {
-      return route.end;
-    },
     lateralAt,
   });
   const coordinates = Object.freeze({
@@ -189,9 +179,6 @@ export function createCourseRouteReaders(route: CourseRoute) {
     return occurrence.section.height.sample(routeSectionS(occurrence, s < route.start ? route.start : route.end));
   };
   const height = Object.freeze({
-    get courseLength() {
-      return route.end;
-    },
     get knots() {
       sync();
       return heightKnots;
@@ -209,9 +196,6 @@ export function createCourseRouteReaders(route: CourseRoute) {
     },
   });
   const renderHeight = Object.freeze({
-    get courseLength() {
-      return route.end;
-    },
     get knots() {
       sync();
       return renderKnots;
@@ -232,9 +216,6 @@ export function createCourseRouteReaders(route: CourseRoute) {
     },
   });
   const raster = Object.freeze({
-    get length() {
-      return route.end;
-    },
     get segments() {
       sync();
       return rasterSegments;
@@ -274,12 +255,6 @@ export function createCourseRouteReaders(route: CourseRoute) {
   // no-content observations; ordinary driving remains in the preloaded interval.
   const worldCoordinates: VehicleWorld['coordinates'] = {
     domain: {
-      get start() {
-        return route.start;
-      },
-      get end() {
-        return route.end;
-      },
       lateralAt(s, out) {
         if (!coordinates.lateralAt(s, out)) {
           out.left = 0;
@@ -316,11 +291,13 @@ export function createCourseRouteReaders(route: CourseRoute) {
   };
   Object.freeze(worldCoordinates.domain);
   Object.freeze(worldCoordinates);
-  const world: VehicleWorld = Object.freeze({ coordinates: worldCoordinates, height, surfaces: material });
+  const world: VehicleWorld = Object.freeze({
+    extent: route,
+    coordinates: worldCoordinates,
+    height,
+    surfaces: material,
+  });
   const displayHeight: ProfilePolylineReader = {
-    get courseLength() {
-      return route.end;
-    },
     get knots() {
       return renderHeight.knots;
     },
@@ -338,16 +315,7 @@ export function createCourseRouteReaders(route: CourseRoute) {
   };
   Object.freeze(displayHeight);
   const geometry: RasterGeometry = {
-    get length() {
-      return route.end;
-    },
-    get start() {
-      return route.start;
-    },
     raster: {
-      get length() {
-        return route.end;
-      },
       get segments() {
         return raster.segments;
       },

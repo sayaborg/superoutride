@@ -1,11 +1,8 @@
 import type { CompiledFork, CompiledLink } from '../course/compiler/course-graph.js';
 import { routeSectionS, type RouteOccurrence } from '../course/course-route.js';
-import { courseCutLateral } from '../course/compiler/course-links.js';
 import { courseRegionAt, courseBoundaryAt, type CompiledCarriageway } from '../course/course-regions.js';
 import { routeCrossingFraction, type createRouteCrossSections, type RoutePosition } from './route-cross-sections.js';
 import type { CourseRoute } from '../course/course-route.js';
-import type { createRouteRuntime } from './route-runtime.js';
-type RouteAccess = ReturnType<ReturnType<typeof createRouteRuntime>['createRouteAccess']>;
 
 function center(road: CompiledCarriageway, s: number) {
   let left = Infinity,
@@ -29,7 +26,6 @@ export function createCourseForkField(route: CourseRoute, lines: ReturnType<type
     observe(
       motions: readonly {
         readonly id: string;
-        readonly routeAccess: RouteAccess;
         readonly previous: RoutePosition;
         readonly current: { readonly course: RoutePosition };
         readonly recovered: boolean;
@@ -54,7 +50,7 @@ export function createCourseForkField(route: CourseRoute, lines: ReturnType<type
           selected = region.link;
         }
         if (first) {
-          first.routeAccess.prepareChoice(selected!).commit();
+          route.append(selected!);
           locks.set(occurrence, selected!);
         }
       }
@@ -64,7 +60,7 @@ export function createCourseForkField(route: CourseRoute, lines: ReturnType<type
       const section = occurrence.section;
       const fork = section.fork;
       if (!fork)
-        return lane + (occurrence.incoming ? courseCutLateral(occurrence.incoming.to) - occurrence.lateralOrigin : 0);
+        return lane + (occurrence.incoming ? occurrence.incoming.to.lateralOrigin - occurrence.lateralOrigin : 0);
       let road =
         locks.get(occurrence)?.from.carriageway ??
         fork.regions[lane < 0 ? 0 : fork.regions.length - 1]!.link.from.carriageway;

@@ -111,6 +111,7 @@ export function renderDriving(
   drawTileBackground(target, background, renderCamera);
   const visible = computeForwardVisibleInterval(
     guide,
+    terrainParameters.extent,
     renderCamera.yaw,
     renderCamera.s,
     terrainParameters.dMin,

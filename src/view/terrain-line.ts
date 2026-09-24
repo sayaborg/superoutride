@@ -38,6 +38,7 @@ const DEFAULT_THIN_SPAN_SCREEN_ROWS = 1;
  */
 export function computeForwardVisibleInterval(
   guide: RasterGeometry,
+  extent: { readonly start: number; readonly end: number },
   cameraYaw: number,
   sCamera: number,
   dMin: number,
@@ -48,8 +49,8 @@ export function computeForwardVisibleInterval(
     throw new RangeError('renderer requires finite 0 < dMin < dMax');
   }
   if (!Number.isFinite(sCamera)) return null;
-  const dStart = Math.max(dMin, (guide.start ?? 0) - sCamera);
-  const dEnd = Math.min(dMax, guide.length - sCamera);
+  const dStart = Math.max(dMin, extent.start - sCamera);
+  const dEnd = Math.min(dMax, extent.end - sCamera);
   if (dEnd <= dStart + VISIBLE_INTERVAL_TOLERANCE_METERS) return null;
 
   const end = sCamera + dEnd;
@@ -74,6 +75,7 @@ export function computeForwardVisibleInterval(
 }
 
 export interface TerrainRenderParameters {
+  extent: { readonly start: number; readonly end: number };
   screenHeight: number;
   dMin: number;
   dMax: number;
@@ -135,6 +137,7 @@ export function generateTerrainLines(
   boundaries.length = 0;
   const visible = computeForwardVisibleInterval(
     guide,
+    parameters.extent,
     camera.yaw,
     camera.s,
     parameters.dMin,

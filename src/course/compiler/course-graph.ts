@@ -31,7 +31,7 @@ export interface CompiledSection {
 /** Derived terminal cross-section. Its chainage is either zero or the Section length. */
 export interface CompiledCut {
   readonly section: CompiledSection;
-  readonly anchor: CompiledCourseAnchor;
+  readonly lateralOrigin: number;
   readonly carriageway: CompiledCarriageway;
   readonly pose: PlanarPose;
 }

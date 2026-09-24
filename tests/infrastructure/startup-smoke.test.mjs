@@ -42,8 +42,8 @@ for (const stem of ['ribbon-coast', 'ribbon-fork', 'ribbon-ring'])
       const result = scene.render(target, vehicle, camera, deriveVehicleSpriteFamily(entry), []);
       assert.ok(result.bandGround.outputPixels > 0);
       const before = JSON.stringify(vehicle),
-        occurrences = scene.routeAccess.route.occurrences,
-        view = scene.routeAccess.view;
+        occurrences = scene.runtime.route.occurrences,
+        view = scene.runtime.readers;
       for (const method of BAND_RENDER_METHODS) {
         settings.setBandMethod(method);
         assert.equal(
@@ -51,8 +51,8 @@ for (const stem of ['ribbon-coast', 'ribbon-fork', 'ribbon-ring'])
           method,
         );
         assert.equal(JSON.stringify(vehicle), before);
-        assert.equal(scene.routeAccess.route.occurrences, occurrences);
-        assert.equal(scene.routeAccess.view, view);
+        assert.equal(scene.runtime.route.occurrences, occurrences);
+        assert.equal(scene.runtime.readers, view);
       }
       assert.throws(() => settings.setBandMethod('UNKNOWN'), RangeError);
       assert.ok([vehicle.x, vehicle.y, vehicle.z, camera.s].every(Number.isFinite));

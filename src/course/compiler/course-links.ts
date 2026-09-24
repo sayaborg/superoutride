@@ -28,10 +28,6 @@ function edges(road: CompiledCarriageway, s: number, path: string): readonly [nu
   return [left, right];
 }
 
-export function courseCutLateral(cut: CompiledCut): number {
-  const [left, right] = edges(cut.carriageway, cut.anchor.s, '');
-  return (left + right) / 2;
-}
 export function compileCourseCut(
   section: CompiledSection,
   road: CompiledCarriageway,
@@ -43,7 +39,7 @@ export function compileCourseCut(
   return Object.freeze({
     section,
     carriageway: road,
-    anchor: Object.freeze({ kind: 'absolute' as const, s }),
+    lateralOrigin: (left + right) / 2,
     pose: Object.freeze({ x, z, heading }),
   });
 }
@@ -61,13 +57,13 @@ export function entryCut(section: CompiledSection, path: string): CompiledCut {
 
 export function compileCourseLink(id: string, from: CompiledCut, to: CompiledCut, path: string): CompiledLink {
   const destinationFromSource = compilePlanarTransform(from.pose, to.pose);
-  const [aLeft, aRight] = edges(from.carriageway, from.anchor.s, path);
+  const [aLeft, aRight] = edges(from.carriageway, from.section.raster.length, path);
   const [bLeft, bRight] = edges(to.carriageway, 0, path);
   for (const [a, b] of [
     [aLeft, bLeft],
     [aRight, bRight],
   ] as const) {
-    const source = from.section.coordinates.toWorld(from.anchor.s, a, createPlanCoordinateSample());
+    const source = from.section.coordinates.toWorld(from.section.raster.length, a, createPlanCoordinateSample());
     const target = to.section.coordinates.toWorld(0, b, createPlanCoordinateSample());
     const mapped = transformPlanarPoint(destinationFromSource, source);
     requireCourse(
@@ -77,7 +73,7 @@ export function compileCourseLink(id: string, from: CompiledCut, to: CompiledCut
       'seam_edge_mismatch',
     );
   }
-  const aHeight = from.section.height.sampleDifferential(from.anchor.s);
+  const aHeight = from.section.height.sampleDifferential(from.section.raster.length);
   const bHeight = to.section.height.sampleDifferential(0);
   requireCourse(
     Math.abs(aHeight.y - bHeight.y) <= COURSE_LINK_RECIPE.heightToleranceMeters,

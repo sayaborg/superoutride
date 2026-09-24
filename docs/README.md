@@ -33,7 +33,7 @@ explicitly scheduled in [NEXT](NEXT.md) are replaced with their owning concepts.
 | `mode`                | Session rules selection only: CLASSIC, CUSTOM or TIME ATTACK.                                                                                             |
 | `method`              | A choice of algorithm or application method outside Session rules.                                                                                        |
 | `view`                | The rendering layer (`src/view`), not an occurrence reader or an observation.                                                                             |
-| `Window`              | A bounded read domain; an occurrence window connects spans expressed in one frame.                                                                        |
+| `Window`              | A bounded query interval.                                                                                                                                 |
 | `source`              | Author-supplied data before compilation, including retained copies of that authored representation; not live readers, coordinate origins or input owners. |
 | `presentation`        | Retired; use `appearance` for authored course visuals and a concrete rendering, display or audio name elsewhere.                                          |
 | `appearance`          | Authored course visuals, independent of physical structure and materials.                                                                                 |
@@ -43,13 +43,15 @@ explicitly scheduled in [NEXT](NEXT.md) are replaced with their owning concepts.
 | `Compiled*`           | A validated immutable product derived from authored inputs.                                                                                               |
 | `Reader`              | A query interface over admitted data; it does not own the consumer's live simulation state.                                                               |
 | `Route`               | The one selected, ordered sequence of Section occurrences measured from the entry; all vehicles share its chainage.                                       |
-| `RouteOccurrence`     | A Section visit with its route start, native start, lateral origin and world transform; repeating a Section creates a new occurrence.                     |
+| `RouteRuntime`        | The shared live Route, readers and loading owner; race Session state belongs to the race.                                                                 |
+| `Session`             | One race run and its selected rules, competitors, timing and progress.                                                                                    |
+| `RouteOccurrence`     | A Section visit with its route start, lateral origin and world transform; repeating a Section creates a new occurrence.                                   |
 | `Observation`         | A measured or derived fact at sampling time, not an independent authority.                                                                                |
 | `State`               | Mutable live state owned by its responsible model or consumer.                                                                                            |
 | `Settings`            | The selected configuration applied to a running instance or its controls.                                                                                 |
 | `Policy`              | Rules consumed by an algorithm, distinct from its live state.                                                                                             |
 | `LateralField`        | Compiled Band color and coverage as a function of lateral position.                                                                                       |
-| `native`              | Coordinates in the originating Section or data object's own ruler, before a frame mapping.                                                                |
+| `native`              | Coordinates in the originating Section or data object's own ruler, before mapping into the shared Route.                                                  |
 | `owner`               | The identity of an input publisher participating in arbitration.                                                                                          |
 | `excitation`          | A signal driving an acoustic system; a live sound generator is not an authored source.                                                                    |
 | Prefixes              | Use the owning concept, such as `Vehicle*`, and semantic constant names; do not use historical `Arcade*` or `CURRENT_` prefixes for new names.            |

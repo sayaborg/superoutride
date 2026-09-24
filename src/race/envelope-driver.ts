@@ -77,9 +77,9 @@ export function sampleEnvelopeDrivingInput(
   driver: Driver,
   targetL: Lane = 0,
   workspace: ReturnType<typeof createEnvelopeDriverWorkspace>,
+  domain: { readonly start: number; readonly end: number },
 ): DrivingInput {
-  const domain = coordinates.domain,
-    s = car.course.s;
+  const s = car.course.s;
   const speed = Math.hypot(car.longitudinalSpeed, car.lateralSpeed);
   const { envelope, speedCap, braking, utilization } = driver;
   if (workspace.coordinates !== coordinates || workspace.lane !== targetL || workspace.driver !== driver) {

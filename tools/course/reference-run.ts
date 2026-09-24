@@ -66,8 +66,7 @@ export function runCourseReference(
   const race = createCourseRace({
     session,
     player: actor,
-    playerRouteAccess: scene.routeAccess,
-    createRouteAccess: scene.createActorRouteAccess,
+    runtime: scene.runtime,
     rival: vehicleConfiguration,
     entryRecovery: scene.entryRecovery,
   });
@@ -79,7 +78,7 @@ export function runCourseReference(
     maximumLateralUtilization = 0;
   const planned = new Map(route.map((link) => [link.from.section, link]));
   const lane = (s: number) => {
-    const occurrence = scene.routeAccess.route.at(s)!,
+    const occurrence = scene.runtime.route.at(s)!,
       section = occurrence.section,
       link = planned.get(section);
     const fallback =
@@ -92,9 +91,16 @@ export function runCourseReference(
   // Work bound, not a replacement finish. A timed-out/recovered run publishes no reference product.
   const maxTicks = Math.ceil((3600 * lapCount) / SIM_DT);
   for (let tick = 0; tick < maxTicks; tick++) {
-    const section = scene.routeAccess.route.at(vehicle.course.s)!.section,
+    const section = scene.runtime.route.at(vehicle.course.s)!.section,
       startSeconds = race.clock.elapsedSeconds;
-    const input = sampleEnvelopeDrivingInput(scene.world.coordinates, vehicle, driver, lane, workspace);
+    const input = sampleEnvelopeDrivingInput(
+      scene.world.coordinates,
+      vehicle,
+      driver,
+      lane,
+      workspace,
+      scene.runtime.route,
+    );
     race.advance(input, SIM_DT);
     if (actor.recovery.recoveries)
       throw new RangeError(`${entry.profile.id}: reference recovered at ${section.id}:${vehicle.course.s}`);
@@ -117,7 +123,7 @@ export function runCourseReference(
     if (capture && (tick % 6 === 0 || race.clock.status === 'GOAL'))
       trace.push({
         timeSeconds: race.clock.elapsedSeconds,
-        sectionId: scene.routeAccess.route.at(vehicle.course.s)!.section.id,
+        sectionId: scene.runtime.route.at(vehicle.course.s)!.section.id,
         lap: Math.min(lapCount, race.player.progress.acceptedFinishCount + 1),
         s: vehicle.course.s,
         l: vehicle.course.l,
@@ -132,7 +138,7 @@ export function runCourseReference(
       throw new RangeError('Reference selected an unintended route');
   }
   // Center following is verified against pavement; telemetry is descriptive, not force authority.
-  const finalOccurrence = scene.routeAccess.route.at(vehicle.course.s)!;
+  const finalOccurrence = scene.runtime.route.at(vehicle.course.s)!;
   const finalSection = finalOccurrence.section;
   const finalS = routeSectionS(finalOccurrence, vehicle.course.s);
   const finalL = vehicle.course.l + finalOccurrence.lateralOrigin;
