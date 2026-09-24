@@ -1,18 +1,20 @@
+import { resolveCourseLateral } from './course-lateral.js';
 import { compileCourseBandGround } from './course-band-ground.js';
 import { COURSE_DOCUMENT_LIMITS, type CoursePosition, type PresentationDocument } from '../course-document.js';
-import { courseBoundaryAt, type CompiledRegionPartition, type CompiledCarriageway } from '../course-regions.js';
+import type { CompiledBoundary, CompiledRegionPartition, CompiledCarriageway } from '../course-regions.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
 import { CourseInputError, requireCourse } from '../course-diagnostics.js';
 import { BACKGROUND_HEIGHT, BACKGROUND_PIXELS_PER_RADIAN } from '../../image/tile-background-image.js';
 import type { CoursePresentation, CourseSceneryInstance } from '../course-presentation.js';
 import type { CompiledCourseImageSource } from './course-image-source.js';
 
-export const COURSE_PRESENTATION_RECIPE = Object.freeze({ id: 'superoutride.course-presentation', version: 6 });
+export const COURSE_PRESENTATION_RECIPE = Object.freeze({ id: 'superoutride.course-presentation', version: 7 });
 
 /** Resolve saved Bands, environment and scenery through canonical geometry/assets. */
 export function compileCoursePresentation(
   source: PresentationDocument | null,
   partition: CompiledRegionPartition,
+  boundaries: ReadonlyMap<string, CompiledBoundary>,
   assets: readonly CompiledCourseImageSource[],
   instances: ReadonlyMap<string, CourseSceneryInstance>,
   resolve: (at: CoursePosition, path: string) => CompiledCoursePosition,
@@ -105,30 +107,21 @@ export function compileCoursePresentation(
         `${at}/unselectedCarriagewayId`,
         'Unknown state-selected carriageway',
       );
+    const position = resolve(placement.at, `${at}/at`);
     return Object.freeze({
       unselected,
       id: placement.id,
       instance,
-      at: resolve(placement.at, `${at}/at`),
-      l: placement.l,
+      at: position,
+      l: resolveCourseLateral(placement.lateral, position.s, boundaries, `${at}/lateral`),
       groundOffset: placement.groundOffset,
     });
   });
-  const boundaries = new Map(
-    partition.regions.flatMap((region) => [region.left, region.right]).map((edge) => [edge.id, edge]),
-  );
   for (const [rowIndex, row] of source.sceneryRows.entries()) {
     const at = `${path}/sceneryRows/${rowIndex}`;
     const start = resolve(row.start, `${at}/start`),
       end = resolve(row.end, `${at}/end`);
-    const boundary = boundaries.get(row.boundaryId);
-    if (!boundary) throw new CourseInputError('unresolved_reference', `${at}/boundaryId`, 'Unknown row Boundary');
-    requireCourse(
-      end.s > start.s && start.s >= boundary.knots[0]!.at.s && end.s <= boundary.knots.at(-1)!.at.s,
-      at,
-      'Row interval must be positive and covered by its Boundary',
-      'invalid_placement',
-    );
+    requireCourse(end.s > start.s, at, 'Row interval must be positive', 'invalid_placement');
     const count = Math.ceil((end.s - start.s) / row.spacing);
     requireCourse(
       Number.isSafeInteger(count) && count + scenery.length <= COURSE_DOCUMENT_LIMITS.placements,
@@ -147,7 +140,7 @@ export function compileCoursePresentation(
           instance: Object.freeze({ id, asset, paletteRgb555: null }),
           unselected: null,
           at: Object.freeze({ s }),
-          l: courseBoundaryAt(boundary, s) + (row.side === 'left' ? -row.offset : row.offset),
+          l: resolveCourseLateral(row.lateral, s, boundaries, `${at}/lateral`),
           groundOffset: row.groundOffset,
         }),
       );

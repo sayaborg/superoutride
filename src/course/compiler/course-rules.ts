@@ -1,3 +1,4 @@
+import { resolveCourseLateral } from './course-lateral.js';
 import type { CourseDocument, CourseLandmarkDocument } from '../course-document.js';
 import { requireCourse } from '../course-diagnostics.js';
 import { resolveCoursePosition, type CompiledCoursePosition } from '../course-geometry.js';
@@ -103,6 +104,7 @@ export function compileCourseRules(
   );
   const first = intervals.find((i) => i.section === entry)!;
   const firstGate = first.checkpoints[0]?.at.s ?? first.finish?.at.s ?? endS(entry);
+  const boundaries = new Map(entry.boundaries.map((boundary) => [boundary.id, boundary]));
   const grid = source.grid.map((slot, i) => {
     const position = resolve(entry, slot.at, `/rules/grid/${i}/at`);
     check(
@@ -110,8 +112,9 @@ export function compileCourseRules(
       `/rules/grid/${i}`,
       'Grid must lie between entry and the first gate',
     );
-    check(surface.sample(position.s, slot.l).material.supported, `/rules/grid/${i}`, 'Grid must be supported');
-    return Object.freeze({ at: position, l: slot.l });
+    const l = resolveCourseLateral(slot.lateral, position.s, boundaries, `/rules/grid/${i}/lateral`);
+    check(surface.sample(position.s, l).material.supported, `/rules/grid/${i}`, 'Grid must be supported');
+    return Object.freeze({ at: position, l });
   });
   return Object.freeze({
     grid: Object.freeze(grid),

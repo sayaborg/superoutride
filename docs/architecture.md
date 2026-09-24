@@ -117,7 +117,7 @@ Terrain reads the same `PlanCoordinateReader` as physics; the Route owns the ext
 Vec2/Vec3 are readonly values. Sampling APIs with caller-owned outputs return borrowed observations
 valid until those outputs are reused. Compiled sources are immutable; actors and consumers own live state.
 Plan, Profile, VisualProfile and ground appearance have finite domain `[0,L]`.
-Knot endpoints normalize within their admission budget; plan sampling has a separate geometric budget. Nonfinite source values fail.
+Station-sequence endpoints normalize within their admission budget; plan sampling has a separate geometric budget. Nonfinite source values fail.
 At a segment boundary, the successor owns the interior station; the terminal endpoint uses
 the final segment.
 
@@ -193,7 +193,12 @@ on the local passage.
 
 ## Boundary geometry and point ownership
 
-Boundary profiles are piecewise linear on the authoritative s ruler. Width and center are derived from
+Compiled Boundaries remain piecewise linear on the authoritative s ruler. Their breakpoints come
+from their own knot stations and, within each knot interval, both endpoint references' Boundary
+breakpoints, including inherited ones. Compilation evaluates and blends the endpoint Lateral
+expressions at those stations as specified in [Content and gameplay](content-and-gameplay.md#lateral-positions).
+The published resolved l sequence is the only input to `courseBoundaryAt` and its consumers.
+Width and center are derived from
 their edges. Region validation divides at boundary knots and activation changes; paint changes do not
 divide physical geometry.
 

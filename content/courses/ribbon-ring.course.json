@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 16,
+  "version": 17,
   "reference": null,
   "id": "ribbon-ring",
   "units": {
@@ -51,14 +51,14 @@
                 "pi": "start",
                 "offset": 0
               },
-              "l": -20
+              "lateral": -20
             },
             {
               "at": {
                 "pi": "end",
                 "offset": 0
               },
-              "l": -20
+              "lateral": -20
             }
           ]
         },
@@ -70,14 +70,20 @@
                 "pi": "start",
                 "offset": 0
               },
-              "l": -9
+              "lateral": {
+                "boundary": "road-left",
+                "offset": -2
+              }
             },
             {
               "at": {
                 "pi": "end",
                 "offset": 0
               },
-              "l": -9
+              "lateral": {
+                "boundary": "road-left",
+                "offset": -2
+              }
             }
           ]
         },
@@ -89,14 +95,14 @@
                 "pi": "start",
                 "offset": 0
               },
-              "l": -7
+              "lateral": -7
             },
             {
               "at": {
                 "pi": "end",
                 "offset": 0
               },
-              "l": -7
+              "lateral": -7
             }
           ]
         },
@@ -108,14 +114,14 @@
                 "pi": "start",
                 "offset": 0
               },
-              "l": -0.1
+              "lateral": -0.1
             },
             {
               "at": {
                 "pi": "end",
                 "offset": 0
               },
-              "l": -0.1
+              "lateral": -0.1
             }
           ]
         },
@@ -127,14 +133,14 @@
                 "pi": "start",
                 "offset": 0
               },
-              "l": 0.1
+              "lateral": 0.1
             },
             {
               "at": {
                 "pi": "end",
                 "offset": 0
               },
-              "l": 0.1
+              "lateral": 0.1
             }
           ]
         },
@@ -146,14 +152,14 @@
                 "pi": "start",
                 "offset": 0
               },
-              "l": 7
+              "lateral": 7
             },
             {
               "at": {
                 "pi": "end",
                 "offset": 0
               },
-              "l": 7
+              "lateral": 7
             }
           ]
         },
@@ -165,14 +171,20 @@
                 "pi": "start",
                 "offset": 0
               },
-              "l": 9
+              "lateral": {
+                "boundary": "road-right",
+                "offset": 2
+              }
             },
             {
               "at": {
                 "pi": "end",
                 "offset": 0
               },
-              "l": 9
+              "lateral": {
+                "boundary": "road-right",
+                "offset": 2
+              }
             }
           ]
         },
@@ -184,14 +196,14 @@
                 "pi": "start",
                 "offset": 0
               },
-              "l": 20
+              "lateral": 20
             },
             {
               "at": {
                 "pi": "end",
                 "offset": 0
               },
-              "l": 20
+              "lateral": 20
             }
           ]
         }
@@ -706,10 +718,11 @@
               "offset": -39.986795829701805
             },
             "spacing": 40,
-            "boundaryId": "road-left",
-            "side": "left",
-            "offset": 5,
-            "groundOffset": 0
+            "groundOffset": 0,
+            "lateral": {
+              "boundary": "road-left",
+              "offset": -5
+            }
           },
           {
             "id": "right-trees",
@@ -723,10 +736,11 @@
               "offset": -39.986795829701805
             },
             "spacing": 40,
-            "boundaryId": "road-right",
-            "side": "right",
-            "offset": 5,
-            "groundOffset": 0
+            "groundOffset": 0,
+            "lateral": {
+              "boundary": "road-right",
+              "offset": 5
+            }
           }
         ]
       }
@@ -766,119 +780,119 @@
           "pi": "start",
           "offset": 15
         },
-        "l": 0
+        "lateral": 0
       },
       {
         "at": {
           "pi": "start",
           "offset": 25
         },
-        "l": -2
+        "lateral": -2
       },
       {
         "at": {
           "pi": "start",
           "offset": 37
         },
-        "l": 2
+        "lateral": 2
       },
       {
         "at": {
           "pi": "start",
           "offset": 49
         },
-        "l": -2
+        "lateral": -2
       },
       {
         "at": {
           "pi": "start",
           "offset": 61
         },
-        "l": 2
+        "lateral": 2
       },
       {
         "at": {
           "pi": "start",
           "offset": 73
         },
-        "l": -2
+        "lateral": -2
       },
       {
         "at": {
           "pi": "start",
           "offset": 85
         },
-        "l": 2
+        "lateral": 2
       },
       {
         "at": {
           "pi": "start",
           "offset": 97
         },
-        "l": -2
+        "lateral": -2
       },
       {
         "at": {
           "pi": "start",
           "offset": 109
         },
-        "l": 2
+        "lateral": 2
       },
       {
         "at": {
           "pi": "start",
           "offset": 121
         },
-        "l": -2
+        "lateral": -2
       },
       {
         "at": {
           "pi": "start",
           "offset": 133
         },
-        "l": 2
+        "lateral": 2
       },
       {
         "at": {
           "pi": "start",
           "offset": 145
         },
-        "l": -2
+        "lateral": -2
       },
       {
         "at": {
           "pi": "start",
           "offset": 157
         },
-        "l": 2
+        "lateral": 2
       },
       {
         "at": {
           "pi": "start",
           "offset": 169
         },
-        "l": -2
+        "lateral": -2
       },
       {
         "at": {
           "pi": "start",
           "offset": 181
         },
-        "l": 2
+        "lateral": 2
       },
       {
         "at": {
           "pi": "start",
           "offset": 193
         },
-        "l": -2
+        "lateral": -2
       },
       {
         "at": {
           "pi": "start",
           "offset": 205
         },
-        "l": 2
+        "lateral": 2
       }
     ],
     "checkpoints": [

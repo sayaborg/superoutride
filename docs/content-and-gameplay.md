@@ -19,7 +19,7 @@ structural partitions with material bindings. One concept has one name in both s
 Checkpoints, starts, finishes and environment changes are independent of Section boundaries.
 Source identity, traversal identity and race credit are distinct.
 
-## CourseDocument v16
+## CourseDocument v17
 
 The saved format is compact UTF-8 JSON. All declared fields are required; explicit null represents
 absent optional content. Unknown fields fail. Arrays preserve saved order; object-property order and
@@ -27,7 +27,7 @@ whitespace do not affect identity. Normalized records use schema field order and
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 16,
+  format: "superoutride.course", version: 17,
   reference, id, units: {length: "m", angle: "deg"},
   geometryRecipe: {id, version},
   type: "LINEAR" | "BRANCH" | "CIRCUIT", entrySectionId,
@@ -47,7 +47,7 @@ Section {
 | ---------------- | ------------------------------------------------------------------------------------------------------ |
 | Plan PI          | `id`, `x`, `z`, `radius`                                                                               |
 | Position         | `at: {pi, offset}`; interval `start`/`end` and fork `lock`/`closure` use the same `{pi, offset}` value |
-| Boundary         | `id`, `knots: [{at,l}]`                                                                                |
+| Boundary         | `id`, `knots: [{at,lateral}]`                                                                          |
 | Region           | `id`, `start`, `end`, `leftBoundaryId`, `rightBoundaryId`, `role`                                      |
 | Carriageway      | `id`, `regionIds`                                                                                      |
 | Link             | `id`, `from: {sectionId,carriagewayId}`, `to: {sectionId}`                                             |
@@ -82,16 +82,48 @@ Schema-valid drafts may contain empty arrays, unresolved references or an unavai
 Compilation requires complete semantic input and reports `unsupported_version` for an unavailable recipe.
 A geometry draft uses `presentation: null`, `fork: null`, `rules: null` and explicit asset/instance arrays.
 
+### Lateral positions
+
+`Lateral` is a finite number in metres (positive right), or `{boundary, offset}` with a
+Section-local Boundary ID and a signed metre offset (positive right). The field is named
+`lateral` on Boundary knots, scenery placements, scenery rows and grid slots; grid references
+use the entry Section. Numeric values and offsets lie in `[-1000,1000]`, and every resolved
+l must also lie in that range. Band, Region and physical-binding formats are unchanged.
+
+A point placement evaluates a numeric Lateral directly, or the referenced Boundary at its s
+plus offset. The Boundary must cover that station, including each expanded row instance.
+Unused row endpoints need no Boundary coverage. References may name any Boundary in the same
+Section, including one not used by a Region; declaration order does not constrain references.
+
+Boundary references must be acyclic. For each interval `[a,b]` between the Boundary's own
+resolved knot stations, compilation takes both endpoints and every interior breakpoint from
+either endpoint's referenced Boundary, including inherited breakpoints. Each endpoint defines
+an expression: a numeric Lateral is constant; a reference reads its Boundary at the evaluation
+station and adds its offset. Both references must cover the entire closed interval `[a,b]`.
+At each collected station s, evaluate the two expressions as A(s) and B(s), then store
+`A(s) + (B(s)-A(s)) * (s-a)/(b-a)` (using the endpoint expression directly at a or b).
+The published Boundary linearly interpolates these stored points; it does not continuously
+blend the two expressions between them. When both endpoint expressions refer to the same
+Boundary with the same offset, the result follows its shape exactly.
+
+Document reading owns field shapes, finite numeric bounds and IDs. Compilation owns reference
+existence, cycles, interval coverage, resolved-value bounds and expansion limits. Unknown
+Boundaries report `unresolved_reference`; cycles and insufficient coverage report
+`invalid_boundary`; resolved numeric bounds report `invalid_numeric_domain`, and expansion
+beyond the Section point budget reports `resource_limit`. Compiled Boundary points retain
+`{at: {s}, l}`; scenery and grid also retain their resolved numeric l. Runtime readers do not
+resolve authored references.
+
 ### Saved presentation
 
 `presentation` is null or `{ground,environments,scenery,sceneryRows}`. Ground is always a Band field.
 The other presentation records are:
 
-| Record            | Fields                                                                                     |
-| ----------------- | ------------------------------------------------------------------------------------------ |
-| Background        | `assetId`, `horizonY`, Section-frame degree `yawOrigin`                                    |
-| Scenery placement | `id`, `instanceId`, `unselectedCarriagewayId`, `at`, `l`, `groundOffset`                   |
-| Scenery row       | `id`, `assetId`, `start`, `end`, `spacing`, `boundaryId`, `side`, `offset`, `groundOffset` |
+| Record            | Fields                                                                         |
+| ----------------- | ------------------------------------------------------------------------------ |
+| Background        | `assetId`, `horizonY`, Section-frame degree `yawOrigin`                        |
+| Scenery placement | `id`, `instanceId`, `unselectedCarriagewayId`, `at`, `lateral`, `groundOffset` |
+| Scenery row       | `id`, `assetId`, `start`, `end`, `spacing`, `lateral`, `groundOffset`          |
 
 Environment profiles begin at zero. Assets belong to the referencing Section and resolve to canonical
 sprite/background descriptors. Each environment is `{at,name,background}`; environment changes
@@ -143,15 +175,15 @@ Scenery placements resolve document-wide instances. `unselectedCarriagewayId` is
 scenery or names a canonical exit Carriageway. Such signs lie from lock through closure, before the
 exit cut, and appear when the field selects another exit. Their state follows the selected Links of the shared Route.
 
-Rows use a half-open interval with placements at `start+index*spacing`. The side is left/right;
-nonnegative offset follows the corresponding side of the referenced varying Boundary. Expanded
+Rows use a half-open interval with placements at `start+index*spacing`. Each instance resolves its
+`lateral` at that station; a numeric value places the entire row at constant l. Expanded
 Section/row/index identities are deterministic. The total expanded Section placement count is at most 4096.
 Each scenery and document instance collection admits 4096 records; profiles admit 256 nodes.
 Unsupported presentation fields produce diagnostics.
 
 ### Authored Session rules
 
-`rules` is null or `{grid,checkpoints,finishes,maxLaps,classic}`. Grid slots are ordered `{at,l}`
+`rules` is null or `{grid,checkpoints,finishes,maxLaps,classic}`. Grid slots are ordered `{at,lateral}`
 records in the entry Section: player first, then rivals in roster order, at most 17. Each is supported,
 at/after entry and before the first required landmark. Starting velocity is zero.
 
@@ -180,7 +212,7 @@ and the point itself for a zero-radius endpoint. `offset` is signed chainage in 
 All height PVIs, Boundary knots, Region endpoints, physical bindings, environments, scenery row
 endpoints, scenery placements, fork lock/closure, grid slots, checkpoints and finishes use these
 positions. Band element stations retain their numeric metre fields. Compiled positions contain only `s`.
-Lateral values are within +/-1000 m;
+Numeric Lateral values, signed Lateral offsets and resolved l are within +/-1000 m;
 heights within +/-10000 m. Recipe versions are integers from 1 through 65535. Resolved values must also fit their finite Section
 and produce positive representable intervals.
 
@@ -188,11 +220,13 @@ and produce positive representable intervals.
 48 Links and 256 assets. Each Section admits 2048 PIs, 32 Boundaries, 256 knots per
 Boundary, 32 Regions, 16 Carriageways, 256 asset references, 256 height nodes, 32 physical
 bindings and 256 material changes per binding. Compiled Section limits are
-16384 mapped-region cells and 100000 m chainage.
+16384 mapped-region cells, 16384 resolved Boundary points in total per Section and 100000 m chainage.
+The Boundary point limit includes inherited breakpoints, rejects rather than truncates expansion,
+and is separate from the authored 256-knot limit and mapped-region cell budget.
 
 ## Geometry recipe and bindings
 
-The saved `geometryRecipe` field is `{id,version}`; CourseDocument v16 admits
+The saved `geometryRecipe` field is `{id,version}`; CourseDocument v17 admits
 `superoutride.plan-raster` version 1. The saved PI and position fields are listed above. [Architecture](architecture.md#plan-authority)
 owns their authoritative planar interpretation, coordinate domain and geometric validation.
 Rendering and physics read the same plan; Section length comes from its coordinate Reader domain.
@@ -201,7 +235,7 @@ is specified in [Architecture](architecture.md#plan-authority).
 The recipe identity participates in every dependent build identity.
 
 Boundary knots are strictly increasing and cover every referencing Region's closed interval.
-Interpolation is linear; width and center are derived. A Region has positive length and positive
+After Lateral resolution, interpolation between the compiled points is linear; width and center are derived. A Region has positive length and positive
 interior width; zero width is permitted at its own start/end only. Regions are nonoverlapping and
 shared edges reference one Boundary. Every pavement Region belongs to exactly one Carriageway, whose
 active members form a contiguous group in each longitudinal cell.
@@ -254,8 +288,8 @@ Owned records and arrays are immutable, including nested image data. Live actor,
 clock state belong to Sessions. Object identity is local to a compilation; cross-build identity uses digests.
 
 `sourceSha256` hashes normalized input. `buildSha256` hashes `{sourceSha256,compiler,geometryRecipe}`.
-The compiler is `superoutride.course-compiler` version 22, incorporating Link recipe v2, physical
-recipe v2, image-source recipe v2 and presentation recipe v5. Descriptors include semantic versions
+The compiler is `superoutride.course-compiler` version 24, incorporating Link recipe v2, physical
+recipe v2, image-source recipe v2 and presentation recipe v7. Descriptors include semantic versions
 and operative numeric/data parameters, including material definitions. Source or compiler/recipe
 changes invalidate dependent products.
 

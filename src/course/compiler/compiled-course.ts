@@ -11,7 +11,7 @@ import {
 import { readCourseDocument, type CourseDocument, type SectionDocument } from '../course-document.js';
 import { compileCourseGeometry, resolveCoursePosition } from '../course-geometry.js';
 import { compileCourseRegionGeometry } from '../course-region-geometry.js';
-import type { CompiledBoundary, CompiledRegion, CompiledCarriageway } from '../course-regions.js';
+import type { CompiledRegion, CompiledCarriageway } from '../course-regions.js';
 import type { CompiledSection, CompiledLink } from './course-graph.js';
 import { COURSE_PHYSICAL_RECIPE, compileCoursePhysicalContent } from './course-physical-content.js';
 import {
@@ -29,6 +29,7 @@ import {
 } from './course-image-source.js';
 import { COURSE_PRESENTATION_RECIPE, compileCoursePresentation } from './course-presentation.js';
 import type { CourseSceneryInstance } from '../course-presentation.js';
+import { compileCourseBoundaries } from './course-lateral.js';
 import { compileCourseRules } from './course-rules.js';
 import { compileCourseFork } from './course-fork.js';
 
@@ -59,7 +60,7 @@ export interface CompiledCourse {
 
 const COURSE_COMPILER = Object.freeze({
   id: 'superoutride.course-compiler',
-  version: 23,
+  version: 24,
   links: COURSE_LINK_RECIPE,
   physical: COURSE_PHYSICAL_RECIPE,
   images: COURSE_IMAGE_SOURCE_RECIPE,
@@ -105,21 +106,7 @@ function compileSection(
   const { segments, length, stations } = compileCourseGeometry(section, path);
   const resolve = (position: Parameters<typeof resolveCoursePosition>[0], at: string) =>
     resolveCoursePosition(position, stations, length, at);
-  const boundaries = compileStage(section.boundaries, (source, index): CompiledBoundary => {
-    const at = `${path}/boundaries/${index}`;
-    requireCourse(source.knots.length >= 2, `${at}/knots`, 'Boundary needs at least two knots', 'invalid_boundary');
-    const knots = compileStage(source.knots, (knot, i) =>
-      Object.freeze({ at: resolve(knot.at, `${at}/knots/${i}/at`), l: knot.l }),
-    );
-    for (let i = 1; i < knots.length; i += 1)
-      requireCourse(
-        knots[i]!.at.s > knots[i - 1]!.at.s,
-        `${at}/knots/${i}`,
-        'Resolved knots must be strictly increasing',
-        'invalid_boundary',
-      );
-    return Object.freeze({ id: source.id, knots: Object.freeze(knots) });
-  });
+  const boundaries = compileCourseBoundaries(section.boundaries, resolve, `${path}/boundaries`);
   const boundaryTable = new Map(boundaries.map((boundary) => [boundary.id, boundary]));
   requireCourse(section.regions.length > 0, `${path}/regions`, 'A Section requires regions', 'invalid_region_domain');
   const regions = compileStage(section.regions, (source, index): CompiledRegion => {
@@ -205,6 +192,7 @@ function compileSection(
     presentation: compileCoursePresentation(
       section.presentation,
       partition,
+      boundaryTable,
       sectionAssets,
       instances,
       resolve,

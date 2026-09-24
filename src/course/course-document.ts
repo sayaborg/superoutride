@@ -1,6 +1,6 @@
 import { CourseInputError, courseFailure, courseSuccess, type CourseResult } from './course-diagnostics.js';
 
-const COURSE_DOCUMENT_VERSION = 16;
+const COURSE_DOCUMENT_VERSION = 17;
 
 interface GeometryRecipeIdentity {
   readonly id: string;
@@ -19,9 +19,11 @@ export interface PlanPI {
   readonly radius: number;
 }
 
+export type Lateral = number | { readonly boundary: string; readonly offset: number };
+
 interface BoundaryDocument {
   readonly id: string;
-  readonly knots: readonly { readonly at: CoursePosition; readonly l: number }[];
+  readonly knots: readonly { readonly at: CoursePosition; readonly lateral: Lateral }[];
 }
 
 export interface RegionDocument {
@@ -109,9 +111,7 @@ export interface PresentationDocument {
     readonly start: CoursePosition;
     readonly end: CoursePosition;
     readonly spacing: number;
-    readonly boundaryId: string;
-    readonly side: 'left' | 'right';
-    readonly offset: number;
+    readonly lateral: Lateral;
     readonly groundOffset: number;
   }[];
   readonly scenery: readonly {
@@ -119,7 +119,7 @@ export interface PresentationDocument {
     readonly instanceId: string;
     readonly unselectedCarriagewayId: string | null;
     readonly at: CoursePosition;
-    readonly l: number;
+    readonly lateral: Lateral;
     readonly groundOffset: number;
   }[];
 }
@@ -148,7 +148,7 @@ export interface CourseLandmarkDocument {
 }
 
 interface CourseRulesDocument {
-  readonly grid: readonly { readonly at: CoursePosition; readonly l: number }[];
+  readonly grid: readonly { readonly at: CoursePosition; readonly lateral: Lateral }[];
   readonly checkpoints: readonly CourseLandmarkDocument[];
   readonly finishes: readonly CourseLandmarkDocument[];
   readonly maxLaps: number;
@@ -207,6 +207,7 @@ export const COURSE_DOCUMENT_LIMITS = Object.freeze({
   lateralMeters: 1000,
   heightMeters: 10000,
   regionCells: 16384,
+  boundaryPoints: 16384,
 });
 
 function fail(code: ConstructorParameters<typeof CourseInputError>[0], path: string, message: string): never {
@@ -345,15 +346,25 @@ function planPI(value: unknown, path: string): PlanPI {
   });
 }
 
+function lateral(value: unknown, path: string): Lateral {
+  const bound = COURSE_DOCUMENT_LIMITS.lateralMeters;
+  if (typeof value === 'number') return number(value, path, -bound, bound);
+  const v = record(value, path, ['boundary', 'offset']);
+  return Object.freeze({
+    boundary: id(v.boundary, `${path}/boundary`),
+    offset: number(v.offset, `${path}/offset`, -bound, bound),
+  });
+}
+
 function boundary(value: unknown, path: string): BoundaryDocument {
   const v = record(value, path, ['id', 'knots']);
   return Object.freeze({
     id: id(v.id, `${path}/id`),
     knots: array(v.knots, `${path}/knots`, COURSE_DOCUMENT_LIMITS.knots, (item, at) => {
-      const knot = record(item, at, ['at', 'l']);
+      const knot = record(item, at, ['at', 'lateral']);
       return Object.freeze({
         at: position(knot.at, `${at}/at`),
-        l: number(knot.l, `${at}/l`, -COURSE_DOCUMENT_LIMITS.lateralMeters, COURSE_DOCUMENT_LIMITS.lateralMeters),
+        lateral: lateral(knot.lateral, `${at}/lateral`),
       });
     }),
   });
@@ -494,27 +505,14 @@ function presentation(value: unknown, path: string): PresentationDocument | null
       });
     }),
     sceneryRows: identified(v.sceneryRows, `${path}/sceneryRows`, COURSE_DOCUMENT_LIMITS.placements, (item, at) => {
-      const row = record(item, at, [
-        'id',
-        'assetId',
-        'start',
-        'end',
-        'spacing',
-        'boundaryId',
-        'side',
-        'offset',
-        'groundOffset',
-      ]);
-      if (row.side !== 'left' && row.side !== 'right') fail('invalid_shape', `${at}/side`, 'Expected left or right');
+      const row = record(item, at, ['id', 'assetId', 'start', 'end', 'spacing', 'lateral', 'groundOffset']);
       return Object.freeze({
         id: id(row.id, `${at}/id`),
         assetId: id(row.assetId, `${at}/assetId`),
         start: position(row.start, `${at}/start`),
         end: position(row.end, `${at}/end`),
         spacing: number(row.spacing, `${at}/spacing`, 0, COURSE_DOCUMENT_LIMITS.lengthMeters, true),
-        boundaryId: id(row.boundaryId, `${at}/boundaryId`),
-        side: row.side,
-        offset: number(row.offset, `${at}/offset`, 0, COURSE_DOCUMENT_LIMITS.lateralMeters),
+        lateral: lateral(row.lateral, `${at}/lateral`),
         groundOffset: number(
           row.groundOffset,
           `${at}/groundOffset`,
@@ -524,14 +522,14 @@ function presentation(value: unknown, path: string): PresentationDocument | null
       });
     }),
     scenery: identified(v.scenery, `${path}/scenery`, COURSE_DOCUMENT_LIMITS.placements, (item, at) => {
-      const s = record(item, at, ['id', 'instanceId', 'unselectedCarriagewayId', 'at', 'l', 'groundOffset']);
+      const s = record(item, at, ['id', 'instanceId', 'unselectedCarriagewayId', 'at', 'lateral', 'groundOffset']);
       return Object.freeze({
         id: id(s.id, `${at}/id`),
         instanceId: id(s.instanceId, `${at}/instanceId`),
         unselectedCarriagewayId:
           s.unselectedCarriagewayId === null ? null : id(s.unselectedCarriagewayId, `${at}/unselectedCarriagewayId`),
         at: position(s.at, `${at}/at`),
-        l: number(s.l, `${at}/l`, -COURSE_DOCUMENT_LIMITS.lateralMeters, COURSE_DOCUMENT_LIMITS.lateralMeters),
+        lateral: lateral(s.lateral, `${at}/lateral`),
         groundOffset: number(
           s.groundOffset,
           `${at}/groundOffset`,
@@ -626,8 +624,8 @@ function rules(value: unknown, path: string): CourseRulesDocument | null {
   };
   return Object.freeze({
     grid: array(v.grid, path + '/grid', 17, (value, at) => {
-      const slot = record(value, at, ['at', 'l']);
-      return Object.freeze({ at: position(slot.at, at + '/at'), l: number(slot.l, at + '/l', -1000, 1000) });
+      const slot = record(value, at, ['at', 'lateral']);
+      return Object.freeze({ at: position(slot.at, at + '/at'), lateral: lateral(slot.lateral, at + '/lateral') });
     }),
     checkpoints: identified(v.checkpoints, path + '/checkpoints', 256, landmark),
     finishes: identified(v.finishes, path + '/finishes', 16, landmark),
