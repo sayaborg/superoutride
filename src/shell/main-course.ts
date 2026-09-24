@@ -1,4 +1,3 @@
-import { reframeCamera } from '../view/camera.js';
 import { createRaceSprites } from '../view/race-sprites.js';
 import { createDisplaySettings } from '../view/display-settings.js';
 import { mountBandControls } from './band-controls.js';
@@ -127,7 +126,7 @@ try {
     recoveryL: () => race.recoveryL,
     resync: () => {
       scene.recoverAtEntry(shell.vehicle, shell.recovery);
-      reframeCamera(shell.cameraRig, race.resyncPlayer());
+      race.resyncPlayer();
     },
   });
   const performanceHud = createCoursePerformanceHud(canvas, scene.metrics, scene.groundMetrics);
@@ -137,7 +136,6 @@ try {
     const started = performance.now();
     input = shell.inputManager.sample();
     const step = race.advance(input, dt);
-    reframeCamera(shell.cameraRig, step.frameChange);
     lifecycle.update(dt, step.recovered);
     performanceHud.step(performance.now() - started);
   };

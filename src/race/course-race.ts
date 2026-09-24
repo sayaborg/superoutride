@@ -2,7 +2,6 @@ import type { ResolvedCourseSession } from './course-session.js';
 import { createCheckpointClock } from './checkpoint-clock.js';
 import { createCourseRaceProgress, type CourseRaceEvent, type CourseRaceAdmission } from './course-race-progress.js';
 import { createCourseForkField } from './course-fork-field.js';
-import type { PlanarTransform } from '../core/planar-transform.js';
 import { advanceRaceSession, createRaceSessionState, rankRaceProgress, formatRaceTime } from './race-session.js';
 import {
   RECOVERY_SETTINGS,
@@ -161,7 +160,7 @@ export function createCourseRace(options: {
   const current = { x: 0, z: 0, s: 0 };
   const observed = { rivals: visible };
   // Borrowed fixed-step observation; the camera owner consumes it before the next advance.
-  const stepObservation = { recovered: false, frameChange: null as PlanarTransform | null };
+  const stepObservation = { recovered: false };
   const noEvents: readonly CourseRaceEvent[] = Object.freeze([]);
   let events = noEvents;
   const clockEvents: { gate: CourseRaceEvent['landmark']; lap: number; u: number; finish: boolean; awardMs: number }[] =
@@ -189,7 +188,6 @@ export function createCourseRace(options: {
     },
     advance(input: DrivingInput, dt: number) {
       stepObservation.recovered = false;
-      stepObservation.frameChange = null;
       if (clock.status !== 'RUNNING') return stepObservation;
       stepStart = clock.elapsedSeconds;
       stepDuration = dt;
@@ -239,7 +237,6 @@ export function createCourseRace(options: {
           if (update?.justFinished) c.finishElapsedSeconds = c.timing.elapsedSeconds;
         }
         if (c === player) {
-          stepObservation.frameChange = null;
           events = update?.events ?? noEvents;
           clockEvents.length = 0;
           for (const event of events)
@@ -261,7 +258,6 @@ export function createCourseRace(options: {
       legalRecovery(player);
       player.session.observeStep(player.actor);
       resync(player);
-      return null;
     },
     observe() {
       observations();

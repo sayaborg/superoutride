@@ -76,10 +76,7 @@ test('race actors have no cameras and view assembles sixteen rival sprites from 
   });
   for (const c of [race.player, ...race.rivals]) assert.ok(!('cameraRig' in c.actor));
   assert.equal(race.rivals.length, 16);
-  assert.deepEqual(race.advance({ steering: 0, throttle: false, brake: false }, 1 / 60), {
-    recovered: false,
-    frameChange: null,
-  });
+  assert.deepEqual(race.advance({ steering: 0, throttle: false, brake: false }, 1 / 60), { recovered: false });
   const observed = race.observe();
   assert.ok(!('sprites' in observed));
   assert.equal(observed.rivals.length, 16);
@@ -97,5 +94,5 @@ test('race actors have no cameras and view assembles sixteen rival sprites from 
     observed.rivals.map((a) => a.id),
   );
   assert.ok(sprites.every((s) => s.asset && Number.isFinite(s.x) && Number.isFinite(s.y) && Number.isFinite(s.z)));
-  assert.equal(race.resyncPlayer(), null);
+  race.resyncPlayer();
 });
