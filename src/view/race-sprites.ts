@@ -10,7 +10,7 @@ export function createRaceSprites(assets: SpriteAssets, rival: SessionVehicle) {
   const brakingAssets =
     rival.compiledVehicle.id === 'TESTAROSSA'
       ? createVehiclePaletteVariant(assets.car, assets.car.assets[0]![0]!.paletteChoices[1]!)
-      : assets[rival.kind];
+      : assets[rival.form];
   const sprites: CourseSprite[] = [];
   return (actors: readonly RaceActorObservation[], camera: CameraState) => {
     sprites.length = 0;
@@ -20,7 +20,7 @@ export function createRaceSprites(assets: SpriteAssets, rival: SessionVehicle) {
           actor.id,
           actor.vehicle,
           camera.yaw,
-          actor.paletteVariant === 'braking' ? brakingAssets : assets[actor.kind],
+          actor.paletteVariant === 'braking' ? brakingAssets : assets[actor.form],
         ),
       );
     }

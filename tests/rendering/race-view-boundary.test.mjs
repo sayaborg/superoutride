@@ -5,7 +5,7 @@ import { loadCourse, loadCourseGround } from '../../tools/course/authoring-io.ts
 import { readVehicleSprites } from '../../tools/course/read-vehicle-sprites.ts';
 import { createCourseScene } from '../../src/shell/course-scene.js';
 import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
-import { VEHICLE_CATALOG } from '../../src/vehicle/vehicle-catalog.js';
+import { loadVehicleDefinitions } from '../../src/vehicle/definition-document.js';
 import { browserSessionVehicle } from '../../src/shell/session-vehicle.js';
 import { createRecoveryState } from '../../src/race/recovery.js';
 import { createCourseRace } from '../../src/race/course-race.js';
@@ -16,12 +16,23 @@ import { createCameraRig, updateCamera } from '../../src/view/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../../src/view/current-camera-profile.js';
 import { createRaceSprites } from '../../src/view/race-sprites.js';
 
+const definitions = await loadVehicleDefinitions(await readDeliveredContent());
+
 async function setup() {
   const file = fileURLToPath(new URL('../../content/courses/ribbon-ring.course.json', import.meta.url));
   const { course } = await loadCourse(file);
   const assets = await readVehicleSprites();
-  const scene = createCourseScene(course.entry, await loadCourseGround(course), assets, course.gates);
-  const compiledVehicle = browserSessionVehicle(VEHICLE_CATALOG.find((v) => v.compiledVehicle.id === 'TESTAROSSA'));
+  const scene = createCourseScene(
+    course.entry,
+    await loadCourseGround(course),
+    assets,
+    course.gates,
+    definitions.vehicles,
+  );
+  const compiledVehicle = browserSessionVehicle(
+    definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA'),
+    definitions.driving,
+  );
   const spawn = (s) =>
     createVehicle(compiledVehicle.compiledVehicle, scene.world, { ...compiledVehicle, s, l: 0, initialSpeed: 0 });
   return { course, assets, scene, compiledVehicle, spawn };

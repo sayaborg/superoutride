@@ -34,7 +34,6 @@ export function createAutomaticPowertrainState(
   definition: AutomaticPowertrainDefinition,
   drivenWheelOmega = 0,
 ): AutomaticPowertrainState {
-  validateAutomaticPowertrainDefinition(definition);
   assertWheelOmega(drivenWheelOmega);
   const wheelOmega = Math.abs(drivenWheelOmega);
   let gear = 1;

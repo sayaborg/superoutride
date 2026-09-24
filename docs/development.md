@@ -137,9 +137,9 @@ vehicle envelopes, continuous reference runs and game time budgets. Matching dis
 
 `dist/content/manifest.json` is the sole delivery index. Its own
 `format: "superoutride.content-manifest", version: 1` identifies the index format; entries have only
-`{kind, id, path, sha256}`. Kinds are `course`, `image`, `envelope` and `budget`. IDs are respectively
-the course selection key, image digest (or logical `vehicles` collection), vehicle ID and
-`<course>/<vehicle>` budget key. Entries contain no payload format/version.
+`{kind, id, path, sha256}`. Kinds are `course`, `image`, `vehicle`, `driving`, `envelope` and `budget`. IDs are respectively
+the course selection key, image digest (or logical `vehicles` collection), vehicle ID,
+`default`, vehicle ID and `<course>/<vehicle>` budget key. Entries contain no payload format/version.
 
 The shared manifest reader admits the index, resolves each logical identity to its relative path,
 and verifies the exact downloaded/read bytes against SHA-256 before JSON decoding. Missing entries
@@ -150,11 +150,15 @@ labels, shortcut keys and known-course ordering remain shell settings until stag
 Only the manifest writer owns output naming. Browsers, Node consumers, startup smoke and public-site
 verification read indexed content through the shared reader, never by reconstructing output paths.
 Authoring inputs under `content/` still use explicit source filenames and image directories.
-Build first writes completed vehicle images and their manifest entry, stages courses/images, then
-runs reference workers against that index and adds envelopes/budgets before publishing the completed build.
+Build first writes completed vehicle images and their manifest entry, stages vehicle/driving documents and courses/images, then
+loads the verified definitions from that index. Reference workers independently read the same
+`dist/content` definitions and courses, generate envelopes/runs, and add envelopes/budgets before
+publishing the completed build. Node tools also read vehicle/driving definitions from this distribution.
 
 | Output                                         | Use                                      |
 | ---------------------------------------------- | ---------------------------------------- |
+| `dist/content/vehicles/<id>.json`              | Versioned vehicle definitions            |
+| `dist/content/driving/default.json`            | Versioned game-wide driving definition   |
 | `dist/content/manifest.json`                   | Delivery index and digest authority      |
 | `dist/content/courses/<course>.course.json`    | CourseDocument v24                       |
 | `dist/content/images/<sha256>.json`            | All delivered course and vehicle images  |

@@ -11,7 +11,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **8-3a2 — Definition consumers and identity**.
+Next PR: **8-3a3 — Remove static definitions**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -21,8 +21,7 @@ PRs hold rationale and verification evidence.
 
 Give vehicles, driving assists, tires, powertrains and materials explicit definitions, and treat airborne driving as normal state.
 
-- **8-3a2 — Definition consumers and identity:** load vehicle and driving definitions through the manifest in every consumer; pass admitted definitions explicitly, unify vehicle form, and generate envelopes and time budgets from delivered definitions. Preserve behavior and reject stale products.
-- **8-3a3 — Remove static definitions:** delete the temporarily retained production TypeScript values and static catalog after all consumers have switched. These coexist only through 8-3a2; complete the migration before 8-3b.
+- **8-3a3 — Remove static definitions:** delete the temporarily retained production TypeScript values and static catalog after all consumers have switched. All consumers now use delivered definitions; remove the unused values before 8-3b.
 - **8-3b — Vehicle visuals:** give palette variants names in the image format; vehicle definitions reference their sprite set and normal and braking variants, and hold the handwheel ratio as presentation data; remove the `TESTAROSSA` palette branches. Behavior unchanged.
 - **8-3c — Course sprite palettes:** course sprites select image-declared palette variants by name instead of raw palettes. Behavior unchanged.
 - **8-4 — Powertrain:** launch, shift rules and rev limit, engine friction, inertia and free revving, and shift observations; audio reads engine speed without its own idle floor. Behavior changes.

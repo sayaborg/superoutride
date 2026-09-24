@@ -1,12 +1,14 @@
 import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
 import type { CompiledVehicle } from '../vehicle/physics/vehicle-definitions.js';
-import type { DrivingDefinition } from '../vehicle/driving-definition.js';
+import type { CompiledDrivingDefinition } from '../vehicle/compiled-driving-definition.js';
+import type { VehicleDocument, VehicleForm } from '../vehicle/definition-document.js';
 
 export interface SessionVehicle {
   readonly compiledVehicle: CompiledVehicle;
-  readonly drivingDefinition: DrivingDefinition;
+  readonly drivingDefinition: CompiledDrivingDefinition;
   readonly supportReserve: number | null;
-  readonly kind: 'car' | 'bike';
+  readonly form: VehicleForm;
+  readonly vehicleDefinition: VehicleDocument;
 }
 
 export interface SessionConfiguration {

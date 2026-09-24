@@ -20,7 +20,7 @@ import {
 } from './course-mode-selection.js';
 
 import { type BrowserTireCalibrationAxis } from './tire-friction-selection.js';
-import { BROWSER_VEHICLE_SELECTIONS, type BrowserVehicleSelection } from './vehicle-selection.js';
+import { type BrowserVehicleSelection } from './vehicle-selection.js';
 
 interface MobileSelectorController<Value extends string | number> {
   setActive(value: Value): void;
@@ -50,8 +50,8 @@ export function mountMobileVehicleSelector(
   container: HTMLElement,
   activeId: VehicleId,
   onSelect: (compiledVehicle: Readonly<CompiledVehicle>) => void,
+  choices: readonly BrowserVehicleSelection[],
   documentRef: Document = document,
-  choices = BROWSER_VEHICLE_SELECTIONS,
 ): MobileSelectorController<VehicleId> {
   const selections = new Map<VehicleId, BrowserVehicleSelection>(
     choices.map((selection) => [selection.compiledVehicle.id, selection]),

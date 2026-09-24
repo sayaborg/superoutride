@@ -1,13 +1,20 @@
 import type { SessionVehicle } from '../race/session-configuration.js';
-import type { VehicleCatalogEntry } from '../vehicle/vehicle-catalog.js';
-import { DRIVING_DEFINITION } from '../vehicle/driving-definition.js';
+import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
+import type { CompiledDrivingDefinition } from '../vehicle/compiled-driving-definition.js';
 
-/** One product definition shared by browser, race, offline tools and scenarios. */
-export function browserSessionVehicle(entry: VehicleCatalogEntry): SessionVehicle {
+// Temporary form-specific policy until airborne support is revised in 8-7; never saved as vehicle data.
+const TWO_WHEEL_SUPPORT_RESERVE = 0.08;
+
+/** Explicit admitted inputs shared by browser, race, offline tools and scenarios. */
+export function browserSessionVehicle(
+  entry: CompiledVehicleDefinition,
+  drivingDefinition: CompiledDrivingDefinition,
+): SessionVehicle {
   return Object.freeze({
     compiledVehicle: entry.compiledVehicle,
-    drivingDefinition: DRIVING_DEFINITION,
-    supportReserve: entry.supportReserve,
-    kind: entry.visualFamily === 'CAR' ? 'car' : 'bike',
+    drivingDefinition,
+    supportReserve: entry.form === 'bike' ? TWO_WHEEL_SUPPORT_RESERVE : null,
+    form: entry.form,
+    vehicleDefinition: entry.source,
   });
 }

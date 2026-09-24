@@ -1,3 +1,4 @@
+import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import { assertExclusivePedalInput, normalizedPedalRequest, type DrivingInput } from '../vehicle/driving-input.js';
 import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import { VEHICLE_GRAVITY } from '../vehicle/physics/vehicle-dynamics.js';
@@ -55,6 +56,7 @@ function createVehicleDebugHudModel(
   activeCourseQuery: BrowserCourseModeQuery,
   input: DrivingInput,
   vehicle: VehicleState,
+  entry: CompiledVehicleDefinition,
 ): VehicleDebugHudModel {
   assertExclusivePedalInput(input);
   const c = vehicle.control,
@@ -67,7 +69,7 @@ function createVehicleDebugHudModel(
   const throttle = clampUnit(c.throttleActuator);
   return {
     courseSelector: `COURSE ${formatBrowserCourseSelector(activeCourseQuery)}`,
-    vehicleSelector: `VEHICLE ${formatVehicleSelector(vehicle.compiledVehicle.id)}`,
+    vehicleSelector: `VEHICLE ${formatVehicleSelector(entry)}`,
     steeringOffsetSelector: formatSteeringOffsetSelector(vehicle.steeringCalibration.steeringOffsetMax),
     maxRoadWheelSteerSelector: formatMaxRoadWheelSteerSelector(vehicle.steeringCalibration.maxRoadWheelSteer),
     steeringResponseSelector: formatSteeringResponseSelector(
@@ -125,8 +127,9 @@ export function drawVehicleDebugHud(
   activeCourseQuery: BrowserCourseModeQuery,
   input: DrivingInput,
   vehicle: VehicleState,
+  entry: CompiledVehicleDefinition,
 ): void {
-  const model = createVehicleDebugHudModel(activeCourseQuery, input, vehicle);
+  const model = createVehicleDebugHudModel(activeCourseQuery, input, vehicle, entry);
   const lines = [
     `SUPER OUTRIDE ${model.courseSelector}`,
     model.vehicleSelector,

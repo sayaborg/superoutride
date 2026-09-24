@@ -11,7 +11,7 @@ import { createCourseGround } from '../course/compiler/course-ground.js';
 import { RECOVERY_SETTINGS } from '../race/recovery.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import { deriveVehicleSpriteFamily } from '../view/vehicle-visuals.js';
-import { VEHICLE_CATALOG } from '../vehicle/vehicle-catalog.js';
+import { loadVehicleDefinitions } from '../vehicle/definition-document.js';
 import { createCourseRace } from '../race/course-race.js';
 import { createCoursePerformanceHud } from './course-performance-hud.js';
 import { resolveCourseSession } from '../race/course-session.js';
@@ -29,15 +29,17 @@ canvas.insertAdjacentElement('afterend', status);
 
 try {
   const content = await browserContent();
+  const definitions = await loadVehicleDefinitions(content);
+  const { vehicles, driving } = definitions;
   const mode = selectBrowserCourseMode(new URLSearchParams(location.search).get('mode')).query;
   const course = await loadDeliveredCourse(content, mode);
   const ground = createCourseGround(course);
   if (!course.rules) throw new RangeError('Playable courses require saved Session rules');
   const parameters = new URLSearchParams(location.search);
-  const settings = readBrowserSessionSettings(parameters, course.rules.classic);
-  const preset = readBrowserSessionSettings(new URLSearchParams(), course.rules.classic);
-  const entry = VEHICLE_CATALOG.find((v) => v.compiledVehicle.id === settings.vehicleId)!;
-  const vehicle = browserSessionVehicle(entry);
+  const settings = readBrowserSessionSettings(parameters, course.rules.classic, vehicles);
+  const preset = readBrowserSessionSettings(new URLSearchParams(), course.rules.classic, vehicles);
+  const entry = vehicles.find((v) => v.compiledVehicle.id === settings.vehicleId)!;
+  const vehicle = browserSessionVehicle(entry, driving);
   const rivalEnvelope = await readVehicleEnvelope(vehicle, await content.json('envelope', vehicle.compiledVehicle.id));
   const budgets = settings.countdown
     ? await readCourseTimeBudgets(
@@ -57,13 +59,18 @@ try {
         })
       : sprites;
   const displaySettings = createDisplaySettings();
-  const scene = createCourseScene(course.entry, ground, sprites, course.gates, displaySettings);
+  const scene = createCourseScene(course.entry, ground, sprites, course.gates, vehicles, displaySettings);
   const slot = session.grid[0]!;
-  const shell = createBrowserDrivingShell(scene.world, slot.l, {
-    s: slot.at.s,
-    initialSpeed: session.initialSpeed,
-    vehicle,
-  });
+  const shell = createBrowserDrivingShell(
+    scene.world,
+    slot.l,
+    {
+      s: slot.at.s,
+      initialSpeed: session.initialSpeed,
+      vehicle,
+    },
+    definitions,
+  );
   const race = createCourseRace({
     session,
     player: {
@@ -125,20 +132,27 @@ try {
     shell.stop();
     shell.inputManager.setSuspended(true);
   };
-  const controls = mountCourseSessionControls(canvas, settings, preset, course.rules.maxLaps, {
-    start: () => {
-      shell.inputManager.setSuspended(true);
-      shell.inputManager.setSuspended(false);
-      race.start();
+  const controls = mountCourseSessionControls(
+    canvas,
+    settings,
+    preset,
+    course.rules.maxLaps,
+    {
+      start: () => {
+        shell.inputManager.setSuspended(true);
+        shell.inputManager.setSuspended(false);
+        race.start();
+      },
+      pause: (paused) => {
+        manualPause = paused;
+        if (paused) {
+          suspend();
+          raceStatus.textContent = 'PAUSED';
+        } else shell.start(tick, render);
+      },
     },
-    pause: (paused) => {
-      manualPause = paused;
-      if (paused) {
-        suspend();
-        raceStatus.textContent = 'PAUSED';
-      } else shell.start(tick, render);
-    },
-  });
+    vehicles,
+  );
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) suspend();
     else if (!manualPause && (race.clock.status === 'RUNNING' || race.clock.status === 'READY'))

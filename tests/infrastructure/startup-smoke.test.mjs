@@ -7,13 +7,15 @@ import { loadCourseGround } from '../../tools/course/authoring-io.ts';
 import { readVehicleSprites } from '../../tools/course/read-vehicle-sprites.ts';
 import { createCourseScene } from '../../src/shell/course-scene.js';
 import { createVehicle, updateVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
-import { VEHICLE_CATALOG } from '../../src/vehicle/vehicle-catalog.js';
+import { loadVehicleDefinitions } from '../../src/vehicle/definition-document.js';
 import { createCameraRig, updateCamera } from '../../src/view/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../../src/view/current-camera-profile.js';
 import { deriveVehicleSpriteFamily } from '../../src/view/vehicle-visuals.js';
 import { STRIP_RENDER_METHODS } from '../../src/view/display-settings.js';
 import { createDisplaySettings } from '../../src/view/display-settings.js';
 import { SoftwareSurface } from '../../src/view/software-surface.js';
+
+const definitions = await loadVehicleDefinitions(await readDeliveredContent());
 
 const content = await readDeliveredContent();
 for (const { id: stem } of content.manifest.files.filter((file) => file.kind === 'course'))
@@ -26,14 +28,15 @@ for (const { id: stem } of content.manifest.files.filter((file) => file.kind ===
       await loadCourseGround(course),
       await readVehicleSprites(),
       course.gates,
+      definitions.vehicles,
       settings,
     );
-    const entry = VEHICLE_CATALOG[0];
+    const entry = definitions.vehicles[0];
     const vehicle = createVehicle(entry.compiledVehicle, scene.world, {
       s: course.gates.grid[0].at.s,
       l: 0,
       initialSpeed: 0,
-      ...browserSessionVehicle(entry),
+      ...browserSessionVehicle(entry, definitions.driving),
     });
     const rig = createCameraRig(),
       target = new SoftwareSurface(320, 240);

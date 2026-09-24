@@ -2,7 +2,7 @@ import type { ContentKind } from '../../src/core/content-manifest.js';
 import { writeFile, mkdir } from 'node:fs/promises';
 import { Worker } from 'node:worker_threads';
 import { availableParallelism } from 'node:os';
-import { VEHICLE_CATALOG } from '../../src/vehicle/vehicle-catalog.js';
+import type { VehicleDefinitions } from '../../src/vehicle/definition-document.js';
 import { REFERENCE_DRIVER } from '../course/reference-driving-policy.js';
 import { referenceModelIdentity } from '../course/reference-identity.js';
 
@@ -33,11 +33,12 @@ export interface CourseReferenceResult {
 /** Build authority: independent vehicle jobs share no mutable mechanics or course state. */
 export async function buildCourseReferences(
   courses: readonly { course: CompiledCourse; stem: string }[],
+  definitions: VehicleDefinitions,
   stage: (kind: ContentKind, id: string, product: unknown) => Promise<void>,
 ) {
   const physicsSha256 = await referenceModelIdentity(),
     stems = courses.map((c) => c.stem);
-  const results = new Array<CourseReferenceResult>(VEHICLE_CATALOG.length),
+  const results = new Array<CourseReferenceResult>(definitions.vehicles.length),
     running = new Set<Worker>();
   let next = 0;
   const run = (vehicleId: VehicleId) =>
@@ -54,9 +55,9 @@ export async function buildCourseReferences(
       });
     });
   const consume = async () => {
-    while (next < VEHICLE_CATALOG.length) {
+    while (next < definitions.vehicles.length) {
       const i = next++,
-        id = VEHICLE_CATALOG[i]!.compiledVehicle.id;
+        id = definitions.vehicles[i]!.compiledVehicle.id;
       const result = await run(id);
       results[i] = result;
       console.log(`${id}: ${result.hits} cached / ${result.misses} generated reference products`);

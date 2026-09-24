@@ -9,22 +9,22 @@ use a local heightfield approximation. The model separates these inputs:
 | Driving definition | Travel-direction steering, M/D/ACT, pedal actuators, TCS/ABS and shared dimensionless per-load tires |
 | Composition policy | Fixed update step and form-specific two-wheel support protection                                     |
 
-[Driving definition](../src/vehicle/driving-definition.ts) is the sole authority for game-wide driving
+[Driving definition](../content/driving/default.json) is the sole authority for game-wide driving
 values; these are design values, not difficulty settings. Its immutable, nested plain data contains
 travel-direction steering, M=65 degrees, D=20 degrees, ACT=0.3 seconds, throttle/brake traversal times,
 `wheelSlip=true` and one common front/rear tire (GX=5, PX=0.2, GY=2.5, PY=0.1, KN=0.74).
 [Calibration](calibration.md) describes units, pedal values and the shell-owned DEV grids.
 
-Every vehicle creation receives this definition and an explicit form-specific support reserve.
-Admission converts degrees and traversal times to runtime angles/rates and compiles the tire law.
+Document admission converts degrees and traversal times to runtime angles/rates and compiles the tire law
+once. Every vehicle creation receives the compiled driving product and an explicit form-specific support
+reserve, copying only mutable steering calibration. Admitted powertrain values are not revalidated at spawn.
 Browser, race, reference/envelope tools, scenarios, startup smoke and image generation use the same
 input. The wheel solver receives one required tire-characteristics field from the runtime tire calibration.
 DEV can still replace live M/D/ACT and linked tire settings, preserving them on vehicle switches.
 The front/rear runtime slots remain for now; both start with the same tire coefficients.
 
-`SessionVehicle` includes the entire driving definition in `vehicleSha256`, invalidating reference
-caches and rejecting stale browser envelopes and time budgets when any driving value changes.
-The model source list also includes the driving module instead of shell selector modules.
+`SessionVehicle` includes both admitted source documents and compiled driving inputs in `vehicleSha256`.
+[Content and gameplay](content-and-gameplay.md#reference-times-and-clock) owns this cross-product identity.
 
 The engine owns tire and steering low-speed regularization (both 1.0 m/s) in
 `physics/numerical-constants.ts`. They are numerical constants, not vehicle or driving design values.

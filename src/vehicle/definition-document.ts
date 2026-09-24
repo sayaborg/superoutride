@@ -2,7 +2,8 @@ import type { ContentDelivery } from '../core/content-manifest.js';
 import { compileVehicle, type VehicleDefinition, type CompiledVehicle } from './physics/vehicle-definitions.js';
 import { createDrivingSettings } from './physics/driving-settings.js';
 import { DefinitionDomainError } from './physics/definition-domain-error.js';
-import type { DrivingDefinition } from './driving-definition.js';
+import type { DrivingDocument } from './driving-definition.js';
+import type { CompiledDrivingDefinition } from './compiled-driving-definition.js';
 import { VEHICLE_SOUND_PROFILES } from './sound-profiles.js';
 import type { VehicleAudioProfile } from '../audio/vehicle-audio-profile.js';
 
@@ -26,20 +27,11 @@ export interface VehicleDocument {
   readonly sound: string;
   readonly metadata: VehicleMetadata;
 }
-export interface DrivingDocument extends DrivingDefinition {
-  readonly format: 'superoutride.driving-definition';
-  readonly version: 1;
-  readonly id: 'default';
-}
 export interface CompiledVehicleDefinition extends VehicleMetadata {
   readonly source: VehicleDocument;
   readonly form: VehicleForm;
   readonly compiledVehicle: CompiledVehicle;
   readonly sound: VehicleAudioProfile;
-}
-export interface CompiledDrivingDefinition {
-  readonly source: DrivingDocument;
-  readonly settings: Readonly<ReturnType<typeof createDrivingSettings>>;
 }
 interface DefinitionDiagnostic {
   readonly kind: 'input';
@@ -302,3 +294,12 @@ export async function loadVehicleDefinitions(content: ContentDelivery) {
   return Object.freeze({ vehicles: Object.freeze(vehicles), driving });
 }
 export type VehicleDefinitions = Awaited<ReturnType<typeof loadVehicleDefinitions>>;
+
+export function vehicleDefinitionForId(
+  vehicles: readonly CompiledVehicleDefinition[],
+  id: string,
+): CompiledVehicleDefinition {
+  const value = vehicles.find((entry) => entry.compiledVehicle.id === id);
+  if (!value) throw new RangeError(`Unknown vehicle ID: ${id}`);
+  return value;
+}

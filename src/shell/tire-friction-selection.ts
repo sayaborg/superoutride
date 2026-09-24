@@ -1,4 +1,4 @@
-import { DRIVING_DEFINITION } from '../vehicle/driving-definition.js';
+import type { DrivingDefinition } from '../vehicle/driving-definition.js';
 import {
   readTireCharacteristics,
   type VehicleTireFrictionCalibrationState,
@@ -96,6 +96,6 @@ export function formatTireCalibrationSelector(current: VehicleTireFrictionCalibr
 }
 
 // Admit the authored starting values to the DEV grid without making the grid their authority.
-for (const axis of BROWSER_TIRE_AXES) {
-  browserTireGridIndex(axis, DRIVING_DEFINITION.tire[axis.field]);
+export function admitBrowserTireGrid(definition: DrivingDefinition) {
+  for (const axis of BROWSER_TIRE_AXES) browserTireGridIndex(axis, definition.tire[axis.field]);
 }

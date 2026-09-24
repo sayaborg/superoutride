@@ -1,6 +1,8 @@
 import type { CourseReferenceJob, CourseReferenceResult } from './build-course-reference.js';
 import { parentPort, workerData } from 'node:worker_threads';
-import { VEHICLE_CATALOG } from '../../src/vehicle/vehicle-catalog.js';
+import { loadVehicleDefinitions } from '../../src/vehicle/definition-document.js';
+import { readDeliveredContent } from '../course/read-content.js';
+import { loadDeliveredCourse } from '../../src/course/load-delivered-course.js';
 import { browserSessionVehicle } from '../../src/shell/session-vehicle.js';
 import { REFERENCE_DRIVER } from '../course/reference-driving-policy.js';
 import { readCourseReference } from '../course/course-reference.js';
@@ -8,18 +10,20 @@ import { courseBudgetLandmarks, readCourseTimeBudgets } from '../../src/race/cou
 import { cachedReference, referenceCacheKey, digest } from '../course/reference-cache.js';
 import { measureVehicleEnvelope } from '../course/vehicle-envelope.js';
 import { runCourseReference, courseReferenceRoutes } from '../course/reference-run.js';
-import { loadCourse, loadCourseGround } from '../course/authoring-io.js';
+import { loadCourseGround } from '../course/authoring-io.js';
 
 const { vehicleId, stems, physicsSha256 } = workerData as CourseReferenceJob;
-const entry = VEHICLE_CATALOG.find((v) => v.compiledVehicle.id === vehicleId)!;
-const vehicle = browserSessionVehicle(entry),
+const content = await readDeliveredContent();
+const definitions = await loadVehicleDefinitions(content);
+const entry = definitions.vehicles.find((v) => v.compiledVehicle.id === vehicleId)!;
+const vehicle = browserSessionVehicle(entry, definitions.driving),
   vehicleSha256 = digest(vehicle);
 let hits = 0,
   misses = 0;
 const envelope = await cachedReference(
   'envelopes',
   referenceCacheKey(null, vehicleSha256, REFERENCE_DRIVER.version, physicsSha256),
-  () => measureVehicleEnvelope(entry),
+  () => measureVehicleEnvelope(vehicle),
 );
 if (envelope.hit) hits++;
 else misses++;
@@ -28,13 +32,12 @@ const products: CourseReferenceResult['products'] = [
   ],
   references: CourseReferenceResult['references'] = [];
 for (const stem of stems) {
-  const file = new URL(`../../content/courses/${stem}.course.json`, import.meta.url).pathname;
-  const { course } = await loadCourse(file);
+  const course = await loadDeliveredCourse(content, stem);
   const key = referenceCacheKey(course.identity.buildSha256, vehicleSha256, REFERENCE_DRIVER, physicsSha256);
   const cached = await cachedReference('runs', key, async () => {
     const ground = await loadCourseGround(course);
     return courseReferenceRoutes(course).map((route) =>
-      runCourseReference(course, ground, entry, envelope.value, route, course.rules!.maxLaps),
+      runCourseReference(course, ground, entry, definitions, envelope.value, route, course.rules!.maxLaps),
     );
   });
   if (cached.hit) hits++;

@@ -3,10 +3,14 @@ import { REFLECTION_REFERENCE, ACOUSTICS, DEFAULT_EXHAUST_TUNING, OUTPUT } from 
 import { AUDIO_TIMING } from '../../src/audio/audio-presentation.js';
 import { mountAudioTuningControls } from '../../src/shell/audio-tuning-controls.js';
 import { createEngineVoice } from '../../src/audio/engine-voice.js';
-import { VEHICLE_CATALOG } from '../../src/vehicle/vehicle-catalog.js';
+import { loadVehicleDefinitions } from '../../src/vehicle/definition-document.js';
+import { loadContentManifest } from '../../src/core/content-manifest.js';
+const { vehicles } = await loadVehicleDefinitions(
+  await loadContentManifest(new URL('../../content/', import.meta.url)),
+);
 import { createVehicleAudioObservation } from '../../src/shell/vehicle-audio.js';
 const vehicle = mustGet<HTMLSelectElement>('vehicle');
-for (const entry of VEHICLE_CATALOG) {
+for (const entry of vehicles) {
   const option = document.createElement('option');
   option.value = String(vehicle.options.length);
   option.textContent = entry.compiledVehicle.id;
@@ -21,7 +25,7 @@ mustGet<HTMLElement>('output-conditions').textContent =
 const tuningControls = mountAudioTuningControls(mustGet<HTMLElement>('tuning-controls'), () => {});
 const readTuning = tuningControls.read;
 function showVehicleData() {
-  const { sound, compiledVehicle } = VEHICLE_CATALOG[Number(vehicle.value)]!;
+  const { sound, compiledVehicle } = vehicles[Number(vehicle.value)]!;
   const cycleDegrees = sound.cycleRevolutions * 360;
   mustGet<HTMLElement>('vehicle-summary').textContent =
     `${compiledVehicle.id} ／ ${sound.firingPhases.length}気筒 ／ ${sound.cycleRevolutions * 2}ストローク ／ 1周期 ${cycleDegrees}° ／ アイドル ${compiledVehicle.powertrain.idleRpm} RPM ／ 上限 ${compiledVehicle.powertrain.redlineRpm} RPM`;
@@ -74,7 +78,7 @@ async function audition() {
     await playback.resume();
     const tuning = readTuning();
     const scenario = mustGet<HTMLSelectElement>('scenario').value;
-    const entry = VEHICLE_CATALOG[Number(vehicle.value)]!;
+    const entry = vehicles[Number(vehicle.value)]!;
     const context = new OfflineAudioContext(1, 4 * 48000, 48000);
     const state = createVehicleAudioObservation();
     Object.assign(state, {

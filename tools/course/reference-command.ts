@@ -1,4 +1,5 @@
-import { VEHICLE_CATALOG } from '../../src/vehicle/vehicle-catalog.js';
+import { loadVehicleDefinitions } from '../../src/vehicle/definition-document.js';
+import { readDeliveredContent } from './read-content.js';
 import { browserSessionVehicle } from '../../src/shell/session-vehicle.js';
 import { REFERENCE_DRIVER } from './reference-driving-policy.js';
 import { measureVehicleEnvelope } from './vehicle-envelope.js';
@@ -8,19 +9,20 @@ import { options, loadCourse, loadCourseGround, requireInput, atomicWrite } from
 
 /** Optional diagnostic exports; ordinary build owns all Session products. */
 export async function referenceCommand(verb: string, file: string, args: readonly string[]) {
+  const definitions = await loadVehicleDefinitions(await readDeliveredContent());
   const opts = options(args, ['--vehicle', '--laps', '--route', '--out', '--images']);
   const selected = opts.get('--vehicle') ?? (verb === 'envelope' ? file : 'TESTAROSSA');
-  const entry = VEHICLE_CATALOG.find((e) => e.compiledVehicle.id === selected);
+  const entry = definitions.vehicles.find((e) => e.compiledVehicle.id === selected);
   requireInput(entry, '/vehicle', 'Unknown catalog vehicle');
   const modelSha256 = await referenceModelIdentity(),
-    envelope = measureVehicleEnvelope(entry);
+    envelope = measureVehicleEnvelope(browserSessionVehicle(entry, definitions.driving));
   let result;
   if (verb === 'envelope')
     result = {
       format: 'superoutride.vehicle-envelope',
       version: 1,
       modelSha256,
-      vehicle: browserSessionVehicle(entry),
+      vehicle: browserSessionVehicle(entry, definitions.driving),
       ...envelope,
     };
   else {
@@ -37,8 +39,8 @@ export async function referenceCommand(verb: string, file: string, args: readonl
       courseBuildSha256: course.identity.buildSha256,
       modelSha256,
       driver: REFERENCE_DRIVER,
-      vehicle: browserSessionVehicle(entry),
-      ...runCourseReference(course, ground, entry, envelope, routes[routeIndex]!, lapCount, true),
+      vehicle: browserSessionVehicle(entry, definitions.driving),
+      ...runCourseReference(course, ground, entry, definitions, envelope, routes[routeIndex]!, lapCount, true),
     };
   }
   requireInput(opts.has('--out'), '/out', 'Reference commands require --out');

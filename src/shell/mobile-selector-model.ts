@@ -12,7 +12,7 @@ import {
   formatTraversalSeconds,
 } from './steering-calibration-selection.js';
 import { BROWSER_TIRE_AXES, formatTireAxisValue, type BrowserTireCalibrationAxis } from './tire-friction-selection.js';
-import { BROWSER_VEHICLE_SELECTIONS } from './vehicle-selection.js';
+import type { BrowserVehicleSelection } from './vehicle-selection.js';
 
 export interface MobileSelectorButtonModel<Value extends string | number> {
   readonly value: Value;
@@ -40,7 +40,7 @@ export function createMobileCourseSelectorModel(
 
 export function createMobileVehicleSelectorModel(
   activeId: VehicleId,
-  selections = BROWSER_VEHICLE_SELECTIONS,
+  selections: readonly BrowserVehicleSelection[],
 ): readonly MobileSelectorButtonModel<VehicleId>[] {
   return selectorModel(activeId, selections, ({ compiledVehicle, mobileLabel, accessibleName }) => ({
     value: compiledVehicle.id,

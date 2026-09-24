@@ -1,4 +1,8 @@
-import { compileVehicleDocument, compileDrivingDocument } from '../../src/vehicle/definition-document.js';
+import {
+  compileVehicleDocument,
+  compileDrivingDocument,
+  loadVehicleDefinitions,
+} from '../../src/vehicle/definition-document.js';
 import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import { buildCourseReferences } from './build-course-reference.js';
 import { readdir, readFile } from 'node:fs/promises';
@@ -46,6 +50,6 @@ for (const name of (await readdir(new URL('courses/', content))).sort()) {
 }
 // Reference workers use the same admitted delivery for their completed vehicle images.
 await writer.save();
-await buildCourseReferences(courses, writer.stage);
+await buildCourseReferences(courses, await loadVehicleDefinitions(await readDeliveredContent()), writer.stage);
 await writer.save();
 console.log('Validated and staged manifest content');

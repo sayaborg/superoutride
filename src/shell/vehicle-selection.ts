@@ -1,12 +1,7 @@
+import { formatVehicleCatalogLine } from '../vehicle/vehicle-label.js';
+import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import { BROWSER_VEHICLE_KEYS } from './key-bindings.js';
-import type { CompiledVehicle, VehicleId } from '../vehicle/physics/vehicle-definitions.js';
-import {
-  VEHICLE_CATALOG,
-  formatVehicleCatalogLine,
-  vehicleCatalogEntryForId,
-  type VehicleCatalogEntry,
-} from '../vehicle/vehicle-catalog.js';
-
+import type { CompiledVehicle } from '../vehicle/physics/vehicle-definitions.js';
 export interface BrowserVehicleSelection {
   readonly code?: string;
   readonly keyLabel?: string;
@@ -15,8 +10,8 @@ export interface BrowserVehicleSelection {
   readonly compiledVehicle: Readonly<CompiledVehicle>;
 }
 
-function createBrowserVehicleSelections(
-  catalog: readonly Readonly<VehicleCatalogEntry>[],
+export function createBrowserVehicleSelections(
+  catalog: readonly Readonly<CompiledVehicleDefinition>[],
   keys: Readonly<Record<string, string>> = BROWSER_VEHICLE_KEYS,
 ): readonly BrowserVehicleSelection[] {
   const used = new Set<string>();
@@ -41,15 +36,13 @@ function createBrowserVehicleSelections(
   );
 }
 
-export const BROWSER_VEHICLE_SELECTIONS = createBrowserVehicleSelections(VEHICLE_CATALOG);
-
 export function browserVehicleForKey(
   code: string,
-  selections = BROWSER_VEHICLE_SELECTIONS,
+  selections: readonly BrowserVehicleSelection[],
 ): Readonly<CompiledVehicle> | null {
   return selections.find((selection) => selection.code === code)?.compiledVehicle ?? null;
 }
 
-export function formatVehicleSelector(activeId: VehicleId): string {
-  return formatVehicleCatalogLine(vehicleCatalogEntryForId(activeId));
+export function formatVehicleSelector(entry: CompiledVehicleDefinition): string {
+  return formatVehicleCatalogLine(entry);
 }

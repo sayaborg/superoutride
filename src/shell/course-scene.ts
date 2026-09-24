@@ -1,6 +1,6 @@
 import { createCourseRouteVisualReaders } from '../view/course-route-visual-readers.js';
 import { ENVELOPE_DRIVER } from '../race/envelope-driver.js';
-import { VEHICLE_CATALOG } from '../vehicle/vehicle-catalog.js';
+import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import { SIM_DT } from './frame-loop.js';
 import { createDisplaySettings, type DisplaySettings } from '../view/display-settings.js';
 import type { CourseGround } from '../course/compiler/course-ground.js';
@@ -22,6 +22,7 @@ export function createCourseScene(
   ground: CourseGround,
   assets: SpriteAssets,
   gates: CompiledCourse['gates'],
+  vehicles: readonly CompiledVehicleDefinition[],
   displaySettings: DisplaySettings = createDisplaySettings(),
 ) {
   if (!gates?.grid.length) throw new RangeError('Driving requires a compiled start gate with a grid');
@@ -31,7 +32,7 @@ export function createCourseScene(
   const maximumStepMeters = 240 * SIM_DT;
   const contactReachMeters = Math.ceil(
     Math.max(
-      ...VEHICLE_CATALOG.flatMap(({ compiledVehicle }) =>
+      ...vehicles.flatMap(({ compiledVehicle }) =>
         [compiledVehicle.frontStation, compiledVehicle.rearStation].map((station) =>
           Math.hypot(station.forwardOffset, station.freeReachDown),
         ),

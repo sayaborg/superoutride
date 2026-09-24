@@ -22,3 +22,9 @@ export const DRIVING_DEFINITION: Readonly<DrivingDefinition> = Object.freeze({
   wheelSlip: true,
   tire: Object.freeze({ gripX: 5.0, peakSlipX: 0.2, gripY: 2.5, peakSlipY: 0.1, knee: 0.74 }),
 });
+
+export interface DrivingDocument extends DrivingDefinition {
+  readonly format: 'superoutride.driving-definition';
+  readonly version: 1;
+  readonly id: 'default';
+}

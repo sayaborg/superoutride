@@ -8,7 +8,7 @@ import { createCourseScene } from '../../src/shell/course-scene.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
 import { browserSessionVehicle } from '../../src/shell/session-vehicle.js';
-import { VEHICLE_CATALOG } from '../../src/vehicle/vehicle-catalog.js';
+import { loadVehicleDefinitions } from '../../src/vehicle/definition-document.js';
 import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
 import { createRecoveryState } from '../../src/race/recovery.js';
 import {
@@ -25,9 +25,11 @@ import { SIM_DT } from '../../src/shell/frame-loop.js';
 import { courseBoundaryAt, courseCarriagewayExists } from '../../src/course/course-boundaries.js';
 import { routeSectionS } from '../../src/course/course-route.js';
 
+const definitions = await loadVehicleDefinitions(await readDeliveredContent());
+
 const idle = { steering: 0, throttle: false, brake: false };
-const entry = VEHICLE_CATALOG.find((v) => v.compiledVehicle.id === 'TESTAROSSA');
-const configuration = browserSessionVehicle(entry);
+const entry = definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA');
+const configuration = browserSessionVehicle(entry, definitions.driving);
 const assets = await readVehicleSprites();
 const { envelope } = await (await readDeliveredContent()).json('envelope', 'TESTAROSSA');
 const driver = compileEnvelopeDriver(envelope, 0.75, envelope.maximumSpeed);
@@ -77,7 +79,7 @@ function pavementBounds(scene, vehicle) {
 /** Fresh product assembly per replay; only initial conditions and input policy differ from the browser. */
 export function runScenario({ course, ground }, scenario) {
   const settings = createDisplaySettings();
-  const scene = createCourseScene(course.entry, ground, assets, course.gates, settings);
+  const scene = createCourseScene(course.entry, ground, assets, course.gates, definitions.vehicles, settings);
   const session = resolveCourseSession(
     course,
     { mode: 'CUSTOM', rivalCount: scenario.rivals ?? 0, lapCount: scenario.laps ?? 1, countdown: false },
@@ -131,7 +133,7 @@ export function runScenario({ course, ground }, scenario) {
   let camera;
   const render = () => {
     settings.setStripMethod(STRIP_RENDER_METHODS[evidence.frames % STRIP_RENDER_METHODS.length]);
-    scene.render(target, vehicle, camera, configuration.kind, sprites(race.observe().rivals, camera));
+    scene.render(target, vehicle, camera, configuration.form, sprites(race.observe().rivals, camera));
     evidence.frames++;
   };
   race.start();

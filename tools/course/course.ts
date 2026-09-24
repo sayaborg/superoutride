@@ -15,7 +15,8 @@ import path from 'node:path';
 import { PNG } from 'pngjs';
 import { createCourseScene } from '../../src/shell/course-scene.js';
 import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
-import { VEHICLE_CATALOG } from '../../src/vehicle/vehicle-catalog.js';
+import { loadVehicleDefinitions } from '../../src/vehicle/definition-document.js';
+import { readDeliveredContent } from './read-content.js';
 import { createCameraRig, updateCamera } from '../../src/view/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../../src/view/current-camera-profile.js';
 import { deriveVehicleSpriteFamily } from '../../src/view/vehicle-visuals.js';
@@ -73,9 +74,10 @@ try {
     if (verb === 'compile') {
       result.ground = (await loadCourseGround(course)).metrics;
     } else if (verb === 'render') {
+      const definitions = await loadVehicleDefinitions(await readDeliveredContent());
       const entry = opts.has('--vehicle')
-        ? VEHICLE_CATALOG.find((e) => e.compiledVehicle.id === opts.get('--vehicle'))
-        : VEHICLE_CATALOG[0];
+        ? definitions.vehicles.find((e) => e.compiledVehicle.id === opts.get('--vehicle'))
+        : definitions.vehicles[0];
       requireInput(entry, '/vehicle', 'Unknown vehicle');
       const sequence = ['--start', '--end', '--step'].some((f) => opts.has(f));
       let stations;
@@ -93,7 +95,13 @@ try {
         stations = Array.from({ length: count }, (_, i) => start + i * step);
       } else stations = [finite(Number(opts.get('--s') ?? 45), '/s', 0, section.coordinates.domain.end)];
       const l = finite(Number(opts.get('--l') ?? 0), '/l', -1000, 1000),
-        scene = createCourseScene(section, await loadCourseGround(course), spriteAssets, course.gates);
+        scene = createCourseScene(
+          section,
+          await loadCourseGround(course),
+          spriteAssets,
+          course.gates,
+          definitions.vehicles,
+        );
       if (opts.has('--exit')) {
         const link = section.outgoing.find((l) => l.id === opts.get('--exit'));
         requireInput(link, '/exit', 'Exit must name a canonical outgoing Link');
@@ -107,7 +115,7 @@ try {
           s,
           l,
           initialSpeed: 0,
-          ...browserSessionVehicle(entry),
+          ...browserSessionVehicle(entry, definitions.driving),
         });
         const camera = updateCamera(createCameraRig(), scene.world, vehicle, CURRENT_CAMERA_PROFILE, 1 / 60),
           target = new SoftwareSurface(320, 240);

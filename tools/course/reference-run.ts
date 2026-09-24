@@ -3,7 +3,7 @@ type CompiledSection = CompiledCourse['sections'][number];
 type CompiledLink = CompiledCourse['links'][number];
 import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import type { CourseGround } from '../../src/course/compiler/course-ground.js';
-import type { VehicleCatalogEntry } from '../../src/vehicle/vehicle-catalog.js';
+import type { CompiledVehicleDefinition, VehicleDefinitions } from '../../src/vehicle/definition-document.js';
 import type { VehicleEnvelope } from '../../src/race/envelope-driver.js';
 import { readVehicleSprites } from './read-vehicle-sprites.js';
 import { REFERENCE_DRIVER } from './reference-driving-policy.js';
@@ -42,14 +42,15 @@ export function courseReferenceRoutes(course: CompiledCourse) {
 export function runCourseReference(
   course: CompiledCourse,
   ground: CourseGround,
-  entry: Readonly<VehicleCatalogEntry>,
+  entry: CompiledVehicleDefinition,
+  definitions: VehicleDefinitions,
   envelope: VehicleEnvelope,
   route: readonly CompiledLink[],
   lapCount: number,
   capture = false,
 ) {
-  const scene = createCourseScene(course.entry, ground, spriteAssets, course.gates),
-    vehicleConfiguration = browserSessionVehicle(entry);
+  const scene = createCourseScene(course.entry, ground, spriteAssets, course.gates, definitions.vehicles),
+    vehicleConfiguration = browserSessionVehicle(entry, definitions.driving);
   const session = resolveCourseSession(
     course,
     { mode: 'CUSTOM', rivalCount: 0, lapCount, countdown: false },

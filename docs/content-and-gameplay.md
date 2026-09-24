@@ -561,7 +561,15 @@ fractions. Recovery, wrong-route choice, timeout or incomplete FINISH invalidate
 Maximum-lap runs supply their actual prefixes; starting and later-lap arrival classes remain distinct.
 
 Identity includes course/compiler, vehicle/calibration/protection, driver policy, fixed step, start
-and seed inputs. For a budget state, reference duration is the maximum upcoming interval among
+and seed inputs. The vehicle digest is SHA-256 of the deterministic JSON serialization of the admitted
+`SessionVehicle`: compiled mechanics, compiled driving source/settings, form, form-derived support
+reserve and the complete vehicle source document (including metadata and sound ID). Definition
+readers construct these records in a fixed field order; arbitrary input key order does not affect the
+identity. Any vehicle or driving document value change changes `vehicleSha256`. This digest is a
+reference-cache key component and is independently recomputed by browser envelope and budget admission;
+both reject products carrying an old digest. Manifest SHA-256 verifies transported bytes separately.
+The reference model hash tracks compiler/mechanics code; authored JSON values belong to the per-vehicle
+digest, so editing one vehicle does not invalidate unchanged vehicles' cache keys. For a budget state, reference duration is the maximum upcoming interval among
 continuous histories sharing that state and its legal next checkpoint/finish alternatives.
 
 ```text

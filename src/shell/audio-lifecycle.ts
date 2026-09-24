@@ -6,7 +6,7 @@ import { createAudioEngine } from '../audio/audio-engine.js';
 import { TIRE_COMPONENTS } from '../audio/tire-sound-controls.js';
 import { AUDIO_TIMING, rivalAudioGain, rivalAudioPan } from '../audio/audio-presentation.js';
 import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
-import { vehicleCatalogEntryForId } from '../vehicle/vehicle-catalog.js';
+import { vehicleDefinitionForId, type CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import {
   createVehicleAudioObservation,
   readEngineAudio,
@@ -18,7 +18,7 @@ import {
 const GESTURE_EVENTS = ['pointerdown', 'pointerup', 'touchend', 'keydown'] as const;
 
 /** DOM, permission and failure boundary. Presentation updates fail closed without stopping gameplay. */
-export function createAudioLifecycle() {
+export function createAudioLifecycle(vehicles: readonly CompiledVehicleDefinition[]) {
   const button = document.getElementById('sound-toggle');
   const volumeContainer = document.getElementById('sound-volume');
   const componentState = { road: true, squeal: true };
@@ -299,7 +299,7 @@ export function createAudioLifecycle() {
       if (!engine || !context || context.state !== 'running' || !audible()) return;
       try {
         readVehicleAudio(player, playerState);
-        engine.update(playerState, vehicleCatalogEntryForId(player.compiledVehicle.id).sound);
+        engine.update(playerState, vehicleDefinitionForId(vehicles, player.compiledVehicle.id).sound);
         const nearest = nearestAudibleRival(player, actors);
         if (nearest !== nextRival) {
           nextRival = nearest;
@@ -320,7 +320,7 @@ export function createAudioLifecycle() {
         const lateral = dx * Math.cos(player.yaw) - dz * Math.sin(player.yaw);
         engine.updateRival(
           rivalState,
-          vehicleCatalogEntryForId(rival.compiledVehicle.id).sound,
+          vehicleDefinitionForId(vehicles, rival.compiledVehicle.id).sound,
           rivalAudioGain(distance),
           rivalAudioPan(lateral, distance),
         );

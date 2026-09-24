@@ -15,8 +15,13 @@ import type { VehicleWorld } from '../course/vehicle-world.js';
 import type { CompiledVehicle } from '../vehicle/physics/vehicle-definitions.js';
 import { drawVehicleLeanDebug } from './debug/vehicle-lean-debug.js';
 import { drawVehicleYawDebug } from './debug/vehicle-yaw-debug.js';
-import type { VehicleCatalogEntry } from '../vehicle/vehicle-catalog.js';
-import { vehicleCatalogEntryForId } from '../vehicle/vehicle-catalog.js';
+import {
+  vehicleDefinitionForId,
+  type CompiledVehicleDefinition,
+  type VehicleDefinitions,
+} from '../vehicle/definition-document.js';
+import { admitBrowserSteeringGrid } from './steering-calibration-selection.js';
+import { admitBrowserTireGrid } from './tire-friction-selection.js';
 import type { BrowserCourseModeQuery } from './course-mode-selection.js';
 import { mustGet } from './dom.js';
 import { createFrameLoop, type FrameLoop } from './frame-loop.js';
@@ -27,11 +32,11 @@ import { mountBrowserTireFrictionControls } from './tire-friction-controls.js';
 import { browserSessionVehicle } from './session-vehicle.js';
 import { browserUsesTouchInterface } from './touch-interface.js';
 import { drawVehicleDebugHud } from './vehicle-debug-hud.js';
-import { browserVehicleForKey } from './vehicle-selection.js';
+import { browserVehicleForKey, createBrowserVehicleSelections } from './vehicle-selection.js';
 
 interface BrowserDrivingShell {
   readonly vehicle: VehicleState;
-  readonly presentation: VehicleCatalogEntry;
+  readonly presentation: CompiledVehicleDefinition;
   readonly recovery: RecoveryState;
   readonly framebuffer: SoftwareSurface;
   readonly inputManager: InputManager;
@@ -55,7 +60,12 @@ export function createBrowserDrivingShell(
   runtime: VehicleWorld,
   startL: number,
   spawn: { readonly initialSpeed: number; readonly s: number; readonly vehicle: SessionVehicle },
+  definitions: VehicleDefinitions,
 ): BrowserDrivingShell {
+  const { vehicles, driving } = definitions;
+  const selections = createBrowserVehicleSelections(vehicles);
+  admitBrowserSteeringGrid(driving.source);
+  admitBrowserTireGrid(driving.source);
   const canvas = mustGet<HTMLCanvasElement>('game');
   canvas.width = LOGICAL_WIDTH;
   canvas.height = LOGICAL_HEIGHT;
@@ -77,7 +87,7 @@ export function createBrowserDrivingShell(
   let recovery = createRecoveryState(vehicle);
   const cameraRig = createCameraRig();
 
-  const audio = createAudioLifecycle();
+  const audio = createAudioLifecycle(vehicles);
   let loop: FrameLoop | null = null;
   window.addEventListener('pagehide', () => {
     loop?.stop();
@@ -108,7 +118,7 @@ export function createBrowserDrivingShell(
       return vehicle;
     },
     get presentation() {
-      return vehicleCatalogEntryForId(vehicle.compiledVehicle.id);
+      return vehicleDefinitionForId(vehicles, vehicle.compiledVehicle.id);
     },
     get recovery() {
       return recovery;
@@ -126,7 +136,7 @@ export function createBrowserDrivingShell(
         initialSpeed: vehicle.longitudinalSpeed,
         steeringCalibration,
         tireFrictionCalibration,
-        ...browserSessionVehicle(vehicleCatalogEntryForId(compiledVehicle.id)),
+        ...browserSessionVehicle(vehicleDefinitionForId(vehicles, compiledVehicle.id), driving),
       });
       recovery = createRecoveryState(vehicle);
     },
@@ -141,6 +151,7 @@ export function createBrowserDrivingShell(
         mustGet('vehicle-selector-buttons'),
         vehicle.compiledVehicle.id,
         selectVehicle,
+        selections,
       );
       const cameraYawSelector = mountMobileCameraYawSelector(
         mustGet('camera-selector-buttons'),
@@ -180,7 +191,7 @@ export function createBrowserDrivingShell(
         }
         if (!options.configurationLocked && steeringCalibrationControls.handleKey(event.code)) return;
         if (!options.configurationLocked && tireFrictionControls.handleKey(event.code)) return;
-        const selectedVehicle = browserVehicleForKey(event.code);
+        const selectedVehicle = browserVehicleForKey(event.code, selections);
         if (selectedVehicle !== null) {
           selectVehicle(selectedVehicle);
         } else if (event.code === BROWSER_RECOVERY_CODE) {
@@ -199,8 +210,8 @@ export function createBrowserDrivingShell(
     ): void {
       audio.update(vehicle, rivals);
       ctx.putImageData(imageData, 0, 0);
-      drawVehicleDebugHud(ctx, query, input, vehicle);
-      if (vehicleCatalogEntryForId(vehicle.compiledVehicle.id).visualFamily === 'BIKE') {
+      drawVehicleDebugHud(ctx, query, input, vehicle, vehicleDefinitionForId(vehicles, vehicle.compiledVehicle.id));
+      if (vehicleDefinitionForId(vehicles, vehicle.compiledVehicle.id).form === 'bike') {
         drawVehicleLeanDebug(ctx, camera.playerScreenX, playerScreenY, vehicle);
       }
       drawVehicleYawDebug(

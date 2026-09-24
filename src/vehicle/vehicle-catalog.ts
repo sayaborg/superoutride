@@ -1,3 +1,4 @@
+import type { VehicleMetadata } from './definition-document.js';
 import type { VehicleAudioProfile } from '../audio/vehicle-audio-profile.js';
 import { VEHICLE_SOUND_PROFILES } from './sound-profiles.js';
 import { type CompiledVehicle, type VehicleId } from './physics/vehicle-definitions.js';
@@ -186,7 +187,7 @@ export function vehicleCatalogEntryForId(id: VehicleId): Readonly<VehicleCatalog
   return result;
 }
 
-export function formatVehicleCatalogLine(entryValue: Readonly<VehicleCatalogEntry>): string {
+export function formatVehicleCatalogLine(entryValue: VehicleMetadata): string {
   const base = `${entryValue.manufacturer} ${entryValue.model}`;
   const identifier = entryValue.identifier;
   const needsIdentifier = identifier !== null && !entryValue.model.split(/\s+/u).includes(identifier.shortLabel);

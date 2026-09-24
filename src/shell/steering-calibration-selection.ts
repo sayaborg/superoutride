@@ -1,4 +1,4 @@
-import { DRIVING_DEFINITION } from '../vehicle/driving-definition.js';
+import type { DrivingDefinition } from '../vehicle/driving-definition.js';
 import { BROWSER_CALIBRATION_KEYS } from './key-bindings.js';
 import { cycleSelectorChoice, sameSelectorValue } from './selector-values.js';
 const OFFSET_DEGREES = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30] as const;
@@ -24,9 +24,11 @@ export const BROWSER_STEERING_OFFSETS = Object.freeze(OFFSET_DEGREES.map(angle))
 export const BROWSER_MAX_ROAD_WHEEL_STEERS = Object.freeze(MAX_STEER_DEGREES.map(angle));
 export const BROWSER_STEERING_RESPONSES = Object.freeze(TRAVERSAL_SECONDS.map(response));
 
-assertGridValue(OFFSET_DEGREES, DRIVING_DEFINITION.steeringOffsetDegrees);
-assertGridValue(MAX_STEER_DEGREES, DRIVING_DEFINITION.maxRoadWheelSteerDegrees);
-assertGridValue(TRAVERSAL_SECONDS, DRIVING_DEFINITION.steeringTraversalSeconds);
+export function admitBrowserSteeringGrid(definition: DrivingDefinition) {
+  assertGridValue(OFFSET_DEGREES, definition.steeringOffsetDegrees);
+  assertGridValue(MAX_STEER_DEGREES, definition.maxRoadWheelSteerDegrees);
+  assertGridValue(TRAVERSAL_SECONDS, definition.steeringTraversalSeconds);
+}
 
 export function nextBrowserSteeringOffset(currentRadians: number): number {
   return nextAngleChoice(BROWSER_STEERING_OFFSETS, currentRadians).radians;

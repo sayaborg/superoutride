@@ -9,8 +9,10 @@ import {
   createPlanProjectionWorkspace,
 } from '../../src/course/geometry/plan-coordinate.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
-import { VEHICLE_CATALOG } from '../../src/vehicle/vehicle-catalog.js';
+import { loadVehicleDefinitions } from '../../src/vehicle/definition-document.js';
 import { browserSessionVehicle } from '../../src/shell/session-vehicle.js';
+
+const definitions = await loadVehicleDefinitions(await readDeliveredContent());
 
 const load = async (stem) =>
   (await loadCourse(new URL(`../../content/courses/${stem}.course.json`, import.meta.url).pathname)).course;
@@ -47,7 +49,10 @@ test('outside projection follows previous chainage across clamped and tangent-ra
 
 test('Session rejects short terminal runout, including solo play; forks and loops are not terminals', async () => {
   const course = await load('ribbon-coast');
-  const vehicle = browserSessionVehicle(VEHICLE_CATALOG.find((v) => v.compiledVehicle.id === 'TESTAROSSA'));
+  const vehicle = browserSessionVehicle(
+    definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA'),
+    definitions.driving,
+  );
   const { envelope } = await (await readDeliveredContent()).json('envelope', 'TESTAROSSA');
   const configuration = { mode: 'CUSTOM', rivalCount: 0, lapCount: 1, countdown: false };
   assert.doesNotThrow(() => resolveCourseSession(course, configuration, vehicle, envelope));

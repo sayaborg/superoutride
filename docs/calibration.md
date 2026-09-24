@@ -6,11 +6,11 @@ These tables describe the authored settings. [Vehicle physics](vehicle-physics.m
 
 ## Vehicle settings
 
-The [game-wide driving definition](../src/vehicle/driving-definition.ts) is the single value authority
+The [game-wide driving definition](../content/driving/default.json) is the single value authority
 for cars and bikes in browser, race and tools. The table documents that definition; it does not
 supply another set of defaults. The immutable record contains only authored numbers and choices,
-ready for saved content in 8-3. Derived radians, actuator rates and tire coefficients belong to admission.
-[Vehicle definitions](../src/vehicle/production-vehicle-definitions.ts) contain the per-vehicle mechanical data.
+stored as versioned JSON. Derived radians, actuator rates and tire coefficients belong to admission.
+[Vehicle definitions](../content/vehicles/) contain the per-vehicle mechanical data.
 
 | Key | Meaning                                      | Default | Selector range / step      |
 | --- | -------------------------------------------- | ------- | -------------------------- |

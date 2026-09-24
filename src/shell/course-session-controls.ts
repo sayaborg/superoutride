@@ -1,6 +1,6 @@
 import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
 import { compileSessionConfiguration, type SessionConfiguration } from '../race/session-configuration.js';
-import { VEHICLE_CATALOG } from '../vehicle/vehicle-catalog.js';
+import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 
 interface BrowserSessionSettings extends SessionConfiguration {
   readonly vehicleId: string;
@@ -8,6 +8,7 @@ interface BrowserSessionSettings extends SessionConfiguration {
 export function readBrowserSessionSettings(
   params: URLSearchParams,
   preset: { readonly vehicleId: string; readonly rivalCount: number; readonly lapCount: number },
+  vehicles: readonly CompiledVehicleDefinition[],
 ): BrowserSessionSettings {
   const mode = params.get('session') ?? 'CLASSIC';
   if (mode !== 'CLASSIC' && mode !== 'CUSTOM') throw new RangeError('Unknown Session mode');
@@ -20,8 +21,7 @@ export function readBrowserSessionSettings(
           countdown: params.get('clock') !== 'off',
           vehicleId: params.get('vehicle') ?? preset.vehicleId,
         };
-  if (!VEHICLE_CATALOG.some((v) => v.compiledVehicle.id === values.vehicleId))
-    throw new RangeError('Unknown Session vehicle');
+  if (!vehicles.some((v) => v.compiledVehicle.id === values.vehicleId)) throw new RangeError('Unknown Session vehicle');
   return Object.freeze({ ...compileSessionConfiguration({ mode, ...values }), vehicleId: values.vehicleId });
 }
 
@@ -32,6 +32,7 @@ export function mountCourseSessionControls(
   preset: BrowserSessionSettings,
   maxLaps: number,
   actions: { start(): void; pause(paused: boolean): void },
+  vehicles: readonly CompiledVehicleDefinition[],
 ) {
   const panel = document.createElement('form');
   panel.className = 'session-setup';
@@ -65,7 +66,7 @@ export function mountCourseSessionControls(
   );
   const vehicle = select(
     'Vehicle',
-    VEHICLE_CATALOG.map((v) => ({ value: v.compiledVehicle.id, label: `${v.manufacturer} ${v.model}` })),
+    vehicles.map((v) => ({ value: v.compiledVehicle.id, label: `${v.manufacturer} ${v.model}` })),
     current.vehicleId,
   );
   const numeric = (name: string, value: number, min: number, max: number) => {
@@ -150,7 +151,7 @@ export function mountCourseSessionControls(
     params.set('rivals', rivals.value);
     params.set('laps', laps.value);
     params.set('clock', clock.value);
-    const next = readBrowserSessionSettings(params, preset);
+    const next = readBrowserSessionSettings(params, preset, vehicles);
     if (JSON.stringify(next) !== JSON.stringify(current)) {
       params.set('autostart', '1');
       location.search = params.toString();

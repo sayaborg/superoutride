@@ -1,5 +1,4 @@
-import type { DrivingDefinition } from '../driving-definition.js';
-import { createDrivingSettings } from './driving-settings.js';
+import type { CompiledDrivingDefinition } from '../compiled-driving-definition.js';
 import { TIRE_LOW_SPEED_REGULARIZATION, STEERING_LOW_SPEED_REGULARIZATION } from './numerical-constants.js';
 import { createSurfaceGeometryWorkspace } from './vehicle-dynamics.js';
 import { createPlanProjectionWorkspace } from '../../course/geometry/plan-coordinate.js';
@@ -15,13 +14,9 @@ import {
   type DrivingActuatorDefinition,
 } from './driving-actuator.js';
 import { createSteeringLimitWorkspace, limitSteeringInput } from './steering-input-limiter.js';
-import {
-  createVehicleTireFrictionCalibration,
-  type VehicleTireFrictionCalibrationState,
-} from './tire-friction-calibration.js';
+import { type VehicleTireFrictionCalibrationState } from './tire-friction-calibration.js';
 import { regularizedTireSlipAngle, type WheelSolveInput } from './tire-wheel.js';
 import {
-  createVehicleSteeringCalibration,
   steeringAutomaticMax,
   type VehicleSteeringCalibrationInput,
   type VehicleSteeringCalibrationState,
@@ -94,7 +89,7 @@ interface VehicleSpawnOptions {
   readonly initialSpeed: number;
   readonly steeringCalibration?: VehicleSteeringCalibrationInput;
   readonly tireFrictionCalibration?: Readonly<VehicleTireFrictionCalibrationState>;
-  readonly drivingDefinition: DrivingDefinition;
+  readonly drivingDefinition: CompiledDrivingDefinition;
   readonly supportReserve: number | null;
 }
 
@@ -111,14 +106,9 @@ export function createVehicle(
     supportReserve,
   }: VehicleSpawnOptions,
 ): VehicleState {
-  const driving = createDrivingSettings(drivingDefinition);
-  const resolvedSteeringCalibration = createVehicleSteeringCalibration(
-    steeringCalibration ?? driving.steeringCalibration,
-  );
-  const resolvedTireFrictionCalibration = createVehicleTireFrictionCalibration(
-    tireFrictionCalibration?.front ?? driving.tireFrictionCalibration.front,
-    tireFrictionCalibration?.rear ?? driving.tireFrictionCalibration.rear,
-  );
+  const driving = drivingDefinition.settings;
+  const resolvedSteeringCalibration = { ...(steeringCalibration ?? driving.steeringCalibration) };
+  const resolvedTireFrictionCalibration = tireFrictionCalibration ?? driving.tireFrictionCalibration;
   const bounds = coordinates.domain.lateralAt(s, { left: 0, right: 0 });
   if (l < bounds.left || l > bounds.right) throw new RangeError('vehicle spawn requires an in-domain coordinate');
   const coordinate = {
@@ -159,7 +149,7 @@ export function createVehicle(
     frontWheelOmega: frontOmega,
     rearWheelOmega: rearOmega,
     actuator: createDrivingActuatorState(),
-    torqueProtection: resolveTorqueProtectionPolicy({ wheelSlip: drivingDefinition.wheelSlip, supportReserve }),
+    torqueProtection: resolveTorqueProtectionPolicy({ wheelSlip: drivingDefinition.source.wheelSlip, supportReserve }),
     course: initializePlanCoordinateObservation(coordinates, position.x, position.z, s),
     surfaceType: surface.surfaceType,
     longitudinalAcceleration: 0,

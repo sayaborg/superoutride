@@ -28,7 +28,7 @@ interface Actor {
 export interface RaceActorObservation {
   readonly id: string;
   readonly vehicle: VehicleState;
-  readonly kind: SessionVehicle['kind'];
+  readonly form: SessionVehicle['form'];
   readonly paletteVariant: 'base' | 'braking';
 }
 
@@ -114,7 +114,7 @@ export function createCourseRace(options: {
   const visible: RaceActorObservation[] = [];
   const pool = rivals.map((c) => ({
     id: c.id,
-    kind: rival.kind,
+    form: rival.form,
     paletteVariant: 'base' as 'base' | 'braking',
     vehicle: c.actor.vehicle,
   }));

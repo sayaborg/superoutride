@@ -1,18 +1,17 @@
 import { createPlanCoordinateReader } from '../../src/course/geometry/plan-coordinate-reader.js';
-import type { VehicleCatalogEntry } from '../../src/vehicle/vehicle-catalog.js';
+import type { SessionVehicle } from '../../src/race/session-configuration.js';
 import type { DrivingInput } from '../../src/vehicle/driving-input.js';
 import { createBodyKinematicsWorkspace } from '../../src/vehicle/physics/vehicle-physics.js';
 import { compilePlanPath } from '../../src/course/geometry/plan-path.js';
 import { Profile } from '../../src/course/geometry/profile.js';
 import { SurfaceMap } from '../../src/vehicle/physics/surface-map.js';
 import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
-import { browserSessionVehicle } from '../../src/shell/session-vehicle.js';
 import { updateVehicle, vehicleBodyKinematics } from '../../src/vehicle/physics/vehicle-physics.js';
 import { SIM_DT } from '../../src/shell/frame-loop.js';
 import { wrapAngle } from '../../src/core/math.js';
 
 /** The finite flat world used only to generate game driving envelopes. */
-function createEnvelopeRun(entry: Readonly<VehicleCatalogEntry>, initialSpeed: number) {
+function createEnvelopeRun(entry: SessionVehicle, initialSpeed: number) {
   const plan = compilePlanPath({ x: 0, z: -10000, heading: 0 }, [{ kind: 'straight', length: 20000 }]);
   const coordinates = createPlanCoordinateReader(plan.segments, plan.length, (_s, out) => {
     out.left = -5000;
@@ -31,13 +30,13 @@ function createEnvelopeRun(entry: Readonly<VehicleCatalogEntry>, initialSpeed: n
     s: 10000,
     l: 0,
     initialSpeed,
-    ...browserSessionVehicle(entry),
+    ...entry,
   });
   return { vehicle, world };
 }
 
 /** Flat asphalt, production control/protection, ordinary inputs; no imposed velocity or force during measurement. */
-export function measureVehicleEnvelope(entry: Readonly<VehicleCatalogEntry>) {
+export function measureVehicleEnvelope(entry: SessionVehicle) {
   const make = (initialSpeed: number) => createEnvelopeRun(entry, initialSpeed);
   const step = (p: ReturnType<typeof createEnvelopeRun>, input: DrivingInput) =>
     updateVehicle(p.world, p.vehicle, input, SIM_DT);
