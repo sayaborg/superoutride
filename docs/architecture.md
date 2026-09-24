@@ -14,7 +14,9 @@ t = (sin(psi), cos(psi))
 n = (cos(psi), -sin(psi))
 ```
 
-A Section begins at X=Z=0 with heading zero. Its authored straight/circular primitive sequence is the planar authority. `s` is true arc length
+A Section is authored as PI coordinates and radii. Compilation normalizes its first PI to X=Z=0
+and its first edge to heading zero; the supplied coordinate origin and orientation do not survive
+into the native Section frame. The derived straight/circular plan is the planar authority. `s` is true arc length
 along that centerline and positive `l` is distance along its right normal. With centerline `C(s)`,
 normal `N(s)` and signed curvature `kappa`, planar coordinates are `C(s) + l*N(s)`; physical
 distance along an offset or sloping path is different.
@@ -46,7 +48,7 @@ its endpoint position at route l=0, unit tangent and right normal, and `e` is th
 | Environment/background     | Nearest endpoint value                                                          |
 
 The tangent rays participate in the same previous-s ±50 m projection window as the retained
-primitives. In-domain feet take precedence; otherwise the candidate nearest the previous s wins. Neither a
+segments. In-domain feet take precedence; otherwise the candidate nearest the previous s wins. Neither a
 world-origin placeholder nor a previous-s/l=0 fallback is used. These outside values do not
 create a supporting surface. Contact and recovery rules are owned by
 [Vehicle physics](vehicle-physics.md#surface-and-contact).
@@ -92,7 +94,7 @@ occurrences. `CompiledSection.coordinates` and `VehicleWorld.coordinates` expose
   when the window extends beyond retained occurrences.
 
 Outside the domain, both primitive feet clamped to the searched interval and endpoint-ray feet
-participate in the previous-s comparison. Exact ties retain candidate order (primitives first, then
+participate in the previous-s comparison. Exact ties retain candidate order (segments first, then
 entry and exit rays). In-domain selection retains occurrence ownership and centerline-distance precedence.
 This follows a continuous local candidate while it remains preferred, instead of switching branches
 merely because centerline distances cross. Endpoint clamping can hold s at a boundary while world
@@ -105,10 +107,10 @@ singular/ambiguous cases are not resolved by a velocity or coordinate clamp.
 `PlanCoordinateSample` and `PlanCoordinateProjection` are borrowed observations in caller-owned outputs.
 `PlanProjectionWorkspace` holds reusable numerical scratch, separate from vehicle state.
 `SectionPlanCoordinateReader` adds `projectionCandidates(start,end)` for mapped composition.
-The requested interval lies inside the Section domain. Candidate queries return source-ordered
+The requested interval lies inside the Section domain. Candidate queries return station-ordered
 primitive intervals; each candidate projects a bounded subinterval and reports whether its foot
 was inside that subinterval before endpoint clamping. Geometry construction and its geometric
-proofs inspect compiled primitives.
+proofs inspect compiled segments.
 Terrain reads the same `PlanCoordinateReader` as physics; the Route owns the extent.
 `forwardEnd(start,end,yaw)` returns the first non-forward-facing tangent station, or the interval end.
 
@@ -147,10 +149,18 @@ A sampling tolerance changes neither point ownership nor earned progress.
 
 ## Plan authority
 
-Each compiled plan primitive retains its author record, exact s interval, starting pose and signed curvature.
-A straight has `kappa=0`. A circular arc of radius `R` and signed turn has
-`kappa=sign(turn)/R`; its length is `R*abs(turnRadians)`. Primitive-anchor fractions therefore advance
-linearly in true arc length. Section projection onto a straight or circular arc uses closed-form geometry.
+The ordered PI sequence defines tangent edges and circular fillets. At an interior PI with
+signed deflection `delta` and radius `R`, each tangent setback is `R*tan(abs(delta)/2)`.
+Compilation checks endpoint radii, distinct neighbors, interior deflections and tangent nonoverlap,
+then emits the remaining straight parts and circular arcs in station order. A tangent remainder
+within the plan-position budget (1e-8 m) is treated as zero when an incident arc is present;
+this absorbs coordinate and trigonometric roundoff at touching arcs. Zero-length lines are omitted.
+PI conversion runs only during compilation. Derived segments have no authored record or ID;
+they retain internal geometry, exact s interval, starting pose and signed curvature.
+A straight has `kappa=0`. An arc has `kappa=sign(delta)/R` and length `R*abs(delta)`.
+The temporary PI station table resolves positions, including Session landmarks, and is discarded
+before publication. The native frame is translated and rotated as described above, without scaling.
+Section projection onto a straight or circular arc uses closed-form geometry.
 The projection window `W = 50 m` is measured in chainage in both native and mapped Readers.
 At the fixed frame step and twelve vehicle substeps, longitudinal travel is a few metres even at
 the provisional vehicles' highest speeds. Fifty metres also covers front/rear contact offsets

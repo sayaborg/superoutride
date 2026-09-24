@@ -1,15 +1,15 @@
 import type { RegionDocument } from './course-document.js';
-import type { CompiledCourseAnchor } from './course-geometry.js';
+import type { CompiledCoursePosition } from './course-geometry.js';
 
 export interface CompiledBoundary {
   readonly id: string;
-  readonly knots: readonly { readonly anchor: CompiledCourseAnchor; readonly l: number }[];
+  readonly knots: readonly { readonly at: CompiledCoursePosition; readonly l: number }[];
 }
 
 export interface CompiledRegion {
   readonly id: string;
-  readonly start: CompiledCourseAnchor;
-  readonly end: CompiledCourseAnchor;
+  readonly start: CompiledCoursePosition;
+  readonly end: CompiledCoursePosition;
   readonly left: CompiledBoundary;
   readonly right: CompiledBoundary;
   readonly role: RegionDocument['role'];
@@ -29,22 +29,22 @@ export interface CompiledRegionPartition {
 /** Canonical resolved knots are the authority; neither widths nor centers are independently stored. */
 export function courseBoundaryAt(boundary: CompiledBoundary, s: number): number {
   const knots = boundary.knots;
-  if (!Number.isFinite(s) || s < knots[0]!.anchor.s || s > knots.at(-1)!.anchor.s)
+  if (!Number.isFinite(s) || s < knots[0]!.at.s || s > knots.at(-1)!.at.s)
     throw new RangeError('Boundary query must be within its finite knot domain');
-  // Anchors retain primitive provenance. Search their resolved scalar without building another table.
+  // Search resolved positions directly without building another station table.
   let low = 0,
     high = knots.length;
   while (low < high) {
     const mid = (low + high) >>> 1;
-    if (knots[mid]!.anchor.s <= s) low = mid + 1;
+    if (knots[mid]!.at.s <= s) low = mid + 1;
     else high = mid;
   }
   const i = Math.min(Math.max(0, low - 1), knots.length - 2);
   const a = knots[i]!,
     b = knots[i + 1]!;
-  if (s === a.anchor.s) return a.l;
-  if (s === b.anchor.s) return b.l;
-  return a.l + (b.l - a.l) * ((s - a.anchor.s) / (b.anchor.s - a.anchor.s));
+  if (s === a.at.s) return a.l;
+  if (s === b.at.s) return b.l;
+  return a.l + (b.l - a.l) * ((s - a.at.s) / (b.at.s - a.at.s));
 }
 
 /** Half-open ownership; l is in the chart whose zero is sourceLateralOrigin in source coordinates. */

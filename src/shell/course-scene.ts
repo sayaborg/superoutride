@@ -25,7 +25,7 @@ export function createCourseScene(
   displaySettings: DisplaySettings = createDisplaySettings(),
 ) {
   if (!rules?.grid.length) throw new RangeError('Driving requires saved Session rules with a starting grid');
-  if (Math.min(...rules.grid.map((slot) => slot.anchor.s)) < CURRENT_CAMERA_PROFILE.dCam)
+  if (Math.min(...rules.grid.map((slot) => slot.at.s)) < CURRENT_CAMERA_PROFILE.dCam)
     throw new RangeError('Driving requires the rearmost grid position to have camera space behind it');
   // Loading coverage at 240 m/s (864 km/h), not a mechanics speed clamp.
   const maximumStepMeters = 240 * SIM_DT;
@@ -51,10 +51,7 @@ export function createCourseScene(
     maximumStepMeters,
     contactReachMeters,
   });
-  runtime.refresh(
-    Math.min(...rules.grid.map((slot) => slot.anchor.s)),
-    Math.max(...rules.grid.map((slot) => slot.anchor.s)),
-  );
+  runtime.refresh(Math.min(...rules.grid.map((slot) => slot.at.s)), Math.max(...rules.grid.map((slot) => slot.at.s)));
   const rendering = createCourseRouteVisualReaders(runtime.route, ground);
   rendering.read();
   const renderWorkspace = createRenderWorkspace();

@@ -18,10 +18,8 @@ import { wrapAngle } from '../../src/core/math.js';
 
 /** The finite flat world used only to generate game driving envelopes. */
 function createEnvelopeRun(entry: Readonly<VehicleCatalogEntry>, initialSpeed: number) {
-  const plan = compilePlanPath({ x: 0, z: -10000, heading: 0 }, [
-    { id: 'envelope-straight', kind: 'straight', length: 20000 },
-  ]);
-  const coordinates = createPlanCoordinateReader(plan.primitives, plan.length, (_s, out) => {
+  const plan = compilePlanPath({ x: 0, z: -10000, heading: 0 }, [{ kind: 'straight', length: 20000 }]);
+  const coordinates = createPlanCoordinateReader(plan.segments, plan.length, (_s, out) => {
     out.left = -5000;
     out.right = 5000;
     return out;

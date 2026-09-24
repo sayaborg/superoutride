@@ -2,7 +2,7 @@ import type { Writable } from '../core/writable.js';
 import { COURSE_DOCUMENT_LIMITS } from './course-document.js';
 import { CourseInputError, requireCourse } from './course-diagnostics.js';
 import { validatePlanDomainInjectivity } from './plan-domain-injectivity.js';
-import type { CompiledPlanPrimitive } from './geometry/plan-path.js';
+import type { CompiledPlanSegment } from './geometry/plan-path.js';
 import {
   courseBoundaryAt,
   type CompiledRegion,
@@ -63,12 +63,12 @@ function lateralDomain(regions: readonly CompiledRegion[], stations: readonly nu
 
 function validatePlanMetric(
   sectionId: string,
-  primitives: readonly CompiledPlanPrimitive[],
+  segments: readonly CompiledPlanSegment[],
   domain: CompiledPlanLateralDomain,
   sectionPath: string,
 ): void {
   const bounds = { left: 0, right: 0 };
-  for (const primitive of primitives) {
+  for (const primitive of segments) {
     if (primitive.curvature === 0) continue;
     const stations = [
       primitive.sStart,
@@ -81,8 +81,8 @@ function validatePlanMetric(
       const metric = 1 - primitive.curvature * l;
       requireCourse(
         metric > 0,
-        `${sectionPath}/primitives/${primitive.index}`,
-        `Section ${JSON.stringify(sectionId)} primitive ${JSON.stringify(primitive.source.id)} has 1 - kappa*l <= 0 at s=${s}`,
+        `${sectionPath}/pis`,
+        `Section ${JSON.stringify(sectionId)} primitive ${primitive.index} has 1 - kappa*l <= 0 at s=${s}`,
         'plan_coordinate_inversion',
       );
     }
@@ -93,7 +93,7 @@ function validatePlanMetric(
 export function compileCourseRegionGeometry(
   sectionId: string,
   length: number,
-  primitives: readonly CompiledPlanPrimitive[],
+  segments: readonly CompiledPlanSegment[],
   regions: readonly CompiledRegion[],
   carriageways: readonly CompiledCarriageway[],
   sectionPath: string,
@@ -104,7 +104,7 @@ export function compileCourseRegionGeometry(
     ...new Set([
       0,
       length,
-      ...boundaries.flatMap((boundary) => boundary.knots.map((knot) => knot.anchor.s)),
+      ...boundaries.flatMap((boundary) => boundary.knots.map((knot) => knot.at.s)),
       ...regions.flatMap((region) => [region.start.s, region.end.s]),
     ]),
   ].sort((a, b) => a - b);
@@ -216,8 +216,8 @@ export function compileCourseRegionGeometry(
     );
   }
   const domain = lateralDomain(regions, stations);
-  validatePlanMetric(sectionId, primitives, domain, sectionPath);
-  validatePlanDomainInjectivity(sectionId, primitives, domain, sectionPath);
+  validatePlanMetric(sectionId, segments, domain, sectionPath);
+  validatePlanDomainInjectivity(sectionId, segments, domain, sectionPath);
   return Object.freeze({
     partition: Object.freeze({ length, regions: Object.freeze([...regions]) }),
     lateralDomain: domain,

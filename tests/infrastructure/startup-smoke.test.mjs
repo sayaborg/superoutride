@@ -28,7 +28,7 @@ for (const stem of ['ribbon-coast', 'ribbon-fork', 'ribbon-ring'])
     );
     const entry = VEHICLE_CATALOG[0];
     const vehicle = createArcadeVehicle(entry.profile, scene.world, {
-      s: course.rules.grid[0].anchor.s,
+      s: course.rules.grid[0].at.s,
       l: 0,
       initialSpeed: 0,
       torqueProtection: entry.torqueProtection,

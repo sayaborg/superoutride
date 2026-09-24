@@ -3,7 +3,7 @@ import type { ProfileReader, ProfilePolylineReader } from '../geometry/profile.j
 import type { PlanarPose, PlanarTransform } from '../../core/planar-transform.js';
 import type { CompiledCourseImageSource } from './course-image-source.js';
 import type { CoursePresentation } from '../course-presentation.js';
-import type { CompiledCourseAnchor, CompiledPlanPrimitive } from '../course-geometry.js';
+import type { CompiledCoursePosition, CompiledPlanSegment } from '../course-geometry.js';
 import type { CompiledBoundary, CompiledRegionPartition, CompiledCarriageway } from '../course-regions.js';
 import type { CompiledPhysicalBinding } from '../course-physical-binding.js';
 import type { SurfaceMaterial } from '../surface-material.js';
@@ -11,7 +11,7 @@ import type { SurfaceMaterial } from '../surface-material.js';
 /** Canonical reusable node, including back-references. Topology may intentionally cycle. */
 export interface CompiledSection {
   readonly id: string;
-  readonly primitives: readonly CompiledPlanPrimitive[];
+  readonly segments: readonly CompiledPlanSegment[];
   readonly coordinates: SectionPlanCoordinateReader;
   readonly boundaries: readonly CompiledBoundary[];
   readonly regionPartition: CompiledRegionPartition;
@@ -45,8 +45,8 @@ export interface CompiledLink {
 /** Static authored parallel-zone controls; no field choice or actor state. */
 export interface CompiledFork {
   readonly section: CompiledSection;
-  readonly lock: CompiledCourseAnchor;
-  readonly closure: CompiledCourseAnchor;
+  readonly lock: CompiledCoursePosition;
+  readonly closure: CompiledCoursePosition;
   readonly regions: readonly {
     readonly link: CompiledLink;
     readonly left: number;

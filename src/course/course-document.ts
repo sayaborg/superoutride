@@ -1,29 +1,33 @@
 import { CourseInputError, courseFailure, courseSuccess, type CourseResult } from './course-diagnostics.js';
 
-const COURSE_DOCUMENT_VERSION = 15;
+const COURSE_DOCUMENT_VERSION = 16;
 
 interface GeometryRecipeIdentity {
   readonly id: string;
   readonly version: number;
 }
 
-export type CourseAnchor =
-  | { readonly kind: 'absolute'; readonly s: number }
-  | { readonly kind: 'primitive'; readonly primitiveId: string; readonly fraction: number };
+export interface CoursePosition {
+  readonly pi: string;
+  readonly offset: number;
+}
 
-export type PlanPrimitive =
-  | { readonly id: string; readonly kind: 'straight'; readonly length: number }
-  | { readonly id: string; readonly kind: 'arc'; readonly radius: number; readonly turn: number };
+export interface PlanPI {
+  readonly id: string;
+  readonly x: number;
+  readonly z: number;
+  readonly radius: number;
+}
 
 interface BoundaryDocument {
   readonly id: string;
-  readonly knots: readonly { readonly anchor: CourseAnchor; readonly l: number }[];
+  readonly knots: readonly { readonly at: CoursePosition; readonly l: number }[];
 }
 
 export interface RegionDocument {
   readonly id: string;
-  readonly start: CourseAnchor;
-  readonly end: CourseAnchor;
+  readonly start: CoursePosition;
+  readonly end: CoursePosition;
   readonly leftBoundaryId: string;
   readonly rightBoundaryId: string;
   readonly role: 'pavement' | 'shoulder' | 'median';
@@ -91,7 +95,7 @@ export type BandElementDocument =
 export interface PresentationDocument {
   readonly ground: { readonly kind: 'bands'; readonly bands: readonly BandElementDocument[] };
   readonly environments: readonly {
-    readonly anchor: CourseAnchor;
+    readonly at: CoursePosition;
     readonly name: string;
     readonly background: {
       readonly assetId: string;
@@ -102,8 +106,8 @@ export interface PresentationDocument {
   readonly sceneryRows: readonly {
     readonly id: string;
     readonly assetId: string;
-    readonly start: CourseAnchor;
-    readonly end: CourseAnchor;
+    readonly start: CoursePosition;
+    readonly end: CoursePosition;
     readonly spacing: number;
     readonly boundaryId: string;
     readonly side: 'left' | 'right';
@@ -114,7 +118,7 @@ export interface PresentationDocument {
     readonly id: string;
     readonly instanceId: string;
     readonly unselectedCarriagewayId: string | null;
-    readonly anchor: CourseAnchor;
+    readonly at: CoursePosition;
     readonly l: number;
     readonly groundOffset: number;
   }[];
@@ -122,29 +126,29 @@ export interface PresentationDocument {
 
 export interface SectionDocument {
   readonly id: string;
-  readonly primitives: readonly PlanPrimitive[];
+  readonly pis: readonly PlanPI[];
   readonly boundaries: readonly BoundaryDocument[];
   readonly regions: readonly RegionDocument[];
-  readonly height: readonly { readonly anchor: CourseAnchor; readonly y: number; readonly curveLength: number }[];
+  readonly height: readonly { readonly at: CoursePosition; readonly y: number; readonly curveLength: number }[];
   readonly physicalBindings: readonly {
     readonly regionId: string;
-    readonly sections: readonly { readonly anchor: CourseAnchor; readonly material: string }[];
+    readonly sections: readonly { readonly at: CoursePosition; readonly material: string }[];
   }[];
   readonly carriageways: readonly CarriagewayDocument[];
   readonly assetIds: readonly string[];
   readonly presentation: PresentationDocument | null;
-  readonly fork: null | { readonly lock: CourseAnchor; readonly closure: CourseAnchor };
+  readonly fork: null | { readonly lock: CoursePosition; readonly closure: CoursePosition };
 }
 
 export interface CourseLandmarkDocument {
   readonly id: string;
   readonly sectionId: string;
   readonly carriagewayId: string;
-  readonly anchor: CourseAnchor;
+  readonly at: CoursePosition;
 }
 
 interface CourseRulesDocument {
-  readonly grid: readonly { readonly anchor: CourseAnchor; readonly l: number }[];
+  readonly grid: readonly { readonly at: CoursePosition; readonly l: number }[];
   readonly checkpoints: readonly CourseLandmarkDocument[];
   readonly finishes: readonly CourseLandmarkDocument[];
   readonly maxLaps: number;
@@ -190,7 +194,7 @@ export const COURSE_DOCUMENT_LIMITS = Object.freeze({
   jsonBytes: 4 * 1024 * 1024,
   idCodeUnits: 128,
   sections: 16,
-  primitives: 2048,
+  pis: 2048,
   boundaries: 32,
   knots: 256,
   regions: 32,
@@ -317,45 +321,28 @@ function identified<T extends { readonly id: string }>(
   });
 }
 
-function anchor(value: unknown, path: string): CourseAnchor {
-  const kind = value && typeof value === 'object' ? (value as Record<string, unknown>).kind : undefined;
-  if (kind === 'absolute') {
-    const v = record(value, path, ['kind', 's']);
-    return Object.freeze({ kind, s: number(v.s, `${path}/s`, 0, COURSE_DOCUMENT_LIMITS.lengthMeters) });
-  }
-  if (kind === 'primitive') {
-    const v = record(value, path, ['kind', 'primitiveId', 'fraction']);
-    return Object.freeze({
-      kind,
-      primitiveId: id(v.primitiveId, `${path}/primitiveId`),
-      fraction: number(v.fraction, `${path}/fraction`, 0, 1),
-    });
-  }
-  return fail('unsupported_feature', `${path}/kind`, 'Supported anchors are absolute and primitive');
+function position(value: unknown, path: string): CoursePosition {
+  const v = record(value, path, ['pi', 'offset']);
+  return Object.freeze({
+    pi: id(v.pi, `${path}/pi`),
+    offset: number(
+      v.offset,
+      `${path}/offset`,
+      -COURSE_DOCUMENT_LIMITS.lengthMeters,
+      COURSE_DOCUMENT_LIMITS.lengthMeters,
+    ),
+  });
 }
 
-function primitive(value: unknown, path: string): PlanPrimitive {
-  const kind = value && typeof value === 'object' ? (value as Record<string, unknown>).kind : undefined;
-  if (kind === 'straight') {
-    const v = record(value, path, ['id', 'kind', 'length']);
-    return Object.freeze({
-      id: id(v.id, `${path}/id`),
-      kind,
-      length: number(v.length, `${path}/length`, 0, COURSE_DOCUMENT_LIMITS.lengthMeters, true),
-    });
-  }
-  if (kind === 'arc') {
-    const v = record(value, path, ['id', 'kind', 'radius', 'turn']);
-    const turn = number(v.turn, `${path}/turn`, -360, 360);
-    if (turn === 0) fail('invalid_numeric_domain', `${path}/turn`, 'An arc must have a nonzero signed turn');
-    return Object.freeze({
-      id: id(v.id, `${path}/id`),
-      kind,
-      radius: number(v.radius, `${path}/radius`, 0, COURSE_DOCUMENT_LIMITS.lengthMeters, true),
-      turn,
-    });
-  }
-  return fail('unsupported_feature', `${path}/kind`, 'Supported plan primitives are straight and arc');
+function planPI(value: unknown, path: string): PlanPI {
+  const v = record(value, path, ['id', 'x', 'z', 'radius']);
+  const bound = COURSE_DOCUMENT_LIMITS.coordinateMeters;
+  return Object.freeze({
+    id: id(v.id, `${path}/id`),
+    x: number(v.x, `${path}/x`, -bound, bound),
+    z: number(v.z, `${path}/z`, -bound, bound),
+    radius: number(v.radius, `${path}/radius`, 0, COURSE_DOCUMENT_LIMITS.lengthMeters),
+  });
 }
 
 function boundary(value: unknown, path: string): BoundaryDocument {
@@ -363,9 +350,9 @@ function boundary(value: unknown, path: string): BoundaryDocument {
   return Object.freeze({
     id: id(v.id, `${path}/id`),
     knots: array(v.knots, `${path}/knots`, COURSE_DOCUMENT_LIMITS.knots, (item, at) => {
-      const knot = record(item, at, ['anchor', 'l']);
+      const knot = record(item, at, ['at', 'l']);
       return Object.freeze({
-        anchor: anchor(knot.anchor, `${at}/anchor`),
+        at: position(knot.at, `${at}/at`),
         l: number(knot.l, `${at}/l`, -COURSE_DOCUMENT_LIMITS.lateralMeters, COURSE_DOCUMENT_LIMITS.lateralMeters),
       });
     }),
@@ -378,8 +365,8 @@ function region(value: unknown, path: string): RegionDocument {
     fail('unsupported_feature', `${path}/role`, 'Supported roles are pavement, shoulder and median');
   return Object.freeze({
     id: id(v.id, `${path}/id`),
-    start: anchor(v.start, `${path}/start`),
-    end: anchor(v.end, `${path}/end`),
+    start: position(v.start, `${path}/start`),
+    end: position(v.end, `${path}/end`),
     leftBoundaryId: id(v.leftBoundaryId, `${path}/leftBoundaryId`),
     rightBoundaryId: id(v.rightBoundaryId, `${path}/rightBoundaryId`),
     role: v.role,
@@ -494,10 +481,10 @@ function presentation(value: unknown, path: string): PresentationDocument | null
   return Object.freeze({
     ground,
     environments: array(v.environments, `${path}/environments`, COURSE_DOCUMENT_LIMITS.knots, (item, at) => {
-      const e = record(item, at, ['anchor', 'name', 'background']);
+      const e = record(item, at, ['at', 'name', 'background']);
       const b = record(e.background, `${at}/background`, ['assetId', 'horizonY', 'yawOrigin']);
       return Object.freeze({
-        anchor: anchor(e.anchor, `${at}/anchor`),
+        at: position(e.at, `${at}/at`),
         name: id(e.name, `${at}/name`),
         background: Object.freeze({
           assetId: id(b.assetId, `${at}/background/assetId`),
@@ -522,8 +509,8 @@ function presentation(value: unknown, path: string): PresentationDocument | null
       return Object.freeze({
         id: id(row.id, `${at}/id`),
         assetId: id(row.assetId, `${at}/assetId`),
-        start: anchor(row.start, `${at}/start`),
-        end: anchor(row.end, `${at}/end`),
+        start: position(row.start, `${at}/start`),
+        end: position(row.end, `${at}/end`),
         spacing: number(row.spacing, `${at}/spacing`, 0, COURSE_DOCUMENT_LIMITS.lengthMeters, true),
         boundaryId: id(row.boundaryId, `${at}/boundaryId`),
         side: row.side,
@@ -537,13 +524,13 @@ function presentation(value: unknown, path: string): PresentationDocument | null
       });
     }),
     scenery: identified(v.scenery, `${path}/scenery`, COURSE_DOCUMENT_LIMITS.placements, (item, at) => {
-      const s = record(item, at, ['id', 'instanceId', 'unselectedCarriagewayId', 'anchor', 'l', 'groundOffset']);
+      const s = record(item, at, ['id', 'instanceId', 'unselectedCarriagewayId', 'at', 'l', 'groundOffset']);
       return Object.freeze({
         id: id(s.id, `${at}/id`),
         instanceId: id(s.instanceId, `${at}/instanceId`),
         unselectedCarriagewayId:
           s.unselectedCarriagewayId === null ? null : id(s.unselectedCarriagewayId, `${at}/unselectedCarriagewayId`),
-        anchor: anchor(s.anchor, `${at}/anchor`),
+        at: position(s.at, `${at}/at`),
         l: number(s.l, `${at}/l`, -COURSE_DOCUMENT_LIMITS.lateralMeters, COURSE_DOCUMENT_LIMITS.lateralMeters),
         groundOffset: number(
           s.groundOffset,
@@ -559,7 +546,7 @@ function presentation(value: unknown, path: string): PresentationDocument | null
 function section(value: unknown, path: string): SectionDocument {
   const v = record(value, path, [
     'id',
-    'primitives',
+    'pis',
     'boundaries',
     'regions',
     'height',
@@ -572,13 +559,13 @@ function section(value: unknown, path: string): SectionDocument {
   const fork = v.fork === null ? null : record(v.fork, `${path}/fork`, ['lock', 'closure']);
   return Object.freeze({
     id: id(v.id, `${path}/id`),
-    primitives: identified(v.primitives, `${path}/primitives`, COURSE_DOCUMENT_LIMITS.primitives, primitive),
+    pis: identified(v.pis, `${path}/pis`, COURSE_DOCUMENT_LIMITS.pis, planPI),
     boundaries: identified(v.boundaries, `${path}/boundaries`, COURSE_DOCUMENT_LIMITS.boundaries, boundary),
     regions: identified(v.regions, `${path}/regions`, COURSE_DOCUMENT_LIMITS.regions, region),
     height: array(v.height, `${path}/height`, COURSE_DOCUMENT_LIMITS.knots, (item, at) => {
-      const node = record(item, at, ['anchor', 'y', 'curveLength']);
+      const node = record(item, at, ['at', 'y', 'curveLength']);
       return Object.freeze({
-        anchor: anchor(node.anchor, `${at}/anchor`),
+        at: position(node.at, `${at}/at`),
         y: number(node.y, `${at}/y`, -COURSE_DOCUMENT_LIMITS.heightMeters, COURSE_DOCUMENT_LIMITS.heightMeters),
         curveLength: number(
           node.curveLength,
@@ -597,9 +584,9 @@ function section(value: unknown, path: string): SectionDocument {
         return Object.freeze({
           regionId: id(binding.regionId, `${at}/regionId`),
           sections: array(binding.sections, `${at}/sections`, COURSE_DOCUMENT_LIMITS.knots, (item, at) => {
-            const section = record(item, at, ['anchor', 'material']);
+            const section = record(item, at, ['at', 'material']);
             return Object.freeze({
-              anchor: anchor(section.anchor, `${at}/anchor`),
+              at: position(section.at, `${at}/at`),
               material: id(section.material, `${at}/material`),
             });
           }),
@@ -613,8 +600,8 @@ function section(value: unknown, path: string): SectionDocument {
       fork === null
         ? null
         : Object.freeze({
-            lock: anchor(fork.lock, `${path}/fork/lock`),
-            closure: anchor(fork.closure, `${path}/fork/closure`),
+            lock: position(fork.lock, `${path}/fork/lock`),
+            closure: position(fork.closure, `${path}/fork/closure`),
           }),
   });
 }
@@ -629,18 +616,18 @@ function rules(value: unknown, path: string): CourseRulesDocument | null {
     return n;
   };
   const landmark = (value: unknown, at: string): CourseLandmarkDocument => {
-    const g = record(value, at, ['id', 'sectionId', 'carriagewayId', 'anchor']);
+    const g = record(value, at, ['id', 'sectionId', 'carriagewayId', 'at']);
     return Object.freeze({
       id: id(g.id, at + '/id'),
       sectionId: id(g.sectionId, at + '/sectionId'),
       carriagewayId: id(g.carriagewayId, at + '/carriagewayId'),
-      anchor: anchor(g.anchor, at + '/anchor'),
+      at: position(g.at, at + '/at'),
     });
   };
   return Object.freeze({
     grid: array(v.grid, path + '/grid', 17, (value, at) => {
-      const slot = record(value, at, ['anchor', 'l']);
-      return Object.freeze({ anchor: anchor(slot.anchor, at + '/anchor'), l: number(slot.l, at + '/l', -1000, 1000) });
+      const slot = record(value, at, ['at', 'l']);
+      return Object.freeze({ at: position(slot.at, at + '/at'), l: number(slot.l, at + '/l', -1000, 1000) });
     }),
     checkpoints: identified(v.checkpoints, path + '/checkpoints', 256, landmark),
     finishes: identified(v.finishes, path + '/finishes', 16, landmark),

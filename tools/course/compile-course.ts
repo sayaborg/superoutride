@@ -41,7 +41,7 @@ if (!result.ok) {
         sections: result.value.sections.map((section) => ({
           id: section.id,
           length: section.coordinates.domain.end,
-          primitives: section.primitives.length,
+          segments: section.segments.length,
           regions: section.regionPartition.regions.length,
           heightNodes: section.height.knots.length,
           physicalBindings: section.physicalBindings.length,

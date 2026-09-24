@@ -20,7 +20,7 @@ export interface CourseReport {
   }[];
   scenery: { s: number; l: number; asset: string; state: string | null }[];
   environments: { s: number; name: string }[];
-  primitives: { id: string; kind: string; start: number; end: number }[];
+  segments: { index: number; kind: string; start: number; end: number }[];
 }
 
 import path from 'node:path';
@@ -39,9 +39,9 @@ export async function courseReport(course: CompiledCourse, section: CompiledSect
       length,
       ...Array.from({ length: Math.ceil(length / step) }, (_, i) => i * step),
       ...section.height.knots.map((n) => n.s),
-      ...section.primitives.flatMap((p) => [p.sStart, p.sEnd]),
+      ...section.segments.flatMap((p) => [p.sStart, p.sEnd]),
       ...section.height.knots.flatMap((n) => [n.s - n.curveLength / 2, n.s + n.curveLength / 2]),
-      ...section.boundaries.flatMap((b) => b.knots.map((k) => k.anchor.s)),
+      ...section.boundaries.flatMap((b) => b.knots.map((k) => k.at.s)),
     ]),
   ].sort((a, b) => a - b);
   const metric = { curvature: 0, offsetMetric: 1 };
@@ -54,7 +54,7 @@ export async function courseReport(course: CompiledCourse, section: CompiledSect
       x: world.x,
       z: world.z,
       boundaries: section.boundaries.map((b) =>
-        s < b.knots[0]!.anchor.s || s > b.knots.at(-1)!.anchor.s ? null : courseBoundaryAt(b, s),
+        s < b.knots[0]!.at.s || s > b.knots.at(-1)!.at.s ? null : courseBoundaryAt(b, s),
       ),
     };
   });
@@ -67,13 +67,13 @@ export async function courseReport(course: CompiledCourse, section: CompiledSect
     boundaries: section.boundaries.map((b) => b.id),
     samples,
     scenery: section.presentation!.scenery.map((p) => ({
-      s: p.anchor.s,
+      s: p.at.s,
       l: p.l,
       asset: p.instance.asset.source.name,
       state: p.unselected?.id ?? null,
     })),
-    environments: section.presentation!.environments.map((e) => ({ s: e.anchor.s, name: e.name })),
-    primitives: section.primitives.map((p) => ({ id: p.source.id, kind: p.source.kind, start: p.sStart, end: p.sEnd })),
+    environments: section.presentation!.environments.map((e) => ({ s: e.at.s, name: e.name })),
+    segments: section.segments.map((p) => ({ index: p.index, kind: p.geometry.kind, start: p.sStart, end: p.sEnd })),
   };
   const json = path.join(directory, 'report.json');
   await atomicWrite(json, JSON.stringify(report, null, 2) + '\n');

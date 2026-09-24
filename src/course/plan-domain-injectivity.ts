@@ -1,6 +1,6 @@
 import { createPlanCoordinateSample } from './geometry/plan-coordinate.js';
 import { createPlanCoordinateReader } from './geometry/plan-coordinate-reader.js';
-import type { CompiledPlanPrimitive } from './geometry/plan-path.js';
+import type { CompiledPlanSegment } from './geometry/plan-path.js';
 import type { CompiledPlanLateralDomain } from './course-region-geometry.js';
 import { CourseInputError } from './course-diagnostics.js';
 import { normalFromHeading, tangentFromHeading, type Vec2 } from '../core/math.js';
@@ -49,18 +49,18 @@ function separated(a: readonly Vec2[], b: readonly Vec2[], padding: number): boo
 /** Conservative envelopes of exact straight/circular offsets. */
 export function validatePlanDomainInjectivity(
   sectionId: string,
-  primitives: readonly CompiledPlanPrimitive[],
+  segments: readonly CompiledPlanSegment[],
   domain: CompiledPlanLateralDomain,
   sectionPath: string,
 ): void {
-  const length = primitives.at(-1)!.sEnd;
-  const coordinates = createPlanCoordinateReader(primitives, length, domain.lateralAt);
+  const length = segments.at(-1)!.sEnd;
+  const coordinates = createPlanCoordinateReader(segments, length, domain.lateralAt);
   const a = createPlanCoordinateSample();
   const b = createPlanCoordinateSample();
   const left = { left: 0, right: 0 };
   const right = { left: 0, right: 0 };
   const cells: Cell[] = [];
-  for (const primitive of primitives) {
+  for (const primitive of segments) {
     const stops = [
       primitive.sStart,
       ...domain.stations.filter((s) => s > primitive.sStart && s < primitive.sEnd),

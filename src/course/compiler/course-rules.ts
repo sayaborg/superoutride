@@ -1,6 +1,6 @@
 import type { CourseDocument, CourseLandmarkDocument } from '../course-document.js';
 import { requireCourse } from '../course-diagnostics.js';
-import { resolveCourseAnchor, type CompiledCourseAnchor } from '../course-geometry.js';
+import { resolveCoursePosition, type CompiledCoursePosition } from '../course-geometry.js';
 import { courseBoundaryAt, type CompiledCarriageway } from '../course-regions.js';
 import { coursePhysicalMaterialAt } from '../course-physical-binding.js';
 import { createRegionSurfaceReader } from '../region-surface-reader.js';
@@ -10,7 +10,7 @@ export interface CompiledCourseLandmark {
   readonly id: string;
   readonly section: CompiledSection;
   readonly carriageway: CompiledCarriageway;
-  readonly anchor: CompiledCourseAnchor;
+  readonly at: CompiledCoursePosition;
   readonly left: number;
   readonly right: number;
 }
@@ -20,16 +20,14 @@ export function compileCourseRules(
   document: CourseDocument,
   sections: readonly CompiledSection[],
   entry: CompiledSection,
+  stations: ReadonlyMap<CompiledSection, ReadonlyMap<string, number>>,
 ) {
   const source = document.rules;
   if (source === null) return null;
   const check = (condition: boolean, path: string, message: string) =>
     requireCourse(condition, path, message, 'invalid_rules');
-  const tables = new Map(
-    sections.map((section) => [section, new Map(section.primitives.map((p) => [p.source.id, p]))]),
-  );
-  const resolve = (section: CompiledSection, anchor: CourseLandmarkDocument['anchor'], path: string) =>
-    resolveCourseAnchor(anchor, tables.get(section)!, section.coordinates.domain.end, path);
+  const resolve = (section: CompiledSection, position: CourseLandmarkDocument['at'], path: string) =>
+    resolveCoursePosition(position, stations.get(section)!, section.coordinates.domain.end, path);
   const endS = (section: CompiledSection) => section.coordinates.domain.end;
   const compile = (g: CourseLandmarkDocument, path: string): CompiledCourseLandmark => {
     const section = sections.find((s) => s.id === g.sectionId);
@@ -41,29 +39,29 @@ export function compileCourseRules(
       'Unknown landmark Carriageway',
       'unresolved_reference',
     );
-    const anchor = resolve(section, g.anchor, path + '/anchor');
+    const position = resolve(section, g.at, path + '/at');
     check(
-      anchor.s > 0 && anchor.s <= endS(section),
+      position.s > 0 && position.s <= endS(section),
       path,
       'Landmark must lie after entry and no later than its ownership exit',
     );
-    const regions = carriageway.regions.filter((b) => b.start.s <= anchor.s && anchor.s <= b.end.s);
+    const regions = carriageway.regions.filter((b) => b.start.s <= position.s && position.s <= b.end.s);
     check(regions.length > 0, path, 'Landmark requires pavement');
-    const left = Math.min(...regions.map((b) => courseBoundaryAt(b.left, anchor.s)));
-    const right = Math.max(...regions.map((b) => courseBoundaryAt(b.right, anchor.s)));
+    const left = Math.min(...regions.map((b) => courseBoundaryAt(b.left, position.s)));
+    const right = Math.max(...regions.map((b) => courseBoundaryAt(b.right, position.s)));
     check(
       right > left &&
         regions.every(
           (b) =>
             coursePhysicalMaterialAt(
               section.physicalBindings.find((p) => p.region === b)!,
-              anchor.s,
+              position.s,
             ).supported,
         ),
       path,
       'Landmark requires positive supported width',
     );
-    return Object.freeze({ id: g.id, section, carriageway, anchor, left, right });
+    return Object.freeze({ id: g.id, section, carriageway, at: position, left, right });
   };
   const checkpoints = source.checkpoints.map((g, i) => compile(g, `/rules/checkpoints/${i}`));
   const finishes = source.finishes.map((g, i) => compile(g, `/rules/finishes/${i}`));
@@ -85,15 +83,15 @@ export function compileCourseRules(
     );
     const finish = goals[0] ?? null;
     if (document.type === 'CIRCUIT')
-      check(finish!.anchor.s === endS(section), '/rules/finishes', 'Circuit FINISH must coincide with its loop exit');
+      check(finish!.at.s === endS(section), '/rules/finishes', 'Circuit FINISH must coincide with its loop exit');
     let previous = 0;
     for (const gate of gates) {
       check(
-        gate.anchor.s > previous && gate.anchor.s < (finish?.anchor.s ?? endS(section)),
+        gate.at.s > previous && gate.at.s < (finish?.at.s ?? endS(section)),
         '/rules/checkpoints',
         'Checkpoints must be strictly ordered inside their Section interval',
       );
-      previous = gate.anchor.s;
+      previous = gate.at.s;
     }
     return Object.freeze({ section, checkpoints: Object.freeze(gates), finish });
   });
@@ -104,12 +102,16 @@ export function compileCourseRules(
     'Grid must contain the player and preset rivals',
   );
   const first = intervals.find((i) => i.section === entry)!;
-  const firstGate = first.checkpoints[0]?.anchor.s ?? first.finish?.anchor.s ?? endS(entry);
+  const firstGate = first.checkpoints[0]?.at.s ?? first.finish?.at.s ?? endS(entry);
   const grid = source.grid.map((slot, i) => {
-    const anchor = resolve(entry, slot.anchor, `/rules/grid/${i}/anchor`);
-    check(anchor.s >= 0 && anchor.s < firstGate, `/rules/grid/${i}`, 'Grid must lie between entry and the first gate');
-    check(surface.sample(anchor.s, slot.l).material.supported, `/rules/grid/${i}`, 'Grid must be supported');
-    return Object.freeze({ anchor, l: slot.l });
+    const position = resolve(entry, slot.at, `/rules/grid/${i}/at`);
+    check(
+      position.s >= 0 && position.s < firstGate,
+      `/rules/grid/${i}`,
+      'Grid must lie between entry and the first gate',
+    );
+    check(surface.sample(position.s, slot.l).material.supported, `/rules/grid/${i}`, 'Grid must be supported');
+    return Object.freeze({ at: position, l: slot.l });
   });
   return Object.freeze({
     grid: Object.freeze(grid),

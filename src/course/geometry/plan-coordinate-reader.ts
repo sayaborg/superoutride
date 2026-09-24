@@ -2,10 +2,10 @@ import type { Writable } from '../../core/writable.js';
 import type { Vec2 } from '../../core/math.js';
 import { normalFromHeading, wrapAngle } from '../../core/math.js';
 import {
-  planPrimitiveIndexAt,
-  projectPlanPrimitiveInterval,
+  planSegmentIndexAt,
+  projectPlanSegmentInterval,
   samplePlanPath,
-  type CompiledPlanPrimitive,
+  type CompiledPlanSegment,
   type PlanPath,
 } from './plan-path.js';
 import {
@@ -41,19 +41,19 @@ function checkProjection(world: Vec2, previousS: number, start: number, end: num
 
 /** A Section reader over its authored straight/circular plan authority. */
 export function createPlanCoordinateReader(
-  primitives: readonly CompiledPlanPrimitive[],
+  segments: readonly CompiledPlanSegment[],
   length: number,
   lateralAt: NativePlanDomain['lateralAt'],
 ): SectionPlanCoordinateReader {
-  const plan: PlanPath = Object.freeze({ primitives, length });
-  const sample = { x: 0, z: 0, s: 0, heading: 0, primitiveIndex: -1 };
-  const projectionSample = { x: 0, z: 0, s: 0, heading: 0, primitiveIndex: -1 };
-  const projected = { s: 0, l: 0, primitiveIndex: -1, distanceSquared: 0, isFoot: false };
+  const plan: PlanPath = Object.freeze({ segments, length });
+  const sample = { x: 0, z: 0, s: 0, heading: 0, segmentIndex: -1 };
+  const projectionSample = { x: 0, z: 0, s: 0, heading: 0, segmentIndex: -1 };
+  const projected = { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0, isFoot: false };
   const bounds = { left: 0, right: 0 };
   const reader: SectionPlanCoordinateReader = Object.freeze({
     forwardEnd(start: number, end: number, yaw: number) {
-      for (let i = planPrimitiveIndexAt(plan, start); i < primitives.length; i++) {
-        const primitive = primitives[i]!;
+      for (let i = planSegmentIndexAt(plan, start); i < segments.length; i++) {
+        const primitive = segments[i]!;
         const a = Math.max(start, primitive.sStart);
         const b = Math.min(end, primitive.sEnd);
         if (b <= a) continue;
@@ -74,8 +74,8 @@ export function createPlanCoordinateReader(
       if (!(start >= 0 && end >= start && end <= length))
         throw new RangeError('Projection interval must lie inside the Section domain');
       const candidates: PlanProjectionCandidate[] = [];
-      for (let i = planPrimitiveIndexAt(plan, start); i < primitives.length; i += 1) {
-        const primitive = primitives[i]!;
+      for (let i = planSegmentIndexAt(plan, start); i < segments.length; i += 1) {
+        const primitive = segments[i]!;
         if (primitive.sStart >= end) break;
         const a = Math.max(start, primitive.sStart),
           b = Math.min(end, primitive.sEnd);
@@ -85,7 +85,7 @@ export function createPlanCoordinateReader(
             start: a,
             end: b,
             project(world: Vec2, from: number, to: number, out: PlanProjectionCandidateSample) {
-              projectPlanPrimitiveInterval(primitive, world, from, to, projected, projectionSample);
+              projectPlanSegmentInterval(primitive, world, from, to, projected, projectionSample);
               out.s = projected.s;
               out.l = projected.l;
               out.isFoot = projected.isFoot;
@@ -120,7 +120,7 @@ export function createPlanCoordinateReader(
     metricsAt(s: number, l: number, out: Writable<PlanCoordinateMetrics>) {
       if (!Number.isFinite(s) || s < 0 || s > length || !Number.isFinite(l))
         throw new RangeError('Plan metric requires finite coordinates in the Section');
-      const primitive = primitives[planPrimitiveIndexAt(plan, s)]!;
+      const primitive = segments[planSegmentIndexAt(plan, s)]!;
       out.curvature = primitive.curvature;
       out.offsetMetric = 1 - primitive.curvature * l;
       return out;
@@ -134,13 +134,13 @@ export function createPlanCoordinateReader(
         bestChange = Infinity,
         bestInDomain = false,
         found = false;
-      for (let i = planPrimitiveIndexAt(plan, from); i < primitives.length; i += 1) {
-        const primitive = primitives[i]!;
+      for (let i = planSegmentIndexAt(plan, from); i < segments.length; i += 1) {
+        const primitive = segments[i]!;
         if (primitive.sStart >= to) break;
         const a = Math.max(from, primitive.sStart),
           b = Math.min(to, primitive.sEnd);
         if (!(b > a)) continue;
-        projectPlanPrimitiveInterval(primitive, world, a, b, projected, projectionSample);
+        projectPlanSegmentInterval(primitive, world, a, b, projected, projectionSample);
         reader.domain.lateralAt(projected.s, bounds);
         const inDomain = projected.isFoot && projected.l >= bounds.left && projected.l <= bounds.right;
         if (

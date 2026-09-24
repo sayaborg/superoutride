@@ -39,7 +39,7 @@ export function resolveCourseSession(
   const stoppingDistance = envelope.maximumSpeed ** 2 / (2 * driver.braking);
   for (const { finish } of course.rules.intervals) {
     if (!finish || finish.section.outgoing.length !== 0) continue;
-    const available = finish.section.coordinates.domain.end - finish.anchor.s;
+    const available = finish.section.coordinates.domain.end - finish.at.s;
     if (available < stoppingDistance)
       throw new RangeError(
         `FINISH ${finish.id}: ${available.toFixed(2)} m of runout; ${vehicle.profile.id} requires ${stoppingDistance.toFixed(2)} m to stop from maximum speed`,

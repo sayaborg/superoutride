@@ -1,36 +1,36 @@
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../image/sprite.js';
 import { courseBoundaryAt } from '../course-regions.js';
 import { requireCourse } from '../course-diagnostics.js';
-import type { CompiledCourseAnchor } from '../course-geometry.js';
+import type { CompiledCoursePosition } from '../course-geometry.js';
 import { coursePhysicalMaterialAt } from '../course-physical-binding.js';
 import type { CompiledFork, CompiledSection } from './course-graph.js';
 
 /** Resolve parallel-zone geometry after canonical outgoing Links exist, before publication. */
 export function compileCourseFork(
   section: CompiledSection,
-  anchors: { readonly lock: CompiledCourseAnchor; readonly closure: CompiledCourseAnchor } | null,
+  positions: { readonly lock: CompiledCoursePosition; readonly closure: CompiledCoursePosition } | null,
   path: string,
 ): CompiledFork | null {
   const conditional = section.presentation?.scenery.filter((p) => p.unselected !== null) ?? [];
-  if (anchors === null) {
+  if (positions === null) {
     requireCourse(conditional.length === 0, path, 'State-selected road signs require a fork', 'invalid_fork');
     return null;
   }
-  const { lock, closure } = anchors;
+  const { lock, closure } = positions;
   const check = (condition: boolean, message: string) => requireCourse(condition, path, message, 'invalid_fork');
   check(section.outgoing.length >= 2, 'A fork requires two or three canonical exits');
   check(
     lock.s > 0 && lock.s < closure.s && closure.s < section.coordinates.domain.end,
-    'Fork anchors require 0 < lock < closure < every exit seam',
+    'Fork positions require 0 < lock < closure < every exit seam',
   );
   for (const placement of conditional) {
     check(
       section.outgoing.some((link) => link.from.carriageway === placement.unselected),
       'Road sign state must name a canonical exit carriageway',
     );
-    check(placement.anchor.s >= lock.s && placement.anchor.s <= closure.s, 'Road signs lie between lock and closure');
+    check(placement.at.s >= lock.s && placement.at.s <= closure.s, 'Road signs lie between lock and closure');
     check(
-      placement.anchor.s + placement.instance.asset.source.width / SPRITE_SOURCE_TEXELS_PER_METER <
+      placement.at.s + placement.instance.asset.source.width / SPRITE_SOURCE_TEXELS_PER_METER <
         section.coordinates.domain.end,
       'State-selected signs must precede the exit cut',
     );
@@ -43,7 +43,7 @@ export function compileCourseFork(
       const value = courseBoundaryAt(boundary, lock.s);
       check(
         courseBoundaryAt(boundary, closure.s) === value &&
-          boundary.knots.every((k) => k.anchor.s <= lock.s || k.anchor.s >= closure.s || k.l === value),
+          boundary.knots.every((k) => k.at.s <= lock.s || k.at.s >= closure.s || k.l === value),
         'Lock-to-closure boundaries must remain parallel',
       );
     }
@@ -51,7 +51,7 @@ export function compileCourseFork(
     if (!binding) throw new Error('Compiled Region has no physical binding');
     check(
       coursePhysicalMaterialAt(binding, lock.s).supported &&
-        binding.sections.every((s) => s.anchor.s <= lock.s || s.anchor.s > closure.s || s.material.supported),
+        binding.sections.every((s) => s.at.s <= lock.s || s.at.s > closure.s || s.material.supported),
       'Parallel-zone roads and medians must remain supported',
     );
   }

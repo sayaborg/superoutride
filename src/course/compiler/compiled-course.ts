@@ -9,7 +9,7 @@ import {
   type CourseResult,
 } from '../course-diagnostics.js';
 import { readCourseDocument, type CourseDocument, type SectionDocument } from '../course-document.js';
-import { compileCourseGeometry, resolveCourseAnchor } from '../course-geometry.js';
+import { compileCourseGeometry, resolveCoursePosition } from '../course-geometry.js';
 import { compileCourseRegionGeometry } from '../course-region-geometry.js';
 import type { CompiledBoundary, CompiledRegion, CompiledCarriageway } from '../course-regions.js';
 import type { CompiledSection, CompiledLink } from './course-graph.js';
@@ -59,7 +59,7 @@ export interface CompiledCourse {
 
 const COURSE_COMPILER = Object.freeze({
   id: 'superoutride.course-compiler',
-  version: 22,
+  version: 23,
   links: COURSE_LINK_RECIPE,
   physical: COURSE_PHYSICAL_RECIPE,
   images: COURSE_IMAGE_SOURCE_RECIPE,
@@ -102,19 +102,18 @@ function compileSection(
   instances: ReadonlyMap<string, CourseSceneryInstance>,
   path: string,
 ) {
-  const { primitives, length } = compileCourseGeometry(section, path);
-  const primitiveTable = new Map(primitives.map((primitive) => [primitive.source.id, primitive]));
-  const resolve = (anchor: Parameters<typeof resolveCourseAnchor>[0], at: string) =>
-    resolveCourseAnchor(anchor, primitiveTable, length, at);
+  const { segments, length, stations } = compileCourseGeometry(section, path);
+  const resolve = (position: Parameters<typeof resolveCoursePosition>[0], at: string) =>
+    resolveCoursePosition(position, stations, length, at);
   const boundaries = compileStage(section.boundaries, (source, index): CompiledBoundary => {
     const at = `${path}/boundaries/${index}`;
     requireCourse(source.knots.length >= 2, `${at}/knots`, 'Boundary needs at least two knots', 'invalid_boundary');
     const knots = compileStage(source.knots, (knot, i) =>
-      Object.freeze({ anchor: resolve(knot.anchor, `${at}/knots/${i}/anchor`), l: knot.l }),
+      Object.freeze({ at: resolve(knot.at, `${at}/knots/${i}/at`), l: knot.l }),
     );
     for (let i = 1; i < knots.length; i += 1)
       requireCourse(
-        knots[i]!.anchor.s > knots[i - 1]!.anchor.s,
+        knots[i]!.at.s > knots[i - 1]!.at.s,
         `${at}/knots/${i}`,
         'Resolved knots must be strictly increasing',
         'invalid_boundary',
@@ -135,7 +134,7 @@ function compileSection(
       ['rightBoundaryId', right],
     ] as const)
       requireCourse(
-        boundary.knots[0]!.anchor.s <= start.s && boundary.knots.at(-1)!.anchor.s >= end.s,
+        boundary.knots[0]!.at.s <= start.s && boundary.knots.at(-1)!.at.s >= end.s,
         `${at}/${key}`,
         `Boundary ${JSON.stringify(boundary.id)} must cover Region's closed interval [${start.s}, ${end.s}]`,
         'invalid_boundary',
@@ -182,7 +181,7 @@ function compileSection(
   const { partition, lateralDomain } = compileCourseRegionGeometry(
     section.id,
     length,
-    primitives,
+    segments,
     regions,
     carriageways,
     path,
@@ -196,8 +195,8 @@ function compileSection(
   );
   const result: SectionDraft = {
     id: section.id,
-    primitives,
-    coordinates: createPlanCoordinateReader(primitives, length, lateralDomain.lateralAt),
+    segments,
+    coordinates: createPlanCoordinateReader(segments, length, lateralDomain.lateralAt),
     boundaries: Object.freeze(boundaries),
     regionPartition: partition,
     ...compileCoursePhysicalContent(section, length, regions, resolve, path),
@@ -219,6 +218,7 @@ function compileSection(
   };
   return {
     section: result,
+    stations,
     fork:
       section.fork === null
         ? null
@@ -309,7 +309,12 @@ export async function compileCourseDocument(
     drafts.forEach((draft, index) => {
       draft.section.fork = forks[index]!;
     });
-    const rules = compileCourseRules(document, sections, entry);
+    const rules = compileCourseRules(
+      document,
+      sections,
+      entry,
+      new Map(drafts.map((draft) => [draft.section, draft.stations])),
+    );
     // Close every cycle before freezing/publication. No draft or construction table escapes.
     for (const section of sections) {
       Object.freeze(section.incoming);

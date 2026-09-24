@@ -91,7 +91,7 @@ try {
   const scene = createCourseScene(course.entry, ground, sprites, course.rules, displaySettings);
   const slot = session.grid[0]!;
   const shell = createBrowserDrivingShell(scene.world, slot.l, {
-    s: slot.anchor.s,
+    s: slot.at.s,
     initialSpeed: session.initialSpeed,
     vehicle,
   });

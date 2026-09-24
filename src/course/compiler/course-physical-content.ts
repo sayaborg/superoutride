@@ -1,6 +1,6 @@
 import { Profile, ProfilePolyline } from '../geometry/profile.js';
-import type { SectionDocument, CourseAnchor } from '../course-document.js';
-import type { CompiledCourseAnchor } from '../course-geometry.js';
+import type { SectionDocument, CoursePosition } from '../course-document.js';
+import type { CompiledCoursePosition } from '../course-geometry.js';
 import type { CompiledRegion } from '../course-regions.js';
 import type { CompiledPhysicalBinding } from '../course-physical-binding.js';
 import { CourseInputError, requireCourse } from '../course-diagnostics.js';
@@ -17,12 +17,12 @@ export function compileCoursePhysicalContent(
   source: SectionDocument,
   length: number,
   regions: readonly CompiledRegion[],
-  resolve: (anchor: CourseAnchor, path: string) => CompiledCourseAnchor,
+  resolve: (at: CoursePosition, path: string) => CompiledCoursePosition,
   path: string,
 ) {
   const heightPath = `${path}/height`;
   const nodes = source.height.map((node, i) => ({
-    s: resolve(node.anchor, `${heightPath}/${i}/anchor`).s,
+    s: resolve(node.at, `${heightPath}/${i}/at`).s,
     y: node.y,
     curveLength: node.curveLength,
   }));
@@ -91,25 +91,25 @@ export function compileCoursePhysicalContent(
       const nodePath = `${at}/sections/${j}`;
       if (!Object.hasOwn(SURFACE_MATERIALS, section.material))
         throw new CourseInputError('unresolved_reference', `${nodePath}/material`, 'Unknown physical material');
-      const anchor = resolve(section.anchor, `${nodePath}/anchor`);
+      const position = resolve(section.at, `${nodePath}/at`);
       requireCourse(
-        anchor.s >= region.start.s && anchor.s < region.end.s,
-        `${nodePath}/anchor`,
+        position.s >= region.start.s && position.s < region.end.s,
+        `${nodePath}/at`,
         'Material change must lie inside the active Region',
         'invalid_profile',
       );
-      return Object.freeze({ anchor, material: SURFACE_MATERIALS[section.material as SurfaceType] });
+      return Object.freeze({ at: position, material: SURFACE_MATERIALS[section.material as SurfaceType] });
     });
     requireCourse(
-      sections[0]!.anchor.s === region.start.s,
-      `${at}/sections/0/anchor`,
+      sections[0]!.at.s === region.start.s,
+      `${at}/sections/0/at`,
       'Material profile must begin at Region activation',
       'invalid_profile',
     );
     for (let j = 1; j < sections.length; j += 1)
       requireCourse(
-        sections[j]!.anchor.s > sections[j - 1]!.anchor.s,
-        `${at}/sections/${j}/anchor`,
+        sections[j]!.at.s > sections[j - 1]!.at.s,
+        `${at}/sections/${j}/at`,
         'Material changes must be strictly increasing',
         'invalid_profile',
       );

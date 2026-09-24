@@ -61,7 +61,7 @@ test('Session rejects short terminal runout, including solo play; forks and loop
         ...interval,
         finish: {
           ...interval.finish,
-          anchor: { ...interval.finish.anchor, s: interval.section.coordinates.domain.end - 1 },
+          at: { ...interval.finish.at, s: interval.section.coordinates.domain.end - 1 },
         },
       })),
     },

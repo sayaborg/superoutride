@@ -62,7 +62,7 @@ test('race actors have no cameras and view assembles sixteen rival sprites from 
     profile,
     envelope,
   );
-  const vehicle = spawn(settings.grid[0].anchor.s);
+  const vehicle = spawn(settings.grid[0].at.s);
   const race = createCourseRace({
     session: settings,
     player: { vehicle, recovery: createRecoveryState(vehicle) },

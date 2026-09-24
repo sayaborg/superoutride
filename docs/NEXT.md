@@ -8,7 +8,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **7-1 — Positions**.
+Next PR: **7-2 — Lateral positions and knots**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -18,12 +18,11 @@ PRs hold rationale and verification evidence.
 
 Write plan, position, lateral strips and race landmarks in one consistent authored course format.
 
-- **7-1 — Positions:** use `at = {pi, offset}` and lateral positions (`l` or `{boundary, offset}`); author every s-varying property as knots with `at`; call derived `ProfilePolyline` points vertices and rename `knots`/`distanceToNextKnot` accordingly.
-- **7-2 — Plan:** author PI coordinates and radii like vertical PVIs, require zero endpoint radii and nonoverlapping neighboring arc tangent lengths, and close ribbon-ring geometrically.
+- **7-2 — Lateral positions and knots:** use lateral positions (`l` or `{boundary, offset}`); author every s-varying property, including Band element stations, as knots positioned with `at`; call derived `ProfilePolyline` points vertices and rename `knots`/`distanceToNextKnot` accordingly.
 - **7-3 — Strips, Boundaries and Carriageways:** replace Region, role, `physicalBindings` and Band with ordered Strips whose optional color/material overwrite earlier values; require finite edges for material-bearing Strips and derive the coordinate domain from their edges plus margin; define Carriageway between two Boundaries and compile material and preblended color to the same cross-section table shape.
-  Derive driving-scenario road bounds and the closed Carriageway center from Carriageways rather than Region internals.
-- **7-4 — Sprites and environment:** give sprites and environment a shared repeat, and name successors to VisualProfile, CoursePresentation and their visual records according to the glossary.
-- **7-5 — Gates and rules:** author start (including grid), checkpoints and finish inside Sections, leave only numeric settings in `rules`, derive course kind from the graph, remove production provenance, `units` and `reference`, and simplify nulls and limits.
+  Derive driving-scenario road bounds and the closed Carriageway center from Carriageways rather than Region internals. Re-derive document limits from the scale of the Nürburgring Nordschleife (about 20.8 km).
+- **7-4 — Sprites and environment:** give sprites and environment a shared repeat, and name successors to VisualProfile, CoursePresentation and their visual records according to the glossary. Include tunnels: tunnel sprites, with an environment knot switching the background inside and restoring it on exit.
+- **7-5 — Gates, rules and cycles:** author start (including grid), checkpoints, finish, lock lines and closures as Section `gates`; remove `fork` and derive forking from the number of outgoing Links; forbid Links from a Section to itself so a circuit is a cycle of two or more Sections; require every directed cycle to close geometrically at compilation (the composed Link transforms return to identity within the accumulated Link tolerance); merges of different branches are not cycles and stay unchecked; count a lap as one traversal of the cycle; rebuild ribbon-ring as a geometrically closed cycle; leave only numeric settings in `rules`; derive course kind from the graph; remove production provenance, `geometryRecipe`, `units` and `reference`; simplify nulls and limits.
 - **7-6 — Delivery identity:** use one manifest, one version per format and one image path.
 - **7-7 — Validation:** validate once at document reading/compilation boundaries, remove redundant internal defensive checks and impossible ok/failure paths, unify progress diagnostics and move coordinate-overlap `CourseInputError` fields to a structured diagnostic variant; consolidate vertical-curve validation and admit `curveLength` from zero upward in document reading.
 

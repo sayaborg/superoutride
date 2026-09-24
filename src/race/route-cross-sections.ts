@@ -62,12 +62,12 @@ export function createRouteCrossSections(route: CourseRoute, course: CompiledCou
       if (lap <= lapCount) {
         for (const landmark of interval.checkpoints)
           nextRace.push(
-            Object.freeze({ ...line(occurrence, landmark.anchor.s), landmark, kind: 'checkpoint', lap, finish: false }),
+            Object.freeze({ ...line(occurrence, landmark.at.s), landmark, kind: 'checkpoint', lap, finish: false }),
           );
         if (interval.finish)
           nextRace.push(
             Object.freeze({
-              ...line(occurrence, interval.finish.anchor.s),
+              ...line(occurrence, interval.finish.at.s),
               landmark: interval.finish,
               kind: 'finish',
               lap,

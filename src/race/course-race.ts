@@ -63,7 +63,7 @@ export function createCourseRace(options: {
     const targetL = slot.l;
     const profile = rival;
     const vehicle = createArcadeVehicle(profile.profile, runtime.readers, {
-      s: slot.anchor.s,
+      s: slot.at.s,
       l: targetL,
       initialSpeed,
       torqueProtection: profile.torqueProtection,

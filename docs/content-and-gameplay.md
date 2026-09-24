@@ -19,7 +19,7 @@ structural partitions with material bindings. One concept has one name in both s
 Checkpoints, starts, finishes and environment changes are independent of Section boundaries.
 Source identity, traversal identity and race credit are distinct.
 
-## CourseDocument v15
+## CourseDocument v16
 
 The saved format is compact UTF-8 JSON. All declared fields are required; explicit null represents
 absent optional content. Unknown fields fail. Arrays preserve saved order; object-property order and
@@ -27,34 +27,32 @@ whitespace do not affect identity. Normalized records use schema field order and
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 15,
+  format: "superoutride.course", version: 16,
   reference, id, units: {length: "m", angle: "deg"},
   geometryRecipe: {id, version},
   type: "LINEAR" | "BRANCH" | "CIRCUIT", entrySectionId,
   sections, links, assets, sceneryInstances, rules
 }
 Section {
-  id, primitives,
-  boundaries, regions, height: [{anchor, y, curveLength}],
-  physicalBindings: [{regionId, sections: [{anchor, material}]}],
+  id, pis,
+  boundaries, regions, height: [{at, y, curveLength}],
+  physicalBindings: [{regionId, sections: [{at, material}]}],
   carriageways, assetIds, presentation, fork
 }
 ```
 
 ### Geometry and reference records
 
-| Record           | Fields                                                                           |
-| ---------------- | -------------------------------------------------------------------------------- |
-| Straight         | `id`, `kind: "straight"`, `length`                                               |
-| Circular arc     | `id`, `kind: "arc"`, `radius`, signed degree `turn`                              |
-| Absolute anchor  | `kind: "absolute"`, `s`                                                          |
-| Primitive anchor | `kind: "primitive"`, `primitiveId`, `fraction`                                   |
-| Boundary         | `id`, `knots: [{anchor,l}]`                                                      |
-| Region           | `id`, `start`, `end`, `leftBoundaryId`, `rightBoundaryId`, `role`                |
-| Carriageway      | `id`, `regionIds`                                                                |
-| Link             | `id`, `from: {sectionId,carriagewayId}`, `to: {sectionId}`                       |
-| Asset reference  | `id`, `format`, `version`, lowercase `sha256`                                    |
-| Scenery instance | `id`, `assetId`, `paletteRgb555` (null or one declared base-palette replacement) |
+| Record           | Fields                                                                                                 |
+| ---------------- | ------------------------------------------------------------------------------------------------------ |
+| Plan PI          | `id`, `x`, `z`, `radius`                                                                               |
+| Position         | `at: {pi, offset}`; interval `start`/`end` and fork `lock`/`closure` use the same `{pi, offset}` value |
+| Boundary         | `id`, `knots: [{at,l}]`                                                                                |
+| Region           | `id`, `start`, `end`, `leftBoundaryId`, `rightBoundaryId`, `role`                                      |
+| Carriageway      | `id`, `regionIds`                                                                                      |
+| Link             | `id`, `from: {sectionId,carriagewayId}`, `to: {sectionId}`                                             |
+| Asset reference  | `id`, `format`, `version`, lowercase `sha256`                                                          |
+| Scenery instance | `id`, `assetId`, `paletteRgb555` (null or one declared base-palette replacement)                       |
 
 Region roles are `pavement`, `shoulder` or `median`. Asset formats are
 `superoutride.sprite-lod` version 2 and `superoutride.tile-background` version 1.
@@ -76,7 +74,7 @@ These values participate in source identity; compilation consumes the saved geom
 
 IDs are opaque nonblank strings without surrounding whitespace and compare exactly. Course ID is
 external identity. Section, Link, asset and scenery-instance IDs each have a document-wide scope.
-Primitive, Boundary, Region and Carriageway IDs each have their own Section-local scope;
+PI, Boundary, Region and Carriageway IDs each have their own Section-local scope;
 scenery placement and row IDs also have their declared Section-local scopes. Duplicate IDs fail. References
 resolve in their named scopes rather than by array position.
 
@@ -92,11 +90,11 @@ The other presentation records are:
 | Record            | Fields                                                                                     |
 | ----------------- | ------------------------------------------------------------------------------------------ |
 | Background        | `assetId`, `horizonY`, Section-frame degree `yawOrigin`                                    |
-| Scenery placement | `id`, `instanceId`, `unselectedCarriagewayId`, `anchor`, `l`, `groundOffset`               |
+| Scenery placement | `id`, `instanceId`, `unselectedCarriagewayId`, `at`, `l`, `groundOffset`                   |
 | Scenery row       | `id`, `assetId`, `start`, `end`, `spacing`, `boundaryId`, `side`, `offset`, `groundOffset` |
 
 Environment profiles begin at zero. Assets belong to the referencing Section and resolve to canonical
-sprite/background descriptors. Each environment is `{anchor,name,background}`; environment changes
+sprite/background descriptors. Each environment is `{at,name,background}`; environment changes
 affect BG and labels, independently of ground colors.
 
 #### Band ground
@@ -153,11 +151,11 @@ Unsupported presentation fields produce diagnostics.
 
 ### Authored Session rules
 
-`rules` is null or `{grid,checkpoints,finishes,maxLaps,classic}`. Grid slots are ordered `{anchor,l}`
+`rules` is null or `{grid,checkpoints,finishes,maxLaps,classic}`. Grid slots are ordered `{at,l}`
 records in the entry Section: player first, then rivals in roster order, at most 17. Each is supported,
 at/after entry and before the first required landmark. Starting velocity is zero.
 
-Checkpoints and finishes contain `{id,sectionId,carriagewayId,anchor}` with unique IDs across both
+Checkpoints and finishes contain `{id,sectionId,carriagewayId,at}` with unique IDs across both
 collections. Their saved Carriageway references resolve to supported pavement; runtime crossing width
 is the coordinate domain at the landmark. They lie after entry and no later than the
 ownership exit; checkpoints are strictly ordered within a Section. Each terminal Section has one
@@ -169,22 +167,33 @@ lap values must agree. The composition root resolves vehicle IDs against the cat
 
 ### Numeric and resource domains
 
-All numbers are finite. Length/radius are in `(0,100000]` m; nonzero arc turn is within +/-360 degrees. Absolute anchors
-are in `[0,100000]` m and primitive fractions in `[0,1]`. Lateral values are within +/-1000 m;
+All numbers are finite. Each PI coordinate is within +/-1000000 m; radius is in `[0,100000]` m.
+Endpoint radii are zero. Interior radii are positive and the deflection magnitude is strictly between
+0 and 180 degrees. Consecutive PIs have distinct coordinates. The sum of neighboring arc tangent
+lengths must not exceed their shared edge length; equality admits touching arcs with no intervening line.
+Compilation absorbs up to the plan-position roundoff budget at touching tangents, as specified in
+[Architecture](architecture.md#plan-authority).
+
+A position's `pi` resolves in its Section. Its station is the arc midpoint for an interior PI,
+and the point itself for a zero-radius endpoint. `offset` is signed chainage in metres within
+`[-100000,100000]`; the resolved station must be in `[0,Section.length]`.
+All height PVIs, Boundary knots, Region endpoints, physical bindings, environments, scenery row
+endpoints, scenery placements, fork lock/closure, grid slots, checkpoints and finishes use these
+positions. Band element stations retain their numeric metre fields. Compiled positions contain only `s`.
+Lateral values are within +/-1000 m;
 heights within +/-10000 m. Recipe versions are integers from 1 through 65535. Resolved values must also fit their finite Section
 and produce positive representable intervals.
 
 `COURSE_DOCUMENT_LIMITS` defines 4 MiB UTF-8 JSON, 128 UTF-16 code units per ID, 16 Sections,
-48 Links and 256 assets. Each Section admits 2048 plan primitives, 32 Boundaries, 256 knots per
+48 Links and 256 assets. Each Section admits 2048 PIs, 32 Boundaries, 256 knots per
 Boundary, 32 Regions, 16 Carriageways, 256 asset references, 256 height nodes, 32 physical
 bindings and 256 material changes per binding. Compiled Section limits are
 16384 mapped-region cells and 100000 m chainage.
 
 ## Geometry recipe and bindings
 
-The saved `geometryRecipe` field is `{id,version}`; CourseDocument v15 admits
-`superoutride.plan-raster` version 1. The saved straight, circular-arc, absolute-anchor and
-primitive-anchor fields are listed above. [Architecture](architecture.md#plan-authority)
+The saved `geometryRecipe` field is `{id,version}`; CourseDocument v16 admits
+`superoutride.plan-raster` version 1. The saved PI and position fields are listed above. [Architecture](architecture.md#plan-authority)
 owns their authoritative planar interpretation, coordinate domain and geometric validation.
 Rendering and physics read the same plan; Section length comes from its coordinate Reader domain.
 An overpass is authored as separate Sections for its passages; the coordinate-domain condition
@@ -218,7 +227,7 @@ include active supported endpoints and interior Boundary knots. Ground appearanc
 
 ## Cut lines, Links and topology
 
-Each Section starts at plan pose `(0,0,0)` and owns its full `[0,L]` ruler. Its entry is the cut
+Each Section is normalized to start at plan pose `(0,0,0)` during compilation and owns its full `[0,L]` ruler. Its entry is the cut
 at `s=0`; its outgoing cut is `(s=L, Carriageway)`. The course entry and every Link destination
 have exactly one positive-width Carriageway at `s=0`. Every outgoing Link names a positive-width
 Carriageway at `s=L`; outgoing Links from one Section use distinct Carriageways. Violations produce
@@ -239,7 +248,7 @@ its endpoint poses may differ in native coordinates.
 
 ## Compiled identity and project publication
 
-CompiledCourse contains canonical Section, primitive, Boundary, Region, Carriageway, Link,
+CompiledCourse contains canonical Section, plan segment, Boundary, Region, Carriageway, Link,
 asset and landmark references. Merges reuse the same successor; loops refer to the same source.
 Owned records and arrays are immutable, including nested image data. Live actor, route-lock and
 clock state belong to Sessions. Object identity is local to a compilation; cross-build identity uses digests.
@@ -287,9 +296,9 @@ accepted cross sections and laps and suppresses crossing credit for that step.
 
 ## Fork lock and handoff
 
-Section `fork` is null or `{lock,closure}` anchors. Controls require two or three exits and
+Section `fork` is null or `{lock,closure}` positions. Controls require two or three exits and
 `entry < lock < closure < every exit seam`, with positive lock chainage. The parallel-zone subset
-is contained in authored straight primitives. Through closure, edges are constant, roads have positive
+is contained in straight parts of the plan. Through closure, edges are constant, roads have positive
 width, and explicit physical bindings support the roads, separating medians and connecting space.
 Invalid controls produce `invalid_fork`.
 

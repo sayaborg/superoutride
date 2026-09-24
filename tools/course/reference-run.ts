@@ -59,7 +59,7 @@ export function runCourseReference(
   const slot = session.grid[0]!;
   const vehicle = createArcadeVehicle(entry.profile, scene.world, {
     ...vehicleConfiguration,
-    s: slot.anchor.s,
+    s: slot.at.s,
     l: slot.l,
     initialSpeed: 0,
   });

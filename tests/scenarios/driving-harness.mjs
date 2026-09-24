@@ -79,7 +79,7 @@ export function runScenario({ course, ground }, scenario) {
   const slot = session.grid[0];
   const vehicle = createArcadeVehicle(entry.profile, scene.world, {
     ...configuration,
-    s: slot.anchor.s,
+    s: slot.at.s,
     l: slot.l,
     initialSpeed: scenario.policy === 'reverse' ? -20 : scenario.policy === 'departure' ? 30 : 0,
   });

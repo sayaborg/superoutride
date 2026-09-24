@@ -1,7 +1,7 @@
 import { compileCourseBandGround } from './course-band-ground.js';
-import { COURSE_DOCUMENT_LIMITS, type CourseAnchor, type PresentationDocument } from '../course-document.js';
+import { COURSE_DOCUMENT_LIMITS, type CoursePosition, type PresentationDocument } from '../course-document.js';
 import { courseBoundaryAt, type CompiledRegionPartition, type CompiledCarriageway } from '../course-regions.js';
-import type { CompiledCourseAnchor } from '../course-geometry.js';
+import type { CompiledCoursePosition } from '../course-geometry.js';
 import { CourseInputError, requireCourse } from '../course-diagnostics.js';
 import { BACKGROUND_HEIGHT, BACKGROUND_PIXELS_PER_RADIAN } from '../../image/tile-background-image.js';
 import type { CoursePresentation, CourseSceneryInstance } from '../course-presentation.js';
@@ -15,7 +15,7 @@ export function compileCoursePresentation(
   partition: CompiledRegionPartition,
   assets: readonly CompiledCourseImageSource[],
   instances: ReadonlyMap<string, CourseSceneryInstance>,
-  resolve: (anchor: CourseAnchor, path: string) => CompiledCourseAnchor,
+  resolve: (at: CoursePosition, path: string) => CompiledCoursePosition,
   path: string,
   sectionId: string,
   carriageways: readonly CompiledCarriageway[],
@@ -32,17 +32,17 @@ export function compileCoursePresentation(
     };
     return sprite;
   };
-  const ordered = (anchors: readonly CompiledCourseAnchor[], start: number, end: number, at: string) => {
+  const ordered = (positions: readonly CompiledCoursePosition[], start: number, end: number, at: string) => {
     requireCourse(
-      anchors.length > 0 && anchors[0]!.s === start,
+      positions.length > 0 && positions[0]!.s === start,
       at,
       'Profile must begin at its declared domain start',
       'invalid_profile',
     );
-    for (let i = 0; i < anchors.length; i += 1)
+    for (let i = 0; i < positions.length; i += 1)
       requireCourse(
-        anchors[i]!.s < end && (i === 0 || anchors[i]!.s > anchors[i - 1]!.s),
-        `${at}/${i}/anchor`,
+        positions[i]!.s < end && (i === 0 || positions[i]!.s > positions[i - 1]!.s),
+        `${at}/${i}/at`,
         'Profile changes must strictly increase inside the domain',
         'invalid_profile',
       );
@@ -69,7 +69,7 @@ export function compileCoursePresentation(
       'invalid_image_role',
     );
     return Object.freeze({
-      anchor: resolve(environment.anchor, `${at}/anchor`),
+      at: resolve(environment.at, `${at}/at`),
       name: environment.name,
       background: Object.freeze({
         asset: tiled,
@@ -80,7 +80,7 @@ export function compileCoursePresentation(
     });
   });
   ordered(
-    environments.map((e) => e.anchor),
+    environments.map((e) => e.at),
     0,
     partition.length,
     `${path}/environments`,
@@ -109,7 +109,7 @@ export function compileCoursePresentation(
       unselected,
       id: placement.id,
       instance,
-      anchor: resolve(placement.anchor, `${at}/anchor`),
+      at: resolve(placement.at, `${at}/at`),
       l: placement.l,
       groundOffset: placement.groundOffset,
     });
@@ -124,7 +124,7 @@ export function compileCoursePresentation(
     const boundary = boundaries.get(row.boundaryId);
     if (!boundary) throw new CourseInputError('unresolved_reference', `${at}/boundaryId`, 'Unknown row Boundary');
     requireCourse(
-      end.s > start.s && start.s >= boundary.knots[0]!.anchor.s && end.s <= boundary.knots.at(-1)!.anchor.s,
+      end.s > start.s && start.s >= boundary.knots[0]!.at.s && end.s <= boundary.knots.at(-1)!.at.s,
       at,
       'Row interval must be positive and covered by its Boundary',
       'invalid_placement',
@@ -146,7 +146,7 @@ export function compileCoursePresentation(
           id,
           instance: Object.freeze({ id, asset, paletteRgb555: null }),
           unselected: null,
-          anchor: Object.freeze({ kind: 'absolute' as const, s }),
+          at: Object.freeze({ s }),
           l: courseBoundaryAt(boundary, s) + (row.side === 'left' ? -row.offset : row.offset),
           groundOffset: row.groundOffset,
         }),

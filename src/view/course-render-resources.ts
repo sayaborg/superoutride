@@ -48,7 +48,7 @@ export function createCourseRenderResources() {
       visual: new VisualProfile(
         p.ground.length,
         p.environments.map((e) => ({
-          sStart: e.anchor.s,
+          sStart: e.at.s,
           name: e.name,
         })),
       ),
@@ -75,7 +75,7 @@ export function createCourseRenderResources() {
             sprite: Object.freeze(
               compileCourseSprite(geometry, height, {
                 name: placement.instance.id,
-                s: placement.anchor.s,
+                s: placement.at.s,
                 l: placement.l,
                 groundOffset: placement.groundOffset,
                 asset: instanceImage(placement.instance),
