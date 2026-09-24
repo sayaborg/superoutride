@@ -8,9 +8,9 @@ owns image formats and compilation; [Browser](browser.md) owns operation and URL
 
 A Section is a reusable finite road/content chart. A Boundary is a longitudinal lateral-edge profile;
 a Region is a structural partition between two Boundaries with an active interval and role. A Carriageway
-groups pavement Regions. A Link connects one Carriageway at a Section end to another Section start. An occurrence is a traversal of a Section with a particular incoming Link and
-history. A view is a bounded reader over occurrence spans in one frame. CompiledCourse is the immutable
-reference graph. An actor's frame commit changes its occurrence and coordinate basis after a physical seam crossing.
+groups pavement Regions. A Link connects one Carriageway at a Section end to another Section start.
+A RouteOccurrence is a selected Section visit in the shared Route, with its incoming Link and fixed
+route coordinates. CompiledCourse is the immutable reference graph. Every actor uses the same Route.
 
 A Band is a colored visual strip with its own edges and active interval. Bands are ordered and may
 overlap or erase earlier colors; they do not refer to physical Regions. Regions remain nonoverlapping
@@ -158,7 +158,8 @@ records in the entry Section: player first, then rivals in roster order, at most
 at/after entry and before the first required landmark. Starting velocity is zero.
 
 Checkpoints and finishes contain `{id,sectionId,carriagewayId,anchor}` with unique IDs across both
-collections. Their positive pavement width is supported. They lie after entry and no later than the
+collections. Their saved Carriageway references resolve to supported pavement; runtime crossing width
+is the coordinate domain at the landmark. They lie after entry and no later than the
 ownership exit; checkpoints are strictly ordered within a Section. Each terminal Section has one
 FINISH; continuations have none. Circuit FINISH coincides with its loop exit.
 
@@ -272,50 +273,19 @@ Stale output is comparison data and cannot be exported as the edited course.
 A superseded operation cannot publish over a newer source. `no_source` and `stale_source` are project
 outcomes. API shape/domain errors follow [AGENTS](../AGENTS.md); unexpected internal faults remain visible.
 
-## Occurrences and frame commit
+## Shared route occurrences
 
-An occurrence has an ordinal, canonical Section and actual incoming Link. Traversal contains visited
-history, one active frame and a selected unvisited frontier. `select(from,link)` prepares a canonical
-successor; repeating the same selection is idempotent. Replacing a selected/visited successor returns
-`selection_locked`. `forward()` requires an existing successor or returns `selection_required`.
-Reverse follows the inverse visited Link, including at merges; re-entry uses that same occurrence.
+All vehicles use one selected sequence of RouteOccurrences, including repeated circuit laps. Route
+stations start at the entry Section's beginning and never rebase at seams. An occurrence's identity
+and incoming Link distinguish repeated visits and retain the selected predecessor through merges.
+[Architecture](architecture.md#coordinates-and-readers) owns transforms, reader composition and
+extension/retention distances. Geometry/content indexes and race cross-section lists rebuild when
+the shared sequence changes. A seam needs no per-actor frame transition or synthetic exit gate.
 
-`retainBehind` is reverse-history distance from the latest entered Section start. `selectAhead` bounds forward
-selection beyond the active exit; the adjacent occurrence covers the seam even at zero ahead distance.
-`maxOccurrences` is at least two and bounds total retained metadata. Complete intersecting occurrences
-are retained. Exceeding bounds yields `selection_limit` or `occurrence_limit`; reverse beyond retained
-history fails. Failed operations preserve the traversal.
-
-A view declares camera/render, contact, driver and reverse/recovery behind/ahead extents, a closed
-active-source pose interval and maximum fixed-step advance. Every required range
-`[minS-behind,maxS+maxAdvance+ahead]` lies inside available geometry. Otherwise `coverage_gap` identifies
-the consumer and required/available intervals. Unrepresentable mapped stations produce
-`unrepresentable_view`. An unselected exit bounds forward coverage; discarded predecessors supply none.
-The successor owns a seam, including a view endpoint.
-
-`prepare('forward'|'reverse')` and `prepareSelection(from,link)` return prospective state. Prepared
-views precede publication. A plan commits once; intervening selection/movement makes it stale.
-The optional `selectUnique` preparation extends unique continuations in that prospective history.
-
-A physical seam crossing requests the actor transition. Its contact pose and one-step motion fit
-the motion guard, and destination readers must be available. Commit transforms world position,
-velocity and orientation, and rebases course/recovery observations atomically. The session returns
-the committed direction and destination-from-source transform. Race exposes the player transform
-with the fixed-step recovery result, or from manual resynchronization; it never applies that transform
-to a camera. Body-local state, wheel/control scalars and earned progress are invariant under the basis change.
-Physics owns `reframeVehicle`; [Architecture](architecture.md#course-frames) owns its transform.
-
-An exhausted motion domain or unavailable destination uses legal-route recovery on the retained
-selected approach, leaving the active frame and earned progress intact. Recovery/replacement resynchronize
-observations. A driving scene requires compiled Session rules with a starting grid and checks
-its rearmost grid station against `D_cam`; a course without rules cannot start driving.
-When the active occurrence has no predecessor (including the first lap of a circuit), backing
-within `2 D_cam` of the entry cut recovers the vehicle to `3 D_cam` on the entry carriageway.
-The extra camera distance before the trigger protects camera and step/contact reads; the target
-leaves `2 D_cam` of camera space and supported road behind the vehicle. The camera therefore
-remains at least `D_cam` ahead of the cut when recovery starts, so the undrawn road stays
-behind the camera during ordinary backward travel. Manual
-resynchronization uses the same entry recovery positions.
+A driving scene requires compiled Session rules with a starting grid and checks its rearmost grid
+station against `D_cam`. Backing within `2 D_cam` of route s=0 recovers the vehicle to `3 D_cam` on
+the entry carriageway. Manual resynchronization uses the same entry positions. Recovery preserves
+accepted cross sections and laps and suppresses crossing credit for that step.
 
 ## Fork lock and handoff
 
@@ -328,33 +298,46 @@ Invalid controls produce `invalid_fork`.
 Exit Carriageways are ordered by their actual lock-line edges. Median centers divide supported
 space into regions; outer supported shoulders belong to the outer exits. The shared half-open
 [lateral rule](architecture.md#boundary-geometry-and-local-windows) assigns exact ties to the right.
-Unsupported/outside crossings select no route.
+A crossing outside the coordinate domain or outside every fork region selects no route.
 
-The player and rivals are eligible. All forward lock-plane crossings in a fixed step are ordered
-by intersection fraction, then stable actor ID for an exact tie. The first candidate selects one
-irreversible route for that fork occurrence after the field's successor views are ready. Locking,
-each actor's seam crossing and checkpoint credit are separate events.
+The player and rivals are eligible. Lock lines use the same route-s crossing function as race lines.
+The first forward crossing in a fixed step wins, using the s-derived fraction u and then stable actor
+ID for an exact tie. Interpolated route l, shifted by the occurrence's lateral origin, selects the
+fork region. The winner appends one successor to the shared Route. Each occurrence locks once;
+checkpoint credit remains per actor.
 
 Rivals immediately follow the selected Carriageway center. Unselected roads show saved state-selected
 signs. At/beyond closure, actors on losing pavement recover at the same chainage onto the selected
 road; progress observations resynchronize. Geometry stays static.
 
 Before lock, the parent covers all required queries through fixed-step advance:
-`requiredEnd <= parentEnd`. After lock the selected Link extends the view.
+`requiredEnd <= parentEnd`. After lock the selected Link extends the Route.
 At every exit, the parent owns its whole `[0,L]` interval. The successor starts at the cut;
-reverse traversal follows the actual predecessor.
+reverse travel stays on the selected predecessor in the same route coordinates.
 
-## Physical crossings and progress
+## Route cross sections and progress
 
-World gates observe oriented plane crossings. Forward is negative to zero/positive; reverse is
-positive to zero/negative. Arrival counts once and departure does not repeat it. Width tolerance is
-independent of crossing direction; race gates use supported Carriageway width rather than coordinate-domain width.
+`createRouteCrossSections` produces ordered race and fork-lock lines from the retained Route. Each
+occurrence places its Section checkpoints and FINISH at route s; a circuit repeats those lines for
+each lap. The lists change only on route extension or pruning. The configured final lap's FINISH,
+or the terminal Section's FINISH on a non-circuit, completes the race.
 
-Ordered progress follows authored checkpoints and continuation/exit gates. Circuit progress reuses
-one source-local gate set for each lap and counts valid finishes; grid release earns no lap.
-BRANCH advances its completed Section interval only after the actor changes frame. Ordered progress includes synthetic `:EXIT` continuation gates. They grant no clock extension.
-Missing checkpoints, reverse, recovery and replacement grant no new credit. Earned progress remains
-fixed after FINISH. Rival positions/audio use the player's observation frame; ranking uses validated progress.
+`routeCrossingFraction` accepts a forward arrival when `previous.s < line.s <= current.s` and the
+interpolated l is inside the closed coordinate domain at the line. Its fraction is
+`u = (line.s - previous.s) / (current.s - previous.s)`. Departure from a line does not repeat an
+arrival. Reverse travel and recovery steps grant no crossing credit. Carriageway width and material
+support do not limit a race line's width.
+
+`createRouteProgress` is the single implementation for all course kinds. Each actor retains its next
+required line, accepted finish count, status and route s. It consumes consecutive lines in order,
+including several crossings in one step. A missed line remains required even after route pruning;
+recovery does not skip it. Accepted lines cannot be earned twice by backing up and driving forward.
+At the terminal FINISH, the actor's distance and exact finish time are fixed. Before finishing,
+distance follows route s, including backward movement, without checkpoint-based clipping.
+
+Finished actors rank first by finish time. Unfinished actors rank by descending route s, which includes
+lap separation. Equal finish times or equal unfinished stations share a rank. Rival positions and
+audio observations already use the same route coordinates as the player.
 
 ## Session and reference timing
 
@@ -390,7 +373,7 @@ The margin and duration are positive finite values. START receives the initial b
 earned non-finish checkpoint adds the next budget once, carrying unused time without a cap. FINISH
 adds none. Precise event times determine ordering; awarded budgets alone round to integer milliseconds.
 All consecutive gates crossed in one step retain their crossing fractions. Earlier expiry ends the
-run; a valid checkpoint or FINISH wins an exact expiry tie. Rejected late crossings do not raise progress.
+run; a valid checkpoint or FINISH wins an exact expiry tie. Rejected late crossings earn no line or lap credit.
 
 ### Vehicle envelopes and drivers
 
@@ -411,8 +394,8 @@ preserving steering/tire calibration and earned gates, locks and laps.
 
 Same-chart recovery backs off from the farther of causal current chainage and last-safe chainage.
 Wrong-route recovery uses the legal approach and the actor's backtracking/retained-speed profile.
-Physics' typed suspension-travel exit requests this gameplay discontinuity. Known coordinates preserve
-occurrence identity. Observers resynchronize once, suppress reset crossing credit and update the player
+Physics' typed suspension-travel exit requests this gameplay discontinuity. Known recovery coordinates use the shared route. Observers resynchronize once, suppress reset
+crossing credit and update the player
 camera before rendering. Unrelated internal faults propagate.
 
 ## Observation formats

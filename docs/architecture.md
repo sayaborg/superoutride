@@ -76,6 +76,20 @@ Profile endpoints normalize within 1e-9 m; plan/Raster sampling uses 1e-8 m. Non
 At a primitive or Raster boundary, the successor owns the interior station; the terminal endpoint uses
 the final primitive/segment.
 
+## Route cross sections
+
+`createRouteCrossSections` maps each occurrence's checkpoints, finish and fork lock to fixed route
+stations with `routeS`. Its ordered lists and closed lateral bounds rebuild only when the Route's
+occurrence list changes. Bounds come from the coordinate-domain Reader at the line station, with
+successor ownership at a seam. A race line retains the canonical landmark identity for time budgets
+and its occurrence's lap number; line identity is independent of its index in a pruned list.
+
+The crossing calculation works entirely in `(s,l)`: forward arrival brackets the line's s, and
+linear interpolation supplies both the within-step fraction and the crossing l. A constant-s line
+is the normal cross section of the authoritative plan. There is no Section-world pose conversion or
+world-segment intersection in progress or fork selection. Gameplay orders and consumes these
+crossings as specified in [Content and gameplay](content-and-gameplay.md#route-cross-sections-and-progress).
+
 ## Numerical conventions
 
 Euclidean norms use `Math.hypot`. Nonfinite inputs and extreme magnitudes follow the
@@ -83,7 +97,7 @@ runtime's standard `Math.hypot` behavior.
 
 [Core tolerances](../src/core/tolerances.ts) defines shared endpoint, geometric, lateral-boundary,
 pixel-edge and texel-spacing tolerances. Other thresholds belong to their dimensional algorithms:
-plan projection, depth inversion, world crossings, event ordering, solver residuals and control response.
+plan projection, depth inversion, event ordering, solver residuals and control response.
 A sampling tolerance changes neither point ownership nor earned progress.
 
 ## Plan authority and Raster
@@ -343,8 +357,7 @@ and envelope/time-budget readers. Sprite normalization, palette generation, LOD 
 fixtures belong to `tools/graphics`. Shared image formats, filters, codecs and product limits remain
 in `src/image`; authoring-only limits stay with the tools.
 
-Shell owns the observer's camera, and race actors contain no camera state. A committed frame
-transform is observed by the camera owner before its next update. Race publishes camera-independent
+Shell owns the observer's camera, and race actors contain no camera state. Race publishes camera-independent
 actor observations; view owns rival sprite selection and assembly. Course owns VehicleWorld, surface
 readers and the physical driving source. Race consumes that source only. Shell binds physical and
 presentation products and owns the combined pre-lock render/driver query-depth admission.
