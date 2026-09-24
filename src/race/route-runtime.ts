@@ -9,7 +9,7 @@ import { RECOVERY_SETTINGS, recoverVehicleToPlanCoordinate, type RecoveryState }
 import { COURSE_DRIVING_POLICY } from './course-driving-policy.js';
 
 /** One route and shared readers for every actor. */
-export function createSharedRouteDrivingGraph(
+export function createRouteRuntime(
   entry: CompiledSection,
   camera: { readonly distance: number; readonly far: number; readonly near: number },
 ) {
@@ -29,7 +29,7 @@ export function createSharedRouteDrivingGraph(
     geometry: readers.geometry,
     range: readers.world.coordinates.domain,
   });
-  const metrics = { seamCommits: 0, seamCommitMaxMilliseconds: 0 };
+  const metrics = { routeChanges: 0, routeChangeMaxMilliseconds: 0 };
   let closedCarriageways: readonly CompiledCarriageway[] = Object.freeze([]);
   const updateClosed = () => {
     closedCarriageways = Object.freeze(
@@ -44,8 +44,8 @@ export function createSharedRouteDrivingGraph(
   const record = (started: number, before: typeof route.occurrences) => {
     if (route.occurrences !== before) {
       updateClosed();
-      metrics.seamCommits += 1;
-      metrics.seamCommitMaxMilliseconds = Math.max(metrics.seamCommitMaxMilliseconds, performance.now() - started);
+      metrics.routeChanges += 1;
+      metrics.routeChangeMaxMilliseconds = Math.max(metrics.routeChangeMaxMilliseconds, performance.now() - started);
     }
   };
   const refresh = (minS: number, maxS: number) => {
@@ -56,7 +56,7 @@ export function createSharedRouteDrivingGraph(
     record(started, before);
   };
   refresh(0, 0);
-  const createSession = () => {
+  const createRouteAccess = () => {
     return Object.freeze({
       get closedCarriageways() {
         return closedCarriageways;
@@ -103,7 +103,7 @@ export function createSharedRouteDrivingGraph(
     readers,
     view,
     refresh,
-    createSession,
+    createRouteAccess,
     forwardMeters,
     rearMeters,
   });

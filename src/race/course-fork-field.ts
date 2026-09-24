@@ -4,8 +4,8 @@ import { courseCutLateral } from '../course/compiler/course-links.js';
 import { courseRegionAt, courseBoundaryAt, type CompiledCarriageway } from '../course/course-regions.js';
 import { routeCrossingFraction, type createRouteCrossSections, type RoutePosition } from './route-cross-sections.js';
 import type { CourseRoute } from '../course/course-route.js';
-import type { createSharedRouteDrivingGraph } from './shared-route-driving-session.js';
-type Session = ReturnType<ReturnType<typeof createSharedRouteDrivingGraph>['createSession']>;
+import type { createRouteRuntime } from './route-runtime.js';
+type RouteAccess = ReturnType<ReturnType<typeof createRouteRuntime>['createRouteAccess']>;
 
 function center(road: CompiledCarriageway, s: number) {
   let left = Infinity,
@@ -29,7 +29,7 @@ export function createCourseForkField(route: CourseRoute, lines: ReturnType<type
     observe(
       motions: readonly {
         readonly id: string;
-        readonly session: Session;
+        readonly routeAccess: RouteAccess;
         readonly previous: RoutePosition;
         readonly current: { readonly course: RoutePosition };
         readonly recovered: boolean;
@@ -54,7 +54,7 @@ export function createCourseForkField(route: CourseRoute, lines: ReturnType<type
           selected = region.link;
         }
         if (first) {
-          first.session.prepareChoice(selected!).commit();
+          first.routeAccess.prepareChoice(selected!).commit();
           locks.set(occurrence, selected!);
         }
       }

@@ -16,7 +16,7 @@ import type { VehicleRenderReadState } from '../vehicle/physics/vehicle-contract
 import { createRenderWorkspace, renderDriving } from '../view/renderer.js';
 import type { CourseSprite } from '../view/course-sprite.js';
 import type { SpriteAssets } from '../image/sprite-assets.js';
-import { createSharedRouteDrivingGraph } from '../race/shared-route-driving-session.js';
+import { createRouteRuntime } from '../race/route-runtime.js';
 import type { VisualProfileReader } from '../course/visual-profile.js';
 
 /** One graph assembly for every course, including a single Section without Links. */
@@ -46,7 +46,7 @@ export function createCourseScene(
       Math.min(...section.outgoing.map((link) => link.from.anchor.s))
   )
     throw new RangeError('Fork parent must cover pre-lock render and driver queries through one fixed step');
-  const graph = createSharedRouteDrivingGraph(section, {
+  const graph = createRouteRuntime(section, {
     distance: CURRENT_CAMERA_PROFILE.dCam,
     far: RENDER_FAR_DEPTH_METERS,
     near: RENDER_NEAR_DEPTH_METERS,
@@ -55,29 +55,29 @@ export function createCourseScene(
     Math.min(...rules.grid.map((slot) => slot.anchor.s)),
     Math.max(...rules.grid.map((slot) => slot.anchor.s)),
   );
-  const session = graph.createSession();
+  const routeAccess = graph.createRouteAccess();
   const rendering = createCourseRouteVisualReaders(graph.route, ground);
   rendering.read();
   const entry = entryCut(section, '/entrySectionId');
   const renderWorkspace = createRenderWorkspace();
   const worldSprites: CourseSprite[] = [];
   let lastPresentation: ReturnType<typeof rendering.read> | null = null;
-  let lastClosed: typeof session.closedCarriageways | null = null;
+  let lastClosed: typeof routeAccess.closedCarriageways | null = null;
   let staticSpriteCount = 0;
   let terrainParameters: Parameters<typeof renderDriving>[1]['terrainParameters'];
   return Object.freeze({
-    session,
+    routeAccess,
     entryRecovery,
     metrics: graph.metrics,
     groundMetrics: ground.metrics,
-    createActorSession: graph.createSession,
+    createActorRouteAccess: graph.createRouteAccess,
     get world() {
-      return session.view.world;
+      return routeAccess.view.world;
     },
-    observeStep: session.observeStep,
+    observeStep: routeAccess.observeStep,
     recoverAtEntry(vehicle: ArcadeVehicleState, recovery: RecoveryState): boolean {
       if (vehicle.course.s >= entryRecovery.startS) return false;
-      recoverVehicleToPlanCoordinate(session.view.world, vehicle, {
+      recoverVehicleToPlanCoordinate(routeAccess.view.world, vehicle, {
         state: recovery,
         reason: 'wrong-course',
         target: { s: entryRecovery.targetS, l: courseCutLateral(entry) },
@@ -92,10 +92,10 @@ export function createCourseScene(
       others: readonly CourseSprite[],
       appearance: SpriteAssets = assets,
     ) {
-      const view = session.view;
+      const view = routeAccess.view;
       const { world, geometry } = view;
       const presentation = rendering.read();
-      const closed = session.closedCarriageways;
+      const closed = routeAccess.closedCarriageways;
       if (lastPresentation !== presentation || lastClosed !== closed) {
         worldSprites.length = 0;
         for (const sprite of presentation.worldSprites) worldSprites.push(sprite);

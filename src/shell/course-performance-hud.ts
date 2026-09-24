@@ -3,7 +3,7 @@ type BandObservation = NonNullable<ReturnType<typeof renderDriving>['bandGround'
 /** Host measurements; the HUD reports observations and makes no device qualification claim. */
 export function createCoursePerformanceHud(
   canvas: HTMLCanvasElement,
-  metrics: { readonly seamCommits: number; readonly seamCommitMaxMilliseconds: number },
+  metrics: { readonly routeChanges: number; readonly routeChangeMaxMilliseconds: number },
   ground: { readonly maxActiveBands: number },
 ) {
   const output = document.createElement('output');
@@ -50,7 +50,7 @@ export function createCoursePerformanceHud(
       reported = true;
       const fps = (frames * 1000) / Math.max(1, now - first);
       const detail = `Bands ${band?.method ?? ''} · active ${activeMax} visible / ${ground.maxActiveBands} course max / ${BAND_ACTIVE_LIMIT} limit · ground ${(band?.milliseconds ?? 0).toFixed(2)} ms / max120 ${Math.max(...recentBandTimes).toFixed(2)} ms`;
-      output.textContent = `${fps.toFixed(0)} fps · frame ${frameMax.toFixed(1)} ms · step ${stepMax.toFixed(1)} ms · seam ${metrics.seamCommitMaxMilliseconds.toFixed(1)} ms · interval ${intervalMax.toFixed(1)} ms · ${detail}`;
+      output.textContent = `${fps.toFixed(0)} fps · frame ${frameMax.toFixed(1)} ms · step ${stepMax.toFixed(1)} ms · route ${metrics.routeChangeMaxMilliseconds.toFixed(1)} ms · interval ${intervalMax.toFixed(1)} ms · ${detail}`;
       activeMax = 0;
       first = now;
       frames = 0;

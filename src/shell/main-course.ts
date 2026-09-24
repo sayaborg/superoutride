@@ -105,8 +105,8 @@ try {
       },
       recovery: shell.recovery,
     },
-    playerSession: scene.session,
-    createSession: scene.createActorSession,
+    playerRouteAccess: scene.routeAccess,
+    createRouteAccess: scene.createActorRouteAccess,
     rival: vehicle,
     rivalEnvelope,
     entryRecovery: scene.entryRecovery,
@@ -150,9 +150,9 @@ try {
       raceSprites(
         observations.rivals,
         lifecycle.camera,
-        scene.session.view.geometry,
+        scene.routeAccess.view.geometry,
         scene.world.height,
-        scene.session.view.renderHeight,
+        scene.routeAccess.view.renderHeight,
       ),
       input.brake ? braking : sprites,
     );

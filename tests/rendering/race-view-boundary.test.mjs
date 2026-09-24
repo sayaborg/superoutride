@@ -30,7 +30,7 @@ test('shared route keeps vehicle and camera coordinates across forward and rever
   const { course, scene, spawn } = await setup();
   const link = course.entry.outgoing[0];
   const seam = link.from.anchor.s;
-  scene.session.refresh(0, seam + 100);
+  scene.routeAccess.refresh(0, seam + 100);
   const rig = createCameraRig('MOVEMENT_FOLLOW');
   rig.yaw = 0.7;
   rig.movementYaw = -0.4;
@@ -46,7 +46,7 @@ test('shared route keeps vehicle and camera coordinates across forward and rever
     const pose = { x: vehicle.x, z: vehicle.z, yaw: vehicle.yaw, s: vehicle.course.s, l: vehicle.course.l };
     const transition = scene.observeStep(actor);
     assert.equal(transition, null);
-    assert.equal(scene.session.route.at(s).ordinal, ordinal);
+    assert.equal(scene.routeAccess.route.at(s).ordinal, ordinal);
     assert.deepEqual(rig, before, 'race must not mutate an observer camera');
     assert.deepEqual({ x: vehicle.x, z: vehicle.z, yaw: vehicle.yaw, s: vehicle.course.s, l: vehicle.course.l }, pose);
     assert.equal(scene.observeStep(actor), null, 'no repeated transition at one station');
@@ -68,8 +68,8 @@ test('race actors have no cameras and view assembles sixteen rival sprites from 
   const race = createCourseRace({
     session: settings,
     player: { vehicle, recovery: createRecoveryState(vehicle) },
-    playerSession: scene.session,
-    createSession: scene.createActorSession,
+    playerRouteAccess: scene.routeAccess,
+    createRouteAccess: scene.createActorRouteAccess,
     rival: profile,
     rivalEnvelope: envelope,
     entryRecovery: scene.entryRecovery,
@@ -84,9 +84,9 @@ test('race actors have no cameras and view assembles sixteen rival sprites from 
   const sprites = createRaceSprites(assets, profile)(
     observed.rivals,
     camera,
-    scene.session.view.geometry,
+    scene.routeAccess.view.geometry,
     scene.world.height,
-    scene.session.view.renderHeight,
+    scene.routeAccess.view.renderHeight,
   );
   assert.equal(sprites.length, observed.rivals.length);
   assert.deepEqual(

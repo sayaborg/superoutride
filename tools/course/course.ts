@@ -98,7 +98,7 @@ try {
       if (opts.has('--exit')) {
         const link = section.outgoing.find((l) => l.id === opts.get('--exit'));
         requireInput(link, '/exit', 'Exit must name a canonical outgoing Link');
-        scene.session.prepareChoice(link).commit();
+        scene.routeAccess.prepareChoice(link).commit();
       }
       const destination = path.resolve(opts.get('--out') ?? (sequence ? 'frames' : 'frame.png'));
       const frames: RenderFrame[] = [];

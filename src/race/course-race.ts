@@ -21,9 +21,9 @@ import type { DrivingInput } from '../vehicle/driving-input.js';
 import { createArcadeVehicle, type ArcadeVehicleState } from '../vehicle/physics/arcade-vehicle-physics.js';
 import type { SessionVehicle } from './session-configuration.js';
 import { createRivalRoster } from './rival-roster.js';
-import type { createSharedRouteDrivingGraph } from './shared-route-driving-session.js';
+import type { createRouteRuntime } from './route-runtime.js';
 
-type Session = ReturnType<ReturnType<typeof createSharedRouteDrivingGraph>['createSession']>;
+type RouteAccess = ReturnType<ReturnType<typeof createRouteRuntime>['createRouteAccess']>;
 interface Actor {
   readonly vehicle: ArcadeVehicleState;
   readonly recovery: RecoveryState;
@@ -41,8 +41,8 @@ export interface RaceActorObservation {
 export function createCourseRace(options: {
   readonly session: ResolvedCourseSession;
   readonly player: Actor;
-  readonly playerSession: Session;
-  readonly createSession: () => Session;
+  readonly playerRouteAccess: RouteAccess;
+  readonly createRouteAccess: () => RouteAccess;
   readonly rival: SessionVehicle;
   readonly rivalEnvelope?: VehicleEnvelope;
   readonly entryRecovery: { readonly startS: number; readonly targetS: number };
@@ -54,12 +54,12 @@ export function createCourseRace(options: {
     ? compileEnvelopeDriver(options.rivalEnvelope, options.session.rivalUtilization, options.rivalEnvelope.maximumSpeed)
     : null;
   const clock = createCheckpointClock(budgets?.initialMs ?? null);
-  const lines = createRouteCrossSections(options.playerSession.route, course, configuration.lapCount);
-  const forks = createCourseForkField(options.playerSession.route, lines);
-  const competitor = (id: string, actor: Actor, session: Session, targetL: number) => ({
+  const lines = createRouteCrossSections(options.playerRouteAccess.route, course, configuration.lapCount);
+  const forks = createCourseForkField(options.playerRouteAccess.route, lines);
+  const competitor = (id: string, actor: Actor, routeAccess: RouteAccess, targetL: number) => ({
     id,
     actor,
-    session,
+    routeAccess,
     targetL,
     recoverySettings: { ...RECOVERY_SETTINGS, targetL },
     observer: createRouteProgress(lines, actor.vehicle.course),
@@ -69,13 +69,13 @@ export function createCourseRace(options: {
     timing: createRaceSessionState(),
     finishElapsedSeconds: null as number | null,
   });
-  const player = competitor('PLAYER', options.player, options.playerSession, grid[0]!.l);
+  const player = competitor('PLAYER', options.player, options.playerRouteAccess, grid[0]!.l);
   const rivals = createRivalRoster(configuration).map(({ actorId, rivalIndex }) => {
-    const session = options.createSession();
+    const routeAccess = options.createRouteAccess();
     const slot = grid[rivalIndex + 1]!;
     const targetL = slot.l;
     const profile = options.rival;
-    const vehicle = createArcadeVehicle(profile.profile, session.view.world, {
+    const vehicle = createArcadeVehicle(profile.profile, routeAccess.view.world, {
       s: slot.anchor.s,
       l: targetL,
       initialSpeed,
@@ -83,7 +83,7 @@ export function createCourseRace(options: {
       steeringCalibration: profile.steeringCalibration,
       tireFrictionCalibration: profile.tireFrictionCalibration,
     });
-    return competitor(actorId, { vehicle, recovery: createRecoveryState(vehicle) }, session, targetL);
+    return competitor(actorId, { vehicle, recovery: createRecoveryState(vehicle) }, routeAccess, targetL);
   });
   const resync = (c: typeof player) => c.observer.resync(c.actor.vehicle.course);
   const lane = (c: typeof player, s: number) => forks.targetL(s, c.targetL);
@@ -91,7 +91,7 @@ export function createCourseRace(options: {
   const motions = competitors.map((c) => ({
     c,
     id: c.id,
-    session: c.session,
+    routeAccess: c.routeAccess,
     previous: { s: 0, l: 0 },
     current: c.actor.vehicle,
     recovered: false,
@@ -107,16 +107,16 @@ export function createCourseRace(options: {
   const actorInputs = new Map(motions.map((motion) => [motion.c.id, motion.step]));
   const move = (motion: (typeof motions)[number], input: DrivingInput, dt: number) => {
     const { c, previous } = motion;
-    const { actor, session } = c;
+    const { actor, routeAccess } = c;
     previous.l = actor.vehicle.course.l;
     previous.s = actor.vehicle.course.s;
     motion.current = actor.vehicle;
     c.recoverySettings.targetL = lane(c, actor.vehicle.course.s);
     motion.step.input = input;
     motion.step.dt = dt;
-    let recovered = advanceVehicleWithRecovery(session.view.world, actor.vehicle, motion.step) !== null;
+    let recovered = advanceVehicleWithRecovery(routeAccess.view.world, actor.vehicle, motion.step) !== null;
     if (actor.vehicle.course.s < options.entryRecovery.startS) {
-      recoverVehicleToPlanCoordinate(session.view.world, actor.vehicle, {
+      recoverVehicleToPlanCoordinate(routeAccess.view.world, actor.vehicle, {
         state: actor.recovery,
         reason: 'wrong-course',
         target: { s: options.entryRecovery.targetS, l: lane(c, options.entryRecovery.targetS) },
@@ -128,7 +128,7 @@ export function createCourseRace(options: {
   const legalRecovery = (c: typeof player) => {
     const target = forks.legalTarget(c.actor.vehicle.course.s, c.actor.vehicle.course.l);
     if (!target) return false;
-    recoverVehicleToPlanCoordinate(c.session.view.world, c.actor.vehicle, {
+    recoverVehicleToPlanCoordinate(c.routeAccess.view.world, c.actor.vehicle, {
       state: c.actor.recovery,
       reason: 'wrong-course',
       target,
@@ -147,7 +147,7 @@ export function createCourseRace(options: {
     for (let i = 0; i < rivals.length; i += 1) {
       const c = rivals[i]!;
       const vehicle = c.actor.vehicle;
-      if (!player.session.route.at(vehicle.course.s)) continue;
+      if (!player.routeAccess.route.at(vehicle.course.s)) continue;
       const observation = pool[i]!;
       observation.paletteVariant = actorInputs.get(c.id)?.input.brake ? 'braking' : 'base';
       visible.push(observation);
@@ -193,14 +193,14 @@ export function createCourseRace(options: {
         minS = Math.min(minS, motion.c.actor.vehicle.course.s);
         maxS = Math.max(maxS, motion.c.actor.vehicle.course.s);
       }
-      player.session.refresh(minS, maxS);
+      player.routeAccess.refresh(minS, maxS);
       move(motions[0]!, input, dt);
       for (let i = 1; i < motions.length; i += 1) {
         const motion = motions[i]!;
         move(
           motion,
           sampleEnvelopeDrivingInput(
-            motion.session.view.world.coordinates,
+            motion.routeAccess.view.world.coordinates,
             motion.c.actor.vehicle,
             driver!,
             motion.input,
@@ -214,11 +214,11 @@ export function createCourseRace(options: {
         minS = Math.min(minS, motion.c.actor.vehicle.course.s);
         maxS = Math.max(maxS, motion.c.actor.vehicle.course.s);
       }
-      player.session.refresh(minS, maxS);
+      player.routeAccess.refresh(minS, maxS);
       for (const motion of motions) {
         const { c } = motion;
         motion.recovered = legalRecovery(c) || motion.recovered;
-        motion.recovered ||= c.session.observeStep(c.actor) === 'recovered';
+        motion.recovered ||= c.routeAccess.observeStep(c.actor) === 'recovered';
         const update = c.observer.update(
           motion.previous,
           c.actor.vehicle.course,
@@ -248,7 +248,7 @@ export function createCourseRace(options: {
     },
     resyncPlayer() {
       legalRecovery(player);
-      player.session.observeStep(player.actor);
+      player.routeAccess.observeStep(player.actor);
       resync(player);
     },
     observe() {

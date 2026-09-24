@@ -66,8 +66,8 @@ export function runCourseReference(
   const race = createCourseRace({
     session,
     player: actor,
-    playerSession: scene.session,
-    createSession: scene.createActorSession,
+    playerRouteAccess: scene.routeAccess,
+    createRouteAccess: scene.createActorRouteAccess,
     rival: vehicleConfiguration,
     entryRecovery: scene.entryRecovery,
   });
@@ -79,7 +79,7 @@ export function runCourseReference(
     maximumLateralUtilization = 0;
   const planned = new Map(route.map((link) => [link.from.section, link]));
   const lane = (s: number) => {
-    const occurrence = scene.session.route.at(s)!,
+    const occurrence = scene.routeAccess.route.at(s)!,
       section = occurrence.section,
       link = planned.get(section);
     const fallback =
@@ -92,7 +92,7 @@ export function runCourseReference(
   // Work bound, not a replacement finish. A timed-out/recovered run publishes no reference product.
   const maxTicks = Math.ceil((3600 * lapCount) / SIM_DT);
   for (let tick = 0; tick < maxTicks; tick++) {
-    const section = scene.session.route.at(vehicle.course.s)!.section,
+    const section = scene.routeAccess.route.at(vehicle.course.s)!.section,
       startSeconds = race.clock.elapsedSeconds;
     const input = sampleEnvelopeDrivingInput(scene.world.coordinates, vehicle, driver, lane, workspace);
     race.advance(input, SIM_DT);
@@ -117,7 +117,7 @@ export function runCourseReference(
     if (capture && (tick % 6 === 0 || race.clock.status === 'GOAL'))
       trace.push({
         timeSeconds: race.clock.elapsedSeconds,
-        sectionId: scene.session.route.at(vehicle.course.s)!.section.id,
+        sectionId: scene.routeAccess.route.at(vehicle.course.s)!.section.id,
         lap: Math.min(lapCount, race.player.progress.acceptedFinishCount + 1),
         s: vehicle.course.s,
         l: vehicle.course.l,
@@ -132,7 +132,7 @@ export function runCourseReference(
       throw new RangeError('Reference selected an unintended route');
   }
   // Center following is verified against pavement; telemetry is descriptive, not force authority.
-  const finalOccurrence = scene.session.route.at(vehicle.course.s)!;
+  const finalOccurrence = scene.routeAccess.route.at(vehicle.course.s)!;
   const finalSection = finalOccurrence.section;
   const finalS = routeSectionS(finalOccurrence, vehicle.course.s);
   const finalL = vehicle.course.l + finalOccurrence.lateralOrigin;
