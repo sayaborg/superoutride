@@ -13,7 +13,7 @@ import { referenceCommand } from './reference-command.js';
 import path from 'node:path';
 import { PNG } from 'pngjs';
 import { createCourseScene } from '../../src/shell/course-scene.js';
-import { createArcadeVehicle } from '../../src/vehicle/physics/arcade-vehicle-physics.js';
+import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
 import { VEHICLE_CATALOG } from '../../src/vehicle/vehicle-catalog.js';
 import { createCameraRig, updateCamera } from '../../src/view/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../../src/view/current-camera-profile.js';
@@ -73,7 +73,7 @@ try {
       result.ground = (await loadCourseGround(course)).metrics;
     } else if (verb === 'render') {
       const entry = opts.has('--vehicle')
-        ? VEHICLE_CATALOG.find((e) => e.profile.id === opts.get('--vehicle'))
+        ? VEHICLE_CATALOG.find((e) => e.compiledVehicle.id === opts.get('--vehicle'))
         : VEHICLE_CATALOG[0];
       requireInput(entry, '/vehicle', 'Unknown vehicle');
       const sequence = ['--start', '--end', '--step'].some((f) => opts.has(f));
@@ -102,7 +102,7 @@ try {
       const destination = path.resolve(opts.get('--out') ?? (sequence ? 'frames' : 'frame.png'));
       const frames: RenderFrame[] = [];
       for (const [i, s] of stations.entries()) {
-        const vehicle = createArcadeVehicle(entry.profile, scene.world, {
+        const vehicle = createVehicle(entry.compiledVehicle, scene.world, {
           s,
           l,
           initialSpeed: 0,
@@ -120,7 +120,7 @@ try {
           section: section.id,
           s: vehicle.course.s,
           l: vehicle.course.l,
-          vehicle: entry.profile.id,
+          vehicle: entry.compiledVehicle.id,
           stats,
         });
       }

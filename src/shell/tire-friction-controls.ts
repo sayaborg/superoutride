@@ -1,5 +1,5 @@
-import type { ArcadeVehicleState } from '../vehicle/physics/arcade-vehicle-physics.js';
-import { setArcadeVehicleTireFrictionCalibration } from '../vehicle/physics/tire-friction-calibration.js';
+import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
+import { setVehicleTireFrictionCalibration } from '../vehicle/physics/tire-friction-calibration.js';
 import { mountMobileTireCalibrationSelector } from './mobile-selector-controls.js';
 import {
   BROWSER_TIRE_AXES,
@@ -14,7 +14,7 @@ interface BrowserTireFrictionControls {
 /** Keyboard cycles forward; explicit +/- buttons own both directions through the same operation. */
 export function mountBrowserTireFrictionControls(
   container: HTMLElement,
-  getVehicle: () => ArcadeVehicleState,
+  getVehicle: () => VehicleState,
   documentRef: Document = document,
 ): BrowserTireFrictionControls {
   const selector = mountMobileTireCalibrationSelector(
@@ -26,7 +26,7 @@ export function mountBrowserTireFrictionControls(
 
   function stepAxis(axis: BrowserTireCalibrationAxis, direction: -1 | 1): void {
     const vehicle = getVehicle();
-    setArcadeVehicleTireFrictionCalibration(
+    setVehicleTireFrictionCalibration(
       vehicle,
       stepBrowserTireCalibration(axis, direction, vehicle.tireFrictionCalibration),
     );

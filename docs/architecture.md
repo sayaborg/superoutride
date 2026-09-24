@@ -463,17 +463,17 @@ options and lint rules. [Development](development.md#typescript-tools) owns exec
 Product source is organized by domain. Shared definitions, product compilation and runtime representation
 belong inside that domain; an upper domain depends only on lower domains, and same-domain imports are unrestricted.
 
-| Order | Layer   | Responsibility                                                                                                         |
-| ----- | ------- | ---------------------------------------------------------------------------------------------------------------------- |
-| 1     | core    | General mathematics, vectors, planar transforms, validation helpers                                                    |
-| 2     | image   | Indexed images, RGB555/RGBA codecs, palettes, sprite/LOD formats, BG tiles and image filters                           |
-| 3     | audio   | Sound synthesis and audio engines                                                                                      |
-| 4     | course  | Course documents and compilation, road geometry, materials, occurrences, environment profiles and shared Route readers |
-| 5     | vehicle | Vehicle mechanics, definitions, catalog and accepted operation requests                                                |
-| 6     | input   | Keyboard/touch adapters and arbitration producing vehicle operation requests                                           |
-| 7     | race    | Sessions, progress, gates, timing, drivers, recovery and envelopes                                                     |
-| 8     | view    | Cameras, projection, ground rows, sprite placement, drawing composition and framebuffer                                |
-| 9     | shell   | DOM, frame loop, HUD, DEV, startup and whole-scene composition                                                         |
+| Order | Layer   | Responsibility                                                                                                          |
+| ----- | ------- | ----------------------------------------------------------------------------------------------------------------------- |
+| 1     | core    | General mathematics, vectors, planar transforms, validation helpers                                                     |
+| 2     | image   | Indexed images, RGB555/RGBA codecs, palettes, sprite/LOD formats, BG tiles and image filters                            |
+| 3     | audio   | Sound synthesis and audio engines                                                                                       |
+| 4     | course  | Course documents and compilation, road geometry, materials, occurrences, environment timelines and shared Route readers |
+| 5     | vehicle | Vehicle mechanics, definitions, catalog and accepted operation requests                                                 |
+| 6     | input   | Keyboard/touch adapters and arbitration producing vehicle operation requests                                            |
+| 7     | race    | Sessions, progress, gates, timing, drivers, recovery and envelopes                                                      |
+| 8     | view    | Cameras, projection, ground rows, sprite placement, drawing composition and framebuffer                                 |
+| 9     | shell   | DOM, frame loop, HUD, DEV, startup and whole-scene composition                                                          |
 
 The [dependency check](../tests/infrastructure/layer-dependencies.test.mjs) parses imports, type-only
 imports, re-exports, inline import types, literal dynamic imports, CommonJS references, worker entries
@@ -495,4 +495,4 @@ RGBA conversion, sprite images and LOD formats belong
 to image; framebuffer writes and sprite drawing belong to view. Compiled Strip color fields
 and their scalar coefficient Reader belong to course. View owns Strip row sampling and the
 three display methods; shell obtains their names from view.
-Environment profiles are course data.
+Environment timelines are course data.

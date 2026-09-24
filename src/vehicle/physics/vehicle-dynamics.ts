@@ -12,7 +12,7 @@ import type { ProfileReader } from '../../course/geometry/profile.js';
 import type { AutomaticPowertrainState } from './automatic-powertrain.js';
 import type { SurfaceMapReader } from '../../course/vehicle-world.js';
 import type { SurfaceMaterial, SurfaceType } from '../../course/surface-material.js';
-import type { CompiledTireProfile } from './tire-wheel.js';
+import type { CompiledTire } from './tire-wheel.js';
 import {
   add3,
   cross3,
@@ -47,7 +47,7 @@ interface VehicleControlState {
   throttleActuator: number;
   brakeActuator: number;
   actualSteerAngle: number;
-  /** HUD-only handwheel angle derived from road-wheel angle and the profile presentation ratio. */
+  /** HUD-only handwheel angle derived from road-wheel angle and the vehicle's presentation ratio. */
   handwheelAngle: number;
   /** Signed regularized front contact slip angle. Derived telemetry only. */
   frontSlipAngle: number;
@@ -91,7 +91,7 @@ interface BodyFrameVelocity {
   readonly vertical: number;
 }
 
-interface SuspensionStationProfile {
+interface CompiledSuspensionStation {
   readonly springRate: number;
   readonly damping: number;
   readonly qStatic: number;
@@ -100,7 +100,7 @@ interface SuspensionStationProfile {
   readonly bumpForceMax: number;
 }
 
-export interface ContactStationProfile {
+export interface CompiledContactStation {
   readonly id: VehicleContactId;
   readonly forwardOffset: number;
   /** CG-to-free-reach distance along body down at maximum suspension extension. */
@@ -108,8 +108,8 @@ export interface ContactStationProfile {
   readonly rollingRadius: number;
   readonly wheelInertia: number;
   readonly maxBrakeTorque: number;
-  readonly suspension: SuspensionStationProfile;
-  readonly tire: CompiledTireProfile;
+  readonly suspension: CompiledSuspensionStation;
+  readonly tire: CompiledTire;
 }
 
 export interface BodyKinematics {
@@ -138,7 +138,7 @@ interface SurfaceGeometryObservation {
 
 export interface ContactObservation {
   readonly id: VehicleContactId;
-  readonly profile: ContactStationProfile;
+  readonly station: CompiledContactStation;
   readonly surface: SurfaceGeometryObservation;
   readonly supportAvailable: boolean;
   readonly withinReach: boolean;
@@ -306,7 +306,7 @@ export function sampleSurfaceGeometryAtCoordinate(
   return out;
 }
 
-export function createContactWorkspace(station: ContactStationProfile) {
+export function createContactWorkspace(station: CompiledContactStation) {
   const surface = createSurfaceGeometryWorkspace();
   return {
     surface,
@@ -315,7 +315,7 @@ export function createContactWorkspace(station: ContactStationProfile) {
     freeOffset: vector(),
     value: {
       id: station.id,
-      profile: station,
+      station,
       surface: surface.value,
       supportAvailable: false,
       withinReach: false,
@@ -346,7 +346,7 @@ export function deriveContactObservation(
   height: ProfileReader,
   surfaces: SurfaceMapReader,
   body: BodyKinematics,
-  station: ContactStationProfile,
+  station: CompiledContactStation,
   steerAngle: number,
   previousS: number,
   workspace: ContactWorkspace,
@@ -395,7 +395,7 @@ export function deriveContactObservation(
     : 0;
   sub3(reachPoint, scale3(surface.normal, gap, a), out.contactPoint);
   out.id = station.id;
-  out.profile = station;
+  out.station = station;
   out.surface = surface;
   out.supportAvailable = supportAvailable;
   out.withinReach = withinReach;
@@ -424,13 +424,13 @@ export function reorientContactObservation(
       tireForward: out.tireForward,
       tireRight: out.tireRight,
     });
-  contactTireFrame(body, contact.profile, steerAngle, contact.surface, contact.reachVelocity, out, workspace.a);
+  contactTireFrame(body, contact.station, steerAngle, contact.surface, contact.reachVelocity, out, workspace.a);
   return out;
 }
 
 function contactTireFrame(
   body: BodyKinematics,
-  station: ContactStationProfile,
+  station: CompiledContactStation,
   steerAngle: number,
   surface: SurfaceGeometryObservation,
   reachVelocity: Vec3,
@@ -485,7 +485,7 @@ export function compileSuspensionStation(
   qBump: number,
   qTravel: number,
   bumpForceMax: number,
-): SuspensionStationProfile {
+): CompiledSuspensionStation {
   if (![staticLoad, rideFrequency, dampingRatio, qBump, qTravel, bumpForceMax].every(Number.isFinite)) {
     throw new RangeError('suspension inputs must be finite');
   }
@@ -546,7 +546,7 @@ export function initializePlanCoordinateObservation(
   return coordinates.locateLocal({ x, z }, previousS, { s: 0, l: 0, inDomain: false }, createPlanProjectionWorkspace());
 }
 
-function bumpStopForce(q: number, suspension: SuspensionStationProfile): number {
+function bumpStopForce(q: number, suspension: CompiledSuspensionStation): number {
   if (q <= suspension.qBump || !(suspension.bumpForceMax > 0)) return 0;
   const x = (q - suspension.qBump) / (suspension.qTravel - suspension.qBump);
   const t = Math.max(0, Math.min(1, x));

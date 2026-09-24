@@ -1,7 +1,7 @@
 import { type CameraYawMode } from '../view/camera.js';
-import type { ArcadeTireFrictionCalibrationState } from '../vehicle/physics/tire-friction-calibration.js';
+import type { VehicleTireFrictionCalibrationState } from '../vehicle/physics/tire-friction-calibration.js';
 import { readTireCharacteristics } from '../vehicle/physics/tire-friction-calibration.js';
-import type { VehicleProfileId } from '../vehicle/physics/vehicle-profiles.js';
+import type { VehicleId } from '../vehicle/physics/vehicle-definitions.js';
 import { BROWSER_CAMERA_YAW_MODES } from './camera-yaw-selection.js';
 import { BROWSER_COURSE_MODES, type BrowserCourseModeQuery } from './course-mode-selection.js';
 import { sameSelectorValue } from './selector-values.js';
@@ -12,7 +12,7 @@ import {
   formatTraversalSeconds,
 } from './steering-calibration-selection.js';
 import { BROWSER_TIRE_AXES, formatTireAxisValue, type BrowserTireCalibrationAxis } from './tire-friction-selection.js';
-import { BROWSER_VEHICLE_PROFILES } from './vehicle-profile-selection.js';
+import { BROWSER_VEHICLE_SELECTIONS } from './vehicle-selection.js';
 
 export interface MobileSelectorButtonModel<Value extends string | number> {
   readonly value: Value;
@@ -39,11 +39,11 @@ export function createMobileCourseSelectorModel(
 }
 
 export function createMobileVehicleSelectorModel(
-  activeId: VehicleProfileId,
-  selections = BROWSER_VEHICLE_PROFILES,
-): readonly MobileSelectorButtonModel<VehicleProfileId>[] {
-  return selectorModel(activeId, selections, ({ profile, mobileLabel, accessibleName }) => ({
-    value: profile.id,
+  activeId: VehicleId,
+  selections = BROWSER_VEHICLE_SELECTIONS,
+): readonly MobileSelectorButtonModel<VehicleId>[] {
+  return selectorModel(activeId, selections, ({ compiledVehicle, mobileLabel, accessibleName }) => ({
+    value: compiledVehicle.id,
     label: mobileLabel,
     ariaLabel: `Select ${accessibleName}`,
   }));
@@ -86,7 +86,7 @@ export function createMobileSteeringResponseSelectorModel(
 }
 
 export function createMobileTireCalibrationSelectorModel(
-  calibration: Readonly<ArcadeTireFrictionCalibrationState>,
+  calibration: Readonly<VehicleTireFrictionCalibrationState>,
 ): readonly MobileTireCalibrationButtonModel[] {
   return BROWSER_TIRE_AXES.map((axis) => ({
     axis: axis.id,

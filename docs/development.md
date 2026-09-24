@@ -108,7 +108,7 @@ The file compilers are `npm run build:sprite-source -- <arguments>` and
 Both auditions use production voices and render at 48 kHz with fixed playback gain; game audio uses
 the device's supported native rate. [Browser tools](#browser-tools) gives the build and opening instructions.
 
-For engine adjustment, select a catalog profile and compare steady RPM/excitation with acceleration
+For engine adjustment, select a catalog vehicle and compare steady RPM/excitation with acceleration
 and coast. Commit settings before the next audition playback. Keep playback gain fixed when comparing
 timbre or output level. For tire adjustment, use independent front/rear/both scenarios for rolling,
 cornering, wheel lock, loose surfaces and release. R/Q output controls isolate the two components.
@@ -130,7 +130,7 @@ reference evidence. Product-renderer previews and reports are generated outputs.
 
 `dist/` contains compiled product ESM and bundled browser graphics/audio tools, not Node build-script output. `dist/content/` contains course JSON, compiled
 images/sprites and the content manifest. Course JSON retains authored Strip constructs; the shared compiler expands them and builds immutable
-preblend fields before browser driving or headless rendering. Expanded Strips and their profiles are
+preblend fields before browser driving or headless rendering. Expanded Strips and their knots are
 in-memory compiler products, not committed files or an additional delivered image format. Build also generates
 vehicle envelopes, continuous reference runs and game time budgets. Matching disposable data under
 `.cache/course-reference/` is reused; changed inputs regenerate it. Browsers load these products.

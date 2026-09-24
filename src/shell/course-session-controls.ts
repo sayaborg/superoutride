@@ -20,7 +20,8 @@ export function readBrowserSessionSettings(
           countdown: params.get('clock') !== 'off',
           vehicleId: params.get('vehicle') ?? preset.vehicleId,
         };
-  if (!VEHICLE_CATALOG.some((v) => v.profile.id === values.vehicleId)) throw new RangeError('Unknown Session vehicle');
+  if (!VEHICLE_CATALOG.some((v) => v.compiledVehicle.id === values.vehicleId))
+    throw new RangeError('Unknown Session vehicle');
   return Object.freeze({ ...compileSessionConfiguration({ mode, ...values }), vehicleId: values.vehicleId });
 }
 
@@ -64,7 +65,7 @@ export function mountCourseSessionControls(
   );
   const vehicle = select(
     'Vehicle',
-    VEHICLE_CATALOG.map((v) => ({ value: v.profile.id, label: `${v.manufacturer} ${v.model}` })),
+    VEHICLE_CATALOG.map((v) => ({ value: v.compiledVehicle.id, label: `${v.manufacturer} ${v.model}` })),
     current.vehicleId,
   );
   const numeric = (name: string, value: number, min: number, max: number) => {

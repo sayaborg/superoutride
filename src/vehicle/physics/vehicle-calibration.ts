@@ -1,44 +1,44 @@
 import {
-  validateSymmetricSteeringActuatorRateProfile,
-  type NormalizedActuatorRateProfile,
+  validateSymmetricSteeringActuatorRateDefinition,
+  type NormalizedActuatorRateDefinition,
 } from './driving-actuator.js';
-import type { CompiledArcadeVehicleProfile } from './vehicle-profiles.js';
+import type { CompiledVehicle } from './vehicle-definitions.js';
 
 /** The selectable steering geometry/response values. Angles are road-wheel radians. */
-export interface ArcadeSteeringCalibrationInput {
+export interface VehicleSteeringCalibrationInput {
   readonly maxRoadWheelSteer?: number;
   readonly steeringOffsetMax?: number;
-  readonly steeringActuatorResponse?: NormalizedActuatorRateProfile;
+  readonly steeringActuatorResponse?: NormalizedActuatorRateDefinition;
 }
 
-export interface ArcadeSteeringCalibrationState {
+export interface VehicleSteeringCalibrationState {
   maxRoadWheelSteer: number;
   steeringOffsetMax: number;
-  steeringActuatorResponse: Readonly<NormalizedActuatorRateProfile>;
+  steeringActuatorResponse: Readonly<NormalizedActuatorRateDefinition>;
 }
 
-interface ArcadeSteeringCalibrationOwner {
-  readonly steeringCalibration: ArcadeSteeringCalibrationState;
+interface VehicleSteeringCalibrationOwner {
+  readonly steeringCalibration: VehicleSteeringCalibrationState;
 }
 
-export function createArcadeSteeringCalibration(
-  profile: CompiledArcadeVehicleProfile,
-  input: ArcadeSteeringCalibrationInput = {},
-): ArcadeSteeringCalibrationState {
-  const maxRoadWheelSteer = input.maxRoadWheelSteer ?? profile.maxRoadWheelSteer;
-  const steeringOffsetMax = input.steeringOffsetMax ?? profile.steeringOffsetMax;
-  const steeringActuatorResponse = input.steeringActuatorResponse ?? profile.actuator.steering;
-  assertArcadeSteeringAngleCalibration({ maxRoadWheelSteer, steeringOffsetMax });
-  validateSymmetricSteeringActuatorRateProfile(steeringActuatorResponse);
+export function createVehicleSteeringCalibration(
+  compiledVehicle: CompiledVehicle,
+  input: VehicleSteeringCalibrationInput = {},
+): VehicleSteeringCalibrationState {
+  const maxRoadWheelSteer = input.maxRoadWheelSteer ?? compiledVehicle.maxRoadWheelSteer;
+  const steeringOffsetMax = input.steeringOffsetMax ?? compiledVehicle.steeringOffsetMax;
+  const steeringActuatorResponse = input.steeringActuatorResponse ?? compiledVehicle.actuator.steering;
+  assertVehicleSteeringAngleCalibration({ maxRoadWheelSteer, steeringOffsetMax });
+  validateSymmetricSteeringActuatorRateDefinition(steeringActuatorResponse);
   return {
     maxRoadWheelSteer,
     steeringOffsetMax,
-    steeringActuatorResponse: immutableRateProfile(steeringActuatorResponse),
+    steeringActuatorResponse: immutableRateDefinition(steeringActuatorResponse),
   };
 }
 
-function assertArcadeSteeringAngleCalibration(
-  calibration: Pick<ArcadeSteeringCalibrationState, 'maxRoadWheelSteer' | 'steeringOffsetMax'>,
+function assertVehicleSteeringAngleCalibration(
+  calibration: Pick<VehicleSteeringCalibrationState, 'maxRoadWheelSteer' | 'steeringOffsetMax'>,
 ): void {
   const { maxRoadWheelSteer, steeringOffsetMax } = calibration;
   if (!(maxRoadWheelSteer > 0) || !(maxRoadWheelSteer < Math.PI / 2) || !Number.isFinite(maxRoadWheelSteer)) {
@@ -51,49 +51,42 @@ function assertArcadeSteeringAngleCalibration(
 
 /** Derived automatic travel-direction authority. Never store a second authored A value. */
 export function steeringAutomaticMax(
-  calibration: Pick<ArcadeSteeringCalibrationState, 'maxRoadWheelSteer' | 'steeringOffsetMax'>,
+  calibration: Pick<VehicleSteeringCalibrationState, 'maxRoadWheelSteer' | 'steeringOffsetMax'>,
 ): number {
-  assertArcadeSteeringAngleCalibration(calibration);
+  assertVehicleSteeringAngleCalibration(calibration);
   return calibration.maxRoadWheelSteer - calibration.steeringOffsetMax;
 }
 
-export function setArcadeVehicleMaxRoadWheelSteer(
-  vehicle: ArcadeSteeringCalibrationOwner,
-  maxRoadWheelSteer: number,
-): void {
-  assertArcadeSteeringAngleCalibration({
+export function setVehicleMaxRoadWheelSteer(vehicle: VehicleSteeringCalibrationOwner, maxRoadWheelSteer: number): void {
+  assertVehicleSteeringAngleCalibration({
     maxRoadWheelSteer,
     steeringOffsetMax: vehicle.steeringCalibration.steeringOffsetMax,
   });
   vehicle.steeringCalibration.maxRoadWheelSteer = maxRoadWheelSteer;
 }
 
-export function setArcadeVehicleSteeringOffsetMax(
-  vehicle: ArcadeSteeringCalibrationOwner,
-  steeringOffsetMax: number,
-): void {
-  assertArcadeSteeringAngleCalibration({
+export function setVehicleSteeringOffsetMax(vehicle: VehicleSteeringCalibrationOwner, steeringOffsetMax: number): void {
+  assertVehicleSteeringAngleCalibration({
     maxRoadWheelSteer: vehicle.steeringCalibration.maxRoadWheelSteer,
     steeringOffsetMax,
   });
   vehicle.steeringCalibration.steeringOffsetMax = steeringOffsetMax;
 }
 
-export function setArcadeVehicleSymmetricSteeringActuatorRate(
-  vehicle: ArcadeSteeringCalibrationOwner,
-  rate: number,
-): void {
+export function setVehicleSymmetricSteeringActuatorRate(vehicle: VehicleSteeringCalibrationOwner, rate: number): void {
   assertPositiveFiniteSteeringActuatorRate(rate);
-  vehicle.steeringCalibration.steeringActuatorResponse = immutableRateProfile({
+  vehicle.steeringCalibration.steeringActuatorResponse = immutableRateDefinition({
     applyRate: rate,
     releaseRate: rate,
   });
 }
 
-function immutableRateProfile(profile: NormalizedActuatorRateProfile): Readonly<NormalizedActuatorRateProfile> {
+function immutableRateDefinition(
+  definition: NormalizedActuatorRateDefinition,
+): Readonly<NormalizedActuatorRateDefinition> {
   return Object.freeze({
-    applyRate: profile.applyRate,
-    releaseRate: profile.releaseRate,
+    applyRate: definition.applyRate,
+    releaseRate: definition.releaseRate,
   });
 }
 

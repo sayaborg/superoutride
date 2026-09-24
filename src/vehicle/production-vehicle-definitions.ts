@@ -1,6 +1,6 @@
-import type { DrivingActuatorProfile } from './physics/driving-actuator.js';
+import type { DrivingActuatorDefinition } from './physics/driving-actuator.js';
 import type { TireCharacteristics } from './physics/tire-friction-calibration.js';
-import { compileArcadeVehicleProfile, type ArcadeVehicleProfile } from './physics/vehicle-profiles.js';
+import { compileVehicle, type VehicleDefinition } from './physics/vehicle-definitions.js';
 
 /** Product-authored values; generic mechanics imports no catalog or production data. */
 const DEG = Math.PI / 180;
@@ -20,7 +20,7 @@ const COMMON_SELECTABLE_VEHICLE_TIRE = Object.freeze({
   lowSpeedRegularization: 1.0,
 });
 
-const COMMON_ACTUATOR: Readonly<DrivingActuatorProfile> = Object.freeze({
+const COMMON_ACTUATOR: Readonly<DrivingActuatorDefinition> = Object.freeze({
   steering: Object.freeze({
     applyRate: 1 / 0.25,
     releaseRate: 1 / 0.25,
@@ -47,7 +47,7 @@ const BIKE_STEERING = Object.freeze({
 });
 
 /** 1989 European/ROW five-bolt Ferrari Testarossa reference. */
-const FERRARI_TESTAROSSA_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
+const FERRARI_TESTAROSSA_VEHICLE_DEFINITION: Readonly<VehicleDefinition> = Object.freeze({
   id: 'TESTAROSSA',
   mass: 1625,
   yawInertia: 3100,
@@ -93,10 +93,10 @@ const FERRARI_TESTAROSSA_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Obj
     ],
   },
 });
-export const FERRARI_TESTAROSSA_VEHICLE_PROFILE = compileArcadeVehicleProfile(FERRARI_TESTAROSSA_VEHICLE_AUTHORING);
+export const COMPILED_FERRARI_TESTAROSSA_VEHICLE = compileVehicle(FERRARI_TESTAROSSA_VEHICLE_DEFINITION);
 
 /** 1989 European Porsche 911 Turbo 3.3 with the one-year G50/50 five-speed. */
-const PORSCHE_911_TURBO_3_3_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
+const PORSCHE_911_TURBO_3_3_VEHICLE_DEFINITION: Readonly<VehicleDefinition> = Object.freeze({
   id: '911_TURBO_3_3',
   mass: 1410,
   yawInertia: 2400,
@@ -143,12 +143,10 @@ const PORSCHE_911_TURBO_3_3_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = 
     ],
   },
 });
-export const PORSCHE_911_TURBO_3_3_VEHICLE_PROFILE = compileArcadeVehicleProfile(
-  PORSCHE_911_TURBO_3_3_VEHICLE_AUTHORING,
-);
+export const COMPILED_PORSCHE_911_TURBO_3_3_VEHICLE = compileVehicle(PORSCHE_911_TURBO_3_3_VEHICLE_DEFINITION);
 
 /** 1989 US Chevrolet Corvette L98 with ZF six-speed and base pre-facelift chassis. */
-const CHEVROLET_CORVETTE_C4_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
+const CHEVROLET_CORVETTE_C4_VEHICLE_DEFINITION: Readonly<VehicleDefinition> = Object.freeze({
   id: 'CORVETTE_C4',
   mass: 1565,
   yawInertia: 3000,
@@ -194,12 +192,10 @@ const CHEVROLET_CORVETTE_C4_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = 
     ],
   },
 });
-export const CHEVROLET_CORVETTE_C4_VEHICLE_PROFILE = compileArcadeVehicleProfile(
-  CHEVROLET_CORVETTE_C4_VEHICLE_AUTHORING,
-);
+export const COMPILED_CHEVROLET_CORVETTE_C4_VEHICLE = compileVehicle(CHEVROLET_CORVETTE_C4_VEHICLE_DEFINITION);
 
 /** 1988 European non-catalyst three-door Volkswagen Golf GTI 16V with small bumpers. */
-const VOLKSWAGEN_GOLF_GTI_16V_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
+const VOLKSWAGEN_GOLF_GTI_16V_VEHICLE_DEFINITION: Readonly<VehicleDefinition> = Object.freeze({
   id: 'GOLF_GTI_16V',
   mass: 1080,
   yawInertia: 1680,
@@ -245,12 +241,10 @@ const VOLKSWAGEN_GOLF_GTI_16V_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> 
     ],
   },
 });
-export const VOLKSWAGEN_GOLF_GTI_16V_VEHICLE_PROFILE = compileArcadeVehicleProfile(
-  VOLKSWAGEN_GOLF_GTI_16V_VEHICLE_AUTHORING,
-);
+export const COMPILED_VOLKSWAGEN_GOLF_GTI_16V_VEHICLE = compileVehicle(VOLKSWAGEN_GOLF_GTI_16V_VEHICLE_DEFINITION);
 
 /** 1988 European road-going Lancia Delta HF Integrale 8V, 185 PS. */
-const LANCIA_DELTA_HF_INTEGRALE_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
+const LANCIA_DELTA_HF_INTEGRALE_VEHICLE_DEFINITION: Readonly<VehicleDefinition> = Object.freeze({
   id: 'DELTA_HF_INTEGRALE',
   mass: 1290,
   yawInertia: 1980,
@@ -296,12 +290,10 @@ const LANCIA_DELTA_HF_INTEGRALE_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile
     ],
   },
 });
-export const LANCIA_DELTA_HF_INTEGRALE_VEHICLE_PROFILE = compileArcadeVehicleProfile(
-  LANCIA_DELTA_HF_INTEGRALE_VEHICLE_AUTHORING,
-);
+export const COMPILED_LANCIA_DELTA_HF_INTEGRALE_VEHICLE = compileVehicle(LANCIA_DELTA_HF_INTEGRALE_VEHICLE_DEFINITION);
 
 /** 1988 export/ROW full-power Honda VFR750R using the factory RC30 six-speed ratios. */
-const HONDA_VFR750R_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
+const HONDA_VFR750R_VEHICLE_DEFINITION: Readonly<VehicleDefinition> = Object.freeze({
   id: 'VFR750R',
   mass: 276,
   yawInertia: 180,
@@ -347,10 +339,10 @@ const HONDA_VFR750R_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.f
     ],
   },
 });
-export const HONDA_VFR750R_VEHICLE_PROFILE = compileArcadeVehicleProfile(HONDA_VFR750R_VEHICLE_AUTHORING);
+export const COMPILED_HONDA_VFR750R_VEHICLE = compileVehicle(HONDA_VFR750R_VEHICLE_DEFINITION);
 
 /** 1985 European road BMW R 80 G/S Paris-Dakar with the 32-litre tank. */
-const BMW_R80_GS_PARIS_DAKAR_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
+const BMW_R80_GS_PARIS_DAKAR_VEHICLE_DEFINITION: Readonly<VehicleDefinition> = Object.freeze({
   id: 'R80_GS_PARIS_DAKAR',
   mass: 280,
   yawInertia: 215,
@@ -396,12 +388,10 @@ const BMW_R80_GS_PARIS_DAKAR_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> =
     ],
   },
 });
-export const BMW_R80_GS_PARIS_DAKAR_VEHICLE_PROFILE = compileArcadeVehicleProfile(
-  BMW_R80_GS_PARIS_DAKAR_VEHICLE_AUTHORING,
-);
+export const COMPILED_BMW_R80_GS_PARIS_DAKAR_VEHICLE = compileVehicle(BMW_R80_GS_PARIS_DAKAR_VEHICLE_DEFINITION);
 
 /** 1988 US Harley-Davidson FXRT Sport Glide with Evolution 1340 power. */
-const HARLEY_DAVIDSON_FXRT_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
+const HARLEY_DAVIDSON_FXRT_VEHICLE_DEFINITION: Readonly<VehicleDefinition> = Object.freeze({
   id: 'FXRT_SPORT_GLIDE',
   mass: 380,
   yawInertia: 285,
@@ -447,10 +437,10 @@ const HARLEY_DAVIDSON_FXRT_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = O
     ],
   },
 });
-export const HARLEY_DAVIDSON_FXRT_VEHICLE_PROFILE = compileArcadeVehicleProfile(HARLEY_DAVIDSON_FXRT_VEHICLE_AUTHORING);
+export const COMPILED_HARLEY_DAVIDSON_FXRT_VEHICLE = compileVehicle(HARLEY_DAVIDSON_FXRT_VEHICLE_DEFINITION);
 
 /** 1985 Italian/European full-power Vespa PX 200 E Arcobaleno, frame type VSX1T. */
-const VESPA_PX200E_ARCOBALENO_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
+const VESPA_PX200E_ARCOBALENO_VEHICLE_DEFINITION: Readonly<VehicleDefinition> = Object.freeze({
   id: 'PX200E_ARCOBALENO',
   mass: 190,
   yawInertia: 98,
@@ -496,6 +486,4 @@ const VESPA_PX200E_ARCOBALENO_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> 
     ],
   },
 });
-export const VESPA_PX200E_ARCOBALENO_VEHICLE_PROFILE = compileArcadeVehicleProfile(
-  VESPA_PX200E_ARCOBALENO_VEHICLE_AUTHORING,
-);
+export const COMPILED_VESPA_PX200E_ARCOBALENO_VEHICLE = compileVehicle(VESPA_PX200E_ARCOBALENO_VEHICLE_DEFINITION);

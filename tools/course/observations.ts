@@ -108,7 +108,7 @@ export function readObservations(value: unknown): CourseObservations {
       );
     }
   }
-  check(input.environments[0]?.s === 0, '/environments', 'Environment profile starts at zero');
+  check(input.environments[0]?.s === 0, '/environments', 'Environment compiledVehicle starts at zero');
   check(
     input.remasterDeviations.every((s) => typeof s === 'string' && s.trim()),
     '/remasterDeviations',

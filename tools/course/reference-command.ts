@@ -10,7 +10,7 @@ import { options, loadCourse, loadCourseGround, requireInput, atomicWrite } from
 export async function referenceCommand(verb: string, file: string, args: readonly string[]) {
   const opts = options(args, ['--vehicle', '--laps', '--route', '--out', '--images']);
   const selected = opts.get('--vehicle') ?? (verb === 'envelope' ? file : 'TESTAROSSA');
-  const entry = VEHICLE_CATALOG.find((e) => e.profile.id === selected);
+  const entry = VEHICLE_CATALOG.find((e) => e.compiledVehicle.id === selected);
   requireInput(entry, '/vehicle', 'Unknown catalog vehicle');
   const modelSha256 = await referenceModelIdentity(),
     envelope = measureVehicleEnvelope(entry);

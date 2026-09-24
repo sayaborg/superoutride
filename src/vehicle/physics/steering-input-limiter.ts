@@ -33,7 +33,7 @@ export function limitSteeringInput(
   const a = sub3(body.forward, scale3(n, dot3(body.forward, n), workspace.a), workspace.a);
   const b = sub3(body.right, scale3(n, dot3(body.right, n), workspace.b), workspace.b);
   const v = contact.reachVelocity,
-    v0 = contact.profile.tire.lowSpeedRegularization;
+    v0 = contact.station.tire.lowSpeedRegularization;
   const ax = dot3(v, a),
     bx = dot3(v, b);
   const ay = dot3(v, cross3(n, a, workspace.cross)),

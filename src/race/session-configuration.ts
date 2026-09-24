@@ -1,15 +1,15 @@
 import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
-import type { CompiledArcadeVehicleProfile } from '../vehicle/physics/vehicle-profiles.js';
+import type { CompiledVehicle } from '../vehicle/physics/vehicle-definitions.js';
 import type { TorqueProtectionPolicy } from '../vehicle/physics/torque-protection.js';
-import type { ArcadeSteeringCalibrationInput } from '../vehicle/physics/vehicle-calibration.js';
-import type { ArcadeTireFrictionCalibrationState } from '../vehicle/physics/tire-friction-calibration.js';
+import type { VehicleSteeringCalibrationInput } from '../vehicle/physics/vehicle-calibration.js';
+import type { VehicleTireFrictionCalibrationState } from '../vehicle/physics/tire-friction-calibration.js';
 
 export interface SessionVehicle {
-  readonly profile: CompiledArcadeVehicleProfile;
+  readonly compiledVehicle: CompiledVehicle;
   readonly torqueProtection: TorqueProtectionPolicy;
   readonly kind: 'car' | 'bike';
-  readonly steeringCalibration: ArcadeSteeringCalibrationInput;
-  readonly tireFrictionCalibration: Readonly<ArcadeTireFrictionCalibrationState>;
+  readonly steeringCalibration: VehicleSteeringCalibrationInput;
+  readonly tireFrictionCalibration: Readonly<VehicleTireFrictionCalibrationState>;
 }
 
 export interface SessionConfiguration {

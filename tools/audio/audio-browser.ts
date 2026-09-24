@@ -9,7 +9,7 @@ const vehicle = mustGet<HTMLSelectElement>('vehicle');
 for (const entry of VEHICLE_CATALOG) {
   const option = document.createElement('option');
   option.value = String(vehicle.options.length);
-  option.textContent = entry.profile.id;
+  option.textContent = entry.compiledVehicle.id;
   vehicle.append(option);
 }
 mustGet<HTMLElement>('reference-conditions').textContent =
@@ -21,10 +21,10 @@ mustGet<HTMLElement>('output-conditions').textContent =
 const tuningControls = mountAudioTuningControls(mustGet<HTMLElement>('tuning-controls'), () => {});
 const readTuning = tuningControls.read;
 function showVehicleData() {
-  const { sound, profile } = VEHICLE_CATALOG[Number(vehicle.value)]!;
+  const { sound, compiledVehicle } = VEHICLE_CATALOG[Number(vehicle.value)]!;
   const cycleDegrees = sound.cycleRevolutions * 360;
   mustGet<HTMLElement>('vehicle-summary').textContent =
-    `${profile.id} ／ ${sound.firingPhases.length}気筒 ／ ${sound.cycleRevolutions * 2}ストローク ／ 1周期 ${cycleDegrees}° ／ アイドル ${profile.powertrain.idleRpm} RPM ／ 上限 ${profile.powertrain.redlineRpm} RPM`;
+    `${compiledVehicle.id} ／ ${sound.firingPhases.length}気筒 ／ ${sound.cycleRevolutions * 2}ストローク ／ 1周期 ${cycleDegrees}° ／ アイドル ${compiledVehicle.powertrain.idleRpm} RPM ／ 上限 ${compiledVehicle.powertrain.redlineRpm} RPM`;
   const body = mustGet<HTMLElement>('vehicle-pipes');
   body.replaceChildren();
   const degrees = (value: number) => `${Number(value.toFixed(2))}°`;
@@ -79,8 +79,8 @@ async function audition() {
     const state = createVehicleAudioObservation();
     Object.assign(state, {
       rpm: Number(mustGet<HTMLInputElement>('rpm').value) || 3000,
-      idleRpm: entry.profile.powertrain.idleRpm,
-      redlineRpm: entry.profile.powertrain.redlineRpm,
+      idleRpm: entry.compiledVehicle.powertrain.idleRpm,
+      redlineRpm: entry.compiledVehicle.powertrain.redlineRpm,
       drive: Number(mustGet<HTMLSelectElement>('load').value),
     });
     await context.audioWorklet.addModule(new URL('./exhaust-processor.js', import.meta.url));
@@ -123,7 +123,7 @@ async function audition() {
       if (current === request) listening.textContent = '再生終了';
     };
     playing.start();
-    listening.textContent = `WAVEGUIDE・${entry.profile.id}`;
+    listening.textContent = `WAVEGUIDE・${entry.compiledVehicle.id}`;
   } catch (error) {
     if (current === request) listening.textContent = String(error);
   }

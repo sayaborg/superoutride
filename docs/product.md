@@ -13,7 +13,7 @@ RIBBON FORK's left/right Sections run independently before the shared home Secti
 Course geometry, height, width, roadside rows and environment changes are authored data.
 [Content and gameplay](content-and-gameplay.md) owns their definitions and rules.
 
-The vehicle catalog supplies car and motorcycle profiles with model, manufacturer, identifier,
+The vehicle catalog supplies car and motorcycle definitions with model, manufacturer, identifier,
 specification and period metadata. Testarossa is the default player vehicle. Vehicle presentation
 uses authored yaw and motorcycle-bank images.
 

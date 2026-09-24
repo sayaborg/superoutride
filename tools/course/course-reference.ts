@@ -40,7 +40,7 @@ export async function readCourseReference(
   );
   const candidates = array(source.vehicles)
     .map(record)
-    .filter((r) => r.vehicleId === vehicle.profile.id);
+    .filter((r) => r.vehicleId === vehicle.compiledVehicle.id);
   fail(candidates.length === 1, 'missing or duplicate vehicle');
   const candidate = candidates[0]!;
   const vehicleSha256 = await contentDigest(new TextEncoder().encode(JSON.stringify(vehicle)));

@@ -1,18 +1,18 @@
 import { createPlanCoordinateReader } from '../../src/course/geometry/plan-coordinate-reader.js';
 import type { VehicleCatalogEntry } from '../../src/vehicle/vehicle-catalog.js';
 import type { DrivingInput } from '../../src/vehicle/driving-input.js';
-import { createBodyKinematicsWorkspace } from '../../src/vehicle/physics/arcade-vehicle-physics.js';
+import { createBodyKinematicsWorkspace } from '../../src/vehicle/physics/vehicle-physics.js';
 import { compilePlanPath } from '../../src/course/geometry/plan-path.js';
 import { Profile } from '../../src/course/geometry/profile.js';
 import { SurfaceMap } from '../../src/vehicle/physics/surface-map.js';
-import { createArcadeVehicle } from '../../src/vehicle/physics/arcade-vehicle-physics.js';
+import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
 import { DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION } from '../../src/shell/tire-friction-selection.js';
 import {
   DEFAULT_BROWSER_MAX_ROAD_WHEEL_STEER,
   DEFAULT_BROWSER_STEERING_OFFSET,
   DEFAULT_BROWSER_STEERING_RESPONSE_RATE,
 } from '../../src/shell/steering-calibration-selection.js';
-import { updateArcadeVehicle, arcadeBodyKinematics } from '../../src/vehicle/physics/arcade-vehicle-physics.js';
+import { updateVehicle, vehicleBodyKinematics } from '../../src/vehicle/physics/vehicle-physics.js';
 import { SIM_DT } from '../../src/shell/frame-loop.js';
 import { wrapAngle } from '../../src/core/math.js';
 
@@ -33,7 +33,7 @@ function createEnvelopeRun(entry: Readonly<VehicleCatalogEntry>, initialSpeed: n
   ]);
   const world = { extent: coordinates.domain, coordinates, height, surfaces };
   const rate = DEFAULT_BROWSER_STEERING_RESPONSE_RATE;
-  const vehicle = createArcadeVehicle(entry.profile, world, {
+  const vehicle = createVehicle(entry.compiledVehicle, world, {
     s: 10000,
     l: 0,
     initialSpeed,
@@ -52,7 +52,7 @@ function createEnvelopeRun(entry: Readonly<VehicleCatalogEntry>, initialSpeed: n
 export function measureVehicleEnvelope(entry: Readonly<VehicleCatalogEntry>) {
   const make = (initialSpeed: number) => createEnvelopeRun(entry, initialSpeed);
   const step = (p: ReturnType<typeof createEnvelopeRun>, input: DrivingInput) =>
-    updateArcadeVehicle(p.world, p.vehicle, input, SIM_DT);
+    updateVehicle(p.world, p.vehicle, input, SIM_DT);
   const run = make(0),
     acceleration = [],
     braking = [];
@@ -70,7 +70,7 @@ export function measureVehicleEnvelope(entry: Readonly<VehicleCatalogEntry>) {
       if (stable >= 8) break;
     }
   }
-  if (stable < 8) throw new RangeError(`${entry.profile.id}: top speed did not converge within 240 seconds`);
+  if (stable < 8) throw new RangeError(`${entry.compiledVehicle.id}: top speed did not converge within 240 seconds`);
   const maximumSpeed = run.vehicle.speed;
   const brakingRun = make(maximumSpeed);
   last = maximumSpeed;
@@ -107,7 +107,7 @@ export function measureVehicleEnvelope(entry: Readonly<VehicleCatalogEntry>) {
           velocity += v.speed;
           count++;
           maxBeta = Math.max(maxBeta, Math.abs(Math.atan2(v.lateralSpeed, v.longitudinalSpeed)));
-          minimumUp = Math.min(minimumUp, arcadeBodyKinematics(v, createBodyKinematicsWorkspace()).up.y);
+          minimumUp = Math.min(minimumUp, vehicleBodyKinematics(v, createBodyKinematicsWorkspace()).up.y);
         }
         heading = next;
       }
@@ -116,7 +116,8 @@ export function measureVehicleEnvelope(entry: Readonly<VehicleCatalogEntry>) {
     const admissible = trials.filter(
       (t) => t.maxBeta < 0.2 && t.minimumUp > 0.25 && Math.abs(t.speed - speed) < Math.max(1, speed * 0.12),
     );
-    if (!admissible.length) throw new RangeError(`${entry.profile.id}: no stable lateral measurement at ${speed} m/s`);
+    if (!admissible.length)
+      throw new RangeError(`${entry.compiledVehicle.id}: no stable lateral measurement at ${speed} m/s`);
     const lateral = Math.max(...admissible.map((t) => t.lateral));
     const nearest = (rows: readonly { speed: number; value: number }[]) =>
       rows.reduce((best, r) => (Math.abs(r.speed - speed) < Math.abs(best.speed - speed) ? r : best)).value;

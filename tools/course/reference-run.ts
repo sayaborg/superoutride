@@ -11,7 +11,7 @@ import { createCourseScene } from '../../src/shell/course-scene.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
 import { browserSessionVehicle } from '../../src/shell/session-vehicle.js';
-import { createArcadeVehicle } from '../../src/vehicle/physics/arcade-vehicle-physics.js';
+import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
 import { createRecoveryState } from '../../src/race/recovery.js';
 import {
   createEnvelopeDriverWorkspace,
@@ -57,7 +57,7 @@ export function runCourseReference(
     envelope,
   );
   const slot = session.grid[0]!;
-  const vehicle = createArcadeVehicle(entry.profile, scene.world, {
+  const vehicle = createVehicle(entry.compiledVehicle, scene.world, {
     ...vehicleConfiguration,
     s: slot.at.s,
     l: slot.l,
@@ -102,7 +102,7 @@ export function runCourseReference(
     );
     race.advance(input, SIM_DT);
     if (actor.recovery.recoveries)
-      throw new RangeError(`${entry.profile.id}: reference recovered at ${section.id}:${vehicle.course.s}`);
+      throw new RangeError(`${entry.compiledVehicle.id}: reference recovered at ${section.id}:${vehicle.course.s}`);
     distance += vehicle.speed * SIM_DT;
     maximumSpeed = Math.max(maximumSpeed, vehicle.speed);
     const utilization =
@@ -131,7 +131,7 @@ export function runCourseReference(
       });
     if (race.clock.status === 'GOAL') break;
     if (tick === maxTicks - 1)
-      throw new RangeError(`${entry.profile.id}: reference did not finish within the work limit`);
+      throw new RangeError(`${entry.compiledVehicle.id}: reference did not finish within the work limit`);
     // Require the requested route to be reached physically, never select it on behalf of the field.
     if (section.fork && race.forks.choice(section.fork) && race.forks.choice(section.fork) !== planned.get(section))
       throw new RangeError('Reference selected an unintended route');

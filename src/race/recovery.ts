@@ -1,11 +1,11 @@
 import { clamp } from '../core/math.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import {
-  arcadeBodyKinematics,
+  vehicleBodyKinematics,
   createBodyKinematicsWorkspace,
-  updateArcadeVehicle,
-  type ArcadeVehicleState,
-} from '../vehicle/physics/arcade-vehicle-physics.js';
+  updateVehicle,
+  type VehicleState,
+} from '../vehicle/physics/vehicle-physics.js';
 import { createAutomaticPowertrainState } from '../vehicle/physics/automatic-powertrain.js';
 import { resetDrivingActuatorState } from '../vehicle/physics/driving-actuator.js';
 import type { VehicleWorld } from '../course/vehicle-world.js';
@@ -18,7 +18,7 @@ import {
   createSurfaceGeometryWorkspace,
 } from '../vehicle/physics/vehicle-dynamics.js';
 import { add3, dot3, scale3 } from '../core/vector3.js';
-import { drivenWheelOmega } from '../vehicle/physics/vehicle-profiles.js';
+import { drivenWheelOmega } from '../vehicle/physics/vehicle-definitions.js';
 
 type RecoveryReason =
   | 'unsupported-time'
@@ -69,7 +69,7 @@ interface RecoveryTarget {
   readonly l: number;
 }
 
-export function createRecoveryState(vehicle: ArcadeVehicleState): RecoveryState {
+export function createRecoveryState(vehicle: VehicleState): RecoveryState {
   return {
     lastSafeS: vehicle.course.s,
     unsupportedTime: 0,
@@ -87,7 +87,7 @@ interface RecoveryOptions {
 /** One gameplay step. A physical-domain exit recovers; unrelated faults stay visible. */
 export function advanceVehicleWithRecovery(
   world: VehicleWorld,
-  vehicle: ArcadeVehicleState,
+  vehicle: VehicleState,
   {
     state,
     input,
@@ -97,7 +97,7 @@ export function advanceVehicleWithRecovery(
   }: RecoveryOptions & { input: DrivingInput; dt: number; target?: RecoveryTarget | null },
 ): RecoveryReason | null {
   try {
-    updateArcadeVehicle(world, vehicle, input, dt);
+    updateVehicle(world, vehicle, input, dt);
   } catch (error) {
     if (!(error instanceof VehicleOutsideModelError)) throw error;
     recoverVehicle(world, vehicle, { state, reason: 'suspension-travel', settings, target });
@@ -112,14 +112,14 @@ export function advanceVehicleWithRecovery(
 }
 
 const observationWorkspaces = new WeakMap<
-  ArcadeVehicleState,
+  VehicleState,
   { surface: ReturnType<typeof createSurfaceGeometryWorkspace>; body: ReturnType<typeof createBodyKinematicsWorkspace> }
 >();
 
 /** Gameplay observes derived load/support facts; it never changes the ordinary physics law. */
 function updateRecovery(
   world: VehicleWorld,
-  vehicle: ArcadeVehicleState,
+  vehicle: VehicleState,
   {
     state,
     dt,
@@ -143,7 +143,7 @@ function updateRecovery(
   const surface = sampleSurfaceGeometryAtCoordinate(coordinates, height, surfaces, vehicle.course, workspace.surface);
   // Single-wheel support is allowed. Only an overturned pose bypasses the ordinary support check;
   // stale contact telemetry must not make an inverted vehicle a new safe recovery checkpoint.
-  const overturned = dot3(arcadeBodyKinematics(vehicle, workspace.body).up, surface.normal) <= 0;
+  const overturned = dot3(vehicleBodyKinematics(vehicle, workspace.body).up, surface.normal) <= 0;
   if (!overturned && vehicle.supported) {
     state.lastSafeS = vehicle.course.s;
     state.unsupportedTime = 0;
@@ -151,7 +151,7 @@ function updateRecovery(
   }
 
   state.unsupportedTime += dt;
-  const desiredCgHeight = vehicle.profile.desiredCgHeight;
+  const desiredCgHeight = vehicle.compiledVehicle.desiredCgHeight;
   const expectedCgY = height.sample(vehicle.course.s) + desiredCgHeight;
   const fallDistance = Math.max(0, expectedCgY - vehicle.y);
   const surfaceDistance =
@@ -175,7 +175,7 @@ function updateRecovery(
 
 export function recoverVehicle(
   world: VehicleWorld,
-  vehicle: ArcadeVehicleState,
+  vehicle: VehicleState,
   {
     state,
     reason = 'manual',
@@ -193,7 +193,7 @@ export function recoverVehicle(
 
 function routeRecoveryTarget(
   world: VehicleWorld,
-  vehicle: ArcadeVehicleState,
+  vehicle: VehicleState,
   state: RecoveryState,
   settings: RecoverySettings,
 ): RecoveryTarget {
@@ -213,7 +213,7 @@ function routeRecoveryTarget(
  */
 export function recoverVehicleToPlanCoordinate(
   world: VehicleWorld,
-  vehicle: ArcadeVehicleState,
+  vehicle: VehicleState,
   {
     state,
     target,
@@ -264,14 +264,14 @@ export function recoverVehicleToPlanCoordinate(
 }
 
 function reconstructVehicle(
-  vehicle: ArcadeVehicleState,
+  vehicle: VehicleState,
   surfacePoint: { readonly x: number; readonly y: number; readonly z: number },
   surfaceNormal: { readonly x: number; readonly y: number; readonly z: number },
   yaw: number,
   pitch: number,
   speed: number,
 ): void {
-  const p = vehicle.profile;
+  const p = vehicle.compiledVehicle;
   const wheelbase = p.frontAxle + p.rearAxle;
   const position = add3(surfacePoint, scale3(surfaceNormal, p.desiredCgHeight));
   vehicle.x = position.x;

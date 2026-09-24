@@ -11,7 +11,7 @@ import {
 export function browserSessionVehicle(entry: VehicleCatalogEntry): SessionVehicle {
   const rate = DEFAULT_BROWSER_STEERING_RESPONSE_RATE;
   return Object.freeze({
-    profile: entry.profile,
+    compiledVehicle: entry.compiledVehicle,
     torqueProtection: entry.torqueProtection,
     kind: entry.visualFamily === 'CAR' ? 'car' : 'bike',
     steeringCalibration: Object.freeze({

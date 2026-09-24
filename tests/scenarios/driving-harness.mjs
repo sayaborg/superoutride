@@ -9,7 +9,7 @@ import { createCourseRace } from '../../src/race/course-race.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
 import { browserSessionVehicle } from '../../src/shell/session-vehicle.js';
 import { VEHICLE_CATALOG } from '../../src/vehicle/vehicle-catalog.js';
-import { createArcadeVehicle } from '../../src/vehicle/physics/arcade-vehicle-physics.js';
+import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
 import { createRecoveryState } from '../../src/race/recovery.js';
 import {
   compileEnvelopeDriver,
@@ -26,7 +26,7 @@ import { courseBoundaryAt, courseCarriagewayExists } from '../../src/course/cour
 import { routeSectionS } from '../../src/course/course-route.js';
 
 const idle = { steering: 0, throttle: false, brake: false };
-const entry = VEHICLE_CATALOG.find((v) => v.profile.id === 'TESTAROSSA');
+const entry = VEHICLE_CATALOG.find((v) => v.compiledVehicle.id === 'TESTAROSSA');
 const configuration = browserSessionVehicle(entry);
 const assets = await readVehicleSprites();
 const { envelope } = await (await readDeliveredContent()).json('envelope', 'TESTAROSSA');
@@ -45,7 +45,8 @@ function finiteState(value, path = '', seen = new Set()) {
   } else if (value && typeof value === 'object' && !seen.has(value)) {
     seen.add(value);
     for (const [key, child] of Object.entries(value)) {
-      if (['profile', 'steeringCalibration', 'tireFrictionCalibration', 'torqueProtection'].includes(key)) continue;
+      if (['compiledVehicle', 'steeringCalibration', 'tireFrictionCalibration', 'torqueProtection'].includes(key))
+        continue;
       finiteState(child, `${path}.${key}`, seen);
     }
   }
@@ -76,7 +77,7 @@ export function runScenario({ course, ground }, scenario) {
     envelope,
   );
   const slot = session.grid[0];
-  const vehicle = createArcadeVehicle(entry.profile, scene.world, {
+  const vehicle = createVehicle(entry.compiledVehicle, scene.world, {
     ...configuration,
     s: slot.at.s,
     l: slot.l,
@@ -192,7 +193,7 @@ export function runScenario({ course, ground }, scenario) {
         JSON.stringify(
           [v, c.actor.recovery, c.progress.s, Number.isFinite(next) ? next : null, c.progress.acceptedFinishCount],
           (key, value) =>
-            ['profile', 'steeringCalibration', 'tireFrictionCalibration', 'torqueProtection'].includes(key)
+            ['compiledVehicle', 'steeringCalibration', 'tireFrictionCalibration', 'torqueProtection'].includes(key)
               ? undefined
               : value,
         ),

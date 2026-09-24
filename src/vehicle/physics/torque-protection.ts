@@ -12,7 +12,7 @@ import {
 } from './tire-wheel.js';
 import { VEHICLE_GRAVITY, type BodyKinematics, type ContactObservation } from './vehicle-dynamics.js';
 import { add3, cross3, dot3, scale3, sub3, WORLD_UP } from '../../core/vector3.js';
-import type { CompiledArcadeVehicleProfile } from './vehicle-profiles.js';
+import type { CompiledVehicle } from './vehicle-definitions.js';
 import { createWrenchWorkspace, evaluateVehicleWrench, type VehicleWrench } from './vehicle-wrench.js';
 
 /** Composition policy, not controller memory and not a tire coefficient. */
@@ -108,7 +108,7 @@ interface ProtectedWheelPair {
  * No synthetic normal load; gravity, wheel reaction and current angular motion are retained.
  */
 function supportCompressionMargin(
-  profile: CompiledArcadeVehicleProfile,
+  compiledVehicle: CompiledVehicle,
   body: BodyKinematics,
   contact: ContactObservation,
   wrench: VehicleWrench,
@@ -118,19 +118,19 @@ function supportCompressionMargin(
   const omegaRight = dot3(body.omegaWorld, body.right);
   const angularAcceleration = add3(
     add3(
-      scale3(WORLD_UP, wrench.moment.y / profile.yawInertia),
-      scale3(body.right, dot3(wrench.moment, body.right) / profile.pitchInertia),
+      scale3(WORLD_UP, wrench.moment.y / compiledVehicle.yawInertia),
+      scale3(body.right, dot3(wrench.moment, body.right) / compiledVehicle.pitchInertia),
     ),
     scale3(cross3(WORLD_UP, body.right), yawRate * omegaRight),
   );
   const offset = sub3(contact.reachPoint, body.position);
   const reachAcceleration = add3(
-    scale3(wrench.force, 1 / profile.mass),
+    scale3(wrench.force, 1 / compiledVehicle.mass),
     add3(cross3(angularAcceleration, offset), cross3(body.omegaWorld, cross3(body.omegaWorld, offset))),
   );
   const qAcceleration = -dot3(reachAcceleration, contact.surface.normal);
   const qVelocity = -dot3(contact.reachVelocity, contact.surface.normal);
-  const qStatic = contact.profile.suspension.qStatic;
+  const qStatic = contact.station.suspension.qStatic;
   const frequency = Math.sqrt(VEHICLE_GRAVITY / qStatic);
   return qAcceleration + 2 * frequency * qVelocity + frequency * frequency * (-contact.gap - reserve * qStatic);
 }
@@ -183,7 +183,7 @@ function prepareWheel(
   return policy.wheelSlip ? limitWheelTorques(out, out, scratch, residual) : out;
 }
 function evaluatePair(
-  profile: CompiledArcadeVehicleProfile,
+  compiledVehicle: CompiledVehicle,
   body: BodyKinematics,
   front: ContactObservation,
   rear: ContactObservation,
@@ -198,7 +198,7 @@ function evaluatePair(
   out.rearInput = prepareWheel(rearRequest, scale, policy, candidate.rearInput, candidate.tire, candidate.residual);
   solveWheelOmega(out.frontInput, out.frontWheel, candidate.residual, candidate.tire);
   solveWheelOmega(out.rearInput, out.rearWheel, candidate.residual, candidate.tire);
-  evaluateVehicleWrench(profile, body, front, rear, out.frontWheel, out.rearWheel, candidate.wrench);
+  evaluateVehicleWrench(compiledVehicle, body, front, rear, out.frontWheel, out.rearWheel, candidate.wrench);
   out.wrench = candidate.wrench.value;
   out.supportScale = scale;
   out.supportFeasible = true;
@@ -207,7 +207,7 @@ function evaluatePair(
 
 /** One delivered-torque owner. Every trial uses the unchanged solve and wrench. */
 export function solveProtectedWheelPair(
-  profile: CompiledArcadeVehicleProfile,
+  compiledVehicle: CompiledVehicle,
   body: BodyKinematics,
   front: ContactObservation,
   rear: ContactObservation,
@@ -218,7 +218,17 @@ export function solveProtectedWheelPair(
 ): ProtectedWheelPair {
   let acceptedSlot = workspace.first,
     trialSlot = workspace.second;
-  const requested = evaluatePair(profile, body, front, rear, frontRequest, rearRequest, policy, 1, acceptedSlot);
+  const requested = evaluatePair(
+    compiledVehicle,
+    body,
+    front,
+    rear,
+    frontRequest,
+    rearRequest,
+    policy,
+    1,
+    acceptedSlot,
+  );
   const reserve = policy.supportReserve;
   if (reserve === null) return requested;
   const checkFront =
@@ -234,10 +244,10 @@ export function solveProtectedWheelPair(
     front.normalLoad > 0 &&
     dot3(body.up, rear.surface.normal) > 0;
   const safe = (value: ProtectedWheelPair) =>
-    (!checkFront || supportCompressionMargin(profile, body, front, value.wrench, reserve) >= 0) &&
-    (!checkRear || supportCompressionMargin(profile, body, rear, value.wrench, reserve) >= 0);
+    (!checkFront || supportCompressionMargin(compiledVehicle, body, front, value.wrench, reserve) >= 0) &&
+    (!checkRear || supportCompressionMargin(compiledVehicle, body, rear, value.wrench, reserve) >= 0);
   if (safe(requested)) return requested;
-  const accepted = evaluatePair(profile, body, front, rear, frontRequest, rearRequest, policy, 0, acceptedSlot);
+  const accepted = evaluatePair(compiledVehicle, body, front, rear, frontRequest, rearRequest, policy, 0, acceptedSlot);
   if (!safe(accepted)) {
     accepted.supportFeasible = false;
     return accepted;
@@ -246,7 +256,17 @@ export function solveProtectedWheelPair(
     upper = 1;
   for (let i = 0; i < SUPPORT_BISECTION_ITERATIONS; i++) {
     const scale = (lower + upper) * 0.5;
-    const candidate = evaluatePair(profile, body, front, rear, frontRequest, rearRequest, policy, scale, trialSlot);
+    const candidate = evaluatePair(
+      compiledVehicle,
+      body,
+      front,
+      rear,
+      frontRequest,
+      rearRequest,
+      policy,
+      scale,
+      trialSlot,
+    );
     if (safe(candidate)) {
       lower = scale;
       const swap = acceptedSlot;

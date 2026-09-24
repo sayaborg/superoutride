@@ -1,7 +1,7 @@
 import { observeVehicleTires } from '../vehicle/physics/vehicle-tire-observation.js';
 import { RIVAL_AUDIBLE_METERS } from '../audio/audio-presentation.js';
 import type { TireAudioObservation, VehicleAudioObservation } from '../audio/vehicle-audio-observation.js';
-import type { ArcadeVehicleState } from '../vehicle/physics/arcade-vehicle-physics.js';
+import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 
 type Mutable<T> = { -readonly [Key in keyof T]: T[Key] };
 type Observation = Mutable<Omit<VehicleAudioObservation, 'front' | 'rear'>> & {
@@ -22,11 +22,11 @@ export function createVehicleAudioObservation(): Observation {
   return { rpm: 0, idleRpm: 1000, redlineRpm: 7000, drive: 0, front: tire(), rear: tire() };
 }
 /** Copy completed observations into two reusable slots; do not run contact or tire solvers here. */
-export function readEngineAudio(vehicle: ArcadeVehicleState, result: Observation): void {
-  const { control, powertrain, profile } = vehicle;
+export function readEngineAudio(vehicle: VehicleState, result: Observation): void {
+  const { control, powertrain, compiledVehicle } = vehicle;
   result.rpm = powertrain.engineRpm;
-  result.idleRpm = profile.powertrain.idleRpm;
-  result.redlineRpm = profile.powertrain.redlineRpm;
+  result.idleRpm = compiledVehicle.powertrain.idleRpm;
+  result.redlineRpm = compiledVehicle.powertrain.redlineRpm;
   result.drive =
     powertrain.outputDriveTorque > 0
       ? Math.max(0, Math.min(1, control.deliveredDriveTorque / powertrain.outputDriveTorque)) *
@@ -35,7 +35,7 @@ export function readEngineAudio(vehicle: ArcadeVehicleState, result: Observation
 }
 
 /** Player consumer subscribes to completed tire telemetry; rival engines use readEngineAudio. */
-export function readVehicleAudio(vehicle: ArcadeVehicleState, result: Observation): void {
+export function readVehicleAudio(vehicle: VehicleState, result: Observation): void {
   readEngineAudio(vehicle, result);
   const tires = observeVehicleTires(vehicle);
   result.front.load = vehicle.frontNormalLoad;
@@ -57,11 +57,11 @@ export function readVehicleAudio(vehicle: ArcadeVehicleState, result: Observatio
 }
 
 interface Actor {
-  readonly vehicle: ArcadeVehicleState;
+  readonly vehicle: VehicleState;
 }
 /** Physical world distance, independent of raster depth and local stage chainage. */
-export function nearestAudibleRival(player: ArcadeVehicleState, actors: readonly Actor[]): ArcadeVehicleState | null {
-  let nearest: ArcadeVehicleState | null = null;
+export function nearestAudibleRival(player: VehicleState, actors: readonly Actor[]): VehicleState | null {
+  let nearest: VehicleState | null = null;
   let distanceSquared = RIVAL_AUDIBLE_METERS ** 2;
   for (const { vehicle } of actors) {
     if (vehicle === player) continue;

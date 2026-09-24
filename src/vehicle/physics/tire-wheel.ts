@@ -7,7 +7,7 @@ import { validateTireCharacteristics, type CompiledTireCharacteristics } from '.
 // The implied wheel-speed error is at most residual*dt/inertia for the monotone wheel equation.
 const WHEEL_TORQUE_RESIDUAL_NEWTON_METERS = 1e-10;
 
-export interface CompiledTireProfile extends CompiledTireCharacteristics {
+export interface CompiledTire extends CompiledTireCharacteristics {
   readonly lowSpeedRegularization: number;
 }
 
@@ -43,7 +43,7 @@ export interface WheelSolveInput {
   readonly driveTorque: number;
   readonly brakeTorque: number;
   readonly dt: number;
-  readonly tire: CompiledTireProfile;
+  readonly tire: CompiledTire;
 }
 export interface WheelSolveResult {
   readonly omega: number;
@@ -261,7 +261,7 @@ function netTorqueAtOmega(input: WheelSolveInput, scratch: TireForceScratch, res
     );
 }
 
-export function validateCompiledTireProfile(tire: CompiledTireProfile): void {
+export function validateCompiledTire(tire: CompiledTire): void {
   validateTireCharacteristics(tire);
   if (!Number.isFinite(tire.lowSpeedRegularization) || !(tire.lowSpeedRegularization > 0)) {
     throw new RangeError('tire low-speed regularization must be finite and > 0');
@@ -328,7 +328,7 @@ export function validateWheelSolveInput(input: WheelSolveInput): void {
     throw new RangeError('wheel solve inputs must be finite');
   }
   if (input.rollingResistance < 0) throw new RangeError('rolling resistance must be nonnegative');
-  validateCompiledTireProfile(input.tire);
+  validateCompiledTire(input.tire);
   validateTireCharacteristics(input.characteristics ?? input.tire);
 }
 

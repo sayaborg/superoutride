@@ -73,14 +73,14 @@ function expandCourseStrips(
       shape.start >= 0 && shape.end > shape.start && shape.end <= length,
       sourcePath,
       'Expanded Strip interval must lie inside the Section',
-      'invalid_profile',
+      'invalid_strip',
     );
     const piece = { ...shape, value: null };
     requireCourse(
       [shape.start, shape.end].every((s) => stripEdgeAt(piece, 'left', s) <= stripEdgeAt(piece, 'right', s)),
       sourcePath,
       'Strip left edge cannot exceed its right edge',
-      'invalid_profile',
+      'invalid_strip',
     );
     requireCourse(
       extents.length < COURSE_DOCUMENT_LIMITS.stripExpansion,
@@ -102,8 +102,8 @@ function expandCourseStrips(
     material: string | null,
     at: string,
   ) => {
-    requireCourse(knots.length >= 2, at, 'A Strip requires at least two knots', 'invalid_profile');
-    requireCourse(color !== null || material !== null, at, 'A Strip must change color or material', 'invalid_profile');
+    requireCourse(knots.length >= 2, at, 'A Strip requires at least two knots', 'invalid_strip');
+    requireCourse(color !== null || material !== null, at, 'A Strip must change color or material', 'invalid_strip');
     let value: SurfaceMaterial | null = null;
     if (material !== null) {
       requireCourse(
@@ -119,13 +119,13 @@ function expandCourseStrips(
         knots.every((k) => (k[side] === null) === (knots[0]![side] === null)),
         at,
         'An open side must stay open throughout a Strip',
-        'invalid_profile',
+        'invalid_strip',
       );
       requireCourse(
         material === null || knots[0]![side] !== null,
         at,
         'Material-bearing Strips require finite edges',
-        'invalid_profile',
+        'invalid_strip',
       );
     }
     for (let i = 1; i < knots.length; i++) {
@@ -135,7 +135,7 @@ function expandCourseStrips(
         b.s > a.s && a.s >= 0 && b.s <= length,
         at,
         'Resolved Strip knots must strictly increase inside the Section',
-        'invalid_profile',
+        'invalid_strip',
       );
       const edge = (side: 'left' | 'right') =>
         a[side] === null
@@ -181,7 +181,7 @@ function expandCourseStrips(
           !repeated || element.material === null,
           at,
           'Repeated constructs are color-only',
-          'invalid_profile',
+          'invalid_strip',
         );
         strip(
           element.knots.map((k, i) => ({
@@ -197,7 +197,7 @@ function expandCourseStrips(
       case 'curb': {
         const start = position(element.start, `${at}/start`).s;
         const end = position(element.end, `${at}/end`).s;
-        requireCourse(end > start, at, 'Curb extent must be positive', 'invalid_profile');
+        requireCourse(end > start, at, 'Curb extent must be positive', 'invalid_strip');
         const count = Math.ceil((end - start) / element.stripe);
         requireCourse(
           count <= COURSE_DOCUMENT_LIMITS.stripExpansion,

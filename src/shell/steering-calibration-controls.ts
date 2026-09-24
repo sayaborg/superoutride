@@ -1,8 +1,8 @@
-import type { ArcadeVehicleState } from '../vehicle/physics/arcade-vehicle-physics.js';
+import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import {
-  setArcadeVehicleMaxRoadWheelSteer,
-  setArcadeVehicleSteeringOffsetMax,
-  setArcadeVehicleSymmetricSteeringActuatorRate,
+  setVehicleMaxRoadWheelSteer,
+  setVehicleSteeringOffsetMax,
+  setVehicleSymmetricSteeringActuatorRate,
 } from '../vehicle/physics/vehicle-calibration.js';
 import {
   mountMobileMaxRoadWheelSteerSelector,
@@ -34,7 +34,7 @@ interface BrowserSteeringCalibrationControls {
 /** One browser adapter connects keyboard and touch presentation to vehicle-owned M/D/T calibration. */
 export function mountBrowserSteeringCalibrationControls(
   containers: BrowserSteeringCalibrationContainers,
-  getVehicle: () => ArcadeVehicleState,
+  getVehicle: () => VehicleState,
   documentRef: Document = document,
 ): BrowserSteeringCalibrationControls {
   const bindings = [
@@ -42,8 +42,8 @@ export function mountBrowserSteeringCalibrationControls(
       code: BROWSER_STEERING_OFFSET_CYCLE_CODE,
       initial: DEFAULT_BROWSER_STEERING_OFFSET,
       container: containers.steeringOffset,
-      read: (vehicle: ArcadeVehicleState) => vehicle.steeringCalibration.steeringOffsetMax,
-      write: setArcadeVehicleSteeringOffsetMax,
+      read: (vehicle: VehicleState) => vehicle.steeringCalibration.steeringOffsetMax,
+      write: setVehicleSteeringOffsetMax,
       next: nextBrowserSteeringOffset,
       mount: mountMobileSteeringOffsetSelector,
     },
@@ -51,8 +51,8 @@ export function mountBrowserSteeringCalibrationControls(
       code: BROWSER_MAX_STEER_CYCLE_CODE,
       initial: DEFAULT_BROWSER_MAX_ROAD_WHEEL_STEER,
       container: containers.maxRoadWheelSteer,
-      read: (vehicle: ArcadeVehicleState) => vehicle.steeringCalibration.maxRoadWheelSteer,
-      write: setArcadeVehicleMaxRoadWheelSteer,
+      read: (vehicle: VehicleState) => vehicle.steeringCalibration.maxRoadWheelSteer,
+      write: setVehicleMaxRoadWheelSteer,
       next: nextBrowserMaxRoadWheelSteer,
       mount: mountMobileMaxRoadWheelSteerSelector,
     },
@@ -60,8 +60,8 @@ export function mountBrowserSteeringCalibrationControls(
       code: BROWSER_STEERING_RESPONSE_CYCLE_CODE,
       initial: DEFAULT_BROWSER_STEERING_RESPONSE_RATE,
       container: containers.steeringResponse,
-      read: (vehicle: ArcadeVehicleState) => vehicle.steeringCalibration.steeringActuatorResponse.applyRate,
-      write: setArcadeVehicleSymmetricSteeringActuatorRate,
+      read: (vehicle: VehicleState) => vehicle.steeringCalibration.steeringActuatorResponse.applyRate,
+      write: setVehicleSymmetricSteeringActuatorRate,
       next: nextBrowserSteeringResponseRate,
       mount: mountMobileSteeringResponseSelector,
     },

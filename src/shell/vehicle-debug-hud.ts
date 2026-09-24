@@ -1,5 +1,5 @@
 import { assertExclusivePedalInput, normalizedPedalRequest, type DrivingInput } from '../vehicle/driving-input.js';
-import type { ArcadeVehicleState } from '../vehicle/physics/arcade-vehicle-physics.js';
+import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import { VEHICLE_GRAVITY } from '../vehicle/physics/vehicle-dynamics.js';
 import { formatBrowserCourseSelector, type BrowserCourseModeQuery } from './course-mode-selection.js';
 import {
@@ -8,7 +8,7 @@ import {
   formatSteeringResponseSelector,
 } from './steering-calibration-selection.js';
 import { formatTireCalibrationSelector } from './tire-friction-selection.js';
-import { formatVehicleProfileSelector } from './vehicle-profile-selection.js';
+import { formatVehicleSelector } from './vehicle-selection.js';
 
 const G_SENSOR_RANGE = 2;
 const CONTROL_METER_WIDTH = 58;
@@ -54,11 +54,11 @@ interface VehicleDebugHudModel {
 function createVehicleDebugHudModel(
   activeCourseQuery: BrowserCourseModeQuery,
   input: DrivingInput,
-  vehicle: ArcadeVehicleState,
+  vehicle: VehicleState,
 ): VehicleDebugHudModel {
   assertExclusivePedalInput(input);
   const c = vehicle.control,
-    p = vehicle.profile;
+    p = vehicle.compiledVehicle;
   const driveRequest = c.requestedFrontDriveTorque + c.requestedRearDriveTorque;
   const brakeCapacity = p.frontStation.maxBrakeTorque + p.rearStation.maxBrakeTorque;
   // Drequest = actuator * available full-throttle torque at this same substep/RPM/gear.
@@ -67,7 +67,7 @@ function createVehicleDebugHudModel(
   const throttle = clampUnit(c.throttleActuator);
   return {
     courseSelector: `COURSE ${formatBrowserCourseSelector(activeCourseQuery)}`,
-    vehicleSelector: `VEHICLE ${formatVehicleProfileSelector(vehicle.profile.id)}`,
+    vehicleSelector: `VEHICLE ${formatVehicleSelector(vehicle.compiledVehicle.id)}`,
     steeringOffsetSelector: formatSteeringOffsetSelector(vehicle.steeringCalibration.steeringOffsetMax),
     maxRoadWheelSteerSelector: formatMaxRoadWheelSteerSelector(vehicle.steeringCalibration.maxRoadWheelSteer),
     steeringResponseSelector: formatSteeringResponseSelector(
@@ -124,7 +124,7 @@ export function drawVehicleDebugHud(
   ctx: CanvasRenderingContext2D,
   activeCourseQuery: BrowserCourseModeQuery,
   input: DrivingInput,
-  vehicle: ArcadeVehicleState,
+  vehicle: VehicleState,
 ): void {
   const model = createVehicleDebugHudModel(activeCourseQuery, input, vehicle);
   const lines = [

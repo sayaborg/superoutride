@@ -11,7 +11,7 @@ import { runCourseReference, courseReferenceRoutes } from '../course/reference-r
 import { loadCourse, loadCourseGround } from '../course/authoring-io.js';
 
 const { vehicleId, stems, physicsSha256 } = workerData as CourseReferenceJob;
-const entry = VEHICLE_CATALOG.find((v) => v.profile.id === vehicleId)!;
+const entry = VEHICLE_CATALOG.find((v) => v.compiledVehicle.id === vehicleId)!;
 const vehicle = browserSessionVehicle(entry),
   vehicleSha256 = digest(vehicle);
 let hits = 0,

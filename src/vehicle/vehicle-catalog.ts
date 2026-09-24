@@ -5,18 +5,18 @@ import {
   TWO_WHEEL_TORQUE_POLICY,
   type TorqueProtectionPolicy,
 } from './physics/torque-protection.js';
-import { type CompiledArcadeVehicleProfile, type VehicleProfileId } from './physics/vehicle-profiles.js';
+import { type CompiledVehicle, type VehicleId } from './physics/vehicle-definitions.js';
 import {
-  BMW_R80_GS_PARIS_DAKAR_VEHICLE_PROFILE,
-  CHEVROLET_CORVETTE_C4_VEHICLE_PROFILE,
-  FERRARI_TESTAROSSA_VEHICLE_PROFILE,
-  HARLEY_DAVIDSON_FXRT_VEHICLE_PROFILE,
-  HONDA_VFR750R_VEHICLE_PROFILE,
-  LANCIA_DELTA_HF_INTEGRALE_VEHICLE_PROFILE,
-  PORSCHE_911_TURBO_3_3_VEHICLE_PROFILE,
-  VESPA_PX200E_ARCOBALENO_VEHICLE_PROFILE,
-  VOLKSWAGEN_GOLF_GTI_16V_VEHICLE_PROFILE,
-} from './production-vehicle-profiles.js';
+  COMPILED_BMW_R80_GS_PARIS_DAKAR_VEHICLE,
+  COMPILED_CHEVROLET_CORVETTE_C4_VEHICLE,
+  COMPILED_FERRARI_TESTAROSSA_VEHICLE,
+  COMPILED_HARLEY_DAVIDSON_FXRT_VEHICLE,
+  COMPILED_HONDA_VFR750R_VEHICLE,
+  COMPILED_LANCIA_DELTA_HF_INTEGRALE_VEHICLE,
+  COMPILED_PORSCHE_911_TURBO_3_3_VEHICLE,
+  COMPILED_VESPA_PX200E_ARCOBALENO_VEHICLE,
+  COMPILED_VOLKSWAGEN_GOLF_GTI_16V_VEHICLE,
+} from './production-vehicle-definitions.js';
 
 export type VehicleVisualFamily = 'CAR' | 'BIKE';
 
@@ -33,7 +33,7 @@ export interface VehicleCatalogEntry {
   readonly selectedSpecification: readonly string[];
   readonly period: string;
   readonly physicsAnchor: Readonly<{ modelYear: string; market: string }>;
-  readonly profile: Readonly<CompiledArcadeVehicleProfile>;
+  readonly compiledVehicle: Readonly<CompiledVehicle>;
   readonly visualFamily: VehicleVisualFamily;
   readonly torqueProtection: Readonly<TorqueProtectionPolicy>;
   readonly mobileLabel: string;
@@ -54,13 +54,13 @@ function entry(value: VehicleCatalogEntry): Readonly<VehicleCatalogEntry> {
 function compileVehicleCatalog(values: readonly VehicleCatalogEntry[]): readonly Readonly<VehicleCatalogEntry>[] {
   const ids = new Set<string>();
   for (const value of values) {
-    if (ids.has(value.profile.id)) throw new RangeError(`duplicate vehicle id: ${value.profile.id}`);
-    ids.add(value.profile.id);
+    if (ids.has(value.compiledVehicle.id)) throw new RangeError(`duplicate vehicle id: ${value.compiledVehicle.id}`);
+    ids.add(value.compiledVehicle.id);
   }
   return Object.freeze(values.map(entry));
 }
 
-/** Product catalog. Metadata roles remain separate from compiled mechanical profiles. */
+/** Product catalog. Metadata roles remain separate from compiled vehicles. */
 export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compileVehicleCatalog([
   {
     sound: VEHICLE_SOUND_PROFILES['TESTAROSSA'],
@@ -71,7 +71,7 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     period: '1988½–1991',
     physicsAnchor: { modelYear: '1989', market: 'European/ROW' },
     visualFamily: 'CAR',
-    profile: FERRARI_TESTAROSSA_VEHICLE_PROFILE,
+    compiledVehicle: COMPILED_FERRARI_TESTAROSSA_VEHICLE,
     torqueProtection: ROAD_TORQUE_POLICY,
     mobileLabel: 'F110',
   },
@@ -84,7 +84,7 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     period: '1989',
     physicsAnchor: { modelYear: '1989', market: 'European/ROW' },
     visualFamily: 'CAR',
-    profile: PORSCHE_911_TURBO_3_3_VEHICLE_PROFILE,
+    compiledVehicle: COMPILED_PORSCHE_911_TURBO_3_3_VEHICLE,
     torqueProtection: ROAD_TORQUE_POLICY,
     mobileLabel: '930',
   },
@@ -97,7 +97,7 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     period: '1989–1990',
     physicsAnchor: { modelYear: '1989', market: 'US' },
     visualFamily: 'CAR',
-    profile: CHEVROLET_CORVETTE_C4_VEHICLE_PROFILE,
+    compiledVehicle: COMPILED_CHEVROLET_CORVETTE_C4_VEHICLE,
     torqueProtection: ROAD_TORQUE_POLICY,
     mobileLabel: 'C4',
   },
@@ -110,7 +110,7 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     period: '1986–1989',
     physicsAnchor: { modelYear: '1988', market: 'European/ROW' },
     visualFamily: 'CAR',
-    profile: VOLKSWAGEN_GOLF_GTI_16V_VEHICLE_PROFILE,
+    compiledVehicle: COMPILED_VOLKSWAGEN_GOLF_GTI_16V_VEHICLE,
     torqueProtection: ROAD_TORQUE_POLICY,
     mobileLabel: 'GTI',
   },
@@ -123,7 +123,7 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     period: '1988–1989',
     physicsAnchor: { modelYear: '1988', market: 'European/ROW' },
     visualFamily: 'CAR',
-    profile: LANCIA_DELTA_HF_INTEGRALE_VEHICLE_PROFILE,
+    compiledVehicle: COMPILED_LANCIA_DELTA_HF_INTEGRALE_VEHICLE,
     torqueProtection: ROAD_TORQUE_POLICY,
     mobileLabel: 'DELTA',
   },
@@ -136,7 +136,7 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     period: '1987–1990',
     physicsAnchor: { modelYear: '1988', market: 'ROW full-power' },
     visualFamily: 'BIKE',
-    profile: HONDA_VFR750R_VEHICLE_PROFILE,
+    compiledVehicle: COMPILED_HONDA_VFR750R_VEHICLE,
     torqueProtection: TWO_WHEEL_TORQUE_POLICY,
     mobileLabel: 'RC30',
   },
@@ -149,7 +149,7 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     period: '1984–1987',
     physicsAnchor: { modelYear: '1985', market: 'European/ROW' },
     visualFamily: 'BIKE',
-    profile: BMW_R80_GS_PARIS_DAKAR_VEHICLE_PROFILE,
+    compiledVehicle: COMPILED_BMW_R80_GS_PARIS_DAKAR_VEHICLE,
     torqueProtection: TWO_WHEEL_TORQUE_POLICY,
     mobileLabel: 'R80',
   },
@@ -162,7 +162,7 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     period: '1984–1992',
     physicsAnchor: { modelYear: '1988', market: 'US' },
     visualFamily: 'BIKE',
-    profile: HARLEY_DAVIDSON_FXRT_VEHICLE_PROFILE,
+    compiledVehicle: COMPILED_HARLEY_DAVIDSON_FXRT_VEHICLE,
     torqueProtection: TWO_WHEEL_TORQUE_POLICY,
     mobileLabel: 'FXRT',
   },
@@ -175,7 +175,7 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     period: '1983–1997',
     physicsAnchor: { modelYear: '1985', market: 'Italian/European' },
     visualFamily: 'BIKE',
-    profile: VESPA_PX200E_ARCOBALENO_VEHICLE_PROFILE,
+    compiledVehicle: COMPILED_VESPA_PX200E_ARCOBALENO_VEHICLE,
     torqueProtection: TWO_WHEEL_TORQUE_POLICY,
     mobileLabel: 'PX200',
   },
@@ -183,9 +183,9 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
 
 export const DEFAULT_VEHICLE_CATALOG_ENTRY = VEHICLE_CATALOG[0]!;
 
-export function vehicleCatalogEntryForId(id: VehicleProfileId): Readonly<VehicleCatalogEntry> {
-  const result = VEHICLE_CATALOG.find((candidate) => candidate.profile.id === id);
-  if (result === undefined) throw new RangeError(`unknown vehicle profile id: ${id}`);
+export function vehicleCatalogEntryForId(id: VehicleId): Readonly<VehicleCatalogEntry> {
+  const result = VEHICLE_CATALOG.find((candidate) => candidate.compiledVehicle.id === id);
+  if (result === undefined) throw new RangeError(`unknown vehicle id: ${id}`);
   return result;
 }
 

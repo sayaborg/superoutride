@@ -7,23 +7,23 @@ import { REFERENCE_DRIVER } from '../course/reference-driving-policy.js';
 import { referenceModelIdentity } from '../course/reference-identity.js';
 
 import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
-import type { VehicleProfileId } from '../../src/vehicle/physics/vehicle-profiles.js';
+import type { VehicleId } from '../../src/vehicle/physics/vehicle-definitions.js';
 import type { runCourseReference } from '../course/reference-run.js';
 
 export interface CourseReferenceJob {
-  readonly vehicleId: VehicleProfileId;
+  readonly vehicleId: VehicleId;
   readonly stems: readonly string[];
   readonly physicsSha256: string;
 }
 
 interface ReferenceCandidate {
-  readonly vehicleId: VehicleProfileId;
+  readonly vehicleId: VehicleId;
   readonly vehicleSha256: string;
   readonly runs: readonly ReturnType<typeof runCourseReference>[];
 }
 
 export interface CourseReferenceResult {
-  readonly vehicleId: VehicleProfileId;
+  readonly vehicleId: VehicleId;
   readonly products: { kind: ContentKind; id: string; value: unknown }[];
   readonly references: { stem: string; candidate: ReferenceCandidate }[];
   readonly hits: number;
@@ -40,7 +40,7 @@ export async function buildCourseReferences(
   const results = new Array<CourseReferenceResult>(VEHICLE_CATALOG.length),
     running = new Set<Worker>();
   let next = 0;
-  const run = (vehicleId: VehicleProfileId) =>
+  const run = (vehicleId: VehicleId) =>
     new Promise<CourseReferenceResult>((resolve, reject) => {
       const worker = new Worker(new URL('./build-course-reference-worker.ts', import.meta.url), {
         workerData: { vehicleId, stems, physicsSha256 } satisfies CourseReferenceJob,
@@ -56,7 +56,7 @@ export async function buildCourseReferences(
   const consume = async () => {
     while (next < VEHICLE_CATALOG.length) {
       const i = next++,
-        id = VEHICLE_CATALOG[i]!.profile.id;
+        id = VEHICLE_CATALOG[i]!.compiledVehicle.id;
       const result = await run(id);
       results[i] = result;
       console.log(`${id}: ${result.hits} cached / ${result.misses} generated reference products`);

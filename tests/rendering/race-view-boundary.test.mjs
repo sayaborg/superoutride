@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { loadCourse, loadCourseGround } from '../../tools/course/authoring-io.ts';
 import { readVehicleSprites } from '../../tools/course/read-vehicle-sprites.ts';
 import { createCourseScene } from '../../src/shell/course-scene.js';
-import { createArcadeVehicle } from '../../src/vehicle/physics/arcade-vehicle-physics.js';
+import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
 import { VEHICLE_CATALOG } from '../../src/vehicle/vehicle-catalog.js';
 import { browserSessionVehicle } from '../../src/shell/session-vehicle.js';
 import { createRecoveryState } from '../../src/race/recovery.js';
@@ -21,9 +21,10 @@ async function setup() {
   const { course } = await loadCourse(file);
   const assets = await readVehicleSprites();
   const scene = createCourseScene(course.entry, await loadCourseGround(course), assets, course.gates);
-  const profile = browserSessionVehicle(VEHICLE_CATALOG.find((v) => v.profile.id === 'TESTAROSSA'));
-  const spawn = (s) => createArcadeVehicle(profile.profile, scene.world, { ...profile, s, l: 0, initialSpeed: 0 });
-  return { course, assets, scene, profile, spawn };
+  const compiledVehicle = browserSessionVehicle(VEHICLE_CATALOG.find((v) => v.compiledVehicle.id === 'TESTAROSSA'));
+  const spawn = (s) =>
+    createVehicle(compiledVehicle.compiledVehicle, scene.world, { ...compiledVehicle, s, l: 0, initialSpeed: 0 });
+  return { course, assets, scene, compiledVehicle, spawn };
 }
 
 test('shared route keeps vehicle and camera coordinates across forward and reverse seams', async () => {
@@ -51,15 +52,15 @@ test('shared route keeps vehicle and camera coordinates across forward and rever
 });
 
 test('race actors have no cameras and view assembles sixteen rival sprites from observations', async () => {
-  const { course, scene, assets, profile, spawn } = await setup();
+  const { course, scene, assets, compiledVehicle, spawn } = await setup();
   const envelope = await readVehicleEnvelope(
-    profile,
+    compiledVehicle,
     await (await readDeliveredContent()).json('envelope', 'TESTAROSSA'),
   );
   const settings = resolveCourseSession(
     course,
     { mode: 'CUSTOM', rivalCount: 16, lapCount: 1, countdown: false },
-    profile,
+    compiledVehicle,
     envelope,
   );
   const vehicle = spawn(settings.grid[0].at.s);
@@ -75,7 +76,7 @@ test('race actors have no cameras and view assembles sixteen rival sprites from 
   assert.ok(!('sprites' in observed));
   assert.equal(observed.rivals.length, 16);
   const camera = updateCamera(createCameraRig(), scene.world, vehicle, CURRENT_CAMERA_PROFILE, 1 / 60);
-  const sprites = createRaceSprites(assets, profile)(observed.rivals, camera);
+  const sprites = createRaceSprites(assets, compiledVehicle)(observed.rivals, camera);
   assert.equal(sprites.length, observed.rivals.length);
   assert.deepEqual(
     sprites.map((s) => s.name),

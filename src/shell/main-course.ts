@@ -36,17 +36,21 @@ try {
   const parameters = new URLSearchParams(location.search);
   const settings = readBrowserSessionSettings(parameters, course.rules.classic);
   const preset = readBrowserSessionSettings(new URLSearchParams(), course.rules.classic);
-  const entry = VEHICLE_CATALOG.find((v) => v.profile.id === settings.vehicleId)!;
+  const entry = VEHICLE_CATALOG.find((v) => v.compiledVehicle.id === settings.vehicleId)!;
   const vehicle = browserSessionVehicle(entry);
-  const rivalEnvelope = await readVehicleEnvelope(vehicle, await content.json('envelope', vehicle.profile.id));
+  const rivalEnvelope = await readVehicleEnvelope(vehicle, await content.json('envelope', vehicle.compiledVehicle.id));
   const budgets = settings.countdown
-    ? await readCourseTimeBudgets(course, vehicle, await content.json('budget', `${mode}/${vehicle.profile.id}`))
+    ? await readCourseTimeBudgets(
+        course,
+        vehicle,
+        await content.json('budget', `${mode}/${vehicle.compiledVehicle.id}`),
+      )
     : null;
   const session = resolveCourseSession(course, settings, vehicle, rivalEnvelope, budgets);
   const sprites = readSpriteAssets(await content.json('image', 'vehicles'));
 
   const braking =
-    vehicle.profile.id === 'TESTAROSSA'
+    vehicle.compiledVehicle.id === 'TESTAROSSA'
       ? Object.freeze({
           ...sprites,
           car: createVehiclePaletteVariant(sprites.car, sprites.car.assets[0]![0]!.paletteChoices[1]!),

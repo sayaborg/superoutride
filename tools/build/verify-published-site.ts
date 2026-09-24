@@ -14,7 +14,7 @@ assert.ok(['http:', 'https:'].includes(root.protocol), 'Expected an HTTP site');
 const run = promisify(execFile);
 let failure: unknown;
 for (let attempt = 1; attempt <= 10; attempt++) {
-  let profile: string | undefined;
+  let userDataDirectory: string | undefined;
   try {
     const response: Response = await fetch(new URL(`version.txt?verify=${sha}`, root), {
       cache: 'no-store',
@@ -24,7 +24,7 @@ for (let attempt = 1; attempt <= 10; attempt++) {
     assert.equal((await response.text()).trim(), sha, 'Public version has not propagated');
     const content = await loadContentManifest(new URL(`build/${sha}/content/`, root));
     for (const entry of content.manifest.files) await content.bytes(entry.kind, entry.id);
-    profile = await mkdtemp(path.join(tmpdir(), 'superoutride-startup-'));
+    userDataDirectory = await mkdtemp(path.join(tmpdir(), 'superoutride-startup-'));
     const page = new URL(root);
     page.searchParams.set('verify', sha);
     const { stdout } = await run(
@@ -33,7 +33,7 @@ for (let attempt = 1; attempt <= 10; attempt++) {
         '--headless',
         '--no-sandbox',
         '--disable-dev-shm-usage',
-        `--user-data-dir=${profile}`,
+        `--user-data-dir=${userDataDirectory}`,
         '--window-size=1280,800',
         '--run-all-compositor-stages-before-draw',
         '--virtual-time-budget=15000',
@@ -60,7 +60,7 @@ for (let attempt = 1; attempt <= 10; attempt++) {
     console.error(`Published startup attempt ${attempt}: ${error instanceof Error ? error.message : String(error)}`);
     if (attempt < 10) await new Promise((resolve) => setTimeout(resolve, 5000));
   } finally {
-    if (profile) await rm(profile, { recursive: true, force: true });
+    if (userDataDirectory) await rm(userDataDirectory, { recursive: true, force: true });
   }
 }
 if (failure) throw failure;

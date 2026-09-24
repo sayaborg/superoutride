@@ -1,5 +1,5 @@
 import { type CameraYawMode } from '../view/camera.js';
-import type { ArcadeTireFrictionCalibrationState } from '../vehicle/physics/tire-friction-calibration.js';
+import type { VehicleTireFrictionCalibrationState } from '../vehicle/physics/tire-friction-calibration.js';
 import {
   createMobileCameraYawSelectorModel,
   createMobileCourseSelectorModel,
@@ -12,7 +12,7 @@ import {
 } from './mobile-selector-model.js';
 import { cycleSelectorChoice, sameSelectorValue } from './selector-values.js';
 
-import type { CompiledArcadeVehicleProfile, VehicleProfileId } from '../vehicle/physics/vehicle-profiles.js';
+import type { CompiledVehicle, VehicleId } from '../vehicle/physics/vehicle-definitions.js';
 import {
   BROWSER_COURSE_MODES,
   type BrowserCourseModeQuery,
@@ -20,14 +20,14 @@ import {
 } from './course-mode-selection.js';
 
 import { type BrowserTireCalibrationAxis } from './tire-friction-selection.js';
-import { BROWSER_VEHICLE_PROFILES, type BrowserVehicleProfileSelection } from './vehicle-profile-selection.js';
+import { BROWSER_VEHICLE_SELECTIONS, type BrowserVehicleSelection } from './vehicle-selection.js';
 
 interface MobileSelectorController<Value extends string | number> {
   setActive(value: Value): void;
 }
 
 interface MobileTireCalibrationController {
-  setCalibration(calibration: Readonly<ArcadeTireFrictionCalibrationState>): void;
+  setCalibration(calibration: Readonly<VehicleTireFrictionCalibrationState>): void;
 }
 
 export function mountMobileCourseSelector(
@@ -48,18 +48,18 @@ export function mountMobileCourseSelector(
 
 export function mountMobileVehicleSelector(
   container: HTMLElement,
-  activeId: VehicleProfileId,
-  onSelect: (profile: Readonly<CompiledArcadeVehicleProfile>) => void,
+  activeId: VehicleId,
+  onSelect: (compiledVehicle: Readonly<CompiledVehicle>) => void,
   documentRef: Document = document,
-  choices = BROWSER_VEHICLE_PROFILES,
-): MobileSelectorController<VehicleProfileId> {
-  const selections = new Map<VehicleProfileId, BrowserVehicleProfileSelection>(
-    choices.map((selection) => [selection.profile.id, selection]),
+  choices = BROWSER_VEHICLE_SELECTIONS,
+): MobileSelectorController<VehicleId> {
+  const selections = new Map<VehicleId, BrowserVehicleSelection>(
+    choices.map((selection) => [selection.compiledVehicle.id, selection]),
   );
   return mountMobileSelector(
     container,
     createMobileVehicleSelectorModel(activeId, choices),
-    (id) => onSelect(mustSelect(selections, id, 'vehicle').profile),
+    (id) => onSelect(mustSelect(selections, id, 'vehicle').compiledVehicle),
     documentRef,
   );
 }
@@ -123,7 +123,7 @@ export function mountMobileSteeringResponseSelector(
 
 export function mountMobileTireCalibrationSelector(
   container: HTMLElement,
-  calibration: Readonly<ArcadeTireFrictionCalibrationState>,
+  calibration: Readonly<VehicleTireFrictionCalibrationState>,
   onStep: (axis: BrowserTireCalibrationAxis, direction: -1 | 1) => void,
   documentRef: Document = document,
 ): MobileTireCalibrationController {

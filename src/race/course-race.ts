@@ -13,21 +13,21 @@ import {
 } from './recovery.js';
 import { compileEnvelopeDriver, createEnvelopeDriverWorkspace, sampleEnvelopeDrivingInput } from './envelope-driver.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
-import { createArcadeVehicle, type ArcadeVehicleState } from '../vehicle/physics/arcade-vehicle-physics.js';
+import { createVehicle, type VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import type { SessionVehicle } from './session-configuration.js';
 import { createRivalRoster } from './rival-roster.js';
 import type { createRouteRuntime } from './route-runtime.js';
 
 type RouteRuntime = ReturnType<typeof createRouteRuntime>;
 interface Actor {
-  readonly vehicle: ArcadeVehicleState;
+  readonly vehicle: VehicleState;
   readonly recovery: RecoveryState;
 }
 
 /** Borrowed actor state in the observer's active frame, valid until the next observe(). */
 export interface RaceActorObservation {
   readonly id: string;
-  readonly vehicle: ArcadeVehicleState;
+  readonly vehicle: VehicleState;
   readonly kind: SessionVehicle['kind'];
   readonly paletteVariant: 'base' | 'braking';
 }
@@ -61,14 +61,14 @@ export function createCourseRace(options: {
   const rivals = createRivalRoster(configuration).map(({ actorId, rivalIndex }) => {
     const slot = grid[rivalIndex + 1]!;
     const targetL = slot.l;
-    const profile = rival;
-    const vehicle = createArcadeVehicle(profile.profile, runtime.readers, {
+    const compiledVehicle = rival;
+    const vehicle = createVehicle(compiledVehicle.compiledVehicle, runtime.readers, {
       s: slot.at.s,
       l: targetL,
       initialSpeed,
-      torqueProtection: profile.torqueProtection,
-      steeringCalibration: profile.steeringCalibration,
-      tireFrictionCalibration: profile.tireFrictionCalibration,
+      torqueProtection: compiledVehicle.torqueProtection,
+      steeringCalibration: compiledVehicle.steeringCalibration,
+      tireFrictionCalibration: compiledVehicle.tireFrictionCalibration,
     });
     return competitor(actorId, { vehicle, recovery: createRecoveryState(vehicle) }, targetL);
   });

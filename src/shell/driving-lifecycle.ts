@@ -1,16 +1,16 @@
 import { resetCameraRig, updateCamera, type CameraRig } from '../view/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../view/current-camera-profile.js';
 import { recoverVehicle, type RecoverySettings, type RecoveryState } from '../race/recovery.js';
-import type { ArcadeVehicleState } from '../vehicle/physics/arcade-vehicle-physics.js';
+import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import type { VehicleWorld } from '../course/vehicle-world.js';
-import type { CompiledArcadeVehicleProfile } from '../vehicle/physics/vehicle-profiles.js';
+import type { CompiledVehicle } from '../vehicle/physics/vehicle-definitions.js';
 import { SIM_DT } from './frame-loop.js';
 
 interface DrivingPlayer {
-  readonly vehicle: ArcadeVehicleState;
+  readonly vehicle: VehicleState;
   readonly recovery: RecoveryState;
   readonly cameraRig: CameraRig;
-  replacePlayer(profile: Readonly<CompiledArcadeVehicleProfile>, world: VehicleWorld): void;
+  replacePlayer(compiledVehicle: Readonly<CompiledVehicle>, world: VehicleWorld): void;
 }
 
 export interface DrivingLifecycleOptions {
@@ -30,7 +30,7 @@ export function createDrivingLifecycle(player: DrivingPlayer, options: DrivingLi
     if (recovered) resetCameraRig(player.cameraRig);
     camera = updateCamera(player.cameraRig, options.world(), player.vehicle, CURRENT_CAMERA_PROFILE, dt);
   }
-  function reconstruct(profile?: Readonly<CompiledArcadeVehicleProfile>): void {
+  function reconstruct(compiledVehicle?: Readonly<CompiledVehicle>): void {
     const world = options.world();
     recoverVehicle(world, player.vehicle, {
       state: player.recovery,
@@ -39,7 +39,7 @@ export function createDrivingLifecycle(player: DrivingPlayer, options: DrivingLi
         ? { ...options.recoverySettings, targetL: options.recoveryL }
         : options.recoverySettings,
     });
-    if (profile !== undefined) player.replacePlayer(profile, world);
+    if (compiledVehicle !== undefined) player.replacePlayer(compiledVehicle, world);
     resetCameraRig(player.cameraRig);
     options.resync?.();
     update(SIM_DT);
@@ -50,6 +50,6 @@ export function createDrivingLifecycle(player: DrivingPlayer, options: DrivingLi
     },
     update,
     recover: () => reconstruct(),
-    replace: (profile: Readonly<CompiledArcadeVehicleProfile>) => reconstruct(profile),
+    replace: (compiledVehicle: Readonly<CompiledVehicle>) => reconstruct(compiledVehicle),
   };
 }

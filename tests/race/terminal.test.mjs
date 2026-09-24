@@ -47,7 +47,7 @@ test('outside projection follows previous chainage across clamped and tangent-ra
 
 test('Session rejects short terminal runout, including solo play; forks and loops are not terminals', async () => {
   const course = await load('ribbon-coast');
-  const vehicle = browserSessionVehicle(VEHICLE_CATALOG.find((v) => v.profile.id === 'TESTAROSSA'));
+  const vehicle = browserSessionVehicle(VEHICLE_CATALOG.find((v) => v.compiledVehicle.id === 'TESTAROSSA'));
   const { envelope } = await (await readDeliveredContent()).json('envelope', 'TESTAROSSA');
   const configuration = { mode: 'CUSTOM', rivalCount: 0, lapCount: 1, countdown: false };
   assert.doesNotThrow(() => resolveCourseSession(course, configuration, vehicle, envelope));

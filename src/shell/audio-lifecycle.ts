@@ -5,7 +5,7 @@ import { createNumberStepper } from './number-stepper.js';
 import { createAudioEngine } from '../audio/audio-engine.js';
 import { TIRE_COMPONENTS } from '../audio/tire-sound-controls.js';
 import { AUDIO_TIMING, rivalAudioGain, rivalAudioPan } from '../audio/audio-presentation.js';
-import type { ArcadeVehicleState } from '../vehicle/physics/arcade-vehicle-physics.js';
+import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import { vehicleCatalogEntryForId } from '../vehicle/vehicle-catalog.js';
 import {
   createVehicleAudioObservation,
@@ -52,7 +52,7 @@ export function createAudioLifecycle() {
     tireVolume = 1;
   const playerState = createVehicleAudioObservation(),
     rivalState = createVehicleAudioObservation();
-  let nextRival: ArcadeVehicleState | null = null;
+  let nextRival: VehicleState | null = null;
   let switchAt = 0;
   const supported = typeof AudioContext !== 'undefined' && typeof AudioWorkletNode !== 'undefined';
   if (button) {
@@ -295,11 +295,11 @@ export function createAudioLifecycle() {
   document.addEventListener('visibilitychange', visibility);
   button?.addEventListener('click', toggle);
   return {
-    update(player: ArcadeVehicleState, actors: readonly { readonly vehicle: ArcadeVehicleState }[]): void {
+    update(player: VehicleState, actors: readonly { readonly vehicle: VehicleState }[]): void {
       if (!engine || !context || context.state !== 'running' || !audible()) return;
       try {
         readVehicleAudio(player, playerState);
-        engine.update(playerState, vehicleCatalogEntryForId(player.profile.id).sound);
+        engine.update(playerState, vehicleCatalogEntryForId(player.compiledVehicle.id).sound);
         const nearest = nearestAudibleRival(player, actors);
         if (nearest !== nextRival) {
           nextRival = nearest;
@@ -320,7 +320,7 @@ export function createAudioLifecycle() {
         const lateral = dx * Math.cos(player.yaw) - dz * Math.sin(player.yaw);
         engine.updateRival(
           rivalState,
-          vehicleCatalogEntryForId(rival.profile.id).sound,
+          vehicleCatalogEntryForId(rival.compiledVehicle.id).sound,
           rivalAudioGain(distance),
           rivalAudioPan(lateral, distance),
         );

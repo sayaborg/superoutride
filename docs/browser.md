@@ -35,7 +35,7 @@ Session parameters are case-sensitive:
 | ----------- | --------------------------------------------------------------------------------------------- |
 | `mode`      | Lowercase registered course query; independent of Session mode                                |
 | `session`   | `CLASSIC` or `CUSTOM`, default `CLASSIC`; other values fail                                   |
-| `vehicle`   | Exact catalog profile ID for CUSTOM, such as `TESTAROSSA`; absent uses preset                 |
+| `vehicle`   | Exact catalog vehicle ID for CUSTOM, such as `TESTAROSSA`; absent uses preset                 |
 | `rivals`    | CUSTOM count parsed with `Number`; integer 0–16 within grid capacity; absent uses preset      |
 | `laps`      | CUSTOM count parsed with `Number`; positive integer within course limit; non-circuits use one |
 | `clock`     | CUSTOM countdown: exactly `off` disables it, all other values enable it                       |

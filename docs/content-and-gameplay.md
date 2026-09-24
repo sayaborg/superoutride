@@ -6,7 +6,7 @@ owns image formats and compilation; [Browser](browser.md) owns operation and URL
 
 ## Course vocabulary
 
-A Section is a reusable finite road/content chart. A Boundary is a longitudinal lateral-edge profile;
+A Section is a reusable finite road/content chart. A Boundary is a longitudinal lateral edge;
 a Carriageway
 is the road between two Section-local Boundaries. A Link connects one Carriageway at a Section end to another Section start.
 A RouteOccurrence is a selected Section visit in the shared Route, with its incoming Link and fixed
@@ -274,9 +274,9 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | Section `sectionAssets`                                                 |                128 | 64 locally used image types × 2                                                                                         |
 | Section `pis`                                                           |                512 | (21 × 10 + 2 endpoints) × 2, rounded up                                                                                 |
 | Section `heightNodes`                                                   |               1024 | (21 × 20 + 2) × 2, rounded up                                                                                           |
-| Each Boundary/Strip `knots`                                             |               1024 | Same 20/km profile density and margin                                                                                   |
+| Each Boundary/Strip `knots`                                             |               1024 | Same 20/km knot density and margin                                                                                      |
 | Environment array and expanded Section `environmentKnots`               |                256 | (21 × 4 + 1) × 2, rounded up                                                                                            |
-| Section `boundaries`                                                    |                 32 | 16 road, median, shoulder and outer profiles × 2                                                                        |
+| Section `boundaries`                                                    |                 32 | 16 road, median, shoulder and outer Boundaries × 2                                                                      |
 | Section `carriageways`                                                  |                 64 | One road activation/km × 21 × 2, rounded up; supports three-way splits                                                  |
 | Section `spritePlacements` (expanded)                                   |              16384 | 21 × (200 + 20)/km × 2, rounded up                                                                                      |
 | Each Strip/sprite array `stripElements` / `spriteElements`              |               2048 | 21 × 30/km × 2, rounded up                                                                                              |
@@ -286,7 +286,7 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | Section `activeStrips`                                                  |                 64 | 16 base layers + 14 glyph/marking runs + 2 curbs, doubled; counts hidden pieces                                         |
 | Each color/material table `stripSlabs`                                  |            1048576 | Expanded-piece budget × two endpoints × four for crossing subdivisions                                                  |
 | Section `preblendCells`                                                 |             131072 | All 1 m dyadic levels at 42000 m total fewer than 84032 cells, rounded up                                               |
-| Section `coefficientBytes`                                              |            512 MiB | Moving-edge 21 km probe uses about 121 MiB; ×2 length and ×2 profile complexity, rounded up                             |
+| Section `coefficientBytes`                                              |            512 MiB | Moving-edge 21 km probe uses about 121 MiB; ×2 length and ×2 Strip complexity, rounded up                               |
 | Section resolved `boundaryVertices`                                     |              65536 | 32 Boundaries × 1024 knots × 2 for inherited vertices                                                                   |
 | Course `gates` (also bounds each Section array)                         |               2048 | 50 stage positions × (8 checkpoints + 2 branch controls + 1 finish) × 2, plus one start, rounded up                     |
 | Start gate `startGridSlots`                                             |                 17 | `1 + SESSION_RULE_LIMITS.rivals`; player plus 16 rivals, a gameplay capacity rather than a density estimate             |
@@ -439,7 +439,7 @@ curve lengths and non-overlapping adjacent curves once, reporting `invalid_heigh
 PVI's `curveLength`. Profile construction consumes those admitted curves.
 Strip compilation reports storage/work ceilings as `resource_limit` and unrepresentable preblend
 coefficients as `invalid_numeric_domain`, addressed to the Section's `strips` collection; malformed
-expanded constructs report `invalid_profile` at their authored element.
+expanded constructs report `invalid_strip` at their authored element.
 Only known authored failures become diagnostics; internal invariant exceptions are never caught
 as a substitute for admission checks. Malformed
 schema reports a deterministic first error; independent semantic failures follow declaration order.

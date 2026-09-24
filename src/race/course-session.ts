@@ -21,7 +21,7 @@ export function resolveCourseSession(
     requested.mode === 'CLASSIC'
       ? Object.freeze({ mode: 'CLASSIC', rivalCount: preset.rivalCount, lapCount: preset.lapCount, countdown: true })
       : requested;
-  if (configuration.mode === 'CLASSIC' && vehicle.profile.id !== preset.vehicleId)
+  if (configuration.mode === 'CLASSIC' && vehicle.compiledVehicle.id !== preset.vehicleId)
     throw new RangeError('CLASSIC requires its preset vehicle');
   if (configuration.lapCount > course.rules.maxLaps)
     throw new RangeError('Lap count exceeds the authored course limit');
@@ -37,7 +37,7 @@ export function resolveCourseSession(
     const available = finish.section.coordinates.domain.end - finish.at.s;
     if (available < stoppingDistance)
       throw new RangeError(
-        `FINISH ${finish.id}: ${available.toFixed(2)} m of runout; ${vehicle.profile.id} requires ${stoppingDistance.toFixed(2)} m to stop from maximum speed`,
+        `FINISH ${finish.id}: ${available.toFixed(2)} m of runout; ${vehicle.compiledVehicle.id} requires ${stoppingDistance.toFixed(2)} m to stop from maximum speed`,
       );
   }
   return Object.freeze({

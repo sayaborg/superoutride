@@ -1,23 +1,23 @@
 # Common vehicle physics
 
-CAR and BIKE use one two-station arcade solver with yaw and pitch. Contact and control constraints
+CAR and BIKE use one two-station vehicle solver with yaw and pitch. Contact and control constraints
 use a local heightfield approximation. The model separates these inputs:
 
-| Boundary                 | Parameters                                                                                                            |
-| ------------------------ | --------------------------------------------------------------------------------------------------------------------- |
-| Compiled vehicle profile | Mass, geometry, inertia, suspension, wheel/brake data, drag, fixed drive split, powertrain and actuator/rack response |
-| Instance calibration     | Tire GX/PX/GY/PY/KN, driver steering offset D, mechanical rack bound M and steering traversal time ACT                |
-| Composition policy       | Fixed update step, TCS/ABS and two-wheel support protection                                                           |
+| Boundary             | Parameters                                                                                                            |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Compiled vehicle     | Mass, geometry, inertia, suspension, wheel/brake data, drag, fixed drive split, powertrain and actuator/rack response |
+| Instance calibration | Tire GX/PX/GY/PY/KN, driver steering offset D, mechanical rack bound M and steering traversal time ACT                |
+| Composition policy   | Fixed update step, TCS/ABS and two-wheel support protection                                                           |
 
 [Calibration](calibration.md) owns values and selector ranges.
 [Content and gameplay](content-and-gameplay.md#recovery) owns recovery outside the mechanical domain.
 
 ## State and integration
 
-[Arcade vehicle physics](../src/vehicle/physics/arcade-vehicle-physics.ts) owns world position/velocity,
+[Vehicle physics](../src/vehicle/physics/vehicle-physics.ts) owns world position/velocity,
 yaw/pitch and their rates, wheel angular speeds, rack angle, three normalized actuators and automatic
 gear state. Course coordinates, contact loads, accelerations and HUD quantities are observations.
-Compiled profiles and their nested data are immutable snapshots.
+Compiled vehicles and their nested data are immutable snapshots.
 
 Each fixed update has 12 substeps. Semi-implicit Euler updates velocity before pose; yaw and pitch
 wrap as angles. Gravity is 9.80665 m/s2. The body basis is:
@@ -29,7 +29,7 @@ up = normalized(forward cross right)
 omega = worldUp*yawRate-right*pitchRate
 ```
 
-Profile compilation requires positive finite quantities and feasible geometry.
+Vehicle compilation requires positive finite quantities and feasible geometry.
 [Browser](browser.md#display-and-scheduling) owns the fixed-step schedule.
 
 ## Surface and contact
@@ -67,7 +67,7 @@ The interval matches the existing unsupported-time allowance: a short excursion 
 an unsupported vehicle can visibly fall (about 2.54 m from rest under gravity) before reconstruction.
 Outside the domain, recovery does not query a fictitious surface normal or penetration plane.
 Inside it, the existing support, penetration, fall-distance, overturn and suspension-travel rules
-continue to apply; their broader airborne revision belongs to stage 8-4.
+continue to apply; their broader airborne revision belongs to stage 8-7.
 
 Recovery clamps the farther of current and last-safe route s to the retained extent, then backs up
 8 m within it. Race composition resolves a Carriageway center at that final station, respecting
@@ -121,8 +121,8 @@ bracket and at most 60 bisections solve the monotone residual, with early return
 absolute torque residual. Contact reference speed stays fixed during the scalar solve.
 
 The automatic powertrain derives RPM from drive-split wheel speed and current ratio, interpolates
-profile torque, shifts using adjacent-ratio hysteresis and tapers torque to zero at redline.
-Wheel torque uses the chosen ratio and efficiency; engine torque comes directly from the profile.
+powertrain torque, shifts using adjacent-ratio hysteresis and tapers torque to zero at redline.
+Wheel torque uses the chosen ratio and efficiency; engine torque comes directly from the powertrain definition.
 
 ## Torque protection
 
@@ -176,7 +176,7 @@ deliveredOffset = clamp(requestedOffset,allowedOffset)
 
 Including zero preserves neutral and permits partial corrective input. Degenerate, unsupported or
 zero-grip contacts return the request. Finally clamp `automatic+deliveredOffset` to +/-M and follow
-it with the profile's exponential rack response. This is a conservative current-contact slip constraint.
+it with the compiled vehicle's exponential rack response. This is a conservative current-contact slip constraint.
 
 ## Observations
 

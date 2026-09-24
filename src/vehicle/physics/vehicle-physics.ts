@@ -8,15 +8,15 @@ import { createAutomaticPowertrainState, updateAutomaticPowertrain } from './aut
 import { createDrivingActuatorState, updateDrivingActuators, type DrivingActuatorState } from './driving-actuator.js';
 import { createSteeringLimitWorkspace, limitSteeringInput } from './steering-input-limiter.js';
 import {
-  createArcadeTireFrictionCalibration,
-  type ArcadeTireFrictionCalibrationState,
+  createVehicleTireFrictionCalibration,
+  type VehicleTireFrictionCalibrationState,
 } from './tire-friction-calibration.js';
 import { regularizedTireSlipAngle, type WheelSolveInput } from './tire-wheel.js';
 import {
-  createArcadeSteeringCalibration,
+  createVehicleSteeringCalibration,
   steeringAutomaticMax,
-  type ArcadeSteeringCalibrationInput,
-  type ArcadeSteeringCalibrationState,
+  type VehicleSteeringCalibrationInput,
+  type VehicleSteeringCalibrationState,
 } from './vehicle-calibration.js';
 import type { VehicleWorld } from '../../course/vehicle-world.js';
 import {
@@ -36,7 +36,7 @@ import {
   type VehicleDynamicsState,
 } from './vehicle-dynamics.js';
 import { WORLD_UP, add3, cross3, dot3, normalize3, scale3 } from '../../core/vector3.js';
-import { drivenWheelOmega, type CompiledArcadeVehicleProfile } from './vehicle-profiles.js';
+import { drivenWheelOmega, type CompiledVehicle } from './vehicle-definitions.js';
 import {
   UNPROTECTED_TORQUE_POLICY,
   resolveTorqueProtectionPolicy,
@@ -45,18 +45,18 @@ import {
   type TorqueProtectionPolicy,
 } from './torque-protection.js';
 
-/** One authoritative state shape for every compiled vehicle profile. */
-export interface ArcadeVehicleState extends VehicleDynamicsState {
-  readonly profile: CompiledArcadeVehicleProfile;
+/** One authoritative state shape for every compiled vehicle. */
+export interface VehicleState extends VehicleDynamicsState {
+  readonly compiledVehicle: CompiledVehicle;
   yaw: number;
   pitch: number;
   yawRate: number;
   pitchRate: number;
   frontSteerAngle: number;
   /** Sole current runtime authority for the selectable M/D/T steering calibration. */
-  readonly steeringCalibration: ArcadeSteeringCalibrationState;
+  readonly steeringCalibration: VehicleSteeringCalibrationState;
   /** Sole runtime authority for the selected tire characteristic calibration. */
-  tireFrictionCalibration: Readonly<ArcadeTireFrictionCalibrationState>;
+  tireFrictionCalibration: Readonly<VehicleTireFrictionCalibrationState>;
   frontWheelOmega: number;
   rearWheelOmega: number;
   readonly actuator: DrivingActuatorState;
@@ -84,13 +84,13 @@ interface VehicleSpawnOptions {
   readonly s?: number;
   readonly l?: number;
   readonly initialSpeed?: number;
-  readonly steeringCalibration?: ArcadeSteeringCalibrationInput;
-  readonly tireFrictionCalibration?: Readonly<ArcadeTireFrictionCalibrationState>;
+  readonly steeringCalibration?: VehicleSteeringCalibrationInput;
+  readonly tireFrictionCalibration?: Readonly<VehicleTireFrictionCalibrationState>;
   readonly torqueProtection?: TorqueProtectionPolicy;
 }
 
-export function createArcadeVehicle(
-  profile: CompiledArcadeVehicleProfile,
+export function createVehicle(
+  compiledVehicle: CompiledVehicle,
   { coordinates, height, surfaces }: VehicleWorld,
   {
     s = 45,
@@ -100,11 +100,11 @@ export function createArcadeVehicle(
     tireFrictionCalibration,
     torqueProtection = UNPROTECTED_TORQUE_POLICY,
   }: VehicleSpawnOptions = {},
-): ArcadeVehicleState {
-  const resolvedSteeringCalibration = createArcadeSteeringCalibration(profile, steeringCalibration);
-  const resolvedTireFrictionCalibration = createArcadeTireFrictionCalibration(
-    tireFrictionCalibration?.front ?? profile.frontStation.tire,
-    tireFrictionCalibration?.rear ?? profile.rearStation.tire,
+): VehicleState {
+  const resolvedSteeringCalibration = createVehicleSteeringCalibration(compiledVehicle, steeringCalibration);
+  const resolvedTireFrictionCalibration = createVehicleTireFrictionCalibration(
+    tireFrictionCalibration?.front ?? compiledVehicle.frontStation.tire,
+    tireFrictionCalibration?.rear ?? compiledVehicle.rearStation.tire,
   );
   const bounds = coordinates.domain.lateralAt(s, { left: 0, right: 0 });
   if (l < bounds.left || l > bounds.right) throw new RangeError('vehicle spawn requires an in-domain coordinate');
@@ -123,12 +123,12 @@ export function createArcadeVehicle(
   if (!surface.material.supported) throw new Error('vehicle spawn requires supported surface');
   const yaw = Math.atan2(surface.horizontalTangent.x, surface.horizontalTangent.z);
   const pitch = surface.gradeAngle;
-  const position = add3(surface.point, scale3(surface.normal, profile.desiredCgHeight));
+  const position = add3(surface.point, scale3(surface.normal, compiledVehicle.desiredCgHeight));
   const initialVelocity = scale3(surface.tangent, initialSpeed);
-  const frontOmega = initialSpeed / profile.frontStation.rollingRadius;
-  const rearOmega = initialSpeed / profile.rearStation.rollingRadius;
+  const frontOmega = initialSpeed / compiledVehicle.frontStation.rollingRadius;
+  const rearOmega = initialSpeed / compiledVehicle.rearStation.rollingRadius;
   const state = {
-    profile,
+    compiledVehicle,
     x: position.x,
     y: position.y,
     z: position.z,
@@ -151,25 +151,28 @@ export function createArcadeVehicle(
     longitudinalAcceleration: 0,
     lateralAcceleration: 0,
     control: createVehicleControlState(),
-    powertrain: createAutomaticPowertrainState(profile.powertrain, drivenWheelOmega(profile, frontOmega, rearOmega)),
+    powertrain: createAutomaticPowertrainState(
+      compiledVehicle.powertrain,
+      drivenWheelOmega(compiledVehicle, frontOmega, rearOmega),
+    ),
     frontNormalLoad: 0,
     rearNormalLoad: 0,
     frontGap: 0,
     rearGap: 0,
     frontSupportAvailable: true,
     rearSupportAvailable: true,
-  } as ArcadeVehicleState;
-  return installArcadeVehicleDerivedAccessors(state);
+  } as VehicleState;
+  return installVehicleDerivedAccessors(state);
 }
 
-export function updateArcadeVehicle(
+export function updateVehicle(
   { coordinates, height, surfaces }: VehicleWorld,
-  vehicle: ArcadeVehicleState,
+  vehicle: VehicleState,
   input: DrivingInput,
   dt: number,
 ): void {
   if (!(dt > 0) || !Number.isFinite(dt)) throw new RangeError('vehicle dt must be finite and > 0');
-  const profile = vehicle.profile;
+  const compiledVehicle = vehicle.compiledVehicle;
   let workspace = stepWorkspaces.get(vehicle);
   if (!workspace) {
     workspace = createStepWorkspace(vehicle);
@@ -181,7 +184,7 @@ export function updateArcadeVehicle(
   const substep = dt / VEHICLE_SUBSTEPS;
   const calibration = vehicle.steeringCalibration;
   const automaticMax = steeringAutomaticMax(calibration);
-  const steeringResponse = 1 - Math.exp(-substep / profile.steeringResponseTau);
+  const steeringResponse = 1 - Math.exp(-substep / compiledVehicle.steeringResponseTau);
   const steeringRequest = clamp(input.steering, -1, 1);
   let finalFront: ContactObservation | null = null;
   let finalRear: ContactObservation | null = null;
@@ -191,18 +194,18 @@ export function updateArcadeVehicle(
       vehicle.actuator,
       input,
       substep,
-      profile.actuator,
+      compiledVehicle.actuator,
       vehicle.steeringCalibration.steeringActuatorResponse,
     );
-    const body = arcadeBodyKinematics(vehicle, workspace.body);
-    const bodyTravelDirection = vehicleBodyTravelDirection(body, profile.steeringLowSpeedRegularization);
+    const body = vehicleBodyKinematics(vehicle, workspace.body);
+    const bodyTravelDirection = vehicleBodyTravelDirection(body, compiledVehicle.steeringLowSpeedRegularization);
     const steeringOffset = vehicle.actuator.steering * vehicle.steeringCalibration.steeringOffsetMax;
     const frontBeforeSteer = deriveContactObservation(
       coordinates,
       height,
       surfaces,
       body,
-      profile.frontStation,
+      compiledVehicle.frontStation,
       vehicle.frontSteerAngle,
       vehicle.course.s,
       workspace.front,
@@ -233,7 +236,7 @@ export function updateArcadeVehicle(
       height,
       surfaces,
       body,
-      profile.rearStation,
+      compiledVehicle.rearStation,
       0,
       vehicle.course.s,
       workspace.rear,
@@ -241,18 +244,18 @@ export function updateArcadeVehicle(
 
     const driveTorque = updateAutomaticPowertrain(
       vehicle.powertrain,
-      profile.powertrain,
-      drivenWheelOmega(profile, vehicle.frontWheelOmega, vehicle.rearWheelOmega),
+      compiledVehicle.powertrain,
+      drivenWheelOmega(compiledVehicle, vehicle.frontWheelOmega, vehicle.rearWheelOmega),
       vehicle.actuator.throttle,
       substep,
     );
-    const frontDriveTorque = driveTorque * profile.frontDriveTorqueFraction;
+    const frontDriveTorque = driveTorque * compiledVehicle.frontDriveTorqueFraction;
     const rearDriveTorque = driveTorque - frontDriveTorque;
-    const frontBrakeTorque = vehicle.actuator.brake * profile.frontStation.maxBrakeTorque;
-    const rearBrakeTorque = vehicle.actuator.brake * profile.rearStation.maxBrakeTorque;
+    const frontBrakeTorque = vehicle.actuator.brake * compiledVehicle.frontStation.maxBrakeTorque;
+    const rearBrakeTorque = vehicle.actuator.brake * compiledVehicle.rearStation.maxBrakeTorque;
     const frontRequest = workspace.frontRequest;
     frontRequest.omegaPrevious = vehicle.frontWheelOmega;
-    frontRequest.inertia = profile.frontStation.wheelInertia;
+    frontRequest.inertia = compiledVehicle.frontStation.wheelInertia;
     frontRequest.rollingRadius = front.effectiveRollingRadius;
     frontRequest.longitudinalVelocity = front.longitudinalVelocity;
     frontRequest.lateralVelocity = front.lateralVelocity;
@@ -263,10 +266,10 @@ export function updateArcadeVehicle(
     frontRequest.driveTorque = frontDriveTorque;
     frontRequest.brakeTorque = frontBrakeTorque;
     frontRequest.dt = substep;
-    frontRequest.tire = profile.frontStation.tire;
+    frontRequest.tire = compiledVehicle.frontStation.tire;
     const rearRequest = workspace.rearRequest;
     rearRequest.omegaPrevious = vehicle.rearWheelOmega;
-    rearRequest.inertia = profile.rearStation.wheelInertia;
+    rearRequest.inertia = compiledVehicle.rearStation.wheelInertia;
     rearRequest.rollingRadius = rear.effectiveRollingRadius;
     rearRequest.longitudinalVelocity = rear.longitudinalVelocity;
     rearRequest.lateralVelocity = rear.lateralVelocity;
@@ -277,9 +280,9 @@ export function updateArcadeVehicle(
     rearRequest.driveTorque = rearDriveTorque;
     rearRequest.brakeTorque = rearBrakeTorque;
     rearRequest.dt = substep;
-    rearRequest.tire = profile.rearStation.tire;
+    rearRequest.tire = compiledVehicle.rearStation.tire;
     const resolved = solveProtectedWheelPair(
-      profile,
+      compiledVehicle,
       body,
       front,
       rear,
@@ -294,11 +297,11 @@ export function updateArcadeVehicle(
 
     const { force: totalForce, moment: totalMoment } = resolved.wrench;
 
-    vehicle.velocityX += (totalForce.x / profile.mass) * substep;
-    vehicle.velocityY += (totalForce.y / profile.mass) * substep;
-    vehicle.velocityZ += (totalForce.z / profile.mass) * substep;
-    vehicle.yawRate += (totalMoment.y / profile.yawInertia) * substep;
-    vehicle.pitchRate -= (dot3(totalMoment, body.right) / profile.pitchInertia) * substep;
+    vehicle.velocityX += (totalForce.x / compiledVehicle.mass) * substep;
+    vehicle.velocityY += (totalForce.y / compiledVehicle.mass) * substep;
+    vehicle.velocityZ += (totalForce.z / compiledVehicle.mass) * substep;
+    vehicle.yawRate += (totalMoment.y / compiledVehicle.yawInertia) * substep;
+    vehicle.pitchRate -= (dot3(totalMoment, body.right) / compiledVehicle.pitchInertia) * substep;
     vehicle.x += vehicle.velocityX * substep;
     vehicle.y += vehicle.velocityY * substep;
     vehicle.z += vehicle.velocityZ * substep;
@@ -317,13 +320,13 @@ export function updateArcadeVehicle(
       vehicle.control.throttleActuator = vehicle.actuator.throttle;
       vehicle.control.brakeActuator = vehicle.actuator.brake;
       vehicle.control.actualSteerAngle = vehicle.frontSteerAngle;
-      vehicle.control.handwheelAngle = vehicle.frontSteerAngle * profile.steeringRatio;
+      vehicle.control.handwheelAngle = vehicle.frontSteerAngle * compiledVehicle.steeringRatio;
       vehicle.control.frontSlipAngle =
         front.forceTransmitting && front.tireFrameValid
           ? regularizedTireSlipAngle(
               front.longitudinalVelocity,
               front.lateralVelocity,
-              profile.frontStation.tire.lowSpeedRegularization,
+              compiledVehicle.frontStation.tire.lowSpeedRegularization,
             )
           : 0;
       vehicle.control.deliveredDriveTorque =
@@ -359,7 +362,7 @@ export function updateArcadeVehicle(
   velocityDelta.x = vehicle.velocityX - velocityBeforeX;
   velocityDelta.y = vehicle.velocityY - velocityBeforeY;
   velocityDelta.z = vehicle.velocityZ - velocityBeforeZ;
-  const finalBody = arcadeBodyKinematics(vehicle, workspace.body);
+  const finalBody = vehicleBodyKinematics(vehicle, workspace.body);
   vehicle.longitudinalAcceleration = dot3(velocityDelta, finalBody.forward) / dt;
   vehicle.lateralAcceleration = dot3(velocityDelta, finalBody.right) / dt;
 }
@@ -383,8 +386,8 @@ export function createBodyKinematicsWorkspace() {
   const v = () => ({ x: 0, y: 0, z: 0 });
   return { position: v(), velocity: v(), right: v(), up: v(), forward: v(), omegaWorld: v() };
 }
-export function arcadeBodyKinematics(
-  vehicle: ArcadeVehicleState,
+export function vehicleBodyKinematics(
+  vehicle: VehicleState,
   out: ReturnType<typeof createBodyKinematicsWorkspace>,
 ): BodyKinematics {
   const sinYaw = Math.sin(vehicle.yaw),
@@ -412,10 +415,10 @@ export function arcadeBodyKinematics(
   return out;
 }
 
-const stepWorkspaces = new WeakMap<ArcadeVehicleState, ReturnType<typeof createStepWorkspace>>();
-function createStepWorkspace(vehicle: ArcadeVehicleState) {
-  const front = createContactWorkspace(vehicle.profile.frontStation),
-    rear = createContactWorkspace(vehicle.profile.rearStation);
+const stepWorkspaces = new WeakMap<VehicleState, ReturnType<typeof createStepWorkspace>>();
+function createStepWorkspace(vehicle: VehicleState) {
+  const front = createContactWorkspace(vehicle.compiledVehicle.frontStation),
+    rear = createContactWorkspace(vehicle.compiledVehicle.rearStation);
   const request = (tire: WheelSolveInput['tire']): Writable<WheelSolveInput> => ({
     omegaPrevious: 0,
     inertia: 1,
@@ -430,8 +433,8 @@ function createStepWorkspace(vehicle: ArcadeVehicleState) {
     dt: 1,
     tire,
   });
-  const frontRequest = request(vehicle.profile.frontStation.tire),
-    rearRequest = request(vehicle.profile.rearStation.tire);
+  const frontRequest = request(vehicle.compiledVehicle.frontStation.tire),
+    rearRequest = request(vehicle.compiledVehicle.rearStation.tire);
   return {
     projection: createPlanProjectionWorkspace(),
     velocityDelta: { x: 0, y: 0, z: 0 },
@@ -446,11 +449,7 @@ function createStepWorkspace(vehicle: ArcadeVehicleState) {
   };
 }
 
-function updateContactTelemetry(
-  vehicle: ArcadeVehicleState,
-  front: ContactObservation,
-  rear: ContactObservation,
-): void {
+function updateContactTelemetry(vehicle: VehicleState, front: ContactObservation, rear: ContactObservation): void {
   vehicle.frontNormalLoad = front.normalLoad;
   vehicle.rearNormalLoad = rear.normalLoad;
   vehicle.frontGap = front.gap;
@@ -459,61 +458,61 @@ function updateContactTelemetry(
   vehicle.rearSupportAvailable = rear.supportAvailable;
 }
 
-const derivedWorkspaces = new WeakMap<ArcadeVehicleState, ReturnType<typeof createBodyKinematicsWorkspace>>();
+const derivedWorkspaces = new WeakMap<VehicleState, ReturnType<typeof createBodyKinematicsWorkspace>>();
 // Shared accessor functions retain identical public descriptors and a common object layout across actors.
 const derivedProperties: PropertyDescriptorMap = {
   speed: {
     enumerable: true,
-    get(this: ArcadeVehicleState) {
+    get(this: VehicleState) {
       return vehicleSpeed(this);
     },
   },
   verticalSpeed: {
     enumerable: true,
-    get(this: ArcadeVehicleState) {
+    get(this: VehicleState) {
       return this.velocityY;
     },
   },
   longitudinalSpeed: {
     enumerable: true,
-    get(this: ArcadeVehicleState) {
-      const body = arcadeBodyKinematics(this, derivedWorkspaces.get(this)!);
+    get(this: VehicleState) {
+      const body = vehicleBodyKinematics(this, derivedWorkspaces.get(this)!);
       return bodyFrameVelocity(this, body.forward, body.right).longitudinal;
     },
   },
   lateralSpeed: {
     enumerable: true,
-    get(this: ArcadeVehicleState) {
-      const body = arcadeBodyKinematics(this, derivedWorkspaces.get(this)!);
+    get(this: VehicleState) {
+      const body = vehicleBodyKinematics(this, derivedWorkspaces.get(this)!);
       return bodyFrameVelocity(this, body.forward, body.right).lateral;
     },
   },
   steerAngle: {
     enumerable: true,
-    get(this: ArcadeVehicleState) {
+    get(this: VehicleState) {
       return this.frontSteerAngle;
     },
   },
   supported: {
     enumerable: true,
-    get(this: ArcadeVehicleState) {
+    get(this: VehicleState) {
       return this.frontNormalLoad > 0 || this.rearNormalLoad > 0;
     },
   },
   sprungPitch: {
     enumerable: true,
-    get(this: ArcadeVehicleState) {
+    get(this: VehicleState) {
       return this.pitch;
     },
   },
   renderY: {
     enumerable: true,
-    get(this: ArcadeVehicleState) {
-      return this.y - this.profile.desiredCgHeight;
+    get(this: VehicleState) {
+      return this.y - this.compiledVehicle.desiredCgHeight;
     },
   },
 };
-function installArcadeVehicleDerivedAccessors(vehicle: ArcadeVehicleState): ArcadeVehicleState {
+function installVehicleDerivedAccessors(vehicle: VehicleState): VehicleState {
   derivedWorkspaces.set(vehicle, createBodyKinematicsWorkspace());
   Object.defineProperties(vehicle, derivedProperties);
   return vehicle;

@@ -1,7 +1,7 @@
 export type SurfaceType = 'ASPHALT' | 'SHOULDER' | 'GRASS' | 'DIRT' | 'SAND' | 'VOID';
 
 /**
- * Surface authority is relative to the tire profile.
+ * Surface authority is relative to the tire definition.
  * Each tire friction axis is scaled by material.gripFactor.
  */
 export interface SurfaceMaterial {

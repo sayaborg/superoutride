@@ -66,18 +66,18 @@ export function readTireCharacteristics(tire: CompiledTireCharacteristics): Tire
 }
 
 /** Per-station slots keep equality a composition decision, never a constraint in the tire law. */
-export interface ArcadeTireFrictionCalibrationState {
+export interface VehicleTireFrictionCalibrationState {
   readonly front: Readonly<CompiledTireCharacteristics>;
   readonly rear: Readonly<CompiledTireCharacteristics>;
 }
-interface ArcadeTireFrictionCalibrationOwner {
-  tireFrictionCalibration: Readonly<ArcadeTireFrictionCalibrationState>;
+interface VehicleTireFrictionCalibrationOwner {
+  tireFrictionCalibration: Readonly<VehicleTireFrictionCalibrationState>;
 }
 
-export function createArcadeTireFrictionCalibration(
+export function createVehicleTireFrictionCalibration(
   front: CompiledTireCharacteristics,
   rear: CompiledTireCharacteristics = front,
-): Readonly<ArcadeTireFrictionCalibrationState> {
+): Readonly<VehicleTireFrictionCalibrationState> {
   const copy = (t: CompiledTireCharacteristics) => {
     validateTireCharacteristics(t);
     return Object.freeze({ muX: t.muX, muY: t.muY, kX: t.kX, kY: t.kY, rhoKnee: t.rhoKnee });
@@ -87,10 +87,10 @@ export function createArcadeTireFrictionCalibration(
 }
 
 /** Current five-axis browser adjustment intentionally links both stations. Atomic replacement. */
-export function setArcadeVehicleTireFrictionCalibration(
-  vehicle: ArcadeTireFrictionCalibrationOwner,
+export function setVehicleTireFrictionCalibration(
+  vehicle: VehicleTireFrictionCalibrationOwner,
   input: TireCharacteristics,
 ): void {
   const compiled = compileTireCharacteristics(input);
-  vehicle.tireFrictionCalibration = createArcadeTireFrictionCalibration(compiled);
+  vehicle.tireFrictionCalibration = createVehicleTireFrictionCalibration(compiled);
 }

@@ -4,7 +4,7 @@ import { atomicWrite } from './authoring-io.js';
 
 const referenceCacheDirectory = new URL('../../.cache/course-reference/', import.meta.url);
 export const digest = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
-/** Vehicle values are an independent key component; editing one profile cannot invalidate its peers. */
+/** Vehicle values are an independent key component; editing one vehicle definition cannot invalidate its peers. */
 export function referenceCacheKey(
   courseBuildSha256: string | null,
   vehicleSha256: string,

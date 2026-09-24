@@ -1,8 +1,8 @@
 import {
   compileTireCharacteristics,
-  createArcadeTireFrictionCalibration,
+  createVehicleTireFrictionCalibration,
   readTireCharacteristics,
-  type ArcadeTireFrictionCalibrationState,
+  type VehicleTireFrictionCalibrationState,
   type TireCharacteristics,
 } from '../vehicle/physics/tire-friction-calibration.js';
 import { BROWSER_CALIBRATION_KEYS } from './key-bindings.js';
@@ -42,7 +42,7 @@ const DEFAULT_BROWSER_TIRE_CHARACTERISTICS: Readonly<TireCharacteristics> = Obje
   peakSlipY: 0.1,
   knee: 0.74,
 });
-export const DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION = createArcadeTireFrictionCalibration(
+export const DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION = createVehicleTireFrictionCalibration(
   compileTireCharacteristics(DEFAULT_BROWSER_TIRE_CHARACTERISTICS),
 );
 
@@ -55,7 +55,7 @@ function browserTireAxis(id: BrowserTireCalibrationAxis): BrowserTireAxis {
 function browserTireCalibrationForAxis(
   id: BrowserTireCalibrationAxis,
   value: number,
-  current: ArcadeTireFrictionCalibrationState,
+  current: VehicleTireFrictionCalibrationState,
 ): TireCharacteristics {
   const axis = browserTireAxis(id),
     ticks = value * 100;
@@ -75,7 +75,7 @@ function browserTireCalibrationForAxis(
 export function stepBrowserTireCalibration(
   id: BrowserTireCalibrationAxis,
   direction: -1 | 1,
-  current: ArcadeTireFrictionCalibrationState,
+  current: VehicleTireFrictionCalibrationState,
 ): TireCharacteristics {
   if (direction !== -1 && direction !== 1) throw new RangeError('tire step direction must be -1 or 1');
   const axis = browserTireAxis(id);
@@ -89,14 +89,14 @@ export function stepBrowserTireCalibration(
 
 export function formatTireAxisValue(
   id: BrowserTireCalibrationAxis,
-  current: ArcadeTireFrictionCalibrationState,
+  current: VehicleTireFrictionCalibrationState,
 ): string {
   const axis = browserTireAxis(id),
     value = readTireCharacteristics(current.front)[axis.field];
   return axis.percent ? `${Number((value * 100).toFixed(2))}%` : value.toFixed(2);
 }
 
-export function formatTireCalibrationSelector(current: ArcadeTireFrictionCalibrationState): string {
+export function formatTireCalibrationSelector(current: VehicleTireFrictionCalibrationState): string {
   return BROWSER_TIRE_AXES.map(
     (axis) => `${axis.id === 'KNEE' ? 'KN' : axis.id}${formatTireAxisValue(axis.id, current)}`,
   ).join(' ');

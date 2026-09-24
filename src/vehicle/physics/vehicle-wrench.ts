@@ -7,7 +7,7 @@ import {
   type ContactObservation,
 } from './vehicle-dynamics.js';
 import { add3, scale3, type Vec3 } from '../../core/vector3.js';
-import type { CompiledArcadeVehicleProfile } from './vehicle-profiles.js';
+import type { CompiledVehicle } from './vehicle-definitions.js';
 
 export interface VehicleWrench {
   readonly force: Vec3;
@@ -21,7 +21,7 @@ export function createWrenchWorkspace() {
 
 /** The single contact/aero/gravity/wheel-reaction assembly, shared by protection and integration. */
 export function evaluateVehicleWrench(
-  profile: CompiledArcadeVehicleProfile,
+  compiledVehicle: CompiledVehicle,
   body: BodyKinematics,
   front: ContactObservation,
   rear: ContactObservation,
@@ -36,9 +36,9 @@ export function evaluateVehicleWrench(
   a.y = 0;
   a.z = body.velocity.z;
   const planarSpeed = Math.hypot(a.x, a.z);
-  const aeroForce = scale3(a, -profile.quadraticDrag * planarSpeed, a);
+  const aeroForce = scale3(a, -compiledVehicle.quadraticDrag * planarSpeed, a);
   b.x = 0;
-  b.y = -profile.mass * VEHICLE_GRAVITY;
+  b.y = -compiledVehicle.mass * VEHICLE_GRAVITY;
   b.z = 0;
   add3(add3(frontForce, rearForce, c), add3(aeroForce, b, a), value.force);
   const contactMoment = add3(
@@ -47,8 +47,8 @@ export function evaluateVehicleWrench(
     c,
   );
   const wheelReaction = add3(
-    scale3(front.wheelAxis, -profile.frontStation.wheelInertia * frontWheel.omegaDot, a),
-    scale3(rear.wheelAxis, -profile.rearStation.wheelInertia * rearWheel.omegaDot, b),
+    scale3(front.wheelAxis, -compiledVehicle.frontStation.wheelInertia * frontWheel.omegaDot, a),
+    scale3(rear.wheelAxis, -compiledVehicle.rearStation.wheelInertia * rearWheel.omegaDot, b),
     a,
   );
   add3(contactMoment, wheelReaction, value.moment);

@@ -11,7 +11,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **8-1 — Vehicle data**.
+Next PR: **8-2 — Driving definition**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -19,12 +19,14 @@ PRs hold rationale and verification evidence.
 
 ## Stage 8 — Vehicles and materials
 
-Give vehicles, tires, tuning and materials explicit definitions, and treat airborne driving as normal state.
+Give vehicles, driving assists, tires, powertrains and materials explicit definitions, and treat airborne driving as normal state.
 
-- **8-1 — Vehicle data:** saved vehicle definitions and independent tire definitions; rename vehicle/tire/powertrain/actuator Profiles and Arcade prefixes according to the glossary.
-- **8-2 — DEV tuning:** replace definitions rather than mutate running settings.
-- **8-3 — Materials:** one material-definition table.
-- **8-4 — Jumps and recovery:** normal airborne state, remaining non-domain recovery conditions and suspension limits.
+- **8-2 — Driving definition:** one game-wide definition of driving assists (travel-direction steering, M, D, ACT, input actuators, TCS, ABS) and dimensionless per-load tires, holding the values the shell currently applies; delete the unused per-vehicle steering and tire values. Behavior unchanged.
+- **8-3 — Vehicle content:** saved vehicle definitions delivered through the manifest, with form (two- or four-wheeled), dimensions, sprite and palette variants, sound reference and metadata; replace `CAR_WIDTH_METERS` and the `TESTAROSSA` palette branches. Behavior unchanged.
+- **8-4 — Powertrain:** launch, shift rules and rev limit, engine friction, inertia and free revving, and shift observations; audio reads engine speed without its own idle floor. Behavior changes.
+- **8-5 — Vehicle values:** published values and sources as production data with a checking tool; correct torque curves, masses and CG heights. Behavior changes.
+- **8-6 — DEV tuning:** replace definitions instead of mutating running settings, and export them. Behavior unchanged.
+- **8-7 — Materials and airborne state:** material definitions including tire effect kinds, jumps and airborne state, pitch-angle protection, suspension limits and recovery conditions. Split if large. Behavior changes.
 
 ## Stage 9 — Audio
 
@@ -97,7 +99,7 @@ arcLength = v*duration
 Fit a new CourseDocument without requiring a template. Keep fitting and iteration outside compiler/runtime.
 Initial pacing goals are ±10% per interval and ±3% overall. Compare continuous reference driving with
 observations, revise explicit speed ratio, utilization and interval lengths, and record geometric or
-vehicle-infeasible intervals as remaster departures. Footage and vehicle-profile choices remain content inputs.
+vehicle-infeasible intervals as remaster departures. Footage and vehicle choices remain content inputs.
 
 ### Inspection and art
 

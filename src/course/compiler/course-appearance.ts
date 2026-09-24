@@ -76,14 +76,14 @@ export function compileCourseAppearance(
       positions.length > 0 && positions[0]!.s === start,
       at,
       'Environment knots must begin at their declared domain start',
-      'invalid_profile',
+      'invalid_appearance',
     );
     for (let i = 0; i < positions.length; i += 1)
       requireCourse(
         positions[i]!.s < end && (i === 0 || positions[i]!.s > positions[i - 1]!.s),
         `${at}/${i}/at`,
         'Environment knots must strictly increase inside the domain',
-        'invalid_profile',
+        'invalid_appearance',
       );
   };
   const environments: CourseAppearance['environments'][number][] = [];

@@ -31,8 +31,8 @@ export function createCourseScene(
   const maximumStepMeters = 240 * SIM_DT;
   const contactReachMeters = Math.ceil(
     Math.max(
-      ...VEHICLE_CATALOG.flatMap(({ profile }) =>
-        [profile.frontStation, profile.rearStation].map((station) =>
+      ...VEHICLE_CATALOG.flatMap(({ compiledVehicle }) =>
+        [compiledVehicle.frontStation, compiledVehicle.rearStation].map((station) =>
           Math.hypot(station.forwardOffset, station.freeReachDown),
         ),
       ),

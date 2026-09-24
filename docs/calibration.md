@@ -7,7 +7,7 @@ These tables describe the authored settings. [Vehicle physics](vehicle-physics.m
 ## Vehicle settings
 
 The browser supplies this common starting calibration for cars and bikes.
-[Vehicle profiles](../src/vehicle/production-vehicle-profiles.ts) contain the per-vehicle mechanical data.
+[Vehicle definitions](../src/vehicle/production-vehicle-definitions.ts) contain the per-vehicle mechanical data.
 
 | Key | Meaning                                      | Default | Selector range / step      |
 | --- | -------------------------------------------- | ------- | -------------------------- |
@@ -27,7 +27,7 @@ The [tire selector](../src/shell/tire-friction-selection.ts) and
 
 | Setting               | Value            | Meaning                                                      |
 | --------------------- | ---------------- | ------------------------------------------------------------ |
-| Bike CG position      | 30% of wheelbase | Longitudinal CG location in the bike profiles                |
+| Bike CG position      | 30% of wheelbase | Longitudinal CG location in the bike definitions             |
 | Handwheel ratio       | 18:1             | HUD road-wheel-to-handwheel conversion                       |
 | Rival utilization     | 0.75             | Session driver's fraction of the measured envelope           |
 | Reference utilization | 0.9              | Offline reference driver's fraction of the measured envelope |
