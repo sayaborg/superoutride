@@ -26,10 +26,11 @@ offset and its world transform composes the Link transform. Thus a repeated circ
 route interval without changing earlier route coordinates. A seam station belongs to the successor.
 `routeSectionS` and `routeS` own the chainage conversion; readers select an occurrence by binary
 search, read the Section, subtract the lateral origin and map X/Z and heading into route world space.
-The preparation layer supplies plan, authoritative height, rendered height, Raster and material
-readers. Missing plan/Raster/display results are `null`, missing material is VOID, and height extends
-the nearest endpoint at grade zero. Route extension and retention distances, visual readers and the
-switch of live consumers are scheduled in 6-9a2.
+The preparation layer supplies plan, authoritative height, rendered height, Raster, material,
+Band, sprites, visual labels and background readers. It indexes visual lists only when route
+occurrences change. Missing plan/Raster/display results are `null`, missing material is VOID,
+Band pixels are transparent, and height extends the nearest endpoint at grade zero. Route
+extension and retention distances and the switch of live consumers are scheduled in 6-9a2b.
 
 `PlanCoordinateReader` is the planar query interface for both a compiled Section and its mapped
 occurrences. `CompiledSection.coordinates` and `VehicleWorld.coordinates` expose this same type:

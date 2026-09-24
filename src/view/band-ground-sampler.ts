@@ -285,8 +285,14 @@ export function createBandGroundSampler(intervals: readonly BandFieldSpan[]) {
   const first = spans[0]!.frameStart,
     last = spans.at(-1)!.frameEnd;
   const spanAt = (s: number) => {
-    for (const span of spans) if (span.frameEnd > s) return span;
-    return spans[spans.length - 1]!;
+    let lo = 0,
+      hi = spans.length;
+    while (lo < hi) {
+      const mid = (lo + hi) >>> 1;
+      if (spans[mid]!.frameEnd > s) hi = mid;
+      else lo = mid + 1;
+    }
+    return spans[Math.min(lo, spans.length - 1)]!;
   };
   const append = (span: (typeof spans)[number], start: number, end: number, stats: BandRenderMetrics) => {
     const a = Math.max(0, span.nativeStart + start - span.frameStart),

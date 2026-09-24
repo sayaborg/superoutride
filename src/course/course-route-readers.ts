@@ -35,6 +35,8 @@ export function createCourseRouteReaders(route: CourseRoute) {
     readonly native: ReturnType<CompiledSection['coordinates']['projectionCandidates']>[number];
   }[] = [];
   let rasterSegments: readonly { readonly sStart: number; readonly length: number; readonly heading: number }[] = [];
+  let heightKnots: readonly { readonly s: number; readonly y: number; readonly curveLength: number }[] = [];
+  let renderKnots: readonly { readonly s: number; readonly y: number }[] = [];
   const sync = () => {
     if (indexed === route.occurrences) return;
     indexed = route.occurrences;
@@ -57,6 +59,23 @@ export function createCourseRouteReaders(route: CourseRoute) {
           : [];
       }),
     );
+    const profileKnots = indexed.flatMap((occurrence) =>
+      occurrence.section.height.knots
+        .filter((knot) => knot.s >= occurrence.nativeStart && knot.s <= routeSectionS(occurrence, occurrence.end))
+        .map((knot) => Object.freeze({ ...knot, s: routeS(occurrence, knot.s) })),
+    );
+    heightKnots = profileKnots.filter((knot, i) => i + 1 === profileKnots.length || knot.s !== profileKnots[i + 1]!.s);
+    const displayKnots = indexed.flatMap((occurrence) => {
+      const end = routeSectionS(occurrence, occurrence.end);
+      return [
+        occurrence.nativeStart,
+        ...occurrence.section.renderHeight.knots
+          .map((knot) => knot.s)
+          .filter((s) => s > occurrence.nativeStart && s < end),
+        end,
+      ].map((s) => Object.freeze({ s: routeS(occurrence, s), y: occurrence.section.renderHeight.sample(s).y }));
+    });
+    renderKnots = displayKnots.filter((knot, i) => i + 1 === displayKnots.length || knot.s !== displayKnots[i + 1]!.s);
   };
   const lookup = (s: number) => route.at(s);
   const heading = (occurrence: RouteOccurrence, sectionHeading: number) =>
@@ -167,6 +186,13 @@ export function createCourseRouteReaders(route: CourseRoute) {
     return occurrence.section.height.sample(routeSectionS(occurrence, s < route.start ? route.start : route.end));
   };
   const height = Object.freeze({
+    get courseLength() {
+      return route.end;
+    },
+    get knots() {
+      sync();
+      return heightKnots;
+    },
     sample(s: number) {
       const occurrence = lookup(s);
       return occurrence ? occurrence.section.height.sample(routeSectionS(occurrence, s)) : endpointHeight(s);
@@ -180,6 +206,13 @@ export function createCourseRouteReaders(route: CourseRoute) {
     },
   });
   const renderHeight = Object.freeze({
+    get courseLength() {
+      return route.end;
+    },
+    get knots() {
+      sync();
+      return renderKnots;
+    },
     sample(s: number, out: { y: number; grade: number; segmentIndex: number; sStart: number; sEnd: number }) {
       const occurrence = lookup(s);
       if (!occurrence) return null;
