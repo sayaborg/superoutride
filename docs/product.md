@@ -46,14 +46,13 @@ through the game scene. The Sprite Tool edits image inputs and exports compiled 
 
 ## 4. Ground
 
-Ground is an ordered list of colored Bands covering the whole plane,
-including open outer sides. Later Bands replace earlier colors or erase them to transparency. Transparent
-areas reveal the background below as well as above the horizon. Physical Regions and their support/friction
-bindings are independent of the visual Bands. [Content and gameplay](content-and-gameplay.md#band-ground)
+Ground is an ordered list of colored Strips covering the whole plane,
+including open outer sides. Later Strips replace earlier colors or erase them to transparency. Transparent
+areas reveal the background below as well as above the horizon. Material and color can be authored independently on the same Strip. [Content and gameplay](content-and-gameplay.md#strips)
 owns authoring; [Architecture](architecture.md#band-rendering) owns preblending and pixel filtering.
 
 The product ground-display setting defaults to LEVEL-POINT. DEV provides its control, and
 switching redraws the current scene without changing vehicle state, camera or Session progress.
 [Browser](browser.md#ground-display-setting) owns operation and setting lifetime. The three rendering
 modes are defined only in the rendering contract linked above. Ground contains no image assets;
-lettering, arrows, curbs and cliff edges expand from saved Band constructs.
+lettering, arrows, curbs and cliff edges expand from saved Strip constructs.

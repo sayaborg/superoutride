@@ -1,3 +1,4 @@
+import { compileCourseStrips } from './course-band-ground.js';
 import { validateCourseCarriageways } from './course-carriageways.js';
 import { createPlanCoordinateReader } from '../geometry/plan-coordinate-reader.js';
 import { contentDigest } from '../../core/content-digest.js';
@@ -11,8 +12,8 @@ import {
 } from '../course-diagnostics.js';
 import { readCourseDocument, type CourseDocument, type SectionDocument } from '../course-document.js';
 import { compileCourseGeometry, resolveCoursePosition } from '../course-geometry.js';
-import { compileCourseRegionGeometry, compileMaterialCoordinateDomain } from '../course-region-geometry.js';
-import type { CompiledRegion, CompiledCarriageway } from '../course-regions.js';
+import { validateMaterialContinuity, compileMaterialCoordinateDomain } from '../course-region-geometry.js';
+import type { CompiledCarriageway } from '../course-regions.js';
 import type { CompiledSection, CompiledLink } from './course-graph.js';
 import { COURSE_PHYSICAL_RECIPE, compileCoursePhysicalContent } from './course-physical-content.js';
 import {
@@ -61,7 +62,7 @@ export interface CompiledCourse {
 
 const COURSE_COMPILER = Object.freeze({
   id: 'superoutride.course-compiler',
-  version: 26,
+  version: 27,
   links: COURSE_LINK_RECIPE,
   physical: COURSE_PHYSICAL_RECIPE,
   images: COURSE_IMAGE_SOURCE_RECIPE,
@@ -109,26 +110,6 @@ function compileSection(
     resolveCoursePosition(position, stations, length, at);
   const boundaries = compileCourseBoundaries(section.boundaries, resolve, `${path}/boundaries`);
   const boundaryTable = new Map(boundaries.map((boundary) => [boundary.id, boundary]));
-  requireCourse(section.regions.length > 0, `${path}/regions`, 'A Section requires regions', 'invalid_region_domain');
-  const regions = compileStage(section.regions, (source, index): CompiledRegion => {
-    const at = `${path}/regions/${index}`;
-    const start = resolve(source.start, `${at}/start`);
-    const end = resolve(source.end, `${at}/end`);
-    requireCourse(end.s > start.s, at, 'Region interval must have positive length', 'invalid_region_domain');
-    const left = reference(boundaryTable, source.leftBoundaryId, `${at}/leftBoundaryId`);
-    const right = reference(boundaryTable, source.rightBoundaryId, `${at}/rightBoundaryId`);
-    for (const [key, boundary] of [
-      ['leftBoundaryId', left],
-      ['rightBoundaryId', right],
-    ] as const)
-      requireCourse(
-        boundary.knots[0]!.at.s <= start.s && boundary.knots.at(-1)!.at.s >= end.s,
-        `${at}/${key}`,
-        `Boundary ${JSON.stringify(boundary.id)} must cover Region's closed interval [${start.s}, ${end.s}]`,
-        'invalid_boundary',
-      );
-    return Object.freeze({ id: source.id, start, end, left, right, role: source.role });
-  });
   const carriageways = compileStage(section.carriageways, (source, index): CompiledCarriageway => {
     const at = `${path}/carriageways/${index}`;
     return Object.freeze({
@@ -137,10 +118,11 @@ function compileSection(
       right: reference(boundaryTable, source.right, `${at}/right`),
     });
   });
-  validateCourseCarriageways(carriageways, regions, length, `${path}/carriageways`);
-  compileCourseRegionGeometry(length, regions, path);
-  const physical = compileCoursePhysicalContent(section, length, regions, resolve, path);
-  const lateralDomain = compileMaterialCoordinateDomain(section.id, segments, physical.material, path);
+  const strips = compileCourseStrips(section.strips, length, `${path}/strips`, resolve, boundaryTable);
+  validateMaterialContinuity(strips.material, `${path}/strips`);
+  validateCourseCarriageways(carriageways, strips.material, length, `${path}/carriageways`);
+  const physical = compileCoursePhysicalContent(section, length, resolve, path);
+  const lateralDomain = compileMaterialCoordinateDomain(section.id, segments, strips.material, path);
   const sectionAssets = section.assetIds.map((id, i) => reference(assets, id, `${path}/assetIds/${i}`));
   requireCourse(
     new Set(sectionAssets).size === sectionAssets.length,
@@ -154,6 +136,7 @@ function compileSection(
     coordinates: createPlanCoordinateReader(segments, length, lateralDomain.lateralAt),
     boundaries: Object.freeze(boundaries),
     ...physical,
+    ...strips,
     carriageways: Object.freeze(carriageways),
     assets: Object.freeze(sectionAssets),
     presentation: compileCoursePresentation(

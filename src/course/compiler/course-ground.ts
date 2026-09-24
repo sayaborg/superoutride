@@ -4,8 +4,7 @@ import type { CompiledSection } from './course-graph.js';
 export function createCourseGround(course: CompiledCourse) {
   const table = new Map(
     course.sections.map((section) => {
-      const ground = section.presentation?.ground;
-      if (!ground) throw new RangeError('Every Section needs Band ground presentation');
+      const ground = section.color;
       return [section, ground] as const;
     }),
   );

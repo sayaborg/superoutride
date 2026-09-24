@@ -87,7 +87,7 @@ export function reportError(input: unknown) {
   process.exitCode = 1;
 }
 
-/** Authored Band fields are compiled with the course and shared by all previews. */
+/** Authored Strip fields are compiled with the course and shared by all previews. */
 export async function loadCourseGround(course: CompiledCourse) {
   const { createCourseGround } = await import('../../src/course/compiler/course-ground.js');
   return createCourseGround(course);

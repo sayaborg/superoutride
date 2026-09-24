@@ -173,7 +173,7 @@ At each s, the Section lateral domain runs from the material table's leftmost fi
 `PLAN_COORDINATE_MARGIN_METERS` to its rightmost finite covered edge plus that margin; the margin is 4 m.
 Explicit VOID material still contributes its authored extent; the uncovered exterior does not.
 The domain uses the material slab's half-open station ownership, including the Section terminal.
-It retains the outer span references and reads them by binary slab lookup, without scanning Regions.
+It retains the outer span references and reads them by binary slab lookup, without scanning authored Strips.
 The map from `(s,l)` in the entire closed Section coordinate domain to world XZ is injective:
 different coordinate pairs occupy different points. The local part of this condition is
 `J = 1-kappa*l > 0` throughout the domain. Compilation checks every circular segment at
@@ -202,10 +202,12 @@ breakpoints, including inherited ones. Compilation evaluates and blends the endp
 expressions at those stations as specified in [Content and gameplay](content-and-gameplay.md#lateral-positions).
 The published resolved l sequence is the only input to `courseBoundaryAt` and its consumers.
 Width and center are derived from
-their edges. Region validation is a compile-time input check. Material compilation divides at Boundary
-knots and material changes, then uses the same slab resolver as color. Paint changes do not divide
-material geometry. Original affine edge coefficients are retained for material reads after splitting
-at unrelated stations, so exact Boundary ties keep the original interpolation arithmetic.
+their edges. Strip compilation resolves Lateral edges with the Boundary interval resolver,
+then sends each non-null payload to the shared slab resolver. Paint-only changes do not divide
+material geometry. A piece stores each finite edge as one affine line, with no duplicate endpoint
+coordinates. Boundary-derived lines retain their original interval and endpoint arithmetic when
+split; their offsets are added after interpolation. Numeric color lines retain slab-local interpolation.
+This preserves Boundary ties without altering unrelated numeric color arithmetic.
 
 The compilation check divides the authoritative straight and circular plan at segment ends,
 domain knots and at most five degrees per arc cell. Adjacent cells share their endpoint and are
@@ -218,7 +220,7 @@ coordinates; this tolerance does not replace the curvature bound. These cells be
 Point regions are half-open laterally: `[left(s),right(s))`. A shared edge belongs to the region on
 its right; the outer left edge is included and the outer right edge is outside. Zero-width endpoints
 own no area. Gaps use the consumer's outside result: physical VOID or no eligible lock region.
-Visual Bands do not use Region membership and can cover the entire lateral plane. Closed bounds used for geometric containment and clipped areas used by image
+Visual Strips do not require material coverage and can cover the entire lateral plane. Closed bounds used for geometric containment and clipped areas used by image
 filters do not change point ownership.
 
 ## Height and projection
@@ -283,8 +285,8 @@ below the horizon. Physical support is independent of all ground colors.
 ### Material cross sections
 
 `CompiledSection.material` contains an immutable slab table and its point reader; compiled Sections
-retain neither Regions nor physical bindings. Input Region geometry and material changes produce
-finite affine pieces. Color and material use the same payload-independent Band slab resolver:
+retain only resolved tables. Material-bearing Strips produce finite affine pieces; color-only Strips
+do not enter this table. Color and material use the same payload-independent Band slab resolver:
 activation and edge-crossing splits, declaration-order overwrite, equal-value span coalescing and
 binary slab/span lookup. The historical `Band*` names and cell payload field `color` are retained
 until the naming stage; its generic payload is RGB555/transparent for color or a material for physics.
@@ -301,9 +303,9 @@ is compiler-only; running point reads do not allocate arrays, objects or readers
 
 ### Band rendering
 
-Compilation expands the [authored constructs](content-and-gameplay.md#band-ground) to affine Band
+Compilation expands the [authored constructs](content-and-gameplay.md#strips) to affine Band
 pieces and passes them through the shared material/color slab resolver described above. Resolved spans are disjoint, cover the open lateral plane and coalesce
-adjacent equal colors; transparent upper Bands erase lower colors before filtering. The active count
+adjacent equal colors; transparent upper Strips erase lower colors before filtering. The active count
 includes hidden declarations, not just the visible resolved spans.
 
 The course compiler averages resolved colors over dyadic s cells starting at one metre.
@@ -344,7 +346,7 @@ does not change the mathematical integral.
 
 The exact row workspace composes weighted lateral-field events once; the other methods read their native
 lateral field directly. All methods batch constant spans with fills or transparent skips. Only varying
-lateral fields and box-boundary pixels need individual evaluation. No pixel loops over authored Bands.
+lateral fields and box-boundary pixels need individual evaluation. No pixel loops over authored Strips.
 
 RGB555 decodes through the common linear-sRGB channel table. Contributions stay premultiplied until
 final coverage is known. Coverage at least the shared 0.5 threshold is opaque, allowing 64 machine

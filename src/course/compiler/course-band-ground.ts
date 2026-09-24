@@ -1,8 +1,13 @@
-import type { BandElementDocument } from '../course-document.js';
-import { CourseInputError } from '../course-diagnostics.js';
-import { compileBandGround, type BandPiece } from '../band-ground.js';
+import { compileBandMaterial } from '../band-material.js';
+import { SURFACE_MATERIALS, type SurfaceMaterial, type SurfaceType } from '../surface-material.js';
+import type { CompiledBoundary } from '../course-regions.js';
+import type { CompiledCoursePosition } from '../course-geometry.js';
+import { resolveLateralInterval, resolveCourseLateral } from './course-lateral.js';
+import type { StripElementDocument, CoursePosition, Lateral } from '../course-document.js';
+import { CourseInputError, requireCourse } from '../course-diagnostics.js';
+import { BAND_ACTIVE_LIMIT, compileBandGround, type BandPiece, type BandEdgeLine } from '../band-ground.js';
 
-/** A small authored 5 by 7 block alphabet; rows expand to runs of Bands. */
+/** A small authored 5 by 7 block alphabet; rows expand to runs of Strips. */
 const GLYPHS: Readonly<Record<string, string>> = Object.freeze({
   A: '01110/10001/10001/11111/10001/10001/10001',
   B: '11110/10001/10001/11110/10001/10001/11110',
@@ -44,65 +49,149 @@ const GLYPHS: Readonly<Record<string, string>> = Object.freeze({
 const EXPANSION_LIMIT = 65536;
 
 /** Expand saved constructs in list order; output is a disposable compiler product. */
-function expandCourseBands(
-  elements: readonly BandElementDocument[],
+function expandCourseStrips(
+  elements: readonly StripElementDocument[],
   length: number,
   path: string,
-): readonly BandPiece[] {
+  resolve: (at: CoursePosition, path: string) => CompiledCoursePosition,
+  boundaries: ReadonlyMap<string, CompiledBoundary>,
+) {
   const pieces: BandPiece[] = [];
+  const materials: BandPiece<SurfaceMaterial | null>[] = [];
+  const line = (start: number, end: number, from: number, to = from): BandEdgeLine => ({ start, end, from, to });
+  const extents: { start: number; end: number }[] = [];
+  const track = (shape: { start: number; end: number }) => {
+    requireCourse(extents.length < EXPANSION_LIMIT, path, 'Expanded Strip pieces exceed 65536', 'resource_limit');
+    extents.push(shape);
+  };
   let work = 0;
   const add = (piece: BandPiece) => {
-    if (pieces.length >= EXPANSION_LIMIT)
-      throw new CourseInputError('resource_limit', path, 'Expanded Band pieces exceed 65536');
     if (piece.start < 0 || piece.end > length)
-      throw new CourseInputError('invalid_profile', path, 'Expanded Band extends outside its Section');
+      throw new CourseInputError('invalid_profile', path, 'Expanded Strip extends outside its Section');
+    track(piece);
     pieces.push(Object.freeze(piece));
   };
   const rectangle = (start: number, end: number, left: number, right: number, color: number) =>
-    add({ start, end, left, right, leftEnd: left, rightEnd: right, color });
-  const expand = (element: BandElementDocument, offset: number, at: string) => {
-    if (++work > EXPANSION_LIMIT)
-      throw new CourseInputError('resource_limit', at, 'Band expansion work exceeds 65536 constructs');
-    switch (element.kind) {
-      case 'band':
-        if (element.knots.length < 2)
-          throw new CourseInputError('invalid_profile', at, 'A Band requires at least two knots');
-        for (let i = 0; i + 1 < element.knots.length; i++) {
-          const a = element.knots[i]!,
-            b = element.knots[i + 1]!;
-          add({
-            start: a.s + offset,
-            end: b.s + offset,
-            left: a.left,
-            right: a.right,
-            leftEnd: b.left,
-            rightEnd: b.right,
-            color: element.color,
-          });
+    add({ start, end, left: line(start, end, left), right: line(start, end, right), color });
+  const strip = (
+    knots: readonly { s: number; left: Lateral | null; right: Lateral | null }[],
+    color: number | 'transparent' | null,
+    material: string | null,
+    at: string,
+  ) => {
+    requireCourse(knots.length >= 2, at, 'A Strip requires at least two knots', 'invalid_profile');
+    requireCourse(color !== null || material !== null, at, 'A Strip must change color or material', 'invalid_profile');
+    let value: SurfaceMaterial | null = null;
+    if (material !== null) {
+      requireCourse(
+        Object.hasOwn(SURFACE_MATERIALS, material),
+        `${at}/material`,
+        'Unknown material',
+        'unresolved_reference',
+      );
+      value = SURFACE_MATERIALS[material as SurfaceType];
+    }
+    for (const side of ['left', 'right'] as const) {
+      requireCourse(
+        knots.every((k) => (k[side] === null) === (knots[0]![side] === null)),
+        at,
+        'An open side must stay open throughout a Strip',
+        'invalid_profile',
+      );
+      requireCourse(
+        material === null || knots[0]![side] !== null,
+        at,
+        'Material-bearing Strips require finite edges',
+        'invalid_profile',
+      );
+    }
+    for (let i = 1; i < knots.length; i++) {
+      const a = knots[i - 1]!,
+        b = knots[i]!;
+      requireCourse(
+        b.s > a.s && a.s >= 0 && b.s <= length,
+        at,
+        'Resolved Strip knots must strictly increase inside the Section',
+        'invalid_profile',
+      );
+      const edge = (side: 'left' | 'right') =>
+        a[side] === null
+          ? null
+          : resolveLateralInterval(
+              a[side]!,
+              b[side]!,
+              a.s,
+              b.s,
+              (id) => boundaries.get(id),
+              `${at}/knots/${i}/${side}`,
+            );
+      const left = edge('left'),
+        right = edge('right');
+      const stops = [...new Set([a.s, b.s, ...[left, right].flatMap((e) => e?.knots.map((k) => k.at.s) ?? [])])].sort(
+        (a, b) => a - b,
+      );
+      for (let j = 1; j < stops.length; j++) {
+        const start = stops[j - 1]!,
+          end = stops[j]!;
+        const select = (edge: typeof left) =>
+          edge === null ? null : edge.lines[edge.knots.findIndex((k) => k.at.s > start) - 1]!;
+        const shape = { start, end, left: select(left), right: select(right) };
+        if (color !== null) add({ ...shape, color: color === 'transparent' ? null : color });
+        if (value !== null) {
+          if (color === null) track(shape);
+          materials.push({ ...shape, color: value });
         }
+      }
+    }
+  };
+  const expand = (element: StripElementDocument, offset: number, at: string, repeated = false) => {
+    if (++work > EXPANSION_LIMIT)
+      throw new CourseInputError('resource_limit', at, 'Strip expansion work exceeds 65536 constructs');
+    switch (element.kind) {
+      case 'strip':
+        requireCourse(
+          !repeated || element.material === null,
+          at,
+          'Repeated constructs are color-only',
+          'invalid_profile',
+        );
+        strip(
+          element.knots.map((k, i) => ({
+            s: resolve(k.at, `${at}/knots/${i}/at`).s + offset,
+            left: k.left,
+            right: k.right,
+          })),
+          element.color,
+          element.material,
+          at,
+        );
         break;
       case 'repeat':
         for (let i = 0; i < element.count; i++)
           for (const [j, child] of element.elements.entries())
-            expand(child, offset + i * element.every, `${at}/elements/${j}`);
+            expand(child, offset + i * element.every, `${at}/elements/${j}`, true);
         break;
       case 'curb': {
-        if (!(element.end > element.start && element.right > element.left))
-          throw new CourseInputError('invalid_profile', at, 'Curb extents must be positive');
-        const count = Math.ceil((element.end - element.start) / element.stripe);
-        if (count > EXPANSION_LIMIT)
-          throw new CourseInputError('resource_limit', at, 'Curb expansion exceeds 65536 stripes');
+        const start = resolve(element.start, `${at}/start`).s + offset;
+        const end = resolve(element.end, `${at}/end`).s + offset;
+        requireCourse(end > start, at, 'Curb extent must be positive', 'invalid_profile');
+        const count = Math.ceil((end - start) / element.stripe);
+        requireCourse(count <= EXPANSION_LIMIT, at, 'Curb expansion exceeds 65536 stripes', 'resource_limit');
         for (let i = 0; i < count; i++)
-          rectangle(
-            offset + element.start + i * element.stripe,
-            offset + Math.min(element.end, element.start + (i + 1) * element.stripe),
-            element.left,
-            element.right,
+          strip(
+            [
+              { s: start + i * element.stripe, left: element.left, right: element.right },
+              { s: Math.min(end, start + (i + 1) * element.stripe), left: element.left, right: element.right },
+            ],
             element.colors[i % 2]!,
+            null,
+            at,
           );
         break;
       }
       case 'text': {
+        const station = resolve(element.at, `${at}/at`).s + offset;
+        const lateral = resolveCourseLateral(element.lateral, station, boundaries, `${at}/lateral`);
         const cell = element.height / 7;
         for (let char = 0; char < element.text.length; char++) {
           if (element.text[char] === ' ') continue;
@@ -113,10 +202,10 @@ function expandCourseBands(
                 const start = x;
                 while (x + 1 < 5 && row[x + 1] === '1') x++;
                 rectangle(
-                  offset + element.s + (6 - y) * cell,
-                  offset + element.s + (7 - y) * cell,
-                  element.l + (char * 6 + start) * cell,
-                  element.l + (char * 6 + x + 1) * cell,
+                  station + (6 - y) * cell,
+                  station + (7 - y) * cell,
+                  lateral + (char * 6 + start) * cell,
+                  lateral + (char * 6 + x + 1) * cell,
                   element.color,
                 );
               }
@@ -125,6 +214,8 @@ function expandCourseBands(
         break;
       }
       case 'arrow': {
+        const station = resolve(element.at, `${at}/at`).s + offset;
+        const lateral = resolveCourseLateral(element.lateral, station, boundaries, `${at}/lateral`);
         const vertices = [
           [-0.18, 0],
           [0.18, 0],
@@ -136,7 +227,7 @@ function expandCourseBands(
         ].map(([x, y]) => {
           const l = element.direction === 'forward' ? x! : element.direction === 'right' ? y! - 0.5 : 0.5 - y!;
           const s = element.direction === 'forward' ? y! : 0.5 + x!;
-          return { l: element.l + l * element.width, s: offset + element.s + s * element.length };
+          return { l: lateral + l * element.width, s: station + s * element.length };
         });
         const stations = [...new Set(vertices.map((p) => p.s))].sort((a, b) => a - b);
         for (let i = 0; i + 1 < stations.length; i++) {
@@ -153,10 +244,8 @@ function expandCourseBands(
             add({
               start,
               end,
-              left: atS(edges[j]!, start),
-              right: atS(edges[j + 1]!, start),
-              leftEnd: atS(edges[j]!, end),
-              rightEnd: atS(edges[j + 1]!, end),
+              left: line(start, end, atS(edges[j]!, start), atS(edges[j]!, end)),
+              right: line(start, end, atS(edges[j + 1]!, start), atS(edges[j + 1]!, end)),
               color: element.color,
             });
         }
@@ -165,12 +254,38 @@ function expandCourseBands(
     }
   };
   elements.forEach((element, i) => expand(element, 0, `${path}/${i}`));
-  return Object.freeze(pieces);
+  const events = extents
+    .flatMap(({ start, end }) => [
+      { s: start, delta: 1 },
+      { s: end, delta: -1 },
+    ])
+    .sort((a, b) => a.s - b.s || a.delta - b.delta);
+  let active = 0;
+  for (const event of events) {
+    active += event.delta;
+    requireCourse(
+      active <= BAND_ACTIVE_LIMIT,
+      path,
+      `Active Strips exceed ${BAND_ACTIVE_LIMIT} at s=${event.s}`,
+      'resource_limit',
+    );
+  }
+  return { pieces, materials };
 }
 
-export function compileCourseBandGround(elements: readonly BandElementDocument[], length: number, path: string) {
+export function compileCourseStrips(
+  elements: readonly StripElementDocument[],
+  length: number,
+  path: string,
+  resolve: (at: CoursePosition, path: string) => CompiledCoursePosition,
+  boundaries: ReadonlyMap<string, CompiledBoundary>,
+) {
   try {
-    return compileBandGround(length, expandCourseBands(elements, length, path));
+    const { pieces, materials } = expandCourseStrips(elements, length, path, resolve, boundaries);
+    return Object.freeze({
+      color: compileBandGround(length, pieces),
+      material: compileBandMaterial(length, materials),
+    });
   } catch (error) {
     if (error instanceof RangeError)
       throw new CourseInputError(

@@ -1,3 +1,4 @@
+import type { BandEdgeLine } from '../band-ground.js';
 import { COURSE_DOCUMENT_LIMITS, type Lateral, type CoursePosition, type SectionDocument } from '../course-document.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
 import { courseBoundaryAt, type CompiledBoundary } from '../course-regions.js';
@@ -44,7 +45,50 @@ export function resolveCourseLateral(
   return checkedLateral(lateralAt(lateral, boundary, s), path);
 }
 
-/** Resolve the acyclic Section graph before Region, material or rendering compilation. */
+/** Shared Boundary/Strip knot rule; references are sampled before the authored endpoint blend. */
+export function resolveLateralInterval(
+  a: Lateral,
+  b: Lateral,
+  start: number,
+  end: number,
+  lookup: BoundaryLookup,
+  path: string,
+) {
+  const left = lateralBoundary(a, start, end, lookup, path);
+  const right = lateralBoundary(b, start, end, lookup, path);
+  const stops = new Set([start, end]);
+  for (const boundary of [left, right])
+    for (const knot of boundary?.knots ?? []) if (knot.at.s > start && knot.at.s < end) stops.add(knot.at.s);
+  const knots = [...stops]
+    .sort((a, b) => a - b)
+    .map((s) => {
+      const av = lateralAt(a, left, s),
+        bv = lateralAt(b, right, s);
+      return Object.freeze({
+        at: Object.freeze({ s }),
+        l: checkedLateral(s === start ? av : s === end ? bv : av + (bv - av) * ((s - start) / (end - start)), path),
+      });
+    });
+  const lines = knots.slice(0, -1).map((knot, i): BandEdgeLine => {
+    if (typeof a !== 'number' && typeof b !== 'number' && a.boundary === b.boundary && a.offset === b.offset) {
+      const index = left!.knots.findIndex((point) => point.at.s > knot.at.s) - 1;
+      const from = left!.knots[index]!,
+        to = left!.knots[index + 1]!;
+      return Object.freeze({
+        start: from.at.s,
+        end: to.at.s,
+        from: from.l,
+        to: to.l,
+        anchored: true,
+        offset: a.offset,
+      });
+    }
+    return Object.freeze({ start: knot.at.s, end: knots[i + 1]!.at.s, from: knot.l, to: knots[i + 1]!.l });
+  });
+  return { knots, lines };
+}
+
+/** Resolve the acyclic Section graph before material or rendering compilation. */
 export function compileCourseBoundaries(
   sources: SectionDocument['boundaries'],
   resolve: (at: CoursePosition, path: string) => CompiledCoursePosition,
@@ -78,12 +122,8 @@ export function compileCourseBoundaries(
     for (let i = 1; i < authored.length; i++) {
       const a = authored[i - 1]!,
         b = authored[i]!;
-      const left = lateralBoundary(a.lateral, a.at.s, b.at.s, compile, `${at}/${i - 1}/lateral`);
-      const right = lateralBoundary(b.lateral, a.at.s, b.at.s, compile, `${at}/${i}/lateral`);
-      const stops = new Set([a.at.s, b.at.s]);
-      for (const boundary of [left, right])
-        for (const knot of boundary?.knots ?? []) if (knot.at.s > a.at.s && knot.at.s < b.at.s) stops.add(knot.at.s);
-      const added = stops.size - (i === 1 ? 0 : 1);
+      const resolved = resolveLateralInterval(a.lateral, b.lateral, a.at.s, b.at.s, compile, `${at}/${i}/lateral`);
+      const added = resolved.knots.length - (i === 1 ? 0 : 1);
       requireCourse(
         pointCount + added <= COURSE_DOCUMENT_LIMITS.boundaryPoints,
         at,
@@ -91,14 +131,7 @@ export function compileCourseBoundaries(
         'resource_limit',
       );
       pointCount += added;
-      for (const s of [...stops].sort((a, b) => a - b)) {
-        if (i > 1 && s === a.at.s) continue;
-        const av = lateralAt(a.lateral, left, s),
-          bv = lateralAt(b.lateral, right, s);
-        const l = s === a.at.s ? av : s === b.at.s ? bv : av + (bv - av) * ((s - a.at.s) / (b.at.s - a.at.s));
-        const valuePath = `${at}/${s === a.at.s ? i - 1 : i}/lateral`;
-        knots.push(Object.freeze({ at: Object.freeze({ s }), l: checkedLateral(l, valuePath) }));
-      }
+      knots.push(...resolved.knots.slice(i === 1 ? 0 : 1));
     }
     const boundary = Object.freeze({ id, knots: Object.freeze(knots) });
     compiled.set(id, boundary);

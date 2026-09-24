@@ -1,10 +1,7 @@
+import { bandEdgeAt, bandSlabAt } from '../band-ground.js';
+import { bandSupportedIntervals, type BandMaterial } from '../band-material.js';
 import { requireCourse } from '../course-diagnostics.js';
-import {
-  courseBoundaryAt,
-  courseCarriagewayExists,
-  type CompiledCarriageway,
-  type CompiledRegion,
-} from '../course-regions.js';
+import { courseBoundaryAt, courseCarriagewayExists, type CompiledCarriageway } from '../course-regions.js';
 
 function intervals(roads: readonly CompiledCarriageway[], s: number): [number, number][] {
   return roads
@@ -23,10 +20,10 @@ function union(ranges: readonly [number, number][]): [number, number][] {
   return result;
 }
 
-/** Affine cells prove widths, disjoint interiors and temporary pavement equality for every station. */
+/** Affine cells prove widths, disjoint interiors and material support and continuity for every station. */
 export function validateCourseCarriageways(
   roads: readonly CompiledCarriageway[],
-  regions: readonly CompiledRegion[],
+  material: BandMaterial,
   length: number,
   path: string,
 ): void {
@@ -38,18 +35,17 @@ export function validateCourseCarriageways(
       `Carriageway ${road.id} requires a positive common Boundary domain`,
     );
   }
-  const pavement = regions.filter((region) => region.role === 'pavement');
   const stations = [
     ...new Set([
       0,
       length,
-      ...[...roads, ...pavement].flatMap((road) =>
+      ...roads.flatMap((road) =>
         [road.left, road.right].flatMap((boundary) => boundary.knots.map((knot) => knot.at.s)),
       ),
-      ...pavement.flatMap((region) => [region.start.s, region.end.s]),
+      ...material.slabs.flatMap((slab) => [slab.start, slab.end]),
     ]),
   ].sort((a, b) => a - b);
-  const verify = (active: readonly CompiledCarriageway[], paved: readonly CompiledRegion[], s: number) => {
+  const verify = (active: readonly CompiledCarriageway[], slab: BandMaterial['slabs'][number], s: number) => {
     for (const road of active)
       check(
         courseBoundaryAt(road.left, s) <= courseBoundaryAt(road.right, s),
@@ -60,26 +56,24 @@ export function validateCourseCarriageways(
       ranges.every((range, i) => i === 0 || ranges[i - 1]![1] <= range[0]),
       `Carriageway interiors overlap at s=${s}`,
     );
-    const actual = union(ranges);
-    const expected = union(intervals(paved, s));
+    const supported = bandSupportedIntervals(slab, s);
     check(
-      actual.length === expected.length &&
-        actual.every((range, i) => range[0] === expected[i]![0] && range[1] === expected[i]![1]),
-      `Carriageway and pavement unions disagree at s=${s}`,
+      ranges.every(([left, right]) => supported.some((span) => span[0] <= left && span[1] >= right)),
+      `Carriageway interiors require supported material at s=${s}`,
     );
   };
   for (let i = 0; i < stations.length; i++) {
     const s = stations[i]!;
     verify(
       roads.filter((road) => courseCarriagewayExists(road, s, length)),
-      pavement.filter((region) => region.start.s <= s && (s < region.end.s || (s === length && s === region.end.s))),
+      material.slabs[bandSlabAt(material.slabs, s)]!,
       s,
     );
     const end = stations[i + 1];
     if (end === undefined) continue;
     const middle = s + (end - s) / 2;
     const active = roads.filter((road) => courseCarriagewayExists(road, middle, length));
-    const paved = pavement.filter((region) => region.start.s <= middle && middle < region.end.s);
+    const slab = material.slabs[bandSlabAt(material.slabs, middle)]!;
     for (const road of active)
       check(
         courseBoundaryAt(road.right, middle) > courseBoundaryAt(road.left, middle),
@@ -91,7 +85,53 @@ export function validateCourseCarriageways(
         [s, end].every((at) => courseBoundaryAt(ordered[j - 1]!.right, at) <= courseBoundaryAt(ordered[j]!.left, at)),
         `Carriageway interiors overlap within [${s}, ${end}]`,
       );
+    // Keep one connected support component for the whole affine cell. Independent point
+    // containment could miss a narrow unsupported gap sweeping across a road between probes.
+    const support: { left: (typeof slab.spans)[number]; right: (typeof slab.spans)[number] }[] = [];
+    let continuing = false;
+    for (const span of slab.spans) {
+      if (!span.color?.supported) {
+        continuing = false;
+        continue;
+      }
+      if (continuing) support.at(-1)!.right = span;
+      else support.push({ left: span, right: span });
+      continuing = true;
+    }
+    for (const road of active) {
+      const component = support.find(
+        (range) =>
+          bandEdgeAt(range.left, 'left', middle) <= courseBoundaryAt(road.left, middle) &&
+          bandEdgeAt(range.right, 'right', middle) >= courseBoundaryAt(road.right, middle),
+      );
+      check(
+        component !== undefined &&
+          [s, end].every(
+            (at) =>
+              bandEdgeAt(component.left, 'left', at) <= courseBoundaryAt(road.left, at) &&
+              bandEdgeAt(component.right, 'right', at) >= courseBoundaryAt(road.right, at),
+          ),
+        `Carriageway ${road.id} requires continuous supported material throughout [${s}, ${end}]`,
+      );
+    }
+    if (i > 0) {
+      const prior = (stations[i - 1]! + s) / 2;
+      const before = union(
+        intervals(
+          roads.filter((road) => courseCarriagewayExists(road, prior, length)),
+          s,
+        ),
+      );
+      const after = union(intervals(active, s));
+      requireCourse(
+        before.length === after.length &&
+          before.every((range, j) => range[0] === after[j]![0] && range[1] === after[j]![1]),
+        path,
+        `Carriageway union must be continuous at s=${s}`,
+        'region_transition_discontinuity',
+      );
+    }
     // All edges are affine in this cell; prove each side limit as well as the interior union.
-    for (const at of [s, middle, end]) verify(active, paved, at);
+    for (const at of [s, middle, end]) verify(active, slab, at);
   }
 }

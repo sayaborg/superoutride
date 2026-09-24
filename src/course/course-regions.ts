@@ -1,18 +1,8 @@
-import type { RegionDocument } from './course-document.js';
 import type { CompiledCoursePosition } from './course-geometry.js';
 
 export interface CompiledBoundary {
   readonly id: string;
   readonly knots: readonly { readonly at: CompiledCoursePosition; readonly l: number }[];
-}
-
-export interface CompiledRegion {
-  readonly id: string;
-  readonly start: CompiledCoursePosition;
-  readonly end: CompiledCoursePosition;
-  readonly left: CompiledBoundary;
-  readonly right: CompiledBoundary;
-  readonly role: RegionDocument['role'];
 }
 
 export interface CompiledCarriageway {

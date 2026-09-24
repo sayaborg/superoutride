@@ -34,19 +34,12 @@ export function createCourseRenderResources() {
     geometry: { readonly coordinates: PlanCoordinateReader },
     height: ProfileReader,
   ) => {
-    if (
-      !p ||
-      !p.ground ||
-      !Array.isArray(p.environments) ||
-      !Array.isArray(p.scenery) ||
-      !geometry?.coordinates ||
-      !height
-    )
+    if (!p || !Array.isArray(p.environments) || !Array.isArray(p.scenery) || !geometry?.coordinates || !height)
       throw new TypeError('Section rendering requires compiled content, plan and height readers');
 
     return Object.freeze({
       visual: new VisualProfile(
-        p.ground.length,
+        height.knots.at(-1)!.s,
         p.environments.map((e) => ({
           sStart: e.at.s,
           name: e.name,

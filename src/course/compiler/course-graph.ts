@@ -1,3 +1,4 @@
+import type { BandGround } from '../band-ground.js';
 import type { SectionPlanCoordinateReader } from '../geometry/plan-coordinate.js';
 import type { ProfileReader, ProfilePolylineReader } from '../geometry/profile.js';
 import type { PlanarPose, PlanarTransform } from '../../core/planar-transform.js';
@@ -9,6 +10,7 @@ import type { BandMaterial } from '../band-material.js';
 
 /** Canonical reusable node, including back-references. Topology may intentionally cycle. */
 export interface CompiledSection {
+  readonly color: BandGround;
   readonly id: string;
   readonly segments: readonly CompiledPlanSegment[];
   readonly coordinates: SectionPlanCoordinateReader;

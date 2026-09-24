@@ -1,4 +1,3 @@
-import type { BandGround } from './band-ground.js';
 import type { CompiledCarriageway } from './course-regions.js';
 import type { CompiledCoursePosition } from './course-geometry.js';
 import type { TileBackgroundDocument } from '../image/tile-background-image.js';
@@ -16,7 +15,6 @@ export interface CourseSceneryInstance {
 }
 
 export interface CoursePresentation {
-  readonly ground: BandGround;
   readonly environments: readonly {
     readonly at: CompiledCoursePosition;
     readonly name: string;

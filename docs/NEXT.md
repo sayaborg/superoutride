@@ -3,12 +3,12 @@
 ## Current state
 
 - One compiled graph scene serves RIBBON COAST, RIBBON FORK and RIBBON RING with CLASSIC/CUSTOM Sessions.
-- Ground is Band-only, with LEVEL-POINT as the default of three display methods; sprites are indexed.
+- Surface color and material are authored with Strips, with LEVEL-POINT as the default of three display methods; sprites are indexed.
   BG is one infinite tiled plane with sine mapping.
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **7-3b2 — Strip authoring**.
+Next PR: **7-3c — Document limits**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -18,9 +18,8 @@ PRs hold rationale and verification evidence.
 
 Write plan, position, lateral strips and race landmarks in one consistent authored course format.
 
-- **7-3b2 — Strip authoring:** replace Region, role, `physicalBindings` and Band with ordered Section `strips` authored with `at` and `Lateral`. Each Strip's color (RGB555, `"transparent"`, or null for unchanged) and material (or null for unchanged) overwrite earlier Strips. Material-bearing Strips have finite edges. Require Carriageway interiors to be supported, and keep the continuity of the material union and the Carriageway union along s. Remove the temporary Carriageway/pavement check and all Region code.
 - **7-3c — Document limits:** re-derive document limits from the scale of the Nürburgring Nordschleife (about 20.8 km).
-- **7-3d — Names:** call compiled Boundary breakpoints vertices, since they include points derived from references.
+- **7-3d — Names:** rename Band types, readers and files to Strip names; rename the cell payload field `color` (which now also holds material) to a neutral name; rename `course-regions.ts`, `LateralField` and remaining Region-named diagnostics; call compiled Boundary breakpoints vertices.
 - **7-4 — Sprites and environment:** give sprites and environment a shared repeat, and name successors to VisualProfile, CoursePresentation and their visual records according to the glossary. Include tunnels: tunnel sprites, with an environment knot switching the background inside and restoring it on exit.
   Keep authored PI coordinates as the native Section frame without normalization; the entry Section's native frame is the world frame, and background `yawOrigin` and other absolute directions use it.
 - **7-5 — Gates, rules and cycles:** author start (including grid), checkpoints, finish, lock lines and closures as Section `gates`; remove `fork` and derive forking from the number of outgoing Links; forbid Links from a Section to itself so a circuit is a cycle of two or more Sections; require every directed cycle to close geometrically at compilation (the composed Link transforms return to identity within the accumulated Link tolerance); merges of different branches are not cycles and stay unchecked; count a lap as one traversal of the cycle; rebuild ribbon-ring as a geometrically closed cycle; leave only numeric settings in `rules`; derive course kind from the graph; remove production provenance, `geometryRecipe`, `units` and `reference`; simplify nulls and limits.
@@ -116,7 +115,7 @@ migration readers; replace development inputs with the corresponding version.
 
 Develop production scenery, BG and tunnel artwork. Inspect distant scenery, source-camera/variant
 sampling, palettes and braking lamps on real devices. Preserve the authoring goals of dimensioned
-markings, boundary treatments and seeded visual variation through the Band model; ground
+markings, boundary treatments and seeded visual variation through the Strip model; ground
 appearance and physical bindings stay independent. Saved generated artwork and recipes are inputs,
 with descriptive provenance and reproducible builds; an embedded image-generation service is optional.
 

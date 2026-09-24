@@ -14,10 +14,8 @@ const BG = 0x44332211,
 const piece = (start, end, left, right, color, leftEnd = left, rightEnd = right) => ({
   start,
   end,
-  left,
-  right,
-  leftEnd,
-  rightEnd,
+  left: left === null ? null : { start, end, from: left, to: leftEnd },
+  right: right === null ? null : { start, end, from: right, to: rightEnd },
   color,
 });
 const whole = (ground) => [{ ground, start: 0, end: ground.length, lateralOrigin: 0 }];

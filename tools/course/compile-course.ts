@@ -63,7 +63,7 @@ if (!result.ok) {
               ? null
               : {
                   kind: 'bands',
-                  ...section.presentation.ground.metrics,
+                  ...section.color.metrics,
                   environments: section.presentation.environments.length,
                   scenery: section.presentation.scenery.length,
                 },

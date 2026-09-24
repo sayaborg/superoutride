@@ -7,20 +7,18 @@ owns image formats and compilation; [Browser](browser.md) owns operation and URL
 ## Course vocabulary
 
 A Section is a reusable finite road/content chart. A Boundary is a longitudinal lateral-edge profile;
-a Region is a structural partition between two Boundaries with an active interval and role. A Carriageway
+a Carriageway
 is the road between two Section-local Boundaries. A Link connects one Carriageway at a Section end to another Section start.
 A RouteOccurrence is a selected Section visit in the shared Route, with its incoming Link and fixed
 route coordinates. CompiledCourse is the immutable reference graph. Every actor uses the same Route.
 
-A Band is a colored visual strip with its own edges and active interval. Bands are ordered and may
-overlap or erase earlier colors; they do not refer to physical Regions. Regions remain nonoverlapping
-structural partitions with material bindings in the saved document. They are compilation inputs only;
-compiled Sections publish material cross-section tables.
+A Strip supplies color, material or both between its own lateral edges. Section Strips are ordered;
+color and material overwrite independently. Compiled Sections publish their two cross-section tables.
 
 Checkpoints, starts, finishes and environment changes are independent of Section boundaries.
 Source identity, traversal identity and race credit are distinct.
 
-## CourseDocument v18
+## CourseDocument v19
 
 The saved format is compact UTF-8 JSON. All declared fields are required; explicit null represents
 absent optional content. Unknown fields fail. Arrays preserve saved order; object-property order and
@@ -28,7 +26,7 @@ whitespace do not affect identity. Normalized records use schema field order and
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 18,
+  format: "superoutride.course", version: 19,
   reference, id, units: {length: "m", angle: "deg"},
   geometryRecipe: {id, version},
   type: "LINEAR" | "BRANCH" | "CIRCUIT", entrySectionId,
@@ -36,8 +34,7 @@ CourseDocument {
 }
 Section {
   id, pis,
-  boundaries, regions, height: [{at, y, curveLength}],
-  physicalBindings: [{regionId, sections: [{at, material}]}],
+  boundaries, strips, height: [{at, y, curveLength}],
   carriageways, assetIds, presentation, fork
 }
 ```
@@ -49,13 +46,12 @@ Section {
 | Plan PI          | `id`, `x`, `z`, `radius`                                                                               |
 | Position         | `at: {pi, offset}`; interval `start`/`end` and fork `lock`/`closure` use the same `{pi, offset}` value |
 | Boundary         | `id`, `knots: [{at,lateral}]`                                                                          |
-| Region           | `id`, `start`, `end`, `leftBoundaryId`, `rightBoundaryId`, `role`                                      |
 | Carriageway      | `id`, `left`, `right`                                                                                  |
 | Link             | `id`, `from: {sectionId,carriagewayId}`, `to: {sectionId}`                                             |
 | Asset reference  | `id`, `format`, `version`, lowercase `sha256`                                                          |
 | Scenery instance | `id`, `assetId`, `paletteRgb555` (null or one declared base-palette replacement)                       |
 
-Region roles are `pavement`, `shoulder` or `median`. Asset formats are
+Asset formats are
 `superoutride.sprite-lod` version 2 and `superoutride.tile-background` version 1.
 
 `reference` is null or:
@@ -75,7 +71,7 @@ These values participate in source identity; compilation consumes the saved geom
 
 IDs are opaque nonblank strings without surrounding whitespace and compare exactly. Course ID is
 external identity. Section, Link, asset and scenery-instance IDs each have a document-wide scope.
-PI, Boundary, Region and Carriageway IDs each have their own Section-local scope;
+PI, Boundary and Carriageway IDs each have their own Section-local scope;
 scenery placement and row IDs also have their declared Section-local scopes. Duplicate IDs fail. References
 resolve in their named scopes rather than by array position.
 
@@ -89,12 +85,12 @@ A geometry draft uses `presentation: null`, `fork: null`, `rules: null` and expl
 Section-local Boundary ID and a signed metre offset (positive right). The field is named
 `lateral` on Boundary knots, scenery placements, scenery rows and grid slots; grid references
 use the entry Section. Numeric values and offsets lie in `[-1000,1000]`, and every resolved
-l must also lie in that range. Band, Region and physical-binding formats are unchanged.
+l must also lie in that range. Strip edges use the same Lateral values in `left` and `right`.
 
 A point placement evaluates a numeric Lateral directly, or the referenced Boundary at its s
 plus offset. The Boundary must cover that station, including each expanded row instance.
 Unused row endpoints need no Boundary coverage. References may name any Boundary in the same
-Section, including one not used by a Region; declaration order does not constrain references.
+Section; declaration order does not constrain references.
 
 Boundary references must be acyclic. For each interval `[a,b]` between the Boundary's own
 resolved knot stations, compilation takes both endpoints and every interior breakpoint from
@@ -117,8 +113,7 @@ resolve authored references.
 
 ### Saved presentation
 
-`presentation` is null or `{ground,environments,scenery,sceneryRows}`. Ground is always a Band field.
-The other presentation records are:
+`presentation` is null or `{environments,scenery,sceneryRows}`. Its records are:
 
 | Record            | Fields                                                                         |
 | ----------------- | ------------------------------------------------------------------------------ |
@@ -130,47 +125,53 @@ Environment profiles begin at zero. Assets belong to the referencing Section and
 sprite/background descriptors. Each environment is `{at,name,background}`; environment changes
 affect BG and labels, independently of ground colors.
 
-#### Band ground
+### Strips
 
-The canonical colored ground is `{kind:"bands",bands:[elements...]}`. Array order is Painter order:
-a later covering Band replaces the earlier color, including when its own color is transparent.
-Uncovered ground is transparent. All Band s/l coordinates are Section-local metres, independent of
-Boundaries, Region roles and physical materials.
+Section `strips` is an ordered array of these constructs. Each record includes `kind`.
 
-| Element  | Fields and meaning                                                                                               |
-| -------- | ---------------------------------------------------------------------------------------------------------------- |
-| `band`   | `color`, `knots:[{s,left,right}]`; affine edges between consecutive knots                                        |
-| `repeat` | positive `every`, integer `count`, `elements`; expand in copy order, shifting each copy by `index*every` along s |
-| `arrow`  | `s`, `l`, positive `width`, `length`, `direction`, opaque `color`; normalized forward/left/right arrow           |
-| `text`   | `s`, `l`, `text`, positive `height`, opaque `color`; built-in 5-by-7 cell lettering                              |
-| `curb`   | `start`, `end`, `left`, `right`, positive `stripe`, two opaque `colors`; alternating rectangular runs            |
+| Element  | Fields                                                                                   |
+| -------- | ---------------------------------------------------------------------------------------- |
+| `strip`  | `knots:[{at,left,right}]`, `color`, `material`                                           |
+| `repeat` | positive `every`, integer `count`, `elements`                                            |
+| `arrow`  | `at`, `lateral`, positive `width`, `length`, `direction`, RGB555 `color`                 |
+| `text`   | `at`, `lateral`, `text`, positive `height`, RGB555 `color`                               |
+| `curb`   | Position `start`, `end`, Lateral `left`, `right`, positive `stripe`, two RGB555 `colors` |
 
-Band `color` is RGB555 integer 0 through 32767 or null for transparency. Zero is opaque black.
-Null `left` means an open negative side; null `right` an open positive side. Open flags stay consistent
-through a Band's knots. Finite edges obey `left <= right`; zero-width taper endpoints are allowed.
-There are 2 through 256 strictly increasing knots, inside `[0,Section.length]`. The active interval
-runs from the first to the last knot. Interior ownership is half-open; the final endpoint is sampled
-from its adjacent slab. An empty list describes a transparent plane, and an all-open Band fills it.
-Cliffs and bridge exteriors are ordinary transparent Bands, including sloping or open edges.
+A Strip's color is an RGB555 integer from 0 through 32767, `"transparent"` to erase earlier color,
+or null to leave color unchanged. Zero is opaque black. Material is a material name or null to
+leave material unchanged. Both fields cannot be null. A later covering Strip independently
+replaces each non-null value. Uncovered color is transparent; uncovered material reads VOID.
+Color-only Strips never enter the material table, and material-only Strips never enter the color table.
 
-An arrow's s is its near bounding edge and l its lateral center. Width and length are its final
-lateral/longitudinal bounding dimensions. Direction is `forward`, `left` or `right`; its polygon is
-split into affine Band pieces. Text s/l denotes the near/left edge of its bounding cells. Height
-covers seven cells, horizontal advance is six cells per character and supported text is uppercase
-A–Z, digits 0–9 and spaces, from 1 through 64 characters. Foreground row runs become rectangular Bands.
-A curb alternates its two colors from start; the last stripe clips to end. Nested repetitions preserve
-declaration order and count includes the original placement. All resulting intervals must fit the Section.
+Knots use Position `at` and Lateral or null edges. Null left/right opens that side to infinity;
+each side's open flag must remain constant throughout a Strip. Material-bearing Strips require
+two finite edges. There are 2 through 256 knots, whose resolved stations strictly increase inside
+`[0,Section.length]`. The first and last knots determine the active interval. Finite edges obey
+`left <= right`; zero-width taper endpoints are allowed. Ownership is `[left,right)` laterally
+and `[start,end)` longitudinally, including the Section terminal in the last slab.
+
+Strip edges use the same interval resolver as Boundary knots: collect the referenced Boundary
+breakpoints, evaluate both endpoint expressions there, blend, then linearly interpolate.
+When an edge references the same Boundary and offset at both knots, it retains that Boundary's
+original line and adds the offset after evaluating it. With zero offset, every edge read equals
+`courseBoundaryAt` without a rounding gap, even after unrelated slab splits.
+
+Decorative constructs carry color only. Repetition shifts the contained Positions by `index*every`
+after resolving them, then resolves Lateral references at the shifted stations; count includes the
+original. Repeated elements must be color-only, including nested Strips. An arrow's at is its near
+bounding edge and lateral its center; width and length are its final bounding dimensions.
+Direction is `forward`, `left` or `right`. Text at/lateral specifies the near/left edge of its cells;
+height covers seven cells, horizontal advance is six cells per character. Text admits uppercase
+A–Z, digits 0–9 and spaces, from 1 through 64 characters. Polygon edges and glyph row runs expand
+to affine pieces. A curb alternates its two colors from start, clips the last stripe to end,
+and resolves its Lateral edges over each stripe interval. All expanded intervals must fit the Section.
 
 Each element array admits 4096 records, repeat count is 1 through 4096 and nesting is at most eight.
-Expansion visits at most 65536 constructs and publishes at most 65536 affine pieces. Compilation
-rejects more than 64 simultaneously active expanded Bands, including covered ones. Resolved slab and
-cached dyadic-cell counts each admit 1048576 per Section; unique profile coefficient storage is at
-most 64 MiB per Section. Limits reject rather than truncate authored content. Source constructs are
-saved; their expanded lists, resolved slabs and preblended profiles are compiler products only.
-[Architecture](architecture.md#band-rendering) owns the averaging, immutable storage and pixel kernels.
-
-Ground colors and constructs reference neither assets nor Regions. Scenery and BG retain their
-shared image formats.
+Expansion visits at most 65536 constructs and publishes at most 65536 affine pieces. At most 64
+expanded pieces may be active simultaneously, including covered ones and counting a piece with
+both payloads once. Resolved slab and cached dyadic-cell counts each admit 1048576 per Section;
+unique color coefficient storage is at most 64 MiB. Limits reject rather than truncate.
+[Architecture](architecture.md#band-rendering) owns averaging, immutable storage and pixel kernels.
 
 Scenery placements resolve document-wide instances. `unselectedCarriagewayId` is null for ordinary
 scenery or names a canonical exit Carriageway. Such signs lie from lock through closure, before the
@@ -210,24 +211,22 @@ Compilation absorbs up to the plan-position roundoff budget at touching tangents
 A position's `pi` resolves in its Section. Its station is the arc midpoint for an interior PI,
 and the point itself for a zero-radius endpoint. `offset` is signed chainage in metres within
 `[-100000,100000]`; the resolved station must be in `[0,Section.length]`.
-All height PVIs, Boundary knots, Region endpoints, physical bindings, environments, scenery row
-endpoints, scenery placements, fork lock/closure, grid slots, checkpoints and finishes use these
-positions. Band element stations retain their numeric metre fields. Compiled positions contain only `s`.
+All height PVIs, Boundary and Strip knots, environments, scenery rows, decorations and race landmarks
+use Position values. Compiled positions contain only `s`.
 Numeric Lateral values, signed Lateral offsets and resolved l are within +/-1000 m;
 heights within +/-10000 m. Recipe versions are integers from 1 through 65535. Resolved values must also fit their finite Section
 and produce positive representable intervals.
 
 `COURSE_DOCUMENT_LIMITS` defines 4 MiB UTF-8 JSON, 128 UTF-16 code units per ID, 16 Sections,
 48 Links and 256 assets. Each Section admits 2048 PIs, 32 Boundaries, 256 knots per
-Boundary, 32 Regions, 16 Carriageways, 256 asset references, 256 height nodes, 32 physical
-bindings and 256 material changes per binding. Compiled Section limits are
-16384 mapped-region cells, 16384 resolved Boundary points in total per Section and 100000 m chainage.
-The Boundary point limit includes inherited breakpoints, rejects rather than truncates expansion,
-and is separate from the authored 256-knot limit and mapped-region cell budget.
+Boundary, 16 Carriageways, 256 asset references and 256 height nodes. Compiled Section limits are
+16384 resolved Boundary points in total per Section and 100000 m chainage. The Boundary point
+limit includes inherited breakpoints, rejects rather than truncates, and is separate from the
+authored 256-knot limit and the Strip expansion limits above.
 
 ## Geometry recipe and bindings
 
-The saved `geometryRecipe` field is `{id,version}`; CourseDocument v18 admits
+The saved `geometryRecipe` field is `{id,version}`; CourseDocument v19 admits
 `superoutride.plan-raster` version 1. The saved PI and position fields are listed above. [Architecture](architecture.md#plan-authority)
 owns their authoritative planar interpretation, coordinate domain and geometric validation.
 Rendering and physics read the same plan; Section length comes from its coordinate Reader domain.
@@ -235,10 +234,7 @@ An overpass is authored as separate Sections for its passages; the coordinate-do
 is specified in [Architecture](architecture.md#plan-authority).
 The recipe identity participates in every dependent build identity.
 
-Boundary knots are strictly increasing and cover every referencing Region's closed interval.
-After Lateral resolution, interpolation between the compiled points is linear; width and center are derived. A Region has positive length and positive
-interior width; zero width is permitted at its own start/end only. Regions are nonoverlapping and
-shared edges reference one Boundary. Regions do not refer to or belong to Carriageways.
+Boundary knots strictly increase. Their resolved points define affine edges; width and center are derived.
 
 A Carriageway is `{id, left, right}`; both edge IDs resolve to Boundaries in its Section.
 Its existence interval is the intersection of those Boundary domains, with no separate range field.
@@ -250,16 +246,15 @@ At any station, distinct existing Carriageways cannot overlap over a positive la
 Compilation proves these conditions over affine Boundary cells and at activation changes;
 violations report `invalid_carriageway`, and unknown edge IDs report `unresolved_reference`.
 
-Until Regions are replaced by Strips, compilation also requires the union of existing Carriageway
-interiors to equal the union of pavement Region interiors at every station. This temporary check
-reports `invalid_carriageway` and will be removed with Regions in 7-3b2. It creates no membership
-relationship. Cut lines, landmarks, fork exits, driving targets and recovery read Carriageway
-Boundaries directly. Landmark support is checked across the entire interval between those edges
-using the material surface, independently of Region roles.
+Every Carriageway interior must be covered by supported material throughout its existence;
+violations report `invalid_carriageway`. Cut lines, landmarks, fork exits, driving targets and recovery
+read Carriageway Boundaries directly. Landmark support is checked across the full edge interval.
 
-Every open Section cell has active Region coverage. Across an activation change, both the complete
-Region union and the pavement/median union are continuous. Positive-width replacements and zero-width
-birth/death endpoints use the same rule. Roles name structure; appearance and physical bindings supply values.
+Every open Section cell must have finite material coverage. At every longitudinal transition, both
+the material-bearing cell union (including explicit VOID) and the Carriageway interior union must
+have equal side limits. Positive-width replacements and zero-width birth/death endpoints follow
+the same rule. Discontinuities report `region_transition_discontinuity`; empty material coverage
+reports `region_coverage_gap`. These diagnostic names are retained until the naming stage.
 [Architecture](architecture.md#boundary-geometry-and-point-ownership) owns mapped geometry and point ownership.
 
 `courseBoundaryAt` samples the canonical edge. The compiled material table owns point reads,
@@ -272,14 +267,11 @@ Profile Knots resolve on the same ruler, increase strictly and include exactly z
 `curveLength` is nonnegative in metres; endpoint lengths are zero and adjacent curves do not overlap.
 [Architecture](architecture.md#height-and-projection) defines the analytic profile and the polyline used only for ground-row generation.
 
-Every Region has one explicit piecewise-constant physical binding beginning at its activation;
-subsequent changes precede its end. Materials are ASPHALT, SHOULDER, GRASS, DIRT, SAND or VOID.
-Missing, duplicate, unknown or uncovered bindings fail. Compilation splits each Region at its
-Boundary knots and material changes into finite affine material pieces and resolves them through
-the same slab compiler as color. Outside/gaps read VOID. The published Section contains the material
-table, not Regions or bindings; its coordinate domain comes from the table's outer finite covered
-edges plus margin, including explicitly authored VOID extents. Ground appearance remains independent.
-Material samples use the material type as `sectionName`; they no longer expose a Region ID.
+Materials are ASPHALT, SHOULDER, GRASS, DIRT, SAND or VOID. Unknown names fail.
+Material-bearing Strips compile to finite affine pieces through the same slab resolver as color.
+The coordinate domain follows the material table's outer finite covered edges plus margin,
+including explicitly authored VOID extents. Color remains independent of physical support.
+Material samples use the material type as `sectionName`.
 
 ## Cut lines, Links and topology
 
@@ -295,7 +287,7 @@ incoming center and heading at zero. Each Link independently checks that transfo
 edges match within 1e-7 m, heights within 1e-8 m and profile grades within 1e-10.
 These bounds cover double-precision evaluation of boundaries, plan coordinates and rigid rotation
 at the admitted 1,000,000 m coordinate limit; they are not a visual or driving allowance.
-Other Region boundaries, materials, Bands and appearance may change at the cut.
+Other boundaries, materials, Strips and appearance may change at the cut.
 
 The graph has an explicit entry. All Sections are reachable. LINEAR is a finite chain with at most
 one incoming/outgoing Link per Section. BRANCH is a finite acyclic graph with two/three-way forks
@@ -358,7 +350,7 @@ is contained in straight parts of the plan. Through closure, edges are constant,
 width, and the material table supplies one contiguous supported interval at lock. Through closure,
 material span edges remain parallel and the supported interval retains the same bounds. Gate and
 grid support checks also read this table. Adjacent exit Carriageways require a positive-width
-supported interval between their edges; this is the separating median, independent of Region roles.
+supported interval between their edges; this is the separating median, defined by Carriageway edges and material.
 Invalid controls produce `invalid_fork`.
 
 Exit Carriageways are ordered by their actual lock-line edges. Median centers divide supported
@@ -523,7 +515,7 @@ frame SHA-256, centers/horizon, HUD mismatch and geometric residuals. Scenery an
 ## Course loading
 
 All selected-course inputs and generated vehicle/timing data are ready before ticks. The shared
-compiler expands saved Band constructs and builds immutable fields for every reachable Section.
+compiler expands saved Strip constructs and builds immutable fields for every reachable Section.
 Aliases share canonical records and each reusable Section's field; repeated circuit occurrences
 reuse the single source. Input or compilation failure publishes no partial reader or Session.
 

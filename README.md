@@ -3,7 +3,7 @@
 A 320×240 raster pseudo-3D browser driving game. Cars and bikes share world coordinates, suspension
 contacts, tires and wheel mechanics. Saved CourseDocuments supply RIBBON COAST, RIBBON FORK and
 RIBBON RING through one driving scene: provisional linear, fork/merge and circuit courses with ordered
-Band ground.
+Strip surfaces.
 
 [Play the game](https://sayaborg.github.io/superoutride/).
 [Specifications](docs/README.md) identify each contract's owner; [NEXT](docs/NEXT.md) owns future work.
@@ -19,7 +19,7 @@ python3 -m http.server 8000
 ```
 
 Open `http://localhost:8000/`. Build stages saved content, completed sprites and Session data under
-`dist/content/`. Band constructs compile to immutable color fields before driving starts.
+`dist/content/`. Strip constructs compile to immutable color and material fields before driving starts.
 The product display setting defaults to LEVEL-POINT; DEV provides its live selector.
 [Architecture](docs/architecture.md#band-rendering) defines the three available methods.
 

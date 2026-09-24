@@ -12,20 +12,19 @@ export interface BandEdgeLine {
   readonly end: number;
   readonly from: number;
   readonly to: number;
+  /** Retain the canonical line and its exact endpoint values when subdividing. */
+  readonly anchored?: true;
+  readonly offset?: number;
 }
 
 /** One affine piece of an expanded Band. Null left/right denotes the corresponding open side. */
 export interface BandPiece<Value = number | null> {
   readonly start: number;
   readonly end: number;
-  readonly left: number | null;
-  readonly right: number | null;
-  readonly leftEnd: number | null;
-  readonly rightEnd: number | null;
-  /** Opaque cell payload; the historical field name is retained until the naming stage. */
+  readonly left: BandEdgeLine | null;
+  readonly right: BandEdgeLine | null;
+  /** Opaque cell payload; renamed in the naming stage. */
   readonly color: Value;
-  readonly leftLine?: BandEdgeLine;
-  readonly rightLine?: BandEdgeLine;
 }
 export interface BandSlab<Value = number | null> {
   readonly start: number;
@@ -52,19 +51,15 @@ interface Event {
 }
 
 export function bandEdgeAt(piece: BandPiece<unknown>, side: 'left' | 'right', s: number): number {
-  const line = piece[side === 'left' ? 'leftLine' : 'rightLine'];
-  if (line) {
-    if (s === line.start) return line.from;
-    if (s === line.end) return line.to;
-    return line.from + (line.to - line.from) * ((s - line.start) / (line.end - line.start));
-  }
-  const a = piece[side],
-    b = piece[side === 'left' ? 'leftEnd' : 'rightEnd'];
-  return a === null
-    ? side === 'left'
-      ? -Infinity
-      : Infinity
-    : a + (b! - a) * ((s - piece.start) / (piece.end - piece.start));
+  const line = piece[side];
+  if (line === null) return side === 'left' ? -Infinity : Infinity;
+  const value =
+    line.anchored && s === line.start
+      ? line.from
+      : line.anchored && s === line.end
+        ? line.to
+        : line.from + (line.to - line.from) * ((s - line.start) / (line.end - line.start));
+  return value + (line.offset ?? 0);
 }
 
 /** Split first at activation/knots, then at every affine edge crossing; declaration order remains authoritative. */
@@ -78,10 +73,19 @@ export function resolveBandSlabs<Value>(
     if (!(p.start >= 0 && p.end > p.start && p.end <= length) || !Number.isFinite(p.end))
       throw new RangeError('Expanded Band interval must lie inside the Section');
     for (const side of ['left', 'right'] as const) {
-      const a = p[side],
-        b = p[side === 'left' ? 'leftEnd' : 'rightEnd'];
-      if ((a === null) !== (b === null) || (a !== null && (!Number.isFinite(a) || !Number.isFinite(b))))
-        throw new RangeError('Band edges are finite affine values or consistently open');
+      const line = p[side];
+      if (
+        line !== null &&
+        !(
+          Number.isFinite(line.start) &&
+          Number.isFinite(line.end) &&
+          line.end > line.start &&
+          Number.isFinite(line.from) &&
+          Number.isFinite(line.to) &&
+          Number.isFinite(line.offset ?? 0)
+        )
+      )
+        throw new RangeError('Band edges must be finite affine lines or open');
     }
     if (
       bandEdgeAt(p, 'left', p.start) > bandEdgeAt(p, 'right', p.start) ||
@@ -141,19 +145,23 @@ export function resolveBandSlabs<Value>(
             break;
           }
         }
-        const left = le ? bandEdgeAt(le.piece, le.side, a) : null;
-        const right = re ? bandEdgeAt(re.piece, re.side, a) : null;
-        const leftEnd = le ? bandEdgeAt(le.piece, le.side, b) : null;
-        const rightEnd = re ? bandEdgeAt(re.piece, re.side, b) : null;
-        const leftLine = le?.piece[le.side === 'left' ? 'leftLine' : 'rightLine'];
-        const rightLine = re?.piece[re.side === 'left' ? 'leftLine' : 'rightLine'];
-        const lines = { ...(leftLine ? { leftLine } : {}), ...(rightLine ? { rightLine } : {}) };
+        const edgeLine = (edge: typeof le): BandEdgeLine | null => {
+          if (!edge) return null;
+          const line = edge.piece[edge.side]!;
+          return line.anchored
+            ? Object.freeze({ ...line })
+            : Object.freeze({
+                start: a,
+                end: b,
+                from: bandEdgeAt(edge.piece, edge.side, a),
+                to: bandEdgeAt(edge.piece, edge.side, b),
+              });
+        };
+        const left = edgeLine(le),
+          right = edgeLine(re);
         const previous = spans.at(-1);
-        if (previous && previous.color === color) {
-          const { rightLine: discarded, ...retained } = previous;
-          void discarded;
-          spans[spans.length - 1] = { ...retained, right, rightEnd, ...(rightLine ? { rightLine } : {}) };
-        } else spans.push({ start: a, end: b, left, right, leftEnd, rightEnd, color, ...lines });
+        if (previous && previous.color === color) spans[spans.length - 1] = { ...previous, right };
+        else spans.push({ start: a, end: b, left, right, color });
       }
       slabs.push(
         Object.freeze({

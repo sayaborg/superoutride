@@ -1,6 +1,6 @@
 import { CourseInputError, courseFailure, courseSuccess, type CourseResult } from './course-diagnostics.js';
 
-const COURSE_DOCUMENT_VERSION = 18;
+const COURSE_DOCUMENT_VERSION = 19;
 
 interface GeometryRecipeIdentity {
   readonly id: string;
@@ -26,15 +26,6 @@ interface BoundaryDocument {
   readonly knots: readonly { readonly at: CoursePosition; readonly lateral: Lateral }[];
 }
 
-export interface RegionDocument {
-  readonly id: string;
-  readonly start: CoursePosition;
-  readonly end: CoursePosition;
-  readonly leftBoundaryId: string;
-  readonly rightBoundaryId: string;
-  readonly role: 'pavement' | 'shoulder' | 'median';
-}
-
 interface CarriagewayDocument {
   readonly id: string;
   readonly left: string;
@@ -55,23 +46,28 @@ export interface CourseAssetReference {
   readonly sha256: string;
 }
 
-interface BandDocument {
-  readonly kind: 'band';
-  readonly color: number | null;
-  readonly knots: readonly { readonly s: number; readonly left: number | null; readonly right: number | null }[];
+interface StripDocument {
+  readonly kind: 'strip';
+  readonly color: number | 'transparent' | null;
+  readonly material: string | null;
+  readonly knots: readonly {
+    readonly at: CoursePosition;
+    readonly left: Lateral | null;
+    readonly right: Lateral | null;
+  }[];
 }
-export type BandElementDocument =
-  | BandDocument
+export type StripElementDocument =
+  | StripDocument
   | {
       readonly kind: 'repeat';
       readonly every: number;
       readonly count: number;
-      readonly elements: readonly BandElementDocument[];
+      readonly elements: readonly StripElementDocument[];
     }
   | {
       readonly kind: 'arrow';
-      readonly s: number;
-      readonly l: number;
+      readonly at: CoursePosition;
+      readonly lateral: Lateral;
       readonly width: number;
       readonly length: number;
       readonly direction: 'forward' | 'left' | 'right';
@@ -79,24 +75,23 @@ export type BandElementDocument =
     }
   | {
       readonly kind: 'text';
-      readonly s: number;
-      readonly l: number;
+      readonly at: CoursePosition;
+      readonly lateral: Lateral;
       readonly text: string;
       readonly height: number;
       readonly color: number;
     }
   | {
       readonly kind: 'curb';
-      readonly start: number;
-      readonly end: number;
-      readonly left: number;
-      readonly right: number;
+      readonly start: CoursePosition;
+      readonly end: CoursePosition;
+      readonly left: Lateral;
+      readonly right: Lateral;
       readonly stripe: number;
       readonly colors: readonly number[];
     };
 
 export interface PresentationDocument {
-  readonly ground: { readonly kind: 'bands'; readonly bands: readonly BandElementDocument[] };
   readonly environments: readonly {
     readonly at: CoursePosition;
     readonly name: string;
@@ -129,12 +124,8 @@ export interface SectionDocument {
   readonly id: string;
   readonly pis: readonly PlanPI[];
   readonly boundaries: readonly BoundaryDocument[];
-  readonly regions: readonly RegionDocument[];
+  readonly strips: readonly StripElementDocument[];
   readonly height: readonly { readonly at: CoursePosition; readonly y: number; readonly curveLength: number }[];
-  readonly physicalBindings: readonly {
-    readonly regionId: string;
-    readonly sections: readonly { readonly at: CoursePosition; readonly material: string }[];
-  }[];
   readonly carriageways: readonly CarriagewayDocument[];
   readonly assetIds: readonly string[];
   readonly presentation: PresentationDocument | null;
@@ -198,7 +189,6 @@ export const COURSE_DOCUMENT_LIMITS = Object.freeze({
   pis: 2048,
   boundaries: 32,
   knots: 256,
-  regions: 32,
   carriageways: 16,
   links: 48,
   assets: 256,
@@ -207,7 +197,6 @@ export const COURSE_DOCUMENT_LIMITS = Object.freeze({
   lengthMeters: 100_000,
   lateralMeters: 1000,
   heightMeters: 10000,
-  regionCells: 16384,
   boundaryPoints: 16384,
 });
 
@@ -371,20 +360,6 @@ function boundary(value: unknown, path: string): BoundaryDocument {
   });
 }
 
-function region(value: unknown, path: string): RegionDocument {
-  const v = record(value, path, ['id', 'start', 'end', 'leftBoundaryId', 'rightBoundaryId', 'role']);
-  if (v.role !== 'pavement' && v.role !== 'shoulder' && v.role !== 'median')
-    fail('unsupported_feature', `${path}/role`, 'Supported roles are pavement, shoulder and median');
-  return Object.freeze({
-    id: id(v.id, `${path}/id`),
-    start: position(v.start, `${path}/start`),
-    end: position(v.end, `${path}/end`),
-    leftBoundaryId: id(v.leftBoundaryId, `${path}/leftBoundaryId`),
-    rightBoundaryId: id(v.rightBoundaryId, `${path}/rightBoundaryId`),
-    role: v.role,
-  });
-}
-
 function carriageway(value: unknown, path: string): CarriagewayDocument {
   const v = record(value, path, ['id', 'left', 'right']);
   return Object.freeze({
@@ -400,22 +375,21 @@ function rgb555(value: unknown, path: string): number {
   return color;
 }
 
-function bandElement(value: unknown, path: string, depth = 0): BandElementDocument {
-  if (depth > 8) fail('resource_limit', path, 'Band construct nesting exceeds eight levels');
+function stripElement(value: unknown, path: string, depth = 0): StripElementDocument {
+  if (depth > 8) fail('resource_limit', path, 'Strip construct nesting exceeds eight levels');
   const kind = value && typeof value === 'object' ? (value as Record<string, unknown>).kind : undefined;
   const metre = (value: unknown, at: string, positive = false) =>
     number(value, at, 0, COURSE_DOCUMENT_LIMITS.lengthMeters, positive);
-  const lateral = (value: unknown, at: string) =>
-    number(value, at, -COURSE_DOCUMENT_LIMITS.lateralMeters, COURSE_DOCUMENT_LIMITS.lateralMeters);
-  if (kind === 'band') {
-    const v = record(value, path, ['kind', 'color', 'knots']);
+  if (kind === 'strip') {
+    const v = record(value, path, ['kind', 'color', 'material', 'knots']);
     return Object.freeze({
       kind,
-      color: v.color === null ? null : rgb555(v.color, `${path}/color`),
+      color: v.color === null || v.color === 'transparent' ? v.color : rgb555(v.color, `${path}/color`),
+      material: v.material === null ? null : id(v.material, `${path}/material`),
       knots: array(v.knots, `${path}/knots`, COURSE_DOCUMENT_LIMITS.knots, (item, at) => {
-        const knot = record(item, at, ['s', 'left', 'right']);
+        const knot = record(item, at, ['at', 'left', 'right']);
         return Object.freeze({
-          s: metre(knot.s, `${at}/s`),
+          at: position(knot.at, `${at}/at`),
           left: knot.left === null ? null : lateral(knot.left, `${at}/left`),
           right: knot.right === null ? null : lateral(knot.right, `${at}/right`),
         });
@@ -431,17 +405,17 @@ function bandElement(value: unknown, path: string, depth = 0): BandElementDocume
       kind,
       count,
       every: metre(v.every, `${path}/every`, true),
-      elements: array(v.elements, `${path}/elements`, 4096, (item, at) => bandElement(item, at, depth + 1)),
+      elements: array(v.elements, `${path}/elements`, 4096, (item, at) => stripElement(item, at, depth + 1)),
     });
   }
   if (kind === 'arrow') {
-    const v = record(value, path, ['kind', 's', 'l', 'width', 'length', 'direction', 'color']);
+    const v = record(value, path, ['kind', 'at', 'lateral', 'width', 'length', 'direction', 'color']);
     if (v.direction !== 'forward' && v.direction !== 'left' && v.direction !== 'right')
       fail('invalid_shape', `${path}/direction`, 'Arrow direction is forward, left or right');
     return Object.freeze({
       kind,
-      s: metre(v.s, `${path}/s`),
-      l: lateral(v.l, `${path}/l`),
+      at: position(v.at, `${path}/at`),
+      lateral: lateral(v.lateral, `${path}/lateral`),
       width: metre(v.width, `${path}/width`, true),
       length: metre(v.length, `${path}/length`, true),
       direction: v.direction,
@@ -449,13 +423,13 @@ function bandElement(value: unknown, path: string, depth = 0): BandElementDocume
     });
   }
   if (kind === 'text') {
-    const v = record(value, path, ['kind', 's', 'l', 'text', 'height', 'color']);
+    const v = record(value, path, ['kind', 'at', 'lateral', 'text', 'height', 'color']);
     if (typeof v.text !== 'string' || !/^[A-Z0-9 ]{1,64}$/.test(v.text))
-      fail('invalid_shape', `${path}/text`, 'Ground text supports 1–64 uppercase ASCII letters, digits or spaces');
+      fail('invalid_shape', `${path}/text`, 'Strip text supports 1–64 uppercase ASCII letters, digits or spaces');
     return Object.freeze({
       kind,
-      s: metre(v.s, `${path}/s`),
-      l: lateral(v.l, `${path}/l`),
+      at: position(v.at, `${path}/at`),
+      lateral: lateral(v.lateral, `${path}/lateral`),
       text: v.text,
       height: metre(v.height, `${path}/height`, true),
       color: rgb555(v.color, `${path}/color`),
@@ -467,32 +441,21 @@ function bandElement(value: unknown, path: string, depth = 0): BandElementDocume
     if (colors.length !== 2) fail('invalid_shape', `${path}/colors`, 'A curb needs two RGB555 colors');
     return Object.freeze({
       kind,
-      start: metre(v.start, `${path}/start`),
-      end: metre(v.end, `${path}/end`),
+      start: position(v.start, `${path}/start`),
+      end: position(v.end, `${path}/end`),
       left: lateral(v.left, `${path}/left`),
       right: lateral(v.right, `${path}/right`),
       stripe: metre(v.stripe, `${path}/stripe`, true),
       colors,
     });
   }
-  return fail('unsupported_feature', `${path}/kind`, 'Unknown Band authoring construct');
-}
-
-function groundDocument(value: unknown, path: string): PresentationDocument['ground'] {
-  const kind = value && typeof value === 'object' ? (value as Record<string, unknown>).kind : undefined;
-  if (kind === 'bands') {
-    const v = record(value, path, ['kind', 'bands']);
-    return Object.freeze({ kind, bands: array(v.bands, `${path}/bands`, 4096, (item, at) => bandElement(item, at)) });
-  }
-  return fail('unsupported_feature', `${path}/kind`, 'Ground kind must be bands');
+  return fail('unsupported_feature', `${path}/kind`, 'Unknown Strip authoring construct');
 }
 
 function presentation(value: unknown, path: string): PresentationDocument | null {
   if (value === null) return null;
-  const v = record(value, path, ['ground', 'environments', 'scenery', 'sceneryRows']);
-  const ground = groundDocument(v.ground, `${path}/ground`);
+  const v = record(value, path, ['environments', 'scenery', 'sceneryRows']);
   return Object.freeze({
-    ground,
     environments: array(v.environments, `${path}/environments`, COURSE_DOCUMENT_LIMITS.knots, (item, at) => {
       const e = record(item, at, ['at', 'name', 'background']);
       const b = record(e.background, `${at}/background`, ['assetId', 'horizonY', 'yawOrigin']);
@@ -548,9 +511,8 @@ function section(value: unknown, path: string): SectionDocument {
     'id',
     'pis',
     'boundaries',
-    'regions',
+    'strips',
     'height',
-    'physicalBindings',
     'carriageways',
     'assetIds',
     'presentation',
@@ -561,7 +523,7 @@ function section(value: unknown, path: string): SectionDocument {
     id: id(v.id, `${path}/id`),
     pis: identified(v.pis, `${path}/pis`, COURSE_DOCUMENT_LIMITS.pis, planPI),
     boundaries: identified(v.boundaries, `${path}/boundaries`, COURSE_DOCUMENT_LIMITS.boundaries, boundary),
-    regions: identified(v.regions, `${path}/regions`, COURSE_DOCUMENT_LIMITS.regions, region),
+    strips: array(v.strips, `${path}/strips`, 4096, (item, at) => stripElement(item, at)),
     height: array(v.height, `${path}/height`, COURSE_DOCUMENT_LIMITS.knots, (item, at) => {
       const node = record(item, at, ['at', 'y', 'curveLength']);
       return Object.freeze({
@@ -575,24 +537,6 @@ function section(value: unknown, path: string): SectionDocument {
         ),
       });
     }),
-    physicalBindings: array(
-      v.physicalBindings,
-      `${path}/physicalBindings`,
-      COURSE_DOCUMENT_LIMITS.regions,
-      (item, at) => {
-        const binding = record(item, at, ['regionId', 'sections']);
-        return Object.freeze({
-          regionId: id(binding.regionId, `${at}/regionId`),
-          sections: array(binding.sections, `${at}/sections`, COURSE_DOCUMENT_LIMITS.knots, (item, at) => {
-            const section = record(item, at, ['at', 'material']);
-            return Object.freeze({
-              at: position(section.at, `${at}/at`),
-              material: id(section.material, `${at}/material`),
-            });
-          }),
-        });
-      },
-    ),
     carriageways: identified(v.carriageways, `${path}/carriageways`, COURSE_DOCUMENT_LIMITS.carriageways, carriageway),
     assetIds: array(v.assetIds, `${path}/assetIds`, COURSE_DOCUMENT_LIMITS.assets, id),
     presentation: presentation(v.presentation, `${path}/presentation`),

@@ -1,5 +1,4 @@
 import { resolveCourseLateral } from './course-lateral.js';
-import { compileCourseBandGround } from './course-band-ground.js';
 import { COURSE_DOCUMENT_LIMITS, type CoursePosition, type PresentationDocument } from '../course-document.js';
 import type { CompiledBoundary, CompiledCarriageway } from '../course-regions.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
@@ -8,9 +7,9 @@ import { BACKGROUND_HEIGHT, BACKGROUND_PIXELS_PER_RADIAN } from '../../image/til
 import type { CoursePresentation, CourseSceneryInstance } from '../course-presentation.js';
 import type { CompiledCourseImageSource } from './course-image-source.js';
 
-export const COURSE_PRESENTATION_RECIPE = Object.freeze({ id: 'superoutride.course-presentation', version: 7 });
+export const COURSE_PRESENTATION_RECIPE = Object.freeze({ id: 'superoutride.course-presentation', version: 8 });
 
-/** Resolve saved Bands, environment and scenery through canonical geometry/assets. */
+/** Resolve saved environment and scenery through canonical geometry/assets. */
 export function compileCoursePresentation(
   source: PresentationDocument | null,
   length: number,
@@ -49,7 +48,6 @@ export function compileCoursePresentation(
         'invalid_profile',
       );
   };
-  const ground = compileCourseBandGround(source.ground.bands, length, `${path}/ground/bands`);
   const environments = source.environments.map((environment, i) => {
     const at = `${path}/environments/${i}`,
       b = environment.background,
@@ -147,7 +145,6 @@ export function compileCoursePresentation(
     }
   }
   return Object.freeze({
-    ground,
     environments: Object.freeze(environments),
     scenery: Object.freeze(scenery),
   });

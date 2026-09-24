@@ -129,8 +129,8 @@ reference evidence. Product-renderer previews and reports are generated outputs.
 ## Build outputs
 
 `dist/` contains compiled product ESM and bundled browser graphics/audio tools, not Node build-script output. `dist/content/` contains course JSON, compiled
-images/sprites and the content manifest. Course JSON retains authored Band constructs; the shared compiler expands them and builds immutable
-preblend fields before browser driving or headless rendering. Expanded Bands and their profiles are
+images/sprites and the content manifest. Course JSON retains authored Strip constructs; the shared compiler expands them and builds immutable
+preblend fields before browser driving or headless rendering. Expanded Strips and their profiles are
 in-memory compiler products, not committed files or an additional delivered image format. Build also generates
 vehicle envelopes, continuous reference runs and game time budgets. Matching disposable data under
 `.cache/course-reference/` is reused; changed inputs regenerate it. Browsers load these products.
