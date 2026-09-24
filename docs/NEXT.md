@@ -5,13 +5,13 @@
 - One compiled graph scene serves RIBBON COAST, RIBBON FORK and RIBBON RING with CLASSIC/CUSTOM Sessions.
 - Course documents use PIs, `at` positions, Lateral values, Strips, Carriageways and gates.
   Circuits are closed cycles of two or more Sections.
-- One manifest verifies all delivered content.
+- One manifest verifies all delivered content, including vehicle and game-wide driving definitions.
 - Surface color and material are authored with Strips, with LEVEL-POINT as the default of three display methods; sprites are indexed.
   BG is one infinite tiled plane with sine mapping.
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **8-3a3 — Remove static definitions**.
+Next PR: **8-3b — Vehicle visuals**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -21,7 +21,6 @@ PRs hold rationale and verification evidence.
 
 Give vehicles, driving assists, tires, powertrains and materials explicit definitions, and treat airborne driving as normal state.
 
-- **8-3a3 — Remove static definitions:** delete the temporarily retained production TypeScript values and static catalog after all consumers have switched. All consumers now use delivered definitions; remove the unused values before 8-3b.
 - **8-3b — Vehicle visuals:** give palette variants names in the image format; vehicle definitions reference their sprite set and normal and braking variants, and hold the handwheel ratio as presentation data; remove the `TESTAROSSA` palette branches. Behavior unchanged.
 - **8-3c — Course sprite palettes:** course sprites select image-declared palette variants by name instead of raw palettes. Behavior unchanged.
 - **8-4 — Powertrain:** launch, shift rules and rev limit, engine friction, inertia and free revving, and shift observations; audio reads engine speed without its own idle floor. Behavior changes.

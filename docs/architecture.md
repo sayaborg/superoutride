@@ -505,5 +505,4 @@ Vehicle and driving documents belong to the vehicle layer; the generic manifest 
 verifies their bytes. Definition compilation resolves sound IDs through the lower audio layer's
 TypeScript sound products and returns deeply immutable records. [Vehicle physics](vehicle-physics.md#vehicle-and-driving-documents)
 owns the versioned formats and admission contract. Composition roots load the collection before scene/Session creation and explicitly pass it to
-selection controls, HUD/audio, scene coverage, reference tools and scenarios. No consumer consults
-a module-initialized catalog. NEXT records the final deletion of unused legacy values.
+selection controls, HUD/audio, scene coverage, reference tools and scenarios. The collection is assembled only from admitted delivered definitions.
