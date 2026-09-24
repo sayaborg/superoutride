@@ -18,7 +18,7 @@ color and material overwrite independently. Compiled Sections publish their two 
 Checkpoints, starts, finishes and environment changes are independent of Section boundaries.
 Source identity, traversal identity and race credit are distinct.
 
-## CourseDocument v19
+## CourseDocument v20
 
 The saved format is compact UTF-8 JSON. All declared fields are required; explicit null represents
 absent optional content. Unknown fields fail. Arrays preserve saved order; object-property order and
@@ -26,30 +26,29 @@ whitespace do not affect identity. Normalized records use schema field order and
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 19,
+  format: "superoutride.course", version: 20,
   reference, id, units: {length: "m", angle: "deg"},
   geometryRecipe: {id, version},
   type: "LINEAR" | "BRANCH" | "CIRCUIT", entrySectionId,
-  sections, links, assets, sceneryInstances, rules
+  sections, links, assets, rules
 }
 Section {
   id, pis,
-  boundaries, strips, height: [{at, y, curveLength}],
+  boundaries, strips, sprites, height: [{at, y, curveLength}],
   carriageways, assetIds, presentation, fork
 }
 ```
 
 ### Geometry and reference records
 
-| Record           | Fields                                                                                                 |
-| ---------------- | ------------------------------------------------------------------------------------------------------ |
-| Plan PI          | `id`, `x`, `z`, `radius`                                                                               |
-| Position         | `at: {pi, offset}`; interval `start`/`end` and fork `lock`/`closure` use the same `{pi, offset}` value |
-| Boundary         | `id`, `knots: [{at,lateral}]`                                                                          |
-| Carriageway      | `id`, `left`, `right`                                                                                  |
-| Link             | `id`, `from: {sectionId,carriagewayId}`, `to: {sectionId}`                                             |
-| Asset reference  | `id`, `format`, `version`, lowercase `sha256`                                                          |
-| Scenery instance | `id`, `assetId`, `paletteRgb555` (null or one declared base-palette replacement)                       |
+| Record          | Fields                                                                                                 |
+| --------------- | ------------------------------------------------------------------------------------------------------ |
+| Plan PI         | `id`, `x`, `z`, `radius`                                                                               |
+| Position        | `at: {pi, offset}`; interval `start`/`end` and fork `lock`/`closure` use the same `{pi, offset}` value |
+| Boundary        | `id`, `knots: [{at,lateral}]`                                                                          |
+| Carriageway     | `id`, `left`, `right`                                                                                  |
+| Link            | `id`, `from: {sectionId,carriagewayId}`, `to: {sectionId}`                                             |
+| Asset reference | `id`, `format`, `version`, lowercase `sha256`                                                          |
 
 Asset formats are
 `superoutride.sprite-lod` version 2 and `superoutride.tile-background` version 1.
@@ -70,26 +69,25 @@ Locations describe provenance. The observation digest identifies exact intermedi
 These values participate in source identity; compilation consumes the saved geometry directly.
 
 IDs are opaque nonblank strings without surrounding whitespace and compare exactly. Course ID is
-external identity. Section, Link, asset and scenery-instance IDs each have a document-wide scope.
-PI, Boundary and Carriageway IDs each have their own Section-local scope;
-scenery placement and row IDs also have their declared Section-local scopes. Duplicate IDs fail. References
+external identity. Section, Link and asset IDs each have a document-wide scope.
+PI, Boundary and Carriageway IDs each have their own Section-local scope. Sprites have no IDs.
+Duplicate IDs fail. References
 resolve in their named scopes rather than by array position.
 
 Schema-valid drafts may contain empty arrays, unresolved references or an unavailable geometry recipe.
 Compilation requires complete semantic input and reports `unsupported_version` for an unavailable recipe.
-A geometry draft uses `presentation: null`, `fork: null`, `rules: null` and explicit asset/instance arrays.
+A geometry draft uses `presentation: null`, `fork: null`, `rules: null` and explicit asset and sprite arrays.
 
 ### Lateral positions
 
 `Lateral` is a finite number in metres (positive right), or `{boundary, offset}` with a
 Section-local Boundary ID and a signed metre offset (positive right). The field is named
-`lateral` on Boundary knots, scenery placements, scenery rows and grid slots; grid references
+`lateral` on Boundary knots, sprites and grid slots; grid references
 use the entry Section. Numeric values and offsets lie in `[-1000,1000]`, and every resolved
 l must also lie in that range. Strip edges use the same Lateral values in `left` and `right`.
 
 A point placement evaluates a numeric Lateral directly, or the referenced Boundary at its s
-plus offset. The Boundary must cover that station, including each expanded row instance.
-Unused row endpoints need no Boundary coverage. References may name any Boundary in the same
+plus offset. The Boundary must cover that station, including each repeated sprite. References may name any Boundary in the same
 Section; declaration order does not constrain references.
 
 Boundary references must be acyclic. For each interval `[a,b]` between the Boundary's own
@@ -108,24 +106,61 @@ existence, cycles, interval coverage, resolved-value bounds and expansion limits
 Boundaries report `unresolved_reference`; cycles and insufficient coverage report
 `invalid_boundary`; resolved numeric bounds report `invalid_numeric_domain`, and expansion
 beyond the Section vertex budget reports `resource_limit`. Compiled Boundary vertices retain
-`{at: {s}, l}`; scenery and grid also retain their resolved numeric l. Runtime readers do not
+`{at: {s}, l}`; sprites and grid also retain their resolved numeric l. Runtime readers do not
 resolve authored references.
 
-### Saved presentation
+### Sprites and environment
 
-`presentation` is null or `{environments,scenery,sceneryRows}`. Its records are:
+Section `sprites` is an ordered array of `sprite` or `repeat` elements. A sprite is
+`{kind:"sprite",image,palette,at,lateral,groundOffset,unselectedCarriagewayId}`.
+`image` names a sprite image in that Section's `assetIds`; `palette` is null for the image's base
+palette or exactly 16 RGB555 slots. A replacement must be one of the image's compiled LOD palettes
+(slot zero is transparent). `groundOffset` is height above the authoritative road height, in metres.
+Each expanded placement resolves `lateral` at its own s, so repetitions follow referenced Boundaries.
+Compilation shares one immutable resource for each image-source/palette pair across Sections;
+decoded images and palette variants are shared by the renderer. Sprites have no authored identity.
 
-| Record            | Fields                                                                         |
-| ----------------- | ------------------------------------------------------------------------------ |
-| Background        | `assetId`, `horizonY`, Section-frame degree `yawOrigin`                        |
-| Scenery placement | `id`, `instanceId`, `unselectedCarriagewayId`, `at`, `lateral`, `groundOffset` |
-| Scenery row       | `id`, `assetId`, `start`, `end`, `spacing`, `lateral`, `groundOffset`          |
+`unselectedCarriagewayId` is null for ordinary sprites or names a canonical exit Carriageway.
+Such signs lie from lock through closure, before the exit cut, and appear when the field selects
+another exit. Their state follows the selected Links of the shared Route.
 
-Environment profiles begin at zero. Assets belong to the referencing Section and resolve to canonical
-sprite/background descriptors. Each environment is `{at,name,background}`; environment changes
-affect BG and labels, independently of ground colors. Background `yawOrigin` is an absolute angle
-in the authored Section coordinate frame: zero faces +Z and positive degrees turn toward +X.
-Occurrence mapping adds the occurrence rotation to this angle.
+`presentation` is null or `{environments}`. A null presentation requires an empty sprite list.
+An environment element is `{at,name,background}` or a `repeat`; background is
+`{assetId,horizonY,yawOrigin}`. The image belongs to the referencing Section and uses the tiled
+background format. After expansion, environment knots must begin at s=0 and strictly increase
+inside `[0,Section.length)`, in expanded order. The compiler does not sort them.
+Environment changes affect BG and labels independently of ground colors.
+Background `yawOrigin` is an absolute angle in the authored Section coordinate frame: zero faces +Z
+and positive degrees turn toward +X. Occurrence mapping adds the occurrence rotation to this angle.
+
+### Shared repeat
+
+Strips, sprites and environment lists use one recursive shape:
+`{kind:"repeat",every,count,elements}`. `every` is a positive metre spacing; `count` is an integer
+including the original occurrence. `elements` contains only elements of its enclosing list, including
+nested repeats. One shared expansion implementation visits declaration order, then repetition index,
+then child order. For index i, it adds `i*every` to every contained Position's resolved s, including
+Strip knot `at`, decorative `at`, and curb `start`/`end`. Nested offsets accumulate. Lateral expressions
+are evaluated at the shifted stations. All resulting Positions must fit the Section.
+Repeated Strips remain color-only. The repeat depth/count and collection/expansion ceilings below
+apply independently; limits reject rather than truncate. Empty repeats also consume bounded work.
+
+### Tunnels
+
+Author an entrance frame, repeated interior walls/ceiling frames and an exit frame as ordinary
+sprites. Their images can leave the road opening transparent; no tunnel-specific geometry or
+rendering state is needed. Use Strips for pavement, shoulder and lighting colors; material declarations
+continue to supply physical support independently. Tunnel sprites are visual and do not add wall collision.
+
+Place an environment knot at the entrance with an interior background, then another at the exit
+restoring the exterior background and its yaw origin. For example, frames at s=100 and s=200 can bound
+a tunnel; a sprite repeat at 100 with every=20 and count=6 supplies its frames. Environment knots at
+0 (exterior), 100 (interior), and 200 (exterior) provide the matching background intervals.
+The renderer selects the background at `camera.s`, not at a visible sprite or a distant ground row.
+Thus an entrance frame visible ahead retains the exterior background; the interior begins exactly
+when camera.s reaches the entrance knot, and the exterior returns at the exit knot. With the current
+rearward camera, this follows the vehicle crossing by its camera distance. This is an immediate switch;
+wipes and other transition effects remain a separate decision before Stage 12.
 
 ### Strips
 
@@ -158,9 +193,7 @@ When an edge references the same Boundary and offset at both knots, it retains t
 original line and adds the offset after evaluating it. With zero offset, every edge read equals
 `courseBoundaryAt` without a rounding gap, even after unrelated slab splits.
 
-Decorative constructs carry color only. Repetition shifts the contained Positions by `index*every`
-after resolving them, then resolves Lateral references at the shifted stations; count includes the
-original. Repeated elements must be color-only, including nested Strips. An arrow's at is its near
+Decorative constructs carry color only. An arrow's at is its near
 bounding edge and lateral its center; width and length are its final bounding dimensions.
 Direction is `forward`, `left` or `right`. Text at/lateral specifies the near/left edge of its cells;
 height covers seven cells, horizontal advance is six cells per character. Text admits uppercase
@@ -172,16 +205,6 @@ The numeric and resource table below bounds each element array, repetition, expa
 simultaneously active pieces, resolved slabs and cached fields. Covered pieces still count;
 a piece carrying both payloads counts once. Limits reject rather than truncate.
 [Architecture](architecture.md#strip-rendering) owns averaging, immutable storage and pixel kernels.
-
-Scenery placements resolve document-wide instances. `unselectedCarriagewayId` is null for ordinary
-scenery or names a canonical exit Carriageway. Such signs lie from lock through closure, before the
-exit cut, and appear when the field selects another exit. Their state follows the selected Links of the shared Route.
-
-Rows use a half-open interval with placements at `start+index*spacing`. Each instance resolves its
-`lateral` at that station; a numeric value places the entire row at constant l. Expanded
-Section/row/index identities are deterministic. Authored collections and expanded Section placements
-obey the separate admission ceilings below.
-Unsupported presentation fields produce diagnostics.
 
 ### Authored Session rules
 
@@ -211,7 +234,7 @@ Use 21 km as the planning envelope for the approximately 20.8 km Nordschleife, w
 for longitudinal detail and length. One Section can therefore hold nearly the whole circuit; the
 planned circuit representation uses at least two Sections and does not divide the long Section's budget.
 Assume 10 corners/PIs, 20 PVIs/profile knots, 30 authored decoration records and 220 placements per km.
-The latter includes both verges at 10 m spacing (200/km) plus 20/km for signs and other scenery.
+The latter includes both verges at 10 m spacing (200/km) plus 20/km for signs and other sprites.
 Every corner can receive two curbs, an arrow and lettering: curbs can cover both sides of the entire
 21 km at 1 m stripes, with 100 lane dashes/km and up to 10 two-character markings/km. This is
 conservatively 3000 expanded pieces/km; detailed glyphs and inherited edge points consume that budget.
@@ -229,16 +252,14 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | Graph `sections` / `links`                                              |          128 / 384 | 50 positions × 2, rounded up; three outgoing choices per Section                                                        |
 | Document `assets`                                                       |               2048 | (50 × 16 local image types + 128 shared types) × 2, rounded up                                                          |
 | Section `sectionAssets`                                                 |                128 | 64 locally used image types × 2                                                                                         |
-| Document `instances`                                                    |               4096 | 50 × 32 image/palette identities × 2, rounded up                                                                        |
 | Section `pis`                                                           |                512 | (21 × 10 + 2 endpoints) × 2, rounded up                                                                                 |
 | Section `heightNodes`                                                   |               1024 | (21 × 20 + 2) × 2, rounded up                                                                                           |
 | Each Boundary/Strip `knots`                                             |               1024 | Same 20/km profile density and margin                                                                                   |
-| Section `environmentKnots`                                              |                256 | (21 × 4 + 1) × 2, rounded up                                                                                            |
+| Environment array and expanded Section `environmentKnots`               |                256 | (21 × 4 + 1) × 2, rounded up                                                                                            |
 | Section `boundaries`                                                    |                 32 | 16 road, median, shoulder and outer profiles × 2                                                                        |
 | Section `carriageways`                                                  |                 64 | One road activation/km × 21 × 2, rounded up; supports three-way splits                                                  |
-| Section `sceneryRows`                                                   |               1024 | Two verges × 10 rows/km × 21 × 2, rounded up                                                                            |
-| Section `placements` (authored and expanded)                            |              16384 | 21 × (200 + 20)/km × 2, rounded up                                                                                      |
-| Each element array `stripElements`                                      |               2048 | 21 × 30/km × 2, rounded up                                                                                              |
+| Section `spritePlacements` (expanded)                                   |              16384 | 21 × (200 + 20)/km × 2, rounded up                                                                                      |
+| Each Strip/sprite array `stripElements` / `spriteElements`              |               2048 | 21 × 30/km × 2, rounded up                                                                                              |
 | `repeatCount`                                                           |              65536 | Whole-length 1 m repetitions: 21000 × 2, rounded up                                                                     |
 | `repeatDepth` / `textCodeUnits`                                         |             8 / 64 | Four organizational levels × 2; 32-character road legend × 2                                                            |
 | Section `stripExpansion` (pieces and visited constructs separately)     |             131072 | 21 × 3000/km × 2, rounded up                                                                                            |
@@ -256,6 +277,12 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | `imageEncodedBytes` / `imageMasterTexels` per image                     |    8 MiB / 1048576 | Retained 1024² master allowance; up to 8 encoded bytes/master texel                                                     |
 | Unique course images `imageTotalEncodedBytes` / `imageTotalLevelTexels` | 128 MiB / 33554432 | 928 image types averaging 128×64 master texels, ×4/3 mip texels, ×2 margin; allow 4 encoded bytes/level texel, round up |
 | `referenceDeviations` / `referenceScale`                                |           64 / 100 | Retained provenance bounds; removed with `reference` in 7-5                                                             |
+
+Sprite and environment expansion each allow at most `expandedLimit * (2*repeatDepth+1)` work visits:
+one leaf plus up to one repeat node and one iteration per permitted nesting level. Strip expansion
+retains its independent `stripExpansion` work and piece budgets. This bounds empty nested repetitions
+as well as visible output. Sprite element arrays use the same 30 authored records/km × 21 km × 2
+planning density as Strip arrays, rounded up to 2048; expanded placements retain the 220/km basis.
 
 The ceilings are independent admission fences, not a promise to accept their Cartesian product.
 Slab crossings and moving-edge preblend event counts depend on geometry, so input counts alone
@@ -282,7 +309,7 @@ or grandfathered limit set is provided.
 
 ## Geometry recipe and bindings
 
-The saved `geometryRecipe` field is `{id,version}`; CourseDocument v19 admits
+The saved `geometryRecipe` field is `{id,version}`; CourseDocument v20 admits
 `superoutride.plan-raster` version 1. The saved PI and position fields are listed above. [Architecture](architecture.md#plan-authority)
 owns their authoritative planar interpretation, coordinate domain and geometric validation.
 Rendering and physics read the same plan; Section length comes from its coordinate Reader domain.
@@ -359,8 +386,8 @@ Owned records and arrays are immutable, including nested image data. Live actor,
 clock state belong to Sessions. Object identity is local to a compilation; cross-build identity uses digests.
 
 `sourceSha256` hashes normalized input. `buildSha256` hashes `{sourceSha256,compiler,geometryRecipe}`.
-The compiler is `superoutride.course-compiler` version 29, incorporating Link recipe v2, physical
-recipe v3, image-source recipe v2 and presentation recipe v7. Descriptors include semantic versions
+The compiler is `superoutride.course-compiler` version 30, incorporating Link recipe v2, physical
+recipe v3, image-source recipe v2 and presentation recipe v9. Descriptors include semantic versions
 and operative numeric/data parameters, including material definitions. Source or compiler/recipe
 changes invalidate dependent products.
 
@@ -542,7 +569,7 @@ camera before rendering. Unrelated internal faults propagate.
 | Array                | Records                                                                   |
 | -------------------- | ------------------------------------------------------------------------- |
 | `samples`            | `{s,timeSeconds,curvaturePerMeter,grade,roadWidthMeters,heightMeters}`    |
-| `sceneryRows`        | `{kind,startS,endS,spacingMeters,side,offsetMeters,groundOffsetMeters}`   |
+| `spriteRows`         | `{kind,startS,endS,spacingMeters,side,offsetMeters,groundOffsetMeters}`   |
 | `environments`       | `{s,label}`                                                               |
 | `checkpoints`        | `{s,name}` observation markers                                            |
 | `remasterDeviations` | Nonempty descriptions of departures/assumptions                           |
@@ -572,7 +599,7 @@ frame SHA-256, centers/horizon, HUD mismatch and geometric residuals. Scenery an
 ## Course loading
 
 All selected-course inputs and generated vehicle/timing data are ready before ticks. The shared
-compiler expands saved Strip constructs and builds immutable fields for every reachable Section.
+compiler expands saved constructs and builds immutable fields for every reachable Section.
 Aliases share canonical records and each reusable Section's field; repeated circuit occurrences
 reuse the single source. Input or compilation failure publishes no partial reader or Session.
 

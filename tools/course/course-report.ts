@@ -18,7 +18,7 @@ export interface CourseReport {
     z: number;
     boundaries: (number | null)[];
   }[];
-  scenery: { s: number; l: number; asset: string; state: string | null }[];
+  sprites: { s: number; l: number; asset: string; state: string | null }[];
   environments: { s: number; name: string }[];
   segments: { index: number; kind: string; start: number; end: number }[];
 }
@@ -66,7 +66,7 @@ export async function courseReport(course: CompiledCourse, section: CompiledSect
     reference: course.reference,
     boundaries: section.boundaries.map((b) => b.id),
     samples,
-    scenery: section.presentation!.scenery.map((p) => ({
+    sprites: section.presentation!.sprites.map((p) => ({
       s: p.at.s,
       l: p.l,
       asset: p.instance.asset.source.name,
@@ -82,7 +82,7 @@ export async function courseReport(course: CompiledCourse, section: CompiledSect
       `COURSE ${course.id} / ${section.id}`,
       `Length: ${report.lengthMeters.toFixed(3)} m`,
       `Source: ${course.identity.sourceSha256}`,
-      `Scenery: ${report.scenery.length} placements; environments: ${report.environments.length}`,
+      `Scenery: ${report.sprites.length} placements; environments: ${report.environments.length}`,
       '',
       ['s_m', 'curvature_1_per_m', 'height_m', ...report.boundaries.map((b) => `${b}_m`)].join('\t'),
       ...samples.map((p) =>
@@ -92,7 +92,7 @@ export async function courseReport(course: CompiledCourse, section: CompiledSect
       ),
       '',
       'SCENERY: s_m l_m asset state',
-      ...report.scenery.map((p) => `${p.s.toFixed(3)} ${p.l.toFixed(3)} ${p.asset} ${p.state ?? 'always'}`),
+      ...report.sprites.map((p) => `${p.s.toFixed(3)} ${p.l.toFixed(3)} ${p.asset} ${p.state ?? 'always'}`),
       '',
       'ENVIRONMENTS',
       ...report.environments.map((e) => `${e.s.toFixed(3)} ${e.name}`),

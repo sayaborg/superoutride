@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 19,
+  "version": 20,
   "id": "ribbon-fork",
   "reference": null,
   "units": {
@@ -1021,90 +1021,6 @@
               "yawOrigin": 0
             }
           }
-        ],
-        "sceneryRows": [
-          {
-            "id": "left-trees",
-            "assetId": "tree",
-            "start": {
-              "pi": "start",
-              "offset": 220
-            },
-            "end": {
-              "pi": "end",
-              "offset": -100
-            },
-            "spacing": 50,
-            "lateral": {
-              "boundary": "left-outer",
-              "offset": -8
-            },
-            "groundOffset": 0
-          },
-          {
-            "id": "right-trees",
-            "assetId": "tree",
-            "start": {
-              "pi": "start",
-              "offset": 220
-            },
-            "end": {
-              "pi": "end",
-              "offset": -100
-            },
-            "spacing": 50,
-            "lateral": {
-              "boundary": "right-outer",
-              "offset": 8
-            },
-            "groundOffset": 0
-          }
-        ],
-        "scenery": [
-          {
-            "id": "left-warning",
-            "instanceId": "left-warning",
-            "unselectedCarriagewayId": "LEFT",
-            "at": {
-              "pi": "start",
-              "offset": 250
-            },
-            "lateral": -5.5,
-            "groundOffset": 0
-          },
-          {
-            "id": "left-closed",
-            "instanceId": "left-closed",
-            "unselectedCarriagewayId": "LEFT",
-            "at": {
-              "pi": "end",
-              "offset": -200
-            },
-            "lateral": -5.5,
-            "groundOffset": 0
-          },
-          {
-            "id": "right-warning",
-            "instanceId": "right-warning",
-            "unselectedCarriagewayId": "RIGHT",
-            "at": {
-              "pi": "start",
-              "offset": 250
-            },
-            "lateral": 5.5,
-            "groundOffset": 0
-          },
-          {
-            "id": "right-closed",
-            "instanceId": "right-closed",
-            "unselectedCarriagewayId": "RIGHT",
-            "at": {
-              "pi": "end",
-              "offset": -200
-            },
-            "lateral": 5.5,
-            "groundOffset": 0
-          }
         ]
       },
       "fork": {
@@ -1116,7 +1032,101 @@
           "pi": "end",
           "offset": -200
         }
-      }
+      },
+      "sprites": [
+        {
+          "kind": "sprite",
+          "image": "fork-warning",
+          "palette": null,
+          "at": {
+            "pi": "start",
+            "offset": 250
+          },
+          "lateral": -5.5,
+          "groundOffset": 0,
+          "unselectedCarriagewayId": "LEFT"
+        },
+        {
+          "kind": "sprite",
+          "image": "fork-closed",
+          "palette": null,
+          "at": {
+            "pi": "end",
+            "offset": -200
+          },
+          "lateral": -5.5,
+          "groundOffset": 0,
+          "unselectedCarriagewayId": "LEFT"
+        },
+        {
+          "kind": "sprite",
+          "image": "fork-warning",
+          "palette": null,
+          "at": {
+            "pi": "start",
+            "offset": 250
+          },
+          "lateral": 5.5,
+          "groundOffset": 0,
+          "unselectedCarriagewayId": "RIGHT"
+        },
+        {
+          "kind": "sprite",
+          "image": "fork-closed",
+          "palette": null,
+          "at": {
+            "pi": "end",
+            "offset": -200
+          },
+          "lateral": 5.5,
+          "groundOffset": 0,
+          "unselectedCarriagewayId": "RIGHT"
+        },
+        {
+          "kind": "repeat",
+          "every": 50,
+          "count": 8,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "tree",
+              "palette": null,
+              "at": {
+                "pi": "start",
+                "offset": 220
+              },
+              "lateral": {
+                "boundary": "left-outer",
+                "offset": -8
+              },
+              "groundOffset": 0,
+              "unselectedCarriagewayId": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 50,
+          "count": 8,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "tree",
+              "palette": null,
+              "at": {
+                "pi": "start",
+                "offset": 220
+              },
+              "lateral": {
+                "boundary": "right-outer",
+                "offset": 8
+              },
+              "groundOffset": 0,
+              "unselectedCarriagewayId": null
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "cliff-route",
@@ -1519,11 +1529,10 @@
               "yawOrigin": -20
             }
           }
-        ],
-        "sceneryRows": [],
-        "scenery": []
+        ]
       },
-      "fork": null
+      "fork": null,
+      "sprites": []
     },
     {
       "id": "garden-route",
@@ -1866,30 +1875,33 @@
               "yawOrigin": 20
             }
           }
-        ],
-        "sceneryRows": [
-          {
-            "id": "garden-route-trees",
-            "assetId": "tree",
-            "start": {
-              "pi": "start",
-              "offset": 60
-            },
-            "end": {
-              "pi": "end",
-              "offset": -70
-            },
-            "spacing": 60,
-            "lateral": {
-              "boundary": "road-left",
-              "offset": -8
-            },
-            "groundOffset": 0
-          }
-        ],
-        "scenery": []
+        ]
       },
-      "fork": null
+      "fork": null,
+      "sprites": [
+        {
+          "kind": "repeat",
+          "every": 60,
+          "count": 15,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "tree",
+              "palette": null,
+              "at": {
+                "pi": "start",
+                "offset": 60
+              },
+              "lateral": {
+                "boundary": "road-left",
+                "offset": -8
+              },
+              "groundOffset": 0,
+              "unselectedCarriagewayId": null
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "home-road",
@@ -2312,30 +2324,33 @@
               "yawOrigin": 0
             }
           }
-        ],
-        "sceneryRows": [
-          {
-            "id": "home-road-trees",
-            "assetId": "tree",
-            "start": {
-              "pi": "start",
-              "offset": 60
-            },
-            "end": {
-              "pi": "end",
-              "offset": -470
-            },
-            "spacing": 60,
-            "lateral": {
-              "boundary": "road-left",
-              "offset": -8
-            },
-            "groundOffset": 0
-          }
-        ],
-        "scenery": []
+        ]
       },
-      "fork": null
+      "fork": null,
+      "sprites": [
+        {
+          "kind": "repeat",
+          "every": 60,
+          "count": 13,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "tree",
+              "palette": null,
+              "at": {
+                "pi": "start",
+                "offset": 60
+              },
+              "lateral": {
+                "boundary": "road-left",
+                "offset": -8
+              },
+              "groundOffset": 0,
+              "unselectedCarriagewayId": null
+            }
+          ]
+        }
+      ]
     }
   ],
   "links": [
@@ -2404,28 +2419,6 @@
       "format": "superoutride.sprite-lod",
       "version": 2,
       "sha256": "d0fd10cb16a43dac793133baaa59770fa5a68c67810e0f284826d1a28a1ec233"
-    }
-  ],
-  "sceneryInstances": [
-    {
-      "id": "left-warning",
-      "assetId": "fork-warning",
-      "paletteRgb555": null
-    },
-    {
-      "id": "left-closed",
-      "assetId": "fork-closed",
-      "paletteRgb555": null
-    },
-    {
-      "id": "right-warning",
-      "assetId": "fork-warning",
-      "paletteRgb555": null
-    },
-    {
-      "id": "right-closed",
-      "assetId": "fork-closed",
-      "paletteRgb555": null
     }
   ]
 }

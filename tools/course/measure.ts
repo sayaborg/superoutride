@@ -292,11 +292,11 @@ try {
       roadWidthMeters: m.roadWidthMeters,
       heightMeters: null,
     })),
-    sceneryRows: [],
+    spriteRows: [],
     environments: [{ s: 0, label: request.environmentLabel }],
     checkpoints: [],
     remasterDeviations: [
-      'Planar pinhole road fitting assumes known camera height and attitude; horizon shift approximates grade. HUD speed integrates distance. Inspect residuals and annotate scenery, environments and checkpoints before fitting.',
+      'Planar pinhole road fitting assumes known camera height and attitude; horizon shift approximates grade. HUD speed integrates distance. Inspect residuals and annotate sprites, environments and checkpoints before fitting.',
     ],
     measurements,
   });

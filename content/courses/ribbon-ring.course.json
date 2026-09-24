@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 19,
+  "version": 20,
   "id": "ribbon-ring",
   "reference": null,
   "units": {
@@ -957,48 +957,55 @@
               "yawOrigin": 180
             }
           }
-        ],
-        "sceneryRows": [
-          {
-            "id": "left-trees",
-            "assetId": "tree",
-            "start": {
-              "pi": "start",
-              "offset": 35
-            },
-            "end": {
-              "pi": "end",
-              "offset": -39.986795829701805
-            },
-            "spacing": 40,
-            "lateral": {
-              "boundary": "road-left",
-              "offset": -5
-            },
-            "groundOffset": 0
-          },
-          {
-            "id": "right-trees",
-            "assetId": "tree",
-            "start": {
-              "pi": "start",
-              "offset": 35
-            },
-            "end": {
-              "pi": "end",
-              "offset": -39.986795829701805
-            },
-            "spacing": 40,
-            "lateral": {
-              "boundary": "road-right",
-              "offset": 5
-            },
-            "groundOffset": 0
-          }
-        ],
-        "scenery": []
+        ]
       },
-      "fork": null
+      "fork": null,
+      "sprites": [
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 49,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "tree",
+              "palette": null,
+              "at": {
+                "pi": "start",
+                "offset": 35
+              },
+              "lateral": {
+                "boundary": "road-left",
+                "offset": -5
+              },
+              "groundOffset": 0,
+              "unselectedCarriagewayId": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 49,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "tree",
+              "palette": null,
+              "at": {
+                "pi": "start",
+                "offset": 35
+              },
+              "lateral": {
+                "boundary": "road-right",
+                "offset": 5
+              },
+              "groundOffset": 0,
+              "unselectedCarriagewayId": null
+            }
+          ]
+        }
+      ]
     }
   ],
   "links": [
@@ -1026,6 +1033,5 @@
       "version": 2,
       "sha256": "b09289be3a424ac827c49569aff8e5f3ece795a33de77f26527d8e0a572028ab"
     }
-  ],
-  "sceneryInstances": []
+  ]
 }

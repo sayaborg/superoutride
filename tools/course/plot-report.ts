@@ -79,25 +79,25 @@ export function plotCourseReport(data: CourseReport) {
       values: data.samples.map((p) => (p.boundaries[i] === null ? null : [p.s, p.boundaries[i]!])),
     })),
   );
-  const sceneryRange = range(data.scenery.length ? data.scenery.map((p) => p.l) : [0, 1]);
-  const sceneryY = scale(sceneryRange, top + 120, top + 25);
-  const assets = [...new Set(data.scenery.map((p) => p.asset))].sort();
-  const sceneryTop = top;
+  const spritesRange = range(data.sprites.length ? data.sprites.map((p) => p.l) : [0, 1]);
+  const spritesY = scale(spritesRange, top + 120, top + 25);
+  const assets = [...new Set(data.sprites.map((p) => p.asset))].sort();
+  const spritesTop = top;
   top = panel(
     top,
     'Scenery lateral position (m)',
     assets.map((name) => ({ name, values: [] })),
-    sceneryRange,
+    spritesRange,
   );
-  for (const p of data.scenery)
+  for (const p of data.sprites)
     stationPlots += line(
       x(p.s),
-      sceneryY(p.l) - 4,
+      spritesY(p.l) - 4,
       x(p.s),
-      sceneryY(p.l) + 4,
+      spritesY(p.l) + 4,
       colors[assets.indexOf(p.asset) % colors.length],
     );
-  top = Math.max(top, sceneryTop + 182);
+  top = Math.max(top, spritesTop + 182);
   stationPlots += text(100, top + 8, 'Environment', 'font-weight="bold"');
   data.environments.forEach((e, i) => {
     const end = data.environments[i + 1]?.s ?? data.lengthMeters;

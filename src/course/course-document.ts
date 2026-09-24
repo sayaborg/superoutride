@@ -1,8 +1,9 @@
+import type { RepeatElement } from './course-repeat.js';
 import { COURSE_DOCUMENT_LIMITS } from './course-limits.js';
 import { SESSION_RULE_LIMITS } from './session-rules.js';
 import { CourseInputError, courseFailure, courseSuccess, type CourseResult } from './course-diagnostics.js';
 
-const COURSE_DOCUMENT_VERSION = 19;
+const COURSE_DOCUMENT_VERSION = 20;
 
 interface GeometryRecipeIdentity {
   readonly id: string;
@@ -58,14 +59,8 @@ interface StripDocument {
     readonly right: Lateral | null;
   }[];
 }
-export type StripElementDocument =
+export type StripElementDocument = RepeatElement<
   | StripDocument
-  | {
-      readonly kind: 'repeat';
-      readonly every: number;
-      readonly count: number;
-      readonly elements: readonly StripElementDocument[];
-    }
   | {
       readonly kind: 'arrow';
       readonly at: CoursePosition;
@@ -91,35 +86,25 @@ export type StripElementDocument =
       readonly right: Lateral;
       readonly stripe: number;
       readonly colors: readonly number[];
-    };
+    }
+>;
 
+export interface EnvironmentDocument {
+  readonly at: CoursePosition;
+  readonly name: string;
+  readonly background: { readonly assetId: string; readonly horizonY: number; readonly yawOrigin: number };
+}
+export interface SpriteDocument {
+  readonly kind: 'sprite';
+  readonly image: string;
+  readonly palette: readonly number[] | null;
+  readonly unselectedCarriagewayId: string | null;
+  readonly at: CoursePosition;
+  readonly lateral: Lateral;
+  readonly groundOffset: number;
+}
 export interface PresentationDocument {
-  readonly environments: readonly {
-    readonly at: CoursePosition;
-    readonly name: string;
-    readonly background: {
-      readonly assetId: string;
-      readonly horizonY: number;
-      readonly yawOrigin: number;
-    };
-  }[];
-  readonly sceneryRows: readonly {
-    readonly id: string;
-    readonly assetId: string;
-    readonly start: CoursePosition;
-    readonly end: CoursePosition;
-    readonly spacing: number;
-    readonly lateral: Lateral;
-    readonly groundOffset: number;
-  }[];
-  readonly scenery: readonly {
-    readonly id: string;
-    readonly instanceId: string;
-    readonly unselectedCarriagewayId: string | null;
-    readonly at: CoursePosition;
-    readonly lateral: Lateral;
-    readonly groundOffset: number;
-  }[];
+  readonly environments: readonly RepeatElement<EnvironmentDocument>[];
 }
 
 export interface SectionDocument {
@@ -127,6 +112,7 @@ export interface SectionDocument {
   readonly pis: readonly PlanPI[];
   readonly boundaries: readonly BoundaryDocument[];
   readonly strips: readonly StripElementDocument[];
+  readonly sprites: readonly RepeatElement<SpriteDocument>[];
   readonly height: readonly { readonly at: CoursePosition; readonly y: number; readonly curveLength: number }[];
   readonly carriageways: readonly CarriagewayDocument[];
   readonly assetIds: readonly string[];
@@ -176,11 +162,6 @@ export interface CourseDocument {
   readonly sections: readonly SectionDocument[];
   readonly links: readonly LinkDocument[];
   readonly assets: readonly CourseAssetReference[];
-  readonly sceneryInstances: readonly {
-    readonly id: string;
-    readonly assetId: string;
-    readonly paletteRgb555: readonly number[] | null;
-  }[];
 }
 
 function fail(code: ConstructorParameters<typeof CourseInputError>[0], path: string, message: string): never {
@@ -374,9 +355,33 @@ function rgb555(value: unknown, path: string): number {
   return color;
 }
 
-function stripElement(value: unknown, path: string, depth = 0): StripElementDocument {
+function repeated<T>(
+  value: unknown,
+  path: string,
+  limit: number,
+  leaf: (value: unknown, path: string) => T,
+  depth = 0,
+): RepeatElement<T> {
   if (depth > COURSE_DOCUMENT_LIMITS.repeatDepth)
-    fail('resource_limit', path, `Strip construct nesting exceeds ${COURSE_DOCUMENT_LIMITS.repeatDepth} levels`);
+    fail('resource_limit', path, `Repeat nesting exceeds ${COURSE_DOCUMENT_LIMITS.repeatDepth} levels`);
+  if (value && typeof value === 'object' && (value as Record<string, unknown>).kind === 'repeat') {
+    const v = record(value, path, ['kind', 'every', 'count', 'elements']);
+    const count = number(v.count, `${path}/count`, 1, COURSE_DOCUMENT_LIMITS.repeatCount);
+    if (!Number.isInteger(count)) fail('invalid_numeric_domain', `${path}/count`, 'Repeat count must be an integer');
+    return Object.freeze({
+      kind: 'repeat',
+      every: number(v.every, `${path}/every`, 0, COURSE_DOCUMENT_LIMITS.lengthMeters, true),
+      count,
+      elements: array(v.elements, `${path}/elements`, limit, (item, at) => repeated(item, at, limit, leaf, depth + 1)),
+    });
+  }
+  return leaf(value, path);
+}
+
+function stripElement(value: unknown, path: string): StripElementDocument {
+  return repeated(value, path, COURSE_DOCUMENT_LIMITS.stripElements, stripLeaf);
+}
+function stripLeaf(value: unknown, path: string): Exclude<StripElementDocument, { kind: 'repeat' }> {
   const kind = value && typeof value === 'object' ? (value as Record<string, unknown>).kind : undefined;
   const metre = (value: unknown, at: string, positive = false) =>
     number(value, at, 0, COURSE_DOCUMENT_LIMITS.lengthMeters, positive);
@@ -394,24 +399,6 @@ function stripElement(value: unknown, path: string, depth = 0): StripElementDocu
           right: knot.right === null ? null : lateral(knot.right, `${at}/right`),
         });
       }),
-    });
-  }
-  if (kind === 'repeat') {
-    const v = record(value, path, ['kind', 'every', 'count', 'elements']);
-    const count = number(v.count, `${path}/count`, 0, Number.MAX_SAFE_INTEGER, true);
-    if (!Number.isInteger(count) || count > COURSE_DOCUMENT_LIMITS.repeatCount)
-      fail(
-        'resource_limit',
-        `${path}/count`,
-        `Repeat count must be an integer from 1 through ${COURSE_DOCUMENT_LIMITS.repeatCount}`,
-      );
-    return Object.freeze({
-      kind,
-      count,
-      every: metre(v.every, `${path}/every`, true),
-      elements: array(v.elements, `${path}/elements`, COURSE_DOCUMENT_LIMITS.stripElements, (item, at) =>
-        stripElement(item, at, depth + 1),
-      ),
     });
   }
   if (kind === 'arrow') {
@@ -466,57 +453,56 @@ function stripElement(value: unknown, path: string, depth = 0): StripElementDocu
   return fail('unsupported_feature', `${path}/kind`, 'Unknown Strip authoring construct');
 }
 
+function environment(value: unknown, path: string): EnvironmentDocument {
+  const e = record(value, path, ['at', 'name', 'background']);
+  const b = record(e.background, `${path}/background`, ['assetId', 'horizonY', 'yawOrigin']);
+  return Object.freeze({
+    at: position(e.at, `${path}/at`),
+    name: id(e.name, `${path}/name`),
+    background: Object.freeze({
+      assetId: id(b.assetId, `${path}/background/assetId`),
+      horizonY: number(b.horizonY, `${path}/background/horizonY`, 0, Number.MAX_SAFE_INTEGER),
+      yawOrigin: number(b.yawOrigin, `${path}/background/yawOrigin`, -360, 360),
+    }),
+  });
+}
+function sprite(value: unknown, path: string): SpriteDocument {
+  const s = record(value, path, [
+    'kind',
+    'image',
+    'palette',
+    'at',
+    'lateral',
+    'groundOffset',
+    'unselectedCarriagewayId',
+  ]);
+  if (s.kind !== 'sprite') fail('unsupported_feature', `${path}/kind`, 'Expected sprite');
+  const palette = s.palette === null ? null : array(s.palette, `${path}/palette`, 16, rgb555);
+  if (palette !== null && palette.length !== 16)
+    fail('invalid_shape', `${path}/palette`, 'Expected 16 indexed palette slots');
+  return Object.freeze({
+    kind: 'sprite',
+    image: id(s.image, `${path}/image`),
+    palette,
+    at: position(s.at, `${path}/at`),
+    lateral: lateral(s.lateral, `${path}/lateral`),
+    groundOffset: number(
+      s.groundOffset,
+      `${path}/groundOffset`,
+      -COURSE_DOCUMENT_LIMITS.heightMeters,
+      COURSE_DOCUMENT_LIMITS.heightMeters,
+    ),
+    unselectedCarriagewayId:
+      s.unselectedCarriagewayId === null ? null : id(s.unselectedCarriagewayId, `${path}/unselectedCarriagewayId`),
+  });
+}
 function presentation(value: unknown, path: string): PresentationDocument | null {
   if (value === null) return null;
-  const v = record(value, path, ['environments', 'scenery', 'sceneryRows']);
+  const v = record(value, path, ['environments']);
   return Object.freeze({
-    environments: array(v.environments, `${path}/environments`, COURSE_DOCUMENT_LIMITS.environmentKnots, (item, at) => {
-      const e = record(item, at, ['at', 'name', 'background']);
-      const b = record(e.background, `${at}/background`, ['assetId', 'horizonY', 'yawOrigin']);
-      return Object.freeze({
-        at: position(e.at, `${at}/at`),
-        name: id(e.name, `${at}/name`),
-        background: Object.freeze({
-          assetId: id(b.assetId, `${at}/background/assetId`),
-          horizonY: number(b.horizonY, `${at}/background/horizonY`, 0, Number.MAX_SAFE_INTEGER),
-          yawOrigin: number(b.yawOrigin, `${at}/background/yawOrigin`, -360, 360),
-        }),
-      });
-    }),
-    sceneryRows: identified(v.sceneryRows, `${path}/sceneryRows`, COURSE_DOCUMENT_LIMITS.sceneryRows, (item, at) => {
-      const row = record(item, at, ['id', 'assetId', 'start', 'end', 'spacing', 'lateral', 'groundOffset']);
-      return Object.freeze({
-        id: id(row.id, `${at}/id`),
-        assetId: id(row.assetId, `${at}/assetId`),
-        start: position(row.start, `${at}/start`),
-        end: position(row.end, `${at}/end`),
-        spacing: number(row.spacing, `${at}/spacing`, 0, COURSE_DOCUMENT_LIMITS.lengthMeters, true),
-        lateral: lateral(row.lateral, `${at}/lateral`),
-        groundOffset: number(
-          row.groundOffset,
-          `${at}/groundOffset`,
-          -COURSE_DOCUMENT_LIMITS.heightMeters,
-          COURSE_DOCUMENT_LIMITS.heightMeters,
-        ),
-      });
-    }),
-    scenery: identified(v.scenery, `${path}/scenery`, COURSE_DOCUMENT_LIMITS.placements, (item, at) => {
-      const s = record(item, at, ['id', 'instanceId', 'unselectedCarriagewayId', 'at', 'lateral', 'groundOffset']);
-      return Object.freeze({
-        id: id(s.id, `${at}/id`),
-        instanceId: id(s.instanceId, `${at}/instanceId`),
-        unselectedCarriagewayId:
-          s.unselectedCarriagewayId === null ? null : id(s.unselectedCarriagewayId, `${at}/unselectedCarriagewayId`),
-        at: position(s.at, `${at}/at`),
-        lateral: lateral(s.lateral, `${at}/lateral`),
-        groundOffset: number(
-          s.groundOffset,
-          `${at}/groundOffset`,
-          -COURSE_DOCUMENT_LIMITS.heightMeters,
-          COURSE_DOCUMENT_LIMITS.heightMeters,
-        ),
-      });
-    }),
+    environments: array(v.environments, `${path}/environments`, COURSE_DOCUMENT_LIMITS.environmentKnots, (item, at) =>
+      repeated(item, at, COURSE_DOCUMENT_LIMITS.environmentKnots, environment),
+    ),
   });
 }
 
@@ -526,6 +512,7 @@ function section(value: unknown, path: string): SectionDocument {
     'pis',
     'boundaries',
     'strips',
+    'sprites',
     'height',
     'carriageways',
     'assetIds',
@@ -539,6 +526,9 @@ function section(value: unknown, path: string): SectionDocument {
     boundaries: identified(v.boundaries, `${path}/boundaries`, COURSE_DOCUMENT_LIMITS.boundaries, boundary),
     strips: array(v.strips, `${path}/strips`, COURSE_DOCUMENT_LIMITS.stripElements, (item, at) =>
       stripElement(item, at),
+    ),
+    sprites: array(v.sprites, `${path}/sprites`, COURSE_DOCUMENT_LIMITS.spriteElements, (item, at) =>
+      repeated(item, at, COURSE_DOCUMENT_LIMITS.spriteElements, sprite),
     ),
     height: array(v.height, `${path}/height`, COURSE_DOCUMENT_LIMITS.heightNodes, (item, at) => {
       const node = record(item, at, ['at', 'y', 'curveLength']);
@@ -620,7 +610,6 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
       'sections',
       'links',
       'assets',
-      'sceneryInstances',
     ]);
     const format = literal(v.format, 'superoutride.course', '/format', 'unsupported_format');
     const version = literal(v.version, COURSE_DOCUMENT_VERSION, '/version', 'unsupported_version');
@@ -675,23 +664,6 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
           sha256: a.sha256,
         });
       }),
-      sceneryInstances: identified(
-        v.sceneryInstances,
-        '/sceneryInstances',
-        COURSE_DOCUMENT_LIMITS.instances,
-        (item, at) => {
-          const instance = record(item, at, ['id', 'assetId', 'paletteRgb555']);
-          const palette =
-            instance.paletteRgb555 === null ? null : array(instance.paletteRgb555, `${at}/paletteRgb555`, 16, rgb555);
-          if (palette !== null && palette.length !== 16)
-            fail('invalid_shape', `${at}/paletteRgb555`, 'Expected 16 indexed palette slots');
-          return Object.freeze({
-            id: id(instance.id, `${at}/id`),
-            assetId: id(instance.assetId, `${at}/assetId`),
-            paletteRgb555: palette,
-          });
-        },
-      ),
     });
     if (new TextEncoder().encode(JSON.stringify(result)).byteLength > COURSE_DOCUMENT_LIMITS.jsonBytes)
       fail('resource_limit', '', `Document exceeds ${COURSE_DOCUMENT_LIMITS.jsonBytes} UTF-8 bytes`);

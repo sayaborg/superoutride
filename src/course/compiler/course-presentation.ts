@@ -1,6 +1,7 @@
+import { expandCourseElements, shiftedCoursePosition } from '../course-repeat.js';
 import { resolveCourseLateral } from './course-lateral.js';
 import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
-import { type CoursePosition, type PresentationDocument } from '../course-document.js';
+import { type CoursePosition, type SectionDocument } from '../course-document.js';
 import type { CompiledBoundary, CompiledCarriageway } from '../course-boundaries.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
 import { CourseInputError, requireCourse } from '../course-diagnostics.js';
@@ -8,27 +9,62 @@ import { BACKGROUND_HEIGHT, BACKGROUND_PIXELS_PER_RADIAN } from '../../image/til
 import type { CoursePresentation, CourseSceneryInstance } from '../course-presentation.js';
 import type { CompiledCourseImageSource } from './course-image-source.js';
 
-export const COURSE_PRESENTATION_RECIPE = Object.freeze({ id: 'superoutride.course-presentation', version: 8 });
+export const COURSE_PRESENTATION_RECIPE = Object.freeze({ id: 'superoutride.course-presentation', version: 9 });
 
-/** Resolve saved environment and scenery through canonical geometry/assets. */
+/** Share one immutable image/palette binding across every Section in a compilation. */
+export function createCourseSpriteResources() {
+  const images = new Map<CourseSceneryInstance['asset']['source'], Map<string, CourseSceneryInstance>>();
+  return (
+    asset: CourseSceneryInstance['asset'],
+    palette: readonly number[] | null,
+    path: string,
+  ): CourseSceneryInstance => {
+    requireCourse(
+      palette === null ||
+        [asset.source.levels[0]!.paletteRgb555, ...asset.source.variants].some((choice) =>
+          choice.every((value, i) => i === 0 || value === palette[i]),
+        ),
+      path,
+      'Sprite palette must participate in the compiled LOD variant set',
+      'appearance_binding',
+    );
+    let variants = images.get(asset.source);
+    if (!variants) {
+      variants = new Map();
+      images.set(asset.source, variants);
+    }
+    const key = JSON.stringify(palette);
+    let resource = variants.get(key);
+    if (!resource) {
+      resource = Object.freeze({ asset, paletteRgb555: palette });
+      variants.set(key, resource);
+    }
+    return resource;
+  };
+}
+
+/** Resolve saved environment and sprites through canonical geometry/assets. */
 export function compileCoursePresentation(
-  source: PresentationDocument | null,
+  section: SectionDocument,
   length: number,
   boundaries: ReadonlyMap<string, CompiledBoundary>,
   assets: readonly CompiledCourseImageSource[],
-  instances: ReadonlyMap<string, CourseSceneryInstance>,
+  resource: ReturnType<typeof createCourseSpriteResources>,
   resolve: (at: CoursePosition, path: string) => CompiledCoursePosition,
   path: string,
-  sectionId: string,
   carriageways: readonly CompiledCarriageway[],
 ): CoursePresentation | null {
-  if (source === null) return null;
+  const source = section.presentation;
+  if (source === null) {
+    requireCourse(section.sprites.length === 0, `${path}/sprites`, 'Sprites require environments', 'invalid_placement');
+    return null;
+  }
   const assetTable = new Map(assets.map((asset) => [asset.id, asset]));
   const image = (id: string, at: string) => {
     const asset = assetTable.get(id);
     if (!asset) throw new CourseInputError('unresolved_reference', at, 'Image must belong to this Section');
     if (asset.source.format !== 'superoutride.sprite-lod')
-      throw new CourseInputError('invalid_image_role', at, 'Scenery requires sprite patterns');
+      throw new CourseInputError('invalid_image_role', at, 'Sprites require sprite patterns');
     const sprite = asset as typeof asset & {
       readonly source: Extract<typeof asset.source, { format: 'superoutride.sprite-lod' }>;
     };
@@ -49,104 +85,93 @@ export function compileCoursePresentation(
         'invalid_profile',
       );
   };
-  const environments = source.environments.map((environment, i) => {
-    const at = `${path}/environments/${i}`,
-      b = environment.background,
-      asset = assetTable.get(b.assetId);
-    if (!asset) throw new CourseInputError('unresolved_reference', `${at}/background/assetId`, 'Unknown background');
-    if (asset.source.format !== 'superoutride.tile-background')
-      throw new CourseInputError(
-        'invalid_image_role',
-        `${at}/background/assetId`,
-        'Background requires the single tiled plane format',
+  const environments: CoursePresentation['environments'][number][] = [];
+  expandCourseElements(
+    source.environments,
+    `${path}/presentation/environments`,
+    COURSE_DOCUMENT_LIMITS.environmentKnots * (2 * COURSE_DOCUMENT_LIMITS.repeatDepth + 1),
+    (environment, offset, at) => {
+      requireCourse(
+        environments.length < COURSE_DOCUMENT_LIMITS.environmentKnots,
+        at,
+        'Expanded environment knot limit exceeded',
+        'resource_limit',
       );
-    const tiled = asset as typeof asset & {
-      readonly source: Extract<typeof asset.source, { format: 'superoutride.tile-background' }>;
-    };
-    requireCourse(
-      Number.isInteger(b.horizonY) && b.horizonY < BACKGROUND_HEIGHT,
-      `${at}/background/horizonY`,
-      'Background horizon must be an image row',
-      'invalid_image_role',
-    );
-    return Object.freeze({
-      at: resolve(environment.at, `${at}/at`),
-      name: environment.name,
-      background: Object.freeze({
-        asset: tiled,
-        horizonY: b.horizonY,
-        pixelsPerRadian: BACKGROUND_PIXELS_PER_RADIAN,
-        yawOriginRadians: (b.yawOrigin * Math.PI) / 180,
-      }),
-    });
-  });
+      const b = environment.background,
+        asset = assetTable.get(b.assetId);
+      if (!asset) throw new CourseInputError('unresolved_reference', `${at}/background/assetId`, 'Unknown background');
+      if (asset.source.format !== 'superoutride.tile-background')
+        throw new CourseInputError(
+          'invalid_image_role',
+          `${at}/background/assetId`,
+          'Background requires the single tiled plane format',
+        );
+      const tiled = asset as typeof asset & {
+        readonly source: Extract<typeof asset.source, { format: 'superoutride.tile-background' }>;
+      };
+      requireCourse(
+        Number.isInteger(b.horizonY) && b.horizonY < BACKGROUND_HEIGHT,
+        `${at}/background/horizonY`,
+        'Background horizon must be an image row',
+        'invalid_image_role',
+      );
+      environments.push(
+        Object.freeze({
+          at: shiftedCoursePosition(resolve, offset, length)(environment.at, `${at}/at`),
+          name: environment.name,
+          background: Object.freeze({
+            asset: tiled,
+            horizonY: b.horizonY,
+            pixelsPerRadian: BACKGROUND_PIXELS_PER_RADIAN,
+            yawOriginRadians: (b.yawOrigin * Math.PI) / 180,
+          }),
+        }),
+      );
+    },
+  );
   ordered(
     environments.map((e) => e.at),
     0,
     length,
-    `${path}/environments`,
+    `${path}/presentation/environments`,
   );
-  const scenery = source.scenery.map((placement, i) => {
-    const at = `${path}/scenery/${i}`,
-      instance = instances.get(placement.instanceId);
-    if (!instance) throw new CourseInputError('unresolved_reference', `${at}/instanceId`, 'Unknown scenery instance');
-    requireCourse(
-      assets.some((asset) => asset === instance.asset),
-      `${at}/instanceId`,
-      'Scenery asset must belong to this Section',
-      'unresolved_reference',
-    );
-    const unselected =
-      placement.unselectedCarriagewayId === null
-        ? null
-        : carriageways.find((c) => c.id === placement.unselectedCarriagewayId);
-    if (unselected === undefined)
-      throw new CourseInputError(
-        'unresolved_reference',
-        `${at}/unselectedCarriagewayId`,
-        'Unknown state-selected carriageway',
+  const sprites: CoursePresentation['sprites'][number][] = [];
+  expandCourseElements(
+    section.sprites,
+    `${path}/sprites`,
+    COURSE_DOCUMENT_LIMITS.spritePlacements * (2 * COURSE_DOCUMENT_LIMITS.repeatDepth + 1),
+    (placement, offset, at) => {
+      requireCourse(
+        sprites.length < COURSE_DOCUMENT_LIMITS.spritePlacements,
+        at,
+        'Expanded sprite placement limit exceeded',
+        'resource_limit',
       );
-    const position = resolve(placement.at, `${at}/at`);
-    return Object.freeze({
-      unselected,
-      id: placement.id,
-      instance,
-      at: position,
-      l: resolveCourseLateral(placement.lateral, position.s, boundaries, `${at}/lateral`),
-      groundOffset: placement.groundOffset,
-    });
-  });
-  for (const [rowIndex, row] of source.sceneryRows.entries()) {
-    const at = `${path}/sceneryRows/${rowIndex}`;
-    const start = resolve(row.start, `${at}/start`),
-      end = resolve(row.end, `${at}/end`);
-    requireCourse(end.s > start.s, at, 'Row interval must be positive', 'invalid_placement');
-    const count = Math.ceil((end.s - start.s) / row.spacing);
-    requireCourse(
-      Number.isSafeInteger(count) && count + scenery.length <= COURSE_DOCUMENT_LIMITS.placements,
-      at,
-      'Expanded scenery exceeds the Section placement limit',
-      'resource_limit',
-    );
-    const asset = image(row.assetId, `${at}/assetId`);
-    for (let index = 0; index < count; index += 1) {
-      const s = start.s + index * row.spacing;
-      if (s >= end.s) break;
-      const id = JSON.stringify([sectionId, row.id, index]);
-      scenery.push(
+      const instance = resource(image(placement.image, `${at}/image`), placement.palette, `${at}/palette`);
+      const unselected =
+        placement.unselectedCarriagewayId === null
+          ? null
+          : carriageways.find((c) => c.id === placement.unselectedCarriagewayId);
+      if (unselected === undefined)
+        throw new CourseInputError(
+          'unresolved_reference',
+          `${at}/unselectedCarriagewayId`,
+          'Unknown state-selected carriageway',
+        );
+      const position = shiftedCoursePosition(resolve, offset, length)(placement.at, `${at}/at`);
+      sprites.push(
         Object.freeze({
-          id,
-          instance: Object.freeze({ id, asset, paletteRgb555: null }),
-          unselected: null,
-          at: Object.freeze({ s }),
-          l: resolveCourseLateral(row.lateral, s, boundaries, `${at}/lateral`),
-          groundOffset: row.groundOffset,
+          unselected,
+          instance,
+          at: position,
+          l: resolveCourseLateral(placement.lateral, position.s, boundaries, `${at}/lateral`),
+          groundOffset: placement.groundOffset,
         }),
       );
-    }
-  }
+    },
+  );
   return Object.freeze({
     environments: Object.freeze(environments),
-    scenery: Object.freeze(scenery),
+    sprites: Object.freeze(sprites),
   });
 }

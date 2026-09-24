@@ -12,7 +12,7 @@ export interface CourseObservations {
     roadWidthMeters: number;
     heightMeters: number | null;
   }[];
-  sceneryRows: {
+  spriteRows: {
     startS: number;
     endS: number;
     spacingMeters: number;
@@ -79,13 +79,13 @@ export function readObservations(value: unknown): CourseObservations {
     'Observations span a positive distance from station zero',
   );
   const station = (s: unknown, p: string) => finite(s, p, 0, previous);
-  for (const key of ['sceneryRows', 'environments', 'checkpoints', 'remasterDeviations', 'measurements'] as const)
+  for (const key of ['spriteRows', 'environments', 'checkpoints', 'remasterDeviations', 'measurements'] as const)
     check(Array.isArray(input[key]), `/${key}`, 'Expected an explicit array');
-  for (const [i, row] of input.sceneryRows.entries()) {
-    const p = `/sceneryRows/${i}`;
+  for (const [i, row] of input.spriteRows.entries()) {
+    const p = `/spriteRows/${i}`;
     station(row.startS, p + '/startS');
     station(row.endS, p + '/endS');
-    check(row.endS > row.startS, p, 'Scenery row needs positive length');
+    check(row.endS > row.startS, p, 'Observed sprite row needs positive length');
     finite(row.spacingMeters, p + '/spacingMeters', 0.1, 100000);
     finite(row.offsetMeters, p + '/offsetMeters', 0, 1000);
     finite(row.groundOffsetMeters, p + '/groundOffsetMeters', -10000, 10000);

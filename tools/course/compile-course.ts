@@ -65,7 +65,7 @@ if (!result.ok) {
                   kind: 'strips',
                   ...section.color.metrics,
                   environments: section.presentation.environments.length,
-                  scenery: section.presentation.scenery.length,
+                  sprites: section.presentation.sprites.length,
                 },
         })),
       },

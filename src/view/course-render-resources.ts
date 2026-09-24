@@ -11,7 +11,7 @@ export function createCourseRenderResources() {
   // Decoded rendering workspaces are borrowed read-only. Canonical saved sources remain immutable.
   const images = new Map<SpriteLodDocument, ReturnType<typeof readSpriteLodAsset>>();
   const backgrounds = new Map<TileBackgroundDocument, TileBackgroundImage>();
-  const instances = new Map<CoursePresentation['scenery'][number]['instance'], ReturnType<typeof readSpriteLodAsset>>();
+  const instances = new Map<CoursePresentation['sprites'][number]['instance'], ReturnType<typeof readSpriteLodAsset>>();
   const image = (source: SpriteLodDocument) => {
     let decoded = images.get(source);
     if (!decoded) {
@@ -20,7 +20,7 @@ export function createCourseRenderResources() {
     }
     return decoded;
   };
-  const instanceImage = (instance: CoursePresentation['scenery'][number]['instance']) => {
+  const instanceImage = (instance: CoursePresentation['sprites'][number]['instance']) => {
     let asset = instances.get(instance);
     if (!asset) {
       const decoded = image(instance.asset.source);
@@ -34,7 +34,7 @@ export function createCourseRenderResources() {
     geometry: { readonly coordinates: PlanCoordinateReader },
     height: ProfileReader,
   ) => {
-    if (!p || !Array.isArray(p.environments) || !Array.isArray(p.scenery) || !geometry?.coordinates || !height)
+    if (!p || !Array.isArray(p.environments) || !Array.isArray(p.sprites) || !geometry?.coordinates || !height)
       throw new TypeError('Section rendering requires compiled content, plan and height readers');
 
     return Object.freeze({
@@ -61,13 +61,13 @@ export function createCourseRenderResources() {
         }),
       ),
       sprites: Object.freeze(
-        p.scenery.map((placement) =>
+        p.sprites.map((placement) =>
           Object.freeze({
             l: placement.l,
             unselected: placement.unselected,
             sprite: Object.freeze(
               compileCourseSprite(geometry, height, {
-                name: placement.instance.id,
+                name: placement.instance.asset.source.name,
                 s: placement.at.s,
                 l: placement.l,
                 groundOffset: placement.groundOffset,

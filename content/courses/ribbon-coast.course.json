@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 19,
+  "version": 20,
   "id": "ribbon-coast",
   "reference": null,
   "units": {
@@ -1673,48 +1673,55 @@
               "yawOrigin": 0
             }
           }
-        ],
-        "sceneryRows": [
-          {
-            "id": "fit-row-1",
-            "assetId": "tree",
-            "start": {
-              "pi": "fit-002",
-              "offset": 251.77764326657348
-            },
-            "end": {
-              "pi": "end",
-              "offset": -415.40000000000055
-            },
-            "spacing": 42,
-            "lateral": {
-              "boundary": "road-left",
-              "offset": -5
-            },
-            "groundOffset": 0
-          },
-          {
-            "id": "fit-row-2",
-            "assetId": "tree",
-            "start": {
-              "pi": "fit-002",
-              "offset": 251.77764326657348
-            },
-            "end": {
-              "pi": "end",
-              "offset": -415.40000000000055
-            },
-            "spacing": 42,
-            "lateral": {
-              "boundary": "road-right",
-              "offset": 5
-            },
-            "groundOffset": 0
-          }
-        ],
-        "scenery": []
+        ]
       },
-      "fork": null
+      "fork": null,
+      "sprites": [
+        {
+          "kind": "repeat",
+          "every": 42,
+          "count": 49,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "tree",
+              "palette": null,
+              "at": {
+                "pi": "fit-002",
+                "offset": 251.77764326657348
+              },
+              "lateral": {
+                "boundary": "road-left",
+                "offset": -5
+              },
+              "groundOffset": 0,
+              "unselectedCarriagewayId": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 42,
+          "count": 49,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "tree",
+              "palette": null,
+              "at": {
+                "pi": "fit-002",
+                "offset": 251.77764326657348
+              },
+              "lateral": {
+                "boundary": "road-right",
+                "offset": 5
+              },
+              "groundOffset": 0,
+              "unselectedCarriagewayId": null
+            }
+          ]
+        }
+      ]
     }
   ],
   "links": [],
@@ -1737,6 +1744,5 @@
       "version": 2,
       "sha256": "b09289be3a424ac827c49569aff8e5f3ece795a33de77f26527d8e0a572028ab"
     }
-  ],
-  "sceneryInstances": []
+  ]
 }

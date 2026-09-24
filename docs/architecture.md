@@ -278,7 +278,8 @@ base pitch, player anchor row 190, 0.22 s vertical-follow time constant and 4 m 
 ## Ground and background
 
 BG is one infinite tiled plane. Yaw and pitch change its view; translation does not.
-Its yaw origin uses the shared route frame across every occurrence.
+Its yaw origin uses the shared route frame across every occurrence. The background is selected
+at camera chainage `camera.s`; distant sprites and ground rows do not change that selection.
 [Image assets](image-assets.md#infinite-tiled-background) owns its format and angular mapping.
 Transparent ground makes no ground write, preserving the underlying Painter image, including BG
 below the horizon. Physical support is independent of all ground colors.

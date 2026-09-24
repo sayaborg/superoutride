@@ -54,7 +54,7 @@ try {
       course: string;
       identity: CompiledCourse['identity'];
       reference: CompiledCourse['reference'];
-      sections: { id: string; length: number; scenery: number }[];
+      sections: { id: string; length: number; sprites: number }[];
       ground?: CourseGround['metrics'];
       render?: RenderFrame | { frames: RenderFrame[] };
       report?: Awaited<ReturnType<typeof courseReport>>;
@@ -66,7 +66,7 @@ try {
       sections: course.sections.map((s) => ({
         id: s.id,
         length: s.coordinates.domain.end,
-        scenery: s.presentation?.scenery.length ?? 0,
+        sprites: s.presentation?.sprites.length ?? 0,
       })),
     };
     const section = opts.has('--section') ? course.sections.find((s) => s.id === opts.get('--section')) : course.entry;

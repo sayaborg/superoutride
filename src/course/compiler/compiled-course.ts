@@ -29,8 +29,11 @@ import {
   type CourseAssetBytes,
   type CompiledCourseImageSource,
 } from './course-image-source.js';
-import { COURSE_PRESENTATION_RECIPE, compileCoursePresentation } from './course-presentation.js';
-import type { CourseSceneryInstance } from '../course-presentation.js';
+import {
+  COURSE_PRESENTATION_RECIPE,
+  compileCoursePresentation,
+  createCourseSpriteResources,
+} from './course-presentation.js';
 import { compileCourseBoundaries } from './course-lateral.js';
 import { compileCourseRules } from './course-rules.js';
 import { compileCourseFork } from './course-fork.js';
@@ -57,12 +60,11 @@ export interface CompiledCourse {
   readonly entry: CompiledSection;
   readonly links: readonly CompiledLink[];
   readonly assets: readonly CompiledCourseImageSource[];
-  readonly sceneryInstances: readonly CourseSceneryInstance[];
 }
 
 const COURSE_COMPILER = Object.freeze({
   id: 'superoutride.course-compiler',
-  version: 29,
+  version: 30,
   links: COURSE_LINK_RECIPE,
   physical: COURSE_PHYSICAL_RECIPE,
   images: COURSE_IMAGE_SOURCE_RECIPE,
@@ -102,7 +104,7 @@ function compileStage<T, U>(values: readonly T[], build: (value: T, index: numbe
 function compileSection(
   section: SectionDocument,
   assets: ReadonlyMap<string, CompiledCourseImageSource>,
-  instances: ReadonlyMap<string, CourseSceneryInstance>,
+  resources: ReturnType<typeof createCourseSpriteResources>,
   path: string,
 ) {
   const { segments, length, stations } = compileCourseGeometry(section, path);
@@ -140,14 +142,13 @@ function compileSection(
     carriageways: Object.freeze(carriageways),
     assets: Object.freeze(sectionAssets),
     presentation: compileCoursePresentation(
-      section.presentation,
+      section,
       length,
       boundaryTable,
       sectionAssets,
-      instances,
+      resources,
       resolve,
-      `${path}/presentation`,
-      section.id,
+      path,
       carriageways,
     ),
     incoming: [],
@@ -187,31 +188,9 @@ export async function compileCourseDocument(
     const images = await compileCourseImageSources(document.assets, assetSources);
     if (!images.ok) return images;
     const assets = new Map(images.value.map((asset) => [asset.id, asset]));
-    const sceneryInstances = Object.freeze(
-      compileStage(document.sceneryInstances, (instance, index) => {
-        const path = `/sceneryInstances/${index}/assetId`;
-        const asset = reference(assets, instance.assetId, path);
-        if (asset.source.format !== 'superoutride.sprite-lod')
-          throw new CourseInputError('invalid_image_role', path, 'Scenery requires a sprite image');
-        const sprite = asset as typeof asset & {
-          readonly source: Extract<typeof asset.source, { format: 'superoutride.sprite-lod' }>;
-        };
-        const palette = instance.paletteRgb555;
-        requireCourse(
-          palette === null ||
-            [sprite.source.levels[0]!.paletteRgb555, ...sprite.source.variants].some((choice) =>
-              choice.every((value, i) => i === 0 || value === palette[i]),
-            ),
-          path,
-          'Instance palette must participate in the compiled LOD variant set',
-          'appearance_binding',
-        );
-        return Object.freeze({ id: instance.id, asset: sprite, paletteRgb555: palette });
-      }),
-    );
-    const instances = new Map(sceneryInstances.map((instance) => [instance.id, instance]));
+    const resources = createCourseSpriteResources();
     const drafts = compileStage(document.sections, (section, index) =>
-      compileSection(section, assets, instances, `/sections/${index}`),
+      compileSection(section, assets, resources, `/sections/${index}`),
     );
     const sections = drafts.map((draft) => draft.section);
     const sectionTable = new Map(sections.map((section) => [section.id, section]));
@@ -281,14 +260,6 @@ export async function compileCourseDocument(
         entry,
         links: Object.freeze(links),
         assets: images.value,
-        sceneryInstances: Object.freeze([
-          ...new Set([
-            ...sceneryInstances,
-            ...sections.flatMap(
-              (section) => section.presentation?.scenery.map((placement) => placement.instance) ?? [],
-            ),
-          ]),
-        ]),
       }),
     );
   } catch (error) {

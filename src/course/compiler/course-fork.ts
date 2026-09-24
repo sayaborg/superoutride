@@ -12,7 +12,7 @@ export function compileCourseFork(
   positions: { readonly lock: CompiledCoursePosition; readonly closure: CompiledCoursePosition } | null,
   path: string,
 ): CompiledFork | null {
-  const conditional = section.presentation?.scenery.filter((p) => p.unselected !== null) ?? [];
+  const conditional = section.presentation?.sprites.filter((p) => p.unselected !== null) ?? [];
   if (positions === null) {
     requireCourse(conditional.length === 0, path, 'State-selected road signs require a fork', 'invalid_fork');
     return null;

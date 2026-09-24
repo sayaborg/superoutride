@@ -1,3 +1,4 @@
+import { expandCourseElements, shiftedCoursePosition } from '../course-repeat.js';
 import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
 import { compileStripMaterial } from '../strip-material.js';
 import { SURFACE_MATERIALS, type SurfaceMaterial, type SurfaceType } from '../surface-material.js';
@@ -69,7 +70,6 @@ function expandCourseStrips(
     );
     extents.push(shape);
   };
-  let work = 0;
   const add = (piece: StripPiece) => {
     if (piece.start < 0 || piece.end > length)
       throw new CourseInputError('invalid_profile', path, 'Expanded Strip extends outside its Section');
@@ -149,13 +149,13 @@ function expandCourseStrips(
       }
     }
   };
-  const expand = (element: StripElementDocument, offset: number, at: string, repeated = false) => {
-    if (++work > COURSE_DOCUMENT_LIMITS.stripExpansion)
-      throw new CourseInputError(
-        'resource_limit',
-        at,
-        `Strip expansion work exceeds ${COURSE_DOCUMENT_LIMITS.stripExpansion} constructs`,
-      );
+  const expand = (
+    element: Exclude<StripElementDocument, { kind: 'repeat' }>,
+    offset: number,
+    at: string,
+    repeated: boolean,
+  ) => {
+    const position = shiftedCoursePosition(resolve, offset, length);
     switch (element.kind) {
       case 'strip':
         requireCourse(
@@ -166,7 +166,7 @@ function expandCourseStrips(
         );
         strip(
           element.knots.map((k, i) => ({
-            s: resolve(k.at, `${at}/knots/${i}/at`).s + offset,
+            s: position(k.at, `${at}/knots/${i}/at`).s,
             left: k.left,
             right: k.right,
           })),
@@ -175,14 +175,9 @@ function expandCourseStrips(
           at,
         );
         break;
-      case 'repeat':
-        for (let i = 0; i < element.count; i++)
-          for (const [j, child] of element.elements.entries())
-            expand(child, offset + i * element.every, `${at}/elements/${j}`, true);
-        break;
       case 'curb': {
-        const start = resolve(element.start, `${at}/start`).s + offset;
-        const end = resolve(element.end, `${at}/end`).s + offset;
+        const start = position(element.start, `${at}/start`).s;
+        const end = position(element.end, `${at}/end`).s;
         requireCourse(end > start, at, 'Curb extent must be positive', 'invalid_profile');
         const count = Math.ceil((end - start) / element.stripe);
         requireCourse(
@@ -204,7 +199,7 @@ function expandCourseStrips(
         break;
       }
       case 'text': {
-        const station = resolve(element.at, `${at}/at`).s + offset;
+        const station = position(element.at, `${at}/at`).s;
         const lateral = resolveCourseLateral(element.lateral, station, boundaries, `${at}/lateral`);
         const cell = element.height / 7;
         for (let char = 0; char < element.text.length; char++) {
@@ -228,7 +223,7 @@ function expandCourseStrips(
         break;
       }
       case 'arrow': {
-        const station = resolve(element.at, `${at}/at`).s + offset;
+        const station = position(element.at, `${at}/at`).s;
         const lateral = resolveCourseLateral(element.lateral, station, boundaries, `${at}/lateral`);
         const vertices = [
           [-0.18, 0],
@@ -267,7 +262,7 @@ function expandCourseStrips(
       }
     }
   };
-  elements.forEach((element, i) => expand(element, 0, `${path}/${i}`));
+  expandCourseElements(elements, path, COURSE_DOCUMENT_LIMITS.stripExpansion, expand);
   const events = extents
     .flatMap(({ start, end }) => [
       { s: start, delta: 1 },

@@ -9,7 +9,6 @@ interface IndexedSource {
 }
 
 export interface CourseSceneryInstance {
-  readonly id: string;
   readonly paletteRgb555: readonly number[] | null;
   readonly asset: IndexedSource;
 }
@@ -25,8 +24,7 @@ export interface CoursePresentation {
       readonly yawOriginRadians: number;
     };
   }[];
-  readonly scenery: readonly {
-    readonly id: string;
+  readonly sprites: readonly {
     readonly instance: CourseSceneryInstance;
     readonly unselected: CompiledCarriageway | null;
     readonly at: CompiledCoursePosition;

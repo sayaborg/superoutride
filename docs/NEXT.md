@@ -8,7 +8,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **7-4b — Sprites and environment**.
+Next PR: **7-4c — Names**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -18,7 +18,6 @@ PRs hold rationale and verification evidence.
 
 Write plan, position, lateral strips and race landmarks in one consistent authored course format.
 
-- **7-4b — Sprites and environment:** replace scenery placements and scenery rows with one Section `sprites` list positioned with `at`, `Lateral` and a height offset; give Strips, sprites and environment knots one shared repeat construct; represent tunnels with sprites and environment knots that switch the background inside and restore it on exit, and document the representation.
 - **7-4c — Names:** name successors to VisualProfile, CoursePresentation, `presentation` and their visual records according to the glossary.
 - **7-5 — Gates, rules and cycles:** author start (including grid), checkpoints, finish, lock lines and closures as Section `gates`; remove `fork` and derive forking from the number of outgoing Links; forbid Links from a Section to itself so a circuit is a cycle of two or more Sections; require every directed cycle to close geometrically at compilation (the composed Link transforms return to identity within the accumulated Link tolerance); merges of different branches are not cycles and stay unchecked; count a lap as one traversal of the cycle; rebuild ribbon-ring as a geometrically closed cycle; leave only numeric settings in `rules`; derive course kind from the graph; remove production provenance, `geometryRecipe`, `units` and `reference`; simplify nulls and limits. The directed-cycle closure check must not enumerate every cycle; it must stay polynomial in Sections and Links at the admitted graph size.
 - **7-6 — Delivery identity:** use one manifest, one version per format and one image path.
