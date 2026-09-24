@@ -3,12 +3,7 @@ import { COURSE_DOCUMENT_LIMITS } from './course-document.js';
 import { CourseInputError, requireCourse } from './course-diagnostics.js';
 import { validatePlanDomainInjectivity } from './plan-domain-injectivity.js';
 import type { CompiledPlanSegment } from './geometry/plan-path.js';
-import {
-  courseBoundaryAt,
-  type CompiledRegion,
-  type CompiledRegionPartition,
-  type CompiledCarriageway,
-} from './course-regions.js';
+import { courseBoundaryAt, type CompiledRegion, type CompiledRegionPartition } from './course-regions.js';
 
 export const PLAN_COORDINATE_MARGIN_METERS = 4;
 
@@ -95,7 +90,6 @@ export function compileCourseRegionGeometry(
   length: number,
   segments: readonly CompiledPlanSegment[],
   regions: readonly CompiledRegion[],
-  carriageways: readonly CompiledCarriageway[],
   sectionPath: string,
 ): { readonly partition: CompiledRegionPartition; readonly lateralDomain: CompiledPlanLateralDomain } {
   const path = `${sectionPath}/regions`;
@@ -182,16 +176,6 @@ export function compileCourseRegionGeometry(
         );
       }
     }
-    carriageways.forEach((carriageway, i) => {
-      const members = ordered.filter((region) => carriageway.regions.includes(region));
-      for (let j = 1; j < members.length; j += 1)
-        requireCourse(
-          members[j - 1]!.right === members[j]!.left,
-          `${sectionPath}/carriageways/${i}`,
-          `Carriageway ${JSON.stringify(carriageway.id)} must be contiguous throughout [${sStart}, ${sEnd}]`,
-          'invalid_carriageway',
-        );
-    });
     return { sStart, sEnd, ordered };
   });
   for (let i = 1; i < spans.length; i += 1) {

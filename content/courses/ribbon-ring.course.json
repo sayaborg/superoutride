@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 17,
+  "version": 18,
   "reference": null,
   "id": "ribbon-ring",
   "units": {
@@ -415,7 +415,8 @@
       "carriageways": [
         {
           "id": "road",
-          "regionIds": ["lane-left", "center", "lane-right"]
+          "left": "road-left",
+          "right": "road-right"
         }
       ],
       "assetIds": ["coast-sky", "tree"],

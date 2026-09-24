@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 17,
+  "version": 18,
   "reference": null,
   "id": "ribbon-fork",
   "units": {
@@ -233,6 +233,56 @@
               "lateral": {
                 "boundary": "right-outer",
                 "offset": -7
+              }
+            }
+          ]
+        },
+        {
+          "id": "approach-left",
+          "knots": [
+            {
+              "at": {
+                "pi": "start",
+                "offset": 0
+              },
+              "lateral": {
+                "boundary": "initial-left",
+                "offset": 0
+              }
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 70
+              },
+              "lateral": {
+                "boundary": "initial-left",
+                "offset": 0
+              }
+            }
+          ]
+        },
+        {
+          "id": "approach-right",
+          "knots": [
+            {
+              "at": {
+                "pi": "start",
+                "offset": 0
+              },
+              "lateral": {
+                "boundary": "initial-right",
+                "offset": 0
+              }
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 70
+              },
+              "lateral": {
+                "boundary": "initial-right",
+                "offset": 0
               }
             }
           ]
@@ -470,12 +520,19 @@
       ],
       "carriageways": [
         {
+          "id": "APPROACH",
+          "left": "approach-left",
+          "right": "approach-right"
+        },
+        {
           "id": "LEFT",
-          "regionIds": ["initial", "left-road"]
+          "left": "left-outer",
+          "right": "left-inner"
         },
         {
           "id": "RIGHT",
-          "regionIds": ["right-road"]
+          "left": "right-inner",
+          "right": "right-outer"
         }
       ],
       "assetIds": ["coast-sky", "tree", "fork-warning", "fork-closed"],
@@ -971,7 +1028,8 @@
       "carriageways": [
         {
           "id": "road",
-          "regionIds": ["road"]
+          "left": "road-left",
+          "right": "road-right"
         }
       ],
       "assetIds": ["coast-sky", "tree", "fork-warning", "fork-closed"],
@@ -1316,7 +1374,8 @@
       "carriageways": [
         {
           "id": "road",
-          "regionIds": ["road"]
+          "left": "road-left",
+          "right": "road-right"
         }
       ],
       "assetIds": ["coast-sky", "tree", "fork-warning", "fork-closed"],
@@ -1678,7 +1737,8 @@
       "carriageways": [
         {
           "id": "road",
-          "regionIds": ["road"]
+          "left": "road-left",
+          "right": "road-right"
         }
       ],
       "assetIds": ["coast-sky", "tree", "fork-warning", "fork-closed"],

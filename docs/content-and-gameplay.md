@@ -8,7 +8,7 @@ owns image formats and compilation; [Browser](browser.md) owns operation and URL
 
 A Section is a reusable finite road/content chart. A Boundary is a longitudinal lateral-edge profile;
 a Region is a structural partition between two Boundaries with an active interval and role. A Carriageway
-groups pavement Regions. A Link connects one Carriageway at a Section end to another Section start.
+is the road between two Section-local Boundaries. A Link connects one Carriageway at a Section end to another Section start.
 A RouteOccurrence is a selected Section visit in the shared Route, with its incoming Link and fixed
 route coordinates. CompiledCourse is the immutable reference graph. Every actor uses the same Route.
 
@@ -19,7 +19,7 @@ structural partitions with material bindings. One concept has one name in both s
 Checkpoints, starts, finishes and environment changes are independent of Section boundaries.
 Source identity, traversal identity and race credit are distinct.
 
-## CourseDocument v17
+## CourseDocument v18
 
 The saved format is compact UTF-8 JSON. All declared fields are required; explicit null represents
 absent optional content. Unknown fields fail. Arrays preserve saved order; object-property order and
@@ -27,7 +27,7 @@ whitespace do not affect identity. Normalized records use schema field order and
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 17,
+  format: "superoutride.course", version: 18,
   reference, id, units: {length: "m", angle: "deg"},
   geometryRecipe: {id, version},
   type: "LINEAR" | "BRANCH" | "CIRCUIT", entrySectionId,
@@ -49,7 +49,7 @@ Section {
 | Position         | `at: {pi, offset}`; interval `start`/`end` and fork `lock`/`closure` use the same `{pi, offset}` value |
 | Boundary         | `id`, `knots: [{at,lateral}]`                                                                          |
 | Region           | `id`, `start`, `end`, `leftBoundaryId`, `rightBoundaryId`, `role`                                      |
-| Carriageway      | `id`, `regionIds`                                                                                      |
+| Carriageway      | `id`, `left`, `right`                                                                                  |
 | Link             | `id`, `from: {sectionId,carriagewayId}`, `to: {sectionId}`                                             |
 | Asset reference  | `id`, `format`, `version`, lowercase `sha256`                                                          |
 | Scenery instance | `id`, `assetId`, `paletteRgb555` (null or one declared base-palette replacement)                       |
@@ -226,7 +226,7 @@ and is separate from the authored 256-knot limit and mapped-region cell budget.
 
 ## Geometry recipe and bindings
 
-The saved `geometryRecipe` field is `{id,version}`; CourseDocument v17 admits
+The saved `geometryRecipe` field is `{id,version}`; CourseDocument v18 admits
 `superoutride.plan-raster` version 1. The saved PI and position fields are listed above. [Architecture](architecture.md#plan-authority)
 owns their authoritative planar interpretation, coordinate domain and geometric validation.
 Rendering and physics read the same plan; Section length comes from its coordinate Reader domain.
@@ -237,8 +237,24 @@ The recipe identity participates in every dependent build identity.
 Boundary knots are strictly increasing and cover every referencing Region's closed interval.
 After Lateral resolution, interpolation between the compiled points is linear; width and center are derived. A Region has positive length and positive
 interior width; zero width is permitted at its own start/end only. Regions are nonoverlapping and
-shared edges reference one Boundary. Every pavement Region belongs to exactly one Carriageway, whose
-active members form a contiguous group in each longitudinal cell.
+shared edges reference one Boundary. Regions do not refer to or belong to Carriageways.
+
+A Carriageway is `{id, left, right}`; both edge IDs resolve to Boundaries in its Section.
+Its existence interval is the intersection of those Boundary domains, with no separate range field.
+The intersection must have positive length. Membership is `[start,end)`, including the end only
+when it is the Section terminal. Boundary values themselves remain readable at both endpoints.
+Thus a road ending at a split is replaced at that station by the roads beginning there.
+The left edge never exceeds the right edge; zero width is allowed only at isolated stations.
+At any station, distinct existing Carriageways cannot overlap over a positive lateral interval.
+Compilation proves these conditions over affine Boundary cells and at activation changes;
+violations report `invalid_carriageway`, and unknown edge IDs report `unresolved_reference`.
+
+Until Regions are replaced by Strips, compilation also requires the union of existing Carriageway
+interiors to equal the union of pavement Region interiors at every station. This temporary check
+reports `invalid_carriageway` and will be removed with Regions in 7-3b. It creates no membership
+relationship. Cut lines, landmarks, fork exits, driving targets and recovery read Carriageway
+Boundaries directly. Landmark support is checked across the entire interval between those edges
+using the material surface, independently of Region roles.
 
 Every open Section cell has active Region coverage. Across an activation change, both the complete
 Region union and the pavement/median union are continuous. Positive-width replacements and zero-width
@@ -288,7 +304,7 @@ Owned records and arrays are immutable, including nested image data. Live actor,
 clock state belong to Sessions. Object identity is local to a compilation; cross-build identity uses digests.
 
 `sourceSha256` hashes normalized input. `buildSha256` hashes `{sourceSha256,compiler,geometryRecipe}`.
-The compiler is `superoutride.course-compiler` version 24, incorporating Link recipe v2, physical
+The compiler is `superoutride.course-compiler` version 25, incorporating Link recipe v2, physical
 recipe v2, image-source recipe v2 and presentation recipe v7. Descriptors include semantic versions
 and operative numeric/data parameters, including material definitions. Source or compiler/recipe
 changes invalidate dependent products.
@@ -348,7 +364,8 @@ fork region. The winner appends one successor to the shared Route. Each occurren
 checkpoint credit remains per actor.
 
 Rivals immediately follow the selected Carriageway center. Unselected roads show saved state-selected
-signs. At/beyond closure, actors on losing pavement recover at the same chainage onto the selected
+signs. At/beyond closure, an actor is on a closed Carriageway when that exit exists at its s and
+its l lies between the two edges (including the edges). It recovers at the same chainage onto the selected
 road; progress observations resynchronize. Geometry stays static.
 
 Before lock, the parent covers all required queries through fixed-step advance:

@@ -1,18 +1,11 @@
 import type { CompiledFork, CompiledLink } from '../course/compiler/course-graph.js';
 import { routeSectionS, type RouteOccurrence } from '../course/course-route.js';
-import { courseRegionAt, courseBoundaryAt, type CompiledCarriageway } from '../course/course-regions.js';
+import { courseCarriagewayExists, courseBoundaryAt, type CompiledCarriageway } from '../course/course-regions.js';
 import { routeCrossingFraction, type createRouteCrossSections, type RoutePosition } from './route-cross-sections.js';
 import type { CourseRoute } from '../course/course-route.js';
 
 function center(road: CompiledCarriageway, s: number) {
-  let left = Infinity,
-    right = -Infinity;
-  for (const region of road.regions)
-    if (region.start.s <= s && region.end.s >= s) {
-      left = Math.min(left, courseBoundaryAt(region.left, s));
-      right = Math.max(right, courseBoundaryAt(region.right, s));
-    }
-  return (left + right) / 2;
+  return (courseBoundaryAt(road.left, s) + courseBoundaryAt(road.right, s)) / 2;
 }
 
 /** One field authority observes every eligible motion before publishing any irreversible choice. */
@@ -68,28 +61,24 @@ export function createCourseForkField(route: CourseRoute, lines: ReturnType<type
         section.coordinates.domain.end,
         Math.max(section.coordinates.domain.start, routeSectionS(occurrence, s)),
       );
-      if (!road.regions.some((b) => b.start.s <= at && b.end.s >= at))
-        road = section.carriageways.find((c) => c.regions.some((r) => r.start.s === 0 && r.end.s > 0))!;
+      if (!courseCarriagewayExists(road, at, section.coordinates.domain.end))
+        road = section.carriageways.find((c) => courseCarriagewayExists(c, at, section.coordinates.domain.end))!;
       return center(road, at) - occurrence.lateralOrigin;
     },
     recoveryL(s: number, lane: number) {
       const occurrence = route.at(s)!;
       const at = routeSectionS(occurrence, s);
       const selected = locks.get(occurrence)?.from.carriageway;
-      const active = (road: CompiledCarriageway) => road.regions.some((r) => r.start.s <= at && r.end.s >= at);
+      const active = (road: CompiledCarriageway) =>
+        courseCarriagewayExists(road, at, occurrence.section.coordinates.domain.end);
       const road =
         selected && active(selected)
           ? selected
           : (occurrence.section.carriageways.find(
               (road) =>
                 active(road) &&
-                road.regions.some(
-                  (r) =>
-                    r.start.s <= at &&
-                    r.end.s >= at &&
-                    lane + occurrence.lateralOrigin >= courseBoundaryAt(r.left, at) &&
-                    lane + occurrence.lateralOrigin <= courseBoundaryAt(r.right, at),
-                ),
+                lane + occurrence.lateralOrigin >= courseBoundaryAt(road.left, at) &&
+                lane + occurrence.lateralOrigin <= courseBoundaryAt(road.right, at),
             ) ?? occurrence.section.carriageways.find(active)!);
       return center(road, at) - occurrence.lateralOrigin;
     },
@@ -101,15 +90,16 @@ export function createCourseForkField(route: CourseRoute, lines: ReturnType<type
       const link = locks.get(occurrence);
       const nativeS = routeSectionS(occurrence, s);
       if (!fork || !link || nativeS < fork.closure.s) return null;
-      const region = courseRegionAt(
-        section.regionPartition,
-        Math.min(nativeS, section.coordinates.domain.end),
-        l,
-        occurrence.lateralOrigin,
-      );
-      return region?.role === 'pavement' && !link.from.carriageway.regions.includes(region)
-        ? { s, l: center(link.from.carriageway, nativeS) - occurrence.lateralOrigin }
-        : null;
+      const closed = fork.regions.some(({ link: exit }) => {
+        const road = exit.from.carriageway;
+        return (
+          exit !== link &&
+          courseCarriagewayExists(road, nativeS, section.coordinates.domain.end) &&
+          l >= courseBoundaryAt(road.left, nativeS) - occurrence.lateralOrigin &&
+          l <= courseBoundaryAt(road.right, nativeS) - occurrence.lateralOrigin
+        );
+      });
+      return closed ? { s, l: center(link.from.carriageway, nativeS) - occurrence.lateralOrigin } : null;
     },
   });
 }

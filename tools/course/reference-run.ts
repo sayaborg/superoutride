@@ -20,7 +20,7 @@ import {
   compileEnvelopeDriver,
 } from '../../src/race/envelope-driver.js';
 import { SIM_DT } from '../../src/shell/frame-loop.js';
-import { courseBoundaryAt } from '../../src/course/course-regions.js';
+import { courseBoundaryAt, courseCarriagewayExists } from '../../src/course/course-regions.js';
 const spriteAssets = await readVehicleSprites();
 
 /** Enumerate canonical finite alternatives; one continuous run per history, no stitched sectors. */
@@ -141,8 +141,8 @@ export function runCourseReference(
   const finalSection = finalOccurrence.section;
   const finalS = routeSectionS(finalOccurrence, vehicle.course.s);
   const finalL = vehicle.course.l + finalOccurrence.lateralOrigin;
-  const lateralBounds = finalSection.regionPartition.regions
-    .filter((b) => b.role === 'pavement' && b.start.s <= finalS && b.end.s >= finalS)
+  const lateralBounds = finalSection.carriageways
+    .filter((b) => courseCarriagewayExists(b, finalS, finalSection.coordinates.domain.end))
     .map((b) => [courseBoundaryAt(b.left, finalS), courseBoundaryAt(b.right, finalS)] as const);
   if (!lateralBounds.some(([left, right]) => finalL >= left && finalL < right))
     throw new RangeError('Reference FINISH lies outside pavement');

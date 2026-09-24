@@ -2,8 +2,7 @@ import { resolveCourseLateral } from './course-lateral.js';
 import type { CourseDocument, CourseLandmarkDocument } from '../course-document.js';
 import { requireCourse } from '../course-diagnostics.js';
 import { resolveCoursePosition, type CompiledCoursePosition } from '../course-geometry.js';
-import { courseBoundaryAt, type CompiledCarriageway } from '../course-regions.js';
-import { coursePhysicalMaterialAt } from '../course-physical-binding.js';
+import { courseBoundaryAt, courseCarriagewayExists, type CompiledCarriageway } from '../course-regions.js';
 import { createRegionSurfaceReader } from '../region-surface-reader.js';
 import type { CompiledSection } from './course-graph.js';
 
@@ -46,19 +45,25 @@ export function compileCourseRules(
       path,
       'Landmark must lie after entry and no later than its ownership exit',
     );
-    const regions = carriageway.regions.filter((b) => b.start.s <= position.s && position.s <= b.end.s);
-    check(regions.length > 0, path, 'Landmark requires pavement');
-    const left = Math.min(...regions.map((b) => courseBoundaryAt(b.left, position.s)));
-    const right = Math.max(...regions.map((b) => courseBoundaryAt(b.right, position.s)));
+    check(courseCarriagewayExists(carriageway, position.s, endS(section)), path, 'Landmark requires a Carriageway');
+    const left = courseBoundaryAt(carriageway.left, position.s);
+    const right = courseBoundaryAt(carriageway.right, position.s);
+    const surface = createRegionSurfaceReader(section.regionPartition, section.physicalBindings);
+    const edges = [
+      ...new Set([
+        left,
+        right,
+        ...section.boundaries
+          .filter((boundary) => boundary.knots[0]!.at.s <= position.s && boundary.knots.at(-1)!.at.s >= position.s)
+          .map((boundary) => courseBoundaryAt(boundary, position.s))
+          .filter((l) => l > left && l < right),
+      ]),
+    ].sort((a, b) => a - b);
     check(
       right > left &&
-        regions.every(
-          (b) =>
-            coursePhysicalMaterialAt(
-              section.physicalBindings.find((p) => p.region === b)!,
-              position.s,
-            ).supported,
-        ),
+        edges
+          .slice(1)
+          .every((edge, i) => surface.sample(position.s, edges[i]! + (edge - edges[i]!) / 2).material.supported),
       path,
       'Landmark requires positive supported width',
     );

@@ -17,7 +17,8 @@ export interface CompiledRegion {
 
 export interface CompiledCarriageway {
   readonly id: string;
-  readonly regions: readonly CompiledRegion[];
+  readonly left: CompiledBoundary;
+  readonly right: CompiledBoundary;
 }
 
 /** Narrow finite-domain facet; no Region is privileged as the Section's domain authority. */
@@ -45,6 +46,13 @@ export function courseBoundaryAt(boundary: CompiledBoundary, s: number): number 
   if (s === a.at.s) return a.l;
   if (s === b.at.s) return b.l;
   return a.l + (b.l - a.l) * ((s - a.at.s) / (b.at.s - a.at.s));
+}
+
+/** Existence follows the common Boundary domain, half-open except at the Section terminal. */
+export function courseCarriagewayExists(road: CompiledCarriageway, s: number, sectionLength: number): boolean {
+  const start = Math.max(road.left.knots[0]!.at.s, road.right.knots[0]!.at.s);
+  const end = Math.min(road.left.knots.at(-1)!.at.s, road.right.knots.at(-1)!.at.s);
+  return s >= start && (s < end || (s === end && end === sectionLength));
 }
 
 /** Half-open ownership; l is in the chart whose zero is sourceLateralOrigin in source coordinates. */

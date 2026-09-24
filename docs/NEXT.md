@@ -8,7 +8,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **7-3 — Strips, Boundaries and Carriageways**.
+Next PR: **7-3b — Strips**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -18,9 +18,9 @@ PRs hold rationale and verification evidence.
 
 Write plan, position, lateral strips and race landmarks in one consistent authored course format.
 
-- **7-3 — Strips, Boundaries and Carriageways:** replace Region, role, `physicalBindings` and Band with ordered Strips whose optional color/material overwrite earlier values; require finite edges for material-bearing Strips and derive the coordinate domain from their edges plus margin; define Carriageway between two Boundaries and compile material and preblended color to the same cross-section table shape.
-  Derive driving-scenario road bounds and the closed Carriageway center from Carriageways rather than Region internals. Re-derive document limits from the scale of the Nürburgring Nordschleife (about 20.8 km).
-  Author Strips with `at` positions and the shared `Lateral` type from the start.
+- **7-3b — Strips:** replace Region, role, `physicalBindings` and Band with ordered Strips whose optional color/material overwrite earlier values; author them with `at` and `Lateral` from the start; require finite edges for material-bearing Strips and derive the coordinate domain from their edges plus margin; compile material and preblended color to the same cross-section table shape; state fork medians and support checks through Carriageways and material rather than roles; remove the temporary Carriageway/pavement check. Split if the logic exceeds one review.
+- **7-3c — Document limits:** re-derive document limits from the scale of the Nürburgring Nordschleife (about 20.8 km).
+- **7-3d — Names:** call compiled Boundary breakpoints vertices, since they include points derived from references.
 - **7-4 — Sprites and environment:** give sprites and environment a shared repeat, and name successors to VisualProfile, CoursePresentation and their visual records according to the glossary. Include tunnels: tunnel sprites, with an environment knot switching the background inside and restoring it on exit.
   Keep authored PI coordinates as the native Section frame without normalization; the entry Section's native frame is the world frame, and background `yawOrigin` and other absolute directions use it.
 - **7-5 — Gates, rules and cycles:** author start (including grid), checkpoints, finish, lock lines and closures as Section `gates`; remove `fork` and derive forking from the number of outgoing Links; forbid Links from a Section to itself so a circuit is a cycle of two or more Sections; require every directed cycle to close geometrically at compilation (the composed Link transforms return to identity within the accumulated Link tolerance); merges of different branches are not cycles and stay unchecked; count a lap as one traversal of the cycle; rebuild ribbon-ring as a geometrically closed cycle; leave only numeric settings in `rules`; derive course kind from the graph; remove production provenance, `geometryRecipe`, `units` and `reference`; simplify nulls and limits.

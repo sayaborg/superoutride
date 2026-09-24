@@ -1,3 +1,4 @@
+import { validateCourseCarriageways } from './course-carriageways.js';
 import { createPlanCoordinateReader } from '../geometry/plan-coordinate-reader.js';
 import { contentDigest } from '../../core/content-digest.js';
 import {
@@ -60,7 +61,7 @@ export interface CompiledCourse {
 
 const COURSE_COMPILER = Object.freeze({
   id: 'superoutride.course-compiler',
-  version: 24,
+  version: 25,
   links: COURSE_LINK_RECIPE,
   physical: COURSE_PHYSICAL_RECIPE,
   images: COURSE_IMAGE_SOURCE_RECIPE,
@@ -128,51 +129,16 @@ function compileSection(
       );
     return Object.freeze({ id: source.id, start, end, left, right, role: source.role });
   });
-  const regionTable = new Map(regions.map((region) => [region.id, region]));
-  const assigned = new Set<CompiledRegion>();
   const carriageways = compileStage(section.carriageways, (source, index): CompiledCarriageway => {
     const at = `${path}/carriageways/${index}`;
-    requireCourse(
-      source.regionIds.length > 0,
-      `${at}/regionIds`,
-      'Carriageway needs at least one pavement Region',
-      'invalid_carriageway',
-    );
-    const members = compileStage(source.regionIds, (id, i) => {
-      const region = reference(regionTable, id, `${at}/regionIds/${i}`);
-      requireCourse(
-        region.role === 'pavement',
-        `${at}/regionIds/${i}`,
-        'Carriageways group pavement Regions',
-        'invalid_carriageway',
-      );
-      requireCourse(
-        !assigned.has(region),
-        `${at}/regionIds/${i}`,
-        'Pavement Region must belong to exactly one Carriageway',
-        'invalid_carriageway',
-      );
-      return region;
+    return Object.freeze({
+      id: source.id,
+      left: reference(boundaryTable, source.left, `${at}/left`),
+      right: reference(boundaryTable, source.right, `${at}/right`),
     });
-    if (new Set(members).size !== members.length)
-      throw new CourseInputError('invalid_carriageway', `${at}/regionIds`, 'Carriageway membership must be unique');
-    members.forEach((region) => assigned.add(region));
-    return Object.freeze({ id: source.id, regions: Object.freeze(members) });
   });
-  requireCourse(
-    assigned.size > 0 && regions.every((region) => region.role !== 'pavement' || assigned.has(region)),
-    `${path}/carriageways`,
-    'Every pavement Region needs one Carriageway',
-    'invalid_carriageway',
-  );
-  const { partition, lateralDomain } = compileCourseRegionGeometry(
-    section.id,
-    length,
-    segments,
-    regions,
-    carriageways,
-    path,
-  );
+  validateCourseCarriageways(carriageways, regions, length, `${path}/carriageways`);
+  const { partition, lateralDomain } = compileCourseRegionGeometry(section.id, length, segments, regions, path);
   const sectionAssets = section.assetIds.map((id, i) => reference(assets, id, `${path}/assetIds/${i}`));
   requireCourse(
     new Set(sectionAssets).size === sectionAssets.length,

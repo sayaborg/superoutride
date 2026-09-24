@@ -1,6 +1,6 @@
 import { createPlanCoordinateSample } from '../geometry/plan-coordinate.js';
 import { compilePlanarTransform, transformPlanarPoint } from '../../core/planar-transform.js';
-import { courseBoundaryAt, type CompiledCarriageway } from '../course-regions.js';
+import { courseBoundaryAt, courseCarriagewayExists, type CompiledCarriageway } from '../course-regions.js';
 import { requireCourse } from '../course-diagnostics.js';
 import type { CompiledCut, CompiledLink, CompiledSection } from './course-graph.js';
 import type { CourseDocument } from '../course-document.js';
@@ -18,10 +18,15 @@ export const COURSE_LINK_RECIPE = Object.freeze({
 });
 
 function edges(road: CompiledCarriageway, s: number, path: string): readonly [number, number] {
-  const regions = road.regions.filter((region) => region.start.s <= s && region.end.s >= s);
-  requireCourse(regions.length > 0, path, `Carriageway ${road.id} must reach the cut line`, 'invalid_carriageway');
-  const left = Math.min(...regions.map((region) => courseBoundaryAt(region.left, s)));
-  const right = Math.max(...regions.map((region) => courseBoundaryAt(region.right, s)));
+  requireCourse(
+    s >= Math.max(road.left.knots[0]!.at.s, road.right.knots[0]!.at.s) &&
+      s <= Math.min(road.left.knots.at(-1)!.at.s, road.right.knots.at(-1)!.at.s),
+    path,
+    `Carriageway ${road.id} must reach the cut line`,
+    'invalid_carriageway',
+  );
+  const left = courseBoundaryAt(road.left, s);
+  const right = courseBoundaryAt(road.right, s);
   requireCourse(
     right > left,
     path,
@@ -48,7 +53,11 @@ export function compileCourseCut(
 }
 
 export function entryCut(section: CompiledSection, path: string): CompiledCut {
-  const roads = section.carriageways.filter((road) => road.regions.some((r) => r.start.s === 0 && r.end.s > 0));
+  const roads = section.carriageways.filter(
+    (road) =>
+      courseCarriagewayExists(road, 0, section.coordinates.domain.end) &&
+      courseBoundaryAt(road.right, 0) > courseBoundaryAt(road.left, 0),
+  );
   requireCourse(
     roads.length === 1,
     path,

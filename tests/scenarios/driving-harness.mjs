@@ -21,7 +21,7 @@ import { SoftwareSurface } from '../../src/view/software-surface.js';
 import { createRaceSprites } from '../../src/view/race-sprites.js';
 import { createDisplaySettings, BAND_RENDER_METHODS } from '../../src/view/display-settings.js';
 import { SIM_DT } from '../../src/shell/frame-loop.js';
-import { courseBoundaryAt } from '../../src/course/course-regions.js';
+import { courseBoundaryAt, courseCarriagewayExists } from '../../src/course/course-regions.js';
 import { routeSectionS } from '../../src/course/course-route.js';
 
 const idle = { steering: 0, throttle: false, brake: false };
@@ -56,8 +56,8 @@ function pavementBounds(scene, vehicle) {
   const occurrence = scene.runtime.route.at(vehicle.course.s);
   if (!occurrence) return null;
   const s = routeSectionS(occurrence, vehicle.course.s);
-  const regions = occurrence.section.regionPartition.regions.filter(
-    (r) => r.role === 'pavement' && r.start.s <= s && s <= r.end.s,
+  const regions = occurrence.section.carriageways.filter((r) =>
+    courseCarriagewayExists(r, s, occurrence.section.coordinates.domain.end),
   );
   if (!regions.length) return null;
   return {
@@ -112,13 +112,9 @@ export function runScenario({ course, ground }, scenario) {
       // Deliberately keep approaching the opposite road after a rival locks its choice.
       const road = fork.regions.at(-1).link.from.carriageway;
       const nativeS = routeSectionS(occurrence, s);
-      const regions = road.regions.filter((r) => r.start.s <= nativeS && nativeS <= r.end.s);
-      if (regions.length)
+      if (courseCarriagewayExists(road, nativeS, occurrence.section.coordinates.domain.end))
         return (
-          (Math.min(...regions.map((r) => courseBoundaryAt(r.left, nativeS))) +
-            Math.max(...regions.map((r) => courseBoundaryAt(r.right, nativeS)))) /
-            2 -
-          occurrence.lateralOrigin
+          (courseBoundaryAt(road.left, nativeS) + courseBoundaryAt(road.right, nativeS)) / 2 - occurrence.lateralOrigin
         );
     }
     return race.forks.targetL(s, scenario.side ?? slot.l);

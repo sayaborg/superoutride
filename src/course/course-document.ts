@@ -1,6 +1,6 @@
 import { CourseInputError, courseFailure, courseSuccess, type CourseResult } from './course-diagnostics.js';
 
-const COURSE_DOCUMENT_VERSION = 17;
+const COURSE_DOCUMENT_VERSION = 18;
 
 interface GeometryRecipeIdentity {
   readonly id: string;
@@ -37,7 +37,8 @@ export interface RegionDocument {
 
 interface CarriagewayDocument {
   readonly id: string;
-  readonly regionIds: readonly string[];
+  readonly left: string;
+  readonly right: string;
 }
 
 interface LinkDocument {
@@ -385,10 +386,11 @@ function region(value: unknown, path: string): RegionDocument {
 }
 
 function carriageway(value: unknown, path: string): CarriagewayDocument {
-  const v = record(value, path, ['id', 'regionIds']);
+  const v = record(value, path, ['id', 'left', 'right']);
   return Object.freeze({
     id: id(v.id, `${path}/id`),
-    regionIds: array(v.regionIds, `${path}/regionIds`, COURSE_DOCUMENT_LIMITS.regions, id),
+    left: id(v.left, `${path}/left`),
+    right: id(v.right, `${path}/right`),
   });
 }
 

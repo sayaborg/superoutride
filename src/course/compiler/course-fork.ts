@@ -1,5 +1,5 @@
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../image/sprite.js';
-import { courseBoundaryAt } from '../course-regions.js';
+import { courseBoundaryAt, courseCarriagewayExists } from '../course-regions.js';
 import { requireCourse } from '../course-diagnostics.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
 import { coursePhysicalMaterialAt } from '../course-physical-binding.js';
@@ -69,15 +69,34 @@ export function compileCourseFork(
   );
   const roads = section.outgoing
     .map((link) => {
-      const parts = ordered.filter((b) => link.from.carriageway.regions.includes(b.region));
-      check(parts.length > 0, 'Each exit carriageway must have positive width at lock');
-      return { link, left: parts[0]!.left, right: parts.at(-1)!.right };
+      const road = link.from.carriageway;
+      check(
+        courseCarriagewayExists(road, lock.s, section.coordinates.domain.end) &&
+          courseCarriagewayExists(road, closure.s, section.coordinates.domain.end),
+        'Each exit carriageway must exist from lock through closure',
+      );
+      const left = courseBoundaryAt(road.left, lock.s),
+        right = courseBoundaryAt(road.right, lock.s);
+      check(right > left, 'Each exit carriageway must have positive width at lock');
+      for (const boundary of [road.left, road.right]) {
+        const value = courseBoundaryAt(boundary, lock.s);
+        check(
+          courseBoundaryAt(boundary, closure.s) === value &&
+            boundary.knots.every((k) => k.at.s <= lock.s || k.at.s >= closure.s || k.l === value),
+          'Lock-to-closure Carriageway edges must remain parallel',
+        );
+      }
+      return { link, left, right };
     })
     .sort((a, b) => a.left - b.left);
   check(
-    ordered.every(
-      (b) => b.region.role !== 'pavement' || roads.some((r) => r.link.from.carriageway.regions.includes(b.region)),
-    ),
+    section.carriageways
+      .filter(
+        (road) =>
+          courseCarriagewayExists(road, lock.s, section.coordinates.domain.end) &&
+          courseBoundaryAt(road.right, lock.s) > courseBoundaryAt(road.left, lock.s),
+      )
+      .every((road) => roads.some((r) => r.link.from.carriageway === road)),
     'Every lock-line pavement belongs to an exit carriageway',
   );
   const cuts: number[] = [ordered[0]!.left];
