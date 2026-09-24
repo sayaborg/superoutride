@@ -36,8 +36,7 @@ The same definition selects travel-direction automatic steering and `wheelSlip=t
 Throttle traversal is 0.25 s apply / 0.125 s release; brake traversal is 0.15 s apply / 0.10 s release.
 Rates are their reciprocals. Two-wheel support reserve
 remains a form-specific 0.08 until 8-7; four-wheel support reserve is null.
-Tire and steering low-speed regularization are engine constants of 1.0 m/s; the retained road-wheel
-lag is an engine constant of 0.01 s until 8-2c, not a design setting.
+Tire and steering low-speed regularization are engine constants of 1.0 m/s.
 
 The full driving record participates in vehicle identity for generated envelopes, reference caches
 and time budgets.

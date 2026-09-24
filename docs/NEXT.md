@@ -11,7 +11,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **8-2c — Steering rack lag**.
+Next PR: **8-3 — Vehicle content**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -21,7 +21,6 @@ PRs hold rationale and verification evidence.
 
 Give vehicles, driving assists, tires, powertrains and materials explicit definitions, and treat airborne driving as normal state.
 
-- **8-2c — Steering rack lag:** remove the first-order road-wheel lag; the road-wheel angle equals its target each substep. Behavior changes.
 - **8-3 — Vehicle content:** saved vehicle definitions and the game-wide driving definition, delivered through the manifest. Vehicle definitions hold form (two- or four-wheeled), dimensions, sprite and palette variants, sound reference and metadata. Replace `CAR_WIDTH_METERS` and the `TESTAROSSA` palette branches. Later game-wide design values (launch speed rule, downshift ratio, pitch limit) join the same content. Behavior unchanged.
 - **8-4 — Powertrain:** launch, shift rules and rev limit, engine friction, inertia and free revving, and shift observations; audio reads engine speed without its own idle floor. Behavior changes.
 - **8-5 — Vehicle values:** published values and sources as production data with a checking tool; correct torque curves, masses and CG heights. Behavior changes.

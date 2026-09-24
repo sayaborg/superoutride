@@ -26,9 +26,8 @@ The front/rear runtime slots remain for now; both start with the same tire coeff
 caches and rejecting stale browser envelopes and time budgets when any driving value changes.
 The model source list also includes the driving module instead of shell selector modules.
 
-The engine owns tire and steering low-speed regularization (both 1.0 m/s) and the retained
-0.01-second rack lag in `physics/numerical-constants.ts`. They are numerical constants, not
-vehicle or driving design values; 8-2c removes the rack lag.
+The engine owns tire and steering low-speed regularization (both 1.0 m/s) in
+`physics/numerical-constants.ts`. They are numerical constants, not vehicle or driving design values.
 [Content and gameplay](content-and-gameplay.md#recovery) owns recovery outside the mechanical domain.
 
 ## State and integration
@@ -194,8 +193,11 @@ deliveredOffset = clamp(requestedOffset,allowedOffset)
 ```
 
 Including zero preserves neutral and permits partial corrective input. Degenerate, unsupported or
-zero-grip contacts return the request. Finally clamp `automatic+deliveredOffset` to +/-M and follow
-it with the engine's retained exponential rack response. This is a conservative current-contact slip constraint.
+zero-grip contacts return the request. Finally clamp `automatic+deliveredOffset` to +/-M; the front
+road-wheel angle equals this target each substep. The previous angle remains in state for the next
+pre-steer contact observation and input limit, and for observations and the recovery reset to zero.
+The target is computed from the pre-steer state before reorienting the front contact; the integration
+order is unchanged. This is a conservative current-contact slip constraint.
 
 ## Observations
 

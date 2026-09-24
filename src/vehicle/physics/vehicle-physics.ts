@@ -1,10 +1,6 @@
 import type { DrivingDefinition } from '../driving-definition.js';
 import { createDrivingSettings } from './driving-settings.js';
-import {
-  TIRE_LOW_SPEED_REGULARIZATION,
-  STEERING_LOW_SPEED_REGULARIZATION,
-  STEERING_RESPONSE_TAU,
-} from './numerical-constants.js';
+import { TIRE_LOW_SPEED_REGULARIZATION, STEERING_LOW_SPEED_REGULARIZATION } from './numerical-constants.js';
 import { createSurfaceGeometryWorkspace } from './vehicle-dynamics.js';
 import { createPlanProjectionWorkspace } from '../../course/geometry/plan-coordinate.js';
 import { type Writable } from '../../core/writable.js';
@@ -202,7 +198,6 @@ export function updateVehicle(
   const substep = dt / VEHICLE_SUBSTEPS;
   const calibration = vehicle.steeringCalibration;
   const automaticMax = steeringAutomaticMax(calibration);
-  const steeringResponse = 1 - Math.exp(-substep / STEERING_RESPONSE_TAU);
   const steeringRequest = clamp(input.steering, -1, 1);
   let finalFront: ContactObservation | null = null;
   let finalRear: ContactObservation | null = null;
@@ -242,12 +237,7 @@ export function updateVehicle(
       -calibration.maxRoadWheelSteer,
       calibration.maxRoadWheelSteer,
     );
-    vehicle.frontSteerAngle = stepSteeringRack(
-      vehicle.frontSteerAngle,
-      target,
-      steeringResponse,
-      calibration.maxRoadWheelSteer,
-    );
+    vehicle.frontSteerAngle = target;
     const front = reorientContactObservation(frontBeforeSteer, body, vehicle.frontSteerAngle, workspace.front);
     const rear = deriveContactObservation(
       coordinates,
@@ -377,11 +367,6 @@ export function updateVehicle(
   const finalBody = vehicleBodyKinematics(vehicle, workspace.body);
   vehicle.longitudinalAcceleration = dot3(velocityDelta, finalBody.forward) / dt;
   vehicle.lateralAcceleration = dot3(velocityDelta, finalBody.right) / dt;
-}
-
-/** Shared rack expression; public callers validate once before entering this primitive. */
-function stepSteeringRack(current: number, target: number, response: number, maximum: number): number {
-  return clamp(current + (target - current) * response, -maximum, maximum);
 }
 
 /** Body-CG travel direction in the body-pitch plane; finite and zero at rest. */
