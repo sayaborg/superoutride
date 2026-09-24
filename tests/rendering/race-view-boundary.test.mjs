@@ -45,8 +45,8 @@ test('shared route keeps vehicle and camera coordinates across forward and rever
     const before = { ...rig };
     const pose = { x: vehicle.x, z: vehicle.z, yaw: vehicle.yaw, s: vehicle.course.s, l: vehicle.course.l };
     const transition = scene.observeStep(actor);
-    assert.equal(transition, 'changed');
-    assert.equal(scene.session.occurrence.ordinal, ordinal);
+    assert.equal(transition, null);
+    assert.equal(scene.session.route.at(s).ordinal, ordinal);
     assert.deepEqual(rig, before, 'race must not mutate an observer camera');
     assert.deepEqual({ x: vehicle.x, z: vehicle.z, yaw: vehicle.yaw, s: vehicle.course.s, l: vehicle.course.l }, pose);
     assert.equal(scene.observeStep(actor), null, 'no repeated transition at one station');

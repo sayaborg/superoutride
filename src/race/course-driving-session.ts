@@ -3,7 +3,6 @@ import type { CompiledCarriageway } from '../course/course-regions.js';
 import { courseCutLateral } from '../course/compiler/course-links.js';
 import { compilePlanarTransform, composePlanarTransforms, invertPlanarTransform } from '../core/planar-transform.js';
 import { clamp, type Vec2 } from '../core/math.js';
-import { compileWorldCrossingGate, observeWorldCrossingPlane } from './world-crossing-gate.js';
 import { RECOVERY_SETTINGS, recoverVehicleToPlanCoordinate, type RecoveryState } from './recovery.js';
 import type { ArcadeVehicleState } from '../vehicle/physics/arcade-vehicle-physics.js';
 import { reframeVehicle } from '../vehicle/physics/vehicle-reframe.js';
@@ -100,12 +99,7 @@ function createSession(
     ].map((candidate) => ({
       ...candidate,
       // A seam observes the full plane, including excursions outside the admitted contact domain.
-      gate: compileWorldCrossingGate({
-        id: candidate.successor.incoming!.id,
-        center: candidate.port.pose,
-        heading: candidate.port.pose.heading,
-        halfWidth: Math.max(COURSE_DRIVING_POLICY.guard.pose.left, COURSE_DRIVING_POLICY.guard.pose.right),
-      }),
+      gate: candidate.port.pose,
       guard: required(readers.createMotionGuard(history.active, candidate.successor)),
     }));
   };
@@ -192,8 +186,8 @@ function createSession(
     /** Recovery is an observation reset, never a physical crossing or progress award. */
     observeStep(actor: DrivingActor, previous: Vec2, recovered: boolean) {
       for (const candidate of gates) {
-        const crossing = recovered ? null : observeWorldCrossingPlane(candidate.gate, previous, actor.vehicle);
-        const crossed = crossing?.direction === (candidate.direction === 'forward' ? 'FORWARD' : 'REVERSE');
+        const crossing = recovered ? null : legacySeamDirection(candidate.gate, previous, actor.vehicle);
+        const crossed = crossing === (candidate.direction === 'forward' ? 'FORWARD' : 'REVERSE');
         const recoveredAcross =
           recovered &&
           (candidate.direction === 'forward'
@@ -206,4 +200,15 @@ function createSession(
       return null;
     },
   });
+}
+
+/** Retained only for the uncalled per-vehicle session scheduled for removal in 6-9c. */
+function legacySeamDirection(gate: Vec2 & { readonly heading: number }, previous: Vec2, current: Vec2) {
+  const tx = Math.sin(gate.heading),
+    tz = Math.cos(gate.heading);
+  const before = (previous.x - gate.x) * tx + (previous.z - gate.z) * tz;
+  const after = (current.x - gate.x) * tx + (current.z - gate.z) * tz;
+  if (before < 0 && after >= 0) return 'FORWARD';
+  if (before > 0 && after <= 0) return 'REVERSE';
+  return null;
 }

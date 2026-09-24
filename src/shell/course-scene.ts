@@ -76,7 +76,7 @@ export function createCourseScene(
     },
     observeStep: session.observeStep,
     recoverAtEntry(vehicle: ArcadeVehicleState, recovery: RecoveryState): boolean {
-      if (session.occurrence.ordinal !== 0 || vehicle.course.s >= entryRecovery.startS) return false;
+      if (vehicle.course.s >= entryRecovery.startS) return false;
       recoverVehicleToPlanCoordinate(session.view.world, vehicle, {
         state: recovery,
         reason: 'wrong-course',

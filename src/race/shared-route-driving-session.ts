@@ -1,5 +1,5 @@
 import type { CompiledLink, CompiledSection } from '../course/compiler/course-graph.js';
-import { createCourseRoute, routeSectionS, type RouteOccurrence } from '../course/course-route.js';
+import { createCourseRoute } from '../course/course-route.js';
 import { createCourseRouteReaders } from '../course/course-route-readers.js';
 import type { CompiledCarriageway } from '../course/course-regions.js';
 import { PLAN_PROJECTION_WINDOW_METERS } from '../course/geometry/plan-coordinate.js';
@@ -8,7 +8,7 @@ import { ENVELOPE_DRIVER } from './envelope-driver.js';
 import { RECOVERY_SETTINGS, recoverVehicleToPlanCoordinate, type RecoveryState } from './recovery.js';
 import { COURSE_DRIVING_POLICY } from './course-driving-policy.js';
 
-/** One route for every actor; an actor retains only its current occurrence for legacy progress gates. */
+/** One route and shared readers for every actor. */
 export function createSharedRouteDrivingGraph(
   entry: CompiledSection,
   camera: { readonly distance: number; readonly far: number; readonly near: number },
@@ -57,11 +57,7 @@ export function createSharedRouteDrivingGraph(
   };
   refresh(0, 0);
   const createSession = () => {
-    let occurrence: RouteOccurrence = route.occurrences[0]!;
     return Object.freeze({
-      get occurrence() {
-        return occurrence;
-      },
       get closedCarriageways() {
         return closedCarriageways;
       },
@@ -97,13 +93,7 @@ export function createSharedRouteDrivingGraph(
           });
           return 'recovered' as const;
         }
-        if (occurrence === next) return null;
-        occurrence = next;
-        return 'changed' as const;
-      },
-      /** Current Section station for temporary progress/fork readers; removed in 6-9b. */
-      nativeS(s: number) {
-        return routeSectionS(occurrence, s);
+        return null;
       },
     });
   };
