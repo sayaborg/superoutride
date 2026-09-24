@@ -41,12 +41,6 @@ export function compileCoursePhysicalContent(
     );
   }
   for (let i = 0; i < nodes.length; i++) {
-    requireCourse(
-      nodes[i]!.curveLength >= 0,
-      `${heightPath}/${i}/curveLength`,
-      'Curve length must be nonnegative',
-      'invalid_height',
-    );
     if (i === 0 || i === nodes.length - 1)
       requireCourse(
         nodes[i]!.curveLength === 0,

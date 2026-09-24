@@ -4,6 +4,7 @@ import { createPlanCoordinateReader } from '../geometry/plan-coordinate-reader.j
 import { contentDigest } from '../../core/content-digest.js';
 import {
   CourseInputError,
+  admitGate,
   courseFailure,
   courseFailures,
   courseSuccess,
@@ -127,6 +128,7 @@ function compileSection(
     'Asset membership must be unique',
     'duplicate_membership',
   );
+  const spritePaths: string[] = [];
   const result: SectionDraft = {
     id: section.id,
     segments,
@@ -145,6 +147,7 @@ function compileSection(
       resolve,
       path,
       carriageways,
+      (at) => spritePaths.push(at),
     ),
     incoming: [],
     outgoing: [],
@@ -153,9 +156,16 @@ function compileSection(
   return {
     section: result,
     stations,
+    spritePaths,
     controls: section.gates.flatMap((gate, index) =>
       gate.kind === 'lock' || gate.kind === 'closure'
-        ? [{ kind: gate.kind, at: resolve(gate.at, `${path}/gates/${index}/at`) }]
+        ? [
+            {
+              kind: gate.kind,
+              path: `${path}/gates/${index}`,
+              at: admitGate(() => resolve(gate.at, `${path}/gates/${index}/at`)),
+            },
+          ]
         : [],
     ),
   };
@@ -207,7 +217,7 @@ export async function compileCourseDocument(
     });
     const type = compileCourseTopology(entry, sections);
     const forks = compileStage(drafts, (draft, index) =>
-      compileCourseFork(draft.section, draft.controls, `/sections/${index}/gates`),
+      compileCourseFork(draft.section, draft.controls, `/sections/${index}`, draft.spritePaths),
     );
     drafts.forEach((draft, index) => {
       draft.section.fork = forks[index]!;

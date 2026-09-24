@@ -12,14 +12,14 @@ export interface CompiledPlanLateralDomain {
   lateralAt(s: number, out: Writable<{ left: number; right: number }>): { left: number; right: number };
 }
 
-function lateralDomain(material: StripMaterial): CompiledPlanLateralDomain {
+function lateralDomain(material: StripMaterial, path: string): CompiledPlanLateralDomain {
   const stations = [material.slabs[0]!.start, ...material.slabs.map((slab) => slab.end)];
   const edges = material.slabs.map((slab) => {
     const spans = slab.spans.filter((span) => span.value !== null);
     if (!spans.length)
       throw new CourseInputError(
         'material_coverage_gap',
-        '/sections',
+        path,
         'Material table needs finite edges throughout the Section',
       );
     return { left: spans[0]!, right: spans.at(-1)! };
@@ -43,7 +43,7 @@ export function compileMaterialCoordinateDomain(
   material: StripMaterial,
   sectionPath: string,
 ): CompiledPlanLateralDomain {
-  const domain = lateralDomain(material);
+  const domain = lateralDomain(material, `${sectionPath}/strips`);
   validatePlanMetric(sectionId, segments, domain, sectionPath);
   validatePlanDomainInjectivity(sectionId, segments, domain, sectionPath);
   return domain;
@@ -70,7 +70,7 @@ function validatePlanMetric(
       requireCourse(
         metric > 0,
         `${sectionPath}/pis`,
-        `Section ${JSON.stringify(sectionId)} segment ${segment.index} has 1 - kappa*l <= 0 at s=${s}`,
+        `Section ${JSON.stringify(sectionId)} has 1 - kappa*l <= 0 at s=${s}`,
         'plan_coordinate_inversion',
       );
     }

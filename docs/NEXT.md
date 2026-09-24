@@ -8,7 +8,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **7-7 — Validation**.
+Next PR: **7-7b — Internal checks**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -18,11 +18,9 @@ PRs hold rationale and verification evidence.
 
 Write plan, position, lateral strips and race landmarks in one consistent authored course format.
 
-- **7-7 — Validation:** validate once at document reading/compilation boundaries, remove redundant internal defensive checks and impossible ok/failure paths, unify progress diagnostics and move coordinate-overlap `CourseInputError` fields to a structured diagnostic variant; consolidate vertical-curve validation and admit `curveLength` from zero upward in document reading.
-  If a later course admits both a cycle and branches (for example a pit lane), generalize the
-  cycle-closure check from walking the single circuit cycle to every directed cycle.
-  Remove the surface sample `sectionName`, which now duplicates `type`.
-  Report `plan_coordinate_inversion` by PI or station rather than internal segment index, and hold derived arc turns in radians.
+- **7-7b — Internal checks:** remove internal defensive checks and impossible ok/failure paths behind
+  the admission boundary; hold derived arc turns in radians; remove the surface sample `sectionName`,
+  which duplicates `type`.
 
 - **7-8 — Fork names:** rename `CompiledFork.regions`, which holds exit intervals, to a name matching its content.
 
@@ -57,6 +55,7 @@ Define persistent player settings, data-driven Sessions and product display inde
   Use the camera definition's `dCam` for the display-side rearward offset instead of `CURRENT_CAMERA_DISTANCE_METERS` from `display-scale.ts`.
 - **10-5 — Navigation:** screen transitions within one page; rename the URL mode parameter and
   course-selection names according to the glossary.
+  Pass the manifest-derived course list explicitly instead of the mutable `BROWSER_COURSE_MODES`.
 - **10-6 — Product HUD:** draw it inside the game frame, separately from DEV UI and HUD.
 - **10-7 — Language:** make all UI English.
 
@@ -121,6 +120,9 @@ appearance and physical bindings stay independent. Saved generated artwork and r
 with descriptive provenance and reproducible builds; an embedded image-generation service is optional.
 
 ### Calibration, time margins and forks
+
+If a later course admits both a cycle and branches (for example a pit lane), generalize the
+cycle-closure check from walking the single circuit cycle to every directed cycle.
 
 Tune physical parameters, tire sound and driver difficulty, including vehicle-specific tire settings.
 Use continuous tool reference runs that complete reproducibly and use different vehicles' capabilities

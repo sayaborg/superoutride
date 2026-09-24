@@ -1,7 +1,7 @@
 import type { compileCourseTopology } from './course-links.js';
 import { resolveCourseLateral } from './course-lateral.js';
 import type { CourseDocument, CourseLandmarkDocument } from '../course-document.js';
-import { requireCourse } from '../course-diagnostics.js';
+import { admitGate, requireCourse } from '../course-diagnostics.js';
 import { resolveCoursePosition, type CompiledCoursePosition } from '../course-geometry.js';
 import { courseBoundaryAt, courseCarriagewayExists, type CompiledCarriageway } from '../course-boundaries.js';
 import { stripSupportsInterval } from '../strip-material.js';
@@ -26,7 +26,7 @@ export function compileCourseGates(
 ) {
   const source = document.rules;
   const check = (condition: boolean, path: string, message: string) =>
-    requireCourse(condition, path, message, 'invalid_rules');
+    requireCourse(condition, path, message, path.startsWith('/rules') ? 'invalid_rules' : 'invalid_gate');
   const authored = document.sections.flatMap((source, i) =>
     source.gates.map((gate, j) => ({ gate, section: sections[i]!, path: `/sections/${i}/gates/${j}` })),
   );
@@ -44,23 +44,18 @@ export function compileCourseGates(
   }
   check(
     starts.length === 1 && starts[0]!.section === entry,
-    starts[0]?.path ?? '/rules',
+    starts[0]?.path ?? `/sections/${sections.indexOf(entry)}/gates`,
     'Exactly one start gate must belong to the entry Section',
   );
   const start = starts[0]!;
   const startGate = start.gate;
   if (startGate.kind !== 'start') throw new Error('Start gate selection failed');
   const resolve = (section: CompiledSection, position: CourseLandmarkDocument['at'], path: string) =>
-    resolveCoursePosition(position, stations.get(section)!, section.coordinates.domain.end, path);
+    admitGate(() => resolveCoursePosition(position, stations.get(section)!, section.coordinates.domain.end, path));
   const endS = (section: CompiledSection) => section.coordinates.domain.end;
   const compile = (g: CourseLandmarkDocument, section: CompiledSection, path: string): CompiledCourseLandmark => {
     const carriageway = section.carriageways.find((c) => c.id === g.carriageway);
-    requireCourse(
-      carriageway !== undefined,
-      path + '/carriageway',
-      'Unknown landmark Carriageway',
-      'unresolved_reference',
-    );
+    requireCourse(carriageway !== undefined, path + '/carriageway', 'Unknown landmark Carriageway', 'invalid_gate');
     const position = resolve(section, g.at, path + '/at');
     check(
       position.s > 0 && position.s <= endS(section),
@@ -86,6 +81,7 @@ export function compileCourseGates(
   const finishes = landmarks.filter((g) => g.kind === 'finish').map((g) => g.value);
   check(type === 'CIRCUIT' || source.maxLaps === 1, '/rules/maxLaps', 'Only CIRCUIT has repeated laps');
   check(source.classic.lapCount <= source.maxLaps, '/rules/classic/lapCount', 'Preset laps exceed course limit');
+  const gatePath = (value: CompiledCourseLandmark) => landmarks.find((g) => g.value === value)!.path;
   const intervals = sections.map((section, index) => {
     const path = `/sections/${index}/gates`;
     const gates = checkpoints.filter((g) => g.section === section);
@@ -93,17 +89,17 @@ export function compileCourseGates(
     const terminal = type === 'CIRCUIT' ? section.outgoing[0]!.to.section === entry : section.outgoing.length === 0;
     check(
       goals.length === Number(terminal),
-      path,
+      goals[0] ? gatePath(goals.at(-1)!) : path,
       'Each terminal or circuit return-to-entry Section needs exactly one FINISH; other Sections have none',
     );
     const finish = goals[0] ?? null;
     if (type === 'CIRCUIT' && finish)
-      check(finish.at.s === endS(section), path, 'Circuit FINISH must coincide with its loop exit');
+      check(finish.at.s === endS(section), gatePath(finish), 'Circuit FINISH must coincide with its loop exit');
     let previous = 0;
     for (const gate of gates) {
       check(
         gate.at.s > previous && (finish ? gate.at.s < finish.at.s : gate.at.s <= endS(section)),
-        path,
+        gatePath(gate),
         'Checkpoints must be strictly ordered inside their Section interval',
       );
       previous = gate.at.s;
@@ -129,7 +125,9 @@ export function compileCourseGates(
       `${start.path}/grid/${i}`,
       'Grid must lie between entry and the first gate',
     );
-    const l = resolveCourseLateral(slot.lateral, position.s, boundaries, `${start.path}/grid/${i}/lateral`);
+    const l = admitGate(() =>
+      resolveCourseLateral(slot.lateral, position.s, boundaries, `${start.path}/grid/${i}/lateral`),
+    );
     check(surface.sample(position.s, l).material.supported, `${start.path}/grid/${i}`, 'Grid must be supported');
     return Object.freeze({ at: position, l });
   });

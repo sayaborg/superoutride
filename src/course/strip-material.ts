@@ -27,8 +27,9 @@ export interface StripMaterial {
 export function compileStripMaterial(
   length: number,
   pieces: readonly StripPiece<SurfaceMaterial | null>[],
+  path: string,
 ): StripMaterial {
-  const slabs = resolveStripSlabs(length, pieces, null);
+  const slabs = resolveStripSlabs(length, pieces, null, path);
   const sampleInChart = (s: number, l: number, lateralOrigin: number) => {
     if (typeof s !== 'number' || typeof l !== 'number' || typeof lateralOrigin !== 'number')
       throw new TypeError('Material coordinates and origin must be numeric');

@@ -1,3 +1,4 @@
+import { CourseInputError } from './course-diagnostics.js';
 import { COURSE_DOCUMENT_LIMITS } from './course-limits.js';
 import { rgb555LinearChannel } from '../image/image-filter.js';
 
@@ -66,6 +67,7 @@ export function resolveStripSlabs<Value>(
   length: number,
   pieces: readonly StripPiece<Value>[],
   outside: Value,
+  path: string,
 ): readonly StripSlab<Value>[] {
   if (!(length > 0) || !Number.isFinite(length)) throw new RangeError('Strip field length must be positive and finite');
   for (const p of pieces) {
@@ -170,7 +172,8 @@ export function resolveStripSlabs<Value>(
           spans: Object.freeze(spans.map((p) => Object.freeze(p))),
         }),
       );
-      if (slabs.length > COURSE_DOCUMENT_LIMITS.stripSlabs) throw new RangeError('Resolved Strip slab limit exceeded');
+      if (slabs.length > COURSE_DOCUMENT_LIMITS.stripSlabs)
+        throw new CourseInputError('resource_limit', path, 'Resolved Strip slab limit exceeded');
     }
   }
   return Object.freeze(slabs);
@@ -206,6 +209,7 @@ function lateralFieldFor(
   first: number,
   start: number,
   end: number,
+  path: string,
 ): { field: StripLateralField; active: number; key: string } {
   const base = [0, 0, 0, 0],
     events = new Map<number, Event>();
@@ -268,7 +272,11 @@ function lateralFieldFor(
         !Number.isFinite(e.x) || e.value.some((v) => !Number.isFinite(v)) || e.slope.some((v) => !Number.isFinite(v)),
     )
   )
-    throw new RangeError('Strip lateral field coefficients must be finite and representable');
+    throw new CourseInputError(
+      'invalid_numeric_domain',
+      path,
+      'Strip lateral field coefficients must be finite and representable',
+    );
   const key = JSON.stringify([base, sorted]);
   const data = new Float64Array(sorted.length * 9),
     values = [...base],
@@ -285,7 +293,11 @@ function lateralFieldFor(
     previous = e.x;
   });
   if (data.some((v) => !Number.isFinite(v)))
-    throw new RangeError('Strip lateral field integrals must be finite and representable');
+    throw new CourseInputError(
+      'invalid_numeric_domain',
+      path,
+      'Strip lateral field integrals must be finite and representable',
+    );
   // Outside all finite edges the field is constant. Remove accumulated cancellation in the final slope.
   if (sorted.length) for (let c = 0; c < 4; c++) data[(sorted.length - 1) * 9 + 5 + c] = 0;
   return { field: { base: Object.freeze(base), data, count: sorted.length }, active, key };
@@ -320,11 +332,11 @@ export interface StripGroundCellReader {
 }
 
 /** Compile all s levels before driving. Storage is private; each renderer owns its sampling scratch. */
-export function compileStripGround(length: number, pieces: readonly StripPiece[]): StripGround {
+export function compileStripGround(length: number, pieces: readonly StripPiece[], path: string): StripGround {
   for (const piece of pieces)
     if (piece.value !== null && (!Number.isInteger(piece.value) || piece.value < 0 || piece.value > 32767))
       throw new RangeError('Strip color must be RGB555 or transparent');
-  const slabs = resolveStripSlabs(length, pieces, null),
+  const slabs = resolveStripSlabs(length, pieces, null, path),
     levels: Level[] = [],
     lateralFields: StripLateralField[] = [],
     intern = new Map<string, number>();
@@ -344,7 +356,7 @@ export function compileStripGround(length: number, pieces: readonly StripPiece[]
       const start = i * step,
         end = Math.min(length, (i + 1) * step);
       while (slab + 1 < slabs.length && slabs[slab]!.end <= start) slab++;
-      const built = lateralFieldFor(slabs, slab, start, end);
+      const built = lateralFieldFor(slabs, slab, start, end, path);
       let index = intern.get(built.key);
       if (index === undefined) {
         index = lateralFields.length;
@@ -352,7 +364,11 @@ export function compileStripGround(length: number, pieces: readonly StripPiece[]
         lateralFields.push(built.field);
         coefficientBytes += built.field.data.byteLength + 32;
         if (coefficientBytes > COURSE_DOCUMENT_LIMITS.coefficientBytes)
-          throw new RangeError(`Strip coefficient storage exceeds ${COURSE_DOCUMENT_LIMITS.coefficientBytes} bytes`);
+          throw new CourseInputError(
+            'resource_limit',
+            path,
+            `Strip coefficient storage exceeds ${COURSE_DOCUMENT_LIMITS.coefficientBytes} bytes`,
+          );
       }
       indices[i] = index;
       active[i] = built.active;

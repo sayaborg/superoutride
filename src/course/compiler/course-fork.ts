@@ -9,14 +9,35 @@ import type { CompiledFork, CompiledSection } from './course-graph.js';
 /** Resolve parallel-zone geometry after canonical outgoing Links exist, before publication. */
 export function compileCourseFork(
   section: CompiledSection,
-  controls: readonly { readonly kind: 'lock' | 'closure'; readonly at: CompiledCoursePosition }[],
+  controls: readonly {
+    readonly kind: 'lock' | 'closure';
+    readonly path: string;
+    readonly at: CompiledCoursePosition;
+  }[],
   path: string,
+  spritePaths: readonly string[],
 ): CompiledFork | null {
-  const conditional = section.appearance?.sprites.filter((p) => p.unselected !== null) ?? [];
-  const check = (condition: boolean, message: string) => requireCourse(condition, path, message, 'invalid_fork');
+  const conditional = (section.appearance?.sprites ?? [])
+    .map((placement, i) => ({ placement, path: spritePaths[i]! }))
+    .filter(({ placement }) => placement.unselected !== null);
+  const check = (
+    condition: boolean,
+    message: string,
+    at: string,
+    code: 'invalid_gate' | 'invalid_fork' = 'invalid_gate',
+  ) => requireCourse(condition, at, message, code);
   if (section.outgoing.length < 2) {
-    check(controls.length === 0, 'Lock and closure gates require a branching Section');
-    requireCourse(conditional.length === 0, path, 'State-selected road signs require a fork', 'invalid_fork');
+    check(
+      controls.length === 0,
+      'Lock and closure gates require a branching Section',
+      controls[0]?.path ?? `${path}/gates`,
+    );
+    requireCourse(
+      conditional.length === 0,
+      conditional[0]?.path ?? `${path}/sprites`,
+      'State-selected road signs require a fork',
+      'invalid_fork',
+    );
     return null;
   }
   const locks = controls.filter((gate) => gate.kind === 'lock');
@@ -24,28 +45,39 @@ export function compileCourseFork(
   check(
     locks.length === 1 && closures.length === 1,
     'A branching Section requires exactly one lock and one closure gate',
+    (locks.length !== 1 ? locks.at(-1)?.path : closures.at(-1)?.path) ?? `${path}/gates`,
   );
   const lock = locks[0]!.at,
     closure = closures[0]!.at;
   check(
     lock.s > 0 && lock.s < closure.s && closure.s < section.coordinates.domain.end,
     'Fork positions require 0 < lock < closure < every exit seam',
+    lock.s <= 0 ? locks[0]!.path : closures[0]!.path,
   );
-  for (const placement of conditional) {
+  for (const { placement, path: signPath } of conditional) {
     check(
       section.outgoing.some((link) => link.from.carriageway === placement.unselected),
       'Road sign state must name a canonical exit carriageway',
+      signPath,
+      'invalid_fork',
     );
-    check(placement.at.s >= lock.s && placement.at.s <= closure.s, 'Road signs lie between lock and closure');
+    check(
+      placement.at.s >= lock.s && placement.at.s <= closure.s,
+      'Road signs lie between lock and closure',
+      signPath,
+      'invalid_fork',
+    );
     check(
       placement.at.s + placement.instance.asset.source.width / SPRITE_SOURCE_TEXELS_PER_METER <
         section.coordinates.domain.end,
       'State-selected signs must precede the exit cut',
+      signPath,
+      'invalid_fork',
     );
   }
   const material = section.material;
   const supported = stripSupportedIntervals(material.slabs[stripSlabAt(material.slabs, lock.s)]!, lock.s);
-  check(supported.length === 1, 'Supported lock space must be one continuous interval');
+  check(supported.length === 1, 'Supported lock space must be one continuous interval', locks[0]!.path);
   const [outerLeft, outerRight] = supported[0]!;
   for (const slab of material.slabs) {
     if (slab.end <= lock.s || slab.start > closure.s) continue;
@@ -56,12 +88,16 @@ export function compileCourseFork(
         check(
           stripEdgeAt(span, side, start) === stripEdgeAt(span, side, end),
           'Lock-to-closure material cross sections must remain parallel',
+          `${path}/strips`,
+          'invalid_fork',
         );
     for (const at of [start, end]) {
       const ranges = stripSupportedIntervals(slab, at);
       check(
         ranges.length === 1 && ranges[0]![0] === outerLeft && ranges[0]![1] === outerRight,
         'Parallel-zone roads and medians must remain supported with unchanged cross-section bounds',
+        `${path}/strips`,
+        'invalid_fork',
       );
     }
   }
@@ -72,12 +108,14 @@ export function compileCourseFork(
         courseCarriagewayExists(road, lock.s, section.coordinates.domain.end) &&
           courseCarriagewayExists(road, closure.s, section.coordinates.domain.end),
         'Each exit carriageway must exist from lock through closure',
+        locks[0]!.path,
       );
       const left = courseBoundaryAt(road.left, lock.s),
         right = courseBoundaryAt(road.right, lock.s);
       check(
         stripSupportsInterval(material, lock.s, left, right),
         'Each exit carriageway must have positive supported width at lock',
+        locks[0]!.path,
       );
       for (const boundary of [road.left, road.right]) {
         const value = courseBoundaryAt(boundary, lock.s);
@@ -85,6 +123,8 @@ export function compileCourseFork(
           courseBoundaryAt(boundary, closure.s) === value &&
             boundary.vertices.every((k) => k.at.s <= lock.s || k.at.s >= closure.s || k.l === value),
           'Lock-to-closure Carriageway edges must remain parallel',
+          `${path}/boundaries/${section.boundaries.indexOf(boundary)}`,
+          'invalid_fork',
         );
       }
       return { link, left, right };
@@ -99,6 +139,8 @@ export function compileCourseFork(
       )
       .every((road) => roads.some((r) => r.link.from.carriageway === road)),
     'Every lock-line pavement belongs to an exit carriageway',
+    `${path}/carriageways`,
+    'invalid_fork',
   );
   const cuts: number[] = [outerLeft];
   for (let i = 1; i < roads.length; i += 1) {
@@ -107,6 +149,8 @@ export function compileCourseFork(
     check(
       stripSupportsInterval(material, lock.s, left, right),
       'Exit carriageways need a positive supported separating median',
+      `${path}/carriageways`,
+      'invalid_fork',
     );
     cuts.push(left + (right - left) / 2);
   }

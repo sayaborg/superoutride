@@ -421,7 +421,24 @@ one immutable source. [Image assets](image-assets.md#course-image-sources) owns 
 Draft saving is independent of image-byte availability.
 
 Document operations return `{ok:true,value}` or `{ok:false,diagnostics}`. Input diagnostics contain
-`kind:"input"`, `code`, JSON Pointer `path` and causal `message`. Clients use code/path. Malformed
+`kind:"input"`, `code`, JSON Pointer `path` and causal `message`. Clients use code/path.
+The `plan_coordinate_overlap` variant additionally requires
+`overlap: {section, intervals: [{sStart, sEnd}, ...]}`; ordinary diagnostics have no overlap fields.
+`plan_coordinate_inversion` identifies the Section's PIs and the affected station in metres, never
+an internal segment number. `invalid_gate` covers gate shape, limits, IDs, references, positions,
+ordering, Carriageway support, grid, lock/closure and circuit finish conditions. Its path identifies
+the causal gate or field; a missing gate points to its Section's `gates` collection.
+`invalid_rules` is reserved for position-free race settings. Non-gate fork constraints retain
+`invalid_fork`, addressed to the affected sprites, Strips, Boundaries or Carriageways.
+
+Document reading admits `curveLength` in `[0, lengthMeters]`. Compilation checks zero endpoint
+curve lengths and non-overlapping adjacent curves once, reporting `invalid_height` at the causal
+PVI's `curveLength`. Profile construction consumes those admitted curves.
+Strip compilation reports storage/work ceilings as `resource_limit` and unrepresentable preblend
+coefficients as `invalid_numeric_domain`, addressed to the Section's `strips` collection; malformed
+expanded constructs report `invalid_profile` at their authored element.
+Only known authored failures become diagnostics; internal invariant exceptions are never caught
+as a substitute for admission checks. Malformed
 schema reports a deterministic first error; independent semantic failures follow declaration order.
 Expected failures include shape, version, reference, resource, geometry, coverage, material, topology
 and appearance errors. Failed compilation publishes no partial product.

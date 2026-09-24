@@ -53,6 +53,7 @@ export function compileCourseAppearance(
   resolve: (at: CoursePosition, path: string) => CompiledCoursePosition,
   path: string,
   carriageways: readonly CompiledCarriageway[],
+  recordSpritePath: (path: string) => void,
 ): CourseAppearance | null {
   const source = section.environments;
   if (source.length === 0) {
@@ -163,6 +164,7 @@ export function compileCourseAppearance(
           'Unknown state-selected carriageway',
         );
       const position = shiftedCoursePosition(resolve, offset, length)(placement.at, `${at}/at`);
+      recordSpritePath(at);
       sprites.push(
         Object.freeze({
           unselected,

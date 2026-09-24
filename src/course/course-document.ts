@@ -144,7 +144,7 @@ export interface CourseDocument {
 }
 
 function fail(code: ConstructorParameters<typeof CourseInputError>[0], path: string, message: string): never {
-  throw new CourseInputError(code, path, message);
+  throw new CourseInputError(/^\/sections\/\d+\/gates(?:\/|$)/.test(path) ? 'invalid_gate' : code, path, message);
 }
 
 function record(value: unknown, path: string, fields: readonly string[]): Record<string, unknown> {
@@ -458,12 +458,7 @@ function section(value: unknown, path: string): SectionDocument {
       return Object.freeze({
         at: position(node.at, `${at}/at`),
         y: number(node.y, `${at}/y`, -COURSE_DOCUMENT_LIMITS.heightMeters, COURSE_DOCUMENT_LIMITS.heightMeters),
-        curveLength: number(
-          node.curveLength,
-          `${at}/curveLength`,
-          -COURSE_DOCUMENT_LIMITS.lengthMeters,
-          COURSE_DOCUMENT_LIMITS.lengthMeters,
-        ),
+        curveLength: number(node.curveLength, `${at}/curveLength`, 0, COURSE_DOCUMENT_LIMITS.lengthMeters),
       });
     }),
     carriageways: identified(v.carriageways, `${path}/carriageways`, COURSE_DOCUMENT_LIMITS.carriageways, carriageway),
@@ -565,11 +560,11 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
     result.sections.forEach((section, i) => {
       gateCount += section.gates.length;
       if (gateCount > COURSE_DOCUMENT_LIMITS.gates)
-        fail('resource_limit', `/sections/${i}/gates`, `Course admits at most ${COURSE_DOCUMENT_LIMITS.gates} gates`);
+        fail('invalid_gate', `/sections/${i}/gates`, `Course admits at most ${COURSE_DOCUMENT_LIMITS.gates} gates`);
       section.gates.forEach((gate, j) => {
         if ('id' in gate) {
           if (gateIds.has(gate.id))
-            fail('duplicate_id', `/sections/${i}/gates/${j}/id`, `Duplicate gate ID ${gate.id}`);
+            fail('invalid_gate', `/sections/${i}/gates/${j}/id`, `Duplicate gate ID ${gate.id}`);
           gateIds.add(gate.id);
         }
       });

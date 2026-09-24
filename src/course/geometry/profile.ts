@@ -43,7 +43,6 @@ export class Profile implements ProfileReader {
     for (const knot of knots) {
       finite(knot.y, 'profile knot height');
       finite(knot.curveLength, 'profile curve length');
-      if (knot.curveLength < 0) throw new RangeError('Profile curve length must be nonnegative');
     }
     this.knots = compileStationSequence(knots, {
       length: courseLength,
@@ -51,11 +50,6 @@ export class Profile implements ProfileReader {
       label: 'profile',
       endNode: true,
     });
-    if (this.knots[0]!.curveLength !== 0 || this.knots.at(-1)!.curveLength !== 0)
-      throw new RangeError('Endpoint profile curves must have zero length');
-    for (let i = 1; i < this.knots.length; i++)
-      if (this.knots[i - 1]!.s + this.knots[i - 1]!.curveLength / 2 > this.knots[i]!.s - this.knots[i]!.curveLength / 2)
-        throw new RangeError('Adjacent profile curves overlap');
     this.#grades = Object.freeze(
       this.knots.slice(1).map((b, i) => (b.y - this.knots[i]!.y) / (b.s - this.knots[i]!.s)),
     );

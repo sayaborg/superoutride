@@ -6,8 +6,14 @@ import type { CompiledBoundary } from '../course-boundaries.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
 import { resolveLateralInterval, resolveCourseLateral } from './course-lateral.js';
 import type { StripElementDocument, CoursePosition, Lateral } from '../course-document.js';
-import { CourseInputError, requireCourse } from '../course-diagnostics.js';
-import { STRIP_ACTIVE_LIMIT, compileStripGround, type StripPiece, type StripEdgeLine } from '../strip-ground.js';
+import { requireCourse } from '../course-diagnostics.js';
+import {
+  STRIP_ACTIVE_LIMIT,
+  stripEdgeAt,
+  compileStripGround,
+  type StripPiece,
+  type StripEdgeLine,
+} from '../strip-ground.js';
 
 /** A small authored 5 by 7 block alphabet; rows expand to runs of Strips. */
 const GLYPHS: Readonly<Record<string, string>> = Object.freeze({
@@ -60,8 +66,22 @@ function expandCourseStrips(
   const pieces: StripPiece[] = [];
   const materials: StripPiece<SurfaceMaterial | null>[] = [];
   const line = (start: number, end: number, from: number, to = from): StripEdgeLine => ({ start, end, from, to });
+  let sourcePath = path;
   const extents: { start: number; end: number }[] = [];
-  const track = (shape: { start: number; end: number }) => {
+  const track = (shape: Omit<StripPiece, 'value'>) => {
+    requireCourse(
+      shape.start >= 0 && shape.end > shape.start && shape.end <= length,
+      sourcePath,
+      'Expanded Strip interval must lie inside the Section',
+      'invalid_profile',
+    );
+    const piece = { ...shape, value: null };
+    requireCourse(
+      [shape.start, shape.end].every((s) => stripEdgeAt(piece, 'left', s) <= stripEdgeAt(piece, 'right', s)),
+      sourcePath,
+      'Strip left edge cannot exceed its right edge',
+      'invalid_profile',
+    );
     requireCourse(
       extents.length < COURSE_DOCUMENT_LIMITS.stripExpansion,
       path,
@@ -71,8 +91,6 @@ function expandCourseStrips(
     extents.push(shape);
   };
   const add = (piece: StripPiece) => {
-    if (piece.start < 0 || piece.end > length)
-      throw new CourseInputError('invalid_profile', path, 'Expanded Strip extends outside its Section');
     track(piece);
     pieces.push(Object.freeze(piece));
   };
@@ -155,6 +173,7 @@ function expandCourseStrips(
     at: string,
     repeated: boolean,
   ) => {
+    sourcePath = at;
     const position = shiftedCoursePosition(resolve, offset, length);
     switch (element.kind) {
       case 'strip':
@@ -289,19 +308,9 @@ export function compileCourseStrips(
   resolve: (at: CoursePosition, path: string) => CompiledCoursePosition,
   boundaries: ReadonlyMap<string, CompiledBoundary>,
 ) {
-  try {
-    const { pieces, materials } = expandCourseStrips(elements, length, path, resolve, boundaries);
-    return Object.freeze({
-      color: compileStripGround(length, pieces),
-      material: compileStripMaterial(length, materials),
-    });
-  } catch (error) {
-    if (error instanceof RangeError)
-      throw new CourseInputError(
-        /exceed|limit/i.test(error.message) ? 'resource_limit' : 'invalid_profile',
-        path,
-        error.message,
-      );
-    throw error;
-  }
+  const { pieces, materials } = expandCourseStrips(elements, length, path, resolve, boundaries);
+  return Object.freeze({
+    color: compileStripGround(length, pieces, path),
+    material: compileStripMaterial(length, materials, path),
+  });
 }

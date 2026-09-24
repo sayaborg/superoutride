@@ -17,7 +17,6 @@ type CourseDiagnosticCode =
   | 'material_transition_discontinuity'
   | 'carriageway_transition_discontinuity'
   | 'plan_coordinate_inversion'
-  | 'plan_coordinate_overlap'
   | 'invalid_carriageway'
   | 'duplicate_membership'
   | 'invalid_height'
@@ -31,18 +30,30 @@ type CourseDiagnosticCode =
   | 'invalid_image_role'
   | 'invalid_profile'
   | 'invalid_placement'
+  | 'invalid_gate'
   | 'invalid_fork'
   | 'invalid_rules';
 
-interface InputDiagnostic {
+interface BasicInputDiagnostic {
   readonly kind: 'input';
   readonly code: CourseDiagnosticCode;
   /** JSON Pointer into the submitted authoring input; empty means the root. */
   readonly path: string;
   readonly message: string;
-  readonly section?: string;
-  readonly intervals?: readonly { readonly sStart: number; readonly sEnd: number }[];
 }
+
+type InputDiagnostic =
+  | BasicInputDiagnostic
+  | {
+      readonly kind: 'input';
+      readonly code: 'plan_coordinate_overlap';
+      readonly path: string;
+      readonly message: string;
+      readonly overlap: {
+        readonly section: string;
+        readonly intervals: readonly { readonly sStart: number; readonly sEnd: number }[];
+      };
+    };
 
 interface AssetDiagnostic {
   readonly kind: 'asset';
@@ -93,17 +104,11 @@ export type CourseResult<T> =
 export class CourseInputError extends Error {
   readonly diagnostic: InputDiagnostic;
 
-  constructor(
-    code: CourseDiagnosticCode,
-    path: string,
-    message: string,
-    overlap?: {
-      readonly section: string;
-      readonly intervals: readonly { readonly sStart: number; readonly sEnd: number }[];
-    },
-  ) {
-    super(message);
-    this.diagnostic = Object.freeze({ kind: 'input', code, path, message, ...overlap });
+  constructor(diagnostic: InputDiagnostic);
+  constructor(code: CourseDiagnosticCode, path: string, message: string);
+  constructor(code: CourseDiagnosticCode | InputDiagnostic, path = '', message = '') {
+    super(typeof code === 'string' ? message : code.message);
+    this.diagnostic = Object.freeze(typeof code === 'string' ? { kind: 'input' as const, code, path, message } : code);
   }
 }
 
@@ -128,4 +133,15 @@ export function requireCourse(
 
 export function courseSuccess<T>(value: T): CourseResult<T> {
   return Object.freeze({ ok: true, value });
+}
+
+/** Gate shape, references and geometry share one author-facing code. Internal faults still propagate. */
+export function admitGate<T>(read: () => T): T {
+  try {
+    return read();
+  } catch (error) {
+    if (error instanceof CourseInputError)
+      throw new CourseInputError('invalid_gate', error.diagnostic.path, error.message);
+    throw error;
+  }
 }

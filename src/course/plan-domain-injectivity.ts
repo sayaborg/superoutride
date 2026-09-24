@@ -139,12 +139,13 @@ export function validatePlanDomainInjectivity(
       const intervals = Object.freeze(
         [a, b].sort((x, y) => x.start - y.start).map((cell) => Object.freeze({ sStart: cell.start, sEnd: cell.end })),
       );
-      throw new CourseInputError(
-        'plan_coordinate_overlap',
-        sectionPath,
-        `Section ${JSON.stringify(sectionId)} coordinate domain overlaps at ${JSON.stringify(intervals)}`,
-        { section: sectionId, intervals },
-      );
+      throw new CourseInputError({
+        kind: 'input',
+        code: 'plan_coordinate_overlap',
+        path: sectionPath,
+        message: `Section ${JSON.stringify(sectionId)} coordinate domain overlaps at ${JSON.stringify(intervals)}`,
+        overlap: Object.freeze({ section: sectionId, intervals }),
+      });
     }
   }
 }
