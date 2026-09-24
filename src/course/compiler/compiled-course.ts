@@ -29,11 +29,7 @@ import {
   type CourseAssetBytes,
   type CompiledCourseImageSource,
 } from './course-image-source.js';
-import {
-  COURSE_PRESENTATION_RECIPE,
-  compileCoursePresentation,
-  createCourseSpriteResources,
-} from './course-presentation.js';
+import { COURSE_APPEARANCE_RECIPE, compileCourseAppearance, createCourseSpriteResources } from './course-appearance.js';
 import { compileCourseBoundaries } from './course-lateral.js';
 import { compileCourseRules } from './course-rules.js';
 import { compileCourseFork } from './course-fork.js';
@@ -64,11 +60,11 @@ export interface CompiledCourse {
 
 const COURSE_COMPILER = Object.freeze({
   id: 'superoutride.course-compiler',
-  version: 30,
+  version: 31,
   links: COURSE_LINK_RECIPE,
   physical: COURSE_PHYSICAL_RECIPE,
   images: COURSE_IMAGE_SOURCE_RECIPE,
-  presentation: COURSE_PRESENTATION_RECIPE,
+  appearance: COURSE_APPEARANCE_RECIPE,
 });
 
 function reference<T>(table: ReadonlyMap<string, T>, id: string, path: string): T {
@@ -141,7 +137,7 @@ function compileSection(
     ...strips,
     carriageways: Object.freeze(carriageways),
     assets: Object.freeze(sectionAssets),
-    presentation: compileCoursePresentation(
+    appearance: compileCourseAppearance(
       section,
       length,
       boundaryTable,

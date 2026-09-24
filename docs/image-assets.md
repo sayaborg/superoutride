@@ -156,10 +156,10 @@ corrupt or malformed inputs fail. Asset diagnostics contain `kind:"asset"`, code
 asset indices and supplied input index where applicable; independent failures follow declaration order.
 Failure publishes no graph. Decoded consumer workspaces cannot mutate the saved source.
 
-## Saved course presentation
+## Saved course appearance
 
-Background bindings use tile maps and scenery uses sprite levels. Ground contains direct RGB555
+Background bindings use tile maps and sprites uses sprite levels. Ground contains direct RGB555
 colors or transparency and saved Strip constructs, not image references. The course compiler expands
-the constructs and builds private numeric profiles; these are not image assets or serialized payloads.
-[Content and gameplay](content-and-gameplay.md#saved-presentation) owns the saved fields;
+the constructs and builds private numeric fields; these are not image assets or serialized payloads.
+[Content and gameplay](content-and-gameplay.md#sprites-and-environment) owns the saved fields;
 [Architecture](architecture.md#strip-rendering) owns ground sampling and its common color law.

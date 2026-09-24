@@ -6,19 +6,19 @@ import type { CompiledBoundary, CompiledCarriageway } from '../course-boundaries
 import type { CompiledCoursePosition } from '../course-geometry.js';
 import { CourseInputError, requireCourse } from '../course-diagnostics.js';
 import { BACKGROUND_HEIGHT, BACKGROUND_PIXELS_PER_RADIAN } from '../../image/tile-background-image.js';
-import type { CoursePresentation, CourseSceneryInstance } from '../course-presentation.js';
+import type { CourseAppearance, CourseSpriteResource } from '../course-appearance.js';
 import type { CompiledCourseImageSource } from './course-image-source.js';
 
-export const COURSE_PRESENTATION_RECIPE = Object.freeze({ id: 'superoutride.course-presentation', version: 9 });
+export const COURSE_APPEARANCE_RECIPE = Object.freeze({ id: 'superoutride.course-appearance', version: 9 });
 
 /** Share one immutable image/palette binding across every Section in a compilation. */
 export function createCourseSpriteResources() {
-  const images = new Map<CourseSceneryInstance['asset']['source'], Map<string, CourseSceneryInstance>>();
+  const images = new Map<CourseSpriteResource['asset']['source'], Map<string, CourseSpriteResource>>();
   return (
-    asset: CourseSceneryInstance['asset'],
+    asset: CourseSpriteResource['asset'],
     palette: readonly number[] | null,
     path: string,
-  ): CourseSceneryInstance => {
+  ): CourseSpriteResource => {
     requireCourse(
       palette === null ||
         [asset.source.levels[0]!.paletteRgb555, ...asset.source.variants].some((choice) =>
@@ -44,7 +44,7 @@ export function createCourseSpriteResources() {
 }
 
 /** Resolve saved environment and sprites through canonical geometry/assets. */
-export function compileCoursePresentation(
+export function compileCourseAppearance(
   section: SectionDocument,
   length: number,
   boundaries: ReadonlyMap<string, CompiledBoundary>,
@@ -53,8 +53,8 @@ export function compileCoursePresentation(
   resolve: (at: CoursePosition, path: string) => CompiledCoursePosition,
   path: string,
   carriageways: readonly CompiledCarriageway[],
-): CoursePresentation | null {
-  const source = section.presentation;
+): CourseAppearance | null {
+  const source = section.environments;
   if (source === null) {
     requireCourse(section.sprites.length === 0, `${path}/sprites`, 'Sprites require environments', 'invalid_placement');
     return null;
@@ -74,21 +74,21 @@ export function compileCoursePresentation(
     requireCourse(
       positions.length > 0 && positions[0]!.s === start,
       at,
-      'Profile must begin at its declared domain start',
+      'Environment knots must begin at their declared domain start',
       'invalid_profile',
     );
     for (let i = 0; i < positions.length; i += 1)
       requireCourse(
         positions[i]!.s < end && (i === 0 || positions[i]!.s > positions[i - 1]!.s),
         `${at}/${i}/at`,
-        'Profile changes must strictly increase inside the domain',
+        'Environment knots must strictly increase inside the domain',
         'invalid_profile',
       );
   };
-  const environments: CoursePresentation['environments'][number][] = [];
+  const environments: CourseAppearance['environments'][number][] = [];
   expandCourseElements(
-    source.environments,
-    `${path}/presentation/environments`,
+    source,
+    `${path}/environments`,
     COURSE_DOCUMENT_LIMITS.environmentKnots * (2 * COURSE_DOCUMENT_LIMITS.repeatDepth + 1),
     (environment, offset, at) => {
       requireCourse(
@@ -133,9 +133,9 @@ export function compileCoursePresentation(
     environments.map((e) => e.at),
     0,
     length,
-    `${path}/presentation/environments`,
+    `${path}/environments`,
   );
-  const sprites: CoursePresentation['sprites'][number][] = [];
+  const sprites: CourseAppearance['sprites'][number][] = [];
   expandCourseElements(
     section.sprites,
     `${path}/sprites`,

@@ -15,8 +15,8 @@ export function createCourseRouteVisualReaders(route: CourseRoute, fields: Cours
   const sectionReaders = (section: CompiledSection) => {
     let readers = sections.get(section);
     if (!readers) {
-      if (!section.presentation) throw new Error('Driving Section requires compiled appearance');
-      readers = resources.createSectionReaders(section.presentation, section, section.height);
+      if (!section.appearance) throw new Error('Driving Section requires compiled appearance');
+      readers = resources.createSectionReaders(section.appearance, section, section.height);
       sections.set(section, readers);
     }
     return readers;
@@ -39,22 +39,22 @@ export function createCourseRouteVisualReaders(route: CourseRoute, fields: Cours
       };
     });
     const mappedByOccurrence = new Map(mapped.map((item) => [item.occurrence, item]));
-    const visualSections = mapped.flatMap(({ occurrence, native }) => {
+    const environmentIntervals = mapped.flatMap(({ occurrence, native }) => {
       const nativeEnd = routeSectionS(occurrence, occurrence.end);
       return [
-        native.visual.sample(0),
-        ...native.visual.sections.filter((section) => section.sStart > 0 && section.sStart < nativeEnd),
-      ].map((section) => Object.freeze({ ...section, sStart: routeS(occurrence, Math.max(section.sStart, 0)) }));
+        native.environment.sample(0),
+        ...native.environment.intervals.filter((interval) => interval.sStart > 0 && interval.sStart < nativeEnd),
+      ].map((interval) => Object.freeze({ ...interval, sStart: routeS(occurrence, Math.max(interval.sStart, 0)) }));
     });
-    const visual = Object.freeze({
-      sections: Object.freeze(visualSections),
+    const environment = Object.freeze({
+      intervals: Object.freeze(environmentIntervals),
       sample(s: number) {
-        return visualSections[stationIndexAt(visualSections, 'sStart', s)]!;
+        return environmentIntervals[stationIndexAt(environmentIntervals, 'sStart', s)]!;
       },
-      distanceToNextSection(s: number) {
+      distanceToNextInterval(s: number) {
         if (!route.at(s)) return Infinity;
-        const index = stationIndexAt(visualSections, 'sStart', s);
-        return (visualSections[index + 1]?.sStart ?? route.end) - s;
+        const index = stationIndexAt(environmentIntervals, 'sStart', s);
+        return (environmentIntervals[index + 1]?.sStart ?? route.end) - s;
       },
     });
     const sampler = createStripGroundSampler(
@@ -90,7 +90,7 @@ export function createCourseRouteVisualReaders(route: CourseRoute, fields: Cours
     );
     return Object.freeze({
       ground,
-      visual,
+      environment,
       worldSprites: Object.freeze(placements.filter((p) => p.unselected === null).map((p) => p.sprite)),
       conditionalSprites: Object.freeze(
         placements.filter((p) => p.unselected !== null).map((p) => ({ unselected: p.unselected!, sprite: p.sprite })),
@@ -98,7 +98,11 @@ export function createCourseRouteVisualReaders(route: CourseRoute, fields: Cours
       backgroundAt(s: number) {
         const occurrence = route.at(s) ?? (s < route.start ? occurrences[0]! : occurrences.at(-1)!);
         const mappedSection = mappedByOccurrence.get(occurrence)!;
-        const index = stationIndexAt(mappedSection.native.visual.sections, 'sStart', routeSectionS(occurrence, s));
+        const index = stationIndexAt(
+          mappedSection.native.environment.intervals,
+          'sStart',
+          routeSectionS(occurrence, s),
+        );
         return mappedSection.backgrounds[index]!;
       },
     });

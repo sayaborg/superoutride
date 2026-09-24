@@ -33,7 +33,7 @@ interface RenderResult {
   playerOutputSamples: number;
   playerWrittenPixels: number;
   playerScreenY: number;
-  activeSection: string;
+  activeEnvironment: string;
   playerYawVariant: number;
   playerBankVariant: number;
   playerRelativeYaw: number;
@@ -226,7 +226,7 @@ export function renderDriving(
     playerOutputSamples: playerStats.outputSamples,
     playerWrittenPixels: playerStats.writtenPixels,
     playerScreenY: playerProjection.y,
-    activeSection: terrainParameters.visual.sample(vehicle.course.s).name,
+    activeEnvironment: terrainParameters.environment.sample(vehicle.course.s).name,
     playerYawVariant: selected.yawIndex,
     playerBankVariant: selected.bankIndex,
     playerRelativeYaw: relativeYaw,

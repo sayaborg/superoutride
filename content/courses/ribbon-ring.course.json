@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 20,
+  "version": 21,
   "id": "ribbon-ring",
   "reference": null,
   "units": {
@@ -931,34 +931,32 @@
         }
       ],
       "assetIds": ["coast-sky", "tree"],
-      "presentation": {
-        "environments": [
-          {
-            "at": {
-              "pi": "start",
-              "offset": 0
-            },
-            "name": "RIBBON RING",
-            "background": {
-              "assetId": "coast-sky",
-              "horizonY": 320,
-              "yawOrigin": 0
-            }
+      "environments": [
+        {
+          "at": {
+            "pi": "start",
+            "offset": 0
           },
-          {
-            "at": {
-              "pi": "bend-2",
-              "offset": 204.20352248333666
-            },
-            "name": "RIBBON RING",
-            "background": {
-              "assetId": "coast-sky",
-              "horizonY": 320,
-              "yawOrigin": 180
-            }
+          "name": "RIBBON RING",
+          "background": {
+            "assetId": "coast-sky",
+            "horizonY": 320,
+            "yawOrigin": 0
           }
-        ]
-      },
+        },
+        {
+          "at": {
+            "pi": "bend-2",
+            "offset": 204.20352248333666
+          },
+          "name": "RIBBON RING",
+          "background": {
+            "assetId": "coast-sky",
+            "horizonY": 320,
+            "yawOrigin": 180
+          }
+        }
+      ],
       "fork": null,
       "sprites": [
         {

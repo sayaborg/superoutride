@@ -1,0 +1,43 @@
+import { compileStationSequence, stationSequenceChainage, stationIndexAt } from './geometry/station-sequence.js';
+import { nonEmptyId } from '../core/validation.js';
+
+interface EnvironmentInterval {
+  readonly sStart: number;
+  readonly name: string;
+}
+
+export interface EnvironmentReader {
+  readonly intervals: readonly EnvironmentInterval[];
+  sample(s: number): EnvironmentInterval;
+  distanceToNextInterval(s: number): number;
+}
+
+/** Environment names over the Section ruler. Chainage is the open interval [0, courseLength]. */
+export class EnvironmentTimeline implements EnvironmentReader {
+  readonly intervals: readonly EnvironmentInterval[];
+
+  constructor(
+    readonly courseLength: number,
+    intervals: readonly EnvironmentInterval[],
+  ) {
+    this.intervals = compileStationSequence(
+      intervals.map((interval) => {
+        nonEmptyId(interval.name, 'environment interval name');
+        return { ...interval };
+      }),
+      { length: courseLength, chainage: 'sStart', label: 'environment timeline' },
+    );
+  }
+
+  sample(s: number): EnvironmentInterval {
+    const local = stationSequenceChainage(s, this.courseLength, 'environment timeline');
+    return this.intervals[stationIndexAt(this.intervals, 'sStart', local)]!;
+  }
+
+  distanceToNextInterval(s: number): number {
+    const local = stationSequenceChainage(s, this.courseLength, 'environment timeline');
+    if (local === this.courseLength) return 0;
+    const index = stationIndexAt(this.intervals, 'sStart', local);
+    return (this.intervals[index + 1]?.sStart ?? this.courseLength) - local;
+  }
+}

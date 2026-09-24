@@ -8,7 +8,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **7-4c — Names**.
+Next PR: **7-5 — Gates, rules and cycles**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -18,7 +18,6 @@ PRs hold rationale and verification evidence.
 
 Write plan, position, lateral strips and race landmarks in one consistent authored course format.
 
-- **7-4c — Names:** name successors to VisualProfile, CoursePresentation, `presentation` and their visual records according to the glossary.
 - **7-5 — Gates, rules and cycles:** author start (including grid), checkpoints, finish, lock lines and closures as Section `gates`; remove `fork` and derive forking from the number of outgoing Links; forbid Links from a Section to itself so a circuit is a cycle of two or more Sections; require every directed cycle to close geometrically at compilation (the composed Link transforms return to identity within the accumulated Link tolerance); merges of different branches are not cycles and stay unchecked; count a lap as one traversal of the cycle; rebuild ribbon-ring as a geometrically closed cycle; leave only numeric settings in `rules`; derive course kind from the graph; remove production provenance, `geometryRecipe`, `units` and `reference`; simplify nulls and limits. The directed-cycle closure check must not enumerate every cycle; it must stay polynomial in Sections and Links at the admitted graph size.
 - **7-6 — Delivery identity:** use one manifest, one version per format and one image path.
 - **7-7 — Validation:** validate once at document reading/compilation boundaries, remove redundant internal defensive checks and impossible ok/failure paths, unify progress diagnostics and move coordinate-overlap `CourseInputError` fields to a structured diagnostic variant; consolidate vertical-curve validation and admit `curveLength` from zero upward in document reading.
@@ -80,7 +79,7 @@ collected from the topic specifications; their order within this stage is not ye
 
 Record exact edition, cabinet/region or circuit layout, supporting material, deliberate approximations
 and remaster departures. Preserve topology, characteristic turn order, elevation sequence and visual
-identity within the pseudo-projection and mechanics. Checkpoints and scenery/music changes may be
+identity within the pseudo-projection and mechanics. Checkpoints and sprites/music changes may be
 independent of Section boundaries. Use schematic route maps rather than require one geographic embedding.
 Suzuka's lower crossing is represented as a tunnel with one road surface drawn at a time.
 
@@ -88,7 +87,7 @@ Suzuka's lower crossing is represented as a tunnel with one road surface drawn a
 
 Implement a timeline-based fitting workflow. For the selected vehicle, observations contain interval
 start/duration, turn direction, speed ratio to maximum speed, and relaxed/fast/limit headroom.
-Hills, environments, scenery and checkpoints use timestamped landmarks.
+Hills, environments, sprites and checkpoints use timestamped landmarks.
 
 Use measured vehicle envelopes and explicit authoring defaults, initially:
 
@@ -111,7 +110,7 @@ transient undo; a 2D plan is an authoring view. Show stale previews and anchor d
 geometry-recipe changes. Before master-course production, document/compiler versions can advance without
 migration readers; replace development inputs with the corresponding version.
 
-Develop production scenery, BG and tunnel artwork. Inspect distant scenery, source-camera/variant
+Develop production sprites, BG and tunnel artwork. Inspect distant sprites, source-camera/variant
 sampling, palettes and braking lamps on real devices. Preserve the authoring goals of dimensioned
 markings, boundary treatments and seeded visual variation through the Strip model; ground
 appearance and physical bindings stay independent. Saved generated artwork and recipes are inputs,

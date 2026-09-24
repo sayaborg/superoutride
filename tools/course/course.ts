@@ -66,7 +66,7 @@ try {
       sections: course.sections.map((s) => ({
         id: s.id,
         length: s.coordinates.domain.end,
-        sprites: s.presentation?.sprites.length ?? 0,
+        sprites: s.appearance?.sprites.length ?? 0,
       })),
     };
     const section = opts.has('--section') ? course.sections.find((s) => s.id === opts.get('--section')) : course.entry;
@@ -128,7 +128,7 @@ try {
       }
       result.render = sequence ? { frames } : frames[0];
     } else if (verb === 'report') {
-      requireInput(section.presentation, '/section', 'Report needs explicit saved presentation');
+      requireInput(section.appearance, '/section', 'Report needs explicit saved appearance');
       result.report = await courseReport(
         course,
         section,

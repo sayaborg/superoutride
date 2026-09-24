@@ -3,7 +3,7 @@ import { COURSE_DOCUMENT_LIMITS } from './course-limits.js';
 import { SESSION_RULE_LIMITS } from './session-rules.js';
 import { CourseInputError, courseFailure, courseSuccess, type CourseResult } from './course-diagnostics.js';
 
-const COURSE_DOCUMENT_VERSION = 20;
+const COURSE_DOCUMENT_VERSION = 21;
 
 interface GeometryRecipeIdentity {
   readonly id: string;
@@ -103,9 +103,6 @@ export interface SpriteDocument {
   readonly lateral: Lateral;
   readonly groundOffset: number;
 }
-export interface PresentationDocument {
-  readonly environments: readonly RepeatElement<EnvironmentDocument>[];
-}
 
 export interface SectionDocument {
   readonly id: string;
@@ -116,7 +113,7 @@ export interface SectionDocument {
   readonly height: readonly { readonly at: CoursePosition; readonly y: number; readonly curveLength: number }[];
   readonly carriageways: readonly CarriagewayDocument[];
   readonly assetIds: readonly string[];
-  readonly presentation: PresentationDocument | null;
+  readonly environments: readonly RepeatElement<EnvironmentDocument>[] | null;
   readonly fork: null | { readonly lock: CoursePosition; readonly closure: CoursePosition };
 }
 
@@ -496,14 +493,11 @@ function sprite(value: unknown, path: string): SpriteDocument {
       s.unselectedCarriagewayId === null ? null : id(s.unselectedCarriagewayId, `${path}/unselectedCarriagewayId`),
   });
 }
-function presentation(value: unknown, path: string): PresentationDocument | null {
+function environments(value: unknown, path: string): SectionDocument['environments'] {
   if (value === null) return null;
-  const v = record(value, path, ['environments']);
-  return Object.freeze({
-    environments: array(v.environments, `${path}/environments`, COURSE_DOCUMENT_LIMITS.environmentKnots, (item, at) =>
-      repeated(item, at, COURSE_DOCUMENT_LIMITS.environmentKnots, environment),
-    ),
-  });
+  return array(value, path, COURSE_DOCUMENT_LIMITS.environmentKnots, (item, at) =>
+    repeated(item, at, COURSE_DOCUMENT_LIMITS.environmentKnots, environment),
+  );
 }
 
 function section(value: unknown, path: string): SectionDocument {
@@ -516,7 +510,7 @@ function section(value: unknown, path: string): SectionDocument {
     'height',
     'carriageways',
     'assetIds',
-    'presentation',
+    'environments',
     'fork',
   ]);
   const fork = v.fork === null ? null : record(v.fork, `${path}/fork`, ['lock', 'closure']);
@@ -545,7 +539,7 @@ function section(value: unknown, path: string): SectionDocument {
     }),
     carriageways: identified(v.carriageways, `${path}/carriageways`, COURSE_DOCUMENT_LIMITS.carriageways, carriageway),
     assetIds: array(v.assetIds, `${path}/assetIds`, COURSE_DOCUMENT_LIMITS.sectionAssets, id),
-    presentation: presentation(v.presentation, `${path}/presentation`),
+    environments: environments(v.environments, `${path}/environments`),
     fork:
       fork === null
         ? null

@@ -35,7 +35,7 @@ function checkedLateral(l: number, path: string): number {
   return l;
 }
 
-/** Scenery, each expanded row instance and grid slots publish only their resolved l. */
+/** Sprites, each expanded row instance and grid slots publish only their resolved l. */
 export function resolveCourseLateral(
   lateral: Lateral,
   s: number,

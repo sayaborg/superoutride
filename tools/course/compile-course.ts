@@ -58,14 +58,14 @@ if (!result.ok) {
                   closure: section.fork.closure.s,
                   regions: section.fork.regions.map(({ link, ...interval }) => ({ ...interval, link: link.id })),
                 },
-          presentation:
-            section.presentation === null
+          appearance:
+            section.appearance === null
               ? null
               : {
                   kind: 'strips',
                   ...section.color.metrics,
-                  environments: section.presentation.environments.length,
-                  sprites: section.presentation.sprites.length,
+                  environments: section.appearance.environments.length,
+                  sprites: section.appearance.sprites.length,
                 },
         })),
       },

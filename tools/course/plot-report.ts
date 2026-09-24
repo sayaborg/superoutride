@@ -85,7 +85,7 @@ export function plotCourseReport(data: CourseReport) {
   const spritesTop = top;
   top = panel(
     top,
-    'Scenery lateral position (m)',
+    'Sprites lateral position (m)',
     assets.map((name) => ({ name, values: [] })),
     spritesRange,
   );

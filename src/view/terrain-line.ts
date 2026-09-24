@@ -3,7 +3,7 @@ import type { ProfilePolylineReader } from '../course/geometry/profile.js';
 import { stationIndexAt } from '../course/geometry/station-sequence.js';
 import { horizonY, pseudoProject, type PseudoCamera } from './projection.js';
 import { PIXEL_EDGE_TOLERANCE } from './pixel-coverage.js';
-import type { VisualProfileReader } from '../course/visual-profile.js';
+import type { EnvironmentReader } from '../course/environment-timeline.js';
 
 // Metres: chainage subtraction budget, ~eight ulps at 10^6 m; rejects numerically empty intervals.
 const VISIBLE_INTERVAL_TOLERANCE_METERS = 1e-9;
@@ -79,7 +79,7 @@ export interface TerrainRenderParameters {
   dMin: number;
   dMax: number;
   height: ProfilePolylineReader;
-  visual: VisualProfileReader;
+  environment: EnvironmentReader;
   /** Collapse threshold in destination scanline units. Defaults to one row. */
   thinSpanScreenRows?: number;
 }
@@ -97,7 +97,7 @@ interface TerrainLineFootprint {
 }
 
 interface TerrainLine extends TerrainLineGeometry {
-  sectionName: string;
+  environmentName: string;
   renderHeight: number;
   footprint: TerrainLineFootprint;
 }
@@ -155,7 +155,7 @@ export function generateTerrainLines(
   // Use boundary stations directly: rounding cannot strand a cursor before a vertex.
   boundaries.push(start, end);
   appendVisibleBoundaries(boundaries, parameters.height.vertices, 's', start, end);
-  appendVisibleBoundaries(boundaries, parameters.visual.sections, 'sStart', start, end);
+  appendVisibleBoundaries(boundaries, parameters.environment.intervals, 'sStart', start, end);
   boundaries.sort(ascending);
   let count = 0;
   for (let i = 0; i < boundaries.length; i++)
@@ -270,7 +270,7 @@ function createTerrainLine(
   const groundSpan = projectedRight.x - projectedLeft.x;
   if (!(groundSpan > MIN_TERRAIN_SPAN_PIXELS)) return null;
 
-  const section = parameters.visual.sample(s);
+  const environment = parameters.environment.sample(s);
   const deltaL = 2 / groundSpan;
   let line = workspace.pool[workspace.lines.length];
   if (!line) {
@@ -280,7 +280,7 @@ function createTerrainLine(
       y: 0,
       xGroundL: 0,
       xGroundR: 0,
-      sectionName: '',
+      environmentName: '',
       renderHeight: 0,
       footprint: { deltaS: 0, deltaSCollapse: 0, deltaSEffective: 0, deltaL: 0, collapsed: false },
     };
@@ -291,7 +291,7 @@ function createTerrainLine(
   line.y = y;
   line.xGroundL = projectedLeft.x;
   line.xGroundR = projectedRight.x;
-  line.sectionName = section.name;
+  line.environmentName = environment.name;
   line.renderHeight = renderHeight;
   line.footprint.deltaS = deltaS;
   line.footprint.deltaSCollapse = deltaSCollapse;

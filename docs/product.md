@@ -34,9 +34,9 @@ roads show warnings and closure signs; vehicles remaining there at closure recov
 road. Vehicles and roadside objects are pass-through. Recovery preserves earned race progress.
 [Session and timing rules](content-and-gameplay.md#session-and-reference-timing) define event ordering and budgets.
 
-## 3. Presentation and authoring
+## 3. Rendering and authoring
 
-The view combines a tiled background, road and scenery sprites with the player and HUD. Testarossa
+The view combines a tiled background, road and sprites sprites with the player and HUD. Testarossa
 brake lamps select a saved palette. Engine sound and player tire sound follow physical observations.
 The HUD shows race state and current performance measurements; a DEV overlay exposes camera, sound and ground display controls.
 

@@ -117,7 +117,7 @@ Terrain reads the same `PlanCoordinateReader` as physics; the Route owns the ext
 
 Vec2/Vec3 are readonly values. Sampling APIs with caller-owned outputs return borrowed observations
 valid until those outputs are reused. Compiled sources are immutable; actors and consumers own live state.
-Plan, Profile, VisualProfile and ground appearance have finite domain `[0,L]`.
+Plan, Profile, EnvironmentTimeline and ground appearance have finite domain `[0,L]`.
 Station-sequence endpoints normalize within their admission budget; plan sampling has a separate geometric budget. Nonfinite source values fail.
 At a segment boundary, the successor owns the interior station; the terminal endpoint uses
 the final segment.
@@ -453,7 +453,7 @@ in `src/image`; authoring-only limits stay with the tools.
 Shell owns the observer's camera, and race actors contain no camera state. Race publishes camera-independent
 actor observations; view owns rival sprite selection and assembly. Course owns VehicleWorld, surface
 readers and the physical driving source. Race consumes that source only. Shell binds physical and
-presentation products and owns the combined pre-lock render/driver query-depth admission.
+appearance products and owns the combined pre-lock render/driver query-depth admission.
 RGBA conversion, sprite images and LOD formats belong
 to image; framebuffer writes and sprite drawing belong to view. Compiled Strip color fields
 and their scalar coefficient Reader belong to course. View owns Strip row sampling and the

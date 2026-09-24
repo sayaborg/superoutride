@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 20,
+  "version": 21,
   "id": "ribbon-fork",
   "reference": null,
   "units": {
@@ -1007,22 +1007,20 @@
         }
       ],
       "assetIds": ["coast-sky", "tree", "fork-warning", "fork-closed"],
-      "presentation": {
-        "environments": [
-          {
-            "at": {
-              "pi": "start",
-              "offset": 0
-            },
-            "name": "RIBBON FORK",
-            "background": {
-              "assetId": "coast-sky",
-              "horizonY": 320,
-              "yawOrigin": 0
-            }
+      "environments": [
+        {
+          "at": {
+            "pi": "start",
+            "offset": 0
+          },
+          "name": "RIBBON FORK",
+          "background": {
+            "assetId": "coast-sky",
+            "horizonY": 320,
+            "yawOrigin": 0
           }
-        ]
-      },
+        }
+      ],
       "fork": {
         "lock": {
           "pi": "start",
@@ -1515,22 +1513,20 @@
         }
       ],
       "assetIds": ["coast-sky", "tree", "fork-warning", "fork-closed"],
-      "presentation": {
-        "environments": [
-          {
-            "at": {
-              "pi": "start",
-              "offset": 0
-            },
-            "name": "RIBBON FORK",
-            "background": {
-              "assetId": "coast-sky",
-              "horizonY": 320,
-              "yawOrigin": -20
-            }
+      "environments": [
+        {
+          "at": {
+            "pi": "start",
+            "offset": 0
+          },
+          "name": "RIBBON FORK",
+          "background": {
+            "assetId": "coast-sky",
+            "horizonY": 320,
+            "yawOrigin": -20
           }
-        ]
-      },
+        }
+      ],
       "fork": null,
       "sprites": []
     },
@@ -1861,22 +1857,20 @@
         }
       ],
       "assetIds": ["coast-sky", "tree", "fork-warning", "fork-closed"],
-      "presentation": {
-        "environments": [
-          {
-            "at": {
-              "pi": "start",
-              "offset": 0
-            },
-            "name": "RIBBON FORK",
-            "background": {
-              "assetId": "coast-sky",
-              "horizonY": 320,
-              "yawOrigin": 20
-            }
+      "environments": [
+        {
+          "at": {
+            "pi": "start",
+            "offset": 0
+          },
+          "name": "RIBBON FORK",
+          "background": {
+            "assetId": "coast-sky",
+            "horizonY": 320,
+            "yawOrigin": 20
           }
-        ]
-      },
+        }
+      ],
       "fork": null,
       "sprites": [
         {
@@ -2310,22 +2304,20 @@
         }
       ],
       "assetIds": ["coast-sky", "tree", "fork-warning", "fork-closed"],
-      "presentation": {
-        "environments": [
-          {
-            "at": {
-              "pi": "start",
-              "offset": 0
-            },
-            "name": "RIBBON FORK",
-            "background": {
-              "assetId": "coast-sky",
-              "horizonY": 320,
-              "yawOrigin": 0
-            }
+      "environments": [
+        {
+          "at": {
+            "pi": "start",
+            "offset": 0
+          },
+          "name": "RIBBON FORK",
+          "background": {
+            "assetId": "coast-sky",
+            "horizonY": 320,
+            "yawOrigin": 0
           }
-        ]
-      },
+        }
+      ],
       "fork": null,
       "sprites": [
         {

@@ -56,7 +56,7 @@ export function createCourseScene(
   rendering.read();
   const renderWorkspace = createRenderWorkspace();
   const worldSprites: CourseSprite[] = [];
-  let lastPresentation: ReturnType<typeof rendering.read> | null = null;
+  let lastRenderData: ReturnType<typeof rendering.read> | null = null;
   let lastClosed: typeof runtime.closedCarriageways | null = null;
   let staticSpriteCount = 0;
   let terrainParameters: Parameters<typeof renderDriving>[1]['terrainParameters'];
@@ -76,12 +76,12 @@ export function createCourseScene(
       appearance: SpriteAssets = assets,
     ) {
       const readers = runtime.readers;
-      const presentation = rendering.read();
+      const renderData = rendering.read();
       const closed = runtime.closedCarriageways;
-      if (lastPresentation !== presentation || lastClosed !== closed) {
+      if (lastRenderData !== renderData || lastClosed !== closed) {
         worldSprites.length = 0;
-        for (const sprite of presentation.worldSprites) worldSprites.push(sprite);
-        for (const placement of presentation.conditionalSprites)
+        for (const sprite of renderData.worldSprites) worldSprites.push(sprite);
+        for (const placement of renderData.conditionalSprites)
           if (closed.includes(placement.unselected)) worldSprites.push(placement.sprite);
         staticSpriteCount = worldSprites.length;
         terrainParameters = {
@@ -90,9 +90,9 @@ export function createCourseScene(
           dMax: RENDER_FAR_DEPTH_METERS,
           height: readers.renderHeight,
           extent: runtime.route,
-          visual: presentation.visual,
+          environment: renderData.environment,
         };
-        lastPresentation = presentation;
+        lastRenderData = renderData;
         lastClosed = closed;
       }
       worldSprites.length = staticSpriteCount;
@@ -100,7 +100,7 @@ export function createCourseScene(
       return renderDriving(
         target,
         {
-          background: presentation.backgroundAt(camera.s),
+          background: renderData.backgroundAt(camera.s),
           guide: readers,
           camera,
           vehicle,
@@ -109,7 +109,7 @@ export function createCourseScene(
           assets: appearance,
           playerKind,
         },
-        { ground: presentation.ground, workspace: renderWorkspace, stripMethod: displaySettings.stripMethod },
+        { ground: renderData.ground, workspace: renderWorkspace, stripMethod: displaySettings.stripMethod },
       );
     },
   });

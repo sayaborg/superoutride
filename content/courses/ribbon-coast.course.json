@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 20,
+  "version": 21,
   "id": "ribbon-coast",
   "reference": null,
   "units": {
@@ -1647,34 +1647,32 @@
         }
       ],
       "assetIds": ["coast-sky", "hill-sky", "tree"],
-      "presentation": {
-        "environments": [
-          {
-            "at": {
-              "pi": "start",
-              "offset": 0
-            },
-            "name": "RIBBON COAST",
-            "background": {
-              "assetId": "coast-sky",
-              "horizonY": 320,
-              "yawOrigin": 0
-            }
+      "environments": [
+        {
+          "at": {
+            "pi": "start",
+            "offset": 0
           },
-          {
-            "at": {
-              "pi": "fit-004",
-              "offset": -238.16185501473478
-            },
-            "name": "RIBBON COAST",
-            "background": {
-              "assetId": "hill-sky",
-              "horizonY": 320,
-              "yawOrigin": 0
-            }
+          "name": "RIBBON COAST",
+          "background": {
+            "assetId": "coast-sky",
+            "horizonY": 320,
+            "yawOrigin": 0
           }
-        ]
-      },
+        },
+        {
+          "at": {
+            "pi": "fit-004",
+            "offset": -238.16185501473478
+          },
+          "name": "RIBBON COAST",
+          "background": {
+            "assetId": "hill-sky",
+            "horizonY": 320,
+            "yawOrigin": 0
+          }
+        }
+      ],
       "fork": null,
       "sprites": [
         {

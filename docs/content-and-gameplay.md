@@ -18,7 +18,7 @@ color and material overwrite independently. Compiled Sections publish their two 
 Checkpoints, starts, finishes and environment changes are independent of Section boundaries.
 Source identity, traversal identity and race credit are distinct.
 
-## CourseDocument v20
+## CourseDocument v21
 
 The saved format is compact UTF-8 JSON. All declared fields are required; explicit null represents
 absent optional content. Unknown fields fail. Arrays preserve saved order; object-property order and
@@ -26,7 +26,7 @@ whitespace do not affect identity. Normalized records use schema field order and
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 20,
+  format: "superoutride.course", version: 21,
   reference, id, units: {length: "m", angle: "deg"},
   geometryRecipe: {id, version},
   type: "LINEAR" | "BRANCH" | "CIRCUIT", entrySectionId,
@@ -35,7 +35,7 @@ CourseDocument {
 Section {
   id, pis,
   boundaries, strips, sprites, height: [{at, y, curveLength}],
-  carriageways, assetIds, presentation, fork
+  carriageways, assetIds, environments, fork
 }
 ```
 
@@ -76,7 +76,7 @@ resolve in their named scopes rather than by array position.
 
 Schema-valid drafts may contain empty arrays, unresolved references or an unavailable geometry recipe.
 Compilation requires complete semantic input and reports `unsupported_version` for an unavailable recipe.
-A geometry draft uses `presentation: null`, `fork: null`, `rules: null` and explicit asset and sprite arrays.
+A geometry draft uses `environments: null`, `fork: null`, `rules: null` and explicit asset and sprite arrays.
 
 ### Lateral positions
 
@@ -124,7 +124,10 @@ decoded images and palette variants are shared by the renderer. Sprites have no 
 Such signs lie from lock through closure, before the exit cut, and appear when the field selects
 another exit. Their state follows the selected Links of the shared Route.
 
-`presentation` is null or `{environments}`. A null presentation requires an empty sprite list.
+Section `environments` is null or the environment element array, at the same level as `strips`
+and `sprites`. Null means a draft without compiled appearance and requires an empty sprite list,
+while preserving the authored Strips and geometry. An empty array is a schema-valid incomplete draft;
+it fails compilation because a non-null environment list must begin at s=0.
 An environment element is `{at,name,background}` or a `repeat`; background is
 `{assetId,horizonY,yawOrigin}`. The image belongs to the referencing Section and uses the tiled
 background format. After expansion, environment knots must begin at s=0 and strictly increase
@@ -309,7 +312,7 @@ or grandfathered limit set is provided.
 
 ## Geometry recipe and bindings
 
-The saved `geometryRecipe` field is `{id,version}`; CourseDocument v20 admits
+The saved `geometryRecipe` field is `{id,version}`; CourseDocument v21 admits
 `superoutride.plan-raster` version 1. The saved PI and position fields are listed above. [Architecture](architecture.md#plan-authority)
 owns their authoritative planar interpretation, coordinate domain and geometric validation.
 Rendering and physics read the same plan; Section length comes from its coordinate Reader domain.
@@ -386,8 +389,8 @@ Owned records and arrays are immutable, including nested image data. Live actor,
 clock state belong to Sessions. Object identity is local to a compilation; cross-build identity uses digests.
 
 `sourceSha256` hashes normalized input. `buildSha256` hashes `{sourceSha256,compiler,geometryRecipe}`.
-The compiler is `superoutride.course-compiler` version 30, incorporating Link recipe v2, physical
-recipe v3, image-source recipe v2 and presentation recipe v9. Descriptors include semantic versions
+The compiler is `superoutride.course-compiler` version 31, incorporating Link recipe v2, physical
+recipe v3, image-source recipe v2 and appearance recipe v9. Descriptors include semantic versions
 and operative numeric/data parameters, including material definitions. Source or compiler/recipe
 changes invalidate dependent products.
 
@@ -399,7 +402,7 @@ Document operations return `{ok:true,value}` or `{ok:false,diagnostics}`. Input 
 `kind:"input"`, `code`, JSON Pointer `path` and causal `message`. Clients use code/path. Malformed
 schema reports a deterministic first error; independent semantic failures follow declaration order.
 Expected failures include shape, version, reference, resource, geometry, coverage, material, topology
-and presentation errors. Failed compilation publishes no partial product.
+and appearance errors. Failed compilation publishes no partial product.
 
 `tools/course/course-project.ts` owns live source/publication state through `createCourseProject`,
 and text parsing/saving through the shared product document reader. `editDocument` installs a schema-valid
@@ -594,7 +597,7 @@ at most 16 MiB and 4194304 pixels. Requests contain 2–4096 frames with increas
 HUD templates map all digits 0 through 9 to equal-sized binary-string rows. Matching uses maximum
 per-channel RGB difference; ambiguous road runs or missing/tied HUD digits fail. Measurements use a
 calibrated planar pinhole approximation, horizon-based grade and integrated HUD speed. Output records
-frame SHA-256, centers/horizon, HUD mismatch and geometric residuals. Scenery and semantic landmarks are authored observations.
+frame SHA-256, centers/horizon, HUD mismatch and geometric residuals. Sprites and semantic landmarks are authored observations.
 
 ## Course loading
 

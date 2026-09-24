@@ -3,7 +3,7 @@ import type { SectionPlanCoordinateReader } from '../geometry/plan-coordinate.js
 import type { ProfileReader, ProfilePolylineReader } from '../geometry/profile.js';
 import type { PlanarPose, PlanarTransform } from '../../core/planar-transform.js';
 import type { CompiledCourseImageSource } from './course-image-source.js';
-import type { CoursePresentation } from '../course-presentation.js';
+import type { CourseAppearance } from '../course-appearance.js';
 import type { CompiledCoursePosition, CompiledPlanSegment } from '../course-geometry.js';
 import type { CompiledBoundary, CompiledCarriageway } from '../course-boundaries.js';
 import type { StripMaterial } from '../strip-material.js';
@@ -20,7 +20,7 @@ export interface CompiledSection {
   readonly material: StripMaterial;
   readonly carriageways: readonly CompiledCarriageway[];
   readonly assets: readonly CompiledCourseImageSource[];
-  readonly presentation: CoursePresentation | null;
+  readonly appearance: CourseAppearance | null;
   readonly incoming: readonly CompiledLink[];
   readonly outgoing: readonly CompiledLink[];
   readonly fork: CompiledFork | null;

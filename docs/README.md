@@ -39,7 +39,8 @@ explicitly scheduled in [NEXT](NEXT.md) are replaced with their owning concepts.
 | `Strip`               | An ordered Section surface declaration with independently optional color and material; later declarations overwrite each supplied channel.                               |
 | `Region`              | Retired; use `Strip` for surface declarations and `Carriageway` for roads between Boundaries.                                                                            |
 | `Band`                | Retired; use `Strip` for authored and compiled surface pieces, tables and readers.                                                                                       |
-| `appearance`          | Authored course visuals, independent of physical structure and materials.                                                                                                |
+| `appearance`          | Authored course visuals, independent of physical structure and materials; compiled as `CourseAppearance`.                                                                |
+| `Section`             | A reusable course interval; environment-name intervals are `EnvironmentInterval` records in an `EnvironmentTimeline`, read through `EnvironmentReader`.                  |
 | `Profile` / `profile` | A Section's vertical alignment: height and grade along s, not a parameter record or a general varying attribute.                                                         |
 | `Knot` / `Knots`      | An authored s-position/value record / ordered sequence, including vertical PVIs and Boundary knots; not a derived polyline point. Use `*Knot` and `*Knots` consistently. |
 | `vertex`              | A polyline point derived during compilation, including compiled Boundary vertices and `ProfilePolyline` points; never authored.                                          |

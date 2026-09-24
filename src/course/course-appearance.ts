@@ -8,12 +8,12 @@ interface IndexedSource {
   readonly source: SpriteLodDocument;
 }
 
-export interface CourseSceneryInstance {
+export interface CourseSpriteResource {
   readonly paletteRgb555: readonly number[] | null;
   readonly asset: IndexedSource;
 }
 
-export interface CoursePresentation {
+export interface CourseAppearance {
   readonly environments: readonly {
     readonly at: CompiledCoursePosition;
     readonly name: string;
@@ -25,7 +25,7 @@ export interface CoursePresentation {
     };
   }[];
   readonly sprites: readonly {
-    readonly instance: CourseSceneryInstance;
+    readonly instance: CourseSpriteResource;
     readonly unselected: CompiledCarriageway | null;
     readonly at: CompiledCoursePosition;
     readonly l: number;

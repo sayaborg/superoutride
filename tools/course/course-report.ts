@@ -66,13 +66,13 @@ export async function courseReport(course: CompiledCourse, section: CompiledSect
     reference: course.reference,
     boundaries: section.boundaries.map((b) => b.id),
     samples,
-    sprites: section.presentation!.sprites.map((p) => ({
+    sprites: section.appearance!.sprites.map((p) => ({
       s: p.at.s,
       l: p.l,
       asset: p.instance.asset.source.name,
       state: p.unselected?.id ?? null,
     })),
-    environments: section.presentation!.environments.map((e) => ({ s: e.at.s, name: e.name })),
+    environments: section.appearance!.environments.map((e) => ({ s: e.at.s, name: e.name })),
     segments: section.segments.map((p) => ({ index: p.index, kind: p.geometry.kind, start: p.sStart, end: p.sEnd })),
   };
   const json = path.join(directory, 'report.json');
@@ -82,7 +82,7 @@ export async function courseReport(course: CompiledCourse, section: CompiledSect
       `COURSE ${course.id} / ${section.id}`,
       `Length: ${report.lengthMeters.toFixed(3)} m`,
       `Source: ${course.identity.sourceSha256}`,
-      `Scenery: ${report.sprites.length} placements; environments: ${report.environments.length}`,
+      `Sprites: ${report.sprites.length} placements; environments: ${report.environments.length}`,
       '',
       ['s_m', 'curvature_1_per_m', 'height_m', ...report.boundaries.map((b) => `${b}_m`)].join('\t'),
       ...samples.map((p) =>
@@ -91,7 +91,7 @@ export async function courseReport(course: CompiledCourse, section: CompiledSect
           .join('\t'),
       ),
       '',
-      'SCENERY: s_m l_m asset state',
+      'SPRITES: s_m l_m asset state',
       ...report.sprites.map((p) => `${p.s.toFixed(3)} ${p.l.toFixed(3)} ${p.asset} ${p.state ?? 'always'}`),
       '',
       'ENVIRONMENTS',
