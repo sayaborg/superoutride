@@ -1,6 +1,6 @@
 import type { PlanCoordinateReader } from '../course/geometry/plan-coordinate.js';
 import type { ProfilePolylineReader } from '../course/geometry/profile.js';
-import { knotIndexAt } from '../course/geometry/knot-sequence.js';
+import { stationIndexAt } from '../course/geometry/station-sequence.js';
 import { horizonY, pseudoProject, type PseudoCamera } from './projection.js';
 import { PIXEL_EDGE_TOLERANCE } from './pixel-coverage.js';
 import type { VisualProfileReader } from '../course/visual-profile.js';
@@ -152,9 +152,9 @@ export function generateTerrainLines(
   const f = camera.focalLength;
   const start = camera.s + visible.dStart;
   const end = camera.s + visible.dEnd;
-  // Use authored boundaries directly: rounding cannot strand a cursor before a vertex.
+  // Use boundary stations directly: rounding cannot strand a cursor before a vertex.
   boundaries.push(start, end);
-  appendVisibleBoundaries(boundaries, parameters.height.knots, 's', start, end);
+  appendVisibleBoundaries(boundaries, parameters.height.vertices, 's', start, end);
   appendVisibleBoundaries(boundaries, parameters.visual.sections, 'sStart', start, end);
   boundaries.sort(ascending);
   let count = 0;
@@ -309,7 +309,7 @@ function appendVisibleBoundaries<T, K extends keyof T>(
   start: number,
   end: number,
 ): void {
-  for (let i = knotIndexAt(entries, key, start) + 1; i < entries.length; i += 1) {
+  for (let i = stationIndexAt(entries, key, start) + 1; i < entries.length; i += 1) {
     const s = entries[i]![key] as number;
     if (s >= end) break;
     out.push(s);

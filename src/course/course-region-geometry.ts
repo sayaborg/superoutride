@@ -68,21 +68,21 @@ function validatePlanMetric(
   sectionPath: string,
 ): void {
   const bounds = { left: 0, right: 0 };
-  for (const primitive of segments) {
-    if (primitive.curvature === 0) continue;
+  for (const segment of segments) {
+    if (segment.curvature === 0) continue;
     const stations = [
-      primitive.sStart,
-      ...domain.stations.filter((s) => s > primitive.sStart && s < primitive.sEnd),
-      primitive.sEnd,
+      segment.sStart,
+      ...domain.stations.filter((s) => s > segment.sStart && s < segment.sEnd),
+      segment.sEnd,
     ];
     for (const s of stations) {
       domain.lateralAt(s, bounds);
-      const l = primitive.curvature > 0 ? bounds.right : bounds.left;
-      const metric = 1 - primitive.curvature * l;
+      const l = segment.curvature > 0 ? bounds.right : bounds.left;
+      const metric = 1 - segment.curvature * l;
       requireCourse(
         metric > 0,
         `${sectionPath}/pis`,
-        `Section ${JSON.stringify(sectionId)} primitive ${primitive.index} has 1 - kappa*l <= 0 at s=${s}`,
+        `Section ${JSON.stringify(sectionId)} segment ${segment.index} has 1 - kappa*l <= 0 at s=${s}`,
         'plan_coordinate_inversion',
       );
     }

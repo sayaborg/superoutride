@@ -45,7 +45,7 @@ export function createCourseRouteReaders(route: CourseRoute) {
     readonly native: ReturnType<CompiledSection['coordinates']['projectionCandidates']>[number];
   }[] = [];
   let heightKnots: readonly { readonly s: number; readonly y: number; readonly curveLength: number }[] = [];
-  let renderKnots: readonly { readonly s: number; readonly y: number }[] = [];
+  let renderVertices: readonly { readonly s: number; readonly y: number }[] = [];
   const sync = () => {
     if (indexed === route.occurrences) return;
     indexed = route.occurrences;
@@ -65,15 +65,17 @@ export function createCourseRouteReaders(route: CourseRoute) {
         .map((knot) => Object.freeze({ ...knot, s: routeS(occurrence, knot.s) })),
     );
     heightKnots = profileKnots.filter((knot, i) => i + 1 === profileKnots.length || knot.s !== profileKnots[i + 1]!.s);
-    const displayKnots = indexed.flatMap((occurrence) => {
+    const displayVertices = indexed.flatMap((occurrence) => {
       const end = occurrence.section.coordinates.domain.end;
       return [
         0,
-        ...occurrence.section.renderHeight.knots.map((knot) => knot.s).filter((s) => s > 0 && s < end),
+        ...occurrence.section.renderHeight.vertices.map((vertex) => vertex.s).filter((s) => s > 0 && s < end),
         end,
       ].map((s) => Object.freeze({ s: routeS(occurrence, s), y: occurrence.section.renderHeight.sample(s).y }));
     });
-    renderKnots = displayKnots.filter((knot, i) => i + 1 === displayKnots.length || knot.s !== displayKnots[i + 1]!.s);
+    renderVertices = displayVertices.filter(
+      (vertex, i) => i + 1 === displayVertices.length || vertex.s !== displayVertices[i + 1]!.s,
+    );
   };
   const lookup = (s: number) => route.at(s);
   const heading = (occurrence: RouteOccurrence, sectionHeading: number) =>
@@ -141,7 +143,7 @@ export function createCourseRouteReaders(route: CourseRoute) {
       sync();
       const from = previousS - PLAN_PROJECTION_WINDOW_METERS;
       const to = previousS + PLAN_PROJECTION_WINDOW_METERS;
-      // Candidates are ordered by route chainage; binary search skips every earlier primitive.
+      // Candidates are ordered by route chainage; binary search skips every earlier segment.
       let lo = 0,
         hi = candidates.length;
       while (lo < hi) {
@@ -252,9 +254,9 @@ export function createCourseRouteReaders(route: CourseRoute) {
     },
   });
   const renderHeight = Object.freeze({
-    get knots() {
+    get vertices() {
       sync();
-      return renderKnots;
+      return renderVertices;
     },
     sample(s: number, out = { y: 0, grade: 0, segmentIndex: 0, sStart: 0, sEnd: 0 }) {
       const occurrence = lookup(s);
@@ -272,10 +274,13 @@ export function createCourseRouteReaders(route: CourseRoute) {
       out.sEnd = Math.min(occurrence.end, routeS(occurrence, out.sEnd));
       return out;
     },
-    distanceToNextKnot(s: number) {
+    distanceToNextVertex(s: number) {
       const occurrence = lookup(s);
       return occurrence
-        ? Math.min(occurrence.section.renderHeight.distanceToNextKnot(routeSectionS(occurrence, s)), occurrence.end - s)
+        ? Math.min(
+            occurrence.section.renderHeight.distanceToNextVertex(routeSectionS(occurrence, s)),
+            occurrence.end - s,
+          )
         : s < route.start
           ? route.start - s
           : Infinity;

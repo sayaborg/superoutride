@@ -85,15 +85,15 @@ occurrences. `CompiledSection.coordinates` and `VehicleWorld.coordinates` expose
   edges. Coordinate bounds do not define material support.
 - `toWorld(s,l,out)` reads world X/Z and heading. `metricsAt(s,l,out)` reads `kappa`
   and offset metric `J = 1-kappa*l`. Both are determined by `(s,l)`;
-  at a primitive boundary the successor owns the station. Native and mapped readers use their own frame.
-- `locateLocal(world,previousS,out,workspace)` searches only primitive intervals intersecting
+  at a segment boundary the successor owns the station. Native and mapped readers use their own frame.
+- `locateLocal(world,previousS,out,workspace)` searches only segment intervals intersecting
   `[previousS-50 m,previousS+50 m]`. A perpendicular foot inside its interval and the closed
   lateral domain wins over a closer centerline foot outside the domain. No endpoint-clamped point
   counts as an inside-domain foot. If none qualifies, the candidate with the smallest absolute change from previous s is returned with
   `inDomain:false`, without lateral clamping or a global search. The two endpoint tangent rays complete the route ruler
   when the window extends beyond retained occurrences.
 
-Outside the domain, both primitive feet clamped to the searched interval and endpoint-ray feet
+Outside the domain, both segment feet clamped to the searched interval and endpoint-ray feet
 participate in the previous-s comparison. Exact ties retain candidate order (segments first, then
 entry and exit rays). In-domain selection retains occurrence ownership and centerline-distance precedence.
 This follows a continuous local candidate while it remains preferred, instead of switching branches
@@ -108,7 +108,7 @@ singular/ambiguous cases are not resolved by a velocity or coordinate clamp.
 `PlanProjectionWorkspace` holds reusable numerical scratch, separate from vehicle state.
 `SectionPlanCoordinateReader` adds `projectionCandidates(start,end)` for mapped composition.
 The requested interval lies inside the Section domain. Candidate queries return station-ordered
-primitive intervals; each candidate projects a bounded subinterval and reports whether its foot
+segment intervals; each candidate projects a bounded subinterval and reports whether its foot
 was inside that subinterval before endpoint clamping. Geometry construction and its geometric
 proofs inspect compiled segments.
 Terrain reads the same `PlanCoordinateReader` as physics; the Route owns the extent.
@@ -118,8 +118,8 @@ Vec2/Vec3 are readonly values. Sampling APIs with caller-owned outputs return bo
 valid until those outputs are reused. Compiled sources are immutable; actors and consumers own live state.
 Plan, Profile, VisualProfile and ground appearance have finite domain `[0,L]`.
 Knot endpoints normalize within their admission budget; plan sampling has a separate geometric budget. Nonfinite source values fail.
-At a primitive boundary, the successor owns the interior station; the terminal endpoint uses
-the final primitive.
+At a segment boundary, the successor owns the interior station; the terminal endpoint uses
+the final segment.
 
 ## Route cross sections
 
@@ -173,7 +173,7 @@ At each s, the Section lateral domain runs from the leftmost active Region edge 
 `PLAN_COORDINATE_MARGIN_METERS` to the rightmost active Region edge plus that margin; the margin is 4 m.
 The map from `(s,l)` in the entire closed Section coordinate domain to world XZ is injective:
 different coordinate pairs occupy different points. The local part of this condition is
-`J = 1-kappa*l > 0` throughout the domain. Compilation checks every circular primitive at
+`J = 1-kappa*l > 0` throughout the domain. Compilation checks every circular segment at
 incident domain stations and checks separated longitudinal cells against one another using
 conservative plan envelopes. `plan_coordinate_inversion` reports a local metric failure;
 `plan_coordinate_overlap` reports the Section and two overlapping s intervals. An overpass
@@ -197,7 +197,7 @@ Boundary profiles are piecewise linear on the authoritative s ruler. Width and c
 their edges. Region validation divides at boundary knots and activation changes; paint changes do not
 divide physical geometry.
 
-The compilation check divides the authoritative straight and circular plan at primitive ends,
+The compilation check divides the authoritative straight and circular plan at segment ends,
 domain knots and at most five degrees per arc cell. Adjacent cells share their endpoint and are
 locally covered by the positive Jacobian; separated cells must have disjoint conservative
 envelopes. A chord envelope is padded by `max|F''| * deltaS² / 8` for each linearly varying

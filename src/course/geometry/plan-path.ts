@@ -55,7 +55,7 @@ export function compilePlanPath(
   let heading = wrapAngle(start.heading);
   let s = 0;
   const segments = geometry.map((shape, index): CompiledPlanSegment => {
-    const primitiveStart = Object.freeze({ x, z, heading });
+    const segmentStart = Object.freeze({ x, z, heading });
     let length: number;
     let curvature = 0;
     let center: Readonly<Vec2> | null = null;
@@ -86,7 +86,7 @@ export function compilePlanPath(
       geometry: Object.freeze({ ...shape }),
       sStart,
       sEnd: s,
-      start: primitiveStart,
+      start: segmentStart,
       curvature,
       center,
     });
@@ -109,41 +109,41 @@ export function planSegmentIndexAt(path: PlanPath, s: number): number {
   let high = path.segments.length - 1;
   while (low <= high) {
     const mid = (low + high) >> 1;
-    const primitive = path.segments[mid]!;
-    if (sLocal < primitive.sStart) high = mid - 1;
-    else if (sLocal >= primitive.sEnd && mid < path.segments.length - 1) low = mid + 1;
+    const segment = path.segments[mid]!;
+    if (sLocal < segment.sStart) high = mid - 1;
+    else if (sLocal >= segment.sEnd && mid < path.segments.length - 1) low = mid + 1;
     else return mid;
   }
   return path.segments.length - 1;
 }
 
 export function samplePlanSegment(
-  primitive: CompiledPlanSegment,
+  segment: CompiledPlanSegment,
   s: number,
   out: Writable<PlanPathSample>,
 ): PlanPathSample {
-  if (s < primitive.sStart - PLAN_POSITION_TOLERANCE_METERS || s > primitive.sEnd + PLAN_POSITION_TOLERANCE_METERS)
-    throw new RangeError('plan primitive sample is outside its interval');
-  const clamped = clamp(s, primitive.sStart, primitive.sEnd);
-  const ds = clamped - primitive.sStart;
-  let heading = primitive.start.heading;
-  if (primitive.geometry.kind === 'straight') {
+  if (s < segment.sStart - PLAN_POSITION_TOLERANCE_METERS || s > segment.sEnd + PLAN_POSITION_TOLERANCE_METERS)
+    throw new RangeError('plan segment sample is outside its interval');
+  const clamped = clamp(s, segment.sStart, segment.sEnd);
+  const ds = clamped - segment.sStart;
+  let heading = segment.start.heading;
+  if (segment.geometry.kind === 'straight') {
     const tangent = tangentFromHeading(heading);
-    out.x = primitive.start.x + tangent.x * ds;
-    out.z = primitive.start.z + tangent.z * ds;
+    out.x = segment.start.x + tangent.x * ds;
+    out.z = segment.start.z + tangent.z * ds;
   } else {
-    const turn = primitive.geometry.turn * (Math.PI / 180);
-    const q = primitive.sEnd === primitive.sStart ? 0 : ds / (primitive.sEnd - primitive.sStart);
+    const turn = segment.geometry.turn * (Math.PI / 180);
+    const q = segment.sEnd === segment.sStart ? 0 : ds / (segment.sEnd - segment.sStart);
     heading = wrapAngle(heading + turn * q);
     const sign = Math.sign(turn);
-    const center = primitive.center;
+    const center = segment.center;
     if (!center) throw new Error('compiled arc lost its center');
-    out.x = center.x - sign * primitive.geometry.radius * Math.cos(heading);
-    out.z = center.z + sign * primitive.geometry.radius * Math.sin(heading);
+    out.x = center.x - sign * segment.geometry.radius * Math.cos(heading);
+    out.z = center.z + sign * segment.geometry.radius * Math.sin(heading);
   }
   out.s = clamped;
   out.heading = heading;
-  out.segmentIndex = primitive.index;
+  out.segmentIndex = segment.index;
   return out;
 }
 
@@ -166,7 +166,7 @@ function nearestArcDelta(rawHeading: number, startHeading: number, turn: number)
 }
 
 export function projectPlanSegmentInterval(
-  primitive: CompiledPlanSegment,
+  segment: CompiledPlanSegment,
   world: Vec2,
   start: number,
   end: number,
@@ -186,78 +186,78 @@ export function projectPlanSegmentInterval(
     !Number.isFinite(world.z) ||
     !Number.isFinite(start) ||
     !Number.isFinite(end) ||
-    start < primitive.sStart ||
-    end > primitive.sEnd ||
+    start < segment.sStart ||
+    end > segment.sEnd ||
     !(end > start)
   )
     throw new RangeError('Projection interval must have positive extent inside its compiled segment');
 
   let rawS: number;
-  if (primitive.geometry.kind === 'straight') {
-    const tangent = tangentFromHeading(primitive.start.heading);
-    const along = (world.x - primitive.start.x) * tangent.x + (world.z - primitive.start.z) * tangent.z;
-    rawS = primitive.sStart + along;
+  if (segment.geometry.kind === 'straight') {
+    const tangent = tangentFromHeading(segment.start.heading);
+    const along = (world.x - segment.start.x) * tangent.x + (world.z - segment.start.z) * tangent.z;
+    rawS = segment.sStart + along;
   } else {
-    const center = primitive.center;
+    const center = segment.center;
     if (!center) throw new Error('compiled arc lost its center');
     const radialX = world.x - center.x;
     const radialZ = world.z - center.z;
     const radialLength = Math.hypot(radialX, radialZ);
     let q: number;
     if (radialLength < ARC_CENTER_TOLERANCE_METERS) {
-      q = ((start + end) * 0.5 - primitive.sStart) / (primitive.sEnd - primitive.sStart);
+      q = ((start + end) * 0.5 - segment.sStart) / (segment.sEnd - segment.sStart);
     } else {
-      const sign = Math.sign(primitive.geometry.turn);
+      const sign = Math.sign(segment.geometry.turn);
       const rawHeading = Math.atan2(sign * radialZ, -sign * radialX);
-      const turn = primitive.geometry.turn * (Math.PI / 180);
-      const delta = nearestArcDelta(rawHeading, primitive.start.heading, turn);
+      const turn = segment.geometry.turn * (Math.PI / 180);
+      const delta = nearestArcDelta(rawHeading, segment.start.heading, turn);
       q = turn === 0 ? 0 : delta / turn;
     }
-    rawS = primitive.sStart + q * (primitive.sEnd - primitive.sStart);
+    rawS = segment.sStart + q * (segment.sEnd - segment.sStart);
   }
 
   const s = clamp(rawS, start, end);
-  samplePlanSegment(primitive, s, sample);
+  samplePlanSegment(segment, s, sample);
   const dx = world.x - sample.x;
   const dz = world.z - sample.z;
   const normal = normalFromHeading(sample.heading);
   out.s = sample.s;
   out.l = dx * normal.x + dz * normal.z;
-  out.segmentIndex = primitive.index;
+  out.segmentIndex = segment.index;
   out.distanceSquared = dx * dx + dz * dz;
   out.isFoot = rawS >= start && rawS <= end;
   return out;
 }
 
 export function planSegmentBounds(
-  primitive: CompiledPlanSegment,
+  segment: CompiledPlanSegment,
   start: number,
   end: number,
   sampleA: Writable<PlanPathSample>,
   sampleB: Writable<PlanPathSample>,
 ) {
-  const a = samplePlanSegment(primitive, start, sampleA);
-  const b = samplePlanSegment(primitive, end, sampleB);
+  const a = samplePlanSegment(segment, start, sampleA);
+  const b = samplePlanSegment(segment, end, sampleB);
   let left = Math.min(a.x, b.x);
   let right = Math.max(a.x, b.x);
   let back = Math.min(a.z, b.z);
   let front = Math.max(a.z, b.z);
-  if (primitive.geometry.kind === 'arc') {
-    const turn = primitive.geometry.turn * (Math.PI / 180);
-    const q0 = (start - primitive.sStart) / (primitive.sEnd - primitive.sStart);
-    const q1 = (end - primitive.sStart) / (primitive.sEnd - primitive.sStart);
-    const h0 = primitive.start.heading + turn * q0;
-    const h1 = primitive.start.heading + turn * q1;
+  if (segment.geometry.kind === 'arc') {
+    const turn = segment.geometry.turn * (Math.PI / 180);
+    const q0 = (start - segment.sStart) / (segment.sEnd - segment.sStart);
+    const q1 = (end - segment.sStart) / (segment.sEnd - segment.sStart);
+    const h0 = segment.start.heading + turn * q0;
+    const h1 = segment.start.heading + turn * q1;
     const low = Math.min(h0, h1);
     const high = Math.max(h0, h1);
-    const center = primitive.center;
+    const center = segment.center;
     if (!center) throw new Error('compiled arc lost its center');
     const sign = Math.sign(turn);
     const step = Math.PI / 2;
     for (let quadrant = Math.ceil(low / step); quadrant * step <= high; quadrant += 1) {
       const heading = quadrant * step;
-      const x = center.x - sign * primitive.geometry.radius * Math.cos(heading);
-      const z = center.z + sign * primitive.geometry.radius * Math.sin(heading);
+      const x = center.x - sign * segment.geometry.radius * Math.cos(heading);
+      const z = center.z + sign * segment.geometry.radius * Math.sin(heading);
       left = Math.min(left, x);
       right = Math.max(right, x);
       back = Math.min(back, z);

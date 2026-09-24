@@ -53,15 +53,15 @@ export function createPlanCoordinateReader(
   const reader: SectionPlanCoordinateReader = Object.freeze({
     forwardEnd(start: number, end: number, yaw: number) {
       for (let i = planSegmentIndexAt(plan, start); i < segments.length; i++) {
-        const primitive = segments[i]!;
-        const a = Math.max(start, primitive.sStart);
-        const b = Math.min(end, primitive.sEnd);
+        const segment = segments[i]!;
+        const a = Math.max(start, segment.sStart);
+        const b = Math.min(end, segment.sEnd);
         if (b <= a) continue;
-        const relative = wrapAngle(primitive.start.heading + primitive.curvature * (a - primitive.sStart) - yaw);
+        const relative = wrapAngle(segment.start.heading + segment.curvature * (a - segment.sStart) - yaw);
         if (Math.abs(relative) >= Math.PI / 2) return a;
-        if (primitive.curvature !== 0) {
-          const boundary = (Math.sign(primitive.curvature) * Math.PI) / 2;
-          const station = a + (boundary - relative) / primitive.curvature;
+        if (segment.curvature !== 0) {
+          const boundary = (Math.sign(segment.curvature) * Math.PI) / 2;
+          const station = a + (boundary - relative) / segment.curvature;
           if (station <= b) return station;
         }
         if (b === end) break;
@@ -75,17 +75,17 @@ export function createPlanCoordinateReader(
         throw new RangeError('Projection interval must lie inside the Section domain');
       const candidates: PlanProjectionCandidate[] = [];
       for (let i = planSegmentIndexAt(plan, start); i < segments.length; i += 1) {
-        const primitive = segments[i]!;
-        if (primitive.sStart >= end) break;
-        const a = Math.max(start, primitive.sStart),
-          b = Math.min(end, primitive.sEnd);
+        const segment = segments[i]!;
+        if (segment.sStart >= end) break;
+        const a = Math.max(start, segment.sStart),
+          b = Math.min(end, segment.sEnd);
         if (!(b > a)) continue;
         candidates.push(
           Object.freeze({
             start: a,
             end: b,
             project(world: Vec2, from: number, to: number, out: PlanProjectionCandidateSample) {
-              projectPlanSegmentInterval(primitive, world, from, to, projected, projectionSample);
+              projectPlanSegmentInterval(segment, world, from, to, projected, projectionSample);
               out.s = projected.s;
               out.l = projected.l;
               out.isFoot = projected.isFoot;
@@ -120,9 +120,9 @@ export function createPlanCoordinateReader(
     metricsAt(s: number, l: number, out: Writable<PlanCoordinateMetrics>) {
       if (!Number.isFinite(s) || s < 0 || s > length || !Number.isFinite(l))
         throw new RangeError('Plan metric requires finite coordinates in the Section');
-      const primitive = segments[planSegmentIndexAt(plan, s)]!;
-      out.curvature = primitive.curvature;
-      out.offsetMetric = 1 - primitive.curvature * l;
+      const segment = segments[planSegmentIndexAt(plan, s)]!;
+      out.curvature = segment.curvature;
+      out.offsetMetric = 1 - segment.curvature * l;
       return out;
     },
     locateLocal(world: Vec2, previousS: number, out: PlanCoordinateProjection, workspace: PlanProjectionWorkspace) {
@@ -135,12 +135,12 @@ export function createPlanCoordinateReader(
         bestInDomain = false,
         found = false;
       for (let i = planSegmentIndexAt(plan, from); i < segments.length; i += 1) {
-        const primitive = segments[i]!;
-        if (primitive.sStart >= to) break;
-        const a = Math.max(from, primitive.sStart),
-          b = Math.min(to, primitive.sEnd);
+        const segment = segments[i]!;
+        if (segment.sStart >= to) break;
+        const a = Math.max(from, segment.sStart),
+          b = Math.min(to, segment.sEnd);
         if (!(b > a)) continue;
-        projectPlanSegmentInterval(primitive, world, a, b, projected, projectionSample);
+        projectPlanSegmentInterval(segment, world, a, b, projected, projectionSample);
         reader.domain.lateralAt(projected.s, bounds);
         const inDomain = projected.isFoot && projected.l >= bounds.left && projected.l <= bounds.right;
         if (

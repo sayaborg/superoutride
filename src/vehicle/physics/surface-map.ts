@@ -1,5 +1,9 @@
 import type { SurfaceMapReader, SurfaceSample } from '../../course/vehicle-world.js';
-import { compileKnotSequence, knotSequenceChainage, knotIndexAt } from '../../course/geometry/knot-sequence.js';
+import {
+  compileStationSequence,
+  stationSequenceChainage,
+  stationIndexAt,
+} from '../../course/geometry/station-sequence.js';
 import { SURFACE_MATERIALS, type SurfaceType } from '../../course/surface-material.js';
 
 // Metres: 1 nm boundary-arithmetic budget (~eight ulps at 10^6 m) for region admission.
@@ -30,7 +34,7 @@ export class SurfaceMap implements SurfaceMapReader {
     readonly courseLength: number,
     sections: readonly SurfaceSection[],
   ) {
-    this.sections = compileKnotSequence(
+    this.sections = compileStationSequence(
       sections.map((section) => ({
         ...section,
         regions: compileSurfaceRegions(section.regions),
@@ -59,11 +63,11 @@ export class SurfaceMap implements SurfaceMapReader {
   }
 
   private normalizeChainage(s: number): number {
-    return knotSequenceChainage(s, this.courseLength, 'surface');
+    return stationSequenceChainage(s, this.courseLength, 'surface');
   }
 
   private sectionAtLocal(local: number): SurfaceSection {
-    return this.sections[knotIndexAt(this.sections, 'sStart', local)]!;
+    return this.sections[stationIndexAt(this.sections, 'sStart', local)]!;
   }
 }
 

@@ -1,11 +1,11 @@
 import { finite, positiveFinite } from '../../core/validation.js';
 
 // Metres: endpoint arithmetic/decimal conversion budget; 1 nm is about eight ulps at 10^6 m.
-// Only normalizes knot endpoints, never ownership or route progress.
-const KNOT_ENDPOINT_TOLERANCE_METERS = 1e-9;
+// Only normalizes station endpoints, never ownership or route progress.
+const STATION_ENDPOINT_TOLERANCE_METERS = 1e-9;
 
 /** Immutable ordered entries. Endpoint knots include L; piecewise-constant sections exclude it. */
-export function compileKnotSequence<T extends object, K extends keyof T>(
+export function compileStationSequence<T extends object, K extends keyof T>(
   entries: readonly T[],
   options: { length: number; chainage: K; label: string; endNode?: boolean },
 ): readonly Readonly<T>[] {
@@ -17,12 +17,12 @@ export function compileKnotSequence<T extends object, K extends keyof T>(
     .sort((a, b) => (a[chainage] as number) - (b[chainage] as number));
   if (copied.length < (endNode ? 2 : 1))
     throw new Error(`${label} requires ${endNode ? 'at least two nodes' : 'at least one section'}`);
-  if (Math.abs(copied[0]![chainage] as number) > KNOT_ENDPOINT_TOLERANCE_METERS) {
+  if (Math.abs(copied[0]![chainage] as number) > STATION_ENDPOINT_TOLERANCE_METERS) {
     throw new Error(`${label} must start at s=0`);
   }
   copied[0]![chainage] = 0 as T[K];
   if (endNode) {
-    if (Math.abs((copied.at(-1)![chainage] as number) - length) > KNOT_ENDPOINT_TOLERANCE_METERS) {
+    if (Math.abs((copied.at(-1)![chainage] as number) - length) > STATION_ENDPOINT_TOLERANCE_METERS) {
       throw new Error(`${label} must end at courseLength`);
     }
     copied.at(-1)![chainage] = length as T[K];
@@ -40,7 +40,7 @@ export function compileKnotSequence<T extends object, K extends keyof T>(
 }
 
 /** Last entry starting at or before s. The owning reader validates the open domain first. */
-export function knotIndexAt<T, K extends keyof T>(entries: readonly T[], chainage: K, s: number): number {
+export function stationIndexAt<T, K extends keyof T>(entries: readonly T[], chainage: K, s: number): number {
   let low = 0;
   let high = entries.length;
   while (low < high) {
@@ -53,12 +53,12 @@ export function knotIndexAt<T, K extends keyof T>(entries: readonly T[], chainag
 
 /** Station endpoint normalization; length is validated by the owning constructor.
  * Plan sampling has a separate geometric tolerance. Never wraps. */
-export function knotSequenceChainage(s: number, courseLength: number, label: string): number {
+export function stationSequenceChainage(s: number, courseLength: number, label: string): number {
   if (!Number.isFinite(s)) throw new RangeError(`${label} chainage must be finite`);
-  if (s < -KNOT_ENDPOINT_TOLERANCE_METERS || s > courseLength + KNOT_ENDPOINT_TOLERANCE_METERS) {
+  if (s < -STATION_ENDPOINT_TOLERANCE_METERS || s > courseLength + STATION_ENDPOINT_TOLERANCE_METERS) {
     throw new RangeError(`${label} chainage is outside [0, courseLength]`);
   }
-  if (Math.abs(s) <= KNOT_ENDPOINT_TOLERANCE_METERS) return 0;
-  if (Math.abs(s - courseLength) <= KNOT_ENDPOINT_TOLERANCE_METERS) return courseLength;
+  if (Math.abs(s) <= STATION_ENDPOINT_TOLERANCE_METERS) return 0;
+  if (Math.abs(s - courseLength) <= STATION_ENDPOINT_TOLERANCE_METERS) return courseLength;
   return s;
 }

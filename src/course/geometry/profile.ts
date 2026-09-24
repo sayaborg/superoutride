@@ -1,4 +1,4 @@
-import { compileKnotSequence, knotSequenceChainage, knotIndexAt } from './knot-sequence.js';
+import { compileStationSequence, stationSequenceChainage, stationIndexAt } from './station-sequence.js';
 import { finite } from '../../core/validation.js';
 
 export interface ProfileKnot {
@@ -23,9 +23,9 @@ export interface ProfilePolylineSample {
   sEnd: number;
 }
 export interface ProfilePolylineReader {
-  readonly knots: readonly { readonly s: number; readonly y: number }[];
+  readonly vertices: readonly { readonly s: number; readonly y: number }[];
   sample(s: number, out?: ProfilePolylineSample): ProfilePolylineSample;
-  distanceToNextKnot(s: number): number;
+  distanceToNextVertex(s: number): number;
 }
 
 /** Maximum station interval inside each vertical parabola, in metres. */
@@ -45,7 +45,12 @@ export class Profile implements ProfileReader {
       finite(knot.curveLength, 'profile curve length');
       if (knot.curveLength < 0) throw new RangeError('Profile curve length must be nonnegative');
     }
-    this.knots = compileKnotSequence(knots, { length: courseLength, chainage: 's', label: 'profile', endNode: true });
+    this.knots = compileStationSequence(knots, {
+      length: courseLength,
+      chainage: 's',
+      label: 'profile',
+      endNode: true,
+    });
     if (this.knots[0]!.curveLength !== 0 || this.knots.at(-1)!.curveLength !== 0)
       throw new RangeError('Endpoint profile curves must have zero length');
     for (let i = 1; i < this.knots.length; i++)
@@ -59,8 +64,8 @@ export class Profile implements ProfileReader {
     return this.sampleDifferential(s, this.#scratch).y;
   }
   sampleDifferential(s: number, out = { y: 0, dYdS: 0 }): ProfileSample {
-    const local = knotSequenceChainage(s, this.courseLength, 'profile');
-    const i = Math.min(this.knots.length - 2, knotIndexAt(this.knots, 's', local));
+    const local = stationSequenceChainage(s, this.courseLength, 'profile');
+    const i = Math.min(this.knots.length - 2, stationIndexAt(this.knots, 's', local));
     const next = this.knots[i + 1]!;
     const curveIndex = local < next.s - next.curveLength / 2 ? i : i + 1;
     const knot = this.knots[curveIndex]!;
@@ -84,7 +89,7 @@ export class Profile implements ProfileReader {
 /** Display geometry sampled from the Profile; tangencies and zero-length PVIs are exact vertices. */
 export class ProfilePolyline implements ProfilePolylineReader {
   readonly courseLength: number;
-  readonly knots: readonly { readonly s: number; readonly y: number }[];
+  readonly vertices: readonly { readonly s: number; readonly y: number }[];
   constructor(profile: Readonly<Profile>) {
     this.courseLength = profile.courseLength;
     const stations = new Set<number>([0, profile.courseLength]);
@@ -98,15 +103,15 @@ export class ProfilePolyline implements ProfilePolylineReader {
       for (let j = 0; j <= count; j++)
         stations.add(j === count ? knot.s + knot.curveLength / 2 : start + (knot.curveLength * j) / count);
     }
-    this.knots = Object.freeze(
+    this.vertices = Object.freeze(
       [...stations].sort((a, b) => a - b).map((s) => Object.freeze({ s, y: profile.sample(s) })),
     );
   }
   sample(s: number, out = { y: 0, grade: 0, segmentIndex: 0, sStart: 0, sEnd: 0 }): ProfilePolylineSample {
-    const local = knotSequenceChainage(s, this.courseLength, 'profile polyline');
-    const i = Math.min(this.knots.length - 2, knotIndexAt(this.knots, 's', local));
-    const a = this.knots[i]!,
-      b = this.knots[i + 1]!;
+    const local = stationSequenceChainage(s, this.courseLength, 'profile polyline');
+    const i = Math.min(this.vertices.length - 2, stationIndexAt(this.vertices, 's', local));
+    const a = this.vertices[i]!,
+      b = this.vertices[i + 1]!;
     const grade = (b.y - a.y) / (b.s - a.s);
     out.y = a.y + grade * (local - a.s);
     out.grade = grade;
@@ -115,9 +120,9 @@ export class ProfilePolyline implements ProfilePolylineReader {
     out.sEnd = b.s;
     return out;
   }
-  distanceToNextKnot(s: number): number {
-    const local = knotSequenceChainage(s, this.courseLength, 'profile polyline');
+  distanceToNextVertex(s: number): number {
+    const local = stationSequenceChainage(s, this.courseLength, 'profile polyline');
     if (local === this.courseLength) return 0;
-    return this.knots[knotIndexAt(this.knots, 's', local) + 1]!.s - local;
+    return this.vertices[stationIndexAt(this.vertices, 's', local) + 1]!.s - local;
   }
 }

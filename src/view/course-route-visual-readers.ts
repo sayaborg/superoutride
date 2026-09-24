@@ -2,7 +2,7 @@ import type { CourseGround } from '../course/compiler/course-ground.js';
 import type { CompiledSection } from '../course/compiler/course-graph.js';
 import type { CourseRoute } from '../course/course-route.js';
 import { routeS, routeSectionS } from '../course/course-route.js';
-import { knotIndexAt } from '../course/geometry/knot-sequence.js';
+import { stationIndexAt } from '../course/geometry/station-sequence.js';
 import { transformPlanarPoint } from '../core/planar-transform.js';
 import { createBandGroundSampler } from './band-ground-sampler.js';
 import { createCourseRenderResources } from './course-render-resources.js';
@@ -49,11 +49,11 @@ export function createCourseRouteVisualReaders(route: CourseRoute, fields: Cours
     const visual = Object.freeze({
       sections: Object.freeze(visualSections),
       sample(s: number) {
-        return visualSections[knotIndexAt(visualSections, 'sStart', s)]!;
+        return visualSections[stationIndexAt(visualSections, 'sStart', s)]!;
       },
       distanceToNextSection(s: number) {
         if (!route.at(s)) return Infinity;
-        const index = knotIndexAt(visualSections, 'sStart', s);
+        const index = stationIndexAt(visualSections, 'sStart', s);
         return (visualSections[index + 1]?.sStart ?? route.end) - s;
       },
     });
@@ -98,7 +98,7 @@ export function createCourseRouteVisualReaders(route: CourseRoute, fields: Cours
       backgroundAt(s: number) {
         const occurrence = route.at(s) ?? (s < route.start ? occurrences[0]! : occurrences.at(-1)!);
         const mappedSection = mappedByOccurrence.get(occurrence)!;
-        const index = knotIndexAt(mappedSection.native.visual.sections, 'sStart', routeSectionS(occurrence, s));
+        const index = stationIndexAt(mappedSection.native.visual.sections, 'sStart', routeSectionS(occurrence, s));
         return mappedSection.backgrounds[index]!;
       },
     });

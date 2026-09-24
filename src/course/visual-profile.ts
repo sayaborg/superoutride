@@ -1,4 +1,4 @@
-import { compileKnotSequence, knotSequenceChainage, knotIndexAt } from './geometry/knot-sequence.js';
+import { compileStationSequence, stationSequenceChainage, stationIndexAt } from './geometry/station-sequence.js';
 import { nonEmptyId } from '../core/validation.js';
 
 interface VisualSection {
@@ -20,7 +20,7 @@ export class VisualProfile implements VisualProfileReader {
     readonly courseLength: number,
     sections: readonly VisualSection[],
   ) {
-    this.sections = compileKnotSequence(
+    this.sections = compileStationSequence(
       sections.map((section) => {
         nonEmptyId(section.name, 'visual section name');
         return { ...section };
@@ -30,14 +30,14 @@ export class VisualProfile implements VisualProfileReader {
   }
 
   sample(s: number): VisualSection {
-    const local = knotSequenceChainage(s, this.courseLength, 'visual profile');
-    return this.sections[knotIndexAt(this.sections, 'sStart', local)]!;
+    const local = stationSequenceChainage(s, this.courseLength, 'visual profile');
+    return this.sections[stationIndexAt(this.sections, 'sStart', local)]!;
   }
 
   distanceToNextSection(s: number): number {
-    const local = knotSequenceChainage(s, this.courseLength, 'visual profile');
+    const local = stationSequenceChainage(s, this.courseLength, 'visual profile');
     if (local === this.courseLength) return 0;
-    const index = knotIndexAt(this.sections, 'sStart', local);
+    const index = stationIndexAt(this.sections, 'sStart', local);
     return (this.sections[index + 1]?.sStart ?? this.courseLength) - local;
   }
 }

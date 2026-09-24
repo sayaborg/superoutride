@@ -60,17 +60,17 @@ export function validatePlanDomainInjectivity(
   const left = { left: 0, right: 0 };
   const right = { left: 0, right: 0 };
   const cells: Cell[] = [];
-  for (const primitive of segments) {
+  for (const segment of segments) {
     const stops = [
-      primitive.sStart,
-      ...domain.stations.filter((s) => s > primitive.sStart && s < primitive.sEnd),
-      primitive.sEnd,
+      segment.sStart,
+      ...domain.stations.filter((s) => s > segment.sStart && s < segment.sEnd),
+      segment.sEnd,
     ];
     for (let i = 1; i < stops.length; i += 1) {
       const from = stops[i - 1]!;
       const to = stops[i]!;
       // At most five degrees per arc cell. This is an inspection bound, independent of rendered tessellation.
-      const count = Math.max(1, Math.ceil((Math.abs(primitive.curvature) * (to - from)) / (Math.PI / 36)));
+      const count = Math.max(1, Math.ceil((Math.abs(segment.curvature) * (to - from)) / (Math.PI / 36)));
       for (let j = 0; j < count; j += 1) {
         const start = from + ((to - from) * j) / count;
         const end = j === count - 1 ? to : from + ((to - from) * (j + 1)) / count;
@@ -81,12 +81,12 @@ export function validatePlanDomainInjectivity(
           coordinates.toWorld(end, l1, b);
           const p = { x: a.x, z: a.z };
           const q = { x: b.x, z: b.z };
-          if (primitive.curvature === 0) return [p, q];
+          if (segment.curvature === 0) return [p, q];
           const slope = (l1 - l0) / (end - start);
           const derivative = (heading: number, l: number): Vec2 => {
             const tangent = tangentFromHeading(heading);
             const normal = normalFromHeading(heading);
-            const metric = 1 - primitive.curvature * l;
+            const metric = 1 - segment.curvature * l;
             return { x: metric * tangent.x + slope * normal.x, z: metric * tangent.z + slope * normal.z };
           };
           const da = derivative(a.heading, l0);
@@ -103,7 +103,7 @@ export function validatePlanDomainInjectivity(
         // from the chord is <= max|F''| * ds^2 / 8. F'' = -2*k*l'*T + k*(1-k*l)*N.
         const slope = Math.max(Math.abs(right.left - left.left), Math.abs(right.right - left.right)) / (end - start);
         const maxL = Math.max(Math.abs(left.left), Math.abs(left.right), Math.abs(right.left), Math.abs(right.right));
-        const k = Math.abs(primitive.curvature);
+        const k = Math.abs(segment.curvature);
         const padding = (k * (1 + k * maxL + 2 * slope) * (end - start) ** 2) / 8;
         cells.push({
           start,
