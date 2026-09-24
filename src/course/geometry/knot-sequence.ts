@@ -50,7 +50,7 @@ export function knotIndexAt<T, K extends keyof T>(entries: readonly T[], chainag
 }
 
 /** Station endpoint normalization; length is validated by the owning constructor.
- * Plan/Raster sampling has a separate geometric tolerance. Never wraps. */
+ * Plan sampling has a separate geometric tolerance. Never wraps. */
 export function knotSequenceChainage(s: number, courseLength: number, label: string): number {
   if (!Number.isFinite(s)) throw new RangeError(`${label} chainage must be finite`);
   if (s < -SOURCE_ENDPOINT_TOLERANCE_METERS || s > courseLength + SOURCE_ENDPOINT_TOLERANCE_METERS) {

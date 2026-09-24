@@ -11,7 +11,6 @@ import {
   type PlanProjectionWorkspace,
 } from './geometry/plan-coordinate.js';
 import type { CompiledSection } from './compiler/course-graph.js';
-import { rasterPathToWorld } from './geometry/raster-path.js';
 import { routeS, routeSectionS, type CourseRoute, type RouteOccurrence } from './course-route.js';
 
 /** An inverted closed interval represents the empty coordinate domain. */
@@ -28,7 +27,6 @@ export const ROUTE_OUTSIDE_SURFACE = Object.freeze({
 export function createCourseRouteReaders(route: CourseRoute) {
   const surfaces = new Map<CompiledSection, ReturnType<typeof createRegionSurfaceReader>>();
   const native = { x: 0, z: 0, s: 0, l: 0, heading: 0 };
-  const rasterSample = { x: 0, z: 0, s: 0, l: 0, heading: 0, segmentIndex: 0 };
   const bounds = { left: 0, right: 0 };
   const endpoint = { x: 0, z: 0, s: 0, l: 0, heading: 0 };
   function extend(out: PlanCoordinateSample, s: number, l: number, end: number) {
@@ -46,7 +44,6 @@ export function createCourseRouteReaders(route: CourseRoute) {
     readonly end: number;
     readonly native: ReturnType<CompiledSection['coordinates']['projectionCandidates']>[number];
   }[] = [];
-  let rasterSegments: readonly { readonly sStart: number; readonly length: number; readonly heading: number }[] = [];
   let heightKnots: readonly { readonly s: number; readonly y: number; readonly curveLength: number }[] = [];
   let renderKnots: readonly { readonly s: number; readonly y: number }[] = [];
   const sync = () => {
@@ -61,15 +58,6 @@ export function createCourseRouteReaders(route: CourseRoute) {
           end: routeS(occurrence, candidate.end),
           native: candidate,
         })),
-    );
-    rasterSegments = indexed.flatMap((occurrence) =>
-      occurrence.section.raster.segments.flatMap((segment) => {
-        const start = Math.max(0, segment.sStart);
-        const end = Math.min(occurrence.section.coordinates.domain.end, segment.sStart + segment.length);
-        return end > start
-          ? [{ sStart: routeS(occurrence, start), length: end - start, heading: heading(occurrence, segment.heading) }]
-          : [];
-      }),
     );
     const profileKnots = indexed.flatMap((occurrence) =>
       occurrence.section.height.knots
@@ -289,36 +277,6 @@ export function createCourseRouteReaders(route: CourseRoute) {
           : Infinity;
     },
   });
-  const raster = Object.freeze({
-    get segments() {
-      sync();
-      return rasterSegments;
-    },
-    toWorld(s: number, l: number, out: typeof rasterSample) {
-      const occurrence = lookup(s);
-      if (!occurrence) {
-        const end = s < route.start ? route.start : route.end;
-        raster.toWorld(end, 0, out);
-        extend(out, s, l, end);
-        out.segmentIndex = -1;
-        return out;
-      }
-      rasterPathToWorld(
-        occurrence.section.raster,
-        routeSectionS(occurrence, s),
-        l + occurrence.lateralOrigin,
-        rasterSample,
-      );
-      const t = occurrence.worldFromSection;
-      out.x = t.cosine * rasterSample.x + t.sine * rasterSample.z + t.translation.x;
-      out.z = -t.sine * rasterSample.x + t.cosine * rasterSample.z + t.translation.z;
-      out.s = s;
-      out.l = l;
-      out.heading = heading(occurrence, rasterSample.heading);
-      out.segmentIndex = rasterSample.segmentIndex;
-      return out;
-    },
-  });
   const material = Object.freeze({
     sample(s: number, l: number) {
       const occurrence = lookup(s);
@@ -340,7 +298,6 @@ export function createCourseRouteReaders(route: CourseRoute) {
     coordinates,
     height,
     renderHeight,
-    raster,
     surfaces: material,
     sync,
   });

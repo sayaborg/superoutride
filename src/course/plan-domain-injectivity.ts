@@ -42,7 +42,7 @@ function separated(a: readonly Vec2[], b: readonly Vec2[], padding: number): boo
   });
 }
 
-/** Conservative envelopes of exact straight/circular offsets; subdivisions never use the Raster. */
+/** Conservative envelopes of exact straight/circular offsets. */
 export function validatePlanDomainInjectivity(
   sectionId: string,
   primitives: readonly CompiledPlanPrimitive[],

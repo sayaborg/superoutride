@@ -9,7 +9,7 @@ import {
   type CourseResult,
 } from '../course-diagnostics.js';
 import { readCourseDocument, type CourseDocument, type SectionDocument } from '../course-document.js';
-import { COURSE_GEOMETRY_RECIPE, compileCourseGeometry, resolveCourseAnchor } from '../course-geometry.js';
+import { compileCourseGeometry, resolveCourseAnchor } from '../course-geometry.js';
 import { compileCourseRegionGeometry } from '../course-region-geometry.js';
 import type { CompiledBoundary, CompiledRegion, CompiledCarriageway } from '../course-regions.js';
 import type { CompiledSection, CompiledLink } from './course-graph.js';
@@ -48,7 +48,7 @@ export interface CompiledCourse {
     readonly sourceSha256: string;
     readonly buildSha256: string;
     readonly compiler: typeof COURSE_COMPILER;
-    readonly geometryRecipe: typeof COURSE_GEOMETRY_RECIPE;
+    readonly geometryRecipe: CourseDocument['geometryRecipe'];
   };
   readonly sections: readonly CompiledSection[];
   readonly entry: CompiledSection;
@@ -57,27 +57,11 @@ export interface CompiledCourse {
   readonly sceneryInstances: readonly CourseSceneryInstance[];
 }
 
-// v21 is an already published content identity. Its historical descriptor stays stable while
-// the unused runtime qualifier is removed, so identical courses keep their generated artifacts.
-const COURSE_BUILD_IDENTITY_LINK_V21 = Object.freeze({
-  id: COURSE_LINK_RECIPE.id,
-  version: COURSE_LINK_RECIPE.version,
-  edgeToleranceMeters: COURSE_LINK_RECIPE.edgeToleranceMeters,
-  positionToleranceMeters: 1e-7,
-  headingToleranceRadians: 1e-10,
-  heightToleranceMeters: COURSE_LINK_RECIPE.heightToleranceMeters,
-  gradeTolerance: COURSE_LINK_RECIPE.gradeTolerance,
-});
-const COURSE_BUILD_IDENTITY_PHYSICAL_V21 = Object.freeze({
-  ...COURSE_PHYSICAL_RECIPE,
-  overlap: Object.freeze({ id: 'superoutride.physical-overlap', version: 2 }),
-});
-
 const COURSE_COMPILER = Object.freeze({
   id: 'superoutride.course-compiler',
-  version: 21,
-  links: COURSE_BUILD_IDENTITY_LINK_V21,
-  physical: COURSE_BUILD_IDENTITY_PHYSICAL_V21,
+  version: 22,
+  links: COURSE_LINK_RECIPE,
+  physical: COURSE_PHYSICAL_RECIPE,
   images: COURSE_IMAGE_SOURCE_RECIPE,
   presentation: COURSE_PRESENTATION_RECIPE,
 });
@@ -118,7 +102,7 @@ function compileSection(
   instances: ReadonlyMap<string, CourseSceneryInstance>,
   path: string,
 ) {
-  const { raster, primitives, length } = compileCourseGeometry(section, path);
+  const { primitives, length } = compileCourseGeometry(section, path);
   const primitiveTable = new Map(primitives.map((primitive) => [primitive.source.id, primitive]));
   const resolve = (anchor: Parameters<typeof resolveCourseAnchor>[0], at: string) =>
     resolveCourseAnchor(anchor, primitiveTable, length, at);
@@ -197,7 +181,7 @@ function compileSection(
   );
   const { partition, lateralDomain } = compileCourseRegionGeometry(
     section.id,
-    raster,
+    length,
     primitives,
     regions,
     carriageways,
@@ -213,7 +197,6 @@ function compileSection(
   const result: SectionDraft = {
     id: section.id,
     primitives,
-    raster,
     coordinates: createPlanCoordinateReader(primitives, length, lateralDomain.lateralAt),
     boundaries: Object.freeze(boundaries),
     regionPartition: partition,
@@ -255,14 +238,11 @@ export async function compileCourseDocument(
   if (!admitted.ok) return admitted;
   const document = admitted.value;
   try {
-    if (
-      document.geometryRecipe.id !== COURSE_GEOMETRY_RECIPE.id ||
-      document.geometryRecipe.version !== COURSE_GEOMETRY_RECIPE.version
-    ) {
+    if (document.geometryRecipe.id !== 'superoutride.plan-raster' || document.geometryRecipe.version !== 1) {
       throw new CourseInputError(
         'unsupported_version',
         '/geometryRecipe',
-        `Supported geometry recipe is ${COURSE_GEOMETRY_RECIPE.id} v${COURSE_GEOMETRY_RECIPE.version}`,
+        'Supported geometry identity is superoutride.plan-raster v1',
       );
     }
     requireCourse(document.sections.length > 0, '/sections', 'A course requires a Section', 'empty_course');
@@ -339,7 +319,7 @@ export async function compileCourseDocument(
     const sourceSha256 = await contentDigest(new TextEncoder().encode(JSON.stringify(document)));
     const buildSha256 = await contentDigest(
       new TextEncoder().encode(
-        JSON.stringify({ sourceSha256, compiler: COURSE_COMPILER, geometryRecipe: COURSE_GEOMETRY_RECIPE }),
+        JSON.stringify({ sourceSha256, compiler: COURSE_COMPILER, geometryRecipe: document.geometryRecipe }),
       ),
     );
     return courseSuccess(
@@ -352,7 +332,7 @@ export async function compileCourseDocument(
           sourceSha256,
           buildSha256,
           compiler: COURSE_COMPILER,
-          geometryRecipe: COURSE_GEOMETRY_RECIPE,
+          geometryRecipe: document.geometryRecipe,
         }),
         sections: Object.freeze(sections),
         entry,

@@ -202,7 +202,6 @@ export const COURSE_DOCUMENT_LIMITS = Object.freeze({
   lengthMeters: 100_000,
   lateralMeters: 1000,
   heightMeters: 10000,
-  rasterSegments: 16384,
   regionCells: 16384,
 });
 

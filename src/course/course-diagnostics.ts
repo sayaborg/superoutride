@@ -11,7 +11,6 @@ type CourseDiagnosticCode =
   | 'unsupported_feature'
   | 'empty_course'
   | 'empty_section'
-  | 'invalid_raster_geometry'
   | 'invalid_anchor'
   | 'invalid_boundary'
   | 'invalid_region_domain'

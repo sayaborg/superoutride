@@ -1,5 +1,4 @@
 import type { Writable } from '../core/writable.js';
-import type { RasterPath } from './geometry/raster-path.js';
 import { COURSE_DOCUMENT_LIMITS } from './course-document.js';
 import { CourseInputError, requireCourse } from './course-diagnostics.js';
 import { validatePlanDomainInjectivity } from './plan-domain-injectivity.js';
@@ -93,7 +92,7 @@ function validatePlanMetric(
 /** Prove structural Region relationships and derive the physical coordinate domain. */
 export function compileCourseRegionGeometry(
   sectionId: string,
-  raster: RasterPath,
+  length: number,
   primitives: readonly CompiledPlanPrimitive[],
   regions: readonly CompiledRegion[],
   carriageways: readonly CompiledCarriageway[],
@@ -104,7 +103,7 @@ export function compileCourseRegionGeometry(
   const stations = [
     ...new Set([
       0,
-      raster.length,
+      length,
       ...boundaries.flatMap((boundary) => boundary.knots.map((knot) => knot.anchor.s)),
       ...regions.flatMap((region) => [region.start.s, region.end.s]),
     ]),
@@ -220,7 +219,7 @@ export function compileCourseRegionGeometry(
   validatePlanMetric(sectionId, primitives, domain, sectionPath);
   validatePlanDomainInjectivity(sectionId, primitives, domain, sectionPath);
   return Object.freeze({
-    partition: Object.freeze({ raster, length: raster.length, regions: Object.freeze([...regions]) }),
+    partition: Object.freeze({ length, regions: Object.freeze([...regions]) }),
     lateralDomain: domain,
   });
 }

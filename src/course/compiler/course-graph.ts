@@ -1,5 +1,4 @@
 import type { SectionPlanCoordinateReader } from '../geometry/plan-coordinate.js';
-import type { RasterPath } from '../geometry/raster-path.js';
 import type { ProfileReader, ProfilePolylineReader } from '../geometry/profile.js';
 import type { PlanarPose, PlanarTransform } from '../../core/planar-transform.js';
 import type { CompiledCourseImageSource } from './course-image-source.js';
@@ -13,7 +12,6 @@ import type { SurfaceMaterial } from '../surface-material.js';
 export interface CompiledSection {
   readonly id: string;
   readonly primitives: readonly CompiledPlanPrimitive[];
-  readonly raster: RasterPath;
   readonly coordinates: SectionPlanCoordinateReader;
   readonly boundaries: readonly CompiledBoundary[];
   readonly regionPartition: CompiledRegionPartition;
