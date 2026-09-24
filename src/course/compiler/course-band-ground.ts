@@ -1,3 +1,4 @@
+import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
 import { compileBandMaterial } from '../band-material.js';
 import { SURFACE_MATERIALS, type SurfaceMaterial, type SurfaceType } from '../surface-material.js';
 import type { CompiledBoundary } from '../course-regions.js';
@@ -46,7 +47,6 @@ const GLYPHS: Readonly<Record<string, string>> = Object.freeze({
   '8': '01110/10001/10001/01110/10001/10001/01110',
   '9': '01110/10001/10001/01111/00001/00001/01110',
 });
-const EXPANSION_LIMIT = 65536;
 
 /** Expand saved constructs in list order; output is a disposable compiler product. */
 function expandCourseStrips(
@@ -61,7 +61,12 @@ function expandCourseStrips(
   const line = (start: number, end: number, from: number, to = from): BandEdgeLine => ({ start, end, from, to });
   const extents: { start: number; end: number }[] = [];
   const track = (shape: { start: number; end: number }) => {
-    requireCourse(extents.length < EXPANSION_LIMIT, path, 'Expanded Strip pieces exceed 65536', 'resource_limit');
+    requireCourse(
+      extents.length < COURSE_DOCUMENT_LIMITS.stripExpansion,
+      path,
+      `Expanded Strip pieces exceed ${COURSE_DOCUMENT_LIMITS.stripExpansion}`,
+      'resource_limit',
+    );
     extents.push(shape);
   };
   let work = 0;
@@ -145,8 +150,12 @@ function expandCourseStrips(
     }
   };
   const expand = (element: StripElementDocument, offset: number, at: string, repeated = false) => {
-    if (++work > EXPANSION_LIMIT)
-      throw new CourseInputError('resource_limit', at, 'Strip expansion work exceeds 65536 constructs');
+    if (++work > COURSE_DOCUMENT_LIMITS.stripExpansion)
+      throw new CourseInputError(
+        'resource_limit',
+        at,
+        `Strip expansion work exceeds ${COURSE_DOCUMENT_LIMITS.stripExpansion} constructs`,
+      );
     switch (element.kind) {
       case 'strip':
         requireCourse(
@@ -176,7 +185,12 @@ function expandCourseStrips(
         const end = resolve(element.end, `${at}/end`).s + offset;
         requireCourse(end > start, at, 'Curb extent must be positive', 'invalid_profile');
         const count = Math.ceil((end - start) / element.stripe);
-        requireCourse(count <= EXPANSION_LIMIT, at, 'Curb expansion exceeds 65536 stripes', 'resource_limit');
+        requireCourse(
+          count <= COURSE_DOCUMENT_LIMITS.stripExpansion,
+          at,
+          `Curb expansion exceeds ${COURSE_DOCUMENT_LIMITS.stripExpansion} stripes`,
+          'resource_limit',
+        );
         for (let i = 0; i < count; i++)
           strip(
             [

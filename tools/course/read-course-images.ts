@@ -2,7 +2,7 @@ import type { CourseAssetReference } from '../../src/course/course-document.js';
 import type { CourseAssetBytes } from '../../src/course/compiler/course-image-source.js';
 import { createReadStream } from 'node:fs';
 import path from 'node:path';
-import { COURSE_IMAGE_SOURCE_RECIPE } from '../../src/course/compiler/course-image-source.js';
+import { COURSE_DOCUMENT_LIMITS } from '../../src/course/course-limits.js';
 import { CourseAssetError } from '../../src/course/course-diagnostics.js';
 
 /** Bounded I/O over admitted digest filenames; the compiler checks exact bytes and image semantics. */
@@ -21,7 +21,7 @@ export async function readCourseImages(
     for await (const chunk of createReadStream(path.join(directory, `${reference.sha256}.json`))) {
       size += chunk.length;
       total += chunk.length;
-      if (size > COURSE_IMAGE_SOURCE_RECIPE.maxEncodedBytes || total > COURSE_IMAGE_SOURCE_RECIPE.maxTotalEncodedBytes)
+      if (size > COURSE_DOCUMENT_LIMITS.imageEncodedBytes || total > COURSE_DOCUMENT_LIMITS.imageTotalEncodedBytes)
         throw new CourseAssetError(
           'resource_limit',
           reference.sha256,

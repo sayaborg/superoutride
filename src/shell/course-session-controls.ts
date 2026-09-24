@@ -1,3 +1,4 @@
+import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
 import { compileSessionConfiguration, type SessionConfiguration } from '../race/session-configuration.js';
 import { VEHICLE_CATALOG } from '../vehicle/vehicle-catalog.js';
 
@@ -81,7 +82,7 @@ export function mountCourseSessionControls(
     panel.append(label);
     return input;
   };
-  const rivals = numeric('Rivals', current.rivalCount, 0, 16),
+  const rivals = numeric('Rivals', current.rivalCount, 0, SESSION_RULE_LIMITS.rivals),
     laps = numeric('Laps', current.lapCount, 1, maxLaps);
   const clock = select(
     'Checkpoint clock',

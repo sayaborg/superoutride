@@ -4,7 +4,8 @@ import {
   courseSuccess,
   type CourseResult,
 } from '../../src/course/course-diagnostics.js';
-import { COURSE_DOCUMENT_LIMITS, readCourseDocument, type CourseDocument } from '../../src/course/course-document.js';
+import { COURSE_DOCUMENT_LIMITS } from '../../src/course/course-limits.js';
+import { readCourseDocument, type CourseDocument } from '../../src/course/course-document.js';
 import { compileCourseDocument, type CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import type { CourseAssetBytes } from '../../src/course/compiler/course-image-source.js';
 
@@ -71,7 +72,9 @@ export function parseCourseDocument(text: string): CourseResult<CourseDocument> 
     text.length > COURSE_DOCUMENT_LIMITS.jsonBytes ||
     new TextEncoder().encode(text).byteLength > COURSE_DOCUMENT_LIMITS.jsonBytes
   ) {
-    return courseFailure(new CourseInputError('resource_limit', '', 'Document exceeds 4 MiB UTF-8'));
+    return courseFailure(
+      new CourseInputError('resource_limit', '', `Document exceeds ${COURSE_DOCUMENT_LIMITS.jsonBytes} UTF-8 bytes`),
+    );
   }
   let input: unknown;
   try {

@@ -1,3 +1,4 @@
+import { COURSE_DOCUMENT_LIMITS } from '../../src/course/course-limits.js';
 import type { CourseResult } from '../../src/course/course-diagnostics.js';
 import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import { readFile, mkdir, writeFile, rename, rm } from 'node:fs/promises';
@@ -45,7 +46,11 @@ export function finite(value: unknown, location: string, min = -Infinity, max = 
 }
 export async function jsonFile(file: string): Promise<{ bytes: Buffer; value: unknown }> {
   const bytes = await readFile(file);
-  requireInput(bytes.length <= 4 * 1024 * 1024, file, 'Authoring JSON exceeds 4 MiB');
+  requireInput(
+    bytes.length <= COURSE_DOCUMENT_LIMITS.jsonBytes,
+    file,
+    `Authoring JSON exceeds ${COURSE_DOCUMENT_LIMITS.jsonBytes} bytes`,
+  );
   try {
     return { bytes, value: JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)) };
   } catch (error) {

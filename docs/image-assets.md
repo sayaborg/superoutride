@@ -150,8 +150,8 @@ Each declared digest receives explicit `{sha256,bytes:Uint8Array}` input. Exact 
 lowercase SHA-256 and valid UTF-8 JSON for the corresponding sprite/BG format. Aliased descriptors
 share one immutable source; Section membership resolves to canonical descriptors.
 
-Limits are 256 supplied digests, 8 MiB per saved input, 64 MiB total encoded inputs, 1048576 master
-texels per image and 8388608 total level texels across unique sources. Missing, duplicate, undeclared,
+Course image admission uses the single [document resource table](content-and-gameplay.md#numeric-and-resource-domains)
+for descriptor count, per-image bytes/texels and aggregate unique-source bytes/texels. Missing, duplicate, undeclared,
 corrupt or malformed inputs fail. Asset diagnostics contain `kind:"asset"`, code, digest, referring
 asset indices and supplied input index where applicable; independent failures follow declaration order.
 Failure publishes no graph. Decoded consumer workspaces cannot mutate the saved source.

@@ -1,6 +1,7 @@
 import { contentDigest } from '../../core/content-digest.js';
 import { CourseAssetError, courseFailures, courseSuccess, type CourseResult } from '../course-diagnostics.js';
-import { COURSE_DOCUMENT_LIMITS, type CourseAssetReference } from '../course-document.js';
+import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
+import { type CourseAssetReference } from '../course-document.js';
 import { TileBackgroundImage, type TileBackgroundDocument } from '../../image/tile-background-image.js';
 import { readSpriteLodAsset, spriteLodLayout, type SpriteLodDocument } from '../../image/sprite.js';
 
@@ -8,10 +9,6 @@ import { readSpriteLodAsset, spriteLodLayout, type SpriteLodDocument } from '../
 export const COURSE_IMAGE_SOURCE_RECIPE = Object.freeze({
   id: 'superoutride.course-image-source',
   version: 2,
-  maxEncodedBytes: 8 * 1024 * 1024,
-  maxTotalEncodedBytes: 64 * 1024 * 1024,
-  maxMasterTexels: 1024 * 1024,
-  maxTotalLevelTexels: 8 * 1024 * 1024,
 });
 
 export interface CourseAssetBytes {
@@ -54,8 +51,8 @@ export async function compileCourseImageSources(
     encodedBytes += input.bytes.byteLength;
     if (
       index >= COURSE_DOCUMENT_LIMITS.assets ||
-      input.bytes.byteLength > COURSE_IMAGE_SOURCE_RECIPE.maxEncodedBytes ||
-      encodedBytes > COURSE_IMAGE_SOURCE_RECIPE.maxTotalEncodedBytes
+      input.bytes.byteLength > COURSE_DOCUMENT_LIMITS.imageEncodedBytes ||
+      encodedBytes > COURSE_DOCUMENT_LIMITS.imageTotalEncodedBytes
     )
       error('resource_limit', input.sha256, 'Encoded image input exceeds source admission limits', index);
     if (index >= COURSE_DOCUMENT_LIMITS.assets) break;
@@ -98,14 +95,14 @@ export async function compileCourseImageSources(
       Number.isSafeInteger(candidate.width) &&
       Number.isSafeInteger(candidate.height)
     ) {
-      if (candidate.width * candidate.height > COURSE_IMAGE_SOURCE_RECIPE.maxMasterTexels) {
+      if (candidate.width * candidate.height > COURSE_DOCUMENT_LIMITS.imageMasterTexels) {
         error('resource_limit', sha256, 'Image master exceeds source texel admission', inputIndex);
         continue;
       }
       if (Array.isArray(candidate.levels)) {
         const layout = spriteLodLayout(candidate.width, candidate.height).slice(0, candidate.levels.length);
         const count = layout.reduce((sum, level) => sum + level.width * level.height, 0);
-        if (levelTexels + count > COURSE_IMAGE_SOURCE_RECIPE.maxTotalLevelTexels) {
+        if (levelTexels + count > COURSE_DOCUMENT_LIMITS.imageTotalLevelTexels) {
           error('resource_limit', sha256, 'Unique saved images exceed total level texel admission', inputIndex);
           continue;
         }
@@ -117,7 +114,7 @@ export async function compileCourseImageSources(
         const background = value as TileBackgroundDocument;
         if (
           Array.isArray(background.patterns) &&
-          background.patterns.length * 256 + levelTexels > COURSE_IMAGE_SOURCE_RECIPE.maxTotalLevelTexels
+          background.patterns.length * 256 + levelTexels > COURSE_DOCUMENT_LIMITS.imageTotalLevelTexels
         ) {
           error('resource_limit', sha256, 'Background patterns exceed source texel admission', inputIndex);
           continue;

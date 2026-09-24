@@ -1,5 +1,6 @@
 import { CourseInputError, requireCourse } from './course-diagnostics.js';
-import { COURSE_DOCUMENT_LIMITS, type CoursePosition, type SectionDocument } from './course-document.js';
+import { COURSE_DOCUMENT_LIMITS } from './course-limits.js';
+import { type CoursePosition, type SectionDocument } from './course-document.js';
 import { compilePlanPath, PLAN_POSITION_TOLERANCE_METERS, type PlanSegmentGeometry } from './geometry/plan-path.js';
 
 export type { CompiledPlanSegment } from './geometry/plan-path.js';
@@ -68,7 +69,11 @@ export function compileCourseGeometry(section: SectionDocument, path: string) {
     'invalid_plan',
   );
   if (plan.length > COURSE_DOCUMENT_LIMITS.lengthMeters)
-    throw new CourseInputError('resource_limit', `${path}/pis`, 'Compiled ruler exceeds 100000 m');
+    throw new CourseInputError(
+      'resource_limit',
+      `${path}/pis`,
+      `Compiled ruler exceeds ${COURSE_DOCUMENT_LIMITS.lengthMeters} m`,
+    );
   return { ...plan, stations };
 }
 

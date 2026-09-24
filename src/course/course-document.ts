@@ -1,3 +1,5 @@
+import { COURSE_DOCUMENT_LIMITS } from './course-limits.js';
+import { SESSION_RULE_LIMITS } from './session-rules.js';
 import { CourseInputError, courseFailure, courseSuccess, type CourseResult } from './course-diagnostics.js';
 
 const COURSE_DOCUMENT_VERSION = 19;
@@ -181,25 +183,6 @@ export interface CourseDocument {
   }[];
 }
 
-/** Admission limits, independent of eventual game/device content budgets. */
-export const COURSE_DOCUMENT_LIMITS = Object.freeze({
-  jsonBytes: 4 * 1024 * 1024,
-  idCodeUnits: 128,
-  sections: 16,
-  pis: 2048,
-  boundaries: 32,
-  knots: 256,
-  carriageways: 16,
-  links: 48,
-  assets: 256,
-  placements: 4096,
-  coordinateMeters: 1_000_000,
-  lengthMeters: 100_000,
-  lateralMeters: 1000,
-  heightMeters: 10000,
-  boundaryPoints: 16384,
-});
-
 function fail(code: ConstructorParameters<typeof CourseInputError>[0], path: string, message: string): never {
   throw new CourseInputError(code, path, message);
 }
@@ -234,7 +217,7 @@ function id(value: unknown, path: string): string {
   if (typeof value !== 'string' || !value.trim() || value !== value.trim())
     fail('invalid_shape', path, 'Expected a nonempty stable ID without surrounding whitespace');
   if (value.length > COURSE_DOCUMENT_LIMITS.idCodeUnits)
-    fail('resource_limit', path, 'Stable ID exceeds 128 code units');
+    fail('resource_limit', path, `Stable ID exceeds ${COURSE_DOCUMENT_LIMITS.idCodeUnits} code units`);
   return value;
 }
 
@@ -265,11 +248,27 @@ function courseReference(value: unknown, path: string): CourseDocument['referenc
       sha256: observations.sha256,
     }),
     calibration: Object.freeze({
-      distanceScale: number(c.distanceScale, `${path}/calibration/distanceScale`, 0, 100, true),
-      curvatureScale: number(c.curvatureScale, `${path}/calibration/curvatureScale`, 0, 100),
-      heightScale: number(c.heightScale, `${path}/calibration/heightScale`, 0, 100),
+      distanceScale: number(
+        c.distanceScale,
+        `${path}/calibration/distanceScale`,
+        0,
+        COURSE_DOCUMENT_LIMITS.referenceScale,
+        true,
+      ),
+      curvatureScale: number(
+        c.curvatureScale,
+        `${path}/calibration/curvatureScale`,
+        0,
+        COURSE_DOCUMENT_LIMITS.referenceScale,
+      ),
+      heightScale: number(c.heightScale, `${path}/calibration/heightScale`, 0, COURSE_DOCUMENT_LIMITS.referenceScale),
     }),
-    remasterDeviations: array(v.remasterDeviations, `${path}/remasterDeviations`, 64, referenceText),
+    remasterDeviations: array(
+      v.remasterDeviations,
+      `${path}/remasterDeviations`,
+      COURSE_DOCUMENT_LIMITS.referenceDeviations,
+      referenceText,
+    ),
   });
 }
 
@@ -376,7 +375,8 @@ function rgb555(value: unknown, path: string): number {
 }
 
 function stripElement(value: unknown, path: string, depth = 0): StripElementDocument {
-  if (depth > 8) fail('resource_limit', path, 'Strip construct nesting exceeds eight levels');
+  if (depth > COURSE_DOCUMENT_LIMITS.repeatDepth)
+    fail('resource_limit', path, `Strip construct nesting exceeds ${COURSE_DOCUMENT_LIMITS.repeatDepth} levels`);
   const kind = value && typeof value === 'object' ? (value as Record<string, unknown>).kind : undefined;
   const metre = (value: unknown, at: string, positive = false) =>
     number(value, at, 0, COURSE_DOCUMENT_LIMITS.lengthMeters, positive);
@@ -398,14 +398,20 @@ function stripElement(value: unknown, path: string, depth = 0): StripElementDocu
   }
   if (kind === 'repeat') {
     const v = record(value, path, ['kind', 'every', 'count', 'elements']);
-    const count = metre(v.count, `${path}/count`, true);
-    if (!Number.isInteger(count) || count > 4096)
-      fail('resource_limit', `${path}/count`, 'Repeat count must be an integer from 1 through 4096');
+    const count = number(v.count, `${path}/count`, 0, Number.MAX_SAFE_INTEGER, true);
+    if (!Number.isInteger(count) || count > COURSE_DOCUMENT_LIMITS.repeatCount)
+      fail(
+        'resource_limit',
+        `${path}/count`,
+        `Repeat count must be an integer from 1 through ${COURSE_DOCUMENT_LIMITS.repeatCount}`,
+      );
     return Object.freeze({
       kind,
       count,
       every: metre(v.every, `${path}/every`, true),
-      elements: array(v.elements, `${path}/elements`, 4096, (item, at) => stripElement(item, at, depth + 1)),
+      elements: array(v.elements, `${path}/elements`, COURSE_DOCUMENT_LIMITS.stripElements, (item, at) =>
+        stripElement(item, at, depth + 1),
+      ),
     });
   }
   if (kind === 'arrow') {
@@ -424,8 +430,16 @@ function stripElement(value: unknown, path: string, depth = 0): StripElementDocu
   }
   if (kind === 'text') {
     const v = record(value, path, ['kind', 'at', 'lateral', 'text', 'height', 'color']);
-    if (typeof v.text !== 'string' || !/^[A-Z0-9 ]{1,64}$/.test(v.text))
-      fail('invalid_shape', `${path}/text`, 'Strip text supports 1–64 uppercase ASCII letters, digits or spaces');
+    if (
+      typeof v.text !== 'string' ||
+      !/^[A-Z0-9 ]+$/.test(v.text) ||
+      v.text.length > COURSE_DOCUMENT_LIMITS.textCodeUnits
+    )
+      fail(
+        'invalid_shape',
+        `${path}/text`,
+        `Strip text supports 1–${COURSE_DOCUMENT_LIMITS.textCodeUnits} uppercase ASCII letters, digits or spaces`,
+      );
     return Object.freeze({
       kind,
       at: position(v.at, `${path}/at`),
@@ -456,7 +470,7 @@ function presentation(value: unknown, path: string): PresentationDocument | null
   if (value === null) return null;
   const v = record(value, path, ['environments', 'scenery', 'sceneryRows']);
   return Object.freeze({
-    environments: array(v.environments, `${path}/environments`, COURSE_DOCUMENT_LIMITS.knots, (item, at) => {
+    environments: array(v.environments, `${path}/environments`, COURSE_DOCUMENT_LIMITS.environmentKnots, (item, at) => {
       const e = record(item, at, ['at', 'name', 'background']);
       const b = record(e.background, `${at}/background`, ['assetId', 'horizonY', 'yawOrigin']);
       return Object.freeze({
@@ -469,7 +483,7 @@ function presentation(value: unknown, path: string): PresentationDocument | null
         }),
       });
     }),
-    sceneryRows: identified(v.sceneryRows, `${path}/sceneryRows`, COURSE_DOCUMENT_LIMITS.placements, (item, at) => {
+    sceneryRows: identified(v.sceneryRows, `${path}/sceneryRows`, COURSE_DOCUMENT_LIMITS.sceneryRows, (item, at) => {
       const row = record(item, at, ['id', 'assetId', 'start', 'end', 'spacing', 'lateral', 'groundOffset']);
       return Object.freeze({
         id: id(row.id, `${at}/id`),
@@ -523,8 +537,10 @@ function section(value: unknown, path: string): SectionDocument {
     id: id(v.id, `${path}/id`),
     pis: identified(v.pis, `${path}/pis`, COURSE_DOCUMENT_LIMITS.pis, planPI),
     boundaries: identified(v.boundaries, `${path}/boundaries`, COURSE_DOCUMENT_LIMITS.boundaries, boundary),
-    strips: array(v.strips, `${path}/strips`, 4096, (item, at) => stripElement(item, at)),
-    height: array(v.height, `${path}/height`, COURSE_DOCUMENT_LIMITS.knots, (item, at) => {
+    strips: array(v.strips, `${path}/strips`, COURSE_DOCUMENT_LIMITS.stripElements, (item, at) =>
+      stripElement(item, at),
+    ),
+    height: array(v.height, `${path}/height`, COURSE_DOCUMENT_LIMITS.heightNodes, (item, at) => {
       const node = record(item, at, ['at', 'y', 'curveLength']);
       return Object.freeze({
         at: position(node.at, `${at}/at`),
@@ -538,7 +554,7 @@ function section(value: unknown, path: string): SectionDocument {
       });
     }),
     carriageways: identified(v.carriageways, `${path}/carriageways`, COURSE_DOCUMENT_LIMITS.carriageways, carriageway),
-    assetIds: array(v.assetIds, `${path}/assetIds`, COURSE_DOCUMENT_LIMITS.assets, id),
+    assetIds: array(v.assetIds, `${path}/assetIds`, COURSE_DOCUMENT_LIMITS.sectionAssets, id),
     presentation: presentation(v.presentation, `${path}/presentation`),
     fork:
       fork === null
@@ -569,18 +585,18 @@ function rules(value: unknown, path: string): CourseRulesDocument | null {
     });
   };
   return Object.freeze({
-    grid: array(v.grid, path + '/grid', 17, (value, at) => {
+    grid: array(v.grid, path + '/grid', COURSE_DOCUMENT_LIMITS.grid, (value, at) => {
       const slot = record(value, at, ['at', 'lateral']);
       return Object.freeze({ at: position(slot.at, at + '/at'), lateral: lateral(slot.lateral, at + '/lateral') });
     }),
-    checkpoints: identified(v.checkpoints, path + '/checkpoints', 256, landmark),
-    finishes: identified(v.finishes, path + '/finishes', 16, landmark),
-    maxLaps: integer(v.maxLaps, path + '/maxLaps', 1, 99),
+    checkpoints: identified(v.checkpoints, path + '/checkpoints', COURSE_DOCUMENT_LIMITS.checkpoints, landmark),
+    finishes: identified(v.finishes, path + '/finishes', COURSE_DOCUMENT_LIMITS.finishes, landmark),
+    maxLaps: integer(v.maxLaps, path + '/maxLaps', 1, SESSION_RULE_LIMITS.laps),
     classic: Object.freeze({
       vehicleId: id(c.vehicleId, path + '/classic/vehicleId'),
-      rivalCount: integer(c.rivalCount, path + '/classic/rivalCount', 0, 16),
-      lapCount: integer(c.lapCount, path + '/classic/lapCount', 1, 99),
-      timeMargin: number(c.timeMargin, path + '/classic/timeMargin', 0, 10, true),
+      rivalCount: integer(c.rivalCount, path + '/classic/rivalCount', 0, SESSION_RULE_LIMITS.rivals),
+      lapCount: integer(c.lapCount, path + '/classic/lapCount', 1, SESSION_RULE_LIMITS.laps),
+      timeMargin: number(c.timeMargin, path + '/classic/timeMargin', 0, SESSION_RULE_LIMITS.timeMargin, true),
     }),
   });
 }
@@ -662,7 +678,7 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
       sceneryInstances: identified(
         v.sceneryInstances,
         '/sceneryInstances',
-        COURSE_DOCUMENT_LIMITS.placements,
+        COURSE_DOCUMENT_LIMITS.instances,
         (item, at) => {
           const instance = record(item, at, ['id', 'assetId', 'paletteRgb555']);
           const palette =
@@ -678,7 +694,7 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
       ),
     });
     if (new TextEncoder().encode(JSON.stringify(result)).byteLength > COURSE_DOCUMENT_LIMITS.jsonBytes)
-      fail('resource_limit', '', 'Document exceeds 4 MiB UTF-8');
+      fail('resource_limit', '', `Document exceeds ${COURSE_DOCUMENT_LIMITS.jsonBytes} UTF-8 bytes`);
     return courseSuccess(result);
   } catch (error) {
     if (error instanceof CourseInputError) return courseFailure(error);

@@ -1,5 +1,6 @@
 import type { BandEdgeLine } from '../band-ground.js';
-import { COURSE_DOCUMENT_LIMITS, type Lateral, type CoursePosition, type SectionDocument } from '../course-document.js';
+import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
+import { type Lateral, type CoursePosition, type SectionDocument } from '../course-document.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
 import { courseBoundaryAt, type CompiledBoundary } from '../course-regions.js';
 import { requireCourse } from '../course-diagnostics.js';
@@ -28,7 +29,7 @@ function checkedLateral(l: number, path: string): number {
   requireCourse(
     Number.isFinite(l) && Math.abs(l) <= COURSE_DOCUMENT_LIMITS.lateralMeters,
     path,
-    'Resolved lateral position must be within +/-1000 m',
+    `Resolved lateral position must be within +/-${COURSE_DOCUMENT_LIMITS.lateralMeters} m`,
     'invalid_numeric_domain',
   );
   return l;

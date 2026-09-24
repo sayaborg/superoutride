@@ -145,7 +145,7 @@ Color-only Strips never enter the material table, and material-only Strips never
 
 Knots use Position `at` and Lateral or null edges. Null left/right opens that side to infinity;
 each side's open flag must remain constant throughout a Strip. Material-bearing Strips require
-two finite edges. There are 2 through 256 knots, whose resolved stations strictly increase inside
+two finite edges. There are at least two knots (the admission ceiling is listed below), whose resolved stations strictly increase inside
 `[0,Section.length]`. The first and last knots determine the active interval. Finite edges obey
 `left <= right`; zero-width taper endpoints are allowed. Ownership is `[left,right)` laterally
 and `[start,end)` longitudinally, including the Section terminal in the last slab.
@@ -162,15 +162,13 @@ original. Repeated elements must be color-only, including nested Strips. An arro
 bounding edge and lateral its center; width and length are its final bounding dimensions.
 Direction is `forward`, `left` or `right`. Text at/lateral specifies the near/left edge of its cells;
 height covers seven cells, horizontal advance is six cells per character. Text admits uppercase
-A–Z, digits 0–9 and spaces, from 1 through 64 characters. Polygon edges and glyph row runs expand
+A–Z, digits 0–9 and spaces; the text length ceiling is listed below. Polygon edges and glyph row runs expand
 to affine pieces. A curb alternates its two colors from start, clips the last stripe to end,
 and resolves its Lateral edges over each stripe interval. All expanded intervals must fit the Section.
 
-Each element array admits 4096 records, repeat count is 1 through 4096 and nesting is at most eight.
-Expansion visits at most 65536 constructs and publishes at most 65536 affine pieces. At most 64
-expanded pieces may be active simultaneously, including covered ones and counting a piece with
-both payloads once. Resolved slab and cached dyadic-cell counts each admit 1048576 per Section;
-unique color coefficient storage is at most 64 MiB. Limits reject rather than truncate.
+The numeric and resource table below bounds each element array, repetition, expansion work,
+simultaneously active pieces, resolved slabs and cached fields. Covered pieces still count;
+a piece carrying both payloads counts once. Limits reject rather than truncate.
 [Architecture](architecture.md#band-rendering) owns averaging, immutable storage and pixel kernels.
 
 Scenery placements resolve document-wide instances. `unselectedCarriagewayId` is null for ordinary
@@ -179,14 +177,15 @@ exit cut, and appear when the field selects another exit. Their state follows th
 
 Rows use a half-open interval with placements at `start+index*spacing`. Each instance resolves its
 `lateral` at that station; a numeric value places the entire row at constant l. Expanded
-Section/row/index identities are deterministic. The total expanded Section placement count is at most 4096.
-Each scenery and document instance collection admits 4096 records; profiles admit 256 nodes.
+Section/row/index identities are deterministic. Authored collections and expanded Section placements
+obey the separate admission ceilings below.
 Unsupported presentation fields produce diagnostics.
 
 ### Authored Session rules
 
 `rules` is null or `{grid,checkpoints,finishes,maxLaps,classic}`. Grid slots are ordered `{at,lateral}`
-records in the entry Section: player first, then rivals in roster order, at most 17. Each is supported,
+records in the entry Section: player first, then rivals in roster order. Capacity is one player plus
+the product maximum rival count, derived from `SESSION_RULE_LIMITS`. Each is supported,
 at/after entry and before the first required landmark. Starting velocity is zero.
 
 Checkpoints and finishes contain `{id,sectionId,carriagewayId,at}` with unique IDs across both
@@ -201,28 +200,83 @@ lap values must agree. The composition root resolves vehicle IDs against the cat
 
 ### Numeric and resource domains
 
-All numbers are finite. Each PI coordinate is within +/-1000000 m; radius is in `[0,100000]` m.
-Endpoint radii are zero. Interior radii are positive and the deflection magnitude is strictly between
-0 and 180 degrees. Consecutive PIs have distinct coordinates. The sum of neighboring arc tangent
-lengths must not exceed their shared edge length; equality admits touching arcs with no intervening line.
-Compilation absorbs up to the plan-position roundoff budget at touching tangents, as specified in
-[Architecture](architecture.md#plan-authority).
+All numbers are finite. `COURSE_DOCUMENT_LIMITS` in `src/course/course-limits.ts` is the single
+admission table for saved documents, course compilation and supplied course images. These ceilings
+protect compiler resources; they are not rendering, resident-memory or device-performance budgets.
+Stage 12 establishes those budgets from the complete application on named devices.
 
-A position's `pi` resolves in its Section. Its station is the arc midpoint for an interior PI,
-and the point itself for a zero-radius endpoint. `offset` is signed chainage in metres within
-`[-100000,100000]`; the resolved station must be in `[0,Section.length]`.
-All height PVIs, Boundary and Strip knots, environments, scenery rows, decorations and race landmarks
-use Position values. Compiled positions contain only `s`.
-Numeric Lateral values, signed Lateral offsets and resolved l are within +/-1000 m;
-heights within +/-10000 m. Recipe versions are integers from 1 through 65535. Resolved values must also fit their finite Section
-and produce positive representable intervals.
+Use 21 km as the planning envelope for the approximately 20.8 km Nordschleife, with a factor of two
+for longitudinal detail and length. One Section can therefore hold nearly the whole circuit; the
+planned circuit representation uses at least two Sections and does not divide the long Section's budget.
+Assume 10 corners/PIs, 20 PVIs/profile knots, 30 authored decoration records and 220 placements per km.
+The latter includes both verges at 10 m spacing (200/km) plus 20/km for signs and other scenery.
+Every corner can receive two curbs, an arrow and lettering: curbs can cover both sides of the entire
+21 km at 1 m stripes, with 100 lane dashes/km and up to 10 two-character markings/km. This is
+conservatively 3000 expanded pieces/km; detailed glyphs and inherited edge points consume that budget.
+Counts are rounded upward to powers of two after the stated margin, except the metre ceiling.
 
-`COURSE_DOCUMENT_LIMITS` defines 4 MiB UTF-8 JSON, 128 UTF-16 code units per ID, 16 Sections,
-48 Links and 256 assets. Each Section admits 2048 PIs, 32 Boundaries, 256 knots per
-Boundary, 16 Carriageways, 256 asset references and 256 height nodes. Compiled Section limits are
-16384 resolved Boundary points in total per Section and 100000 m chainage. The Boundary point
-limit includes inherited breakpoints, rejects rather than truncates, and is separate from the
-authored 256-knot limit and the Strip expansion limits above.
+For graph planning, Cool Riders' 50 stage positions with three outgoing choices dominate the selected
+master list. Allow two Sections per position, then round 100 up to 128; up to three Links per admitted
+Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selected linear courses
+(up to 18 named stages). These are capacity assumptions, not a reconstruction of Cool Riders' exact map.
+
+| Scope / table key                                                       |            Ceiling | Basis                                                                                                                   |
+| ----------------------------------------------------------------------- | -----------------: | ----------------------------------------------------------------------------------------------------------------------- |
+| Document `jsonBytes`                                                    |       64 MiB UTF-8 | 50 stages × 2 km/stage × 1000 records/km × 256 encoded bytes/record × 2, rounded up                                     |
+| `idCodeUnits`                                                           |                128 | 64-character stable paths/names × 2                                                                                     |
+| Graph `sections` / `links`                                              |          128 / 384 | 50 positions × 2, rounded up; three outgoing choices per Section                                                        |
+| Document `assets`                                                       |               2048 | (50 × 16 local image types + 128 shared types) × 2, rounded up                                                          |
+| Section `sectionAssets`                                                 |                128 | 64 locally used image types × 2                                                                                         |
+| Document `instances`                                                    |               4096 | 50 × 32 image/palette identities × 2, rounded up                                                                        |
+| Section `pis`                                                           |                512 | (21 × 10 + 2 endpoints) × 2, rounded up                                                                                 |
+| Section `heightNodes`                                                   |               1024 | (21 × 20 + 2) × 2, rounded up                                                                                           |
+| Each Boundary/Strip `knots`                                             |               1024 | Same 20/km profile density and margin                                                                                   |
+| Section `environmentKnots`                                              |                256 | (21 × 4 + 1) × 2, rounded up                                                                                            |
+| Section `boundaries`                                                    |                 32 | 16 road, median, shoulder and outer profiles × 2                                                                        |
+| Section `carriageways`                                                  |                 64 | One road activation/km × 21 × 2, rounded up; supports three-way splits                                                  |
+| Section `sceneryRows`                                                   |               1024 | Two verges × 10 rows/km × 21 × 2, rounded up                                                                            |
+| Section `placements` (authored and expanded)                            |              16384 | 21 × (200 + 20)/km × 2, rounded up                                                                                      |
+| Each element array `stripElements`                                      |               2048 | 21 × 30/km × 2, rounded up                                                                                              |
+| `repeatCount`                                                           |              65536 | Whole-length 1 m repetitions: 21000 × 2, rounded up                                                                     |
+| `repeatDepth` / `textCodeUnits`                                         |             8 / 64 | Four organizational levels × 2; 32-character road legend × 2                                                            |
+| Section `stripExpansion` (pieces and visited constructs separately)     |             131072 | 21 × 3000/km × 2, rounded up                                                                                            |
+| Section `activeStrips`                                                  |                 64 | 16 base layers + 14 glyph/marking runs + 2 curbs, doubled; counts hidden pieces                                         |
+| Each color/material table `stripSlabs`                                  |            1048576 | Expanded-piece budget × two endpoints × four for crossing subdivisions                                                  |
+| Section `preblendCells`                                                 |             131072 | All 1 m dyadic levels at 42000 m total fewer than 84032 cells, rounded up                                               |
+| Section `coefficientBytes`                                              |            512 MiB | Moving-edge 21 km probe uses about 121 MiB; ×2 length and ×2 profile complexity, rounded up                             |
+| Section resolved `boundaryPoints`                                       |              65536 | 32 Boundaries × 1024 knots × 2 for inherited breakpoints                                                                |
+| Course `grid`                                                           |                 17 | `1 + SESSION_RULE_LIMITS.rivals`; the product permits 16 rivals                                                         |
+| Course `checkpoints`                                                    |               1024 | 50 positions × 8 intermediate gates × 2, rounded up                                                                     |
+| Course `finishes`                                                       |                128 | At most one per admitted Section                                                                                        |
+| `lengthMeters` (chainage, signed offsets, radii and lengths)            |            42000 m | 21 km × 2                                                                                                               |
+| `coordinateMeters`                                                      |         ±1000000 m | Retains 100 km native-coordinate origin allowance × 10                                                                  |
+| `lateralMeters` / `heightMeters`                                        |   ±1000 / ±10000 m | 100 m lateral span / 1000 m elevation envelope, each × 10                                                               |
+| `imageEncodedBytes` / `imageMasterTexels` per image                     |    8 MiB / 1048576 | Retained 1024² master allowance; up to 8 encoded bytes/master texel                                                     |
+| Unique course images `imageTotalEncodedBytes` / `imageTotalLevelTexels` | 128 MiB / 33554432 | 928 image types averaging 128×64 master texels, ×4/3 mip texels, ×2 margin; allow 4 encoded bytes/level texel, round up |
+| `referenceDeviations` / `referenceScale`                                |           64 / 100 | Retained provenance bounds; removed with `reference` in 7-5                                                             |
+
+The ceilings are independent admission fences, not a promise to accept their Cartesian product.
+Slab crossings and moving-edge preblend event counts depend on geometry, so input counts alone
+cannot guarantee derived counts; compilation checks the actual products and rejects excess.
+The 21 km density case, a nearly 42 km case reaching PI/PVI/knot/Boundary/Strip/placement ceilings,
+and 50- and 128-Section three-choice graphs are disposable measured probes; their times, memory and
+compiled counts belong in the PR. Images have their own aggregate bound; repeated descriptors of one
+digest share a source. Authored JSON size does not include the separately supplied image bytes.
+
+Positions resolve a Section-local PI (arc midpoint for an interior PI, endpoint otherwise) plus signed
+offset. Their stations must lie in the finite Section and intervals must be positively representable.
+Endpoint PI radii are zero; interior radii and deflections are positive, with deflection below 180 degrees.
+Neighboring tangent lengths must fit their shared edge. The touching-tangent roundoff rule belongs to
+[Architecture](architecture.md#plan-authority). Resolved Lateral values also obey the lateral ceiling.
+Palette size, RGB555 range, SHA-256 length, glyph dimensions, angle units and 16-bit recipe versions
+are format values, not entries in the resource table. Provenance strings retain their separate
+4096-code-unit bound until `reference` is removed. Session rival/lap/time-margin rules remain owned by
+`SESSION_RULE_LIMITS`, shared with Session admission and controls rather than copied into document limits.
+
+CourseDocument stays at version 19: this revision changes admission policy, not record shape or meaning.
+Future limit-only revisions likewise retain the format version; the compiler identity advances to identify
+the revised admission policy. Existing inputs must still satisfy the current ceilings; no migration reader
+or grandfathered limit set is provided.
 
 ## Geometry recipe and bindings
 
@@ -302,13 +356,13 @@ Owned records and arrays are immutable, including nested image data. Live actor,
 clock state belong to Sessions. Object identity is local to a compilation; cross-build identity uses digests.
 
 `sourceSha256` hashes normalized input. `buildSha256` hashes `{sourceSha256,compiler,geometryRecipe}`.
-The compiler is `superoutride.course-compiler` version 26, incorporating Link recipe v2, physical
+The compiler is `superoutride.course-compiler` version 28, incorporating Link recipe v2, physical
 recipe v3, image-source recipe v2 and presentation recipe v7. Descriptors include semantic versions
 and operative numeric/data parameters, including material definitions. Source or compiler/recipe
 changes invalidate dependent products.
 
 Image inputs are explicit saved bytes addressed by each declared SHA-256. Shared digests resolve to
-one immutable source. [Image assets](image-assets.md#course-image-sources) owns image limits and diagnostics.
+one immutable source. [Image assets](image-assets.md#course-image-sources) owns source formats and diagnostics.
 Draft saving is independent of image-byte availability.
 
 Document operations return `{ok:true,value}` or `{ok:false,diagnostics}`. Input diagnostics contain

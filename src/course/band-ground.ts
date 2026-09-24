@@ -1,10 +1,9 @@
+import { COURSE_DOCUMENT_LIMITS } from './course-limits.js';
 import { rgb555LinearChannel } from '../image/image-filter.js';
 
-export const BAND_ACTIVE_LIMIT = 64;
+export const BAND_ACTIVE_LIMIT = COURSE_DOCUMENT_LIMITS.activeStrips;
 /** Smallest cached interval in metres. */
 export const BAND_BASE_STEP = 1;
-const MAX_CELLS = 1_048_576;
-const MAX_COEFFICIENT_BYTES = 64 * 1024 * 1024;
 
 /** Original affine arithmetic retained when a material edge is split at unrelated stations. */
 export interface BandEdgeLine {
@@ -171,7 +170,7 @@ export function resolveBandSlabs<Value>(
           spans: Object.freeze(spans.map((p) => Object.freeze(p))),
         }),
       );
-      if (slabs.length > MAX_CELLS) throw new RangeError('Resolved Band slab limit exceeded');
+      if (slabs.length > COURSE_DOCUMENT_LIMITS.stripSlabs) throw new RangeError('Resolved Band slab limit exceeded');
     }
   }
   return Object.freeze(slabs);
@@ -335,7 +334,8 @@ export function compileBandGround(length: number, pieces: readonly BandPiece[]):
   for (let step = BAND_BASE_STEP; ; step *= 2) {
     const count = Math.ceil(length / step);
     cells += count;
-    if (cells > MAX_CELLS) throw new RangeError(`Band preblend cells exceed ${MAX_CELLS}`);
+    if (cells > COURSE_DOCUMENT_LIMITS.preblendCells)
+      throw new RangeError(`Band preblend cells exceed ${COURSE_DOCUMENT_LIMITS.preblendCells}`);
     const indices = new Uint32Array(count),
       active = new Uint8Array(count);
     directoryBytes += indices.byteLength + active.byteLength;
@@ -351,7 +351,8 @@ export function compileBandGround(length: number, pieces: readonly BandPiece[]):
         intern.set(built.key, index);
         lateralFields.push(built.field);
         coefficientBytes += built.field.data.byteLength + 32;
-        if (coefficientBytes > MAX_COEFFICIENT_BYTES) throw new RangeError('Band coefficient storage exceeds 64 MiB');
+        if (coefficientBytes > COURSE_DOCUMENT_LIMITS.coefficientBytes)
+          throw new RangeError(`Band coefficient storage exceeds ${COURSE_DOCUMENT_LIMITS.coefficientBytes} bytes`);
       }
       indices[i] = index;
       active[i] = built.active;

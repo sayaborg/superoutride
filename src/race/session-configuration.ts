@@ -1,3 +1,4 @@
+import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
 import type { CompiledArcadeVehicleProfile } from '../vehicle/physics/vehicle-profiles.js';
 import type { TorqueProtectionPolicy } from '../vehicle/physics/torque-protection.js';
 import type { ArcadeSteeringCalibrationInput } from '../vehicle/physics/vehicle-calibration.js';
@@ -19,15 +20,17 @@ export interface SessionConfiguration {
   readonly countdown: boolean;
 }
 
-const MAX_RIVAL_COUNT = 16;
-
 export function compileSessionConfiguration(authoring: SessionConfiguration): Readonly<SessionConfiguration> {
   if (authoring.mode !== 'CLASSIC' && authoring.mode !== 'CUSTOM')
     throw new RangeError('Session mode must be CLASSIC or CUSTOM');
-  if (!Number.isInteger(authoring.rivalCount) || authoring.rivalCount < 0 || authoring.rivalCount > MAX_RIVAL_COUNT)
-    throw new RangeError(`session rivalCount must be an integer within 0..${MAX_RIVAL_COUNT}`);
-  if (!Number.isInteger(authoring.lapCount) || authoring.lapCount < 1 || authoring.lapCount > 99)
-    throw new RangeError('Session lapCount must be an integer within 1..99');
+  if (
+    !Number.isInteger(authoring.rivalCount) ||
+    authoring.rivalCount < 0 ||
+    authoring.rivalCount > SESSION_RULE_LIMITS.rivals
+  )
+    throw new RangeError(`session rivalCount must be an integer within 0..${SESSION_RULE_LIMITS.rivals}`);
+  if (!Number.isInteger(authoring.lapCount) || authoring.lapCount < 1 || authoring.lapCount > SESSION_RULE_LIMITS.laps)
+    throw new RangeError(`Session lapCount must be an integer within 1..${SESSION_RULE_LIMITS.laps}`);
   if (typeof authoring.countdown !== 'boolean') throw new TypeError('Session countdown must be boolean');
   return Object.freeze({
     mode: authoring.mode,
