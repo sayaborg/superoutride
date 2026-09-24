@@ -29,8 +29,20 @@ search, read the Section, subtract the lateral origin and map X/Z and heading in
 The preparation layer supplies plan, authoritative height, rendered height, Raster, material,
 Band, sprites, visual labels and background readers. It indexes visual lists only when route
 occurrences change. Missing plan/Raster/display results are `null`, missing material is VOID,
-Band pixels are transparent, and height extends the nearest endpoint at grade zero. Route
-extension and retention distances and the switch of live consumers are scheduled in 6-9a2b.
+Band pixels are transparent, and height extends the nearest endpoint at grade zero. All actors,
+physics, race, rendering and reference driving read this one route and retain their state in its
+coordinates. The `VehicleWorld` adapter supplies borrowed empty observations to existing physics
+consumers; physical treatment of out-of-domain contacts is scheduled in 6-9d.
+
+`createSharedRouteDrivingGraph` extends the route through the frontmost vehicle plus 484 m:
+`max(camera dCam + 200 m far depth, driver 480 m lookahead, projection 50 m window) + 4 m
+fixed-step reach`. At an undecided fork it stops at the cut until the first arriving actor selects
+a Link, then appends that successor and resumes automatic extension. It retains the occurrence
+containing the rearmost vehicle minus 67 m: `max(camera dCam + 2.5 m near depth,
+recovery 8 m backtrack + projection 50 m window + 5 m rear contact) + 4 m fixed-step reach`.
+Pruning never changes existing stations or vehicle poses. A single-successor circuit repeats its
+Section for successive laps. Derived projection intervals, Raster segments, height knots, Band
+intervals, sprite lists and environment boundaries rebuild only when the occurrence list changes.
 
 `PlanCoordinateReader` is the planar query interface for both a compiled Section and its mapped
 occurrences. `CompiledSection.coordinates` and `VehicleWorld.coordinates` expose this same type:
@@ -45,8 +57,8 @@ occurrences. `CompiledSection.coordinates` and `VehicleWorld.coordinates` expose
   `[previousS-50 m,previousS+50 m]`. A perpendicular foot inside its interval and the closed
   lateral domain wins over a closer centerline foot outside the domain. No endpoint-clamped point
   counts as an inside-domain foot. If none qualifies, the nearest candidate is returned with
-  `inDomain:false`, without lateral clamping or a global search. Invalid world points or previous
-  chainages fail explicitly.
+  `inDomain:false`, without lateral clamping or a global search. Route readers return no content
+  when the interval has no candidates.
 
 `PlanCoordinateSample` and `PlanCoordinateProjection` are borrowed observations in caller-owned outputs.
 `PlanProjectionWorkspace` holds reusable numerical scratch, separate from vehicle state.
@@ -143,7 +155,7 @@ until its next vertex. Its stations include each curve tangency and each
 zero-length PVI. Each positive-length parabola is divided into `ceil(L/2 m)`
 equal intervals (maximum 2 m). Vertices sample the authoritative profile at
 exactly the same s. `mapToRenderSpace` in `src/view/render-space-mapping.ts` maps every drawn
-position from road-relative `(s,l,physicalY)`: its XZ comes from the view Raster Reader and its Y
+position from road-relative `(s,l,physicalY)`: its XZ comes from the route Raster Reader and its Y
 preserves physical clearance above local ground against rendering height. Ground rows, Band and
 Region positions use the same Raster ruler as vehicles and course sprites. Orientation remains the
 physical yaw; Raster segment headings do not replace vehicle or camera yaw.
@@ -168,19 +180,16 @@ The player reference is 2 m wide, 80 source texels and 80 screen pixels:
 `f/D_cam=40 px/m`, `D_cam=f/40`. `f=200 px`, `D_cam=5 m` and near/far depths are 2.5/200 m.
 FOV changes preserve this metric. Ground and sprites share this depth interval.
 
-Camera chainage is `s_vehicle-D_cam`; its drawn XZ is the mapped player's XZ minus `D_cam` along
-body yaw by default or movement yaw as the alternate. The camera rig retains its physical XZ and
-vertical follow; only the renderer uses the mapped camera. The observer's shell owns the camera rig;
-rivals have no camera. After a committed
-frame change the shell applies the reported yaw rotation to yaw and movementYaw before the next
-camera update. Camera vertical state is unchanged by the frame transform. Horizontal centering follows projection. Vertical follow is bounded and smoothed, body
+Camera chainage is `s_vehicle-D_cam`; its drawn XZ is the player's route-world XZ minus `D_cam` along
+body yaw by default or movement yaw as the alternate. The observer's shell owns the camera rig;
+rivals have no camera. Camera vertical state is unchanged across route seams. Horizontal centering follows projection. Vertical follow is bounded and smoothed, body
 pitch offsets downward base pitch, and camera roll is zero. Camera values are 12 degrees
 base pitch, player anchor row 190, 0.22 s vertical-follow time constant and 4 m correction bound.
 
 ## Ground and background
 
 BG is one infinite tiled plane. Yaw and pitch change its view; translation does not.
-An occurrence frame change transforms the background yaw origin with the camera frame.
+Its yaw origin uses the shared route frame across every occurrence.
 [Image assets](image-assets.md#infinite-tiled-background) owns its format and angular mapping.
 Transparent ground makes no ground write, preserving the underlying Painter image, including BG
 below the horizon. Physical support is independent of all ground colors.
@@ -220,7 +229,7 @@ It reads only the containing cell, without cell/level interpolation or mixing ne
 Every level covers the Section through its truncated last cell. The final closed endpoint uses
 that last cell.
 
-EXACT-BOX clips the centered depth interval to source-owned view spans, maps their lateral origins
+EXACT-BOX clips the centered depth interval to route occurrence spans, maps their lateral origins
 and decomposes the ranges into cached dyadic intervals, including truncated tail cells.
 Partial one-metre ends outside a complete cell integrate resolved affine edges directly.
 Sub-metre footprints use the same rule; zero-length footprints use the instantaneous slab.
@@ -291,21 +300,14 @@ inverse translation = -transpose(R)*t
 ```
 
 The transform preserves world up, gravity and metric length. Source and destination height agree
-at the cut line, as do their longitudinal grades. World-expressed state follows the transform; body-local values remain invariant.
-[Content and gameplay](content-and-gameplay.md#occurrences-and-frame-commit) owns atomic actor transitions.
-
-A bounded occurrence view maps retained/selected source spans into its active frame. A span pairs
-source/view chainage anchors, a Boundary-derived lateral origin and an upright transform. Source
-identity, occurrence and frame are distinct, including laps. Successors own seams. Unrepresentable
-station collisions fail explicitly. Narrow geometry/height/presentation readers share this mapping;
-previous chainage selects the local projection window on the active view ruler.
-
-`createCourseDrivingReaders` owns the physical world, coordinate/height readers and an immutable
-mapping of those same occurrence spans. Its motion guard uses the physical pose/step domain.
-`createCourseDrivingViewSource` overlays Band, environment, background and scenery readers on that
-mapping; it does not select another interval or perform physical projection. It accepts only views
-of its canonical physical product and weakly caches rendering readers by mapping identity. Physical
-views do not require presentation, and race does not create rendering readers for rivals.
+at the cut line, as do their longitudinal grades. `CourseRoute` composes the inverse Link transform
+into each successor's fixed world transform. Vehicle state remains in the entry-rooted route world
+space across the cut. `RouteOccurrence` carries its own Section identity, native interval, route
+start, lateral origin and transform, including each repeated circuit lap. The route readers convert
+route s to Section s, add the lateral origin for the Section query, then transform returned X/Z,
+heading and lateral positions into route coordinates. The successor owns the exact seam station.
+`createCourseRouteReaders` owns physical and Raster queries; `createCourseRouteVisualReaders` owns
+Band, sprite, visual and background queries. Every actor uses the same physical readers and route.
 
 ## Layer boundaries
 

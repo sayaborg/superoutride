@@ -3,7 +3,7 @@ import type { ProfilePolylineReader } from '../course/geometry/profile.js';
 import { knotIndexAt } from '../course/geometry/knot-sequence.js';
 import { horizonY, pseudoProject, type PseudoCamera } from './projection.js';
 import { rasterCoordinateToWorld } from '../course/geometry/raster-coordinate-reader.js';
-import { PIXEL_EDGE_TOLERANCE, SOURCE_ENDPOINT_TOLERANCE_METERS } from '../core/tolerances.js';
+import { PIXEL_EDGE_TOLERANCE } from '../core/tolerances.js';
 import type { VisualProfileReader } from '../course/visual-profile.js';
 
 const VISIBLE_INTERVAL_TOLERANCE_METERS = 1e-9;
@@ -47,20 +47,13 @@ export function computeForwardVisibleInterval(
   if (!(dMin > 0 && dMax > dMin) || !Number.isFinite(dMin) || !Number.isFinite(dMax)) {
     throw new RangeError('renderer requires finite 0 < dMin < dMax');
   }
-  if (
-    !Number.isFinite(sCamera) ||
-    sCamera < -SOURCE_ENDPOINT_TOLERANCE_METERS ||
-    sCamera > guide.length + SOURCE_ENDPOINT_TOLERANCE_METERS
-  ) {
-    throw new RangeError('camera render chainage is outside the open GuidePath');
-  }
-
-  const available = Math.max(0, guide.length - Math.max(0, sCamera));
-  const dEnd = Math.min(dMax, available);
-  if (dEnd <= dMin + VISIBLE_INTERVAL_TOLERANCE_METERS) return null;
+  if (!Number.isFinite(sCamera)) return null;
+  const dStart = Math.max(dMin, (guide.start ?? 0) - sCamera);
+  const dEnd = Math.min(dMax, guide.length - sCamera);
+  if (dEnd <= dStart + VISIBLE_INTERVAL_TOLERANCE_METERS) return null;
 
   const end = sCamera + dEnd;
-  const start = sCamera + dMin;
+  const start = sCamera + dStart;
   const segments = guide.raster.segments;
   for (let index = knotIndexAt(segments, 'sStart', start); index < segments.length; index += 1) {
     const segment = segments[index]!;
@@ -68,14 +61,14 @@ export function computeForwardVisibleInterval(
     const facing = Math.cos(segment.heading - cameraYaw);
     if (facing <= 0) {
       const facingEnd = Math.max(start, segment.sStart) - sCamera;
-      if (facingEnd <= dMin + VISIBLE_INTERVAL_TOLERANCE_METERS) return null;
-      out.dStart = dMin;
+      if (facingEnd <= dStart + VISIBLE_INTERVAL_TOLERANCE_METERS) return null;
+      out.dStart = dStart;
       out.dEnd = facingEnd;
       return out;
     }
   }
 
-  out.dStart = dMin;
+  out.dStart = dStart;
   out.dEnd = dEnd;
   return out;
 }

@@ -15,8 +15,9 @@ import {
   resyncOrderedRaceProgress,
 } from './ordered-race-progress.js';
 import type { ArcadeVehicleState } from '../vehicle/physics/arcade-vehicle-physics.js';
-import type { createCourseDrivingGraph } from './course-driving-session.js';
-type Session = ReturnType<ReturnType<typeof createCourseDrivingGraph>['createSession']>;
+import { routeSectionS, type RouteOccurrence } from '../course/course-route.js';
+import type { createSharedRouteDrivingGraph } from './shared-route-driving-session.js';
+type Session = ReturnType<ReturnType<typeof createSharedRouteDrivingGraph>['createSession']>;
 
 export type CourseRaceAdmission = (event: {
   readonly landmark: CompiledCourseLandmark | null;
@@ -35,7 +36,24 @@ export interface CourseRaceEvent {
 /** Gate geometry is prepared once from authored rules; frame transitions never award clock credit. */
 export function createCourseRaceProgress(course: CompiledCourse, lapCount: number) {
   if (!course.rules) throw new RangeError('Driving Session requires authored course rules');
-  const sample = (vehicle: ArcadeVehicleState) => ({ x: vehicle.x, z: vehicle.z, s: vehicle.course.s });
+  const nativeSample = { x: 0, z: 0, s: 0 };
+  const sample = (
+    point: { readonly x: number; readonly z: number } & (
+      { readonly s: number } | { readonly course: { readonly s: number } }
+    ),
+    occurrence: RouteOccurrence,
+  ) => {
+    const t = occurrence.sectionFromWorld;
+    const s = 's' in point ? point.s : point.course.s;
+    nativeSample.x = t.cosine * point.x + t.sine * point.z + t.translation.x;
+    nativeSample.z = -t.sine * point.x + t.cosine * point.z + t.translation.z;
+    nativeSample.s = Math.max(
+      occurrence.nativeStart,
+      Math.min(occurrence.section.raster.length, routeSectionS(occurrence, s)),
+    );
+    return nativeSample;
+  };
+  const position = (vehicle: ArcadeVehicleState) => ({ x: vehicle.x, z: vehicle.z, s: vehicle.course.s });
   const rules = new Map(
     course.rules.intervals.map(({ section, checkpoints, finish }) => {
       const authored = [...checkpoints, ...(finish ? [finish] : [])];
@@ -76,19 +94,19 @@ export function createCourseRaceProgress(course: CompiledCourse, lapCount: numbe
       lapLength: loop.from.anchor.s - 0,
       lap: rules.get(section)!.lap,
     };
-    return (_session: Session, vehicle: () => ArcadeVehicleState) => {
+    return (session: Session, vehicle: () => ArcadeVehicleState) => {
       const workspace = createOrderedRaceProgressWorkspace();
       const result = { ...workspace.update, events: [] as readonly CourseRaceEvent[] };
-      const state = createCircuitRaceProgressState(circuit, sample(vehicle()));
+      const state = createCircuitRaceProgressState(circuit, sample(vehicle(), session.occurrence));
       return {
         state,
-        update(current = sample(vehicle()), observedSection = section, accept?: CourseRaceAdmission) {
-          if (observedSection !== section) return null;
+        update(current = position(vehicle()), observedOccurrence = session.occurrence, accept?: CourseRaceAdmission) {
+          if (observedOccurrence.section !== section) return null;
           const lap = state.acceptedFinishCount + 1;
           const update = updateCircuitRaceProgress(
             state,
             circuit,
-            current,
+            sample(current, observedOccurrence),
             (crossing) =>
               !accept ||
               accept({
@@ -103,7 +121,7 @@ export function createCourseRaceProgress(course: CompiledCourse, lapCount: numbe
           result.events = events(update, section, lap, lap === lapCount);
           return result;
         },
-        resync: () => resyncCircuitRaceProgress(state, circuit, sample(vehicle())),
+        resync: () => resyncCircuitRaceProgress(state, circuit, sample(vehicle(), session.occurrence)),
       };
     };
   }
@@ -112,7 +130,7 @@ export function createCourseRaceProgress(course: CompiledCourse, lapCount: numbe
     const result = { ...workspace.update, events: [] as readonly CourseRaceEvent[] };
     let expected = course.entry,
       base = 0;
-    let local = createOrderedRaceProgressState(rules.get(expected)!.lap, sample(vehicle()));
+    let local = createOrderedRaceProgressState(rules.get(expected)!.lap, sample(vehicle(), session.occurrence));
     const state = {
       status: 'RUNNING' as 'RUNNING' | 'FINISHED',
       acceptedFinishCount: 0,
@@ -130,12 +148,13 @@ export function createCourseRaceProgress(course: CompiledCourse, lapCount: numbe
     publish();
     return {
       state,
-      update(current = sample(vehicle()), section = session.history.active.section, accept?: CourseRaceAdmission) {
+      update(current = position(vehicle()), observedOccurrence = session.occurrence, accept?: CourseRaceAdmission) {
+        const section = observedOccurrence.section;
         if (section !== expected || state.status === 'FINISHED') return null;
         const update = updateOrderedRaceProgress(
           local,
           rules.get(expected)!.lap,
-          current,
+          sample(current, observedOccurrence),
           (crossing) =>
             !accept ||
             accept({
@@ -155,7 +174,7 @@ export function createCourseRaceProgress(course: CompiledCourse, lapCount: numbe
       },
       resync() {
         if (state.status === 'FINISHED') return;
-        const active = session.history.active;
+        const active = session.occurrence;
         if (active.section !== expected && local.status === 'FINISHED' && active.incoming?.from.section === expected) {
           base += local.validatedProgressFloor - 0;
           expected = active.section;
@@ -164,7 +183,8 @@ export function createCourseRaceProgress(course: CompiledCourse, lapCount: numbe
           local = createOrderedRaceProgressState(rules.get(expected)!.lap, { ...p, s });
           local.sProgress = s;
         }
-        if (active.section === expected) resyncOrderedRaceProgress(local, rules.get(expected)!.lap, sample(vehicle()));
+        if (active.section === expected)
+          resyncOrderedRaceProgress(local, rules.get(expected)!.lap, sample(vehicle(), active));
       },
     };
   };

@@ -78,11 +78,12 @@ export function runCourseReference(
     maximumLateralUtilization = 0;
   const planned = new Map(route.map((link) => [link.from.section, link]));
   const lane = (s: number) => {
-    const section = scene.history.active.section,
+    const occurrence = scene.session.occurrence,
+      section = occurrence.section,
       link = planned.get(section);
     const fallback =
       link && section.fork ? (section.fork.regions.findIndex((r) => r.link === link) === 0 ? -1 : 1) : slot.l;
-    return race.forks.targetL(section, s, fallback);
+    return race.forks.targetL(occurrence, s, fallback);
   };
   const workspace = createEnvelopeDriverWorkspace();
   const driver = compileEnvelopeDriver(envelope, REFERENCE_DRIVER.utilization, envelope.maximumSpeed);
@@ -90,7 +91,7 @@ export function runCourseReference(
   // Work bound, not a replacement finish. A timed-out/recovered run publishes no reference product.
   const maxTicks = Math.ceil((3600 * lapCount) / SIM_DT);
   for (let tick = 0; tick < maxTicks; tick++) {
-    const section = scene.history.active.section,
+    const section = scene.session.occurrence.section,
       startSeconds = race.clock.elapsedSeconds;
     const input = sampleEnvelopeDrivingInput(scene.world.coordinates, vehicle, driver, lane, workspace);
     race.advance(input, SIM_DT);
@@ -115,7 +116,7 @@ export function runCourseReference(
     if (capture && (tick % 6 === 0 || race.clock.status === 'GOAL'))
       trace.push({
         timeSeconds: race.clock.elapsedSeconds,
-        sectionId: scene.history.active.section.id,
+        sectionId: scene.session.occurrence.section.id,
         lap: Math.min(lapCount, race.player.progress.acceptedFinishCount + 1),
         s: vehicle.course.s,
         l: vehicle.course.l,
@@ -130,11 +131,14 @@ export function runCourseReference(
       throw new RangeError('Reference selected an unintended route');
   }
   // Center following is verified against pavement; telemetry is descriptive, not force authority.
-  const finalSection = scene.history.active.section;
+  const finalOccurrence = scene.session.occurrence;
+  const finalSection = finalOccurrence.section;
+  const finalS = scene.session.nativeS(vehicle.course.s);
+  const finalL = vehicle.course.l + finalOccurrence.lateralOrigin;
   const lateralBounds = finalSection.regionPartition.regions
-    .filter((b) => b.role === 'pavement' && b.start.s <= vehicle.course.s && b.end.s >= vehicle.course.s)
-    .map((b) => [courseBoundaryAt(b.left, vehicle.course.s), courseBoundaryAt(b.right, vehicle.course.s)] as const);
-  if (!lateralBounds.some(([left, right]) => vehicle.course.l >= left && vehicle.course.l < right))
+    .filter((b) => b.role === 'pavement' && b.start.s <= finalS && b.end.s >= finalS)
+    .map((b) => [courseBoundaryAt(b.left, finalS), courseBoundaryAt(b.right, finalS)] as const);
+  if (!lateralBounds.some(([left, right]) => finalL >= left && finalL < right))
     throw new RangeError('Reference FINISH lies outside pavement');
   return {
     links: route.map((l) => l.id),

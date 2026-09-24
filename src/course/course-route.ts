@@ -9,10 +9,12 @@ import type { CompiledLink, CompiledSection } from './compiler/course-graph.js';
 
 /** One selected traversal, shared by all vehicles. Stations never change when old entries are pruned. */
 export interface RouteOccurrence {
+  readonly ordinal: number;
   readonly section: CompiledSection;
   readonly incoming: CompiledLink | null;
   readonly start: number;
   readonly nativeStart: number;
+  readonly nativeEnd: number;
   readonly end: number;
   readonly lateralOrigin: number;
   readonly worldFromSection: PlanarTransform;
@@ -44,10 +46,12 @@ export function createCourseRoute(entry: CompiledSection): CourseRoute {
   if (!entry?.coordinates || !entry.raster) throw new TypeError('Route requires a compiled entry Section');
   let occurrences: readonly RouteOccurrence[] = Object.freeze([
     Object.freeze({
+      ordinal: 0,
       section: entry,
       incoming: null,
       start: 0,
       nativeStart: 0,
+      nativeEnd: lastNativeEnd(entry),
       end: lastNativeEnd(entry),
       lateralOrigin: 0,
       worldFromSection: identity,
@@ -80,10 +84,12 @@ export function createCourseRoute(entry: CompiledSection): CourseRoute {
     occurrences = Object.freeze([
       ...occurrences,
       Object.freeze({
+        ordinal: previous.ordinal + 1,
         section: link.to.section,
         incoming: link,
         start,
         nativeStart,
+        nativeEnd: lastNativeEnd(link.to.section),
         end,
         lateralOrigin: previous.lateralOrigin + courseCutLateral(link.to) - courseCutLateral(link.from),
         worldFromSection,

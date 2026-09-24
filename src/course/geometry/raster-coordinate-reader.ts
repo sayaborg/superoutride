@@ -16,6 +16,8 @@ type RasterCoordinateSource = RasterPath | RasterCoordinateReader;
 
 /** Raster mapping shared by terrain, sprites and vehicles. */
 export interface RasterGeometry {
+  /** Retained route start; ordinary native geometry starts at zero. */
+  readonly start?: number;
   readonly length: number;
   readonly raster: RasterCoordinateSource;
 }

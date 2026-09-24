@@ -12,10 +12,9 @@ import { createCourseRace } from '../../src/race/course-race.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
 import { readVehicleEnvelope } from '../../src/race/vehicle-envelope.js';
 import { readFile } from 'node:fs/promises';
-import { createCameraRig, reframeCamera, updateCamera } from '../../src/view/camera.js';
+import { createCameraRig, updateCamera } from '../../src/view/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../../src/view/current-camera-profile.js';
 import { createRaceSprites } from '../../src/view/race-sprites.js';
-import { wrapAngle } from '../../src/core/math.js';
 
 async function setup() {
   const file = fileURLToPath(new URL('../../content/courses/ribbon-ring.course.json', import.meta.url));
@@ -27,36 +26,30 @@ async function setup() {
   return { course, assets, scene, profile, spawn };
 }
 
-test('committed forward/reverse seams publish transforms without owning or mutating a camera', async () => {
+test('shared route keeps vehicle and camera coordinates across forward and reverse seams', async () => {
   const { course, scene, spawn } = await setup();
   const link = course.entry.outgoing[0];
+  const seam = link.from.anchor.s;
+  scene.session.refresh(0, seam + 100);
   const rig = createCameraRig('MOVEMENT_FOLLOW');
   rig.yaw = 0.7;
   rig.movementYaw = -0.4;
   rig.verticalCorrection = 0.8;
   rig.initialized = true;
-  for (const [direction, port, sign] of [
-    ['forward', link.from, 1],
-    ['reverse', link.to, -1],
+  for (const [s, ordinal] of [
+    [seam + 1, 1],
+    [seam - 1, 0],
   ]) {
-    const previous = spawn(port.anchor.s - sign);
-    const vehicle = spawn(port.anchor.s + sign);
+    const vehicle = spawn(s);
     const actor = { vehicle, recovery: createRecoveryState(vehicle) };
     const before = { ...rig };
-    const transition = scene.observeStep(actor, previous, false);
-    assert.equal(transition.direction, direction);
+    const pose = { x: vehicle.x, z: vehicle.z, yaw: vehicle.yaw, s: vehicle.course.s, l: vehicle.course.l };
+    const transition = scene.observeStep(actor);
+    assert.equal(transition, 'changed');
+    assert.equal(scene.session.occurrence.ordinal, ordinal);
     assert.deepEqual(rig, before, 'race must not mutate an observer camera');
-    assert.ok(Object.isFrozen(transition.destinationFromSource));
-    const yaw = Math.atan2(transition.destinationFromSource.sine, transition.destinationFromSource.cosine);
-    reframeCamera(rig, transition.destinationFromSource);
-    assert.equal(rig.yaw, wrapAngle(before.yaw + yaw));
-    assert.equal(rig.movementYaw, wrapAngle(before.movementYaw + yaw));
-    assert.equal(rig.verticalCorrection, before.verticalCorrection);
-    assert.equal(rig.initialized, before.initialized);
-    assert.equal(scene.observeStep(actor, vehicle, false), null, 'no repeated transform without a new crossing');
-    const after = { ...rig };
-    reframeCamera(rig, null);
-    assert.deepEqual(rig, after);
+    assert.deepEqual({ x: vehicle.x, z: vehicle.z, yaw: vehicle.yaw, s: vehicle.course.s, l: vehicle.course.l }, pose);
+    assert.equal(scene.observeStep(actor), null, 'no repeated transition at one station');
   }
 });
 

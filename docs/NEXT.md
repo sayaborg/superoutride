@@ -8,7 +8,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **6-9a2b — Switch driving and rendering to shared route coordinates**.
+Next PR: **6-9b — Cross sections and progress**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -18,7 +18,6 @@ PRs hold rationale and verification evidence.
 
 Give all vehicles one route coordinate system, read its geometry and content through shared readers, then remove per-vehicle frames and seam procedures.
 
-- **6-9a2b — Shared route switch:** size-bounded route extension and retention based on the camera, driver and projection extents; switch all actors, physics, race, rendering and reference-run tools to one route; remove frame changes from the live path, and verify the three courses and performance on Pages. The route, physical readers and visual readers were introduced in 6-9a1 and 6-9a2a.
 - **6-9b — Cross sections and progress:** express checkpoints, finish and fork lock as constant-route-s lines; detect crossings from previous/current s inside the coordinate domain; derive progress, laps and rank from route s and remove world-coordinate gates.
 - **6-9c — Remove per-vehicle frames:** remove occurrence history/traversal, geometry views (`createView`, `CourseGeometryView` and adapters), driving-session and `vehicle-reframe` frame changes, motion guards and seam gates, consumer demand ranges and both remaining domain wrappers, `referenceSOffset`/`referenceFromFrame` and rival observation conversions, and duplicate entry recovery. Remove the old occurrence-window Readers and their `sameLayout` cache, `addressInFrame` conversion, seam `prepareGates` and `createMotionGuard`, and any per-actor selected lists left after the shared route switch.
 - **6-9d — Outside the coordinate domain:** treat out-of-domain contacts as unsupported without geometry reads, make the physics `offsetMetric <= 0` RangeError unreachable, and use `inDomain` in recovery conditions.

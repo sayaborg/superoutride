@@ -12,6 +12,9 @@ import {
 } from './geometry/plan-coordinate.js';
 import type { CompiledSection } from './compiler/course-graph.js';
 import { rasterPathToWorld } from './geometry/raster-path.js';
+import type { VehicleWorld } from './vehicle-world.js';
+import type { ProfilePolylineReader } from './geometry/profile.js';
+import type { RasterGeometry } from './geometry/raster-coordinate-reader.js';
 import { routeS, routeSectionS, type CourseRoute, type RouteOccurrence } from './course-route.js';
 
 /** No-content results for route queries. Height holds the endpoint value, and the surface is VOID. */
@@ -42,7 +45,7 @@ export function createCourseRouteReaders(route: CourseRoute) {
     indexed = route.occurrences;
     candidates = indexed.flatMap((occurrence) =>
       occurrence.section.coordinates
-        .projectionCandidates(occurrence.nativeStart, routeSectionS(occurrence, occurrence.end))
+        .projectionCandidates(occurrence.nativeStart, occurrence.nativeEnd)
         .map((candidate) => ({
           occurrence,
           start: routeS(occurrence, candidate.start),
@@ -53,7 +56,7 @@ export function createCourseRouteReaders(route: CourseRoute) {
     rasterSegments = indexed.flatMap((occurrence) =>
       occurrence.section.raster.segments.flatMap((segment) => {
         const start = Math.max(occurrence.nativeStart, segment.sStart);
-        const end = Math.min(routeSectionS(occurrence, occurrence.end), segment.sStart + segment.length);
+        const end = Math.min(occurrence.nativeEnd, segment.sStart + segment.length);
         return end > start
           ? [{ sStart: routeS(occurrence, start), length: end - start, heading: heading(occurrence, segment.heading) }]
           : [];
@@ -61,12 +64,12 @@ export function createCourseRouteReaders(route: CourseRoute) {
     );
     const profileKnots = indexed.flatMap((occurrence) =>
       occurrence.section.height.knots
-        .filter((knot) => knot.s >= occurrence.nativeStart && knot.s <= routeSectionS(occurrence, occurrence.end))
+        .filter((knot) => knot.s >= occurrence.nativeStart && knot.s <= occurrence.nativeEnd)
         .map((knot) => Object.freeze({ ...knot, s: routeS(occurrence, knot.s) })),
     );
     heightKnots = profileKnots.filter((knot, i) => i + 1 === profileKnots.length || knot.s !== profileKnots[i + 1]!.s);
     const displayKnots = indexed.flatMap((occurrence) => {
-      const end = routeSectionS(occurrence, occurrence.end);
+      const end = occurrence.nativeEnd;
       return [
         occurrence.nativeStart,
         ...occurrence.section.renderHeight.knots
@@ -145,8 +148,8 @@ export function createCourseRouteReaders(route: CourseRoute) {
         workspace.local.z = -t.sine * world.x + t.cosine * world.z + t.translation.z;
         candidate.native.project(
           workspace.local,
-          routeSectionS(occurrence, a),
-          routeSectionS(occurrence, b),
+          Math.max(candidate.native.start, routeSectionS(occurrence, a)),
+          Math.min(candidate.native.end, routeSectionS(occurrence, b)),
           workspace.candidate,
         );
         const projected = workspace.candidate;
@@ -267,5 +270,112 @@ export function createCourseRouteReaders(route: CourseRoute) {
       return reader.sampleInChart(routeSectionS(occurrence, s), l, occurrence.lateralOrigin);
     },
   });
-  return Object.freeze({ route, coordinates, height, renderHeight, raster, material, sync });
+  // The live vehicle/render contracts require filled outputs. Empty route queries use borrowed
+  // no-content observations; ordinary driving remains in the preloaded interval.
+  const worldCoordinates: VehicleWorld['coordinates'] = {
+    domain: {
+      get start() {
+        return route.start;
+      },
+      get end() {
+        return route.end;
+      },
+      lateralAt(s, out) {
+        if (!coordinates.lateralAt(s, out)) {
+          out.left = 0;
+          out.right = 0;
+        }
+        return out;
+      },
+    },
+    toWorld(s, l, out) {
+      if (!coordinates.toWorld(s, l, out)) {
+        out.x = 0;
+        out.z = 0;
+        out.heading = 0;
+        out.s = s;
+        out.l = l;
+      }
+      return out;
+    },
+    metricsAt(s, l, out) {
+      if (!coordinates.metricsAt(s, l, out)) {
+        out.curvature = 0;
+        out.offsetMetric = 1;
+      }
+      return out;
+    },
+    locateLocal(point, previousS, out, workspace) {
+      if (!coordinates.locateLocal(point, previousS, out, workspace)) {
+        out.s = previousS;
+        out.l = 0;
+        out.inDomain = false;
+      }
+      return out;
+    },
+  };
+  Object.freeze(worldCoordinates.domain);
+  Object.freeze(worldCoordinates);
+  const world: VehicleWorld = Object.freeze({ coordinates: worldCoordinates, height, surfaces: material });
+  const displayHeight: ProfilePolylineReader = {
+    get courseLength() {
+      return route.end;
+    },
+    get knots() {
+      return renderHeight.knots;
+    },
+    sample(s, out = { y: 0, grade: 0, segmentIndex: 0, sStart: 0, sEnd: 0 }) {
+      if (!renderHeight.sample(s, out)) {
+        out.y = height.sample(s);
+        out.grade = 0;
+        out.sStart = s;
+        out.sEnd = s;
+        out.segmentIndex = -1;
+      }
+      return out;
+    },
+    distanceToNextKnot: renderHeight.distanceToNextKnot,
+  };
+  Object.freeze(displayHeight);
+  const geometry: RasterGeometry = {
+    get length() {
+      return route.end;
+    },
+    get start() {
+      return route.start;
+    },
+    raster: {
+      get length() {
+        return route.end;
+      },
+      get segments() {
+        return raster.segments;
+      },
+      toWorld(s, l, out) {
+        if (!raster.toWorld(s, l, out)) {
+          out.x = 0;
+          out.z = 0;
+          out.s = s;
+          out.l = l;
+          out.heading = 0;
+          out.segmentIndex = -1;
+        }
+        return out;
+      },
+    },
+  };
+  Object.freeze(geometry.raster);
+  Object.freeze(geometry);
+  return Object.freeze({
+    route,
+    coordinates,
+    height,
+    renderHeight,
+    raster,
+    material,
+    world,
+    displayHeight,
+    geometry,
+    sync,
+  });
 }
