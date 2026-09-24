@@ -1,6 +1,7 @@
 import type { ResolvedCourseSession } from './course-session.js';
 import { createCheckpointClock } from './checkpoint-clock.js';
-import { createCourseRaceProgress, type CourseRaceEvent, type CourseRaceAdmission } from './course-race-progress.js';
+import { createRouteProgress, type RouteRaceEvent, type RouteRaceAdmission } from './route-progress.js';
+import { createRouteCrossSections } from './route-cross-sections.js';
 import { createCourseForkField } from './course-fork-field.js';
 import { advanceRaceSession, createRaceSessionState, rankRaceProgress, formatRaceTime } from './race-session.js';
 import {
@@ -53,15 +54,15 @@ export function createCourseRace(options: {
     ? compileEnvelopeDriver(options.rivalEnvelope, options.session.rivalUtilization, options.rivalEnvelope.maximumSpeed)
     : null;
   const clock = createCheckpointClock(budgets?.initialMs ?? null);
-  const progress = createCourseRaceProgress(course, configuration.lapCount);
-  const forks = createCourseForkField(course.sections);
+  const lines = createRouteCrossSections(options.playerSession.route, course, configuration.lapCount);
+  const forks = createCourseForkField(options.playerSession.route, lines);
   const competitor = (id: string, actor: Actor, session: Session, targetL: number) => ({
     id,
     actor,
     session,
     targetL,
     recoverySettings: { ...RECOVERY_SETTINGS, targetL },
-    observer: progress(session, () => actor.vehicle),
+    observer: createRouteProgress(lines, actor.vehicle.course),
     get progress() {
       return this.observer.state;
     },
@@ -84,14 +85,14 @@ export function createCourseRace(options: {
     });
     return competitor(actorId, { vehicle, recovery: createRecoveryState(vehicle) }, session, targetL);
   });
-  const resync = (c: typeof player) => c.observer.resync();
-  const lane = (c: typeof player, s: number) => forks.targetL(c.session.occurrence, s, c.targetL);
+  const resync = (c: typeof player) => c.observer.resync(c.actor.vehicle.course);
+  const lane = (c: typeof player, s: number) => forks.targetL(s, c.targetL);
   const competitors = [player, ...rivals];
   const motions = competitors.map((c) => ({
     c,
     id: c.id,
     session: c.session,
-    previous: { x: 0, z: 0, s: 0 },
+    previous: { s: 0, l: 0 },
     current: c.actor.vehicle,
     recovered: false,
     driverWorkspace: createEnvelopeDriverWorkspace(),
@@ -107,15 +108,14 @@ export function createCourseRace(options: {
   const move = (motion: (typeof motions)[number], input: DrivingInput, dt: number) => {
     const { c, previous } = motion;
     const { actor, session } = c;
-    previous.x = actor.vehicle.x;
-    previous.z = actor.vehicle.z;
+    previous.l = actor.vehicle.course.l;
     previous.s = actor.vehicle.course.s;
     motion.current = actor.vehicle;
     c.recoverySettings.targetL = lane(c, actor.vehicle.course.s);
     motion.step.input = input;
     motion.step.dt = dt;
     let recovered = advanceVehicleWithRecovery(session.view.world, actor.vehicle, motion.step) !== null;
-    if (session.occurrence.ordinal === 0 && actor.vehicle.course.s < options.entryRecovery.startS) {
+    if (actor.vehicle.course.s < options.entryRecovery.startS) {
       recoverVehicleToPlanCoordinate(session.view.world, actor.vehicle, {
         state: actor.recovery,
         reason: 'wrong-course',
@@ -126,7 +126,7 @@ export function createCourseRace(options: {
     motion.recovered = recovered;
   };
   const legalRecovery = (c: typeof player) => {
-    const target = forks.legalTarget(c.session, c.actor.vehicle.course.s, c.actor.vehicle.course.l);
+    const target = forks.legalTarget(c.actor.vehicle.course.s, c.actor.vehicle.course.l);
     if (!target) return false;
     recoverVehicleToPlanCoordinate(c.session.view.world, c.actor.vehicle, {
       state: c.actor.recovery,
@@ -157,17 +157,16 @@ export function createCourseRace(options: {
       visible.push(observation);
     }
   };
-  const current = { x: 0, z: 0, s: 0 };
   const observed = { rivals: visible };
   // Borrowed fixed-step observation; the camera owner consumes it before the next advance.
   const stepObservation = { recovered: false };
-  const noEvents: readonly CourseRaceEvent[] = Object.freeze([]);
+  const noEvents: readonly RouteRaceEvent[] = Object.freeze([]);
   let events = noEvents;
-  const clockEvents: { gate: CourseRaceEvent['landmark']; lap: number; u: number; finish: boolean; awardMs: number }[] =
+  const clockEvents: { gate: RouteRaceEvent['landmark']; lap: number; u: number; finish: boolean; awardMs: number }[] =
     [];
   let pendingExpiry = Infinity,
     stepStart = 0;
-  const admitPlayer: CourseRaceAdmission = (event) => {
+  const admitPlayer: RouteRaceAdmission = (event) => {
     if (stepStart + event.u * stepDuration > pendingExpiry) return false;
     if (event.landmark && !event.finish && budgets) pendingExpiry += budgets.after(event.landmark, event.lap) / 1000;
     return true;
@@ -223,17 +222,15 @@ export function createCourseRace(options: {
       for (const motion of motions) {
         const { c } = motion;
         motion.recovered = legalRecovery(c) || motion.recovered;
-        const occurrence = c.session.occurrence;
-        current.x = c.actor.vehicle.x;
-        current.z = c.actor.vehicle.z;
-        current.s = c.actor.vehicle.course.s;
-        const transition = c.session.observeStep(c.actor);
-        motion.recovered ||= transition === 'recovered';
-        const update = motion.recovered
-          ? (resync(c), null)
-          : c.observer.update(current, occurrence, c === player ? admitPlayer : undefined);
+        motion.recovered ||= c.session.observeStep(c.actor) === 'recovered';
+        const update = c.observer.update(
+          motion.previous,
+          c.actor.vehicle.course,
+          motion.recovered,
+          c === player ? admitPlayer : undefined,
+        );
         if (c.finishElapsedSeconds === null) {
-          advanceRaceSession(c.timing, c.progress, update, dt);
+          advanceRaceSession(c.timing, update, dt);
           if (update?.justFinished) c.finishElapsedSeconds = c.timing.elapsedSeconds;
         }
         if (c === player) {
@@ -249,7 +246,6 @@ export function createCourseRace(options: {
             });
           clock.advance(dt, clockEvents);
         }
-        if (transition) resync(c);
       }
       stepObservation.recovered = motions[0]!.recovered;
       return stepObservation;
@@ -267,8 +263,7 @@ export function createCourseRace(options: {
       const standings = rankRaceProgress(
         competitors.map((c) => ({
           competitorId: c.id,
-          sProgress: c.progress.sProgress,
-          validatedProgressFloor: c.progress.validatedProgressFloor,
+          s: c.progress.s,
           finishElapsedSeconds: c.finishElapsedSeconds,
         })),
       );
