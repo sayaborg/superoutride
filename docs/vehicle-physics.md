@@ -164,9 +164,15 @@ wheelTorque = engineTorque * gearRatio * finalDriveRatio * drivelineEfficiency
 
 The effective opening is the engine's only command. The driver's throttle actuator is the requested
 opening, and one clamp sets `effectiveOpening = min(upper, max(lower, requestedOpening))` with the
-upper bound winning a conflict. The lower bound is the idle-holding opening; the upper bound is 0
-during fuel cut and 1 otherwise. The powertrain state publishes the effective opening as an
-observation. Full opening therefore delivers exactly the curve torque; smaller openings, released
+upper bound winning a conflict. The lower bound is the idle-holding opening. The upper bound is 0
+during fuel cut; otherwise it is the opening whose wheel torque equals the drive-torque upper bound
+from [torque protection](#torque-protection), capped at 1. Wheel torque is affine in the opening at
+the step's starting engine speed, so that inverse is unique: locked, `wheelTorque / (gearRatio *
+finalDriveRatio * drivelineEfficiency)` plus friction over `curveTorque + frictionTorque`; slipping,
+the clutch's launch gap `(peakTorqueRpm - rpm) / rpmPerTorque` is added to the engine torque, and a
+bound at or below zero allows exactly the opening that lifts the engine to launch RPM. Priority is
+therefore fuel cut, then the drive-torque bound, then idle holding. The powertrain state publishes
+the effective opening as an observation. Full opening therefore delivers exactly the curve torque; smaller openings, released
 throttle and fuel cut give less or negative engine torque. Below idle, curve torque keeps its idle
 value.
 
@@ -213,10 +219,22 @@ validation. [Calibration](calibration.md#vehicle-values) describes value meaning
 
 ## Torque protection
 
-TCS and ABS reduce requested torques independently at each station by inverting the wheel residual
-at longitudinal slip boundary `grip*(2-KN)*muX/kX`. Low-speed ABS yields to the signed static brake solve.
-TCS limits only positive drive torque. Engine braking is part of the requested brake magnitude, so ABS
-and brake-side support protection limit it exactly as they limit pedal braking.
+Each mechanics substep runs in one order: the powertrain prepares its step (shift, clutch and
+fuel-cut latches, and the opening-to-wheel-torque map at the current engine speed); torque
+protection bounds total drive-wheel torque from the tires; the powertrain completes the step with
+the effective opening, engine torque and clutch; the wheel pair is solved. Protection never trims
+drive torque after the powertrain: the bound only limits the effective opening, so the wheels receive
+exactly `clutchTorque * gearRatio * finalDriveRatio * drivelineEfficiency`.
+
+TCS and ABS invert the wheel residual at longitudinal slip boundary `grip*(2-KN)*muX/kX`. TCS gives
+each forward-moving driven station a drive-torque bound: the net torque that reaches maximum rolling
+speed in the step, plus that station's ABS-limited brake at zero drive. The total bound is each
+station's bound divided by its fixed drive fraction, taking the tighter station; one opening drives
+both axles, so the tighter axle lowers drive to both. Stations without force are unbounded. ABS
+limits each brake against the drive torque actually delivered; a larger drive only raises that
+limit, so the TCS bound stays valid. Low-speed ABS yields to the signed static brake solve. Engine
+braking is part of the requested brake magnitude, so ABS and brake-side support protection limit it
+exactly as they limit pedal braking.
 
 Two-wheel support protection reserves 8% of static suspension compression against pedal-induced lift:
 
@@ -225,10 +243,14 @@ qAcceleration+2*w*qVelocity+w^2*(q-reserve*qStatic) >= 0
 w = sqrt(g/qStatic)
 ```
 
-The acceleration uses the integration wrench and current angular motion. Drive checks front support;
-brake checks rear support, each with an opposite loaded station. A feasible requested torque is delivered.
-If the request fails but zero is feasible, 12 bounded bisections select a feasible sampled lower endpoint.
-If zero also fails, pedal torque is zero and `supportFeasible=false`; ordinary contact, gravity and inertia continue.
+The acceleration uses the integration wrench and current angular motion. The drive side checks front
+support and becomes part of the drive-torque bound: with the brake request fixed, it tests the drive
+torque the requested opening would deliver (capped by TCS), and if that fails but zero drive holds,
+12 bounded bisections of total drive torque select a feasible sampled lower endpoint; if zero drive
+also fails, the bound is zero. The brake side checks rear support in the final wheel solve with the
+delivered drive torque: a failing brake request bisects one brake scale 12 times, and if zero brake
+also fails, brake torque is zero and `supportFeasible=false`. Each side needs an opposite loaded
+station; ordinary contact, gravity and inertia continue.
 The constraint applies to the current local support state.
 
 ## Actuators and steering

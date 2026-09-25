@@ -7,9 +7,13 @@ import { publishVehicleTireObservation } from './vehicle-tire-observation.js';
 import { clamp, wrapAngle } from '../../core/math.js';
 import type { DrivingInput } from '../driving-input.js';
 import {
+  boundedOpening,
+  completeAutomaticPowertrain,
   couplePowertrain,
   createAutomaticPowertrainState,
-  updateAutomaticPowertrain,
+  createPowertrainStep,
+  powertrainWheelTorque,
+  prepareAutomaticPowertrain,
   type PowertrainCoupling,
 } from './automatic-powertrain.js';
 import {
@@ -47,6 +51,7 @@ import { WORLD_UP, add3, cross3, dot3, normalize3, scale3 } from '../../core/vec
 import { drivenWheelOmega, type CompiledVehicle } from './vehicle-definitions.js';
 import {
   resolveTorqueProtectionPolicy,
+  solveDriveTorqueUpperBound,
   solveProtectedWheelPair,
   createProtectedWheelPairWorkspace,
   type TorqueProtectionPolicy,
@@ -251,26 +256,16 @@ export function updateVehicle(
     );
 
     const gearBefore = vehicle.powertrain.gear;
-    const powertrainTorque = updateAutomaticPowertrain(
+    const powertrainStep = prepareAutomaticPowertrain(
       vehicle.powertrain,
       compiledVehicle.powertrain,
       vehicle.powertrainCoupling,
       drivenWheelOmega(compiledVehicle, vehicle.frontWheelOmega, vehicle.rearWheelOmega),
-      vehicle.actuator.throttle,
       shiftAvailable,
       substep,
+      workspace.powertrain,
     );
     if (vehicle.powertrain.gear !== gearBefore) shiftAvailable = false;
-    // Engine braking opposes forward wheel rotation, so it joins the brake magnitude and its ABS.
-    const driveTorque = Math.max(0, powertrainTorque);
-    const engineBrakeTorque = Math.max(0, -powertrainTorque);
-    const frontDriveTorque = driveTorque * compiledVehicle.frontDriveTorqueFraction;
-    const rearDriveTorque = driveTorque - frontDriveTorque;
-    const frontEngineBrakeTorque = engineBrakeTorque * compiledVehicle.frontDriveTorqueFraction;
-    const frontBrakeTorque =
-      vehicle.actuator.brake * compiledVehicle.frontStation.maxBrakeTorque + frontEngineBrakeTorque;
-    const rearBrakeTorque =
-      vehicle.actuator.brake * compiledVehicle.rearStation.maxBrakeTorque + engineBrakeTorque - frontEngineBrakeTorque;
     const frontRequest = workspace.frontRequest;
     frontRequest.omegaPrevious = vehicle.frontWheelOmega;
     frontRequest.inertia = compiledVehicle.frontStation.wheelInertia;
@@ -281,8 +276,8 @@ export function updateVehicle(
     frontRequest.gripFactor = front.surface.material.gripFactor;
     frontRequest.characteristics = vehicle.tireFrictionCalibration.front;
     frontRequest.rollingResistance = front.tireFrameValid ? front.surface.material.rollingResistance : 0;
-    frontRequest.driveTorque = frontDriveTorque;
-    frontRequest.brakeTorque = frontBrakeTorque;
+    frontRequest.driveTorque = 0;
+    frontRequest.brakeTorque = vehicle.actuator.brake * compiledVehicle.frontStation.maxBrakeTorque;
     frontRequest.dt = substep;
     const rearRequest = workspace.rearRequest;
     rearRequest.omegaPrevious = vehicle.rearWheelOmega;
@@ -294,9 +289,38 @@ export function updateVehicle(
     rearRequest.gripFactor = rear.surface.material.gripFactor;
     rearRequest.characteristics = vehicle.tireFrictionCalibration.rear;
     rearRequest.rollingResistance = rear.tireFrameValid ? rear.surface.material.rollingResistance : 0;
-    rearRequest.driveTorque = rearDriveTorque;
-    rearRequest.brakeTorque = rearBrakeTorque;
+    rearRequest.driveTorque = 0;
+    rearRequest.brakeTorque = vehicle.actuator.brake * compiledVehicle.rearStation.maxBrakeTorque;
     rearRequest.dt = substep;
+
+    // The tires bound drive torque first; that bound only limits the effective opening.
+    const requestedOpening = vehicle.actuator.throttle;
+    const driveTorqueUpperBound = solveDriveTorqueUpperBound(
+      compiledVehicle,
+      body,
+      front,
+      rear,
+      frontRequest,
+      rearRequest,
+      vehicle.torqueProtection,
+      Math.max(0, powertrainWheelTorque(powertrainStep, boundedOpening(powertrainStep, requestedOpening))),
+      workspace.pair,
+    );
+    const driveTorque = completeAutomaticPowertrain(
+      vehicle.powertrain,
+      powertrainStep,
+      requestedOpening,
+      driveTorqueUpperBound,
+    );
+    // Positive drive reaches the wheels untrimmed. Until MSR, engine braking joins the brake
+    // magnitude and its ABS.
+    const frontFraction = compiledVehicle.frontDriveTorqueFraction;
+    const positiveDrive = Math.max(0, driveTorque);
+    const engineBrakeTorque = Math.max(0, -driveTorque);
+    frontRequest.driveTorque = positiveDrive * frontFraction;
+    rearRequest.driveTorque = positiveDrive - frontRequest.driveTorque;
+    frontRequest.brakeTorque += engineBrakeTorque * frontFraction;
+    rearRequest.brakeTorque += engineBrakeTorque * (1 - frontFraction);
     const resolved = solveProtectedWheelPair(
       compiledVehicle,
       body,
@@ -340,16 +364,10 @@ export function updateVehicle(
         front.forceTransmitting && front.tireFrameValid
           ? regularizedTireSlipAngle(front.longitudinalVelocity, front.lateralVelocity, TIRE_LOW_SPEED_REGULARIZATION)
           : 0;
-      vehicle.control.deliveredDriveTorque =
-        driveTorque -
-        (frontDriveTorque - resolved.frontInput.driveTorque) -
-        (rearDriveTorque - resolved.rearInput.driveTorque);
-      vehicle.control.requestedFrontDriveTorque = frontDriveTorque;
-      vehicle.control.requestedRearDriveTorque = rearDriveTorque;
       vehicle.control.frontDriveTorque = resolved.frontInput.driveTorque;
       vehicle.control.rearDriveTorque = resolved.rearInput.driveTorque;
-      vehicle.control.requestedFrontBrakeTorque = frontBrakeTorque;
-      vehicle.control.requestedRearBrakeTorque = rearBrakeTorque;
+      vehicle.control.requestedFrontBrakeTorque = frontRequest.brakeTorque;
+      vehicle.control.requestedRearBrakeTorque = rearRequest.brakeTorque;
       vehicle.control.frontBrakeTorque = resolved.frontInput.brakeTorque;
       vehicle.control.rearBrakeTorque = resolved.rearInput.brakeTorque;
       vehicle.control.supportTorqueScale = resolved.supportScale;
@@ -452,6 +470,7 @@ function createStepWorkspace(vehicle: VehicleState) {
     frontRequest,
     rearRequest,
     pair: createProtectedWheelPairWorkspace(frontRequest, rearRequest),
+    powertrain: createPowertrainStep(),
   };
 }
 

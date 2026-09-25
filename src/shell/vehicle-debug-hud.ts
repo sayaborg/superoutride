@@ -61,12 +61,12 @@ function createVehicleDebugHudModel(
   assertExclusivePedalInput(input);
   const c = vehicle.control,
     p = vehicle.compiledVehicle;
-  const driveRequest = c.requestedFrontDriveTorque + c.requestedRearDriveTorque;
   const brakeCapacity = p.frontStation.maxBrakeTorque + p.rearStation.maxBrakeTorque;
-  // Drequest = actuator * available full-throttle torque at this same substep/RPM/gear.
-  // Multiplying the torque share by actuator avoids dividing by a tiny/zero actuator.
-  // Zero engine request (including full rev cut) has no torque to show or protect.
+  // Drive meters compare the requested opening with the effective opening, split by drive share;
+  // protection limits the opening, never the delivered drive torque.
   const throttle = clampUnit(c.throttleActuator);
+  const opening = clampUnit(vehicle.powertrain.effectiveOpening);
+  const frontShare = p.frontDriveTorqueFraction;
   return {
     courseSelector: `COURSE ${formatBrowserCourseSelector(activeCourseQuery)}`,
     vehicleSelector: `VEHICLE ${formatVehicleSelector(entry)}`,
@@ -90,20 +90,8 @@ function createVehicleDebugHudModel(
     automaticSteering: clampSigned(c.automaticSteerAngle / vehicle.steeringCalibration.maxRoadWheelSteer),
     requestedSteerOffset: clampSigned(c.requestedSteerOffset / vehicle.steeringCalibration.steeringOffsetMax),
     deliveredSteerOffset: clampSigned(c.deliveredSteerOffset / vehicle.steeringCalibration.steeringOffsetMax),
-    frontDrive: torqueMeter(
-      c.requestedFrontDriveTorque,
-      c.frontDriveTorque,
-      driveRequest,
-      throttle,
-      p.frontDriveTorqueFraction,
-    ),
-    rearDrive: torqueMeter(
-      c.requestedRearDriveTorque,
-      c.rearDriveTorque,
-      driveRequest,
-      throttle,
-      1 - p.frontDriveTorqueFraction,
-    ),
+    frontDrive: torqueMeter(throttle * frontShare, opening * frontShare, 1, 1, frontShare),
+    rearDrive: torqueMeter(throttle * (1 - frontShare), opening * (1 - frontShare), 1, 1, 1 - frontShare),
     frontBrake: torqueMeter(
       c.requestedFrontBrakeTorque,
       c.frontBrakeTorque,

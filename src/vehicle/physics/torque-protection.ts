@@ -33,52 +33,57 @@ export function resolveTorqueProtectionPolicy(policy: TorqueProtectionPolicy): R
   return Object.freeze({ wheelSlip: policy.wheelSlip, supportReserve: policy.supportReserve });
 }
 
-/** Independent station torque projection. No force cap, Omega clamp, feedback gain or redistribution.
- * P is an explicitly selected control boundary (not a claim of a universal optimal slip).
- * Below tire v0 ABS leaves the ordinary signed brake atom responsible for stopping/holding.
- */
-function limitWheelTorques(
+/** Pure-axis slip at the control boundary. P is an explicitly selected control boundary, not a
+ * claim of a universal optimal slip. */
+function boundarySlip(input: WheelSolveInput): number {
+  const tire = input.characteristics;
+  return (input.gripFactor * (2 - tire.rhoKnee) * tire.muX) / tire.kX;
+}
+
+/** ABS: the largest brake magnitude keeping the station at or above its minimum rolling speed
+ * with the given drive torque. Below tire v0 the ordinary signed brake atom stops and holds. */
+function absBrakeTorque(
   input: WheelSolveInput,
-  out: Writable<WheelSolveInput>,
+  driveTorque: number,
   scratch: ReturnType<typeof createTireForceScratch>,
   residual: Float64Array,
-): WheelSolveInput {
+): number {
+  const brake = input.brakeTorque;
+  const vx = input.longitudinalVelocity;
+  if (!(input.normalLoad > 0) || !(input.gripFactor > 0) || !(Math.abs(vx) > TIRE_LOW_SPEED_REGULARIZATION))
+    return brake;
+  const referenceSpeed = Math.hypot(vx, TIRE_LOW_SPEED_REGULARIZATION);
+  const minimumRolling = (Math.abs(vx) - boundarySlip(input) * referenceSpeed) / input.rollingRadius;
+  if (!(minimumRolling > 0)) return brake;
+  const direction = Math.sign(vx);
+  const boundary = wheelRequiredNetTorque(input, direction * minimumRolling, scratch, residual);
+  return Math.max(0, Math.min(brake, direction * (driveTorque - boundary)));
+}
+
+/** TCS: the largest drive torque keeping a forward-moving station at or below its maximum rolling
+ * speed, against the station's ABS-limited brake at zero drive. Unbounded without force. */
+function tcsDriveTorqueBound(
+  input: WheelSolveInput,
+  scratch: ReturnType<typeof createTireForceScratch>,
+  residual: Float64Array,
+): number {
+  const vx = input.longitudinalVelocity;
+  if (!(input.normalLoad > 0) || !(input.gripFactor > 0) || !(vx >= 0)) return Infinity;
+  const referenceSpeed = Math.hypot(vx, TIRE_LOW_SPEED_REGULARIZATION);
+  const upper = (vx + boundarySlip(input) * referenceSpeed) / input.rollingRadius;
+  const torqueUpper = wheelRequiredNetTorque(input, upper, scratch, residual);
+  return Math.max(0, torqueUpper + absBrakeTorque(input, 0, scratch, residual));
+}
+
+function assertProtectedRequest(input: WheelSolveInput): void {
   validateWheelSolveInput(input);
-  let drive = input.driveTorque,
-    brake = input.brakeTorque;
-  if (!(drive >= 0) || !(brake >= 0) || !Number.isFinite(drive + brake)) {
+  if (
+    !(input.driveTorque >= 0) ||
+    !(input.brakeTorque >= 0) ||
+    !Number.isFinite(input.driveTorque + input.brakeTorque)
+  ) {
     throw new RangeError('protected requested torques must be finite nonnegative magnitudes');
   }
-  if (!(input.normalLoad > 0) || !(input.gripFactor > 0)) return input;
-  const tire = input.characteristics;
-  const referenceSpeed = Math.hypot(input.longitudinalVelocity, TIRE_LOW_SPEED_REGULARIZATION);
-  const slip = (input.gripFactor * (2 - tire.rhoKnee) * tire.muX) / tire.kX;
-  const vx = input.longitudinalVelocity,
-    radius = input.rollingRadius;
-  let torqueUpper = 0;
-  if (vx >= 0) {
-    const upper = (vx + slip * referenceSpeed) / radius;
-    torqueUpper = wheelRequiredNetTorque(input, upper, scratch, residual);
-    drive = Math.max(0, Math.min(drive, torqueUpper + brake));
-  }
-  if (Math.abs(vx) > TIRE_LOW_SPEED_REGULARIZATION) {
-    const minimumRolling = (Math.abs(vx) - slip * referenceSpeed) / radius;
-    if (minimumRolling > 0) {
-      const direction = Math.sign(vx);
-      const boundary = wheelRequiredNetTorque(input, direction * minimumRolling, scratch, residual);
-      brake = Math.max(0, Math.min(brake, direction * (drive - boundary)));
-    }
-  }
-  // If brake release changed the upper net-torque bound, reapply TCS. This can only reduce drive.
-  if (vx >= 0 && drive > 0) {
-    drive = Math.max(0, Math.min(drive, torqueUpper + brake));
-  }
-  if (drive === input.driveTorque && brake === input.brakeTorque) return input;
-  const result = out;
-  if (result !== input) Object.assign(result, input);
-  result.driveTorque = drive;
-  result.brakeTorque = brake;
-  return result;
 }
 
 interface ProtectedWheelPair {
@@ -143,9 +148,11 @@ export function createProtectedWheelPairWorkspace(front: WheelSolveInput, rear: 
   return { first: candidate(), second: candidate() };
 }
 type PairCandidate = ReturnType<typeof createProtectedWheelPairWorkspace>['first'];
+/** Copies a request with the given drive torque and scaled brake, then applies ABS to the brake. */
 function prepareWheel(
   input: WheelSolveInput,
-  scale: number,
+  driveTorque: number,
+  brakeScale: number,
   policy: TorqueProtectionPolicy,
   out: Writable<WheelSolveInput>,
   scratch: ReturnType<typeof createTireForceScratch>,
@@ -160,14 +167,11 @@ function prepareWheel(
   out.gripFactor = input.gripFactor;
   out.characteristics = input.characteristics;
   out.rollingResistance = input.rollingResistance;
-  out.driveTorque = input.driveTorque;
-  out.brakeTorque = input.brakeTorque;
+  out.driveTorque = driveTorque;
+  out.brakeTorque = input.brakeTorque * brakeScale;
   out.dt = input.dt;
-  if (scale !== 1) {
-    out.driveTorque = input.driveTorque * scale;
-    out.brakeTorque = input.brakeTorque * scale;
-  }
-  return policy.wheelSlip ? limitWheelTorques(out, out, scratch, residual) : out;
+  if (policy.wheelSlip) out.brakeTorque = absBrakeTorque(out, driveTorque, scratch, residual);
+  return out;
 }
 function evaluatePair(
   compiledVehicle: CompiledVehicle,
@@ -177,22 +181,113 @@ function evaluatePair(
   frontRequest: WheelSolveInput,
   rearRequest: WheelSolveInput,
   policy: TorqueProtectionPolicy,
-  scale: number,
+  frontDriveTorque: number,
+  rearDriveTorque: number,
+  brakeScale: number,
   candidate: PairCandidate,
 ) {
   const out = candidate.value;
-  out.frontInput = prepareWheel(frontRequest, scale, policy, candidate.frontInput, candidate.tire, candidate.residual);
-  out.rearInput = prepareWheel(rearRequest, scale, policy, candidate.rearInput, candidate.tire, candidate.residual);
+  out.frontInput = prepareWheel(
+    frontRequest,
+    frontDriveTorque,
+    brakeScale,
+    policy,
+    candidate.frontInput,
+    candidate.tire,
+    candidate.residual,
+  );
+  out.rearInput = prepareWheel(
+    rearRequest,
+    rearDriveTorque,
+    brakeScale,
+    policy,
+    candidate.rearInput,
+    candidate.tire,
+    candidate.residual,
+  );
   solveWheelOmega(out.frontInput, out.frontWheel, candidate.residual, candidate.tire);
   solveWheelOmega(out.rearInput, out.rearWheel, candidate.residual, candidate.tire);
   evaluateVehicleWrench(compiledVehicle, body, front, rear, out.frontWheel, out.rearWheel, candidate.wrench);
   out.wrench = candidate.wrench.value;
-  out.supportScale = scale;
+  out.supportScale = brakeScale;
   out.supportFeasible = true;
   return out;
 }
 
-/** One delivered-torque owner. Every trial uses the unchanged solve and wrench. */
+/**
+ * Upper bound on total drive-wheel torque, computed from the tires before the powertrain chooses
+ * its opening. Requests carry the brake request and zero drive. TCS bounds each driven station;
+ * dividing by the station's fixed drive fraction and taking the tighter station bounds the
+ * total. With a support reserve, the drive side of anti-wheelie bisects total drive torque, brake
+ * fixed, until the front support margin holds; the requested drive torque caps that search. The
+ * bound only limits the effective opening; drive torque is never trimmed after the powertrain.
+ */
+export function solveDriveTorqueUpperBound(
+  compiledVehicle: CompiledVehicle,
+  body: BodyKinematics,
+  front: ContactObservation,
+  rear: ContactObservation,
+  frontRequest: WheelSolveInput,
+  rearRequest: WheelSolveInput,
+  policy: TorqueProtectionPolicy,
+  requestedDriveTorque: number,
+  workspace: ReturnType<typeof createProtectedWheelPairWorkspace>,
+): number {
+  assertProtectedRequest(frontRequest);
+  assertProtectedRequest(rearRequest);
+  const slot = workspace.first;
+  const frontFraction = compiledVehicle.frontDriveTorqueFraction;
+  let upper = Infinity;
+  if (policy.wheelSlip) {
+    if (frontFraction > 0)
+      upper = Math.min(upper, tcsDriveTorqueBound(frontRequest, slot.tire, slot.residual) / frontFraction);
+    if (frontFraction < 1)
+      upper = Math.min(upper, tcsDriveTorqueBound(rearRequest, slot.tire, slot.residual) / (1 - frontFraction));
+  }
+  const reserve = policy.supportReserve;
+  const requested = Math.min(requestedDriveTorque, upper);
+  if (
+    reserve === null ||
+    !(requested > 0) ||
+    !front.supportAvailable ||
+    !front.tireFrameValid ||
+    !(rear.normalLoad > 0) ||
+    !(dot3(body.up, front.surface.normal) > 0)
+  )
+    return upper;
+  const safe = (drive: number) => {
+    const value = evaluatePair(
+      compiledVehicle,
+      body,
+      front,
+      rear,
+      frontRequest,
+      rearRequest,
+      policy,
+      drive * frontFraction,
+      drive * (1 - frontFraction),
+      1,
+      slot,
+    );
+    return supportCompressionMargin(compiledVehicle, body, front, value.wrench, reserve) >= 0;
+  };
+  if (safe(requested)) return upper;
+  if (!safe(0)) return 0;
+  let lower = 0,
+    unsafe = requested;
+  for (let i = 0; i < SUPPORT_BISECTION_ITERATIONS; i++) {
+    const drive = (lower + unsafe) * 0.5;
+    if (safe(drive)) lower = drive;
+    else unsafe = drive;
+  }
+  return lower;
+}
+
+/**
+ * One wheel-pair solve with the powertrain's drive torque delivered as requested. ABS limits each
+ * brake; with a support reserve, the brake side of anti-wheelie bisects one brake scale until
+ * the rear support margin holds. Every trial uses the unchanged solve and wrench.
+ */
 export function solveProtectedWheelPair(
   compiledVehicle: CompiledVehicle,
   body: BodyKinematics,
@@ -203,38 +298,39 @@ export function solveProtectedWheelPair(
   policy: TorqueProtectionPolicy,
   workspace: ReturnType<typeof createProtectedWheelPairWorkspace>,
 ): ProtectedWheelPair {
+  assertProtectedRequest(frontRequest);
+  assertProtectedRequest(rearRequest);
   let acceptedSlot = workspace.first,
     trialSlot = workspace.second;
-  const requested = evaluatePair(
-    compiledVehicle,
-    body,
-    front,
-    rear,
-    frontRequest,
-    rearRequest,
-    policy,
-    1,
-    acceptedSlot,
-  );
+  const evaluate = (brakeScale: number, slot: PairCandidate) =>
+    evaluatePair(
+      compiledVehicle,
+      body,
+      front,
+      rear,
+      frontRequest,
+      rearRequest,
+      policy,
+      frontRequest.driveTorque,
+      rearRequest.driveTorque,
+      brakeScale,
+      slot,
+    );
+  const requested = evaluate(1, acceptedSlot);
   const reserve = policy.supportReserve;
-  if (reserve === null) return requested;
-  const checkFront =
-    frontRequest.driveTorque + rearRequest.driveTorque > 0 &&
-    front.supportAvailable &&
-    front.tireFrameValid &&
-    rear.normalLoad > 0 &&
-    dot3(body.up, front.surface.normal) > 0;
-  const checkRear =
-    frontRequest.brakeTorque + rearRequest.brakeTorque > 0 &&
-    rear.supportAvailable &&
-    rear.tireFrameValid &&
-    front.normalLoad > 0 &&
-    dot3(body.up, rear.surface.normal) > 0;
+  if (
+    reserve === null ||
+    !(frontRequest.brakeTorque + rearRequest.brakeTorque > 0) ||
+    !rear.supportAvailable ||
+    !rear.tireFrameValid ||
+    !(front.normalLoad > 0) ||
+    !(dot3(body.up, rear.surface.normal) > 0)
+  )
+    return requested;
   const safe = (value: ProtectedWheelPair) =>
-    (!checkFront || supportCompressionMargin(compiledVehicle, body, front, value.wrench, reserve) >= 0) &&
-    (!checkRear || supportCompressionMargin(compiledVehicle, body, rear, value.wrench, reserve) >= 0);
+    supportCompressionMargin(compiledVehicle, body, rear, value.wrench, reserve) >= 0;
   if (safe(requested)) return requested;
-  const accepted = evaluatePair(compiledVehicle, body, front, rear, frontRequest, rearRequest, policy, 0, acceptedSlot);
+  const accepted = evaluate(0, acceptedSlot);
   if (!safe(accepted)) {
     accepted.supportFeasible = false;
     return accepted;
@@ -243,17 +339,7 @@ export function solveProtectedWheelPair(
     upper = 1;
   for (let i = 0; i < SUPPORT_BISECTION_ITERATIONS; i++) {
     const scale = (lower + upper) * 0.5;
-    const candidate = evaluatePair(
-      compiledVehicle,
-      body,
-      front,
-      rear,
-      frontRequest,
-      rearRequest,
-      policy,
-      scale,
-      trialSlot,
-    );
+    const candidate = evaluate(scale, trialSlot);
     if (safe(candidate)) {
       lower = scale;
       const swap = acceptedSlot;

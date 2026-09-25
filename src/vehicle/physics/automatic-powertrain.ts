@@ -111,29 +111,57 @@ export function createAutomaticPowertrainState(
 }
 
 /**
- * One ordinary mechanics step. Shifts follow the wheel-derived RPM, at most one per call.
- * The clutch is a latch on the signed wheel-derived RPM: it locks when that RPM reaches engine
- * speed and the idle lock margin, and releases below idle. While locked the engine turns with the wheels and delivers its signed
- * torque. While slipping one law advances engine speed:
- * dRPM/dt = (opening torque - friction - clutch torque) / inertia, by forward Euler at the current
- * RPM. The effective opening is the requested opening clamped between a lower bound (the
- * idle-holding opening that lands the step on idle) and an upper bound (0 during fuel cut, else
- * 1); the upper bound wins. The clutch transmits only the positive excess that would carry the
- * engine past peak-torque RPM. Fuel cut is a hysteretic latch on engine RPM.
+ * One step's linear drive map at the step's starting engine speed. Wheel torque is affine in the
+ * opening: locked, `wheelPerEngineTorque * (opening*(curve+friction) - friction)`; slipping, the
+ * same with the clutch's launch gap subtracted and floored at zero.
  */
-export function updateAutomaticPowertrain(
+export interface PowertrainStep {
+  locked: boolean;
+  rpm: number;
+  curve: number;
+  friction: number;
+  rpmPerTorque: number;
+  /** Engine torque a slipping clutch keeps to lift the engine to peak-torque RPM; 0 when locked. */
+  launchGapTorque: number;
+  wheelPerEngineTorque: number;
+  /** Idle-holding opening. */
+  lowerOpening: number;
+  /** 0 during fuel cut, else 1. */
+  upperOpening: number;
+}
+
+export function createPowertrainStep(): PowertrainStep {
+  return {
+    locked: false,
+    rpm: 0,
+    curve: 0,
+    friction: 0,
+    rpmPerTorque: 0,
+    launchGapTorque: 0,
+    wheelPerEngineTorque: 0,
+    lowerOpening: 0,
+    upperOpening: 1,
+  };
+}
+
+/**
+ * First half of one ordinary mechanics step. Shifts follow the wheel-derived RPM, at most one per
+ * call. The clutch is a latch on the signed wheel-derived RPM: it locks when that RPM reaches
+ * engine speed and the idle lock margin, and releases below idle. Fuel cut is a hysteretic latch
+ * on engine RPM. The returned map lets torque protection bound drive torque before the opening
+ * is chosen.
+ */
+export function prepareAutomaticPowertrain(
   state: AutomaticPowertrainState,
   definition: CompiledAutomaticPowertrainDefinition,
   coupling: PowertrainCoupling,
   drivenWheelOmega: number,
-  requestedOpening: number,
   allowShift: boolean,
   dt: number,
-): number {
+  step: PowertrainStep,
+): PowertrainStep {
   assertWheelOmega(drivenWheelOmega);
-  if (!Number.isFinite(requestedOpening) || !(dt > 0) || !Number.isFinite(dt)) {
-    throw new RangeError('powertrain requires a finite requested opening and finite positive dt');
-  }
+  if (!(dt > 0) || !Number.isFinite(dt)) throw new RangeError('powertrain requires finite positive dt');
   if (!Number.isInteger(state.gear) || state.gear < 1 || state.gear > definition.gearRatios.length) {
     throw new RangeError('powertrain gear must index the authored forward ratios');
   }
@@ -165,18 +193,75 @@ export function updateAutomaticPowertrain(
   const friction = engineFrictionTorque(definition, coupling, rpm);
   const curve = sampleEngineTorque(definition, rpm);
   const rpmPerTorque = (dt * RPM_PER_RADIAN_PER_SECOND) / coupling.engineInertia;
-  const idleOpening = ((definition.idleRpm - rpm) / rpmPerTorque + friction) / (curve + friction);
-  const lowerOpening = clamp(idleOpening, 0, 1);
-  const upperOpening = state.fuelCut ? 0 : 1;
-  const opening = Math.min(upperOpening, Math.max(lowerOpening, clamp(requestedOpening, 0, 1)));
-  const engineTorque = opening * (curve + friction) - friction;
+  step.locked = locked;
+  step.rpm = rpm;
+  step.curve = curve;
+  step.friction = friction;
+  step.rpmPerTorque = rpmPerTorque;
+  step.launchGapTorque = locked ? 0 : (definition.peakTorqueRpm - rpm) / rpmPerTorque;
+  step.wheelPerEngineTorque =
+    definition.gearRatios[state.gear - 1]! * definition.finalDriveRatio * coupling.drivelineEfficiency;
+  step.lowerOpening = clamp(((definition.idleRpm - rpm) / rpmPerTorque + friction) / (curve + friction), 0, 1);
+  step.upperOpening = state.fuelCut ? 0 : 1;
+  return step;
+}
+
+/** Wheel torque the prepared step delivers at an opening. */
+export function powertrainWheelTorque(step: PowertrainStep, opening: number): number {
+  const engineTorque = opening * (step.curve + step.friction) - step.friction;
+  const clutchTorque = step.locked ? engineTorque : Math.max(0, engineTorque - step.launchGapTorque);
+  return clutchTorque * step.wheelPerEngineTorque;
+}
+
+/** The opening bounds before any drive-torque bound, applied to a requested opening. */
+export function boundedOpening(
+  step: PowertrainStep,
+  requestedOpening: number,
+  upperOpening = step.upperOpening,
+): number {
+  return Math.min(upperOpening, Math.max(step.lowerOpening, clamp(requestedOpening, 0, 1)));
+}
+
+/**
+ * Largest opening whose wheel torque stays within a drive-torque upper bound; the inverse of
+ * powertrainWheelTorque. A slipping clutch never transmits negative torque, so a bound at or
+ * below zero allows exactly the opening that lifts the engine to peak-torque RPM.
+ */
+function openingForWheelTorque(step: PowertrainStep, wheelTorque: number): number {
+  const clutchTorque = wheelTorque / step.wheelPerEngineTorque;
+  const engineTorque = step.locked ? clutchTorque : Math.max(0, clutchTorque) + step.launchGapTorque;
+  return Math.max(0, (engineTorque + step.friction) / (step.curve + step.friction));
+}
+
+/**
+ * Second half of the step. The effective opening, the engine's only command, is the requested
+ * opening clamped between the lower bound (idle holding) and the upper bound (fuel cut, then the
+ * drive-torque upper bound); the upper bound wins. Engine torque follows the effective opening.
+ * Locked, the engine turns with the wheels and delivers its signed torque. Slipping, one law
+ * advances engine speed: dRPM/dt = (opening torque - friction - clutch torque) / inertia, by
+ * forward Euler at the step's starting RPM; the clutch transmits only the positive excess that
+ * would carry the engine past peak-torque RPM. Drive torque reaches the wheels untrimmed.
+ */
+export function completeAutomaticPowertrain(
+  state: AutomaticPowertrainState,
+  step: PowertrainStep,
+  requestedOpening: number,
+  driveTorqueUpperBound: number,
+): number {
+  if (!Number.isFinite(requestedOpening) || Number.isNaN(driveTorqueUpperBound)) {
+    throw new RangeError('powertrain requires a finite requested opening and a drive-torque bound');
+  }
+  const upperOpening =
+    driveTorqueUpperBound === Infinity
+      ? step.upperOpening
+      : Math.min(step.upperOpening, openingForWheelTorque(step, driveTorqueUpperBound));
+  const opening = boundedOpening(step, requestedOpening, upperOpening);
+  const engineTorque = opening * (step.curve + step.friction) - step.friction;
+  const clutchTorque = step.locked ? engineTorque : Math.max(0, engineTorque - step.launchGapTorque);
+  if (!step.locked) state.engineRpm = step.rpm + (engineTorque - clutchTorque) * step.rpmPerTorque;
   state.effectiveOpening = opening;
-  const freeRpm = rpm + engineTorque * rpmPerTorque;
-  const clutchTorque = locked ? engineTorque : Math.max(0, (freeRpm - definition.peakTorqueRpm) / rpmPerTorque);
-  if (!locked) state.engineRpm = freeRpm - clutchTorque * rpmPerTorque;
   state.engineTorqueNewtonMeters = engineTorque;
-  const ratio = definition.gearRatios[state.gear - 1]! * definition.finalDriveRatio;
-  state.outputDriveTorque = clutchTorque * ratio * coupling.drivelineEfficiency;
+  state.outputDriveTorque = clutchTorque * step.wheelPerEngineTorque;
   return state.outputDriveTorque;
 }
 
