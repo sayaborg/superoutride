@@ -8,25 +8,16 @@ export const SPRITE_SOURCE_TEXELS_PER_METER = 40;
 
 export interface SpritePalette {
   readonly colors: readonly number[];
-  readonly brakeLamp: Readonly<{ slot: number; on: number }> | null;
 }
 
-/** All states participate in LOD clustering and raw course-palette admission. */
+/** Named colors participating in raw course-palette admission. */
 export function spritePaletteStates(palettes: Readonly<Record<string, SpritePalette>>): readonly (readonly number[])[] {
-  return Object.values(palettes).flatMap((palette) => [
-    palette.colors,
-    ...(palette.brakeLamp ? [illuminatedPalette(palette)] : []),
-  ]);
-}
-function illuminatedPalette(palette: SpritePalette): readonly number[] {
-  const colors = [...palette.colors];
-  if (palette.brakeLamp) colors[palette.brakeLamp.slot] = palette.brakeLamp.on;
-  return Object.freeze(colors);
+  return Object.values(palettes).map((palette) => palette.colors);
 }
 
 export interface SpriteLodDocument {
   readonly format: 'superoutride.sprite-lod';
-  readonly version: 3;
+  readonly version: 4;
   readonly name: string;
   readonly width: number;
   readonly height: number;
@@ -72,7 +63,7 @@ export interface SpriteAsset {
 }
 
 /** Completed-image admission: filtering is never performed by the reader or blitter. */
-export function readSpriteLodAsset(value: unknown): SpriteAsset {
+export function readSpriteLodAsset(value: unknown, paletteSuffix: readonly number[] = []): SpriteAsset {
   const document = spriteRecord(value, [
     'format',
     'version',
@@ -85,7 +76,7 @@ export function readSpriteLodAsset(value: unknown): SpriteAsset {
     'palettes',
     'levels',
   ]);
-  if (document.format !== 'superoutride.sprite-lod' || document.version !== 3)
+  if (document.format !== 'superoutride.sprite-lod' || document.version !== 4)
     throw new RangeError('unsupported sprite LOD format/version');
   if (typeof document.name !== 'string' || !document.name.trim()) throw new RangeError('sprite name is required');
   const { width, height, anchorX, anchorY } = document;
@@ -114,38 +105,23 @@ export function readSpriteLodAsset(value: unknown): SpriteAsset {
     Object.fromEntries(
       Object.entries(document.palettes).map(([name, value]) => {
         if (!name.trim() || name !== name.trim()) throw new RangeError('palette name must be nonempty and trimmed');
-        const entry = spriteRecord(value, ['colors', 'brakeLamp']);
-        const colors = readIndexedPalette(entry.colors);
-        let brakeLamp: SpritePalette['brakeLamp'] = null;
-        if (entry.brakeLamp !== null) {
-          const lamp = spriteRecord(entry.brakeLamp, ['slot', 'on']);
-          if (
-            typeof lamp.slot !== 'number' ||
-            !Number.isInteger(lamp.slot) ||
-            lamp.slot < 1 ||
-            lamp.slot > 15 ||
-            typeof lamp.on !== 'number' ||
-            !Number.isInteger(lamp.on) ||
-            lamp.on < 0 ||
-            lamp.on > 32767
-          )
-            throw new RangeError('brake lamp requires an opaque slot and RGB555 on color');
-          brakeLamp = Object.freeze({ slot: lamp.slot, on: lamp.on });
-        }
-        return [name, Object.freeze({ colors, brakeLamp })];
+        const entry = spriteRecord(value, ['colors']);
+        const colors = readPalette(entry.colors, paletteSuffix);
+        return [name, Object.freeze({ colors })];
       }),
     ),
   );
   if (typeof document.defaultPalette !== 'string' || !Object.hasOwn(palettes, document.defaultPalette))
     throw new RangeError('default palette must name an image palette');
-  const base = readIndexedPalette(
+  const base = readPalette(
     spriteRecord(document.levels[0], ['paletteRgb555', 'indices', 'mixtures']).paletteRgb555,
+    paletteSuffix,
   );
   if (!base.every((color, i) => color === palettes[document.defaultPalette as string]!.colors[i]))
     throw new RangeError('master colors must equal the named default palette');
   const levels = Array.from(document.levels, (value: unknown, k: number) => {
     const level = spriteRecord(value, ['paletteRgb555', 'indices', 'mixtures']);
-    const paletteRgb555 = readIndexedPalette(level.paletteRgb555);
+    const paletteRgb555 = k === 0 ? base : readIndexedPalette(level.paletteRgb555);
     if (!Array.isArray(level.mixtures) || level.mixtures.length !== 16)
       throw new RangeError('sprite palette requires 16 mixture slots');
     const mixtures = Object.freeze(
@@ -212,9 +188,13 @@ export function readSpriteLodAsset(value: unknown): SpriteAsset {
 }
 
 /** Named color and lamp state are resolved once, before rendering. */
-export function createSpritePalette(asset: SpriteAsset, name: string, brakeLampOn = false): SpriteAsset {
+export function createSpritePalette(
+  asset: SpriteAsset,
+  name: string,
+  paletteSuffix: readonly number[] = [],
+): SpriteAsset {
   const palette = asset.palettes[name]!;
-  return applySpritePalette(asset, brakeLampOn ? illuminatedPalette(palette) : palette.colors);
+  return applySpritePalette(asset, [...palette.colors.slice(0, 16 - paletteSuffix.length), ...paletteSuffix]);
 }
 
 /** Calculate an instance's palette once. Patterns and mixture identities remain shared and immutable. */
@@ -235,6 +215,13 @@ function applySpritePalette(asset: SpriteAsset, base: readonly number[]): Sprite
     return Object.freeze({ ...level, paletteRgb555, paletteRgba: indexedPaletteRgba(paletteRgb555) });
   });
   return Object.freeze({ ...asset, levels: Object.freeze(levels) });
+}
+
+/** A containing format owns any trailing reserved colors; authored arrays must omit them. */
+function readPalette(value: unknown, suffix: readonly number[]): readonly number[] {
+  if (!Array.isArray(value) || value.length !== 16 - suffix.length)
+    throw new RangeError('image palette must omit externally reserved slots');
+  return readIndexedPalette([...value, ...suffix]);
 }
 
 function spriteRecord(value: unknown, keys: readonly string[]): Record<string, unknown> {

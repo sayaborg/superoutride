@@ -33,8 +33,35 @@ await writeFile(
 
 const masters = JSON.parse(await readFile(new URL('../../content/sprites/vehicles.json', import.meta.url), 'utf8')) as {
   sprites: SpriteLodDocument[];
+  sets: Record<string, { assets: number[][]; brakeLamp: { off: number; on: number } }>;
 };
-const product = { ...masters, sprites: masters.sprites.map(compileSpriteLod) };
+const product = {
+  ...masters,
+  sprites: masters.sprites.map((image, index) => {
+    try {
+      const bindings = Object.values(masters.sets).filter((set) => set.assets.flat().includes(index));
+      if (!bindings.length) throw new RangeError('vehicle image must belong to a sprite set');
+      const lamp = bindings[0]!.brakeLamp;
+      if (!lamp || bindings.some((set) => set.brakeLamp?.off !== lamp.off || set.brakeLamp?.on !== lamp.on))
+        throw new RangeError('shared vehicle images require the same set brake-lamp colors');
+      return compileSpriteLod(image, [[lamp.off], [lamp.on]]);
+    } catch (error) {
+      if (!(error instanceof RangeError)) throw error;
+      throw new Error(
+        JSON.stringify([
+          {
+            kind: 'input',
+            code: 'invalid_value',
+            document: 'content/sprites/vehicles.json',
+            path: `/sprites/${index}`,
+            message: error.message,
+          },
+        ]),
+        { cause: error },
+      );
+    }
+  }),
+};
 const writer = createContentWriter(new URL('../../dist/content/', import.meta.url));
 const libraryBytes = JSON.stringify(product) + '\n';
 await writer.stage('image', 'vehicles', product);

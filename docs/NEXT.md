@@ -138,6 +138,8 @@ space. Record margins and remaster departures with the content.
 ### Pending product decisions
 
 - Vehicle color choice: every vehicle sprite set carries at least two named color palettes; decide how the player selects a color and how rivals are assigned colors (and vehicles).
+- Section lighting for vehicles: Sections may switch vehicle palettes (for example a night section), adding a lighting axis beside color and the brake-lamp animation. Each lighting is a hand-authored palette per color that recolors the whole image, lit headlamps included; only the brake lamp keeps its reserved slot, with off and on colors declared per sprite set and lighting. Decide whether switching follows each vehicle's Section or the camera's, and whether it cuts or fades.
+- Vehicle sprite resolution: decide the yaw division count (currently 24) and the two-wheeler bank count (currently 5) before producing final vehicle art; the sprite set format already declares both as data.
 
 | Area             | Decision or future capability                                                                                       |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------- |

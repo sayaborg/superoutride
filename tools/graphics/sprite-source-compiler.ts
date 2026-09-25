@@ -93,14 +93,14 @@ export function normalizeSpriteSource(image: SourceImage, recipe: unknown): Spri
     }
   return {
     format: 'superoutride.sprite-lod',
-    version: 3,
+    version: 4,
     name: settings.name,
     width,
     height,
     anchorX,
     anchorY,
     defaultPalette: 'original',
-    palettes: { original: { colors: paletteRgb555, brakeLamp: null } },
+    palettes: { original: { colors: paletteRgb555 } },
     levels: [{ paletteRgb555, indices, mixtures: spriteIdentityMixtures() }],
   };
 }

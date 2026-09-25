@@ -254,6 +254,7 @@ identity and selection-order uniqueness, then exposes the sorted immutable colle
 Vehicle admission receives the completed sprite library with the vehicle document. It resolves the
 named set and the default color for every image once. Cars require exactly one bank image per yaw;
 bikes require an odd bank count of at least three, including neutral. Image admission guarantees at
-least two identical named color choices across the set and a brake-lamp animation for every color.
+least two identical named color choices across the set and one shared brake-lamp off/on declaration
+for reserved slot 15. Image colors omit that reserved slot.
 Unresolved set/color and incompatible bank dimensions produce vehicle-document diagnostics;
 malformed library/set declarations identify the image document. Consumers receive the admitted set.

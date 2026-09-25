@@ -2392,15 +2392,15 @@
     },
     {
       "id": "tree",
-      "sha256": "1aee7ddde5448fbcdbd7bd651fb41b4fb6c923ff7a239bc626ea63363c446e3b"
+      "sha256": "99304e169e065b4528945b14eac5082a84356ee2218e72e99571a971c64eeb40"
     },
     {
       "id": "fork-warning",
-      "sha256": "58023f23393c6ef0c7b24ab405fa2c1f744aa768fe8f4bcd22f1611b64a79c1b"
+      "sha256": "6a9cd48d0640c95bc688e449b58af39f47f110decf96a450959f5da3b05e57f8"
     },
     {
       "id": "fork-closed",
-      "sha256": "62d9081425d06b717772bd75435a9b8dbd2c14852192001de47321cf59d3dc9a"
+      "sha256": "4e50983b03f9f3a25dba9cf5fc6f4a35953c9b14173e4019ec2183c6900c3e6b"
     }
   ]
 }

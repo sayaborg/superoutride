@@ -7,14 +7,14 @@ export function createSpriteLodFixture(width = 80, height = 56): SpriteLodDocume
   const palette = [0, ...colors, ...Array<number>(15 - colors.length).fill(0)];
   return {
     format: 'superoutride.sprite-lod',
-    version: 3,
+    version: 4,
     name: `METRIC_${width}_${height}`,
     width,
     height,
     anchorX: (width - 1) / 2,
     anchorY: height - 1,
     defaultPalette: 'original',
-    palettes: { original: { colors: palette, brakeLamp: null } },
+    palettes: { original: { colors: palette } },
     levels: spriteLodLayout(width, height).map((level, k) => {
       const slot = (k % colors.length) + 1;
       return {
@@ -36,7 +36,7 @@ export function createSpriteLodFilterFixture(): SpriteLodDocument {
   for (let y = 2; y < 12; y++) indices[y * width + 40] = 5;
   return {
     format: 'superoutride.sprite-lod',
-    version: 3,
+    version: 4,
     name: 'FILTER_CHECKER',
     width,
     height,
@@ -46,7 +46,6 @@ export function createSpriteLodFilterFixture(): SpriteLodDocument {
     palettes: {
       original: {
         colors: [0, 0, 0x7fff, 0x4210, 0x5ef7, 0x7c00, 0x4000, ...Array<number>(9).fill(0)],
-        brakeLamp: null,
       },
     },
     levels: [

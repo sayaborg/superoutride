@@ -1,3 +1,4 @@
+import { readIndexedPalette } from '../../src/image/indexed-image.js';
 import {
   IMAGE_OPAQUE_COVERAGE,
   evaluatePaletteMixture,
@@ -18,10 +19,17 @@ interface MixtureBin {
 }
 
 /** Direct-master box filtering, with one shared pattern for every declared color and lamp state. */
-export function compileSpriteLod(source: SpriteLodDocument): SpriteLodDocument {
-  const master = readSpriteLodAsset(source);
+export function compileSpriteLod(
+  source: SpriteLodDocument,
+  paletteSuffixes: readonly (readonly number[])[] = [[]],
+): SpriteLodDocument {
+  const master = readSpriteLodAsset(source, paletteSuffixes[0]);
   if (master.levels.length !== 1) throw new RangeError('sprite compiler requires exactly one normalized master');
   const original = source.levels[0]!;
+  const base = master.levels[0]!.paletteRgb555;
+  const palettes = spritePaletteStates(master.palettes).flatMap((palette) =>
+    paletteSuffixes.map((suffix) => readIndexedPalette([...palette.slice(0, 16 - suffix.length), ...suffix])),
+  );
   const levels = spriteLodLayout(master.width, master.height).map(({ width, height }, k) => {
     if (k === 0)
       return {
@@ -60,21 +68,21 @@ export function compileSpriteLod(source: SpriteLodDocument): SpriteLodDocument {
           dictionary.set(key, bin);
           bins.push({
             mixture,
-            colors: spritePaletteStates(master.palettes).map((palette) => evaluatePaletteMixture(mixture, palette)),
+            colors: palettes.map((palette) => evaluatePaletteMixture(mixture, palette)),
             weight: 0,
           });
         }
         bins[bin]!.weight += opaque;
         membership[y * width + x] = bin;
       }
-    const groups = reduceMixtures(bins, spritePaletteStates(master.palettes));
+    const groups = reduceMixtures(bins, palettes);
     const indicesByBin = new Uint8Array(bins.length);
     const mixtures: PaletteMixture[] = Array.from({ length: 16 }, () => []);
     const paletteRgb555 = Array<number>(16).fill(0);
     groups.forEach((group, index) => {
       const slot = index + 1;
       mixtures[slot] = centroid(group, bins);
-      paletteRgb555[slot] = linearToRgb555(...evaluatePaletteMixture(mixtures[slot]!, original.paletteRgb555));
+      paletteRgb555[slot] = linearToRgb555(...evaluatePaletteMixture(mixtures[slot]!, base));
       for (const bin of group) indicesByBin[bin] = slot;
     });
     return { paletteRgb555, mixtures, indices: Array.from(membership, (bin) => (bin < 0 ? 0 : indicesByBin[bin]!)) };

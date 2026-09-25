@@ -2,6 +2,7 @@ import { clamp, wrapAngle } from '../core/math.js';
 import { createSpritePalette, readSpriteLodAsset, spriteLodLayout, type SpriteAsset } from './sprite.js';
 
 export interface VehicleSpriteSet {
+  readonly brakeLamp: Readonly<{ off: number; on: number }>;
   readonly yawVariants: number;
   readonly bankVariants: number;
   readonly assets: readonly (readonly SpriteAsset[])[];
@@ -13,16 +14,20 @@ export interface SpriteAssets {
 /** Admission of the build's completed sprite library. No image generation or filtering at runtime. */
 export function readSpriteAssets(value: unknown): SpriteAssets {
   const library = record(value, ['format', 'version', 'sprites', 'sets']);
-  if (library.format !== 'superoutride.vehicle-sprites' || library.version !== 2 || !Array.isArray(library.sprites))
+  if (library.format !== 'superoutride.vehicle-sprites' || library.version !== 3 || !Array.isArray(library.sprites))
     throw new RangeError('unsupported vehicle sprite library');
-  const sprites = Array.from(library.sprites, (recordData: unknown) => {
-    const asset = readSpriteLodAsset(recordData);
-    if (asset.levels.length !== spriteLodLayout(asset.width, asset.height).length)
-      throw new RangeError('shipped sprites require the complete build-generated pyramid');
-    return asset;
-  });
+  const spriteDocuments = library.sprites;
+  const sprites = new Map<number, { asset: SpriteAsset; off: number; on: number }>();
   const set = (value: unknown): VehicleSpriteSet => {
-    const recordData = record(value, ['yawVariants', 'bankVariants', 'assets']);
+    const recordData = record(value, ['yawVariants', 'bankVariants', 'assets', 'brakeLamp']);
+    const lamp = record(recordData.brakeLamp, ['off', 'on']);
+    if (
+      [lamp.off, lamp.on].some(
+        (color) => typeof color !== 'number' || !Number.isInteger(color) || color < 0 || color > 32767,
+      )
+    )
+      throw new RangeError('sprite set brake lamp requires RGB555 off and on colors');
+    const brakeLamp = Object.freeze({ off: lamp.off as number, on: lamp.on as number });
     const yawVariants = recordData.yawVariants,
       bankVariants = recordData.bankVariants;
     if (
@@ -40,9 +45,19 @@ export function readSpriteAssets(value: unknown): SpriteAssets {
       if (!Array.isArray(row) || row.length !== bankVariants) throw new RangeError('vehicle sprite row is incomplete');
       return Object.freeze(
         Array.from(row, (id: unknown) => {
-          if (typeof id !== 'number' || !Number.isSafeInteger(id) || id < 0 || !sprites[id])
+          if (typeof id !== 'number' || !Number.isSafeInteger(id) || id < 0 || !spriteDocuments[id])
             throw new RangeError('vehicle sprite binding must name an existing pattern');
-          return sprites[id]!;
+          let admitted = sprites.get(id);
+          if (!admitted) {
+            const asset = readSpriteLodAsset(spriteDocuments[id], [brakeLamp.off]);
+            if (asset.levels.length !== spriteLodLayout(asset.width, asset.height).length)
+              throw new RangeError('shipped sprites require the complete build-generated pyramid');
+            admitted = { asset, ...brakeLamp };
+            sprites.set(id, admitted);
+          }
+          if (admitted.off !== brakeLamp.off || admitted.on !== brakeLamp.on)
+            throw new RangeError('shared vehicle images require the same set brake-lamp colors');
+          return admitted.asset;
         }),
       );
     });
@@ -51,10 +66,8 @@ export function readSpriteAssets(value: unknown): SpriteAssets {
     for (const image of assets.flat()) {
       if (JSON.stringify(Object.keys(image.palettes).sort()) !== JSON.stringify(names))
         throw new RangeError('every image in a vehicle set must declare the same color names');
-      if (Object.values(image.palettes).some((palette) => !palette.brakeLamp))
-        throw new RangeError('every vehicle color must declare brake-lamp animation');
     }
-    return Object.freeze({ yawVariants, bankVariants, assets: Object.freeze(assets) });
+    return Object.freeze({ brakeLamp, yawVariants, bankVariants, assets: Object.freeze(assets) });
   };
   if (!library.sets || typeof library.sets !== 'object' || Array.isArray(library.sets))
     throw new RangeError('vehicle sprite sets must be a named dictionary');
@@ -64,6 +77,7 @@ export function readSpriteAssets(value: unknown): SpriteAssets {
       return [name, set(value)];
     }),
   );
+  if (sprites.size !== spriteDocuments.length) throw new RangeError('vehicle image must belong to a sprite set');
   return Object.freeze({ sets: Object.freeze(sets) });
 }
 
@@ -79,7 +93,7 @@ export function createVehiclePaletteVariant(
       row.map((asset) => {
         let variant = images.get(asset);
         if (!variant) {
-          variant = createSpritePalette(asset, palette, brakeLampOn);
+          variant = createSpritePalette(asset, palette, [brakeLampOn ? set.brakeLamp.on : set.brakeLamp.off]);
           images.set(asset, variant);
         }
         return variant;

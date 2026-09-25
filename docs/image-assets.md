@@ -6,17 +6,17 @@ logical sprite extent and anchors; [Content and gameplay](content-and-gameplay.m
 ## Completed sprite images
 
 Indexed sprites and BG tiles pack two 4-bit indices per byte, high nibble first. Index zero is
-transparent; indices 1 through 15 are opaque. Palettes have exactly 16 RGB555 entries, with slot zero
+transparent; indices 1 through 15 are opaque. Resolved palettes have exactly 16 RGB555 entries, with slot zero
 unused. RGB555 zero in an opaque slot is black. Source JSON stores row-major index arrays.
 Tile palettes begin at `paletteId << 4`; the format has no separate palette-count limit.
 
 ```text
 {
-  format: "superoutride.sprite-lod", version: 3, name,
+  format: "superoutride.sprite-lod", version: 4, name,
   width: W, height: H, anchorX, anchorY,
   defaultPalette: "original",
-  palettes: {original: {colors: [16 RGB555 integers], brakeLamp: {slot: 5, on: 32038}},
-             alternate: {colors: [16 RGB555 integers], brakeLamp: {slot: 5, on: 32038}}},
+  palettes: {original: {colors: [RGB555 integers]},
+             alternate: {colors: [RGB555 integers]}},
   levels: [{paletteRgb555: [16 integers], indices: [row-major indices],
             mixtures: [[], [[baseIndex,weight], ...], ...]}, ...]
 }
@@ -29,11 +29,14 @@ have empty mixtures. Its normal color is the mixture evaluated in the original p
 Equal colors can occupy distinct semantic master slots.
 
 `palettes` is a dictionary of unique nonempty trimmed names. `defaultPalette` names its default
-color; the level-zero palette equals that color's 16 slots. Each color has `brakeLamp:null` or
-`{slot,on}`: slot is 1 through 15 and on is RGB555. The off color belongs to the palette itself.
-Lamp illumination replaces only that slot; it is an animation of a color, not another color choice.
-All color × lamp-state combinations participate in LOD compilation. Evaluating the shared mixtures
-in a selected combination generates its level palettes once before drawing; patterns remain shared.
+color. Course images declare all 16 slots. Vehicle-set images declare only slots 0 through 14:
+slot 15 is reserved for the set's brake lamp, and explicitly supplying it is rejected. The same
+omission applies to their level-zero `paletteRgb555`; the set supplies its off color before mixture
+validation. Coarse generated palettes still contain 16 entries: their slots are filtered mixtures,
+not semantic master slots. The resolved level-zero palette equals the resolved default color.
+Images carry no lamp declarations. All color × set lamp-state combinations participate in LOD
+compilation. Evaluating the shared mixtures in a selected combination generates its level palettes
+once before drawing; patterns remain shared. Course images can freely use slot 15.
 Raw course instance palettes remain supported until the course-palette migration.
 [Architecture](architecture.md#sprite-lod-metric-and-read-contract) owns level dimensions and anchors.
 
@@ -176,20 +179,22 @@ the constructs and builds private numeric fields; these are not image assets or 
 
 ## Vehicle sprite library
 
-`content/sprites/vehicles.json` uses `superoutride.vehicle-sprites` version 2:
+`content/sprites/vehicles.json` uses `superoutride.vehicle-sprites` version 3:
 
 ```text
 {format, version, sprites: [SpriteLodDocument, ...],
- sets: {coupe: {yawVariants, bankVariants, assets: [[spriteIndex, ...], ...]}, ...}}
+ sets: {coupe: {yawVariants, bankVariants, brakeLamp: {off: 12321, on: 32038}, assets: [[spriteIndex, ...], ...]}, ...}}
 ```
 
 Set names are unique nonempty trimmed keys, independent of vehicle form. Each set binds a complete
-positive yaw × bank grid to library images. Delivered images have complete LOD pyramids. Every image
-in a set declares exactly the same set of at least two color names, and every color declares a
-brake-lamp animation. Vehicle admission checks form-specific bank dimensions and default-color
+positive yaw × bank grid to library images. Every image belongs to a set; images shared between
+sets require identical lamp colors. Delivered images have complete LOD pyramids. Every image
+in a set declares exactly the same set of at least two color names. Each set requires one
+`brakeLamp:{off,on}` declaration of RGB555 integers, shared by all its colors and angles. Slot 15
+always means the brake lamp within these images; slots 1 through 14 remain ordinary image colors. Vehicle admission checks form-specific bank dimensions and default-color
 references, as specified in [Vehicle physics](vehicle-physics.md#vehicle-and-driving-documents).
 
-The provisional coupe has its original palette and an alternate body color. Slot 5 retains tail-off
-12321 and lamp-on 32038. The motorcycle uses previously unused slot 6 for tail pixels; its off color
-matches those pixels' former body color, and on is 32038. The second color changes body paint.
+The provisional coupe has its original palette and an alternate body color. Tail pixels use slot 15, with
+set off/on colors 12321/32038. Motorcycle tail pixels also use slot 15, with set colors 29445/32038.
+The former car slot 5 and motorcycle slot 6 are free (zero-filled). The second color changes body paint.
 Provisional yaw images remain reused; production directional art is deferred to stage 11 onward.
