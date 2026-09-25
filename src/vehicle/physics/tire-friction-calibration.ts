@@ -1,4 +1,4 @@
-import { DefinitionDomainError, withDefinitionPath } from './definition-domain-error.js';
+import { DefinitionDomainError, withDefinitionPath } from '../../core/admission.js';
 /** Authoring/UI values. P is pure-axis capacity onset at gripFactor=1, not body sideslip. */
 export interface TireCharacteristics {
   readonly gripX: number;

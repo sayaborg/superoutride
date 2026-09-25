@@ -1,4 +1,7 @@
+import { AdmissionError, type AdmissionCode, type AdmissionDiagnostic } from '../core/admission.js';
+
 type CourseDiagnosticCode =
+  | AdmissionCode
   | 'parse_failure'
   | 'invalid_shape'
   | 'unsupported_version'
@@ -34,28 +37,15 @@ type CourseDiagnosticCode =
   | 'invalid_fork'
   | 'invalid_rules';
 
-interface BasicInputDiagnostic {
-  readonly kind: 'input';
-  readonly document?: string;
-  readonly code: CourseDiagnosticCode;
-  /** JSON Pointer into the submitted authoring input; empty means the root. */
-  readonly path: string;
-  readonly message: string;
-}
-
+/** The shared admission diagnostic, with the course's semantic codes. */
 type InputDiagnostic =
-  | BasicInputDiagnostic
-  | {
-      readonly kind: 'input';
-      readonly document?: string;
-      readonly code: 'plan_coordinate_overlap';
-      readonly path: string;
-      readonly message: string;
+  | AdmissionDiagnostic<CourseDiagnosticCode>
+  | (AdmissionDiagnostic<'plan_coordinate_overlap'> & {
       readonly overlap: {
         readonly section: string;
         readonly intervals: readonly { readonly sStart: number; readonly sEnd: number }[];
       };
-    };
+    });
 
 interface AssetDiagnostic {
   readonly kind: 'asset';
@@ -102,20 +92,31 @@ export class CourseAssetError extends Error {
 export type CourseResult<T> =
   { readonly ok: true; readonly value: T } | { readonly ok: false; readonly diagnostics: readonly CourseDiagnostic[] };
 
-/** Internal control flow for expected authoring errors only. Other exceptions propagate. */
-export class CourseInputError extends Error {
+/** The shared admission error with the course's semantic codes and optional diagnostic detail. */
+export class CourseInputError extends AdmissionError<CourseDiagnosticCode | 'plan_coordinate_overlap'> {
   readonly diagnostic: InputDiagnostic;
 
   constructor(diagnostic: InputDiagnostic);
   constructor(code: CourseDiagnosticCode, path: string, message: string);
   constructor(code: CourseDiagnosticCode | InputDiagnostic, path = '', message = '') {
-    super(typeof code === 'string' ? message : code.message);
-    this.diagnostic = Object.freeze(typeof code === 'string' ? { kind: 'input' as const, code, path, message } : code);
+    const diagnostic: InputDiagnostic = Object.freeze(
+      typeof code === 'string' ? { kind: 'input' as const, code, document: '', path, message } : code,
+    );
+    super(diagnostic.code, diagnostic.path, diagnostic.message);
+    this.diagnostic = diagnostic;
   }
 }
 
-export function courseFailure(error: CourseInputError, document = '') {
-  return courseFailures([error], document);
+/** Any admission error, including the shared shape readers', as one course failure. */
+export function courseFailure(error: AdmissionError<string>, document = '') {
+  return courseFailures(
+    [
+      error instanceof CourseInputError
+        ? error
+        : new CourseInputError(error.code as CourseDiagnosticCode, error.path, error.message),
+    ],
+    document,
+  );
 }
 
 /** Independent admission failures in deterministic input order; never a partial product. */

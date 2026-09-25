@@ -466,9 +466,10 @@ Later game-wide launch and pitch rules extend this same document rather than cre
 assist configuration files.
 
 Both readers reject missing required fields, unknown fields, wrong shapes, unsupported formats/versions,
-invalid domains and unresolved sound IDs. Expected errors return `{ok:false,diagnostics}` containing
-`kind:"input"`, `code`, the supplied `document` filename, JSON Pointer `path` and causal `message`.
-Admission stops at the first failure; diagnostics are not accumulated. Domain errors identify a field
+invalid domains and unresolved sound IDs through the shared
+[admission toolkit](architecture.md#content-admission-toolkit). Expected errors return
+`{ok:false,diagnostics}` containing `kind:"input"`, `code`, the supplied `document` filename, JSON
+Pointer `path` and causal `message`. Admission stops at the first failure; diagnostics are not accumulated. Domain errors identify a field
 or an array element, never a containing document record. Mechanics reports slash-separated paths
 relative to the definition it receives, without a leading slash (for example `mass` or
 `powertrain/gearRatios/2`). Nested compilers prepend their own field or map derived inputs back to
@@ -479,7 +480,8 @@ to ride frequency; otherwise a travel not beyond the static compression points t
 Relationships identify an actionable field and name related inputs: gear ordering points to the
 violating element, curve coverage to `torqueCurve`, and a peak-power point at redline points to
 that torque-curve element's `rpm`.
-Only `definition-document.ts` converts these relative paths into document JSON Pointers, attaching
+Only `definition-document.ts` converts these relative paths into document JSON Pointers (through
+`admitDomain`), attaching
 `/mechanics` for vehicle fields except `/id`, and the document filename. Driving paths start at the
 driving document's fields. Unsupported earlier versions have no migration reader.
 Only explicit authored-domain failures become diagnostics; unexpected internal errors propagate.

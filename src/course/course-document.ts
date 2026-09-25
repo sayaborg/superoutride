@@ -2,8 +2,20 @@ import type { RepeatElement } from './course-repeat.js';
 import { COURSE_DOCUMENT_LIMITS } from './course-limits.js';
 import { SESSION_RULE_LIMITS } from './session-rules.js';
 import { CourseInputError, courseFailure, courseSuccess, type CourseResult } from './course-diagnostics.js';
+import {
+  AdmissionError,
+  readArray,
+  readDocument,
+  readEnum,
+  readIdentified,
+  readNumber,
+  readRecord,
+  readRgb555,
+  readString,
+} from '../core/admission.js';
 
 const COURSE_DOCUMENT_VERSION = 25;
+const ID = { maxLength: COURSE_DOCUMENT_LIMITS.idCodeUnits };
 
 export interface CoursePosition {
   readonly pi: string;
@@ -143,144 +155,64 @@ export interface CourseDocument {
   readonly assets: readonly CourseAssetReference[];
 }
 
-function fail(code: ConstructorParameters<typeof CourseInputError>[0], path: string, message: string): never {
-  throw new CourseInputError(code, path, message);
-}
-
-function record(value: unknown, path: string, fields: readonly string[]): Record<string, unknown> {
-  if (
-    !value ||
-    typeof value !== 'object' ||
-    Array.isArray(value) ||
-    ![Object.prototype, null].includes(Object.getPrototypeOf(value))
-  ) {
-    fail('invalid_shape', path, 'Expected a plain JSON object');
-  }
-  const result = value as Record<string, unknown>;
-  for (const key of Object.keys(result)) {
-    if (!fields.includes(key)) {
-      const escaped = key.replaceAll('~', '~0').replaceAll('/', '~1');
-      fail(
-        'unsupported_feature',
-        `${path}/${escaped}`,
-        `Field ${key} is not supported by CourseDocument v${COURSE_DOCUMENT_VERSION}`,
-      );
-    }
-  }
-  for (const key of fields) {
-    if (!Object.hasOwn(result, key)) fail('invalid_shape', `${path}/${key}`, `Missing required field ${key}`);
-  }
-  return result;
-}
-
-function id(value: unknown, path: string): string {
-  if (typeof value !== 'string' || !value.trim() || value !== value.trim())
-    fail('invalid_shape', path, 'Expected a nonempty stable ID without surrounding whitespace');
-  if (value.length > COURSE_DOCUMENT_LIMITS.idCodeUnits)
-    fail('resource_limit', path, `Stable ID exceeds ${COURSE_DOCUMENT_LIMITS.idCodeUnits} code units`);
-  return value;
-}
-
-function number(value: unknown, path: string, min: number, max: number, exclusiveMin = false): number {
-  if (typeof value !== 'number') fail('invalid_shape', path, 'Expected a number');
-  if (!Number.isFinite(value) || value > max || (exclusiveMin ? value <= min : value < min)) {
-    fail('invalid_numeric_domain', path, `Expected a finite number in ${exclusiveMin ? '(' : '['}${min}, ${max}]`);
-  }
-  return Object.is(value, -0) ? 0 : value;
-}
-
-function literal<T extends string | number>(
-  value: unknown,
-  expected: T,
-  path: string,
-  code: 'unsupported_version' | 'unsupported_format',
-): T {
-  if (value !== expected) fail(code, path, `Expected ${JSON.stringify(expected)}`);
-  return expected;
-}
-
-function array<T>(value: unknown, path: string, max: number, read: (value: unknown, path: string) => T): readonly T[] {
-  if (!Array.isArray(value)) fail('invalid_shape', path, 'Expected an array');
-  if (value.length > max) fail('resource_limit', path, `At most ${max} entries are admitted`);
-  return Object.freeze(Array.from(value, (item, index) => read(item, `${path}/${index}`)));
-}
-
-function identified<T extends { readonly id: string }>(
-  value: unknown,
-  path: string,
-  max: number,
-  read: (value: unknown, path: string) => T,
-): readonly T[] {
-  const seen = new Set<string>();
-  return array(value, path, max, (item, at) => {
-    const result = read(item, at);
-    if (seen.has(result.id)) fail('duplicate_id', `${at}/id`, `Duplicate ID ${JSON.stringify(result.id)} in ${path}`);
-    seen.add(result.id);
-    return result;
-  });
-}
-
 function position(value: unknown, path: string): CoursePosition {
-  const v = record(value, path, ['pi', 'offset']);
+  const v = readRecord(value, path, ['pi', 'offset']);
   return Object.freeze({
-    pi: id(v.pi, `${path}/pi`),
-    offset: number(
-      v.offset,
-      `${path}/offset`,
-      -COURSE_DOCUMENT_LIMITS.lengthMeters,
-      COURSE_DOCUMENT_LIMITS.lengthMeters,
-    ),
+    pi: readString(v.pi, `${path}/pi`, ID),
+    offset: readNumber(v.offset, `${path}/offset`, {
+      min: -COURSE_DOCUMENT_LIMITS.lengthMeters,
+      max: COURSE_DOCUMENT_LIMITS.lengthMeters,
+    }),
   });
 }
 
 function planPI(value: unknown, path: string): PlanPI {
-  const v = record(value, path, ['id', 'x', 'z', 'radius']);
+  const v = readRecord(value, path, ['id', 'x', 'z', 'radius']);
   const bound = COURSE_DOCUMENT_LIMITS.coordinateMeters;
   return Object.freeze({
-    id: id(v.id, `${path}/id`),
-    x: number(v.x, `${path}/x`, -bound, bound),
-    z: number(v.z, `${path}/z`, -bound, bound),
-    radius: number(v.radius, `${path}/radius`, 0, COURSE_DOCUMENT_LIMITS.lengthMeters),
+    id: readString(v.id, `${path}/id`, ID),
+    x: readNumber(v.x, `${path}/x`, { min: -bound, max: bound }),
+    z: readNumber(v.z, `${path}/z`, { min: -bound, max: bound }),
+    radius: readNumber(v.radius, `${path}/radius`, { min: 0, max: COURSE_DOCUMENT_LIMITS.lengthMeters }),
   });
 }
 
 function lateral(value: unknown, path: string): Lateral {
   const bound = COURSE_DOCUMENT_LIMITS.lateralMeters;
-  if (typeof value === 'number') return number(value, path, -bound, bound);
-  const v = record(value, path, ['boundary', 'offset']);
+  if (typeof value === 'number') return readNumber(value, path, { min: -bound, max: bound });
+  const v = readRecord(value, path, ['boundary', 'offset']);
   return Object.freeze({
-    boundary: id(v.boundary, `${path}/boundary`),
-    offset: number(v.offset, `${path}/offset`, -bound, bound),
+    boundary: readString(v.boundary, `${path}/boundary`, ID),
+    offset: readNumber(v.offset, `${path}/offset`, { min: -bound, max: bound }),
   });
 }
 
 function boundary(value: unknown, path: string): BoundaryDocument {
-  const v = record(value, path, ['id', 'knots']);
+  const v = readRecord(value, path, ['id', 'knots']);
   return Object.freeze({
-    id: id(v.id, `${path}/id`),
-    knots: array(v.knots, `${path}/knots`, COURSE_DOCUMENT_LIMITS.knots, (item, at) => {
-      const knot = record(item, at, ['at', 'lateral']);
-      return Object.freeze({
-        at: position(knot.at, `${at}/at`),
-        lateral: lateral(knot.lateral, `${at}/lateral`),
-      });
-    }),
+    id: readString(v.id, `${path}/id`, ID),
+    knots: readArray(
+      v.knots,
+      `${path}/knots`,
+      (item, at) => {
+        const knot = readRecord(item, at, ['at', 'lateral']);
+        return Object.freeze({
+          at: position(knot.at, `${at}/at`),
+          lateral: lateral(knot.lateral, `${at}/lateral`),
+        });
+      },
+      { max: COURSE_DOCUMENT_LIMITS.knots },
+    ),
   });
 }
 
 function carriageway(value: unknown, path: string): CarriagewayDocument {
-  const v = record(value, path, ['id', 'left', 'right']);
+  const v = readRecord(value, path, ['id', 'left', 'right']);
   return Object.freeze({
-    id: id(v.id, `${path}/id`),
-    left: id(v.left, `${path}/left`),
-    right: id(v.right, `${path}/right`),
+    id: readString(v.id, `${path}/id`, ID),
+    left: readString(v.left, `${path}/left`, ID),
+    right: readString(v.right, `${path}/right`, ID),
   });
-}
-
-function rgb555(value: unknown, path: string): number {
-  const color = number(value, path, 0, 32767);
-  if (!Number.isInteger(color)) fail('invalid_numeric_domain', path, 'RGB555 must be an integer');
-  return color;
 }
 
 function repeated<T>(
@@ -291,16 +223,29 @@ function repeated<T>(
   depth = 0,
 ): RepeatElement<T> {
   if (depth > COURSE_DOCUMENT_LIMITS.repeatDepth)
-    fail('resource_limit', path, `Repeat nesting exceeds ${COURSE_DOCUMENT_LIMITS.repeatDepth} levels`);
+    throw new CourseInputError(
+      'resource_limit',
+      path,
+      `Repeat nesting exceeds ${COURSE_DOCUMENT_LIMITS.repeatDepth} levels`,
+    );
   if (value && typeof value === 'object' && (value as Record<string, unknown>).kind === 'repeat') {
-    const v = record(value, path, ['kind', 'every', 'count', 'elements']);
-    const count = number(v.count, `${path}/count`, 1, COURSE_DOCUMENT_LIMITS.repeatCount);
-    if (!Number.isInteger(count)) fail('invalid_numeric_domain', `${path}/count`, 'Repeat count must be an integer');
+    const v = readRecord(value, path, ['kind', 'every', 'count', 'elements']);
+    const count = readNumber(v.count, `${path}/count`, {
+      min: 1,
+      max: COURSE_DOCUMENT_LIMITS.repeatCount,
+      integer: true,
+    });
     return Object.freeze({
       kind: 'repeat',
-      every: number(v.every, `${path}/every`, 0, COURSE_DOCUMENT_LIMITS.lengthMeters, true),
+      every: readNumber(v.every, `${path}/every`, {
+        min: 0,
+        max: COURSE_DOCUMENT_LIMITS.lengthMeters,
+        exclusiveMin: true,
+      }),
       count,
-      elements: array(v.elements, `${path}/elements`, limit, (item, at) => repeated(item, at, limit, leaf, depth + 1)),
+      elements: readArray(v.elements, `${path}/elements`, (item, at) => repeated(item, at, limit, leaf, depth + 1), {
+        max: limit,
+      }),
     });
   }
   return leaf(value, path);
@@ -312,45 +257,48 @@ function stripElement(value: unknown, path: string): StripElementDocument {
 function stripLeaf(value: unknown, path: string): Exclude<StripElementDocument, { kind: 'repeat' }> {
   const kind = value && typeof value === 'object' ? (value as Record<string, unknown>).kind : undefined;
   const metre = (value: unknown, at: string, positive = false) =>
-    number(value, at, 0, COURSE_DOCUMENT_LIMITS.lengthMeters, positive);
+    readNumber(value, at, { min: 0, max: COURSE_DOCUMENT_LIMITS.lengthMeters, exclusiveMin: positive });
   if (kind === 'strip') {
-    const v = record(value, path, ['kind', 'color', 'material', 'knots']);
+    const v = readRecord(value, path, ['kind', 'color', 'material', 'knots']);
     return Object.freeze({
       kind,
-      color: v.color === null || v.color === 'transparent' ? v.color : rgb555(v.color, `${path}/color`),
-      material: v.material === null ? null : id(v.material, `${path}/material`),
-      knots: array(v.knots, `${path}/knots`, COURSE_DOCUMENT_LIMITS.knots, (item, at) => {
-        const knot = record(item, at, ['at', 'left', 'right']);
-        return Object.freeze({
-          at: position(knot.at, `${at}/at`),
-          left: knot.left === null ? null : lateral(knot.left, `${at}/left`),
-          right: knot.right === null ? null : lateral(knot.right, `${at}/right`),
-        });
-      }),
+      color: v.color === null || v.color === 'transparent' ? v.color : readRgb555(v.color, `${path}/color`),
+      material: v.material === null ? null : readString(v.material, `${path}/material`, ID),
+      knots: readArray(
+        v.knots,
+        `${path}/knots`,
+        (item, at) => {
+          const knot = readRecord(item, at, ['at', 'left', 'right']);
+          return Object.freeze({
+            at: position(knot.at, `${at}/at`),
+            left: knot.left === null ? null : lateral(knot.left, `${at}/left`),
+            right: knot.right === null ? null : lateral(knot.right, `${at}/right`),
+          });
+        },
+        { max: COURSE_DOCUMENT_LIMITS.knots },
+      ),
     });
   }
   if (kind === 'arrow') {
-    const v = record(value, path, ['kind', 'at', 'lateral', 'width', 'length', 'direction', 'color']);
-    if (v.direction !== 'forward' && v.direction !== 'left' && v.direction !== 'right')
-      fail('invalid_shape', `${path}/direction`, 'Arrow direction is forward, left or right');
+    const v = readRecord(value, path, ['kind', 'at', 'lateral', 'width', 'length', 'direction', 'color']);
     return Object.freeze({
       kind,
       at: position(v.at, `${path}/at`),
       lateral: lateral(v.lateral, `${path}/lateral`),
       width: metre(v.width, `${path}/width`, true),
       length: metre(v.length, `${path}/length`, true),
-      direction: v.direction,
-      color: rgb555(v.color, `${path}/color`),
+      direction: readEnum(v.direction, ['forward', 'left', 'right'] as const, `${path}/direction`),
+      color: readRgb555(v.color, `${path}/color`),
     });
   }
   if (kind === 'text') {
-    const v = record(value, path, ['kind', 'at', 'lateral', 'text', 'height', 'color']);
+    const v = readRecord(value, path, ['kind', 'at', 'lateral', 'text', 'height', 'color']);
     if (
       typeof v.text !== 'string' ||
       !/^[A-Z0-9 ]+$/.test(v.text) ||
       v.text.length > COURSE_DOCUMENT_LIMITS.textCodeUnits
     )
-      fail(
+      throw new CourseInputError(
         'invalid_shape',
         `${path}/text`,
         `Strip text supports 1–${COURSE_DOCUMENT_LIMITS.textCodeUnits} uppercase ASCII letters, digits or spaces`,
@@ -361,13 +309,12 @@ function stripLeaf(value: unknown, path: string): Exclude<StripElementDocument, 
       lateral: lateral(v.lateral, `${path}/lateral`),
       text: v.text,
       height: metre(v.height, `${path}/height`, true),
-      color: rgb555(v.color, `${path}/color`),
+      color: readRgb555(v.color, `${path}/color`),
     });
   }
   if (kind === 'curb') {
-    const v = record(value, path, ['kind', 'start', 'end', 'left', 'right', 'stripe', 'colors']);
-    const colors = array(v.colors, `${path}/colors`, 2, rgb555);
-    if (colors.length !== 2) fail('invalid_shape', `${path}/colors`, 'A curb needs two RGB555 colors');
+    const v = readRecord(value, path, ['kind', 'start', 'end', 'left', 'right', 'stripe', 'colors']);
+    const colors = readArray(v.colors, `${path}/colors`, readRgb555, { length: 2 });
     return Object.freeze({
       kind,
       start: position(v.start, `${path}/start`),
@@ -378,24 +325,24 @@ function stripLeaf(value: unknown, path: string): Exclude<StripElementDocument, 
       colors,
     });
   }
-  return fail('unsupported_feature', `${path}/kind`, 'Unknown Strip authoring construct');
+  throw new CourseInputError('unsupported_feature', `${path}/kind`, 'Unknown Strip authoring construct');
 }
 
 function environment(value: unknown, path: string): EnvironmentDocument {
-  const e = record(value, path, ['at', 'name', 'background']);
-  const b = record(e.background, `${path}/background`, ['assetId', 'horizonY', 'yawOrigin']);
+  const e = readRecord(value, path, ['at', 'name', 'background']);
+  const b = readRecord(e.background, `${path}/background`, ['assetId', 'horizonY', 'yawOrigin']);
   return Object.freeze({
     at: position(e.at, `${path}/at`),
-    name: id(e.name, `${path}/name`),
+    name: readString(e.name, `${path}/name`, ID),
     background: Object.freeze({
-      assetId: id(b.assetId, `${path}/background/assetId`),
-      horizonY: number(b.horizonY, `${path}/background/horizonY`, 0, Number.MAX_SAFE_INTEGER),
-      yawOrigin: number(b.yawOrigin, `${path}/background/yawOrigin`, -360, 360),
+      assetId: readString(b.assetId, `${path}/background/assetId`, ID),
+      horizonY: readNumber(b.horizonY, `${path}/background/horizonY`, { min: 0, max: Number.MAX_SAFE_INTEGER }),
+      yawOrigin: readNumber(b.yawOrigin, `${path}/background/yawOrigin`, { min: -360, max: 360 }),
     }),
   });
 }
 function sprite(value: unknown, path: string): SpriteDocument {
-  const s = record(value, path, [
+  const s = readRecord(value, path, [
     'kind',
     'image',
     'palette',
@@ -404,31 +351,34 @@ function sprite(value: unknown, path: string): SpriteDocument {
     'groundOffset',
     'unselectedCarriagewayId',
   ]);
-  if (s.kind !== 'sprite') fail('unsupported_feature', `${path}/kind`, 'Expected sprite');
+  if (s.kind !== 'sprite') throw new CourseInputError('unsupported_feature', `${path}/kind`, 'Expected sprite');
   return Object.freeze({
     kind: 'sprite',
-    image: id(s.image, `${path}/image`),
-    palette: id(s.palette, `${path}/palette`),
+    image: readString(s.image, `${path}/image`, ID),
+    palette: readString(s.palette, `${path}/palette`, ID),
     at: position(s.at, `${path}/at`),
     lateral: lateral(s.lateral, `${path}/lateral`),
-    groundOffset: number(
-      s.groundOffset,
-      `${path}/groundOffset`,
-      -COURSE_DOCUMENT_LIMITS.heightMeters,
-      COURSE_DOCUMENT_LIMITS.heightMeters,
-    ),
+    groundOffset: readNumber(s.groundOffset, `${path}/groundOffset`, {
+      min: -COURSE_DOCUMENT_LIMITS.heightMeters,
+      max: COURSE_DOCUMENT_LIMITS.heightMeters,
+    }),
     unselectedCarriagewayId:
-      s.unselectedCarriagewayId === null ? null : id(s.unselectedCarriagewayId, `${path}/unselectedCarriagewayId`),
+      s.unselectedCarriagewayId === null
+        ? null
+        : readString(s.unselectedCarriagewayId, `${path}/unselectedCarriagewayId`, ID),
   });
 }
 function environments(value: unknown, path: string): SectionDocument['environments'] {
-  return array(value, path, COURSE_DOCUMENT_LIMITS.environmentKnots, (item, at) =>
-    repeated(item, at, COURSE_DOCUMENT_LIMITS.environmentKnots, environment),
+  return readArray(
+    value,
+    path,
+    (item, at) => repeated(item, at, COURSE_DOCUMENT_LIMITS.environmentKnots, environment),
+    { max: COURSE_DOCUMENT_LIMITS.environmentKnots },
   );
 }
 
 function section(value: unknown, path: string): SectionDocument {
-  const v = record(value, path, [
+  const v = readRecord(value, path, [
     'id',
     'pis',
     'boundaries',
@@ -441,74 +391,100 @@ function section(value: unknown, path: string): SectionDocument {
     'gates',
   ]);
   return Object.freeze({
-    id: id(v.id, `${path}/id`),
-    pis: identified(v.pis, `${path}/pis`, COURSE_DOCUMENT_LIMITS.pis, planPI),
-    boundaries: identified(v.boundaries, `${path}/boundaries`, COURSE_DOCUMENT_LIMITS.boundaries, boundary),
-    strips: array(v.strips, `${path}/strips`, COURSE_DOCUMENT_LIMITS.stripElements, (item, at) =>
-      stripElement(item, at),
-    ),
-    sprites: array(v.sprites, `${path}/sprites`, COURSE_DOCUMENT_LIMITS.spriteElements, (item, at) =>
-      repeated(item, at, COURSE_DOCUMENT_LIMITS.spriteElements, sprite),
-    ),
-    height: array(v.height, `${path}/height`, COURSE_DOCUMENT_LIMITS.heightNodes, (item, at) => {
-      const node = record(item, at, ['at', 'y', 'curveLength']);
-      return Object.freeze({
-        at: position(node.at, `${at}/at`),
-        y: number(node.y, `${at}/y`, -COURSE_DOCUMENT_LIMITS.heightMeters, COURSE_DOCUMENT_LIMITS.heightMeters),
-        curveLength: number(node.curveLength, `${at}/curveLength`, 0, COURSE_DOCUMENT_LIMITS.lengthMeters),
-      });
+    id: readString(v.id, `${path}/id`, ID),
+    pis: readIdentified(v.pis, `${path}/pis`, planPI, { max: COURSE_DOCUMENT_LIMITS.pis }),
+    boundaries: readIdentified(v.boundaries, `${path}/boundaries`, boundary, {
+      max: COURSE_DOCUMENT_LIMITS.boundaries,
     }),
-    carriageways: identified(v.carriageways, `${path}/carriageways`, COURSE_DOCUMENT_LIMITS.carriageways, carriageway),
-    assetIds: array(v.assetIds, `${path}/assetIds`, COURSE_DOCUMENT_LIMITS.sectionAssets, id),
+    strips: readArray(v.strips, `${path}/strips`, (item, at) => stripElement(item, at), {
+      max: COURSE_DOCUMENT_LIMITS.stripElements,
+    }),
+    sprites: readArray(
+      v.sprites,
+      `${path}/sprites`,
+      (item, at) => repeated(item, at, COURSE_DOCUMENT_LIMITS.spriteElements, sprite),
+      { max: COURSE_DOCUMENT_LIMITS.spriteElements },
+    ),
+    height: readArray(
+      v.height,
+      `${path}/height`,
+      (item, at) => {
+        const node = readRecord(item, at, ['at', 'y', 'curveLength']);
+        return Object.freeze({
+          at: position(node.at, `${at}/at`),
+          y: readNumber(node.y, `${at}/y`, {
+            min: -COURSE_DOCUMENT_LIMITS.heightMeters,
+            max: COURSE_DOCUMENT_LIMITS.heightMeters,
+          }),
+          curveLength: readNumber(node.curveLength, `${at}/curveLength`, {
+            min: 0,
+            max: COURSE_DOCUMENT_LIMITS.lengthMeters,
+          }),
+        });
+      },
+      { max: COURSE_DOCUMENT_LIMITS.heightNodes },
+    ),
+    carriageways: readIdentified(v.carriageways, `${path}/carriageways`, carriageway, {
+      max: COURSE_DOCUMENT_LIMITS.carriageways,
+    }),
+    assetIds: readArray(v.assetIds, `${path}/assetIds`, (item, at) => readString(item, at, ID), {
+      max: COURSE_DOCUMENT_LIMITS.sectionAssets,
+    }),
     environments: environments(v.environments, `${path}/environments`),
-    gates: array(v.gates, `${path}/gates`, COURSE_DOCUMENT_LIMITS.gates, gate),
+    gates: readArray(v.gates, `${path}/gates`, gate, { max: COURSE_DOCUMENT_LIMITS.gates }),
   });
 }
 
 function gate(value: unknown, path: string): CourseGateDocument {
   const kind = value && typeof value === 'object' ? (value as Record<string, unknown>).kind : undefined;
   if (kind === 'start') {
-    const v = record(value, path, ['kind', 'grid']);
+    const v = readRecord(value, path, ['kind', 'grid']);
     return Object.freeze({
       kind,
-      grid: array(v.grid, `${path}/grid`, COURSE_DOCUMENT_LIMITS.startGridSlots, (item, at) => {
-        const slot = record(item, at, ['at', 'lateral']);
-        return Object.freeze({ at: position(slot.at, `${at}/at`), lateral: lateral(slot.lateral, `${at}/lateral`) });
-      }),
+      grid: readArray(
+        v.grid,
+        `${path}/grid`,
+        (item, at) => {
+          const slot = readRecord(item, at, ['at', 'lateral']);
+          return Object.freeze({ at: position(slot.at, `${at}/at`), lateral: lateral(slot.lateral, `${at}/lateral`) });
+        },
+        { max: COURSE_DOCUMENT_LIMITS.startGridSlots },
+      ),
     });
   }
   if (kind === 'checkpoint' || kind === 'finish') {
-    const v = record(value, path, ['kind', 'id', 'carriageway', 'at']);
+    const v = readRecord(value, path, ['kind', 'id', 'carriageway', 'at']);
     return Object.freeze({
       kind,
-      id: id(v.id, `${path}/id`),
-      carriageway: id(v.carriageway, `${path}/carriageway`),
+      id: readString(v.id, `${path}/id`, ID),
+      carriageway: readString(v.carriageway, `${path}/carriageway`, ID),
       at: position(v.at, `${path}/at`),
     });
   }
   if (kind === 'lock' || kind === 'closure') {
-    const v = record(value, path, ['kind', 'at']);
+    const v = readRecord(value, path, ['kind', 'at']);
     return Object.freeze({ kind, at: position(v.at, `${path}/at`) });
   }
-  return fail('invalid_gate', `${path}/kind`, 'Unknown gate kind');
+  throw new CourseInputError('invalid_gate', `${path}/kind`, 'Unknown gate kind');
 }
 
 function rules(value: unknown, path: string): CourseRulesDocument | null {
   if (value === null) return null;
-  const v = record(value, path, ['maxLaps', 'classic']);
-  const c = record(v.classic, path + '/classic', ['vehicleId', 'rivalCount', 'lapCount', 'timeMargin']);
-  const integer = (value: unknown, at: string, min: number, max: number) => {
-    const n = number(value, at, min, max);
-    if (!Number.isInteger(n)) fail('invalid_numeric_domain', at, 'Expected an integer');
-    return n;
-  };
+  const v = readRecord(value, path, ['maxLaps', 'classic']);
+  const c = readRecord(v.classic, path + '/classic', ['vehicleId', 'rivalCount', 'lapCount', 'timeMargin']);
+  const integer = (value: unknown, at: string, min: number, max: number) =>
+    readNumber(value, at, { min, max, integer: true });
   return Object.freeze({
     maxLaps: integer(v.maxLaps, path + '/maxLaps', 1, SESSION_RULE_LIMITS.laps),
     classic: Object.freeze({
-      vehicleId: id(c.vehicleId, path + '/classic/vehicleId'),
+      vehicleId: readString(c.vehicleId, path + '/classic/vehicleId', ID),
       rivalCount: integer(c.rivalCount, path + '/classic/rivalCount', 0, SESSION_RULE_LIMITS.rivals),
       lapCount: integer(c.lapCount, path + '/classic/lapCount', 1, SESSION_RULE_LIMITS.laps),
-      timeMargin: number(c.timeMargin, path + '/classic/timeMargin', 0, SESSION_RULE_LIMITS.timeMargin, true),
+      timeMargin: readNumber(c.timeMargin, path + '/classic/timeMargin', {
+        min: 0,
+        max: SESSION_RULE_LIMITS.timeMargin,
+        exclusiveMin: true,
+      }),
     }),
   });
 }
@@ -516,61 +492,84 @@ function rules(value: unknown, path: string): CourseRulesDocument | null {
 /** Own and normalize schema-valid authoring, including semantically incomplete drafts. */
 export function readCourseDocument(input: unknown): CourseResult<CourseDocument> {
   try {
-    // Reject an identified older schema before requiring the current schema's fields.
-    if (input && typeof input === 'object' && Object.hasOwn(input, 'version'))
-      literal((input as Record<string, unknown>).version, COURSE_DOCUMENT_VERSION, '/version', 'unsupported_version');
-    const v = record(input, '', ['rules', 'format', 'version', 'id', 'entrySectionId', 'sections', 'links', 'assets']);
-    const format = literal(v.format, 'superoutride.course', '/format', 'unsupported_format');
-    const version = literal(v.version, COURSE_DOCUMENT_VERSION, '/version', 'unsupported_version');
+    // Format and version are checked before the current schema's fields.
+    const v = readDocument(
+      input,
+      ['rules', 'format', 'version', 'id', 'entrySectionId', 'sections', 'links', 'assets'],
+      'superoutride.course',
+      COURSE_DOCUMENT_VERSION,
+    );
     const result: CourseDocument = Object.freeze({
-      format,
-      version,
-      id: id(v.id, '/id'),
-      entrySectionId: id(v.entrySectionId, '/entrySectionId'),
+      format: 'superoutride.course',
+      version: COURSE_DOCUMENT_VERSION,
+      id: readString(v.id, '/id', ID),
+      entrySectionId: readString(v.entrySectionId, '/entrySectionId', ID),
       rules: rules(v.rules, '/rules'),
-      sections: identified(v.sections, '/sections', COURSE_DOCUMENT_LIMITS.sections, section),
-      links: identified(v.links, '/links', COURSE_DOCUMENT_LIMITS.links, (item, at) => {
-        const link = record(item, at, ['id', 'from', 'to']);
-        const from = record(link.from, `${at}/from`, ['sectionId', 'carriagewayId']);
-        const to = record(link.to, `${at}/to`, ['sectionId']);
-        return Object.freeze({
-          id: id(link.id, `${at}/id`),
-          from: Object.freeze({
-            sectionId: id(from.sectionId, `${at}/from/sectionId`),
-            carriagewayId: id(from.carriagewayId, `${at}/from/carriagewayId`),
-          }),
-          to: Object.freeze({ sectionId: id(to.sectionId, `${at}/to/sectionId`) }),
-        });
-      }),
-      assets: identified(v.assets, '/assets', COURSE_DOCUMENT_LIMITS.assets, (item, at) => {
-        const a = record(item, at, ['id', 'sha256']);
-        if (typeof a.sha256 !== 'string' || !/^[0-9a-f]{64}$/.test(a.sha256))
-          fail('invalid_shape', `${at}/sha256`, 'Expected lowercase SHA-256 of saved sprite-lod bytes');
-        return Object.freeze({
-          id: id(a.id, `${at}/id`),
-          sha256: a.sha256,
-        });
-      }),
+      sections: readIdentified(v.sections, '/sections', section, { max: COURSE_DOCUMENT_LIMITS.sections }),
+      links: readIdentified(
+        v.links,
+        '/links',
+        (item, at) => {
+          const link = readRecord(item, at, ['id', 'from', 'to']);
+          const from = readRecord(link.from, `${at}/from`, ['sectionId', 'carriagewayId']);
+          const to = readRecord(link.to, `${at}/to`, ['sectionId']);
+          return Object.freeze({
+            id: readString(link.id, `${at}/id`, ID),
+            from: Object.freeze({
+              sectionId: readString(from.sectionId, `${at}/from/sectionId`, ID),
+              carriagewayId: readString(from.carriagewayId, `${at}/from/carriagewayId`, ID),
+            }),
+            to: Object.freeze({ sectionId: readString(to.sectionId, `${at}/to/sectionId`, ID) }),
+          });
+        },
+        { max: COURSE_DOCUMENT_LIMITS.links },
+      ),
+      assets: readIdentified(
+        v.assets,
+        '/assets',
+        (item, at) => {
+          const a = readRecord(item, at, ['id', 'sha256']);
+          if (typeof a.sha256 !== 'string' || !/^[0-9a-f]{64}$/.test(a.sha256))
+            throw new CourseInputError(
+              'invalid_shape',
+              `${at}/sha256`,
+              'Expected lowercase SHA-256 of saved sprite-lod bytes',
+            );
+          return Object.freeze({
+            id: readString(a.id, `${at}/id`, ID),
+            sha256: a.sha256,
+          });
+        },
+        { max: COURSE_DOCUMENT_LIMITS.assets },
+      ),
     });
     const gateIds = new Set<string>();
     let gateCount = 0;
     result.sections.forEach((section, i) => {
       gateCount += section.gates.length;
       if (gateCount > COURSE_DOCUMENT_LIMITS.gates)
-        fail('invalid_gate', `/sections/${i}/gates`, `Course admits at most ${COURSE_DOCUMENT_LIMITS.gates} gates`);
+        throw new CourseInputError(
+          'invalid_gate',
+          `/sections/${i}/gates`,
+          `Course admits at most ${COURSE_DOCUMENT_LIMITS.gates} gates`,
+        );
       section.gates.forEach((gate, j) => {
         if ('id' in gate) {
           if (gateIds.has(gate.id))
-            fail('invalid_gate', `/sections/${i}/gates/${j}/id`, `Duplicate gate ID ${gate.id}`);
+            throw new CourseInputError('invalid_gate', `/sections/${i}/gates/${j}/id`, `Duplicate gate ID ${gate.id}`);
           gateIds.add(gate.id);
         }
       });
     });
     if (new TextEncoder().encode(JSON.stringify(result)).byteLength > COURSE_DOCUMENT_LIMITS.jsonBytes)
-      fail('resource_limit', '', `Document exceeds ${COURSE_DOCUMENT_LIMITS.jsonBytes} UTF-8 bytes`);
+      throw new CourseInputError(
+        'resource_limit',
+        '',
+        `Document exceeds ${COURSE_DOCUMENT_LIMITS.jsonBytes} UTF-8 bytes`,
+      );
     return courseSuccess(result);
   } catch (error) {
-    if (error instanceof CourseInputError) return courseFailure(error);
+    if (error instanceof AdmissionError) return courseFailure(error);
     throw error;
   }
 }

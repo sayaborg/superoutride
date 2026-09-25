@@ -14,6 +14,39 @@ internal arguments: they do not repeat shape/domain checks or retain impossible 
 Outside-route sampling and live gameplay decisions remain ordinary behavior. Vehicle-domain
 failure propagation belongs to the vehicle layer, not course/race input validation.
 
+### Content admission toolkit
+
+[`core/admission.ts`](../src/core/admission.ts) is the one admission toolkit for authored formats.
+Its shape readers check a JSON value and throw one `AdmissionError` addressed by a JSON Pointer:
+`readDocument` (format, then version, then the exact field set), `readRecord` (a plain JSON object
+with exactly the named fields; unknown fields first, then missing ones), `readDictionary`,
+`readString` (nonempty, no surrounding whitespace, optional length ceiling and pattern), `readBoolean`,
+`readNumber` (finite, optional closed or half-open range and integer; negative zero reads as zero),
+`readRgb555`, `readEnum`, `readArray` (optional ceiling or exact length), `readIdentified` (unique
+`id` values) and `deepFreeze`. Formats keep their semantic checks and report them through the same
+error, with `requireAdmission` or a format subclass carrying its own codes.
+
+Every expected admission failure is one diagnostic:
+
+```text
+{ kind: "input", code, document, path, message }
+```
+
+`document` is the delivered manifest path or authoring file (empty when a caller supplies none),
+`path` is an RFC 6901 JSON Pointer into it (empty for the root), and `code` is a shape code shared by
+all formats (`invalid_shape` for a wrong type or missing field, `unsupported_feature` for an unknown
+field or construct, `invalid_numeric_domain` for a number outside its domain, `invalid_value`,
+`resource_limit`, `duplicate_id`, `unresolved_reference`, `unsupported_format`, `unsupported_version`)
+or a format's semantic code. `admit(document, read)` returns `{ok:true,value}` or `{ok:false,diagnostics}`
+with the first failure; admission stops there and never publishes a partial product. Only admission
+errors become diagnostics; other exceptions are internal faults and propagate.
+
+Compilers below a document boundary raise `DefinitionDomainError` with a slash-separated path relative
+to the record they received. `withDefinitionPath` maps nested or derived fields back to the caller's
+record, and `admitDomain` converts the result at the document boundary into an `invalid_value`
+admission error at the JSON Pointer (`relativePointer` escapes each field). Build products (manifests,
+envelopes, time budgets) keep their own internal checks.
+
 ## Coordinates and readers
 
 World X/Y/Z is authoritative: +Y is up, yaw zero faces +Z and positive yaw turns toward +X.

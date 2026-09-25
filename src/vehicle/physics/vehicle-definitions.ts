@@ -1,4 +1,4 @@
-import { DefinitionDomainError, withDefinitionPath } from './definition-domain-error.js';
+import { DefinitionDomainError, withDefinitionPath } from '../../core/admission.js';
 import {
   compileAutomaticPowertrainDefinition,
   type AutomaticPowertrainDefinition,

@@ -1,4 +1,4 @@
-import { DefinitionDomainError, withDefinitionPath } from './definition-domain-error.js';
+import { DefinitionDomainError, withDefinitionPath } from '../../core/admission.js';
 import type { DrivingDefinition } from '../driving-definition.js';
 import { validateDrivingActuatorDefinition } from './driving-actuator.js';
 import type { PowertrainRules } from './automatic-powertrain.js';

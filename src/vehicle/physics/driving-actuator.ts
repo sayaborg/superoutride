@@ -1,4 +1,4 @@
-import { DefinitionDomainError } from './definition-domain-error.js';
+import { DefinitionDomainError } from '../../core/admission.js';
 import { clamp } from '../../core/math.js';
 import {
   assertExclusivePedalInput,

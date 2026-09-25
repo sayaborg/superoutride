@@ -1,4 +1,16 @@
 import type { ContentDelivery } from '../core/content-manifest.js';
+import {
+  admit,
+  deepFreeze,
+  readDocument,
+  readEnum,
+  readIdentified,
+  readNumber,
+  readRecord,
+  readString,
+  requireAdmission,
+  type AdmissionResult,
+} from '../core/admission.js';
 
 export const TIRE_EFFECT_KINDS = Object.freeze([
   'NONE',
@@ -31,134 +43,45 @@ export interface SurfaceMaterialCatalog {
   get(id: string): SurfaceMaterial | undefined;
 }
 
-export interface SurfaceMaterialDiagnostic {
-  readonly kind: 'input';
-  readonly code: 'invalid_shape' | 'invalid_value' | 'unsupported_version' | 'duplicate_id';
-  readonly document: string;
-  readonly path: string;
-  readonly message: string;
-}
-
-export type SurfaceMaterialResult<T> =
-  | { readonly ok: true; readonly value: T }
-  | { readonly ok: false; readonly diagnostics: readonly SurfaceMaterialDiagnostic[] };
-
-class InputError extends Error {
-  constructor(
-    readonly code: SurfaceMaterialDiagnostic['code'],
-    readonly path: string,
-    message: string,
-  ) {
-    super(message);
-  }
-}
-
-function object(value: unknown, path: string): Record<string, unknown> {
-  if (value === null || typeof value !== 'object' || Array.isArray(value))
-    throw new InputError('invalid_shape', path, 'Expected an object');
-  return value as Record<string, unknown>;
-}
-
-function fields(value: Record<string, unknown>, keys: readonly string[], path: string): void {
-  for (const key of Object.keys(value))
-    if (!keys.includes(key)) throw new InputError('invalid_shape', `${path}/${key}`, 'Unknown field');
-  for (const key of keys)
-    if (!Object.hasOwn(value, key)) throw new InputError('invalid_shape', `${path}/${key}`, 'Missing required field');
-}
-
-function id(value: unknown, path: string): string {
-  if (typeof value !== 'string') throw new InputError('invalid_shape', path, 'Expected a string');
-  if (!value || value.trim() !== value || !/^[A-Za-z0-9_-]+$/.test(value))
-    throw new InputError('invalid_value', path, 'Expected a nonempty stable ID using A-Z, a-z, 0-9, _ or -');
-  return value;
-}
-
-function nonnegative(value: unknown, path: string): number {
-  if (typeof value !== 'number') throw new InputError('invalid_shape', path, 'Expected a number');
-  if (!Number.isFinite(value) || value < 0)
-    throw new InputError('invalid_value', path, 'Expected a finite nonnegative number');
-  return Object.is(value, -0) ? 0 : value;
-}
-
-function freeze<T>(value: T): T {
-  if (value && typeof value === 'object') {
-    for (const child of Object.values(value)) freeze(child);
-    Object.freeze(value);
-  }
-  return value;
-}
+const MATERIAL_ID = { pattern: /^[A-Za-z0-9_-]+$/, patternMessage: 'Expected a stable ID using A-Z, a-z, 0-9, _ or -' };
 
 export function compileSurfaceMaterialDocument(
   value: unknown,
   document: string,
-): SurfaceMaterialResult<SurfaceMaterialCatalog> {
-  try {
-    const root = object(value, '');
-    fields(root, ['format', 'version', 'id', 'materials'], '');
-    if (root.format !== 'superoutride.surface-materials' || root.version !== 1)
-      throw new InputError(
-        'unsupported_version',
-        root.format !== 'superoutride.surface-materials' ? '/format' : '/version',
-        'Expected superoutride.surface-materials version 1',
-      );
-    const documentId = id(root.id, '/id');
-    if (!Array.isArray(root.materials)) throw new InputError('invalid_shape', '/materials', 'Expected an array');
-    if (root.materials.length === 0) {
-      throw new InputError('invalid_value', '/materials', 'At least one material is required');
-    }
-    const seen = new Set<string>();
-    const materials = root.materials.map((item, index) => {
-      const path = `/materials/${index}`;
-      const material = object(item, path);
-      fields(material, ['id', 'gripFactor', 'rollingResistance', 'tireEffect'], path);
-      const materialId = id(material.id, `${path}/id`);
-      if (seen.has(materialId)) {
-        throw new InputError('duplicate_id', `${path}/id`, `Duplicate material ID ${materialId}`);
-      }
-      seen.add(materialId);
-      if (
-        typeof material.tireEffect !== 'string' ||
-        !TIRE_EFFECT_KINDS.includes(material.tireEffect as TireEffectKind)
-      ) {
-        throw new InputError('invalid_value', `${path}/tireEffect`, `Expected one of ${TIRE_EFFECT_KINDS.join(', ')}`);
-      }
+): AdmissionResult<SurfaceMaterialCatalog> {
+  return admit(document, () => {
+    const root = readDocument(value, ['format', 'version', 'id', 'materials'], 'superoutride.surface-materials', 1);
+    const documentId = readString(root.id, '/id', MATERIAL_ID);
+    requireAdmission(
+      Array.isArray(root.materials) && root.materials.length > 0,
+      Array.isArray(root.materials) ? 'invalid_value' : 'invalid_shape',
+      '/materials',
+      'Expected a nonempty array of materials',
+    );
+    const materials = readIdentified(root.materials, '/materials', (item, path) => {
+      const material = readRecord(item, path, ['id', 'gripFactor', 'rollingResistance', 'tireEffect']);
       return Object.freeze({
-        id: materialId,
-        gripFactor: nonnegative(material.gripFactor, `${path}/gripFactor`),
-        rollingResistance: nonnegative(material.rollingResistance, `${path}/rollingResistance`),
-        tireEffect: material.tireEffect as TireEffectKind,
+        id: readString(material.id, `${path}/id`, MATERIAL_ID),
+        gripFactor: readNumber(material.gripFactor, `${path}/gripFactor`, { min: 0 }),
+        rollingResistance: readNumber(material.rollingResistance, `${path}/rollingResistance`, { min: 0 }),
+        tireEffect: readEnum(material.tireEffect, TIRE_EFFECT_KINDS, `${path}/tireEffect`),
       });
     });
-    const source = freeze({
+    const source = deepFreeze({
       format: 'superoutride.surface-materials' as const,
       version: 1 as const,
       id: documentId,
       materials,
     });
     const table = new Map(source.materials.map((material) => [material.id, material]));
-    const catalog = Object.freeze({
+    return Object.freeze({
       source,
       ids: Object.freeze(source.materials.map((material) => material.id)),
       get(materialId: string) {
         return table.get(materialId);
       },
     });
-    return Object.freeze({ ok: true as const, value: catalog });
-  } catch (error) {
-    if (!(error instanceof InputError)) throw error;
-    return Object.freeze({
-      ok: false as const,
-      diagnostics: Object.freeze([
-        Object.freeze({
-          kind: 'input' as const,
-          code: error.code,
-          document,
-          path: error.path,
-          message: error.message,
-        }),
-      ]),
-    });
-  }
+  });
 }
 
 const loaded = new WeakMap<ContentDelivery, Promise<SurfaceMaterialCatalog>>();
@@ -175,16 +98,15 @@ export function loadSurfaceMaterials(content: ContentDelivery): Promise<SurfaceM
     const file = files[0]!;
     const result = compileSurfaceMaterialDocument(await content.json('material', file.id), file.path);
     if (!result.ok) throw new Error(JSON.stringify(result.diagnostics));
-    if (result.value.source.id !== file.id) {
-      const diagnostic = {
-        kind: 'input',
-        code: 'invalid_value',
-        document: file.path,
-        path: '/id',
-        message: 'Surface material document ID must match manifest identity',
-      };
-      throw new Error(JSON.stringify([diagnostic]));
-    }
+    const identity = admit(file.path, () =>
+      requireAdmission(
+        result.value.source.id === file.id,
+        'invalid_value',
+        '/id',
+        'Surface material document ID must match manifest identity',
+      ),
+    );
+    if (!identity.ok) throw new Error(JSON.stringify(identity.diagnostics));
     return result.value;
   })();
   loaded.set(content, pending);

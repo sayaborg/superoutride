@@ -142,6 +142,7 @@ export function validatePlanDomainInjectivity(
       throw new CourseInputError({
         kind: 'input',
         code: 'plan_coordinate_overlap',
+        document: '',
         path: sectionPath,
         message: `Section ${JSON.stringify(sectionId)} coordinate domain overlaps at ${JSON.stringify(intervals)}`,
         overlap: Object.freeze({ section: sectionId, intervals }),

@@ -433,8 +433,9 @@ Image inputs are explicit saved bytes addressed by each declared SHA-256. Shared
 one immutable source. [Image assets](image-assets.md#course-image-sources) owns source formats and diagnostics.
 Draft saving is independent of image-byte availability.
 
-Document operations return `{ok:true,value}` or `{ok:false,diagnostics}`. Input diagnostics contain
-`kind:"input"`, `code`, JSON Pointer `path` and causal `message`. Clients use code/path.
+Document operations return `{ok:true,value}` or `{ok:false,diagnostics}`. Input diagnostics have the
+shared [admission](architecture.md#content-admission-toolkit) shape: `kind:"input"`, `code`, `document`,
+JSON Pointer `path` and causal `message`. Clients use code/path.
 The `plan_coordinate_overlap` variant additionally requires
 `overlap: {section, intervals: [{sStart, sEnd}, ...]}`; ordinary diagnostics have no overlap fields.
 `plan_coordinate_inversion` identifies the Section's PIs and the affected station in metres, never
