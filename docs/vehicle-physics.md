@@ -182,8 +182,8 @@ value.
 Engine speed is powertrain state with a rotor inertia derived from displacement:
 `engineInertia = displacementLitres * engineInertiaKilogramSquareMetersPerLitre`.
 `couplePowertrain` resolves the two friction torques (at idle and redline FMEP), the inertia, the
-clutch lock RPM `idleRpm * (1 + clutchLockIdleMargin)` and the game-wide efficiency and fuel-cut
-margin once, when a vehicle is created from its compiled vehicle and the driving settings; none of
+clutch lock RPM `idleRpm * (1 + clutchLockIdleMargin)`, the clutch capacity
+`maximumCurveTorque * clutchCapacityFactor` and the game-wide efficiency and fuel-cut margin once, when a vehicle is created from its compiled vehicle and the driving settings; none of
 them is a vehicle value. Vehicle compilation derives the launch RPM as peak-torque RPM, the lowest
 RPM of the curve's maximum torque; it only limits engine speed while the clutch slips.
 
@@ -198,10 +198,20 @@ with the wheel-derived RPM when that RPM reaches the clutch lock RPM, and otherw
   Engine braking exists only while locked.
 - `SLIP`: one law advances engine RPM,
   `dRPM/dt = (opening*(curveTorque+frictionTorque) - frictionTorque - clutchTorque) / engineInertia`,
-  by forward Euler at the RPM of the step's start. The clutch transmits only the positive excess
-  that would carry the engine past peak-torque RPM in that step, so the engine rises to launch RPM
-  and holds there while the excess drives the wheels; wheel torque is
-  `clutchTorque * gearRatio * finalDriveRatio * drivelineEfficiency` and never negative.
+  by forward Euler at the RPM of the step's start. The clutch is a friction element with a fixed
+  capacity that no controller changes. It transmits the torque that would keep the engine at
+  peak-torque RPM, `clamp(engineTorque - launchGapTorque, 0, clutchCapacity)` with
+  `launchGapTorque = (peakTorqueRpm - rpm) / rpmPerTorque`; the engine rises to launch RPM and holds
+  there while the excess drives the wheels. An engine above launch RPM comes down through the
+  capacity and its friction instead of in one step, so engine speed never jumps and no inertia
+  energy is discarded. Wheel torque is `clutchTorque * gearRatio * finalDriveRatio *
+drivelineEfficiency` and never negative. The locked clutch has no capacity limit.
+
+While the clutch is at capacity, changing the opening does not change wheel torque, so a
+drive-torque upper bound below the capacity may be unreachable. The opening's upper bound is then
+0, the smallest opening, which lowers engine speed fastest; the driven wheels may spin briefly (a
+chirp) until the engine reaches launch RPM. A bound at or above the capacity does not limit the
+opening while slipping.
 
 The idle-holding opening is the opening whose step would land exactly on idle. Idle is therefore
 held by torque, not by a clamp on engine speed, and settles without oscillation. A small throttle whose torque cannot exceed friction does not raise engine speed or
@@ -314,7 +324,7 @@ mechanical observations without contributing forces or alternate mechanical stat
 ## Vehicle and driving documents
 
 `content/vehicles/<id>.json` stores one `superoutride.vehicle-definition` version 5 per vehicle.
-`content/driving/default.json` stores the sole `superoutride.driving-definition` version 5.
+`content/driving/default.json` stores the sole `superoutride.driving-definition` version 6.
 [Calibration](calibration.md) owns tuning meanings and units. Document admission in
 `vehicle/definition-document.ts` publishes detached, deeply immutable source and compiled products.
 
@@ -339,7 +349,7 @@ fields: `automaticSteering:"travel-direction"`, `maxRoadWheelSteerDegrees`, `ste
 `steeringTraversalSeconds`, positive `fuelCutRedlineMargin`, positive
 `idleFrictionMeanEffectivePressureBar` and `redlineFrictionMeanEffectivePressureBar`,
 `drivelineEfficiency` in (0,1], positive `engineInertiaKilogramSquareMetersPerLitre`, positive
-`clutchLockIdleMargin`, `throttle`
+`clutchLockIdleMargin`, `clutchCapacityFactor` above 1, `throttle`
 and `brake` (each applySeconds/releaseSeconds), boolean
 `wheelSlip`, and `tire` (gripX/peakSlipX/gripY/peakSlipY/knee). Angles are degrees, traversal times
 are seconds, pressures are bar, inertia is kg m² per litre, and tire, fuel-cut and efficiency values

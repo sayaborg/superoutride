@@ -36,6 +36,8 @@ export interface PowertrainRules {
   readonly engineInertiaPerLitre: number;
   /** Fraction above idle that a slipping clutch's lock RPM keeps, leaving a gap to the idle release. */
   readonly clutchLockIdleMargin: number;
+  /** Clutch capacity as a multiple of the curve's maximum torque; above 1. */
+  readonly clutchCapacityFactor: number;
 }
 
 /** One vehicle's powertrain under the game-wide rules; friction and inertia are never vehicle values. */
@@ -48,14 +50,17 @@ export interface PowertrainCoupling {
   readonly engineInertia: number;
   /** Lowest wheel-derived RPM at which a slipping clutch locks: idle * (1 + margin). */
   readonly clutchLockMinimumRpm: number;
+  /** Fixed engine-side torque a slipping clutch can transmit: maximum curve torque * factor. */
+  readonly clutchCapacityTorque: number;
 }
 
 /**
  * Friction torque = FMEP * displacement / (2 * pi * revolutions per cycle);
- * engine inertia = displacement in litres * game-wide inertia per litre.
+ * engine inertia = displacement in litres * game-wide inertia per litre;
+ * clutch capacity = maximum curve torque * game-wide capacity factor.
  */
 export function couplePowertrain(
-  definition: Pick<AutomaticPowertrainDefinition, 'displacementCc' | 'cycle' | 'idleRpm'>,
+  definition: Pick<AutomaticPowertrainDefinition, 'displacementCc' | 'cycle' | 'idleRpm' | 'torqueCurve'>,
   rules: PowertrainRules,
 ): Readonly<PowertrainCoupling> {
   const torquePerPressure = (definition.displacementCc * 1e-6) / (2 * Math.PI * (definition.cycle / 2));
@@ -66,6 +71,8 @@ export function couplePowertrain(
     redlineFrictionTorque: rules.redlineFrictionMeanEffectivePressure * torquePerPressure,
     engineInertia: (definition.displacementCc / 1000) * rules.engineInertiaPerLitre,
     clutchLockMinimumRpm: definition.idleRpm * (1 + rules.clutchLockIdleMargin),
+    clutchCapacityTorque:
+      Math.max(...definition.torqueCurve.map((point) => point.torqueNewtonMeters)) * rules.clutchCapacityFactor,
   });
 }
 
@@ -82,6 +89,8 @@ export interface AutomaticPowertrainState {
   effectiveOpening: number;
   /** Signed engine torque; negative while friction exceeds the opening's torque. */
   engineTorqueNewtonMeters: number;
+  /** Engine-side torque the clutch transmits: signed engine torque while locked, within capacity while slipping. */
+  clutchTorqueNewtonMeters: number;
   /** Signed requested wheel-side torque before protection/distribution, never a direct body force. */
   outputDriveTorque: number;
 }
@@ -106,6 +115,7 @@ export function createAutomaticPowertrainState(
     clutch: locked ? 'LOCK' : 'SLIP',
     effectiveOpening: 0,
     engineTorqueNewtonMeters: 0,
+    clutchTorqueNewtonMeters: 0,
     outputDriveTorque: 0,
   };
 }
@@ -113,7 +123,7 @@ export function createAutomaticPowertrainState(
 /**
  * One step's linear drive map at the step's starting engine speed. Wheel torque is affine in the
  * opening: locked, `wheelPerEngineTorque * (opening*(curve+friction) - friction)`; slipping, the
- * same with the clutch's launch gap subtracted and floored at zero.
+ * same with the clutch's launch gap subtracted and clamped between zero and the clutch capacity.
  */
 export interface PowertrainStep {
   locked: boolean;
@@ -123,6 +133,7 @@ export interface PowertrainStep {
   rpmPerTorque: number;
   /** Engine torque a slipping clutch keeps to lift the engine to peak-torque RPM; 0 when locked. */
   launchGapTorque: number;
+  clutchCapacityTorque: number;
   wheelPerEngineTorque: number;
   /** Idle-holding opening. */
   lowerOpening: number;
@@ -138,6 +149,7 @@ export function createPowertrainStep(): PowertrainStep {
     friction: 0,
     rpmPerTorque: 0,
     launchGapTorque: 0,
+    clutchCapacityTorque: 0,
     wheelPerEngineTorque: 0,
     lowerOpening: 0,
     upperOpening: 1,
@@ -199,6 +211,7 @@ export function prepareAutomaticPowertrain(
   step.friction = friction;
   step.rpmPerTorque = rpmPerTorque;
   step.launchGapTorque = locked ? 0 : (definition.peakTorqueRpm - rpm) / rpmPerTorque;
+  step.clutchCapacityTorque = coupling.clutchCapacityTorque;
   step.wheelPerEngineTorque =
     definition.gearRatios[state.gear - 1]! * definition.finalDriveRatio * coupling.drivelineEfficiency;
   step.lowerOpening = clamp(((definition.idleRpm - rpm) / rpmPerTorque + friction) / (curve + friction), 0, 1);
@@ -206,11 +219,17 @@ export function prepareAutomaticPowertrain(
   return step;
 }
 
+/**
+ * Engine-side clutch torque at an engine torque. Locked, the engine torque itself. Slipping, the
+ * torque that keeps the engine at peak-torque RPM, clamped between zero and the fixed capacity.
+ */
+function clutchTorqueAt(step: PowertrainStep, engineTorque: number): number {
+  return step.locked ? engineTorque : clamp(engineTorque - step.launchGapTorque, 0, step.clutchCapacityTorque);
+}
+
 /** Wheel torque the prepared step delivers at an opening. */
 export function powertrainWheelTorque(step: PowertrainStep, opening: number): number {
-  const engineTorque = opening * (step.curve + step.friction) - step.friction;
-  const clutchTorque = step.locked ? engineTorque : Math.max(0, engineTorque - step.launchGapTorque);
-  return clutchTorque * step.wheelPerEngineTorque;
+  return clutchTorqueAt(step, opening * (step.curve + step.friction) - step.friction) * step.wheelPerEngineTorque;
 }
 
 /** The opening bounds before any drive-torque bound, applied to a requested opening. */
@@ -226,10 +245,14 @@ export function boundedOpening(
 /**
  * Opening whose wheel torque equals a drive-torque bound; the inverse of powertrainWheelTorque.
  * A slipping clutch never transmits negative torque, so a bound at or below zero maps to exactly
- * the opening that lifts the engine to peak-torque RPM.
+ * the opening that lifts the engine to peak-torque RPM. A bound at or above the clutch capacity
+ * does not limit the opening. When even a closed opening leaves the clutch above the bound (an
+ * engine far above peak-torque RPM), the result is 0: the smallest opening, which lowers engine
+ * speed fastest, while the capacity-limited clutch still exceeds the bound for those steps.
  */
 function openingForWheelTorque(step: PowertrainStep, wheelTorque: number): number {
   const clutchTorque = wheelTorque / step.wheelPerEngineTorque;
+  if (!step.locked && clutchTorque >= step.clutchCapacityTorque) return 1;
   const engineTorque = step.locked ? clutchTorque : Math.max(0, clutchTorque) + step.launchGapTorque;
   return Math.max(0, (engineTorque + step.friction) / (step.curve + step.friction));
 }
@@ -241,8 +264,9 @@ function openingForWheelTorque(step: PowertrainStep, wheelTorque: number): numbe
  * Engine torque follows the effective opening. Locked, the engine turns with the wheels and
  * delivers its signed torque; negative torque is engine braking. Slipping, one law advances engine
  * speed: dRPM/dt = (opening torque - friction - clutch torque) / inertia, by forward Euler at the
- * step's starting RPM; the clutch transmits only the positive excess that would carry the engine
- * past peak-torque RPM, so the lower bound cannot bind. Drive torque reaches the wheels untrimmed.
+ * step's starting RPM; the clutch transmits the torque that keeps the engine at peak-torque RPM,
+ * clamped between zero and its fixed capacity, so the lower bound cannot bind. Drive torque
+ * reaches the wheels untrimmed.
  */
 export function completeAutomaticPowertrain(
   state: AutomaticPowertrainState,
@@ -262,10 +286,11 @@ export function completeAutomaticPowertrain(
       : step.lowerOpening;
   const opening = boundedOpening(step, requestedOpening, upperOpening, lowerOpening);
   const engineTorque = opening * (step.curve + step.friction) - step.friction;
-  const clutchTorque = step.locked ? engineTorque : Math.max(0, engineTorque - step.launchGapTorque);
+  const clutchTorque = clutchTorqueAt(step, engineTorque);
   if (!step.locked) state.engineRpm = step.rpm + (engineTorque - clutchTorque) * step.rpmPerTorque;
   state.effectiveOpening = opening;
   state.engineTorqueNewtonMeters = engineTorque;
+  state.clutchTorqueNewtonMeters = clutchTorque;
   state.outputDriveTorque = clutchTorque * step.wheelPerEngineTorque;
   return state.outputDriveTorque;
 }

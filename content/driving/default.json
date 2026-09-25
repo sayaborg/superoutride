@@ -1,6 +1,6 @@
 {
   "format": "superoutride.driving-definition",
-  "version": 5,
+  "version": 6,
   "id": "default",
   "automaticSteering": "travel-direction",
   "maxRoadWheelSteerDegrees": 65,
@@ -12,6 +12,7 @@
   "drivelineEfficiency": 0.9,
   "engineInertiaKilogramSquareMetersPerLitre": 0.04,
   "clutchLockIdleMargin": 0.02,
+  "clutchCapacityFactor": 1.5,
   "throttle": {
     "applySeconds": 0.25,
     "releaseSeconds": 0.125

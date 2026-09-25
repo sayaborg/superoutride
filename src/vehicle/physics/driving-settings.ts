@@ -22,6 +22,8 @@ export function createDrivingSettings(definition: DrivingDefinition) {
     if (!(definition[field] > 0) || !Number.isFinite(definition[field]))
       throw new DefinitionDomainError(field, `${field} must be finite and > 0`);
   }
+  if (!(definition.clutchCapacityFactor > 1) || !Number.isFinite(definition.clutchCapacityFactor))
+    throw new DefinitionDomainError('clutchCapacityFactor', 'clutchCapacityFactor must be finite and > 1');
   if (!(definition.drivelineEfficiency > 0 && definition.drivelineEfficiency <= 1))
     throw new DefinitionDomainError('drivelineEfficiency', 'drivelineEfficiency must lie in (0,1]');
   const rate = 1 / definition.steeringTraversalSeconds;
@@ -51,6 +53,7 @@ export function createDrivingSettings(definition: DrivingDefinition) {
       drivelineEfficiency: definition.drivelineEfficiency,
       engineInertiaPerLitre: definition.engineInertiaKilogramSquareMetersPerLitre,
       clutchLockIdleMargin: definition.clutchLockIdleMargin,
+      clutchCapacityFactor: definition.clutchCapacityFactor,
     }) satisfies PowertrainRules,
     actuator,
     steeringCalibration: withDefinitionPath(

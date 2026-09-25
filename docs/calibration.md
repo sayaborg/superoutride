@@ -48,7 +48,9 @@ a 4-stroke engine's friction torque is `FMEP * displacement / (4*pi)` and a 2-st
 and negative engine torque alike. `engineInertiaKilogramSquareMetersPerLitre=0.04` gives each engine
 a rotor inertia of 0.04 kg m² per litre of displacement. A slipping clutch locks when the
 wheel-derived RPM reaches engine speed and at least `clutchLockIdleMargin=0.02` above idle, and a
-locked clutch slips below idle; the curve's peak-torque RPM limits a slipping engine. None of these
+locked clutch slips below idle; the curve's peak-torque RPM limits a slipping engine.
+`clutchCapacityFactor=1.5` sets the slipping clutch's fixed capacity to 1.5 times the curve's
+maximum torque; it must exceed 1 so an ordinary launch transmits the full engine torque. None of these
 is a vehicle value. Two-wheel support reserve
 remains a form-specific 0.08 until 8-7; four-wheel support reserve is null.
 Tire and steering low-speed regularization are engine constants of 1.0 m/s.

@@ -12,6 +12,7 @@ export interface DrivingDefinition {
   readonly drivelineEfficiency: number;
   readonly engineInertiaKilogramSquareMetersPerLitre: number;
   readonly clutchLockIdleMargin: number;
+  readonly clutchCapacityFactor: number;
   readonly throttle: Readonly<{ applySeconds: number; releaseSeconds: number }>;
   readonly brake: Readonly<{ applySeconds: number; releaseSeconds: number }>;
   readonly wheelSlip: boolean;
@@ -20,6 +21,6 @@ export interface DrivingDefinition {
 
 export interface DrivingDocument extends DrivingDefinition {
   readonly format: 'superoutride.driving-definition';
-  readonly version: 5;
+  readonly version: 6;
   readonly id: 'default';
 }

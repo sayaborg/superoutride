@@ -265,7 +265,7 @@ export function compileVehicleDocument(
 
 export function compileDrivingDocument(value: unknown, document: string): Result<CompiledDrivingDefinition> {
   return admit(document, () => {
-    const v = header(value, 'superoutride.driving-definition', 5);
+    const v = header(value, 'superoutride.driving-definition', 6);
     const numbers = [
       'maxRoadWheelSteerDegrees',
       'steeringOffsetDegrees',
@@ -276,6 +276,7 @@ export function compileDrivingDocument(value: unknown, document: string): Result
       'drivelineEfficiency',
       'engineInertiaKilogramSquareMetersPerLitre',
       'clutchLockIdleMargin',
+      'clutchCapacityFactor',
     ] as const;
     fields(
       v,
@@ -298,7 +299,7 @@ export function compileDrivingDocument(value: unknown, document: string): Result
     fields(t, keys, '/tire');
     const source = freeze({
       format: 'superoutride.driving-definition',
-      version: 5,
+      version: 6,
       id: 'default',
       automaticSteering: v.automaticSteering,
       ...Object.fromEntries(numbers.map((key) => [key, number(v[key], `/${key}`)])),
