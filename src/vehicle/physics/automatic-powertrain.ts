@@ -218,14 +218,15 @@ export function boundedOpening(
   step: PowertrainStep,
   requestedOpening: number,
   upperOpening = step.upperOpening,
+  lowerOpening = step.lowerOpening,
 ): number {
-  return Math.min(upperOpening, Math.max(step.lowerOpening, clamp(requestedOpening, 0, 1)));
+  return Math.min(upperOpening, Math.max(lowerOpening, clamp(requestedOpening, 0, 1)));
 }
 
 /**
- * Largest opening whose wheel torque stays within a drive-torque upper bound; the inverse of
- * powertrainWheelTorque. A slipping clutch never transmits negative torque, so a bound at or
- * below zero allows exactly the opening that lifts the engine to peak-torque RPM.
+ * Opening whose wheel torque equals a drive-torque bound; the inverse of powertrainWheelTorque.
+ * A slipping clutch never transmits negative torque, so a bound at or below zero maps to exactly
+ * the opening that lifts the engine to peak-torque RPM.
  */
 function openingForWheelTorque(step: PowertrainStep, wheelTorque: number): number {
   const clutchTorque = wheelTorque / step.wheelPerEngineTorque;
@@ -235,27 +236,31 @@ function openingForWheelTorque(step: PowertrainStep, wheelTorque: number): numbe
 
 /**
  * Second half of the step. The effective opening, the engine's only command, is the requested
- * opening clamped between the lower bound (idle holding) and the upper bound (fuel cut, then the
- * drive-torque upper bound); the upper bound wins. Engine torque follows the effective opening.
- * Locked, the engine turns with the wheels and delivers its signed torque. Slipping, one law
- * advances engine speed: dRPM/dt = (opening torque - friction - clutch torque) / inertia, by
- * forward Euler at the step's starting RPM; the clutch transmits only the positive excess that
- * would carry the engine past peak-torque RPM. Drive torque reaches the wheels untrimmed.
+ * opening clamped between the lower bound (idle holding, then the drive-torque lower bound while
+ * locked) and the upper bound (fuel cut, then the drive-torque upper bound); the upper bound wins.
+ * Engine torque follows the effective opening. Locked, the engine turns with the wheels and
+ * delivers its signed torque; negative torque is engine braking. Slipping, one law advances engine
+ * speed: dRPM/dt = (opening torque - friction - clutch torque) / inertia, by forward Euler at the
+ * step's starting RPM; the clutch transmits only the positive excess that would carry the engine
+ * past peak-torque RPM, so the lower bound cannot bind. Drive torque reaches the wheels untrimmed.
  */
 export function completeAutomaticPowertrain(
   state: AutomaticPowertrainState,
   step: PowertrainStep,
   requestedOpening: number,
-  driveTorqueUpperBound: number,
+  driveTorqueBounds: Readonly<{ upper: number; lower: number }>,
 ): number {
-  if (!Number.isFinite(requestedOpening) || Number.isNaN(driveTorqueUpperBound)) {
-    throw new RangeError('powertrain requires a finite requested opening and a drive-torque bound');
+  const { upper, lower } = driveTorqueBounds;
+  if (!Number.isFinite(requestedOpening) || Number.isNaN(upper) || Number.isNaN(lower)) {
+    throw new RangeError('powertrain requires a finite requested opening and drive-torque bounds');
   }
   const upperOpening =
-    driveTorqueUpperBound === Infinity
-      ? step.upperOpening
-      : Math.min(step.upperOpening, openingForWheelTorque(step, driveTorqueUpperBound));
-  const opening = boundedOpening(step, requestedOpening, upperOpening);
+    upper === Infinity ? step.upperOpening : Math.min(step.upperOpening, openingForWheelTorque(step, upper));
+  const lowerOpening =
+    step.locked && lower !== -Infinity
+      ? Math.max(step.lowerOpening, openingForWheelTorque(step, lower))
+      : step.lowerOpening;
+  const opening = boundedOpening(step, requestedOpening, upperOpening, lowerOpening);
   const engineTorque = opening * (step.curve + step.friction) - step.friction;
   const clutchTorque = step.locked ? engineTorque : Math.max(0, engineTorque - step.launchGapTorque);
   if (!step.locked) state.engineRpm = step.rpm + (engineTorque - clutchTorque) * step.rpmPerTorque;

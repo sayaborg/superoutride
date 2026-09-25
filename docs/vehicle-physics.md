@@ -164,14 +164,17 @@ wheelTorque = engineTorque * gearRatio * finalDriveRatio * drivelineEfficiency
 
 The effective opening is the engine's only command. The driver's throttle actuator is the requested
 opening, and one clamp sets `effectiveOpening = min(upper, max(lower, requestedOpening))` with the
-upper bound winning a conflict. The lower bound is the idle-holding opening. The upper bound is 0
-during fuel cut; otherwise it is the opening whose wheel torque equals the drive-torque upper bound
-from [torque protection](#torque-protection), capped at 1. Wheel torque is affine in the opening at
+upper bound winning a conflict. The lower bound is the idle-holding opening and, while the clutch is
+locked, the opening whose wheel torque equals the drive-torque lower bound (MSR) from
+[torque protection](#torque-protection). The upper bound is 0 during fuel cut; otherwise it is the
+opening whose wheel torque equals the drive-torque upper bound, capped at 1. Wheel torque is affine in the opening at
 the step's starting engine speed, so that inverse is unique: locked, `wheelTorque / (gearRatio *
 finalDriveRatio * drivelineEfficiency)` plus friction over `curveTorque + frictionTorque`; slipping,
 the clutch's launch gap `(peakTorqueRpm - rpm) / rpmPerTorque` is added to the engine torque, and a
-bound at or below zero allows exactly the opening that lifts the engine to launch RPM. Priority is
-therefore fuel cut, then the drive-torque bound, then idle holding. The powertrain state publishes
+bound at or below zero allows exactly the opening that lifts the engine to launch RPM. A slipping
+clutch never transmits negative torque, so the drive-torque lower bound applies only while locked.
+Priority is therefore fuel cut, then the drive-torque upper bound (TCS and anti-wheelie), then idle
+holding and MSR. The powertrain state publishes
 the effective opening as an observation. Full opening therefore delivers exactly the curve torque; smaller openings, released
 throttle and fuel cut give less or negative engine torque. Below idle, curve torque keeps its idle
 value.
@@ -205,8 +208,8 @@ held by torque, not by a clamp on engine speed, and settles without oscillation.
 move the vehicle. Engine RPM changes continuously except at a ratio change and one bounded case:
 locking happens where the wheels reach the engine, except that an engine idling with the wheels
 turning it faster locks at the clutch lock RPM, `clutchLockIdleMargin` above idle; slipping starts
-from the idle RPM the engine already has. Negative wheel torque is split by the drive fraction and joins each driven station's
-brake magnitude, so it opposes wheel rotation and never reverses it.
+from the idle RPM the engine already has. Negative wheel torque is engine braking: signed drive
+torque split by the drive fraction like positive drive, protected by MSR rather than by ABS.
 
 The piecewise-linear torque curve covers idle through redline. Admission checks its ordered RPM
 points, positive finite torques and coverage, and requires the derived peak-power RPM to be below
@@ -223,18 +226,23 @@ Each mechanics substep runs in one order: the powertrain prepares its step (shif
 fuel-cut latches, and the opening-to-wheel-torque map at the current engine speed); torque
 protection bounds total drive-wheel torque from the tires; the powertrain completes the step with
 the effective opening, engine torque and clutch; the wheel pair is solved. Protection never trims
-drive torque after the powertrain: the bound only limits the effective opening, so the wheels receive
-exactly `clutchTorque * gearRatio * finalDriveRatio * drivelineEfficiency`.
+drive torque after the powertrain: the bounds only limit the effective opening, so the wheels
+receive exactly the signed `clutchTorque * gearRatio * finalDriveRatio * drivelineEfficiency`.
 
-TCS and ABS invert the wheel residual at longitudinal slip boundary `grip*(2-KN)*muX/kX`. TCS gives
-each forward-moving driven station a drive-torque bound: the net torque that reaches maximum rolling
-speed in the step, plus that station's ABS-limited brake at zero drive. The total bound is each
-station's bound divided by its fixed drive fraction, taking the tighter station; one opening drives
-both axles, so the tighter axle lowers drive to both. Stations without force are unbounded. ABS
-limits each brake against the drive torque actually delivered; a larger drive only raises that
-limit, so the TCS bound stays valid. Low-speed ABS yields to the signed static brake solve. Engine
-braking is part of the requested brake magnitude, so ABS and brake-side support protection limit it
-exactly as they limit pedal braking.
+TCS, MSR and ABS invert the wheel residual at longitudinal slip boundary `grip*(2-KN)*muX/kX`. With
+the pedal brake request and zero drive:
+
+- TCS gives each forward-moving driven station an upper drive-torque bound: the net torque that
+  reaches maximum rolling speed in the step, plus that station's ABS-limited brake at zero drive.
+- MSR gives each driven station moving forward faster than tire v0 a lower drive-torque bound
+  (engine braking): the net torque that reaches minimum rolling speed, plus the same ABS-limited
+  brake, capped at zero. The pedal brake takes its ABS share first; engine braking gets the rest.
+
+Each total bound is the station bound divided by its fixed drive fraction, taking the tighter
+station; one opening drives both axles, so a limit on either axle changes drive to both. Stations
+without force are unbounded. ABS limits each pedal brake against the signed drive torque actually
+delivered; drive within both bounds never limits the pedal brake below its ABS value at zero drive,
+so the bounds stay valid. Low-speed ABS yields to the signed static brake solve.
 
 Two-wheel support protection reserves 8% of static suspension compression against pedal-induced lift:
 

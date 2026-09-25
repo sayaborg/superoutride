@@ -32,10 +32,12 @@ values without writing to it at startup. DEV adjustments and their transfer on
 vehicle switches remain unchanged. Tires are dimensionless coefficients per unit normal load and
 share one authored set for front and rear. Driving assists are not difficulty controls.
 
-The same definition selects travel-direction automatic steering and `wheelSlip=true` (TCS and ABS).
-TCS and the drive side of support protection act only through the engine's effective opening; the
+The same definition selects travel-direction automatic steering and `wheelSlip=true` (TCS, MSR and
+ABS). TCS, MSR (engine-braking slip) and the drive side of support protection act only through the
+engine's effective opening; ABS and the brake side of support protection act on the pedal brake. The
 driver's throttle actuator keeps its traversal time as the requested opening, and the opening's
-bounds take effect within each mechanics substep.
+bounds take effect within each mechanics substep. Drive is split by the fixed front drive fraction,
+so a bound from either axle changes drive to both.
 Throttle traversal is 0.25 s apply / 0.125 s release; brake traversal is 0.15 s apply / 0.10 s release.
 Rates are their reciprocals. `fuelCutRedlineMargin=0.02` is dimensionless: fuel cuts above 1.02 times
 redline and returns at redline. Engine friction uses provisional game-wide friction mean effective

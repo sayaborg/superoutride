@@ -75,15 +75,39 @@ function tcsDriveTorqueBound(
   return Math.max(0, torqueUpper + absBrakeTorque(input, 0, scratch, residual));
 }
 
+/** MSR: the most negative drive torque keeping a forward-moving station at or above its minimum
+ * rolling speed, after its ABS-limited brake at zero drive takes its share first. Unbounded at or
+ * below tire v0 and without force. */
+function msrDriveTorqueBound(
+  input: WheelSolveInput,
+  scratch: ReturnType<typeof createTireForceScratch>,
+  residual: Float64Array,
+): number {
+  const vx = input.longitudinalVelocity;
+  if (!(input.normalLoad > 0) || !(input.gripFactor > 0) || !(vx > TIRE_LOW_SPEED_REGULARIZATION)) return -Infinity;
+  const referenceSpeed = Math.hypot(vx, TIRE_LOW_SPEED_REGULARIZATION);
+  const minimumRolling = (vx - boundarySlip(input) * referenceSpeed) / input.rollingRadius;
+  if (!(minimumRolling > 0)) return -Infinity;
+  const boundary = wheelRequiredNetTorque(input, minimumRolling, scratch, residual);
+  return Math.min(0, boundary + absBrakeTorque(input, 0, scratch, residual));
+}
+
+/** Drive torque is signed (negative is engine braking); brake is a magnitude. */
 function assertProtectedRequest(input: WheelSolveInput): void {
   validateWheelSolveInput(input);
-  if (
-    !(input.driveTorque >= 0) ||
-    !(input.brakeTorque >= 0) ||
-    !Number.isFinite(input.driveTorque + input.brakeTorque)
-  ) {
-    throw new RangeError('protected requested torques must be finite nonnegative magnitudes');
+  if (!(input.brakeTorque >= 0) || !Number.isFinite(input.driveTorque + input.brakeTorque)) {
+    throw new RangeError('protected requests need finite drive torque and a finite nonnegative brake magnitude');
   }
+}
+
+/** Total drive-wheel torque bounds; each only limits the effective opening. */
+export interface DriveTorqueBounds {
+  upper: number;
+  lower: number;
+}
+
+export function createDriveTorqueBounds(): DriveTorqueBounds {
+  return { upper: Infinity, lower: -Infinity };
 }
 
 interface ProtectedWheelPair {
@@ -215,14 +239,15 @@ function evaluatePair(
 }
 
 /**
- * Upper bound on total drive-wheel torque, computed from the tires before the powertrain chooses
- * its opening. Requests carry the brake request and zero drive. TCS bounds each driven station;
- * dividing by the station's fixed drive fraction and taking the tighter station bounds the
- * total. With a support reserve, the drive side of anti-wheelie bisects total drive torque, brake
- * fixed, until the front support margin holds; the requested drive torque caps that search. The
- * bound only limits the effective opening; drive torque is never trimmed after the powertrain.
+ * Bounds on total drive-wheel torque, computed from the tires before the powertrain chooses its
+ * opening. Requests carry the brake request and zero drive. Each driven station's bound is divided
+ * by its fixed drive fraction and the tighter station bounds the total. TCS gives the upper bound
+ * and MSR the lower bound (engine braking). With a support reserve, the drive side of anti-wheelie
+ * bisects positive total drive torque, brake fixed, until the front support margin holds; the
+ * requested drive torque caps that search. The bounds only limit the effective opening; drive
+ * torque is never trimmed after the powertrain.
  */
-export function solveDriveTorqueUpperBound(
+export function solveDriveTorqueBounds(
   compiledVehicle: CompiledVehicle,
   body: BodyKinematics,
   front: ContactObservation,
@@ -232,10 +257,45 @@ export function solveDriveTorqueUpperBound(
   policy: TorqueProtectionPolicy,
   requestedDriveTorque: number,
   workspace: ReturnType<typeof createProtectedWheelPairWorkspace>,
-): number {
+  out: DriveTorqueBounds,
+): DriveTorqueBounds {
   assertProtectedRequest(frontRequest);
   assertProtectedRequest(rearRequest);
   const slot = workspace.first;
+  const frontFraction = compiledVehicle.frontDriveTorqueFraction;
+  let lower = -Infinity;
+  if (policy.wheelSlip) {
+    if (frontFraction > 0)
+      lower = Math.max(lower, msrDriveTorqueBound(frontRequest, slot.tire, slot.residual) / frontFraction);
+    if (frontFraction < 1)
+      lower = Math.max(lower, msrDriveTorqueBound(rearRequest, slot.tire, slot.residual) / (1 - frontFraction));
+  }
+  out.lower = lower;
+  out.upper = driveTorqueUpperBound(
+    compiledVehicle,
+    body,
+    front,
+    rear,
+    frontRequest,
+    rearRequest,
+    policy,
+    requestedDriveTorque,
+    slot,
+  );
+  return out;
+}
+
+function driveTorqueUpperBound(
+  compiledVehicle: CompiledVehicle,
+  body: BodyKinematics,
+  front: ContactObservation,
+  rear: ContactObservation,
+  frontRequest: WheelSolveInput,
+  rearRequest: WheelSolveInput,
+  policy: TorqueProtectionPolicy,
+  requestedDriveTorque: number,
+  slot: PairCandidate,
+): number {
   const frontFraction = compiledVehicle.frontDriveTorqueFraction;
   let upper = Infinity;
   if (policy.wheelSlip) {

@@ -50,8 +50,9 @@ import {
 import { WORLD_UP, add3, cross3, dot3, normalize3, scale3 } from '../../core/vector3.js';
 import { drivenWheelOmega, type CompiledVehicle } from './vehicle-definitions.js';
 import {
+  createDriveTorqueBounds,
   resolveTorqueProtectionPolicy,
-  solveDriveTorqueUpperBound,
+  solveDriveTorqueBounds,
   solveProtectedWheelPair,
   createProtectedWheelPairWorkspace,
   type TorqueProtectionPolicy,
@@ -293,9 +294,9 @@ export function updateVehicle(
     rearRequest.brakeTorque = vehicle.actuator.brake * compiledVehicle.rearStation.maxBrakeTorque;
     rearRequest.dt = substep;
 
-    // The tires bound drive torque first; that bound only limits the effective opening.
+    // The tires bound drive torque first; the bounds only limit the effective opening.
     const requestedOpening = vehicle.actuator.throttle;
-    const driveTorqueUpperBound = solveDriveTorqueUpperBound(
+    const driveTorqueBounds = solveDriveTorqueBounds(
       compiledVehicle,
       body,
       front,
@@ -305,22 +306,17 @@ export function updateVehicle(
       vehicle.torqueProtection,
       Math.max(0, powertrainWheelTorque(powertrainStep, boundedOpening(powertrainStep, requestedOpening))),
       workspace.pair,
+      workspace.driveTorqueBounds,
     );
     const driveTorque = completeAutomaticPowertrain(
       vehicle.powertrain,
       powertrainStep,
       requestedOpening,
-      driveTorqueUpperBound,
+      driveTorqueBounds,
     );
-    // Positive drive reaches the wheels untrimmed. Until MSR, engine braking joins the brake
-    // magnitude and its ABS.
-    const frontFraction = compiledVehicle.frontDriveTorqueFraction;
-    const positiveDrive = Math.max(0, driveTorque);
-    const engineBrakeTorque = Math.max(0, -driveTorque);
-    frontRequest.driveTorque = positiveDrive * frontFraction;
-    rearRequest.driveTorque = positiveDrive - frontRequest.driveTorque;
-    frontRequest.brakeTorque += engineBrakeTorque * frontFraction;
-    rearRequest.brakeTorque += engineBrakeTorque * (1 - frontFraction);
+    // Signed drive torque, engine braking included, reaches the wheels untrimmed.
+    frontRequest.driveTorque = driveTorque * compiledVehicle.frontDriveTorqueFraction;
+    rearRequest.driveTorque = driveTorque - frontRequest.driveTorque;
     const resolved = solveProtectedWheelPair(
       compiledVehicle,
       body,
@@ -471,6 +467,7 @@ function createStepWorkspace(vehicle: VehicleState) {
     rearRequest,
     pair: createProtectedWheelPairWorkspace(frontRequest, rearRequest),
     powertrain: createPowertrainStep(),
+    driveTorqueBounds: createDriveTorqueBounds(),
   };
 }
 
