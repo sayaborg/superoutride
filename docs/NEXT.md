@@ -11,7 +11,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **8-5f — Provisional start**.
+Next PR: **8-5g — Shift observations**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -21,7 +21,6 @@ PRs hold rationale and verification evidence.
 
 Give vehicles, driving assists, tires, powertrains and materials explicit definitions, and treat airborne driving as normal state.
 
-- **8-5f — Provisional start:** a READY phase before GO holds every vehicle with the clutch open while engines rev freely under the same law; race time starts at GO, and reference driving and scenarios use the same start. Countdown lamps and rolling starts remain Session decisions. Behavior changes.
 - **8-5g — Shift observations:** the powertrain reports each shift (up or down, engine speed before and after) for audio, and the audio observation's engine load field is named for the effective opening it carries. Behavior unchanged.
 - **8-6a — Remove keyboard shortcuts:** remove every DEV keyboard shortcut (course, vehicle, steering and tire tuning, camera yaw, recovery); DEV UI buttons select everything, including a new recovery button. Driving keys stay. Driving behavior unchanged.
 - **8-6b — Vehicle state and model:** vehicle state holds only dynamic values; the compiled vehicle, driving settings and form policy form one immutable model passed to each step. The composition shared by browser, race and tools moves from shell to race, and SessionVehicle holds only the vehicle and driving definitions. Report a split plan first if large. Behavior unchanged.
