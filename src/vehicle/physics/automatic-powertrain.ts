@@ -76,20 +76,21 @@ export function couplePowertrain(
   });
 }
 
-export type ClutchState = 'LOCK' | 'SLIP';
+/** Clutch observation: LOCK is the latch; otherwise SLIP while it transmits torque, else OPEN. */
+export type ClutchObservation = 'LOCK' | 'SLIP' | 'OPEN';
 
 export interface AutomaticPowertrainState {
-  /** Selected gear, fuel-cut and clutch latches and engine speed are the only dynamic powertrain memory. */
+  /** Selected gear, fuel-cut and clutch-lock latches and engine speed are the only dynamic powertrain memory. */
   gear: number;
   fuelCut: boolean;
-  clutch: ClutchState;
+  clutchLocked: boolean;
   engineRpm: number;
   /** Derived observation caches; none is consumed as state by the next drive solve. */
   /** The engine's only command: the requested opening clamped between its lower and upper bounds. */
   effectiveOpening: number;
   /** Signed engine torque; negative while friction exceeds the opening's torque. */
   engineTorqueNewtonMeters: number;
-  /** Engine-side torque the clutch transmits: signed engine torque while locked, within capacity while slipping. */
+  /** Engine-side torque the clutch transmits: signed engine torque while locked, else within capacity. */
   clutchTorqueNewtonMeters: number;
   /** Signed requested wheel-side torque before protection/distribution, never a direct body force. */
   outputDriveTorque: number;
@@ -112,12 +113,18 @@ export function createAutomaticPowertrainState(
     gear,
     fuelCut: false,
     engineRpm: locked ? wheelRpm : definition.idleRpm,
-    clutch: locked ? 'LOCK' : 'SLIP',
+    clutchLocked: locked,
     effectiveOpening: 0,
     engineTorqueNewtonMeters: 0,
     clutchTorqueNewtonMeters: 0,
     outputDriveTorque: 0,
   };
+}
+
+/** Derives the clutch observation from the lock latch and the transmitted torque. */
+export function observeClutch(state: Readonly<AutomaticPowertrainState>): ClutchObservation {
+  if (state.clutchLocked) return 'LOCK';
+  return state.clutchTorqueNewtonMeters > 0 ? 'SLIP' : 'OPEN';
 }
 
 /**
@@ -158,10 +165,11 @@ export function createPowertrainStep(): PowertrainStep {
 
 /**
  * First half of one ordinary mechanics step. Shifts follow the wheel-derived RPM, at most one per
- * call. The clutch is a latch on the signed wheel-derived RPM: it locks when that RPM reaches
- * engine speed and the idle lock margin, and releases below idle. Fuel cut is a hysteretic latch
- * on engine RPM. The returned map lets torque protection bound drive torque before the opening
- * is chosen.
+ * call. The clutch lock is a latch on the signed wheel-derived RPM: it locks when that RPM reaches
+ * engine speed and the idle lock margin, and releases below idle. A clutch without capacity holds
+ * no lock. The step's capacity is the coupling's fixed capacity unless a caller holding the vehicle
+ * passes 0. Fuel cut is a hysteretic latch on engine RPM. The returned map lets torque protection
+ * bound drive torque before the opening is chosen.
  */
 export function prepareAutomaticPowertrain(
   state: AutomaticPowertrainState,
@@ -171,6 +179,7 @@ export function prepareAutomaticPowertrain(
   allowShift: boolean,
   dt: number,
   step: PowertrainStep,
+  clutchCapacityTorque = coupling.clutchCapacityTorque,
 ): PowertrainStep {
   assertWheelOmega(drivenWheelOmega);
   if (!(dt > 0) || !Number.isFinite(dt)) throw new RangeError('powertrain requires finite positive dt');
@@ -190,10 +199,11 @@ export function prepareAutomaticPowertrain(
   }
 
   const wheelRpm = coupledEngineRpm(definition, drivenWheelOmega, state.gear);
-  if (state.clutch === 'SLIP' && wheelRpm >= Math.max(state.engineRpm, coupling.clutchLockMinimumRpm))
-    state.clutch = 'LOCK';
-  else if (state.clutch === 'LOCK' && wheelRpm < definition.idleRpm) state.clutch = 'SLIP';
-  const locked = state.clutch === 'LOCK';
+  if (!(clutchCapacityTorque > 0)) state.clutchLocked = false;
+  else if (!state.clutchLocked && wheelRpm >= Math.max(state.engineRpm, coupling.clutchLockMinimumRpm))
+    state.clutchLocked = true;
+  else if (state.clutchLocked && wheelRpm < definition.idleRpm) state.clutchLocked = false;
+  const locked = state.clutchLocked;
   if (locked) state.engineRpm = wheelRpm;
   const rpm = state.engineRpm;
   if (state.fuelCut) {
@@ -211,7 +221,7 @@ export function prepareAutomaticPowertrain(
   step.friction = friction;
   step.rpmPerTorque = rpmPerTorque;
   step.launchGapTorque = locked ? 0 : (definition.peakTorqueRpm - rpm) / rpmPerTorque;
-  step.clutchCapacityTorque = coupling.clutchCapacityTorque;
+  step.clutchCapacityTorque = clutchCapacityTorque;
   step.wheelPerEngineTorque =
     definition.gearRatios[state.gear - 1]! * definition.finalDriveRatio * coupling.drivelineEfficiency;
   step.lowerOpening = clamp(((definition.idleRpm - rpm) / rpmPerTorque + friction) / (curve + friction), 0, 1);
@@ -221,7 +231,7 @@ export function prepareAutomaticPowertrain(
 
 /**
  * Engine-side clutch torque at an engine torque. Locked, the engine torque itself. Slipping, the
- * torque that keeps the engine at peak-torque RPM, clamped between zero and the fixed capacity.
+ * torque that keeps the engine at peak-torque RPM, clamped between zero and the step's capacity.
  */
 function clutchTorqueAt(step: PowertrainStep, engineTorque: number): number {
   return step.locked ? engineTorque : clamp(engineTorque - step.launchGapTorque, 0, step.clutchCapacityTorque);
@@ -245,15 +255,21 @@ export function boundedOpening(
 /**
  * Opening whose wheel torque equals a drive-torque bound; the inverse of powertrainWheelTorque.
  * A slipping clutch never transmits negative torque, so a bound at or below zero maps to exactly
- * the opening that lifts the engine to peak-torque RPM. A bound at or above the clutch capacity
- * does not limit the opening. When even a closed opening leaves the clutch above the bound (an
- * engine far above peak-torque RPM), the result is 0: the smallest opening, which lowers engine
- * speed fastest, while the capacity-limited clutch still exceeds the bound for those steps.
+ * the opening that lifts the engine to peak-torque RPM, the largest opening that still transmits
+ * nothing; a bound never limits an opening at which the clutch transmits nothing. A bound at or
+ * above the clutch capacity (any bound at zero capacity) does not limit the opening. When even a
+ * closed opening leaves the clutch above the bound (an engine far above peak-torque RPM), the
+ * result is 0: the smallest opening, which lowers engine speed fastest, while the capacity-limited
+ * clutch still exceeds the bound for those steps.
  */
 function openingForWheelTorque(step: PowertrainStep, wheelTorque: number): number {
-  const clutchTorque = wheelTorque / step.wheelPerEngineTorque;
-  if (!step.locked && clutchTorque >= step.clutchCapacityTorque) return 1;
-  const engineTorque = step.locked ? clutchTorque : Math.max(0, clutchTorque) + step.launchGapTorque;
+  if (step.locked) {
+    const engineTorque = wheelTorque / step.wheelPerEngineTorque;
+    return Math.max(0, (engineTorque + step.friction) / (step.curve + step.friction));
+  }
+  const clutchTorque = Math.max(0, wheelTorque / step.wheelPerEngineTorque);
+  if (clutchTorque >= step.clutchCapacityTorque) return 1;
+  const engineTorque = clutchTorque + step.launchGapTorque;
   return Math.max(0, (engineTorque + step.friction) / (step.curve + step.friction));
 }
 
@@ -265,7 +281,7 @@ function openingForWheelTorque(step: PowertrainStep, wheelTorque: number): numbe
  * delivers its signed torque; negative torque is engine braking. Slipping, one law advances engine
  * speed: dRPM/dt = (opening torque - friction - clutch torque) / inertia, by forward Euler at the
  * step's starting RPM; the clutch transmits the torque that keeps the engine at peak-torque RPM,
- * clamped between zero and its fixed capacity, so the lower bound cannot bind. Drive torque
+ * clamped between zero and the step's capacity, so the lower bound cannot bind. Drive torque
  * reaches the wheels untrimmed.
  */
 export function completeAutomaticPowertrain(

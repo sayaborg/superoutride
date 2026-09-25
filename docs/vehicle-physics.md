@@ -187,16 +187,20 @@ clutch lock RPM `idleRpm * (1 + clutchLockIdleMargin)`, the clutch capacity
 them is a vehicle value. Vehicle compilation derives the launch RPM as peak-torque RPM, the lowest
 RPM of the curve's maximum torque; it only limits engine speed while the clutch slips.
 
-The clutch is a hysteretic latch on the signed wheel-derived RPM, stored in the powertrain state as
-`LOCK` or `SLIP`. A slipping clutch locks when the wheel-derived RPM reaches the larger of engine RPM
-and the clutch lock RPM; a locked clutch slips when it falls below idle. The margin keeps a gap
+The clutch lock is a hysteretic latch on the signed wheel-derived RPM, the powertrain state's only
+clutch memory (`clutchLocked`). An unlocked clutch locks when the wheel-derived RPM reaches the larger
+of engine RPM and the clutch lock RPM; a locked clutch releases when it falls below idle. A clutch
+with zero capacity holds no lock. The margin keeps a gap
 between locking and releasing at idle, so tire slip recovering after a release cannot relock the
 clutch. A new or recovered powertrain applies the same rule to an engine at idle: it starts locked
 with the wheel-derived RPM when that RPM reaches the clutch lock RPM, and otherwise slips at idle.
+The clutch observation derives from the latch and the transmitted clutch torque: `LOCK` while
+locked; otherwise `SLIP` while the clutch transmits torque above zero and `OPEN` while it transmits
+zero, as it does at rest with the throttle released. The DEV HUD shows this observation.
 
 - `LOCK`: engine RPM equals the wheel-derived RPM, and the signed engine torque reaches the wheels.
   Engine braking exists only while locked.
-- `SLIP`: one law advances engine RPM,
+- Unlocked (`SLIP` or `OPEN`): one law advances engine RPM,
   `dRPM/dt = (opening*(curveTorque+frictionTorque) - frictionTorque - clutchTorque) / engineInertia`,
   by forward Euler at the RPM of the step's start. The clutch is a friction element with a fixed
   capacity that no controller changes. It transmits the torque that would keep the engine at
@@ -211,7 +215,16 @@ While the clutch is at capacity, changing the opening does not change wheel torq
 drive-torque upper bound below the capacity may be unreachable. The opening's upper bound is then
 0, the smallest opening, which lowers engine speed fastest; the driven wheels may spin briefly (a
 chirp) until the engine reaches launch RPM. A bound at or above the capacity does not limit the
-opening while slipping.
+opening while unlocked, and no bound limits an opening at which the clutch transmits zero: a bound
+at or below zero allows up to the opening that lifts the engine to launch RPM, and at zero capacity
+every bound is at or above the capacity.
+
+A held vehicle, as in a race's READY phase, keeps its body and wheel state and its gear; its
+actuators follow the input and its engine runs under the same law with the step's clutch capacity
+set to zero, so the clutch transmits nothing and the observation is `OPEN`. Fuel cut and idle
+holding still bound the opening, and the effective opening follows the throttle as it does when
+driving. The next ordinary update uses the fixed capacity again, so the clutch slips from the engine
+speed the hold left.
 
 The idle-holding opening is the opening whose step would land exactly on idle. Idle is therefore
 held by torque, not by a clamp on engine speed, and settles without oscillation. A small throttle whose torque cannot exceed friction does not raise engine speed or

@@ -22,6 +22,7 @@ import { SoftwareSurface } from '../../src/view/software-surface.js';
 import { createRaceSprites } from '../../src/view/race-sprites.js';
 import { createDisplaySettings, STRIP_RENDER_METHODS } from '../../src/view/display-settings.js';
 import { SIM_DT } from '../../src/shell/frame-loop.js';
+import { READY_SECONDS } from '../../src/race/start-phase.js';
 import { courseBoundaryAt, courseCarriagewayExists } from '../../src/course/course-boundaries.js';
 import { routeSectionS } from '../../src/course/course-route.js';
 
@@ -139,18 +140,20 @@ export function runScenario({ course, ground }, scenario) {
   };
   race.start();
   let tick = 0;
-  const maxTicks = Math.ceil(scenario.seconds / SIM_DT);
+  // Scenario seconds count from GO; READY runs through the same product start first.
+  const maxTicks = Math.ceil((READY_SECONDS + scenario.seconds) / SIM_DT);
   const accepted = new Set();
   const stoppedTicks = competitors.map(() => 0);
   const progress = competitors.map(() => ({ next: -Infinity, finishes: 0 }));
   for (; tick < maxTicks; tick++) {
     const previous = competitors.map((c) => ({ s: c.actor.vehicle.course.s, recoveries: c.actor.recovery.recoveries }));
     let input;
-    if (scenario.policy === 'reverse') input = idle;
+    if (race.clock.status === 'READY') input = idle;
+    else if (scenario.policy === 'reverse') input = idle;
     else if (scenario.policy === 'departure') input = { ...idle, steering: scenario.side, throttle: true };
     else if (scenario.waitForStop && evidence.recoveries.length && evidence.stoppedRivals.length < race.rivals.length)
       input = { ...idle, brake: true };
-    else if (scenario.policy === 'closed' && tick * SIM_DT < 3) input = idle;
+    else if (scenario.policy === 'closed' && race.clock.elapsedSeconds < 3) input = idle;
     else
       input = sampleEnvelopeDrivingInput(
         scene.world.coordinates,

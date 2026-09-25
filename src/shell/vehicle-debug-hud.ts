@@ -2,6 +2,7 @@ import type { CompiledVehicleDefinition } from '../vehicle/definition-document.j
 import { assertExclusivePedalInput, normalizedPedalRequest, type DrivingInput } from '../vehicle/driving-input.js';
 import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import { VEHICLE_GRAVITY } from '../vehicle/physics/vehicle-dynamics.js';
+import { observeClutch } from '../vehicle/physics/automatic-powertrain.js';
 import { formatBrowserCourseSelector, type BrowserCourseModeQuery } from './course-mode-selection.js';
 import {
   formatMaxRoadWheelSteerSelector,
@@ -80,7 +81,7 @@ function createVehicleDebugHudModel(
       .toString()
       .padStart(
         3,
-      )}km/h  RPM ${Math.round(vehicle.powertrain.engineRpm).toString().padStart(5)}  GEAR ${vehicle.powertrain.gear}  CLUTCH ${vehicle.powertrain.clutch} ${Math.round(vehicle.powertrain.clutchTorqueNewtonMeters)}Nm  FUEL ${
+      )}km/h  RPM ${Math.round(vehicle.powertrain.engineRpm).toString().padStart(5)}  GEAR ${vehicle.powertrain.gear}  CLUTCH ${observeClutch(vehicle.powertrain)} ${Math.round(vehicle.powertrain.clutchTorqueNewtonMeters)}Nm  FUEL ${
       vehicle.powertrain.fuelCut ? 'CUT' : 'ON'
     }`,
     requestedSteering: clampSigned(input.steering),

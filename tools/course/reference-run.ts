@@ -19,7 +19,10 @@ import {
   compileEnvelopeDriver,
 } from '../../src/race/envelope-driver.js';
 import { SIM_DT } from '../../src/shell/frame-loop.js';
+import { READY_SECONDS } from '../../src/race/start-phase.js';
 import { courseBoundaryAt, courseCarriagewayExists } from '../../src/course/course-boundaries.js';
+
+const IDLE_INPUT = Object.freeze({ steering: 0, throttle: false, brake: false });
 
 /** Enumerate canonical finite alternatives; one continuous run per history, no stitched sectors. */
 export function courseReferenceRoutes(course: CompiledCourse) {
@@ -87,18 +90,15 @@ export function runCourseReference(
   const driver = compileEnvelopeDriver(envelope, REFERENCE_DRIVER.utilization, envelope.maximumSpeed);
   race.start();
   // Work bound, not a replacement finish. A timed-out/recovered run publishes no reference product.
-  const maxTicks = Math.ceil((3600 * lapCount) / SIM_DT);
+  const maxTicks = Math.ceil((READY_SECONDS + 3600 * lapCount) / SIM_DT);
   for (let tick = 0; tick < maxTicks; tick++) {
     const section = scene.runtime.route.at(vehicle.course.s)!.section,
       startSeconds = race.clock.elapsedSeconds;
-    const input = sampleEnvelopeDrivingInput(
-      scene.world.coordinates,
-      vehicle,
-      driver,
-      lane,
-      workspace,
-      scene.runtime.route,
-    );
+    // The reference driver leaves the throttle closed during READY.
+    const input =
+      race.clock.status === 'READY'
+        ? IDLE_INPUT
+        : sampleEnvelopeDrivingInput(scene.world.coordinates, vehicle, driver, lane, workspace, scene.runtime.route);
     race.advance(input, SIM_DT);
     if (actor.recovery.recoveries)
       throw new RangeError(`${entry.compiledVehicle.id}: reference recovered at ${section.id}:${vehicle.course.s}`);

@@ -13,7 +13,8 @@ import {
 } from './recovery.js';
 import { compileEnvelopeDriver, createEnvelopeDriverWorkspace, sampleEnvelopeDrivingInput } from './envelope-driver.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
-import { createVehicle, type VehicleState } from '../vehicle/physics/vehicle-physics.js';
+import { createVehicle, updateHeldVehicle, type VehicleState } from '../vehicle/physics/vehicle-physics.js';
+import { createStartPhase } from './start-phase.js';
 import type { SessionVehicle } from './session-configuration.js';
 import { createRivalRoster } from './rival-roster.js';
 import type { createRouteRuntime } from './route-runtime.js';
@@ -43,6 +44,7 @@ export function createCourseRace(options: {
   const { vehicle: rival, envelope } = options.session;
   const driver = compileEnvelopeDriver(envelope, options.session.rivalUtilization, envelope.maximumSpeed);
   const clock = createCheckpointClock(budgets?.initialMs ?? null);
+  const startPhase = createStartPhase();
   const lines = createRouteCrossSections(runtime.route, course, configuration.lapCount);
   const forks = createCourseForkField(runtime.route, lines);
   const competitor = (id: string, actor: Actor, targetL: number) => ({
@@ -90,6 +92,16 @@ export function createCourseRace(options: {
     input: (s: number) => lane(c, s),
   }));
   const actorInputs = new Map(motions.map((motion) => [motion.c.id, motion.step]));
+  const idle: DrivingInput = Object.freeze({ steering: 0, throttle: false, brake: false });
+  // READY holds every vehicle with zero clutch capacity; race time and rival driving start at GO,
+  // where ordinary updates restore the fixed capacity.
+  const holdReady = (input: DrivingInput, dt: number) => {
+    for (const motion of motions) {
+      motion.step.input = motion === motions[0] ? input : idle;
+      updateHeldVehicle(motion.c.actor.vehicle, motion.step.input, dt);
+    }
+    if (startPhase.advance(dt)) clock.start();
+  };
   const move = (motion: (typeof motions)[number], input: DrivingInput, dt: number) => {
     const { c, previous } = motion;
     const { actor } = c;
@@ -152,11 +164,15 @@ export function createCourseRace(options: {
     get events() {
       return events;
     },
-    start: () => clock.start(),
+    start: () => startPhase.begin(),
     forks,
     recoveryL: (s: number) => forks.recoveryL(s, player.targetL),
     advance(input: DrivingInput, dt: number) {
       stepObservation.recovered = false;
+      if (startPhase.status === 'READY') {
+        holdReady(input, dt);
+        return stepObservation;
+      }
       if (clock.status !== 'RUNNING') return stepObservation;
       stepStart = clock.elapsedSeconds;
       stepDuration = dt;
@@ -240,6 +256,7 @@ export function createCourseRace(options: {
       let state: string = clock.status;
       if (clock.status === 'GOAL' || clock.status === 'GAME_OVER')
         return `${clock.status.replace('_', ' ')} · P${rank}/${rivals.length + 1} · ${formatRaceTime(clock.elapsedSeconds)}`;
+      if (startPhase.status === 'READY') return `READY ${Math.ceil(startPhase.remainingSeconds)}`;
       if (clock.status === 'READY') return 'READY';
       if (player.progress.status !== 'FINISHED') {
         if (course.type === 'CIRCUIT')

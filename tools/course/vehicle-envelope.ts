@@ -6,7 +6,8 @@ import { compilePlanPath } from '../../src/course/geometry/plan-path.js';
 import { Profile } from '../../src/course/geometry/profile.js';
 import { SurfaceMap } from '../../src/vehicle/physics/surface-map.js';
 import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
-import { updateVehicle, vehicleBodyKinematics } from '../../src/vehicle/physics/vehicle-physics.js';
+import { updateHeldVehicle, updateVehicle, vehicleBodyKinematics } from '../../src/vehicle/physics/vehicle-physics.js';
+import { createStartPhase } from '../../src/race/start-phase.js';
 import { SIM_DT } from '../../src/shell/frame-loop.js';
 import { wrapAngle } from '../../src/core/math.js';
 
@@ -43,6 +44,11 @@ export function measureVehicleEnvelope(entry: SessionVehicle) {
   const run = make(0),
     acceleration = [],
     braking = [];
+  // The standing launch uses the race's start: held READY with the throttle closed, then GO.
+  const start = createStartPhase();
+  start.begin();
+  do updateHeldVehicle(run.vehicle, { steering: 0, throttle: false, brake: false }, SIM_DT);
+  while (!start.advance(SIM_DT));
   let elapsed = 0,
     last = 0,
     stable = 0,

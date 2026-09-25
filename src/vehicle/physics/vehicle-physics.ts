@@ -192,11 +192,7 @@ export function updateVehicle(
 ): void {
   if (!(dt > 0) || !Number.isFinite(dt)) throw new RangeError('vehicle dt must be finite and > 0');
   const compiledVehicle = vehicle.compiledVehicle;
-  let workspace = stepWorkspaces.get(vehicle);
-  if (!workspace) {
-    workspace = createStepWorkspace(vehicle);
-    stepWorkspaces.set(vehicle, workspace);
-  }
+  const workspace = stepWorkspace(vehicle);
   const velocityBeforeX = vehicle.velocityX,
     velocityBeforeY = vehicle.velocityY,
     velocityBeforeZ = vehicle.velocityZ;
@@ -392,6 +388,45 @@ export function updateVehicle(
   vehicle.lateralAcceleration = dot3(velocityDelta, finalBody.right) / dt;
 }
 
+/**
+ * One step of a held vehicle. The body and wheels keep their state and the gear holds; the
+ * actuators follow the input and the engine runs under its ordinary law with zero clutch capacity,
+ * so the clutch transmits nothing and fuel cut and idle holding still bound the opening. The next
+ * ordinary update restores the fixed capacity.
+ */
+export function updateHeldVehicle(vehicle: VehicleState, input: DrivingInput, dt: number): void {
+  if (!(dt > 0) || !Number.isFinite(dt)) throw new RangeError('vehicle dt must be finite and > 0');
+  const compiledVehicle = vehicle.compiledVehicle;
+  const workspace = stepWorkspace(vehicle);
+  const substep = dt / VEHICLE_SUBSTEPS;
+  for (let step = 0; step < VEHICLE_SUBSTEPS; step += 1) {
+    updateDrivingActuators(
+      vehicle.actuator,
+      input,
+      substep,
+      vehicle.drivingActuator,
+      vehicle.steeringCalibration.steeringActuatorResponse,
+    );
+    const powertrainStep = prepareAutomaticPowertrain(
+      vehicle.powertrain,
+      compiledVehicle.powertrain,
+      vehicle.powertrainCoupling,
+      drivenWheelOmega(compiledVehicle, vehicle.frontWheelOmega, vehicle.rearWheelOmega),
+      false,
+      substep,
+      workspace.powertrain,
+      0,
+    );
+    completeAutomaticPowertrain(vehicle.powertrain, powertrainStep, vehicle.actuator.throttle, UNBOUNDED_DRIVE);
+  }
+  vehicle.control.steeringRequest = clamp(input.steering, -1, 1);
+  vehicle.control.steeringActuator = vehicle.actuator.steering;
+  vehicle.control.throttleActuator = vehicle.actuator.throttle;
+  vehicle.control.brakeActuator = vehicle.actuator.brake;
+}
+
+const UNBOUNDED_DRIVE = Object.freeze({ upper: Infinity, lower: -Infinity });
+
 /** Body-CG travel direction in the body-pitch plane; finite and zero at rest. */
 function vehicleBodyTravelDirection(body: BodyKinematics, lowSpeedRegularization: number): number {
   if (!(lowSpeedRegularization > 0) || !Number.isFinite(lowSpeedRegularization)) {
@@ -436,6 +471,14 @@ export function vehicleBodyKinematics(
 }
 
 const stepWorkspaces = new WeakMap<VehicleState, ReturnType<typeof createStepWorkspace>>();
+function stepWorkspace(vehicle: VehicleState) {
+  let workspace = stepWorkspaces.get(vehicle);
+  if (!workspace) {
+    workspace = createStepWorkspace(vehicle);
+    stepWorkspaces.set(vehicle, workspace);
+  }
+  return workspace;
+}
 function createStepWorkspace(vehicle: VehicleState) {
   const front = createContactWorkspace(vehicle.compiledVehicle.frontStation),
     rear = createContactWorkspace(vehicle.compiledVehicle.rearStation);

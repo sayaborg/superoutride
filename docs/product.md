@@ -24,7 +24,12 @@ vehicle selection, zero to sixteen rivals, the permitted lap count and time limi
 The setup screen resolves these settings before START; vehicle and handling settings are locked
 for the run. [Browser](browser.md) owns controls and URL settings.
 
-Sessions use standing starts. Checkpoints add time to a running time limit; a terminal goal or the
+Sessions use standing starts. A provisional start procedure holds every vehicle in a 3-second READY
+phase before GO: vehicles do not move, their clutches transmit nothing and engines rev freely with
+the throttle, while rivals and reference drivers keep the throttle closed. Race time and the time
+limit start at GO. Reference driving, envelope measurement and driving scenarios use the same start.
+The production procedure (countdown lamps, rolling starts and their Session rules) is a pending
+product decision in [NEXT](NEXT.md#pending-product-decisions). Checkpoints add time to a running time limit; a terminal goal or the
 required completed laps ends the run. GOAL and GAME OVER show the final rank and elapsed time.
 PAUSE suspends the run, and NEW SESSION returns to setup.
 
