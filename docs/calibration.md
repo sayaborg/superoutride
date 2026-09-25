@@ -44,7 +44,18 @@ on the DEV HUD. The [DEV tuning registry](../src/shell/driving-tuning.ts) owns o
 grid checks; startup checks the raw driving definition against the grids. A DEV adjustment steps the
 player's tuned driving definition, admits it with the driving-document compiler (a rejected candidate
 leaves the definition unchanged) and rebuilds the player's vehicle model, which the next step uses. A
-vehicle switch builds the new vehicle's model from the same tuned definition. Tires are dimensionless
+vehicle switch builds the new vehicle's model from the same tuned definition.
+
+Tuned values reach the product only through the definition files. DEV EXPORT downloads the tuned
+driving source document as `default.json` and the selected vehicle's source document as
+`<vehicle id>.json`, written from the admitted documents, never from runtime values. Both use the
+saved layout of [`formatSavedJson`](../src/core/saved-json.ts): admission's field order, two-space
+indentation, 120 columns, containers broken except a primitive array or a below-root object of
+primitives that fits on one line, and JSON's own number and string spelling. The files in
+`content/driving/` and `content/vehicles/` are kept in that layout, so an untuned export is
+byte-identical to its content file. To adopt tuned values, replace `content/driving/default.json`
+(or a vehicle file) with the export and rebuild; admission, identity and generated references follow
+the new file. Tires are dimensionless
 coefficients per unit normal load and share one authored set for front and rear. Driving assists are
 not difficulty controls.
 

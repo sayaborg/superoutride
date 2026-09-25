@@ -25,6 +25,7 @@ import {
 } from '../vehicle/definition-document.js';
 import { admitDrivingTuningGrid } from './driving-tuning.js';
 import { mountDrivingTuningControls } from './driving-tuning-controls.js';
+import { downloadDefinition } from './definition-export.js';
 import type { BrowserCourseModeQuery } from './course-mode-selection.js';
 import { mustGet } from './dom.js';
 import { createFrameLoop, type FrameLoop } from './frame-loop.js';
@@ -155,6 +156,7 @@ export function createBrowserDrivingShell(
         if (options.configurationLocked || compiledVehicle.id === model.compiledVehicle.id) return;
         lifecycle.replace(compiledVehicle);
         vehicleSelector.setActive(model.compiledVehicle.id);
+        showVehicleExport();
       };
       const vehicleSelector = mountMobileVehicleSelector(
         mustGet('vehicle-selector-buttons'),
@@ -181,6 +183,19 @@ export function createBrowserDrivingShell(
         },
         tuning,
       );
+      // Export writes the admitted source documents in the saved layout, never runtime values.
+      const exportVehicle = mustGet<HTMLButtonElement>('export-vehicle-button');
+      const showVehicleExport = () => (exportVehicle.textContent = `vehicles/${model.compiledVehicle.id}.json`);
+      mustGet<HTMLButtonElement>('export-driving-button').addEventListener('click', () =>
+        downloadDefinition(`${driving.source.id}.json`, driving.source),
+      );
+      exportVehicle.addEventListener('click', () =>
+        downloadDefinition(
+          `${model.compiledVehicle.id}.json`,
+          vehicleDefinitionForId(vehicles, model.compiledVehicle.id).source,
+        ),
+      );
+      showVehicleExport();
       if (options.configurationLocked)
         for (const child of Array.from(mustGet('vehicle-selector-buttons').querySelectorAll('button')))
           child.disabled = true;

@@ -98,7 +98,10 @@ Driving tuning is grouped as STEERING, PEDALS, TIRES F/R, POWERTRAIN and ASSISTS
 minus/value/plus control in the driving definition's units, wrapping at range endpoints; ASSISTS
 toggles wheel slip protection. The DEV HUD shows one line per group (STEER with the derived automatic
 budget A, PEDAL, TIRE, ENGINE with ASSIST), read from the tuned definition. Vehicle replacement keeps
-the tuned definition. The selectable body-yaw and movement-yaw cameras use the same projection.
+the tuned definition. EXPORT saves the tuned driving definition (`default.json`) and the selected
+vehicle definition (`<vehicle id>.json`) as browser downloads in the saved layout;
+[Calibration](calibration.md#vehicle-settings) describes adopting them as content. The selectable
+body-yaw and movement-yaw cameras use the same projection.
 [Calibration](calibration.md#vehicle-settings) lists values, units and ranges.
 
 ### Ground display setting
