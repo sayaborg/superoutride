@@ -20,7 +20,7 @@ export interface VehicleMetadata {
 }
 export interface VehicleDocument {
   readonly format: 'superoutride.vehicle-definition';
-  readonly version: 2;
+  readonly version: 3;
   readonly id: string;
   readonly form: VehicleForm;
   readonly selectionOrder: number;
@@ -155,6 +155,8 @@ const mechanicalNumbers = [
   'quadraticDrag',
 ] as const;
 const powertrainNumbers = [
+  'displacementCc',
+  'cycle',
   'idleRpm',
   'redlineRpm',
   'upshiftRpm',
@@ -169,7 +171,7 @@ export function compileVehicleDocument(
   sprites: SpriteAssets,
 ): Result<CompiledVehicleDefinition> {
   return admit(document, () => {
-    const v = header(value, 'superoutride.vehicle-definition', 2);
+    const v = header(value, 'superoutride.vehicle-definition', 3);
     fields(v, ['format', 'version', 'id', 'form', 'selectionOrder', 'mechanics', 'sound', 'metadata', 'visuals'], '');
     const id = string(v.id, '/id');
     requireValue(/^[A-Za-z0-9_-]+$/.test(id), '/id', 'Expected a filename-safe ID');
@@ -246,7 +248,7 @@ export function compileVehicleDocument(
       throw new InputError('unresolved_reference', '/sound', `Unknown sound ID: ${soundId}`);
     const source = freeze({
       format: 'superoutride.vehicle-definition',
-      version: 2,
+      version: 3,
       id,
       form: v.form,
       selectionOrder,

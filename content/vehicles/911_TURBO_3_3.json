@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-definition",
-  "version": 2,
+  "version": 3,
   "id": "911_TURBO_3_3",
   "form": "car",
   "selectionOrder": 2,
@@ -8,9 +8,9 @@
     "mass": 1410,
     "yawInertia": 2400,
     "pitchInertia": 2250,
-    "frontAxle": 1.409,
-    "rearAxle": 0.863,
-    "desiredCgHeight": 0.5,
+    "frontAxle": 1.408379842,
+    "rearAxle": 0.862620158,
+    "desiredCgHeight": 0.489043,
     "frontRideFrequency": 1.85,
     "rearRideFrequency": 1.95,
     "frontDampingRatio": 0.4,
@@ -39,12 +39,12 @@
       "gearRatios": [3.154, 1.789, 1.269, 0.967, 0.756],
       "torqueCurve": [
         { "rpm": 900, "torqueNewtonMeters": 125 },
-        { "rpm": 2000, "torqueNewtonMeters": 210 },
-        { "rpm": 3000, "torqueNewtonMeters": 355 },
-        { "rpm": 4000, "torqueNewtonMeters": 412 },
-        { "rpm": 5500, "torqueNewtonMeters": 384 },
-        { "rpm": 6400, "torqueNewtonMeters": 315 }
-      ]
+        { "rpm": 4000, "torqueNewtonMeters": 430 },
+        { "rpm": 5500, "torqueNewtonMeters": 383.7080991633696 },
+        { "rpm": 6800, "torqueNewtonMeters": 283.94399338089346 }
+      ],
+      "displacementCc": 3299,
+      "cycle": 4
     }
   },
   "sound": "911_TURBO_3_3",

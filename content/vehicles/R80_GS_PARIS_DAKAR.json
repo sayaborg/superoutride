@@ -1,16 +1,16 @@
 {
   "format": "superoutride.vehicle-definition",
-  "version": 2,
+  "version": 3,
   "id": "R80_GS_PARIS_DAKAR",
   "form": "bike",
   "selectionOrder": 7,
   "mechanics": {
-    "mass": 280,
+    "mass": 308,
     "yawInertia": 215,
     "pitchInertia": 260,
     "frontAxle": 0.776,
     "rearAxle": 0.689,
-    "desiredCgHeight": 0.4395,
+    "desiredCgHeight": 0.691234,
     "frontRideFrequency": 1.65,
     "rearRideFrequency": 1.75,
     "frontDampingRatio": 0.38,
@@ -39,11 +39,12 @@
       "gearRatios": [2.6, 1.67, 1.26, 1, 0.84],
       "torqueCurve": [
         { "rpm": 950, "torqueNewtonMeters": 35 },
-        { "rpm": 2500, "torqueNewtonMeters": 52 },
-        { "rpm": 4000, "torqueNewtonMeters": 58 },
-        { "rpm": 5500, "torqueNewtonMeters": 56 },
-        { "rpm": 6500, "torqueNewtonMeters": 54 }
-      ]
+        { "rpm": 5000, "torqueNewtonMeters": 56.7 },
+        { "rpm": 6500, "torqueNewtonMeters": 54.35753440984733 },
+        { "rpm": 7000, "torqueNewtonMeters": 49.758050729014094 }
+      ],
+      "displacementCc": 797,
+      "cycle": 4
     }
   },
   "sound": "R80_GS_PARIS_DAKAR",

@@ -1,16 +1,16 @@
 {
   "format": "superoutride.vehicle-definition",
-  "version": 2,
+  "version": 3,
   "id": "CORVETTE_C4",
   "form": "car",
   "selectionOrder": 3,
   "mechanics": {
-    "mass": 1565,
+    "mass": 1585,
     "yawInertia": 3000,
     "pitchInertia": 2700,
     "frontAxle": 1.197,
     "rearAxle": 1.246,
-    "desiredCgHeight": 0.47,
+    "desiredCgHeight": 0.458044,
     "frontRideFrequency": 1.7,
     "rearRideFrequency": 1.75,
     "frontDampingRatio": 0.38,
@@ -34,16 +34,17 @@
       "redlineRpm": 5200,
       "upshiftRpm": 4900,
       "downshiftRpm": 1800,
-      "finalDriveRatio": 3.45,
+      "finalDriveRatio": 3.33,
       "efficiency": 0.89,
-      "gearRatios": [2.68, 1.8, 1.29, 1, 0.75, 0.5],
+      "gearRatios": [2.68, 1.8, 1.31, 1, 0.75, 0.5],
       "torqueCurve": [
         { "rpm": 700, "torqueNewtonMeters": 300 },
-        { "rpm": 1600, "torqueNewtonMeters": 395 },
         { "rpm": 3200, "torqueNewtonMeters": 461 },
-        { "rpm": 4300, "torqueNewtonMeters": 405 },
-        { "rpm": 4900, "torqueNewtonMeters": 330 }
-      ]
+        { "rpm": 4300, "torqueNewtonMeters": 406.4002965462816 },
+        { "rpm": 5200, "torqueNewtonMeters": 312.83371664376557 }
+      ],
+      "displacementCc": 5733,
+      "cycle": 4
     }
   },
   "sound": "CORVETTE_C4",

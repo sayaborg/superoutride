@@ -142,6 +142,18 @@ The automatic powertrain derives RPM from drive-split wheel speed and current ra
 powertrain torque, shifts using adjacent-ratio hysteresis and tapers torque to zero at redline.
 Wheel torque uses the chosen ratio and efficiency; engine torque comes directly from the powertrain definition.
 
+The piecewise-linear torque curve covers idle through redline. Its authored landmarks are idle,
+peak torque, peak power and redline; additional points are allowed. Production checking finds power
+maxima analytically on every segment, including interior extrema, and requires the maximum at the
+authored peak-power RPM. Peak-power torque is power in watts divided by angular speed in rad/s.
+`powertrain.displacementCc` is finite and positive; `powertrain.cycle` is exactly 2 or 4 strokes.
+These values are admitted and retained but do not yet enter the dynamic equations.
+
+Published specifications and source status live in production-only `tools/vehicle/data/<id>.json`.
+`npm run check:vehicle-values` compares them with authored definitions and reports all discrepancies
+with a nonzero exit status. It runs in `npm test` through `check`, without delivering the evidence.
+[Calibration](calibration.md#vehicle-evidence-and-estimates) owns evidence fields and mass/CG assumptions.
+
 ## Torque protection
 
 TCS and ABS reduce requested torques independently at each station by inverting the wheel residual
@@ -212,14 +224,14 @@ mechanical observations without contributing forces or alternate mechanical stat
 
 ## Vehicle and driving documents
 
-`content/vehicles/<id>.json` stores one `superoutride.vehicle-definition` version 2 per vehicle.
+`content/vehicles/<id>.json` stores one `superoutride.vehicle-definition` version 3 per vehicle.
 `content/driving/default.json` stores the sole `superoutride.driving-definition` version 1.
 [Calibration](calibration.md) owns tuning meanings and units. Document admission in
 `vehicle/definition-document.ts` publishes detached, deeply immutable source and compiled products.
 
 | Vehicle field       | Contract                                                                                                                                                                          |
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`, `version` | `superoutride.vehicle-definition`, `2`                                                                                                                                            |
+| `format`, `version` | `superoutride.vehicle-definition`, `3`                                                                                                                                            |
 | `id`                | Nonempty filename-safe identity; equal to its manifest ID                                                                                                                         |
 | `form`              | `car` or `bike`; one shared physical/display form vocabulary                                                                                                                      |
 | `selectionOrder`    | Positive safe integer, unique across the catalog; ascending selection order independent of filenames and manifest order                                                           |
@@ -257,7 +269,7 @@ Relationships identify an actionable field and name related inputs: gear orderin
 violating element, shift hysteresis to `downshiftRpm`, and curve coverage to `torqueCurve`.
 Only `definition-document.ts` converts these relative paths into document JSON Pointers, attaching
 `/mechanics` for vehicle fields except `/id`, and the document filename. Driving paths start at the
-driving document's fields. Formats, numeric conditions and ranges are unchanged.
+driving document's fields. Unsupported earlier versions have no migration reader.
 Only explicit authored-domain failures become diagnostics; unexpected internal errors propagate.
 Success returns `{ok:true,value}`; no partial product is published. Nested arrays and records are
 copied and frozen, including powertrain gears/curve points, metadata and the driving tire/pedals.

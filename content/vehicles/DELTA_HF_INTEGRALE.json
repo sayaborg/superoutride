@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-definition",
-  "version": 2,
+  "version": 3,
   "id": "DELTA_HF_INTEGRALE",
   "form": "car",
   "selectionOrder": 5,
@@ -8,9 +8,9 @@
     "mass": 1290,
     "yawInertia": 1980,
     "pitchInertia": 1800,
-    "frontAxle": 1.064,
-    "rearAxle": 1.411,
-    "desiredCgHeight": 0.55,
+    "frontAxle": 1.066149495,
+    "rearAxle": 1.413850505,
+    "desiredCgHeight": 0.533372,
     "frontRideFrequency": 1.7,
     "rearRideFrequency": 1.8,
     "frontDampingRatio": 0.4,
@@ -39,11 +39,12 @@
       "gearRatios": [3.5, 2.176, 1.524, 1.156, 0.917],
       "torqueCurve": [
         { "rpm": 900, "torqueNewtonMeters": 135 },
-        { "rpm": 2000, "torqueNewtonMeters": 220 },
-        { "rpm": 3500, "torqueNewtonMeters": 304 },
-        { "rpm": 5300, "torqueNewtonMeters": 247 },
-        { "rpm": 6100, "torqueNewtonMeters": 200 }
-      ]
+        { "rpm": 3500, "torqueNewtonMeters": 298 },
+        { "rpm": 5300, "torqueNewtonMeters": 239.63329167421222 },
+        { "rpm": 6500, "torqueNewtonMeters": 179.95103789874807 }
+      ],
+      "displacementCc": 1995,
+      "cycle": 4
     }
   },
   "sound": "DELTA_HF_INTEGRALE",

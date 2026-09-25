@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-definition",
-  "version": 2,
+  "version": 3,
   "id": "PX200E_ARCOBALENO",
   "form": "bike",
   "selectionOrder": 9,
@@ -10,7 +10,7 @@
     "pitchInertia": 108,
     "frontAxle": 0.704,
     "rearAxle": 0.531,
-    "desiredCgHeight": 0.3705,
+    "desiredCgHeight": 0.635263,
     "frontRideFrequency": 1.5,
     "rearRideFrequency": 1.55,
     "frontDampingRatio": 0.36,
@@ -39,11 +39,12 @@
       "gearRatios": [14.47, 10.28, 7.31, 5.36],
       "torqueCurve": [
         { "rpm": 900, "torqueNewtonMeters": 7 },
-        { "rpm": 2000, "torqueNewtonMeters": 12 },
-        { "rpm": 4000, "torqueNewtonMeters": 16 },
-        { "rpm": 5700, "torqueNewtonMeters": 15 },
-        { "rpm": 6000, "torqueNewtonMeters": 13 }
-      ]
+        { "rpm": 3800, "torqueNewtonMeters": 16.8 },
+        { "rpm": 5700, "torqueNewtonMeters": 14.742773675880834 },
+        { "rpm": 6500, "torqueNewtonMeters": 12.4666963364466 }
+      ],
+      "displacementCc": 198,
+      "cycle": 2
     }
   },
   "sound": "PX200E_ARCOBALENO",

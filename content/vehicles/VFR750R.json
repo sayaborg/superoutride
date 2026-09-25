@@ -1,16 +1,16 @@
 {
   "format": "superoutride.vehicle-definition",
-  "version": 2,
+  "version": 3,
   "id": "VFR750R",
   "form": "bike",
   "selectionOrder": 6,
   "mechanics": {
-    "mass": 276,
+    "mass": 273.5,
     "yawInertia": 180,
     "pitchInertia": 205,
     "frontAxle": 0.719,
     "rearAxle": 0.691,
-    "desiredCgHeight": 0.423,
+    "desiredCgHeight": 0.617276,
     "frontRideFrequency": 2,
     "rearRideFrequency": 2.1,
     "frontDampingRatio": 0.42,
@@ -21,8 +21,8 @@
     "rearQTravel": 0.45,
     "frontBumpForceMax": 18000,
     "rearBumpForceMax": 17000,
-    "frontWheelRadius": 0.3,
-    "rearWheelRadius": 0.331,
+    "frontWheelRadius": 0.2999,
+    "rearWheelRadius": 0.3306,
     "frontWheelInertia": 0.47,
     "rearWheelInertia": 0.72,
     "frontDriveTorqueFraction": 0,
@@ -31,7 +31,7 @@
     "quadraticDrag": 0.24,
     "powertrain": {
       "idleRpm": 1200,
-      "redlineRpm": 12000,
+      "redlineRpm": 12500,
       "upshiftRpm": 11300,
       "downshiftRpm": 4500,
       "finalDriveRatio": 4.8475,
@@ -39,11 +39,12 @@
       "gearRatios": [2.4, 1.941, 1.631, 1.434, 1.291, 1.192],
       "torqueCurve": [
         { "rpm": 1200, "torqueNewtonMeters": 34 },
-        { "rpm": 4000, "torqueNewtonMeters": 55 },
-        { "rpm": 7000, "torqueNewtonMeters": 71 },
-        { "rpm": 9500, "torqueNewtonMeters": 70 },
-        { "rpm": 11300, "torqueNewtonMeters": 65 }
-      ]
+        { "rpm": 10000, "torqueNewtonMeters": 73 },
+        { "rpm": 11000, "torqueNewtonMeters": 71.53291260421189 },
+        { "rpm": 12500, "torqueNewtonMeters": 60.8029757135801 }
+      ],
+      "displacementCc": 748,
+      "cycle": 4
     }
   },
   "sound": "VFR750R",

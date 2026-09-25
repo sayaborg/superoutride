@@ -11,7 +11,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **8-4 — Powertrain**.
+Next PR: **8-5a — Shift rules and fuel cut**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -21,8 +21,11 @@ PRs hold rationale and verification evidence.
 
 Give vehicles, driving assists, tires, powertrains and materials explicit definitions, and treat airborne driving as normal state.
 
-- **8-4 — Powertrain:** launch, shift rules and rev limit, engine friction, inertia and free revving, and shift observations; audio reads engine speed without its own idle floor. Behavior changes.
-- **8-5 — Vehicle values:** published values and sources as production data with a checking tool; correct torque curves, masses and CG heights. Behavior changes.
+- **8-5a — Shift rules and fuel cut:** upshift at redline; downshift where the lower gear lands at the curve's peak-power RPM; fuel cut with hysteresis (cut slightly above redline, restore at redline) whose margin lives in the driving definition; the DEV HUD shows fuel cut. Behavior changes.
+- **8-5b — Engine friction:** friction torque derived from displacement and cycle with game-wide friction mean effective pressures (about 1 bar at idle and 2.5 bar at redline); throttle torque is θ × (curve + friction) − friction and reaches the wheels through the gear ratios and one game-wide efficiency; engine braking while the clutch is locked; audio reads engine speed without its own idle floor. Behavior changes.
+- **8-5c — Clutch and engine inertia:** engine inertia derived from displacement by a game-wide rule. The clutch locks when the wheel-derived speed reaches the peak-torque RPM; otherwise engine speed follows one law, (throttle torque − friction − clutch torque) / inertia, capped at the peak-torque RPM by a clutch that transmits the excess and never a negative torque, with idle held by torque rather than a clamp. The DEV HUD shows the clutch as LOCK, SLIP or OPEN. Behavior changes.
+- **8-5d — Provisional start:** a simple held start before GO with the clutch open, so the engine revs freely under the same law. Behavior changes.
+- **8-5e — Shift observations:** the powertrain reports each shift (up or down, engine speed before and after) for audio. Behavior unchanged.
 - **8-6 — DEV tuning:** replace definitions instead of mutating running settings, and export them. Behavior unchanged.
 - **8-7 — Materials and airborne state:** material definitions including tire effect kinds, jumps and airborne state, pitch-angle protection, suspension limits and recovery conditions. Split if large. Behavior changes.
 
@@ -134,6 +137,8 @@ transitions. Review pre-lock query coverage and parent-specific exit visibility 
 space. Record margins and remaster departures with the content.
 
 ### Pending product decisions
+
+- Start procedure: 8-5d's held start is provisional; decide countdown lamps, rolling starts and their Session rules.
 
 - Vehicle color choice: every vehicle sprite set carries at least two named color palettes; decide how the player selects a color and how rivals are assigned colors (and vehicles).
 - Section lighting for vehicles: Sections may switch vehicle palettes (for example a night section), adding a lighting axis beside color and the brake-lamp animation. Each lighting is a hand-authored palette per color that recolors the whole image, lit headlamps included; only the brake lamp keeps its reserved slot, with off and on colors declared per sprite set and lighting. Decide whether switching follows each vehicle's Section or the camera's, and whether it cuts or fades.

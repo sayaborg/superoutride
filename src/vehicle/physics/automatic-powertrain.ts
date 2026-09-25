@@ -8,6 +8,9 @@ interface EngineTorquePoint {
 
 /** Ideal direct-drive robotized MT: no clutch, converter, engine rotor or shift-duration model. */
 export interface AutomaticPowertrainDefinition {
+  /** Authored engine size and cycle; reserved for subsequent friction/inertia rules. */
+  readonly displacementCc: number;
+  readonly cycle: 2 | 4;
   /** Torque-sampling floor only; derived engine RPM is allowed to be zero at rest. */
   readonly idleRpm: number;
   readonly redlineRpm: number;
@@ -124,6 +127,10 @@ function assertWheelOmega(omega: number): void {
 }
 
 export function validateAutomaticPowertrainDefinition(definition: AutomaticPowertrainDefinition): void {
+  if (!(definition.displacementCc > 0) || !Number.isFinite(definition.displacementCc))
+    throw new DefinitionDomainError('displacementCc', 'displacementCc must be finite and > 0');
+  if (definition.cycle !== 2 && definition.cycle !== 4)
+    throw new DefinitionDomainError('cycle', 'cycle must be 2 or 4 strokes');
   for (const field of [
     'idleRpm',
     'downshiftRpm',
@@ -187,8 +194,8 @@ export function validateAutomaticPowertrainDefinition(definition: AutomaticPower
   }
   if (
     definition.torqueCurve[0]!.rpm > definition.idleRpm ||
-    definition.torqueCurve[definition.torqueCurve.length - 1]!.rpm < definition.upshiftRpm
+    definition.torqueCurve[definition.torqueCurve.length - 1]!.rpm < definition.redlineRpm
   ) {
-    throw new DefinitionDomainError('torqueCurve', 'torqueCurve must cover idleRpm through upshiftRpm');
+    throw new DefinitionDomainError('torqueCurve', 'torqueCurve must cover idleRpm through redlineRpm');
   }
 }

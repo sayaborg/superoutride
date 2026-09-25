@@ -1,0 +1,110 @@
+{
+  "id": "911_TURBO_3_3",
+  "published": {
+    "peakPowerKw": {
+      "value": 221,
+      "status": "unconfirmed-provisional",
+      "source": null,
+      "note": "K: 8-4 supplied value table (2026-09-25); research URL pending. "
+    },
+    "peakPowerRpm": {
+      "value": 5500,
+      "status": "unconfirmed-provisional",
+      "source": null,
+      "note": "K: 8-4 supplied value table (2026-09-25); research URL pending. "
+    },
+    "peakTorqueNm": {
+      "value": 430,
+      "status": "unconfirmed-provisional",
+      "source": null,
+      "note": "K: 8-4 supplied value table (2026-09-25); research URL pending. "
+    },
+    "peakTorqueRpm": {
+      "value": 4000,
+      "status": "unconfirmed-provisional",
+      "source": null,
+      "note": "K: 8-4 supplied value table (2026-09-25); research URL pending. "
+    },
+    "displacementCc": {
+      "value": 3299,
+      "status": "unconfirmed-provisional",
+      "source": null,
+      "note": "K: 8-4 supplied value table (2026-09-25); research URL pending. "
+    },
+    "cycle": {
+      "value": 4,
+      "status": "unconfirmed-provisional",
+      "source": null,
+      "note": "K: 8-4 supplied value table (2026-09-25); research URL pending. "
+    },
+    "gearRatios": {
+      "value": [3.154, 1.789, 1.269, 0.967, 0.756],
+      "status": "unconfirmed-provisional",
+      "source": null,
+      "note": "Retained from the provisional definition at main 29eb450; not independently verified."
+    },
+    "finalDriveRatio": {
+      "value": 4.111111111111111,
+      "status": "unconfirmed-provisional",
+      "source": null,
+      "note": "Retained from the provisional definition at main 29eb450; not independently verified."
+    },
+    "redlineRpm": {
+      "value": 6800,
+      "status": "unconfirmed-provisional",
+      "source": null,
+      "note": "Retained from the provisional definition at main 29eb450; not independently verified."
+    },
+    "idleRpm": {
+      "value": 900,
+      "status": "unconfirmed-provisional",
+      "source": null,
+      "note": "Retained from the provisional definition at main 29eb450; not independently verified."
+    },
+    "weightKg": {
+      "value": 1335,
+      "status": "unconfirmed-provisional",
+      "source": null,
+      "note": "Retained from the provisional definition at main 29eb450; not independently verified."
+    },
+    "weightBasis": {
+      "value": "equipped",
+      "status": "unconfirmed-provisional",
+      "source": null,
+      "note": "Provisional equipped interpretation: fuel and operating fluids included, no occupant. Unspecified base masses are inferred as old running mass minus 75 kg; FXRT weight basis still needs confirmation."
+    },
+    "wheelbaseMm": {
+      "value": 2271.0,
+      "status": "unconfirmed-provisional",
+      "source": null,
+      "note": "K: 8-4 supplied value table (2026-09-25); research URL pending. "
+    },
+    "tires": {
+      "value": {
+        "frontRollingRadiusM": 0.316,
+        "rearRollingRadiusM": 0.314
+      },
+      "status": "unconfirmed-provisional",
+      "source": null,
+      "note": "Nominal tire dimensions unknown; retained effective rolling radii, not claimed as verified tire sizes."
+    }
+  },
+  "estimates": {
+    "occupantKg": 75,
+    "baseMassKg": 1335,
+    "baseMassBasis": "equipped",
+    "addedFuelLitres": 0,
+    "fuelDensityKgPerLitre": 0.75,
+    "addedOtherFluidsKg": 0,
+    "runningMassKg": 1410.0,
+    "baseCgHeightM": 0.48,
+    "occupantCgHeightM": 0.65,
+    "fuelCgHeightM": 0.4,
+    "runningCgHeightM": 0.489043,
+    "status": "unconfirmed-provisional",
+    "massReason": "One 75 kg occupant. Equipped base includes fuel/fluids; dry base adds the stated fuel and other fluids. Fuel quantities, density and fluids are game estimates, not measured capacities.",
+    "cgReason": "Mass-weighted upright body, occupant and fuel heights; other fluids at base CG. Low sports cars, taller hatchbacks, and seated rider posture inform the stated per-vehicle estimates; no measured CG claim.",
+    "geometryReason": "Published wheelbase preserves the previous front/rear axle fraction. Named tire sizes use nominal unloaded radius; other effective radii remain provisional.",
+    "curveReason": "Idle torque retained. Peak-power torque = watts / angular speed. Redline torque follows slope -1.1 * peak-power torque / peak-power RPM to keep power falling throughout the final linear interval."
+  }
+}
