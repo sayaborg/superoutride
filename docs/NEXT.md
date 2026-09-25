@@ -11,7 +11,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **8-5d1 — Time-limit name**.
+Next PR: **8-5d2 — Provisional start**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -21,7 +21,6 @@ PRs hold rationale and verification evidence.
 
 Give vehicles, driving assists, tires, powertrains and materials explicit definitions, and treat airborne driving as normal state.
 
-- **8-5d1 — Time-limit name:** rename the Session `countdown` flag, which means "has a time limit", to a name that says so, before the start procedure arrives. Behavior unchanged.
 - **8-5d2 — Provisional start:** a simple held start before GO with the clutch open, so the engine revs freely under the same law. Behavior changes.
 - **8-5e — Shift observations:** the powertrain reports each shift (up or down, engine speed before and after) for audio. Behavior unchanged.
 - **8-6a — Remove keyboard shortcuts:** remove every DEV keyboard shortcut (course, vehicle, steering and tire tuning, camera yaw, recovery); DEV UI buttons select everything, including a new recovery button. Driving keys stay. Driving behavior unchanged.
