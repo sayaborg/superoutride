@@ -136,10 +136,11 @@ export function createVehicle(
   const initialVelocity = scale3(surface.tangent, initialSpeed);
   const frontOmega = initialSpeed / compiledVehicle.frontStation.rollingRadius;
   const rearOmega = initialSpeed / compiledVehicle.rearStation.rollingRadius;
+  const powertrainCoupling = couplePowertrain(compiledVehicle.powertrain, driving.powertrain);
   const state = {
     compiledVehicle,
     drivingActuator: driving.actuator,
-    powertrainCoupling: couplePowertrain(compiledVehicle.powertrain, driving.powertrain),
+    powertrainCoupling,
     x: position.x,
     y: position.y,
     z: position.z,
@@ -164,6 +165,7 @@ export function createVehicle(
     control: createVehicleControlState(),
     powertrain: createAutomaticPowertrainState(
       compiledVehicle.powertrain,
+      powertrainCoupling,
       drivenWheelOmega(compiledVehicle, frontOmega, rearOmega),
     ),
     frontNormalLoad: 0,

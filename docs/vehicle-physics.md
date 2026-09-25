@@ -167,15 +167,18 @@ fuel cut give less or negative engine torque. Below idle, curve torque keeps its
 
 Engine speed is powertrain state with a rotor inertia derived from displacement:
 `engineInertia = displacementLitres * engineInertiaKilogramSquareMetersPerLitre`.
-`couplePowertrain` resolves the two friction torques (at idle and redline FMEP), the inertia and the
-game-wide efficiency and fuel-cut margin once, when a vehicle is created from its compiled vehicle
-and the driving settings; friction torque and inertia are not vehicle values. Vehicle compilation
-derives the launch RPM as peak-torque RPM, the lowest RPM of the curve's maximum torque.
+`couplePowertrain` resolves the two friction torques (at idle and redline FMEP), the inertia, the
+clutch lock RPM `idleRpm * (1 + clutchLockIdleMargin)` and the game-wide efficiency and fuel-cut
+margin once, when a vehicle is created from its compiled vehicle and the driving settings; none of
+them is a vehicle value. Vehicle compilation derives the launch RPM as peak-torque RPM, the lowest
+RPM of the curve's maximum torque; it only limits engine speed while the clutch slips.
 
 The clutch is a hysteretic latch on the signed wheel-derived RPM, stored in the powertrain state as
-`LOCK` or `SLIP`. A slipping clutch locks when the wheel-derived RPM reaches peak-torque RPM; a locked
-clutch slips when it falls below idle. A new or recovered powertrain starts locked with the
-wheel-derived RPM when that RPM is at or above peak-torque RPM, and otherwise slips at idle.
+`LOCK` or `SLIP`. A slipping clutch locks when the wheel-derived RPM reaches the larger of engine RPM
+and the clutch lock RPM; a locked clutch slips when it falls below idle. The margin keeps a gap
+between locking and releasing at idle, so tire slip recovering after a release cannot relock the
+clutch. A new or recovered powertrain applies the same rule to an engine at idle: it starts locked
+with the wheel-derived RPM when that RPM reaches the clutch lock RPM, and otherwise slips at idle.
 
 - `LOCK`: engine RPM equals the wheel-derived RPM, and the signed engine torque reaches the wheels.
   Engine braking exists only while locked.
@@ -189,9 +192,10 @@ wheel-derived RPM when that RPM is at or above peak-torque RPM, and otherwise sl
 The opening is the larger of throttle and the idle-holding opening, the opening whose step would
 land exactly on idle. Idle is therefore held by torque, not by a clamp, and settles without
 oscillation. A small throttle whose torque cannot exceed friction does not raise engine speed or
-move the vehicle. Engine RPM changes continuously except at a ratio change: locking happens where the
-wheels reach the engine held at launch RPM, and slipping starts from the idle RPM the engine
-already has. Negative wheel torque is split by the drive fraction and joins each driven station's
+move the vehicle. Engine RPM changes continuously except at a ratio change and one bounded case:
+locking happens where the wheels reach the engine, except that an engine idling with the wheels
+turning it faster locks at the clutch lock RPM, `clutchLockIdleMargin` above idle; slipping starts
+from the idle RPM the engine already has. Negative wheel torque is split by the drive fraction and joins each driven station's
 brake magnitude, so it opposes wheel rotation and never reverses it.
 
 The piecewise-linear torque curve covers idle through redline. Admission checks its ordered RPM
@@ -276,7 +280,7 @@ mechanical observations without contributing forces or alternate mechanical stat
 ## Vehicle and driving documents
 
 `content/vehicles/<id>.json` stores one `superoutride.vehicle-definition` version 5 per vehicle.
-`content/driving/default.json` stores the sole `superoutride.driving-definition` version 4.
+`content/driving/default.json` stores the sole `superoutride.driving-definition` version 5.
 [Calibration](calibration.md) owns tuning meanings and units. Document admission in
 `vehicle/definition-document.ts` publishes detached, deeply immutable source and compiled products.
 
@@ -300,7 +304,8 @@ The driving document has `format`, `version`, `id:"default"` and the current `Dr
 fields: `automaticSteering:"travel-direction"`, `maxRoadWheelSteerDegrees`, `steeringOffsetDegrees`,
 `steeringTraversalSeconds`, positive `fuelCutRedlineMargin`, positive
 `idleFrictionMeanEffectivePressureBar` and `redlineFrictionMeanEffectivePressureBar`,
-`drivelineEfficiency` in (0,1], positive `engineInertiaKilogramSquareMetersPerLitre`, `throttle`
+`drivelineEfficiency` in (0,1], positive `engineInertiaKilogramSquareMetersPerLitre`, positive
+`clutchLockIdleMargin`, `throttle`
 and `brake` (each applySeconds/releaseSeconds), boolean
 `wheelSlip`, and `tire` (gripX/peakSlipX/gripY/peakSlipY/knee). Angles are degrees, traversal times
 are seconds, pressures are bar, inertia is kg m² per litre, and tire, fuel-cut and efficiency values

@@ -41,8 +41,10 @@ pressures of 1.0 bar at idle (`idleFrictionMeanEffectivePressureBar`) and 2.5 ba
 a 4-stroke engine's friction torque is `FMEP * displacement / (4*pi)` and a 2-stroke engine's is
 `FMEP * displacement / (2*pi)`. `drivelineEfficiency=0.9` applies to every vehicle and to positive
 and negative engine torque alike. `engineInertiaKilogramSquareMetersPerLitre=0.04` gives each engine
-a rotor inertia of 0.04 kg m² per litre of displacement. The clutch locks at the curve's peak-torque
-RPM and slips below idle; neither is a vehicle value. Two-wheel support reserve
+a rotor inertia of 0.04 kg m² per litre of displacement. A slipping clutch locks when the
+wheel-derived RPM reaches engine speed and at least `clutchLockIdleMargin=0.02` above idle, and a
+locked clutch slips below idle; the curve's peak-torque RPM limits a slipping engine. None of these
+is a vehicle value. Two-wheel support reserve
 remains a form-specific 0.08 until 8-7; four-wheel support reserve is null.
 Tire and steering low-speed regularization are engine constants of 1.0 m/s.
 

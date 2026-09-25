@@ -22,7 +22,7 @@ export interface AutomaticPowertrainDefinition {
 export interface CompiledAutomaticPowertrainDefinition extends AutomaticPowertrainDefinition {
   /** Derived once from the admitted torque curve; never authored as vehicle values. */
   readonly peakPowerRpm: number;
-  /** Launch speed: the lowest RPM of the curve's maximum torque, where a slipping clutch locks. */
+  /** Launch speed: the lowest RPM of the curve's maximum torque, the slipping engine's upper limit. */
   readonly peakTorqueRpm: number;
 }
 
@@ -34,6 +34,8 @@ export interface PowertrainRules {
   readonly drivelineEfficiency: number;
   /** kg m^2 per litre of displacement. */
   readonly engineInertiaPerLitre: number;
+  /** Fraction above idle that a slipping clutch's lock RPM keeps, leaving a gap to the idle release. */
+  readonly clutchLockIdleMargin: number;
 }
 
 /** One vehicle's powertrain under the game-wide rules; friction and inertia are never vehicle values. */
@@ -44,6 +46,8 @@ export interface PowertrainCoupling {
   readonly redlineFrictionTorque: number;
   /** kg m^2 */
   readonly engineInertia: number;
+  /** Lowest wheel-derived RPM at which a slipping clutch locks: idle * (1 + margin). */
+  readonly clutchLockMinimumRpm: number;
 }
 
 /**
@@ -51,7 +55,7 @@ export interface PowertrainCoupling {
  * engine inertia = displacement in litres * game-wide inertia per litre.
  */
 export function couplePowertrain(
-  definition: Pick<AutomaticPowertrainDefinition, 'displacementCc' | 'cycle'>,
+  definition: Pick<AutomaticPowertrainDefinition, 'displacementCc' | 'cycle' | 'idleRpm'>,
   rules: PowertrainRules,
 ): Readonly<PowertrainCoupling> {
   const torquePerPressure = (definition.displacementCc * 1e-6) / (2 * Math.PI * (definition.cycle / 2));
@@ -61,6 +65,7 @@ export function couplePowertrain(
     idleFrictionTorque: rules.idleFrictionMeanEffectivePressure * torquePerPressure,
     redlineFrictionTorque: rules.redlineFrictionMeanEffectivePressure * torquePerPressure,
     engineInertia: (definition.displacementCc / 1000) * rules.engineInertiaPerLitre,
+    clutchLockMinimumRpm: definition.idleRpm * (1 + rules.clutchLockIdleMargin),
   });
 }
 
@@ -79,8 +84,10 @@ export interface AutomaticPowertrainState {
   outputDriveTorque: number;
 }
 
+/** Starts locked at the wheel-derived RPM when a slipping clutch at idle would lock, else slips at idle. */
 export function createAutomaticPowertrainState(
   definition: CompiledAutomaticPowertrainDefinition,
+  coupling: PowertrainCoupling,
   drivenWheelOmega = 0,
 ): AutomaticPowertrainState {
   assertWheelOmega(drivenWheelOmega);
@@ -89,7 +96,7 @@ export function createAutomaticPowertrainState(
   while (gear < definition.gearRatios.length && coupledEngineRpm(definition, wheelOmega, gear) >= definition.redlineRpm)
     gear += 1;
   const wheelRpm = coupledEngineRpm(definition, drivenWheelOmega, gear);
-  const locked = wheelRpm >= definition.peakTorqueRpm;
+  const locked = wheelRpm >= coupling.clutchLockMinimumRpm;
   return {
     gear,
     fuelCut: false,
@@ -102,8 +109,8 @@ export function createAutomaticPowertrainState(
 
 /**
  * One ordinary mechanics step. Shifts follow the wheel-derived RPM, at most one per call.
- * The clutch is a hysteretic latch on the signed wheel-derived RPM: it locks at peak-torque RPM
- * and releases below idle. While locked the engine turns with the wheels and delivers its signed
+ * The clutch is a latch on the signed wheel-derived RPM: it locks when that RPM reaches engine
+ * speed and the idle lock margin, and releases below idle. While locked the engine turns with the wheels and delivers its signed
  * torque. While slipping one law advances engine speed:
  * dRPM/dt = (opening torque - friction - clutch torque) / inertia, by forward Euler at the current
  * RPM. The opening is the larger of throttle and the idle-holding opening that lands the step on
@@ -139,7 +146,8 @@ export function updateAutomaticPowertrain(
   }
 
   const wheelRpm = coupledEngineRpm(definition, drivenWheelOmega, state.gear);
-  if (state.clutch === 'SLIP' && wheelRpm >= definition.peakTorqueRpm) state.clutch = 'LOCK';
+  if (state.clutch === 'SLIP' && wheelRpm >= Math.max(state.engineRpm, coupling.clutchLockMinimumRpm))
+    state.clutch = 'LOCK';
   else if (state.clutch === 'LOCK' && wheelRpm < definition.idleRpm) state.clutch = 'SLIP';
   const locked = state.clutch === 'LOCK';
   if (locked) state.engineRpm = wheelRpm;

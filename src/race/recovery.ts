@@ -293,6 +293,10 @@ function reconstructVehicle(
   vehicle.rearSupportAvailable = true;
   Object.assign(
     vehicle.powertrain,
-    createAutomaticPowertrainState(p.powertrain, drivenWheelOmega(p, vehicle.frontWheelOmega, vehicle.rearWheelOmega)),
+    createAutomaticPowertrainState(
+      p.powertrain,
+      vehicle.powertrainCoupling,
+      drivenWheelOmega(p, vehicle.frontWheelOmega, vehicle.rearWheelOmega),
+    ),
   );
 }
