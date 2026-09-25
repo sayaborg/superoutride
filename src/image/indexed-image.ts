@@ -1,3 +1,4 @@
+import { readArray, readNumber, readRgb555 } from '../core/admission.js';
 import { rgb555ToRgba } from './rgb555.js';
 
 /** Shared sprite/tile source symbols. The owned runtime pattern packs two symbols per byte. */
@@ -38,14 +39,13 @@ export class IndexedPattern {
 }
 
 /** Slot zero is unused, not an opaque color. Equal opaque slots may retain different meanings. */
-export function readIndexedPalette(value: unknown): readonly number[] {
-  if (
-    !Array.isArray(value) ||
-    value.length !== 16 ||
-    Array.from(value).some((v) => !Number.isInteger(v) || v < 0 || v > 0x7fff)
-  )
-    throw new RangeError('indexed palette must contain 16 RGB555 entries, with unused slot zero');
-  return Object.freeze([...value]);
+export function readIndexedPalette(value: unknown, path = ''): readonly number[] {
+  return readArray(value, path, readRgb555, { length: 16 });
+}
+
+/** One saved pattern symbol: zero is transparent, 1 through 15 opaque palette slots. */
+export function readPatternSymbol(value: unknown, path: string): number {
+  return readNumber(value, path, { min: 0, max: 15, integer: true });
 }
 
 export function indexedPaletteRgba(palette: readonly number[]): readonly number[] {

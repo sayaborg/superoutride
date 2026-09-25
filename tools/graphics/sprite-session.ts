@@ -1,3 +1,4 @@
+import { readDocument, readEmbedded, readNumber, readRecord, requireAdmission } from '../../src/core/admission.js';
 import type { SourceImage, SpriteCrop, SpriteSourceRecipe } from './sprite-source-compiler.js';
 import type { SpriteLodDocument } from '../../src/image/sprite.js';
 
@@ -146,52 +147,59 @@ export class SpriteSession {
     };
   }
   static fromDocument(document: unknown) {
-    exact(document, ['format', 'version', 'source', 'hiddenBase64', 'recipe']);
-    if (document.format !== 'superoutride.sprite-session' || document.version !== 2)
-      throw new RangeError('Unsupported sprite session format/version');
-    exact(document.source, ['width', 'height', 'rgbaBase64']);
-    const { width, height, rgbaBase64 } = document.source;
-    if (
-      typeof width !== 'number' ||
-      typeof height !== 'number' ||
-      ![width, height].every((v) => Number.isSafeInteger(v) && v > 0 && v <= SPRITE_EDITOR_AXIS_LIMIT) ||
-      width * height > SPRITE_EDITOR_PIXEL_LIMIT
-    )
-      throw new RangeError('Session source exceeds editor dimensions');
-    const bytes = decode(rgbaBase64, width * height * 4),
-      hidden = decode(document.hiddenBase64, width * height);
-    if (hidden.some((v) => v > 1)) throw new RangeError('Session mask must contain only 0 or 1');
+    const session = readDocument(
+      document,
+      ['format', 'version', 'source', 'hiddenBase64', 'recipe'],
+      'superoutride.sprite-session',
+      2,
+    );
+    const source = readRecord(session.source, '/source', ['width', 'height', 'rgbaBase64']);
+    const axis = { min: 1, max: SPRITE_EDITOR_AXIS_LIMIT, integer: true };
+    const width = readNumber(source.width, '/source/width', axis),
+      height = readNumber(source.height, '/source/height', axis);
+    requireAdmission(
+      width * height <= SPRITE_EDITOR_PIXEL_LIMIT,
+      'resource_limit',
+      '/source',
+      'Session source exceeds editor dimensions',
+    );
+    const bytes = decode(source.rgbaBase64, width * height * 4, '/source/rgbaBase64'),
+      hidden = decode(session.hiddenBase64, width * height, '/hiddenBase64');
+    requireAdmission(
+      hidden.every((v) => v <= 1),
+      'invalid_value',
+      '/hiddenBase64',
+      'Session mask must contain only 0 or 1',
+    );
     const pixels = new Uint32Array(width * height);
     for (let i = 0; i < pixels.length; i++)
       pixels[i] = rgba(bytes[i * 4]!, bytes[i * 4 + 1]!, bytes[i * 4 + 2]!, bytes[i * 4 + 3]!);
     // compile() below admits the untrusted recipe before this session is returned.
-    const session = new SpriteSession({ width, height, pixels }, document.recipe as SpriteSourceRecipe | null);
-    session.#hidden = hidden;
-    session.compile();
-    return session;
+    const result = new SpriteSession({ width, height, pixels }, session.recipe as SpriteSourceRecipe | null);
+    result.#hidden = hidden;
+    readEmbedded('/recipe', () => result.compile());
+    return result;
   }
 }
 
-function exact<K extends string>(value: unknown, keys: readonly K[]): asserts value is Record<K, unknown> {
-  if (
-    !value ||
-    typeof value !== 'object' ||
-    Array.isArray(value) ||
-    Object.keys(value).length !== keys.length ||
-    keys.some((key) => !Object.hasOwn(value, key))
-  )
-    throw new RangeError('Session has missing or unknown fields');
-}
 function encode(bytes: Uint8Array) {
   let text = '';
   for (let i = 0; i < bytes.length; i += 32768) text += String.fromCharCode(...bytes.subarray(i, i + 32768));
   return btoa(text);
 }
-function decode(text: unknown, length: number) {
-  if (typeof text !== 'string' || text.length !== 4 * Math.ceil(length / 3) || !/^[A-Za-z0-9+/]*={0,2}$/.test(text))
-    throw new RangeError('Session requires bounded base64 image/mask bytes');
+function decode(text: unknown, length: number, path: string) {
+  requireAdmission(
+    typeof text === 'string' && text.length === 4 * Math.ceil(length / 3) && /^[A-Za-z0-9+/]*={0,2}$/.test(text),
+    'invalid_value',
+    path,
+    'Session requires bounded base64 image/mask bytes',
+  );
   const value = atob(text);
-  if (value.length !== length || btoa(value) !== text)
-    throw new RangeError('Session base64 has invalid length or padding');
+  requireAdmission(
+    value.length === length && btoa(value) === text,
+    'invalid_value',
+    path,
+    'Session base64 has invalid length or padding',
+  );
   return Uint8Array.from(value, (ch) => ch.charCodeAt(0));
 }

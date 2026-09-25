@@ -43,7 +43,9 @@ selected palette once; no raw course replacement palettes or value-by-value LOD 
 [Architecture](architecture.md#sprite-lod-metric-and-read-contract) owns level dimensions and anchors.
 
 Invalid dimensions, anchors, indices, palettes, mixtures or unknown fields
-fail. Coarse colors must agree with their mixtures. Readers own packed buffers and immutable metadata.
+fail. Every saved image format in this document, the source recipe and the Sprite Tool session admit
+through the [content admission toolkit](architecture.md#content-admission-toolkit) and report the
+first failure at its JSON Pointer. Coarse colors must agree with their mixtures. Readers own packed buffers and immutable metadata.
 One normalized master level is valid input; shipped sprites have full build-generated LOD.
 Source masters and named palette declarations are saved; completed pyramids are generated products.
 
@@ -168,7 +170,8 @@ share one immutable source; Section membership resolves to canonical descriptors
 Course image admission uses the single [document resource table](content-and-gameplay.md#numeric-and-resource-domains)
 for descriptor count, per-image bytes/texels and aggregate unique-source bytes/texels. Missing, duplicate, undeclared,
 corrupt or malformed inputs fail. Asset diagnostics contain `kind:"asset"`, code, digest, referring
-asset indices and supplied input index where applicable; independent failures follow declaration order.
+asset indices and supplied input index where applicable; an invalid image also carries the JSON
+Pointer `path` of its failure inside that image; independent failures follow declaration order.
 Failure publishes no graph. Decoded consumer workspaces cannot mutate the saved source.
 
 ## Saved course appearance
@@ -190,7 +193,8 @@ the constructs and builds private numeric fields; these are not image assets or 
 
 Set names are unique nonempty trimmed keys, independent of vehicle form. Each set binds a complete
 positive yaw × bank grid to library images. Every image belongs to a set; images shared between
-sets require identical lamp colors. Delivered images have complete LOD pyramids. Every image
+sets require identical lamp colors. The build admits the masters with the same library reader, then
+compiles each image with its set's lamp colors; delivered images have complete LOD pyramids. Every image
 in a set declares exactly the same set of at least two color names. Each set requires one
 `brakeLamp:{off,on}` declaration of RGB555 integers, shared by all its colors and angles. Slot 15
 always means the brake lamp within these images; slots 1 through 14 remain ordinary image colors. Vehicle admission checks form-specific bank dimensions and default-color

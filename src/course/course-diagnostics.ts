@@ -61,6 +61,8 @@ interface AssetDiagnostic {
   /** Document asset declarations sharing this saved source; empty for unreferenced input. */
   readonly assetIndices: readonly number[];
   readonly inputIndex?: number;
+  /** JSON Pointer into the image source, for `asset_invalid_image`. */
+  readonly path?: string;
   readonly message: string;
 }
 
@@ -76,6 +78,7 @@ export class CourseAssetError extends Error {
     assetIndices: readonly number[],
     message: string,
     inputIndex?: number,
+    path?: string,
   ) {
     super(message);
     this.diagnostic = Object.freeze({
@@ -85,6 +88,7 @@ export class CourseAssetError extends Error {
       assetIndices: Object.freeze([...assetIndices]),
       message,
       ...(inputIndex === undefined ? {} : { inputIndex }),
+      ...(path === undefined ? {} : { path }),
     });
   }
 }

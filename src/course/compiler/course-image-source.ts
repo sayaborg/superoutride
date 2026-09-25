@@ -1,3 +1,4 @@
+import { AdmissionError } from '../../core/admission.js';
 import { contentDigest } from '../../core/content-digest.js';
 import { CourseAssetError, courseFailures, courseSuccess, type CourseResult } from '../course-diagnostics.js';
 import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
@@ -39,7 +40,8 @@ export async function compileCourseImageSources(
     sha256: string,
     message: string,
     inputIndex?: number,
-  ) => errors.push(new CourseAssetError(code, sha256, required.get(sha256) ?? [], message, inputIndex));
+    path?: string,
+  ) => errors.push(new CourseAssetError(code, sha256, required.get(sha256) ?? [], message, inputIndex, path));
   const supplied = new Map<string, { inputIndex: number; bytes: Uint8Array<ArrayBuffer> }>();
   let encodedBytes = 0;
   // Do not copy or hash an over-budget input set. Wrong API types remain programming errors.
@@ -123,8 +125,8 @@ export async function compileCourseImageSources(
         levelTexels += background.patterns.length * 256;
       } else readSpriteLodAsset(value);
     } catch (cause) {
-      if (!(cause instanceof RangeError)) throw cause;
-      error('asset_invalid_image', sha256, cause.message, inputIndex);
+      if (!(cause instanceof AdmissionError)) throw cause;
+      error('asset_invalid_image', sha256, cause.message, inputIndex, cause.path);
       continue;
     }
     const source = value as SpriteLodDocument | TileBackgroundDocument;

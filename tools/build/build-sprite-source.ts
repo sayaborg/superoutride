@@ -1,3 +1,4 @@
+import { admit } from '../../src/core/admission.js';
 import { readFile, stat } from 'node:fs/promises';
 import { PNG } from 'pngjs';
 import { normalizeSpriteSource } from '../graphics/sprite-source-compiler.js';
@@ -10,5 +11,7 @@ if (!sourcePath || !recipePath || !outputPath || extra.length)
 if ((await stat(sourcePath)).size > SPRITE_PNG_BYTE_LIMIT) throw new RangeError('PNG exceeds 32 MiB');
 const image = await decodeSpritePng(await readFile(sourcePath), PNG);
 const recipe = JSON.parse(await readFile(recipePath, 'utf8'));
-const master = normalizeSpriteSource(image, recipe);
+const normalized = admit(recipePath, () => normalizeSpriteSource(image, recipe));
+if (!normalized.ok) throw new Error(JSON.stringify(normalized.diagnostics));
+const master = normalized.value;
 await writeSpriteArtifact(outputPath, [sourcePath, recipePath], master);

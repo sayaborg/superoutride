@@ -40,6 +40,8 @@ field or construct, `invalid_numeric_domain` for a number outside its domain, `i
 or a format's semantic code. `admit(document, read)` returns `{ok:true,value}` or `{ok:false,diagnostics}`
 with the first failure; admission stops there and never publishes a partial product. Only admission
 errors become diagnostics; other exceptions are internal faults and propagate.
+`readEmbedded(base, read)` reads a document embedded in another, such as a sprite image inside the
+vehicle sprite library or a recipe inside a Sprite Tool session, relocating its pointers under `base`.
 
 Compilers below a document boundary raise `DefinitionDomainError` with a slash-separated path relative
 to the record they received. `withDefinitionPath` maps nested or derived fields back to the caller's

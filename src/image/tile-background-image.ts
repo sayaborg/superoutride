@@ -1,4 +1,5 @@
-import { IndexedPattern, indexedPaletteRgba, readIndexedPalette } from './indexed-image.js';
+import { readArray, readDocument, readNumber, readRecord, readString } from '../core/admission.js';
+import { IndexedPattern, indexedPaletteRgba, readIndexedPalette, readPatternSymbol } from './indexed-image.js';
 
 const BACKGROUND_TILE_SIZE = 16;
 const BACKGROUND_TILE_COLUMNS = 80;
@@ -26,44 +27,42 @@ export class TileBackgroundImage {
   readonly #tiles: Uint32Array;
 
   constructor(value: unknown) {
-    const document = record(value, ['format', 'version', 'name', 'patterns', 'palettes', 'tiles']);
-    if (document.format !== 'superoutride.tile-background' || document.version !== 1)
-      throw new RangeError('unsupported tiled background format/version');
-    if (typeof document.name !== 'string' || !document.name.trim()) throw new RangeError('background name is required');
-    if (
-      !Array.isArray(document.patterns) ||
-      !document.patterns.length ||
-      !Array.isArray(document.palettes) ||
-      !document.palettes.length
-    )
-      throw new RangeError('background requires indexed patterns and palettes');
-    this.#patterns = Object.freeze(
-      Array.from(
-        document.patterns,
-        (pattern: unknown) => new IndexedPattern(16, 16, record(pattern, ['indices']).indices as readonly number[]),
-      ),
+    const document = readDocument(
+      value,
+      ['format', 'version', 'name', 'patterns', 'palettes', 'tiles'],
+      'superoutride.tile-background',
+      1,
     );
-    const palettes = Array.from(document.palettes, readIndexedPalette);
+    readString(document.name, '/name');
+    this.#patterns = readArray(
+      document.patterns,
+      '/patterns',
+      (value, path) =>
+        new IndexedPattern(
+          16,
+          16,
+          readArray(readRecord(value, path, ['indices']).indices, `${path}/indices`, readPatternSymbol, {
+            length: 256,
+          }),
+        ),
+      { min: 1 },
+    );
+    const palettes = readArray(document.palettes, '/palettes', readIndexedPalette, { min: 1 });
     this.#palettes = new Uint32Array(palettes.length * 16);
     palettes.forEach((palette, id) => this.#palettes.set(indexedPaletteRgba(palette), id << 4));
-    if (!Array.isArray(document.tiles) || document.tiles.length !== BACKGROUND_TILE_COLUMNS * BACKGROUND_TILE_ROWS)
-      throw new RangeError('background requires exactly 80 by 40 tiles');
-    this.#tiles = new Uint32Array(document.tiles.length * 2);
-    Array.from(document.tiles).forEach((tile: unknown, i: number) => {
-      if (
-        !Array.isArray(tile) ||
-        tile.length !== 2 ||
-        !Number.isInteger(tile[0]) ||
-        tile[0] < 0 ||
-        tile[0] >= this.#patterns.length ||
-        !Number.isInteger(tile[1]) ||
-        tile[1] < 0 ||
-        tile[1] >= palettes.length
-      )
-        throw new RangeError('background tile must reference an existing pattern and palette');
-      this.#tiles[i * 2] = tile[0];
-      this.#tiles[i * 2 + 1] = tile[1];
-    });
+    const tiles = readArray(
+      document.tiles,
+      '/tiles',
+      (value, path) => {
+        const [pattern, palette] = readArray(value, path, (value) => value, { length: 2 });
+        return [
+          readNumber(pattern, `${path}/0`, { min: 0, max: this.#patterns.length - 1, integer: true }),
+          readNumber(palette, `${path}/1`, { min: 0, max: palettes.length - 1, integer: true }),
+        ];
+      },
+      { length: BACKGROUND_TILE_COLUMNS * BACKGROUND_TILE_ROWS },
+    );
+    this.#tiles = new Uint32Array(tiles.flat());
     Object.freeze(this);
   }
 
@@ -88,13 +87,4 @@ export class TileBackgroundImage {
       if (x === this.width) x = 0;
     }
   }
-}
-
-function record(value: unknown, keys: readonly string[]): Record<string, unknown> {
-  if (!value || typeof value !== 'object' || Array.isArray(value))
-    throw new RangeError('background record is required');
-  const object = value as Record<string, unknown>;
-  if (Object.keys(object).length !== keys.length || keys.some((key) => !Object.hasOwn(object, key)))
-    throw new RangeError('background record has missing or unknown fields');
-  return object;
 }

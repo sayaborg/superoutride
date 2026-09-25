@@ -1,3 +1,4 @@
+import { requireAdmission } from '../../src/core/admission.js';
 import { readIndexedPalette } from '../../src/image/indexed-image.js';
 import {
   IMAGE_OPAQUE_COVERAGE,
@@ -24,7 +25,12 @@ export function compileSpriteLod(
   paletteSuffixes: readonly (readonly number[])[] = [[]],
 ): SpriteLodDocument {
   const master = readSpriteLodAsset(source, paletteSuffixes[0]);
-  if (master.levels.length !== 1) throw new RangeError('sprite compiler requires exactly one normalized master');
+  requireAdmission(
+    master.levels.length === 1,
+    'invalid_value',
+    '/levels',
+    'Sprite compiler requires exactly one normalized master',
+  );
   const original = source.levels[0]!;
   const base = master.levels[0]!.paletteRgb555;
   const palettes = spritePaletteStates(master.palettes).flatMap((palette) =>

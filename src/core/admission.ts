@@ -60,6 +60,16 @@ export function admit<T>(document: string, read: () => T): AdmissionResult<T, Ad
   }
 }
 
+/** Read an embedded document; its pointers are relocated under the containing document's base pointer. */
+export function readEmbedded<T>(base: string, read: () => T): T {
+  try {
+    return read();
+  } catch (error) {
+    if (!(error instanceof AdmissionError)) throw error;
+    throw new AdmissionError(error.code, `${base}${error.path}`, error.message);
+  }
+}
+
 export function admissionDiagnostic<Code extends string>(
   error: AdmissionError<Code>,
   document: string,

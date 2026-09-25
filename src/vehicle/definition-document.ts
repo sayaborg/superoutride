@@ -242,14 +242,9 @@ export async function loadVehicleSpriteLibrary(content: ContentDelivery): Promis
   const file = content.manifest.files.find((file) => file.kind === 'image' && file.id === 'vehicles');
   if (!file) throw new RangeError('Manifest requires the vehicle sprite library');
   const value = await content.json('image', 'vehicles');
-  try {
-    return readSpriteAssets(value);
-  } catch (cause) {
-    if (!(cause instanceof RangeError)) throw cause;
-    throw new Error(
-      JSON.stringify([{ kind: 'input', code: 'invalid_value', document: file.path, path: '', message: cause.message }]),
-    );
-  }
+  const result = admit(file.path, () => readSpriteAssets(value));
+  if (!result.ok) throw new Error(JSON.stringify(result.diagnostics));
+  return result.value;
 }
 
 /** Transport verifies every payload SHA before either admission boundary sees decoded content. */

@@ -1,4 +1,14 @@
-import { IndexedPattern, readIndexedPalette, indexedPaletteRgba } from './indexed-image.js';
+import {
+  readArray,
+  readDictionary,
+  readDocument,
+  readNumber,
+  readRecord,
+  readRgb555,
+  readString,
+  requireAdmission,
+} from '../core/admission.js';
+import { IndexedPattern, readIndexedPalette, indexedPaletteRgba, readPatternSymbol } from './indexed-image.js';
 import { evaluatePaletteMixture, linearToRgb555, selectImageLodLevel, type PaletteMixture } from './image-filter.js';
 // Dimensionless weight sum: 10^-10 normalization budget for serialized mixture sums.
 // Positive unit-total sums accumulate O(n*eps) error; this allows about 4.5e5 eps.
@@ -64,127 +74,130 @@ export interface SpriteAsset {
 
 /** Completed-image admission: filtering is never performed by the reader or blitter. */
 export function readSpriteLodAsset(value: unknown, paletteSuffix: readonly number[] = []): SpriteAsset {
-  const document = spriteRecord(value, [
-    'format',
-    'version',
-    'name',
-    'width',
-    'height',
-    'anchorX',
-    'anchorY',
-    'defaultPalette',
-    'palettes',
-    'levels',
-  ]);
-  if (document.format !== 'superoutride.sprite-lod' || document.version !== 4)
-    throw new RangeError('unsupported sprite LOD format/version');
-  if (typeof document.name !== 'string' || !document.name.trim()) throw new RangeError('sprite name is required');
-  const { width, height, anchorX, anchorY } = document;
-  if (
-    typeof width !== 'number' ||
-    typeof height !== 'number' ||
-    !Number.isSafeInteger(width) ||
-    !Number.isSafeInteger(height) ||
-    width < 1 ||
-    height < 1
-  )
-    throw new RangeError('sprite master dimensions must be positive safe integers');
-  if (
-    typeof anchorX !== 'number' ||
-    typeof anchorY !== 'number' ||
-    !Number.isFinite(anchorX) ||
-    !Number.isFinite(anchorY)
-  )
-    throw new RangeError('sprite anchor must be finite');
-  const layout = spriteLodLayout(width, height);
-  if (!Array.isArray(document.levels) || document.levels.length < 1 || document.levels.length > layout.length)
-    throw new RangeError('sprite LOD count exceeds the finite master pyramid');
-  if (!document.palettes || typeof document.palettes !== 'object' || Array.isArray(document.palettes))
-    throw new RangeError('sprite palettes must be a named dictionary');
-  const palettes = Object.freeze(
-    Object.fromEntries(
-      Object.entries(document.palettes).map(([name, value]) => {
-        if (!name.trim() || name !== name.trim()) throw new RangeError('palette name must be nonempty and trimmed');
-        const entry = spriteRecord(value, ['colors']);
-        const colors = readPalette(entry.colors, paletteSuffix);
-        return [name, Object.freeze({ colors })];
-      }),
-    ),
+  const document = readDocument(
+    value,
+    ['format', 'version', 'name', 'width', 'height', 'anchorX', 'anchorY', 'defaultPalette', 'palettes', 'levels'],
+    'superoutride.sprite-lod',
+    4,
   );
-  if (typeof document.defaultPalette !== 'string' || !Object.hasOwn(palettes, document.defaultPalette))
-    throw new RangeError('default palette must name an image palette');
+  const name = readString(document.name, '/name');
+  const extent = { min: 1, max: Number.MAX_SAFE_INTEGER, integer: true };
+  const width = readNumber(document.width, '/width', extent);
+  const height = readNumber(document.height, '/height', extent);
+  requireAdmission(Number.isSafeInteger(width * height), 'resource_limit', '/height', 'Sprite extent is too large');
+  const anchorX = readNumber(document.anchorX, '/anchorX');
+  const anchorY = readNumber(document.anchorY, '/anchorY');
+  const layout = spriteLodLayout(width, height);
+  const levelDocuments = readArray(document.levels, '/levels', (level) => level, { min: 1, max: layout.length });
+  const palettes = readDictionary(document.palettes, '/palettes', (value, path) =>
+    Object.freeze({ colors: readPalette(readRecord(value, path, ['colors']).colors, `${path}/colors`, paletteSuffix) }),
+  );
+  const defaultPalette = readString(document.defaultPalette, '/defaultPalette');
+  requireAdmission(
+    Object.hasOwn(palettes, defaultPalette),
+    'unresolved_reference',
+    '/defaultPalette',
+    'Default palette must name an image palette',
+  );
+  const levelFields = ['paletteRgb555', 'indices', 'mixtures'];
   const base = readPalette(
-    spriteRecord(document.levels[0], ['paletteRgb555', 'indices', 'mixtures']).paletteRgb555,
+    readRecord(levelDocuments[0], '/levels/0', levelFields).paletteRgb555,
+    '/levels/0/paletteRgb555',
     paletteSuffix,
   );
-  if (!base.every((color, i) => color === palettes[document.defaultPalette as string]!.colors[i]))
-    throw new RangeError('master colors must equal the named default palette');
-  const levels = Array.from(document.levels, (value: unknown, k: number) => {
-    const level = spriteRecord(value, ['paletteRgb555', 'indices', 'mixtures']);
-    const paletteRgb555 = k === 0 ? base : readIndexedPalette(level.paletteRgb555);
-    if (!Array.isArray(level.mixtures) || level.mixtures.length !== 16)
-      throw new RangeError('sprite palette requires 16 mixture slots');
+  requireAdmission(
+    base.every((color, i) => color === palettes[defaultPalette]!.colors[i]),
+    'invalid_value',
+    '/levels/0/paletteRgb555',
+    'Master colors must equal the named default palette',
+  );
+  const levels = levelDocuments.map((value, k) => {
+    const path = `/levels/${k}`;
+    const level = readRecord(value, path, levelFields);
+    const paletteRgb555 = k === 0 ? base : readIndexedPalette(level.paletteRgb555, `${path}/paletteRgb555`);
     const mixtures = Object.freeze(
-      Array.from(level.mixtures, (value: unknown, slot: number): PaletteMixture => {
-        if (!Array.isArray(value)) throw new RangeError('sprite mixture must be an array');
-        let total = 0;
-        const used = new Set<number>();
-        const mixture = Array.from(value, (pair: unknown): readonly [number, number] => {
-          if (
-            !Array.isArray(pair) ||
-            pair.length !== 2 ||
-            !Number.isInteger(pair[0]) ||
-            pair[0] < 1 ||
-            pair[0] > 15 ||
-            typeof pair[1] !== 'number' ||
-            !Number.isFinite(pair[1]) ||
-            !(pair[1] > 0) ||
-            pair[1] > 1 ||
-            used.has(pair[0])
-          )
-            throw new RangeError('sprite mixture requires unique opaque slots and positive finite weights');
-          used.add(pair[0]);
-          total += pair[1];
-          return Object.freeze([pair[0], pair[1]] as const);
-        });
-        if (
-          (slot === 0 && mixture.length !== 0) ||
-          (mixture.length > 0 && Math.abs(total - 1) > MIXTURE_WEIGHT_SUM_TOLERANCE)
-        )
-          throw new RangeError('opaque palette mixture weights must sum to one; slot zero is unused');
-        if (k === 0 && slot > 0 && (mixture.length !== 1 || mixture[0]![0] !== slot || mixture[0]![1] !== 1))
-          throw new RangeError('master palette mixtures must retain semantic slot identity');
-        if (k > 0 && mixture.length && linearToRgb555(...evaluatePaletteMixture(mixture, base)) !== paletteRgb555[slot])
-          throw new RangeError('level palette must match its linear master mixture');
-        return Object.freeze(mixture);
-      }),
+      readArray(level.mixtures, `${path}/mixtures`, (value) => value, { length: 16 }).map((value, slot) =>
+        readMixture(value, `${path}/mixtures/${slot}`, k, slot, base, paletteRgb555),
+      ),
     );
     const { width: w, height: h } = layout[k]!;
-    const pattern = new IndexedPattern(w, h, level.indices as readonly number[]);
-    for (let i = 0; i < w * h; i++) {
-      const index = pattern.indexAt(i);
-      if (index && !mixtures[index]!.length) throw new RangeError('opaque index requires a palette mixture');
-    }
+    const indices = readArray(
+      level.indices,
+      `${path}/indices`,
+      (value, at) => {
+        const index = readPatternSymbol(value, at);
+        requireAdmission(
+          !index || mixtures[index]!.length > 0,
+          'invalid_value',
+          at,
+          'Opaque index requires a palette mixture',
+        );
+        return index;
+      },
+      { length: w * h },
+    );
     return Object.freeze({
       width: w,
       height: h,
-      pattern,
+      pattern: new IndexedPattern(w, h, indices),
       paletteRgb555,
       paletteRgba: indexedPaletteRgba(paletteRgb555),
       mixtures,
     });
   });
   return Object.freeze({
-    name: document.name,
+    name,
     width,
     height,
     anchorX,
     anchorY,
     worldWidthMeters: width / SPRITE_SOURCE_TEXELS_PER_METER,
-    defaultPalette: document.defaultPalette,
+    defaultPalette,
     palettes,
     levels: Object.freeze(levels),
   });
+}
+
+/** One palette slot's mixture of unique opaque master slots with positive weights summing to one. */
+function readMixture(
+  value: unknown,
+  path: string,
+  level: number,
+  slot: number,
+  base: readonly number[],
+  paletteRgb555: readonly number[],
+): PaletteMixture {
+  const used = new Set<number>();
+  let total = 0;
+  const mixture = readArray(value, path, (pair, at) => {
+    const [index, weight] = readArray(pair, at, (value) => value, { length: 2 });
+    const source = readNumber(index, `${at}/0`, { min: 1, max: 15, integer: true });
+    requireAdmission(!used.has(source), 'invalid_value', `${at}/0`, 'Mixture slots must be unique');
+    used.add(source);
+    const share = readNumber(weight, `${at}/1`, { min: 0, exclusiveMin: true, max: 1 });
+    total += share;
+    return Object.freeze([source, share] as const);
+  });
+  requireAdmission(slot > 0 || mixture.length === 0, 'invalid_value', path, 'Slot zero is unused');
+  requireAdmission(
+    mixture.length === 0 || Math.abs(total - 1) <= MIXTURE_WEIGHT_SUM_TOLERANCE,
+    'invalid_value',
+    path,
+    'Opaque palette mixture weights must sum to one',
+  );
+  requireAdmission(
+    level > 0 || slot === 0 || (mixture.length === 1 && mixture[0]![0] === slot && mixture[0]![1] === 1),
+    'invalid_value',
+    path,
+    'Master palette mixtures must retain semantic slot identity',
+  );
+  requireAdmission(
+    level === 0 || !mixture.length || linearToRgb555(...evaluatePaletteMixture(mixture, base)) === paletteRgb555[slot],
+    'invalid_value',
+    path,
+    'Level palette must match its linear master mixture',
+  );
+  return mixture;
 }
 
 /** Named color and lamp state are resolved once, before rendering. */
@@ -210,18 +223,9 @@ function applySpritePalette(asset: SpriteAsset, base: readonly number[]): Sprite
 }
 
 /** A containing format owns any trailing reserved colors; authored arrays must omit them. */
-function readPalette(value: unknown, suffix: readonly number[]): readonly number[] {
-  if (!Array.isArray(value) || value.length !== 16 - suffix.length)
-    throw new RangeError('image palette must omit externally reserved slots');
-  return readIndexedPalette([...value, ...suffix]);
-}
-
-function spriteRecord(value: unknown, keys: readonly string[]): Record<string, unknown> {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) throw new RangeError('sprite record is required');
-  const record = value as Record<string, unknown>;
-  if (Object.keys(record).some((key) => !keys.includes(key)) || keys.some((key) => !Object.hasOwn(record, key)))
-    throw new RangeError('sprite record has missing or unknown fields');
-  return record;
+function readPalette(value: unknown, path: string, suffix: readonly number[]): readonly number[] {
+  const colors = readArray(value, path, readRgb555, { length: 16 - suffix.length });
+  return Object.freeze([...colors, ...suffix]);
 }
 
 /** Geometric-mean transitions; the exact boundary selects the coarser level. */
