@@ -620,13 +620,15 @@ integer-millisecond budgets. [Development](development.md#build-outputs) owns ge
 
 ## Recovery
 
-Recovery observes support loss, falling, penetration, coordinate-domain exit and overturning. It reconstructs
+Airborne driving is ordinary; recovery applies only when driving cannot continue: coordinate-domain
+exit, an inverted landing, falling through the heightfield, leaving the locked fork route (wrong course) or a
+manual request. [Vehicle physics](vehicle-physics.md#airborne-state-and-recovery) owns the conditions. It reconstructs
 pose, velocities, wheels, actuators, powertrain and observations at known supported coordinates while
 preserving steering/tire calibration and earned gates, locks and laps.
 
 Route recovery backs off from the farther of causal current chainage and last-safe chainage.
 Wrong-route recovery uses the selected Carriageway at the observed station.
-[Vehicle physics](vehicle-physics.md#coordinate-domain-recovery) owns domain timing and target placement.
+[Vehicle physics](vehicle-physics.md#airborne-state-and-recovery) owns domain timing and target placement.
 Known recovery coordinates use the shared route. Observers resynchronize once, suppress reset
 crossing credit and update the player
 camera before rendering. Unrelated internal faults propagate.

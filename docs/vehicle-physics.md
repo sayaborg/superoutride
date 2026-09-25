@@ -120,17 +120,37 @@ Degenerate projection of the steered wheel direction onto the surface plane tran
 force. The shared wrench combines contact,
 wheel reaction, gravity and planar quadratic drag for protection and integration.
 
-## Coordinate-domain recovery
+## Airborne state and recovery
 
-The vehicle center's projected `inDomain` controls the coordinate-domain recovery condition.
-A continuous 0.72 seconds outside triggers `outside-domain` recovery; returning inside resets the
-outside timer. The same condition covers lateral exits and either end of the retained Route.
-The interval matches the existing unsupported-time allowance: a short excursion can return, and
-an unsupported vehicle can visibly fall (about 2.54 m from rest under gravity) before reconstruction.
-Outside the domain, recovery does not query a fictitious surface normal or penetration plane.
-Inside it, the existing support, penetration, fall-distance and overturn rules continue to apply;
-their airborne revision belongs to 8-7c.
+Airborne driving is an ordinary state. Unsupported contacts carry no load and no tire force; the
+wheels, powertrain (including free-revving and fuel cut), steering actuators, rendering and audio run
+under their ordinary laws, and landings stay in the simulation through the suspension and its bump
+stop. No time limit applies to unsupported flight, and body rotation in the air never recovers by itself.
 
+Recovery applies only when driving cannot continue. After each gameplay step, recovery checks the
+first three conditions in order; race composition and the player request the last two:
+
+| Reason                | Condition                                                                                                                                  |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `outside-domain`      | The vehicle center's projected `inDomain` is false for a continuous 0.72 s                                                                 |
+| `overturned`          | Body up points at or below the surface plane (`up dot normal <= 0`) and the CG is within `desiredCgHeight` of the surface along its normal |
+| `surface-penetration` | Unsupported, and the CG lies more than 1 mm below the heightfield along its normal (a hole or material-free ground)                        |
+| `wrong-course`        | Race composition: the vehicle left the route its locked fork allows; it returns to the selected Carriageway                                |
+| `manual`              | The player's request                                                                                                                       |
+
+The coordinate-domain timer resets when the center returns inside; the same condition covers lateral
+exits and either end of the retained Route. The 0.72 s lets a short excursion return and an
+unsupported vehicle visibly fall (about 2.54 m from rest) before reconstruction. Outside the domain,
+recovery does not query a fictitious surface normal or penetration plane. Inside it, the surface is
+the heightfield at the center's route coordinate, material-free ground included.
+
+There is no body collision shape, so overturning is judged by pose and height: an inverted body
+higher than its ride CG height above the surface is still rotating in the air and may right itself
+before landing; at or below that height it has landed inverted. Any inverted CG below the surface
+therefore reports `overturned`. A supported, upright vehicle is never checked further; an upright
+unsupported vehicle recovers only after falling through the heightfield.
+
+The last safe station is the route s of the latest step that was supported and not inverted.
 Recovery clamps the farther of current and last-safe route s to the retained extent, then backs up
 8 m within it. Race composition resolves a Carriageway center at that final station, respecting
 locked forks. Manual recovery uses the same target resolver. Explicit recovery targets are admitted

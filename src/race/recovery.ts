@@ -21,22 +21,13 @@ import {
 import { add3, dot3, scale3 } from '../core/vector3.js';
 import { drivenWheelOmega } from '../vehicle/physics/vehicle-definitions.js';
 
-type RecoveryReason =
-  | 'unsupported-time'
-  | 'fall-distance'
-  | 'surface-penetration'
-  | 'outside-domain'
-  | 'overturned'
-  | 'manual'
-  | 'wrong-course';
+type RecoveryReason = 'surface-penetration' | 'outside-domain' | 'overturned' | 'manual' | 'wrong-course';
 
 // Metres: 1 mm contact/recovery deadband, not floating-point epsilon.
 // At a 1/720 s vehicle substep, gravity alone contributes about 0.019 mm of displacement.
 const SURFACE_PENETRATION_TOLERANCE_METERS = 1e-3;
 
 export interface RecoverySettings {
-  maxUnsupportedTime: number;
-  maxFallDistance: number;
   maxOutsideDomainTime: number;
   backtrackDistance: number;
   minRecoverySpeed: number;
@@ -47,8 +38,6 @@ export interface RecoverySettings {
 }
 
 export const RECOVERY_SETTINGS: Readonly<RecoverySettings> = {
-  maxUnsupportedTime: 0.72,
-  maxFallDistance: 3.25,
   maxOutsideDomainTime: 0.72,
   backtrackDistance: 8,
   minRecoverySpeed: 18,
@@ -58,7 +47,6 @@ export const RECOVERY_SETTINGS: Readonly<RecoverySettings> = {
 
 export interface RecoveryState {
   lastSafeS: number;
-  unsupportedTime: number;
   outsideDomainTime: number;
   recoveries: number;
   lastReason: RecoveryReason | null;
@@ -72,7 +60,6 @@ interface RecoveryTarget {
 export function createRecoveryState(vehicle: VehicleState): RecoveryState {
   return {
     lastSafeS: vehicle.course.s,
-    unsupportedTime: 0,
     outsideDomainTime: 0,
     recoveries: 0,
     lastReason: null,
@@ -111,7 +98,10 @@ const observationWorkspaces = new WeakMap<
   { surface: ReturnType<typeof createSurfaceGeometryWorkspace>; body: ReturnType<typeof createBodyKinematicsWorkspace> }
 >();
 
-/** Gameplay observes derived load/support facts; it never changes the ordinary physics law. */
+/**
+ * Gameplay observes derived load/support facts; it never changes the ordinary physics law. Airborne
+ * motion is ordinary: only states from which driving cannot continue recover.
+ */
 function updateRecovery(
   world: VehicleWorld,
   vehicle: VehicleState,
@@ -137,33 +127,25 @@ function updateRecovery(
     observationWorkspaces.set(vehicle, workspace);
   }
   const surface = sampleSurfaceGeometryAtCoordinate(coordinates, height, surfaces, vehicle.course, workspace.surface);
-  // Single-wheel support is allowed. Only an overturned pose bypasses the ordinary support check;
-  // stale contact telemetry must not make an inverted vehicle a new safe recovery checkpoint.
-  const overturned = dot3(vehicleBodyKinematics(vehicle, workspace.body).up, surface.normal) <= 0;
-  if (!overturned && vehicle.supported) {
+  const inverted = dot3(vehicleBodyKinematics(vehicle, workspace.body).up, surface.normal) <= 0;
+  // Single-wheel support is allowed. Stale contact telemetry must not make an inverted vehicle a new
+  // safe recovery checkpoint.
+  if (!inverted && vehicle.supported) {
     state.lastSafeS = vehicle.course.s;
-    state.unsupportedTime = 0;
     return null;
   }
 
-  state.unsupportedTime += dt;
-  const desiredCgHeight = model.compiledVehicle.desiredCgHeight;
-  const expectedCgY = height.sample(vehicle.course.s) + desiredCgHeight;
-  const fallDistance = Math.max(0, expectedCgY - vehicle.y);
+  // CG distance above the rendered heightfield along its normal; material-free ground included.
   const surfaceDistance =
     (vehicle.x - surface.point.x) * surface.normal.x +
     (vehicle.y - surface.point.y) * surface.normal.y +
     (vehicle.z - surface.point.z) * surface.normal.z;
-  // Material-free ground is non-load-bearing, but it still shares the rendered heightfield. Letting
-  // the CG pass below that authored surface makes the vehicle visibly drive under terrain while gameplay waits
-  // for the larger fall-distance limits.
-  const penetratedSurface = surfaceDistance < -SURFACE_PENETRATION_TOLERANCE_METERS;
-
   let reason: RecoveryReason | null = null;
-  if (overturned) reason = 'overturned';
-  else if (fallDistance >= settings.maxFallDistance) reason = 'fall-distance';
-  else if (penetratedSurface) reason = 'surface-penetration';
-  else if (state.unsupportedTime >= settings.maxUnsupportedTime) reason = 'unsupported-time';
+  // There is no body collision shape. An inverted body counts as landed once its CG is within the
+  // ride CG height of the surface; higher up it is still rotating in the air and may recover itself.
+  if (inverted && surfaceDistance <= model.compiledVehicle.desiredCgHeight) reason = 'overturned';
+  // A CG below the heightfield has fallen into a hole or through material-free ground.
+  else if (surfaceDistance < -SURFACE_PENETRATION_TOLERANCE_METERS) reason = 'surface-penetration';
 
   if (reason !== null) recoverVehicle(world, vehicle, model, { state, reason, settings, target });
   return reason;
@@ -255,7 +237,6 @@ export function recoverVehicleToPlanCoordinate(
   vehicle.course = initializePlanCoordinateObservation(coordinates, vehicle.x, vehicle.z, target.s);
 
   state.lastSafeS = target.s;
-  state.unsupportedTime = 0;
   state.outsideDomainTime = 0;
   state.recoveries += 1;
   state.lastReason = reason;
