@@ -2,20 +2,18 @@ import { clamp, wrapAngle } from '../core/math.js';
 import { createSpritePalette, readSpriteLodAsset, spriteLodLayout, type SpriteAsset } from './sprite.js';
 
 export interface VehicleSpriteSet {
-  readonly kind: 'car' | 'bike';
   readonly yawVariants: number;
   readonly bankVariants: number;
   readonly assets: readonly (readonly SpriteAsset[])[];
 }
 export interface SpriteAssets {
-  readonly car: VehicleSpriteSet;
-  readonly bike: VehicleSpriteSet;
+  readonly sets: Readonly<Record<string, VehicleSpriteSet>>;
 }
 
 /** Admission of the build's completed sprite library. No image generation or filtering at runtime. */
 export function readSpriteAssets(value: unknown): SpriteAssets {
-  const library = record(value, ['format', 'version', 'sprites', 'car', 'bike']);
-  if (library.format !== 'superoutride.vehicle-sprites' || library.version !== 1 || !Array.isArray(library.sprites))
+  const library = record(value, ['format', 'version', 'sprites', 'sets']);
+  if (library.format !== 'superoutride.vehicle-sprites' || library.version !== 2 || !Array.isArray(library.sprites))
     throw new RangeError('unsupported vehicle sprite library');
   const sprites = Array.from(library.sprites, (recordData: unknown) => {
     const asset = readSpriteLodAsset(recordData);
@@ -23,12 +21,11 @@ export function readSpriteAssets(value: unknown): SpriteAssets {
       throw new RangeError('shipped sprites require the complete build-generated pyramid');
     return asset;
   });
-  const set = (value: unknown, kind: 'car' | 'bike'): VehicleSpriteSet => {
-    const recordData = record(value, ['kind', 'yawVariants', 'bankVariants', 'assets']);
+  const set = (value: unknown): VehicleSpriteSet => {
+    const recordData = record(value, ['yawVariants', 'bankVariants', 'assets']);
     const yawVariants = recordData.yawVariants,
       bankVariants = recordData.bankVariants;
     if (
-      recordData.kind !== kind ||
       typeof yawVariants !== 'number' ||
       !Number.isSafeInteger(yawVariants) ||
       yawVariants < 1 ||
@@ -49,12 +46,28 @@ export function readSpriteAssets(value: unknown): SpriteAssets {
         }),
       );
     });
-    return Object.freeze({ kind, yawVariants, bankVariants, assets: Object.freeze(assets) });
+    const names = Object.keys(assets[0]![0]!.palettes).sort();
+    if (names.length < 2) throw new RangeError('vehicle sprite set requires at least two named colors');
+    for (const image of assets.flat()) {
+      if (JSON.stringify(Object.keys(image.palettes).sort()) !== JSON.stringify(names))
+        throw new RangeError('every image in a vehicle set must declare the same color names');
+      if (Object.values(image.palettes).some((palette) => !palette.brakeLamp))
+        throw new RangeError('every vehicle color must declare brake-lamp animation');
+    }
+    return Object.freeze({ yawVariants, bankVariants, assets: Object.freeze(assets) });
   };
-  return Object.freeze({ car: set(library.car, 'car'), bike: set(library.bike, 'bike') });
+  if (!library.sets || typeof library.sets !== 'object' || Array.isArray(library.sets))
+    throw new RangeError('vehicle sprite sets must be a named dictionary');
+  const sets = Object.fromEntries(
+    Object.entries(library.sets).map(([name, value]) => {
+      if (!name.trim() || name !== name.trim()) throw new RangeError('sprite set name must be nonempty and trimmed');
+      return [name, set(value)];
+    }),
+  );
+  return Object.freeze({ sets: Object.freeze(sets) });
 }
 
-/** An instance binds one semantic base palette to every yaw/bank image and level once. */
+/** An instance resolves each image's own named color and lamp state once. */
 export function createVehiclePaletteVariant(
   set: VehicleSpriteSet,
   palette: string,

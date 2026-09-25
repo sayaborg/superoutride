@@ -1,19 +1,7 @@
 import { clamp } from '../core/math.js';
 import { VEHICLE_GRAVITY } from '../vehicle/physics/vehicle-dynamics.js';
-import type { VehicleForm } from '../vehicle/definition-document.js';
-
 export interface VehicleTurnObservation {
   readonly lateralAcceleration?: number;
-}
-
-interface VehicleVisualIdentity {
-  readonly form: VehicleForm;
-}
-
-type VehicleSpriteFamily = 'car' | 'bike';
-
-export function deriveVehicleSpriteFamily(vehicle: VehicleVisualIdentity): VehicleSpriteFamily {
-  return vehicle.form;
 }
 
 /** Flat-road equilibrium angle from observed lateral acceleration; visual only. */

@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-definition",
-  "version": 1,
+  "version": 2,
   "id": "VFR750R",
   "form": "bike",
   "selectionOrder": 6,
@@ -26,7 +26,6 @@
     "frontWheelInertia": 0.47,
     "rearWheelInertia": 0.72,
     "frontDriveTorqueFraction": 0,
-    "steeringRatio": 18,
     "frontBrakeTorqueMax": 700,
     "rearBrakeTorqueMax": 300,
     "quadraticDrag": 0.24,
@@ -39,26 +38,11 @@
       "efficiency": 0.92,
       "gearRatios": [2.4, 1.941, 1.631, 1.434, 1.291, 1.192],
       "torqueCurve": [
-        {
-          "rpm": 1200,
-          "torqueNewtonMeters": 34
-        },
-        {
-          "rpm": 4000,
-          "torqueNewtonMeters": 55
-        },
-        {
-          "rpm": 7000,
-          "torqueNewtonMeters": 71
-        },
-        {
-          "rpm": 9500,
-          "torqueNewtonMeters": 70
-        },
-        {
-          "rpm": 11300,
-          "torqueNewtonMeters": 65
-        }
+        { "rpm": 1200, "torqueNewtonMeters": 34 },
+        { "rpm": 4000, "torqueNewtonMeters": 55 },
+        { "rpm": 7000, "torqueNewtonMeters": 71 },
+        { "rpm": 9500, "torqueNewtonMeters": 70 },
+        { "rpm": 11300, "torqueNewtonMeters": 65 }
       ]
     }
   },
@@ -66,16 +50,11 @@
   "metadata": {
     "manufacturer": "Honda",
     "model": "VFR750R",
-    "identifier": {
-      "officialLabel": "RC30",
-      "shortLabel": "RC30"
-    },
+    "identifier": { "officialLabel": "RC30", "shortLabel": "RC30" },
     "selectedSpecification": [],
-    "period": "1987–1990",
-    "physicsAnchor": {
-      "modelYear": "1988",
-      "market": "ROW full-power"
-    },
+    "period": "1987\u20131990",
+    "physicsAnchor": { "modelYear": "1988", "market": "ROW full-power" },
     "mobileLabel": "RC30"
-  }
+  },
+  "visuals": { "spriteSet": "motorcycle", "palette": "original", "steeringRatio": 18 }
 }

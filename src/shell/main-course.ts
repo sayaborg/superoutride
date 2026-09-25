@@ -2,7 +2,7 @@ import { browserContent } from './browser-content.js';
 import { createRaceSprites } from '../view/race-sprites.js';
 import { createDisplaySettings } from '../view/display-settings.js';
 import { mountStripControls } from './strip-controls.js';
-import { readSpriteAssets, createVehiclePaletteVariant } from '../image/sprite-assets.js';
+import { createVehicleSprites } from '../view/vehicle-sprites.js';
 import { createBrowserDrivingShell } from './driving-shell.js';
 import { selectBrowserCourseMode } from './course-mode-selection.js';
 import { mustGet } from './dom.js';
@@ -10,7 +10,6 @@ import { loadDeliveredCourse } from '../course/load-delivered-course.js';
 import { createCourseGround } from '../course/compiler/course-ground.js';
 import { RECOVERY_SETTINGS } from '../race/recovery.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
-import { deriveVehicleSpriteFamily } from '../view/vehicle-visuals.js';
 import { loadVehicleDefinitions } from '../vehicle/definition-document.js';
 import { createCourseRace } from '../race/course-race.js';
 import { createCoursePerformanceHud } from './course-performance-hud.js';
@@ -49,17 +48,9 @@ try {
       )
     : null;
   const session = resolveCourseSession(course, settings, vehicle, rivalEnvelope, budgets);
-  const sprites = readSpriteAssets(await content.json('image', 'vehicles'));
-
-  const braking =
-    vehicle.compiledVehicle.id === 'TESTAROSSA'
-      ? Object.freeze({
-          ...sprites,
-          car: createVehiclePaletteVariant(sprites.car, 'original', true),
-        })
-      : sprites;
+  const sprites = createVehicleSprites(entry);
   const displaySettings = createDisplaySettings();
-  const scene = createCourseScene(course.entry, ground, sprites, course.gates, vehicles, displaySettings);
+  const scene = createCourseScene(course.entry, ground, course.gates, vehicles, displaySettings);
   const slot = session.grid[0]!;
   const shell = createBrowserDrivingShell(
     scene.world,
@@ -81,7 +72,7 @@ try {
     },
     runtime: scene.runtime,
   });
-  const raceSprites = createRaceSprites(sprites, vehicle);
+  const raceSprites = createRaceSprites(sprites);
   const raceStatus = document.createElement('output');
   raceStatus.setAttribute('role', 'status');
   raceStatus.setAttribute('aria-label', 'Session status');
@@ -115,9 +106,8 @@ try {
       shell.framebuffer,
       shell.vehicle,
       lifecycle.camera,
-      deriveVehicleSpriteFamily(shell.presentation),
+      Number(input.brake) > 0 ? sprites.on : sprites.off,
       raceSprites(observations.rivals, lifecycle.camera),
-      input.brake ? braking : sprites,
     );
     shell.present(mode, input, lifecycle.camera, result.playerScreenY, observations.rivals);
     raceStatus.textContent = manualPause ? 'PAUSED' : race.label();

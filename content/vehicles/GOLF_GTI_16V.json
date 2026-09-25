@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-definition",
-  "version": 1,
+  "version": 2,
   "id": "GOLF_GTI_16V",
   "form": "car",
   "selectionOrder": 4,
@@ -26,7 +26,6 @@
     "frontWheelInertia": 1.7,
     "rearWheelInertia": 1.7,
     "frontDriveTorqueFraction": 1,
-    "steeringRatio": 18,
     "frontBrakeTorqueMax": 2350,
     "rearBrakeTorqueMax": 1050,
     "quadraticDrag": 0.38,
@@ -39,26 +38,11 @@
       "efficiency": 0.9,
       "gearRatios": [3.455, 2.118, 1.444, 1.129, 0.912],
       "torqueCurve": [
-        {
-          "rpm": 900,
-          "torqueNewtonMeters": 88
-        },
-        {
-          "rpm": 2500,
-          "torqueNewtonMeters": 135
-        },
-        {
-          "rpm": 4600,
-          "torqueNewtonMeters": 168
-        },
-        {
-          "rpm": 6100,
-          "torqueNewtonMeters": 160
-        },
-        {
-          "rpm": 6400,
-          "torqueNewtonMeters": 145
-        }
+        { "rpm": 900, "torqueNewtonMeters": 88 },
+        { "rpm": 2500, "torqueNewtonMeters": 135 },
+        { "rpm": 4600, "torqueNewtonMeters": 168 },
+        { "rpm": 6100, "torqueNewtonMeters": 160 },
+        { "rpm": 6400, "torqueNewtonMeters": 145 }
       ]
     }
   },
@@ -66,16 +50,11 @@
   "metadata": {
     "manufacturer": "Volkswagen",
     "model": "Golf GTI 16V",
-    "identifier": {
-      "officialLabel": "Mk2",
-      "shortLabel": "Mk2"
-    },
+    "identifier": { "officialLabel": "Mk2", "shortLabel": "Mk2" },
     "selectedSpecification": ["small bumpers"],
-    "period": "1986–1989",
-    "physicsAnchor": {
-      "modelYear": "1988",
-      "market": "European/ROW"
-    },
+    "period": "1986\u20131989",
+    "physicsAnchor": { "modelYear": "1988", "market": "European/ROW" },
     "mobileLabel": "GTI"
-  }
+  },
+  "visuals": { "spriteSet": "coupe", "palette": "original", "steeringRatio": 18 }
 }

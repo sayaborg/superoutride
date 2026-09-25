@@ -1,9 +1,9 @@
+import { createVehicleSprites } from '../../src/view/vehicle-sprites.js';
 import { loadDeliveredCourse } from '../../src/course/load-delivered-course.js';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readDeliveredContent } from '../../tools/course/read-content.ts';
 import { loadCourseGround } from '../../tools/course/authoring-io.ts';
-import { readVehicleSprites } from '../../tools/course/read-vehicle-sprites.ts';
 import { createCourseScene } from '../../src/shell/course-scene.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
@@ -30,7 +30,6 @@ const definitions = await loadVehicleDefinitions(await readDeliveredContent());
 const idle = { steering: 0, throttle: false, brake: false };
 const entry = definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA');
 const configuration = browserSessionVehicle(entry, definitions.driving);
-const assets = await readVehicleSprites();
 const { envelope } = await (await readDeliveredContent()).json('envelope', 'TESTAROSSA');
 const driver = compileEnvelopeDriver(envelope, 0.75, envelope.maximumSpeed);
 
@@ -79,7 +78,7 @@ function pavementBounds(scene, vehicle) {
 /** Fresh product assembly per replay; only initial conditions and input policy differ from the browser. */
 export function runScenario({ course, ground }, scenario) {
   const settings = createDisplaySettings();
-  const scene = createCourseScene(course.entry, ground, assets, course.gates, definitions.vehicles, settings);
+  const scene = createCourseScene(course.entry, ground, course.gates, definitions.vehicles, settings);
   const session = resolveCourseSession(
     course,
     { mode: 'CUSTOM', rivalCount: scenario.rivals ?? 0, lapCount: scenario.laps ?? 1, countdown: false },
@@ -102,7 +101,8 @@ export function runScenario({ course, ground }, scenario) {
   const competitors = [race.player, ...race.rivals];
   const rig = createCameraRig();
   const target = new SoftwareSurface(320, 240);
-  const sprites = createRaceSprites(assets, configuration);
+  const visual = createVehicleSprites(entry);
+  const sprites = createRaceSprites(visual);
   const workspace = createEnvelopeDriverWorkspace();
   const digest = createHash('sha256');
   const evidence = {
@@ -131,9 +131,10 @@ export function runScenario({ course, ground }, scenario) {
   };
   const entryPose = scene.world.coordinates.toWorld(0, 0, { x: 0, z: 0, s: 0, l: 0, heading: 0 });
   let camera;
+  let brakeLampOn = false;
   const render = () => {
     settings.setStripMethod(STRIP_RENDER_METHODS[evidence.frames % STRIP_RENDER_METHODS.length]);
-    scene.render(target, vehicle, camera, configuration.form, sprites(race.observe().rivals, camera));
+    scene.render(target, vehicle, camera, brakeLampOn ? visual.on : visual.off, sprites(race.observe().rivals, camera));
     evidence.frames++;
   };
   race.start();
@@ -159,6 +160,7 @@ export function runScenario({ course, ground }, scenario) {
         workspace,
         scene.runtime.route,
       );
+    brakeLampOn = Number(input.brake) > 0;
     const step = race.advance(input, SIM_DT);
     if (step.recovered) {
       resetCameraRig(rig);

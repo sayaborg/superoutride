@@ -29,7 +29,7 @@ export interface RaceActorObservation {
   readonly id: string;
   readonly vehicle: VehicleState;
   readonly form: SessionVehicle['form'];
-  readonly paletteVariant: 'base' | 'braking';
+  readonly brakeLampOn: boolean;
 }
 
 /** Field composition over shared course readers, ordinary mechanics and ordered physical gates. */
@@ -115,7 +115,7 @@ export function createCourseRace(options: {
   const pool = rivals.map((c) => ({
     id: c.id,
     form: rival.form,
-    paletteVariant: 'base' as 'base' | 'braking',
+    brakeLampOn: false,
     vehicle: c.actor.vehicle,
   }));
   const observations = () => {
@@ -125,7 +125,7 @@ export function createCourseRace(options: {
       const vehicle = c.actor.vehicle;
       if (!runtime.route.at(vehicle.course.s)) continue;
       const observation = pool[i]!;
-      observation.paletteVariant = actorInputs.get(c.id)!.input.brake ? 'braking' : 'base';
+      observation.brakeLampOn = Number(actorInputs.get(c.id)!.input.brake) > 0;
       visible.push(observation);
     }
   };

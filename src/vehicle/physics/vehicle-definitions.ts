@@ -33,8 +33,6 @@ export interface VehicleDefinition {
   /** Fixed share of total powertrain torque sent to the front station; the remainder drives rear. */
   readonly frontDriveTorqueFraction: number;
 
-  /** HUD-only handwheel presentation conversion; never consumed by mechanics. */
-  readonly steeringRatio: number;
   readonly frontBrakeTorqueMax: number;
   readonly rearBrakeTorqueMax: number;
   readonly quadraticDrag: number;
@@ -52,7 +50,6 @@ export interface CompiledVehicle extends Pick<
   | 'rearAxle'
   | 'desiredCgHeight'
   | 'frontDriveTorqueFraction'
-  | 'steeringRatio'
   | 'quadraticDrag'
   | 'powertrain'
 > {
@@ -78,9 +75,6 @@ export function compileVehicle(definition: VehicleDefinition): Readonly<Compiled
   ];
   if (positive.some((value) => !(value > 0) || !Number.isFinite(value))) {
     throw new DefinitionDomainError('/mechanics', 'vehicle mass/inertia/geometry/wheel values must be finite and > 0');
-  }
-  if (!(definition.steeringRatio >= 0) || !Number.isFinite(definition.steeringRatio)) {
-    throw new DefinitionDomainError('/mechanics', 'vehicle steering ratio must be finite and >= 0');
   }
   if (
     !(definition.frontBrakeTorqueMax >= 0 && definition.rearBrakeTorqueMax >= 0) ||
@@ -148,7 +142,6 @@ export function compileVehicle(definition: VehicleDefinition): Readonly<Compiled
     rearAxle: definition.rearAxle,
     desiredCgHeight: definition.desiredCgHeight,
     frontDriveTorqueFraction: definition.frontDriveTorqueFraction,
-    steeringRatio: definition.steeringRatio,
     quadraticDrag: definition.quadraticDrag,
     powertrain: Object.freeze({
       ...definition.powertrain,

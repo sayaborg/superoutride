@@ -1,8 +1,8 @@
+import { createVehicleSprites } from '../../src/view/vehicle-sprites.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { loadCourse, loadCourseGround } from '../../tools/course/authoring-io.ts';
-import { readVehicleSprites } from '../../tools/course/read-vehicle-sprites.ts';
 import { createCourseScene } from '../../src/shell/course-scene.js';
 import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
 import { loadVehicleDefinitions } from '../../src/vehicle/definition-document.js';
@@ -21,14 +21,14 @@ const definitions = await loadVehicleDefinitions(await readDeliveredContent());
 async function setup() {
   const file = fileURLToPath(new URL('../../content/courses/ribbon-ring.course.json', import.meta.url));
   const { course } = await loadCourse(file);
-  const assets = await readVehicleSprites();
   const scene = createCourseScene(
     course.entry,
     await loadCourseGround(course),
-    assets,
+
     course.gates,
     definitions.vehicles,
   );
+  const assets = createVehicleSprites(definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA'));
   const compiledVehicle = browserSessionVehicle(
     definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA'),
     definitions.driving,
@@ -87,7 +87,7 @@ test('race actors have no cameras and view assembles sixteen rival sprites from 
   assert.ok(!('sprites' in observed));
   assert.equal(observed.rivals.length, 16);
   const camera = updateCamera(createCameraRig(), scene.world, vehicle, CURRENT_CAMERA_PROFILE, 1 / 60);
-  const sprites = createRaceSprites(assets, compiledVehicle)(observed.rivals, camera);
+  const sprites = createRaceSprites(assets)(observed.rivals, camera);
   assert.equal(sprites.length, observed.rivals.length);
   assert.deepEqual(
     sprites.map((s) => s.name),

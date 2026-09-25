@@ -116,7 +116,7 @@ function createVehicleDebugHudModel(
       1,
       brakeCapacity > 0 ? p.rearStation.maxBrakeTorque / brakeCapacity : 0,
     ),
-    handwheelAngle: Number.isFinite(vehicle.control.handwheelAngle) ? vehicle.control.handwheelAngle : 0,
+    handwheelAngle: vehicle.control.actualSteerAngle * entry.source.visuals.steeringRatio,
     longitudinalG: finiteG(vehicle.longitudinalAcceleration),
     lateralG: finiteG(vehicle.lateralAcceleration),
   };

@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-definition",
-  "version": 1,
+  "version": 2,
   "id": "DELTA_HF_INTEGRALE",
   "form": "car",
   "selectionOrder": 5,
@@ -26,7 +26,6 @@
     "frontWheelInertia": 2.1,
     "rearWheelInertia": 2.1,
     "frontDriveTorqueFraction": 0.47,
-    "steeringRatio": 18,
     "frontBrakeTorqueMax": 2950,
     "rearBrakeTorqueMax": 1600,
     "quadraticDrag": 0.39,
@@ -39,26 +38,11 @@
       "efficiency": 0.88,
       "gearRatios": [3.5, 2.176, 1.524, 1.156, 0.917],
       "torqueCurve": [
-        {
-          "rpm": 900,
-          "torqueNewtonMeters": 135
-        },
-        {
-          "rpm": 2000,
-          "torqueNewtonMeters": 220
-        },
-        {
-          "rpm": 3500,
-          "torqueNewtonMeters": 304
-        },
-        {
-          "rpm": 5300,
-          "torqueNewtonMeters": 247
-        },
-        {
-          "rpm": 6100,
-          "torqueNewtonMeters": 200
-        }
+        { "rpm": 900, "torqueNewtonMeters": 135 },
+        { "rpm": 2000, "torqueNewtonMeters": 220 },
+        { "rpm": 3500, "torqueNewtonMeters": 304 },
+        { "rpm": 5300, "torqueNewtonMeters": 247 },
+        { "rpm": 6100, "torqueNewtonMeters": 200 }
       ]
     }
   },
@@ -68,11 +52,9 @@
     "model": "Delta HF Integrale",
     "identifier": null,
     "selectedSpecification": ["8V", "185 PS"],
-    "period": "1988–1989",
-    "physicsAnchor": {
-      "modelYear": "1988",
-      "market": "European/ROW"
-    },
+    "period": "1988\u20131989",
+    "physicsAnchor": { "modelYear": "1988", "market": "European/ROW" },
     "mobileLabel": "DELTA"
-  }
+  },
+  "visuals": { "spriteSet": "coupe", "palette": "original", "steeringRatio": 18 }
 }

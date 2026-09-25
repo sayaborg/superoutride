@@ -16,12 +16,10 @@ import {
   type TerrainRenderParameters,
 } from './terrain-line.js';
 import { drawTileBackground, type TileBackground } from './tile-background.js';
-import { selectVehicleSprite, type SpriteAssets } from '../image/sprite-assets.js';
+import { selectVehicleSprite, type VehicleSpriteSet } from '../image/sprite-assets.js';
 import { collectVisibleCourseSprites, type CourseSpriteInput, type VisibleCourseSprite } from './course-sprite.js';
 
 import { deriveVehicleNormalizedBank } from './vehicle-visuals.js';
-
-type PlayerVisualKind = 'car' | 'bike';
 
 interface RenderResult {
   stripGround: StripRenderMetrics & { method: StripRenderMethod; milliseconds: number };
@@ -73,8 +71,7 @@ interface RenderScene {
   readonly vehicle: VehicleRenderReadState;
   readonly terrainParameters: TerrainRenderParameters;
   readonly worldSprites: CourseSpriteInput;
-  readonly assets: SpriteAssets;
-  readonly playerKind: PlayerVisualKind;
+  readonly playerSet: VehicleSpriteSet;
 }
 
 export function createRenderWorkspace() {
@@ -94,7 +91,7 @@ interface RenderOptions {
 
 export function renderDriving(
   target: SoftwareSurface,
-  { background, guide, camera, vehicle, terrainParameters, worldSprites, assets, playerKind }: RenderScene,
+  { background, guide, camera, vehicle, terrainParameters, worldSprites, playerSet }: RenderScene,
   {
     observeWorkload = false,
     ground,
@@ -177,9 +174,8 @@ export function renderDriving(
     { x: vehicle.x, z: vehicle.z, y: vehicle.renderY ?? vehicle.y, s: vehicle.course.s },
     camera,
   );
-  const playerSet = playerKind === 'bike' ? assets.bike : assets.car;
   const relativeYaw = wrapAngle(vehicle.yaw - renderCamera.yaw);
-  const normalizedBank = playerKind === 'bike' ? deriveVehicleNormalizedBank(vehicle) : 0;
+  const normalizedBank = playerSet.bankVariants > 1 ? deriveVehicleNormalizedBank(vehicle) : 0;
   const selected = selectVehicleSprite(playerSet, relativeYaw, normalizedBank);
   const playerStats = drawScaledSprite(
     target,

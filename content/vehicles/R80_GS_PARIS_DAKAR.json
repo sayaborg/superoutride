@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-definition",
-  "version": 1,
+  "version": 2,
   "id": "R80_GS_PARIS_DAKAR",
   "form": "bike",
   "selectionOrder": 7,
@@ -26,7 +26,6 @@
     "frontWheelInertia": 0.62,
     "rearWheelInertia": 0.82,
     "frontDriveTorqueFraction": 0,
-    "steeringRatio": 18,
     "frontBrakeTorqueMax": 720,
     "rearBrakeTorqueMax": 430,
     "quadraticDrag": 0.36,
@@ -39,26 +38,11 @@
       "efficiency": 0.88,
       "gearRatios": [2.6, 1.67, 1.26, 1, 0.84],
       "torqueCurve": [
-        {
-          "rpm": 950,
-          "torqueNewtonMeters": 35
-        },
-        {
-          "rpm": 2500,
-          "torqueNewtonMeters": 52
-        },
-        {
-          "rpm": 4000,
-          "torqueNewtonMeters": 58
-        },
-        {
-          "rpm": 5500,
-          "torqueNewtonMeters": 56
-        },
-        {
-          "rpm": 6500,
-          "torqueNewtonMeters": 54
-        }
+        { "rpm": 950, "torqueNewtonMeters": 35 },
+        { "rpm": 2500, "torqueNewtonMeters": 52 },
+        { "rpm": 4000, "torqueNewtonMeters": 58 },
+        { "rpm": 5500, "torqueNewtonMeters": 56 },
+        { "rpm": 6500, "torqueNewtonMeters": 54 }
       ]
     }
   },
@@ -68,11 +52,9 @@
     "model": "R 80 G/S Paris-Dakar",
     "identifier": null,
     "selectedSpecification": [],
-    "period": "1984–1987",
-    "physicsAnchor": {
-      "modelYear": "1985",
-      "market": "European/ROW"
-    },
+    "period": "1984\u20131987",
+    "physicsAnchor": { "modelYear": "1985", "market": "European/ROW" },
     "mobileLabel": "R80"
-  }
+  },
+  "visuals": { "spriteSet": "motorcycle", "palette": "original", "steeringRatio": 18 }
 }

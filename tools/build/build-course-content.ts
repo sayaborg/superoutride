@@ -2,6 +2,7 @@ import {
   compileVehicleDocument,
   compileDrivingDocument,
   loadVehicleDefinitions,
+  loadVehicleSpriteLibrary,
 } from '../../src/vehicle/definition-document.js';
 import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import { buildCourseReferences } from './build-course-reference.js';
@@ -16,8 +17,9 @@ import { readCourseImages } from '../course/read-course-images.js';
 const content = new URL('../../content/', import.meta.url);
 const destination = new URL('../../dist/content/', import.meta.url);
 const writer = createContentWriter(destination, (await readDeliveredContent()).manifest.files);
+const sprites = await loadVehicleSpriteLibrary(await readDeliveredContent());
 for (const [directory, kind, compile] of [
-  ['vehicles', 'vehicle', compileVehicleDocument],
+  ['vehicles', 'vehicle', (value: unknown, path: string) => compileVehicleDocument(value, path, sprites)],
   ['driving', 'driving', compileDrivingDocument],
 ] as const) {
   for (const name of await readdir(new URL(directory + '/', content))) {

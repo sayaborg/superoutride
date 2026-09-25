@@ -48,7 +48,6 @@ interface VehicleControlState {
   brakeActuator: number;
   actualSteerAngle: number;
   /** HUD-only handwheel angle derived from road-wheel angle and the vehicle's presentation ratio. */
-  handwheelAngle: number;
   /** Signed regularized front contact slip angle. Derived telemetry only. */
   frontSlipAngle: number;
   /** Sum of actual delivered station drive torques after protection. */
@@ -181,7 +180,6 @@ export function createVehicleControlState(): VehicleControlState {
     throttleActuator: 0,
     brakeActuator: 0,
     actualSteerAngle: 0,
-    handwheelAngle: 0,
     frontSlipAngle: 0,
     deliveredDriveTorque: 0,
     requestedFrontDriveTorque: 0,

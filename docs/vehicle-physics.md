@@ -202,7 +202,8 @@ order is unchanged. This is a conservative current-contact slip constraint.
 ## Observations
 
 HUD observations include input, actuators, automatic steering, requested/delivered offsets, target/actual
-rack and requested/delivered torques. Handwheel conversion is display-only. Bike lean presentation is
+rack and requested/delivered torques. The DEV HUD calculates handwheel angle as `control.actualSteerAngle * source.visuals.steeringRatio`.
+The mechanical state and compiled mechanics contain neither handwheel angle nor ratio. Bike lean presentation is
 `atan2(lateralAcceleration,g)` with discrete bank images; physical state contains yaw and pitch.
 
 Optional read-only tire telemetry publishes completed wheel-solve rolling/slip speeds, dissipated work,
@@ -211,25 +212,26 @@ mechanical observations without contributing forces or alternate mechanical stat
 
 ## Vehicle and driving documents
 
-`content/vehicles/<id>.json` stores one `superoutride.vehicle-definition` version 1 per vehicle.
+`content/vehicles/<id>.json` stores one `superoutride.vehicle-definition` version 2 per vehicle.
 `content/driving/default.json` stores the sole `superoutride.driving-definition` version 1.
 [Calibration](calibration.md) owns tuning meanings and units. Document admission in
 `vehicle/definition-document.ts` publishes detached, deeply immutable source and compiled products.
 
 | Vehicle field       | Contract                                                                                                                                                                          |
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`, `version` | `superoutride.vehicle-definition`, `1`                                                                                                                                            |
+| `format`, `version` | `superoutride.vehicle-definition`, `2`                                                                                                                                            |
 | `id`                | Nonempty filename-safe identity; equal to its manifest ID                                                                                                                         |
 | `form`              | `car` or `bike`; one shared physical/display form vocabulary                                                                                                                      |
 | `selectionOrder`    | Positive safe integer, unique across the catalog; ascending selection order independent of filenames and manifest order                                                           |
-| `mechanics`         | All `VehicleDefinition` mechanical fields except `id`, including powertrain and the temporary HUD `steeringRatio`                                                                 |
+| `mechanics`         | All `VehicleDefinition` mechanical fields except `id`, including powertrain; no display ratio                                                                                     |
+| `visuals`           | `spriteSet` names a vehicle sprite set; `palette` names its default color; `steeringRatio` is a finite nonnegative HUD ratio                                                      |
 | `sound`             | Existing ID in `VEHICLE_SOUND_PROFILES`; sound definitions remain TypeScript                                                                                                      |
 | `metadata`          | Required manufacturer, model, period and mobileLabel strings; identifier (null or officialLabel/shortLabel); selectedSpecification string array; physicsAnchor (modelYear/market) |
 
 Vehicle numerical domains and cross-field relationships are those of vehicle, suspension and
 powertrain compilation: positive mass/inertia/geometry, finite nonnegative brakes/drag/damping,
 front drive fraction in [0,1], feasible static suspension compression and ordered shift/gear/torque data.
-No dimensions, sprite/palette references or support reserve are saved in this format.
+No dimensions or support reserve are saved in this format.
 
 The driving document has `format`, `version`, `id:"default"` and the current `DrivingDefinition`
 fields: `automaticSteering:"travel-direction"`, `maxRoadWheelSteerDegrees`, `steeringOffsetDegrees`,
@@ -248,3 +250,10 @@ Success returns `{ok:true,value}`; no partial product is published. Nested array
 copied and frozen, including powertrain gears/curve points, metadata and the driving tire/pedals.
 The shared loader verifies manifest SHA-256 before decoding and admission, checks manifest/document
 identity and selection-order uniqueness, then exposes the sorted immutable collection.
+
+Vehicle admission receives the completed sprite library with the vehicle document. It resolves the
+named set and the default color for every image once. Cars require exactly one bank image per yaw;
+bikes require an odd bank count of at least three, including neutral. Image admission guarantees at
+least two identical named color choices across the set and a brake-lamp animation for every color.
+Unresolved set/color and incompatible bank dimensions produce vehicle-document diagnostics;
+malformed library/set declarations identify the image document. Consumers receive the admitted set.

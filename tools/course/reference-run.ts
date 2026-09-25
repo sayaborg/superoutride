@@ -5,7 +5,6 @@ import type { CompiledCourse } from '../../src/course/compiler/compiled-course.j
 import type { CourseGround } from '../../src/course/compiler/course-ground.js';
 import type { CompiledVehicleDefinition, VehicleDefinitions } from '../../src/vehicle/definition-document.js';
 import type { VehicleEnvelope } from '../../src/race/envelope-driver.js';
-import { readVehicleSprites } from './read-vehicle-sprites.js';
 import { REFERENCE_DRIVER } from './reference-driving-policy.js';
 import { createCourseScene } from '../../src/shell/course-scene.js';
 import { createCourseRace } from '../../src/race/course-race.js';
@@ -21,7 +20,6 @@ import {
 } from '../../src/race/envelope-driver.js';
 import { SIM_DT } from '../../src/shell/frame-loop.js';
 import { courseBoundaryAt, courseCarriagewayExists } from '../../src/course/course-boundaries.js';
-const spriteAssets = await readVehicleSprites();
 
 /** Enumerate canonical finite alternatives; one continuous run per history, no stitched sectors. */
 export function courseReferenceRoutes(course: CompiledCourse) {
@@ -49,7 +47,7 @@ export function runCourseReference(
   lapCount: number,
   capture = false,
 ) {
-  const scene = createCourseScene(course.entry, ground, spriteAssets, course.gates, definitions.vehicles),
+  const scene = createCourseScene(course.entry, ground, course.gates, definitions.vehicles),
     vehicleConfiguration = browserSessionVehicle(entry, definitions.driving);
   const session = resolveCourseSession(
     course,

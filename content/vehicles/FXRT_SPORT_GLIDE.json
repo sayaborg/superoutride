@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-definition",
-  "version": 1,
+  "version": 2,
   "id": "FXRT_SPORT_GLIDE",
   "form": "bike",
   "selectionOrder": 8,
@@ -26,7 +26,6 @@
     "frontWheelInertia": 0.75,
     "rearWheelInertia": 1.1,
     "frontDriveTorqueFraction": 0,
-    "steeringRatio": 18,
     "frontBrakeTorqueMax": 1000,
     "rearBrakeTorqueMax": 650,
     "quadraticDrag": 0.46,
@@ -39,26 +38,11 @@
       "efficiency": 0.87,
       "gearRatios": [3.21, 2.21, 1.6, 1.23, 1],
       "torqueCurve": [
-        {
-          "rpm": 850,
-          "torqueNewtonMeters": 62
-        },
-        {
-          "rpm": 2000,
-          "torqueNewtonMeters": 84
-        },
-        {
-          "rpm": 3500,
-          "torqueNewtonMeters": 94
-        },
-        {
-          "rpm": 4500,
-          "torqueNewtonMeters": 86
-        },
-        {
-          "rpm": 4800,
-          "torqueNewtonMeters": 78
-        }
+        { "rpm": 850, "torqueNewtonMeters": 62 },
+        { "rpm": 2000, "torqueNewtonMeters": 84 },
+        { "rpm": 3500, "torqueNewtonMeters": 94 },
+        { "rpm": 4500, "torqueNewtonMeters": 86 },
+        { "rpm": 4800, "torqueNewtonMeters": 78 }
       ]
     }
   },
@@ -66,16 +50,11 @@
   "metadata": {
     "manufacturer": "Harley-Davidson",
     "model": "FXRT Sport Glide",
-    "identifier": {
-      "officialLabel": "FXRT",
-      "shortLabel": "FXRT"
-    },
+    "identifier": { "officialLabel": "FXRT", "shortLabel": "FXRT" },
     "selectedSpecification": ["Evolution 1340"],
-    "period": "1984–1992",
-    "physicsAnchor": {
-      "modelYear": "1988",
-      "market": "US"
-    },
+    "period": "1984\u20131992",
+    "physicsAnchor": { "modelYear": "1988", "market": "US" },
     "mobileLabel": "FXRT"
-  }
+  },
+  "visuals": { "spriteSet": "motorcycle", "palette": "original", "steeringRatio": 18 }
 }

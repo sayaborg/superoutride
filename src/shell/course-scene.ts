@@ -13,14 +13,13 @@ import { CURRENT_CAMERA_PROFILE } from '../view/current-camera-profile.js';
 import type { VehicleRenderReadState } from '../vehicle/physics/vehicle-contract.js';
 import { createRenderWorkspace, renderDriving } from '../view/renderer.js';
 import type { CourseSprite } from '../view/course-sprite.js';
-import type { SpriteAssets } from '../image/sprite-assets.js';
+import type { VehicleSpriteSet } from '../image/sprite-assets.js';
 import { createRouteRuntime } from '../race/route-runtime.js';
 
 /** One graph assembly for every course, including a single Section without Links. */
 export function createCourseScene(
   section: CompiledSection,
   ground: CourseGround,
-  assets: SpriteAssets,
   gates: CompiledCourse['gates'],
   vehicles: readonly CompiledVehicleDefinition[],
   displaySettings: DisplaySettings = createDisplaySettings(),
@@ -72,9 +71,8 @@ export function createCourseScene(
       target: Parameters<typeof renderDriving>[0],
       vehicle: VehicleRenderReadState,
       camera: CameraState,
-      playerKind: 'car' | 'bike',
+      playerSet: VehicleSpriteSet,
       others: readonly CourseSprite[],
-      appearance: SpriteAssets = assets,
     ) {
       const readers = runtime.readers;
       const renderData = rendering.read();
@@ -107,8 +105,7 @@ export function createCourseScene(
           vehicle,
           terrainParameters,
           worldSprites,
-          assets: appearance,
-          playerKind,
+          playerSet,
         },
         { ground: renderData.ground, workspace: renderWorkspace, stripMethod: displaySettings.stripMethod },
       );

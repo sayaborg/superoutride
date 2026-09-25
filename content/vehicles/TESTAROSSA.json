@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-definition",
-  "version": 1,
+  "version": 2,
   "id": "TESTAROSSA",
   "form": "car",
   "selectionOrder": 1,
@@ -26,7 +26,6 @@
     "frontWheelInertia": 2.7,
     "rearWheelInertia": 3.4,
     "frontDriveTorqueFraction": 0,
-    "steeringRatio": 18,
     "frontBrakeTorqueMax": 4800,
     "rearBrakeTorqueMax": 3000,
     "quadraticDrag": 0.44,
@@ -39,26 +38,11 @@
       "efficiency": 0.9,
       "gearRatios": [2.923076923076923, 1.875, 1.4210526315789473, 1.0869565217391304, 0.8148148148148148],
       "torqueCurve": [
-        {
-          "rpm": 1000,
-          "torqueNewtonMeters": 270
-        },
-        {
-          "rpm": 2500,
-          "torqueNewtonMeters": 405
-        },
-        {
-          "rpm": 4500,
-          "torqueNewtonMeters": 470
-        },
-        {
-          "rpm": 5800,
-          "torqueNewtonMeters": 455
-        },
-        {
-          "rpm": 6450,
-          "torqueNewtonMeters": 420
-        }
+        { "rpm": 1000, "torqueNewtonMeters": 270 },
+        { "rpm": 2500, "torqueNewtonMeters": 405 },
+        { "rpm": 4500, "torqueNewtonMeters": 470 },
+        { "rpm": 5800, "torqueNewtonMeters": 455 },
+        { "rpm": 6450, "torqueNewtonMeters": 420 }
       ]
     }
   },
@@ -66,16 +50,11 @@
   "metadata": {
     "manufacturer": "Ferrari",
     "model": "Testarossa",
-    "identifier": {
-      "officialLabel": "Tipo F110",
-      "shortLabel": "F110"
-    },
+    "identifier": { "officialLabel": "Tipo F110", "shortLabel": "F110" },
     "selectedSpecification": ["5-bolt wheels"],
-    "period": "1988½–1991",
-    "physicsAnchor": {
-      "modelYear": "1989",
-      "market": "European/ROW"
-    },
+    "period": "1988\u00bd\u20131991",
+    "physicsAnchor": { "modelYear": "1989", "market": "European/ROW" },
     "mobileLabel": "F110"
-  }
+  },
+  "visuals": { "spriteSet": "coupe", "palette": "original", "steeringRatio": 18 }
 }

@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-definition",
-  "version": 1,
+  "version": 2,
   "id": "911_TURBO_3_3",
   "form": "car",
   "selectionOrder": 2,
@@ -26,7 +26,6 @@
     "frontWheelInertia": 2.3,
     "rearWheelInertia": 3,
     "frontDriveTorqueFraction": 0,
-    "steeringRatio": 18,
     "frontBrakeTorqueMax": 3450,
     "rearBrakeTorqueMax": 2100,
     "quadraticDrag": 0.43,
@@ -39,30 +38,12 @@
       "efficiency": 0.89,
       "gearRatios": [3.154, 1.789, 1.269, 0.967, 0.756],
       "torqueCurve": [
-        {
-          "rpm": 900,
-          "torqueNewtonMeters": 125
-        },
-        {
-          "rpm": 2000,
-          "torqueNewtonMeters": 210
-        },
-        {
-          "rpm": 3000,
-          "torqueNewtonMeters": 355
-        },
-        {
-          "rpm": 4000,
-          "torqueNewtonMeters": 412
-        },
-        {
-          "rpm": 5500,
-          "torqueNewtonMeters": 384
-        },
-        {
-          "rpm": 6400,
-          "torqueNewtonMeters": 315
-        }
+        { "rpm": 900, "torqueNewtonMeters": 125 },
+        { "rpm": 2000, "torqueNewtonMeters": 210 },
+        { "rpm": 3000, "torqueNewtonMeters": 355 },
+        { "rpm": 4000, "torqueNewtonMeters": 412 },
+        { "rpm": 5500, "torqueNewtonMeters": 384 },
+        { "rpm": 6400, "torqueNewtonMeters": 315 }
       ]
     }
   },
@@ -70,16 +51,11 @@
   "metadata": {
     "manufacturer": "Porsche",
     "model": "911 Turbo 3.3",
-    "identifier": {
-      "officialLabel": "Type 930",
-      "shortLabel": "930"
-    },
+    "identifier": { "officialLabel": "Type 930", "shortLabel": "930" },
     "selectedSpecification": ["G50/50 5-speed"],
     "period": "1989",
-    "physicsAnchor": {
-      "modelYear": "1989",
-      "market": "European/ROW"
-    },
+    "physicsAnchor": { "modelYear": "1989", "market": "European/ROW" },
     "mobileLabel": "930"
-  }
+  },
+  "visuals": { "spriteSet": "coupe", "palette": "original", "steeringRatio": 18 }
 }

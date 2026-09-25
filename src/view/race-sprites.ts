@@ -1,16 +1,11 @@
-import { createVehiclePaletteVariant, type SpriteAssets } from '../image/sprite-assets.js';
+import type { VehicleSpriteStates } from './vehicle-sprites.js';
 import type { RaceActorObservation } from '../race/course-race.js';
-import type { SessionVehicle } from '../race/session-configuration.js';
 import type { CameraState } from './camera.js';
 import type { CourseSprite } from './course-sprite.js';
 import { createDynamicVehicleCourseSprite } from './dynamic-vehicle-sprite.js';
 
 /** Observer-owned sprite assembly over camera-independent race observations. */
-export function createRaceSprites(assets: SpriteAssets, rival: SessionVehicle) {
-  const brakingAssets =
-    rival.compiledVehicle.id === 'TESTAROSSA'
-      ? createVehiclePaletteVariant(assets.car, 'original', true)
-      : assets[rival.form];
+export function createRaceSprites(assets: VehicleSpriteStates) {
   const sprites: CourseSprite[] = [];
   return (actors: readonly RaceActorObservation[], camera: CameraState) => {
     sprites.length = 0;
@@ -20,7 +15,7 @@ export function createRaceSprites(assets: SpriteAssets, rival: SessionVehicle) {
           actor.id,
           actor.vehicle,
           camera.yaw,
-          actor.paletteVariant === 'braking' ? brakingAssets : assets[actor.form],
+          actor.brakeLampOn ? assets.on : assets.off,
         ),
       );
     }

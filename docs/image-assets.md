@@ -173,3 +173,23 @@ colors or transparency and saved Strip constructs, not image references. The cou
 the constructs and builds private numeric fields; these are not image assets or serialized payloads.
 [Content and gameplay](content-and-gameplay.md#sprites-and-environment) owns the saved fields;
 [Architecture](architecture.md#strip-rendering) owns ground sampling and its common color law.
+
+## Vehicle sprite library
+
+`content/sprites/vehicles.json` uses `superoutride.vehicle-sprites` version 2:
+
+```text
+{format, version, sprites: [SpriteLodDocument, ...],
+ sets: {coupe: {yawVariants, bankVariants, assets: [[spriteIndex, ...], ...]}, ...}}
+```
+
+Set names are unique nonempty trimmed keys, independent of vehicle form. Each set binds a complete
+positive yaw × bank grid to library images. Delivered images have complete LOD pyramids. Every image
+in a set declares exactly the same set of at least two color names, and every color declares a
+brake-lamp animation. Vehicle admission checks form-specific bank dimensions and default-color
+references, as specified in [Vehicle physics](vehicle-physics.md#vehicle-and-driving-documents).
+
+The provisional coupe has its original palette and an alternate body color. Slot 5 retains tail-off
+12321 and lamp-on 32038. The motorcycle uses previously unused slot 6 for tail pixels; its off color
+matches those pixels' former body color, and on is 32038. The second color changes body paint.
+Provisional yaw images remain reused; production directional art is deferred to stage 11 onward.

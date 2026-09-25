@@ -1,3 +1,4 @@
+import { readSpriteAssets, type SpriteAssets, type VehicleSpriteSet } from '../image/sprite-assets.js';
 import type { ContentDelivery } from '../core/content-manifest.js';
 import { compileVehicle, type VehicleDefinition, type CompiledVehicle } from './physics/vehicle-definitions.js';
 import { createDrivingSettings } from './physics/driving-settings.js';
@@ -19,16 +20,18 @@ export interface VehicleMetadata {
 }
 export interface VehicleDocument {
   readonly format: 'superoutride.vehicle-definition';
-  readonly version: 1;
+  readonly version: 2;
   readonly id: string;
   readonly form: VehicleForm;
   readonly selectionOrder: number;
   readonly mechanics: Omit<VehicleDefinition, 'id'>;
+  readonly visuals: Readonly<{ spriteSet: string; palette: string; steeringRatio: number }>;
   readonly sound: string;
   readonly metadata: VehicleMetadata;
 }
 export interface CompiledVehicleDefinition extends VehicleMetadata {
   readonly source: VehicleDocument;
+  readonly spriteSet: VehicleSpriteSet;
   readonly form: VehicleForm;
   readonly compiledVehicle: CompiledVehicle;
   readonly sound: VehicleAudioProfile;
@@ -77,13 +80,13 @@ function fields(value: Record<string, unknown>, keys: readonly string[], path: s
   for (const key of Object.keys(value))
     if (!keys.includes(key)) throw new InputError('invalid_shape', `${path}/${key}`, 'Unknown field');
 }
-function header(value: unknown, format: string) {
+function header(value: unknown, format: string, version = 1) {
   const record = object(value, '');
-  if (record.format !== format || record.version !== 1)
+  if (record.format !== format || record.version !== version)
     throw new InputError(
       'unsupported_version',
       record.format !== format ? '/format' : '/version',
-      `Expected ${format} version 1`,
+      `Expected ${format} version ${version}`,
     );
   return record;
 }
@@ -137,7 +140,6 @@ const mechanicalNumbers = [
   'frontWheelInertia',
   'rearWheelInertia',
   'frontDriveTorqueFraction',
-  'steeringRatio',
   'frontBrakeTorqueMax',
   'rearBrakeTorqueMax',
   'quadraticDrag',
@@ -151,10 +153,14 @@ const powertrainNumbers = [
   'efficiency',
 ] as const;
 
-export function compileVehicleDocument(value: unknown, document: string): Result<CompiledVehicleDefinition> {
+export function compileVehicleDocument(
+  value: unknown,
+  document: string,
+  sprites: SpriteAssets,
+): Result<CompiledVehicleDefinition> {
   return admit(document, () => {
-    const v = header(value, 'superoutride.vehicle-definition');
-    fields(v, ['format', 'version', 'id', 'form', 'selectionOrder', 'mechanics', 'sound', 'metadata'], '');
+    const v = header(value, 'superoutride.vehicle-definition', 2);
+    fields(v, ['format', 'version', 'id', 'form', 'selectionOrder', 'mechanics', 'sound', 'metadata', 'visuals'], '');
     const id = string(v.id, '/id');
     requireValue(/^[A-Za-z0-9_-]+$/.test(id), '/id', 'Expected a filename-safe ID');
     requireValue(v.form === 'car' || v.form === 'bike', '/form', 'Expected car or bike');
@@ -203,15 +209,38 @@ export function compileVehicleDocument(value: unknown, document: string): Result
       ),
       physicsAnchor: named(meta.physicsAnchor, '/metadata/physicsAnchor', ['modelYear', 'market']),
     } as unknown as VehicleMetadata;
+    const visual = object(v.visuals, '/visuals');
+    fields(visual, ['spriteSet', 'palette', 'steeringRatio'], '/visuals');
+    const visuals = {
+      spriteSet: string(visual.spriteSet, '/visuals/spriteSet'),
+      palette: string(visual.palette, '/visuals/palette'),
+      steeringRatio: number(visual.steeringRatio, '/visuals/steeringRatio'),
+    };
+    requireValue(
+      Number.isFinite(visuals.steeringRatio) && visuals.steeringRatio >= 0,
+      '/visuals/steeringRatio',
+      'Expected a finite nonnegative handwheel ratio',
+    );
+    if (!Object.hasOwn(sprites.sets, visuals.spriteSet))
+      throw new InputError('unresolved_reference', '/visuals/spriteSet', `Unknown sprite set: ${visuals.spriteSet}`);
+    const spriteSet = sprites.sets[visuals.spriteSet]!;
+    requireValue(
+      v.form === 'car' ? spriteSet.bankVariants === 1 : spriteSet.bankVariants >= 3 && spriteSet.bankVariants % 2 === 1,
+      '/visuals/spriteSet',
+      'Sprite bank dimensions do not support this vehicle form',
+    );
+    if (!spriteSet.assets.every((row) => row.every((image) => Object.hasOwn(image.palettes, visuals.palette))))
+      throw new InputError('unresolved_reference', '/visuals/palette', `Unknown sprite color: ${visuals.palette}`);
     const soundId = string(v.sound, '/sound');
     if (!Object.hasOwn(VEHICLE_SOUND_PROFILES, soundId))
       throw new InputError('unresolved_reference', '/sound', `Unknown sound ID: ${soundId}`);
     const source = freeze({
       format: 'superoutride.vehicle-definition',
-      version: 1,
+      version: 2,
       id,
       form: v.form,
       selectionOrder,
+      visuals,
       mechanics: { ...mechanics, powertrain },
       sound: soundId,
       metadata,
@@ -220,6 +249,7 @@ export function compileVehicleDocument(value: unknown, document: string): Result
     return Object.freeze({
       ...metadata,
       source,
+      spriteSet,
       form: source.form,
       compiledVehicle,
       sound: VEHICLE_SOUND_PROFILES[soundId as keyof typeof VEHICLE_SOUND_PROFILES],
@@ -265,12 +295,28 @@ export function compileDrivingDocument(value: unknown, document: string): Result
   });
 }
 
+/** Image syntax and set-wide invariants are admitted once, before vehicle references. */
+export async function loadVehicleSpriteLibrary(content: ContentDelivery): Promise<SpriteAssets> {
+  const file = content.manifest.files.find((file) => file.kind === 'image' && file.id === 'vehicles');
+  if (!file) throw new RangeError('Manifest requires the vehicle sprite library');
+  const value = await content.json('image', 'vehicles');
+  try {
+    return readSpriteAssets(value);
+  } catch (cause) {
+    if (!(cause instanceof RangeError)) throw cause;
+    throw new Error(
+      JSON.stringify([{ kind: 'input', code: 'invalid_value', document: file.path, path: '', message: cause.message }]),
+    );
+  }
+}
+
 /** Transport verifies every payload SHA before either admission boundary sees decoded content. */
 export async function loadVehicleDefinitions(content: ContentDelivery) {
   const take = <T>(result: Result<T>): T => {
     if (!result.ok) throw new Error(JSON.stringify(result.diagnostics));
     return result.value;
   };
+  const sprites = await loadVehicleSpriteLibrary(content);
   const drivingFiles = content.manifest.files.filter((file) => file.kind === 'driving');
   if (drivingFiles.length !== 1 || drivingFiles[0]!.id !== 'default')
     throw new RangeError('Manifest requires one default driving definition');
@@ -279,7 +325,7 @@ export async function loadVehicleDefinitions(content: ContentDelivery) {
   const orders = new Set<number>();
   const vehicles: CompiledVehicleDefinition[] = [];
   for (const file of content.manifest.files.filter((file) => file.kind === 'vehicle')) {
-    const entry = take(compileVehicleDocument(await content.json('vehicle', file.id), file.path));
+    const entry = take(compileVehicleDocument(await content.json('vehicle', file.id), file.path, sprites));
     take(
       admit(file.path, () => {
         requireValue(entry.source.id === file.id, '/id', 'Vehicle ID must match manifest identity');

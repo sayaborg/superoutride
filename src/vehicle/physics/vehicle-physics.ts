@@ -316,7 +316,6 @@ export function updateVehicle(
       vehicle.control.throttleActuator = vehicle.actuator.throttle;
       vehicle.control.brakeActuator = vehicle.actuator.brake;
       vehicle.control.actualSteerAngle = vehicle.frontSteerAngle;
-      vehicle.control.handwheelAngle = vehicle.frontSteerAngle * compiledVehicle.steeringRatio;
       vehicle.control.frontSlipAngle =
         front.forceTransmitting && front.tireFrameValid
           ? regularizedTireSlipAngle(front.longitudinalVelocity, front.lateralVelocity, TIRE_LOW_SPEED_REGULARIZATION)

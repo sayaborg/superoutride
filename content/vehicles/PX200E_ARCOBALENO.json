@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-definition",
-  "version": 1,
+  "version": 2,
   "id": "PX200E_ARCOBALENO",
   "form": "bike",
   "selectionOrder": 9,
@@ -26,7 +26,6 @@
     "frontWheelInertia": 0.14,
     "rearWheelInertia": 0.2,
     "frontDriveTorqueFraction": 0,
-    "steeringRatio": 18,
     "frontBrakeTorqueMax": 260,
     "rearBrakeTorqueMax": 180,
     "quadraticDrag": 0.31,
@@ -39,26 +38,11 @@
       "efficiency": 0.84,
       "gearRatios": [14.47, 10.28, 7.31, 5.36],
       "torqueCurve": [
-        {
-          "rpm": 900,
-          "torqueNewtonMeters": 7
-        },
-        {
-          "rpm": 2000,
-          "torqueNewtonMeters": 12
-        },
-        {
-          "rpm": 4000,
-          "torqueNewtonMeters": 16
-        },
-        {
-          "rpm": 5700,
-          "torqueNewtonMeters": 15
-        },
-        {
-          "rpm": 6000,
-          "torqueNewtonMeters": 13
-        }
+        { "rpm": 900, "torqueNewtonMeters": 7 },
+        { "rpm": 2000, "torqueNewtonMeters": 12 },
+        { "rpm": 4000, "torqueNewtonMeters": 16 },
+        { "rpm": 5700, "torqueNewtonMeters": 15 },
+        { "rpm": 6000, "torqueNewtonMeters": 13 }
       ]
     }
   },
@@ -66,16 +50,11 @@
   "metadata": {
     "manufacturer": "Vespa",
     "model": "PX 200 E Arcobaleno",
-    "identifier": {
-      "officialLabel": "VSX1T",
-      "shortLabel": "VSX1T"
-    },
+    "identifier": { "officialLabel": "VSX1T", "shortLabel": "VSX1T" },
     "selectedSpecification": ["200 cc full-power"],
-    "period": "1983–1997",
-    "physicsAnchor": {
-      "modelYear": "1985",
-      "market": "Italian/European"
-    },
+    "period": "1983\u20131997",
+    "physicsAnchor": { "modelYear": "1985", "market": "Italian/European" },
     "mobileLabel": "PX200"
-  }
+  },
+  "visuals": { "spriteSet": "motorcycle", "palette": "original", "steeringRatio": 18 }
 }

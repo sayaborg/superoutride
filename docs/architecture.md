@@ -407,6 +407,15 @@ contains immutable camera/projection metadata and read-only image workspaces. An
 change transforms world metadata while preserving its recorded screen projections and depths.
 A different physical camera or depth interval rejects that observation. The array path computes its own projections.
 
+### Vehicle color and brake lamps
+
+Vehicle documents choose a named sprite set and default color. `view/vehicle-sprites.ts` creates the
+off/on sprite sets once at startup, using each image's own named palette and lamp declaration.
+The same prepared states are passed to player rendering and `createRaceSprites`; no per-frame
+palette evaluation occurs. Race observations publish boolean `brakeLampOn` from brake input > 0.
+Player rendering uses the same condition. All vehicles use their definition's default color;
+player color selection and rival color assignment are pending product decisions.
+
 ### Sprite LOD metric and read contract
 
 Master `W` by `H` has untrimmed, top-left-aligned level `k` storage
@@ -502,7 +511,7 @@ Environment timelines are course data.
 The content manifest includes `vehicle` and `driving` entries alongside course, image, envelope and
 budget entries. The build layout authority writes `vehicles/<id>.json` and `driving/default.json`.
 Vehicle and driving documents belong to the vehicle layer; the generic manifest only resolves and
-verifies their bytes. Definition compilation resolves sound IDs through the lower audio layer's
+verifies their bytes. Definition compilation resolves named sprite sets/default colors from the SHA-verified image library and sound IDs through the lower audio layer's
 TypeScript sound products and returns deeply immutable records. [Vehicle physics](vehicle-physics.md#vehicle-and-driving-documents)
 owns the versioned formats and admission contract. Composition roots load the collection before scene/Session creation and explicitly pass it to
 selection controls, HUD/audio, scene coverage, reference tools and scenarios. The collection is assembled only from admitted delivered definitions.

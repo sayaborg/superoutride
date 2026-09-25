@@ -214,7 +214,7 @@ export function readSpriteLodAsset(value: unknown): SpriteAsset {
 /** Named color and lamp state are resolved once, before rendering. */
 export function createSpritePalette(asset: SpriteAsset, name: string, brakeLampOn = false): SpriteAsset {
   const palette = asset.palettes[name]!;
-  return createSpritePaletteVariant(asset, brakeLampOn ? illuminatedPalette(palette) : palette.colors);
+  return applySpritePalette(asset, brakeLampOn ? illuminatedPalette(palette) : palette.colors);
 }
 
 /** Calculate an instance's palette once. Patterns and mixture identities remain shared and immutable. */
@@ -222,6 +222,10 @@ export function createSpritePaletteVariant(asset: SpriteAsset, palette: readonly
   const base = readIndexedPalette(palette);
   if (!spritePaletteStates(asset.palettes).some((choice) => choice.every((value, i) => i === 0 || value === base[i])))
     throw new RangeError('palette variant was not included when compiling these LOD patterns');
+  return applySpritePalette(asset, base);
+}
+
+function applySpritePalette(asset: SpriteAsset, base: readonly number[]): SpriteAsset {
   const levels = asset.levels.map((level) => {
     const paletteRgb555 = Object.freeze(
       level.mixtures.map((mixture, i) =>

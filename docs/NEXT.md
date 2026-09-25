@@ -11,7 +11,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **8-3b2 — Vehicle visual bindings**.
+Next PR: **8-3c — Course sprite palettes**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -21,8 +21,8 @@ PRs hold rationale and verification evidence.
 
 Give vehicles, driving assists, tires, powertrains and materials explicit definitions, and treat airborne driving as normal state.
 
-- **8-3b2 — Vehicle visual bindings:** bind named sprite sets and default colors in vehicle definitions, validate references at admission, share off/on sprite assembly, remove the temporary TESTAROSSA-only selection, and move the handwheel ratio to display data. Image palettes and provisional lamps are prepared by 8-3b1.
 - **8-3c — Course sprite palettes:** course sprites select image-declared palette variants by name instead of raw palettes. Behavior unchanged.
+- **8-3d — Definition diagnostics:** vehicle and driving admission reports every authored error at the offending field's JSON Pointer; mechanics validation reports field-relative domain errors and the admission boundary maps them to document paths. Behavior unchanged.
 - **8-4 — Powertrain:** launch, shift rules and rev limit, engine friction, inertia and free revving, and shift observations; audio reads engine speed without its own idle floor. Behavior changes.
 - **8-5 — Vehicle values:** published values and sources as production data with a checking tool; correct torque curves, masses and CG heights. Behavior changes.
 - **8-6 — DEV tuning:** replace definitions instead of mutating running settings, and export them. Behavior unchanged.
@@ -136,6 +136,8 @@ transitions. Review pre-lock query coverage and parent-specific exit visibility 
 space. Record margins and remaster departures with the content.
 
 ### Pending product decisions
+
+- Vehicle color choice: every vehicle sprite set carries at least two named color palettes; decide how the player selects a color and how rivals are assigned colors (and vehicles).
 
 | Area             | Decision or future capability                                                                                       |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------- |
