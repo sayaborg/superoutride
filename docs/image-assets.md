@@ -12,9 +12,11 @@ Tile palettes begin at `paletteId << 4`; the format has no separate palette-coun
 
 ```text
 {
-  format: "superoutride.sprite-lod", version: 2, name,
+  format: "superoutride.sprite-lod", version: 3, name,
   width: W, height: H, anchorX, anchorY,
-  variants: [alternatePalette16, ...],
+  defaultPalette: "original",
+  palettes: {original: {colors: [16 RGB555 integers], brakeLamp: {slot: 5, on: 32038}},
+             alternate: {colors: [16 RGB555 integers], brakeLamp: {slot: 5, on: 32038}}},
   levels: [{paletteRgb555: [16 integers], indices: [row-major indices],
             mixtures: [[], [[baseIndex,weight], ...], ...]}, ...]
 }
@@ -26,15 +28,19 @@ A coarse slot is a positive-weight mixture of original opaque slots summing to o
 have empty mixtures. Its normal color is the mixture evaluated in the original palette.
 Equal colors can occupy distinct semantic master slots.
 
-Every entry in `variants` is a declared 16-slot replacement base palette. Evaluating the same mixtures in that
-palette generates replacement level palettes; index patterns are shared. Instance palettes are immutable
-choices, including normal/braking lamps. [Architecture](architecture.md#sprite-lod-metric-and-read-contract)
-owns level dimensions, selection and anchor mapping.
+`palettes` is a dictionary of unique nonempty trimmed names. `defaultPalette` names its default
+color; the level-zero palette equals that color's 16 slots. Each color has `brakeLamp:null` or
+`{slot,on}`: slot is 1 through 15 and on is RGB555. The off color belongs to the palette itself.
+Lamp illumination replaces only that slot; it is an animation of a color, not another color choice.
+All color × lamp-state combinations participate in LOD compilation. Evaluating the shared mixtures
+in a selected combination generates its level palettes once before drawing; patterns remain shared.
+Raw course instance palettes remain supported until the course-palette migration.
+[Architecture](architecture.md#sprite-lod-metric-and-read-contract) owns level dimensions and anchors.
 
 Invalid dimensions, anchors, indices, palettes, mixtures, undeclared replacements or unknown fields
 fail. Coarse colors must agree with their mixtures. Readers own packed buffers and immutable metadata.
 One normalized master level is valid input; shipped sprites have full build-generated LOD.
-Source masters and variant declarations are saved; completed pyramids are generated products.
+Source masters and named palette declarations are saved; completed pyramids are generated products.
 
 ## Common prefilter rules
 
@@ -56,9 +62,9 @@ The browser tools and Node file compilers consume those same TypeScript implemen
 
 The compiler integrates exact master index counts in each clipped octave box. Fifteen or fewer
 mixtures pass through directly. Larger sets use deterministic divisive clustering: squared linear-color
-distance is the maximum across all declared base palettes; the greatest area-weighted-error group
+distance is the maximum across all declared color/lamp combinations; the greatest area-weighted-error group
 splits around its farthest representatives. Representatives are area-weighted mixture centroids;
-stable input order resolves ties. Variant edits invalidate the generated pyramid.
+stable input order resolves ties. Color or lamp edits invalidate the generated pyramid.
 
 `content/sprites/vehicles.json` is a normalized-master dictionary with yaw/bank bindings.
 Its generated library uses the same `dist/content/images/<sha256>.json` location as course images.

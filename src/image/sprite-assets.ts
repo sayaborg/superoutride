@@ -1,5 +1,5 @@
 import { clamp, wrapAngle } from '../core/math.js';
-import { createSpritePaletteVariant, readSpriteLodAsset, spriteLodLayout, type SpriteAsset } from './sprite.js';
+import { createSpritePalette, readSpriteLodAsset, spriteLodLayout, type SpriteAsset } from './sprite.js';
 
 export interface VehicleSpriteSet {
   readonly kind: 'car' | 'bike';
@@ -55,14 +55,18 @@ export function readSpriteAssets(value: unknown): SpriteAssets {
 }
 
 /** An instance binds one semantic base palette to every yaw/bank image and level once. */
-export function createVehiclePaletteVariant(set: VehicleSpriteSet, palette: readonly number[]): VehicleSpriteSet {
+export function createVehiclePaletteVariant(
+  set: VehicleSpriteSet,
+  palette: string,
+  brakeLampOn = false,
+): VehicleSpriteSet {
   const images = new Map<SpriteAsset, SpriteAsset>();
   const assets = set.assets.map((row) =>
     Object.freeze(
       row.map((asset) => {
         let variant = images.get(asset);
         if (!variant) {
-          variant = createSpritePaletteVariant(asset, palette);
+          variant = createSpritePalette(asset, palette, brakeLampOn);
           images.set(asset, variant);
         }
         return variant;

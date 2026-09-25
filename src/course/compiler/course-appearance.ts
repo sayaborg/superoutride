@@ -1,3 +1,4 @@
+import { spritePaletteStates } from '../../image/sprite.js';
 import { expandCourseElements, shiftedCoursePosition } from '../course-repeat.js';
 import { resolveCourseLateral } from './course-lateral.js';
 import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
@@ -21,7 +22,7 @@ export function createCourseSpriteResources() {
   ): CourseSpriteResource => {
     requireCourse(
       palette === null ||
-        [asset.source.levels[0]!.paletteRgb555, ...asset.source.variants].some((choice) =>
+        spritePaletteStates(asset.source.palettes).some((choice) =>
           choice.every((value, i) => i === 0 || value === palette[i]),
         ),
       path,

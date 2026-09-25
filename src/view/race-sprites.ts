@@ -9,7 +9,7 @@ import { createDynamicVehicleCourseSprite } from './dynamic-vehicle-sprite.js';
 export function createRaceSprites(assets: SpriteAssets, rival: SessionVehicle) {
   const brakingAssets =
     rival.compiledVehicle.id === 'TESTAROSSA'
-      ? createVehiclePaletteVariant(assets.car, assets.car.assets[0]![0]!.paletteChoices[1]!)
+      ? createVehiclePaletteVariant(assets.car, 'original', true)
       : assets[rival.form];
   const sprites: CourseSprite[] = [];
   return (actors: readonly RaceActorObservation[], camera: CameraState) => {

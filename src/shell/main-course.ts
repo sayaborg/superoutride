@@ -55,7 +55,7 @@ try {
     vehicle.compiledVehicle.id === 'TESTAROSSA'
       ? Object.freeze({
           ...sprites,
-          car: createVehiclePaletteVariant(sprites.car, sprites.car.assets[0]![0]!.paletteChoices[1]!),
+          car: createVehiclePaletteVariant(sprites.car, 'original', true),
         })
       : sprites;
   const displaySettings = createDisplaySettings();

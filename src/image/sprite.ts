@@ -6,15 +6,34 @@ const MIXTURE_WEIGHT_SUM_TOLERANCE = 1e-10;
 
 export const SPRITE_SOURCE_TEXELS_PER_METER = 40;
 
+export interface SpritePalette {
+  readonly colors: readonly number[];
+  readonly brakeLamp: Readonly<{ slot: number; on: number }> | null;
+}
+
+/** All states participate in LOD clustering and raw course-palette admission. */
+export function spritePaletteStates(palettes: Readonly<Record<string, SpritePalette>>): readonly (readonly number[])[] {
+  return Object.values(palettes).flatMap((palette) => [
+    palette.colors,
+    ...(palette.brakeLamp ? [illuminatedPalette(palette)] : []),
+  ]);
+}
+function illuminatedPalette(palette: SpritePalette): readonly number[] {
+  const colors = [...palette.colors];
+  if (palette.brakeLamp) colors[palette.brakeLamp.slot] = palette.brakeLamp.on;
+  return Object.freeze(colors);
+}
+
 export interface SpriteLodDocument {
   readonly format: 'superoutride.sprite-lod';
-  readonly version: 2;
+  readonly version: 3;
   readonly name: string;
   readonly width: number;
   readonly height: number;
   readonly anchorX: number;
   readonly anchorY: number;
-  readonly variants: readonly (readonly number[])[];
+  readonly defaultPalette: string;
+  readonly palettes: Readonly<Record<string, SpritePalette>>;
   readonly levels: readonly {
     readonly paletteRgb555: readonly number[];
     readonly indices: readonly number[];
@@ -47,7 +66,8 @@ export interface SpriteAsset {
   readonly worldWidthMeters: number;
   readonly anchorX: number;
   readonly anchorY: number;
-  readonly paletteChoices: readonly (readonly number[])[];
+  readonly defaultPalette: string;
+  readonly palettes: Readonly<Record<string, SpritePalette>>;
   readonly levels: readonly SpriteLevel[];
 }
 
@@ -61,10 +81,11 @@ export function readSpriteLodAsset(value: unknown): SpriteAsset {
     'height',
     'anchorX',
     'anchorY',
-    'variants',
+    'defaultPalette',
+    'palettes',
     'levels',
   ]);
-  if (document.format !== 'superoutride.sprite-lod' || document.version !== 2)
+  if (document.format !== 'superoutride.sprite-lod' || document.version !== 3)
     throw new RangeError('unsupported sprite LOD format/version');
   if (typeof document.name !== 'string' || !document.name.trim()) throw new RangeError('sprite name is required');
   const { width, height, anchorX, anchorY } = document;
@@ -87,11 +108,41 @@ export function readSpriteLodAsset(value: unknown): SpriteAsset {
   const layout = spriteLodLayout(width, height);
   if (!Array.isArray(document.levels) || document.levels.length < 1 || document.levels.length > layout.length)
     throw new RangeError('sprite LOD count exceeds the finite master pyramid');
-  if (!Array.isArray(document.variants)) throw new RangeError('sprite variants must list every alternate base palette');
+  if (!document.palettes || typeof document.palettes !== 'object' || Array.isArray(document.palettes))
+    throw new RangeError('sprite palettes must be a named dictionary');
+  const palettes = Object.freeze(
+    Object.fromEntries(
+      Object.entries(document.palettes).map(([name, value]) => {
+        if (!name.trim() || name !== name.trim()) throw new RangeError('palette name must be nonempty and trimmed');
+        const entry = spriteRecord(value, ['colors', 'brakeLamp']);
+        const colors = readIndexedPalette(entry.colors);
+        let brakeLamp: SpritePalette['brakeLamp'] = null;
+        if (entry.brakeLamp !== null) {
+          const lamp = spriteRecord(entry.brakeLamp, ['slot', 'on']);
+          if (
+            typeof lamp.slot !== 'number' ||
+            !Number.isInteger(lamp.slot) ||
+            lamp.slot < 1 ||
+            lamp.slot > 15 ||
+            typeof lamp.on !== 'number' ||
+            !Number.isInteger(lamp.on) ||
+            lamp.on < 0 ||
+            lamp.on > 32767
+          )
+            throw new RangeError('brake lamp requires an opaque slot and RGB555 on color');
+          brakeLamp = Object.freeze({ slot: lamp.slot, on: lamp.on });
+        }
+        return [name, Object.freeze({ colors, brakeLamp })];
+      }),
+    ),
+  );
+  if (typeof document.defaultPalette !== 'string' || !Object.hasOwn(palettes, document.defaultPalette))
+    throw new RangeError('default palette must name an image palette');
   const base = readIndexedPalette(
     spriteRecord(document.levels[0], ['paletteRgb555', 'indices', 'mixtures']).paletteRgb555,
   );
-  const paletteChoices = Object.freeze([base, ...Array.from(document.variants, readIndexedPalette)]);
+  if (!base.every((color, i) => color === palettes[document.defaultPalette as string]!.colors[i]))
+    throw new RangeError('master colors must equal the named default palette');
   const levels = Array.from(document.levels, (value: unknown, k: number) => {
     const level = spriteRecord(value, ['paletteRgb555', 'indices', 'mixtures']);
     const paletteRgb555 = readIndexedPalette(level.paletteRgb555);
@@ -154,15 +205,22 @@ export function readSpriteLodAsset(value: unknown): SpriteAsset {
     anchorX,
     anchorY,
     worldWidthMeters: width / SPRITE_SOURCE_TEXELS_PER_METER,
-    paletteChoices,
+    defaultPalette: document.defaultPalette,
+    palettes,
     levels: Object.freeze(levels),
   });
+}
+
+/** Named color and lamp state are resolved once, before rendering. */
+export function createSpritePalette(asset: SpriteAsset, name: string, brakeLampOn = false): SpriteAsset {
+  const palette = asset.palettes[name]!;
+  return createSpritePaletteVariant(asset, brakeLampOn ? illuminatedPalette(palette) : palette.colors);
 }
 
 /** Calculate an instance's palette once. Patterns and mixture identities remain shared and immutable. */
 export function createSpritePaletteVariant(asset: SpriteAsset, palette: readonly number[]): SpriteAsset {
   const base = readIndexedPalette(palette);
-  if (!asset.paletteChoices.some((choice) => choice.every((value, i) => i === 0 || value === base[i])))
+  if (!spritePaletteStates(asset.palettes).some((choice) => choice.every((value, i) => i === 0 || value === base[i])))
     throw new RangeError('palette variant was not included when compiling these LOD patterns');
   const levels = asset.levels.map((level) => {
     const paletteRgb555 = Object.freeze(

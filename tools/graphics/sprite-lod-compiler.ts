@@ -4,7 +4,12 @@ import {
   linearToRgb555,
   type PaletteMixture,
 } from '../../src/image/image-filter.js';
-import { readSpriteLodAsset, spriteLodLayout, type SpriteLodDocument } from '../../src/image/sprite.js';
+import {
+  readSpriteLodAsset,
+  spriteLodLayout,
+  spritePaletteStates,
+  type SpriteLodDocument,
+} from '../../src/image/sprite.js';
 
 interface MixtureBin {
   readonly mixture: PaletteMixture;
@@ -12,7 +17,7 @@ interface MixtureBin {
   weight: number;
 }
 
-/** Direct-master box filtering, with one shared pattern for every declared base-palette variant. */
+/** Direct-master box filtering, with one shared pattern for every declared color and lamp state. */
 export function compileSpriteLod(source: SpriteLodDocument): SpriteLodDocument {
   const master = readSpriteLodAsset(source);
   if (master.levels.length !== 1) throw new RangeError('sprite compiler requires exactly one normalized master');
@@ -55,14 +60,14 @@ export function compileSpriteLod(source: SpriteLodDocument): SpriteLodDocument {
           dictionary.set(key, bin);
           bins.push({
             mixture,
-            colors: master.paletteChoices.map((palette) => evaluatePaletteMixture(mixture, palette)),
+            colors: spritePaletteStates(master.palettes).map((palette) => evaluatePaletteMixture(mixture, palette)),
             weight: 0,
           });
         }
         bins[bin]!.weight += opaque;
         membership[y * width + x] = bin;
       }
-    const groups = reduceMixtures(bins, master.paletteChoices);
+    const groups = reduceMixtures(bins, spritePaletteStates(master.palettes));
     const indicesByBin = new Uint8Array(bins.length);
     const mixtures: PaletteMixture[] = Array.from({ length: 16 }, () => []);
     const paletteRgb555 = Array<number>(16).fill(0);
@@ -74,10 +79,10 @@ export function compileSpriteLod(source: SpriteLodDocument): SpriteLodDocument {
     });
     return { paletteRgb555, mixtures, indices: Array.from(membership, (bin) => (bin < 0 ? 0 : indicesByBin[bin]!)) };
   });
-  return { ...source, variants: source.variants.map((palette) => [...palette]), levels };
+  return { ...source, levels };
 }
 
-/** Deterministic divisive clustering; distance is the worst color error over all variants. */
+/** Deterministic divisive clustering; distance is the worst color error over all palette/lamp states. */
 function reduceMixtures(bins: readonly MixtureBin[], palettes: readonly (readonly number[])[]): number[][] {
   if (bins.length <= 15) return bins.map((_, i) => [i]);
   const groups = [bins.map((_, i) => i)];
