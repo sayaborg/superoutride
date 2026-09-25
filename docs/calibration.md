@@ -36,7 +36,9 @@ DEV tunes the author-facing values below in their saved units; each grid wraps a
 | Assists    | —     | `wheelSlip`                                 | TCS, MSR and ABS                             | on      | on / off                   |
 
 `fuelCutRedlineMargin` (0.02) and `clutchLockIdleMargin` (0.02) are numerical margins that keep
-latches from chattering; they are edited only in the file.
+latches from chattering; they are edited only in the file. `suspensionProgression` (9.8) is the
+game-wide suspension stiffness at full travel as a multiple of each ride spring rate
+([Vehicle physics](vehicle-physics.md#suspension)); it is also edited only in the file.
 
 PX and PY are dimensionless slips. The defaults give `kX = kY = 31.5` under the
 [tire law](vehicle-physics.md#tire-law). Automatic steering has the derived budget `A = M-D`, shown

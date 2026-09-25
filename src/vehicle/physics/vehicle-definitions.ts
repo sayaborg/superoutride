@@ -23,12 +23,8 @@ export interface VehicleDefinition {
   readonly rearRideFrequency: number;
   readonly frontDampingRatio: number;
   readonly rearDampingRatio: number;
-  readonly frontQBump: number;
-  readonly rearQBump: number;
   readonly frontQTravel: number;
   readonly rearQTravel: number;
-  readonly frontBumpForceMax: number;
-  readonly rearBumpForceMax: number;
 
   readonly frontWheelRadius: number;
   readonly rearWheelRadius: number;
@@ -110,17 +106,13 @@ export function compileVehicle(definition: VehicleDefinition): Readonly<Compiled
         frontStaticLoad,
         definition.frontRideFrequency,
         definition.frontDampingRatio,
-        definition.frontQBump,
         definition.frontQTravel,
-        definition.frontBumpForceMax,
       ),
     {
       staticLoad: 'mass',
       rideFrequency: 'frontRideFrequency',
       dampingRatio: 'frontDampingRatio',
-      qBump: 'frontQBump',
       qTravel: 'frontQTravel',
-      bumpForceMax: 'frontBumpForceMax',
     },
   );
   const rearSuspension = withDefinitionPath(
@@ -129,17 +121,13 @@ export function compileVehicle(definition: VehicleDefinition): Readonly<Compiled
         rearStaticLoad,
         definition.rearRideFrequency,
         definition.rearDampingRatio,
-        definition.rearQBump,
         definition.rearQTravel,
-        definition.rearBumpForceMax,
       ),
     {
       staticLoad: 'mass',
       rideFrequency: 'rearRideFrequency',
       dampingRatio: 'rearDampingRatio',
-      qBump: 'rearQBump',
       qTravel: 'rearQTravel',
-      bumpForceMax: 'rearBumpForceMax',
     },
   );
   const frontStation: CompiledContactStation = Object.freeze({

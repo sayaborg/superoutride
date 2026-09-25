@@ -79,11 +79,45 @@ resistance zero) and an upright body permit unilateral contact:
 ```text
 q = max(-gap,0)
 qDot = -reachVelocity dot surfaceNormal
-N = max(0,spring*q+damping*qDot+smoothBumpStop(q))
+N = max(0,springForce(q)+damping*sqrt(stiffness(q)/springRate)*qDot)
 ```
 
-At `q >= qTravel`, the solver raises `VehicleOutsideModelError`. Degenerate projection of the steered
-wheel direction onto the surface plane transmits zero tire force. The shared wrench combines contact,
+### Suspension
+
+Each station's suspension is set by three vehicle values, `rideFrequency`, `dampingRatio` and
+`qTravel`, and one game-wide driving value, `suspensionProgression` (P). With the station's static load
+`W` and `m = W/g`, `springRate = (2*pi*rideFrequency)^2*m`, `qStatic = W/springRate` and
+`damping = 2*dampingRatio*sqrt(springRate*m)`; compilation requires `0 < qStatic < qTravel`.
+
+The spring is one progressive spring. Its stiffness is `springRate` up to `qStatic`, then rises
+linearly to `P*springRate` at `qTravel`, continuing the same line beyond it. The force is the
+stiffness integral, continuous everywhere:
+
+```text
+x = max(0,q-qStatic)
+stiffness(q) = springRate*(1+(P-1)*x/(qTravel-qStatic))
+springForce(q) = springRate*(q+(P-1)*x^2/(2*(qTravel-qStatic)))
+```
+
+Damping keeps the station's damping ratio at the local stiffness, so it equals `damping` at and
+below `qStatic` and grows with `sqrt(stiffness/springRate)` above it. Both terms depend only on the
+contact's own compression and rate; the spring is conservative and the damper dissipative.
+
+`qTravel` is a bump stop that cannot be passed. After each substep's force and velocity update, and
+before the position update, every supported contact with an upright body limits its compression
+rate, the approach of the body point at the contact along the surface normal, to
+`max(0,(qTravel-q)/substep)`. Nonnegative normal impulses at the front and rear contact points solve
+this two-row linear complementarity problem exactly: the unique solution is chosen from the both,
+front-only and rear-only active sets. The impulses change translation, yaw rate and pitch rate
+through the vehicle mass and the same yaw and pitch inertias as contact moments, so a stop at one
+axle also arrests the body's rotation about the other. The stop has no restitution and never adds
+kinetic energy: with the response matrix `K`, impulses `lambda >= 0` and final compression rates
+`c'`, the change is `-sum(lambda*c')-lambda*K*lambda/2 <= 0`, because every active row ends at
+`c' = max(0,...) >= 0` and `K` is positive semidefinite. The contact's tire load for that substep
+remains the suspension force. The stop is deterministic and allocates nothing.
+
+Degenerate projection of the steered wheel direction onto the surface plane transmits zero tire
+force. The shared wrench combines contact,
 wheel reaction, gravity and planar quadratic drag for protection and integration.
 
 ## Coordinate-domain recovery
@@ -94,8 +128,8 @@ outside timer. The same condition covers lateral exits and either end of the ret
 The interval matches the existing unsupported-time allowance: a short excursion can return, and
 an unsupported vehicle can visibly fall (about 2.54 m from rest under gravity) before reconstruction.
 Outside the domain, recovery does not query a fictitious surface normal or penetration plane.
-Inside it, the existing support, penetration, fall-distance, overturn and suspension-travel rules
-continue to apply; their broader airborne revision belongs to stage 8-7.
+Inside it, the existing support, penetration, fall-distance and overturn rules continue to apply;
+their airborne revision belongs to 8-7c.
 
 Recovery clamps the farther of current and last-safe route s to the retained extent, then backs up
 8 m within it. Race composition resolves a Carriageway center at that final station, respecting
@@ -364,14 +398,14 @@ The manifest verifies the saved bytes, then `surface-material.ts` admits this do
 publishes one immutable catalog. Course compilation resolves Strip material IDs through that catalog;
 runtime physics receives the resolved object or `null`, never a fixed material enum.
 
-`content/vehicles/<id>.json` stores one `superoutride.vehicle-definition` version 5 per vehicle.
-`content/driving/default.json` stores the sole `superoutride.driving-definition` version 6.
+`content/vehicles/<id>.json` stores one `superoutride.vehicle-definition` version 6 per vehicle.
+`content/driving/default.json` stores the sole `superoutride.driving-definition` version 7.
 [Calibration](calibration.md) owns tuning meanings and units. Document admission in
 `vehicle/definition-document.ts` publishes detached, deeply immutable source and compiled products.
 
 | Vehicle field       | Contract                                                                                                                                                                          |
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`, `version` | `superoutride.vehicle-definition`, `5`                                                                                                                                            |
+| `format`, `version` | `superoutride.vehicle-definition`, `6`                                                                                                                                            |
 | `id`                | Nonempty filename-safe identity; equal to its manifest ID                                                                                                                         |
 | `form`              | `car` or `bike`; one shared physical/display form vocabulary                                                                                                                      |
 | `selectionOrder`    | Positive safe integer, unique across the catalog; ascending selection order independent of filenames and manifest order                                                           |
@@ -390,7 +424,7 @@ fields: `automaticSteering:"travel-direction"`, `maxRoadWheelSteerDegrees`, `ste
 `steeringTraversalSeconds`, positive `fuelCutRedlineMargin`, positive
 `idleFrictionMeanEffectivePressureBar` and `redlineFrictionMeanEffectivePressureBar`,
 `drivelineEfficiency` in (0,1], positive `engineInertiaKilogramSquareMetersPerLitre`, positive
-`clutchLockIdleMargin`, `clutchCapacityFactor` above 1, `throttle`
+`clutchLockIdleMargin`, `clutchCapacityFactor` above 1, `suspensionProgression` in [1,50], `throttle`
 and `brake` (each applySeconds/releaseSeconds), boolean
 `wheelSlip`, and `tire` (gripX/peakSlipX/gripY/peakSlipY/knee). Angles are degrees, traversal times
 are seconds, pressures are bar, inertia is kg m² per litre, and tire, fuel-cut and efficiency values
@@ -410,7 +444,7 @@ relative to the definition it receives, without a leading slash (for example `ma
 authored fields: station fields map to front/rear suspension fields, static load to `mass`, actuator
 rates to traversal seconds, steering radians to degree fields, and tire stiffness to the corresponding
 peak slip (with grip and knee named in the message). A nonrepresentable static compression points
-to ride frequency; otherwise bump/travel ordering points to the authored bump/travel field.
+to ride frequency; otherwise a travel not beyond the static compression points to the travel field.
 Relationships identify an actionable field and name related inputs: gear ordering points to the
 violating element, curve coverage to `torqueCurve`, and a peak-power point at redline points to
 that torque-curve element's `rpm`.

@@ -19,6 +19,8 @@ export interface VehicleModel {
   readonly tires: Readonly<VehicleTireFrictionCalibrationState>;
   readonly powertrain: Readonly<PowertrainConstants>;
   readonly torqueProtection: Readonly<TorqueProtectionPolicy>;
+  /** Game-wide suspension stiffness at full travel as a multiple of each ride spring rate. */
+  readonly suspensionProgression: number;
 }
 
 /** The admitted vehicle and driving definitions a model is built from. */
@@ -44,6 +46,7 @@ export function createVehicleModel(input: VehicleModelInput): VehicleModel {
       wheelSlip: input.drivingDefinition.source.wheelSlip,
       supportReserve: form === 'bike' ? TWO_WHEEL_SUPPORT_RESERVE : null,
     }),
+    suspensionProgression: driving.suspensionProgression,
   });
 }
 

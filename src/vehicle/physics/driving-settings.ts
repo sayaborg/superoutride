@@ -6,6 +6,8 @@ import { compileTireCharacteristics, createVehicleTireFrictionCalibration } from
 import { createVehicleSteeringCalibration } from './vehicle-calibration.js';
 
 const PASCALS_PER_BAR = 1e5;
+// Upper domain keeps the stiffest spring well inside the fixed substep's explicit stability.
+const SUSPENSION_PROGRESSION_MAX = 50;
 
 /** Convert explicit design input at vehicle admission; never consult a vehicle definition. */
 export function createDrivingSettings(definition: DrivingDefinition) {
@@ -24,6 +26,14 @@ export function createDrivingSettings(definition: DrivingDefinition) {
   }
   if (!(definition.clutchCapacityFactor > 1) || !Number.isFinite(definition.clutchCapacityFactor))
     throw new DefinitionDomainError('clutchCapacityFactor', 'clutchCapacityFactor must be finite and > 1');
+  if (
+    !(definition.suspensionProgression >= 1 && definition.suspensionProgression <= SUSPENSION_PROGRESSION_MAX) ||
+    !Number.isFinite(definition.suspensionProgression)
+  )
+    throw new DefinitionDomainError(
+      'suspensionProgression',
+      `suspensionProgression must lie in [1,${SUSPENSION_PROGRESSION_MAX}]`,
+    );
   if (!(definition.drivelineEfficiency > 0 && definition.drivelineEfficiency <= 1))
     throw new DefinitionDomainError('drivelineEfficiency', 'drivelineEfficiency must lie in (0,1]');
   const rate = 1 / definition.steeringTraversalSeconds;
@@ -56,6 +66,7 @@ export function createDrivingSettings(definition: DrivingDefinition) {
       clutchCapacityFactor: definition.clutchCapacityFactor,
     }) satisfies PowertrainRules,
     actuator,
+    suspensionProgression: definition.suspensionProgression,
     steeringCalibration: withDefinitionPath(
       () =>
         createVehicleSteeringCalibration({

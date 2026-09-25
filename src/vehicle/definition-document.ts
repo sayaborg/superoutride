@@ -20,7 +20,7 @@ export interface VehicleMetadata {
 }
 export interface VehicleDocument {
   readonly format: 'superoutride.vehicle-definition';
-  readonly version: 5;
+  readonly version: 6;
   readonly id: string;
   readonly form: VehicleForm;
   readonly selectionOrder: number;
@@ -139,12 +139,8 @@ const mechanicalNumbers = [
   'rearRideFrequency',
   'frontDampingRatio',
   'rearDampingRatio',
-  'frontQBump',
-  'rearQBump',
   'frontQTravel',
   'rearQTravel',
-  'frontBumpForceMax',
-  'rearBumpForceMax',
   'frontWheelRadius',
   'rearWheelRadius',
   'frontWheelInertia',
@@ -162,7 +158,7 @@ export function compileVehicleDocument(
   sprites: SpriteAssets,
 ): Result<CompiledVehicleDefinition> {
   return admit(document, () => {
-    const v = header(value, 'superoutride.vehicle-definition', 5);
+    const v = header(value, 'superoutride.vehicle-definition', 6);
     fields(v, ['format', 'version', 'id', 'form', 'selectionOrder', 'mechanics', 'sound', 'metadata', 'visuals'], '');
     const id = string(v.id, '/id');
     requireValue(/^[A-Za-z0-9_-]+$/.test(id), '/id', 'Expected a filename-safe ID');
@@ -239,7 +235,7 @@ export function compileVehicleDocument(
       throw new InputError('unresolved_reference', '/sound', `Unknown sound ID: ${soundId}`);
     const source = freeze({
       format: 'superoutride.vehicle-definition',
-      version: 5,
+      version: 6,
       id,
       form: v.form,
       selectionOrder,
@@ -265,7 +261,7 @@ export function compileVehicleDocument(
 
 export function compileDrivingDocument(value: unknown, document: string): Result<CompiledDrivingDefinition> {
   return admit(document, () => {
-    const v = header(value, 'superoutride.driving-definition', 6);
+    const v = header(value, 'superoutride.driving-definition', 7);
     const numbers = [
       'maxRoadWheelSteerDegrees',
       'steeringOffsetDegrees',
@@ -277,6 +273,7 @@ export function compileDrivingDocument(value: unknown, document: string): Result
       'engineInertiaKilogramSquareMetersPerLitre',
       'clutchLockIdleMargin',
       'clutchCapacityFactor',
+      'suspensionProgression',
     ] as const;
     fields(
       v,
@@ -299,7 +296,7 @@ export function compileDrivingDocument(value: unknown, document: string): Result
     fields(t, keys, '/tire');
     const source = freeze({
       format: 'superoutride.driving-definition',
-      version: 6,
+      version: 7,
       id: 'default',
       automaticSteering: v.automaticSteering,
       ...Object.fromEntries(numbers.map((key) => [key, number(v[key], `/${key}`)])),

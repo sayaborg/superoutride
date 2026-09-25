@@ -627,7 +627,7 @@ preserving steering/tire calibration and earned gates, locks and laps.
 Route recovery backs off from the farther of causal current chainage and last-safe chainage.
 Wrong-route recovery uses the selected Carriageway at the observed station.
 [Vehicle physics](vehicle-physics.md#coordinate-domain-recovery) owns domain timing and target placement.
-Physics' typed suspension-travel exit requests this gameplay discontinuity. Known recovery coordinates use the shared route. Observers resynchronize once, suppress reset
+Known recovery coordinates use the shared route. Observers resynchronize once, suppress reset
 crossing credit and update the player
 camera before rendering. Unrelated internal faults propagate.
 

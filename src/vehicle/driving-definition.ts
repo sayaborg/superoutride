@@ -13,6 +13,8 @@ export interface DrivingDefinition {
   readonly engineInertiaKilogramSquareMetersPerLitre: number;
   readonly clutchLockIdleMargin: number;
   readonly clutchCapacityFactor: number;
+  /** Suspension stiffness at full travel as a multiple of the ride spring rate; 1 is linear. */
+  readonly suspensionProgression: number;
   readonly throttle: Readonly<{ applySeconds: number; releaseSeconds: number }>;
   readonly brake: Readonly<{ applySeconds: number; releaseSeconds: number }>;
   readonly wheelSlip: boolean;
@@ -21,6 +23,6 @@ export interface DrivingDefinition {
 
 export interface DrivingDocument extends DrivingDefinition {
   readonly format: 'superoutride.driving-definition';
-  readonly version: 6;
+  readonly version: 7;
   readonly id: 'default';
 }

@@ -90,9 +90,7 @@ interface CompiledSuspensionStation {
   readonly springRate: number;
   readonly damping: number;
   readonly qStatic: number;
-  readonly qBump: number;
   readonly qTravel: number;
-  readonly bumpForceMax: number;
 }
 
 export interface CompiledContactStation {
@@ -152,17 +150,6 @@ export interface ContactObservation {
   readonly tireRight: Vec3;
   readonly longitudinalVelocity: number;
   readonly lateralVelocity: number;
-}
-
-export class VehicleOutsideModelError extends Error {
-  constructor(
-    readonly contactId: VehicleContactId,
-    readonly compression: number,
-    readonly travel: number,
-  ) {
-    super(`${contactId} suspension compression ${compression} reached/exceeded qTravel ${travel}`);
-    this.name = 'VehicleOutsideModelError';
-  }
 }
 
 export function createVehicleControlState(): VehicleControlState {
@@ -337,6 +324,7 @@ export function deriveContactObservation(
   surfaces: SurfaceMapReader,
   body: BodyKinematics,
   station: CompiledContactStation,
+  suspensionProgression: number,
   steerAngle: number,
   previousS: number,
   workspace: ContactWorkspace,
@@ -377,12 +365,8 @@ export function deriveContactObservation(
   const supportAvailable = surface.material !== null;
   const withinReach = supportAvailable && dot3(body.up, surface.normal) > 0 && gap <= 0;
   const q = withinReach ? -gap : 0;
-  if (q >= station.suspension.qTravel) throw new VehicleOutsideModelError(station.id, q, station.suspension.qTravel);
   const qDot = withinReach ? -dot3(reachVelocity, surface.normal) : 0;
-  const bumpForce = bumpStopForce(q, station.suspension);
-  const normalLoad = withinReach
-    ? Math.max(0, station.suspension.springRate * q + station.suspension.damping * qDot + bumpForce)
-    : 0;
+  const normalLoad = withinReach ? Math.max(0, suspensionForce(q, qDot, station.suspension, suspensionProgression)) : 0;
   sub3(reachPoint, scale3(surface.normal, gap, a), out.contactPoint);
   out.id = station.id;
   out.station = station;
@@ -472,18 +456,9 @@ export function compileSuspensionStation(
   staticLoad: number,
   rideFrequency: number,
   dampingRatio: number,
-  qBump: number,
   qTravel: number,
-  bumpForceMax: number,
 ): CompiledSuspensionStation {
-  for (const [field, value] of Object.entries({
-    staticLoad,
-    rideFrequency,
-    dampingRatio,
-    qBump,
-    qTravel,
-    bumpForceMax,
-  })) {
+  for (const [field, value] of Object.entries({ staticLoad, rideFrequency, dampingRatio, qTravel })) {
     if (!Number.isFinite(value)) throw new DefinitionDomainError(field, `${field} must be finite`);
   }
   if (!(staticLoad > 0))
@@ -497,14 +472,30 @@ export function compileSuspensionStation(
   const qStatic = staticLoad / springRate;
   if (!(qStatic > 0))
     throw new DefinitionDomainError('rideFrequency', 'rideFrequency and staticLoad must produce qStatic > 0');
-  if (!(qStatic < qBump))
+  if (!(qStatic < qTravel))
     throw new DefinitionDomainError(
-      Number.isFinite(qStatic) ? 'qBump' : 'rideFrequency',
-      'qBump must exceed qStatic derived from rideFrequency and staticLoad',
+      Number.isFinite(qStatic) ? 'qTravel' : 'rideFrequency',
+      'qTravel must exceed qStatic derived from rideFrequency and staticLoad',
     );
-  if (!(qBump < qTravel)) throw new DefinitionDomainError('qTravel', 'qTravel must exceed qBump');
-  if (!(bumpForceMax >= 0)) throw new DefinitionDomainError('bumpForceMax', 'bumpForceMax must be >= 0');
-  return Object.freeze({ springRate, damping, qStatic, qBump, qTravel, bumpForceMax });
+  return Object.freeze({ springRate, damping, qStatic, qTravel });
+}
+
+/**
+ * One progressive spring and its damper. Stiffness is springRate up to qStatic, then rises linearly
+ * to springRate*progression at qTravel and continues that line; the spring force is its integral.
+ * Damping keeps the station's damping ratio at the local stiffness: damping*sqrt(stiffness/springRate).
+ */
+export function suspensionForce(
+  q: number,
+  qDot: number,
+  suspension: CompiledSuspensionStation,
+  progression: number,
+): number {
+  const { springRate, damping, qStatic, qTravel } = suspension;
+  const x = Math.max(0, q - qStatic);
+  const stiffnessScale = 1 + ((progression - 1) * x) / (qTravel - qStatic);
+  const spring = springRate * (q + ((progression - 1) * x * x) / (2 * (qTravel - qStatic)));
+  return spring + damping * Math.sqrt(stiffnessScale) * qDot;
 }
 
 export function contactForceWorld(contact: ContactObservation, tireFx: number, tireFy: number, out = vector()): Vec3 {
@@ -547,12 +538,4 @@ export function initializePlanCoordinateObservation(
   previousS: number,
 ): PlanCoordinateProjection {
   return coordinates.locateLocal({ x, z }, previousS, { s: 0, l: 0, inDomain: false }, createPlanProjectionWorkspace());
-}
-
-function bumpStopForce(q: number, suspension: CompiledSuspensionStation): number {
-  if (q <= suspension.qBump || !(suspension.bumpForceMax > 0)) return 0;
-  const x = (q - suspension.qBump) / (suspension.qTravel - suspension.qBump);
-  const t = Math.max(0, Math.min(1, x));
-  const smooth = t * t * (3 - 2 * t);
-  return suspension.bumpForceMax * smooth;
 }

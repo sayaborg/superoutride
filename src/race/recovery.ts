@@ -12,7 +12,6 @@ import { createAutomaticPowertrainState } from '../vehicle/physics/automatic-pow
 import { resetDrivingActuatorState } from '../vehicle/physics/driving-actuator.js';
 import type { VehicleWorld } from '../course/vehicle-world.js';
 import {
-  VehicleOutsideModelError,
   VEHICLE_GRAVITY,
   initializePlanCoordinateObservation,
   resetVehicleControlState,
@@ -28,7 +27,6 @@ type RecoveryReason =
   | 'surface-penetration'
   | 'outside-domain'
   | 'overturned'
-  | 'suspension-travel'
   | 'manual'
   | 'wrong-course';
 
@@ -86,7 +84,7 @@ interface RecoveryOptions {
   readonly settings?: RecoverySettings;
 }
 
-/** One gameplay step. A physical-domain exit recovers; unrelated faults stay visible. */
+/** One gameplay step. Recovery observes the completed step; physics faults stay visible. */
 export function advanceVehicleWithRecovery(
   world: VehicleWorld,
   vehicle: VehicleState,
@@ -99,13 +97,7 @@ export function advanceVehicleWithRecovery(
     target = null,
   }: RecoveryOptions & { input: DrivingInput; dt: number; target?: RecoveryTarget | null },
 ): RecoveryReason | null {
-  try {
-    updateVehicle(world, vehicle, model, input, dt);
-  } catch (error) {
-    if (!(error instanceof VehicleOutsideModelError)) throw error;
-    recoverVehicle(world, vehicle, model, { state, reason: 'suspension-travel', settings, target });
-    return 'suspension-travel';
-  }
+  updateVehicle(world, vehicle, model, input, dt);
   return updateRecovery(world, vehicle, model, {
     state,
     dt,

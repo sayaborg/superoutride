@@ -11,7 +11,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **8-7b — Suspension bump stop**.
+Next PR: **8-7c — Airborne state**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -21,7 +21,6 @@ PRs hold rationale and verification evidence.
 
 Give vehicles, driving assists, tires, powertrains and materials explicit definitions, and treat airborne driving as normal state.
 
-- **8-7b — Suspension bump stop:** reaching suspension travel is a physical bump stop instead of an exception; the suspension-travel recovery reason disappears, so hard landings stay in the simulation. Behavior changes.
 - **8-7c — Airborne state:** airborne driving is a normal state. Recovery no longer counts unsupported time; it applies only when driving cannot continue (falling off the world, overturning, leaving the domain, wrong course, manual). Behavior changes.
 - **8-7d — Pitch protection:** a game-wide pitch limit of ±15° for both forms replaces the two-wheel support reserve. Pitch is the body's angle to the line joining the road points under the front and rear contacts, suspension attitude included. Drive-induced wheelies are limited through the opening's upper bound and brake-induced stoppies on the brake side; the protection is inactive in the air. Behavior changes.
 - **8-8a — Content admission:** one admission toolkit for every authored format (courses, vehicle and driving definitions, sprite images and sets, tile images, sprite sources), each reporting diagnostics at a document and JSON Pointer; build products keep plain internal checks. Report a split plan first if large. Behavior unchanged.
