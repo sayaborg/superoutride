@@ -6,7 +6,7 @@ import type { VehicleDefinitions } from '../../src/vehicle/definition-document.j
 import { REFERENCE_DRIVER } from '../course/reference-driving-policy.js';
 import { referenceModelIdentity } from '../course/reference-identity.js';
 
-import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
+import type { TimedCompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import type { VehicleId } from '../../src/vehicle/physics/vehicle-definitions.js';
 import type { runCourseReference } from '../course/reference-run.js';
 
@@ -32,7 +32,7 @@ export interface CourseReferenceResult {
 
 /** Build authority: independent vehicle jobs share no mutable mechanics or course state. */
 export async function buildCourseReferences(
-  courses: readonly { course: CompiledCourse; stem: string }[],
+  courses: readonly { course: TimedCompiledCourse; stem: string }[],
   definitions: VehicleDefinitions,
   stage: (kind: ContentKind, id: string, product: unknown) => Promise<void>,
 ) {

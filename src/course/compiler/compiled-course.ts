@@ -10,7 +10,12 @@ import {
   requireCourse,
   type CourseResult,
 } from '../course-diagnostics.js';
-import { readCourseDocument, type CourseDocument, type SectionDocument } from '../course-document.js';
+import {
+  readCourseDocument,
+  type CourseRulesDocument,
+  type SectionDocument,
+  type TimedCourseRules,
+} from '../course-document.js';
 import { compileCourseGeometry, resolveCoursePosition } from '../course-geometry.js';
 import { validateMaterialContinuity, compileMaterialCoordinateDomain } from '../course-coordinate-domain.js';
 import type { CompiledCarriageway } from '../course-boundaries.js';
@@ -42,10 +47,17 @@ interface SectionDraft extends Omit<CompiledSection, 'incoming' | 'outgoing' | '
 }
 
 /** Upper-level immutable product. Consumers receive its ordinary reader/data facets, never this root. */
-export interface CompiledCourse {
+/** A course with CLASSIC settings: it has reference runs, time budgets and a checkpoint clock. */
+export type TimedCompiledCourse = CompiledCourse<TimedCourseRules>;
+
+export function isTimedCourse(course: CompiledCourse): course is TimedCompiledCourse {
+  return course.rules.classic !== null;
+}
+
+export interface CompiledCourse<Rules extends CourseRulesDocument = CourseRulesDocument> {
   readonly id: string;
   readonly type: ReturnType<typeof compileCourseTopology>;
-  readonly rules: CourseDocument['rules'];
+  readonly rules: Rules;
   readonly gates: ReturnType<typeof compileCourseGates>;
   readonly identity: {
     readonly sourceSha256: string;

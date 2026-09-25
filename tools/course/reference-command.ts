@@ -7,6 +7,7 @@ import { measureVehicleEnvelope } from './vehicle-envelope.js';
 import { courseReferenceRoutes, runCourseReference } from './reference-run.js';
 import { referenceModelIdentity } from './reference-identity.js';
 import { options, loadCourse, loadCourseGround, requireInput, atomicWrite } from './authoring-io.js';
+import { isTimedCourse } from '../../src/course/compiler/compiled-course.js';
 
 /** Optional diagnostic exports; ordinary build owns all Session products. */
 export async function referenceCommand(verb: string, file: string, args: readonly string[]) {
@@ -30,7 +31,7 @@ export async function referenceCommand(verb: string, file: string, args: readonl
     };
   else {
     const { course } = await loadCourse(file, opts.get('--images'));
-    requireInput(course.rules, '/rules', 'Reference needs authored rules');
+    requireInput(isTimedCourse(course), '/rules/classic', 'Reference runs need CLASSIC settings');
     const ground = await loadCourseGround(course),
       routes = courseReferenceRoutes(course);
     const lapCount = Number(opts.get('--laps') ?? course.rules.classic.lapCount),

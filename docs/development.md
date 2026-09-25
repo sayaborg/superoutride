@@ -153,15 +153,15 @@ Authoring inputs under `content/` still use explicit source filenames and image 
 Build first writes completed vehicle images and their manifest entry, stages vehicle/driving documents and courses/images, then
 loads the verified definitions from that index. Reference workers independently read the same
 `dist/content` definitions and courses, generate envelopes/runs, and add envelopes/budgets before
-publishing the completed build. Courses in the build's untimed set (`UNTIMED_COURSES`, currently the
-`ribbon-rough` evaluation course) are delivered without reference runs or budgets. Node tools also read vehicle/driving definitions from this distribution.
+publishing the completed build. Only timed courses (rules with CLASSIC settings) receive reference runs
+and budgets; the build reads this from each course document. Node tools also read vehicle/driving definitions from this distribution.
 
 | Output                                         | Use                                      |
 | ---------------------------------------------- | ---------------------------------------- |
 | `dist/content/vehicles/<id>.json`              | Versioned vehicle definitions            |
 | `dist/content/driving/default.json`            | Versioned game-wide driving definition   |
 | `dist/content/manifest.json`                   | Delivery index and digest authority      |
-| `dist/content/courses/<course>.course.json`    | CourseDocument v26                       |
+| `dist/content/courses/<course>.course.json`    | CourseDocument v27                       |
 | `dist/content/images/<sha256>.json`            | All delivered course and vehicle images  |
 | `dist/content/envelopes/<vehicle>.json`        | Rival driving envelopes                  |
 | `dist/content/budgets/<course>/<vehicle>.json` | Timed Session budgets                    |

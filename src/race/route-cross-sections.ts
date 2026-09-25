@@ -35,7 +35,7 @@ export function routeCrossingFraction(
 
 /** One shared index. Stable route stations survive list replacement and pruning. */
 export function createRouteCrossSections(route: CourseRoute, course: CompiledCourse, lapCount: number) {
-  const rules = new Map(course.gates!.intervals.map((interval) => [interval.section, interval]));
+  const rules = new Map(course.gates.intervals.map((interval) => [interval.section, interval]));
   let indexed: readonly RouteOccurrence[] = [];
   let race: readonly RouteRaceLine[] = [];
   let forks: readonly RouteCrossSection[] = [];

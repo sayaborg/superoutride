@@ -19,8 +19,10 @@ uses authored yaw and motorcycle-bank images.
 
 ## 2. Sessions and play
 
-CLASSIC uses the course's vehicle, rival count, lap count and checkpoint time limit. CUSTOM offers
-vehicle selection, zero to sixteen rivals, the permitted lap count and time limit on/off.
+Every course has rules. A course with CLASSIC settings is timed: CLASSIC uses the course's vehicle,
+rival count, lap count and checkpoint time limit, and CUSTOM offers vehicle selection, zero to sixteen
+rivals, the permitted lap count and time limit on/off. A course without CLASSIC settings is untimed:
+it offers only CUSTOM, and no Session on it runs the checkpoint clock.
 The setup screen resolves these settings before START; vehicle and handling settings are locked
 for the run. [Browser](browser.md) owns controls and URL settings.
 

@@ -9,7 +9,7 @@ export interface CourseTimeBudgets {
 
 /**
  * Resolve one playable configuration before actors/ticks exist. Graph and catalog objects remain shared
- * references. An untimed course (delivered without time budgets) runs every Session without a clock.
+ * references. A course without CLASSIC settings is untimed: it has no CLASSIC Session and no clock.
  */
 export function resolveCourseSession(
   course: CompiledCourse,
@@ -17,19 +17,18 @@ export function resolveCourseSession(
   vehicle: SessionVehicle,
   envelope: VehicleEnvelope,
   budgets: CourseTimeBudgets | null = null,
-  timed = true,
 ) {
-  if (!course.rules) throw new RangeError('Session requires authored rules');
   const preset = course.rules.classic;
+  if (requested.mode === 'CLASSIC' && preset === null) throw new RangeError('An untimed course has no CLASSIC Session');
   const configuration: Readonly<SessionConfiguration> =
-    requested.mode === 'CLASSIC'
-      ? Object.freeze({ mode: 'CLASSIC', rivalCount: preset.rivalCount, lapCount: preset.lapCount, timeLimit: timed })
-      : Object.freeze({ ...requested, timeLimit: timed && requested.timeLimit });
-  if (configuration.mode === 'CLASSIC' && vehicle.vehicleDefinition.compiledVehicle.id !== preset.vehicleId)
+    requested.mode === 'CLASSIC' && preset !== null
+      ? Object.freeze({ mode: 'CLASSIC', rivalCount: preset.rivalCount, lapCount: preset.lapCount, timeLimit: true })
+      : Object.freeze({ ...requested, timeLimit: preset !== null && requested.timeLimit });
+  if (configuration.mode === 'CLASSIC' && vehicle.vehicleDefinition.compiledVehicle.id !== preset?.vehicleId)
     throw new RangeError('CLASSIC requires its preset vehicle');
   if (configuration.lapCount > course.rules.maxLaps)
     throw new RangeError('Lap count exceeds the authored course limit');
-  if (configuration.rivalCount >= course.gates!.grid.length)
+  if (configuration.rivalCount >= course.gates.grid.length)
     throw new RangeError('The authored grid cannot hold this field');
   if (configuration.timeLimit && !budgets)
     throw new RangeError('A time limit requires current, complete reference runs');
@@ -37,7 +36,7 @@ export function resolveCourseSession(
   // The entire current roster shares this admitted vehicle and envelope, including a solo player.
   const driver = compileEnvelopeDriver(envelope, rivalUtilization, envelope.maximumSpeed);
   const stoppingDistance = envelope.maximumSpeed ** 2 / (2 * driver.braking);
-  for (const { finish } of course.gates!.intervals) {
+  for (const { finish } of course.gates.intervals) {
     if (!finish || finish.section.outgoing.length !== 0) continue;
     const available = finish.section.coordinates.domain.end - finish.at.s;
     if (available < stoppingDistance)
@@ -49,7 +48,7 @@ export function resolveCourseSession(
     course,
     configuration,
     vehicle,
-    grid: course.gates!.grid,
+    grid: course.gates.grid,
     initialSpeed: 0,
     rivalUtilization,
     envelope,

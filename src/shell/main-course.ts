@@ -15,6 +15,7 @@ import { createCourseRace } from '../race/course-race.js';
 import { createCoursePerformanceHud } from './course-performance-hud.js';
 import { resolveCourseSession } from '../race/course-session.js';
 import { readCourseTimeBudgets } from '../race/course-time-budgets.js';
+import { isTimedCourse } from '../course/compiler/compiled-course.js';
 import { createSessionVehicle } from '../race/session-vehicle.js';
 import { readBrowserSessionSettings, mountCourseSessionControls } from './course-session-controls.js';
 import { createCourseScene } from '../view/course-scene.js';
@@ -37,12 +38,8 @@ try {
   const mode = selectBrowserCourseMode(new URLSearchParams(location.search).get('mode')).query;
   const course = await loadDeliveredCourse(content, mode, materials);
   const ground = createCourseGround(course);
-  if (!course.rules) throw new RangeError('Playable courses require saved Session rules');
   const parameters = new URLSearchParams(location.search);
-  // A course delivered without time budgets is untimed; every Session on it runs without the clock.
-  const timed = content.manifest.files.some((file) => file.kind === 'budget' && file.id.startsWith(`${mode}/`));
-  const requested = readBrowserSessionSettings(parameters, course.rules.classic, vehicles);
-  const settings = timed ? requested : Object.freeze({ ...requested, timeLimit: false });
+  const settings = readBrowserSessionSettings(parameters, course.rules.classic, vehicles);
   const preset = readBrowserSessionSettings(new URLSearchParams(), course.rules.classic, vehicles);
   const entry = vehicles.find((v) => v.compiledVehicle.id === settings.vehicleId)!;
   const vehicle = createSessionVehicle(entry, driving, materials);
@@ -50,14 +47,16 @@ try {
     vehicle,
     await content.json('envelope', vehicle.vehicleDefinition.compiledVehicle.id),
   );
-  const budgets = settings.timeLimit
-    ? await readCourseTimeBudgets(
-        course,
-        vehicle,
-        await content.json('budget', `${mode}/${vehicle.vehicleDefinition.compiledVehicle.id}`),
-      )
-    : null;
-  const session = resolveCourseSession(course, settings, vehicle, rivalEnvelope, budgets, timed);
+  // A timed course's budgets must be delivered; a missing file stops loading rather than dropping the clock.
+  const budgets =
+    settings.timeLimit && isTimedCourse(course)
+      ? await readCourseTimeBudgets(
+          course,
+          vehicle,
+          await content.json('budget', `${mode}/${vehicle.vehicleDefinition.compiledVehicle.id}`),
+        )
+      : null;
+  const session = resolveCourseSession(course, settings, vehicle, rivalEnvelope, budgets);
   const sprites = createVehicleSprites(entry);
   const displaySettings = createDisplaySettings();
   const scene = createCourseScene(course.entry, ground, course.gates, vehicles, displaySettings);
@@ -139,6 +138,7 @@ try {
     canvas,
     settings,
     preset,
+    course.rules.classic,
     course.rules.maxLaps,
     {
       start: () => {

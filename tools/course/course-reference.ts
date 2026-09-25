@@ -1,5 +1,5 @@
 import { sessionVehicleSha256 } from '../../src/race/session-vehicle.js';
-import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
+import type { CompiledCourse, TimedCompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import type { CompiledCourseLandmark } from '../../src/course/compiler/course-rules.js';
 import type { SessionVehicle } from '../../src/race/session-configuration.js';
 import { REFERENCE_DRIVER } from './reference-driving-policy.js';
@@ -7,7 +7,7 @@ import type { CourseTimeBudgets } from '../../src/race/course-session.js';
 
 /** Untrusted saved numeric results are resolved to the current canonical landmarks once, before play. */
 export async function readCourseReference(
-  course: CompiledCourse,
+  course: TimedCompiledCourse,
   vehicle: SessionVehicle,
   input: unknown,
 ): Promise<CourseTimeBudgets> {
@@ -81,7 +81,7 @@ export async function readCourseReference(
     const expected: { gate: CompiledCourseLandmark; lap: number }[] = [];
     for (let lap = 1; lap <= course.rules.maxLaps; lap++)
       for (const section of itinerary) {
-        const interval = course.gates!.intervals.find((i) => i.section === section)!;
+        const interval = course.gates.intervals.find((i) => i.section === section)!;
         for (const gate of [...interval.checkpoints, ...(interval.finish ? [interval.finish] : [])])
           expected.push({ gate, lap });
       }

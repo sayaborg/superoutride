@@ -11,7 +11,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **8-8b — Course rules**.
+Next PR: **8-8c — Remove unused code**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -21,7 +21,6 @@ PRs hold rationale and verification evidence.
 
 Give vehicles, driving assists, tires, powertrains and materials explicit definitions, and treat airborne driving as normal state.
 
-- **8-8b — Course rules:** course rules are mandatory, and race code receives them without non-null assertions. A course is timed exactly when its rules carry the CLASSIC settings; the build decides reference runs and time budgets from the document, and Session reads the compiled rules. The hard-coded untimed-course list and the browser's inference from delivered budgets disappear. Behavior unchanged.
 - **8-8c — Remove unused code:** unused exports such as the `core/validation.ts` helpers, `headingFromDelta`, `createPlanarCoordinateSample` and `planSegmentBounds`. Behavior unchanged.
 - **8-8d — Content build:** stage the vehicle sprite library in the content build instead of the browser-tool preview build. Behavior unchanged.
 

@@ -4,23 +4,22 @@ import {
   loadVehicleDefinitions,
   loadVehicleSpriteLibrary,
 } from '../../src/vehicle/definition-document.js';
-import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
+import {
+  compileCourseDocument,
+  isTimedCourse,
+  type CompiledCourse,
+  type TimedCompiledCourse,
+} from '../../src/course/compiler/compiled-course.js';
 import { buildCourseReferences } from './build-course-reference.js';
 import { readdir, readFile } from 'node:fs/promises';
 import { createContentWriter } from './content-manifest.js';
 import { readDeliveredContent } from '../course/read-content.js';
 import { readCourseDocument } from '../../src/course/course-document.js';
-import { compileCourseDocument } from '../../src/course/compiler/compiled-course.js';
 import { compileCourseImages } from '../course/compile-course-images.js';
 import { readCourseImages } from '../course/read-course-images.js';
 import { compileSurfaceMaterialDocument } from '../../src/course/surface-material.js';
 import { validateTireSoundMaterialIds } from '../../src/audio/tire-surface-acoustics.js';
 
-/**
- * Evaluation courses authored beyond the reference driver: delivered without reference runs or time
- * budgets, so every Session on them is untimed.
- */
-const UNTIMED_COURSES: ReadonlySet<string> = new Set(['ribbon-rough']);
 const content = new URL('../../content/', import.meta.url);
 const destination = new URL('../../dist/content/', import.meta.url);
 const writer = createContentWriter(destination, (await readDeliveredContent()).manifest.files);
@@ -74,7 +73,8 @@ for (const name of (await readdir(new URL('courses/', content))).sort()) {
 // Reference workers use the same admitted delivery for their completed vehicle images.
 await writer.save();
 await buildCourseReferences(
-  courses.filter(({ stem }) => !UNTIMED_COURSES.has(stem)),
+  // Only courses whose rules carry CLASSIC settings are timed and receive reference runs and budgets.
+  courses.filter((entry): entry is { course: TimedCompiledCourse; stem: string } => isTimedCourse(entry.course)),
   await loadVehicleDefinitions(await readDeliveredContent()),
   writer.stage,
 );

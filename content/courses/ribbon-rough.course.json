@@ -1,11 +1,11 @@
 {
   "format": "superoutride.course",
-  "version": 26,
+  "version": 27,
   "id": "ribbon-rough",
   "entrySectionId": "rough-bumps",
   "rules": {
     "maxLaps": 3,
-    "classic": { "vehicleId": "TESTAROSSA", "rivalCount": 2, "lapCount": 2, "timeMargin": 1.35 }
+    "classic": null
   },
   "sections": [
     {

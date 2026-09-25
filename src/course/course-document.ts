@@ -14,7 +14,7 @@ import {
   readString,
 } from '../core/admission.js';
 
-const COURSE_DOCUMENT_VERSION = 26;
+const COURSE_DOCUMENT_VERSION = 27;
 const ID = { maxLength: COURSE_DOCUMENT_LIMITS.idCodeUnits };
 
 export interface CoursePosition {
@@ -134,22 +134,32 @@ export type CourseGateDocument =
   | { readonly kind: 'start'; readonly grid: readonly { readonly at: CoursePosition; readonly lateral: Lateral }[] }
   | { readonly kind: 'lock' | 'closure'; readonly at: CoursePosition };
 
-interface CourseRulesDocument {
-  readonly maxLaps: number;
-  readonly classic: {
-    readonly vehicleId: string;
-    readonly rivalCount: number;
-    readonly lapCount: number;
-    readonly timeMargin: number;
-  };
+/** CLASSIC settings; a course is timed exactly when its rules carry them. */
+export interface ClassicRulesDocument {
+  readonly vehicleId: string;
+  readonly rivalCount: number;
+  readonly lapCount: number;
+  readonly timeMargin: number;
 }
+
+export interface TimedCourseRules {
+  readonly maxLaps: number;
+  readonly classic: ClassicRulesDocument;
+}
+
+export interface UntimedCourseRules {
+  readonly maxLaps: number;
+  readonly classic: null;
+}
+
+export type CourseRulesDocument = TimedCourseRules | UntimedCourseRules;
 
 export interface CourseDocument {
   readonly format: 'superoutride.course';
   readonly version: typeof COURSE_DOCUMENT_VERSION;
   readonly id: string;
   readonly entrySectionId: string;
-  readonly rules: CourseRulesDocument | null;
+  readonly rules: CourseRulesDocument;
   readonly sections: readonly SectionDocument[];
   readonly links: readonly LinkDocument[];
   readonly assets: readonly CourseAssetReference[];
@@ -471,14 +481,15 @@ function gate(value: unknown, path: string): CourseGateDocument {
   throw new CourseInputError('invalid_gate', `${path}/kind`, 'Unknown gate kind');
 }
 
-function rules(value: unknown, path: string): CourseRulesDocument | null {
-  if (value === null) return null;
+function rules(value: unknown, path: string): CourseRulesDocument {
   const v = readRecord(value, path, ['maxLaps', 'classic']);
-  const c = readRecord(v.classic, path + '/classic', ['vehicleId', 'rivalCount', 'lapCount', 'timeMargin']);
   const integer = (value: unknown, at: string, min: number, max: number) =>
     readNumber(value, at, { min, max, integer: true });
+  const maxLaps = integer(v.maxLaps, path + '/maxLaps', 1, SESSION_RULE_LIMITS.laps);
+  if (v.classic === null) return Object.freeze({ maxLaps, classic: null });
+  const c = readRecord(v.classic, path + '/classic', ['vehicleId', 'rivalCount', 'lapCount', 'timeMargin']);
   return Object.freeze({
-    maxLaps: integer(v.maxLaps, path + '/maxLaps', 1, SESSION_RULE_LIMITS.laps),
+    maxLaps,
     classic: Object.freeze({
       vehicleId: readString(c.vehicleId, path + '/classic/vehicleId', ID),
       rivalCount: integer(c.rivalCount, path + '/classic/rivalCount', 0, SESSION_RULE_LIMITS.rivals),

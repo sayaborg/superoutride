@@ -42,7 +42,9 @@ Session parameters are case-sensitive:
 CLASSIC uses the saved vehicle, rivals and laps with the time limit enabled, ignoring their individual
 query overrides. CUSTOM exposes those settings. Invalid vehicle, numeric or course/Session combinations
 produce an error. Setup locks preset fields in CLASSIC and disables a single-lap course's lap control.
-A course delivered without time budgets is untimed: CLASSIC and CUSTOM both run it without the clock.
+An untimed course (rules without CLASSIC settings) offers only CUSTOM with the clock OFF and locked;
+`session=CLASSIC` is an error there, and its defaults are the first vehicle in selection order, no
+rivals and one lap. A timed course whose time budgets are missing from delivery fails to load.
 
 ```text
 ?mode=ribbon-coast&session=CUSTOM&vehicle=TESTAROSSA&rivals=16&laps=1&clock=off&autostart=1

@@ -18,7 +18,7 @@ color and material overwrite independently. Compiled Sections publish their two 
 Checkpoints, starts, finishes and environment changes are independent of Section boundaries.
 Source identity, traversal identity and race credit are distinct.
 
-## CourseDocument v26
+## CourseDocument v27
 
 The saved format is compact UTF-8 JSON. All declared fields are required; explicit null represents
 absent optional content. Unknown fields fail. Arrays preserve saved order; object-property order and
@@ -26,7 +26,7 @@ whitespace do not affect identity. Normalized records use schema field order and
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 26,
+  format: "superoutride.course", version: 27,
   id,
   entrySectionId,
   sections, links, assets, rules
@@ -62,7 +62,6 @@ resolve in their named scopes rather than by array position.
 
 Schema-valid drafts may contain empty arrays or unresolved references.
 Compilation requires complete semantic input.
-A geometry draft uses empty environment, sprite and race-gate arrays and `rules: null`.
 Branching Sections still require lock and closure gates.
 
 ### Lateral positions
@@ -225,28 +224,31 @@ A circuit has exactly one finish; other circuit Sections have none. The fork sec
 closure and conditional-sign geometry. A Section with at most one outgoing Link cannot have either
 lock or closure gates.
 
-`rules` is null or `{maxLaps,classic}`. `classic` contains `{vehicleId,rivalCount,lapCount,timeMargin}`;
-these are settings without positions. `maxLaps` is an integer from 1 through 99; non-circuits use 1.
-`rivalCount` is 0 through 16; `lapCount` cannot exceed `maxLaps`; `timeMargin` is positive, finite and
-at most 10. The composition root resolves vehicle IDs against the catalog.
+`rules` is required: `{maxLaps,classic}`. `classic` is the CLASSIC settings
+`{vehicleId,rivalCount,lapCount,timeMargin}` or null; these are settings without positions. `maxLaps` is
+an integer from 1 through 99; non-circuits use 1. `rivalCount` is 0 through 16; `lapCount` cannot exceed
+`maxLaps`; `timeMargin` is positive, finite and at most 10. The composition root resolves vehicle IDs
+against the catalog.
 
-`rules: null` means a draft without race settings. Such a draft cannot contain start, checkpoint or
-finish gates; lock and closure remain required by branching topology. With non-null rules, compilation
-requires the start, grid and finish coverage described above. Compiled `rules` retain only those settings;
-compiled `gates` provide the resolved grid and per-Section landmark intervals to race and tools.
+A course is timed exactly when its rules carry CLASSIC settings. The build generates reference runs and
+time budgets for timed courses only, and only a timed course offers CLASSIC and the checkpoint clock.
+An untimed course (`classic: null`) runs CUSTOM Sessions without the clock. Compilation requires the
+start, grid and finish coverage described above for every course; the grid holds at least the player.
+Compiled `rules` retain these settings, typed as timed or untimed by `classic`; compiled `gates` provide
+the resolved grid and per-Section landmark intervals to race and tools.
 
 ### Null meanings
 
 Empty collections are arrays: in particular, `environments: []` means no appearance.
 CourseDocument nulls each have one meaning:
 
-| Field                            | Meaning of null                                                       |
-| -------------------------------- | --------------------------------------------------------------------- |
-| Course `rules`                   | Draft without race settings and without start/checkpoint/finish gates |
-| Strip `color`                    | Leave the earlier color channel unchanged                             |
-| Strip `material`                 | Leave the earlier material channel unchanged                          |
-| Strip knot `left` / `right`      | That edge is open to negative / positive lateral infinity             |
-| Sprite `unselectedCarriagewayId` | Ordinary sprite with no exit-selection condition                      |
+| Field                            | Meaning of null                                                        |
+| -------------------------------- | ---------------------------------------------------------------------- |
+| Rules `classic`                  | Untimed course: no CLASSIC Session, reference runs or checkpoint clock |
+| Strip `color`                    | Leave the earlier color channel unchanged                              |
+| Strip `material`                 | Leave the earlier material channel unchanged                           |
+| Strip knot `left` / `right`      | That edge is open to negative / positive lateral infinity              |
+| Sprite `unselectedCarriagewayId` | Ordinary sprite with no exit-selection condition                       |
 
 ### Numeric and resource domains
 
@@ -553,7 +555,9 @@ audio observations already use the same route coordinates as the player.
 ### Resolved Session
 
 CLASSIC resolves the saved vehicle, rivals, laps and checkpoint clock. CUSTOM resolves a catalog
-vehicle, zero to sixteen rivals, permitted laps and clock on/off. Player and rivals share the resolved
+vehicle, zero to sixteen rivals, permitted laps and clock on/off. On an untimed course, Session
+resolution rejects CLASSIC and resolves every CUSTOM Session with the clock off; on a timed course,
+a clock without its delivered time budgets fails. Player and rivals share the resolved
 vehicle calibration and protection settings. Unsupported course/vehicle/grid/lap combinations fail before activation.
 A Session binds immutable course, vehicle, roster, grid, lap target, envelope and timing references.
 Before activation, every FINISH in a Section with no outgoing Link must have at least
@@ -641,8 +645,8 @@ camera before rendering. Unrelated internal faults propagate.
 
 `ribbon-rough` (RIBBON ROUGH, DEV button 4) is a playability test circuit, not a product course. Its
 extreme vertical profile and corners are authored for hands-on evaluation; its shape is not rounded off
-for completion. The reference driver cannot complete it, so it is delivered without reference runs or
-time budgets and its Sessions are untimed. It is a 4.2 km two-Section circuit on existing materials:
+for completion. The reference driver cannot complete it, so its rules carry no CLASSIC settings: it
+is untimed and delivered without reference runs or time budgets. It is a 4.2 km two-Section circuit on existing materials:
 
 | Section        | Stations (m) | Content                                                                         |
 | -------------- | ------------ | ------------------------------------------------------------------------------- |

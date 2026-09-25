@@ -33,17 +33,6 @@ export function compileCourseGates(
   const starts = authored.filter(
     (item): item is typeof item & { gate: Extract<typeof item.gate, { kind: 'start' }> } => item.gate.kind === 'start',
   );
-  if (source === null) {
-    const raceGate = authored.find(
-      ({ gate }) => gate.kind === 'start' || gate.kind === 'checkpoint' || gate.kind === 'finish',
-    );
-    check(
-      !raceGate,
-      raceGate?.path ?? '/rules',
-      'A draft without race settings cannot contain start, checkpoint or finish gates',
-    );
-    return null;
-  }
   check(
     starts.length === 1 && starts[0]!.section === entry,
     starts[0]?.path ?? `/sections/${sections.indexOf(entry)}/gates`,
@@ -93,7 +82,7 @@ export function compileCourseGates(
     'invalid_rules',
   );
   requireCourse(
-    source.classic.lapCount <= source.maxLaps,
+    source.classic === null || source.classic.lapCount <= source.maxLaps,
     '/rules/classic/lapCount',
     'Preset laps exceed course limit',
     'invalid_rules',
@@ -125,7 +114,7 @@ export function compileCourseGates(
   });
   const surface = entry.material;
   check(
-    startGate.grid.length > source.classic.rivalCount,
+    startGate.grid.length > (source.classic?.rivalCount ?? 0),
     `${start.path}/grid`,
     'Grid must contain the player and preset rivals',
   );

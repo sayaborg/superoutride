@@ -1,3 +1,4 @@
+import type { ClassicRulesDocument } from '../course/course-document.js';
 import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
 import { compileSessionConfiguration, type SessionConfiguration } from '../race/session-configuration.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
@@ -5,20 +6,26 @@ import type { CompiledVehicleDefinition } from '../vehicle/definition-document.j
 interface BrowserSessionSettings extends SessionConfiguration {
   readonly vehicleId: string;
 }
+/**
+ * A timed course defaults to its CLASSIC preset. An untimed course (no CLASSIC settings) offers only
+ * CUSTOM without the clock, defaulting to the first vehicle in selection order, no rivals and one lap.
+ */
 export function readBrowserSessionSettings(
   params: URLSearchParams,
-  preset: { readonly vehicleId: string; readonly rivalCount: number; readonly lapCount: number },
+  classic: ClassicRulesDocument | null,
   vehicles: readonly CompiledVehicleDefinition[],
 ): BrowserSessionSettings {
-  const mode = params.get('session') ?? 'CLASSIC';
+  const preset = classic ?? { vehicleId: vehicles[0]!.compiledVehicle.id, rivalCount: 0, lapCount: 1 };
+  const mode = params.get('session') ?? (classic ? 'CLASSIC' : 'CUSTOM');
   if (mode !== 'CLASSIC' && mode !== 'CUSTOM') throw new RangeError('Unknown Session mode');
+  if (mode === 'CLASSIC' && !classic) throw new RangeError('An untimed course has no CLASSIC Session');
   const values =
     mode === 'CLASSIC'
       ? { ...preset, timeLimit: true }
       : {
           rivalCount: Number(params.get('rivals') ?? preset.rivalCount),
           lapCount: Number(params.get('laps') ?? preset.lapCount),
-          timeLimit: params.get('clock') !== 'off',
+          timeLimit: classic !== null && params.get('clock') !== 'off',
           vehicleId: params.get('vehicle') ?? preset.vehicleId,
         };
   if (!vehicles.some((v) => v.compiledVehicle.id === values.vehicleId)) throw new RangeError('Unknown Session vehicle');
@@ -30,6 +37,7 @@ export function mountCourseSessionControls(
   canvas: HTMLElement,
   current: BrowserSessionSettings,
   preset: BrowserSessionSettings,
+  classic: ClassicRulesDocument | null,
   maxLaps: number,
   actions: { start(): void; pause(paused: boolean): void },
   vehicles: readonly CompiledVehicleDefinition[],
@@ -61,7 +69,7 @@ export function mountCourseSessionControls(
   };
   const mode = select(
     'Mode',
-    ['CLASSIC', 'CUSTOM'].map((value) => ({ value, label: value })),
+    (classic ? ['CLASSIC', 'CUSTOM'] : ['CUSTOM']).map((value) => ({ value, label: value })),
     current.mode,
   );
   const vehicle = select(
@@ -94,6 +102,7 @@ export function mountCourseSessionControls(
     ],
     current.timeLimit ? 'on' : 'off',
   );
+  const timed = classic !== null;
   const lockPreset = () => {
     const classic = mode.value === 'CLASSIC';
     if (classic) {
@@ -102,7 +111,8 @@ export function mountCourseSessionControls(
       laps.value = String(preset.lapCount);
       clock.value = 'on';
     }
-    vehicle.disabled = rivals.disabled = clock.disabled = classic;
+    vehicle.disabled = rivals.disabled = classic;
+    clock.disabled = classic || !timed;
     laps.disabled = classic || maxLaps === 1;
   };
   mode.addEventListener('change', lockPreset);
@@ -151,7 +161,7 @@ export function mountCourseSessionControls(
     params.set('rivals', rivals.value);
     params.set('laps', laps.value);
     params.set('clock', clock.value);
-    const next = readBrowserSessionSettings(params, preset, vehicles);
+    const next = readBrowserSessionSettings(params, classic, vehicles);
     if (JSON.stringify(next) !== JSON.stringify(current)) {
       params.set('autostart', '1');
       location.search = params.toString();

@@ -1,23 +1,23 @@
 import { sessionVehicleSha256 } from './session-vehicle.js';
-import type { CompiledCourse } from '../course/compiler/compiled-course.js';
+import type { TimedCompiledCourse } from '../course/compiler/compiled-course.js';
 import type { CompiledCourseLandmark } from '../course/compiler/course-rules.js';
 import type { SessionVehicle } from './session-configuration.js';
 import type { CourseTimeBudgets } from './course-session.js';
 
 /** Every admitted upcoming interval, including the final lap's checkpoints. */
-export function courseBudgetLandmarks(course: CompiledCourse) {
+export function courseBudgetLandmarks(course: TimedCompiledCourse) {
   const result: { gate: CompiledCourseLandmark; laps: number }[] = [];
-  for (const interval of course.gates!.intervals) {
-    for (const gate of interval.checkpoints) result.push({ gate, laps: course.rules!.maxLaps });
-    if (course.type === 'CIRCUIT' && course.rules!.maxLaps > 1 && interval.finish)
-      result.push({ gate: interval.finish, laps: course.rules!.maxLaps - 1 });
+  for (const interval of course.gates.intervals) {
+    for (const gate of interval.checkpoints) result.push({ gate, laps: course.rules.maxLaps });
+    if (course.type === 'CIRCUIT' && course.rules.maxLaps > 1 && interval.finish)
+      result.push({ gate: interval.finish, laps: course.rules.maxLaps - 1 });
   }
   return result;
 }
 
 /** Browser admission consumes only small build-generated budgets, never simulation traces. */
 export async function readCourseTimeBudgets(
-  course: CompiledCourse,
+  course: TimedCompiledCourse,
   vehicle: SessionVehicle,
   input: unknown,
 ): Promise<CourseTimeBudgets> {

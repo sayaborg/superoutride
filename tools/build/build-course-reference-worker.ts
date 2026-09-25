@@ -3,6 +3,7 @@ import { parentPort, workerData } from 'node:worker_threads';
 import { loadVehicleDefinitions } from '../../src/vehicle/definition-document.js';
 import { readDeliveredContent } from '../course/read-content.js';
 import { loadDeliveredCourse } from '../../src/course/load-delivered-course.js';
+import { isTimedCourse } from '../../src/course/compiler/compiled-course.js';
 import { createSessionVehicle, sessionVehicleSha256 } from '../../src/race/session-vehicle.js';
 import { REFERENCE_DRIVER } from '../course/reference-driving-policy.js';
 import { readCourseReference } from '../course/course-reference.js';
@@ -35,11 +36,12 @@ const products: CourseReferenceResult['products'] = [
   references: CourseReferenceResult['references'] = [];
 for (const stem of stems) {
   const course = await loadDeliveredCourse(content, stem, materials);
+  if (!isTimedCourse(course)) throw new Error(`${stem}: reference jobs require CLASSIC settings`);
   const key = referenceCacheKey(course.identity.buildSha256, vehicleSha256, REFERENCE_DRIVER, physicsSha256);
   const cached = await cachedReference('runs', key, async () => {
     const ground = await loadCourseGround(course);
     return courseReferenceRoutes(course).map((route) =>
-      runCourseReference(course, ground, vehicle, definitions.vehicles, envelope.value, route, course.rules!.maxLaps),
+      runCourseReference(course, ground, vehicle, definitions.vehicles, envelope.value, route, course.rules.maxLaps),
     );
   });
   if (cached.hit) hits++;
