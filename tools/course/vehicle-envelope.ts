@@ -45,10 +45,19 @@ export function measureVehicleEnvelope(entry: SessionVehicle) {
     braking = [];
   let elapsed = 0,
     last = 0,
-    stable = 0;
+    stable = 0,
+    maximumObservedSpeed = 0,
+    wasFuelCut = false,
+    limiterCycle = false;
   for (let tick = 0; tick < 240 / SIM_DT; tick++) {
     step(run, { steering: 0, throttle: true, brake: false });
     elapsed += SIM_DT;
+    maximumObservedSpeed = Math.max(maximumObservedSpeed, run.vehicle.speed);
+    // A fuel-cut cycle in top gear repeats; its first recovery completes the peak it bounds.
+    const { fuelCut, gear } = run.vehicle.powertrain;
+    limiterCycle = wasFuelCut && !fuelCut && gear === entry.compiledVehicle.powertrain.gearRatios.length;
+    wasFuelCut = fuelCut;
+    if (limiterCycle) break;
     if (tick % 30 === 29) {
       const speed = run.vehicle.speed;
       acceleration.push({ speed: (last + speed) / 2, value: (speed - last) / (30 * SIM_DT) });
@@ -57,8 +66,9 @@ export function measureVehicleEnvelope(entry: SessionVehicle) {
       if (stable >= 8) break;
     }
   }
-  if (stable < 8) throw new RangeError(`${entry.compiledVehicle.id}: top speed did not converge within 240 seconds`);
-  const maximumSpeed = run.vehicle.speed;
+  if (stable < 8 && !limiterCycle)
+    throw new RangeError(`${entry.compiledVehicle.id}: top speed did not converge within 240 seconds`);
+  const maximumSpeed = limiterCycle ? maximumObservedSpeed : run.vehicle.speed;
   const brakingRun = make(maximumSpeed);
   last = maximumSpeed;
   for (let tick = 0; tick < 60 / SIM_DT && brakingRun.vehicle.speed > 1; tick++) {

@@ -51,6 +51,7 @@ import {
 export interface VehicleState extends VehicleDynamicsState {
   readonly compiledVehicle: CompiledVehicle;
   readonly drivingActuator: DrivingActuatorDefinition;
+  readonly fuelCutRedlineMargin: number;
   yaw: number;
   pitch: number;
   yawRate: number;
@@ -133,6 +134,7 @@ export function createVehicle(
   const state = {
     compiledVehicle,
     drivingActuator: driving.actuator,
+    fuelCutRedlineMargin: driving.fuelCutRedlineMargin,
     x: position.x,
     y: position.y,
     z: position.z,
@@ -191,6 +193,7 @@ export function updateVehicle(
   const steeringRequest = clamp(input.steering, -1, 1);
   let finalFront: ContactObservation | null = null;
   let finalRear: ContactObservation | null = null;
+  let shiftAvailable = true;
 
   for (let step = 0; step < VEHICLE_SUBSTEPS; step += 1) {
     updateDrivingActuators(
@@ -240,13 +243,17 @@ export function updateVehicle(
       workspace.rear,
     );
 
+    const gearBefore = vehicle.powertrain.gear;
     const driveTorque = updateAutomaticPowertrain(
       vehicle.powertrain,
       compiledVehicle.powertrain,
       drivenWheelOmega(compiledVehicle, vehicle.frontWheelOmega, vehicle.rearWheelOmega),
       vehicle.actuator.throttle,
+      shiftAvailable,
+      vehicle.fuelCutRedlineMargin,
       substep,
     );
+    if (vehicle.powertrain.gear !== gearBefore) shiftAvailable = false;
     const frontDriveTorque = driveTorque * compiledVehicle.frontDriveTorqueFraction;
     const rearDriveTorque = driveTorque - frontDriveTorque;
     const frontBrakeTorque = vehicle.actuator.brake * compiledVehicle.frontStation.maxBrakeTorque;

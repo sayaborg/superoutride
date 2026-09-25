@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-definition",
-  "version": 3,
+  "version": 4,
   "id": "GOLF_GTI_16V",
   "form": "car",
   "selectionOrder": 4,
@@ -32,8 +32,6 @@
     "powertrain": {
       "idleRpm": 900,
       "redlineRpm": 6800,
-      "upshiftRpm": 6400,
-      "downshiftRpm": 2400,
       "finalDriveRatio": 3.667,
       "efficiency": 0.9,
       "gearRatios": [3.455, 2.118, 1.444, 1.129, 0.912],

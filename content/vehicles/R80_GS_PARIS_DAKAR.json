@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-definition",
-  "version": 3,
+  "version": 4,
   "id": "R80_GS_PARIS_DAKAR",
   "form": "bike",
   "selectionOrder": 7,
@@ -32,8 +32,6 @@
     "powertrain": {
       "idleRpm": 950,
       "redlineRpm": 7000,
-      "upshiftRpm": 6500,
-      "downshiftRpm": 2300,
       "finalDriveRatio": 5.04,
       "efficiency": 0.88,
       "gearRatios": [2.6, 1.67, 1.26, 1, 0.84],

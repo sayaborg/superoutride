@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-definition",
-  "version": 3,
+  "version": 4,
   "id": "CORVETTE_C4",
   "form": "car",
   "selectionOrder": 3,
@@ -32,8 +32,6 @@
     "powertrain": {
       "idleRpm": 700,
       "redlineRpm": 5200,
-      "upshiftRpm": 4900,
-      "downshiftRpm": 1800,
       "finalDriveRatio": 3.33,
       "efficiency": 0.89,
       "gearRatios": [2.68, 1.8, 1.31, 1, 0.75, 0.5],

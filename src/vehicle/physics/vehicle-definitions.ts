@@ -1,5 +1,9 @@
 import { DefinitionDomainError, withDefinitionPath } from './definition-domain-error.js';
-import { validateAutomaticPowertrainDefinition, type AutomaticPowertrainDefinition } from './automatic-powertrain.js';
+import {
+  compileAutomaticPowertrainDefinition,
+  type AutomaticPowertrainDefinition,
+  type CompiledAutomaticPowertrainDefinition,
+} from './automatic-powertrain.js';
 import { VEHICLE_GRAVITY, compileSuspensionStation, type CompiledContactStation } from './vehicle-dynamics.js';
 
 /** Opaque content identity; production membership belongs to the upper catalog. */
@@ -51,8 +55,8 @@ export interface CompiledVehicle extends Pick<
   | 'desiredCgHeight'
   | 'frontDriveTorqueFraction'
   | 'quadraticDrag'
-  | 'powertrain'
 > {
+  readonly powertrain: CompiledAutomaticPowertrainDefinition;
   readonly frontStation: CompiledContactStation;
   readonly rearStation: CompiledContactStation;
 }
@@ -92,8 +96,8 @@ export function compileVehicle(definition: VehicleDefinition): Readonly<Compiled
   if (!(definition.quadraticDrag >= 0) || !Number.isFinite(definition.quadraticDrag)) {
     throw new DefinitionDomainError('quadraticDrag', 'vehicle quadratic drag must be finite and >= 0');
   }
-  withDefinitionPath(
-    () => validateAutomaticPowertrainDefinition(definition.powertrain),
+  const powertrain = withDefinitionPath(
+    () => compileAutomaticPowertrainDefinition(definition.powertrain),
     (path) => `powertrain/${path}`,
   );
 
@@ -166,11 +170,7 @@ export function compileVehicle(definition: VehicleDefinition): Readonly<Compiled
     desiredCgHeight: definition.desiredCgHeight,
     frontDriveTorqueFraction: definition.frontDriveTorqueFraction,
     quadraticDrag: definition.quadraticDrag,
-    powertrain: Object.freeze({
-      ...definition.powertrain,
-      gearRatios: Object.freeze([...definition.powertrain.gearRatios]),
-      torqueCurve: Object.freeze(definition.powertrain.torqueCurve.map((point) => Object.freeze({ ...point }))),
-    }),
+    powertrain,
     frontStation,
     rearStation,
   });

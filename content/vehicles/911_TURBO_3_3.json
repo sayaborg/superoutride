@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-definition",
-  "version": 3,
+  "version": 4,
   "id": "911_TURBO_3_3",
   "form": "car",
   "selectionOrder": 2,
@@ -32,8 +32,6 @@
     "powertrain": {
       "idleRpm": 900,
       "redlineRpm": 6800,
-      "upshiftRpm": 6400,
-      "downshiftRpm": 2900,
       "finalDriveRatio": 4.111111111111111,
       "efficiency": 0.89,
       "gearRatios": [3.154, 1.789, 1.269, 0.967, 0.756],

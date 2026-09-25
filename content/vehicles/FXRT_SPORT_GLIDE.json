@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-definition",
-  "version": 3,
+  "version": 4,
   "id": "FXRT_SPORT_GLIDE",
   "form": "bike",
   "selectionOrder": 8,
@@ -32,8 +32,6 @@
     "powertrain": {
       "idleRpm": 850,
       "redlineRpm": 5800,
-      "upshiftRpm": 4800,
-      "downshiftRpm": 1700,
       "finalDriveRatio": 3.3726,
       "efficiency": 0.87,
       "gearRatios": [3.21, 2.21, 1.6, 1.23, 1],

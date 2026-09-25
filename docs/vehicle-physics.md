@@ -138,14 +138,22 @@ Zero wheel speed is the solution when it satisfies the static brake interval. Ot
 bracket and at most 60 bisections solve the monotone residual, with early return below 1e-10 N m
 absolute torque residual. Contact reference speed stays fixed during the scalar solve.
 
-The automatic powertrain derives RPM from drive-split wheel speed and current ratio, interpolates
-powertrain torque, shifts using adjacent-ratio hysteresis and tapers torque to zero at redline.
-Wheel torque uses the chosen ratio and efficiency; engine torque comes directly from the powertrain definition.
+The automatic powertrain derives RPM from drive-split wheel speed and current ratio and interpolates
+powertrain torque. It upshifts one gear when current RPM reaches redline. It downshifts one gear when
+the same wheel speed in the next lower ratio would put the engine at or below peak-power RPM. Vehicle
+compilation derives peak-power RPM once as the maximum of `rpm * torque` over the complete
+piecewise-linear torque curve, including an interior maximum within a segment.
+One fixed simulation step performs at most one shift across all mechanics substeps; the ratio change is instantaneous and does not interrupt drive.
+
+Fuel cut is a hysteretic latch. It enters when RPM exceeds
+`redlineRpm * (1 + fuelCutRedlineMargin)`, clears when RPM returns to redline or below, and makes
+engine torque exactly zero while latched. There is no pre-redline torque taper. The game-wide driving
+definition owns the provisional margin, 0.02.
 
 The piecewise-linear torque curve covers idle through redline. Admission checks its ordered RPM
-points, positive finite torques and coverage. `powertrain.displacementCc` is finite and positive;
-`powertrain.cycle` is exactly 2 or 4 strokes. These values are admitted and retained but do not yet
-enter the dynamic equations.
+points, positive finite torques and coverage, and requires the derived peak-power RPM to be below
+redline. `powertrain.displacementCc` is finite and positive; `powertrain.cycle` is exactly 2 or 4
+strokes. These values are admitted and retained but do not yet enter the dynamic equations.
 
 Vehicle definitions in `content/vehicles/<id>.json` are the sole authority for per-vehicle values.
 Production gameplay tuning edits these definitions directly; admission owns structural and domain
@@ -221,14 +229,14 @@ mechanical observations without contributing forces or alternate mechanical stat
 
 ## Vehicle and driving documents
 
-`content/vehicles/<id>.json` stores one `superoutride.vehicle-definition` version 3 per vehicle.
-`content/driving/default.json` stores the sole `superoutride.driving-definition` version 1.
+`content/vehicles/<id>.json` stores one `superoutride.vehicle-definition` version 4 per vehicle.
+`content/driving/default.json` stores the sole `superoutride.driving-definition` version 2.
 [Calibration](calibration.md) owns tuning meanings and units. Document admission in
 `vehicle/definition-document.ts` publishes detached, deeply immutable source and compiled products.
 
 | Vehicle field       | Contract                                                                                                                                                                          |
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`, `version` | `superoutride.vehicle-definition`, `3`                                                                                                                                            |
+| `format`, `version` | `superoutride.vehicle-definition`, `4`                                                                                                                                            |
 | `id`                | Nonempty filename-safe identity; equal to its manifest ID                                                                                                                         |
 | `form`              | `car` or `bike`; one shared physical/display form vocabulary                                                                                                                      |
 | `selectionOrder`    | Positive safe integer, unique across the catalog; ascending selection order independent of filenames and manifest order                                                           |
@@ -239,17 +247,18 @@ mechanical observations without contributing forces or alternate mechanical stat
 
 Vehicle numerical domains and cross-field relationships are those of vehicle, suspension and
 powertrain compilation: positive mass/inertia/geometry, finite nonnegative brakes/drag/damping,
-front drive fraction in [0,1], feasible static suspension compression and ordered shift/gear/torque data.
+front drive fraction in [0,1], feasible static suspension compression and ordered gear/torque data.
 No dimensions or support reserve are saved in this format.
 
 The driving document has `format`, `version`, `id:"default"` and the current `DrivingDefinition`
 fields: `automaticSteering:"travel-direction"`, `maxRoadWheelSteerDegrees`, `steeringOffsetDegrees`,
-`steeringTraversalSeconds`, `throttle` and `brake` (each applySeconds/releaseSeconds), boolean
-`wheelSlip`, and `tire` (gripX/peakSlipX/gripY/peakSlipY/knee). Angles are degrees, traversal times
-are seconds, and tire values are dimensionless. Require 0 < offset < maximum < 90 degrees,
-positive finite actuator rates after conversion, positive finite tire capacities/stiffness and
-0 < knee < 1. Later game-wide launch/shift and pitch rules extend this same document rather than
-creating separate assist configuration files.
+`steeringTraversalSeconds`, positive `fuelCutRedlineMargin`, `throttle` and `brake` (each
+applySeconds/releaseSeconds), boolean `wheelSlip`, and `tire`
+(gripX/peakSlipX/gripY/peakSlipY/knee). Angles are degrees, traversal times are seconds, and tire and
+fuel-cut values are dimensionless. Require 0 < offset < maximum < 90 degrees, positive finite
+actuator rates after conversion, positive finite tire capacities/stiffness and 0 < knee < 1.
+Later game-wide launch and pitch rules extend this same document rather than creating separate
+assist configuration files.
 
 Both readers reject missing required fields, unknown fields, wrong shapes, unsupported formats/versions,
 invalid domains and unresolved sound IDs. Expected errors return `{ok:false,diagnostics}` containing
@@ -263,7 +272,8 @@ rates to traversal seconds, steering radians to degree fields, and tire stiffnes
 peak slip (with grip and knee named in the message). A nonrepresentable static compression points
 to ride frequency; otherwise bump/travel ordering points to the authored bump/travel field.
 Relationships identify an actionable field and name related inputs: gear ordering points to the
-violating element, shift hysteresis to `downshiftRpm`, and curve coverage to `torqueCurve`.
+violating element, curve coverage to `torqueCurve`, and a peak-power point at redline points to
+that torque-curve element's `rpm`.
 Only `definition-document.ts` converts these relative paths into document JSON Pointers, attaching
 `/mechanics` for vehicle fields except `/id`, and the document filename. Driving paths start at the
 driving document's fields. Unsupported earlier versions have no migration reader.

@@ -9,6 +9,8 @@ export function createDrivingSettings(definition: DrivingDefinition) {
   if (definition.automaticSteering !== 'travel-direction')
     throw new DefinitionDomainError('automaticSteering', 'unsupported automatic steering');
   if (typeof definition.wheelSlip !== 'boolean') throw new TypeError('wheelSlip must be boolean');
+  if (!(definition.fuelCutRedlineMargin > 0) || !Number.isFinite(definition.fuelCutRedlineMargin))
+    throw new DefinitionDomainError('fuelCutRedlineMargin', 'fuelCutRedlineMargin must be finite and > 0');
   const rate = 1 / definition.steeringTraversalSeconds;
   const steering = Object.freeze({ applyRate: rate, releaseRate: rate });
   const pedal = (value: DrivingDefinition['throttle']) =>
@@ -29,6 +31,7 @@ export function createDrivingSettings(definition: DrivingDefinition) {
     'brake/releaseRate': 'brake/releaseSeconds',
   });
   return {
+    fuelCutRedlineMargin: definition.fuelCutRedlineMargin,
     actuator,
     steeringCalibration: withDefinitionPath(
       () =>

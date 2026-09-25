@@ -34,12 +34,14 @@ share one authored set for front and rear. Driving assists are not difficulty co
 
 The same definition selects travel-direction automatic steering and `wheelSlip=true` (TCS and ABS).
 Throttle traversal is 0.25 s apply / 0.125 s release; brake traversal is 0.15 s apply / 0.10 s release.
-Rates are their reciprocals. Two-wheel support reserve
+Rates are their reciprocals. `fuelCutRedlineMargin=0.02` is dimensionless: fuel cuts above 1.02 times
+redline and returns at redline. Two-wheel support reserve
 remains a form-specific 0.08 until 8-7; four-wheel support reserve is null.
 Tire and steering low-speed regularization are engine constants of 1.0 m/s.
 
 The full driving record participates in vehicle identity for generated envelopes, reference caches
-and time budgets.
+and time budgets. Top-speed envelope measurement ends at steady-speed convergence or at the first
+top-gear fuel-cut recovery; after a recovery the maximum is the greatest speed observed during the run.
 
 | Setting               | Value | Meaning                                                      |
 | --------------------- | ----- | ------------------------------------------------------------ |
@@ -59,6 +61,10 @@ same rigid body. Car CG heights are provisional estimates. These values are game
 not claims of measured physical specifications.
 
 Torque-curve points contain RPM and torque in N m, joined linearly from idle through redline.
+Vehicle compilation derives peak-power RPM from the maximum of `rpm * torque` over the complete
+piecewise-linear curve, including any segment-interior maximum; that RPM must be below redline.
+Upshift occurs at redline. Downshift occurs when the next lower ratio would place the engine at or
+below that derived peak-power RPM. Shift RPM thresholds are not vehicle values.
 Displacement is in cc and cycle is 2 or 4 strokes. Gear ratios and final drive are dimensionless.
 
 ## Engine settings
