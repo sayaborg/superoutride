@@ -10,7 +10,7 @@
     "pitchInertia": 340,
     "frontAxle": 0.802,
     "rearAxle": 0.684,
-    "desiredCgHeight": 0.561818,
+    "desiredCgHeight": 0.4458,
     "frontRideFrequency": 1.55,
     "rearRideFrequency": 1.6,
     "frontDampingRatio": 0.38,

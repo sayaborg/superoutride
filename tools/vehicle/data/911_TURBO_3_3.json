@@ -5,37 +5,37 @@
       "value": 221,
       "status": "unconfirmed-provisional",
       "source": null,
-      "note": "K: 8-4 supplied value table (2026-09-25); research URL pending. "
+      "note": "K: 8-4 supplied value table (2026-09-25); External citation omitted by K decision (2026-09-25). "
     },
     "peakPowerRpm": {
       "value": 5500,
       "status": "unconfirmed-provisional",
       "source": null,
-      "note": "K: 8-4 supplied value table (2026-09-25); research URL pending. "
+      "note": "K: 8-4 supplied value table (2026-09-25); External citation omitted by K decision (2026-09-25). "
     },
     "peakTorqueNm": {
       "value": 430,
       "status": "unconfirmed-provisional",
       "source": null,
-      "note": "K: 8-4 supplied value table (2026-09-25); research URL pending. "
+      "note": "K: 8-4 supplied value table (2026-09-25); External citation omitted by K decision (2026-09-25). "
     },
     "peakTorqueRpm": {
       "value": 4000,
       "status": "unconfirmed-provisional",
       "source": null,
-      "note": "K: 8-4 supplied value table (2026-09-25); research URL pending. "
+      "note": "K: 8-4 supplied value table (2026-09-25); External citation omitted by K decision (2026-09-25). "
     },
     "displacementCc": {
       "value": 3299,
       "status": "unconfirmed-provisional",
       "source": null,
-      "note": "K: 8-4 supplied value table (2026-09-25); research URL pending. "
+      "note": "K: 8-4 supplied value table (2026-09-25); External citation omitted by K decision (2026-09-25). "
     },
     "cycle": {
       "value": 4,
       "status": "unconfirmed-provisional",
       "source": null,
-      "note": "K: 8-4 supplied value table (2026-09-25); research URL pending. "
+      "note": "K: 8-4 supplied value table (2026-09-25); External citation omitted by K decision (2026-09-25). "
     },
     "gearRatios": {
       "value": [3.154, 1.789, 1.269, 0.967, 0.756],
@@ -77,7 +77,7 @@
       "value": 2271.0,
       "status": "unconfirmed-provisional",
       "source": null,
-      "note": "K: 8-4 supplied value table (2026-09-25); research URL pending. "
+      "note": "K: 8-4 supplied value table (2026-09-25); External citation omitted by K decision (2026-09-25). "
     },
     "tires": {
       "value": {

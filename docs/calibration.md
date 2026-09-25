@@ -54,7 +54,7 @@ manifest. Each `published` field stores `value`, `status`, `source` (URL or bibl
 null while unconfirmed), and a contextual `note`. `unconfirmed-provisional` explicitly means the
 value or source is unverified; `sourced` requires a nonempty reference. Agreement with a definition
 is independent of source verification. K's 2026-09-25 table supplies the selected power, torque,
-displacement, cycle and specified geometry/gearing values; its research URLs are pending.
+displacement, cycle and specified geometry/gearing values; external citations are omitted by K decision (2026-09-25).
 Full-power VFR750R uses provisional 73 Nm at 10000 RPM, not restricted-market 70 Nm at 7000 RPM.
 PX200E torque comes provisionally from the 9.5 PS specification and its power RPM is provisional.
 FXRT's provisional redline is 5800 RPM because the previous 5200 excluded its 5400 RPM power point.
@@ -68,11 +68,13 @@ checks. The command participates in `check` and CI. It requires installed depend
 
 `estimates` records one rigid body with a 75 kg occupant. An equipped base includes fuel and operating
 fluids; dry bases add the explicitly recorded fuel litres × 0.75 kg/litre and other-fluid mass.
-Equipped interpretation, inferred base masses, fuel fills, fluid masses and all component CG heights
+Equipped interpretation, inferred base masses, fuel fills, fluid masses and car component CG heights
 remain provisional. No fuel mass is counted twice. Unspecified equipped masses retain the previous
-running mass by subtracting the occupant when documenting the base. CG is the mass-weighted sum of
-base, occupant and added fuel heights; other fluids use base height. Sports-car seating, hatchback
-height and seated motorcycle posture motivate the vehicle-specific estimates, not measured CG data.
+running mass by subtracting the occupant when documenting the base. Car CG is the mass-weighted sum of
+base, occupant and added fuel heights; other fluids use base height. Sports-car seating and hatchback
+height motivate the car estimates, not measured CG data. Every bike uses provisional gameplay CG
+height = wheelbase × 0.3 by K decision (2026-09-25), representing the complete running rigid body
+including occupant and fuel. Bike CG is not a mass-weighted physical estimate.
 Axle fractions are preserved when correcting wheelbase; named tire dimensions supply nominal unloaded
 radii. Unknown nominal tire sizes retain documented provisional rolling radii.
 
@@ -83,10 +85,10 @@ radii. Unknown nominal tire sizes retain documented provisional rolling radii.
 | CORVETTE_C4        | 1510 equipped   | 0 / 0                        | 1585       | 0.458044     |
 | DELTA_HF_INTEGRALE | 1215 equipped   | 0 / 0                        | 1290       | 0.533372     |
 | GOLF_GTI_16V       | 960 equipped    | 0 / 0                        | 1035       | 0.527391     |
-| VFR750R            | 180 dry         | 13.5 / 5                     | 273.5      | 0.617276     |
-| PX200E_ARCOBALENO  | 115 equipped    | 0 / 0                        | 190        | 0.635263     |
-| R80_GS_PARIS_DAKAR | 205 dry         | 24 / 4                       | 308        | 0.691234     |
-| FXRT_SPORT_GLIDE   | 310 equipped    | 0 / 0                        | 385        | 0.561818     |
+| VFR750R            | 180 dry         | 13.5 / 5                     | 273.5      | 0.423000     |
+| PX200E_ARCOBALENO  | 115 equipped    | 0 / 0                        | 190        | 0.370500     |
+| R80_GS_PARIS_DAKAR | 205 dry         | 24 / 4                       | 308        | 0.439500     |
+| FXRT_SPORT_GLIDE   | 310 equipped    | 0 / 0                        | 385        | 0.445800     |
 
 The curve retains idle torque, uses the supplied torque peak and derives the power-point torque.
 The final segment falls at 1.1 times the magnitude of the constant-power tangent slope at peak power,

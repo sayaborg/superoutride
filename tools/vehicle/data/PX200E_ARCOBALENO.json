@@ -5,37 +5,37 @@
       "value": 8.8,
       "status": "unconfirmed-provisional",
       "source": null,
-      "note": "K: 8-4 supplied value table (2026-09-25); research URL pending. "
+      "note": "K: 8-4 supplied value table (2026-09-25); External citation omitted by K decision (2026-09-25). "
     },
     "peakPowerRpm": {
       "value": 5700,
       "status": "unconfirmed-provisional",
       "source": null,
-      "note": "K: 8-4 supplied value table (2026-09-25); research URL pending. RPM is provisional."
+      "note": "K: 8-4 supplied value table (2026-09-25); External citation omitted by K decision (2026-09-25). RPM is provisional."
     },
     "peakTorqueNm": {
       "value": 16.8,
       "status": "unconfirmed-provisional",
       "source": null,
-      "note": "K: 8-4 supplied value table (2026-09-25); research URL pending. From the 9.5 PS specification; provisional for this engine."
+      "note": "K: 8-4 supplied value table (2026-09-25); External citation omitted by K decision (2026-09-25). From the 9.5 PS specification; provisional for this engine."
     },
     "peakTorqueRpm": {
       "value": 3800,
       "status": "unconfirmed-provisional",
       "source": null,
-      "note": "K: 8-4 supplied value table (2026-09-25); research URL pending. From the 9.5 PS specification; provisional for this engine."
+      "note": "K: 8-4 supplied value table (2026-09-25); External citation omitted by K decision (2026-09-25). From the 9.5 PS specification; provisional for this engine."
     },
     "displacementCc": {
       "value": 198,
       "status": "unconfirmed-provisional",
       "source": null,
-      "note": "K: 8-4 supplied value table (2026-09-25); research URL pending. "
+      "note": "K: 8-4 supplied value table (2026-09-25); External citation omitted by K decision (2026-09-25). "
     },
     "cycle": {
       "value": 2,
       "status": "unconfirmed-provisional",
       "source": null,
-      "note": "K: 8-4 supplied value table (2026-09-25); research URL pending. "
+      "note": "K: 8-4 supplied value table (2026-09-25); External citation omitted by K decision (2026-09-25). "
     },
     "gearRatios": {
       "value": [14.47, 10.28, 7.31, 5.36],
@@ -97,13 +97,10 @@
     "fuelDensityKgPerLitre": 0.75,
     "addedOtherFluidsKg": 0,
     "runningMassKg": 190.0,
-    "baseCgHeightM": 0.43,
-    "occupantCgHeightM": 0.95,
-    "fuelCgHeightM": 0.55,
-    "runningCgHeightM": 0.635263,
+    "runningCgHeightM": 0.3705,
     "status": "unconfirmed-provisional",
     "massReason": "One 75 kg occupant. Equipped base includes fuel/fluids; dry base adds the stated fuel and other fluids. Fuel quantities, density and fluids are game estimates, not measured capacities.",
-    "cgReason": "Mass-weighted upright body, occupant and fuel heights; other fluids at base CG. Low sports cars, taller hatchbacks, and seated rider posture inform the stated per-vehicle estimates; no measured CG claim.",
+    "cgReason": "K decision (2026-09-25): provisional gameplay CG height = wheelbase * 0.3 for every bike. This represents the complete running rigid body, including occupant and fuel; it is not a measured or mass-weighted physical estimate.",
     "geometryReason": "Published wheelbase preserves the previous front/rear axle fraction. Named tire sizes use nominal unloaded radius; other effective radii remain provisional.",
     "curveReason": "Idle torque retained. Peak-power torque = watts / angular speed. Redline torque follows slope -1.1 * peak-power torque / peak-power RPM to keep power falling throughout the final linear interval."
   }
