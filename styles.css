@@ -229,8 +229,9 @@ body {
   white-space: nowrap;
 }
 
-/* Calibration steppers share one presentation across steering and tire controls. */
-.tire-friction-selector-buttons {
+/* Calibration steppers share one presentation across DEV tuning items. */
+/* DEV tuning steppers: several per row. */
+.tuning-buttons {
   grid-template-columns: repeat(auto-fit, minmax(108px, 1fr));
 }
 .calibration-control,
@@ -368,7 +369,7 @@ body {
 #dev-panel .selector-buttons {
   grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
 }
-#dev-panel .tire-friction-selector-buttons {
+#dev-panel .tuning-buttons {
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
 }
 #dev-panel .calibration-control {

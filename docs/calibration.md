@@ -12,25 +12,41 @@ supply another set of defaults. The immutable record contains only authored numb
 stored as versioned JSON. Derived radians, actuator rates and tire coefficients belong to admission.
 [Vehicle definitions](../content/vehicles/) contain the per-vehicle mechanical data.
 
-| Key | Meaning                                      | Default | Selector range / step      |
-| --- | -------------------------------------------- | ------- | -------------------------- |
-| GX  | Longitudinal reference friction              | 5       | 2–8 / 0.05                 |
-| PX  | Longitudinal pure-slip plateau start         | 20%     | 2–40% / 1 percentage point |
-| GY  | Lateral reference friction                   | 2.5     | 1–4 / 0.05                 |
-| PY  | Lateral pure-slip plateau start              | 10%     | 2–20% / 1 percentage point |
-| KN  | Normalized radial knee start                 | 0.74    | 0.10–0.95 / 0.01           |
-| D   | Maximum driver road-wheel offset             | 20°     | 10–30° / 1°                |
-| M   | Mechanical road-wheel rack bound             | 65°     | 50–80° / 5°                |
-| ACT | Symmetric normalized steering traversal time | 0.30 s  | 0.20–0.40 s / 0.025 s      |
+DEV tunes the author-facing values below in their saved units; each grid wraps at its ends.
+
+| Group      | Key   | Definition field                            | Meaning                                      | Default | DEV range / step           |
+| ---------- | ----- | ------------------------------------------- | -------------------------------------------- | ------- | -------------------------- |
+| Steering   | M     | `maxRoadWheelSteerDegrees`                  | Mechanical road-wheel rack bound             | 65°     | 50–80° / 5°                |
+| Steering   | D     | `steeringOffsetDegrees`                     | Maximum driver road-wheel offset             | 20°     | 10–30° / 1°                |
+| Steering   | ACT   | `steeringTraversalSeconds`                  | Symmetric normalized steering traversal time | 0.30 s  | 0.20–0.40 s / 0.025 s      |
+| Pedals     | THR+  | `throttle.applySeconds`                     | Throttle apply time                          | 0.25 s  | 0.05–0.50 s / 0.025 s      |
+| Pedals     | THR-  | `throttle.releaseSeconds`                   | Throttle release time                        | 0.125 s | 0.025–0.50 s / 0.025 s     |
+| Pedals     | BRK+  | `brake.applySeconds`                        | Brake apply time                             | 0.15 s  | 0.05–0.50 s / 0.025 s      |
+| Pedals     | BRK-  | `brake.releaseSeconds`                      | Brake release time                           | 0.10 s  | 0.025–0.50 s / 0.025 s     |
+| Tires      | GX    | `tire.gripX`                                | Longitudinal reference friction              | 5       | 2–8 / 0.05                 |
+| Tires      | PX    | `tire.peakSlipX`                            | Longitudinal pure-slip plateau start         | 20%     | 2–40% / 1 percentage point |
+| Tires      | GY    | `tire.gripY`                                | Lateral reference friction                   | 2.5     | 1–4 / 0.05                 |
+| Tires      | PY    | `tire.peakSlipY`                            | Lateral pure-slip plateau start              | 10%     | 2–20% / 1 percentage point |
+| Tires      | KN    | `tire.knee`                                 | Normalized radial knee start                 | 0.74    | 0.10–0.95 / 0.01           |
+| Powertrain | FMEP0 | `idleFrictionMeanEffectivePressureBar`      | Friction mean effective pressure at idle     | 1.0 bar | 0.5–3.0 bar / 0.1 bar      |
+| Powertrain | FMEP1 | `redlineFrictionMeanEffectivePressureBar`   | Friction mean effective pressure at redline  | 2.5 bar | 1.0–5.0 bar / 0.1 bar      |
+| Powertrain | J     | `engineInertiaKilogramSquareMetersPerLitre` | Engine inertia per litre (kg m²/L)           | 0.04    | 0.010–0.100 / 0.005        |
+| Powertrain | ETA   | `drivelineEfficiency`                       | Driveline efficiency                         | 0.90    | 0.70–1.00 / 0.01           |
+| Powertrain | CLU   | `clutchCapacityFactor`                      | Clutch capacity × maximum curve torque       | 1.5     | 1.1–3.0 / 0.1              |
+| Assists    | —     | `wheelSlip`                                 | TCS, MSR and ABS                             | on      | on / off                   |
+
+`fuelCutRedlineMargin` (0.02) and `clutchLockIdleMargin` (0.02) are numerical margins that keep
+latches from chattering; they are edited only in the file.
 
 PX and PY are dimensionless slips. The defaults give `kX = kY = 31.5` under the
-[tire law](vehicle-physics.md#tire-law). Automatic steering has the derived budget `M-D`.
-The [tire selector](../src/shell/tire-friction-selection.ts) and
-[steering selector](../src/shell/steering-calibration-selection.ts) own only DEV choices and grid checks;
-they check the raw driving definition against those grids. The controls display the player's current
-vehicle model. A DEV adjustment builds a retuned model and replaces the player's model, which the next
-step uses; a vehicle switch carries the adjusted values into the new vehicle's model. Tires are dimensionless coefficients per unit normal load and
-share one authored set for front and rear. Driving assists are not difficulty controls.
+[tire law](vehicle-physics.md#tire-law). Automatic steering has the derived budget `A = M-D`, shown
+on the DEV HUD. The [DEV tuning registry](../src/shell/driving-tuning.ts) owns only these choices and
+grid checks; startup checks the raw driving definition against the grids. A DEV adjustment steps the
+player's tuned driving definition, admits it with the driving-document compiler (a rejected candidate
+leaves the definition unchanged) and rebuilds the player's vehicle model, which the next step uses. A
+vehicle switch builds the new vehicle's model from the same tuned definition. Tires are dimensionless
+coefficients per unit normal load and share one authored set for front and rear. Driving assists are
+not difficulty controls.
 
 The same definition selects travel-direction automatic steering and `wheelSlip=true` (TCS, MSR and
 ABS). TCS, MSR (engine-braking slip) and the drive side of support protection act only through the

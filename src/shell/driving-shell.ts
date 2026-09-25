@@ -8,27 +8,27 @@ import type { RecoveryState } from '../race/recovery.js';
 import { createRecoveryState } from '../race/recovery.js';
 import { SoftwareSurface } from '../view/software-surface.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
+import type { DrivingDocument } from '../vehicle/driving-definition.js';
 import { InputManager } from '../input/input-manager.js';
 import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import { createVehicle } from '../vehicle/physics/vehicle-physics.js';
-import { createVehicleModel, retuneVehicleModel, type VehicleModel } from '../vehicle/physics/vehicle-model.js';
+import { createVehicleModel, type VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import type { VehicleWorld } from '../course/vehicle-world.js';
 import type { CompiledVehicle } from '../vehicle/physics/vehicle-definitions.js';
 import { drawVehicleLeanDebug } from './debug/vehicle-lean-debug.js';
 import { drawVehicleYawDebug } from './debug/vehicle-yaw-debug.js';
 import {
+  compileDrivingDocument,
   vehicleDefinitionForId,
   type CompiledVehicleDefinition,
   type VehicleDefinitions,
 } from '../vehicle/definition-document.js';
-import { admitBrowserSteeringGrid } from './steering-calibration-selection.js';
-import { admitBrowserTireGrid } from './tire-friction-selection.js';
+import { admitDrivingTuningGrid } from './driving-tuning.js';
+import { mountDrivingTuningControls } from './driving-tuning-controls.js';
 import type { BrowserCourseModeQuery } from './course-mode-selection.js';
 import { mustGet } from './dom.js';
 import { createFrameLoop, type FrameLoop } from './frame-loop.js';
 import { mountMobileCameraYawSelector, mountMobileVehicleSelector } from './mobile-selector-controls.js';
-import { mountBrowserSteeringCalibrationControls } from './steering-calibration-controls.js';
-import { mountBrowserTireFrictionControls } from './tire-friction-controls.js';
 import { browserSessionVehicle } from './session-vehicle.js';
 import { browserUsesTouchInterface } from './touch-interface.js';
 import { drawVehicleDebugHud } from './vehicle-debug-hud.js';
@@ -64,10 +64,9 @@ export function createBrowserDrivingShell(
   spawn: { readonly initialSpeed: number; readonly s: number; readonly vehicle: SessionVehicle },
   definitions: VehicleDefinitions,
 ): BrowserDrivingShell {
-  const { vehicles, driving } = definitions;
+  const { vehicles } = definitions;
   const selections = createBrowserVehicleSelections(vehicles);
-  admitBrowserSteeringGrid(driving.source);
-  admitBrowserTireGrid(driving.source);
+  admitDrivingTuningGrid(spawn.vehicle.drivingDefinition.source);
   const canvas = mustGet<HTMLCanvasElement>('game');
   canvas.width = LOGICAL_WIDTH;
   canvas.height = LOGICAL_HEIGHT;
@@ -78,14 +77,20 @@ export function createBrowserDrivingShell(
   const imageData = ctx.createImageData(LOGICAL_WIDTH, LOGICAL_HEIGHT);
   const framebuffer = new SoftwareSurface(LOGICAL_WIDTH, LOGICAL_HEIGHT, new Uint32Array(imageData.data.buffer));
   const inputManager = new InputManager();
-  const selected = spawn.vehicle;
-  // DEV tuning replaces the whole model; the next step uses the replacement.
-  let model = createVehicleModel(selected);
+  // DEV tuning edits the driving definition and rebuilds the whole model; the next step uses it.
+  let driving = spawn.vehicle.drivingDefinition;
+  let model = createVehicleModel(spawn.vehicle);
   let vehicle = createVehicle(model, runtime, { s: spawn.s, l: startL, initialSpeed: spawn.initialSpeed });
-  const modelSlot = {
-    get: () => model,
-    set: (next: VehicleModel) => {
-      model = next;
+  const modelFor = (id: string) =>
+    createVehicleModel(browserSessionVehicle(vehicleDefinitionForId(vehicles, id), driving));
+  const tuning = {
+    get: () => driving.source,
+    set: (definition: DrivingDocument) => {
+      const admitted = compileDrivingDocument(definition, 'DEV driving tuning');
+      if (!admitted.ok) return false;
+      driving = admitted.value;
+      model = modelFor(model.compiledVehicle.id);
+      return true;
     },
   };
   let recovery = createRecoveryState(vehicle);
@@ -135,11 +140,8 @@ export function createBrowserDrivingShell(
     cameraRig,
     /** Called by the shared lifecycle after safe recovery; no chart or progress decision is made here. */
     replacePlayer(compiledVehicle: Readonly<CompiledVehicle>, active: VehicleWorld): void {
-      // The replacement vehicle carries the active steering and tire tuning.
-      model = retuneVehicleModel(
-        createVehicleModel(browserSessionVehicle(vehicleDefinitionForId(vehicles, compiledVehicle.id), driving)),
-        { steering: model.steering, tires: model.tires },
-      );
+      // The replacement vehicle is built from the tuned driving definition.
+      model = modelFor(compiledVehicle.id);
       vehicle = createVehicle(model, active, {
         s: vehicle.course.s,
         l: vehicle.course.l,
@@ -168,28 +170,20 @@ export function createBrowserDrivingShell(
           cameraYawSelector.setActive(mode);
         },
       );
-      mountBrowserSteeringCalibrationControls(
+      // DEV driving tuning stays available in a Session; only the Session vehicle is locked.
+      mountDrivingTuningControls(
         {
-          steeringOffset: mustGet('steering-offset-selector-buttons'),
-          maxRoadWheelSteer: mustGet('max-steer-selector-buttons'),
-          steeringResponse: mustGet('steering-response-selector-buttons'),
+          STEERING: mustGet('tuning-steering-buttons'),
+          PEDALS: mustGet('tuning-pedal-buttons'),
+          TIRES: mustGet('tuning-tire-buttons'),
+          POWERTRAIN: mustGet('tuning-powertrain-buttons'),
+          ASSIST: mustGet('tuning-assist-buttons'),
         },
-        modelSlot,
+        tuning,
       );
-      const tireContainer = mustGet('tire-friction-selector-buttons');
-      mountBrowserTireFrictionControls(tireContainer, modelSlot);
-      if (options.configurationLocked) {
-        for (const id of [
-          'vehicle-selector-buttons',
-          'steering-offset-selector-buttons',
-          'max-steer-selector-buttons',
-          'steering-response-selector-buttons',
-          'tire-friction-selector-buttons',
-        ]) {
-          const container = mustGet(id);
-          for (const child of Array.from(container.querySelectorAll('button'))) child.disabled = true;
-        }
-      }
+      if (options.configurationLocked)
+        for (const child of Array.from(mustGet('vehicle-selector-buttons').querySelectorAll('button')))
+          child.disabled = true;
       mustGet<HTMLButtonElement>('recover-button').addEventListener('click', () => {
         if (options.canRecover?.() ?? true) lifecycle.recover();
       });
@@ -205,7 +199,7 @@ export function createBrowserDrivingShell(
       audio.update({ vehicle, vehicleId: model.compiledVehicle.id }, rivals);
       ctx.putImageData(imageData, 0, 0);
       const entry = vehicleDefinitionForId(vehicles, model.compiledVehicle.id);
-      drawVehicleDebugHud(ctx, query, input, vehicle, model, entry);
+      drawVehicleDebugHud(ctx, query, input, vehicle, model, driving.source, entry);
       if (entry.form === 'bike') {
         drawVehicleLeanDebug(ctx, camera.playerScreenX, playerScreenY, vehicle);
       }

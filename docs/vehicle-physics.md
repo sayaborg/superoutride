@@ -24,9 +24,9 @@ torque-protection policy. Admitted powertrain values are not revalidated when a 
 Browser, race, reference/envelope tools, scenarios, startup smoke and image generation use the same
 input. Creation, updates, held steps and recovery receive the vehicle state and its model separately;
 nothing copies a model value into state. The wheel solver receives one required tire-characteristics
-field from the model. DEV replaces the player's model with a retuned model for M/D/ACT and the linked
-tire settings; the next step uses the replacement, and a vehicle switch builds the new vehicle's model
-with the active tuning. The front/rear tire slots remain for now; both start with the same coefficients.
+field from the model. DEV tuning edits the driving definition and rebuilds the player's model from it;
+the next step uses the replacement, and a vehicle switch builds the new vehicle's model from the same
+tuned definition. The front/rear tire slots remain for now; both start with the same coefficients.
 
 `SessionVehicle` includes both admitted source documents and compiled driving inputs in `vehicleSha256`.
 [Content and gameplay](content-and-gameplay.md#reference-times-and-clock) owns this cross-product identity.

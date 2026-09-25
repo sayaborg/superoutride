@@ -5,12 +5,8 @@ import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import { VEHICLE_GRAVITY } from '../vehicle/physics/vehicle-dynamics.js';
 import { observeClutch } from '../vehicle/physics/automatic-powertrain.js';
 import { formatBrowserCourseSelector, type BrowserCourseModeQuery } from './course-mode-selection.js';
-import {
-  formatMaxRoadWheelSteerSelector,
-  formatSteeringOffsetSelector,
-  formatSteeringResponseSelector,
-} from './steering-calibration-selection.js';
-import { formatTireCalibrationSelector } from './tire-friction-selection.js';
+import { formatDrivingTuningLine } from './driving-tuning.js';
+import type { DrivingDefinition } from '../vehicle/driving-definition.js';
 import { formatVehicleSelector } from './vehicle-selection.js';
 
 const G_SENSOR_RANGE = 2;
@@ -33,10 +29,11 @@ interface TorqueControlMeter {
 interface VehicleDebugHudModel {
   readonly courseSelector: string;
   readonly vehicleSelector: string;
-  readonly steeringOffsetSelector: string;
-  readonly maxRoadWheelSteerSelector: string;
-  readonly steeringResponseSelector: string;
-  readonly tireCalibrationSelector: string;
+  /** The tuned driving definition, one line per DEV tuning group. */
+  readonly steeringTuning: string;
+  readonly pedalTuning: string;
+  readonly tireTuning: string;
+  readonly powertrainTuning: string;
   readonly instruments: string;
   readonly lastShift: string;
   readonly requestedSteering: number;
@@ -60,6 +57,7 @@ function createVehicleDebugHudModel(
   input: DrivingInput,
   vehicle: VehicleState,
   model: VehicleModel,
+  driving: DrivingDefinition,
   entry: CompiledVehicleDefinition,
 ): VehicleDebugHudModel {
   assertExclusivePedalInput(input);
@@ -74,10 +72,10 @@ function createVehicleDebugHudModel(
   return {
     courseSelector: `COURSE ${formatBrowserCourseSelector(activeCourseQuery)}`,
     vehicleSelector: `VEHICLE ${formatVehicleSelector(entry)}`,
-    steeringOffsetSelector: formatSteeringOffsetSelector(model.steering.steeringOffsetMax),
-    maxRoadWheelSteerSelector: formatMaxRoadWheelSteerSelector(model.steering.maxRoadWheelSteer),
-    steeringResponseSelector: formatSteeringResponseSelector(model.steering.steeringActuatorResponse.applyRate),
-    tireCalibrationSelector: formatTireCalibrationSelector(model.tires),
+    steeringTuning: formatDrivingTuningLine('STEERING', driving),
+    pedalTuning: formatDrivingTuningLine('PEDALS', driving),
+    tireTuning: formatDrivingTuningLine('TIRES', driving),
+    powertrainTuning: formatDrivingTuningLine('POWERTRAIN', driving),
     instruments: `SPD ${Math.round(vehicle.speed * 3.6)
       .toString()
       .padStart(
@@ -121,16 +119,17 @@ export function drawVehicleDebugHud(
   input: DrivingInput,
   vehicle: VehicleState,
   model: VehicleModel,
+  driving: DrivingDefinition,
   entry: CompiledVehicleDefinition,
 ): void {
-  const hud = createVehicleDebugHudModel(activeCourseQuery, input, vehicle, model, entry);
+  const hud = createVehicleDebugHudModel(activeCourseQuery, input, vehicle, model, driving, entry);
   const lines = [
     `SUPER OUTRIDE ${hud.courseSelector}`,
     hud.vehicleSelector,
-    hud.steeringOffsetSelector,
-    hud.maxRoadWheelSteerSelector,
-    hud.steeringResponseSelector,
-    hud.tireCalibrationSelector,
+    hud.steeringTuning,
+    hud.pedalTuning,
+    hud.tireTuning,
+    hud.powertrainTuning,
     hud.instruments,
     hud.lastShift,
   ];

@@ -1,17 +1,8 @@
 import { type CameraYawMode } from '../view/camera.js';
-import type { VehicleTireFrictionCalibrationState } from '../vehicle/physics/tire-friction-calibration.js';
-import { readTireCharacteristics } from '../vehicle/physics/tire-friction-calibration.js';
 import type { VehicleId } from '../vehicle/physics/vehicle-definitions.js';
 import { BROWSER_CAMERA_YAW_MODES } from './camera-yaw-selection.js';
 import { BROWSER_COURSE_MODES, type BrowserCourseModeQuery } from './course-mode-selection.js';
 import { sameSelectorValue } from './selector-values.js';
-import {
-  BROWSER_MAX_ROAD_WHEEL_STEERS,
-  BROWSER_STEERING_OFFSETS,
-  BROWSER_STEERING_RESPONSES,
-  formatTraversalSeconds,
-} from './steering-calibration-selection.js';
-import { BROWSER_TIRE_AXES, formatTireAxisValue, type BrowserTireCalibrationAxis } from './tire-friction-selection.js';
 import type { BrowserVehicleSelection } from './vehicle-selection.js';
 
 export interface MobileSelectorButtonModel<Value extends string | number> {
@@ -19,12 +10,6 @@ export interface MobileSelectorButtonModel<Value extends string | number> {
   readonly label: string;
   readonly ariaLabel: string;
   readonly active: boolean;
-}
-
-interface MobileTireCalibrationButtonModel {
-  readonly axis: BrowserTireCalibrationAxis;
-  readonly label: string;
-  readonly ariaLabel: string;
 }
 
 export function createMobileCourseSelectorModel(
@@ -53,50 +38,6 @@ export function createMobileCameraYawSelectorModel(
   activeMode: CameraYawMode,
 ): readonly MobileSelectorButtonModel<CameraYawMode>[] {
   return selectorModel(activeMode, BROWSER_CAMERA_YAW_MODES, (mode) => mode);
-}
-
-export function createMobileSteeringOffsetSelectorModel(
-  activeRadians: number,
-): readonly MobileSelectorButtonModel<number>[] {
-  return selectorModel(activeRadians, BROWSER_STEERING_OFFSETS, ({ degrees, radians }) => ({
-    value: radians,
-    label: String(degrees),
-    ariaLabel: `Set driver steering offset D to ${degrees} degrees`,
-  }));
-}
-
-export function createMobileMaxRoadWheelSteerSelectorModel(
-  activeRadians: number,
-): readonly MobileSelectorButtonModel<number>[] {
-  return selectorModel(activeRadians, BROWSER_MAX_ROAD_WHEEL_STEERS, ({ degrees, radians }) => ({
-    value: radians,
-    label: String(degrees),
-    ariaLabel: `Set maximum road-wheel steer M to ${degrees} degrees`,
-  }));
-}
-
-export function createMobileSteeringResponseSelectorModel(
-  activeRate: number,
-): readonly MobileSelectorButtonModel<number>[] {
-  return selectorModel(activeRate, BROWSER_STEERING_RESPONSES, ({ traversalSeconds, rate }) => ({
-    value: rate,
-    label: formatTraversalSeconds(traversalSeconds),
-    ariaLabel: `Set symmetric steering traversal to ${formatTraversalSeconds(traversalSeconds)} seconds`,
-  }));
-}
-
-export function createMobileTireCalibrationSelectorModel(
-  calibration: Readonly<VehicleTireFrictionCalibrationState>,
-): readonly MobileTireCalibrationButtonModel[] {
-  return BROWSER_TIRE_AXES.map((axis) => ({
-    axis: axis.id,
-    label: `${axis.id === 'KNEE' ? 'KN' : axis.id} ${formatTireAxisValue(axis.id, calibration)}`,
-    ariaLabel:
-      `${axis.id} ${formatTireAxisValue(axis.id, calibration)}; minus/plus buttons step either direction; front/rear linked` +
-      (axis.id === 'PY'
-        ? `; pure lateral equivalent ${((Math.atan(readTireCharacteristics(calibration.front).peakSlipY) * 180) / Math.PI).toFixed(2)} degrees`
-        : ''),
-  }));
 }
 
 function selectorModel<Value extends string | number, Selection>(

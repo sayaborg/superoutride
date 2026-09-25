@@ -9,7 +9,7 @@ import type { CompiledVehicle } from './vehicle-definitions.js';
 /**
  * One vehicle's immutable mechanics inputs: the compiled vehicle, the driving settings it runs
  * with, its powertrain under the game-wide rules and its torque-protection policy. Every step
- * receives it beside the vehicle state; tuning replaces the whole value.
+ * receives it beside the vehicle state; DEV tuning builds a new model from a tuned definition.
  */
 export interface VehicleModel {
   readonly compiledVehicle: CompiledVehicle;
@@ -40,21 +40,6 @@ export function createVehicleModel(input: VehicleModelInput): VehicleModel {
       wheelSlip: input.drivingDefinition.source.wheelSlip,
       supportReserve: input.supportReserve,
     }),
-  });
-}
-
-/** A new model with replaced DEV tuning; the original is unchanged. */
-export function retuneVehicleModel(
-  model: VehicleModel,
-  tuning: {
-    readonly steering?: VehicleSteeringCalibrationInput;
-    readonly tires?: Readonly<VehicleTireFrictionCalibrationState>;
-  },
-): VehicleModel {
-  return freezeModel({
-    ...model,
-    steering: tuning.steering ? createVehicleSteeringCalibration(tuning.steering) : model.steering,
-    tires: tuning.tires ?? model.tires,
   });
 }
 
