@@ -10,7 +10,7 @@ export interface SpritePalette {
   readonly colors: readonly number[];
 }
 
-/** Named colors participating in raw course-palette admission. */
+/** Named colors participating in LOD compilation. */
 export function spritePaletteStates(palettes: Readonly<Record<string, SpritePalette>>): readonly (readonly number[])[] {
   return Object.values(palettes).map((palette) => palette.colors);
 }
@@ -195,14 +195,6 @@ export function createSpritePalette(
 ): SpriteAsset {
   const palette = asset.palettes[name]!;
   return applySpritePalette(asset, [...palette.colors.slice(0, 16 - paletteSuffix.length), ...paletteSuffix]);
-}
-
-/** Calculate an instance's palette once. Patterns and mixture identities remain shared and immutable. */
-export function createSpritePaletteVariant(asset: SpriteAsset, palette: readonly number[]): SpriteAsset {
-  const base = readIndexedPalette(palette);
-  if (!spritePaletteStates(asset.palettes).some((choice) => choice.every((value, i) => i === 0 || value === base[i])))
-    throw new RangeError('palette variant was not included when compiling these LOD patterns');
-  return applySpritePalette(asset, base);
 }
 
 function applySpritePalette(asset: SpriteAsset, base: readonly number[]): SpriteAsset {

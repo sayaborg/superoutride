@@ -11,7 +11,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **8-3c — Course sprite palettes**.
+Next PR: **8-3d — Definition diagnostics**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -21,7 +21,6 @@ PRs hold rationale and verification evidence.
 
 Give vehicles, driving assists, tires, powertrains and materials explicit definitions, and treat airborne driving as normal state.
 
-- **8-3c — Course sprite palettes:** course sprites select image-declared palette variants by name instead of raw palettes. Behavior unchanged.
 - **8-3d — Definition diagnostics:** vehicle and driving admission reports every authored error at the offending field's JSON Pointer; mechanics validation reports field-relative domain errors and the admission boundary maps them to document paths. Behavior unchanged.
 - **8-4 — Powertrain:** launch, shift rules and rev limit, engine friction, inertia and free revving, and shift observations; audio reads engine speed without its own idle floor. Behavior changes.
 - **8-5 — Vehicle values:** published values and sources as production data with a checking tool; correct torque curves, masses and CG heights. Behavior changes.
@@ -60,7 +59,7 @@ Define persistent player settings, data-driven Sessions and product display inde
 Build a shared authoring core and tools, with author-confirmed content independent of build-time reference driving.
 
 - **11-1 — Authoring foundation:** core and CLI.
-- **11-2 — Workbench:** workbench and sprite module.
+- **11-2 — Workbench:** workbench and sprite module. The sprite module authors multiple named color palettes per image (and hand-authored lighting palettes per color), keeps palette slot 15 reserved for the brake lamp in vehicle images (quantization never assigns artwork to it; lamp pixels can be marked for it), assembles vehicle sprite sets (yaw/bank bindings and the set's brake-lamp colors), and previews every color, lighting and lamp state. Palette adjustment derives a new named palette from an existing one by hue, saturation, lightness and tint changes on selected slots, applied to every image of a set at once in a perceptual color space; the reserved slot is never adjusted, only the resulting explicit palettes are saved, and each can then be edited slot by slot.
 - **11-3 — Course editor.**
 - **11-4 — Definition modules:** vehicles and audio.
 - **11-5 — Time limits and CI:** tool reference driving proposes limits; the author confirms and saves one

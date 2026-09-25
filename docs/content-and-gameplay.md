@@ -18,7 +18,7 @@ color and material overwrite independently. Compiled Sections publish their two 
 Checkpoints, starts, finishes and environment changes are independent of Section boundaries.
 Source identity, traversal identity and race credit are distinct.
 
-## CourseDocument v24
+## CourseDocument v25
 
 The saved format is compact UTF-8 JSON. All declared fields are required; explicit null represents
 absent optional content. Unknown fields fail. Arrays preserve saved order; object-property order and
@@ -26,7 +26,7 @@ whitespace do not affect identity. Normalized records use schema field order and
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 24,
+  format: "superoutride.course", version: 25,
   id,
   entrySectionId,
   sections, links, assets, rules
@@ -100,11 +100,13 @@ resolve authored references.
 
 Section `sprites` is an ordered array of `sprite` or `repeat` elements. A sprite is
 `{kind:"sprite",image,palette,at,lateral,groundOffset,unselectedCarriagewayId}`.
-`image` names a sprite image in that Section's `assetIds`; `palette` is an empty array for the image's
-base palette or exactly 16 RGB555 slots. A replacement must be one of the image's compiled LOD palettes
-(slot zero is transparent). `groundOffset` is height above the authoritative road height, in metres.
+`image` names a sprite image in that Section's `assetIds`; `palette` is a required nonempty name
+without surrounding whitespace, declared by that image. To use its default color, write the image's
+`defaultPalette` name explicitly; arrays, null and omission are invalid. Compilation rejects unknown
+names with `unresolved_reference` at the sprite's `/palette` JSON Pointer.
+`groundOffset` is height above the authoritative road height, in metres.
 Each expanded placement resolves `lateral` at its own s, so repetitions follow referenced Boundaries.
-Compilation shares one immutable resource for each image-source/palette pair across Sections;
+Compilation shares one immutable resource for each image-source/palette-name pair across Sections;
 decoded images and palette variants are shared by the renderer. Sprites have no authored identity.
 
 `unselectedCarriagewayId` is null for ordinary sprites or names a canonical exit Carriageway.
@@ -232,8 +234,8 @@ compiled `gates` provide the resolved grid and per-Section landmark intervals to
 
 ### Null meanings
 
-Empty collections are arrays: in particular, `environments: []` means no appearance and `palette: []`
-means use the image's base palette. The remaining CourseDocument nulls each have one meaning:
+Empty collections are arrays: in particular, `environments: []` means no appearance.
+CourseDocument nulls each have one meaning:
 
 | Field                            | Meaning of null                                                       |
 | -------------------------------- | --------------------------------------------------------------------- |
@@ -411,8 +413,8 @@ Owned records and arrays are immutable, including nested image data. Live actor,
 clock state belong to Sessions. Object identity is local to a compilation; cross-build identity uses digests.
 
 `sourceSha256` hashes normalized input. `buildSha256` hashes `{sourceSha256,compiler}`.
-The compiler is `superoutride.course-compiler` version 34, incorporating Link recipe v3, physical
-recipe v3, image-source recipe v2 and appearance recipe v10. Descriptors include semantic versions
+The compiler is `superoutride.course-compiler` version 35, incorporating Link recipe v3, physical
+recipe v3, image-source recipe v2 and appearance recipe v11. Descriptors include semantic versions
 and operative numeric/data parameters, including material definitions. Source or compiler/recipe
 changes invalidate dependent products.
 

@@ -3,7 +3,7 @@ import { COURSE_DOCUMENT_LIMITS } from './course-limits.js';
 import { SESSION_RULE_LIMITS } from './session-rules.js';
 import { CourseInputError, courseFailure, courseSuccess, type CourseResult } from './course-diagnostics.js';
 
-const COURSE_DOCUMENT_VERSION = 24;
+const COURSE_DOCUMENT_VERSION = 25;
 
 export interface CoursePosition {
   readonly pi: string;
@@ -90,7 +90,7 @@ export interface EnvironmentDocument {
 export interface SpriteDocument {
   readonly kind: 'sprite';
   readonly image: string;
-  readonly palette: readonly number[];
+  readonly palette: string;
   readonly unselectedCarriagewayId: string | null;
   readonly at: CoursePosition;
   readonly lateral: Lateral;
@@ -405,13 +405,10 @@ function sprite(value: unknown, path: string): SpriteDocument {
     'unselectedCarriagewayId',
   ]);
   if (s.kind !== 'sprite') fail('unsupported_feature', `${path}/kind`, 'Expected sprite');
-  const palette = array(s.palette, `${path}/palette`, 16, rgb555);
-  if (palette.length !== 0 && palette.length !== 16)
-    fail('invalid_shape', `${path}/palette`, 'Expected an empty palette or 16 indexed palette slots');
   return Object.freeze({
     kind: 'sprite',
     image: id(s.image, `${path}/image`),
-    palette,
+    palette: id(s.palette, `${path}/palette`),
     at: position(s.at, `${path}/at`),
     lateral: lateral(s.lateral, `${path}/lateral`),
     groundOffset: number(

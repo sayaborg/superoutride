@@ -37,10 +37,12 @@ not semantic master slots. The resolved level-zero palette equals the resolved d
 Images carry no lamp declarations. All color × set lamp-state combinations participate in LOD
 compilation. Evaluating the shared mixtures in a selected combination generates its level palettes
 once before drawing; patterns remain shared. Course images can freely use slot 15.
-Raw course instance palettes remain supported until the course-palette migration.
+Course sprites select one declared palette by its required name, including an explicit default name.
+The course compiler validates that reference and shares image/name resources. Rendering applies each
+selected palette once; no raw course replacement palettes or value-by-value LOD membership checks remain.
 [Architecture](architecture.md#sprite-lod-metric-and-read-contract) owns level dimensions and anchors.
 
-Invalid dimensions, anchors, indices, palettes, mixtures, undeclared replacements or unknown fields
+Invalid dimensions, anchors, indices, palettes, mixtures or unknown fields
 fail. Coarse colors must agree with their mixtures. Readers own packed buffers and immutable metadata.
 One normalized master level is valid input; shipped sprites have full build-generated LOD.
 Source masters and named palette declarations are saved; completed pyramids are generated products.

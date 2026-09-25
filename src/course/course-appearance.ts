@@ -9,7 +9,7 @@ interface IndexedSource {
 }
 
 export interface CourseSpriteResource {
-  readonly paletteRgb555: readonly number[] | null;
+  readonly palette: string;
   readonly asset: IndexedSource;
 }
 

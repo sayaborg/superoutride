@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 24,
+  "version": 25,
   "id": "ribbon-coast",
   "entrySectionId": "coast-road",
   "rules": {
@@ -1529,7 +1529,7 @@
             {
               "kind": "sprite",
               "image": "tree",
-              "palette": [],
+              "palette": "original",
               "at": {
                 "pi": "fit-002",
                 "offset": 251.77764326657348
@@ -1551,7 +1551,7 @@
             {
               "kind": "sprite",
               "image": "tree",
-              "palette": [],
+              "palette": "original",
               "at": {
                 "pi": "fit-002",
                 "offset": 251.77764326657348

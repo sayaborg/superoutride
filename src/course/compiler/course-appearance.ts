@@ -1,4 +1,3 @@
-import { spritePaletteStates } from '../../image/sprite.js';
 import { expandCourseElements, shiftedCoursePosition } from '../course-repeat.js';
 import { resolveCourseLateral } from './course-lateral.js';
 import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
@@ -10,35 +9,27 @@ import { BACKGROUND_HEIGHT, BACKGROUND_PIXELS_PER_RADIAN } from '../../image/til
 import type { CourseAppearance, CourseSpriteResource } from '../course-appearance.js';
 import type { CompiledCourseImageSource } from './course-image-source.js';
 
-export const COURSE_APPEARANCE_RECIPE = Object.freeze({ id: 'superoutride.course-appearance', version: 10 });
+export const COURSE_APPEARANCE_RECIPE = Object.freeze({ id: 'superoutride.course-appearance', version: 11 });
 
 /** Share one immutable image/palette binding across every Section in a compilation. */
 export function createCourseSpriteResources() {
   const images = new Map<CourseSpriteResource['asset']['source'], Map<string, CourseSpriteResource>>();
-  return (
-    asset: CourseSpriteResource['asset'],
-    palette: readonly number[] | null,
-    path: string,
-  ): CourseSpriteResource => {
+  return (asset: CourseSpriteResource['asset'], palette: string, path: string): CourseSpriteResource => {
     requireCourse(
-      palette === null ||
-        spritePaletteStates(asset.source.palettes).some((choice) =>
-          choice.every((value, i) => i === 0 || value === palette[i]),
-        ),
+      Object.hasOwn(asset.source.palettes, palette),
       path,
-      'Sprite palette must participate in the compiled LOD variant set',
-      'appearance_binding',
+      `Unknown sprite palette ${JSON.stringify(palette)}`,
+      'unresolved_reference',
     );
     let variants = images.get(asset.source);
     if (!variants) {
       variants = new Map();
       images.set(asset.source, variants);
     }
-    const key = JSON.stringify(palette);
-    let resource = variants.get(key);
+    let resource = variants.get(palette);
     if (!resource) {
-      resource = Object.freeze({ asset, paletteRgb555: palette });
-      variants.set(key, resource);
+      resource = Object.freeze({ asset, palette });
+      variants.set(palette, resource);
     }
     return resource;
   };
@@ -149,11 +140,7 @@ export function compileCourseAppearance(
         'Expanded sprite placement limit exceeded',
         'resource_limit',
       );
-      const instance = resource(
-        image(placement.image, `${at}/image`),
-        placement.palette.length ? placement.palette : null,
-        `${at}/palette`,
-      );
+      const instance = resource(image(placement.image, `${at}/image`), placement.palette, `${at}/palette`);
       const unselected =
         placement.unselectedCarriagewayId === null
           ? null

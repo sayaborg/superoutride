@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 24,
+  "version": 25,
   "id": "ribbon-ring",
   "entrySectionId": "ring-outward",
   "rules": {
@@ -712,7 +712,7 @@
             {
               "kind": "sprite",
               "image": "tree",
-              "palette": [],
+              "palette": "original",
               "at": {
                 "pi": "start",
                 "offset": 17.50162686430845
@@ -734,7 +734,7 @@
             {
               "kind": "sprite",
               "image": "tree",
-              "palette": [],
+              "palette": "original",
               "at": {
                 "pi": "start",
                 "offset": 17.50162686430845
@@ -1618,7 +1618,7 @@
             {
               "kind": "sprite",
               "image": "tree",
-              "palette": [],
+              "palette": "original",
               "at": {
                 "pi": "start",
                 "offset": 17.50162686430845
@@ -1640,7 +1640,7 @@
             {
               "kind": "sprite",
               "image": "tree",
-              "palette": [],
+              "palette": "original",
               "at": {
                 "pi": "start",
                 "offset": 17.50162686430845

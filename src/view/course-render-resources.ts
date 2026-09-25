@@ -1,6 +1,6 @@
 import type { ProfileReader } from '../course/geometry/profile.js';
 import type { PlanCoordinateReader } from '../course/geometry/plan-coordinate.js';
-import { readSpriteLodAsset, createSpritePaletteVariant, type SpriteLodDocument } from '../image/sprite.js';
+import { readSpriteLodAsset, createSpritePalette, type SpriteLodDocument } from '../image/sprite.js';
 import { TileBackgroundImage, type TileBackgroundDocument } from '../image/tile-background-image.js';
 import type { CourseAppearance } from '../course/course-appearance.js';
 import { EnvironmentTimeline } from '../course/environment-timeline.js';
@@ -24,7 +24,7 @@ export function createCourseRenderResources() {
     let asset = instances.get(instance);
     if (!asset) {
       const decoded = image(instance.asset.source);
-      asset = instance.paletteRgb555 === null ? decoded : createSpritePaletteVariant(decoded, instance.paletteRgb555);
+      asset = createSpritePalette(decoded, instance.palette);
       instances.set(instance, asset);
     }
     return asset;
