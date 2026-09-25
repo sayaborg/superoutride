@@ -77,12 +77,6 @@ export function setCameraYawMode(rig: CameraRig, yawMode: CameraYawMode): void {
   rig.yawMode = yawMode;
 }
 
-export function toggleCameraYawMode(rig: CameraRig): CameraYawMode {
-  const yawMode = rig.yawMode === 'BODY_FIXED' ? 'MOVEMENT_FOLLOW' : 'BODY_FIXED';
-  setCameraYawMode(rig, yawMode);
-  return yawMode;
-}
-
 /**
  * Express authoritative world velocity in the vehicle-pitch plane, then retain only its yaw.
  * Camera pitch follows the body separately. Movement yaw remains the alternate camera direction

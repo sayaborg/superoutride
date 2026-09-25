@@ -112,7 +112,7 @@ export function mountCourseSessionControls(
   start.textContent = 'START';
   panel.append(start);
   const hint = document.createElement('p');
-  hint.textContent = 'Arrows drive · Backspace recovers';
+  hint.textContent = 'Arrows drive';
   panel.append(hint);
   const toolbar = document.createElement('div');
   toolbar.className = 'session-actions';

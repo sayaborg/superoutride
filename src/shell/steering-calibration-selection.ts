@@ -1,6 +1,5 @@
 import type { DrivingDefinition } from '../vehicle/driving-definition.js';
-import { BROWSER_CALIBRATION_KEYS } from './key-bindings.js';
-import { cycleSelectorChoice, sameSelectorValue } from './selector-values.js';
+import { sameSelectorValue } from './selector-values.js';
 const OFFSET_DEGREES = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30] as const;
 const MAX_STEER_DEGREES = [50, 55, 60, 65, 70, 75, 80] as const;
 const TRAVERSAL_SECONDS = [0.2, 0.225, 0.25, 0.275, 0.3, 0.325, 0.35, 0.375, 0.4] as const;
@@ -16,10 +15,6 @@ interface BrowserSteeringResponseSelection {
   readonly rate: number;
 }
 
-export const BROWSER_STEERING_OFFSET_CYCLE_CODE = BROWSER_CALIBRATION_KEYS.D;
-export const BROWSER_MAX_STEER_CYCLE_CODE = BROWSER_CALIBRATION_KEYS.M;
-export const BROWSER_STEERING_RESPONSE_CYCLE_CODE = BROWSER_CALIBRATION_KEYS.ACT;
-
 export const BROWSER_STEERING_OFFSETS = Object.freeze(OFFSET_DEGREES.map(angle));
 export const BROWSER_MAX_ROAD_WHEEL_STEERS = Object.freeze(MAX_STEER_DEGREES.map(angle));
 export const BROWSER_STEERING_RESPONSES = Object.freeze(TRAVERSAL_SECONDS.map(response));
@@ -30,26 +25,16 @@ export function admitBrowserSteeringGrid(definition: DrivingDefinition) {
   assertGridValue(TRAVERSAL_SECONDS, definition.steeringTraversalSeconds);
 }
 
-export function nextBrowserSteeringOffset(currentRadians: number): number {
-  return nextAngleChoice(BROWSER_STEERING_OFFSETS, currentRadians).radians;
-}
-export function nextBrowserMaxRoadWheelSteer(currentRadians: number): number {
-  return nextAngleChoice(BROWSER_MAX_ROAD_WHEEL_STEERS, currentRadians).radians;
-}
-export function nextBrowserSteeringResponseRate(currentRate: number): number {
-  return cycleSelectorChoice(BROWSER_STEERING_RESPONSES, currentRate, (choice) => choice.rate).rate;
-}
-
 export function formatSteeringOffsetSelector(activeRadians: number): string {
-  return `D [${BROWSER_STEERING_OFFSET_CYCLE_CODE.slice(3)}] ${formatDegrees(activeRadians)}°`;
+  return `D ${formatDegrees(activeRadians)}°`;
 }
 export function formatMaxRoadWheelSteerSelector(activeRadians: number): string {
-  return `M [${BROWSER_MAX_STEER_CYCLE_CODE.slice(3)}] ${formatDegrees(activeRadians)}°`;
+  return `M ${formatDegrees(activeRadians)}°`;
 }
 export function formatSteeringResponseSelector(activeRate: number): string {
   const selection = BROWSER_STEERING_RESPONSES.find(({ rate }) => sameSelectorValue(rate, activeRate));
   const traversalSeconds = selection?.traversalSeconds ?? 1 / activeRate;
-  return `ACT [${BROWSER_STEERING_RESPONSE_CYCLE_CODE.slice(3)}] ${formatTraversalSeconds(traversalSeconds)}s`;
+  return `ACT ${formatTraversalSeconds(traversalSeconds)}s`;
 }
 export function formatTraversalSeconds(seconds: number): string {
   const roundedMilliseconds = Math.round(seconds * 1_000);
@@ -68,12 +53,6 @@ function angle<Degrees extends number>(degrees: Degrees): Readonly<BrowserSteeri
 }
 function response(traversalSeconds: BrowserSteeringTraversalSeconds): Readonly<BrowserSteeringResponseSelection> {
   return Object.freeze({ traversalSeconds, rate: 1 / traversalSeconds });
-}
-function nextAngleChoice<Degrees extends number>(
-  choices: readonly BrowserSteeringAngleSelection<Degrees>[],
-  currentRadians: number,
-): BrowserSteeringAngleSelection<Degrees> {
-  return cycleSelectorChoice(choices, currentRadians, (choice) => choice.radians);
 }
 function assertGridValue(choices: readonly number[], value: number): void {
   if (!choices.includes(value)) throw new RangeError(`driving value is outside its browser steering grid: ${value}`);

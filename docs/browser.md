@@ -22,10 +22,8 @@ A persisted page restored from browser history reloads the page.
 
 ## Selection and URL parameters
 
-The course selector maps `ribbon-coast` / RIBBON COAST / 1, `ribbon-ring` / RIBBON RING / 2
-and `ribbon-fork` / RIBBON FORK / 3.
-Digit-row and numeric-keypad shortcuts work; repeated keydown is ignored. Missing or unknown `mode`
-selects the first entry, RIBBON COAST.
+The DEV course buttons map `ribbon-coast` / RIBBON COAST / 1, `ribbon-ring` / RIBBON RING / 2
+and `ribbon-fork` / RIBBON FORK / 3. Missing or unknown `mode` selects the first entry, RIBBON COAST.
 Selecting the active course does nothing. Selecting another performs full-page navigation, changes
 `mode`, removes `session`, `vehicle`, `rivals`, `laps`, `clock` and `autostart`, and preserves other URL data.
 
@@ -55,8 +53,8 @@ Autostart affects gameplay; sound still requires an eligible browser gesture.
 
 ## Driving input
 
-Left/right arrows steer, Up or X accelerates, and Down or Z brakes. Backspace requests recovery when
-the active composition permits it. The latest still-held pedal wins; releasing it exposes the earlier
+Left/right arrows steer, Up or X accelerates, and Down or Z brakes. These are the only keyboard
+controls; DEV selections and manual recovery use DEV buttons. The latest still-held pedal wins; releasing it exposes the earlier
 held pedal. Steering uses the latest owner and does not revive a superseded direction on release.
 Boolean pedal input and numeric input in `[0,1]` have the same canonical meaning.
 
@@ -89,12 +87,15 @@ reporting window; seam maximum is cumulative.
 ## DEV controls
 
 DEV is an initially closed disclosure overlay. Its body scrolls within the safe viewport without
-resizing the game. UI pointer starts stay outside driving input. Keydown is isolated, while keyup
-can release an already-held driving key. Escape closes the panel and returns focus to its summary.
-Session-owned vehicle and physics controls are locked; camera and sound controls remain available.
+resizing the game. UI pointer starts stay outside driving input. Keydown is isolated, so keys typed
+in DEV controls never reach driving input, while keyup can release an already-held driving key.
+Escape closes the panel and returns focus to its summary. DEV has no keyboard shortcuts.
+Session-owned vehicle and physics controls are locked; camera, sound and recovery controls remain
+available. RECOVER requests manual recovery of the player vehicle when the active composition
+permits it: in a course session, only while the race is running and neither paused nor hidden.
 
 Tire and steering selectors use minus/value/plus controls. Their choices wrap at range endpoints;
-ACT selects traversal time in seconds. Y/U/T step D/M/ACT forward. Vehicle replacement carries active
+ACT selects traversal time in seconds. Vehicle replacement carries active
 tire calibration. The selectable body-yaw and movement-yaw cameras use the same projection.
 [Calibration](calibration.md#vehicle-settings) lists values, units and ranges.
 

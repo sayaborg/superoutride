@@ -1,6 +1,5 @@
 import { browserContent } from './browser-content.js';
 import {
-  browserCourseModeForKey,
   configureBrowserCourses,
   selectBrowserCourseMode,
   type BrowserCourseModeSelection,
@@ -14,6 +13,7 @@ try {
   const selectedMode = selectBrowserCourseMode(parameters.get('mode'));
   const courseSelector = mustGet<HTMLElement>('course-selector-buttons');
   const devPanel = mustGet<HTMLDetailsElement>('dev-panel');
+  // Keys typed in DEV controls never reach driving input.
   devPanel.addEventListener('keydown', (event) => {
     event.stopPropagation();
   });
@@ -29,12 +29,6 @@ try {
   );
 
   mountMobileCourseSelector(courseSelector, selectedMode.query, navigateToCourseMode);
-
-  window.addEventListener('keydown', (event) => {
-    if (event.repeat) return;
-    const targetMode = browserCourseModeForKey(event.code);
-    if (targetMode !== null) navigateToCourseMode(targetMode);
-  });
 
   function navigateToCourseMode(targetMode: BrowserCourseModeSelection): void {
     if (targetMode.query === selectedMode.query) return;

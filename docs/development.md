@@ -145,7 +145,7 @@ The shared manifest reader admits the index, resolves each logical identity to i
 and verifies the exact downloaded/read bytes against SHA-256 before JSON decoding. Missing entries
 or digest mismatches stop loading. The manifest itself is the bootstrap index inside the commit-versioned
 build; it cannot contain its own digest. Browser course availability is derived from its course entries;
-labels, shortcut keys and known-course ordering remain shell settings until stage 10-5.
+labels and known-course ordering remain shell settings until stage 10-5.
 
 Only the manifest writer owns output naming. Browsers, Node consumers, startup smoke and public-site
 verification read indexed content through the shared reader, never by reconstructing output paths.

@@ -1,22 +1,14 @@
 import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import { setVehicleTireFrictionCalibration } from '../vehicle/physics/tire-friction-calibration.js';
 import { mountMobileTireCalibrationSelector } from './mobile-selector-controls.js';
-import {
-  BROWSER_TIRE_AXES,
-  stepBrowserTireCalibration,
-  type BrowserTireCalibrationAxis,
-} from './tire-friction-selection.js';
+import { stepBrowserTireCalibration, type BrowserTireCalibrationAxis } from './tire-friction-selection.js';
 
-interface BrowserTireFrictionControls {
-  handleKey(code: string): boolean;
-}
-
-/** Keyboard cycles forward; explicit +/- buttons own both directions through the same operation. */
+/** Explicit +/- buttons own both directions through one operation. */
 export function mountBrowserTireFrictionControls(
   container: HTMLElement,
   getVehicle: () => VehicleState,
   documentRef: Document = document,
-): BrowserTireFrictionControls {
+): void {
   const selector = mountMobileTireCalibrationSelector(
     container,
     getVehicle().tireFrictionCalibration,
@@ -32,12 +24,4 @@ export function mountBrowserTireFrictionControls(
     );
     selector.setCalibration(vehicle.tireFrictionCalibration);
   }
-  return Object.freeze({
-    handleKey(code: string): boolean {
-      const axis = BROWSER_TIRE_AXES.find((axis) => axis.code === code);
-      if (!axis) return false;
-      stepAxis(axis.id, 1);
-      return true;
-    },
-  });
 }

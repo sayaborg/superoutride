@@ -2,7 +2,7 @@ import type { SessionVehicle } from '../race/session-configuration.js';
 import { createAudioLifecycle } from './audio-lifecycle.js';
 import { createDrivingLifecycle, type DrivingLifecycleOptions } from './driving-lifecycle.js';
 import type { CameraRig } from '../view/camera.js';
-import { createCameraRig, setCameraYawMode, toggleCameraYawMode, type CameraState } from '../view/camera.js';
+import { createCameraRig, setCameraYawMode, type CameraState } from '../view/camera.js';
 import { LOGICAL_HEIGHT, LOGICAL_WIDTH } from '../view/display-scale.js';
 import type { RecoveryState } from '../race/recovery.js';
 import { createRecoveryState } from '../race/recovery.js';
@@ -25,14 +25,13 @@ import { admitBrowserTireGrid } from './tire-friction-selection.js';
 import type { BrowserCourseModeQuery } from './course-mode-selection.js';
 import { mustGet } from './dom.js';
 import { createFrameLoop, type FrameLoop } from './frame-loop.js';
-import { BROWSER_RECOVERY_CODE, browserRequestsCameraYawToggle } from './key-bindings.js';
 import { mountMobileCameraYawSelector, mountMobileVehicleSelector } from './mobile-selector-controls.js';
 import { mountBrowserSteeringCalibrationControls } from './steering-calibration-controls.js';
 import { mountBrowserTireFrictionControls } from './tire-friction-controls.js';
 import { browserSessionVehicle } from './session-vehicle.js';
 import { browserUsesTouchInterface } from './touch-interface.js';
 import { drawVehicleDebugHud } from './vehicle-debug-hud.js';
-import { browserVehicleForKey, createBrowserVehicleSelections } from './vehicle-selection.js';
+import { createBrowserVehicleSelections } from './vehicle-selection.js';
 
 interface BrowserDrivingShell {
   readonly vehicle: VehicleState;
@@ -161,7 +160,7 @@ export function createBrowserDrivingShell(
           cameraYawSelector.setActive(mode);
         },
       );
-      const steeringCalibrationControls = mountBrowserSteeringCalibrationControls(
+      mountBrowserSteeringCalibrationControls(
         {
           steeringOffset: mustGet('steering-offset-selector-buttons'),
           maxRoadWheelSteer: mustGet('max-steer-selector-buttons'),
@@ -170,7 +169,7 @@ export function createBrowserDrivingShell(
         () => vehicle,
       );
       const tireContainer = mustGet('tire-friction-selector-buttons');
-      const tireFrictionControls = mountBrowserTireFrictionControls(tireContainer, () => vehicle);
+      mountBrowserTireFrictionControls(tireContainer, () => vehicle);
       if (options.configurationLocked) {
         for (const id of [
           'vehicle-selector-buttons',
@@ -183,21 +182,8 @@ export function createBrowserDrivingShell(
           for (const child of Array.from(container.querySelectorAll('button'))) child.disabled = true;
         }
       }
-      window.addEventListener('keydown', (event) => {
-        if (event.repeat) return;
-        if (browserRequestsCameraYawToggle(event.code)) {
-          cameraYawSelector.setActive(toggleCameraYawMode(cameraRig));
-          return;
-        }
-        if (!options.configurationLocked && steeringCalibrationControls.handleKey(event.code)) return;
-        if (!options.configurationLocked && tireFrictionControls.handleKey(event.code)) return;
-        const selectedVehicle = browserVehicleForKey(event.code, selections);
-        if (selectedVehicle !== null) {
-          selectVehicle(selectedVehicle);
-        } else if (event.code === BROWSER_RECOVERY_CODE) {
-          event.preventDefault();
-          if (options.canRecover?.() ?? true) lifecycle.recover();
-        }
+      mustGet<HTMLButtonElement>('recover-button').addEventListener('click', () => {
+        if (options.canRecover?.() ?? true) lifecycle.recover();
       });
       return lifecycle;
     },

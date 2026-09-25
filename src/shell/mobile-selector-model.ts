@@ -33,7 +33,7 @@ export function createMobileCourseSelectorModel(
 ): readonly MobileSelectorButtonModel<BrowserCourseModeQuery>[] {
   return selectorModel(activeQuery, selections, (mode) => ({
     value: mode.query,
-    label: mode.digitCode?.slice(-1) ?? mode.label,
+    label: mode.buttonLabel ?? mode.label,
     ariaLabel: `Select ${mode.label} course`,
   }));
 }
@@ -92,7 +92,7 @@ export function createMobileTireCalibrationSelectorModel(
     axis: axis.id,
     label: `${axis.id === 'KNEE' ? 'KN' : axis.id} ${formatTireAxisValue(axis.id, calibration)}`,
     ariaLabel:
-      `${axis.id} ${formatTireAxisValue(axis.id, calibration)}; ${axis.code.slice(3)} cycles forward; minus/plus buttons step either direction; front/rear linked` +
+      `${axis.id} ${formatTireAxisValue(axis.id, calibration)}; minus/plus buttons step either direction; front/rear linked` +
       (axis.id === 'PY'
         ? `; pure lateral equivalent ${((Math.atan(readTireCharacteristics(calibration.front).peakSlipY) * 180) / Math.PI).toFixed(2)} degrees`
         : ''),

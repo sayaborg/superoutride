@@ -2,7 +2,7 @@ import type { DrivingInput } from '../vehicle/driving-input.js';
 import { PedalInputArbiter, type PedalChannel } from './pedal-input-arbiter.js';
 import { SteeringInputArbiter, type SteeringDirection } from './steering-input-arbiter.js';
 
-/** Driving aliases owned by the input adapter; browser product shortcuts are composed above it. */
+/** Driving aliases owned by the input adapter. */
 const DRIVING_KEYS = Object.freeze({
   left: 'ArrowLeft',
   right: 'ArrowRight',

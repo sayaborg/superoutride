@@ -4,7 +4,6 @@ import {
   type VehicleTireFrictionCalibrationState,
   type TireCharacteristics,
 } from '../vehicle/physics/tire-friction-calibration.js';
-import { BROWSER_CALIBRATION_KEYS } from './key-bindings.js';
 
 // Hundredth-value ticks: decimal conversion budget, ~8,800 ulps at the largest tick (800).
 const SELECTOR_TICK_TOLERANCE = 1e-9;
@@ -16,7 +15,6 @@ export type BrowserTireCalibrationAxis = 'GX' | 'PX' | 'GY' | 'PY' | 'KNEE';
 interface BrowserTireAxis {
   readonly id: BrowserTireCalibrationAxis;
   readonly field: keyof TireCharacteristics;
-  readonly code: string;
   readonly min: number;
   readonly max: number;
   readonly step: number;
@@ -26,11 +24,11 @@ interface BrowserTireAxis {
 /** Integer hundredths avoid cumulative floating-point stepping. One registry for all UI. */
 export const BROWSER_TIRE_AXES: readonly BrowserTireAxis[] = Object.freeze(
   [
-    { id: 'GX', field: 'gripX', code: BROWSER_CALIBRATION_KEYS.GX, min: 200, max: 800, step: 5, percent: false },
-    { id: 'PX', field: 'peakSlipX', code: BROWSER_CALIBRATION_KEYS.PX, min: 2, max: 40, step: 1, percent: true },
-    { id: 'GY', field: 'gripY', code: BROWSER_CALIBRATION_KEYS.GY, min: 100, max: 400, step: 5, percent: false },
-    { id: 'PY', field: 'peakSlipY', code: BROWSER_CALIBRATION_KEYS.PY, min: 2, max: 20, step: 1, percent: true },
-    { id: 'KNEE', field: 'knee', code: BROWSER_CALIBRATION_KEYS.KNEE, min: 10, max: 95, step: 1, percent: false },
+    { id: 'GX', field: 'gripX', min: 200, max: 800, step: 5, percent: false },
+    { id: 'PX', field: 'peakSlipX', min: 2, max: 40, step: 1, percent: true },
+    { id: 'GY', field: 'gripY', min: 100, max: 400, step: 5, percent: false },
+    { id: 'PY', field: 'peakSlipY', min: 2, max: 20, step: 1, percent: true },
+    { id: 'KNEE', field: 'knee', min: 10, max: 95, step: 1, percent: false },
   ].map((axis) => Object.freeze(axis)) as BrowserTireAxis[],
 );
 
