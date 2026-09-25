@@ -11,7 +11,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **8-6a — Remove keyboard shortcuts**.
+Next PR: **8-6b — Vehicle state and model**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -21,7 +21,6 @@ PRs hold rationale and verification evidence.
 
 Give vehicles, driving assists, tires, powertrains and materials explicit definitions, and treat airborne driving as normal state.
 
-- **8-6a — Remove keyboard shortcuts:** remove every DEV keyboard shortcut (course, vehicle, steering and tire tuning, camera yaw, recovery); DEV UI buttons select everything, including a new recovery button. Driving keys stay. Driving behavior unchanged.
 - **8-6b — Vehicle state and model:** vehicle state holds only dynamic values; the compiled vehicle, driving settings and form policy form one immutable model passed to each step. The composition shared by browser, race and tools moves from shell to race, and SessionVehicle holds only the vehicle and driving definitions. Report a split plan first if large. Behavior unchanged.
 - **8-6c — DEV tuning:** replace the model instead of mutating running settings, and export definitions in their saved formats. Behavior unchanged.
 - **8-7 — Materials and airborne state:** material definitions including tire effect kinds, jumps and airborne state, pitch-angle protection, suspension limits and recovery conditions. Split if large. Behavior changes. Pitch protection limits drive-induced wheelies through the opening's upper bound and brake-induced stoppies on the brake side.
