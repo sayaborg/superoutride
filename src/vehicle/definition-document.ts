@@ -247,23 +247,35 @@ export async function loadVehicleSpriteLibrary(content: ContentDelivery): Promis
   return result.value;
 }
 
-/** Transport verifies every payload SHA before either admission boundary sees decoded content. */
-export async function loadVehicleDefinitions(content: ContentDelivery) {
-  const take = <T>(result: AdmissionResult<T>): T => {
-    if (!result.ok) throw new Error(JSON.stringify(result.diagnostics));
-    return result.value;
-  };
-  const sprites = await loadVehicleSpriteLibrary(content);
-  const drivingFiles = content.manifest.files.filter((file) => file.kind === 'driving');
-  if (drivingFiles.length !== 1 || drivingFiles[0]!.id !== 'default')
+/** One delivered or staged definition document with its manifest identity and document path. */
+export interface VehicleDefinitionSource {
+  readonly id: string;
+  readonly path: string;
+  readonly value: unknown;
+}
+
+const takeAdmitted = <T>(result: AdmissionResult<T>): T => {
+  if (!result.ok) throw new Error(JSON.stringify(result.diagnostics));
+  return result.value;
+};
+
+/**
+ * Admit the catalog: one default driving definition and the vehicle documents against an admitted
+ * sprite library. Vehicle IDs must equal their manifest identities and selection orders are unique.
+ */
+export function compileVehicleDefinitions(
+  sprites: SpriteAssets,
+  driving: readonly VehicleDefinitionSource[],
+  vehicleSources: readonly VehicleDefinitionSource[],
+) {
+  if (driving.length !== 1 || driving[0]!.id !== 'default')
     throw new RangeError('Manifest requires one default driving definition');
-  const drivingFile = drivingFiles[0]!;
-  const driving = take(compileDrivingDocument(await content.json('driving', drivingFile.id), drivingFile.path));
+  const drivingDefinition = takeAdmitted(compileDrivingDocument(driving[0]!.value, driving[0]!.path));
   const orders = new Set<number>();
   const vehicles: CompiledVehicleDefinition[] = [];
-  for (const file of content.manifest.files.filter((file) => file.kind === 'vehicle')) {
-    const entry = take(compileVehicleDocument(await content.json('vehicle', file.id), file.path, sprites));
-    take(
+  for (const file of vehicleSources) {
+    const entry = takeAdmitted(compileVehicleDocument(file.value, file.path, sprites));
+    takeAdmitted(
       admit(file.path, () => {
         requireAdmission(
           entry.source.id === file.id,
@@ -284,9 +296,21 @@ export async function loadVehicleDefinitions(content: ContentDelivery) {
   }
   if (!vehicles.length) throw new RangeError('Manifest requires vehicle definitions');
   vehicles.sort((a, b) => a.source.selectionOrder - b.source.selectionOrder);
-  return Object.freeze({ vehicles: Object.freeze(vehicles), driving });
+  return Object.freeze({ vehicles: Object.freeze(vehicles), driving: drivingDefinition });
 }
-export type VehicleDefinitions = Awaited<ReturnType<typeof loadVehicleDefinitions>>;
+
+/** Transport verifies every payload SHA before either admission boundary sees decoded content. */
+export async function loadVehicleDefinitions(content: ContentDelivery) {
+  const sprites = await loadVehicleSpriteLibrary(content);
+  const read = async (kind: 'driving' | 'vehicle') => {
+    const sources: VehicleDefinitionSource[] = [];
+    for (const file of content.manifest.files.filter((file) => file.kind === kind))
+      sources.push({ id: file.id, path: file.path, value: await content.json(kind, file.id) });
+    return sources;
+  };
+  return compileVehicleDefinitions(sprites, await read('driving'), await read('vehicle'));
+}
+export type VehicleDefinitions = ReturnType<typeof compileVehicleDefinitions>;
 
 export function vehicleDefinitionForId(
   vehicles: readonly CompiledVehicleDefinition[],

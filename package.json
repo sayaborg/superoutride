@@ -7,7 +7,7 @@
     "node": ">=24 <25"
   },
   "scripts": {
-    "build": "node --import tsx tools/build/clean-dist.ts && tsc -p tsconfig.json && node --import tsx tools/build/build-sprite-preview.ts && node --import tsx tools/build/build-course-content.ts",
+    "build": "node --import tsx tools/build/clean-dist.ts && tsc -p tsconfig.json && node --import tsx tools/build/build-browser-tools.ts && node --import tsx tools/build/build-content.ts",
     "check": "npm run lint && npm run format:check && tsc -p tsconfig.json --noEmit && tsc -p tsconfig.tools.json && npm run check:dependencies",
     "test": "npm run check && npm run build && node --import tsx --test 'tests/**/*.test.mjs'",
     "test:scenarios": "node --import tsx --test tests/scenarios/driving.test.mjs",

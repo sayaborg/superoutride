@@ -22,8 +22,8 @@ function contentPath(kind: ContentKind, id: string, sha256: string): string {
 }
 
 /** Sole output layout authority. Consumers resolve logical identities through the saved manifest. */
-export function createContentWriter(root: URL, initial: readonly ContentEntry[] = []) {
-  const files = [...initial];
+export function createContentWriter(root: URL) {
+  const files: ContentEntry[] = [];
   return {
     async stage(kind: ContentKind, id: string, value: unknown, encoded?: Uint8Array<ArrayBuffer>) {
       const bytes = encoded ?? new TextEncoder().encode(JSON.stringify(value) + '\n');

@@ -572,4 +572,6 @@ Vehicle and driving documents belong to the vehicle layer; the generic manifest 
 verifies their bytes. Definition compilation resolves named sprite sets/default colors from the SHA-verified image library and sound IDs through the lower audio layer's
 TypeScript sound products and returns deeply immutable records. [Vehicle physics](vehicle-physics.md#vehicle-and-driving-documents)
 owns the versioned formats and admission contract. Composition roots load the collection before scene/Session creation and explicitly pass it to
-selection controls, HUD/audio, scene coverage, reference tools and scenarios. The collection is assembled only from admitted delivered definitions.
+selection controls, HUD/audio, scene coverage, reference tools and scenarios. `compileVehicleDefinitions` admits the collection from
+definition documents and an admitted sprite library: consumers call it through `loadVehicleDefinitions` with delivered content, and the
+content build calls it directly with the documents and the library it has just compiled.

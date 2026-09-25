@@ -61,8 +61,8 @@ Run a TypeScript tool with `node --import tsx tools/<domain>/<name>.ts`. The pin
 product's `.js` module specifiers to TypeScript source without a tool compilation directory; it does
 not replace the strict `tsc` check. Reference workers and tests consuming typed course helpers use the same loader.
 Those tests import product source too, so a process has one module identity for compiled course objects.
-Test files remain JavaScript. Build clears `dist`,
-compiles the product, builds browser tools and sprite content, then generates course/reference content in that order.
+Test files remain JavaScript. Build clears `dist`, compiles the product, runs the browser-tools build
+(`tools/build/build-browser-tools.ts`), then runs the content build (`tools/build/build-content.ts`).
 
 All authoring implementations are TypeScript. Browser entries and worklet adapters are bundled from
 source with pinned esbuild; bundling does not replace type checking. The browser build uses pngjs's
@@ -150,8 +150,12 @@ labels and known-course ordering remain shell settings until stage 10-5.
 Only the manifest writer owns output naming. Browsers, Node consumers, startup smoke and public-site
 verification read indexed content through the shared reader, never by reconstructing output paths.
 Authoring inputs under `content/` still use explicit source filenames and image directories.
-Build first writes completed vehicle images and their manifest entry, stages vehicle/driving documents and courses/images, then
-loads the verified definitions from that index. Reference workers independently read the same
+The browser-tools build writes only `dist/tools`: the bundled tools, the Sprite Tool's PNG example and
+the LOD filter sample. The content build writes `dist/content` from authored documents in one pass, in
+dependency order: the vehicle sprite library (compiled LOD and admitted), surface materials, vehicle and
+driving definitions (admitted against that in-build library), courses and their images, then reference
+runs. Each stage receives earlier products directly; no stage reads back delivered content. The build
+saves the manifest before the references; reference workers run in separate threads, read the same
 `dist/content` definitions and courses, generate envelopes/runs, and add envelopes/budgets before
 publishing the completed build. Only timed courses (rules with CLASSIC settings) receive reference runs
 and budgets; the build reads this from each course document. Node tools also read vehicle/driving definitions from this distribution.
