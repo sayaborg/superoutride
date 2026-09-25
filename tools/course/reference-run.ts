@@ -51,7 +51,7 @@ export function runCourseReference(
     vehicleConfiguration = browserSessionVehicle(entry, definitions.driving);
   const session = resolveCourseSession(
     course,
-    { mode: 'CUSTOM', rivalCount: 0, lapCount, countdown: false },
+    { mode: 'CUSTOM', rivalCount: 0, lapCount, timeLimit: false },
     vehicleConfiguration,
     envelope,
   );

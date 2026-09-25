@@ -19,7 +19,7 @@ export function resolveCourseSession(
   const preset = course.rules.classic;
   const configuration: Readonly<SessionConfiguration> =
     requested.mode === 'CLASSIC'
-      ? Object.freeze({ mode: 'CLASSIC', rivalCount: preset.rivalCount, lapCount: preset.lapCount, countdown: true })
+      ? Object.freeze({ mode: 'CLASSIC', rivalCount: preset.rivalCount, lapCount: preset.lapCount, timeLimit: true })
       : requested;
   if (configuration.mode === 'CLASSIC' && vehicle.compiledVehicle.id !== preset.vehicleId)
     throw new RangeError('CLASSIC requires its preset vehicle');
@@ -27,7 +27,8 @@ export function resolveCourseSession(
     throw new RangeError('Lap count exceeds the authored course limit');
   if (configuration.rivalCount >= course.gates!.grid.length)
     throw new RangeError('The authored grid cannot hold this field');
-  if (configuration.countdown && !budgets) throw new RangeError('Countdown requires current, complete reference runs');
+  if (configuration.timeLimit && !budgets)
+    throw new RangeError('A time limit requires current, complete reference runs');
   const rivalUtilization = 0.75;
   // The entire current roster shares this admitted vehicle and envelope, including a solo player.
   const driver = compileEnvelopeDriver(envelope, rivalUtilization, envelope.maximumSpeed);
@@ -48,7 +49,7 @@ export function resolveCourseSession(
     initialSpeed: 0,
     rivalUtilization,
     envelope,
-    budgets: configuration.countdown ? budgets : null,
+    budgets: configuration.timeLimit ? budgets : null,
   });
 }
 

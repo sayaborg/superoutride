@@ -54,7 +54,7 @@ test('Session rejects short terminal runout, including solo play; forks and loop
     definitions.driving,
   );
   const { envelope } = await (await readDeliveredContent()).json('envelope', 'TESTAROSSA');
-  const configuration = { mode: 'CUSTOM', rivalCount: 0, lapCount: 1, countdown: false };
+  const configuration = { mode: 'CUSTOM', rivalCount: 0, lapCount: 1, timeLimit: false };
   assert.doesNotThrow(() => resolveCourseSession(course, configuration, vehicle, envelope));
   const short = {
     ...course,

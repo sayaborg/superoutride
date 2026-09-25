@@ -19,12 +19,12 @@ uses authored yaw and motorcycle-bank images.
 
 ## 2. Sessions and play
 
-CLASSIC uses the course's vehicle, rival count, lap count and checkpoint countdown. CUSTOM offers
-vehicle selection, zero to sixteen rivals, the permitted lap count and countdown on/off.
+CLASSIC uses the course's vehicle, rival count, lap count and checkpoint time limit. CUSTOM offers
+vehicle selection, zero to sixteen rivals, the permitted lap count and time limit on/off.
 The setup screen resolves these settings before START; vehicle and handling settings are locked
 for the run. [Browser](browser.md) owns controls and URL settings.
 
-Sessions use standing starts. Checkpoints add time to a running countdown; a terminal goal or the
+Sessions use standing starts. Checkpoints add time to a running time limit; a terminal goal or the
 required completed laps ends the run. GOAL and GAME OVER show the final rank and elapsed time.
 PAUSE suspends the run, and NEW SESSION returns to setup.
 

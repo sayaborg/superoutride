@@ -81,7 +81,7 @@ export function runScenario({ course, ground }, scenario) {
   const scene = createCourseScene(course.entry, ground, course.gates, definitions.vehicles, settings);
   const session = resolveCourseSession(
     course,
-    { mode: 'CUSTOM', rivalCount: scenario.rivals ?? 0, lapCount: scenario.laps ?? 1, countdown: false },
+    { mode: 'CUSTOM', rivalCount: scenario.rivals ?? 0, lapCount: scenario.laps ?? 1, timeLimit: false },
     configuration,
     envelope,
   );

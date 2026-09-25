@@ -251,9 +251,9 @@ export function createCourseRace(options: {
       }
       const start = player.timing.elapsedSeconds < 1 ? 'GO · ' : '';
       const remaining = clock.remainingSeconds;
-      const countdown = remaining === null ? '' : ` · TIME ${Math.ceil(remaining)}`;
+      const timeLeft = remaining === null ? '' : ` · TIME ${Math.ceil(remaining)}`;
       const extension = clock.extensionMs > 0 ? ` · TIME EXTEND +${(clock.extensionMs / 1000).toFixed(1)}` : '';
-      return `${start}${state}${countdown}${extension} · P${rank}/${rivals.length + 1} · ${formatRaceTime(clock.elapsedSeconds)}`;
+      return `${start}${state}${timeLeft}${extension} · P${rank}/${rivals.length + 1} · ${formatRaceTime(clock.elapsedSeconds)}`;
     },
   });
 }

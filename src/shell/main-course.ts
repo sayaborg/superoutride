@@ -40,7 +40,7 @@ try {
   const entry = vehicles.find((v) => v.compiledVehicle.id === settings.vehicleId)!;
   const vehicle = browserSessionVehicle(entry, driving);
   const rivalEnvelope = await readVehicleEnvelope(vehicle, await content.json('envelope', vehicle.compiledVehicle.id));
-  const budgets = settings.countdown
+  const budgets = settings.timeLimit
     ? await readCourseTimeBudgets(
         course,
         vehicle,

@@ -14,11 +14,11 @@ export function readBrowserSessionSettings(
   if (mode !== 'CLASSIC' && mode !== 'CUSTOM') throw new RangeError('Unknown Session mode');
   const values =
     mode === 'CLASSIC'
-      ? { ...preset, countdown: true }
+      ? { ...preset, timeLimit: true }
       : {
           rivalCount: Number(params.get('rivals') ?? preset.rivalCount),
           lapCount: Number(params.get('laps') ?? preset.lapCount),
-          countdown: params.get('clock') !== 'off',
+          timeLimit: params.get('clock') !== 'off',
           vehicleId: params.get('vehicle') ?? preset.vehicleId,
         };
   if (!vehicles.some((v) => v.compiledVehicle.id === values.vehicleId)) throw new RangeError('Unknown Session vehicle');
@@ -92,7 +92,7 @@ export function mountCourseSessionControls(
       { value: 'on', label: 'ON' },
       { value: 'off', label: 'OFF' },
     ],
-    current.countdown ? 'on' : 'off',
+    current.timeLimit ? 'on' : 'off',
   );
   const lockPreset = () => {
     const classic = mode.value === 'CLASSIC';

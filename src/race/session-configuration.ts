@@ -16,7 +16,7 @@ export interface SessionConfiguration {
   /** Opponents only; the player is not included. */
   readonly rivalCount: number;
   readonly lapCount: number;
-  readonly countdown: boolean;
+  readonly timeLimit: boolean;
 }
 
 export function compileSessionConfiguration(authoring: SessionConfiguration): Readonly<SessionConfiguration> {
@@ -30,11 +30,11 @@ export function compileSessionConfiguration(authoring: SessionConfiguration): Re
     throw new RangeError(`session rivalCount must be an integer within 0..${SESSION_RULE_LIMITS.rivals}`);
   if (!Number.isInteger(authoring.lapCount) || authoring.lapCount < 1 || authoring.lapCount > SESSION_RULE_LIMITS.laps)
     throw new RangeError(`Session lapCount must be an integer within 1..${SESSION_RULE_LIMITS.laps}`);
-  if (typeof authoring.countdown !== 'boolean') throw new TypeError('Session countdown must be boolean');
+  if (typeof authoring.timeLimit !== 'boolean') throw new TypeError('Session timeLimit must be boolean');
   return Object.freeze({
     mode: authoring.mode,
     rivalCount: authoring.rivalCount,
     lapCount: authoring.lapCount,
-    countdown: authoring.countdown,
+    timeLimit: authoring.timeLimit,
   });
 }

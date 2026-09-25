@@ -38,10 +38,10 @@ Session parameters are case-sensitive:
 | `vehicle`   | Exact catalog vehicle ID for CUSTOM, such as `TESTAROSSA`; absent uses preset                 |
 | `rivals`    | CUSTOM count parsed with `Number`; integer 0–16 within grid capacity; absent uses preset      |
 | `laps`      | CUSTOM count parsed with `Number`; positive integer within course limit; non-circuits use one |
-| `clock`     | CUSTOM countdown: exactly `off` disables it, all other values enable it                       |
+| `clock`     | CUSTOM time limit: exactly `off` disables it, all other values enable it                      |
 | `autostart` | Exactly `1` starts after loading; other values show setup                                     |
 
-CLASSIC uses the saved vehicle, rivals and laps with countdown enabled, ignoring their individual
+CLASSIC uses the saved vehicle, rivals and laps with the time limit enabled, ignoring their individual
 query overrides. CUSTOM exposes those settings. Invalid vehicle, numeric or course/Session combinations
 produce an error. Setup locks preset fields in CLASSIC and disables a single-lap course's lap control.
 
