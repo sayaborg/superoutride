@@ -54,8 +54,8 @@ interface VehicleControlState {
   rearDriveTorque: number;
   requestedFrontBrakeTorque: number;
   requestedRearBrakeTorque: number;
-  supportTorqueScale: number;
-  supportFeasible: boolean;
+  pitchBrakeScale: number;
+  pitchFeasible: boolean;
   frontBrakeTorque: number;
   rearBrakeTorque: number;
   frontWheelLocked: boolean;
@@ -168,8 +168,8 @@ export function createVehicleControlState(): VehicleControlState {
     rearDriveTorque: 0,
     requestedFrontBrakeTorque: 0,
     requestedRearBrakeTorque: 0,
-    supportTorqueScale: 1,
-    supportFeasible: true,
+    pitchBrakeScale: 1,
+    pitchFeasible: true,
     frontBrakeTorque: 0,
     rearBrakeTorque: 0,
     frontWheelLocked: false,

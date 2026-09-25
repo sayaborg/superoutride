@@ -8,6 +8,8 @@ import { createVehicleSteeringCalibration } from './vehicle-calibration.js';
 const PASCALS_PER_BAR = 1e5;
 // Upper domain keeps the stiffest spring well inside the fixed substep's explicit stability.
 const SUSPENSION_PROGRESSION_MAX = 50;
+// Pitch protection measures a small attitude against the road line; beyond this it is not a limit.
+const PITCH_LIMIT_MAX_DEGREES = 45;
 
 /** Convert explicit design input at vehicle admission; never consult a vehicle definition. */
 export function createDrivingSettings(definition: DrivingDefinition) {
@@ -33,6 +35,14 @@ export function createDrivingSettings(definition: DrivingDefinition) {
     throw new DefinitionDomainError(
       'suspensionProgression',
       `suspensionProgression must lie in [1,${SUSPENSION_PROGRESSION_MAX}]`,
+    );
+  if (
+    !(definition.pitchLimitDegrees > 0 && definition.pitchLimitDegrees <= PITCH_LIMIT_MAX_DEGREES) ||
+    !Number.isFinite(definition.pitchLimitDegrees)
+  )
+    throw new DefinitionDomainError(
+      'pitchLimitDegrees',
+      `pitchLimitDegrees must lie in (0,${PITCH_LIMIT_MAX_DEGREES}]`,
     );
   if (!(definition.drivelineEfficiency > 0 && definition.drivelineEfficiency <= 1))
     throw new DefinitionDomainError('drivelineEfficiency', 'drivelineEfficiency must lie in (0,1]');
@@ -67,6 +77,7 @@ export function createDrivingSettings(definition: DrivingDefinition) {
     }) satisfies PowertrainRules,
     actuator,
     suspensionProgression: definition.suspensionProgression,
+    pitchLimit: (definition.pitchLimitDegrees * Math.PI) / 180,
     steeringCalibration: withDefinitionPath(
       () =>
         createVehicleSteeringCalibration({

@@ -62,8 +62,8 @@ coefficients per unit normal load and share one authored set for front and rear.
 not difficulty controls.
 
 The same definition selects travel-direction automatic steering and `wheelSlip=true` (TCS, MSR and
-ABS). TCS, MSR (engine-braking slip) and the drive side of support protection act only through the
-engine's effective opening; ABS and the brake side of support protection act on the pedal brake. The
+ABS). TCS, MSR (engine-braking slip) and the nose-up side of pitch protection act only through the
+engine's effective opening; ABS and the nose-down side of pitch protection act on the pedal brake. The
 driver's throttle actuator keeps its traversal time as the requested opening, and the opening's
 bounds take effect within each mechanics substep. Drive is split by the fixed front drive fraction,
 so a bound from either axle changes drive to both.
@@ -80,8 +80,10 @@ wheel-derived RPM reaches engine speed and at least `clutchLockIdleMargin=0.02` 
 locked clutch slips below idle; the curve's peak-torque RPM limits a slipping engine.
 `clutchCapacityFactor=1.5` sets the slipping clutch's fixed capacity to 1.5 times the curve's
 maximum torque; it must exceed 1 so an ordinary launch transmits the full engine torque. None of these
-is a vehicle value. Two-wheel support reserve
-remains a form-specific 0.08 until 8-7; four-wheel support reserve is null.
+is a vehicle value. `pitchLimitDegrees=15` is the game-wide pitch protection limit, nose up and nose
+down, for both forms, against the road line under the wheels
+([Vehicle physics](vehicle-physics.md#torque-protection)); it is edited only in the file. Torque
+protection is the same for both forms.
 Tire and steering low-speed regularization are engine constants of 1.0 m/s.
 
 The full driving source document participates in vehicle identity for generated envelopes, reference

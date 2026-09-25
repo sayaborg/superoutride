@@ -3,11 +3,11 @@
 CAR and BIKE use one two-station vehicle solver with yaw and pitch. Contact and control constraints
 use a local heightfield approximation. The model separates these inputs:
 
-| Boundary           | Parameters                                                                                           |
-| ------------------ | ---------------------------------------------------------------------------------------------------- |
-| Compiled vehicle   | Mass, geometry, inertia, suspension, wheel/brake data, drag, fixed drive split, powertrain           |
-| Driving definition | Travel-direction steering, M/D/ACT, pedal actuators, TCS/ABS and shared dimensionless per-load tires |
-| Composition policy | Fixed update step and form-specific two-wheel support protection                                     |
+| Boundary           | Parameters                                                                                          |
+| ------------------ | --------------------------------------------------------------------------------------------------- |
+| Compiled vehicle   | Mass, geometry, inertia, suspension, wheel/brake data, drag, fixed drive split, powertrain          |
+| Driving definition | Travel-direction steering, M/D/ACT, pedal actuators, TCS/ABS, pitch limit and shared per-load tires |
+| Composition policy | Fixed update step                                                                                   |
 
 [Driving definition](../content/driving/default.json) is the sole authority for game-wide driving
 values; these are design values, not difficulty settings. Its immutable, nested plain data contains
@@ -17,8 +17,7 @@ travel-direction steering, M=65 degrees, D=20 degrees, ACT=0.3 seconds, throttle
 
 Document admission converts degrees and traversal times to runtime angles/rates and compiles the tire law
 once. [`createVehicleModel`](../src/vehicle/physics/vehicle-model.ts) is the single place that builds a
-vehicle model from the compiled vehicle, the compiled driving product and the explicit form-specific
-support reserve. The model is one immutable value, frozen throughout: the compiled vehicle, actuator
+vehicle model from the compiled vehicle and the compiled driving product. The model is one immutable value, frozen throughout: the compiled vehicle, actuator
 rates, M/D/ACT steering, front/rear tire characteristics, the powertrain constants and the
 torque-protection policy. Admitted powertrain values are not revalidated when a model is built.
 Browser, race, reference/envelope tools, scenarios, startup smoke and image generation use the same
@@ -28,9 +27,9 @@ field from the model. DEV tuning edits the driving definition and rebuilds the p
 the next step uses the replacement, and a vehicle switch builds the new vehicle's model from the same
 tuned definition. The front/rear tire slots remain for now; both start with the same coefficients.
 
-`SessionVehicle` holds only the admitted vehicle and driving definitions; `createVehicleModel` derives
-the form-specific support reserve from the vehicle definition's form, and `vehicleSha256` hashes both
-source documents.
+`SessionVehicle` holds the admitted vehicle, driving and surface-material definitions;
+`createVehicleModel` derives nothing from the vehicle's form, and `vehicleSha256` hashes the source
+documents.
 [Content and gameplay](content-and-gameplay.md#reference-times-and-clock) owns this cross-product identity.
 
 The engine owns tire and steering low-speed regularization (both 1.0 m/s) in
@@ -126,6 +125,7 @@ Airborne driving is an ordinary state. Unsupported contacts carry no load and no
 wheels, powertrain (including free-revving and fuel cut), steering actuators, rendering and audio run
 under their ordinary laws, and landings stay in the simulation through the suspension and its bump
 stop. No time limit applies to unsupported flight, and body rotation in the air never recovers by itself.
+Pitch protection is inactive in the air; see [Torque protection](#torque-protection).
 
 Recovery applies only when driving cannot continue. After each gameplay step, recovery checks the
 first three conditions in order; race composition and the player request the last two:
@@ -340,22 +340,32 @@ without force are unbounded. ABS limits each pedal brake against the signed driv
 delivered; drive within both bounds never limits the pedal brake below its ABS value at zero drive,
 so the bounds stay valid. Low-speed ABS yields to the signed static brake solve.
 
-Two-wheel support protection reserves 8% of static suspension compression against pedal-induced lift:
+Pitch protection keeps the body within `pitchLimitDegrees` (15°) of the road, nose up and nose down,
+for both forms. Pitch is the angle of the body's forward axis to the line joining the road points under
+the front and rear contacts, positive nose up. Each road point is the heightfield point sampled below
+its contact's free suspension reach point, also when that wheel is off the ground, so suspension
+attitude is included and grades are not. The pitch rate is the body pitch rate minus the line's
+rotation rate, from the two contacts' velocities along the road. Protection is inactive in the air
+(neither contact loaded) and when either road point lies outside the coordinate domain; material-free
+ground still supplies its heightfield point.
+
+Protection anticipates the limit with a critically damped barrier on the remaining angle `h`:
 
 ```text
-qAcceleration+2*w*qVelocity+w^2*(q-reserve*qStatic) >= 0
-w = sqrt(g/qStatic)
+h'' + 2*w*h' + w^2*h >= 0      w = 6 rad/s
+h = limit - pitch (nose up)    h = pitch + limit (nose down)
 ```
 
-The acceleration uses the integration wrench and current angular motion. The drive side checks front
-support and becomes part of the drive-torque bound: with the brake request fixed, it tests the drive
-torque the requested opening would deliver (capped by TCS), and if that fails but zero drive holds,
-12 bounded bisections of total drive torque select a feasible sampled lower endpoint; if zero drive
-also fails, the bound is zero. The brake side checks rear support in the final wheel solve with the
-delivered drive torque: a failing brake request bisects one brake scale 12 times, and if zero brake
-also fails, brake torque is zero and `supportFeasible=false`. Each side needs an opposite loaded
-station; ordinary contact, gravity and inertia continue.
-The constraint applies to the current local support state.
+`h''` uses the body pitch acceleration of the integration wrench; the road line's own acceleration is
+neglected. The nose-up side is part of the drive-torque bound: with the brake request fixed, it tests
+the drive torque the requested opening would deliver (capped by TCS), and if that fails but zero
+drive holds, 12 bounded bisections of total drive torque select a feasible sampled lower endpoint;
+if zero drive also fails, the bound is zero. The nose-down side acts in the final wheel solve with
+the delivered drive torque: a failing brake request bisects one brake scale 12 times, applying ABS
+to each trial, and if zero brake also fails, brake torque is zero and `pitchFeasible=false`.
+Protection only reduces the opening and the brake; it adds no restoring force, also when a landing
+or a step has rotated the body beyond the limit. The bound is a continuous function of the current
+state, so it does not chatter near the limit. Torque protection is the same for both forms.
 
 ## Actuators and steering
 
@@ -419,7 +429,7 @@ publishes one immutable catalog. Course compilation resolves Strip material IDs 
 runtime physics receives the resolved object or `null`, never a fixed material enum.
 
 `content/vehicles/<id>.json` stores one `superoutride.vehicle-definition` version 6 per vehicle.
-`content/driving/default.json` stores the sole `superoutride.driving-definition` version 7.
+`content/driving/default.json` stores the sole `superoutride.driving-definition` version 8.
 [Calibration](calibration.md) owns tuning meanings and units. Document admission in
 `vehicle/definition-document.ts` publishes detached, deeply immutable source and compiled products.
 
@@ -437,14 +447,15 @@ runtime physics receives the resolved object or `null`, never a fixed material e
 Vehicle numerical domains and cross-field relationships are those of vehicle, suspension and
 powertrain compilation: positive mass/inertia/geometry, finite nonnegative brakes/drag/damping,
 front drive fraction in [0,1], feasible static suspension compression and ordered gear/torque data.
-No dimensions or support reserve are saved in this format.
+No dimensions are saved in this format.
 
 The driving document has `format`, `version`, `id:"default"` and the current `DrivingDefinition`
 fields: `automaticSteering:"travel-direction"`, `maxRoadWheelSteerDegrees`, `steeringOffsetDegrees`,
 `steeringTraversalSeconds`, positive `fuelCutRedlineMargin`, positive
 `idleFrictionMeanEffectivePressureBar` and `redlineFrictionMeanEffectivePressureBar`,
 `drivelineEfficiency` in (0,1], positive `engineInertiaKilogramSquareMetersPerLitre`, positive
-`clutchLockIdleMargin`, `clutchCapacityFactor` above 1, `suspensionProgression` in [1,50], `throttle`
+`clutchLockIdleMargin`, `clutchCapacityFactor` above 1, `suspensionProgression` in [1,50],
+`pitchLimitDegrees` in (0,45], `throttle`
 and `brake` (each applySeconds/releaseSeconds), boolean
 `wheelSlip`, and `tire` (gripX/peakSlipX/gripY/peakSlipY/knee). Angles are degrees, traversal times
 are seconds, pressures are bar, inertia is kg m² per litre, and tire, fuel-cut and efficiency values

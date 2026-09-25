@@ -325,8 +325,8 @@ export function updateVehicle(
       vehicle.control.requestedRearBrakeTorque = rearRequest.brakeTorque;
       vehicle.control.frontBrakeTorque = resolved.frontInput.brakeTorque;
       vehicle.control.rearBrakeTorque = resolved.rearInput.brakeTorque;
-      vehicle.control.supportTorqueScale = resolved.supportScale;
-      vehicle.control.supportFeasible = resolved.supportFeasible;
+      vehicle.control.pitchBrakeScale = resolved.pitchBrakeScale;
+      vehicle.control.pitchFeasible = resolved.pitchFeasible;
       publishVehicleTireObservation(vehicle, front, frontWheel, rear, rearWheel);
       vehicle.control.frontWheelLocked = frontWheel.locked;
       vehicle.control.rearWheelLocked = rearWheel.locked;

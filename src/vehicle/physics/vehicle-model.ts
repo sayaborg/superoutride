@@ -29,13 +29,10 @@ export interface VehicleModelInput {
   readonly drivingDefinition: CompiledDrivingDefinition;
 }
 
-// Temporary form-specific policy until airborne support is revised in 8-7; never saved as vehicle data.
-const TWO_WHEEL_SUPPORT_RESERVE = 0.08;
-
-/** The single place a vehicle model is built; the form policy is derived here. */
+/** The single place a vehicle model is built. */
 export function createVehicleModel(input: VehicleModelInput): VehicleModel {
   const driving = input.drivingDefinition.settings;
-  const { compiledVehicle, form } = input.vehicleDefinition;
+  const { compiledVehicle } = input.vehicleDefinition;
   return freezeModel({
     compiledVehicle,
     actuator: driving.actuator,
@@ -44,7 +41,7 @@ export function createVehicleModel(input: VehicleModelInput): VehicleModel {
     powertrain: resolvePowertrainConstants(compiledVehicle.powertrain, driving.powertrain),
     torqueProtection: resolveTorqueProtectionPolicy({
       wheelSlip: input.drivingDefinition.source.wheelSlip,
-      supportReserve: form === 'bike' ? TWO_WHEEL_SUPPORT_RESERVE : null,
+      pitchLimit: driving.pitchLimit,
     }),
     suspensionProgression: driving.suspensionProgression,
   });

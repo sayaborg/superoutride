@@ -577,7 +577,7 @@ Identity includes course/compiler, vehicle/calibration/protection, driver policy
 and seed inputs. The vehicle digest (`sessionVehicleSha256`) is SHA-256 of the deterministic JSON
 serialization of the admitted vehicle source document, driving source document and surface-material
 source document. The vehicle source includes form, metadata and sound ID. Everything else a Session
-drives—compiled mechanics, driving settings, form-derived support reserve and material physics—derives
+drives—compiled mechanics, driving settings and material physics—derives
 from those sources. Definition readers construct these records in a fixed field order; arbitrary input
 key order does not affect identity. Any vehicle, driving or surface-material value change changes
 `vehicleSha256`. This digest is a

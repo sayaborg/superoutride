@@ -1,6 +1,8 @@
 import { TIRE_LOW_SPEED_REGULARIZATION } from './numerical-constants.js';
 import { type Writable } from '../../core/writable.js';
-const SUPPORT_BISECTION_ITERATIONS = 12;
+const PITCH_BISECTION_ITERATIONS = 12;
+// Rad/s: critically damped response of the pitch barrier; sets how early protection anticipates the limit.
+const PITCH_BARRIER_FREQUENCY = 6;
 
 import {
   createTireForceScratch,
@@ -11,26 +13,26 @@ import {
   type WheelSolveInput,
   type WheelSolveResult,
 } from './tire-wheel.js';
-import { VEHICLE_GRAVITY, type BodyKinematics, type ContactObservation } from './vehicle-dynamics.js';
-import { add3, cross3, dot3, scale3, sub3, WORLD_UP } from '../../core/vector3.js';
+import type { BodyKinematics, ContactObservation } from './vehicle-dynamics.js';
+import { cross3, dot3, normalize3, sub3, type Vec3 } from '../../core/vector3.js';
 import type { CompiledVehicle } from './vehicle-definitions.js';
 import { createWrenchWorkspace, evaluateVehicleWrench, type VehicleWrench } from './vehicle-wrench.js';
 
 /** Composition policy, not controller memory and not a tire coefficient. */
 export interface TorqueProtectionPolicy {
   readonly wheelSlip: boolean;
-  /** Fraction of static suspension compression reserved against pitch-induced separation. */
-  readonly supportReserve: number | null;
+  /** Radians: nose-up and nose-down pitch limit against the road line under the wheels. */
+  readonly pitchLimit: number;
 }
 export function resolveTorqueProtectionPolicy(policy: TorqueProtectionPolicy): Readonly<TorqueProtectionPolicy> {
   if (
     typeof policy.wheelSlip !== 'boolean' ||
-    (policy.supportReserve !== null &&
-      (!Number.isFinite(policy.supportReserve) || policy.supportReserve <= 0 || policy.supportReserve >= 1))
+    !Number.isFinite(policy.pitchLimit) ||
+    !(policy.pitchLimit > 0 && policy.pitchLimit < Math.PI / 2)
   ) {
-    throw new RangeError('torque policy needs boolean wheelSlip and null or (0,1) support reserve');
+    throw new RangeError('torque policy needs boolean wheelSlip and a pitch limit in (0,pi/2)');
   }
-  return Object.freeze({ wheelSlip: policy.wheelSlip, supportReserve: policy.supportReserve });
+  return Object.freeze({ wheelSlip: policy.wheelSlip, pitchLimit: policy.pitchLimit });
 }
 
 /** Pure-axis slip at the control boundary. P is an explicitly selected control boundary, not a
@@ -116,40 +118,73 @@ interface ProtectedWheelPair {
   readonly frontWheel: WheelSolveResult;
   readonly rearWheel: WheelSolveResult;
   readonly wrench: VehicleWrench;
-  readonly supportScale: number;
-  readonly supportFeasible: boolean;
+  readonly pitchBrakeScale: number;
+  readonly pitchFeasible: boolean;
 }
 
-/** Local tangent-plane compression barrier using the SAME wrench as the physical update.
- * q'' + 2*w*q' + w*w*(q-reserve*qStatic) >= 0, w from the existing suspension frequency.
- * No synthetic normal load; gravity, wheel reaction and current angular motion are retained.
+/**
+ * Pitch against the road line: the angle of the body's forward axis to the line joining the road
+ * points under the front and rear contacts (suspension attitude included), positive nose up, and its
+ * rate, the body pitch rate minus the line's rotation from the contacts' along-road velocities.
+ * Inactive in the air (neither contact loaded) or when a road point is outside the coordinate domain.
  */
-function supportCompressionMargin(
+export interface RoadPitch {
+  active: boolean;
+  angle: number;
+  rate: number;
+}
+export function createRoadPitch(): RoadPitch {
+  return { active: false, angle: 0, rate: 0 };
+}
+export function observeRoadPitch(
+  body: BodyKinematics,
+  front: ContactObservation,
+  rear: ContactObservation,
+  out: RoadPitch,
+  scratch: { a: Writable<Vec3>; b: Writable<Vec3>; c: Writable<Vec3> },
+): RoadPitch {
+  out.active =
+    (front.normalLoad > 0 || rear.normalLoad > 0) &&
+    front.surface.coordinate.inDomain &&
+    rear.surface.coordinate.inDomain;
+  if (!out.active) {
+    out.angle = out.rate = 0;
+    return out;
+  }
+  const chord = sub3(front.surface.point, rear.surface.point, scratch.a);
+  const length = Math.hypot(chord.x, chord.y, chord.z);
+  const along = normalize3(chord, scratch.a);
+  const lineUp = normalize3(cross3(along, body.right, scratch.b), scratch.b);
+  out.angle = Math.atan2(dot3(body.forward, lineUp), dot3(body.forward, along));
+  const frontRate = alongRoadVelocity(front, lineUp),
+    rearRate = alongRoadVelocity(rear, lineUp);
+  out.rate = -dot3(body.omegaWorld, body.right) - (frontRate - rearRate) / length;
+  return out;
+}
+/** Line-normal velocity of the road point under a contact, which follows the contact along the road. */
+function alongRoadVelocity(contact: ContactObservation, lineUp: Vec3): number {
+  const n = contact.surface.normal,
+    v = contact.reachVelocity;
+  const normal = dot3(v, n);
+  return (v.x - n.x * normal) * lineUp.x + (v.y - n.y * normal) * lineUp.y + (v.z - n.z * normal) * lineUp.z;
+}
+
+/**
+ * Critically damped barrier h''+2w*h'+w^2*h >= 0 on the remaining angle h to one limit, with the
+ * body pitch acceleration of the SAME wrench as the physical update (line acceleration neglected).
+ * direction +1 guards nose up (h = limit-angle), -1 guards nose down (h = angle+limit).
+ */
+function pitchMargin(
   compiledVehicle: CompiledVehicle,
   body: BodyKinematics,
-  contact: ContactObservation,
+  pitch: RoadPitch,
   wrench: VehicleWrench,
-  reserve: number,
+  limit: number,
+  direction: 1 | -1,
 ): number {
-  const yawRate = dot3(body.omegaWorld, WORLD_UP);
-  const omegaRight = dot3(body.omegaWorld, body.right);
-  const angularAcceleration = add3(
-    add3(
-      scale3(WORLD_UP, wrench.moment.y / compiledVehicle.yawInertia),
-      scale3(body.right, dot3(wrench.moment, body.right) / compiledVehicle.pitchInertia),
-    ),
-    scale3(cross3(WORLD_UP, body.right), yawRate * omegaRight),
-  );
-  const offset = sub3(contact.reachPoint, body.position);
-  const reachAcceleration = add3(
-    scale3(wrench.force, 1 / compiledVehicle.mass),
-    add3(cross3(angularAcceleration, offset), cross3(body.omegaWorld, cross3(body.omegaWorld, offset))),
-  );
-  const qAcceleration = -dot3(reachAcceleration, contact.surface.normal);
-  const qVelocity = -dot3(contact.reachVelocity, contact.surface.normal);
-  const qStatic = contact.station.suspension.qStatic;
-  const frequency = Math.sqrt(VEHICLE_GRAVITY / qStatic);
-  return qAcceleration + 2 * frequency * qVelocity + frequency * frequency * (-contact.gap - reserve * qStatic);
+  const acceleration = -dot3(wrench.moment, body.right) / compiledVehicle.pitchInertia;
+  const w = PITCH_BARRIER_FREQUENCY;
+  return -direction * (acceleration + 2 * w * pitch.rate) + w * w * (limit - direction * pitch.angle);
 }
 
 export function createProtectedWheelPairWorkspace(front: WheelSolveInput, rear: WheelSolveInput) {
@@ -160,8 +195,8 @@ export function createProtectedWheelPairWorkspace(front: WheelSolveInput, rear: 
       frontWheel: createWheelSolveResult(),
       rearWheel: createWheelSolveResult(),
       wrench: createWrenchWorkspace().value,
-      supportScale: 1,
-      supportFeasible: true,
+      pitchBrakeScale: 1,
+      pitchFeasible: true,
     },
     frontInput: { ...front },
     rearInput: { ...rear },
@@ -169,7 +204,13 @@ export function createProtectedWheelPairWorkspace(front: WheelSolveInput, rear: 
     tire: createTireForceScratch(),
     residual: new Float64Array(1),
   });
-  return { first: candidate(), second: candidate() };
+  const v = () => ({ x: 0, y: 0, z: 0 });
+  return {
+    first: candidate(),
+    second: candidate(),
+    pitch: createRoadPitch(),
+    pitchScratch: { a: v(), b: v(), c: v() },
+  };
 }
 type PairCandidate = ReturnType<typeof createProtectedWheelPairWorkspace>['first'];
 /** Copies a request with the given drive torque and scaled brake, then applies ABS to the brake. */
@@ -233,8 +274,8 @@ function evaluatePair(
   solveWheelOmega(out.rearInput, out.rearWheel, candidate.residual, candidate.tire);
   evaluateVehicleWrench(compiledVehicle, body, front, rear, out.frontWheel, out.rearWheel, candidate.wrench);
   out.wrench = candidate.wrench.value;
-  out.supportScale = brakeScale;
-  out.supportFeasible = true;
+  out.pitchBrakeScale = brakeScale;
+  out.pitchFeasible = true;
   return out;
 }
 
@@ -242,9 +283,9 @@ function evaluatePair(
  * Bounds on total drive-wheel torque, computed from the tires before the powertrain chooses its
  * opening. Requests carry the brake request and zero drive. Each driven station's bound is divided
  * by its fixed drive fraction and the tighter station bounds the total. TCS gives the upper bound
- * and MSR the lower bound (engine braking). With a support reserve, the drive side of anti-wheelie
- * bisects positive total drive torque, brake fixed, until the front support margin holds; the
- * requested drive torque caps that search. The bounds only limit the effective opening; drive
+ * and MSR the lower bound (engine braking). The nose-up side of pitch protection bisects positive
+ * total drive torque, brake fixed, until the pitch barrier holds; the requested drive torque caps
+ * that search. The bounds only limit the effective opening; drive
  * torque is never trimmed after the powertrain.
  */
 export function solveDriveTorqueBounds(
@@ -280,6 +321,7 @@ export function solveDriveTorqueBounds(
     rearRequest,
     policy,
     requestedDriveTorque,
+    observeRoadPitch(body, front, rear, workspace.pitch, workspace.pitchScratch),
     slot,
   );
   return out;
@@ -294,6 +336,7 @@ function driveTorqueUpperBound(
   rearRequest: WheelSolveInput,
   policy: TorqueProtectionPolicy,
   requestedDriveTorque: number,
+  pitch: RoadPitch,
   slot: PairCandidate,
 ): number {
   const frontFraction = compiledVehicle.frontDriveTorqueFraction;
@@ -304,17 +347,8 @@ function driveTorqueUpperBound(
     if (frontFraction < 1)
       upper = Math.min(upper, tcsDriveTorqueBound(rearRequest, slot.tire, slot.residual) / (1 - frontFraction));
   }
-  const reserve = policy.supportReserve;
   const requested = Math.min(requestedDriveTorque, upper);
-  if (
-    reserve === null ||
-    !(requested > 0) ||
-    !front.supportAvailable ||
-    !front.tireFrameValid ||
-    !(rear.normalLoad > 0) ||
-    !(dot3(body.up, front.surface.normal) > 0)
-  )
-    return upper;
+  if (!(requested > 0) || !pitch.active) return upper;
   const safe = (drive: number) => {
     const value = evaluatePair(
       compiledVehicle,
@@ -329,13 +363,13 @@ function driveTorqueUpperBound(
       1,
       slot,
     );
-    return supportCompressionMargin(compiledVehicle, body, front, value.wrench, reserve) >= 0;
+    return pitchMargin(compiledVehicle, body, pitch, value.wrench, policy.pitchLimit, 1) >= 0;
   };
   if (safe(requested)) return upper;
   if (!safe(0)) return 0;
   let lower = 0,
     unsafe = requested;
-  for (let i = 0; i < SUPPORT_BISECTION_ITERATIONS; i++) {
+  for (let i = 0; i < PITCH_BISECTION_ITERATIONS; i++) {
     const drive = (lower + unsafe) * 0.5;
     if (safe(drive)) lower = drive;
     else unsafe = drive;
@@ -345,8 +379,8 @@ function driveTorqueUpperBound(
 
 /**
  * One wheel-pair solve with the powertrain's drive torque delivered as requested. ABS limits each
- * brake; with a support reserve, the brake side of anti-wheelie bisects one brake scale until
- * the rear support margin holds. Every trial uses the unchanged solve and wrench.
+ * brake; the nose-down side of pitch protection bisects one brake scale until the pitch barrier
+ * holds. Every trial uses the unchanged solve and wrench.
  */
 export function solveProtectedWheelPair(
   compiledVehicle: CompiledVehicle,
@@ -377,27 +411,19 @@ export function solveProtectedWheelPair(
       slot,
     );
   const requested = evaluate(1, acceptedSlot);
-  const reserve = policy.supportReserve;
-  if (
-    reserve === null ||
-    !(frontRequest.brakeTorque + rearRequest.brakeTorque > 0) ||
-    !rear.supportAvailable ||
-    !rear.tireFrameValid ||
-    !(front.normalLoad > 0) ||
-    !(dot3(body.up, rear.surface.normal) > 0)
-  )
-    return requested;
+  const pitch = observeRoadPitch(body, front, rear, workspace.pitch, workspace.pitchScratch);
+  if (!(frontRequest.brakeTorque + rearRequest.brakeTorque > 0) || !pitch.active) return requested;
   const safe = (value: ProtectedWheelPair) =>
-    supportCompressionMargin(compiledVehicle, body, rear, value.wrench, reserve) >= 0;
+    pitchMargin(compiledVehicle, body, pitch, value.wrench, policy.pitchLimit, -1) >= 0;
   if (safe(requested)) return requested;
   const accepted = evaluate(0, acceptedSlot);
   if (!safe(accepted)) {
-    accepted.supportFeasible = false;
+    accepted.pitchFeasible = false;
     return accepted;
   }
   let lower = 0,
     upper = 1;
-  for (let i = 0; i < SUPPORT_BISECTION_ITERATIONS; i++) {
+  for (let i = 0; i < PITCH_BISECTION_ITERATIONS; i++) {
     const scale = (lower + upper) * 0.5;
     const candidate = evaluate(scale, trialSlot);
     if (safe(candidate)) {

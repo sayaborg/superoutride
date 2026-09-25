@@ -15,6 +15,8 @@ export interface DrivingDefinition {
   readonly clutchCapacityFactor: number;
   /** Suspension stiffness at full travel as a multiple of the ride spring rate; 1 is linear. */
   readonly suspensionProgression: number;
+  /** Game-wide pitch protection limit, both directions, relative to the road line under the wheels. */
+  readonly pitchLimitDegrees: number;
   readonly throttle: Readonly<{ applySeconds: number; releaseSeconds: number }>;
   readonly brake: Readonly<{ applySeconds: number; releaseSeconds: number }>;
   readonly wheelSlip: boolean;
@@ -23,6 +25,6 @@ export interface DrivingDefinition {
 
 export interface DrivingDocument extends DrivingDefinition {
   readonly format: 'superoutride.driving-definition';
-  readonly version: 7;
+  readonly version: 8;
   readonly id: 'default';
 }

@@ -11,7 +11,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **8-7d — Pitch protection**.
+Next PR: **8-8a — Content admission**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -21,7 +21,6 @@ PRs hold rationale and verification evidence.
 
 Give vehicles, driving assists, tires, powertrains and materials explicit definitions, and treat airborne driving as normal state.
 
-- **8-7d — Pitch protection:** a game-wide pitch limit of ±15° for both forms replaces the two-wheel support reserve. Pitch is the body's angle to the line joining the road points under the front and rear contacts, suspension attitude included. Drive-induced wheelies are limited through the opening's upper bound and brake-induced stoppies on the brake side; the protection is inactive in the air. Behavior changes.
 - **8-8a — Content admission:** one admission toolkit for every authored format (courses, vehicle and driving definitions, sprite images and sets, tile images, sprite sources), each reporting diagnostics at a document and JSON Pointer; build products keep plain internal checks. Report a split plan first if large. Behavior unchanged.
 - **8-8b — Required course rules:** course rules are mandatory, and race code receives them without non-null assertions. Behavior unchanged.
 - **8-8c — Remove unused code:** unused exports such as the `core/validation.ts` helpers, `headingFromDelta`, `createPlanarCoordinateSample` and `planSegmentBounds`. Behavior unchanged.
