@@ -11,7 +11,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **8-6b-3 — Shared composition in race**.
+Next PR: **8-6c — Definition export**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -21,8 +21,7 @@ PRs hold rationale and verification evidence.
 
 Give vehicles, driving assists, tires, powertrains and materials explicit definitions, and treat airborne driving as normal state.
 
-- **8-6b-3 — Shared composition in race:** the composition shared by browser, race and tools (Session vehicle, course scene, fixed step) moves from shell to race, tools stop importing shell (audio tools' DOM parts excepted), and SessionVehicle holds only the vehicle and driving definitions; form and support reserve are derived when the model is built. Behavior unchanged.
-- **8-6c — DEV tuning:** replace the model instead of mutating running settings, and export definitions in their saved formats. Behavior unchanged.
+- **8-6c — Definition export:** DEV exports the driving definition it has tuned (and the selected vehicle definition) in their saved formats, so an exported file can replace the content file as is. Behavior unchanged.
 - **8-7 — Materials and airborne state:** material definitions including tire effect kinds, jumps and airborne state, pitch-angle protection, suspension limits and recovery conditions. Split if large. Behavior changes. Pitch protection limits drive-induced wheelies through the opening's upper bound and brake-induced stoppies on the brake side.
 - **8-8a — Content admission:** one admission toolkit for every authored format (courses, vehicle and driving definitions, sprite images and sets, tile images, sprite sources), each reporting diagnostics at a document and JSON Pointer; build products keep plain internal checks. Report a split plan first if large. Behavior unchanged.
 - **8-8b — Required course rules:** course rules are mandatory, and race code receives them without non-null assertions. Behavior unchanged.
