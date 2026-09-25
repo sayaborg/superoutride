@@ -11,7 +11,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **8-5d2 — Provisional start**.
+Next PR: **8-5d-2 — Drive bound as opening limit**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -21,6 +21,8 @@ PRs hold rationale and verification evidence.
 
 Give vehicles, driving assists, tires, powertrains and materials explicit definitions, and treat airborne driving as normal state.
 
+- **8-5d-2 — Drive bound as opening limit:** torque protection computes the drive-wheel torque upper bound (TCS and the drive side of anti-wheelie) from the tires before the powertrain; the bound becomes the effective opening's upper bound, drive torque reaches the wheels untrimmed, and requested and delivered drive torque merge. Behavior changes.
+- **8-5d-3 — Engine braking and MSR:** engine braking becomes negative drive torque protected by the MSR lower bound on the opening instead of joining the brake magnitude; document bound priority. Behavior changes.
 - **8-5d2 — Provisional start:** a simple held start before GO with the clutch open, so the engine revs freely under the same law. Behavior changes.
 - **8-5e — Shift observations:** the powertrain reports each shift (up or down, engine speed before and after) for audio. Behavior unchanged.
 - **8-6a — Remove keyboard shortcuts:** remove every DEV keyboard shortcut (course, vehicle, steering and tire tuning, camera yaw, recovery); DEV UI buttons select everything, including a new recovery button. Driving keys stay. Driving behavior unchanged.
