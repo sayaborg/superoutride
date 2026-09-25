@@ -108,7 +108,7 @@ try {
     const started = performance.now();
     input = shell.inputManager.sample();
     const step = race.advance(input, dt);
-    lifecycle.update(dt, step.recovered);
+    lifecycle.update(step.recovered);
     performanceHud.step(performance.now() - started);
   };
   const render = () => {

@@ -43,7 +43,7 @@ Define persistent player settings, data-driven Sessions and product display inde
 - **10-1 — Framebuffer:** RGB555.
 - **10-2 — Player settings:** a persistent settings model.
 - **10-3 — Session rules:** one settings record, modes as rule data and TIME ATTACK; CUSTOM has no time limit. Model rival lifetime (whole race, per stage or until a fork) and fork decider (first arrival or player) as Session rule components, with modes as their combinations; Cool Riders has one rival per stage, first-arrival fork choice and an all-rival final stage. Move rival strength (`rivalUtilization`) into Session rule data.
-- **10-4 — Cameras:** define camera methods, allowing later changes and mode-specific choices.
+- **10-4 — Cameras:** define camera methods, allowing later changes and mode-specific choices. The camera is rigidly fixed to the player in the pseudo projection: constant player depth, pitch following the body, and height solved each frame so the player sits at its target row; decide there whether a sprung camera mount or a ground-clearance rule is wanted after playability evaluation.
   Rename camera yaw mode and current-camera-profile names according to the glossary.
   Use the camera definition's `dCam` for the display-side rearward offset instead of `CURRENT_CAMERA_DISTANCE_METERS` from `display-scale.ts`.
   Define the fixed 40 px/m player-depth display scale directly instead of deriving it from `CAR_WIDTH_METERS`; vehicle dimensions arrive with collisions.

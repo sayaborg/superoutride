@@ -171,7 +171,7 @@ export function runScenario({ course, ground }, scenario) {
       assert.ok(!accepted.has(key), `crossing accepted twice: ${key}`);
       accepted.add(key);
     }
-    camera = updateCamera(rig, scene.world, vehicle, CURRENT_CAMERA_PROFILE, SIM_DT);
+    camera = updateCamera(rig, scene.world, vehicle, CURRENT_CAMERA_PROFILE);
     finiteState(camera, 'camera');
     for (const [index, c] of competitors.entries()) {
       const v = c.actor.vehicle;

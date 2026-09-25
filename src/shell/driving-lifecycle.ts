@@ -5,7 +5,6 @@ import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import type { VehicleWorld } from '../course/vehicle-world.js';
 import type { CompiledVehicle } from '../vehicle/physics/vehicle-definitions.js';
-import { SIM_DT } from '../race/fixed-step.js';
 
 interface DrivingPlayer {
   readonly vehicle: VehicleState;
@@ -27,10 +26,10 @@ export interface DrivingLifecycleOptions {
 
 /** Browser discontinuity order; route/race ticks retain their own recovery and progress rules. */
 export function createDrivingLifecycle(player: DrivingPlayer, options: DrivingLifecycleOptions) {
-  let camera = updateCamera(player.cameraRig, options.world(), player.vehicle, CURRENT_CAMERA_PROFILE, SIM_DT);
-  function update(dt: number, recovered = false): void {
+  let camera = updateCamera(player.cameraRig, options.world(), player.vehicle, CURRENT_CAMERA_PROFILE);
+  function update(recovered = false): void {
     if (recovered) resetCameraRig(player.cameraRig);
-    camera = updateCamera(player.cameraRig, options.world(), player.vehicle, CURRENT_CAMERA_PROFILE, dt);
+    camera = updateCamera(player.cameraRig, options.world(), player.vehicle, CURRENT_CAMERA_PROFILE);
   }
   function reconstruct(compiledVehicle?: Readonly<CompiledVehicle>): void {
     const world = options.world();
@@ -44,7 +43,7 @@ export function createDrivingLifecycle(player: DrivingPlayer, options: DrivingLi
     if (compiledVehicle !== undefined) player.replacePlayer(compiledVehicle, world);
     resetCameraRig(player.cameraRig);
     options.resync?.();
-    update(SIM_DT);
+    update();
   }
   return {
     get camera() {

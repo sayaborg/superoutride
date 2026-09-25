@@ -1,5 +1,5 @@
 import { createPlanCoordinateSample } from '../course/geometry/plan-coordinate.js';
-import { clamp, wrapAngle } from '../core/math.js';
+import { wrapAngle } from '../core/math.js';
 import type { PseudoCamera } from './projection.js';
 import type { VehicleWorld } from '../course/vehicle-world.js';
 import type { VehicleCameraReadState } from '../vehicle/physics/vehicle-contract.js';
@@ -7,13 +7,8 @@ import type { VehicleCameraReadState } from '../vehicle/physics/vehicle-contract
 export const RENDER_NEAR_DEPTH_METERS = 2.5;
 export const RENDER_FAR_DEPTH_METERS = 200;
 
-// Seconds: response regularization floor of 0.1 ms, not a rounding tolerance.
-// At 60 Hz exp(-dt/tau) is <5e-73, so this gives an effectively immediate finite response.
-const MIN_VERTICAL_RESPONSE_SECONDS = 1e-4;
-
 export interface CameraProfile {
   readonly dCam: number;
-  readonly height: number;
   /** Authored downward view angle relative to the vehicle-pitch reference. */
   readonly baseDownPitch: number;
   readonly focalLength: number;
@@ -22,8 +17,6 @@ export interface CameraProfile {
   /** Minimum body-pitch-plane speed at which movement owns camera yaw. */
   readonly directionSpeedMin: number;
   readonly playerTargetY: number;
-  readonly tauVertical: number;
-  readonly deltaYMax: number;
 }
 
 export type CameraYawMode = 'BODY_FIXED' | 'MOVEMENT_FOLLOW';
@@ -34,7 +27,6 @@ export interface CameraRig {
   yawMode: CameraYawMode;
   yaw: number;
   movementYaw: number;
-  verticalCorrection: number;
   initialized: boolean;
 }
 
@@ -46,9 +38,6 @@ export interface CameraState extends PseudoCamera {
   readonly yawMode: CameraYawMode;
   readonly movementYaw: number;
   readonly movementYawDelta: number;
-  readonly groundHeight: number;
-  readonly verticalCorrection: number;
-  readonly playerFrameError: number;
   readonly playerScreenX: number;
 }
 
@@ -63,13 +52,12 @@ interface BodyPitchMovementYaw {
 const planWorkspaces = new WeakMap<CameraRig, { point: ReturnType<typeof createPlanCoordinateSample> }>();
 
 export function createCameraRig(yawMode: CameraYawMode = DEFAULT_CAMERA_YAW_MODE): CameraRig {
-  return { yawMode, yaw: 0, movementYaw: 0, verticalCorrection: 0, initialized: false };
+  return { yawMode, yaw: 0, movementYaw: 0, initialized: false };
 }
 
 export function resetCameraRig(rig: CameraRig): void {
   rig.yaw = 0;
   rig.movementYaw = 0;
-  rig.verticalCorrection = 0;
   rig.initialized = false;
 }
 
@@ -115,12 +103,10 @@ function movementYawInBodyPitchFrame(
 
 export function updateCamera(
   rig: CameraRig,
-  { coordinates, height }: Pick<VehicleWorld, 'coordinates' | 'height'>,
+  { coordinates }: Pick<VehicleWorld, 'coordinates'>,
   vehicle: VehicleCameraReadState,
   profile: CameraProfile,
-  dt: number,
 ): CameraState {
-  if (!(dt > 0) || !Number.isFinite(dt)) throw new RangeError('camera dt must be finite and > 0');
   if (!(profile.directionSpeedMin >= 0) || !Number.isFinite(profile.directionSpeedMin)) {
     throw new RangeError('camera direction speed minimum must be finite and >= 0');
   }
@@ -137,7 +123,6 @@ export function updateCamera(
   if (!rig.initialized) {
     rig.yaw = vehicle.yaw;
     rig.movementYaw = vehicle.yaw;
-    rig.verticalCorrection = 0;
     rig.initialized = true;
   }
 
@@ -179,28 +164,14 @@ export function updateCamera(
     profile.focalLength / profile.dCam,
   );
 
-  const groundHeight = height.sample(sCamera);
-  const baseY = groundHeight + profile.height;
-  // Body pitch is nose-up-positive; pseudo-camera pitch is downward-positive. Subtracting the
-  // body angle keeps the authored base view pitch constant relative to the vehicle, leaving yaw as
-  // the only dynamic camera-relative attitude required from the sprite set.
+  // The camera is rigidly fixed to the player: constant depth D_cam, pitch following the body and a
+  // height solved every frame so the player's reference point projects exactly to the target row.
+  // Body pitch is nose-up-positive; pseudo-camera pitch is downward-positive.
   const cameraPitch = profile.baseDownPitch - bodyPitch;
-  const cosCameraPitch = Math.cos(cameraPitch);
-  const vehicleRenderY = vehicle.renderY ?? vehicle.y;
-  const yFrame =
-    vehicleRenderY -
-    (profile.dCam / (profile.focalLength * cosCameraPitch)) *
+  const cameraY =
+    (vehicle.renderY ?? vehicle.y) -
+    (profile.dCam / (profile.focalLength * Math.cos(cameraPitch))) *
       (profile.centerY - profile.focalLength * Math.sin(cameraPitch) - profile.playerTargetY);
-  const frameDelta = yFrame - baseY;
-  const verticalAlpha = 1 - Math.exp(-dt / Math.max(profile.tauVertical, MIN_VERTICAL_RESPONSE_SECONDS));
-  rig.verticalCorrection += (frameDelta - rig.verticalCorrection) * verticalAlpha;
-  rig.verticalCorrection = clamp(rig.verticalCorrection, -profile.deltaYMax, profile.deltaYMax);
-
-  const cameraY = baseY + rig.verticalCorrection;
-  const projectedPlayerY =
-    profile.centerY -
-    profile.focalLength * Math.sin(cameraPitch) -
-    (profile.focalLength / profile.dCam) * (vehicleRenderY - cameraY) * cosCameraPitch;
 
   return {
     x: cameraX,
@@ -219,9 +190,6 @@ export function updateCamera(
     yawMode: rig.yawMode,
     movementYaw: rig.movementYaw,
     movementYawDelta,
-    groundHeight,
-    verticalCorrection: rig.verticalCorrection,
-    playerFrameError: projectedPlayerY - profile.playerTargetY,
     playerScreenX,
   };
 }

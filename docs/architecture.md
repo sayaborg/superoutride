@@ -343,9 +343,22 @@ FOV changes preserve this metric. Ground and sprites share this depth interval.
 
 Camera chainage is `s_vehicle-D_cam`; its drawn XZ is the player's route-world XZ minus `D_cam` along
 body yaw by default or movement yaw as the alternate. The observer's shell owns the camera rig;
-rivals have no camera. Camera vertical state is unchanged across route seams. Horizontal centering follows projection. Vertical follow is bounded and smoothed, body
-pitch offsets downward base pitch, and camera roll is zero. Camera values are 12 degrees
-base pitch, player anchor row 190, 0.22 s vertical-follow time constant and 4 m correction bound.
+rivals have no camera. Horizontal centering follows projection, and camera roll is zero.
+
+The camera is rigidly fixed to the player: the player's depth `D_cam`, the camera pitch relative
+to the body and the player's screen row stay constant, so the player never moves, scales or changes attitude on screen.
+Pitch is `phi=phi_0-theta` (base downward pitch `phi_0` = 12 degrees, body pitch `theta` nose-up
+positive). Height is solved every frame from the projection with the player's reference height
+`Y_p` (`renderY`, else `y`) at target row `y_t` = 190:
+
+```text
+Ycam = Y_p - (D_cam/(f*cos(phi)))*(cy - f*sin(phi) - y_t)
+```
+
+This is the projection's `screenY` solved for the camera height with the player at row `y_t`. The camera holds no vertical state, so route
+seams and recovery need no vertical reset. The camera does not consult the ground: it can pass below
+the terrain under it, and no clearance rule applies. Near `|phi|=90` degrees (an overturning body)
+the solved height grows without bound, since `cos(phi)` approaches zero.
 
 ## Ground and background
 

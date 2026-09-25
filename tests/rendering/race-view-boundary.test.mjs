@@ -48,7 +48,6 @@ test('shared route keeps vehicle and camera coordinates across forward and rever
   const rig = createCameraRig('MOVEMENT_FOLLOW');
   rig.yaw = 0.7;
   rig.movementYaw = -0.4;
-  rig.verticalCorrection = 0.8;
   rig.initialized = true;
   for (const [s, ordinal] of [
     [seam + 1, 1],
@@ -88,7 +87,7 @@ test('race actors have no cameras and view assembles sixteen rival sprites from 
   const observed = race.observe();
   assert.ok(!('sprites' in observed));
   assert.equal(observed.rivals.length, 16);
-  const camera = updateCamera(createCameraRig(), scene.world, vehicle, CURRENT_CAMERA_PROFILE, 1 / 60);
+  const camera = updateCamera(createCameraRig(), scene.world, vehicle, CURRENT_CAMERA_PROFILE);
   const sprites = createRaceSprites(assets)(observed.rivals, camera);
   assert.equal(sprites.length, observed.rivals.length);
   assert.deepEqual(

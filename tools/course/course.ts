@@ -114,7 +114,7 @@ try {
             initialSpeed: 0,
           },
         );
-        const camera = updateCamera(createCameraRig(), scene.world, vehicle, CURRENT_CAMERA_PROFILE, 1 / 60),
+        const camera = updateCamera(createCameraRig(), scene.world, vehicle, CURRENT_CAMERA_PROFILE),
           target = new SoftwareSurface(320, 240);
         const stats = scene.render(target, vehicle, camera, sprites.off, []),
           png = new PNG({ width: 320, height: 240 });

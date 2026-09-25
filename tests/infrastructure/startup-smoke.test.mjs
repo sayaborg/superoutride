@@ -41,7 +41,7 @@ for (const { id: stem } of content.manifest.files.filter((file) => file.kind ===
       target = new SoftwareSurface(320, 240);
     for (let frame = 0; frame < 3; frame++) {
       updateVehicle(scene.world, vehicle, model, { steering: 0, throttle: true, brake: false }, 1 / 60);
-      const camera = updateCamera(rig, scene.world, vehicle, CURRENT_CAMERA_PROFILE, 1 / 60);
+      const camera = updateCamera(rig, scene.world, vehicle, CURRENT_CAMERA_PROFILE);
       target.pixels.fill(0);
       const result = scene.render(target, vehicle, camera, sprites.off, []);
       assert.ok(result.stripGround.outputPixels > 0);
