@@ -42,7 +42,7 @@ const field = <K extends keyof DrivingDefinition>(key: K) => ({
 });
 
 /** One registry for DEV buttons, HUD lines and grid admission. */
-export const DRIVING_TUNING_ITEMS: readonly NumericTuningItem[] = Object.freeze([
+const DRIVING_TUNING_ITEMS: readonly NumericTuningItem[] = Object.freeze([
   item({
     id: 'M',
     group: 'STEERING',

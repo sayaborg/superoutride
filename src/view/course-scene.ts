@@ -15,7 +15,7 @@ import type { VehicleSpriteSet } from '../image/sprite-assets.js';
 import { createCourseWorld, type CourseLoadingWindow } from '../race/course-world.js';
 
 /** The current camera's loading window; reference driving and scenarios load the same Route. */
-export const COURSE_LOADING_WINDOW: CourseLoadingWindow = Object.freeze({
+const COURSE_LOADING_WINDOW: CourseLoadingWindow = Object.freeze({
   cameraDistance: CURRENT_CAMERA_PROFILE.dCam,
   near: RENDER_NEAR_DEPTH_METERS,
   far: RENDER_FAR_DEPTH_METERS,

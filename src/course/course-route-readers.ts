@@ -13,10 +13,10 @@ import type { CompiledSection } from './compiler/course-graph.js';
 import { routeS, routeSectionS, type CourseRoute, type RouteOccurrence } from './course-route.js';
 
 /** An inverted closed interval represents the empty coordinate domain. */
-export const EMPTY_ROUTE_DOMAIN = Object.freeze({ left: Infinity, right: -Infinity });
+const EMPTY_ROUTE_DOMAIN = Object.freeze({ left: Infinity, right: -Infinity });
 
 /** The route has no material outside its coordinate domain. */
-export const ROUTE_OUTSIDE_SURFACE = NO_MATERIAL_SURFACE;
+const ROUTE_OUTSIDE_SURFACE = NO_MATERIAL_SURFACE;
 
 /** Route readers share Section lookup and conversion; their derived indexes change only with the route. */
 export function createCourseRouteReaders(route: CourseRoute) {

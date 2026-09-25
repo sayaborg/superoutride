@@ -8,7 +8,7 @@ export interface RepeatDocument<T> {
 }
 export type RepeatElement<T> = T | RepeatDocument<T>;
 
-export function isRepeat<T extends object>(element: RepeatElement<T>): element is RepeatDocument<T> {
+function isRepeat<T extends object>(element: RepeatElement<T>): element is RepeatDocument<T> {
   return 'kind' in element && element.kind === 'repeat';
 }
 

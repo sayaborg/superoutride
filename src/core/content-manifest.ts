@@ -47,7 +47,7 @@ export function readContentManifest(value: unknown): ContentManifest {
   return Object.freeze({ format: 'superoutride.content-manifest', version: 1, files: Object.freeze(files) });
 }
 
-export async function fetchContentBytes(url: URL): Promise<Uint8Array<ArrayBuffer>> {
+async function fetchContentBytes(url: URL): Promise<Uint8Array<ArrayBuffer>> {
   const response = await fetch(url);
   if (!response.ok) throw new Error(`Content request failed (${response.status}): ${url.pathname}`);
   return new Uint8Array(await response.arrayBuffer());

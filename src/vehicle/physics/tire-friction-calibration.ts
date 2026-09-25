@@ -54,18 +54,6 @@ export function validateTireCharacteristics(tire: CompiledTireCharacteristics): 
     throw new DefinitionDomainError('rhoKnee', 'rhoKnee must be finite and lie in (0,1)');
 }
 
-/** Read-only inverse for selectors/serialization. It is not a second parameter authority. */
-export function readTireCharacteristics(tire: CompiledTireCharacteristics): TireCharacteristics {
-  validateTireCharacteristics(tire);
-  return {
-    gripX: tire.muX,
-    peakSlipX: ((2 - tire.rhoKnee) * tire.muX) / tire.kX,
-    gripY: tire.muY,
-    peakSlipY: ((2 - tire.rhoKnee) * tire.muY) / tire.kY,
-    knee: tire.rhoKnee,
-  };
-}
-
 /** Per-station slots keep equality a composition decision, never a constraint in the tire law. */
 export interface VehicleTireFrictionCalibrationState {
   readonly front: Readonly<CompiledTireCharacteristics>;

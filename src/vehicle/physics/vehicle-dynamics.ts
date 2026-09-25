@@ -485,12 +485,7 @@ export function compileSuspensionStation(
  * to springRate*progression at qTravel and continues that line; the spring force is its integral.
  * Damping keeps the station's damping ratio at the local stiffness: damping*sqrt(stiffness/springRate).
  */
-export function suspensionForce(
-  q: number,
-  qDot: number,
-  suspension: CompiledSuspensionStation,
-  progression: number,
-): number {
+function suspensionForce(q: number, qDot: number, suspension: CompiledSuspensionStation, progression: number): number {
   const { springRate, damping, qStatic, qTravel } = suspension;
   const x = Math.max(0, q - qStatic);
   const stiffnessScale = 1 + ((progression - 1) * x) / (qTravel - qStatic);

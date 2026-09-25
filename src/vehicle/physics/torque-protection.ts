@@ -133,10 +133,10 @@ export interface RoadPitch {
   angle: number;
   rate: number;
 }
-export function createRoadPitch(): RoadPitch {
+function createRoadPitch(): RoadPitch {
   return { active: false, angle: 0, rate: 0 };
 }
-export function observeRoadPitch(
+function observeRoadPitch(
   body: BodyKinematics,
   front: ContactObservation,
   rear: ContactObservation,

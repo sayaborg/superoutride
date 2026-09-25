@@ -36,10 +36,6 @@ export function normalFromHeading(heading: number): Vec2 {
   return { x: Math.cos(heading), z: -Math.sin(heading) };
 }
 
-export function headingFromDelta(dx: number, dz: number): number {
-  return Math.atan2(dx, dz);
-}
-
 export function dot(a: Vec2, b: Vec2): number {
   return a.x * b.x + a.z * b.z;
 }

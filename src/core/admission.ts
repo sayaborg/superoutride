@@ -70,7 +70,7 @@ export function readEmbedded<T>(base: string, read: () => T): T {
   }
 }
 
-export function admissionDiagnostic<Code extends string>(
+function admissionDiagnostic<Code extends string>(
   error: AdmissionError<Code>,
   document: string,
 ): AdmissionDiagnostic<Code> {
@@ -84,7 +84,7 @@ export function admissionDiagnostic<Code extends string>(
 }
 
 /** RFC 6901 reference token. */
-export function pointerToken(key: string): string {
+function pointerToken(key: string): string {
   return key.replaceAll('~', '~0').replaceAll('/', '~1');
 }
 
@@ -245,7 +245,7 @@ export function readDocument(
 }
 
 /** Format identity: the format field names the reader, the version field its one admitted version. */
-export function readHeader(record: Record<string, unknown>, format: string, version: number): void {
+function readHeader(record: Record<string, unknown>, format: string, version: number): void {
   if (record.format !== format) throw new AdmissionError('unsupported_format', '/format', `Expected ${format}`);
   if (record.version !== version)
     throw new AdmissionError('unsupported_version', '/version', `Expected ${format} version ${version}`);

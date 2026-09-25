@@ -12,15 +12,7 @@ import {
   type AdmissionResult,
 } from '../core/admission.js';
 
-export const TIRE_EFFECT_KINDS = Object.freeze([
-  'NONE',
-  'SMOKE',
-  'DUST',
-  'GRASS',
-  'WATER_SPRAY',
-  'SNOW',
-  'MUD',
-] as const);
+const TIRE_EFFECT_KINDS = Object.freeze(['NONE', 'SMOKE', 'DUST', 'GRASS', 'WATER_SPRAY', 'SNOW', 'MUD'] as const);
 export type TireEffectKind = (typeof TIRE_EFFECT_KINDS)[number];
 
 export interface SurfaceMaterial {

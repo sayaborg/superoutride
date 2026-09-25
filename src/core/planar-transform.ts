@@ -11,7 +11,7 @@ export interface PlanarTransform {
   readonly translation: Vec2;
 }
 
-export function transformPlanarVector(transform: PlanarTransform, vector: Vec2): Vec2 {
+function transformPlanarVector(transform: PlanarTransform, vector: Vec2): Vec2 {
   return {
     x: transform.cosine * vector.x + transform.sine * vector.z,
     z: -transform.sine * vector.x + transform.cosine * vector.z,

@@ -5,7 +5,7 @@ import { CourseInputError, requireCourse } from './course-diagnostics.js';
 import { validatePlanDomainInjectivity } from './plan-domain-injectivity.js';
 import type { CompiledPlanSegment } from './geometry/plan-path.js';
 
-export const PLAN_COORDINATE_MARGIN_METERS = 4;
+const PLAN_COORDINATE_MARGIN_METERS = 4;
 
 export interface CompiledPlanLateralDomain {
   readonly stations: readonly number[];

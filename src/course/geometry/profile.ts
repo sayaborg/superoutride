@@ -28,7 +28,7 @@ export interface ProfilePolylineReader {
 }
 
 /** Maximum station interval inside each vertical parabola, in metres. */
-export const PROFILE_CURVE_POLYLINE_STEP_METERS = 2;
+const PROFILE_CURVE_POLYLINE_STEP_METERS = 2;
 
 /** PVI heights and the grades of their connecting tangents define the authoritative road. */
 export class Profile implements ProfileReader {

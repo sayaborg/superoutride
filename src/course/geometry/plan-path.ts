@@ -14,9 +14,6 @@ const TAU = Math.PI * 2;
 // Metres: plan evaluation/endpoint arithmetic budget, about 86 ulps at 10^6 m.
 // Shared with conservative plan-domain separation; does not widen point ownership.
 export const PLAN_POSITION_TOLERANCE_METERS = 1e-8;
-// Dimensionless: conservative relative padding of computed extrema (1 cm at 10^6 m).
-// Covers trig/extremum evaluation roundoff; distinct from absolute sample admission.
-const PLAN_BOUNDS_RELATIVE_PADDING = 1e-8;
 // Metres: 1 nm radial ambiguity budget (about eight ulps at 10^6 m); subtracting the
 // arc center loses direction here, so projection chooses the interval midpoint.
 const ARC_CENTER_TOLERANCE_METERS = 1e-9;
@@ -118,11 +115,7 @@ export function planSegmentIndexAt(path: PlanPath, s: number): number {
   return path.segments.length - 1;
 }
 
-export function samplePlanSegment(
-  segment: CompiledPlanSegment,
-  s: number,
-  out: Writable<PlanPathSample>,
-): PlanPathSample {
+function samplePlanSegment(segment: CompiledPlanSegment, s: number, out: Writable<PlanPathSample>): PlanPathSample {
   const clamped = clamp(s, segment.sStart, segment.sEnd);
   const ds = clamped - segment.sStart;
   let heading = segment.start.heading;
@@ -205,43 +198,4 @@ export function projectPlanSegmentInterval(
   out.distanceSquared = dx * dx + dz * dz;
   out.isFoot = rawS >= start && rawS <= end;
   return out;
-}
-
-export function planSegmentBounds(
-  segment: CompiledPlanSegment,
-  start: number,
-  end: number,
-  sampleA: Writable<PlanPathSample>,
-  sampleB: Writable<PlanPathSample>,
-) {
-  const a = samplePlanSegment(segment, start, sampleA);
-  const b = samplePlanSegment(segment, end, sampleB);
-  let left = Math.min(a.x, b.x);
-  let right = Math.max(a.x, b.x);
-  let back = Math.min(a.z, b.z);
-  let front = Math.max(a.z, b.z);
-  if (segment.geometry.kind === 'arc') {
-    const turn = segment.geometry.turn;
-    const q0 = (start - segment.sStart) / (segment.sEnd - segment.sStart);
-    const q1 = (end - segment.sStart) / (segment.sEnd - segment.sStart);
-    const h0 = segment.start.heading + turn * q0;
-    const h1 = segment.start.heading + turn * q1;
-    const low = Math.min(h0, h1);
-    const high = Math.max(h0, h1);
-    const center = segment.center!;
-    const sign = Math.sign(turn);
-    const step = Math.PI / 2;
-    for (let quadrant = Math.ceil(low / step); quadrant * step <= high; quadrant += 1) {
-      const heading = quadrant * step;
-      const x = center.x - sign * segment.geometry.radius * Math.cos(heading);
-      const z = center.z + sign * segment.geometry.radius * Math.sin(heading);
-      left = Math.min(left, x);
-      right = Math.max(right, x);
-      back = Math.min(back, z);
-      front = Math.max(front, z);
-    }
-  }
-  const padding =
-    PLAN_BOUNDS_RELATIVE_PADDING * Math.max(1, Math.abs(left), Math.abs(right), Math.abs(back), Math.abs(front));
-  return { left: left - padding, right: right + padding, back: back - padding, front: front + padding };
 }
