@@ -11,7 +11,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **8-5b — Engine friction**.
+Next PR: **8-5c — Clutch and engine inertia**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -21,12 +21,18 @@ PRs hold rationale and verification evidence.
 
 Give vehicles, driving assists, tires, powertrains and materials explicit definitions, and treat airborne driving as normal state.
 
-- **8-5b — Engine friction:** friction torque derived from displacement and cycle with game-wide friction mean effective pressures (about 1 bar at idle and 2.5 bar at redline); throttle torque is θ × (curve + friction) − friction and reaches the wheels through the gear ratios and one game-wide efficiency; engine braking while the clutch is locked; audio reads engine speed without its own idle floor. Behavior changes.
-- **8-5c — Clutch and engine inertia:** engine inertia derived from displacement by a game-wide rule. The clutch locks when the wheel-derived speed reaches the peak-torque RPM; otherwise engine speed follows one law, (throttle torque − friction − clutch torque) / inertia, capped at the peak-torque RPM by a clutch that transmits the excess and never a negative torque, with idle held by torque rather than a clamp. The DEV HUD shows the clutch as LOCK, SLIP or OPEN. Behavior changes.
-- **8-5d — Provisional start:** a simple held start before GO with the clutch open, so the engine revs freely under the same law. Behavior changes.
+- **8-5c — Clutch and engine inertia:** engine inertia derived from displacement by a game-wide rule. The clutch locks when the wheel-derived speed reaches the peak-torque RPM; otherwise engine speed follows one law, (throttle torque − friction − clutch torque) / inertia, capped at the peak-torque RPM by a clutch that transmits the excess and never a negative torque, with idle held by torque rather than a clamp. The DEV HUD shows the clutch as LOCK, SLIP or OPEN. Behavior changes. Audio reads engine speed without its own idle floor.
+- **8-5d1 — Time-limit name:** rename the Session `countdown` flag, which means "has a time limit", to a name that says so, before the start procedure arrives. Behavior unchanged.
+- **8-5d2 — Provisional start:** a simple held start before GO with the clutch open, so the engine revs freely under the same law. Behavior changes.
 - **8-5e — Shift observations:** the powertrain reports each shift (up or down, engine speed before and after) for audio. Behavior unchanged.
-- **8-6 — DEV tuning:** replace definitions instead of mutating running settings, and export them. Behavior unchanged.
+- **8-6a — Remove keyboard shortcuts:** remove every DEV keyboard shortcut (course, vehicle, steering and tire tuning, camera yaw, recovery); DEV UI buttons select everything, including a new recovery button. Driving keys stay. Driving behavior unchanged.
+- **8-6b — Vehicle state and model:** vehicle state holds only dynamic values; the compiled vehicle, driving settings and form policy form one immutable model passed to each step. The composition shared by browser, race and tools moves from shell to race, and SessionVehicle holds only the vehicle and driving definitions. Report a split plan first if large. Behavior unchanged.
+- **8-6c — DEV tuning:** replace the model instead of mutating running settings, and export definitions in their saved formats. Behavior unchanged.
 - **8-7 — Materials and airborne state:** material definitions including tire effect kinds, jumps and airborne state, pitch-angle protection, suspension limits and recovery conditions. Split if large. Behavior changes.
+- **8-8a — Content admission:** one admission toolkit for every authored format (courses, vehicle and driving definitions, sprite images and sets, tile images, sprite sources), each reporting diagnostics at a document and JSON Pointer; build products keep plain internal checks. Report a split plan first if large. Behavior unchanged.
+- **8-8b — Required course rules:** course rules are mandatory, and race code receives them without non-null assertions. Behavior unchanged.
+- **8-8c — Remove unused code:** unused exports such as the `core/validation.ts` helpers, `headingFromDelta`, `createPlanarCoordinateSample` and `planSegmentBounds`. Behavior unchanged.
+- **8-8d — Content build:** stage the vehicle sprite library in the content build instead of the browser-tool preview build. Behavior unchanged.
 
 ## Stage 9 — Audio
 
@@ -37,6 +43,7 @@ Separate the audio scene from the browser and organize sound around replaceable 
   Rename audio Profiles and audio-presentation replacements according to the glossary.
 - **9-3 — Audio tuning:** use definition replacement consistently; rename remaining audio Profiles
   and timing records according to the glossary.
+  Rename the tire-sound DEV controls (`tire-tuning-controls.ts`) so they are not mistaken for tire physics tuning.
 
 ## Stage 10 — Shell
 
@@ -44,7 +51,7 @@ Define persistent player settings, data-driven Sessions and product display inde
 
 - **10-1 — Framebuffer:** RGB555.
 - **10-2 — Player settings:** a persistent settings model.
-- **10-3 — Session rules:** one settings record, modes as rule data and TIME ATTACK; CUSTOM has no time limit. Model rival lifetime (whole race, per stage or until a fork) and fork decider (first arrival or player) as Session rule components, with modes as their combinations; Cool Riders has one rival per stage, first-arrival fork choice and an all-rival final stage.
+- **10-3 — Session rules:** one settings record, modes as rule data and TIME ATTACK; CUSTOM has no time limit. Model rival lifetime (whole race, per stage or until a fork) and fork decider (first arrival or player) as Session rule components, with modes as their combinations; Cool Riders has one rival per stage, first-arrival fork choice and an all-rival final stage. Move rival strength (`rivalUtilization`) into Session rule data.
 - **10-4 — Cameras:** define camera methods, allowing later changes and mode-specific choices.
   Rename camera yaw mode and current-camera-profile names according to the glossary.
   Use the camera definition's `dCam` for the display-side rearward offset instead of `CURRENT_CAMERA_DISTANCE_METERS` from `display-scale.ts`.
@@ -65,6 +72,7 @@ Build a shared authoring core and tools, with author-confirmed content independe
 - **11-4 — Definition modules:** vehicles and audio.
 - **11-5 — Time limits and CI:** tool reference driving proposes limits; the author confirms and saves one
   CLASSIC-only set per course. Builds do not run reference driving. Simplify CI.
+  Derive vehicle identity from delivered content SHA-256 values instead of hashing runtime objects; the hand-listed model identity disappears with build-time reference driving.
 
 ## Stage 12 — Produce product courses
 
@@ -137,7 +145,7 @@ space. Record margins and remaster departures with the content.
 
 ### Pending product decisions
 
-- Start procedure: 8-5d's held start is provisional; decide countdown lamps, rolling starts and their Session rules.
+- Start procedure: 8-5d2's held start is provisional; decide countdown lamps, rolling starts and their Session rules.
 
 - Vehicle color choice: every vehicle sprite set carries at least two named color palettes; decide how the player selects a color and how rivals are assigned colors (and vehicles).
 - Section lighting for vehicles: Sections may switch vehicle palettes (for example a night section), adding a lighting axis beside color and the brake-lamp animation. Each lighting is a hand-authored palette per color that recolors the whole image, lit headlamps included; only the brake lamp keeps its reserved slot, with off and on colors declared per sprite set and lighting. Decide whether switching follows each vehicle's Section or the camera's, and whether it cuts or fades.
