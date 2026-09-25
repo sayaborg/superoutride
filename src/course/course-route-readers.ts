@@ -1,6 +1,6 @@
 import { wrapAngle, type Vec2 } from '../core/math.js';
 import type { Writable } from '../core/writable.js';
-import { VOID_SURFACE } from './strip-material.js';
+import { NO_MATERIAL_SURFACE } from './vehicle-world.js';
 import {
   PLAN_PROJECTION_WINDOW_METERS,
   type PlanCoordinateMetrics,
@@ -16,7 +16,7 @@ import { routeS, routeSectionS, type CourseRoute, type RouteOccurrence } from '.
 export const EMPTY_ROUTE_DOMAIN = Object.freeze({ left: Infinity, right: -Infinity });
 
 /** The route has no material outside its coordinate domain. */
-export const ROUTE_OUTSIDE_SURFACE = VOID_SURFACE;
+export const ROUTE_OUTSIDE_SURFACE = NO_MATERIAL_SURFACE;
 
 /** Route readers share Section lookup and conversion; their derived indexes change only with the route. */
 export function createCourseRouteReaders(route: CourseRoute) {

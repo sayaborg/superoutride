@@ -28,7 +28,7 @@ import {
   initializePlanCoordinateObservation,
   refreshPlanCoordinateObservation,
   reorientContactObservation,
-  representativeSurfaceType,
+  representativeSurfaceMaterialId,
   sampleSurfaceGeometryAtCoordinate,
   vehicleSpeed,
   type BodyKinematics,
@@ -100,7 +100,7 @@ export function createVehicle(
     coordinate,
     createSurfaceGeometryWorkspace(),
   );
-  if (!surface.material.supported) throw new Error('vehicle spawn requires supported surface');
+  if (surface.material === null) throw new Error('vehicle spawn requires supported surface');
   const yaw = Math.atan2(surface.horizontalTangent.x, surface.horizontalTangent.z);
   const pitch = surface.gradeAngle;
   const position = add3(surface.point, scale3(surface.normal, compiledVehicle.desiredCgHeight));
@@ -230,9 +230,9 @@ export function updateVehicle(
     frontRequest.longitudinalVelocity = front.longitudinalVelocity;
     frontRequest.lateralVelocity = front.lateralVelocity;
     frontRequest.normalLoad = front.tireFrameValid ? front.normalLoad : 0;
-    frontRequest.gripFactor = front.surface.material.gripFactor;
+    frontRequest.gripFactor = front.surface.material?.gripFactor ?? 0;
     frontRequest.characteristics = model.tires.front;
-    frontRequest.rollingResistance = front.tireFrameValid ? front.surface.material.rollingResistance : 0;
+    frontRequest.rollingResistance = front.tireFrameValid ? (front.surface.material?.rollingResistance ?? 0) : 0;
     frontRequest.driveTorque = 0;
     frontRequest.brakeTorque = vehicle.actuator.brake * compiledVehicle.frontStation.maxBrakeTorque;
     frontRequest.dt = substep;
@@ -243,9 +243,9 @@ export function updateVehicle(
     rearRequest.longitudinalVelocity = rear.longitudinalVelocity;
     rearRequest.lateralVelocity = rear.lateralVelocity;
     rearRequest.normalLoad = rear.tireFrameValid ? rear.normalLoad : 0;
-    rearRequest.gripFactor = rear.surface.material.gripFactor;
+    rearRequest.gripFactor = rear.surface.material?.gripFactor ?? 0;
     rearRequest.characteristics = model.tires.rear;
-    rearRequest.rollingResistance = rear.tireFrameValid ? rear.surface.material.rollingResistance : 0;
+    rearRequest.rollingResistance = rear.tireFrameValid ? (rear.surface.material?.rollingResistance ?? 0) : 0;
     rearRequest.driveTorque = 0;
     rearRequest.brakeTorque = vehicle.actuator.brake * compiledVehicle.rearStation.maxBrakeTorque;
     rearRequest.dt = substep;
@@ -337,7 +337,7 @@ export function updateVehicle(
 
   if (finalFront && finalRear) {
     updateContactTelemetry(vehicle, finalFront, finalRear);
-    vehicle.surfaceType = representativeSurfaceType(workspace.contacts);
+    vehicle.surfaceType = representativeSurfaceMaterialId(workspace.contacts);
   }
   const velocityDelta = workspace.velocityDelta;
   velocityDelta.x = vehicle.velocityX - velocityBeforeX;

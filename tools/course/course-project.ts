@@ -8,6 +8,7 @@ import { COURSE_DOCUMENT_LIMITS } from '../../src/course/course-limits.js';
 import { readCourseDocument, type CourseDocument } from '../../src/course/course-document.js';
 import { compileCourseDocument, type CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import type { CourseAssetBytes } from '../../src/course/compiler/course-image-source.js';
+import type { SurfaceMaterialCatalog } from '../../src/course/surface-material.js';
 
 interface CourseProjectState {
   readonly source: CourseDocument | null;
@@ -19,7 +20,7 @@ type ProjectFailure = { readonly ok: false; readonly reason: 'no_source' | 'stal
 type ProjectResult<T> = CourseResult<T> | ProjectFailure;
 
 /** Live authoring session; documents and published products themselves are immutable snapshots. */
-export function createCourseProject() {
+export function createCourseProject(materials: SurfaceMaterialCatalog) {
   let state: CourseProjectState = Object.freeze({ source: null, compiled: null, lastSuccessful: null });
   let generation = 0;
   const noSource = (): ProjectFailure => Object.freeze({ ok: false, reason: 'no_source' });
@@ -38,10 +39,13 @@ export function createCourseProject() {
     save(): ProjectResult<string> {
       return state.source ? saveCourseDocument(state.source) : noSource();
     },
-    async compile(assetSources: readonly CourseAssetBytes[] = []): Promise<ProjectResult<CompiledCourse>> {
+    async compile(
+      assetSources: readonly CourseAssetBytes[] = [],
+      document = '',
+    ): Promise<ProjectResult<CompiledCourse>> {
       if (!state.source) return noSource();
       const ticket = ++generation;
-      const result = await compileCourseDocument(state.source, assetSources);
+      const result = await compileCourseDocument(state.source, assetSources, materials, document);
       if (ticket !== generation) return stale();
       if (result.ok)
         state = Object.freeze({ source: state.source, compiled: result.value, lastSuccessful: result.value });
@@ -50,11 +54,12 @@ export function createCourseProject() {
     async importDocument(
       text: string,
       assetSources: readonly CourseAssetBytes[] = [],
+      document = '',
     ): Promise<ProjectResult<CompiledCourse>> {
       const parsed = parseCourseDocument(text);
       if (!parsed.ok) return parsed;
       const ticket = ++generation;
-      const result = await compileCourseDocument(parsed.value, assetSources);
+      const result = await compileCourseDocument(parsed.value, assetSources, materials, document);
       if (ticket !== generation) return stale();
       if (result.ok)
         state = Object.freeze({ source: parsed.value, compiled: result.value, lastSuccessful: result.value });

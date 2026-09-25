@@ -22,7 +22,7 @@ export function createVehicleAudioObservation(): Observation {
     load: 0,
     longitudinalPower: 0,
     lateralPower: 0,
-    surface: 'VOID',
+    surface: null,
   });
   return {
     rpm: 0,

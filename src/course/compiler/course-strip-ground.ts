@@ -1,7 +1,7 @@
 import { expandCourseElements, shiftedCoursePosition } from '../course-repeat.js';
 import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
 import { compileStripMaterial } from '../strip-material.js';
-import { SURFACE_MATERIALS, type SurfaceMaterial, type SurfaceType } from '../surface-material.js';
+import type { SurfaceMaterial, SurfaceMaterialCatalog } from '../surface-material.js';
 import type { CompiledBoundary } from '../course-boundaries.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
 import { resolveLateralInterval, resolveCourseLateral } from './course-lateral.js';
@@ -62,9 +62,10 @@ function expandCourseStrips(
   path: string,
   resolve: (at: CoursePosition, path: string) => CompiledCoursePosition,
   boundaries: ReadonlyMap<string, CompiledBoundary>,
+  materialCatalog: SurfaceMaterialCatalog,
 ) {
   const pieces: StripPiece[] = [];
-  const materials: StripPiece<SurfaceMaterial | null>[] = [];
+  const materialPieces: StripPiece<SurfaceMaterial | null>[] = [];
   const line = (start: number, end: number, from: number, to = from): StripEdgeLine => ({ start, end, from, to });
   let sourcePath = path;
   const extents: { start: number; end: number }[] = [];
@@ -106,13 +107,9 @@ function expandCourseStrips(
     requireCourse(color !== null || material !== null, at, 'A Strip must change color or material', 'invalid_strip');
     let value: SurfaceMaterial | null = null;
     if (material !== null) {
-      requireCourse(
-        Object.hasOwn(SURFACE_MATERIALS, material),
-        `${at}/material`,
-        'Unknown material',
-        'unresolved_reference',
-      );
-      value = SURFACE_MATERIALS[material as SurfaceType];
+      const resolved = materialCatalog.get(material);
+      requireCourse(resolved !== undefined, `${at}/material`, 'Unknown material', 'unresolved_reference');
+      value = resolved;
     }
     for (const side of ['left', 'right'] as const) {
       requireCourse(
@@ -162,7 +159,7 @@ function expandCourseStrips(
         if (color !== null) add({ ...shape, value: color === 'transparent' ? null : color });
         if (value !== null) {
           if (color === null) track(shape);
-          materials.push({ ...shape, value });
+          materialPieces.push({ ...shape, value });
         }
       }
     }
@@ -298,7 +295,7 @@ function expandCourseStrips(
       'resource_limit',
     );
   }
-  return { pieces, materials };
+  return { pieces, materials: materialPieces };
 }
 
 export function compileCourseStrips(
@@ -307,10 +304,18 @@ export function compileCourseStrips(
   path: string,
   resolve: (at: CoursePosition, path: string) => CompiledCoursePosition,
   boundaries: ReadonlyMap<string, CompiledBoundary>,
+  materials: SurfaceMaterialCatalog,
 ) {
-  const { pieces, materials } = expandCourseStrips(elements, length, path, resolve, boundaries);
+  const { pieces, materials: materialPieces } = expandCourseStrips(
+    elements,
+    length,
+    path,
+    resolve,
+    boundaries,
+    materials,
+  );
   return Object.freeze({
     color: compileStripGround(length, pieces, path),
-    material: compileStripMaterial(length, materials, path),
+    material: compileStripMaterial(length, materialPieces, path),
   });
 }

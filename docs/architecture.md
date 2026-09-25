@@ -54,7 +54,7 @@ its endpoint position at route l=0, unit tangent and right normal, and `e` is th
 | Projection                 | Project onto the endpoint tangent ray; return its s and l with `inDomain:false` |
 | Height and render polyline | Respective endpoint height, derivative/grade 0                                  |
 | Coordinate domain          | Empty closed interval `[+Infinity,-Infinity]`, defined by `EMPTY_ROUTE_DOMAIN`  |
-| Material                   | VOID, also outside the lateral coordinate domain                                |
+| Material                   | No material, also outside the lateral coordinate domain                         |
 | Strip and sprites          | No content; Strip pixels are transparent                                        |
 | Environment/background     | Nearest endpoint value                                                          |
 
@@ -209,7 +209,7 @@ as specified in [Vehicle physics](vehicle-physics.md#surface-and-contact).
 
 At each s, the Section lateral domain runs from the material table's leftmost finite covered edge minus
 `PLAN_COORDINATE_MARGIN_METERS` to its rightmost finite covered edge plus that margin; the margin is 4 m.
-Explicit VOID material still contributes its authored extent; the uncovered exterior does not.
+The uncovered exterior does not contribute.
 The domain uses the material slab's half-open station ownership, including the Section terminal.
 It retains the outer span references and reads them by binary slab lookup, without scanning authored Strips.
 The map from `(s,l)` in the entire closed Section coordinate domain to world XZ is injective:
@@ -257,7 +257,7 @@ coordinates; this tolerance does not replace the curvature bound. These cells be
 
 Point intervals are half-open laterally: `[left(s),right(s))`. A shared edge belongs to the interval on
 its right; the outer left edge is included and the outer right edge is outside. Zero-width endpoints
-own no area. Gaps use the consumer's outside result: physical VOID or no eligible lock interval.
+own no area. Gaps use the consumer's outside result: no material or no eligible lock interval.
 Visual Strips do not require material coverage and can cover the entire lateral plane. Closed bounds used for geometric containment and clipped areas used by image
 filters do not change point ownership.
 
@@ -328,14 +328,14 @@ retain only resolved tables. Material-bearing Strips produce finite affine piece
 do not enter this table. Color and material use the same payload-independent Strip slab resolver:
 activation and edge-crossing splits, declaration-order overwrite, equal-value span coalescing and
 binary slab/span lookup. The generic cell payload `value` is RGB555/transparent for color or a material for physics.
-The absent-piece value is separate from explicit material VOID so finite authored extents survive.
+The absent-piece value is no material (`null`), which is not a material definition.
 
 Point reads use binary search in s, then binary search in l over ordered spans. Intervals are
 `[left,right)` and `[start,end)`; the Section terminal belongs to the last slab. Uncovered cells
-read VOID. `sampleInChart` subtracts the origin from edges before comparing l, preserving exact
+read no material. `sampleInChart` subtracts the origin from edges before comparing l, preserving exact
 shifted-boundary ties. Samples are prepared once per material and borrowed without allocations;
-`sectionName` reports the material type, including `VOID` outside coverage. Nonfinite queries or
-stations outside a finite Section fail; Route readers provide their ordinary outside VOID result.
+a sample carries the admitted material or `null`. Nonfinite queries or
+stations outside a finite Section fail; Route readers provide their ordinary outside no-material result.
 Gate/grid validation and fork compilation consume the same table. Support-interval construction
 is compiler-only; running point reads do not allocate arrays, objects or readers.
 

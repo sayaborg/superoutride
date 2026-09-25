@@ -11,12 +11,14 @@ import { cachedReference, referenceCacheKey } from '../course/reference-cache.js
 import { measureVehicleEnvelope } from '../course/vehicle-envelope.js';
 import { runCourseReference, courseReferenceRoutes } from '../course/reference-run.js';
 import { loadCourseGround } from '../course/authoring-io.js';
+import { loadSurfaceMaterials } from '../../src/course/surface-material.js';
 
 const { vehicleId, stems, physicsSha256 } = workerData as CourseReferenceJob;
 const content = await readDeliveredContent();
+const materials = await loadSurfaceMaterials(content);
 const definitions = await loadVehicleDefinitions(content);
 const entry = definitions.vehicles.find((v) => v.compiledVehicle.id === vehicleId)!;
-const vehicle = createSessionVehicle(entry, definitions.driving),
+const vehicle = createSessionVehicle(entry, definitions.driving, materials),
   vehicleSha256 = await sessionVehicleSha256(vehicle);
 let hits = 0,
   misses = 0;
@@ -32,12 +34,12 @@ const products: CourseReferenceResult['products'] = [
   ],
   references: CourseReferenceResult['references'] = [];
 for (const stem of stems) {
-  const course = await loadDeliveredCourse(content, stem);
+  const course = await loadDeliveredCourse(content, stem, materials);
   const key = referenceCacheKey(course.identity.buildSha256, vehicleSha256, REFERENCE_DRIVER, physicsSha256);
   const cached = await cachedReference('runs', key, async () => {
     const ground = await loadCourseGround(course);
     return courseReferenceRoutes(course).map((route) =>
-      runCourseReference(course, ground, entry, definitions, envelope.value, route, course.rules!.maxLaps),
+      runCourseReference(course, ground, vehicle, definitions.vehicles, envelope.value, route, course.rules!.maxLaps),
     );
   });
   if (cached.hit) hits++;

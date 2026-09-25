@@ -90,7 +90,7 @@ export function validateCourseCarriageways(
     const support: { left: (typeof slab.spans)[number]; right: (typeof slab.spans)[number] }[] = [];
     let continuing = false;
     for (const span of slab.spans) {
-      if (!span.value?.supported) {
+      if (span.value === null) {
         continuing = false;
         continue;
       }

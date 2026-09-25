@@ -13,10 +13,21 @@ import { readCourseDocument } from '../../src/course/course-document.js';
 import { compileCourseDocument } from '../../src/course/compiler/compiled-course.js';
 import { compileCourseImages } from '../course/compile-course-images.js';
 import { readCourseImages } from '../course/read-course-images.js';
+import { compileSurfaceMaterialDocument } from '../../src/course/surface-material.js';
+import { validateTireSoundMaterialIds } from '../../src/audio/tire-surface-acoustics.js';
 
 const content = new URL('../../content/', import.meta.url);
 const destination = new URL('../../dist/content/', import.meta.url);
 const writer = createContentWriter(destination, (await readDeliveredContent()).manifest.files);
+const materialPath = 'content/materials/surface.json';
+const materialResult = compileSurfaceMaterialDocument(
+  JSON.parse(await readFile(new URL('materials/surface.json', content), 'utf8')),
+  materialPath,
+);
+if (!materialResult.ok) throw new Error(JSON.stringify(materialResult.diagnostics));
+const materials = materialResult.value;
+validateTireSoundMaterialIds(materials.ids);
+await writer.stage('material', materials.source.id, materials.source);
 const sprites = await loadVehicleSpriteLibrary(await readDeliveredContent());
 for (const [directory, kind, compile] of [
   ['vehicles', 'vehicle', (value: unknown, path: string) => compileVehicleDocument(value, path, sprites)],
@@ -40,7 +51,12 @@ for (const name of (await readdir(new URL('courses/', content))).sort()) {
     document.value,
     await readCourseImages(document.value.assets, new URL('images/', content).pathname),
   );
-  const compiled = await compileCourseDocument(prepared.document, prepared.images);
+  const compiled = await compileCourseDocument(
+    prepared.document,
+    prepared.images,
+    materials,
+    `content/courses/${name}`,
+  );
   await writer.stage('course', name.replace('.course.json', ''), prepared.document);
   for (const image of prepared.images) await writer.stage('image', image.sha256, null, new Uint8Array(image.bytes));
   if (!compiled.ok) throw new Error(JSON.stringify(compiled.diagnostics));

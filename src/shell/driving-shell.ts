@@ -83,7 +83,9 @@ export function createBrowserDrivingShell(
   let model = createVehicleModel(spawn.vehicle);
   let vehicle = createVehicle(model, runtime, { s: spawn.s, l: startL, initialSpeed: spawn.initialSpeed });
   const modelFor = (id: string) =>
-    createVehicleModel(createSessionVehicle(vehicleDefinitionForId(vehicles, id), driving));
+    createVehicleModel(
+      createSessionVehicle(vehicleDefinitionForId(vehicles, id), driving, spawn.vehicle.surfaceMaterials),
+    );
   const tuning = {
     get: () => driving.source,
     set: (definition: DrivingDocument) => {

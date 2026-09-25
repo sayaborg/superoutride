@@ -143,7 +143,7 @@ export function compileCourseGates(
       'Grid must lie between entry and the first gate',
     );
     const l = resolveCourseLateral(slot.lateral, position.s, boundaries, `${start.path}/grid/${i}/lateral`);
-    check(surface.sample(position.s, l).material.supported, `${start.path}/grid/${i}`, 'Grid must be supported');
+    check(surface.sample(position.s, l).material !== null, `${start.path}/grid/${i}`, 'Grid must be supported');
     return Object.freeze({ at: position, l });
   });
   return Object.freeze({

@@ -1,10 +1,7 @@
 import { NoiseBand, SmoothRandom, deriveNoiseSeed, NOISE_BAND_DOMAIN } from './noise.js';
 import { ROLLING_SETTINGS as S, ROLLING_SURFACES } from './tire-rolling-acoustics.js';
-import {
-  TIRE_SOUND_SURFACES,
-  validateTireSoundObservation,
-  type TireSoundObservation,
-} from './tire-sound-observation.js';
+import { validateTireSoundObservation, type TireSoundObservation } from './tire-sound-observation.js';
+import { TIRE_SOUND_SURFACE_IDS } from './tire-surface-acoustics.js';
 
 const saturate = (value: number, half: number): number => value / (value + half);
 type Material = { -readonly [K in keyof (typeof ROLLING_SURFACES)['ASPHALT']]: number };
@@ -55,7 +52,7 @@ export class TireRollingSynthesis {
       this.releaseContact();
       throw error;
     }
-    this.targetMaterial = ROLLING_SURFACES[TIRE_SOUND_SURFACES[surfaceIndex]!];
+    this.targetMaterial = ROLLING_SURFACES[TIRE_SOUND_SURFACE_IDS[surfaceIndex]! as keyof typeof ROLLING_SURFACES];
     this.supported = value.load > 0;
     if (!this.supported) {
       this.releaseContact();

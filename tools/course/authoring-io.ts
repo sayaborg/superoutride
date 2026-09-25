@@ -2,10 +2,12 @@ import { COURSE_DOCUMENT_LIMITS } from '../../src/course/course-limits.js';
 import type { CourseResult } from '../../src/course/course-diagnostics.js';
 import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import { readFile, mkdir, writeFile, rename, rm } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { readCourseDocument } from '../../src/course/course-document.js';
 import { compileCourseDocument } from '../../src/course/compiler/compiled-course.js';
+import { compileSurfaceMaterialDocument } from '../../src/course/surface-material.js';
 import { compileCourseImages } from './compile-course-images.js';
 import { readCourseImages } from './read-course-images.js';
 
@@ -57,15 +59,23 @@ export async function jsonFile(file: string): Promise<{ bytes: Buffer; value: un
     throw new AuthoringError([{ kind: 'tool', code: 'parse_failure', path: file, message: (error as Error).message }]);
   }
 }
+export async function loadAuthoringSurfaceMaterials() {
+  const filename = fileURLToPath(new URL('../../content/materials/surface.json', import.meta.url));
+  const result = compileSurfaceMaterialDocument((await jsonFile(filename)).value, 'content/materials/surface.json');
+  if (!result.ok) throw new AuthoringError(result.diagnostics);
+  return result.value;
+}
+
 export async function loadCourse(file: string, imagesDirectory?: string) {
   const admitted = readCourseDocument((await jsonFile(file)).value);
   if (!admitted.ok) throw new AuthoringError(admitted.diagnostics);
   const directory = imagesDirectory ?? path.resolve(path.dirname(file), '../images');
   const images = await readCourseImages(admitted.value.assets, directory);
   const prepared = await compileCourseImages(admitted.value, images);
-  const compiled = await compileCourseDocument(prepared.document, prepared.images);
+  const materials = await loadAuthoringSurfaceMaterials();
+  const compiled = await compileCourseDocument(prepared.document, prepared.images, materials, file);
   if (!compiled.ok) throw new AuthoringError(compiled.diagnostics);
-  return { document: admitted.value, course: compiled.value, images };
+  return { document: admitted.value, course: compiled.value, images, materials };
 }
 export async function atomicWrite(file: string, data: string | Uint8Array) {
   await mkdir(path.dirname(file), { recursive: true });

@@ -25,6 +25,7 @@ export function limitSteeringInput(
     requestedOffset === 0 ||
     !contact.forceTransmitting ||
     !contact.tireFrameValid ||
+    contact.surface.material === null ||
     !(contact.surface.material.gripFactor > 0)
   )
     return requestedOffset;

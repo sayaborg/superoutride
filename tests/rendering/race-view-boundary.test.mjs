@@ -21,7 +21,7 @@ const definitions = await loadVehicleDefinitions(await readDeliveredContent());
 
 async function setup() {
   const file = fileURLToPath(new URL('../../content/courses/ribbon-ring.course.json', import.meta.url));
-  const { course } = await loadCourse(file);
+  const { course, materials } = await loadCourse(file);
   const scene = createCourseScene(
     course.entry,
     await loadCourseGround(course),
@@ -33,6 +33,7 @@ async function setup() {
   const compiledVehicle = createSessionVehicle(
     definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA'),
     definitions.driving,
+    materials,
   );
   const model = createVehicleModel(compiledVehicle);
   const spawn = (s) => createVehicle(model, scene.world, { s, l: 0, initialSpeed: 0 });

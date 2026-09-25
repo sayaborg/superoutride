@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readDeliveredContent } from '../../tools/course/read-content.ts';
 import { loadDeliveredCourse } from '../../src/course/load-delivered-course.js';
+import { loadSurfaceMaterials } from '../../src/course/surface-material.js';
 import { loadCourseGround } from '../../tools/course/authoring-io.ts';
 import { createCourseScene } from '../../src/view/course-scene.js';
 import { createVehicle, updateVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
@@ -18,9 +19,10 @@ import { SoftwareSurface } from '../../src/view/software-surface.js';
 const definitions = await loadVehicleDefinitions(await readDeliveredContent());
 
 const content = await readDeliveredContent();
+const materials = await loadSurfaceMaterials(content);
 for (const { id: stem } of content.manifest.files.filter((file) => file.kind === 'course'))
   test(`${stem} compiles and starts through the shared driving scene`, async () => {
-    const course = await loadDeliveredCourse(content, stem);
+    const course = await loadDeliveredCourse(content, stem, materials);
     const settings = createDisplaySettings();
     assert.equal(settings.stripMethod, 'LEVEL-POINT');
     const scene = createCourseScene(
@@ -33,7 +35,7 @@ for (const { id: stem } of content.manifest.files.filter((file) => file.kind ===
     );
     const entry = definitions.vehicles[0];
     const sprites = createVehicleSprites(entry);
-    const model = createVehicleModel(createSessionVehicle(entry, definitions.driving));
+    const model = createVehicleModel(createSessionVehicle(entry, definitions.driving, materials));
     const vehicle = createVehicle(model, scene.world, { s: course.gates.grid[0].at.s, l: 0, initialSpeed: 0 });
     const rig = createCameraRig(),
       target = new SoftwareSurface(320, 240);

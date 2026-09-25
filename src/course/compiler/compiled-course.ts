@@ -33,6 +33,7 @@ import { COURSE_APPEARANCE_RECIPE, compileCourseAppearance, createCourseSpriteRe
 import { compileCourseBoundaries } from './course-lateral.js';
 import { compileCourseGates } from './course-rules.js';
 import { compileCourseFork } from './course-fork.js';
+import type { SurfaceMaterialCatalog } from '../surface-material.js';
 
 interface SectionDraft extends Omit<CompiledSection, 'incoming' | 'outgoing' | 'fork'> {
   readonly incoming: CompiledLink[];
@@ -48,6 +49,7 @@ export interface CompiledCourse {
   readonly gates: ReturnType<typeof compileCourseGates>;
   readonly identity: {
     readonly sourceSha256: string;
+    readonly materialsSha256: string;
     readonly buildSha256: string;
     readonly compiler: typeof COURSE_COMPILER;
   };
@@ -59,7 +61,7 @@ export interface CompiledCourse {
 
 const COURSE_COMPILER = Object.freeze({
   id: 'superoutride.course-compiler',
-  version: 35,
+  version: 36,
   links: COURSE_LINK_RECIPE,
   physical: COURSE_PHYSICAL_RECIPE,
   images: COURSE_IMAGE_SOURCE_RECIPE,
@@ -100,6 +102,7 @@ function compileSection(
   section: SectionDocument,
   assets: ReadonlyMap<string, CompiledCourseImageSource>,
   resources: ReturnType<typeof createCourseSpriteResources>,
+  materials: SurfaceMaterialCatalog,
   path: string,
 ) {
   const { segments, length, stations } = compileCourseGeometry(section, path);
@@ -115,7 +118,7 @@ function compileSection(
       right: reference(boundaryTable, source.right, `${at}/right`),
     });
   });
-  const strips = compileCourseStrips(section.strips, length, `${path}/strips`, resolve, boundaryTable);
+  const strips = compileCourseStrips(section.strips, length, `${path}/strips`, resolve, boundaryTable, materials);
   validateMaterialContinuity(strips.material, `${path}/strips`);
   validateCourseCarriageways(carriageways, strips.material, length, `${path}/carriageways`);
   const physical = compileCoursePhysicalContent(section, length, resolve, path);
@@ -173,10 +176,16 @@ function compileSection(
 /** Own input before the first await; publish only a fully validated graph, never the construction tables. */
 export async function compileCourseDocument(
   input: unknown,
-  assetSources: readonly CourseAssetBytes[] = [],
+  assetSources: readonly CourseAssetBytes[],
+  materials: SurfaceMaterialCatalog,
+  documentPath = '',
 ): Promise<CourseResult<CompiledCourse>> {
   const admitted = readCourseDocument(input);
-  if (!admitted.ok) return admitted;
+  if (!admitted.ok)
+    return courseFailures(
+      admitted.diagnostics.map((diagnostic) => ({ diagnostic })),
+      documentPath,
+    );
   const document = admitted.value;
   try {
     requireCourse(document.sections.length > 0, '/sections', 'A course requires a Section', 'empty_course');
@@ -185,7 +194,7 @@ export async function compileCourseDocument(
     const assets = new Map(images.value.map((asset) => [asset.id, asset]));
     const resources = createCourseSpriteResources();
     const drafts = compileStage(document.sections, (section, index) =>
-      compileSection(section, assets, resources, `/sections/${index}`),
+      compileSection(section, assets, resources, materials, `/sections/${index}`),
     );
     const sections = drafts.map((draft) => draft.section);
     const sectionTable = new Map(sections.map((section) => [section.id, section]));
@@ -235,8 +244,9 @@ export async function compileCourseDocument(
       Object.freeze(section);
     }
     const sourceSha256 = await contentDigest(new TextEncoder().encode(JSON.stringify(document)));
+    const materialsSha256 = await contentDigest(new TextEncoder().encode(JSON.stringify(materials.source)));
     const buildSha256 = await contentDigest(
-      new TextEncoder().encode(JSON.stringify({ sourceSha256, compiler: COURSE_COMPILER })),
+      new TextEncoder().encode(JSON.stringify({ sourceSha256, materialsSha256, compiler: COURSE_COMPILER })),
     );
     return courseSuccess(
       Object.freeze({
@@ -246,6 +256,7 @@ export async function compileCourseDocument(
         gates,
         identity: Object.freeze({
           sourceSha256,
+          materialsSha256,
           buildSha256,
           compiler: COURSE_COMPILER,
         }),
@@ -256,8 +267,8 @@ export async function compileCourseDocument(
       }),
     );
   } catch (error) {
-    if (error instanceof CourseStageErrors) return courseFailures(error.errors);
-    if (error instanceof CourseInputError) return courseFailure(error);
+    if (error instanceof CourseStageErrors) return courseFailures(error.errors, documentPath);
+    if (error instanceof CourseInputError) return courseFailure(error, documentPath);
     throw error;
   }
 }

@@ -1,0 +1,12 @@
+{
+  "format": "superoutride.surface-materials",
+  "version": 1,
+  "id": "surface",
+  "materials": [
+    { "id": "ASPHALT", "gripFactor": 1, "rollingResistance": 0.014, "tireEffect": "SMOKE" },
+    { "id": "SHOULDER", "gripFactor": 0.78, "rollingResistance": 0.025, "tireEffect": "SMOKE" },
+    { "id": "GRASS", "gripFactor": 0.43, "rollingResistance": 0.065, "tireEffect": "GRASS" },
+    { "id": "DIRT", "gripFactor": 0.52, "rollingResistance": 0.045, "tireEffect": "DUST" },
+    { "id": "SAND", "gripFactor": 0.33, "rollingResistance": 0.11, "tireEffect": "DUST" }
+  ]
+}

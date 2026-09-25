@@ -9,16 +9,16 @@ import { createStripGroundSampler, createStripRenderMetrics } from '../../src/vi
 
 test('visual Strips can erase all ground without changing material slabs, support or material readings', async () => {
   const file = fileURLToPath(new URL('../../content/courses/ribbon-coast.course.json', import.meta.url));
-  const { document, images } = await loadCourse(file);
+  const { document, images, materials } = await loadCourse(file);
   const prepared = await compileCourseImages(document, images);
-  const original = await compileCourseDocument(prepared.document, prepared.images);
+  const original = await compileCourseDocument(prepared.document, prepared.images, materials);
   assert.ok(original.ok);
   const erased = structuredClone(prepared.document);
   for (const section of erased.sections)
     section.strips = section.strips
       .filter((s) => s.kind === 'strip' && s.material !== null)
       .map((s) => ({ ...s, color: null }));
-  const replacement = await compileCourseDocument(erased, prepared.images);
+  const replacement = await compileCourseDocument(erased, prepared.images, materials);
   assert.ok(replacement.ok);
   const a = original.value.entry,
     b = replacement.value.entry;

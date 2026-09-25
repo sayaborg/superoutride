@@ -6,18 +6,14 @@ import {
   type StripPiece,
   type StripSlab,
 } from './strip-ground.js';
-import { SURFACE_MATERIALS, type SurfaceMaterial } from './surface-material.js';
-
-const samples = new Map(
-  Object.values(SURFACE_MATERIALS).map((material) => [material, Object.freeze({ type: material.type, material })]),
-);
-export const VOID_SURFACE = samples.get(SURFACE_MATERIALS.VOID)!;
+import type { SurfaceMaterial } from './surface-material.js';
+import { surfaceSample, type SurfaceSample } from './vehicle-world.js';
 
 export interface StripMaterial {
   readonly length: number;
   readonly slabs: readonly StripSlab<SurfaceMaterial | null>[];
-  sample(s: number, l: number): typeof VOID_SURFACE;
-  sampleInChart(s: number, l: number, lateralOrigin: number): typeof VOID_SURFACE;
+  sample(s: number, l: number): SurfaceSample;
+  sampleInChart(s: number, l: number, lateralOrigin: number): SurfaceSample;
 }
 
 /** The same resolved cross-section shape as color; all point reads borrow immutable samples. */
@@ -27,10 +23,8 @@ export function compileStripMaterial(
   path: string,
 ): StripMaterial {
   const slabs = resolveStripSlabs(length, pieces, null, path);
-  const sampleInChart = (s: number, l: number, lateralOrigin: number) => {
-    const material = stripSpanAt(slabs[stripSlabAt(slabs, s)]!, s, l, lateralOrigin).value;
-    return material === null ? VOID_SURFACE : samples.get(material)!;
-  };
+  const sampleInChart = (s: number, l: number, lateralOrigin: number) =>
+    surfaceSample(stripSpanAt(slabs[stripSlabAt(slabs, s)]!, s, l, lateralOrigin).value);
   return Object.freeze({ length, slabs, sample: (s: number, l: number) => sampleInChart(s, l, 0), sampleInChart });
 }
 
@@ -38,7 +32,7 @@ export function compileStripMaterial(
 export function stripSupportedIntervals(slab: StripSlab<SurfaceMaterial | null>, s: number): [number, number][] {
   const result: [number, number][] = [];
   for (const span of slab.spans) {
-    if (!span.value?.supported) continue;
+    if (span.value === null) continue;
     const left = stripEdgeAt(span, 'left', s),
       right = stripEdgeAt(span, 'right', s);
     if (right <= left) continue;

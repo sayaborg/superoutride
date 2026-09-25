@@ -73,7 +73,8 @@ motion continue under the ordinary unsupported mechanics. Within the admitted co
 compilation guarantees J>0, so contact sampling needs no second metric-domain check.
 
 The free suspension reach offset is `forward*axleOffset-up*freeReach`, with velocity
-`v+omega cross offset`. Supported material and an upright body permit unilateral contact:
+`v+omega cross offset`. A material (no material is `null`: no support, grip factor zero and rolling
+resistance zero) and an upright body permit unilateral contact:
 
 ```text
 q = max(-gap,0)
@@ -352,7 +353,16 @@ Optional read-only tire telemetry publishes completed wheel-solve rolling/slip s
 loads and surfaces to audio. Recovery resets those observations. Graphics, HUD and sound consume
 mechanical observations without contributing forces or alternate mechanical state.
 
-## Vehicle and driving documents
+## Material, vehicle and driving documents
+
+`content/materials/surface.json` stores the single `superoutride.surface-materials` version 1
+document. Its `id` is `surface`; each entry in `materials` contains an open-set material `id`,
+nonnegative finite `gripFactor`, nonnegative finite `rollingResistance`, and a `tireEffect` from
+`NONE`, `SMOKE`, `DUST`, `GRASS`, `WATER_SPRAY`, `SNOW`, or `MUD`. The effect value is a
+presentation classification only. The current five definitions retain their prior physical values.
+The manifest verifies the saved bytes, then `surface-material.ts` admits this document once and
+publishes one immutable catalog. Course compilation resolves Strip material IDs through that catalog;
+runtime physics receives the resolved object or `null`, never a fixed material enum.
 
 `content/vehicles/<id>.json` stores one `superoutride.vehicle-definition` version 5 per vehicle.
 `content/driving/default.json` stores the sole `superoutride.driving-definition` version 6.
@@ -410,8 +420,10 @@ driving document's fields. Unsupported earlier versions have no migration reader
 Only explicit authored-domain failures become diagnostics; unexpected internal errors propagate.
 Success returns `{ok:true,value}`; no partial product is published. Nested arrays and records are
 copied and frozen, including powertrain gears/curve points, metadata and the driving tire/pedals.
-The shared loader verifies manifest SHA-256 before decoding and admission, checks manifest/document
-identity and selection-order uniqueness, then exposes the sorted immutable collection.
+The shared vehicle loader verifies manifest SHA-256 before decoding and admission, checks
+manifest/document identity and selection-order uniqueness, then exposes the sorted immutable
+collection. Surface-material diagnostics likewise carry the source document and exact JSON Pointer;
+course references to unknown material IDs report the authored Strip `/material` path.
 
 Vehicle admission receives the completed sprite library with the vehicle document. It resolves the
 named set and the default color for every image once. Cars require exactly one bank image per yaw;

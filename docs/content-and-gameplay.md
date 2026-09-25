@@ -166,10 +166,11 @@ Section `strips` is an ordered array of these constructs. Each record includes `
 | `curb`   | Position `start`, `end`, Lateral `left`, `right`, positive `stripe`, two RGB555 `colors` |
 
 A Strip's color is an RGB555 integer from 0 through 32767, `"transparent"` to erase earlier color,
-or null to leave color unchanged. Zero is opaque black. Material is a material name or null to
-leave material unchanged. Both fields cannot be null. A later covering Strip independently
-replaces each non-null value. Uncovered color is transparent; uncovered material reads VOID.
-Color-only Strips never enter the material table, and material-only Strips never enter the color table.
+or null to leave color unchanged. Zero is opaque black. Material is a material ID or null to leave
+material unchanged. Both fields cannot be null. A later covering Strip independently replaces each
+non-null value. Uncovered color is transparent; uncovered material is no material. No material is
+not a material ID: it has no support, zero grip and zero rolling resistance. Color-only Strips never
+enter the material table, and material-only Strips never enter the color table.
 
 Knots use Position `at` and Lateral or null edges. Null left/right opens that side to infinity;
 each side's open flag must remain constant throughout a Strip. Material-bearing Strips require
@@ -350,8 +351,8 @@ violations report `invalid_carriageway`. Cut lines, landmarks, fork exits, drivi
 read Carriageway Boundaries directly. Landmark support is checked across the full edge interval.
 
 Every open Section cell must have finite material coverage. At every longitudinal transition, both
-the material-bearing cell union (including explicit VOID) and the Carriageway interior union must
-have equal side limits. Positive-width replacements and zero-width birth/death endpoints follow
+the material-bearing cell union and the Carriageway interior union must have equal side limits.
+No-material space outside that union is not an authored material. Positive-width replacements and zero-width birth/death endpoints follow
 the same rule. Discontinuities report `material_transition_discontinuity` or `carriageway_transition_discontinuity`;
 empty material coverage reports `material_coverage_gap`.
 [Architecture](architecture.md#boundary-geometry-and-point-ownership) owns mapped geometry and point ownership.
@@ -366,11 +367,21 @@ Profile Knots resolve on the same ruler, increase strictly and include exactly z
 `curveLength` is nonnegative in metres; endpoint lengths are zero and adjacent curves do not overlap.
 [Architecture](architecture.md#height-and-projection) defines the analytic profile and the polyline used only for ground-row generation.
 
-Materials are ASPHALT, SHOULDER, GRASS, DIRT, SAND or VOID. Unknown names fail.
-Material-bearing Strips compile to finite affine pieces through the same slab resolver as color.
-The coordinate domain follows the material table's outer finite covered edges plus margin,
-including explicitly authored VOID extents. Color remains independent of physical support.
-Material samples use the material type as `sectionName`.
+Surface materials are delivered by the manifest as the single `content/materials/surface.json`
+`superoutride.surface-materials` version 1 document. It has `id:"surface"` and an ordered
+`materials` array. Each material has a filename-safe open-set `id`, nonnegative finite
+`gripFactor`, nonnegative finite `rollingResistance`, and `tireEffect`. The tire-effect enum is
+`NONE`, `SMOKE`, `DUST`, `GRASS`, `WATER_SPRAY`, `SNOW` or `MUD`; it records future tire
+presentation only and does not alter physics in this stage. Material IDs are content data rather than
+a TypeScript enum. Adding an ID requires no course or physics code change; until audio definitions
+become content in Stage 9, both tire-sound tables must have a matching ID.
+
+The initial definitions are ASPHALT, SHOULDER, GRASS, DIRT and SAND with their pre-8-7a physical
+values. There is no VOID definition. An authored Strip material resolves its ID against the admitted
+catalog; an unknown ID reports `unresolved_reference` at that Strip's `/material` path.
+Material-bearing Strips compile to finite affine pieces through the same slab resolver as color. The
+coordinate domain follows the material table's outer finite covered edges plus margin. Color remains
+independent of physical support. Outside material-bearing coverage, point reads return no material.
 
 ## Cut lines, Links and topology
 
@@ -412,10 +423,10 @@ asset and landmark references plus immutable material tables. Merges reuse the s
 Owned records and arrays are immutable, including nested image data. Live actor, route-lock and
 clock state belong to Sessions. Object identity is local to a compilation; cross-build identity uses digests.
 
-`sourceSha256` hashes normalized input. `buildSha256` hashes `{sourceSha256,compiler}`.
-The compiler is `superoutride.course-compiler` version 35, incorporating Link recipe v3, physical
-recipe v3, image-source recipe v2 and appearance recipe v11. Descriptors include semantic versions
-and operative numeric/data parameters, including material definitions. Source or compiler/recipe
+`sourceSha256` hashes normalized course input. `materialsSha256` hashes the admitted normalized
+surface-material document. `buildSha256` hashes `{sourceSha256,materialsSha256,compiler}`.
+The compiler is `superoutride.course-compiler` version 36, incorporating Link recipe v3, physical
+recipe v5, image-source recipe v2 and appearance recipe v11. Source, material or compiler/recipe
 changes invalidate dependent products.
 
 Image inputs are explicit saved bytes addressed by each declared SHA-256. Shared digests resolve to
@@ -564,11 +575,12 @@ Maximum-lap runs supply their actual prefixes; starting and later-lap arrival cl
 
 Identity includes course/compiler, vehicle/calibration/protection, driver policy, fixed step, start
 and seed inputs. The vehicle digest (`sessionVehicleSha256`) is SHA-256 of the deterministic JSON
-serialization of the two admitted source documents of the `SessionVehicle`: the complete vehicle source
-document (including form, metadata and sound ID) and the driving source document. Everything else a
-Session drives, compiled mechanics, driving settings and the form-derived support reserve, derives
-from them. Definition readers construct these records in a fixed field order; arbitrary input key
-order does not affect the identity. Any vehicle or driving document value change changes `vehicleSha256`. This digest is a
+serialization of the admitted vehicle source document, driving source document and surface-material
+source document. The vehicle source includes form, metadata and sound ID. Everything else a Session
+drives—compiled mechanics, driving settings, form-derived support reserve and material physics—derives
+from those sources. Definition readers construct these records in a fixed field order; arbitrary input
+key order does not affect identity. Any vehicle, driving or surface-material value change changes
+`vehicleSha256`. This digest is a
 reference-cache key component and is independently recomputed by browser envelope and budget admission;
 both reject products carrying an old digest. Manifest SHA-256 verifies transported bytes separately.
 The reference model hash tracks compiler/mechanics code; authored JSON values belong to the per-vehicle

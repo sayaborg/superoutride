@@ -1,10 +1,22 @@
 import type { PlanCoordinateReader } from './geometry/plan-coordinate.js';
 import type { ProfileReader } from './geometry/profile.js';
-import type { SurfaceMaterial, SurfaceType } from './surface-material.js';
+import type { SurfaceMaterial } from './surface-material.js';
 
 export interface SurfaceSample {
-  readonly type: SurfaceType;
-  readonly material: SurfaceMaterial;
+  readonly material: SurfaceMaterial | null;
+}
+
+export const NO_MATERIAL_SURFACE = Object.freeze({ material: null });
+const samples = new WeakMap<SurfaceMaterial, Readonly<SurfaceSample>>();
+
+export function surfaceSample(material: SurfaceMaterial | null): SurfaceSample {
+  if (material === null) return NO_MATERIAL_SURFACE;
+  let sample = samples.get(material);
+  if (!sample) {
+    sample = Object.freeze({ material });
+    samples.set(material, sample);
+  }
+  return sample;
 }
 
 /** Minimal read-only physics contract for SurfaceMap(s,l). */

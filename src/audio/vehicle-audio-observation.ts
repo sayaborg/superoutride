@@ -9,7 +9,7 @@ export interface TireAudioObservation {
   /** Dissipated longitudinal/lateral slip power in watts, from the accepted tire solve. */
   readonly longitudinalPower: number;
   readonly lateralPower: number;
-  readonly surface: 'ASPHALT' | 'SHOULDER' | 'GRASS' | 'DIRT' | 'SAND' | 'VOID';
+  readonly surface: string | null;
 }
 /** The powertrain's last shift; a new sequence marks a shift not yet heard. Sequence 0: none yet. */
 export interface ShiftAudioObservation {

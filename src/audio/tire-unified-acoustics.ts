@@ -1,5 +1,3 @@
-import type { TIRE_SOUND_SURFACES } from './tire-sound-observation.js';
-
 /**
  * UNIFIED is an authored acoustic surrogate, NOT a local rubber/contact solve.
  * All values here are listening choices (magic numbers), not measured material data.
@@ -34,7 +32,7 @@ export const UNIFIED_SURFACES = Object.freeze({
   GRASS: Object.freeze({ roughness: 0.75, susceptibility: 0.04 }),
   DIRT: Object.freeze({ roughness: 1.5, susceptibility: 0.12 }),
   SAND: Object.freeze({ roughness: 1.1, susceptibility: 0.02 }),
-} satisfies Record<(typeof TIRE_SOUND_SURFACES)[number], Readonly<{ roughness: number; susceptibility: number }>>);
+});
 
 /** Authored audition bounds, NOT measured tire ranges. All combinations retain passive resonances. */
 export const UNIFIED_TUNING_RANGES = Object.freeze({

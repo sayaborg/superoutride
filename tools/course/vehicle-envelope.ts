@@ -24,8 +24,10 @@ function createEnvelopeRun(entry: SessionVehicle, initialSpeed: number) {
     { s: 0, y: 0, curveLength: 0 },
     { s: coordinates.domain.end, y: 0, curveLength: 0 },
   ]);
+  const asphalt = entry.surfaceMaterials.get('ASPHALT');
+  if (!asphalt) throw new RangeError('Reference envelope requires the ASPHALT material');
   const surfaces = new SurfaceMap(coordinates.domain.end, [
-    { sStart: 0, name: 'Envelope asphalt', intervals: [{ lMin: -5000, lMax: 5000, type: 'ASPHALT' }] },
+    { sStart: 0, name: 'Envelope asphalt', intervals: [{ lMin: -5000, lMax: 5000, material: asphalt }] },
   ]);
   const world = { extent: coordinates.domain, coordinates, height, surfaces };
   const model = createVehicleModel(entry);

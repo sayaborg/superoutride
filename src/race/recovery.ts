@@ -162,8 +162,8 @@ function updateRecovery(
     (vehicle.x - surface.point.x) * surface.normal.x +
     (vehicle.y - surface.point.y) * surface.normal.y +
     (vehicle.z - surface.point.z) * surface.normal.z;
-  // VOID is non-load-bearing, but it still shares the rendered heightfield. Letting the CG pass
-  // below that authored surface makes the vehicle visibly drive under terrain while gameplay waits
+  // Material-free ground is non-load-bearing, but it still shares the rendered heightfield. Letting
+  // the CG pass below that authored surface makes the vehicle visibly drive under terrain while gameplay waits
   // for the larger fall-distance limits.
   const penetratedSurface = surfaceDistance < -SURFACE_PENETRATION_TOLERANCE_METERS;
 

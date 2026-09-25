@@ -19,6 +19,8 @@ import { createSessionVehicle } from '../race/session-vehicle.js';
 import { readBrowserSessionSettings, mountCourseSessionControls } from './course-session-controls.js';
 import { createCourseScene } from '../view/course-scene.js';
 import { readVehicleEnvelope } from '../race/vehicle-envelope.js';
+import { loadSurfaceMaterials } from '../course/surface-material.js';
+import { validateTireSoundMaterialIds } from '../audio/tire-surface-acoustics.js';
 
 const canvas = mustGet<HTMLCanvasElement>('game');
 const status = document.createElement('p');
@@ -28,17 +30,19 @@ canvas.insertAdjacentElement('afterend', status);
 
 try {
   const content = await browserContent();
+  const materials = await loadSurfaceMaterials(content);
+  validateTireSoundMaterialIds(materials.ids);
   const definitions = await loadVehicleDefinitions(content);
   const { vehicles, driving } = definitions;
   const mode = selectBrowserCourseMode(new URLSearchParams(location.search).get('mode')).query;
-  const course = await loadDeliveredCourse(content, mode);
+  const course = await loadDeliveredCourse(content, mode, materials);
   const ground = createCourseGround(course);
   if (!course.rules) throw new RangeError('Playable courses require saved Session rules');
   const parameters = new URLSearchParams(location.search);
   const settings = readBrowserSessionSettings(parameters, course.rules.classic, vehicles);
   const preset = readBrowserSessionSettings(new URLSearchParams(), course.rules.classic, vehicles);
   const entry = vehicles.find((v) => v.compiledVehicle.id === settings.vehicleId)!;
-  const vehicle = createSessionVehicle(entry, driving);
+  const vehicle = createSessionVehicle(entry, driving, materials);
   const rivalEnvelope = await readVehicleEnvelope(
     vehicle,
     await content.json('envelope', vehicle.vehicleDefinition.compiledVehicle.id),

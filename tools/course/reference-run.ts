@@ -3,13 +3,13 @@ type CompiledSection = CompiledCourse['sections'][number];
 type CompiledLink = CompiledCourse['links'][number];
 import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import type { CourseGround } from '../../src/course/compiler/course-ground.js';
-import type { CompiledVehicleDefinition, VehicleDefinitions } from '../../src/vehicle/definition-document.js';
+import type { CompiledVehicleDefinition } from '../../src/vehicle/definition-document.js';
+import type { SessionVehicle } from '../../src/race/session-configuration.js';
 import type { VehicleEnvelope } from '../../src/race/envelope-driver.js';
 import { REFERENCE_DRIVER } from './reference-driving-policy.js';
 import { createCourseScene } from '../../src/view/course-scene.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
-import { createSessionVehicle } from '../../src/race/session-vehicle.js';
 import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
 import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
 import { createRecoveryState } from '../../src/race/recovery.js';
@@ -44,15 +44,15 @@ export function courseReferenceRoutes(course: CompiledCourse) {
 export function runCourseReference(
   course: CompiledCourse,
   ground: CourseGround,
-  entry: CompiledVehicleDefinition,
-  definitions: VehicleDefinitions,
+  vehicleConfiguration: SessionVehicle,
+  vehicles: readonly CompiledVehicleDefinition[],
   envelope: VehicleEnvelope,
   route: readonly CompiledLink[],
   lapCount: number,
   capture = false,
 ) {
-  const scene = createCourseScene(course.entry, ground, course.gates, definitions.vehicles),
-    vehicleConfiguration = createSessionVehicle(entry, definitions.driving);
+  const entry = vehicleConfiguration.vehicleDefinition,
+    scene = createCourseScene(course.entry, ground, course.gates, vehicles);
   const session = resolveCourseSession(
     course,
     { mode: 'CUSTOM', rivalCount: 0, lapCount, timeLimit: false },

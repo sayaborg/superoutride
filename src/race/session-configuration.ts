@@ -1,11 +1,13 @@
 import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
 import type { CompiledDrivingDefinition } from '../vehicle/compiled-driving-definition.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
+import type { SurfaceMaterialCatalog } from '../course/surface-material.js';
 
 /** The vehicle and driving definitions a Session drives; everything else derives from them. */
 export interface SessionVehicle {
   readonly vehicleDefinition: CompiledVehicleDefinition;
   readonly drivingDefinition: CompiledDrivingDefinition;
+  readonly surfaceMaterials: SurfaceMaterialCatalog;
 }
 
 export interface SessionConfiguration {

@@ -26,17 +26,20 @@ import { SIM_DT } from '../../src/race/fixed-step.js';
 import { READY_SECONDS } from '../../src/race/start-phase.js';
 import { courseBoundaryAt, courseCarriagewayExists } from '../../src/course/course-boundaries.js';
 import { routeSectionS } from '../../src/course/course-route.js';
+import { loadSurfaceMaterials } from '../../src/course/surface-material.js';
 
-const definitions = await loadVehicleDefinitions(await readDeliveredContent());
+const content = await readDeliveredContent();
+const materials = await loadSurfaceMaterials(content);
+const definitions = await loadVehicleDefinitions(content);
 
 const idle = { steering: 0, throttle: false, brake: false };
 const entry = definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA');
-const configuration = createSessionVehicle(entry, definitions.driving);
-const { envelope } = await (await readDeliveredContent()).json('envelope', 'TESTAROSSA');
+const configuration = createSessionVehicle(entry, definitions.driving, materials);
+const { envelope } = await content.json('envelope', 'TESTAROSSA');
 const driver = compileEnvelopeDriver(envelope, 0.75, envelope.maximumSpeed);
 
 export async function loadScenarioCourse(stem) {
-  const course = await loadDeliveredCourse(await readDeliveredContent(), stem);
+  const course = await loadDeliveredCourse(content, stem, materials);
   return { course, ground: await loadCourseGround(course) };
 }
 

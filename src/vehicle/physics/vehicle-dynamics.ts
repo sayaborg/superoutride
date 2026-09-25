@@ -7,12 +7,11 @@ import {
   type PlanProjectionWorkspace,
 } from '../../course/geometry/plan-coordinate.js';
 import { type Writable } from '../../core/writable.js';
-import { SURFACE_MATERIALS } from '../../course/surface-material.js';
 import { resetVehicleTireObservation } from './vehicle-tire-observation.js';
 import type { ProfileReader } from '../../course/geometry/profile.js';
 import type { AutomaticPowertrainState } from './automatic-powertrain.js';
 import type { SurfaceMapReader } from '../../course/vehicle-world.js';
-import type { SurfaceMaterial, SurfaceType } from '../../course/surface-material.js';
+import type { SurfaceMaterial } from '../../course/surface-material.js';
 import {
   add3,
   cross3,
@@ -74,7 +73,7 @@ export interface VehicleDynamicsState {
   velocityY: number;
   velocityZ: number;
   course: PlanCoordinateProjection;
-  surfaceType: SurfaceType;
+  surfaceType: string | null;
   longitudinalAcceleration: number;
   lateralAcceleration: number;
   readonly control: VehicleControlState;
@@ -127,8 +126,8 @@ interface SurfaceGeometryObservation {
   readonly offsetMetric: number;
   readonly heightDerivativeByS: number;
   readonly gradeAngle: number;
-  readonly material: SurfaceMaterial;
-  readonly surfaceType: SurfaceType;
+  readonly material: SurfaceMaterial | null;
+  readonly surfaceType: string | null;
 }
 
 export interface ContactObservation {
@@ -235,8 +234,8 @@ export function createSurfaceGeometryWorkspace() {
       offsetMetric: 1,
       heightDerivativeByS: 0,
       gradeAngle: 0,
-      material: SURFACE_MATERIALS.VOID,
-      surfaceType: 'VOID' as SurfaceType,
+      material: null as SurfaceMaterial | null,
+      surfaceType: null as string | null,
     },
     planSample: createPlanCoordinateSample(),
     projection: createPlanProjectionWorkspace(),
@@ -293,7 +292,7 @@ export function sampleSurfaceGeometryAtCoordinate(
   out.heightDerivativeByS = heightDerivativeByS;
   out.gradeAngle = Math.atan2(heightDerivativeByS, offsetMetric);
   out.material = sample.material;
-  out.surfaceType = sample.type;
+  out.surfaceType = sample.material?.id ?? null;
   return out;
 }
 
@@ -354,8 +353,8 @@ export function deriveContactObservation(
   if (!coordinate.inDomain) {
     // There is no surface to sample. Clear the borrowed contact from the preceding substep.
     const surface = workspace.surface.value;
-    surface.material = SURFACE_MATERIALS.VOID;
-    surface.surfaceType = 'VOID';
+    surface.material = null;
+    surface.surfaceType = null;
     surface.curvature = surface.heightDerivativeByS = surface.gradeAngle = 0;
     surface.offsetMetric = 1;
     scale3(WORLD_UP, 0, surface.point);
@@ -375,7 +374,7 @@ export function deriveContactObservation(
   const surface = workspace.surface.value;
   const reachVelocity = add3(body.velocity, cross3(body.omegaWorld, freeOffset, a), out.reachVelocity);
   const gap = dot3(sub3(reachPoint, surface.point, a), surface.normal);
-  const supportAvailable = surface.material.supported;
+  const supportAvailable = surface.material !== null;
   const withinReach = supportAvailable && dot3(body.up, surface.normal) > 0 && gap <= 0;
   const q = withinReach ? -gap : 0;
   if (q >= station.suspension.qTravel) throw new VehicleOutsideModelError(station.id, q, station.suspension.qTravel);
@@ -529,15 +528,15 @@ export function momentAboutCg(contact: ContactObservation, cg: Vec3, force: Vec3
   return cross3(out, force, out);
 }
 
-export function representativeSurfaceType(contacts: readonly ContactObservation[]): SurfaceType {
+export function representativeSurfaceMaterialId(contacts: readonly ContactObservation[]): string | null {
   let worst: ContactObservation | null = null;
   for (const contact of contacts)
     if (
       contact.forceTransmitting &&
-      (!worst || contact.surface.material.gripFactor < worst.surface.material.gripFactor)
+      (!worst || contact.surface.material!.gripFactor < worst.surface.material!.gripFactor)
     )
       worst = contact;
-  return worst?.surface.surfaceType ?? 'VOID';
+  return worst?.surface.material?.id ?? null;
 }
 
 /** Reproject the reconstructed CG near its known placement; overlapping charts are not interchangeable. */

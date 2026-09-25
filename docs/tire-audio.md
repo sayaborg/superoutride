@@ -14,7 +14,9 @@ One tire worklet receives independent k-rate parameter sets and seeded histories
 The game and tire audition use the same voice, processor and observation mapping.
 
 [Observation domains](../src/audio/tire-sound-observation.ts) bound acoustic transport. Zero load or
-VOID yields a silent contact observation. An invalid block releases only the affected axle's forcing;
+no material yields a silent contact observation. Supported observations carry the admitted material ID;
+rolling and UNIFIED acoustic tables are keyed by that ID. Product assembly checks once that every
+delivered material has both sound entries. An invalid block releases only the affected axle's forcing;
 finite stored tails decay, and subsequent valid input restores excitation.
 
 ## Rolling synthesis

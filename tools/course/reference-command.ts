@@ -1,6 +1,7 @@
 import { loadVehicleDefinitions } from '../../src/vehicle/definition-document.js';
 import { readDeliveredContent } from './read-content.js';
 import { createSessionVehicle } from '../../src/race/session-vehicle.js';
+import { loadSurfaceMaterials } from '../../src/course/surface-material.js';
 import { REFERENCE_DRIVER } from './reference-driving-policy.js';
 import { measureVehicleEnvelope } from './vehicle-envelope.js';
 import { courseReferenceRoutes, runCourseReference } from './reference-run.js';
@@ -9,20 +10,22 @@ import { options, loadCourse, loadCourseGround, requireInput, atomicWrite } from
 
 /** Optional diagnostic exports; ordinary build owns all Session products. */
 export async function referenceCommand(verb: string, file: string, args: readonly string[]) {
-  const definitions = await loadVehicleDefinitions(await readDeliveredContent());
+  const content = await readDeliveredContent();
+  const definitions = await loadVehicleDefinitions(content);
   const opts = options(args, ['--vehicle', '--laps', '--route', '--out', '--images']);
   const selected = opts.get('--vehicle') ?? (verb === 'envelope' ? file : 'TESTAROSSA');
   const entry = definitions.vehicles.find((e) => e.compiledVehicle.id === selected);
   requireInput(entry, '/vehicle', 'Unknown catalog vehicle');
+  const vehicle = createSessionVehicle(entry, definitions.driving, await loadSurfaceMaterials(content));
   const modelSha256 = await referenceModelIdentity(),
-    envelope = measureVehicleEnvelope(createSessionVehicle(entry, definitions.driving));
+    envelope = measureVehicleEnvelope(vehicle);
   let result;
   if (verb === 'envelope')
     result = {
       format: 'superoutride.vehicle-envelope',
       version: 1,
       modelSha256,
-      vehicle: createSessionVehicle(entry, definitions.driving),
+      vehicle,
       ...envelope,
     };
   else {
@@ -39,8 +42,17 @@ export async function referenceCommand(verb: string, file: string, args: readonl
       courseBuildSha256: course.identity.buildSha256,
       modelSha256,
       driver: REFERENCE_DRIVER,
-      vehicle: createSessionVehicle(entry, definitions.driving),
-      ...runCourseReference(course, ground, entry, definitions, envelope, routes[routeIndex]!, lapCount, true),
+      vehicle,
+      ...runCourseReference(
+        course,
+        ground,
+        vehicle,
+        definitions.vehicles,
+        envelope,
+        routes[routeIndex]!,
+        lapCount,
+        true,
+      ),
     };
   }
   requireInput(opts.has('--out'), '/out', 'Reference commands require --out');

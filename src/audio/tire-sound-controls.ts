@@ -1,4 +1,5 @@
-import { TIRE_SOUND_INPUTS, TIRE_SOUND_SURFACES, type TireSoundObservation } from './tire-sound-observation.js';
+import { TIRE_SOUND_INPUTS, type TireSoundObservation } from './tire-sound-observation.js';
+import { TIRE_SOUND_SURFACE_IDS } from './tire-surface-acoustics.js';
 import type { TireAudioObservation } from './vehicle-audio-observation.js';
 
 export const TIRE_COMPONENTS = Object.freeze([
@@ -27,7 +28,7 @@ const observationRanges = Object.fromEntries(
 // Transport domains, shared by the voice and worklet. Kernels own smoothing.
 export const TIRE_CONTROL_RANGES = Object.freeze({
   ...observationRanges,
-  tire_surfaceIndex: Object.freeze({ minValue: 0, maxValue: TIRE_SOUND_SURFACES.length - 1, defaultValue: 0 }),
+  tire_surfaceIndex: Object.freeze({ minValue: 0, maxValue: TIRE_SOUND_SURFACE_IDS.length - 1, defaultValue: 0 }),
 });
 
 /** Bound only the acoustic transport, never vehicle state; signed kinematics keep their meaning. */
@@ -43,8 +44,8 @@ export function tireSoundParameters(tire: TireAudioObservation) {
     surfaceIndex: 0,
   };
   if (!Number.isFinite(tire.load) || tire.load < 0) throw new RangeError('invalid tire sound load');
-  if (tire.load === 0 || tire.surface === 'VOID') return silent;
-  const surfaceIndex = TIRE_SOUND_SURFACES.findIndex((surface) => surface === tire.surface);
+  if (tire.load === 0 || tire.surface === null) return silent;
+  const surfaceIndex = TIRE_SOUND_SURFACE_IDS.findIndex((surface) => surface === tire.surface);
   const values = {
     longitudinalVelocity: tire.longitudinalVelocity,
     lateralVelocity: tire.lateralVelocity,

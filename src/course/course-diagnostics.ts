@@ -36,6 +36,7 @@ type CourseDiagnosticCode =
 
 interface BasicInputDiagnostic {
   readonly kind: 'input';
+  readonly document?: string;
   readonly code: CourseDiagnosticCode;
   /** JSON Pointer into the submitted authoring input; empty means the root. */
   readonly path: string;
@@ -46,6 +47,7 @@ type InputDiagnostic =
   | BasicInputDiagnostic
   | {
       readonly kind: 'input';
+      readonly document?: string;
       readonly code: 'plan_coordinate_overlap';
       readonly path: string;
       readonly message: string;
@@ -112,13 +114,20 @@ export class CourseInputError extends Error {
   }
 }
 
-export function courseFailure(error: CourseInputError) {
-  return courseFailures([error]);
+export function courseFailure(error: CourseInputError, document = '') {
+  return courseFailures([error], document);
 }
 
 /** Independent admission failures in deterministic input order; never a partial product. */
-export function courseFailures(errors: readonly { readonly diagnostic: CourseDiagnostic }[]) {
-  return Object.freeze({ ok: false as const, diagnostics: Object.freeze(errors.map((error) => error.diagnostic)) });
+export function courseFailures(errors: readonly { readonly diagnostic: CourseDiagnostic }[], document = '') {
+  return Object.freeze({
+    ok: false as const,
+    diagnostics: Object.freeze(
+      errors.map(({ diagnostic }) =>
+        diagnostic.kind === 'input' && document ? Object.freeze({ ...diagnostic, document }) : diagnostic,
+      ),
+    ),
+  });
 }
 
 export function requireCourse(

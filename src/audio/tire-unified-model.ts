@@ -6,7 +6,8 @@ import {
   resolveUnifiedTuning,
   type UnifiedTuning,
 } from './tire-unified-acoustics.js';
-import { TIRE_SOUND_SURFACES, type TireSoundObservation } from './tire-sound-observation.js';
+import type { TireSoundObservation } from './tire-sound-observation.js';
+import { TIRE_SOUND_SURFACE_IDS } from './tire-surface-acoustics.js';
 
 const saturate = (value: number, half: number): number => value / (value + half);
 
@@ -65,7 +66,7 @@ export class TireUnifiedSynthesis {
       this.release();
       return;
     }
-    const material = UNIFIED_SURFACES[TIRE_SOUND_SURFACES[surfaceIndex]!];
+    const material = UNIFIED_SURFACES[TIRE_SOUND_SURFACE_IDS[surfaceIndex]! as keyof typeof UNIFIED_SURFACES];
     // Authored work-to-excitation response, NOT an acoustic-power conversion.
     // Linear near zero, saturating at high work; one authority for forcing and feedback.
     const work = saturate(power, S.powerReferenceWatts);

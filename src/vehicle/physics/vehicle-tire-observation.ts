@@ -1,4 +1,3 @@
-import type { SurfaceType } from '../../course/surface-material.js';
 import type { WheelSolveResult } from './tire-wheel.js';
 import type { ContactObservation } from './vehicle-dynamics.js';
 
@@ -16,7 +15,7 @@ interface TireObservation {
   /** Dissipated longitudinal/lateral slip power in watts, from the accepted tire solve. */
   readonly longitudinalPower: number;
   readonly lateralPower: number;
-  readonly surface: SurfaceType;
+  readonly surface: string | null;
 }
 type MutableTire = { -readonly [Key in keyof TireObservation]: TireObservation[Key] };
 interface VehicleTires {
@@ -41,7 +40,7 @@ export function observeVehicleTires(vehicle: object): VehicleTires {
       slipSpeed: 0,
       longitudinalPower: 0,
       lateralPower: 0,
-      surface: 'VOID',
+      surface: null,
     });
     result = { front: tire(), rear: tire() };
     observations.set(vehicle, result);
@@ -62,7 +61,7 @@ export function resetVehicleTireObservation(vehicle: object): void {
     tire.slipSpeed = 0;
     tire.longitudinalPower = 0;
     tire.lateralPower = 0;
-    tire.surface = 'VOID';
+    tire.surface = null;
   }
 }
 
@@ -92,5 +91,5 @@ function record(result: MutableTire, contact: ContactObservation, wheel: WheelSo
   // sx/sy use the force direction convention, so these products are nonnegative.
   result.longitudinalPower = loaded ? Math.max(0, wheel.tire.fx * wheel.tire.sx * wheel.tire.referenceSpeed) : 0;
   result.lateralPower = loaded ? Math.max(0, wheel.tire.fy * wheel.tire.sy * wheel.tire.referenceSpeed) : 0;
-  result.surface = loaded ? contact.surface.surfaceType : 'VOID';
+  result.surface = loaded ? (contact.surface.material?.id ?? null) : null;
 }

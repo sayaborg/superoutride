@@ -2,12 +2,10 @@ import { Profile, ProfilePolyline } from '../geometry/profile.js';
 import type { SectionDocument, CoursePosition } from '../course-document.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
 import { requireCourse } from '../course-diagnostics.js';
-import { SURFACE_MATERIALS } from '../surface-material.js';
 
 export const COURSE_PHYSICAL_RECIPE = Object.freeze({
   id: 'superoutride.course-physical',
-  version: 4,
-  materials: SURFACE_MATERIALS,
+  version: 5,
 });
 
 /** Static compilation resolves authored physics once; no default height or implicit height. */

@@ -1,5 +1,6 @@
+import { TIRE_SOUND_SURFACE_IDS } from './tire-surface-acoustics.js';
+
 /** Bounded read-only acoustic transport. Bounds/defaults are numerical/audition choices, not tire physics. */
-export const TIRE_SOUND_SURFACES = Object.freeze(['ASPHALT', 'SHOULDER', 'GRASS', 'DIRT', 'SAND'] as const);
 export const TIRE_SOUND_INPUTS = Object.freeze({
   longitudinalVelocity: Object.freeze({ min: -100, max: 100, step: 1, value: 25, label: 'Contact longitudinal (m/s)' }),
   lateralVelocity: Object.freeze({ min: -100, max: 100, step: 0.1, value: 4, label: 'Contact lateral (m/s)' }),
@@ -19,7 +20,7 @@ export type TireSoundObservation = { readonly [K in keyof typeof TIRE_SOUND_INPU
 export const TIRE_SOUND_INPUT_KEYS = Object.freeze(Object.keys(TIRE_SOUND_INPUTS) as (keyof TireSoundObservation)[]);
 /** Validate bounded acoustic transport, never alter the vehicle observation. */
 export function validateTireSoundObservation(value: TireSoundObservation, surfaceIndex: number): void {
-  if (!Number.isInteger(surfaceIndex) || surfaceIndex < 0 || surfaceIndex >= TIRE_SOUND_SURFACES.length)
+  if (!Number.isInteger(surfaceIndex) || surfaceIndex < 0 || surfaceIndex >= TIRE_SOUND_SURFACE_IDS.length)
     throw new RangeError('invalid tire sound surface');
   for (const key of TIRE_SOUND_INPUT_KEYS) {
     const range = TIRE_SOUND_INPUTS[key],
