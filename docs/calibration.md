@@ -47,52 +47,19 @@ and time budgets.
 | Rival utilization     | 0.75  | Session driver's fraction of the measured envelope           |
 | Reference utilization | 0.9   | Offline reference driver's fraction of the measured envelope |
 
-## Vehicle evidence and estimates
+## Vehicle values
 
-`tools/vehicle/data/<id>.json` is production-only JSON, excluded from build staging and the delivery
-manifest. Each `published` field stores `value`, `status`, `source` (URL or bibliographic reference,
-null while unconfirmed), and a contextual `note`. `unconfirmed-provisional` explicitly means the
-value or source is unverified; `sourced` requires a nonempty reference. Agreement with a definition
-is independent of source verification. K's 2026-09-25 table supplies the selected power, torque,
-displacement, cycle and specified geometry/gearing values; external citations are omitted by K decision (2026-09-25).
-Full-power VFR750R uses provisional 73 Nm at 10000 RPM, not restricted-market 70 Nm at 7000 RPM.
-PX200E torque comes provisionally from the 9.5 PS specification and its power RPM is provisional.
-FXRT's provisional redline is 5800 RPM because the previous 5200 excluded its 5400 RPM power point.
+[Vehicle definitions](../content/vehicles/) are the sole authority for per-vehicle values.
+Production gameplay tuning edits those definitions directly. [Vehicle physics](vehicle-physics.md)
+owns document admission and structural/domain validation.
 
-`npm run check:vehicle-values` checks maximum torque/RPM, maximum power/RPM (including every
-quadratic interior extremum of RPM times linear torque), the authored peak-power point, idle-to-redline
-coverage, displacement, cycle, idle, redline and all gear/final ratios. Numerical equality uses relative
-1e-9 roundoff tolerance, not a specification allowance. All vehicles are checked; discrepancies are
-listed and return exit code 1. Optional arguments are vehicle and evidence directories, for disposable
-checks. The command participates in `check` and CI. It requires installed dependencies, not a build.
+Mass (kg) and CG height (m) describe one running rigid body including a 75 kg occupant and fuel.
+The provisional bike CG height is wheelbase × 0.3 for gameplay, including occupant and fuel in that
+same rigid body. Car CG heights are provisional estimates. These values are gameplay parameters,
+not claims of measured physical specifications.
 
-`estimates` records one rigid body with a 75 kg occupant. An equipped base includes fuel and operating
-fluids; dry bases add the explicitly recorded fuel litres × 0.75 kg/litre and other-fluid mass.
-Equipped interpretation, inferred base masses, fuel fills, fluid masses and car component CG heights
-remain provisional. No fuel mass is counted twice. Unspecified equipped masses retain the previous
-running mass by subtracting the occupant when documenting the base. Car CG is the mass-weighted sum of
-base, occupant and added fuel heights; other fluids use base height. Sports-car seating and hatchback
-height motivate the car estimates, not measured CG data. Every bike uses provisional gameplay CG
-height = wheelbase × 0.3 by K decision (2026-09-25), representing the complete running rigid body
-including occupant and fuel. Bike CG is not a mass-weighted physical estimate.
-Axle fractions are preserved when correcting wheelbase; named tire dimensions supply nominal unloaded
-radii. Unknown nominal tire sizes retain documented provisional rolling radii.
-
-| Vehicle            | Base kg / basis | Added fuel / other fluids kg | Running kg | Running CG m |
-| ------------------ | --------------- | ---------------------------- | ---------- | ------------ |
-| TESTAROSSA         | 1550 equipped   | 0 / 0                        | 1625       | 0.478308     |
-| 911_TURBO_3_3      | 1335 equipped   | 0 / 0                        | 1410       | 0.489043     |
-| CORVETTE_C4        | 1510 equipped   | 0 / 0                        | 1585       | 0.458044     |
-| DELTA_HF_INTEGRALE | 1215 equipped   | 0 / 0                        | 1290       | 0.533372     |
-| GOLF_GTI_16V       | 960 equipped    | 0 / 0                        | 1035       | 0.527391     |
-| VFR750R            | 180 dry         | 13.5 / 5                     | 273.5      | 0.423000     |
-| PX200E_ARCOBALENO  | 115 equipped    | 0 / 0                        | 190        | 0.370500     |
-| R80_GS_PARIS_DAKAR | 205 dry         | 24 / 4                       | 308        | 0.439500     |
-| FXRT_SPORT_GLIDE   | 310 equipped    | 0 / 0                        | 385        | 0.445800     |
-
-The curve retains idle torque, uses the supplied torque peak and derives the power-point torque.
-The final segment falls at 1.1 times the magnitude of the constant-power tangent slope at peak power,
-so its power decreases continuously up to redline. Final gameplay tuning remains open.
+Torque-curve points contain RPM and torque in N m, joined linearly from idle through redline.
+Displacement is in cc and cycle is 2 or 4 strokes. Gear ratios and final drive are dimensionless.
 
 ## Engine settings
 
