@@ -14,7 +14,7 @@ export interface TireAudioObservation {
 export interface VehicleAudioObservation {
   /** Engine speed exactly as simulated; it never falls below idle. */
   readonly rpm: number;
-  /** Delivered-drive fraction times throttle: an acoustic excitation proxy, not cylinder load. */
+  /** The engine's effective opening in [0,1]: an acoustic excitation proxy, not cylinder load. */
   readonly drive: number;
   readonly front: TireAudioObservation;
   readonly rear: TireAudioObservation;

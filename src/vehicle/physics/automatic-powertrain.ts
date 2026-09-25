@@ -78,7 +78,9 @@ export interface AutomaticPowertrainState {
   clutch: ClutchState;
   engineRpm: number;
   /** Derived observation caches; none is consumed as state by the next drive solve. */
-  /** Signed engine torque; negative while friction exceeds the throttle torque. */
+  /** The engine's only command: the requested opening clamped between its lower and upper bounds. */
+  effectiveOpening: number;
+  /** Signed engine torque; negative while friction exceeds the opening's torque. */
   engineTorqueNewtonMeters: number;
   /** Signed requested wheel-side torque before protection/distribution, never a direct body force. */
   outputDriveTorque: number;
@@ -102,6 +104,7 @@ export function createAutomaticPowertrainState(
     fuelCut: false,
     engineRpm: locked ? wheelRpm : definition.idleRpm,
     clutch: locked ? 'LOCK' : 'SLIP',
+    effectiveOpening: 0,
     engineTorqueNewtonMeters: 0,
     outputDriveTorque: 0,
   };
@@ -113,22 +116,23 @@ export function createAutomaticPowertrainState(
  * speed and the idle lock margin, and releases below idle. While locked the engine turns with the wheels and delivers its signed
  * torque. While slipping one law advances engine speed:
  * dRPM/dt = (opening torque - friction - clutch torque) / inertia, by forward Euler at the current
- * RPM. The opening is the larger of throttle and the idle-holding opening that lands the step on
- * idle; the clutch transmits only the positive excess that would carry the engine past
- * peak-torque RPM. Fuel cut is a hysteretic latch on engine RPM.
+ * RPM. The effective opening is the requested opening clamped between a lower bound (the
+ * idle-holding opening that lands the step on idle) and an upper bound (0 during fuel cut, else
+ * 1); the upper bound wins. The clutch transmits only the positive excess that would carry the
+ * engine past peak-torque RPM. Fuel cut is a hysteretic latch on engine RPM.
  */
 export function updateAutomaticPowertrain(
   state: AutomaticPowertrainState,
   definition: CompiledAutomaticPowertrainDefinition,
   coupling: PowertrainCoupling,
   drivenWheelOmega: number,
-  throttle: number,
+  requestedOpening: number,
   allowShift: boolean,
   dt: number,
 ): number {
   assertWheelOmega(drivenWheelOmega);
-  if (!Number.isFinite(throttle) || !(dt > 0) || !Number.isFinite(dt)) {
-    throw new RangeError('powertrain requires finite throttle and finite positive dt');
+  if (!Number.isFinite(requestedOpening) || !(dt > 0) || !Number.isFinite(dt)) {
+    throw new RangeError('powertrain requires a finite requested opening and finite positive dt');
   }
   if (!Number.isInteger(state.gear) || state.gear < 1 || state.gear > definition.gearRatios.length) {
     throw new RangeError('powertrain gear must index the authored forward ratios');
@@ -162,8 +166,11 @@ export function updateAutomaticPowertrain(
   const curve = sampleEngineTorque(definition, rpm);
   const rpmPerTorque = (dt * RPM_PER_RADIAN_PER_SECOND) / coupling.engineInertia;
   const idleOpening = ((definition.idleRpm - rpm) / rpmPerTorque + friction) / (curve + friction);
-  const opening = Math.max(clamp(throttle, 0, 1), clamp(idleOpening, 0, 1));
-  const engineTorque = state.fuelCut ? -friction : opening * (curve + friction) - friction;
+  const lowerOpening = clamp(idleOpening, 0, 1);
+  const upperOpening = state.fuelCut ? 0 : 1;
+  const opening = Math.min(upperOpening, Math.max(lowerOpening, clamp(requestedOpening, 0, 1)));
+  const engineTorque = opening * (curve + friction) - friction;
+  state.effectiveOpening = opening;
   const freeRpm = rpm + engineTorque * rpmPerTorque;
   const clutchTorque = locked ? engineTorque : Math.max(0, (freeRpm - definition.peakTorqueRpm) / rpmPerTorque);
   if (!locked) state.engineRpm = freeRpm - clutchTorque * rpmPerTorque;

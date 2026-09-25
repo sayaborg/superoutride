@@ -23,13 +23,9 @@ export function createVehicleAudioObservation(): Observation {
 }
 /** Copy completed observations into two reusable slots; do not run contact or tire solvers here. */
 export function readEngineAudio(vehicle: VehicleState, result: Observation): void {
-  const { control, powertrain } = vehicle;
+  const { powertrain } = vehicle;
   result.rpm = powertrain.engineRpm;
-  result.drive =
-    powertrain.outputDriveTorque > 0
-      ? Math.max(0, Math.min(1, control.deliveredDriveTorque / powertrain.outputDriveTorque)) *
-        vehicle.actuator.throttle
-      : 0;
+  result.drive = powertrain.effectiveOpening;
 }
 
 /** Player consumer subscribes to completed tire telemetry; rival engines use readEngineAudio. */

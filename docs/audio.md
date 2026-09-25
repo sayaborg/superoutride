@@ -22,8 +22,9 @@ same sample-free engine kernel. Firing rows identify events and collector groups
 ## Engine synthesis
 
 The voice reads engine RPM exactly as simulated; physics keeps it at or above idle, and the exhaust
-processor's own `rpm` parameter range (0 to 24000) is the only bound. Excitation follows actuator throttle multiplied
-by the delivered-drive/output-drive torque fraction. Closed throttle has a positive excitation floor;
+processor's own `rpm` parameter range (0 to 24000) is the only bound. Excitation follows the
+powertrain's effective opening, so it includes the idle-holding opening and is zero during fuel cut.
+Closed throttle has a positive excitation floor;
 stronger excitation shortens pulse rise time, while decay time is independent of load.
 
 At each firing, `strength = max(0, excitation + pulseVariation*r)` for seeded xorshift32 `r` in `[-1,1)`.

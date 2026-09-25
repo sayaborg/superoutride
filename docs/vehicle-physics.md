@@ -147,8 +147,8 @@ piecewise-linear torque curve, including an interior maximum within a segment.
 One fixed simulation step performs at most one shift across all mechanics substeps; the ratio change is instantaneous and does not interrupt drive.
 
 Fuel cut is a hysteretic latch on engine RPM, whatever the clutch state. It enters when RPM exceeds
-`redlineRpm * (1 + fuelCutRedlineMargin)`, clears when RPM returns to redline or below, and removes
-the curve torque while latched. There is no pre-redline torque taper. The game-wide driving
+`redlineRpm * (1 + fuelCutRedlineMargin)`, clears when RPM returns to redline or below, and holds
+the effective opening's upper bound at 0 while latched. There is no pre-redline torque taper. The game-wide driving
 definition owns the provisional margin, 0.02.
 
 Engine friction torque derives from the vehicle's displacement and cycle and the game-wide friction
@@ -158,12 +158,17 @@ mean effective pressure (FMEP):
 frictionTorque = FMEP(rpm) * displacement / (2*pi*revolutionsPerCycle)
 revolutionsPerCycle = 2 (4-stroke) or 1 (2-stroke)
 FMEP(rpm) = linear from idle FMEP at idleRpm to redline FMEP at redlineRpm, held outside that range
-engineTorque = throttle*(curveTorque+frictionTorque) - frictionTorque   (fuel cut: -frictionTorque)
+engineTorque = effectiveOpening*(curveTorque+frictionTorque) - frictionTorque
 wheelTorque = engineTorque * gearRatio * finalDriveRatio * drivelineEfficiency
 ```
 
-Full throttle therefore delivers exactly the curve torque; smaller openings, released throttle and
-fuel cut give less or negative engine torque. Below idle, curve torque keeps its idle value.
+The effective opening is the engine's only command. The driver's throttle actuator is the requested
+opening, and one clamp sets `effectiveOpening = min(upper, max(lower, requestedOpening))` with the
+upper bound winning a conflict. The lower bound is the idle-holding opening; the upper bound is 0
+during fuel cut and 1 otherwise. The powertrain state publishes the effective opening as an
+observation. Full opening therefore delivers exactly the curve torque; smaller openings, released
+throttle and fuel cut give less or negative engine torque. Below idle, curve torque keeps its idle
+value.
 
 Engine speed is powertrain state with a rotor inertia derived from displacement:
 `engineInertia = displacementLitres * engineInertiaKilogramSquareMetersPerLitre`.
@@ -189,9 +194,8 @@ with the wheel-derived RPM when that RPM reaches the clutch lock RPM, and otherw
   and holds there while the excess drives the wheels; wheel torque is
   `clutchTorque * gearRatio * finalDriveRatio * drivelineEfficiency` and never negative.
 
-The opening is the larger of throttle and the idle-holding opening, the opening whose step would
-land exactly on idle. Idle is therefore held by torque, not by a clamp, and settles without
-oscillation. A small throttle whose torque cannot exceed friction does not raise engine speed or
+The idle-holding opening is the opening whose step would land exactly on idle. Idle is therefore
+held by torque, not by a clamp on engine speed, and settles without oscillation. A small throttle whose torque cannot exceed friction does not raise engine speed or
 move the vehicle. Engine RPM changes continuously except at a ratio change and one bounded case:
 locking happens where the wheels reach the engine, except that an engine idling with the wheels
 turning it faster locks at the clutch lock RPM, `clutchLockIdleMargin` above idle; slipping starts
