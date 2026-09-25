@@ -11,7 +11,7 @@
 - Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
 - TIME ATTACK, traffic, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **8-3d — Definition diagnostics**.
+Next PR: **8-4 — Powertrain**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -21,7 +21,6 @@ PRs hold rationale and verification evidence.
 
 Give vehicles, driving assists, tires, powertrains and materials explicit definitions, and treat airborne driving as normal state.
 
-- **8-3d — Definition diagnostics:** vehicle and driving admission reports every authored error at the offending field's JSON Pointer; mechanics validation reports field-relative domain errors and the admission boundary maps them to document paths. Behavior unchanged.
 - **8-4 — Powertrain:** launch, shift rules and rev limit, engine friction, inertia and free revving, and shift observations; audio reads engine speed without its own idle floor. Behavior changes.
 - **8-5 — Vehicle values:** published values and sources as production data with a checking tool; correct torque curves, masses and CG heights. Behavior changes.
 - **8-6 — DEV tuning:** replace definitions instead of mutating running settings, and export them. Behavior unchanged.

@@ -46,28 +46,24 @@ export function resetDrivingActuatorState(state: DrivingActuatorState): void {
 export function validateDrivingActuatorDefinition(definition: DrivingActuatorDefinition): void {
   for (const name of ['steering', 'throttle', 'brake'] as const) {
     const channel = definition[name];
-    if (!channel) throw new DefinitionDomainError('', `${name} actuator channel is required`);
+    if (!channel) throw new DefinitionDomainError(name, `${name} actuator channel is required`);
     if (!(channel.applyRate > 0) || !Number.isFinite(channel.applyRate)) {
-      throw new DefinitionDomainError('', `${name} actuator apply rate must be finite and > 0`);
+      throw new DefinitionDomainError(`${name}/applyRate`, `${name} actuator apply rate must be finite and > 0`);
     }
     if (!(channel.releaseRate > 0) || !Number.isFinite(channel.releaseRate)) {
-      throw new DefinitionDomainError('', `${name} actuator release rate must be finite and > 0`);
+      throw new DefinitionDomainError(`${name}/releaseRate`, `${name} actuator release rate must be finite and > 0`);
     }
   }
 }
 
 /** Current steering calibration permits one traversal rate, never separate apply/release authority. */
 export function validateSymmetricSteeringActuatorRateDefinition(definition: NormalizedActuatorRateDefinition): void {
-  if (
-    !(definition.applyRate > 0) ||
-    !Number.isFinite(definition.applyRate) ||
-    !(definition.releaseRate > 0) ||
-    !Number.isFinite(definition.releaseRate)
-  ) {
-    throw new DefinitionDomainError('', 'vehicle steering actuator rates must be finite and > 0');
+  for (const field of ['applyRate', 'releaseRate'] as const) {
+    if (!(definition[field] > 0) || !Number.isFinite(definition[field]))
+      throw new DefinitionDomainError(field, `${field} must be finite and > 0`);
   }
   if (definition.applyRate !== definition.releaseRate) {
-    throw new DefinitionDomainError('', 'vehicle steering actuator apply/release rates must be symmetric');
+    throw new DefinitionDomainError('releaseRate', 'releaseRate must equal applyRate for symmetric steering');
   }
 }
 

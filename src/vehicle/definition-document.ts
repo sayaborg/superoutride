@@ -98,22 +98,32 @@ function freeze<T>(value: T): T {
   }
   return value;
 }
+function definitionPointer(path: string): string {
+  return (
+    '/' +
+    path
+      .split('/')
+      .map((field) => field.replaceAll('~', '~0').replaceAll('/', '~1'))
+      .join('/')
+  );
+}
+/** Only this boundary knows how a mechanics definition is placed in a saved document. */
+function domain<T>(compile: () => T, locate = definitionPointer): T {
+  try {
+    return compile();
+  } catch (error) {
+    if (!(error instanceof DefinitionDomainError)) throw error;
+    throw new InputError('invalid_value', locate(error.path), error.message);
+  }
+}
 function admit<T>(document: string, compile: () => T): Result<T> {
   try {
     return { ok: true, value: compile() };
   } catch (error) {
-    if (!(error instanceof InputError) && !(error instanceof DefinitionDomainError)) throw error;
+    if (!(error instanceof InputError)) throw error;
     return {
       ok: false,
-      diagnostics: [
-        {
-          kind: 'input',
-          code: error instanceof InputError ? error.code : 'invalid_value',
-          document,
-          path: error.path,
-          message: error.message,
-        },
-      ],
+      diagnostics: [{ kind: 'input', code: error.code, document, path: error.path, message: error.message }],
     };
   }
 }
@@ -245,7 +255,10 @@ export function compileVehicleDocument(
       sound: soundId,
       metadata,
     } as unknown as VehicleDocument);
-    const compiledVehicle = compileVehicle({ id, ...source.mechanics });
+    const compiledVehicle = domain(
+      () => compileVehicle({ id, ...source.mechanics }),
+      (path) => (path === 'id' ? '/id' : '/mechanics' + definitionPointer(path)),
+    );
     return Object.freeze({
       ...metadata,
       source,
@@ -291,7 +304,7 @@ export function compileDrivingDocument(value: unknown, document: string): Result
       wheelSlip: v.wheelSlip,
       tire: Object.fromEntries(keys.map((key) => [key, number(t[key], `/tire/${key}`)])),
     } as DrivingDocument);
-    return Object.freeze({ source, settings: freeze(createDrivingSettings(source)) });
+    return Object.freeze({ source, settings: freeze(domain(() => createDrivingSettings(source))) });
   });
 }
 

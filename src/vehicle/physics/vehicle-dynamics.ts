@@ -483,21 +483,34 @@ export function compileSuspensionStation(
   qTravel: number,
   bumpForceMax: number,
 ): CompiledSuspensionStation {
-  if (![staticLoad, rideFrequency, dampingRatio, qBump, qTravel, bumpForceMax].every(Number.isFinite)) {
-    throw new DefinitionDomainError('/mechanics', 'suspension inputs must be finite');
+  for (const [field, value] of Object.entries({
+    staticLoad,
+    rideFrequency,
+    dampingRatio,
+    qBump,
+    qTravel,
+    bumpForceMax,
+  })) {
+    if (!Number.isFinite(value)) throw new DefinitionDomainError(field, `${field} must be finite`);
   }
-  if (!(staticLoad > 0)) throw new DefinitionDomainError('/mechanics', 'static station load must be > 0');
-  if (!(rideFrequency > 0)) throw new DefinitionDomainError('/mechanics', 'ride frequency must be > 0');
-  if (!(dampingRatio >= 0)) throw new DefinitionDomainError('/mechanics', 'damping ratio must be >= 0');
+  if (!(staticLoad > 0))
+    throw new DefinitionDomainError('staticLoad', 'staticLoad derived from mass and axle distances must be > 0');
+  if (!(rideFrequency > 0)) throw new DefinitionDomainError('rideFrequency', 'rideFrequency must be > 0');
+  if (!(dampingRatio >= 0)) throw new DefinitionDomainError('dampingRatio', 'dampingRatio must be >= 0');
   const effectiveMass = staticLoad / VEHICLE_GRAVITY;
   const omega = 2 * Math.PI * rideFrequency;
   const springRate = omega ** 2 * effectiveMass;
   const damping = 2 * dampingRatio * Math.sqrt(springRate * effectiveMass);
   const qStatic = staticLoad / springRate;
-  if (!(qStatic > 0 && qStatic < qBump && qBump < qTravel)) {
-    throw new DefinitionDomainError('/mechanics', 'suspension requires 0 < qStatic < qBump < qTravel');
-  }
-  if (!(bumpForceMax >= 0)) throw new DefinitionDomainError('/mechanics', 'bumpForceMax must be >= 0');
+  if (!(qStatic > 0))
+    throw new DefinitionDomainError('rideFrequency', 'rideFrequency and staticLoad must produce qStatic > 0');
+  if (!(qStatic < qBump))
+    throw new DefinitionDomainError(
+      Number.isFinite(qStatic) ? 'qBump' : 'rideFrequency',
+      'qBump must exceed qStatic derived from rideFrequency and staticLoad',
+    );
+  if (!(qBump < qTravel)) throw new DefinitionDomainError('qTravel', 'qTravel must exceed qBump');
+  if (!(bumpForceMax >= 0)) throw new DefinitionDomainError('bumpForceMax', 'bumpForceMax must be >= 0');
   return Object.freeze({ springRate, damping, qStatic, qBump, qTravel, bumpForceMax });
 }
 

@@ -124,71 +124,71 @@ function assertWheelOmega(omega: number): void {
 }
 
 export function validateAutomaticPowertrainDefinition(definition: AutomaticPowertrainDefinition): void {
-  if (
-    ![
-      definition.idleRpm,
-      definition.downshiftRpm,
-      definition.upshiftRpm,
-      definition.redlineRpm,
-      definition.finalDriveRatio,
-      definition.efficiency,
-    ].every(Number.isFinite) ||
-    !(
-      0 < definition.idleRpm &&
-      definition.idleRpm < definition.downshiftRpm &&
-      definition.downshiftRpm < definition.upshiftRpm &&
-      definition.upshiftRpm < definition.redlineRpm
-    ) ||
-    !(definition.finalDriveRatio > 0) ||
-    !(definition.efficiency > 0 && definition.efficiency <= 1)
-  ) {
-    throw new DefinitionDomainError(
-      '/mechanics/powertrain',
-      'powertrain requires 0 < idle < downshift < upshift < redline and positive drive scalars',
-    );
+  for (const field of [
+    'idleRpm',
+    'downshiftRpm',
+    'upshiftRpm',
+    'redlineRpm',
+    'finalDriveRatio',
+    'efficiency',
+  ] as const) {
+    if (!Number.isFinite(definition[field])) throw new DefinitionDomainError(field, `${field} must be finite`);
   }
+  if (!(0 < definition.idleRpm)) throw new DefinitionDomainError('idleRpm', 'idleRpm must be > 0');
+  if (!(definition.idleRpm < definition.downshiftRpm))
+    throw new DefinitionDomainError('downshiftRpm', 'downshiftRpm must be greater than idleRpm');
+  if (!(definition.downshiftRpm < definition.upshiftRpm))
+    throw new DefinitionDomainError('downshiftRpm', 'downshiftRpm must be less than upshiftRpm');
+  if (!(definition.upshiftRpm < definition.redlineRpm))
+    throw new DefinitionDomainError('upshiftRpm', 'upshiftRpm must be less than redlineRpm');
+  if (!(definition.finalDriveRatio > 0))
+    throw new DefinitionDomainError('finalDriveRatio', 'finalDriveRatio must be > 0');
+  if (!(definition.efficiency > 0 && definition.efficiency <= 1))
+    throw new DefinitionDomainError('efficiency', 'efficiency must lie in (0,1]');
   if (definition.gearRatios.length === 0)
-    throw new DefinitionDomainError('/mechanics/powertrain', 'powertrain requires forward gear ratios');
+    throw new DefinitionDomainError('gearRatios', 'powertrain requires forward gear ratios');
   for (let i = 0; i < definition.gearRatios.length; i += 1) {
     const ratio = definition.gearRatios[i]!;
     if (!(ratio > 0) || !Number.isFinite(ratio))
-      throw new DefinitionDomainError('/mechanics/powertrain', 'gear ratios must be finite and positive');
+      throw new DefinitionDomainError(`gearRatios/${i}`, 'gear ratios must be finite and positive');
     if (i > 0) {
       const previous = definition.gearRatios[i - 1]!;
       if (!(ratio < previous))
-        throw new DefinitionDomainError('/mechanics/powertrain', 'forward gear ratios must strictly decrease');
+        throw new DefinitionDomainError(`gearRatios/${i}`, `gearRatios/${i} must be less than gearRatios/${i - 1}`);
       // At unchanged wheel speed, a threshold shift cannot immediately request its inverse.
       if (!(definition.downshiftRpm < definition.upshiftRpm * (ratio / previous))) {
         throw new DefinitionDomainError(
-          '/mechanics/powertrain',
-          'shift RPM hysteresis must exceed every adjacent gear-ratio step',
+          'downshiftRpm',
+          `downshiftRpm must be less than upshiftRpm * (gearRatios/${i} / gearRatios/${i - 1})`,
         );
       }
     }
   }
   if (definition.torqueCurve.length < 2)
-    throw new DefinitionDomainError('/mechanics/powertrain', 'engine torque curve requires at least two points');
+    throw new DefinitionDomainError('torqueCurve', 'engine torque curve requires at least two points');
   for (let i = 0; i < definition.torqueCurve.length; i += 1) {
     const point = definition.torqueCurve[i]!;
-    if (
-      !(point.rpm >= 0 && point.rpm <= definition.redlineRpm) ||
-      !(point.torqueNewtonMeters > 0) ||
-      !Number.isFinite(point.rpm) ||
-      !Number.isFinite(point.torqueNewtonMeters)
-    ) {
+    if (!(point.rpm >= 0 && point.rpm <= definition.redlineRpm) || !Number.isFinite(point.rpm))
       throw new DefinitionDomainError(
-        '/mechanics/powertrain',
-        'engine curve requires finite positive torque and RPM within the authored range',
+        `torqueCurve/${i}/rpm`,
+        'torque curve rpm must be finite and lie in [0, redlineRpm]',
       );
-    }
+    if (!(point.torqueNewtonMeters > 0) || !Number.isFinite(point.torqueNewtonMeters))
+      throw new DefinitionDomainError(
+        `torqueCurve/${i}/torqueNewtonMeters`,
+        'torqueNewtonMeters must be finite and > 0',
+      );
     if (i > 0 && point.rpm <= definition.torqueCurve[i - 1]!.rpm) {
-      throw new DefinitionDomainError('/mechanics/powertrain', 'engine torque curve RPM points must increase');
+      throw new DefinitionDomainError(
+        `torqueCurve/${i}/rpm`,
+        `torqueCurve/${i}/rpm must be greater than torqueCurve/${i - 1}/rpm`,
+      );
     }
   }
   if (
     definition.torqueCurve[0]!.rpm > definition.idleRpm ||
     definition.torqueCurve[definition.torqueCurve.length - 1]!.rpm < definition.upshiftRpm
   ) {
-    throw new DefinitionDomainError('/mechanics/powertrain', 'engine curve must cover idle through upshift RPM');
+    throw new DefinitionDomainError('torqueCurve', 'torqueCurve must cover idleRpm through upshiftRpm');
   }
 }

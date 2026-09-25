@@ -245,6 +245,19 @@ creating separate assist configuration files.
 Both readers reject missing required fields, unknown fields, wrong shapes, unsupported formats/versions,
 invalid domains and unresolved sound IDs. Expected errors return `{ok:false,diagnostics}` containing
 `kind:"input"`, `code`, the supplied `document` filename, JSON Pointer `path` and causal `message`.
+Admission stops at the first failure; diagnostics are not accumulated. Domain errors identify a field
+or an array element, never a containing document record. Mechanics reports slash-separated paths
+relative to the definition it receives, without a leading slash (for example `mass` or
+`powertrain/gearRatios/2`). Nested compilers prepend their own field or map derived inputs back to
+authored fields: station fields map to front/rear suspension fields, static load to `mass`, actuator
+rates to traversal seconds, steering radians to degree fields, and tire stiffness to the corresponding
+peak slip (with grip and knee named in the message). A nonrepresentable static compression points
+to ride frequency; otherwise bump/travel ordering points to the authored bump/travel field.
+Relationships identify an actionable field and name related inputs: gear ordering points to the
+violating element, shift hysteresis to `downshiftRpm`, and curve coverage to `torqueCurve`.
+Only `definition-document.ts` converts these relative paths into document JSON Pointers, attaching
+`/mechanics` for vehicle fields except `/id`, and the document filename. Driving paths start at the
+driving document's fields. Formats, numeric conditions and ranges are unchanged.
 Only explicit authored-domain failures become diagnostics; unexpected internal errors propagate.
 Success returns `{ok:true,value}`; no partial product is published. Nested arrays and records are
 copied and frozen, including powertrain gears/curve points, metadata and the driving tire/pedals.

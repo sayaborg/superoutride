@@ -1,4 +1,4 @@
-import { DefinitionDomainError } from './definition-domain-error.js';
+import { DefinitionDomainError, withDefinitionPath } from './definition-domain-error.js';
 /** Authoring/UI values. P is pure-axis capacity onset at gripFactor=1, not body sideslip. */
 export interface TireCharacteristics {
   readonly gripX: number;
@@ -19,13 +19,12 @@ export interface CompiledTireCharacteristics {
 
 export function compileTireCharacteristics(input: TireCharacteristics): Readonly<CompiledTireCharacteristics> {
   const { gripX, peakSlipX, gripY, peakSlipY, knee } = input;
-  if (
-    ![gripX, peakSlipX, gripY, peakSlipY].every((v) => Number.isFinite(v) && v > 0) ||
-    !Number.isFinite(knee) ||
-    !(knee > 0 && knee < 1)
-  ) {
-    throw new DefinitionDomainError('/tire', 'tire G/P must be finite and > 0; knee must lie in (0,1)');
+  for (const field of ['gripX', 'peakSlipX', 'gripY', 'peakSlipY'] as const) {
+    if (!Number.isFinite(input[field]) || !(input[field] > 0))
+      throw new DefinitionDomainError(field, `${field} must be finite and > 0`);
   }
+  if (!Number.isFinite(knee) || !(knee > 0 && knee < 1))
+    throw new DefinitionDomainError('knee', 'knee must be finite and lie in (0,1)');
   const compiled = {
     muX: gripX,
     muY: gripY,
@@ -33,28 +32,26 @@ export function compileTireCharacteristics(input: TireCharacteristics): Readonly
     kY: ((2 - knee) * gripY) / peakSlipY,
     rhoKnee: knee,
   };
-  validateTireCharacteristics(compiled);
+  withDefinitionPath(() => validateTireCharacteristics(compiled), {
+    muX: 'gripX',
+    muY: 'gripY',
+    kX: 'peakSlipX',
+    kY: 'peakSlipY',
+    rhoKnee: 'knee',
+  });
   return Object.freeze(compiled);
 }
 
 export function validateTireCharacteristics(tire: CompiledTireCharacteristics): void {
-  if (
-    !(tire.muX > 0) ||
-    !Number.isFinite(tire.muX) ||
-    !(tire.muY > 0) ||
-    !Number.isFinite(tire.muY) ||
-    !(tire.kX > 0) ||
-    !Number.isFinite(tire.kX) ||
-    !(tire.kY > 0) ||
-    !Number.isFinite(tire.kY) ||
-    !Number.isFinite(tire.rhoKnee) ||
-    !(tire.rhoKnee > 0 && tire.rhoKnee < 1)
-  ) {
-    throw new DefinitionDomainError(
-      '/tire',
-      'compiled tire capacities/stiffness must be finite and > 0; knee in (0,1)',
-    );
+  for (const field of ['muX', 'muY', 'kX', 'kY'] as const) {
+    if (!(tire[field] > 0) || !Number.isFinite(tire[field]))
+      throw new DefinitionDomainError(
+        field,
+        `${field} must be finite and > 0${field === 'kX' ? ' (from gripX, peakSlipX and knee)' : field === 'kY' ? ' (from gripY, peakSlipY and knee)' : ''}`,
+      );
   }
+  if (!Number.isFinite(tire.rhoKnee) || !(tire.rhoKnee > 0 && tire.rhoKnee < 1))
+    throw new DefinitionDomainError('rhoKnee', 'rhoKnee must be finite and lie in (0,1)');
 }
 
 /** Read-only inverse for selectors/serialization. It is not a second parameter authority. */
