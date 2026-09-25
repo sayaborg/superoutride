@@ -139,21 +139,42 @@ bracket and at most 60 bisections solve the monotone residual, with early return
 absolute torque residual. Contact reference speed stays fixed during the scalar solve.
 
 The automatic powertrain derives RPM from drive-split wheel speed and current ratio and interpolates
-powertrain torque. It upshifts one gear when current RPM reaches redline. It downshifts one gear when
+curve torque. It upshifts one gear when current RPM reaches redline. It downshifts one gear when
 the same wheel speed in the next lower ratio would put the engine at or below peak-power RPM. Vehicle
 compilation derives peak-power RPM once as the maximum of `rpm * torque` over the complete
 piecewise-linear torque curve, including an interior maximum within a segment.
 One fixed simulation step performs at most one shift across all mechanics substeps; the ratio change is instantaneous and does not interrupt drive.
 
 Fuel cut is a hysteretic latch. It enters when RPM exceeds
-`redlineRpm * (1 + fuelCutRedlineMargin)`, clears when RPM returns to redline or below, and makes
-engine torque exactly zero while latched. There is no pre-redline torque taper. The game-wide driving
+`redlineRpm * (1 + fuelCutRedlineMargin)`, clears when RPM returns to redline or below, and removes
+the curve torque while latched. There is no pre-redline torque taper. The game-wide driving
 definition owns the provisional margin, 0.02.
+
+Engine friction torque derives from the vehicle's displacement and cycle and the game-wide friction
+mean effective pressure (FMEP):
+
+```text
+frictionTorque = FMEP(rpm) * displacement / (2*pi*revolutionsPerCycle)
+revolutionsPerCycle = 2 (4-stroke) or 1 (2-stroke)
+FMEP(rpm) = linear from idle FMEP at idleRpm to redline FMEP at redlineRpm, held outside that range
+engineTorque = throttle*(curveTorque+frictionTorque) - frictionTorque   (fuel cut: -frictionTorque)
+wheelTorque = engineTorque * gearRatio * finalDriveRatio * drivelineEfficiency
+```
+
+Full throttle therefore delivers exactly the curve torque; smaller openings, released throttle and
+fuel cut give less or negative engine torque. `couplePowertrain` resolves the two friction torques
+(at idle and redline FMEP) and the game-wide efficiency and fuel-cut margin once, when a vehicle is
+created from its compiled vehicle and the driving settings; friction torque is not a vehicle value.
+Below idle, curve torque keeps its idle value. Until the clutch exists, friction reaches the wheels
+only while the driven wheels turn forward with engine RPM at or above idle; otherwise the engine
+contributes only `throttle*curveTorque`, so friction never pushes a nearly stopped or reversing
+vehicle. Negative wheel torque is engine braking: it is split by the drive fraction and joins each
+driven station's brake magnitude, so it opposes wheel rotation and never reverses it.
 
 The piecewise-linear torque curve covers idle through redline. Admission checks its ordered RPM
 points, positive finite torques and coverage, and requires the derived peak-power RPM to be below
 redline. `powertrain.displacementCc` is finite and positive; `powertrain.cycle` is exactly 2 or 4
-strokes. These values are admitted and retained but do not yet enter the dynamic equations.
+strokes.
 
 Vehicle definitions in `content/vehicles/<id>.json` are the sole authority for per-vehicle values.
 Production gameplay tuning edits these definitions directly; admission owns structural and domain
@@ -163,6 +184,8 @@ validation. [Calibration](calibration.md#vehicle-values) describes value meaning
 
 TCS and ABS reduce requested torques independently at each station by inverting the wheel residual
 at longitudinal slip boundary `grip*(2-KN)*muX/kX`. Low-speed ABS yields to the signed static brake solve.
+TCS limits only positive drive torque. Engine braking is part of the requested brake magnitude, so ABS
+and brake-side support protection limit it exactly as they limit pedal braking.
 
 Two-wheel support protection reserves 8% of static suspension compression against pedal-induced lift:
 
@@ -229,14 +252,14 @@ mechanical observations without contributing forces or alternate mechanical stat
 
 ## Vehicle and driving documents
 
-`content/vehicles/<id>.json` stores one `superoutride.vehicle-definition` version 4 per vehicle.
-`content/driving/default.json` stores the sole `superoutride.driving-definition` version 2.
+`content/vehicles/<id>.json` stores one `superoutride.vehicle-definition` version 5 per vehicle.
+`content/driving/default.json` stores the sole `superoutride.driving-definition` version 3.
 [Calibration](calibration.md) owns tuning meanings and units. Document admission in
 `vehicle/definition-document.ts` publishes detached, deeply immutable source and compiled products.
 
 | Vehicle field       | Contract                                                                                                                                                                          |
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`, `version` | `superoutride.vehicle-definition`, `4`                                                                                                                                            |
+| `format`, `version` | `superoutride.vehicle-definition`, `5`                                                                                                                                            |
 | `id`                | Nonempty filename-safe identity; equal to its manifest ID                                                                                                                         |
 | `form`              | `car` or `bike`; one shared physical/display form vocabulary                                                                                                                      |
 | `selectionOrder`    | Positive safe integer, unique across the catalog; ascending selection order independent of filenames and manifest order                                                           |
@@ -252,11 +275,13 @@ No dimensions or support reserve are saved in this format.
 
 The driving document has `format`, `version`, `id:"default"` and the current `DrivingDefinition`
 fields: `automaticSteering:"travel-direction"`, `maxRoadWheelSteerDegrees`, `steeringOffsetDegrees`,
-`steeringTraversalSeconds`, positive `fuelCutRedlineMargin`, `throttle` and `brake` (each
-applySeconds/releaseSeconds), boolean `wheelSlip`, and `tire`
-(gripX/peakSlipX/gripY/peakSlipY/knee). Angles are degrees, traversal times are seconds, and tire and
-fuel-cut values are dimensionless. Require 0 < offset < maximum < 90 degrees, positive finite
-actuator rates after conversion, positive finite tire capacities/stiffness and 0 < knee < 1.
+`steeringTraversalSeconds`, positive `fuelCutRedlineMargin`, positive
+`idleFrictionMeanEffectivePressureBar` and `redlineFrictionMeanEffectivePressureBar`,
+`drivelineEfficiency` in (0,1], `throttle` and `brake` (each applySeconds/releaseSeconds), boolean
+`wheelSlip`, and `tire` (gripX/peakSlipX/gripY/peakSlipY/knee). Angles are degrees, traversal times
+are seconds, pressures are bar, and tire, fuel-cut and efficiency values are dimensionless. Require
+0 < offset < maximum < 90 degrees, positive finite actuator rates after conversion, positive finite
+tire capacities/stiffness and 0 < knee < 1.
 Later game-wide launch and pitch rules extend this same document rather than creating separate
 assist configuration files.
 

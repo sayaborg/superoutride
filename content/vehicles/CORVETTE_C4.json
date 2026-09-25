@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-definition",
-  "version": 4,
+  "version": 5,
   "id": "CORVETTE_C4",
   "form": "car",
   "selectionOrder": 3,
@@ -33,7 +33,6 @@
       "idleRpm": 700,
       "redlineRpm": 5200,
       "finalDriveRatio": 3.33,
-      "efficiency": 0.89,
       "gearRatios": [2.68, 1.8, 1.31, 1, 0.75, 0.5],
       "torqueCurve": [
         { "rpm": 700, "torqueNewtonMeters": 300 },

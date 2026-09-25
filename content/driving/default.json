@@ -1,12 +1,15 @@
 {
   "format": "superoutride.driving-definition",
-  "version": 2,
+  "version": 3,
   "id": "default",
   "automaticSteering": "travel-direction",
   "maxRoadWheelSteerDegrees": 65,
   "steeringOffsetDegrees": 20,
   "steeringTraversalSeconds": 0.3,
   "fuelCutRedlineMargin": 0.02,
+  "idleFrictionMeanEffectivePressureBar": 1.0,
+  "redlineFrictionMeanEffectivePressureBar": 2.5,
+  "drivelineEfficiency": 0.9,
   "throttle": {
     "applySeconds": 0.25,
     "releaseSeconds": 0.125

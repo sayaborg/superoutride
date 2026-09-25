@@ -6,7 +6,12 @@ import { type Writable } from '../../core/writable.js';
 import { publishVehicleTireObservation } from './vehicle-tire-observation.js';
 import { clamp, wrapAngle } from '../../core/math.js';
 import type { DrivingInput } from '../driving-input.js';
-import { createAutomaticPowertrainState, updateAutomaticPowertrain } from './automatic-powertrain.js';
+import {
+  couplePowertrain,
+  createAutomaticPowertrainState,
+  updateAutomaticPowertrain,
+  type PowertrainCoupling,
+} from './automatic-powertrain.js';
 import {
   createDrivingActuatorState,
   updateDrivingActuators,
@@ -51,7 +56,7 @@ import {
 export interface VehicleState extends VehicleDynamicsState {
   readonly compiledVehicle: CompiledVehicle;
   readonly drivingActuator: DrivingActuatorDefinition;
-  readonly fuelCutRedlineMargin: number;
+  readonly powertrainCoupling: Readonly<PowertrainCoupling>;
   yaw: number;
   pitch: number;
   yawRate: number;
@@ -134,7 +139,7 @@ export function createVehicle(
   const state = {
     compiledVehicle,
     drivingActuator: driving.actuator,
-    fuelCutRedlineMargin: driving.fuelCutRedlineMargin,
+    powertrainCoupling: couplePowertrain(compiledVehicle.powertrain, driving.powertrain),
     x: position.x,
     y: position.y,
     z: position.z,
@@ -244,20 +249,26 @@ export function updateVehicle(
     );
 
     const gearBefore = vehicle.powertrain.gear;
-    const driveTorque = updateAutomaticPowertrain(
+    const powertrainTorque = updateAutomaticPowertrain(
       vehicle.powertrain,
       compiledVehicle.powertrain,
+      vehicle.powertrainCoupling,
       drivenWheelOmega(compiledVehicle, vehicle.frontWheelOmega, vehicle.rearWheelOmega),
       vehicle.actuator.throttle,
       shiftAvailable,
-      vehicle.fuelCutRedlineMargin,
       substep,
     );
     if (vehicle.powertrain.gear !== gearBefore) shiftAvailable = false;
+    // Engine braking opposes forward wheel rotation, so it joins the brake magnitude and its ABS.
+    const driveTorque = Math.max(0, powertrainTorque);
+    const engineBrakeTorque = Math.max(0, -powertrainTorque);
     const frontDriveTorque = driveTorque * compiledVehicle.frontDriveTorqueFraction;
     const rearDriveTorque = driveTorque - frontDriveTorque;
-    const frontBrakeTorque = vehicle.actuator.brake * compiledVehicle.frontStation.maxBrakeTorque;
-    const rearBrakeTorque = vehicle.actuator.brake * compiledVehicle.rearStation.maxBrakeTorque;
+    const frontEngineBrakeTorque = engineBrakeTorque * compiledVehicle.frontDriveTorqueFraction;
+    const frontBrakeTorque =
+      vehicle.actuator.brake * compiledVehicle.frontStation.maxBrakeTorque + frontEngineBrakeTorque;
+    const rearBrakeTorque =
+      vehicle.actuator.brake * compiledVehicle.rearStation.maxBrakeTorque + engineBrakeTorque - frontEngineBrakeTorque;
     const frontRequest = workspace.frontRequest;
     frontRequest.omegaPrevious = vehicle.frontWheelOmega;
     frontRequest.inertia = compiledVehicle.frontStation.wheelInertia;

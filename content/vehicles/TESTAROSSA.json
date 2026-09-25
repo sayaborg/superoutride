@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-definition",
-  "version": 4,
+  "version": 5,
   "id": "TESTAROSSA",
   "form": "car",
   "selectionOrder": 1,
@@ -33,7 +33,6 @@
       "idleRpm": 1000,
       "redlineRpm": 6800,
       "finalDriveRatio": 3.21,
-      "efficiency": 0.9,
       "gearRatios": [3.139, 2.104, 1.526, 1.167, 0.875],
       "torqueCurve": [
         { "rpm": 1000, "torqueNewtonMeters": 270 },

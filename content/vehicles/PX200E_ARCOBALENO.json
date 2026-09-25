@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-definition",
-  "version": 4,
+  "version": 5,
   "id": "PX200E_ARCOBALENO",
   "form": "bike",
   "selectionOrder": 9,
@@ -33,7 +33,6 @@
       "idleRpm": 900,
       "redlineRpm": 6500,
       "finalDriveRatio": 1,
-      "efficiency": 0.84,
       "gearRatios": [14.47, 10.28, 7.31, 5.36],
       "torqueCurve": [
         { "rpm": 900, "torqueNewtonMeters": 7 },

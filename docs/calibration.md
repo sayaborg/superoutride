@@ -35,7 +35,12 @@ share one authored set for front and rear. Driving assists are not difficulty co
 The same definition selects travel-direction automatic steering and `wheelSlip=true` (TCS and ABS).
 Throttle traversal is 0.25 s apply / 0.125 s release; brake traversal is 0.15 s apply / 0.10 s release.
 Rates are their reciprocals. `fuelCutRedlineMargin=0.02` is dimensionless: fuel cuts above 1.02 times
-redline and returns at redline. Two-wheel support reserve
+redline and returns at redline. Engine friction uses provisional game-wide friction mean effective
+pressures of 1.0 bar at idle (`idleFrictionMeanEffectivePressureBar`) and 2.5 bar at redline
+(`redlineFrictionMeanEffectivePressureBar`), linear in RPM between them and held outside that range;
+a 4-stroke engine's friction torque is `FMEP * displacement / (4*pi)` and a 2-stroke engine's is
+`FMEP * displacement / (2*pi)`. `drivelineEfficiency=0.9` applies to every vehicle and to positive
+and negative engine torque alike. Two-wheel support reserve
 remains a form-specific 0.08 until 8-7; four-wheel support reserve is null.
 Tire and steering low-speed regularization are engine constants of 1.0 m/s.
 

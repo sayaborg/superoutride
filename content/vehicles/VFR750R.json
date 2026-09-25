@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-definition",
-  "version": 4,
+  "version": 5,
   "id": "VFR750R",
   "form": "bike",
   "selectionOrder": 6,
@@ -33,7 +33,6 @@
       "idleRpm": 1200,
       "redlineRpm": 12500,
       "finalDriveRatio": 4.8475,
-      "efficiency": 0.92,
       "gearRatios": [2.4, 1.941, 1.631, 1.434, 1.291, 1.192],
       "torqueCurve": [
         { "rpm": 1200, "torqueNewtonMeters": 34 },

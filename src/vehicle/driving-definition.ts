@@ -7,6 +7,9 @@ export interface DrivingDefinition {
   readonly steeringOffsetDegrees: number;
   readonly steeringTraversalSeconds: number;
   readonly fuelCutRedlineMargin: number;
+  readonly idleFrictionMeanEffectivePressureBar: number;
+  readonly redlineFrictionMeanEffectivePressureBar: number;
+  readonly drivelineEfficiency: number;
   readonly throttle: Readonly<{ applySeconds: number; releaseSeconds: number }>;
   readonly brake: Readonly<{ applySeconds: number; releaseSeconds: number }>;
   readonly wheelSlip: boolean;
@@ -15,6 +18,6 @@ export interface DrivingDefinition {
 
 export interface DrivingDocument extends DrivingDefinition {
   readonly format: 'superoutride.driving-definition';
-  readonly version: 2;
+  readonly version: 3;
   readonly id: 'default';
 }

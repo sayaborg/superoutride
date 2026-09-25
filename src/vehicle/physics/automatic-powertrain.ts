@@ -8,14 +8,13 @@ interface EngineTorquePoint {
 
 /** Ideal direct-drive robotized MT: no clutch, converter, engine rotor or shift-duration model. */
 export interface AutomaticPowertrainDefinition {
-  /** Authored engine size and cycle; reserved for subsequent friction/inertia rules. */
+  /** Authored engine size and cycle; friction torque derives from them with game-wide pressures. */
   readonly displacementCc: number;
   readonly cycle: 2 | 4;
   /** Torque-sampling floor only; derived engine RPM is allowed to be zero at rest. */
   readonly idleRpm: number;
   readonly redlineRpm: number;
   readonly finalDriveRatio: number;
-  readonly efficiency: number;
   readonly gearRatios: readonly number[];
   readonly torqueCurve: readonly EngineTorquePoint[];
 }
@@ -25,14 +24,45 @@ export interface CompiledAutomaticPowertrainDefinition extends AutomaticPowertra
   readonly peakPowerRpm: number;
 }
 
+/** Game-wide powertrain rules converted from the driving definition; pressures are in Pa. */
+export interface PowertrainRules {
+  readonly fuelCutRedlineMargin: number;
+  readonly idleFrictionMeanEffectivePressure: number;
+  readonly redlineFrictionMeanEffectivePressure: number;
+  readonly drivelineEfficiency: number;
+}
+
+/** One vehicle's powertrain under the game-wide rules; friction torque is never a vehicle value. */
+export interface PowertrainCoupling {
+  readonly fuelCutRedlineMargin: number;
+  readonly drivelineEfficiency: number;
+  readonly idleFrictionTorque: number;
+  readonly redlineFrictionTorque: number;
+}
+
+/** Friction torque = FMEP * displacement / (2 * pi * revolutions per cycle). */
+export function couplePowertrain(
+  definition: Pick<AutomaticPowertrainDefinition, 'displacementCc' | 'cycle'>,
+  rules: PowertrainRules,
+): Readonly<PowertrainCoupling> {
+  const torquePerPressure = (definition.displacementCc * 1e-6) / (2 * Math.PI * (definition.cycle / 2));
+  return Object.freeze({
+    fuelCutRedlineMargin: rules.fuelCutRedlineMargin,
+    drivelineEfficiency: rules.drivelineEfficiency,
+    idleFrictionTorque: rules.idleFrictionMeanEffectivePressure * torquePerPressure,
+    redlineFrictionTorque: rules.redlineFrictionMeanEffectivePressure * torquePerPressure,
+  });
+}
+
 export interface AutomaticPowertrainState {
   /** Selected gear and fuel-cut latch are the only dynamic powertrain memory. */
   gear: number;
   fuelCut: boolean;
   /** Derived observation caches; none is consumed as state by the next drive solve. */
   engineRpm: number;
+  /** Signed engine torque; negative while friction exceeds the throttle torque. */
   engineTorqueNewtonMeters: number;
-  /** Requested wheel-side torque before protection/distribution, never a direct body force. */
+  /** Signed requested wheel-side torque before protection/distribution, never a direct body force. */
   outputDriveTorque: number;
 }
 
@@ -50,7 +80,7 @@ export function createAutomaticPowertrainState(
     gear,
     fuelCut: false,
     engineRpm,
-    engineTorqueNewtonMeters: sampleEngineTorque(definition, engineRpm),
+    engineTorqueNewtonMeters: 0,
     outputDriveTorque: 0,
   };
 }
@@ -59,14 +89,16 @@ export function createAutomaticPowertrainState(
  * One ordinary mechanics step. RPM is algebraic in authoritative driven-wheel speed and gear.
  * At most one instantaneous ratio change occurs per call, with no drive interruption.
  * Fuel cut is a hysteretic latch above redline; dt validates the shared step contract.
+ * Engine torque is throttle * (curve + friction) - friction. Until the clutch exists, friction
+ * reaches the wheels only while they turn forward with the engine at or above idle.
  */
 export function updateAutomaticPowertrain(
   state: AutomaticPowertrainState,
   definition: CompiledAutomaticPowertrainDefinition,
+  coupling: PowertrainCoupling,
   drivenWheelOmega: number,
   throttle: number,
   allowShift: boolean,
-  fuelCutRedlineMargin: number,
   dt: number,
 ): number {
   assertWheelOmega(drivenWheelOmega);
@@ -91,14 +123,30 @@ export function updateAutomaticPowertrain(
   state.engineRpm = coupledEngineRpm(definition, wheelOmega, state.gear);
   if (state.fuelCut) {
     if (state.engineRpm <= definition.redlineRpm) state.fuelCut = false;
-  } else if (state.engineRpm > definition.redlineRpm * (1 + fuelCutRedlineMargin)) {
+  } else if (state.engineRpm > definition.redlineRpm * (1 + coupling.fuelCutRedlineMargin)) {
     state.fuelCut = true;
   }
 
-  state.engineTorqueNewtonMeters = state.fuelCut ? 0 : sampleEngineTorque(definition, state.engineRpm);
+  const friction =
+    drivenWheelOmega > 0 && state.engineRpm >= definition.idleRpm
+      ? engineFrictionTorque(definition, coupling, state.engineRpm)
+      : 0;
+  state.engineTorqueNewtonMeters = state.fuelCut
+    ? -friction
+    : clamp(throttle, 0, 1) * (sampleEngineTorque(definition, state.engineRpm) + friction) - friction;
   const ratio = definition.gearRatios[state.gear - 1]! * definition.finalDriveRatio;
-  state.outputDriveTorque = clamp(throttle, 0, 1) * state.engineTorqueNewtonMeters * ratio * definition.efficiency;
+  state.outputDriveTorque = state.engineTorqueNewtonMeters * ratio * coupling.drivelineEfficiency;
   return state.outputDriveTorque;
+}
+
+/** Linear in RPM from idle to redline and held at those values outside that range. */
+function engineFrictionTorque(
+  definition: Pick<AutomaticPowertrainDefinition, 'idleRpm' | 'redlineRpm'>,
+  coupling: PowertrainCoupling,
+  rpm: number,
+): number {
+  const t = clamp((rpm - definition.idleRpm) / (definition.redlineRpm - definition.idleRpm), 0, 1);
+  return coupling.idleFrictionTorque + (coupling.redlineFrictionTorque - coupling.idleFrictionTorque) * t;
 }
 
 /** No-stall launch approximation: use the idle torque below idle, without inventing engine RPM. */
@@ -164,7 +212,7 @@ export function compileAutomaticPowertrainDefinition(
     throw new DefinitionDomainError('displacementCc', 'displacementCc must be finite and > 0');
   if (definition.cycle !== 2 && definition.cycle !== 4)
     throw new DefinitionDomainError('cycle', 'cycle must be 2 or 4 strokes');
-  for (const field of ['idleRpm', 'redlineRpm', 'finalDriveRatio', 'efficiency'] as const) {
+  for (const field of ['idleRpm', 'redlineRpm', 'finalDriveRatio'] as const) {
     if (!Number.isFinite(definition[field])) throw new DefinitionDomainError(field, `${field} must be finite`);
   }
   if (!(0 < definition.idleRpm)) throw new DefinitionDomainError('idleRpm', 'idleRpm must be > 0');
@@ -172,8 +220,6 @@ export function compileAutomaticPowertrainDefinition(
     throw new DefinitionDomainError('redlineRpm', 'redlineRpm must be greater than idleRpm');
   if (!(definition.finalDriveRatio > 0))
     throw new DefinitionDomainError('finalDriveRatio', 'finalDriveRatio must be > 0');
-  if (!(definition.efficiency > 0 && definition.efficiency <= 1))
-    throw new DefinitionDomainError('efficiency', 'efficiency must lie in (0,1]');
   if (definition.gearRatios.length === 0)
     throw new DefinitionDomainError('gearRatios', 'powertrain requires forward gear ratios');
   for (let i = 0; i < definition.gearRatios.length; i += 1) {
