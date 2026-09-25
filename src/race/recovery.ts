@@ -291,12 +291,11 @@ function reconstructVehicle(
   vehicle.rearGap = -p.rearStation.suspension.qStatic;
   vehicle.frontSupportAvailable = true;
   vehicle.rearSupportAvailable = true;
-  Object.assign(
-    vehicle.powertrain,
-    createAutomaticPowertrainState(
-      p.powertrain,
-      vehicle.powertrainCoupling,
-      drivenWheelOmega(p, vehicle.frontWheelOmega, vehicle.rearWheelOmega),
-    ),
+  // Recovery sets the gear without a shift; the shift record and its sequence carry over.
+  const { shift: _shift, ...powertrain } = createAutomaticPowertrainState(
+    p.powertrain,
+    vehicle.powertrainCoupling,
+    drivenWheelOmega(p, vehicle.frontWheelOmega, vehicle.rearWheelOmega),
   );
+  Object.assign(vehicle.powertrain, powertrain);
 }

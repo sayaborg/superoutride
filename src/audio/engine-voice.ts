@@ -61,7 +61,7 @@ export function createEngineVoice(
         active = { profile, tuning: acousticTuning };
       }
       follow(exhaust.parameters.get('rpm')!, state.rpm, now);
-      follow(exhaust.parameters.get('load')!, clamp(state.drive, 0, 1), now);
+      follow(exhaust.parameters.get('load')!, clamp(state.effectiveOpening, 0, 1), now);
       follow(output.gain, clamp(gain, 0, 1), now);
     },
     setTuning(value: ExhaustTuning): void {

@@ -79,6 +79,18 @@ export function couplePowertrain(
 /** Clutch observation: LOCK is the latch; otherwise SLIP while it transmits torque, else OPEN. */
 export type ClutchObservation = 'LOCK' | 'SLIP' | 'OPEN';
 
+/**
+ * The last shift, numbered from 1. Sequence 0 with direction NONE means no shift yet; an update
+ * without a shift leaves the record unchanged, so each shift is read once by its sequence.
+ * Engine RPM is taken before the shift and after the shift's clutch update.
+ */
+export interface PowertrainShiftObservation {
+  sequence: number;
+  direction: 'NONE' | 'UP' | 'DOWN';
+  fromRpm: number;
+  toRpm: number;
+}
+
 export interface AutomaticPowertrainState {
   /** Selected gear, fuel-cut and clutch-lock latches and engine speed are the only dynamic powertrain memory. */
   gear: number;
@@ -94,6 +106,7 @@ export interface AutomaticPowertrainState {
   clutchTorqueNewtonMeters: number;
   /** Signed requested wheel-side torque before protection/distribution, never a direct body force. */
   outputDriveTorque: number;
+  shift: PowertrainShiftObservation;
 }
 
 /** Starts locked at the wheel-derived RPM when a slipping clutch at idle would lock, else slips at idle. */
@@ -118,6 +131,7 @@ export function createAutomaticPowertrainState(
     engineTorqueNewtonMeters: 0,
     clutchTorqueNewtonMeters: 0,
     outputDriveTorque: 0,
+    shift: { sequence: 0, direction: 'NONE', fromRpm: 0, toRpm: 0 },
   };
 }
 
@@ -188,13 +202,19 @@ export function prepareAutomaticPowertrain(
   }
   const wheelOmega = Math.abs(drivenWheelOmega);
   const rpmBeforeShift = coupledEngineRpm(definition, wheelOmega, state.gear);
+  const engineRpmBeforeShift = state.engineRpm;
+  let shift: 'NONE' | 'UP' | 'DOWN' = 'NONE';
   if (allowShift) {
     if (rpmBeforeShift >= definition.redlineRpm && state.gear < definition.gearRatios.length) {
       state.gear += 1;
+      shift = 'UP';
     } else if (state.gear > 1) {
       const currentRatio = definition.gearRatios[state.gear - 1]!;
       const lowerRatio = definition.gearRatios[state.gear - 2]!;
-      if (rpmBeforeShift * (lowerRatio / currentRatio) <= definition.peakPowerRpm) state.gear -= 1;
+      if (rpmBeforeShift * (lowerRatio / currentRatio) <= definition.peakPowerRpm) {
+        state.gear -= 1;
+        shift = 'DOWN';
+      }
     }
   }
 
@@ -206,6 +226,12 @@ export function prepareAutomaticPowertrain(
   const locked = state.clutchLocked;
   if (locked) state.engineRpm = wheelRpm;
   const rpm = state.engineRpm;
+  if (shift !== 'NONE') {
+    state.shift.sequence += 1;
+    state.shift.direction = shift;
+    state.shift.fromRpm = engineRpmBeforeShift;
+    state.shift.toRpm = rpm;
+  }
   if (state.fuelCut) {
     if (rpm <= definition.redlineRpm) state.fuelCut = false;
   } else if (rpm > definition.redlineRpm * (1 + coupling.fuelCutRedlineMargin)) {

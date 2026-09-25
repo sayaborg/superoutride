@@ -8,8 +8,12 @@ settings, [Browser](browser.md#sound-controls) owns operation, and
 
 ## Observations and profiles
 
-The [acoustic observation](../src/audio/vehicle-audio-observation.ts) contains RPM, excitation,
-position and tire inputs. The browser supplies completed observations once per presented frame.
+The [acoustic observation](../src/audio/vehicle-audio-observation.ts) contains powertrain, position
+and tire inputs. From the powertrain, audio reads engine RPM, the effective opening
+(`effectiveOpening`, the engine's only command and the excitation source) and the last shift
+(sequence, direction and engine RPM before and after, as
+[vehicle physics](vehicle-physics.md#wheel-and-powertrain) publishes it). A sequence the voice has not yet heard
+marks a new shift; shift sounds such as downshift blips are not yet synthesized. The browser supplies completed observations once per presented frame.
 Physics owns RPM, actuators, contact loads, wheel motion and dissipated work; audio owns oscillator,
 filter and envelope state. Player tire observations use the optional physical observation channel;
 rival sound uses engine observations.

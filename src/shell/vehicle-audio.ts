@@ -1,10 +1,15 @@
 import { observeVehicleTires } from '../vehicle/physics/vehicle-tire-observation.js';
 import { RIVAL_AUDIBLE_METERS } from '../audio/audio-presentation.js';
-import type { TireAudioObservation, VehicleAudioObservation } from '../audio/vehicle-audio-observation.js';
+import type {
+  ShiftAudioObservation,
+  TireAudioObservation,
+  VehicleAudioObservation,
+} from '../audio/vehicle-audio-observation.js';
 import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 
 type Mutable<T> = { -readonly [Key in keyof T]: T[Key] };
-type Observation = Mutable<Omit<VehicleAudioObservation, 'front' | 'rear'>> & {
+type Observation = Mutable<Omit<VehicleAudioObservation, 'shift' | 'front' | 'rear'>> & {
+  shift: Mutable<ShiftAudioObservation>;
   front: Mutable<TireAudioObservation>;
   rear: Mutable<TireAudioObservation>;
 };
@@ -19,13 +24,23 @@ export function createVehicleAudioObservation(): Observation {
     lateralPower: 0,
     surface: 'VOID',
   });
-  return { rpm: 0, drive: 0, front: tire(), rear: tire() };
+  return {
+    rpm: 0,
+    effectiveOpening: 0,
+    shift: { sequence: 0, direction: 'NONE', fromRpm: 0, toRpm: 0 },
+    front: tire(),
+    rear: tire(),
+  };
 }
 /** Copy completed observations into two reusable slots; do not run contact or tire solvers here. */
 export function readEngineAudio(vehicle: VehicleState, result: Observation): void {
   const { powertrain } = vehicle;
   result.rpm = powertrain.engineRpm;
-  result.drive = powertrain.effectiveOpening;
+  result.effectiveOpening = powertrain.effectiveOpening;
+  result.shift.sequence = powertrain.shift.sequence;
+  result.shift.direction = powertrain.shift.direction;
+  result.shift.fromRpm = powertrain.shift.fromRpm;
+  result.shift.toRpm = powertrain.shift.toRpm;
 }
 
 /** Player consumer subscribes to completed tire telemetry; rival engines use readEngineAudio. */

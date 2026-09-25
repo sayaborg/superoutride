@@ -11,11 +11,19 @@ export interface TireAudioObservation {
   readonly lateralPower: number;
   readonly surface: 'ASPHALT' | 'SHOULDER' | 'GRASS' | 'DIRT' | 'SAND' | 'VOID';
 }
+/** The powertrain's last shift; a new sequence marks a shift not yet heard. Sequence 0: none yet. */
+export interface ShiftAudioObservation {
+  readonly sequence: number;
+  readonly direction: 'NONE' | 'UP' | 'DOWN';
+  readonly fromRpm: number;
+  readonly toRpm: number;
+}
 export interface VehicleAudioObservation {
   /** Engine speed exactly as simulated; it never falls below idle. */
   readonly rpm: number;
   /** The engine's effective opening in [0,1]: an acoustic excitation proxy, not cylinder load. */
-  readonly drive: number;
+  readonly effectiveOpening: number;
+  readonly shift: ShiftAudioObservation;
   readonly front: TireAudioObservation;
   readonly rear: TireAudioObservation;
 }

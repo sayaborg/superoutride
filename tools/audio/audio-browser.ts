@@ -84,7 +84,7 @@ async function audition() {
     const { idleRpm, redlineRpm } = entry.compiledVehicle.powertrain;
     Object.assign(state, {
       rpm: Number(mustGet<HTMLInputElement>('rpm').value) || 3000,
-      drive: Number(mustGet<HTMLSelectElement>('load').value),
+      effectiveOpening: Number(mustGet<HTMLSelectElement>('load').value),
     });
     await context.audioWorklet.addModule(new URL('./exhaust-processor.js', import.meta.url));
     const voice = createEngineVoice(context, context.destination, {
@@ -95,13 +95,13 @@ async function audition() {
     if (scenario === 'rev') {
       const target = Math.max(idleRpm, Math.min(state.rpm, redlineRpm));
       state.rpm = idleRpm;
-      state.drive = 0;
+      state.effectiveOpening = 0;
       voice.update(state, entry.sound);
       for (let tick = 20; tick < 80; tick++) {
         const time = tick / 20;
         void context.suspend(time).then(() => {
           const accelerating = time < 2.5;
-          state.drive = accelerating ? 1 : 0;
+          state.effectiveOpening = accelerating ? 1 : 0;
           const fraction = accelerating ? (time - 1) / 1.5 : 1 - (time - 2.5) / 1.5;
           state.rpm = idleRpm + (target - idleRpm) * fraction;
           voice.update(state, entry.sound);

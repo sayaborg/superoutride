@@ -37,6 +37,7 @@ interface VehicleDebugHudModel {
   readonly steeringResponseSelector: string;
   readonly tireCalibrationSelector: string;
   readonly instruments: string;
+  readonly lastShift: string;
   readonly requestedSteering: number;
   readonly requestedThrottle: number;
   readonly requestedBrake: number;
@@ -84,6 +85,7 @@ function createVehicleDebugHudModel(
       )}km/h  RPM ${Math.round(vehicle.powertrain.engineRpm).toString().padStart(5)}  GEAR ${vehicle.powertrain.gear}  CLUTCH ${observeClutch(vehicle.powertrain)} ${Math.round(vehicle.powertrain.clutchTorqueNewtonMeters)}Nm  FUEL ${
       vehicle.powertrain.fuelCut ? 'CUT' : 'ON'
     }`,
+    lastShift: formatLastShift(vehicle.powertrain.shift),
     requestedSteering: clampSigned(input.steering),
     requestedThrottle: normalizedPedalRequest(input.throttle),
     requestedBrake: normalizedPedalRequest(input.brake),
@@ -129,6 +131,7 @@ export function drawVehicleDebugHud(
     model.steeringResponseSelector,
     model.tireCalibrationSelector,
     model.instruments,
+    model.lastShift,
   ];
 
   ctx.save();
@@ -138,6 +141,11 @@ export function drawVehicleDebugHud(
   drawVehicleControlGraphics(ctx, model, 3, 79);
   drawTopDownGSensor(ctx, model, 286, 83);
   ctx.restore();
+}
+
+function formatLastShift(shift: VehicleState['powertrain']['shift']): string {
+  if (shift.direction === 'NONE') return 'SHIFT -';
+  return `SHIFT #${shift.sequence} ${shift.direction} ${Math.round(shift.fromRpm)}->${Math.round(shift.toRpm)}RPM`;
 }
 
 /** Read-only request/response graphics. No drawn value feeds input or mechanics. */

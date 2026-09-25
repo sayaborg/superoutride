@@ -145,6 +145,15 @@ below peak-power RPM. Vehicle
 compilation derives peak-power RPM once as the maximum of `rpm * torque` over the complete
 piecewise-linear torque curve, including an interior maximum within a segment.
 One fixed simulation step performs at most one shift across all mechanics substeps; the ratio change is instantaneous and does not interrupt drive.
+A held vehicle does not shift.
+
+The powertrain publishes its last shift as an observation, `shift`: a sequence numbered from 1, the
+direction `UP` or `DOWN`, and engine RPM before the shift and after the shift's clutch update (the
+new ratio's wheel-derived RPM while locked, unchanged while unlocked). Before the first shift the
+sequence is 0 and the direction `NONE`. An update without a shift leaves the record unchanged, so a
+consumer reads each shift once by its sequence and recognizes an update without a shift by an
+unchanged sequence. Recovery sets the gear without a shift and keeps the record. Mechanics never
+read the observation.
 
 Fuel cut is a hysteretic latch on engine RPM, whatever the clutch state. It enters when RPM exceeds
 `redlineRpm * (1 + fuelCutRedlineMargin)`, clears when RPM returns to redline or below, and holds
@@ -326,7 +335,7 @@ order is unchanged. This is a conservative current-contact slip constraint.
 ## Observations
 
 HUD observations include input, actuators, automatic steering, requested/delivered offsets, target/actual
-rack and requested/delivered torques. The DEV HUD calculates handwheel angle as `control.actualSteerAngle * source.visuals.steeringRatio`.
+rack, requested/delivered torques, the clutch observation and the last shift. The DEV HUD calculates handwheel angle as `control.actualSteerAngle * source.visuals.steeringRatio`.
 The mechanical state and compiled mechanics contain neither handwheel angle nor ratio. Bike lean presentation is
 `atan2(lateralAcceleration,g)` with discrete bank images; physical state contains yaw and pitch.
 
