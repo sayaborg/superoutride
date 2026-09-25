@@ -1,9 +1,5 @@
-import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
-import {
-  setVehicleMaxRoadWheelSteer,
-  setVehicleSteeringOffsetMax,
-  setVehicleSymmetricSteeringActuatorRate,
-} from '../vehicle/physics/vehicle-calibration.js';
+import { retuneVehicleModel, type VehicleModel } from '../vehicle/physics/vehicle-model.js';
+import type { VehicleSteeringCalibrationInput } from '../vehicle/physics/vehicle-calibration.js';
 import {
   mountMobileMaxRoadWheelSteerSelector,
   mountMobileSteeringOffsetSelector,
@@ -16,36 +12,47 @@ interface BrowserSteeringCalibrationContainers {
   readonly steeringResponse: HTMLElement;
 }
 
-/** One browser adapter connects DEV buttons to vehicle-owned D/M/ACT calibration. */
+/** The player's current model; DEV tuning replaces it and the next step uses the replacement. */
+export interface VehicleModelSlot {
+  get(): VehicleModel;
+  set(model: VehicleModel): void;
+}
+
+/** One browser adapter connects DEV buttons to the model's D/M/ACT steering calibration. */
 export function mountBrowserSteeringCalibrationControls(
   containers: BrowserSteeringCalibrationContainers,
-  getVehicle: () => VehicleState,
+  slot: VehicleModelSlot,
   documentRef: Document = document,
 ): void {
+  type Steering = VehicleSteeringCalibrationInput;
   const bindings = [
     {
       container: containers.steeringOffset,
-      read: (vehicle: VehicleState) => vehicle.steeringCalibration.steeringOffsetMax,
-      write: setVehicleSteeringOffsetMax,
+      read: (steering: Steering) => steering.steeringOffsetMax,
+      write: (steering: Steering, value: number): Steering => ({ ...steering, steeringOffsetMax: value }),
       mount: mountMobileSteeringOffsetSelector,
     },
     {
       container: containers.maxRoadWheelSteer,
-      read: (vehicle: VehicleState) => vehicle.steeringCalibration.maxRoadWheelSteer,
-      write: setVehicleMaxRoadWheelSteer,
+      read: (steering: Steering) => steering.maxRoadWheelSteer,
+      write: (steering: Steering, value: number): Steering => ({ ...steering, maxRoadWheelSteer: value }),
       mount: mountMobileMaxRoadWheelSteerSelector,
     },
     {
       container: containers.steeringResponse,
-      read: (vehicle: VehicleState) => vehicle.steeringCalibration.steeringActuatorResponse.applyRate,
-      write: setVehicleSymmetricSteeringActuatorRate,
+      read: (steering: Steering) => steering.steeringActuatorResponse.applyRate,
+      write: (steering: Steering, value: number): Steering => ({
+        ...steering,
+        steeringActuatorResponse: { applyRate: value, releaseRate: value },
+      }),
       mount: mountMobileSteeringResponseSelector,
     },
   ];
   for (const binding of bindings) {
-    const initial = binding.read(getVehicle());
+    const initial = binding.read(slot.get().steering);
     const select = (value: number) => {
-      binding.write(getVehicle(), value);
+      const model = slot.get();
+      slot.set(retuneVehicleModel(model, { steering: binding.write(model.steering, value) }));
       selector.setActive(value);
     };
     const selector = binding.mount(binding.container, initial, select, documentRef);

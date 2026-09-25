@@ -11,6 +11,7 @@ import { createCourseRace } from '../../src/race/course-race.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
 import { browserSessionVehicle } from '../../src/shell/session-vehicle.js';
 import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
+import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
 import { createRecoveryState } from '../../src/race/recovery.js';
 import {
   createEnvelopeDriverWorkspace,
@@ -59,13 +60,9 @@ export function runCourseReference(
     envelope,
   );
   const slot = session.grid[0]!;
-  const vehicle = createVehicle(entry.compiledVehicle, scene.world, {
-    ...vehicleConfiguration,
-    s: slot.at.s,
-    l: slot.l,
-    initialSpeed: 0,
-  });
-  const actor = { vehicle, recovery: createRecoveryState(vehicle) };
+  const model = createVehicleModel(vehicleConfiguration);
+  const vehicle = createVehicle(model, scene.world, { s: slot.at.s, l: slot.l, initialSpeed: 0 });
+  const actor = { vehicle, model, recovery: createRecoveryState(vehicle) };
   const race = createCourseRace({
     session,
     player: actor,

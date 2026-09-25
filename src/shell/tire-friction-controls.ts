@@ -1,27 +1,27 @@
-import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
-import { setVehicleTireFrictionCalibration } from '../vehicle/physics/tire-friction-calibration.js';
+import {
+  compileTireCharacteristics,
+  createVehicleTireFrictionCalibration,
+} from '../vehicle/physics/tire-friction-calibration.js';
+import { retuneVehicleModel } from '../vehicle/physics/vehicle-model.js';
 import { mountMobileTireCalibrationSelector } from './mobile-selector-controls.js';
+import type { VehicleModelSlot } from './steering-calibration-controls.js';
 import { stepBrowserTireCalibration, type BrowserTireCalibrationAxis } from './tire-friction-selection.js';
 
-/** Explicit +/- buttons own both directions through one operation. */
+/** Explicit +/- buttons own both directions through one operation; both stations stay linked. */
 export function mountBrowserTireFrictionControls(
   container: HTMLElement,
-  getVehicle: () => VehicleState,
+  slot: VehicleModelSlot,
   documentRef: Document = document,
 ): void {
-  const selector = mountMobileTireCalibrationSelector(
-    container,
-    getVehicle().tireFrictionCalibration,
-    stepAxis,
-    documentRef,
-  );
+  const selector = mountMobileTireCalibrationSelector(container, slot.get().tires, stepAxis, documentRef);
 
   function stepAxis(axis: BrowserTireCalibrationAxis, direction: -1 | 1): void {
-    const vehicle = getVehicle();
-    setVehicleTireFrictionCalibration(
-      vehicle,
-      stepBrowserTireCalibration(axis, direction, vehicle.tireFrictionCalibration),
+    const model = slot.get();
+    const tires = createVehicleTireFrictionCalibration(
+      compileTireCharacteristics(stepBrowserTireCalibration(axis, direction, model.tires)),
     );
-    selector.setCalibration(vehicle.tireFrictionCalibration);
+    const next = retuneVehicleModel(model, { tires });
+    slot.set(next);
+    selector.setCalibration(next.tires);
   }
 }

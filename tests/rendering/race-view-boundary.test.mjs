@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { loadCourse, loadCourseGround } from '../../tools/course/authoring-io.ts';
 import { createCourseScene } from '../../src/shell/course-scene.js';
 import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
+import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
 import { loadVehicleDefinitions } from '../../src/vehicle/definition-document.js';
 import { browserSessionVehicle } from '../../src/shell/session-vehicle.js';
 import { createRecoveryState } from '../../src/race/recovery.js';
@@ -33,9 +34,9 @@ async function setup() {
     definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA'),
     definitions.driving,
   );
-  const spawn = (s) =>
-    createVehicle(compiledVehicle.compiledVehicle, scene.world, { ...compiledVehicle, s, l: 0, initialSpeed: 0 });
-  return { course, assets, scene, compiledVehicle, spawn };
+  const model = createVehicleModel(compiledVehicle);
+  const spawn = (s) => createVehicle(model, scene.world, { s, l: 0, initialSpeed: 0 });
+  return { course, assets, scene, compiledVehicle, model, spawn };
 }
 
 test('shared route keeps vehicle and camera coordinates across forward and reverse seams', async () => {
@@ -63,7 +64,7 @@ test('shared route keeps vehicle and camera coordinates across forward and rever
 });
 
 test('race actors have no cameras and view assembles sixteen rival sprites from observations', async () => {
-  const { course, scene, assets, compiledVehicle, spawn } = await setup();
+  const { course, scene, assets, compiledVehicle, model, spawn } = await setup();
   const envelope = await readVehicleEnvelope(
     compiledVehicle,
     await (await readDeliveredContent()).json('envelope', 'TESTAROSSA'),
@@ -77,7 +78,7 @@ test('race actors have no cameras and view assembles sixteen rival sprites from 
   const vehicle = spawn(settings.grid[0].at.s);
   const race = createCourseRace({
     session: settings,
-    player: { vehicle, recovery: createRecoveryState(vehicle) },
+    player: { vehicle, model, recovery: createRecoveryState(vehicle) },
     runtime: scene.runtime,
   });
   for (const c of [race.player, ...race.rivals]) assert.ok(!('cameraRig' in c.actor));

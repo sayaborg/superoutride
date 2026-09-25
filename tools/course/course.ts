@@ -14,6 +14,7 @@ import { referenceCommand } from './reference-command.js';
 import path from 'node:path';
 import { PNG } from 'pngjs';
 import { createCourseScene } from '../../src/shell/course-scene.js';
+import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
 import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
 import { loadVehicleDefinitions } from '../../src/vehicle/definition-document.js';
 import { readDeliveredContent } from './read-content.js';
@@ -104,12 +105,15 @@ try {
       const destination = path.resolve(opts.get('--out') ?? (sequence ? 'frames' : 'frame.png'));
       const frames: RenderFrame[] = [];
       for (const [i, s] of stations.entries()) {
-        const vehicle = createVehicle(entry.compiledVehicle, scene.world, {
-          s,
-          l,
-          initialSpeed: 0,
-          ...browserSessionVehicle(entry, definitions.driving),
-        });
+        const vehicle = createVehicle(
+          createVehicleModel(browserSessionVehicle(entry, definitions.driving)),
+          scene.world,
+          {
+            s,
+            l,
+            initialSpeed: 0,
+          },
+        );
         const camera = updateCamera(createCameraRig(), scene.world, vehicle, CURRENT_CAMERA_PROFILE, 1 / 60),
           target = new SoftwareSurface(320, 240);
         const stats = scene.render(target, vehicle, camera, sprites.off, []),

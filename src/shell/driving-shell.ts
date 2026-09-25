@@ -11,6 +11,7 @@ import type { DrivingInput } from '../vehicle/driving-input.js';
 import { InputManager } from '../input/input-manager.js';
 import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import { createVehicle } from '../vehicle/physics/vehicle-physics.js';
+import { createVehicleModel, retuneVehicleModel, type VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import type { VehicleWorld } from '../course/vehicle-world.js';
 import type { CompiledVehicle } from '../vehicle/physics/vehicle-definitions.js';
 import { drawVehicleLeanDebug } from './debug/vehicle-lean-debug.js';
@@ -31,10 +32,12 @@ import { mountBrowserTireFrictionControls } from './tire-friction-controls.js';
 import { browserSessionVehicle } from './session-vehicle.js';
 import { browserUsesTouchInterface } from './touch-interface.js';
 import { drawVehicleDebugHud } from './vehicle-debug-hud.js';
+import type { AudibleActor } from './vehicle-audio.js';
 import { createBrowserVehicleSelections } from './vehicle-selection.js';
 
 interface BrowserDrivingShell {
   readonly vehicle: VehicleState;
+  readonly model: VehicleModel;
   readonly presentation: CompiledVehicleDefinition;
   readonly recovery: RecoveryState;
   readonly framebuffer: SoftwareSurface;
@@ -47,7 +50,7 @@ interface BrowserDrivingShell {
     input: DrivingInput,
     camera: CameraState,
     playerScreenY: number,
-    rivals?: readonly { readonly vehicle: VehicleState }[],
+    rivals?: readonly AudibleActor[],
   ): void;
   start(tick: (dt: number) => void, render: () => void): void;
   stop(): void;
@@ -76,13 +79,15 @@ export function createBrowserDrivingShell(
   const framebuffer = new SoftwareSurface(LOGICAL_WIDTH, LOGICAL_HEIGHT, new Uint32Array(imageData.data.buffer));
   const inputManager = new InputManager();
   const selected = spawn.vehicle;
-  let vehicle = createVehicle(selected.compiledVehicle, runtime, {
-    s: spawn.s,
-    l: startL,
-    initialSpeed: spawn.initialSpeed,
-    drivingDefinition: selected.drivingDefinition,
-    supportReserve: selected.supportReserve,
-  });
+  // DEV tuning replaces the whole model; the next step uses the replacement.
+  let model = createVehicleModel(selected);
+  let vehicle = createVehicle(model, runtime, { s: spawn.s, l: startL, initialSpeed: spawn.initialSpeed });
+  const modelSlot = {
+    get: () => model,
+    set: (next: VehicleModel) => {
+      model = next;
+    },
+  };
   let recovery = createRecoveryState(vehicle);
   const cameraRig = createCameraRig();
 
@@ -116,8 +121,11 @@ export function createBrowserDrivingShell(
     get vehicle() {
       return vehicle;
     },
+    get model() {
+      return model;
+    },
     get presentation() {
-      return vehicleDefinitionForId(vehicles, vehicle.compiledVehicle.id);
+      return vehicleDefinitionForId(vehicles, model.compiledVehicle.id);
     },
     get recovery() {
       return recovery;
@@ -127,28 +135,28 @@ export function createBrowserDrivingShell(
     cameraRig,
     /** Called by the shared lifecycle after safe recovery; no chart or progress decision is made here. */
     replacePlayer(compiledVehicle: Readonly<CompiledVehicle>, active: VehicleWorld): void {
-      const steeringCalibration = vehicle.steeringCalibration;
-      const tireFrictionCalibration = vehicle.tireFrictionCalibration;
-      vehicle = createVehicle(compiledVehicle, active, {
+      // The replacement vehicle carries the active steering and tire tuning.
+      model = retuneVehicleModel(
+        createVehicleModel(browserSessionVehicle(vehicleDefinitionForId(vehicles, compiledVehicle.id), driving)),
+        { steering: model.steering, tires: model.tires },
+      );
+      vehicle = createVehicle(model, active, {
         s: vehicle.course.s,
         l: vehicle.course.l,
         initialSpeed: vehicle.longitudinalSpeed,
-        steeringCalibration,
-        tireFrictionCalibration,
-        ...browserSessionVehicle(vehicleDefinitionForId(vehicles, compiledVehicle.id), driving),
       });
       recovery = createRecoveryState(vehicle);
     },
     mountControls(options: DrivingLifecycleOptions) {
       const lifecycle = createDrivingLifecycle(this, options);
       const selectVehicle = (compiledVehicle: Readonly<CompiledVehicle>) => {
-        if (options.configurationLocked || compiledVehicle.id === vehicle.compiledVehicle.id) return;
+        if (options.configurationLocked || compiledVehicle.id === model.compiledVehicle.id) return;
         lifecycle.replace(compiledVehicle);
-        vehicleSelector.setActive(vehicle.compiledVehicle.id);
+        vehicleSelector.setActive(model.compiledVehicle.id);
       };
       const vehicleSelector = mountMobileVehicleSelector(
         mustGet('vehicle-selector-buttons'),
-        vehicle.compiledVehicle.id,
+        model.compiledVehicle.id,
         selectVehicle,
         selections,
       );
@@ -166,10 +174,10 @@ export function createBrowserDrivingShell(
           maxRoadWheelSteer: mustGet('max-steer-selector-buttons'),
           steeringResponse: mustGet('steering-response-selector-buttons'),
         },
-        () => vehicle,
+        modelSlot,
       );
       const tireContainer = mustGet('tire-friction-selector-buttons');
-      mountBrowserTireFrictionControls(tireContainer, () => vehicle);
+      mountBrowserTireFrictionControls(tireContainer, modelSlot);
       if (options.configurationLocked) {
         for (const id of [
           'vehicle-selector-buttons',
@@ -192,12 +200,13 @@ export function createBrowserDrivingShell(
       input: DrivingInput,
       camera: CameraState,
       playerScreenY: number,
-      rivals: readonly { readonly vehicle: VehicleState }[] = [],
+      rivals: readonly AudibleActor[] = [],
     ): void {
-      audio.update(vehicle, rivals);
+      audio.update({ vehicle, vehicleId: model.compiledVehicle.id }, rivals);
       ctx.putImageData(imageData, 0, 0);
-      drawVehicleDebugHud(ctx, query, input, vehicle, vehicleDefinitionForId(vehicles, vehicle.compiledVehicle.id));
-      if (vehicleDefinitionForId(vehicles, vehicle.compiledVehicle.id).form === 'bike') {
+      const entry = vehicleDefinitionForId(vehicles, model.compiledVehicle.id);
+      drawVehicleDebugHud(ctx, query, input, vehicle, model, entry);
+      if (entry.form === 'bike') {
         drawVehicleLeanDebug(ctx, camera.playerScreenX, playerScreenY, vehicle);
       }
       drawVehicleYawDebug(

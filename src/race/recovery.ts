@@ -3,9 +3,11 @@ import type { DrivingInput } from '../vehicle/driving-input.js';
 import {
   vehicleBodyKinematics,
   createBodyKinematicsWorkspace,
+  publishVehicleRenderY,
   updateVehicle,
   type VehicleState,
 } from '../vehicle/physics/vehicle-physics.js';
+import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import { createAutomaticPowertrainState } from '../vehicle/physics/automatic-powertrain.js';
 import { resetDrivingActuatorState } from '../vehicle/physics/driving-actuator.js';
 import type { VehicleWorld } from '../course/vehicle-world.js';
@@ -88,6 +90,7 @@ interface RecoveryOptions {
 export function advanceVehicleWithRecovery(
   world: VehicleWorld,
   vehicle: VehicleState,
+  model: VehicleModel,
   {
     state,
     input,
@@ -97,13 +100,13 @@ export function advanceVehicleWithRecovery(
   }: RecoveryOptions & { input: DrivingInput; dt: number; target?: RecoveryTarget | null },
 ): RecoveryReason | null {
   try {
-    updateVehicle(world, vehicle, input, dt);
+    updateVehicle(world, vehicle, model, input, dt);
   } catch (error) {
     if (!(error instanceof VehicleOutsideModelError)) throw error;
-    recoverVehicle(world, vehicle, { state, reason: 'suspension-travel', settings, target });
+    recoverVehicle(world, vehicle, model, { state, reason: 'suspension-travel', settings, target });
     return 'suspension-travel';
   }
-  return updateRecovery(world, vehicle, {
+  return updateRecovery(world, vehicle, model, {
     state,
     dt,
     settings,
@@ -120,6 +123,7 @@ const observationWorkspaces = new WeakMap<
 function updateRecovery(
   world: VehicleWorld,
   vehicle: VehicleState,
+  model: VehicleModel,
   {
     state,
     dt,
@@ -130,7 +134,7 @@ function updateRecovery(
   if (!vehicle.course.inDomain) {
     state.outsideDomainTime += dt;
     if (state.outsideDomainTime < settings.maxOutsideDomainTime) return null;
-    recoverVehicle(world, vehicle, { state, reason: 'outside-domain', settings, target });
+    recoverVehicle(world, vehicle, model, { state, reason: 'outside-domain', settings, target });
     return 'outside-domain';
   }
   state.outsideDomainTime = 0;
@@ -151,7 +155,7 @@ function updateRecovery(
   }
 
   state.unsupportedTime += dt;
-  const desiredCgHeight = vehicle.compiledVehicle.desiredCgHeight;
+  const desiredCgHeight = model.compiledVehicle.desiredCgHeight;
   const expectedCgY = height.sample(vehicle.course.s) + desiredCgHeight;
   const fallDistance = Math.max(0, expectedCgY - vehicle.y);
   const surfaceDistance =
@@ -169,13 +173,14 @@ function updateRecovery(
   else if (penetratedSurface) reason = 'surface-penetration';
   else if (state.unsupportedTime >= settings.maxUnsupportedTime) reason = 'unsupported-time';
 
-  if (reason !== null) recoverVehicle(world, vehicle, { state, reason, settings, target });
+  if (reason !== null) recoverVehicle(world, vehicle, model, { state, reason, settings, target });
   return reason;
 }
 
 export function recoverVehicle(
   world: VehicleWorld,
   vehicle: VehicleState,
+  model: VehicleModel,
   {
     state,
     reason = 'manual',
@@ -183,7 +188,7 @@ export function recoverVehicle(
     target = null,
   }: RecoveryOptions & { reason?: RecoveryReason; target?: RecoveryTarget | null },
 ): void {
-  recoverVehicleToPlanCoordinate(world, vehicle, {
+  recoverVehicleToPlanCoordinate(world, vehicle, model, {
     state,
     target: target ?? routeRecoveryTarget(world, vehicle, state, settings),
     reason,
@@ -214,6 +219,7 @@ function routeRecoveryTarget(
 export function recoverVehicleToPlanCoordinate(
   world: VehicleWorld,
   vehicle: VehicleState,
+  model: VehicleModel,
   {
     state,
     target,
@@ -253,7 +259,7 @@ export function recoverVehicleToPlanCoordinate(
   vehicle.velocityY = velocity.y;
   vehicle.velocityZ = velocity.z;
 
-  reconstructVehicle(vehicle, surface.point, surface.normal, yaw, surface.gradeAngle, speed);
+  reconstructVehicle(vehicle, model, surface.point, surface.normal, yaw, surface.gradeAngle, speed);
   vehicle.course = initializePlanCoordinateObservation(coordinates, vehicle.x, vehicle.z, target.s);
 
   state.lastSafeS = target.s;
@@ -265,13 +271,14 @@ export function recoverVehicleToPlanCoordinate(
 
 function reconstructVehicle(
   vehicle: VehicleState,
+  model: VehicleModel,
   surfacePoint: { readonly x: number; readonly y: number; readonly z: number },
   surfaceNormal: { readonly x: number; readonly y: number; readonly z: number },
   yaw: number,
   pitch: number,
   speed: number,
 ): void {
-  const p = vehicle.compiledVehicle;
+  const p = model.compiledVehicle;
   const wheelbase = p.frontAxle + p.rearAxle;
   const position = add3(surfacePoint, scale3(surfaceNormal, p.desiredCgHeight));
   vehicle.x = position.x;
@@ -294,8 +301,9 @@ function reconstructVehicle(
   // Recovery sets the gear without a shift; the shift record and its sequence carry over.
   const { shift: _shift, ...powertrain } = createAutomaticPowertrainState(
     p.powertrain,
-    vehicle.powertrainCoupling,
+    model.powertrain,
     drivenWheelOmega(p, vehicle.frontWheelOmega, vehicle.rearWheelOmega),
   );
   Object.assign(vehicle.powertrain, powertrain);
+  publishVehicleRenderY(vehicle, model);
 }

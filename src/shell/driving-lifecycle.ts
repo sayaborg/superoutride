@@ -2,12 +2,14 @@ import { resetCameraRig, updateCamera, type CameraRig } from '../view/camera.js'
 import { CURRENT_CAMERA_PROFILE } from '../view/current-camera-profile.js';
 import { recoverVehicle, type RecoverySettings, type RecoveryState } from '../race/recovery.js';
 import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
+import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import type { VehicleWorld } from '../course/vehicle-world.js';
 import type { CompiledVehicle } from '../vehicle/physics/vehicle-definitions.js';
 import { SIM_DT } from './frame-loop.js';
 
 interface DrivingPlayer {
   readonly vehicle: VehicleState;
+  readonly model: VehicleModel;
   readonly recovery: RecoveryState;
   readonly cameraRig: CameraRig;
   replacePlayer(compiledVehicle: Readonly<CompiledVehicle>, world: VehicleWorld): void;
@@ -32,7 +34,7 @@ export function createDrivingLifecycle(player: DrivingPlayer, options: DrivingLi
   }
   function reconstruct(compiledVehicle?: Readonly<CompiledVehicle>): void {
     const world = options.world();
-    recoverVehicle(world, player.vehicle, {
+    recoverVehicle(world, player.vehicle, player.model, {
       state: player.recovery,
       reason: 'manual',
       settings: options.recoveryL

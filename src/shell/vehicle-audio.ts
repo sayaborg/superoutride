@@ -65,18 +65,20 @@ export function readVehicleAudio(vehicle: VehicleState, result: Observation): vo
   result.rear.surface = tires.rear.surface;
 }
 
-interface Actor {
+export interface AudibleActor {
   readonly vehicle: VehicleState;
+  readonly vehicleId: string;
 }
 /** Physical world distance, independent of raster depth and local stage chainage. */
-export function nearestAudibleRival(player: VehicleState, actors: readonly Actor[]): VehicleState | null {
-  let nearest: VehicleState | null = null;
+export function nearestAudibleRival<A extends AudibleActor>(player: VehicleState, actors: readonly A[]): A | null {
+  let nearest: A | null = null;
   let distanceSquared = RIVAL_AUDIBLE_METERS ** 2;
-  for (const { vehicle } of actors) {
+  for (const actor of actors) {
+    const { vehicle } = actor;
     if (vehicle === player) continue;
     const d2 = (vehicle.x - player.x) ** 2 + (vehicle.y - player.y) ** 2 + (vehicle.z - player.z) ** 2;
     if (d2 < distanceSquared) {
-      nearest = vehicle;
+      nearest = actor;
       distanceSquared = d2;
     }
   }

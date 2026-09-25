@@ -71,9 +71,6 @@ export interface VehicleTireFrictionCalibrationState {
   readonly front: Readonly<CompiledTireCharacteristics>;
   readonly rear: Readonly<CompiledTireCharacteristics>;
 }
-interface VehicleTireFrictionCalibrationOwner {
-  tireFrictionCalibration: Readonly<VehicleTireFrictionCalibrationState>;
-}
 
 export function createVehicleTireFrictionCalibration(
   front: CompiledTireCharacteristics,
@@ -85,13 +82,4 @@ export function createVehicleTireFrictionCalibration(
   };
   const resolvedFront = copy(front);
   return Object.freeze({ front: resolvedFront, rear: rear === front ? resolvedFront : copy(rear) });
-}
-
-/** Current five-axis browser adjustment intentionally links both stations. Atomic replacement. */
-export function setVehicleTireFrictionCalibration(
-  vehicle: VehicleTireFrictionCalibrationOwner,
-  input: TireCharacteristics,
-): void {
-  const compiled = compileTireCharacteristics(input);
-  vehicle.tireFrictionCalibration = createVehicleTireFrictionCalibration(compiled);
 }

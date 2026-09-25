@@ -5,13 +5,13 @@ import { createNumberStepper } from './number-stepper.js';
 import { createAudioEngine } from '../audio/audio-engine.js';
 import { TIRE_COMPONENTS } from '../audio/tire-sound-controls.js';
 import { AUDIO_TIMING, rivalAudioGain, rivalAudioPan } from '../audio/audio-presentation.js';
-import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import { vehicleDefinitionForId, type CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import {
   createVehicleAudioObservation,
   readEngineAudio,
   readVehicleAudio,
   nearestAudibleRival,
+  type AudibleActor,
 } from './vehicle-audio.js';
 
 // Touch activation arrives on release; pointerdown activates only a mouse.
@@ -52,7 +52,7 @@ export function createAudioLifecycle(vehicles: readonly CompiledVehicleDefinitio
     tireVolume = 1;
   const playerState = createVehicleAudioObservation(),
     rivalState = createVehicleAudioObservation();
-  let nextRival: VehicleState | null = null;
+  let nextRival: AudibleActor | null = null;
   let switchAt = 0;
   const supported = typeof AudioContext !== 'undefined' && typeof AudioWorkletNode !== 'undefined';
   if (button) {
@@ -295,32 +295,32 @@ export function createAudioLifecycle(vehicles: readonly CompiledVehicleDefinitio
   document.addEventListener('visibilitychange', visibility);
   button?.addEventListener('click', toggle);
   return {
-    update(player: VehicleState, actors: readonly { readonly vehicle: VehicleState }[]): void {
+    update(player: AudibleActor, actors: readonly AudibleActor[]): void {
       if (!engine || !context || context.state !== 'running' || !audible()) return;
       try {
-        readVehicleAudio(player, playerState);
-        engine.update(playerState, vehicleDefinitionForId(vehicles, player.compiledVehicle.id).sound);
-        const nearest = nearestAudibleRival(player, actors);
+        readVehicleAudio(player.vehicle, playerState);
+        engine.update(playerState, vehicleDefinitionForId(vehicles, player.vehicleId).sound);
+        const nearest = nearestAudibleRival(player.vehicle, actors);
         if (nearest !== nextRival) {
           nextRival = nearest;
           switchAt = context.currentTime + AUDIO_TIMING.transitionSeconds;
           engine.silenceRival();
         }
         if (context.currentTime < switchAt) return;
-        const rival = nextRival;
-        if (!rival) {
+        if (!nextRival) {
           engine.silenceRival();
           return;
         }
+        const rival = nextRival.vehicle;
         readEngineAudio(rival, rivalState);
-        const dx = rival.x - player.x,
-          dy = rival.y - player.y,
-          dz = rival.z - player.z;
+        const dx = rival.x - player.vehicle.x,
+          dy = rival.y - player.vehicle.y,
+          dz = rival.z - player.vehicle.z;
         const distance = Math.hypot(dx, dy, dz);
-        const lateral = dx * Math.cos(player.yaw) - dz * Math.sin(player.yaw);
+        const lateral = dx * Math.cos(player.vehicle.yaw) - dz * Math.sin(player.vehicle.yaw);
         engine.updateRival(
           rivalState,
-          vehicleDefinitionForId(vehicles, rival.compiledVehicle.id).sound,
+          vehicleDefinitionForId(vehicles, nextRival.vehicleId).sound,
           rivalAudioGain(distance),
           rivalAudioPan(lateral, distance),
         );

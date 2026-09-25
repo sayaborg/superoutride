@@ -15,6 +15,7 @@ import { compileEnvelopeDriver, createEnvelopeDriverWorkspace, sampleEnvelopeDri
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import { createVehicle, updateHeldVehicle, type VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import { createStartPhase } from './start-phase.js';
+import { createVehicleModel, type VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import type { SessionVehicle } from './session-configuration.js';
 import { createRivalRoster } from './rival-roster.js';
 import type { createRouteRuntime } from './route-runtime.js';
@@ -22,6 +23,7 @@ import type { createRouteRuntime } from './route-runtime.js';
 type RouteRuntime = ReturnType<typeof createRouteRuntime>;
 interface Actor {
   readonly vehicle: VehicleState;
+  readonly model: VehicleModel;
   readonly recovery: RecoveryState;
 }
 
@@ -29,6 +31,7 @@ interface Actor {
 export interface RaceActorObservation {
   readonly id: string;
   readonly vehicle: VehicleState;
+  readonly vehicleId: string;
   readonly form: SessionVehicle['form'];
   readonly brakeLampOn: boolean;
 }
@@ -60,18 +63,13 @@ export function createCourseRace(options: {
     finishElapsedSeconds: null as number | null,
   });
   const player = competitor('PLAYER', options.player, grid[0]!.l);
+  // The whole roster shares one model of the Session vehicle.
+  const rivalModel = createVehicleModel(rival);
   const rivals = createRivalRoster(configuration).map(({ actorId, rivalIndex }) => {
     const slot = grid[rivalIndex + 1]!;
     const targetL = slot.l;
-    const compiledVehicle = rival;
-    const vehicle = createVehicle(compiledVehicle.compiledVehicle, runtime.readers, {
-      s: slot.at.s,
-      l: targetL,
-      initialSpeed,
-      drivingDefinition: compiledVehicle.drivingDefinition,
-      supportReserve: compiledVehicle.supportReserve,
-    });
-    return competitor(actorId, { vehicle, recovery: createRecoveryState(vehicle) }, targetL);
+    const vehicle = createVehicle(rivalModel, runtime.readers, { s: slot.at.s, l: targetL, initialSpeed });
+    return competitor(actorId, { vehicle, model: rivalModel, recovery: createRecoveryState(vehicle) }, targetL);
   });
   const resync = (c: typeof player) => c.observer.resync(c.actor.vehicle.course);
   const lane = (c: typeof player, s: number) => forks.targetL(s, c.targetL);
@@ -98,7 +96,7 @@ export function createCourseRace(options: {
   const holdReady = (input: DrivingInput, dt: number) => {
     for (const motion of motions) {
       motion.step.input = motion === motions[0] ? input : idle;
-      updateHeldVehicle(motion.c.actor.vehicle, motion.step.input, dt);
+      updateHeldVehicle(motion.c.actor.vehicle, motion.c.actor.model, motion.step.input, dt);
     }
     if (startPhase.advance(dt)) clock.start();
   };
@@ -110,13 +108,13 @@ export function createCourseRace(options: {
     motion.current = actor.vehicle;
     motion.step.input = input;
     motion.step.dt = dt;
-    const recovered = advanceVehicleWithRecovery(runtime.readers, actor.vehicle, motion.step) !== null;
+    const recovered = advanceVehicleWithRecovery(runtime.readers, actor.vehicle, actor.model, motion.step) !== null;
     motion.recovered = recovered;
   };
   const legalRecovery = (c: typeof player) => {
     const target = forks.legalTarget(c.actor.vehicle.course.s, c.actor.vehicle.course.l);
     if (!target) return false;
-    recoverVehicleToPlanCoordinate(runtime.readers, c.actor.vehicle, {
+    recoverVehicleToPlanCoordinate(runtime.readers, c.actor.vehicle, c.actor.model, {
       state: c.actor.recovery,
       reason: 'wrong-course',
       target,
@@ -126,6 +124,7 @@ export function createCourseRace(options: {
   const visible: RaceActorObservation[] = [];
   const pool = rivals.map((c) => ({
     id: c.id,
+    vehicleId: rivalModel.compiledVehicle.id,
     form: rival.form,
     brakeLampOn: false,
     vehicle: c.actor.vehicle,

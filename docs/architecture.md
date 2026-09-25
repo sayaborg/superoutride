@@ -496,7 +496,8 @@ and envelope/time-budget readers. Sprite normalization, palette generation, LOD 
 fixtures belong to `tools/graphics`. Shared image formats, filters, codecs and product limits remain
 in `src/image`; authoring-only limits stay with the tools.
 
-Shell owns the observer's camera, and race actors contain no camera state. Race publishes camera-independent
+Vehicle mechanics take dynamic state and an immutable vehicle model as separate inputs; state holds
+no definition value, and each race actor pairs its state with its model. Shell owns the observer's camera, and race actors contain no camera state. Race publishes camera-independent
 actor observations; view owns rival sprite selection and assembly. Course owns VehicleWorld, surface
 readers and the physical driving source. Race consumes that source only. Shell binds physical and
 appearance products and owns the combined pre-lock render/driver query-depth admission.

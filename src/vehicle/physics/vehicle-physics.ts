@@ -1,4 +1,3 @@
-import type { CompiledDrivingDefinition } from '../compiled-driving-definition.js';
 import { TIRE_LOW_SPEED_REGULARIZATION, STEERING_LOW_SPEED_REGULARIZATION } from './numerical-constants.js';
 import { createSurfaceGeometryWorkspace } from './vehicle-dynamics.js';
 import { createPlanProjectionWorkspace } from '../../course/geometry/plan-coordinate.js';
@@ -9,27 +8,16 @@ import type { DrivingInput } from '../driving-input.js';
 import {
   boundedOpening,
   completeAutomaticPowertrain,
-  couplePowertrain,
   createAutomaticPowertrainState,
   createPowertrainStep,
   powertrainWheelTorque,
   prepareAutomaticPowertrain,
-  type PowertrainCoupling,
 } from './automatic-powertrain.js';
-import {
-  createDrivingActuatorState,
-  updateDrivingActuators,
-  type DrivingActuatorState,
-  type DrivingActuatorDefinition,
-} from './driving-actuator.js';
+import { createDrivingActuatorState, updateDrivingActuators, type DrivingActuatorState } from './driving-actuator.js';
 import { createSteeringLimitWorkspace, limitSteeringInput } from './steering-input-limiter.js';
-import { type VehicleTireFrictionCalibrationState } from './tire-friction-calibration.js';
 import { regularizedTireSlipAngle, type WheelSolveInput } from './tire-wheel.js';
-import {
-  steeringAutomaticMax,
-  type VehicleSteeringCalibrationInput,
-  type VehicleSteeringCalibrationState,
-} from './vehicle-calibration.js';
+import { steeringAutomaticMax } from './vehicle-calibration.js';
+import type { VehicleModel } from './vehicle-model.js';
 import type { VehicleWorld } from '../../course/vehicle-world.js';
 import {
   VEHICLE_SUBSTEPS,
@@ -48,34 +36,24 @@ import {
   type VehicleDynamicsState,
 } from './vehicle-dynamics.js';
 import { WORLD_UP, add3, cross3, dot3, normalize3, scale3 } from '../../core/vector3.js';
-import { drivenWheelOmega, type CompiledVehicle } from './vehicle-definitions.js';
+import { drivenWheelOmega } from './vehicle-definitions.js';
 import {
   createDriveTorqueBounds,
-  resolveTorqueProtectionPolicy,
   solveDriveTorqueBounds,
   solveProtectedWheelPair,
   createProtectedWheelPairWorkspace,
-  type TorqueProtectionPolicy,
 } from './torque-protection.js';
 
-/** One authoritative state shape for every compiled vehicle. */
+/** Dynamic values and observations only; the vehicle model supplies every definition value. */
 export interface VehicleState extends VehicleDynamicsState {
-  readonly compiledVehicle: CompiledVehicle;
-  readonly drivingActuator: DrivingActuatorDefinition;
-  readonly powertrainCoupling: Readonly<PowertrainCoupling>;
   yaw: number;
   pitch: number;
   yawRate: number;
   pitchRate: number;
   frontSteerAngle: number;
-  /** Sole current runtime authority for the selectable M/D/T steering calibration. */
-  readonly steeringCalibration: VehicleSteeringCalibrationState;
-  /** Sole runtime authority for the selected tire characteristic calibration. */
-  tireFrictionCalibration: Readonly<VehicleTireFrictionCalibrationState>;
   frontWheelOmega: number;
   rearWheelOmega: number;
   readonly actuator: DrivingActuatorState;
-  readonly torqueProtection: Readonly<TorqueProtectionPolicy>;
 
   /** Derived-output caches only; the next mechanics solve never consumes them as authority. */
   frontNormalLoad: number;
@@ -92,35 +70,22 @@ export interface VehicleState extends VehicleDynamicsState {
   readonly steerAngle: number;
   readonly supported: boolean;
   readonly sprungPitch: number;
-  readonly renderY: number;
+  /** Observation: CG height minus the model's desired CG height, written with every pose change. */
+  renderY: number;
 }
 
 interface VehicleSpawnOptions {
   readonly s: number;
   readonly l: number;
   readonly initialSpeed: number;
-  readonly steeringCalibration?: VehicleSteeringCalibrationInput;
-  readonly tireFrictionCalibration?: Readonly<VehicleTireFrictionCalibrationState>;
-  readonly drivingDefinition: CompiledDrivingDefinition;
-  readonly supportReserve: number | null;
 }
 
 export function createVehicle(
-  compiledVehicle: CompiledVehicle,
+  model: VehicleModel,
   { coordinates, height, surfaces }: VehicleWorld,
-  {
-    s,
-    l,
-    initialSpeed,
-    steeringCalibration,
-    tireFrictionCalibration,
-    drivingDefinition,
-    supportReserve,
-  }: VehicleSpawnOptions,
+  { s, l, initialSpeed }: VehicleSpawnOptions,
 ): VehicleState {
-  const driving = drivingDefinition.settings;
-  const resolvedSteeringCalibration = { ...(steeringCalibration ?? driving.steeringCalibration) };
-  const resolvedTireFrictionCalibration = tireFrictionCalibration ?? driving.tireFrictionCalibration;
+  const { compiledVehicle } = model;
   const bounds = coordinates.domain.lateralAt(s, { left: 0, right: 0 });
   if (l < bounds.left || l > bounds.right) throw new RangeError('vehicle spawn requires an in-domain coordinate');
   const coordinate = {
@@ -142,11 +107,7 @@ export function createVehicle(
   const initialVelocity = scale3(surface.tangent, initialSpeed);
   const frontOmega = initialSpeed / compiledVehicle.frontStation.rollingRadius;
   const rearOmega = initialSpeed / compiledVehicle.rearStation.rollingRadius;
-  const powertrainCoupling = couplePowertrain(compiledVehicle.powertrain, driving.powertrain);
   const state = {
-    compiledVehicle,
-    drivingActuator: driving.actuator,
-    powertrainCoupling,
     x: position.x,
     y: position.y,
     z: position.z,
@@ -158,12 +119,9 @@ export function createVehicle(
     yawRate: 0,
     pitchRate: 0,
     frontSteerAngle: 0,
-    steeringCalibration: resolvedSteeringCalibration,
-    tireFrictionCalibration: resolvedTireFrictionCalibration,
     frontWheelOmega: frontOmega,
     rearWheelOmega: rearOmega,
     actuator: createDrivingActuatorState(),
-    torqueProtection: resolveTorqueProtectionPolicy({ wheelSlip: drivingDefinition.source.wheelSlip, supportReserve }),
     course: initializePlanCoordinateObservation(coordinates, position.x, position.z, s),
     surfaceType: surface.surfaceType,
     longitudinalAcceleration: 0,
@@ -171,7 +129,7 @@ export function createVehicle(
     control: createVehicleControlState(),
     powertrain: createAutomaticPowertrainState(
       compiledVehicle.powertrain,
-      powertrainCoupling,
+      model.powertrain,
       drivenWheelOmega(compiledVehicle, frontOmega, rearOmega),
     ),
     frontNormalLoad: 0,
@@ -181,23 +139,31 @@ export function createVehicle(
     frontSupportAvailable: true,
     rearSupportAvailable: true,
   } as VehicleState;
-  return installVehicleDerivedAccessors(state);
+  installVehicleDerivedAccessors(state);
+  publishVehicleRenderY(state, model);
+  return state;
+}
+
+/** Refreshes the render-height observation after any pose change outside an update. */
+export function publishVehicleRenderY(vehicle: VehicleState, model: VehicleModel): void {
+  vehicle.renderY = vehicle.y - model.compiledVehicle.desiredCgHeight;
 }
 
 export function updateVehicle(
   { coordinates, height, surfaces }: VehicleWorld,
   vehicle: VehicleState,
+  model: VehicleModel,
   input: DrivingInput,
   dt: number,
 ): void {
   if (!(dt > 0) || !Number.isFinite(dt)) throw new RangeError('vehicle dt must be finite and > 0');
-  const compiledVehicle = vehicle.compiledVehicle;
-  const workspace = stepWorkspace(vehicle);
+  const { compiledVehicle } = model;
+  const workspace = stepWorkspace(vehicle, model);
   const velocityBeforeX = vehicle.velocityX,
     velocityBeforeY = vehicle.velocityY,
     velocityBeforeZ = vehicle.velocityZ;
   const substep = dt / VEHICLE_SUBSTEPS;
-  const calibration = vehicle.steeringCalibration;
+  const calibration = model.steering;
   const automaticMax = steeringAutomaticMax(calibration);
   const steeringRequest = clamp(input.steering, -1, 1);
   let finalFront: ContactObservation | null = null;
@@ -205,16 +171,10 @@ export function updateVehicle(
   let shiftAvailable = true;
 
   for (let step = 0; step < VEHICLE_SUBSTEPS; step += 1) {
-    updateDrivingActuators(
-      vehicle.actuator,
-      input,
-      substep,
-      vehicle.drivingActuator,
-      vehicle.steeringCalibration.steeringActuatorResponse,
-    );
+    updateDrivingActuators(vehicle.actuator, input, substep, model.actuator, model.steering.steeringActuatorResponse);
     const body = vehicleBodyKinematics(vehicle, workspace.body);
     const bodyTravelDirection = vehicleBodyTravelDirection(body, STEERING_LOW_SPEED_REGULARIZATION);
-    const steeringOffset = vehicle.actuator.steering * vehicle.steeringCalibration.steeringOffsetMax;
+    const steeringOffset = vehicle.actuator.steering * model.steering.steeringOffsetMax;
     const frontBeforeSteer = deriveContactObservation(
       coordinates,
       height,
@@ -231,7 +191,7 @@ export function updateVehicle(
       steeringOffset,
       body,
       frontBeforeSteer,
-      vehicle.tireFrictionCalibration.front,
+      model.tires.front,
       workspace.steering,
     );
     const target = clamp(
@@ -256,7 +216,7 @@ export function updateVehicle(
     const powertrainStep = prepareAutomaticPowertrain(
       vehicle.powertrain,
       compiledVehicle.powertrain,
-      vehicle.powertrainCoupling,
+      model.powertrain,
       drivenWheelOmega(compiledVehicle, vehicle.frontWheelOmega, vehicle.rearWheelOmega),
       shiftAvailable,
       substep,
@@ -271,7 +231,7 @@ export function updateVehicle(
     frontRequest.lateralVelocity = front.lateralVelocity;
     frontRequest.normalLoad = front.tireFrameValid ? front.normalLoad : 0;
     frontRequest.gripFactor = front.surface.material.gripFactor;
-    frontRequest.characteristics = vehicle.tireFrictionCalibration.front;
+    frontRequest.characteristics = model.tires.front;
     frontRequest.rollingResistance = front.tireFrameValid ? front.surface.material.rollingResistance : 0;
     frontRequest.driveTorque = 0;
     frontRequest.brakeTorque = vehicle.actuator.brake * compiledVehicle.frontStation.maxBrakeTorque;
@@ -284,7 +244,7 @@ export function updateVehicle(
     rearRequest.lateralVelocity = rear.lateralVelocity;
     rearRequest.normalLoad = rear.tireFrameValid ? rear.normalLoad : 0;
     rearRequest.gripFactor = rear.surface.material.gripFactor;
-    rearRequest.characteristics = vehicle.tireFrictionCalibration.rear;
+    rearRequest.characteristics = model.tires.rear;
     rearRequest.rollingResistance = rear.tireFrameValid ? rear.surface.material.rollingResistance : 0;
     rearRequest.driveTorque = 0;
     rearRequest.brakeTorque = vehicle.actuator.brake * compiledVehicle.rearStation.maxBrakeTorque;
@@ -299,7 +259,7 @@ export function updateVehicle(
       rear,
       frontRequest,
       rearRequest,
-      vehicle.torqueProtection,
+      model.torqueProtection,
       Math.max(0, powertrainWheelTorque(powertrainStep, boundedOpening(powertrainStep, requestedOpening))),
       workspace.pair,
       workspace.driveTorqueBounds,
@@ -320,7 +280,7 @@ export function updateVehicle(
       rear,
       frontRequest,
       rearRequest,
-      vehicle.torqueProtection,
+      model.torqueProtection,
       workspace.pair,
     );
     const { frontWheel, rearWheel } = resolved;
@@ -386,6 +346,7 @@ export function updateVehicle(
   const finalBody = vehicleBodyKinematics(vehicle, workspace.body);
   vehicle.longitudinalAcceleration = dot3(velocityDelta, finalBody.forward) / dt;
   vehicle.lateralAcceleration = dot3(velocityDelta, finalBody.right) / dt;
+  publishVehicleRenderY(vehicle, model);
 }
 
 /**
@@ -394,23 +355,17 @@ export function updateVehicle(
  * so the clutch transmits nothing and fuel cut and idle holding still bound the opening. The next
  * ordinary update restores the fixed capacity.
  */
-export function updateHeldVehicle(vehicle: VehicleState, input: DrivingInput, dt: number): void {
+export function updateHeldVehicle(vehicle: VehicleState, model: VehicleModel, input: DrivingInput, dt: number): void {
   if (!(dt > 0) || !Number.isFinite(dt)) throw new RangeError('vehicle dt must be finite and > 0');
-  const compiledVehicle = vehicle.compiledVehicle;
-  const workspace = stepWorkspace(vehicle);
+  const { compiledVehicle } = model;
+  const workspace = stepWorkspace(vehicle, model);
   const substep = dt / VEHICLE_SUBSTEPS;
   for (let step = 0; step < VEHICLE_SUBSTEPS; step += 1) {
-    updateDrivingActuators(
-      vehicle.actuator,
-      input,
-      substep,
-      vehicle.drivingActuator,
-      vehicle.steeringCalibration.steeringActuatorResponse,
-    );
+    updateDrivingActuators(vehicle.actuator, input, substep, model.actuator, model.steering.steeringActuatorResponse);
     const powertrainStep = prepareAutomaticPowertrain(
       vehicle.powertrain,
       compiledVehicle.powertrain,
-      vehicle.powertrainCoupling,
+      model.powertrain,
       drivenWheelOmega(compiledVehicle, vehicle.frontWheelOmega, vehicle.rearWheelOmega),
       false,
       substep,
@@ -471,17 +426,17 @@ export function vehicleBodyKinematics(
 }
 
 const stepWorkspaces = new WeakMap<VehicleState, ReturnType<typeof createStepWorkspace>>();
-function stepWorkspace(vehicle: VehicleState) {
+function stepWorkspace(vehicle: VehicleState, model: VehicleModel) {
   let workspace = stepWorkspaces.get(vehicle);
   if (!workspace) {
-    workspace = createStepWorkspace(vehicle);
+    workspace = createStepWorkspace(model);
     stepWorkspaces.set(vehicle, workspace);
   }
   return workspace;
 }
-function createStepWorkspace(vehicle: VehicleState) {
-  const front = createContactWorkspace(vehicle.compiledVehicle.frontStation),
-    rear = createContactWorkspace(vehicle.compiledVehicle.rearStation);
+function createStepWorkspace(model: VehicleModel) {
+  const front = createContactWorkspace(model.compiledVehicle.frontStation),
+    rear = createContactWorkspace(model.compiledVehicle.rearStation);
   const request = (characteristics: WheelSolveInput['characteristics']): Writable<WheelSolveInput> => ({
     omegaPrevious: 0,
     inertia: 1,
@@ -496,8 +451,8 @@ function createStepWorkspace(vehicle: VehicleState) {
     dt: 1,
     characteristics,
   });
-  const frontRequest = request(vehicle.tireFrictionCalibration.front),
-    rearRequest = request(vehicle.tireFrictionCalibration.rear);
+  const frontRequest = request(model.tires.front),
+    rearRequest = request(model.tires.rear);
   return {
     projection: createPlanProjectionWorkspace(),
     velocityDelta: { x: 0, y: 0, z: 0 },
@@ -572,9 +527,8 @@ const derivedProperties: PropertyDescriptorMap = {
   },
   renderY: {
     enumerable: true,
-    get(this: VehicleState) {
-      return this.y - this.compiledVehicle.desiredCgHeight;
-    },
+    writable: true,
+    value: 0,
   },
 };
 function installVehicleDerivedAccessors(vehicle: VehicleState): VehicleState {

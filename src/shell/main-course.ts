@@ -68,6 +68,9 @@ try {
       get vehicle() {
         return shell.vehicle;
       },
+      get model() {
+        return shell.model;
+      },
       recovery: shell.recovery,
     },
     runtime: scene.runtime,

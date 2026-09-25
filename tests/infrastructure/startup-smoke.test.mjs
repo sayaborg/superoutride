@@ -7,6 +7,7 @@ import { loadDeliveredCourse } from '../../src/course/load-delivered-course.js';
 import { loadCourseGround } from '../../tools/course/authoring-io.ts';
 import { createCourseScene } from '../../src/shell/course-scene.js';
 import { createVehicle, updateVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
+import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
 import { loadVehicleDefinitions } from '../../src/vehicle/definition-document.js';
 import { createCameraRig, updateCamera } from '../../src/view/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../../src/view/current-camera-profile.js';
@@ -32,16 +33,12 @@ for (const { id: stem } of content.manifest.files.filter((file) => file.kind ===
     );
     const entry = definitions.vehicles[0];
     const sprites = createVehicleSprites(entry);
-    const vehicle = createVehicle(entry.compiledVehicle, scene.world, {
-      s: course.gates.grid[0].at.s,
-      l: 0,
-      initialSpeed: 0,
-      ...browserSessionVehicle(entry, definitions.driving),
-    });
+    const model = createVehicleModel(browserSessionVehicle(entry, definitions.driving));
+    const vehicle = createVehicle(model, scene.world, { s: course.gates.grid[0].at.s, l: 0, initialSpeed: 0 });
     const rig = createCameraRig(),
       target = new SoftwareSurface(320, 240);
     for (let frame = 0; frame < 3; frame++) {
-      updateVehicle(scene.world, vehicle, { steering: 0, throttle: true, brake: false }, 1 / 60);
+      updateVehicle(scene.world, vehicle, model, { steering: 0, throttle: true, brake: false }, 1 / 60);
       const camera = updateCamera(rig, scene.world, vehicle, CURRENT_CAMERA_PROFILE, 1 / 60);
       target.pixels.fill(0);
       const result = scene.render(target, vehicle, camera, sprites.off, []);

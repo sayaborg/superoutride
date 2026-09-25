@@ -6,6 +6,7 @@ import { compilePlanPath } from '../../src/course/geometry/plan-path.js';
 import { Profile } from '../../src/course/geometry/profile.js';
 import { SurfaceMap } from '../../src/vehicle/physics/surface-map.js';
 import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
+import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
 import { updateHeldVehicle, updateVehicle, vehicleBodyKinematics } from '../../src/vehicle/physics/vehicle-physics.js';
 import { createStartPhase } from '../../src/race/start-phase.js';
 import { SIM_DT } from '../../src/shell/frame-loop.js';
@@ -27,27 +28,23 @@ function createEnvelopeRun(entry: SessionVehicle, initialSpeed: number) {
     { sStart: 0, name: 'Envelope asphalt', intervals: [{ lMin: -5000, lMax: 5000, type: 'ASPHALT' }] },
   ]);
   const world = { extent: coordinates.domain, coordinates, height, surfaces };
-  const vehicle = createVehicle(entry.compiledVehicle, world, {
-    s: 10000,
-    l: 0,
-    initialSpeed,
-    ...entry,
-  });
-  return { vehicle, world };
+  const model = createVehicleModel(entry);
+  const vehicle = createVehicle(model, world, { s: 10000, l: 0, initialSpeed });
+  return { vehicle, model, world };
 }
 
 /** Flat asphalt, production control/protection, ordinary inputs; no imposed velocity or force during measurement. */
 export function measureVehicleEnvelope(entry: SessionVehicle) {
   const make = (initialSpeed: number) => createEnvelopeRun(entry, initialSpeed);
   const step = (p: ReturnType<typeof createEnvelopeRun>, input: DrivingInput) =>
-    updateVehicle(p.world, p.vehicle, input, SIM_DT);
+    updateVehicle(p.world, p.vehicle, p.model, input, SIM_DT);
   const run = make(0),
     acceleration = [],
     braking = [];
   // The standing launch uses the race's start: held READY with the throttle closed, then GO.
   const start = createStartPhase();
   start.begin();
-  do updateHeldVehicle(run.vehicle, { steering: 0, throttle: false, brake: false }, SIM_DT);
+  do updateHeldVehicle(run.vehicle, run.model, { steering: 0, throttle: false, brake: false }, SIM_DT);
   while (!start.advance(SIM_DT));
   let elapsed = 0,
     last = 0,

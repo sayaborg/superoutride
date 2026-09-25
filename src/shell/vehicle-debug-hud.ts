@@ -1,6 +1,7 @@
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import { assertExclusivePedalInput, normalizedPedalRequest, type DrivingInput } from '../vehicle/driving-input.js';
 import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
+import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import { VEHICLE_GRAVITY } from '../vehicle/physics/vehicle-dynamics.js';
 import { observeClutch } from '../vehicle/physics/automatic-powertrain.js';
 import { formatBrowserCourseSelector, type BrowserCourseModeQuery } from './course-mode-selection.js';
@@ -58,11 +59,12 @@ function createVehicleDebugHudModel(
   activeCourseQuery: BrowserCourseModeQuery,
   input: DrivingInput,
   vehicle: VehicleState,
+  model: VehicleModel,
   entry: CompiledVehicleDefinition,
 ): VehicleDebugHudModel {
   assertExclusivePedalInput(input);
   const c = vehicle.control,
-    p = vehicle.compiledVehicle;
+    p = model.compiledVehicle;
   const brakeCapacity = p.frontStation.maxBrakeTorque + p.rearStation.maxBrakeTorque;
   // Drive meters compare the requested opening with the effective opening, split by drive share;
   // protection limits the opening, never the delivered drive torque.
@@ -72,12 +74,10 @@ function createVehicleDebugHudModel(
   return {
     courseSelector: `COURSE ${formatBrowserCourseSelector(activeCourseQuery)}`,
     vehicleSelector: `VEHICLE ${formatVehicleSelector(entry)}`,
-    steeringOffsetSelector: formatSteeringOffsetSelector(vehicle.steeringCalibration.steeringOffsetMax),
-    maxRoadWheelSteerSelector: formatMaxRoadWheelSteerSelector(vehicle.steeringCalibration.maxRoadWheelSteer),
-    steeringResponseSelector: formatSteeringResponseSelector(
-      vehicle.steeringCalibration.steeringActuatorResponse.applyRate,
-    ),
-    tireCalibrationSelector: formatTireCalibrationSelector(vehicle.tireFrictionCalibration),
+    steeringOffsetSelector: formatSteeringOffsetSelector(model.steering.steeringOffsetMax),
+    maxRoadWheelSteerSelector: formatMaxRoadWheelSteerSelector(model.steering.maxRoadWheelSteer),
+    steeringResponseSelector: formatSteeringResponseSelector(model.steering.steeringActuatorResponse.applyRate),
+    tireCalibrationSelector: formatTireCalibrationSelector(model.tires),
     instruments: `SPD ${Math.round(vehicle.speed * 3.6)
       .toString()
       .padStart(
@@ -89,10 +89,10 @@ function createVehicleDebugHudModel(
     requestedSteering: clampSigned(input.steering),
     requestedThrottle: normalizedPedalRequest(input.throttle),
     requestedBrake: normalizedPedalRequest(input.brake),
-    actualSteering: clampSigned(vehicle.control.actualSteerAngle / vehicle.steeringCalibration.maxRoadWheelSteer),
-    automaticSteering: clampSigned(c.automaticSteerAngle / vehicle.steeringCalibration.maxRoadWheelSteer),
-    requestedSteerOffset: clampSigned(c.requestedSteerOffset / vehicle.steeringCalibration.steeringOffsetMax),
-    deliveredSteerOffset: clampSigned(c.deliveredSteerOffset / vehicle.steeringCalibration.steeringOffsetMax),
+    actualSteering: clampSigned(vehicle.control.actualSteerAngle / model.steering.maxRoadWheelSteer),
+    automaticSteering: clampSigned(c.automaticSteerAngle / model.steering.maxRoadWheelSteer),
+    requestedSteerOffset: clampSigned(c.requestedSteerOffset / model.steering.steeringOffsetMax),
+    deliveredSteerOffset: clampSigned(c.deliveredSteerOffset / model.steering.steeringOffsetMax),
     frontDrive: torqueMeter(throttle * frontShare, opening * frontShare, 1, 1, frontShare),
     rearDrive: torqueMeter(throttle * (1 - frontShare), opening * (1 - frontShare), 1, 1, 1 - frontShare),
     frontBrake: torqueMeter(
@@ -120,26 +120,27 @@ export function drawVehicleDebugHud(
   activeCourseQuery: BrowserCourseModeQuery,
   input: DrivingInput,
   vehicle: VehicleState,
+  model: VehicleModel,
   entry: CompiledVehicleDefinition,
 ): void {
-  const model = createVehicleDebugHudModel(activeCourseQuery, input, vehicle, entry);
+  const hud = createVehicleDebugHudModel(activeCourseQuery, input, vehicle, model, entry);
   const lines = [
-    `SUPER OUTRIDE ${model.courseSelector}`,
-    model.vehicleSelector,
-    model.steeringOffsetSelector,
-    model.maxRoadWheelSteerSelector,
-    model.steeringResponseSelector,
-    model.tireCalibrationSelector,
-    model.instruments,
-    model.lastShift,
+    `SUPER OUTRIDE ${hud.courseSelector}`,
+    hud.vehicleSelector,
+    hud.steeringOffsetSelector,
+    hud.maxRoadWheelSteerSelector,
+    hud.steeringResponseSelector,
+    hud.tireCalibrationSelector,
+    hud.instruments,
+    hud.lastShift,
   ];
 
   ctx.save();
   ctx.font = '7px monospace';
   ctx.textBaseline = 'top';
   lines.forEach((line, index) => drawHudText(ctx, line, 6, 5 + index * 9, '#d7f3ff'));
-  drawVehicleControlGraphics(ctx, model, 3, 79);
-  drawTopDownGSensor(ctx, model, 286, 83);
+  drawVehicleControlGraphics(ctx, hud, 3, 79);
+  drawTopDownGSensor(ctx, hud, 286, 83);
   ctx.restore();
 }
 

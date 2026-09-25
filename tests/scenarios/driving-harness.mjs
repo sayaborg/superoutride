@@ -10,6 +10,7 @@ import { resolveCourseSession } from '../../src/race/course-session.js';
 import { browserSessionVehicle } from '../../src/shell/session-vehicle.js';
 import { loadVehicleDefinitions } from '../../src/vehicle/definition-document.js';
 import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
+import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
 import { createRecoveryState } from '../../src/race/recovery.js';
 import {
   compileEnvelopeDriver,
@@ -40,25 +41,13 @@ export async function loadScenarioCourse(stem) {
 }
 
 // Every numeric leaf in live state, including nested wheel/control telemetry and derived getters.
-// Immutable configuration is not live state; its admission belongs to the compiler.
+// Vehicle state holds live values only; the vehicle model is admitted by its compiler.
 function finiteState(value, path = '', seen = new Set()) {
   if (typeof value === 'number') {
     assert.ok(Number.isFinite(value), `${path} is not finite: ${value}`);
   } else if (value && typeof value === 'object' && !seen.has(value)) {
     seen.add(value);
-    for (const [key, child] of Object.entries(value)) {
-      if (
-        [
-          'compiledVehicle',
-          'steeringCalibration',
-          'tireFrictionCalibration',
-          'torqueProtection',
-          'drivingActuator',
-        ].includes(key)
-      )
-        continue;
-      finiteState(child, `${path}.${key}`, seen);
-    }
+    for (const [key, child] of Object.entries(value)) finiteState(child, `${path}.${key}`, seen);
   }
 }
 
@@ -87,13 +76,13 @@ export function runScenario({ course, ground }, scenario) {
     envelope,
   );
   const slot = session.grid[0];
-  const vehicle = createVehicle(entry.compiledVehicle, scene.world, {
-    ...configuration,
+  const model = createVehicleModel(configuration);
+  const vehicle = createVehicle(model, scene.world, {
     s: slot.at.s,
     l: slot.l,
     initialSpeed: scenario.policy === 'reverse' ? -20 : scenario.policy === 'departure' ? 30 : 0,
   });
-  const actor = { vehicle, recovery: createRecoveryState(vehicle) };
+  const actor = { vehicle, model, recovery: createRecoveryState(vehicle) };
   const race = createCourseRace({
     session,
     player: actor,
@@ -205,19 +194,13 @@ export function runScenario({ course, ground }, scenario) {
       if (recovered && index === 0) evidence.recoveries.push({ tick, reason: c.actor.recovery.lastReason });
       // Trace checks determinism across every step, excluding wall-clock performance metrics and pixels.
       digest.update(
-        JSON.stringify(
-          [v, c.actor.recovery, c.progress.s, Number.isFinite(next) ? next : null, c.progress.acceptedFinishCount],
-          (key, value) =>
-            [
-              'compiledVehicle',
-              'steeringCalibration',
-              'tireFrictionCalibration',
-              'torqueProtection',
-              'drivingActuator',
-            ].includes(key)
-              ? undefined
-              : value,
-        ),
+        JSON.stringify([
+          v,
+          c.actor.recovery,
+          c.progress.s,
+          Number.isFinite(next) ? next : null,
+          c.progress.acceptedFinishCount,
+        ]),
       );
     }
     for (const occurrence of scene.runtime.route.occurrences) {

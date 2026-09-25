@@ -41,7 +41,7 @@ export interface PowertrainRules {
 }
 
 /** One vehicle's powertrain under the game-wide rules; friction and inertia are never vehicle values. */
-export interface PowertrainCoupling {
+export interface PowertrainConstants {
   readonly fuelCutRedlineMargin: number;
   readonly drivelineEfficiency: number;
   readonly idleFrictionTorque: number;
@@ -59,10 +59,10 @@ export interface PowertrainCoupling {
  * engine inertia = displacement in litres * game-wide inertia per litre;
  * clutch capacity = maximum curve torque * game-wide capacity factor.
  */
-export function couplePowertrain(
+export function resolvePowertrainConstants(
   definition: Pick<AutomaticPowertrainDefinition, 'displacementCc' | 'cycle' | 'idleRpm' | 'torqueCurve'>,
   rules: PowertrainRules,
-): Readonly<PowertrainCoupling> {
+): Readonly<PowertrainConstants> {
   const torquePerPressure = (definition.displacementCc * 1e-6) / (2 * Math.PI * (definition.cycle / 2));
   return Object.freeze({
     fuelCutRedlineMargin: rules.fuelCutRedlineMargin,
@@ -112,7 +112,7 @@ export interface AutomaticPowertrainState {
 /** Starts locked at the wheel-derived RPM when a slipping clutch at idle would lock, else slips at idle. */
 export function createAutomaticPowertrainState(
   definition: CompiledAutomaticPowertrainDefinition,
-  coupling: PowertrainCoupling,
+  constants: PowertrainConstants,
   drivenWheelOmega = 0,
 ): AutomaticPowertrainState {
   assertWheelOmega(drivenWheelOmega);
@@ -121,7 +121,7 @@ export function createAutomaticPowertrainState(
   while (gear < definition.gearRatios.length && coupledEngineRpm(definition, wheelOmega, gear) >= definition.redlineRpm)
     gear += 1;
   const wheelRpm = coupledEngineRpm(definition, drivenWheelOmega, gear);
-  const locked = wheelRpm >= coupling.clutchLockMinimumRpm;
+  const locked = wheelRpm >= constants.clutchLockMinimumRpm;
   return {
     gear,
     fuelCut: false,
@@ -181,19 +181,19 @@ export function createPowertrainStep(): PowertrainStep {
  * First half of one ordinary mechanics step. Shifts follow the wheel-derived RPM, at most one per
  * call. The clutch lock is a latch on the signed wheel-derived RPM: it locks when that RPM reaches
  * engine speed and the idle lock margin, and releases below idle. A clutch without capacity holds
- * no lock. The step's capacity is the coupling's fixed capacity unless a caller holding the vehicle
+ * no lock. The step's capacity is the constants' fixed capacity unless a caller holding the vehicle
  * passes 0. Fuel cut is a hysteretic latch on engine RPM. The returned map lets torque protection
  * bound drive torque before the opening is chosen.
  */
 export function prepareAutomaticPowertrain(
   state: AutomaticPowertrainState,
   definition: CompiledAutomaticPowertrainDefinition,
-  coupling: PowertrainCoupling,
+  constants: PowertrainConstants,
   drivenWheelOmega: number,
   allowShift: boolean,
   dt: number,
   step: PowertrainStep,
-  clutchCapacityTorque = coupling.clutchCapacityTorque,
+  clutchCapacityTorque = constants.clutchCapacityTorque,
 ): PowertrainStep {
   assertWheelOmega(drivenWheelOmega);
   if (!(dt > 0) || !Number.isFinite(dt)) throw new RangeError('powertrain requires finite positive dt');
@@ -220,7 +220,7 @@ export function prepareAutomaticPowertrain(
 
   const wheelRpm = coupledEngineRpm(definition, drivenWheelOmega, state.gear);
   if (!(clutchCapacityTorque > 0)) state.clutchLocked = false;
-  else if (!state.clutchLocked && wheelRpm >= Math.max(state.engineRpm, coupling.clutchLockMinimumRpm))
+  else if (!state.clutchLocked && wheelRpm >= Math.max(state.engineRpm, constants.clutchLockMinimumRpm))
     state.clutchLocked = true;
   else if (state.clutchLocked && wheelRpm < definition.idleRpm) state.clutchLocked = false;
   const locked = state.clutchLocked;
@@ -234,13 +234,13 @@ export function prepareAutomaticPowertrain(
   }
   if (state.fuelCut) {
     if (rpm <= definition.redlineRpm) state.fuelCut = false;
-  } else if (rpm > definition.redlineRpm * (1 + coupling.fuelCutRedlineMargin)) {
+  } else if (rpm > definition.redlineRpm * (1 + constants.fuelCutRedlineMargin)) {
     state.fuelCut = true;
   }
 
-  const friction = engineFrictionTorque(definition, coupling, rpm);
+  const friction = engineFrictionTorque(definition, constants, rpm);
   const curve = sampleEngineTorque(definition, rpm);
-  const rpmPerTorque = (dt * RPM_PER_RADIAN_PER_SECOND) / coupling.engineInertia;
+  const rpmPerTorque = (dt * RPM_PER_RADIAN_PER_SECOND) / constants.engineInertia;
   step.locked = locked;
   step.rpm = rpm;
   step.curve = curve;
@@ -249,7 +249,7 @@ export function prepareAutomaticPowertrain(
   step.launchGapTorque = locked ? 0 : (definition.peakTorqueRpm - rpm) / rpmPerTorque;
   step.clutchCapacityTorque = clutchCapacityTorque;
   step.wheelPerEngineTorque =
-    definition.gearRatios[state.gear - 1]! * definition.finalDriveRatio * coupling.drivelineEfficiency;
+    definition.gearRatios[state.gear - 1]! * definition.finalDriveRatio * constants.drivelineEfficiency;
   step.lowerOpening = clamp(((definition.idleRpm - rpm) / rpmPerTorque + friction) / (curve + friction), 0, 1);
   step.upperOpening = state.fuelCut ? 0 : 1;
   return step;
@@ -342,11 +342,11 @@ const RPM_PER_RADIAN_PER_SECOND = 60 / (2 * Math.PI);
 /** Linear in RPM from idle to redline and held at those values outside that range. */
 function engineFrictionTorque(
   definition: Pick<AutomaticPowertrainDefinition, 'idleRpm' | 'redlineRpm'>,
-  coupling: PowertrainCoupling,
+  constants: PowertrainConstants,
   rpm: number,
 ): number {
   const t = clamp((rpm - definition.idleRpm) / (definition.redlineRpm - definition.idleRpm), 0, 1);
-  return coupling.idleFrictionTorque + (coupling.redlineFrictionTorque - coupling.idleFrictionTorque) * t;
+  return constants.idleFrictionTorque + (constants.redlineFrictionTorque - constants.idleFrictionTorque) * t;
 }
 
 /** Below idle, sample the idle torque. */

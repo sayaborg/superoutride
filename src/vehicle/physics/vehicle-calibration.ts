@@ -17,10 +17,6 @@ export interface VehicleSteeringCalibrationState {
   steeringActuatorResponse: Readonly<NormalizedActuatorRateDefinition>;
 }
 
-interface VehicleSteeringCalibrationOwner {
-  readonly steeringCalibration: VehicleSteeringCalibrationState;
-}
-
 export function createVehicleSteeringCalibration(
   input: VehicleSteeringCalibrationInput,
 ): VehicleSteeringCalibrationState {
@@ -65,30 +61,6 @@ export function steeringAutomaticMax(
   return calibration.maxRoadWheelSteer - calibration.steeringOffsetMax;
 }
 
-export function setVehicleMaxRoadWheelSteer(vehicle: VehicleSteeringCalibrationOwner, maxRoadWheelSteer: number): void {
-  assertVehicleSteeringAngleCalibration({
-    maxRoadWheelSteer,
-    steeringOffsetMax: vehicle.steeringCalibration.steeringOffsetMax,
-  });
-  vehicle.steeringCalibration.maxRoadWheelSteer = maxRoadWheelSteer;
-}
-
-export function setVehicleSteeringOffsetMax(vehicle: VehicleSteeringCalibrationOwner, steeringOffsetMax: number): void {
-  assertVehicleSteeringAngleCalibration({
-    maxRoadWheelSteer: vehicle.steeringCalibration.maxRoadWheelSteer,
-    steeringOffsetMax,
-  });
-  vehicle.steeringCalibration.steeringOffsetMax = steeringOffsetMax;
-}
-
-export function setVehicleSymmetricSteeringActuatorRate(vehicle: VehicleSteeringCalibrationOwner, rate: number): void {
-  assertPositiveFiniteSteeringActuatorRate(rate);
-  vehicle.steeringCalibration.steeringActuatorResponse = immutableRateDefinition({
-    applyRate: rate,
-    releaseRate: rate,
-  });
-}
-
 function immutableRateDefinition(
   definition: NormalizedActuatorRateDefinition,
 ): Readonly<NormalizedActuatorRateDefinition> {
@@ -96,10 +68,4 @@ function immutableRateDefinition(
     applyRate: definition.applyRate,
     releaseRate: definition.releaseRate,
   });
-}
-
-function assertPositiveFiniteSteeringActuatorRate(rate: number): void {
-  if (!(rate > 0) || !Number.isFinite(rate)) {
-    throw new RangeError('vehicle steering actuator rate must be finite and > 0');
-  }
 }

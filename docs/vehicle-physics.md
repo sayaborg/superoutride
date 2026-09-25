@@ -16,12 +16,17 @@ travel-direction steering, M=65 degrees, D=20 degrees, ACT=0.3 seconds, throttle
 [Calibration](calibration.md) describes units, pedal values and the shell-owned DEV grids.
 
 Document admission converts degrees and traversal times to runtime angles/rates and compiles the tire law
-once. Every vehicle creation receives the compiled driving product and an explicit form-specific support
-reserve, copying only mutable steering calibration. Admitted powertrain values are not revalidated at spawn.
+once. [`createVehicleModel`](../src/vehicle/physics/vehicle-model.ts) is the single place that builds a
+vehicle model from the compiled vehicle, the compiled driving product and the explicit form-specific
+support reserve. The model is one immutable value, frozen throughout: the compiled vehicle, actuator
+rates, M/D/ACT steering, front/rear tire characteristics, the powertrain constants and the
+torque-protection policy. Admitted powertrain values are not revalidated when a model is built.
 Browser, race, reference/envelope tools, scenarios, startup smoke and image generation use the same
-input. The wheel solver receives one required tire-characteristics field from the runtime tire calibration.
-DEV can still replace live M/D/ACT and linked tire settings, preserving them on vehicle switches.
-The front/rear runtime slots remain for now; both start with the same tire coefficients.
+input. Creation, updates, held steps and recovery receive the vehicle state and its model separately;
+nothing copies a model value into state. The wheel solver receives one required tire-characteristics
+field from the model. DEV replaces the player's model with a retuned model for M/D/ACT and the linked
+tire settings; the next step uses the replacement, and a vehicle switch builds the new vehicle's model
+with the active tuning. The front/rear tire slots remain for now; both start with the same coefficients.
 
 `SessionVehicle` includes both admitted source documents and compiled driving inputs in `vehicleSha256`.
 [Content and gameplay](content-and-gameplay.md#reference-times-and-clock) owns this cross-product identity.
@@ -32,10 +37,12 @@ The engine owns tire and steering low-speed regularization (both 1.0 m/s) in
 
 ## State and integration
 
-[Vehicle physics](../src/vehicle/physics/vehicle-physics.ts) owns world position/velocity,
-yaw/pitch and their rates, wheel angular speeds, rack angle, three normalized actuators and automatic
-gear state. Course coordinates, contact loads, accelerations and HUD quantities are observations.
-Compiled vehicles and their nested data are immutable snapshots.
+[Vehicle physics](../src/vehicle/physics/vehicle-physics.ts) state holds only dynamic values and
+observations: world position/velocity, yaw/pitch and their rates, wheel angular speeds, rack angle,
+three normalized actuators and powertrain state. Course coordinates, contact loads, accelerations,
+the render height (CG height minus the model's desired CG height, written with every pose change) and
+HUD quantities are observations. Every definition value comes from the vehicle model passed beside the
+state; compiled vehicles, vehicle models and their nested data are immutable.
 
 Each fixed update has 12 substeps. Semi-implicit Euler updates velocity before pose; yaw and pitch
 wrap as angles. Gravity is 9.80665 m/s2. The body basis is:
@@ -190,10 +197,10 @@ value.
 
 Engine speed is powertrain state with a rotor inertia derived from displacement:
 `engineInertia = displacementLitres * engineInertiaKilogramSquareMetersPerLitre`.
-`couplePowertrain` resolves the two friction torques (at idle and redline FMEP), the inertia, the
+`resolvePowertrainConstants` resolves the two friction torques (at idle and redline FMEP), the inertia, the
 clutch lock RPM `idleRpm * (1 + clutchLockIdleMargin)`, the clutch capacity
-`maximumCurveTorque * clutchCapacityFactor` and the game-wide efficiency and fuel-cut margin once, when a vehicle is created from its compiled vehicle and the driving settings; none of
-them is a vehicle value. Vehicle compilation derives the launch RPM as peak-torque RPM, the lowest
+`maximumCurveTorque * clutchCapacityFactor` and the game-wide efficiency and fuel-cut margin once, as
+the vehicle model's powertrain constants; none of them is a vehicle value. Vehicle compilation derives the launch RPM as peak-torque RPM, the lowest
 RPM of the curve's maximum torque; it only limits engine speed while the clutch slips.
 
 The clutch lock is a hysteretic latch on the signed wheel-derived RPM, the powertrain state's only

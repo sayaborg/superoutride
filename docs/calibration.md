@@ -27,9 +27,9 @@ PX and PY are dimensionless slips. The defaults give `kX = kY = 31.5` under the
 [tire law](vehicle-physics.md#tire-law). Automatic steering has the derived budget `M-D`.
 The [tire selector](../src/shell/tire-friction-selection.ts) and
 [steering selector](../src/shell/steering-calibration-selection.ts) own only DEV choices and grid checks;
-they check the raw driving definition against those grids. The controls display the vehicle's current
-values without writing to it at startup. DEV adjustments and their transfer on
-vehicle switches remain unchanged. Tires are dimensionless coefficients per unit normal load and
+they check the raw driving definition against those grids. The controls display the player's current
+vehicle model. A DEV adjustment builds a retuned model and replaces the player's model, which the next
+step uses; a vehicle switch carries the adjusted values into the new vehicle's model. Tires are dimensionless coefficients per unit normal load and
 share one authored set for front and rear. Driving assists are not difficulty controls.
 
 The same definition selects travel-direction automatic steering and `wheelSlip=true` (TCS, MSR and
