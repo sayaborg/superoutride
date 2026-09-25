@@ -1,6 +1,6 @@
-import { contentDigest } from '../core/content-digest.js';
 import type { SessionVehicle } from './session-configuration.js';
 import type { VehicleEnvelope } from './envelope-driver.js';
+import { sessionVehicleSha256 } from './session-vehicle.js';
 
 /** Admit only the measured rows needed by driving; offline measurement traces stay outside the live graph. */
 export async function readVehicleEnvelope(vehicle: SessionVehicle, input: unknown): Promise<VehicleEnvelope> {
@@ -11,7 +11,7 @@ export async function readVehicleEnvelope(vehicle: SessionVehicle, input: unknow
   };
   const data = record(input),
     envelope = record(data.envelope);
-  const digest = await contentDigest(new TextEncoder().encode(JSON.stringify(vehicle)));
+  const digest = await sessionVehicleSha256(vehicle);
   if (data.vehicleSha256 !== digest) throw new RangeError('Stale envelope vehicle/calibration/assist identity');
   const number = (value: unknown, positive = true): number => {
     if (typeof value !== 'number') throw new TypeError('Envelope values must be numbers');

@@ -1,6 +1,6 @@
 import { loadVehicleDefinitions } from '../../src/vehicle/definition-document.js';
 import { readDeliveredContent } from './read-content.js';
-import { browserSessionVehicle } from '../../src/shell/session-vehicle.js';
+import { createSessionVehicle } from '../../src/race/session-vehicle.js';
 import { REFERENCE_DRIVER } from './reference-driving-policy.js';
 import { measureVehicleEnvelope } from './vehicle-envelope.js';
 import { courseReferenceRoutes, runCourseReference } from './reference-run.js';
@@ -15,14 +15,14 @@ export async function referenceCommand(verb: string, file: string, args: readonl
   const entry = definitions.vehicles.find((e) => e.compiledVehicle.id === selected);
   requireInput(entry, '/vehicle', 'Unknown catalog vehicle');
   const modelSha256 = await referenceModelIdentity(),
-    envelope = measureVehicleEnvelope(browserSessionVehicle(entry, definitions.driving));
+    envelope = measureVehicleEnvelope(createSessionVehicle(entry, definitions.driving));
   let result;
   if (verb === 'envelope')
     result = {
       format: 'superoutride.vehicle-envelope',
       version: 1,
       modelSha256,
-      vehicle: browserSessionVehicle(entry, definitions.driving),
+      vehicle: createSessionVehicle(entry, definitions.driving),
       ...envelope,
     };
   else {
@@ -39,7 +39,7 @@ export async function referenceCommand(verb: string, file: string, args: readonl
       courseBuildSha256: course.identity.buildSha256,
       modelSha256,
       driver: REFERENCE_DRIVER,
-      vehicle: browserSessionVehicle(entry, definitions.driving),
+      vehicle: createSessionVehicle(entry, definitions.driving),
       ...runCourseReference(course, ground, entry, definitions, envelope, routes[routeIndex]!, lapCount, true),
     };
   }

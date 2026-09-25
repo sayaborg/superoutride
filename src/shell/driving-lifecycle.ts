@@ -5,7 +5,7 @@ import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import type { VehicleWorld } from '../course/vehicle-world.js';
 import type { CompiledVehicle } from '../vehicle/physics/vehicle-definitions.js';
-import { SIM_DT } from './frame-loop.js';
+import { SIM_DT } from '../race/fixed-step.js';
 
 interface DrivingPlayer {
   readonly vehicle: VehicleState;

@@ -15,9 +15,9 @@ import { createCourseRace } from '../race/course-race.js';
 import { createCoursePerformanceHud } from './course-performance-hud.js';
 import { resolveCourseSession } from '../race/course-session.js';
 import { readCourseTimeBudgets } from '../race/course-time-budgets.js';
-import { browserSessionVehicle } from './session-vehicle.js';
+import { createSessionVehicle } from '../race/session-vehicle.js';
 import { readBrowserSessionSettings, mountCourseSessionControls } from './course-session-controls.js';
-import { createCourseScene } from './course-scene.js';
+import { createCourseScene } from '../view/course-scene.js';
 import { readVehicleEnvelope } from '../race/vehicle-envelope.js';
 
 const canvas = mustGet<HTMLCanvasElement>('game');
@@ -38,13 +38,16 @@ try {
   const settings = readBrowserSessionSettings(parameters, course.rules.classic, vehicles);
   const preset = readBrowserSessionSettings(new URLSearchParams(), course.rules.classic, vehicles);
   const entry = vehicles.find((v) => v.compiledVehicle.id === settings.vehicleId)!;
-  const vehicle = browserSessionVehicle(entry, driving);
-  const rivalEnvelope = await readVehicleEnvelope(vehicle, await content.json('envelope', vehicle.compiledVehicle.id));
+  const vehicle = createSessionVehicle(entry, driving);
+  const rivalEnvelope = await readVehicleEnvelope(
+    vehicle,
+    await content.json('envelope', vehicle.vehicleDefinition.compiledVehicle.id),
+  );
   const budgets = settings.timeLimit
     ? await readCourseTimeBudgets(
         course,
         vehicle,
-        await content.json('budget', `${mode}/${vehicle.compiledVehicle.id}`),
+        await content.json('budget', `${mode}/${vehicle.vehicleDefinition.compiledVehicle.id}`),
       )
     : null;
   const session = resolveCourseSession(course, settings, vehicle, rivalEnvelope, budgets);

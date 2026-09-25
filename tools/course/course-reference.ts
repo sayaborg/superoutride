@@ -1,4 +1,4 @@
-import { contentDigest } from '../../src/core/content-digest.js';
+import { sessionVehicleSha256 } from '../../src/race/session-vehicle.js';
 import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import type { CompiledCourseLandmark } from '../../src/course/compiler/course-rules.js';
 import type { SessionVehicle } from '../../src/race/session-configuration.js';
@@ -40,10 +40,10 @@ export async function readCourseReference(
   );
   const candidates = array(source.vehicles)
     .map(record)
-    .filter((r) => r.vehicleId === vehicle.compiledVehicle.id);
+    .filter((r) => r.vehicleId === vehicle.vehicleDefinition.compiledVehicle.id);
   fail(candidates.length === 1, 'missing or duplicate vehicle');
   const candidate = candidates[0]!;
-  const vehicleSha256 = await contentDigest(new TextEncoder().encode(JSON.stringify(vehicle)));
+  const vehicleSha256 = await sessionVehicleSha256(vehicle);
   fail(candidate.vehicleSha256 === vehicleSha256, 'stale vehicle/calibration/assist identity');
   const budgets = new Map<CompiledCourseLandmark, Map<number, number>>();
   let initial = 0;

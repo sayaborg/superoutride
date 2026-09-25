@@ -1,22 +1,27 @@
-import { createCourseRouteVisualReaders } from '../view/course-route-visual-readers.js';
-import { ENVELOPE_DRIVER } from '../race/envelope-driver.js';
+import { createCourseRouteVisualReaders } from './course-route-visual-readers.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
-import { SIM_DT } from './frame-loop.js';
-import { createDisplaySettings, type DisplaySettings } from '../view/display-settings.js';
+import { createDisplaySettings, type DisplaySettings } from './display-settings.js';
 import type { CourseGround } from '../course/compiler/course-ground.js';
-import { LOGICAL_HEIGHT } from '../view/display-scale.js';
-import { RENDER_NEAR_DEPTH_METERS, RENDER_FAR_DEPTH_METERS } from '../view/camera.js';
+import { LOGICAL_HEIGHT } from './display-scale.js';
+import { RENDER_NEAR_DEPTH_METERS, RENDER_FAR_DEPTH_METERS } from './camera.js';
 import type { CompiledSection } from '../course/compiler/course-graph.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
-import type { CameraState } from '../view/camera.js';
-import { CURRENT_CAMERA_PROFILE } from '../view/current-camera-profile.js';
+import type { CameraState } from './camera.js';
+import { CURRENT_CAMERA_PROFILE } from './current-camera-profile.js';
 import type { VehicleRenderReadState } from '../vehicle/physics/vehicle-contract.js';
-import { createRenderWorkspace, renderDriving } from '../view/renderer.js';
-import type { CourseSprite } from '../view/course-sprite.js';
+import { createRenderWorkspace, renderDriving } from './renderer.js';
+import type { CourseSprite } from './course-sprite.js';
 import type { VehicleSpriteSet } from '../image/sprite-assets.js';
-import { createRouteRuntime } from '../race/route-runtime.js';
+import { createCourseWorld, type CourseLoadingWindow } from '../race/course-world.js';
 
-/** One graph assembly for every course, including a single Section without Links. */
+/** The current camera's loading window; reference driving and scenarios load the same Route. */
+export const COURSE_LOADING_WINDOW: CourseLoadingWindow = Object.freeze({
+  cameraDistance: CURRENT_CAMERA_PROFILE.dCam,
+  near: RENDER_NEAR_DEPTH_METERS,
+  far: RENDER_FAR_DEPTH_METERS,
+});
+
+/** The race's course world plus its rendering, shared by browser, tools, scenarios and smoke checks. */
 export function createCourseScene(
   section: CompiledSection,
   ground: CourseGround,
@@ -24,34 +29,7 @@ export function createCourseScene(
   vehicles: readonly CompiledVehicleDefinition[],
   displaySettings: DisplaySettings = createDisplaySettings(),
 ) {
-  if (!gates?.grid.length) throw new RangeError('Driving requires a compiled start gate with a grid');
-  if (Math.min(...gates.grid.map((slot) => slot.at.s)) < CURRENT_CAMERA_PROFILE.dCam)
-    throw new RangeError('Driving requires the rearmost grid position to have camera space behind it');
-  // Loading coverage at 240 m/s (864 km/h), not a mechanics speed clamp.
-  const maximumStepMeters = 240 * SIM_DT;
-  const contactReachMeters = Math.ceil(
-    Math.max(
-      ...vehicles.flatMap(({ compiledVehicle }) =>
-        [compiledVehicle.frontStation, compiledVehicle.rearStation].map((station) =>
-          Math.hypot(station.forwardOffset, station.freeReachDown),
-        ),
-      ),
-    ),
-  );
-  if (
-    section.fork &&
-    section.fork.lock.s + Math.max(RENDER_FAR_DEPTH_METERS, ENVELOPE_DRIVER.lookahead) + maximumStepMeters >
-      section.coordinates.domain.end
-  )
-    throw new RangeError('Fork parent must cover pre-lock render and driver queries through one fixed step');
-  const runtime = createRouteRuntime(section, {
-    cameraDistance: CURRENT_CAMERA_PROFILE.dCam,
-    far: RENDER_FAR_DEPTH_METERS,
-    near: RENDER_NEAR_DEPTH_METERS,
-    maximumStepMeters,
-    contactReachMeters,
-  });
-  runtime.refresh(Math.min(...gates.grid.map((slot) => slot.at.s)), Math.max(...gates.grid.map((slot) => slot.at.s)));
+  const runtime = createCourseWorld(section, gates, vehicles, COURSE_LOADING_WINDOW);
   const rendering = createCourseRouteVisualReaders(runtime.route, ground);
   rendering.read();
   const renderWorkspace = createRenderWorkspace();

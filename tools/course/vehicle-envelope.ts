@@ -9,7 +9,7 @@ import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
 import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
 import { updateHeldVehicle, updateVehicle, vehicleBodyKinematics } from '../../src/vehicle/physics/vehicle-physics.js';
 import { createStartPhase } from '../../src/race/start-phase.js';
-import { SIM_DT } from '../../src/shell/frame-loop.js';
+import { SIM_DT } from '../../src/race/fixed-step.js';
 import { wrapAngle } from '../../src/core/math.js';
 
 /** The finite flat world used only to generate game driving envelopes. */
@@ -58,7 +58,8 @@ export function measureVehicleEnvelope(entry: SessionVehicle) {
     maximumObservedSpeed = Math.max(maximumObservedSpeed, run.vehicle.speed);
     // A fuel-cut cycle in top gear repeats; its first recovery completes the peak it bounds.
     const { fuelCut, gear } = run.vehicle.powertrain;
-    limiterCycle = wasFuelCut && !fuelCut && gear === entry.compiledVehicle.powertrain.gearRatios.length;
+    limiterCycle =
+      wasFuelCut && !fuelCut && gear === entry.vehicleDefinition.compiledVehicle.powertrain.gearRatios.length;
     wasFuelCut = fuelCut;
     if (limiterCycle) break;
     if (tick % 30 === 29) {
@@ -70,7 +71,9 @@ export function measureVehicleEnvelope(entry: SessionVehicle) {
     }
   }
   if (stable < 8 && !limiterCycle)
-    throw new RangeError(`${entry.compiledVehicle.id}: top speed did not converge within 240 seconds`);
+    throw new RangeError(
+      `${entry.vehicleDefinition.compiledVehicle.id}: top speed did not converge within 240 seconds`,
+    );
   const maximumSpeed = limiterCycle ? maximumObservedSpeed : run.vehicle.speed;
   const brakingRun = make(maximumSpeed);
   last = maximumSpeed;
@@ -117,7 +120,9 @@ export function measureVehicleEnvelope(entry: SessionVehicle) {
       (t) => t.maxBeta < 0.2 && t.minimumUp > 0.25 && Math.abs(t.speed - speed) < Math.max(1, speed * 0.12),
     );
     if (!admissible.length)
-      throw new RangeError(`${entry.compiledVehicle.id}: no stable lateral measurement at ${speed} m/s`);
+      throw new RangeError(
+        `${entry.vehicleDefinition.compiledVehicle.id}: no stable lateral measurement at ${speed} m/s`,
+      );
     const lateral = Math.max(...admissible.map((t) => t.lateral));
     const nearest = (rows: readonly { speed: number; value: number }[]) =>
       rows.reduce((best, r) => (Math.abs(r.speed - speed) < Math.abs(best.speed - speed) ? r : best)).value;

@@ -71,8 +71,8 @@ is a vehicle value. Two-wheel support reserve
 remains a form-specific 0.08 until 8-7; four-wheel support reserve is null.
 Tire and steering low-speed regularization are engine constants of 1.0 m/s.
 
-The full driving record participates in vehicle identity for generated envelopes, reference caches
-and time budgets. Top-speed envelope measurement ends at steady-speed convergence or at the first
+The full driving source document participates in vehicle identity for generated envelopes, reference
+caches and time budgets. Top-speed envelope measurement ends at steady-speed convergence or at the first
 top-gear fuel-cut recovery; after a recovery the maximum is the greatest speed observed during the run.
 
 | Setting               | Value | Meaning                                                      |

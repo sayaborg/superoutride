@@ -10,7 +10,7 @@ import {
 } from '../../src/course/geometry/plan-coordinate.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
 import { loadVehicleDefinitions } from '../../src/vehicle/definition-document.js';
-import { browserSessionVehicle } from '../../src/shell/session-vehicle.js';
+import { createSessionVehicle } from '../../src/race/session-vehicle.js';
 
 const definitions = await loadVehicleDefinitions(await readDeliveredContent());
 
@@ -49,7 +49,7 @@ test('outside projection follows previous chainage across clamped and tangent-ra
 
 test('Session rejects short terminal runout, including solo play; forks and loops are not terminals', async () => {
   const course = await load('ribbon-coast');
-  const vehicle = browserSessionVehicle(
+  const vehicle = createSessionVehicle(
     definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA'),
     definitions.driving,
   );

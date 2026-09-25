@@ -4,10 +4,10 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readDeliveredContent } from '../../tools/course/read-content.ts';
 import { loadCourseGround } from '../../tools/course/authoring-io.ts';
-import { createCourseScene } from '../../src/shell/course-scene.js';
+import { createCourseScene } from '../../src/view/course-scene.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
-import { browserSessionVehicle } from '../../src/shell/session-vehicle.js';
+import { createSessionVehicle } from '../../src/race/session-vehicle.js';
 import { loadVehicleDefinitions } from '../../src/vehicle/definition-document.js';
 import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
 import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
@@ -22,7 +22,7 @@ import { CURRENT_CAMERA_PROFILE } from '../../src/view/current-camera-profile.js
 import { SoftwareSurface } from '../../src/view/software-surface.js';
 import { createRaceSprites } from '../../src/view/race-sprites.js';
 import { createDisplaySettings, STRIP_RENDER_METHODS } from '../../src/view/display-settings.js';
-import { SIM_DT } from '../../src/shell/frame-loop.js';
+import { SIM_DT } from '../../src/race/fixed-step.js';
 import { READY_SECONDS } from '../../src/race/start-phase.js';
 import { courseBoundaryAt, courseCarriagewayExists } from '../../src/course/course-boundaries.js';
 import { routeSectionS } from '../../src/course/course-route.js';
@@ -31,7 +31,7 @@ const definitions = await loadVehicleDefinitions(await readDeliveredContent());
 
 const idle = { steering: 0, throttle: false, brake: false };
 const entry = definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA');
-const configuration = browserSessionVehicle(entry, definitions.driving);
+const configuration = createSessionVehicle(entry, definitions.driving);
 const { envelope } = await (await readDeliveredContent()).json('envelope', 'TESTAROSSA');
 const driver = compileEnvelopeDriver(envelope, 0.75, envelope.maximumSpeed);
 

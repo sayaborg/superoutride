@@ -480,9 +480,9 @@ belong inside that domain; an upper domain depends only on lower domains, and sa
 | 4     | course  | Course documents and compilation, road geometry, materials, occurrences, environment timelines and shared Route readers |
 | 5     | vehicle | Vehicle mechanics, definitions, catalog and accepted operation requests                                                 |
 | 6     | input   | Keyboard/touch adapters and arbitration producing vehicle operation requests                                            |
-| 7     | race    | Sessions, progress, gates, timing, drivers, recovery and envelopes                                                      |
-| 8     | view    | Cameras, projection, ground rows, sprite placement, drawing composition and framebuffer                                 |
-| 9     | shell   | DOM, frame loop, HUD, DEV, startup and whole-scene composition                                                          |
+| 7     | race    | Sessions, Session vehicles, course worlds, fixed step, progress, gates, timing, drivers, recovery and envelopes         |
+| 8     | view    | Cameras, projection, ground rows, sprite placement, course scenes, drawing composition and framebuffer                  |
+| 9     | shell   | DOM, frame loop, HUD, DEV, startup and browser composition                                                              |
 
 The [dependency check](../tests/infrastructure/layer-dependencies.test.mjs) parses imports, type-only
 imports, re-exports, inline import types, literal dynamic imports, CommonJS references, worker entries
@@ -490,17 +490,26 @@ and worklet modules. It also examines scripts in tool HTML and resolves TypeScri
 Product source has exactly these nine directories; startup files belong to shell. Every cross-domain
 import follows the order and participates in the layer-cycle check, without product-layer exceptions.
 
-There are no dependency exceptions. Course project sessions, text parsing/saving and reference
+Tools use the compositions they share with the browser from race and view and import no shell module,
+except the DOM lookup used by browser tools and the audio audition tools' shell controls, which remain
+until those tools are reorganized. The dependency check enforces this.
+
+There are no other dependency exceptions. Course project sessions, text parsing/saving and reference
 production belong to `tools/course`; the product retains shared course admission, live driving policy,
 and envelope/time-budget readers. Sprite normalization, palette generation, LOD compilation and
 fixtures belong to `tools/graphics`. Shared image formats, filters, codecs and product limits remain
 in `src/image`; authoring-only limits stay with the tools.
 
 Vehicle mechanics take dynamic state and an immutable vehicle model as separate inputs; state holds
-no definition value, and each race actor pairs its state with its model. Shell owns the observer's camera, and race actors contain no camera state. Race publishes camera-independent
+no definition value, and each race actor pairs its state with its model. The composition shared by
+browser, race, tools and scenarios lives below shell: race owns the Session vehicle (vehicle and
+driving definitions only, `createSessionVehicle`), the fixed simulation step (`SIM_DT`) and the course
+world (`createCourseWorld`: the Route runtime loaded for an observer window, the driver lookahead and one
+fixed step); view owns the course scene, which adds rendering and supplies the current camera's loading
+window. Shell owns the observer's camera, and race actors contain no camera state. Race publishes camera-independent
 actor observations; view owns rival sprite selection and assembly. Course owns VehicleWorld, surface
-readers and the physical driving source. Race consumes that source only. Shell binds physical and
-appearance products and owns the combined pre-lock render/driver query-depth admission.
+readers and the physical driving source. Race consumes that source only. The course world owns the combined pre-lock render/driver query-depth
+admission, and the course scene binds physical and appearance products.
 RGBA conversion, sprite images and LOD formats belong
 to image; framebuffer writes and sprite drawing belong to view. Compiled Strip color fields
 and their scalar coefficient Reader belong to course. View owns Strip row sampling and the

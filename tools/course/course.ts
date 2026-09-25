@@ -1,5 +1,5 @@
 import { createVehicleSprites } from '../../src/view/vehicle-sprites.js';
-import { browserSessionVehicle } from '../../src/shell/session-vehicle.js';
+import { createSessionVehicle } from '../../src/race/session-vehicle.js';
 import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import type { CourseGround } from '../../src/course/compiler/course-ground.js';
 interface RenderFrame {
@@ -13,7 +13,7 @@ interface RenderFrame {
 import { referenceCommand } from './reference-command.js';
 import path from 'node:path';
 import { PNG } from 'pngjs';
-import { createCourseScene } from '../../src/shell/course-scene.js';
+import { createCourseScene } from '../../src/view/course-scene.js';
 import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
 import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
 import { loadVehicleDefinitions } from '../../src/vehicle/definition-document.js';
@@ -106,7 +106,7 @@ try {
       const frames: RenderFrame[] = [];
       for (const [i, s] of stations.entries()) {
         const vehicle = createVehicle(
-          createVehicleModel(browserSessionVehicle(entry, definitions.driving)),
+          createVehicleModel(createSessionVehicle(entry, definitions.driving)),
           scene.world,
           {
             s,

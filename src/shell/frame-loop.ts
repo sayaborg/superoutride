@@ -1,5 +1,4 @@
-/** Fixed browser simulation period in seconds. */
-export const SIM_DT = 1 / 60;
+import { SIM_DT } from '../race/fixed-step.js';
 
 /** Bound catch-up after a suspended tab; simulation itself always receives SIM_DT. */
 const MAX_FRAME_ELAPSED_SECONDS = 0.25;

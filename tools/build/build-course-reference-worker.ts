@@ -3,11 +3,11 @@ import { parentPort, workerData } from 'node:worker_threads';
 import { loadVehicleDefinitions } from '../../src/vehicle/definition-document.js';
 import { readDeliveredContent } from '../course/read-content.js';
 import { loadDeliveredCourse } from '../../src/course/load-delivered-course.js';
-import { browserSessionVehicle } from '../../src/shell/session-vehicle.js';
+import { createSessionVehicle, sessionVehicleSha256 } from '../../src/race/session-vehicle.js';
 import { REFERENCE_DRIVER } from '../course/reference-driving-policy.js';
 import { readCourseReference } from '../course/course-reference.js';
 import { courseBudgetLandmarks, readCourseTimeBudgets } from '../../src/race/course-time-budgets.js';
-import { cachedReference, referenceCacheKey, digest } from '../course/reference-cache.js';
+import { cachedReference, referenceCacheKey } from '../course/reference-cache.js';
 import { measureVehicleEnvelope } from '../course/vehicle-envelope.js';
 import { runCourseReference, courseReferenceRoutes } from '../course/reference-run.js';
 import { loadCourseGround } from '../course/authoring-io.js';
@@ -16,8 +16,8 @@ const { vehicleId, stems, physicsSha256 } = workerData as CourseReferenceJob;
 const content = await readDeliveredContent();
 const definitions = await loadVehicleDefinitions(content);
 const entry = definitions.vehicles.find((v) => v.compiledVehicle.id === vehicleId)!;
-const vehicle = browserSessionVehicle(entry, definitions.driving),
-  vehicleSha256 = digest(vehicle);
+const vehicle = createSessionVehicle(entry, definitions.driving),
+  vehicleSha256 = await sessionVehicleSha256(vehicle);
 let hits = 0,
   misses = 0;
 const envelope = await cachedReference(

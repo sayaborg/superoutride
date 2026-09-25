@@ -28,7 +28,9 @@ field from the model. DEV tuning edits the driving definition and rebuilds the p
 the next step uses the replacement, and a vehicle switch builds the new vehicle's model from the same
 tuned definition. The front/rear tire slots remain for now; both start with the same coefficients.
 
-`SessionVehicle` includes both admitted source documents and compiled driving inputs in `vehicleSha256`.
+`SessionVehicle` holds only the admitted vehicle and driving definitions; `createVehicleModel` derives
+the form-specific support reserve from the vehicle definition's form, and `vehicleSha256` hashes both
+source documents.
 [Content and gameplay](content-and-gameplay.md#reference-times-and-clock) owns this cross-product identity.
 
 The engine owns tire and steering low-speed regularization (both 1.0 m/s) in

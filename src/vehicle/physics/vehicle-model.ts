@@ -5,6 +5,7 @@ import type { VehicleTireFrictionCalibrationState } from './tire-friction-calibr
 import { resolveTorqueProtectionPolicy, type TorqueProtectionPolicy } from './torque-protection.js';
 import { createVehicleSteeringCalibration, type VehicleSteeringCalibrationInput } from './vehicle-calibration.js';
 import type { CompiledVehicle } from './vehicle-definitions.js';
+import type { CompiledVehicleDefinition } from '../definition-document.js';
 
 /**
  * One vehicle's immutable mechanics inputs: the compiled vehicle, the driving settings it runs
@@ -20,25 +21,28 @@ export interface VehicleModel {
   readonly torqueProtection: Readonly<TorqueProtectionPolicy>;
 }
 
-/** Admitted inputs of a vehicle model; the support reserve is the provisional form policy. */
+/** The admitted vehicle and driving definitions a model is built from. */
 export interface VehicleModelInput {
-  readonly compiledVehicle: CompiledVehicle;
+  readonly vehicleDefinition: CompiledVehicleDefinition;
   readonly drivingDefinition: CompiledDrivingDefinition;
-  readonly supportReserve: number | null;
 }
 
-/** The single place a vehicle model is built. */
+// Temporary form-specific policy until airborne support is revised in 8-7; never saved as vehicle data.
+const TWO_WHEEL_SUPPORT_RESERVE = 0.08;
+
+/** The single place a vehicle model is built; the form policy is derived here. */
 export function createVehicleModel(input: VehicleModelInput): VehicleModel {
   const driving = input.drivingDefinition.settings;
+  const { compiledVehicle, form } = input.vehicleDefinition;
   return freezeModel({
-    compiledVehicle: input.compiledVehicle,
+    compiledVehicle,
     actuator: driving.actuator,
     steering: createVehicleSteeringCalibration(driving.steeringCalibration),
     tires: driving.tireFrictionCalibration,
-    powertrain: resolvePowertrainConstants(input.compiledVehicle.powertrain, driving.powertrain),
+    powertrain: resolvePowertrainConstants(compiledVehicle.powertrain, driving.powertrain),
     torqueProtection: resolveTorqueProtectionPolicy({
       wheelSlip: input.drivingDefinition.source.wheelSlip,
-      supportReserve: input.supportReserve,
+      supportReserve: form === 'bike' ? TWO_WHEEL_SUPPORT_RESERVE : null,
     }),
   });
 }

@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { loadCourse, loadCourseGround } from '../../tools/course/authoring-io.ts';
-import { createCourseScene } from '../../src/shell/course-scene.js';
+import { createCourseScene } from '../../src/view/course-scene.js';
 import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
 import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
 import { loadVehicleDefinitions } from '../../src/vehicle/definition-document.js';
-import { browserSessionVehicle } from '../../src/shell/session-vehicle.js';
+import { createSessionVehicle } from '../../src/race/session-vehicle.js';
 import { createRecoveryState } from '../../src/race/recovery.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
@@ -30,7 +30,7 @@ async function setup() {
     definitions.vehicles,
   );
   const assets = createVehicleSprites(definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA'));
-  const compiledVehicle = browserSessionVehicle(
+  const compiledVehicle = createSessionVehicle(
     definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA'),
     definitions.driving,
   );

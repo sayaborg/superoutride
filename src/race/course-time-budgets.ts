@@ -1,4 +1,4 @@
-import { contentDigest } from '../core/content-digest.js';
+import { sessionVehicleSha256 } from './session-vehicle.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import type { CompiledCourseLandmark } from '../course/compiler/course-rules.js';
 import type { SessionVehicle } from './session-configuration.js';
@@ -37,7 +37,7 @@ export async function readCourseTimeBudgets(
   const positive = (value: unknown) => typeof value === 'number' && Number.isSafeInteger(value) && value > 0;
   fail(data && data.format === 'superoutride.course-time-budgets' && data.version === 1, 'unsupported format/version');
   fail(data.courseBuildSha256 === course.identity.buildSha256, 'stale course identity');
-  const vehicleSha256 = await contentDigest(new TextEncoder().encode(JSON.stringify(vehicle)));
+  const vehicleSha256 = await sessionVehicleSha256(vehicle);
   fail(data.vehicleSha256 === vehicleSha256, 'stale vehicle/calibration/assist identity');
   if (!Array.isArray(data.after)) throw new TypeError('Course time budget intervals must be an array');
   fail(positive(data.initialMs), 'invalid initial budget');

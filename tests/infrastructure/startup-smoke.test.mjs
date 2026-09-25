@@ -1,11 +1,11 @@
 import { createVehicleSprites } from '../../src/view/vehicle-sprites.js';
-import { browserSessionVehicle } from '../../src/shell/session-vehicle.js';
+import { createSessionVehicle } from '../../src/race/session-vehicle.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readDeliveredContent } from '../../tools/course/read-content.ts';
 import { loadDeliveredCourse } from '../../src/course/load-delivered-course.js';
 import { loadCourseGround } from '../../tools/course/authoring-io.ts';
-import { createCourseScene } from '../../src/shell/course-scene.js';
+import { createCourseScene } from '../../src/view/course-scene.js';
 import { createVehicle, updateVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
 import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
 import { loadVehicleDefinitions } from '../../src/vehicle/definition-document.js';
@@ -33,7 +33,7 @@ for (const { id: stem } of content.manifest.files.filter((file) => file.kind ===
     );
     const entry = definitions.vehicles[0];
     const sprites = createVehicleSprites(entry);
-    const model = createVehicleModel(browserSessionVehicle(entry, definitions.driving));
+    const model = createVehicleModel(createSessionVehicle(entry, definitions.driving));
     const vehicle = createVehicle(model, scene.world, { s: course.gates.grid[0].at.s, l: 0, initialSpeed: 0 });
     const rig = createCameraRig(),
       target = new SoftwareSurface(320, 240);

@@ -29,7 +29,7 @@ import type { BrowserCourseModeQuery } from './course-mode-selection.js';
 import { mustGet } from './dom.js';
 import { createFrameLoop, type FrameLoop } from './frame-loop.js';
 import { mountMobileCameraYawSelector, mountMobileVehicleSelector } from './mobile-selector-controls.js';
-import { browserSessionVehicle } from './session-vehicle.js';
+import { createSessionVehicle } from '../race/session-vehicle.js';
 import { browserUsesTouchInterface } from './touch-interface.js';
 import { drawVehicleDebugHud } from './vehicle-debug-hud.js';
 import type { AudibleActor } from './vehicle-audio.js';
@@ -82,7 +82,7 @@ export function createBrowserDrivingShell(
   let model = createVehicleModel(spawn.vehicle);
   let vehicle = createVehicle(model, runtime, { s: spawn.s, l: startL, initialSpeed: spawn.initialSpeed });
   const modelFor = (id: string) =>
-    createVehicleModel(browserSessionVehicle(vehicleDefinitionForId(vehicles, id), driving));
+    createVehicleModel(createSessionVehicle(vehicleDefinitionForId(vehicles, id), driving));
   const tuning = {
     get: () => driving.source,
     set: (definition: DrivingDocument) => {

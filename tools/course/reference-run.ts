@@ -6,10 +6,10 @@ import type { CourseGround } from '../../src/course/compiler/course-ground.js';
 import type { CompiledVehicleDefinition, VehicleDefinitions } from '../../src/vehicle/definition-document.js';
 import type { VehicleEnvelope } from '../../src/race/envelope-driver.js';
 import { REFERENCE_DRIVER } from './reference-driving-policy.js';
-import { createCourseScene } from '../../src/shell/course-scene.js';
+import { createCourseScene } from '../../src/view/course-scene.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
-import { browserSessionVehicle } from '../../src/shell/session-vehicle.js';
+import { createSessionVehicle } from '../../src/race/session-vehicle.js';
 import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
 import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
 import { createRecoveryState } from '../../src/race/recovery.js';
@@ -19,7 +19,7 @@ import {
   envelopeAt,
   compileEnvelopeDriver,
 } from '../../src/race/envelope-driver.js';
-import { SIM_DT } from '../../src/shell/frame-loop.js';
+import { SIM_DT } from '../../src/race/fixed-step.js';
 import { READY_SECONDS } from '../../src/race/start-phase.js';
 import { courseBoundaryAt, courseCarriagewayExists } from '../../src/course/course-boundaries.js';
 
@@ -52,7 +52,7 @@ export function runCourseReference(
   capture = false,
 ) {
   const scene = createCourseScene(course.entry, ground, course.gates, definitions.vehicles),
-    vehicleConfiguration = browserSessionVehicle(entry, definitions.driving);
+    vehicleConfiguration = createSessionVehicle(entry, definitions.driving);
   const session = resolveCourseSession(
     course,
     { mode: 'CUSTOM', rivalCount: 0, lapCount, timeLimit: false },

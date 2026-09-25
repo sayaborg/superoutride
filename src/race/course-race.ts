@@ -32,7 +32,7 @@ export interface RaceActorObservation {
   readonly id: string;
   readonly vehicle: VehicleState;
   readonly vehicleId: string;
-  readonly form: SessionVehicle['form'];
+  readonly form: SessionVehicle['vehicleDefinition']['form'];
   readonly brakeLampOn: boolean;
 }
 
@@ -125,7 +125,7 @@ export function createCourseRace(options: {
   const pool = rivals.map((c) => ({
     id: c.id,
     vehicleId: rivalModel.compiledVehicle.id,
-    form: rival.form,
+    form: rival.vehicleDefinition.form,
     brakeLampOn: false,
     vehicle: c.actor.vehicle,
   }));
