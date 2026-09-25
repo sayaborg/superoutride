@@ -39,7 +39,10 @@ try {
   const ground = createCourseGround(course);
   if (!course.rules) throw new RangeError('Playable courses require saved Session rules');
   const parameters = new URLSearchParams(location.search);
-  const settings = readBrowserSessionSettings(parameters, course.rules.classic, vehicles);
+  // A course delivered without time budgets is untimed; every Session on it runs without the clock.
+  const timed = content.manifest.files.some((file) => file.kind === 'budget' && file.id.startsWith(`${mode}/`));
+  const requested = readBrowserSessionSettings(parameters, course.rules.classic, vehicles);
+  const settings = timed ? requested : Object.freeze({ ...requested, timeLimit: false });
   const preset = readBrowserSessionSettings(new URLSearchParams(), course.rules.classic, vehicles);
   const entry = vehicles.find((v) => v.compiledVehicle.id === settings.vehicleId)!;
   const vehicle = createSessionVehicle(entry, driving, materials);
@@ -54,7 +57,7 @@ try {
         await content.json('budget', `${mode}/${vehicle.vehicleDefinition.compiledVehicle.id}`),
       )
     : null;
-  const session = resolveCourseSession(course, settings, vehicle, rivalEnvelope, budgets);
+  const session = resolveCourseSession(course, settings, vehicle, rivalEnvelope, budgets, timed);
   const sprites = createVehicleSprites(entry);
   const displaySettings = createDisplaySettings();
   const scene = createCourseScene(course.entry, ground, course.gates, vehicles, displaySettings);

@@ -633,6 +633,30 @@ Known recovery coordinates use the shared route. Observers resynchronize once, s
 crossing credit and update the player
 camera before rendering. Unrelated internal faults propagate.
 
+## Evaluation test course
+
+`ribbon-rough` (RIBBON ROUGH, DEV button 4) is a playability test circuit, not a product course. Its
+extreme vertical profile and corners are authored for hands-on evaluation; its shape is not rounded off
+for completion. The reference driver cannot complete it, so it is delivered without reference runs or
+time budgets and its Sessions are untimed. It is a 4.2 km two-Section circuit on existing materials:
+
+| Section        | Stations (m) | Content                                                                         |
+| -------------- | ------------ | ------------------------------------------------------------------------------- |
+| `rough-bumps`  | 0–260        | Start straight, grid                                                            |
+|                | 270–482      | Narrow road; short waves 8 m / 0.3 m, 12 m / 0.45 m, 15 m / 0.6 m               |
+|                | 540–1100     | Undulations 80 m / 1.6 m; 200 m right sweeper (800–1114) inside them, wide road |
+|                | 1160–1340    | 12 % ramp to a sharp crest (12 m), 18.75 % landing slope                        |
+|                | 1480–1485    | 4 m step drop                                                                   |
+|                | 1550–1670    | Valley: 20 % down, tight sag, 20 % up                                           |
+|                | 1794–1862    | Narrow hairpin of two 20 m right turns, sand trap outside                       |
+|                | 1902–1965    | 40 m left turn                                                                  |
+|                | 1990–2190    | Chicane of 30 m radii over 10 m / 0.3 m bumps                                   |
+| `rough-return` | 8–179        | 15 % climb to a crest carrying an 80 m right kink, 15 % descent                 |
+|                | 235–282      | 80 m left kink on the flat below                                                |
+|                | 320–640      | Dirt road over 25 m / 0.35 m ruts, wide road                                    |
+|                | 640–847      | Gradual climb                                                                   |
+|                | 867–1739     | Two 150 m right sweepers, sand trap outside the first                           |
+
 ## Observation formats
 
 ### Course observations

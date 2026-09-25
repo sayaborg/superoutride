@@ -36,6 +36,7 @@ const COURSE_CONTROLS = compileBrowserCourseModes([
   { buttonLabel: '1', label: 'RIBBON COAST', query: 'ribbon-coast' },
   { buttonLabel: '2', label: 'RIBBON RING', query: 'ribbon-ring' },
   { buttonLabel: '3', label: 'RIBBON FORK', query: 'ribbon-fork' },
+  { buttonLabel: '4', label: 'RIBBON ROUGH', query: 'ribbon-rough' },
 ]);
 
 /** Availability comes exclusively from delivery; labels remain shell settings. */

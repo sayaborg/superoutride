@@ -16,6 +16,11 @@ import { readCourseImages } from '../course/read-course-images.js';
 import { compileSurfaceMaterialDocument } from '../../src/course/surface-material.js';
 import { validateTireSoundMaterialIds } from '../../src/audio/tire-surface-acoustics.js';
 
+/**
+ * Evaluation courses authored beyond the reference driver: delivered without reference runs or time
+ * budgets, so every Session on them is untimed.
+ */
+const UNTIMED_COURSES: ReadonlySet<string> = new Set(['ribbon-rough']);
 const content = new URL('../../content/', import.meta.url);
 const destination = new URL('../../dist/content/', import.meta.url);
 const writer = createContentWriter(destination, (await readDeliveredContent()).manifest.files);
@@ -68,6 +73,10 @@ for (const name of (await readdir(new URL('courses/', content))).sort()) {
 }
 // Reference workers use the same admitted delivery for their completed vehicle images.
 await writer.save();
-await buildCourseReferences(courses, await loadVehicleDefinitions(await readDeliveredContent()), writer.stage);
+await buildCourseReferences(
+  courses.filter(({ stem }) => !UNTIMED_COURSES.has(stem)),
+  await loadVehicleDefinitions(await readDeliveredContent()),
+  writer.stage,
+);
 await writer.save();
 console.log('Validated and staged manifest content');

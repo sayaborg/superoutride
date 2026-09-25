@@ -22,8 +22,8 @@ A persisted page restored from browser history reloads the page.
 
 ## Selection and URL parameters
 
-The DEV course buttons map `ribbon-coast` / RIBBON COAST / 1, `ribbon-ring` / RIBBON RING / 2
-and `ribbon-fork` / RIBBON FORK / 3. Missing or unknown `mode` selects the first entry, RIBBON COAST.
+The DEV course buttons map `ribbon-coast` / RIBBON COAST / 1, `ribbon-ring` / RIBBON RING / 2,
+`ribbon-fork` / RIBBON FORK / 3 and `ribbon-rough` / RIBBON ROUGH / 4. Missing or unknown `mode` selects the first entry, RIBBON COAST.
 Selecting the active course does nothing. Selecting another performs full-page navigation, changes
 `mode`, removes `session`, `vehicle`, `rivals`, `laps`, `clock` and `autostart`, and preserves other URL data.
 
@@ -42,6 +42,7 @@ Session parameters are case-sensitive:
 CLASSIC uses the saved vehicle, rivals and laps with the time limit enabled, ignoring their individual
 query overrides. CUSTOM exposes those settings. Invalid vehicle, numeric or course/Session combinations
 produce an error. Setup locks preset fields in CLASSIC and disables a single-lap course's lap control.
+A course delivered without time budgets is untimed: CLASSIC and CUSTOM both run it without the clock.
 
 ```text
 ?mode=ribbon-coast&session=CUSTOM&vehicle=TESTAROSSA&rivals=16&laps=1&clock=off&autostart=1

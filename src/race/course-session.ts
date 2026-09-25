@@ -7,20 +7,24 @@ export interface CourseTimeBudgets {
   after(gate: CompiledCourseLandmark, lap: number): number;
 }
 
-/** Resolve one playable configuration before actors/ticks exist. Graph and catalog objects remain shared references. */
+/**
+ * Resolve one playable configuration before actors/ticks exist. Graph and catalog objects remain shared
+ * references. An untimed course (delivered without time budgets) runs every Session without a clock.
+ */
 export function resolveCourseSession(
   course: CompiledCourse,
   requested: SessionConfiguration,
   vehicle: SessionVehicle,
   envelope: VehicleEnvelope,
   budgets: CourseTimeBudgets | null = null,
+  timed = true,
 ) {
   if (!course.rules) throw new RangeError('Session requires authored rules');
   const preset = course.rules.classic;
   const configuration: Readonly<SessionConfiguration> =
     requested.mode === 'CLASSIC'
-      ? Object.freeze({ mode: 'CLASSIC', rivalCount: preset.rivalCount, lapCount: preset.lapCount, timeLimit: true })
-      : requested;
+      ? Object.freeze({ mode: 'CLASSIC', rivalCount: preset.rivalCount, lapCount: preset.lapCount, timeLimit: timed })
+      : Object.freeze({ ...requested, timeLimit: timed && requested.timeLimit });
   if (configuration.mode === 'CLASSIC' && vehicle.vehicleDefinition.compiledVehicle.id !== preset.vehicleId)
     throw new RangeError('CLASSIC requires its preset vehicle');
   if (configuration.lapCount > course.rules.maxLaps)

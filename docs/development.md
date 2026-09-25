@@ -153,7 +153,8 @@ Authoring inputs under `content/` still use explicit source filenames and image 
 Build first writes completed vehicle images and their manifest entry, stages vehicle/driving documents and courses/images, then
 loads the verified definitions from that index. Reference workers independently read the same
 `dist/content` definitions and courses, generate envelopes/runs, and add envelopes/budgets before
-publishing the completed build. Node tools also read vehicle/driving definitions from this distribution.
+publishing the completed build. Courses in the build's untimed set (`UNTIMED_COURSES`, currently the
+`ribbon-rough` evaluation course) are delivered without reference runs or budgets. Node tools also read vehicle/driving definitions from this distribution.
 
 | Output                                         | Use                                      |
 | ---------------------------------------------- | ---------------------------------------- |
