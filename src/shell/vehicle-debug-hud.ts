@@ -80,7 +80,7 @@ function createVehicleDebugHudModel(
       .toString()
       .padStart(
         3,
-      )}km/h  RPM ${Math.round(vehicle.powertrain.engineRpm).toString().padStart(5)}  GEAR ${vehicle.powertrain.gear}  FUEL ${
+      )}km/h  RPM ${Math.round(vehicle.powertrain.engineRpm).toString().padStart(5)}  GEAR ${vehicle.powertrain.gear}  CLUTCH ${vehicle.powertrain.clutch}  FUEL ${
       vehicle.powertrain.fuelCut ? 'CUT' : 'ON'
     }`,
     requestedSteering: clampSigned(input.steering),

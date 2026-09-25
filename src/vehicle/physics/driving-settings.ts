@@ -16,6 +16,7 @@ export function createDrivingSettings(definition: DrivingDefinition) {
     'fuelCutRedlineMargin',
     'idleFrictionMeanEffectivePressureBar',
     'redlineFrictionMeanEffectivePressureBar',
+    'engineInertiaKilogramSquareMetersPerLitre',
   ] as const) {
     if (!(definition[field] > 0) || !Number.isFinite(definition[field]))
       throw new DefinitionDomainError(field, `${field} must be finite and > 0`);
@@ -47,6 +48,7 @@ export function createDrivingSettings(definition: DrivingDefinition) {
       idleFrictionMeanEffectivePressure: definition.idleFrictionMeanEffectivePressureBar * PASCALS_PER_BAR,
       redlineFrictionMeanEffectivePressure: definition.redlineFrictionMeanEffectivePressureBar * PASCALS_PER_BAR,
       drivelineEfficiency: definition.drivelineEfficiency,
+      engineInertiaPerLitre: definition.engineInertiaKilogramSquareMetersPerLitre,
     }) satisfies PowertrainRules,
     actuator,
     steeringCalibration: withDefinitionPath(

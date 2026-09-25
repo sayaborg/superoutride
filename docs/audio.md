@@ -21,7 +21,8 @@ same sample-free engine kernel. Firing rows identify events and collector groups
 
 ## Engine synthesis
 
-The voice bounds RPM by the profile's idle and redline. Excitation follows actuator throttle multiplied
+The voice reads engine RPM exactly as simulated; physics keeps it at or above idle, and the exhaust
+processor's own `rpm` parameter range (0 to 24000) is the only bound. Excitation follows actuator throttle multiplied
 by the delivered-drive/output-drive torque fraction. Closed throttle has a positive excitation floor;
 stronger excitation shortens pulse rise time, while decay time is independent of load.
 

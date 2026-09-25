@@ -19,14 +19,12 @@ export function createVehicleAudioObservation(): Observation {
     lateralPower: 0,
     surface: 'VOID',
   });
-  return { rpm: 0, idleRpm: 1000, redlineRpm: 7000, drive: 0, front: tire(), rear: tire() };
+  return { rpm: 0, drive: 0, front: tire(), rear: tire() };
 }
 /** Copy completed observations into two reusable slots; do not run contact or tire solvers here. */
 export function readEngineAudio(vehicle: VehicleState, result: Observation): void {
-  const { control, powertrain, compiledVehicle } = vehicle;
+  const { control, powertrain } = vehicle;
   result.rpm = powertrain.engineRpm;
-  result.idleRpm = compiledVehicle.powertrain.idleRpm;
-  result.redlineRpm = compiledVehicle.powertrain.redlineRpm;
   result.drive =
     powertrain.outputDriveTorque > 0
       ? Math.max(0, Math.min(1, control.deliveredDriveTorque / powertrain.outputDriveTorque)) *

@@ -1,6 +1,6 @@
 {
   "format": "superoutride.driving-definition",
-  "version": 3,
+  "version": 4,
   "id": "default",
   "automaticSteering": "travel-direction",
   "maxRoadWheelSteerDegrees": 65,
@@ -10,6 +10,7 @@
   "idleFrictionMeanEffectivePressureBar": 1.0,
   "redlineFrictionMeanEffectivePressureBar": 2.5,
   "drivelineEfficiency": 0.9,
+  "engineInertiaKilogramSquareMetersPerLitre": 0.04,
   "throttle": {
     "applySeconds": 0.25,
     "releaseSeconds": 0.125

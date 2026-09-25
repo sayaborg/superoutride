@@ -12,9 +12,8 @@ export interface TireAudioObservation {
   readonly surface: 'ASPHALT' | 'SHOULDER' | 'GRASS' | 'DIRT' | 'SAND' | 'VOID';
 }
 export interface VehicleAudioObservation {
+  /** Engine speed exactly as simulated; it never falls below idle. */
   readonly rpm: number;
-  readonly idleRpm: number;
-  readonly redlineRpm: number;
   /** Delivered-drive fraction times throttle: an acoustic excitation proxy, not cylinder load. */
   readonly drive: number;
   readonly front: TireAudioObservation;

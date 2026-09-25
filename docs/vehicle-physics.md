@@ -138,14 +138,15 @@ Zero wheel speed is the solution when it satisfies the static brake interval. Ot
 bracket and at most 60 bisections solve the monotone residual, with early return below 1e-10 N m
 absolute torque residual. Contact reference speed stays fixed during the scalar solve.
 
-The automatic powertrain derives RPM from drive-split wheel speed and current ratio and interpolates
-curve torque. It upshifts one gear when current RPM reaches redline. It downshifts one gear when
-the same wheel speed in the next lower ratio would put the engine at or below peak-power RPM. Vehicle
+The automatic powertrain derives a wheel-derived RPM from drive-split wheel speed and the current
+ratio. Shift decisions use its magnitude: it upshifts one gear when that RPM reaches redline and
+downshifts one gear when the same wheel speed in the next lower ratio would put the engine at or
+below peak-power RPM. Vehicle
 compilation derives peak-power RPM once as the maximum of `rpm * torque` over the complete
 piecewise-linear torque curve, including an interior maximum within a segment.
 One fixed simulation step performs at most one shift across all mechanics substeps; the ratio change is instantaneous and does not interrupt drive.
 
-Fuel cut is a hysteretic latch. It enters when RPM exceeds
+Fuel cut is a hysteretic latch on engine RPM, whatever the clutch state. It enters when RPM exceeds
 `redlineRpm * (1 + fuelCutRedlineMargin)`, clears when RPM returns to redline or below, and removes
 the curve torque while latched. There is no pre-redline torque taper. The game-wide driving
 definition owns the provisional margin, 0.02.
@@ -162,14 +163,36 @@ wheelTorque = engineTorque * gearRatio * finalDriveRatio * drivelineEfficiency
 ```
 
 Full throttle therefore delivers exactly the curve torque; smaller openings, released throttle and
-fuel cut give less or negative engine torque. `couplePowertrain` resolves the two friction torques
-(at idle and redline FMEP) and the game-wide efficiency and fuel-cut margin once, when a vehicle is
-created from its compiled vehicle and the driving settings; friction torque is not a vehicle value.
-Below idle, curve torque keeps its idle value. Until the clutch exists, friction reaches the wheels
-only while the driven wheels turn forward with engine RPM at or above idle; otherwise the engine
-contributes only `throttle*curveTorque`, so friction never pushes a nearly stopped or reversing
-vehicle. Negative wheel torque is engine braking: it is split by the drive fraction and joins each
-driven station's brake magnitude, so it opposes wheel rotation and never reverses it.
+fuel cut give less or negative engine torque. Below idle, curve torque keeps its idle value.
+
+Engine speed is powertrain state with a rotor inertia derived from displacement:
+`engineInertia = displacementLitres * engineInertiaKilogramSquareMetersPerLitre`.
+`couplePowertrain` resolves the two friction torques (at idle and redline FMEP), the inertia and the
+game-wide efficiency and fuel-cut margin once, when a vehicle is created from its compiled vehicle
+and the driving settings; friction torque and inertia are not vehicle values. Vehicle compilation
+derives the launch RPM as peak-torque RPM, the lowest RPM of the curve's maximum torque.
+
+The clutch is a hysteretic latch on the signed wheel-derived RPM, stored in the powertrain state as
+`LOCK` or `SLIP`. A slipping clutch locks when the wheel-derived RPM reaches peak-torque RPM; a locked
+clutch slips when it falls below idle. A new or recovered powertrain starts locked with the
+wheel-derived RPM when that RPM is at or above peak-torque RPM, and otherwise slips at idle.
+
+- `LOCK`: engine RPM equals the wheel-derived RPM, and the signed engine torque reaches the wheels.
+  Engine braking exists only while locked.
+- `SLIP`: one law advances engine RPM,
+  `dRPM/dt = (opening*(curveTorque+frictionTorque) - frictionTorque - clutchTorque) / engineInertia`,
+  by forward Euler at the RPM of the step's start. The clutch transmits only the positive excess
+  that would carry the engine past peak-torque RPM in that step, so the engine rises to launch RPM
+  and holds there while the excess drives the wheels; wheel torque is
+  `clutchTorque * gearRatio * finalDriveRatio * drivelineEfficiency` and never negative.
+
+The opening is the larger of throttle and the idle-holding opening, the opening whose step would
+land exactly on idle. Idle is therefore held by torque, not by a clamp, and settles without
+oscillation. A small throttle whose torque cannot exceed friction does not raise engine speed or
+move the vehicle. Engine RPM changes continuously except at a ratio change: locking happens where the
+wheels reach the engine held at launch RPM, and slipping starts from the idle RPM the engine
+already has. Negative wheel torque is split by the drive fraction and joins each driven station's
+brake magnitude, so it opposes wheel rotation and never reverses it.
 
 The piecewise-linear torque curve covers idle through redline. Admission checks its ordered RPM
 points, positive finite torques and coverage, and requires the derived peak-power RPM to be below
@@ -253,7 +276,7 @@ mechanical observations without contributing forces or alternate mechanical stat
 ## Vehicle and driving documents
 
 `content/vehicles/<id>.json` stores one `superoutride.vehicle-definition` version 5 per vehicle.
-`content/driving/default.json` stores the sole `superoutride.driving-definition` version 3.
+`content/driving/default.json` stores the sole `superoutride.driving-definition` version 4.
 [Calibration](calibration.md) owns tuning meanings and units. Document admission in
 `vehicle/definition-document.ts` publishes detached, deeply immutable source and compiled products.
 
@@ -277,9 +300,11 @@ The driving document has `format`, `version`, `id:"default"` and the current `Dr
 fields: `automaticSteering:"travel-direction"`, `maxRoadWheelSteerDegrees`, `steeringOffsetDegrees`,
 `steeringTraversalSeconds`, positive `fuelCutRedlineMargin`, positive
 `idleFrictionMeanEffectivePressureBar` and `redlineFrictionMeanEffectivePressureBar`,
-`drivelineEfficiency` in (0,1], `throttle` and `brake` (each applySeconds/releaseSeconds), boolean
+`drivelineEfficiency` in (0,1], positive `engineInertiaKilogramSquareMetersPerLitre`, `throttle`
+and `brake` (each applySeconds/releaseSeconds), boolean
 `wheelSlip`, and `tire` (gripX/peakSlipX/gripY/peakSlipY/knee). Angles are degrees, traversal times
-are seconds, pressures are bar, and tire, fuel-cut and efficiency values are dimensionless. Require
+are seconds, pressures are bar, inertia is kg m² per litre, and tire, fuel-cut and efficiency values
+are dimensionless. Require
 0 < offset < maximum < 90 degrees, positive finite actuator rates after conversion, positive finite
 tire capacities/stiffness and 0 < knee < 1.
 Later game-wide launch and pitch rules extend this same document rather than creating separate

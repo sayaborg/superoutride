@@ -10,6 +10,7 @@ export interface DrivingDefinition {
   readonly idleFrictionMeanEffectivePressureBar: number;
   readonly redlineFrictionMeanEffectivePressureBar: number;
   readonly drivelineEfficiency: number;
+  readonly engineInertiaKilogramSquareMetersPerLitre: number;
   readonly throttle: Readonly<{ applySeconds: number; releaseSeconds: number }>;
   readonly brake: Readonly<{ applySeconds: number; releaseSeconds: number }>;
   readonly wheelSlip: boolean;
@@ -18,6 +19,6 @@ export interface DrivingDefinition {
 
 export interface DrivingDocument extends DrivingDefinition {
   readonly format: 'superoutride.driving-definition';
-  readonly version: 3;
+  readonly version: 4;
   readonly id: 'default';
 }

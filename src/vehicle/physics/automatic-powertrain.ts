@@ -6,12 +6,12 @@ interface EngineTorquePoint {
   readonly torqueNewtonMeters: number;
 }
 
-/** Ideal direct-drive robotized MT: no clutch, converter, engine rotor or shift-duration model. */
+/** Automated MT with one clutch rule and an engine rotor; no converter or shift-duration model. */
 export interface AutomaticPowertrainDefinition {
   /** Authored engine size and cycle; friction torque derives from them with game-wide pressures. */
   readonly displacementCc: number;
   readonly cycle: 2 | 4;
-  /** Torque-sampling floor only; derived engine RPM is allowed to be zero at rest. */
+  /** Engine speed held by idle-holding torque, and the torque-sampling floor. */
   readonly idleRpm: number;
   readonly redlineRpm: number;
   readonly finalDriveRatio: number;
@@ -20,8 +20,10 @@ export interface AutomaticPowertrainDefinition {
 }
 
 export interface CompiledAutomaticPowertrainDefinition extends AutomaticPowertrainDefinition {
-  /** Derived once from the admitted torque curve; never authored as a vehicle value. */
+  /** Derived once from the admitted torque curve; never authored as vehicle values. */
   readonly peakPowerRpm: number;
+  /** Launch speed: the lowest RPM of the curve's maximum torque, where a slipping clutch locks. */
+  readonly peakTorqueRpm: number;
 }
 
 /** Game-wide powertrain rules converted from the driving definition; pressures are in Pa. */
@@ -30,17 +32,24 @@ export interface PowertrainRules {
   readonly idleFrictionMeanEffectivePressure: number;
   readonly redlineFrictionMeanEffectivePressure: number;
   readonly drivelineEfficiency: number;
+  /** kg m^2 per litre of displacement. */
+  readonly engineInertiaPerLitre: number;
 }
 
-/** One vehicle's powertrain under the game-wide rules; friction torque is never a vehicle value. */
+/** One vehicle's powertrain under the game-wide rules; friction and inertia are never vehicle values. */
 export interface PowertrainCoupling {
   readonly fuelCutRedlineMargin: number;
   readonly drivelineEfficiency: number;
   readonly idleFrictionTorque: number;
   readonly redlineFrictionTorque: number;
+  /** kg m^2 */
+  readonly engineInertia: number;
 }
 
-/** Friction torque = FMEP * displacement / (2 * pi * revolutions per cycle). */
+/**
+ * Friction torque = FMEP * displacement / (2 * pi * revolutions per cycle);
+ * engine inertia = displacement in litres * game-wide inertia per litre.
+ */
 export function couplePowertrain(
   definition: Pick<AutomaticPowertrainDefinition, 'displacementCc' | 'cycle'>,
   rules: PowertrainRules,
@@ -51,15 +60,19 @@ export function couplePowertrain(
     drivelineEfficiency: rules.drivelineEfficiency,
     idleFrictionTorque: rules.idleFrictionMeanEffectivePressure * torquePerPressure,
     redlineFrictionTorque: rules.redlineFrictionMeanEffectivePressure * torquePerPressure,
+    engineInertia: (definition.displacementCc / 1000) * rules.engineInertiaPerLitre,
   });
 }
 
+export type ClutchState = 'LOCK' | 'SLIP';
+
 export interface AutomaticPowertrainState {
-  /** Selected gear and fuel-cut latch are the only dynamic powertrain memory. */
+  /** Selected gear, fuel-cut and clutch latches and engine speed are the only dynamic powertrain memory. */
   gear: number;
   fuelCut: boolean;
-  /** Derived observation caches; none is consumed as state by the next drive solve. */
+  clutch: ClutchState;
   engineRpm: number;
+  /** Derived observation caches; none is consumed as state by the next drive solve. */
   /** Signed engine torque; negative while friction exceeds the throttle torque. */
   engineTorqueNewtonMeters: number;
   /** Signed requested wheel-side torque before protection/distribution, never a direct body force. */
@@ -75,22 +88,27 @@ export function createAutomaticPowertrainState(
   let gear = 1;
   while (gear < definition.gearRatios.length && coupledEngineRpm(definition, wheelOmega, gear) >= definition.redlineRpm)
     gear += 1;
-  const engineRpm = coupledEngineRpm(definition, wheelOmega, gear);
+  const wheelRpm = coupledEngineRpm(definition, drivenWheelOmega, gear);
+  const locked = wheelRpm >= definition.peakTorqueRpm;
   return {
     gear,
     fuelCut: false,
-    engineRpm,
+    engineRpm: locked ? wheelRpm : definition.idleRpm,
+    clutch: locked ? 'LOCK' : 'SLIP',
     engineTorqueNewtonMeters: 0,
     outputDriveTorque: 0,
   };
 }
 
 /**
- * One ordinary mechanics step. RPM is algebraic in authoritative driven-wheel speed and gear.
- * At most one instantaneous ratio change occurs per call, with no drive interruption.
- * Fuel cut is a hysteretic latch above redline; dt validates the shared step contract.
- * Engine torque is throttle * (curve + friction) - friction. Until the clutch exists, friction
- * reaches the wheels only while they turn forward with the engine at or above idle.
+ * One ordinary mechanics step. Shifts follow the wheel-derived RPM, at most one per call.
+ * The clutch is a hysteretic latch on the signed wheel-derived RPM: it locks at peak-torque RPM
+ * and releases below idle. While locked the engine turns with the wheels and delivers its signed
+ * torque. While slipping one law advances engine speed:
+ * dRPM/dt = (opening torque - friction - clutch torque) / inertia, by forward Euler at the current
+ * RPM. The opening is the larger of throttle and the idle-holding opening that lands the step on
+ * idle; the clutch transmits only the positive excess that would carry the engine past
+ * peak-torque RPM. Fuel cut is a hysteretic latch on engine RPM.
  */
 export function updateAutomaticPowertrain(
   state: AutomaticPowertrainState,
@@ -120,24 +138,34 @@ export function updateAutomaticPowertrain(
     }
   }
 
-  state.engineRpm = coupledEngineRpm(definition, wheelOmega, state.gear);
+  const wheelRpm = coupledEngineRpm(definition, drivenWheelOmega, state.gear);
+  if (state.clutch === 'SLIP' && wheelRpm >= definition.peakTorqueRpm) state.clutch = 'LOCK';
+  else if (state.clutch === 'LOCK' && wheelRpm < definition.idleRpm) state.clutch = 'SLIP';
+  const locked = state.clutch === 'LOCK';
+  if (locked) state.engineRpm = wheelRpm;
+  const rpm = state.engineRpm;
   if (state.fuelCut) {
-    if (state.engineRpm <= definition.redlineRpm) state.fuelCut = false;
-  } else if (state.engineRpm > definition.redlineRpm * (1 + coupling.fuelCutRedlineMargin)) {
+    if (rpm <= definition.redlineRpm) state.fuelCut = false;
+  } else if (rpm > definition.redlineRpm * (1 + coupling.fuelCutRedlineMargin)) {
     state.fuelCut = true;
   }
 
-  const friction =
-    drivenWheelOmega > 0 && state.engineRpm >= definition.idleRpm
-      ? engineFrictionTorque(definition, coupling, state.engineRpm)
-      : 0;
-  state.engineTorqueNewtonMeters = state.fuelCut
-    ? -friction
-    : clamp(throttle, 0, 1) * (sampleEngineTorque(definition, state.engineRpm) + friction) - friction;
+  const friction = engineFrictionTorque(definition, coupling, rpm);
+  const curve = sampleEngineTorque(definition, rpm);
+  const rpmPerTorque = (dt * RPM_PER_RADIAN_PER_SECOND) / coupling.engineInertia;
+  const idleOpening = ((definition.idleRpm - rpm) / rpmPerTorque + friction) / (curve + friction);
+  const opening = Math.max(clamp(throttle, 0, 1), clamp(idleOpening, 0, 1));
+  const engineTorque = state.fuelCut ? -friction : opening * (curve + friction) - friction;
+  const freeRpm = rpm + engineTorque * rpmPerTorque;
+  const clutchTorque = locked ? engineTorque : Math.max(0, (freeRpm - definition.peakTorqueRpm) / rpmPerTorque);
+  if (!locked) state.engineRpm = freeRpm - clutchTorque * rpmPerTorque;
+  state.engineTorqueNewtonMeters = engineTorque;
   const ratio = definition.gearRatios[state.gear - 1]! * definition.finalDriveRatio;
-  state.outputDriveTorque = state.engineTorqueNewtonMeters * ratio * coupling.drivelineEfficiency;
+  state.outputDriveTorque = clutchTorque * ratio * coupling.drivelineEfficiency;
   return state.outputDriveTorque;
 }
+
+const RPM_PER_RADIAN_PER_SECOND = 60 / (2 * Math.PI);
 
 /** Linear in RPM from idle to redline and held at those values outside that range. */
 function engineFrictionTorque(
@@ -149,7 +177,7 @@ function engineFrictionTorque(
   return coupling.idleFrictionTorque + (coupling.redlineFrictionTorque - coupling.idleFrictionTorque) * t;
 }
 
-/** No-stall launch approximation: use the idle torque below idle, without inventing engine RPM. */
+/** Below idle, sample the idle torque. */
 function sampleEngineTorque(
   definition: Pick<AutomaticPowertrainDefinition, 'idleRpm' | 'torqueCurve'>,
   rpm: number,
@@ -260,6 +288,9 @@ export function compileAutomaticPowertrainDefinition(
     throw new DefinitionDomainError('torqueCurve', 'torqueCurve must cover idleRpm through redlineRpm');
   }
   const { rpm: peakPowerRpm, pathIndex: peakPowerPathIndex } = peakPowerPoint(definition.torqueCurve);
+  const peakTorque = definition.torqueCurve.reduce((best, point) =>
+    point.torqueNewtonMeters > best.torqueNewtonMeters ? point : best,
+  );
   if (!(peakPowerRpm < definition.redlineRpm)) {
     throw new DefinitionDomainError(
       `torqueCurve/${peakPowerPathIndex}/rpm`,
@@ -271,5 +302,6 @@ export function compileAutomaticPowertrainDefinition(
     gearRatios: Object.freeze([...definition.gearRatios]),
     torqueCurve: Object.freeze(definition.torqueCurve.map((point) => Object.freeze({ ...point }))),
     peakPowerRpm,
+    peakTorqueRpm: peakTorque.rpm,
   });
 }

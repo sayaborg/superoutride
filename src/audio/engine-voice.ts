@@ -60,7 +60,7 @@ export function createEngineVoice(
         exhaust.port.postMessage({ profile, tuning: acousticTuning });
         active = { profile, tuning: acousticTuning };
       }
-      follow(exhaust.parameters.get('rpm')!, clamp(state.rpm, state.idleRpm, state.redlineRpm), now);
+      follow(exhaust.parameters.get('rpm')!, state.rpm, now);
       follow(exhaust.parameters.get('load')!, clamp(state.drive, 0, 1), now);
       follow(output.gain, clamp(gain, 0, 1), now);
     },

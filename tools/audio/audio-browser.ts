@@ -81,10 +81,9 @@ async function audition() {
     const entry = vehicles[Number(vehicle.value)]!;
     const context = new OfflineAudioContext(1, 4 * 48000, 48000);
     const state = createVehicleAudioObservation();
+    const { idleRpm, redlineRpm } = entry.compiledVehicle.powertrain;
     Object.assign(state, {
       rpm: Number(mustGet<HTMLInputElement>('rpm').value) || 3000,
-      idleRpm: entry.compiledVehicle.powertrain.idleRpm,
-      redlineRpm: entry.compiledVehicle.powertrain.redlineRpm,
       drive: Number(mustGet<HTMLSelectElement>('load').value),
     });
     await context.audioWorklet.addModule(new URL('./exhaust-processor.js', import.meta.url));
@@ -94,8 +93,8 @@ async function audition() {
     });
     voice.update(state, entry.sound);
     if (scenario === 'rev') {
-      const target = Math.max(state.idleRpm, Math.min(state.rpm, state.redlineRpm));
-      state.rpm = state.idleRpm;
+      const target = Math.max(idleRpm, Math.min(state.rpm, redlineRpm));
+      state.rpm = idleRpm;
       state.drive = 0;
       voice.update(state, entry.sound);
       for (let tick = 20; tick < 80; tick++) {
@@ -104,7 +103,7 @@ async function audition() {
           const accelerating = time < 2.5;
           state.drive = accelerating ? 1 : 0;
           const fraction = accelerating ? (time - 1) / 1.5 : 1 - (time - 2.5) / 1.5;
-          state.rpm = state.idleRpm + (target - state.idleRpm) * fraction;
+          state.rpm = idleRpm + (target - idleRpm) * fraction;
           voice.update(state, entry.sound);
           return context.resume();
         });
