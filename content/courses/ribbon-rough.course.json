@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 25,
+  "version": 26,
   "id": "ribbon-rough",
   "entrySectionId": "rough-bumps",
   "rules": {
@@ -190,6 +190,17 @@
               "left": { "boundary": "road-left", "offset": 0 },
               "right": { "boundary": "road-right", "offset": 0 }
             }
+          ]
+        },
+        {
+          "kind": "curb",
+          "start": { "pi": "start", "offset": 0 },
+          "end": { "pi": "end", "offset": 0 },
+          "left": { "boundary": "road-left", "offset": 0 },
+          "right": { "boundary": "road-right", "offset": 0 },
+          "stripe": 1,
+          "colors": [
+            2188, 4335, 6449, 8596, 10711, 12858, 14972, 17119, 12416, 15585, 17698, 20867, 24005, 27174, 29287, 32456
           ]
         },
         {
@@ -561,6 +572,17 @@
               "left": { "boundary": "road-left", "offset": 0 },
               "right": { "boundary": "road-right", "offset": 0 }
             }
+          ]
+        },
+        {
+          "kind": "curb",
+          "start": { "pi": "start", "offset": 0 },
+          "end": { "pi": "end", "offset": 0 },
+          "left": { "boundary": "road-left", "offset": 0 },
+          "right": { "boundary": "road-right", "offset": 0 },
+          "stripe": 1,
+          "colors": [
+            8596, 10711, 12858, 14972, 17119, 12416, 15585, 17698, 20867, 24005, 27174, 29287, 32456, 2188, 4335, 6449
           ]
         },
         {

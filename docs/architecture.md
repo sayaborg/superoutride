@@ -22,7 +22,7 @@ Its shape readers check a JSON value and throw one `AdmissionError` addressed by
 with exactly the named fields; unknown fields first, then missing ones), `readDictionary`,
 `readString` (nonempty, no surrounding whitespace, optional length ceiling and pattern), `readBoolean`,
 `readNumber` (finite, optional closed or half-open range and integer; negative zero reads as zero),
-`readRgb555`, `readEnum`, `readArray` (optional ceiling or exact length), `readIdentified` (unique
+`readRgb555`, `readEnum`, `readArray` (optional floor, ceiling or exact length), `readIdentified` (unique
 `id` values) and `deepFreeze`. Formats keep their semantic checks and report them through the same
 error, with `requireAdmission` or a format subclass carrying its own codes.
 

@@ -161,7 +161,7 @@ publishing the completed build. Courses in the build's untimed set (`UNTIMED_COU
 | `dist/content/vehicles/<id>.json`              | Versioned vehicle definitions            |
 | `dist/content/driving/default.json`            | Versioned game-wide driving definition   |
 | `dist/content/manifest.json`                   | Delivery index and digest authority      |
-| `dist/content/courses/<course>.course.json`    | CourseDocument v25                       |
+| `dist/content/courses/<course>.course.json`    | CourseDocument v26                       |
 | `dist/content/images/<sha256>.json`            | All delivered course and vehicle images  |
 | `dist/content/envelopes/<vehicle>.json`        | Rival driving envelopes                  |
 | `dist/content/budgets/<course>/<vehicle>.json` | Timed Session budgets                    |

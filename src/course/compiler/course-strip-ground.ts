@@ -208,7 +208,7 @@ function expandCourseStrips(
               { s: start + i * element.stripe, left: element.left, right: element.right },
               { s: Math.min(end, start + (i + 1) * element.stripe), left: element.left, right: element.right },
             ],
-            element.colors[i % 2]!,
+            element.colors[i % element.colors.length]!,
             null,
             at,
           );

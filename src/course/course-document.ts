@@ -14,7 +14,7 @@ import {
   readString,
 } from '../core/admission.js';
 
-const COURSE_DOCUMENT_VERSION = 25;
+const COURSE_DOCUMENT_VERSION = 26;
 const ID = { maxLength: COURSE_DOCUMENT_LIMITS.idCodeUnits };
 
 export interface CoursePosition {
@@ -314,7 +314,10 @@ function stripLeaf(value: unknown, path: string): Exclude<StripElementDocument, 
   }
   if (kind === 'curb') {
     const v = readRecord(value, path, ['kind', 'start', 'end', 'left', 'right', 'stripe', 'colors']);
-    const colors = readArray(v.colors, `${path}/colors`, readRgb555, { length: 2 });
+    const colors = readArray(v.colors, `${path}/colors`, readRgb555, {
+      min: 2,
+      max: COURSE_DOCUMENT_LIMITS.curbColors,
+    });
     return Object.freeze({
       kind,
       start: position(v.start, `${path}/start`),

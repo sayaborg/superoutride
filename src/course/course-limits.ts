@@ -23,6 +23,7 @@ export const COURSE_DOCUMENT_LIMITS = Object.freeze({
   repeatDepth: 8,
   textCodeUnits: 64,
   stripExpansion: 131072,
+  curbColors: 64,
   activeStrips: 64,
   stripSlabs: 1048576,
   preblendCells: 131072,

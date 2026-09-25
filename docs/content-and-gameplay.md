@@ -18,7 +18,7 @@ color and material overwrite independently. Compiled Sections publish their two 
 Checkpoints, starts, finishes and environment changes are independent of Section boundaries.
 Source identity, traversal identity and race credit are distinct.
 
-## CourseDocument v25
+## CourseDocument v26
 
 The saved format is compact UTF-8 JSON. All declared fields are required; explicit null represents
 absent optional content. Unknown fields fail. Arrays preserve saved order; object-property order and
@@ -26,7 +26,7 @@ whitespace do not affect identity. Normalized records use schema field order and
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 25,
+  format: "superoutride.course", version: 26,
   id,
   entrySectionId,
   sections, links, assets, rules
@@ -157,13 +157,13 @@ wipes and other transition effects remain a separate decision before Stage 12.
 
 Section `strips` is an ordered array of these constructs. Each record includes `kind`.
 
-| Element  | Fields                                                                                   |
-| -------- | ---------------------------------------------------------------------------------------- |
-| `strip`  | `knots:[{at,left,right}]`, `color`, `material`                                           |
-| `repeat` | positive `every`, integer `count`, `elements`                                            |
-| `arrow`  | `at`, `lateral`, positive `width`, `length`, `direction`, RGB555 `color`                 |
-| `text`   | `at`, `lateral`, `text`, positive `height`, RGB555 `color`                               |
-| `curb`   | Position `start`, `end`, Lateral `left`, `right`, positive `stripe`, two RGB555 `colors` |
+| Element  | Fields                                                                                    |
+| -------- | ----------------------------------------------------------------------------------------- |
+| `strip`  | `knots:[{at,left,right}]`, `color`, `material`                                            |
+| `repeat` | positive `every`, integer `count`, `elements`                                             |
+| `arrow`  | `at`, `lateral`, positive `width`, `length`, `direction`, RGB555 `color`                  |
+| `text`   | `at`, `lateral`, `text`, positive `height`, RGB555 `color`                                |
+| `curb`   | Position `start`, `end`, Lateral `left`, `right`, positive `stripe`, RGB555 `colors` list |
 
 A Strip's color is an RGB555 integer from 0 through 32767, `"transparent"` to erase earlier color,
 or null to leave color unchanged. Zero is opaque black. Material is a material ID or null to leave
@@ -190,8 +190,10 @@ bounding edge and lateral its center; width and length are its final bounding di
 Direction is `forward`, `left` or `right`. Text at/lateral specifies the near/left edge of its cells;
 height covers seven cells, horizontal advance is six cells per character. Text admits uppercase
 A–Z, digits 0–9 and spaces; the text length ceiling is listed below. Polygon edges and glyph row runs expand
-to affine pieces. A curb alternates its two colors from start, clips the last stripe to end,
-and resolves its Lateral edges over each stripe interval. All expanded intervals must fit the Section.
+to affine pieces. A curb repeats its colors in list order from start, one color per stripe, clips the
+last stripe to end, and resolves its Lateral edges over each stripe interval. The list holds at least
+two colors; its ceiling is listed below. Across the full road width, a curb paints striped or
+gradient road surfaces. All expanded intervals must fit the Section.
 
 The numeric and resource table below bounds each element array, repetition, expansion work,
 simultaneously active pieces, resolved slabs and cached fields. Covered pieces still count;
@@ -286,6 +288,7 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | `repeatCount`                                                           |              65536 | Whole-length 1 m repetitions: 21000 × 2, rounded up                                                                     |
 | `repeatDepth` / `textCodeUnits`                                         |             8 / 64 | Four organizational levels × 2; 32-character road legend × 2                                                            |
 | Section `stripExpansion` (pieces and visited constructs separately)     |             131072 | 21 × 3000/km × 2, rounded up                                                                                            |
+| Each curb `curbColors`                                                  |                 64 | Two 16-step hue ramps (32 colors) × 2                                                                                   |
 | Section `activeStrips`                                                  |                 64 | 16 base layers + 14 glyph/marking runs + 2 curbs, doubled; counts hidden pieces                                         |
 | Each color/material table `stripSlabs`                                  |            1048576 | Expanded-piece budget × two endpoints × four for crossing subdivisions                                                  |
 | Section `preblendCells`                                                 |             131072 | All 1 m dyadic levels at 42000 m total fewer than 84032 cells, rounded up                                               |

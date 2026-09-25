@@ -189,10 +189,11 @@ export function readArray<T>(
   value: unknown,
   path: string,
   read: (value: unknown, path: string) => T,
-  { max = Infinity, length }: { max?: number; length?: number } = {},
+  { min = 0, max = Infinity, length }: { min?: number; max?: number; length?: number } = {},
 ): readonly T[] {
   if (!Array.isArray(value)) throw new AdmissionError('invalid_shape', path, 'Expected an array');
   if (value.length > max) throw new AdmissionError('resource_limit', path, `At most ${max} entries are admitted`);
+  if (value.length < min) throw new AdmissionError('invalid_shape', path, `Expected at least ${min} entries`);
   if (length !== undefined && value.length !== length)
     throw new AdmissionError('invalid_shape', path, `Expected exactly ${length} entries`);
   return Object.freeze(Array.from(value, (item, index) => read(item, `${path}/${index}`)));
