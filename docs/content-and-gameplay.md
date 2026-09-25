@@ -661,6 +661,17 @@ time budgets and its Sessions are untimed. It is a 4.2 km two-Section circuit on
 |                | 640–847      | Gradual climb                                                                   |
 |                | 867–1739     | Two 150 m right sweepers, sand trap outside the first                           |
 
+Speed and ground motion read from 1 m brightness bands on every surface (grass, shoulder, road, dirt,
+sand). Each surface's colored Strip is followed by color-only curb elements over the same lateral and
+longitudinal extent (grass, whose Strip is laterally open, uses ±1000 m). A band's color keeps its
+surface's color and moves the brightest RGB555 channel by one of seven steps from −3 to +3, scaling the
+other channels in proportion; every step stays a distinct color. The step order is one saved 64-entry
+list, drawn once by a fixed-seed generator: adjacent bands differ, including across the 64 m repetition,
+and no shorter period occurs. Every surface indexes that list by the band's whole-metre station (plus
+the first Section's rounded-up length in `rough-return`, so the sequence continues around the lap). Equal
+brightness therefore lines up across the road; an extent starting between whole metres begins with a
+partial band. The bands carry no material.
+
 ## Observation formats
 
 ### Course observations
