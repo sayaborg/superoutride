@@ -4,6 +4,7 @@
   "id": "R80_GS_PARIS_DAKAR",
   "form": "bike",
   "selectionOrder": 7,
+  "visuals": { "spriteSet": "motorcycle", "palette": "original", "steeringRatio": 18 },
   "mechanics": {
     "mass": 308,
     "yawInertia": 215,
@@ -30,6 +31,8 @@
     "rearBrakeTorqueMax": 430,
     "quadraticDrag": 0.36,
     "powertrain": {
+      "displacementCc": 797,
+      "cycle": 4,
       "idleRpm": 950,
       "redlineRpm": 7000,
       "finalDriveRatio": 5.04,
@@ -39,20 +42,17 @@
         { "rpm": 5000, "torqueNewtonMeters": 56.7 },
         { "rpm": 6500, "torqueNewtonMeters": 54.35753440984733 },
         { "rpm": 7000, "torqueNewtonMeters": 49.758050729014094 }
-      ],
-      "displacementCc": 797,
-      "cycle": 4
+      ]
     }
   },
   "sound": "R80_GS_PARIS_DAKAR",
   "metadata": {
     "manufacturer": "BMW",
     "model": "R 80 G/S Paris-Dakar",
+    "period": "1984–1987",
+    "mobileLabel": "R80",
     "identifier": null,
     "selectedSpecification": [],
-    "period": "1984\u20131987",
-    "physicsAnchor": { "modelYear": "1985", "market": "European/ROW" },
-    "mobileLabel": "R80"
-  },
-  "visuals": { "spriteSet": "motorcycle", "palette": "original", "steeringRatio": 18 }
+    "physicsAnchor": { "modelYear": "1985", "market": "European/ROW" }
+  }
 }

@@ -4,6 +4,7 @@
   "id": "CORVETTE_C4",
   "form": "car",
   "selectionOrder": 3,
+  "visuals": { "spriteSet": "coupe", "palette": "original", "steeringRatio": 18 },
   "mechanics": {
     "mass": 1585,
     "yawInertia": 3000,
@@ -30,6 +31,8 @@
     "rearBrakeTorqueMax": 2150,
     "quadraticDrag": 0.38,
     "powertrain": {
+      "displacementCc": 5733,
+      "cycle": 4,
       "idleRpm": 700,
       "redlineRpm": 5200,
       "finalDriveRatio": 3.33,
@@ -39,20 +42,17 @@
         { "rpm": 3200, "torqueNewtonMeters": 461 },
         { "rpm": 4300, "torqueNewtonMeters": 406.4002965462816 },
         { "rpm": 5200, "torqueNewtonMeters": 312.83371664376557 }
-      ],
-      "displacementCc": 5733,
-      "cycle": 4
+      ]
     }
   },
   "sound": "CORVETTE_C4",
   "metadata": {
     "manufacturer": "Chevrolet",
     "model": "Corvette",
+    "period": "1989–1990",
+    "mobileLabel": "C4",
     "identifier": { "officialLabel": "C4", "shortLabel": "C4" },
     "selectedSpecification": ["L98", "ZF 6-speed", "pre-facelift"],
-    "period": "1989\u20131990",
-    "physicsAnchor": { "modelYear": "1989", "market": "US" },
-    "mobileLabel": "C4"
-  },
-  "visuals": { "spriteSet": "coupe", "palette": "original", "steeringRatio": 18 }
+    "physicsAnchor": { "modelYear": "1989", "market": "US" }
+  }
 }

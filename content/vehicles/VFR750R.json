@@ -4,6 +4,7 @@
   "id": "VFR750R",
   "form": "bike",
   "selectionOrder": 6,
+  "visuals": { "spriteSet": "motorcycle", "palette": "original", "steeringRatio": 18 },
   "mechanics": {
     "mass": 273.5,
     "yawInertia": 180,
@@ -30,6 +31,8 @@
     "rearBrakeTorqueMax": 300,
     "quadraticDrag": 0.24,
     "powertrain": {
+      "displacementCc": 748,
+      "cycle": 4,
       "idleRpm": 1200,
       "redlineRpm": 12500,
       "finalDriveRatio": 4.8475,
@@ -39,20 +42,17 @@
         { "rpm": 10000, "torqueNewtonMeters": 73 },
         { "rpm": 11000, "torqueNewtonMeters": 71.53291260421189 },
         { "rpm": 12500, "torqueNewtonMeters": 60.8029757135801 }
-      ],
-      "displacementCc": 748,
-      "cycle": 4
+      ]
     }
   },
   "sound": "VFR750R",
   "metadata": {
     "manufacturer": "Honda",
     "model": "VFR750R",
+    "period": "1987–1990",
+    "mobileLabel": "RC30",
     "identifier": { "officialLabel": "RC30", "shortLabel": "RC30" },
     "selectedSpecification": [],
-    "period": "1987\u20131990",
-    "physicsAnchor": { "modelYear": "1988", "market": "ROW full-power" },
-    "mobileLabel": "RC30"
-  },
-  "visuals": { "spriteSet": "motorcycle", "palette": "original", "steeringRatio": 18 }
+    "physicsAnchor": { "modelYear": "1988", "market": "ROW full-power" }
+  }
 }

@@ -4,6 +4,7 @@
   "id": "PX200E_ARCOBALENO",
   "form": "bike",
   "selectionOrder": 9,
+  "visuals": { "spriteSet": "motorcycle", "palette": "original", "steeringRatio": 18 },
   "mechanics": {
     "mass": 190,
     "yawInertia": 98,
@@ -30,6 +31,8 @@
     "rearBrakeTorqueMax": 180,
     "quadraticDrag": 0.31,
     "powertrain": {
+      "displacementCc": 198,
+      "cycle": 2,
       "idleRpm": 900,
       "redlineRpm": 6500,
       "finalDriveRatio": 1,
@@ -39,20 +42,17 @@
         { "rpm": 3800, "torqueNewtonMeters": 16.8 },
         { "rpm": 5700, "torqueNewtonMeters": 14.742773675880834 },
         { "rpm": 6500, "torqueNewtonMeters": 12.4666963364466 }
-      ],
-      "displacementCc": 198,
-      "cycle": 2
+      ]
     }
   },
   "sound": "PX200E_ARCOBALENO",
   "metadata": {
     "manufacturer": "Vespa",
     "model": "PX 200 E Arcobaleno",
+    "period": "1983–1997",
+    "mobileLabel": "PX200",
     "identifier": { "officialLabel": "VSX1T", "shortLabel": "VSX1T" },
     "selectedSpecification": ["200 cc full-power"],
-    "period": "1983\u20131997",
-    "physicsAnchor": { "modelYear": "1985", "market": "Italian/European" },
-    "mobileLabel": "PX200"
-  },
-  "visuals": { "spriteSet": "motorcycle", "palette": "original", "steeringRatio": 18 }
+    "physicsAnchor": { "modelYear": "1985", "market": "Italian/European" }
+  }
 }

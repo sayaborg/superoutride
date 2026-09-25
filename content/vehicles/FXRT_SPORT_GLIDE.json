@@ -4,6 +4,7 @@
   "id": "FXRT_SPORT_GLIDE",
   "form": "bike",
   "selectionOrder": 8,
+  "visuals": { "spriteSet": "motorcycle", "palette": "original", "steeringRatio": 18 },
   "mechanics": {
     "mass": 385,
     "yawInertia": 285,
@@ -30,6 +31,8 @@
     "rearBrakeTorqueMax": 650,
     "quadraticDrag": 0.46,
     "powertrain": {
+      "displacementCc": 1337,
+      "cycle": 4,
       "idleRpm": 850,
       "redlineRpm": 5800,
       "finalDriveRatio": 3.3726,
@@ -39,20 +42,17 @@
         { "rpm": 3600, "torqueNewtonMeters": 91 },
         { "rpm": 5400, "torqueNewtonMeters": 84.35211983870452 },
         { "rpm": 5800, "torqueNewtonMeters": 77.47898414814341 }
-      ],
-      "displacementCc": 1337,
-      "cycle": 4
+      ]
     }
   },
   "sound": "FXRT_SPORT_GLIDE",
   "metadata": {
     "manufacturer": "Harley-Davidson",
     "model": "FXRT Sport Glide",
+    "period": "1984–1992",
+    "mobileLabel": "FXRT",
     "identifier": { "officialLabel": "FXRT", "shortLabel": "FXRT" },
     "selectedSpecification": ["Evolution 1340"],
-    "period": "1984\u20131992",
-    "physicsAnchor": { "modelYear": "1988", "market": "US" },
-    "mobileLabel": "FXRT"
-  },
-  "visuals": { "spriteSet": "motorcycle", "palette": "original", "steeringRatio": 18 }
+    "physicsAnchor": { "modelYear": "1988", "market": "US" }
+  }
 }

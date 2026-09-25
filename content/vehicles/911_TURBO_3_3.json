@@ -4,6 +4,7 @@
   "id": "911_TURBO_3_3",
   "form": "car",
   "selectionOrder": 2,
+  "visuals": { "spriteSet": "coupe", "palette": "original", "steeringRatio": 18 },
   "mechanics": {
     "mass": 1410,
     "yawInertia": 2400,
@@ -30,6 +31,8 @@
     "rearBrakeTorqueMax": 2100,
     "quadraticDrag": 0.43,
     "powertrain": {
+      "displacementCc": 3299,
+      "cycle": 4,
       "idleRpm": 900,
       "redlineRpm": 6800,
       "finalDriveRatio": 4.111111111111111,
@@ -39,20 +42,17 @@
         { "rpm": 4000, "torqueNewtonMeters": 430 },
         { "rpm": 5500, "torqueNewtonMeters": 383.7080991633696 },
         { "rpm": 6800, "torqueNewtonMeters": 283.94399338089346 }
-      ],
-      "displacementCc": 3299,
-      "cycle": 4
+      ]
     }
   },
   "sound": "911_TURBO_3_3",
   "metadata": {
     "manufacturer": "Porsche",
     "model": "911 Turbo 3.3",
+    "period": "1989",
+    "mobileLabel": "930",
     "identifier": { "officialLabel": "Type 930", "shortLabel": "930" },
     "selectedSpecification": ["G50/50 5-speed"],
-    "period": "1989",
-    "physicsAnchor": { "modelYear": "1989", "market": "European/ROW" },
-    "mobileLabel": "930"
-  },
-  "visuals": { "spriteSet": "coupe", "palette": "original", "steeringRatio": 18 }
+    "physicsAnchor": { "modelYear": "1989", "market": "European/ROW" }
+  }
 }

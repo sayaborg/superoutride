@@ -4,6 +4,7 @@
   "id": "GOLF_GTI_16V",
   "form": "car",
   "selectionOrder": 4,
+  "visuals": { "spriteSet": "coupe", "palette": "original", "steeringRatio": 18 },
   "mechanics": {
     "mass": 1035,
     "yawInertia": 1680,
@@ -30,6 +31,8 @@
     "rearBrakeTorqueMax": 1050,
     "quadraticDrag": 0.38,
     "powertrain": {
+      "displacementCc": 1781,
+      "cycle": 4,
       "idleRpm": 900,
       "redlineRpm": 6800,
       "finalDriveRatio": 3.667,
@@ -39,20 +42,17 @@
         { "rpm": 4600, "torqueNewtonMeters": 168 },
         { "rpm": 6100, "torqueNewtonMeters": 159.67676257744253 },
         { "rpm": 6800, "torqueNewtonMeters": 139.52084336684732 }
-      ],
-      "displacementCc": 1781,
-      "cycle": 4
+      ]
     }
   },
   "sound": "GOLF_GTI_16V",
   "metadata": {
     "manufacturer": "Volkswagen",
     "model": "Golf GTI 16V",
+    "period": "1986–1989",
+    "mobileLabel": "GTI",
     "identifier": { "officialLabel": "Mk2", "shortLabel": "Mk2" },
     "selectedSpecification": ["small bumpers"],
-    "period": "1986\u20131989",
-    "physicsAnchor": { "modelYear": "1988", "market": "European/ROW" },
-    "mobileLabel": "GTI"
-  },
-  "visuals": { "spriteSet": "coupe", "palette": "original", "steeringRatio": 18 }
+    "physicsAnchor": { "modelYear": "1988", "market": "European/ROW" }
+  }
 }

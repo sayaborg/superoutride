@@ -4,6 +4,7 @@
   "id": "TESTAROSSA",
   "form": "car",
   "selectionOrder": 1,
+  "visuals": { "spriteSet": "coupe", "palette": "original", "steeringRatio": 18 },
   "mechanics": {
     "mass": 1625,
     "yawInertia": 3100,
@@ -30,6 +31,8 @@
     "rearBrakeTorqueMax": 3000,
     "quadraticDrag": 0.44,
     "powertrain": {
+      "displacementCc": 4943,
+      "cycle": 4,
       "idleRpm": 1000,
       "redlineRpm": 6800,
       "finalDriveRatio": 3.21,
@@ -39,20 +42,17 @@
         { "rpm": 4500, "torqueNewtonMeters": 490 },
         { "rpm": 6300, "torqueNewtonMeters": 435.02351111784725 },
         { "rpm": 6800, "torqueNewtonMeters": 397.0452680837495 }
-      ],
-      "displacementCc": 4943,
-      "cycle": 4
+      ]
     }
   },
   "sound": "TESTAROSSA",
   "metadata": {
     "manufacturer": "Ferrari",
     "model": "Testarossa",
+    "period": "1988½–1991",
+    "mobileLabel": "F110",
     "identifier": { "officialLabel": "Tipo F110", "shortLabel": "F110" },
     "selectedSpecification": ["5-bolt wheels"],
-    "period": "1988\u00bd\u20131991",
-    "physicsAnchor": { "modelYear": "1989", "market": "European/ROW" },
-    "mobileLabel": "F110"
-  },
-  "visuals": { "spriteSet": "coupe", "palette": "original", "steeringRatio": 18 }
+    "physicsAnchor": { "modelYear": "1989", "market": "European/ROW" }
+  }
 }

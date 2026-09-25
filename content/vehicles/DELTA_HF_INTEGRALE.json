@@ -4,6 +4,7 @@
   "id": "DELTA_HF_INTEGRALE",
   "form": "car",
   "selectionOrder": 5,
+  "visuals": { "spriteSet": "coupe", "palette": "original", "steeringRatio": 18 },
   "mechanics": {
     "mass": 1290,
     "yawInertia": 1980,
@@ -30,6 +31,8 @@
     "rearBrakeTorqueMax": 1600,
     "quadraticDrag": 0.39,
     "powertrain": {
+      "displacementCc": 1995,
+      "cycle": 4,
       "idleRpm": 900,
       "redlineRpm": 6500,
       "finalDriveRatio": 3.111111111111111,
@@ -39,20 +42,17 @@
         { "rpm": 3500, "torqueNewtonMeters": 298 },
         { "rpm": 5300, "torqueNewtonMeters": 239.63329167421222 },
         { "rpm": 6500, "torqueNewtonMeters": 179.95103789874807 }
-      ],
-      "displacementCc": 1995,
-      "cycle": 4
+      ]
     }
   },
   "sound": "DELTA_HF_INTEGRALE",
   "metadata": {
     "manufacturer": "Lancia",
     "model": "Delta HF Integrale",
+    "period": "1988–1989",
+    "mobileLabel": "DELTA",
     "identifier": null,
     "selectedSpecification": ["8V", "185 PS"],
-    "period": "1988\u20131989",
-    "physicsAnchor": { "modelYear": "1988", "market": "European/ROW" },
-    "mobileLabel": "DELTA"
-  },
-  "visuals": { "spriteSet": "coupe", "palette": "original", "steeringRatio": 18 }
+    "physicsAnchor": { "modelYear": "1988", "market": "European/ROW" }
+  }
 }

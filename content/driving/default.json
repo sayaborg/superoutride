@@ -7,26 +7,14 @@
   "steeringOffsetDegrees": 20,
   "steeringTraversalSeconds": 0.3,
   "fuelCutRedlineMargin": 0.02,
-  "idleFrictionMeanEffectivePressureBar": 1.0,
+  "idleFrictionMeanEffectivePressureBar": 1,
   "redlineFrictionMeanEffectivePressureBar": 2.5,
   "drivelineEfficiency": 0.9,
   "engineInertiaKilogramSquareMetersPerLitre": 0.04,
   "clutchLockIdleMargin": 0.02,
   "clutchCapacityFactor": 1.5,
-  "throttle": {
-    "applySeconds": 0.25,
-    "releaseSeconds": 0.125
-  },
-  "brake": {
-    "applySeconds": 0.15,
-    "releaseSeconds": 0.1
-  },
+  "throttle": { "applySeconds": 0.25, "releaseSeconds": 0.125 },
+  "brake": { "applySeconds": 0.15, "releaseSeconds": 0.1 },
   "wheelSlip": true,
-  "tire": {
-    "gripX": 5,
-    "peakSlipX": 0.2,
-    "gripY": 2.5,
-    "peakSlipY": 0.1,
-    "knee": 0.74
-  }
+  "tire": { "gripX": 5, "peakSlipX": 0.2, "gripY": 2.5, "peakSlipY": 0.1, "knee": 0.74 }
 }
