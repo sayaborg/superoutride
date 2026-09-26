@@ -168,9 +168,13 @@ export function generateTerrainLines(
     const intervalLength = intervalEnd - local;
     const d0 = local - camera.s;
     const d1 = intervalEnd - camera.s;
-    const heightStart = parameters.height.sample(local, workspace.height);
-    const grade = heightStart.grade;
-    const yIntercept = heightStart.y - grade * d0;
+    // Boundaries include polyline vertices, so the interior midpoint selects the containing segment
+    // even when a vertex's Route-to-Section conversion rounds below the vertex.
+    const sMid = (local + intervalEnd) * 0.5;
+    const dMid = sMid - camera.s;
+    const heightLine = parameters.height.sample(sMid, workspace.height);
+    const grade = heightLine.grade;
+    const yIntercept = heightLine.y - grade * dMid;
     const aY = yH - f * grade * cosPitch;
     const bY = -f * (yIntercept - camera.y) * cosPitch;
     const y0 = aY + bY / d0;

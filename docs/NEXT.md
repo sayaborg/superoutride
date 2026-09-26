@@ -14,22 +14,11 @@
 - Engine sound load is the powertrain's effective opening.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **9-0 — Terrain interval lines**, then **9-1 — Course admission**.
+Next PR: **9-1 — Course admission**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
 PRs hold rationale and verification evidence. Each stage first consolidates the structure its later PRs consume.
-
-## Defect fix
-
-- **9-0 — Terrain interval lines:** on RIBBON ROUGH one or more ground rows occasionally drop out and flicker.
-  Terrain generation projects each visible interval with the render-height line sampled at the interval's start
-  station. Converting a vertex's Route chainage back to Section chainage can round below the vertex, so the lookup
-  returns the preceding polyline segment and the interval is projected with the wrong grade and intercept. This only
-  appears on occurrences that do not start at chainage 0 (RIBBON ROUGH's second Section: 43 of 196 vertices), and
-  only matters where grades change sharply. Each interval must be projected with the polyline segment that contains
-  it, independent of chainage rounding at its boundaries; check other readers that look up a segment at a boundary
-  station. Rendering only; driving digests unchanged.
 
 ## Stage 9 — Content boundary
 

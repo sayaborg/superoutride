@@ -332,6 +332,9 @@ horizonY = cy-f*sin(phi)
 
 Depth is chainage difference. Equal depth gives equal scale, and equal depth/height gives equal
 screen Y. Each terrain station projects to one horizontal line with affine horizontal texture mapping.
+Ground rows are generated per visible interval between consecutive polyline vertices, environment
+interval starts and the visible ends. Each interval projects with the line of the polyline segment that
+contains it, independent of chainage rounding at its ends, so adjacent projected intervals meet.
 Forward visibility depends on road heading and camera direction. Terrain draws far to near, allowing
 hills to overdraw earlier rows. A degenerate thin span occupies one row with its complete source footprint.
 
