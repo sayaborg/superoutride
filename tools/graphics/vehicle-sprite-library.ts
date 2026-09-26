@@ -1,6 +1,6 @@
 import { admit, readEmbedded } from '../../src/core/admission.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
-import { readSpriteAssets, readVehicleSpriteLibrary } from '../../src/image/sprite-assets.js';
+import { readSpriteAssets, readVehicleSpriteLibrary } from '../../src/vehicle/vehicle-sprite-library.js';
 import { compileSpriteLod } from './sprite-lod-compiler.js';
 
 /**

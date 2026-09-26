@@ -1,6 +1,6 @@
 import { wrapAngle } from '../core/math.js';
 import type { VehicleWorldPoseRead } from '../vehicle/physics/vehicle-contract.js';
-import { selectVehicleSprite, type VehicleSpriteSet } from '../image/sprite-assets.js';
+import { selectVehicleSprite, type VehicleSpriteSet } from '../vehicle/vehicle-sprite-set.js';
 import type { CourseSprite } from './course-sprite.js';
 import { deriveVehicleNormalizedBank, type VehicleTurnObservation } from './vehicle-visuals.js';
 

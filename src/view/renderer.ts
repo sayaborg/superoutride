@@ -16,7 +16,7 @@ import {
   type TerrainRenderParameters,
 } from './terrain-line.js';
 import { drawTileBackground, type TileBackground } from './tile-background.js';
-import { selectVehicleSprite, type VehicleSpriteSet } from '../image/sprite-assets.js';
+import { selectVehicleSprite, type VehicleSpriteSet } from '../vehicle/vehicle-sprite-set.js';
 import { collectVisibleCourseSprites, type CourseSpriteInput, type VisibleCourseSprite } from './course-sprite.js';
 
 import { deriveVehicleNormalizedBank } from './vehicle-visuals.js';

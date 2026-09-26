@@ -11,7 +11,7 @@ import { CURRENT_CAMERA_PROFILE } from './current-camera-profile.js';
 import type { VehicleRenderReadState } from '../vehicle/physics/vehicle-contract.js';
 import { createRenderWorkspace, renderDriving } from './renderer.js';
 import type { CourseSprite } from './course-sprite.js';
-import type { VehicleSpriteSet } from '../image/sprite-assets.js';
+import type { VehicleSpriteSet } from '../vehicle/vehicle-sprite-set.js';
 import { createCourseWorld, type CourseLoadingWindow } from '../race/course-world.js';
 
 /** The current camera's loading window; reference driving and scenarios load the same Route. */

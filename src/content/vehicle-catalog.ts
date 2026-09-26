@@ -1,5 +1,5 @@
 import { admit, requireAdmission, type AdmissionResult } from '../core/admission.js';
-import { readSpriteAssets, type SpriteAssets } from '../image/sprite-assets.js';
+import { readSpriteAssets, type SpriteAssets } from '../vehicle/vehicle-sprite-library.js';
 import type { CompiledDrivingDefinition } from '../vehicle/compiled-driving-definition.js';
 import {
   compileDrivingDocument,

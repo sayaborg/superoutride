@@ -9,21 +9,9 @@ import {
   readRgb555,
   requireAdmission,
 } from '../core/admission.js';
-import { clamp, wrapAngle } from '../core/math.js';
-import {
-  createSpritePalette,
-  readSpriteLodAsset,
-  spriteLodLayout,
-  type SpriteAsset,
-  type SpriteLodDocument,
-} from './sprite.js';
+import { readSpriteLodAsset, spriteLodLayout, type SpriteAsset, type SpriteLodDocument } from '../image/sprite.js';
+import type { VehicleSpriteSet } from './vehicle-sprite-set.js';
 
-export interface VehicleSpriteSet {
-  readonly brakeLamp: Readonly<{ off: number; on: number }>;
-  readonly yawVariants: number;
-  readonly bankVariants: number;
-  readonly assets: readonly (readonly SpriteAsset[])[];
-}
 export interface SpriteAssets {
   readonly sets: Readonly<Record<string, VehicleSpriteSet>>;
 }
@@ -143,54 +131,4 @@ export function readVehicleSpriteLibrary(value: unknown, completePyramids = true
 /** Delivery admission of the completed vehicle sprite library. */
 export function readSpriteAssets(value: unknown): SpriteAssets {
   return readVehicleSpriteLibrary(value).assets;
-}
-
-/** An instance resolves each image's own named color and lamp state once. */
-export function createVehiclePaletteVariant(
-  set: VehicleSpriteSet,
-  palette: string,
-  brakeLampOn = false,
-): VehicleSpriteSet {
-  const images = new Map<SpriteAsset, SpriteAsset>();
-  const assets = set.assets.map((row) =>
-    Object.freeze(
-      row.map((asset) => {
-        let variant = images.get(asset);
-        if (!variant) {
-          variant = createSpritePalette(asset, palette, [brakeLampOn ? set.brakeLamp.on : set.brakeLamp.off]);
-          images.set(asset, variant);
-        }
-        return variant;
-      }),
-    ),
-  );
-  return Object.freeze({ ...set, assets: Object.freeze(assets) });
-}
-
-function selectYawVariant(relativeYaw: number, count: number): number {
-  if (!Number.isInteger(count) || count < 1) throw new RangeError('yaw variant count must be >= 1');
-  const angle = wrapAngle(relativeYaw);
-  const normalized = angle < 0 ? angle + Math.PI * 2 : angle;
-  return Math.round((normalized / (Math.PI * 2)) * count) % count;
-}
-
-function selectBankVariant(bank: number, count: number): number {
-  if (!Number.isInteger(count) || count < 1) throw new RangeError('bank variant count must be >= 1');
-  if (count === 1) return 0;
-  const t = (clamp(bank, -1, 1) + 1) * 0.5;
-  return Math.round(t * (count - 1));
-}
-
-export function selectVehicleSprite(
-  set: VehicleSpriteSet,
-  relativeYaw: number,
-  normalizedBank = 0,
-): { asset: SpriteAsset; yawIndex: number; bankIndex: number } {
-  const yawIndex = selectYawVariant(relativeYaw, set.yawVariants);
-  const bankIndex = selectBankVariant(normalizedBank, set.bankVariants);
-  return {
-    asset: set.assets[yawIndex]![bankIndex]!,
-    yawIndex,
-    bankIndex,
-  };
 }

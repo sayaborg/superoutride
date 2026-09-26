@@ -1,4 +1,4 @@
-import { createVehiclePaletteVariant, type VehicleSpriteSet } from '../image/sprite-assets.js';
+import { createVehiclePaletteVariant, type VehicleSpriteSet } from '../vehicle/vehicle-sprite-set.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 
 export interface VehicleSpriteStates {

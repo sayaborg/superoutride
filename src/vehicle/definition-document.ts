@@ -1,4 +1,5 @@
-import type { SpriteAssets, VehicleSpriteSet } from '../image/sprite-assets.js';
+import type { SpriteAssets } from './vehicle-sprite-library.js';
+import type { VehicleSpriteSet } from './vehicle-sprite-set.js';
 import { compileVehicle, type VehicleDefinition, type CompiledVehicle } from './physics/vehicle-definitions.js';
 import { createDrivingSettings } from './physics/driving-settings.js';
 import {

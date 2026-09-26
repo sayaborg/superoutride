@@ -200,7 +200,7 @@ function readMixture(
   return mixture;
 }
 
-/** Named color and lamp state are resolved once, before rendering. */
+/** A named color, completed by caller-supplied trailing slots, is resolved once before rendering. */
 export function createSpritePalette(
   asset: SpriteAsset,
   name: string,
