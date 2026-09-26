@@ -7,7 +7,7 @@ import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { readCourseDocument } from '../../src/course/course-document.js';
 import { compileCourseDocument } from '../../src/course/compiler/compiled-course.js';
-import { compileSurfaceMaterialDocument } from '../../src/course/surface-material.js';
+import { compileSurfaceMaterials } from '../../src/course/surface-material.js';
 import { compileCourseImages } from './compile-course-images.js';
 import { readCourseImages } from './read-course-images.js';
 
@@ -61,7 +61,8 @@ export async function jsonFile(file: string): Promise<{ bytes: Buffer; value: un
 }
 export async function loadAuthoringSurfaceMaterials() {
   const filename = fileURLToPath(new URL('../../content/materials/surface.json', import.meta.url));
-  const result = compileSurfaceMaterialDocument((await jsonFile(filename)).value, 'content/materials/surface.json');
+  const value = (await jsonFile(filename)).value;
+  const result = compileSurfaceMaterials([{ id: 'surface', path: 'content/materials/surface.json', value }]);
   if (!result.ok) throw new AuthoringError(result.diagnostics);
   return result.value;
 }

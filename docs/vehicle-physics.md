@@ -424,19 +424,22 @@ document. Its `id` is `surface`; each entry in `materials` contains an open-set 
 nonnegative finite `gripFactor`, nonnegative finite `rollingResistance`, and a `tireEffect` from
 `NONE`, `SMOKE`, `DUST`, `GRASS`, `WATER_SPRAY`, `SNOW`, or `MUD`. The effect value is a
 presentation classification only. The current five definitions retain their prior physical values.
-The manifest verifies the saved bytes, then `surface-material.ts` admits this document once and
-publishes one immutable catalog. Course compilation resolves Strip material IDs through that catalog;
+`compileSurfaceMaterials` admits it once from the build's file or delivery's manifest entry: exactly one
+document, named `surface`, whose `id` is its file name. It publishes one immutable catalog. Course compilation resolves Strip material IDs through that catalog;
 runtime physics receives the resolved object or `null`, never a fixed material enum.
 
 `content/vehicles/<id>.json` stores one `superoutride.vehicle-definition` version 6 per vehicle.
 `content/driving/default.json` stores the sole `superoutride.driving-definition` version 8.
+`compileVehicleDefinitions` admits the catalog from the build's files or delivery's manifest entries alike:
+exactly one driving definition, named `default`, and at least one vehicle; each document `id` equals its
+file name and selection orders are unique.
 [Calibration](calibration.md) owns tuning meanings and units. Document admission in
 `vehicle/definition-document.ts` publishes detached, deeply immutable source and compiled products.
 
 | Vehicle field       | Contract                                                                                                                                                                          |
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `format`, `version` | `superoutride.vehicle-definition`, `6`                                                                                                                                            |
-| `id`                | Nonempty filename-safe identity; equal to its manifest ID                                                                                                                         |
+| `id`                | Nonempty filename-safe identity; equal to its file name (its manifest ID)                                                                                                         |
 | `form`              | `car` or `bike`; one shared physical/display form vocabulary                                                                                                                      |
 | `selectionOrder`    | Positive safe integer, unique across the catalog; ascending selection order independent of filenames and manifest order                                                           |
 | `mechanics`         | All `VehicleDefinition` mechanical fields except `id`, including powertrain; no display ratio                                                                                     |

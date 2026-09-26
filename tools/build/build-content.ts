@@ -1,4 +1,5 @@
-import { compileVehicleDefinitions, type VehicleDefinitionSource } from '../../src/vehicle/definition-document.js';
+import { compileVehicleDefinitions } from '../../src/vehicle/definition-document.js';
+import type { AdmissionResult, DocumentSource } from '../../src/core/admission.js';
 import {
   compileCourseDocument,
   isTimedCourse,
@@ -11,14 +12,15 @@ import { createContentWriter } from './content-manifest.js';
 import { readCourseDocument } from '../../src/course/course-document.js';
 import { compileCourseImages } from '../course/compile-course-images.js';
 import { readCourseImages } from '../course/read-course-images.js';
-import { compileSurfaceMaterialDocument } from '../../src/course/surface-material.js';
+import { compileSurfaceMaterials } from '../../src/course/surface-material.js';
 import { validateTireSoundMaterialIds } from '../../src/audio/tire-surface-acoustics.js';
 import { compileVehicleSpriteLibrary } from '../graphics/vehicle-sprite-library.js';
 
 /**
  * The content build: every delivered file is compiled from authored documents in dependency order,
  * in one pass: vehicle sprite library, materials, vehicle and driving definitions, courses and their
- * images, then reference runs. Each stage receives earlier products directly, never from delivery.
+ * images, then reference runs. Each compile stage receives earlier products directly. Reference workers
+ * are the exception: they run in separate threads and read this build's saved content until 14-5.
  */
 const content = new URL('../../content/', import.meta.url);
 const destination = new URL('../../dist/content/', import.meta.url);
@@ -39,26 +41,28 @@ console.log(
   }),
 );
 
-const materialPath = 'content/materials/surface.json';
-const materialResult = compileSurfaceMaterialDocument(await json('materials/surface.json'), materialPath);
-if (!materialResult.ok) throw new Error(JSON.stringify(materialResult.diagnostics));
-const materials = materialResult.value;
-validateTireSoundMaterialIds(materials.ids);
-await writer.stage('material', materials.source.id, materials.source);
-
-// Each document's file name is its manifest identity.
+// Each document's file name is its manifest identity; catalogs admit these sources as delivery does.
 const sources = async (directory: string) => {
-  const result: VehicleDefinitionSource[] = [];
-  for (const name of await readdir(new URL(directory + '/', content))) {
+  const result: DocumentSource[] = [];
+  for (const name of (await readdir(new URL(directory + '/', content))).sort()) {
     if (!name.endsWith('.json')) continue;
     const path = `content/${directory}/${name}`;
     result.push({ id: name.replace(/\.json$/, ''), path, value: await json(`${directory}/${name}`) });
   }
   return result;
 };
+const admitted = <T>(result: AdmissionResult<T>) => {
+  if (!result.ok) throw new Error(JSON.stringify(result.diagnostics));
+  return result.value;
+};
+
+const materials = admitted(compileSurfaceMaterials(await sources('materials')));
+validateTireSoundMaterialIds(materials.ids);
+await writer.stage('material', materials.source.id, materials.source);
+
 const vehicleSources = await sources('vehicles'),
   drivingSources = await sources('driving');
-const definitions = compileVehicleDefinitions(library.sprites, drivingSources, vehicleSources);
+const definitions = admitted(compileVehicleDefinitions(library.sprites, drivingSources, vehicleSources));
 for (const { id } of vehicleSources)
   await writer.stage('vehicle', id, definitions.vehicles.find((entry) => entry.source.id === id)!.source);
 await writer.stage('driving', definitions.driving.source.id, definitions.driving.source);

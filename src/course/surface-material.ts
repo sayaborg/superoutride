@@ -1,6 +1,7 @@
 import type { ContentDelivery } from '../core/content-manifest.js';
 import {
   admit,
+  admitSingleDocument,
   deepFreeze,
   readDocument,
   readEnum,
@@ -10,6 +11,7 @@ import {
   readString,
   requireAdmission,
   type AdmissionResult,
+  type DocumentSource,
 } from '../core/admission.js';
 
 const TIRE_EFFECT_KINDS = Object.freeze(['NONE', 'SMOKE', 'DUST', 'GRASS', 'WATER_SPRAY', 'SNOW', 'MUD'] as const);
@@ -37,13 +39,18 @@ export interface SurfaceMaterialCatalog {
 
 const MATERIAL_ID = { pattern: /^[A-Za-z0-9_-]+$/, patternMessage: 'Expected a stable ID using A-Z, a-z, 0-9, _ or -' };
 
-export function compileSurfaceMaterialDocument(
-  value: unknown,
-  document: string,
-): AdmissionResult<SurfaceMaterialCatalog> {
-  return admit(document, () => {
+/**
+ * Admit the material catalog from its sources, from the build's files or delivery's manifest alike:
+ * exactly one document, named `surface`, whose ID is its file name.
+ */
+export function compileSurfaceMaterials(sources: readonly DocumentSource[]): AdmissionResult<SurfaceMaterialCatalog> {
+  const single = admitSingleDocument(sources, 'surface', 'surface material document');
+  if (!single.ok) return single;
+  const { id, path, value } = single.value;
+  return admit(path, () => {
     const root = readDocument(value, ['format', 'version', 'id', 'materials'], 'superoutride.surface-materials', 1);
     const documentId = readString(root.id, '/id', MATERIAL_ID);
+    requireAdmission(documentId === id, 'invalid_value', '/id', `Expected the file name ${id} as the document ID`);
     requireAdmission(
       Array.isArray(root.materials) && root.materials.length > 0,
       Array.isArray(root.materials) ? 'invalid_value' : 'invalid_shape',
@@ -78,27 +85,16 @@ export function compileSurfaceMaterialDocument(
 
 const loaded = new WeakMap<ContentDelivery, Promise<SurfaceMaterialCatalog>>();
 
-/** Transport verifies the saved bytes before this one admission boundary validates the material document. */
+/** Transport verifies the saved bytes before the catalog admission validates the material document. */
 export function loadSurfaceMaterials(content: ContentDelivery): Promise<SurfaceMaterialCatalog> {
   let pending = loaded.get(content);
   if (pending) return pending;
   pending = (async () => {
-    const files = content.manifest.files.filter((file) => file.kind === 'material');
-    if (files.length !== 1 || files[0]!.id !== 'surface') {
-      throw new RangeError('Manifest requires one surface material document');
-    }
-    const file = files[0]!;
-    const result = compileSurfaceMaterialDocument(await content.json('material', file.id), file.path);
+    const sources: DocumentSource[] = [];
+    for (const file of content.manifest.files.filter((file) => file.kind === 'material'))
+      sources.push({ id: file.id, path: file.path, value: await content.json('material', file.id) });
+    const result = compileSurfaceMaterials(sources);
     if (!result.ok) throw new Error(JSON.stringify(result.diagnostics));
-    const identity = admit(file.path, () =>
-      requireAdmission(
-        result.value.source.id === file.id,
-        'invalid_value',
-        '/id',
-        'Surface material document ID must match manifest identity',
-      ),
-    );
-    if (!identity.ok) throw new Error(JSON.stringify(identity.diagnostics));
     return result.value;
   })();
   loaded.set(content, pending);

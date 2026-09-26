@@ -43,6 +43,11 @@ errors become diagnostics; other exceptions are internal faults and propagate.
 `readEmbedded(base, read)` reads a document embedded in another, such as a sprite image inside the
 vehicle sprite library or a recipe inside a Sprite Tool session, relocating its pointers under `base`.
 
+A catalog of documents admits `DocumentSource` records (`id`, `path`, `value`). The build makes them from
+file names and delivery from manifest entries, so both reach the same catalog admission and diagnostics.
+`admitSingleDocument(sources, id, kind)` is the single-document rule: exactly one source, named `id`;
+a failure is addressed to the extra or misnamed source's document (empty when there is none) at the root.
+
 Compilers below a document boundary raise `DefinitionDomainError` with a slash-separated path relative
 to the record they received. `withDefinitionPath` maps nested or derived fields back to the caller's
 record, and `admitDomain` converts the result at the document boundary into an `invalid_value`

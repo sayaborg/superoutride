@@ -14,7 +14,7 @@
 - Engine sound load is the powertrain's effective opening.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **9-2 — Content-build follow-ups**.
+Next PR: **9-3 — Runtime-ready course images**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -24,10 +24,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Admit each input once, keep compiled products runtime-ready, and give delivered content one identity rule.
 
-- **9-2 — Content-build follow-ups:** state diagnostics in terms of the build's own identities (file names) as well as
-  the manifest's; check the single-document rules (driving `default`, material `surface`) once for both build and
-  delivery; compile the vehicle sprite library from its admitted masters; state that reference workers still read
-  the saved build until 14-5. Behavior unchanged.
 - **9-3 — Runtime-ready course images:** course image admission decodes once and the compiled course holds the
   immutable decoded readers; the view only borrows them. Separate background-image admission from reader
   construction. Courses reference their images through a declared relation, not by assuming manifest id equals digest.
@@ -163,7 +159,9 @@ independently of DEV.
 - **12-4 — View consolidation:** separate small PRs: move the generic Strip slab resolver out of color ground; remove
   `CourseGround` and one-valued `kind` tags; remove environment boundaries and unused fields from terrain lines;
   compute the visible interval and player projection once; time the renderer from its caller; remove the unimplemented
-  course-sprite reader branch; move the 45° bank calibration into sprite-set data.
+  course-sprite reader branch; move the 45° bank calibration into sprite-set data; remove the unconsumed Route
+  `renderHeight.distanceToNextVertex`, the `sStart`/`sEnd`/`segmentIndex` fields of Route `renderHeight.sample()`,
+  and `EnvironmentReader.distanceToNextInterval`.
 - **12-5 — Shell leftovers (delete):** the numeric selector branch, the thin selector-model layer, the misplaced
   calibration stepper, the unused touch heuristic, the unused `presentation` getter and the second CLASSIC preset
   resolution.

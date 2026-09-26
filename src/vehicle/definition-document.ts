@@ -6,6 +6,7 @@ import {
   AdmissionError,
   admit,
   admitDomain,
+  admitSingleDocument,
   deepFreeze,
   readArray,
   readBoolean,
@@ -16,6 +17,7 @@ import {
   relativePointer,
   requireAdmission,
   type AdmissionResult,
+  type DocumentSource,
 } from '../core/admission.js';
 import type { DrivingDocument } from './driving-definition.js';
 import type { CompiledDrivingDefinition } from './compiled-driving-definition.js';
@@ -205,7 +207,7 @@ export function compileDrivingDocument(value: unknown, document: string): Admiss
       'superoutride.driving-definition',
       8,
     );
-    requireAdmission(v.id === 'default', 'invalid_value', '/id', 'Expected the game-wide default ID');
+    const id = readString(v.id, '/id');
     requireAdmission(
       v.automaticSteering === 'travel-direction',
       'invalid_value',
@@ -225,7 +227,7 @@ export function compileDrivingDocument(value: unknown, document: string): Admiss
     const source = deepFreeze({
       format: 'superoutride.driving-definition',
       version: 8,
-      id: 'default',
+      id,
       automaticSteering: v.automaticSteering,
       ...Object.fromEntries(numbers.map((key) => [key, readNumber(v[key], `/${key}`)])),
       throttle: pedal('throttle'),
@@ -247,70 +249,71 @@ export async function loadVehicleSpriteLibrary(content: ContentDelivery): Promis
   return result.value;
 }
 
-/** One delivered or staged definition document with its manifest identity and document path. */
-export interface VehicleDefinitionSource {
-  readonly id: string;
-  readonly path: string;
-  readonly value: unknown;
-}
-
-const takeAdmitted = <T>(result: AdmissionResult<T>): T => {
-  if (!result.ok) throw new Error(JSON.stringify(result.diagnostics));
-  return result.value;
-};
+const requireFileName = (id: string, file: DocumentSource) =>
+  requireAdmission(id === file.id, 'invalid_value', '/id', `Expected the file name ${file.id} as the document ID`);
 
 /**
- * Admit the catalog: one default driving definition and the vehicle documents against an admitted
- * sprite library. Vehicle IDs must equal their manifest identities and selection orders are unique.
+ * Admit the catalog from its sources, from the build's files or delivery's manifest alike: exactly one
+ * driving definition, named `default`, and at least one vehicle document against an admitted sprite
+ * library. Each document ID is its file name and selection orders are unique.
  */
 export function compileVehicleDefinitions(
   sprites: SpriteAssets,
-  driving: readonly VehicleDefinitionSource[],
-  vehicleSources: readonly VehicleDefinitionSource[],
-) {
-  if (driving.length !== 1 || driving[0]!.id !== 'default')
-    throw new RangeError('Manifest requires one default driving definition');
-  const drivingDefinition = takeAdmitted(compileDrivingDocument(driving[0]!.value, driving[0]!.path));
+  drivingSources: readonly DocumentSource[],
+  vehicleSources: readonly DocumentSource[],
+): AdmissionResult<VehicleDefinitions> {
+  const single = admitSingleDocument(drivingSources, 'default', 'driving definition');
+  if (!single.ok) return single;
+  const driving = compileDrivingDocument(single.value.value, single.value.path);
+  if (!driving.ok) return driving;
+  const drivingIdentity = admit(single.value.path, () => requireFileName(driving.value.source.id, single.value));
+  if (!drivingIdentity.ok) return drivingIdentity;
   const orders = new Set<number>();
   const vehicles: CompiledVehicleDefinition[] = [];
   for (const file of vehicleSources) {
-    const entry = takeAdmitted(compileVehicleDocument(file.value, file.path, sprites));
-    takeAdmitted(
-      admit(file.path, () => {
-        requireAdmission(
-          entry.source.id === file.id,
-          'invalid_value',
-          '/id',
-          'Vehicle ID must match manifest identity',
-        );
-        requireAdmission(
-          !orders.has(entry.source.selectionOrder),
-          'duplicate_id',
-          '/selectionOrder',
-          'Duplicate selection order',
-        );
-      }),
-    );
-    orders.add(entry.source.selectionOrder);
-    vehicles.push(entry);
+    const entry = compileVehicleDocument(file.value, file.path, sprites);
+    if (!entry.ok) return entry;
+    const catalogRules = admit(file.path, () => {
+      requireFileName(entry.value.source.id, file);
+      requireAdmission(
+        !orders.has(entry.value.source.selectionOrder),
+        'duplicate_id',
+        '/selectionOrder',
+        'Duplicate selection order',
+      );
+    });
+    if (!catalogRules.ok) return catalogRules;
+    orders.add(entry.value.source.selectionOrder);
+    vehicles.push(entry.value);
   }
-  if (!vehicles.length) throw new RangeError('Manifest requires vehicle definitions');
+  const nonempty = admit('', () =>
+    requireAdmission(vehicles.length > 0, 'invalid_value', '', 'Expected at least one vehicle definition'),
+  );
+  if (!nonempty.ok) return nonempty;
   vehicles.sort((a, b) => a.source.selectionOrder - b.source.selectionOrder);
-  return Object.freeze({ vehicles: Object.freeze(vehicles), driving: drivingDefinition });
+  return Object.freeze({
+    ok: true as const,
+    value: Object.freeze({ vehicles: Object.freeze(vehicles), driving: driving.value }),
+  });
 }
 
 /** Transport verifies every payload SHA before either admission boundary sees decoded content. */
-export async function loadVehicleDefinitions(content: ContentDelivery) {
+export async function loadVehicleDefinitions(content: ContentDelivery): Promise<VehicleDefinitions> {
   const sprites = await loadVehicleSpriteLibrary(content);
   const read = async (kind: 'driving' | 'vehicle') => {
-    const sources: VehicleDefinitionSource[] = [];
+    const sources: DocumentSource[] = [];
     for (const file of content.manifest.files.filter((file) => file.kind === kind))
       sources.push({ id: file.id, path: file.path, value: await content.json(kind, file.id) });
     return sources;
   };
-  return compileVehicleDefinitions(sprites, await read('driving'), await read('vehicle'));
+  const result = compileVehicleDefinitions(sprites, await read('driving'), await read('vehicle'));
+  if (!result.ok) throw new Error(JSON.stringify(result.diagnostics));
+  return result.value;
 }
-export type VehicleDefinitions = ReturnType<typeof compileVehicleDefinitions>;
+export interface VehicleDefinitions {
+  readonly vehicles: readonly CompiledVehicleDefinition[];
+  readonly driving: CompiledDrivingDefinition;
+}
 
 export function vehicleDefinitionForId(
   vehicles: readonly CompiledVehicleDefinition[],
