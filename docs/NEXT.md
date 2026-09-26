@@ -14,7 +14,7 @@
 - Engine sound load is the powertrain's effective opening.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **9-7 — Generated-product admission**.
+Next PR: **9-8 — Material ownership**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -24,11 +24,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Admit each input once, keep compiled products runtime-ready, and give delivered content one identity rule.
 
-- **9-7 — Generated-product admission:** the manifest, envelopes, time budgets and reference observations use the
-  admission toolkit with format/version headers; unknown fields are rejected; `readDictionary` applies the same
-  prototype rule as `readRecord`; `TypeError`/`RangeError` follow AGENTS; `jsonBytes` measures the raw input;
-  malformed SHA and ID patterns are classified alike; observation stations are strictly ordered as documented.
-  Remove the architecture exemption for build products.
 - **9-8 — Material ownership:** one topic specification owns the Surface Material format. The material catalog is
   the only material ID set; material IDs remain an open set. Envelope generation uses a constant surface reader and
   no longer requires an `ASPHALT` material. Remove `tireEffect`, which has no consumer; tire effects will be declared

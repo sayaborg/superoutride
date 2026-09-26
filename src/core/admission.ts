@@ -95,23 +95,26 @@ export function relativePointer(path: string, base = ''): string {
 
 // ---------------------------------------------------------------- Shape readers
 
+/** A JSON object: not an array, and with the plain object prototype or none. */
+function isJsonObject(value: unknown): value is Record<string, unknown> {
+  return (
+    value !== null &&
+    typeof value === 'object' &&
+    !Array.isArray(value) &&
+    [Object.prototype, null].includes(Object.getPrototypeOf(value))
+  );
+}
+
 /** A plain JSON object with exactly these fields. */
 export function readRecord(value: unknown, path: string, fields: readonly string[]): Record<string, unknown> {
-  if (
-    value === null ||
-    typeof value !== 'object' ||
-    Array.isArray(value) ||
-    ![Object.prototype, null].includes(Object.getPrototypeOf(value))
-  )
-    throw new AdmissionError('invalid_shape', path, 'Expected a JSON object');
-  const record = value as Record<string, unknown>;
-  for (const key of Object.keys(record))
+  if (!isJsonObject(value)) throw new AdmissionError('invalid_shape', path, 'Expected a JSON object');
+  for (const key of Object.keys(value))
     if (!fields.includes(key))
       throw new AdmissionError('unsupported_feature', `${path}/${pointerToken(key)}`, `Unknown field ${key}`);
   for (const key of fields)
-    if (!Object.hasOwn(record, key))
+    if (!Object.hasOwn(value, key))
       throw new AdmissionError('invalid_shape', `${path}/${pointerToken(key)}`, `Missing required field ${key}`);
-  return record;
+  return value;
 }
 
 /** A JSON object used as a name-keyed dictionary; each name is a nonempty trimmed string. */
@@ -120,8 +123,7 @@ export function readDictionary<T>(
   path: string,
   read: (value: unknown, path: string, name: string) => T,
 ): Readonly<Record<string, T>> {
-  if (value === null || typeof value !== 'object' || Array.isArray(value))
-    throw new AdmissionError('invalid_shape', path, 'Expected a JSON object of named entries');
+  if (!isJsonObject(value)) throw new AdmissionError('invalid_shape', path, 'Expected a JSON object of named entries');
   return Object.freeze(
     Object.fromEntries(
       Object.entries(value).map(([name, entry]) => {

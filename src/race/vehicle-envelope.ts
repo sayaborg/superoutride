@@ -11,9 +11,9 @@ import {
 import type { SessionVehicle } from './session-configuration.js';
 import type { VehicleEnvelope } from './envelope-driver.js';
 import { sessionVehicleSha256 } from './session-vehicle.js';
+import { SHA256_TEXT } from '../core/content-digest.js';
 
 export const RIVAL_ENVELOPE_FORMAT = Object.freeze({ format: 'superoutride.rival-envelope', version: 1 } as const);
-const SHA256 = { pattern: /^[a-f0-9]{64}$/, patternMessage: 'Expected lowercase SHA-256' };
 
 /** Admit the delivered rival envelope: only the measured rows needed by driving, for this Session vehicle. */
 export async function readVehicleEnvelope(
@@ -30,7 +30,7 @@ export async function readVehicleEnvelope(
       RIVAL_ENVELOPE_FORMAT.version,
     );
     requireAdmission(
-      readString(data.vehicleSha256, '/vehicleSha256', SHA256) === digest,
+      readString(data.vehicleSha256, '/vehicleSha256', SHA256_TEXT) === digest,
       'invalid_value',
       '/vehicleSha256',
       'Stale envelope vehicle/calibration/assist identity',

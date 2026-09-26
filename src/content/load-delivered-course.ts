@@ -1,5 +1,5 @@
 import type { ContentDelivery } from './content-manifest.js';
-import { readCourseDocument } from '../course/course-document.js';
+import { readCourseDocumentBytes } from '../course/course-document.js';
 import { compileCourseDocument } from '../course/compiler/compiled-course.js';
 import type { SurfaceMaterialCatalog } from '../course/surface-material.js';
 import { missingContent, requireLoaded } from './content-load-error.js';
@@ -8,7 +8,7 @@ import { missingContent, requireLoaded } from './content-load-error.js';
 export async function loadDeliveredCourse(content: ContentDelivery, id: string, materials: SurfaceMaterialCatalog) {
   const file = content.manifest.files.find((entry) => entry.kind === 'course' && entry.id === id);
   if (!file) throw missingContent('course', id);
-  const source = requireLoaded(readCourseDocument(await content.json('course', id), file.path));
+  const source = requireLoaded(readCourseDocumentBytes(await content.bytes('course', id), file.path));
   // A course names its images by the saved bytes' SHA-256; the manifest entry with that digest delivers them.
   // An undelivered digest supplies no bytes, and course admission reports it missing.
   const digests = new Set(source.assets.map((asset) => asset.sha256));

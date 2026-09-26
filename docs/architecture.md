@@ -20,12 +20,14 @@ failure propagation belongs to the vehicle layer, not course/race input validati
 generated products the game reads (the content manifest, rival envelopes and time budgets), which carry
 format/version headers and are admitted with the same rules, unknown fields included.
 Its shape readers check a JSON value and throw one `AdmissionError` addressed by a JSON Pointer:
-`readDocument` (format, then version, then the exact field set), `readRecord` (a plain JSON object
-with exactly the named fields; unknown fields first, then missing ones), `readDictionary`,
-`readString` (nonempty, no surrounding whitespace, optional length ceiling and pattern), `readBoolean`,
+`readDocument` (format, then version, then the exact field set), `readRecord` (a JSON object
+with exactly the named fields; unknown fields first, then missing ones), `readDictionary` (a JSON object of
+named entries), `readString` (nonempty, no surrounding whitespace, optional length ceiling and pattern), `readBoolean`,
 `readNumber` (finite, optional closed or half-open range and integer; negative zero reads as zero),
 `readRgb555`, `readEnum`, `readArray` (optional floor, ceiling or exact length), `readIdentified` (unique
-`id` values) and `deepFreeze`. Formats keep their semantic checks and report them through the same
+`id` values) and `deepFreeze`. A JSON object is a non-array object whose prototype is the plain object
+prototype or none, for records and dictionaries alike. A wrong type is `invalid_shape`; a string outside
+its declared pattern, such as an ID or a SHA-256 digest (`SHA256_TEXT`), is `invalid_value`. Formats keep their semantic checks and report them through the same
 error, with `requireAdmission` or a format subclass carrying its own codes.
 
 Every expected admission failure is one diagnostic:

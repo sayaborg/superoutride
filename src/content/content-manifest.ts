@@ -1,4 +1,4 @@
-import { contentDigest } from '../core/content-digest.js';
+import { contentDigest, SHA256_TEXT } from '../core/content-digest.js';
 import {
   admit,
   readArray,
@@ -38,7 +38,6 @@ const RELATIVE_PATH = {
   pattern: /^[a-zA-Z0-9_-][a-zA-Z0-9_.-]*(?:\/[a-zA-Z0-9_-][a-zA-Z0-9_.-]*)*$/,
   patternMessage: 'Expected a relative path of safe segments',
 };
-const SHA256 = { pattern: /^[a-f0-9]{64}$/, patternMessage: 'Expected lowercase SHA-256' };
 
 /** Admit the delivery index; each kind/id identity and each path appears once. */
 export function readContentManifest(value: unknown): AdmissionResult<ContentManifest> {
@@ -51,7 +50,7 @@ export function readContentManifest(value: unknown): AdmissionResult<ContentMani
       const kind = readEnum(entry.kind, CONTENT_KINDS, `${at}/kind`);
       const id = readString(entry.id, `${at}/id`);
       const path = readString(entry.path, `${at}/path`, RELATIVE_PATH);
-      const sha256 = readString(entry.sha256, `${at}/sha256`, SHA256);
+      const sha256 = readString(entry.sha256, `${at}/sha256`, SHA256_TEXT);
       const identity = JSON.stringify([kind, id]);
       requireAdmission(!identities.has(identity), 'duplicate_id', `${at}/id`, `Duplicate manifest entry ${kind} ${id}`);
       requireAdmission(!paths.has(path), 'duplicate_id', `${at}/path`, `Duplicate manifest path ${path}`);

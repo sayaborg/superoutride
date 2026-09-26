@@ -10,7 +10,7 @@ import {
 import { buildCourseReferences } from './build-course-reference.js';
 import { readdir, readFile } from 'node:fs/promises';
 import { createContentWriter } from './content-manifest.js';
-import { readCourseDocument } from '../../src/course/course-document.js';
+import { readCourseDocumentBytes } from '../../src/course/course-document.js';
 import { compileCourseImages } from '../course/compile-course-images.js';
 import { readCourseImages } from '../course/read-course-images.js';
 import { compileSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
@@ -66,8 +66,8 @@ await writer.stage('driving', definitions.driving.source.id, definitions.driving
 const courses: { course: CompiledCourse; stem: string }[] = [];
 for (const name of (await readdir(new URL('courses/', content))).sort()) {
   if (!name.endsWith('.course.json')) continue;
-  const bytes = await readFile(new URL(`courses/${name}`, content), 'utf8');
-  const document = requireLoaded(readCourseDocument(JSON.parse(bytes), `content/courses/${name}`));
+  const bytes = await readFile(new URL(`courses/${name}`, content));
+  const document = requireLoaded(readCourseDocumentBytes(bytes, `content/courses/${name}`));
   const prepared = await compileCourseImages(
     document,
     await readCourseImages(document.assets, new URL('images/', content).pathname),

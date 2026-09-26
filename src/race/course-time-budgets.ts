@@ -8,6 +8,7 @@ import {
   type AdmissionResult,
 } from '../core/admission.js';
 import { sessionVehicleSha256 } from './session-vehicle.js';
+import { SHA256_TEXT } from '../core/content-digest.js';
 import type { TimedCompiledCourse } from '../course/compiler/compiled-course.js';
 import type { CompiledCourseLandmark } from '../course/compiler/course-rules.js';
 import type { SessionVehicle } from './session-configuration.js';
@@ -28,7 +29,6 @@ export const COURSE_TIME_BUDGETS_FORMAT = Object.freeze({
   format: 'superoutride.course-time-budgets',
   version: 1,
 } as const);
-const SHA256 = { pattern: /^[a-f0-9]{64}$/, patternMessage: 'Expected lowercase SHA-256' };
 const MILLISECONDS = { min: 1, max: Number.MAX_SAFE_INTEGER, integer: true };
 
 /** Browser admission consumes only small build-generated budgets, never simulation traces. */
@@ -47,13 +47,13 @@ export async function readCourseTimeBudgets(
       COURSE_TIME_BUDGETS_FORMAT.version,
     );
     requireAdmission(
-      readString(data.courseBuildSha256, '/courseBuildSha256', SHA256) === course.identity.buildSha256,
+      readString(data.courseBuildSha256, '/courseBuildSha256', SHA256_TEXT) === course.identity.buildSha256,
       'invalid_value',
       '/courseBuildSha256',
       'Stale course identity',
     );
     requireAdmission(
-      readString(data.vehicleSha256, '/vehicleSha256', SHA256) === vehicleSha256,
+      readString(data.vehicleSha256, '/vehicleSha256', SHA256_TEXT) === vehicleSha256,
       'invalid_value',
       '/vehicleSha256',
       'Stale vehicle/calibration/assist identity',

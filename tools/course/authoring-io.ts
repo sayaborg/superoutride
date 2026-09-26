@@ -5,7 +5,7 @@ import { readFile, mkdir, writeFile, rename, rm } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { readCourseDocument } from '../../src/course/course-document.js';
+import { readCourseDocumentBytes } from '../../src/course/course-document.js';
 import { compileCourseDocument } from '../../src/course/compiler/compiled-course.js';
 import { compileSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 import { compileCourseImages } from './compile-course-images.js';
@@ -68,7 +68,7 @@ export async function loadAuthoringSurfaceMaterials() {
 }
 
 export async function loadCourse(file: string, imagesDirectory?: string) {
-  const admitted = readCourseDocument((await jsonFile(file)).value, file);
+  const admitted = readCourseDocumentBytes(await readFile(file), file);
   if (!admitted.ok) throw new AuthoringError(admitted.diagnostics);
   const directory = imagesDirectory ?? path.resolve(path.dirname(file), '../images');
   const images = await readCourseImages(admitted.value.assets, directory);

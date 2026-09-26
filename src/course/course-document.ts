@@ -1,5 +1,6 @@
 import type { RepeatElement } from './course-repeat.js';
 import { COURSE_DOCUMENT_LIMITS } from './course-limits.js';
+import { SHA256_TEXT } from '../core/content-digest.js';
 import { SESSION_RULE_LIMITS } from './session-rules.js';
 import { CourseInputError, courseFailure, courseSuccess, type CourseResult } from './course-diagnostics.js';
 import {
@@ -546,16 +547,11 @@ export function readCourseDocument(input: unknown, document = ''): CourseResult<
         '/assets',
         (item, at) => {
           const a = readRecord(item, at, ['id', 'sha256']);
-          if (typeof a.sha256 !== 'string' || !/^[0-9a-f]{64}$/.test(a.sha256))
-            throw new CourseInputError(
-              'invalid_shape',
-              `${at}/sha256`,
-              'Expected lowercase SHA-256 of saved sprite-lod bytes',
-            );
-          return Object.freeze({
-            id: readString(a.id, `${at}/id`, ID),
-            sha256: a.sha256,
+          const sha256 = readString(a.sha256, `${at}/sha256`, {
+            ...SHA256_TEXT,
+            patternMessage: 'Expected lowercase SHA-256 of saved sprite-lod bytes',
           });
+          return Object.freeze({ id: readString(a.id, `${at}/id`, ID), sha256 });
         },
         { max: COURSE_DOCUMENT_LIMITS.assets },
       ),
@@ -578,15 +574,30 @@ export function readCourseDocument(input: unknown, document = ''): CourseResult<
         }
       });
     });
-    if (new TextEncoder().encode(JSON.stringify(result)).byteLength > COURSE_DOCUMENT_LIMITS.jsonBytes)
-      throw new CourseInputError(
-        'resource_limit',
-        '',
-        `Document exceeds ${COURSE_DOCUMENT_LIMITS.jsonBytes} UTF-8 bytes`,
-      );
     return courseSuccess(result);
   } catch (error) {
     if (error instanceof AdmissionError) return courseFailure(error, document);
     throw error;
   }
+}
+
+/**
+ * Admit a saved course document from its raw bytes. The byte ceiling measures the input as saved,
+ * before UTF-8 decoding and JSON parsing; the parsed value then passes `readCourseDocument`.
+ */
+export function readCourseDocumentBytes(bytes: Uint8Array, document = ''): CourseResult<CourseDocument> {
+  if (bytes.byteLength > COURSE_DOCUMENT_LIMITS.jsonBytes)
+    return courseFailure(
+      new CourseInputError('resource_limit', '', `Document exceeds ${COURSE_DOCUMENT_LIMITS.jsonBytes} UTF-8 bytes`),
+      document,
+    );
+  let input: unknown;
+  try {
+    input = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+  } catch (error) {
+    if (error instanceof SyntaxError || error instanceof TypeError)
+      return courseFailure(new CourseInputError('parse_failure', '', error.message), document);
+    throw error;
+  }
+  return readCourseDocument(input, document);
 }

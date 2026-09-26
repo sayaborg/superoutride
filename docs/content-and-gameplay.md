@@ -256,6 +256,9 @@ CourseDocument nulls each have one meaning:
 All numbers are finite. `COURSE_DOCUMENT_LIMITS` in `src/course/course-limits.ts` is the single
 admission table for saved documents, course compilation and supplied course images. These ceilings
 protect compiler resources; they are not rendering, resident-memory or device-performance budgets.
+`jsonBytes` measures a saved course document's raw bytes before UTF-8 decoding and JSON parsing
+(`readCourseDocumentBytes`, used by delivery, the build and authoring tools); an in-memory value given to
+`readCourseDocument`, such as a live editor draft, has no byte ceiling.
 Stage 12 establishes those budgets from the complete application on named devices.
 
 Use 21 km as the planning envelope for the approximately 20.8 km Nordschleife, with a factor of two

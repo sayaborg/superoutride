@@ -62,7 +62,7 @@ export function readObservations(value: unknown): CourseObservations {
     previousTime = -1;
   for (const [i, s] of input.samples.entries()) {
     finite(s.s, `/samples/${i}/s`, 0, 100000);
-    check(s.s >= previous, `/samples/${i}/s`, 'Station samples must be ordered');
+    check(s.s > previous, `/samples/${i}/s`, 'Station samples must strictly increase');
     previous = s.s;
     for (const k of ['curvaturePerMeter', 'grade'] as const) finite(s[k], `/samples/${i}/${k}`);
     finite(s.roadWidthMeters, `/samples/${i}/roadWidthMeters`, 0.1, 2000);
