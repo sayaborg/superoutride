@@ -1,7 +1,6 @@
 {
   "format": "superoutride.vehicle-definition",
-  "version": 6,
-  "id": "911_TURBO_3_3",
+  "version": 7,
   "form": "car",
   "selectionOrder": 2,
   "visuals": { "spriteSet": "coupe", "palette": "original", "steeringRatio": 18 },

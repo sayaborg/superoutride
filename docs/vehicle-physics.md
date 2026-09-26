@@ -420,8 +420,8 @@ mechanical observations without contributing forces or alternate mechanical stat
 ## Material, vehicle and driving documents
 
 This section owns the Surface Material format. `content/materials/surface.json` stores the single
-`superoutride.surface-materials` version 2 document: `format`, `version`, `id` and an ordered,
-nonempty `materials` array. Its `id` is `surface`; each material has exactly a filename-safe `id`
+`superoutride.surface-materials` version 3 document: `format`, `version` and an ordered,
+nonempty `materials` array. Each material has exactly a filename-safe `id`
 (unique in the document), a nonnegative finite `gripFactor` and a nonnegative finite `rollingResistance`.
 The material catalog is the only set of material IDs, and the set is open: IDs are content data, not a
 TypeScript enum, and adding one needs no course or physics code change (until audio definitions become
@@ -430,21 +430,22 @@ The current definitions are ASPHALT, SHOULDER, GRASS, DIRT and SAND; there is no
 The format carries physical values only; tire effects will be declared on the appearance side when they
 are implemented.
 The content layer's `compileSurfaceMaterials` admits it once from the build's file or delivery's manifest entry: exactly one
-document, named `surface`, whose `id` is its file name. It publishes one immutable catalog. Course compilation resolves Strip material IDs through that catalog;
+document, named `surface`. It publishes one immutable catalog. Course compilation resolves Strip material IDs through that catalog;
 runtime physics receives the resolved object or `null`, never a fixed material enum.
 
-`content/vehicles/<id>.json` stores one `superoutride.vehicle-definition` version 6 per vehicle.
-`content/driving/default.json` stores the sole `superoutride.driving-definition` version 8.
-The content layer's `compileVehicleDefinitions` admits the catalog from the build's files or delivery's manifest entries alike:
-exactly one driving definition, named `default`, and at least one vehicle; each document `id` equals its
-file name and selection orders are unique.
+`content/vehicles/<id>.json` stores one `superoutride.vehicle-definition` version 7 per vehicle.
+`content/driving/default.json` stores the sole `superoutride.driving-definition` version 9.
+A material, vehicle or driving document's only identifier is its file name without `.json`, which is
+also its manifest ID; the documents carry none. The content layer's `compileVehicleDefinitions` admits
+the catalog from the build's files or delivery's manifest entries alike: exactly one driving definition,
+named `default`, and at least one vehicle, whose file name becomes its compiled vehicle ID; selection
+orders are unique.
 [Calibration](calibration.md) owns tuning meanings and units. Document admission in
 `vehicle/definition-document.ts` publishes detached, deeply immutable source and compiled products.
 
 | Vehicle field       | Contract                                                                                                                                                                          |
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`, `version` | `superoutride.vehicle-definition`, `6`                                                                                                                                            |
-| `id`                | Nonempty filename-safe identity; equal to its file name (its manifest ID)                                                                                                         |
+| `format`, `version` | `superoutride.vehicle-definition`, `7`                                                                                                                                            |
 | `form`              | `car` or `bike`; one shared physical/display form vocabulary                                                                                                                      |
 | `selectionOrder`    | Positive safe integer, unique across the catalog; ascending selection order independent of filenames and manifest order                                                           |
 | `mechanics`         | All `VehicleDefinition` mechanical fields except `id`, including powertrain; no display ratio                                                                                     |
@@ -457,7 +458,7 @@ powertrain compilation: positive mass/inertia/geometry, finite nonnegative brake
 front drive fraction in [0,1], feasible static suspension compression and ordered gear/torque data.
 No dimensions are saved in this format.
 
-The driving document has `format`, `version`, `id:"default"` and the current `DrivingDefinition`
+The driving document has `format`, `version` and the current `DrivingDefinition`
 fields: `automaticSteering:"travel-direction"`, `maxRoadWheelSteerDegrees`, `steeringOffsetDegrees`,
 `steeringTraversalSeconds`, positive `fuelCutRedlineMargin`, positive
 `idleFrictionMeanEffectivePressureBar` and `redlineFrictionMeanEffectivePressureBar`,
@@ -490,13 +491,13 @@ violating element, curve coverage to `torqueCurve`, and a peak-power point at re
 that torque-curve element's `rpm`.
 Only `definition-document.ts` converts these relative paths into document JSON Pointers (through
 `admitDomain`), attaching
-`/mechanics` for vehicle fields except `/id`, and the document filename. Driving paths start at the
+`/mechanics` for vehicle fields, and the document filename. Driving paths start at the
 driving document's fields. Unsupported earlier versions have no migration reader.
 Only explicit authored-domain failures become diagnostics; unexpected internal errors propagate.
 Success returns `{ok:true,value}`; no partial product is published. Nested arrays and records are
 copied and frozen, including powertrain gears/curve points, metadata and the driving tire/pedals.
 The shared vehicle loader verifies manifest SHA-256 before decoding and admission, checks
-manifest/document identity and selection-order uniqueness, then exposes the sorted immutable
+selection-order uniqueness, then exposes the sorted immutable
 collection. Surface-material diagnostics likewise carry the source document and exact JSON Pointer;
 course references to unknown material IDs report the authored Strip `/material` path.
 

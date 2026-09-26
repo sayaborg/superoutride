@@ -1,7 +1,6 @@
 {
   "format": "superoutride.vehicle-definition",
-  "version": 6,
-  "id": "DELTA_HF_INTEGRALE",
+  "version": 7,
   "form": "car",
   "selectionOrder": 5,
   "visuals": { "spriteSet": "coupe", "palette": "original", "steeringRatio": 18 },

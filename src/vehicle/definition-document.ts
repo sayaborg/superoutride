@@ -34,8 +34,7 @@ export interface VehicleMetadata {
 }
 export interface VehicleDocument {
   readonly format: 'superoutride.vehicle-definition';
-  readonly version: 6;
-  readonly id: string;
+  readonly version: 7;
   readonly form: VehicleForm;
   readonly selectionOrder: number;
   readonly mechanics: Omit<VehicleDefinition, 'id'>;
@@ -74,19 +73,20 @@ const mechanicalNumbers = [
 ] as const;
 const powertrainNumbers = ['displacementCc', 'cycle', 'idleRpm', 'redlineRpm', 'finalDriveRatio'] as const;
 
+/** `id` is the document's identifier, supplied by its catalog: the file name and manifest ID. */
 export function compileVehicleDocument(
   value: unknown,
+  id: string,
   document: string,
   sprites: SpriteAssets,
 ): AdmissionResult<CompiledVehicleDefinition> {
   return admit(document, () => {
     const v = readDocument(
       value,
-      ['format', 'version', 'id', 'form', 'selectionOrder', 'mechanics', 'sound', 'metadata', 'visuals'],
+      ['format', 'version', 'form', 'selectionOrder', 'mechanics', 'sound', 'metadata', 'visuals'],
       'superoutride.vehicle-definition',
-      6,
+      7,
     );
-    const id = readString(v.id, '/id', { pattern: /^[A-Za-z0-9_-]+$/, patternMessage: 'Expected a filename-safe ID' });
     requireAdmission(v.form === 'car' || v.form === 'bike', 'invalid_value', '/form', 'Expected car or bike');
     const selectionOrder = readNumber(v.selectionOrder, '/selectionOrder');
     requireAdmission(
@@ -159,8 +159,7 @@ export function compileVehicleDocument(
       throw new AdmissionError('unresolved_reference', '/sound', `Unknown sound ID: ${soundId}`);
     const source = deepFreeze({
       format: 'superoutride.vehicle-definition',
-      version: 6,
-      id,
+      version: 7,
       form: v.form,
       selectionOrder,
       visuals,
@@ -170,7 +169,8 @@ export function compileVehicleDocument(
     } as unknown as VehicleDocument);
     const compiledVehicle = admitDomain(
       () => compileVehicle({ id, ...source.mechanics }),
-      (path) => (path === 'id' ? '/id' : relativePointer(path, '/mechanics')),
+      // The catalog supplies an admitted identifier; its failure would locate the document root.
+      (path) => (path === 'id' ? '' : relativePointer(path, '/mechanics')),
     );
     return Object.freeze({
       ...metadata,
@@ -201,11 +201,10 @@ export function compileDrivingDocument(value: unknown, document: string): Admiss
     ] as const;
     const v = readDocument(
       value,
-      ['format', 'version', 'id', 'automaticSteering', ...numbers, 'throttle', 'brake', 'wheelSlip', 'tire'],
+      ['format', 'version', 'automaticSteering', ...numbers, 'throttle', 'brake', 'wheelSlip', 'tire'],
       'superoutride.driving-definition',
-      8,
+      9,
     );
-    const id = readString(v.id, '/id');
     requireAdmission(
       v.automaticSteering === 'travel-direction',
       'invalid_value',
@@ -224,8 +223,7 @@ export function compileDrivingDocument(value: unknown, document: string): Admiss
     const t = readRecord(v.tire, '/tire', keys);
     const source = deepFreeze({
       format: 'superoutride.driving-definition',
-      version: 8,
-      id,
+      version: 9,
       automaticSteering: v.automaticSteering,
       ...Object.fromEntries(numbers.map((key) => [key, readNumber(v[key], `/${key}`)])),
       throttle: pedal('throttle'),

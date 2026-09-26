@@ -18,7 +18,7 @@ color and material overwrite independently. Compiled Sections publish their two 
 Checkpoints, starts, finishes and environment changes are independent of Section boundaries.
 Source identity, traversal identity and race credit are distinct.
 
-## CourseDocument v27
+## CourseDocument v28
 
 The saved format is compact UTF-8 JSON. All declared fields are required; explicit null represents
 absent optional content. Unknown fields fail. Arrays preserve saved order; object-property order and
@@ -26,15 +26,14 @@ whitespace do not affect identity. Normalized records use schema field order and
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 27,
-  id,
+  format: "superoutride.course", version: 28,
   entrySectionId,
   sections, links, assets, rules
 }
 Section {
   id, pis,
   boundaries, strips, sprites, height: [{at, y, curveLength}],
-  carriageways, assetIds, environments, gates
+  carriageways, environments, gates
 }
 ```
 
@@ -55,8 +54,9 @@ against each use (sprite or background). A course's relation to its images is th
 delivery supplies each reference with the bytes of the manifest `image` entry whose `sha256` equals it,
 never by assuming an entry ID. [Development](development.md#build-outputs) owns the index and output layout.
 
-IDs are opaque nonblank strings without surrounding whitespace and compare exactly. Course ID is
-external identity. Section, Link and asset IDs each have a document-wide scope.
+IDs are opaque nonblank strings without surrounding whitespace and compare exactly. A course's only
+identifier is its file name without `.course.json`, which is also its manifest ID; the document carries
+none, and the compiled course receives it from its catalog. Section, Link and asset IDs each have a document-wide scope.
 PI, Boundary and Carriageway IDs each have their own Section-local scope. Sprites have no IDs.
 Duplicate IDs fail. References
 resolve in their named scopes rather than by array position.
@@ -100,7 +100,7 @@ resolve authored references.
 
 Section `sprites` is an ordered array of `sprite` or `repeat` elements. A sprite is
 `{kind:"sprite",image,palette,at,lateral,groundOffset,unselectedCarriagewayId}`.
-`image` names a sprite image in that Section's `assetIds`; `palette` is a required nonempty name
+`image` names a sprite image in the course `assets`; `palette` is a required nonempty name
 without surrounding whitespace, declared by that image. To use its default color, write the image's
 `defaultPalette` name explicitly; arrays, null and omission are invalid. Compilation rejects unknown
 names with `unresolved_reference` at the sprite's `/palette` JSON Pointer.
@@ -117,8 +117,10 @@ Section `environments` is an array at the same level as `strips` and `sprites`. 
 means no compiled appearance and requires an empty sprite list, while preserving authored Strips and
 geometry. A nonempty environment list must begin at s=0.
 An environment element is `{at,name,background}` or a `repeat`; background is
-`{assetId,horizonY,yawOrigin}`. The image belongs to the referencing Section and uses the tiled
-background format. After expansion, environment knots must begin at s=0 and strictly increase
+`{assetId,horizonY,yawOrigin}`, naming an image in the course `assets` that uses the tiled
+background format. Sprite and background references are a Section's only relation to images: an
+image outside the course `assets` is `unresolved_reference`, and a Section's images are exactly those
+its sprites and backgrounds reference. After expansion, environment knots must begin at s=0 and strictly increase
 inside `[0,Section.length)`, in expanded order. The compiler does not sort them.
 Environment changes affect BG and labels independently of ground colors.
 Background `yawOrigin` is an absolute angle in the authored Section coordinate frame: zero faces +Z
@@ -282,7 +284,6 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | `idCodeUnits`                                                           |                128 | 64-character stable paths/names × 2                                                                                     |
 | Graph `sections` / `links`                                              |          128 / 384 | 50 positions × 2, rounded up; three outgoing choices per Section                                                        |
 | Document `assets`                                                       |               2048 | (50 × 16 local image types + 128 shared types) × 2, rounded up                                                          |
-| Section `sectionAssets`                                                 |                128 | 64 locally used image types × 2                                                                                         |
 | Section `pis`                                                           |                512 | (21 × 10 + 2 endpoints) × 2, rounded up                                                                                 |
 | Section `heightNodes`                                                   |               1024 | (21 × 20 + 2) × 2, rounded up                                                                                           |
 | Each Boundary/Strip `knots`                                             |               1024 | Same 20/km knot density and margin                                                                                      |

@@ -1,7 +1,6 @@
 {
   "format": "superoutride.vehicle-definition",
-  "version": 6,
-  "id": "R80_GS_PARIS_DAKAR",
+  "version": 7,
   "form": "bike",
   "selectionOrder": 7,
   "visuals": { "spriteSet": "motorcycle", "palette": "original", "steeringRatio": 18 },

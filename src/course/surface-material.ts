@@ -18,8 +18,7 @@ export interface SurfaceMaterial {
 
 export interface SurfaceMaterialDocument {
   readonly format: 'superoutride.surface-materials';
-  readonly version: 2;
-  readonly id: string;
+  readonly version: 3;
   readonly materials: readonly SurfaceMaterial[];
 }
 
@@ -36,8 +35,7 @@ export function compileSurfaceMaterialDocument(
   document: string,
 ): AdmissionResult<SurfaceMaterialCatalog> {
   return admit(document, () => {
-    const root = readDocument(value, ['format', 'version', 'id', 'materials'], 'superoutride.surface-materials', 2);
-    const documentId = readString(root.id, '/id', MATERIAL_ID);
+    const root = readDocument(value, ['format', 'version', 'materials'], 'superoutride.surface-materials', 3);
     requireAdmission(
       Array.isArray(root.materials) && root.materials.length > 0,
       Array.isArray(root.materials) ? 'invalid_value' : 'invalid_shape',
@@ -54,8 +52,7 @@ export function compileSurfaceMaterialDocument(
     });
     const source = deepFreeze({
       format: 'superoutride.surface-materials' as const,
-      version: 2 as const,
-      id: documentId,
+      version: 3 as const,
       materials,
     });
     const table = new Map(source.materials.map((material) => [material.id, material]));

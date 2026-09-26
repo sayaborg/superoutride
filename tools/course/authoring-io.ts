@@ -7,9 +7,10 @@ import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { readCourseDocumentBytes } from '../../src/course/course-document.js';
 import { compileCourseDocument } from '../../src/course/compiler/compiled-course.js';
-import { compileSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
+import { compileSurfaceMaterials, SURFACE_MATERIALS_ID } from '../../src/content/surface-material-catalog.js';
 import { compileCourseImages } from './compile-course-images.js';
 import { readCourseImages } from './read-course-images.js';
+import { courseFileId } from './course-file-id.js';
 
 type AuthoringDiagnostic =
   | Extract<CourseResult<never>, { ok: false }>['diagnostics'][number]
@@ -62,7 +63,7 @@ export async function jsonFile(file: string): Promise<{ bytes: Buffer; value: un
 export async function loadAuthoringSurfaceMaterials() {
   const filename = fileURLToPath(new URL('../../content/materials/surface.json', import.meta.url));
   const value = (await jsonFile(filename)).value;
-  const result = compileSurfaceMaterials([{ id: 'surface', path: 'content/materials/surface.json', value }]);
+  const result = compileSurfaceMaterials([{ id: SURFACE_MATERIALS_ID, path: 'content/materials/surface.json', value }]);
   if (!result.ok) throw new AuthoringError(result.diagnostics);
   return result.value;
 }
@@ -74,7 +75,7 @@ export async function loadCourse(file: string, imagesDirectory?: string) {
   const images = await readCourseImages(admitted.value.assets, directory);
   const prepared = await compileCourseImages(admitted.value, images);
   const materials = await loadAuthoringSurfaceMaterials();
-  const compiled = await compileCourseDocument(prepared.document, prepared.images, materials, file);
+  const compiled = await compileCourseDocument(prepared.document, courseFileId(file), prepared.images, materials, file);
   if (!compiled.ok) throw new AuthoringError(compiled.diagnostics);
   return { document: admitted.value, course: compiled.value, images, materials };
 }

@@ -15,7 +15,7 @@ import {
   readString,
 } from '../core/admission.js';
 
-const COURSE_DOCUMENT_VERSION = 27;
+const COURSE_DOCUMENT_VERSION = 28;
 const ID = { maxLength: COURSE_DOCUMENT_LIMITS.idCodeUnits };
 
 export interface CoursePosition {
@@ -118,7 +118,6 @@ export interface SectionDocument {
   readonly sprites: readonly RepeatElement<SpriteDocument>[];
   readonly height: readonly { readonly at: CoursePosition; readonly y: number; readonly curveLength: number }[];
   readonly carriageways: readonly CarriagewayDocument[];
-  readonly assetIds: readonly string[];
   readonly environments: readonly RepeatElement<EnvironmentDocument>[];
   readonly gates: readonly CourseGateDocument[];
 }
@@ -158,7 +157,6 @@ export type CourseRulesDocument = TimedCourseRules | UntimedCourseRules;
 export interface CourseDocument {
   readonly format: 'superoutride.course';
   readonly version: typeof COURSE_DOCUMENT_VERSION;
-  readonly id: string;
   readonly entrySectionId: string;
   readonly rules: CourseRulesDocument;
   readonly sections: readonly SectionDocument[];
@@ -400,7 +398,6 @@ function section(value: unknown, path: string): SectionDocument {
     'sprites',
     'height',
     'carriageways',
-    'assetIds',
     'environments',
     'gates',
   ]);
@@ -440,9 +437,6 @@ function section(value: unknown, path: string): SectionDocument {
     ),
     carriageways: readIdentified(v.carriageways, `${path}/carriageways`, carriageway, {
       max: COURSE_DOCUMENT_LIMITS.carriageways,
-    }),
-    assetIds: readArray(v.assetIds, `${path}/assetIds`, (item, at) => readString(item, at, ID), {
-      max: COURSE_DOCUMENT_LIMITS.sectionAssets,
     }),
     environments: environments(v.environments, `${path}/environments`),
     gates: readArray(v.gates, `${path}/gates`, gate, { max: COURSE_DOCUMENT_LIMITS.gates }),
@@ -513,14 +507,13 @@ export function readCourseDocument(input: unknown, document = ''): CourseResult<
     // Format and version are checked before the current schema's fields.
     const v = readDocument(
       input,
-      ['rules', 'format', 'version', 'id', 'entrySectionId', 'sections', 'links', 'assets'],
+      ['rules', 'format', 'version', 'entrySectionId', 'sections', 'links', 'assets'],
       'superoutride.course',
       COURSE_DOCUMENT_VERSION,
     );
     const result: CourseDocument = Object.freeze({
       format: 'superoutride.course',
       version: COURSE_DOCUMENT_VERSION,
-      id: readString(v.id, '/id', ID),
       entrySectionId: readString(v.entrySectionId, '/entrySectionId', ID),
       rules: rules(v.rules, '/rules'),
       sections: readIdentified(v.sections, '/sections', section, { max: COURSE_DOCUMENT_LIMITS.sections }),

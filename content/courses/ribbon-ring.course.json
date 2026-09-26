@@ -1,7 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 27,
-  "id": "ribbon-ring",
+  "version": 28,
   "entrySectionId": "ring-outward",
   "rules": {
     "maxLaps": 3,
@@ -688,7 +687,6 @@
           "right": "road-right"
         }
       ],
-      "assetIds": ["coast-sky", "tree"],
       "environments": [
         {
           "at": {
@@ -1594,7 +1592,6 @@
           "right": "road-right"
         }
       ],
-      "assetIds": ["coast-sky", "tree"],
       "environments": [
         {
           "at": {

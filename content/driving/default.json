@@ -1,7 +1,6 @@
 {
   "format": "superoutride.driving-definition",
-  "version": 8,
-  "id": "default",
+  "version": 9,
   "automaticSteering": "travel-direction",
   "maxRoadWheelSteerDegrees": 65,
   "steeringOffsetDegrees": 20,

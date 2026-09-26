@@ -1,7 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 27,
-  "id": "ribbon-rough",
+  "version": 28,
   "entrySectionId": "rough-bumps",
   "rules": {
     "maxLaps": 3,
@@ -449,7 +448,6 @@
         { "at": { "pi": "end", "offset": 0 }, "y": -7, "curveLength": 0 }
       ],
       "carriageways": [{ "id": "road", "left": "road-left", "right": "road-right" }],
-      "assetIds": ["coast-sky", "tree"],
       "environments": [
         {
           "at": { "pi": "start", "offset": 0 },
@@ -857,7 +855,6 @@
         { "at": { "pi": "end", "offset": 0 }, "y": 0, "curveLength": 0 }
       ],
       "carriageways": [{ "id": "road", "left": "road-left", "right": "road-right" }],
-      "assetIds": ["coast-sky", "tree"],
       "environments": [
         {
           "at": { "pi": "start", "offset": 0 },

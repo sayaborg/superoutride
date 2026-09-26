@@ -1,7 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 27,
-  "id": "ribbon-fork",
+  "version": 28,
   "entrySectionId": "junction-road",
   "rules": {
     "maxLaps": 1,
@@ -835,7 +834,6 @@
           "right": "right-outer"
         }
       ],
-      "assetIds": ["coast-sky", "tree", "fork-warning", "fork-closed"],
       "environments": [
         {
           "at": {
@@ -1471,7 +1469,6 @@
           "right": "road-right"
         }
       ],
-      "assetIds": ["coast-sky", "tree", "fork-warning", "fork-closed"],
       "environments": [
         {
           "at": {
@@ -1825,7 +1822,6 @@
           "right": "road-right"
         }
       ],
-      "assetIds": ["coast-sky", "tree", "fork-warning", "fork-closed"],
       "environments": [
         {
           "at": {
@@ -2282,7 +2278,6 @@
           "right": "road-right"
         }
       ],
-      "assetIds": ["coast-sky", "tree", "fork-warning", "fork-closed"],
       "environments": [
         {
           "at": {

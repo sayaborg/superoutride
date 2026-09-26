@@ -1,7 +1,6 @@
 {
   "format": "superoutride.surface-materials",
-  "version": 2,
-  "id": "surface",
+  "version": 3,
   "materials": [
     { "id": "ASPHALT", "gripFactor": 1, "rollingResistance": 0.014 },
     { "id": "SHOULDER", "gripFactor": 0.78, "rollingResistance": 0.025 },

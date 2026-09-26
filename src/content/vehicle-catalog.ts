@@ -18,39 +18,36 @@ export async function loadVehicleSpriteLibrary(content: ContentDelivery): Promis
   return requireLoaded(admit(file.path, () => readSpriteAssets(value)));
 }
 
-const requireFileName = (id: string, file: DocumentSource) =>
-  requireAdmission(id === file.id, 'invalid_value', '/id', `Expected the file name ${file.id} as the document ID`);
+/** The single driving definition's identifier: its file name and manifest ID. */
+export const DRIVING_DEFINITION_ID = 'default';
 
 /**
  * Admit the catalog from its sources, from the build's files or delivery's manifest alike: exactly one
  * driving definition, named `default`, and at least one vehicle document against an admitted sprite
- * library. Each document ID is its file name and selection orders are unique.
+ * library. Each vehicle's identifier is its source's file name; selection orders are unique.
  */
 export function compileVehicleDefinitions(
   sprites: SpriteAssets,
   drivingSources: readonly DocumentSource[],
   vehicleSources: readonly DocumentSource[],
 ): AdmissionResult<VehicleDefinitions> {
-  const single = admitSingleDocument(drivingSources, 'default', 'driving definition');
+  const single = admitSingleDocument(drivingSources, DRIVING_DEFINITION_ID, 'driving definition');
   if (!single.ok) return single;
   const driving = compileDrivingDocument(single.value.value, single.value.path);
   if (!driving.ok) return driving;
-  const drivingIdentity = admit(single.value.path, () => requireFileName(driving.value.source.id, single.value));
-  if (!drivingIdentity.ok) return drivingIdentity;
   const orders = new Set<number>();
   const vehicles: CompiledVehicleDefinition[] = [];
   for (const file of vehicleSources) {
-    const entry = compileVehicleDocument(file.value, file.path, sprites);
+    const entry = compileVehicleDocument(file.value, file.id, file.path, sprites);
     if (!entry.ok) return entry;
-    const catalogRules = admit(file.path, () => {
-      requireFileName(entry.value.source.id, file);
+    const catalogRules = admit(file.path, () =>
       requireAdmission(
         !orders.has(entry.value.source.selectionOrder),
         'duplicate_id',
         '/selectionOrder',
         'Duplicate selection order',
-      );
-    });
+      ),
+    );
     if (!catalogRules.ok) return catalogRules;
     orders.add(entry.value.source.selectionOrder);
     vehicles.push(entry.value);

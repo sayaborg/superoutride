@@ -1,7 +1,6 @@
 {
   "format": "superoutride.vehicle-definition",
-  "version": 6,
-  "id": "CORVETTE_C4",
+  "version": 7,
   "form": "car",
   "selectionOrder": 3,
   "visuals": { "spriteSet": "coupe", "palette": "original", "steeringRatio": 18 },

@@ -13,8 +13,8 @@ interface CourseProjectState {
 type ProjectFailure = { readonly ok: false; readonly reason: 'no_source' | 'stale_source' };
 type ProjectResult<T> = CourseResult<T> | ProjectFailure;
 
-/** Live authoring session; documents and published products themselves are immutable snapshots. */
-export function createCourseProject(materials: SurfaceMaterialCatalog) {
+/** Live authoring session for course `id`; documents and published products are immutable snapshots. */
+export function createCourseProject(materials: SurfaceMaterialCatalog, id: string) {
   let state: CourseProjectState = Object.freeze({ source: null, compiled: null, lastSuccessful: null });
   let generation = 0;
   const noSource = (): ProjectFailure => Object.freeze({ ok: false, reason: 'no_source' });
@@ -39,7 +39,7 @@ export function createCourseProject(materials: SurfaceMaterialCatalog) {
     ): Promise<ProjectResult<CompiledCourse>> {
       if (!state.source) return noSource();
       const ticket = ++generation;
-      const result = await compileCourseDocument(state.source, assetSources, materials, document);
+      const result = await compileCourseDocument(state.source, id, assetSources, materials, document);
       if (ticket !== generation) return stale();
       if (result.ok)
         state = Object.freeze({ source: state.source, compiled: result.value, lastSuccessful: result.value });
@@ -53,7 +53,7 @@ export function createCourseProject(materials: SurfaceMaterialCatalog) {
       const parsed = parseCourseDocument(text, document);
       if (!parsed.ok) return parsed;
       const ticket = ++generation;
-      const result = await compileCourseDocument(parsed.value, assetSources, materials, document);
+      const result = await compileCourseDocument(parsed.value, id, assetSources, materials, document);
       if (ticket !== generation) return stale();
       if (result.ok)
         state = Object.freeze({ source: parsed.value, compiled: result.value, lastSuccessful: result.value });

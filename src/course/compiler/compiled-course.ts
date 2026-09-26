@@ -130,14 +130,23 @@ function compileSection(
   validateCourseCarriageways(carriageways, strips.material, length, `${path}/carriageways`);
   const physical = compileCoursePhysicalContent(section, length, resolve, path);
   const lateralDomain = compileMaterialCoordinateDomain(section.id, segments, strips.material, path);
-  const sectionAssets = section.assetIds.map((id, i) => reference(assets, id, `${path}/assetIds/${i}`));
-  requireCourse(
-    new Set(sectionAssets).size === sectionAssets.length,
-    `${path}/assetIds`,
-    'Asset membership must be unique',
-    'duplicate_membership',
-  );
   const spritePaths: string[] = [];
+  const appearance = compileCourseAppearance(
+    section,
+    length,
+    boundaryTable,
+    assets,
+    resources,
+    resolve,
+    path,
+    carriageways,
+    (at) => spritePaths.push(at),
+  );
+  // A Section's images are exactly those its backgrounds and sprites reference, in course asset order.
+  const used = new Set<object>([
+    ...(appearance?.environments.map((environment) => environment.background.asset) ?? []),
+    ...(appearance?.sprites.map((sprite) => sprite.instance.asset) ?? []),
+  ]);
   const result: SectionDraft = {
     id: section.id,
     segments,
@@ -146,18 +155,8 @@ function compileSection(
     ...physical,
     ...strips,
     carriageways: Object.freeze(carriageways),
-    assets: Object.freeze(sectionAssets),
-    appearance: compileCourseAppearance(
-      section,
-      length,
-      boundaryTable,
-      sectionAssets,
-      resources,
-      resolve,
-      path,
-      carriageways,
-      (at) => spritePaths.push(at),
-    ),
+    assets: Object.freeze([...assets.values()].filter((asset) => used.has(asset))),
+    appearance,
     incoming: [],
     outgoing: [],
     fork: null,
@@ -183,9 +182,11 @@ function compileSection(
 /**
  * Compile an admitted course document. `readCourseDocument` is the only admission; its deeply frozen
  * value cannot change across awaits. Publish only a fully validated graph, never the construction tables.
+ * `id` is the course's identifier, supplied by its catalog: the file name stem and manifest ID.
  */
 export async function compileCourseDocument(
   document: CourseDocument,
+  id: string,
   assetSources: readonly CourseAssetBytes[],
   materials: SurfaceMaterialCatalog,
   documentPath = '',
@@ -253,7 +254,7 @@ export async function compileCourseDocument(
     );
     return courseSuccess(
       Object.freeze({
-        id: document.id,
+        id,
         type,
         rules: document.rules,
         gates,

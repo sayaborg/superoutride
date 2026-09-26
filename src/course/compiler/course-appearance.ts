@@ -40,7 +40,7 @@ export function compileCourseAppearance(
   section: SectionDocument,
   length: number,
   boundaries: ReadonlyMap<string, CompiledBoundary>,
-  assets: readonly CompiledCourseImageSource[],
+  assets: ReadonlyMap<string, CompiledCourseImageSource>,
   resource: ReturnType<typeof createCourseSpriteResources>,
   resolve: (at: CoursePosition, path: string) => CompiledCoursePosition,
   path: string,
@@ -52,10 +52,9 @@ export function compileCourseAppearance(
     requireCourse(section.sprites.length === 0, `${path}/sprites`, 'Sprites require environments', 'invalid_placement');
     return null;
   }
-  const assetTable = new Map(assets.map((asset) => [asset.id, asset]));
   const image = (id: string, at: string) => {
-    const asset = assetTable.get(id);
-    if (!asset) throw new CourseInputError('unresolved_reference', at, 'Image must belong to this Section');
+    const asset = assets.get(id);
+    if (!asset) throw new CourseInputError('unresolved_reference', at, 'Unknown course asset');
     if (asset.kind !== 'sprite')
       throw new CourseInputError('invalid_image_role', at, 'Sprites require sprite patterns');
     return asset;
@@ -88,8 +87,9 @@ export function compileCourseAppearance(
         'resource_limit',
       );
       const b = environment.background,
-        asset = assetTable.get(b.assetId);
-      if (!asset) throw new CourseInputError('unresolved_reference', `${at}/background/assetId`, 'Unknown background');
+        asset = assets.get(b.assetId);
+      if (!asset)
+        throw new CourseInputError('unresolved_reference', `${at}/background/assetId`, 'Unknown course asset');
       if (asset.kind !== 'background')
         throw new CourseInputError(
           'invalid_image_role',

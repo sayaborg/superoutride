@@ -22,7 +22,7 @@ import {
   vehicleDefinitionForId,
   type CompiledVehicleDefinition,
 } from '../vehicle/definition-document.js';
-import type { VehicleDefinitions } from '../content/vehicle-catalog.js';
+import { DRIVING_DEFINITION_ID, type VehicleDefinitions } from '../content/vehicle-catalog.js';
 import { admitDrivingTuningGrid } from './driving-tuning.js';
 import { mountDrivingTuningControls } from './driving-tuning-controls.js';
 import { downloadDefinition } from './definition-export.js';
@@ -189,7 +189,7 @@ export function createBrowserDrivingShell(
       const exportVehicle = mustGet<HTMLButtonElement>('export-vehicle-button');
       const showVehicleExport = () => (exportVehicle.textContent = `vehicles/${model.compiledVehicle.id}.json`);
       mustGet<HTMLButtonElement>('export-driving-button').addEventListener('click', () =>
-        downloadDefinition(`${driving.source.id}.json`, driving.source),
+        downloadDefinition(`${DRIVING_DEFINITION_ID}.json`, driving.source),
       );
       exportVehicle.addEventListener('click', () =>
         downloadDefinition(

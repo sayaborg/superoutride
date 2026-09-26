@@ -1,4 +1,4 @@
-import { compileVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
+import { compileVehicleDefinitions, DRIVING_DEFINITION_ID } from '../../src/content/vehicle-catalog.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
 import type { DocumentSource } from '../../src/content/document-catalog.js';
 import {
@@ -13,7 +13,8 @@ import { createContentWriter } from './content-manifest.js';
 import { readCourseDocumentBytes } from '../../src/course/course-document.js';
 import { compileCourseImages } from '../course/compile-course-images.js';
 import { readCourseImages } from '../course/read-course-images.js';
-import { compileSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
+import { courseFileId } from '../course/course-file-id.js';
+import { compileSurfaceMaterials, SURFACE_MATERIALS_ID } from '../../src/content/surface-material-catalog.js';
 import { validateTireSoundMaterialIds } from '../../src/audio/tire-surface-acoustics.js';
 import { compileVehicleSpriteLibrary } from '../graphics/vehicle-sprite-library.js';
 
@@ -54,18 +55,19 @@ const sources = async (directory: string) => {
 };
 const materials = requireLoaded(compileSurfaceMaterials(await sources('materials')));
 validateTireSoundMaterialIds(materials.source.materials.map((material) => material.id));
-await writer.stage('material', materials.source.id, materials.source);
+await writer.stage('material', SURFACE_MATERIALS_ID, materials.source);
 
 const vehicleSources = await sources('vehicles'),
   drivingSources = await sources('driving');
 const definitions = requireLoaded(compileVehicleDefinitions(library.sprites, drivingSources, vehicleSources));
 for (const { id } of vehicleSources)
-  await writer.stage('vehicle', id, definitions.vehicles.find((entry) => entry.source.id === id)!.source);
-await writer.stage('driving', definitions.driving.source.id, definitions.driving.source);
+  await writer.stage('vehicle', id, definitions.vehicles.find((entry) => entry.compiledVehicle.id === id)!.source);
+await writer.stage('driving', DRIVING_DEFINITION_ID, definitions.driving.source);
 
 const courses: { course: CompiledCourse; stem: string }[] = [];
 for (const name of (await readdir(new URL('courses/', content))).sort()) {
   if (!name.endsWith('.course.json')) continue;
+  const id = courseFileId(name);
   const bytes = await readFile(new URL(`courses/${name}`, content));
   const document = requireLoaded(readCourseDocumentBytes(bytes, `content/courses/${name}`));
   const prepared = await compileCourseImages(
@@ -73,15 +75,12 @@ for (const name of (await readdir(new URL('courses/', content))).sort()) {
     await readCourseImages(document.assets, new URL('images/', content).pathname),
   );
   const compiled = requireLoaded(
-    await compileCourseDocument(prepared.document, prepared.images, materials, `content/courses/${name}`),
+    await compileCourseDocument(prepared.document, id, prepared.images, materials, `content/courses/${name}`),
   );
-  await writer.stage('course', name.replace('.course.json', ''), prepared.document);
+  await writer.stage('course', id, prepared.document);
   for (const image of prepared.images) await writer.stage('image', image.sha256, null, new Uint8Array(image.bytes));
   console.log(`${name}: Strip ground compiled`);
-  courses.push({
-    course: compiled,
-    stem: name.replace('.course.json', ''),
-  });
+  courses.push({ course: compiled, stem: id });
 }
 // Reference workers run in separate threads and read this build's saved content.
 await writer.save();

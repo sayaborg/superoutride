@@ -21,7 +21,6 @@ type CourseDiagnosticCode =
   | 'carriageway_transition_discontinuity'
   | 'plan_coordinate_inversion'
   | 'invalid_carriageway'
-  | 'duplicate_membership'
   | 'invalid_height'
   | 'invalid_link'
   | 'seam_edge_mismatch'

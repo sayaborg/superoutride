@@ -1,7 +1,6 @@
 {
   "format": "superoutride.vehicle-definition",
-  "version": 6,
-  "id": "TESTAROSSA",
+  "version": 7,
   "form": "car",
   "selectionOrder": 1,
   "visuals": { "spriteSet": "coupe", "palette": "original", "steeringRatio": 18 },

@@ -14,7 +14,7 @@
 - Engine sound load is the powertrain's effective opening.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **9-11 — Document identifiers**.
+Next PR: **9-12 — Vehicle mechanics identity**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -24,8 +24,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Admit each input once, keep compiled products runtime-ready, and give delivered content one identity rule.
 
-- **9-11 — Document identifiers:** a document's file name (its manifest id) is its only identifier. Remove `id` from
-  course, vehicle, driving and material documents, and remove `Section.assetIds`; a Section's asset use is derived.
 - **9-12 — Vehicle mechanics identity:** split each vehicle document into a mechanics document and an appearance
   document (label and metadata, selection order, sprite set and default color, sound ID, HUD steering ratio).
   Reference identity (envelopes, budgets, runs) is the delivered SHA-256 of the vehicle mechanics, driving and

@@ -1,7 +1,6 @@
 {
   "format": "superoutride.vehicle-definition",
-  "version": 6,
-  "id": "GOLF_GTI_16V",
+  "version": 7,
   "form": "car",
   "selectionOrder": 4,
   "visuals": { "spriteSet": "coupe", "palette": "original", "steeringRatio": 18 },

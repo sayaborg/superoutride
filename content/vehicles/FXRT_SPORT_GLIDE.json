@@ -1,7 +1,6 @@
 {
   "format": "superoutride.vehicle-definition",
-  "version": 6,
-  "id": "FXRT_SPORT_GLIDE",
+  "version": 7,
   "form": "bike",
   "selectionOrder": 8,
   "visuals": { "spriteSet": "motorcycle", "palette": "original", "steeringRatio": 18 },
