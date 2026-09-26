@@ -14,7 +14,7 @@
 - Engine sound load is the powertrain's effective opening.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **9-3 — Runtime-ready course images**.
+Next PR: **9-4 — Opaque backgrounds**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -24,9 +24,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Admit each input once, keep compiled products runtime-ready, and give delivered content one identity rule.
 
-- **9-3 — Runtime-ready course images:** course image admission decodes once and the compiled course holds the
-  immutable decoded readers; the view only borrows them. Separate background-image admission from reader
-  construction. Courses reference their images through a declared relation, not by assuming manifest id equals digest.
 - **9-4 — Opaque backgrounds:** background admission rejects palette index 0. Every frame writes every pixel, rows
   beyond the Route included, so rendering has no clear step and never shows a previous frame.
 - **9-5 — Content layer (move only):** add a `content` layer between `vehicle` and `race` for the manifest format and

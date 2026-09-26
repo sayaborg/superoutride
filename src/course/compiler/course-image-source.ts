@@ -3,8 +3,12 @@ import { contentDigest } from '../../core/content-digest.js';
 import { CourseAssetError, courseFailures, courseSuccess, type CourseResult } from '../course-diagnostics.js';
 import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
 import { type CourseAssetReference } from '../course-document.js';
-import { TileBackgroundImage, type TileBackgroundDocument } from '../../image/tile-background-image.js';
-import { readSpriteLodAsset, spriteLodLayout, type SpriteLodDocument } from '../../image/sprite.js';
+import {
+  compileTileBackground,
+  type TileBackgroundDocument,
+  type TileBackgroundImage,
+} from '../../image/tile-background-image.js';
+import { readSpriteLodAsset, spriteLodLayout, type SpriteAsset, type SpriteLodDocument } from '../../image/sprite.js';
 
 /** Offline source admission bounds, not resident image/device budgets or art-quality settings. */
 export const COURSE_IMAGE_SOURCE_RECIPE = Object.freeze({
@@ -17,16 +21,48 @@ export interface CourseAssetBytes {
   readonly bytes: Uint8Array;
 }
 
-/** Canonical descriptor and owned indexed source. No mutable decoded buffer enters the graph. */
-export interface CompiledCourseImageSource extends CourseAssetReference {
-  readonly source: SpriteLodDocument | TileBackgroundDocument;
-}
+type AdmittedImage =
+  | { readonly kind: 'sprite'; readonly image: SpriteAsset; readonly document: SpriteLodDocument }
+  | { readonly kind: 'background'; readonly image: TileBackgroundImage; readonly document: TileBackgroundDocument };
 
-/** References have passed document admission; all caller bytes are owned before the first await. */
+/** Canonical descriptor and the immutable reader decoded once at admission; consumers borrow it. */
+export type CompiledCourseImageSource = CourseAssetReference &
+  (
+    | { readonly kind: 'sprite'; readonly image: SpriteAsset }
+    | { readonly kind: 'background'; readonly image: TileBackgroundImage }
+  );
+
+/** An admitted image with the frozen saved document it was decoded from, for build-time compilers. */
+export type AdmittedCourseImage = CourseAssetReference & AdmittedImage;
+
+/** Compile the course's image references into their decoded readers. */
 export async function compileCourseImageSources(
   references: readonly CourseAssetReference[],
   inputs: readonly CourseAssetBytes[],
 ): Promise<CourseResult<readonly CompiledCourseImageSource[]>> {
+  const admitted = await readCourseImageSources(references, inputs);
+  if (!admitted.ok) return admitted;
+  return courseSuccess(
+    Object.freeze(
+      admitted.value.map(({ id, sha256, ...image }) =>
+        Object.freeze(
+          image.kind === 'sprite'
+            ? { id, sha256, kind: image.kind, image: image.image }
+            : { id, sha256, kind: image.kind, image: image.image },
+        ),
+      ),
+    ),
+  );
+}
+
+/**
+ * Admit saved image bytes: each unique digest is decoded once. References have passed document
+ * admission; all caller bytes are owned before the first await.
+ */
+export async function readCourseImageSources(
+  references: readonly CourseAssetReference[],
+  inputs: readonly CourseAssetBytes[],
+): Promise<CourseResult<readonly AdmittedCourseImage[]>> {
   if (!Array.isArray(inputs)) throw new TypeError('Image inputs must be an array');
   const required = new Map<string, number[]>();
   references.forEach((reference, index) => {
@@ -71,7 +107,7 @@ export async function compileCourseImageSources(
     const input = supplied.get(sha256)!;
     return { sha256, inputIndex: input.inputIndex, bytes: new Uint8Array(input.bytes) };
   });
-  const sources = new Map<string, SpriteLodDocument | TileBackgroundDocument>();
+  const images = new Map<string, AdmittedImage>();
   let levelTexels = 0;
   for (const { sha256, inputIndex, bytes } of owned) {
     if ((await contentDigest(bytes)) !== sha256) {
@@ -111,6 +147,7 @@ export async function compileCourseImageSources(
         levelTexels += count;
       }
     }
+    let admitted: AdmittedImage;
     try {
       if ((value as { format?: string } | null)?.format === 'superoutride.tile-background') {
         const background = value as TileBackgroundDocument;
@@ -121,23 +158,24 @@ export async function compileCourseImageSources(
           error('resource_limit', sha256, 'Background patterns exceed source texel admission', inputIndex);
           continue;
         }
-        new TileBackgroundImage(value);
+        const image = compileTileBackground(value);
         levelTexels += background.patterns.length * 256;
-      } else readSpriteLodAsset(value);
+        admitted = { kind: 'background', image, document: background };
+      } else {
+        // Sprite-LOD admission establishes the saved document's shape.
+        admitted = { kind: 'sprite', image: readSpriteLodAsset(value), document: value as SpriteLodDocument };
+      }
     } catch (cause) {
       if (!(cause instanceof AdmissionError)) throw cause;
       error('asset_invalid_image', sha256, cause.message, inputIndex, cause.path);
       continue;
     }
-    const source = value as SpriteLodDocument | TileBackgroundDocument;
-    freezeSource(source);
-    sources.set(sha256, source);
+    freezeSource(admitted.document);
+    images.set(sha256, Object.freeze(admitted));
   }
   if (errors.length) return courseFailures(errors);
   return courseSuccess(
-    Object.freeze(
-      references.map((reference) => Object.freeze({ ...reference, source: sources.get(reference.sha256)! })),
-    ),
+    Object.freeze(references.map((reference) => Object.freeze({ ...reference, ...images.get(reference.sha256)! }))),
   );
 }
 

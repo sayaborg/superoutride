@@ -76,7 +76,8 @@ stable input order resolves ties. Color or lamp edits invalidate the generated p
 `content/sprites/vehicles.json` is a normalized-master dictionary with yaw/bank bindings.
 Its generated library uses the same `dist/content/images/<sha256>.json` location as course images.
 The content manifest maps the logical image name `vehicles` to its path and exact-byte SHA-256;
-course images are indexed by their digest. All consumers resolve these entries through the manifest
+courses find their images by that digest ([Content and gameplay](content-and-gameplay.md#geometry-and-reference-records)).
+All consumers resolve these entries through the manifest
 and verify bytes before decoding. Format and version are written only inside each image file,
 never in course asset references or manifest entries.
 Strips have no ground image inputs.
@@ -98,6 +99,8 @@ sprite convention. The map is a single infinite plane with fixed angular scale a
 Horizontal wrap covers 360 degrees at `1280/(2*pi)` pixels/radian. The source horizon and Section-frame
 yaw origin are authored; yaw and pitch scroll the map. Vertical sine mapping uses the camera horizon
 and compresses detail near zenith/nadir. Frame changes transform yaw origin with camera yaw.
+`compileTileBackground` admits this document and builds the immutable `TileBackgroundImage` reader;
+the reader's constructor keeps only its local invariant that every tile binds an existing pattern and palette.
 
 ## External source normalization
 
@@ -164,15 +167,17 @@ mask/crop edits leave it in place until explicit regeneration.
 ## Course image sources
 
 Each declared digest receives explicit `{sha256,bytes:Uint8Array}` input. Exact bytes must match the
-lowercase SHA-256 and valid UTF-8 JSON for the corresponding sprite/BG format. Aliased descriptors
-share one immutable source; Section membership resolves to canonical descriptors.
+lowercase SHA-256 and valid UTF-8 JSON for the corresponding sprite/BG format. Admission decodes each
+unique digest once into an immutable reader, a `SpriteAsset` or a tiled background; aliased descriptors
+share it, Section membership resolves to canonical descriptors, and rendering borrows it without decoding.
 
 Course image admission uses the single [document resource table](content-and-gameplay.md#numeric-and-resource-domains)
 for descriptor count, per-image bytes/texels and aggregate unique-source bytes/texels. Missing, duplicate, undeclared,
 corrupt or malformed inputs fail. Asset diagnostics contain `kind:"asset"`, code, digest, referring
 asset indices and supplied input index where applicable; an invalid image also carries the JSON
 Pointer `path` of its failure inside that image; independent failures follow declaration order.
-Failure publishes no graph. Decoded consumer workspaces cannot mutate the saved source.
+Failure publishes no graph. The compiled course holds only the readers; build tools that compile a
+master read the admitted, frozen saved document alongside its reader instead of admitting it again.
 
 ## Saved course appearance
 

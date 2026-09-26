@@ -31,12 +31,12 @@ if (!result.ok) {
         type: result.value.type,
         entrySection: result.value.entry.id,
         links: result.value.links.length,
-        images: result.value.assets.map(({ id, sha256, source }) => ({
-          id,
-          sha256,
-          width: source.format === 'superoutride.sprite-lod' ? source.width : 1280,
-          height: source.format === 'superoutride.sprite-lod' ? source.height : 640,
-          levels: source.format === 'superoutride.sprite-lod' ? source.levels.length : 1,
+        images: result.value.assets.map((asset) => ({
+          id: asset.id,
+          sha256: asset.sha256,
+          width: asset.image.width,
+          height: asset.image.height,
+          levels: asset.kind === 'sprite' ? asset.image.levels.length : 1,
         })),
         identity: result.value.identity,
         sections: result.value.sections.map((section) => ({

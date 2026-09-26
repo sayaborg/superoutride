@@ -10,6 +10,7 @@ import {
   readSpriteLodAsset,
   spriteLodLayout,
   spritePaletteStates,
+  type SpriteAsset,
   type SpriteLodDocument,
 } from '../../src/image/sprite.js';
 
@@ -19,12 +20,15 @@ interface MixtureBin {
   weight: number;
 }
 
-/** Direct-master box filtering, with one shared pattern for every declared color and lamp state. */
+/**
+ * Direct-master box filtering, with one shared pattern for every declared color and lamp state.
+ * A caller that already admitted the master with the first palette suffix supplies it instead of decoding again.
+ */
 export function compileSpriteLod(
   source: SpriteLodDocument,
   paletteSuffixes: readonly (readonly number[])[] = [[]],
+  master: SpriteAsset = readSpriteLodAsset(source, paletteSuffixes[0]),
 ): SpriteLodDocument {
-  const master = readSpriteLodAsset(source, paletteSuffixes[0]);
   requireAdmission(
     master.levels.length === 1,
     'invalid_value',

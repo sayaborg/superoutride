@@ -51,8 +51,9 @@ Section {
 
 Asset references carry only logical identity and the exact saved-byte digest. Format and version
 belong exclusively to the referenced file. Compilation admits that file and checks its own format
-against each use (sprite or background). Delivery resolves digests through the content manifest;
-[Development](development.md#build-outputs) owns the index and output layout.
+against each use (sprite or background). A course's relation to its images is this declared digest:
+delivery supplies each reference with the bytes of the manifest `image` entry whose `sha256` equals it,
+never by assuming an entry ID. [Development](development.md#build-outputs) owns the index and output layout.
 
 IDs are opaque nonblank strings without surrounding whitespace and compare exactly. Course ID is
 external identity. Section, Link and asset IDs each have a document-wide scope.
@@ -105,8 +106,8 @@ without surrounding whitespace, declared by that image. To use its default color
 names with `unresolved_reference` at the sprite's `/palette` JSON Pointer.
 `groundOffset` is height above the authoritative road height, in metres.
 Each expanded placement resolves `lateral` at its own s, so repetitions follow referenced Boundaries.
-Compilation shares one immutable resource for each image-source/palette-name pair across Sections;
-decoded images and palette variants are shared by the renderer. Sprites have no authored identity.
+Compilation shares one immutable resource for each image/palette-name pair across Sections; the
+renderer borrows the compiled decoded image and materializes one palette variant per resource. Sprites have no authored identity.
 
 `unselectedCarriagewayId` is null for ordinary sprites or names a canonical exit Carriageway.
 Such signs lie from lock through closure, before the exit cut, and appear when the field selects

@@ -1,16 +1,16 @@
 import type { CompiledCarriageway } from './course-boundaries.js';
 import type { CompiledCoursePosition } from './course-geometry.js';
-import type { TileBackgroundDocument } from '../image/tile-background-image.js';
-import { type SpriteLodDocument } from '../image/sprite.js';
+import type { TileBackgroundImage } from '../image/tile-background-image.js';
+import type { SpriteAsset } from '../image/sprite.js';
 
-/** Ordinary indexed-image facet; a compiler's canonical asset record structurally supplies it. */
-interface IndexedSource {
-  readonly source: SpriteLodDocument;
+/** Decoded image facet; a compiler's canonical asset record structurally supplies it. */
+interface DecodedImage<Image> {
+  readonly image: Image;
 }
 
 export interface CourseSpriteResource {
   readonly palette: string;
-  readonly asset: IndexedSource;
+  readonly asset: DecodedImage<SpriteAsset>;
 }
 
 export interface CourseAppearance {
@@ -18,7 +18,7 @@ export interface CourseAppearance {
     readonly at: CompiledCoursePosition;
     readonly name: string;
     readonly background: {
-      readonly asset: { readonly source: TileBackgroundDocument };
+      readonly asset: DecodedImage<TileBackgroundImage>;
       readonly horizonY: number;
       readonly pixelsPerRadian: number;
       readonly yawOriginRadians: number;

@@ -3,16 +3,20 @@ import { readCourseDocument } from './course-document.js';
 import { compileCourseDocument } from './compiler/compiled-course.js';
 import type { SurfaceMaterialCatalog } from './surface-material.js';
 
-/** Resolve a saved course and its unique image digests through the admitted delivery index. */
+/** Resolve a saved course and the delivered images whose digests it declares through the admitted delivery index. */
 export async function loadDeliveredCourse(content: ContentDelivery, id: string, materials: SurfaceMaterialCatalog) {
   const file = content.manifest.files.find((entry) => entry.kind === 'course' && entry.id === id);
   if (!file) throw new RangeError(`Content not listed in manifest: course ${id}`);
   const source = readCourseDocument(await content.json('course', id), file.path);
   if (!source.ok) throw new Error(JSON.stringify(source.diagnostics));
+  // A course names its images by the saved bytes' SHA-256; the manifest entry with that digest delivers them.
+  // An undelivered digest supplies no bytes, and course admission reports it missing.
+  const digests = new Set(source.value.assets.map((asset) => asset.sha256));
+  const entries = content.manifest.files.filter((entry) => entry.kind === 'image' && digests.has(entry.sha256));
   const images = await Promise.all(
-    [...new Set(source.value.assets.map((asset) => asset.sha256))].map(async (sha256) => ({
-      sha256,
-      bytes: await content.bytes('image', sha256),
+    [...new Map(entries.map((entry) => [entry.sha256, entry])).values()].map(async (entry) => ({
+      sha256: entry.sha256,
+      bytes: await content.bytes('image', entry.id),
     })),
   );
   const compiled = await compileCourseDocument(source.value, images, materials, file.path);

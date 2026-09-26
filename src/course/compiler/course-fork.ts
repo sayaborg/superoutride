@@ -68,7 +68,7 @@ export function compileCourseFork(
       'invalid_fork',
     );
     check(
-      placement.at.s + placement.instance.asset.source.width / SPRITE_SOURCE_TEXELS_PER_METER <
+      placement.at.s + placement.instance.asset.image.width / SPRITE_SOURCE_TEXELS_PER_METER <
         section.coordinates.domain.end,
       'State-selected signs must precede the exit cut',
       signPath,

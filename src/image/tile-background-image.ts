@@ -18,6 +18,44 @@ export interface TileBackgroundDocument {
   readonly tiles: readonly (readonly [patternId: number, paletteId: number])[];
 }
 
+/** Admit a saved tiled background and build its immutable raster reader. */
+export function compileTileBackground(value: unknown): TileBackgroundImage {
+  const document = readDocument(
+    value,
+    ['format', 'version', 'name', 'patterns', 'palettes', 'tiles'],
+    'superoutride.tile-background',
+    1,
+  );
+  const name = readString(document.name, '/name');
+  const patterns = readArray(
+    document.patterns,
+    '/patterns',
+    (value, path) =>
+      new IndexedPattern(
+        16,
+        16,
+        readArray(readRecord(value, path, ['indices']).indices, `${path}/indices`, readPatternSymbol, {
+          length: 256,
+        }),
+      ),
+    { min: 1 },
+  );
+  const palettes = readArray(document.palettes, '/palettes', readIndexedPalette, { min: 1 });
+  const tiles = readArray(
+    document.tiles,
+    '/tiles',
+    (value, path) => {
+      const [pattern, palette] = readArray(value, path, (value) => value, { length: 2 });
+      return [
+        readNumber(pattern, `${path}/0`, { min: 0, max: patterns.length - 1, integer: true }),
+        readNumber(palette, `${path}/1`, { min: 0, max: palettes.length - 1, integer: true }),
+      ] as const;
+    },
+    { length: BACKGROUND_TILE_COLUMNS * BACKGROUND_TILE_ROWS },
+  );
+  return new TileBackgroundImage(name, patterns, palettes, tiles);
+}
+
 /** Private packed patterns, palette table and tile bindings are borrowed read-only by the raster. */
 export class TileBackgroundImage {
   readonly width = BACKGROUND_WIDTH;
@@ -26,42 +64,21 @@ export class TileBackgroundImage {
   readonly #palettes: Uint32Array;
   readonly #tiles: Uint32Array;
 
-  constructor(value: unknown) {
-    const document = readDocument(
-      value,
-      ['format', 'version', 'name', 'patterns', 'palettes', 'tiles'],
-      'superoutride.tile-background',
-      1,
-    );
-    readString(document.name, '/name');
-    this.#patterns = readArray(
-      document.patterns,
-      '/patterns',
-      (value, path) =>
-        new IndexedPattern(
-          16,
-          16,
-          readArray(readRecord(value, path, ['indices']).indices, `${path}/indices`, readPatternSymbol, {
-            length: 256,
-          }),
-        ),
-      { min: 1 },
-    );
-    const palettes = readArray(document.palettes, '/palettes', readIndexedPalette, { min: 1 });
+  /** Admitted 16x16 patterns, 16-color palettes and one in-range binding per tile. */
+  constructor(
+    readonly name: string,
+    patterns: readonly IndexedPattern[],
+    palettes: readonly (readonly number[])[],
+    tiles: readonly (readonly [patternId: number, paletteId: number])[],
+  ) {
+    if (
+      tiles.length !== BACKGROUND_TILE_COLUMNS * BACKGROUND_TILE_ROWS ||
+      !tiles.every(([pattern, palette]) => pattern < patterns.length && palette < palettes.length)
+    )
+      throw new RangeError('A tiled background binds every tile to an existing pattern and palette');
+    this.#patterns = patterns;
     this.#palettes = new Uint32Array(palettes.length * 16);
     palettes.forEach((palette, id) => this.#palettes.set(indexedPaletteRgba(palette), id << 4));
-    const tiles = readArray(
-      document.tiles,
-      '/tiles',
-      (value, path) => {
-        const [pattern, palette] = readArray(value, path, (value) => value, { length: 2 });
-        return [
-          readNumber(pattern, `${path}/0`, { min: 0, max: this.#patterns.length - 1, integer: true }),
-          readNumber(palette, `${path}/1`, { min: 0, max: palettes.length - 1, integer: true }),
-        ];
-      },
-      { length: BACKGROUND_TILE_COLUMNS * BACKGROUND_TILE_ROWS },
-    );
     this.#tiles = new Uint32Array(tiles.flat());
     Object.freeze(this);
   }

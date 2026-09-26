@@ -13,18 +13,18 @@ export const COURSE_APPEARANCE_RECIPE = Object.freeze({ id: 'superoutride.course
 
 /** Share one immutable image/palette binding across every Section in a compilation. */
 export function createCourseSpriteResources() {
-  const images = new Map<CourseSpriteResource['asset']['source'], Map<string, CourseSpriteResource>>();
+  const images = new Map<CourseSpriteResource['asset']['image'], Map<string, CourseSpriteResource>>();
   return (asset: CourseSpriteResource['asset'], palette: string, path: string): CourseSpriteResource => {
     requireCourse(
-      Object.hasOwn(asset.source.palettes, palette),
+      Object.hasOwn(asset.image.palettes, palette),
       path,
       `Unknown sprite palette ${JSON.stringify(palette)}`,
       'unresolved_reference',
     );
-    let variants = images.get(asset.source);
+    let variants = images.get(asset.image);
     if (!variants) {
       variants = new Map();
-      images.set(asset.source, variants);
+      images.set(asset.image, variants);
     }
     let resource = variants.get(palette);
     if (!resource) {
@@ -56,12 +56,9 @@ export function compileCourseAppearance(
   const image = (id: string, at: string) => {
     const asset = assetTable.get(id);
     if (!asset) throw new CourseInputError('unresolved_reference', at, 'Image must belong to this Section');
-    if (asset.source.format !== 'superoutride.sprite-lod')
+    if (asset.kind !== 'sprite')
       throw new CourseInputError('invalid_image_role', at, 'Sprites require sprite patterns');
-    const sprite = asset as typeof asset & {
-      readonly source: Extract<typeof asset.source, { format: 'superoutride.sprite-lod' }>;
-    };
-    return sprite;
+    return asset;
   };
   const ordered = (positions: readonly CompiledCoursePosition[], start: number, end: number, at: string) => {
     requireCourse(
@@ -93,15 +90,13 @@ export function compileCourseAppearance(
       const b = environment.background,
         asset = assetTable.get(b.assetId);
       if (!asset) throw new CourseInputError('unresolved_reference', `${at}/background/assetId`, 'Unknown background');
-      if (asset.source.format !== 'superoutride.tile-background')
+      if (asset.kind !== 'background')
         throw new CourseInputError(
           'invalid_image_role',
           `${at}/background/assetId`,
           'Background requires the single tiled plane format',
         );
-      const tiled = asset as typeof asset & {
-        readonly source: Extract<typeof asset.source, { format: 'superoutride.tile-background' }>;
-      };
+      const tiled = asset;
       requireCourse(
         Number.isInteger(b.horizonY) && b.horizonY < BACKGROUND_HEIGHT,
         `${at}/background/horizonY`,

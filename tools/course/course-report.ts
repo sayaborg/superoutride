@@ -67,7 +67,7 @@ export async function courseReport(course: CompiledCourse, section: CompiledSect
     sprites: section.appearance!.sprites.map((p) => ({
       s: p.at.s,
       l: p.l,
-      asset: p.instance.asset.source.name,
+      asset: p.instance.asset.image.name,
       state: p.unselected?.id ?? null,
     })),
     environments: section.appearance!.environments.map((e) => ({ s: e.at.s, name: e.name })),
