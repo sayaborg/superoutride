@@ -269,7 +269,7 @@ export function sampleSurfaceGeometryAtCoordinate(
     ),
     out.normal,
   );
-  const sample = surfaces.sample(coordinate.s, coordinate.l);
+  const material = surfaces.sample(coordinate.s, coordinate.l);
   out.coordinate = coordinate;
   out.point.x = planSample.x;
   out.point.y = heightSample.y;
@@ -278,8 +278,8 @@ export function sampleSurfaceGeometryAtCoordinate(
   out.offsetMetric = offsetMetric;
   out.heightDerivativeByS = heightDerivativeByS;
   out.gradeAngle = Math.atan2(heightDerivativeByS, offsetMetric);
-  out.material = sample.material;
-  out.surfaceType = sample.material?.id ?? null;
+  out.material = material;
+  out.surfaceType = material?.id ?? null;
   return out;
 }
 

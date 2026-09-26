@@ -4,7 +4,7 @@ import type { DrivingInput } from '../../src/vehicle/driving-input.js';
 import { createBodyKinematicsWorkspace } from '../../src/vehicle/physics/vehicle-physics.js';
 import { compilePlanPath } from '../../src/course/geometry/plan-path.js';
 import { Profile } from '../../src/course/geometry/profile.js';
-import { surfaceSample, type SurfaceMapReader } from '../../src/course/vehicle-world.js';
+import type { SurfaceMapReader } from '../../src/course/vehicle-world.js';
 import type { SurfaceMaterial } from '../../src/course/surface-material.js';
 import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
 import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
@@ -23,7 +23,7 @@ export const ENVELOPE_REFERENCE_SURFACE: SurfaceMaterial = Object.freeze({
   gripFactor: 1,
   rollingResistance: 0,
 });
-const referenceSurfaces: SurfaceMapReader = Object.freeze({ sample: () => surfaceSample(ENVELOPE_REFERENCE_SURFACE) });
+const referenceSurfaces: SurfaceMapReader = Object.freeze({ sample: () => ENVELOPE_REFERENCE_SURFACE });
 
 /** The finite flat world used only to generate game driving envelopes. */
 function createEnvelopeRun(entry: SessionVehicle, initialSpeed: number) {

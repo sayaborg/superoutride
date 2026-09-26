@@ -391,8 +391,7 @@ The absent-piece value is no material (`null`), which is not a material definiti
 Point reads use binary search in s, then binary search in l over ordered spans. Intervals are
 `[left,right)` and `[start,end)`; the Section terminal belongs to the last slab. Uncovered cells
 read no material. `sampleInChart` subtracts the origin from edges before comparing l, preserving exact
-shifted-boundary ties. Samples are prepared once per material and borrowed without allocations;
-a sample carries the admitted material or `null`. Nonfinite queries or
+shifted-boundary ties. A point read returns the admitted material or `null` without allocating. Nonfinite queries or
 stations outside a finite Section fail; Route readers provide their ordinary outside no-material result.
 Gate/grid validation and fork compilation consume the same table. Support-interval construction
 is compiler-only; running point reads do not allocate arrays, objects or readers.

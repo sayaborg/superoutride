@@ -7,16 +7,15 @@ import {
   type StripSlab,
 } from './strip-ground.js';
 import type { SurfaceMaterial } from './surface-material.js';
-import { surfaceSample, type SurfaceSample } from './vehicle-world.js';
 
 export interface StripMaterial {
   readonly length: number;
   readonly slabs: readonly StripSlab<SurfaceMaterial | null>[];
-  sample(s: number, l: number): SurfaceSample;
-  sampleInChart(s: number, l: number, lateralOrigin: number): SurfaceSample;
+  sample(s: number, l: number): SurfaceMaterial | null;
+  sampleInChart(s: number, l: number, lateralOrigin: number): SurfaceMaterial | null;
 }
 
-/** The same resolved cross-section shape as color; all point reads borrow immutable samples. */
+/** The same resolved cross-section shape as color; point reads return the admitted material or null. */
 export function compileStripMaterial(
   length: number,
   pieces: readonly StripPiece<SurfaceMaterial | null>[],
@@ -24,7 +23,7 @@ export function compileStripMaterial(
 ): StripMaterial {
   const slabs = resolveStripSlabs(length, pieces, null, path);
   const sampleInChart = (s: number, l: number, lateralOrigin: number) =>
-    surfaceSample(stripSpanAt(slabs[stripSlabAt(slabs, s)]!, s, l, lateralOrigin).value);
+    stripSpanAt(slabs[stripSlabAt(slabs, s)]!, s, l, lateralOrigin).value;
   return Object.freeze({ length, slabs, sample: (s: number, l: number) => sampleInChart(s, l, 0), sampleInChart });
 }
 

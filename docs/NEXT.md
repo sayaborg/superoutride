@@ -14,7 +14,7 @@
 - Engine sound load is the powertrain's effective opening.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **9-9 — Surface abstractions (delete)**.
+Next PR: **9-10 — Vehicle sprite sets**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -24,8 +24,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Admit each input once, keep compiled products runtime-ready, and give delivered content one identity rule.
 
-- **9-9 — Surface abstractions (delete):** remove `SurfaceMap` and the `SurfaceSample` wrapper; the surface reader
-  returns a material or null.
 - **9-10 — Vehicle sprite sets:** the image layer keeps generic indexed sprites and palettes; the vehicle layer owns
   the sprite-set schema, brake-lamp colors, yaw/bank bindings and selection.
 - **9-11 — Document identifiers:** a document's file name (its manifest id) is its only identifier. Remove `id` from

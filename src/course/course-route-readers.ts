@@ -1,6 +1,5 @@
 import { wrapAngle, type Vec2 } from '../core/math.js';
 import type { Writable } from '../core/writable.js';
-import { NO_MATERIAL_SURFACE } from './vehicle-world.js';
 import {
   PLAN_PROJECTION_WINDOW_METERS,
   type PlanCoordinateMetrics,
@@ -11,12 +10,10 @@ import {
 } from './geometry/plan-coordinate.js';
 import type { CompiledSection } from './compiler/course-graph.js';
 import { routeS, routeSectionS, type CourseRoute, type RouteOccurrence } from './course-route.js';
+import type { SurfaceMaterial } from './surface-material.js';
 
 /** An inverted closed interval represents the empty coordinate domain. */
 const EMPTY_ROUTE_DOMAIN = Object.freeze({ left: Infinity, right: -Infinity });
-
-/** The route has no material outside its coordinate domain. */
-const ROUTE_OUTSIDE_SURFACE = NO_MATERIAL_SURFACE;
 
 /** Route readers share Section lookup and conversion; their derived indexes change only with the route. */
 export function createCourseRouteReaders(route: CourseRoute) {
@@ -278,14 +275,15 @@ export function createCourseRouteReaders(route: CourseRoute) {
           : Infinity;
     },
   });
+  // The route has no material outside its coordinate domain.
   const material = Object.freeze({
-    sample(s: number, l: number) {
+    sample(s: number, l: number): SurfaceMaterial | null {
       const occurrence = lookup(s);
-      if (!occurrence) return ROUTE_OUTSIDE_SURFACE;
+      if (!occurrence) return null;
       const nativeS = routeSectionS(occurrence, s);
       occurrence.section.coordinates.domain.lateralAt(nativeS, bounds);
       const nativeL = l + occurrence.lateralOrigin;
-      if (nativeL < bounds.left || nativeL > bounds.right) return ROUTE_OUTSIDE_SURFACE;
+      if (nativeL < bounds.left || nativeL > bounds.right) return null;
       return occurrence.section.material.sampleInChart(nativeS, l, occurrence.lateralOrigin);
     },
   });

@@ -2,26 +2,9 @@ import type { PlanCoordinateReader } from './geometry/plan-coordinate.js';
 import type { ProfileReader } from './geometry/profile.js';
 import type { SurfaceMaterial } from './surface-material.js';
 
-export interface SurfaceSample {
-  readonly material: SurfaceMaterial | null;
-}
-
-export const NO_MATERIAL_SURFACE = Object.freeze({ material: null });
-const samples = new WeakMap<SurfaceMaterial, Readonly<SurfaceSample>>();
-
-export function surfaceSample(material: SurfaceMaterial | null): SurfaceSample {
-  if (material === null) return NO_MATERIAL_SURFACE;
-  let sample = samples.get(material);
-  if (!sample) {
-    sample = Object.freeze({ material });
-    samples.set(material, sample);
-  }
-  return sample;
-}
-
-/** Minimal read-only physics contract for SurfaceMap(s,l). */
+/** Minimal read-only physics contract: the material at (s,l), or null where there is no ground. */
 export interface SurfaceMapReader {
-  sample(s: number, l: number): SurfaceSample;
+  sample(s: number, l: number): SurfaceMaterial | null;
 }
 
 /** Active physical readers; content/chart selection is resolved by composition. */
