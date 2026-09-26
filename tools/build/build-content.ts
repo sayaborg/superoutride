@@ -1,5 +1,5 @@
 import { compileVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
-import type { AdmissionResult } from '../../src/core/admission.js';
+import { requireLoaded } from '../../src/content/content-load-error.js';
 import type { DocumentSource } from '../../src/content/document-catalog.js';
 import {
   compileCourseDocument,
@@ -52,18 +52,13 @@ const sources = async (directory: string) => {
   }
   return result;
 };
-const admitted = <T>(result: AdmissionResult<T>) => {
-  if (!result.ok) throw new Error(JSON.stringify(result.diagnostics));
-  return result.value;
-};
-
-const materials = admitted(compileSurfaceMaterials(await sources('materials')));
-validateTireSoundMaterialIds(materials.ids);
+const materials = requireLoaded(compileSurfaceMaterials(await sources('materials')));
+validateTireSoundMaterialIds(materials.source.materials.map((material) => material.id));
 await writer.stage('material', materials.source.id, materials.source);
 
 const vehicleSources = await sources('vehicles'),
   drivingSources = await sources('driving');
-const definitions = admitted(compileVehicleDefinitions(library.sprites, drivingSources, vehicleSources));
+const definitions = requireLoaded(compileVehicleDefinitions(library.sprites, drivingSources, vehicleSources));
 for (const { id } of vehicleSources)
   await writer.stage('vehicle', id, definitions.vehicles.find((entry) => entry.source.id === id)!.source);
 await writer.stage('driving', definitions.driving.source.id, definitions.driving.source);
@@ -72,24 +67,19 @@ const courses: { course: CompiledCourse; stem: string }[] = [];
 for (const name of (await readdir(new URL('courses/', content))).sort()) {
   if (!name.endsWith('.course.json')) continue;
   const bytes = await readFile(new URL(`courses/${name}`, content), 'utf8');
-  const document = readCourseDocument(JSON.parse(bytes), `content/courses/${name}`);
-  if (!document.ok) throw new Error(JSON.stringify(document.diagnostics));
+  const document = requireLoaded(readCourseDocument(JSON.parse(bytes), `content/courses/${name}`));
   const prepared = await compileCourseImages(
-    document.value,
-    await readCourseImages(document.value.assets, new URL('images/', content).pathname),
+    document,
+    await readCourseImages(document.assets, new URL('images/', content).pathname),
   );
-  const compiled = await compileCourseDocument(
-    prepared.document,
-    prepared.images,
-    materials,
-    `content/courses/${name}`,
+  const compiled = requireLoaded(
+    await compileCourseDocument(prepared.document, prepared.images, materials, `content/courses/${name}`),
   );
-  if (!compiled.ok) throw new Error(JSON.stringify(compiled.diagnostics));
   await writer.stage('course', name.replace('.course.json', ''), prepared.document);
   for (const image of prepared.images) await writer.stage('image', image.sha256, null, new Uint8Array(image.bytes));
   console.log(`${name}: Strip ground compiled`);
   courses.push({
-    course: compiled.value,
+    course: compiled,
     stem: name.replace('.course.json', ''),
   });
 }

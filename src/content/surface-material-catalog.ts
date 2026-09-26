@@ -1,6 +1,7 @@
 import { admit, requireAdmission, type AdmissionResult } from '../core/admission.js';
 import { compileSurfaceMaterialDocument, type SurfaceMaterialCatalog } from '../course/surface-material.js';
 import type { ContentDelivery } from './content-manifest.js';
+import { requireLoaded } from './content-load-error.js';
 import { admitSingleDocument, type DocumentSource } from './document-catalog.js';
 
 /**
@@ -24,20 +25,13 @@ export function compileSurfaceMaterials(sources: readonly DocumentSource[]): Adm
   return identity.ok ? catalog : identity;
 }
 
-const loaded = new WeakMap<ContentDelivery, Promise<SurfaceMaterialCatalog>>();
-
-/** Transport verifies the saved bytes before the catalog admission validates the material document. */
-export function loadSurfaceMaterials(content: ContentDelivery): Promise<SurfaceMaterialCatalog> {
-  let pending = loaded.get(content);
-  if (pending) return pending;
-  pending = (async () => {
-    const sources: DocumentSource[] = [];
-    for (const file of content.manifest.files.filter((file) => file.kind === 'material'))
-      sources.push({ id: file.id, path: file.path, value: await content.json('material', file.id) });
-    const result = compileSurfaceMaterials(sources);
-    if (!result.ok) throw new Error(JSON.stringify(result.diagnostics));
-    return result.value;
-  })();
-  loaded.set(content, pending);
-  return pending;
+/**
+ * Transport verifies the saved bytes before the catalog admission validates the material document.
+ * Each composition loads the catalog once and passes it on.
+ */
+export async function loadSurfaceMaterials(content: ContentDelivery): Promise<SurfaceMaterialCatalog> {
+  const sources: DocumentSource[] = [];
+  for (const file of content.manifest.files.filter((file) => file.kind === 'material'))
+    sources.push({ id: file.id, path: file.path, value: await content.json('material', file.id) });
+  return requireLoaded(compileSurfaceMaterials(sources));
 }

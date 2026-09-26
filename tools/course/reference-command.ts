@@ -17,7 +17,13 @@ export async function referenceCommand(verb: string, file: string, args: readonl
   const selected = opts.get('--vehicle') ?? (verb === 'envelope' ? file : 'TESTAROSSA');
   const entry = definitions.vehicles.find((e) => e.compiledVehicle.id === selected);
   requireInput(entry, '/vehicle', 'Unknown catalog vehicle');
-  const vehicle = createSessionVehicle(entry, definitions.driving, await loadSurfaceMaterials(content));
+  // One material catalog serves the vehicle and the course: the course's own, or the delivered one for an envelope.
+  const loaded = verb === 'envelope' ? null : await loadCourse(file, opts.get('--images'));
+  const vehicle = createSessionVehicle(
+    entry,
+    definitions.driving,
+    loaded ? loaded.materials : await loadSurfaceMaterials(content),
+  );
   const modelSha256 = await referenceModelIdentity(),
     envelope = measureVehicleEnvelope(vehicle);
   let result;
@@ -30,7 +36,7 @@ export async function referenceCommand(verb: string, file: string, args: readonl
       ...envelope,
     };
   else {
-    const { course } = await loadCourse(file, opts.get('--images'));
+    const { course } = loaded!;
     requireInput(isTimedCourse(course), '/rules/classic', 'Reference runs need CLASSIC settings');
     const ground = await loadCourseGround(course),
       routes = courseReferenceRoutes(course);

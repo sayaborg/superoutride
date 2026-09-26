@@ -30,7 +30,6 @@ export interface SurfaceMaterialDocument {
 
 export interface SurfaceMaterialCatalog {
   readonly source: SurfaceMaterialDocument;
-  readonly ids: readonly string[];
   get(id: string): SurfaceMaterial | undefined;
 }
 
@@ -68,7 +67,6 @@ export function compileSurfaceMaterialDocument(
     const table = new Map(source.materials.map((material) => [material.id, material]));
     return Object.freeze({
       source,
-      ids: Object.freeze(source.materials.map((material) => material.id)),
       get(materialId: string) {
         return table.get(materialId);
       },

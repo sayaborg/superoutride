@@ -1,4 +1,5 @@
 import { contentDigest } from '../core/content-digest.js';
+import { missingContent } from './content-load-error.js';
 
 export type ContentKind = 'course' | 'image' | 'envelope' | 'budget' | 'vehicle' | 'driving' | 'material';
 export interface ContentEntry {
@@ -59,7 +60,7 @@ export async function loadContentManifest(root: URL, transport: ContentTransport
   const manifest = readContentManifest(decode(await transport(new URL('manifest.json', root))));
   const bytes = async (kind: ContentKind, id: string) => {
     const entry = manifest.files.find((file) => file.kind === kind && file.id === id);
-    if (!entry) throw new RangeError(`Content not listed in manifest: ${kind} ${id}`);
+    if (!entry) throw missingContent(kind, id);
     const data = await transport(new URL(entry.path, root));
     if ((await contentDigest(data)) !== entry.sha256) throw new Error(`Content digest mismatch: ${entry.path}`);
     return data;

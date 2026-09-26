@@ -5,6 +5,7 @@ import type { CourseAssetBytes } from '../../src/course/compiler/course-image-so
 import { createHash } from 'node:crypto';
 import { readCourseImageSources } from '../../src/course/compiler/course-image-source.js';
 import { compileSpriteLod } from '../graphics/sprite-lod-compiler.js';
+import { requireLoaded } from '../../src/content/content-load-error.js';
 
 /**
  * Build-only image compilation; derived course references bind the exact delivered LOD bytes.
@@ -24,13 +25,14 @@ export async function compileCourseImages(document: CourseDocument, inputs: read
     );
   const spriteReferences = document.assets.filter((asset) => spriteIds.has(asset.id));
   const spriteDigests = new Set(spriteReferences.map((asset) => asset.sha256));
-  const masters = await readCourseImageSources(
-    spriteReferences,
-    inputs.filter((input) => spriteDigests.has(input.sha256)),
+  const masters = requireLoaded(
+    await readCourseImageSources(
+      spriteReferences,
+      inputs.filter((input) => spriteDigests.has(input.sha256)),
+    ),
   );
-  if (!masters.ok) throw new Error(JSON.stringify(masters.diagnostics));
   const lods = new Map<string, CourseAssetBytes>();
-  for (const master of masters.value) {
+  for (const master of masters) {
     if (master.kind !== 'sprite') throw new RangeError('Sprites require a sprite master');
     if (lods.has(master.sha256)) continue;
     const bytes = Buffer.from(JSON.stringify(compileSpriteLod(master.document, [[]], master.image)) + '\n');

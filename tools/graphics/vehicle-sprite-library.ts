@@ -1,4 +1,5 @@
 import { admit, readEmbedded } from '../../src/core/admission.js';
+import { requireLoaded } from '../../src/content/content-load-error.js';
 import { readSpriteAssets, readVehicleSpriteLibrary } from '../../src/image/sprite-assets.js';
 import { compileSpriteLod } from './sprite-lod-compiler.js';
 
@@ -20,9 +21,6 @@ export function compileVehicleSpriteLibrary(value: unknown, document: string) {
     };
     return { masters: masters.document, product };
   });
-  if (!compiled.ok) throw new Error(JSON.stringify(compiled.diagnostics));
-  const { masters, product } = compiled.value;
-  const admitted = admit(document, () => readSpriteAssets(product));
-  if (!admitted.ok) throw new Error(JSON.stringify(admitted.diagnostics));
-  return { masters, product, sprites: admitted.value };
+  const { masters, product } = requireLoaded(compiled);
+  return { masters, product, sprites: requireLoaded(admit(document, () => readSpriteAssets(product))) };
 }

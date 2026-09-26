@@ -144,7 +144,13 @@ the course selection key, image digest (or logical `vehicles` collection), vehic
 
 The shared manifest reader admits the index, resolves each logical identity to its relative path,
 and verifies the exact downloaded/read bytes against SHA-256 before JSON decoding. Missing entries
-or digest mismatches stop loading. The manifest itself is the bootstrap index inside the commit-versioned
+or digest mismatches stop loading. Loaders report expected content and build errors as one
+`ContentLoadError` whose `diagnostics` keep their structure: the admission diagnostics of the loaded
+documents, and for an absent manifest entry a `content_missing` diagnostic naming `manifest.json`, the
+`contentKind` and the `id`. Its message is the diagnostics' JSON text. A digest mismatch means the
+transported bytes are not the ones the build indexed, so it is an integrity failure thrown as `Error`;
+transport and file-read failures propagate unchanged. Each composition loads the material catalog once
+and passes it to the course and the Session vehicle. The manifest itself is the bootstrap index inside the commit-versioned
 build; it cannot contain its own digest. Browser course availability is derived from its course entries;
 labels and known-course ordering remain shell settings until stage 10-5.
 

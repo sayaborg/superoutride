@@ -66,7 +66,7 @@ interface AssetDiagnostic {
   readonly message: string;
 }
 
-type CourseDiagnostic = InputDiagnostic | AssetDiagnostic;
+export type CourseDiagnostic = InputDiagnostic | AssetDiagnostic;
 
 /** Expected saved-asset admission failure, separately addressed from document JSON pointers. */
 export class CourseAssetError extends Error {

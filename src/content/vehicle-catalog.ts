@@ -7,16 +7,15 @@ import {
   type CompiledVehicleDefinition,
 } from '../vehicle/definition-document.js';
 import type { ContentDelivery } from './content-manifest.js';
+import { missingContent, requireLoaded } from './content-load-error.js';
 import { admitSingleDocument, type DocumentSource } from './document-catalog.js';
 
 /** Image syntax and set-wide invariants are admitted once, before vehicle references. */
 export async function loadVehicleSpriteLibrary(content: ContentDelivery): Promise<SpriteAssets> {
   const file = content.manifest.files.find((file) => file.kind === 'image' && file.id === 'vehicles');
-  if (!file) throw new RangeError('Manifest requires the vehicle sprite library');
+  if (!file) throw missingContent('image', 'vehicles');
   const value = await content.json('image', 'vehicles');
-  const result = admit(file.path, () => readSpriteAssets(value));
-  if (!result.ok) throw new Error(JSON.stringify(result.diagnostics));
-  return result.value;
+  return requireLoaded(admit(file.path, () => readSpriteAssets(value)));
 }
 
 const requireFileName = (id: string, file: DocumentSource) =>
@@ -76,9 +75,7 @@ export async function loadVehicleDefinitions(content: ContentDelivery): Promise<
       sources.push({ id: file.id, path: file.path, value: await content.json(kind, file.id) });
     return sources;
   };
-  const result = compileVehicleDefinitions(sprites, await read('driving'), await read('vehicle'));
-  if (!result.ok) throw new Error(JSON.stringify(result.diagnostics));
-  return result.value;
+  return requireLoaded(compileVehicleDefinitions(sprites, await read('driving'), await read('vehicle')));
 }
 export interface VehicleDefinitions {
   readonly vehicles: readonly CompiledVehicleDefinition[];

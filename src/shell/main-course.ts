@@ -32,7 +32,7 @@ canvas.insertAdjacentElement('afterend', status);
 try {
   const content = await browserContent();
   const materials = await loadSurfaceMaterials(content);
-  validateTireSoundMaterialIds(materials.ids);
+  validateTireSoundMaterialIds(materials.source.materials.map((material) => material.id));
   const definitions = await loadVehicleDefinitions(content);
   const { vehicles, driving } = definitions;
   const mode = selectBrowserCourseMode(new URLSearchParams(location.search).get('mode')).query;
