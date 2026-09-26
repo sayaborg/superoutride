@@ -1,5 +1,6 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { contentDigest } from '../../src/core/content-digest.js';
+import { requireLoaded } from '../../src/content/content-load-error.js';
 import { readContentManifest, type ContentEntry, type ContentKind } from '../../src/content/content-manifest.js';
 
 function contentPath(kind: ContentKind, id: string, sha256: string): string {
@@ -41,7 +42,9 @@ export function createContentWriter(root: URL) {
       files.push(entry);
     },
     async save() {
-      const manifest = readContentManifest({ format: 'superoutride.content-manifest', version: 1, files });
+      const manifest = requireLoaded(
+        readContentManifest({ format: 'superoutride.content-manifest', version: 1, files }),
+      );
       await writeFile(new URL('manifest.json', root), JSON.stringify(manifest) + '\n');
     },
   };

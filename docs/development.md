@@ -142,7 +142,8 @@ vehicle envelopes, continuous reference runs and game time budgets. Matching dis
 the course selection key, image digest (or logical `vehicles` collection), vehicle ID,
 `default`, vehicle ID and `<course>/<vehicle>` budget key. Entries contain no payload format/version.
 
-The shared manifest reader admits the index, resolves each logical identity to its relative path,
+The shared manifest reader admits the index through the admission toolkit as document `manifest.json`
+(format and version first, exact fields, unique kind/id identities and paths), resolves each logical identity to its relative path,
 and verifies the exact downloaded/read bytes against SHA-256 before JSON decoding. Missing entries
 or digest mismatches stop loading. Loaders report expected content and build errors as one
 `ContentLoadError` whose `diagnostics` keep their structure: the admission diagnostics of the loaded

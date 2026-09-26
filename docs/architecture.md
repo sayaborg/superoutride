@@ -51,8 +51,8 @@ a failure is addressed to the extra or misnamed source's document (empty when th
 Compilers below a document boundary raise `DefinitionDomainError` with a slash-separated path relative
 to the record they received. `withDefinitionPath` maps nested or derived fields back to the caller's
 record, and `admitDomain` converts the result at the document boundary into an `invalid_value`
-admission error at the JSON Pointer (`relativePointer` escapes each field). Build products (manifests,
-envelopes, time budgets) keep their own internal checks.
+admission error at the JSON Pointer (`relativePointer` escapes each field). Build products (envelopes,
+time budgets) keep their own internal checks until they adopt the toolkit.
 
 ## Coordinates and readers
 
