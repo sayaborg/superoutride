@@ -374,8 +374,7 @@ BG is one infinite tiled plane. Yaw and pitch change its view; translation does 
 Its yaw origin uses the shared route frame across every occurrence. The background is selected
 at camera chainage `camera.s`; distant sprites and ground rows do not change that selection.
 [Image assets](image-assets.md#infinite-tiled-background) owns its format and angular mapping.
-Transparent ground makes no ground write, preserving the underlying Painter image, including BG
-below the horizon. Physical support is independent of all ground colors.
+Physical support is independent of all ground colors.
 
 ### Material cross sections
 
@@ -455,8 +454,11 @@ Magnification is `g=(f/d)*worldWidth/masterWidth`. Course anchors use known chai
 actors use observed chainage and physical-clearance mapping. Yaw/bank variants are authored images.
 Rendering uses nearest sampling, binary alpha and one SINGLE sprite per vehicle; bank is visual.
 
-Painter order is clear when requested, full BG, a far-to-near terrain/world-sprite merge, player, then HUD.
-At equal depth terrain draws before sprites. The player is last among world visuals.
+Painter order is the opaque BG, a far-to-near terrain/world-sprite merge, the player, then HUD.
+The BG writes every pixel of every frame, so there is no clear step and no pixel keeps a previous frame.
+Transparent ground, including ground rows outside the Route, writes nothing and keeps the Painter image
+beneath it, such as BG below the horizon. At equal depth terrain draws before sprites. The player is last
+among world visuals.
 
 Course sprites enter through either a sprite array or a camera/depth observation reader. The reader
 contains immutable camera/projection metadata and read-only image workspaces. An upright basis/ruler

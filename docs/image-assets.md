@@ -6,7 +6,7 @@ logical sprite extent and anchors; [Content and gameplay](content-and-gameplay.m
 ## Completed sprite images
 
 Indexed sprites and BG tiles pack two 4-bit indices per byte, high nibble first. Index zero is
-transparent; indices 1 through 15 are opaque. Resolved palettes have exactly 16 RGB555 entries, with slot zero
+transparent (BG patterns cannot use it; see below); indices 1 through 15 are opaque. Resolved palettes have exactly 16 RGB555 entries, with slot zero
 unused. RGB555 zero in an opaque slot is black. Source JSON stores row-major index arrays.
 Tile palettes begin at `paletteId << 4`; the format has no separate palette-count limit.
 
@@ -94,8 +94,9 @@ The image is an 80 by 40 tile map of 16 by 16 patterns, giving 1280 by 640 pixel
 }
 ```
 
-Tiles are row-major and bind a pattern and 16-entry palette. Index-zero transparency follows the
-sprite convention. The map is a single infinite plane with fixed angular scale and no LOD.
+Tiles are row-major and bind a pattern and 16-entry palette. The background is opaque: admission
+rejects any pattern index 0, used or not, at its JSON Pointer inside the image, so the background
+writes every pixel it covers. The map is a single infinite plane with fixed angular scale and no LOD.
 Horizontal wrap covers 360 degrees at `1280/(2*pi)` pixels/radian. The source horizon and Section-frame
 yaw origin are authored; yaw and pitch scroll the map. Vertical sine mapping uses the camera horizon
 and compresses detail near zenith/nadir. Frame changes transform yaw origin with camera yaw.

@@ -68,10 +68,8 @@ export function createCourseRouteVisualReaders(route: CourseRoute, fields: Cours
     const ground: StripGroundReader = {
       kind: 'strips',
       sampleSpan(pixels, offset, count, s, l, stepL, deltaS, method, stats) {
-        if (!route.at(s)) {
-          pixels.fill(0, offset, offset + count);
-          return;
-        }
+        // Outside the Route there is no ground: the row keeps the Painter image beneath it.
+        if (!route.at(s)) return;
         sampler.sampleSpan(pixels, offset, count, s, l, stepL, deltaS, method, stats);
       },
     };

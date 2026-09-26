@@ -1,4 +1,4 @@
-import { readArray, readDocument, readNumber, readRecord, readString } from '../core/admission.js';
+import { readArray, readDocument, readNumber, readRecord, readString, requireAdmission } from '../core/admission.js';
 import { IndexedPattern, indexedPaletteRgba, readIndexedPalette, readPatternSymbol } from './indexed-image.js';
 
 const BACKGROUND_TILE_SIZE = 16;
@@ -18,6 +18,13 @@ export interface TileBackgroundDocument {
   readonly tiles: readonly (readonly [patternId: number, paletteId: number])[];
 }
 
+/** An opaque background symbol: the background is the frame's base plane, so index 0 is not admitted. */
+function readOpaqueSymbol(value: unknown, path: string): number {
+  const index = readPatternSymbol(value, path);
+  requireAdmission(index !== 0, 'invalid_value', path, 'Background patterns are opaque and cannot use index 0');
+  return index;
+}
+
 /** Admit a saved tiled background and build its immutable raster reader. */
 export function compileTileBackground(value: unknown): TileBackgroundImage {
   const document = readDocument(
@@ -34,7 +41,7 @@ export function compileTileBackground(value: unknown): TileBackgroundImage {
       new IndexedPattern(
         16,
         16,
-        readArray(readRecord(value, path, ['indices']).indices, `${path}/indices`, readPatternSymbol, {
+        readArray(readRecord(value, path, ['indices']).indices, `${path}/indices`, readOpaqueSymbol, {
           length: 256,
         }),
       ),
@@ -64,7 +71,7 @@ export class TileBackgroundImage {
   readonly #palettes: Uint32Array;
   readonly #tiles: Uint32Array;
 
-  /** Admitted 16x16 patterns, 16-color palettes and one in-range binding per tile. */
+  /** Admitted opaque 16x16 patterns, 16-color palettes and one in-range binding per tile. */
   constructor(
     readonly name: string,
     patterns: readonly IndexedPattern[],
@@ -76,6 +83,9 @@ export class TileBackgroundImage {
       !tiles.every(([pattern, palette]) => pattern < patterns.length && palette < palettes.length)
     )
       throw new RangeError('A tiled background binds every tile to an existing pattern and palette');
+    for (const pattern of patterns)
+      for (let i = 0; i < 256; i++)
+        if (!pattern.indexAt(i)) throw new RangeError('A tiled background pattern is opaque and has no index 0');
     this.#patterns = patterns;
     this.#palettes = new Uint32Array(palettes.length * 16);
     palettes.forEach((palette, id) => this.#palettes.set(indexedPaletteRgba(palette), id << 4));
@@ -83,7 +93,7 @@ export class TileBackgroundImage {
     Object.freeze(this);
   }
 
-  /** One horizontal repeat; interiors share their tile lookup instead of branching per destination pixel. */
+  /** Writes every destination pixel of the row; interiors share their tile lookup. */
   paintRow(target: Uint32Array, destination: number, imageX: number, imageY: number, width: number): void {
     let x = ((imageX % this.width) + this.width) % this.width,
       written = 0;
@@ -95,10 +105,8 @@ export class TileBackgroundImage {
       const tile = (tileRow + (x >>> 4)) * 2,
         pattern = this.#patterns[this.#tiles[tile]!]!,
         palette = this.#tiles[tile + 1]! << 4;
-      for (let i = 0; i < count; i++) {
-        const index = pattern.indexAt(row + column + i);
-        if (index) target[destination + written + i] = this.#palettes[palette + index]!;
-      }
+      for (let i = 0; i < count; i++)
+        target[destination + written + i] = this.#palettes[palette + pattern.indexAt(row + column + i)]!;
       written += count;
       x += count;
       if (x === this.width) x = 0;
