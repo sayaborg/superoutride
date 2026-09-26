@@ -7,7 +7,13 @@ import { isTimedCourse } from '../../src/course/compiler/compiled-course.js';
 import { createSessionVehicle, sessionVehicleSha256 } from '../../src/race/session-vehicle.js';
 import { REFERENCE_DRIVER } from '../course/reference-driving-policy.js';
 import { readCourseReference } from '../course/course-reference.js';
-import { courseBudgetLandmarks, readCourseTimeBudgets } from '../../src/race/course-time-budgets.js';
+import {
+  COURSE_TIME_BUDGETS_FORMAT,
+  courseBudgetLandmarks,
+  readCourseTimeBudgets,
+} from '../../src/race/course-time-budgets.js';
+import { RIVAL_ENVELOPE_FORMAT, readVehicleEnvelope } from '../../src/race/vehicle-envelope.js';
+import { requireLoaded } from '../../src/content/content-load-error.js';
 import { cachedReference, referenceCacheKey } from '../course/reference-cache.js';
 import { measureVehicleEnvelope } from '../course/vehicle-envelope.js';
 import { runCourseReference, courseReferenceRoutes } from '../course/reference-run.js';
@@ -30,9 +36,14 @@ const envelope = await cachedReference(
 );
 if (envelope.hit) hits++;
 else misses++;
-const products: CourseReferenceResult['products'] = [
-    { kind: 'envelope', id: vehicleId, value: { vehicleSha256, envelope: envelope.value } },
-  ],
+// The delivered envelope holds only the rows driving admits; the offline measurement trace stays in the cache.
+const rivalEnvelope = {
+  ...RIVAL_ENVELOPE_FORMAT,
+  vehicleSha256,
+  envelope: { maximumSpeed: envelope.value.maximumSpeed, rows: envelope.value.rows },
+};
+requireLoaded(await readVehicleEnvelope(vehicle, rivalEnvelope, `envelope ${vehicleId}`));
+const products: CourseReferenceResult['products'] = [{ kind: 'envelope', id: vehicleId, value: rivalEnvelope }],
   references: CourseReferenceResult['references'] = [];
 for (const stem of stems) {
   const course = await loadDeliveredCourse(content, stem, materials);
@@ -57,8 +68,7 @@ for (const stem of stems) {
   };
   const budgets = await readCourseReference(course, vehicle, reference);
   const product = {
-    format: 'superoutride.course-time-budgets',
-    version: 1,
+    ...COURSE_TIME_BUDGETS_FORMAT,
     courseBuildSha256: course.identity.buildSha256,
     vehicleSha256,
     initialMs: budgets.initialMs,
@@ -67,7 +77,7 @@ for (const stem of stems) {
       Array.from({ length: laps }, (_, index) => budgets.after(gate, index + 1)),
     ]),
   };
-  await readCourseTimeBudgets(course, vehicle, product);
+  requireLoaded(await readCourseTimeBudgets(course, vehicle, product, `budget ${stem}/${vehicleId}`));
   products.push({ kind: 'budget', id: `${stem}/${vehicleId}`, value: product });
   references.push({ stem, candidate });
 }

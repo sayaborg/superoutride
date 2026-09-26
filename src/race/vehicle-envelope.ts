@@ -1,42 +1,73 @@
+import {
+  admit,
+  readArray,
+  readDocument,
+  readNumber,
+  readRecord,
+  readString,
+  requireAdmission,
+  type AdmissionResult,
+} from '../core/admission.js';
 import type { SessionVehicle } from './session-configuration.js';
 import type { VehicleEnvelope } from './envelope-driver.js';
 import { sessionVehicleSha256 } from './session-vehicle.js';
 
-/** Admit only the measured rows needed by driving; offline measurement traces stay outside the live graph. */
-export async function readVehicleEnvelope(vehicle: SessionVehicle, input: unknown): Promise<VehicleEnvelope> {
-  const record = (value: unknown): Record<string, unknown> => {
-    if (!value || typeof value !== 'object' || Array.isArray(value))
-      throw new TypeError('Envelope must contain records');
-    return value as Record<string, unknown>;
-  };
-  const data = record(input),
-    envelope = record(data.envelope);
+export const RIVAL_ENVELOPE_FORMAT = Object.freeze({ format: 'superoutride.rival-envelope', version: 1 } as const);
+const SHA256 = { pattern: /^[a-f0-9]{64}$/, patternMessage: 'Expected lowercase SHA-256' };
+
+/** Admit the delivered rival envelope: only the measured rows needed by driving, for this Session vehicle. */
+export async function readVehicleEnvelope(
+  vehicle: SessionVehicle,
+  input: unknown,
+  document = '',
+): Promise<AdmissionResult<VehicleEnvelope>> {
   const digest = await sessionVehicleSha256(vehicle);
-  if (data.vehicleSha256 !== digest) throw new RangeError('Stale envelope vehicle/calibration/assist identity');
-  const number = (value: unknown, positive = true): number => {
-    if (typeof value !== 'number') throw new TypeError('Envelope values must be numbers');
-    if (!Number.isFinite(value) || (positive ? value <= 0 : value < 0))
-      throw new RangeError('Envelope values are outside their domain');
-    return value;
-  };
-  const maximumSpeed = number(envelope.maximumSpeed);
-  if (!Array.isArray(envelope.rows)) throw new TypeError('Envelope rows must be an array');
-  if (envelope.rows.length < 2) throw new RangeError('Envelope requires at least two measured rows');
-  let previous = -1;
-  const rows = envelope.rows.map((value) => {
-    const row = record(value),
-      speed = number(row.speed, false);
-    if (speed <= previous || speed > maximumSpeed)
-      throw new RangeError('Envelope speeds must increase within maximum speed');
-    previous = speed;
-    return Object.freeze({
-      speed,
-      acceleration: number(row.acceleration, false),
-      braking: number(row.braking),
-      lateral: number(row.lateral),
-      steeringGain: number(row.steeringGain),
-    });
+  return admit(document, () => {
+    const data = readDocument(
+      input,
+      ['format', 'version', 'vehicleSha256', 'envelope'],
+      RIVAL_ENVELOPE_FORMAT.format,
+      RIVAL_ENVELOPE_FORMAT.version,
+    );
+    requireAdmission(
+      readString(data.vehicleSha256, '/vehicleSha256', SHA256) === digest,
+      'invalid_value',
+      '/vehicleSha256',
+      'Stale envelope vehicle/calibration/assist identity',
+    );
+    const envelope = readRecord(data.envelope, '/envelope', ['maximumSpeed', 'rows']);
+    const maximumSpeed = readNumber(envelope.maximumSpeed, '/envelope/maximumSpeed', { min: 0, exclusiveMin: true });
+    let previous = -1;
+    const rows = readArray(
+      envelope.rows,
+      '/envelope/rows',
+      (value, at) => {
+        const row = readRecord(value, at, ['speed', 'acceleration', 'braking', 'lateral', 'steeringGain']);
+        const positive = (key: string) => readNumber(row[key], `${at}/${key}`, { min: 0, exclusiveMin: true });
+        const speed = readNumber(row.speed, `${at}/speed`, { min: 0 });
+        requireAdmission(
+          speed > previous && speed <= maximumSpeed,
+          'invalid_value',
+          `${at}/speed`,
+          'Envelope speeds must increase within maximum speed',
+        );
+        previous = speed;
+        return Object.freeze({
+          speed,
+          acceleration: readNumber(row.acceleration, `${at}/acceleration`, { min: 0 }),
+          braking: positive('braking'),
+          lateral: positive('lateral'),
+          steeringGain: positive('steeringGain'),
+        });
+      },
+      { min: 2 },
+    );
+    requireAdmission(
+      previous === maximumSpeed,
+      'invalid_value',
+      '/envelope/rows',
+      'Envelope must cover its maximum speed',
+    );
+    return Object.freeze({ maximumSpeed, rows });
   });
-  if (previous !== maximumSpeed) throw new RangeError('Envelope must cover its maximum speed');
-  return Object.freeze({ maximumSpeed, rows: Object.freeze(rows) });
 }

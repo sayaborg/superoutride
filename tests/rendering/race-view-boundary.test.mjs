@@ -65,10 +65,12 @@ test('shared route keeps vehicle and camera coordinates across forward and rever
 
 test('race actors have no cameras and view assembles sixteen rival sprites from observations', async () => {
   const { course, scene, assets, compiledVehicle, model, spawn } = await setup();
-  const envelope = await readVehicleEnvelope(
+  const admitted = await readVehicleEnvelope(
     compiledVehicle,
     await (await readDeliveredContent()).json('envelope', 'TESTAROSSA'),
   );
+  assert.ok(admitted.ok);
+  const envelope = admitted.value;
   const settings = resolveCourseSession(
     course,
     { mode: 'CUSTOM', rivalCount: 16, lapCount: 1, timeLimit: false },

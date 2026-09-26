@@ -1,3 +1,12 @@
+import {
+  admit,
+  readArray,
+  readDocument,
+  readNumber,
+  readString,
+  requireAdmission,
+  type AdmissionResult,
+} from '../core/admission.js';
 import { sessionVehicleSha256 } from './session-vehicle.js';
 import type { TimedCompiledCourse } from '../course/compiler/compiled-course.js';
 import type { CompiledCourseLandmark } from '../course/compiler/course-rules.js';
@@ -15,50 +24,63 @@ export function courseBudgetLandmarks(course: TimedCompiledCourse) {
   return result;
 }
 
+export const COURSE_TIME_BUDGETS_FORMAT = Object.freeze({
+  format: 'superoutride.course-time-budgets',
+  version: 1,
+} as const);
+const SHA256 = { pattern: /^[a-f0-9]{64}$/, patternMessage: 'Expected lowercase SHA-256' };
+const MILLISECONDS = { min: 1, max: Number.MAX_SAFE_INTEGER, integer: true };
+
 /** Browser admission consumes only small build-generated budgets, never simulation traces. */
 export async function readCourseTimeBudgets(
   course: TimedCompiledCourse,
   vehicle: SessionVehicle,
   input: unknown,
-): Promise<CourseTimeBudgets> {
-  if (!input || typeof input !== 'object' || Array.isArray(input))
-    throw new TypeError('Course time budgets must be a record');
-  const data = structuredClone(input) as {
-    format: string;
-    version: number;
-    courseBuildSha256: string;
-    vehicleSha256: string;
-    initialMs: number;
-    after: [string, number[]][];
-  };
-  const fail = (condition: unknown, message: string) => {
-    if (!condition) throw new RangeError('Course time budgets: ' + message);
-  };
-  const positive = (value: unknown) => typeof value === 'number' && Number.isSafeInteger(value) && value > 0;
-  fail(data && data.format === 'superoutride.course-time-budgets' && data.version === 1, 'unsupported format/version');
-  fail(data.courseBuildSha256 === course.identity.buildSha256, 'stale course identity');
+  document = '',
+): Promise<AdmissionResult<CourseTimeBudgets>> {
   const vehicleSha256 = await sessionVehicleSha256(vehicle);
-  fail(data.vehicleSha256 === vehicleSha256, 'stale vehicle/calibration/assist identity');
-  if (!Array.isArray(data.after)) throw new TypeError('Course time budget intervals must be an array');
-  fail(positive(data.initialMs), 'invalid initial budget');
-  const expected = courseBudgetLandmarks(course),
-    values = new Map<CompiledCourseLandmark, readonly number[]>();
-  fail(data.after.length === expected.length, 'incomplete interval coverage');
-  for (const row of data.after) {
-    if (!Array.isArray(row) || row.length !== 2 || typeof row[0] !== 'string' || !Array.isArray(row[1]))
-      throw new TypeError('Course time budget interval must contain a landmark and lap budgets');
-    const [id, milliseconds] = row,
-      point = expected.find((p) => p.gate.id === id);
-    fail(point && !values.has(point.gate), 'unknown or duplicate landmark');
-    fail(milliseconds.length === point!.laps, 'invalid lap coverage');
-    for (const ms of milliseconds) fail(positive(ms), 'invalid lap budget');
-    values.set(point!.gate, Object.freeze(milliseconds));
-  }
-  const initialMs = data.initialMs;
-  return Object.freeze({
-    initialMs,
-    after(gate: CompiledCourseLandmark, lap: number) {
-      return values.get(gate)![lap - 1]!;
-    },
+  return admit(document, () => {
+    const data = readDocument(
+      input,
+      ['format', 'version', 'courseBuildSha256', 'vehicleSha256', 'initialMs', 'after'],
+      COURSE_TIME_BUDGETS_FORMAT.format,
+      COURSE_TIME_BUDGETS_FORMAT.version,
+    );
+    requireAdmission(
+      readString(data.courseBuildSha256, '/courseBuildSha256', SHA256) === course.identity.buildSha256,
+      'invalid_value',
+      '/courseBuildSha256',
+      'Stale course identity',
+    );
+    requireAdmission(
+      readString(data.vehicleSha256, '/vehicleSha256', SHA256) === vehicleSha256,
+      'invalid_value',
+      '/vehicleSha256',
+      'Stale vehicle/calibration/assist identity',
+    );
+    const initialMs = readNumber(data.initialMs, '/initialMs', MILLISECONDS);
+    const expected = courseBudgetLandmarks(course),
+      values = new Map<CompiledCourseLandmark, readonly number[]>();
+    readArray(
+      data.after,
+      '/after',
+      (value, at) => {
+        const [id, milliseconds] = readArray(value, at, (item) => item, { length: 2 });
+        const point = expected.find((p) => p.gate.id === readString(id, `${at}/0`));
+        requireAdmission(!!point, 'unresolved_reference', `${at}/0`, 'Unknown landmark');
+        requireAdmission(!values.has(point.gate), 'duplicate_id', `${at}/0`, 'Duplicate landmark');
+        values.set(
+          point.gate,
+          readArray(milliseconds, `${at}/1`, (ms, path) => readNumber(ms, path, MILLISECONDS), { length: point.laps }),
+        );
+      },
+      { length: expected.length },
+    );
+    return Object.freeze({
+      initialMs,
+      after(gate: CompiledCourseLandmark, lap: number) {
+        return values.get(gate)![lap - 1]!;
+      },
+    });
   });
 }

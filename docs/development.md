@@ -170,18 +170,18 @@ saves the manifest before the references; reference workers run in separate thre
 publishing the completed build. Only timed courses (rules with CLASSIC settings) receive reference runs
 and budgets; the build reads this from each course document. Node tools also read vehicle/driving definitions from this distribution.
 
-| Output                                          | Use                                      |
-| ----------------------------------------------- | ---------------------------------------- |
-| `dist/delivery/vehicles/<id>.json`              | Versioned vehicle definitions            |
-| `dist/delivery/driving/default.json`            | Versioned game-wide driving definition   |
-| `dist/delivery/manifest.json`                   | Delivery index and digest authority      |
-| `dist/delivery/courses/<course>.course.json`    | CourseDocument v27                       |
-| `dist/delivery/images/<sha256>.json`            | All delivered course and vehicle images  |
-| `dist/delivery/envelopes/<vehicle>.json`        | Rival driving envelopes                  |
-| `dist/delivery/budgets/<course>/<vehicle>.json` | Timed Session budgets                    |
-| `dist/offline/reference/<course>.json`          | Full reference runs, excluded from Pages |
-| `_site/build/<commit>/`                         | Complete commit-versioned Pages build    |
-| `_site/version.txt`                             | Published build identifier               |
+| Output                                          | Use                                                                                                                                                                   |
+| ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dist/delivery/vehicles/<id>.json`              | Versioned vehicle definitions                                                                                                                                         |
+| `dist/delivery/driving/default.json`            | Versioned game-wide driving definition                                                                                                                                |
+| `dist/delivery/manifest.json`                   | Delivery index and digest authority                                                                                                                                   |
+| `dist/delivery/courses/<course>.course.json`    | CourseDocument v27                                                                                                                                                    |
+| `dist/delivery/images/<sha256>.json`            | All delivered course and vehicle images                                                                                                                               |
+| `dist/delivery/envelopes/<vehicle>.json`        | Rival driving envelopes (`superoutride.rival-envelope` v1: vehicle identity, maximum speed and measured rows; the offline measurement trace stays in the build cache) |
+| `dist/delivery/budgets/<course>/<vehicle>.json` | Timed Session budgets                                                                                                                                                 |
+| `dist/offline/reference/<course>.json`          | Full reference runs, excluded from Pages                                                                                                                              |
+| `_site/build/<commit>/`                         | Complete commit-versioned Pages build                                                                                                                                 |
+| `_site/version.txt`                             | Published build identifier                                                                                                                                            |
 
 Offline reference runs are excluded from the delivery manifest because they are build/authoring
 observations, never fetched by the game and not published to Pages. Only their delivered envelopes

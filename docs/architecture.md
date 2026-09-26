@@ -16,7 +16,9 @@ failure propagation belongs to the vehicle layer, not course/race input validati
 
 ### Content admission toolkit
 
-[`core/admission.ts`](../src/core/admission.ts) is the one admission toolkit for authored formats.
+[`core/admission.ts`](../src/core/admission.ts) is the one admission toolkit for authored formats and for the
+generated products the game reads (the content manifest, rival envelopes and time budgets), which carry
+format/version headers and are admitted with the same rules, unknown fields included.
 Its shape readers check a JSON value and throw one `AdmissionError` addressed by a JSON Pointer:
 `readDocument` (format, then version, then the exact field set), `readRecord` (a plain JSON object
 with exactly the named fields; unknown fields first, then missing ones), `readDictionary`,
@@ -51,8 +53,7 @@ a failure is addressed to the extra or misnamed source's document (empty when th
 Compilers below a document boundary raise `DefinitionDomainError` with a slash-separated path relative
 to the record they received. `withDefinitionPath` maps nested or derived fields back to the caller's
 record, and `admitDomain` converts the result at the document boundary into an `invalid_value`
-admission error at the JSON Pointer (`relativePointer` escapes each field). Build products (envelopes,
-time budgets) keep their own internal checks until they adopt the toolkit.
+admission error at the JSON Pointer (`relativePointer` escapes each field).
 
 ## Coordinates and readers
 
