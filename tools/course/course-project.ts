@@ -37,7 +37,7 @@ export function createCourseProject(materials: SurfaceMaterialCatalog) {
       return courseSuccess(state.source!);
     },
     save(): ProjectResult<string> {
-      return state.source ? saveCourseDocument(state.source) : noSource();
+      return state.source ? courseSuccess(JSON.stringify(state.source)) : noSource();
     },
     async compile(
       assetSources: readonly CourseAssetBytes[] = [],
@@ -56,7 +56,7 @@ export function createCourseProject(materials: SurfaceMaterialCatalog) {
       assetSources: readonly CourseAssetBytes[] = [],
       document = '',
     ): Promise<ProjectResult<CompiledCourse>> {
-      const parsed = parseCourseDocument(text);
+      const parsed = parseCourseDocument(text, document);
       if (!parsed.ok) return parsed;
       const ticket = ++generation;
       const result = await compileCourseDocument(parsed.value, assetSources, materials, document);
@@ -71,7 +71,7 @@ export function createCourseProject(materials: SurfaceMaterialCatalog) {
   });
 }
 
-export function parseCourseDocument(text: string): CourseResult<CourseDocument> {
+export function parseCourseDocument(text: string, document = ''): CourseResult<CourseDocument> {
   if (typeof text !== 'string') throw new TypeError('CourseDocument JSON must be a string');
   if (
     text.length > COURSE_DOCUMENT_LIMITS.jsonBytes ||
@@ -79,19 +79,16 @@ export function parseCourseDocument(text: string): CourseResult<CourseDocument> 
   ) {
     return courseFailure(
       new CourseInputError('resource_limit', '', `Document exceeds ${COURSE_DOCUMENT_LIMITS.jsonBytes} UTF-8 bytes`),
+      document,
     );
   }
   let input: unknown;
   try {
     input = JSON.parse(text);
   } catch (error) {
-    if (error instanceof SyntaxError) return courseFailure(new CourseInputError('parse_failure', '', error.message));
+    if (error instanceof SyntaxError)
+      return courseFailure(new CourseInputError('parse_failure', '', error.message), document);
     throw error;
   }
-  return readCourseDocument(input);
-}
-
-function saveCourseDocument(input: unknown): CourseResult<string> {
-  const result = readCourseDocument(input);
-  return result.ok ? courseSuccess(JSON.stringify(result.value)) : result;
+  return readCourseDocument(input, document);
 }

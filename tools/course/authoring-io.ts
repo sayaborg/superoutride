@@ -67,7 +67,7 @@ export async function loadAuthoringSurfaceMaterials() {
 }
 
 export async function loadCourse(file: string, imagesDirectory?: string) {
-  const admitted = readCourseDocument((await jsonFile(file)).value);
+  const admitted = readCourseDocument((await jsonFile(file)).value, file);
   if (!admitted.ok) throw new AuthoringError(admitted.diagnostics);
   const directory = imagesDirectory ?? path.resolve(path.dirname(file), '../images');
   const images = await readCourseImages(admitted.value.assets, directory);

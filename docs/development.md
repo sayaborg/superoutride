@@ -154,7 +154,8 @@ The browser-tools build writes only `dist/tools`: the bundled tools, the Sprite 
 the LOD filter sample. The content build writes `dist/content` from authored documents in one pass, in
 dependency order: the vehicle sprite library (compiled LOD and admitted), surface materials, vehicle and
 driving definitions (admitted against that in-build library), courses and their images, then reference
-runs. Each stage receives earlier products directly; no stage reads back delivered content. The build
+runs. Each stage receives earlier products directly; no stage reads back delivered content. A course and
+its images are staged only after the course compiles. The build
 saves the manifest before the references; reference workers run in separate threads, read the same
 `dist/content` definitions and courses, generate envelopes/runs, and add envelopes/budgets before
 publishing the completed build. Only timed courses (rules with CLASSIC settings) receive reference runs

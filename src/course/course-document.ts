@@ -503,8 +503,11 @@ function rules(value: unknown, path: string): CourseRulesDocument {
   });
 }
 
-/** Own and normalize schema-valid authoring, including semantically incomplete drafts. */
-export function readCourseDocument(input: unknown): CourseResult<CourseDocument> {
+/**
+ * The only course-document admission: own and normalize schema-valid authoring, including semantically
+ * incomplete drafts, as a detached deeply frozen value. Diagnostics name `document` when supplied.
+ */
+export function readCourseDocument(input: unknown, document = ''): CourseResult<CourseDocument> {
   try {
     // Format and version are checked before the current schema's fields.
     const v = readDocument(
@@ -583,7 +586,7 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
       );
     return courseSuccess(result);
   } catch (error) {
-    if (error instanceof AdmissionError) return courseFailure(error);
+    if (error instanceof AdmissionError) return courseFailure(error, document);
     throw error;
   }
 }

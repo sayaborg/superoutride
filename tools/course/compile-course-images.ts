@@ -5,7 +5,6 @@ import type { CourseAssetBytes } from '../../src/course/compiler/course-image-so
 import { createHash } from 'node:crypto';
 import { compileCourseImageSources } from '../../src/course/compiler/course-image-source.js';
 import { compileSpriteLod } from '../graphics/sprite-lod-compiler.js';
-import { readCourseDocument } from '../../src/course/course-document.js';
 
 /** Build-only image compilation; derived course references bind the exact delivered LOD bytes. */
 export async function compileCourseImages(document: CourseDocument, inputs: readonly CourseAssetBytes[]) {
@@ -36,9 +35,9 @@ export async function compileCourseImages(document: CourseDocument, inputs: read
       input = cache.get(asset.sha256)!;
     }
     products.set(input.sha256, input);
-    return { id: asset.id, sha256: input.sha256 };
+    return Object.freeze({ id: asset.id, sha256: input.sha256 });
   });
-  const derived = readCourseDocument({ ...document, assets });
-  if (!derived.ok) throw new Error(JSON.stringify(derived.diagnostics));
-  return { document: derived.value, images: [...products.values()] };
+  // Only asset digests change: the replacements are this tool's own products, so the admitted document stays admitted.
+  const derived: CourseDocument = Object.freeze({ ...document, assets: Object.freeze(assets) });
+  return { document: derived, images: [...products.values()] };
 }

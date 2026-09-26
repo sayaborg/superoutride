@@ -7,11 +7,8 @@ import type { SurfaceMaterialCatalog } from './surface-material.js';
 export async function loadDeliveredCourse(content: ContentDelivery, id: string, materials: SurfaceMaterialCatalog) {
   const file = content.manifest.files.find((entry) => entry.kind === 'course' && entry.id === id);
   if (!file) throw new RangeError(`Content not listed in manifest: course ${id}`);
-  const source = readCourseDocument(await content.json('course', id));
-  if (!source.ok) {
-    const diagnostics = source.diagnostics.map((diagnostic) => ({ ...diagnostic, document: file.path }));
-    throw new Error(JSON.stringify(diagnostics));
-  }
+  const source = readCourseDocument(await content.json('course', id), file.path);
+  if (!source.ok) throw new Error(JSON.stringify(source.diagnostics));
   const images = await Promise.all(
     [...new Set(source.value.assets.map((asset) => asset.sha256))].map(async (sha256) => ({
       sha256,

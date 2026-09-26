@@ -438,7 +438,11 @@ Image inputs are explicit saved bytes addressed by each declared SHA-256. Shared
 one immutable source. [Image assets](image-assets.md#course-image-sources) owns source formats and diagnostics.
 Draft saving is independent of image-byte availability.
 
-Document operations return `{ok:true,value}` or `{ok:false,diagnostics}`. Input diagnostics have the
+`readCourseDocument` is the only course-document admission. Each caller that admits (delivery, the
+content build, authoring tools) supplies its document path once, and receives a detached, deeply frozen
+`CourseDocument`. `compileCourseDocument` receives that admitted value and does not admit it again.
+Build image compilation derives the delivered document from it by replacing asset digests with its
+own products. Document operations return `{ok:true,value}` or `{ok:false,diagnostics}`. Input diagnostics have the
 shared [admission](architecture.md#content-admission-toolkit) shape: `kind:"input"`, `code`, `document`,
 JSON Pointer `path` and causal `message`. Clients use code/path.
 The `plan_coordinate_overlap` variant additionally requires
@@ -466,7 +470,7 @@ Expected failures include shape, version, reference, resource, geometry, coverag
 and appearance errors. Failed compilation publishes no partial product.
 
 `tools/course/course-project.ts` owns live source/publication state through `createCourseProject`,
-and text parsing/saving through the shared product document reader. `editDocument` installs a schema-valid
+text parsing through the shared product document reader, and saving of the admitted source. `editDocument` installs a schema-valid
 immutable draft; a changed normalized value makes the prior product stale, while an equal value
 keeps it current. `save` accepts semantic drafts. `importDocument` installs parsed source and compiled
 product together on success. Failed imports/builds preserve source and prior successful output.

@@ -14,7 +14,7 @@
 - Engine sound load is the powertrain's effective opening.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **9-1 — Course admission**.
+Next PR: **9-2 — Content-build follow-ups**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -24,9 +24,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Admit each input once, keep compiled products runtime-ready, and give delivered content one identity rule.
 
-- **9-1 — Course admission:** `readCourseDocument` is the only course-document admission. `compileCourseDocument`
-  receives an admitted `CourseDocument`; delivery, the content build and authoring tools stop admitting the same
-  document again. The content build checks compilation before writing any course or image file. Behavior unchanged.
 - **9-2 — Content-build follow-ups:** state diagnostics in terms of the build's own identities (file names) as well as
   the manifest's; check the single-document rules (driving `default`, material `surface`) once for both build and
   delivery; compile the vehicle sprite library from its admitted masters; state that reference workers still read

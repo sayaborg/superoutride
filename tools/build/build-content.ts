@@ -67,7 +67,7 @@ const courses: { course: CompiledCourse; stem: string }[] = [];
 for (const name of (await readdir(new URL('courses/', content))).sort()) {
   if (!name.endsWith('.course.json')) continue;
   const bytes = await readFile(new URL(`courses/${name}`, content), 'utf8');
-  const document = readCourseDocument(JSON.parse(bytes));
+  const document = readCourseDocument(JSON.parse(bytes), `content/courses/${name}`);
   if (!document.ok) throw new Error(JSON.stringify(document.diagnostics));
   const prepared = await compileCourseImages(
     document.value,
@@ -79,9 +79,9 @@ for (const name of (await readdir(new URL('courses/', content))).sort()) {
     materials,
     `content/courses/${name}`,
   );
+  if (!compiled.ok) throw new Error(JSON.stringify(compiled.diagnostics));
   await writer.stage('course', name.replace('.course.json', ''), prepared.document);
   for (const image of prepared.images) await writer.stage('image', image.sha256, null, new Uint8Array(image.bytes));
-  if (!compiled.ok) throw new Error(JSON.stringify(compiled.diagnostics));
   console.log(`${name}: Strip ground compiled`);
   courses.push({
     course: compiled.value,

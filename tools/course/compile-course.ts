@@ -1,19 +1,19 @@
 import { readFile } from 'node:fs/promises';
 import { readCourseImages } from './read-course-images.js';
-import { createCourseProject, parseCourseDocument } from './course-project.js';
+import { parseCourseDocument } from './course-project.js';
 import { loadAuthoringSurfaceMaterials } from './authoring-io.js';
 import { courseFailures, CourseAssetError } from '../../src/course/course-diagnostics.js';
+import { compileCourseDocument } from '../../src/course/compiler/compiled-course.js';
 const [sourcePath, flag, imageDirectory, ...extra] = process.argv.slice(2);
 if (!sourcePath || (flag !== undefined && (flag !== '--images' || !imageDirectory)) || extra.length)
   throw new TypeError('Usage: npm run compile:course -- CourseDocument.json [--images directory]');
-const project = createCourseProject(await loadAuthoringSurfaceMaterials());
-const sourceText = await readFile(sourcePath, 'utf8');
-const parsed = parseCourseDocument(sourceText);
-let result: Awaited<ReturnType<typeof project.importDocument>>;
+const materials = await loadAuthoringSurfaceMaterials();
+const parsed = parseCourseDocument(await readFile(sourcePath, 'utf8'), sourcePath);
+let result: Awaited<ReturnType<typeof compileCourseDocument>>;
 if (parsed.ok) {
   try {
     const inputs = imageDirectory ? await readCourseImages(parsed.value.assets, imageDirectory) : [];
-    result = await project.importDocument(sourceText, inputs, sourcePath);
+    result = await compileCourseDocument(parsed.value, inputs, materials, sourcePath);
   } catch (error) {
     if (!(error instanceof CourseAssetError)) throw error;
     result = courseFailures([error]);

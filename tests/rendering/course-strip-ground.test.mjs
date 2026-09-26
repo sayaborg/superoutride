@@ -18,7 +18,9 @@ test('visual Strips can erase all ground without changing material slabs, suppor
     section.strips = section.strips
       .filter((s) => s.kind === 'strip' && s.material !== null)
       .map((s) => ({ ...s, color: null }));
-  const replacement = await compileCourseDocument(erased, prepared.images, materials);
+  const admitted = readCourseDocument(erased);
+  assert.ok(admitted.ok);
+  const replacement = await compileCourseDocument(admitted.value, prepared.images, materials);
   assert.ok(replacement.ok);
   const a = original.value.entry,
     b = replacement.value.entry;

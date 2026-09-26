@@ -10,12 +10,7 @@ import {
   requireCourse,
   type CourseResult,
 } from '../course-diagnostics.js';
-import {
-  readCourseDocument,
-  type CourseRulesDocument,
-  type SectionDocument,
-  type TimedCourseRules,
-} from '../course-document.js';
+import type { CourseDocument, CourseRulesDocument, SectionDocument, TimedCourseRules } from '../course-document.js';
 import { compileCourseGeometry, resolveCoursePosition } from '../course-geometry.js';
 import { validateMaterialContinuity, compileMaterialCoordinateDomain } from '../course-coordinate-domain.js';
 import type { CompiledCarriageway } from '../course-boundaries.js';
@@ -185,20 +180,16 @@ function compileSection(
   };
 }
 
-/** Own input before the first await; publish only a fully validated graph, never the construction tables. */
+/**
+ * Compile an admitted course document. `readCourseDocument` is the only admission; its deeply frozen
+ * value cannot change across awaits. Publish only a fully validated graph, never the construction tables.
+ */
 export async function compileCourseDocument(
-  input: unknown,
+  document: CourseDocument,
   assetSources: readonly CourseAssetBytes[],
   materials: SurfaceMaterialCatalog,
   documentPath = '',
 ): Promise<CourseResult<CompiledCourse>> {
-  const admitted = readCourseDocument(input);
-  if (!admitted.ok)
-    return courseFailures(
-      admitted.diagnostics.map((diagnostic) => ({ diagnostic })),
-      documentPath,
-    );
-  const document = admitted.value;
   try {
     requireCourse(document.sections.length > 0, '/sections', 'A course requires a Section', 'empty_course');
     const images = await compileCourseImageSources(document.assets, assetSources);
