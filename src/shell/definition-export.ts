@@ -1,4 +1,4 @@
-import { formatSavedJson } from '../core/saved-json.js';
+import { formatSavedJson } from '../content/saved-json.js';
 
 /** Saves an admitted source document as a browser download named like its content file. */
 export function downloadDefinition(fileName: string, document: unknown, documentRef: Document = globalThis.document) {

@@ -7,7 +7,7 @@ import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { readCourseDocument } from '../../src/course/course-document.js';
 import { compileCourseDocument } from '../../src/course/compiler/compiled-course.js';
-import { compileSurfaceMaterials } from '../../src/course/surface-material.js';
+import { compileSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 import { compileCourseImages } from './compile-course-images.js';
 import { readCourseImages } from './read-course-images.js';
 

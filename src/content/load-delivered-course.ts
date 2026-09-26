@@ -1,7 +1,7 @@
-import type { ContentDelivery } from '../core/content-manifest.js';
-import { readCourseDocument } from './course-document.js';
-import { compileCourseDocument } from './compiler/compiled-course.js';
-import type { SurfaceMaterialCatalog } from './surface-material.js';
+import type { ContentDelivery } from './content-manifest.js';
+import { readCourseDocument } from '../course/course-document.js';
+import { compileCourseDocument } from '../course/compiler/compiled-course.js';
+import type { SurfaceMaterialCatalog } from '../course/surface-material.js';
 
 /** Resolve a saved course and the delivered images whose digests it declares through the admitted delivery index. */
 export async function loadDeliveredCourse(content: ContentDelivery, id: string, materials: SurfaceMaterialCatalog) {

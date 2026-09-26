@@ -3,10 +3,10 @@ import { REFLECTION_REFERENCE, ACOUSTICS, DEFAULT_EXHAUST_TUNING, OUTPUT } from 
 import { AUDIO_TIMING } from '../../src/audio/audio-presentation.js';
 import { mountAudioTuningControls } from '../../src/shell/audio-tuning-controls.js';
 import { createEngineVoice } from '../../src/audio/engine-voice.js';
-import { loadVehicleDefinitions } from '../../src/vehicle/definition-document.js';
-import { loadContentManifest } from '../../src/core/content-manifest.js';
+import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
+import { loadContentManifest } from '../../src/content/content-manifest.js';
 const { vehicles } = await loadVehicleDefinitions(
-  await loadContentManifest(new URL('../../content/', import.meta.url)),
+  await loadContentManifest(new URL('../../delivery/', import.meta.url)),
 );
 import { createVehicleAudioObservation } from '../../src/shell/vehicle-audio.js';
 const vehicle = mustGet<HTMLSelectElement>('vehicle');

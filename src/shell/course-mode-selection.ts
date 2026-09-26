@@ -1,4 +1,4 @@
-import type { ContentManifest } from '../core/content-manifest.js';
+import type { ContentManifest } from '../content/content-manifest.js';
 export type BrowserCourseModeQuery = string;
 
 export interface BrowserCourseModeSelection {

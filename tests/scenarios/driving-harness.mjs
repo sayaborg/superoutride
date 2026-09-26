@@ -1,5 +1,5 @@
 import { createVehicleSprites } from '../../src/view/vehicle-sprites.js';
-import { loadDeliveredCourse } from '../../src/course/load-delivered-course.js';
+import { loadDeliveredCourse } from '../../src/content/load-delivered-course.js';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readDeliveredContent } from '../../tools/course/read-content.ts';
@@ -8,7 +8,7 @@ import { createCourseScene } from '../../src/view/course-scene.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
 import { createSessionVehicle } from '../../src/race/session-vehicle.js';
-import { loadVehicleDefinitions } from '../../src/vehicle/definition-document.js';
+import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
 import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
 import { createRecoveryState } from '../../src/race/recovery.js';
@@ -26,7 +26,7 @@ import { SIM_DT } from '../../src/race/fixed-step.js';
 import { READY_SECONDS } from '../../src/race/start-phase.js';
 import { courseBoundaryAt, courseCarriagewayExists } from '../../src/course/course-boundaries.js';
 import { routeSectionS } from '../../src/course/course-route.js';
-import { loadSurfaceMaterials } from '../../src/course/surface-material.js';
+import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 
 const content = await readDeliveredContent();
 const materials = await loadSurfaceMaterials(content);

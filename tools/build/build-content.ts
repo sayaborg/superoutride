@@ -1,5 +1,6 @@
-import { compileVehicleDefinitions } from '../../src/vehicle/definition-document.js';
-import type { AdmissionResult, DocumentSource } from '../../src/core/admission.js';
+import { compileVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
+import type { AdmissionResult } from '../../src/core/admission.js';
+import type { DocumentSource } from '../../src/content/document-catalog.js';
 import {
   compileCourseDocument,
   isTimedCourse,
@@ -12,7 +13,7 @@ import { createContentWriter } from './content-manifest.js';
 import { readCourseDocument } from '../../src/course/course-document.js';
 import { compileCourseImages } from '../course/compile-course-images.js';
 import { readCourseImages } from '../course/read-course-images.js';
-import { compileSurfaceMaterials } from '../../src/course/surface-material.js';
+import { compileSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 import { validateTireSoundMaterialIds } from '../../src/audio/tire-surface-acoustics.js';
 import { compileVehicleSpriteLibrary } from '../graphics/vehicle-sprite-library.js';
 
@@ -23,7 +24,7 @@ import { compileVehicleSpriteLibrary } from '../graphics/vehicle-sprite-library.
  * are the exception: they run in separate threads and read this build's saved content until 14-5.
  */
 const content = new URL('../../content/', import.meta.url);
-const destination = new URL('../../dist/content/', import.meta.url);
+const destination = new URL('../../dist/delivery/', import.meta.url);
 const writer = createContentWriter(destination);
 const json = async (path: string) => JSON.parse(await readFile(new URL(path, content), 'utf8')) as unknown;
 

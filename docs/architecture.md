@@ -43,7 +43,7 @@ errors become diagnostics; other exceptions are internal faults and propagate.
 `readEmbedded(base, read)` reads a document embedded in another, such as a sprite image inside the
 vehicle sprite library or a recipe inside a Sprite Tool session, relocating its pointers under `base`.
 
-A catalog of documents admits `DocumentSource` records (`id`, `path`, `value`). The build makes them from
+The content layer owns catalogs of documents. A catalog admits `DocumentSource` records (`id`, `path`, `value`). The build makes them from
 file names and delivery from manifest entries, so both reach the same catalog admission and diagnostics.
 `admitSingleDocument(sources, id, kind)` is the single-document rule: exactly one source, named `id`;
 a failure is addressed to the extra or misnamed source's document (empty when there is none) at the root.
@@ -530,22 +530,23 @@ options and lint rules. [Development](development.md#typescript-tools) owns exec
 Product source is organized by domain. Shared definitions, product compilation and runtime representation
 belong inside that domain; an upper domain depends only on lower domains, and same-domain imports are unrestricted.
 
-| Order | Layer   | Responsibility                                                                                                          |
-| ----- | ------- | ----------------------------------------------------------------------------------------------------------------------- |
-| 1     | core    | General mathematics, vectors, planar transforms, validation helpers                                                     |
-| 2     | image   | Indexed images, RGB555/RGBA codecs, palettes, sprite/LOD formats, BG tiles and image filters                            |
-| 3     | audio   | Sound synthesis and audio engines                                                                                       |
-| 4     | course  | Course documents and compilation, road geometry, materials, occurrences, environment timelines and shared Route readers |
-| 5     | vehicle | Vehicle mechanics, definitions, catalog and accepted operation requests                                                 |
-| 6     | input   | Keyboard/touch adapters and arbitration producing vehicle operation requests                                            |
-| 7     | race    | Sessions, Session vehicles, course worlds, fixed step, progress, gates, timing, drivers, recovery and envelopes         |
-| 8     | view    | Cameras, projection, ground rows, sprite placement, course scenes, drawing composition and framebuffer                  |
-| 9     | shell   | DOM, frame loop, HUD, DEV, startup and browser composition                                                              |
+| Order | Layer   | Responsibility                                                                                                                                                                                            |
+| ----- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1     | core    | General mathematics, vectors, planar transforms, the admission toolkit and content digests                                                                                                                |
+| 2     | image   | Indexed images, RGB555/RGBA codecs, palettes, sprite/LOD formats, BG tiles and image filters                                                                                                              |
+| 3     | audio   | Sound synthesis and audio engines                                                                                                                                                                         |
+| 4     | course  | Course documents and compilation, road geometry, materials, occurrences, environment timelines and shared Route readers                                                                                   |
+| 5     | vehicle | Vehicle mechanics, vehicle and driving document compilation and accepted operation requests                                                                                                               |
+| 6     | content | Content manifest format, reading and delivery; saved JSON layout; document catalogs and their rules; loading courses, materials, the vehicle sprite library and vehicle/driving definitions from delivery |
+| 7     | input   | Keyboard/touch adapters and arbitration producing vehicle operation requests                                                                                                                              |
+| 8     | race    | Sessions, Session vehicles, course worlds, fixed step, progress, gates, timing, drivers, recovery and envelopes                                                                                           |
+| 9     | view    | Cameras, projection, ground rows, sprite placement, course scenes, drawing composition and framebuffer                                                                                                    |
+| 10    | shell   | DOM, frame loop, HUD, DEV, startup and browser composition                                                                                                                                                |
 
 The [dependency check](../tests/infrastructure/layer-dependencies.test.mjs) parses imports, type-only
 imports, re-exports, inline import types, literal dynamic imports, CommonJS references, worker entries
 and worklet modules. It also examines scripts in tool HTML and resolves TypeScript module aliases.
-Product source has exactly these nine directories; startup files belong to shell. Every cross-domain
+Product source has exactly these ten directories; startup files belong to shell. Every cross-domain
 import follows the order and participates in the layer-cycle check, without product-layer exceptions.
 
 Tools use the compositions they share with the browser from race and view and import no shell module,
@@ -578,8 +579,8 @@ Environment timelines are course data.
 
 The content manifest includes `vehicle` and `driving` entries alongside course, image, envelope and
 budget entries. The build layout authority writes `vehicles/<id>.json` and `driving/default.json`.
-Vehicle and driving documents belong to the vehicle layer; the generic manifest only resolves and
-verifies their bytes. Definition compilation resolves named sprite sets/default colors from the SHA-verified image library and sound IDs through the lower audio layer's
+Vehicle and driving document formats and their compilation belong to the vehicle layer; the content layer
+assembles their catalog, and the generic manifest only resolves and verifies their bytes. Definition compilation resolves named sprite sets/default colors from the SHA-verified image library and sound IDs through the lower audio layer's
 TypeScript sound products and returns deeply immutable records. [Vehicle physics](vehicle-physics.md#vehicle-and-driving-documents)
 owns the versioned formats and admission contract. Composition roots load the collection before scene/Session creation and explicitly pass it to
 selection controls, HUD/audio, scene coverage, reference tools and scenarios. `compileVehicleDefinitions` admits the collection from

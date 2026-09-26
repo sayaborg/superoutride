@@ -1,4 +1,4 @@
-import { contentDigest } from './content-digest.js';
+import { contentDigest } from '../core/content-digest.js';
 
 export type ContentKind = 'course' | 'image' | 'envelope' | 'budget' | 'vehicle' | 'driving' | 'material';
 export interface ContentEntry {

@@ -1,5 +1,5 @@
-import { loadContentManifest, type ContentDelivery } from '../core/content-manifest.js';
+import { loadContentManifest, type ContentDelivery } from '../content/content-manifest.js';
 let delivery: Promise<ContentDelivery> | undefined;
 export function browserContent() {
-  return (delivery ??= loadContentManifest(new URL('../content/', import.meta.url)));
+  return (delivery ??= loadContentManifest(new URL('../delivery/', import.meta.url)));
 }

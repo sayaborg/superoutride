@@ -1,8 +1,8 @@
 import type { CourseReferenceJob, CourseReferenceResult } from './build-course-reference.js';
 import { parentPort, workerData } from 'node:worker_threads';
-import { loadVehicleDefinitions } from '../../src/vehicle/definition-document.js';
+import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { readDeliveredContent } from '../course/read-content.js';
-import { loadDeliveredCourse } from '../../src/course/load-delivered-course.js';
+import { loadDeliveredCourse } from '../../src/content/load-delivered-course.js';
 import { isTimedCourse } from '../../src/course/compiler/compiled-course.js';
 import { createSessionVehicle, sessionVehicleSha256 } from '../../src/race/session-vehicle.js';
 import { REFERENCE_DRIVER } from '../course/reference-driving-policy.js';
@@ -12,7 +12,7 @@ import { cachedReference, referenceCacheKey } from '../course/reference-cache.js
 import { measureVehicleEnvelope } from '../course/vehicle-envelope.js';
 import { runCourseReference, courseReferenceRoutes } from '../course/reference-run.js';
 import { loadCourseGround } from '../course/authoring-io.js';
-import { loadSurfaceMaterials } from '../../src/course/surface-material.js';
+import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 
 const { vehicleId, stems, physicsSha256 } = workerData as CourseReferenceJob;
 const content = await readDeliveredContent();

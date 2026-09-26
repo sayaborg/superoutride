@@ -33,6 +33,7 @@ explicitly scheduled in [NEXT](NEXT.md) are replaced with their owning concepts.
 | `mode`                | Session rules selection only: CLASSIC, CUSTOM or TIME ATTACK.                                                                                                            |
 | `method`              | A choice of algorithm or application method outside Session rules.                                                                                                       |
 | `view`                | The rendering layer (`src/view`), not an occurrence reader or an observation.                                                                                            |
+| `content`             | The delivery and catalog layer (`src/content`) when naming code; authored files live under the repository's `content/` directory.                                        |
 | `Window`              | A bounded query interval.                                                                                                                                                |
 | `source`              | Author-supplied data before compilation, including retained copies of that authored representation; not live readers, coordinate origins or input owners.                |
 | `presentation`        | Retired; use `appearance` for authored course visuals and a concrete rendering, display or audio name elsewhere.                                                         |

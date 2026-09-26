@@ -1,4 +1,4 @@
-import { loadContentManifest } from '../../src/core/content-manifest.js';
+import { loadContentManifest } from '../../src/content/content-manifest.js';
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -22,7 +22,7 @@ for (let attempt = 1; attempt <= 10; attempt++) {
     });
     assert.equal(response.status, 200, 'Public version is unavailable');
     assert.equal((await response.text()).trim(), sha, 'Public version has not propagated');
-    const content = await loadContentManifest(new URL(`build/${sha}/content/`, root));
+    const content = await loadContentManifest(new URL(`build/${sha}/delivery/`, root));
     for (const entry of content.manifest.files) await content.bytes(entry.kind, entry.id);
     userDataDirectory = await mkdtemp(path.join(tmpdir(), 'superoutride-startup-'));
     const page = new URL(root);

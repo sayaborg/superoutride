@@ -10,7 +10,7 @@ import { unpackRgba } from '../../src/image/rgb555.js';
 /**
  * The browser-tools build: four browser tools and their worklet entries form one self-contained,
  * versioned output tree under dist/tools, with the Sprite Tool's PNG example and the LOD filter sample.
- * It delivers no content; the content build owns dist/content.
+ * It delivers no content; the content build owns dist/delivery.
  */
 const root = new URL('../../', import.meta.url);
 await build({

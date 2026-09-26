@@ -22,7 +22,7 @@ async function collectFiles(directory) {
 }
 
 // Lower domains precede their consumers. Imports within one domain are unrestricted.
-const layers = ['core', 'image', 'audio', 'course', 'vehicle', 'input', 'race', 'view', 'shell'];
+const layers = ['core', 'image', 'audio', 'course', 'vehicle', 'content', 'input', 'race', 'view', 'shell'];
 const rank = new Map(layers.map((layer, index) => [layer, index]));
 
 function layerOf(relative) {
@@ -109,7 +109,7 @@ test('module discovery includes type imports, re-exports, dynamic imports and wo
     import f = require('./f.cjs');
     new Worker(new URL('./worker.ts', import.meta.url));
     context.audioWorklet.addModule(new URL('./processor.js', import.meta.url));
-    new URL('../../dist/content/', import.meta.url);
+    new URL('../../dist/delivery/', import.meta.url);
     // import './not-a-dependency.js';
   `;
   assert.deepEqual(moduleReferences('fixture.ts', text), [
@@ -152,7 +152,7 @@ test('engine and authoring dependencies follow their declared directions, includ
       .map((entry) => entry.name)
       .sort(),
     [...layers].sort(),
-    'src contains exactly the nine domain directories',
+    'src contains exactly the ten domain directories',
   );
   assert.ok(
     entries.every((entry) => entry.isDirectory()),

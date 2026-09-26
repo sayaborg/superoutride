@@ -74,7 +74,7 @@ splits around its farthest representatives. Representatives are area-weighted mi
 stable input order resolves ties. Color or lamp edits invalidate the generated pyramid.
 
 `content/sprites/vehicles.json` is a normalized-master dictionary with yaw/bank bindings.
-Its generated library uses the same `dist/content/images/<sha256>.json` location as course images.
+Its generated library uses the same `dist/delivery/images/<sha256>.json` location as course images.
 The content manifest maps the logical image name `vehicles` to its path and exact-byte SHA-256;
 courses find their images by that digest ([Content and gameplay](content-and-gameplay.md#geometry-and-reference-records)).
 All consumers resolve these entries through the manifest

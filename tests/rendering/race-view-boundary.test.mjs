@@ -6,7 +6,7 @@ import { loadCourse, loadCourseGround } from '../../tools/course/authoring-io.ts
 import { createCourseScene } from '../../src/view/course-scene.js';
 import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
 import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
-import { loadVehicleDefinitions } from '../../src/vehicle/definition-document.js';
+import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { createSessionVehicle } from '../../src/race/session-vehicle.js';
 import { createRecoveryState } from '../../src/race/recovery.js';
 import { createCourseRace } from '../../src/race/course-race.js';

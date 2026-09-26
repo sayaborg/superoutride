@@ -1,8 +1,8 @@
-import type { ContentKind } from '../../src/core/content-manifest.js';
+import type { ContentKind } from '../../src/content/content-manifest.js';
 import { writeFile, mkdir } from 'node:fs/promises';
 import { Worker } from 'node:worker_threads';
 import { availableParallelism } from 'node:os';
-import type { VehicleDefinitions } from '../../src/vehicle/definition-document.js';
+import type { VehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { REFERENCE_DRIVER } from '../course/reference-driving-policy.js';
 import { referenceModelIdentity } from '../course/reference-identity.js';
 

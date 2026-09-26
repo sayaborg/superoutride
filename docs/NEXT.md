@@ -14,7 +14,7 @@
 - Engine sound load is the powertrain's effective opening.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **9-5 — Content layer (move only)**.
+Next PR: **9-6 — Content load errors**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -24,9 +24,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Admit each input once, keep compiled products runtime-ready, and give delivered content one identity rule.
 
-- **9-5 — Content layer (move only):** add a `content` layer between `vehicle` and `race` for the manifest format and
-  reader, digests, delivery, saved JSON and catalog composition (vehicle definitions, materials, courses). Domain
-  modules export compile functions over values; the admission toolkit stays in `core`.
 - **9-6 — Content load errors:** delivery loaders keep structured diagnostics instead of stringified JSON in an
   `Error`. Remove the material loader's WeakMap cache and the duplicate material ID list.
 - **9-7 — Generated-product admission:** the manifest, envelopes, time budgets and reference observations use the

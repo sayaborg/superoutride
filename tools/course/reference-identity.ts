@@ -11,7 +11,8 @@ export async function referenceModelIdentity() {
       else if (e.name.endsWith('.ts')) files.push(path + e.name);
     }
   };
-  for (const path of ['src/core/', 'src/course/', 'src/vehicle/physics/', 'src/race/']) await collect(path);
+  for (const path of ['src/core/', 'src/course/', 'src/vehicle/physics/', 'src/content/', 'src/race/'])
+    await collect(path);
   files.push(
     'src/view/projection.ts',
     'src/view/display-scale.ts',

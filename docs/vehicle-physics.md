@@ -424,13 +424,13 @@ document. Its `id` is `surface`; each entry in `materials` contains an open-set 
 nonnegative finite `gripFactor`, nonnegative finite `rollingResistance`, and a `tireEffect` from
 `NONE`, `SMOKE`, `DUST`, `GRASS`, `WATER_SPRAY`, `SNOW`, or `MUD`. The effect value is a
 presentation classification only. The current five definitions retain their prior physical values.
-`compileSurfaceMaterials` admits it once from the build's file or delivery's manifest entry: exactly one
+The content layer's `compileSurfaceMaterials` admits it once from the build's file or delivery's manifest entry: exactly one
 document, named `surface`, whose `id` is its file name. It publishes one immutable catalog. Course compilation resolves Strip material IDs through that catalog;
 runtime physics receives the resolved object or `null`, never a fixed material enum.
 
 `content/vehicles/<id>.json` stores one `superoutride.vehicle-definition` version 6 per vehicle.
 `content/driving/default.json` stores the sole `superoutride.driving-definition` version 8.
-`compileVehicleDefinitions` admits the catalog from the build's files or delivery's manifest entries alike:
+The content layer's `compileVehicleDefinitions` admits the catalog from the build's files or delivery's manifest entries alike:
 exactly one driving definition, named `default`, and at least one vehicle; each document `id` equals its
 file name and selection orders are unique.
 [Calibration](calibration.md) owns tuning meanings and units. Document admission in

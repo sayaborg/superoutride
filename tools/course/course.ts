@@ -16,7 +16,7 @@ import { PNG } from 'pngjs';
 import { createCourseScene } from '../../src/view/course-scene.js';
 import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
 import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
-import { loadVehicleDefinitions } from '../../src/vehicle/definition-document.js';
+import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { readDeliveredContent } from './read-content.js';
 import { createCameraRig, updateCamera } from '../../src/view/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../../src/view/current-camera-profile.js';

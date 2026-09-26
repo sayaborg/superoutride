@@ -21,8 +21,8 @@ import {
   compileDrivingDocument,
   vehicleDefinitionForId,
   type CompiledVehicleDefinition,
-  type VehicleDefinitions,
 } from '../vehicle/definition-document.js';
+import type { VehicleDefinitions } from '../content/vehicle-catalog.js';
 import { admitDrivingTuningGrid } from './driving-tuning.js';
 import { mountDrivingTuningControls } from './driving-tuning-controls.js';
 import { downloadDefinition } from './definition-export.js';
