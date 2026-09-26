@@ -4,13 +4,26 @@ import type { DrivingInput } from '../../src/vehicle/driving-input.js';
 import { createBodyKinematicsWorkspace } from '../../src/vehicle/physics/vehicle-physics.js';
 import { compilePlanPath } from '../../src/course/geometry/plan-path.js';
 import { Profile } from '../../src/course/geometry/profile.js';
-import { SurfaceMap } from '../../src/vehicle/physics/surface-map.js';
+import { surfaceSample, type SurfaceMapReader } from '../../src/course/vehicle-world.js';
+import type { SurfaceMaterial } from '../../src/course/surface-material.js';
 import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
 import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
 import { updateHeldVehicle, updateVehicle, vehicleBodyKinematics } from '../../src/vehicle/physics/vehicle-physics.js';
 import { createStartPhase } from '../../src/race/start-phase.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
 import { wrapAngle } from '../../src/core/math.js';
+
+/**
+ * The envelope's reference surface: unit grip and no rolling resistance. Envelopes measure the vehicle
+ * against this fixed reference, never against a catalog material, so the material set stays open and
+ * editing a material's values does not move the reference.
+ */
+export const ENVELOPE_REFERENCE_SURFACE: SurfaceMaterial = Object.freeze({
+  id: 'ENVELOPE_REFERENCE',
+  gripFactor: 1,
+  rollingResistance: 0,
+});
+const referenceSurfaces: SurfaceMapReader = Object.freeze({ sample: () => surfaceSample(ENVELOPE_REFERENCE_SURFACE) });
 
 /** The finite flat world used only to generate game driving envelopes. */
 function createEnvelopeRun(entry: SessionVehicle, initialSpeed: number) {
@@ -24,18 +37,13 @@ function createEnvelopeRun(entry: SessionVehicle, initialSpeed: number) {
     { s: 0, y: 0, curveLength: 0 },
     { s: coordinates.domain.end, y: 0, curveLength: 0 },
   ]);
-  const asphalt = entry.surfaceMaterials.get('ASPHALT');
-  if (!asphalt) throw new RangeError('Reference envelope requires the ASPHALT material');
-  const surfaces = new SurfaceMap(coordinates.domain.end, [
-    { sStart: 0, name: 'Envelope asphalt', intervals: [{ lMin: -5000, lMax: 5000, material: asphalt }] },
-  ]);
-  const world = { extent: coordinates.domain, coordinates, height, surfaces };
+  const world = { extent: coordinates.domain, coordinates, height, surfaces: referenceSurfaces };
   const model = createVehicleModel(entry);
   const vehicle = createVehicle(model, world, { s: 10000, l: 0, initialSpeed });
   return { vehicle, model, world };
 }
 
-/** Flat asphalt, production control/protection, ordinary inputs; no imposed velocity or force during measurement. */
+/** The flat reference surface, production control/protection, ordinary inputs; no imposed velocity or force during measurement. */
 export function measureVehicleEnvelope(entry: SessionVehicle) {
   const make = (initialSpeed: number) => createEnvelopeRun(entry, initialSpeed);
   const step = (p: ReturnType<typeof createEnvelopeRun>, input: DrivingInput) =>
@@ -139,6 +147,13 @@ export function measureVehicleEnvelope(entry: SessionVehicle) {
   return {
     maximumSpeed,
     rows: samples,
-    measurement: { version: 1, dt: SIM_DT, surface: 'ASPHALT', convergenceSeconds: elapsed, acceleration, braking },
+    measurement: {
+      version: 1,
+      dt: SIM_DT,
+      surface: ENVELOPE_REFERENCE_SURFACE.id,
+      convergenceSeconds: elapsed,
+      acceleration,
+      braking,
+    },
   };
 }

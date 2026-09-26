@@ -376,17 +376,9 @@ Profile Knots resolve on the same ruler, increase strictly and include exactly z
 `curveLength` is nonnegative in metres; endpoint lengths are zero and adjacent curves do not overlap.
 [Architecture](architecture.md#height-and-projection) defines the analytic profile and the polyline used only for ground-row generation.
 
-Surface materials are delivered by the manifest as the single `content/materials/surface.json`
-`superoutride.surface-materials` version 1 document. It has `id:"surface"` and an ordered
-`materials` array. Each material has a filename-safe open-set `id`, nonnegative finite
-`gripFactor`, nonnegative finite `rollingResistance`, and `tireEffect`. The tire-effect enum is
-`NONE`, `SMOKE`, `DUST`, `GRASS`, `WATER_SPRAY`, `SNOW` or `MUD`; it records future tire
-presentation only and does not alter physics in this stage. Material IDs are content data rather than
-a TypeScript enum. Adding an ID requires no course or physics code change; until audio definitions
-become content in Stage 9, both tire-sound tables must have a matching ID.
-
-The initial definitions are ASPHALT, SHOULDER, GRASS, DIRT and SAND with their pre-8-7a physical
-values. There is no VOID definition. An authored Strip material resolves its ID against the admitted
+Strips reference surface materials by ID. [Vehicle physics](vehicle-physics.md#material-vehicle-and-driving-documents)
+owns the Surface Material format and the material catalog, the only set of material IDs.
+An authored Strip material resolves its ID against the admitted
 catalog; an unknown ID reports `unresolved_reference` at that Strip's `/material` path.
 Material-bearing Strips compile to finite affine pieces through the same slab resolver as color. The
 coordinate domain follows the material table's outer finite covered edges plus margin. Color remains

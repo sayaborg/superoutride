@@ -14,7 +14,7 @@
 - Engine sound load is the powertrain's effective opening.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **9-8 — Material ownership**.
+Next PR: **9-9 — Surface abstractions (delete)**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -24,10 +24,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Admit each input once, keep compiled products runtime-ready, and give delivered content one identity rule.
 
-- **9-8 — Material ownership:** one topic specification owns the Surface Material format. The material catalog is
-  the only material ID set; material IDs remain an open set. Envelope generation uses a constant surface reader and
-  no longer requires an `ASPHALT` material. Remove `tireEffect`, which has no consumer; tire effects will be declared
-  on the appearance side when they are implemented.
 - **9-9 — Surface abstractions (delete):** remove `SurfaceMap` and the `SurfaceSample` wrapper; the surface reader
   returns a material or null.
 - **9-10 — Vehicle sprite sets:** the image layer keeps generic indexed sprites and palettes; the vehicle layer owns

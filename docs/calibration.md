@@ -89,6 +89,10 @@ Tire and steering low-speed regularization are engine constants of 1.0 m/s.
 The full driving source document participates in vehicle identity for generated envelopes, reference
 caches and time budgets. Top-speed envelope measurement ends at steady-speed convergence or at the first
 top-gear fuel-cut recovery; after a recovery the maximum is the greatest speed observed during the run.
+Envelopes are measured on the envelope procedure's own reference surface, `ENVELOPE_REFERENCE_SURFACE`
+in `tools/course/vehicle-envelope.ts`: grip factor 1 and rolling resistance 0 everywhere. It is not a
+catalog material, so material IDs and values do not move the envelope; the reference is the vehicle's
+capability on unit grip without surface drag.
 
 | Setting               | Value | Meaning                                                      |
 | --------------------- | ----- | ------------------------------------------------------------ |

@@ -419,11 +419,16 @@ mechanical observations without contributing forces or alternate mechanical stat
 
 ## Material, vehicle and driving documents
 
-`content/materials/surface.json` stores the single `superoutride.surface-materials` version 1
-document. Its `id` is `surface`; each entry in `materials` contains an open-set material `id`,
-nonnegative finite `gripFactor`, nonnegative finite `rollingResistance`, and a `tireEffect` from
-`NONE`, `SMOKE`, `DUST`, `GRASS`, `WATER_SPRAY`, `SNOW`, or `MUD`. The effect value is a
-presentation classification only. The current five definitions retain their prior physical values.
+This section owns the Surface Material format. `content/materials/surface.json` stores the single
+`superoutride.surface-materials` version 2 document: `format`, `version`, `id` and an ordered,
+nonempty `materials` array. Its `id` is `surface`; each material has exactly a filename-safe `id`
+(unique in the document), a nonnegative finite `gripFactor` and a nonnegative finite `rollingResistance`.
+The material catalog is the only set of material IDs, and the set is open: IDs are content data, not a
+TypeScript enum, and adding one needs no course or physics code change (until audio definitions become
+content, both tire-sound tables must also have the ID). No physics code or tool requires a particular ID.
+The current definitions are ASPHALT, SHOULDER, GRASS, DIRT and SAND; there is no VOID definition.
+The format carries physical values only; tire effects will be declared on the appearance side when they
+are implemented.
 The content layer's `compileSurfaceMaterials` admits it once from the build's file or delivery's manifest entry: exactly one
 document, named `surface`, whose `id` is its file name. It publishes one immutable catalog. Course compilation resolves Strip material IDs through that catalog;
 runtime physics receives the resolved object or `null`, never a fixed material enum.
