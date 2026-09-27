@@ -2,19 +2,15 @@ import { type CameraYawMode } from '../view/camera.js';
 import {
   createMobileCameraYawSelectorModel,
   createMobileCourseSelectorModel,
-  createMobileVehicleSelectorModel,
   type MobileSelectorButtonModel,
 } from './mobile-selector-model.js';
 import { sameSelectorValue } from './selector-values.js';
 
-import type { CompiledVehicle, VehicleId } from '../vehicle/physics/vehicle-definitions.js';
 import {
   BROWSER_COURSE_MODES,
   type BrowserCourseModeQuery,
   type BrowserCourseModeSelection,
 } from './course-mode-selection.js';
-
-import { type BrowserVehicleSelection } from './vehicle-selection.js';
 
 interface MobileSelectorController<Value extends string | number> {
   setActive(value: Value): void;
@@ -32,24 +28,6 @@ export function mountMobileCourseSelector(
     container,
     createMobileCourseSelectorModel(activeQuery, choices),
     (query) => onSelect(mustSelect(selections, query, 'course')),
-    documentRef,
-  );
-}
-
-export function mountMobileVehicleSelector(
-  container: HTMLElement,
-  activeId: VehicleId,
-  onSelect: (compiledVehicle: Readonly<CompiledVehicle>) => void,
-  choices: readonly BrowserVehicleSelection[],
-  documentRef: Document = document,
-): MobileSelectorController<VehicleId> {
-  const selections = new Map<VehicleId, BrowserVehicleSelection>(
-    choices.map((selection) => [selection.compiledVehicle.id, selection]),
-  );
-  return mountMobileSelector(
-    container,
-    createMobileVehicleSelectorModel(activeId, choices),
-    (id) => onSelect(mustSelect(selections, id, 'vehicle').compiledVehicle),
     documentRef,
   );
 }

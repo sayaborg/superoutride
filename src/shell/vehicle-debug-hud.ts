@@ -7,7 +7,7 @@ import { observeClutch } from '../vehicle/physics/automatic-powertrain.js';
 import { formatBrowserCourseSelector, type BrowserCourseModeQuery } from './course-mode-selection.js';
 import { formatDrivingTuningLine } from './driving-tuning.js';
 import type { DrivingDefinition } from '../vehicle/driving-definition.js';
-import { formatVehicleSelector } from './vehicle-selection.js';
+import { formatVehicleCatalogLine } from '../vehicle/vehicle-label.js';
 
 const G_SENSOR_RANGE = 2;
 const CONTROL_METER_WIDTH = 58;
@@ -71,7 +71,7 @@ function createVehicleDebugHudModel(
   const frontShare = p.frontDriveTorqueFraction;
   return {
     courseSelector: `COURSE ${formatBrowserCourseSelector(activeCourseQuery)}`,
-    vehicleSelector: `VEHICLE ${formatVehicleSelector(entry)}`,
+    vehicleSelector: `VEHICLE ${formatVehicleCatalogLine(entry)}`,
     steeringTuning: formatDrivingTuningLine('STEERING', driving),
     pedalTuning: formatDrivingTuningLine('PEDALS', driving),
     tireTuning: formatDrivingTuningLine('TIRES', driving),

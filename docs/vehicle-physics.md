@@ -35,8 +35,7 @@ Browser, race, reference/envelope tools, scenarios, startup smoke and image gene
 input. Creation, updates, held steps and recovery receive the vehicle state and its model separately;
 nothing copies a model value into state. Updates and held steps take no step argument; they integrate the
 model's step and substep. Both stations' wheel solves and the steering limiter read the model's one tire. DEV tuning edits the driving definition and rebuilds the player's model from it;
-the next step uses the replacement, and a vehicle switch builds the new vehicle's model from the same
-tuned definition.
+the next step uses the replacement.
 
 `SessionVehicle` holds the admitted vehicle, driving and surface-material definitions;
 `createVehicleModel` derives nothing from the vehicle's listing, and `vehicleSha256` derives from the

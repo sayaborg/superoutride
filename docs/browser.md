@@ -94,16 +94,15 @@ DEV is an initially closed disclosure overlay. Its body scrolls within the safe 
 resizing the game. UI pointer starts stay outside driving input. Keydown is isolated, so keys typed
 in DEV controls never reach driving input, while keyup can release an already-held driving key.
 Escape closes the panel and returns focus to its summary. DEV has no keyboard shortcuts.
-The Session-owned vehicle selection is locked; driving tuning, camera, sound and recovery controls
-remain available. RECOVER requests manual recovery of the player vehicle when the active composition
+The vehicle is chosen in the Session setup, and choosing it starts a Session; there is no vehicle
+selection during a Session. Driving tuning, camera, sound and recovery controls remain available. RECOVER requests manual recovery of the player vehicle when the active composition
 permits it: in a course session, only while the race is running and neither paused nor hidden.
 
 Driving tuning is grouped as STEERING, PEDALS, TIRES F/R, POWERTRAIN and ASSISTS. Each value uses a
 minus/value/plus control in the driving definition's units, wrapping at range endpoints; ASSISTS
 toggles wheel slip protection. The DEV HUD shows one line per group (STEER with the derived automatic
-budget A, PEDAL, TIRE, ENGINE with ASSIST), read from the tuned definition. Vehicle replacement keeps
-the tuned definition. EXPORT saves the tuned driving definition (`default.json`) and the selected
-vehicle definition (`<vehicle id>.json`) as browser downloads in the saved layout;
+budget A, PEDAL, TIRE, ENGINE with ASSIST), read from the tuned definition. EXPORT saves the tuned
+driving definition (`default.json`) and the Session vehicle's definition (`<vehicle id>.json`) as browser downloads in the saved layout;
 [Calibration](calibration.md#vehicle-settings) describes adopting them as content. The selectable
 body-yaw and movement-yaw cameras use the same projection.
 [Calibration](calibration.md#vehicle-settings) lists values, units and ranges.

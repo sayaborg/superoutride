@@ -1,9 +1,7 @@
 import { type CameraYawMode } from '../view/camera.js';
-import type { VehicleId } from '../vehicle/physics/vehicle-definitions.js';
 import { BROWSER_CAMERA_YAW_MODES } from './camera-yaw-selection.js';
 import { BROWSER_COURSE_MODES, type BrowserCourseModeQuery } from './course-mode-selection.js';
 import { sameSelectorValue } from './selector-values.js';
-import type { BrowserVehicleSelection } from './vehicle-selection.js';
 
 export interface MobileSelectorButtonModel<Value extends string | number> {
   readonly value: Value;
@@ -20,17 +18,6 @@ export function createMobileCourseSelectorModel(
     value: mode.query,
     label: mode.buttonLabel ?? mode.label,
     ariaLabel: `Select ${mode.label} course`,
-  }));
-}
-
-export function createMobileVehicleSelectorModel(
-  activeId: VehicleId,
-  selections: readonly BrowserVehicleSelection[],
-): readonly MobileSelectorButtonModel<VehicleId>[] {
-  return selectorModel(activeId, selections, ({ compiledVehicle, mobileLabel, accessibleName }) => ({
-    value: compiledVehicle.id,
-    label: mobileLabel,
-    ariaLabel: `Select ${accessibleName}`,
   }));
 }
 

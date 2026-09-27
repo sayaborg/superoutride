@@ -104,7 +104,6 @@ try {
   const lifecycle = shell.mountControls({
     world: () => scene.world,
     recoverySettings: RECOVERY_SETTINGS,
-    configurationLocked: true,
     canRecover: () => race.clock.status === 'RUNNING' && !manualPause && !document.hidden,
     recoveryL: race.recoveryL,
     observation: () => race.observe().player,

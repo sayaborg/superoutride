@@ -29,8 +29,9 @@ Give each settled fact one owner and give consumers read-only observations.
   competitor's model and state; the shell supplies input only. DEV tuning produces a new `SessionVehicle` and
   restarts the Session. Its identity no longer matches delivered envelopes and budgets, so a tuned Session has no
   rivals and no time limit. Audio, HUD and export read the Session vehicle. DEV tuning grids only step values and
-  never reject a driving definition.
-- **10-8 — Vehicle switch (delete):** remove the in-Session vehicle-switch path; choosing a vehicle starts a Session.
+  never reject a driving definition. It is done in three PRs: **10-7a** — the race owns every competitor's mechanics and the
+  shell passes input only; **10-7b** — DEV tuning rebuilds the Session, and a tuned Session has no rivals, no time
+  limit and no envelope; **10-7c** — DEV grids never reject a driving definition.
 - **10-9 — Route and resident window:** an append-only Route records selected successors; `RouteRuntime` owns the
   resident window. Consumers receive a read-only Route; only the fork decider selects. Architecture states seam
   ownership when no successor exists yet.

@@ -5,18 +5,15 @@ import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import type { VehicleWorld } from '../course/vehicle-world.js';
 import type { VehicleCameraReadState } from '../vehicle/physics/vehicle-contract.js';
-import type { CompiledVehicle } from '../vehicle/physics/vehicle-definitions.js';
 
 interface DrivingPlayer {
   readonly vehicle: VehicleState;
   readonly model: VehicleModel;
   readonly recovery: RecoveryState;
   readonly cameraRig: CameraRig;
-  replacePlayer(compiledVehicle: Readonly<CompiledVehicle>, world: VehicleWorld): void;
 }
 
 export interface DrivingLifecycleOptions {
-  readonly configurationLocked?: boolean;
   readonly canRecover?: () => boolean;
   readonly world: () => VehicleWorld;
   readonly recoverySettings: Readonly<RecoverySettings>;
@@ -34,16 +31,14 @@ export function createDrivingLifecycle(player: DrivingPlayer, options: DrivingLi
     if (recovered) resetCameraRig(player.cameraRig);
     camera = updateCamera(player.cameraRig, options.world(), options.observation(), CURRENT_CAMERA_PROFILE);
   }
-  function reconstruct(compiledVehicle?: Readonly<CompiledVehicle>): void {
-    const world = options.world();
-    recoverVehicle(world, player.vehicle, player.model, {
+  function recover(): void {
+    recoverVehicle(options.world(), player.vehicle, player.model, {
       state: player.recovery,
       reason: 'manual',
       settings: options.recoveryL
         ? { ...options.recoverySettings, targetL: options.recoveryL }
         : options.recoverySettings,
     });
-    if (compiledVehicle !== undefined) player.replacePlayer(compiledVehicle, world);
     resetCameraRig(player.cameraRig);
     options.resync?.();
     update();
@@ -53,7 +48,6 @@ export function createDrivingLifecycle(player: DrivingPlayer, options: DrivingLi
       return camera;
     },
     update,
-    recover: () => reconstruct(),
-    replace: (compiledVehicle: Readonly<CompiledVehicle>) => reconstruct(compiledVehicle),
+    recover,
   };
 }

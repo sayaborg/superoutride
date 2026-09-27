@@ -14,7 +14,6 @@ import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import { createVehicle } from '../vehicle/physics/vehicle-physics.js';
 import { createVehicleModel, type VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import type { VehicleWorld } from '../course/vehicle-world.js';
-import type { CompiledVehicle } from '../vehicle/physics/vehicle-definitions.js';
 import { drawVehicleLeanDebug } from './debug/vehicle-lean-debug.js';
 import { drawVehicleYawDebug } from './debug/vehicle-yaw-debug.js';
 import {
@@ -29,13 +28,12 @@ import { downloadDefinition } from './definition-export.js';
 import type { BrowserCourseModeQuery } from './course-mode-selection.js';
 import { mustGet } from './dom.js';
 import { createFrameLoop, type FrameLoop } from './frame-loop.js';
-import { mountMobileCameraYawSelector, mountMobileVehicleSelector } from './mobile-selector-controls.js';
+import { mountMobileCameraYawSelector } from './mobile-selector-controls.js';
 import { createSessionVehicle } from '../race/session-vehicle.js';
 import { SIM_DT } from '../race/fixed-step.js';
 import { browserUsesTouchInterface } from './touch-interface.js';
 import { drawVehicleDebugHud } from './vehicle-debug-hud.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
-import { createBrowserVehicleSelections } from './vehicle-selection.js';
 
 interface BrowserDrivingShell {
   readonly vehicle: VehicleState;
@@ -45,7 +43,6 @@ interface BrowserDrivingShell {
   readonly framebuffer: SoftwareSurface;
   readonly inputManager: InputManager;
   readonly cameraRig: CameraRig;
-  replacePlayer(compiledVehicle: Readonly<CompiledVehicle>, active: VehicleWorld): void;
   mountControls(options: DrivingLifecycleOptions): ReturnType<typeof createDrivingLifecycle>;
   present(
     query: BrowserCourseModeQuery,
@@ -67,7 +64,6 @@ export function createBrowserDrivingShell(
   definitions: VehicleDefinitions,
 ): BrowserDrivingShell {
   const { vehicles } = definitions;
-  const selections = createBrowserVehicleSelections(vehicles);
   admitDrivingTuningGrid(spawn.vehicle.drivingDefinition.source);
   const canvas = mustGet<HTMLCanvasElement>('game');
   canvas.width = LOGICAL_WIDTH;
@@ -82,12 +78,9 @@ export function createBrowserDrivingShell(
   // DEV tuning edits the driving definition and rebuilds the whole model; the next step uses it.
   let driving = spawn.vehicle.drivingDefinition;
   let model = createVehicleModel(spawn.vehicle, SIM_DT);
-  let vehicle = createVehicle(model, runtime, { s: spawn.s, l: startL, initialSpeed: spawn.initialSpeed });
-  const modelFor = (id: string) =>
-    createVehicleModel(
-      createSessionVehicle(vehicleDefinitionForId(vehicles, id), driving, spawn.vehicle.surfaceMaterials),
-      SIM_DT,
-    );
+  const vehicle = createVehicle(model, runtime, { s: spawn.s, l: startL, initialSpeed: spawn.initialSpeed });
+  const sessionVehicleDefinition = spawn.vehicle.vehicleDefinition;
+  const sessionVehicleId = sessionVehicleDefinition.compiledVehicle.id;
   const tuning = {
     get: () => driving.source,
     set: (definition: DrivingDocument) => {
@@ -95,11 +88,14 @@ export function createBrowserDrivingShell(
       const admitted = compileDrivingDocument(definition, 'DEV driving tuning', null);
       if (!admitted.ok) return false;
       driving = admitted.value;
-      model = modelFor(model.compiledVehicle.id);
+      model = createVehicleModel(
+        createSessionVehicle(sessionVehicleDefinition, driving, spawn.vehicle.surfaceMaterials),
+        SIM_DT,
+      );
       return true;
     },
   };
-  let recovery = createRecoveryState(vehicle);
+  const recovery = createRecoveryState(vehicle);
   const cameraRig = createCameraRig();
 
   const audio = createAudioLifecycle(vehicles);
@@ -144,31 +140,8 @@ export function createBrowserDrivingShell(
     framebuffer,
     inputManager,
     cameraRig,
-    /** Called by the shared lifecycle after safe recovery; no chart or progress decision is made here. */
-    replacePlayer(compiledVehicle: Readonly<CompiledVehicle>, active: VehicleWorld): void {
-      // The replacement vehicle is built from the tuned driving definition.
-      model = modelFor(compiledVehicle.id);
-      vehicle = createVehicle(model, active, {
-        s: vehicle.course.s,
-        l: vehicle.course.l,
-        initialSpeed: vehicle.longitudinalSpeed,
-      });
-      recovery = createRecoveryState(vehicle);
-    },
     mountControls(options: DrivingLifecycleOptions) {
       const lifecycle = createDrivingLifecycle(this, options);
-      const selectVehicle = (compiledVehicle: Readonly<CompiledVehicle>) => {
-        if (options.configurationLocked || compiledVehicle.id === model.compiledVehicle.id) return;
-        lifecycle.replace(compiledVehicle);
-        vehicleSelector.setActive(model.compiledVehicle.id);
-        showVehicleExport();
-      };
-      const vehicleSelector = mountMobileVehicleSelector(
-        mustGet('vehicle-selector-buttons'),
-        model.compiledVehicle.id,
-        selectVehicle,
-        selections,
-      );
       const cameraYawSelector = mountMobileCameraYawSelector(
         mustGet('camera-selector-buttons'),
         cameraRig.yawMode,
@@ -177,7 +150,7 @@ export function createBrowserDrivingShell(
           cameraYawSelector.setActive(mode);
         },
       );
-      // DEV driving tuning stays available in a Session; only the Session vehicle is locked.
+      // DEV driving tuning stays available in a Session.
       mountDrivingTuningControls(
         {
           STEERING: mustGet('tuning-steering-buttons'),
@@ -190,20 +163,13 @@ export function createBrowserDrivingShell(
       );
       // Export writes the admitted source documents in the saved layout, never runtime values.
       const exportVehicle = mustGet<HTMLButtonElement>('export-vehicle-button');
-      const showVehicleExport = () => (exportVehicle.textContent = `vehicles/${model.compiledVehicle.id}.json`);
+      exportVehicle.textContent = `vehicles/${sessionVehicleId}.json`;
       mustGet<HTMLButtonElement>('export-driving-button').addEventListener('click', () =>
         downloadDefinition(`${DRIVING_DEFINITION_ID}.json`, driving.source),
       );
       exportVehicle.addEventListener('click', () =>
-        downloadDefinition(
-          `${model.compiledVehicle.id}.json`,
-          vehicleDefinitionForId(vehicles, model.compiledVehicle.id).mechanics,
-        ),
+        downloadDefinition(`${sessionVehicleId}.json`, sessionVehicleDefinition.mechanics),
       );
-      showVehicleExport();
-      if (options.configurationLocked)
-        for (const child of Array.from(mustGet('vehicle-selector-buttons').querySelectorAll('button')))
-          child.disabled = true;
       mustGet<HTMLButtonElement>('recover-button').addEventListener('click', () => {
         if (options.canRecover?.() ?? true) lifecycle.recover();
       });
