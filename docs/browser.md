@@ -88,8 +88,8 @@ Manual pause shows `PAUSED`. A Session rebuilt by DEV tuning prefixes `TUNED · 
   `OPEN` while it is undecided, or `GO` when the entry has no fork; a finished player's state is the clock status.
 - `GO · ` prefixes the running line while the player's competitor clock is below 1 s.
 - Remaining time is `TIME n`, n = ceil(max(0, deadline − race time)).
-- A positive extension shows as `TIME EXTEND +x.x` (seconds, one decimal) until a fixed step begins more than
-  2 s of race time after the checkpoint that earned it.
+- A positive extension shows as `TIME EXTEND +x.x` (seconds, one decimal) while race time is at most 2 s after
+  the race time of the checkpoint that earned it.
 - Position is `Pr/n`: the player's rank among n competitors.
 - Race time is `m:ss.mmm`, floored to whole milliseconds after adding a display-only tolerance of 1e-7 ms for
   accumulated fixed-step rounding.

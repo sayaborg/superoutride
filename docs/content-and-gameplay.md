@@ -571,7 +571,7 @@ accepted checkpoint's award extends the deadline at once for later candidates in
 competitor's finish time is the time of its finish event, recorded once; the clock's GOAL time and ranking read it.
 
 The race and clock publish facts only, never display text or display durations. The clock exposes its status
-(READY, RUNNING, GOAL or GAME_OVER), race time, the start time of the latest step, the deadline in race time
+(READY, RUNNING, GOAL or GAME_OVER), race time, the deadline in race time
 (null without a time limit) and the last extension: its awarded amount and the race time of the checkpoint that
 earned it. The race exposes the start phase's status and seconds until GO; each competitor's progress (route s,
 accepted finish count and status) and finish time; the Route, whose occurrences carry fork choices; the lap count

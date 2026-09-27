@@ -53,10 +53,10 @@ function raceText(race: CourseRace): string {
   const start = race.competitorSeconds(player) < GO_DISPLAY_SECONDS ? 'GO · ' : '';
   const deadline = clock.deadlineSeconds;
   const timeLeft = deadline === null ? '' : ` · TIME ${Math.ceil(Math.max(0, deadline - clock.elapsedSeconds))}`;
-  // An extension shows until a fixed step begins more than two seconds of race time after it.
+  // An extension shows while race time is at most two seconds after it.
   const extension = clock.lastExtension;
   const extended =
-    extension !== null && extension.ms > 0 && clock.stepStartSeconds <= extension.atSeconds + EXTENSION_DISPLAY_SECONDS;
+    extension !== null && extension.ms > 0 && clock.elapsedSeconds <= extension.atSeconds + EXTENSION_DISPLAY_SECONDS;
   const extensionText = extended ? ` · TIME EXTEND +${(extension.ms / 1000).toFixed(1)}` : '';
   return `${start}${state}${timeLeft}${extensionText} · ${position} · ${formatRaceTime(clock.elapsedSeconds)}`;
 }

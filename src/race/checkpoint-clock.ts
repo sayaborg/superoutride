@@ -16,7 +16,6 @@ export function createCheckpointClock(budgets: CourseTimeBudgets | null) {
   let status: 'READY' | 'RUNNING' | 'GOAL' | 'GAME_OVER' = 'READY';
   let elapsedSeconds = 0,
     deadline = budgets === null ? Infinity : budgets.initialMs / 1000;
-  let stepStartSeconds = 0;
   let lastExtension: { readonly ms: number; readonly atSeconds: number } | null = null;
   return Object.freeze({
     get status() {
@@ -25,10 +24,6 @@ export function createCheckpointClock(budgets: CourseTimeBudgets | null) {
     /** Race time: the one competitor-independent clock since GO. */
     get elapsedSeconds() {
       return elapsedSeconds;
-    },
-    /** Race time at which the latest step began. */
-    get stepStartSeconds() {
-      return stepStartSeconds;
     },
     /** The current deadline in race time; null without a time limit. */
     get deadlineSeconds() {
@@ -43,8 +38,7 @@ export function createCheckpointClock(budgets: CourseTimeBudgets | null) {
     },
     /** Opens one RUNNING step and returns its start time. */
     beginStep(): number {
-      stepStartSeconds = elapsedSeconds;
-      return stepStartSeconds;
+      return elapsedSeconds;
     },
     /**
      * Decides one player crossing candidate of the open step. A crossing past the deadline is refused;
