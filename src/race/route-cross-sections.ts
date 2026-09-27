@@ -33,14 +33,14 @@ export function routeCrossingFraction(
   return l >= line.left && l <= line.right ? u : null;
 }
 
-/** One shared index. Stable route stations survive list replacement and pruning. */
+/** One shared index over the append-only Route. Stable route stations survive list replacement. */
 export function createRouteCrossSections(route: CourseRoute, course: CompiledCourse, lapCount: number) {
   const rules = new Map(course.gates.intervals.map((interval) => [interval.section, interval]));
   let indexed: readonly RouteOccurrence[] = [];
   let race: readonly RouteRaceLine[] = [];
   let forks: readonly RouteCrossSection[] = [];
   const laps = new WeakMap<RouteOccurrence, number>();
-  // Follow finish lines from the entry even if refresh has already pruned unseen occurrences.
+  // Follow finish lines from the entry through occurrences the index has not yet seen.
   let cursor = course.entry,
     cursorStart = 0,
     cursorLap = 1;

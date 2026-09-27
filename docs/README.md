@@ -50,8 +50,8 @@ explicitly scheduled in [NEXT](NEXT.md) are replaced with their owning concepts.
 | `listing`             | A vehicle's non-mechanical document: form, labels and metadata, selection order, sprite set and default color, sound ID and HUD steering ratio.                          |
 | `Compiled*`           | A validated immutable product derived from authored inputs.                                                                                                              |
 | `Reader`              | A query interface over admitted data; it does not own the consumer's live simulation state.                                                                              |
-| `Route`               | The one selected, ordered sequence of Section occurrences measured from the entry; all vehicles share its chainage.                                                      |
-| `RouteRuntime`        | The shared live Route, readers and loading owner; race Session state belongs to the race.                                                                                |
+| `Route`               | The one selected, append-only sequence of Section occurrences measured from the entry (start 0); all vehicles share its chainage and consumers read it only.             |
+| `RouteRuntime`        | The owner of the Route's extension, the resident window over it, the readers on that window and loading; race Session state belongs to the race.                         |
 | `Session`             | One race run and its selected rules, competitors, timing and progress.                                                                                                   |
 | `RouteOccurrence`     | A Section visit with its route start, lateral origin and world transform; repeating a Section creates a new occurrence.                                                  |
 | `Observation`         | A measured or derived fact at sampling time, not an independent authority.                                                                                               |

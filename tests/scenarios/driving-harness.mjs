@@ -155,7 +155,7 @@ export function runScenario({ course, ground }, scenario) {
         driver,
         lane,
         workspace,
-        scene.runtime.route,
+        scene.runtime.window,
       );
     const step = race.advance(input, SIM_DT);
     if (step.recovered) {
@@ -207,7 +207,8 @@ export function runScenario({ course, ground }, scenario) {
         ]),
       );
     }
-    for (const occurrence of scene.runtime.route.occurrences) {
+    // The resident occurrences, as rendered and sampled physically.
+    for (const occurrence of scene.runtime.window.occurrences) {
       finiteState(
         {
           start: occurrence.start,

@@ -1,6 +1,6 @@
 import type { CourseGround } from '../course/compiler/course-ground.js';
 import type { CompiledSection } from '../course/compiler/course-graph.js';
-import type { CourseRoute } from '../course/course-route.js';
+import type { RouteWindow } from '../course/course-route.js';
 import { routeS, routeSectionS } from '../course/course-route.js';
 import { stationIndexAt } from '../course/geometry/station-sequence.js';
 import { transformPlanarPoint } from '../core/planar-transform.js';
@@ -9,7 +9,7 @@ import { createCourseRenderResources } from './course-render-resources.js';
 import type { StripGroundReader } from './renderer.js';
 
 /** Visual content over the same route ruler as the physical readers. Derived lists change with the route. */
-export function createCourseRouteVisualReaders(route: CourseRoute, fields: CourseGround) {
+export function createCourseRouteVisualReaders(route: RouteWindow, fields: CourseGround) {
   const resources = createCourseRenderResources();
   const sections = new Map<CompiledSection, ReturnType<typeof resources.createSectionReaders>>();
   const sectionReaders = (section: CompiledSection) => {
@@ -21,7 +21,7 @@ export function createCourseRouteVisualReaders(route: CourseRoute, fields: Cours
     }
     return readers;
   };
-  let indexed: CourseRoute['occurrences'] | null = null;
+  let indexed: RouteWindow['occurrences'] | null = null;
   let snapshot: ReturnType<typeof build>;
   function build() {
     const occurrences = route.occurrences;

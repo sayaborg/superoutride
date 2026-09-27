@@ -77,20 +77,27 @@ along that centerline and positive `l` is distance along its right normal. With 
 normal `N(s)` and signed curvature `kappa`, planar coordinates are `C(s) + l*N(s)`; physical
 distance along an offset or sloping path is different.
 
-The shared `CourseRoute` builds an ordered sequence of `RouteOccurrence` records. Its entry starts at
-route s=0, lateral origin=0 and an identity world transform. Each successor begins at the previous
-Section's end: its Section chainage begins at zero, its lateral origin accumulates the cut
-offset and its world transform composes the Link transform. Thus a repeated circuit Section has a new
-route interval without changing earlier route coordinates. A seam station belongs to the successor.
+The shared `CourseRoute` is the selected Route: an append-only sequence of `RouteOccurrence` records that
+never discards one. Its entry starts at route s=0, lateral origin=0 and an identity world transform. Each
+successor begins at the previous Section's end: its Section chainage begins at zero, its lateral origin
+accumulates the cut offset and its world transform composes the Link transform. Thus a repeated circuit Section
+has a new route interval without changing earlier route coordinates; a circuit adds a few occurrences per lap.
+Only two writers append: the fork decider selects a successor at a fork, and the Route's owner extends through
+unambiguous Links. Consumers receive the read-only Route (`occurrences`, `start`, `end`, `terminal`, `at`).
+
+A seam station belongs to the successor when the successor exists. Until a successor is appended, the tail
+occurrence answers for its end station as an endpoint. When a successor is appended, ownership of the seam station
+passes to it; existing stations and poses do not change.
 `routeSectionS` and `routeS` own the chainage conversion; readers select an occurrence by binary
 search, read the Section, subtract the lateral origin and map X/Z and heading into route world space.
 The preparation layer supplies plan, authoritative height, ground-row height polyline, material,
 Strip, sprites, visual labels and background readers. It indexes visual lists only when route
 occurrences change. All actors, physics, race, rendering and reference driving read these
 single-layer Readers directly and retain their state in route coordinates. The same reader set
-supplies the authoritative coordinates to physics and rendering.
+supplies the authoritative coordinates to physics and rendering. These readers read the resident window below,
+not the whole Route.
 
-Outside the retained Route, the Readers use the following values. Here `P`, `T` and `N` are
+Outside the resident window, the Readers use the following values. Here `P`, `T` and `N` are
 its endpoint position at route l=0, unit tangent and right normal, and `e` is that endpoint's s.
 
 | Reader                     | Outside value                                                                   |
@@ -103,16 +110,21 @@ its endpoint position at route l=0, unit tangent and right normal, and `e` is th
 | Strip and sprites          | No content; Strip pixels are transparent                                        |
 | Environment/background     | Nearest endpoint value                                                          |
 
-The tangent rays participate in the same previous-s ±50 m projection window as the retained
+The tangent rays participate in the same previous-s ±50 m projection window as the resident
 segments. In-domain feet take precedence; otherwise the candidate nearest the previous s wins. Neither a
 world-origin placeholder nor a previous-s/l=0 fallback is used. These outside values do not
 create a supporting surface. Contact and recovery rules are owned by
 [Vehicle physics](vehicle-physics.md#surface-and-contact).
 
-`createRouteRuntime` owns one Route and one reader set for the entire field. No actor creates a
-coordinate wrapper. Fork choice calls `route.append(link)` once; the ordinary refresh extends any
-unambiguous successors and updates the closed-carriageway list. Route change metrics count refreshes
-that observe a changed occurrence list and time extension, pruning and closure-list preparation.
+`createRouteRuntime` owns the Route's extension and one resident window, `RouteWindow`, with one reader set on
+it for the entire field. The window is a contiguous suffix of the Route with the same read shape (`occurrences`,
+`start`, `end`, `terminal`, and `at`, which is null outside the window). Only the runtime's `refresh` advances the
+window, dropping occurrences behind it, and extends the Route as the forward coverage requires. No actor creates a
+coordinate wrapper. The fork decider alone receives `selectSuccessor` and calls it once per fork; the ordinary
+refresh extends any unambiguous successors and updates the closed-carriageway list. Physical and rendering
+readers, the driver's live domain and residency decisions (observable rivals) read the window; race facts
+(cross sections, fork field) and reference tools read the Route. Route change metrics count refreshes that
+observe a changed window and time extension, window advance and closure-list preparation.
 
 The scene supplies loading coverage from camera dimensions, the fixed simulation period and the
 catalog's compiled contact stations. Forward coverage is
@@ -125,14 +137,14 @@ Contact reach is the ceiling of the largest `hypot(forwardOffset, freeReachDown)
 front/rear contact stations, so pitching or yawing a vehicle cannot enlarge that local reach.
 The step allowance retains the rear footprint until the next refresh. At an undecided fork the parent
 Section covers the lock plus the render/driver lookahead and step allowance.
-Pruning never changes existing stations or vehicle poses. A single-successor circuit repeats its
+Advancing the window never changes existing stations or vehicle poses. A single-successor circuit repeats its
 ordered cycle of Sections for successive laps. Derived projection intervals, height knots, Strip
 intervals, sprite lists and environment boundaries rebuild only when the occurrence list changes.
 
 `PlanCoordinateReader` is the planar query interface for both a compiled Section and its mapped
 occurrences. `CompiledSection.coordinates` and `VehicleWorld.coordinates` expose this same type:
 
-- `CourseRoute.start/end` are the single retained route extent. The world composition references that
+- `RouteWindow.start/end` are the single resident route extent. The world composition references that
   same object as `extent`; terrain and driver composition receive it explicitly. Route Readers publish
   no duplicate length or station range. A compiled Section retains its native domain.
 - `domain.lateralAt(s,out)` gives the
@@ -146,7 +158,7 @@ occurrences. `CompiledSection.coordinates` and `VehicleWorld.coordinates` expose
   lateral domain wins over a closer centerline foot outside the domain. No endpoint-clamped point
   counts as an inside-domain foot. If none qualifies, the candidate with the smallest absolute change from previous s is returned with
   `inDomain:false`, without lateral clamping or a global search. The two endpoint tangent rays complete the route ruler
-  when the window extends beyond retained occurrences.
+  when the window extends beyond resident occurrences.
 
 Outside the domain, both segment feet clamped to the searched interval and endpoint-ray feet
 participate in the previous-s comparison. Exact ties retain candidate order (segments first, then
@@ -202,13 +214,13 @@ by topology admission; broadening that admitted topology requires revisiting the
 ## Route cross sections
 
 `createRouteCrossSections` maps each occurrence's checkpoints, finish and fork lock to fixed route
-stations with `routeS`. Its ordered lists and closed lateral bounds rebuild only when the Route's
-occurrence list changes. Bounds come from the coordinate-domain Reader at the line station, with
+stations with `routeS`. It reads the Route, and its ordered lists and closed lateral bounds rebuild only
+when the Route appends an occurrence. Bounds come from the coordinate-domain Reader at the line station, with
 successor ownership at a seam. A race line retains the canonical landmark identity for time budgets
-and its finish-count lap number; line identity is independent of its index in a pruned list.
+and its finish-count lap number; line identity is independent of its index in the list.
 For a circuit, a forward cursor follows the admitted single-successor sequence from entry and increments
-the lap only after a Section's FINISH. It advances through skipped/pruned occurrences as needed and caches
-lap numbers weakly by retained occurrence identity. Chainage additions follow the same order as the Route;
+the lap only after a Section's FINISH. It advances through skipped occurrences as needed and caches
+lap numbers weakly by occurrence identity. Chainage additions follow the same order as the Route;
 no division by lap length or occurrence ordinal supplies lap numbers.
 
 The crossing calculation works entirely in `(s,l)`: forward arrival brackets the line's s, and
@@ -582,7 +594,7 @@ and never vehicle state or a model. The race copies them at the end of every adv
 once at creation and after a manual recovery. They are borrowed: the race overwrites the same objects on the next
 advance, so consumers read them before then. Display, the camera and audio read only these observations; the DEV
 vehicle HUD alone reads mechanics internals. `observe()` returns the player's observation and those of rivals on the
-resident Route, the one residency decision. View owns rival sprite selection and assembly. Course owns VehicleWorld, surface
+resident window, the one residency decision. View owns rival sprite selection and assembly. Course owns VehicleWorld, surface
 readers and the physical driving source. Race consumes that source only. The course world owns the combined pre-lock render/driver query-depth
 admission, and the course scene binds physical and appearance products.
 RGBA conversion, sprite images and LOD formats belong

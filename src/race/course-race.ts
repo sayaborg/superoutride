@@ -50,7 +50,8 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   const clock = createCheckpointClock(budgets?.initialMs ?? null);
   const startPhase = createStartPhase();
   const lines = createRouteCrossSections(runtime.route, course, configuration.lapCount);
-  const forks = createCourseForkField(runtime.route, lines);
+  // The fork field is the fork decider: the only holder of the Route's selection authority.
+  const forks = createCourseForkField(runtime.route, lines, runtime.selectSuccessor);
   const competitor = (id: string, actor: Actor, targetL: number) => ({
     id,
     actor,
@@ -145,12 +146,12 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       writeCompetitorObservation(competitorObservations[i]!, motion.c.actor.vehicle, motion.step.input);
     }
   };
-  // Only rivals on the resident Route are observable; this is the single residency decision.
+  // Only rivals in the resident window are observable; this is the single residency decision.
   const visible: CompetitorObservation[] = [];
   const observations = () => {
     visible.length = 0;
     for (let i = 0; i < rivals.length; i += 1)
-      if (runtime.route.at(rivals[i]!.actor.vehicle.course.s)) visible.push(rivalObservations[i]!);
+      if (runtime.window.at(rivals[i]!.actor.vehicle.course.s)) visible.push(rivalObservations[i]!);
   };
   const observed: { readonly player: CompetitorObservation; readonly rivals: readonly CompetitorObservation[] } = {
     player: playerObservation,
@@ -199,7 +200,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
           driver!,
           motion.input,
           motion.driverWorkspace,
-          runtime.route,
+          runtime.window,
         ),
         dt,
       );

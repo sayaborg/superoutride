@@ -47,13 +47,13 @@ for (const { id: stem } of content.manifest.files.filter((file) => file.kind ===
       const result = scene.render(target, vehicle, camera, sprites.off, []);
       assert.ok(result.stripGround.outputPixels > 0);
       const before = JSON.stringify(vehicle),
-        occurrences = scene.runtime.route.occurrences,
+        occurrences = scene.runtime.window.occurrences,
         view = scene.runtime.readers;
       for (const method of STRIP_RENDER_METHODS) {
         settings.setStripMethod(method);
         assert.equal(scene.render(target, vehicle, camera, sprites.off, []).stripGround.method, method);
         assert.equal(JSON.stringify(vehicle), before);
-        assert.equal(scene.runtime.route.occurrences, occurrences);
+        assert.equal(scene.runtime.window.occurrences, occurrences);
         assert.equal(scene.runtime.readers, view);
       }
       assert.throws(() => settings.setStripMethod('UNKNOWN'), RangeError);

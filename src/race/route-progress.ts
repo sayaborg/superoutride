@@ -36,7 +36,7 @@ export function createRouteProgress(lines: ReturnType<typeof createRouteCrossSec
       if (indexed !== lines.race) {
         indexed = lines.race;
         const next = lines.after(acceptedS);
-        // Refresh a retained line's domain after extension; pruning cannot forgive a missed line.
+        // Refresh a line's domain after extension; a missed line stays required.
         if (!state.next || next?.s === state.next.s) state.next = next;
       }
       if (recovered) return result;

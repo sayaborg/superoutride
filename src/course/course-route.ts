@@ -6,7 +6,7 @@ import {
 } from '../core/planar-transform.js';
 import type { CompiledLink, CompiledSection } from './compiler/course-graph.js';
 
-/** One selected traversal, shared by all vehicles. Stations never change when old entries are pruned. */
+/** One selected traversal, shared by all vehicles. Stations never change when the resident window advances. */
 export interface RouteOccurrence {
   readonly ordinal: number;
   readonly section: CompiledSection;
@@ -19,26 +19,56 @@ export interface RouteOccurrence {
   readonly sectionFromWorld: PlanarTransform;
 }
 
-export interface CourseRoute {
+/**
+ * Read-only occurrence sequence shared by the Route and its resident window. An exact seam station
+ * belongs to the successor when it exists; the tail answers for its end until a successor is appended.
+ */
+export interface RouteView {
   readonly occurrences: readonly RouteOccurrence[];
   readonly start: number;
   readonly end: number;
-  /** Null while the retained tail has successors, including an undecided fork. */
+  /** Null while the tail has successors, including an undecided fork. */
   readonly terminal: number | null;
-  /** An exact seam station belongs to the successor. Outside the retained range returns null. */
+  /** Outside [start, end] returns null. */
   at(s: number): RouteOccurrence | null;
-  /** Add a canonical successor selected by the shared fork decision. */
-  append(link: CompiledLink): void;
-  /** Continue through unambiguous links until the requested distance is present. */
-  extendThrough(s: number): void;
-  /** Keep the occurrence containing this station and every successor. */
-  discardBefore(s: number): void;
 }
+
+/** The selected, append-only Route from the entry; it starts at 0 and never discards an occurrence. */
+export type CourseRoute = RouteView;
+
+/** The Route's only writers: its owner extends it and hands `select` to the fork decider alone. */
+export interface CourseRouteBuilder {
+  readonly route: CourseRoute;
+  /** Append the successor the fork decider selected. */
+  select(link: CompiledLink): void;
+  /** Continue deterministically through unambiguous Links until the requested station is present. */
+  extendThrough(s: number): void;
+}
+
+/** A contiguous suffix of the Route that is resident for physical and rendering readers. */
+export type RouteWindow = RouteView;
 
 const identity = compilePlanarTransform({ x: 0, z: 0, heading: 0 }, { x: 0, z: 0, heading: 0 });
 
-/** Assemble a route from the admitted entry and canonical successor Links. */
-export function createCourseRoute(entry: CompiledSection): CourseRoute {
+function occurrenceAt(occurrences: readonly RouteOccurrence[], s: number): RouteOccurrence | null {
+  if (s < occurrences[0]!.start || s > occurrences.at(-1)!.end) return null;
+  let lo = 0,
+    hi = occurrences.length;
+  while (lo < hi) {
+    const mid = (lo + hi) >>> 1;
+    if (occurrences[mid]!.start <= s) lo = mid + 1;
+    else hi = mid;
+  }
+  return occurrences[lo - 1]!;
+}
+
+function terminalOf(occurrences: readonly RouteOccurrence[]): number | null {
+  const tail = occurrences.at(-1)!;
+  return tail.section.outgoing.length === 0 ? tail.end : null;
+}
+
+/** Assemble the Route from the admitted entry and canonical successor Links. */
+export function createCourseRoute(entry: CompiledSection): CourseRouteBuilder {
   let occurrences: readonly RouteOccurrence[] = Object.freeze([
     Object.freeze({
       ordinal: 0,
@@ -52,18 +82,7 @@ export function createCourseRoute(entry: CompiledSection): CourseRoute {
       sectionFromWorld: identity,
     }),
   ]);
-  const at = (s: number): RouteOccurrence | null => {
-    if (s < occurrences[0]!.start || s > occurrences.at(-1)!.end) return null;
-    let lo = 0,
-      hi = occurrences.length;
-    while (lo < hi) {
-      const mid = (lo + hi) >>> 1;
-      if (occurrences[mid]!.start <= s) lo = mid + 1;
-      else hi = mid;
-    }
-    return occurrences[lo - 1]!;
-  };
-  const append = (link: CompiledLink): void => {
+  const select = (link: CompiledLink): void => {
     const previous = occurrences.at(-1)!;
     const start = previous.end;
     const end = start + link.to.section.coordinates.domain.end;
@@ -86,34 +105,70 @@ export function createCourseRoute(entry: CompiledSection): CourseRoute {
       }),
     ]);
   };
-  return Object.freeze({
+  const route: CourseRoute = Object.freeze({
     get occurrences() {
       return occurrences;
     },
-    get start() {
-      return occurrences[0]!.start;
-    },
+    start: 0,
     get end() {
       return occurrences.at(-1)!.end;
     },
     get terminal() {
-      const tail = occurrences.at(-1)!;
-      return tail.section.outgoing.length === 0 ? tail.end : null;
+      return terminalOf(occurrences);
     },
-    at,
-    append,
+    at: (s: number) => occurrenceAt(occurrences, s),
+  });
+  return Object.freeze({
+    route,
+    select,
     extendThrough(s: number) {
       while (occurrences.at(-1)!.end < s) {
         const outgoing = occurrences.at(-1)!.section.outgoing;
         if (outgoing.length !== 1) break;
-        append(outgoing[0]!);
+        select(outgoing[0]!);
       }
     },
-    discardBefore(s: number) {
-      const current = at(s);
-      if (!current) return;
-      const index = occurrences.indexOf(current);
-      if (index > 0) occurrences = Object.freeze(occurrences.slice(index));
+  });
+}
+
+/**
+ * The resident window over a Route: always its suffix from the first retained occurrence. Only the
+ * owner advances it; its occurrence list keeps its identity until the retained sequence changes.
+ */
+export function createRouteWindow(route: CourseRoute) {
+  let first = 0;
+  let source = route.occurrences;
+  let occurrences = source;
+  const current = () => {
+    if (source !== route.occurrences || occurrences[0] !== source[first]) {
+      source = route.occurrences;
+      occurrences = first === 0 ? source : Object.freeze(source.slice(first));
+    }
+    return occurrences;
+  };
+  const window: RouteWindow = Object.freeze({
+    get occurrences() {
+      return current();
+    },
+    get start() {
+      return current()[0]!.start;
+    },
+    get end() {
+      return current().at(-1)!.end;
+    },
+    get terminal() {
+      return terminalOf(current());
+    },
+    at: (s: number) => occurrenceAt(current(), s),
+  });
+  return Object.freeze({
+    window,
+    /** Keep the resident occurrence containing this station and every successor. */
+    retainFrom(s: number) {
+      const occurrence = window.at(s);
+      if (!occurrence) return;
+      const index = route.occurrences.indexOf(occurrence);
+      if (index > first) first = index;
     },
   });
 }

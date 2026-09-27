@@ -526,12 +526,11 @@ reverse travel stays on the selected predecessor in the same route coordinates.
 
 ## Route cross sections and progress
 
-`createRouteCrossSections` produces ordered race and fork-lock lines from the retained Route. Each
+`createRouteCrossSections` produces ordered race and fork-lock lines from the append-only Route. Each
 occurrence places its Section checkpoints and FINISH at route s; a circuit repeats those lines for
 each lap. Lap numbers count FINISH lines along the Route: every line after the (k-1)-th FINISH
 through and including the k-th FINISH belongs to lap k. Section occurrence ordinals do not determine
-laps. Pruning and reverse travel do not renumber lines. The lists change only on route extension or
-pruning. The configured final lap's FINISH,
+laps. Reverse travel does not renumber lines. The lists change only when the Route appends an occurrence. The configured final lap's FINISH,
 or the terminal Section's FINISH on a non-circuit, completes the race.
 
 `routeCrossingFraction` accepts a forward arrival when `previous.s < line.s <= current.s` and the
@@ -542,7 +541,7 @@ support do not limit a race line's width.
 
 `createRouteProgress` is the single implementation for all course kinds. Each actor retains its next
 required line, accepted finish count, status and route s. It consumes consecutive lines in order,
-including several crossings in one step. A missed line remains required even after route pruning;
+including several crossings in one step. A missed line remains required even after the resident window has advanced past it;
 recovery does not skip it. Accepted lines cannot be earned twice by backing up and driving forward.
 At the terminal FINISH, the actor's distance and exact finish time are fixed. Before finishing,
 distance follows route s, including backward movement, without checkpoint-based clipping.
@@ -622,7 +621,7 @@ and lane; it reads a contiguous 5 m lattice up to 480 m ahead and publishes cano
 throttle and brake. [Calibration](calibration.md) lists utilization values.
 
 The driver always treats the end of a Section with no outgoing Link as a zero-speed planning point.
-The Route exposes that terminal station only when its retained tail is such a Section; loaded tails
+The Route exposes that terminal station only when its tail is such a Section; loaded tails
 with outgoing Links, including undecided forks and circuit continuations, do not request a stop.
 The speed plan is bounded by `sqrt(2*a*d)`, with d reduced by the driver's response distance and a
 2 m terminal clearance for the front footprint. The driver holds the brake when its target speed is

@@ -21,7 +21,7 @@ const load = async (stem) =>
 
 test('outside projection follows previous chainage across clamped and tangent-ray candidates', async () => {
   const course = await load('ribbon-coast');
-  const route = createCourseRoute(course.entry);
+  const { route } = createCourseRoute(course.entry);
   const readers = createCourseRouteReaders(route);
   const workspace = createPlanProjectionWorkspace();
   const world = createPlanCoordinateSample();
@@ -76,11 +76,11 @@ test('Session rejects short terminal runout, including solo play; forks and loop
     () => resolveCourseSession(short, configuration, vehicle, envelope),
     /FINISH .*TESTAROSSA requires .* m to stop/,
   );
-  const fork = createCourseRoute((await load('ribbon-fork')).entry);
+  const fork = createCourseRoute((await load('ribbon-fork')).entry).route;
   assert.equal(fork.terminal, null);
   const ringCourse = await load('ribbon-ring');
   const ring = createCourseRoute(ringCourse.entry);
-  ring.extendThrough(ring.end + 1);
-  assert.equal(ring.terminal, null);
+  ring.extendThrough(ring.route.end + 1);
+  assert.equal(ring.route.terminal, null);
   assert.doesNotThrow(() => resolveCourseSession(ringCourse, configuration, vehicle, envelope));
 });

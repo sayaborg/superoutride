@@ -167,7 +167,7 @@ first three conditions in order; race composition and the player request the las
 | `manual`              | The player's request                                                                                                                       |
 
 The coordinate-domain timer resets when the center returns inside; the same condition covers lateral
-exits and either end of the retained Route. The 0.72 s lets a short excursion return and an
+exits and either end of the resident window. The 0.72 s lets a short excursion return and an
 unsupported vehicle visibly fall (about 2.54 m from rest) before reconstruction. Outside the domain,
 recovery does not query a fictitious surface normal or penetration plane. Inside it, the surface is
 the heightfield at the center's route coordinate, material-free ground included.

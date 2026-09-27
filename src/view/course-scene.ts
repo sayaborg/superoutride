@@ -30,7 +30,7 @@ export function createCourseScene(
   displaySettings: DisplaySettings = createDisplaySettings(),
 ) {
   const runtime = createCourseWorld(section, gates, vehicles, COURSE_LOADING_WINDOW);
-  const rendering = createCourseRouteVisualReaders(runtime.route, ground);
+  const rendering = createCourseRouteVisualReaders(runtime.window, ground);
   rendering.read();
   const renderWorkspace = createRenderWorkspace();
   const worldSprites: CourseSprite[] = [];
@@ -66,7 +66,7 @@ export function createCourseScene(
           dMin: RENDER_NEAR_DEPTH_METERS,
           dMax: RENDER_FAR_DEPTH_METERS,
           height: readers.renderHeight,
-          extent: runtime.route,
+          extent: runtime.window,
           environment: renderData.environment,
         };
         lastRenderData = renderData;

@@ -9,14 +9,14 @@ import {
   type PlanProjectionWorkspace,
 } from './geometry/plan-coordinate.js';
 import type { CompiledSection } from './compiler/course-graph.js';
-import { routeS, routeSectionS, type CourseRoute, type RouteOccurrence } from './course-route.js';
+import { routeS, routeSectionS, type RouteOccurrence, type RouteWindow } from './course-route.js';
 import type { SurfaceMaterial } from './surface-material.js';
 
 /** An inverted closed interval represents the empty coordinate domain. */
 const EMPTY_ROUTE_DOMAIN = Object.freeze({ left: Infinity, right: -Infinity });
 
 /** Route readers share Section lookup and conversion; their derived indexes change only with the route. */
-export function createCourseRouteReaders(route: CourseRoute) {
+export function createCourseRouteReaders(route: RouteWindow) {
   const native = { x: 0, z: 0, s: 0, l: 0, heading: 0 };
   const bounds = { left: 0, right: 0 };
   const endpoint = { x: 0, z: 0, s: 0, l: 0, heading: 0 };

@@ -9,7 +9,11 @@ function center(road: CompiledCarriageway, s: number) {
 }
 
 /** One field authority observes every eligible motion before publishing any irreversible choice. */
-export function createCourseForkField(route: CourseRoute, lines: ReturnType<typeof createRouteCrossSections>) {
+export function createCourseForkField(
+  route: CourseRoute,
+  lines: ReturnType<typeof createRouteCrossSections>,
+  select: (link: CompiledLink) => void,
+) {
   const locks = new Map<RouteOccurrence, CompiledLink>();
   return Object.freeze({
     choice: (fork: CompiledFork) => {
@@ -43,7 +47,7 @@ export function createCourseForkField(route: CourseRoute, lines: ReturnType<type
           selected = exit.link;
         }
         if (first) {
-          route.append(selected!);
+          select(selected!);
           locks.set(occurrence, selected!);
         }
       }
