@@ -60,7 +60,7 @@ export function createBrowserDrivingShell(sessionVehicle: SessionVehicle): Brows
   const imageData = ctx.createImageData(LOGICAL_WIDTH, LOGICAL_HEIGHT);
   const framebuffer = new SoftwareSurface(LOGICAL_WIDTH, LOGICAL_HEIGHT, new Uint32Array(imageData.data.buffer));
   const inputManager = new InputManager();
-  // DEV tuning edits the driving definition; the race rebuilds the player's model from it for the next step.
+  // The tuned driving definition persists across rebuilt Sessions for the next tuning step and export.
   let driving = sessionVehicle.drivingDefinition;
   const sessionVehicleDefinition = sessionVehicle.vehicleDefinition;
   const sessionVehicleId = sessionVehicleDefinition.compiledVehicle.id;
@@ -108,7 +108,7 @@ export function createBrowserDrivingShell(sessionVehicle: SessionVehicle): Brows
           const admitted = compileDrivingDocument(definition, 'DEV driving tuning', null);
           if (!admitted.ok) return false;
           driving = admitted.value;
-          options.tunePlayerDriving(driving);
+          options.rebuildSession(driving);
           return true;
         },
       };

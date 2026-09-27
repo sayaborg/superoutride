@@ -46,7 +46,8 @@ PX and PY are dimensionless slips. The defaults give `kX = kY = 31.5` under the
 on the DEV HUD. The [DEV tuning registry](../src/shell/driving-tuning.ts) owns only these choices and
 grid checks; startup checks the raw driving definition against the grids. A DEV adjustment steps the
 player's tuned driving definition, admits it with the driving-document compiler (a rejected candidate
-leaves the definition unchanged) and rebuilds the player's vehicle model, which the next step uses.
+leaves the definition unchanged) and rebuilds the Session around a Session vehicle driving it
+([Browser](browser.md#dev-controls)).
 
 Tuned values reach the product only through the definition files. DEV EXPORT downloads the tuned
 driving source document as `default.json` and the selected vehicle's source document as

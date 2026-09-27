@@ -564,7 +564,10 @@ A Session binds immutable course, vehicle, roster, grid, lap target, start speed
 The start speed is a resolved Session setting: every competitor spawns at its grid slot moving at it along the
 road tangent. It is finite and may be negative; product Sessions and reference runs use 0. The race builds every
 competitor's mechanics from the Session vehicle; the player's composition supplies input only.
-Before activation, every FINISH in a Section with no outgoing Link must have at least
+The envelope is optional. A Session without one—a DEV-tuned vehicle, whose driving definition has no delivered
+identity—must have no rivals and no time limit; Session resolution rejects any other combination with a RangeError,
+and the race builds a rival driver only from an envelope.
+With an envelope, before activation, every FINISH in a Section with no outgoing Link must have at least
 `maximumSpeed² / (2*a)` metres remaining to that Section's end. Here `a` is the minimum measured
 envelope braking multiplied by the Session driver utilization (0.75). All current competitors share
 the admitted configuration and envelope, so this one requirement covers the complete field, including
@@ -593,7 +596,8 @@ The vehicle digest (`sessionVehicleSha256`) is SHA-256 of the JSON
 driving and surface-material documents. Everything a Session drives—compiled mechanics, driving
 settings and material physics—derives from those documents; the vehicle listing is not part of it. Any
 change to their delivered bytes changes `vehicleSha256`; a listing change does not. A DEV-tuned driving
-definition is not delivered and has no identity. This digest is a
+definition is not delivered and has no identity, so a Session rebuilt by DEV tuning uses no envelope or time
+budgets ([Browser](browser.md#dev-controls)). This digest is a
 reference-cache key component and is independently recomputed by browser envelope and budget admission;
 both reject products carrying an old digest.
 The reference model hash tracks compiler/mechanics code; authored JSON values belong to the per-vehicle

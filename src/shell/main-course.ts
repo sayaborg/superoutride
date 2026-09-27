@@ -22,6 +22,9 @@ import { readVehicleEnvelope } from '../race/vehicle-envelope.js';
 import { loadSurfaceMaterials } from '../content/surface-material-catalog.js';
 import { requireLoaded } from '../content/content-load-error.js';
 import type { AdmissionResult } from '../core/admission.js';
+import type { SessionConfiguration, SessionVehicle } from '../race/session-configuration.js';
+import type { VehicleEnvelope } from '../race/envelope-driver.js';
+import type { CourseTimeBudgets } from '../race/course-session.js';
 import { validateTireSoundMaterialIds } from '../audio/tire-surface-acoustics.js';
 
 const canvas = mustGet<HTMLCanvasElement>('game');
@@ -65,13 +68,27 @@ try {
           readCourseTimeBudgets(course, vehicle, value, document),
         )
       : null;
-  const session = resolveCourseSession(course, settings, vehicle, rivalEnvelope, budgets);
   const sprites = createVehicleSprites(entry);
   const displaySettings = createDisplaySettings();
-  const scene = createCourseScene(course.entry, ground, course.gates, vehicles, displaySettings);
-  const shell = createBrowserDrivingShell(vehicle);
-  const race = createCourseRace({ session, runtime: scene.runtime });
   const raceSprites = createRaceSprites(sprites);
+  /**
+   * The one assembly of a Session, its scene (with a new Route runtime) and its race. Startup and every DEV
+   * tuning rebuild pass through it; the shell and its devices persist.
+   */
+  const build = (
+    sessionVehicle: SessionVehicle,
+    configuration: SessionConfiguration,
+    envelope: VehicleEnvelope | null,
+    sessionBudgets: CourseTimeBudgets | null,
+    tuned: boolean,
+  ) => {
+    const session = resolveCourseSession(course, configuration, sessionVehicle, envelope, sessionBudgets);
+    const scene = createCourseScene(course.entry, ground, course.gates, vehicles, displaySettings);
+    const race = createCourseRace({ session, runtime: scene.runtime });
+    return { session, scene, race, tuned };
+  };
+  let active = build(vehicle, settings, rivalEnvelope, budgets, false);
+  const shell = createBrowserDrivingShell(vehicle);
   const raceStatus = document.createElement('output');
   raceStatus.setAttribute('role', 'status');
   raceStatus.setAttribute('aria-label', 'Session status');
@@ -79,23 +96,55 @@ try {
   raceStatus.className = 'course-status';
   canvas.insertAdjacentElement('afterend', raceStatus);
   const lifecycle = shell.mountControls({
-    world: () => scene.world,
-    canRecover: () => race.clock.status === 'RUNNING' && !manualPause && !document.hidden,
-    observation: () => race.observe().player,
-    recover: () => race.recoverPlayer(),
-    tunePlayerDriving: (tuned) => race.tunePlayerDriving(tuned),
+    world: () => active.scene.world,
+    canRecover: () => active.race.clock.status === 'RUNNING' && !manualPause && !document.hidden,
+    observation: () => active.race.observe().player,
+    recover: () => active.race.recoverPlayer(),
+    // A tuned driving definition has no delivered identity, so the rebuilt Session has no envelope,
+    // time budgets, rivals or time limit. It starts from the grid at once; reloading the page restores the product Session.
+    rebuildSession: (driving) => {
+      active = build(
+        createSessionVehicle(entry, driving, materials),
+        {
+          mode: 'CUSTOM',
+          rivalCount: 0,
+          lapCount: active.session.configuration.lapCount,
+          timeLimit: false,
+          initialSpeed: 0,
+        },
+        null,
+        null,
+        true,
+      );
+      manualPause = false;
+      lifecycle.update(true);
+      controls.restart();
+      shell.start(tick, render);
+    },
   });
-  const performanceHud = createCoursePerformanceHud(canvas, scene.metrics, scene.groundMetrics);
+  const performanceHud = createCoursePerformanceHud(
+    canvas,
+    {
+      get routeChanges() {
+        return active.scene.metrics.routeChanges;
+      },
+      get routeChangeMaxMilliseconds() {
+        return active.scene.metrics.routeChangeMaxMilliseconds;
+      },
+    },
+    active.scene.groundMetrics,
+  );
   let input: DrivingInput = { steering: 0, throttle: false, brake: false };
   let manualPause = false;
   const tick = (dt: number) => {
     const started = performance.now();
     input = shell.inputManager.sample();
-    const step = race.advance(input, dt);
+    const step = active.race.advance(input, dt);
     lifecycle.update(step.recovered);
     performanceHud.step(performance.now() - started);
   };
   const render = () => {
+    const { scene, race, tuned } = active;
     const started = performance.now(),
       observations = race.observe();
     const result = scene.render(
@@ -106,7 +155,7 @@ try {
       raceSprites(observations.rivals, lifecycle.camera),
     );
     shell.present(mode, input, lifecycle.camera, result.playerScreenY, observations, race.playerDiagnostics);
-    raceStatus.textContent = manualPause ? 'PAUSED' : race.label();
+    raceStatus.textContent = manualPause ? 'PAUSED' : `${tuned ? 'TUNED · ' : ''}${race.label()}`;
     performanceHud.frame(started, result.stripGround);
     if (race.clock.status === 'GOAL' || race.clock.status === 'GAME_OVER') {
       controls.complete();
@@ -128,7 +177,7 @@ try {
       start: () => {
         shell.inputManager.setSuspended(true);
         shell.inputManager.setSuspended(false);
-        race.start();
+        active.race.start();
       },
       pause: (paused) => {
         manualPause = paused;
@@ -142,7 +191,7 @@ try {
   );
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) suspend();
-    else if (!manualPause && (race.clock.status === 'RUNNING' || race.clock.status === 'READY'))
+    else if (!manualPause && (active.race.clock.status === 'RUNNING' || active.race.clock.status === 'READY'))
       shell.start(tick, render);
   });
   mountStripControls(displaySettings.stripMethod, (value) => {

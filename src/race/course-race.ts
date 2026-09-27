@@ -24,8 +24,6 @@ import {
   type CompetitorObservation,
 } from './competitor-observation.js';
 import { SIM_DT } from './fixed-step.js';
-import { createSessionVehicle } from './session-vehicle.js';
-import type { CompiledDrivingDefinition } from '../vehicle/compiled-driving-definition.js';
 import type { createRouteRuntime } from './route-runtime.js';
 
 type RouteRuntime = ReturnType<typeof createRouteRuntime>;
@@ -45,7 +43,10 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   const { initialSpeed } = configuration;
   const { runtime } = options;
   const { vehicle: sessionVehicle, envelope } = options.session;
-  const driver = compileEnvelopeDriver(envelope, options.session.rivalUtilization, envelope.maximumSpeed);
+  // Rival driving exists only with an envelope; Session resolution admits no rivals without one.
+  const driver = envelope
+    ? compileEnvelopeDriver(envelope, options.session.rivalUtilization, envelope.maximumSpeed)
+    : null;
   const clock = createCheckpointClock(budgets?.initialMs ?? null);
   const startPhase = createStartPhase();
   const lines = createRouteCrossSections(runtime.route, course, configuration.lapCount);
@@ -64,20 +65,17 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   });
   // Every competitor drives one model of the Session vehicle, spawned at its grid slot with the Session's start speed.
   const model = createVehicleModel(sessionVehicle, SIM_DT);
-  const spawn = (slot: (typeof grid)[number], actorModel: VehicleModel) => {
-    const vehicle = createVehicle(actorModel, runtime.readers, { s: slot.at.s, l: slot.l, initialSpeed });
-    return { vehicle, model: actorModel, recovery: createRecoveryState(vehicle) };
+  const spawn = (slot: (typeof grid)[number]): Actor => {
+    const vehicle = createVehicle(model, runtime.readers, { s: slot.at.s, l: slot.l, initialSpeed });
+    return { vehicle, model, recovery: createRecoveryState(vehicle) };
   };
-  // Only the interim DEV tuning path replaces the player's model (removed in 10-7b).
-  const playerActor: { readonly vehicle: VehicleState; model: VehicleModel; readonly recovery: RecoveryState } = spawn(
-    grid[0]!,
-    model,
-  );
+  const playerActor = spawn(grid[0]!);
   const player = competitor('PLAYER', playerActor, grid[0]!.l);
   const rivals = createRivalRoster(configuration).map(({ actorId, rivalIndex }) => {
     const slot = grid[rivalIndex + 1]!;
-    return competitor(actorId, spawn(slot, model), slot.l);
+    return competitor(actorId, spawn(slot), slot.l);
   });
+  if (!driver && rivals.length > 0) throw new Error('rivals require an envelope driver');
   const resync = (c: typeof player) => c.observer.resync(c.actor.vehicle.course);
   const lane = (c: typeof player, s: number) => forks.targetL(s, c.targetL);
   const competitors = [player, ...rivals];
@@ -198,7 +196,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
         sampleEnvelopeDrivingInput(
           runtime.readers.coordinates,
           motion.c.actor.vehicle,
-          driver,
+          driver!,
           motion.input,
           motion.driverWorkspace,
           runtime.route,
@@ -271,13 +269,6 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       legalRecovery(player);
       resync(player);
       publish();
-    },
-    /** Interim DEV tuning path until 10-7b: the player alone drives a model of the tuned driving definition. */
-    tunePlayerDriving(driving: CompiledDrivingDefinition) {
-      playerActor.model = createVehicleModel(
-        createSessionVehicle(sessionVehicle.vehicleDefinition, driving, sessionVehicle.surfaceMaterials),
-        SIM_DT,
-      );
     },
     /** DEV vehicle HUD only: the player's live mechanics for diagnosis. No other consumer may read it. */
     get playerDiagnostics(): { readonly vehicle: VehicleState; readonly model: VehicleModel } {

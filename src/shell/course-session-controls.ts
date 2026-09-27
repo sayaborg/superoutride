@@ -175,6 +175,13 @@ export function mountCourseSessionControls(
   canvas.insertAdjacentElement('afterend', toolbar);
   return Object.freeze({
     begin,
+    /** A rebuilt Session starts at once, running and unpaused, whatever state the previous one ended in. */
+    restart() {
+      paused = false;
+      pause.textContent = 'PAUSE';
+      pause.hidden = false;
+      begin();
+    },
     complete() {
       pause.hidden = true;
     },

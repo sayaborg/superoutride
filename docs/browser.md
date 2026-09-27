@@ -102,7 +102,12 @@ the player's input only; it reads the Session vehicle for sound, HUD and export,
 Driving tuning is grouped as STEERING, PEDALS, TIRES F/R, POWERTRAIN and ASSISTS. Each value uses a
 minus/value/plus control in the driving definition's units, wrapping at range endpoints; ASSISTS
 toggles wheel slip protection. The DEV HUD shows one line per group (STEER with the derived automatic
-budget A, PEDAL, TIRE, ENGINE with ASSIST), read from the tuned definition. EXPORT saves the tuned
+budget A, PEDAL, TIRE, ENGINE with ASSIST), read from the tuned definition. An admitted adjustment rebuilds the
+Session through the same assembly as startup: a new Session vehicle with the same vehicle definition and materials
+drives the tuned definition, in a CUSTOM Session with no rivals, the current lap count, no time limit, start speed 0
+and no envelope or time budgets, on a new Route runtime from the grid. It enters READY → GO at once, and the Session
+status reads `TUNED`. The shell, its input, audio, camera device and DEV controls persist, and the shell keeps the
+tuned definition for further adjustments and export. Reloading the page restores the product Session. EXPORT saves the tuned
 driving definition (`default.json`) and the Session vehicle's definition (`<vehicle id>.json`) as browser downloads in the saved layout;
 [Calibration](calibration.md#vehicle-settings) describes adopting them as content. The selectable
 body-yaw and movement-yaw cameras use the same projection.

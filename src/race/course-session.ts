@@ -9,13 +9,14 @@ export interface CourseTimeBudgets {
 
 /**
  * Resolve one playable configuration before actors/ticks exist. Graph and catalog objects remain shared
- * references. A course without CLASSIC settings is untimed: it has no CLASSIC Session and no clock.
+ * references. A course without CLASSIC settings is untimed: it has no CLASSIC Session and no clock. A
+ * Session without an envelope (a DEV-tuned vehicle) has no rivals and no time limit.
  */
 export function resolveCourseSession(
   course: CompiledCourse,
   requested: SessionConfiguration,
   vehicle: SessionVehicle,
-  envelope: VehicleEnvelope,
+  envelope: VehicleEnvelope | null,
   budgets: CourseTimeBudgets | null = null,
 ) {
   const preset = course.rules.classic;
@@ -39,17 +40,21 @@ export function resolveCourseSession(
     throw new RangeError('The authored grid cannot hold this field');
   if (configuration.timeLimit && !budgets)
     throw new RangeError('A time limit requires current, complete reference runs');
+  if (!envelope && (configuration.rivalCount > 0 || configuration.timeLimit))
+    throw new RangeError('A Session without an envelope has no rivals and no time limit');
   const rivalUtilization = 0.75;
-  // The entire current roster shares this admitted vehicle and envelope, including a solo player.
-  const driver = compileEnvelopeDriver(envelope, rivalUtilization, envelope.maximumSpeed);
-  const stoppingDistance = envelope.maximumSpeed ** 2 / (2 * driver.braking);
-  for (const { finish } of course.gates.intervals) {
-    if (!finish || finish.section.outgoing.length !== 0) continue;
-    const available = finish.section.coordinates.domain.end - finish.at.s;
-    if (available < stoppingDistance)
-      throw new RangeError(
-        `FINISH ${finish.id}: ${available.toFixed(2)} m of runout; ${vehicle.vehicleDefinition.compiledVehicle.id} requires ${stoppingDistance.toFixed(2)} m to stop from maximum speed`,
-      );
+  if (envelope) {
+    // The entire current roster shares this admitted vehicle and envelope, including a solo player.
+    const driver = compileEnvelopeDriver(envelope, rivalUtilization, envelope.maximumSpeed);
+    const stoppingDistance = envelope.maximumSpeed ** 2 / (2 * driver.braking);
+    for (const { finish } of course.gates.intervals) {
+      if (!finish || finish.section.outgoing.length !== 0) continue;
+      const available = finish.section.coordinates.domain.end - finish.at.s;
+      if (available < stoppingDistance)
+        throw new RangeError(
+          `FINISH ${finish.id}: ${available.toFixed(2)} m of runout; ${vehicle.vehicleDefinition.compiledVehicle.id} requires ${stoppingDistance.toFixed(2)} m to stop from maximum speed`,
+        );
+    }
   }
   return Object.freeze({
     course,

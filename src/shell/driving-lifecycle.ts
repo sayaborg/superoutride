@@ -11,8 +11,8 @@ export interface DrivingLifecycleOptions {
   readonly observation: () => VehicleCameraReadState;
   /** The race's manual recovery of the player; it also rewrites the player's observation. */
   readonly recover: () => void;
-  /** Interim DEV tuning path until 10-7b: the race gives the player a model of the tuned definition. */
-  readonly tunePlayerDriving: (driving: CompiledDrivingDefinition) => void;
+  /** DEV tuning: rebuild the Session around a vehicle driving the admitted tuned definition. */
+  readonly rebuildSession: (driving: CompiledDrivingDefinition) => void;
 }
 
 /** Browser camera following; the race owns mechanics, recovery and progress. */
