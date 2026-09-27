@@ -46,7 +46,8 @@ function createEnvelopeRun(entry: SessionVehicle, initialSpeed: number) {
 /** The flat reference surface, production control/protection, ordinary inputs; no imposed velocity or force during measurement. */
 /** The envelope measurement procedure's identity: its version, fixed step and reference surface. */
 export const ENVELOPE_MEASUREMENT = Object.freeze({
-  version: 1,
+  // Version 2: measured on the unit reference surface, ENVELOPE_REFERENCE_SURFACE.
+  version: 2,
   dt: SIM_DT,
   surface: ENVELOPE_REFERENCE_SURFACE.id,
 });

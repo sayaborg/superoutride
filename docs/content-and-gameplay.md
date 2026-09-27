@@ -668,7 +668,10 @@ digest, so editing one vehicle does not invalidate unchanged vehicles' cache key
 identity, `REFERENCE_DRIVER_SHA256`: SHA-256 of its record's JSON with sorted keys. Reference-run cache keys,
 saved reports (`superoutride.course-reference` and `superoutride.reference-run` version 2 record it as
 `driverSha256`) and report admission all use it. Envelope measurement does not use the reference driver: its cache
-key names the measurement procedure (`ENVELOPE_MEASUREMENT`: version, fixed step and reference surface). For a budget state, reference duration is the maximum upcoming interval among
+key names the measurement procedure (`ENVELOPE_MEASUREMENT`: version, fixed step and reference surface). Measurement
+version 2 measures on the unit reference surface ([Calibration](calibration.md#vehicle-settings));
+the version advances whenever the procedure changes. The delivered envelope carries only its rows and maximum speed;
+the measurement record stays in the reference cache and the `envelope` command's output. For a budget state, reference duration is the maximum upcoming interval among
 continuous histories sharing that state and its legal next checkpoint/finish alternatives.
 
 ```text
