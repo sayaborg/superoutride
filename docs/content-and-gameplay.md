@@ -440,9 +440,8 @@ Draft saving is independent of image-byte availability.
 content build, authoring tools) supplies its document path once, and receives a detached, deeply frozen
 `CourseDocument`. `compileCourseDocument` receives that admitted value and does not admit it again.
 Build image compilation derives the delivered document from it by replacing asset digests with its
-own products. Document operations return `{ok:true,value}` or `{ok:false,diagnostics}`. Input diagnostics have the
-shared [admission](architecture.md#content-admission-toolkit) shape: `kind:"input"`, `code`, `document`,
-JSON Pointer `path` and causal `message`. Clients use code/path.
+own products. Results and input diagnostics follow the shared
+[admission contract](architecture.md#content-admission-toolkit); clients use code and path.
 The `plan_coordinate_overlap` variant additionally requires
 `overlap: {section, intervals: [{sStart, sEnd}, ...]}`; ordinary diagnostics have no overlap fields.
 `plan_coordinate_inversion` identifies the Section's PIs and the affected station in metres, never
@@ -506,7 +505,7 @@ Invalid controls produce `invalid_fork`.
 
 Exit Carriageways are ordered by their actual lock-line edges. Median centers divide supported
 space into exit intervals; outer supported shoulders belong to the outer exits. The shared half-open
-[lateral rule](architecture.md#boundary-geometry-and-local-windows) assigns exact ties to the right.
+[lateral rule](architecture.md#boundary-geometry-and-point-ownership) assigns exact ties to the right.
 A crossing outside the coordinate domain or outside every fork interval selects no route.
 
 The player and rivals are eligible. Lock lines use the same route-s crossing function as race lines.

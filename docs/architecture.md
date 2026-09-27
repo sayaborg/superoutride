@@ -116,19 +116,18 @@ that observe a changed occurrence list and time extension, pruning and closure-l
 
 The scene supplies loading coverage from camera dimensions, the fixed simulation period and the
 catalog's compiled contact stations. Forward coverage is
-`max(dCam + far, driver lookahead, projection window) + maximumStepMeters`: currently
-`max(dCam + 200, 480, 50) + 240 * (1/60) = 484 m`. The 240 m/s (864 km/h) coverage speed is a
+`max(dCam + far, driver lookahead, projection window) + maximumStepMeters`, with
+`maximumStepMeters = 240 m/s * fixed step`. The 240 m/s (864 km/h) coverage speed is a
 conservative loading budget above the production fleet's operating speeds; it does not clamp physics.
-Rear coverage is `max(dCam + near, recovery backtrack + projection window + contactReachMeters)
-
-- maximumStepMeters`: currently `max(dCam + 2.5, 8 + 50 + 2) + 4 = 64 m`.
+Rear coverage is
+`max(dCam + near, recovery backtrack + projection window + contactReachMeters) + maximumStepMeters`.
 Contact reach is the ceiling of the largest `hypot(forwardOffset, freeReachDown)` across the catalog's
-  front/rear contact stations, so pitching or yawing a vehicle cannot enlarge that local reach.
-  The step allowance retains the rear footprint until the next refresh. At an undecided fork the parent
-  Section covers the lock plus the render/driver lookahead and step allowance.
-  Pruning never changes existing stations or vehicle poses. A single-successor circuit repeats its
-  ordered cycle of Sections for successive laps. Derived projection intervals, height knots, Strip
-  intervals, sprite lists and environment boundaries rebuild only when the occurrence list changes.
+front/rear contact stations, so pitching or yawing a vehicle cannot enlarge that local reach.
+The step allowance retains the rear footprint until the next refresh. At an undecided fork the parent
+Section covers the lock plus the render/driver lookahead and step allowance.
+Pruning never changes existing stations or vehicle poses. A single-successor circuit repeats its
+ordered cycle of Sections for successive laps. Derived projection intervals, height knots, Strip
+intervals, sprite lists and environment boundaries rebuild only when the occurrence list changes.
 
 `PlanCoordinateReader` is the planar query interface for both a compiled Section and its mapped
 occurrences. `CompiledSection.coordinates` and `VehicleWorld.coordinates` expose this same type:
@@ -327,8 +326,7 @@ For a parabola with grade change `deltaG`, length `L` and polyline interval `h`,
 maximum height difference is `abs(deltaG)*h*h/(8*L)`, attained at each interval midpoint.
 Straight intervals have zero error. Thus the 2 m interval bound gives `abs(deltaG)/(2*L)` metres;
 there is no universal millimetre bound without bounds on grade change and curve length.
-Across the current saved courses the maximum is **0.0004495981255 m (0.449598 mm)** in RIBBON COAST;
-RIBBON FORK and RIBBON RING have zero error. Other objects retain authoritative height and are
+Other objects retain authoritative height and are
 not shifted to the ground-row approximation.
 
 ```text
@@ -581,12 +579,12 @@ Environment timelines are course data.
 
 ## Definition delivery
 
-The content manifest includes `vehicle` and `driving` entries alongside course, image, envelope and
-budget entries. The build layout authority writes `vehicles/<id>.json`, `vehicle-listings/<id>.json` and `driving/default.json`.
+Vehicle mechanics, vehicle listing and driving documents are manifest entries like every delivered file;
+[Development](development.md#build-outputs) owns the manifest kinds and output layout.
 Vehicle and driving document formats and their compilation belong to the vehicle layer; the content layer
 assembles their catalog, and the generic manifest only resolves and verifies their bytes. Definition compilation resolves named sprite sets/default colors from the SHA-verified image library and sound IDs through the lower audio layer's
-TypeScript sound products and returns deeply immutable records. [Vehicle physics](vehicle-physics.md#vehicle-and-driving-documents)
-owns the versioned formats and admission contract. Composition roots load the collection before scene/Session creation and explicitly pass it to
+TypeScript sound products and returns deeply immutable records. [Vehicle physics](vehicle-physics.md#material-vehicle-and-driving-documents)
+owns the versioned formats and their format-specific admission rules. Composition roots load the collection before scene/Session creation and explicitly pass it to
 selection controls, HUD/audio, scene coverage, reference tools and scenarios. `compileVehicleDefinitions` admits the collection from
 definition documents and an admitted sprite library: consumers call it through `loadVehicleDefinitions` with delivered content, and the
 content build calls it directly with the documents and the library it has just compiled.

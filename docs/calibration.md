@@ -6,11 +6,11 @@ These tables describe the authored settings. [Vehicle physics](vehicle-physics.m
 
 ## Vehicle settings
 
-The [game-wide driving definition](../content/driving/default.json) is the single value authority
+The [game-wide driving definition](../content/driving/default.json) is the sole value authority
 for cars and bikes in browser, race and tools. The table documents that definition; it does not
 supply another set of defaults. The immutable record contains only authored numbers and choices,
 stored as versioned JSON. Derived radians, actuator rates and tire coefficients belong to admission.
-[Vehicle definitions](../content/vehicles/) contain the per-vehicle mechanical data.
+[Vehicle mechanics documents](../content/vehicles/) contain the per-vehicle mechanical data.
 
 DEV tunes the author-facing values below in their saved units; each grid wraps at its ends.
 
@@ -101,8 +101,8 @@ capability on unit grip without surface drag.
 
 ## Vehicle values
 
-[Vehicle definitions](../content/vehicles/) are the sole authority for per-vehicle values.
-Production gameplay tuning edits those definitions directly. [Vehicle physics](vehicle-physics.md)
+The [vehicle mechanics documents](../content/vehicles/) and [vehicle listings](../content/vehicle-listings/)
+are the sole authority for per-vehicle values. Production gameplay tuning edits those documents directly. [Vehicle physics](vehicle-physics.md)
 owns document admission and structural/domain validation.
 
 Mass (kg) and CG height (m) describe one running rigid body including a 75 kg occupant and fuel.

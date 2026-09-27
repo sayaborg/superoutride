@@ -128,8 +128,8 @@ reference evidence. Product-renderer previews and reports are generated outputs.
 
 ## Build outputs
 
-`dist/` contains compiled product ESM and bundled browser graphics/audio tools, not Node build-script output. `dist/delivery/` contains course JSON, compiled
-images/sprites and the content manifest. Product modules compile to `dist/<layer>/`, including the `content`
+`dist/` contains compiled product ESM and bundled browser graphics/audio tools, not Node build-script output. `dist/delivery/` contains every delivered file
+listed below and the content manifest. Product modules compile to `dist/<layer>/`, including the `content`
 layer's modules in `dist/content/`; delivered files stay under `dist/delivery/` so modules and data never share a directory. Course JSON retains authored Strip constructs; the shared compiler expands them and builds immutable
 preblend fields before browser driving or headless rendering. Expanded Strips and their knots are
 in-memory compiler products, not committed files or an additional delivered image format. Build also generates
@@ -140,9 +140,19 @@ vehicle envelopes, continuous reference runs and game time budgets. Matching dis
 `format: "superoutride.content-manifest", version: 1` identifies the index format; entries have only
 `{kind, id, path, sha256}`. Every JSON file is delivered as compact JSON followed by a newline; vehicle
 mechanics, vehicle listing, driving and material documents are delivered exactly as authored in that
-encoding, so the build knows their delivered digests before staging them. Kinds are `course`, `image`, `vehicle`, `vehicle-listing`, `driving`, `envelope` and `budget`. IDs are respectively
-the course selection key, image digest (or logical `vehicles` collection), vehicle ID, vehicle ID,
-`default`, vehicle ID and `<course>/<vehicle>` budget key. Entries contain no payload format/version.
+encoding, so the build knows their delivered digests before staging them. Entries contain no payload
+format/version. The manifest writer is the only authority for these kinds, IDs and paths under `dist/delivery/`:
+
+| Kind              | ID                                                          | Path                              | Content                                                                                                      |
+| ----------------- | ----------------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `course`          | Course file name stem (the course selection key)            | `courses/<id>.course.json`        | Course document                                                                                              |
+| `image`           | Image SHA-256, or `vehicles` for the vehicle sprite library | `images/<sha256>.json`            | Compiled course images and the vehicle sprite library                                                        |
+| `vehicle`         | Vehicle ID                                                  | `vehicles/<id>.json`              | Vehicle mechanics document                                                                                   |
+| `vehicle-listing` | Vehicle ID                                                  | `vehicle-listings/<id>.json`      | Vehicle listing document                                                                                     |
+| `driving`         | `default`                                                   | `driving/<id>.json`               | Game-wide driving definition                                                                                 |
+| `material`        | `surface`                                                   | `materials/<id>.json`             | Surface-material document                                                                                    |
+| `envelope`        | Vehicle ID                                                  | `envelopes/<id>.json`             | Rival driving envelope (`superoutride.rival-envelope` v1: vehicle identity, maximum speed and measured rows) |
+| `budget`          | `<course>/<vehicle>`                                        | `budgets/<course>/<vehicle>.json` | Timed Session budgets (`superoutride.course-time-budgets` v1)                                                |
 
 The shared manifest reader admits the index through the admission toolkit as document `manifest.json`
 (format and version first, exact fields, unique kind/id identities and paths), resolves each logical identity to its relative path,
@@ -172,19 +182,13 @@ saves the manifest before the references; reference workers run in separate thre
 publishing the completed build. Only timed courses (rules with CLASSIC settings) receive reference runs
 and budgets; the build reads this from each course document. Node tools also read vehicle/driving definitions from this distribution.
 
-| Output                                          | Use                                                                                                                                                                   |
-| ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `dist/delivery/vehicles/<id>.json`              | Versioned vehicle mechanics documents                                                                                                                                 |
-| `dist/delivery/vehicle-listings/<id>.json`      | Versioned vehicle listing documents                                                                                                                                   |
-| `dist/delivery/driving/default.json`            | Versioned game-wide driving definition                                                                                                                                |
-| `dist/delivery/manifest.json`                   | Delivery index and digest authority                                                                                                                                   |
-| `dist/delivery/courses/<course>.course.json`    | CourseDocument v28                                                                                                                                                    |
-| `dist/delivery/images/<sha256>.json`            | All delivered course and vehicle images                                                                                                                               |
-| `dist/delivery/envelopes/<vehicle>.json`        | Rival driving envelopes (`superoutride.rival-envelope` v1: vehicle identity, maximum speed and measured rows; the offline measurement trace stays in the build cache) |
-| `dist/delivery/budgets/<course>/<vehicle>.json` | Timed Session budgets                                                                                                                                                 |
-| `dist/offline/reference/<course>.json`          | Full reference runs, excluded from Pages                                                                                                                              |
-| `_site/build/<commit>/`                         | Complete commit-versioned Pages build                                                                                                                                 |
-| `_site/version.txt`                             | Published build identifier                                                                                                                                            |
+| Output                                 | Use                                                                                  |
+| -------------------------------------- | ------------------------------------------------------------------------------------ |
+| `dist/delivery/manifest.json`          | Delivery index and digest authority                                                  |
+| `dist/delivery/<path>`                 | Each manifest entry above; the offline envelope measurement trace stays in the cache |
+| `dist/offline/reference/<course>.json` | Full reference runs, excluded from Pages                                             |
+| `_site/build/<commit>/`                | Complete commit-versioned Pages build                                                |
+| `_site/version.txt`                    | Published build identifier                                                           |
 
 Offline reference runs are excluded from the delivery manifest because they are build/authoring
 observations, never fetched by the game and not published to Pages. Only their delivered envelopes

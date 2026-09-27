@@ -14,8 +14,8 @@ Course geometry, height, width, roadside rows and environment changes are author
 [Content and gameplay](content-and-gameplay.md) owns their definitions and rules.
 
 The vehicle catalog supplies car and motorcycle definitions with model, manufacturer, identifier,
-specification and period metadata. Testarossa is the default player vehicle. Vehicle presentation
-uses authored yaw and motorcycle-bank images.
+specification and period metadata. Testarossa is the default player vehicle. Vehicle sprites
+use authored yaw and motorcycle-bank images.
 
 ## 2. Sessions and play
 
@@ -43,7 +43,7 @@ road. Vehicles and roadside objects are pass-through. Recovery preserves earned 
 
 ## 3. Rendering and authoring
 
-The view combines a tiled background, road and sprites sprites with the player and HUD. Testarossa
+The view combines a tiled background, road and sprites with the player and HUD. Testarossa
 brake lamps select a saved palette. Engine sound and player tire sound follow physical observations.
 The HUD shows race state and current performance measurements; a DEV overlay exposes camera, sound and ground display controls.
 

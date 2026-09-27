@@ -204,7 +204,7 @@ compiles each image with its set's lamp colors; delivered images have complete L
 in a set declares exactly the same set of at least two color names. Each set requires one
 `brakeLamp:{off,on}` declaration of RGB555 integers, shared by all its colors and angles. Slot 15
 always means the brake lamp within these images; slots 1 through 14 remain ordinary image colors. Vehicle admission checks form-specific bank dimensions and default-color
-references, as specified in [Vehicle physics](vehicle-physics.md#vehicle-and-driving-documents).
+references, as specified in [Vehicle physics](vehicle-physics.md#material-vehicle-and-driving-documents).
 This section is the library format's only specification. The vehicle domain admits the library and owns
 its sets at run time: per-vehicle color and lamp variants and yaw/bank image selection. The image domain
 supplies only the generic sprite LOD reader and palette resolution.

@@ -1,6 +1,6 @@
 # Procedural audio
 
-Audio is read-only presentation of completed vehicle observations. Its pressure-like pulses,
+Audio renders completed vehicle observations and never changes them. Its pressure-like pulses,
 pipe dimensions and output gains form an authored acoustic surrogate rather than measured vehicle
 sound. [Tire audio](tire-audio.md) owns UNIFIED synthesis, [Calibration](calibration.md) owns numeric
 settings, [Browser](browser.md#sound-controls) owns operation, and

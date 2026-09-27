@@ -9,8 +9,8 @@ use a local heightfield approximation. The model separates these inputs:
 | Driving definition | Travel-direction steering, M/D/ACT, pedal actuators, TCS/ABS, pitch limit and shared per-load tires |
 | Composition policy | Fixed update step                                                                                   |
 
-[Driving definition](../content/driving/default.json) is the sole authority for game-wide driving
-values; these are design values, not difficulty settings. Its immutable, nested plain data contains
+The [driving definition](../content/driving/default.json) holds the game-wide driving values
+([Calibration](calibration.md) owns value authority); these are design values, not difficulty settings. Its immutable, nested plain data contains
 travel-direction steering, M=65 degrees, D=20 degrees, ACT=0.3 seconds, throttle/brake traversal times,
 `wheelSlip=true` and one common front/rear tire (GX=5, PX=0.2, GY=2.5, PY=0.1, KN=0.74).
 [Calibration](calibration.md) describes units, pedal values and the shell-owned DEV grids.
@@ -312,9 +312,8 @@ points, positive finite torques and coverage, and requires the derived peak-powe
 redline. `powertrain.displacementCc` is finite and positive; `powertrain.cycle` is exactly 2 or 4
 strokes.
 
-Vehicle definitions in `content/vehicles/<id>.json` are the sole authority for per-vehicle values.
-Production gameplay tuning edits these definitions directly; admission owns structural and domain
-validation. [Calibration](calibration.md#vehicle-values) describes value meanings and running-body assumptions.
+[Calibration](calibration.md#vehicle-values) owns per-vehicle value authority, value meanings and
+running-body assumptions; admission owns structural and domain validation.
 
 ## Torque protection
 
@@ -410,7 +409,7 @@ order is unchanged. This is a conservative current-contact slip constraint.
 
 HUD observations include input, actuators, automatic steering, requested/delivered offsets, target/actual
 rack, requested/delivered torques, the clutch observation and the last shift. The DEV HUD shows handwheel angle through the listing's `steeringRatio`.
-The mechanical state and compiled mechanics contain neither handwheel angle nor ratio. Bike lean presentation is
+The mechanical state and compiled mechanics contain neither handwheel angle nor ratio. The bike lean display is
 `atan2(lateralAcceleration,g)` with discrete bank images; physical state contains yaw and pitch.
 
 Optional read-only tire telemetry publishes completed wheel-solve rolling/slip speeds, dissipated work,
@@ -426,7 +425,6 @@ nonempty `materials` array. Each material has exactly a filename-safe `id`
 The material catalog is the only set of material IDs, and the set is open: IDs are content data, not a
 TypeScript enum, and adding one needs no course or physics code change (until audio definitions become
 content, both tire-sound tables must also have the ID). No physics code or tool requires a particular ID.
-The current definitions are ASPHALT, SHOULDER, GRASS, DIRT and SAND; there is no VOID definition.
 The format carries physical values only; tire effects will be declared on the appearance side when they
 are implemented.
 The content layer's `compileSurfaceMaterials` admits it once from the build's file or delivery's manifest entry: exactly one
@@ -484,10 +482,8 @@ Later game-wide launch and pitch rules extend this same document rather than cre
 assist configuration files.
 
 Both readers reject missing required fields, unknown fields, wrong shapes, unsupported formats/versions,
-invalid domains and unresolved sound IDs through the shared
-[admission toolkit](architecture.md#content-admission-toolkit). Expected errors return
-`{ok:false,diagnostics}` containing `kind:"input"`, `code`, the supplied `document` filename, JSON
-Pointer `path` and causal `message`. Admission stops at the first failure; diagnostics are not accumulated. Domain errors identify a field
+invalid domains and unresolved sound IDs; results and diagnostics follow the
+[admission contract](architecture.md#content-admission-toolkit). Domain errors identify a field
 or an array element, never a containing document record. Mechanics reports slash-separated paths
 relative to the definition it receives, without a leading slash (for example `mass` or
 `powertrain/gearRatios/2`). Nested compilers prepend their own field or map derived inputs back to
@@ -502,8 +498,7 @@ Only `definition-document.ts` converts these relative paths into document JSON P
 `admitDomain`) with the document filename; mechanics paths start at the mechanics document's root
 (for example `/mass`). Driving paths start at the
 driving document's fields. Unsupported earlier versions have no migration reader.
-Only explicit authored-domain failures become diagnostics; unexpected internal errors propagate.
-Success returns `{ok:true,value}`; no partial product is published. Nested arrays and records are
+Nested arrays and records are
 copied and frozen, including powertrain gears/curve points, metadata and the driving tire/pedals.
 The shared vehicle loader verifies manifest SHA-256 before decoding and admission, checks
 selection-order uniqueness, then exposes the sorted immutable
