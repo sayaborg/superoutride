@@ -1,4 +1,5 @@
 import { clamp } from '../core/math.js';
+import { SIM_DT } from './fixed-step.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import {
   vehicleBodyKinematics,
@@ -72,7 +73,7 @@ interface RecoveryOptions {
   readonly settings?: RecoverySettings;
 }
 
-/** One gameplay step. Recovery observes the completed step; physics faults stay visible. */
+/** One fixed gameplay step. Recovery observes the completed step; physics faults stay visible. */
 export function advanceVehicleWithRecovery(
   world: VehicleWorld,
   vehicle: VehicleState,
@@ -80,15 +81,13 @@ export function advanceVehicleWithRecovery(
   {
     state,
     input,
-    dt,
     settings = RECOVERY_SETTINGS,
     target = null,
-  }: RecoveryOptions & { input: DrivingInput; dt: number; target?: RecoveryTarget | null },
+  }: RecoveryOptions & { input: DrivingInput; target?: RecoveryTarget | null },
 ): RecoveryReason | null {
   updateVehicle(world, vehicle, model, input);
   return updateRecovery(world, vehicle, model, {
     state,
-    dt,
     settings,
     target,
   });
@@ -107,15 +106,10 @@ function updateRecovery(
   world: VehicleWorld,
   vehicle: VehicleState,
   model: VehicleModel,
-  {
-    state,
-    dt,
-    settings = RECOVERY_SETTINGS,
-    target = null,
-  }: RecoveryOptions & { dt: number; target?: RecoveryTarget | null },
+  { state, settings = RECOVERY_SETTINGS, target = null }: RecoveryOptions & { target?: RecoveryTarget | null },
 ): RecoveryReason | null {
   if (!vehicle.course.inDomain) {
-    state.outsideDomainTime += dt;
+    state.outsideDomainTime += SIM_DT;
     if (state.outsideDomainTime < settings.maxOutsideDomainTime) return null;
     recoverVehicle(world, vehicle, model, { state, reason: 'outside-domain', settings, target });
     return 'outside-domain';

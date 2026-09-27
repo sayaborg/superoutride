@@ -55,7 +55,7 @@ export function measureVehicleEnvelope(entry: SessionVehicle) {
   const start = createStartPhase();
   start.begin();
   do updateHeldVehicle(run.vehicle, run.model, { steering: 0, throttle: false, brake: false });
-  while (!start.advance(SIM_DT));
+  while (!start.advance());
   let elapsed = 0,
     last = 0,
     stable = 0,

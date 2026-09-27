@@ -89,7 +89,7 @@ export function runCourseReference(
       race.clock.status === 'READY'
         ? IDLE_INPUT
         : sampleEnvelopeDrivingInput(scene.world.coordinates, vehicle, driver, lane, workspace, scene.runtime.window);
-    race.advance(input, SIM_DT);
+    race.advance(input);
     if (actor.recovery.recoveries)
       throw new RangeError(`${entry.compiledVehicle.id}: reference recovered at ${section.id}:${vehicle.course.s}`);
     distance += vehicle.speed * SIM_DT;

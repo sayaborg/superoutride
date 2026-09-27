@@ -157,7 +157,7 @@ export function runScenario({ course, ground }, scenario) {
         workspace,
         scene.runtime.window,
       );
-    const step = race.advance(input, SIM_DT);
+    const step = race.advance(input);
     if (step.recovered) {
       resetCameraRig(rig);
       assert.equal(race.events.length, 0, 'recovery granted crossing credit');

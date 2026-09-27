@@ -1,3 +1,5 @@
+import { SIM_DT } from './fixed-step.js';
+
 /** Accepted physical events, with an already resolved upcoming interval budget. */
 interface CheckpointClockEvent {
   readonly gate: object;
@@ -7,7 +9,7 @@ interface CheckpointClockEvent {
   readonly awardMs: number;
 }
 
-/** Simulation time only. Expiry and gates are ordered at their exact within-step timestamps. */
+/** Simulation time only, in fixed steps. Expiry and gates are ordered at their exact within-step timestamps. */
 export function createCheckpointClock(initialBudgetMs: number | null) {
   let status: 'READY' | 'RUNNING' | 'GOAL' | 'GAME_OVER' = 'READY';
   let elapsedSeconds = 0,
@@ -38,13 +40,13 @@ export function createCheckpointClock(initialBudgetMs: number | null) {
     start() {
       if (status === 'READY') status = 'RUNNING';
     },
-    advance(dt: number, events: readonly CheckpointClockEvent[]) {
+    advance(events: readonly CheckpointClockEvent[]) {
       if (status !== 'RUNNING') return;
       const start = elapsedSeconds,
-        end = start + dt;
+        end = start + SIM_DT;
       if (start > extensionUntil) extensionMs = 0;
       for (const event of events) {
-        const at = start + event.u * dt;
+        const at = start + event.u * SIM_DT;
         // A checkpoint or FINISH wins an exact expiry tie; no epsilon moves the deadline.
         if (deadline < at) {
           elapsedSeconds = deadline;

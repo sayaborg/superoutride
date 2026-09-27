@@ -1,3 +1,5 @@
+import { SIM_DT } from './fixed-step.js';
+
 /**
  * Provisional start (proposal 70): a fixed READY phase before GO so engines can be revved while
  * every vehicle is held. Countdown lamps and rolling starts remain pending Session decisions.
@@ -18,11 +20,11 @@ export function createStartPhase() {
     begin() {
       if (status === 'WAITING') status = 'READY';
     },
-    /** Counts one completed READY step; returns true when that step ends READY. */
-    advance(dt: number): boolean {
+    /** Counts one completed fixed READY step; returns true when that step ends READY. */
+    advance(): boolean {
       if (status !== 'READY') return false;
-      readyElapsed += dt;
-      if (readyElapsed + dt / 2 < READY_SECONDS) return false;
+      readyElapsed += SIM_DT;
+      if (readyElapsed + SIM_DT / 2 < READY_SECONDS) return false;
       status = 'GO';
       return true;
     },

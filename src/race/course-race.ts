@@ -90,7 +90,6 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     step: {
       state: c.actor.recovery,
       input: { steering: 0, throttle: false, brake: false } as DrivingInput,
-      dt: 0,
       settings: c.recoverySettings,
     },
     input: (s: number) => lane(c, s),
@@ -98,21 +97,20 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   const idle: DrivingInput = Object.freeze({ steering: 0, throttle: false, brake: false });
   // READY holds every vehicle with zero clutch capacity; race time and rival driving start at GO,
   // where ordinary updates restore the fixed capacity.
-  const holdReady = (input: DrivingInput, dt: number) => {
+  const holdReady = (input: DrivingInput) => {
     for (const motion of motions) {
       motion.step.input = motion === motions[0] ? input : idle;
       updateHeldVehicle(motion.c.actor.vehicle, motion.c.actor.model, motion.step.input);
     }
-    if (startPhase.advance(dt)) clock.start();
+    if (startPhase.advance()) clock.start();
   };
-  const move = (motion: (typeof motions)[number], input: DrivingInput, dt: number) => {
+  const move = (motion: (typeof motions)[number], input: DrivingInput) => {
     const { c, previous } = motion;
     const { actor } = c;
     previous.l = actor.vehicle.course.l;
     previous.s = actor.vehicle.course.s;
     motion.current = actor.vehicle;
     motion.step.input = input;
-    motion.step.dt = dt;
     const recovered = advanceVehicleWithRecovery(runtime.readers, actor.vehicle, actor.model, motion.step) !== null;
     motion.recovered = recovered;
   };
@@ -167,20 +165,18 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   let pendingExpiry = Infinity,
     stepStart = 0;
   const admitPlayer: RouteRaceAdmission = (event) => {
-    if (stepStart + event.u * stepDuration > pendingExpiry) return false;
+    if (stepStart + event.u * SIM_DT > pendingExpiry) return false;
     if (event.landmark && !event.finish && budgets) pendingExpiry += budgets.after(event.landmark, event.lap) / 1000;
     return true;
   };
-  let stepDuration = 0;
 
-  const step = (input: DrivingInput, dt: number) => {
+  const step = (input: DrivingInput) => {
     if (startPhase.status === 'READY') {
-      holdReady(input, dt);
+      holdReady(input);
       return;
     }
     if (clock.status !== 'RUNNING') return;
     stepStart = clock.elapsedSeconds;
-    stepDuration = dt;
     pendingExpiry = clock.expirySeconds ?? Infinity;
     let minS = Infinity,
       maxS = -Infinity;
@@ -189,7 +185,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       maxS = Math.max(maxS, motion.c.actor.vehicle.course.s);
     }
     runtime.refresh(minS, maxS);
-    move(motions[0]!, input, dt);
+    move(motions[0]!, input);
     for (let i = 1; i < motions.length; i += 1) {
       const motion = motions[i]!;
       move(
@@ -202,7 +198,6 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
           motion.driverWorkspace,
           runtime.window,
         ),
-        dt,
       );
     }
     forks.observe(motions);
@@ -221,7 +216,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
         c === player ? admitPlayer : undefined,
       );
       if (c.finishElapsedSeconds === null) {
-        advanceRaceSession(c.timing, update, dt);
+        advanceRaceSession(c.timing, update);
         if (update.justFinished) c.finishElapsedSeconds = c.timing.elapsedSeconds;
       }
       if (c === player) {
@@ -235,7 +230,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
             finish: event.finish,
             awardMs: event.finish ? 0 : (budgets?.after(event.landmark, event.lap) ?? 0),
           });
-        clock.advance(dt, clockEvents);
+        clock.advance(clockEvents);
       }
     }
     stepObservation.recovered = motions[0]!.recovered;
@@ -250,10 +245,11 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     },
     start: () => startPhase.begin(),
     forks,
-    advance(input: DrivingInput, dt: number) {
+    /** One fixed step of SIM_DT; the race takes no step length. */
+    advance(input: DrivingInput) {
       stepObservation.recovered = false;
       motions[0]!.step.input = input;
-      step(input, dt);
+      step(input);
       publish();
       return stepObservation;
     },

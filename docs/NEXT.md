@@ -15,7 +15,7 @@
 - Engine sound load is the powertrain's effective opening.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **10-12 — Race events**.
+Next PR: **10-12b — Race events**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -25,9 +25,8 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Give each settled fact one owner and give consumers read-only observations.
 
-- **10-12 — Race events:** one ordered, timestamped event stream (competitor, line, lap, time within the step);
-  progress acceptance, the checkpoint deadline and finish time are each decided once from it. The race advances in fixed
-  steps and `advance` takes no dt.
+- **10-12b — Race events:** one ordered, timestamped event stream (competitor, line, lap, time within the step);
+  progress acceptance, the checkpoint deadline and finish time are each decided once from it.
 - **10-13 — Race facts only:** remove display state (extension display window, labels, GO text) from the race and
   clock; the HUD derives text. Separate the per-competitor timer, ranking and time formatting.
 - **10-14 — Loading coverage:** one coverage record (camera window, driver lookahead, recovery backtrack, speed

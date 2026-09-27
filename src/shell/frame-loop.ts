@@ -1,6 +1,6 @@
 import { SIM_DT } from '../race/fixed-step.js';
 
-/** Bound catch-up after a suspended tab; simulation itself always receives SIM_DT. */
+/** Bound catch-up after a suspended tab; each tick runs one fixed SIM_DT simulation step. */
 const MAX_FRAME_ELAPSED_SECONDS = 0.25;
 
 interface FrameClock {
@@ -16,7 +16,7 @@ export interface FrameLoop {
 
 /** One browser scheduler, with an injectable clock for causal lifecycle regressions. */
 export function createFrameLoop(
-  tick: (dt: number) => void,
+  tick: () => void,
   render: () => void,
   clock: FrameClock = {
     now: () => performance.now(),
@@ -42,7 +42,7 @@ export function createFrameLoop(
     previousTime = now;
     while (running && token === generation && accumulator >= SIM_DT) {
       accumulator -= SIM_DT;
-      tick(SIM_DT);
+      tick();
     }
     if (!running || token !== generation) return;
     render();

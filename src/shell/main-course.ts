@@ -136,10 +136,10 @@ try {
   );
   let input: DrivingInput = { steering: 0, throttle: false, brake: false };
   let manualPause = false;
-  const tick = (dt: number) => {
+  const tick = () => {
     const started = performance.now();
     input = shell.inputManager.sample();
-    const step = active.race.advance(input, dt);
+    const step = active.race.advance(input);
     lifecycle.update(step.recovered);
     performanceHud.step(performance.now() - started);
   };

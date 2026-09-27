@@ -11,7 +11,8 @@ and headless previews. All selected course, image, ground and Session inputs are
 starts. A failed load displays status and Retry; an incomplete Session stays inactive.
 
 The browser accumulates nonnegative elapsed time capped at 0.25 s per animation callback. Simulation
-uses fixed 1/60 s steps; fractional remainder carries forward. One render follows the completed
+uses fixed 1/60 s steps (`SIM_DT`): the frame loop runs one race `advance(input)` per whole step in the accumulated
+time, passing no step length, and the fractional remainder carries forward. One render follows the completed
 steps, including callbacks with no simulation step; it reads the race's competitor observations, which
 hold the values of the latest completed step. Starting renders immediately with a fresh clock.
 Loading and setup leave the race clock stopped until START.

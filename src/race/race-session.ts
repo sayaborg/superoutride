@@ -1,4 +1,5 @@
 import type { RouteRaceEvent } from './route-progress.js';
+import { SIM_DT } from './fixed-step.js';
 
 // Milliseconds: display-only budget of 0.1 ns for accumulated fixed steps at an integer-ms tie.
 // For example, 60 additions of 1/60 s err by about 1e-12 ms; ranking/deadlines remain exact.
@@ -14,13 +15,12 @@ export function createRaceSessionState() {
   return { elapsedSeconds: 0 };
 }
 
-/** Accepted route fractions give the exact simulation time of the terminal crossing. */
+/** One fixed step; accepted route fractions give the exact simulation time of the terminal crossing. */
 export function advanceRaceSession(
   session: ReturnType<typeof createRaceSessionState>,
   update: { readonly justFinished: boolean; readonly events: readonly RouteRaceEvent[] },
-  dt: number,
 ): void {
-  session.elapsedSeconds += dt * (update.justFinished ? update.events.at(-1)!.u : 1);
+  session.elapsedSeconds += SIM_DT * (update.justFinished ? update.events.at(-1)!.u : 1);
 }
 
 /** Finished cars precede unfinished cars; exact finish-time or route-s ties share a rank. */

@@ -81,7 +81,7 @@ test('race actors have no cameras and view assembles sixteen rival sprites from 
   const race = createCourseRace({ session: settings, runtime: scene.runtime });
   for (const c of [race.player, ...race.rivals]) assert.ok(!('cameraRig' in c.actor));
   assert.equal(race.rivals.length, 16);
-  assert.deepEqual(race.advance({ steering: 0, throttle: false, brake: false }, 1 / 60), { recovered: false });
+  assert.deepEqual(race.advance({ steering: 0, throttle: false, brake: false }), { recovered: false });
   const observed = race.observe();
   assert.ok(!('sprites' in observed));
   assert.equal(observed.rivals.length, 16);

@@ -38,7 +38,7 @@ interface BrowserDrivingShell {
     observed: { readonly player: CompetitorObservation; readonly rivals: readonly CompetitorObservation[] },
     diagnostics: { readonly vehicle: VehicleState; readonly model: VehicleModel },
   ): void;
-  start(tick: (dt: number) => void, render: () => void): void;
+  start(tick: () => void, render: () => void): void;
   stop(): void;
   dispose(): void;
 }
