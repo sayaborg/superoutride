@@ -1,6 +1,6 @@
 # Browser operation
 
-This document owns display, scheduling, keyboard/touch input, URL settings, HUD and DEV controls.
+This document owns display, scheduling, keyboard/touch input, URL settings, race status, HUD and DEV controls.
 [Content and gameplay](content-and-gameplay.md) owns Session rules and loading,
 [Audio](audio.md) owns audio lifetime, and [Calibration](calibration.md) owns numeric settings.
 
@@ -72,6 +72,27 @@ displacement supplies brake. Full scale is 64 CSS pixels, with larger displaceme
 Touching the origin owns neutral input. Held touch supplies direct analog displacement; release uses
 the ordinary actuator release behavior. Release, cancellation, suspension, blur and page hiding clear
 the corresponding ownership and visible origin/vector indicators.
+
+## Race status
+
+The status line derives its text from race facts alone
+([race time and events](content-and-gameplay.md#race-time-and-events)); the race holds no display state.
+Manual pause shows `PAUSED`. A Session rebuilt by DEV tuning prefixes `TUNED · `. Otherwise:
+
+- GOAL or GAME OVER shows `GOAL` or `GAME OVER`, the position and the race time.
+- During the start phase it shows `READY n`, n the seconds until GO rounded up; after the start phase and
+  before the clock starts, `READY`.
+- While running it shows the state, the remaining time when there is a time limit, a current extension,
+  the position and the race time, joined by `·`. The state is `LAP x/y` on a circuit (the player's accepted
+  finish count plus one, capped at the lap count), or on another course `ROUTE` with the entry fork's choice,
+  `OPEN` while it is undecided, or `GO` when the entry has no fork; a finished player's state is the clock status.
+- `GO · ` prefixes the running line while the player's competitor clock is below 1 s.
+- Remaining time is `TIME n`, n = ceil(max(0, deadline − race time)).
+- A positive extension shows as `TIME EXTEND +x.x` (seconds, one decimal) until a fixed step begins more than
+  2 s of race time after the checkpoint that earned it.
+- Position is `Pr/n`: the player's rank among n competitors.
+- Race time is `m:ss.mmm`, floored to whole milliseconds after adding a display-only tolerance of 1e-7 ms for
+  accumulated fixed-step rounding.
 
 ## Performance HUD
 

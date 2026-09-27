@@ -16,9 +16,8 @@ export function createCheckpointClock(budgets: CourseTimeBudgets | null) {
   let status: 'READY' | 'RUNNING' | 'GOAL' | 'GAME_OVER' = 'READY';
   let elapsedSeconds = 0,
     deadline = budgets === null ? Infinity : budgets.initialMs / 1000;
-  let extensionMs = 0,
-    extensionUntil = 0,
-    checkpointCount = 0;
+  let stepStartSeconds = 0;
+  let lastExtension: { readonly ms: number; readonly atSeconds: number } | null = null;
   return Object.freeze({
     get status() {
       return status;
@@ -27,22 +26,25 @@ export function createCheckpointClock(budgets: CourseTimeBudgets | null) {
     get elapsedSeconds() {
       return elapsedSeconds;
     },
-    get remainingSeconds() {
-      return budgets === null ? null : Math.max(0, deadline - elapsedSeconds);
+    /** Race time at which the latest step began. */
+    get stepStartSeconds() {
+      return stepStartSeconds;
     },
-    get extensionMs() {
-      return extensionMs;
+    /** The current deadline in race time; null without a time limit. */
+    get deadlineSeconds() {
+      return budgets === null ? null : deadline;
     },
-    get checkpointCount() {
-      return checkpointCount;
+    /** The latest deadline extension: its amount and the race time of the checkpoint that earned it. */
+    get lastExtension() {
+      return lastExtension;
     },
     start() {
       if (status === 'READY') status = 'RUNNING';
     },
     /** Opens one RUNNING step and returns its start time. */
     beginStep(): number {
-      if (elapsedSeconds > extensionUntil) extensionMs = 0;
-      return elapsedSeconds;
+      stepStartSeconds = elapsedSeconds;
+      return stepStartSeconds;
     },
     /**
      * Decides one player crossing candidate of the open step. A crossing past the deadline is refused;
@@ -51,14 +53,10 @@ export function createCheckpointClock(budgets: CourseTimeBudgets | null) {
     admit(event: Pick<RouteRaceEvent, 'landmark' | 'lap' | 'u' | 'finish'>): boolean {
       const at = raceEventSeconds(elapsedSeconds, event.u);
       if (deadline < at) return false;
-      if (event.finish) return true;
-      checkpointCount++;
-      if (budgets !== null) {
-        const awardMs = budgets.after(event.landmark, event.lap);
-        deadline += awardMs / 1000;
-        extensionMs = awardMs;
-        extensionUntil = at + 2;
-      }
+      if (event.finish || budgets === null) return true;
+      const awardMs = budgets.after(event.landmark, event.lap);
+      deadline += awardMs / 1000;
+      lastExtension = Object.freeze({ ms: awardMs, atSeconds: at });
       return true;
     },
     /** Closes the open step: GOAL at the player's finish time, else expiry within the step or its end. */

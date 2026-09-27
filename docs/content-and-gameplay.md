@@ -568,12 +568,19 @@ Each fact is decided once. `RouteProgress` alone records accepted crossings. The
 and decides it: the player's crossing candidates go to it in time order, a candidate after the deadline is
 refused (and the step then ends in GAME OVER at the deadline), one exactly at the deadline is accepted, and an
 accepted checkpoint's award extends the deadline at once for later candidates in the same step. Each
-competitor's finish time is the time of its finish event, recorded once; the clock's GOAL time and ranking read
-it, and a running competitor's time is its finish time or else race time.
+competitor's finish time is the time of its finish event, recorded once; the clock's GOAL time and ranking read it.
 
-Finished actors rank first by finish time. Unfinished actors rank by descending route s, which includes
-lap separation. Equal finish times or equal unfinished stations share a rank. Rival positions and
-audio observations already use the same route coordinates as the player.
+The race and clock publish facts only, never display text or display durations. The clock exposes its status
+(READY, RUNNING, GOAL or GAME_OVER), race time, the start time of the latest step, the deadline in race time
+(null without a time limit) and the last extension: its awarded amount and the race time of the checkpoint that
+earned it. The race exposes the start phase's status and seconds until GO; each competitor's progress (route s,
+accepted finish count and status) and finish time; the Route, whose occurrences carry fork choices; the lap count
+and course type. One race function gives a competitor's clock: its finish time, else race time. The shell derives
+the status line from these facts ([Browser](browser.md#race-status)).
+
+Ranking is one race-layer function (`rankRaceProgress`). Finished actors rank first by finish time. Unfinished
+actors rank by descending route s, which includes lap separation. Equal finish times or equal unfinished stations
+share a rank. Rival positions and audio observations already use the same route coordinates as the player.
 
 ## Session and reference timing
 

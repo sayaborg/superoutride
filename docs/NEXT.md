@@ -15,7 +15,7 @@
 - Engine sound load is the powertrain's effective opening.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **10-13 — Race facts only**.
+Next PR: **10-14 — Loading coverage**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -25,8 +25,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Give each settled fact one owner and give consumers read-only observations.
 
-- **10-13 — Race facts only:** remove display state (extension display window, labels, GO text) from the race and
-  clock; the HUD derives text. Separate the per-competitor timer, ranking and time formatting.
 - **10-14 — Loading coverage:** one coverage record (camera window, driver lookahead, recovery backtrack, speed
   bound) is checked for every fork Section and read by the scenarios. With the current fleet and camera it evaluates to
   484 m forward (`max(dCam + 200, 480, 50) + 240/60`) and 64 m rear (`max(dCam + 2.5, 8 + 50 + 2) + 4`).

@@ -3,7 +3,6 @@ import { createCheckpointClock, raceEventSeconds } from './checkpoint-clock.js';
 import { createRouteProgress, type RouteRaceEvent } from './route-progress.js';
 import { createRouteCrossSections } from './route-cross-sections.js';
 import { createCourseForkField } from './course-fork-field.js';
-import { rankRaceProgress, formatRaceTime } from './race-session.js';
 import {
   RECOVERY_SETTINGS,
   createRecoveryState,
@@ -283,35 +282,20 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       observations();
       return observed;
     },
-    label() {
-      const standings = rankRaceProgress(
-        competitors.map((c) => ({
-          competitorId: c.id,
-          s: c.progress.s,
-          finishSeconds: c.finishSeconds,
-        })),
-      );
-      const rank = standings.find((s) => s.competitorId === player.id)!.rank;
-      let state: string = clock.status;
-      if (clock.status === 'GOAL' || clock.status === 'GAME_OVER')
-        return `${clock.status.replace('_', ' ')} · P${rank}/${rivals.length + 1} · ${formatRaceTime(clock.elapsedSeconds)}`;
-      if (startPhase.status === 'READY') return `READY ${Math.ceil(startPhase.remainingSeconds)}`;
-      if (clock.status === 'READY') return 'READY';
-      if (player.progress.status !== 'FINISHED') {
-        if (course.type === 'CIRCUIT')
-          state = `LAP ${Math.min(configuration.lapCount, player.progress.acceptedFinishCount + 1)}/${configuration.lapCount}`;
-        else {
-          const choice = course.entry.fork
-            ? (forks.choice(runtime.route.occurrences[0]!)?.from.carriageway.id ?? 'OPEN')
-            : 'GO';
-          state = `ROUTE ${choice}`;
-        }
-      }
-      const start = (player.finishSeconds ?? clock.elapsedSeconds) < 1 ? 'GO · ' : '';
-      const remaining = clock.remainingSeconds;
-      const timeLeft = remaining === null ? '' : ` · TIME ${Math.ceil(remaining)}`;
-      const extension = clock.extensionMs > 0 ? ` · TIME EXTEND +${(clock.extensionMs / 1000).toFixed(1)}` : '';
-      return `${start}${state}${timeLeft}${extension} · P${rank}/${rivals.length + 1} · ${formatRaceTime(clock.elapsedSeconds)}`;
-    },
+    /** Start phase facts: its status and the seconds until GO. */
+    startPhase: Object.freeze({
+      get status() {
+        return startPhase.status;
+      },
+      get remainingSeconds() {
+        return startPhase.remainingSeconds;
+      },
+    }),
+    /** The read-only Route, whose entry occurrence carries the entry fork's choice. */
+    route: runtime.route,
+    courseType: course.type,
+    lapCount: configuration.lapCount,
+    /** A competitor's clock: its finish time, else race time. */
+    competitorSeconds: (c: typeof player) => c.finishSeconds ?? clock.elapsedSeconds,
   });
 }

@@ -11,6 +11,7 @@ import { createCourseGround } from '../course/compiler/course-ground.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import { loadVehicleDefinitions } from '../content/vehicle-catalog.js';
 import { createCourseRace } from '../race/course-race.js';
+import { raceStatusText } from './race-status-hud.js';
 import { createCoursePerformanceHud } from './course-performance-hud.js';
 import { resolveCourseSession } from '../race/course-session.js';
 import { readCourseTimeBudgets } from '../race/course-time-budgets.js';
@@ -155,7 +156,7 @@ try {
       raceSprites(observations.rivals, lifecycle.camera),
     );
     shell.present(mode, input, lifecycle.camera, result.playerScreenY, observations, race.playerDiagnostics);
-    raceStatus.textContent = manualPause ? 'PAUSED' : `${tuned ? 'TUNED · ' : ''}${race.label()}`;
+    raceStatus.textContent = raceStatusText(race, { paused: manualPause, tuned });
     performanceHud.frame(started, result.stripGround);
     if (race.clock.status === 'GOAL' || race.clock.status === 'GAME_OVER') {
       controls.complete();
@@ -183,7 +184,7 @@ try {
         manualPause = paused;
         if (paused) {
           suspend();
-          raceStatus.textContent = 'PAUSED';
+          raceStatus.textContent = raceStatusText(active.race, { paused: true });
         } else shell.start(tick, render);
       },
     },
