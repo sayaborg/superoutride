@@ -18,7 +18,7 @@
   derive from the Session seed; loading coverage, recovery policy and reference identities each have one owner.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **11-2 — Audio scene (move only)**.
+Next PR: **11-3 — Audio scene**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -28,7 +28,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Separate the audio scene from the browser and organize sound around replaceable definitions.
 
-- **11-2 — Audio scene (move only):** move rival selection and listener-frame math into the audio layer.
 - **11-3 — Audio scene:** the audio scene owns voice allocation and reassignment; the shell passes emitters built from
   competitor snapshots, positions included. A named rival audio policy owns its distances, pan and reassignment time;
   document that audible candidates are resident competitors.

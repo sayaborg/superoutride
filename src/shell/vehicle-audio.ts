@@ -1,4 +1,3 @@
-import { RIVAL_AUDIBLE_METERS } from '../audio/audio-presentation.js';
 import type {
   ShiftAudioObservation,
   TireAudioObservation,
@@ -62,22 +61,4 @@ export function readVehicleAudio(competitor: CompetitorObservation, result: Obse
   result.rear.longitudinalPower = tires.rear.longitudinalPower;
   result.rear.lateralPower = tires.rear.lateralPower;
   result.rear.surface = tires.rear.surface;
-}
-
-/** Physical world distance, independent of raster depth and local stage chainage. */
-export function nearestAudibleRival(
-  player: CompetitorObservation,
-  actors: readonly CompetitorObservation[],
-): CompetitorObservation | null {
-  let nearest: CompetitorObservation | null = null;
-  let distanceSquared = RIVAL_AUDIBLE_METERS ** 2;
-  for (const actor of actors) {
-    if (actor === player) continue;
-    const d2 = (actor.x - player.x) ** 2 + (actor.y - player.y) ** 2 + (actor.z - player.z) ** 2;
-    if (d2 < distanceSquared) {
-      nearest = actor;
-      distanceSquared = d2;
-    }
-  }
-  return nearest;
 }

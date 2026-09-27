@@ -4,15 +4,11 @@ import { createRangeControl } from './range-control.js';
 import { createNumberStepper } from './number-stepper.js';
 import { createAudioEngine } from '../audio/audio-engine.js';
 import { TIRE_COMPONENTS } from '../audio/tire-sound-controls.js';
-import { AUDIO_TIMING, rivalAudioGain, rivalAudioPan } from '../audio/audio-presentation.js';
+import { AUDIO_TIMING } from '../audio/audio-presentation.js';
+import { nearestAudibleRival, rivalSpatialization } from '../audio/audio-scene.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
-import {
-  createVehicleAudioObservation,
-  readEngineAudio,
-  readVehicleAudio,
-  nearestAudibleRival,
-} from './vehicle-audio.js';
+import { createVehicleAudioObservation, readEngineAudio, readVehicleAudio } from './vehicle-audio.js';
 
 // Touch activation arrives on release; pointerdown activates only a mouse.
 const GESTURE_EVENTS = ['pointerdown', 'pointerup', 'touchend', 'keydown'] as const;
@@ -314,17 +310,8 @@ export function createAudioLifecycle(sessionVehicle: CompiledVehicleDefinition) 
         }
         const rival = nextRival;
         readEngineAudio(rival, rivalState);
-        const dx = rival.x - player.x,
-          dy = rival.y - player.y,
-          dz = rival.z - player.z;
-        const distance = Math.hypot(dx, dy, dz);
-        const lateral = dx * Math.cos(player.yaw) - dz * Math.sin(player.yaw);
-        engine.updateRival(
-          rivalState,
-          sessionVehicle.sound,
-          rivalAudioGain(distance),
-          rivalAudioPan(lateral, distance),
-        );
+        const { gain, pan } = rivalSpatialization(player, rival);
+        engine.updateRival(rivalState, sessionVehicle.sound, gain, pan);
       } catch {
         fail();
       }

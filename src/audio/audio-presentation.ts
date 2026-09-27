@@ -6,7 +6,7 @@ export function rivalAudioGain(distanceMeters: number): number {
   return (0.6 / (1 + (distanceMeters / 12) ** 2)) * Math.max(0, 1 - distanceMeters / RIVAL_AUDIBLE_METERS);
 }
 
-/** Lateral displacement is supplied in the listener's yaw frame by the browser adapter. */
+/** Lateral displacement is supplied in the listener's yaw frame by the audio scene. */
 export function rivalAudioPan(lateralMeters: number, distanceMeters: number): number {
   return lateralMeters / Math.max(3, distanceMeters);
 }
