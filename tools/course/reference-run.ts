@@ -81,7 +81,8 @@ export function runCourseReference(
   // Work bound, not a replacement finish. A timed-out/recovered run publishes no reference product.
   const maxTicks = Math.ceil((READY_SECONDS + 3600 * lapCount) / SIM_DT);
   for (let tick = 0; tick < maxTicks; tick++) {
-    const section = scene.runtime.route.at(vehicle.course.s)!.section,
+    const occurrence = scene.runtime.route.at(vehicle.course.s)!,
+      section = occurrence.section,
       startSeconds = race.clock.elapsedSeconds;
     // The reference driver leaves the throttle closed during READY.
     const input =
@@ -121,8 +122,8 @@ export function runCourseReference(
     if (tick === maxTicks - 1)
       throw new RangeError(`${entry.compiledVehicle.id}: reference did not finish within the work limit`);
     // Require the requested route to be reached physically, never select it on behalf of the field.
-    if (section.fork && race.forks.choice(section.fork) && race.forks.choice(section.fork) !== planned.get(section))
-      throw new RangeError('Reference selected an unintended route');
+    const choice = section.fork ? race.forks.choice(occurrence) : null;
+    if (choice && choice !== planned.get(section)) throw new RangeError('Reference selected an unintended route');
   }
   // Center following is verified against pavement; telemetry is descriptive, not force authority.
   const finalOccurrence = scene.runtime.route.at(vehicle.course.s)!;

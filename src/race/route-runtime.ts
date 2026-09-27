@@ -1,5 +1,5 @@
 import type { CompiledSection } from '../course/compiler/course-graph.js';
-import { createCourseRoute, createRouteWindow } from '../course/course-route.js';
+import { createCourseRoute, createRouteWindow, selectedSuccessor } from '../course/course-route.js';
 import { createCourseRouteReaders } from '../course/course-route-readers.js';
 import type { CompiledCarriageway } from '../course/course-boundaries.js';
 import { PLAN_PROJECTION_WINDOW_METERS } from '../course/geometry/plan-coordinate.js';
@@ -44,10 +44,12 @@ export function createRouteRuntime(
     if (indexed !== window.occurrences) {
       indexed = window.occurrences;
       closedCarriageways = Object.freeze(
+        // Resident successors of fork occurrences, derived from the Route's selection.
         indexed.flatMap((occurrence) => {
-          const link = occurrence.incoming;
-          return link?.from.section.fork
-            ? link.from.section.outgoing.filter((other) => other !== link).map((other) => other.from.carriageway)
+          const fork = occurrence.ordinal > 0 ? route.occurrences[occurrence.ordinal - 1]! : null;
+          const link = fork?.section.fork ? selectedSuccessor(route, fork)! : null;
+          return link
+            ? fork!.section.outgoing.filter((other) => other !== link).map((other) => other.from.carriageway)
             : [];
         }),
       );

@@ -511,8 +511,12 @@ A crossing outside the coordinate domain or outside every fork interval selects 
 The player and rivals are eligible. Lock lines use the same route-s crossing function as race lines.
 The first forward crossing in a fixed step wins, using the s-derived fraction u and then stable actor
 ID for an exact tie. Interpolated route l, shifted by the occurrence's lateral origin, selects the
-fork interval. The winner appends one successor to the shared Route. Each occurrence locks once;
-checkpoint credit remains per actor.
+fork interval. The winner appends one successor to the shared Route. That successor occurrence is the only
+stored fork choice: the occurrence after a fork occurrence on the Route (`selectedSuccessor`). A fork occurrence
+with a successor is locked, so each occurrence locks once; its choice is looked up by occurrence, so repeated
+passes of one fork Section are distinct. The lock, the closed Carriageways and the legal recovery targets all
+derive from that successor; closed Carriageways are listed for the resident window's selected successors.
+Checkpoint credit remains per actor.
 
 Rivals immediately follow the selected Carriageway center. Unselected roads show saved state-selected
 signs. At/beyond closure, an actor is on a closed Carriageway when that exit exists at its s and

@@ -15,7 +15,7 @@
 - Engine sound load is the powertrain's effective opening.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **10-10 — Fork choice**.
+Next PR: **10-11 — Fork appearance**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -25,8 +25,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Give each settled fact one owner and give consumers read-only observations.
 
-- **10-10 — Fork choice:** the Route's selected successor is the only stored fork choice; locks, closed Carriageways
-  and legal targets are derived from it.
 - **10-11 — Fork appearance:** appearance references Carriageways by id and conditional signs follow the fork choice;
   the fork compiler no longer validates appearance; remove the sprite-path side channel and the term that treats a
   sprite's width as a longitudinal extent.

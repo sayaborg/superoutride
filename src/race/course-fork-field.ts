@@ -1,5 +1,5 @@
-import type { CompiledFork, CompiledLink } from '../course/compiler/course-graph.js';
-import { routeSectionS, type RouteOccurrence } from '../course/course-route.js';
+import type { CompiledLink } from '../course/compiler/course-graph.js';
+import { routeSectionS, selectedSuccessor, type RouteOccurrence } from '../course/course-route.js';
 import { courseCarriagewayExists, courseBoundaryAt, type CompiledCarriageway } from '../course/course-boundaries.js';
 import { routeCrossingFraction, type createRouteCrossSections, type RoutePosition } from './route-cross-sections.js';
 import type { CourseRoute } from '../course/course-route.js';
@@ -14,12 +14,9 @@ export function createCourseForkField(
   lines: ReturnType<typeof createRouteCrossSections>,
   select: (link: CompiledLink) => void,
 ) {
-  const locks = new Map<RouteOccurrence, CompiledLink>();
+  // The Route's selected successor is the only stored choice; locks and legal targets derive from it.
   return Object.freeze({
-    choice: (fork: CompiledFork) => {
-      for (const [occurrence, link] of locks) if (occurrence.section.fork === fork) return link;
-      return null;
-    },
+    choice: (occurrence: RouteOccurrence) => selectedSuccessor(route, occurrence),
     observe(
       motions: readonly {
         readonly id: string;
@@ -30,7 +27,8 @@ export function createCourseForkField(
     ) {
       for (const line of lines.forks) {
         const occurrence = line.occurrence;
-        if (locks.has(occurrence)) continue;
+        // A fork is decided once: an occurrence with a successor is already locked.
+        if (selectedSuccessor(route, occurrence)) continue;
         const fork = occurrence.section.fork!;
         let first: (typeof motions)[number] | null = null,
           firstU = Infinity;
@@ -46,10 +44,7 @@ export function createCourseForkField(
           firstU = u;
           selected = exit.link;
         }
-        if (first) {
-          select(selected!);
-          locks.set(occurrence, selected!);
-        }
+        if (first) select(selected!);
       }
     },
     targetL(s: number, lane: number) {
@@ -59,7 +54,7 @@ export function createCourseForkField(
       if (!fork)
         return lane + (occurrence.incoming ? occurrence.incoming.to.lateralOrigin - occurrence.lateralOrigin : 0);
       let road =
-        locks.get(occurrence)?.from.carriageway ??
+        selectedSuccessor(route, occurrence)?.from.carriageway ??
         fork.exits[lane < 0 ? 0 : fork.exits.length - 1]!.link.from.carriageway;
       const at = Math.min(
         section.coordinates.domain.end,
@@ -72,7 +67,7 @@ export function createCourseForkField(
     recoveryL(s: number, lane: number) {
       const occurrence = route.at(s)!;
       const at = routeSectionS(occurrence, s);
-      const selected = locks.get(occurrence)?.from.carriageway;
+      const selected = selectedSuccessor(route, occurrence)?.from.carriageway;
       const active = (road: CompiledCarriageway) =>
         courseCarriagewayExists(road, at, occurrence.section.coordinates.domain.end);
       const road =
@@ -91,7 +86,7 @@ export function createCourseForkField(
       if (!occurrence) return null;
       const section = occurrence.section,
         fork = section.fork;
-      const link = locks.get(occurrence);
+      const link = selectedSuccessor(route, occurrence);
       const nativeS = routeSectionS(occurrence, s);
       if (!fork || !link || nativeS < fork.closure.s) return null;
       const closed = fork.exits.some(({ link: exitLink }) => {

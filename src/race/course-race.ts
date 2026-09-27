@@ -297,7 +297,9 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
         if (course.type === 'CIRCUIT')
           state = `LAP ${Math.min(configuration.lapCount, player.progress.acceptedFinishCount + 1)}/${configuration.lapCount}`;
         else {
-          const choice = course.entry.fork ? (forks.choice(course.entry.fork)?.from.carriageway.id ?? 'OPEN') : 'GO';
+          const choice = course.entry.fork
+            ? (forks.choice(runtime.route.occurrences[0]!)?.from.carriageway.id ?? 'OPEN')
+            : 'GO';
           state = `ROUTE ${choice}`;
         }
       }

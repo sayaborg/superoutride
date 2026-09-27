@@ -279,7 +279,7 @@ export function runScenario({ course, ground }, scenario) {
     assert.equal(evidence.recoveries.length, 0, 'ordinary driving recovered');
     if (course.entry.fork)
       assert.equal(
-        race.forks.choice(course.entry.fork),
+        race.forks.choice(scene.runtime.route.occurrences[0]),
         course.entry.fork.exits[scenario.side < 0 ? 0 : course.entry.fork.exits.length - 1].link,
       );
   }

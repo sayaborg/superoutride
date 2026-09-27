@@ -173,6 +173,14 @@ export function createRouteWindow(route: CourseRoute) {
   });
 }
 
+/**
+ * The successor the Route selected after this occurrence, or null while it is undecided: the only stored
+ * fork choice. The Route starts at ordinal 0 and never discards, so an occurrence's successor is the next entry.
+ */
+export function selectedSuccessor(route: CourseRoute, occurrence: RouteOccurrence): CompiledLink | null {
+  return route.occurrences[occurrence.ordinal + 1]?.incoming ?? null;
+}
+
 /** The single route-to-Section conversion used by all route readers. */
 export function routeSectionS(occurrence: RouteOccurrence, s: number): number {
   return s - occurrence.start;
