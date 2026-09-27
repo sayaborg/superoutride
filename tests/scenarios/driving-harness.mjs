@@ -160,7 +160,10 @@ export function runScenario({ course, ground }, scenario) {
     const step = race.advance(input);
     if (step.recovered) {
       resetCameraRig(rig);
-      assert.equal(race.events.length, 0, 'recovery granted crossing credit');
+      assert.ok(
+        race.events.every((event) => event.competitorId !== race.player.id),
+        'recovery granted crossing credit',
+      );
       assert.equal(
         race.forks.legalTarget(vehicle.course.s, vehicle.course.l),
         null,
@@ -168,6 +171,7 @@ export function runScenario({ course, ground }, scenario) {
       );
     }
     for (const event of race.events) {
+      if (event.competitorId !== race.player.id) continue;
       const key = `${event.lap}:${event.landmark.id}`;
       assert.ok(!accepted.has(key), `crossing accepted twice: ${key}`);
       accepted.add(key);

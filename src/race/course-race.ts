@@ -1,9 +1,9 @@
 import type { ResolvedCourseSession } from './course-session.js';
-import { createCheckpointClock } from './checkpoint-clock.js';
-import { createRouteProgress, type RouteRaceEvent, type RouteRaceAdmission } from './route-progress.js';
+import { createCheckpointClock, raceEventSeconds } from './checkpoint-clock.js';
+import { createRouteProgress, type RouteRaceEvent } from './route-progress.js';
 import { createRouteCrossSections } from './route-cross-sections.js';
 import { createCourseForkField } from './course-fork-field.js';
-import { advanceRaceSession, createRaceSessionState, rankRaceProgress, formatRaceTime } from './race-session.js';
+import { rankRaceProgress, formatRaceTime } from './race-session.js';
 import {
   RECOVERY_SETTINGS,
   createRecoveryState,
@@ -27,6 +27,15 @@ import { SIM_DT } from './fixed-step.js';
 import type { createRouteRuntime } from './route-runtime.js';
 
 type RouteRuntime = ReturnType<typeof createRouteRuntime>;
+
+/** One accepted crossing: its competitor, line and race time (step start + u × SIM_DT). */
+export interface RaceEvent {
+  readonly competitorId: string;
+  readonly landmark: RouteRaceEvent['landmark'];
+  readonly lap: number;
+  readonly finish: boolean;
+  readonly timeSeconds: number;
+}
 interface Actor {
   readonly vehicle: VehicleState;
   readonly model: VehicleModel;
@@ -47,7 +56,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   const driver = envelope
     ? compileEnvelopeDriver(envelope, options.session.rivalUtilization, envelope.maximumSpeed)
     : null;
-  const clock = createCheckpointClock(budgets?.initialMs ?? null);
+  const clock = createCheckpointClock(budgets);
   const startPhase = createStartPhase();
   const lines = createRouteCrossSections(runtime.route, course, configuration.lapCount);
   // The fork field is the fork decider: the only holder of the Route's selection authority.
@@ -61,8 +70,8 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     get progress() {
       return this.observer.state;
     },
-    timing: createRaceSessionState(),
-    finishElapsedSeconds: null as number | null,
+    /** Race time of this competitor's finish event; null until it finishes. */
+    finishSeconds: null as number | null,
   });
   // Every competitor drives one model of the Session vehicle, spawned at its grid slot with the Session's start speed.
   const model = createVehicleModel(sessionVehicle, SIM_DT);
@@ -158,17 +167,10 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   publish();
   // Borrowed fixed-step observation; the camera owner consumes it before the next advance.
   const stepObservation = { recovered: false };
-  const noEvents: readonly RouteRaceEvent[] = Object.freeze([]);
+  // One ordered stream per step: every competitor's accepted crossings at their race time.
+  const noEvents: readonly RaceEvent[] = Object.freeze([]);
   let events = noEvents;
-  const clockEvents: { gate: RouteRaceEvent['landmark']; lap: number; u: number; finish: boolean; awardMs: number }[] =
-    [];
-  let pendingExpiry = Infinity,
-    stepStart = 0;
-  const admitPlayer: RouteRaceAdmission = (event) => {
-    if (stepStart + event.u * SIM_DT > pendingExpiry) return false;
-    if (event.landmark && !event.finish && budgets) pendingExpiry += budgets.after(event.landmark, event.lap) / 1000;
-    return true;
-  };
+  const stepEvents: RaceEvent[] = [];
 
   const step = (input: DrivingInput) => {
     if (startPhase.status === 'READY') {
@@ -176,8 +178,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       return;
     }
     if (clock.status !== 'RUNNING') return;
-    stepStart = clock.elapsedSeconds;
-    pendingExpiry = clock.expirySeconds ?? Infinity;
+    const stepStart = clock.beginStep();
     let minS = Infinity,
       maxS = -Infinity;
     for (const motion of motions) {
@@ -206,6 +207,8 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       maxS = Math.max(maxS, motion.c.actor.vehicle.course.s);
     }
     runtime.refresh(minS, maxS);
+    stepEvents.length = 0;
+    let playerFinishSeconds: number | null = null;
     for (const motion of motions) {
       const { c } = motion;
       motion.recovered = legalRecovery(c) || motion.recovered;
@@ -213,26 +216,29 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
         motion.previous,
         c.actor.vehicle.course,
         motion.recovered,
-        c === player ? admitPlayer : undefined,
+        // The clock decides the player's crossing candidates, in time order, against its deadline.
+        c === player ? clock.admit : undefined,
       );
-      if (c.finishElapsedSeconds === null) {
-        advanceRaceSession(c.timing, update);
-        if (update.justFinished) c.finishElapsedSeconds = c.timing.elapsedSeconds;
-      }
-      if (c === player) {
-        events = update.events;
-        clockEvents.length = 0;
-        for (const event of events)
-          clockEvents.push({
-            gate: event.landmark,
+      for (const event of update.events)
+        stepEvents.push(
+          Object.freeze({
+            competitorId: c.id,
+            landmark: event.landmark,
             lap: event.lap,
-            u: event.u,
             finish: event.finish,
-            awardMs: event.finish ? 0 : (budgets?.after(event.landmark, event.lap) ?? 0),
-          });
-        clock.advance(clockEvents);
+            timeSeconds: raceEventSeconds(stepStart, event.u),
+          }),
+        );
+      if (update.justFinished) {
+        c.finishSeconds = stepEvents.at(-1)!.timeSeconds;
+        if (c === player) playerFinishSeconds = c.finishSeconds;
       }
     }
+    // Time order; a stable sort keeps competitor order (player, then rivals) for equal times.
+    events = stepEvents.length
+      ? Object.freeze([...stepEvents].sort((a, b) => a.timeSeconds - b.timeSeconds))
+      : noEvents;
+    clock.completeStep(playerFinishSeconds);
     stepObservation.recovered = motions[0]!.recovered;
   };
 
@@ -240,6 +246,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     player,
     rivals,
     clock,
+    /** The last step's accepted crossings of every competitor, in race-time order. */
     get events() {
       return events;
     },
@@ -248,6 +255,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     /** One fixed step of SIM_DT; the race takes no step length. */
     advance(input: DrivingInput) {
       stepObservation.recovered = false;
+      events = noEvents;
       motions[0]!.step.input = input;
       step(input);
       publish();
@@ -280,7 +288,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
         competitors.map((c) => ({
           competitorId: c.id,
           s: c.progress.s,
-          finishElapsedSeconds: c.finishElapsedSeconds,
+          finishSeconds: c.finishSeconds,
         })),
       );
       const rank = standings.find((s) => s.competitorId === player.id)!.rank;
@@ -299,7 +307,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
           state = `ROUTE ${choice}`;
         }
       }
-      const start = player.timing.elapsedSeconds < 1 ? 'GO · ' : '';
+      const start = (player.finishSeconds ?? clock.elapsedSeconds) < 1 ? 'GO · ' : '';
       const remaining = clock.remainingSeconds;
       const timeLeft = remaining === null ? '' : ` · TIME ${Math.ceil(remaining)}`;
       const extension = clock.extensionMs > 0 ? ` · TIME EXTEND +${(clock.extensionMs / 1000).toFixed(1)}` : '';

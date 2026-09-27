@@ -1,6 +1,3 @@
-import type { RouteRaceEvent } from './route-progress.js';
-import { SIM_DT } from './fixed-step.js';
-
 // Milliseconds: display-only budget of 0.1 ns for accumulated fixed steps at an integer-ms tie.
 // For example, 60 additions of 1/60 s err by about 1e-12 ms; ranking/deadlines remain exact.
 const TIMER_ROUNDING_TOLERANCE_MILLISECONDS = 1e-7;
@@ -8,28 +5,16 @@ const TIMER_ROUNDING_TOLERANCE_MILLISECONDS = 1e-7;
 interface RaceRankingInput {
   readonly competitorId: string;
   readonly s: number;
-  readonly finishElapsedSeconds: number | null;
-}
-
-export function createRaceSessionState() {
-  return { elapsedSeconds: 0 };
-}
-
-/** One fixed step; accepted route fractions give the exact simulation time of the terminal crossing. */
-export function advanceRaceSession(
-  session: ReturnType<typeof createRaceSessionState>,
-  update: { readonly justFinished: boolean; readonly events: readonly RouteRaceEvent[] },
-): void {
-  session.elapsedSeconds += SIM_DT * (update.justFinished ? update.events.at(-1)!.u : 1);
+  readonly finishSeconds: number | null;
 }
 
 /** Finished cars precede unfinished cars; exact finish-time or route-s ties share a rank. */
 export function rankRaceProgress(inputs: readonly RaceRankingInput[]) {
   const compare = (a: RaceRankingInput, b: RaceRankingInput) => {
-    if (a.finishElapsedSeconds !== null || b.finishElapsedSeconds !== null) {
-      if (a.finishElapsedSeconds === null) return 1;
-      if (b.finishElapsedSeconds === null) return -1;
-      return a.finishElapsedSeconds - b.finishElapsedSeconds;
+    if (a.finishSeconds !== null || b.finishSeconds !== null) {
+      if (a.finishSeconds === null) return 1;
+      if (b.finishSeconds === null) return -1;
+      return a.finishSeconds - b.finishSeconds;
     }
     return b.s - a.s;
   };

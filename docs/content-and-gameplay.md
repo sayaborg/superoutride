@@ -555,6 +555,22 @@ recovery does not skip it. Accepted lines cannot be earned twice by backing up a
 At the terminal FINISH, the actor's distance and exact finish time are fixed. Before finishing,
 distance follows route s, including backward movement, without checkpoint-based clipping.
 
+### Race time and events
+
+Race time is the seconds since GO, held once by the checkpoint clock: each RUNNING fixed step adds `SIM_DT`.
+Each step produces one ordered event stream (`race.events`) of every competitor's accepted crossings. An event
+carries its competitor, its line (landmark, lap and whether it is the completing FINISH) and its race time,
+`stepStart + u*SIM_DT`, computed by one function (`raceEventSeconds`). The stream is in race-time order;
+equal times keep competitor order, the player before rivals in roster order. A step that does not run
+(READY hold or a finished clock) has an empty stream. Reference runs and scenarios read event times from it.
+
+Each fact is decided once. `RouteProgress` alone records accepted crossings. The clock alone holds the deadline
+and decides it: the player's crossing candidates go to it in time order, a candidate after the deadline is
+refused (and the step then ends in GAME OVER at the deadline), one exactly at the deadline is accepted, and an
+accepted checkpoint's award extends the deadline at once for later candidates in the same step. Each
+competitor's finish time is the time of its finish event, recorded once; the clock's GOAL time and ranking read
+it, and a running competitor's time is its finish time or else race time.
+
 Finished actors rank first by finish time. Unfinished actors rank by descending route s, which includes
 lap separation. Equal finish times or equal unfinished stations share a rank. Rival positions and
 audio observations already use the same route coordinates as the player.
@@ -619,8 +635,8 @@ budgetMs(state) = ceil(1000*timeMargin(course)*referenceSeconds(state))
 The margin and duration are positive finite values. START receives the initial budget. Each newly
 earned non-finish checkpoint adds the next budget once, carrying unused time without a cap. FINISH
 adds none. Precise event times determine ordering; awarded budgets alone round to integer milliseconds.
-All consecutive gates crossed in one step retain their crossing fractions. Earlier expiry ends the
-run; a valid checkpoint or FINISH wins an exact expiry tie. Rejected late crossings earn no line or lap credit.
+All consecutive gates crossed in one step retain their race times. Earlier expiry ends the
+run; a valid checkpoint or FINISH wins an exact expiry tie ([race time and events](#race-time-and-events)). Rejected late crossings earn no line or lap credit.
 
 ### Vehicle envelopes and drivers
 

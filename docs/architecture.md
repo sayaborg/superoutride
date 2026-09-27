@@ -581,8 +581,8 @@ mechanics, the player's included: one model of the Session vehicle, and each com
 at its grid slot with the Session's start speed. The shell and other compositions supply the player's input only;
 manual recovery is a race operation, and a DEV-only diagnostics accessor exposes the player's live state and model
 to the DEV vehicle HUD alone. `SIM_DT` is the only authority for the step length. The race advances in fixed
-steps of it: `advance(input)` takes no step length, and the start phase, checkpoint clock, per-competitor timers,
-recovery timing and within-step crossing times all use `SIM_DT`. The model carries its fixed step, received when
+steps of it: `advance(input)` takes no step length, and the start phase, the checkpoint clock's race time,
+recovery timing and event times all use `SIM_DT`. The model carries its fixed step, received when
 it is built; vehicle mechanics never import race, so every composition passes `SIM_DT` when it builds a model. The composition shared by
 browser, race, tools and scenarios lives below shell: race owns the Session vehicle (vehicle and
 driving definitions only, `createSessionVehicle`), the fixed simulation step (`SIM_DT`) and the course

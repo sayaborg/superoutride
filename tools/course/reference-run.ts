@@ -82,8 +82,7 @@ export function runCourseReference(
   const maxTicks = Math.ceil((READY_SECONDS + 3600 * lapCount) / SIM_DT);
   for (let tick = 0; tick < maxTicks; tick++) {
     const occurrence = scene.runtime.route.at(vehicle.course.s)!,
-      section = occurrence.section,
-      startSeconds = race.clock.elapsedSeconds;
+      section = occurrence.section;
     // The reference driver leaves the throttle closed during READY.
     const input =
       race.clock.status === 'READY'
@@ -99,7 +98,8 @@ export function runCourseReference(
       envelopeAt(envelope, vehicle.speed, workspace.envelope).lateral;
     maximumLateralUtilization = Math.max(maximumLateralUtilization, utilization);
     for (const event of race.events) {
-      const timeSeconds = startSeconds + event.u * SIM_DT;
+      if (event.competitorId !== race.player.id) continue;
+      const { timeSeconds } = event;
       events.push({
         landmarkId: event.landmark.id,
         lap: event.lap,
