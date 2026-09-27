@@ -2,7 +2,7 @@ import { sessionVehicleSha256 } from '../../src/race/session-vehicle.js';
 import type { CompiledCourse, TimedCompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import type { CompiledCourseLandmark } from '../../src/course/compiler/course-rules.js';
 import type { SessionVehicle } from '../../src/race/session-configuration.js';
-import { REFERENCE_DRIVER } from './reference-driving-policy.js';
+import { REFERENCE_DRIVER_SHA256 } from './reference-driving-policy.js';
 import type { CourseTimeBudgets } from '../../src/race/course-session.js';
 import { enumerateCourseRoutes } from '../../src/course/compiler/course-routes.js';
 import { createCourseRoute } from '../../src/course/course-route.js';
@@ -45,14 +45,9 @@ export async function readCourseReference(
     return value;
   };
   const source = record(structuredClone(input));
-  fail(source.format === 'superoutride.course-reference' && source.version === 1, 'unsupported format/version');
+  fail(source.format === 'superoutride.course-reference' && source.version === 2, 'unsupported format/version');
   fail(source.courseBuildSha256 === course.identity.buildSha256, 'stale course identity');
-  const driver = record(source.driver);
-  fail(
-    Object.keys(driver).length === Object.keys(REFERENCE_DRIVER).length &&
-      Object.entries(REFERENCE_DRIVER).every(([key, value]) => driver[key] === value),
-    'stale driver identity',
-  );
+  fail(source.driverSha256 === REFERENCE_DRIVER_SHA256, 'stale driver identity');
   const candidates = array(source.vehicles)
     .map(record)
     .filter((r) => r.vehicleId === vehicle.vehicleDefinition.compiledVehicle.id);

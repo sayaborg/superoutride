@@ -76,11 +76,13 @@ Run after building the completed vehicle sprite library (read as content data, n
 npm run course -- compile content/courses/ribbon-coast.course.json
 npm run course -- render content/courses/ribbon-coast.course.json --s 100 --l 0 --vehicle TESTAROSSA --out /tmp/course.png
 npm run course -- report content/courses/ribbon-coast.course.json --step 25 --out /tmp/course-report
-npm run course -- reference content/courses/ribbon-coast.course.json --out /tmp/reference.json
+npm run course -- reference content/courses/ribbon-coast.course.json --vehicle TESTAROSSA --out /tmp/reference.json
+npm run course -- envelope --vehicle TESTAROSSA --out /tmp/envelope.json
 node --import tsx tools/course/measure.ts request.json --out observations.json
 ```
 
-`npm run compile:course -- <source.json> [--images directory]` reports the compiled course.
+`npm run compile:course -- <source.json> [--images directory]` reports the compiled course. The `reference` and
+`envelope` diagnostic exports require `--vehicle` with a catalog vehicle ID and `--out`.
 [Content and gameplay](content-and-gameplay.md#observation-formats) owns saved tool formats.
 The render command uses the shared product scene; reports and preview images are disposable outputs.
 

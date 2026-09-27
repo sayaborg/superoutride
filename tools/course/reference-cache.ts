@@ -4,14 +4,17 @@ import { atomicWrite } from './authoring-io.js';
 
 const referenceCacheDirectory = new URL('../../.cache/course-reference/', import.meta.url);
 export const digest = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
-/** Vehicle values are an independent key component; editing one vehicle definition cannot invalidate its peers. */
+/**
+ * Vehicle values are an independent key component; editing one vehicle definition cannot invalidate its peers.
+ * `procedure` identifies what produced the value: the reference driver for runs, the measurement for envelopes.
+ */
 export function referenceCacheKey(
   courseBuildSha256: string | null,
   vehicleSha256: string,
-  driver: unknown,
+  procedure: unknown,
   physicsSha256: string,
 ) {
-  return digest({ courseBuildSha256, vehicleSha256, driver, physicsSha256 });
+  return digest({ courseBuildSha256, vehicleSha256, procedure, physicsSha256 });
 }
 export async function cachedReference<T>(
   kind: string,

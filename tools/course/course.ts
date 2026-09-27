@@ -35,8 +35,12 @@ import {
 
 const [verb, file, ...args] = process.argv.slice(2);
 try {
-  if (['envelope', 'reference'].includes(verb!)) {
-    console.log(JSON.stringify(await referenceCommand(verb!, file!, args)));
+  if (verb === 'envelope') {
+    // An envelope names no course; every argument is an option.
+    console.log(JSON.stringify(await referenceCommand(verb, null, file === undefined ? [] : [file, ...args])));
+  } else if (verb === 'reference') {
+    requireInput(file, '/arguments', 'Usage: npm run course -- reference course.json --vehicle ID --out file');
+    console.log(JSON.stringify(await referenceCommand(verb, file, args)));
   } else {
     requireInput(
       ['compile', 'render', 'report'].includes(verb!) && file,

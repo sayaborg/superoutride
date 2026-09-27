@@ -5,7 +5,7 @@ import { readDeliveredContent } from '../course/read-content.js';
 import { loadDeliveredCourse } from '../../src/content/load-delivered-course.js';
 import { isTimedCourse } from '../../src/course/compiler/compiled-course.js';
 import { createSessionVehicle, sessionVehicleSha256 } from '../../src/race/session-vehicle.js';
-import { REFERENCE_DRIVER } from '../course/reference-driving-policy.js';
+import { REFERENCE_DRIVER_SHA256 } from '../course/reference-driving-policy.js';
 import { readCourseReference } from '../course/course-reference.js';
 import {
   COURSE_TIME_BUDGETS_FORMAT,
@@ -15,7 +15,7 @@ import {
 import { RIVAL_ENVELOPE_FORMAT, readVehicleEnvelope } from '../../src/race/vehicle-envelope.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
 import { cachedReference, referenceCacheKey } from '../course/reference-cache.js';
-import { measureVehicleEnvelope } from '../course/vehicle-envelope.js';
+import { ENVELOPE_MEASUREMENT, measureVehicleEnvelope } from '../course/vehicle-envelope.js';
 import { runCourseReference } from '../course/reference-run.js';
 import { enumerateCourseRoutes } from '../../src/course/compiler/course-routes.js';
 import { loadCourseGround } from '../course/authoring-io.js';
@@ -32,7 +32,7 @@ let hits = 0,
   misses = 0;
 const envelope = await cachedReference(
   'envelopes',
-  referenceCacheKey(null, vehicleSha256, REFERENCE_DRIVER.version, physicsSha256),
+  referenceCacheKey(null, vehicleSha256, ENVELOPE_MEASUREMENT, physicsSha256),
   () => measureVehicleEnvelope(vehicle),
 );
 if (envelope.hit) hits++;
@@ -49,7 +49,7 @@ const products: CourseReferenceResult['products'] = [{ kind: 'envelope', id: veh
 for (const stem of stems) {
   const course = await loadDeliveredCourse(content, stem, materials);
   if (!isTimedCourse(course)) throw new Error(`${stem}: reference jobs require CLASSIC settings`);
-  const key = referenceCacheKey(course.identity.buildSha256, vehicleSha256, REFERENCE_DRIVER, physicsSha256);
+  const key = referenceCacheKey(course.identity.buildSha256, vehicleSha256, REFERENCE_DRIVER_SHA256, physicsSha256);
   const cached = await cachedReference('runs', key, async () => {
     const ground = await loadCourseGround(course);
     return enumerateCourseRoutes(course.entry, course.type).map((route) =>
@@ -61,10 +61,10 @@ for (const stem of stems) {
   const candidate = { vehicleId, vehicleSha256, runs: cached.value };
   const reference = {
     format: 'superoutride.course-reference',
-    version: 1,
+    version: 2,
     courseBuildSha256: course.identity.buildSha256,
     modelSha256: physicsSha256,
-    driver: REFERENCE_DRIVER,
+    driverSha256: REFERENCE_DRIVER_SHA256,
     vehicles: [candidate],
   };
   const budgets = await readCourseReference(course, vehicle, reference);

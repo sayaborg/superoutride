@@ -664,7 +664,11 @@ budgets ([Browser](browser.md#dev-controls)). This digest is a
 reference-cache key component and is independently recomputed by browser envelope and budget admission;
 both reject products carrying an old digest.
 The reference model hash tracks compiler/mechanics code; authored JSON values belong to the per-vehicle
-digest, so editing one vehicle does not invalidate unchanged vehicles' cache keys. For a budget state, reference duration is the maximum upcoming interval among
+digest, so editing one vehicle does not invalidate unchanged vehicles' cache keys. The reference driver has one
+identity, `REFERENCE_DRIVER_SHA256`: SHA-256 of its record's JSON with sorted keys. Reference-run cache keys,
+saved reports (`superoutride.course-reference` and `superoutride.reference-run` version 2 record it as
+`driverSha256`) and report admission all use it. Envelope measurement does not use the reference driver: its cache
+key names the measurement procedure (`ENVELOPE_MEASUREMENT`: version, fixed step and reference surface). For a budget state, reference duration is the maximum upcoming interval among
 continuous histories sharing that state and its legal next checkpoint/finish alternatives.
 
 ```text

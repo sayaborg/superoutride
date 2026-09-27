@@ -3,7 +3,7 @@ import { writeFile, mkdir } from 'node:fs/promises';
 import { Worker } from 'node:worker_threads';
 import { availableParallelism } from 'node:os';
 import type { VehicleDefinitions } from '../../src/content/vehicle-catalog.js';
-import { REFERENCE_DRIVER } from '../course/reference-driving-policy.js';
+import { REFERENCE_DRIVER_SHA256 } from '../course/reference-driving-policy.js';
 import { referenceModelIdentity } from '../course/reference-identity.js';
 
 import type { TimedCompiledCourse } from '../../src/course/compiler/compiled-course.js';
@@ -73,10 +73,10 @@ export async function buildCourseReferences(
       stem,
       {
         format: 'superoutride.course-reference',
-        version: 1,
+        version: 2,
         courseBuildSha256: course.identity.buildSha256,
         modelSha256: physicsSha256,
-        driver: REFERENCE_DRIVER,
+        driverSha256: REFERENCE_DRIVER_SHA256,
         vehicles: [] as ReferenceCandidate[],
       },
     ]),

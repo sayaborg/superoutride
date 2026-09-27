@@ -44,6 +44,13 @@ function createEnvelopeRun(entry: SessionVehicle, initialSpeed: number) {
 }
 
 /** The flat reference surface, production control/protection, ordinary inputs; no imposed velocity or force during measurement. */
+/** The envelope measurement procedure's identity: its version, fixed step and reference surface. */
+export const ENVELOPE_MEASUREMENT = Object.freeze({
+  version: 1,
+  dt: SIM_DT,
+  surface: ENVELOPE_REFERENCE_SURFACE.id,
+});
+
 export function measureVehicleEnvelope(entry: SessionVehicle) {
   const make = (initialSpeed: number) => createEnvelopeRun(entry, initialSpeed);
   const step = (p: ReturnType<typeof createEnvelopeRun>, input: DrivingInput) =>
@@ -148,9 +155,7 @@ export function measureVehicleEnvelope(entry: SessionVehicle) {
     maximumSpeed,
     rows: samples,
     measurement: {
-      version: 1,
-      dt: SIM_DT,
-      surface: ENVELOPE_REFERENCE_SURFACE.id,
+      ...ENVELOPE_MEASUREMENT,
       convergenceSeconds: elapsed,
       acceleration,
       braking,
