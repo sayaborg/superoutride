@@ -1,0 +1,17 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 1,
+  "form": "bike",
+  "selectionOrder": 8,
+  "visuals": { "spriteSet": "motorcycle", "palette": "original", "steeringRatio": 18 },
+  "sound": "FXRT_SPORT_GLIDE",
+  "metadata": {
+    "manufacturer": "Harley-Davidson",
+    "model": "FXRT Sport Glide",
+    "period": "1984–1992",
+    "mobileLabel": "FXRT",
+    "identifier": { "officialLabel": "FXRT", "shortLabel": "FXRT" },
+    "selectedSpecification": ["Evolution 1340"],
+    "physicsAnchor": { "modelYear": "1988", "market": "US" }
+  }
+}

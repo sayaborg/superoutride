@@ -28,8 +28,8 @@ the next step uses the replacement, and a vehicle switch builds the new vehicle'
 tuned definition. The front/rear tire slots remain for now; both start with the same coefficients.
 
 `SessionVehicle` holds the admitted vehicle, driving and surface-material definitions;
-`createVehicleModel` derives nothing from the vehicle's form, and `vehicleSha256` hashes the source
-documents.
+`createVehicleModel` derives nothing from the vehicle's listing, and `vehicleSha256` hashes the
+mechanics, driving and material source documents.
 [Content and gameplay](content-and-gameplay.md#reference-times-and-clock) owns this cross-product identity.
 
 The engine owns tire and steering low-speed regularization (both 1.0 m/s) in
@@ -433,22 +433,31 @@ The content layer's `compileSurfaceMaterials` admits it once from the build's fi
 document, named `surface`. It publishes one immutable catalog. Course compilation resolves Strip material IDs through that catalog;
 runtime physics receives the resolved object or `null`, never a fixed material enum.
 
-`content/vehicles/<id>.json` stores one `superoutride.vehicle-definition` version 7 per vehicle.
-`content/driving/default.json` stores the sole `superoutride.driving-definition` version 9.
+A vehicle is two documents with the same identifier. `content/vehicles/<id>.json` stores its
+`superoutride.vehicle-mechanics` version 1 document: exactly the values vehicle physics reads.
+`content/vehicle-listings/<id>.json` stores its `superoutride.vehicle-listing` version 1 document:
+everything else players see or hear of it. A value belongs to the mechanics document when physics
+reads it and to the listing otherwise; `form` and the metadata's `physicsAnchor` therefore belong to
+the listing. `content/driving/default.json` stores the sole `superoutride.driving-definition` version 9.
 A material, vehicle or driving document's only identifier is its file name without `.json`, which is
 also its manifest ID; the documents carry none. The content layer's `compileVehicleDefinitions` admits
 the catalog from the build's files or delivery's manifest entries alike: exactly one driving definition,
-named `default`, and at least one vehicle, whose file name becomes its compiled vehicle ID; selection
-orders are unique.
+named `default`, and at least one vehicle. It pairs each mechanics document with the listing of the
+same identifier, which becomes the compiled vehicle ID, and rejects either document without the other
+(`unresolved_reference` at that document's root); selection orders are unique.
 [Calibration](calibration.md) owns tuning meanings and units. Document admission in
 `vehicle/definition-document.ts` publishes detached, deeply immutable source and compiled products.
 
-| Vehicle field       | Contract                                                                                                                                                                          |
+| Mechanics field     | Contract                                                                        |
+| ------------------- | ------------------------------------------------------------------------------- |
+| `format`, `version` | `superoutride.vehicle-mechanics`, `1`                                           |
+| Remaining fields    | All `VehicleDefinition` fields except `id`, including `powertrain`, at the root |
+
+| Listing field       | Contract                                                                                                                                                                          |
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`, `version` | `superoutride.vehicle-definition`, `7`                                                                                                                                            |
-| `form`              | `car` or `bike`; one shared physical/display form vocabulary                                                                                                                      |
+| `format`, `version` | `superoutride.vehicle-listing`, `1`                                                                                                                                               |
+| `form`              | `car` or `bike`; selects sprite bank dimensions and form-specific displays; physics does not read it                                                                              |
 | `selectionOrder`    | Positive safe integer, unique across the catalog; ascending selection order independent of filenames and manifest order                                                           |
-| `mechanics`         | All `VehicleDefinition` mechanical fields except `id`, including powertrain; no display ratio                                                                                     |
 | `visuals`           | `spriteSet` names a vehicle sprite set; `palette` names its default color; `steeringRatio` is a finite nonnegative HUD ratio                                                      |
 | `sound`             | Existing ID in `VEHICLE_SOUND_PROFILES`; sound definitions remain TypeScript                                                                                                      |
 | `metadata`          | Required manufacturer, model, period and mobileLabel strings; identifier (null or officialLabel/shortLabel); selectedSpecification string array; physicsAnchor (modelYear/market) |
@@ -490,8 +499,8 @@ Relationships identify an actionable field and name related inputs: gear orderin
 violating element, curve coverage to `torqueCurve`, and a peak-power point at redline points to
 that torque-curve element's `rpm`.
 Only `definition-document.ts` converts these relative paths into document JSON Pointers (through
-`admitDomain`), attaching
-`/mechanics` for vehicle fields, and the document filename. Driving paths start at the
+`admitDomain`) with the document filename; mechanics paths start at the mechanics document's root
+(for example `/mass`). Driving paths start at the
 driving document's fields. Unsupported earlier versions have no migration reader.
 Only explicit authored-domain failures become diagnostics; unexpected internal errors propagate.
 Success returns `{ok:true,value}`; no partial product is published. Nested arrays and records are
@@ -501,10 +510,10 @@ selection-order uniqueness, then exposes the sorted immutable
 collection. Surface-material diagnostics likewise carry the source document and exact JSON Pointer;
 course references to unknown material IDs report the authored Strip `/material` path.
 
-Vehicle admission receives the completed sprite library with the vehicle document. It resolves the
+Listing admission receives the completed sprite library with the listing document. It resolves the
 named set and the default color for every image once. Cars require exactly one bank image per yaw;
 bikes require an odd bank count of at least three, including neutral. Image admission guarantees at
 least two identical named color choices across the set and one shared brake-lamp off/on declaration
 for reserved slot 15. Image colors omit that reserved slot.
-Unresolved set/color and incompatible bank dimensions produce vehicle-document diagnostics;
+Unresolved set/color and incompatible bank dimensions produce listing-document diagnostics;
 malformed library/set declarations identify the image document. Consumers receive the admitted set.

@@ -1,0 +1,17 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 1,
+  "form": "car",
+  "selectionOrder": 5,
+  "visuals": { "spriteSet": "coupe", "palette": "original", "steeringRatio": 18 },
+  "sound": "DELTA_HF_INTEGRALE",
+  "metadata": {
+    "manufacturer": "Lancia",
+    "model": "Delta HF Integrale",
+    "period": "1988–1989",
+    "mobileLabel": "DELTA",
+    "identifier": null,
+    "selectedSpecification": ["8V", "185 PS"],
+    "physicsAnchor": { "modelYear": "1988", "market": "European/ROW" }
+  }
+}

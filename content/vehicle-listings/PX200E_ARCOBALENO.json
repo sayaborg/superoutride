@@ -1,0 +1,17 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 1,
+  "form": "bike",
+  "selectionOrder": 9,
+  "visuals": { "spriteSet": "motorcycle", "palette": "original", "steeringRatio": 18 },
+  "sound": "PX200E_ARCOBALENO",
+  "metadata": {
+    "manufacturer": "Vespa",
+    "model": "PX 200 E Arcobaleno",
+    "period": "1983–1997",
+    "mobileLabel": "PX200",
+    "identifier": { "officialLabel": "VSX1T", "shortLabel": "VSX1T" },
+    "selectedSpecification": ["200 cc full-power"],
+    "physicsAnchor": { "modelYear": "1985", "market": "Italian/European" }
+  }
+}

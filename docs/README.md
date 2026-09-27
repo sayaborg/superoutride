@@ -47,6 +47,7 @@ explicitly scheduled in [NEXT](NEXT.md) are replaced with their owning concepts.
 | `vertex`              | A polyline point derived during compilation, including compiled Boundary vertices and `ProfilePolyline` points; never authored.                                          |
 | `segment`             | A planar straight or circular arc derived from authored PIs during compilation; never authored.                                                                          |
 | `Definition`          | An author-written parameter record; vehicle and game-wide driving definitions have versioned JSON documents. Validated immutable products use `Compiled*`.               |
+| `listing`             | A vehicle's non-mechanical document: form, labels and metadata, selection order, sprite set and default color, sound ID and HUD steering ratio.                          |
 | `Compiled*`           | A validated immutable product derived from authored inputs.                                                                                                              |
 | `Reader`              | A query interface over admitted data; it does not own the consumer's live simulation state.                                                                              |
 | `Route`               | The one selected, ordered sequence of Section occurrences measured from the entry; all vehicles share its chainage.                                                      |

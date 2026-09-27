@@ -1,0 +1,17 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 1,
+  "form": "car",
+  "selectionOrder": 1,
+  "visuals": { "spriteSet": "coupe", "palette": "original", "steeringRatio": 18 },
+  "sound": "TESTAROSSA",
+  "metadata": {
+    "manufacturer": "Ferrari",
+    "model": "Testarossa",
+    "period": "1988½–1991",
+    "mobileLabel": "F110",
+    "identifier": { "officialLabel": "Tipo F110", "shortLabel": "F110" },
+    "selectedSpecification": ["5-bolt wheels"],
+    "physicsAnchor": { "modelYear": "1989", "market": "European/ROW" }
+  }
+}

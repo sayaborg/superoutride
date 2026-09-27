@@ -581,7 +581,7 @@ Environment timelines are course data.
 ## Definition delivery
 
 The content manifest includes `vehicle` and `driving` entries alongside course, image, envelope and
-budget entries. The build layout authority writes `vehicles/<id>.json` and `driving/default.json`.
+budget entries. The build layout authority writes `vehicles/<id>.json`, `vehicle-listings/<id>.json` and `driving/default.json`.
 Vehicle and driving document formats and their compilation belong to the vehicle layer; the content layer
 assembles their catalog, and the generic manifest only resolves and verifies their bytes. Definition compilation resolves named sprite sets/default colors from the SHA-verified image library and sound IDs through the lower audio layer's
 TypeScript sound products and returns deeply immutable records. [Vehicle physics](vehicle-physics.md#vehicle-and-driving-documents)

@@ -1,0 +1,17 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 1,
+  "form": "bike",
+  "selectionOrder": 7,
+  "visuals": { "spriteSet": "motorcycle", "palette": "original", "steeringRatio": 18 },
+  "sound": "R80_GS_PARIS_DAKAR",
+  "metadata": {
+    "manufacturer": "BMW",
+    "model": "R 80 G/S Paris-Dakar",
+    "period": "1984–1987",
+    "mobileLabel": "R80",
+    "identifier": null,
+    "selectedSpecification": [],
+    "physicsAnchor": { "modelYear": "1985", "market": "European/ROW" }
+  }
+}

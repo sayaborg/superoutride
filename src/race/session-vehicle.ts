@@ -13,10 +13,10 @@ export function createSessionVehicle(
   return Object.freeze({ vehicleDefinition, drivingDefinition, surfaceMaterials });
 }
 
-/** Reference identity: saved vehicle, game-wide driving and surface-material definitions. */
+/** Reference identity: saved vehicle mechanics, game-wide driving and surface-material definitions. */
 export function sessionVehicleSha256(vehicle: SessionVehicle): Promise<string> {
   const identity = JSON.stringify({
-    vehicle: vehicle.vehicleDefinition.source,
+    vehicle: vehicle.vehicleDefinition.mechanics,
     driving: vehicle.drivingDefinition.source,
     surfaceMaterials: vehicle.surfaceMaterials.source,
   });

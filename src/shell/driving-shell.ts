@@ -194,7 +194,7 @@ export function createBrowserDrivingShell(
       exportVehicle.addEventListener('click', () =>
         downloadDefinition(
           `${model.compiledVehicle.id}.json`,
-          vehicleDefinitionForId(vehicles, model.compiledVehicle.id).source,
+          vehicleDefinitionForId(vehicles, model.compiledVehicle.id).mechanics,
         ),
       );
       showVehicleExport();

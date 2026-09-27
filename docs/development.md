@@ -138,8 +138,8 @@ vehicle envelopes, continuous reference runs and game time budgets. Matching dis
 
 `dist/delivery/manifest.json` is the sole delivery index. Its own
 `format: "superoutride.content-manifest", version: 1` identifies the index format; entries have only
-`{kind, id, path, sha256}`. Kinds are `course`, `image`, `vehicle`, `driving`, `envelope` and `budget`. IDs are respectively
-the course selection key, image digest (or logical `vehicles` collection), vehicle ID,
+`{kind, id, path, sha256}`. Kinds are `course`, `image`, `vehicle`, `vehicle-listing`, `driving`, `envelope` and `budget`. IDs are respectively
+the course selection key, image digest (or logical `vehicles` collection), vehicle ID, vehicle ID,
 `default`, vehicle ID and `<course>/<vehicle>` budget key. Entries contain no payload format/version.
 
 The shared manifest reader admits the index through the admission toolkit as document `manifest.json`
@@ -172,7 +172,8 @@ and budgets; the build reads this from each course document. Node tools also rea
 
 | Output                                          | Use                                                                                                                                                                   |
 | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `dist/delivery/vehicles/<id>.json`              | Versioned vehicle definitions                                                                                                                                         |
+| `dist/delivery/vehicles/<id>.json`              | Versioned vehicle mechanics documents                                                                                                                                 |
+| `dist/delivery/vehicle-listings/<id>.json`      | Versioned vehicle listing documents                                                                                                                                   |
 | `dist/delivery/driving/default.json`            | Versioned game-wide driving definition                                                                                                                                |
 | `dist/delivery/manifest.json`                   | Delivery index and digest authority                                                                                                                                   |
 | `dist/delivery/courses/<course>.course.json`    | CourseDocument v28                                                                                                                                                    |

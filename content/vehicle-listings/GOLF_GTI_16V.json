@@ -1,0 +1,17 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 1,
+  "form": "car",
+  "selectionOrder": 4,
+  "visuals": { "spriteSet": "coupe", "palette": "original", "steeringRatio": 18 },
+  "sound": "GOLF_GTI_16V",
+  "metadata": {
+    "manufacturer": "Volkswagen",
+    "model": "Golf GTI 16V",
+    "period": "1986–1989",
+    "mobileLabel": "GTI",
+    "identifier": { "officialLabel": "Mk2", "shortLabel": "Mk2" },
+    "selectedSpecification": ["small bumpers"],
+    "physicsAnchor": { "modelYear": "1988", "market": "European/ROW" }
+  }
+}

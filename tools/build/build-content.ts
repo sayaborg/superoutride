@@ -58,10 +58,15 @@ validateTireSoundMaterialIds(materials.source.materials.map((material) => materi
 await writer.stage('material', SURFACE_MATERIALS_ID, materials.source);
 
 const vehicleSources = await sources('vehicles'),
+  listingSources = await sources('vehicle-listings'),
   drivingSources = await sources('driving');
-const definitions = requireLoaded(compileVehicleDefinitions(library.sprites, drivingSources, vehicleSources));
-for (const { id } of vehicleSources)
-  await writer.stage('vehicle', id, definitions.vehicles.find((entry) => entry.compiledVehicle.id === id)!.source);
+const definitions = requireLoaded(
+  compileVehicleDefinitions(library.sprites, drivingSources, vehicleSources, listingSources),
+);
+for (const vehicle of definitions.vehicles) {
+  await writer.stage('vehicle', vehicle.compiledVehicle.id, vehicle.mechanics);
+  await writer.stage('vehicle-listing', vehicle.compiledVehicle.id, vehicle.listing);
+}
 await writer.stage('driving', DRIVING_DEFINITION_ID, definitions.driving.source);
 
 const courses: { course: CompiledCourse; stem: string }[] = [];

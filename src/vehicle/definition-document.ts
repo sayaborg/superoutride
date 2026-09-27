@@ -32,18 +32,35 @@ export interface VehicleMetadata {
   readonly physicsAnchor: Readonly<{ modelYear: string; market: string }>;
   readonly mobileLabel: string;
 }
-export interface VehicleDocument {
-  readonly format: 'superoutride.vehicle-definition';
-  readonly version: 7;
+/** The mechanics document: exactly the values vehicle physics reads. */
+export interface VehicleMechanicsDocument extends Omit<VehicleDefinition, 'id'> {
+  readonly format: 'superoutride.vehicle-mechanics';
+  readonly version: 1;
+}
+/** The listing document: how a vehicle is named, ordered, drawn, heard and shown on the HUD. */
+export interface VehicleListingDocument {
+  readonly format: 'superoutride.vehicle-listing';
+  readonly version: 1;
   readonly form: VehicleForm;
   readonly selectionOrder: number;
-  readonly mechanics: Omit<VehicleDefinition, 'id'>;
   readonly visuals: Readonly<{ spriteSet: string; palette: string; steeringRatio: number }>;
   readonly sound: string;
   readonly metadata: VehicleMetadata;
 }
+export interface CompiledVehicleMechanics {
+  readonly source: VehicleMechanicsDocument;
+  readonly compiledVehicle: CompiledVehicle;
+}
+export interface CompiledVehicleListing extends VehicleMetadata {
+  readonly source: VehicleListingDocument;
+  readonly spriteSet: VehicleSpriteSet;
+  readonly form: VehicleForm;
+  readonly sound: VehicleAudioProfile;
+}
+/** One vehicle: its mechanics and listing documents, paired by identifier in the catalog. */
 export interface CompiledVehicleDefinition extends VehicleMetadata {
-  readonly source: VehicleDocument;
+  readonly mechanics: VehicleMechanicsDocument;
+  readonly listing: VehicleListingDocument;
   readonly spriteSet: VehicleSpriteSet;
   readonly form: VehicleForm;
   readonly compiledVehicle: CompiledVehicle;
@@ -73,19 +90,59 @@ const mechanicalNumbers = [
 ] as const;
 const powertrainNumbers = ['displacementCc', 'cycle', 'idleRpm', 'redlineRpm', 'finalDriveRatio'] as const;
 
-/** `id` is the document's identifier, supplied by its catalog: the file name and manifest ID. */
-export function compileVehicleDocument(
+/** `id` is the vehicle's identifier, supplied by its catalog: the file name and manifest ID. */
+export function compileVehicleMechanicsDocument(
   value: unknown,
   id: string,
   document: string,
-  sprites: SpriteAssets,
-): AdmissionResult<CompiledVehicleDefinition> {
+): AdmissionResult<CompiledVehicleMechanics> {
   return admit(document, () => {
     const v = readDocument(
       value,
-      ['format', 'version', 'form', 'selectionOrder', 'mechanics', 'sound', 'metadata', 'visuals'],
-      'superoutride.vehicle-definition',
-      7,
+      ['format', 'version', ...mechanicalNumbers, 'powertrain'],
+      'superoutride.vehicle-mechanics',
+      1,
+    );
+    const mechanics = Object.fromEntries(mechanicalNumbers.map((key) => [key, readNumber(v[key], `/${key}`)]));
+    const p = readRecord(v.powertrain, '/powertrain', [...powertrainNumbers, 'gearRatios', 'torqueCurve']);
+    const powertrain = {
+      ...Object.fromEntries(powertrainNumbers.map((key) => [key, readNumber(p[key], `/powertrain/${key}`)])),
+      gearRatios: readArray(p.gearRatios, '/powertrain/gearRatios', (x, at) => readNumber(x, at)),
+      torqueCurve: readArray(p.torqueCurve, '/powertrain/torqueCurve', (x, path) => {
+        const point = readRecord(x, path, ['rpm', 'torqueNewtonMeters']);
+        return {
+          rpm: readNumber(point.rpm, path + '/rpm'),
+          torqueNewtonMeters: readNumber(point.torqueNewtonMeters, path + '/torqueNewtonMeters'),
+        };
+      }),
+    };
+    const definition = { ...mechanics, powertrain } as unknown as Omit<VehicleDefinition, 'id'>;
+    const source: VehicleMechanicsDocument = deepFreeze({
+      format: 'superoutride.vehicle-mechanics',
+      version: 1,
+      ...definition,
+    });
+    const compiledVehicle = admitDomain(
+      () => compileVehicle({ id, ...definition }),
+      // The catalog supplies an admitted identifier; its failure would locate the document root.
+      (path) => (path === 'id' ? '' : relativePointer(path)),
+    );
+    return Object.freeze({ source, compiledVehicle });
+  });
+}
+
+/** A listing resolves its sprite set, default color and sound against their admitted catalogs. */
+export function compileVehicleListingDocument(
+  value: unknown,
+  document: string,
+  sprites: SpriteAssets,
+): AdmissionResult<CompiledVehicleListing> {
+  return admit(document, () => {
+    const v = readDocument(
+      value,
+      ['format', 'version', 'form', 'selectionOrder', 'visuals', 'sound', 'metadata'],
+      'superoutride.vehicle-listing',
+      1,
     );
     requireAdmission(v.form === 'car' || v.form === 'bike', 'invalid_value', '/form', 'Expected car or bike');
     const selectionOrder = readNumber(v.selectionOrder, '/selectionOrder');
@@ -95,22 +152,6 @@ export function compileVehicleDocument(
       '/selectionOrder',
       'Expected a positive safe integer',
     );
-    const m = readRecord(v.mechanics, '/mechanics', [...mechanicalNumbers, 'powertrain']);
-    const mechanics = Object.fromEntries(
-      mechanicalNumbers.map((key) => [key, readNumber(m[key], `/mechanics/${key}`)]),
-    );
-    const p = readRecord(m.powertrain, '/mechanics/powertrain', [...powertrainNumbers, 'gearRatios', 'torqueCurve']);
-    const powertrain = {
-      ...Object.fromEntries(powertrainNumbers.map((key) => [key, readNumber(p[key], `/mechanics/powertrain/${key}`)])),
-      gearRatios: readArray(p.gearRatios, '/mechanics/powertrain/gearRatios', (x, at) => readNumber(x, at)),
-      torqueCurve: readArray(p.torqueCurve, '/mechanics/powertrain/torqueCurve', (x, path) => {
-        const point = readRecord(x, path, ['rpm', 'torqueNewtonMeters']);
-        return {
-          rpm: readNumber(point.rpm, path + '/rpm'),
-          torqueNewtonMeters: readNumber(point.torqueNewtonMeters, path + '/torqueNewtonMeters'),
-        };
-      }),
-    };
     const strings = ['manufacturer', 'model', 'period', 'mobileLabel'] as const;
     const meta = readRecord(v.metadata, '/metadata', [
       ...strings,
@@ -158,28 +199,35 @@ export function compileVehicleDocument(
     if (!Object.hasOwn(VEHICLE_SOUND_PROFILES, soundId))
       throw new AdmissionError('unresolved_reference', '/sound', `Unknown sound ID: ${soundId}`);
     const source = deepFreeze({
-      format: 'superoutride.vehicle-definition',
-      version: 7,
+      format: 'superoutride.vehicle-listing',
+      version: 1,
       form: v.form,
       selectionOrder,
       visuals,
-      mechanics: { ...mechanics, powertrain },
       sound: soundId,
       metadata,
-    } as unknown as VehicleDocument);
-    const compiledVehicle = admitDomain(
-      () => compileVehicle({ id, ...source.mechanics }),
-      // The catalog supplies an admitted identifier; its failure would locate the document root.
-      (path) => (path === 'id' ? '' : relativePointer(path, '/mechanics')),
-    );
+    } as unknown as VehicleListingDocument);
     return Object.freeze({
       ...metadata,
       source,
       spriteSet,
       form: source.form,
-      compiledVehicle,
       sound: VEHICLE_SOUND_PROFILES[soundId as keyof typeof VEHICLE_SOUND_PROFILES],
     });
+  });
+}
+
+/** Pair one vehicle's compiled mechanics and listing. */
+export function createVehicleDefinition(
+  mechanics: CompiledVehicleMechanics,
+  listing: CompiledVehicleListing,
+): CompiledVehicleDefinition {
+  const { source, ...shown } = listing;
+  return Object.freeze({
+    ...shown,
+    mechanics: mechanics.source,
+    listing: source,
+    compiledVehicle: mechanics.compiledVehicle,
   });
 }
 

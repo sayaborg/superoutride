@@ -1,0 +1,17 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 1,
+  "form": "car",
+  "selectionOrder": 2,
+  "visuals": { "spriteSet": "coupe", "palette": "original", "steeringRatio": 18 },
+  "sound": "911_TURBO_3_3",
+  "metadata": {
+    "manufacturer": "Porsche",
+    "model": "911 Turbo 3.3",
+    "period": "1989",
+    "mobileLabel": "930",
+    "identifier": { "officialLabel": "Type 930", "shortLabel": "930" },
+    "selectedSpecification": ["G50/50 5-speed"],
+    "physicsAnchor": { "modelYear": "1989", "market": "European/ROW" }
+  }
+}

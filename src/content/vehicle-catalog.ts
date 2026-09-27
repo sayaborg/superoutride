@@ -3,7 +3,9 @@ import { readSpriteAssets, type SpriteAssets } from '../vehicle/vehicle-sprite-l
 import type { CompiledDrivingDefinition } from '../vehicle/compiled-driving-definition.js';
 import {
   compileDrivingDocument,
-  compileVehicleDocument,
+  compileVehicleListingDocument,
+  compileVehicleMechanicsDocument,
+  createVehicleDefinition,
   type CompiledVehicleDefinition,
 } from '../vehicle/definition-document.js';
 import type { ContentDelivery } from './content-manifest.js';
@@ -23,13 +25,15 @@ export const DRIVING_DEFINITION_ID = 'default';
 
 /**
  * Admit the catalog from its sources, from the build's files or delivery's manifest alike: exactly one
- * driving definition, named `default`, and at least one vehicle document against an admitted sprite
- * library. Each vehicle's identifier is its source's file name; selection orders are unique.
+ * driving definition, named `default`, and at least one vehicle. A vehicle is a mechanics document and
+ * a listing document with the same identifier, its file name; either one alone is rejected. Listings
+ * resolve against an admitted sprite library, and selection orders are unique.
  */
 export function compileVehicleDefinitions(
   sprites: SpriteAssets,
   drivingSources: readonly DocumentSource[],
-  vehicleSources: readonly DocumentSource[],
+  mechanicsSources: readonly DocumentSource[],
+  listingSources: readonly DocumentSource[],
 ): AdmissionResult<VehicleDefinitions> {
   const single = admitSingleDocument(drivingSources, DRIVING_DEFINITION_ID, 'driving definition');
   if (!single.ok) return single;
@@ -37,26 +41,38 @@ export function compileVehicleDefinitions(
   if (!driving.ok) return driving;
   const orders = new Set<number>();
   const vehicles: CompiledVehicleDefinition[] = [];
-  for (const file of vehicleSources) {
-    const entry = compileVehicleDocument(file.value, file.id, file.path, sprites);
-    if (!entry.ok) return entry;
-    const catalogRules = admit(file.path, () =>
+  for (const file of mechanicsSources) {
+    const mechanics = compileVehicleMechanicsDocument(file.value, file.id, file.path);
+    if (!mechanics.ok) return mechanics;
+    const listingFile = listingSources.find((source) => source.id === file.id);
+    const paired = admit(file.path, () =>
+      requireAdmission(!!listingFile, 'unresolved_reference', '', `Expected the vehicle listing ${file.id}`),
+    );
+    if (!paired.ok) return paired;
+    const listing = compileVehicleListingDocument(listingFile!.value, listingFile!.path, sprites);
+    if (!listing.ok) return listing;
+    const catalogRules = admit(listingFile!.path, () =>
       requireAdmission(
-        !orders.has(entry.value.source.selectionOrder),
+        !orders.has(listing.value.source.selectionOrder),
         'duplicate_id',
         '/selectionOrder',
         'Duplicate selection order',
       ),
     );
     if (!catalogRules.ok) return catalogRules;
-    orders.add(entry.value.source.selectionOrder);
-    vehicles.push(entry.value);
+    orders.add(listing.value.source.selectionOrder);
+    vehicles.push(createVehicleDefinition(mechanics.value, listing.value));
   }
+  const unpaired = listingSources.find((listing) => !mechanicsSources.some((source) => source.id === listing.id));
+  const listed = admit(unpaired?.path ?? '', () =>
+    requireAdmission(!unpaired, 'unresolved_reference', '', `Expected the vehicle mechanics ${unpaired?.id}`),
+  );
+  if (!listed.ok) return listed;
   const nonempty = admit('', () =>
     requireAdmission(vehicles.length > 0, 'invalid_value', '', 'Expected at least one vehicle definition'),
   );
   if (!nonempty.ok) return nonempty;
-  vehicles.sort((a, b) => a.source.selectionOrder - b.source.selectionOrder);
+  vehicles.sort((a, b) => a.listing.selectionOrder - b.listing.selectionOrder);
   return Object.freeze({
     ok: true as const,
     value: Object.freeze({ vehicles: Object.freeze(vehicles), driving: driving.value }),
@@ -66,13 +82,15 @@ export function compileVehicleDefinitions(
 /** Transport verifies every payload SHA before either admission boundary sees decoded content. */
 export async function loadVehicleDefinitions(content: ContentDelivery): Promise<VehicleDefinitions> {
   const sprites = await loadVehicleSpriteLibrary(content);
-  const read = async (kind: 'driving' | 'vehicle') => {
+  const read = async (kind: 'driving' | 'vehicle' | 'vehicle-listing') => {
     const sources: DocumentSource[] = [];
     for (const file of content.manifest.files.filter((file) => file.kind === kind))
       sources.push({ id: file.id, path: file.path, value: await content.json(kind, file.id) });
     return sources;
   };
-  return requireLoaded(compileVehicleDefinitions(sprites, await read('driving'), await read('vehicle')));
+  return requireLoaded(
+    compileVehicleDefinitions(sprites, await read('driving'), await read('vehicle'), await read('vehicle-listing')),
+  );
 }
 export interface VehicleDefinitions {
   readonly vehicles: readonly CompiledVehicleDefinition[];

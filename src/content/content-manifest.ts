@@ -11,7 +11,8 @@ import {
 } from '../core/admission.js';
 import { missingContent, requireLoaded } from './content-load-error.js';
 
-export type ContentKind = 'course' | 'image' | 'envelope' | 'budget' | 'vehicle' | 'driving' | 'material';
+export type ContentKind =
+  'course' | 'image' | 'envelope' | 'budget' | 'vehicle' | 'vehicle-listing' | 'driving' | 'material';
 export interface ContentEntry {
   readonly kind: ContentKind;
   readonly id: string;
@@ -31,6 +32,7 @@ const CONTENT_KINDS: readonly ContentKind[] = [
   'envelope',
   'budget',
   'vehicle',
+  'vehicle-listing',
   'driving',
   'material',
 ];

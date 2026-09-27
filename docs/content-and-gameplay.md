@@ -584,12 +584,11 @@ Maximum-lap runs supply their actual prefixes; starting and later-lap arrival cl
 
 Identity includes course/compiler, vehicle/calibration/protection, driver policy, fixed step, start
 and seed inputs. The vehicle digest (`sessionVehicleSha256`) is SHA-256 of the deterministic JSON
-serialization of the admitted vehicle source document, driving source document and surface-material
-source document. The vehicle source includes form, metadata and sound ID. Everything else a Session
-drives—compiled mechanics, driving settings and material physics—derives
-from those sources. Definition readers construct these records in a fixed field order; arbitrary input
-key order does not affect identity. Any vehicle, driving or surface-material value change changes
-`vehicleSha256`. This digest is a
+serialization of the admitted vehicle mechanics source document, driving source document and
+surface-material source document. Everything a Session drives—compiled mechanics, driving settings and
+material physics—derives from those sources; the vehicle listing is not part of it. Definition readers
+construct these records in a fixed field order; arbitrary input key order does not affect identity. Any
+mechanics, driving or surface-material value change changes `vehicleSha256`; a listing change does not. This digest is a
 reference-cache key component and is independently recomputed by browser envelope and budget admission;
 both reject products carrying an old digest. Manifest SHA-256 verifies transported bytes separately.
 The reference model hash tracks compiler/mechanics code; authored JSON values belong to the per-vehicle
