@@ -234,7 +234,8 @@ lap numbers weakly by occurrence identity. Chainage additions follow the same or
 no division by lap length or occurrence ordinal supplies lap numbers.
 
 The crossing calculation works entirely in `(s,l)`: forward arrival brackets the line's s, and
-linear interpolation supplies both the within-step fraction and the crossing l. A constant-s line
+linear interpolation between the outer step's end points supplies both the within-step fraction and the
+crossing l ([crossing-time contract](content-and-gameplay.md#route-cross-sections-and-progress)). A constant-s line
 is the normal cross section of the authoritative plan. There is no Section-world pose conversion or
 world-segment intersection in progress or fork selection. Gameplay orders and consumes these
 crossings as specified in [Content and gameplay](content-and-gameplay.md#route-cross-sections-and-progress).
@@ -351,6 +352,10 @@ there is no universal millimetre bound without bounds on grade change and curve 
 Other objects retain authoritative height and are
 not shifted to the ground-row approximation.
 
+The pseudo projection is the projection contract. It is the product's definition of the view, not an
+approximation of a perspective projection, and Terrain (with the ground rows that Strips color), Sprites and the
+player share it (`pseudoProject`); the background reads the same horizon.
+
 ```text
 d = s_object-s_camera                    d > 0
 xr = (X-Xcam)*cos(psiCam)-(Z-Zcam)*sin(psiCam)
@@ -360,8 +365,9 @@ screenY = cy-f*sin(phi)-scale*(Y-Ycam)*cos(phi)
 horizonY = cy-f*sin(phi)
 ```
 
-Depth is chainage difference. Equal depth gives equal scale, and equal depth/height gives equal
-screen Y. Each terrain station projects to one horizontal line with affine horizontal texture mapping.
+Depth is chainage difference. `scale = f/d` does not depend on camera pitch `phi` or height; pitch moves the
+horizon by `f*sin(phi)` and scales height differences by `cos(phi)`. Equal depth gives equal scale, and equal
+depth/height gives equal screen Y. Each terrain station projects to one horizontal line with affine horizontal texture mapping.
 Ground rows are generated per visible interval between consecutive polyline vertices, environment
 interval starts and the visible ends. Each interval projects with the line of the polyline segment that
 contains it, independent of chainage rounding at its ends, so adjacent projected intervals meet.

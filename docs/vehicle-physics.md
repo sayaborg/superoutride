@@ -390,7 +390,13 @@ if zero drive also fails, the bound is zero. The nose-down side acts in the fina
 the delivered drive torque: a failing brake request bisects one brake scale 12 times, applying ABS
 to each trial, and if zero brake also fails, brake torque is zero and `pitchFeasible=false`.
 Protection only reduces the opening and the brake; it adds no restoring force, also when a landing
-or a step has rotated the body beyond the limit. The bound is a continuous function of the current
+or a step has rotated the body beyond the limit. There `h < 0` and the same inequality applies, so the drive
+bound and the brake scale fall, to zero when zero drive or zero brake still fails.
+
+The barrier guarantees one bound: the drive and brake contribution to the body pitch acceleration under the
+wrench evaluated at substep start. It does not cover the road line's own acceleration, the bump-stop impulses
+applied after the barrier is evaluated (which can change the pitch rate), or discretization error; within those,
+pitch can exceed the limit. The bound is a continuous function of the current
 state, so it does not chatter near the limit. Torque protection is the same for both forms.
 
 ## Actuators and steering

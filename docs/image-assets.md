@@ -97,9 +97,12 @@ The image is an 80 by 40 tile map of 16 by 16 patterns, giving 1280 by 640 pixel
 Tiles are row-major and bind a pattern and 16-entry palette. The background is opaque: admission
 rejects any pattern index 0, used or not, at its JSON Pointer inside the image, so the background
 writes every pixel it covers. The map is a single infinite plane with fixed angular scale and no LOD.
-Horizontal wrap covers 360 degrees at `1280/(2*pi)` pixels/radian. The source horizon and Section-frame
-yaw origin are authored; yaw and pitch scroll the map. Vertical sine mapping uses the camera horizon
-and compresses detail near zenith/nadir. Frame changes transform yaw origin with camera yaw.
+The source horizon row and Section-frame yaw origin are authored; yaw and pitch scroll the map, and camera
+translation has no effect. Vertically the mapping is linear: the screen horizon row
+([projection](architecture.md#height-and-projection)) meets the image's horizon row, each screen row shows one
+image row (`imageY = round(imageHorizonY + y - horizonY)`), and rows beyond the image's top or bottom repeat its
+edge row. Horizontally the image width of 1280 pixels spans 2π, at `1280/(2*pi)` pixels/radian, offset by the
+camera yaw from the yaw origin and wrapping around 360 degrees. Frame changes transform yaw origin with camera yaw.
 `compileTileBackground` admits this document and builds the immutable `TileBackgroundImage` reader;
 the reader's constructor keeps only its local invariant that every tile binds an existing pattern and palette.
 

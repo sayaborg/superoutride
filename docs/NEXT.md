@@ -15,7 +15,7 @@
 - Engine sound load is the powertrain's effective opening.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **10-16 — Model contracts (documentation)**.
+Next PR: **10-17 — Reference as race observer**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -25,11 +25,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Give each settled fact one owner and give consumers read-only observations.
 
-- **10-16 — Model contracts (documentation):** crossing times are interpolated within the outer step; the pitch
-  barrier bounds the drive and brake contribution under the wrench at substep start, excluding road-line
-  acceleration, bump-stop impulses and discretization; the pseudo projection (`f·sin α`, chainage depth, scale
-  independent of pitch and height) is the projection contract; the background maps rows linearly and one image width
-  spans 2π horizontally.
 - **10-17 — Reference as race observer:** reference runs record the race's event stream and take itineraries and laps
   from `RouteCrossSections`; one route enumerator; course admission owns the route-count ceiling (256). Driver intent
   names a target exit, so middle exits are reachable, and grid side no longer implies an exit. Cache keys use one

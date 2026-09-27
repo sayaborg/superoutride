@@ -545,7 +545,13 @@ or the terminal Section's FINISH on a non-circuit, completes the race.
 `routeCrossingFraction` accepts a forward arrival when `previous.s < line.s <= current.s` and the
 interpolated l is inside the closed coordinate domain at the line. Its fraction is
 `u = (line.s - previous.s) / (current.s - previous.s)`. Departure from a line does not repeat an
-arrival. Reverse travel and recovery steps grant no crossing credit. Carriageway width and material
+arrival.
+
+Crossing times are interpolated within the outer step. `previous` and `current` are the vehicle's `(s,l)` at
+the start and end of one fixed step, and u and the crossing l interpolate linearly between them; they are not
+the exact crossing of the path the vehicle follows through its 12 mechanics substeps. Event times
+(`stepStart + u*SIM_DT`), acceptance, the deadline, finish times and fork decisions are all decided on this
+approximation. Reverse travel and recovery steps grant no crossing credit. Carriageway width and material
 support do not limit a race line's width.
 
 `createRouteProgress` is the single implementation for all course kinds. Each actor retains its next
