@@ -8,6 +8,7 @@ import {
   RECOVERY_SETTINGS,
   createRecoveryState,
   advanceVehicleWithRecovery,
+  recoverVehicle,
   recoverVehicleToPlanCoordinate,
   type RecoveryState,
 } from './recovery.js';
@@ -23,6 +24,8 @@ import {
   type CompetitorObservation,
 } from './competitor-observation.js';
 import { SIM_DT } from './fixed-step.js';
+import { createSessionVehicle } from './session-vehicle.js';
+import type { CompiledDrivingDefinition } from '../vehicle/compiled-driving-definition.js';
 import type { createRouteRuntime } from './route-runtime.js';
 
 type RouteRuntime = ReturnType<typeof createRouteRuntime>;
@@ -32,15 +35,16 @@ interface Actor {
   readonly recovery: RecoveryState;
 }
 
-/** Field composition over shared course readers, ordinary mechanics and ordered physical gates. */
-export function createCourseRace(options: {
-  readonly session: ResolvedCourseSession;
-  readonly player: Actor;
-  readonly runtime: RouteRuntime;
-}) {
-  const { course, configuration, grid, initialSpeed, budgets } = options.session;
+/**
+ * Field composition over shared course readers, ordinary mechanics and ordered physical gates. The race
+ * builds every competitor's mechanics, the player's included, from the Session vehicle; callers supply
+ * the player's input only.
+ */
+export function createCourseRace(options: { readonly session: ResolvedCourseSession; readonly runtime: RouteRuntime }) {
+  const { course, configuration, grid, budgets } = options.session;
+  const { initialSpeed } = configuration;
   const { runtime } = options;
-  const { vehicle: rival, envelope } = options.session;
+  const { vehicle: sessionVehicle, envelope } = options.session;
   const driver = compileEnvelopeDriver(envelope, options.session.rivalUtilization, envelope.maximumSpeed);
   const clock = createCheckpointClock(budgets?.initialMs ?? null);
   const startPhase = createStartPhase();
@@ -58,14 +62,21 @@ export function createCourseRace(options: {
     timing: createRaceSessionState(),
     finishElapsedSeconds: null as number | null,
   });
-  const player = competitor('PLAYER', options.player, grid[0]!.l);
-  // The whole roster shares one model of the Session vehicle.
-  const rivalModel = createVehicleModel(rival, SIM_DT);
+  // Every competitor drives one model of the Session vehicle, spawned at its grid slot with the Session's start speed.
+  const model = createVehicleModel(sessionVehicle, SIM_DT);
+  const spawn = (slot: (typeof grid)[number], actorModel: VehicleModel) => {
+    const vehicle = createVehicle(actorModel, runtime.readers, { s: slot.at.s, l: slot.l, initialSpeed });
+    return { vehicle, model: actorModel, recovery: createRecoveryState(vehicle) };
+  };
+  // Only the interim DEV tuning path replaces the player's model (removed in 10-7b).
+  const playerActor: { readonly vehicle: VehicleState; model: VehicleModel; readonly recovery: RecoveryState } = spawn(
+    grid[0]!,
+    model,
+  );
+  const player = competitor('PLAYER', playerActor, grid[0]!.l);
   const rivals = createRivalRoster(configuration).map(({ actorId, rivalIndex }) => {
     const slot = grid[rivalIndex + 1]!;
-    const targetL = slot.l;
-    const vehicle = createVehicle(rivalModel, runtime.readers, { s: slot.at.s, l: targetL, initialSpeed });
-    return competitor(actorId, { vehicle, model: rivalModel, recovery: createRecoveryState(vehicle) }, targetL);
+    return competitor(actorId, spawn(slot, model), slot.l);
   });
   const resync = (c: typeof player) => c.observer.resync(c.actor.vehicle.course);
   const lane = (c: typeof player, s: number) => forks.targetL(s, c.targetL);
@@ -119,11 +130,15 @@ export function createCourseRace(options: {
   // Borrowed competitor observations: every advance overwrites them at the end of its fixed step.
   const playerObservation = createCompetitorObservation(
     player.id,
-    options.session.vehicle.vehicleDefinition.compiledVehicle.id,
-    options.session.vehicle.vehicleDefinition.form,
+    sessionVehicle.vehicleDefinition.compiledVehicle.id,
+    sessionVehicle.vehicleDefinition.form,
   );
   const rivalObservations = rivals.map((c) =>
-    createCompetitorObservation(c.id, rivalModel.compiledVehicle.id, rival.vehicleDefinition.form),
+    createCompetitorObservation(
+      c.id,
+      sessionVehicle.vehicleDefinition.compiledVehicle.id,
+      sessionVehicle.vehicleDefinition.form,
+    ),
   );
   const competitorObservations = [playerObservation, ...rivalObservations];
   const publish = () => {
@@ -236,7 +251,6 @@ export function createCourseRace(options: {
     },
     start: () => startPhase.begin(),
     forks,
-    recoveryL: (s: number) => forks.recoveryL(s, player.targetL),
     advance(input: DrivingInput, dt: number) {
       stepObservation.recovered = false;
       motions[0]!.step.input = input;
@@ -244,10 +258,30 @@ export function createCourseRace(options: {
       publish();
       return stepObservation;
     },
-    resyncPlayer() {
+    /**
+     * Manual recovery of the player: the ordinary recovery toward its lane, then a legal-road check and a
+     * progress baseline reset that award no progress, then a fresh observation.
+     */
+    recoverPlayer() {
+      recoverVehicle(runtime.readers, playerActor.vehicle, playerActor.model, {
+        state: playerActor.recovery,
+        reason: 'manual',
+        settings: player.recoverySettings,
+      });
       legalRecovery(player);
       resync(player);
       publish();
+    },
+    /** Interim DEV tuning path until 10-7b: the player alone drives a model of the tuned driving definition. */
+    tunePlayerDriving(driving: CompiledDrivingDefinition) {
+      playerActor.model = createVehicleModel(
+        createSessionVehicle(sessionVehicle.vehicleDefinition, driving, sessionVehicle.surfaceMaterials),
+        SIM_DT,
+      );
+    },
+    /** DEV vehicle HUD only: the player's live mechanics for diagnosis. No other consumer may read it. */
+    get playerDiagnostics(): { readonly vehicle: VehicleState; readonly model: VehicleModel } {
+      return playerActor;
     },
     observe() {
       observations();

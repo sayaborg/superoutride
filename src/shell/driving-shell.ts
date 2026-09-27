@@ -4,24 +4,16 @@ import { createDrivingLifecycle, type DrivingLifecycleOptions } from './driving-
 import type { CameraRig } from '../view/camera.js';
 import { createCameraRig, setCameraYawMode, type CameraState } from '../view/camera.js';
 import { LOGICAL_HEIGHT, LOGICAL_WIDTH } from '../view/display-scale.js';
-import type { RecoveryState } from '../race/recovery.js';
-import { createRecoveryState } from '../race/recovery.js';
 import { SoftwareSurface } from '../view/software-surface.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import type { DrivingDocument } from '../vehicle/driving-definition.js';
 import { InputManager } from '../input/input-manager.js';
 import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
-import { createVehicle } from '../vehicle/physics/vehicle-physics.js';
-import { createVehicleModel, type VehicleModel } from '../vehicle/physics/vehicle-model.js';
-import type { VehicleWorld } from '../course/vehicle-world.js';
+import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import { drawVehicleLeanDebug } from './debug/vehicle-lean-debug.js';
 import { drawVehicleYawDebug } from './debug/vehicle-yaw-debug.js';
-import {
-  compileDrivingDocument,
-  vehicleDefinitionForId,
-  type CompiledVehicleDefinition,
-} from '../vehicle/definition-document.js';
-import { DRIVING_DEFINITION_ID, type VehicleDefinitions } from '../content/vehicle-catalog.js';
+import { compileDrivingDocument, type CompiledVehicleDefinition } from '../vehicle/definition-document.js';
+import { DRIVING_DEFINITION_ID } from '../content/vehicle-catalog.js';
 import { admitDrivingTuningGrid } from './driving-tuning.js';
 import { mountDrivingTuningControls } from './driving-tuning-controls.js';
 import { downloadDefinition } from './definition-export.js';
@@ -29,17 +21,12 @@ import type { BrowserCourseModeQuery } from './course-mode-selection.js';
 import { mustGet } from './dom.js';
 import { createFrameLoop, type FrameLoop } from './frame-loop.js';
 import { mountMobileCameraYawSelector } from './mobile-selector-controls.js';
-import { createSessionVehicle } from '../race/session-vehicle.js';
-import { SIM_DT } from '../race/fixed-step.js';
 import { browserUsesTouchInterface } from './touch-interface.js';
 import { drawVehicleDebugHud } from './vehicle-debug-hud.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
 
 interface BrowserDrivingShell {
-  readonly vehicle: VehicleState;
-  readonly model: VehicleModel;
   readonly presentation: CompiledVehicleDefinition;
-  readonly recovery: RecoveryState;
   readonly framebuffer: SoftwareSurface;
   readonly inputManager: InputManager;
   readonly cameraRig: CameraRig;
@@ -50,21 +37,19 @@ interface BrowserDrivingShell {
     camera: CameraState,
     playerScreenY: number,
     observed: { readonly player: CompetitorObservation; readonly rivals: readonly CompetitorObservation[] },
+    diagnostics: { readonly vehicle: VehicleState; readonly model: VehicleModel },
   ): void;
   start(tick: (dt: number) => void, render: () => void): void;
   stop(): void;
   dispose(): void;
 }
 
-/** Shared browser/player wiring only. Route ticks, recovery geography and race state stay in roots. */
-export function createBrowserDrivingShell(
-  runtime: VehicleWorld,
-  startL: number,
-  spawn: { readonly initialSpeed: number; readonly s: number; readonly vehicle: SessionVehicle },
-  definitions: VehicleDefinitions,
-): BrowserDrivingShell {
-  const { vehicles } = definitions;
-  admitDrivingTuningGrid(spawn.vehicle.drivingDefinition.source);
+/**
+ * Browser wiring for the Session vehicle: display, input, audio and DEV controls. It supplies the player's
+ * input only; the race owns every competitor's mechanics.
+ */
+export function createBrowserDrivingShell(sessionVehicle: SessionVehicle): BrowserDrivingShell {
+  admitDrivingTuningGrid(sessionVehicle.drivingDefinition.source);
   const canvas = mustGet<HTMLCanvasElement>('game');
   canvas.width = LOGICAL_WIDTH;
   canvas.height = LOGICAL_HEIGHT;
@@ -75,30 +60,13 @@ export function createBrowserDrivingShell(
   const imageData = ctx.createImageData(LOGICAL_WIDTH, LOGICAL_HEIGHT);
   const framebuffer = new SoftwareSurface(LOGICAL_WIDTH, LOGICAL_HEIGHT, new Uint32Array(imageData.data.buffer));
   const inputManager = new InputManager();
-  // DEV tuning edits the driving definition and rebuilds the whole model; the next step uses it.
-  let driving = spawn.vehicle.drivingDefinition;
-  let model = createVehicleModel(spawn.vehicle, SIM_DT);
-  const vehicle = createVehicle(model, runtime, { s: spawn.s, l: startL, initialSpeed: spawn.initialSpeed });
-  const sessionVehicleDefinition = spawn.vehicle.vehicleDefinition;
+  // DEV tuning edits the driving definition; the race rebuilds the player's model from it for the next step.
+  let driving = sessionVehicle.drivingDefinition;
+  const sessionVehicleDefinition = sessionVehicle.vehicleDefinition;
   const sessionVehicleId = sessionVehicleDefinition.compiledVehicle.id;
-  const tuning = {
-    get: () => driving.source,
-    set: (definition: DrivingDocument) => {
-      // A tuned definition is not a delivered document and has no reference identity.
-      const admitted = compileDrivingDocument(definition, 'DEV driving tuning', null);
-      if (!admitted.ok) return false;
-      driving = admitted.value;
-      model = createVehicleModel(
-        createSessionVehicle(sessionVehicleDefinition, driving, spawn.vehicle.surfaceMaterials),
-        SIM_DT,
-      );
-      return true;
-    },
-  };
-  const recovery = createRecoveryState(vehicle);
   const cameraRig = createCameraRig();
 
-  const audio = createAudioLifecycle(vehicles);
+  const audio = createAudioLifecycle(sessionVehicleDefinition);
   let loop: FrameLoop | null = null;
   window.addEventListener('pagehide', () => {
     loop?.stop();
@@ -125,23 +93,25 @@ export function createBrowserDrivingShell(
       loop?.stop();
       audio.dispose();
     },
-    get vehicle() {
-      return vehicle;
-    },
-    get model() {
-      return model;
-    },
     get presentation() {
-      return vehicleDefinitionForId(vehicles, model.compiledVehicle.id);
-    },
-    get recovery() {
-      return recovery;
+      return sessionVehicleDefinition;
     },
     framebuffer,
     inputManager,
     cameraRig,
     mountControls(options: DrivingLifecycleOptions) {
-      const lifecycle = createDrivingLifecycle(this, options);
+      const lifecycle = createDrivingLifecycle(cameraRig, options);
+      const tuning = {
+        get: () => driving.source,
+        set: (definition: DrivingDocument) => {
+          // A tuned definition is not a delivered document and has no reference identity.
+          const admitted = compileDrivingDocument(definition, 'DEV driving tuning', null);
+          if (!admitted.ok) return false;
+          driving = admitted.value;
+          options.tunePlayerDriving(driving);
+          return true;
+        },
+      };
       const cameraYawSelector = mountMobileCameraYawSelector(
         mustGet('camera-selector-buttons'),
         cameraRig.yawMode,
@@ -181,13 +151,21 @@ export function createBrowserDrivingShell(
       camera: CameraState,
       playerScreenY: number,
       observed: { readonly player: CompetitorObservation; readonly rivals: readonly CompetitorObservation[] },
+      diagnostics: { readonly vehicle: VehicleState; readonly model: VehicleModel },
     ): void {
       const { player } = observed;
       audio.update(player, observed.rivals);
       ctx.putImageData(imageData, 0, 0);
-      const entry = vehicleDefinitionForId(vehicles, model.compiledVehicle.id);
-      // The DEV vehicle HUD diagnoses mechanics internals and reads the live state and model directly.
-      drawVehicleDebugHud(ctx, query, input, vehicle, model, driving.source, entry);
+      // The DEV vehicle HUD diagnoses mechanics internals through the race's DEV-only diagnostics.
+      drawVehicleDebugHud(
+        ctx,
+        query,
+        input,
+        diagnostics.vehicle,
+        diagnostics.model,
+        driving.source,
+        sessionVehicleDefinition,
+      );
       if (player.form === 'bike') {
         drawVehicleLeanDebug(ctx, camera.playerScreenX, playerScreenY, player);
       }

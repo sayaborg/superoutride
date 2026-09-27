@@ -22,8 +22,15 @@ export function resolveCourseSession(
   if (requested.mode === 'CLASSIC' && preset === null) throw new RangeError('An untimed course has no CLASSIC Session');
   const configuration: Readonly<SessionConfiguration> =
     requested.mode === 'CLASSIC' && preset !== null
-      ? Object.freeze({ mode: 'CLASSIC', rivalCount: preset.rivalCount, lapCount: preset.lapCount, timeLimit: true })
+      ? Object.freeze({
+          mode: 'CLASSIC',
+          rivalCount: preset.rivalCount,
+          lapCount: preset.lapCount,
+          timeLimit: true,
+          initialSpeed: requested.initialSpeed,
+        })
       : Object.freeze({ ...requested, timeLimit: preset !== null && requested.timeLimit });
+  if (!Number.isFinite(configuration.initialSpeed)) throw new RangeError('Session initialSpeed must be finite');
   if (configuration.mode === 'CLASSIC' && vehicle.vehicleDefinition.compiledVehicle.id !== preset?.vehicleId)
     throw new RangeError('CLASSIC requires its preset vehicle');
   if (configuration.lapCount > course.rules.maxLaps)
@@ -49,7 +56,6 @@ export function resolveCourseSession(
     configuration,
     vehicle,
     grid: course.gates.grid,
-    initialSpeed: 0,
     rivalUtilization,
     envelope,
     budgets: configuration.timeLimit ? budgets : null,

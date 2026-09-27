@@ -8,7 +8,6 @@ import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
 import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { createSessionVehicle } from '../../src/race/session-vehicle.js';
-import { createRecoveryState } from '../../src/race/recovery.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
@@ -36,13 +35,14 @@ async function setup() {
     definitions.driving,
     materials,
   );
-  const model = createVehicleModel(compiledVehicle, SIM_DT);
-  const spawn = (s) => createVehicle(model, scene.world, { s, l: 0, initialSpeed: 0 });
-  return { course, assets, scene, compiledVehicle, model, spawn };
+  return { course, assets, scene, compiledVehicle };
 }
 
 test('shared route keeps vehicle and camera coordinates across forward and reverse seams', async () => {
-  const { course, scene, spawn } = await setup();
+  const { course, scene, compiledVehicle } = await setup();
+  // Route readers only, without a race: vehicles are placed directly at the seam.
+  const model = createVehicleModel(compiledVehicle, SIM_DT);
+  const spawn = (s) => createVehicle(model, scene.world, { s, l: 0, initialSpeed: 0 });
   const link = course.entry.outgoing[0];
   const seam = link.from.section.coordinates.domain.end;
   scene.runtime.refresh(0, seam + 100);
@@ -65,7 +65,7 @@ test('shared route keeps vehicle and camera coordinates across forward and rever
 });
 
 test('race actors have no cameras and view assembles sixteen rival sprites from observations', async () => {
-  const { course, scene, assets, compiledVehicle, model, spawn } = await setup();
+  const { course, scene, assets, compiledVehicle } = await setup();
   const admitted = await readVehicleEnvelope(
     compiledVehicle,
     await (await readDeliveredContent()).json('envelope', 'TESTAROSSA'),
@@ -74,23 +74,18 @@ test('race actors have no cameras and view assembles sixteen rival sprites from 
   const envelope = admitted.value;
   const settings = resolveCourseSession(
     course,
-    { mode: 'CUSTOM', rivalCount: 16, lapCount: 1, timeLimit: false },
+    { mode: 'CUSTOM', rivalCount: 16, lapCount: 1, timeLimit: false, initialSpeed: 0 },
     compiledVehicle,
     envelope,
   );
-  const vehicle = spawn(settings.grid[0].at.s);
-  const race = createCourseRace({
-    session: settings,
-    player: { vehicle, model, recovery: createRecoveryState(vehicle) },
-    runtime: scene.runtime,
-  });
+  const race = createCourseRace({ session: settings, runtime: scene.runtime });
   for (const c of [race.player, ...race.rivals]) assert.ok(!('cameraRig' in c.actor));
   assert.equal(race.rivals.length, 16);
   assert.deepEqual(race.advance({ steering: 0, throttle: false, brake: false }, 1 / 60), { recovered: false });
   const observed = race.observe();
   assert.ok(!('sprites' in observed));
   assert.equal(observed.rivals.length, 16);
-  const camera = updateCamera(createCameraRig(), scene.world, vehicle, CURRENT_CAMERA_PROFILE);
+  const camera = updateCamera(createCameraRig(), scene.world, observed.player, CURRENT_CAMERA_PROFILE);
   const sprites = createRaceSprites(assets)(observed.rivals, camera);
   assert.equal(sprites.length, observed.rivals.length);
   assert.deepEqual(
@@ -98,5 +93,5 @@ test('race actors have no cameras and view assembles sixteen rival sprites from 
     observed.rivals.map((a) => a.id),
   );
   assert.ok(sprites.every((s) => s.asset && Number.isFinite(s.x) && Number.isFinite(s.y) && Number.isFinite(s.z)));
-  race.resyncPlayer();
+  race.recoverPlayer();
 });

@@ -95,8 +95,9 @@ resizing the game. UI pointer starts stay outside driving input. Keydown is isol
 in DEV controls never reach driving input, while keyup can release an already-held driving key.
 Escape closes the panel and returns focus to its summary. DEV has no keyboard shortcuts.
 The vehicle is chosen in the Session setup, and choosing it starts a Session; there is no vehicle
-selection during a Session. Driving tuning, camera, sound and recovery controls remain available. RECOVER requests manual recovery of the player vehicle when the active composition
-permits it: in a course session, only while the race is running and neither paused nor hidden.
+selection during a Session. Driving tuning, camera, sound and recovery controls remain available. RECOVER requests the race's manual recovery of the player vehicle when the active composition
+permits it: in a course session, only while the race is running and neither paused nor hidden. The shell supplies
+the player's input only; it reads the Session vehicle for sound, HUD and export, and the race owns all mechanics.
 
 Driving tuning is grouped as STEERING, PEDALS, TIRES F/R, POWERTRAIN and ASSISTS. Each value uses a
 minus/value/plus control in the driving definition's units, wrapping at range endpoints; ASSISTS

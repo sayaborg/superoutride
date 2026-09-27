@@ -8,7 +8,6 @@ import { selectBrowserCourseMode } from './course-mode-selection.js';
 import { mustGet } from './dom.js';
 import { loadDeliveredCourse } from '../content/load-delivered-course.js';
 import { createCourseGround } from '../course/compiler/course-ground.js';
-import { RECOVERY_SETTINGS } from '../race/recovery.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import { loadVehicleDefinitions } from '../content/vehicle-catalog.js';
 import { createCourseRace } from '../race/course-race.js';
@@ -70,30 +69,8 @@ try {
   const sprites = createVehicleSprites(entry);
   const displaySettings = createDisplaySettings();
   const scene = createCourseScene(course.entry, ground, course.gates, vehicles, displaySettings);
-  const slot = session.grid[0]!;
-  const shell = createBrowserDrivingShell(
-    scene.world,
-    slot.l,
-    {
-      s: slot.at.s,
-      initialSpeed: session.initialSpeed,
-      vehicle,
-    },
-    definitions,
-  );
-  const race = createCourseRace({
-    session,
-    player: {
-      get vehicle() {
-        return shell.vehicle;
-      },
-      get model() {
-        return shell.model;
-      },
-      recovery: shell.recovery,
-    },
-    runtime: scene.runtime,
-  });
+  const shell = createBrowserDrivingShell(vehicle);
+  const race = createCourseRace({ session, runtime: scene.runtime });
   const raceSprites = createRaceSprites(sprites);
   const raceStatus = document.createElement('output');
   raceStatus.setAttribute('role', 'status');
@@ -103,13 +80,10 @@ try {
   canvas.insertAdjacentElement('afterend', raceStatus);
   const lifecycle = shell.mountControls({
     world: () => scene.world,
-    recoverySettings: RECOVERY_SETTINGS,
     canRecover: () => race.clock.status === 'RUNNING' && !manualPause && !document.hidden,
-    recoveryL: race.recoveryL,
     observation: () => race.observe().player,
-    resync: () => {
-      race.resyncPlayer();
-    },
+    recover: () => race.recoverPlayer(),
+    tunePlayerDriving: (tuned) => race.tunePlayerDriving(tuned),
   });
   const performanceHud = createCoursePerformanceHud(canvas, scene.metrics, scene.groundMetrics);
   let input: DrivingInput = { steering: 0, throttle: false, brake: false };
@@ -131,7 +105,7 @@ try {
       observations.player.brakeLampOn ? sprites.on : sprites.off,
       raceSprites(observations.rivals, lifecycle.camera),
     );
-    shell.present(mode, input, lifecycle.camera, result.playerScreenY, observations);
+    shell.present(mode, input, lifecycle.camera, result.playerScreenY, observations, race.playerDiagnostics);
     raceStatus.textContent = manualPause ? 'PAUSED' : race.label();
     performanceHud.frame(started, result.stripGround);
     if (race.clock.status === 'GOAL' || race.clock.status === 'GAME_OVER') {

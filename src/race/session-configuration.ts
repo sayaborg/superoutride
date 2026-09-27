@@ -16,6 +16,8 @@ export interface SessionConfiguration {
   readonly rivalCount: number;
   readonly lapCount: number;
   readonly timeLimit: boolean;
+  /** m/s along the grid slot's road tangent for every competitor at spawn; finite, negative allowed. The product uses 0. */
+  readonly initialSpeed: number;
 }
 
 export function compileSessionConfiguration(authoring: SessionConfiguration): Readonly<SessionConfiguration> {
@@ -35,5 +37,6 @@ export function compileSessionConfiguration(authoring: SessionConfiguration): Re
     rivalCount: authoring.rivalCount,
     lapCount: authoring.lapCount,
     timeLimit: authoring.timeLimit,
+    initialSpeed: authoring.initialSpeed,
   });
 }

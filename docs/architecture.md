@@ -562,7 +562,11 @@ fixtures belong to `tools/graphics`. Shared image formats, filters, codecs and p
 in `src/image`; authoring-only limits stay with the tools.
 
 Vehicle mechanics take dynamic state and an immutable vehicle model as separate inputs; state holds
-no definition value, and each race actor pairs its state with its model. The model carries its fixed step;
+no definition value, and each race actor pairs its state with its model. The race builds every competitor's
+mechanics, the player's included: one model of the Session vehicle, and each competitor's state and recovery state
+at its grid slot with the Session's start speed. The shell and other compositions supply the player's input only;
+manual recovery is a race operation, and a DEV-only diagnostics accessor exposes the player's live state and model
+to the DEV vehicle HUD alone. The model carries its fixed step;
 vehicle mechanics never import race, so every composition passes `SIM_DT` when it builds a model. The composition shared by
 browser, race, tools and scenarios lives below shell: race owns the Session vehicle (vehicle and
 driving definitions only, `createSessionVehicle`), the fixed simulation step (`SIM_DT`) and the course
@@ -575,7 +579,7 @@ vehicle state. Race owns the camera-independent competitor observations (`compet
 competitor, the player included, holding only the values display, camera and audio read (identity and form, pose,
 render height, chainage, velocities, body pitch, lateral acceleration, brake lamp, powertrain and tire observations)
 and never vehicle state or a model. The race copies them at the end of every advance, including held READY steps,
-once at creation and after a manual resync. They are borrowed: the race overwrites the same objects on the next
+once at creation and after a manual recovery. They are borrowed: the race overwrites the same objects on the next
 advance, so consumers read them before then. Display, the camera and audio read only these observations; the DEV
 vehicle HUD alone reads mechanics internals. `observe()` returns the player's observation and those of rivals on the
 resident Route, the one residency decision. View owns rival sprite selection and assembly. Course owns VehicleWorld, surface

@@ -10,9 +10,6 @@ import { REFERENCE_DRIVER } from './reference-driving-policy.js';
 import { createCourseScene } from '../../src/view/course-scene.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
-import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
-import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
-import { createRecoveryState } from '../../src/race/recovery.js';
 import {
   createEnvelopeDriverWorkspace,
   sampleEnvelopeDrivingInput,
@@ -55,19 +52,14 @@ export function runCourseReference(
     scene = createCourseScene(course.entry, ground, course.gates, vehicles);
   const session = resolveCourseSession(
     course,
-    { mode: 'CUSTOM', rivalCount: 0, lapCount, timeLimit: false },
+    { mode: 'CUSTOM', rivalCount: 0, lapCount, timeLimit: false, initialSpeed: 0 },
     vehicleConfiguration,
     envelope,
   );
   const slot = session.grid[0]!;
-  const model = createVehicleModel(vehicleConfiguration, SIM_DT);
-  const vehicle = createVehicle(model, scene.world, { s: slot.at.s, l: slot.l, initialSpeed: 0 });
-  const actor = { vehicle, model, recovery: createRecoveryState(vehicle) };
-  const race = createCourseRace({
-    session,
-    player: actor,
-    runtime: scene.runtime,
-  });
+  const race = createCourseRace({ session, runtime: scene.runtime });
+  const { actor } = race.player;
+  const { vehicle } = actor;
   const events = [],
     trace = [];
   let previousTime = 0,

@@ -5,7 +5,7 @@ import { createNumberStepper } from './number-stepper.js';
 import { createAudioEngine } from '../audio/audio-engine.js';
 import { TIRE_COMPONENTS } from '../audio/tire-sound-controls.js';
 import { AUDIO_TIMING, rivalAudioGain, rivalAudioPan } from '../audio/audio-presentation.js';
-import { vehicleDefinitionForId, type CompiledVehicleDefinition } from '../vehicle/definition-document.js';
+import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
 import {
   createVehicleAudioObservation,
@@ -18,7 +18,8 @@ import {
 const GESTURE_EVENTS = ['pointerdown', 'pointerup', 'touchend', 'keydown'] as const;
 
 /** DOM, permission and failure boundary. Presentation updates fail closed without stopping gameplay. */
-export function createAudioLifecycle(vehicles: readonly CompiledVehicleDefinition[]) {
+/** Every competitor drives the Session vehicle, so player and rival engines use its sound. */
+export function createAudioLifecycle(sessionVehicle: CompiledVehicleDefinition) {
   const button = document.getElementById('sound-toggle');
   const volumeContainer = document.getElementById('sound-volume');
   const componentState = { road: true, squeal: true };
@@ -299,7 +300,7 @@ export function createAudioLifecycle(vehicles: readonly CompiledVehicleDefinitio
       if (!engine || !context || context.state !== 'running' || !audible()) return;
       try {
         readVehicleAudio(player, playerState);
-        engine.update(playerState, vehicleDefinitionForId(vehicles, player.vehicleId).sound);
+        engine.update(playerState, sessionVehicle.sound);
         const nearest = nearestAudibleRival(player, actors);
         if (nearest !== nextRival) {
           nextRival = nearest;
@@ -320,7 +321,7 @@ export function createAudioLifecycle(vehicles: readonly CompiledVehicleDefinitio
         const lateral = dx * Math.cos(player.yaw) - dz * Math.sin(player.yaw);
         engine.updateRival(
           rivalState,
-          vehicleDefinitionForId(vehicles, nextRival.vehicleId).sound,
+          sessionVehicle.sound,
           rivalAudioGain(distance),
           rivalAudioPan(lateral, distance),
         );

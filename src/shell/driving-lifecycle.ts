@@ -1,46 +1,30 @@
 import { resetCameraRig, updateCamera, type CameraRig } from '../view/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../view/current-camera-profile.js';
-import { recoverVehicle, type RecoverySettings, type RecoveryState } from '../race/recovery.js';
-import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
-import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import type { VehicleWorld } from '../course/vehicle-world.js';
 import type { VehicleCameraReadState } from '../vehicle/physics/vehicle-contract.js';
-
-interface DrivingPlayer {
-  readonly vehicle: VehicleState;
-  readonly model: VehicleModel;
-  readonly recovery: RecoveryState;
-  readonly cameraRig: CameraRig;
-}
+import type { CompiledDrivingDefinition } from '../vehicle/compiled-driving-definition.js';
 
 export interface DrivingLifecycleOptions {
   readonly canRecover?: () => boolean;
   readonly world: () => VehicleWorld;
-  readonly recoverySettings: Readonly<RecoverySettings>;
-  /** The player's borrowed competitor observation, current after each step and each manual discontinuity. */
+  /** The player's borrowed competitor observation, current after each step and each manual recovery. */
   readonly observation: () => VehicleCameraReadState;
-  readonly recoveryL?: (s: number) => number;
-  /** Replaces observation baselines after a manual discontinuity without awarding progress. */
-  readonly resync?: () => void;
+  /** The race's manual recovery of the player; it also rewrites the player's observation. */
+  readonly recover: () => void;
+  /** Interim DEV tuning path until 10-7b: the race gives the player a model of the tuned definition. */
+  readonly tunePlayerDriving: (driving: CompiledDrivingDefinition) => void;
 }
 
-/** Browser discontinuity order; route/race ticks retain their own recovery and progress rules. */
-export function createDrivingLifecycle(player: DrivingPlayer, options: DrivingLifecycleOptions) {
-  let camera = updateCamera(player.cameraRig, options.world(), options.observation(), CURRENT_CAMERA_PROFILE);
+/** Browser camera following; the race owns mechanics, recovery and progress. */
+export function createDrivingLifecycle(cameraRig: CameraRig, options: DrivingLifecycleOptions) {
+  let camera = updateCamera(cameraRig, options.world(), options.observation(), CURRENT_CAMERA_PROFILE);
   function update(recovered = false): void {
-    if (recovered) resetCameraRig(player.cameraRig);
-    camera = updateCamera(player.cameraRig, options.world(), options.observation(), CURRENT_CAMERA_PROFILE);
+    if (recovered) resetCameraRig(cameraRig);
+    camera = updateCamera(cameraRig, options.world(), options.observation(), CURRENT_CAMERA_PROFILE);
   }
   function recover(): void {
-    recoverVehicle(options.world(), player.vehicle, player.model, {
-      state: player.recovery,
-      reason: 'manual',
-      settings: options.recoveryL
-        ? { ...options.recoverySettings, targetL: options.recoveryL }
-        : options.recoverySettings,
-    });
-    resetCameraRig(player.cameraRig);
-    options.resync?.();
+    options.recover();
+    resetCameraRig(cameraRig);
     update();
   }
   return {

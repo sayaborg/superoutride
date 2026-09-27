@@ -560,7 +560,10 @@ vehicle, zero to sixteen rivals, permitted laps and clock on/off. On an untimed 
 resolution rejects CLASSIC and resolves every CUSTOM Session with the clock off; on a timed course,
 a clock without its delivered time budgets fails. Player and rivals share the resolved
 vehicle calibration and protection settings. Unsupported course/vehicle/grid/lap combinations fail before activation.
-A Session binds immutable course, vehicle, roster, grid, lap target, envelope and timing references.
+A Session binds immutable course, vehicle, roster, grid, lap target, start speed, envelope and timing references.
+The start speed is a resolved Session setting: every competitor spawns at its grid slot moving at it along the
+road tangent. It is finite and may be negative; product Sessions and reference runs use 0. The race builds every
+competitor's mechanics from the Session vehicle; the player's composition supplies input only.
 Before activation, every FINISH in a Section with no outgoing Link must have at least
 `maximumSpeed² / (2*a)` metres remaining to that Section's end. Here `a` is the minimum measured
 envelope braking multiplied by the Session driver utilization (0.75). All current competitors share
@@ -634,7 +637,9 @@ Airborne driving is ordinary; recovery applies only when driving cannot continue
 exit, an inverted landing, falling through the heightfield, leaving the locked fork route (wrong course) or a
 manual request. [Vehicle physics](vehicle-physics.md#airborne-state-and-recovery) owns the conditions. It reconstructs
 pose, velocities, wheels, actuators, powertrain and observations at known supported coordinates while
-preserving steering/tire calibration and earned gates, locks and laps.
+preserving steering/tire calibration and earned gates, locks and laps. Manual recovery is a race operation on the
+player: the ordinary recovery toward the player's lane, the legal-road check, a progress baseline reset that awards
+no progress, then a fresh player observation.
 
 Route recovery backs off from the farther of causal current chainage and last-safe chainage.
 Wrong-route recovery uses the selected Carriageway at the observed station.

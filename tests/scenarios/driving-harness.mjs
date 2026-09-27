@@ -9,9 +9,6 @@ import { createCourseRace } from '../../src/race/course-race.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
 import { createSessionVehicle } from '../../src/race/session-vehicle.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
-import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
-import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
-import { createRecoveryState } from '../../src/race/recovery.js';
 import {
   compileEnvelopeDriver,
   createEnvelopeDriverWorkspace,
@@ -74,23 +71,21 @@ export function runScenario({ course, ground }, scenario) {
   const scene = createCourseScene(course.entry, ground, course.gates, definitions.vehicles, settings);
   const session = resolveCourseSession(
     course,
-    { mode: 'CUSTOM', rivalCount: scenario.rivals ?? 0, lapCount: scenario.laps ?? 1, timeLimit: false },
+    {
+      mode: 'CUSTOM',
+      rivalCount: scenario.rivals ?? 0,
+      lapCount: scenario.laps ?? 1,
+      timeLimit: false,
+      initialSpeed: scenario.policy === 'reverse' ? -20 : scenario.policy === 'departure' ? 30 : 0,
+    },
     configuration,
     envelope,
   );
   const slot = session.grid[0];
-  const model = createVehicleModel(configuration, SIM_DT);
-  const vehicle = createVehicle(model, scene.world, {
-    s: slot.at.s,
-    l: slot.l,
-    initialSpeed: scenario.policy === 'reverse' ? -20 : scenario.policy === 'departure' ? 30 : 0,
-  });
-  const actor = { vehicle, model, recovery: createRecoveryState(vehicle) };
-  const race = createCourseRace({
-    session,
-    player: actor,
-    runtime: scene.runtime,
-  });
+  // The race builds every competitor, the player included; the harness reads their state for evidence.
+  const race = createCourseRace({ session, runtime: scene.runtime });
+  const { actor } = race.player;
+  const { vehicle } = actor;
   const competitors = [race.player, ...race.rivals];
   const rig = createCameraRig();
   const target = new SoftwareSurface(320, 240);

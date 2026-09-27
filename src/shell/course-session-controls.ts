@@ -29,7 +29,11 @@ export function readBrowserSessionSettings(
           vehicleId: params.get('vehicle') ?? preset.vehicleId,
         };
   if (!vehicles.some((v) => v.compiledVehicle.id === values.vehicleId)) throw new RangeError('Unknown Session vehicle');
-  return Object.freeze({ ...compileSessionConfiguration({ mode, ...values }), vehicleId: values.vehicleId });
+  // Product Sessions use standing starts.
+  return Object.freeze({
+    ...compileSessionConfiguration({ mode, ...values, initialSpeed: 0 }),
+    vehicleId: values.vehicleId,
+  });
 }
 
 /** Session settings precede the start signal; ordinary driving input remains unchanged. */
