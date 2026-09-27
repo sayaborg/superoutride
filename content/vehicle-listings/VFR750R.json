@@ -3,7 +3,7 @@
   "version": 1,
   "form": "bike",
   "selectionOrder": 6,
-  "visuals": { "spriteSet": "motorcycle", "palette": "original", "steeringRatio": 18 },
+  "visuals": { "spriteSet": "motorcycle", "palette": "original", "steeringRatio": 1 },
   "sound": "VFR750R",
   "metadata": {
     "manufacturer": "Honda",

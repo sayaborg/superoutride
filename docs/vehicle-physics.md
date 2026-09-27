@@ -409,7 +409,7 @@ order is unchanged. This is a conservative current-contact slip constraint.
 ## Observations
 
 HUD observations include input, actuators, automatic steering, requested/delivered offsets, target/actual
-rack, requested/delivered torques, the clutch observation and the last shift. The DEV HUD calculates handwheel angle as `control.actualSteerAngle * source.visuals.steeringRatio`.
+rack, requested/delivered torques, the clutch observation and the last shift. The DEV HUD shows handwheel angle through the listing's `steeringRatio`.
 The mechanical state and compiled mechanics contain neither handwheel angle nor ratio. Bike lean presentation is
 `atan2(lateralAcceleration,g)` with discrete bank images; physical state contains yaw and pitch.
 
@@ -453,14 +453,14 @@ same identifier, which becomes the compiled vehicle ID, and rejects either docum
 | `format`, `version` | `superoutride.vehicle-mechanics`, `1`                                           |
 | Remaining fields    | All `VehicleDefinition` fields except `id`, including `powertrain`, at the root |
 
-| Listing field       | Contract                                                                                                                                                                          |
-| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`, `version` | `superoutride.vehicle-listing`, `1`                                                                                                                                               |
-| `form`              | `car` or `bike`; selects sprite bank dimensions and form-specific displays; physics does not read it                                                                              |
-| `selectionOrder`    | Positive safe integer, unique across the catalog; ascending selection order independent of filenames and manifest order                                                           |
-| `visuals`           | `spriteSet` names a vehicle sprite set; `palette` names its default color; `steeringRatio` is a finite nonnegative HUD ratio                                                      |
-| `sound`             | Existing ID in `VEHICLE_SOUND_PROFILES`; sound definitions remain TypeScript                                                                                                      |
-| `metadata`          | Required manufacturer, model, period and mobileLabel strings; identifier (null or officialLabel/shortLabel); selectedSpecification string array; physicsAnchor (modelYear/market) |
+| Listing field       | Contract                                                                                                                                                                                                                                                                                                                           |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`, `version` | `superoutride.vehicle-listing`, `1`                                                                                                                                                                                                                                                                                                |
+| `form`              | `car` or `bike`; selects sprite bank dimensions and form-specific displays; physics does not read it                                                                                                                                                                                                                               |
+| `selectionOrder`    | Positive safe integer, unique across the catalog; ascending selection order independent of filenames and manifest order                                                                                                                                                                                                            |
+| `visuals`           | `spriteSet` names a vehicle sprite set; `palette` names its default color; `steeringRatio` is the finite nonnegative ratio of handwheel angle to road-wheel steer angle, from which the DEV HUD shows handwheel angle (`control.actualSteerAngle * steeringRatio`): 18 for cars, 1 for motorcycles, whose bars turn with the wheel |
+| `sound`             | Existing ID in `VEHICLE_SOUND_PROFILES`; sound definitions remain TypeScript                                                                                                                                                                                                                                                       |
+| `metadata`          | Required manufacturer, model, period and mobileLabel strings; identifier (null or officialLabel/shortLabel); selectedSpecification string array; physicsAnchor (modelYear/market)                                                                                                                                                  |
 
 Vehicle numerical domains and cross-field relationships are those of vehicle, suspension and
 powertrain compilation: positive mass/inertia/geometry, finite nonnegative brakes/drag/damping,

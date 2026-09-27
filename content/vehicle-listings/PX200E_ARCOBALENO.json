@@ -3,7 +3,7 @@
   "version": 1,
   "form": "bike",
   "selectionOrder": 9,
-  "visuals": { "spriteSet": "motorcycle", "palette": "original", "steeringRatio": 18 },
+  "visuals": { "spriteSet": "motorcycle", "palette": "original", "steeringRatio": 1 },
   "sound": "PX200E_ARCOBALENO",
   "metadata": {
     "manufacturer": "Vespa",

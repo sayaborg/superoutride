@@ -96,7 +96,6 @@ capability on unit grip without surface drag.
 
 | Setting               | Value | Meaning                                                      |
 | --------------------- | ----- | ------------------------------------------------------------ |
-| Handwheel ratio       | 18:1  | HUD road-wheel-to-handwheel conversion                       |
 | Rival utilization     | 0.75  | Session driver's fraction of the measured envelope           |
 | Reference utilization | 0.9   | Offline reference driver's fraction of the measured envelope |
 
