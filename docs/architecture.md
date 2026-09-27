@@ -360,7 +360,7 @@ The camera is rigidly fixed to the player: the player's depth `D_cam`, the camer
 to the body and the player's screen row stay constant, so the player never moves, scales or changes attitude on screen.
 Pitch is `phi=phi_0-theta` (base downward pitch `phi_0` = 12 degrees, body pitch `theta` nose-up
 positive). Height is solved every frame from the projection with the player's reference height
-`Y_p` (`renderY`, else `y`) at target row `y_t` = 190:
+`Y_p` (`renderY`) at target row `y_t` = 190:
 
 ```text
 Ycam = Y_p - (D_cam/(f*cos(phi)))*(cy - f*sin(phi) - y_t)
@@ -568,8 +568,10 @@ browser, race, tools and scenarios lives below shell: race owns the Session vehi
 driving definitions only, `createSessionVehicle`), the fixed simulation step (`SIM_DT`) and the course
 world (`createCourseWorld`: the Route runtime loaded for an observer window, the driver lookahead and one
 fixed step); view owns the course scene, which adds rendering and supplies the current camera's loading
-window. Shell owns the observer's camera, and race actors contain no camera state. Race publishes camera-independent
-actor observations; view owns rival sprite selection and assembly. Course owns VehicleWorld, surface
+window. Shell owns the observer's camera, and race actors contain no camera state. Consumers outside vehicle
+physics read vehicles through read contracts (`vehicle-contract.ts`) whose fields are all required and read by their
+consumers; the plan coordinate projection in them is read-only, and only physics and recovery write it through the
+vehicle state. Race publishes camera-independent actor observations; view owns rival sprite selection and assembly. Course owns VehicleWorld, surface
 readers and the physical driving source. Race consumes that source only. The course world owns the combined pre-lock render/driver query-depth
 admission, and the course scene binds physical and appearance products.
 RGBA conversion, sprite images and LOD formats belong

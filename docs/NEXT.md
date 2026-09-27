@@ -15,7 +15,7 @@
 - Engine sound load is the powertrain's effective opening.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **10-5 — Read contracts**.
+Next PR: **10-6 — Competitor snapshots**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -25,8 +25,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Give each settled fact one owner and give consumers read-only observations.
 
-- **10-5 — Read contracts:** projection reads are read-only; read-contract fields are required and their fallback
-  algorithms in camera and renderer are removed; contact mechanics no longer branch on the `FRONT` station identity.
 - **10-6 — Competitor snapshots:** the race publishes a read-only snapshot for every competitor, the player
   included (pose, render anchor, speeds, brake lamp, powertrain and tire observations). Display and audio read
   snapshots only.

@@ -118,7 +118,7 @@ export function updateCamera(
   }
   const planAtCar = coordinates.toWorld(vehicle.course.s, 0, workspace.point);
   const vehiclePlanYawDelta = wrapAngle(vehicle.yaw - planAtCar.heading);
-  const bodyPitch = vehicle.sprungPitch ?? 0;
+  const bodyPitch = vehicle.sprungPitch;
 
   if (!rig.initialized) {
     rig.yaw = vehicle.yaw;
@@ -127,24 +127,16 @@ export function updateCamera(
   }
 
   let movementYawDelta = wrapAngle(rig.movementYaw - vehicle.yaw);
-  if (vehicle.velocityX !== undefined && vehicle.velocityZ !== undefined) {
-    const movement = movementYawInBodyPitchFrame(
-      vehicle.yaw,
-      bodyPitch,
-      vehicle.velocityX,
-      vehicle.velocityY ?? 0,
-      vehicle.velocityZ,
-    );
-    if (movement.inPlaneSpeed >= profile.directionSpeedMin) {
-      rig.movementYaw = movement.yaw;
-      movementYawDelta = movement.yawDelta;
-    }
-  } else {
-    const inPlaneSpeed = Math.hypot(vehicle.longitudinalSpeed, vehicle.lateralSpeed);
-    if (inPlaneSpeed >= profile.directionSpeedMin) {
-      movementYawDelta = Math.atan2(vehicle.lateralSpeed, vehicle.longitudinalSpeed);
-      rig.movementYaw = wrapAngle(vehicle.yaw + movementYawDelta);
-    }
+  const movement = movementYawInBodyPitchFrame(
+    vehicle.yaw,
+    bodyPitch,
+    vehicle.velocityX,
+    vehicle.velocityY,
+    vehicle.velocityZ,
+  );
+  if (movement.inPlaneSpeed >= profile.directionSpeedMin) {
+    rig.movementYaw = movement.yaw;
+    movementYawDelta = movement.yawDelta;
   }
   rig.yaw = rig.yawMode === 'BODY_FIXED' ? vehicle.yaw : rig.movementYaw;
 
@@ -169,7 +161,7 @@ export function updateCamera(
   // Body pitch is nose-up-positive; pseudo-camera pitch is downward-positive.
   const cameraPitch = profile.baseDownPitch - bodyPitch;
   const cameraY =
-    (vehicle.renderY ?? vehicle.y) -
+    vehicle.renderY -
     (profile.dCam / (profile.focalLength * Math.cos(cameraPitch))) *
       (profile.centerY - profile.focalLength * Math.sin(cameraPitch) - profile.playerTargetY);
 

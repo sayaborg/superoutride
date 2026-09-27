@@ -171,7 +171,7 @@ export function renderDriving(
   );
 
   const playerProjection = pseudoProject(
-    { x: vehicle.x, z: vehicle.z, y: vehicle.renderY ?? vehicle.y, s: vehicle.course.s },
+    { x: vehicle.x, z: vehicle.z, y: vehicle.renderY, s: vehicle.course.s },
     camera,
   );
   const relativeYaw = wrapAngle(vehicle.yaw - renderCamera.yaw);

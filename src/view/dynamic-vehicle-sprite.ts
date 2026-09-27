@@ -16,7 +16,7 @@ export function createDynamicVehicleCourseSprite(
   return {
     name,
     x: vehicle.x,
-    y: vehicle.renderY ?? vehicle.y,
+    y: vehicle.renderY,
     z: vehicle.z,
     sRender: vehicle.course.s,
     asset: selected.asset,

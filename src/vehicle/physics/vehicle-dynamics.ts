@@ -348,7 +348,7 @@ export function deriveContactObservation(
     out.effectiveRollingRadius = station.rollingRadius;
     Object.assign(out.contactPoint, reachPoint);
     add3(body.velocity, cross3(body.omegaWorld, freeOffset, a), out.reachVelocity);
-    contactTireFrame(body, station, steerAngle, surface, out.reachVelocity, out, a);
+    contactTireFrame(body, steerAngle, surface, out.reachVelocity, out, a);
     return out;
   }
   sampleSurfaceGeometryAtCoordinate(coordinates, height, surfaces, coordinate, workspace.surface);
@@ -372,7 +372,7 @@ export function deriveContactObservation(
   out.qDot = qDot;
   out.normalLoad = normalLoad;
   out.effectiveRollingRadius = station.rollingRadius;
-  contactTireFrame(body, station, steerAngle, surface, reachVelocity, out, a);
+  contactTireFrame(body, steerAngle, surface, reachVelocity, out, a);
   return out;
 }
 
@@ -391,13 +391,12 @@ export function reorientContactObservation(
       tireForward: out.tireForward,
       tireRight: out.tireRight,
     });
-  contactTireFrame(body, contact.station, steerAngle, contact.surface, contact.reachVelocity, out, workspace.a);
+  contactTireFrame(body, steerAngle, contact.surface, contact.reachVelocity, out, workspace.a);
   return out;
 }
 
 function contactTireFrame(
   body: BodyKinematics,
-  station: CompiledContactStation,
   steerAngle: number,
   surface: SurfaceGeometryObservation,
   reachVelocity: Vec3,
@@ -413,13 +412,12 @@ function contactTireFrame(
   >,
   scratch: Writable<Vec3>,
 ) {
-  if (station.id === 'FRONT')
-    normalize3(rotateAroundAxis(body.forward, body.up, steerAngle, out.wheelForward), out.wheelForward);
-  else {
+  // A zero angle keeps the unit body forward exactly; only a nonzero rotation is renormalized.
+  if (steerAngle === 0) {
     out.wheelForward.x = body.forward.x;
     out.wheelForward.y = body.forward.y;
     out.wheelForward.z = body.forward.z;
-  }
+  } else normalize3(rotateAroundAxis(body.forward, body.up, steerAngle, out.wheelForward), out.wheelForward);
   const wheelForward = out.wheelForward;
   normalize3(cross3(body.up, wheelForward, out.wheelAxis), out.wheelAxis);
   const tireForwardRaw = sub3(
