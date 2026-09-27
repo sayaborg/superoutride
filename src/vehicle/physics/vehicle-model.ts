@@ -3,7 +3,7 @@ import type { DrivingActuatorDefinition } from './driving-actuator.js';
 import { resolvePowertrainConstants, type PowertrainConstants } from './automatic-powertrain.js';
 import type { VehicleTireFrictionCalibrationState } from './tire-friction-calibration.js';
 import { resolveTorqueProtectionPolicy, type TorqueProtectionPolicy } from './torque-protection.js';
-import { createVehicleSteeringCalibration, type VehicleSteeringCalibrationInput } from './vehicle-calibration.js';
+import type { VehicleSteeringCalibrationInput } from './vehicle-calibration.js';
 import type { CompiledVehicle } from './vehicle-definitions.js';
 import type { CompiledVehicleDefinition } from '../definition-document.js';
 
@@ -29,14 +29,17 @@ export interface VehicleModelInput {
   readonly drivingDefinition: CompiledDrivingDefinition;
 }
 
-/** The single place a vehicle model is built. */
+/**
+ * The single place a vehicle model is built. Every part is an admitted, deeply frozen product or is
+ * frozen by its constructor, so the model itself needs only a shallow freeze.
+ */
 export function createVehicleModel(input: VehicleModelInput): VehicleModel {
   const driving = input.drivingDefinition.settings;
   const { compiledVehicle } = input.vehicleDefinition;
-  return freezeModel({
+  return Object.freeze({
     compiledVehicle,
     actuator: driving.actuator,
-    steering: createVehicleSteeringCalibration(driving.steeringCalibration),
+    steering: driving.steeringCalibration,
     tires: driving.tireFrictionCalibration,
     powertrain: resolvePowertrainConstants(compiledVehicle.powertrain, driving.powertrain),
     torqueProtection: resolveTorqueProtectionPolicy({
@@ -45,17 +48,4 @@ export function createVehicleModel(input: VehicleModelInput): VehicleModel {
     }),
     suspensionProgression: driving.suspensionProgression,
   });
-}
-
-function freezeModel(model: VehicleModel): VehicleModel {
-  return deepFreeze(model, new WeakSet());
-}
-
-function deepFreeze<T>(value: T, seen: WeakSet<object>): T {
-  if (value && typeof value === 'object' && !seen.has(value)) {
-    seen.add(value);
-    Object.freeze(value);
-    for (const child of Object.values(value)) deepFreeze(child, seen);
-  }
-  return value;
 }

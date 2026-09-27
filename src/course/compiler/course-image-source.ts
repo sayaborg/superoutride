@@ -1,4 +1,4 @@
-import { AdmissionError } from '../../core/admission.js';
+import { AdmissionError, deepFreeze } from '../../core/admission.js';
 import { contentDigest } from '../../core/content-digest.js';
 import { CourseAssetError, courseFailures, courseSuccess, type CourseResult } from '../course-diagnostics.js';
 import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
@@ -170,18 +170,12 @@ export async function readCourseImageSources(
       error('asset_invalid_image', sha256, cause.message, inputIndex, cause.path);
       continue;
     }
-    freezeSource(admitted.document);
+    // JSON ownership is established at admission, including nested mixture pairs and tile bindings.
+    deepFreeze(admitted.document);
     images.set(sha256, Object.freeze(admitted));
   }
   if (errors.length) return courseFailures(errors);
   return courseSuccess(
     Object.freeze(references.map((reference) => Object.freeze({ ...reference, ...images.get(reference.sha256)! }))),
   );
-}
-
-/** JSON ownership is established at admission, including nested mixture pairs and tile bindings. */
-function freezeSource(value: unknown): void {
-  if (!value || typeof value !== 'object') return;
-  for (const child of Object.values(value)) freezeSource(child);
-  Object.freeze(value);
 }

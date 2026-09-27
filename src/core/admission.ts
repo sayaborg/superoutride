@@ -253,11 +253,19 @@ function readHeader(record: Record<string, unknown>, format: string, version: nu
     throw new AdmissionError('unsupported_version', '/version', `Expected ${format} version ${version}`);
 }
 
-/** Admitted documents are detached plain JSON records, frozen including every nested collection. */
+/** Objects this helper has frozen together with everything they own. */
+const deeplyFrozen = new WeakSet<object>();
+
+/**
+ * The one recursive freeze: a value and every object it owns. An object is recorded before its
+ * children are visited, so a cycle ends where it began and a part frozen by an earlier call is not
+ * walked again. Objects frozen only shallowly elsewhere are still walked.
+ */
 export function deepFreeze<T>(value: T): T {
-  if (value && typeof value === 'object') {
-    for (const child of Object.values(value)) deepFreeze(child);
+  if (value !== null && typeof value === 'object' && !deeplyFrozen.has(value)) {
+    deeplyFrozen.add(value);
     Object.freeze(value);
+    for (const child of Object.values(value)) deepFreeze(child);
   }
   return value;
 }
