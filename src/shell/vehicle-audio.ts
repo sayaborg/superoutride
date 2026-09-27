@@ -3,6 +3,7 @@ import type {
   TireAudioObservation,
   VehicleAudioObservation,
 } from '../audio/vehicle-audio-observation.js';
+import type { VehicleAudioEmitter } from '../audio/audio-scene.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
 
 type Mutable<T> = { -readonly [Key in keyof T]: T[Key] };
@@ -30,21 +31,24 @@ export function createVehicleAudioObservation(): Observation {
     rear: tire(),
   };
 }
-/** Copy completed observations into two reusable slots; do not run contact or tire solvers here. */
-export function readEngineAudio(competitor: CompetitorObservation, result: Observation): void {
-  const { powertrain } = competitor;
+type Emitter = Observation & Mutable<Omit<VehicleAudioEmitter, keyof VehicleAudioObservation>>;
+export function createVehicleAudioEmitter(): Emitter {
+  return { ...createVehicleAudioObservation(), id: '', x: 0, y: 0, z: 0, yaw: 0 };
+}
+/** Copy one completed competitor observation into a reusable emitter; do not run contact or tire solvers here. */
+export function readVehicleAudio(competitor: CompetitorObservation, result: Emitter): void {
+  result.id = competitor.id;
+  result.x = competitor.x;
+  result.y = competitor.y;
+  result.z = competitor.z;
+  result.yaw = competitor.yaw;
+  const { powertrain, tires } = competitor;
   result.rpm = powertrain.engineRpm;
   result.effectiveOpening = powertrain.effectiveOpening;
   result.shift.sequence = powertrain.shift.sequence;
   result.shift.direction = powertrain.shift.direction;
   result.shift.fromRpm = powertrain.shift.fromRpm;
   result.shift.toRpm = powertrain.shift.toRpm;
-}
-
-/** Player audio also reads the tire observations; rival engines use readEngineAudio. */
-export function readVehicleAudio(competitor: CompetitorObservation, result: Observation): void {
-  readEngineAudio(competitor, result);
-  const { tires } = competitor;
   result.front.load = tires.front.load;
   result.front.longitudinalVelocity = tires.front.longitudinalVelocity;
   result.front.lateralVelocity = tires.front.lateralVelocity;

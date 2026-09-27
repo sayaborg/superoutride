@@ -18,7 +18,7 @@
   derive from the Session seed; loading coverage, recovery policy and reference identities each have one owner.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **11-3 — Audio scene**.
+Next PR: **11-4 — Names**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -28,9 +28,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Separate the audio scene from the browser and organize sound around replaceable definitions.
 
-- **11-3 — Audio scene:** the audio scene owns voice allocation and reassignment; the shell passes emitters built from
-  competitor snapshots, positions included. A named rival audio policy owns its distances, pan and reassignment time;
-  document that audible candidates are resident competitors.
 - **11-4 — Names:** rename audio Profiles, `audio-presentation`, `AUDIO_TIMING`, road/squeal (rolling/friction) and
   Tuning/Settings records according to the glossary; remove `source` wording from audio specifications.
 - **11-5 — Sound graph:** generators, voices and buses that can accommodate BGM, environmental audio and effects;

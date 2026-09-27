@@ -8,8 +8,9 @@ settings, [Browser](browser.md#sound-controls) owns operation, and
 
 ## Observations and profiles
 
-The [acoustic observation](../src/audio/vehicle-audio-observation.ts) contains powertrain, position
-and tire inputs. From the powertrain, audio reads engine RPM, the effective opening
+The [acoustic observation](../src/audio/vehicle-audio-observation.ts) contains powertrain and tire
+inputs. A vehicle audio emitter ([audio scene](../src/audio/audio-scene.ts)) adds the competitor ID and
+its physical world pose; player and rivals are supplied in the same emitter form. From the powertrain, audio reads engine RPM, the effective opening
 (`effectiveOpening`, the engine's only command and the excitation source) and the last shift
 (sequence, direction and engine RPM before and after, as
 [vehicle physics](vehicle-physics.md#wheel-and-powertrain) publishes it). A sequence the voice has not yet heard
@@ -87,10 +88,11 @@ The resulting loss is about 0.034 Np/m before rounding. These are fixed referenc
 ## Mix and lifetime
 
 [Audio engine](../src/audio/audio-engine.ts) owns three fixed worklets: player engine, selected rival
-engine and player tires. The nearest observed rival within 100 physical world metres occupies the rival slot; candidates are the
-rivals the race observes on the resident Route.
-Its gain uses 3D distance and its pan uses lateral displacement in the player's yaw frame.
-A rival change fades before reusing the slot. ENG, TIRE and MASTER independently multiply their
+engine and player tires. The [audio scene](../src/audio/audio-scene.ts) owns rival selection, reassignment and
+spatialization; `RIVAL_AUDIO_POLICY` owns their audible distance, gain, pan and reassignment time. The nearest
+observed rival within the audible distance occupies the rival slot; candidates are the rivals the race observes on
+the resident Route. Its gain uses 3D physical world distance and its pan uses lateral displacement in the player's
+yaw frame. A change of rival ID silences the slot and waits the reassignment time before the new rival sounds. ENG, TIRE and MASTER independently multiply their
 outputs. Component output switches leave synthesis state running.
 
 The shared control-following constant is 25 ms and transition duration is 90 ms. Engine profile/tuning

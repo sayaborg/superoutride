@@ -1,4 +1,6 @@
-import { RIVAL_AUDIBLE_METERS, rivalAudioGain, rivalAudioPan } from './audio-presentation.js';
+import type { createAudioEngine } from './audio-engine.js';
+import type { VehicleAudioProfile } from './vehicle-audio-profile.js';
+import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
 
 /** Physical world position in meters. */
 export interface AudioPosition {
@@ -8,19 +10,40 @@ export interface AudioPosition {
 }
 
 /** Physical world position in meters and heading in radians. */
-export interface AudioListener extends AudioPosition {
+export interface AudioPose extends AudioPosition {
   readonly yaw: number;
 }
 
+/** Consumer-owned read contract: one competitor's acoustic observation, identity and world pose. */
+export interface VehicleAudioEmitter extends VehicleAudioObservation, AudioPose {
+  readonly id: string;
+}
+
+/** Rival selection, distance mix and reassignment; presentation policy, never vehicle properties. */
+export const RIVAL_AUDIO_POLICY = Object.freeze({
+  audibleMeters: 100,
+  peakGain: 0.6,
+  halfGainMeters: 12,
+  panMinimumMeters: 3,
+  reassignmentSeconds: 0.09,
+});
+
+export function rivalAudioGain(distanceMeters: number): number {
+  const { peakGain, halfGainMeters, audibleMeters } = RIVAL_AUDIO_POLICY;
+  return (peakGain / (1 + (distanceMeters / halfGainMeters) ** 2)) * Math.max(0, 1 - distanceMeters / audibleMeters);
+}
+
+/** Lateral displacement is supplied in the listener's yaw frame by the audio scene. */
+export function rivalAudioPan(lateralMeters: number, distanceMeters: number): number {
+  return lateralMeters / Math.max(RIVAL_AUDIO_POLICY.panMinimumMeters, distanceMeters);
+}
+
 /** Physical world distance, independent of raster depth and local stage chainage. */
-export function nearestAudibleRival<T extends AudioPosition>(
-  listener: AudioPosition,
-  candidates: readonly T[],
-): T | null {
+export function nearestAudibleRival<T extends AudioPosition>(listener: AudioPosition, rivals: readonly T[]): T | null {
+  // Candidates are the race's observed rivals, which never include the listener.
   let nearest: T | null = null;
-  let distanceSquared = RIVAL_AUDIBLE_METERS ** 2;
-  for (const candidate of candidates) {
-    if (candidate === listener) continue;
+  let distanceSquared = RIVAL_AUDIO_POLICY.audibleMeters ** 2;
+  for (const candidate of rivals) {
     const d2 = (candidate.x - listener.x) ** 2 + (candidate.y - listener.y) ** 2 + (candidate.z - listener.z) ** 2;
     if (d2 < distanceSquared) {
       nearest = candidate;
@@ -31,7 +54,7 @@ export function nearestAudibleRival<T extends AudioPosition>(
 }
 
 export function rivalSpatialization(
-  listener: AudioListener,
+  listener: AudioPose,
   rival: AudioPosition,
 ): { readonly gain: number; readonly pan: number } {
   const dx = rival.x - listener.x,
@@ -40,4 +63,31 @@ export function rivalSpatialization(
   const distance = Math.hypot(dx, dy, dz);
   const lateral = dx * Math.cos(listener.yaw) - dz * Math.sin(listener.yaw);
   return { gain: rivalAudioGain(distance), pan: rivalAudioPan(lateral, distance) };
+}
+
+type AudioEngine = Awaited<ReturnType<typeof createAudioEngine>>;
+
+/** Owns the rival voice assignment: a change silences the voice and waits before the new rival sounds. */
+export function createAudioScene(context: BaseAudioContext, engine: AudioEngine) {
+  let assignedId: string | null = null;
+  let switchAt = 0;
+  return {
+    update(player: VehicleAudioEmitter, rivals: readonly VehicleAudioEmitter[], profile: VehicleAudioProfile): void {
+      engine.update(player, profile);
+      const nearest = nearestAudibleRival(player, rivals);
+      const nearestId = nearest?.id ?? null;
+      if (nearestId !== assignedId) {
+        assignedId = nearestId;
+        switchAt = context.currentTime + RIVAL_AUDIO_POLICY.reassignmentSeconds;
+        engine.silenceRival();
+      }
+      if (context.currentTime < switchAt) return;
+      if (!nearest) {
+        engine.silenceRival();
+        return;
+      }
+      const { gain, pan } = rivalSpatialization(player, nearest);
+      engine.updateRival(nearest, profile, gain, pan);
+    },
+  };
 }

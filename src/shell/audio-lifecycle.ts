@@ -5,10 +5,10 @@ import { createNumberStepper } from './number-stepper.js';
 import { createAudioEngine } from '../audio/audio-engine.js';
 import { TIRE_COMPONENTS } from '../audio/tire-sound-controls.js';
 import { AUDIO_TIMING } from '../audio/audio-presentation.js';
-import { nearestAudibleRival, rivalSpatialization } from '../audio/audio-scene.js';
+import { createAudioScene } from '../audio/audio-scene.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
-import { createVehicleAudioObservation, readEngineAudio, readVehicleAudio } from './vehicle-audio.js';
+import { createVehicleAudioEmitter, readVehicleAudio } from './vehicle-audio.js';
 
 // Touch activation arrives on release; pointerdown activates only a mouse.
 const GESTURE_EVENTS = ['pointerdown', 'pointerup', 'touchend', 'keydown'] as const;
@@ -47,10 +47,10 @@ export function createAudioLifecycle(sessionVehicle: CompiledVehicleDefinition) 
   let volume = 0.35;
   let engineVolume = 1,
     tireVolume = 1;
-  const playerState = createVehicleAudioObservation(),
-    rivalState = createVehicleAudioObservation();
-  let nextRival: CompetitorObservation | null = null;
-  let switchAt = 0;
+  let scene: ReturnType<typeof createAudioScene> | null = null;
+  const playerEmitter = createVehicleAudioEmitter();
+  const rivalEmitters: ReturnType<typeof createVehicleAudioEmitter>[] = [];
+  const presentRivals: ReturnType<typeof createVehicleAudioEmitter>[] = [];
   const supported = typeof AudioContext !== 'undefined' && typeof AudioWorkletNode !== 'undefined';
   if (button) {
     showSoundState();
@@ -161,10 +161,9 @@ export function createAudioLifecycle(sessionVehicle: CompiledVehicleDefinition) 
     const retired = engine,
       closing = context;
     engine = null;
+    scene = null;
     context = null;
     loading = null;
-    nextRival = null;
-    switchAt = 0;
     if (suspendTimer !== null) clearTimeout(suspendTimer);
     suspendTimer = null;
     closeGraph(retired, closing);
@@ -215,6 +214,7 @@ export function createAudioLifecycle(sessionVehicle: CompiledVehicleDefinition) 
         return;
       }
       engine = built;
+      scene = createAudioScene(created, built);
       if (!(await resumed)) throw new Error('audio resume failed');
       if (context === created) sync();
     } catch {
@@ -292,26 +292,17 @@ export function createAudioLifecycle(sessionVehicle: CompiledVehicleDefinition) 
   document.addEventListener('visibilitychange', visibility);
   button?.addEventListener('click', toggle);
   return {
-    update(player: CompetitorObservation, actors: readonly CompetitorObservation[]): void {
-      if (!engine || !context || context.state !== 'running' || !audible()) return;
+    update(player: CompetitorObservation, rivals: readonly CompetitorObservation[]): void {
+      if (!scene || !context || context.state !== 'running' || !audible()) return;
       try {
-        readVehicleAudio(player, playerState);
-        engine.update(playerState, sessionVehicle.sound);
-        const nearest = nearestAudibleRival(player, actors);
-        if (nearest !== nextRival) {
-          nextRival = nearest;
-          switchAt = context.currentTime + AUDIO_TIMING.transitionSeconds;
-          engine.silenceRival();
+        readVehicleAudio(player, playerEmitter);
+        while (rivalEmitters.length < rivals.length) rivalEmitters.push(createVehicleAudioEmitter());
+        presentRivals.length = rivals.length;
+        for (let i = 0; i < rivals.length; i += 1) {
+          readVehicleAudio(rivals[i]!, rivalEmitters[i]!);
+          presentRivals[i] = rivalEmitters[i]!;
         }
-        if (context.currentTime < switchAt) return;
-        if (!nextRival) {
-          engine.silenceRival();
-          return;
-        }
-        const rival = nextRival;
-        readEngineAudio(rival, rivalState);
-        const { gain, pan } = rivalSpatialization(player, rival);
-        engine.updateRival(rivalState, sessionVehicle.sound, gain, pan);
+        scene.update(playerEmitter, presentRivals, sessionVehicle.sound);
       } catch {
         fail();
       }
