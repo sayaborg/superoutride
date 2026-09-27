@@ -4,15 +4,15 @@ import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { readDeliveredContent } from '../course/read-content.js';
 import { loadDeliveredCourse } from '../../src/content/load-delivered-course.js';
 import { isTimedCourse } from '../../src/course/compiler/compiled-course.js';
-import { createSessionVehicle, sessionVehicleSha256 } from '../../src/race/session-vehicle.js';
+import { createSessionVehicle, sessionVehicleSha256 } from '../../src/content/session-vehicle.js';
 import { REFERENCE_DRIVER_SHA256 } from '../course/reference-driving-policy.js';
 import { readCourseReference } from '../course/course-reference.js';
 import {
   COURSE_TIME_BUDGETS_FORMAT,
   courseBudgetLandmarks,
   readCourseTimeBudgets,
-} from '../../src/race/course-time-budgets.js';
-import { RIVAL_ENVELOPE_FORMAT, readVehicleEnvelope } from '../../src/race/vehicle-envelope.js';
+} from '../../src/content/course-time-budgets.js';
+import { RIVAL_ENVELOPE_FORMAT, readVehicleEnvelope } from '../../src/content/vehicle-envelope.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
 import { cachedReference, referenceCacheKey } from '../course/reference-cache.js';
 import { ENVELOPE_MEASUREMENT, measureVehicleEnvelope } from '../course/vehicle-envelope.js';

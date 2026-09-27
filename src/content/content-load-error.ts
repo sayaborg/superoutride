@@ -1,6 +1,9 @@
 import type { AdmissionDiagnostic } from '../core/admission.js';
 import type { CourseDiagnostic } from '../course/course-diagnostics.js';
-import type { ContentKind } from './content-manifest.js';
+
+/** The kinds of delivered content; the manifest indexes them and missing content names one. */
+export type ContentKind =
+  'course' | 'image' | 'envelope' | 'budget' | 'vehicle' | 'vehicle-listing' | 'driving' | 'material';
 
 /** A required delivered or built file is absent from the content manifest. */
 export interface MissingContentDiagnostic {

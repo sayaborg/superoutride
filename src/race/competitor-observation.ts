@@ -3,7 +3,7 @@ import type { PowertrainShiftObservation } from '../vehicle/physics/automatic-po
 import type { VehicleCameraReadState, VehicleRenderReadState } from '../vehicle/physics/vehicle-contract.js';
 import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import type { TireObservation, VehicleTireObservation } from '../vehicle/physics/vehicle-tire-observation.js';
-import type { SessionVehicle } from './session-configuration.js';
+import type { SessionVehicle } from '../content/session-vehicle.js';
 
 /**
  * One competitor's values for display, camera and audio, copied by the race at the end of every fixed

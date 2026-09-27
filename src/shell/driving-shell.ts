@@ -1,4 +1,4 @@
-import type { SessionVehicle } from '../race/session-configuration.js';
+import type { SessionVehicle } from '../content/session-vehicle.js';
 import { createAudioLifecycle } from './audio-lifecycle.js';
 import { createDrivingLifecycle, type DrivingLifecycleOptions } from './driving-lifecycle.js';
 import type { CameraRig } from '../view/camera.js';

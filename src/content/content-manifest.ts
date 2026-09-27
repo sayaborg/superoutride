@@ -9,10 +9,8 @@ import {
   requireAdmission,
   type AdmissionResult,
 } from '../core/admission.js';
-import { missingContent, requireLoaded } from './content-load-error.js';
+import { missingContent, requireLoaded, type ContentKind } from './content-load-error.js';
 
-export type ContentKind =
-  'course' | 'image' | 'envelope' | 'budget' | 'vehicle' | 'vehicle-listing' | 'driving' | 'material';
 export interface ContentEntry {
   readonly kind: ContentKind;
   readonly id: string;

@@ -1,4 +1,4 @@
-import type { ContentKind } from '../../src/content/content-manifest.js';
+import type { ContentKind } from '../../src/content/content-load-error.js';
 import { writeFile, mkdir } from 'node:fs/promises';
 import { Worker } from 'node:worker_threads';
 import { availableParallelism } from 'node:os';

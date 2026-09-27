@@ -1,11 +1,9 @@
-import { compileEnvelopeDriver, type VehicleEnvelope } from './envelope-driver.js';
+import { compileEnvelopeDriver } from './envelope-driver.js';
+import type { VehicleEnvelope } from '../content/vehicle-envelope.js';
+import type { CourseTimeBudgets } from '../content/course-time-budgets.js';
+import type { SessionVehicle } from '../content/session-vehicle.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
-import type { CompiledCourseLandmark } from '../course/compiler/course-rules.js';
-import type { SessionConfiguration, SessionVehicle } from './session-configuration.js';
-export interface CourseTimeBudgets {
-  readonly initialMs: number;
-  after(gate: CompiledCourseLandmark, lap: number): number;
-}
+import type { SessionConfiguration } from './session-configuration.js';
 
 /**
  * Resolve one playable configuration before actors/ticks exist. Graph and catalog objects remain shared

@@ -1,5 +1,5 @@
 import { createPlanCoordinateReader } from '../../src/course/geometry/plan-coordinate-reader.js';
-import type { SessionVehicle } from '../../src/race/session-configuration.js';
+import type { SessionVehicle } from '../../src/content/session-vehicle.js';
 import type { DrivingInput } from '../../src/vehicle/driving-input.js';
 import { createBodyKinematicsWorkspace } from '../../src/vehicle/physics/vehicle-physics.js';
 import { compilePlanPath } from '../../src/course/geometry/plan-path.js';

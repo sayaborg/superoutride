@@ -1,9 +1,8 @@
-import { sessionVehicleSha256 } from '../../src/race/session-vehicle.js';
+import { sessionVehicleSha256, type SessionVehicle } from '../../src/content/session-vehicle.js';
 import type { CompiledCourse, TimedCompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import type { CompiledCourseLandmark } from '../../src/course/compiler/course-rules.js';
-import type { SessionVehicle } from '../../src/race/session-configuration.js';
 import { REFERENCE_DRIVER_SHA256 } from './reference-driving-policy.js';
-import type { CourseTimeBudgets } from '../../src/race/course-session.js';
+import type { CourseTimeBudgets } from '../../src/content/course-time-budgets.js';
 import { enumerateCourseRoutes } from '../../src/course/compiler/course-routes.js';
 import { createCourseRoute } from '../../src/course/course-route.js';
 import { createRouteCrossSections, type RouteRaceLine } from '../../src/race/route-cross-sections.js';

@@ -1,8 +1,14 @@
 import { contentDigest } from '../core/content-digest.js';
 import type { CompiledDrivingDefinition } from '../vehicle/compiled-driving-definition.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
-import type { SessionVehicle } from './session-configuration.js';
 import type { SurfaceMaterialCatalog } from '../course/surface-material.js';
+
+/** The vehicle and driving definitions a Session drives; everything else derives from them. */
+export interface SessionVehicle {
+  readonly vehicleDefinition: CompiledVehicleDefinition;
+  readonly drivingDefinition: CompiledDrivingDefinition;
+  readonly surfaceMaterials: SurfaceMaterialCatalog;
+}
 
 /** The two admitted definitions a Session drives, shared by browser, race, tools and scenarios. */
 export function createSessionVehicle(

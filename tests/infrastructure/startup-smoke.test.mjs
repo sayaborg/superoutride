@@ -1,5 +1,5 @@
 import { createVehicleSprites } from '../../src/view/vehicle-sprites.js';
-import { createSessionVehicle } from '../../src/race/session-vehicle.js';
+import { createSessionVehicle } from '../../src/content/session-vehicle.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readDeliveredContent } from '../../tools/course/read-content.ts';

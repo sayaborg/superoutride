@@ -14,22 +14,15 @@ import { createCourseRace } from '../race/course-race.js';
 import { raceStatusText } from './race-status-hud.js';
 import { createCoursePerformanceHud } from './course-performance-hud.js';
 import { resolveCourseSession } from '../race/course-session.js';
-import { readCourseTimeBudgets } from '../race/course-time-budgets.js';
+import { readCourseTimeBudgets, type CourseTimeBudgets } from '../content/course-time-budgets.js';
 import { isTimedCourse } from '../course/compiler/compiled-course.js';
-import { createSessionVehicle } from '../race/session-vehicle.js';
+import { createSessionVehicle, type SessionVehicle } from '../content/session-vehicle.js';
 import { readBrowserSessionSettings, mountCourseSessionControls } from './course-session-controls.js';
 import { createCourseScene } from '../view/course-scene.js';
-import { readVehicleEnvelope } from '../race/vehicle-envelope.js';
+import { readVehicleEnvelope, type VehicleEnvelope } from '../content/vehicle-envelope.js';
 import { loadSurfaceMaterials } from '../content/surface-material-catalog.js';
-import { requireLoaded } from '../content/content-load-error.js';
-import type { AdmissionResult } from '../core/admission.js';
-import {
-  compileSessionConfiguration,
-  type SessionConfiguration,
-  type SessionVehicle,
-} from '../race/session-configuration.js';
-import type { VehicleEnvelope } from '../race/envelope-driver.js';
-import type { CourseTimeBudgets } from '../race/course-session.js';
+import { admitProduct } from '../content/delivered-product.js';
+import { compileSessionConfiguration, type SessionConfiguration } from '../race/session-configuration.js';
 import { validateTireSoundMaterialIds } from '../audio/tire-surface-acoustics.js';
 
 const canvas = mustGet<HTMLCanvasElement>('game');
@@ -52,24 +45,14 @@ try {
   const preset = readBrowserSessionSettings(new URLSearchParams(), course.rules.classic, vehicles);
   const entry = vehicles.find((v) => v.compiledVehicle.id === settings.vehicleId)!;
   const vehicle = createSessionVehicle(entry, driving, materials);
-  // Generated products are admitted with their delivered path as the diagnostic document.
-  const admitProduct = async <T>(
-    kind: 'envelope' | 'budget',
-    id: string,
-    read: (value: unknown, document: string) => Promise<AdmissionResult<T>>,
-  ) => {
-    const value = await content.json(kind, id);
-    const document = content.manifest.files.find((file) => file.kind === kind && file.id === id)!.path;
-    return requireLoaded(await read(value, document));
-  };
   const vehicleId = vehicle.vehicleDefinition.compiledVehicle.id;
-  const rivalEnvelope = await admitProduct('envelope', vehicleId, (value, document) =>
+  const rivalEnvelope = await admitProduct(content, 'envelope', vehicleId, (value, document) =>
     readVehicleEnvelope(vehicle, value, document),
   );
   // A timed course's budgets must be delivered; a missing file stops loading rather than dropping the clock.
   const budgets =
     settings.timeLimit && isTimedCourse(course)
-      ? await admitProduct('budget', `${mode}/${vehicleId}`, (value, document) =>
+      ? await admitProduct(content, 'budget', `${mode}/${vehicleId}`, (value, document) =>
           readCourseTimeBudgets(course, vehicle, value, document),
         )
       : null;

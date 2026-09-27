@@ -7,7 +7,7 @@ import { loadCourseGround } from '../../tools/course/authoring-io.ts';
 import { createCourseScene } from '../../src/view/course-scene.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
-import { createSessionVehicle } from '../../src/race/session-vehicle.js';
+import { createSessionVehicle } from '../../src/content/session-vehicle.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import {
   compileEnvelopeDriver,

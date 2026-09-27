@@ -7,12 +7,15 @@ import {
   requireAdmission,
   type AdmissionResult,
 } from '../core/admission.js';
-import { sessionVehicleSha256 } from './session-vehicle.js';
+import { sessionVehicleSha256, type SessionVehicle } from './session-vehicle.js';
 import { SHA256_TEXT } from '../core/content-digest.js';
 import type { TimedCompiledCourse } from '../course/compiler/compiled-course.js';
 import type { CompiledCourseLandmark } from '../course/compiler/course-rules.js';
-import type { SessionVehicle } from './session-configuration.js';
-import type { CourseTimeBudgets } from './course-session.js';
+
+export interface CourseTimeBudgets {
+  readonly initialMs: number;
+  after(gate: CompiledCourseLandmark, lap: number): number;
+}
 
 /** Every admitted upcoming interval, including the final lap's checkpoints. */
 export function courseBudgetLandmarks(course: TimedCompiledCourse) {

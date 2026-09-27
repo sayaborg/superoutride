@@ -10,7 +10,7 @@ import {
 } from '../../src/course/geometry/plan-coordinate.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
-import { createSessionVehicle } from '../../src/race/session-vehicle.js';
+import { createSessionVehicle } from '../../src/content/session-vehicle.js';
 import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 
 const definitions = await loadVehicleDefinitions(await readDeliveredContent());

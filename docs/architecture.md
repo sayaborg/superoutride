@@ -560,18 +560,18 @@ options and lint rules. [Development](development.md#typescript-tools) owns exec
 Product source is organized by domain. Shared definitions, product compilation and runtime representation
 belong inside that domain; an upper domain depends only on lower domains, and same-domain imports are unrestricted.
 
-| Order | Layer   | Responsibility                                                                                                                                                                                            |
-| ----- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1     | core    | General mathematics, vectors, planar transforms, the admission toolkit and content digests                                                                                                                |
-| 2     | image   | Indexed images, RGB555/RGBA codecs, palettes, sprite/LOD formats, BG tiles and image filters                                                                                                              |
-| 3     | audio   | Sound synthesis and audio engines                                                                                                                                                                         |
-| 4     | course  | Course documents and compilation, road geometry, materials, occurrences, environment timelines and shared Route readers                                                                                   |
-| 5     | vehicle | Vehicle mechanics, vehicle and driving document compilation, vehicle sprite sets (library admission, color/lamp variants, yaw/bank selection) and accepted operation requests                             |
-| 6     | content | Content manifest format, reading and delivery; saved JSON layout; document catalogs and their rules; loading courses, materials, the vehicle sprite library and vehicle/driving definitions from delivery |
-| 7     | input   | Keyboard/touch adapters and arbitration producing vehicle operation requests                                                                                                                              |
-| 8     | race    | Sessions, Session vehicles, course worlds, fixed step, progress, gates, timing, drivers, recovery and envelopes                                                                                           |
-| 9     | view    | Cameras, projection, ground rows, sprite placement, course scenes, drawing composition and framebuffer                                                                                                    |
-| 10    | shell   | DOM, frame loop, HUD, DEV, startup and browser composition                                                                                                                                                |
+| Order | Layer   | Responsibility                                                                                                                                                                                                                                                                                                  |
+| ----- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1     | core    | General mathematics, vectors, planar transforms, the admission toolkit and content digests                                                                                                                                                                                                                      |
+| 2     | image   | Indexed images, RGB555/RGBA codecs, palettes, sprite/LOD formats, BG tiles and image filters                                                                                                                                                                                                                    |
+| 3     | audio   | Sound synthesis and audio engines                                                                                                                                                                                                                                                                               |
+| 4     | course  | Course documents and compilation, road geometry, materials, occurrences, environment timelines and shared Route readers                                                                                                                                                                                         |
+| 5     | vehicle | Vehicle mechanics, vehicle and driving document compilation, vehicle sprite sets (library admission, color/lamp variants, yaw/bank selection) and accepted operation requests                                                                                                                                   |
+| 6     | content | Content manifest format, reading and delivery; saved JSON layout; document catalogs and their rules; loading courses, materials, the vehicle sprite library and vehicle/driving definitions from delivery; the Session vehicle and its identity; generated envelope and time-budget formats and their admission |
+| 7     | input   | Keyboard/touch adapters and arbitration producing vehicle operation requests                                                                                                                                                                                                                                    |
+| 8     | race    | Sessions, course worlds, fixed step, progress, gates, timing, drivers and recovery                                                                                                                                                                                                                              |
+| 9     | view    | Cameras, projection, ground rows, sprite placement, course scenes, drawing composition and framebuffer                                                                                                                                                                                                          |
+| 10    | shell   | DOM, frame loop, HUD, DEV, startup and browser composition                                                                                                                                                                                                                                                      |
 
 The [dependency check](../tests/infrastructure/layer-dependencies.test.mjs) parses imports, type-only
 imports, re-exports, inline import types, literal dynamic imports, CommonJS references, worker entries
@@ -598,8 +598,11 @@ to the DEV vehicle HUD alone. `SIM_DT` is the only authority for the step length
 steps of it: `advance(input)` takes no step length, and the start phase, the checkpoint clock's race time,
 recovery timing and event times all use `SIM_DT`. The model carries its fixed step, received when
 it is built; vehicle mechanics never import race, so every composition passes `SIM_DT` when it builds a model. The composition shared by
-browser, race, tools and scenarios lives below shell: race owns the Session vehicle (vehicle and
-driving definitions only, `createSessionVehicle`), the fixed simulation step (`SIM_DT`) and the course
+browser, race, tools and scenarios lives below shell: content owns the Session vehicle (vehicle and
+driving definitions only: `SessionVehicle`, `createSessionVehicle` and its identity `sessionVehicleSha256`) and the
+generated product formats with their admission (`vehicle-envelope.ts`, `course-time-budgets.ts`, and `admitProduct`,
+which admits a delivered product with its delivered path as the diagnostic document), shared by the build's
+producers and the race and browser that admit them; race owns the fixed simulation step (`SIM_DT`) and the course
 world (`createCourseWorld`: the Route runtime loaded for an observer window, the driver lookahead and one
 fixed step); view owns the course scene, which adds rendering and supplies the current camera's loading
 window. Shell owns the observer's camera, and race actors contain no camera state. Consumers outside vehicle

@@ -1,12 +1,7 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { contentDigest } from '../../src/core/content-digest.js';
-import { requireLoaded } from '../../src/content/content-load-error.js';
-import {
-  encodeContentJson,
-  readContentManifest,
-  type ContentEntry,
-  type ContentKind,
-} from '../../src/content/content-manifest.js';
+import { requireLoaded, type ContentKind } from '../../src/content/content-load-error.js';
+import { encodeContentJson, readContentManifest, type ContentEntry } from '../../src/content/content-manifest.js';
 
 function contentPath(kind: ContentKind, id: string, sha256: string): string {
   switch (kind) {

@@ -8,10 +8,19 @@ import {
   requireAdmission,
   type AdmissionResult,
 } from '../core/admission.js';
-import type { SessionVehicle } from './session-configuration.js';
-import type { VehicleEnvelope } from './envelope-driver.js';
-import { sessionVehicleSha256 } from './session-vehicle.js';
+import { sessionVehicleSha256, type SessionVehicle } from './session-vehicle.js';
 import { SHA256_TEXT } from '../core/content-digest.js';
+
+export interface VehicleEnvelope {
+  readonly maximumSpeed: number;
+  readonly rows: readonly {
+    readonly speed: number;
+    readonly acceleration: number;
+    readonly braking: number;
+    readonly lateral: number;
+    readonly steeringGain: number;
+  }[];
+}
 
 export const RIVAL_ENVELOPE_FORMAT = Object.freeze({ format: 'superoutride.rival-envelope', version: 1 } as const);
 

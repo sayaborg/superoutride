@@ -1,7 +1,7 @@
 import { compileVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
 import { authoredDocumentSource, type DocumentSource } from '../../src/content/document-catalog.js';
-import type { ContentKind } from '../../src/content/content-manifest.js';
+import type { ContentKind } from '../../src/content/content-load-error.js';
 import {
   compileCourseDocument,
   isTimedCourse,

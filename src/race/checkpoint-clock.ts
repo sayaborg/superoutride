@@ -1,5 +1,5 @@
 import { SIM_DT } from './fixed-step.js';
-import type { CourseTimeBudgets } from './course-session.js';
+import type { CourseTimeBudgets } from '../content/course-time-budgets.js';
 import type { RouteRaceEvent } from './route-progress.js';
 
 /** The one conversion from a step's start time and a within-step fraction to race time. */

@@ -1,6 +1,6 @@
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { readDeliveredContent } from './read-content.js';
-import { createSessionVehicle } from '../../src/race/session-vehicle.js';
+import { createSessionVehicle } from '../../src/content/session-vehicle.js';
 import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 import { REFERENCE_DRIVER_SHA256 } from './reference-driving-policy.js';
 import { measureVehicleEnvelope } from './vehicle-envelope.js';

@@ -1,5 +1,5 @@
 import { createVehicleSprites } from '../../src/view/vehicle-sprites.js';
-import { createSessionVehicle } from '../../src/race/session-vehicle.js';
+import { createSessionVehicle } from '../../src/content/session-vehicle.js';
 import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import type { CourseGround } from '../../src/course/compiler/course-ground.js';
 interface RenderFrame {

@@ -2,21 +2,11 @@ import { createPlanCoordinateSample, type PlanCoordinateReader } from '../course
 import { clamp, wrapAngle } from '../core/math.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import type { VehicleCameraReadState } from '../vehicle/physics/vehicle-contract.js';
+import type { VehicleEnvelope } from '../content/vehicle-envelope.js';
 
 // Inverse metres: curvature resolution floor (radius 10,000 km); suppresses heading
 // differencing noise. At 100 m/s the omitted lateral demand is at most 0.001 m/s^2.
 const MIN_DRIVER_CURVATURE_PER_METER = 1e-7;
-
-export interface VehicleEnvelope {
-  readonly maximumSpeed: number;
-  readonly rows: readonly {
-    readonly speed: number;
-    readonly acceleration: number;
-    readonly braking: number;
-    readonly lateral: number;
-    readonly steeringGain: number;
-  }[];
-}
 
 /** Input/planning policy only. The measured envelope and production mechanics retain their own authority. */
 export const ENVELOPE_DRIVER = Object.freeze({
