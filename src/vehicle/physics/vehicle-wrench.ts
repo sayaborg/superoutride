@@ -1,11 +1,6 @@
 import type { WheelSolveResult } from './tire-wheel.js';
-import {
-  contactForceWorld,
-  momentAboutCg,
-  VEHICLE_GRAVITY,
-  type BodyKinematics,
-  type ContactObservation,
-} from './vehicle-dynamics.js';
+import { contactForceWorld, momentAboutCg, type ContactObservation } from './vehicle-contact.js';
+import { VEHICLE_GRAVITY, type BodyKinematics } from './vehicle-state.js';
 import { add3, scale3, type Vec3 } from '../../core/vector3.js';
 import type { CompiledVehicle } from './vehicle-definitions.js';
 

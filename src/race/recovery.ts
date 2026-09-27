@@ -16,9 +16,11 @@ import {
   VEHICLE_GRAVITY,
   initializePlanCoordinateObservation,
   resetVehicleControlState,
+} from '../vehicle/physics/vehicle-state.js';
+import {
   sampleSurfaceGeometryAtCoordinate,
   createSurfaceGeometryWorkspace,
-} from '../vehicle/physics/vehicle-dynamics.js';
+} from '../vehicle/physics/vehicle-surface-sampling.js';
 import { add3, dot3, scale3 } from '../core/vector3.js';
 import { drivenWheelOmega } from '../vehicle/physics/vehicle-definitions.js';
 import { initializeVehicleTireObservation } from '../vehicle/physics/vehicle-tire-observation.js';

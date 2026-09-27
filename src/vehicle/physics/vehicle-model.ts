@@ -5,8 +5,10 @@ import type { CompiledTireCharacteristics } from './tire-friction-calibration.js
 import type { TorqueProtectionPolicy } from './torque-protection.js';
 import type { VehicleSteeringCalibrationState } from './vehicle-calibration.js';
 import type { CompiledVehicle } from './vehicle-definitions.js';
-import { VEHICLE_SUBSTEPS, assertSuspensionStability } from './vehicle-dynamics.js';
+import { assertSuspensionStability } from './vehicle-suspension.js';
 import type { CompiledVehicleDefinition } from '../definition-document.js';
+
+export const VEHICLE_SUBSTEPS = 12;
 
 /**
  * The final Vehicle×Driving mechanics product: the compiled vehicle, the compiled driving facts it

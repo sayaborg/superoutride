@@ -42,8 +42,17 @@ the next step uses the replacement.
 delivered SHA-256 of the mechanics, driving and material documents.
 [Content and gameplay](content-and-gameplay.md#reference-times-and-clock) owns this cross-product identity.
 
-The engine owns tire and steering low-speed regularization (both 1.0 m/s) in
-`physics/numerical-constants.ts`. They are numerical constants, not vehicle or driving design values.
+The engine owns tire and steering low-speed regularization (both 1.0 m/s): the tire law
+(`physics/tire-wheel.ts`) owns the tire value and the update's automatic steering (`physics/vehicle-physics.ts`)
+owns the steering value. They are numerical constants, not vehicle or driving design values.
+
+The mechanics modules under `src/vehicle/physics/` divide by responsibility, without import cycles:
+`vehicle-state.ts` holds the shared dynamic state, the control observation, body kinematics, the plan
+coordinate observation of the state and gravity; `vehicle-surface-sampling.ts` samples the surface geometry at a
+route coordinate; `vehicle-suspension.ts` compiles contact stations and owns the spring/damper law and its
+stability check; `vehicle-contact.ts` derives and reorients contact observations, the tire frame and contact
+force and moment; `suspension-bump-stop.ts` owns the bump stop; `vehicle-model.ts` owns the substep count; and
+`vehicle-physics.ts` runs the update.
 [Content and gameplay](content-and-gameplay.md#recovery) owns recovery outside the mechanical domain.
 
 ## State and integration

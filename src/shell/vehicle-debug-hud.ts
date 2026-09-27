@@ -2,7 +2,7 @@ import type { CompiledVehicleDefinition } from '../vehicle/definition-document.j
 import { assertExclusivePedalInput, normalizedPedalRequest, type DrivingInput } from '../vehicle/driving-input.js';
 import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
-import { VEHICLE_GRAVITY } from '../vehicle/physics/vehicle-dynamics.js';
+import { VEHICLE_GRAVITY } from '../vehicle/physics/vehicle-state.js';
 import { observeClutch } from '../vehicle/physics/automatic-powertrain.js';
 import { formatBrowserCourseSelector, type BrowserCourseModeQuery } from './course-mode-selection.js';
 import { formatDrivingTuningLine } from './driving-tuning.js';

@@ -1,7 +1,8 @@
-import { TIRE_LOW_SPEED_REGULARIZATION } from './numerical-constants.js';
+import { TIRE_LOW_SPEED_REGULARIZATION } from './tire-wheel.js';
 import { clamp } from '../../core/math.js';
 import type { CompiledTireCharacteristics } from './tire-friction-calibration.js';
-import type { BodyKinematics, ContactObservation } from './vehicle-dynamics.js';
+import type { BodyKinematics } from './vehicle-state.js';
+import type { ContactObservation } from './vehicle-contact.js';
 import { cross3, dot3, scale3, sub3 } from '../../core/vector3.js';
 
 // Dimensionless unit-normal dot product: conditioning floor limiting inverse gain to 10^8.

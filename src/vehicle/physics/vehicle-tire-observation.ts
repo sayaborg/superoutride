@@ -1,5 +1,5 @@
 import type { WheelSolveResult } from './tire-wheel.js';
-import type { ContactObservation } from './vehicle-dynamics.js';
+import type { ContactObservation } from './vehicle-contact.js';
 
 export interface TireObservation {
   readonly longitudinalVelocity: number;

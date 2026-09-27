@@ -1,4 +1,4 @@
-import { TIRE_LOW_SPEED_REGULARIZATION } from './numerical-constants.js';
+import { TIRE_LOW_SPEED_REGULARIZATION } from './tire-wheel.js';
 import { type Writable } from '../../core/writable.js';
 const PITCH_BISECTION_ITERATIONS = 12;
 // Rad/s: critically damped response of the pitch barrier; sets how early protection anticipates the limit.
@@ -13,7 +13,8 @@ import {
   type WheelSolveInput,
   type WheelSolveResult,
 } from './tire-wheel.js';
-import type { BodyKinematics, ContactObservation } from './vehicle-dynamics.js';
+import type { BodyKinematics } from './vehicle-state.js';
+import type { ContactObservation } from './vehicle-contact.js';
 import { cross3, dot3, normalize3, sub3, type Vec3 } from '../../core/vector3.js';
 import type { CompiledVehicle } from './vehicle-definitions.js';
 import { createWrenchWorkspace, evaluateVehicleWrench, type VehicleWrench } from './vehicle-wrench.js';

@@ -1,5 +1,5 @@
 import { clamp } from '../core/math.js';
-import { VEHICLE_GRAVITY } from '../vehicle/physics/vehicle-dynamics.js';
+import { VEHICLE_GRAVITY } from '../vehicle/physics/vehicle-state.js';
 export interface VehicleTurnObservation {
   readonly lateralAcceleration: number;
 }

@@ -15,7 +15,7 @@
 - Engine sound load is the powertrain's effective opening.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **10-18 — Module placement (move only)**.
+Next PR: **10-18b — Session vehicle and product formats (move only)**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -25,9 +25,10 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Give each settled fact one owner and give consumers read-only observations.
 
-- **10-18 — Module placement (move only):** numerical constants move to their owners; split vehicle dynamics (state,
-  surface sampling, suspension, tire frame) and move the bump stop to its own module; the `SessionVehicle` interface
-  joins its factory; envelope and budget formats move to their producer contracts.
+- **10-18b — Session vehicle and product formats (move only):** the `SessionVehicle` interface joins its factory;
+  envelope and time-budget formats and admission move to one place shared by producers and admission, with
+  `admitProduct`; the content modules' mutual import is resolved.
+- **10-18c — Envelope measurement version:** the envelope measurement version becomes 2.
 - **10-19 — Names:** rename `destinationFromSource`, derived actuator `*Definition` records and immutable calibration
   `*State` products according to the glossary.
 

@@ -4,7 +4,8 @@ import {
   type AutomaticPowertrainDefinition,
   type CompiledAutomaticPowertrainDefinition,
 } from './automatic-powertrain.js';
-import { VEHICLE_GRAVITY, compileSuspensionStation, type CompiledContactStation } from './vehicle-dynamics.js';
+import { VEHICLE_GRAVITY } from './vehicle-state.js';
+import { compileSuspensionStation, type CompiledContactStation } from './vehicle-suspension.js';
 
 /** Opaque content identity; production membership belongs to the upper catalog. */
 export type VehicleId = string;

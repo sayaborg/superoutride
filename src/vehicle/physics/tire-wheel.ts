@@ -1,4 +1,5 @@
-import { TIRE_LOW_SPEED_REGULARIZATION } from './numerical-constants.js';
+/** m/s: smooth the tire slip denominator and rolling sign at standstill. */
+export const TIRE_LOW_SPEED_REGULARIZATION = 1.0;
 import type { Writable } from '../../core/writable.js';
 const WHEEL_BISECTION_ITERATIONS = 60;
 
