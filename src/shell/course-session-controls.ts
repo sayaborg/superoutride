@@ -3,7 +3,8 @@ import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
 import { compileSessionConfiguration, type SessionConfiguration } from '../race/session-configuration.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 
-interface BrowserSessionSettings extends SessionConfiguration {
+/** The chosen settings; each Session assembly adds its own seed. */
+interface BrowserSessionSettings extends Omit<SessionConfiguration, 'seed'> {
   readonly vehicleId: string;
 }
 /**
@@ -29,11 +30,9 @@ export function readBrowserSessionSettings(
           vehicleId: params.get('vehicle') ?? preset.vehicleId,
         };
   if (!vehicles.some((v) => v.compiledVehicle.id === values.vehicleId)) throw new RangeError('Unknown Session vehicle');
-  // Product Sessions use standing starts.
-  return Object.freeze({
-    ...compileSessionConfiguration({ mode, ...values, initialSpeed: 0 }),
-    vehicleId: values.vehicleId,
-  });
+  // Product Sessions use standing starts. The seed is chosen per assembly, so validation uses a placeholder.
+  const { seed: _seed, ...configuration } = compileSessionConfiguration({ mode, ...values, initialSpeed: 0, seed: 0 });
+  return Object.freeze({ ...configuration, vehicleId: values.vehicleId });
 }
 
 /** Session settings precede the start signal; ordinary driving input remains unchanged. */

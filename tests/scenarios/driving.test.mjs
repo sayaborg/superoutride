@@ -6,27 +6,43 @@ for (const stem of ['ribbon-coast', 'ribbon-fork', 'ribbon-ring']) {
   test(`${stem}: deterministic driving scenarios`, async (t) => {
     const loaded = await loadScenarioCourse(stem);
     const scenarios = [
-      { name: 'reverse beyond entry', policy: 'reverse', seconds: 15 },
-      ...[-1, 1].map((side) => ({
-        name: `departure ${side < 0 ? 'left' : 'right'}`,
+      { name: 'reverse beyond entry', policy: 'reverse', exit: 1, seconds: 15 },
+      ...[-1, 1].map((steering) => ({
+        name: `departure ${steering < 0 ? 'left' : 'right'}`,
         policy: 'departure',
-        side,
+        steering,
         seconds: 20,
       })),
       ...(stem === 'ribbon-fork'
         ? [
-            ...[-1, 1].map((side) => ({
-              name: `fork ${side < 0 ? 'left' : 'right'} finish`,
+            ...[
+              { lane: -1, exit: 0 },
+              { lane: 1, exit: 1 },
+            ].map(({ lane, exit }) => ({
+              name: `fork ${exit === 0 ? 'left' : 'right'} finish`,
               policy: 'finish',
-              side,
+              lane,
+              exit,
               seconds: 180,
             })),
-            { name: 'closed Carriageway entry and recovery', policy: 'closed', rivals: 1, seconds: 180 },
+            // Seed 0 sends the rival to exit 0 while the player approaches exit 1.
+            {
+              name: 'closed Carriageway entry and recovery',
+              policy: 'closed',
+              rivals: 1,
+              seed: 0,
+              rivalExit: 0,
+              exit: 1,
+              seconds: 180,
+            },
             {
               name: 'closed Carriageway through player finish',
               policy: 'closed',
               finish: true,
               rivals: 1,
+              seed: 0,
+              rivalExit: 0,
+              exit: 1,
               seconds: 180,
             },
             {
@@ -35,6 +51,9 @@ for (const stem of ['ribbon-coast', 'ribbon-fork', 'ribbon-ring']) {
               finish: true,
               waitForStop: true,
               rivals: 1,
+              seed: 0,
+              rivalExit: 0,
+              exit: 1,
               seconds: 180,
             },
           ]

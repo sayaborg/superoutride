@@ -16,6 +16,8 @@ time, passing no step length, and the fractional remainder carries forward. One 
 steps, including callbacks with no simulation step; it reads the race's competitor observations, which
 hold the values of the latest completed step. Starting renders immediately with a fresh clock.
 Loading and setup leave the race clock stopped until START.
+Every Session assembly, a DEV tuning rebuild included, picks a new Session seed from `crypto.getRandomValues`;
+the composition root is the only place that draws randomness.
 
 PAUSE and document hiding suspend scheduling, input and audio. Visibility resumes a READY or RUNNING
 Session only when it is not manually paused. RESUME starts a fresh clock with cleared held input.

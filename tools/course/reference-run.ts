@@ -8,6 +8,7 @@ import type { VehicleEnvelope } from '../../src/race/envelope-driver.js';
 import { REFERENCE_DRIVER } from './reference-driving-policy.js';
 import { createCourseScene } from '../../src/view/course-scene.js';
 import { createCourseRace } from '../../src/race/course-race.js';
+import type { DriverIntent } from '../../src/race/course-fork-field.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
 import {
   createEnvelopeDriverWorkspace,
@@ -35,7 +36,8 @@ export function runCourseReference(
     scene = createCourseScene(course.entry, ground, course.gates, vehicles);
   const session = resolveCourseSession(
     course,
-    { mode: 'CUSTOM', rivalCount: 0, lapCount, timeLimit: false, initialSpeed: 0 },
+    // Reference runs have no rivals, so the seed is fixed.
+    { mode: 'CUSTOM', rivalCount: 0, lapCount, timeLimit: false, initialSpeed: 0, seed: 0 },
     vehicleConfiguration,
     envelope,
   );
@@ -50,14 +52,13 @@ export function runCourseReference(
     maximumSpeed = 0,
     maximumLateralUtilization = 0;
   const planned = new Map(route.map((link) => [link.from.section, link]));
-  const lane = (s: number) => {
-    const occurrence = scene.runtime.route.at(s)!,
-      section = occurrence.section,
-      link = planned.get(section);
-    const fallback =
-      link && section.fork ? (section.fork.exits.findIndex((exit) => exit.link === link) === 0 ? -1 : 1) : slot.l;
-    return race.forks.targetL(s, fallback);
+  // The planned Link at each fork is the intended exit.
+  const intent: DriverIntent = {
+    lane: slot.l,
+    exit: (occurrence) =>
+      occurrence.section.fork!.exits.findIndex((exit) => exit.link === planned.get(occurrence.section)),
   };
+  const lane = (s: number) => race.forks.targetL(s, intent);
   const workspace = createEnvelopeDriverWorkspace();
   const driver = compileEnvelopeDriver(envelope, REFERENCE_DRIVER.utilization, envelope.maximumSpeed);
   race.start();

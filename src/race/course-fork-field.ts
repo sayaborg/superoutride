@@ -8,6 +8,15 @@ function center(road: CompiledCarriageway, s: number) {
   return (courseBoundaryAt(road.left, s) + courseBoundaryAt(road.right, s)) / 2;
 }
 
+/**
+ * A driver's intent: its lane, the lateral position on Sections without a fork, and its target exit, an index
+ * into each fork occurrence's exits.
+ */
+export interface DriverIntent {
+  readonly lane: number;
+  exit(occurrence: RouteOccurrence): number;
+}
+
 /** One field authority observes every eligible motion before publishing any irreversible choice. */
 export function createCourseForkField(
   route: CourseRoute,
@@ -47,15 +56,21 @@ export function createCourseForkField(
         if (first) select(selected!);
       }
     },
-    targetL(s: number, lane: number) {
+    /**
+     * The target l for an intent: its lane off forks; at a fork, the selected exit's Carriageway once the choice
+     * is decided, else the intended exit's.
+     */
+    targetL(s: number, intent: DriverIntent) {
       const occurrence = route.at(s)!;
       const section = occurrence.section;
       const fork = section.fork;
       if (!fork)
-        return lane + (occurrence.incoming ? occurrence.incoming.to.lateralOrigin - occurrence.lateralOrigin : 0);
+        return (
+          intent.lane + (occurrence.incoming ? occurrence.incoming.to.lateralOrigin - occurrence.lateralOrigin : 0)
+        );
       let road =
         selectedSuccessor(route, occurrence)?.from.carriageway ??
-        fork.exits[lane < 0 ? 0 : fork.exits.length - 1]!.link.from.carriageway;
+        fork.exits[intent.exit(occurrence)]!.link.from.carriageway;
       const at = Math.min(
         section.coordinates.domain.end,
         Math.max(section.coordinates.domain.start, routeSectionS(occurrence, s)),

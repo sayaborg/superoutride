@@ -2,7 +2,8 @@ import type { ResolvedCourseSession } from './course-session.js';
 import { createCheckpointClock, raceEventSeconds } from './checkpoint-clock.js';
 import { createRouteProgress, type RouteRaceEvent } from './route-progress.js';
 import { createRouteCrossSections } from './route-cross-sections.js';
-import { createCourseForkField } from './course-fork-field.js';
+import { createCourseForkField, type DriverIntent } from './course-fork-field.js';
+import { rivalExit } from './rival-exit.js';
 import {
   createRecoveryState,
   advanceVehicleWithRecovery,
@@ -59,12 +60,14 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   const lines = createRouteCrossSections(runtime.route, course, configuration.lapCount);
   // The fork field is the fork decider: the only holder of the Route's selection authority.
   const forks = createCourseForkField(runtime.route, lines, runtime.selectSuccessor);
-  const competitor = (id: string, actor: Actor, targetL: number) => ({
+  // A rival's intent drives it; the player's input comes from its composition, so it has no intent here.
+  const competitor = (id: string, actor: Actor, lane: number, intent: DriverIntent | null) => ({
     id,
     actor,
-    targetL,
+    lane,
+    intent,
     /** The race's recovery lane resolver for this competitor. */
-    recoveryLane: (s: number) => forks.recoveryL(s, targetL),
+    recoveryLane: (s: number) => forks.recoveryL(s, lane),
     observer: createRouteProgress(lines, actor.vehicle.course),
     get progress() {
       return this.observer.state;
@@ -79,14 +82,19 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     return { vehicle, model, recovery: createRecoveryState(vehicle) };
   };
   const playerActor = spawn(grid[0]!);
-  const player = competitor('PLAYER', playerActor, grid[0]!.l);
+  const player = competitor('PLAYER', playerActor, grid[0]!.l, null);
   const rivals = createRivalRoster(configuration).map(({ actorId, rivalIndex }) => {
     const slot = grid[rivalIndex + 1]!;
-    return competitor(actorId, spawn(slot), slot.l);
+    // The race assigns each rival's target exits from the Session seed; its grid side implies none.
+    const intent: DriverIntent = {
+      lane: slot.l,
+      exit: (occurrence) =>
+        rivalExit(configuration.seed, rivalIndex, occurrence.ordinal, occurrence.section.fork!.exits.length),
+    };
+    return competitor(actorId, spawn(slot), slot.l, intent);
   });
   if (!driver && rivals.length > 0) throw new Error('rivals require an envelope driver');
   const resync = (c: typeof player) => c.observer.resync(c.actor.vehicle.course);
-  const lane = (c: typeof player, s: number) => forks.targetL(s, c.targetL);
   const competitors = [player, ...rivals];
   const motions = competitors.map((c) => ({
     c,
@@ -100,7 +108,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       input: { steering: 0, throttle: false, brake: false } as DrivingInput,
       lane: c.recoveryLane,
     },
-    input: (s: number) => lane(c, s),
+    input: (s: number) => forks.targetL(s, c.intent!),
   }));
   const idle: DrivingInput = Object.freeze({ steering: 0, throttle: false, brake: false });
   // READY holds every vehicle with zero clutch capacity; race time and rival driving start at GO,

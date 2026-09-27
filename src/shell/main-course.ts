@@ -23,7 +23,11 @@ import { readVehicleEnvelope } from '../race/vehicle-envelope.js';
 import { loadSurfaceMaterials } from '../content/surface-material-catalog.js';
 import { requireLoaded } from '../content/content-load-error.js';
 import type { AdmissionResult } from '../core/admission.js';
-import type { SessionConfiguration, SessionVehicle } from '../race/session-configuration.js';
+import {
+  compileSessionConfiguration,
+  type SessionConfiguration,
+  type SessionVehicle,
+} from '../race/session-configuration.js';
 import type { VehicleEnvelope } from '../race/envelope-driver.js';
 import type { CourseTimeBudgets } from '../race/course-session.js';
 import { validateTireSoundMaterialIds } from '../audio/tire-surface-acoustics.js';
@@ -78,11 +82,14 @@ try {
    */
   const build = (
     sessionVehicle: SessionVehicle,
-    configuration: SessionConfiguration,
+    settings: Omit<SessionConfiguration, 'seed'>,
     envelope: VehicleEnvelope | null,
     sessionBudgets: CourseTimeBudgets | null,
     tuned: boolean,
   ) => {
+    // The composition root alone draws randomness: every assembly, a DEV rebuild included, picks a new seed.
+    const seed = crypto.getRandomValues(new Uint32Array(1))[0]!;
+    const configuration = compileSessionConfiguration({ ...settings, seed });
     const session = resolveCourseSession(course, configuration, sessionVehicle, envelope, sessionBudgets);
     const scene = createCourseScene(course.entry, ground, course.gates, vehicles, displaySettings);
     const race = createCourseRace({ session, runtime: scene.runtime });

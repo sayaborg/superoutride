@@ -77,6 +77,7 @@ export function runScenario({ course, ground }, scenario) {
       lapCount: scenario.laps ?? 1,
       timeLimit: false,
       initialSpeed: scenario.policy === 'reverse' ? -20 : scenario.policy === 'departure' ? 30 : 0,
+      seed: scenario.seed ?? 0,
     },
     configuration,
     envelope,
@@ -103,6 +104,14 @@ export function runScenario({ course, ground }, scenario) {
     frames: 0,
     stoppedRivals: [],
   };
+  // The player's intent: the scenario's lane off forks and its target exit index at every fork.
+  const intent = {
+    lane: scenario.lane ?? slot.l,
+    exit: () => {
+      assert.ok(Number.isInteger(scenario.exit), `${scenario.name}: a fork needs the scenario's target exit`);
+      return scenario.exit;
+    },
+  };
   const lane = (s) => {
     const occurrence = scene.runtime.route.at(s);
     const fork = occurrence?.section.fork;
@@ -115,7 +124,7 @@ export function runScenario({ course, ground }, scenario) {
           (courseBoundaryAt(road.left, nativeS) + courseBoundaryAt(road.right, nativeS)) / 2 - occurrence.lateralOrigin
         );
     }
-    return race.forks.targetL(s, scenario.side ?? slot.l);
+    return race.forks.targetL(s, intent);
   };
   const entryPose = scene.world.coordinates.toWorld(0, 0, { x: 0, z: 0, s: 0, l: 0, heading: 0 });
   let camera;
@@ -144,7 +153,7 @@ export function runScenario({ course, ground }, scenario) {
     let input;
     if (race.clock.status === 'READY') input = idle;
     else if (scenario.policy === 'reverse') input = idle;
-    else if (scenario.policy === 'departure') input = { ...idle, steering: scenario.side, throttle: true };
+    else if (scenario.policy === 'departure') input = { ...idle, steering: scenario.steering, throttle: true };
     else if (scenario.waitForStop && evidence.recoveries.length && evidence.stoppedRivals.length < race.rivals.length)
       input = { ...idle, brake: true };
     else if (scenario.policy === 'closed' && race.clock.elapsedSeconds < 3) input = idle;
@@ -262,12 +271,19 @@ export function runScenario({ course, ground }, scenario) {
     assert.ok(vehicle.course.inDomain, 'recovery did not restore domain membership');
   }
   if (scenario.policy === 'departure')
-    assert.ok(scenario.side < 0 ? evidence.leftRoad : evidence.rightRoad, 'never departed the requested side');
-  if (scenario.policy === 'closed')
+    assert.ok(scenario.steering < 0 ? evidence.leftRoad : evidence.rightRoad, 'never departed the requested side');
+  if (scenario.policy === 'closed') {
     assert.ok(
       evidence.recoveries.some((r) => r.reason === 'wrong-course'),
       'never entered the closed Carriageway',
     );
+    // The premise: with this seed the rival locks the opposite exit first; a hash change must not void it silently.
+    assert.equal(
+      race.forks.choice(scene.runtime.route.occurrences[0]),
+      course.entry.fork.exits[scenario.rivalExit].link,
+      `${scenario.name}: seed ${scenario.seed} no longer sends the rival to exit ${scenario.rivalExit}`,
+    );
+  }
   if (scenario.finish) {
     assert.equal(race.clock.status, 'GOAL');
     if (scenario.waitForStop)
@@ -282,10 +298,7 @@ export function runScenario({ course, ground }, scenario) {
     assert.equal(race.player.progress.acceptedFinishCount, scenario.laps ?? 1);
     assert.equal(evidence.recoveries.length, 0, 'ordinary driving recovered');
     if (course.entry.fork)
-      assert.equal(
-        race.forks.choice(scene.runtime.route.occurrences[0]),
-        course.entry.fork.exits[scenario.side < 0 ? 0 : course.entry.fork.exits.length - 1].link,
-      );
+      assert.equal(race.forks.choice(scene.runtime.route.occurrences[0]), course.entry.fork.exits[scenario.exit].link);
   }
   return {
     ...evidence,

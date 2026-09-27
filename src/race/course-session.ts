@@ -29,6 +29,7 @@ export function resolveCourseSession(
           lapCount: preset.lapCount,
           timeLimit: true,
           initialSpeed: requested.initialSpeed,
+          seed: requested.seed,
         })
       : Object.freeze({ ...requested, timeLimit: preset !== null && requested.timeLimit });
   if (!Number.isFinite(configuration.initialSpeed)) throw new RangeError('Session initialSpeed must be finite');

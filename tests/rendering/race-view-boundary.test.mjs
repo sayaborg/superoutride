@@ -74,7 +74,7 @@ test('race actors have no cameras and view assembles sixteen rival sprites from 
   const envelope = admitted.value;
   const settings = resolveCourseSession(
     course,
-    { mode: 'CUSTOM', rivalCount: 16, lapCount: 1, timeLimit: false, initialSpeed: 0 },
+    { mode: 'CUSTOM', rivalCount: 16, lapCount: 1, timeLimit: false, initialSpeed: 0, seed: 0 },
     compiledVehicle,
     envelope,
   );

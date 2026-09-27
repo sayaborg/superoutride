@@ -531,8 +531,21 @@ passes of one fork Section are distinct. The lock, the closed Carriageways, the 
 derive from that successor.
 Checkpoint credit remains per actor.
 
-Rivals immediately follow the selected Carriageway center. Unselected roads show saved state-selected
-signs. At/beyond closure, an actor is on a closed Carriageway when that exit exists at its s and
+A driver's intent has two separate values: its lane, the lateral position on Sections without a fork (a
+competitor's grid slot l), and its target exit, an exit index at each fork occurrence. At a fork the fork field's
+target (`targetL`) is the selected exit's Carriageway center once the occurrence is decided, else the intended
+exit's; any exit, a middle one included, can be intended, and the grid side implies none. The recovery lane
+(`recoveryL`) keeps its own rule ([Recovery](#recovery)). The race assigns each rival's target exits from the
+Session seed:
+
+```text
+exit = hash(seed, rivalIndex, occurrence.ordinal) mod exitCount
+```
+
+`hash` (`rivalExit`) chains 32-bit integer avalanche steps (`Math.imul`, shifts and xor), so every runtime computes
+the same exits. Reference runs intend each planned Link's exit; scenarios name their exit indices.
+Rivals immediately follow the selected Carriageway center once the fork is decided. Unselected roads show saved
+state-selected signs. At/beyond closure, an actor is on a closed Carriageway when that exit exists at its s and
 its l lies between the two edges (including the edges). It recovers at the same chainage onto the selected
 road; progress observations resynchronize. Geometry stays static.
 
@@ -607,7 +620,10 @@ a clock without its delivered time budgets fails. Player and rivals share the re
 vehicle calibration and protection settings. Unsupported course/vehicle/grid/lap combinations fail before activation.
 A Session binds immutable course, vehicle, roster, grid, lap target, start speed, envelope and timing references.
 The start speed is a resolved Session setting: every competitor spawns at its grid slot moving at it along the
-road tangent. It is finite and may be negative; product Sessions and reference runs use 0. The race builds every
+road tangent. It is finite and may be negative; product Sessions and reference runs use 0. The Session seed is a
+resolved 32-bit unsigned integer that `compileSessionConfiguration` checks; rival target exits derive from it. The
+browser picks a new seed for every Session assembly ([Browser](browser.md#display-and-scheduling)); reference runs,
+which have no rivals, use 0, and scenarios and tests fix theirs. The race builds every
 competitor's mechanics from the Session vehicle; the player's composition supplies input only.
 The envelope is optional. A Session without one—a DEV-tuned vehicle, whose driving definition has no delivered
 identity—must have no rivals and no time limit; Session resolution rejects any other combination with a RangeError,

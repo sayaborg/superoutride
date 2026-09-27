@@ -15,7 +15,7 @@
 - Engine sound load is the powertrain's effective opening.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **10-17b — Driver intent**.
+Next PR: **10-17c — Reference keys and command**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -25,8 +25,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Give each settled fact one owner and give consumers read-only observations.
 
-- **10-17b — Driver intent:** driver intent names a target exit, so middle exits are reachable, and grid side no
-  longer implies an exit.
 - **10-17c — Reference keys and command:** cache keys use one driver identity; the generic reference command requires
   an explicit vehicle.
 - **10-18 — Module placement (move only):** numerical constants move to their owners; split vehicle dynamics (state,

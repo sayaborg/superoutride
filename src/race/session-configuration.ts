@@ -18,6 +18,8 @@ export interface SessionConfiguration {
   readonly timeLimit: boolean;
   /** m/s along the grid slot's road tangent for every competitor at spawn; finite, negative allowed. The product uses 0. */
   readonly initialSpeed: number;
+  /** The Session's 32-bit unsigned random seed; rival target exits derive from it. */
+  readonly seed: number;
 }
 
 export function compileSessionConfiguration(authoring: SessionConfiguration): Readonly<SessionConfiguration> {
@@ -32,11 +34,14 @@ export function compileSessionConfiguration(authoring: SessionConfiguration): Re
   if (!Number.isInteger(authoring.lapCount) || authoring.lapCount < 1 || authoring.lapCount > SESSION_RULE_LIMITS.laps)
     throw new RangeError(`Session lapCount must be an integer within 1..${SESSION_RULE_LIMITS.laps}`);
   if (typeof authoring.timeLimit !== 'boolean') throw new TypeError('Session timeLimit must be boolean');
+  if (!Number.isInteger(authoring.seed) || authoring.seed < 0 || authoring.seed > 0xffffffff)
+    throw new RangeError('Session seed must be a 32-bit unsigned integer');
   return Object.freeze({
     mode: authoring.mode,
     rivalCount: authoring.rivalCount,
     lapCount: authoring.lapCount,
     timeLimit: authoring.timeLimit,
     initialSpeed: authoring.initialSpeed,
+    seed: authoring.seed,
   });
 }
