@@ -183,8 +183,8 @@ export function runScenario({ course, ground }, scenario) {
       finiteState(v, c.id);
       finiteState(c.actor.recovery, `${c.id}.recovery`);
       const recovered = c.actor.recovery.recoveries !== previous[index].recoveries;
-      // Same one-step coverage ceiling as the scene (240 m/s); never a physics clamp.
-      if (!recovered && Math.abs(v.course.s - previous[index].s) > 240 * SIM_DT)
+      // The loading coverage record's one-step ceiling; never a physics clamp.
+      if (!recovered && Math.abs(v.course.s - previous[index].s) > scene.runtime.coverage.maximumStepMeters)
         assert.fail(`${c.id}: route s jumped at tick ${tick}: ${previous[index].s} -> ${v.course.s}`);
       if (index > 0 && c.progress.status === 'FINISHED' && scene.runtime.route.terminal !== null) {
         assert.ok(v.course.s < scene.runtime.route.terminal, `${c.id}: passed the terminal`);

@@ -13,7 +13,8 @@ import type { VehicleRenderReadState } from '../vehicle/physics/vehicle-contract
 import { createRenderWorkspace, renderDriving } from './renderer.js';
 import type { CourseSprite } from './course-sprite.js';
 import type { VehicleSpriteSet } from '../vehicle/vehicle-sprite-set.js';
-import { createCourseWorld, type CourseLoadingWindow } from '../race/course-world.js';
+import { createCourseWorld } from '../race/course-world.js';
+import type { CourseLoadingWindow } from '../race/loading-coverage.js';
 
 /** The current camera's loading window; reference driving and scenarios load the same Route. */
 const COURSE_LOADING_WINDOW: CourseLoadingWindow = Object.freeze({
@@ -41,7 +42,6 @@ export function createCourseScene(
   let terrainParameters: Parameters<typeof renderDriving>[1]['terrainParameters'];
   return Object.freeze({
     runtime,
-    metrics: runtime.metrics,
     groundMetrics: ground.metrics,
     get world() {
       return runtime.readers;

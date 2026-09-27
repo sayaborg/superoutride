@@ -15,7 +15,7 @@
 - Engine sound load is the powertrain's effective opening.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **10-14 — Loading coverage**.
+Next PR: **10-15 — Recovery**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -25,11 +25,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Give each settled fact one owner and give consumers read-only observations.
 
-- **10-14 — Loading coverage:** one coverage record (camera window, driver lookahead, recovery backtrack, speed
-  bound) is checked for every fork Section and read by the scenarios. With the current fleet and camera it evaluates to
-  484 m forward (`max(dCam + 200, 480, 50) + 240/60`) and 64 m rear (`max(dCam + 2.5, 8 + 50 + 2) + 4`).
-  The 240 m/s bound is a product constant in it;
-  vehicle admission rejects vehicles whose top-gear redline speed exceeds it. Metrics leave `RouteRuntime`.
 - **10-15 — Recovery:** explicit targets are checked for domain and material support. The fixed recovery policy is an
   immutable record and the race owns the live target resolver; recovery is not a Session rule. Outside-domain time is
   counted in whole fixed steps.

@@ -9,6 +9,27 @@ import { VEHICLE_GRAVITY, compileSuspensionStation, type CompiledContactStation 
 /** Opaque content identity; production membership belongs to the upper catalog. */
 export type VehicleId = string;
 
+/**
+ * The product's vehicle speed bound in m/s (864 km/h). Admission rejects a vehicle whose top-gear redline
+ * road speed exceeds it, and race loading coverage reads it; physics never clamps to it.
+ */
+export const MAXIMUM_VEHICLE_SPEED = 240;
+
+/** Road speed at redline in top gear on the larger driven rolling radius, in m/s. */
+export function topGearRedlineSpeed(
+  definition: Pick<VehicleDefinition, 'frontDriveTorqueFraction' | 'frontWheelRadius' | 'rearWheelRadius'> & {
+    readonly powertrain: Pick<AutomaticPowertrainDefinition, 'redlineRpm' | 'finalDriveRatio' | 'gearRatios'>;
+  },
+): number {
+  const { redlineRpm, finalDriveRatio, gearRatios } = definition.powertrain;
+  const wheelOmega = (redlineRpm * 2 * Math.PI) / 60 / (gearRatios[gearRatios.length - 1]! * finalDriveRatio);
+  const drivenRadii = [
+    ...(definition.frontDriveTorqueFraction > 0 ? [definition.frontWheelRadius] : []),
+    ...(definition.frontDriveTorqueFraction < 1 ? [definition.rearWheelRadius] : []),
+  ];
+  return wheelOmega * Math.max(...drivenRadii);
+}
+
 export interface VehicleDefinition {
   /** Composition/presentation identity. Common mechanics never branches on this value. */
   readonly id: VehicleId;
@@ -96,6 +117,12 @@ export function compileVehicle(definition: VehicleDefinition): Readonly<Compiled
     () => compileAutomaticPowertrainDefinition(definition.powertrain),
     (path) => `powertrain/${path}`,
   );
+  const topSpeed = topGearRedlineSpeed({ ...definition, powertrain });
+  if (!(topSpeed <= MAXIMUM_VEHICLE_SPEED))
+    throw new DefinitionDomainError(
+      `powertrain/gearRatios/${powertrain.gearRatios.length - 1}`,
+      `top-gear redline speed ${topSpeed.toFixed(1)} m/s exceeds the ${MAXIMUM_VEHICLE_SPEED} m/s vehicle speed bound`,
+    );
 
   const wheelbase = definition.frontAxle + definition.rearAxle;
   const frontStaticLoad = (definition.mass * VEHICLE_GRAVITY * definition.rearAxle) / wheelbase;

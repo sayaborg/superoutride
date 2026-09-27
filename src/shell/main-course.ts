@@ -123,18 +123,7 @@ try {
       shell.start(tick, render);
     },
   });
-  const performanceHud = createCoursePerformanceHud(
-    canvas,
-    {
-      get routeChanges() {
-        return active.scene.metrics.routeChanges;
-      },
-      get routeChangeMaxMilliseconds() {
-        return active.scene.metrics.routeChangeMaxMilliseconds;
-      },
-    },
-    active.scene.groundMetrics,
-  );
+  const performanceHud = createCoursePerformanceHud(canvas, active.scene.groundMetrics);
   let input: DrivingInput = { steering: 0, throttle: false, brake: false };
   let manualPause = false;
   const tick = () => {

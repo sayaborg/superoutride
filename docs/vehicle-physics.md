@@ -496,6 +496,10 @@ same identifier, which becomes the compiled vehicle ID, and rejects either docum
 Vehicle numerical domains and cross-field relationships are those of vehicle, suspension and
 powertrain compilation: positive mass/inertia/geometry, finite nonnegative brakes/drag/damping,
 front drive fraction in [0,1], feasible static suspension compression and ordered gear/torque data.
+A vehicle's top-gear redline road speed, `redlineRpm * 2π/60 / (top gear ratio * finalDriveRatio)` times the
+larger rolling radius among its driven wheels (front when the front drive fraction is above 0, rear when it is
+below 1), must not exceed the product's vehicle speed bound `MAXIMUM_VEHICLE_SPEED`, 240 m/s; a violation
+points to the top gear's `powertrain/gearRatios` element.
 No dimensions are saved in this format.
 
 The driving document has `format`, `version` and the current `DrivingDefinition`

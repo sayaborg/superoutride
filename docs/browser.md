@@ -96,8 +96,8 @@ Manual pause shows `PAUSED`. A Session rebuilt by DEV tuning prefixes `TUNED · 
 
 ## Performance HUD
 
-The HUD displays FPS, maximum CPU frame time, maximum fixed-step time, maximum frame interval and
-route-change count (`routeChanges`) and lifetime maximum route-change time. The first frame reports immediately, then approximately every half second.
+The HUD displays FPS, maximum CPU frame time, maximum fixed-step time and maximum frame interval.
+The first frame reports immediately, then approximately every half second.
 
 The ground detail shows the selected method, the reporting window's maximum visible active Strip count,
 the compiled course maximum and active limit, the latest frame's ground-sampling CPU milliseconds,
@@ -108,7 +108,7 @@ Sections. These observations are measurements, not device-capacity verdicts.
 
 CPU time adds fixed-step work since the preceding render to rendering/display work. Frame
 interval is elapsed time between completed frames. FPS and frame/step/interval maxima reset each
-reporting window; seam maximum is cumulative.
+reporting window.
 
 ## DEV controls
 

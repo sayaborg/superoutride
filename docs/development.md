@@ -27,7 +27,7 @@ step's vehicle, recovery, progress and camera states plus outcome evidence. No p
 wall-clock metrics enter the comparison. Rendering runs every simulated second, on recovery and finish,
 and every tenth of a second outside the coordinate domain; it cycles through all three Strip methods.
 All live vehicle numeric leaves, camera values and route occurrence coordinates/transforms must remain
-finite. Each actor's s may move at most the scene's 240 m/s loading allowance per step unless recovered.
+finite. Each actor's s may move at most the loading coverage record's one-step allowance per step unless recovered.
 The next pending crossing cannot move backward (an undiscovered fork successor is not a finish),
 and accepted finish counts cannot decrease. Scenario-specific evidence requires actual entry/domain
 exit, departure on the requested road side, selected fork, wrong-course recovery or completed laps.

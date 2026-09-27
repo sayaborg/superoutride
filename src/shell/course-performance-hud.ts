@@ -1,11 +1,7 @@
 import { STRIP_ACTIVE_LIMIT, type renderDriving } from '../view/renderer.js';
 type StripObservation = NonNullable<ReturnType<typeof renderDriving>['stripGround']>;
 /** Host measurements; the HUD reports observations and makes no device qualification claim. */
-export function createCoursePerformanceHud(
-  canvas: HTMLCanvasElement,
-  metrics: { readonly routeChanges: number; readonly routeChangeMaxMilliseconds: number },
-  ground: { readonly maxActiveStrips: number },
-) {
+export function createCoursePerformanceHud(canvas: HTMLCanvasElement, ground: { readonly maxActiveStrips: number }) {
   const output = document.createElement('output');
   output.className = 'course-performance';
   output.setAttribute('aria-label', 'Course performance');
@@ -50,7 +46,7 @@ export function createCoursePerformanceHud(
       reported = true;
       const fps = (frames * 1000) / Math.max(1, now - first);
       const detail = `Strips ${strip?.method ?? ''} · active ${activeMax} visible / ${ground.maxActiveStrips} course max / ${STRIP_ACTIVE_LIMIT} limit · ground ${(strip?.milliseconds ?? 0).toFixed(2)} ms / max120 ${Math.max(...recentStripTimes).toFixed(2)} ms`;
-      output.textContent = `${fps.toFixed(0)} fps · frame ${frameMax.toFixed(1)} ms · step ${stepMax.toFixed(1)} ms · route ${metrics.routeChangeMaxMilliseconds.toFixed(1)} ms · interval ${intervalMax.toFixed(1)} ms · ${detail}`;
+      output.textContent = `${fps.toFixed(0)} fps · frame ${frameMax.toFixed(1)} ms · step ${stepMax.toFixed(1)} ms · interval ${intervalMax.toFixed(1)} ms · ${detail}`;
       activeMax = 0;
       first = now;
       frames = 0;

@@ -123,22 +123,30 @@ window, dropping occurrences behind it, and extends the Route as the forward cov
 coordinate wrapper. The fork decider alone receives `selectSuccessor` and calls it once per fork; the ordinary
 refresh extends any unambiguous successors. Physical and rendering
 readers, the driver's live domain and residency decisions (observable rivals) read the window; race facts
-(cross sections, fork field) and reference tools read the Route. Route change metrics count refreshes that
-observe a changed window and time extension and window advance. The scene shows a state-selected sign from its
+(cross sections, fork field) and reference tools read the Route. The scene shows a state-selected sign from its
 own fork occurrence's selected successor on the Route and rebuilds its sprite list when the window or the Route's
 occurrences change.
 
-The scene supplies loading coverage from camera dimensions, the fixed simulation period and the
-catalog's compiled contact stations. Forward coverage is
-`max(dCam + far, driver lookahead, projection window) + maximumStepMeters`, with
-`maximumStepMeters = 240 m/s * fixed step`. The 240 m/s (864 km/h) coverage speed is a
-conservative loading budget above the production fleet's operating speeds; it does not clamp physics.
-Rear coverage is
-`max(dCam + near, recovery backtrack + projection window + contactReachMeters) + maximumStepMeters`.
+One loading coverage record (`resolveLoadingCoverage`) derives the window's forward and rear extents once
+from four inputs: the camera window the scene supplies (`dCam`, near and far depth), the driver lookahead,
+recovery backtrack with the projection window and contact reach, and one fixed step at the vehicle speed bound.
+
+```text
+maximumStepMeters = MAXIMUM_VEHICLE_SPEED * SIM_DT
+forwardMeters     = max(dCam + far, driver lookahead, projection window) + maximumStepMeters
+rearMeters        = max(dCam + near, recovery backtrack + projection window + contactReachMeters) + maximumStepMeters
+```
+
+`MAXIMUM_VEHICLE_SPEED` is the product's 240 m/s (864 km/h) vehicle speed bound, which vehicle admission
+enforces ([Vehicle physics](vehicle-physics.md#material-vehicle-and-driving-documents)); it does not clamp physics.
 Contact reach is the ceiling of the largest `hypot(forwardOffset, freeReachDown)` across the catalog's
 front/rear contact stations, so pitching or yawing a vehicle cannot enlarge that local reach.
-The step allowance retains the rear footprint until the next refresh. At an undecided fork the parent
-Section covers the lock plus the render/driver lookahead and step allowance.
+The step allowance retains the rear footprint until the next refresh. With the current camera, driver and
+fleet the record is 4 m per step, 484 m forward (`max(dCam + 200, 480, 50) + 4`) and 64 m rear
+(`max(dCam + 2.5, 8 + 50 + 2) + 4`). `RouteRuntime`'s window and the scenarios' one-step check read it.
+Until its lock decides, a fork's parent Section alone carries the forward coverage: creating the course world
+checks every fork Section reachable from the entry for `lock.s + forwardMeters <= Section end` and rejects a
+violation with a `RangeError` naming the Section.
 Advancing the window never changes existing stations or vehicle poses. A single-successor circuit repeats its
 ordered cycle of Sections for successive laps. Derived projection intervals, height knots, Strip
 intervals, sprite lists and environment boundaries rebuild only when the occurrence list changes.
