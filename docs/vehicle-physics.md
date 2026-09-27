@@ -143,8 +143,8 @@ kinetic energy: with the response matrix `K`, impulses `lambda >= 0` and final c
 remains the suspension force. The stop is deterministic and allocates nothing.
 
 Contact mechanics never distinguishes stations by identity. Each contact's wheel direction is the body
-forward rotated about body up by the steering angle it receives, the front rack angle or zero for the rear; a
-zero angle keeps the body forward unchanged. Degenerate projection of that wheel direction onto the surface
+forward rotated about body up by the steering angle it receives, the front rack angle or zero for the rear,
+without renormalization: the rotation preserves the unit length and is rebuilt from the body forward every substep. Degenerate projection of that wheel direction onto the surface
 plane transmits zero tire force. The shared wrench combines contact,
 wheel reaction, gravity and planar quadratic drag for protection and integration.
 

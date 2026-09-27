@@ -412,12 +412,8 @@ function contactTireFrame(
   >,
   scratch: Writable<Vec3>,
 ) {
-  // A zero angle keeps the unit body forward exactly; only a nonzero rotation is renormalized.
-  if (steerAngle === 0) {
-    out.wheelForward.x = body.forward.x;
-    out.wheelForward.y = body.forward.y;
-    out.wheelForward.z = body.forward.z;
-  } else normalize3(rotateAroundAxis(body.forward, body.up, steerAngle, out.wheelForward), out.wheelForward);
+  // Rotation about the unit up axis orthogonal to forward preserves length; rebuilt from forward every substep.
+  rotateAroundAxis(body.forward, body.up, steerAngle, out.wheelForward);
   const wheelForward = out.wheelForward;
   normalize3(cross3(body.up, wheelForward, out.wheelAxis), out.wheelAxis);
   const tireForwardRaw = sub3(
