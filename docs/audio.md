@@ -15,7 +15,7 @@ and tire inputs. From the powertrain, audio reads engine RPM, the effective open
 [vehicle physics](vehicle-physics.md#wheel-and-powertrain) publishes it). A sequence the voice has not yet heard
 marks a new shift; shift sounds such as downshift blips are not yet synthesized. The browser supplies completed observations once per presented frame.
 Physics owns RPM, actuators, contact loads, wheel motion and dissipated work; audio owns oscillator,
-filter and envelope state. Player tire observations use the optional physical observation channel;
+filter and envelope state. Player tire sound reads the vehicle state's tire observations;
 rival sound uses engine observations.
 
 A [vehicle audio profile](../src/audio/vehicle-audio-profile.ts) contains one or two revolutions per

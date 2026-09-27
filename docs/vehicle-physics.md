@@ -440,8 +440,12 @@ rack, requested/delivered torques, the clutch observation and the last shift. Th
 The mechanical state and compiled mechanics contain neither handwheel angle nor ratio. The bike lean display is
 `atan2(lateralAcceleration,g)` with discrete bank images; physical state contains yaw and pitch.
 
-Optional read-only tire telemetry publishes completed wheel-solve rolling/slip speeds, dissipated work,
-loads and surfaces to audio. Recovery resets those observations. Graphics, HUD and sound consume
+Vehicle state holds one read-only tire observation per station, written only by vehicle physics. The last
+substep of every update writes it for every vehicle from the accepted wheel solve: contact longitudinal and
+lateral velocity, wheel speed and angular speed, dissipated longitudinal and lateral slip power and the surface
+material ID, all zero (surface null) when the contact transmits no force or has no valid tire frame, and the
+contact normal load in every case. Spawn starts every value at zero; recovery initializes the loads to the
+static axle loads and every other value to zero. Graphics, HUD and sound consume
 mechanical observations without contributing forces or alternate mechanical state.
 
 ## Material, vehicle and driving documents

@@ -20,6 +20,7 @@ import {
 } from '../vehicle/physics/vehicle-dynamics.js';
 import { add3, dot3, scale3 } from '../core/vector3.js';
 import { drivenWheelOmega } from '../vehicle/physics/vehicle-definitions.js';
+import { initializeVehicleTireObservation } from '../vehicle/physics/vehicle-tire-observation.js';
 
 type RecoveryReason = 'surface-penetration' | 'outside-domain' | 'overturned' | 'manual' | 'wrong-course';
 
@@ -222,7 +223,6 @@ export function recoverVehicleToPlanCoordinate(
     settings.maxRecoverySpeed,
   );
 
-  vehicle.surfaceType = surface.surfaceType;
   vehicle.longitudinalAcceleration = 0;
   vehicle.lateralAcceleration = 0;
   resetVehicleControlState(vehicle);
@@ -265,8 +265,11 @@ function reconstructVehicle(
   resetDrivingActuatorState(vehicle.actuator);
   vehicle.frontWheelOmega = speed / p.frontStation.rollingRadius;
   vehicle.rearWheelOmega = speed / p.rearStation.rollingRadius;
-  vehicle.frontNormalLoad = (p.mass * VEHICLE_GRAVITY * p.rearAxle) / wheelbase;
-  vehicle.rearNormalLoad = (p.mass * VEHICLE_GRAVITY * p.frontAxle) / wheelbase;
+  initializeVehicleTireObservation(
+    vehicle.tires,
+    (p.mass * VEHICLE_GRAVITY * p.rearAxle) / wheelbase,
+    (p.mass * VEHICLE_GRAVITY * p.frontAxle) / wheelbase,
+  );
   vehicle.frontGap = -p.frontStation.suspension.qStatic;
   vehicle.rearGap = -p.rearStation.suspension.qStatic;
   vehicle.frontSupportAvailable = true;

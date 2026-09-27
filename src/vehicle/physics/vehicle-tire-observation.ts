@@ -1,82 +1,73 @@
 import type { WheelSolveResult } from './tire-wheel.js';
 import type { ContactObservation } from './vehicle-dynamics.js';
 
-interface TireObservation {
+export interface TireObservation {
   readonly longitudinalVelocity: number;
   readonly lateralVelocity: number;
   /** Effective contact rolling radius times the accepted signed wheel angular velocity. */
   readonly wheelSpeed: number;
   /** Accepted signed wheel angular velocity (rad/s), output only. */
   readonly wheelAngularSpeed: number;
-  readonly rollingSpeed: number;
-  /** Full tangential contact travel, also nonzero during sideways motion. */
-  readonly travelSpeed: number;
-  readonly slipSpeed: number;
+  /** Contact normal load (N), also written for a contact without a valid tire frame. */
+  readonly load: number;
   /** Dissipated longitudinal/lateral slip power in watts, from the accepted tire solve. */
   readonly longitudinalPower: number;
   readonly lateralPower: number;
   readonly surface: string | null;
 }
 type MutableTire = { -readonly [Key in keyof TireObservation]: TireObservation[Key] };
-interface VehicleTires {
+
+/** Read-only tire observations of one vehicle; only vehicle physics writes them. */
+export interface VehicleTireObservation {
   readonly front: TireObservation;
   readonly rear: TireObservation;
 }
 
-/** Optional output channel. No additions to the authoritative vehicle/control snapshot. */
-const observations = new WeakMap<object, { front: MutableTire; rear: MutableTire }>();
-
-/** The first reader subscribes; subsequent completed ticks update this same readonly view. */
-export function observeVehicleTires(vehicle: object): VehicleTires {
-  let result = observations.get(vehicle);
-  if (!result) {
-    const tire = (): MutableTire => ({
-      longitudinalVelocity: 0,
-      lateralVelocity: 0,
-      wheelSpeed: 0,
-      wheelAngularSpeed: 0,
-      rollingSpeed: 0,
-      travelSpeed: 0,
-      slipSpeed: 0,
-      longitudinalPower: 0,
-      lateralPower: 0,
-      surface: null,
-    });
-    result = { front: tire(), rear: tire() };
-    observations.set(vehicle, result);
-  }
-  return result;
+export function createVehicleTireObservation(): VehicleTireObservation {
+  const tire = (): MutableTire => ({
+    longitudinalVelocity: 0,
+    lateralVelocity: 0,
+    wheelSpeed: 0,
+    wheelAngularSpeed: 0,
+    load: 0,
+    longitudinalPower: 0,
+    lateralPower: 0,
+    surface: null,
+  });
+  return { front: tire(), rear: tire() };
 }
 
-export function resetVehicleTireObservation(vehicle: object): void {
-  const result = observations.get(vehicle);
-  if (!result) return;
-  for (const tire of [result.front, result.rear]) {
-    tire.longitudinalVelocity = 0;
-    tire.lateralVelocity = 0;
-    tire.wheelSpeed = 0;
-    tire.wheelAngularSpeed = 0;
-    tire.rollingSpeed = 0;
-    tire.travelSpeed = 0;
-    tire.slipSpeed = 0;
-    tire.longitudinalPower = 0;
-    tire.lateralPower = 0;
-    tire.surface = null;
-  }
+/** The one initialization: the given loads and every other observation zero. */
+export function initializeVehicleTireObservation(
+  tires: VehicleTireObservation,
+  frontLoad: number,
+  rearLoad: number,
+): void {
+  initialize(tires.front as MutableTire, frontLoad);
+  initialize(tires.rear as MutableTire, rearLoad);
 }
 
-/** Publish the accepted final wheel result, never trial solves or reconstructed physics. */
-export function publishVehicleTireObservation(
-  vehicle: object,
+function initialize(tire: MutableTire, load: number): void {
+  tire.longitudinalVelocity = 0;
+  tire.lateralVelocity = 0;
+  tire.wheelSpeed = 0;
+  tire.wheelAngularSpeed = 0;
+  tire.load = load;
+  tire.longitudinalPower = 0;
+  tire.lateralPower = 0;
+  tire.surface = null;
+}
+
+/** Record the accepted final wheel result, never trial solves or reconstructed physics. */
+export function recordVehicleTireObservation(
+  tires: VehicleTireObservation,
   front: ContactObservation,
   frontWheel: WheelSolveResult,
   rear: ContactObservation,
   rearWheel: WheelSolveResult,
 ): void {
-  const result = observations.get(vehicle);
-  if (!result) return;
-  record(result.front, front, frontWheel);
-  record(result.rear, rear, rearWheel);
+  record(tires.front as MutableTire, front, frontWheel);
+  record(tires.rear as MutableTire, rear, rearWheel);
 }
 
 function record(result: MutableTire, contact: ContactObservation, wheel: WheelSolveResult): void {
@@ -85,9 +76,7 @@ function record(result: MutableTire, contact: ContactObservation, wheel: WheelSo
   result.lateralVelocity = loaded ? contact.lateralVelocity : 0;
   result.wheelSpeed = loaded ? contact.effectiveRollingRadius * wheel.omega : 0;
   result.wheelAngularSpeed = loaded ? wheel.omega : 0;
-  result.rollingSpeed = loaded ? Math.abs(contact.longitudinalVelocity) : 0;
-  result.travelSpeed = loaded ? Math.hypot(contact.longitudinalVelocity, contact.lateralVelocity) : 0;
-  result.slipSpeed = loaded ? Math.hypot(wheel.tire.sx, wheel.tire.sy) * wheel.tire.referenceSpeed : 0;
+  result.load = contact.normalLoad;
   // sx/sy use the force direction convention, so these products are nonnegative.
   result.longitudinalPower = loaded ? Math.max(0, wheel.tire.fx * wheel.tire.sx * wheel.tire.referenceSpeed) : 0;
   result.lateralPower = loaded ? Math.max(0, wheel.tire.fy * wheel.tire.sy * wheel.tire.referenceSpeed) : 0;

@@ -1,4 +1,3 @@
-import { observeVehicleTires } from '../vehicle/physics/vehicle-tire-observation.js';
 import { RIVAL_AUDIBLE_METERS } from '../audio/audio-presentation.js';
 import type {
   ShiftAudioObservation,
@@ -43,11 +42,11 @@ export function readEngineAudio(vehicle: VehicleState, result: Observation): voi
   result.shift.toRpm = powertrain.shift.toRpm;
 }
 
-/** Player consumer subscribes to completed tire telemetry; rival engines use readEngineAudio. */
+/** Player audio also reads the vehicle's tire observations; rival engines use readEngineAudio. */
 export function readVehicleAudio(vehicle: VehicleState, result: Observation): void {
   readEngineAudio(vehicle, result);
-  const tires = observeVehicleTires(vehicle);
-  result.front.load = vehicle.frontNormalLoad;
+  const { tires } = vehicle;
+  result.front.load = tires.front.load;
   result.front.longitudinalVelocity = tires.front.longitudinalVelocity;
   result.front.lateralVelocity = tires.front.lateralVelocity;
   result.front.wheelSpeed = tires.front.wheelSpeed;
@@ -55,7 +54,7 @@ export function readVehicleAudio(vehicle: VehicleState, result: Observation): vo
   result.front.longitudinalPower = tires.front.longitudinalPower;
   result.front.lateralPower = tires.front.lateralPower;
   result.front.surface = tires.front.surface;
-  result.rear.load = vehicle.rearNormalLoad;
+  result.rear.load = tires.rear.load;
   result.rear.longitudinalVelocity = tires.rear.longitudinalVelocity;
   result.rear.lateralVelocity = tires.rear.lateralVelocity;
   result.rear.wheelSpeed = tires.rear.wheelSpeed;

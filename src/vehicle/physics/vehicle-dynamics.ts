@@ -7,7 +7,6 @@ import {
   type PlanProjectionWorkspace,
 } from '../../course/geometry/plan-coordinate.js';
 import { type Writable } from '../../core/writable.js';
-import { resetVehicleTireObservation } from './vehicle-tire-observation.js';
 import type { ProfileReader } from '../../course/geometry/profile.js';
 import type { AutomaticPowertrainState } from './automatic-powertrain.js';
 import type { SurfaceMapReader } from '../../course/vehicle-world.js';
@@ -73,7 +72,6 @@ export interface VehicleDynamicsState {
   velocityY: number;
   velocityZ: number;
   course: PlanCoordinateProjection;
-  surfaceType: string | null;
   longitudinalAcceleration: number;
   lateralAcceleration: number;
   readonly control: VehicleControlState;
@@ -125,7 +123,6 @@ interface SurfaceGeometryObservation {
   readonly heightDerivativeByS: number;
   readonly gradeAngle: number;
   readonly material: SurfaceMaterial | null;
-  readonly surfaceType: string | null;
 }
 
 export interface ContactObservation {
@@ -181,7 +178,6 @@ export function createVehicleControlState(): VehicleControlState {
 
 export function resetVehicleControlState(vehicle: VehicleDynamicsState): void {
   Object.assign(vehicle.control, createVehicleControlState());
-  resetVehicleTireObservation(vehicle);
 }
 
 export function vehicleSpeed(vehicle: VehicleDynamicsState): number {
@@ -222,7 +218,6 @@ export function createSurfaceGeometryWorkspace() {
       heightDerivativeByS: 0,
       gradeAngle: 0,
       material: null as SurfaceMaterial | null,
-      surfaceType: null as string | null,
     },
     planSample: createPlanCoordinateSample(),
     projection: createPlanProjectionWorkspace(),
@@ -279,7 +274,6 @@ export function sampleSurfaceGeometryAtCoordinate(
   out.heightDerivativeByS = heightDerivativeByS;
   out.gradeAngle = Math.atan2(heightDerivativeByS, offsetMetric);
   out.material = material;
-  out.surfaceType = material?.id ?? null;
   return out;
 }
 
@@ -342,7 +336,6 @@ export function deriveContactObservation(
     // There is no surface to sample. Clear the borrowed contact from the preceding substep.
     const surface = workspace.surface.value;
     surface.material = null;
-    surface.surfaceType = null;
     surface.curvature = surface.heightDerivativeByS = surface.gradeAngle = 0;
     surface.offsetMetric = 1;
     scale3(WORLD_UP, 0, surface.point);
@@ -542,17 +535,6 @@ export function contactForceWorld(contact: ContactObservation, tireFx: number, t
 export function momentAboutCg(contact: ContactObservation, cg: Vec3, force: Vec3, out = vector()): Vec3 {
   sub3(contact.contactPoint, cg, out);
   return cross3(out, force, out);
-}
-
-export function representativeSurfaceMaterialId(contacts: readonly ContactObservation[]): string | null {
-  let worst: ContactObservation | null = null;
-  for (const contact of contacts)
-    if (
-      contact.forceTransmitting &&
-      (!worst || contact.surface.material!.gripFactor < worst.surface.material!.gripFactor)
-    )
-      worst = contact;
-  return worst?.surface.material?.id ?? null;
 }
 
 /** Reproject the reconstructed CG near its known placement; overlapping charts are not interchangeable. */

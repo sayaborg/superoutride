@@ -2,7 +2,11 @@ import { TIRE_LOW_SPEED_REGULARIZATION, STEERING_LOW_SPEED_REGULARIZATION } from
 import { createSurfaceGeometryWorkspace } from './vehicle-dynamics.js';
 import { createPlanProjectionWorkspace } from '../../course/geometry/plan-coordinate.js';
 import { type Writable } from '../../core/writable.js';
-import { publishVehicleTireObservation } from './vehicle-tire-observation.js';
+import {
+  createVehicleTireObservation,
+  recordVehicleTireObservation,
+  type VehicleTireObservation,
+} from './vehicle-tire-observation.js';
 import { clamp, wrapAngle } from '../../core/math.js';
 import { assertExclusivePedalInput, type DrivingInput } from '../driving-input.js';
 import {
@@ -27,7 +31,6 @@ import {
   initializePlanCoordinateObservation,
   refreshPlanCoordinateObservation,
   reorientContactObservation,
-  representativeSurfaceMaterialId,
   sampleSurfaceGeometryAtCoordinate,
   vehicleSpeed,
   type BodyKinematics,
@@ -53,10 +56,10 @@ export interface VehicleState extends VehicleDynamicsState {
   frontWheelOmega: number;
   rearWheelOmega: number;
   readonly actuator: DrivingActuatorState;
+  /** Tire observations of the last substep of every update; recovery reinitializes them. */
+  readonly tires: VehicleTireObservation;
 
   /** Derived-output caches only; the next mechanics solve never consumes them as authority. */
-  frontNormalLoad: number;
-  rearNormalLoad: number;
   frontGap: number;
   rearGap: number;
   frontSupportAvailable: boolean;
@@ -122,7 +125,6 @@ export function createVehicle(
     rearWheelOmega: rearOmega,
     actuator: createDrivingActuatorState(),
     course: initializePlanCoordinateObservation(coordinates, position.x, position.z, s),
-    surfaceType: surface.surfaceType,
     longitudinalAcceleration: 0,
     lateralAcceleration: 0,
     control: createVehicleControlState(),
@@ -131,8 +133,7 @@ export function createVehicle(
       model.powertrain,
       drivenWheelOmega(compiledVehicle, frontOmega, rearOmega),
     ),
-    frontNormalLoad: 0,
-    rearNormalLoad: 0,
+    tires: createVehicleTireObservation(),
     frontGap: 0,
     rearGap: 0,
     frontSupportAvailable: true,
@@ -324,7 +325,7 @@ export function updateVehicle(
       vehicle.control.rearBrakeTorque = resolved.rearInput.brakeTorque;
       vehicle.control.pitchBrakeScale = resolved.pitchBrakeScale;
       vehicle.control.pitchFeasible = resolved.pitchFeasible;
-      publishVehicleTireObservation(vehicle, front, frontWheel, rear, rearWheel);
+      recordVehicleTireObservation(vehicle.tires, front, frontWheel, rear, rearWheel);
       vehicle.control.frontWheelLocked = frontWheel.locked;
       vehicle.control.rearWheelLocked = rearWheel.locked;
       vehicle.control.frontUtilization = Number.isFinite(frontWheel.tire.rho) ? frontWheel.tire.rho : 0;
@@ -337,7 +338,6 @@ export function updateVehicle(
 
   if (finalFront && finalRear) {
     updateContactTelemetry(vehicle, finalFront, finalRear);
-    vehicle.surfaceType = representativeSurfaceMaterialId(workspace.contacts);
   }
   const velocityDelta = workspace.velocityDelta;
   velocityDelta.x = vehicle.velocityX - velocityBeforeX;
@@ -456,7 +456,6 @@ function createStepWorkspace(model: VehicleModel) {
     steering: createSteeringLimitWorkspace(),
     front,
     rear,
-    contacts: [front.value, rear.value],
     frontRequest,
     rearRequest,
     pair: createProtectedWheelPairWorkspace(frontRequest, rearRequest),
@@ -592,8 +591,6 @@ function bumpStopResponse(
 }
 
 function updateContactTelemetry(vehicle: VehicleState, front: ContactObservation, rear: ContactObservation): void {
-  vehicle.frontNormalLoad = front.normalLoad;
-  vehicle.rearNormalLoad = rear.normalLoad;
   vehicle.frontGap = front.gap;
   vehicle.rearGap = rear.gap;
   vehicle.frontSupportAvailable = front.supportAvailable;
@@ -638,7 +635,7 @@ const derivedProperties: PropertyDescriptorMap = {
   supported: {
     enumerable: true,
     get(this: VehicleState) {
-      return this.frontNormalLoad > 0 || this.rearNormalLoad > 0;
+      return this.tires.front.load > 0 || this.tires.rear.load > 0;
     },
   },
   sprungPitch: {
