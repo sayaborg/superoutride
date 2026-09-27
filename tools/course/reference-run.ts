@@ -1,5 +1,4 @@
 import { routeSectionS } from '../../src/course/course-route.js';
-type CompiledSection = CompiledCourse['sections'][number];
 type CompiledLink = CompiledCourse['links'][number];
 import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import type { CourseGround } from '../../src/course/compiler/course-ground.js';
@@ -21,22 +20,6 @@ import { READY_SECONDS } from '../../src/race/start-phase.js';
 import { courseBoundaryAt, courseCarriagewayExists } from '../../src/course/course-boundaries.js';
 
 const IDLE_INPUT = Object.freeze({ steering: 0, throttle: false, brake: false });
-
-/** Enumerate canonical finite alternatives; one continuous run per history, no stitched sectors. */
-export function courseReferenceRoutes(course: CompiledCourse) {
-  if (course.type === 'CIRCUIT') return [[]];
-  const routes: CompiledLink[][] = [];
-  const visit = (section: CompiledSection, links: CompiledLink[]) => {
-    if (routes.length >= 256) throw new RangeError('Reference work is limited to 256 finite routes');
-    if (!section.outgoing.length) {
-      routes.push(links);
-      return;
-    }
-    for (const link of section.outgoing) visit(link.to.section, [...links, link]);
-  };
-  visit(course.entry, []);
-  return routes;
-}
 
 export function runCourseReference(
   course: CompiledCourse,

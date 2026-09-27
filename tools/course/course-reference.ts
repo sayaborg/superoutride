@@ -4,6 +4,21 @@ import type { CompiledCourseLandmark } from '../../src/course/compiler/course-ru
 import type { SessionVehicle } from '../../src/race/session-configuration.js';
 import { REFERENCE_DRIVER } from './reference-driving-policy.js';
 import type { CourseTimeBudgets } from '../../src/race/course-session.js';
+import { enumerateCourseRoutes } from '../../src/course/compiler/course-routes.js';
+import { createCourseRoute } from '../../src/course/course-route.js';
+import { createRouteCrossSections, type RouteRaceLine } from '../../src/race/route-cross-sections.js';
+
+/** The race lines a run of this route and lap count crosses, in order through its completing FINISH. */
+function expectedRaceLines(course: CompiledCourse, links: readonly CompiledCourse['links'][number][], laps: number) {
+  const builder = createCourseRoute(course.entry);
+  const lines = createRouteCrossSections(builder.route, course, laps);
+  for (const link of links) builder.select(link);
+  // A circuit repeats its single-successor cycle until the final lap's FINISH is on the Route.
+  while (!lines.race.some((line) => line.finish))
+    builder.select(builder.route.occurrences.at(-1)!.section.outgoing[0]!);
+  const race: readonly RouteRaceLine[] = lines.race;
+  return race.slice(0, race.findIndex((line) => line.finish) + 1);
+}
 
 /** Untrusted saved numeric results are resolved to the current canonical landmarks once, before play. */
 export async function readCourseReference(
@@ -47,17 +62,7 @@ export async function readCourseReference(
   fail(candidate.vehicleSha256 === vehicleSha256, 'stale vehicle/calibration/assist identity');
   const budgets = new Map<CompiledCourseLandmark, Map<number, number>>();
   let initial = 0;
-  const routes: (readonly CompiledCourse['links'][number][])[] = [];
-  const enumerate = (section: CompiledCourse['entry'], history: readonly CompiledCourse['links'][number][]) => {
-    if (routes.length >= 256) throw new RangeError('Reference has too many routes');
-    if (!section.outgoing.length) {
-      routes.push(history);
-      return;
-    }
-    for (const link of section.outgoing) enumerate(link.to.section, [...history, link]);
-  };
-  if (course.type === 'CIRCUIT') routes.push([]);
-  else enumerate(course.entry, []);
+  const routes = enumerateCourseRoutes(course.entry, course.type);
   const runs = array(candidate.runs).map(record);
   fail(runs.length === routes.length, 'incomplete route coverage');
   const seen = new Set<string>();
@@ -70,36 +75,23 @@ export async function readCourseReference(
     fail(route !== undefined, 'unknown route');
     fail(run.lapCount === course.rules.maxLaps && record(run.metrics).recoveries === 0, 'incomplete or recovered run');
     const events = array(run.events).map(record);
-    const itinerary = [course.entry, ...route!.map((l) => l.to.section)];
-    if (course.type === 'CIRCUIT') {
-      let section = course.entry.outgoing[0]!.to.section;
-      while (section !== course.entry) {
-        itinerary.push(section);
-        section = section.outgoing[0]!.to.section;
-      }
-    }
-    const expected: { gate: CompiledCourseLandmark; lap: number }[] = [];
-    for (let lap = 1; lap <= course.rules.maxLaps; lap++)
-      for (const section of itinerary) {
-        const interval = course.gates.intervals.find((i) => i.section === section)!;
-        for (const gate of [...interval.checkpoints, ...(interval.finish ? [interval.finish] : [])])
-          expected.push({ gate, lap });
-      }
+    // The race's own lines for the planned route: the order and laps a run must record.
+    const expected = expectedRaceLines(course, route!, course.rules.maxLaps);
     fail(events.length === expected.length, 'missing/extra checkpoint or lap');
     let previous = 0;
     for (let i = 0; i < events.length; i++) {
       const event = events[i]!,
         point = expected[i]!;
-      fail(event.landmarkId === point.gate.id && event.lap === point.lap, 'invalid landmark order');
+      fail(event.landmarkId === point.landmark.id && event.lap === point.lap, 'invalid landmark order');
       const at = finitePositive(event.timeSeconds),
         duration = at - previous;
       fail(duration > 0 && event.intervalSeconds === duration, 'inconsistent interval time');
       if (i === 0) initial = Math.max(initial, duration);
       else {
         const prior = expected[i - 1]!,
-          values = budgets.get(prior.gate) ?? new Map<number, number>();
+          values = budgets.get(prior.landmark) ?? new Map<number, number>();
         values.set(prior.lap, Math.max(values.get(prior.lap) ?? 0, duration));
-        budgets.set(prior.gate, values);
+        budgets.set(prior.landmark, values);
       }
       previous = at;
     }

@@ -33,6 +33,8 @@ import { COURSE_APPEARANCE_RECIPE, compileCourseAppearance, createCourseSpriteRe
 import { compileCourseBoundaries } from './course-lateral.js';
 import { compileCourseGates } from './course-rules.js';
 import { compileCourseFork } from './course-fork.js';
+import { enumerateCourseRoutes } from './course-routes.js';
+import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
 import type { SurfaceMaterialCatalog } from '../surface-material.js';
 
 interface SectionDraft extends Omit<CompiledSection, 'incoming' | 'outgoing' | 'fork' | 'appearance' | 'assets'> {
@@ -236,6 +238,19 @@ export async function compileCourseDocument(
       return link;
     });
     const type = compileCourseTopology(entry, sections);
+    const routes = enumerateCourseRoutes(entry, type);
+    if (routes.length > COURSE_DOCUMENT_LIMITS.routes) {
+      // The first route over the limit leaves the last admitted one at a fork Section.
+      const over = routes.at(-1)!,
+        last = routes.at(-2)!;
+      const fork = over.find((link, index) => link !== last[index])!.from.section;
+      requireCourse(
+        false,
+        `/sections/${sections.findIndex((section) => section === fork)}`,
+        `A course allows at most ${COURSE_DOCUMENT_LIMITS.routes} routes`,
+        'resource_limit',
+      );
+    }
     const forks = compileStage(drafts, (draft, index) =>
       compileCourseFork(draft.section, draft.controls, `/sections/${index}`),
     );

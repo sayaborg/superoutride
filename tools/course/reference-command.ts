@@ -4,7 +4,8 @@ import { createSessionVehicle } from '../../src/race/session-vehicle.js';
 import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 import { REFERENCE_DRIVER } from './reference-driving-policy.js';
 import { measureVehicleEnvelope } from './vehicle-envelope.js';
-import { courseReferenceRoutes, runCourseReference } from './reference-run.js';
+import { runCourseReference } from './reference-run.js';
+import { enumerateCourseRoutes } from '../../src/course/compiler/course-routes.js';
 import { referenceModelIdentity } from './reference-identity.js';
 import { options, loadCourse, loadCourseGround, requireInput, atomicWrite } from './authoring-io.js';
 import { isTimedCourse } from '../../src/course/compiler/compiled-course.js';
@@ -39,7 +40,7 @@ export async function referenceCommand(verb: string, file: string, args: readonl
     const { course } = loaded!;
     requireInput(isTimedCourse(course), '/rules/classic', 'Reference runs need CLASSIC settings');
     const ground = await loadCourseGround(course),
-      routes = courseReferenceRoutes(course);
+      routes = enumerateCourseRoutes(course.entry, course.type);
     const lapCount = Number(opts.get('--laps') ?? course.rules.classic.lapCount),
       routeIndex = Number(opts.get('--route') ?? 0);
     requireInput(Number.isInteger(routeIndex) && routes[routeIndex], '/route', 'Unknown route index');

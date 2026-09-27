@@ -295,6 +295,7 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | Environment array and expanded Section `environmentKnots`               |                256 | (21 × 4 + 1) × 2, rounded up                                                                                            |
 | Section `boundaries`                                                    |                 32 | 16 road, median, shoulder and outer Boundaries × 2                                                                      |
 | Section `carriageways`                                                  |                 64 | One road activation/km × 21 × 2, rounded up; supports three-way splits                                                  |
+| Non-circuit finite `routes` from the entry                              |                256 | Reference work bound: one continuous reference run per route and vehicle                                                |
 | Section `spritePlacements` (expanded)                                   |              16384 | 21 × (200 + 20)/km × 2, rounded up                                                                                      |
 | Each Strip/sprite array `stripElements` / `spriteElements`              |               2048 | 21 × 30/km × 2, rounded up                                                                                              |
 | `repeatCount`                                                           |              65536 | Whole-length 1 m repetitions: 21000 × 2, rounded up                                                                     |
@@ -337,9 +338,16 @@ Palette size, RGB555 range, SHA-256 length, glyph dimensions and angle units
 are format values, not entries in the resource table. Session rival/lap/time-margin rules remain owned by
 `SESSION_RULE_LIMITS`, shared with Session admission and controls rather than copied into document limits.
 
-Limit-only revisions retain the format version; the compiler identity advances to identify
-the revised admission policy. Existing inputs must still satisfy the current ceilings; no migration reader
-or grandfathered limit set is provided.
+Limit-only revisions retain the format version. The compiler identity identifies compiled products: it advances
+when a revision can change the product of an accepted input, and a revision that only narrows admission keeps it,
+since every course it still accepts compiles to the same product. Existing inputs must still satisfy the current
+ceilings; no migration reader or grandfathered limit set is provided.
+
+Course compilation owns the route-count ceiling. `enumerateCourseRoutes` is the one enumeration of a course's
+finite routes from the entry, each its Link list in outgoing order (a circuit has one empty route); compilation
+rejects a non-circuit course with more than `routes` of them with a `resource_limit` diagnostic at the fork Section
+where the first route over the ceiling leaves the last admitted one. Reference generation and reference reading
+use the same enumeration.
 
 ## Geometry and bindings
 
@@ -621,8 +629,10 @@ Recovery consumes simulation time and grants no crossing credit. Results are ses
 `tools/course` owns reference generation, its policy and report-to-budget admission. The product
 reads completed envelopes and time budgets and owns live Session driving policy.
 Build-generated continuous reference runs use product physics, the configured start and finite routes/laps,
-with the reference driver alone. Each successful run supplies ordered crossing times, including within-step
-fractions. Recovery, wrong-route choice, timeout or incomplete FINISH invalidates a timing product.
+with the reference driver alone. Each successful run records the race's event stream for the player
+([race time and events](#race-time-and-events)): ordered crossings with their race times, including within-step
+fractions. Reading a report derives the order and laps a run must record from the race's own lines: it builds the
+planned route's Route and reads its `RouteCrossSections` race lines through the completing FINISH. Recovery, wrong-route choice, timeout or incomplete FINISH invalidates a timing product.
 Maximum-lap runs supply their actual prefixes; starting and later-lap arrival classes remain distinct.
 
 Identity includes course/compiler, vehicle/calibration/protection, driver policy, fixed step, start

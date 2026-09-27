@@ -16,7 +16,8 @@ import { RIVAL_ENVELOPE_FORMAT, readVehicleEnvelope } from '../../src/race/vehic
 import { requireLoaded } from '../../src/content/content-load-error.js';
 import { cachedReference, referenceCacheKey } from '../course/reference-cache.js';
 import { measureVehicleEnvelope } from '../course/vehicle-envelope.js';
-import { runCourseReference, courseReferenceRoutes } from '../course/reference-run.js';
+import { runCourseReference } from '../course/reference-run.js';
+import { enumerateCourseRoutes } from '../../src/course/compiler/course-routes.js';
 import { loadCourseGround } from '../course/authoring-io.js';
 import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 
@@ -51,7 +52,7 @@ for (const stem of stems) {
   const key = referenceCacheKey(course.identity.buildSha256, vehicleSha256, REFERENCE_DRIVER, physicsSha256);
   const cached = await cachedReference('runs', key, async () => {
     const ground = await loadCourseGround(course);
-    return courseReferenceRoutes(course).map((route) =>
+    return enumerateCourseRoutes(course.entry, course.type).map((route) =>
       runCourseReference(course, ground, vehicle, definitions.vehicles, envelope.value, route, course.rules.maxLaps),
     );
   });

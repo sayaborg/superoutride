@@ -15,6 +15,7 @@ export const COURSE_DOCUMENT_LIMITS = Object.freeze({
   knots: 1024,
   environmentKnots: 256,
   carriageways: 64,
+  routes: 256,
   spritePlacements: 16384,
   spriteElements: 2048,
   stripElements: 2048,
