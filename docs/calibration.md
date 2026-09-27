@@ -59,10 +59,10 @@ primitives that fits on one line, and JSON's own number and string spelling. The
 byte-identical to its content file. To adopt tuned values, replace `content/driving/default.json`
 (or a vehicle file) with the export and rebuild; admission, identity and generated references follow
 the new file. Tires are dimensionless
-coefficients per unit normal load and share one authored set for front and rear. Driving assists are
+coefficients per unit normal load; one game-wide set serves both stations. Driving assists are
 not difficulty controls.
 
-The same definition selects travel-direction automatic steering and `wheelSlip=true` (TCS, MSR and
+The same definition selects `wheelSlip=true` (TCS, MSR and
 ABS). TCS, MSR (engine-braking slip) and the nose-up side of pitch protection act only through the
 engine's effective opening; ABS and the nose-down side of pitch protection act on the pedal brake. The
 driver's throttle actuator keeps its traversal time as the requested opening, and the opening's

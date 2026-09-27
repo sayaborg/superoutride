@@ -2,11 +2,7 @@ import { DefinitionDomainError, withDefinitionPath } from '../../core/admission.
 import type { DrivingDefinition } from '../driving-definition.js';
 import { validateDrivingActuatorDefinition, type DrivingActuatorDefinition } from './driving-actuator.js';
 import type { PowertrainRules } from './automatic-powertrain.js';
-import {
-  compileTireCharacteristics,
-  createVehicleTireFrictionCalibration,
-  type VehicleTireFrictionCalibrationState,
-} from './tire-friction-calibration.js';
+import { compileTireCharacteristics, type CompiledTireCharacteristics } from './tire-friction-calibration.js';
 import type { TorqueProtectionPolicy } from './torque-protection.js';
 import { createVehicleSteeringCalibration, type VehicleSteeringCalibrationState } from './vehicle-calibration.js';
 
@@ -20,7 +16,8 @@ export interface CompiledDriving {
   /** Steering, throttle and brake response rates; the only steering rate. */
   readonly actuator: Readonly<DrivingActuatorDefinition>;
   readonly steering: Readonly<VehicleSteeringCalibrationState>;
-  readonly tires: Readonly<VehicleTireFrictionCalibrationState>;
+  /** The game-wide tire, shared by both stations. */
+  readonly tire: Readonly<CompiledTireCharacteristics>;
   /** Suspension stiffness at full travel as a multiple of each ride spring rate. */
   readonly suspensionProgression: number;
   readonly torqueProtection: Readonly<TorqueProtectionPolicy>;
@@ -28,8 +25,6 @@ export interface CompiledDriving {
 
 /** Convert explicit design input at driving admission; never consult a vehicle definition. */
 export function compileDriving(definition: DrivingDefinition): CompiledDriving {
-  if (definition.automaticSteering !== 'travel-direction')
-    throw new DefinitionDomainError('automaticSteering', 'unsupported automatic steering');
   for (const field of [
     'fuelCutRedlineMargin',
     'idleFrictionMeanEffectivePressureBar',
@@ -96,11 +91,9 @@ export function compileDriving(definition: DrivingDefinition): CompiledDriving {
         steeringOffsetMax: 'steeringOffsetDegrees',
       },
     ),
-    tires: createVehicleTireFrictionCalibration(
-      withDefinitionPath(
-        () => compileTireCharacteristics(definition.tire),
-        (path) => `tire/${path}`,
-      ),
+    tire: withDefinitionPath(
+      () => compileTireCharacteristics(definition.tire),
+      (path) => `tire/${path}`,
     ),
     suspensionProgression: definition.suspensionProgression,
     torqueProtection: Object.freeze({

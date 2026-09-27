@@ -53,16 +53,3 @@ function validateTireCharacteristics(tire: CompiledTireCharacteristics): void {
   if (!Number.isFinite(tire.rhoKnee) || !(tire.rhoKnee > 0 && tire.rhoKnee < 1))
     throw new DefinitionDomainError('rhoKnee', 'rhoKnee must be finite and lie in (0,1)');
 }
-
-/** Per-station slots keep equality a composition decision, never a constraint in the tire law. */
-export interface VehicleTireFrictionCalibrationState {
-  readonly front: Readonly<CompiledTireCharacteristics>;
-  readonly rear: Readonly<CompiledTireCharacteristics>;
-}
-
-export function createVehicleTireFrictionCalibration(
-  front: CompiledTireCharacteristics,
-  rear: CompiledTireCharacteristics = front,
-): Readonly<VehicleTireFrictionCalibrationState> {
-  return Object.freeze({ front, rear });
-}

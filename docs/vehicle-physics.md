@@ -3,23 +3,23 @@
 CAR and BIKE use one two-station vehicle solver with yaw and pitch. Contact and control constraints
 use a local heightfield approximation. The model separates these inputs:
 
-| Boundary           | Parameters                                                                                          |
-| ------------------ | --------------------------------------------------------------------------------------------------- |
-| Compiled vehicle   | Mass, geometry, inertia, suspension, wheel/brake data, drag, fixed drive split, powertrain          |
-| Driving definition | Travel-direction steering, M/D/ACT, pedal actuators, TCS/ABS, pitch limit and shared per-load tires |
-| Composition policy | Fixed update step                                                                                   |
+| Boundary           | Parameters                                                                                 |
+| ------------------ | ------------------------------------------------------------------------------------------ |
+| Compiled vehicle   | Mass, geometry, inertia, suspension, wheel/brake data, drag, fixed drive split, powertrain |
+| Driving definition | M/D/ACT steering, pedal actuators, TCS/ABS, pitch limit and the game-wide per-load tire    |
+| Composition policy | Fixed update step                                                                          |
 
 The [driving definition](../content/driving/default.json) holds the game-wide driving values
 ([Calibration](calibration.md) owns value authority); these are design values, not difficulty settings. Its immutable, nested plain data contains
-travel-direction steering, M=65 degrees, D=20 degrees, ACT=0.3 seconds, throttle/brake traversal times,
-`wheelSlip=true` and one common front/rear tire (GX=5, PX=0.2, GY=2.5, PY=0.1, KN=0.74).
+M=65 degrees, D=20 degrees, ACT=0.3 seconds, throttle/brake traversal times,
+`wheelSlip=true` and one game-wide tire (GX=5, PX=0.2, GY=2.5, PY=0.1, KN=0.74).
 [Calibration](calibration.md) describes units, pedal values and the shell-owned DEV grids.
 
 Driving compilation, [`compileDriving`](../src/vehicle/physics/driving-settings.ts), converts degrees and
 traversal times to runtime angles/rates and compiles the tire law once. Its product, `CompiledDriving`, holds every
 converted driving fact once: powertrain rules, the steering/throttle/brake actuator rates (one steering rate; a
 single traversal time makes steering response symmetric by construction), steering geometry (M, D and the derived
-automatic steering maximum `A = M-D`), front/rear tire characteristics, `suspensionProgression` and the
+automatic steering maximum `A = M-D`), the tire characteristics, `suspensionProgression` and the
 torque-protection policy `{wheelSlip, pitchLimit}`.
 [`createVehicleModel`](../src/vehicle/physics/vehicle-model.ts) is the single place that builds a vehicle model,
 from the compiled vehicle, the compiled driving product and the fixed outer update step, which its caller supplies
@@ -34,10 +34,9 @@ solvers keep guards on the values they generate.
 Browser, race, reference/envelope tools, scenarios, startup smoke and image generation use the same
 input. Creation, updates, held steps and recovery receive the vehicle state and its model separately;
 nothing copies a model value into state. Updates and held steps take no step argument; they integrate the
-model's step and substep. The wheel solver receives one required tire-characteristics
-field from the model. DEV tuning edits the driving definition and rebuilds the player's model from it;
+model's step and substep. Both stations' wheel solves and the steering limiter read the model's one tire. DEV tuning edits the driving definition and rebuilds the player's model from it;
 the next step uses the replacement, and a vehicle switch builds the new vehicle's model from the same
-tuned definition. The front/rear tire slots remain for now; both start with the same coefficients.
+tuned definition.
 
 `SessionVehicle` holds the admitted vehicle, driving and surface-material definitions;
 `createVehicleModel` derives nothing from the vehicle's listing, and `vehicleSha256` derives from the
@@ -400,7 +399,8 @@ The solver consumes normalized steering and exclusive throttle/brake inputs. Key
 use finite-rate actuators; active analog touch supplies direct displacement, then uses normal release.
 Input arbitration is specified in [Browser](browser.md#driving-input).
 
-For driver offset D and rack bound M, require `0 < D < M < pi/2`:
+Automatic steering has one method: it follows the body's travel direction. For driver offset D and
+rack bound M, require `0 < D < M < pi/2`:
 
 ```text
 beta = atan2(bodyLateralSpeed,hypot(bodyForwardSpeed,steeringV0))
@@ -464,7 +464,7 @@ A vehicle is two documents with the same identifier. `content/vehicles/<id>.json
 `content/vehicle-listings/<id>.json` stores its `superoutride.vehicle-listing` version 1 document:
 everything else players see or hear of it. A value belongs to the mechanics document when physics
 reads it and to the listing otherwise; `form` and the metadata's `physicsAnchor` therefore belong to
-the listing. `content/driving/default.json` stores the sole `superoutride.driving-definition` version 9.
+the listing. `content/driving/default.json` stores the sole `superoutride.driving-definition` version 10.
 A material, vehicle or driving document's only identifier is its file name without `.json`, which is
 also its manifest ID; the documents carry none. The content layer's `compileVehicleDefinitions` admits
 the catalog from the build's files or delivery's manifest entries alike: exactly one driving definition,
@@ -494,7 +494,7 @@ front drive fraction in [0,1], feasible static suspension compression and ordere
 No dimensions are saved in this format.
 
 The driving document has `format`, `version` and the current `DrivingDefinition`
-fields: `automaticSteering:"travel-direction"`, `maxRoadWheelSteerDegrees`, `steeringOffsetDegrees`,
+fields: `maxRoadWheelSteerDegrees`, `steeringOffsetDegrees`,
 `steeringTraversalSeconds`, positive `fuelCutRedlineMargin`, positive
 `idleFrictionMeanEffectivePressureBar` and `redlineFrictionMeanEffectivePressureBar`,
 `drivelineEfficiency` in (0,1], positive `engineInertiaKilogramSquareMetersPerLitre`, positive

@@ -258,15 +258,9 @@ export function compileDrivingDocument(
     ] as const;
     const v = readDocument(
       value,
-      ['format', 'version', 'automaticSteering', ...numbers, 'throttle', 'brake', 'wheelSlip', 'tire'],
+      ['format', 'version', ...numbers, 'throttle', 'brake', 'wheelSlip', 'tire'],
       'superoutride.driving-definition',
-      9,
-    );
-    requireAdmission(
-      v.automaticSteering === 'travel-direction',
-      'invalid_value',
-      '/automaticSteering',
-      'Expected travel-direction',
+      10,
     );
     const wheelSlip = readBoolean(v.wheelSlip, '/wheelSlip');
     const pedal = (key: string) => {
@@ -280,8 +274,7 @@ export function compileDrivingDocument(
     const t = readRecord(v.tire, '/tire', keys);
     const source = deepFreeze({
       format: 'superoutride.driving-definition',
-      version: 9,
-      automaticSteering: v.automaticSteering,
+      version: 10,
       ...Object.fromEntries(numbers.map((key) => [key, readNumber(v[key], `/${key}`)])),
       throttle: pedal('throttle'),
       brake: pedal('brake'),

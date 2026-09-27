@@ -1,7 +1,7 @@
 import type { CompiledDrivingDefinition } from '../compiled-driving-definition.js';
 import type { DrivingActuatorDefinition } from './driving-actuator.js';
 import { resolvePowertrainConstants, type PowertrainConstants } from './automatic-powertrain.js';
-import type { VehicleTireFrictionCalibrationState } from './tire-friction-calibration.js';
+import type { CompiledTireCharacteristics } from './tire-friction-calibration.js';
 import type { TorqueProtectionPolicy } from './torque-protection.js';
 import type { VehicleSteeringCalibrationState } from './vehicle-calibration.js';
 import type { CompiledVehicle } from './vehicle-definitions.js';
@@ -21,7 +21,7 @@ export interface VehicleModel {
   readonly substep: number;
   readonly actuator: Readonly<DrivingActuatorDefinition>;
   readonly steering: Readonly<VehicleSteeringCalibrationState>;
-  readonly tires: Readonly<VehicleTireFrictionCalibrationState>;
+  readonly tire: Readonly<CompiledTireCharacteristics>;
   readonly powertrain: Readonly<PowertrainConstants>;
   readonly torqueProtection: Readonly<TorqueProtectionPolicy>;
   /** Game-wide suspension stiffness at full travel as a multiple of each ride spring rate. */
@@ -52,7 +52,7 @@ export function createVehicleModel(input: VehicleModelInput, step: number): Vehi
     substep,
     actuator: driving.actuator,
     steering: driving.steering,
-    tires: driving.tires,
+    tire: driving.tire,
     powertrain: resolvePowertrainConstants(compiledVehicle.powertrain, driving.powertrain),
     torqueProtection: driving.torqueProtection,
     suspensionProgression: driving.suspensionProgression,

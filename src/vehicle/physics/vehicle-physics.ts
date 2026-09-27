@@ -189,7 +189,7 @@ export function updateVehicle(
       steeringOffset,
       body,
       frontBeforeSteer,
-      model.tires.front,
+      model.tire,
       workspace.steering,
     );
     const target = clamp(
@@ -230,7 +230,7 @@ export function updateVehicle(
     frontRequest.lateralVelocity = front.lateralVelocity;
     frontRequest.normalLoad = front.tireFrameValid ? front.normalLoad : 0;
     frontRequest.gripFactor = front.surface.material?.gripFactor ?? 0;
-    frontRequest.characteristics = model.tires.front;
+    frontRequest.characteristics = model.tire;
     frontRequest.rollingResistance = front.tireFrameValid ? (front.surface.material?.rollingResistance ?? 0) : 0;
     frontRequest.driveTorque = 0;
     frontRequest.brakeTorque = vehicle.actuator.brake * compiledVehicle.frontStation.maxBrakeTorque;
@@ -243,7 +243,7 @@ export function updateVehicle(
     rearRequest.lateralVelocity = rear.lateralVelocity;
     rearRequest.normalLoad = rear.tireFrameValid ? rear.normalLoad : 0;
     rearRequest.gripFactor = rear.surface.material?.gripFactor ?? 0;
-    rearRequest.characteristics = model.tires.rear;
+    rearRequest.characteristics = model.tire;
     rearRequest.rollingResistance = rear.tireFrameValid ? (rear.surface.material?.rollingResistance ?? 0) : 0;
     rearRequest.driveTorque = 0;
     rearRequest.brakeTorque = vehicle.actuator.brake * compiledVehicle.rearStation.maxBrakeTorque;
@@ -447,8 +447,8 @@ function createStepWorkspace(model: VehicleModel) {
     dt: 1,
     characteristics,
   });
-  const frontRequest = request(model.tires.front),
-    rearRequest = request(model.tires.rear);
+  const frontRequest = request(model.tire),
+    rearRequest = request(model.tire);
   return {
     projection: createPlanProjectionWorkspace(),
     velocityDelta: { x: 0, y: 0, z: 0 },
