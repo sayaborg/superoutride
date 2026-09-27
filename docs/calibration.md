@@ -12,7 +12,8 @@ supply another set of defaults. The immutable record contains only authored numb
 stored as versioned JSON. Derived radians, actuator rates and tire coefficients belong to admission.
 [Vehicle mechanics documents](../content/vehicles/) contain the per-vehicle mechanical data.
 
-DEV tunes the author-facing values below in their saved units; each grid wraps at its ends.
+DEV tunes the author-facing values below in their saved units; each grid wraps at its ends. A grid only places
+steps and never rejects a driving definition.
 
 | Group      | Key   | Definition field                            | Meaning                                      | Default | DEV range / step           |
 | ---------- | ----- | ------------------------------------------- | -------------------------------------------- | ------- | -------------------------- |
@@ -44,7 +45,9 @@ least 1; each vehicle model admits it through [suspension stability](vehicle-phy
 PX and PY are dimensionless slips. The defaults give `kX = kY = 31.5` under the
 [tire law](vehicle-physics.md#tire-law). Automatic steering has the budget `A = M-D`, derived once by driving compilation and shown
 on the DEV HUD. The [DEV tuning registry](../src/shell/driving-tuning.ts) owns only these choices and
-grid checks; startup checks the raw driving definition against the grids. A DEV adjustment steps the
+step positions. From any finite value, + moves to the smallest grid value above it and − to the largest below
+it, wrapping from the last grid value to the first and back, also from outside the range; values off the grid are
+shown exactly. A DEV adjustment steps the
 player's tuned driving definition, admits it with the driving-document compiler (a rejected candidate
 leaves the definition unchanged) and rebuilds the Session around a Session vehicle driving it
 ([Browser](browser.md#dev-controls)).

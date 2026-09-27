@@ -15,7 +15,7 @@
 - Engine sound load is the powertrain's effective opening.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **10-7c — DEV tuning grids**.
+Next PR: **10-9 — Route and resident window**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -25,7 +25,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Give each settled fact one owner and give consumers read-only observations.
 
-- **10-7c — DEV tuning grids:** DEV tuning grids only step values and never reject a driving definition.
 - **10-9 — Route and resident window:** an append-only Route records selected successors; `RouteRuntime` owns the
   resident window. Consumers receive a read-only Route; only the fork decider selects. Architecture states seam
   ownership when no successor exists yet.

@@ -14,7 +14,6 @@ import { drawVehicleLeanDebug } from './debug/vehicle-lean-debug.js';
 import { drawVehicleYawDebug } from './debug/vehicle-yaw-debug.js';
 import { compileDrivingDocument, type CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import { DRIVING_DEFINITION_ID } from '../content/vehicle-catalog.js';
-import { admitDrivingTuningGrid } from './driving-tuning.js';
 import { mountDrivingTuningControls } from './driving-tuning-controls.js';
 import { downloadDefinition } from './definition-export.js';
 import type { BrowserCourseModeQuery } from './course-mode-selection.js';
@@ -49,7 +48,6 @@ interface BrowserDrivingShell {
  * input only; the race owns every competitor's mechanics.
  */
 export function createBrowserDrivingShell(sessionVehicle: SessionVehicle): BrowserDrivingShell {
-  admitDrivingTuningGrid(sessionVehicle.drivingDefinition.source);
   const canvas = mustGet<HTMLCanvasElement>('game');
   canvas.width = LOGICAL_WIDTH;
   canvas.height = LOGICAL_HEIGHT;

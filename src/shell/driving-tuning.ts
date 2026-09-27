@@ -41,7 +41,7 @@ const field = <K extends keyof DrivingDefinition>(key: K) => ({
   write: (d: DrivingDocument, value: number): DrivingDocument => ({ ...d, [key]: value }),
 });
 
-/** One registry for DEV buttons, HUD lines and grid admission. */
+/** One registry for DEV buttons, HUD lines and step positions. */
 const DRIVING_TUNING_ITEMS: readonly NumericTuningItem[] = Object.freeze([
   item({
     id: 'M',
@@ -261,31 +261,22 @@ export const DRIVING_TUNING_GROUPS: readonly DrivingTuningGroup[] = Object.freez
 // Integer grid ticks: tolerance for decimal definition values converted to ticks (e.g. 0.325*1000).
 const TICK_TOLERANCE = 1e-9;
 
-function ticksOf(entry: NumericTuningItem, definition: DrivingDefinition): number {
-  const ticks = entry.read(definition) * entry.scale;
-  const index = (ticks - entry.min) / entry.step;
-  if (
-    !Number.isFinite(ticks) ||
-    ticks < entry.min - TICK_TOLERANCE ||
-    ticks > entry.max + TICK_TOLERANCE ||
-    Math.abs(index - Math.round(index)) > TICK_TOLERANCE
-  )
-    throw new RangeError(`driving value ${entry.id} is outside its DEV grid`);
-  return entry.min + Math.round(index) * entry.step;
-}
-
-/** The authored definition must lie on every DEV grid; the grids are not its authority. */
-export function admitDrivingTuningGrid(definition: DrivingDefinition): void {
-  for (const entry of DRIVING_TUNING_ITEMS) ticksOf(entry, definition);
-}
-
-/** One grid step, wrapping at the ends; the result is an unadmitted saved-form document. */
+/**
+ * One grid step from any finite value: +1 moves to the smallest grid value above it, -1 to the largest
+ * below it, wrapping from the last to the first grid value and back, including from outside the range.
+ * The grid only places steps; driving compilation admits the result. It is an unadmitted saved-form document.
+ */
 export function stepDrivingTuning(definition: DrivingDocument, id: string, direction: -1 | 1): DrivingDocument {
   const entry = tuningItem(id);
-  const count = (entry.max - entry.min) / entry.step + 1;
-  const index = (ticksOf(entry, definition) - entry.min) / entry.step;
-  const next = (((index + direction) % count) + count) % count;
-  return entry.write(definition, (entry.min + next * entry.step) / entry.scale);
+  const last = (entry.max - entry.min) / entry.step;
+  const ticks = entry.read(definition) * entry.scale;
+  let index =
+    direction > 0
+      ? Math.max(0, Math.floor((ticks + TICK_TOLERANCE - entry.min) / entry.step) + 1)
+      : Math.min(last, Math.ceil((ticks - TICK_TOLERANCE - entry.min) / entry.step) - 1);
+  if (index > last) index = 0;
+  if (index < 0) index = last;
+  return entry.write(definition, (entry.min + index * entry.step) / entry.scale);
 }
 
 /** Wheel slip protection (TCS, MSR and ABS) is the one switch. */
@@ -296,9 +287,14 @@ export function toggleDrivingWheelSlip(definition: DrivingDocument): DrivingDocu
 export function formatDrivingTuningValue(id: string, definition: DrivingDefinition): string {
   const entry = tuningItem(id);
   const value = entry.read(definition);
-  if (entry.percent) return `${Number((value * 100).toFixed(2))}%`;
+  // Grid values use the grid's decimals; any other value is shown exactly, never rounded onto the grid.
+  if (entry.percent) {
+    const percent = Number((value * 100).toFixed(2));
+    return `${percent / 100 === value ? percent : Number((value * 100).toPrecision(15))}%`;
+  }
   // Ticks fix the decimals; millisecond grids drop a trailing zero (0.30 s, 0.325 s).
   const text = value.toFixed(Math.round(Math.log10(entry.scale)));
+  if (Number(text) !== value) return `${value}${entry.unit}`;
   return `${entry.scale >= 1000 && text.endsWith('0') ? text.slice(0, -1) : text}${entry.unit}`;
 }
 
