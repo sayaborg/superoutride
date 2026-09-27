@@ -68,7 +68,7 @@ export async function courseReport(course: CompiledCourse, section: CompiledSect
       s: p.at.s,
       l: p.l,
       asset: p.instance.asset.image.name,
-      state: p.unselected?.id ?? null,
+      state: p.unselectedCarriagewayId,
     })),
     environments: section.appearance!.environments.map((e) => ({ s: e.at.s, name: e.name })),
     segments: section.segments.map((p) => ({ index: p.index, kind: p.geometry.kind, start: p.sStart, end: p.sEnd })),

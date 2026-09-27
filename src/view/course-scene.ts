@@ -1,4 +1,5 @@
 import { createCourseRouteVisualReaders } from './course-route-visual-readers.js';
+import { selectedSuccessor } from '../course/course-route.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import { createDisplaySettings, type DisplaySettings } from './display-settings.js';
 import type { CourseGround } from '../course/compiler/course-ground.js';
@@ -35,7 +36,7 @@ export function createCourseScene(
   const renderWorkspace = createRenderWorkspace();
   const worldSprites: CourseSprite[] = [];
   let lastRenderData: ReturnType<typeof rendering.read> | null = null;
-  let lastClosed: typeof runtime.closedCarriageways | null = null;
+  let lastSelection: typeof runtime.route.occurrences | null = null;
   let staticSpriteCount = 0;
   let terrainParameters: Parameters<typeof renderDriving>[1]['terrainParameters'];
   return Object.freeze({
@@ -54,12 +55,17 @@ export function createCourseScene(
     ) {
       const readers = runtime.readers;
       const renderData = rendering.read();
-      const closed = runtime.closedCarriageways;
-      if (lastRenderData !== renderData || lastClosed !== closed) {
+      // Route occurrences change exactly when a successor is selected or appended.
+      const selection = runtime.route.occurrences;
+      if (lastRenderData !== renderData || lastSelection !== selection) {
         worldSprites.length = 0;
         for (const sprite of renderData.worldSprites) worldSprites.push(sprite);
-        for (const placement of renderData.conditionalSprites)
-          if (closed.includes(placement.unselected)) worldSprites.push(placement.sprite);
+        // A state-selected sign shows once its own fork occurrence has selected another exit.
+        for (const placement of renderData.conditionalSprites) {
+          const selected = selectedSuccessor(runtime.route, placement.occurrence);
+          if (selected && selected.from.carriageway.id !== placement.unselectedCarriagewayId)
+            worldSprites.push(placement.sprite);
+        }
         staticSpriteCount = worldSprites.length;
         terrainParameters = {
           screenHeight: LOGICAL_HEIGHT,
@@ -70,7 +76,7 @@ export function createCourseScene(
           environment: renderData.environment,
         };
         lastRenderData = renderData;
-        lastClosed = closed;
+        lastSelection = selection;
       }
       worldSprites.length = staticSpriteCount;
       for (const sprite of others) worldSprites.push(sprite);

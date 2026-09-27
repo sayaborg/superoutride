@@ -3,6 +3,7 @@ import { resolveCourseLateral } from './course-lateral.js';
 import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
 import { type CoursePosition, type SectionDocument } from '../course-document.js';
 import type { CompiledBoundary, CompiledCarriageway } from '../course-boundaries.js';
+import type { CompiledFork } from './course-graph.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
 import { CourseInputError, requireCourse } from '../course-diagnostics.js';
 import { BACKGROUND_HEIGHT, BACKGROUND_PIXELS_PER_RADIAN } from '../../image/tile-background-image.js';
@@ -35,7 +36,10 @@ export function createCourseSpriteResources() {
   };
 }
 
-/** Resolve saved environment and sprites through canonical geometry/assets. */
+/**
+ * Resolve saved environment and sprites through canonical geometry/assets. It reads the Section's compiled
+ * fork, when there is one, to check its own state-selected signs at their document positions.
+ */
 export function compileCourseAppearance(
   section: SectionDocument,
   length: number,
@@ -45,7 +49,7 @@ export function compileCourseAppearance(
   resolve: (at: CoursePosition, path: string) => CompiledCoursePosition,
   path: string,
   carriageways: readonly CompiledCarriageway[],
-  recordSpritePath: (path: string) => void,
+  fork: Readonly<CompiledFork> | null,
 ): CourseAppearance | null {
   const source = section.environments;
   if (source.length === 0) {
@@ -136,10 +140,9 @@ export function compileCourseAppearance(
         'resource_limit',
       );
       const instance = resource(image(placement.image, `${at}/image`), placement.palette, `${at}/palette`);
+      const unselectedCarriagewayId = placement.unselectedCarriagewayId;
       const unselected =
-        placement.unselectedCarriagewayId === null
-          ? null
-          : carriageways.find((c) => c.id === placement.unselectedCarriagewayId);
+        unselectedCarriagewayId === null ? null : carriageways.find((c) => c.id === unselectedCarriagewayId);
       if (unselected === undefined)
         throw new CourseInputError(
           'unresolved_reference',
@@ -147,10 +150,25 @@ export function compileCourseAppearance(
           'Unknown state-selected carriageway',
         );
       const position = shiftedCoursePosition(resolve, offset, length)(placement.at, `${at}/at`);
-      recordSpritePath(at);
+      if (unselected !== null) {
+        requireCourse(fork !== null, at, 'State-selected road signs require a fork', 'invalid_fork');
+        requireCourse(
+          fork!.exits.some((exit) => exit.link.from.carriageway === unselected),
+          at,
+          'Road sign state must name a canonical exit carriageway',
+          'invalid_fork',
+        );
+        // Between lock and closure, a sign also precedes every exit cut.
+        requireCourse(
+          position.s >= fork!.lock.s && position.s <= fork!.closure.s,
+          at,
+          'Road signs lie between lock and closure',
+          'invalid_fork',
+        );
+      }
       sprites.push(
         Object.freeze({
-          unselected,
+          unselectedCarriagewayId,
           instance,
           at: position,
           l: resolveCourseLateral(placement.lateral, position.s, boundaries, `${at}/lateral`),

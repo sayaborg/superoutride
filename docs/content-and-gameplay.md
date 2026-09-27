@@ -109,9 +109,14 @@ Each expanded placement resolves `lateral` at its own s, so repetitions follow r
 Compilation shares one immutable resource for each image/palette-name pair across Sections; the
 renderer borrows the compiled decoded image and materializes one palette variant per resource. Sprites have no authored identity.
 
-`unselectedCarriagewayId` is null for ordinary sprites or names a canonical exit Carriageway.
-Such signs lie from lock through closure, before the exit cut, and appear when the field selects
-another exit. Their state follows the selected Links of the shared Route.
+`unselectedCarriagewayId` is null for ordinary sprites or names, by id, a canonical exit Carriageway of the
+Section's fork. Compiled appearance keeps that id, never a physical Carriageway object. A state-selected sign
+appears at a fork occurrence once that occurrence has a selected successor on the Route whose Carriageway id
+differs from the sign's; each occurrence follows its own choice, so repeated passes do not mix. The appearance
+compiler owns these checks and reads the compiled fork after it: a state-selected sign requires a fork, its id
+names one of that fork's exit Carriageways, and it lies from lock through closure (`invalid_fork` at the sprite;
+an unknown id is `unresolved_reference` at `/unselectedCarriagewayId`). Lying at or before closure already places
+it before every exit cut; a sprite's image width is not a length along s and does not enter the check.
 
 Section `environments` is an array at the same level as `strips` and `sprites`. An empty array
 means no compiled appearance and requires an empty sprite list, while preserving authored Strips and
@@ -223,8 +228,8 @@ CLASSIC roster; its capacity is one player plus the product maximum rival count.
 Checkpoint and finish Carriageways must exist at the gate and have positive supported width across their
 edges. Runtime crossing width is the coordinate domain at the line. A checkpoint at a continuation seam
 belongs to the preceding Section, while the runtime bounds use the successor's domain at that station.
-A circuit has exactly one finish; other circuit Sections have none. The fork section below owns lock,
-closure and conditional-sign geometry. A Section with at most one outgoing Link cannot have either
+A circuit has exactly one finish; other circuit Sections have none. The fork section below owns lock and
+closure geometry; the appearance compiler checks conditional signs against it. A Section with at most one outgoing Link cannot have either
 lock or closure gates.
 
 `rules` is required: `{maxLaps,classic}`. `classic` is the CLASSIC settings
@@ -514,8 +519,8 @@ ID for an exact tie. Interpolated route l, shifted by the occurrence's lateral o
 fork interval. The winner appends one successor to the shared Route. That successor occurrence is the only
 stored fork choice: the occurrence after a fork occurrence on the Route (`selectedSuccessor`). A fork occurrence
 with a successor is locked, so each occurrence locks once; its choice is looked up by occurrence, so repeated
-passes of one fork Section are distinct. The lock, the closed Carriageways and the legal recovery targets all
-derive from that successor; closed Carriageways are listed for the resident window's selected successors.
+passes of one fork Section are distinct. The lock, the closed Carriageways, the legal recovery targets and state-selected signs all
+derive from that successor.
 Checkpoint credit remains per actor.
 
 Rivals immediately follow the selected Carriageway center. Unselected roads show saved state-selected

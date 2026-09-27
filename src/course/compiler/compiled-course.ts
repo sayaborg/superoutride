@@ -35,10 +35,12 @@ import { compileCourseGates } from './course-rules.js';
 import { compileCourseFork } from './course-fork.js';
 import type { SurfaceMaterialCatalog } from '../surface-material.js';
 
-interface SectionDraft extends Omit<CompiledSection, 'incoming' | 'outgoing' | 'fork'> {
+interface SectionDraft extends Omit<CompiledSection, 'incoming' | 'outgoing' | 'fork' | 'appearance' | 'assets'> {
   readonly incoming: CompiledLink[];
   readonly outgoing: CompiledLink[];
   fork: CompiledSection['fork'];
+  appearance: CompiledSection['appearance'];
+  assets: CompiledSection['assets'];
 }
 
 /** Upper-level immutable product. Consumers receive its ordinary reader/data facets, never this root. */
@@ -130,23 +132,6 @@ function compileSection(
   validateCourseCarriageways(carriageways, strips.material, length, `${path}/carriageways`);
   const physical = compileCoursePhysicalContent(section, length, resolve, path);
   const lateralDomain = compileMaterialCoordinateDomain(section.id, segments, strips.material, path);
-  const spritePaths: string[] = [];
-  const appearance = compileCourseAppearance(
-    section,
-    length,
-    boundaryTable,
-    assets,
-    resources,
-    resolve,
-    path,
-    carriageways,
-    (at) => spritePaths.push(at),
-  );
-  // A Section's images are exactly those its backgrounds and sprites reference, in course asset order.
-  const used = new Set<object>([
-    ...(appearance?.environments.map((environment) => environment.background.asset) ?? []),
-    ...(appearance?.sprites.map((sprite) => sprite.instance.asset) ?? []),
-  ]);
   const result: SectionDraft = {
     id: section.id,
     segments,
@@ -155,16 +140,37 @@ function compileSection(
     ...physical,
     ...strips,
     carriageways: Object.freeze(carriageways),
-    assets: Object.freeze([...assets.values()].filter((asset) => used.has(asset))),
-    appearance,
+    assets: Object.freeze([]),
+    appearance: null,
     incoming: [],
     outgoing: [],
     fork: null,
   };
+  /** Appearance compiles after the fork structure, which it reads to check its own signs. */
+  const compileAppearance = () => {
+    const appearance = compileCourseAppearance(
+      section,
+      length,
+      boundaryTable,
+      assets,
+      resources,
+      resolve,
+      path,
+      carriageways,
+      result.fork,
+    );
+    // A Section's images are exactly those its backgrounds and sprites reference, in course asset order.
+    const used = new Set<object>([
+      ...(appearance?.environments.map((environment) => environment.background.asset) ?? []),
+      ...(appearance?.sprites.map((sprite) => sprite.instance.asset) ?? []),
+    ]);
+    result.appearance = appearance;
+    result.assets = Object.freeze([...assets.values()].filter((asset) => used.has(asset)));
+  };
   return {
     section: result,
     stations,
-    spritePaths,
+    compileAppearance,
     controls: section.gates.flatMap((gate, index) =>
       gate.kind === 'lock' || gate.kind === 'closure'
         ? [
@@ -231,11 +237,12 @@ export async function compileCourseDocument(
     });
     const type = compileCourseTopology(entry, sections);
     const forks = compileStage(drafts, (draft, index) =>
-      compileCourseFork(draft.section, draft.controls, `/sections/${index}`, draft.spritePaths),
+      compileCourseFork(draft.section, draft.controls, `/sections/${index}`),
     );
     drafts.forEach((draft, index) => {
       draft.section.fork = forks[index]!;
     });
+    compileStage(drafts, (draft) => draft.compileAppearance());
     const gates = compileCourseGates(
       document,
       type,

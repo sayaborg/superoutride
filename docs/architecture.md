@@ -121,10 +121,12 @@ it for the entire field. The window is a contiguous suffix of the Route with the
 `start`, `end`, `terminal`, and `at`, which is null outside the window). Only the runtime's `refresh` advances the
 window, dropping occurrences behind it, and extends the Route as the forward coverage requires. No actor creates a
 coordinate wrapper. The fork decider alone receives `selectSuccessor` and calls it once per fork; the ordinary
-refresh extends any unambiguous successors and updates the closed-carriageway list. Physical and rendering
+refresh extends any unambiguous successors. Physical and rendering
 readers, the driver's live domain and residency decisions (observable rivals) read the window; race facts
 (cross sections, fork field) and reference tools read the Route. Route change metrics count refreshes that
-observe a changed window and time extension, window advance and closure-list preparation.
+observe a changed window and time extension and window advance. The scene shows a state-selected sign from its
+own fork occurrence's selected successor on the Route and rebuilds its sprite list when the window or the Route's
+occurrences change.
 
 The scene supplies loading coverage from camera dimensions, the fixed simulation period and the
 catalog's compiled contact stations. Forward coverage is

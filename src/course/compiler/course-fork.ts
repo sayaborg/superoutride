@@ -1,4 +1,3 @@
-import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../image/sprite.js';
 import { courseBoundaryAt, courseCarriagewayExists } from '../course-boundaries.js';
 import { requireCourse } from '../course-diagnostics.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
@@ -15,11 +14,7 @@ export function compileCourseFork(
     readonly at: CompiledCoursePosition;
   }[],
   path: string,
-  spritePaths: readonly string[],
 ): CompiledFork | null {
-  const conditional = (section.appearance?.sprites ?? [])
-    .map((placement, i) => ({ placement, path: spritePaths[i]! }))
-    .filter(({ placement }) => placement.unselected !== null);
   const check = (
     condition: boolean,
     message: string,
@@ -31,12 +26,6 @@ export function compileCourseFork(
       controls.length === 0,
       'Lock and closure gates require a branching Section',
       controls[0]?.path ?? `${path}/gates`,
-    );
-    requireCourse(
-      conditional.length === 0,
-      conditional[0]?.path ?? `${path}/sprites`,
-      'State-selected road signs require a fork',
-      'invalid_fork',
     );
     return null;
   }
@@ -54,27 +43,6 @@ export function compileCourseFork(
     'Fork positions require 0 < lock < closure < every exit seam',
     lock.s <= 0 ? locks[0]!.path : closures[0]!.path,
   );
-  for (const { placement, path: signPath } of conditional) {
-    check(
-      section.outgoing.some((link) => link.from.carriageway === placement.unselected),
-      'Road sign state must name a canonical exit carriageway',
-      signPath,
-      'invalid_fork',
-    );
-    check(
-      placement.at.s >= lock.s && placement.at.s <= closure.s,
-      'Road signs lie between lock and closure',
-      signPath,
-      'invalid_fork',
-    );
-    check(
-      placement.at.s + placement.instance.asset.image.width / SPRITE_SOURCE_TEXELS_PER_METER <
-        section.coordinates.domain.end,
-      'State-selected signs must precede the exit cut',
-      signPath,
-      'invalid_fork',
-    );
-  }
   const material = section.material;
   const supported = stripSupportedIntervals(material.slabs[stripSlabAt(material.slabs, lock.s)]!, lock.s);
   check(supported.length === 1, 'Supported lock space must be one continuous interval', locks[0]!.path);

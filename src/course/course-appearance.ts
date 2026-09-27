@@ -1,4 +1,3 @@
-import type { CompiledCarriageway } from './course-boundaries.js';
 import type { CompiledCoursePosition } from './course-geometry.js';
 import type { TileBackgroundImage } from '../image/tile-background-image.js';
 import type { SpriteAsset } from '../image/sprite.js';
@@ -26,7 +25,8 @@ export interface CourseAppearance {
   }[];
   readonly sprites: readonly {
     readonly instance: CourseSpriteResource;
-    readonly unselected: CompiledCarriageway | null;
+    /** A state-selected sign names the fork exit Carriageway whose non-selection shows it; null is always shown. */
+    readonly unselectedCarriagewayId: string | null;
     readonly at: CompiledCoursePosition;
     readonly l: number;
     readonly groundOffset: number;

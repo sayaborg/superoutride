@@ -77,21 +77,28 @@ export function createCourseRouteVisualReaders(route: RouteWindow, fields: Cours
     const placements = mapped.flatMap(({ occurrence, native }) =>
       native.sprites
         .filter(({ sprite }) => route.at(routeS(occurrence, sprite.sRender)) === occurrence)
-        .map(({ sprite, unselected }) => {
+        .map(({ sprite, unselectedCarriagewayId }) => {
           const positioned = Object.freeze({
             ...sprite,
             ...transformPlanarPoint(occurrence.worldFromSection, sprite),
             sRender: routeS(occurrence, sprite.sRender),
           });
-          return { sprite: positioned, unselected };
+          return { occurrence, sprite: positioned, unselectedCarriagewayId };
         }),
     );
     return Object.freeze({
       ground,
       environment,
-      worldSprites: Object.freeze(placements.filter((p) => p.unselected === null).map((p) => p.sprite)),
+      worldSprites: Object.freeze(placements.filter((p) => p.unselectedCarriagewayId === null).map((p) => p.sprite)),
+      // State-selected signs keep their fork occurrence; the scene shows them from that occurrence's choice.
       conditionalSprites: Object.freeze(
-        placements.filter((p) => p.unselected !== null).map((p) => ({ unselected: p.unselected!, sprite: p.sprite })),
+        placements
+          .filter((p) => p.unselectedCarriagewayId !== null)
+          .map((p) => ({
+            occurrence: p.occurrence,
+            unselectedCarriagewayId: p.unselectedCarriagewayId!,
+            sprite: p.sprite,
+          })),
       ),
       backgroundAt(s: number) {
         const occurrence = route.at(s) ?? (s < route.start ? occurrences[0]! : occurrences.at(-1)!);

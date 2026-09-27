@@ -46,7 +46,7 @@ export function createCourseRenderResources() {
         p.sprites.map((placement) =>
           Object.freeze({
             l: placement.l,
-            unselected: placement.unselected,
+            unselectedCarriagewayId: placement.unselectedCarriagewayId,
             sprite: Object.freeze(
               compileCourseSprite(geometry, height, {
                 name: placement.instance.asset.image.name,

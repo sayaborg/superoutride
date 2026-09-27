@@ -1,7 +1,6 @@
 import type { CompiledSection } from '../course/compiler/course-graph.js';
-import { createCourseRoute, createRouteWindow, selectedSuccessor } from '../course/course-route.js';
+import { createCourseRoute, createRouteWindow } from '../course/course-route.js';
 import { createCourseRouteReaders } from '../course/course-route-readers.js';
-import type { CompiledCarriageway } from '../course/course-boundaries.js';
 import { PLAN_PROJECTION_WINDOW_METERS } from '../course/geometry/plan-coordinate.js';
 import { ENVELOPE_DRIVER } from './envelope-driver.js';
 import { RECOVERY_SETTINGS } from './recovery.js';
@@ -36,23 +35,12 @@ export function createRouteRuntime(
   const readers = createCourseRouteReaders(window);
   const metrics = { routeChanges: 0, routeChangeMaxMilliseconds: 0 };
   let indexed: typeof window.occurrences | null = null;
-  let closedCarriageways: readonly CompiledCarriageway[] = Object.freeze([]);
   const refresh = (minS: number, maxS: number) => {
     const started = performance.now();
     builder.extendThrough(maxS + forwardMeters);
     resident.retainFrom(minS - rearMeters);
     if (indexed !== window.occurrences) {
       indexed = window.occurrences;
-      closedCarriageways = Object.freeze(
-        // Resident successors of fork occurrences, derived from the Route's selection.
-        indexed.flatMap((occurrence) => {
-          const fork = occurrence.ordinal > 0 ? route.occurrences[occurrence.ordinal - 1]! : null;
-          const link = fork?.section.fork ? selectedSuccessor(route, fork)! : null;
-          return link
-            ? fork!.section.outgoing.filter((other) => other !== link).map((other) => other.from.carriageway)
-            : [];
-        }),
-      );
       metrics.routeChanges += 1;
       metrics.routeChangeMaxMilliseconds = Math.max(metrics.routeChangeMaxMilliseconds, performance.now() - started);
     }
@@ -68,8 +56,5 @@ export function createRouteRuntime(
     forwardMeters,
     rearMeters,
     refresh,
-    get closedCarriageways() {
-      return closedCarriageways;
-    },
   });
 }
