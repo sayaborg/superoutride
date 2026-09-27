@@ -4,7 +4,7 @@ import type {
   TireAudioObservation,
   VehicleAudioObservation,
 } from '../audio/vehicle-audio-observation.js';
-import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
+import type { CompetitorObservation } from '../race/competitor-observation.js';
 
 type Mutable<T> = { -readonly [Key in keyof T]: T[Key] };
 type Observation = Mutable<Omit<VehicleAudioObservation, 'shift' | 'front' | 'rear'>> & {
@@ -32,8 +32,8 @@ export function createVehicleAudioObservation(): Observation {
   };
 }
 /** Copy completed observations into two reusable slots; do not run contact or tire solvers here. */
-export function readEngineAudio(vehicle: VehicleState, result: Observation): void {
-  const { powertrain } = vehicle;
+export function readEngineAudio(competitor: CompetitorObservation, result: Observation): void {
+  const { powertrain } = competitor;
   result.rpm = powertrain.engineRpm;
   result.effectiveOpening = powertrain.effectiveOpening;
   result.shift.sequence = powertrain.shift.sequence;
@@ -42,10 +42,10 @@ export function readEngineAudio(vehicle: VehicleState, result: Observation): voi
   result.shift.toRpm = powertrain.shift.toRpm;
 }
 
-/** Player audio also reads the vehicle's tire observations; rival engines use readEngineAudio. */
-export function readVehicleAudio(vehicle: VehicleState, result: Observation): void {
-  readEngineAudio(vehicle, result);
-  const { tires } = vehicle;
+/** Player audio also reads the tire observations; rival engines use readEngineAudio. */
+export function readVehicleAudio(competitor: CompetitorObservation, result: Observation): void {
+  readEngineAudio(competitor, result);
+  const { tires } = competitor;
   result.front.load = tires.front.load;
   result.front.longitudinalVelocity = tires.front.longitudinalVelocity;
   result.front.lateralVelocity = tires.front.lateralVelocity;
@@ -64,18 +64,16 @@ export function readVehicleAudio(vehicle: VehicleState, result: Observation): vo
   result.rear.surface = tires.rear.surface;
 }
 
-export interface AudibleActor {
-  readonly vehicle: VehicleState;
-  readonly vehicleId: string;
-}
 /** Physical world distance, independent of raster depth and local stage chainage. */
-export function nearestAudibleRival<A extends AudibleActor>(player: VehicleState, actors: readonly A[]): A | null {
-  let nearest: A | null = null;
+export function nearestAudibleRival(
+  player: CompetitorObservation,
+  actors: readonly CompetitorObservation[],
+): CompetitorObservation | null {
+  let nearest: CompetitorObservation | null = null;
   let distanceSquared = RIVAL_AUDIBLE_METERS ** 2;
   for (const actor of actors) {
-    const { vehicle } = actor;
-    if (vehicle === player) continue;
-    const d2 = (vehicle.x - player.x) ** 2 + (vehicle.y - player.y) ** 2 + (vehicle.z - player.z) ** 2;
+    if (actor === player) continue;
+    const d2 = (actor.x - player.x) ** 2 + (actor.y - player.y) ** 2 + (actor.z - player.z) ** 2;
     if (d2 < distanceSquared) {
       nearest = actor;
       distanceSquared = d2;

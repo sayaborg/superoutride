@@ -34,7 +34,7 @@ import { createSessionVehicle } from '../race/session-vehicle.js';
 import { SIM_DT } from '../race/fixed-step.js';
 import { browserUsesTouchInterface } from './touch-interface.js';
 import { drawVehicleDebugHud } from './vehicle-debug-hud.js';
-import type { AudibleActor } from './vehicle-audio.js';
+import type { CompetitorObservation } from '../race/competitor-observation.js';
 import { createBrowserVehicleSelections } from './vehicle-selection.js';
 
 interface BrowserDrivingShell {
@@ -52,7 +52,7 @@ interface BrowserDrivingShell {
     input: DrivingInput,
     camera: CameraState,
     playerScreenY: number,
-    rivals?: readonly AudibleActor[],
+    observed: { readonly player: CompetitorObservation; readonly rivals: readonly CompetitorObservation[] },
   ): void;
   start(tick: (dt: number) => void, render: () => void): void;
   stop(): void;
@@ -214,20 +214,22 @@ export function createBrowserDrivingShell(
       input: DrivingInput,
       camera: CameraState,
       playerScreenY: number,
-      rivals: readonly AudibleActor[] = [],
+      observed: { readonly player: CompetitorObservation; readonly rivals: readonly CompetitorObservation[] },
     ): void {
-      audio.update({ vehicle, vehicleId: model.compiledVehicle.id }, rivals);
+      const { player } = observed;
+      audio.update(player, observed.rivals);
       ctx.putImageData(imageData, 0, 0);
       const entry = vehicleDefinitionForId(vehicles, model.compiledVehicle.id);
+      // The DEV vehicle HUD diagnoses mechanics internals and reads the live state and model directly.
       drawVehicleDebugHud(ctx, query, input, vehicle, model, driving.source, entry);
-      if (entry.form === 'bike') {
-        drawVehicleLeanDebug(ctx, camera.playerScreenX, playerScreenY, vehicle);
+      if (player.form === 'bike') {
+        drawVehicleLeanDebug(ctx, camera.playerScreenX, playerScreenY, player);
       }
       drawVehicleYawDebug(
         ctx,
         camera.playerScreenX,
         playerScreenY,
-        vehicle.yaw,
+        player.yaw,
         camera.movementYaw,
         camera.yaw,
         camera.yawMode,

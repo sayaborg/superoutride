@@ -124,10 +124,17 @@ export function runScenario({ course, ground }, scenario) {
   };
   const entryPose = scene.world.coordinates.toWorld(0, 0, { x: 0, z: 0, s: 0, l: 0, heading: 0 });
   let camera;
-  let brakeLampOn = false;
+  // Display and camera read only the race's borrowed competitor observations, as the browser does.
   const render = () => {
     settings.setStripMethod(STRIP_RENDER_METHODS[evidence.frames % STRIP_RENDER_METHODS.length]);
-    scene.render(target, vehicle, camera, brakeLampOn ? visual.on : visual.off, sprites(race.observe().rivals, camera));
+    const observed = race.observe();
+    scene.render(
+      target,
+      observed.player,
+      camera,
+      observed.player.brakeLampOn ? visual.on : visual.off,
+      sprites(observed.rivals, camera),
+    );
     evidence.frames++;
   };
   race.start();
@@ -155,7 +162,6 @@ export function runScenario({ course, ground }, scenario) {
         workspace,
         scene.runtime.route,
       );
-    brakeLampOn = Number(input.brake) > 0;
     const step = race.advance(input, SIM_DT);
     if (step.recovered) {
       resetCameraRig(rig);
@@ -171,7 +177,7 @@ export function runScenario({ course, ground }, scenario) {
       assert.ok(!accepted.has(key), `crossing accepted twice: ${key}`);
       accepted.add(key);
     }
-    camera = updateCamera(rig, scene.world, vehicle, CURRENT_CAMERA_PROFILE);
+    camera = updateCamera(rig, scene.world, race.observe().player, CURRENT_CAMERA_PROFILE);
     finiteState(camera, 'camera');
     for (const [index, c] of competitors.entries()) {
       const v = c.actor.vehicle;

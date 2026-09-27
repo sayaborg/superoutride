@@ -2,13 +2,13 @@ import type { PlanCoordinateProjection } from '../../course/geometry/plan-coordi
 
 /**
  * Read-only world pose consumed outside concrete vehicle physics. Every field is required and read.
- * `course` is a derived plan coordinate observation; only physics and recovery write it.
+ * `course` is the derived plan coordinate observation's chainage; only physics and recovery write it.
  */
 export interface VehicleWorldPoseRead {
   readonly x: number;
   readonly z: number;
   readonly yaw: number;
-  readonly course: Readonly<PlanCoordinateProjection>;
+  readonly course: Readonly<Pick<PlanCoordinateProjection, 's'>>;
   /** Derived visual anchor. It follows the CG in flight but preserves static sprite ground contact. */
   readonly renderY: number;
 }

@@ -107,6 +107,7 @@ try {
     configurationLocked: true,
     canRecover: () => race.clock.status === 'RUNNING' && !manualPause && !document.hidden,
     recoveryL: race.recoveryL,
+    observation: () => race.observe().player,
     resync: () => {
       race.resyncPlayer();
     },
@@ -126,12 +127,12 @@ try {
       observations = race.observe();
     const result = scene.render(
       shell.framebuffer,
-      shell.vehicle,
+      observations.player,
       lifecycle.camera,
-      Number(input.brake) > 0 ? sprites.on : sprites.off,
+      observations.player.brakeLampOn ? sprites.on : sprites.off,
       raceSprites(observations.rivals, lifecycle.camera),
     );
-    shell.present(mode, input, lifecycle.camera, result.playerScreenY, observations.rivals);
+    shell.present(mode, input, lifecycle.camera, result.playerScreenY, observations);
     raceStatus.textContent = manualPause ? 'PAUSED' : race.label();
     performanceHud.frame(started, result.stripGround);
     if (race.clock.status === 'GOAL' || race.clock.status === 'GAME_OVER') {

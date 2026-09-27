@@ -472,8 +472,8 @@ A different physical camera or depth interval rejects that observation. The arra
 Vehicle documents choose a named sprite set and default color. `view/vehicle-sprites.ts` creates the
 off/on sprite sets once at startup, using each image's own named palette and the sprite set's shared off/on colors for reserved slot 15.
 The same prepared states are passed to player rendering and `createRaceSprites`; no per-frame
-palette evaluation occurs. Race observations publish boolean `brakeLampOn` from brake input > 0.
-Player rendering uses the same condition. All vehicles use their definition's default color;
+palette evaluation occurs. Every competitor observation, the player's included, publishes boolean
+`brakeLampOn`: that competitor's brake request in its latest step input is greater than 0. All vehicles use their definition's default color;
 player color selection and rival color assignment are pending product decisions.
 
 ### Sprite LOD metric and read contract
@@ -571,7 +571,14 @@ fixed step); view owns the course scene, which adds rendering and supplies the c
 window. Shell owns the observer's camera, and race actors contain no camera state. Consumers outside vehicle
 physics read vehicles through read contracts (`vehicle-contract.ts`) whose fields are all required and read by their
 consumers; the plan coordinate projection in them is read-only, and only physics and recovery write it through the
-vehicle state. Race publishes camera-independent actor observations; view owns rival sprite selection and assembly. Course owns VehicleWorld, surface
+vehicle state. Race owns the camera-independent competitor observations (`competitor-observation.ts`): one per
+competitor, the player included, holding only the values display, camera and audio read (identity and form, pose,
+render height, chainage, velocities, body pitch, lateral acceleration, brake lamp, powertrain and tire observations)
+and never vehicle state or a model. The race copies them at the end of every advance, including held READY steps,
+once at creation and after a manual resync. They are borrowed: the race overwrites the same objects on the next
+advance, so consumers read them before then. Display, the camera and audio read only these observations; the DEV
+vehicle HUD alone reads mechanics internals. `observe()` returns the player's observation and those of rivals on the
+resident Route, the one residency decision. View owns rival sprite selection and assembly. Course owns VehicleWorld, surface
 readers and the physical driving source. Race consumes that source only. The course world owns the combined pre-lock render/driver query-depth
 admission, and the course scene binds physical and appearance products.
 RGBA conversion, sprite images and LOD formats belong

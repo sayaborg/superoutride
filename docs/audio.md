@@ -13,10 +13,11 @@ and tire inputs. From the powertrain, audio reads engine RPM, the effective open
 (`effectiveOpening`, the engine's only command and the excitation source) and the last shift
 (sequence, direction and engine RPM before and after, as
 [vehicle physics](vehicle-physics.md#wheel-and-powertrain) publishes it). A sequence the voice has not yet heard
-marks a new shift; shift sounds such as downshift blips are not yet synthesized. The browser supplies completed observations once per presented frame.
+marks a new shift; shift sounds such as downshift blips are not yet synthesized. The browser supplies them once per presented frame from the race's borrowed competitor observations,
+which are copied at the end of each fixed step; audio reads nothing else.
 Physics owns RPM, actuators, contact loads, wheel motion and dissipated work; audio owns oscillator,
-filter and envelope state. Player tire sound reads the vehicle state's tire observations;
-rival sound uses engine observations.
+filter and envelope state. Player tire sound reads the player's observed tire observations;
+rival sound uses the rival's observed powertrain values.
 
 A [vehicle audio profile](../src/audio/vehicle-audio-profile.ts) contains one or two revolutions per
 cycle, ordered firing phases, collector membership, primary lengths and a common outlet length per
@@ -86,7 +87,8 @@ The resulting loss is about 0.034 Np/m before rounding. These are fixed referenc
 ## Mix and lifetime
 
 [Audio engine](../src/audio/audio-engine.ts) owns three fixed worklets: player engine, selected rival
-engine and player tires. The nearest rival within 100 physical world metres occupies the rival slot.
+engine and player tires. The nearest observed rival within 100 physical world metres occupies the rival slot; candidates are the
+rivals the race observes on the resident Route.
 Its gain uses 3D distance and its pan uses lateral displacement in the player's yaw frame.
 A rival change fades before reusing the slot. ENG, TIRE and MASTER independently multiply their
 outputs. Component output switches leave synthesis state running.

@@ -12,7 +12,8 @@ starts. A failed load displays status and Retry; an incomplete Session stays ina
 
 The browser accumulates nonnegative elapsed time capped at 0.25 s per animation callback. Simulation
 uses fixed 1/60 s steps; fractional remainder carries forward. One render follows the completed
-steps, including callbacks with no simulation step. Starting renders immediately with a fresh clock.
+steps, including callbacks with no simulation step; it reads the race's competitor observations, which
+hold the values of the latest completed step. Starting renders immediately with a fresh clock.
 Loading and setup leave the race clock stopped until START.
 
 PAUSE and document hiding suspend scheduling, input and audio. Visibility resumes a READY or RUNNING

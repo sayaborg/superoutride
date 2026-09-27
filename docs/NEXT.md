@@ -15,7 +15,7 @@
 - Engine sound load is the powertrain's effective opening.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **10-6 — Competitor snapshots**.
+Next PR: **10-7 — Session mechanics authority**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -25,9 +25,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Give each settled fact one owner and give consumers read-only observations.
 
-- **10-6 — Competitor snapshots:** the race publishes a read-only snapshot for every competitor, the player
-  included (pose, render anchor, speeds, brake lamp, powertrain and tire observations). Display and audio read
-  snapshots only.
 - **10-7 — Session mechanics authority:** the resolved Session holds the `SessionVehicle`; the race builds every
   competitor's model and state; the shell supplies input only. DEV tuning produces a new `SessionVehicle` and
   restarts the Session. Its identity no longer matches delivered envelopes and budgets, so a tuned Session has no

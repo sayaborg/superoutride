@@ -16,8 +16,12 @@ import type { DrivingInput } from '../vehicle/driving-input.js';
 import { createVehicle, updateHeldVehicle, type VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import { createStartPhase } from './start-phase.js';
 import { createVehicleModel, type VehicleModel } from '../vehicle/physics/vehicle-model.js';
-import type { SessionVehicle } from './session-configuration.js';
 import { createRivalRoster } from './rival-roster.js';
+import {
+  createCompetitorObservation,
+  writeCompetitorObservation,
+  type CompetitorObservation,
+} from './competitor-observation.js';
 import { SIM_DT } from './fixed-step.js';
 import type { createRouteRuntime } from './route-runtime.js';
 
@@ -26,15 +30,6 @@ interface Actor {
   readonly vehicle: VehicleState;
   readonly model: VehicleModel;
   readonly recovery: RecoveryState;
-}
-
-/** Borrowed actor state in the observer's active frame, valid until the next observe(). */
-export interface RaceActorObservation {
-  readonly id: string;
-  readonly vehicle: VehicleState;
-  readonly vehicleId: string;
-  readonly form: SessionVehicle['vehicleDefinition']['form'];
-  readonly brakeLampOn: boolean;
 }
 
 /** Field composition over shared course readers, ordinary mechanics and ordered physical gates. */
@@ -90,7 +85,6 @@ export function createCourseRace(options: {
     },
     input: (s: number) => lane(c, s),
   }));
-  const actorInputs = new Map(motions.map((motion) => [motion.c.id, motion.step]));
   const idle: DrivingInput = Object.freeze({ steering: 0, throttle: false, brake: false });
   // READY holds every vehicle with zero clutch capacity; race time and rival driving start at GO,
   // where ordinary updates restore the fixed capacity.
@@ -122,26 +116,34 @@ export function createCourseRace(options: {
     });
     return true;
   };
-  const visible: RaceActorObservation[] = [];
-  const pool = rivals.map((c) => ({
-    id: c.id,
-    vehicleId: rivalModel.compiledVehicle.id,
-    form: rival.vehicleDefinition.form,
-    brakeLampOn: false,
-    vehicle: c.actor.vehicle,
-  }));
-  const observations = () => {
-    visible.length = 0;
-    for (let i = 0; i < rivals.length; i += 1) {
-      const c = rivals[i]!;
-      const vehicle = c.actor.vehicle;
-      if (!runtime.route.at(vehicle.course.s)) continue;
-      const observation = pool[i]!;
-      observation.brakeLampOn = Number(actorInputs.get(c.id)!.input.brake) > 0;
-      visible.push(observation);
+  // Borrowed competitor observations: every advance overwrites them at the end of its fixed step.
+  const playerObservation = createCompetitorObservation(
+    player.id,
+    options.session.vehicle.vehicleDefinition.compiledVehicle.id,
+    options.session.vehicle.vehicleDefinition.form,
+  );
+  const rivalObservations = rivals.map((c) =>
+    createCompetitorObservation(c.id, rivalModel.compiledVehicle.id, rival.vehicleDefinition.form),
+  );
+  const competitorObservations = [playerObservation, ...rivalObservations];
+  const publish = () => {
+    for (let i = 0; i < motions.length; i += 1) {
+      const motion = motions[i]!;
+      writeCompetitorObservation(competitorObservations[i]!, motion.c.actor.vehicle, motion.step.input);
     }
   };
-  const observed = { rivals: visible };
+  // Only rivals on the resident Route are observable; this is the single residency decision.
+  const visible: CompetitorObservation[] = [];
+  const observations = () => {
+    visible.length = 0;
+    for (let i = 0; i < rivals.length; i += 1)
+      if (runtime.route.at(rivals[i]!.actor.vehicle.course.s)) visible.push(rivalObservations[i]!);
+  };
+  const observed: { readonly player: CompetitorObservation; readonly rivals: readonly CompetitorObservation[] } = {
+    player: playerObservation,
+    rivals: visible,
+  };
+  publish();
   // Borrowed fixed-step observation; the camera owner consumes it before the next advance.
   const stepObservation = { recovered: false };
   const noEvents: readonly RouteRaceEvent[] = Object.freeze([]);
@@ -157,6 +159,74 @@ export function createCourseRace(options: {
   };
   let stepDuration = 0;
 
+  const step = (input: DrivingInput, dt: number) => {
+    if (startPhase.status === 'READY') {
+      holdReady(input, dt);
+      return;
+    }
+    if (clock.status !== 'RUNNING') return;
+    stepStart = clock.elapsedSeconds;
+    stepDuration = dt;
+    pendingExpiry = clock.expirySeconds ?? Infinity;
+    let minS = Infinity,
+      maxS = -Infinity;
+    for (const motion of motions) {
+      minS = Math.min(minS, motion.c.actor.vehicle.course.s);
+      maxS = Math.max(maxS, motion.c.actor.vehicle.course.s);
+    }
+    runtime.refresh(minS, maxS);
+    move(motions[0]!, input, dt);
+    for (let i = 1; i < motions.length; i += 1) {
+      const motion = motions[i]!;
+      move(
+        motion,
+        sampleEnvelopeDrivingInput(
+          runtime.readers.coordinates,
+          motion.c.actor.vehicle,
+          driver,
+          motion.input,
+          motion.driverWorkspace,
+          runtime.route,
+        ),
+        dt,
+      );
+    }
+    forks.observe(motions);
+    for (const motion of motions) {
+      minS = Math.min(minS, motion.c.actor.vehicle.course.s);
+      maxS = Math.max(maxS, motion.c.actor.vehicle.course.s);
+    }
+    runtime.refresh(minS, maxS);
+    for (const motion of motions) {
+      const { c } = motion;
+      motion.recovered = legalRecovery(c) || motion.recovered;
+      const update = c.observer.update(
+        motion.previous,
+        c.actor.vehicle.course,
+        motion.recovered,
+        c === player ? admitPlayer : undefined,
+      );
+      if (c.finishElapsedSeconds === null) {
+        advanceRaceSession(c.timing, update, dt);
+        if (update.justFinished) c.finishElapsedSeconds = c.timing.elapsedSeconds;
+      }
+      if (c === player) {
+        events = update.events;
+        clockEvents.length = 0;
+        for (const event of events)
+          clockEvents.push({
+            gate: event.landmark,
+            lap: event.lap,
+            u: event.u,
+            finish: event.finish,
+            awardMs: event.finish ? 0 : (budgets?.after(event.landmark, event.lap) ?? 0),
+          });
+        clock.advance(dt, clockEvents);
+      }
+    }
+    stepObservation.recovered = motions[0]!.recovered;
+  };
+
   return Object.freeze({
     player,
     rivals,
@@ -169,76 +239,15 @@ export function createCourseRace(options: {
     recoveryL: (s: number) => forks.recoveryL(s, player.targetL),
     advance(input: DrivingInput, dt: number) {
       stepObservation.recovered = false;
-      if (startPhase.status === 'READY') {
-        holdReady(input, dt);
-        return stepObservation;
-      }
-      if (clock.status !== 'RUNNING') return stepObservation;
-      stepStart = clock.elapsedSeconds;
-      stepDuration = dt;
-      pendingExpiry = clock.expirySeconds ?? Infinity;
-      let minS = Infinity,
-        maxS = -Infinity;
-      for (const motion of motions) {
-        minS = Math.min(minS, motion.c.actor.vehicle.course.s);
-        maxS = Math.max(maxS, motion.c.actor.vehicle.course.s);
-      }
-      runtime.refresh(minS, maxS);
-      move(motions[0]!, input, dt);
-      for (let i = 1; i < motions.length; i += 1) {
-        const motion = motions[i]!;
-        move(
-          motion,
-          sampleEnvelopeDrivingInput(
-            runtime.readers.coordinates,
-            motion.c.actor.vehicle,
-            driver,
-            motion.input,
-            motion.driverWorkspace,
-            runtime.route,
-          ),
-          dt,
-        );
-      }
-      forks.observe(motions);
-      for (const motion of motions) {
-        minS = Math.min(minS, motion.c.actor.vehicle.course.s);
-        maxS = Math.max(maxS, motion.c.actor.vehicle.course.s);
-      }
-      runtime.refresh(minS, maxS);
-      for (const motion of motions) {
-        const { c } = motion;
-        motion.recovered = legalRecovery(c) || motion.recovered;
-        const update = c.observer.update(
-          motion.previous,
-          c.actor.vehicle.course,
-          motion.recovered,
-          c === player ? admitPlayer : undefined,
-        );
-        if (c.finishElapsedSeconds === null) {
-          advanceRaceSession(c.timing, update, dt);
-          if (update.justFinished) c.finishElapsedSeconds = c.timing.elapsedSeconds;
-        }
-        if (c === player) {
-          events = update.events;
-          clockEvents.length = 0;
-          for (const event of events)
-            clockEvents.push({
-              gate: event.landmark,
-              lap: event.lap,
-              u: event.u,
-              finish: event.finish,
-              awardMs: event.finish ? 0 : (budgets?.after(event.landmark, event.lap) ?? 0),
-            });
-          clock.advance(dt, clockEvents);
-        }
-      }
-      stepObservation.recovered = motions[0]!.recovered;
+      motions[0]!.step.input = input;
+      step(input, dt);
+      publish();
       return stepObservation;
     },
     resyncPlayer() {
       legalRecovery(player);
       resync(player);
+      publish();
     },
     observe() {
       observations();
