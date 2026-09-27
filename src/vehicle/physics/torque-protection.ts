@@ -84,14 +84,6 @@ function msrDriveTorqueBound(
   return Math.min(0, boundary + absBrakeTorque(input, 0, scratch, residual));
 }
 
-/** Drive torque is signed (negative is engine braking); brake is a magnitude. */
-function assertProtectedRequest(input: WheelSolveInput): void {
-  validateWheelSolveInput(input);
-  if (!(input.brakeTorque >= 0) || !Number.isFinite(input.driveTorque + input.brakeTorque)) {
-    throw new RangeError('protected requests need finite drive torque and a finite nonnegative brake magnitude');
-  }
-}
-
 /** Total drive-wheel torque bounds; each only limits the effective opening. */
 export interface DriveTorqueBounds {
   upper: number;
@@ -290,8 +282,9 @@ export function solveDriveTorqueBounds(
   workspace: ReturnType<typeof createProtectedWheelPairWorkspace>,
   out: DriveTorqueBounds,
 ): DriveTorqueBounds {
-  assertProtectedRequest(frontRequest);
-  assertProtectedRequest(rearRequest);
+  // Once per wheel and substep: every later trial reuses these requests with solver-chosen torques.
+  validateWheelSolveInput(frontRequest);
+  validateWheelSolveInput(rearRequest);
   const slot = workspace.first;
   const frontFraction = compiledVehicle.frontDriveTorqueFraction;
   let lower = -Infinity;
@@ -382,8 +375,9 @@ export function solveProtectedWheelPair(
   policy: TorqueProtectionPolicy,
   workspace: ReturnType<typeof createProtectedWheelPairWorkspace>,
 ): ProtectedWheelPair {
-  assertProtectedRequest(frontRequest);
-  assertProtectedRequest(rearRequest);
+  // The requests were checked by solveDriveTorqueBounds; only the powertrain's drive torque is new.
+  if (!Number.isFinite(frontRequest.driveTorque) || !Number.isFinite(rearRequest.driveTorque))
+    throw new RangeError('drive torque must be finite');
   let acceptedSlot = workspace.first,
     trialSlot = workspace.second;
   const evaluate = (brakeScale: number, slot: PairCandidate) =>

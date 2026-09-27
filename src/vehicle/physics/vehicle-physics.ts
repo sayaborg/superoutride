@@ -4,7 +4,7 @@ import { createPlanProjectionWorkspace } from '../../course/geometry/plan-coordi
 import { type Writable } from '../../core/writable.js';
 import { publishVehicleTireObservation } from './vehicle-tire-observation.js';
 import { clamp, wrapAngle } from '../../core/math.js';
-import type { DrivingInput } from '../driving-input.js';
+import { assertExclusivePedalInput, type DrivingInput } from '../driving-input.js';
 import {
   boundedOpening,
   completeAutomaticPowertrain,
@@ -154,6 +154,7 @@ export function updateVehicle(
   model: VehicleModel,
   input: DrivingInput,
 ): void {
+  assertExclusivePedalInput(input);
   const { compiledVehicle, substep } = model;
   const workspace = stepWorkspace(vehicle, model);
   const velocityBeforeX = vehicle.velocityX,
@@ -355,6 +356,7 @@ export function updateVehicle(
  * ordinary update restores the fixed capacity.
  */
 export function updateHeldVehicle(vehicle: VehicleState, model: VehicleModel, input: DrivingInput): void {
+  assertExclusivePedalInput(input);
   const { compiledVehicle, substep } = model;
   const workspace = stepWorkspace(vehicle, model);
   for (let step = 0; step < VEHICLE_SUBSTEPS; step += 1) {
@@ -381,9 +383,6 @@ const UNBOUNDED_DRIVE = Object.freeze({ upper: Infinity, lower: -Infinity });
 
 /** Body-CG travel direction in the body-pitch plane; finite and zero at rest. */
 function vehicleBodyTravelDirection(body: BodyKinematics, lowSpeedRegularization: number): number {
-  if (!(lowSpeedRegularization > 0) || !Number.isFinite(lowSpeedRegularization)) {
-    throw new RangeError('vehicle travel-direction regularization must be finite and > 0');
-  }
   const longitudinal = dot3(body.velocity, body.forward);
   const lateral = dot3(body.velocity, body.right);
   return Math.atan2(lateral, Math.hypot(longitudinal, lowSpeedRegularization));

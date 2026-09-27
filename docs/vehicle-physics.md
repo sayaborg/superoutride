@@ -26,8 +26,11 @@ from the compiled vehicle, the compiled driving product and the fixed outer upda
 (`SIM_DT`). The step must be finite and positive. The model is one immutable value, frozen throughout: the compiled
 vehicle, the step and its integration substep (step divided by the mechanics substep count), the driving product's
 actuator, steering, tire, suspension-progression and torque-protection values unchanged, and the powertrain
-constants. It reads no driving source field. Admitted powertrain values are not revalidated when a model is built;
-model construction admits [suspension stability](#suspension-stability) for both stations.
+constants. It reads no driving source field. Model construction admits [suspension stability](#suspension-stability)
+for both stations and revalidates no admitted value. Updates never recheck compiled values (step, actuator rates,
+steering, tires, stations, materials or numerical constants). They check the canonical pedal input once per update
+and the finiteness of wheel state, contact observations and torque requests once per wheel and substep; numerical
+solvers keep guards on the values they generate.
 Browser, race, reference/envelope tools, scenarios, startup smoke and image generation use the same
 input. Creation, updates, held steps and recovery receive the vehicle state and its model separately;
 nothing copies a model value into state. Updates and held steps take no step argument; they integrate the

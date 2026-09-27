@@ -15,7 +15,7 @@
 - Engine sound load is the powertrain's effective opening.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **10-2 — Runtime rechecks (delete)**.
+Next PR: **10-3 — One-valued driving fields (delete)**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -25,9 +25,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Give each settled fact one owner and give consumers read-only observations.
 
-- **10-2 — Runtime rechecks (delete):** remove the tire-characteristics check on every wheel-solve trial, the
-  per-substep actuator rate checks, the low-speed regularization (v0) rechecks and the tire-calibration
-  checks repeated when the calibration is copied; keep numerical-solver guards.
 - **10-3 — One-valued driving fields (delete):** remove `automaticSteering` from the driving format and collapse the
   front/rear tire slots into one tire.
 - **10-4 — Tire observation:** vehicle state holds a plain tire observation written at the last substep; remove the

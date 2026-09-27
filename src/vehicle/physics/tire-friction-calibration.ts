@@ -42,7 +42,7 @@ export function compileTireCharacteristics(input: TireCharacteristics): Readonly
   return Object.freeze(compiled);
 }
 
-export function validateTireCharacteristics(tire: CompiledTireCharacteristics): void {
+function validateTireCharacteristics(tire: CompiledTireCharacteristics): void {
   for (const field of ['muX', 'muY', 'kX', 'kY'] as const) {
     if (!(tire[field] > 0) || !Number.isFinite(tire[field]))
       throw new DefinitionDomainError(
@@ -64,10 +64,5 @@ export function createVehicleTireFrictionCalibration(
   front: CompiledTireCharacteristics,
   rear: CompiledTireCharacteristics = front,
 ): Readonly<VehicleTireFrictionCalibrationState> {
-  const copy = (t: CompiledTireCharacteristics) => {
-    validateTireCharacteristics(t);
-    return Object.freeze({ muX: t.muX, muY: t.muY, kX: t.kX, kY: t.kY, rhoKnee: t.rhoKnee });
-  };
-  const resolvedFront = copy(front);
-  return Object.freeze({ front: resolvedFront, rear: rear === front ? resolvedFront : copy(rear) });
+  return Object.freeze({ front, rear });
 }

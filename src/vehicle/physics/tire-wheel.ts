@@ -2,7 +2,7 @@ import { TIRE_LOW_SPEED_REGULARIZATION } from './numerical-constants.js';
 import type { Writable } from '../../core/writable.js';
 const WHEEL_BISECTION_ITERATIONS = 60;
 
-import { validateTireCharacteristics, type CompiledTireCharacteristics } from './tire-friction-calibration.js';
+import type { CompiledTireCharacteristics } from './tire-friction-calibration.js';
 
 // N m: absolute bisection residual budget, ~55 ulps for a 10^4 N m torque balance.
 // The implied wheel-speed error is at most residual*dt/inertia for the monotone wheel equation.
@@ -91,8 +91,7 @@ function writeDemand(
   out.dy = load * characteristics.kY * out.sy;
 }
 function tireReferenceSpeed(vx: number, v0: number): number {
-  if (!Number.isFinite(vx) || !Number.isFinite(v0) || !(v0 > 0))
-    throw new RangeError('tire velocity must be finite and low-speed regularization > 0');
+  if (!Number.isFinite(vx)) throw new RangeError('tire velocity must be finite');
   return Math.hypot(vx, v0);
 }
 export function regularizedTireSlipAngle(vx: number, vy: number, v0: number): number {
@@ -140,9 +139,7 @@ function forceFromDemand(
 
 /** Exact algebraic simplification of the retained C1 Hermite shoulder, for any 0<a<1. */
 function radialC1Magnitude(rho: number, a: number): number {
-  if (!Number.isFinite(a) || !(a > 0 && a < 1) || Number.isNaN(rho)) {
-    throw new RangeError('radial knee must lie in (0,1) and demand cannot be NaN');
-  }
+  if (Number.isNaN(rho)) throw new RangeError('tire demand cannot be NaN');
   if (!(rho > 0)) return 0;
   if (rho <= a) return rho;
   if (rho >= 2 - a) return 1;
@@ -178,7 +175,6 @@ export function solveWheelOmega(
   residual: Float64Array,
   scratch: TireForceScratch,
 ): WheelSolveResult {
-  validateWheelSolveInput(input);
   const {
     omegaPrevious,
     inertia,
@@ -234,7 +230,6 @@ export function wheelRequiredNetTorque(
   scratch: TireForceScratch,
   residual: Float64Array,
 ): number {
-  validateWheelSolveInput(input);
   if (!Number.isFinite(omega)) throw new RangeError('trial wheel speed must be finite');
   scratch.omega = omega;
   scratch.referenceSpeed = Math.hypot(input.longitudinalVelocity, TIRE_LOW_SPEED_REGULARIZATION);
@@ -297,12 +292,11 @@ function bisectMonotone(
   return (lower + upper) * 0.5;
 }
 
+/**
+ * Finiteness of the values that change every substep: wheel state, contact observations and torque
+ * requests. Compiled station, tire, material and step values are admitted products and are not rechecked.
+ */
 export function validateWheelSolveInput(input: WheelSolveInput): void {
-  if (!(input.dt > 0) || !Number.isFinite(input.dt)) throw new RangeError('wheel solve dt must be finite and > 0');
-  if (!(input.inertia > 0) || !Number.isFinite(input.inertia))
-    throw new RangeError('wheel inertia must be finite and > 0');
-  if (!(input.rollingRadius > 0) || !Number.isFinite(input.rollingRadius))
-    throw new RangeError('wheel radius must be finite and > 0');
   if (!(input.brakeTorque >= 0) || !Number.isFinite(input.brakeTorque))
     throw new RangeError('brake torque must be finite and >= 0');
   if (
@@ -311,13 +305,10 @@ export function validateWheelSolveInput(input: WheelSolveInput): void {
     !Number.isFinite(input.lateralVelocity) ||
     !Number.isFinite(input.normalLoad) ||
     !Number.isFinite(input.gripFactor) ||
-    !Number.isFinite(input.rollingResistance) ||
     !Number.isFinite(input.driveTorque)
   ) {
     throw new RangeError('wheel solve inputs must be finite');
   }
-  if (input.rollingResistance < 0) throw new RangeError('rolling resistance must be nonnegative');
-  validateTireCharacteristics(input.characteristics);
 }
 
 function tireForceCapacity(normalLoad: number, gripFactor: number, mu: number): number {

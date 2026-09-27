@@ -196,7 +196,6 @@ export function prepareAutomaticPowertrain(
   clutchCapacityTorque = constants.clutchCapacityTorque,
 ): PowertrainStep {
   assertWheelOmega(drivenWheelOmega);
-  if (!(dt > 0) || !Number.isFinite(dt)) throw new RangeError('powertrain requires finite positive dt');
   if (!Number.isInteger(state.gear) || state.gear < 1 || state.gear > definition.gearRatios.length) {
     throw new RangeError('powertrain gear must index the authored forward ratios');
   }

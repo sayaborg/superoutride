@@ -1,7 +1,6 @@
 import { DefinitionDomainError } from '../../core/admission.js';
 import { clamp } from '../../core/math.js';
 import {
-  assertExclusivePedalInput,
   clampSteering,
   drivingInputApplyMethod,
   normalizedPedalRequest,
@@ -68,26 +67,8 @@ function stepNormalizedActuator(
   minimum: number,
   maximum: number,
 ): number {
-  if (!(dt > 0) || !Number.isFinite(dt)) {
-    throw new RangeError('actuator dt must be finite and > 0');
-  }
-  if (
-    !Number.isFinite(current) ||
-    !Number.isFinite(target) ||
-    !Number.isFinite(minimum) ||
-    !Number.isFinite(maximum) ||
-    minimum >= maximum
-  ) {
-    throw new RangeError('actuator state, target and bounds must be finite and ordered');
-  }
-  if (
-    !(definition.applyRate > 0) ||
-    !(definition.releaseRate > 0) ||
-    !Number.isFinite(definition.applyRate) ||
-    !Number.isFinite(definition.releaseRate)
-  ) {
-    throw new RangeError('actuator rates must be finite and > 0');
-  }
+  if (!Number.isFinite(current) || !Number.isFinite(target))
+    throw new RangeError('actuator state and target must be finite');
   const boundedCurrent = clamp(current, minimum, maximum);
   const boundedTarget = clamp(target, minimum, maximum);
   const rate = boundedTarget === 0 ? definition.releaseRate : definition.applyRate;
@@ -103,8 +84,6 @@ export function updateDrivingActuators(
   dt: number,
   definition: DrivingActuatorDefinition,
 ): void {
-  if (!(dt > 0) || !Number.isFinite(dt)) throw new RangeError('actuator dt must be finite and > 0');
-  assertExclusivePedalInput(input);
   const steeringTarget = clampSteering(input.steering);
   const throttleTarget = normalizedPedalRequest(input.throttle);
   const brakeTarget = normalizedPedalRequest(input.brake);
