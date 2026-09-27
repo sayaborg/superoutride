@@ -10,7 +10,7 @@ import { dot3, type Vec3 } from '../../core/vector3.js';
 export const VEHICLE_GRAVITY = 9.80665;
 
 /** Output cache for presentation/DEV only. Physics never consumes this object as an authority. */
-interface VehicleControlState {
+interface VehicleControlObservation {
   /** Canonical input observation. */
   steeringRequest: number;
   steeringActuator: number;
@@ -50,7 +50,7 @@ export interface VehicleDynamicsState {
   course: PlanCoordinateProjection;
   longitudinalAcceleration: number;
   lateralAcceleration: number;
-  readonly control: VehicleControlState;
+  readonly control: VehicleControlObservation;
   readonly powertrain: AutomaticPowertrainState;
 }
 
@@ -69,7 +69,7 @@ export interface BodyKinematics {
   readonly omegaWorld: Vec3;
 }
 
-export function createVehicleControlState(): VehicleControlState {
+export function createVehicleControlObservation(): VehicleControlObservation {
   return {
     steeringRequest: 0,
     steeringActuator: 0,
@@ -96,8 +96,8 @@ export function createVehicleControlState(): VehicleControlState {
   };
 }
 
-export function resetVehicleControlState(vehicle: VehicleDynamicsState): void {
-  Object.assign(vehicle.control, createVehicleControlState());
+export function resetVehicleControlObservation(vehicle: VehicleDynamicsState): void {
+  Object.assign(vehicle.control, createVehicleControlObservation());
 }
 
 export function vehicleSpeed(vehicle: VehicleDynamicsState): number {

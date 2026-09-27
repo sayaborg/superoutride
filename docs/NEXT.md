@@ -13,20 +13,16 @@
 - Build generates vehicle envelopes, reference runs and time budgets; their vehicle and course identities derive
   from delivered document SHA-256. Tire audio uses UNIFIED.
 - Engine sound load is the powertrain's effective opening.
+- Stage 10 is complete: the race owns competitor mechanics in fixed steps and publishes facts (time-ordered events,
+  Route with its fork choices, borrowed competitor observations); drivers intend lanes and target exits, rival exits
+  derive from the Session seed; loading coverage, recovery policy and reference identities each have one owner.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **10-19 — Names**.
+Next PR: **11-1 — Audition metadata (delete)**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
 PRs hold rationale and verification evidence. Each stage first consolidates the structure its later PRs consume.
-
-## Stage 10 — Mechanics and race facts
-
-Give each settled fact one owner and give consumers read-only observations.
-
-- **10-19 — Names:** rename `destinationFromSource`, derived actuator `*Definition` records and immutable calibration
-  `*State` products according to the glossary.
 
 ## Stage 11 — Audio
 

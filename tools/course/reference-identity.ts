@@ -21,7 +21,7 @@ export async function referenceModelIdentity() {
     'src/vehicle/definition-document.ts',
     'src/vehicle/compiled-driving-definition.ts',
     'tools/course/reference-run.ts',
-    'tools/course/vehicle-envelope.ts',
+    'tools/course/rival-envelope-measurement.ts',
     'tools/build/build-course-reference-worker.ts',
     'tools/course/course-project.ts',
     'tools/course/course-reference.ts',

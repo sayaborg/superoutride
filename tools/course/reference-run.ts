@@ -4,7 +4,7 @@ import type { CompiledCourse } from '../../src/course/compiler/compiled-course.j
 import type { CourseGround } from '../../src/course/compiler/course-ground.js';
 import type { CompiledVehicleDefinition } from '../../src/vehicle/definition-document.js';
 import type { SessionVehicle } from '../../src/content/session-vehicle.js';
-import type { VehicleEnvelope } from '../../src/content/vehicle-envelope.js';
+import type { RivalEnvelope } from '../../src/content/rival-envelope.js';
 import { REFERENCE_DRIVER } from './reference-driving-policy.js';
 import { createCourseScene } from '../../src/view/course-scene.js';
 import { createCourseRace } from '../../src/race/course-race.js';
@@ -27,7 +27,7 @@ export function runCourseReference(
   ground: CourseGround,
   vehicleConfiguration: SessionVehicle,
   vehicles: readonly CompiledVehicleDefinition[],
-  envelope: VehicleEnvelope,
+  envelope: RivalEnvelope,
   route: readonly CompiledLink[],
   lapCount: number,
   capture = false,

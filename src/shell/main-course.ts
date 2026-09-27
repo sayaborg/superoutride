@@ -19,7 +19,7 @@ import { isTimedCourse } from '../course/compiler/compiled-course.js';
 import { createSessionVehicle, type SessionVehicle } from '../content/session-vehicle.js';
 import { readBrowserSessionSettings, mountCourseSessionControls } from './course-session-controls.js';
 import { createCourseScene } from '../view/course-scene.js';
-import { readVehicleEnvelope, type VehicleEnvelope } from '../content/vehicle-envelope.js';
+import { readRivalEnvelope, type RivalEnvelope } from '../content/rival-envelope.js';
 import { loadSurfaceMaterials } from '../content/surface-material-catalog.js';
 import { admitProduct } from '../content/delivered-product.js';
 import { compileSessionConfiguration, type SessionConfiguration } from '../race/session-configuration.js';
@@ -47,7 +47,7 @@ try {
   const vehicle = createSessionVehicle(entry, driving, materials);
   const vehicleId = vehicle.vehicleDefinition.compiledVehicle.id;
   const rivalEnvelope = await admitProduct(content, 'envelope', vehicleId, (value, document) =>
-    readVehicleEnvelope(vehicle, value, document),
+    readRivalEnvelope(vehicle, value, document),
   );
   // A timed course's budgets must be delivered; a missing file stops loading rather than dropping the clock.
   const budgets =
@@ -66,7 +66,7 @@ try {
   const build = (
     sessionVehicle: SessionVehicle,
     settings: Omit<SessionConfiguration, 'seed'>,
-    envelope: VehicleEnvelope | null,
+    envelope: RivalEnvelope | null,
     sessionBudgets: CourseTimeBudgets | null,
     tuned: boolean,
   ) => {

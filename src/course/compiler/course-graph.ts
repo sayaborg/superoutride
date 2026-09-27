@@ -39,7 +39,8 @@ export interface CompiledLink {
   readonly id: string;
   readonly from: CompiledCut;
   readonly to: CompiledCut;
-  readonly destinationFromSource: PlanarTransform;
+  /** Maps the `from` Section's frame to the `to` Section's frame, like `worldFromSection`. */
+  readonly toFromFrom: PlanarTransform;
 }
 
 /** Static authored parallel-zone controls; no field choice or actor state. */

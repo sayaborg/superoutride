@@ -1,8 +1,8 @@
 import { createPlanCoordinateSample, type PlanCoordinateReader } from '../course/geometry/plan-coordinate.js';
 import { clamp, wrapAngle } from '../core/math.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
-import type { VehicleCameraReadState } from '../vehicle/physics/vehicle-contract.js';
-import type { VehicleEnvelope } from '../content/vehicle-envelope.js';
+import type { VehicleMotionRead } from '../vehicle/physics/vehicle-contract.js';
+import type { RivalEnvelope } from '../content/rival-envelope.js';
 
 // Inverse metres: curvature resolution floor (radius 10,000 km); suppresses heading
 // differencing noise. At 100 m/s the omitted lateral demand is at most 0.001 m/s^2.
@@ -19,7 +19,7 @@ export const ENVELOPE_DRIVER = Object.freeze({
 });
 
 export function envelopeAt(
-  envelope: VehicleEnvelope,
+  envelope: RivalEnvelope,
   speed: number,
   out: ReturnType<typeof createEnvelopeDriverWorkspace>['envelope'],
 ) {
@@ -36,7 +36,7 @@ export function envelopeAt(
   return out;
 }
 
-export function compileEnvelopeDriver(envelope: VehicleEnvelope, utilization: number, speedCap: number) {
+export function compileEnvelopeDriver(envelope: RivalEnvelope, utilization: number, speedCap: number) {
   return Object.freeze({
     envelope,
     utilization,
@@ -65,7 +65,7 @@ export function createEnvelopeDriverWorkspace() {
 
 export function sampleEnvelopeDrivingInput(
   coordinates: PlanCoordinateReader,
-  car: VehicleCameraReadState,
+  car: VehicleMotionRead,
   driver: Driver,
   targetL: Lane = 0,
   workspace: ReturnType<typeof createEnvelopeDriverWorkspace>,

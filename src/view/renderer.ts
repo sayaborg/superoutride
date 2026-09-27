@@ -8,7 +8,7 @@ import { pseudoProject, type PseudoCamera } from './projection.js';
 import { mergeTerrainAndSprites } from './painter-merge.js';
 import { SoftwareSurface } from './software-surface.js';
 import { drawScaledSprite, type SpriteScanlineObserver } from './sprite.js';
-import type { VehicleRenderReadState } from '../vehicle/physics/vehicle-contract.js';
+import type { VehicleRenderRead } from '../vehicle/physics/vehicle-contract.js';
 import {
   computeForwardVisibleInterval,
   generateTerrainLines,
@@ -68,7 +68,7 @@ interface RenderScene {
   readonly background: TileBackground;
   readonly guide: { readonly coordinates: PlanCoordinateReader };
   readonly camera: PseudoCamera;
-  readonly vehicle: VehicleRenderReadState;
+  readonly vehicle: VehicleRenderRead;
   readonly terrainParameters: TerrainRenderParameters;
   readonly worldSprites: CourseSpriteInput;
   readonly playerSet: VehicleSpriteSet;

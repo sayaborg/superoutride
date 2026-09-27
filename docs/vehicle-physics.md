@@ -15,7 +15,7 @@ M=65 degrees, D=20 degrees, ACT=0.3 seconds, throttle/brake traversal times,
 `wheelSlip=true` and one game-wide tire (GX=5, PX=0.2, GY=2.5, PY=0.1, KN=0.74).
 [Calibration](calibration.md) describes units, pedal values and the shell-owned DEV grids.
 
-Driving compilation, [`compileDriving`](../src/vehicle/physics/driving-settings.ts), converts degrees and
+Driving compilation, [`compileDriving`](../src/vehicle/physics/compiled-driving.ts), converts degrees and
 traversal times to runtime angles/rates and compiles the tire law once. Its product, `CompiledDriving`, holds every
 converted driving fact once: powertrain rules, the steering/throttle/brake actuator rates (one steering rate; a
 single traversal time makes steering response symmetric by construction), steering geometry (M, D and the derived

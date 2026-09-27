@@ -11,7 +11,7 @@ import {
 import { sessionVehicleSha256, type SessionVehicle } from './session-vehicle.js';
 import { SHA256_TEXT } from '../core/content-digest.js';
 
-export interface VehicleEnvelope {
+export interface RivalEnvelope {
   readonly maximumSpeed: number;
   readonly rows: readonly {
     readonly speed: number;
@@ -25,11 +25,11 @@ export interface VehicleEnvelope {
 export const RIVAL_ENVELOPE_FORMAT = Object.freeze({ format: 'superoutride.rival-envelope', version: 1 } as const);
 
 /** Admit the delivered rival envelope: only the measured rows needed by driving, for this Session vehicle. */
-export async function readVehicleEnvelope(
+export async function readRivalEnvelope(
   vehicle: SessionVehicle,
   input: unknown,
   document = '',
-): Promise<AdmissionResult<VehicleEnvelope>> {
+): Promise<AdmissionResult<RivalEnvelope>> {
   const digest = await sessionVehicleSha256(vehicle);
   return admit(document, () => {
     const data = readDocument(

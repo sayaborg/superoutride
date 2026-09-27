@@ -3,7 +3,7 @@ import { readDeliveredContent } from './read-content.js';
 import { createSessionVehicle } from '../../src/content/session-vehicle.js';
 import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 import { REFERENCE_DRIVER_SHA256 } from './reference-driving-policy.js';
-import { measureVehicleEnvelope } from './vehicle-envelope.js';
+import { measureRivalEnvelope } from './rival-envelope-measurement.js';
 import { runCourseReference } from './reference-run.js';
 import { enumerateCourseRoutes } from '../../src/course/compiler/course-routes.js';
 import { referenceModelIdentity } from './reference-identity.js';
@@ -26,7 +26,7 @@ export async function referenceCommand(verb: string, file: string | null, args: 
     loaded ? loaded.materials : await loadSurfaceMaterials(content),
   );
   const modelSha256 = await referenceModelIdentity(),
-    envelope = measureVehicleEnvelope(vehicle);
+    envelope = measureRivalEnvelope(vehicle);
   let result;
   if (verb === 'envelope')
     result = {

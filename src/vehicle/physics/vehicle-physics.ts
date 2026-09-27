@@ -23,7 +23,7 @@ import { VEHICLE_SUBSTEPS, type VehicleModel } from './vehicle-model.js';
 import type { VehicleWorld } from '../../course/vehicle-world.js';
 import {
   bodyFrameVelocity,
-  createVehicleControlState,
+  createVehicleControlObservation,
   initializePlanCoordinateObservation,
   refreshPlanCoordinateObservation,
   vehicleSpeed,
@@ -136,7 +136,7 @@ export function createVehicle(
     course: initializePlanCoordinateObservation(coordinates, position.x, position.z, s),
     longitudinalAcceleration: 0,
     lateralAcceleration: 0,
-    control: createVehicleControlState(),
+    control: createVehicleControlObservation(),
     powertrain: createAutomaticPowertrainState(
       compiledVehicle.powertrain,
       model.powertrain,

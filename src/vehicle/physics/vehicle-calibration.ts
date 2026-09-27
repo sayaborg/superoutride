@@ -1,7 +1,7 @@
 import { DefinitionDomainError } from '../../core/admission.js';
 
 /** Steering geometry in road-wheel radians, with the automatic travel-direction authority derived once. */
-export interface VehicleSteeringCalibrationState {
+export interface CompiledVehicleSteeringCalibration {
   readonly maxRoadWheelSteer: number;
   readonly steeringOffsetMax: number;
   /** A = M-D; never a second authored value. */
@@ -11,7 +11,7 @@ export interface VehicleSteeringCalibrationState {
 export function createVehicleSteeringCalibration(
   maxRoadWheelSteer: number,
   steeringOffsetMax: number,
-): Readonly<VehicleSteeringCalibrationState> {
+): Readonly<CompiledVehicleSteeringCalibration> {
   if (!(maxRoadWheelSteer > 0) || !(maxRoadWheelSteer < Math.PI / 2) || !Number.isFinite(maxRoadWheelSteer)) {
     throw new DefinitionDomainError(
       'maxRoadWheelSteer',

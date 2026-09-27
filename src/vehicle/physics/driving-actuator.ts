@@ -12,17 +12,17 @@ import {
 // near a target; at most this much extra travel is snapped to the target.
 const ACTUATOR_TARGET_TOLERANCE = 1e-12;
 
-export interface NormalizedActuatorRateDefinition {
+export interface CompiledActuatorRate {
   /** Normalized units per second toward any non-neutral target, including steering reversal. */
   readonly applyRate: number;
   /** Normalized units per second toward neutral. */
   readonly releaseRate: number;
 }
 
-export interface DrivingActuatorDefinition {
-  readonly steering: NormalizedActuatorRateDefinition;
-  readonly throttle: NormalizedActuatorRateDefinition;
-  readonly brake: NormalizedActuatorRateDefinition;
+export interface CompiledDrivingActuators {
+  readonly steering: CompiledActuatorRate;
+  readonly throttle: CompiledActuatorRate;
+  readonly brake: CompiledActuatorRate;
 }
 
 /** The only persistent input-response state owned by vehicle mechanics. */
@@ -42,7 +42,7 @@ export function resetDrivingActuatorState(state: DrivingActuatorState): void {
   state.brake = 0;
 }
 
-export function validateDrivingActuatorDefinition(definition: DrivingActuatorDefinition): void {
+export function validateCompiledDrivingActuators(definition: CompiledDrivingActuators): void {
   for (const name of ['steering', 'throttle', 'brake'] as const) {
     const channel = definition[name];
     if (!channel) throw new DefinitionDomainError(name, `${name} actuator channel is required`);
@@ -63,7 +63,7 @@ function stepNormalizedActuator(
   current: number,
   target: number,
   dt: number,
-  definition: NormalizedActuatorRateDefinition,
+  definition: CompiledActuatorRate,
   minimum: number,
   maximum: number,
 ): number {
@@ -82,7 +82,7 @@ export function updateDrivingActuators(
   state: DrivingActuatorState,
   input: DrivingInput,
   dt: number,
-  definition: DrivingActuatorDefinition,
+  definition: CompiledDrivingActuators,
 ): void {
   const steeringTarget = clampSteering(input.steering);
   const throttleTarget = normalizedPedalRequest(input.throttle);
@@ -106,7 +106,7 @@ function applyRequestedActuator(
   current: number,
   target: number,
   dt: number,
-  definition: NormalizedActuatorRateDefinition,
+  definition: CompiledActuatorRate,
   minimum: number,
   maximum: number,
   applyMethod: DrivingInputApplyMethod,

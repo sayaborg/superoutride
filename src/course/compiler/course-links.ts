@@ -70,22 +70,22 @@ export function entryCut(section: CompiledSection, path: string): CompiledCut {
 
 export function compileCourseLink(id: string, from: CompiledCut, to: CompiledCut, path: string): CompiledLink {
   requireCourse(from.section !== to.section, path, `Link ${id} cannot return to its own Section`, 'invalid_topology');
-  const destinationFromSource = compilePlanarTransform(from.pose, to.pose);
+  const toFromFrom = compilePlanarTransform(from.pose, to.pose);
   const [aLeft, aRight] = edges(from.carriageway, from.section.coordinates.domain.end, path);
   const [bLeft, bRight] = edges(to.carriageway, 0, path);
   for (const [a, b] of [
     [aLeft, bLeft],
     [aRight, bRight],
   ] as const) {
-    const source = from.section.coordinates.toWorld(
+    const fromPoint = from.section.coordinates.toWorld(
       from.section.coordinates.domain.end,
       a,
       createPlanCoordinateSample(),
     );
-    const target = to.section.coordinates.toWorld(0, b, createPlanCoordinateSample());
-    const mapped = transformPlanarPoint(destinationFromSource, source);
+    const toPoint = to.section.coordinates.toWorld(0, b, createPlanCoordinateSample());
+    const mapped = transformPlanarPoint(toFromFrom, fromPoint);
     requireCourse(
-      Math.hypot(mapped.x - target.x, mapped.z - target.z) <= COURSE_LINK_RECIPE.edgeToleranceMeters,
+      Math.hypot(mapped.x - toPoint.x, mapped.z - toPoint.z) <= COURSE_LINK_RECIPE.edgeToleranceMeters,
       path,
       `Connecting Carriageway edges disagree at Link ${id}`,
       'seam_edge_mismatch',
@@ -105,7 +105,7 @@ export function compileCourseLink(id: string, from: CompiledCut, to: CompiledCut
     `Grade disagrees at Link ${id}`,
     'seam_grade_mismatch',
   );
-  return Object.freeze({ id, from, to, destinationFromSource });
+  return Object.freeze({ id, from, to, toFromFrom });
 }
 
 export function compileCourseTopology(entry: CompiledSection, sections: readonly CompiledSection[]) {
@@ -190,7 +190,7 @@ function validateCourseCycle(entry: CompiledSection): void {
         Math.sin(COURSE_LINK_RECIPE.headingToleranceRadians / 2) *
         Math.hypot(transform.translation.x, transform.translation.z);
     headingTolerance += COURSE_LINK_RECIPE.headingToleranceRadians;
-    transform = composePlanarTransforms(link.destinationFromSource, transform);
+    transform = composePlanarTransforms(link.toFromFrom, transform);
     section = link.to.section;
   } while (section !== entry);
   const positionError = Math.hypot(transform.translation.x, transform.translation.z);

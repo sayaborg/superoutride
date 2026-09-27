@@ -12,10 +12,10 @@ import {
   courseBudgetLandmarks,
   readCourseTimeBudgets,
 } from '../../src/content/course-time-budgets.js';
-import { RIVAL_ENVELOPE_FORMAT, readVehicleEnvelope } from '../../src/content/vehicle-envelope.js';
+import { RIVAL_ENVELOPE_FORMAT, readRivalEnvelope } from '../../src/content/rival-envelope.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
 import { cachedReference, referenceCacheKey } from '../course/reference-cache.js';
-import { ENVELOPE_MEASUREMENT, measureVehicleEnvelope } from '../course/vehicle-envelope.js';
+import { ENVELOPE_MEASUREMENT, measureRivalEnvelope } from '../course/rival-envelope-measurement.js';
 import { runCourseReference } from '../course/reference-run.js';
 import { enumerateCourseRoutes } from '../../src/course/compiler/course-routes.js';
 import { loadCourseGround } from '../course/authoring-io.js';
@@ -33,7 +33,7 @@ let hits = 0,
 const envelope = await cachedReference(
   'envelopes',
   referenceCacheKey(null, vehicleSha256, ENVELOPE_MEASUREMENT, physicsSha256),
-  () => measureVehicleEnvelope(vehicle),
+  () => measureRivalEnvelope(vehicle),
 );
 if (envelope.hit) hits++;
 else misses++;
@@ -43,7 +43,7 @@ const rivalEnvelope = {
   vehicleSha256,
   envelope: { maximumSpeed: envelope.value.maximumSpeed, rows: envelope.value.rows },
 };
-requireLoaded(await readVehicleEnvelope(vehicle, rivalEnvelope, `envelope ${vehicleId}`));
+requireLoaded(await readRivalEnvelope(vehicle, rivalEnvelope, `envelope ${vehicleId}`));
 const products: CourseReferenceResult['products'] = [{ kind: 'envelope', id: vehicleId, value: rivalEnvelope }],
   references: CourseReferenceResult['references'] = [];
 for (const stem of stems) {

@@ -1,5 +1,5 @@
 import type { DrivingDocument } from './driving-definition.js';
-import type { CompiledDriving } from './physics/driving-settings.js';
+import type { CompiledDriving } from './physics/compiled-driving.js';
 
 /** Admitted source plus its converted immutable driving product; vehicle models hold the product unchanged. */
 export interface CompiledDrivingDefinition {

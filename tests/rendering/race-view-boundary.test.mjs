@@ -11,7 +11,7 @@ import { createSessionVehicle } from '../../src/content/session-vehicle.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
-import { readVehicleEnvelope } from '../../src/content/vehicle-envelope.js';
+import { readRivalEnvelope } from '../../src/content/rival-envelope.js';
 import { readDeliveredContent } from '../../tools/course/read-content.ts';
 import { createCameraRig, updateCamera } from '../../src/view/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../../src/view/current-camera-profile.js';
@@ -66,7 +66,7 @@ test('shared route keeps vehicle and camera coordinates across forward and rever
 
 test('race actors have no cameras and view assembles sixteen rival sprites from observations', async () => {
   const { course, scene, assets, compiledVehicle } = await setup();
-  const admitted = await readVehicleEnvelope(
+  const admitted = await readRivalEnvelope(
     compiledVehicle,
     await (await readDeliveredContent()).json('envelope', 'TESTAROSSA'),
   );

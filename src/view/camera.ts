@@ -2,7 +2,7 @@ import { createPlanCoordinateSample } from '../course/geometry/plan-coordinate.j
 import { wrapAngle } from '../core/math.js';
 import type { PseudoCamera } from './projection.js';
 import type { VehicleWorld } from '../course/vehicle-world.js';
-import type { VehicleCameraReadState } from '../vehicle/physics/vehicle-contract.js';
+import type { VehicleMotionRead } from '../vehicle/physics/vehicle-contract.js';
 
 export const RENDER_NEAR_DEPTH_METERS = 2.5;
 export const RENDER_FAR_DEPTH_METERS = 200;
@@ -104,7 +104,7 @@ function movementYawInBodyPitchFrame(
 export function updateCamera(
   rig: CameraRig,
   { coordinates }: Pick<VehicleWorld, 'coordinates'>,
-  vehicle: VehicleCameraReadState,
+  vehicle: VehicleMotionRead,
   profile: CameraProfile,
 ): CameraState {
   if (!(profile.directionSpeedMin >= 0) || !Number.isFinite(profile.directionSpeedMin)) {

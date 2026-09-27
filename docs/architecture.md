@@ -204,7 +204,7 @@ Topology admission first forbids self Links and checks reachability; DFS detects
 Link counts detect branches. The derived kind admits only an acyclic
 LINEAR/BRANCH graph or one unbranched CIRCUIT cycle of at least two Sections. In the latter case,
 one incoming and one outgoing Link per Section plus reachability proves there is exactly one cycle.
-The compiler follows that cycle from entry once and composes `destinationFromSource` transforms in
+The compiler follows that cycle from entry once and composes `toFromFrom` transforms in
 traversal order. Acyclic merges are never compared for a common world embedding.
 
 For an accumulated transform `(R,t)` followed by a Link, the positional error budget increases by
@@ -530,17 +530,18 @@ Strip's instantaneous sub-metre read is analogous to sprite master magnification
 
 ## Course frames
 
-The outgoing Carriageway center at `s=L` and incoming center at `s=0` derive the upright transform `destinationFromSource`. With yaw rotation `R`:
+The outgoing Carriageway center at `s=L` and incoming center at `s=0` derive the upright transform `toFromFrom`, which maps the `from` Section's frame to the `to` Section's frame. With yaw
+rotation `R`:
 
 ```text
-t = pDestination-R*pSource
+t = pTo-R*pFrom
 p' = R*p+t
 v' = R*v
 inverse rotation = transpose(R)
 inverse translation = -transpose(R)*t
 ```
 
-The transform preserves world up, gravity and metric length. Source and destination height agree
+The transform preserves world up, gravity and metric length. The `from` and `to` heights agree
 at the cut line, as do their longitudinal grades. `CourseRoute` composes the inverse Link transform
 into each successor's fixed world transform. Vehicle state remains in the entry-rooted route world
 space across the cut. `RouteOccurrence` carries its own Section identity, route
@@ -600,7 +601,7 @@ recovery timing and event times all use `SIM_DT`. The model carries its fixed st
 it is built; vehicle mechanics never import race, so every composition passes `SIM_DT` when it builds a model. The composition shared by
 browser, race, tools and scenarios lives below shell: content owns the Session vehicle (vehicle and
 driving definitions only: `SessionVehicle`, `createSessionVehicle` and its identity `sessionVehicleSha256`) and the
-generated product formats with their admission (`vehicle-envelope.ts`, `course-time-budgets.ts`, and `admitProduct`,
+generated product formats with their admission (`rival-envelope.ts`, `course-time-budgets.ts`, and `admitProduct`,
 which admits a delivered product with its delivered path as the diagnostic document), shared by the build's
 producers and the race and browser that admit them; race owns the fixed simulation step (`SIM_DT`) and the course
 world (`createCourseWorld`: the Route runtime loaded for an observer window, the driver lookahead and one

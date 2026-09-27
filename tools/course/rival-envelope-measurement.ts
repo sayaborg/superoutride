@@ -52,7 +52,7 @@ export const ENVELOPE_MEASUREMENT = Object.freeze({
   surface: ENVELOPE_REFERENCE_SURFACE.id,
 });
 
-export function measureVehicleEnvelope(entry: SessionVehicle) {
+export function measureRivalEnvelope(entry: SessionVehicle) {
   const make = (initialSpeed: number) => createEnvelopeRun(entry, initialSpeed);
   const step = (p: ReturnType<typeof createEnvelopeRun>, input: DrivingInput) =>
     updateVehicle(p.world, p.vehicle, p.model, input);

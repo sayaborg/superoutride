@@ -28,7 +28,7 @@ interface TorqueControlMeter {
 
 interface VehicleDebugHudModel {
   readonly courseSelector: string;
-  readonly vehicleSelector: string;
+  readonly vehicleDisplay: string;
   /** The tuned driving definition, one line per DEV tuning group. */
   readonly steeringTuning: string;
   readonly pedalTuning: string;
@@ -71,7 +71,7 @@ function createVehicleDebugHudModel(
   const frontShare = p.frontDriveTorqueFraction;
   return {
     courseSelector: `COURSE ${formatBrowserCourseSelector(activeCourseQuery)}`,
-    vehicleSelector: `VEHICLE ${formatVehicleCatalogLine(entry)}`,
+    vehicleDisplay: `VEHICLE ${formatVehicleCatalogLine(entry)}`,
     steeringTuning: formatDrivingTuningLine('STEERING', driving),
     pedalTuning: formatDrivingTuningLine('PEDALS', driving),
     tireTuning: formatDrivingTuningLine('TIRES', driving),
@@ -125,7 +125,7 @@ export function drawVehicleDebugHud(
   const hud = createVehicleDebugHudModel(activeCourseQuery, input, vehicle, model, driving, entry);
   const lines = [
     `SUPER OUTRIDE ${hud.courseSelector}`,
-    hud.vehicleSelector,
+    hud.vehicleDisplay,
     hud.steeringTuning,
     hud.pedalTuning,
     hud.tireTuning,

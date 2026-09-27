@@ -1,9 +1,9 @@
 import type { CompiledDrivingDefinition } from '../compiled-driving-definition.js';
-import type { DrivingActuatorDefinition } from './driving-actuator.js';
+import type { CompiledDrivingActuators } from './driving-actuator.js';
 import { resolvePowertrainConstants, type PowertrainConstants } from './automatic-powertrain.js';
 import type { CompiledTireCharacteristics } from './tire-friction-calibration.js';
 import type { TorqueProtectionPolicy } from './torque-protection.js';
-import type { VehicleSteeringCalibrationState } from './vehicle-calibration.js';
+import type { CompiledVehicleSteeringCalibration } from './vehicle-calibration.js';
 import type { CompiledVehicle } from './vehicle-definitions.js';
 import { assertSuspensionStability } from './vehicle-suspension.js';
 import type { CompiledVehicleDefinition } from '../definition-document.js';
@@ -21,8 +21,8 @@ export interface VehicleModel {
   readonly step: number;
   /** Seconds: the mechanics integration substep, step / VEHICLE_SUBSTEPS. */
   readonly substep: number;
-  readonly actuator: Readonly<DrivingActuatorDefinition>;
-  readonly steering: Readonly<VehicleSteeringCalibrationState>;
+  readonly actuator: Readonly<CompiledDrivingActuators>;
+  readonly steering: Readonly<CompiledVehicleSteeringCalibration>;
   readonly tire: Readonly<CompiledTireCharacteristics>;
   readonly powertrain: Readonly<PowertrainConstants>;
   readonly torqueProtection: Readonly<TorqueProtectionPolicy>;

@@ -1,10 +1,10 @@
 import { DefinitionDomainError, withDefinitionPath } from '../../core/admission.js';
 import type { DrivingDefinition } from '../driving-definition.js';
-import { validateDrivingActuatorDefinition, type DrivingActuatorDefinition } from './driving-actuator.js';
+import { validateCompiledDrivingActuators, type CompiledDrivingActuators } from './driving-actuator.js';
 import type { PowertrainRules } from './automatic-powertrain.js';
 import { compileTireCharacteristics, type CompiledTireCharacteristics } from './tire-friction-calibration.js';
 import type { TorqueProtectionPolicy } from './torque-protection.js';
-import { createVehicleSteeringCalibration, type VehicleSteeringCalibrationState } from './vehicle-calibration.js';
+import { createVehicleSteeringCalibration, type CompiledVehicleSteeringCalibration } from './vehicle-calibration.js';
 
 const PASCALS_PER_BAR = 1e5;
 // Pitch protection measures a small attitude against the road line; beyond this it is not a limit.
@@ -14,8 +14,8 @@ const PITCH_LIMIT_MAX_DEGREES = 45;
 export interface CompiledDriving {
   readonly powertrain: Readonly<PowertrainRules>;
   /** Steering, throttle and brake response rates; the only steering rate. */
-  readonly actuator: Readonly<DrivingActuatorDefinition>;
-  readonly steering: Readonly<VehicleSteeringCalibrationState>;
+  readonly actuator: Readonly<CompiledDrivingActuators>;
+  readonly steering: Readonly<CompiledVehicleSteeringCalibration>;
   /** The game-wide tire, shared by both stations. */
   readonly tire: Readonly<CompiledTireCharacteristics>;
   /** Suspension stiffness at full travel as a multiple of each ride spring rate. */
@@ -58,7 +58,7 @@ export function compileDriving(definition: DrivingDefinition): CompiledDriving {
       releaseRate: 1 / value.releaseSeconds,
     });
   const actuator = Object.freeze({ steering, throttle: pedal(definition.throttle), brake: pedal(definition.brake) });
-  withDefinitionPath(() => validateDrivingActuatorDefinition(actuator), {
+  withDefinitionPath(() => validateCompiledDrivingActuators(actuator), {
     steering: 'steeringTraversalSeconds',
     'steering/applyRate': 'steeringTraversalSeconds',
     'steering/releaseRate': 'steeringTraversalSeconds',

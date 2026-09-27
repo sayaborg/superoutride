@@ -1,5 +1,5 @@
 import { compileEnvelopeDriver } from './envelope-driver.js';
-import type { VehicleEnvelope } from '../content/vehicle-envelope.js';
+import type { RivalEnvelope } from '../content/rival-envelope.js';
 import type { CourseTimeBudgets } from '../content/course-time-budgets.js';
 import type { SessionVehicle } from '../content/session-vehicle.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
@@ -14,7 +14,7 @@ export function resolveCourseSession(
   course: CompiledCourse,
   requested: SessionConfiguration,
   vehicle: SessionVehicle,
-  envelope: VehicleEnvelope | null,
+  envelope: RivalEnvelope | null,
   budgets: CourseTimeBudgets | null = null,
 ) {
   const preset = course.rules.classic;

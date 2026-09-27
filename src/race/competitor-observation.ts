@@ -1,6 +1,6 @@
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import type { PowertrainShiftObservation } from '../vehicle/physics/automatic-powertrain.js';
-import type { VehicleCameraReadState, VehicleRenderReadState } from '../vehicle/physics/vehicle-contract.js';
+import type { VehicleMotionRead, VehicleRenderRead } from '../vehicle/physics/vehicle-contract.js';
 import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import type { TireObservation, VehicleTireObservation } from '../vehicle/physics/vehicle-tire-observation.js';
 import type { SessionVehicle } from '../content/session-vehicle.js';
@@ -10,7 +10,7 @@ import type { SessionVehicle } from '../content/session-vehicle.js';
  * step. It holds no vehicle state or model. Borrowed: the race overwrites the same object on the
  * next advance, so a consumer reads it before then and never retains it.
  */
-export interface CompetitorObservation extends VehicleCameraReadState, VehicleRenderReadState {
+export interface CompetitorObservation extends VehicleMotionRead, VehicleRenderRead {
   readonly id: string;
   readonly vehicleId: string;
   readonly form: SessionVehicle['vehicleDefinition']['form'];

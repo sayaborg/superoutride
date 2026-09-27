@@ -9,7 +9,7 @@ import type { CompiledSection } from '../course/compiler/course-graph.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import type { CameraState } from './camera.js';
 import { CURRENT_CAMERA_PROFILE } from './current-camera-profile.js';
-import type { VehicleRenderReadState } from '../vehicle/physics/vehicle-contract.js';
+import type { VehicleRenderRead } from '../vehicle/physics/vehicle-contract.js';
 import { createRenderWorkspace, renderDriving } from './renderer.js';
 import type { CourseSprite } from './course-sprite.js';
 import type { VehicleSpriteSet } from '../vehicle/vehicle-sprite-set.js';
@@ -48,7 +48,7 @@ export function createCourseScene(
     },
     render(
       target: Parameters<typeof renderDriving>[0],
-      vehicle: VehicleRenderReadState,
+      vehicle: VehicleRenderRead,
       camera: CameraState,
       playerSet: VehicleSpriteSet,
       others: readonly CourseSprite[],

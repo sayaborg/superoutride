@@ -15,7 +15,7 @@ import type { VehicleWorld } from '../course/vehicle-world.js';
 import {
   VEHICLE_GRAVITY,
   initializePlanCoordinateObservation,
-  resetVehicleControlState,
+  resetVehicleControlObservation,
 } from '../vehicle/physics/vehicle-state.js';
 import {
   sampleSurfaceGeometryAtCoordinate,
@@ -195,7 +195,7 @@ export function recoverVehicleToPlanCoordinate(
 
   vehicle.longitudinalAcceleration = 0;
   vehicle.lateralAcceleration = 0;
-  resetVehicleControlState(vehicle);
+  resetVehicleControlObservation(vehicle);
 
   const yaw = Math.atan2(surface.horizontalTangent.x, surface.horizontalTangent.z);
   const velocity = scale3(surface.tangent, speed);

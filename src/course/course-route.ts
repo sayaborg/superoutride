@@ -86,10 +86,7 @@ export function createCourseRoute(entry: CompiledSection): CourseRouteBuilder {
     const previous = occurrences.at(-1)!;
     const start = previous.end;
     const end = start + link.to.section.coordinates.domain.end;
-    const worldFromSection = composePlanarTransforms(
-      previous.worldFromSection,
-      invertPlanarTransform(link.destinationFromSource),
-    );
+    const worldFromSection = composePlanarTransforms(previous.worldFromSection, invertPlanarTransform(link.toFromFrom));
     occurrences = Object.freeze([
       ...occurrences,
       Object.freeze({
