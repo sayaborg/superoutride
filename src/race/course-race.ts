@@ -4,7 +4,6 @@ import { createRouteProgress, type RouteRaceEvent } from './route-progress.js';
 import { createRouteCrossSections } from './route-cross-sections.js';
 import { createCourseForkField } from './course-fork-field.js';
 import {
-  RECOVERY_SETTINGS,
   createRecoveryState,
   advanceVehicleWithRecovery,
   recoverVehicle,
@@ -64,7 +63,8 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     id,
     actor,
     targetL,
-    recoverySettings: { ...RECOVERY_SETTINGS, targetL: (s: number) => forks.recoveryL(s, targetL) },
+    /** The race's recovery lane resolver for this competitor. */
+    recoveryLane: (s: number) => forks.recoveryL(s, targetL),
     observer: createRouteProgress(lines, actor.vehicle.course),
     get progress() {
       return this.observer.state;
@@ -98,7 +98,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     step: {
       state: c.actor.recovery,
       input: { steering: 0, throttle: false, brake: false } as DrivingInput,
-      settings: c.recoverySettings,
+      lane: c.recoveryLane,
     },
     input: (s: number) => lane(c, s),
   }));
@@ -268,7 +268,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       recoverVehicle(runtime.readers, playerActor.vehicle, playerActor.model, {
         state: playerActor.recovery,
         reason: 'manual',
-        settings: player.recoverySettings,
+        lane: player.recoveryLane,
       });
       legalRecovery(player);
       resync(player);

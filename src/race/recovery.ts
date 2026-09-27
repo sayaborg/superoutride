@@ -1,10 +1,10 @@
 import { clamp } from '../core/math.js';
-import { SIM_DT } from './fixed-step.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import {
   vehicleBodyKinematics,
   createBodyKinematicsWorkspace,
   publishVehicleRenderY,
+  supportedTargetSurface,
   updateVehicle,
   type VehicleState,
 } from '../vehicle/physics/vehicle-physics.js';
@@ -29,27 +29,35 @@ type RecoveryReason = 'surface-penetration' | 'outside-domain' | 'overturned' | 
 // At a 1/720 s vehicle substep, gravity alone contributes about 0.019 mm of displacement.
 const SURFACE_PENETRATION_TOLERANCE_METERS = 1e-3;
 
-export interface RecoverySettings {
-  maxOutsideDomainTime: number;
-  backtrackDistance: number;
-  minRecoverySpeed: number;
-  maxRecoverySpeed: number;
-  speedRetention: number;
-  /** Resolve the supported recovery lane at the final route station. */
-  targetL?: (s: number) => number;
+/** The fixed recovery policy: rules only, shared by every competitor; no live state or target resolution. */
+export interface RecoveryPolicy {
+  /** Consecutive outside-domain fixed steps after which the vehicle recovers. */
+  readonly outsideDomainSteps: number;
+  /** Metres recovery backs off along the Route. */
+  readonly backtrackDistance: number;
+  /** Recovery speed bounds in m/s. */
+  readonly minRecoverySpeed: number;
+  readonly maxRecoverySpeed: number;
+  /** Share of the forward speed kept through recovery, before the bounds. */
+  readonly speedRetention: number;
 }
 
-export const RECOVERY_SETTINGS: Readonly<RecoverySettings> = {
-  maxOutsideDomainTime: 0.72,
+export const RECOVERY_POLICY: RecoveryPolicy = Object.freeze({
+  // 44 fixed steps of 1/60 s, about 0.733 s outside the coordinate domain.
+  outsideDomainSteps: 44,
   backtrackDistance: 8,
   minRecoverySpeed: 18,
   maxRecoverySpeed: 32,
   speedRetention: 0.58,
-};
+});
+
+/** The race's recovery lane at a route station; target resolution belongs to the race, not the policy. */
+export type RecoveryLane = (s: number) => number;
 
 export interface RecoveryState {
   lastSafeS: number;
-  outsideDomainTime: number;
+  /** Consecutive fixed steps the vehicle center has been outside the coordinate domain. */
+  outsideDomainSteps: number;
   recoveries: number;
   lastReason: RecoveryReason | null;
 }
@@ -62,7 +70,7 @@ interface RecoveryTarget {
 export function createRecoveryState(vehicle: VehicleState): RecoveryState {
   return {
     lastSafeS: vehicle.course.s,
-    outsideDomainTime: 0,
+    outsideDomainSteps: 0,
     recoveries: 0,
     lastReason: null,
   };
@@ -70,7 +78,7 @@ export function createRecoveryState(vehicle: VehicleState): RecoveryState {
 
 interface RecoveryOptions {
   readonly state: RecoveryState;
-  readonly settings?: RecoverySettings;
+  readonly lane: RecoveryLane;
 }
 
 /** One fixed gameplay step. Recovery observes the completed step; physics faults stay visible. */
@@ -78,19 +86,10 @@ export function advanceVehicleWithRecovery(
   world: VehicleWorld,
   vehicle: VehicleState,
   model: VehicleModel,
-  {
-    state,
-    input,
-    settings = RECOVERY_SETTINGS,
-    target = null,
-  }: RecoveryOptions & { input: DrivingInput; target?: RecoveryTarget | null },
+  { state, input, lane }: RecoveryOptions & { input: DrivingInput },
 ): RecoveryReason | null {
   updateVehicle(world, vehicle, model, input);
-  return updateRecovery(world, vehicle, model, {
-    state,
-    settings,
-    target,
-  });
+  return updateRecovery(world, vehicle, model, { state, lane });
 }
 
 const observationWorkspaces = new WeakMap<
@@ -106,15 +105,15 @@ function updateRecovery(
   world: VehicleWorld,
   vehicle: VehicleState,
   model: VehicleModel,
-  { state, settings = RECOVERY_SETTINGS, target = null }: RecoveryOptions & { target?: RecoveryTarget | null },
+  { state, lane }: RecoveryOptions,
 ): RecoveryReason | null {
   if (!vehicle.course.inDomain) {
-    state.outsideDomainTime += SIM_DT;
-    if (state.outsideDomainTime < settings.maxOutsideDomainTime) return null;
-    recoverVehicle(world, vehicle, model, { state, reason: 'outside-domain', settings, target });
+    state.outsideDomainSteps += 1;
+    if (state.outsideDomainSteps < RECOVERY_POLICY.outsideDomainSteps) return null;
+    recoverVehicle(world, vehicle, model, { state, reason: 'outside-domain', lane });
     return 'outside-domain';
   }
-  state.outsideDomainTime = 0;
+  state.outsideDomainSteps = 0;
   const { coordinates, height, surfaces } = world;
   let workspace = observationWorkspaces.get(vehicle);
   if (!workspace) {
@@ -142,7 +141,7 @@ function updateRecovery(
   // A CG below the heightfield has fallen into a hole or through material-free ground.
   else if (surfaceDistance < -SURFACE_PENETRATION_TOLERANCE_METERS) reason = 'surface-penetration';
 
-  if (reason !== null) recoverVehicle(world, vehicle, model, { state, reason, settings, target });
+  if (reason !== null) recoverVehicle(world, vehicle, model, { state, reason, lane });
   return reason;
 }
 
@@ -150,18 +149,12 @@ export function recoverVehicle(
   world: VehicleWorld,
   vehicle: VehicleState,
   model: VehicleModel,
-  {
-    state,
-    reason = 'manual',
-    settings = RECOVERY_SETTINGS,
-    target = null,
-  }: RecoveryOptions & { reason?: RecoveryReason; target?: RecoveryTarget | null },
+  { state, reason = 'manual', lane }: RecoveryOptions & { reason?: RecoveryReason },
 ): void {
   recoverVehicleToPlanCoordinate(world, vehicle, model, {
     state,
-    target: target ?? routeRecoveryTarget(world, vehicle, state, settings),
+    target: routeRecoveryTarget(world, vehicle, state, lane),
     reason,
-    settings,
   });
 }
 
@@ -169,16 +162,15 @@ function routeRecoveryTarget(
   world: VehicleWorld,
   vehicle: VehicleState,
   state: RecoveryState,
-  settings: RecoverySettings,
+  lane: RecoveryLane,
 ): RecoveryTarget {
   // Airborne world motion can advance well beyond the last loaded station. Recovering only from
   // lastSafeS can place the vehicle back on the same launch face forever. Preserve the farther
   // causal plan coordinate observation, then backtrack once into the ordinary supported reconstruction.
   const domain = world.extent;
   const recoveryBaseS = clamp(Math.max(state.lastSafeS, vehicle.course.s), domain.start, domain.end);
-  const s = Math.max(domain.start, recoveryBaseS - settings.backtrackDistance);
-  const bounds = world.coordinates.domain.lateralAt(s, { left: 0, right: 0 });
-  return { s, l: settings.targetL ? settings.targetL(s) : (bounds.left + bounds.right) / 2 };
+  const s = Math.max(domain.start, recoveryBaseS - RECOVERY_POLICY.backtrackDistance);
+  return { s, l: lane(s) };
 }
 
 /**
@@ -189,32 +181,14 @@ export function recoverVehicleToPlanCoordinate(
   world: VehicleWorld,
   vehicle: VehicleState,
   model: VehicleModel,
-  {
-    state,
-    target,
-    reason,
-    settings = RECOVERY_SETTINGS,
-  }: RecoveryOptions & { target: RecoveryTarget; reason: RecoveryReason },
+  { state, target, reason }: { readonly state: RecoveryState; target: RecoveryTarget; reason: RecoveryReason },
 ): void {
-  const { coordinates, height, surfaces } = world;
-
-  const coordinate = {
-    s: target.s,
-    l: target.l,
-    inDomain: true,
-  };
-  const surface = sampleSurfaceGeometryAtCoordinate(
-    coordinates,
-    height,
-    surfaces,
-    coordinate,
-    createSurfaceGeometryWorkspace(),
-  );
+  const surface = supportedTargetSurface(world, target.s, target.l);
 
   const speed = clamp(
-    Math.max(0, vehicle.longitudinalSpeed) * settings.speedRetention,
-    settings.minRecoverySpeed,
-    settings.maxRecoverySpeed,
+    Math.max(0, vehicle.longitudinalSpeed) * RECOVERY_POLICY.speedRetention,
+    RECOVERY_POLICY.minRecoverySpeed,
+    RECOVERY_POLICY.maxRecoverySpeed,
   );
 
   vehicle.longitudinalAcceleration = 0;
@@ -228,10 +202,10 @@ export function recoverVehicleToPlanCoordinate(
   vehicle.velocityZ = velocity.z;
 
   reconstructVehicle(vehicle, model, surface.point, surface.normal, yaw, surface.gradeAngle, speed);
-  vehicle.course = initializePlanCoordinateObservation(coordinates, vehicle.x, vehicle.z, target.s);
+  vehicle.course = initializePlanCoordinateObservation(world.coordinates, vehicle.x, vehicle.z, target.s);
 
   state.lastSafeS = target.s;
-  state.outsideDomainTime = 0;
+  state.outsideDomainSteps = 0;
   state.recoveries += 1;
   state.lastReason = reason;
 }

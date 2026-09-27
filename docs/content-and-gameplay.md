@@ -676,9 +676,28 @@ preserving steering/tire calibration and earned gates, locks and laps. Manual re
 player: the ordinary recovery toward the player's lane, the legal-road check, a progress baseline reset that awards
 no progress, then a fresh player observation.
 
-Route recovery backs off from the farther of causal current chainage and last-safe chainage.
-Wrong-route recovery uses the selected Carriageway at the observed station.
-[Vehicle physics](vehicle-physics.md#airborne-state-and-recovery) owns domain timing and target placement.
+The fixed recovery policy is one immutable record (`RECOVERY_POLICY`) shared by every competitor; it holds
+rules only, no live state or target resolution:
+
+| Policy value         | Value  | Meaning                                                                        |
+| -------------------- | ------ | ------------------------------------------------------------------------------ |
+| `outsideDomainSteps` | 44     | Consecutive outside-domain fixed steps before recovery (44 × 1/60 s ≈ 0.733 s) |
+| `backtrackDistance`  | 8 m    | Route distance recovery backs off; loading coverage reads it                   |
+| `minRecoverySpeed`   | 18 m/s | Lower bound of the recovery speed                                              |
+| `maxRecoverySpeed`   | 32 m/s | Upper bound of the recovery speed                                              |
+| `speedRetention`     | 0.58   | Share of forward speed kept, before the bounds                                 |
+
+A vehicle's recovery state counts consecutive outside-domain steps as an integer; reaching the policy's count
+recovers the vehicle on that step, and returning inside resets it. Recovery is not a Session rule.
+
+Route recovery backs off from the farther of causal current chainage and last-safe chainage
+([Vehicle physics](vehicle-physics.md#airborne-state-and-recovery)). The race owns target resolution: its
+recovery lane function (the fork field's `recoveryL`: the selected Carriageway, else the Carriageway containing
+the competitor's lane, else an active one, at its center) is passed to recovery separately from the policy.
+Wrong-route recovery uses the selected Carriageway at the observed station (`legalTarget`).
+Every spawn and recovery target, route-derived or explicit, passes one check (`supportedTargetSurface`): its l
+lies within the coordinate domain (`lateralAt`) and its surface has a material. Targets are race-made, so a
+violation is an internal invariant failure (`Error`).
 Known recovery coordinates use the shared route. Observers resynchronize once, suppress reset
 crossing credit and update the player
 camera before rendering. Unrelated internal faults propagate.

@@ -82,27 +82,33 @@ interface VehicleSpawnOptions {
   readonly initialSpeed: number;
 }
 
-export function createVehicle(
-  model: VehicleModel,
-  { coordinates, height, surfaces }: VehicleWorld,
-  { s, l, initialSpeed }: VehicleSpawnOptions,
-): VehicleState {
-  const { compiledVehicle } = model;
+/**
+ * The one check of a spawn or recovery target: (s, l) lies within the coordinate domain and on a surface
+ * material. Targets are race-made, so a violation is an internal invariant failure.
+ */
+export function supportedTargetSurface({ coordinates, height, surfaces }: VehicleWorld, s: number, l: number) {
   const bounds = coordinates.domain.lateralAt(s, { left: 0, right: 0 });
-  if (l < bounds.left || l > bounds.right) throw new RangeError('vehicle spawn requires an in-domain coordinate');
-  const coordinate = {
-    s,
-    l,
-    inDomain: true,
-  };
+  if (!(l >= bounds.left && l <= bounds.right))
+    throw new Error(`driving target (${s}, ${l}) lies outside the coordinate domain`);
   const surface = sampleSurfaceGeometryAtCoordinate(
     coordinates,
     height,
     surfaces,
-    coordinate,
+    { s, l, inDomain: true },
     createSurfaceGeometryWorkspace(),
   );
-  if (surface.material === null) throw new Error('vehicle spawn requires supported surface');
+  if (surface.material === null) throw new Error(`driving target (${s}, ${l}) has no surface material`);
+  return surface;
+}
+
+export function createVehicle(
+  model: VehicleModel,
+  world: VehicleWorld,
+  { s, l, initialSpeed }: VehicleSpawnOptions,
+): VehicleState {
+  const { compiledVehicle } = model;
+  const { coordinates } = world;
+  const surface = supportedTargetSurface(world, s, l);
   const yaw = Math.atan2(surface.horizontalTangent.x, surface.horizontalTangent.z);
   const pitch = surface.gradeAngle;
   const position = add3(surface.point, scale3(surface.normal, compiledVehicle.desiredCgHeight));

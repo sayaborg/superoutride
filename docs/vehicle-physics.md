@@ -160,15 +160,15 @@ first three conditions in order; race composition and the player request the las
 
 | Reason                | Condition                                                                                                                                  |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `outside-domain`      | The vehicle center's projected `inDomain` is false for a continuous 0.72 s                                                                 |
+| `outside-domain`      | The vehicle center's projected `inDomain` is false for 44 consecutive fixed steps (about 0.733 s)                                          |
 | `overturned`          | Body up points at or below the surface plane (`up dot normal <= 0`) and the CG is within `desiredCgHeight` of the surface along its normal |
 | `surface-penetration` | Unsupported, and the CG lies more than 1 mm below the heightfield along its normal (a hole or material-free ground)                        |
 | `wrong-course`        | Race composition: the vehicle left the route its locked fork allows; it returns to the selected Carriageway                                |
 | `manual`              | The player's request                                                                                                                       |
 
-The coordinate-domain timer resets when the center returns inside; the same condition covers lateral
-exits and either end of the resident window. The 0.72 s lets a short excursion return and an
-unsupported vehicle visibly fall (about 2.54 m from rest) before reconstruction. Outside the domain,
+The outside-domain step count resets when the center returns inside; the same condition covers lateral
+exits and either end of the resident window. The 44 steps let a short excursion return and an
+unsupported vehicle visibly fall (about 2.64 m from rest) before reconstruction. Outside the domain,
 recovery does not query a fictitious surface normal or penetration plane. Inside it, the surface is
 the heightfield at the center's route coordinate, material-free ground included.
 
@@ -180,9 +180,8 @@ unsupported vehicle recovers only after falling through the heightfield.
 
 The last safe station is the route s of the latest step that was supported and not inverted.
 Recovery clamps the farther of current and last-safe route s to the retained extent, then backs up
-8 m within it. Race composition resolves a Carriageway center at that final station, respecting
-locked forks. Manual recovery uses the same target resolver. Explicit recovery targets are admitted
-only inside the coordinate domain and on supported material. Reset steps award no crossing credit.
+by the policy's backtrack distance within it; the race resolves the lane at that final station
+([Recovery](content-and-gameplay.md#recovery)). Reset steps award no crossing credit.
 
 ## Tire law
 

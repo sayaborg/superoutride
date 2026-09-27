@@ -15,7 +15,7 @@
 - Engine sound load is the powertrain's effective opening.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **10-15 — Recovery**.
+Next PR: **10-16 — Model contracts (documentation)**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -25,9 +25,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Give each settled fact one owner and give consumers read-only observations.
 
-- **10-15 — Recovery:** explicit targets are checked for domain and material support. The fixed recovery policy is an
-  immutable record and the race owns the live target resolver; recovery is not a Session rule. Outside-domain time is
-  counted in whole fixed steps.
 - **10-16 — Model contracts (documentation):** crossing times are interpolated within the outer step; the pitch
   barrier bounds the drive and brake contribution under the wrench at substep start, excluding road-line
   acceleration, bump-stop impulses and discretization; the pseudo projection (`f·sin α`, chainage depth, scale

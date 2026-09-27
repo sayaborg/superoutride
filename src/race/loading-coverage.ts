@@ -3,7 +3,7 @@ import type { CompiledVehicleDefinition } from '../vehicle/definition-document.j
 import { MAXIMUM_VEHICLE_SPEED } from '../vehicle/physics/vehicle-definitions.js';
 import { ENVELOPE_DRIVER } from './envelope-driver.js';
 import { SIM_DT } from './fixed-step.js';
-import { RECOVERY_SETTINGS } from './recovery.js';
+import { RECOVERY_POLICY } from './recovery.js';
 
 /** The observer's loading window, supplied by the view that renders the course. */
 export interface CourseLoadingWindow {
@@ -47,7 +47,7 @@ export function resolveLoadingCoverage(
     rearMeters:
       Math.max(
         window.cameraDistance + window.near,
-        RECOVERY_SETTINGS.backtrackDistance + PLAN_PROJECTION_WINDOW_METERS + contactReachMeters,
+        RECOVERY_POLICY.backtrackDistance + PLAN_PROJECTION_WINDOW_METERS + contactReachMeters,
       ) + maximumStepMeters,
   });
 }
