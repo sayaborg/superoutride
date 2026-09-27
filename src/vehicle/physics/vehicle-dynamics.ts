@@ -481,6 +481,36 @@ export function compileSuspensionStation(
 }
 
 /**
+ * Explicit substep stability of one station's suspension, evaluated in isolation (no pitch coupling)
+ * at full-travel stiffness P*k with the matching damping sqrt(P)*c on the static-load mass m = W/g:
+ * h^2*P*k/m + 2*h*sqrt(P)*c/m, equal to (w*sqrt(P)*h)^2 + 4*z*w*sqrt(P)*h. Stable below 4.
+ */
+export function suspensionStabilityMeasure(
+  suspension: CompiledSuspensionStation,
+  progression: number,
+  substep: number,
+): number {
+  const { springRate, damping, qStatic } = suspension;
+  const mass = (springRate * qStatic) / VEHICLE_GRAVITY;
+  return (
+    (substep * substep * progression * springRate) / mass + (2 * substep * Math.sqrt(progression) * damping) / mass
+  );
+}
+
+export function assertSuspensionStability(
+  vehicleId: string,
+  station: CompiledContactStation,
+  progression: number,
+  substep: number,
+): void {
+  const measure = suspensionStabilityMeasure(station.suspension, progression, substep);
+  if (!(measure < 4))
+    throw new RangeError(
+      `vehicle ${vehicleId} ${station.id} suspension is unstable at substep ${substep} s: ${measure} >= 4`,
+    );
+}
+
+/**
  * One progressive spring and its damper. Stiffness is springRate up to qStatic, then rises linearly
  * to springRate*progression at qTravel and continues that line; the spring force is its integral.
  * Damping keeps the station's damping ratio at the local stiffness: damping*sqrt(stiffness/springRate).

@@ -84,7 +84,7 @@ export function advanceVehicleWithRecovery(
     target = null,
   }: RecoveryOptions & { input: DrivingInput; dt: number; target?: RecoveryTarget | null },
 ): RecoveryReason | null {
-  updateVehicle(world, vehicle, model, input, dt);
+  updateVehicle(world, vehicle, model, input);
   return updateRecovery(world, vehicle, model, {
     state,
     dt,

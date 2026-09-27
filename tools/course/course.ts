@@ -15,6 +15,7 @@ import path from 'node:path';
 import { PNG } from 'pngjs';
 import { createCourseScene } from '../../src/view/course-scene.js';
 import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
+import { SIM_DT } from '../../src/race/fixed-step.js';
 import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { readDeliveredContent } from './read-content.js';
@@ -106,7 +107,7 @@ try {
       const frames: RenderFrame[] = [];
       for (const [i, s] of stations.entries()) {
         const vehicle = createVehicle(
-          createVehicleModel(createSessionVehicle(entry, definitions.driving, materials)),
+          createVehicleModel(createSessionVehicle(entry, definitions.driving, materials), SIM_DT),
           scene.world,
           {
             s,

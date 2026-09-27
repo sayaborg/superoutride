@@ -9,6 +9,7 @@ import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { createSessionVehicle } from '../../src/race/session-vehicle.js';
 import { createRecoveryState } from '../../src/race/recovery.js';
+import { SIM_DT } from '../../src/race/fixed-step.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
 import { readVehicleEnvelope } from '../../src/race/vehicle-envelope.js';
@@ -35,7 +36,7 @@ async function setup() {
     definitions.driving,
     materials,
   );
-  const model = createVehicleModel(compiledVehicle);
+  const model = createVehicleModel(compiledVehicle, SIM_DT);
   const spawn = (s) => createVehicle(model, scene.world, { s, l: 0, initialSpeed: 0 });
   return { course, assets, scene, compiledVehicle, model, spawn };
 }

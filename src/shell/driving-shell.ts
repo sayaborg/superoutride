@@ -31,6 +31,7 @@ import { mustGet } from './dom.js';
 import { createFrameLoop, type FrameLoop } from './frame-loop.js';
 import { mountMobileCameraYawSelector, mountMobileVehicleSelector } from './mobile-selector-controls.js';
 import { createSessionVehicle } from '../race/session-vehicle.js';
+import { SIM_DT } from '../race/fixed-step.js';
 import { browserUsesTouchInterface } from './touch-interface.js';
 import { drawVehicleDebugHud } from './vehicle-debug-hud.js';
 import type { AudibleActor } from './vehicle-audio.js';
@@ -80,11 +81,12 @@ export function createBrowserDrivingShell(
   const inputManager = new InputManager();
   // DEV tuning edits the driving definition and rebuilds the whole model; the next step uses it.
   let driving = spawn.vehicle.drivingDefinition;
-  let model = createVehicleModel(spawn.vehicle);
+  let model = createVehicleModel(spawn.vehicle, SIM_DT);
   let vehicle = createVehicle(model, runtime, { s: spawn.s, l: startL, initialSpeed: spawn.initialSpeed });
   const modelFor = (id: string) =>
     createVehicleModel(
       createSessionVehicle(vehicleDefinitionForId(vehicles, id), driving, spawn.vehicle.surfaceMaterials),
+      SIM_DT,
     );
   const tuning = {
     get: () => driving.source,

@@ -562,7 +562,8 @@ fixtures belong to `tools/graphics`. Shared image formats, filters, codecs and p
 in `src/image`; authoring-only limits stay with the tools.
 
 Vehicle mechanics take dynamic state and an immutable vehicle model as separate inputs; state holds
-no definition value, and each race actor pairs its state with its model. The composition shared by
+no definition value, and each race actor pairs its state with its model. The model carries its fixed step;
+vehicle mechanics never import race, so every composition passes `SIM_DT` when it builds a model. The composition shared by
 browser, race, tools and scenarios lives below shell: race owns the Session vehicle (vehicle and
 driving definitions only, `createSessionVehicle`), the fixed simulation step (`SIM_DT`) and the course
 world (`createCourseWorld`: the Route runtime loaded for an observer window, the driver lookahead and one

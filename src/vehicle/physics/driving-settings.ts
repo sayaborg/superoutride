@@ -1,21 +1,35 @@
 import { DefinitionDomainError, withDefinitionPath } from '../../core/admission.js';
 import type { DrivingDefinition } from '../driving-definition.js';
-import { validateDrivingActuatorDefinition } from './driving-actuator.js';
+import { validateDrivingActuatorDefinition, type DrivingActuatorDefinition } from './driving-actuator.js';
 import type { PowertrainRules } from './automatic-powertrain.js';
-import { compileTireCharacteristics, createVehicleTireFrictionCalibration } from './tire-friction-calibration.js';
-import { createVehicleSteeringCalibration } from './vehicle-calibration.js';
+import {
+  compileTireCharacteristics,
+  createVehicleTireFrictionCalibration,
+  type VehicleTireFrictionCalibrationState,
+} from './tire-friction-calibration.js';
+import type { TorqueProtectionPolicy } from './torque-protection.js';
+import { createVehicleSteeringCalibration, type VehicleSteeringCalibrationState } from './vehicle-calibration.js';
 
 const PASCALS_PER_BAR = 1e5;
-// Upper domain keeps the stiffest spring well inside the fixed substep's explicit stability.
-const SUSPENSION_PROGRESSION_MAX = 50;
 // Pitch protection measures a small attitude against the road line; beyond this it is not a limit.
 const PITCH_LIMIT_MAX_DEGREES = 45;
 
-/** Convert explicit design input at vehicle admission; never consult a vehicle definition. */
-export function createDrivingSettings(definition: DrivingDefinition) {
+/** Every converted game-wide driving fact, each held once; vehicle models consume it unchanged. */
+export interface CompiledDriving {
+  readonly powertrain: Readonly<PowertrainRules>;
+  /** Steering, throttle and brake response rates; the only steering rate. */
+  readonly actuator: Readonly<DrivingActuatorDefinition>;
+  readonly steering: Readonly<VehicleSteeringCalibrationState>;
+  readonly tires: Readonly<VehicleTireFrictionCalibrationState>;
+  /** Suspension stiffness at full travel as a multiple of each ride spring rate. */
+  readonly suspensionProgression: number;
+  readonly torqueProtection: Readonly<TorqueProtectionPolicy>;
+}
+
+/** Convert explicit design input at driving admission; never consult a vehicle definition. */
+export function compileDriving(definition: DrivingDefinition): CompiledDriving {
   if (definition.automaticSteering !== 'travel-direction')
     throw new DefinitionDomainError('automaticSteering', 'unsupported automatic steering');
-  if (typeof definition.wheelSlip !== 'boolean') throw new TypeError('wheelSlip must be boolean');
   for (const field of [
     'fuelCutRedlineMargin',
     'idleFrictionMeanEffectivePressureBar',
@@ -28,14 +42,8 @@ export function createDrivingSettings(definition: DrivingDefinition) {
   }
   if (!(definition.clutchCapacityFactor > 1) || !Number.isFinite(definition.clutchCapacityFactor))
     throw new DefinitionDomainError('clutchCapacityFactor', 'clutchCapacityFactor must be finite and > 1');
-  if (
-    !(definition.suspensionProgression >= 1 && definition.suspensionProgression <= SUSPENSION_PROGRESSION_MAX) ||
-    !Number.isFinite(definition.suspensionProgression)
-  )
-    throw new DefinitionDomainError(
-      'suspensionProgression',
-      `suspensionProgression must lie in [1,${SUSPENSION_PROGRESSION_MAX}]`,
-    );
+  if (!(definition.suspensionProgression >= 1) || !Number.isFinite(definition.suspensionProgression))
+    throw new DefinitionDomainError('suspensionProgression', 'suspensionProgression must be finite and >= 1');
   if (
     !(definition.pitchLimitDegrees > 0 && definition.pitchLimitDegrees <= PITCH_LIMIT_MAX_DEGREES) ||
     !Number.isFinite(definition.pitchLimitDegrees)
@@ -46,6 +54,7 @@ export function createDrivingSettings(definition: DrivingDefinition) {
     );
   if (!(definition.drivelineEfficiency > 0 && definition.drivelineEfficiency <= 1))
     throw new DefinitionDomainError('drivelineEfficiency', 'drivelineEfficiency must lie in (0,1]');
+  // One traversal time sets both steering rates, so steering response is symmetric by construction.
   const rate = 1 / definition.steeringTraversalSeconds;
   const steering = Object.freeze({ applyRate: rate, releaseRate: rate });
   const pedal = (value: DrivingDefinition['throttle']) =>
@@ -65,7 +74,7 @@ export function createDrivingSettings(definition: DrivingDefinition) {
     'brake/applyRate': 'brake/applySeconds',
     'brake/releaseRate': 'brake/releaseSeconds',
   });
-  return {
+  return Object.freeze({
     powertrain: Object.freeze({
       fuelCutRedlineMargin: definition.fuelCutRedlineMargin,
       idleFrictionMeanEffectivePressure: definition.idleFrictionMeanEffectivePressureBar * PASCALS_PER_BAR,
@@ -74,29 +83,29 @@ export function createDrivingSettings(definition: DrivingDefinition) {
       engineInertiaPerLitre: definition.engineInertiaKilogramSquareMetersPerLitre,
       clutchLockIdleMargin: definition.clutchLockIdleMargin,
       clutchCapacityFactor: definition.clutchCapacityFactor,
-    }) satisfies PowertrainRules,
+    }),
     actuator,
-    suspensionProgression: definition.suspensionProgression,
-    pitchLimit: (definition.pitchLimitDegrees * Math.PI) / 180,
-    steeringCalibration: withDefinitionPath(
+    steering: withDefinitionPath(
       () =>
-        createVehicleSteeringCalibration({
-          maxRoadWheelSteer: (definition.maxRoadWheelSteerDegrees * Math.PI) / 180,
-          steeringOffsetMax: (definition.steeringOffsetDegrees * Math.PI) / 180,
-          steeringActuatorResponse: steering,
-        }),
+        createVehicleSteeringCalibration(
+          (definition.maxRoadWheelSteerDegrees * Math.PI) / 180,
+          (definition.steeringOffsetDegrees * Math.PI) / 180,
+        ),
       {
         maxRoadWheelSteer: 'maxRoadWheelSteerDegrees',
         steeringOffsetMax: 'steeringOffsetDegrees',
-        'steeringActuatorResponse/applyRate': 'steeringTraversalSeconds',
-        'steeringActuatorResponse/releaseRate': 'steeringTraversalSeconds',
       },
     ),
-    tireFrictionCalibration: createVehicleTireFrictionCalibration(
+    tires: createVehicleTireFrictionCalibration(
       withDefinitionPath(
         () => compileTireCharacteristics(definition.tire),
         (path) => `tire/${path}`,
       ),
     ),
-  };
+    suspensionProgression: definition.suspensionProgression,
+    torqueProtection: Object.freeze({
+      wheelSlip: definition.wheelSlip,
+      pitchLimit: (definition.pitchLimitDegrees * Math.PI) / 180,
+    }),
+  });
 }

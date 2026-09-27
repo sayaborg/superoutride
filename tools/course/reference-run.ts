@@ -60,7 +60,7 @@ export function runCourseReference(
     envelope,
   );
   const slot = session.grid[0]!;
-  const model = createVehicleModel(vehicleConfiguration);
+  const model = createVehicleModel(vehicleConfiguration, SIM_DT);
   const vehicle = createVehicle(model, scene.world, { s: slot.at.s, l: slot.l, initialSpeed: 0 });
   const actor = { vehicle, model, recovery: createRecoveryState(vehicle) };
   const race = createCourseRace({

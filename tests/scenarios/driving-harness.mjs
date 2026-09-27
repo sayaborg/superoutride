@@ -79,7 +79,7 @@ export function runScenario({ course, ground }, scenario) {
     envelope,
   );
   const slot = session.grid[0];
-  const model = createVehicleModel(configuration);
+  const model = createVehicleModel(configuration, SIM_DT);
   const vehicle = createVehicle(model, scene.world, {
     s: slot.at.s,
     l: slot.l,

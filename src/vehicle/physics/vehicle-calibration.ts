@@ -1,44 +1,17 @@
-import { DefinitionDomainError, withDefinitionPath } from '../../core/admission.js';
-import {
-  validateSymmetricSteeringActuatorRateDefinition,
-  type NormalizedActuatorRateDefinition,
-} from './driving-actuator.js';
+import { DefinitionDomainError } from '../../core/admission.js';
 
-/** The selectable steering geometry/response values. Angles are road-wheel radians. */
-export interface VehicleSteeringCalibrationInput {
+/** Steering geometry in road-wheel radians, with the automatic travel-direction authority derived once. */
+export interface VehicleSteeringCalibrationState {
   readonly maxRoadWheelSteer: number;
   readonly steeringOffsetMax: number;
-  readonly steeringActuatorResponse: NormalizedActuatorRateDefinition;
-}
-
-export interface VehicleSteeringCalibrationState {
-  maxRoadWheelSteer: number;
-  steeringOffsetMax: number;
-  steeringActuatorResponse: Readonly<NormalizedActuatorRateDefinition>;
+  /** A = M-D; never a second authored value. */
+  readonly automaticSteerMax: number;
 }
 
 export function createVehicleSteeringCalibration(
-  input: VehicleSteeringCalibrationInput,
-): VehicleSteeringCalibrationState {
-  const maxRoadWheelSteer = input.maxRoadWheelSteer;
-  const steeringOffsetMax = input.steeringOffsetMax;
-  const steeringActuatorResponse = input.steeringActuatorResponse;
-  assertVehicleSteeringAngleCalibration({ maxRoadWheelSteer, steeringOffsetMax });
-  withDefinitionPath(
-    () => validateSymmetricSteeringActuatorRateDefinition(steeringActuatorResponse),
-    (path) => `steeringActuatorResponse/${path}`,
-  );
-  return {
-    maxRoadWheelSteer,
-    steeringOffsetMax,
-    steeringActuatorResponse: immutableRateDefinition(steeringActuatorResponse),
-  };
-}
-
-function assertVehicleSteeringAngleCalibration(
-  calibration: Pick<VehicleSteeringCalibrationState, 'maxRoadWheelSteer' | 'steeringOffsetMax'>,
-): void {
-  const { maxRoadWheelSteer, steeringOffsetMax } = calibration;
+  maxRoadWheelSteer: number,
+  steeringOffsetMax: number,
+): Readonly<VehicleSteeringCalibrationState> {
   if (!(maxRoadWheelSteer > 0) || !(maxRoadWheelSteer < Math.PI / 2) || !Number.isFinite(maxRoadWheelSteer)) {
     throw new DefinitionDomainError(
       'maxRoadWheelSteer',
@@ -51,21 +24,9 @@ function assertVehicleSteeringAngleCalibration(
       'steeringOffsetMax must be finite and lie in (0, maxRoadWheelSteer)',
     );
   }
-}
-
-/** Derived automatic travel-direction authority. Never store a second authored A value. */
-export function steeringAutomaticMax(
-  calibration: Pick<VehicleSteeringCalibrationState, 'maxRoadWheelSteer' | 'steeringOffsetMax'>,
-): number {
-  assertVehicleSteeringAngleCalibration(calibration);
-  return calibration.maxRoadWheelSteer - calibration.steeringOffsetMax;
-}
-
-function immutableRateDefinition(
-  definition: NormalizedActuatorRateDefinition,
-): Readonly<NormalizedActuatorRateDefinition> {
   return Object.freeze({
-    applyRate: definition.applyRate,
-    releaseRate: definition.releaseRate,
+    maxRoadWheelSteer,
+    steeringOffsetMax,
+    automaticSteerMax: maxRoadWheelSteer - steeringOffsetMax,
   });
 }

@@ -56,17 +56,6 @@ export function validateDrivingActuatorDefinition(definition: DrivingActuatorDef
   }
 }
 
-/** Current steering calibration permits one traversal rate, never separate apply/release authority. */
-export function validateSymmetricSteeringActuatorRateDefinition(definition: NormalizedActuatorRateDefinition): void {
-  for (const field of ['applyRate', 'releaseRate'] as const) {
-    if (!(definition[field] > 0) || !Number.isFinite(definition[field]))
-      throw new DefinitionDomainError(field, `${field} must be finite and > 0`);
-  }
-  if (definition.applyRate !== definition.releaseRate) {
-    throw new DefinitionDomainError('releaseRate', 'releaseRate must equal applyRate for symmetric steering');
-  }
-}
-
 /**
  * One bounded asymmetric response primitive for steering, throttle and brake.
  * A nonzero steering reversal uses applyRate continuously through neutral.
@@ -113,7 +102,6 @@ export function updateDrivingActuators(
   input: DrivingInput,
   dt: number,
   definition: DrivingActuatorDefinition,
-  steeringResponse: NormalizedActuatorRateDefinition,
 ): void {
   if (!(dt > 0) || !Number.isFinite(dt)) throw new RangeError('actuator dt must be finite and > 0');
   assertExclusivePedalInput(input);
@@ -122,7 +110,15 @@ export function updateDrivingActuators(
   const brakeTarget = normalizedPedalRequest(input.brake);
   const steeringMethod = drivingInputApplyMethod(input.steeringApplyMethod);
   const pedalMethod = drivingInputApplyMethod(input.pedalApplyMethod);
-  state.steering = applyRequestedActuator(state.steering, steeringTarget, dt, steeringResponse, -1, 1, steeringMethod);
+  state.steering = applyRequestedActuator(
+    state.steering,
+    steeringTarget,
+    dt,
+    definition.steering,
+    -1,
+    1,
+    steeringMethod,
+  );
   state.throttle = applyRequestedActuator(state.throttle, throttleTarget, dt, definition.throttle, 0, 1, pedalMethod);
   state.brake = applyRequestedActuator(state.brake, brakeTarget, dt, definition.brake, 0, 1, pedalMethod);
 }

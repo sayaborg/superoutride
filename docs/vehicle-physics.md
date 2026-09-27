@@ -15,14 +15,23 @@ travel-direction steering, M=65 degrees, D=20 degrees, ACT=0.3 seconds, throttle
 `wheelSlip=true` and one common front/rear tire (GX=5, PX=0.2, GY=2.5, PY=0.1, KN=0.74).
 [Calibration](calibration.md) describes units, pedal values and the shell-owned DEV grids.
 
-Document admission converts degrees and traversal times to runtime angles/rates and compiles the tire law
-once. [`createVehicleModel`](../src/vehicle/physics/vehicle-model.ts) is the single place that builds a
-vehicle model from the compiled vehicle and the compiled driving product. The model is one immutable value, frozen throughout: the compiled vehicle, actuator
-rates, M/D/ACT steering, front/rear tire characteristics, the powertrain constants and the
-torque-protection policy. Admitted powertrain values are not revalidated when a model is built.
+Driving compilation, [`compileDriving`](../src/vehicle/physics/driving-settings.ts), converts degrees and
+traversal times to runtime angles/rates and compiles the tire law once. Its product, `CompiledDriving`, holds every
+converted driving fact once: powertrain rules, the steering/throttle/brake actuator rates (one steering rate; a
+single traversal time makes steering response symmetric by construction), steering geometry (M, D and the derived
+automatic steering maximum `A = M-D`), front/rear tire characteristics, `suspensionProgression` and the
+torque-protection policy `{wheelSlip, pitchLimit}`.
+[`createVehicleModel`](../src/vehicle/physics/vehicle-model.ts) is the single place that builds a vehicle model,
+from the compiled vehicle, the compiled driving product and the fixed outer update step, which its caller supplies
+(`SIM_DT`). The step must be finite and positive. The model is one immutable value, frozen throughout: the compiled
+vehicle, the step and its integration substep (step divided by the mechanics substep count), the driving product's
+actuator, steering, tire, suspension-progression and torque-protection values unchanged, and the powertrain
+constants. It reads no driving source field. Admitted powertrain values are not revalidated when a model is built;
+model construction admits [suspension stability](#suspension-stability) for both stations.
 Browser, race, reference/envelope tools, scenarios, startup smoke and image generation use the same
 input. Creation, updates, held steps and recovery receive the vehicle state and its model separately;
-nothing copies a model value into state. The wheel solver receives one required tire-characteristics
+nothing copies a model value into state. Updates and held steps take no step argument; they integrate the
+model's step and substep. The wheel solver receives one required tire-characteristics
 field from the model. DEV tuning edits the driving definition and rebuilds the player's model from it;
 the next step uses the replacement, and a vehicle switch builds the new vehicle's model from the same
 tuned definition. The front/rear tire slots remain for now; both start with the same coefficients.
@@ -101,6 +110,22 @@ springForce(q) = springRate*(q+(P-1)*x^2/(2*(qTravel-qStatic)))
 Damping keeps the station's damping ratio at the local stiffness, so it equals `damping` at and
 below `qStatic` and grows with `sqrt(stiffness/springRate)` above it. Both terms depend only on the
 contact's own compression and rate; the spring is conservative and the damper dissipative.
+
+### Suspension stability
+
+A vehicle model admits explicit integration of each station's suspension at its substep `h`. For each
+front and rear station, evaluated at full-travel stiffness `P*springRate` with the matching damping
+`sqrt(P)*damping` and the static-load mass `m = W/g`, all derived from the compiled station:
+
+```text
+h^2*P*springRate/m + 2*h*sqrt(P)*damping/m < 4
+```
+
+This equals `(omega*sqrt(P)*h)^2 + 4*dampingRatio*omega*sqrt(P)*h < 4` with `omega = 2*pi*rideFrequency`.
+It is a per-station approximation: each station is treated as an isolated oscillator on its static-load mass,
+coupling through body pitch is not included, and the stiffness is the full-travel value, the stiffest point the
+spring reaches before the bump stop. A violation is a `RangeError` naming the vehicle ID and station. DEV tuning
+changes neither P nor vehicle values, so it cannot fail this check.
 
 `qTravel` is a bump stop that cannot be passed. After each substep's force and velocity update, and
 before the position update, every supported contact with an upright body limits its compression
@@ -470,7 +495,7 @@ fields: `automaticSteering:"travel-direction"`, `maxRoadWheelSteerDegrees`, `ste
 `steeringTraversalSeconds`, positive `fuelCutRedlineMargin`, positive
 `idleFrictionMeanEffectivePressureBar` and `redlineFrictionMeanEffectivePressureBar`,
 `drivelineEfficiency` in (0,1], positive `engineInertiaKilogramSquareMetersPerLitre`, positive
-`clutchLockIdleMargin`, `clutchCapacityFactor` above 1, `suspensionProgression` in [1,50],
+`clutchLockIdleMargin`, `clutchCapacityFactor` above 1, finite `suspensionProgression` of at least 1,
 `pitchLimitDegrees` in (0,45], `throttle`
 and `brake` (each applySeconds/releaseSeconds), boolean
 `wheelSlip`, and `tire` (gripX/peakSlipX/gripY/peakSlipY/knee). Angles are degrees, traversal times

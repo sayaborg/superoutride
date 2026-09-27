@@ -24,16 +24,6 @@ export interface TorqueProtectionPolicy {
   /** Radians: nose-up and nose-down pitch limit against the road line under the wheels. */
   readonly pitchLimit: number;
 }
-export function resolveTorqueProtectionPolicy(policy: TorqueProtectionPolicy): Readonly<TorqueProtectionPolicy> {
-  if (
-    typeof policy.wheelSlip !== 'boolean' ||
-    !Number.isFinite(policy.pitchLimit) ||
-    !(policy.pitchLimit > 0 && policy.pitchLimit < Math.PI / 2)
-  ) {
-    throw new RangeError('torque policy needs boolean wheelSlip and a pitch limit in (0,pi/2)');
-  }
-  return Object.freeze({ wheelSlip: policy.wheelSlip, pitchLimit: policy.pitchLimit });
-}
 
 /** Pure-axis slip at the control boundary. P is an explicitly selected control boundary, not a
  * claim of a universal optimal slip. */

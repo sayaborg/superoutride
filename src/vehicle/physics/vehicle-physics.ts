@@ -16,7 +16,6 @@ import {
 import { createDrivingActuatorState, updateDrivingActuators, type DrivingActuatorState } from './driving-actuator.js';
 import { createSteeringLimitWorkspace, limitSteeringInput } from './steering-input-limiter.js';
 import { regularizedTireSlipAngle, type WheelSolveInput } from './tire-wheel.js';
-import { steeringAutomaticMax } from './vehicle-calibration.js';
 import type { VehicleModel } from './vehicle-model.js';
 import type { VehicleWorld } from '../../course/vehicle-world.js';
 import {
@@ -154,24 +153,21 @@ export function updateVehicle(
   vehicle: VehicleState,
   model: VehicleModel,
   input: DrivingInput,
-  dt: number,
 ): void {
-  if (!(dt > 0) || !Number.isFinite(dt)) throw new RangeError('vehicle dt must be finite and > 0');
-  const { compiledVehicle } = model;
+  const { compiledVehicle, substep } = model;
   const workspace = stepWorkspace(vehicle, model);
   const velocityBeforeX = vehicle.velocityX,
     velocityBeforeY = vehicle.velocityY,
     velocityBeforeZ = vehicle.velocityZ;
-  const substep = dt / VEHICLE_SUBSTEPS;
   const calibration = model.steering;
-  const automaticMax = steeringAutomaticMax(calibration);
+  const automaticMax = calibration.automaticSteerMax;
   const steeringRequest = clamp(input.steering, -1, 1);
   let finalFront: ContactObservation | null = null;
   let finalRear: ContactObservation | null = null;
   let shiftAvailable = true;
 
   for (let step = 0; step < VEHICLE_SUBSTEPS; step += 1) {
-    updateDrivingActuators(vehicle.actuator, input, substep, model.actuator, model.steering.steeringActuatorResponse);
+    updateDrivingActuators(vehicle.actuator, input, substep, model.actuator);
     const body = vehicleBodyKinematics(vehicle, workspace.body);
     const bodyTravelDirection = vehicleBodyTravelDirection(body, STEERING_LOW_SPEED_REGULARIZATION);
     const steeringOffset = vehicle.actuator.steering * model.steering.steeringOffsetMax;
@@ -347,8 +343,8 @@ export function updateVehicle(
   velocityDelta.y = vehicle.velocityY - velocityBeforeY;
   velocityDelta.z = vehicle.velocityZ - velocityBeforeZ;
   const finalBody = vehicleBodyKinematics(vehicle, workspace.body);
-  vehicle.longitudinalAcceleration = dot3(velocityDelta, finalBody.forward) / dt;
-  vehicle.lateralAcceleration = dot3(velocityDelta, finalBody.right) / dt;
+  vehicle.longitudinalAcceleration = dot3(velocityDelta, finalBody.forward) / model.step;
+  vehicle.lateralAcceleration = dot3(velocityDelta, finalBody.right) / model.step;
   publishVehicleRenderY(vehicle, model);
 }
 
@@ -358,13 +354,11 @@ export function updateVehicle(
  * so the clutch transmits nothing and fuel cut and idle holding still bound the opening. The next
  * ordinary update restores the fixed capacity.
  */
-export function updateHeldVehicle(vehicle: VehicleState, model: VehicleModel, input: DrivingInput, dt: number): void {
-  if (!(dt > 0) || !Number.isFinite(dt)) throw new RangeError('vehicle dt must be finite and > 0');
-  const { compiledVehicle } = model;
+export function updateHeldVehicle(vehicle: VehicleState, model: VehicleModel, input: DrivingInput): void {
+  const { compiledVehicle, substep } = model;
   const workspace = stepWorkspace(vehicle, model);
-  const substep = dt / VEHICLE_SUBSTEPS;
   for (let step = 0; step < VEHICLE_SUBSTEPS; step += 1) {
-    updateDrivingActuators(vehicle.actuator, input, substep, model.actuator, model.steering.steeringActuatorResponse);
+    updateDrivingActuators(vehicle.actuator, input, substep, model.actuator);
     const powertrainStep = prepareAutomaticPowertrain(
       vehicle.powertrain,
       compiledVehicle.powertrain,

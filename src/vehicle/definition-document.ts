@@ -1,7 +1,7 @@
 import type { SpriteAssets } from './vehicle-sprite-library.js';
 import type { VehicleSpriteSet } from './vehicle-sprite-set.js';
 import { compileVehicle, type VehicleDefinition, type CompiledVehicle } from './physics/vehicle-definitions.js';
-import { createDrivingSettings } from './physics/driving-settings.js';
+import { compileDriving } from './physics/driving-settings.js';
 import {
   AdmissionError,
   admit,
@@ -288,7 +288,7 @@ export function compileDrivingDocument(
       wheelSlip,
       tire: Object.fromEntries(keys.map((key) => [key, readNumber(t[key], `/tire/${key}`)])),
     } as DrivingDocument);
-    return Object.freeze({ source, sha256, settings: deepFreeze(admitDomain(() => createDrivingSettings(source))) });
+    return Object.freeze({ source, sha256, compiledDriving: deepFreeze(admitDomain(() => compileDriving(source))) });
   });
 }
 

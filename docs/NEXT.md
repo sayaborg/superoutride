@@ -15,7 +15,7 @@
 - Engine sound load is the powertrain's effective opening.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **10-1 — Vehicle model boundary**.
+Next PR: **10-2 — Runtime rechecks (delete)**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -25,12 +25,9 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Give each settled fact one owner and give consumers read-only observations.
 
-- **10-1 — Vehicle model boundary:** driving compilation returns a named product with every converted driving fact,
-  wheel slip included. `VehicleModel` is the final Vehicle×Driving mechanics product: it derives the automatic
-  steering maximum once and holds one steering-rate and one actuator record. It carries the integration substep and
-  admits suspension stability for every mode, `(ω√P·h)² + 4ζ·ω√P·h < 4`; `updateVehicle` no longer takes a free step.
-- **10-2 — Runtime rechecks (delete):** remove rechecks of compiled parameters in wheel solves, actuators, steering
-  and model construction; keep numerical-solver guards.
+- **10-2 — Runtime rechecks (delete):** remove the tire-characteristics check on every wheel-solve trial, the
+  per-substep actuator rate checks, the low-speed regularization (v0) rechecks and the tire-calibration
+  checks repeated when the calibration is copied; keep numerical-solver guards.
 - **10-3 — One-valued driving fields (delete):** remove `automaticSteering` from the driving format and collapse the
   front/rear tire slots into one tire.
 - **10-4 — Tire observation:** vehicle state holds a plain tire observation written at the last substep; remove the
@@ -55,7 +52,8 @@ Give each settled fact one owner and give consumers read-only observations.
   the fork compiler no longer validates appearance; remove the sprite-path side channel and the term that treats a
   sprite's width as a longitudinal extent.
 - **10-12 — Race events:** one ordered, timestamped event stream (competitor, line, lap, time within the step);
-  progress acceptance, the checkpoint deadline and finish time are each decided once from it.
+  progress acceptance, the checkpoint deadline and finish time are each decided once from it. The race advances in fixed
+  steps and `advance` takes no dt.
 - **10-13 — Race facts only:** remove display state (extension display window, labels, GO text) from the race and
   clock; the HUD derives text. Separate the per-competitor timer, ranking and time formatting.
 - **10-14 — Loading coverage:** one coverage record (camera window, driver lookahead, recovery backtrack, speed

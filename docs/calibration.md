@@ -38,10 +38,11 @@ DEV tunes the author-facing values below in their saved units; each grid wraps a
 `fuelCutRedlineMargin` (0.02) and `clutchLockIdleMargin` (0.02) are numerical margins that keep
 latches from chattering; they are edited only in the file. `suspensionProgression` (9.8) is the
 game-wide suspension stiffness at full travel as a multiple of each ride spring rate
-([Vehicle physics](vehicle-physics.md#suspension)); it is also edited only in the file.
+([Vehicle physics](vehicle-physics.md#suspension)); it is also edited only in the file. It must be finite and at
+least 1; each vehicle model admits it through [suspension stability](vehicle-physics.md#suspension-stability).
 
 PX and PY are dimensionless slips. The defaults give `kX = kY = 31.5` under the
-[tire law](vehicle-physics.md#tire-law). Automatic steering has the derived budget `A = M-D`, shown
+[tire law](vehicle-physics.md#tire-law). Automatic steering has the budget `A = M-D`, derived once by driving compilation and shown
 on the DEV HUD. The [DEV tuning registry](../src/shell/driving-tuning.ts) owns only these choices and
 grid checks; startup checks the raw driving definition against the grids. A DEV adjustment steps the
 player's tuned driving definition, admits it with the driving-document compiler (a rejected candidate

@@ -38,7 +38,7 @@ function createEnvelopeRun(entry: SessionVehicle, initialSpeed: number) {
     { s: coordinates.domain.end, y: 0, curveLength: 0 },
   ]);
   const world = { extent: coordinates.domain, coordinates, height, surfaces: referenceSurfaces };
-  const model = createVehicleModel(entry);
+  const model = createVehicleModel(entry, SIM_DT);
   const vehicle = createVehicle(model, world, { s: 10000, l: 0, initialSpeed });
   return { vehicle, model, world };
 }
@@ -47,14 +47,14 @@ function createEnvelopeRun(entry: SessionVehicle, initialSpeed: number) {
 export function measureVehicleEnvelope(entry: SessionVehicle) {
   const make = (initialSpeed: number) => createEnvelopeRun(entry, initialSpeed);
   const step = (p: ReturnType<typeof createEnvelopeRun>, input: DrivingInput) =>
-    updateVehicle(p.world, p.vehicle, p.model, input, SIM_DT);
+    updateVehicle(p.world, p.vehicle, p.model, input);
   const run = make(0),
     acceleration = [],
     braking = [];
   // The standing launch uses the race's start: held READY with the throttle closed, then GO.
   const start = createStartPhase();
   start.begin();
-  do updateHeldVehicle(run.vehicle, run.model, { steering: 0, throttle: false, brake: false }, SIM_DT);
+  do updateHeldVehicle(run.vehicle, run.model, { steering: 0, throttle: false, brake: false });
   while (!start.advance(SIM_DT));
   let elapsed = 0,
     last = 0,

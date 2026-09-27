@@ -18,6 +18,7 @@ import { createStartPhase } from './start-phase.js';
 import { createVehicleModel, type VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import type { SessionVehicle } from './session-configuration.js';
 import { createRivalRoster } from './rival-roster.js';
+import { SIM_DT } from './fixed-step.js';
 import type { createRouteRuntime } from './route-runtime.js';
 
 type RouteRuntime = ReturnType<typeof createRouteRuntime>;
@@ -64,7 +65,7 @@ export function createCourseRace(options: {
   });
   const player = competitor('PLAYER', options.player, grid[0]!.l);
   // The whole roster shares one model of the Session vehicle.
-  const rivalModel = createVehicleModel(rival);
+  const rivalModel = createVehicleModel(rival, SIM_DT);
   const rivals = createRivalRoster(configuration).map(({ actorId, rivalIndex }) => {
     const slot = grid[rivalIndex + 1]!;
     const targetL = slot.l;
@@ -96,7 +97,7 @@ export function createCourseRace(options: {
   const holdReady = (input: DrivingInput, dt: number) => {
     for (const motion of motions) {
       motion.step.input = motion === motions[0] ? input : idle;
-      updateHeldVehicle(motion.c.actor.vehicle, motion.c.actor.model, motion.step.input, dt);
+      updateHeldVehicle(motion.c.actor.vehicle, motion.c.actor.model, motion.step.input);
     }
     if (startPhase.advance(dt)) clock.start();
   };
