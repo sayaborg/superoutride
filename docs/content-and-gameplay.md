@@ -425,8 +425,9 @@ asset and landmark references plus immutable material tables. Merges reuse the s
 Owned records and arrays are immutable, including nested image data. Live actor, route-lock and
 clock state belong to Sessions. Object identity is local to a compilation; cross-build identity uses digests.
 
-`sourceSha256` hashes normalized course input. `materialsSha256` hashes the admitted normalized
-surface-material document. `buildSha256` hashes `{sourceSha256,materialsSha256,compiler}`.
+`sourceSha256` and `materialsSha256` are the delivered SHA-256 of the course document and the
+surface-material document, the [document identity](#reference-times-and-clock) the catalog supplies.
+`buildSha256` hashes `{sourceSha256,materialsSha256,compiler}`.
 The compiler is `superoutride.course-compiler` version 36, incorporating Link recipe v3, physical
 recipe v5, image-source recipe v2 and appearance recipe v11. Source, material or compiler/recipe
 changes invalidate dependent products.

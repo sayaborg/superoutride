@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { loadCourse } from '../../tools/course/authoring-io.ts';
 import { compileCourseImages } from '../../tools/course/compile-course-images.ts';
 import { compileCourseDocument } from '../../src/course/compiler/compiled-course.js';
+import { courseFileSha256 } from '../../tools/course/course-file-id.ts';
 import { readCourseDocument } from '../../src/course/course-document.js';
 import { createStripGroundSampler, createStripRenderMetrics } from '../../src/view/strip-ground-sampler.js';
 
@@ -11,7 +12,13 @@ test('visual Strips can erase all ground without changing material slabs, suppor
   const file = fileURLToPath(new URL('../../content/courses/ribbon-coast.course.json', import.meta.url));
   const { document, images, materials } = await loadCourse(file);
   const prepared = await compileCourseImages(document, images);
-  const original = await compileCourseDocument(prepared.document, 'ribbon-coast', prepared.images, materials);
+  const original = await compileCourseDocument(
+    prepared.document,
+    'ribbon-coast',
+    await courseFileSha256(prepared.document),
+    prepared.images,
+    materials,
+  );
   assert.ok(original.ok);
   const erased = structuredClone(prepared.document);
   for (const section of erased.sections)
@@ -20,7 +27,13 @@ test('visual Strips can erase all ground without changing material slabs, suppor
       .map((s) => ({ ...s, color: null }));
   const admitted = readCourseDocument(erased);
   assert.ok(admitted.ok);
-  const replacement = await compileCourseDocument(admitted.value, 'ribbon-coast', prepared.images, materials);
+  const replacement = await compileCourseDocument(
+    admitted.value,
+    'ribbon-coast',
+    await courseFileSha256(admitted.value),
+    prepared.images,
+    materials,
+  );
   assert.ok(replacement.ok);
   const a = original.value.entry,
     b = replacement.value.entry;

@@ -4,7 +4,7 @@ import { parseCourseDocument } from './course-project.js';
 import { loadAuthoringSurfaceMaterials } from './authoring-io.js';
 import { courseFailures, CourseAssetError } from '../../src/course/course-diagnostics.js';
 import { compileCourseDocument } from '../../src/course/compiler/compiled-course.js';
-import { courseFileId } from './course-file-id.js';
+import { courseFileId, courseFileSha256 } from './course-file-id.js';
 const [sourcePath, flag, imageDirectory, ...extra] = process.argv.slice(2);
 if (!sourcePath || (flag !== undefined && (flag !== '--images' || !imageDirectory)) || extra.length)
   throw new TypeError('Usage: npm run compile:course -- CourseDocument.json [--images directory]');
@@ -14,7 +14,14 @@ let result: Awaited<ReturnType<typeof compileCourseDocument>>;
 if (parsed.ok) {
   try {
     const inputs = imageDirectory ? await readCourseImages(parsed.value.assets, imageDirectory) : [];
-    result = await compileCourseDocument(parsed.value, courseFileId(sourcePath), inputs, materials, sourcePath);
+    result = await compileCourseDocument(
+      parsed.value,
+      courseFileId(sourcePath),
+      await courseFileSha256(parsed.value),
+      inputs,
+      materials,
+      sourcePath,
+    );
   } catch (error) {
     if (!(error instanceof CourseAssetError)) throw error;
     result = courseFailures([error]);

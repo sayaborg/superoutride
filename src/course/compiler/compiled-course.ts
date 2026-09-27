@@ -182,11 +182,13 @@ function compileSection(
 /**
  * Compile an admitted course document. `readCourseDocument` is the only admission; its deeply frozen
  * value cannot change across awaits. Publish only a fully validated graph, never the construction tables.
- * `id` is the course's identifier, supplied by its catalog: the file name stem and manifest ID.
+ * The catalog supplies the course's identifier (its file name stem and manifest ID) and the SHA-256
+ * of its delivered document.
  */
 export async function compileCourseDocument(
   document: CourseDocument,
   id: string,
+  sha256: string,
   assetSources: readonly CourseAssetBytes[],
   materials: SurfaceMaterialCatalog,
   documentPath = '',
@@ -247,8 +249,8 @@ export async function compileCourseDocument(
       Object.freeze(section.outgoing);
       Object.freeze(section);
     }
-    const sourceSha256 = await contentDigest(new TextEncoder().encode(JSON.stringify(document)));
-    const materialsSha256 = await contentDigest(new TextEncoder().encode(JSON.stringify(materials.source)));
+    const sourceSha256 = sha256,
+      materialsSha256 = materials.sha256;
     const buildSha256 = await contentDigest(
       new TextEncoder().encode(JSON.stringify({ sourceSha256, materialsSha256, compiler: COURSE_COMPILER })),
     );

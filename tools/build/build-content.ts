@@ -14,7 +14,7 @@ import { createContentWriter } from './content-manifest.js';
 import { readCourseDocumentBytes } from '../../src/course/course-document.js';
 import { compileCourseImages } from '../course/compile-course-images.js';
 import { readCourseImages } from '../course/read-course-images.js';
-import { courseFileId } from '../course/course-file-id.js';
+import { courseFileId, courseFileSha256 } from '../course/course-file-id.js';
 import { compileSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 import { validateTireSoundMaterialIds } from '../../src/audio/tire-surface-acoustics.js';
 import { compileVehicleSpriteLibrary } from '../graphics/vehicle-sprite-library.js';
@@ -85,10 +85,12 @@ for (const name of (await readdir(new URL('courses/', content))).sort()) {
     document,
     await readCourseImages(document.assets, new URL('images/', content).pathname),
   );
+  const sha256 = await courseFileSha256(prepared.document);
   const compiled = requireLoaded(
-    await compileCourseDocument(prepared.document, id, prepared.images, materials, `content/courses/${name}`),
+    await compileCourseDocument(prepared.document, id, sha256, prepared.images, materials, `content/courses/${name}`),
   );
-  await writer.stage('course', id, prepared.document);
+  if ((await writer.stage('course', id, prepared.document)) !== sha256)
+    throw new Error(`Delivered bytes differ from the compiled course: ${name}`);
   for (const image of prepared.images) await writer.stage('image', image.sha256, null, new Uint8Array(image.bytes));
   console.log(`${name}: Strip ground compiled`);
   courses.push({ course: compiled, stem: id });

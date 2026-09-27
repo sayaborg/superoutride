@@ -19,5 +19,5 @@ export async function loadDeliveredCourse(content: ContentDelivery, id: string, 
       bytes: await content.bytes('image', entry.id),
     })),
   );
-  return requireLoaded(await compileCourseDocument(source, id, images, materials, file.path));
+  return requireLoaded(await compileCourseDocument(source, id, file.sha256, images, materials, file.path));
 }

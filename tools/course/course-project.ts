@@ -3,6 +3,7 @@ import { readCourseDocument, readCourseDocumentBytes, type CourseDocument } from
 import { compileCourseDocument, type CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import type { CourseAssetBytes } from '../../src/course/compiler/course-image-source.js';
 import type { SurfaceMaterialCatalog } from '../../src/course/surface-material.js';
+import { courseFileSha256 } from './course-file-id.js';
 
 interface CourseProjectState {
   readonly source: CourseDocument | null;
@@ -39,7 +40,14 @@ export function createCourseProject(materials: SurfaceMaterialCatalog, id: strin
     ): Promise<ProjectResult<CompiledCourse>> {
       if (!state.source) return noSource();
       const ticket = ++generation;
-      const result = await compileCourseDocument(state.source, id, assetSources, materials, document);
+      const result = await compileCourseDocument(
+        state.source,
+        id,
+        await courseFileSha256(state.source),
+        assetSources,
+        materials,
+        document,
+      );
       if (ticket !== generation) return stale();
       if (result.ok)
         state = Object.freeze({ source: state.source, compiled: result.value, lastSuccessful: result.value });
@@ -53,7 +61,14 @@ export function createCourseProject(materials: SurfaceMaterialCatalog, id: strin
       const parsed = parseCourseDocument(text, document);
       if (!parsed.ok) return parsed;
       const ticket = ++generation;
-      const result = await compileCourseDocument(parsed.value, id, assetSources, materials, document);
+      const result = await compileCourseDocument(
+        parsed.value,
+        id,
+        await courseFileSha256(parsed.value),
+        assetSources,
+        materials,
+        document,
+      );
       if (ticket !== generation) return stale();
       if (result.ok)
         state = Object.freeze({ source: parsed.value, compiled: result.value, lastSuccessful: result.value });

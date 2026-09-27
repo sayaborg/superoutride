@@ -11,7 +11,7 @@ import { compileSurfaceMaterials, SURFACE_MATERIALS_ID } from '../../src/content
 import { authoredDocumentSource } from '../../src/content/document-catalog.js';
 import { compileCourseImages } from './compile-course-images.js';
 import { readCourseImages } from './read-course-images.js';
-import { courseFileId } from './course-file-id.js';
+import { courseFileId, courseFileSha256 } from './course-file-id.js';
 
 type AuthoringDiagnostic =
   | Extract<CourseResult<never>, { ok: false }>['diagnostics'][number]
@@ -78,7 +78,14 @@ export async function loadCourse(file: string, imagesDirectory?: string) {
   const images = await readCourseImages(admitted.value.assets, directory);
   const prepared = await compileCourseImages(admitted.value, images);
   const materials = await loadAuthoringSurfaceMaterials();
-  const compiled = await compileCourseDocument(prepared.document, courseFileId(file), prepared.images, materials, file);
+  const compiled = await compileCourseDocument(
+    prepared.document,
+    courseFileId(file),
+    await courseFileSha256(prepared.document),
+    prepared.images,
+    materials,
+    file,
+  );
   if (!compiled.ok) throw new AuthoringError(compiled.diagnostics);
   return { document: admitted.value, course: compiled.value, images, materials };
 }

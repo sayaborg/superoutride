@@ -10,7 +10,8 @@
   The content build compiles every delivered file from authored documents in one pass.
 - Surface color and material are authored with Strips, with LEVEL-POINT as the default of three display methods; sprites are indexed.
   BG is one infinite tiled plane with a linear vertical row mapping.
-- Build generates vehicle envelopes, reference runs and time budgets. Tire audio uses UNIFIED.
+- Build generates vehicle envelopes, reference runs and time budgets; their vehicle and course identities derive
+  from delivered document SHA-256. Tire audio uses UNIFIED.
 - Engine sound load is the powertrain's effective opening.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
