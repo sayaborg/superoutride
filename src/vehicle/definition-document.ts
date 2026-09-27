@@ -49,6 +49,8 @@ export interface VehicleListingDocument {
 }
 export interface CompiledVehicleMechanics {
   readonly source: VehicleMechanicsDocument;
+  /** SHA-256 of the delivered document, supplied by its catalog. */
+  readonly sha256: string;
   readonly compiledVehicle: CompiledVehicle;
 }
 export interface CompiledVehicleListing extends VehicleMetadata {
@@ -60,6 +62,7 @@ export interface CompiledVehicleListing extends VehicleMetadata {
 /** One vehicle: its mechanics and listing documents, paired by identifier in the catalog. */
 export interface CompiledVehicleDefinition extends VehicleMetadata {
   readonly mechanics: VehicleMechanicsDocument;
+  readonly mechanicsSha256: string;
   readonly listing: VehicleListingDocument;
   readonly spriteSet: VehicleSpriteSet;
   readonly form: VehicleForm;
@@ -90,11 +93,12 @@ const mechanicalNumbers = [
 ] as const;
 const powertrainNumbers = ['displacementCc', 'cycle', 'idleRpm', 'redlineRpm', 'finalDriveRatio'] as const;
 
-/** `id` is the vehicle's identifier, supplied by its catalog: the file name and manifest ID. */
+/** The catalog supplies the vehicle's identifier (its file name and manifest ID) and delivered SHA-256. */
 export function compileVehicleMechanicsDocument(
   value: unknown,
   id: string,
   document: string,
+  sha256: string,
 ): AdmissionResult<CompiledVehicleMechanics> {
   return admit(document, () => {
     const v = readDocument(
@@ -127,7 +131,7 @@ export function compileVehicleMechanicsDocument(
       // The catalog supplies an admitted identifier; its failure would locate the document root.
       (path) => (path === 'id' ? '' : relativePointer(path)),
     );
-    return Object.freeze({ source, compiledVehicle });
+    return Object.freeze({ source, sha256, compiledVehicle });
   });
 }
 
@@ -226,12 +230,17 @@ export function createVehicleDefinition(
   return Object.freeze({
     ...shown,
     mechanics: mechanics.source,
+    mechanicsSha256: mechanics.sha256,
     listing: source,
     compiledVehicle: mechanics.compiledVehicle,
   });
 }
 
-export function compileDrivingDocument(value: unknown, document: string): AdmissionResult<CompiledDrivingDefinition> {
+export function compileDrivingDocument(
+  value: unknown,
+  document: string,
+  sha256: string | null,
+): AdmissionResult<CompiledDrivingDefinition> {
   return admit(document, () => {
     const numbers = [
       'maxRoadWheelSteerDegrees',
@@ -279,7 +288,7 @@ export function compileDrivingDocument(value: unknown, document: string): Admiss
       wheelSlip,
       tire: Object.fromEntries(keys.map((key) => [key, readNumber(t[key], `/tire/${key}`)])),
     } as DrivingDocument);
-    return Object.freeze({ source, settings: deepFreeze(admitDomain(() => createDrivingSettings(source))) });
+    return Object.freeze({ source, sha256, settings: deepFreeze(admitDomain(() => createDrivingSettings(source))) });
   });
 }
 

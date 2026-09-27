@@ -47,9 +47,9 @@ errors become diagnostics; other exceptions are internal faults and propagate.
 `readEmbedded(base, read)` reads a document embedded in another, such as a sprite image inside the
 vehicle sprite library or a recipe inside a Sprite Tool session, relocating its pointers under `base`.
 
-The content layer owns catalogs of documents. A catalog admits `DocumentSource` records (`id`, `path`, `value`); `id` is the document's only
-identifier, which the documents themselves do not repeat. The build makes them from
-file names and delivery from manifest entries, so both reach the same catalog admission and diagnostics.
+The content layer owns catalogs of documents. A catalog admits `DocumentSource` records (`id`, `path`, `value`, `sha256`); `id` is the document's only
+identifier, which the documents themselves do not repeat, and `sha256` is the digest of its delivered
+bytes. The build makes them from file names and delivery from manifest entries, so both reach the same catalog admission and diagnostics.
 `admitSingleDocument(sources, id, kind)` is the single-document rule: exactly one source, named `id`;
 a failure is addressed to the extra or misnamed source's document (empty when there is none) at the root.
 

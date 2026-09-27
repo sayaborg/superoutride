@@ -14,7 +14,7 @@
 - Engine sound load is the powertrain's effective opening.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **9-12b — Vehicle reference identity**.
+Next PR: **9-13 — Motorcycle steering display**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -24,8 +24,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Admit each input once, keep compiled products runtime-ready, and give delivered content one identity rule.
 
-- **9-12b — Vehicle reference identity:** reference identity (envelopes, budgets, runs) is the delivered SHA-256
-  of the vehicle mechanics, driving and material documents, replacing hashes of runtime objects.
 - **9-13 — Motorcycle steering display:** the HUD steering ratio stays per vehicle; motorcycles use 1:1.
 - **9-14 — Recursive freeze:** one deep-freeze helper in `core`; remove the private copies.
 - **9-15 — Documentation:** repair broken anchors; state the admission, value-authority and output-layout contracts

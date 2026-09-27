@@ -1,7 +1,12 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { contentDigest } from '../../src/core/content-digest.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
-import { readContentManifest, type ContentEntry, type ContentKind } from '../../src/content/content-manifest.js';
+import {
+  encodeContentJson,
+  readContentManifest,
+  type ContentEntry,
+  type ContentKind,
+} from '../../src/content/content-manifest.js';
 
 function contentPath(kind: ContentKind, id: string, sha256: string): string {
   switch (kind) {
@@ -28,20 +33,22 @@ function contentPath(kind: ContentKind, id: string, sha256: string): string {
 export function createContentWriter(root: URL) {
   const files: ContentEntry[] = [];
   return {
-    async stage(kind: ContentKind, id: string, value: unknown, encoded?: Uint8Array<ArrayBuffer>) {
-      const bytes = encoded ?? new TextEncoder().encode(JSON.stringify(value) + '\n');
+    /** Stage one file and return the SHA-256 of its delivered bytes. */
+    async stage(kind: ContentKind, id: string, value: unknown, encoded?: Uint8Array<ArrayBuffer>): Promise<string> {
+      const bytes = encoded ?? encodeContentJson(value);
       const sha256 = await contentDigest(bytes);
       const path = contentPath(kind, id, sha256);
       const entry = { kind, id, path, sha256 };
       const previous = files.find((file) => file.kind === kind && file.id === id);
       if (previous) {
         if (previous.sha256 !== sha256) throw new Error(`Conflicting content: ${kind} ${id}`);
-        return;
+        return sha256;
       }
       const target = new URL(path, root);
       await mkdir(new URL('./', target), { recursive: true });
       await writeFile(target, bytes);
       files.push(entry);
+      return sha256;
     },
     async save() {
       const manifest = requireLoaded(

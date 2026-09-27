@@ -89,7 +89,8 @@ export function createBrowserDrivingShell(
   const tuning = {
     get: () => driving.source,
     set: (definition: DrivingDocument) => {
-      const admitted = compileDrivingDocument(definition, 'DEV driving tuning');
+      // A tuned definition is not a delivered document and has no reference identity.
+      const admitted = compileDrivingDocument(definition, 'DEV driving tuning', null);
       if (!admitted.ok) return false;
       driving = admitted.value;
       model = modelFor(model.compiledVehicle.id);

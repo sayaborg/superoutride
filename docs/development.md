@@ -138,7 +138,9 @@ vehicle envelopes, continuous reference runs and game time budgets. Matching dis
 
 `dist/delivery/manifest.json` is the sole delivery index. Its own
 `format: "superoutride.content-manifest", version: 1` identifies the index format; entries have only
-`{kind, id, path, sha256}`. Kinds are `course`, `image`, `vehicle`, `vehicle-listing`, `driving`, `envelope` and `budget`. IDs are respectively
+`{kind, id, path, sha256}`. Every JSON file is delivered as compact JSON followed by a newline; vehicle
+mechanics, vehicle listing, driving and material documents are delivered exactly as authored in that
+encoding, so the build knows their delivered digests before staging them. Kinds are `course`, `image`, `vehicle`, `vehicle-listing`, `driving`, `envelope` and `budget`. IDs are respectively
 the course selection key, image digest (or logical `vehicles` collection), vehicle ID, vehicle ID,
 `default`, vehicle ID and `<course>/<vehicle>` budget key. Entries contain no payload format/version.
 

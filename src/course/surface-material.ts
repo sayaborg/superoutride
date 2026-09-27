@@ -24,6 +24,8 @@ export interface SurfaceMaterialDocument {
 
 export interface SurfaceMaterialCatalog {
   readonly source: SurfaceMaterialDocument;
+  /** SHA-256 of the delivered document, supplied by its catalog. */
+  readonly sha256: string;
   get(id: string): SurfaceMaterial | undefined;
 }
 
@@ -33,6 +35,7 @@ const MATERIAL_ID = { pattern: /^[A-Za-z0-9_-]+$/, patternMessage: 'Expected a s
 export function compileSurfaceMaterialDocument(
   value: unknown,
   document: string,
+  sha256: string,
 ): AdmissionResult<SurfaceMaterialCatalog> {
   return admit(document, () => {
     const root = readDocument(value, ['format', 'version', 'materials'], 'superoutride.surface-materials', 3);
@@ -58,6 +61,7 @@ export function compileSurfaceMaterialDocument(
     const table = new Map(source.materials.map((material) => [material.id, material]));
     return Object.freeze({
       source,
+      sha256,
       get(materialId: string) {
         return table.get(materialId);
       },

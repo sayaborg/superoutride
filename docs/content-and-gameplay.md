@@ -583,14 +583,16 @@ fractions. Recovery, wrong-route choice, timeout or incomplete FINISH invalidate
 Maximum-lap runs supply their actual prefixes; starting and later-lap arrival classes remain distinct.
 
 Identity includes course/compiler, vehicle/calibration/protection, driver policy, fixed step, start
-and seed inputs. The vehicle digest (`sessionVehicleSha256`) is SHA-256 of the deterministic JSON
-serialization of the admitted vehicle mechanics source document, driving source document and
-surface-material source document. Everything a Session drives—compiled mechanics, driving settings and
-material physics—derives from those sources; the vehicle listing is not part of it. Definition readers
-construct these records in a fixed field order; arbitrary input key order does not affect identity. Any
-mechanics, driving or surface-material value change changes `vehicleSha256`; a listing change does not. This digest is a
+and seed inputs. A document's identity is the SHA-256 of its delivered bytes: its manifest digest in
+delivery, and in the build the digest of the bytes the build delivers (each catalog source carries it).
+The vehicle digest (`sessionVehicleSha256`) is SHA-256 of the JSON
+`{"vehicle":…,"driving":…,"surfaceMaterials":…}` holding the delivered SHA-256 of the vehicle mechanics,
+driving and surface-material documents. Everything a Session drives—compiled mechanics, driving
+settings and material physics—derives from those documents; the vehicle listing is not part of it. Any
+change to their delivered bytes changes `vehicleSha256`; a listing change does not. A DEV-tuned driving
+definition is not delivered and has no identity. This digest is a
 reference-cache key component and is independently recomputed by browser envelope and budget admission;
-both reject products carrying an old digest. Manifest SHA-256 verifies transported bytes separately.
+both reject products carrying an old digest.
 The reference model hash tracks compiler/mechanics code; authored JSON values belong to the per-vehicle
 digest, so editing one vehicle does not invalidate unchanged vehicles' cache keys. For a budget state, reference duration is the maximum upcoming interval among
 continuous histories sharing that state and its legal next checkpoint/finish alternatives.

@@ -64,6 +64,11 @@ export function readContentManifest(value: unknown): AdmissionResult<ContentMani
   });
 }
 
+/** The delivered encoding of every JSON content file: compact JSON followed by a newline. */
+export function encodeContentJson(value: unknown): Uint8Array<ArrayBuffer> {
+  return new TextEncoder().encode(JSON.stringify(value) + '\n');
+}
+
 async function fetchContentBytes(url: URL): Promise<Uint8Array<ArrayBuffer>> {
   const response = await fetch(url);
   if (!response.ok) throw new Error(`Content request failed (${response.status}): ${url.pathname}`);

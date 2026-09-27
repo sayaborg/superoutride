@@ -28,8 +28,8 @@ the next step uses the replacement, and a vehicle switch builds the new vehicle'
 tuned definition. The front/rear tire slots remain for now; both start with the same coefficients.
 
 `SessionVehicle` holds the admitted vehicle, driving and surface-material definitions;
-`createVehicleModel` derives nothing from the vehicle's listing, and `vehicleSha256` hashes the
-mechanics, driving and material source documents.
+`createVehicleModel` derives nothing from the vehicle's listing, and `vehicleSha256` derives from the
+delivered SHA-256 of the mechanics, driving and material documents.
 [Content and gameplay](content-and-gameplay.md#reference-times-and-clock) owns this cross-product identity.
 
 The engine owns tire and steering low-speed regularization (both 1.0 m/s) in

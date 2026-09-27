@@ -1,6 +1,7 @@
-import { compileVehicleDefinitions, DRIVING_DEFINITION_ID } from '../../src/content/vehicle-catalog.js';
+import { compileVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
-import type { DocumentSource } from '../../src/content/document-catalog.js';
+import { authoredDocumentSource, type DocumentSource } from '../../src/content/document-catalog.js';
+import type { ContentKind } from '../../src/content/content-manifest.js';
 import {
   compileCourseDocument,
   isTimedCourse,
@@ -14,7 +15,7 @@ import { readCourseDocumentBytes } from '../../src/course/course-document.js';
 import { compileCourseImages } from '../course/compile-course-images.js';
 import { readCourseImages } from '../course/read-course-images.js';
 import { courseFileId } from '../course/course-file-id.js';
-import { compileSurfaceMaterials, SURFACE_MATERIALS_ID } from '../../src/content/surface-material-catalog.js';
+import { compileSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 import { validateTireSoundMaterialIds } from '../../src/audio/tire-surface-acoustics.js';
 import { compileVehicleSpriteLibrary } from '../graphics/vehicle-sprite-library.js';
 
@@ -49,13 +50,20 @@ const sources = async (directory: string) => {
   for (const name of (await readdir(new URL(directory + '/', content))).sort()) {
     if (!name.endsWith('.json')) continue;
     const path = `content/${directory}/${name}`;
-    result.push({ id: name.replace(/\.json$/, ''), path, value: await json(`${directory}/${name}`) });
+    result.push(await authoredDocumentSource(name.replace(/\.json$/, ''), path, await json(`${directory}/${name}`)));
   }
   return result;
 };
-const materials = requireLoaded(compileSurfaceMaterials(await sources('materials')));
+// Admitted documents are delivered as authored, so each delivered digest is its source's `sha256`.
+const deliver = async (kind: ContentKind, documents: readonly DocumentSource[]) => {
+  for (const source of documents)
+    if ((await writer.stage(kind, source.id, source.value)) !== source.sha256)
+      throw new Error(`Delivered bytes differ from the admitted source: ${source.path}`);
+};
+const materialSources = await sources('materials');
+const materials = requireLoaded(compileSurfaceMaterials(materialSources));
 validateTireSoundMaterialIds(materials.source.materials.map((material) => material.id));
-await writer.stage('material', SURFACE_MATERIALS_ID, materials.source);
+await deliver('material', materialSources);
 
 const vehicleSources = await sources('vehicles'),
   listingSources = await sources('vehicle-listings'),
@@ -63,11 +71,9 @@ const vehicleSources = await sources('vehicles'),
 const definitions = requireLoaded(
   compileVehicleDefinitions(library.sprites, drivingSources, vehicleSources, listingSources),
 );
-for (const vehicle of definitions.vehicles) {
-  await writer.stage('vehicle', vehicle.compiledVehicle.id, vehicle.mechanics);
-  await writer.stage('vehicle-listing', vehicle.compiledVehicle.id, vehicle.listing);
-}
-await writer.stage('driving', DRIVING_DEFINITION_ID, definitions.driving.source);
+await deliver('vehicle', vehicleSources);
+await deliver('vehicle-listing', listingSources);
+await deliver('driving', drivingSources);
 
 const courses: { course: CompiledCourse; stem: string }[] = [];
 for (const name of (await readdir(new URL('courses/', content))).sort()) {

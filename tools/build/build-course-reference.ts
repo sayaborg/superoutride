@@ -34,7 +34,7 @@ export interface CourseReferenceResult {
 export async function buildCourseReferences(
   courses: readonly { course: TimedCompiledCourse; stem: string }[],
   definitions: VehicleDefinitions,
-  stage: (kind: ContentKind, id: string, product: unknown) => Promise<void>,
+  stage: (kind: ContentKind, id: string, product: unknown) => Promise<unknown>,
 ) {
   const physicsSha256 = await referenceModelIdentity(),
     stems = courses.map((c) => c.stem);

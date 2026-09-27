@@ -37,12 +37,12 @@ export function compileVehicleDefinitions(
 ): AdmissionResult<VehicleDefinitions> {
   const single = admitSingleDocument(drivingSources, DRIVING_DEFINITION_ID, 'driving definition');
   if (!single.ok) return single;
-  const driving = compileDrivingDocument(single.value.value, single.value.path);
+  const driving = compileDrivingDocument(single.value.value, single.value.path, single.value.sha256);
   if (!driving.ok) return driving;
   const orders = new Set<number>();
   const vehicles: CompiledVehicleDefinition[] = [];
   for (const file of mechanicsSources) {
-    const mechanics = compileVehicleMechanicsDocument(file.value, file.id, file.path);
+    const mechanics = compileVehicleMechanicsDocument(file.value, file.id, file.path, file.sha256);
     if (!mechanics.ok) return mechanics;
     const listingFile = listingSources.find((source) => source.id === file.id);
     const paired = admit(file.path, () =>
@@ -85,7 +85,7 @@ export async function loadVehicleDefinitions(content: ContentDelivery): Promise<
   const read = async (kind: 'driving' | 'vehicle' | 'vehicle-listing') => {
     const sources: DocumentSource[] = [];
     for (const file of content.manifest.files.filter((file) => file.kind === kind))
-      sources.push({ id: file.id, path: file.path, value: await content.json(kind, file.id) });
+      sources.push({ id: file.id, path: file.path, value: await content.json(kind, file.id), sha256: file.sha256 });
     return sources;
   };
   return requireLoaded(

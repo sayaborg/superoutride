@@ -14,7 +14,7 @@ export const SURFACE_MATERIALS_ID = 'surface';
 export function compileSurfaceMaterials(sources: readonly DocumentSource[]): AdmissionResult<SurfaceMaterialCatalog> {
   const single = admitSingleDocument(sources, SURFACE_MATERIALS_ID, 'surface material document');
   if (!single.ok) return single;
-  return compileSurfaceMaterialDocument(single.value.value, single.value.path);
+  return compileSurfaceMaterialDocument(single.value.value, single.value.path, single.value.sha256);
 }
 
 /**
@@ -24,6 +24,6 @@ export function compileSurfaceMaterials(sources: readonly DocumentSource[]): Adm
 export async function loadSurfaceMaterials(content: ContentDelivery): Promise<SurfaceMaterialCatalog> {
   const sources: DocumentSource[] = [];
   for (const file of content.manifest.files.filter((file) => file.kind === 'material'))
-    sources.push({ id: file.id, path: file.path, value: await content.json('material', file.id) });
+    sources.push({ id: file.id, path: file.path, value: await content.json('material', file.id), sha256: file.sha256 });
   return requireLoaded(compileSurfaceMaterials(sources));
 }

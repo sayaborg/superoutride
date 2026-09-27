@@ -13,12 +13,14 @@ export function createSessionVehicle(
   return Object.freeze({ vehicleDefinition, drivingDefinition, surfaceMaterials });
 }
 
-/** Reference identity: saved vehicle mechanics, game-wide driving and surface-material definitions. */
+/** Reference identity: the delivered SHA-256 of the vehicle mechanics, driving and material documents. */
 export function sessionVehicleSha256(vehicle: SessionVehicle): Promise<string> {
+  const driving = vehicle.drivingDefinition.sha256;
+  if (driving === null) throw new Error('A driving definition outside delivery has no reference identity');
   const identity = JSON.stringify({
-    vehicle: vehicle.vehicleDefinition.mechanics,
-    driving: vehicle.drivingDefinition.source,
-    surfaceMaterials: vehicle.surfaceMaterials.source,
+    vehicle: vehicle.vehicleDefinition.mechanicsSha256,
+    driving,
+    surfaceMaterials: vehicle.surfaceMaterials.sha256,
   });
   return contentDigest(new TextEncoder().encode(identity));
 }
