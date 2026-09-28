@@ -38,13 +38,21 @@ The voice reads engine RPM exactly as simulated; physics keeps it at or above id
 processor's own `rpm` parameter range (1 to 24000) is the only bound; a positive RPM keeps every
 crank-angle-to-time conversion finite. Excitation follows the
 powertrain's effective opening, so it includes the idle-holding opening. Closed throttle has a positive
-excitation floor, `closedExcitation`: weak combustion, distinct from fuel cut. While the observation reports
-fuel cut, firings sound with the `pumpingExcitation` strength and no variation, as exhaust-valve blowdown
-without combustion. At the limiter the physical latch alternates between redline and the fuel-cut threshold,
-so combustion stops and resumes in turn and is heard as the limiter's interruption. Stronger excitation,
-pumping included, shortens pulse rise time, while decay time is independent of load.
+excitation floor, `closedExcitation`: weak combustion, distinct from fuel cut.
 
-At each firing, `strength = max(0, excitation + pulseVariation*r)` for seeded xorshift32 `r` in `[-1,1)`.
+Every firing fires two pulses in its cylinder:
+
+- **Combustion** (blowdown): strength follows excitation with variation, decays over `pulseDecayDegrees`,
+  and is skipped while the observation reports fuel cut.
+- **Displacement** (the piston's push): always present regardless of load or fuel cut, with strength
+  `pumpingExcitation`, no variation, and decay over the exhaust-stroke angle `displacementDecayDegrees`.
+
+The pipe receives the sum of both emissions. Fuel cut only removes the combustion pulse, so the
+displacement pulse remains; at the limiter the physical latch alternates between redline and the fuel-cut
+threshold, so combustion stops and resumes in turn and is heard as the limiter's interruption. Stronger
+excitation shortens pulse rise time, while decay time is independent of load.
+
+At each combustion firing, `strength = max(0, excitation + pulseVariation*r)` for seeded xorshift32 `r` in `[-1,1)`.
 Variation is an absolute fraction of full excitation. The same seed and input history reproduce the
 same event sequence; random draws occur at firing events.
 
@@ -67,9 +75,10 @@ The pipe receives `r2`. Two equal stages of `riseTime/2` keep the one-stage mean
 pulse area `strength*decayTime`, while the pressure onset starts with zero slope (C1): a slope discontinuity
 at firing would be heard as a click.
 
-`riseTime` is `pulseRiseMs` divided by excitation, in absolute time: the wavefront is set by the pressure
+Each pulse follows this model with its own decay angle. `riseTime` is `pulseRiseMs` divided by the pulse's
+excitation (combustion excitation, or `pumpingExcitation` for displacement), in absolute time: the wavefront is set by the pressure
 ratio when the valve opens and does not depend on RPM, while a crank-angle rise became a near-impulse at
-high RPM. `decayTime` is the duration of the `pulseDecayDegrees` crank angle, `D/(6*rpm)` seconds at the
+high RPM. `decayTime` is the duration of the pulse's decay crank angle, `D/(6*rpm)` seconds at the
 smoothed RPM, recomputed every sample: blowdown lasts a crank angle, so the tail is longer at low RPM. Firing resets `p` and keeps `r1` and `r2` continuous. Exact exponential evolution
 across fractional firing times supplies the sample-average pulse to the pipe.
 

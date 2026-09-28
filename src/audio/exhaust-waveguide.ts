@@ -27,6 +27,32 @@ function pulseCascade(decayRate: number, riseRate: number, duration: number, wei
   weights[2] = rise * rise * decay * second;
 }
 
+/** One-sample weights of a pulse cascade at the current decay and rise rates; set at the start of each sample. */
+class PulseWeights {
+  // Reused cascade weights, so firing events do not allocate.
+  readonly cascade = new Float64Array(3);
+  decayRate = 0;
+  decayStep = 0;
+  decayAverage = 0;
+  riseRate = 0;
+  stageStep = 0;
+  stageLink = 0;
+  firstCoupling = 0;
+  secondCoupling = 0;
+
+  prepare(decayRate: number, riseRate: number): void {
+    this.decayRate = decayRate;
+    this.decayAverage = -Math.expm1(-decayRate) / decayRate;
+    this.riseRate = riseRate;
+    this.stageStep = Math.exp(-riseRate);
+    this.stageLink = riseRate * this.stageStep;
+    pulseCascade(decayRate, riseRate, 1, this.cascade);
+    this.decayStep = this.cascade[0]!;
+    this.firstCoupling = this.cascade[1]!;
+    this.secondCoupling = this.cascade[2]!;
+  }
+}
+
 /** Fixed delay with amplitude loss exp(-attenuation * distance) on each traversal. */
 class Delay {
   private readonly data: Float32Array;
@@ -60,6 +86,11 @@ export class ExhaustWaveguide {
   private readonly rise: Float64Array;
   private readonly riseSecond: Float64Array;
   private readonly emission: Float64Array;
+  // The piston's displacement pulse per cylinder, fired at every firing with or without combustion.
+  private readonly displacement: Float64Array;
+  private readonly displacementRise: Float64Array;
+  private readonly displacementRiseSecond: Float64Array;
+  private readonly displacementEmission: Float64Array;
   private readonly wall: Float64Array;
   // One pop pulse per collector, injected at its junction.
   private readonly popPulse: Float64Array;
@@ -79,17 +110,9 @@ export class ExhaustWaveguide {
   private load = 0;
   private dc = 0;
   private tone = 0;
-  // Reused cascade weights, so firing events do not allocate.
-  private readonly weights = new Float64Array(3);
-  // Per-sample pulse weights shared by every pulse state; set at the start of each sample.
-  private decayRate = 0;
-  private decayStep = 0;
-  private decayAverage = 0;
-  private riseRate = 0;
-  private stageStep = 0;
-  private stageLink = 0;
-  private firstCoupling = 0;
-  private secondCoupling = 0;
+  // Combustion weights also drive the pop pulses; displacement has its own decay and rise.
+  private readonly combustionWeights = new PulseWeights();
+  private readonly displacementWeights = new PulseWeights();
 
   constructor(
     private readonly sound: CompiledEngineSound,
@@ -115,6 +138,10 @@ export class ExhaustWaveguide {
     this.rise = new Float64Array(n);
     this.riseSecond = new Float64Array(n);
     this.emission = new Float64Array(n);
+    this.displacement = new Float64Array(n);
+    this.displacementRise = new Float64Array(n);
+    this.displacementRiseSecond = new Float64Array(n);
+    this.displacementEmission = new Float64Array(n);
     this.wall = new Float64Array(n);
     this.popPulse = new Float64Array(groups);
     this.popRise = new Float64Array(groups);
@@ -141,6 +168,7 @@ export class ExhaustWaveguide {
    * the exact average: mean(r2) = mean(p) - (delta r1 + delta r2) / riseRate.
    */
   private advancePulse(
+    weights: PulseWeights,
     pulse: Float64Array,
     rise: Float64Array,
     riseSecond: Float64Array,
@@ -150,16 +178,17 @@ export class ExhaustWaveguide {
     const p = pulse[i]!;
     const r1 = rise[i]!;
     const r2 = riseSecond[i]!;
-    const nextFirst = this.stageStep * r1 + this.firstCoupling * p;
-    const nextSecond = this.stageStep * r2 + this.stageLink * r1 + this.secondCoupling * p;
-    emission[i] = this.decayAverage * p - (nextFirst - r1 + nextSecond - r2) / this.riseRate;
+    const nextFirst = weights.stageStep * r1 + weights.firstCoupling * p;
+    const nextSecond = weights.stageStep * r2 + weights.stageLink * r1 + weights.secondCoupling * p;
+    emission[i] = weights.decayAverage * p - (nextFirst - r1 + nextSecond - r2) / weights.riseRate;
     rise[i] = nextFirst;
     riseSecond[i] = nextSecond;
-    pulse[i] = p * this.decayStep;
+    pulse[i] = p * weights.decayStep;
   }
 
   /** Fire an advanced pulse state `elapsed` samples before the sample end; both rise stages stay continuous. */
   private firePulse(
+    weights: PulseWeights,
     pulse: Float64Array,
     rise: Float64Array,
     riseSecond: Float64Array,
@@ -168,14 +197,13 @@ export class ExhaustWaveguide {
     strength: number,
     elapsed: number,
   ): void {
-    const weights = this.weights;
-    pulseCascade(this.decayRate, this.riseRate, elapsed, weights);
-    const decay = weights[0]!;
+    const { decayRate, riseRate, cascade } = weights;
+    pulseCascade(decayRate, riseRate, elapsed, cascade);
+    const decay = cascade[0]!;
     const jump = strength - pulse[i]! / decay;
-    rise[i]! += jump * weights[1]!;
-    riseSecond[i]! += jump * weights[2]!;
-    emission[i]! +=
-      jump * (-Math.expm1(-this.decayRate * elapsed) / this.decayRate - (weights[1]! + weights[2]!) / this.riseRate);
+    rise[i]! += jump * cascade[1]!;
+    riseSecond[i]! += jump * cascade[2]!;
+    emission[i]! += jump * (-Math.expm1(-decayRate * elapsed) / decayRate - (cascade[1]! + cascade[2]!) / riseRate);
     pulse[i] = strength * decay;
   }
 
@@ -188,45 +216,77 @@ export class ExhaustWaveguide {
     this.phase = (this.phase + step) % 1;
     // Crank degrees to samples at the smoothed RPM: D degrees last D / (6 * rpm) seconds.
     const samplesPerDegree = this.rate / (6 * this.rpm);
-    const decayRate = 1 / (this.settings.pulseDecayDegrees * samplesPerDegree);
-    this.decayRate = decayRate;
-    this.decayAverage = -Math.expm1(-decayRate) / decayRate;
     // One excitation control: stronger pulses also rise faster. No load-dependent output EQ/drive.
-    // Fuel cut is a boolean observation, never smoothed: firings pump without combustion.
-    const excitation = fuelCut
-      ? this.settings.pumpingExcitation
-      : this.settings.closedExcitation + (1 - this.settings.closedExcitation) * this.load;
-    const riseTime = ((this.settings.pulseRiseMs / 1000) * this.rate) / excitation;
+    const excitation = this.settings.closedExcitation + (1 - this.settings.closedExcitation) * this.load;
     // Two stages of riseTime / 2 each keep the one-stage mean delay riseTime while the onset slope starts at zero.
-    const riseRate = 2 / riseTime;
-    this.riseRate = riseRate;
-    this.stageStep = Math.exp(-riseRate);
-    this.stageLink = riseRate * this.stageStep;
-    // Prepare the one-sample cascade weights once for all pulse states.
-    pulseCascade(decayRate, riseRate, 1, this.weights);
-    this.decayStep = this.weights[0]!;
-    this.firstCoupling = this.weights[1]!;
-    this.secondCoupling = this.weights[2]!;
+    // Rise time is pulseRiseMs divided by the pulse's excitation; displacement uses pumpingExcitation.
+    const riseSamples = (this.settings.pulseRiseMs / 1000) * this.rate;
+    this.combustionWeights.prepare(
+      1 / (this.settings.pulseDecayDegrees * samplesPerDegree),
+      (2 * excitation) / riseSamples,
+    );
+    this.displacementWeights.prepare(
+      1 / (this.settings.displacementDecayDegrees * samplesPerDegree),
+      (2 * this.settings.pumpingExcitation) / riseSamples,
+    );
     this.sums.fill(0);
     for (let bank = 0; bank < this.popPulse.length; bank++)
-      this.advancePulse(this.popPulse, this.popRise, this.popRiseSecond, this.popEmission, bank);
+      this.advancePulse(
+        this.combustionWeights,
+        this.popPulse,
+        this.popRise,
+        this.popRiseSecond,
+        this.popEmission,
+        bank,
+      );
     for (let i = 0; i < this.pulse.length; i++) {
       const offset = this.sound.firingPhases[i]!;
       const crossed =
         this.phase >= previous ? offset > previous && offset <= this.phase : offset > previous || offset <= this.phase;
-      this.advancePulse(this.pulse, this.rise, this.riseSecond, this.emission, i);
+      this.advancePulse(this.combustionWeights, this.pulse, this.rise, this.riseSecond, this.emission, i);
+      this.advancePulse(
+        this.displacementWeights,
+        this.displacement,
+        this.displacementRise,
+        this.displacementRiseSecond,
+        this.displacementEmission,
+        i,
+      );
       if (crossed) {
-        let strength = excitation;
-        // Variation is combustion spread, so pumping pulses have none.
-        // Random draws occur only at firing events, never as a continuous noise generator or a timing perturbation.
-        if (!fuelCut && this.settings.pulseVariation > 0)
-          strength = Math.max(0, excitation + this.settings.pulseVariation * this.draw());
         // Resolve the event inside this sample; preserve the continuous rise states at the reset.
         const elapsed = (this.phase >= offset ? this.phase - offset : this.phase - offset + 1) / step;
-        this.firePulse(this.pulse, this.rise, this.riseSecond, this.emission, i, strength, elapsed);
+        // The piston's push sounds at every firing, without variation.
+        this.firePulse(
+          this.displacementWeights,
+          this.displacement,
+          this.displacementRise,
+          this.displacementRiseSecond,
+          this.displacementEmission,
+          i,
+          this.settings.pumpingExcitation,
+          elapsed,
+        );
+        // Fuel cut is a boolean observation, never smoothed: it skips only the combustion pulse.
+        if (!fuelCut) {
+          let strength = excitation;
+          // Random draws occur only at firing events, never as a continuous noise generator or a timing perturbation.
+          if (this.settings.pulseVariation > 0)
+            strength = Math.max(0, excitation + this.settings.pulseVariation * this.draw());
+          this.firePulse(
+            this.combustionWeights,
+            this.pulse,
+            this.rise,
+            this.riseSecond,
+            this.emission,
+            i,
+            strength,
+            elapsed,
+          );
+        }
         // During overrun a separate draw decides a pop; the combustion pulse above still sounds.
         if (overrun && (this.draw() + 1) / 2 < this.settings.popProbability)
           this.firePulse(
+            this.combustionWeights,
             this.popPulse,
             this.popRise,
             this.popRiseSecond,
@@ -264,7 +324,7 @@ export class ExhaustWaveguide {
         ACOUSTICS.cylinderClosedReflection +
         (ACOUSTICS.cylinderOpenReflection - ACOUSTICS.cylinderClosedReflection) * opening;
       const incoming = this.forward[i]!.read();
-      this.forward[i]!.write(this.emission[i]! + reflection * this.wall[i]!);
+      this.forward[i]!.write(this.emission[i]! + this.displacementEmission[i]! + reflection * this.wall[i]!);
       this.backward[i]!.write(this.junctions[this.banks[i]!]! - incoming);
     }
     const raw = exhaust / this.bankNormalization;

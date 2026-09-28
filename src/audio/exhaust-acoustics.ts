@@ -34,6 +34,7 @@ export interface ExhaustSettings {
   readonly pumpingExcitation: number;
   readonly pulseRiseMs: number;
   readonly pulseDecayDegrees: number;
+  readonly displacementDecayDegrees: number;
   readonly blipOpening: number;
   readonly blipDecaySeconds: number;
   readonly popProbability: number;
@@ -46,9 +47,11 @@ export const DEFAULT_EXHAUST_SETTINGS: ExhaustSettings = Object.freeze({
   // Blowdown duration is a crank-angle phenomenon, so the decay lasts longer at low RPM.
   // 90 degrees equals 5 ms at 3000 RPM, where 1 ms = 18 degrees.
   pulseDecayDegrees: 90, // common provisional decay; base strength is fixed at 1
+  // Exhaust-stroke length: decay of the displacement component, in crank angle.
+  displacementDecayDegrees: 180,
   pulseVariation: 0.2, // absolute full-excitation fraction; acoustic sketch, not measured combustion variance
-  // Firing strength during fuel cut: exhaust-valve blowdown without combustion. Provisional listening value,
-  // separate from closedExcitation, which is weak combustion at closed throttle.
+  // Displacement component strength: the piston's push, present at every firing with or without combustion.
+  // Provisional listening value, separate from closedExcitation, which is weak combustion at closed throttle.
   pumpingExcitation: 0.06,
   outputCutoffHz: 7300, // post-clip listening filter; not measured muffler transmission loss
   // A downshift's short rev-matching opening peak and its exponential decay time. Not a physical shift
@@ -79,6 +82,7 @@ export const EXHAUST_SETTING_RANGES: Readonly<Record<keyof ExhaustSettings, Sett
   pumpingExcitation: Object.freeze({ min: 0, max: 0.5, step: 0.01, exclusiveMin: true, uiMin: 0.01 }),
   pulseRiseMs: Object.freeze({ min: 0.05, max: 2, step: 0.01 }),
   pulseDecayDegrees: Object.freeze({ min: 2, max: 360, step: 1 }),
+  displacementDecayDegrees: Object.freeze({ min: 30, max: 360, step: 5 }),
   blipOpening: Object.freeze({ min: 0, max: 1, step: 0.01 }),
   blipDecaySeconds: Object.freeze({ min: 0.02, max: 0.3, step: 0.01 }),
   popProbability: Object.freeze({ min: 0, max: 1, step: 0.01 }),
