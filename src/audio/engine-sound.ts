@@ -9,11 +9,60 @@ export interface EngineSoundDefinition {
   readonly exhaust: {
     readonly banks: readonly number[];
     readonly lengths: readonly number[];
-    readonly outlet: number;
+    /** Pipes from a junction to another junction, or to an open end (`to: null`). */
+    readonly pipes: readonly ExhaustPipe[];
   };
 }
 
+/**
+ * One exhaust pipe. Junctions are numbered from 0; `banks[i]` is cylinder i's junction. Waves travel both ways,
+ * so `from`/`to` only name the ends.
+ */
+export interface ExhaustPipe {
+  readonly length: number;
+  readonly from: number;
+  readonly to: number | null;
+}
+
 export type CompiledEngineSound = Readonly<EngineSoundDefinition>;
+
+/**
+ * Junction numbers are contiguous from 0 and cover every bank and pipe end; 1 to 8 pipes of 0.1 to 4 m, at least
+ * one open; every junction reaches an open end through pipes (either direction). Loops are allowed.
+ */
+function validPipes(banks: readonly number[], pipes: readonly ExhaustPipe[]): boolean {
+  const junction = (value: unknown): value is number => Number.isInteger(value) && (value as number) >= 0;
+  if (pipes.length < 1 || pipes.length > 8 || !banks.every(junction)) return false;
+  for (const pipe of pipes)
+    if (
+      !pipe ||
+      !Number.isFinite(pipe.length) ||
+      pipe.length < 0.1 ||
+      pipe.length > 4 ||
+      !junction(pipe.from) ||
+      (pipe.to !== null && !junction(pipe.to))
+    )
+      return false;
+  const used = new Set<number>(banks);
+  for (const pipe of pipes) {
+    used.add(pipe.from);
+    if (pipe.to !== null) used.add(pipe.to);
+  }
+  const count = used.size;
+  for (let k = 0; k < count; k++) if (!used.has(k)) return false;
+  // Junctions touching an open pipe reach the open end; spread that across pipes until nothing changes.
+  const reaches = new Set<number>(pipes.filter((pipe) => pipe.to === null).map((pipe) => pipe.from));
+  if (reaches.size === 0) return false;
+  for (let grown = true; grown;) {
+    grown = false;
+    for (const { from, to } of pipes)
+      if (to !== null && reaches.has(from) !== reaches.has(to)) {
+        reaches.add(from).add(to);
+        grown = true;
+      }
+  }
+  return reaches.size === count;
+}
 
 export function compileEngineSound(definition: EngineSoundDefinition): CompiledEngineSound {
   const { cycleRevolutions, firingPhases, exhaust } = definition;
@@ -32,23 +81,20 @@ export function compileEngineSound(definition: EngineSoundDefinition): CompiledE
     !exhaust ||
     !Array.isArray(exhaust.banks) ||
     !Array.isArray(exhaust.lengths) ||
+    !Array.isArray(exhaust.pipes) ||
     exhaust.banks.length !== firingPhases.length ||
     exhaust.lengths.length !== firingPhases.length ||
-    exhaust.banks.some((bank) => !Number.isInteger(bank) || bank < 0 || bank > 1) ||
-    !exhaust.banks.includes(0) ||
     exhaust.lengths.some((length) => !Number.isFinite(length) || length < 0.1 || length > 3) ||
-    !Number.isFinite(exhaust.outlet) ||
-    exhaust.outlet < 0.1 ||
-    exhaust.outlet > 4
+    !validPipes(exhaust.banks, exhaust.pipes)
   )
     throw new RangeError('invalid exhaust topology');
   return Object.freeze({
     cycleRevolutions,
     firingPhases: Object.freeze([...firingPhases]),
     exhaust: Object.freeze({
-      ...exhaust,
       banks: Object.freeze([...exhaust.banks]),
       lengths: Object.freeze([...exhaust.lengths]),
+      pipes: Object.freeze(exhaust.pipes.map(({ length, from, to }) => Object.freeze({ length, from, to }))),
     }),
   });
 }

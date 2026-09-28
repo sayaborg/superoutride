@@ -37,6 +37,35 @@ function showVehicleData() {
   body.replaceChildren();
   const degrees = (value: number) => `${Number(value.toFixed(2))}°`;
   const meters = (value: number) => `${value.toFixed(2)} m`;
+  const { pipes } = sound.exhaust;
+  const pipesText = pipes
+    .map(
+      ({ length, from, to }) =>
+        `${String.fromCharCode(65 + from)}→${to === null ? '出口' : String.fromCharCode(65 + to)} ${meters(length)}`,
+    )
+    .join('、');
+  // Shortest pipe path from a junction to an open end.
+  const openPath = (start: number): number => {
+    const best = new Map<number, number>([[start, 0]]);
+    let result = Infinity;
+    for (let changed = true; changed;) {
+      changed = false;
+      for (const { length, from, to } of pipes)
+        for (const [a, b] of [
+          [from, to],
+          [to, from],
+        ] as const) {
+          const here = a === null ? undefined : best.get(a);
+          if (here === undefined) continue;
+          if (b === null) result = Math.min(result, here + length);
+          else if (here + length < (best.get(b) ?? Infinity)) {
+            best.set(b, here + length);
+            changed = true;
+          }
+        }
+    }
+    return result;
+  };
   sound.firingPhases.forEach((phase, i, phases) => {
     const next = i + 1 < phases.length ? phases[i + 1]! : phases[0]! + 1;
     const length = sound.exhaust.lengths[i]!;
@@ -47,8 +76,8 @@ function showVehicleData() {
       degrees((next - phase) * cycleDegrees),
       String.fromCharCode(65 + sound.exhaust.banks[i]!),
       meters(length),
-      meters(sound.exhaust.outlet),
-      meters(length + sound.exhaust.outlet),
+      pipesText,
+      meters(length + openPath(sound.exhaust.banks[i]!)),
     ]) {
       const cell = document.createElement('td');
       cell.textContent = String(value);

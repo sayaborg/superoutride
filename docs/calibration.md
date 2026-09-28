@@ -121,6 +121,23 @@ Upshift occurs at redline. Downshift occurs when the next lower ratio would plac
 below that derived peak-power RPM. Shift RPM thresholds are not vehicle values.
 Displacement is in cc and cycle is 2 or 4 strokes. Gear ratios and final drive are dimensionless.
 
+## Exhaust topologies
+
+[Engine sounds](../src/vehicle/engine-sounds.ts) declare typical collector topologies; pipe lengths are rough
+real-vehicle guides revised by listening. Junctions 0 and 1 are the cylinders' collectors unless noted.
+
+| Vehicle            | Topology | Pipes (from → to, length)                                  |
+| ------------------ | -------- | ---------------------------------------------------------- |
+| TESTAROSSA         | 12-2     | 0 → open 0.85 m; 1 → open 0.85 m                           |
+| 911_TURBO_3_3      | 6-2-1    | 0 → 2 0.3 m; 1 → 2 0.3 m (turbine inlet); 2 → open 0.9 m   |
+| CORVETTE_C4        | 8-2-1-2  | 0 → 2 0.8 m; 1 → 2 0.8 m (X/H junction); 2 → open 1.2 m ×2 |
+| GOLF_GTI_16V       | 4-1      | 0 → open 1.25 m                                            |
+| DELTA_HF_INTEGRALE | 4-1      | 0 → open 1.65 m                                            |
+| VFR750R            | 4-2-1    | 0 → 2 0.25 m; 1 → 2 0.25 m; 2 → open 0.55 m                |
+| R80_GS_PARIS_DAKAR | 2-1      | 0 → 2 0.4 m; 1 → 2 0.4 m; 2 → open 0.85 m                  |
+| FXRT_SPORT_GLIDE   | 2-2      | 0 → open 0.65 m; 1 → open 0.65 m                           |
+| PX200E_ARCOBALENO  | 1-1      | 0 → open 0.48 m                                            |
+
 ## Engine sound settings
 
 Audio values are either [derived](#derived-values) or DEV listening settings. Every DEV default is the

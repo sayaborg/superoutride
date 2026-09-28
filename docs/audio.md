@@ -26,8 +26,8 @@ filter and envelope state. Player tire sound reads the player's observed tire ob
 rival sound uses the rival's observed powertrain values.
 
 An [engine sound](../src/audio/engine-sound.ts) contains one or two revolutions per
-cycle, ordered firing phases, collector membership, primary lengths and a common outlet length per
-collector. Each firing phase is that cylinder's exhaust-opening instant (start of blowdown); the offset from
+cycle, ordered firing phases, each cylinder's junction (`banks`), primary lengths and the collector graph
+(`pipes`). Each firing phase is that cylinder's exhaust-opening instant (start of blowdown); the offset from
 combustion top dead centre is common to all cylinders and is not represented. Phase count determines cylinder count. `compileEngineSound` validates an
 `EngineSoundDefinition` into a `CompiledEngineSound`; the vehicle catalog binds the
 [engine sounds](../src/vehicle/engine-sounds.ts) to the
@@ -75,17 +75,22 @@ the tail is longer at low RPM; that conversion is its only derivation. Firing re
 continuous. Exact exponential evolution across fractional firing times supplies the sample-average pulse to the
 pipe.
 
-The [waveguide](../src/audio/exhaust-waveguide.ts) has bidirectional primary and outlet delays rounded
-to the nearest sample at the reference wave speed. Each traversal multiplies amplitude by
-`exp(-attenuationPerMeter*length)`. Equal-admittance collector scattering uses
-`p = 2*sum(incoming)/portCount` and `outgoing = p-incoming`.
+The exhaust is a graph of junctions and pipes. Junctions are numbered from 0; each cylinder's primary ends at
+its junction `banks[i]`, and each pipe runs from junction `from` to junction `to` or to an open end (`to: null`).
+Every junction reaches an open end through pipes; loops are allowed, since a ring of pipes is physical. A merge
+(2-1, a turbine inlet) and an H or X pipe are junctions where several pipes meet. The
+[waveguide](../src/audio/exhaust-waveguide.ts) gives each primary and each pipe a bidirectional delay pair,
+rounded to the nearest sample at the reference wave speed. Each traversal multiplies amplitude by
+`exp(-attenuationPerMeter*length)`. Every junction scatters with equal admittance whatever the direction of its
+ports: `p = 2*sum(incoming)/portCount` and `outgoing = p-incoming`, where the ports are the junction's primaries and
+each attached pipe end.
 
 After a cylinder's exhaust opens, its cylinder-end reflection varies from `cylinderClosedReflection` to
 `cylinderOpenReflection` through the aperture `16*u²*(1-u)²` over `cylinderWindowCycles` of the firing cycle, then
 returns to its closed value. These three are DEV settings; the window is an acoustic boundary, not the valve's
 open duration: a window spanning the valve event removed the pipe resonance. The aperture has continuous value and slope and a window
 mean of 8/15. Cylinder-end and outlet low-pass filters act inside their return paths. The listening pickup
-sums outgoing and low-passed outgoing waves, with collector mixing divided by `sqrt(collectorCount)`.
+sums each open end's outgoing and low-passed outgoing waves, divided by `sqrt(openEndCount)`.
 
 Each acoustic step runs at the output sample rate. Integer pipe delays, the pulse approximation and
 native-rate nonlinear stages define the model's temporal and spectral resolution.

@@ -50,8 +50,14 @@ class Delay {
 export class ExhaustWaveguide {
   private readonly forward: Delay[];
   private readonly backward: Delay[];
-  private readonly tails: Delay[];
-  private readonly returns: Delay[];
+  // One delay pair per exhaust pipe: downstream runs from -> to, upstream to -> from.
+  private readonly downstream: Delay[];
+  private readonly upstream: Delay[];
+  private readonly pipeFrom: Int32Array;
+  // Junction index, or -1 for an open end.
+  private readonly pipeTo: Int32Array;
+  private readonly arriving: Float64Array;
+  private readonly returning: Float64Array;
   private readonly banks: readonly number[];
   private readonly counts: Float64Array;
   private readonly sums: Float64Array;
@@ -66,8 +72,9 @@ export class ExhaustWaveguide {
   private readonly popRise: Float64Array;
   private readonly popRiseSecond: Float64Array;
   private readonly popEmission: Float64Array;
+  // Low-passed outgoing wave at each pipe's open end (unused for junction-to-junction pipes).
   private readonly outlet: Float64Array;
-  private readonly bankNormalization: number;
+  private readonly openNormalization: number;
   private readonly smoothing: number;
   private readonly dcCoefficient: number;
   private readonly toneCoefficient: number;
@@ -101,17 +108,28 @@ export class ExhaustWaveguide {
     const n = sound.firingPhases.length;
     const exhaust = sound.exhaust;
     this.banks = exhaust.banks;
-    const groups = Math.max(...this.banks) + 1;
+    const { pipes } = exhaust;
+    let groups = Math.max(...this.banks) + 1;
+    for (const { from, to } of pipes) groups = Math.max(groups, from + 1, (to ?? 0) + 1);
     const pipe = (meters: number) =>
       new Delay((meters * rate) / ACOUSTICS.waveSpeed, Math.exp(-PIPE_COEFFICIENTS.attenuationPerMeter * meters));
     this.forward = exhaust.lengths.map(pipe);
     this.backward = exhaust.lengths.map(pipe);
-    this.tails = Array.from({ length: groups }, () => pipe(exhaust.outlet));
-    this.returns = Array.from({ length: groups }, () => pipe(exhaust.outlet));
+    this.downstream = pipes.map(({ length }) => pipe(length));
+    this.upstream = pipes.map(({ length }) => pipe(length));
+    this.pipeFrom = Int32Array.from(pipes, ({ from }) => from);
+    this.pipeTo = Int32Array.from(pipes, ({ to }) => to ?? -1);
+    this.arriving = new Float64Array(pipes.length);
+    this.returning = new Float64Array(pipes.length);
+    // Every port of a junction: its cylinders' primaries and each pipe end attached to it.
     this.counts = new Float64Array(groups);
+    for (const { from, to } of pipes) {
+      this.counts[from]!++;
+      if (to !== null) this.counts[to]!++;
+    }
     this.sums = new Float64Array(groups);
     this.junctions = new Float64Array(groups);
-    this.outlet = new Float64Array(groups);
+    this.outlet = new Float64Array(pipes.length);
     this.pulse = new Float64Array(n);
     this.rise = new Float64Array(n);
     this.riseSecond = new Float64Array(n);
@@ -121,7 +139,7 @@ export class ExhaustWaveguide {
     this.popRise = new Float64Array(groups);
     this.popRiseSecond = new Float64Array(groups);
     this.popEmission = new Float64Array(groups);
-    this.bankNormalization = Math.sqrt(groups);
+    this.openNormalization = Math.sqrt(pipes.filter(({ to }) => to === null).length);
     for (const bank of this.banks) this.counts[bank]!++;
     this.smoothing = 1 - Math.exp(-1 / (resolveControlSettings(control).observationSeconds * rate));
     this.dcCoefficient = 1 - Math.exp((-2 * Math.PI * this.settings.dcHz) / rate);
@@ -241,17 +259,34 @@ export class ExhaustWaveguide {
     }
     // Pops enter each collector junction as an additional incoming pressure.
     for (let bank = 0; bank < this.popEmission.length; bank++) this.sums[bank]! += this.popEmission[bank]!;
+    // Read every pipe end before any write: a delay's read and write share one position per sample.
+    const arriving = this.arriving;
+    const returning = this.returning;
+    for (let j = 0; j < this.downstream.length; j++) {
+      arriving[j] = this.downstream[j]!.read();
+      returning[j] = this.upstream[j]!.read();
+    }
+    // Incoming waves at each junction; a pipe's `from` end receives its upstream wave, its `to` end its downstream.
+    for (let j = 0; j < arriving.length; j++) {
+      this.sums[this.pipeFrom[j]!]! += returning[j]!;
+      const to = this.pipeTo[j]!;
+      if (to >= 0) this.sums[to]! += arriving[j]!;
+    }
+    // Equal-admittance scattering at every junction: p = 2 sum(incoming) / number of ports.
+    for (let k = 0; k < this.junctions.length; k++) this.junctions[k] = (2 * this.sums[k]!) / this.counts[k]!;
     let exhaust = 0;
-    for (let bank = 0; bank < this.tails.length; bank++) {
-      const returning = this.returns[bank]!.read();
-      const out = this.tails[bank]!.read();
-      this.outlet[bank]! += this.loss * (out - this.outlet[bank]!);
-      this.returns[bank]!.write(PIPE_COEFFICIENTS.outletReflection * this.outlet[bank]!);
-      // Equal-admittance scattering: p = 2 sum(incoming) / number of ports.
-      const pressure = (2 * (this.sums[bank]! + returning)) / (this.counts[bank]! + 1);
-      this.junctions[bank] = pressure;
-      this.tails[bank]!.write(pressure - returning);
-      exhaust += out + this.outlet[bank]!;
+    for (let j = 0; j < arriving.length; j++) {
+      const to = this.pipeTo[j]!;
+      this.downstream[j]!.write(this.junctions[this.pipeFrom[j]!]! - returning[j]!);
+      if (to >= 0) {
+        this.upstream[j]!.write(this.junctions[to]! - arriving[j]!);
+        continue;
+      }
+      // Open end: low-passed negative reflection; the pickup hears the outgoing and low-passed waves.
+      const out = arriving[j]!;
+      this.outlet[j]! += this.loss * (out - this.outlet[j]!);
+      this.upstream[j]!.write(PIPE_COEFFICIENTS.outletReflection * this.outlet[j]!);
+      exhaust += out + this.outlet[j]!;
     }
     for (let i = 0; i < this.backward.length; i++) {
       const age = (this.phase - this.sound.firingPhases[i]! + 1) % 1;
@@ -267,7 +302,7 @@ export class ExhaustWaveguide {
       this.forward[i]!.write(this.emission[i]! + reflection * this.wall[i]!);
       this.backward[i]!.write(this.junctions[this.banks[i]!]! - incoming);
     }
-    const raw = exhaust / this.bankNormalization;
+    const raw = exhaust / this.openNormalization;
     this.dc += this.dcCoefficient * (raw - this.dc);
     // Smooth, bounded saturation; no table clipping or unconstrained feedback gain.
     const x = raw - this.dc;
