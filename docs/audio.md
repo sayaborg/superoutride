@@ -49,6 +49,14 @@ At each firing, `strength = max(0, excitation + pulseVariation*r)` for seeded xo
 Variation is an absolute fraction of full excitation. The same seed and input history reproduce the
 same event sequence; random draws occur at firing events.
 
+During overrun (effective opening 0 without fuel cut; a downshift blip suppresses it), each firing draws a
+separate seeded number and becomes a pop with [`OVERRUN_POPS`](../src/audio/exhaust-acoustics.ts)
+`probability`. The cylinder's combustion pulse still sounds at the closed-throttle floor, and a pulse of
+`OVERRUN_POPS.strength` fires in that collector's pop state, which follows the same rise and decay as the
+cylinder pulses and enters the collector junction as incoming pressure. Because the draw is per firing, the
+pop rate is proportional to RPM. No unburnt-fuel or temperature state is kept; draw counts depend on the
+state, but the same seed and input history reproduce the same sound.
+
 The pulse model is:
 
 ```text

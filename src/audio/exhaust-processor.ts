@@ -51,10 +51,13 @@ class ExhaustProcessor extends AudioWorkletProcessor {
       output.fill(0);
       return true;
     }
+    const opening = parameters.load![0]!;
     const rpm = parameters.rpm![0]!,
-      load = Math.max(parameters.load![0]!, parameters.blip![0]!);
+      load = Math.max(opening, parameters.blip![0]!);
     const fuelCut = parameters.fuelCut![0]! >= 0.5;
-    for (let i = 0; i < output.length; i++) output[i] = this.engine.sample(rpm, load, fuelCut);
+    // Overrun reads the observed opening before the blip, so a blip suppresses pops.
+    const overrun = opening === 0 && !fuelCut;
+    for (let i = 0; i < output.length; i++) output[i] = this.engine.sample(rpm, load, fuelCut, overrun);
     return true;
   }
 }

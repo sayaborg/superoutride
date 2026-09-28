@@ -91,6 +91,13 @@ export function resolveExhaustSettings(overrides: Partial<ExhaustSettings> = {})
  */
 export const DOWNSHIFT_BLIP = Object.freeze({ opening: 0.7, decaySeconds: 0.08 });
 
+/**
+ * Per-firing probability during overrun and the strength of the pulse injected at the collector junction.
+ * A seeded draw per firing decides each pop, so the pop rate is proportional to RPM. No unburnt-fuel or
+ * temperature state is kept. Provisional listening values.
+ */
+export const OVERRUN_POPS = Object.freeze({ probability: 0.12, strength: 0.5 });
+
 export const ACOUSTICS = Object.freeze({
   waveSpeed, // fixed air-surrogate reference; not measured temperature
   cylinderClosedReflection: 0.94, // nearly rigid effective termination; magnitude < 1 absorbs energy
