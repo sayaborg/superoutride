@@ -24,8 +24,8 @@ export interface ExhaustSettings {
   readonly closedExcitation: number;
   readonly outputCutoffHz: number;
   readonly pulseVariation: number;
-  readonly pulseRiseMs: number;
-  readonly pulseDecayMs: number;
+  readonly pulseRiseDegrees: number;
+  readonly pulseDecayDegrees: number;
 }
 export const DEFAULT_EXHAUST_SETTINGS: ExhaustSettings = Object.freeze({
   // Rounded to control resolution; Kirchhoff thin-boundary-layer loss at the reference frequency.
@@ -34,8 +34,10 @@ export const DEFAULT_EXHAUST_SETTINGS: ExhaustSettings = Object.freeze({
   returnCutoffHz: Math.round(waveSpeed / (2 * Math.PI * REFLECTION_REFERENCE.radiusMeters) / 100) * 100,
   outletReflection: -1, // unflanged open-end low-frequency pressure-reflection limit
   closedExcitation: 0.22, // retained authored control; cannot be inferred from pipe acoustics
-  pulseRiseMs: 0.2, // common provisional full-excitation time constant
-  pulseDecayMs: 5, // common provisional decay time constant; base strength is fixed at 1
+  // Crank-angle constants: blowdown is a crank-angle phenomenon, so pulses last longer at low RPM.
+  // Defaults equal the former 0.2 ms rise and 5 ms decay at 3000 RPM, where 1 ms = 18 degrees.
+  pulseRiseDegrees: 3.6, // common provisional full-excitation rise
+  pulseDecayDegrees: 90, // common provisional decay; base strength is fixed at 1
   pulseVariation: 0.2, // absolute full-excitation fraction; acoustic sketch, not measured combustion variance
   outputCutoffHz: 7300, // post-clip listening filter; not measured muffler transmission loss
 });
@@ -56,8 +58,8 @@ export const EXHAUST_SETTING_RANGES: Readonly<Record<keyof ExhaustSettings, Sett
   closedExcitation: Object.freeze({ min: 0, max: 1, step: 0.01, exclusiveMin: true, uiMin: 0.01 }),
   outputCutoffHz: Object.freeze({ min: 100, max: 12000, step: 100 }),
   pulseVariation: Object.freeze({ min: 0, max: 0.4, step: 0.01 }),
-  pulseRiseMs: Object.freeze({ min: 0.01, max: 2, step: 0.01 }),
-  pulseDecayMs: Object.freeze({ min: 0.1, max: 30, step: 0.1 }),
+  pulseRiseDegrees: Object.freeze({ min: 0.2, max: 36, step: 0.1 }),
+  pulseDecayDegrees: Object.freeze({ min: 2, max: 360, step: 1 }),
 });
 
 export function resolveExhaustSettings(overrides: Partial<ExhaustSettings> = {}): ExhaustSettings {
@@ -87,7 +89,6 @@ export const ACOUSTICS = Object.freeze({
   waveSpeed, // fixed air-surrogate reference; not measured temperature
   cylinderClosedReflection: 0.94, // nearly rigid effective termination; magnitude < 1 absorbs energy
   cylinderOpenReflection: -0.3, // pressure-release-like endpoint; positive impedance, not valve-flow physics
-  cylinderWindowCycles: 0.23, // empirical periodic boundary; NOT valve timing
 });
 // Listening-output conditioning: DC removal and bounded amplitude; not exhaust properties.
 export const OUTPUT = Object.freeze({ dcHz: 18, ceiling: 0.65 });

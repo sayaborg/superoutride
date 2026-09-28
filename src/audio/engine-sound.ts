@@ -1,7 +1,13 @@
 /** Firing facts and authored acoustic approximations; amplitudes are not pressure in Pa. */
 export interface EngineSoundDefinition {
   readonly cycleRevolutions: 1 | 2;
+  /**
+   * Each cylinder's exhaust-opening instant (start of blowdown) as a fraction of the cycle. The offset
+   * from combustion top dead centre is the same for every cylinder, so it is not represented.
+   */
   readonly firingPhases: readonly number[];
+  /** Crank degrees the exhaust valve (a two-stroke's exhaust port) is open, from lift-off to reseating. */
+  readonly exhaustDurationDegrees: number;
   readonly exhaust: {
     readonly banks: readonly number[];
     readonly lengths: readonly number[];
@@ -12,7 +18,7 @@ export interface EngineSoundDefinition {
 export type CompiledEngineSound = Readonly<EngineSoundDefinition>;
 
 export function compileEngineSound(definition: EngineSoundDefinition): CompiledEngineSound {
-  const { cycleRevolutions, firingPhases, exhaust } = definition;
+  const { cycleRevolutions, firingPhases, exhaustDurationDegrees, exhaust } = definition;
   if (
     (cycleRevolutions !== 1 && cycleRevolutions !== 2) ||
     !Array.isArray(firingPhases) ||
@@ -23,6 +29,12 @@ export function compileEngineSound(definition: EngineSoundDefinition): CompiledE
     )
   )
     throw new RangeError('invalid engine sound firing phases');
+  if (
+    !Number.isFinite(exhaustDurationDegrees) ||
+    exhaustDurationDegrees <= 0 ||
+    exhaustDurationDegrees >= 360 * cycleRevolutions
+  )
+    throw new RangeError('invalid engine sound exhaust duration');
   // Resource limits bound delay storage; these are not claims about real exhaust geometry.
   if (
     !exhaust ||
@@ -41,6 +53,7 @@ export function compileEngineSound(definition: EngineSoundDefinition): CompiledE
   return Object.freeze({
     cycleRevolutions,
     firingPhases: Object.freeze([...firingPhases]),
+    exhaustDurationDegrees,
     exhaust: Object.freeze({
       ...exhaust,
       banks: Object.freeze([...exhaust.banks]),

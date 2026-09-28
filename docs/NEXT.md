@@ -18,7 +18,7 @@
   derive from the Session seed; loading coverage, recovery policy and reference identities each have one owner.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **11-8 — Tire-sound transport (move only)**.
+Next PR: **11-7c — Fuel cut sound**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -28,13 +28,22 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Separate the audio scene from the browser and organize sound around replaceable definitions.
 
+- **11-7c — Fuel cut sound:** the race copies the powertrain fuel-cut latch into competitor observations and audio
+  emitters; during fuel cut, firings emit only a named pumping (motoring) pulse strength instead of combustion. Sound
+  changes.
+- **11-7d — Overrun pops:** while the effective opening is 0 and fuel is not cut, each firing becomes a pop with
+  `OVERRUN_POPS.probability`, injected at the collector junction with `OVERRUN_POPS.gain`; the per-firing seeded draw
+  makes the pop rate proportional to RPM. Sound changes.
+- **11-7e — Sound value classes:** physically derived exhaust values (outlet reflection, return cutoff, attenuation)
+  and tire shaping values (saturation, slip half and rolloff, noise bandwidth, output cutoff) become documented
+  constants; DEV sound controls expose only listening parameters, adding the downshift blip, pumping and pop values.
 - **11-8 — Tire-sound transport (move only):** separate transport from component controls.
 - **11-9 — Tire-sound values:** validate and resolve once; one surface-sound record per material ID, sent by catalog
   index.
 - **11-10 — Sound definitions as content:** a sound manifest kind with engine sound documents per sound ID, one
   surface-sound document keyed by material ID and one game-wide audio document (mix, rival policy, settings). The
   audio layer compiles them; vehicle appearance references a sound ID. The content build rejects a catalog material
-  without a surface sound and a surface sound for an unknown material; there is no fallback.
+  without a surface sound and a surface sound for an unknown material; there is no fallback. The DEV sound panels export the game-wide audio document.
 - **11-11 — Sound tables (delete):** remove the TypeScript sound tables and the startup completeness check.
 - **11-12 — DEV sound controls and audio tools (move only):** move DEV sound-control DOM construction out of the
   audio lifecycle; the shell's reusable DOM controls (range control, number stepper and the DEV sound panels) live

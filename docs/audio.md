@@ -24,8 +24,10 @@ filter and envelope state. Player tire sound reads the player's observed tire ob
 rival sound uses the rival's observed powertrain values.
 
 An [engine sound](../src/audio/engine-sound.ts) contains one or two revolutions per
-cycle, ordered firing phases, collector membership, primary lengths and a common outlet length per
-collector. Phase count determines cylinder count. `compileEngineSound` validates an
+cycle, ordered firing phases, the exhaust duration (`exhaustDurationDegrees`, crank degrees the exhaust
+valve or port is open), collector membership, primary lengths and a common outlet length per
+collector. Each firing phase is that cylinder's exhaust-opening instant (start of blowdown); the offset from
+combustion top dead centre is common to all cylinders and is not represented. Phase count determines cylinder count. `compileEngineSound` validates an
 `EngineSoundDefinition` into a `CompiledEngineSound`; the vehicle catalog binds the
 [engine sounds](../src/vehicle/engine-sounds.ts) to the
 same sample-free engine kernel. Firing rows identify events and collector groups.
@@ -33,7 +35,8 @@ same sample-free engine kernel. Firing rows identify events and collector groups
 ## Engine synthesis
 
 The voice reads engine RPM exactly as simulated; physics keeps it at or above idle, and the exhaust
-processor's own `rpm` parameter range (0 to 24000) is the only bound. Excitation follows the
+processor's own `rpm` parameter range (1 to 24000) is the only bound; a positive RPM keeps every
+crank-angle-to-time conversion finite. Excitation follows the
 powertrain's effective opening, so it includes the idle-holding opening. During fuel cut the effective
 opening is 0, but excitation keeps its `closedExcitation` floor, so the engine is not silent; the fuel-cut
 latch makes engine RPM oscillate between redline and the fuel-cut threshold, and the sound follows that RPM.
@@ -51,16 +54,19 @@ p' = -p/decayTime
 r' = (p-r)/riseTime
 ```
 
-Firing resets `p` and keeps `r` continuous. Exact exponential evolution across fractional firing times
-supplies the sample-average pulse to the pipe. Rise and decay are independent positive time constants.
+Rise and decay are crank angles (`pulseRiseDegrees`, `pulseDecayDegrees`); an angle `D` lasts
+`D/(6*rpm)` seconds at the smoothed RPM, so pulses are longer at low RPM and shorter at high RPM.
+`riseTime` is the rise angle's duration divided by excitation; `decayTime` is the decay angle's duration.
+Both are recomputed every sample. Firing resets `p` and keeps `r` continuous. Exact exponential evolution
+across fractional firing times supplies the sample-average pulse to the pipe.
 
 The [waveguide](../src/audio/exhaust-waveguide.ts) has bidirectional primary and outlet delays rounded
 to the nearest sample at the reference wave speed. Each traversal multiplies amplitude by
 `exp(-attenuationPerMeter*length)`. Equal-admittance collector scattering uses
 `p = 2*sum(incoming)/portCount` and `outgoing = p-incoming`.
 
-The cylinder-end reflection varies from +0.94 to -0.3 through the aperture `16*u²*(1-u)²` over 0.23 firing
-cycles, then returns to its closed value. The aperture has continuous value and slope and a window
+After a cylinder's exhaust opens, its cylinder-end reflection varies from +0.94 to -0.3 through the aperture
+`16*u²*(1-u)²` over `exhaustDurationDegrees` of crank angle, then returns to its closed value. The aperture has continuous value and slope and a window
 mean of 8/15. Cylinder-end and outlet low-pass filters act inside their return paths. The listening pickup
 sums outgoing and low-passed outgoing waves, with collector mixing divided by `sqrt(collectorCount)`.
 

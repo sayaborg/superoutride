@@ -48,9 +48,6 @@ export class ExhaustWaveguide {
   private readonly outlet: Float64Array;
   private readonly bankNormalization: number;
   private readonly smoothing: number;
-  private readonly decay: number;
-  private readonly decayRate: number;
-  private readonly decayIntegral: number;
   private readonly dcCoefficient: number;
   private readonly toneCoefficient: number;
   private readonly loss: number;
@@ -68,7 +65,6 @@ export class ExhaustWaveguide {
     settings: Partial<ExhaustSettings> = {},
   ) {
     this.settings = resolveExhaustSettings(settings);
-    const { pulseDecayMs } = this.settings;
     const n = sound.firingPhases.length;
     const exhaust = sound.exhaust;
     this.banks = exhaust.banks;
@@ -90,9 +86,6 @@ export class ExhaustWaveguide {
     this.bankNormalization = Math.sqrt(groups);
     for (const bank of this.banks) this.counts[bank]!++;
     this.smoothing = 1 - Math.exp(-1 / (AUDIO_CONTROL_POLICY.observationSeconds * rate));
-    this.decayRate = 1 / ((pulseDecayMs / 1000) * rate);
-    this.decay = Math.exp(-this.decayRate);
-    this.decayIntegral = -Math.expm1(-this.decayRate) / this.decayRate;
     this.dcCoefficient = 1 - Math.exp((-2 * Math.PI * OUTPUT.dcHz) / rate);
     this.toneCoefficient = 1 - Math.exp((-2 * Math.PI * this.settings.outputCutoffHz) / rate);
     this.loss = 1 - Math.exp((-2 * Math.PI * this.settings.returnCutoffHz) / rate);
@@ -105,14 +98,19 @@ export class ExhaustWaveguide {
     const step = this.rpm / (60 * this.sound.cycleRevolutions * this.rate);
     const previous = this.phase;
     this.phase = (this.phase + step) % 1;
+    // Crank degrees to samples at the smoothed RPM: D degrees last D / (6 * rpm) seconds.
+    const samplesPerDegree = this.rate / (6 * this.rpm);
+    const decayRate = 1 / (this.settings.pulseDecayDegrees * samplesPerDegree);
+    const decayStep = Math.exp(-decayRate);
+    const decayIntegral = -Math.expm1(-decayRate) / decayRate;
     // One excitation control: stronger pulses also rise faster. No load-dependent output EQ/drive.
     const excitation = this.settings.closedExcitation + (1 - this.settings.closedExcitation) * this.load;
-    const riseTime = ((this.settings.pulseRiseMs / 1000) * this.rate) / excitation;
+    const riseTime = (this.settings.pulseRiseDegrees * samplesPerDegree) / excitation;
     const riseRate = 1 / riseTime;
     const retain = Math.exp(-riseRate);
-    const coupling = pulseCoupling(riseRate, this.decayRate, this.decay, retain);
+    const coupling = pulseCoupling(riseRate, decayRate, decayStep, retain);
     // Integrate r' = riseRate * (pulse - r). Prepare weights once for all cylinders.
-    const pulseAverage = this.decayIntegral - coupling * riseTime;
+    const pulseAverage = decayIntegral - coupling * riseTime;
     const riseAverage = (1 - retain) * riseTime;
     this.sums.fill(0);
     for (let i = 0; i < this.pulse.length; i++) {
@@ -123,7 +121,7 @@ export class ExhaustWaveguide {
       const rise = this.rise[i]!;
       this.emission[i] = pulseAverage * pulse + riseAverage * rise;
       this.rise[i] = retain * rise + coupling * pulse;
-      this.pulse[i] = pulse * this.decay;
+      this.pulse[i] = pulse * decayStep;
       if (crossed) {
         let strength = excitation;
         if (this.settings.pulseVariation > 0) {
@@ -135,11 +133,11 @@ export class ExhaustWaveguide {
         }
         // Resolve the event inside this sample; preserve the continuous rise state at the reset.
         const elapsed = (this.phase >= offset ? this.phase - offset : this.phase - offset + 1) / step;
-        const decay = Math.exp(-this.decayRate * elapsed);
-        const after = pulseCoupling(riseRate, this.decayRate, decay, Math.exp(-riseRate * elapsed), elapsed);
-        const jump = strength - (pulse * this.decay) / decay;
+        const decay = Math.exp(-decayRate * elapsed);
+        const after = pulseCoupling(riseRate, decayRate, decay, Math.exp(-riseRate * elapsed), elapsed);
+        const jump = strength - (pulse * decayStep) / decay;
         this.rise[i]! += after * jump;
-        this.emission[i]! += jump * ((1 - decay) / this.decayRate - after * riseTime);
+        this.emission[i]! += jump * ((1 - decay) / decayRate - after * riseTime);
         this.pulse[i] = strength * decay;
       }
       this.sums[this.banks[i]!]! += this.forward[i]!.read();
@@ -157,8 +155,9 @@ export class ExhaustWaveguide {
       exhaust += out + this.outlet[bank]!;
     }
     for (let i = 0; i < this.backward.length; i++) {
+      // Cycle fraction since this cylinder's exhaust opened, as crank degrees across the open duration.
       const age = (this.phase - this.sound.firingPhases[i]! + 1) % 1;
-      const position = age / ACOUSTICS.cylinderWindowCycles;
+      const position = (age * 360 * this.sound.cycleRevolutions) / this.sound.exhaustDurationDegrees;
       const aperture = position < 1 ? position * (1 - position) : 0;
       // Unit-height quartic aperture: zero value and slope at both ends, without a trig call.
       const opening = 16 * aperture * aperture;

@@ -11,7 +11,7 @@ class ExhaustProcessor extends AudioWorkletProcessor {
   private running = true;
   static get parameterDescriptors() {
     return [
-      { name: 'rpm', defaultValue: 1000, minValue: 0, maxValue: 24000, automationRate: 'k-rate' },
+      { name: 'rpm', defaultValue: 1000, minValue: 1, maxValue: 24000, automationRate: 'k-rate' },
       { name: 'load', defaultValue: 0, minValue: 0, maxValue: 1, automationRate: 'k-rate' },
       { name: 'blip', defaultValue: 0, minValue: 0, maxValue: 1, automationRate: 'k-rate' },
     ];

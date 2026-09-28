@@ -125,18 +125,18 @@ Displacement is in cc and cycle is 2 or 4 strokes. Gear ratios and final drive a
 
 [Exhaust acoustics](../src/audio/exhaust-acoustics.ts) supplies the `ExhaustSettings` defaults and domains.
 Values are authored sound-model coefficients; the reference-derived pipe coefficients use the
-[reference conditions](audio.md#reference-coefficients).
+[reference conditions](audio.md#reference-coefficients). Pulse rise and decay are crank angles; at 3000 RPM, 18° lasts 1 ms.
 
-| Key                   | Meaning                                | Default   | UI range / step         |
-| --------------------- | -------------------------------------- | --------- | ----------------------- |
-| `outletReflection`    | Outlet pressure-reflection coefficient | -1        | -1–0 / 0.01             |
-| `returnCutoffHz`      | Boundary return-filter cutoff          | 3100 Hz   | 500–10000 Hz / 100 Hz   |
-| `attenuationPerMeter` | Pipe amplitude loss per metre          | 0.03 Np/m | 0–0.30 Np/m / 0.01 Np/m |
-| `closedExcitation`    | Closed-throttle excitation             | 0.22      | 0.01–1 / 0.01           |
-| `outputCutoffHz`      | Final listening-filter cutoff          | 7300 Hz   | 100–12000 Hz / 100 Hz   |
-| `pulseVariation`      | Absolute event-strength variation      | 0.20      | 0–0.40 / 0.01           |
-| `pulseRiseMs`         | Full-excitation pulse rise time        | 0.20 ms   | 0.01–2 ms / 0.01 ms     |
-| `pulseDecayMs`        | Pulse decay time                       | 5 ms      | 0.1–30 ms / 0.1 ms      |
+| Key                   | Meaning                                 | Default   | UI range / step         |
+| --------------------- | --------------------------------------- | --------- | ----------------------- |
+| `outletReflection`    | Outlet pressure-reflection coefficient  | -1        | -1–0 / 0.01             |
+| `returnCutoffHz`      | Boundary return-filter cutoff           | 3100 Hz   | 500–10000 Hz / 100 Hz   |
+| `attenuationPerMeter` | Pipe amplitude loss per metre           | 0.03 Np/m | 0–0.30 Np/m / 0.01 Np/m |
+| `closedExcitation`    | Closed-throttle excitation              | 0.22      | 0.01–1 / 0.01           |
+| `outputCutoffHz`      | Final listening-filter cutoff           | 7300 Hz   | 100–12000 Hz / 100 Hz   |
+| `pulseVariation`      | Absolute event-strength variation       | 0.20      | 0–0.40 / 0.01           |
+| `pulseRiseDegrees`    | Full-excitation pulse rise, crank angle | 3.6°      | 0.2–36° / 0.1°          |
+| `pulseDecayDegrees`   | Pulse decay, crank angle                | 90°       | 2–360° / 1°             |
 
 Kernel domains equal these UI ranges except `returnCutoffHz` starts at 100 Hz,
 `attenuationPerMeter` extends to 1 Np/m, and `closedExcitation` accepts `(0,1]`.
