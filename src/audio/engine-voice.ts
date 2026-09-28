@@ -1,6 +1,6 @@
 import { clamp } from '../core/math.js';
 import { follow } from './audio-parameter.js';
-import { AUDIO_CONTROL_POLICY } from './audio-control-policy.js';
+import { resolveControlSettings, sameControlSettings, type ControlSettings } from './audio-control-policy.js';
 import { EXHAUST_SETTING_RANGES, resolveExhaustSettings } from './exhaust-acoustics.js';
 import type { ExhaustSettings } from './exhaust-acoustics.js';
 import type { CompiledEngineSound } from './engine-sound.js';
@@ -15,19 +15,22 @@ function sameExhaustSettings(left: ExhaustSettings | undefined, right: ExhaustSe
   return true;
 }
 
-/** One reusable exhaust worklet. Engine sound and exhaust settings changes share the same fade. */
+/** One reusable exhaust worklet. Engine sound, exhaust settings and kernel control changes share the same fade. */
 export function createEngineVoice(
   context: BaseAudioContext,
   destination: AudioNode,
   {
     sound: initialSound,
     settings: initialSettings = {},
+    control: initialControl = {},
   }: {
     sound?: CompiledEngineSound;
     settings?: Partial<ExhaustSettings>;
+    control?: Partial<ControlSettings>;
   } = {},
 ) {
   let settings = resolveExhaustSettings(initialSettings);
+  let control = resolveControlSettings(initialControl);
   const output = context.createGain();
   output.gain.value = 0;
   output.connect(destination);
@@ -35,32 +38,40 @@ export function createEngineVoice(
     numberOfInputs: 0,
     numberOfOutputs: 1,
     outputChannelCount: [1],
-    processorOptions: initialSound ? { sound: initialSound, settings } : undefined,
+    processorOptions: initialSound ? { sound: initialSound, settings, control } : undefined,
   });
   exhaust.connect(output);
-  let active = initialSound ? { sound: initialSound, settings } : null;
+  let active = initialSound ? { sound: initialSound, settings, control } : null;
   let pending: {
     sound: CompiledEngineSound;
     settings: ExhaustSettings;
+    control: ControlSettings;
     at: number;
   } | null = null;
+  const same = (
+    entry: { sound: CompiledEngineSound; settings: ExhaustSettings; control: ControlSettings } | null,
+    sound: CompiledEngineSound,
+  ): boolean =>
+    entry?.sound === sound &&
+    sameExhaustSettings(entry.settings, settings) &&
+    sameControlSettings(entry.control, control);
   // The last shift sequence heard; null until the first update after construction or silence.
   let heardShift: number | null = null;
   return {
     update(state: VehicleAudioObservation, sound: CompiledEngineSound, gain = 1): void {
       const now = context.currentTime;
-      const changed = active?.sound !== sound || !sameExhaustSettings(active?.settings, settings);
+      const changed = !same(active, sound);
       if (active && changed) {
-        if (pending?.sound !== sound || !sameExhaustSettings(pending?.settings, settings)) {
-          pending = { sound, settings, at: now + AUDIO_CONTROL_POLICY.transitionSeconds };
-          follow(output.gain, 0, now, AUDIO_CONTROL_POLICY.fadeSeconds);
+        if (!same(pending, sound)) {
+          pending = { sound, settings, control, at: now + control.transitionSeconds };
+          follow(output.gain, 0, now, control.fadeSeconds);
         }
         if (pending && now < pending.at) return;
       }
       pending = null;
       if (changed) {
-        exhaust.port.postMessage({ sound, settings });
-        active = { sound, settings };
+        exhaust.port.postMessage({ sound, settings, control });
+        active = { sound, settings, control };
       }
       const { shift } = state;
       if (
@@ -79,15 +90,18 @@ export function createEngineVoice(
       exhaust.parameters.get('rpm')!.value = state.rpm;
       exhaust.parameters.get('load')!.value = clamp(state.effectiveOpening, 0, 1);
       exhaust.parameters.get('fuelCut')!.value = state.fuelCut ? 1 : 0;
-      follow(output.gain, clamp(gain, 0, 1), now, AUDIO_CONTROL_POLICY.gainSeconds);
+      follow(output.gain, clamp(gain, 0, 1), now, control.gainSeconds);
     },
     setSettings(value: ExhaustSettings): void {
       if (!sameExhaustSettings(settings, value)) settings = resolveExhaustSettings(value);
     },
+    setControl(value: ControlSettings): void {
+      if (!sameControlSettings(control, value)) control = resolveControlSettings(value);
+    },
     silence(): void {
       // A newly assigned competitor's earlier shifts must not sound.
       heardShift = null;
-      follow(output.gain, 0, context.currentTime, AUDIO_CONTROL_POLICY.fadeSeconds);
+      follow(output.gain, 0, context.currentTime, control.fadeSeconds);
     },
     dispose(): void {
       exhaust.port.postMessage('stop');

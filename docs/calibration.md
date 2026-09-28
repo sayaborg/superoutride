@@ -123,22 +123,27 @@ Displacement is in cc and cycle is 2 or 4 strokes. Gear ratios and final drive a
 
 ## Engine sound settings
 
-[Exhaust acoustics](../src/audio/exhaust-acoustics.ts) supplies the `ExhaustSettings` defaults and domains.
-Values are authored listening settings; the reference-derived pipe coefficients are
-[constants](#derived-and-fixed-constants). Pulse rise and decay are absolute times.
+Audio values are either [derived](#derived-values) or DEV listening settings. Every DEV default is the
+implementer's initial value, not a value the owner chose by listening. [Exhaust acoustics](../src/audio/exhaust-acoustics.ts)
+supplies the ENGINE group (`ExhaustSettings`) defaults and domains. Pulse rise and decay are absolute times.
 
-| Key                 | Meaning                            | Default | UI range / step    |
-| ------------------- | ---------------------------------- | ------- | ------------------ |
-| `closedExcitation`  | Closed-throttle excitation         | 0.22    | 0.01–1 / 0.01      |
-| `pulseVariation`    | Absolute event-strength variation  | 0.20    | 0–0.40 / 0.01      |
-| `pumpingExcitation` | Firing strength during fuel cut    | 0.06    | 0.01–0.50 / 0.01   |
-| `pulseRiseMs`       | Full-excitation pulse rise time    | 0.2 ms  | 0.05–2 ms / 0.01   |
-| `pulseDecayMs`      | Pulse decay time                   | 5 ms    | 0.1–30 ms / 0.1    |
-| `outputCutoffHz`    | Final listening-filter cutoff      | 7300 Hz | 100–12000 Hz / 100 |
-| `blipOpening`       | Downshift blip opening peak        | 0.70    | 0–1 / 0.01         |
-| `blipDecaySeconds`  | Downshift blip decay time          | 0.08 s  | 0.02–0.30 s / 0.01 |
-| `popProbability`    | Overrun pop probability per firing | 0.12    | 0–1 / 0.01         |
-| `popStrength`       | Overrun pop pulse strength         | 0.50    | 0–1 / 0.05         |
+| Key                        | Meaning                                      | Default | UI range / step    |
+| -------------------------- | -------------------------------------------- | ------- | ------------------ |
+| `closedExcitation`         | Closed-throttle excitation                   | 0.22    | 0.01–1 / 0.01      |
+| `pulseVariation`           | Absolute event-strength variation            | 0.20    | 0–0.40 / 0.01      |
+| `pumpingExcitation`        | Firing strength during fuel cut              | 0.06    | 0.01–0.50 / 0.01   |
+| `pulseRiseMs`              | Full-excitation pulse rise time              | 0.2 ms  | 0.05–2 ms / 0.01   |
+| `pulseDecayMs`             | Pulse decay time                             | 5 ms    | 0.1–30 ms / 0.1    |
+| `outputCutoffHz`           | Final listening-filter cutoff                | 7300 Hz | 100–12000 Hz / 100 |
+| `blipOpening`              | Downshift blip opening peak                  | 0.70    | 0–1 / 0.01         |
+| `blipDecaySeconds`         | Downshift blip decay time                    | 0.08 s  | 0.02–0.30 s / 0.01 |
+| `popProbability`           | Overrun pop probability per firing           | 0.12    | 0–1 / 0.01         |
+| `popStrength`              | Overrun pop pulse strength                   | 0.50    | 0–1 / 0.05         |
+| `cylinderWindowCycles`     | Cylinder-end boundary window, cycle fraction | 0.23    | 0.05–0.6 / 0.01    |
+| `cylinderClosedReflection` | Closed cylinder-end pressure reflection      | 0.94    | 0.5–1 / 0.01       |
+| `cylinderOpenReflection`   | Open cylinder-end pressure reflection        | -0.3    | -1–0.5 / 0.05      |
+| `dcHz`                     | Output DC-removal corner                     | 18 Hz   | 5–60 Hz / 1        |
+| `clipCeiling`              | Soft-clip bound and small-signal gain        | 0.65    | 0.2–1 / 0.01       |
 
 Kernel domains equal these UI ranges except `closedExcitation` accepts `(0,1]` and `pumpingExcitation`
 accepts `(0,0.5]`.
@@ -158,7 +163,7 @@ accepts `(0,0.5]`.
 | `outputGainPerSecond`      | Displacement-pickup gain           | 900 s⁻¹  | 0–1800 / 25          |
 
 Both modes have damping `2*pi*500 s⁻¹`. Their participation values are `0.45` and
-`sqrt(1-0.45²)`. Control following uses `AUDIO_CONTROL_POLICY.observationSeconds` and DC removal is 18 Hz.
+`sqrt(1-0.45²)`. Control following uses the TIMING `observationSeconds` and DC removal is 18 Hz.
 Rolling coefficients are supplied by [rolling acoustics](../src/audio/tire-rolling-acoustics.ts).
 
 | Surface  | Friction roughness | Friction susceptibility |
@@ -169,24 +174,70 @@ Rolling coefficients are supplied by [rolling acoustics](../src/audio/tire-rolli
 | DIRT     | 1.5                | 0.12                    |
 | SAND     | 1.1                | 0.02                    |
 
-## Derived and fixed constants
+Until 11-7m-b makes them DEV settings, these UNIFIED shaping values remain code constants:
 
-These values are code constants; DEV controls never change them.
+| Constant                                | Meaning                       | Value    |
+| --------------------------------------- | ----------------------------- | -------- |
+| `UNIFIED_SYNTHESIS.saturationPerSecond` | Cubic feedback dissipation    | 6000 s⁻¹ |
+| `UNIFIED_SYNTHESIS.slipHalfMps`         | Feedback slip half-response   | 3 m/s    |
+| `UNIFIED_SYNTHESIS.slipRolloffMps`      | High-slip feedback rolloff    | 45 m/s   |
+| `UNIFIED_SYNTHESIS.noiseBandwidthHz`    | Colored-force bandwidth       | 600 Hz   |
+| `UNIFIED_SYNTHESIS.outputCutoffHz`      | Friction output-filter cutoff | 8000 Hz  |
 
-| Constant                                | Meaning                                     | Value     |
-| --------------------------------------- | ------------------------------------------- | --------- |
-| `PIPE_COEFFICIENTS.outletReflection`    | Outlet pressure reflection (open-end limit) | -1        |
-| `PIPE_COEFFICIENTS.returnCutoffHz`      | Boundary return-filter cutoff, derived      | 3100 Hz   |
-| `PIPE_COEFFICIENTS.attenuationPerMeter` | Pipe amplitude loss, derived and rounded    | 0.03 Np/m |
-| `UNIFIED_SYNTHESIS.saturationPerSecond` | Cubic feedback dissipation                  | 6000 s⁻¹  |
-| `UNIFIED_SYNTHESIS.slipHalfMps`         | Feedback slip half-response                 | 3 m/s     |
-| `UNIFIED_SYNTHESIS.slipRolloffMps`      | High-slip feedback rolloff                  | 45 m/s    |
-| `UNIFIED_SYNTHESIS.noiseBandwidthHz`    | Colored-force bandwidth                     | 600 Hz    |
-| `UNIFIED_SYNTHESIS.outputCutoffHz`      | Friction output-filter cutoff               | 8000 Hz   |
+## MIX settings
 
-The pipe coefficients derive from the [reference conditions](audio.md#reference-coefficients).
+[Sound graph](../src/audio/sound-graph.ts) supplies the master compressor settings (`MixSettings`).
 
-## Mix settings
+| Key              | Meaning              | Default | Range / step      |
+| ---------------- | -------------------- | ------- | ----------------- |
+| `thresholdDb`    | Compressor threshold | -6 dB   | -40–0 dB / 1      |
+| `kneeDb`         | Compressor knee      | 6 dB    | 0–40 dB / 1       |
+| `ratio`          | Compressor ratio     | 12      | 1–20 / 0.5        |
+| `attackSeconds`  | Compressor attack    | 0.003 s | 0.001–0.1 / 0.001 |
+| `releaseSeconds` | Compressor release   | 0.12 s  | 0.02–1 / 0.01     |
+
+## TIMING settings
+
+[Audio control](../src/audio/audio-control-policy.ts) supplies the control time constants (`ControlSettings`);
+each range is about a quarter to four times its default, with step 0.001 s.
+
+| Key                  | Meaning                                   | Default | Range        |
+| -------------------- | ----------------------------------------- | ------- | ------------ |
+| `observationSeconds` | Kernel following of acoustic observations | 0.025 s | 0.006–0.1 s  |
+| `gainSeconds`        | Voice output gain following               | 0.025 s | 0.006–0.1 s  |
+| `mixSeconds`         | Bus and master gain following             | 0.015 s | 0.004–0.06 s |
+| `panSeconds`         | Rival pan following                       | 0.06 s  | 0.015–0.24 s |
+| `fadeSeconds`        | Fade before replacement and on silence    | 0.01 s  | 0.003–0.04 s |
+| `componentSeconds`   | R/Q output switching in the tire kernel   | 0.005 s | 0.001–0.02 s |
+| `transitionSeconds`  | Wait after a fade before a discontinuity  | 0.09 s  | 0.023–0.36 s |
+
+## RIVAL settings
+
+[Audio scene](../src/audio/audio-scene.ts) supplies the rival settings (`RivalSettings`). The gain is the derived
+inverse-distance law `referenceMeters/max(referenceMeters, distance)`; the audible cutoff is game policy.
+
+| Key                   | Meaning                        | Default | Range / step      |
+| --------------------- | ------------------------------ | ------- | ----------------- |
+| `audibleMeters`       | Farthest selectable rival      | 100 m   | 20–300 m / 5      |
+| `referenceMeters`     | Distance of unity gain         | 3 m     | 1–20 m / 0.5      |
+| `panMinimumMeters`    | Pan denominator floor          | 3 m     | 1–20 m / 0.5      |
+| `reassignmentSeconds` | Wait before a new rival sounds | 0.09 s  | 0.02–0.5 s / 0.01 |
+
+## Derived values
+
+These values follow from physics under the stated [assumptions](audio.md#derived-values); DEV controls never
+change them.
+
+| Value                                   | Derivation                                        | Value     |
+| --------------------------------------- | ------------------------------------------------- | --------- |
+| `ACOUSTICS.waveSpeed`                   | `sqrt(gamma*R*T)` at 573.15 K, rounded            | 480 m/s   |
+| `PIPE_COEFFICIENTS.outletReflection`    | Unflanged open-end low-frequency limit            | -1        |
+| `PIPE_COEFFICIENTS.returnCutoffHz`      | `c/(2*pi*radius)` at 25 mm radius, rounded        | 3100 Hz   |
+| `PIPE_COEFFICIENTS.attenuationPerMeter` | Kirchhoff boundary-layer loss at 500 Hz, rounded  | 0.03 Np/m |
+| Rival gain                              | Inverse distance, unity within `referenceMeters`  | —         |
+| Rival pan                               | Lateral displacement / `max(panMinimumMeters, d)` | —         |
+
+## Mix levels
 
 | Control | Default | Range / meaning                           |
 | ------- | ------- | ----------------------------------------- |

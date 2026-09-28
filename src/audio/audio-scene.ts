@@ -1,9 +1,9 @@
 import { clamp } from '../core/math.js';
-import { AUDIO_CONTROL_POLICY } from './audio-control-policy.js';
+import { resolveControlSettings, type ControlSettings } from './audio-control-policy.js';
 import { follow } from './audio-parameter.js';
 import { createEngineVoice } from './engine-voice.js';
 import type { ExhaustSettings } from './exhaust-acoustics.js';
-import { createSoundGraph, type SoundBus } from './sound-graph.js';
+import { createSoundGraph, type MixSettings, type SoundBus } from './sound-graph.js';
 import type { TireComponents } from './tire-sound-controls.js';
 import type { UnifiedSettings } from './tire-unified-acoustics.js';
 import { createTireVoice } from './tire-voice.js';
@@ -27,30 +27,70 @@ export interface VehicleAudioEmitter extends VehicleAudioObservation, AudioPose 
   readonly id: string;
 }
 
-/** Rival selection, distance mix and reassignment; presentation policy, never vehicle properties. */
-export const RIVAL_AUDIO_POLICY = Object.freeze({
+/**
+ * Rival selection, distance law and reassignment: presentation policy, never vehicle properties. Listening
+ * settings on the DEV RIVAL panel; the distance law and pan are geometry.
+ */
+export interface RivalSettings {
+  /** Game policy cutoff: rivals beyond it are never selected. */
+  readonly audibleMeters: number;
+  /** Distance of full gain for the inverse-distance law. */
+  readonly referenceMeters: number;
+  /** Pan denominator floor. */
+  readonly panMinimumMeters: number;
+  readonly reassignmentSeconds: number;
+}
+
+export const DEFAULT_RIVAL_SETTINGS: RivalSettings = Object.freeze({
   audibleMeters: 100,
-  peakGain: 0.6,
-  halfGainMeters: 12,
+  referenceMeters: 3,
   panMinimumMeters: 3,
   reassignmentSeconds: 0.09,
 });
 
-export function rivalAudioGain(distanceMeters: number): number {
-  const { peakGain, halfGainMeters, audibleMeters } = RIVAL_AUDIO_POLICY;
-  return (peakGain / (1 + (distanceMeters / halfGainMeters) ** 2)) * Math.max(0, 1 - distanceMeters / audibleMeters);
+export const RIVAL_SETTING_RANGES: Readonly<Record<keyof RivalSettings, { min: number; max: number; step: number }>> =
+  Object.freeze({
+    audibleMeters: Object.freeze({ min: 20, max: 300, step: 5 }),
+    referenceMeters: Object.freeze({ min: 1, max: 20, step: 0.5 }),
+    panMinimumMeters: Object.freeze({ min: 1, max: 20, step: 0.5 }),
+    reassignmentSeconds: Object.freeze({ min: 0.02, max: 0.5, step: 0.01 }),
+  });
+
+export function resolveRivalSettings(overrides: Partial<RivalSettings> = {}): RivalSettings {
+  const settings = { ...DEFAULT_RIVAL_SETTINGS };
+  for (const key of Object.keys(RIVAL_SETTING_RANGES) as (keyof RivalSettings)[]) {
+    const value = overrides[key] === undefined ? settings[key] : overrides[key];
+    const range = RIVAL_SETTING_RANGES[key];
+    if (!Number.isFinite(value) || value < range.min || value > range.max)
+      throw new RangeError(`invalid rival settings: ${key}`);
+    settings[key] = value;
+  }
+  return Object.freeze(settings);
+}
+
+/** Inverse-distance (spherical spreading) pressure law, unity within the reference distance. */
+export function rivalAudioGain(distanceMeters: number, settings: RivalSettings = DEFAULT_RIVAL_SETTINGS): number {
+  return settings.referenceMeters / Math.max(settings.referenceMeters, distanceMeters);
 }
 
 /** Lateral displacement is supplied in the listener's yaw frame by the audio scene. */
-export function rivalAudioPan(lateralMeters: number, distanceMeters: number): number {
-  return lateralMeters / Math.max(RIVAL_AUDIO_POLICY.panMinimumMeters, distanceMeters);
+export function rivalAudioPan(
+  lateralMeters: number,
+  distanceMeters: number,
+  settings: RivalSettings = DEFAULT_RIVAL_SETTINGS,
+): number {
+  return lateralMeters / Math.max(settings.panMinimumMeters, distanceMeters);
 }
 
 /** Physical world distance, independent of raster depth and local stage chainage. */
-export function nearestAudibleRival<T extends AudioPosition>(listener: AudioPosition, rivals: readonly T[]): T | null {
+export function nearestAudibleRival<T extends AudioPosition>(
+  listener: AudioPosition,
+  rivals: readonly T[],
+  audibleMeters = DEFAULT_RIVAL_SETTINGS.audibleMeters,
+): T | null {
   // Candidates are the race's observed rivals, which never include the listener.
   let nearest: T | null = null;
-  let distanceSquared = RIVAL_AUDIO_POLICY.audibleMeters ** 2;
+  let distanceSquared = audibleMeters ** 2;
   for (const candidate of rivals) {
     const d2 = (candidate.x - listener.x) ** 2 + (candidate.y - listener.y) ** 2 + (candidate.z - listener.z) ** 2;
     if (d2 < distanceSquared) {
@@ -64,13 +104,14 @@ export function nearestAudibleRival<T extends AudioPosition>(listener: AudioPosi
 export function rivalSpatialization(
   listener: AudioPose,
   rival: AudioPosition,
+  settings: RivalSettings = DEFAULT_RIVAL_SETTINGS,
 ): { readonly gain: number; readonly pan: number } {
   const dx = rival.x - listener.x,
     dy = rival.y - listener.y,
     dz = rival.z - listener.z;
   const distance = Math.hypot(dx, dy, dz);
   const lateral = dx * Math.cos(listener.yaw) - dz * Math.sin(listener.yaw);
-  return { gain: rivalAudioGain(distance), pan: rivalAudioPan(lateral, distance) };
+  return { gain: rivalAudioGain(distance, settings), pan: rivalAudioPan(lateral, distance, settings) };
 }
 
 /**
@@ -86,6 +127,8 @@ export async function createAudioScene(context: AudioContext) {
   rivalPan.connect(graph.input('engine'));
   const rivalEngine = createEngineVoice(context, rivalPan);
   const tires = createTireVoice(context, graph.input('tire'));
+  let rival = DEFAULT_RIVAL_SETTINGS;
+  let control = resolveControlSettings();
   let assignedId: string | null = null;
   let switchAt = 0;
   let disposed = false;
@@ -93,11 +136,11 @@ export async function createAudioScene(context: AudioContext) {
     update(player: VehicleAudioEmitter, rivals: readonly VehicleAudioEmitter[], sound: CompiledEngineSound): void {
       playerEngine.update(player, sound);
       tires.update(player);
-      const nearest = nearestAudibleRival(player, rivals);
+      const nearest = nearestAudibleRival(player, rivals, rival.audibleMeters);
       const nearestId = nearest?.id ?? null;
       if (nearestId !== assignedId) {
         assignedId = nearestId;
-        switchAt = context.currentTime + RIVAL_AUDIO_POLICY.reassignmentSeconds;
+        switchAt = context.currentTime + rival.reassignmentSeconds;
         rivalEngine.silence();
       }
       if (context.currentTime < switchAt) return;
@@ -105,9 +148,9 @@ export async function createAudioScene(context: AudioContext) {
         rivalEngine.silence();
         return;
       }
-      const { gain, pan } = rivalSpatialization(player, nearest);
+      const { gain, pan } = rivalSpatialization(player, nearest, rival);
       rivalEngine.update(nearest, sound, gain);
-      follow(rivalPan.pan, clamp(pan, -1, 1), context.currentTime, AUDIO_CONTROL_POLICY.panSeconds);
+      follow(rivalPan.pan, clamp(pan, -1, 1), context.currentTime, control.panSeconds);
     },
     setExhaustSettings(value: ExhaustSettings): void {
       playerEngine.setSettings(value);
@@ -118,6 +161,19 @@ export async function createAudioScene(context: AudioContext) {
     },
     setTireComponents(value: TireComponents): void {
       tires.setComponents(value);
+    },
+    setMixSettings(value: MixSettings): void {
+      graph.setMixSettings(value);
+    },
+    setControlSettings(value: ControlSettings): void {
+      control = resolveControlSettings(value);
+      graph.setControlSettings(control);
+      playerEngine.setControl(control);
+      rivalEngine.setControl(control);
+      tires.setControl(control);
+    },
+    setRivalSettings(value: RivalSettings): void {
+      rival = resolveRivalSettings(value);
     },
     setBusGain(bus: SoundBus, value: number): void {
       graph.setBusGain(bus, value);

@@ -1,9 +1,14 @@
 import { mountEngineSoundSettings } from './engine-sound-settings-controls.js';
 import { mountTireSoundSettings } from './tire-sound-settings-controls.js';
+import {
+  mountMixSoundSettings,
+  mountRivalSoundSettings,
+  mountTimingSoundSettings,
+} from './mix-sound-settings-controls.js';
 import { createRangeControl } from './range-control.js';
 import { createNumberStepper } from './number-stepper.js';
 import { TIRE_COMPONENTS } from '../audio/tire-sound-controls.js';
-import { AUDIO_CONTROL_POLICY } from '../audio/audio-control-policy.js';
+import { DEFAULT_CONTROL_SETTINGS } from '../audio/audio-control-policy.js';
 import { createAudioScene } from '../audio/audio-scene.js';
 import { SOUND_BUSES, type SoundBus } from '../audio/sound-graph.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
@@ -101,6 +106,18 @@ export function createAudioLifecycle(sessionVehicle: CompiledVehicleDefinition) 
         sync();
       })
     : null;
+  const mountHost = <P>(id: string, mount: (host: HTMLElement, onChange: () => void) => P): P | null => {
+    const host = document.getElementById(id);
+    return host
+      ? mount(host, () => {
+          unlock();
+          sync();
+        })
+      : null;
+  };
+  const mixSettings = mountHost('mix-sound-settings', mountMixSoundSettings);
+  const timingSettings = mountHost('timing-sound-settings', mountTimingSoundSettings);
+  const rivalSettings = mountHost('rival-sound-settings', mountRivalSoundSettings);
   function showSoundState(): void {
     if (!button || disposed) return;
     button.textContent = !supported
@@ -134,7 +151,7 @@ export function createAudioLifecycle(sessionVehicle: CompiledVehicleDefinition) 
     event.stopPropagation();
   }
   showComponents();
-  tireSoundSettings?.setEnabled(supported);
+  for (const panel of [tireSoundSettings, mixSettings, timingSettings, rivalSettings]) panel?.setEnabled(supported);
   function audible(): boolean {
     return enabled && active && !document.hidden && !disposed;
   }
@@ -175,6 +192,9 @@ export function createAudioLifecycle(sessionVehicle: CompiledVehicleDefinition) 
     showSoundState();
     if (!context || !scene) return;
     try {
+      if (timingSettings) scene.setControlSettings(timingSettings.read());
+      if (mixSettings) scene.setMixSettings(mixSettings.read());
+      if (rivalSettings) scene.setRivalSettings(rivalSettings.read());
       if (engineSoundSettings) scene.setExhaustSettings(engineSoundSettings.read());
       const tireSettings = tireSoundSettings?.read();
       if (tireSettings) scene.setTireSettings(tireSettings);
@@ -183,10 +203,13 @@ export function createAudioLifecycle(sessionVehicle: CompiledVehicleDefinition) 
       scene.setMasterGain(audible() ? volume : 0);
       if (!active || document.hidden || disposed) void context.suspend().catch(() => {});
       else if (!enabled)
-        suspendTimer = setTimeout(() => {
-          suspendTimer = null;
-          if (!audible()) void context?.suspend().catch(() => {});
-        }, AUDIO_CONTROL_POLICY.transitionSeconds * 1000);
+        suspendTimer = setTimeout(
+          () => {
+            suspendTimer = null;
+            if (!audible()) void context?.suspend().catch(() => {});
+          },
+          (timingSettings?.read() ?? DEFAULT_CONTROL_SETTINGS).transitionSeconds * 1000,
+        );
     } catch {
       fail();
     }
@@ -275,6 +298,9 @@ export function createAudioLifecycle(sessionVehicle: CompiledVehicleDefinition) 
     volumeContainer?.replaceChildren();
     engineSoundSettings?.dispose();
     tireSoundSettings?.dispose();
+    mixSettings?.dispose();
+    timingSettings?.dispose();
+    rivalSettings?.dispose();
     for (const { host, control } of mixControls) {
       control.dispose();
       host.replaceChildren();

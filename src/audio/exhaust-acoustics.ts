@@ -1,4 +1,4 @@
-// Reference conditions, not measured vehicle data. References and limits: docs/audio.md.
+// Physical assumptions of the derived values, not measured vehicle data. References and limits: docs/audio.md.
 export const REFLECTION_REFERENCE = Object.freeze({
   temperatureK: 573.15, // assumed 300 C air surrogate, not exhaust composition
   pressurePa: 101325,
@@ -17,7 +17,7 @@ const attenuation =
     (REFLECTION_REFERENCE.radiusMeters * waveSpeed)) *
   (1 + (AIR.gamma - 1) / Math.sqrt(AIR.prandtl));
 
-/** Pipe coefficients derived from REFLECTION_REFERENCE. Constants: DEV controls never change them. */
+/** Pipe coefficients derived from REFLECTION_REFERENCE. Derived values: DEV controls never change them. */
 export const PIPE_COEFFICIENTS = Object.freeze({
   // Rounded to control resolution; Kirchhoff thin-boundary-layer loss at the reference frequency.
   attenuationPerMeter: Math.round(attenuation * 100) / 100,
@@ -26,7 +26,10 @@ export const PIPE_COEFFICIENTS = Object.freeze({
   outletReflection: -1, // unflanged open-end low-frequency pressure-reflection limit
 });
 
-/** Listening values chosen by ear; DEV controls change them. */
+/**
+ * Every exhaust value that is not derived: listening settings on the DEV ENGINE panel. Defaults are the
+ * implementer's initial values, not values the owner chose by listening.
+ */
 export interface ExhaustSettings {
   readonly closedExcitation: number;
   readonly outputCutoffHz: number;
@@ -38,25 +41,37 @@ export interface ExhaustSettings {
   readonly blipDecaySeconds: number;
   readonly popProbability: number;
   readonly popStrength: number;
+  readonly cylinderWindowCycles: number;
+  readonly cylinderClosedReflection: number;
+  readonly cylinderOpenReflection: number;
+  readonly dcHz: number;
+  readonly clipCeiling: number;
 }
 export const DEFAULT_EXHAUST_SETTINGS: ExhaustSettings = Object.freeze({
-  closedExcitation: 0.22, // retained authored control; cannot be inferred from pipe acoustics
-  pulseRiseMs: 0.2, // common provisional full-excitation time constant
-  pulseDecayMs: 5, // common provisional decay time constant; base strength is fixed at 1
-  pulseVariation: 0.2, // absolute full-excitation fraction; acoustic sketch, not measured combustion variance
-  // Firing strength during fuel cut: exhaust-valve blowdown without combustion. Provisional listening value,
-  // separate from closedExcitation, which is weak combustion at closed throttle.
+  closedExcitation: 0.22, // No derivation; chosen by listening. Weak combustion at closed throttle.
+  pulseRiseMs: 0.2, // No derivation; chosen by listening. Full-excitation rise time constant.
+  pulseDecayMs: 5, // No derivation; chosen by listening. Decay time constant; base strength is fixed at 1.
+  pulseVariation: 0.2, // No derivation; chosen by listening. Absolute fraction of full excitation.
+  // No derivation; chosen by listening. Firing strength during fuel cut: blowdown without combustion.
   pumpingExcitation: 0.06,
-  outputCutoffHz: 7300, // post-clip listening filter; not measured muffler transmission loss
-  // A downshift's short rev-matching opening peak and its exponential decay time. Not a physical shift
-  // duration; the physical shift is instantaneous. Provisional listening values.
+  outputCutoffHz: 7300, // No derivation; chosen by listening. Post-clip listening filter.
+  // No derivation; chosen by listening. A downshift's rev-matching opening peak and its decay time; the
+  // physical shift is instantaneous.
   blipOpening: 0.7,
   blipDecaySeconds: 0.08,
-  // Per-firing pop probability during overrun and the pulse strength injected at the collector junction.
-  // A seeded draw per firing decides each pop, so the pop rate is proportional to RPM. No unburnt-fuel or
-  // temperature state is kept. Provisional listening values.
+  // No derivation; chosen by listening. Per-firing overrun pop probability and the pop pulse strength at
+  // the collector junction; the pop rate is proportional to RPM.
   popProbability: 0.12,
   popStrength: 0.5,
+  // No derivation; chosen by listening. The cylinder-end boundary window as a cycle fraction, NOT the valve's
+  // open duration (a 240-degree window removed the pipe resonance, so 11-7f restored this value).
+  cylinderWindowCycles: 0.23,
+  // No derivation; chosen by listening. Nearly rigid closed termination; magnitude < 1 absorbs energy.
+  cylinderClosedReflection: 0.94,
+  // No derivation; chosen by listening. Pressure-release-like open endpoint, not valve-flow physics.
+  cylinderOpenReflection: -0.3,
+  dcHz: 18, // No derivation; chosen by listening. Output DC-removal corner.
+  clipCeiling: 0.65, // No derivation; chosen by listening. Soft-clip asymptotic bound and small-signal gain.
 });
 
 interface SettingRange {
@@ -80,6 +95,11 @@ export const EXHAUST_SETTING_RANGES: Readonly<Record<keyof ExhaustSettings, Sett
   blipDecaySeconds: Object.freeze({ min: 0.02, max: 0.3, step: 0.01 }),
   popProbability: Object.freeze({ min: 0, max: 1, step: 0.01 }),
   popStrength: Object.freeze({ min: 0, max: 1, step: 0.05 }),
+  cylinderWindowCycles: Object.freeze({ min: 0.05, max: 0.6, step: 0.01 }),
+  cylinderClosedReflection: Object.freeze({ min: 0.5, max: 1, step: 0.01 }),
+  cylinderOpenReflection: Object.freeze({ min: -1, max: 0.5, step: 0.05 }),
+  dcHz: Object.freeze({ min: 5, max: 60, step: 1 }),
+  clipCeiling: Object.freeze({ min: 0.2, max: 1, step: 0.01 }),
 });
 
 export function resolveExhaustSettings(overrides: Partial<ExhaustSettings> = {}): ExhaustSettings {
@@ -99,13 +119,5 @@ export function resolveExhaustSettings(overrides: Partial<ExhaustSettings> = {})
   return Object.freeze(settings);
 }
 
-export const ACOUSTICS = Object.freeze({
-  waveSpeed, // fixed air-surrogate reference; not measured temperature
-  cylinderClosedReflection: 0.94, // nearly rigid effective termination; magnitude < 1 absorbs energy
-  cylinderOpenReflection: -0.3, // pressure-release-like endpoint; positive impedance, not valve-flow physics
-  // Acoustic boundary window as a cycle fraction, NOT the valve's open duration (a 240-degree window
-  // removed the pipe resonance, so 11-7f restored this value).
-  cylinderWindowCycles: 0.23,
-});
-// Listening-output conditioning: DC removal and bounded amplitude; not exhaust properties.
-export const OUTPUT = Object.freeze({ dcHz: 18, ceiling: 0.65 });
+// Derived from REFLECTION_REFERENCE: c = sqrt(gamma R T), rounded to 1 m/s.
+export const ACOUSTICS = Object.freeze({ waveSpeed });

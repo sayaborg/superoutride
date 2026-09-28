@@ -2,8 +2,9 @@
 
 Audio renders completed vehicle observations and never changes them. Its pressure-like pulses,
 pipe dimensions and output gains form an authored acoustic surrogate rather than measured vehicle
-sound. [Tire audio](tire-audio.md) owns UNIFIED synthesis, [Calibration](calibration.md) owns numeric
-settings, [Browser](browser.md#sound-controls) owns operation, and
+sound. Every audio value is either derived from physics or a DEV listening setting; implementer-chosen
+empirical constants are not kept. [Tire audio](tire-audio.md) owns UNIFIED synthesis, [Calibration](calibration.md) owns numeric
+values, [Browser](browser.md#sound-controls) owns operation, and
 [Development](development.md#audio-audition) owns audition commands and workflow.
 
 ## Observations and engine sounds
@@ -71,10 +72,10 @@ to the nearest sample at the reference wave speed. Each traversal multiplies amp
 `exp(-attenuationPerMeter*length)`. Equal-admittance collector scattering uses
 `p = 2*sum(incoming)/portCount` and `outgoing = p-incoming`.
 
-After a cylinder's exhaust opens, its cylinder-end reflection varies from +0.94 to -0.3 through the aperture
-`16*u²*(1-u)²` over 0.23 firing cycles (`ACOUSTICS.cylinderWindowCycles`), then returns to its closed value.
-This window is an empirical acoustic boundary, not the valve's open duration: a window spanning the valve
-event removed the pipe resonance. The aperture has continuous value and slope and a window
+After a cylinder's exhaust opens, its cylinder-end reflection varies from `cylinderClosedReflection` to
+`cylinderOpenReflection` through the aperture `16*u²*(1-u)²` over `cylinderWindowCycles` of the firing cycle, then
+returns to its closed value. These three are DEV settings; the window is an acoustic boundary, not the valve's
+open duration: a window spanning the valve event removed the pipe resonance. The aperture has continuous value and slope and a window
 mean of 8/15. Cylinder-end and outlet low-pass filters act inside their return paths. The listening pickup
 sums outgoing and low-passed outgoing waves, with collector mixing divided by `sqrt(collectorCount)`.
 
@@ -84,49 +85,57 @@ native-rate nonlinear stages define the model's temporal and spectral resolution
 ## Output conditioning
 
 ```text
-Collector mix -> 18 Hz DC removal -> soft clipping -> final low-pass filter
+Collector mix -> DC removal (dcHz) -> soft clipping -> final low-pass filter
               -> voice/master gain -> compressor
 ```
 
-Soft clipping uses `y = 0.65*x/(1+abs(x))`, with small-signal gain 0.65 and asymptotic bounds ±0.65.
+Soft clipping uses `y = clipCeiling*x/(1+abs(x))`, with small-signal gain and asymptotic bounds `clipCeiling`.
 The final filter uses `tone += a*(y-tone)`, where `a = 1-exp(-2*pi*outputCutoffHz/sampleRate)`.
 It is independent of the boundary return filter. The master compressor supplies envelope-based
 compression. Output depends on the engine sound, RPM, excitation and fixed mix gains.
 
-## Reference coefficients
+## Derived values
 
-The pipe coefficients are constants, separate from the listening settings: the fixed 480 m/s wave speed and
+Derived values follow from physics and are never DEV settings: the wave speed (`ACOUSTICS.waveSpeed`, 480 m/s),
 `PIPE_COEFFICIENTS` (outlet reflection, return cutoff and attenuation; values in
-[Calibration](calibration.md#derived-and-fixed-constants)). DEV controls never change them.
-[Exhaust acoustics](../src/audio/exhaust-acoustics.ts) derives them for
-an unflanged 50 mm internal-diameter pipe, 573.15 K air at 101325 Pa, `gamma=1.4`, `R=287 J/(kg K)`,
-`Pr=0.71` and a 500 Hz loss reference.
+[Calibration](calibration.md#derived-values)), the rival inverse-distance law and the rival pan geometry.
+[Exhaust acoustics](../src/audio/exhaust-acoustics.ts) derives the pipe values under stated physical assumptions
+(`REFLECTION_REFERENCE`): an unflanged 50 mm internal-diameter pipe, 573.15 K air at 101325 Pa, `gamma=1.4`,
+`R=287 J/(kg K)`, `Pr=0.71` and a 500 Hz loss reference.
 
 The derivation uses `c=sqrt(gamma*R*T)`, the open-end negative reflection limit,
 `fc=c/(2*pi*radius)` and
 `alpha=sqrt(pi*f*nu)/(radius*c)*(1+(gamma-1)/sqrt(Pr))`. Sutherland viscosity uses
 `mu0=1.716e-5 Pa s`, `T0=273 K` and `S=111 K`; density is `p/(R*T)` and `nu=mu/density`.
-The resulting loss is about 0.034 Np/m before rounding. These are fixed reference coefficients.
+The resulting loss is about 0.034 Np/m before rounding.
+
+Every other value is a DEV setting in one of the groups ENGINE (`ExhaustSettings`), MIX (`MixSettings`),
+TIMING (`ControlSettings`), RIVAL (`RivalSettings`) and the tire groups; defaults are the implementer's initial
+values, not values chosen by listening, and [Calibration](calibration.md) lists them.
 
 ## Mix and lifetime
 
 The [sound graph](../src/audio/sound-graph.ts) owns the named buses (`engine`, `tire`) and the master path:
-each bus feeds the MASTER gain, then a compressor set by `MASTER_COMPRESSOR_SETTINGS`, then the output.
+each bus feeds the MASTER gain, then a compressor set by the MIX settings (`MixSettings`, written directly to
+the compressor's parameters), then the output.
 The [audio scene](../src/audio/audio-scene.ts) loads the generators, owns the voices (player engine, selected
 rival engine with its panner, player tires) on those buses, and owns rival selection, reassignment and
-spatialization; `RIVAL_AUDIO_POLICY` owns their audible distance, gain, pan and reassignment time. The nearest
-observed rival within the audible distance occupies the rival slot; candidates are the rivals the race observes on
-the resident Route. Its gain uses 3D physical world distance and its pan uses lateral displacement in the player's
-yaw frame. A change of rival ID silences the slot and waits the reassignment time before the new rival sounds. ENG, TIRE and MASTER independently multiply their
+spatialization; the RIVAL settings (`RivalSettings`) own the audible distance, reference distance, pan floor and
+reassignment time. The nearest observed rival within `audibleMeters` occupies the rival slot; candidates are the
+rivals the race observes on the resident Route. That cutoff is game policy, not acoustics. The gain follows the
+inverse-distance law `referenceMeters/max(referenceMeters, distance)` over the 3D physical world distance, and the
+pan is lateral displacement in the player's yaw frame divided by `max(panMinimumMeters, distance)`. A change of rival ID silences the slot and waits the reassignment time before the new rival sounds. ENG, TIRE and MASTER independently multiply their
 outputs. A new sound kind adds one bus and connects its voices to it. Component output switches leave synthesis
 state running.
 
-[`AUDIO_CONTROL_POLICY`](../src/audio/audio-control-policy.ts) is the only record of control time
-constants, and each control has one smoothing authority. Voices write engine RPM, engine opening and tire
+The TIMING settings ([`ControlSettings`](../src/audio/audio-control-policy.ts)) are the only record of control
+time constants, and each control has one smoothing authority. Voices write engine RPM, engine opening and tire
 inputs directly to AudioParams; the kernels follow them per sample with `observationSeconds`. Output
 gains, bus and master gains and the rival pan follow only through AudioParam automation (`gainSeconds`,
 `mixSeconds`, `panSeconds`); silence and pre-replacement fades use `fadeSeconds`, and a discontinuity waits
-`transitionSeconds` after its fade. Engine sound and exhaust settings
+`transitionSeconds` after its fade. The main thread reads these values when it schedules each change; the kernel
+values (`observationSeconds`, `componentSeconds`) travel with the worklet's settings message, so a TIMING change
+replaces the kernels like a settings change. Engine sound, exhaust settings and control
 replacement fades to silence before installing a new kernel. New settings supersede pending values;
 returning to active values cancels pending replacement. Tire replacement is specified in
 [Tire audio](tire-audio.md#settings-replacement).

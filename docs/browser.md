@@ -162,7 +162,15 @@ A zero gain silences that output while DSP continues. R and Q buttons (`tire-com
 and friction output for both axles. Their labels and pressed states show ON/OFF, and unavailable audio
 disables them. [Tire audio](tire-audio.md#settings-replacement) owns faded output and replacement semantics.
 
-Engine sound settings (`engine-sound-settings`) expose ten minus/plus controls and reset. Buttons stop at limits; vehicle changes
-preserve settings, and page/course reload restores defaults. UNIFIED tire sound settings (`tire-sound-settings`) use the acoustic ranges
-and reset that model's defaults. Engine sound rows show cycle, cylinder count, idle/redline, firing phases,
+DEV sound settings come in groups, each with its own reset; page/course reload restores defaults and vehicle changes
+preserve them:
+
+- **ENGINE** (`engine-sound-settings`): fifteen minus/plus controls for the exhaust settings; buttons stop at limits.
+- **MIX** (`mix-sound-settings`): the master compressor.
+- **TIMING** (`timing-sound-settings`): the control time constants.
+- **RIVAL** (`rival-sound-settings`): rival audible distance, reference distance, pan floor and reassignment time.
+- **UNIFIED** (`tire-sound-settings`): the friction-model settings.
+- **ROLLING**: the rolling-model settings (11-7m-b).
+
+MIX, TIMING, RIVAL and UNIFIED use sliders with the acoustic ranges. Engine sound rows show cycle, cylinder count, idle/redline, firing phases,
 collector grouping and path lengths. [Calibration](calibration.md) lists the numeric settings.

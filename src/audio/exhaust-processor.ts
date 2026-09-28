@@ -1,5 +1,6 @@
 import { ExhaustWaveguide } from './exhaust-waveguide.js';
 import type { ExhaustSettings } from './exhaust-acoustics.js';
+import type { ControlSettings } from './audio-control-policy.js';
 import type { CompiledEngineSound } from './engine-sound.js';
 import { compileEngineSound } from './engine-sound.js';
 declare const sampleRate: number;
@@ -21,11 +22,12 @@ class ExhaustProcessor extends AudioWorkletProcessor {
     processorOptions?: {
       sound: CompiledEngineSound;
       settings?: Partial<ExhaustSettings>;
+      control?: Partial<ControlSettings>;
     };
   }) {
     super();
     const initial = options?.processorOptions;
-    if (initial) this.configure(initial.sound, initial.settings);
+    if (initial) this.configure(initial.sound, initial.settings, initial.control);
     this.port.onmessage = ({ data }) => {
       if (data === 'stop') {
         this.running = false;
@@ -33,15 +35,19 @@ class ExhaustProcessor extends AudioWorkletProcessor {
       } else if (data === null) this.engine = null;
       else {
         try {
-          this.configure(data.sound, data.settings);
+          this.configure(data.sound, data.settings, data.control);
         } catch {
           this.engine = null;
         }
       }
     };
   }
-  private configure(sound: CompiledEngineSound, settings: Partial<ExhaustSettings> = {}): void {
-    this.engine = new ExhaustWaveguide(compileEngineSound(sound), sampleRate, settings);
+  private configure(
+    sound: CompiledEngineSound,
+    settings: Partial<ExhaustSettings> = {},
+    control: Partial<ControlSettings> = {},
+  ): void {
+    this.engine = new ExhaustWaveguide(compileEngineSound(sound), sampleRate, settings, control);
   }
   process(_inputs: Float32Array[][], outputs: Float32Array[][], parameters: Record<string, Float32Array>): boolean {
     if (!this.running) return false;

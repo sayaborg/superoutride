@@ -1,6 +1,6 @@
 import { TIRE_SOUND_INPUT_KEYS } from './tire-sound-observation.js';
 import { follow } from './audio-parameter.js';
-import { AUDIO_CONTROL_POLICY } from './audio-control-policy.js';
+import { resolveControlSettings, sameControlSettings, type ControlSettings } from './audio-control-policy.js';
 import { resolveUnifiedSettings, sameUnifiedSettings, type UnifiedSettings } from './tire-unified-acoustics.js';
 import { tireSoundParameters, TIRE_COMPONENTS, type TireComponents } from './tire-sound-controls.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
@@ -16,8 +16,13 @@ export function createTireVoice(context: BaseAudioContext, destination: AudioNod
   output.gain.value = 0;
   node.connect(output).connect(destination);
   let desiredSettings = resolveUnifiedSettings();
-  let activeSettings: UnifiedSettings | null = null;
-  let pending: { settings: UnifiedSettings; at: number } | null = null;
+  let control = resolveControlSettings();
+  let active: { settings: UnifiedSettings; control: ControlSettings } | null = null;
+  let pending: { settings: UnifiedSettings; control: ControlSettings; at: number } | null = null;
+  const same = (entry: { settings: UnifiedSettings; control: ControlSettings } | null): boolean =>
+    entry !== null &&
+    sameUnifiedSettings(desiredSettings, entry.settings) &&
+    sameControlSettings(entry.control, control);
   let failed = false,
     disposed = false;
   node.onprocessorerror = () => {
@@ -26,6 +31,9 @@ export function createTireVoice(context: BaseAudioContext, destination: AudioNod
   return {
     setSettings(value: UnifiedSettings): void {
       desiredSettings = resolveUnifiedSettings(value);
+    },
+    setControl(value: ControlSettings): void {
+      if (!sameControlSettings(control, value)) control = resolveControlSettings(value);
     },
     setComponents(value: TireComponents): void {
       if (disposed) return;
@@ -42,19 +50,19 @@ export function createTireVoice(context: BaseAudioContext, destination: AudioNod
         for (const key of TIRE_SOUND_INPUT_KEYS) node.parameters.get(`${axle}_tire_${key}`)!.value = controls[key];
         node.parameters.get(`${axle}_tire_surfaceIndex`)!.value = controls.surfaceIndex;
       }
-      const changed = activeSettings === null || !sameUnifiedSettings(desiredSettings, activeSettings);
-      if (activeSettings !== null && changed) {
-        if (pending === null || !sameUnifiedSettings(pending.settings, desiredSettings)) {
-          pending = { settings: desiredSettings, at: now + AUDIO_CONTROL_POLICY.transitionSeconds };
-          follow(output.gain, 0, now, AUDIO_CONTROL_POLICY.fadeSeconds); // Authored settings-change fade, not vibration decay.
+      const changed = !same(active);
+      if (active !== null && changed) {
+        if (!same(pending)) {
+          pending = { settings: desiredSettings, control, at: now + control.transitionSeconds };
+          follow(output.gain, 0, now, control.fadeSeconds); // Authored settings-change fade, not vibration decay.
         }
-        if (now < pending.at) return;
+        if (now < pending!.at) return;
       }
       if (changed) {
-        node.port.postMessage({ settings: desiredSettings });
-        activeSettings = desiredSettings;
-        follow(output.gain, 1, now, AUDIO_CONTROL_POLICY.gainSeconds);
-      } else if (pending) follow(output.gain, 1, now, AUDIO_CONTROL_POLICY.gainSeconds);
+        node.port.postMessage({ settings: desiredSettings, control });
+        active = { settings: desiredSettings, control };
+        follow(output.gain, 1, now, control.gainSeconds);
+      } else if (pending) follow(output.gain, 1, now, control.gainSeconds);
       pending = null;
     },
     dispose(): void {

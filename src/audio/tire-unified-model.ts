@@ -1,4 +1,4 @@
-import { AUDIO_CONTROL_POLICY } from './audio-control-policy.js';
+import { resolveControlSettings, type ControlSettings } from './audio-control-policy.js';
 import { FrictionResonator } from './friction-resonator.js';
 import { TireRollingSynthesis } from './tire-rolling-model.js';
 import {
@@ -31,7 +31,12 @@ export class TireUnifiedSynthesis {
   rollingOutput = 0;
   frictionOutput = 0;
 
-  constructor(rate: number, seed: number = S.frontSeed, settings: Partial<UnifiedSettings> = {}) {
+  constructor(
+    rate: number,
+    seed: number = S.frontSeed,
+    settings: Partial<UnifiedSettings> = {},
+    control: Partial<ControlSettings> = {},
+  ) {
     this.settings = resolveUnifiedSettings(settings);
     this.friction = new FrictionResonator(
       rate,
@@ -47,7 +52,7 @@ export class TireUnifiedSynthesis {
       seed,
     );
     this.rolling = new TireRollingSynthesis(rate, seed);
-    this.follow = 1 - Math.exp(-1 / (rate * AUDIO_CONTROL_POLICY.observationSeconds));
+    this.follow = 1 - Math.exp(-1 / (rate * resolveControlSettings(control).observationSeconds));
     this.dcPole = Math.exp((-2 * Math.PI * S.dcHz) / rate);
     this.outputFollow = 1 - Math.exp((-2 * Math.PI * S.outputCutoffHz) / rate);
   }
