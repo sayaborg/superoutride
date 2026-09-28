@@ -2,6 +2,7 @@
 export const REFLECTION_REFERENCE = Object.freeze({
   temperatureK: 573.15, // assumed 300 C air surrogate, not exhaust composition
   pressurePa: 101325,
+  radiusMeters: 0.025, // assumed 50 mm internal diameter, unflanged opening
   frequencyHz: 500, // reference frequency for the constant-loss approximation
 });
 const AIR = Object.freeze({ gamma: 1.4, gasConstant: 287, prandtl: 0.71 });
@@ -11,28 +12,19 @@ const viscosity =
   (1.716e-5 * (REFLECTION_REFERENCE.temperatureK / 273) ** 1.5 * (273 + 111)) /
   (REFLECTION_REFERENCE.temperatureK + 111);
 const density = REFLECTION_REFERENCE.pressurePa / (AIR.gasConstant * REFLECTION_REFERENCE.temperatureK);
-const lossFactor =
-  (Math.sqrt((Math.PI * REFLECTION_REFERENCE.frequencyHz * viscosity) / density) / waveSpeed) *
+const attenuation =
+  (Math.sqrt((Math.PI * REFLECTION_REFERENCE.frequencyHz * viscosity) / density) /
+    (REFLECTION_REFERENCE.radiusMeters * waveSpeed)) *
   (1 + (AIR.gamma - 1) / Math.sqrt(AIR.prandtl));
 
-// Unflanged open-end low-frequency pressure-reflection limit.
-export const OUTLET_REFLECTION = -1;
-
-export interface PipeCoefficients {
-  readonly attenuationPerMeter: number;
-  readonly returnCutoffHz: number;
-}
-
-/** Pipe coefficients derived from an internal diameter at the reference conditions. */
-export function pipeCoefficients(boreMeters: number): PipeCoefficients {
-  const radius = boreMeters / 2;
-  return Object.freeze({
-    // Rounded to 0.01 Np/m; Kirchhoff thin-boundary-layer loss at the reference frequency.
-    attenuationPerMeter: Math.round((lossFactor / radius) * 100) / 100,
-    // Rounded to 100 Hz. One-pole magnitude matches |R| ~ 1 - (ka)^2/2 at low frequency; NOT its end-correction phase.
-    returnCutoffHz: Math.round(waveSpeed / (2 * Math.PI * radius) / 100) * 100,
-  });
-}
+/** Pipe coefficients derived from REFLECTION_REFERENCE. Constants: DEV controls never change them. */
+export const PIPE_COEFFICIENTS = Object.freeze({
+  // Rounded to control resolution; Kirchhoff thin-boundary-layer loss at the reference frequency.
+  attenuationPerMeter: Math.round(attenuation * 100) / 100,
+  // One-pole magnitude matches |R| ~ 1 - (ka)^2/2 at low frequency; NOT its end-correction phase.
+  returnCutoffHz: Math.round(waveSpeed / (2 * Math.PI * REFLECTION_REFERENCE.radiusMeters) / 100) * 100,
+  outletReflection: -1, // unflanged open-end low-frequency pressure-reflection limit
+});
 
 /** Listening values chosen by ear; DEV controls change them. */
 export interface ExhaustSettings {
@@ -41,8 +33,7 @@ export interface ExhaustSettings {
   readonly pulseVariation: number;
   readonly pumpingExcitation: number;
   readonly pulseRiseMs: number;
-  readonly pulseDecayDegrees: number;
-  readonly displacementDecayDegrees: number;
+  readonly pulseDecayMs: number;
   readonly blipOpening: number;
   readonly blipDecaySeconds: number;
   readonly popProbability: number;
@@ -50,16 +41,11 @@ export interface ExhaustSettings {
 }
 export const DEFAULT_EXHAUST_SETTINGS: ExhaustSettings = Object.freeze({
   closedExcitation: 0.22, // retained authored control; cannot be inferred from pipe acoustics
-  // The wavefront rise is absolute time: in crank angle it became a one-sample impulse at high RPM (11-7b -> 11-7f).
-  pulseRiseMs: 0.2, // common provisional full-excitation rise
-  // Blowdown duration is a crank-angle phenomenon, so the decay lasts longer at low RPM.
-  // 90 degrees equals 5 ms at 3000 RPM, where 1 ms = 18 degrees.
-  pulseDecayDegrees: 90, // common provisional decay; base strength is fixed at 1
-  // Exhaust-stroke length: decay of the displacement component, in crank angle.
-  displacementDecayDegrees: 180,
+  pulseRiseMs: 0.2, // common provisional full-excitation time constant
+  pulseDecayMs: 5, // common provisional decay time constant; base strength is fixed at 1
   pulseVariation: 0.2, // absolute full-excitation fraction; acoustic sketch, not measured combustion variance
-  // Displacement component strength: the piston's push, present at every firing with or without combustion.
-  // Provisional listening value, separate from closedExcitation, which is weak combustion at closed throttle.
+  // Firing strength during fuel cut: exhaust-valve blowdown without combustion. Provisional listening value,
+  // separate from closedExcitation, which is weak combustion at closed throttle.
   pumpingExcitation: 0.06,
   outputCutoffHz: 7300, // post-clip listening filter; not measured muffler transmission loss
   // A downshift's short rev-matching opening peak and its exponential decay time. Not a physical shift
@@ -89,8 +75,7 @@ export const EXHAUST_SETTING_RANGES: Readonly<Record<keyof ExhaustSettings, Sett
   // Excitation divides the rise time, so zero is excluded like closedExcitation.
   pumpingExcitation: Object.freeze({ min: 0, max: 0.5, step: 0.01, exclusiveMin: true, uiMin: 0.01 }),
   pulseRiseMs: Object.freeze({ min: 0.05, max: 2, step: 0.01 }),
-  pulseDecayDegrees: Object.freeze({ min: 2, max: 360, step: 1 }),
-  displacementDecayDegrees: Object.freeze({ min: 30, max: 360, step: 5 }),
+  pulseDecayMs: Object.freeze({ min: 0.1, max: 30, step: 0.1 }),
   blipOpening: Object.freeze({ min: 0, max: 1, step: 0.01 }),
   blipDecaySeconds: Object.freeze({ min: 0.02, max: 0.3, step: 0.01 }),
   popProbability: Object.freeze({ min: 0, max: 1, step: 0.01 }),

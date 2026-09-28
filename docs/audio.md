@@ -25,11 +25,8 @@ filter and envelope state. Player tire sound reads the player's observed tire ob
 rival sound uses the rival's observed powertrain values.
 
 An [engine sound](../src/audio/engine-sound.ts) contains one or two revolutions per
-cycle, ordered firing phases, collector membership, primary lengths with one primary bore, and the outlet: one to
-four series segments (length and bore) from each collector to the open end. Bores are 0.01–0.3 m, primaries
-0.1–3 m and the outlet 0.1–4 m in total. Engine sounds are typical sketches, not measured exhausts: a car outlet is
-collector → muffler (a wide segment, an expansion chamber) → tailpipe, and the two-stroke outlet is an expansion
-chamber → narrow tail. Each firing phase is that cylinder's exhaust-opening instant (start of blowdown); the offset from
+cycle, ordered firing phases, collector membership, primary lengths and a common outlet length per
+collector. Each firing phase is that cylinder's exhaust-opening instant (start of blowdown); the offset from
 combustion top dead centre is common to all cylinders and is not represented. Phase count determines cylinder count. `compileEngineSound` validates an
 `EngineSoundDefinition` into a `CompiledEngineSound`; the vehicle catalog binds the
 [engine sounds](../src/vehicle/engine-sounds.ts) to the
@@ -38,79 +35,47 @@ same sample-free engine kernel. Firing rows identify events and collector groups
 ## Engine synthesis
 
 The voice reads engine RPM exactly as simulated; physics keeps it at or above idle, and the exhaust
-processor's own `rpm` parameter range (1 to 24000) is the only bound; a positive RPM keeps every
-crank-angle-to-time conversion finite. Excitation follows the
+processor's own `rpm` parameter range (1 to 24000) is the only bound. Excitation follows the
 powertrain's effective opening, so it includes the idle-holding opening. Closed throttle has a positive
-excitation floor, `closedExcitation`: weak combustion, distinct from fuel cut.
+excitation floor, `closedExcitation`: weak combustion, distinct from fuel cut. While the observation reports
+fuel cut, firings sound with the `pumpingExcitation` strength and no variation, as exhaust-valve blowdown
+without combustion. At the limiter the physical latch alternates between redline and the fuel-cut threshold,
+so combustion stops and resumes in turn and is heard as the limiter's interruption. Stronger excitation,
+pumping included, shortens pulse rise time, while decay time is independent of load.
 
-Every firing fires two pulses in its cylinder:
-
-- **Combustion** (blowdown): strength follows excitation with variation, decays over `pulseDecayDegrees`,
-  and is skipped while the observation reports fuel cut.
-- **Displacement** (the piston's push): always present regardless of load or fuel cut, with strength
-  `pumpingExcitation`, no variation, and decay over the exhaust-stroke angle `displacementDecayDegrees`.
-
-The pipe receives the sum of both emissions. Fuel cut only removes the combustion pulse, so the
-displacement pulse remains; at the limiter the physical latch alternates between redline and the fuel-cut
-threshold, so combustion stops and resumes in turn and is heard as the limiter's interruption. Stronger
-excitation shortens pulse rise time, while decay time is independent of load.
-
-At each combustion firing, `strength = max(0, excitation + pulseVariation*r)` for seeded xorshift32 `r` in `[-1,1)`.
+At each firing, `strength = max(0, excitation + pulseVariation*r)` for seeded xorshift32 `r` in `[-1,1)`.
 Variation is an absolute fraction of full excitation. The same seed and input history reproduce the
 same event sequence; random draws occur at firing events.
 
 During overrun (observed effective opening 0 without fuel cut, judged before the blip is combined), each
 firing draws a separate seeded number and becomes a pop with the `popProbability` setting. The cylinder's
-combustion pulse still sounds at the closed-throttle floor, and a pulse of the `popStrength` setting fires in that collector's pop state, which follows the same rise and decay as the
-cylinder pulses and enters the collector junction as incoming pressure. Because the draw is per firing, the
-pop rate is proportional to RPM. No unburnt-fuel or temperature state is kept; draw counts depend on the
-state, but the same seed and input history reproduce the same sound.
+combustion pulse still sounds at the closed-throttle floor, and a pulse of the `popStrength` setting fires in
+that collector's pop state, which follows the same rise and decay as the cylinder pulses and enters the
+collector junction as incoming pressure. Because the draw is per firing, the pop rate is proportional to RPM.
+No unburnt-fuel or temperature state is kept; draw counts depend on the state, but the same seed and input
+history reproduce the same sound.
 
 The pulse model is:
 
 ```text
-p'  = -p/decayTime
-r1' = (p-r1)/(riseTime/2)
-r2' = (r1-r2)/(riseTime/2)
+p' = -p/decayTime
+r' = (p-r)/riseTime
 ```
 
-The pipe receives `r2`. Two equal stages of `riseTime/2` keep the one-stage mean delay `riseTime` and the
-pulse area `strength*decayTime`, while the pressure onset starts with zero slope (C1): a slope discontinuity
-at firing would be heard as a click.
+`riseTime` is `pulseRiseMs` divided by excitation and `decayTime` is `pulseDecayMs`; both are absolute times.
+Firing resets `p` and keeps `r` continuous. Exact exponential evolution across fractional firing times
+supplies the sample-average pulse to the pipe.
 
-Each pulse follows this model with its own decay angle. `riseTime` is `pulseRiseMs` divided by the pulse's
-excitation (combustion excitation, or `pumpingExcitation` for displacement), in absolute time: the wavefront is set by the pressure
-ratio when the valve opens and does not depend on RPM, while a crank-angle rise became a near-impulse at
-high RPM. `decayTime` is the duration of the pulse's decay crank angle, `D/(6*rpm)` seconds at the
-smoothed RPM, recomputed every sample: blowdown lasts a crank angle, so the tail is longer at low RPM. Firing resets `p` and keeps `r1` and `r2` continuous. Exact exponential evolution
-across fractional firing times supplies the sample-average pulse to the pipe.
-
-The [waveguide](../src/audio/exhaust-waveguide.ts) has bidirectional primary and outlet-segment delays rounded
+The [waveguide](../src/audio/exhaust-waveguide.ts) has bidirectional primary and outlet delays rounded
 to the nearest sample at the reference wave speed. Each traversal multiplies amplitude by
-`exp(-attenuationPerMeter*length)`, with the attenuation of that pipe's bore. An outlet segment adds its packing
-absorption, frequency-dependent like fibrous packing: a one-pole low-pass per traversal passes DC unchanged and
-loses `absorption*length` nepers at the segment's reference frequency `absorptionHz` (Np/m 0–20, 50–8000 Hz),
-more above it. Mufflers carry absorption so the chamber's overtones decay instead of ringing metallically, while
-its low resonance, set by reflection at the area steps, remains; plain pipe segments and primaries carry none. Every junction scatters pressure
-waves weighted by cross-section area `A`:
-
-```text
-p = 2*sum(A_i*incoming_i)/sum(A_i)
-outgoing_i = p-incoming_i
-```
-
-The collector joins its primaries and the first outlet segment; each joint between consecutive outlet
-segments is a two-port junction. Equal areas reduce to `p = 2*sum(incoming)/portCount`. An area step
-reflects part of each wave, so a wide segment between narrow ones resonates at low frequency and blunts
-wavefronts, as a muffler does. Overrun pops enter the collector as incoming pressure weighted like a primary.
+`exp(-attenuationPerMeter*length)`. Equal-admittance collector scattering uses
+`p = 2*sum(incoming)/portCount` and `outgoing = p-incoming`.
 
 After a cylinder's exhaust opens, its cylinder-end reflection varies from +0.94 to -0.3 through the aperture
 `16*u²*(1-u)²` over 0.23 firing cycles (`ACOUSTICS.cylinderWindowCycles`), then returns to its closed value.
-This window is an empirical acoustic boundary, not the valve's open duration: the cylinder does not act as an
-open end for the whole valve event, and a window spanning it removed the pipe resonance. The aperture has continuous value and slope and a window
-mean of 8/15. Cylinder-end and outlet low-pass filters act inside their return paths. The outlet filter uses the return
-cutoff of the last segment's bore. The cylinder-end filter uses the primary bore's cutoff: an approximation,
-since the port is not an open pipe end. The listening pickup
+This window is an empirical acoustic boundary, not the valve's open duration: a window spanning the valve
+event removed the pipe resonance. The aperture has continuous value and slope and a window
+mean of 8/15. Cylinder-end and outlet low-pass filters act inside their return paths. The listening pickup
 sums outgoing and low-passed outgoing waves, with collector mixing divided by `sqrt(collectorCount)`.
 
 Each acoustic step runs at the output sample rate. Integer pipe delays, the pulse approximation and
@@ -130,17 +95,18 @@ compression. Output depends on the engine sound, RPM, excitation and fixed mix g
 
 ## Reference coefficients
 
-The pipe coefficients are separate from the listening settings; DEV controls never change them. The wave
-speed (480 m/s) and the outlet reflection `OUTLET_REFLECTION` are fixed. `pipeCoefficients(bore)` in
-[Exhaust acoustics](../src/audio/exhaust-acoustics.ts) derives each pipe's return cutoff and attenuation from
-its internal diameter, an unflanged opening, 573.15 K air at 101325 Pa, `gamma=1.4`, `R=287 J/(kg K)`,
-`Pr=0.71` and a 500 Hz loss reference, rounded to 100 Hz and 0.01 Np/m.
+The pipe coefficients are constants, separate from the listening settings: the fixed 480 m/s wave speed and
+`PIPE_COEFFICIENTS` (outlet reflection, return cutoff and attenuation; values in
+[Calibration](calibration.md#derived-and-fixed-constants)). DEV controls never change them.
+[Exhaust acoustics](../src/audio/exhaust-acoustics.ts) derives them for
+an unflanged 50 mm internal-diameter pipe, 573.15 K air at 101325 Pa, `gamma=1.4`, `R=287 J/(kg K)`,
+`Pr=0.71` and a 500 Hz loss reference.
 
 The derivation uses `c=sqrt(gamma*R*T)`, the open-end negative reflection limit,
 `fc=c/(2*pi*radius)` and
 `alpha=sqrt(pi*f*nu)/(radius*c)*(1+(gamma-1)/sqrt(Pr))`. Sutherland viscosity uses
 `mu0=1.716e-5 Pa s`, `T0=273 K` and `S=111 K`; density is `p/(R*T)` and `nu=mu/density`.
-For a 50 mm bore the loss is about 0.034 Np/m before rounding and the cutoff 3100 Hz.
+The resulting loss is about 0.034 Np/m before rounding. These are fixed reference coefficients.
 
 ## Mix and lifetime
 

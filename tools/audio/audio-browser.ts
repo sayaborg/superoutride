@@ -3,7 +3,7 @@ import {
   REFLECTION_REFERENCE,
   ACOUSTICS,
   DEFAULT_EXHAUST_SETTINGS,
-  OUTLET_REFLECTION,
+  PIPE_COEFFICIENTS,
   OUTPUT,
 } from '../../src/audio/exhaust-acoustics.js';
 import { AUDIO_CONTROL_POLICY } from '../../src/audio/audio-control-policy.js';
@@ -23,7 +23,7 @@ for (const entry of vehicles) {
   vehicle.append(option);
 }
 mustGet<HTMLElement>('reference-conditions').textContent =
-  `基準条件（仮定）：温度 ${(REFLECTION_REFERENCE.temperatureK - 273.15).toFixed(0)} ℃の空気、開放管端。管内損失は ${REFLECTION_REFERENCE.frequencyHz} Hzで近似。実車の測定値ではありません。出口の反射 ${OUTLET_REFLECTION}（定数）。戻りの高域上限と減衰は、車種の各区間の内径から導きます。全閉時の励振は音作りの設定です。`;
+  `基準条件（仮定）：内径 ${REFLECTION_REFERENCE.radiusMeters * 2000} mm、温度 ${(REFLECTION_REFERENCE.temperatureK - 273.15).toFixed(0)} ℃の空気、開放管端。管内損失は ${REFLECTION_REFERENCE.frequencyHz} Hzで近似。実車の測定値ではありません。導出した管の係数（定数）：出口の反射 ${PIPE_COEFFICIENTS.outletReflection}、戻りの高域上限 ${PIPE_COEFFICIENTS.returnCutoffHz} Hz、減衰 ${PIPE_COEFFICIENTS.attenuationPerMeter} Np/m。全閉時の励振は音作りの設定です。`;
 mustGet<HTMLElement>('output-conditions').textContent =
   `音作り・出力の設定：追従 ${(AUDIO_CONTROL_POLICY.observationSeconds * 1000).toFixed(0)} ms。出力順：DC除去 ${OUTPUT.dcHz} Hz → ソフトクリップ（上限 ${OUTPUT.ceiling}）→ 最終LPF（一次、− / +で調整・初期値 ${DEFAULT_EXHAUST_SETTINGS.outputCutoffHz} Hz）。排気の物理量とは区別します。`;
 mustGet<HTMLElement>('boundary-conditions').textContent =
@@ -39,27 +39,18 @@ function showVehicleData() {
   body.replaceChildren();
   const degrees = (value: number) => `${Number(value.toFixed(2))}°`;
   const meters = (value: number) => `${value.toFixed(2)} m`;
-  const bore = (value: number) => `⌀${Math.round(value * 1000)} mm`;
-  const { primaries, outlet } = sound.exhaust;
-  const outletLength = outlet.reduce((total, segment) => total + segment.length, 0);
-  const outletText = outlet
-    .map(
-      (segment) =>
-        `${meters(segment.length)} ${bore(segment.bore)}${segment.absorption > 0 ? ` 吸音 ${segment.absorption} Np/m @ ${segment.absorptionHz} Hz` : ''}`,
-    )
-    .join(' → ');
   sound.firingPhases.forEach((phase, i, phases) => {
     const next = i + 1 < phases.length ? phases[i + 1]! : phases[0]! + 1;
-    const length = primaries.lengths[i]!;
+    const length = sound.exhaust.lengths[i]!;
     const row = document.createElement('tr');
     for (const value of [
       i + 1,
       degrees(phase * cycleDegrees),
       degrees((next - phase) * cycleDegrees),
       String.fromCharCode(65 + sound.exhaust.banks[i]!),
-      `${meters(length)} ${bore(primaries.bore)}`,
-      outletText,
-      meters(length + outletLength),
+      meters(length),
+      meters(sound.exhaust.outlet),
+      meters(length + sound.exhaust.outlet),
     ]) {
       const cell = document.createElement('td');
       cell.textContent = String(value);

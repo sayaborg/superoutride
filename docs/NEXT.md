@@ -18,7 +18,7 @@
   derive from the Session seed; loading coverage, recovery policy and reference identities each have one owner.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **11-7j — Cycle speed fluctuation**.
+Next PR: **11-8 — Tire-sound transport (move only)**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -28,8 +28,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Separate the audio scene from the browser and organize sound around replaceable definitions.
 
-- **11-7j — Cycle speed fluctuation:** the kernel modulates RPM within the cycle by one listening constant scaled by
-  1 / (cylinders × (rpm/1000)²). Sound changes.
 - **11-8 — Tire-sound transport (move only):** separate transport from component controls.
 - **11-9 — Tire-sound values:** validate and resolve once; one surface-sound record per material ID, sent by catalog
   index.
@@ -197,18 +195,24 @@ lighting at its own chainage, and switching is a cut.
 - Start procedure: countdown lamps, rolling starts and their Session rules are designed in 12-9.
 - Vehicle sprite resolution: decide the yaw division count (currently 24) and the two-wheeler bank count (currently 5) before producing final vehicle art; the sprite set format already declares both as data.
 
-| Area             | Decision or future capability                                                                                       |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------- |
-| References       | Exact editions/layout evidence, tolerances and remaster departures                                                  |
-| Presets          | CLASSIC vehicles, rosters, checkpoints, laps, margins and traffic settings                                          |
-| CUSTOM           | Exposed rival vehicle/difficulty choices and lap configurations; no time limit                                      |
-| Rival intent     | Deterministic or seeded route preferences                                                                           |
-| Interaction      | Traffic, rival/vehicle response, movable objects including cones, fixed roadside objects, barriers and track limits |
-| Grade separation | Occurrence/neighborhood/height selection of surfaces, landmarks and contacts at nearby crossings                    |
-| Records/results  | Eligibility, ranking/ties, continue, persistence and ghosts                                                         |
-| Art              | Production assets, new physical materials and tunnel/background content                                             |
-| BG transitions   | Consider wipes or dissolves for environment changes; palette fades are not expected                                 |
-| Shell            | Front end, product HUD separate from DEV UI/HUD, music, progression, naming/distribution and future input devices   |
+| Area             | Decision or future capability                                                                                                      |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| References       | Exact editions/layout evidence, tolerances and remaster departures                                                                 |
+| Presets          | CLASSIC vehicles, rosters, checkpoints, laps, margins and traffic settings                                                         |
+| CUSTOM           | Exposed rival vehicle/difficulty choices and lap configurations; no time limit                                                     |
+| Rival intent     | Deterministic or seeded route preferences                                                                                          |
+| Interaction      | Traffic, rival/vehicle response, movable objects including cones, fixed roadside objects, barriers and track limits                |
+| Grade separation | Occurrence/neighborhood/height selection of surfaces, landmarks and contacts at nearby crossings                                   |
+| Records/results  | Eligibility, ranking/ties, continue, persistence and ghosts                                                                        |
+| Art              | Production assets, new physical materials and tunnel/background content                                                            |
+| BG transitions   | Consider wipes or dissolves for environment changes; palette fades are not expected                                                |
+| Shell            | Front end, product HUD separate from DEV UI/HUD, music, progression, naming/distribution and future input devices                  |
+| Engine sound     | Tried, not adopted: crank-angle pulse decay. It did not improve driving sound and added computation (11-7b–11-7k)                  |
+| Engine sound     | Tried, not adopted: two-stage (C1) rise. It did not improve driving sound and added computation (11-7b–11-7k)                      |
+| Engine sound     | Tried, not adopted: displacement pulse. It did not improve driving sound and added computation (11-7b–11-7k)                       |
+| Engine sound     | Tried, not adopted: pipe cross-sections and muffler segments. It did not improve driving sound and added computation (11-7b–11-7k) |
+| Engine sound     | Tried, not adopted: packing absorption. It did not improve driving sound and added computation (11-7b–11-7k)                       |
+| Engine sound     | Tried, not adopted (not implemented): cycle speed fluctuation, for the same reason as 11-7b–11-7k                                  |
 
 Design traffic and collision/interaction response together. Traffic does not participate in competitive
 route locking. Product CLASSIC presets include sixteen motorcycle rivals for Super Hang-On and zero
