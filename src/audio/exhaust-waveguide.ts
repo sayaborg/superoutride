@@ -92,7 +92,7 @@ export class ExhaustWaveguide {
   }
 
   /** One acoustic step at the supplied internal rate, without allocation. */
-  sample(targetRpm: number, targetLoad: number): number {
+  sample(targetRpm: number, targetLoad: number, fuelCut: boolean): number {
     this.rpm += this.smoothing * (targetRpm - this.rpm);
     this.load += this.smoothing * (targetLoad - this.load);
     const step = this.rpm / (60 * this.sound.cycleRevolutions * this.rate);
@@ -104,7 +104,10 @@ export class ExhaustWaveguide {
     const decayStep = Math.exp(-decayRate);
     const decayIntegral = -Math.expm1(-decayRate) / decayRate;
     // One excitation control: stronger pulses also rise faster. No load-dependent output EQ/drive.
-    const excitation = this.settings.closedExcitation + (1 - this.settings.closedExcitation) * this.load;
+    // Fuel cut is a boolean observation, never smoothed: firings pump without combustion.
+    const excitation = fuelCut
+      ? this.settings.pumpingExcitation
+      : this.settings.closedExcitation + (1 - this.settings.closedExcitation) * this.load;
     const riseTime = (this.settings.pulseRiseDegrees * samplesPerDegree) / excitation;
     const riseRate = 1 / riseTime;
     const retain = Math.exp(-riseRate);
@@ -124,7 +127,8 @@ export class ExhaustWaveguide {
       this.pulse[i] = pulse * decayStep;
       if (crossed) {
         let strength = excitation;
-        if (this.settings.pulseVariation > 0) {
+        // Variation is combustion spread, so pumping pulses have none.
+        if (!fuelCut && this.settings.pulseVariation > 0) {
           // One random draw per firing, never a continuous noise generator or a timing perturbation.
           this.pulseSeed ^= this.pulseSeed << 13;
           this.pulseSeed ^= this.pulseSeed >>> 17;

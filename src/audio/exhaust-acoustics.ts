@@ -24,6 +24,7 @@ export interface ExhaustSettings {
   readonly closedExcitation: number;
   readonly outputCutoffHz: number;
   readonly pulseVariation: number;
+  readonly pumpingExcitation: number;
   readonly pulseRiseDegrees: number;
   readonly pulseDecayDegrees: number;
 }
@@ -39,6 +40,9 @@ export const DEFAULT_EXHAUST_SETTINGS: ExhaustSettings = Object.freeze({
   pulseRiseDegrees: 3.6, // common provisional full-excitation rise
   pulseDecayDegrees: 90, // common provisional decay; base strength is fixed at 1
   pulseVariation: 0.2, // absolute full-excitation fraction; acoustic sketch, not measured combustion variance
+  // Firing strength during fuel cut: exhaust-valve blowdown without combustion. Provisional listening value,
+  // separate from closedExcitation, which is weak combustion at closed throttle.
+  pumpingExcitation: 0.06,
   outputCutoffHz: 7300, // post-clip listening filter; not measured muffler transmission loss
 });
 
@@ -58,6 +62,8 @@ export const EXHAUST_SETTING_RANGES: Readonly<Record<keyof ExhaustSettings, Sett
   closedExcitation: Object.freeze({ min: 0, max: 1, step: 0.01, exclusiveMin: true, uiMin: 0.01 }),
   outputCutoffHz: Object.freeze({ min: 100, max: 12000, step: 100 }),
   pulseVariation: Object.freeze({ min: 0, max: 0.4, step: 0.01 }),
+  // Excitation divides the rise time, so zero is excluded like closedExcitation.
+  pumpingExcitation: Object.freeze({ min: 0, max: 0.5, step: 0.01, exclusiveMin: true, uiMin: 0.01 }),
   pulseRiseDegrees: Object.freeze({ min: 0.2, max: 36, step: 0.1 }),
   pulseDecayDegrees: Object.freeze({ min: 2, max: 360, step: 1 }),
 });

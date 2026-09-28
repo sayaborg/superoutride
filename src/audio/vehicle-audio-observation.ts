@@ -23,6 +23,8 @@ export interface VehicleAudioObservation {
   readonly rpm: number;
   /** The engine's effective opening in [0,1]: an acoustic excitation proxy, not cylinder load. */
   readonly effectiveOpening: number;
+  /** No fuel is injected; excitation becomes pumping rather than combustion. */
+  readonly fuelCut: boolean;
   readonly shift: ShiftAudioObservation;
   readonly front: TireAudioObservation;
   readonly rear: TireAudioObservation;

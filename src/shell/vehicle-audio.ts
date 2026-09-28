@@ -26,6 +26,7 @@ export function createVehicleAudioObservation(): Observation {
   return {
     rpm: 0,
     effectiveOpening: 0,
+    fuelCut: false,
     shift: { sequence: 0, direction: 'NONE', fromRpm: 0, toRpm: 0 },
     front: tire(),
     rear: tire(),
@@ -45,6 +46,7 @@ export function readVehicleAudio(competitor: CompetitorObservation, result: Emit
   const { powertrain, tires } = competitor;
   result.rpm = powertrain.engineRpm;
   result.effectiveOpening = powertrain.effectiveOpening;
+  result.fuelCut = powertrain.fuelCut;
   result.shift.sequence = powertrain.shift.sequence;
   result.shift.direction = powertrain.shift.direction;
   result.shift.fromRpm = powertrain.shift.fromRpm;

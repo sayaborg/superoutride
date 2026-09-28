@@ -135,11 +135,12 @@ Values are authored sound-model coefficients; the reference-derived pipe coeffic
 | `closedExcitation`    | Closed-throttle excitation              | 0.22      | 0.01–1 / 0.01           |
 | `outputCutoffHz`      | Final listening-filter cutoff           | 7300 Hz   | 100–12000 Hz / 100 Hz   |
 | `pulseVariation`      | Absolute event-strength variation       | 0.20      | 0–0.40 / 0.01           |
+| `pumpingExcitation`   | Firing strength during fuel cut         | 0.06      | 0.01–0.50 / 0.01        |
 | `pulseRiseDegrees`    | Full-excitation pulse rise, crank angle | 3.6°      | 0.2–36° / 0.1°          |
 | `pulseDecayDegrees`   | Pulse decay, crank angle                | 90°       | 2–360° / 1°             |
 
 Kernel domains equal these UI ranges except `returnCutoffHz` starts at 100 Hz,
-`attenuationPerMeter` extends to 1 Np/m, and `closedExcitation` accepts `(0,1]`.
+`attenuationPerMeter` extends to 1 Np/m, `closedExcitation` accepts `(0,1]` and `pumpingExcitation` accepts `(0,0.5]`.
 
 ## UNIFIED tire settings
 

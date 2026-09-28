@@ -78,6 +78,7 @@ export function createEngineVoice(
       // The kernel is the only smoothing authority for its observations.
       exhaust.parameters.get('rpm')!.value = state.rpm;
       exhaust.parameters.get('load')!.value = clamp(state.effectiveOpening, 0, 1);
+      exhaust.parameters.get('fuelCut')!.value = state.fuelCut ? 1 : 0;
       follow(output.gain, clamp(gain, 0, 1), now, AUDIO_CONTROL_POLICY.gainSeconds);
     },
     setSettings(value: ExhaustSettings): void {

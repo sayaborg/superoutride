@@ -11,7 +11,8 @@ settings, [Browser](browser.md#sound-controls) owns operation, and
 The [acoustic observation](../src/audio/vehicle-audio-observation.ts) contains powertrain and tire
 inputs. A vehicle audio emitter ([audio scene](../src/audio/audio-scene.ts)) adds the competitor ID and
 its physical world pose; player and rivals are supplied in the same emitter form. From the powertrain, audio reads engine RPM, the effective opening
-(`effectiveOpening`, the engine's only command and the excitation) and the last shift
+(`effectiveOpening`, the engine's only command and the excitation), the fuel-cut latch (`fuelCut`) and the
+last shift
 (sequence, direction and engine RPM before and after, as
 [vehicle physics](vehicle-physics.md#wheel-and-powertrain) publishes it). A sequence the voice has not yet heard
 marks a new shift. A new `DOWN` shift with `toRpm > fromRpm` (a locked downshift) plays a blip: the
@@ -37,11 +38,12 @@ same sample-free engine kernel. Firing rows identify events and collector groups
 The voice reads engine RPM exactly as simulated; physics keeps it at or above idle, and the exhaust
 processor's own `rpm` parameter range (1 to 24000) is the only bound; a positive RPM keeps every
 crank-angle-to-time conversion finite. Excitation follows the
-powertrain's effective opening, so it includes the idle-holding opening. During fuel cut the effective
-opening is 0, but excitation keeps its `closedExcitation` floor, so the engine is not silent; the fuel-cut
-latch makes engine RPM oscillate between redline and the fuel-cut threshold, and the sound follows that RPM.
-Closed throttle has a positive excitation floor;
-stronger excitation shortens pulse rise time, while decay time is independent of load.
+powertrain's effective opening, so it includes the idle-holding opening. Closed throttle has a positive
+excitation floor, `closedExcitation`: weak combustion, distinct from fuel cut. While the observation reports
+fuel cut, firings sound with the `pumpingExcitation` strength and no variation, as exhaust-valve blowdown
+without combustion. At the limiter the physical latch alternates between redline and the fuel-cut threshold,
+so combustion stops and resumes in turn and is heard as the limiter's interruption. Stronger excitation,
+pumping included, shortens pulse rise time, while decay time is independent of load.
 
 At each firing, `strength = max(0, excitation + pulseVariation*r)` for seeded xorshift32 `r` in `[-1,1)`.
 Variation is an absolute fraction of full excitation. The same seed and input history reproduce the

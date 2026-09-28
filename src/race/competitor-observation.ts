@@ -19,6 +19,7 @@ export interface CompetitorObservation extends VehicleMotionRead, VehicleRenderR
   readonly powertrain: {
     readonly engineRpm: number;
     readonly effectiveOpening: number;
+    readonly fuelCut: boolean;
     readonly shift: Readonly<PowertrainShiftObservation>;
   };
   readonly tires: VehicleTireObservation;
@@ -28,7 +29,7 @@ type Mutable<T> = { -readonly [Key in keyof T]: T[Key] };
 type MutableTire = Mutable<TireObservation>;
 type CompetitorObservationSlot = Mutable<Omit<CompetitorObservation, 'course' | 'powertrain' | 'tires'>> & {
   course: { s: number };
-  powertrain: { engineRpm: number; effectiveOpening: number; shift: PowertrainShiftObservation };
+  powertrain: { engineRpm: number; effectiveOpening: number; fuelCut: boolean; shift: PowertrainShiftObservation };
   tires: { front: MutableTire; rear: MutableTire };
 };
 
@@ -65,7 +66,12 @@ export function createCompetitorObservation(
     sprungPitch: 0,
     lateralAcceleration: 0,
     brakeLampOn: false,
-    powertrain: { engineRpm: 0, effectiveOpening: 0, shift: { sequence: 0, direction: 'NONE', fromRpm: 0, toRpm: 0 } },
+    powertrain: {
+      engineRpm: 0,
+      effectiveOpening: 0,
+      fuelCut: false,
+      shift: { sequence: 0, direction: 'NONE', fromRpm: 0, toRpm: 0 },
+    },
     tires: { front: tire(), rear: tire() },
   };
   return slot;
@@ -95,6 +101,7 @@ export function writeCompetitorObservation(
   const { powertrain } = vehicle;
   out.powertrain.engineRpm = powertrain.engineRpm;
   out.powertrain.effectiveOpening = powertrain.effectiveOpening;
+  out.powertrain.fuelCut = powertrain.fuelCut;
   Object.assign(out.powertrain.shift, powertrain.shift);
   Object.assign(out.tires.front, vehicle.tires.front);
   Object.assign(out.tires.rear, vehicle.tires.rear);
