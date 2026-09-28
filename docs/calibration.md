@@ -135,7 +135,7 @@ real-vehicle guides revised by listening. Junctions 0 and 1 are the cylinders' c
 | DELTA_HF_INTEGRALE | 4-1      | 0 → open 1.65 m                                            |
 | VFR750R            | 4-2-1    | 0 → 2 0.25 m; 1 → 2 0.25 m; 2 → open 0.55 m                |
 | R80_GS_PARIS_DAKAR | 2-1      | 0 → 2 0.4 m; 1 → 2 0.4 m; 2 → open 0.85 m                  |
-| FXRT_SPORT_GLIDE   | 2-2      | 0 → open 0.65 m; 1 → open 0.65 m                           |
+| FXRT_SPORT_GLIDE   | 2-1      | 0 → 2 0.35 m; 1 → 2 0.35 m; 2 → open 0.75 m                |
 | PX200E_ARCOBALENO  | 1-1      | 0 → open 0.48 m                                            |
 
 ## Engine sound settings

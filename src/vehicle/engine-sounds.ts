@@ -93,13 +93,14 @@ export const ENGINE_SOUNDS = Object.freeze({
     firingPhases: even(2),
   }),
   FXRT_SPORT_GLIDE: compileEngineSound({
-    // 2-2: each cylinder has its own outlet.
+    // 2-1: both headers merge into one collector and a single outlet.
     exhaust: {
       banks: [0, 1],
       lengths: [0.72, 1.04],
       pipes: [
-        { length: 0.65, from: 0, to: null },
-        { length: 0.65, from: 1, to: null },
+        { length: 0.35, from: 0, to: 2 },
+        { length: 0.35, from: 1, to: 2 },
+        { length: 0.75, from: 2, to: null },
       ],
     },
     cycleRevolutions: 2,
