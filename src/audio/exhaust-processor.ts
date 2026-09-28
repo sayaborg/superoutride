@@ -13,6 +13,7 @@ class ExhaustProcessor extends AudioWorkletProcessor {
     return [
       { name: 'rpm', defaultValue: 1000, minValue: 0, maxValue: 24000, automationRate: 'k-rate' },
       { name: 'load', defaultValue: 0, minValue: 0, maxValue: 1, automationRate: 'k-rate' },
+      { name: 'blip', defaultValue: 0, minValue: 0, maxValue: 1, automationRate: 'k-rate' },
     ];
   }
   constructor(options?: {
@@ -50,7 +51,7 @@ class ExhaustProcessor extends AudioWorkletProcessor {
       return true;
     }
     const rpm = parameters.rpm![0]!,
-      load = parameters.load![0]!;
+      load = Math.max(parameters.load![0]!, parameters.blip![0]!);
     for (let i = 0; i < output.length; i++) output[i] = this.engine.sample(rpm, load);
     return true;
   }

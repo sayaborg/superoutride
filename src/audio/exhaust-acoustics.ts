@@ -77,6 +77,12 @@ export function resolveExhaustSettings(overrides: Partial<ExhaustSettings> = {})
   return Object.freeze(settings);
 }
 
+/**
+ * A short opening peak that sounds like a rev-matching throttle blip on a downshift. It is not a
+ * physical shift duration; the physical shift is instantaneous. Provisional listening values.
+ */
+export const DOWNSHIFT_BLIP = Object.freeze({ opening: 0.7, decaySeconds: 0.08 });
+
 export const ACOUSTICS = Object.freeze({
   waveSpeed, // fixed air-surrogate reference; not measured temperature
   cylinderClosedReflection: 0.94, // nearly rigid effective termination; magnitude < 1 absorbs energy

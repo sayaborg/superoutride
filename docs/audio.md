@@ -14,7 +14,10 @@ its physical world pose; player and rivals are supplied in the same emitter form
 (`effectiveOpening`, the engine's only command and the excitation) and the last shift
 (sequence, direction and engine RPM before and after, as
 [vehicle physics](vehicle-physics.md#wheel-and-powertrain) publishes it). A sequence the voice has not yet heard
-marks a new shift; shift sounds such as downshift blips are not yet synthesized. The browser supplies them once per presented frame from the race's borrowed competitor observations,
+marks a new shift. A new `DOWN` shift with `toRpm > fromRpm` (a locked downshift) plays a blip: the
+[`DOWNSHIFT_BLIP`](../src/audio/exhaust-acoustics.ts) opening peak, decaying exponentially, combined with the
+effective opening by `max`. The first sequence a voice reads, and the first after `silence()` (a rival
+reassignment), is only recorded. The browser supplies them once per presented frame from the race's borrowed competitor observations,
 which are copied at the end of each fixed step; audio reads nothing else.
 Physics owns RPM, actuators, contact loads, wheel motion and dissipated work; audio owns oscillator,
 filter and envelope state. Player tire sound reads the player's observed tire observations;
@@ -31,7 +34,9 @@ same sample-free engine kernel. Firing rows identify events and collector groups
 
 The voice reads engine RPM exactly as simulated; physics keeps it at or above idle, and the exhaust
 processor's own `rpm` parameter range (0 to 24000) is the only bound. Excitation follows the
-powertrain's effective opening, so it includes the idle-holding opening and is zero during fuel cut.
+powertrain's effective opening, so it includes the idle-holding opening. During fuel cut the effective
+opening is 0, but excitation keeps its `closedExcitation` floor, so the engine is not silent; the fuel-cut
+latch makes engine RPM oscillate between redline and the fuel-cut threshold, and the sound follows that RPM.
 Closed throttle has a positive excitation floor;
 stronger excitation shortens pulse rise time, while decay time is independent of load.
 

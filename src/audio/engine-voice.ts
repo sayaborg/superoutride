@@ -1,7 +1,7 @@
 import { clamp } from '../core/math.js';
 import { follow } from './audio-parameter.js';
 import { AUDIO_CONTROL_POLICY } from './audio-control-policy.js';
-import { EXHAUST_SETTING_RANGES, resolveExhaustSettings } from './exhaust-acoustics.js';
+import { DOWNSHIFT_BLIP, EXHAUST_SETTING_RANGES, resolveExhaustSettings } from './exhaust-acoustics.js';
 import type { ExhaustSettings } from './exhaust-acoustics.js';
 import type { CompiledEngineSound } from './engine-sound.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
@@ -44,6 +44,8 @@ export function createEngineVoice(
     settings: ExhaustSettings;
     at: number;
   } | null = null;
+  // The last shift sequence heard; null until the first update after construction or silence.
+  let heardShift: number | null = null;
   return {
     update(state: VehicleAudioObservation, sound: CompiledEngineSound, gain = 1): void {
       const now = context.currentTime;
@@ -60,6 +62,19 @@ export function createEngineVoice(
         exhaust.port.postMessage({ sound, settings });
         active = { sound, settings };
       }
+      const { shift } = state;
+      if (
+        heardShift !== null &&
+        shift.sequence !== heardShift &&
+        shift.direction === 'DOWN' &&
+        shift.toRpm > shift.fromRpm
+      ) {
+        const blip = exhaust.parameters.get('blip')!;
+        blip.cancelScheduledValues(now);
+        blip.setValueAtTime(DOWNSHIFT_BLIP.opening, now);
+        blip.setTargetAtTime(0, now, DOWNSHIFT_BLIP.decaySeconds);
+      }
+      heardShift = shift.sequence;
       // The kernel is the only smoothing authority for its observations.
       exhaust.parameters.get('rpm')!.value = state.rpm;
       exhaust.parameters.get('load')!.value = clamp(state.effectiveOpening, 0, 1);
@@ -69,6 +84,8 @@ export function createEngineVoice(
       if (!sameExhaustSettings(settings, value)) settings = resolveExhaustSettings(value);
     },
     silence(): void {
+      // A newly assigned competitor's earlier shifts must not sound.
+      heardShift = null;
       follow(output.gain, 0, context.currentTime, AUDIO_CONTROL_POLICY.fadeSeconds);
     },
     dispose(): void {
