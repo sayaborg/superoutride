@@ -36,7 +36,7 @@ export interface ExhaustSettings {
   readonly pulseVariation: number;
   readonly pumpingExcitation: number;
   readonly pulseRiseMs: number;
-  readonly pulseDecayMs: number;
+  readonly pulseDecayDegrees: number;
   readonly blipOpening: number;
   readonly blipDecaySeconds: number;
   readonly popProbability: number;
@@ -49,8 +49,13 @@ export interface ExhaustSettings {
 }
 export const DEFAULT_EXHAUST_SETTINGS: ExhaustSettings = Object.freeze({
   closedExcitation: 0.22, // No derivation; chosen by listening. Weak combustion at closed throttle.
-  pulseRiseMs: 0.2, // No derivation; chosen by listening. Full-excitation rise time constant.
-  pulseDecayMs: 5, // No derivation; chosen by listening. Decay time constant; base strength is fixed at 1.
+  // No derivation; chosen by listening. Full-excitation rise in absolute time: the wavefront is set by the
+  // pressure ratio when the valve opens, not by RPM. The kernel splits it into two equal stages so the pulse
+  // onset is C1 (a slope discontinuity at firing is heard as a click) with the same mean delay.
+  pulseRiseMs: 0.2,
+  // No derivation; chosen by listening. Decay in crank angle, because blowdown lasts a crank angle; the only
+  // derivation is the conversion D / (6 * rpm) seconds. Base strength is fixed at 1.
+  pulseDecayDegrees: 90,
   pulseVariation: 0.2, // No derivation; chosen by listening. Absolute fraction of full excitation.
   // No derivation; chosen by listening. Firing strength during fuel cut: blowdown without combustion.
   pumpingExcitation: 0.06,
@@ -90,7 +95,7 @@ export const EXHAUST_SETTING_RANGES: Readonly<Record<keyof ExhaustSettings, Sett
   // Excitation divides the rise time, so zero is excluded like closedExcitation.
   pumpingExcitation: Object.freeze({ min: 0, max: 0.5, step: 0.01, exclusiveMin: true, uiMin: 0.01 }),
   pulseRiseMs: Object.freeze({ min: 0.05, max: 2, step: 0.01 }),
-  pulseDecayMs: Object.freeze({ min: 0.1, max: 30, step: 0.1 }),
+  pulseDecayDegrees: Object.freeze({ min: 2, max: 360, step: 1 }),
   blipOpening: Object.freeze({ min: 0, max: 1, step: 0.01 }),
   blipDecaySeconds: Object.freeze({ min: 0.02, max: 0.3, step: 0.01 }),
   popProbability: Object.freeze({ min: 0, max: 1, step: 0.01 }),

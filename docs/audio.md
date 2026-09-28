@@ -59,13 +59,21 @@ history reproduce the same sound.
 The pulse model is:
 
 ```text
-p' = -p/decayTime
-r' = (p-r)/riseTime
+p'  = -p/decayTime
+r1' = (p-r1)/(riseTime/2)
+r2' = (r1-r2)/(riseTime/2)
 ```
 
-`riseTime` is `pulseRiseMs` divided by excitation and `decayTime` is `pulseDecayMs`; both are absolute times.
-Firing resets `p` and keeps `r` continuous. Exact exponential evolution across fractional firing times
-supplies the sample-average pulse to the pipe.
+The pipe receives `r2`. Two equal stages of `riseTime/2` keep the one-stage mean delay `riseTime` and the
+pulse area `strength*decayTime`, while the pressure onset starts with zero slope (C1): a slope discontinuity
+at firing would be heard as a click.
+
+`riseTime` is `pulseRiseMs` divided by excitation, in absolute time: the wavefront is set by the pressure
+ratio when the valve opens and does not depend on RPM. `decayTime` is the duration of the `pulseDecayDegrees`
+crank angle, `D/(6*rpm)` seconds at the smoothed RPM, recomputed every sample: blowdown lasts a crank angle, so
+the tail is longer at low RPM; that conversion is its only derivation. Firing resets `p` and keeps `r1` and `r2`
+continuous. Exact exponential evolution across fractional firing times supplies the sample-average pulse to the
+pipe.
 
 The [waveguide](../src/audio/exhaust-waveguide.ts) has bidirectional primary and outlet delays rounded
 to the nearest sample at the reference wave speed. Each traversal multiplies amplitude by

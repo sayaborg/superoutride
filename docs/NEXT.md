@@ -212,8 +212,6 @@ lighting at its own chainage, and switching is a cut.
 | Art              | Production assets, new physical materials and tunnel/background content                                                            |
 | BG transitions   | Consider wipes or dissolves for environment changes; palette fades are not expected                                                |
 | Shell            | Front end, product HUD separate from DEV UI/HUD, music, progression, naming/distribution and future input devices                  |
-| Engine sound     | Tried, not adopted: crank-angle pulse decay. It did not improve driving sound and added computation (11-7b–11-7k)                  |
-| Engine sound     | Tried, not adopted: two-stage (C1) rise. It did not improve driving sound and added computation (11-7b–11-7k)                      |
 | Engine sound     | Tried, not adopted: displacement pulse. It did not improve driving sound and added computation (11-7b–11-7k)                       |
 | Engine sound     | Tried, not adopted: pipe cross-sections and muffler segments. It did not improve driving sound and added computation (11-7b–11-7k) |
 | Engine sound     | Tried, not adopted: packing absorption. It did not improve driving sound and added computation (11-7b–11-7k)                       |

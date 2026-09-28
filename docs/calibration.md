@@ -125,7 +125,7 @@ Displacement is in cc and cycle is 2 or 4 strokes. Gear ratios and final drive a
 
 Audio values are either [derived](#derived-values) or DEV listening settings. Every DEV default is the
 implementer's initial value, not a value the owner chose by listening. [Exhaust acoustics](../src/audio/exhaust-acoustics.ts)
-supplies the ENGINE group (`ExhaustSettings`) defaults and domains. Pulse rise and decay are absolute times.
+supplies the ENGINE group (`ExhaustSettings`) defaults and domains. Pulse rise is absolute time and pulse decay a crank angle (at 3000 RPM, 18° lasts 1 ms).
 
 | Key                        | Meaning                                      | Default | UI range / step    |
 | -------------------------- | -------------------------------------------- | ------- | ------------------ |
@@ -133,7 +133,7 @@ supplies the ENGINE group (`ExhaustSettings`) defaults and domains. Pulse rise a
 | `pulseVariation`           | Absolute event-strength variation            | 0.20    | 0–0.40 / 0.01      |
 | `pumpingExcitation`        | Firing strength during fuel cut              | 0.06    | 0.01–0.50 / 0.01   |
 | `pulseRiseMs`              | Full-excitation pulse rise time              | 0.2 ms  | 0.05–2 ms / 0.01   |
-| `pulseDecayMs`             | Pulse decay time                             | 5 ms    | 0.1–30 ms / 0.1    |
+| `pulseDecayDegrees`        | Pulse decay, crank angle                     | 90°     | 2–360° / 1°        |
 | `outputCutoffHz`           | Final listening-filter cutoff                | 7300 Hz | 100–12000 Hz / 100 |
 | `blipOpening`              | Downshift blip opening peak                  | 0.70    | 0–1 / 0.01         |
 | `blipDecaySeconds`         | Downshift blip decay time                    | 0.08 s  | 0.02–0.30 s / 0.01 |
