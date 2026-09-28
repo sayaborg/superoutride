@@ -16,7 +16,7 @@ wheel peripheral/angular velocity, normal load, longitudinal/lateral dissipated 
 One tire worklet receives independent k-rate parameter sets and seeded histories for both axles.
 The game and tire audition use the same voice, processor and observation mapping.
 
-[Observation domains](../src/audio/tire-sound-observation.ts) bound acoustic transport. Zero load or
+[Observation domains](../src/audio/tire-sound-transport.ts) bound acoustic transport. Zero load or
 no material yields a silent contact observation. Supported observations carry the admitted material ID;
 rolling and UNIFIED acoustic tables are keyed by that ID. Product assembly checks once that every
 delivered material has both sound entries. An invalid block releases only the affected axle's forcing;

@@ -8,7 +8,7 @@ import {
   resolveUnifiedSettings,
   type UnifiedSettings,
 } from './tire-unified-acoustics.js';
-import type { TireSoundObservation } from './tire-sound-observation.js';
+import type { TireSoundObservation } from './tire-sound-transport.js';
 import { TIRE_SOUND_SURFACE_IDS } from './tire-surface-acoustics.js';
 
 const saturate = (value: number, half: number): number => value / (value + half);

@@ -1,9 +1,9 @@
-import { TIRE_SOUND_INPUT_KEYS } from './tire-sound-observation.js';
+import { TIRE_SOUND_INPUT_KEYS, tireSoundParameters } from './tire-sound-transport.js';
 import { follow } from './audio-parameter.js';
 import { resolveControlSettings, sameControlSettings, type ControlSettings } from './audio-control-policy.js';
 import { resolveUnifiedSettings, sameUnifiedSettings, type UnifiedSettings } from './tire-unified-acoustics.js';
 import { resolveRollingSettings, sameRollingSettings, type RollingSettings } from './tire-rolling-acoustics.js';
-import { tireSoundParameters, TIRE_COMPONENTS, type TireComponents } from './tire-sound-controls.js';
+import { TIRE_COMPONENTS, type TireComponents } from './tire-sound-components.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
 
 /** One reusable worklet. Only tire sound settings fade/replace generators; engines, context and driving continue. */

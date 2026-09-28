@@ -7,7 +7,7 @@ import {
 } from './mix-sound-settings-controls.js';
 import { createRangeControl } from './range-control.js';
 import { createNumberStepper } from './number-stepper.js';
-import { TIRE_COMPONENTS } from '../audio/tire-sound-controls.js';
+import { TIRE_COMPONENTS } from '../audio/tire-sound-components.js';
 import { DEFAULT_CONTROL_SETTINGS } from '../audio/audio-control-policy.js';
 import { createAudioScene } from '../audio/audio-scene.js';
 import { SOUND_BUSES, type SoundBus } from '../audio/sound-graph.js';

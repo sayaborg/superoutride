@@ -5,7 +5,7 @@ import {
   resolveRollingSettings,
   type RollingSettings,
 } from './tire-rolling-acoustics.js';
-import { validateTireSoundObservation, type TireSoundObservation } from './tire-sound-observation.js';
+import { validateTireSoundObservation, type TireSoundObservation } from './tire-sound-transport.js';
 import { TIRE_SOUND_SURFACE_IDS } from './tire-surface-acoustics.js';
 
 const saturate = (value: number, half: number): number => value / (value + half);

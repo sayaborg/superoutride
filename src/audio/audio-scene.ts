@@ -4,7 +4,7 @@ import { follow } from './audio-parameter.js';
 import { createEngineVoice } from './engine-voice.js';
 import type { ExhaustSettings } from './exhaust-acoustics.js';
 import { createSoundGraph, type MixSettings, type SoundBus } from './sound-graph.js';
-import type { TireComponents } from './tire-sound-controls.js';
+import type { TireComponents } from './tire-sound-components.js';
 import type { UnifiedSettings } from './tire-unified-acoustics.js';
 import type { RollingSettings } from './tire-rolling-acoustics.js';
 import { createTireVoice } from './tire-voice.js';
