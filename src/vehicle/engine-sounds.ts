@@ -3,7 +3,9 @@ import { compileEngineSound } from '../audio/engine-sound.js';
 const even = (count: number) => Array.from({ length: count }, (_, index) => index / count);
 /**
  * Acoustic sketches, not certified recordings or manufacturer exhaust models. Bores and outlet segments
- * (collector -> muffler -> tail) are typical values, not measurements; listening revises them.
+ * (collector -> muffler -> tail) are typical values, not measurements; listening revises them. Packing absorption
+ * (Np/m at absorptionHz) is typical too: 3 in mufflers, 0 in plain pipes, and 0.5 in the unpacked two-stroke expansion
+ * chamber. The 2000 Hz reference damps the chamber's metallic overtones while keeping its low resonance.
  */
 export const ENGINE_SOUNDS = Object.freeze({
   TESTAROSSA: compileEngineSound({
@@ -11,9 +13,9 @@ export const ENGINE_SOUNDS = Object.freeze({
       banks: [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
       primaries: { lengths: [0.5, 0.54, 0.46, 0.5, 0.58, 0.62, 0.54, 0.58, 0.42, 0.46, 0.62, 0.66], bore: 0.042 },
       outlet: [
-        { length: 0.45, bore: 0.055 },
-        { length: 0.5, bore: 0.18 },
-        { length: 0.4, bore: 0.055 },
+        { length: 0.45, bore: 0.055, absorption: 0, absorptionHz: 2000 },
+        { length: 0.5, bore: 0.18, absorption: 3, absorptionHz: 2000 },
+        { length: 0.4, bore: 0.055, absorption: 0, absorptionHz: 2000 },
       ],
     },
     cycleRevolutions: 2,
@@ -27,9 +29,9 @@ export const ENGINE_SOUNDS = Object.freeze({
       banks: [0, 1, 0, 1, 0, 1],
       primaries: { lengths: [0.38, 0.45, 0.3, 0.36, 0.34, 0.4], bore: 0.042 },
       outlet: [
-        { length: 0.5, bore: 0.055 },
-        { length: 0.5, bore: 0.18 },
-        { length: 0.45, bore: 0.055 },
+        { length: 0.5, bore: 0.055, absorption: 0, absorptionHz: 2000 },
+        { length: 0.5, bore: 0.18, absorption: 3, absorptionHz: 2000 },
+        { length: 0.45, bore: 0.055, absorption: 0, absorptionHz: 2000 },
       ],
     },
     cycleRevolutions: 2,
@@ -41,9 +43,9 @@ export const ENGINE_SOUNDS = Object.freeze({
       banks: [0, 1, 1, 0, 1, 0, 0, 1],
       primaries: { lengths: [0.62, 0.8, 0.54, 0.7, 0.72, 0.52, 0.84, 0.6], bore: 0.042 },
       outlet: [
-        { length: 0.6, bore: 0.055 },
-        { length: 0.5, bore: 0.18 },
-        { length: 0.5, bore: 0.055 },
+        { length: 0.6, bore: 0.055, absorption: 0, absorptionHz: 2000 },
+        { length: 0.5, bore: 0.18, absorption: 3, absorptionHz: 2000 },
+        { length: 0.5, bore: 0.055, absorption: 0, absorptionHz: 2000 },
       ],
     },
     cycleRevolutions: 2,
@@ -54,9 +56,9 @@ export const ENGINE_SOUNDS = Object.freeze({
       banks: [0, 0, 0, 0],
       primaries: { lengths: [0.55, 0.42, 0.48, 0.6], bore: 0.042 },
       outlet: [
-        { length: 0.6, bore: 0.055 },
-        { length: 0.5, bore: 0.18 },
-        { length: 0.5, bore: 0.055 },
+        { length: 0.6, bore: 0.055, absorption: 0, absorptionHz: 2000 },
+        { length: 0.5, bore: 0.18, absorption: 3, absorptionHz: 2000 },
+        { length: 0.5, bore: 0.055, absorption: 0, absorptionHz: 2000 },
       ],
     },
     cycleRevolutions: 2,
@@ -67,9 +69,9 @@ export const ENGINE_SOUNDS = Object.freeze({
       banks: [0, 0, 0, 0],
       primaries: { lengths: [0.3, 0.24, 0.27, 0.34], bore: 0.042 },
       outlet: [
-        { length: 0.6, bore: 0.055 },
-        { length: 0.5, bore: 0.18 },
-        { length: 0.5, bore: 0.055 },
+        { length: 0.6, bore: 0.055, absorption: 0, absorptionHz: 2000 },
+        { length: 0.5, bore: 0.18, absorption: 3, absorptionHz: 2000 },
+        { length: 0.5, bore: 0.055, absorption: 0, absorptionHz: 2000 },
       ],
     },
     cycleRevolutions: 2,
@@ -81,9 +83,9 @@ export const ENGINE_SOUNDS = Object.freeze({
       banks: [0, 1, 0, 1],
       primaries: { lengths: [0.7, 0.92, 0.76, 0.86], bore: 0.035 },
       outlet: [
-        { length: 0.3, bore: 0.042 },
-        { length: 0.35, bore: 0.11 },
-        { length: 0.15, bore: 0.04 },
+        { length: 0.3, bore: 0.042, absorption: 0, absorptionHz: 2000 },
+        { length: 0.35, bore: 0.11, absorption: 3, absorptionHz: 2000 },
+        { length: 0.15, bore: 0.04, absorption: 0, absorptionHz: 2000 },
       ],
     },
     cycleRevolutions: 2,
@@ -94,9 +96,9 @@ export const ENGINE_SOUNDS = Object.freeze({
       banks: [0, 1],
       primaries: { lengths: [0.82, 0.9], bore: 0.035 },
       outlet: [
-        { length: 0.3, bore: 0.042 },
-        { length: 0.35, bore: 0.11 },
-        { length: 0.15, bore: 0.04 },
+        { length: 0.3, bore: 0.042, absorption: 0, absorptionHz: 2000 },
+        { length: 0.35, bore: 0.11, absorption: 3, absorptionHz: 2000 },
+        { length: 0.15, bore: 0.04, absorption: 0, absorptionHz: 2000 },
       ],
     },
     cycleRevolutions: 2,
@@ -107,9 +109,9 @@ export const ENGINE_SOUNDS = Object.freeze({
       banks: [0, 1],
       primaries: { lengths: [0.72, 1.04], bore: 0.035 },
       outlet: [
-        { length: 0.3, bore: 0.042 },
-        { length: 0.35, bore: 0.11 },
-        { length: 0.15, bore: 0.04 },
+        { length: 0.3, bore: 0.042, absorption: 0, absorptionHz: 2000 },
+        { length: 0.35, bore: 0.11, absorption: 3, absorptionHz: 2000 },
+        { length: 0.15, bore: 0.04, absorption: 0, absorptionHz: 2000 },
       ],
     },
     cycleRevolutions: 2,
@@ -121,8 +123,8 @@ export const ENGINE_SOUNDS = Object.freeze({
       banks: [0],
       primaries: { lengths: [0.28], bore: 0.028 },
       outlet: [
-        { length: 0.3, bore: 0.08 },
-        { length: 0.2, bore: 0.02 },
+        { length: 0.3, bore: 0.08, absorption: 0.5, absorptionHz: 2000 },
+        { length: 0.2, bore: 0.02, absorption: 0, absorptionHz: 2000 },
       ],
     },
     cycleRevolutions: 1,

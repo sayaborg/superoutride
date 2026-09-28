@@ -19,6 +19,10 @@ export interface EngineSoundDefinition {
 export interface ExhaustSegment {
   readonly length: number;
   readonly bore: number;
+  /** Additional loss from packing at `absorptionHz`, in Np/m (0 to 20); 0 for a plain pipe segment. */
+  readonly absorption: number;
+  /** Reference frequency of `absorption` (50 to 8000 Hz); the packing loss falls toward 0 at low frequency. */
+  readonly absorptionHz: number;
 }
 
 export type CompiledEngineSound = Readonly<EngineSoundDefinition>;
@@ -55,7 +59,17 @@ export function compileEngineSound(definition: EngineSoundDefinition): CompiledE
     outlet.length < 1 ||
     outlet.length > 4 ||
     outlet.some(
-      (segment) => !segment || !Number.isFinite(segment.length) || segment.length <= 0 || !validBore(segment.bore),
+      (segment) =>
+        !segment ||
+        !Number.isFinite(segment.length) ||
+        segment.length <= 0 ||
+        !validBore(segment.bore) ||
+        !Number.isFinite(segment.absorption) ||
+        segment.absorption < 0 ||
+        segment.absorption > 20 ||
+        !Number.isFinite(segment.absorptionHz) ||
+        segment.absorptionHz < 50 ||
+        segment.absorptionHz > 8000,
     )
   )
     throw new RangeError('invalid exhaust topology');
@@ -67,7 +81,11 @@ export function compileEngineSound(definition: EngineSoundDefinition): CompiledE
     exhaust: Object.freeze({
       banks: Object.freeze([...exhaust.banks]),
       primaries: Object.freeze({ lengths: Object.freeze([...primaries.lengths]), bore: primaries.bore }),
-      outlet: Object.freeze(outlet.map(({ length, bore }) => Object.freeze({ length, bore }))),
+      outlet: Object.freeze(
+        outlet.map(({ length, bore, absorption, absorptionHz }) =>
+          Object.freeze({ length, bore, absorption, absorptionHz }),
+        ),
+      ),
     }),
   });
 }

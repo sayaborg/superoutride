@@ -42,7 +42,12 @@ function showVehicleData() {
   const bore = (value: number) => `⌀${Math.round(value * 1000)} mm`;
   const { primaries, outlet } = sound.exhaust;
   const outletLength = outlet.reduce((total, segment) => total + segment.length, 0);
-  const outletText = outlet.map((segment) => `${meters(segment.length)} ${bore(segment.bore)}`).join(' → ');
+  const outletText = outlet
+    .map(
+      (segment) =>
+        `${meters(segment.length)} ${bore(segment.bore)}${segment.absorption > 0 ? ` 吸音 ${segment.absorption} Np/m @ ${segment.absorptionHz} Hz` : ''}`,
+    )
+    .join(' → ');
   sound.firingPhases.forEach((phase, i, phases) => {
     const next = i + 1 < phases.length ? phases[i + 1]! : phases[0]! + 1;
     const length = primaries.lengths[i]!;

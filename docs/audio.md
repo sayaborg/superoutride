@@ -87,7 +87,11 @@ across fractional firing times supplies the sample-average pulse to the pipe.
 
 The [waveguide](../src/audio/exhaust-waveguide.ts) has bidirectional primary and outlet-segment delays rounded
 to the nearest sample at the reference wave speed. Each traversal multiplies amplitude by
-`exp(-attenuationPerMeter*length)`, with the attenuation of that pipe's bore. Every junction scatters pressure
+`exp(-attenuationPerMeter*length)`, with the attenuation of that pipe's bore. An outlet segment adds its packing
+absorption, frequency-dependent like fibrous packing: a one-pole low-pass per traversal passes DC unchanged and
+loses `absorption*length` nepers at the segment's reference frequency `absorptionHz` (Np/m 0–20, 50–8000 Hz),
+more above it. Mufflers carry absorption so the chamber's overtones decay instead of ringing metallically, while
+its low resonance, set by reflection at the area steps, remains; plain pipe segments and primaries carry none. Every junction scatters pressure
 waves weighted by cross-section area `A`:
 
 ```text

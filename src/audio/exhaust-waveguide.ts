@@ -1,4 +1,4 @@
-import type { CompiledEngineSound } from './engine-sound.js';
+import type { CompiledEngineSound, ExhaustSegment } from './engine-sound.js';
 
 import { ACOUSTICS, OUTLET_REFLECTION, OUTPUT, pipeCoefficients, resolveExhaustSettings } from './exhaust-acoustics.js';
 import type { ExhaustSettings } from './exhaust-acoustics.js';
@@ -63,13 +63,30 @@ function scatter(areas: readonly number[]): Float64Array {
   return Float64Array.from(areas, (area) => (2 * area) / total);
 }
 
-/** Fixed delay with amplitude loss exp(-attenuation * distance) on each traversal. */
+/**
+ * One-pole low-pass coefficient g (y += g * (x - y), unit DC gain) whose magnitude at `radians` per sample is
+ * `gain`: the smaller root b = 1 - g of b^2 (1 - T^2) - 2 b (1 - T^2 cos w) + (1 - T^2) = 0, where T = gain.
+ */
+function lossSmoothing(gain: number, radians: number): number {
+  if (gain >= 1) return 1;
+  const squared = gain * gain;
+  const opposite = 1 - squared;
+  const middle = 1 - squared * Math.cos(radians);
+  return 1 - (middle - Math.sqrt(middle * middle - opposite * opposite)) / opposite;
+}
+
+/**
+ * Fixed delay with amplitude loss exp(-attenuation * distance) on each traversal and an optional one-pole loss
+ * filter (smoothing < 1) that removes more at high frequencies while passing DC unchanged.
+ */
 class Delay {
   private readonly data: Float32Array;
   private position = 0;
+  private filtered = 0;
   constructor(
     length: number,
     private readonly transmission: number,
+    private readonly smoothing = 1,
   ) {
     this.data = new Float32Array(Math.max(1, Math.round(length)));
   }
@@ -77,6 +94,10 @@ class Delay {
     return this.data[this.position]!;
   }
   write(value: number): void {
+    if (this.smoothing < 1) {
+      this.filtered += this.smoothing * (value - this.filtered);
+      value = this.filtered;
+    }
     this.data[this.position] = value * this.transmission;
     this.position = (this.position + 1) % this.data.length;
   }
@@ -142,10 +163,18 @@ export class ExhaustWaveguide {
     const groups = Math.max(...this.banks) + 1;
     const pipe = (meters: number, bore: number) =>
       new Delay((meters * rate) / ACOUSTICS.waveSpeed, Math.exp(-pipeCoefficients(bore).attenuationPerMeter * meters));
+    // Packing absorbs frequency-dependently: each traversal's loss filter passes DC and loses
+    // absorption * length nepers at absorptionHz, more above it.
+    const segment = ({ length, bore, absorption, absorptionHz }: ExhaustSegment) =>
+      new Delay(
+        (length * rate) / ACOUSTICS.waveSpeed,
+        Math.exp(-pipeCoefficients(bore).attenuationPerMeter * length),
+        lossSmoothing(Math.exp(-absorption * length), (2 * Math.PI * absorptionHz) / rate),
+      );
     const { primaries, outlet } = exhaust;
     this.forward = primaries.lengths.map((length) => pipe(length, primaries.bore));
     this.backward = primaries.lengths.map((length) => pipe(length, primaries.bore));
-    const segments = () => outlet.map(({ length, bore }) => pipe(length, bore));
+    const segments = () => outlet.map(segment);
     this.downstream = Array.from({ length: groups }, segments);
     this.upstream = Array.from({ length: groups }, segments);
     // Only area ratios matter, so squared bores stand in for areas.
