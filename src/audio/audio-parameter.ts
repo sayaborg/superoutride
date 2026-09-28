@@ -1,10 +1,15 @@
-import { AUDIO_TIMING } from './audio-presentation.js';
+import { AUDIO_CONTROL_POLICY } from './audio-control-policy.js';
 
 // Detect once per parameter; weak ownership does not retain disposed graphs.
 const holders = new WeakMap<AudioParam, (time: number) => void>();
 
 /** Retarget at currentTime while bounding scheduled events and preserving the current value. */
-export function follow(param: AudioParam, value: number, now: number, tau: number = AUDIO_TIMING.controlSeconds): void {
+export function follow(
+  param: AudioParam,
+  value: number,
+  now: number,
+  tau: number = AUDIO_CONTROL_POLICY.controlSeconds,
+): void {
   let hold = holders.get(param);
   if (!hold) {
     const nativeHold = param.cancelAndHoldAtTime;

@@ -1,7 +1,12 @@
 import { mustGet } from '../../src/shell/dom.js';
-import { REFLECTION_REFERENCE, ACOUSTICS, DEFAULT_EXHAUST_TUNING, OUTPUT } from '../../src/audio/exhaust-acoustics.js';
-import { AUDIO_TIMING } from '../../src/audio/audio-presentation.js';
-import { mountAudioTuningControls } from '../../src/shell/audio-tuning-controls.js';
+import {
+  REFLECTION_REFERENCE,
+  ACOUSTICS,
+  DEFAULT_EXHAUST_SETTINGS,
+  OUTPUT,
+} from '../../src/audio/exhaust-acoustics.js';
+import { AUDIO_CONTROL_POLICY } from '../../src/audio/audio-control-policy.js';
+import { mountEngineSoundSettings } from '../../src/shell/engine-sound-settings-controls.js';
 import { createEngineVoice } from '../../src/audio/engine-voice.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadContentManifest } from '../../src/content/content-manifest.js';
@@ -21,9 +26,9 @@ mustGet<HTMLElement>('reference-conditions').textContent =
 mustGet<HTMLElement>('boundary-conditions').textContent =
   `境界の仮設定：閉端側の圧力反射 ${ACOUSTICS.cylinderClosedReflection}、開口側 ${ACOUSTICS.cylinderOpenReflection}、開口変化の幅は発火周期の ${ACOUSTICS.cylinderWindowCycles}。気筒への戻り波に周期的な境界変化を与えます。実測のバルブタイミングや流量ではありません。`;
 mustGet<HTMLElement>('output-conditions').textContent =
-  `音作り・出力の設定：追従 ${(AUDIO_TIMING.controlSeconds * 1000).toFixed(0)} ms。出力順：DC除去 ${OUTPUT.dcHz} Hz → ソフトクリップ（上限 ${OUTPUT.ceiling}）→ 最終LPF（一次、− / +で調整・初期値 ${DEFAULT_EXHAUST_TUNING.outputCutoffHz} Hz）。排気の物理量とは区別します。`;
-const tuningControls = mountAudioTuningControls(mustGet<HTMLElement>('tuning-controls'), () => {});
-const readTuning = tuningControls.read;
+  `音作り・出力の設定：追従 ${(AUDIO_CONTROL_POLICY.controlSeconds * 1000).toFixed(0)} ms。出力順：DC除去 ${OUTPUT.dcHz} Hz → ソフトクリップ（上限 ${OUTPUT.ceiling}）→ 最終LPF（一次、− / +で調整・初期値 ${DEFAULT_EXHAUST_SETTINGS.outputCutoffHz} Hz）。排気の物理量とは区別します。`;
+const engineSoundSettings = mountEngineSoundSettings(mustGet<HTMLElement>('engine-sound-settings'), () => {});
+const readSettings = engineSoundSettings.read;
 function showVehicleData() {
   const { sound, compiledVehicle } = vehicles[Number(vehicle.value)]!;
   const cycleDegrees = sound.cycleRevolutions * 360;
@@ -76,7 +81,7 @@ async function audition() {
   try {
     playback ??= new AudioContext();
     await playback.resume();
-    const tuning = readTuning();
+    const settings = readSettings();
     const scenario = mustGet<HTMLSelectElement>('scenario').value;
     const entry = vehicles[Number(vehicle.value)]!;
     const context = new OfflineAudioContext(1, 4 * 48000, 48000);
@@ -88,8 +93,8 @@ async function audition() {
     });
     await context.audioWorklet.addModule(new URL('./exhaust-processor.js', import.meta.url));
     const voice = createEngineVoice(context, context.destination, {
-      profile: entry.sound,
-      tuning,
+      sound: entry.sound,
+      settings,
     });
     voice.update(state, entry.sound);
     if (scenario === 'rev') {

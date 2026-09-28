@@ -6,12 +6,12 @@ sound. [Tire audio](tire-audio.md) owns UNIFIED synthesis, [Calibration](calibra
 settings, [Browser](browser.md#sound-controls) owns operation, and
 [Development](development.md#audio-audition) owns audition commands and workflow.
 
-## Observations and profiles
+## Observations and engine sounds
 
 The [acoustic observation](../src/audio/vehicle-audio-observation.ts) contains powertrain and tire
 inputs. A vehicle audio emitter ([audio scene](../src/audio/audio-scene.ts)) adds the competitor ID and
 its physical world pose; player and rivals are supplied in the same emitter form. From the powertrain, audio reads engine RPM, the effective opening
-(`effectiveOpening`, the engine's only command and the excitation source) and the last shift
+(`effectiveOpening`, the engine's only command and the excitation) and the last shift
 (sequence, direction and engine RPM before and after, as
 [vehicle physics](vehicle-physics.md#wheel-and-powertrain) publishes it). A sequence the voice has not yet heard
 marks a new shift; shift sounds such as downshift blips are not yet synthesized. The browser supplies them once per presented frame from the race's borrowed competitor observations,
@@ -20,9 +20,11 @@ Physics owns RPM, actuators, contact loads, wheel motion and dissipated work; au
 filter and envelope state. Player tire sound reads the player's observed tire observations;
 rival sound uses the rival's observed powertrain values.
 
-A [vehicle audio profile](../src/audio/vehicle-audio-profile.ts) contains one or two revolutions per
+An [engine sound](../src/audio/engine-sound.ts) contains one or two revolutions per
 cycle, ordered firing phases, collector membership, primary lengths and a common outlet length per
-collector. Phase count determines cylinder count. The vehicle catalog binds these profiles to the
+collector. Phase count determines cylinder count. `compileEngineSound` validates an
+`EngineSoundDefinition` into a `CompiledEngineSound`; the vehicle catalog binds the
+[engine sounds](../src/vehicle/engine-sounds.ts) to the
 same sample-free engine kernel. Firing rows identify events and collector groups.
 
 ## Engine synthesis
@@ -52,9 +54,9 @@ to the nearest sample at the reference wave speed. Each traversal multiplies amp
 `exp(-attenuationPerMeter*length)`. Equal-admittance collector scattering uses
 `p = 2*sum(incoming)/portCount` and `outgoing = p-incoming`.
 
-The source reflection varies from +0.94 to -0.3 through the aperture `16*u²*(1-u)²` over 0.23 firing
+The cylinder-end reflection varies from +0.94 to -0.3 through the aperture `16*u²*(1-u)²` over 0.23 firing
 cycles, then returns to its closed value. The aperture has continuous value and slope and a window
-mean of 8/15. Source and outlet low-pass filters act inside their return paths. The listening pickup
+mean of 8/15. Cylinder-end and outlet low-pass filters act inside their return paths. The listening pickup
 sums outgoing and low-passed outgoing waves, with collector mixing divided by `sqrt(collectorCount)`.
 
 Each acoustic step runs at the output sample rate. Integer pipe delays, the pulse approximation and
@@ -70,7 +72,7 @@ Collector mix -> 18 Hz DC removal -> soft clipping -> final low-pass filter
 Soft clipping uses `y = 0.65*x/(1+abs(x))`, with small-signal gain 0.65 and asymptotic bounds ±0.65.
 The final filter uses `tone += a*(y-tone)`, where `a = 1-exp(-2*pi*outputCutoffHz/sampleRate)`.
 It is independent of the boundary return filter. The master compressor supplies envelope-based
-compression. Output depends on the profile, RPM, excitation and fixed mix gains.
+compression. Output depends on the engine sound, RPM, excitation and fixed mix gains.
 
 ## Reference coefficients
 
@@ -95,7 +97,8 @@ the resident Route. Its gain uses 3D physical world distance and its pan uses la
 yaw frame. A change of rival ID silences the slot and waits the reassignment time before the new rival sounds. ENG, TIRE and MASTER independently multiply their
 outputs. Component output switches leave synthesis state running.
 
-The shared control-following constant is 25 ms and transition duration is 90 ms. Engine profile/tuning
+[`AUDIO_CONTROL_POLICY`](../src/audio/audio-control-policy.ts) sets the shared control-following
+constant to 25 ms and the transition duration to 90 ms. Engine sound and exhaust settings
 replacement fades to silence before installing a new kernel. New settings supersede pending values;
 returning to active values cancels pending replacement. Tire replacement is specified in
 [Tire audio](tire-audio.md#tuning-replacement).

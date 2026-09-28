@@ -1,11 +1,11 @@
 import { clamp } from '../core/math.js';
 import { follow } from './audio-parameter.js';
-import type { ExhaustTuning } from './exhaust-acoustics.js';
+import type { ExhaustSettings } from './exhaust-acoustics.js';
 import { createTireVoice } from './tire-voice.js';
 import type { UnifiedTuning } from './tire-unified-acoustics.js';
 import type { TireComponents } from './tire-sound-controls.js';
 import { createEngineVoice } from './engine-voice.js';
-import type { VehicleAudioProfile } from './vehicle-audio-profile.js';
+import type { CompiledEngineSound } from './engine-sound.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
 
 /** Fixed player/rival engines and one player tire worklet containing independent front/rear generators. */
@@ -32,20 +32,20 @@ export async function createAudioEngine(context: AudioContext) {
   const tires = createTireVoice(context, tireBus);
   let disposed = false;
   return {
-    update(state: VehicleAudioObservation, profile: VehicleAudioProfile): void {
-      player.update(state, profile);
+    update(state: VehicleAudioObservation, sound: CompiledEngineSound): void {
+      player.update(state, sound);
       tires.update(state);
     },
-    updateRival(state: VehicleAudioObservation, profile: VehicleAudioProfile, gain: number, pan: number): void {
-      rival.update(state, profile, gain);
+    updateRival(state: VehicleAudioObservation, sound: CompiledEngineSound, gain: number, pan: number): void {
+      rival.update(state, sound, gain);
       follow(rivalPan.pan, clamp(pan, -1, 1), context.currentTime, 0.06);
     },
     silenceRival(): void {
       rival.silence();
     },
-    setTuning(value: ExhaustTuning): void {
-      player.setTuning(value);
-      rival.setTuning(value);
+    setExhaustSettings(value: ExhaustSettings): void {
+      player.setSettings(value);
+      rival.setSettings(value);
     },
     setTireTuning(value: UnifiedTuning): void {
       tires.setTuning(value);

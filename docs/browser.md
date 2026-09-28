@@ -162,7 +162,7 @@ A zero gain silences that output while DSP continues. R and Q buttons independen
 and friction output for both axles. Their labels and pressed states show ON/OFF, and unavailable audio
 disables them. [Tire audio](tire-audio.md#tuning-replacement) owns faded output and replacement semantics.
 
-Engine tuning exposes eight minus/plus controls and reset. Buttons stop at limits; vehicle changes
+Engine sound settings (`engine-sound-settings`) expose eight minus/plus controls and reset. Buttons stop at limits; vehicle changes
 preserve settings, and page/course reload restores defaults. UNIFIED controls use the acoustic ranges
-and reset that model's defaults. Profile rows show cycle, cylinder count, idle/redline, firing phases,
+and reset that model's defaults. Engine sound rows show cycle, cylinder count, idle/redline, firing phases,
 collector grouping and path lengths. [Calibration](calibration.md) lists the numeric settings.

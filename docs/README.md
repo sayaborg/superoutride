@@ -12,7 +12,7 @@ Each concept has one owning document. Topic specifications describe the implemen
 | [Vehicle physics](vehicle-physics.md)           | Vehicle/driving and Surface Material formats, mechanical state, contact, tires, powertrain, protection and steering |
 | [Audio](audio.md)                               | Engine synthesis, acoustic observations, the sound graph and audio lifetime                                         |
 | [Tire audio](tire-audio.md)                     | UNIFIED rolling/friction synthesis, signal domains and tuning-replacement semantics                                 |
-| [Calibration](calibration.md)                   | Vehicle and acoustic tuning values, units, ranges and meanings                                                      |
+| [Calibration](calibration.md)                   | Vehicle tuning and acoustic settings values, units, ranges and meanings                                             |
 | [Browser](browser.md)                           | Display, scheduling, keyboard/touch input, URL settings, race status, HUD and DEV controls                          |
 | [Development](development.md)                   | Commands, audition workflow, source-file conventions and generated/delivered outputs                                |
 | [Development contract](../AGENTS.md)            | Design and construction conventions, standing checks and release procedure                                          |

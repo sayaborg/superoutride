@@ -1,4 +1,4 @@
-// Reference conditions, not measured vehicle data. Sources and limits: docs/audio.md.
+// Reference conditions, not measured vehicle data. References and limits: docs/audio.md.
 export const REFLECTION_REFERENCE = Object.freeze({
   temperatureK: 573.15, // assumed 300 C air surrogate, not exhaust composition
   pressurePa: 101325,
@@ -17,7 +17,7 @@ const attenuation =
     (REFLECTION_REFERENCE.radiusMeters * waveSpeed)) *
   (1 + (AIR.gamma - 1) / Math.sqrt(AIR.prandtl));
 
-export interface ExhaustTuning {
+export interface ExhaustSettings {
   readonly attenuationPerMeter: number;
   readonly returnCutoffHz: number;
   readonly outletReflection: number;
@@ -27,7 +27,7 @@ export interface ExhaustTuning {
   readonly pulseRiseMs: number;
   readonly pulseDecayMs: number;
 }
-export const DEFAULT_EXHAUST_TUNING: ExhaustTuning = Object.freeze({
+export const DEFAULT_EXHAUST_SETTINGS: ExhaustSettings = Object.freeze({
   // Rounded to control resolution; Kirchhoff thin-boundary-layer loss at the reference frequency.
   attenuationPerMeter: Math.round(attenuation * 100) / 100,
   // One-pole magnitude matches |R| ~ 1 - (ka)^2/2 at low frequency; NOT its end-correction phase.
@@ -40,7 +40,7 @@ export const DEFAULT_EXHAUST_TUNING: ExhaustTuning = Object.freeze({
   outputCutoffHz: 7300, // post-clip listening filter; not measured muffler transmission loss
 });
 
-interface TuningRange {
+interface SettingRange {
   readonly min: number;
   readonly max: number;
   readonly step: number;
@@ -49,7 +49,7 @@ interface TuningRange {
   readonly exclusiveMin?: boolean;
 }
 // One numeric authority. Optional UI limits deliberately narrow the kernel's accepted domain.
-export const EXHAUST_TUNING_RANGES: Readonly<Record<keyof ExhaustTuning, TuningRange>> = Object.freeze({
+export const EXHAUST_SETTING_RANGES: Readonly<Record<keyof ExhaustSettings, SettingRange>> = Object.freeze({
   outletReflection: Object.freeze({ min: -1, max: 0, step: 0.01 }),
   returnCutoffHz: Object.freeze({ min: 100, max: 10000, step: 100, uiMin: 500 }),
   attenuationPerMeter: Object.freeze({ min: 0, max: 1, step: 0.01, uiMax: 0.3 }),
@@ -60,11 +60,11 @@ export const EXHAUST_TUNING_RANGES: Readonly<Record<keyof ExhaustTuning, TuningR
   pulseDecayMs: Object.freeze({ min: 0.1, max: 30, step: 0.1 }),
 });
 
-export function resolveExhaustTuning(overrides: Partial<ExhaustTuning> = {}): ExhaustTuning {
-  const tuning = { ...DEFAULT_EXHAUST_TUNING };
-  for (const key of Object.keys(EXHAUST_TUNING_RANGES) as (keyof ExhaustTuning)[]) {
+export function resolveExhaustSettings(overrides: Partial<ExhaustSettings> = {}): ExhaustSettings {
+  const tuning = { ...DEFAULT_EXHAUST_SETTINGS };
+  for (const key of Object.keys(EXHAUST_SETTING_RANGES) as (keyof ExhaustSettings)[]) {
     const value = overrides[key] === undefined ? tuning[key] : overrides[key];
-    const range = EXHAUST_TUNING_RANGES[key];
+    const range = EXHAUST_SETTING_RANGES[key];
     if (
       !Number.isFinite(value) ||
       value < range.min ||

@@ -18,7 +18,7 @@
   derive from the Session seed; loading coverage, recovery policy and reference identities each have one owner.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **11-4 — Names**.
+Next PR: **11-4b — Tire sound names**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -28,8 +28,8 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Separate the audio scene from the browser and organize sound around replaceable definitions.
 
-- **11-4 — Names:** rename audio Profiles, `audio-presentation`, `AUDIO_TIMING`, road/squeal (rolling/friction) and
-  Tuning/Settings records according to the glossary; remove `source` wording from audio specifications.
+- **11-4b — Tire sound names:** road/squeal (rolling/friction), UNIFIED Tuning records, fixed synthesis constants named
+  Settings, and the tire-sound DEV controls and DOM ids.
 - **11-5 — Sound graph:** generators, voices and buses that can accommodate BGM, environmental audio and effects;
   named compressor settings.
 - **11-6 — Control following:** one smoothing authority per control and one timing record. Sound changes.
@@ -43,9 +43,10 @@ Separate the audio scene from the browser and organize sound around replaceable 
   audio layer compiles them; vehicle appearance references a sound ID. The content build rejects a catalog material
   without a surface sound and a surface sound for an unknown material; there is no fallback.
 - **11-11 — Sound tables (delete):** remove the TypeScript sound tables and the startup completeness check.
-- **11-12 — DEV sound controls:** rename the tire- and engine-sound DEV controls and DOM ids so they are not mistaken
-  for physics tuning; move their DOM construction out of the audio lifecycle.
-- **11-13 — Audio tools:** audio tools stop importing the shell; narrow the dependency exception.
+- **11-12 — DEV sound controls and audio tools (move only):** move DEV sound-control DOM construction out of the
+  audio lifecycle; the shell's reusable DOM controls (range control, number stepper and the DEV sound panels) live
+  under `src/shell/controls/`; the audio observation factory moves to the audio layer; tools import only
+  `src/shell/dom.ts` and `src/shell/controls/` from the shell, and the dependency exception is narrowed to that rule.
 
 ## Stage 12 — Product shell
 

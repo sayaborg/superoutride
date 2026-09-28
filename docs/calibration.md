@@ -121,9 +121,9 @@ Upshift occurs at redline. Downshift occurs when the next lower ratio would plac
 below that derived peak-power RPM. Shift RPM thresholds are not vehicle values.
 Displacement is in cc and cycle is 2 or 4 strokes. Gear ratios and final drive are dimensionless.
 
-## Engine settings
+## Engine sound settings
 
-[Exhaust acoustics](../src/audio/exhaust-acoustics.ts) supplies the defaults and domains.
+[Exhaust acoustics](../src/audio/exhaust-acoustics.ts) supplies the `ExhaustSettings` defaults and domains.
 Values are authored sound-model coefficients; the reference-derived pipe coefficients use the
 [reference conditions](audio.md#reference-coefficients).
 

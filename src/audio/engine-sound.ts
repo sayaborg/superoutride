@@ -1,5 +1,5 @@
 /** Firing facts and authored acoustic approximations; amplitudes are not pressure in Pa. */
-export interface VehicleAudioProfile {
+export interface EngineSoundDefinition {
   readonly cycleRevolutions: 1 | 2;
   readonly firingPhases: readonly number[];
   readonly exhaust: {
@@ -9,8 +9,10 @@ export interface VehicleAudioProfile {
   };
 }
 
-export function compileVehicleAudioProfile(profile: VehicleAudioProfile): VehicleAudioProfile {
-  const { cycleRevolutions, firingPhases, exhaust } = profile;
+export type CompiledEngineSound = Readonly<EngineSoundDefinition>;
+
+export function compileEngineSound(definition: EngineSoundDefinition): CompiledEngineSound {
+  const { cycleRevolutions, firingPhases, exhaust } = definition;
   if (
     (cycleRevolutions !== 1 && cycleRevolutions !== 2) ||
     !Array.isArray(firingPhases) ||
@@ -20,7 +22,7 @@ export function compileVehicleAudioProfile(profile: VehicleAudioProfile): Vehicl
       (phase, i) => !Number.isFinite(phase) || phase < 0 || phase >= 1 || (i > 0 && phase <= firingPhases[i - 1]!),
     )
   )
-    throw new RangeError('invalid firing profile');
+    throw new RangeError('invalid engine sound firing phases');
   // Resource limits bound delay storage; these are not claims about real exhaust geometry.
   if (
     !exhaust ||

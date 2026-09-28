@@ -1,8 +1,8 @@
-import type { VehicleAudioProfile } from './vehicle-audio-profile.js';
+import type { CompiledEngineSound } from './engine-sound.js';
 
-import { ACOUSTICS, resolveExhaustTuning, OUTPUT } from './exhaust-acoustics.js';
-import type { ExhaustTuning } from './exhaust-acoustics.js';
-import { AUDIO_TIMING } from './audio-presentation.js';
+import { ACOUSTICS, resolveExhaustSettings, OUTPUT } from './exhaust-acoustics.js';
+import type { ExhaustSettings } from './exhaust-acoustics.js';
+import { AUDIO_CONTROL_POLICY } from './audio-control-policy.js';
 
 /** Exact coupling of an exponential decay into a one-pole rise, including equal time constants. */
 function pulseCoupling(riseRate: number, decayRate: number, decay: number, retain: number, duration = 1): number {
@@ -54,7 +54,7 @@ export class ExhaustWaveguide {
   private readonly dcCoefficient: number;
   private readonly toneCoefficient: number;
   private readonly loss: number;
-  private readonly tuning: ExhaustTuning;
+  private readonly settings: ExhaustSettings;
   private phase = 0;
   private pulseSeed = 123456789;
   private rpm = 1000;
@@ -63,18 +63,18 @@ export class ExhaustWaveguide {
   private tone = 0;
 
   constructor(
-    private readonly profile: VehicleAudioProfile,
+    private readonly sound: CompiledEngineSound,
     private readonly rate: number,
-    tuning: Partial<ExhaustTuning> = {},
+    settings: Partial<ExhaustSettings> = {},
   ) {
-    this.tuning = resolveExhaustTuning(tuning);
-    const { pulseDecayMs } = this.tuning;
-    const n = profile.firingPhases.length;
-    const exhaust = profile.exhaust;
+    this.settings = resolveExhaustSettings(settings);
+    const { pulseDecayMs } = this.settings;
+    const n = sound.firingPhases.length;
+    const exhaust = sound.exhaust;
     this.banks = exhaust.banks;
     const groups = Math.max(...this.banks) + 1;
     const pipe = (meters: number) =>
-      new Delay((meters * rate) / ACOUSTICS.waveSpeed, Math.exp(-this.tuning.attenuationPerMeter * meters));
+      new Delay((meters * rate) / ACOUSTICS.waveSpeed, Math.exp(-this.settings.attenuationPerMeter * meters));
     this.forward = exhaust.lengths.map(pipe);
     this.backward = exhaust.lengths.map(pipe);
     this.tails = Array.from({ length: groups }, () => pipe(exhaust.outlet));
@@ -89,25 +89,25 @@ export class ExhaustWaveguide {
     this.wall = new Float64Array(n);
     this.bankNormalization = Math.sqrt(groups);
     for (const bank of this.banks) this.counts[bank]!++;
-    this.smoothing = 1 - Math.exp(-1 / (AUDIO_TIMING.controlSeconds * rate));
+    this.smoothing = 1 - Math.exp(-1 / (AUDIO_CONTROL_POLICY.controlSeconds * rate));
     this.decayRate = 1 / ((pulseDecayMs / 1000) * rate);
     this.decay = Math.exp(-this.decayRate);
     this.decayIntegral = -Math.expm1(-this.decayRate) / this.decayRate;
     this.dcCoefficient = 1 - Math.exp((-2 * Math.PI * OUTPUT.dcHz) / rate);
-    this.toneCoefficient = 1 - Math.exp((-2 * Math.PI * this.tuning.outputCutoffHz) / rate);
-    this.loss = 1 - Math.exp((-2 * Math.PI * this.tuning.returnCutoffHz) / rate);
+    this.toneCoefficient = 1 - Math.exp((-2 * Math.PI * this.settings.outputCutoffHz) / rate);
+    this.loss = 1 - Math.exp((-2 * Math.PI * this.settings.returnCutoffHz) / rate);
   }
 
   /** One acoustic step at the supplied internal rate, without allocation. */
   sample(targetRpm: number, targetLoad: number): number {
     this.rpm += this.smoothing * (targetRpm - this.rpm);
     this.load += this.smoothing * (targetLoad - this.load);
-    const step = this.rpm / (60 * this.profile.cycleRevolutions * this.rate);
+    const step = this.rpm / (60 * this.sound.cycleRevolutions * this.rate);
     const previous = this.phase;
     this.phase = (this.phase + step) % 1;
     // One excitation control: stronger pulses also rise faster. No load-dependent output EQ/drive.
-    const excitation = this.tuning.closedExcitation + (1 - this.tuning.closedExcitation) * this.load;
-    const riseTime = ((this.tuning.pulseRiseMs / 1000) * this.rate) / excitation;
+    const excitation = this.settings.closedExcitation + (1 - this.settings.closedExcitation) * this.load;
+    const riseTime = ((this.settings.pulseRiseMs / 1000) * this.rate) / excitation;
     const riseRate = 1 / riseTime;
     const retain = Math.exp(-riseRate);
     const coupling = pulseCoupling(riseRate, this.decayRate, this.decay, retain);
@@ -116,7 +116,7 @@ export class ExhaustWaveguide {
     const riseAverage = (1 - retain) * riseTime;
     this.sums.fill(0);
     for (let i = 0; i < this.pulse.length; i++) {
-      const offset = this.profile.firingPhases[i]!;
+      const offset = this.sound.firingPhases[i]!;
       const crossed =
         this.phase >= previous ? offset > previous && offset <= this.phase : offset > previous || offset <= this.phase;
       const pulse = this.pulse[i]!;
@@ -126,12 +126,12 @@ export class ExhaustWaveguide {
       this.pulse[i] = pulse * this.decay;
       if (crossed) {
         let strength = excitation;
-        if (this.tuning.pulseVariation > 0) {
+        if (this.settings.pulseVariation > 0) {
           // One random draw per firing, never a continuous noise generator or a timing perturbation.
           this.pulseSeed ^= this.pulseSeed << 13;
           this.pulseSeed ^= this.pulseSeed >>> 17;
           this.pulseSeed ^= this.pulseSeed << 5;
-          strength = Math.max(0, excitation + this.tuning.pulseVariation * (this.pulseSeed / 2147483648));
+          strength = Math.max(0, excitation + this.settings.pulseVariation * (this.pulseSeed / 2147483648));
         }
         // Resolve the event inside this sample; preserve the continuous rise state at the reset.
         const elapsed = (this.phase >= offset ? this.phase - offset : this.phase - offset + 1) / step;
@@ -149,7 +149,7 @@ export class ExhaustWaveguide {
       const returning = this.returns[bank]!.read();
       const out = this.tails[bank]!.read();
       this.outlet[bank]! += this.loss * (out - this.outlet[bank]!);
-      this.returns[bank]!.write(this.tuning.outletReflection * this.outlet[bank]!);
+      this.returns[bank]!.write(this.settings.outletReflection * this.outlet[bank]!);
       // Equal-admittance scattering: p = 2 sum(incoming) / number of ports.
       const pressure = (2 * (this.sums[bank]! + returning)) / (this.counts[bank]! + 1);
       this.junctions[bank] = pressure;
@@ -157,7 +157,7 @@ export class ExhaustWaveguide {
       exhaust += out + this.outlet[bank]!;
     }
     for (let i = 0; i < this.backward.length; i++) {
-      const age = (this.phase - this.profile.firingPhases[i]! + 1) % 1;
+      const age = (this.phase - this.sound.firingPhases[i]! + 1) % 1;
       const position = age / ACOUSTICS.cylinderWindowCycles;
       const aperture = position < 1 ? position * (1 - position) : 0;
       // Unit-height quartic aperture: zero value and slope at both ends, without a trig call.

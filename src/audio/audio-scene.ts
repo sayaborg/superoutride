@@ -1,5 +1,5 @@
 import type { createAudioEngine } from './audio-engine.js';
-import type { VehicleAudioProfile } from './vehicle-audio-profile.js';
+import type { CompiledEngineSound } from './engine-sound.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
 
 /** Physical world position in meters. */
@@ -72,8 +72,8 @@ export function createAudioScene(context: BaseAudioContext, engine: AudioEngine)
   let assignedId: string | null = null;
   let switchAt = 0;
   return {
-    update(player: VehicleAudioEmitter, rivals: readonly VehicleAudioEmitter[], profile: VehicleAudioProfile): void {
-      engine.update(player, profile);
+    update(player: VehicleAudioEmitter, rivals: readonly VehicleAudioEmitter[], sound: CompiledEngineSound): void {
+      engine.update(player, sound);
       const nearest = nearestAudibleRival(player, rivals);
       const nearestId = nearest?.id ?? null;
       if (nearestId !== assignedId) {
@@ -87,7 +87,7 @@ export function createAudioScene(context: BaseAudioContext, engine: AudioEngine)
         return;
       }
       const { gain, pan } = rivalSpatialization(player, nearest);
-      engine.updateRival(nearest, profile, gain, pan);
+      engine.updateRival(nearest, sound, gain, pan);
     },
   };
 }

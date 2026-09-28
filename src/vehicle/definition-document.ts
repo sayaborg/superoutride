@@ -19,8 +19,8 @@ import {
 } from '../core/admission.js';
 import type { DrivingDocument } from './driving-definition.js';
 import type { CompiledDrivingDefinition } from './compiled-driving-definition.js';
-import { VEHICLE_SOUND_PROFILES } from './sound-profiles.js';
-import type { VehicleAudioProfile } from '../audio/vehicle-audio-profile.js';
+import { ENGINE_SOUNDS } from './engine-sounds.js';
+import type { CompiledEngineSound } from '../audio/engine-sound.js';
 
 export type VehicleForm = 'car' | 'bike';
 export interface VehicleMetadata {
@@ -57,7 +57,7 @@ export interface CompiledVehicleListing extends VehicleMetadata {
   readonly source: VehicleListingDocument;
   readonly spriteSet: VehicleSpriteSet;
   readonly form: VehicleForm;
-  readonly sound: VehicleAudioProfile;
+  readonly sound: CompiledEngineSound;
 }
 /** One vehicle: its mechanics and listing documents, paired by identifier in the catalog. */
 export interface CompiledVehicleDefinition extends VehicleMetadata {
@@ -67,7 +67,7 @@ export interface CompiledVehicleDefinition extends VehicleMetadata {
   readonly spriteSet: VehicleSpriteSet;
   readonly form: VehicleForm;
   readonly compiledVehicle: CompiledVehicle;
-  readonly sound: VehicleAudioProfile;
+  readonly sound: CompiledEngineSound;
 }
 const mechanicalNumbers = [
   'mass',
@@ -200,7 +200,7 @@ export function compileVehicleListingDocument(
     if (!spriteSet.assets.every((row) => row.every((image) => Object.hasOwn(image.palettes, visuals.palette))))
       throw new AdmissionError('unresolved_reference', '/visuals/palette', `Unknown sprite color: ${visuals.palette}`);
     const soundId = readString(v.sound, '/sound');
-    if (!Object.hasOwn(VEHICLE_SOUND_PROFILES, soundId))
+    if (!Object.hasOwn(ENGINE_SOUNDS, soundId))
       throw new AdmissionError('unresolved_reference', '/sound', `Unknown sound ID: ${soundId}`);
     const source = deepFreeze({
       format: 'superoutride.vehicle-listing',
@@ -216,7 +216,7 @@ export function compileVehicleListingDocument(
       source,
       spriteSet,
       form: source.form,
-      sound: VEHICLE_SOUND_PROFILES[soundId as keyof typeof VEHICLE_SOUND_PROFILES],
+      sound: ENGINE_SOUNDS[soundId as keyof typeof ENGINE_SOUNDS],
     });
   });
 }

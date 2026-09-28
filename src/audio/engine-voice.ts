@@ -1,33 +1,33 @@
 import { clamp } from '../core/math.js';
 import { follow } from './audio-parameter.js';
-import { AUDIO_TIMING } from './audio-presentation.js';
-import { EXHAUST_TUNING_RANGES, resolveExhaustTuning } from './exhaust-acoustics.js';
-import type { ExhaustTuning } from './exhaust-acoustics.js';
-import type { VehicleAudioProfile } from './vehicle-audio-profile.js';
+import { AUDIO_CONTROL_POLICY } from './audio-control-policy.js';
+import { EXHAUST_SETTING_RANGES, resolveExhaustSettings } from './exhaust-acoustics.js';
+import type { ExhaustSettings } from './exhaust-acoustics.js';
+import type { CompiledEngineSound } from './engine-sound.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
 
-function sameTuning(left: ExhaustTuning | undefined, right: ExhaustTuning): boolean {
+function sameExhaustSettings(left: ExhaustSettings | undefined, right: ExhaustSettings): boolean {
   if (!left) return false;
-  for (const key in EXHAUST_TUNING_RANGES) {
-    const name = key as keyof ExhaustTuning;
+  for (const key in EXHAUST_SETTING_RANGES) {
+    const name = key as keyof ExhaustSettings;
     if (left[name] !== right[name]) return false;
   }
   return true;
 }
 
-/** One reusable exhaust worklet. Profile and tuning changes share the same fade. */
+/** One reusable exhaust worklet. Engine sound and exhaust settings changes share the same fade. */
 export function createEngineVoice(
   context: BaseAudioContext,
   destination: AudioNode,
   {
-    profile: initialProfile,
-    tuning = {},
+    sound: initialSound,
+    settings: initialSettings = {},
   }: {
-    profile?: VehicleAudioProfile;
-    tuning?: Partial<ExhaustTuning>;
+    sound?: CompiledEngineSound;
+    settings?: Partial<ExhaustSettings>;
   } = {},
 ) {
-  let acousticTuning = resolveExhaustTuning(tuning);
+  let settings = resolveExhaustSettings(initialSettings);
   const output = context.createGain();
   output.gain.value = 0;
   output.connect(destination);
@@ -35,37 +35,37 @@ export function createEngineVoice(
     numberOfInputs: 0,
     numberOfOutputs: 1,
     outputChannelCount: [1],
-    processorOptions: initialProfile ? { profile: initialProfile, tuning: acousticTuning } : undefined,
+    processorOptions: initialSound ? { sound: initialSound, settings } : undefined,
   });
   exhaust.connect(output);
-  let active = initialProfile ? { profile: initialProfile, tuning: acousticTuning } : null;
+  let active = initialSound ? { sound: initialSound, settings } : null;
   let pending: {
-    profile: VehicleAudioProfile;
-    tuning: ExhaustTuning;
+    sound: CompiledEngineSound;
+    settings: ExhaustSettings;
     at: number;
   } | null = null;
   return {
-    update(state: VehicleAudioObservation, profile: VehicleAudioProfile, gain = 1): void {
+    update(state: VehicleAudioObservation, sound: CompiledEngineSound, gain = 1): void {
       const now = context.currentTime;
-      const changed = active?.profile !== profile || !sameTuning(active?.tuning, acousticTuning);
+      const changed = active?.sound !== sound || !sameExhaustSettings(active?.settings, settings);
       if (active && changed) {
-        if (pending?.profile !== profile || !sameTuning(pending?.tuning, acousticTuning)) {
-          pending = { profile, tuning: acousticTuning, at: now + AUDIO_TIMING.transitionSeconds };
+        if (pending?.sound !== sound || !sameExhaustSettings(pending?.settings, settings)) {
+          pending = { sound, settings, at: now + AUDIO_CONTROL_POLICY.transitionSeconds };
           follow(output.gain, 0, now, 0.01);
         }
         if (pending && now < pending.at) return;
       }
       pending = null;
       if (changed) {
-        exhaust.port.postMessage({ profile, tuning: acousticTuning });
-        active = { profile, tuning: acousticTuning };
+        exhaust.port.postMessage({ sound, settings });
+        active = { sound, settings };
       }
       follow(exhaust.parameters.get('rpm')!, state.rpm, now);
       follow(exhaust.parameters.get('load')!, clamp(state.effectiveOpening, 0, 1), now);
       follow(output.gain, clamp(gain, 0, 1), now);
     },
-    setTuning(value: ExhaustTuning): void {
-      if (!sameTuning(acousticTuning, value)) acousticTuning = resolveExhaustTuning(value);
+    setSettings(value: ExhaustSettings): void {
+      if (!sameExhaustSettings(settings, value)) settings = resolveExhaustSettings(value);
     },
     silence(): void {
       follow(output.gain, 0, context.currentTime, 0.015);

@@ -1,6 +1,6 @@
 import { TIRE_SOUND_INPUT_KEYS } from './tire-sound-observation.js';
 import { follow } from './audio-parameter.js';
-import { AUDIO_TIMING } from './audio-presentation.js';
+import { AUDIO_CONTROL_POLICY } from './audio-control-policy.js';
 import { resolveUnifiedTuning, sameUnifiedTuning, type UnifiedTuning } from './tire-unified-acoustics.js';
 import { tireSoundParameters, TIRE_COMPONENTS, type TireComponents } from './tire-sound-controls.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
@@ -45,7 +45,7 @@ export function createTireVoice(context: BaseAudioContext, destination: AudioNod
       const changed = activeTuning === null || !sameUnifiedTuning(desiredTuning, activeTuning);
       if (activeTuning !== null && changed) {
         if (pending === null || !sameUnifiedTuning(pending.tuning, desiredTuning)) {
-          pending = { tuning: desiredTuning, at: now + AUDIO_TIMING.transitionSeconds };
+          pending = { tuning: desiredTuning, at: now + AUDIO_CONTROL_POLICY.transitionSeconds };
           follow(output.gain, 0, now, 0.01); // Authored tuning-change fade, not vibration decay.
         }
         if (now < pending.at) return;

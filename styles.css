@@ -285,7 +285,7 @@ body {
 .selector-group-audio-tuning {
   grid-column: 1 / -1;
 }
-#sound-tuning {
+#engine-sound-settings {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
   gap: 6px 16px;

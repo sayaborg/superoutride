@@ -1,5 +1,5 @@
-import { DEFAULT_EXHAUST_TUNING, EXHAUST_TUNING_RANGES } from '../audio/exhaust-acoustics.js';
-import type { ExhaustTuning } from '../audio/exhaust-acoustics.js';
+import { DEFAULT_EXHAUST_SETTINGS, EXHAUST_SETTING_RANGES } from '../audio/exhaust-acoustics.js';
+import type { ExhaustSettings } from '../audio/exhaust-acoustics.js';
 import { createNumberStepper } from './number-stepper.js';
 
 // Presentation owns labels/order only. Acoustic settings own all numeric domains and steps.
@@ -49,20 +49,20 @@ const CONTROLS = [
   ['pulseDecayMs', 'パルスの減衰', 'ms', '全車種共通の減衰時定数。大きいほどパルスの尾が長くなります。'],
 ] as const;
 
-export function mountAudioTuningControls(
+export function mountEngineSoundSettings(
   container: HTMLElement,
-  onChange: (tuning: ExhaustTuning) => void,
+  onChange: (settings: ExhaustSettings) => void,
   documentRef: Document = document,
 ) {
-  const tuning = { ...DEFAULT_EXHAUST_TUNING };
-  const steppers = new Map<keyof typeof tuning, ReturnType<typeof createNumberStepper>>();
+  const settings = { ...DEFAULT_EXHAUST_SETTINGS };
+  const steppers = new Map<keyof typeof settings, ReturnType<typeof createNumberStepper>>();
   const listeners: (() => void)[] = [];
   const listen = (element: HTMLElement, type: string, handler: (event: Event) => void) => {
     element.addEventListener(type, handler);
     listeners.push(() => element.removeEventListener(type, handler));
   };
   const rows = CONTROLS.map(([key, title, unit, explanation]) => {
-    const range = EXHAUST_TUNING_RANGES[key];
+    const range = EXHAUST_SETTING_RANGES[key];
     const row = documentRef.createElement('div');
     row.className = 'audio-tuning-row';
     row.setAttribute('title', explanation);
@@ -75,14 +75,14 @@ export function mountAudioTuningControls(
         min: range.uiMin ?? range.min,
         max: range.uiMax ?? range.max,
         step: range.step,
-        value: tuning[key],
+        value: settings[key],
         format: (value) =>
           key === 'pulseVariation'
             ? `±${Math.round(value * 100)}%${value === 0 ? '（揺らぎなし）' : ''}`
             : `${value} ${unit}${key === 'outletReflection' && value === 0 ? '（反射なし）' : ''}`.trim(),
         onChange(value) {
-          tuning[key] = value;
-          onChange({ ...tuning });
+          settings[key] = value;
+          onChange({ ...settings });
         },
       },
       documentRef,
@@ -96,14 +96,14 @@ export function mountAudioTuningControls(
   reset.className = 'selector-button audio-tuning-reset';
   reset.textContent = 'デフォルトに戻す';
   listen(reset, 'click', () => {
-    Object.assign(tuning, DEFAULT_EXHAUST_TUNING);
-    for (const [key, control] of steppers) control.setValue(tuning[key]);
-    onChange({ ...tuning });
+    Object.assign(settings, DEFAULT_EXHAUST_SETTINGS);
+    for (const [key, control] of steppers) control.setValue(settings[key]);
+    onChange({ ...settings });
   });
   listen(reset, 'keydown', (event) => event.stopPropagation());
   container.replaceChildren(...rows, reset);
   return {
-    read: () => ({ ...tuning }),
+    read: () => ({ ...settings }),
     dispose() {
       for (const remove of listeners) remove();
       for (const control of steppers.values()) control.dispose();

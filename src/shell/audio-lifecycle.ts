@@ -1,10 +1,10 @@
-import { mountAudioTuningControls } from './audio-tuning-controls.js';
+import { mountEngineSoundSettings } from './engine-sound-settings-controls.js';
 import { mountTireTuningControls } from './tire-tuning-controls.js';
 import { createRangeControl } from './range-control.js';
 import { createNumberStepper } from './number-stepper.js';
 import { createAudioEngine } from '../audio/audio-engine.js';
 import { TIRE_COMPONENTS } from '../audio/tire-sound-controls.js';
-import { AUDIO_TIMING } from '../audio/audio-presentation.js';
+import { AUDIO_CONTROL_POLICY } from '../audio/audio-control-policy.js';
 import { createAudioScene } from '../audio/audio-scene.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
@@ -56,9 +56,9 @@ export function createAudioLifecycle(sessionVehicle: CompiledVehicleDefinition) 
     showSoundState();
     if (!supported) button.setAttribute('disabled', '');
   }
-  const tuningContainer = document.getElementById('sound-tuning');
-  const tuningControls = tuningContainer
-    ? mountAudioTuningControls(tuningContainer, () => {
+  const engineSoundContainer = document.getElementById('engine-sound-settings');
+  const engineSoundSettings = engineSoundContainer
+    ? mountEngineSoundSettings(engineSoundContainer, () => {
         unlock();
         sync();
       })
@@ -179,7 +179,7 @@ export function createAudioLifecycle(sessionVehicle: CompiledVehicleDefinition) 
     showSoundState();
     if (!context || !engine) return;
     try {
-      if (tuningControls) engine.setTuning(tuningControls.read());
+      if (engineSoundSettings) engine.setExhaustSettings(engineSoundSettings.read());
       const tireSettings = tireTuning?.read();
       if (tireSettings) engine.setTireTuning(tireSettings);
       engine.setMix(engineVolume, tireVolume);
@@ -190,7 +190,7 @@ export function createAudioLifecycle(sessionVehicle: CompiledVehicleDefinition) 
         suspendTimer = setTimeout(() => {
           suspendTimer = null;
           if (!audible()) void context?.suspend().catch(() => {});
-        }, AUDIO_TIMING.transitionSeconds * 1000);
+        }, AUDIO_CONTROL_POLICY.transitionSeconds * 1000);
     } catch {
       fail();
     }
@@ -278,7 +278,7 @@ export function createAudioLifecycle(sessionVehicle: CompiledVehicleDefinition) 
     componentHost?.replaceChildren();
     volumeControl?.dispose();
     volumeContainer?.replaceChildren();
-    tuningControls?.dispose();
+    engineSoundSettings?.dispose();
     tireTuning?.dispose();
     for (const { host, control } of mixControls) {
       control.dispose();
