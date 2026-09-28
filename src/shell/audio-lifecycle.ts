@@ -2,10 +2,10 @@ import { mountEngineSoundSettings } from './engine-sound-settings-controls.js';
 import { mountTireSoundSettings } from './tire-sound-settings-controls.js';
 import { createRangeControl } from './range-control.js';
 import { createNumberStepper } from './number-stepper.js';
-import { createAudioEngine } from '../audio/audio-engine.js';
 import { TIRE_COMPONENTS } from '../audio/tire-sound-controls.js';
 import { AUDIO_CONTROL_POLICY } from '../audio/audio-control-policy.js';
 import { createAudioScene } from '../audio/audio-scene.js';
+import { SOUND_BUSES, type SoundBus } from '../audio/sound-graph.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
 import { createVehicleAudioEmitter, readVehicleAudio } from './vehicle-audio.js';
@@ -38,16 +38,14 @@ export function createAudioLifecycle(sessionVehicle: CompiledVehicleDefinition) 
     return { key, label, description, button, toggle };
   });
   let context: AudioContext | null = null;
-  let engine: Awaited<ReturnType<typeof createAudioEngine>> | null = null;
+  let scene: Awaited<ReturnType<typeof createAudioScene>> | null = null;
   let loading: Promise<void> | null = null;
   let enabled = true,
     active = true,
     disposed = false;
   let failed = false;
   let volume = 0.35;
-  let engineVolume = 1,
-    tireVolume = 1;
-  let scene: ReturnType<typeof createAudioScene> | null = null;
+  const busVolumes: Record<SoundBus, number> = { engine: 1, tire: 1 };
   const playerEmitter = createVehicleAudioEmitter();
   const rivalEmitters: ReturnType<typeof createVehicleAudioEmitter>[] = [];
   const presentRivals: ReturnType<typeof createVehicleAudioEmitter>[] = [];
@@ -79,16 +77,15 @@ export function createAudioLifecycle(sessionVehicle: CompiledVehicleDefinition) 
       })
     : null;
   if (volumeControl) volumeContainer!.replaceChildren(volumeControl.group);
-  const mixControls = (['engine', 'tire'] as const).flatMap((kind) => {
-    const host = document.getElementById(`${kind}-volume`);
+  const mixControls = SOUND_BUSES.flatMap((bus) => {
+    const host = document.getElementById(`${bus}-volume`);
     if (!host) return [];
     const control = createRangeControl(
-      `${kind === 'engine' ? 'ENG' : 'TIRE'} 音量`,
+      `${bus === 'engine' ? 'ENG' : 'TIRE'} 音量`,
       { min: 0, max: 100, step: 1 },
       100,
       (value) => {
-        if (kind === 'engine') engineVolume = value / 100;
-        else tireVolume = value / 100;
+        busVolumes[bus] = value / 100;
         unlock();
         sync();
       },
@@ -114,7 +111,7 @@ export function createAudioLifecycle(sessionVehicle: CompiledVehicleDefinition) 
           ? 'SOUND OFF'
           : context?.state !== 'running'
             ? 'SOUND START'
-            : engine
+            : scene
               ? 'SOUND ON'
               : 'SOUND…';
     button.setAttribute('aria-pressed', String(enabled && supported));
@@ -142,7 +139,7 @@ export function createAudioLifecycle(sessionVehicle: CompiledVehicleDefinition) 
     return enabled && active && !document.hidden && !disposed;
   }
   let suspendTimer: ReturnType<typeof setTimeout> | null = null;
-  function closeGraph(retired: typeof engine, closing: AudioContext | null): void {
+  function closeGraph(retired: typeof scene, closing: AudioContext | null): void {
     try {
       retired?.dispose();
     } catch {
@@ -158,9 +155,8 @@ export function createAudioLifecycle(sessionVehicle: CompiledVehicleDefinition) 
     }
   }
   function releaseAudio(): void {
-    const retired = engine,
+    const retired = scene,
       closing = context;
-    engine = null;
     scene = null;
     context = null;
     loading = null;
@@ -177,14 +173,14 @@ export function createAudioLifecycle(sessionVehicle: CompiledVehicleDefinition) 
     if (suspendTimer !== null) clearTimeout(suspendTimer);
     suspendTimer = null;
     showSoundState();
-    if (!context || !engine) return;
+    if (!context || !scene) return;
     try {
-      if (engineSoundSettings) engine.setExhaustSettings(engineSoundSettings.read());
+      if (engineSoundSettings) scene.setExhaustSettings(engineSoundSettings.read());
       const tireSettings = tireSoundSettings?.read();
-      if (tireSettings) engine.setTireSettings(tireSettings);
-      engine.setMix(engineVolume, tireVolume);
-      engine.setTireComponents(componentState);
-      engine.setVolume(audible() ? volume : 0);
+      if (tireSettings) scene.setTireSettings(tireSettings);
+      for (const bus of SOUND_BUSES) scene.setBusGain(bus, busVolumes[bus]);
+      scene.setTireComponents(componentState);
+      scene.setMasterGain(audible() ? volume : 0);
       if (!active || document.hidden || disposed) void context.suspend().catch(() => {});
       else if (!enabled)
         suspendTimer = setTimeout(() => {
@@ -197,7 +193,7 @@ export function createAudioLifecycle(sessionVehicle: CompiledVehicleDefinition) 
   }
   async function initialize(): Promise<void> {
     let created: AudioContext | null = null;
-    let built: Awaited<ReturnType<typeof createAudioEngine>> | null = null;
+    let built: Awaited<ReturnType<typeof createAudioScene>> | null = null;
     try {
       failed = false;
       created = new AudioContext();
@@ -208,13 +204,12 @@ export function createAudioLifecycle(sessionVehicle: CompiledVehicleDefinition) 
         () => true,
         () => false,
       );
-      built = await createAudioEngine(created);
+      built = await createAudioScene(created);
       if (disposed || context !== created) {
         closeGraph(built, created);
         return;
       }
-      engine = built;
-      scene = createAudioScene(created, built);
+      scene = built;
       if (!(await resumed)) throw new Error('audio resume failed');
       if (context === created) sync();
     } catch {

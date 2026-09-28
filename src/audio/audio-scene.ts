@@ -1,4 +1,11 @@
-import type { createAudioEngine } from './audio-engine.js';
+import { clamp } from '../core/math.js';
+import { follow } from './audio-parameter.js';
+import { createEngineVoice } from './engine-voice.js';
+import type { ExhaustSettings } from './exhaust-acoustics.js';
+import { createSoundGraph, type SoundBus } from './sound-graph.js';
+import type { TireComponents } from './tire-sound-controls.js';
+import type { UnifiedSettings } from './tire-unified-acoustics.js';
+import { createTireVoice } from './tire-voice.js';
 import type { CompiledEngineSound } from './engine-sound.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
 
@@ -65,29 +72,66 @@ export function rivalSpatialization(
   return { gain: rivalAudioGain(distance), pan: rivalAudioPan(lateral, distance) };
 }
 
-type AudioEngine = Awaited<ReturnType<typeof createAudioEngine>>;
-
-/** Owns the rival voice assignment: a change silences the voice and waits before the new rival sounds. */
-export function createAudioScene(context: BaseAudioContext, engine: AudioEngine) {
+/**
+ * Loads the generators, owns the voices (player engine, rival engine and its panner, player tires) on the
+ * sound graph's buses, and the rival voice assignment: a change silences the voice and waits before the new
+ * rival sounds.
+ */
+export async function createAudioScene(context: AudioContext) {
+  await context.audioWorklet.addModule(new URL('./vehicle-processor.js', import.meta.url));
+  const graph = createSoundGraph(context);
+  const playerEngine = createEngineVoice(context, graph.input('engine'));
+  const rivalPan = context.createStereoPanner();
+  rivalPan.connect(graph.input('engine'));
+  const rivalEngine = createEngineVoice(context, rivalPan);
+  const tires = createTireVoice(context, graph.input('tire'));
   let assignedId: string | null = null;
   let switchAt = 0;
+  let disposed = false;
   return {
     update(player: VehicleAudioEmitter, rivals: readonly VehicleAudioEmitter[], sound: CompiledEngineSound): void {
-      engine.update(player, sound);
+      playerEngine.update(player, sound);
+      tires.update(player);
       const nearest = nearestAudibleRival(player, rivals);
       const nearestId = nearest?.id ?? null;
       if (nearestId !== assignedId) {
         assignedId = nearestId;
         switchAt = context.currentTime + RIVAL_AUDIO_POLICY.reassignmentSeconds;
-        engine.silenceRival();
+        rivalEngine.silence();
       }
       if (context.currentTime < switchAt) return;
       if (!nearest) {
-        engine.silenceRival();
+        rivalEngine.silence();
         return;
       }
       const { gain, pan } = rivalSpatialization(player, nearest);
-      engine.updateRival(nearest, sound, gain, pan);
+      rivalEngine.update(nearest, sound, gain);
+      follow(rivalPan.pan, clamp(pan, -1, 1), context.currentTime, 0.06);
+    },
+    setExhaustSettings(value: ExhaustSettings): void {
+      playerEngine.setSettings(value);
+      rivalEngine.setSettings(value);
+    },
+    setTireSettings(value: UnifiedSettings): void {
+      tires.setSettings(value);
+    },
+    setTireComponents(value: TireComponents): void {
+      tires.setComponents(value);
+    },
+    setBusGain(bus: SoundBus, value: number): void {
+      graph.setBusGain(bus, value);
+    },
+    setMasterGain(value: number): void {
+      graph.setMasterGain(value);
+    },
+    dispose(): void {
+      if (disposed) return;
+      disposed = true;
+      playerEngine.dispose();
+      rivalEngine.dispose();
+      tires.dispose();
+      rivalPan.disconnect();
+      graph.dispose();
     },
   };
 }

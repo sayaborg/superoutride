@@ -66,7 +66,7 @@ export function mountEngineSoundSettings(
     const row = documentRef.createElement('div');
     row.className = 'sound-setting-row';
     row.setAttribute('title', explanation);
-    row.setAttribute('data-tuning-key', key);
+    row.setAttribute('data-engine-sound-setting', key);
     const caption = documentRef.createElement('span');
     caption.textContent = title;
     const control = createNumberStepper(

@@ -89,13 +89,16 @@ The resulting loss is about 0.034 Np/m before rounding. These are fixed referenc
 
 ## Mix and lifetime
 
-[Audio engine](../src/audio/audio-engine.ts) owns three fixed worklets: player engine, selected rival
-engine and player tires. The [audio scene](../src/audio/audio-scene.ts) owns rival selection, reassignment and
+The [sound graph](../src/audio/sound-graph.ts) owns the named buses (`engine`, `tire`) and the master path:
+each bus feeds the MASTER gain, then a compressor set by `MASTER_COMPRESSOR_SETTINGS`, then the output.
+The [audio scene](../src/audio/audio-scene.ts) loads the generators, owns the voices (player engine, selected
+rival engine with its panner, player tires) on those buses, and owns rival selection, reassignment and
 spatialization; `RIVAL_AUDIO_POLICY` owns their audible distance, gain, pan and reassignment time. The nearest
 observed rival within the audible distance occupies the rival slot; candidates are the rivals the race observes on
 the resident Route. Its gain uses 3D physical world distance and its pan uses lateral displacement in the player's
 yaw frame. A change of rival ID silences the slot and waits the reassignment time before the new rival sounds. ENG, TIRE and MASTER independently multiply their
-outputs. Component output switches leave synthesis state running.
+outputs. A new sound kind adds one bus and connects its voices to it. Component output switches leave synthesis
+state running.
 
 [`AUDIO_CONTROL_POLICY`](../src/audio/audio-control-policy.ts) sets the shared control-following
 constant to 25 ms and the transition duration to 90 ms. Engine sound and exhaust settings
