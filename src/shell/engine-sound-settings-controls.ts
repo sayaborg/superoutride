@@ -64,7 +64,7 @@ export function mountEngineSoundSettings(
   const rows = CONTROLS.map(([key, title, unit, explanation]) => {
     const range = EXHAUST_SETTING_RANGES[key];
     const row = documentRef.createElement('div');
-    row.className = 'audio-tuning-row';
+    row.className = 'sound-setting-row';
     row.setAttribute('title', explanation);
     row.setAttribute('data-tuning-key', key);
     const caption = documentRef.createElement('span');
@@ -93,7 +93,7 @@ export function mountEngineSoundSettings(
   });
   const reset = documentRef.createElement('button');
   reset.type = 'button';
-  reset.className = 'selector-button audio-tuning-reset';
+  reset.className = 'selector-button sound-settings-reset';
   reset.textContent = 'デフォルトに戻す';
   listen(reset, 'click', () => {
     Object.assign(settings, DEFAULT_EXHAUST_SETTINGS);

@@ -282,7 +282,7 @@ body {
   min-width: 0;
 }
 
-.selector-group-audio-tuning {
+.selector-group-sound-settings {
   grid-column: 1 / -1;
 }
 #engine-sound-settings {
@@ -290,7 +290,7 @@ body {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
   gap: 6px 16px;
 }
-.audio-tuning-row {
+.sound-setting-row {
   display: grid;
   gap: 3px;
   color: #9eb8c5;
@@ -316,7 +316,7 @@ body {
   font-size: 11px;
   font-variant-numeric: tabular-nums;
 }
-.audio-tuning-reset {
+.sound-settings-reset {
   justify-self: start;
 }
 
@@ -376,7 +376,7 @@ body {
   grid-template-columns: 44px minmax(0, 1fr) 44px;
 }
 #dev-panel .selector-label,
-#dev-panel .audio-tuning-row {
+#dev-panel .sound-setting-row {
   font-size: 12px;
 }
 #dev-panel fieldset {

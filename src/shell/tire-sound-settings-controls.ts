@@ -1,4 +1,8 @@
-import { UNIFIED_TUNING_RANGES, resolveUnifiedTuning, type UnifiedTuning } from '../audio/tire-unified-acoustics.js';
+import {
+  UNIFIED_SETTING_RANGES,
+  resolveUnifiedSettings,
+  type UnifiedSettings,
+} from '../audio/tire-unified-acoustics.js';
 import { createRangeControl } from './range-control.js';
 
 // Labels only: audio owns defaults, bounds and validation. These are not physical tire settings.
@@ -14,7 +18,7 @@ const UNIFIED_LABELS = {
   highFrequencyHz: ['高域モードの固有周波数', 'Hz'],
   outputGainPerSecond: ['摩擦音Qの出力ゲイン', '/s'],
   outputCutoffHz: ['摩擦音Qの高域上限', 'Hz'],
-} as const satisfies Record<keyof UnifiedTuning, readonly [string, string]>;
+} as const satisfies Record<keyof UnifiedSettings, readonly [string, string]>;
 
 function createPanel<T extends Readonly<Record<string, number>>>(
   name: string,
@@ -23,7 +27,7 @@ function createPanel<T extends Readonly<Record<string, number>>>(
   labels: Readonly<Record<keyof T, readonly [string, string]>>,
   onChange: () => void,
 ) {
-  let tuning = resolve();
+  let settings = resolve();
   const fieldset = document.createElement('fieldset');
   const legend = document.createElement('legend');
   legend.textContent = `${name} · 摩擦音Q`;
@@ -34,14 +38,14 @@ function createPanel<T extends Readonly<Record<string, number>>>(
     const control = createRangeControl(
       label,
       ranges[key],
-      tuning[key]!,
+      settings[key]!,
       (value) => {
-        tuning = resolve({ ...tuning, [key]: value });
+        settings = resolve({ ...settings, [key]: value });
         onChange();
       },
       unit,
     );
-    control.group.setAttribute('data-tire-tuning-key', String(key));
+    control.group.setAttribute('data-tire-settings-key', String(key));
     return { key, ...control };
   });
   const reset = document.createElement('button');
@@ -49,15 +53,15 @@ function createPanel<T extends Readonly<Record<string, number>>>(
   reset.className = 'selector-button';
   reset.textContent = `${name}を初期値に戻す`;
   const restore = (): void => {
-    tuning = resolve();
-    for (const control of controls) control.setValue(tuning[control.key]!);
+    settings = resolve();
+    for (const control of controls) control.setValue(settings[control.key]!);
     onChange();
   };
   reset.addEventListener('click', restore);
   fieldset.replaceChildren(legend, note, ...controls.map((c) => c.group), reset);
   return {
     fieldset,
-    read: () => tuning,
+    read: () => settings,
     dispose(): void {
       reset.removeEventListener('click', restore);
       for (const control of controls) control.dispose();
@@ -65,8 +69,8 @@ function createPanel<T extends Readonly<Record<string, number>>>(
   };
 }
 
-export function mountTireTuningControls(container: HTMLElement, onChange: () => void) {
-  const panel = createPanel('UNIFIED', UNIFIED_TUNING_RANGES, resolveUnifiedTuning, UNIFIED_LABELS, onChange);
+export function mountTireSoundSettings(container: HTMLElement, onChange: () => void) {
+  const panel = createPanel('UNIFIED', UNIFIED_SETTING_RANGES, resolveUnifiedSettings, UNIFIED_LABELS, onChange);
   container.replaceChildren(panel.fieldset);
   return {
     read: panel.read,

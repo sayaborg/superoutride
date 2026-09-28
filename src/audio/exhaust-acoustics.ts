@@ -61,9 +61,9 @@ export const EXHAUST_SETTING_RANGES: Readonly<Record<keyof ExhaustSettings, Sett
 });
 
 export function resolveExhaustSettings(overrides: Partial<ExhaustSettings> = {}): ExhaustSettings {
-  const tuning = { ...DEFAULT_EXHAUST_SETTINGS };
+  const settings = { ...DEFAULT_EXHAUST_SETTINGS };
   for (const key of Object.keys(EXHAUST_SETTING_RANGES) as (keyof ExhaustSettings)[]) {
-    const value = overrides[key] === undefined ? tuning[key] : overrides[key];
+    const value = overrides[key] === undefined ? settings[key] : overrides[key];
     const range = EXHAUST_SETTING_RANGES[key];
     if (
       !Number.isFinite(value) ||
@@ -71,10 +71,10 @@ export function resolveExhaustSettings(overrides: Partial<ExhaustSettings> = {})
       value > range.max ||
       (range.exclusiveMin && value === range.min)
     )
-      throw new RangeError(`invalid acoustic tuning: ${key}`);
-    tuning[key] = value;
+      throw new RangeError(`invalid exhaust settings: ${key}`);
+    settings[key] = value;
   }
-  return Object.freeze(tuning);
+  return Object.freeze(settings);
 }
 
 export const ACOUSTICS = Object.freeze({

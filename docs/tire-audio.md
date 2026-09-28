@@ -1,6 +1,6 @@
 # UNIFIED tire audio
 
-UNIFIED is an authored sound surrogate with independent front and rear sources. Each axle combines
+UNIFIED is an authored sound surrogate with independent front and rear generators. Each axle combines
 rotation-driven rolling output R and a shared-friction resonator output Q. Coefficients describe this
 normalized acoustic model rather than measured rubber properties or acoustic power.
 [Audio](audio.md) owns the graph and lifetime, [Calibration](calibration.md#unified-tire-settings) owns
@@ -90,12 +90,12 @@ uniform innovations; its force impulse scales by `dt`. This split integration ap
 coupled stochastic system at the native rate. The displacement pickup uses fixed gain, DC removal
 and output filtering.
 
-## Tuning replacement
+## Settings replacement
 
-`resolveUnifiedTuning` produces a validated frozen snapshot using the acoustic ranges. Replacement
+`resolveUnifiedSettings` produces a validated frozen `UnifiedSettings` snapshot using the acoustic ranges. Replacement
 uses a tire-only fade and installs fresh kernels at silence. Rapid edits supersede pending settings;
-returning to active values cancels replacement, and equal values preserve source state.
+returning to active values cancels replacement, and equal values preserve synthesis state.
 
-Vehicle changes, mute and sound retry retain tuning and mix. Reload restores defaults. Invalid
-replacement tuning releases forcing without terminating the worklet. R/Q switches fade only their
+Vehicle changes, mute and sound retry retain settings and mix. Reload restores defaults. Invalid
+replacement settings release forcing without terminating the worklet. R/Q switches (`rolling`/`friction` components) fade only their
 output taps for both axles; synthesis and the other component continue at their own levels.

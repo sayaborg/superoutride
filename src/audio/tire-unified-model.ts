@@ -1,10 +1,10 @@
 import { FrictionResonator } from './friction-resonator.js';
 import { TireRollingSynthesis } from './tire-rolling-model.js';
 import {
-  UNIFIED_SETTINGS as S,
+  UNIFIED_SYNTHESIS as S,
   UNIFIED_SURFACES,
-  resolveUnifiedTuning,
-  type UnifiedTuning,
+  resolveUnifiedSettings,
+  type UnifiedSettings,
 } from './tire-unified-acoustics.js';
 import type { TireSoundObservation } from './tire-sound-observation.js';
 import { TIRE_SOUND_SURFACE_IDS } from './tire-surface-acoustics.js';
@@ -18,7 +18,7 @@ export class TireUnifiedSynthesis {
   private readonly follow: number;
   private readonly dcPole: number;
   private readonly outputFollow: number;
-  private readonly settings: UnifiedTuning;
+  private readonly settings: UnifiedSettings;
   private active = false;
   private targetForce = 0;
   private targetFeedback = 0;
@@ -27,19 +27,18 @@ export class TireUnifiedSynthesis {
   private previous = 0;
   private highpass = 0;
   private filtered = 0;
-  roadOutput = 0;
+  rollingOutput = 0;
   frictionOutput = 0;
 
-  constructor(rate: number, seed: number = S.frontSeed, tuning: Partial<UnifiedTuning> = {}) {
-    this.settings = resolveUnifiedTuning(tuning);
-    const settings = this.settings;
+  constructor(rate: number, seed: number = S.frontSeed, settings: Partial<UnifiedSettings> = {}) {
+    this.settings = resolveUnifiedSettings(settings);
     this.friction = new FrictionResonator(
       rate,
       {
-        ...settings,
+        ...this.settings,
         resonances: [
-          { ...S.resonances[0], frequencyHz: settings.lowFrequencyHz },
-          { ...S.resonances[1], frequencyHz: settings.highFrequencyHz },
+          { ...S.resonances[0], frequencyHz: this.settings.lowFrequencyHz },
+          { ...S.resonances[1], frequencyHz: this.settings.highFrequencyHz },
         ],
       },
       seed,
@@ -47,7 +46,7 @@ export class TireUnifiedSynthesis {
     this.rolling = new TireRollingSynthesis(rate, seed);
     this.follow = 1 - Math.exp(-1 / (rate * S.controlSeconds));
     this.dcPole = Math.exp((-2 * Math.PI * S.dcHz) / rate);
-    this.outputFollow = 1 - Math.exp((-2 * Math.PI * settings.outputCutoffHz) / rate);
+    this.outputFollow = 1 - Math.exp((-2 * Math.PI * this.settings.outputCutoffHz) / rate);
   }
 
   update(value: TireSoundObservation, surfaceIndex = 0): void {
@@ -91,7 +90,7 @@ export class TireUnifiedSynthesis {
     this.previous = value;
     this.filtered += this.outputFollow * (this.highpass - this.filtered);
     this.frictionOutput = this.filtered;
-    this.roadOutput = this.rolling.sample();
-    return this.roadOutput + this.frictionOutput;
+    this.rollingOutput = this.rolling.sample();
+    return this.rollingOutput + this.frictionOutput;
   }
 }

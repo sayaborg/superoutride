@@ -2,7 +2,7 @@ import { clamp } from '../core/math.js';
 import { follow } from './audio-parameter.js';
 import type { ExhaustSettings } from './exhaust-acoustics.js';
 import { createTireVoice } from './tire-voice.js';
-import type { UnifiedTuning } from './tire-unified-acoustics.js';
+import type { UnifiedSettings } from './tire-unified-acoustics.js';
 import type { TireComponents } from './tire-sound-controls.js';
 import { createEngineVoice } from './engine-voice.js';
 import type { CompiledEngineSound } from './engine-sound.js';
@@ -47,8 +47,8 @@ export async function createAudioEngine(context: AudioContext) {
       player.setSettings(value);
       rival.setSettings(value);
     },
-    setTireTuning(value: UnifiedTuning): void {
-      tires.setTuning(value);
+    setTireSettings(value: UnifiedSettings): void {
+      tires.setSettings(value);
     },
     setMix(engine: number, tire: number): void {
       if (!Number.isFinite(engine + tire)) throw new RangeError('invalid audio mix');

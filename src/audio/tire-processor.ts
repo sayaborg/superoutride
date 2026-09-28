@@ -1,9 +1,9 @@
 import { TireUnifiedSynthesis } from './tire-unified-model.js';
 import {
-  UNIFIED_SETTINGS,
-  resolveUnifiedTuning,
-  sameUnifiedTuning,
-  type UnifiedTuning,
+  UNIFIED_SYNTHESIS,
+  resolveUnifiedSettings,
+  sameUnifiedSettings,
+  type UnifiedSettings,
 } from './tire-unified-acoustics.js';
 import { TIRE_SOUND_INPUT_KEYS, type TireSoundObservation } from './tire-sound-observation.js';
 import {
@@ -16,23 +16,23 @@ declare const sampleRate: number;
 declare const AudioWorkletProcessor: { new (): { readonly port: MessagePort } };
 declare function registerProcessor(name: string, processor: typeof AudioWorkletProcessor): void;
 
-function createPair(tuning: UnifiedTuning) {
+function createPair(settings: UnifiedSettings) {
   return {
-    front: new TireUnifiedSynthesis(sampleRate, UNIFIED_SETTINGS.frontSeed, tuning),
-    rear: new TireUnifiedSynthesis(sampleRate, UNIFIED_SETTINGS.rearSeed, tuning),
+    front: new TireUnifiedSynthesis(sampleRate, UNIFIED_SYNTHESIS.frontSeed, settings),
+    rear: new TireUnifiedSynthesis(sampleRate, UNIFIED_SYNTHESIS.rearSeed, settings),
   };
 }
 
 class TireProcessor extends AudioWorkletProcessor {
-  private tuning = resolveUnifiedTuning();
-  private pair: ReturnType<typeof createPair> | null = createPair(this.tuning);
+  private settings = resolveUnifiedSettings();
+  private pair: ReturnType<typeof createPair> | null = createPair(this.settings);
   private readonly frontObservation = Object.fromEntries(TIRE_SOUND_INPUT_KEYS.map((key) => [key, 0])) as {
     -readonly [K in keyof TireSoundObservation]: number;
   };
   private readonly rearObservation = { ...this.frontObservation };
   private readonly componentFollow = 1 - Math.exp(-1 / (sampleRate * TIRE_COMPONENT_FADE_SECONDS));
-  private roadMix = 1;
-  private squealMix = 1;
+  private rollingMix = 1;
+  private frictionMix = 1;
   private valid = true;
   static get parameterDescriptors() {
     return [
@@ -52,12 +52,12 @@ class TireProcessor extends AudioWorkletProcessor {
       if (data === 'stop') this.pair = null;
       else if (this.pair !== null) {
         try {
-          if (data === null || typeof data !== 'object' || !Object.hasOwn(data, 'tuning'))
-            throw new TypeError('tire settings message must contain tuning');
-          const tuning = resolveUnifiedTuning(data.tuning);
+          if (data === null || typeof data !== 'object' || !Object.hasOwn(data, 'settings'))
+            throw new TypeError('tire settings message must contain settings');
+          const settings = resolveUnifiedSettings(data.settings);
           // Replace after the voice fade; identical settings preserve the running state.
-          if (!sameUnifiedTuning(tuning, this.tuning)) this.pair = createPair(tuning);
-          this.tuning = tuning;
+          if (!sameUnifiedSettings(settings, this.settings)) this.pair = createPair(settings);
+          this.settings = settings;
           this.valid = true;
         } catch {
           this.valid = false;
@@ -109,17 +109,17 @@ class TireProcessor extends AudioWorkletProcessor {
     if (!output) return true;
     this.updateObserved(p, 'front', this.frontObservation, pair.front);
     this.updateObserved(p, 'rear', this.rearObservation, pair.rear);
-    const road = this.readMix(p, 'mix_road'),
-      squeal = this.readMix(p, 'mix_squeal');
+    const rolling = this.readMix(p, 'mix_rolling'),
+      friction = this.readMix(p, 'mix_friction');
     for (let i = 0; i < output.length; i++) {
-      this.roadMix += this.componentFollow * (road - this.roadMix);
-      this.squealMix += this.componentFollow * (squeal - this.squealMix);
+      this.rollingMix += this.componentFollow * (rolling - this.rollingMix);
+      this.frictionMix += this.componentFollow * (friction - this.frictionMix);
       pair.front.sample();
       pair.rear.sample();
       output[i] =
-        pair.front.roadOutput * this.roadMix +
-        pair.front.frictionOutput * this.squealMix +
-        (pair.rear.roadOutput * this.roadMix + pair.rear.frictionOutput * this.squealMix);
+        pair.front.rollingOutput * this.rollingMix +
+        pair.front.frictionOutput * this.frictionMix +
+        (pair.rear.rollingOutput * this.rollingMix + pair.rear.frictionOutput * this.frictionMix);
     }
     return true;
   }

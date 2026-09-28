@@ -1,11 +1,11 @@
 import { TIRE_SOUND_INPUT_KEYS } from './tire-sound-observation.js';
 import { follow } from './audio-parameter.js';
 import { AUDIO_CONTROL_POLICY } from './audio-control-policy.js';
-import { resolveUnifiedTuning, sameUnifiedTuning, type UnifiedTuning } from './tire-unified-acoustics.js';
+import { resolveUnifiedSettings, sameUnifiedSettings, type UnifiedSettings } from './tire-unified-acoustics.js';
 import { tireSoundParameters, TIRE_COMPONENTS, type TireComponents } from './tire-sound-controls.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
 
-/** One reusable worklet. Only tire tuning fades/replaces generators; engines, context and driving continue. */
+/** One reusable worklet. Only tire sound settings fade/replace generators; engines, context and driving continue. */
 export function createTireVoice(context: BaseAudioContext, destination: AudioNode) {
   const node = new AudioWorkletNode(context, 'vehicle-tires', {
     numberOfInputs: 0,
@@ -15,17 +15,17 @@ export function createTireVoice(context: BaseAudioContext, destination: AudioNod
   const output = context.createGain();
   output.gain.value = 0;
   node.connect(output).connect(destination);
-  let desiredTuning = resolveUnifiedTuning();
-  let activeTuning: UnifiedTuning | null = null;
-  let pending: { tuning: UnifiedTuning; at: number } | null = null;
+  let desiredSettings = resolveUnifiedSettings();
+  let activeSettings: UnifiedSettings | null = null;
+  let pending: { settings: UnifiedSettings; at: number } | null = null;
   let failed = false,
     disposed = false;
   node.onprocessorerror = () => {
     failed = true;
   };
   return {
-    setTuning(value: UnifiedTuning): void {
-      desiredTuning = resolveUnifiedTuning(value);
+    setSettings(value: UnifiedSettings): void {
+      desiredSettings = resolveUnifiedSettings(value);
     },
     setComponents(value: TireComponents): void {
       if (disposed) return;
@@ -42,17 +42,17 @@ export function createTireVoice(context: BaseAudioContext, destination: AudioNod
         for (const key of TIRE_SOUND_INPUT_KEYS) node.parameters.get(`${axle}_tire_${key}`)!.value = controls[key];
         node.parameters.get(`${axle}_tire_surfaceIndex`)!.value = controls.surfaceIndex;
       }
-      const changed = activeTuning === null || !sameUnifiedTuning(desiredTuning, activeTuning);
-      if (activeTuning !== null && changed) {
-        if (pending === null || !sameUnifiedTuning(pending.tuning, desiredTuning)) {
-          pending = { tuning: desiredTuning, at: now + AUDIO_CONTROL_POLICY.transitionSeconds };
-          follow(output.gain, 0, now, 0.01); // Authored tuning-change fade, not vibration decay.
+      const changed = activeSettings === null || !sameUnifiedSettings(desiredSettings, activeSettings);
+      if (activeSettings !== null && changed) {
+        if (pending === null || !sameUnifiedSettings(pending.settings, desiredSettings)) {
+          pending = { settings: desiredSettings, at: now + AUDIO_CONTROL_POLICY.transitionSeconds };
+          follow(output.gain, 0, now, 0.01); // Authored settings-change fade, not vibration decay.
         }
         if (now < pending.at) return;
       }
       if (changed) {
-        node.port.postMessage({ tuning: desiredTuning });
-        activeTuning = desiredTuning;
+        node.port.postMessage({ settings: desiredSettings });
+        activeSettings = desiredSettings;
         follow(output.gain, 1, now);
       } else if (pending) follow(output.gain, 1, now);
       pending = null;

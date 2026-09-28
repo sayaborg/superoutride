@@ -101,7 +101,7 @@ outputs. Component output switches leave synthesis state running.
 constant to 25 ms and the transition duration to 90 ms. Engine sound and exhaust settings
 replacement fades to silence before installing a new kernel. New settings supersede pending values;
 returning to active values cancels pending replacement. Tire replacement is specified in
-[Tire audio](tire-audio.md#tuning-replacement).
+[Tire audio](tire-audio.md#settings-replacement).
 
 Construction leaves the AudioContext unopened. An eligible user gesture starts or resumes audio.
 Hidden or stopped shells suspend it; mute fades before suspension. Disposal closes the context,

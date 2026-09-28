@@ -3,8 +3,8 @@ import { TIRE_SOUND_SURFACE_IDS } from './tire-surface-acoustics.js';
 import type { TireAudioObservation } from './vehicle-audio-observation.js';
 
 export const TIRE_COMPONENTS = Object.freeze([
-  Object.freeze({ key: 'road', label: 'R', description: 'Rolling' }),
-  Object.freeze({ key: 'squeal', label: 'Q', description: 'Friction / squeal' }),
+  Object.freeze({ key: 'rolling', label: 'R', description: 'Rolling' }),
+  Object.freeze({ key: 'friction', label: 'Q', description: 'Friction' }),
 ] as const);
 type TireComponent = (typeof TIRE_COMPONENTS)[number]['key'];
 export type TireComponents = Readonly<Record<TireComponent, boolean>>;

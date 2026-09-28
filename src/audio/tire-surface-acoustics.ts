@@ -1,7 +1,7 @@
 import { ROLLING_SURFACES } from './tire-rolling-acoustics.js';
 import { UNIFIED_SURFACES } from './tire-unified-acoustics.js';
 
-/** Stable numeric transport order for the worklet; source observations remain material IDs. */
+/** Stable numeric transport order for the worklet; vehicle observations remain material IDs. */
 export const TIRE_SOUND_SURFACE_IDS = Object.freeze(Object.keys(ROLLING_SURFACES));
 
 /** Product assembly admits a material catalog only when every delivered material has both sound entries. */

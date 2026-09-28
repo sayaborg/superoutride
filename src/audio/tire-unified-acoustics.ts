@@ -3,7 +3,7 @@
  * All values here are listening choices (magic numbers), not measured material data.
  * Frequencies and rates describe the normalized sound model, never vehicle physics.
  */
-export const UNIFIED_SETTINGS = Object.freeze({
+export const UNIFIED_SYNTHESIS = Object.freeze({
   frontSeed: 0x3547ab91,
   rearSeed: 0x691cf37d,
   controlSeconds: 0.025,
@@ -35,41 +35,41 @@ export const UNIFIED_SURFACES = Object.freeze({
 });
 
 /** Authored audition bounds, NOT measured tire ranges. All combinations retain passive resonances. */
-export const UNIFIED_TUNING_RANGES = Object.freeze({
+export const UNIFIED_SETTING_RANGES = Object.freeze({
   feedbackMaximumPerSecond: {
     min: 2000,
     max: 12000,
     step: 100,
-    defaultValue: UNIFIED_SETTINGS.feedbackMaximumPerSecond,
+    defaultValue: UNIFIED_SYNTHESIS.feedbackMaximumPerSecond,
   },
-  saturationPerSecond: { min: 3000, max: 12000, step: 100, defaultValue: UNIFIED_SETTINGS.saturationPerSecond },
-  powerReferenceWatts: { min: 3000, max: 30000, step: 500, defaultValue: UNIFIED_SETTINGS.powerReferenceWatts },
-  slipHalfMps: { min: 1, max: 12, step: 0.25, defaultValue: UNIFIED_SETTINGS.slipHalfMps },
-  slipRolloffMps: { min: 20, max: 80, step: 1, defaultValue: UNIFIED_SETTINGS.slipRolloffMps },
-  noiseBandwidthHz: { min: 100, max: 2000, step: 25, defaultValue: UNIFIED_SETTINGS.noiseBandwidthHz },
-  noiseForcePerSecond: { min: 0, max: 2400, step: 25, defaultValue: UNIFIED_SETTINGS.noiseForcePerSecond },
-  lowFrequencyHz: { min: 275, max: 600, step: 5, defaultValue: UNIFIED_SETTINGS.resonances[0].frequencyHz },
-  highFrequencyHz: { min: 800, max: 2400, step: 25, defaultValue: UNIFIED_SETTINGS.resonances[1].frequencyHz },
-  outputGainPerSecond: { min: 0, max: 1800, step: 25, defaultValue: UNIFIED_SETTINGS.outputGainPerSecond },
-  outputCutoffHz: { min: 1000, max: 12000, step: 100, defaultValue: UNIFIED_SETTINGS.outputCutoffHz },
+  saturationPerSecond: { min: 3000, max: 12000, step: 100, defaultValue: UNIFIED_SYNTHESIS.saturationPerSecond },
+  powerReferenceWatts: { min: 3000, max: 30000, step: 500, defaultValue: UNIFIED_SYNTHESIS.powerReferenceWatts },
+  slipHalfMps: { min: 1, max: 12, step: 0.25, defaultValue: UNIFIED_SYNTHESIS.slipHalfMps },
+  slipRolloffMps: { min: 20, max: 80, step: 1, defaultValue: UNIFIED_SYNTHESIS.slipRolloffMps },
+  noiseBandwidthHz: { min: 100, max: 2000, step: 25, defaultValue: UNIFIED_SYNTHESIS.noiseBandwidthHz },
+  noiseForcePerSecond: { min: 0, max: 2400, step: 25, defaultValue: UNIFIED_SYNTHESIS.noiseForcePerSecond },
+  lowFrequencyHz: { min: 275, max: 600, step: 5, defaultValue: UNIFIED_SYNTHESIS.resonances[0].frequencyHz },
+  highFrequencyHz: { min: 800, max: 2400, step: 25, defaultValue: UNIFIED_SYNTHESIS.resonances[1].frequencyHz },
+  outputGainPerSecond: { min: 0, max: 1800, step: 25, defaultValue: UNIFIED_SYNTHESIS.outputGainPerSecond },
+  outputCutoffHz: { min: 1000, max: 12000, step: 100, defaultValue: UNIFIED_SYNTHESIS.outputCutoffHz },
 });
 
-export type UnifiedTuning = Readonly<Record<keyof typeof UNIFIED_TUNING_RANGES, number>>;
+export type UnifiedSettings = Readonly<Record<keyof typeof UNIFIED_SETTING_RANGES, number>>;
 
-export function resolveUnifiedTuning(value: Partial<UnifiedTuning> = {}): UnifiedTuning {
+export function resolveUnifiedSettings(value: Partial<UnifiedSettings> = {}): UnifiedSettings {
   if (value === null || typeof value !== 'object' || Array.isArray(value))
-    throw new TypeError('tire tuning must be an object');
-  const result = {} as Record<keyof UnifiedTuning, number>;
-  for (const key of Object.keys(UNIFIED_TUNING_RANGES) as (keyof UnifiedTuning)[]) {
-    const range = UNIFIED_TUNING_RANGES[key];
+    throw new TypeError('tire sound settings must be an object');
+  const result = {} as Record<keyof UnifiedSettings, number>;
+  for (const key of Object.keys(UNIFIED_SETTING_RANGES) as (keyof UnifiedSettings)[]) {
+    const range = UNIFIED_SETTING_RANGES[key];
     const number = value[key] === undefined ? range.defaultValue : value[key];
     if (!Number.isFinite(number) || number < range.min || number > range.max)
-      throw new RangeError(`invalid unified tuning: ${key}`);
+      throw new RangeError(`invalid unified settings: ${key}`);
     result[key] = number;
   }
   return Object.freeze(result);
 }
 
-export function sameUnifiedTuning(a: UnifiedTuning, b: UnifiedTuning): boolean {
-  return (Object.keys(UNIFIED_TUNING_RANGES) as (keyof UnifiedTuning)[]).every((key) => a[key] === b[key]);
+export function sameUnifiedSettings(a: UnifiedSettings, b: UnifiedSettings): boolean {
+  return (Object.keys(UNIFIED_SETTING_RANGES) as (keyof UnifiedSettings)[]).every((key) => a[key] === b[key]);
 }

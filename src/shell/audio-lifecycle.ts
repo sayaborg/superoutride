@@ -1,5 +1,5 @@
 import { mountEngineSoundSettings } from './engine-sound-settings-controls.js';
-import { mountTireTuningControls } from './tire-tuning-controls.js';
+import { mountTireSoundSettings } from './tire-sound-settings-controls.js';
 import { createRangeControl } from './range-control.js';
 import { createNumberStepper } from './number-stepper.js';
 import { createAudioEngine } from '../audio/audio-engine.js';
@@ -18,7 +18,7 @@ const GESTURE_EVENTS = ['pointerdown', 'pointerup', 'touchend', 'keydown'] as co
 export function createAudioLifecycle(sessionVehicle: CompiledVehicleDefinition) {
   const button = document.getElementById('sound-toggle');
   const volumeContainer = document.getElementById('sound-volume');
-  const componentState = { road: true, squeal: true };
+  const componentState = { rolling: true, friction: true };
   const componentHost = document.getElementById('tire-component-controls');
   const componentButtons = TIRE_COMPONENTS.map(({ key, label, description }) => {
     const button = document.createElement('button');
@@ -97,9 +97,9 @@ export function createAudioLifecycle(sessionVehicle: CompiledVehicleDefinition) 
     host.replaceChildren(control.group);
     return { host, control };
   });
-  const tireTuningHost = document.getElementById('tire-tuning');
-  const tireTuning = tireTuningHost
-    ? mountTireTuningControls(tireTuningHost, () => {
+  const tireSoundSettingsHost = document.getElementById('tire-sound-settings');
+  const tireSoundSettings = tireSoundSettingsHost
+    ? mountTireSoundSettings(tireSoundSettingsHost, () => {
         unlock();
         sync();
       })
@@ -137,7 +137,7 @@ export function createAudioLifecycle(sessionVehicle: CompiledVehicleDefinition) 
     event.stopPropagation();
   }
   showComponents();
-  tireTuning?.setEnabled(supported);
+  tireSoundSettings?.setEnabled(supported);
   function audible(): boolean {
     return enabled && active && !document.hidden && !disposed;
   }
@@ -180,8 +180,8 @@ export function createAudioLifecycle(sessionVehicle: CompiledVehicleDefinition) 
     if (!context || !engine) return;
     try {
       if (engineSoundSettings) engine.setExhaustSettings(engineSoundSettings.read());
-      const tireSettings = tireTuning?.read();
-      if (tireSettings) engine.setTireTuning(tireSettings);
+      const tireSettings = tireSoundSettings?.read();
+      if (tireSettings) engine.setTireSettings(tireSettings);
       engine.setMix(engineVolume, tireVolume);
       engine.setTireComponents(componentState);
       engine.setVolume(audible() ? volume : 0);
@@ -279,7 +279,7 @@ export function createAudioLifecycle(sessionVehicle: CompiledVehicleDefinition) 
     volumeControl?.dispose();
     volumeContainer?.replaceChildren();
     engineSoundSettings?.dispose();
-    tireTuning?.dispose();
+    tireSoundSettings?.dispose();
     for (const { host, control } of mixControls) {
       control.dispose();
       host.replaceChildren();

@@ -1,5 +1,5 @@
 import { NoiseBand, SmoothRandom, deriveNoiseSeed, NOISE_BAND_DOMAIN } from './noise.js';
-import { ROLLING_SETTINGS as S, ROLLING_SURFACES } from './tire-rolling-acoustics.js';
+import { ROLLING_SYNTHESIS as S, ROLLING_SURFACES } from './tire-rolling-acoustics.js';
 import { validateTireSoundObservation, type TireSoundObservation } from './tire-sound-observation.js';
 import { TIRE_SOUND_SURFACE_IDS } from './tire-surface-acoustics.js';
 

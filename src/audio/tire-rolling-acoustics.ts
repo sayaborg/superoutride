@@ -3,7 +3,7 @@
  * not a measured tread order, texture length, acoustic efficiency or material property.
  * Timing, filtering and texture belong to R independently of friction synthesis.
  */
-export const ROLLING_SETTINGS = Object.freeze({
+export const ROLLING_SYNTHESIS = Object.freeze({
   bandStreams: Object.freeze([8, 9]),
   textureStream: 10,
   controlHz: 1000,

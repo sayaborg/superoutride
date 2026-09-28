@@ -18,7 +18,7 @@
   derive from the Session seed; loading coverage, recovery policy and reference identities each have one owner.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **11-4b — Tire sound names**.
+Next PR: **11-5 — Sound graph**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -28,8 +28,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Separate the audio scene from the browser and organize sound around replaceable definitions.
 
-- **11-4b — Tire sound names:** road/squeal (rolling/friction), UNIFIED Tuning records, fixed synthesis constants named
-  Settings, and the tire-sound DEV controls and DOM ids.
 - **11-5 — Sound graph:** generators, voices and buses that can accommodate BGM, environmental audio and effects;
   named compressor settings.
 - **11-6 — Control following:** one smoothing authority per control and one timing record. Sound changes.
