@@ -6,6 +6,7 @@ import type { ExhaustSettings } from './exhaust-acoustics.js';
 import { createSoundGraph, type MixSettings, type SoundBus } from './sound-graph.js';
 import type { TireComponents } from './tire-sound-controls.js';
 import type { UnifiedSettings } from './tire-unified-acoustics.js';
+import type { RollingSettings } from './tire-rolling-acoustics.js';
 import { createTireVoice } from './tire-voice.js';
 import type { CompiledEngineSound } from './engine-sound.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
@@ -158,6 +159,9 @@ export async function createAudioScene(context: AudioContext) {
     },
     setTireSettings(value: UnifiedSettings): void {
       tires.setSettings(value);
+    },
+    setRollingSettings(value: RollingSettings): void {
+      tires.setRollingSettings(value);
     },
     setTireComponents(value: TireComponents): void {
       tires.setComponents(value);

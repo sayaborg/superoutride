@@ -1,27 +1,10 @@
 /**
- * UNIFIED is an authored acoustic surrogate, NOT a local rubber/contact solve.
- * All values here are listening choices (magic numbers), not measured material data.
- * Frequencies and rates describe the normalized sound model, never vehicle physics.
+ * UNIFIED is an authored acoustic surrogate, NOT a local rubber/contact solve, so no value derives from physics:
+ * every sound value is a listening setting (`UnifiedSettings`). Only the random seeds are structural constants.
  */
 export const UNIFIED_SYNTHESIS = Object.freeze({
   frontSeed: 0x3547ab91,
   rearSeed: 0x691cf37d,
-  powerReferenceWatts: 12000,
-  slipHalfMps: 3,
-  slipRolloffMps: 45,
-  feedbackMaximumPerSecond: 8500,
-  saturationPerSecond: 6000,
-  noiseBandwidthHz: 600,
-  noiseForcePerSecond: 1200,
-  // Fixed modal data: a shared friction port couples BOTH resonances. Neither is a separate S/Q generator.
-  resonances: Object.freeze([
-    Object.freeze({ frequencyHz: 300, dampingPerSecond: 2 * Math.PI * 500, participation: 0.45 }),
-    Object.freeze({ frequencyHz: 1000, dampingPerSecond: 2 * Math.PI * 500, participation: Math.sqrt(1 - 0.45 ** 2) }),
-  ] as const),
-  // Fixed displacement pickup gain; normalized modal displacement is not metres or acoustic pressure.
-  outputGainPerSecond: 900,
-  outputCutoffHz: 8000,
-  dcHz: 18,
 });
 
 /** Each surface changes the ONE friction input: roughness forcing and instability susceptibility. */
@@ -34,21 +17,29 @@ export const UNIFIED_SURFACES = Object.freeze({
 });
 
 /**
- * Listening settings: authored audition bounds, NOT measured tire ranges. All combinations retain passive
- * resonances. Every other UNIFIED_SYNTHESIS value is a fixed shaping constant.
+ * Listening settings on the DEV UNIFIED panel: authored audition bounds, NOT measured tire ranges. Defaults are the
+ * implementer's initial values. Frequencies and rates describe the normalized sound model, never vehicle physics.
  */
 export const UNIFIED_SETTING_RANGES = Object.freeze({
-  feedbackMaximumPerSecond: {
-    min: 2000,
-    max: 12000,
-    step: 100,
-    defaultValue: UNIFIED_SYNTHESIS.feedbackMaximumPerSecond,
-  },
-  powerReferenceWatts: { min: 3000, max: 30000, step: 500, defaultValue: UNIFIED_SYNTHESIS.powerReferenceWatts },
-  noiseForcePerSecond: { min: 0, max: 2400, step: 25, defaultValue: UNIFIED_SYNTHESIS.noiseForcePerSecond },
-  lowFrequencyHz: { min: 275, max: 600, step: 5, defaultValue: UNIFIED_SYNTHESIS.resonances[0].frequencyHz },
-  highFrequencyHz: { min: 800, max: 2400, step: 25, defaultValue: UNIFIED_SYNTHESIS.resonances[1].frequencyHz },
-  outputGainPerSecond: { min: 0, max: 1800, step: 25, defaultValue: UNIFIED_SYNTHESIS.outputGainPerSecond },
+  feedbackMaximumPerSecond: { min: 2000, max: 12000, step: 100, defaultValue: 8500 },
+  powerReferenceWatts: { min: 3000, max: 30000, step: 500, defaultValue: 12000 },
+  noiseForcePerSecond: { min: 0, max: 2400, step: 25, defaultValue: 1200 },
+  lowFrequencyHz: { min: 275, max: 600, step: 5, defaultValue: 300 },
+  highFrequencyHz: { min: 800, max: 2400, step: 25, defaultValue: 1000 },
+  // Displacement pickup gain; normalized modal displacement is not metres or acoustic pressure.
+  outputGainPerSecond: { min: 0, max: 1800, step: 25, defaultValue: 900 },
+  // Cubic feedback dissipation.
+  saturationPerSecond: { min: 3000, max: 12000, step: 100, defaultValue: 6000 },
+  slipHalfMps: { min: 1, max: 12, step: 0.25, defaultValue: 3 },
+  slipRolloffMps: { min: 20, max: 80, step: 1, defaultValue: 45 },
+  // Colored-force bandwidth.
+  noiseBandwidthHz: { min: 100, max: 2000, step: 25, defaultValue: 600 },
+  outputCutoffHz: { min: 1000, max: 12000, step: 100, defaultValue: 8000 },
+  // Damping of both passive modes; resolution keeps each mode underdamped.
+  resonanceDampingPerSecond: { min: 500, max: 12000, step: 50, defaultValue: 2 * Math.PI * 500 },
+  // Low-mode participation; the high mode's sqrt(1 - low²) keeps the port normalized.
+  lowParticipation: { min: 0.05, max: 0.95, step: 0.01, defaultValue: 0.45 },
+  dcHz: { min: 5, max: 60, step: 1, defaultValue: 18 },
 });
 
 export type UnifiedSettings = Readonly<Record<keyof typeof UNIFIED_SETTING_RANGES, number>>;
@@ -64,6 +55,9 @@ export function resolveUnifiedSettings(value: Partial<UnifiedSettings> = {}): Un
       throw new RangeError(`invalid unified settings: ${key}`);
     result[key] = number;
   }
+  // Cross-field domain: both modes must stay underdamped (half damping below the lower modal frequency).
+  if (result.resonanceDampingPerSecond / 2 >= 2 * Math.PI * result.lowFrequencyHz)
+    throw new RangeError('invalid unified settings: resonanceDampingPerSecond');
   return Object.freeze(result);
 }
 

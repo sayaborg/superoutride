@@ -2,6 +2,7 @@ import { TIRE_SOUND_INPUT_KEYS } from './tire-sound-observation.js';
 import { follow } from './audio-parameter.js';
 import { resolveControlSettings, sameControlSettings, type ControlSettings } from './audio-control-policy.js';
 import { resolveUnifiedSettings, sameUnifiedSettings, type UnifiedSettings } from './tire-unified-acoustics.js';
+import { resolveRollingSettings, sameRollingSettings, type RollingSettings } from './tire-rolling-acoustics.js';
 import { tireSoundParameters, TIRE_COMPONENTS, type TireComponents } from './tire-sound-controls.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
 
@@ -16,12 +17,15 @@ export function createTireVoice(context: BaseAudioContext, destination: AudioNod
   output.gain.value = 0;
   node.connect(output).connect(destination);
   let desiredSettings = resolveUnifiedSettings();
+  let rolling = resolveRollingSettings();
   let control = resolveControlSettings();
-  let active: { settings: UnifiedSettings; control: ControlSettings } | null = null;
-  let pending: { settings: UnifiedSettings; control: ControlSettings; at: number } | null = null;
-  const same = (entry: { settings: UnifiedSettings; control: ControlSettings } | null): boolean =>
+  type Entry = { settings: UnifiedSettings; rolling: RollingSettings; control: ControlSettings };
+  let active: Entry | null = null;
+  let pending: (Entry & { at: number }) | null = null;
+  const same = (entry: Entry | null): boolean =>
     entry !== null &&
     sameUnifiedSettings(desiredSettings, entry.settings) &&
+    sameRollingSettings(rolling, entry.rolling) &&
     sameControlSettings(entry.control, control);
   let failed = false,
     disposed = false;
@@ -31,6 +35,9 @@ export function createTireVoice(context: BaseAudioContext, destination: AudioNod
   return {
     setSettings(value: UnifiedSettings): void {
       desiredSettings = resolveUnifiedSettings(value);
+    },
+    setRollingSettings(value: RollingSettings): void {
+      rolling = resolveRollingSettings(value);
     },
     setControl(value: ControlSettings): void {
       if (!sameControlSettings(control, value)) control = resolveControlSettings(value);
@@ -53,14 +60,14 @@ export function createTireVoice(context: BaseAudioContext, destination: AudioNod
       const changed = !same(active);
       if (active !== null && changed) {
         if (!same(pending)) {
-          pending = { settings: desiredSettings, control, at: now + control.transitionSeconds };
+          pending = { settings: desiredSettings, rolling, control, at: now + control.transitionSeconds };
           follow(output.gain, 0, now, control.fadeSeconds); // Authored settings-change fade, not vibration decay.
         }
         if (now < pending!.at) return;
       }
       if (changed) {
-        node.port.postMessage({ settings: desiredSettings, control });
-        active = { settings: desiredSettings, control };
+        node.port.postMessage({ settings: desiredSettings, rolling, control });
+        active = { settings: desiredSettings, rolling, control };
         follow(output.gain, 1, now, control.gainSeconds);
       } else if (pending) follow(output.gain, 1, now, control.gainSeconds);
       pending = null;

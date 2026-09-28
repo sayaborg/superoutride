@@ -1,5 +1,5 @@
 import { mountEngineSoundSettings } from './engine-sound-settings-controls.js';
-import { mountTireSoundSettings } from './tire-sound-settings-controls.js';
+import { mountRollingSoundSettings, mountTireSoundSettings } from './tire-sound-settings-controls.js';
 import {
   mountMixSoundSettings,
   mountRivalSoundSettings,
@@ -118,6 +118,7 @@ export function createAudioLifecycle(sessionVehicle: CompiledVehicleDefinition) 
   const mixSettings = mountHost('mix-sound-settings', mountMixSoundSettings);
   const timingSettings = mountHost('timing-sound-settings', mountTimingSoundSettings);
   const rivalSettings = mountHost('rival-sound-settings', mountRivalSoundSettings);
+  const rollingSettings = mountHost('rolling-sound-settings', mountRollingSoundSettings);
   function showSoundState(): void {
     if (!button || disposed) return;
     button.textContent = !supported
@@ -151,7 +152,8 @@ export function createAudioLifecycle(sessionVehicle: CompiledVehicleDefinition) 
     event.stopPropagation();
   }
   showComponents();
-  for (const panel of [tireSoundSettings, mixSettings, timingSettings, rivalSettings]) panel?.setEnabled(supported);
+  for (const panel of [tireSoundSettings, rollingSettings, mixSettings, timingSettings, rivalSettings])
+    panel?.setEnabled(supported);
   function audible(): boolean {
     return enabled && active && !document.hidden && !disposed;
   }
@@ -198,6 +200,7 @@ export function createAudioLifecycle(sessionVehicle: CompiledVehicleDefinition) 
       if (engineSoundSettings) scene.setExhaustSettings(engineSoundSettings.read());
       const tireSettings = tireSoundSettings?.read();
       if (tireSettings) scene.setTireSettings(tireSettings);
+      if (rollingSettings) scene.setRollingSettings(rollingSettings.read());
       for (const bus of SOUND_BUSES) scene.setBusGain(bus, busVolumes[bus]);
       scene.setTireComponents(componentState);
       scene.setMasterGain(audible() ? volume : 0);
@@ -301,6 +304,7 @@ export function createAudioLifecycle(sessionVehicle: CompiledVehicleDefinition) 
     mixSettings?.dispose();
     timingSettings?.dispose();
     rivalSettings?.dispose();
+    rollingSettings?.dispose();
     for (const { host, control } of mixControls) {
       control.dispose();
       host.replaceChildren();

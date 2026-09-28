@@ -153,18 +153,52 @@ accepts `(0,0.5]`.
 [UNIFIED acoustics](../src/audio/tire-unified-acoustics.ts) supplies these friction-model listening settings.
 `powerReferenceWatts` is the accepted-work half-response point; output gain independently sets level.
 
-| Key                        | Meaning                            | Default  | Range / step         |
-| -------------------------- | ---------------------------------- | -------- | -------------------- |
-| `feedbackMaximumPerSecond` | Maximum positive friction feedback | 8500 s⁻¹ | 2000–12000 / 100     |
-| `powerReferenceWatts`      | Work half-response                 | 12000 W  | 3000–30000 W / 500 W |
-| `noiseForcePerSecond`      | Colored-force scale                | 1200 s⁻¹ | 0–2400 / 25          |
-| `lowFrequencyHz`           | Low passive-mode frequency         | 300 Hz   | 275–600 Hz / 5 Hz    |
-| `highFrequencyHz`          | High passive-mode frequency        | 1000 Hz  | 800–2400 Hz / 25 Hz  |
-| `outputGainPerSecond`      | Displacement-pickup gain           | 900 s⁻¹  | 0–1800 / 25          |
+| Key                         | Meaning                                                   | Default               | Range / step         |
+| --------------------------- | --------------------------------------------------------- | --------------------- | -------------------- |
+| `feedbackMaximumPerSecond`  | Maximum positive friction feedback                        | 8500 s⁻¹              | 2000–12000 / 100     |
+| `powerReferenceWatts`       | Work half-response                                        | 12000 W               | 3000–30000 W / 500 W |
+| `noiseForcePerSecond`       | Colored-force scale                                       | 1200 s⁻¹              | 0–2400 / 25          |
+| `lowFrequencyHz`            | Low passive-mode frequency                                | 300 Hz                | 275–600 Hz / 5 Hz    |
+| `highFrequencyHz`           | High passive-mode frequency                               | 1000 Hz               | 800–2400 Hz / 25 Hz  |
+| `outputGainPerSecond`       | Displacement-pickup gain                                  | 900 s⁻¹               | 0–1800 / 25          |
+| `saturationPerSecond`       | Cubic feedback dissipation                                | 6000 s⁻¹              | 3000–12000 / 100     |
+| `slipHalfMps`               | Feedback slip half-response                               | 3 m/s                 | 1–12 m/s / 0.25      |
+| `slipRolloffMps`            | High-slip feedback rolloff                                | 45 m/s                | 20–80 m/s / 1        |
+| `noiseBandwidthHz`          | Colored-force bandwidth                                   | 600 Hz                | 100–2000 Hz / 25     |
+| `outputCutoffHz`            | Friction output-filter cutoff                             | 8000 Hz               | 1000–12000 Hz / 100  |
+| `resonanceDampingPerSecond` | Damping of both passive modes                             | `2*pi*500` ≈ 3142 s⁻¹ | 500–12000 / 50       |
+| `lowParticipation`          | Low-mode participation; the high mode uses `sqrt(1-low²)` | 0.45                  | 0.05–0.95 / 0.01     |
+| `dcHz`                      | Friction output DC removal                                | 18 Hz                 | 5–60 Hz / 1          |
 
-Both modes have damping `2*pi*500 s⁻¹`. Their participation values are `0.45` and
-`sqrt(1-0.45²)`. Control following uses the TIMING `observationSeconds` and DC removal is 18 Hz.
-Rolling coefficients are supplied by [rolling acoustics](../src/audio/tire-rolling-acoustics.ts).
+Resolution also requires `resonanceDampingPerSecond/2 < 2*pi*lowFrequencyHz`, so both modes stay underdamped;
+the DEV slider keeps its previous value when a change would break it. Control following uses the TIMING
+`observationSeconds`.
+
+## ROLLING tire settings
+
+[Rolling acoustics](../src/audio/tire-rolling-acoustics.ts) supplies the rolling-model listening settings
+(`RollingSettings`); ranges are about a quarter to four times each default. The orders are integers. The band
+width is kept inside the noise band's numerical domain.
+
+| Key                   | Meaning                               | Default | Range / step         |
+| --------------------- | ------------------------------------- | ------- | -------------------- |
+| `toneSeconds`         | Surface and wheel-frequency following | 0.02 s  | 0.005–0.08 / 0.001   |
+| `lowOrder`            | Wheel order of the low band           | 4       | 1–24 / 1             |
+| `highOrder`           | Wheel order of the high band          | 12      | 1–24 / 1             |
+| `minimumHz`           | Lowest band centre                    | 35 Hz   | 9–140 Hz / 1         |
+| `bandwidthRatio`      | Band width / centre                   | 0.8     | 0.2–3.2 / 0.05       |
+| `loadHalfNewtons`     | Load half-response                    | 2000 N  | 500–8000 N / 50      |
+| `speedHalfMps`        | Speed half-response                   | 15 m/s  | 4–60 m/s / 0.5       |
+| `speedExponent`       | Speed-response exponent               | 1.5     | 0.4–6 / 0.1          |
+| `attackSeconds`       | Level rise                            | 0.015 s | 0.004–0.06 / 0.001   |
+| `releaseSeconds`      | Level fall                            | 0.01 s  | 0.0025–0.04 / 0.0005 |
+| `textureMinimumDepth` | Minimum texture modulation depth      | 0.22    | 0.05–0.88 / 0.01     |
+| `textureMaximumHz`    | Highest texture rate                  | 160 Hz  | 40–640 Hz / 5        |
+| `gain`                | Rolling output gain                   | 0.04    | 0.01–0.16 / 0.005    |
+| `outputHz`            | Rolling output low-pass cutoff        | 900 Hz  | 225–3600 Hz / 25     |
+| `dcHz`                | Rolling output DC removal             | 18 Hz   | 5–60 Hz / 1          |
+
+Surface coefficients stay tables until 11-10 makes them content.
 
 | Surface  | Friction roughness | Friction susceptibility |
 | -------- | ------------------ | ----------------------- |
@@ -174,15 +208,9 @@ Rolling coefficients are supplied by [rolling acoustics](../src/audio/tire-rolli
 | DIRT     | 1.5                | 0.12                    |
 | SAND     | 1.1                | 0.02                    |
 
-Until 11-7m-b makes them DEV settings, these UNIFIED shaping values remain code constants:
-
-| Constant                                | Meaning                       | Value    |
-| --------------------------------------- | ----------------------------- | -------- |
-| `UNIFIED_SYNTHESIS.saturationPerSecond` | Cubic feedback dissipation    | 6000 s⁻¹ |
-| `UNIFIED_SYNTHESIS.slipHalfMps`         | Feedback slip half-response   | 3 m/s    |
-| `UNIFIED_SYNTHESIS.slipRolloffMps`      | High-slip feedback rolloff    | 45 m/s   |
-| `UNIFIED_SYNTHESIS.noiseBandwidthHz`    | Colored-force bandwidth       | 600 Hz   |
-| `UNIFIED_SYNTHESIS.outputCutoffHz`      | Friction output-filter cutoff | 8000 Hz  |
+The only tire constants are structural: the random seeds (`UNIFIED_SYNTHESIS`), the rolling noise stream indices
+and the internal rolling control rate (`ROLLING_SYNTHESIS`), and the noise band's numerical domain
+(`NOISE_BAND_DOMAIN`).
 
 ## MIX settings
 

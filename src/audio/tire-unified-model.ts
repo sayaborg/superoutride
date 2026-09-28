@@ -1,6 +1,7 @@
 import { resolveControlSettings, type ControlSettings } from './audio-control-policy.js';
 import { FrictionResonator } from './friction-resonator.js';
 import { TireRollingSynthesis } from './tire-rolling-model.js';
+import type { RollingSettings } from './tire-rolling-acoustics.js';
 import {
   UNIFIED_SYNTHESIS as S,
   UNIFIED_SURFACES,
@@ -35,6 +36,7 @@ export class TireUnifiedSynthesis {
     rate: number,
     seed: number = S.frontSeed,
     settings: Partial<UnifiedSettings> = {},
+    rolling: Partial<RollingSettings> = {},
     control: Partial<ControlSettings> = {},
   ) {
     this.settings = resolveUnifiedSettings(settings);
@@ -42,19 +44,28 @@ export class TireUnifiedSynthesis {
       rate,
       {
         feedbackMaximumPerSecond: this.settings.feedbackMaximumPerSecond,
-        saturationPerSecond: S.saturationPerSecond,
-        noiseBandwidthHz: S.noiseBandwidthHz,
+        saturationPerSecond: this.settings.saturationPerSecond,
+        noiseBandwidthHz: this.settings.noiseBandwidthHz,
+        // One shared port couples BOTH resonances; neither is a separate R/Q generator.
         resonances: [
-          { ...S.resonances[0], frequencyHz: this.settings.lowFrequencyHz },
-          { ...S.resonances[1], frequencyHz: this.settings.highFrequencyHz },
+          {
+            frequencyHz: this.settings.lowFrequencyHz,
+            dampingPerSecond: this.settings.resonanceDampingPerSecond,
+            participation: this.settings.lowParticipation,
+          },
+          {
+            frequencyHz: this.settings.highFrequencyHz,
+            dampingPerSecond: this.settings.resonanceDampingPerSecond,
+            participation: Math.sqrt(1 - this.settings.lowParticipation ** 2),
+          },
         ],
       },
       seed,
     );
-    this.rolling = new TireRollingSynthesis(rate, seed);
+    this.rolling = new TireRollingSynthesis(rate, seed, rolling);
     this.follow = 1 - Math.exp(-1 / (rate * resolveControlSettings(control).observationSeconds));
-    this.dcPole = Math.exp((-2 * Math.PI * S.dcHz) / rate);
-    this.outputFollow = 1 - Math.exp((-2 * Math.PI * S.outputCutoffHz) / rate);
+    this.dcPole = Math.exp((-2 * Math.PI * this.settings.dcHz) / rate);
+    this.outputFollow = 1 - Math.exp((-2 * Math.PI * this.settings.outputCutoffHz) / rate);
   }
 
   update(value: TireSoundObservation, surfaceIndex = 0): void {
@@ -79,8 +90,8 @@ export class TireUnifiedSynthesis {
     const work = saturate(power, settings.powerReferenceWatts);
     this.targetForce = settings.noiseForcePerSecond * work * material.roughness;
     this.targetFeedback =
-      (settings.feedbackMaximumPerSecond * material.susceptibility * work * saturate(slip, S.slipHalfMps)) /
-      (1 + (slip / S.slipRolloffMps) ** 2);
+      (settings.feedbackMaximumPerSecond * material.susceptibility * work * saturate(slip, settings.slipHalfMps)) /
+      (1 + (slip / settings.slipRolloffMps) ** 2);
   }
 
   private release(): void {

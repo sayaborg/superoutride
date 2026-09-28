@@ -6,16 +6,17 @@ import {
   sameUnifiedSettings,
   type UnifiedSettings,
 } from './tire-unified-acoustics.js';
+import { resolveRollingSettings, sameRollingSettings, type RollingSettings } from './tire-rolling-acoustics.js';
 import { TIRE_SOUND_INPUT_KEYS, type TireSoundObservation } from './tire-sound-observation.js';
 import { TIRE_CONTROL_RANGES, TIRE_COMPONENTS, TIRE_COMPONENT_RANGE } from './tire-sound-controls.js';
 declare const sampleRate: number;
 declare const AudioWorkletProcessor: { new (): { readonly port: MessagePort } };
 declare function registerProcessor(name: string, processor: typeof AudioWorkletProcessor): void;
 
-function createPair(settings: UnifiedSettings, control: ControlSettings) {
+function createPair(settings: UnifiedSettings, rolling: RollingSettings, control: ControlSettings) {
   return {
-    front: new TireUnifiedSynthesis(sampleRate, UNIFIED_SYNTHESIS.frontSeed, settings, control),
-    rear: new TireUnifiedSynthesis(sampleRate, UNIFIED_SYNTHESIS.rearSeed, settings, control),
+    front: new TireUnifiedSynthesis(sampleRate, UNIFIED_SYNTHESIS.frontSeed, settings, rolling, control),
+    rear: new TireUnifiedSynthesis(sampleRate, UNIFIED_SYNTHESIS.rearSeed, settings, rolling, control),
   };
 }
 
@@ -23,8 +24,9 @@ const componentFollow = (control: ControlSettings) => 1 - Math.exp(-1 / (sampleR
 
 class TireProcessor extends AudioWorkletProcessor {
   private settings = resolveUnifiedSettings();
+  private rolling = resolveRollingSettings();
   private control = resolveControlSettings();
-  private pair: ReturnType<typeof createPair> | null = createPair(this.settings, this.control);
+  private pair: ReturnType<typeof createPair> | null = createPair(this.settings, this.rolling, this.control);
   private readonly frontObservation = Object.fromEntries(TIRE_SOUND_INPUT_KEYS.map((key) => [key, 0])) as {
     -readonly [K in keyof TireSoundObservation]: number;
   };
@@ -54,11 +56,17 @@ class TireProcessor extends AudioWorkletProcessor {
           if (data === null || typeof data !== 'object' || !Object.hasOwn(data, 'settings'))
             throw new TypeError('tire settings message must contain settings');
           const settings = resolveUnifiedSettings(data.settings);
+          const rolling = resolveRollingSettings(data.rolling);
           const control = resolveControlSettings(data.control);
           // Replace after the voice fade; identical settings preserve the running state.
-          if (!sameUnifiedSettings(settings, this.settings) || !sameControlSettings(this.control, control))
-            this.pair = createPair(settings, control);
+          if (
+            !sameUnifiedSettings(settings, this.settings) ||
+            !sameRollingSettings(rolling, this.rolling) ||
+            !sameControlSettings(this.control, control)
+          )
+            this.pair = createPair(settings, rolling, control);
           this.settings = settings;
+          this.rolling = rolling;
           this.control = control;
           this.componentFollow = componentFollow(control);
           this.valid = true;

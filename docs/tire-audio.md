@@ -4,8 +4,10 @@ UNIFIED is an authored sound surrogate with independent front and rear generator
 rotation-driven rolling output R and a shared-friction resonator output Q. Coefficients describe this
 normalized acoustic model rather than measured rubber properties or acoustic power.
 [Audio](audio.md) owns the graph and lifetime, [Calibration](calibration.md#unified-tire-settings) owns
-values, and [Browser](browser.md#sound-controls) owns controls. `UnifiedSettings` holds only listening values
-chosen by ear and changed by DEV controls; every other `UNIFIED_SYNTHESIS` value is a fixed shaping constant.
+values, and [Browser](browser.md#sound-controls) owns controls. Tire sound is a surrogate model, so no value
+derives from physics: every sound value is a listening setting changed by DEV controls, `UnifiedSettings`
+(friction) and `RollingSettings` (rolling). The only constants are structural: random seeds, noise stream
+indices, the internal rolling control rate `controlHz` and the noise band's numerical domain.
 
 ## Observation transport
 
@@ -24,8 +26,9 @@ finite stored tails decay, and subsequent valid input restores excitation.
 
 [Rolling synthesis](../src/audio/tire-rolling-model.ts) uses wheel angular velocity for noise-band
 centres and peripheral velocity for texture rate and level. Normal load scales supported rolling.
-Two finite-width noise bands and smooth random texture feed DC removal and a fixed low-pass output.
-[Rolling acoustics](../src/audio/tire-rolling-acoustics.ts) owns surface coefficients and response rates.
+Two finite-width noise bands and smooth random texture feed DC removal and a low-pass output.
+[Rolling acoustics](../src/audio/tire-rolling-acoustics.ts) owns the surface coefficients and the `RollingSettings`
+(orders, band shape, response rates, texture, gain and output filters).
 Unsupported contact releases forcing with filter history intact; supported rolling remains active
 at zero friction work.
 
@@ -46,7 +49,9 @@ pickup = sum(b_i*x_i/omega_i)
 Both resonances receive the same force, and their shared velocity couples the feedback. Colored noise
 enters that force. Damped forced vibration produces rubbing; increasing feedback counteracts modal
 loss and supports self-excitation bounded by cubic dissipation. Q covers this continuous transition.
-Modal frequencies and damping are fixed for a kernel's lifetime.
+Modal frequencies, damping and participation are fixed for a kernel's lifetime; they are settings
+(`lowFrequencyHz`, `highFrequencyHz`, `resonanceDampingPerSecond` shared by both modes, and `lowParticipation`
+with the high mode's `sqrt(1-low²)` keeping `sum(b_i²)=1`).
 
 The normalized state energy and its continuous derivative are:
 
@@ -89,12 +94,13 @@ Each sample composes passive half-step, scalar-feedback half-step, colored-force
 scalar-feedback half-step and passive half-step. Passive and scalar flows use their analytic
 solutions, including zero feedback. The variance-one first-order colored-noise recurrence uses
 uniform innovations; its force impulse scales by `dt`. This split integration approximates the
-coupled stochastic system at the native rate. The displacement pickup uses fixed gain, DC removal
-and output filtering.
+coupled stochastic system at the native rate. The displacement pickup uses the `outputGainPerSecond`,
+`dcHz` and `outputCutoffHz` settings.
 
 ## Settings replacement
 
-`resolveUnifiedSettings` produces a validated frozen `UnifiedSettings` snapshot using the acoustic ranges. Replacement
+`resolveUnifiedSettings` and `resolveRollingSettings` produce validated frozen snapshots using the acoustic ranges;
+the worklet message carries `{ settings, rolling, control }` and a change to any of them replaces the kernels. Replacement
 uses a tire-only fade and installs fresh kernels at silence. Rapid edits supersede pending settings;
 returning to active values cancels replacement, and equal values preserve synthesis state.
 

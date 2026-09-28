@@ -18,7 +18,7 @@
   derive from the Session seed; loading coverage, recovery policy and reference identities each have one owner.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **11-7m-b — Derived or DEV: tires**.
+Next PR: **11-7n — Collector graph**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -28,8 +28,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Separate the audio scene from the browser and organize sound around replaceable definitions.
 
-- **11-7m-b — Derived or DEV: tires:** every UNIFIED and ROLLING synthesis value that is not a random seed, a stream
-  index or the internal control rate becomes a DEV setting; surfaces stay for 11-10.
 - **11-7n — Collector graph:** exhaust pipes connect junctions (`banks` map cylinders to junctions; `pipes` carry
   length, from-junction and to-junction or open end); equal-admittance scattering at every junction; H/X pipes are
   junctions; per-vehicle topologies (12-2, 6-2-1, 8-2-1-2, 4-1, 4-2-1, 2-1, 2-2, 1-1). Sound changes.

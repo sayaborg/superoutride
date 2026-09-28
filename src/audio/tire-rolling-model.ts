@@ -1,5 +1,10 @@
 import { NoiseBand, SmoothRandom, deriveNoiseSeed, NOISE_BAND_DOMAIN } from './noise.js';
-import { ROLLING_SYNTHESIS as S, ROLLING_SURFACES } from './tire-rolling-acoustics.js';
+import {
+  ROLLING_SYNTHESIS as S,
+  ROLLING_SURFACES,
+  resolveRollingSettings,
+  type RollingSettings,
+} from './tire-rolling-acoustics.js';
 import { validateTireSoundObservation, type TireSoundObservation } from './tire-sound-observation.js';
 import { TIRE_SOUND_SURFACE_IDS } from './tire-surface-acoustics.js';
 
@@ -18,6 +23,8 @@ export class TireRollingSynthesis {
   private readonly tone: number;
   private readonly dcPole: number;
   private readonly outputFollow: number;
+  private readonly settings: RollingSettings;
+  private readonly orders: readonly number[];
   private previous = 0;
   private highpass = 0;
   private filtered = 0;
@@ -34,14 +41,17 @@ export class TireRollingSynthesis {
   constructor(
     private readonly rate: number,
     seed: number,
+    settings: Partial<RollingSettings> = {},
   ) {
+    this.settings = resolveRollingSettings(settings);
+    this.orders = [this.settings.lowOrder, this.settings.highOrder];
     this.bands = S.bandStreams.map((stream) => new NoiseBand(rate, deriveNoiseSeed(seed, stream)));
     this.texture = new SmoothRandom(deriveNoiseSeed(seed, S.textureStream));
-    this.attack = 1 - Math.exp(-1 / (rate * S.attackSeconds));
-    this.release = 1 - Math.exp(-1 / (rate * S.releaseSeconds));
-    this.tone = 1 - Math.exp(-1 / (S.controlHz * S.toneSeconds));
-    this.dcPole = Math.exp((-2 * Math.PI * S.dcHz) / rate);
-    this.outputFollow = 1 - Math.exp((-2 * Math.PI * S.outputHz) / rate);
+    this.attack = 1 - Math.exp(-1 / (rate * this.settings.attackSeconds));
+    this.release = 1 - Math.exp(-1 / (rate * this.settings.releaseSeconds));
+    this.tone = 1 - Math.exp(-1 / (S.controlHz * this.settings.toneSeconds));
+    this.dcPole = Math.exp((-2 * Math.PI * this.settings.dcHz) / rate);
+    this.outputFollow = 1 - Math.exp((-2 * Math.PI * this.settings.outputHz) / rate);
     this.clock = rate;
   }
 
@@ -63,8 +73,8 @@ export class TireRollingSynthesis {
     this.wheelAngularSpeed = value.wheelAngularSpeed;
     this.targetLevel =
       value.wheelAngularSpeed !== 0
-        ? Math.sqrt(saturate(value.load, S.loadHalfNewtons)) *
-          saturate(Math.abs(value.wheelSpeed), S.speedHalfMps) ** S.speedExponent
+        ? Math.sqrt(saturate(value.load, this.settings.loadHalfNewtons)) *
+          saturate(Math.abs(value.wheelSpeed), this.settings.speedHalfMps) ** this.settings.speedExponent
         : 0;
   }
 
@@ -75,18 +85,25 @@ export class TireRollingSynthesis {
 
   private control(): void {
     if (!this.supported) return;
+    const settings = this.settings;
     for (const key of MATERIAL_KEYS) this.material[key] += this.tone * (this.targetMaterial[key] - this.material[key]);
     this.wheelFrequency += this.tone * (Math.abs(this.wheelAngularSpeed) / (2 * Math.PI) - this.wheelFrequency);
     // Speed/length is Hz; the saturation and texture length are authored acoustic choices.
     const textureRate =
-      S.textureMaximumHz * saturate(Math.abs(this.wheelSpeed), S.textureMaximumHz * this.material.textureLengthMeters);
+      settings.textureMaximumHz *
+      saturate(Math.abs(this.wheelSpeed), settings.textureMaximumHz * this.material.textureLengthMeters);
     this.modulation =
       1 +
-      Math.max(this.material.textureDepth, S.textureMinimumDepth) *
+      Math.max(this.material.textureDepth, settings.textureMinimumDepth) *
         this.texture.step(this.wheelAngularSpeed === 0 ? 0 : textureRate / S.controlHz);
     for (let i = 0; i < this.bands.length; i++) {
-      const hz = Math.max(S.minimumHz, S.orders[i]! * this.wheelFrequency);
-      this.bands[i]!.configure(hz, Math.max(NOISE_BAND_DOMAIN.minimumBandwidthHz, hz * S.bandwidthRatio));
+      const hz = Math.max(settings.minimumHz, this.orders[i]! * this.wheelFrequency);
+      // The bandwidth stays inside the noise band's numerical domain for every setting.
+      const bandwidth = Math.min(
+        NOISE_BAND_DOMAIN.maximumBandwidthHz,
+        Math.max(NOISE_BAND_DOMAIN.minimumBandwidthHz, hz * settings.bandwidthRatio),
+      );
+      this.bands[i]!.configure(hz, bandwidth);
     }
   }
 
@@ -101,7 +118,7 @@ export class TireRollingSynthesis {
     let value = 0;
     for (let i = 0; i < this.bands.length; i++)
       value += this.bands[i]!.sample(
-        this.level * S.gain * (i === 0 ? this.material.low : this.material.high) * this.modulation,
+        this.level * this.settings.gain * (i === 0 ? this.material.low : this.material.high) * this.modulation,
       );
     const hp = value - this.previous + this.dcPole * this.highpass;
     this.previous = value;

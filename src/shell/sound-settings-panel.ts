@@ -23,7 +23,13 @@ export function createSoundSettingsPanel<T extends Readonly<Record<keyof T, numb
       ranges[key],
       settings[key]!,
       (value) => {
-        settings = resolve({ ...settings, [key]: value });
+        try {
+          settings = resolve({ ...settings, [key]: value });
+        } catch {
+          // A cross-field domain rejected the value: keep the previous setting.
+          control.setValue(settings[key]!);
+          return;
+        }
         onChange();
       },
       unit,

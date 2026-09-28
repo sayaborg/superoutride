@@ -170,7 +170,7 @@ preserve them:
 - **TIMING** (`timing-sound-settings`): the control time constants.
 - **RIVAL** (`rival-sound-settings`): rival audible distance, reference distance, pan floor and reassignment time.
 - **UNIFIED** (`tire-sound-settings`): the friction-model settings.
-- **ROLLING**: the rolling-model settings (11-7m-b).
+- **ROLLING** (`rolling-sound-settings`): the rolling-model settings.
 
-MIX, TIMING, RIVAL and UNIFIED use sliders with the acoustic ranges. Engine sound rows show cycle, cylinder count, idle/redline, firing phases,
+MIX, TIMING, RIVAL, UNIFIED and ROLLING use sliders with the acoustic ranges. Engine sound rows show cycle, cylinder count, idle/redline, firing phases,
 collector grouping and path lengths. [Calibration](calibration.md) lists the numeric settings.
