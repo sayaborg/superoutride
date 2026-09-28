@@ -100,8 +100,12 @@ yaw frame. A change of rival ID silences the slot and waits the reassignment tim
 outputs. A new sound kind adds one bus and connects its voices to it. Component output switches leave synthesis
 state running.
 
-[`AUDIO_CONTROL_POLICY`](../src/audio/audio-control-policy.ts) sets the shared control-following
-constant to 25 ms and the transition duration to 90 ms. Engine sound and exhaust settings
+[`AUDIO_CONTROL_POLICY`](../src/audio/audio-control-policy.ts) is the only record of control time
+constants, and each control has one smoothing authority. Voices write engine RPM, engine opening and tire
+inputs directly to AudioParams; the kernels follow them per sample with `observationSeconds`. Output
+gains, bus and master gains and the rival pan follow only through AudioParam automation (`gainSeconds`,
+`mixSeconds`, `panSeconds`); silence and pre-replacement fades use `fadeSeconds`, and a discontinuity waits
+`transitionSeconds` after its fade. Engine sound and exhaust settings
 replacement fades to silence before installing a new kernel. New settings supersede pending values;
 returning to active values cancels pending replacement. Tire replacement is specified in
 [Tire audio](tire-audio.md#settings-replacement).

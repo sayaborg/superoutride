@@ -89,7 +89,7 @@ export class ExhaustWaveguide {
     this.wall = new Float64Array(n);
     this.bankNormalization = Math.sqrt(groups);
     for (const bank of this.banks) this.counts[bank]!++;
-    this.smoothing = 1 - Math.exp(-1 / (AUDIO_CONTROL_POLICY.controlSeconds * rate));
+    this.smoothing = 1 - Math.exp(-1 / (AUDIO_CONTROL_POLICY.observationSeconds * rate));
     this.decayRate = 1 / ((pulseDecayMs / 1000) * rate);
     this.decay = Math.exp(-this.decayRate);
     this.decayIntegral = -Math.expm1(-this.decayRate) / this.decayRate;

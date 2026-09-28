@@ -6,7 +6,6 @@
 export const UNIFIED_SYNTHESIS = Object.freeze({
   frontSeed: 0x3547ab91,
   rearSeed: 0x691cf37d,
-  controlSeconds: 0.025,
   powerReferenceWatts: 12000,
   slipHalfMps: 3,
   slipRolloffMps: 45,

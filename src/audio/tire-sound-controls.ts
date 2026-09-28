@@ -8,8 +8,6 @@ export const TIRE_COMPONENTS = Object.freeze([
 ] as const);
 type TireComponent = (typeof TIRE_COMPONENTS)[number]['key'];
 export type TireComponents = Readonly<Record<TireComponent, boolean>>;
-// Authored output-control fade, not a physical contact or vibration time constant.
-export const TIRE_COMPONENT_FADE_SECONDS = 0.005;
 export const TIRE_COMPONENT_RANGE = Object.freeze({ minValue: 0, maxValue: 1, defaultValue: 1 });
 
 const observationRanges = Object.fromEntries(

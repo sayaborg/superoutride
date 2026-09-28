@@ -1,3 +1,4 @@
+import { AUDIO_CONTROL_POLICY } from './audio-control-policy.js';
 import { TireUnifiedSynthesis } from './tire-unified-model.js';
 import {
   UNIFIED_SYNTHESIS,
@@ -6,12 +7,7 @@ import {
   type UnifiedSettings,
 } from './tire-unified-acoustics.js';
 import { TIRE_SOUND_INPUT_KEYS, type TireSoundObservation } from './tire-sound-observation.js';
-import {
-  TIRE_CONTROL_RANGES,
-  TIRE_COMPONENTS,
-  TIRE_COMPONENT_RANGE,
-  TIRE_COMPONENT_FADE_SECONDS,
-} from './tire-sound-controls.js';
+import { TIRE_CONTROL_RANGES, TIRE_COMPONENTS, TIRE_COMPONENT_RANGE } from './tire-sound-controls.js';
 declare const sampleRate: number;
 declare const AudioWorkletProcessor: { new (): { readonly port: MessagePort } };
 declare function registerProcessor(name: string, processor: typeof AudioWorkletProcessor): void;
@@ -30,7 +26,7 @@ class TireProcessor extends AudioWorkletProcessor {
     -readonly [K in keyof TireSoundObservation]: number;
   };
   private readonly rearObservation = { ...this.frontObservation };
-  private readonly componentFollow = 1 - Math.exp(-1 / (sampleRate * TIRE_COMPONENT_FADE_SECONDS));
+  private readonly componentFollow = 1 - Math.exp(-1 / (sampleRate * AUDIO_CONTROL_POLICY.componentSeconds));
   private rollingMix = 1;
   private frictionMix = 1;
   private valid = true;

@@ -1,4 +1,5 @@
 import { clamp } from '../core/math.js';
+import { AUDIO_CONTROL_POLICY } from './audio-control-policy.js';
 import { follow } from './audio-parameter.js';
 
 // A new sound kind adds one bus here and connects its voices to that bus's input.
@@ -39,10 +40,10 @@ export function createSoundGraph(context: BaseAudioContext) {
     },
     setBusGain(bus: SoundBus, value: number): void {
       if (!Number.isFinite(value)) throw new RangeError('invalid audio bus gain');
-      follow(buses[bus].gain, clamp(value, 0, 1), context.currentTime, 0.015);
+      follow(buses[bus].gain, clamp(value, 0, 1), context.currentTime, AUDIO_CONTROL_POLICY.mixSeconds);
     },
     setMasterGain(value: number): void {
-      follow(master.gain, clamp(value, 0, 1), context.currentTime, 0.015);
+      follow(master.gain, clamp(value, 0, 1), context.currentTime, AUDIO_CONTROL_POLICY.mixSeconds);
     },
     dispose(): void {
       for (const bus of SOUND_BUSES) buses[bus].disconnect();

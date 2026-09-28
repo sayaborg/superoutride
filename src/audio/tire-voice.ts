@@ -46,15 +46,15 @@ export function createTireVoice(context: BaseAudioContext, destination: AudioNod
       if (activeSettings !== null && changed) {
         if (pending === null || !sameUnifiedSettings(pending.settings, desiredSettings)) {
           pending = { settings: desiredSettings, at: now + AUDIO_CONTROL_POLICY.transitionSeconds };
-          follow(output.gain, 0, now, 0.01); // Authored settings-change fade, not vibration decay.
+          follow(output.gain, 0, now, AUDIO_CONTROL_POLICY.fadeSeconds); // Authored settings-change fade, not vibration decay.
         }
         if (now < pending.at) return;
       }
       if (changed) {
         node.port.postMessage({ settings: desiredSettings });
         activeSettings = desiredSettings;
-        follow(output.gain, 1, now);
-      } else if (pending) follow(output.gain, 1, now);
+        follow(output.gain, 1, now, AUDIO_CONTROL_POLICY.gainSeconds);
+      } else if (pending) follow(output.gain, 1, now, AUDIO_CONTROL_POLICY.gainSeconds);
       pending = null;
     },
     dispose(): void {

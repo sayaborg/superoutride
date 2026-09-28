@@ -71,7 +71,8 @@ Accepted work includes force and load. Roughness controls forcing and susceptibi
 at the same friction input. `w` is linear near zero and approaches one at high work. Equal slip,
 accepted work, surface and seed produce equal Q, including supported stationary wheelspin.
 
-Positive-contact targets follow continuously. Zero support, slip or work, and invalid input,
+Positive-contact targets follow continuously within the kernel
+([`observationSeconds`](../src/audio/audio-control-policy.ts)). Zero support, slip or work, and invalid input,
 immediately disable new friction forcing and feedback. Stored vibration and output filters decay;
 colored-noise history continues. R follows its separate rotation/support inputs.
 
@@ -97,5 +98,5 @@ uses a tire-only fade and installs fresh kernels at silence. Rapid edits superse
 returning to active values cancels replacement, and equal values preserve synthesis state.
 
 Vehicle changes, mute and sound retry retain settings and mix. Reload restores defaults. Invalid
-replacement settings release forcing without terminating the worklet. R/Q switches (`rolling`/`friction` components) fade only their
+replacement settings release forcing without terminating the worklet. R/Q switches (`rolling`/`friction` components) fade (`componentSeconds`) only their
 output taps for both axles; synthesis and the other component continue at their own levels.

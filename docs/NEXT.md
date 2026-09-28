@@ -18,7 +18,7 @@
   derive from the Session seed; loading coverage, recovery policy and reference identities each have one owner.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **11-6 — Control following**.
+Next PR: **11-7 — Downshift blips**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -28,7 +28,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Separate the audio scene from the browser and organize sound around replaceable definitions.
 
-- **11-6 — Control following:** one smoothing authority per control and one timing record. Sound changes.
 - **11-7 — Downshift blips:** play downshift blips from shift observations. Sound changes. Fuel cut keeps its current
   sound; Audio describes it as it is (engine speed oscillates at the limiter; excitation keeps its closed floor).
 - **11-8 — Tire-sound transport (move only):** separate transport from component controls.

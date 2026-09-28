@@ -161,7 +161,7 @@ Kernel domains equal these UI ranges except `returnCutoffHz` starts at 100 Hz,
 | `outputCutoffHz`           | Friction output-filter cutoff      | 8000 Hz  | 1000–12000 Hz / 100 Hz |
 
 Both modes have damping `2*pi*500 s⁻¹`. Their participation values are `0.45` and
-`sqrt(1-0.45²)`. Control following is 0.025 s and DC removal is 18 Hz.
+`sqrt(1-0.45²)`. Control following uses `AUDIO_CONTROL_POLICY.observationSeconds` and DC removal is 18 Hz.
 Rolling coefficients are supplied by [rolling acoustics](../src/audio/tire-rolling-acoustics.ts).
 
 | Surface  | Friction roughness | Friction susceptibility |

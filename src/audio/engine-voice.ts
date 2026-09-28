@@ -51,7 +51,7 @@ export function createEngineVoice(
       if (active && changed) {
         if (pending?.sound !== sound || !sameExhaustSettings(pending?.settings, settings)) {
           pending = { sound, settings, at: now + AUDIO_CONTROL_POLICY.transitionSeconds };
-          follow(output.gain, 0, now, 0.01);
+          follow(output.gain, 0, now, AUDIO_CONTROL_POLICY.fadeSeconds);
         }
         if (pending && now < pending.at) return;
       }
@@ -60,15 +60,16 @@ export function createEngineVoice(
         exhaust.port.postMessage({ sound, settings });
         active = { sound, settings };
       }
-      follow(exhaust.parameters.get('rpm')!, state.rpm, now);
-      follow(exhaust.parameters.get('load')!, clamp(state.effectiveOpening, 0, 1), now);
-      follow(output.gain, clamp(gain, 0, 1), now);
+      // The kernel is the only smoothing authority for its observations.
+      exhaust.parameters.get('rpm')!.value = state.rpm;
+      exhaust.parameters.get('load')!.value = clamp(state.effectiveOpening, 0, 1);
+      follow(output.gain, clamp(gain, 0, 1), now, AUDIO_CONTROL_POLICY.gainSeconds);
     },
     setSettings(value: ExhaustSettings): void {
       if (!sameExhaustSettings(settings, value)) settings = resolveExhaustSettings(value);
     },
     silence(): void {
-      follow(output.gain, 0, context.currentTime, 0.015);
+      follow(output.gain, 0, context.currentTime, AUDIO_CONTROL_POLICY.fadeSeconds);
     },
     dispose(): void {
       exhaust.port.postMessage('stop');

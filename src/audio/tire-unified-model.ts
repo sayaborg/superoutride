@@ -1,3 +1,4 @@
+import { AUDIO_CONTROL_POLICY } from './audio-control-policy.js';
 import { FrictionResonator } from './friction-resonator.js';
 import { TireRollingSynthesis } from './tire-rolling-model.js';
 import {
@@ -44,7 +45,7 @@ export class TireUnifiedSynthesis {
       seed,
     );
     this.rolling = new TireRollingSynthesis(rate, seed);
-    this.follow = 1 - Math.exp(-1 / (rate * S.controlSeconds));
+    this.follow = 1 - Math.exp(-1 / (rate * AUDIO_CONTROL_POLICY.observationSeconds));
     this.dcPole = Math.exp((-2 * Math.PI * S.dcHz) / rate);
     this.outputFollow = 1 - Math.exp((-2 * Math.PI * this.settings.outputCutoffHz) / rate);
   }

@@ -1,4 +1,5 @@
 import { clamp } from '../core/math.js';
+import { AUDIO_CONTROL_POLICY } from './audio-control-policy.js';
 import { follow } from './audio-parameter.js';
 import { createEngineVoice } from './engine-voice.js';
 import type { ExhaustSettings } from './exhaust-acoustics.js';
@@ -106,7 +107,7 @@ export async function createAudioScene(context: AudioContext) {
       }
       const { gain, pan } = rivalSpatialization(player, nearest);
       rivalEngine.update(nearest, sound, gain);
-      follow(rivalPan.pan, clamp(pan, -1, 1), context.currentTime, 0.06);
+      follow(rivalPan.pan, clamp(pan, -1, 1), context.currentTime, AUDIO_CONTROL_POLICY.panSeconds);
     },
     setExhaustSettings(value: ExhaustSettings): void {
       playerEngine.setSettings(value);
