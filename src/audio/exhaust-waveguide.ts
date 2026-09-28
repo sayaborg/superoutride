@@ -1,6 +1,6 @@
 import type { CompiledEngineSound } from './engine-sound.js';
 
-import { ACOUSTICS, OUTPUT, PIPE_COEFFICIENTS, resolveExhaustSettings } from './exhaust-acoustics.js';
+import { ACOUSTICS, OUTLET_REFLECTION, OUTPUT, pipeCoefficients, resolveExhaustSettings } from './exhaust-acoustics.js';
 import type { ExhaustSettings } from './exhaust-acoustics.js';
 import { AUDIO_CONTROL_POLICY } from './audio-control-policy.js';
 
@@ -53,6 +53,16 @@ class PulseWeights {
   }
 }
 
+/**
+ * Pressure-wave scattering weights of a junction of pipes with the given cross-section areas: the junction
+ * pressure is p = sum(weight_i * incoming_i) with weight_i = 2 * A_i / sum(A), and each pipe's outgoing wave is
+ * p - incoming_i. Equal areas reduce to p = 2 * sum(incoming) / portCount.
+ */
+function scatter(areas: readonly number[]): Float64Array {
+  const total = areas.reduce((sum, area) => sum + area, 0);
+  return Float64Array.from(areas, (area) => (2 * area) / total);
+}
+
 /** Fixed delay with amplitude loss exp(-attenuation * distance) on each traversal. */
 class Delay {
   private readonly data: Float32Array;
@@ -76,10 +86,15 @@ class Delay {
 export class ExhaustWaveguide {
   private readonly forward: Delay[];
   private readonly backward: Delay[];
-  private readonly tails: Delay[];
-  private readonly returns: Delay[];
+  // Outlet segments per collector, in series from the collector to the open end.
+  private readonly downstream: Delay[][];
+  private readonly upstream: Delay[][];
+  // Collector weights per bank: [primary, outlet[0]]; joint weights: [outlet[k], outlet[k + 1]].
+  private readonly collectorWeights: Float64Array[];
+  private readonly jointWeights: Float64Array[];
+  private readonly arriving: Float64Array;
+  private readonly returning: Float64Array;
   private readonly banks: readonly number[];
-  private readonly counts: Float64Array;
   private readonly sums: Float64Array;
   private readonly junctions: Float64Array;
   private readonly pulse: Float64Array;
@@ -102,7 +117,8 @@ export class ExhaustWaveguide {
   private readonly smoothing: number;
   private readonly dcCoefficient: number;
   private readonly toneCoefficient: number;
-  private readonly loss: number;
+  private readonly wallLoss: number;
+  private readonly outletLoss: number;
   private readonly settings: ExhaustSettings;
   private phase = 0;
   private pulseSeed = 123456789;
@@ -124,13 +140,24 @@ export class ExhaustWaveguide {
     const exhaust = sound.exhaust;
     this.banks = exhaust.banks;
     const groups = Math.max(...this.banks) + 1;
-    const pipe = (meters: number) =>
-      new Delay((meters * rate) / ACOUSTICS.waveSpeed, Math.exp(-PIPE_COEFFICIENTS.attenuationPerMeter * meters));
-    this.forward = exhaust.lengths.map(pipe);
-    this.backward = exhaust.lengths.map(pipe);
-    this.tails = Array.from({ length: groups }, () => pipe(exhaust.outlet));
-    this.returns = Array.from({ length: groups }, () => pipe(exhaust.outlet));
-    this.counts = new Float64Array(groups);
+    const pipe = (meters: number, bore: number) =>
+      new Delay((meters * rate) / ACOUSTICS.waveSpeed, Math.exp(-pipeCoefficients(bore).attenuationPerMeter * meters));
+    const { primaries, outlet } = exhaust;
+    this.forward = primaries.lengths.map((length) => pipe(length, primaries.bore));
+    this.backward = primaries.lengths.map((length) => pipe(length, primaries.bore));
+    const segments = () => outlet.map(({ length, bore }) => pipe(length, bore));
+    this.downstream = Array.from({ length: groups }, segments);
+    this.upstream = Array.from({ length: groups }, segments);
+    // Only area ratios matter, so squared bores stand in for areas.
+    const area = (bore: number) => bore * bore;
+    const counts = Array.from({ length: groups }, (_, bank) => this.banks.filter((b) => b === bank).length);
+    this.collectorWeights = counts.map((count) => {
+      const weights = scatter([...Array<number>(count).fill(area(primaries.bore)), area(outlet[0]!.bore)]);
+      return Float64Array.of(weights[0]!, weights[count]!);
+    });
+    this.jointWeights = outlet.slice(1).map((segment, k) => scatter([area(outlet[k]!.bore), area(segment.bore)]));
+    this.arriving = new Float64Array(outlet.length);
+    this.returning = new Float64Array(outlet.length);
     this.sums = new Float64Array(groups);
     this.junctions = new Float64Array(groups);
     this.outlet = new Float64Array(groups);
@@ -148,11 +175,14 @@ export class ExhaustWaveguide {
     this.popRiseSecond = new Float64Array(groups);
     this.popEmission = new Float64Array(groups);
     this.bankNormalization = Math.sqrt(groups);
-    for (const bank of this.banks) this.counts[bank]!++;
     this.smoothing = 1 - Math.exp(-1 / (AUDIO_CONTROL_POLICY.observationSeconds * rate));
     this.dcCoefficient = 1 - Math.exp((-2 * Math.PI * OUTPUT.dcHz) / rate);
     this.toneCoefficient = 1 - Math.exp((-2 * Math.PI * this.settings.outputCutoffHz) / rate);
-    this.loss = 1 - Math.exp((-2 * Math.PI * PIPE_COEFFICIENTS.returnCutoffHz) / rate);
+    // Each boundary return filter uses the cutoff of the pipe it terminates: the primary bore at the cylinder
+    // end (an approximation of the port), the last segment's bore at the open end.
+    const loss = (bore: number) => 1 - Math.exp((-2 * Math.PI * pipeCoefficients(bore).returnCutoffHz) / rate);
+    this.wallLoss = loss(primaries.bore);
+    this.outletLoss = loss(outlet[outlet.length - 1]!.bore);
   }
 
   /** One seeded xorshift32 draw in [-1, 1); called only at firing events. */
@@ -298,18 +328,33 @@ export class ExhaustWaveguide {
       }
       this.sums[this.banks[i]!]! += this.forward[i]!.read();
     }
-    // Pops enter each collector junction as an additional incoming pressure.
+    // Pops enter each collector junction as an additional incoming pressure, weighted like a primary.
     for (let bank = 0; bank < this.popEmission.length; bank++) this.sums[bank]! += this.popEmission[bank]!;
     let exhaust = 0;
-    for (let bank = 0; bank < this.tails.length; bank++) {
-      const returning = this.returns[bank]!.read();
-      const out = this.tails[bank]!.read();
-      this.outlet[bank]! += this.loss * (out - this.outlet[bank]!);
-      this.returns[bank]!.write(PIPE_COEFFICIENTS.outletReflection * this.outlet[bank]!);
-      // Equal-admittance scattering: p = 2 sum(incoming) / number of ports.
-      const pressure = (2 * (this.sums[bank]! + returning)) / (this.counts[bank]! + 1);
+    const arriving = this.arriving;
+    const returning = this.returning;
+    const last = arriving.length - 1;
+    for (let bank = 0; bank < this.downstream.length; bank++) {
+      const downstream = this.downstream[bank]!;
+      const upstream = this.upstream[bank]!;
+      // Read every segment end before any write: a delay's read and write share one position per sample.
+      for (let k = 0; k <= last; k++) {
+        arriving[k] = downstream[k]!.read();
+        returning[k] = upstream[k]!.read();
+      }
+      const out = arriving[last]!;
+      this.outlet[bank]! += this.outletLoss * (out - this.outlet[bank]!);
+      upstream[last]!.write(OUTLET_REFLECTION * this.outlet[bank]!);
+      for (let k = 0; k < last; k++) {
+        const weights = this.jointWeights[k]!;
+        const pressure = weights[0]! * arriving[k]! + weights[1]! * returning[k + 1]!;
+        downstream[k + 1]!.write(pressure - returning[k + 1]!);
+        upstream[k]!.write(pressure - arriving[k]!);
+      }
+      const weights = this.collectorWeights[bank]!;
+      const pressure = weights[0]! * this.sums[bank]! + weights[1]! * returning[0]!;
       this.junctions[bank] = pressure;
-      this.tails[bank]!.write(pressure - returning);
+      downstream[0]!.write(pressure - returning[0]!);
       exhaust += out + this.outlet[bank]!;
     }
     for (let i = 0; i < this.backward.length; i++) {
@@ -319,7 +364,7 @@ export class ExhaustWaveguide {
       const aperture = position < 1 ? position * (1 - position) : 0;
       // Unit-height quartic aperture: zero value and slope at both ends, without a trig call.
       const opening = 16 * aperture * aperture;
-      this.wall[i]! += this.loss * (this.backward[i]!.read() - this.wall[i]!);
+      this.wall[i]! += this.wallLoss * (this.backward[i]!.read() - this.wall[i]!);
       const reflection =
         ACOUSTICS.cylinderClosedReflection +
         (ACOUSTICS.cylinderOpenReflection - ACOUSTICS.cylinderClosedReflection) * opening;

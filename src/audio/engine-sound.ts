@@ -8,12 +8,22 @@ export interface EngineSoundDefinition {
   readonly firingPhases: readonly number[];
   readonly exhaust: {
     readonly banks: readonly number[];
-    readonly lengths: readonly number[];
-    readonly outlet: number;
+    /** One primary per cylinder, sharing one internal diameter. */
+    readonly primaries: { readonly lengths: readonly number[]; readonly bore: number };
+    /** Series segments from each collector to the open end; a wide segment is an expansion chamber. */
+    readonly outlet: readonly ExhaustSegment[];
   };
 }
 
+/** A pipe segment's length and internal diameter, in meters. */
+export interface ExhaustSegment {
+  readonly length: number;
+  readonly bore: number;
+}
+
 export type CompiledEngineSound = Readonly<EngineSoundDefinition>;
+
+const validBore = (bore: number) => Number.isFinite(bore) && bore >= 0.01 && bore <= 0.3;
 
 export function compileEngineSound(definition: EngineSoundDefinition): CompiledEngineSound {
   const { cycleRevolutions, firingPhases, exhaust } = definition;
@@ -28,27 +38,36 @@ export function compileEngineSound(definition: EngineSoundDefinition): CompiledE
   )
     throw new RangeError('invalid engine sound firing phases');
   // Resource limits bound delay storage; these are not claims about real exhaust geometry.
+  const primaries = exhaust?.primaries;
+  const outlet = exhaust?.outlet;
   if (
     !exhaust ||
     !Array.isArray(exhaust.banks) ||
-    !Array.isArray(exhaust.lengths) ||
+    !primaries ||
+    !Array.isArray(primaries.lengths) ||
+    !Array.isArray(outlet) ||
     exhaust.banks.length !== firingPhases.length ||
-    exhaust.lengths.length !== firingPhases.length ||
+    primaries.lengths.length !== firingPhases.length ||
     exhaust.banks.some((bank) => !Number.isInteger(bank) || bank < 0 || bank > 1) ||
     !exhaust.banks.includes(0) ||
-    exhaust.lengths.some((length) => !Number.isFinite(length) || length < 0.1 || length > 3) ||
-    !Number.isFinite(exhaust.outlet) ||
-    exhaust.outlet < 0.1 ||
-    exhaust.outlet > 4
+    primaries.lengths.some((length) => !Number.isFinite(length) || length < 0.1 || length > 3) ||
+    !validBore(primaries.bore) ||
+    outlet.length < 1 ||
+    outlet.length > 4 ||
+    outlet.some(
+      (segment) => !segment || !Number.isFinite(segment.length) || segment.length <= 0 || !validBore(segment.bore),
+    )
   )
     throw new RangeError('invalid exhaust topology');
+  const outletLength = outlet.reduce((total, segment) => total + segment.length, 0);
+  if (outletLength < 0.1 || outletLength > 4) throw new RangeError('invalid exhaust topology');
   return Object.freeze({
     cycleRevolutions,
     firingPhases: Object.freeze([...firingPhases]),
     exhaust: Object.freeze({
-      ...exhaust,
       banks: Object.freeze([...exhaust.banks]),
-      lengths: Object.freeze([...exhaust.lengths]),
+      primaries: Object.freeze({ lengths: Object.freeze([...primaries.lengths]), bore: primaries.bore }),
+      outlet: Object.freeze(outlet.map(({ length, bore }) => Object.freeze({ length, bore }))),
     }),
   });
 }

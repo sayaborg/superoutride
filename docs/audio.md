@@ -25,8 +25,11 @@ filter and envelope state. Player tire sound reads the player's observed tire ob
 rival sound uses the rival's observed powertrain values.
 
 An [engine sound](../src/audio/engine-sound.ts) contains one or two revolutions per
-cycle, ordered firing phases, collector membership, primary lengths and a common outlet length per
-collector. Each firing phase is that cylinder's exhaust-opening instant (start of blowdown); the offset from
+cycle, ordered firing phases, collector membership, primary lengths with one primary bore, and the outlet: one to
+four series segments (length and bore) from each collector to the open end. Bores are 0.01–0.3 m, primaries
+0.1–3 m and the outlet 0.1–4 m in total. Engine sounds are typical sketches, not measured exhausts: a car outlet is
+collector → muffler (a wide segment, an expansion chamber) → tailpipe, and the two-stroke outlet is an expansion
+chamber → narrow tail. Each firing phase is that cylinder's exhaust-opening instant (start of blowdown); the offset from
 combustion top dead centre is common to all cylinders and is not represented. Phase count determines cylinder count. `compileEngineSound` validates an
 `EngineSoundDefinition` into a `CompiledEngineSound`; the vehicle catalog binds the
 [engine sounds](../src/vehicle/engine-sounds.ts) to the
@@ -82,16 +85,28 @@ high RPM. `decayTime` is the duration of the pulse's decay crank angle, `D/(6*rp
 smoothed RPM, recomputed every sample: blowdown lasts a crank angle, so the tail is longer at low RPM. Firing resets `p` and keeps `r1` and `r2` continuous. Exact exponential evolution
 across fractional firing times supplies the sample-average pulse to the pipe.
 
-The [waveguide](../src/audio/exhaust-waveguide.ts) has bidirectional primary and outlet delays rounded
+The [waveguide](../src/audio/exhaust-waveguide.ts) has bidirectional primary and outlet-segment delays rounded
 to the nearest sample at the reference wave speed. Each traversal multiplies amplitude by
-`exp(-attenuationPerMeter*length)`. Equal-admittance collector scattering uses
-`p = 2*sum(incoming)/portCount` and `outgoing = p-incoming`.
+`exp(-attenuationPerMeter*length)`, with the attenuation of that pipe's bore. Every junction scatters pressure
+waves weighted by cross-section area `A`:
+
+```text
+p = 2*sum(A_i*incoming_i)/sum(A_i)
+outgoing_i = p-incoming_i
+```
+
+The collector joins its primaries and the first outlet segment; each joint between consecutive outlet
+segments is a two-port junction. Equal areas reduce to `p = 2*sum(incoming)/portCount`. An area step
+reflects part of each wave, so a wide segment between narrow ones resonates at low frequency and blunts
+wavefronts, as a muffler does. Overrun pops enter the collector as incoming pressure weighted like a primary.
 
 After a cylinder's exhaust opens, its cylinder-end reflection varies from +0.94 to -0.3 through the aperture
 `16*u²*(1-u)²` over 0.23 firing cycles (`ACOUSTICS.cylinderWindowCycles`), then returns to its closed value.
 This window is an empirical acoustic boundary, not the valve's open duration: the cylinder does not act as an
 open end for the whole valve event, and a window spanning it removed the pipe resonance. The aperture has continuous value and slope and a window
-mean of 8/15. Cylinder-end and outlet low-pass filters act inside their return paths. The listening pickup
+mean of 8/15. Cylinder-end and outlet low-pass filters act inside their return paths. The outlet filter uses the return
+cutoff of the last segment's bore. The cylinder-end filter uses the primary bore's cutoff: an approximation,
+since the port is not an open pipe end. The listening pickup
 sums outgoing and low-passed outgoing waves, with collector mixing divided by `sqrt(collectorCount)`.
 
 Each acoustic step runs at the output sample rate. Integer pipe delays, the pulse approximation and
@@ -111,18 +126,17 @@ compression. Output depends on the engine sound, RPM, excitation and fixed mix g
 
 ## Reference coefficients
 
-The pipe coefficients are constants, separate from the listening settings: the fixed 480 m/s wave speed and
-`PIPE_COEFFICIENTS` (outlet reflection, return cutoff and attenuation; values in
-[Calibration](calibration.md#derived-and-fixed-constants)). DEV controls never change them.
-[Exhaust acoustics](../src/audio/exhaust-acoustics.ts) derives them for
-an unflanged 50 mm internal-diameter pipe, 573.15 K air at 101325 Pa, `gamma=1.4`, `R=287 J/(kg K)`,
-`Pr=0.71` and a 500 Hz loss reference.
+The pipe coefficients are separate from the listening settings; DEV controls never change them. The wave
+speed (480 m/s) and the outlet reflection `OUTLET_REFLECTION` are fixed. `pipeCoefficients(bore)` in
+[Exhaust acoustics](../src/audio/exhaust-acoustics.ts) derives each pipe's return cutoff and attenuation from
+its internal diameter, an unflanged opening, 573.15 K air at 101325 Pa, `gamma=1.4`, `R=287 J/(kg K)`,
+`Pr=0.71` and a 500 Hz loss reference, rounded to 100 Hz and 0.01 Np/m.
 
 The derivation uses `c=sqrt(gamma*R*T)`, the open-end negative reflection limit,
 `fc=c/(2*pi*radius)` and
 `alpha=sqrt(pi*f*nu)/(radius*c)*(1+(gamma-1)/sqrt(Pr))`. Sutherland viscosity uses
 `mu0=1.716e-5 Pa s`, `T0=273 K` and `S=111 K`; density is `p/(R*T)` and `nu=mu/density`.
-The resulting loss is about 0.034 Np/m before rounding. These are fixed reference coefficients.
+For a 50 mm bore the loss is about 0.034 Np/m before rounding and the cutoff 3100 Hz.
 
 ## Mix and lifetime
 

@@ -2,7 +2,6 @@
 export const REFLECTION_REFERENCE = Object.freeze({
   temperatureK: 573.15, // assumed 300 C air surrogate, not exhaust composition
   pressurePa: 101325,
-  radiusMeters: 0.025, // assumed 50 mm internal diameter, unflanged opening
   frequencyHz: 500, // reference frequency for the constant-loss approximation
 });
 const AIR = Object.freeze({ gamma: 1.4, gasConstant: 287, prandtl: 0.71 });
@@ -12,19 +11,28 @@ const viscosity =
   (1.716e-5 * (REFLECTION_REFERENCE.temperatureK / 273) ** 1.5 * (273 + 111)) /
   (REFLECTION_REFERENCE.temperatureK + 111);
 const density = REFLECTION_REFERENCE.pressurePa / (AIR.gasConstant * REFLECTION_REFERENCE.temperatureK);
-const attenuation =
-  (Math.sqrt((Math.PI * REFLECTION_REFERENCE.frequencyHz * viscosity) / density) /
-    (REFLECTION_REFERENCE.radiusMeters * waveSpeed)) *
+const lossFactor =
+  (Math.sqrt((Math.PI * REFLECTION_REFERENCE.frequencyHz * viscosity) / density) / waveSpeed) *
   (1 + (AIR.gamma - 1) / Math.sqrt(AIR.prandtl));
 
-/** Pipe coefficients derived from REFLECTION_REFERENCE. Constants: DEV controls never change them. */
-export const PIPE_COEFFICIENTS = Object.freeze({
-  // Rounded to control resolution; Kirchhoff thin-boundary-layer loss at the reference frequency.
-  attenuationPerMeter: Math.round(attenuation * 100) / 100,
-  // One-pole magnitude matches |R| ~ 1 - (ka)^2/2 at low frequency; NOT its end-correction phase.
-  returnCutoffHz: Math.round(waveSpeed / (2 * Math.PI * REFLECTION_REFERENCE.radiusMeters) / 100) * 100,
-  outletReflection: -1, // unflanged open-end low-frequency pressure-reflection limit
-});
+// Unflanged open-end low-frequency pressure-reflection limit.
+export const OUTLET_REFLECTION = -1;
+
+export interface PipeCoefficients {
+  readonly attenuationPerMeter: number;
+  readonly returnCutoffHz: number;
+}
+
+/** Pipe coefficients derived from an internal diameter at the reference conditions. */
+export function pipeCoefficients(boreMeters: number): PipeCoefficients {
+  const radius = boreMeters / 2;
+  return Object.freeze({
+    // Rounded to 0.01 Np/m; Kirchhoff thin-boundary-layer loss at the reference frequency.
+    attenuationPerMeter: Math.round((lossFactor / radius) * 100) / 100,
+    // Rounded to 100 Hz. One-pole magnitude matches |R| ~ 1 - (ka)^2/2 at low frequency; NOT its end-correction phase.
+    returnCutoffHz: Math.round(waveSpeed / (2 * Math.PI * radius) / 100) * 100,
+  });
+}
 
 /** Listening values chosen by ear; DEV controls change them. */
 export interface ExhaustSettings {

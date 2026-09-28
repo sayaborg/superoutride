@@ -174,18 +174,18 @@ Rolling coefficients are supplied by [rolling acoustics](../src/audio/tire-rolli
 
 These values are code constants; DEV controls never change them.
 
-| Constant                                | Meaning                                     | Value     |
-| --------------------------------------- | ------------------------------------------- | --------- |
-| `PIPE_COEFFICIENTS.outletReflection`    | Outlet pressure reflection (open-end limit) | -1        |
-| `PIPE_COEFFICIENTS.returnCutoffHz`      | Boundary return-filter cutoff, derived      | 3100 Hz   |
-| `PIPE_COEFFICIENTS.attenuationPerMeter` | Pipe amplitude loss, derived and rounded    | 0.03 Np/m |
-| `UNIFIED_SYNTHESIS.saturationPerSecond` | Cubic feedback dissipation                  | 6000 s⁻¹  |
-| `UNIFIED_SYNTHESIS.slipHalfMps`         | Feedback slip half-response                 | 3 m/s     |
-| `UNIFIED_SYNTHESIS.slipRolloffMps`      | High-slip feedback rolloff                  | 45 m/s    |
-| `UNIFIED_SYNTHESIS.noiseBandwidthHz`    | Colored-force bandwidth                     | 600 Hz    |
-| `UNIFIED_SYNTHESIS.outputCutoffHz`      | Friction output-filter cutoff               | 8000 Hz   |
+| Constant                                     | Meaning                                      | Value              |
+| -------------------------------------------- | -------------------------------------------- | ------------------ |
+| `OUTLET_REFLECTION`                          | Outlet pressure reflection (open-end limit)  | -1                 |
+| `pipeCoefficients(bore).returnCutoffHz`      | Boundary return-filter cutoff, from the bore | 3100 Hz at 50 mm   |
+| `pipeCoefficients(bore).attenuationPerMeter` | Pipe amplitude loss, from the bore, rounded  | 0.03 Np/m at 50 mm |
+| `UNIFIED_SYNTHESIS.saturationPerSecond`      | Cubic feedback dissipation                   | 6000 s⁻¹           |
+| `UNIFIED_SYNTHESIS.slipHalfMps`              | Feedback slip half-response                  | 3 m/s              |
+| `UNIFIED_SYNTHESIS.slipRolloffMps`           | High-slip feedback rolloff                   | 45 m/s             |
+| `UNIFIED_SYNTHESIS.noiseBandwidthHz`         | Colored-force bandwidth                      | 600 Hz             |
+| `UNIFIED_SYNTHESIS.outputCutoffHz`           | Friction output-filter cutoff                | 8000 Hz            |
 
-The pipe coefficients derive from the [reference conditions](audio.md#reference-coefficients).
+The pipe coefficients derive from each pipe's bore at the [reference conditions](audio.md#reference-coefficients).
 
 ## Mix settings
 

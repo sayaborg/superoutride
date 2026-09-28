@@ -18,7 +18,7 @@
   derive from the Session seed; loading coverage, recovery policy and reference identities each have one owner.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **11-7i — Pipe cross-sections**.
+Next PR: **11-7j — Cycle speed fluctuation**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -28,9 +28,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Separate the audio scene from the browser and organize sound around replaceable definitions.
 
-- **11-7i — Pipe cross-sections:** exhaust segments carry a bore; junction scattering weights ports by admittance; each
-  engine sound's outlet becomes collector → muffler (wide segment) → tailpipe; return cutoff and attenuation derive
-  from the bore. Sound changes.
 - **11-7j — Cycle speed fluctuation:** the kernel modulates RPM within the cycle by one listening constant scaled by
   1 / (cylinders × (rpm/1000)²). Sound changes.
 - **11-8 — Tire-sound transport (move only):** separate transport from component controls.
