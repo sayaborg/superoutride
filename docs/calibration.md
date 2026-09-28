@@ -125,20 +125,20 @@ Displacement is in cc and cycle is 2 or 4 strokes. Gear ratios and final drive a
 
 [Exhaust acoustics](../src/audio/exhaust-acoustics.ts) supplies the `ExhaustSettings` defaults and domains.
 Values are authored listening settings; the reference-derived pipe coefficients are
-[constants](#derived-and-fixed-constants). Pulse rise and decay are crank angles; at 3000 RPM, 18° lasts 1 ms.
+[constants](#derived-and-fixed-constants). Pulse rise is absolute time; pulse decay is a crank angle (at 3000 RPM, 18° lasts 1 ms).
 
-| Key                 | Meaning                                 | Default | UI range / step    |
-| ------------------- | --------------------------------------- | ------- | ------------------ |
-| `closedExcitation`  | Closed-throttle excitation              | 0.22    | 0.01–1 / 0.01      |
-| `pulseVariation`    | Absolute event-strength variation       | 0.20    | 0–0.40 / 0.01      |
-| `pumpingExcitation` | Firing strength during fuel cut         | 0.06    | 0.01–0.50 / 0.01   |
-| `pulseRiseDegrees`  | Full-excitation pulse rise, crank angle | 3.6°    | 0.2–36° / 0.1°     |
-| `pulseDecayDegrees` | Pulse decay, crank angle                | 90°     | 2–360° / 1°        |
-| `outputCutoffHz`    | Final listening-filter cutoff           | 7300 Hz | 100–12000 Hz / 100 |
-| `blipOpening`       | Downshift blip opening peak             | 0.70    | 0–1 / 0.01         |
-| `blipDecaySeconds`  | Downshift blip decay time               | 0.08 s  | 0.02–0.30 s / 0.01 |
-| `popProbability`    | Overrun pop probability per firing      | 0.12    | 0–1 / 0.01         |
-| `popStrength`       | Overrun pop pulse strength              | 0.50    | 0–1 / 0.05         |
+| Key                 | Meaning                            | Default | UI range / step    |
+| ------------------- | ---------------------------------- | ------- | ------------------ |
+| `closedExcitation`  | Closed-throttle excitation         | 0.22    | 0.01–1 / 0.01      |
+| `pulseVariation`    | Absolute event-strength variation  | 0.20    | 0–0.40 / 0.01      |
+| `pumpingExcitation` | Firing strength during fuel cut    | 0.06    | 0.01–0.50 / 0.01   |
+| `pulseRiseMs`       | Full-excitation pulse rise time    | 0.2 ms  | 0.05–2 ms / 0.01   |
+| `pulseDecayDegrees` | Pulse decay, crank angle           | 90°     | 2–360° / 1°        |
+| `outputCutoffHz`    | Final listening-filter cutoff      | 7300 Hz | 100–12000 Hz / 100 |
+| `blipOpening`       | Downshift blip opening peak        | 0.70    | 0–1 / 0.01         |
+| `blipDecaySeconds`  | Downshift blip decay time          | 0.08 s  | 0.02–0.30 s / 0.01 |
+| `popProbability`    | Overrun pop probability per firing | 0.12    | 0–1 / 0.01         |
+| `popStrength`       | Overrun pop pulse strength         | 0.50    | 0–1 / 0.05         |
 
 Kernel domains equal these UI ranges except `closedExcitation` accepts `(0,1]` and `pumpingExcitation`
 accepts `(0,0.5]`.

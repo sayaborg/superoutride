@@ -18,7 +18,7 @@
   derive from the Session seed; loading coverage, recovery policy and reference identities each have one owner.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **11-8 — Tire-sound transport (move only)**.
+Next PR: **11-7g — Displacement pulse**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -28,6 +28,13 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Separate the audio scene from the browser and organize sound around replaceable definitions.
 
+- **11-7g — Displacement pulse:** every firing adds a weak, long displacement pulse (`pumpingExcitation`,
+  exhaust-stroke crank angle) to its combustion pulse; fuel cut skips only the combustion pulse. Sound changes.
+- **11-7h — Pipe cross-sections:** exhaust segments carry a bore; junction scattering weights ports by admittance; each
+  engine sound's outlet becomes collector → muffler (wide segment) → tailpipe; return cutoff and attenuation derive
+  from the bore. Sound changes.
+- **11-7i — Cycle speed fluctuation:** the kernel modulates RPM within the cycle by one listening constant scaled by
+  1 / (cylinders × (rpm/1000)²). Sound changes.
 - **11-8 — Tire-sound transport (move only):** separate transport from component controls.
 - **11-9 — Tire-sound values:** validate and resolve once; one surface-sound record per material ID, sent by catalog
   index.

@@ -160,7 +160,7 @@ export class ExhaustWaveguide {
     const excitation = fuelCut
       ? this.settings.pumpingExcitation
       : this.settings.closedExcitation + (1 - this.settings.closedExcitation) * this.load;
-    const riseTime = (this.settings.pulseRiseDegrees * samplesPerDegree) / excitation;
+    const riseTime = ((this.settings.pulseRiseMs / 1000) * this.rate) / excitation;
     const riseRate = 1 / riseTime;
     const retain = Math.exp(-riseRate);
     const coupling = pulseCoupling(riseRate, decayRate, decayStep, retain);
@@ -218,7 +218,7 @@ export class ExhaustWaveguide {
     for (let i = 0; i < this.backward.length; i++) {
       // Cycle fraction since this cylinder's exhaust opened, as crank degrees across the open duration.
       const age = (this.phase - this.sound.firingPhases[i]! + 1) % 1;
-      const position = (age * 360 * this.sound.cycleRevolutions) / this.sound.exhaustDurationDegrees;
+      const position = age / ACOUSTICS.cylinderWindowCycles;
       const aperture = position < 1 ? position * (1 - position) : 0;
       // Unit-height quartic aperture: zero value and slope at both ends, without a trig call.
       const opening = 16 * aperture * aperture;

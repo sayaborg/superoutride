@@ -32,7 +32,7 @@ export interface ExhaustSettings {
   readonly outputCutoffHz: number;
   readonly pulseVariation: number;
   readonly pumpingExcitation: number;
-  readonly pulseRiseDegrees: number;
+  readonly pulseRiseMs: number;
   readonly pulseDecayDegrees: number;
   readonly blipOpening: number;
   readonly blipDecaySeconds: number;
@@ -41,9 +41,10 @@ export interface ExhaustSettings {
 }
 export const DEFAULT_EXHAUST_SETTINGS: ExhaustSettings = Object.freeze({
   closedExcitation: 0.22, // retained authored control; cannot be inferred from pipe acoustics
-  // Crank-angle constants: blowdown is a crank-angle phenomenon, so pulses last longer at low RPM.
-  // Defaults equal the former 0.2 ms rise and 5 ms decay at 3000 RPM, where 1 ms = 18 degrees.
-  pulseRiseDegrees: 3.6, // common provisional full-excitation rise
+  // The wavefront rise is absolute time: in crank angle it became a one-sample impulse at high RPM (11-7b -> 11-7f).
+  pulseRiseMs: 0.2, // common provisional full-excitation rise
+  // Blowdown duration is a crank-angle phenomenon, so the decay lasts longer at low RPM.
+  // 90 degrees equals 5 ms at 3000 RPM, where 1 ms = 18 degrees.
   pulseDecayDegrees: 90, // common provisional decay; base strength is fixed at 1
   pulseVariation: 0.2, // absolute full-excitation fraction; acoustic sketch, not measured combustion variance
   // Firing strength during fuel cut: exhaust-valve blowdown without combustion. Provisional listening value,
@@ -76,7 +77,7 @@ export const EXHAUST_SETTING_RANGES: Readonly<Record<keyof ExhaustSettings, Sett
   pulseVariation: Object.freeze({ min: 0, max: 0.4, step: 0.01 }),
   // Excitation divides the rise time, so zero is excluded like closedExcitation.
   pumpingExcitation: Object.freeze({ min: 0, max: 0.5, step: 0.01, exclusiveMin: true, uiMin: 0.01 }),
-  pulseRiseDegrees: Object.freeze({ min: 0.2, max: 36, step: 0.1 }),
+  pulseRiseMs: Object.freeze({ min: 0.05, max: 2, step: 0.01 }),
   pulseDecayDegrees: Object.freeze({ min: 2, max: 360, step: 1 }),
   blipOpening: Object.freeze({ min: 0, max: 1, step: 0.01 }),
   blipDecaySeconds: Object.freeze({ min: 0.02, max: 0.3, step: 0.01 }),
@@ -105,6 +106,9 @@ export const ACOUSTICS = Object.freeze({
   waveSpeed, // fixed air-surrogate reference; not measured temperature
   cylinderClosedReflection: 0.94, // nearly rigid effective termination; magnitude < 1 absorbs energy
   cylinderOpenReflection: -0.3, // pressure-release-like endpoint; positive impedance, not valve-flow physics
+  // Acoustic boundary window as a cycle fraction, NOT the valve's open duration (a 240-degree window
+  // removed the pipe resonance, so 11-7f restored this value).
+  cylinderWindowCycles: 0.23,
 });
 // Listening-output conditioning: DC removal and bounded amplitude; not exhaust properties.
 export const OUTPUT = Object.freeze({ dcHz: 18, ceiling: 0.65 });

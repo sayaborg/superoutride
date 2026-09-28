@@ -25,8 +25,7 @@ filter and envelope state. Player tire sound reads the player's observed tire ob
 rival sound uses the rival's observed powertrain values.
 
 An [engine sound](../src/audio/engine-sound.ts) contains one or two revolutions per
-cycle, ordered firing phases, the exhaust duration (`exhaustDurationDegrees`, crank degrees the exhaust
-valve or port is open), collector membership, primary lengths and a common outlet length per
+cycle, ordered firing phases, collector membership, primary lengths and a common outlet length per
 collector. Each firing phase is that cylinder's exhaust-opening instant (start of blowdown); the offset from
 combustion top dead centre is common to all cylinders and is not represented. Phase count determines cylinder count. `compileEngineSound` validates an
 `EngineSoundDefinition` into a `CompiledEngineSound`; the vehicle catalog binds the
@@ -63,10 +62,10 @@ p' = -p/decayTime
 r' = (p-r)/riseTime
 ```
 
-Rise and decay are crank angles (`pulseRiseDegrees`, `pulseDecayDegrees`); an angle `D` lasts
-`D/(6*rpm)` seconds at the smoothed RPM, so pulses are longer at low RPM and shorter at high RPM.
-`riseTime` is the rise angle's duration divided by excitation; `decayTime` is the decay angle's duration.
-Both are recomputed every sample. Firing resets `p` and keeps `r` continuous. Exact exponential evolution
+`riseTime` is `pulseRiseMs` divided by excitation, in absolute time: the wavefront is set by the pressure
+ratio when the valve opens and does not depend on RPM, while a crank-angle rise became a near-impulse at
+high RPM. `decayTime` is the duration of the `pulseDecayDegrees` crank angle, `D/(6*rpm)` seconds at the
+smoothed RPM, recomputed every sample: blowdown lasts a crank angle, so the tail is longer at low RPM. Firing resets `p` and keeps `r` continuous. Exact exponential evolution
 across fractional firing times supplies the sample-average pulse to the pipe.
 
 The [waveguide](../src/audio/exhaust-waveguide.ts) has bidirectional primary and outlet delays rounded
@@ -75,7 +74,9 @@ to the nearest sample at the reference wave speed. Each traversal multiplies amp
 `p = 2*sum(incoming)/portCount` and `outgoing = p-incoming`.
 
 After a cylinder's exhaust opens, its cylinder-end reflection varies from +0.94 to -0.3 through the aperture
-`16*u²*(1-u)²` over `exhaustDurationDegrees` of crank angle, then returns to its closed value. The aperture has continuous value and slope and a window
+`16*u²*(1-u)²` over 0.23 firing cycles (`ACOUSTICS.cylinderWindowCycles`), then returns to its closed value.
+This window is an empirical acoustic boundary, not the valve's open duration: the cylinder does not act as an
+open end for the whole valve event, and a window spanning it removed the pipe resonance. The aperture has continuous value and slope and a window
 mean of 8/15. Cylinder-end and outlet low-pass filters act inside their return paths. The listening pickup
 sums outgoing and low-passed outgoing waves, with collector mixing divided by `sqrt(collectorCount)`.
 
