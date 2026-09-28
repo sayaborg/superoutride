@@ -15,9 +15,9 @@ its physical world pose; player and rivals are supplied in the same emitter form
 last shift
 (sequence, direction and engine RPM before and after, as
 [vehicle physics](vehicle-physics.md#wheel-and-powertrain) publishes it). A sequence the voice has not yet heard
-marks a new shift. A new `DOWN` shift with `toRpm > fromRpm` (a locked downshift) plays a blip: the
-[`DOWNSHIFT_BLIP`](../src/audio/exhaust-acoustics.ts) opening peak, decaying exponentially, combined with the
-effective opening by `max`. The first sequence a voice reads, and the first after `silence()` (a rival
+marks a new shift. A new `DOWN` shift with `toRpm > fromRpm` (a locked downshift) plays a blip: an opening peak of the
+`blipOpening` setting, decaying exponentially with `blipDecaySeconds`, combined with the effective opening by
+`max`. The first sequence a voice reads, and the first after `silence()` (a rival
 reassignment), is only recorded. The browser supplies them once per presented frame from the race's borrowed competitor observations,
 which are copied at the end of each fixed step; audio reads nothing else.
 Physics owns RPM, actuators, contact loads, wheel motion and dissipated work; audio owns oscillator,
@@ -49,10 +49,9 @@ At each firing, `strength = max(0, excitation + pulseVariation*r)` for seeded xo
 Variation is an absolute fraction of full excitation. The same seed and input history reproduce the
 same event sequence; random draws occur at firing events.
 
-During overrun (effective opening 0 without fuel cut; a downshift blip suppresses it), each firing draws a
-separate seeded number and becomes a pop with [`OVERRUN_POPS`](../src/audio/exhaust-acoustics.ts)
-`probability`. The cylinder's combustion pulse still sounds at the closed-throttle floor, and a pulse of
-`OVERRUN_POPS.strength` fires in that collector's pop state, which follows the same rise and decay as the
+During overrun (observed effective opening 0 without fuel cut, judged before the blip is combined), each
+firing draws a separate seeded number and becomes a pop with the `popProbability` setting. The cylinder's
+combustion pulse still sounds at the closed-throttle floor, and a pulse of the `popStrength` setting fires in that collector's pop state, which follows the same rise and decay as the
 cylinder pulses and enters the collector junction as incoming pressure. Because the draw is per firing, the
 pop rate is proportional to RPM. No unburnt-fuel or temperature state is kept; draw counts depend on the
 state, but the same seed and input history reproduce the same sound.
@@ -97,8 +96,10 @@ compression. Output depends on the engine sound, RPM, excitation and fixed mix g
 
 ## Reference coefficients
 
-The default pipe coefficients are **480 m/s wave speed, -1 outlet reflection, 3100 Hz return cutoff
-and 0.03 Np/m attenuation**. [Exhaust acoustics](../src/audio/exhaust-acoustics.ts) derives them for
+The pipe coefficients are constants, separate from the listening settings: the fixed 480 m/s wave speed and
+`PIPE_COEFFICIENTS` (outlet reflection, return cutoff and attenuation; values in
+[Calibration](calibration.md#derived-and-fixed-constants)). DEV controls never change them.
+[Exhaust acoustics](../src/audio/exhaust-acoustics.ts) derives them for
 an unflanged 50 mm internal-diameter pipe, 573.15 K air at 101325 Pa, `gamma=1.4`, `R=287 J/(kg K)`,
 `Pr=0.71` and a 500 Hz loss reference.
 

@@ -124,42 +124,38 @@ Displacement is in cc and cycle is 2 or 4 strokes. Gear ratios and final drive a
 ## Engine sound settings
 
 [Exhaust acoustics](../src/audio/exhaust-acoustics.ts) supplies the `ExhaustSettings` defaults and domains.
-Values are authored sound-model coefficients; the reference-derived pipe coefficients use the
-[reference conditions](audio.md#reference-coefficients). Pulse rise and decay are crank angles; at 3000 RPM, 18° lasts 1 ms.
+Values are authored listening settings; the reference-derived pipe coefficients are
+[constants](#derived-and-fixed-constants). Pulse rise and decay are crank angles; at 3000 RPM, 18° lasts 1 ms.
 
-| Key                   | Meaning                                 | Default   | UI range / step         |
-| --------------------- | --------------------------------------- | --------- | ----------------------- |
-| `outletReflection`    | Outlet pressure-reflection coefficient  | -1        | -1–0 / 0.01             |
-| `returnCutoffHz`      | Boundary return-filter cutoff           | 3100 Hz   | 500–10000 Hz / 100 Hz   |
-| `attenuationPerMeter` | Pipe amplitude loss per metre           | 0.03 Np/m | 0–0.30 Np/m / 0.01 Np/m |
-| `closedExcitation`    | Closed-throttle excitation              | 0.22      | 0.01–1 / 0.01           |
-| `outputCutoffHz`      | Final listening-filter cutoff           | 7300 Hz   | 100–12000 Hz / 100 Hz   |
-| `pulseVariation`      | Absolute event-strength variation       | 0.20      | 0–0.40 / 0.01           |
-| `pumpingExcitation`   | Firing strength during fuel cut         | 0.06      | 0.01–0.50 / 0.01        |
-| `pulseRiseDegrees`    | Full-excitation pulse rise, crank angle | 3.6°      | 0.2–36° / 0.1°          |
-| `pulseDecayDegrees`   | Pulse decay, crank angle                | 90°       | 2–360° / 1°             |
+| Key                 | Meaning                                 | Default | UI range / step    |
+| ------------------- | --------------------------------------- | ------- | ------------------ |
+| `closedExcitation`  | Closed-throttle excitation              | 0.22    | 0.01–1 / 0.01      |
+| `pulseVariation`    | Absolute event-strength variation       | 0.20    | 0–0.40 / 0.01      |
+| `pumpingExcitation` | Firing strength during fuel cut         | 0.06    | 0.01–0.50 / 0.01   |
+| `pulseRiseDegrees`  | Full-excitation pulse rise, crank angle | 3.6°    | 0.2–36° / 0.1°     |
+| `pulseDecayDegrees` | Pulse decay, crank angle                | 90°     | 2–360° / 1°        |
+| `outputCutoffHz`    | Final listening-filter cutoff           | 7300 Hz | 100–12000 Hz / 100 |
+| `blipOpening`       | Downshift blip opening peak             | 0.70    | 0–1 / 0.01         |
+| `blipDecaySeconds`  | Downshift blip decay time               | 0.08 s  | 0.02–0.30 s / 0.01 |
+| `popProbability`    | Overrun pop probability per firing      | 0.12    | 0–1 / 0.01         |
+| `popStrength`       | Overrun pop pulse strength              | 0.50    | 0–1 / 0.05         |
 
-Kernel domains equal these UI ranges except `returnCutoffHz` starts at 100 Hz,
-`attenuationPerMeter` extends to 1 Np/m, `closedExcitation` accepts `(0,1]` and `pumpingExcitation` accepts `(0,0.5]`.
+Kernel domains equal these UI ranges except `closedExcitation` accepts `(0,1]` and `pumpingExcitation`
+accepts `(0,0.5]`.
 
 ## UNIFIED tire settings
 
-[UNIFIED acoustics](../src/audio/tire-unified-acoustics.ts) supplies these friction-model values.
+[UNIFIED acoustics](../src/audio/tire-unified-acoustics.ts) supplies these friction-model listening settings.
 `powerReferenceWatts` is the accepted-work half-response point; output gain independently sets level.
 
-| Key                        | Meaning                            | Default  | Range / step           |
-| -------------------------- | ---------------------------------- | -------- | ---------------------- |
-| `feedbackMaximumPerSecond` | Maximum positive friction feedback | 8500 s⁻¹ | 2000–12000 / 100       |
-| `saturationPerSecond`      | Cubic feedback dissipation         | 6000 s⁻¹ | 3000–12000 / 100       |
-| `powerReferenceWatts`      | Work half-response                 | 12000 W  | 3000–30000 W / 500 W   |
-| `slipHalfMps`              | Feedback slip half-response        | 3 m/s    | 1–12 m/s / 0.25 m/s    |
-| `slipRolloffMps`           | High-slip feedback rolloff         | 45 m/s   | 20–80 m/s / 1 m/s      |
-| `noiseBandwidthHz`         | Colored-force bandwidth            | 600 Hz   | 100–2000 Hz / 25 Hz    |
-| `noiseForcePerSecond`      | Colored-force scale                | 1200 s⁻¹ | 0–2400 / 25            |
-| `lowFrequencyHz`           | Low passive-mode frequency         | 300 Hz   | 275–600 Hz / 5 Hz      |
-| `highFrequencyHz`          | High passive-mode frequency        | 1000 Hz  | 800–2400 Hz / 25 Hz    |
-| `outputGainPerSecond`      | Displacement-pickup gain           | 900 s⁻¹  | 0–1800 / 25            |
-| `outputCutoffHz`           | Friction output-filter cutoff      | 8000 Hz  | 1000–12000 Hz / 100 Hz |
+| Key                        | Meaning                            | Default  | Range / step         |
+| -------------------------- | ---------------------------------- | -------- | -------------------- |
+| `feedbackMaximumPerSecond` | Maximum positive friction feedback | 8500 s⁻¹ | 2000–12000 / 100     |
+| `powerReferenceWatts`      | Work half-response                 | 12000 W  | 3000–30000 W / 500 W |
+| `noiseForcePerSecond`      | Colored-force scale                | 1200 s⁻¹ | 0–2400 / 25          |
+| `lowFrequencyHz`           | Low passive-mode frequency         | 300 Hz   | 275–600 Hz / 5 Hz    |
+| `highFrequencyHz`          | High passive-mode frequency        | 1000 Hz  | 800–2400 Hz / 25 Hz  |
+| `outputGainPerSecond`      | Displacement-pickup gain           | 900 s⁻¹  | 0–1800 / 25          |
 
 Both modes have damping `2*pi*500 s⁻¹`. Their participation values are `0.45` and
 `sqrt(1-0.45²)`. Control following uses `AUDIO_CONTROL_POLICY.observationSeconds` and DC removal is 18 Hz.
@@ -172,6 +168,23 @@ Rolling coefficients are supplied by [rolling acoustics](../src/audio/tire-rolli
 | GRASS    | 0.75               | 0.04                    |
 | DIRT     | 1.5                | 0.12                    |
 | SAND     | 1.1                | 0.02                    |
+
+## Derived and fixed constants
+
+These values are code constants; DEV controls never change them.
+
+| Constant                                | Meaning                                     | Value     |
+| --------------------------------------- | ------------------------------------------- | --------- |
+| `PIPE_COEFFICIENTS.outletReflection`    | Outlet pressure reflection (open-end limit) | -1        |
+| `PIPE_COEFFICIENTS.returnCutoffHz`      | Boundary return-filter cutoff, derived      | 3100 Hz   |
+| `PIPE_COEFFICIENTS.attenuationPerMeter` | Pipe amplitude loss, derived and rounded    | 0.03 Np/m |
+| `UNIFIED_SYNTHESIS.saturationPerSecond` | Cubic feedback dissipation                  | 6000 s⁻¹  |
+| `UNIFIED_SYNTHESIS.slipHalfMps`         | Feedback slip half-response                 | 3 m/s     |
+| `UNIFIED_SYNTHESIS.slipRolloffMps`      | High-slip feedback rolloff                  | 45 m/s    |
+| `UNIFIED_SYNTHESIS.noiseBandwidthHz`    | Colored-force bandwidth                     | 600 Hz    |
+| `UNIFIED_SYNTHESIS.outputCutoffHz`      | Friction output-filter cutoff               | 8000 Hz   |
+
+The pipe coefficients derive from the [reference conditions](audio.md#reference-coefficients).
 
 ## Mix settings
 

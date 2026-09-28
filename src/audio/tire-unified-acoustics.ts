@@ -33,7 +33,10 @@ export const UNIFIED_SURFACES = Object.freeze({
   SAND: Object.freeze({ roughness: 1.1, susceptibility: 0.02 }),
 });
 
-/** Authored audition bounds, NOT measured tire ranges. All combinations retain passive resonances. */
+/**
+ * Listening settings: authored audition bounds, NOT measured tire ranges. All combinations retain passive
+ * resonances. Every other UNIFIED_SYNTHESIS value is a fixed shaping constant.
+ */
 export const UNIFIED_SETTING_RANGES = Object.freeze({
   feedbackMaximumPerSecond: {
     min: 2000,
@@ -41,16 +44,11 @@ export const UNIFIED_SETTING_RANGES = Object.freeze({
     step: 100,
     defaultValue: UNIFIED_SYNTHESIS.feedbackMaximumPerSecond,
   },
-  saturationPerSecond: { min: 3000, max: 12000, step: 100, defaultValue: UNIFIED_SYNTHESIS.saturationPerSecond },
   powerReferenceWatts: { min: 3000, max: 30000, step: 500, defaultValue: UNIFIED_SYNTHESIS.powerReferenceWatts },
-  slipHalfMps: { min: 1, max: 12, step: 0.25, defaultValue: UNIFIED_SYNTHESIS.slipHalfMps },
-  slipRolloffMps: { min: 20, max: 80, step: 1, defaultValue: UNIFIED_SYNTHESIS.slipRolloffMps },
-  noiseBandwidthHz: { min: 100, max: 2000, step: 25, defaultValue: UNIFIED_SYNTHESIS.noiseBandwidthHz },
   noiseForcePerSecond: { min: 0, max: 2400, step: 25, defaultValue: UNIFIED_SYNTHESIS.noiseForcePerSecond },
   lowFrequencyHz: { min: 275, max: 600, step: 5, defaultValue: UNIFIED_SYNTHESIS.resonances[0].frequencyHz },
   highFrequencyHz: { min: 800, max: 2400, step: 25, defaultValue: UNIFIED_SYNTHESIS.resonances[1].frequencyHz },
   outputGainPerSecond: { min: 0, max: 1800, step: 25, defaultValue: UNIFIED_SYNTHESIS.outputGainPerSecond },
-  outputCutoffHz: { min: 1000, max: 12000, step: 100, defaultValue: UNIFIED_SYNTHESIS.outputCutoffHz },
 });
 
 export type UnifiedSettings = Readonly<Record<keyof typeof UNIFIED_SETTING_RANGES, number>>;

@@ -3,6 +3,7 @@ import {
   REFLECTION_REFERENCE,
   ACOUSTICS,
   DEFAULT_EXHAUST_SETTINGS,
+  PIPE_COEFFICIENTS,
   OUTPUT,
 } from '../../src/audio/exhaust-acoustics.js';
 import { AUDIO_CONTROL_POLICY } from '../../src/audio/audio-control-policy.js';
@@ -22,7 +23,7 @@ for (const entry of vehicles) {
   vehicle.append(option);
 }
 mustGet<HTMLElement>('reference-conditions').textContent =
-  `基準条件（仮定）：内径 ${REFLECTION_REFERENCE.radiusMeters * 2000} mm、温度 ${(REFLECTION_REFERENCE.temperatureK - 273.15).toFixed(0)} ℃の空気、開放管端。管内損失は ${REFLECTION_REFERENCE.frequencyHz} Hzで近似。実車の測定値ではありません。全閉時の励振は音作りの設定です。`;
+  `基準条件（仮定）：内径 ${REFLECTION_REFERENCE.radiusMeters * 2000} mm、温度 ${(REFLECTION_REFERENCE.temperatureK - 273.15).toFixed(0)} ℃の空気、開放管端。管内損失は ${REFLECTION_REFERENCE.frequencyHz} Hzで近似。実車の測定値ではありません。導出した管の係数（定数）：出口の反射 ${PIPE_COEFFICIENTS.outletReflection}、戻りの高域上限 ${PIPE_COEFFICIENTS.returnCutoffHz} Hz、減衰 ${PIPE_COEFFICIENTS.attenuationPerMeter} Np/m。全閉時の励振は音作りの設定です。`;
 mustGet<HTMLElement>('output-conditions').textContent =
   `音作り・出力の設定：追従 ${(AUDIO_CONTROL_POLICY.observationSeconds * 1000).toFixed(0)} ms。出力順：DC除去 ${OUTPUT.dcHz} Hz → ソフトクリップ（上限 ${OUTPUT.ceiling}）→ 最終LPF（一次、− / +で調整・初期値 ${DEFAULT_EXHAUST_SETTINGS.outputCutoffHz} Hz）。排気の物理量とは区別します。`;
 const engineSoundSettings = mountEngineSoundSettings(mustGet<HTMLElement>('engine-sound-settings'), () => {});

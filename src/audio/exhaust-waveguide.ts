@@ -1,6 +1,6 @@
 import type { CompiledEngineSound } from './engine-sound.js';
 
-import { ACOUSTICS, OUTPUT, OVERRUN_POPS, resolveExhaustSettings } from './exhaust-acoustics.js';
+import { ACOUSTICS, OUTPUT, PIPE_COEFFICIENTS, resolveExhaustSettings } from './exhaust-acoustics.js';
 import type { ExhaustSettings } from './exhaust-acoustics.js';
 import { AUDIO_CONTROL_POLICY } from './audio-control-policy.js';
 
@@ -83,7 +83,7 @@ export class ExhaustWaveguide {
     this.banks = exhaust.banks;
     const groups = Math.max(...this.banks) + 1;
     const pipe = (meters: number) =>
-      new Delay((meters * rate) / ACOUSTICS.waveSpeed, Math.exp(-this.settings.attenuationPerMeter * meters));
+      new Delay((meters * rate) / ACOUSTICS.waveSpeed, Math.exp(-PIPE_COEFFICIENTS.attenuationPerMeter * meters));
     this.forward = exhaust.lengths.map(pipe);
     this.backward = exhaust.lengths.map(pipe);
     this.tails = Array.from({ length: groups }, () => pipe(exhaust.outlet));
@@ -104,7 +104,7 @@ export class ExhaustWaveguide {
     this.smoothing = 1 - Math.exp(-1 / (AUDIO_CONTROL_POLICY.observationSeconds * rate));
     this.dcCoefficient = 1 - Math.exp((-2 * Math.PI * OUTPUT.dcHz) / rate);
     this.toneCoefficient = 1 - Math.exp((-2 * Math.PI * this.settings.outputCutoffHz) / rate);
-    this.loss = 1 - Math.exp((-2 * Math.PI * this.settings.returnCutoffHz) / rate);
+    this.loss = 1 - Math.exp((-2 * Math.PI * PIPE_COEFFICIENTS.returnCutoffHz) / rate);
   }
 
   /** One seeded xorshift32 draw in [-1, 1); called only at firing events. */
@@ -189,8 +189,15 @@ export class ExhaustWaveguide {
         const elapsed = (this.phase >= offset ? this.phase - offset : this.phase - offset + 1) / step;
         this.firePulse(this.pulse, this.rise, this.emission, i, strength, elapsed);
         // During overrun a separate draw decides a pop; the combustion pulse above still sounds.
-        if (overrun && (this.draw() + 1) / 2 < OVERRUN_POPS.probability)
-          this.firePulse(this.popPulse, this.popRise, this.popEmission, this.banks[i]!, OVERRUN_POPS.strength, elapsed);
+        if (overrun && (this.draw() + 1) / 2 < this.settings.popProbability)
+          this.firePulse(
+            this.popPulse,
+            this.popRise,
+            this.popEmission,
+            this.banks[i]!,
+            this.settings.popStrength,
+            elapsed,
+          );
       }
       this.sums[this.banks[i]!]! += this.forward[i]!.read();
     }
@@ -201,7 +208,7 @@ export class ExhaustWaveguide {
       const returning = this.returns[bank]!.read();
       const out = this.tails[bank]!.read();
       this.outlet[bank]! += this.loss * (out - this.outlet[bank]!);
-      this.returns[bank]!.write(this.settings.outletReflection * this.outlet[bank]!);
+      this.returns[bank]!.write(PIPE_COEFFICIENTS.outletReflection * this.outlet[bank]!);
       // Equal-admittance scattering: p = 2 sum(incoming) / number of ports.
       const pressure = (2 * (this.sums[bank]! + returning)) / (this.counts[bank]! + 1);
       this.junctions[bank] = pressure;

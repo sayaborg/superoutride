@@ -18,7 +18,7 @@
   derive from the Session seed; loading coverage, recovery policy and reference identities each have one owner.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **11-7e — Sound value classes**.
+Next PR: **11-8 — Tire-sound transport (move only)**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -28,9 +28,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Separate the audio scene from the browser and organize sound around replaceable definitions.
 
-- **11-7e — Sound value classes:** physically derived exhaust values (outlet reflection, return cutoff, attenuation)
-  and tire shaping values (saturation, slip half and rolloff, noise bandwidth, output cutoff) become documented
-  constants; DEV sound controls expose only listening parameters, adding the downshift blip, pumping and pop values.
 - **11-8 — Tire-sound transport (move only):** separate transport from component controls.
 - **11-9 — Tire-sound values:** validate and resolve once; one surface-sound record per material ID, sent by catalog
   index.

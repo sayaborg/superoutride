@@ -8,16 +8,11 @@ import { createRangeControl } from './range-control.js';
 // Labels only: audio owns defaults, bounds and validation. These are not physical tire settings.
 const UNIFIED_LABELS = {
   feedbackMaximumPerSecond: ['自己励振の強さ', '/s'],
-  saturationPerSecond: ['振幅の飽和', '/s'],
   powerReferenceWatts: ['摩擦仕事の基準', 'W'],
-  slipHalfMps: ['滑り応答の半飽和', 'm/s'],
-  slipRolloffMps: ['大きな滑りの抑制尺度', 'm/s'],
-  noiseBandwidthHz: ['入力ノイズの帯域', 'Hz'],
   noiseForcePerSecond: ['入力ノイズの強さ', '/s'],
   lowFrequencyHz: ['低域モードの固有周波数', 'Hz'],
   highFrequencyHz: ['高域モードの固有周波数', 'Hz'],
   outputGainPerSecond: ['摩擦音Qの出力ゲイン', '/s'],
-  outputCutoffHz: ['摩擦音Qの高域上限', 'Hz'],
 } as const satisfies Record<keyof UnifiedSettings, readonly [string, string]>;
 
 function createPanel<T extends Readonly<Record<string, number>>>(

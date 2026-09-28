@@ -5,24 +5,6 @@ import { createNumberStepper } from './number-stepper.js';
 // Presentation owns labels/order only. Acoustic settings own all numeric domains and steps.
 const CONTROLS = [
   [
-    'outletReflection',
-    '出口の反射係数',
-    '',
-    '低周波の圧力反射係数。開放端の極限は−1（反転して反射）、0は出口反射なしです。',
-  ],
-  [
-    'returnCutoffHz',
-    '反射波の高域上限',
-    'Hz',
-    '一次ローパス、約−6 dB/oct。開放端の低周波特性に合わせた近似です。気筒側の反射フィルターにも共用します。',
-  ],
-  [
-    'attenuationPerMeter',
-    '距離あたりの減衰',
-    'Np/m',
-    '振幅は距離Lに対し exp(−αL) で減衰します。実際の周波数依存損失を定数で近似しています。',
-  ],
-  [
     'closedExcitation',
     '全閉時の励振',
     '',
@@ -58,6 +40,20 @@ const CONTROLS = [
     '°',
     '全車種共通の減衰。クランク角で定義するので、低回転ほど尾が長く、高回転ほど短くなります。3000 rpm で ms に換算すると 18° = 1 ms。',
   ],
+  [
+    'blipOpening',
+    'ブリッピングの開度',
+    '',
+    'シフトダウンで回転を合わせるために重ねる短い開度の山。物理の変速は一瞬で、これは音だけの演出です。',
+  ],
+  ['blipDecaySeconds', 'ブリッピングの減衰', 's', '開度の山が指数的に消える時定数。大きいほど長く吹かします。'],
+  [
+    'popProbability',
+    'アフターファイアの確率',
+    '',
+    'アクセルオフ（燃料カットでない）の間、発火ごとにボッが出る確率。発火ごとの乱数で決めるので、頻度は回転数に比例します。',
+  ],
+  ['popStrength', 'アフターファイアの強さ', '', '集合部に入れるボッのパルスの強さ。燃え残りや温度の状態は持ちません。'],
 ] as const;
 
 export function mountEngineSoundSettings(
@@ -90,7 +86,7 @@ export function mountEngineSoundSettings(
         format: (value) =>
           key === 'pulseVariation'
             ? `±${Math.round(value * 100)}%${value === 0 ? '（揺らぎなし）' : ''}`
-            : `${value} ${unit}${key === 'outletReflection' && value === 0 ? '（反射なし）' : ''}`.trim(),
+            : `${value} ${unit}`.trim(),
         onChange(value) {
           settings[key] = value;
           onChange({ ...settings });

@@ -17,23 +17,29 @@ const attenuation =
     (REFLECTION_REFERENCE.radiusMeters * waveSpeed)) *
   (1 + (AIR.gamma - 1) / Math.sqrt(AIR.prandtl));
 
+/** Pipe coefficients derived from REFLECTION_REFERENCE. Constants: DEV controls never change them. */
+export const PIPE_COEFFICIENTS = Object.freeze({
+  // Rounded to control resolution; Kirchhoff thin-boundary-layer loss at the reference frequency.
+  attenuationPerMeter: Math.round(attenuation * 100) / 100,
+  // One-pole magnitude matches |R| ~ 1 - (ka)^2/2 at low frequency; NOT its end-correction phase.
+  returnCutoffHz: Math.round(waveSpeed / (2 * Math.PI * REFLECTION_REFERENCE.radiusMeters) / 100) * 100,
+  outletReflection: -1, // unflanged open-end low-frequency pressure-reflection limit
+});
+
+/** Listening values chosen by ear; DEV controls change them. */
 export interface ExhaustSettings {
-  readonly attenuationPerMeter: number;
-  readonly returnCutoffHz: number;
-  readonly outletReflection: number;
   readonly closedExcitation: number;
   readonly outputCutoffHz: number;
   readonly pulseVariation: number;
   readonly pumpingExcitation: number;
   readonly pulseRiseDegrees: number;
   readonly pulseDecayDegrees: number;
+  readonly blipOpening: number;
+  readonly blipDecaySeconds: number;
+  readonly popProbability: number;
+  readonly popStrength: number;
 }
 export const DEFAULT_EXHAUST_SETTINGS: ExhaustSettings = Object.freeze({
-  // Rounded to control resolution; Kirchhoff thin-boundary-layer loss at the reference frequency.
-  attenuationPerMeter: Math.round(attenuation * 100) / 100,
-  // One-pole magnitude matches |R| ~ 1 - (ka)^2/2 at low frequency; NOT its end-correction phase.
-  returnCutoffHz: Math.round(waveSpeed / (2 * Math.PI * REFLECTION_REFERENCE.radiusMeters) / 100) * 100,
-  outletReflection: -1, // unflanged open-end low-frequency pressure-reflection limit
   closedExcitation: 0.22, // retained authored control; cannot be inferred from pipe acoustics
   // Crank-angle constants: blowdown is a crank-angle phenomenon, so pulses last longer at low RPM.
   // Defaults equal the former 0.2 ms rise and 5 ms decay at 3000 RPM, where 1 ms = 18 degrees.
@@ -44,6 +50,15 @@ export const DEFAULT_EXHAUST_SETTINGS: ExhaustSettings = Object.freeze({
   // separate from closedExcitation, which is weak combustion at closed throttle.
   pumpingExcitation: 0.06,
   outputCutoffHz: 7300, // post-clip listening filter; not measured muffler transmission loss
+  // A downshift's short rev-matching opening peak and its exponential decay time. Not a physical shift
+  // duration; the physical shift is instantaneous. Provisional listening values.
+  blipOpening: 0.7,
+  blipDecaySeconds: 0.08,
+  // Per-firing pop probability during overrun and the pulse strength injected at the collector junction.
+  // A seeded draw per firing decides each pop, so the pop rate is proportional to RPM. No unburnt-fuel or
+  // temperature state is kept. Provisional listening values.
+  popProbability: 0.12,
+  popStrength: 0.5,
 });
 
 interface SettingRange {
@@ -56,9 +71,6 @@ interface SettingRange {
 }
 // One numeric authority. Optional UI limits deliberately narrow the kernel's accepted domain.
 export const EXHAUST_SETTING_RANGES: Readonly<Record<keyof ExhaustSettings, SettingRange>> = Object.freeze({
-  outletReflection: Object.freeze({ min: -1, max: 0, step: 0.01 }),
-  returnCutoffHz: Object.freeze({ min: 100, max: 10000, step: 100, uiMin: 500 }),
-  attenuationPerMeter: Object.freeze({ min: 0, max: 1, step: 0.01, uiMax: 0.3 }),
   closedExcitation: Object.freeze({ min: 0, max: 1, step: 0.01, exclusiveMin: true, uiMin: 0.01 }),
   outputCutoffHz: Object.freeze({ min: 100, max: 12000, step: 100 }),
   pulseVariation: Object.freeze({ min: 0, max: 0.4, step: 0.01 }),
@@ -66,6 +78,10 @@ export const EXHAUST_SETTING_RANGES: Readonly<Record<keyof ExhaustSettings, Sett
   pumpingExcitation: Object.freeze({ min: 0, max: 0.5, step: 0.01, exclusiveMin: true, uiMin: 0.01 }),
   pulseRiseDegrees: Object.freeze({ min: 0.2, max: 36, step: 0.1 }),
   pulseDecayDegrees: Object.freeze({ min: 2, max: 360, step: 1 }),
+  blipOpening: Object.freeze({ min: 0, max: 1, step: 0.01 }),
+  blipDecaySeconds: Object.freeze({ min: 0.02, max: 0.3, step: 0.01 }),
+  popProbability: Object.freeze({ min: 0, max: 1, step: 0.01 }),
+  popStrength: Object.freeze({ min: 0, max: 1, step: 0.05 }),
 });
 
 export function resolveExhaustSettings(overrides: Partial<ExhaustSettings> = {}): ExhaustSettings {
@@ -84,19 +100,6 @@ export function resolveExhaustSettings(overrides: Partial<ExhaustSettings> = {})
   }
   return Object.freeze(settings);
 }
-
-/**
- * A short opening peak that sounds like a rev-matching throttle blip on a downshift. It is not a
- * physical shift duration; the physical shift is instantaneous. Provisional listening values.
- */
-export const DOWNSHIFT_BLIP = Object.freeze({ opening: 0.7, decaySeconds: 0.08 });
-
-/**
- * Per-firing probability during overrun and the strength of the pulse injected at the collector junction.
- * A seeded draw per firing decides each pop, so the pop rate is proportional to RPM. No unburnt-fuel or
- * temperature state is kept. Provisional listening values.
- */
-export const OVERRUN_POPS = Object.freeze({ probability: 0.12, strength: 0.5 });
 
 export const ACOUSTICS = Object.freeze({
   waveSpeed, // fixed air-surrogate reference; not measured temperature

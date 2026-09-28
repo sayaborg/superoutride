@@ -1,7 +1,7 @@
 import { clamp } from '../core/math.js';
 import { follow } from './audio-parameter.js';
 import { AUDIO_CONTROL_POLICY } from './audio-control-policy.js';
-import { DOWNSHIFT_BLIP, EXHAUST_SETTING_RANGES, resolveExhaustSettings } from './exhaust-acoustics.js';
+import { EXHAUST_SETTING_RANGES, resolveExhaustSettings } from './exhaust-acoustics.js';
 import type { ExhaustSettings } from './exhaust-acoustics.js';
 import type { CompiledEngineSound } from './engine-sound.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
@@ -71,8 +71,8 @@ export function createEngineVoice(
       ) {
         const blip = exhaust.parameters.get('blip')!;
         blip.cancelScheduledValues(now);
-        blip.setValueAtTime(DOWNSHIFT_BLIP.opening, now);
-        blip.setTargetAtTime(0, now, DOWNSHIFT_BLIP.decaySeconds);
+        blip.setValueAtTime(settings.blipOpening, now);
+        blip.setTargetAtTime(0, now, settings.blipDecaySeconds);
       }
       heardShift = shift.sequence;
       // The kernel is the only smoothing authority for its observations.

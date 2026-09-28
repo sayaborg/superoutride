@@ -36,7 +36,9 @@ export class TireUnifiedSynthesis {
     this.friction = new FrictionResonator(
       rate,
       {
-        ...this.settings,
+        feedbackMaximumPerSecond: this.settings.feedbackMaximumPerSecond,
+        saturationPerSecond: S.saturationPerSecond,
+        noiseBandwidthHz: S.noiseBandwidthHz,
         resonances: [
           { ...S.resonances[0], frequencyHz: this.settings.lowFrequencyHz },
           { ...S.resonances[1], frequencyHz: this.settings.highFrequencyHz },
@@ -47,11 +49,11 @@ export class TireUnifiedSynthesis {
     this.rolling = new TireRollingSynthesis(rate, seed);
     this.follow = 1 - Math.exp(-1 / (rate * AUDIO_CONTROL_POLICY.observationSeconds));
     this.dcPole = Math.exp((-2 * Math.PI * S.dcHz) / rate);
-    this.outputFollow = 1 - Math.exp((-2 * Math.PI * this.settings.outputCutoffHz) / rate);
+    this.outputFollow = 1 - Math.exp((-2 * Math.PI * S.outputCutoffHz) / rate);
   }
 
   update(value: TireSoundObservation, surfaceIndex = 0): void {
-    const S = this.settings;
+    const settings = this.settings;
     try {
       // The rolling generator validates and releases its own forcing on invalid observations.
       this.rolling.update(value, surfaceIndex);
@@ -69,10 +71,10 @@ export class TireUnifiedSynthesis {
     const material = UNIFIED_SURFACES[TIRE_SOUND_SURFACE_IDS[surfaceIndex]! as keyof typeof UNIFIED_SURFACES];
     // Authored work-to-excitation response, NOT an acoustic-power conversion.
     // Linear near zero, saturating at high work; one authority for forcing and feedback.
-    const work = saturate(power, S.powerReferenceWatts);
-    this.targetForce = S.noiseForcePerSecond * work * material.roughness;
+    const work = saturate(power, settings.powerReferenceWatts);
+    this.targetForce = settings.noiseForcePerSecond * work * material.roughness;
     this.targetFeedback =
-      (S.feedbackMaximumPerSecond * material.susceptibility * work * saturate(slip, S.slipHalfMps)) /
+      (settings.feedbackMaximumPerSecond * material.susceptibility * work * saturate(slip, S.slipHalfMps)) /
       (1 + (slip / S.slipRolloffMps) ** 2);
   }
 
