@@ -470,8 +470,8 @@ This section owns the Surface Material format. `content/materials/surface.json` 
 nonempty `materials` array. Each material has exactly a filename-safe `id`
 (unique in the document), a nonnegative finite `gripFactor` and a nonnegative finite `rollingResistance`.
 The material catalog is the only set of material IDs, and the set is open: IDs are content data, not a
-TypeScript enum, and adding one needs no course or physics code change (until audio definitions become
-content, both tire-sound tables must also have the ID). No physics code or tool requires a particular ID.
+TypeScript enum, and adding one needs no course or physics code change; the
+[surface-sound document](tire-audio.md#surface-sounds) must also have the ID. No physics code or tool requires a particular ID.
 The format carries physical values only; tire effects will be declared on the appearance side when they
 are implemented.
 The content layer's `compileSurfaceMaterials` admits it once from the build's file or delivery's manifest entry: exactly one

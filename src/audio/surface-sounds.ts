@@ -7,37 +7,81 @@ export type SurfaceSound = Readonly<{
   friction: Readonly<{ roughness: number; susceptibility: number }>;
 }>;
 
+/** The transport bound on surface numbers: the worklet's `surfaceIndex` parameter range. */
+export const SURFACE_SOUND_LIMIT = 256;
+
+/**
+ * The one value check of a surface sound, for the document and the table alike: every number finite and at
+ * least 0, `textureLengthMeters` above 0 and `susceptibility` at most 1. Returns a detached frozen record.
+ */
+export function compileSurfaceSound(record: SurfaceSound): SurfaceSound {
+  const { rolling, friction } = record;
+  const values = [rolling.low, rolling.high, rolling.textureLengthMeters, rolling.textureDepth];
+  values.push(friction.roughness, friction.susceptibility);
+  if (values.some((value) => typeof value !== 'number' || !Number.isFinite(value) || value < 0))
+    throw new RangeError('invalid surface sound: values must be finite and nonnegative');
+  if (rolling.textureLengthMeters <= 0) throw new RangeError('invalid surface sound: textureLengthMeters');
+  if (friction.susceptibility > 1) throw new RangeError('invalid surface sound: susceptibility');
+  return Object.freeze({
+    rolling: Object.freeze({
+      low: rolling.low,
+      high: rolling.high,
+      textureLengthMeters: rolling.textureLengthMeters,
+      textureDepth: rolling.textureDepth,
+    }),
+    friction: Object.freeze({ roughness: friction.roughness, susceptibility: friction.susceptibility }),
+  });
+}
+
+/** The TypeScript table, until 11-11 removes it; the build checks the delivered document against it. */
 export const SURFACE_SOUNDS: Readonly<Record<string, SurfaceSound>> = Object.freeze({
-  ASPHALT: Object.freeze({
-    rolling: Object.freeze({ low: 0.9, high: 0.18, textureLengthMeters: 0.3, textureDepth: 0.12 }),
-    friction: Object.freeze({ roughness: 1, susceptibility: 1 }),
+  ASPHALT: compileSurfaceSound({
+    rolling: { low: 0.9, high: 0.18, textureLengthMeters: 0.3, textureDepth: 0.12 },
+    friction: { roughness: 1, susceptibility: 1 },
   }),
-  SHOULDER: Object.freeze({
-    rolling: Object.freeze({ low: 0.85, high: 0.7, textureLengthMeters: 0.6, textureDepth: 0.4 }),
-    friction: Object.freeze({ roughness: 1.3, susceptibility: 0.4 }),
+  SHOULDER: compileSurfaceSound({
+    rolling: { low: 0.85, high: 0.7, textureLengthMeters: 0.6, textureDepth: 0.4 },
+    friction: { roughness: 1.3, susceptibility: 0.4 },
   }),
-  GRASS: Object.freeze({
-    rolling: Object.freeze({ low: 0.85, high: 0.12, textureLengthMeters: 1.4, textureDepth: 0.45 }),
-    friction: Object.freeze({ roughness: 0.75, susceptibility: 0.04 }),
+  GRASS: compileSurfaceSound({
+    rolling: { low: 0.85, high: 0.12, textureLengthMeters: 1.4, textureDepth: 0.45 },
+    friction: { roughness: 0.75, susceptibility: 0.04 },
   }),
-  DIRT: Object.freeze({
-    rolling: Object.freeze({ low: 1, high: 0.55, textureLengthMeters: 0.8, textureDepth: 0.8 }),
-    friction: Object.freeze({ roughness: 1.5, susceptibility: 0.12 }),
+  DIRT: compileSurfaceSound({
+    rolling: { low: 1, high: 0.55, textureLengthMeters: 0.8, textureDepth: 0.8 },
+    friction: { roughness: 1.5, susceptibility: 0.12 },
   }),
-  SAND: Object.freeze({
-    rolling: Object.freeze({ low: 0.3, high: 0.8, textureLengthMeters: 0.12, textureDepth: 0.2 }),
-    friction: Object.freeze({ roughness: 1.1, susceptibility: 0.02 }),
+  SAND: compileSurfaceSound({
+    rolling: { low: 0.3, high: 0.8, textureLengthMeters: 0.12, textureDepth: 0.2 },
+    friction: { roughness: 1.1, susceptibility: 0.02 },
   }),
 });
 
-// Numbers follow the table's key order; 11-10 replaces it with the material catalog order.
-export const SURFACE_SOUND_IDS: readonly string[] = Object.freeze(Object.keys(SURFACE_SOUNDS));
+/** Admitted surface sounds by material ID, with the delivered document's SHA-256. */
+export interface CompiledSurfaceSounds {
+  readonly surfaces: Readonly<Record<string, SurfaceSound>>;
+  readonly sha256: string;
+}
 
-/** Records by transport number, read by the kernels without string lookup. */
-export const SURFACE_SOUND_RECORDS: readonly SurfaceSound[] = Object.freeze(Object.values(SURFACE_SOUNDS));
-
-/** Product assembly admits a material catalog only when every delivered material has a sound record. */
-export function validateSurfaceSoundIds(materialIds: readonly string[]): void {
-  const missing = materialIds.filter((id) => !Object.hasOwn(SURFACE_SOUNDS, id));
+/**
+ * Surface sounds numbered in material catalog order: exactly one record per catalog material and none for any
+ * other ID, with no fallback. A missing or unknown ID, or more than `SURFACE_SOUND_LIMIT` materials, is a
+ * `RangeError`.
+ */
+export function resolveSurfaceSoundRecords(
+  sounds: CompiledSurfaceSounds,
+  materialIds: readonly string[],
+): readonly SurfaceSound[] {
+  const missing = materialIds.filter((id) => !Object.hasOwn(sounds.surfaces, id));
   if (missing.length) throw new RangeError(`Surface sounds are missing material IDs: ${missing.join(', ')}`);
+  const unknown = Object.keys(sounds.surfaces).filter((id) => !materialIds.includes(id));
+  if (unknown.length) throw new RangeError(`Surface sounds name unknown material IDs: ${unknown.join(', ')}`);
+  if (materialIds.length > SURFACE_SOUND_LIMIT) throw new RangeError('Too many surface sounds for transport');
+  return Object.freeze(materialIds.map((id) => sounds.surfaces[id]!));
+}
+
+/** The tire voice's surfaces: material IDs in catalog order and their sound records at the same numbers. */
+export interface TireSurfaceSounds {
+  readonly materialIds: readonly string[];
+  readonly surfaces: readonly SurfaceSound[];
 }

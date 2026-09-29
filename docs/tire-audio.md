@@ -20,10 +20,25 @@ The voice's `tireSoundParameters` ([observation domains](../src/audio/tire-sound
 validation: it rejects non-finite values, negative load or power and unknown surfaces with `RangeError`, then
 bounds the acoustic transport. Zero load or no material yields a silent contact observation. The worklet and kernels read
 the transported values as trusted; the AudioParam ranges only clamp automation.
-[Surface sounds](../src/audio/surface-sounds.ts) hold one record per material ID (rolling palette and friction
-input), sent by index; product assembly checks once that every delivered material has a record. The worklet
-rounds the surface index and releases the affected axle's forcing when it names no record or the settings
-message was invalid; finite stored tails decay, and subsequent valid input restores excitation.
+The worklet rounds the surface index and releases the affected axle's forcing when it names no record or the
+settings message was invalid; finite stored tails decay, and subsequent valid input restores excitation.
+
+## Surface sounds
+
+Surface sounds are content: `content/surface-sounds/default.json` is the one `superoutride.surface-sounds`
+version 1 document (manifest kind `surface-sound`, ID `default`). Its `surfaces` object holds one record per
+material ID: `rolling` (`low`, `high`, `textureLengthMeters`, `textureDepth`) is the rolling palette and
+`friction` (`roughness`, `susceptibility`) the friction input. [`compileSurfaceSound`](../src/audio/surface-sounds.ts)
+is the one value check (every number finite and at least 0, `textureLengthMeters` above 0, `susceptibility` at most
+1); [`compileSurfaceSoundDocument`](../src/audio/surface-sound-document.ts) checks format, version and shapes and
+calls it. `resolveSurfaceSoundRecords` numbers the records in material catalog order and rejects, with
+`RangeError` and no fallback, a catalog material without a surface sound, a surface sound for an unknown
+material and more than `SURFACE_SOUND_LIMIT` (256, the `surfaceIndex` transport range) materials; the content
+build applies it before delivery and the game at startup. The voice looks up each observed material's number in
+the catalog order; the worklet receives the records at construction and in every settings message
+(`{ settings, rolling, control, surfaces }`), re-checks them and replaces its kernels when they change, and the
+kernels read them by number. Until 11-11 removes the TypeScript table `SURFACE_SOUNDS`, the content build
+rejects a document that differs from it.
 
 ## Rolling synthesis
 
@@ -31,7 +46,7 @@ message was invalid; finite stored tails decay, and subsequent valid input resto
 centres and peripheral velocity for texture rate and level. Normal load scales supported rolling.
 Two finite-width noise bands and smooth random texture feed DC removal and a low-pass output.
 [Rolling acoustics](../src/audio/tire-rolling-acoustics.ts) owns the `RollingSettings`
-(orders, band shape, response rates, texture, gain and output filters); the surface record supplies band levels and texture.
+(orders, band shape, response rates, texture, gain and output filters); the [surface record](#surface-sounds) supplies band levels and texture.
 Unsupported contact releases forcing with filter history intact; supported rolling remains active
 at zero friction work.
 

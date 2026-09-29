@@ -8,6 +8,7 @@ import type { TireComponents } from './tire-sound-components.js';
 import type { UnifiedSettings } from './tire-unified-acoustics.js';
 import type { RollingSettings } from './tire-rolling-acoustics.js';
 import { createTireVoice } from './tire-voice.js';
+import type { TireSurfaceSounds } from './surface-sounds.js';
 import type { CompiledEngineSound } from './engine-sound.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
 
@@ -120,14 +121,14 @@ export function rivalSpatialization(
  * sound graph's buses, and the rival voice assignment: a change silences the voice and waits before the new
  * rival sounds.
  */
-export async function createAudioScene(context: AudioContext) {
+export async function createAudioScene(context: AudioContext, surfaces: TireSurfaceSounds) {
   await context.audioWorklet.addModule(new URL('./vehicle-processor.js', import.meta.url));
   const graph = createSoundGraph(context);
   const playerEngine = createEngineVoice(context, graph.input('engine'));
   const rivalPan = context.createStereoPanner();
   rivalPan.connect(graph.input('engine'));
   const rivalEngine = createEngineVoice(context, rivalPan);
-  const tires = createTireVoice(context, graph.input('tire'));
+  const tires = createTireVoice(context, graph.input('tire'), surfaces);
   let rival = DEFAULT_RIVAL_SETTINGS;
   let control = resolveControlSettings();
   let assignedId: string | null = null;

@@ -24,7 +24,8 @@ import { readRivalEnvelope, type RivalEnvelope } from '../content/rival-envelope
 import { loadSurfaceMaterials } from '../content/surface-material-catalog.js';
 import { admitProduct } from '../content/delivered-product.js';
 import { compileSessionConfiguration, type SessionConfiguration } from '../race/session-configuration.js';
-import { validateSurfaceSoundIds } from '../audio/surface-sounds.js';
+import { resolveSurfaceSoundRecords } from '../audio/surface-sounds.js';
+import { loadSurfaceSounds } from '../content/surface-sound-catalog.js';
 
 const canvas = mustGet<HTMLCanvasElement>('game');
 const status = document.createElement('p');
@@ -35,7 +36,11 @@ canvas.insertAdjacentElement('afterend', status);
 try {
   const content = await browserContent();
   const materials = await loadSurfaceMaterials(content);
-  validateSurfaceSoundIds(materials.source.materials.map((material) => material.id));
+  const materialIds = materials.source.materials.map((material) => material.id);
+  const surfaceSounds = {
+    materialIds,
+    surfaces: resolveSurfaceSoundRecords(await loadSurfaceSounds(content), materialIds),
+  };
   const definitions = await loadVehicleDefinitions(content, await loadEngineSounds(content));
   const { vehicles, driving } = definitions;
   const mode = selectBrowserCourseMode(new URLSearchParams(location.search).get('mode')).query;
@@ -80,7 +85,7 @@ try {
     return { session, scene, race, tuned };
   };
   let active = build(vehicle, settings, rivalEnvelope, budgets, false);
-  const shell = createBrowserDrivingShell(vehicle);
+  const shell = createBrowserDrivingShell(vehicle, surfaceSounds);
   const raceStatus = document.createElement('output');
   raceStatus.setAttribute('role', 'status');
   raceStatus.setAttribute('aria-label', 'Session status');

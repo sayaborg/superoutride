@@ -1,5 +1,6 @@
 import type { SessionVehicle } from '../content/session-vehicle.js';
 import { createAudioLifecycle } from './audio-lifecycle.js';
+import type { TireSurfaceSounds } from '../audio/surface-sounds.js';
 import { createDrivingLifecycle, type DrivingLifecycleOptions } from './driving-lifecycle.js';
 import type { CameraRig } from '../view/camera.js';
 import { createCameraRig, setCameraYawMode, type CameraState } from '../view/camera.js';
@@ -47,7 +48,10 @@ interface BrowserDrivingShell {
  * Browser wiring for the Session vehicle: display, input, audio and DEV controls. It supplies the player's
  * input only; the race owns every competitor's mechanics.
  */
-export function createBrowserDrivingShell(sessionVehicle: SessionVehicle): BrowserDrivingShell {
+export function createBrowserDrivingShell(
+  sessionVehicle: SessionVehicle,
+  surfaceSounds: TireSurfaceSounds,
+): BrowserDrivingShell {
   const canvas = mustGet<HTMLCanvasElement>('game');
   canvas.width = LOGICAL_WIDTH;
   canvas.height = LOGICAL_HEIGHT;
@@ -64,7 +68,7 @@ export function createBrowserDrivingShell(sessionVehicle: SessionVehicle): Brows
   const sessionVehicleId = sessionVehicleDefinition.compiledVehicle.id;
   const cameraRig = createCameraRig();
 
-  const audio = createAudioLifecycle(sessionVehicleDefinition);
+  const audio = createAudioLifecycle(sessionVehicleDefinition, surfaceSounds);
   let loop: FrameLoop | null = null;
   window.addEventListener('pagehide', () => {
     loop?.stop();

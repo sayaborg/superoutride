@@ -10,6 +10,7 @@ import { createNumberStepper } from './number-stepper.js';
 import { TIRE_COMPONENTS } from '../audio/tire-sound-components.js';
 import { DEFAULT_CONTROL_SETTINGS } from '../audio/audio-control-policy.js';
 import { createAudioScene } from '../audio/audio-scene.js';
+import type { TireSurfaceSounds } from '../audio/surface-sounds.js';
 import { SOUND_BUSES, type SoundBus } from '../audio/sound-graph.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
@@ -20,7 +21,7 @@ const GESTURE_EVENTS = ['pointerdown', 'pointerup', 'touchend', 'keydown'] as co
 
 /** DOM, permission and failure boundary. Presentation updates fail closed without stopping gameplay. */
 /** Every competitor drives the Session vehicle, so player and rival engines use its sound. */
-export function createAudioLifecycle(sessionVehicle: CompiledVehicleDefinition) {
+export function createAudioLifecycle(sessionVehicle: CompiledVehicleDefinition, surfaces: TireSurfaceSounds) {
   const button = document.getElementById('sound-toggle');
   const volumeContainer = document.getElementById('sound-volume');
   const componentState = { rolling: true, friction: true };
@@ -230,7 +231,7 @@ export function createAudioLifecycle(sessionVehicle: CompiledVehicleDefinition) 
         () => true,
         () => false,
       );
-      built = await createAudioScene(created);
+      built = await createAudioScene(created, surfaces);
       if (disposed || context !== created) {
         closeGraph(built, created);
         return;

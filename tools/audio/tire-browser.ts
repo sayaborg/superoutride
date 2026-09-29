@@ -3,6 +3,17 @@ import { mustGet } from '../../src/shell/dom.js';
 import { createTireVoice } from '../../src/audio/tire-voice.js';
 import { createVehicleAudioObservation } from '../../src/shell/vehicle-audio.js';
 import { TIRE_AUDITION_PHASES as phases, TIRE_AUDITION_SECONDS as seconds } from './tire-scenarios.js';
+import { resolveSurfaceSoundRecords } from '../../src/audio/surface-sounds.js';
+import { loadContentManifest } from '../../src/content/content-manifest.js';
+import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
+import { loadSurfaceSounds } from '../../src/content/surface-sound-catalog.js';
+// The audition hears the delivered material catalog and surface-sound document, numbered as in the game.
+const content = await loadContentManifest(new URL('../../delivery/', import.meta.url));
+const materialIds = (await loadSurfaceMaterials(content)).source.materials.map((material) => material.id);
+const surfaceSounds = {
+  materialIds,
+  surfaces: resolveSurfaceSoundRecords(await loadSurfaceSounds(content), materialIds),
+};
 const result = mustGet<HTMLElement>('result');
 let playback: AudioContext | undefined,
   playing: AudioBufferSourceNode | null | undefined,
@@ -16,7 +27,7 @@ function stop() {
 async function render(rate: number, axles: string) {
   const context = new OfflineAudioContext(1, rate * seconds, rate);
   await context.audioWorklet.addModule(new URL('./tire-processor.js', import.meta.url));
-  const voice = createTireVoice(context, context.destination);
+  const voice = createTireVoice(context, context.destination, surfaceSounds);
   const state = createVehicleAudioObservation();
 
   function apply(phase: Partial<TireAudioObservation>) {

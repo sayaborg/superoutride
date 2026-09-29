@@ -5,13 +5,22 @@ import { resolveUnifiedSettings, sameUnifiedSettings, type UnifiedSettings } fro
 import { resolveRollingSettings, sameRollingSettings, type RollingSettings } from './tire-rolling-acoustics.js';
 import { TIRE_COMPONENTS, type TireComponents } from './tire-sound-components.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
+import type { TireSurfaceSounds } from './surface-sounds.js';
 
-/** One reusable worklet. Only tire sound settings fade/replace generators; engines, context and driving continue. */
-export function createTireVoice(context: BaseAudioContext, destination: AudioNode) {
+/**
+ * One reusable worklet. Only tire sound settings fade/replace generators; engines, context and driving continue.
+ * Surface numbers are positions in `materialIds`; the worklet receives the records at the same numbers.
+ */
+export function createTireVoice(
+  context: BaseAudioContext,
+  destination: AudioNode,
+  { materialIds, surfaces }: TireSurfaceSounds,
+) {
   const node = new AudioWorkletNode(context, 'vehicle-tires', {
     numberOfInputs: 0,
     numberOfOutputs: 1,
     outputChannelCount: [1],
+    processorOptions: { surfaces },
   });
   const output = context.createGain();
   output.gain.value = 0;
@@ -53,7 +62,7 @@ export function createTireVoice(context: BaseAudioContext, destination: AudioNod
       if (failed) throw new Error('tire sound processor failed');
       const now = context.currentTime;
       for (const axle of ['front', 'rear'] as const) {
-        const controls = tireSoundParameters(state[axle]);
+        const controls = tireSoundParameters(state[axle], materialIds);
         for (const key of TIRE_SOUND_INPUT_KEYS) node.parameters.get(`${axle}_tire_${key}`)!.value = controls[key];
         node.parameters.get(`${axle}_tire_surfaceIndex`)!.value = controls.surfaceIndex;
       }
@@ -66,7 +75,7 @@ export function createTireVoice(context: BaseAudioContext, destination: AudioNod
         if (now < pending!.at) return;
       }
       if (changed) {
-        node.port.postMessage({ settings: desiredSettings, rolling, control });
+        node.port.postMessage({ settings: desiredSettings, rolling, control, surfaces });
         active = { settings: desiredSettings, rolling, control };
         follow(output.gain, 1, now, control.gainSeconds);
       } else if (pending) follow(output.gain, 1, now, control.gainSeconds);

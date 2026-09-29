@@ -1,19 +1,18 @@
 import { NoiseBand, SmoothRandom, deriveNoiseSeed, NOISE_BAND_DOMAIN } from './noise.js';
 import { ROLLING_SYNTHESIS as S, resolveRollingSettings, type RollingSettings } from './tire-rolling-acoustics.js';
-import { SURFACE_SOUND_RECORDS, type SurfaceSound } from './surface-sounds.js';
+import type { SurfaceSound } from './surface-sounds.js';
 import type { TireSoundObservation } from './tire-sound-transport.js';
 
 const saturate = (value: number, half: number): number => value / (value + half);
 type Material = { -readonly [K in keyof SurfaceSound['rolling']]: number };
-const DEFAULT_MATERIAL = SURFACE_SOUND_RECORDS[0]!.rolling;
-const MATERIAL_KEYS = Object.keys(DEFAULT_MATERIAL) as (keyof Material)[];
+const MATERIAL_KEYS: readonly (keyof Material)[] = ['low', 'high', 'textureLengthMeters', 'textureDepth'];
 
 /** Rotation-driven R, shared by composition without constructing or processing friction voices. */
 export class TireRollingSynthesis {
   private readonly bands: NoiseBand[];
   private readonly texture: SmoothRandom;
-  private readonly material: Material = { ...DEFAULT_MATERIAL };
-  private targetMaterial: Readonly<Material> = DEFAULT_MATERIAL;
+  private readonly material: Material;
+  private targetMaterial: Readonly<Material>;
   private readonly attack: number;
   private readonly release: number;
   private readonly tone: number;
@@ -34,12 +33,16 @@ export class TireRollingSynthesis {
   private modulation = 1;
   private clock: number;
 
+  /** `surfaces` are numbered in material catalog order; the first is the initial material. */
   constructor(
     private readonly rate: number,
+    private readonly surfaces: readonly SurfaceSound[],
     seed: number,
     settings: Partial<RollingSettings> = {},
   ) {
     this.settings = resolveRollingSettings(settings);
+    this.targetMaterial = surfaces[0]!.rolling;
+    this.material = { ...this.targetMaterial };
     this.orders = [this.settings.lowOrder, this.settings.highOrder];
     this.bands = S.bandStreams.map((stream) => new NoiseBand(rate, deriveNoiseSeed(seed, stream)));
     this.texture = new SmoothRandom(deriveNoiseSeed(seed, S.textureStream));
@@ -53,7 +56,7 @@ export class TireRollingSynthesis {
 
   /** Reads a trusted observation; the voice's tireSoundParameters validates and bounds it once. */
   update(value: TireSoundObservation, surfaceIndex = 0): void {
-    this.targetMaterial = SURFACE_SOUND_RECORDS[surfaceIndex]!.rolling;
+    this.targetMaterial = this.surfaces[surfaceIndex]!.rolling;
     this.supported = value.load > 0;
     if (!this.supported) {
       this.releaseContact();

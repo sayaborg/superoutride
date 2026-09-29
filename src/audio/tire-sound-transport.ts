@@ -2,7 +2,7 @@
  * Transport of tire audio observations to the worklet: bounded domains, the one validation and the AudioParam ranges.
  * Kernels own smoothing; component switching is in tire-sound-components.
  */
-import { SURFACE_SOUND_IDS } from './surface-sounds.js';
+import { SURFACE_SOUND_LIMIT } from './surface-sounds.js';
 import type { TireAudioObservation } from './vehicle-audio-observation.js';
 
 /** Bounded read-only acoustic transport. Bounds are numerical transport choices, not tire physics. */
@@ -34,14 +34,15 @@ const observationRanges = Object.fromEntries(
 // Transport domains, shared by the voice and worklet. Kernels own smoothing.
 export const TIRE_CONTROL_RANGES = Object.freeze({
   ...observationRanges,
-  tire_surfaceIndex: Object.freeze({ minValue: 0, maxValue: SURFACE_SOUND_IDS.length - 1, defaultValue: 0 }),
+  tire_surfaceIndex: Object.freeze({ minValue: 0, maxValue: SURFACE_SOUND_LIMIT - 1, defaultValue: 0 }),
 });
 
 /**
  * The only validation and bound of tire sound values; the worklet and kernels read the result as trusted.
- * Bound only the acoustic transport, never vehicle state; signed kinematics keep their meaning.
+ * Bound only the acoustic transport, never vehicle state; signed kinematics keep their meaning. The surface number
+ * is the material's position in `materialIds`, the material catalog order.
  */
-export function tireSoundParameters(tire: TireAudioObservation) {
+export function tireSoundParameters(tire: TireAudioObservation, materialIds: readonly string[]) {
   const silent = {
     longitudinalVelocity: 0,
     lateralVelocity: 0,
@@ -54,7 +55,7 @@ export function tireSoundParameters(tire: TireAudioObservation) {
   };
   if (!Number.isFinite(tire.load) || tire.load < 0) throw new RangeError('invalid tire sound load');
   if (tire.load === 0 || tire.surface === null) return silent;
-  const surfaceIndex = SURFACE_SOUND_IDS.findIndex((surface) => surface === tire.surface);
+  const surfaceIndex = materialIds.indexOf(tire.surface);
   const values = {
     longitudinalVelocity: tire.longitudinalVelocity,
     lateralVelocity: tire.lateralVelocity,

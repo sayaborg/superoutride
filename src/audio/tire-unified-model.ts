@@ -3,7 +3,7 @@ import { FrictionResonator } from './friction-resonator.js';
 import { TireRollingSynthesis } from './tire-rolling-model.js';
 import type { RollingSettings } from './tire-rolling-acoustics.js';
 import { UNIFIED_SYNTHESIS as S, resolveUnifiedSettings, type UnifiedSettings } from './tire-unified-acoustics.js';
-import { SURFACE_SOUND_RECORDS } from './surface-sounds.js';
+import type { SurfaceSound } from './surface-sounds.js';
 import type { TireSoundObservation } from './tire-sound-transport.js';
 
 const saturate = (value: number, half: number): number => value / (value + half);
@@ -29,6 +29,7 @@ export class TireUnifiedSynthesis {
 
   constructor(
     rate: number,
+    private readonly surfaces: readonly SurfaceSound[],
     seed: number = S.frontSeed,
     settings: Partial<UnifiedSettings> = {},
     rolling: Partial<RollingSettings> = {},
@@ -57,7 +58,7 @@ export class TireUnifiedSynthesis {
       },
       seed,
     );
-    this.rolling = new TireRollingSynthesis(rate, seed, rolling);
+    this.rolling = new TireRollingSynthesis(rate, surfaces, seed, rolling);
     this.follow = 1 - Math.exp(-1 / (rate * resolveControlSettings(control).observationSeconds));
     this.dcPole = Math.exp((-2 * Math.PI * this.settings.dcHz) / rate);
     this.outputFollow = 1 - Math.exp((-2 * Math.PI * this.settings.outputCutoffHz) / rate);
@@ -73,7 +74,7 @@ export class TireUnifiedSynthesis {
       this.release();
       return;
     }
-    const material = SURFACE_SOUND_RECORDS[surfaceIndex]!.friction;
+    const material = this.surfaces[surfaceIndex]!.friction;
     // Authored work-to-excitation response, NOT an acoustic-power conversion.
     // Linear near zero, saturating at high work; one authority for forcing and feedback.
     const work = saturate(power, settings.powerReferenceWatts);

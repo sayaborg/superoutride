@@ -8,18 +8,41 @@ import {
 } from './tire-unified-acoustics.js';
 import { resolveRollingSettings, sameRollingSettings, type RollingSettings } from './tire-rolling-acoustics.js';
 import { TIRE_SOUND_INPUT_KEYS, TIRE_CONTROL_RANGES, type TireSoundObservation } from './tire-sound-transport.js';
-import { SURFACE_SOUND_RECORDS } from './surface-sounds.js';
+import { compileSurfaceSound, type SurfaceSound } from './surface-sounds.js';
 import { TIRE_COMPONENTS, TIRE_COMPONENT_RANGE } from './tire-sound-components.js';
 declare const sampleRate: number;
 declare const AudioWorkletProcessor: { new (): { readonly port: MessagePort } };
 declare function registerProcessor(name: string, processor: typeof AudioWorkletProcessor): void;
 
-function createPair(settings: UnifiedSettings, rolling: RollingSettings, control: ControlSettings) {
+function createPair(
+  surfaces: readonly SurfaceSound[],
+  settings: UnifiedSettings,
+  rolling: RollingSettings,
+  control: ControlSettings,
+) {
   return {
-    front: new TireUnifiedSynthesis(sampleRate, UNIFIED_SYNTHESIS.frontSeed, settings, rolling, control),
-    rear: new TireUnifiedSynthesis(sampleRate, UNIFIED_SYNTHESIS.rearSeed, settings, rolling, control),
+    front: new TireUnifiedSynthesis(sampleRate, surfaces, UNIFIED_SYNTHESIS.frontSeed, settings, rolling, control),
+    rear: new TireUnifiedSynthesis(sampleRate, surfaces, UNIFIED_SYNTHESIS.rearSeed, settings, rolling, control),
   };
 }
+
+/** The worklet boundary re-checks the transported records, as it resolves the settings. */
+function readSurfaces(value: unknown): readonly SurfaceSound[] {
+  if (!Array.isArray(value) || value.length === 0) throw new TypeError('tire surfaces must be a nonempty array');
+  return Object.freeze(value.map((record: SurfaceSound) => compileSurfaceSound(record)));
+}
+
+const sameSurfaces = (a: readonly SurfaceSound[], b: readonly SurfaceSound[]): boolean =>
+  a.length === b.length &&
+  a.every(
+    ({ rolling, friction }, i) =>
+      rolling.low === b[i]!.rolling.low &&
+      rolling.high === b[i]!.rolling.high &&
+      rolling.textureLengthMeters === b[i]!.rolling.textureLengthMeters &&
+      rolling.textureDepth === b[i]!.rolling.textureDepth &&
+      friction.roughness === b[i]!.friction.roughness &&
+      friction.susceptibility === b[i]!.friction.susceptibility,
+  );
 
 const componentFollow = (control: ControlSettings) => 1 - Math.exp(-1 / (sampleRate * control.componentSeconds));
 
@@ -27,7 +50,8 @@ class TireProcessor extends AudioWorkletProcessor {
   private settings = resolveUnifiedSettings();
   private rolling = resolveRollingSettings();
   private control = resolveControlSettings();
-  private pair: ReturnType<typeof createPair> | null = createPair(this.settings, this.rolling, this.control);
+  private surfaces: readonly SurfaceSound[];
+  private pair: ReturnType<typeof createPair> | null;
   private readonly frontObservation = Object.fromEntries(TIRE_SOUND_INPUT_KEYS.map((key) => [key, 0])) as {
     -readonly [K in keyof TireSoundObservation]: number;
   };
@@ -48,8 +72,11 @@ class TireProcessor extends AudioWorkletProcessor {
       ),
     ];
   }
-  constructor() {
+  /** The voice supplies its surfaces at construction; settings messages repeat them. */
+  constructor(options?: { processorOptions?: { surfaces?: unknown } }) {
     super();
+    this.surfaces = readSurfaces(options?.processorOptions?.surfaces);
+    this.pair = createPair(this.surfaces, this.settings, this.rolling, this.control);
     this.port.onmessage = ({ data }) => {
       if (data === 'stop') this.pair = null;
       else if (this.pair !== null) {
@@ -59,13 +86,16 @@ class TireProcessor extends AudioWorkletProcessor {
           const settings = resolveUnifiedSettings(data.settings);
           const rolling = resolveRollingSettings(data.rolling);
           const control = resolveControlSettings(data.control);
+          const surfaces = readSurfaces(data.surfaces);
           // Replace after the voice fade; identical settings preserve the running state.
           if (
             !sameUnifiedSettings(settings, this.settings) ||
             !sameRollingSettings(rolling, this.rolling) ||
-            !sameControlSettings(this.control, control)
+            !sameControlSettings(this.control, control) ||
+            !sameSurfaces(this.surfaces, surfaces)
           )
-            this.pair = createPair(settings, rolling, control);
+            this.pair = createPair(surfaces, settings, rolling, control);
+          this.surfaces = surfaces;
           this.settings = settings;
           this.rolling = rolling;
           this.control = control;
@@ -90,7 +120,7 @@ class TireProcessor extends AudioWorkletProcessor {
     for (const key of TIRE_SOUND_INPUT_KEYS) observation[key] = this.read(p, axle, `tire_${key}`);
     // Numerical stability only: float transport must still name a surface record.
     const surface = Math.round(this.read(p, axle, 'tire_surfaceIndex'));
-    if (this.valid && surface >= 0 && surface < SURFACE_SOUND_RECORDS.length) kernel.update(observation, surface);
+    if (this.valid && surface >= 0 && surface < this.surfaces.length) kernel.update(observation, surface);
     else {
       for (const key of TIRE_SOUND_INPUT_KEYS) observation[key] = 0;
       kernel.update(observation, 0); // Release only this axle; preserve finite tails and later recovery.

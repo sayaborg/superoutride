@@ -215,7 +215,7 @@ width is kept inside the noise band's numerical domain.
 | `outputHz`            | Rolling output low-pass cutoff        | 900 Hz  | 225–3600 Hz / 25     |
 | `dcHz`                | Rolling output DC removal             | 18 Hz   | 5–60 Hz / 1          |
 
-[Surface sounds](../src/audio/surface-sounds.ts) stay one table until 11-10 makes them content.
+The [surface-sound document](../content/surface-sounds/default.json) holds these values.
 
 | Surface  | Rolling low | Rolling high | Texture length | Texture depth | Friction roughness | Friction susceptibility |
 | -------- | ----------- | ------------ | -------------- | ------------- | ------------------ | ----------------------- |
