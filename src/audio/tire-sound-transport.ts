@@ -1,8 +1,8 @@
 /**
- * Transport of tire audio observations to the worklet: bounded domains, validation and the AudioParam ranges.
+ * Transport of tire audio observations to the worklet: bounded domains, the one validation and the AudioParam ranges.
  * Kernels own smoothing; component switching is in tire-sound-components.
  */
-import { TIRE_SOUND_SURFACE_IDS } from './tire-surface-acoustics.js';
+import { SURFACE_SOUND_IDS } from './surface-sounds.js';
 import type { TireAudioObservation } from './vehicle-audio-observation.js';
 
 /** Bounded read-only acoustic transport. Bounds are numerical transport choices, not tire physics. */
@@ -17,17 +17,6 @@ export const TIRE_SOUND_INPUTS = Object.freeze({
 });
 export type TireSoundObservation = { readonly [K in keyof typeof TIRE_SOUND_INPUTS]: number };
 export const TIRE_SOUND_INPUT_KEYS = Object.freeze(Object.keys(TIRE_SOUND_INPUTS) as (keyof TireSoundObservation)[]);
-/** Validate bounded acoustic transport, never alter the vehicle observation. */
-export function validateTireSoundObservation(value: TireSoundObservation, surfaceIndex: number): void {
-  if (!Number.isInteger(surfaceIndex) || surfaceIndex < 0 || surfaceIndex >= TIRE_SOUND_SURFACE_IDS.length)
-    throw new RangeError('invalid tire sound surface');
-  for (const key of TIRE_SOUND_INPUT_KEYS) {
-    const range = TIRE_SOUND_INPUTS[key],
-      number = value[key];
-    if (!Number.isFinite(number) || number < range.min || number > range.max)
-      throw new RangeError(`invalid tire sound observation: ${key}`);
-  }
-}
 
 const observationRanges = Object.fromEntries(
   Object.entries(TIRE_SOUND_INPUTS).map(([key, range]) => [
@@ -45,10 +34,13 @@ const observationRanges = Object.fromEntries(
 // Transport domains, shared by the voice and worklet. Kernels own smoothing.
 export const TIRE_CONTROL_RANGES = Object.freeze({
   ...observationRanges,
-  tire_surfaceIndex: Object.freeze({ minValue: 0, maxValue: TIRE_SOUND_SURFACE_IDS.length - 1, defaultValue: 0 }),
+  tire_surfaceIndex: Object.freeze({ minValue: 0, maxValue: SURFACE_SOUND_IDS.length - 1, defaultValue: 0 }),
 });
 
-/** Bound only the acoustic transport, never vehicle state; signed kinematics keep their meaning. */
+/**
+ * The only validation and bound of tire sound values; the worklet and kernels read the result as trusted.
+ * Bound only the acoustic transport, never vehicle state; signed kinematics keep their meaning.
+ */
 export function tireSoundParameters(tire: TireAudioObservation) {
   const silent = {
     longitudinalVelocity: 0,
@@ -62,7 +54,7 @@ export function tireSoundParameters(tire: TireAudioObservation) {
   };
   if (!Number.isFinite(tire.load) || tire.load < 0) throw new RangeError('invalid tire sound load');
   if (tire.load === 0 || tire.surface === null) return silent;
-  const surfaceIndex = TIRE_SOUND_SURFACE_IDS.findIndex((surface) => surface === tire.surface);
+  const surfaceIndex = SURFACE_SOUND_IDS.findIndex((surface) => surface === tire.surface);
   const values = {
     longitudinalVelocity: tire.longitudinalVelocity,
     lateralVelocity: tire.lateralVelocity,

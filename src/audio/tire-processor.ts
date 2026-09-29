@@ -8,6 +8,7 @@ import {
 } from './tire-unified-acoustics.js';
 import { resolveRollingSettings, sameRollingSettings, type RollingSettings } from './tire-rolling-acoustics.js';
 import { TIRE_SOUND_INPUT_KEYS, TIRE_CONTROL_RANGES, type TireSoundObservation } from './tire-sound-transport.js';
+import { SURFACE_SOUND_RECORDS } from './surface-sounds.js';
 import { TIRE_COMPONENTS, TIRE_COMPONENT_RANGE } from './tire-sound-components.js';
 declare const sampleRate: number;
 declare const AudioWorkletProcessor: { new (): { readonly port: MessagePort } };
@@ -76,12 +77,9 @@ class TireProcessor extends AudioWorkletProcessor {
       }
     };
   }
+  // The voice validated these values once; the descriptors' ranges let Web Audio clamp automation.
   private read(p: Record<string, Float32Array>, axle: string, key: keyof typeof TIRE_CONTROL_RANGES): number {
-    const value = p[`${axle}_${key}`]?.[0];
-    const range = TIRE_CONTROL_RANGES[key];
-    return value !== undefined && Number.isFinite(value) && value >= range.minValue && value <= range.maxValue
-      ? value
-      : NaN;
+    return p[`${axle}_${key}`]![0]!;
   }
   private updateObserved(
     p: Record<string, Float32Array>,
@@ -89,13 +87,10 @@ class TireProcessor extends AudioWorkletProcessor {
     observation: typeof this.frontObservation,
     kernel: TireUnifiedSynthesis,
   ): void {
-    let valid = this.valid;
-    for (const key of TIRE_SOUND_INPUT_KEYS) {
-      observation[key] = this.read(p, axle, `tire_${key}`);
-      valid = valid && Number.isFinite(observation[key]);
-    }
-    const surface = this.read(p, axle, 'tire_surfaceIndex');
-    if (valid && Number.isInteger(surface)) kernel.update(observation, surface);
+    for (const key of TIRE_SOUND_INPUT_KEYS) observation[key] = this.read(p, axle, `tire_${key}`);
+    // Numerical stability only: float transport must still name a surface record.
+    const surface = Math.round(this.read(p, axle, 'tire_surfaceIndex'));
+    if (this.valid && surface >= 0 && surface < SURFACE_SOUND_RECORDS.length) kernel.update(observation, surface);
     else {
       for (const key of TIRE_SOUND_INPUT_KEYS) observation[key] = 0;
       kernel.update(observation, 0); // Release only this axle; preserve finite tails and later recovery.

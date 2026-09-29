@@ -143,7 +143,8 @@ state running.
 
 The TIMING settings ([`ControlSettings`](../src/audio/audio-control-policy.ts)) are the only record of control
 time constants, and each control has one smoothing authority. Voices write engine RPM, engine opening and tire
-inputs directly to AudioParams; the kernels follow them per sample with `observationSeconds`. Output
+inputs directly to AudioParams (tire inputs after their one validation in
+[Tire audio](tire-audio.md#observation-transport)); the kernels follow them per sample with `observationSeconds`. Output
 gains, bus and master gains and the rival pan follow only through AudioParam automation (`gainSeconds`,
 `mixSeconds`, `panSeconds`); silence and pre-replacement fades use `fadeSeconds`, and a discontinuity waits
 `transitionSeconds` after its fade. The main thread reads these values when it schedules each change; the kernel

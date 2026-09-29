@@ -18,7 +18,7 @@
   derive from the Session seed; loading coverage, recovery policy and reference identities each have one owner.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **11-9 — Tire-sound values**.
+Next PR: **11-10 — Sound definitions as content**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -28,8 +28,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Separate the audio scene from the browser and organize sound around replaceable definitions.
 
-- **11-9 — Tire-sound values:** validate and resolve once; one surface-sound record per material ID, sent by catalog
-  index.
 - **11-10 — Sound definitions as content:** a sound manifest kind with engine sound documents per sound ID, one
   surface-sound document keyed by material ID and one game-wide audio document (mix, rival policy, settings). The
   audio layer compiles them; vehicle appearance references a sound ID. The content build rejects a catalog material

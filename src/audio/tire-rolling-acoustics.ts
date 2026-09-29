@@ -55,12 +55,3 @@ export function resolveRollingSettings(value: Partial<RollingSettings> = {}): Ro
 export function sameRollingSettings(a: RollingSettings, b: RollingSettings): boolean {
   return (Object.keys(ROLLING_SETTING_RANGES) as (keyof RollingSettings)[]).every((key) => a[key] === b[key]);
 }
-
-/** R's surface palette; friction implementations own their independent response to each surface. */
-export const ROLLING_SURFACES = Object.freeze({
-  ASPHALT: Object.freeze({ low: 0.9, high: 0.18, textureLengthMeters: 0.3, textureDepth: 0.12 }),
-  SHOULDER: Object.freeze({ low: 0.85, high: 0.7, textureLengthMeters: 0.6, textureDepth: 0.4 }),
-  GRASS: Object.freeze({ low: 0.85, high: 0.12, textureLengthMeters: 1.4, textureDepth: 0.45 }),
-  DIRT: Object.freeze({ low: 1, high: 0.55, textureLengthMeters: 0.8, textureDepth: 0.8 }),
-  SAND: Object.freeze({ low: 0.3, high: 0.8, textureLengthMeters: 0.12, textureDepth: 0.2 }),
-});

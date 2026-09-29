@@ -7,15 +7,6 @@ export const UNIFIED_SYNTHESIS = Object.freeze({
   rearSeed: 0x691cf37d,
 });
 
-/** Each surface changes the ONE friction input: roughness forcing and instability susceptibility. */
-export const UNIFIED_SURFACES = Object.freeze({
-  ASPHALT: Object.freeze({ roughness: 1, susceptibility: 1 }),
-  SHOULDER: Object.freeze({ roughness: 1.3, susceptibility: 0.4 }),
-  GRASS: Object.freeze({ roughness: 0.75, susceptibility: 0.04 }),
-  DIRT: Object.freeze({ roughness: 1.5, susceptibility: 0.12 }),
-  SAND: Object.freeze({ roughness: 1.1, susceptibility: 0.02 }),
-});
-
 /**
  * Listening settings on the DEV UNIFIED panel: authored audition bounds, NOT measured tire ranges. Defaults are the
  * implementer's initial values. Frequencies and rates describe the normalized sound model, never vehicle physics.

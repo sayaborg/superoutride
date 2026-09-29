@@ -16,19 +16,22 @@ wheel peripheral/angular velocity, normal load, longitudinal/lateral dissipated 
 One tire worklet receives independent k-rate parameter sets and seeded histories for both axles.
 The game and tire audition use the same voice, processor and observation mapping.
 
-[Observation domains](../src/audio/tire-sound-transport.ts) bound acoustic transport. Zero load or
-no material yields a silent contact observation. Supported observations carry the admitted material ID;
-rolling and UNIFIED acoustic tables are keyed by that ID. Product assembly checks once that every
-delivered material has both sound entries. An invalid block releases only the affected axle's forcing;
-finite stored tails decay, and subsequent valid input restores excitation.
+The voice's `tireSoundParameters` ([observation domains](../src/audio/tire-sound-transport.ts)) is the one
+validation: it rejects non-finite values, negative load or power and unknown surfaces with `RangeError`, then
+bounds the acoustic transport. Zero load or no material yields a silent contact observation. The worklet and kernels read
+the transported values as trusted; the AudioParam ranges only clamp automation.
+[Surface sounds](../src/audio/surface-sounds.ts) hold one record per material ID (rolling palette and friction
+input), sent by index; product assembly checks once that every delivered material has a record. The worklet
+rounds the surface index and releases the affected axle's forcing when it names no record or the settings
+message was invalid; finite stored tails decay, and subsequent valid input restores excitation.
 
 ## Rolling synthesis
 
 [Rolling synthesis](../src/audio/tire-rolling-model.ts) uses wheel angular velocity for noise-band
 centres and peripheral velocity for texture rate and level. Normal load scales supported rolling.
 Two finite-width noise bands and smooth random texture feed DC removal and a low-pass output.
-[Rolling acoustics](../src/audio/tire-rolling-acoustics.ts) owns the surface coefficients and the `RollingSettings`
-(orders, band shape, response rates, texture, gain and output filters).
+[Rolling acoustics](../src/audio/tire-rolling-acoustics.ts) owns the `RollingSettings`
+(orders, band shape, response rates, texture, gain and output filters); the surface record supplies band levels and texture.
 Unsupported contact releases forcing with filter history intact; supported rolling remains active
 at zero friction work.
 
@@ -78,7 +81,7 @@ at the same friction input. `w` is linear near zero and approaches one at high w
 accepted work, surface and seed produce equal Q, including supported stationary wheelspin.
 
 Positive-contact targets follow continuously within the kernel
-([`observationSeconds`](../src/audio/audio-control-policy.ts)). Zero support, slip or work, and invalid input,
+([`observationSeconds`](../src/audio/audio-control-policy.ts)). Zero support, slip or work, and a released axle,
 immediately disable new friction forcing and feedback. Stored vibration and output filters decay;
 colored-noise history continues. R follows its separate rotation/support inputs.
 

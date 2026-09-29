@@ -2,14 +2,9 @@ import { resolveControlSettings, type ControlSettings } from './audio-control-po
 import { FrictionResonator } from './friction-resonator.js';
 import { TireRollingSynthesis } from './tire-rolling-model.js';
 import type { RollingSettings } from './tire-rolling-acoustics.js';
-import {
-  UNIFIED_SYNTHESIS as S,
-  UNIFIED_SURFACES,
-  resolveUnifiedSettings,
-  type UnifiedSettings,
-} from './tire-unified-acoustics.js';
+import { UNIFIED_SYNTHESIS as S, resolveUnifiedSettings, type UnifiedSettings } from './tire-unified-acoustics.js';
+import { SURFACE_SOUND_RECORDS } from './surface-sounds.js';
 import type { TireSoundObservation } from './tire-sound-transport.js';
-import { TIRE_SOUND_SURFACE_IDS } from './tire-surface-acoustics.js';
 
 const saturate = (value: number, half: number): number => value / (value + half);
 
@@ -70,13 +65,7 @@ export class TireUnifiedSynthesis {
 
   update(value: TireSoundObservation, surfaceIndex = 0): void {
     const settings = this.settings;
-    try {
-      // The rolling generator validates and releases its own forcing on invalid observations.
-      this.rolling.update(value, surfaceIndex);
-    } catch (error) {
-      this.release();
-      throw error;
-    }
+    this.rolling.update(value, surfaceIndex);
     const slip = Math.hypot(value.wheelSpeed - value.longitudinalVelocity, value.lateralVelocity);
     const power = value.longitudinalPower + value.lateralPower;
     this.active = value.load > 0 && slip > 0 && power > 0;
@@ -84,7 +73,7 @@ export class TireUnifiedSynthesis {
       this.release();
       return;
     }
-    const material = UNIFIED_SURFACES[TIRE_SOUND_SURFACE_IDS[surfaceIndex]! as keyof typeof UNIFIED_SURFACES];
+    const material = SURFACE_SOUND_RECORDS[surfaceIndex]!.friction;
     // Authored work-to-excitation response, NOT an acoustic-power conversion.
     // Linear near zero, saturating at high work; one authority for forcing and feedback.
     const work = saturate(power, settings.powerReferenceWatts);

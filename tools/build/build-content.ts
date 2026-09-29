@@ -16,7 +16,7 @@ import { compileCourseImages } from '../course/compile-course-images.js';
 import { readCourseImages } from '../course/read-course-images.js';
 import { courseFileId, courseFileSha256 } from '../course/course-file-id.js';
 import { compileSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
-import { validateTireSoundMaterialIds } from '../../src/audio/tire-surface-acoustics.js';
+import { validateSurfaceSoundIds } from '../../src/audio/surface-sounds.js';
 import { compileVehicleSpriteLibrary } from '../graphics/vehicle-sprite-library.js';
 
 /**
@@ -62,7 +62,7 @@ const deliver = async (kind: ContentKind, documents: readonly DocumentSource[]) 
 };
 const materialSources = await sources('materials');
 const materials = requireLoaded(compileSurfaceMaterials(materialSources));
-validateTireSoundMaterialIds(materials.source.materials.map((material) => material.id));
+validateSurfaceSoundIds(materials.source.materials.map((material) => material.id));
 await deliver('material', materialSources);
 
 const vehicleSources = await sources('vehicles'),

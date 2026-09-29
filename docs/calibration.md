@@ -215,15 +215,15 @@ width is kept inside the noise band's numerical domain.
 | `outputHz`            | Rolling output low-pass cutoff        | 900 Hz  | 225–3600 Hz / 25     |
 | `dcHz`                | Rolling output DC removal             | 18 Hz   | 5–60 Hz / 1          |
 
-Surface coefficients stay tables until 11-10 makes them content.
+[Surface sounds](../src/audio/surface-sounds.ts) stay one table until 11-10 makes them content.
 
-| Surface  | Friction roughness | Friction susceptibility |
-| -------- | ------------------ | ----------------------- |
-| ASPHALT  | 1                  | 1                       |
-| SHOULDER | 1.3                | 0.4                     |
-| GRASS    | 0.75               | 0.04                    |
-| DIRT     | 1.5                | 0.12                    |
-| SAND     | 1.1                | 0.02                    |
+| Surface  | Rolling low | Rolling high | Texture length | Texture depth | Friction roughness | Friction susceptibility |
+| -------- | ----------- | ------------ | -------------- | ------------- | ------------------ | ----------------------- |
+| ASPHALT  | 0.9         | 0.18         | 0.3 m          | 0.12          | 1                  | 1                       |
+| SHOULDER | 0.85        | 0.7          | 0.6 m          | 0.4           | 1.3                | 0.4                     |
+| GRASS    | 0.85        | 0.12         | 1.4 m          | 0.45          | 0.75               | 0.04                    |
+| DIRT     | 1           | 0.55         | 0.8 m          | 0.8           | 1.5                | 0.12                    |
+| SAND     | 0.3         | 0.8          | 0.12 m         | 0.2           | 1.1                | 0.02                    |
 
 The only tire constants are structural: the random seeds (`UNIFIED_SYNTHESIS`), the rolling noise stream indices
 and the internal rolling control rate (`ROLLING_SYNTHESIS`), and the noise band's numerical domain

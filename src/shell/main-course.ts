@@ -23,7 +23,7 @@ import { readRivalEnvelope, type RivalEnvelope } from '../content/rival-envelope
 import { loadSurfaceMaterials } from '../content/surface-material-catalog.js';
 import { admitProduct } from '../content/delivered-product.js';
 import { compileSessionConfiguration, type SessionConfiguration } from '../race/session-configuration.js';
-import { validateTireSoundMaterialIds } from '../audio/tire-surface-acoustics.js';
+import { validateSurfaceSoundIds } from '../audio/surface-sounds.js';
 
 const canvas = mustGet<HTMLCanvasElement>('game');
 const status = document.createElement('p');
@@ -34,7 +34,7 @@ canvas.insertAdjacentElement('afterend', status);
 try {
   const content = await browserContent();
   const materials = await loadSurfaceMaterials(content);
-  validateTireSoundMaterialIds(materials.source.materials.map((material) => material.id));
+  validateSurfaceSoundIds(materials.source.materials.map((material) => material.id));
   const definitions = await loadVehicleDefinitions(content);
   const { vehicles, driving } = definitions;
   const mode = selectBrowserCourseMode(new URLSearchParams(location.search).get('mode')).query;

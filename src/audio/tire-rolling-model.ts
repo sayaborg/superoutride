@@ -1,23 +1,19 @@
 import { NoiseBand, SmoothRandom, deriveNoiseSeed, NOISE_BAND_DOMAIN } from './noise.js';
-import {
-  ROLLING_SYNTHESIS as S,
-  ROLLING_SURFACES,
-  resolveRollingSettings,
-  type RollingSettings,
-} from './tire-rolling-acoustics.js';
-import { validateTireSoundObservation, type TireSoundObservation } from './tire-sound-transport.js';
-import { TIRE_SOUND_SURFACE_IDS } from './tire-surface-acoustics.js';
+import { ROLLING_SYNTHESIS as S, resolveRollingSettings, type RollingSettings } from './tire-rolling-acoustics.js';
+import { SURFACE_SOUND_RECORDS, type SurfaceSound } from './surface-sounds.js';
+import type { TireSoundObservation } from './tire-sound-transport.js';
 
 const saturate = (value: number, half: number): number => value / (value + half);
-type Material = { -readonly [K in keyof (typeof ROLLING_SURFACES)['ASPHALT']]: number };
-const MATERIAL_KEYS = Object.keys(ROLLING_SURFACES.ASPHALT) as (keyof Material)[];
+type Material = { -readonly [K in keyof SurfaceSound['rolling']]: number };
+const DEFAULT_MATERIAL = SURFACE_SOUND_RECORDS[0]!.rolling;
+const MATERIAL_KEYS = Object.keys(DEFAULT_MATERIAL) as (keyof Material)[];
 
 /** Rotation-driven R, shared by composition without constructing or processing friction voices. */
 export class TireRollingSynthesis {
   private readonly bands: NoiseBand[];
   private readonly texture: SmoothRandom;
-  private readonly material: Material = { ...ROLLING_SURFACES.ASPHALT };
-  private targetMaterial: Readonly<Material> = ROLLING_SURFACES.ASPHALT;
+  private readonly material: Material = { ...DEFAULT_MATERIAL };
+  private targetMaterial: Readonly<Material> = DEFAULT_MATERIAL;
   private readonly attack: number;
   private readonly release: number;
   private readonly tone: number;
@@ -55,14 +51,9 @@ export class TireRollingSynthesis {
     this.clock = rate;
   }
 
+  /** Reads a trusted observation; the voice's tireSoundParameters validates and bounds it once. */
   update(value: TireSoundObservation, surfaceIndex = 0): void {
-    try {
-      validateTireSoundObservation(value, surfaceIndex);
-    } catch (error) {
-      this.releaseContact();
-      throw error;
-    }
-    this.targetMaterial = ROLLING_SURFACES[TIRE_SOUND_SURFACE_IDS[surfaceIndex]! as keyof typeof ROLLING_SURFACES];
+    this.targetMaterial = SURFACE_SOUND_RECORDS[surfaceIndex]!.rolling;
     this.supported = value.load > 0;
     if (!this.supported) {
       this.releaseContact();
