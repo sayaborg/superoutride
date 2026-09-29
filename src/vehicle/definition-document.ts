@@ -19,8 +19,8 @@ import {
 } from '../core/admission.js';
 import type { DrivingDocument } from './driving-definition.js';
 import type { CompiledDrivingDefinition } from './compiled-driving-definition.js';
-import { ENGINE_SOUNDS } from './engine-sounds.js';
 import type { CompiledEngineSound } from '../audio/engine-sound.js';
+import type { EngineSoundCatalog } from '../audio/engine-sound-document.js';
 
 export type VehicleForm = 'car' | 'bike';
 export interface VehicleMetadata {
@@ -140,6 +140,7 @@ export function compileVehicleListingDocument(
   value: unknown,
   document: string,
   sprites: SpriteAssets,
+  sounds: EngineSoundCatalog,
 ): AdmissionResult<CompiledVehicleListing> {
   return admit(document, () => {
     const v = readDocument(
@@ -200,7 +201,7 @@ export function compileVehicleListingDocument(
     if (!spriteSet.assets.every((row) => row.every((image) => Object.hasOwn(image.palettes, visuals.palette))))
       throw new AdmissionError('unresolved_reference', '/visuals/palette', `Unknown sprite color: ${visuals.palette}`);
     const soundId = readString(v.sound, '/sound');
-    if (!Object.hasOwn(ENGINE_SOUNDS, soundId))
+    if (!Object.hasOwn(sounds, soundId))
       throw new AdmissionError('unresolved_reference', '/sound', `Unknown sound ID: ${soundId}`);
     const source = deepFreeze({
       format: 'superoutride.vehicle-listing',
@@ -216,7 +217,7 @@ export function compileVehicleListingDocument(
       source,
       spriteSet,
       form: source.form,
-      sound: ENGINE_SOUNDS[soundId as keyof typeof ENGINE_SOUNDS],
+      sound: sounds[soundId]!,
     });
   });
 }

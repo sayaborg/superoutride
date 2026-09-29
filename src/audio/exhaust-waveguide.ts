@@ -1,4 +1,4 @@
-import type { CompiledEngineSound } from './engine-sound.js';
+import type { EngineSound } from './engine-sound.js';
 
 import { ACOUSTICS, PIPE_COEFFICIENTS, resolveExhaustSettings } from './exhaust-acoustics.js';
 import type { ExhaustSettings } from './exhaust-acoustics.js';
@@ -99,7 +99,7 @@ export class ExhaustWaveguide {
   private secondCoupling = 0;
 
   constructor(
-    private readonly sound: CompiledEngineSound,
+    private readonly sound: EngineSound,
     private readonly rate: number,
     settings: Partial<ExhaustSettings> = {},
     control: Partial<ControlSettings> = {},

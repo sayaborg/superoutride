@@ -29,9 +29,21 @@ An [engine sound](../src/audio/engine-sound.ts) contains one or two revolutions 
 cycle, ordered firing phases, each cylinder's junction (`banks`), primary lengths and the collector graph
 (`pipes`). Each firing phase is that cylinder's exhaust-opening instant (start of blowdown); the offset from
 combustion top dead centre is common to all cylinders and is not represented. Phase count determines cylinder count. `compileEngineSound` validates an
-`EngineSoundDefinition` into a `CompiledEngineSound`; the vehicle catalog binds the
-[engine sounds](../src/vehicle/engine-sounds.ts) to the
-same sample-free engine kernel. Firing rows identify events and collector groups.
+`EngineSoundDefinition` into an `EngineSound`. Firing rows identify events and collector groups.
+
+Engine sound definitions are content: `content/engine-sounds/<id>.json` stores one
+`superoutride.engine-sound` version 1 document per sound ID, its file name without `.json`, which is also its
+manifest ID; the documents carry none. The fields are `format`, `version`, `cycleRevolutions`, `firingPhases`,
+`exhaust` (`banks`, `lengths`, `pipes` of `{length, from, to}` with `to: null` for an open end) and `metadata`
+(authoring notes such as the collector `topology`; not read). The audio layer compiles a document:
+[`compileEngineSoundDocument`](../src/audio/engine-sound-document.ts) checks format, version and field shapes
+with the admission toolkit and leaves value validation to `compileEngineSound`; the `CompiledEngineSound` adds
+the sound ID and the delivered bytes' SHA-256. Firing phases are used exactly as written. The content layer
+([engine-sound catalog](../src/content/engine-sound-catalog.ts)) admits every document, delivers it as kind
+`engine-sound` and passes the catalog to the vehicle catalog, whose listings resolve their `sound` in it; the
+same sample-free engine kernel plays every sound. Until 11-11 removes the
+[TypeScript table](../src/vehicle/engine-sounds.ts), the content build rejects a document whose compiled values
+differ from it.
 
 ## Engine synthesis
 

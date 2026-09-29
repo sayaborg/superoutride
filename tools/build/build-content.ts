@@ -1,4 +1,7 @@
 import { compileVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
+import { compileEngineSounds } from '../../src/content/engine-sound-catalog.js';
+import { ENGINE_SOUNDS } from '../../src/vehicle/engine-sounds.js';
+import { isDeepStrictEqual } from 'node:util';
 import { requireLoaded } from '../../src/content/content-load-error.js';
 import { authoredDocumentSource, type DocumentSource } from '../../src/content/document-catalog.js';
 import type { ContentKind } from '../../src/content/content-load-error.js';
@@ -21,7 +24,7 @@ import { compileVehicleSpriteLibrary } from '../graphics/vehicle-sprite-library.
 
 /**
  * The content build: every delivered file is compiled from authored documents in dependency order,
- * in one pass: vehicle sprite library, materials, vehicle and driving definitions, courses and their
+ * in one pass: vehicle sprite library, materials, engine sounds, vehicle and driving definitions, courses and their
  * images, then reference runs. Each compile stage receives earlier products directly. Reference workers
  * are the exception: they run in separate threads and read this build's saved content until 14-5.
  */
@@ -65,11 +68,27 @@ const materials = requireLoaded(compileSurfaceMaterials(materialSources));
 validateSurfaceSoundIds(materials.source.materials.map((material) => material.id));
 await deliver('material', materialSources);
 
+const soundSources = await sources('engine-sounds');
+const sounds = requireLoaded(compileEngineSounds(soundSources));
+// Until 11-11 deletes the TypeScript table, the documents must reproduce it exactly.
+const table: Readonly<Record<string, unknown>> = ENGINE_SOUNDS;
+for (const id of new Set([...Object.keys(table), ...Object.keys(sounds)])) {
+  const sound = sounds[id];
+  const values = sound && {
+    cycleRevolutions: sound.cycleRevolutions,
+    firingPhases: sound.firingPhases,
+    exhaust: sound.exhaust,
+  };
+  if (!Object.hasOwn(table, id) || !isDeepStrictEqual(values, table[id]))
+    throw new Error(`Engine sound document differs from ENGINE_SOUNDS: ${id}`);
+}
+await deliver('engine-sound', soundSources);
+
 const vehicleSources = await sources('vehicles'),
   listingSources = await sources('vehicle-listings'),
   drivingSources = await sources('driving');
 const definitions = requireLoaded(
-  compileVehicleDefinitions(library.sprites, drivingSources, vehicleSources, listingSources),
+  compileVehicleDefinitions(library.sprites, sounds, drivingSources, vehicleSources, listingSources),
 );
 await deliver('vehicle', vehicleSources);
 await deliver('vehicle-listing', listingSources);

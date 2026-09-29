@@ -1,4 +1,5 @@
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
+import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { readDeliveredContent } from './read-content.js';
 import { createSessionVehicle } from '../../src/content/session-vehicle.js';
 import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
@@ -13,7 +14,7 @@ import { isTimedCourse } from '../../src/course/compiler/compiled-course.js';
 /** Optional diagnostic exports; ordinary build owns all Session products. */
 export async function referenceCommand(verb: string, file: string | null, args: readonly string[]) {
   const content = await readDeliveredContent();
-  const definitions = await loadVehicleDefinitions(content);
+  const definitions = await loadVehicleDefinitions(content, await loadEngineSounds(content));
   const opts = options(args, ['--vehicle', '--laps', '--route', '--out', '--images']);
   requireInput(opts.has('--vehicle'), '/vehicle', 'Reference commands require --vehicle');
   const entry = definitions.vehicles.find((e) => e.compiledVehicle.id === opts.get('--vehicle'));

@@ -7,6 +7,7 @@ import { createCourseScene } from '../../src/view/course-scene.js';
 import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
 import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
+import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { createSessionVehicle } from '../../src/content/session-vehicle.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
 import { createCourseRace } from '../../src/race/course-race.js';
@@ -17,7 +18,8 @@ import { createCameraRig, updateCamera } from '../../src/view/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../../src/view/current-camera-profile.js';
 import { createRaceSprites } from '../../src/view/race-sprites.js';
 
-const definitions = await loadVehicleDefinitions(await readDeliveredContent());
+const definitionContent = await readDeliveredContent();
+const definitions = await loadVehicleDefinitions(definitionContent, await loadEngineSounds(definitionContent));
 
 async function setup() {
   const file = fileURLToPath(new URL('../../content/courses/ribbon-ring.course.json', import.meta.url));

@@ -11,6 +11,7 @@ import {
 import type { ContentDelivery } from './content-manifest.js';
 import { missingContent, requireLoaded } from './content-load-error.js';
 import { admitSingleDocument, type DocumentSource } from './document-catalog.js';
+import type { EngineSoundCatalog } from './engine-sound-catalog.js';
 
 /** Image syntax and set-wide invariants are admitted once, before vehicle references. */
 export async function loadVehicleSpriteLibrary(content: ContentDelivery): Promise<SpriteAssets> {
@@ -27,10 +28,11 @@ export const DRIVING_DEFINITION_ID = 'default';
  * Admit the catalog from its sources, from the build's files or delivery's manifest alike: exactly one
  * driving definition, named `default`, and at least one vehicle. A vehicle is a mechanics document and
  * a listing document with the same identifier, its file name; either one alone is rejected. Listings
- * resolve against an admitted sprite library, and selection orders are unique.
+ * resolve against an admitted sprite library and engine-sound catalog, and selection orders are unique.
  */
 export function compileVehicleDefinitions(
   sprites: SpriteAssets,
+  sounds: EngineSoundCatalog,
   drivingSources: readonly DocumentSource[],
   mechanicsSources: readonly DocumentSource[],
   listingSources: readonly DocumentSource[],
@@ -49,7 +51,7 @@ export function compileVehicleDefinitions(
       requireAdmission(!!listingFile, 'unresolved_reference', '', `Expected the vehicle listing ${file.id}`),
     );
     if (!paired.ok) return paired;
-    const listing = compileVehicleListingDocument(listingFile!.value, listingFile!.path, sprites);
+    const listing = compileVehicleListingDocument(listingFile!.value, listingFile!.path, sprites, sounds);
     if (!listing.ok) return listing;
     const catalogRules = admit(listingFile!.path, () =>
       requireAdmission(
@@ -80,7 +82,10 @@ export function compileVehicleDefinitions(
 }
 
 /** Transport verifies every payload SHA before either admission boundary sees decoded content. */
-export async function loadVehicleDefinitions(content: ContentDelivery): Promise<VehicleDefinitions> {
+export async function loadVehicleDefinitions(
+  content: ContentDelivery,
+  sounds: EngineSoundCatalog,
+): Promise<VehicleDefinitions> {
   const sprites = await loadVehicleSpriteLibrary(content);
   const read = async (kind: 'driving' | 'vehicle' | 'vehicle-listing') => {
     const sources: DocumentSource[] = [];
@@ -89,7 +94,13 @@ export async function loadVehicleDefinitions(content: ContentDelivery): Promise<
     return sources;
   };
   return requireLoaded(
-    compileVehicleDefinitions(sprites, await read('driving'), await read('vehicle'), await read('vehicle-listing')),
+    compileVehicleDefinitions(
+      sprites,
+      sounds,
+      await read('driving'),
+      await read('vehicle'),
+      await read('vehicle-listing'),
+    ),
   );
 }
 export interface VehicleDefinitions {

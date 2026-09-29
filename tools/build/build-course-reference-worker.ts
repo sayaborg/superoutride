@@ -1,6 +1,7 @@
 import type { CourseReferenceJob, CourseReferenceResult } from './build-course-reference.js';
 import { parentPort, workerData } from 'node:worker_threads';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
+import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { readDeliveredContent } from '../course/read-content.js';
 import { loadDeliveredCourse } from '../../src/content/load-delivered-course.js';
 import { isTimedCourse } from '../../src/course/compiler/compiled-course.js';
@@ -24,7 +25,7 @@ import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog
 const { vehicleId, stems, physicsSha256 } = workerData as CourseReferenceJob;
 const content = await readDeliveredContent();
 const materials = await loadSurfaceMaterials(content);
-const definitions = await loadVehicleDefinitions(content);
+const definitions = await loadVehicleDefinitions(content, await loadEngineSounds(content));
 const entry = definitions.vehicles.find((v) => v.compiledVehicle.id === vehicleId)!;
 const vehicle = createSessionVehicle(entry, definitions.driving, materials),
   vehicleSha256 = await sessionVehicleSha256(vehicle);

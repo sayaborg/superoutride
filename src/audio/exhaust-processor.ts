@@ -1,7 +1,7 @@
 import { ExhaustWaveguide } from './exhaust-waveguide.js';
 import type { ExhaustSettings } from './exhaust-acoustics.js';
 import type { ControlSettings } from './audio-control-policy.js';
-import type { CompiledEngineSound } from './engine-sound.js';
+import type { EngineSound } from './engine-sound.js';
 import { compileEngineSound } from './engine-sound.js';
 declare const sampleRate: number;
 declare const AudioWorkletProcessor: { new (): { readonly port: MessagePort } };
@@ -20,7 +20,7 @@ class ExhaustProcessor extends AudioWorkletProcessor {
   }
   constructor(options?: {
     processorOptions?: {
-      sound: CompiledEngineSound;
+      sound: EngineSound;
       settings?: Partial<ExhaustSettings>;
       control?: Partial<ControlSettings>;
     };
@@ -43,7 +43,7 @@ class ExhaustProcessor extends AudioWorkletProcessor {
     };
   }
   private configure(
-    sound: CompiledEngineSound,
+    sound: EngineSound,
     settings: Partial<ExhaustSettings> = {},
     control: Partial<ControlSettings> = {},
   ): void {

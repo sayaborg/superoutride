@@ -10,6 +10,7 @@ import { loadDeliveredCourse } from '../content/load-delivered-course.js';
 import { createCourseGround } from '../course/compiler/course-ground.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import { loadVehicleDefinitions } from '../content/vehicle-catalog.js';
+import { loadEngineSounds } from '../content/engine-sound-catalog.js';
 import { createCourseRace } from '../race/course-race.js';
 import { raceStatusText } from './race-status-hud.js';
 import { createCoursePerformanceHud } from './course-performance-hud.js';
@@ -35,7 +36,7 @@ try {
   const content = await browserContent();
   const materials = await loadSurfaceMaterials(content);
   validateSurfaceSoundIds(materials.source.materials.map((material) => material.id));
-  const definitions = await loadVehicleDefinitions(content);
+  const definitions = await loadVehicleDefinitions(content, await loadEngineSounds(content));
   const { vehicles, driving } = definitions;
   const mode = selectBrowserCourseMode(new URLSearchParams(location.search).get('mode')).query;
   const course = await loadDeliveredCourse(content, mode, materials);

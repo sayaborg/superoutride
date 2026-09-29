@@ -18,6 +18,7 @@ import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
 import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
+import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { readDeliveredContent } from './read-content.js';
 import { createCameraRig, updateCamera } from '../../src/view/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../../src/view/current-camera-profile.js';
@@ -78,7 +79,8 @@ try {
     if (verb === 'compile') {
       result.ground = (await loadCourseGround(course)).metrics;
     } else if (verb === 'render') {
-      const definitions = await loadVehicleDefinitions(await readDeliveredContent());
+      const content = await readDeliveredContent();
+      const definitions = await loadVehicleDefinitions(content, await loadEngineSounds(content));
       const entry = opts.has('--vehicle')
         ? definitions.vehicles.find((e) => e.compiledVehicle.id === opts.get('--vehicle'))
         : definitions.vehicles[0];

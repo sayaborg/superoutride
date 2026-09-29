@@ -11,13 +11,15 @@ import { createVehicle, updateVehicle } from '../../src/vehicle/physics/vehicle-
 import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
+import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { createCameraRig, updateCamera } from '../../src/view/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../../src/view/current-camera-profile.js';
 import { STRIP_RENDER_METHODS } from '../../src/view/display-settings.js';
 import { createDisplaySettings } from '../../src/view/display-settings.js';
 import { SoftwareSurface } from '../../src/view/software-surface.js';
 
-const definitions = await loadVehicleDefinitions(await readDeliveredContent());
+const definitionContent = await readDeliveredContent();
+const definitions = await loadVehicleDefinitions(definitionContent, await loadEngineSounds(definitionContent));
 
 const content = await readDeliveredContent();
 const materials = await loadSurfaceMaterials(content);

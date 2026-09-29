@@ -141,7 +141,7 @@ vehicle envelopes, continuous reference runs and game time budgets. Matching dis
 `dist/delivery/manifest.json` is the sole delivery index. Its own
 `format: "superoutride.content-manifest", version: 1` identifies the index format; entries have only
 `{kind, id, path, sha256}`. Every JSON file is delivered as compact JSON followed by a newline; vehicle
-mechanics, vehicle listing, driving and material documents are delivered exactly as authored in that
+mechanics, vehicle listing, driving, material and engine-sound documents are delivered exactly as authored in that
 encoding, so the build knows their delivered digests before staging them. Entries contain no payload
 format/version. The manifest writer is the only authority for these kinds, IDs and paths under `dist/delivery/`:
 
@@ -153,6 +153,7 @@ format/version. The manifest writer is the only authority for these kinds, IDs a
 | `vehicle-listing` | Vehicle ID                                                  | `vehicle-listings/<id>.json`      | Vehicle listing document                                                                                     |
 | `driving`         | `default`                                                   | `driving/<id>.json`               | Game-wide driving definition                                                                                 |
 | `material`        | `surface`                                                   | `materials/<id>.json`             | Surface-material document                                                                                    |
+| `engine-sound`    | Sound ID                                                    | `engine-sounds/<id>.json`         | Engine-sound document ([Audio](audio.md#observations-and-engine-sounds))                                     |
 | `envelope`        | Vehicle ID                                                  | `envelopes/<id>.json`             | Rival driving envelope (`superoutride.rival-envelope` v1: vehicle identity, maximum speed and measured rows) |
 | `budget`          | `<course>/<vehicle>`                                        | `budgets/<course>/<vehicle>.json` | Timed Session budgets (`superoutride.course-time-budgets` v1)                                                |
 
@@ -174,8 +175,8 @@ verification read indexed content through the shared reader, never by reconstruc
 Authoring inputs under `content/` still use explicit source filenames and image directories.
 The browser-tools build writes only `dist/tools`: the bundled tools, the Sprite Tool's PNG example and
 the LOD filter sample. The content build writes `dist/delivery` from authored documents in one pass, in
-dependency order: the vehicle sprite library (compiled LOD and admitted), surface materials, vehicle and
-driving definitions (admitted against that in-build library), courses and their images, then reference
+dependency order: the vehicle sprite library (compiled LOD and admitted), surface materials, engine sounds,
+vehicle and driving definitions (admitted against that in-build library and engine-sound catalog), courses and their images, then reference
 runs. Each compile stage receives earlier products directly. Reference workers are the exception: until
 14-5 they read this build's saved `dist/delivery`, described below. A course and
 its images are staged only after the course compiles. The build

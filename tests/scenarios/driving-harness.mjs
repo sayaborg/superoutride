@@ -9,6 +9,7 @@ import { createCourseRace } from '../../src/race/course-race.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
 import { createSessionVehicle } from '../../src/content/session-vehicle.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
+import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import {
   compileEnvelopeDriver,
   createEnvelopeDriverWorkspace,
@@ -27,7 +28,7 @@ import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog
 
 const content = await readDeliveredContent();
 const materials = await loadSurfaceMaterials(content);
-const definitions = await loadVehicleDefinitions(content);
+const definitions = await loadVehicleDefinitions(content, await loadEngineSounds(content));
 
 const idle = { steering: 0, throttle: false, brake: false };
 const entry = definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA');

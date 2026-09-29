@@ -10,10 +10,12 @@ import {
 } from '../../src/course/geometry/plan-coordinate.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
+import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { createSessionVehicle } from '../../src/content/session-vehicle.js';
 import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 
-const definitions = await loadVehicleDefinitions(await readDeliveredContent());
+const definitionContent = await readDeliveredContent();
+const definitions = await loadVehicleDefinitions(definitionContent, await loadEngineSounds(definitionContent));
 const materials = await loadSurfaceMaterials(await readDeliveredContent());
 
 const load = async (stem) =>

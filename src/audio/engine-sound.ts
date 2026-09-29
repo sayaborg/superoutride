@@ -24,7 +24,14 @@ export interface ExhaustPipe {
   readonly to: number | null;
 }
 
-export type CompiledEngineSound = Readonly<EngineSoundDefinition>;
+/** Validated acoustic values, as `compileEngineSound` returns them. */
+export type EngineSound = Readonly<EngineSoundDefinition>;
+
+/** A delivered engine sound: its values, its ID (the document's file name) and its delivered bytes' SHA-256. */
+export interface CompiledEngineSound extends EngineSound {
+  readonly id: string;
+  readonly sha256: string;
+}
 
 /**
  * Junction numbers are contiguous from 0 and cover every bank and pipe end; 1 to 8 pipes of 0.1 to 4 m, at least
@@ -64,7 +71,7 @@ function validPipes(banks: readonly number[], pipes: readonly ExhaustPipe[]): bo
   return reaches.size === count;
 }
 
-export function compileEngineSound(definition: EngineSoundDefinition): CompiledEngineSound {
+export function compileEngineSound(definition: EngineSoundDefinition): EngineSound {
   const { cycleRevolutions, firingPhases, exhaust } = definition;
   if (
     (cycleRevolutions !== 1 && cycleRevolutions !== 2) ||

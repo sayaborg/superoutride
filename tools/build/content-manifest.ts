@@ -13,6 +13,8 @@ function contentPath(kind: ContentKind, id: string, sha256: string): string {
       return `driving/${id}.json`;
     case 'material':
       return `materials/${id}.json`;
+    case 'engine-sound':
+      return `engine-sounds/${id}.json`;
     case 'image':
       return `images/${sha256}.json`;
     case 'course':

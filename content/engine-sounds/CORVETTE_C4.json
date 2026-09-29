@@ -1,0 +1,20 @@
+{
+  "format": "superoutride.engine-sound",
+  "version": 1,
+  "cycleRevolutions": 2,
+  "firingPhases": [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875],
+  "exhaust": {
+    "banks": [0, 1, 1, 0, 1, 0, 0, 1],
+    "lengths": [0.62, 0.8, 0.54, 0.7, 0.72, 0.52, 0.84, 0.6],
+    "pipes": [
+      { "length": 0.8, "from": 0, "to": 2 },
+      { "length": 0.8, "from": 1, "to": 2 },
+      { "length": 1.2, "from": 2, "to": null },
+      { "length": 1.2, "from": 2, "to": null }
+    ]
+  },
+  "metadata": {
+    "topology": "8-2-1-2",
+    "note": "Firing order 1-8-4-3-6-5-7-2; odd/even cylinders use separate banks. The two bank collectors merge at an X/H junction that splits to two outlets."
+  }
+}

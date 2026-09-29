@@ -1,0 +1,15 @@
+{
+  "format": "superoutride.engine-sound",
+  "version": 1,
+  "cycleRevolutions": 1,
+  "firingPhases": [0],
+  "exhaust": {
+    "banks": [0],
+    "lengths": [0.28],
+    "pipes": [{ "length": 0.48, "from": 0, "to": null }]
+  },
+  "metadata": {
+    "topology": "1-1",
+    "note": "One cylinder, one outlet."
+  }
+}

@@ -8,10 +8,10 @@ import { DEFAULT_CONTROL_SETTINGS } from '../../src/audio/audio-control-policy.j
 import { mountEngineSoundSettings } from '../../src/shell/engine-sound-settings-controls.js';
 import { createEngineVoice } from '../../src/audio/engine-voice.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
+import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { loadContentManifest } from '../../src/content/content-manifest.js';
-const { vehicles } = await loadVehicleDefinitions(
-  await loadContentManifest(new URL('../../delivery/', import.meta.url)),
-);
+const content = await loadContentManifest(new URL('../../delivery/', import.meta.url));
+const { vehicles } = await loadVehicleDefinitions(content, await loadEngineSounds(content));
 import { createVehicleAudioObservation } from '../../src/shell/vehicle-audio.js';
 const vehicle = mustGet<HTMLSelectElement>('vehicle');
 for (const entry of vehicles) {

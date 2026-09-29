@@ -10,7 +10,7 @@ Each concept has one owning document. Topic specifications describe the implemen
 | [Content and gameplay](content-and-gameplay.md) | Course vocabulary and schema, reference identities, topology, occurrences, Session rules, timing and recovery       |
 | [Image assets](image-assets.md)                 | Image and Sprite Tool save formats, normalization, palettes, LOD compilation and image-source admission             |
 | [Vehicle physics](vehicle-physics.md)           | Vehicle/driving and Surface Material formats, mechanical state, contact, tires, powertrain, protection and steering |
-| [Audio](audio.md)                               | Engine synthesis, acoustic observations, the sound graph and audio lifetime                                         |
+| [Audio](audio.md)                               | Engine synthesis, engine-sound documents and catalog, acoustic observations, the sound graph and audio lifetime     |
 | [Tire audio](tire-audio.md)                     | UNIFIED rolling/friction synthesis, surface sounds, signal domains and settings-replacement semantics               |
 | [Calibration](calibration.md)                   | Vehicle tuning and acoustic settings values, units, ranges and meanings                                             |
 | [Browser](browser.md)                           | Display, scheduling, keyboard/touch input, URL settings, race status, HUD and DEV controls                          |

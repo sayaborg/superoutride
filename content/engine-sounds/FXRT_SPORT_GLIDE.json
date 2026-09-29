@@ -1,0 +1,19 @@
+{
+  "format": "superoutride.engine-sound",
+  "version": 1,
+  "cycleRevolutions": 2,
+  "firingPhases": [0, 0.4375],
+  "exhaust": {
+    "banks": [0, 1],
+    "lengths": [0.72, 1.04],
+    "pipes": [
+      { "length": 0.35, "from": 0, "to": 2 },
+      { "length": 0.35, "from": 1, "to": 2 },
+      { "length": 0.75, "from": 2, "to": null }
+    ]
+  },
+  "metadata": {
+    "topology": "2-1",
+    "note": "Both headers merge into one collector and a single outlet."
+  }
+}
