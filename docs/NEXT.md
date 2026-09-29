@@ -16,22 +16,16 @@
 - Stage 10 is complete: the race owns competitor mechanics in fixed steps and publishes facts (time-ordered events,
   Route with its fork choices, borrowed competitor observations); drivers intend lanes and target exits, rival exits
   derive from the Session seed; loading coverage, recovery policy and reference identities each have one owner.
+- Stage 11 is complete: the audio scene and sound graph are separate from the browser; engine sounds, surface sounds
+  and the game-wide sound settings are content documents; every sound value is derived from physics or a DEV setting;
+  exhausts are collector graphs.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **11-12 — DEV sound controls and audio tools (move only)**.
+Next PR: **12-1 — Input composition**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
 PRs hold rationale and verification evidence. Each stage first consolidates the structure its later PRs consume.
-
-## Stage 11 — Audio
-
-Separate the audio scene from the browser and organize sound around replaceable definitions.
-
-- **11-12 — DEV sound controls and audio tools (move only):** move DEV sound-control DOM construction out of the
-  audio lifecycle; the shell's reusable DOM controls (range control, number stepper and the DEV sound panels) live
-  under `src/shell/controls/`; the audio observation factory moves to the audio layer; tools import only
-  `src/shell/dom.ts` and `src/shell/controls/` from the shell, and the dependency exception is narrowed to that rule.
 
 ## Stage 12 — Product shell
 
@@ -58,9 +52,11 @@ independently of DEV.
   rival lifetime (whole race, per stage or until a fork) and fork decider (first arrival or player) as Session rule
   components, with modes as their combinations; Cool Riders has one rival per stage, first-arrival fork choice and an
   all-rival final stage. Rival exit intent and rival strength (`rivalUtilization`) are rule data. The Session assigns
-  rival vehicles and colors deterministically, avoiding repeated vehicle/color pairs where possible.
+  rival vehicles and colors deterministically, avoiding repeated vehicle/color pairs where possible. This settles the
+  Rival intent row of the pending-decisions table.
 - **12-9 — Start procedure:** remove `updateHeldVehicle`; a held start constrains the body explicitly inside the one
-  vehicle update while the powertrain runs; READY has one meaning. Design countdown lamps and rolling starts as Session
+  vehicle update while the powertrain runs; READY has one meaning (today both the start phase and the checkpoint
+  clock have a READY state). Design countdown lamps and rolling starts as Session
   rule components in this PR.
 - **12-10 — Cameras:** define camera methods, allowing later changes and mode-specific choices. The camera is rigidly
   fixed to the player in the pseudo projection: constant player depth, pitch following the body, and height solved
@@ -76,7 +72,7 @@ independently of DEV.
   names according to the glossary. Pass the manifest-derived course list explicitly instead of the mutable
   `BROWSER_COURSE_MODES`.
 - **12-13 — Product HUD:** draw it inside the game frame from race facts, separately from DEV UI and HUD; separate
-  product and DEV observations in the render result.
+  product and DEV observations in the render result, including the performance HUD's ground (Strip) metrics.
 - **12-14 — Language:** make all UI English.
 
 ## Stage 13 — Interaction

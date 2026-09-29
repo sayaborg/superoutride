@@ -1,6 +1,10 @@
-import { CONTROL_SETTING_RANGES, resolveControlSettings, type ControlSettings } from '../audio/audio-control-policy.js';
-import { RIVAL_SETTING_RANGES, resolveRivalSettings, type RivalSettings } from '../audio/audio-scene.js';
-import { MIX_SETTING_RANGES, resolveMixSettings, type MixSettings } from '../audio/sound-graph.js';
+import {
+  CONTROL_SETTING_RANGES,
+  resolveControlSettings,
+  type ControlSettings,
+} from '../../audio/audio-control-policy.js';
+import { RIVAL_SETTING_RANGES, resolveRivalSettings, type RivalSettings } from '../../audio/audio-scene.js';
+import { MIX_SETTING_RANGES, resolveMixSettings, type MixSettings } from '../../audio/sound-graph.js';
 import { createSoundSettingsPanel, mountSoundSettingsPanel } from './sound-settings-panel.js';
 
 // Labels only: audio owns defaults, bounds and validation.

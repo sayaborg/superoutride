@@ -3,14 +3,14 @@ import { REFLECTION_REFERENCE, PIPE_COEFFICIENTS } from '../../src/audio/exhaust
 import { DEFAULT_AUDIO_SETTINGS } from '../../src/audio/audio-defaults.js';
 // The audition has no delivered audio document: it hears the implementer's defaults.
 const { exhaust: defaultExhaust, control: defaultControl } = DEFAULT_AUDIO_SETTINGS;
-import { mountEngineSoundSettings } from '../../src/shell/engine-sound-settings-controls.js';
+import { mountEngineSoundSettings } from '../../src/shell/controls/engine-sound-settings-controls.js';
 import { createEngineVoice } from '../../src/audio/engine-voice.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { loadContentManifest } from '../../src/content/content-manifest.js';
 const content = await loadContentManifest(new URL('../../delivery/', import.meta.url));
 const { vehicles } = await loadVehicleDefinitions(content, await loadEngineSounds(content));
-import { createVehicleAudioObservation } from '../../src/shell/vehicle-audio.js';
+import { createVehicleAudioObservation } from '../../src/audio/vehicle-audio-observation.js';
 const vehicle = mustGet<HTMLSelectElement>('vehicle');
 for (const entry of vehicles) {
   const option = document.createElement('option');

@@ -580,9 +580,9 @@ and worklet modules. It also examines scripts in tool HTML and resolves TypeScri
 Product source has exactly these ten directories; startup files belong to shell. Every cross-domain
 import follows the order and participates in the layer-cycle check, without product-layer exceptions.
 
-Tools use the compositions they share with the browser from race and view and import no shell module,
-except the DOM lookup used by browser tools and the audio audition tools' shell controls, which remain
-until those tools are reorganized. The dependency check enforces this.
+Tools use the compositions they share with the browser from race and view. From the shell, every tool may
+import only the DOM lookup (`src/shell/dom.ts`) and the reusable DOM controls under `src/shell/controls/`; the
+dependency check enforces this one rule.
 
 There are no other dependency exceptions. Course project sessions, text parsing/saving and reference
 production belong to `tools/course`; the product retains shared course admission, live driving policy,

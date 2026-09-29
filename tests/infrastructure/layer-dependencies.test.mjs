@@ -92,10 +92,13 @@ function checkDirection(from, to) {
       assert.ok(source === target || rank.get(target) < rank.get(source), `upward domain dependency: ${edge}`);
     }
   }
-  // Tools share race and view compositions, never the browser shell; browser tools may use its DOM
-  // lookup, and the audio audition tools' shell controls remain until their own reorganization.
-  if (from.startsWith('tools/') && !from.startsWith('tools/audio/'))
-    assert.ok(!to.startsWith('src/shell/') || /^src\/shell\/dom\.[jt]s$/.test(to), `tool depends on shell: ${edge}`);
+  // Tools share race and view compositions, never the browser shell; from the shell, every tool may use only
+  // its DOM lookup and its reusable DOM controls.
+  if (from.startsWith('tools/'))
+    assert.ok(
+      !to.startsWith('src/shell/') || /^src\/shell\/(?:dom\.[jt]s$|controls\/)/.test(to),
+      `tool depends on shell: ${edge}`,
+    );
   assert.ok(!to.startsWith('dist/'), `source imports delivery output: ${edge}`);
 }
 

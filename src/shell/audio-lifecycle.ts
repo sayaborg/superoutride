@@ -1,18 +1,8 @@
-import { mountEngineSoundSettings } from './engine-sound-settings-controls.js';
-import { mountRollingSoundSettings, mountTireSoundSettings } from './tire-sound-settings-controls.js';
-import {
-  mountMixSoundSettings,
-  mountRivalSoundSettings,
-  mountTimingSoundSettings,
-} from './mix-sound-settings-controls.js';
-import { createRangeControl } from './range-control.js';
-import { createNumberStepper } from './number-stepper.js';
-import { TIRE_COMPONENTS } from '../audio/tire-sound-components.js';
+import { mountSoundControls } from './controls/sound-controls.js';
 import { createAudioScene } from '../audio/audio-scene.js';
 import type { TireSurfaceSounds } from '../audio/surface-sounds.js';
-import { audioSettingsDocument, type AudioSettings } from '../audio/audio-document.js';
-import { downloadDefinition } from './definition-export.js';
-import { SOUND_BUSES, type SoundBus } from '../audio/sound-graph.js';
+import type { AudioSettings } from '../audio/audio-document.js';
+import { SOUND_BUSES } from '../audio/sound-graph.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
 import { createVehicleAudioEmitter, readVehicleAudio } from './vehicle-audio.js';
@@ -22,35 +12,15 @@ const GESTURE_EVENTS = ['pointerdown', 'pointerup', 'touchend', 'keydown'] as co
 
 /** DOM, permission and failure boundary. Presentation updates fail closed without stopping gameplay. */
 /**
- * Every competitor drives the Session vehicle, so player and rival engines use its sound. The DEV sound panels
- * start from, and reset to, the delivered audio document's `settings`; the export saves their current values.
+ * Every competitor drives the Session vehicle, so player and rival engines use its sound. The DEV sound controls
+ * start from the delivered audio document's `settings`; this lifecycle syncs their values to the scene and owns the
+ * AudioContext.
  */
 export function createAudioLifecycle(
   sessionVehicle: CompiledVehicleDefinition,
   surfaces: TireSurfaceSounds,
   settings: AudioSettings,
 ) {
-  const button = document.getElementById('sound-toggle');
-  const volumeContainer = document.getElementById('sound-volume');
-  const componentState = { rolling: true, friction: true };
-  const componentHost = document.getElementById('tire-component-controls');
-  const componentButtons = TIRE_COMPONENTS.map(({ key, label, description }) => {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'selector-button';
-    button.id = `tire-component-${key}`;
-    const toggle = (): void => {
-      if (disposed || !supported) return;
-      componentState[key] = !componentState[key];
-      showComponents();
-      unlock();
-      sync();
-    };
-    button.addEventListener('click', toggle);
-    button.addEventListener('keydown', tireKey);
-    componentHost?.appendChild(button);
-    return { key, label, description, button, toggle };
-  });
   let context: AudioContext | null = null;
   let scene: Awaited<ReturnType<typeof createAudioScene>> | null = null;
   let loading: Promise<void> | null = null;
@@ -58,95 +28,22 @@ export function createAudioLifecycle(
     active = true,
     disposed = false;
   let failed = false;
-  let volume = 0.35;
-  const busVolumes: Record<SoundBus, number> = { engine: 1, tire: 1 };
   const playerEmitter = createVehicleAudioEmitter();
   const rivalEmitters: ReturnType<typeof createVehicleAudioEmitter>[] = [];
   const presentRivals: ReturnType<typeof createVehicleAudioEmitter>[] = [];
   const supported = typeof AudioContext !== 'undefined' && typeof AudioWorkletNode !== 'undefined';
-  if (button) {
-    showSoundState();
-    if (!supported) button.setAttribute('disabled', '');
-  }
-  const engineSoundContainer = document.getElementById('engine-sound-settings');
-  const engineSoundSettings = engineSoundContainer
-    ? mountEngineSoundSettings(engineSoundContainer, settings.exhaust, () => {
-        unlock();
-        sync();
-      })
-    : null;
-  const volumeControl = volumeContainer
-    ? createNumberStepper({
-        label: '音量',
-        min: 0,
-        max: 100,
-        step: 1,
-        value: volume * 100,
-        format: (value) => `${value}%`,
-        onChange(value) {
-          volume = value / 100;
-          unlock();
-          sync();
-        },
-      })
-    : null;
-  if (volumeControl) volumeContainer!.replaceChildren(volumeControl.group);
-  const mixControls = SOUND_BUSES.flatMap((bus) => {
-    const host = document.getElementById(`${bus}-volume`);
-    if (!host) return [];
-    const control = createRangeControl(
-      `${bus === 'engine' ? 'ENG' : 'TIRE'} 音量`,
-      { min: 0, max: 100, step: 1 },
-      100,
-      (value) => {
-        busVolumes[bus] = value / 100;
-        unlock();
-        sync();
-      },
-      '%',
-    );
-    host.replaceChildren(control.group);
-    return { host, control };
+  const controls = mountSoundControls(document, settings, {
+    onChange() {
+      unlock();
+      sync();
+    },
+    onToggle: toggle,
   });
-  const tireSoundSettingsHost = document.getElementById('tire-sound-settings');
-  const tireSoundSettings = tireSoundSettingsHost
-    ? mountTireSoundSettings(tireSoundSettingsHost, settings.unified, () => {
-        unlock();
-        sync();
-      })
-    : null;
-  const mountHost = <S, P>(
-    id: string,
-    initial: S,
-    mount: (host: HTMLElement, initial: S, onChange: () => void) => P,
-  ): P | null => {
-    const host = document.getElementById(id);
-    return host
-      ? mount(host, initial, () => {
-          unlock();
-          sync();
-        })
-      : null;
-  };
-  const mixSettings = mountHost('mix-sound-settings', settings.mix, mountMixSoundSettings);
-  const timingSettings = mountHost('timing-sound-settings', settings.control, mountTimingSoundSettings);
-  const rivalSettings = mountHost('rival-sound-settings', settings.rival, mountRivalSoundSettings);
-  const rollingSettings = mountHost('rolling-sound-settings', settings.rolling, mountRollingSoundSettings);
-  // The current values of every panel; a missing panel keeps the document's record.
-  const currentSettings = (): AudioSettings => ({
-    exhaust: engineSoundSettings?.read() ?? settings.exhaust,
-    unified: tireSoundSettings?.read() ?? settings.unified,
-    rolling: rollingSettings?.read() ?? settings.rolling,
-    mix: mixSettings?.read() ?? settings.mix,
-    control: timingSettings?.read() ?? settings.control,
-    rival: rivalSettings?.read() ?? settings.rival,
-  });
-  const exportButton = document.getElementById('export-audio-button');
-  const exportAudio = (): void => downloadDefinition('default.json', audioSettingsDocument(currentSettings()));
-  exportButton?.addEventListener('click', exportAudio);
+  controls.setEnabled(supported);
+  showSoundState();
   function showSoundState(): void {
-    if (!button || disposed) return;
-    button.textContent = !supported
+    if (disposed) return;
+    const text = !supported
       ? 'SOUND UNAVAILABLE'
       : failed
         ? 'SOUND RETRY'
@@ -157,28 +54,8 @@ export function createAudioLifecycle(
             : scene
               ? 'SOUND ON'
               : 'SOUND…';
-    button.setAttribute('aria-pressed', String(enabled && supported));
+    controls.showSoundState(text, enabled && supported);
   }
-  function showComponents(): void {
-    componentHost?.setAttribute(
-      'aria-label',
-      `Tire sound components: ${TIRE_COMPONENTS.map(({ label, description }) => `${label} ${description}`).join(', ')}`,
-    );
-    for (const { key, label, description, button } of componentButtons) {
-      const on = componentState[key];
-      button.textContent = `${label}: ${on ? 'ON' : 'OFF'}`;
-      button.setAttribute('aria-pressed', String(on));
-      button.setAttribute('aria-label', `${description}: ${on ? 'on' : 'off'}.`);
-      button.title = `${label}: ${description}. Both axles. Other components are not normalized.`;
-      button.disabled = !supported;
-    }
-  }
-  function tireKey(event: Event): void {
-    event.stopPropagation();
-  }
-  showComponents();
-  for (const panel of [tireSoundSettings, rollingSettings, mixSettings, timingSettings, rivalSettings])
-    panel?.setEnabled(supported);
   function audible(): boolean {
     return enabled && active && !document.hidden && !disposed;
   }
@@ -219,7 +96,7 @@ export function createAudioLifecycle(
     showSoundState();
     if (!context || !scene) return;
     try {
-      const current = currentSettings();
+      const { settings: current, volume, busVolumes, components } = controls.read();
       scene.setControlSettings(current.control);
       scene.setMixSettings(current.mix);
       scene.setRivalSettings(current.rival);
@@ -227,14 +104,14 @@ export function createAudioLifecycle(
       scene.setTireSettings(current.unified);
       scene.setRollingSettings(current.rolling);
       for (const bus of SOUND_BUSES) scene.setBusGain(bus, busVolumes[bus]);
-      scene.setTireComponents(componentState);
+      scene.setTireComponents(components);
       scene.setMasterGain(audible() ? volume : 0);
       if (!active || document.hidden || disposed) void context.suspend().catch(() => {});
       else if (!enabled)
         suspendTimer = setTimeout(() => {
           suspendTimer = null;
           if (!audible()) void context?.suspend().catch(() => {});
-        }, currentSettings().control.transitionSeconds * 1000);
+        }, current.control.transitionSeconds * 1000);
     } catch {
       fail();
     }
@@ -268,7 +145,7 @@ export function createAudioLifecycle(
   }
   function unlock(event?: Event): void {
     if (event?.type === 'pointerdown' && (event as PointerEvent).pointerType !== 'mouse') return;
-    if (event?.target === button || !supported || !audible()) return;
+    if (controls.isSoundToggle(event?.target ?? null) || !supported || !audible()) return;
     if (!context && !loading) {
       const pending = initialize();
       loading = pending;
@@ -313,32 +190,13 @@ export function createAudioLifecycle(
     window.removeEventListener('pagehide', hide);
     window.removeEventListener('pageshow', show);
     document.removeEventListener('visibilitychange', visibility);
-    button?.removeEventListener('click', toggle);
-    exportButton?.removeEventListener('click', exportAudio);
-    for (const { button, toggle } of componentButtons) {
-      button.removeEventListener('click', toggle);
-      button.removeEventListener('keydown', tireKey);
-    }
-    componentHost?.replaceChildren();
-    volumeControl?.dispose();
-    volumeContainer?.replaceChildren();
-    engineSoundSettings?.dispose();
-    tireSoundSettings?.dispose();
-    mixSettings?.dispose();
-    timingSettings?.dispose();
-    rivalSettings?.dispose();
-    rollingSettings?.dispose();
-    for (const { host, control } of mixControls) {
-      control.dispose();
-      host.replaceChildren();
-    }
+    controls.dispose();
     releaseAudio();
   }
   for (const type of GESTURE_EVENTS) window.addEventListener(type, unlock);
   window.addEventListener('pagehide', hide);
   window.addEventListener('pageshow', show);
   document.addEventListener('visibilitychange', visibility);
-  button?.addEventListener('click', toggle);
   return {
     update(player: CompetitorObservation, rivals: readonly CompetitorObservation[]): void {
       if (!scene || !context || context.state !== 'running' || !audible()) return;

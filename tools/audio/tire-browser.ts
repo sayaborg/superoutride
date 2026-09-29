@@ -1,7 +1,6 @@
-import type { TireAudioObservation } from '../../src/audio/vehicle-audio-observation.js';
 import { mustGet } from '../../src/shell/dom.js';
 import { createTireVoice } from '../../src/audio/tire-voice.js';
-import { createVehicleAudioObservation } from '../../src/shell/vehicle-audio.js';
+import { createVehicleAudioObservation, type TireAudioObservation } from '../../src/audio/vehicle-audio-observation.js';
 import { TIRE_AUDITION_PHASES as phases, TIRE_AUDITION_SECONDS as seconds } from './tire-scenarios.js';
 import { resolveSurfaceSoundRecords } from '../../src/audio/surface-sounds.js';
 import { loadContentManifest } from '../../src/content/content-manifest.js';

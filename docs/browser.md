@@ -164,8 +164,10 @@ A zero gain silences that output while DSP continues. R and Q buttons (`tire-com
 and friction output for both axles. Their labels and pressed states show ON/OFF, and unavailable audio
 disables them. [Tire audio](tire-audio.md#settings-replacement) owns faded output and replacement semantics.
 
-DEV sound settings come in groups, each with its own reset; page/course reload restores defaults and vehicle changes
-preserve them:
+The shell's reusable DOM controls ([`src/shell/controls/`](../src/shell/controls/)) build these sound controls
+(`mountSoundControls`); the audio lifecycle only syncs their values to the scene and owns the AudioContext.
+DEV sound settings come in groups, each with its own reset to the audio document's values; page/course reload
+restores those values and vehicle changes preserve them:
 
 - **ENGINE** (`engine-sound-settings`): fifteen minus/plus controls for the exhaust settings; buttons stop at limits.
 - **MIX** (`mix-sound-settings`): the master compressor.

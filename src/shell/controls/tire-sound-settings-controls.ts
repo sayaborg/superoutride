@@ -2,12 +2,12 @@ import {
   UNIFIED_SETTING_RANGES,
   resolveUnifiedSettings,
   type UnifiedSettings,
-} from '../audio/tire-unified-acoustics.js';
+} from '../../audio/tire-unified-acoustics.js';
 import {
   ROLLING_SETTING_RANGES,
   resolveRollingSettings,
   type RollingSettings,
-} from '../audio/tire-rolling-acoustics.js';
+} from '../../audio/tire-rolling-acoustics.js';
 import { createSoundSettingsPanel, mountSoundSettingsPanel } from './sound-settings-panel.js';
 
 // Labels only: audio owns defaults, bounds and validation. These are not physical tire settings.

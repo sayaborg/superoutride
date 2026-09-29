@@ -13,7 +13,7 @@ Each concept has one owning document. Topic specifications describe the implemen
 | [Audio](audio.md)                               | Engine synthesis, engine-sound and audio documents, acoustic observations, the sound graph and audio lifetime       |
 | [Tire audio](tire-audio.md)                     | UNIFIED rolling/friction synthesis, the surface-sound document, signal domains and settings-replacement semantics   |
 | [Calibration](calibration.md)                   | Vehicle tuning and acoustic settings values, units, ranges and meanings                                             |
-| [Browser](browser.md)                           | Display, scheduling, keyboard/touch input, URL settings, race status, HUD and DEV controls                          |
+| [Browser](browser.md)                           | Display, scheduling, keyboard/touch input, URL settings, race status, HUD and DEV controls (`src/shell/controls/`)  |
 | [Development](development.md)                   | Commands, audition workflow, source-file conventions and generated/delivered outputs                                |
 | [Development contract](../AGENTS.md)            | Design and construction conventions, standing checks and release procedure                                          |
 | [NEXT](NEXT.md)                                 | Restart point, future requirements, production selections and ordered work                                          |

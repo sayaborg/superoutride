@@ -29,3 +29,31 @@ export interface VehicleAudioObservation {
   readonly front: TireAudioObservation;
   readonly rear: TireAudioObservation;
 }
+
+/** A zeroed observation that its owner fills in place, once per presented frame. */
+export type Mutable<T> = { -readonly [Key in keyof T]: T[Key] };
+export type MutableVehicleAudioObservation = Mutable<Omit<VehicleAudioObservation, 'shift' | 'front' | 'rear'>> & {
+  shift: Mutable<ShiftAudioObservation>;
+  front: Mutable<TireAudioObservation>;
+  rear: Mutable<TireAudioObservation>;
+};
+export function createVehicleAudioObservation(): MutableVehicleAudioObservation {
+  const tire = (): Mutable<TireAudioObservation> => ({
+    longitudinalVelocity: 0,
+    lateralVelocity: 0,
+    wheelSpeed: 0,
+    wheelAngularSpeed: 0,
+    load: 0,
+    longitudinalPower: 0,
+    lateralPower: 0,
+    surface: null,
+  });
+  return {
+    rpm: 0,
+    effectiveOpening: 0,
+    fuelCut: false,
+    shift: { sequence: 0, direction: 'NONE', fromRpm: 0, toRpm: 0 },
+    front: tire(),
+    rear: tire(),
+  };
+}

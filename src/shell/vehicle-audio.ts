@@ -1,38 +1,13 @@
-import type {
-  ShiftAudioObservation,
-  TireAudioObservation,
-  VehicleAudioObservation,
+import {
+  createVehicleAudioObservation,
+  type Mutable,
+  type MutableVehicleAudioObservation,
+  type VehicleAudioObservation,
 } from '../audio/vehicle-audio-observation.js';
 import type { VehicleAudioEmitter } from '../audio/audio-scene.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
 
-type Mutable<T> = { -readonly [Key in keyof T]: T[Key] };
-type Observation = Mutable<Omit<VehicleAudioObservation, 'shift' | 'front' | 'rear'>> & {
-  shift: Mutable<ShiftAudioObservation>;
-  front: Mutable<TireAudioObservation>;
-  rear: Mutable<TireAudioObservation>;
-};
-export function createVehicleAudioObservation(): Observation {
-  const tire = (): Mutable<TireAudioObservation> => ({
-    longitudinalVelocity: 0,
-    lateralVelocity: 0,
-    wheelSpeed: 0,
-    wheelAngularSpeed: 0,
-    load: 0,
-    longitudinalPower: 0,
-    lateralPower: 0,
-    surface: null,
-  });
-  return {
-    rpm: 0,
-    effectiveOpening: 0,
-    fuelCut: false,
-    shift: { sequence: 0, direction: 'NONE', fromRpm: 0, toRpm: 0 },
-    front: tire(),
-    rear: tire(),
-  };
-}
-type Emitter = Observation & Mutable<Omit<VehicleAudioEmitter, keyof VehicleAudioObservation>>;
+type Emitter = MutableVehicleAudioObservation & Mutable<Omit<VehicleAudioEmitter, keyof VehicleAudioObservation>>;
 export function createVehicleAudioEmitter(): Emitter {
   return { ...createVehicleAudioObservation(), id: '', x: 0, y: 0, z: 0, yaw: 0 };
 }

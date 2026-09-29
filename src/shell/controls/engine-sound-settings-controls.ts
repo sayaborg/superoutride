@@ -1,5 +1,5 @@
-import { EXHAUST_SETTING_RANGES } from '../audio/exhaust-acoustics.js';
-import type { ExhaustSettings } from '../audio/exhaust-acoustics.js';
+import { EXHAUST_SETTING_RANGES } from '../../audio/exhaust-acoustics.js';
+import type { ExhaustSettings } from '../../audio/exhaust-acoustics.js';
 import { createNumberStepper } from './number-stepper.js';
 
 // Presentation owns labels/order only. Acoustic settings own all numeric domains and steps.
