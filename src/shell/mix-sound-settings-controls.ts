@@ -29,20 +29,29 @@ const RIVAL_LABELS = {
   reassignmentSeconds: ['ライバル切り替えの待ち', 's'],
 } as const satisfies Record<keyof RivalSettings, readonly [string, string]>;
 
-export function mountMixSoundSettings(host: HTMLElement, onChange: () => void) {
+export function mountMixSoundSettings(host: HTMLElement, initial: MixSettings, onChange: () => void) {
   return mountSoundSettingsPanel(
     host,
-    createSoundSettingsPanel('MIX', MIX_SETTING_RANGES, resolveMixSettings, MIX_LABELS, onChange, 'MIXを初期値に戻す'),
+    createSoundSettingsPanel(
+      'MIX',
+      MIX_SETTING_RANGES,
+      resolveMixSettings,
+      initial,
+      MIX_LABELS,
+      onChange,
+      'MIXを初期値に戻す',
+    ),
   );
 }
 
-export function mountTimingSoundSettings(host: HTMLElement, onChange: () => void) {
+export function mountTimingSoundSettings(host: HTMLElement, initial: ControlSettings, onChange: () => void) {
   return mountSoundSettingsPanel(
     host,
     createSoundSettingsPanel(
       'TIMING',
       CONTROL_SETTING_RANGES,
       resolveControlSettings,
+      initial,
       TIMING_LABELS,
       onChange,
       'TIMINGを初期値に戻す',
@@ -50,13 +59,14 @@ export function mountTimingSoundSettings(host: HTMLElement, onChange: () => void
   );
 }
 
-export function mountRivalSoundSettings(host: HTMLElement, onChange: () => void) {
+export function mountRivalSoundSettings(host: HTMLElement, initial: RivalSettings, onChange: () => void) {
   return mountSoundSettingsPanel(
     host,
     createSoundSettingsPanel(
       'RIVAL',
       RIVAL_SETTING_RANGES,
       resolveRivalSettings,
+      initial,
       RIVAL_LABELS,
       onChange,
       'RIVALを初期値に戻す',

@@ -1,6 +1,7 @@
 import type { SessionVehicle } from '../content/session-vehicle.js';
 import { createAudioLifecycle } from './audio-lifecycle.js';
 import type { TireSurfaceSounds } from '../audio/surface-sounds.js';
+import type { AudioSettings } from '../audio/audio-document.js';
 import { createDrivingLifecycle, type DrivingLifecycleOptions } from './driving-lifecycle.js';
 import type { CameraRig } from '../view/camera.js';
 import { createCameraRig, setCameraYawMode, type CameraState } from '../view/camera.js';
@@ -51,6 +52,7 @@ interface BrowserDrivingShell {
 export function createBrowserDrivingShell(
   sessionVehicle: SessionVehicle,
   surfaceSounds: TireSurfaceSounds,
+  audioSettings: AudioSettings,
 ): BrowserDrivingShell {
   const canvas = mustGet<HTMLCanvasElement>('game');
   canvas.width = LOGICAL_WIDTH;
@@ -68,7 +70,7 @@ export function createBrowserDrivingShell(
   const sessionVehicleId = sessionVehicleDefinition.compiledVehicle.id;
   const cameraRig = createCameraRig();
 
-  const audio = createAudioLifecycle(sessionVehicleDefinition, surfaceSounds);
+  const audio = createAudioLifecycle(sessionVehicleDefinition, surfaceSounds, audioSettings);
   let loop: FrameLoop | null = null;
   window.addEventListener('pagehide', () => {
     loop?.stop();

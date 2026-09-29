@@ -21,11 +21,12 @@ import { courseFileId, courseFileSha256 } from '../course/course-file-id.js';
 import { compileSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 import { resolveSurfaceSoundRecords, SURFACE_SOUNDS } from '../../src/audio/surface-sounds.js';
 import { compileSurfaceSounds } from '../../src/content/surface-sound-catalog.js';
+import { compileAudioSettings } from '../../src/content/audio-catalog.js';
 import { compileVehicleSpriteLibrary } from '../graphics/vehicle-sprite-library.js';
 
 /**
  * The content build: every delivered file is compiled from authored documents in dependency order,
- * in one pass: vehicle sprite library, materials, surface sounds, engine sounds, vehicle and driving definitions, courses and their
+ * in one pass: vehicle sprite library, materials, surface sounds, audio settings, engine sounds, vehicle and driving definitions, courses and their
  * images, then reference runs. Each compile stage receives earlier products directly. Reference workers
  * are the exception: they run in separate threads and read this build's saved content until 14-5.
  */
@@ -80,6 +81,10 @@ for (const id of new Set([...Object.keys(SURFACE_SOUNDS), ...Object.keys(surface
   if (!isDeepStrictEqual(surfaceSounds.surfaces[id], SURFACE_SOUNDS[id]))
     throw new Error(`Surface sound document differs from SURFACE_SOUNDS: ${id}`);
 await deliver('surface-sound', surfaceSoundSources);
+
+const audioSources = await sources('audio');
+requireLoaded(compileAudioSettings(audioSources));
+await deliver('audio', audioSources);
 
 const soundSources = await sources('engine-sounds');
 const sounds = requireLoaded(compileEngineSounds(soundSources));

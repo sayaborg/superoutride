@@ -46,13 +46,14 @@ const ROLLING_LABELS = {
   dcHz: ['転がり音RのDC除去', 'Hz'],
 } as const satisfies Record<keyof RollingSettings, readonly [string, string]>;
 
-export function mountTireSoundSettings(container: HTMLElement, onChange: () => void) {
+export function mountTireSoundSettings(container: HTMLElement, initial: UnifiedSettings, onChange: () => void) {
   return mountSoundSettingsPanel(
     container,
     createSoundSettingsPanel(
       'UNIFIED · 摩擦音Q',
       UNIFIED_SETTING_RANGES,
       resolveUnifiedSettings,
+      initial,
       UNIFIED_LABELS,
       onChange,
       'UNIFIEDを初期値に戻す',
@@ -60,13 +61,14 @@ export function mountTireSoundSettings(container: HTMLElement, onChange: () => v
   );
 }
 
-export function mountRollingSoundSettings(container: HTMLElement, onChange: () => void) {
+export function mountRollingSoundSettings(container: HTMLElement, initial: RollingSettings, onChange: () => void) {
   return mountSoundSettingsPanel(
     container,
     createSoundSettingsPanel(
       'ROLLING · 転がり音R',
       ROLLING_SETTING_RANGES,
       resolveRollingSettings,
+      initial,
       ROLLING_LABELS,
       onChange,
       'ROLLINGを初期値に戻す',

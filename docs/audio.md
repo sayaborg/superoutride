@@ -135,8 +135,22 @@ The derivation uses `c=sqrt(gamma*R*T)`, the open-end negative reflection limit,
 The resulting loss is about 0.034 Np/m before rounding.
 
 Every other value is a DEV setting in one of the groups ENGINE (`ExhaustSettings`), MIX (`MixSettings`),
-TIMING (`ControlSettings`), RIVAL (`RivalSettings`) and the tire groups; defaults are the implementer's initial
-values, not values chosen by listening, and [Calibration](calibration.md) lists them.
+TIMING (`ControlSettings`), RIVAL (`RivalSettings`) and the tire groups UNIFIED (`UnifiedSettings`) and ROLLING
+(`RollingSettings`); the values are the implementer's, not values chosen by listening, and
+[Calibration](calibration.md) lists them.
+
+## Audio document
+
+The game's source of these six records is content: `content/audio/default.json` is the one `superoutride.audio`
+version 1 document (manifest kind `audio`, ID `default`) with exactly the fields `format`, `version`, `exhaust`,
+`unified`, `rolling`, `mix`, `control` and `rival`, each holding every field of its record as a number.
+[`compileAudioDocument`](../src/audio/audio-document.ts) checks format, version and shapes with the admission
+toolkit and leaves value validation to each record's resolver (`resolveExhaustSettings` and the others); a resolver's
+`RangeError` becomes an `invalid_value` diagnostic at the field it names, such as `/exhaust/pulseRiseMs`. The
+content layer ([audio catalog](../src/content/audio-catalog.ts)) admits and delivers it, and the shell loads it
+at startup: the DEV sound panels and the scene's first sync start from its values, each panel's reset returns to
+them, and the DEV export saves the panels' current values in the same format. The `DEFAULT_*` records, gathered in
+`DEFAULT_AUDIO_SETTINGS`, serve only assemblies without the document, the audition tools.
 
 ## Mix and lifetime
 

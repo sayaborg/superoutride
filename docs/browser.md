@@ -133,6 +133,8 @@ and no envelope or time budgets, on a new Route runtime from the grid. It enters
 status reads `TUNED`. The shell, its input, audio, camera device and DEV controls persist, and the shell keeps the
 tuned definition for further adjustments and export. Reloading the page restores the product Session. EXPORT saves the tuned
 driving definition (`default.json`) and the Session vehicle's definition (`<vehicle id>.json`) as browser downloads in the saved layout;
+its `audio/default.json` button (音の設定を書き出す) saves the DEV sound panels' current values as the
+[audio document](audio.md#audio-document) (`default.json`);
 [Calibration](calibration.md#vehicle-settings) describes adopting them as content. The selectable
 body-yaw and movement-yaw cameras use the same projection.
 [Calibration](calibration.md#vehicle-settings) lists values, units and ranges.

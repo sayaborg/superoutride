@@ -18,7 +18,7 @@
   derive from the Session seed; loading coverage, recovery policy and reference identities each have one owner.
 - TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
 
-Next PR: **11-10c — Audio document and DEV export**.
+Next PR: **11-11 — Sound tables (delete)**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -28,9 +28,9 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Separate the audio scene from the browser and organize sound around replaceable definitions.
 
-- **11-10c — Audio document and DEV export:** one game-wide audio document (kind `audio`) carrying the exhaust,
-  UNIFIED, rolling, mix, control and rival settings; the shell applies it at startup; the DEV sound panels export it.
-- **11-11 — Sound tables (delete):** remove the TypeScript sound tables and the startup completeness check.
+- **11-11 — Sound tables (delete):** remove the TypeScript tables `ENGINE_SOUNDS` and `SURFACE_SOUNDS`, the build's
+  consistency checks against them, and the `DEFAULT_*` records that duplicate the audio document (gathered in
+  `DEFAULT_AUDIO_SETTINGS`).
 - **11-12 — DEV sound controls and audio tools (move only):** move DEV sound-control DOM construction out of the
   audio lifecycle; the shell's reusable DOM controls (range control, number stepper and the DEV sound panels) live
   under `src/shell/controls/`; the audio observation factory moves to the audio layer; tools import only

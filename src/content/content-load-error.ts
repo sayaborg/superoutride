@@ -12,7 +12,8 @@ export type ContentKind =
   | 'driving'
   | 'material'
   | 'engine-sound'
-  | 'surface-sound';
+  | 'surface-sound'
+  | 'audio';
 
 /** A required delivered or built file is absent from the content manifest. */
 export interface MissingContentDiagnostic {

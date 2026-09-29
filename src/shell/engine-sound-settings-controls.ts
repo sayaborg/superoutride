@@ -1,4 +1,4 @@
-import { DEFAULT_EXHAUST_SETTINGS, EXHAUST_SETTING_RANGES } from '../audio/exhaust-acoustics.js';
+import { EXHAUST_SETTING_RANGES } from '../audio/exhaust-acoustics.js';
 import type { ExhaustSettings } from '../audio/exhaust-acoustics.js';
 import { createNumberStepper } from './number-stepper.js';
 
@@ -86,12 +86,14 @@ const CONTROLS = [
   ],
 ] as const;
 
+/** Starts from, and resets to, `initial`: the delivered audio document's exhaust record. */
 export function mountEngineSoundSettings(
   container: HTMLElement,
+  initial: ExhaustSettings,
   onChange: (settings: ExhaustSettings) => void,
   documentRef: Document = document,
 ) {
-  const settings = { ...DEFAULT_EXHAUST_SETTINGS };
+  const settings = { ...initial };
   const steppers = new Map<keyof typeof settings, ReturnType<typeof createNumberStepper>>();
   const listeners: (() => void)[] = [];
   const listen = (element: HTMLElement, type: string, handler: (event: Event) => void) => {
@@ -133,7 +135,7 @@ export function mountEngineSoundSettings(
   reset.className = 'selector-button sound-settings-reset';
   reset.textContent = 'デフォルトに戻す';
   listen(reset, 'click', () => {
-    Object.assign(settings, DEFAULT_EXHAUST_SETTINGS);
+    Object.assign(settings, initial);
     for (const [key, control] of steppers) control.setValue(settings[key]);
     onChange({ ...settings });
   });
