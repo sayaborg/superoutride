@@ -41,9 +41,7 @@ with the admission toolkit and leaves value validation to `compileEngineSound`; 
 the sound ID and the delivered bytes' SHA-256. Firing phases are used exactly as written. The content layer
 ([engine-sound catalog](../src/content/engine-sound-catalog.ts)) admits every document, delivers it as kind
 `engine-sound` and passes the catalog to the vehicle catalog, whose listings resolve their `sound` in it; the
-same sample-free engine kernel plays every sound. Until 11-11 removes the
-[TypeScript table](../src/vehicle/engine-sounds.ts), the content build rejects a document whose compiled values
-differ from it.
+same sample-free engine kernel plays every sound.
 
 ## Engine synthesis
 
@@ -149,8 +147,9 @@ toolkit and leaves value validation to each record's resolver (`resolveExhaustSe
 `RangeError` becomes an `invalid_value` diagnostic at the field it names, such as `/exhaust/pulseRiseMs`. The
 content layer ([audio catalog](../src/content/audio-catalog.ts)) admits and delivers it, and the shell loads it
 at startup: the DEV sound panels and the scene's first sync start from its values, each panel's reset returns to
-them, and the DEV export saves the panels' current values in the same format. The `DEFAULT_*` records, gathered in
-`DEFAULT_AUDIO_SETTINGS`, serve only assemblies without the document, the audition tools.
+them, and the DEV export saves the panels' current values in the same format. [`DEFAULT_AUDIO_SETTINGS`](../src/audio/audio-defaults.ts)
+is the one set of default values: each resolver fills omitted fields from it, and it serves assemblies without the
+document, the audition tools.
 
 ## Mix and lifetime
 

@@ -1,7 +1,5 @@
 import { compileVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { compileEngineSounds } from '../../src/content/engine-sound-catalog.js';
-import { ENGINE_SOUNDS } from '../../src/vehicle/engine-sounds.js';
-import { isDeepStrictEqual } from 'node:util';
 import { requireLoaded } from '../../src/content/content-load-error.js';
 import { authoredDocumentSource, type DocumentSource } from '../../src/content/document-catalog.js';
 import type { ContentKind } from '../../src/content/content-load-error.js';
@@ -19,7 +17,7 @@ import { compileCourseImages } from '../course/compile-course-images.js';
 import { readCourseImages } from '../course/read-course-images.js';
 import { courseFileId, courseFileSha256 } from '../course/course-file-id.js';
 import { compileSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
-import { resolveSurfaceSoundRecords, SURFACE_SOUNDS } from '../../src/audio/surface-sounds.js';
+import { resolveSurfaceSoundRecords } from '../../src/audio/surface-sounds.js';
 import { compileSurfaceSounds } from '../../src/content/surface-sound-catalog.js';
 import { compileAudioSettings } from '../../src/content/audio-catalog.js';
 import { compileVehicleSpriteLibrary } from '../graphics/vehicle-sprite-library.js';
@@ -76,10 +74,6 @@ resolveSurfaceSoundRecords(
   surfaceSounds,
   materials.source.materials.map((material) => material.id),
 );
-// Until 11-11 deletes the TypeScript table, the document must reproduce it exactly.
-for (const id of new Set([...Object.keys(SURFACE_SOUNDS), ...Object.keys(surfaceSounds.surfaces)]))
-  if (!isDeepStrictEqual(surfaceSounds.surfaces[id], SURFACE_SOUNDS[id]))
-    throw new Error(`Surface sound document differs from SURFACE_SOUNDS: ${id}`);
 await deliver('surface-sound', surfaceSoundSources);
 
 const audioSources = await sources('audio');
@@ -88,18 +82,6 @@ await deliver('audio', audioSources);
 
 const soundSources = await sources('engine-sounds');
 const sounds = requireLoaded(compileEngineSounds(soundSources));
-// Until 11-11 deletes the TypeScript table, the documents must reproduce it exactly.
-const table: Readonly<Record<string, unknown>> = ENGINE_SOUNDS;
-for (const id of new Set([...Object.keys(table), ...Object.keys(sounds)])) {
-  const sound = sounds[id];
-  const values = sound && {
-    cycleRevolutions: sound.cycleRevolutions,
-    firingPhases: sound.firingPhases,
-    exhaust: sound.exhaust,
-  };
-  if (!Object.hasOwn(table, id) || !isDeepStrictEqual(values, table[id]))
-    throw new Error(`Engine sound document differs from ENGINE_SOUNDS: ${id}`);
-}
 await deliver('engine-sound', soundSources);
 
 const vehicleSources = await sources('vehicles'),

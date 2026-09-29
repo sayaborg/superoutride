@@ -37,8 +37,7 @@ material and more than `SURFACE_SOUND_LIMIT` (256, the `surfaceIndex` transport 
 build applies it before delivery and the game at startup. The voice looks up each observed material's number in
 the catalog order; the worklet receives the records at construction and in every settings message
 (`{ settings, rolling, control, surfaces }`), re-checks them and replaces its kernels when they change, and the
-kernels read them by number. Until 11-11 removes the TypeScript table `SURFACE_SOUNDS`, the content build
-rejects a document that differs from it.
+kernels read them by number.
 
 ## Rolling synthesis
 

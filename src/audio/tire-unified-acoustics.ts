@@ -1,3 +1,4 @@
+import { DEFAULT_AUDIO_SETTINGS } from './audio-defaults.js';
 /**
  * UNIFIED is an authored acoustic surrogate, NOT a local rubber/contact solve, so no value derives from physics:
  * every sound value is a listening setting (`UnifiedSettings`). Only the random seeds are structural constants.
@@ -8,29 +9,29 @@ export const UNIFIED_SYNTHESIS = Object.freeze({
 });
 
 /**
- * Listening settings on the DEV UNIFIED panel: authored audition bounds, NOT measured tire ranges. Defaults are the
- * implementer's initial values. Frequencies and rates describe the normalized sound model, never vehicle physics.
+ * Listening settings on the DEV UNIFIED panel: authored audition bounds, NOT measured tire ranges. Defaults are in
+ * `DEFAULT_AUDIO_SETTINGS`. Frequencies and rates describe the normalized sound model, never vehicle physics.
  */
 export const UNIFIED_SETTING_RANGES = Object.freeze({
-  feedbackMaximumPerSecond: { min: 2000, max: 12000, step: 100, defaultValue: 8500 },
-  powerReferenceWatts: { min: 3000, max: 30000, step: 500, defaultValue: 12000 },
-  noiseForcePerSecond: { min: 0, max: 2400, step: 25, defaultValue: 1200 },
-  lowFrequencyHz: { min: 275, max: 600, step: 5, defaultValue: 300 },
-  highFrequencyHz: { min: 800, max: 2400, step: 25, defaultValue: 1000 },
+  feedbackMaximumPerSecond: { min: 2000, max: 12000, step: 100 },
+  powerReferenceWatts: { min: 3000, max: 30000, step: 500 },
+  noiseForcePerSecond: { min: 0, max: 2400, step: 25 },
+  lowFrequencyHz: { min: 275, max: 600, step: 5 },
+  highFrequencyHz: { min: 800, max: 2400, step: 25 },
   // Displacement pickup gain; normalized modal displacement is not metres or acoustic pressure.
-  outputGainPerSecond: { min: 0, max: 1800, step: 25, defaultValue: 900 },
+  outputGainPerSecond: { min: 0, max: 1800, step: 25 },
   // Cubic feedback dissipation.
-  saturationPerSecond: { min: 3000, max: 12000, step: 100, defaultValue: 6000 },
-  slipHalfMps: { min: 1, max: 12, step: 0.25, defaultValue: 3 },
-  slipRolloffMps: { min: 20, max: 80, step: 1, defaultValue: 45 },
+  saturationPerSecond: { min: 3000, max: 12000, step: 100 },
+  slipHalfMps: { min: 1, max: 12, step: 0.25 },
+  slipRolloffMps: { min: 20, max: 80, step: 1 },
   // Colored-force bandwidth.
-  noiseBandwidthHz: { min: 100, max: 2000, step: 25, defaultValue: 600 },
-  outputCutoffHz: { min: 1000, max: 12000, step: 100, defaultValue: 8000 },
+  noiseBandwidthHz: { min: 100, max: 2000, step: 25 },
+  outputCutoffHz: { min: 1000, max: 12000, step: 100 },
   // Damping of both passive modes; resolution keeps each mode underdamped.
-  resonanceDampingPerSecond: { min: 500, max: 12000, step: 50, defaultValue: 2 * Math.PI * 500 },
+  resonanceDampingPerSecond: { min: 500, max: 12000, step: 50 },
   // Low-mode participation; the high mode's sqrt(1 - low²) keeps the port normalized.
-  lowParticipation: { min: 0.05, max: 0.95, step: 0.01, defaultValue: 0.45 },
-  dcHz: { min: 5, max: 60, step: 1, defaultValue: 18 },
+  lowParticipation: { min: 0.05, max: 0.95, step: 0.01 },
+  dcHz: { min: 5, max: 60, step: 1 },
 });
 
 export type UnifiedSettings = Readonly<Record<keyof typeof UNIFIED_SETTING_RANGES, number>>;
@@ -41,7 +42,7 @@ export function resolveUnifiedSettings(value: Partial<UnifiedSettings> = {}): Un
   const result = {} as Record<keyof UnifiedSettings, number>;
   for (const key of Object.keys(UNIFIED_SETTING_RANGES) as (keyof UnifiedSettings)[]) {
     const range = UNIFIED_SETTING_RANGES[key];
-    const number = value[key] === undefined ? range.defaultValue : value[key];
+    const number = value[key] === undefined ? DEFAULT_AUDIO_SETTINGS.unified[key] : value[key];
     if (!Number.isFinite(number) || number < range.min || number > range.max)
       throw new RangeError(`invalid unified settings: ${key}`);
     result[key] = number;

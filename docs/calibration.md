@@ -141,8 +141,10 @@ real-vehicle guides revised by listening. Junctions 0 and 1 are the cylinders' c
 ## Engine sound settings
 
 Audio values are either [derived](#derived-values) or DEV listening settings. Every DEV default is the
-implementer's initial value, not a value the owner chose by listening. [Exhaust acoustics](../src/audio/exhaust-acoustics.ts)
-supplies the ENGINE group (`ExhaustSettings`) defaults and domains. Pulse rise is absolute time and pulse decay a crank angle (at 3000 RPM, 18° lasts 1 ms).
+implementer's initial value, not a value the owner chose by listening; the defaults are
+[`DEFAULT_AUDIO_SETTINGS`](../src/audio/audio-defaults.ts) and the game reads the
+[audio document](../content/audio/default.json), which holds the same values. [Exhaust acoustics](../src/audio/exhaust-acoustics.ts)
+supplies the ENGINE group (`ExhaustSettings`) domains. Pulse rise is absolute time and pulse decay a crank angle (at 3000 RPM, 18° lasts 1 ms).
 
 | Key                        | Meaning                                      | Default | UI range / step    |
 | -------------------------- | -------------------------------------------- | ------- | ------------------ |

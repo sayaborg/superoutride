@@ -1,3 +1,4 @@
+import { DEFAULT_AUDIO_SETTINGS } from './audio-defaults.js';
 // Physical assumptions of the derived values, not measured vehicle data. References and limits: docs/audio.md.
 export const REFLECTION_REFERENCE = Object.freeze({
   temperatureK: 573.15, // assumed 300 C air surrogate, not exhaust composition
@@ -27,8 +28,8 @@ export const PIPE_COEFFICIENTS = Object.freeze({
 });
 
 /**
- * Every exhaust value that is not derived: listening settings on the DEV ENGINE panel. Defaults are the
- * implementer's initial values, not values the owner chose by listening.
+ * Every exhaust value that is not derived: listening settings on the DEV ENGINE panel. Defaults, in
+ * `DEFAULT_AUDIO_SETTINGS`, are the implementer's initial values, not values the owner chose by listening.
  */
 export interface ExhaustSettings {
   readonly closedExcitation: number;
@@ -47,37 +48,6 @@ export interface ExhaustSettings {
   readonly dcHz: number;
   readonly clipCeiling: number;
 }
-export const DEFAULT_EXHAUST_SETTINGS: ExhaustSettings = Object.freeze({
-  closedExcitation: 0.22, // No derivation; chosen by listening. Weak combustion at closed throttle.
-  // No derivation; chosen by listening. Full-excitation rise in absolute time: the wavefront is set by the
-  // pressure ratio when the valve opens, not by RPM. The kernel splits it into two equal stages so the pulse
-  // onset is C1 (a slope discontinuity at firing is heard as a click) with the same mean delay.
-  pulseRiseMs: 0.2,
-  // No derivation; chosen by listening. Decay in crank angle, because blowdown lasts a crank angle; the only
-  // derivation is the conversion D / (6 * rpm) seconds. Base strength is fixed at 1.
-  pulseDecayDegrees: 90,
-  pulseVariation: 0.2, // No derivation; chosen by listening. Absolute fraction of full excitation.
-  // No derivation; chosen by listening. Firing strength during fuel cut: blowdown without combustion.
-  pumpingExcitation: 0.06,
-  outputCutoffHz: 7300, // No derivation; chosen by listening. Post-clip listening filter.
-  // No derivation; chosen by listening. A downshift's rev-matching opening peak and its decay time; the
-  // physical shift is instantaneous.
-  blipOpening: 0.7,
-  blipDecaySeconds: 0.08,
-  // No derivation; chosen by listening. Per-firing overrun pop probability and the pop pulse strength at
-  // the collector junction; the pop rate is proportional to RPM.
-  popProbability: 0.12,
-  popStrength: 0.5,
-  // No derivation; chosen by listening. The cylinder-end boundary window as a cycle fraction, NOT the valve's
-  // open duration (a 240-degree window removed the pipe resonance, so 11-7f restored this value).
-  cylinderWindowCycles: 0.23,
-  // No derivation; chosen by listening. Nearly rigid closed termination; magnitude < 1 absorbs energy.
-  cylinderClosedReflection: 0.94,
-  // No derivation; chosen by listening. Pressure-release-like open endpoint, not valve-flow physics.
-  cylinderOpenReflection: -0.3,
-  dcHz: 18, // No derivation; chosen by listening. Output DC-removal corner.
-  clipCeiling: 0.65, // No derivation; chosen by listening. Soft-clip asymptotic bound and small-signal gain.
-});
 
 interface SettingRange {
   readonly min: number;
@@ -108,7 +78,7 @@ export const EXHAUST_SETTING_RANGES: Readonly<Record<keyof ExhaustSettings, Sett
 });
 
 export function resolveExhaustSettings(overrides: Partial<ExhaustSettings> = {}): ExhaustSettings {
-  const settings = { ...DEFAULT_EXHAUST_SETTINGS };
+  const settings = { ...DEFAULT_AUDIO_SETTINGS.exhaust };
   for (const key of Object.keys(EXHAUST_SETTING_RANGES) as (keyof ExhaustSettings)[]) {
     const value = overrides[key] === undefined ? settings[key] : overrides[key];
     const range = EXHAUST_SETTING_RANGES[key];

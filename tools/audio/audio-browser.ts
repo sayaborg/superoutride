@@ -1,8 +1,8 @@
 import { mustGet } from '../../src/shell/dom.js';
 import { REFLECTION_REFERENCE, PIPE_COEFFICIENTS } from '../../src/audio/exhaust-acoustics.js';
-import { DEFAULT_AUDIO_SETTINGS } from '../../src/audio/audio-document.js';
+import { DEFAULT_AUDIO_SETTINGS } from '../../src/audio/audio-defaults.js';
 // The audition has no delivered audio document: it hears the implementer's defaults.
-const { exhaust: DEFAULT_EXHAUST_SETTINGS, control: DEFAULT_CONTROL_SETTINGS } = DEFAULT_AUDIO_SETTINGS;
+const { exhaust: defaultExhaust, control: defaultControl } = DEFAULT_AUDIO_SETTINGS;
 import { mountEngineSoundSettings } from '../../src/shell/engine-sound-settings-controls.js';
 import { createEngineVoice } from '../../src/audio/engine-voice.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
@@ -21,9 +21,9 @@ for (const entry of vehicles) {
 mustGet<HTMLElement>('reference-conditions').textContent =
   `基準条件（仮定）：内径 ${REFLECTION_REFERENCE.radiusMeters * 2000} mm、温度 ${(REFLECTION_REFERENCE.temperatureK - 273.15).toFixed(0)} ℃の空気、開放管端。管内損失は ${REFLECTION_REFERENCE.frequencyHz} Hzで近似。実車の測定値ではありません。導出した管の係数（定数）：出口の反射 ${PIPE_COEFFICIENTS.outletReflection}、戻りの高域上限 ${PIPE_COEFFICIENTS.returnCutoffHz} Hz、減衰 ${PIPE_COEFFICIENTS.attenuationPerMeter} Np/m。全閉時の励振は音作りの設定です。`;
 mustGet<HTMLElement>('output-conditions').textContent =
-  `音作り・出力の設定：追従 ${(DEFAULT_CONTROL_SETTINGS.observationSeconds * 1000).toFixed(0)} ms。出力順：DC除去（初期値 ${DEFAULT_EXHAUST_SETTINGS.dcHz} Hz）→ ソフトクリップ（上限の初期値 ${DEFAULT_EXHAUST_SETTINGS.clipCeiling}）→ 最終LPF（一次、− / +で調整・初期値 ${DEFAULT_EXHAUST_SETTINGS.outputCutoffHz} Hz）。排気の物理量とは区別します。`;
+  `音作り・出力の設定：追従 ${(defaultControl.observationSeconds * 1000).toFixed(0)} ms。出力順：DC除去（初期値 ${defaultExhaust.dcHz} Hz）→ ソフトクリップ（上限の初期値 ${defaultExhaust.clipCeiling}）→ 最終LPF（一次、− / +で調整・初期値 ${defaultExhaust.outputCutoffHz} Hz）。排気の物理量とは区別します。`;
 mustGet<HTMLElement>('boundary-conditions').textContent =
-  `境界の設定（初期値、− / +で調整）：閉端側の圧力反射 ${DEFAULT_EXHAUST_SETTINGS.cylinderClosedReflection}、開口側 ${DEFAULT_EXHAUST_SETTINGS.cylinderOpenReflection}、開口変化の幅は発火周期の ${DEFAULT_EXHAUST_SETTINGS.cylinderWindowCycles}。気筒への戻り波に周期的な境界変化を与えます。実測のバルブタイミングや流量ではありません。`;
+  `境界の設定（初期値、− / +で調整）：閉端側の圧力反射 ${defaultExhaust.cylinderClosedReflection}、開口側 ${defaultExhaust.cylinderOpenReflection}、開口変化の幅は発火周期の ${defaultExhaust.cylinderWindowCycles}。気筒への戻り波に周期的な境界変化を与えます。実測のバルブタイミングや流量ではありません。`;
 const engineSoundSettings = mountEngineSoundSettings(
   mustGet<HTMLElement>('engine-sound-settings'),
   DEFAULT_AUDIO_SETTINGS.exhaust,

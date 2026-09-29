@@ -1,5 +1,6 @@
 import { clamp } from '../core/math.js';
-import { DEFAULT_CONTROL_SETTINGS, type ControlSettings } from './audio-control-policy.js';
+import type { ControlSettings } from './audio-control-policy.js';
+import { DEFAULT_AUDIO_SETTINGS } from './audio-defaults.js';
 import { follow } from './audio-parameter.js';
 
 // A new sound kind adds one bus here and connects its voices to that bus's input.
@@ -18,14 +19,6 @@ export interface MixSettings {
   readonly releaseSeconds: number;
 }
 
-export const DEFAULT_MIX_SETTINGS: MixSettings = Object.freeze({
-  thresholdDb: -6,
-  kneeDb: 6,
-  ratio: 12,
-  attackSeconds: 0.003,
-  releaseSeconds: 0.12,
-});
-
 export const MIX_SETTING_RANGES: Readonly<Record<keyof MixSettings, { min: number; max: number; step: number }>> =
   Object.freeze({
     thresholdDb: Object.freeze({ min: -40, max: 0, step: 1 }),
@@ -36,7 +29,7 @@ export const MIX_SETTING_RANGES: Readonly<Record<keyof MixSettings, { min: numbe
   });
 
 export function resolveMixSettings(overrides: Partial<MixSettings> = {}): MixSettings {
-  const settings = { ...DEFAULT_MIX_SETTINGS };
+  const settings = { ...DEFAULT_AUDIO_SETTINGS.mix };
   for (const key of Object.keys(MIX_SETTING_RANGES) as (keyof MixSettings)[]) {
     const value = overrides[key] === undefined ? settings[key] : overrides[key];
     const range = MIX_SETTING_RANGES[key];
@@ -59,8 +52,8 @@ export function createSoundGraph(context: BaseAudioContext) {
     compressor.attack.value = mix.attackSeconds;
     compressor.release.value = mix.releaseSeconds;
   };
-  applyMix(DEFAULT_MIX_SETTINGS);
-  let control: ControlSettings = DEFAULT_CONTROL_SETTINGS;
+  applyMix(DEFAULT_AUDIO_SETTINGS.mix);
+  let control: ControlSettings = DEFAULT_AUDIO_SETTINGS.control;
   master.connect(compressor).connect(context.destination);
   const buses = Object.fromEntries(
     SOUND_BUSES.map((bus) => {

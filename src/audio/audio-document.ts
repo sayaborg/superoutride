@@ -6,12 +6,13 @@ import {
   readRecord,
   type AdmissionResult,
 } from '../core/admission.js';
-import { DEFAULT_CONTROL_SETTINGS, resolveControlSettings, type ControlSettings } from './audio-control-policy.js';
-import { DEFAULT_RIVAL_SETTINGS, resolveRivalSettings, type RivalSettings } from './audio-scene.js';
-import { DEFAULT_EXHAUST_SETTINGS, resolveExhaustSettings, type ExhaustSettings } from './exhaust-acoustics.js';
-import { DEFAULT_MIX_SETTINGS, resolveMixSettings, type MixSettings } from './sound-graph.js';
+import { resolveControlSettings, type ControlSettings } from './audio-control-policy.js';
+import { resolveRivalSettings, type RivalSettings } from './audio-scene.js';
+import { resolveExhaustSettings, type ExhaustSettings } from './exhaust-acoustics.js';
+import { resolveMixSettings, type MixSettings } from './sound-graph.js';
 import { resolveRollingSettings, type RollingSettings } from './tire-rolling-acoustics.js';
 import { resolveUnifiedSettings, type UnifiedSettings } from './tire-unified-acoustics.js';
+import { DEFAULT_AUDIO_SETTINGS } from './audio-defaults.js';
 
 /** The game-wide sound settings: every DEV sound panel's record. */
 export interface AudioSettings {
@@ -41,16 +42,6 @@ const RESOLVERS = {
 } as const satisfies { [K in keyof AudioSettings]: (value: Partial<AudioSettings[K]>) => AudioSettings[K] };
 type Section = keyof typeof RESOLVERS;
 const SECTIONS = Object.keys(RESOLVERS) as Section[];
-
-/** The implementer's defaults, for assemblies without the delivered document (the audition tools). */
-export const DEFAULT_AUDIO_SETTINGS: AudioSettings = Object.freeze({
-  exhaust: DEFAULT_EXHAUST_SETTINGS,
-  unified: resolveUnifiedSettings(),
-  rolling: resolveRollingSettings(),
-  mix: DEFAULT_MIX_SETTINGS,
-  control: DEFAULT_CONTROL_SETTINGS,
-  rival: DEFAULT_RIVAL_SETTINGS,
-});
 
 /** The saved document for a settings snapshot, as the DEV export writes it. */
 export function audioSettingsDocument(settings: AudioSettings) {

@@ -11,7 +11,7 @@ export type SurfaceSound = Readonly<{
 export const SURFACE_SOUND_LIMIT = 256;
 
 /**
- * The one value check of a surface sound, for the document and the table alike: every number finite and at
+ * The one value check of a surface sound: every number finite and at
  * least 0, `textureLengthMeters` above 0 and `susceptibility` at most 1. Returns a detached frozen record.
  */
 export function compileSurfaceSound(record: SurfaceSound): SurfaceSound {
@@ -32,30 +32,6 @@ export function compileSurfaceSound(record: SurfaceSound): SurfaceSound {
     friction: Object.freeze({ roughness: friction.roughness, susceptibility: friction.susceptibility }),
   });
 }
-
-/** The TypeScript table, until 11-11 removes it; the build checks the delivered document against it. */
-export const SURFACE_SOUNDS: Readonly<Record<string, SurfaceSound>> = Object.freeze({
-  ASPHALT: compileSurfaceSound({
-    rolling: { low: 0.9, high: 0.18, textureLengthMeters: 0.3, textureDepth: 0.12 },
-    friction: { roughness: 1, susceptibility: 1 },
-  }),
-  SHOULDER: compileSurfaceSound({
-    rolling: { low: 0.85, high: 0.7, textureLengthMeters: 0.6, textureDepth: 0.4 },
-    friction: { roughness: 1.3, susceptibility: 0.4 },
-  }),
-  GRASS: compileSurfaceSound({
-    rolling: { low: 0.85, high: 0.12, textureLengthMeters: 1.4, textureDepth: 0.45 },
-    friction: { roughness: 0.75, susceptibility: 0.04 },
-  }),
-  DIRT: compileSurfaceSound({
-    rolling: { low: 1, high: 0.55, textureLengthMeters: 0.8, textureDepth: 0.8 },
-    friction: { roughness: 1.5, susceptibility: 0.12 },
-  }),
-  SAND: compileSurfaceSound({
-    rolling: { low: 0.3, high: 0.8, textureLengthMeters: 0.12, textureDepth: 0.2 },
-    friction: { roughness: 1.1, susceptibility: 0.02 },
-  }),
-});
 
 /** Admitted surface sounds by material ID, with the delivered document's SHA-256. */
 export interface CompiledSurfaceSounds {

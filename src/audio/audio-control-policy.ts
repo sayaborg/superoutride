@@ -1,3 +1,4 @@
+import { DEFAULT_AUDIO_SETTINGS } from './audio-defaults.js';
 /**
  * Audio control time constants: listening settings with no derivation, chosen by ear on the DEV TIMING panel.
  * They never describe mechanical or pipe properties.
@@ -19,16 +20,6 @@ export interface ControlSettings {
   readonly transitionSeconds: number;
 }
 
-export const DEFAULT_CONTROL_SETTINGS: ControlSettings = Object.freeze({
-  observationSeconds: 0.025,
-  gainSeconds: 0.025,
-  mixSeconds: 0.015,
-  panSeconds: 0.06,
-  fadeSeconds: 0.01,
-  componentSeconds: 0.005,
-  transitionSeconds: 0.09,
-});
-
 interface SettingRange {
   readonly min: number;
   readonly max: number;
@@ -46,7 +37,7 @@ export const CONTROL_SETTING_RANGES: Readonly<Record<keyof ControlSettings, Sett
 });
 
 export function resolveControlSettings(overrides: Partial<ControlSettings> = {}): ControlSettings {
-  const settings = { ...DEFAULT_CONTROL_SETTINGS };
+  const settings = { ...DEFAULT_AUDIO_SETTINGS.control };
   for (const key of Object.keys(CONTROL_SETTING_RANGES) as (keyof ControlSettings)[]) {
     const value = overrides[key] === undefined ? settings[key] : overrides[key];
     const range = CONTROL_SETTING_RANGES[key];
