@@ -179,10 +179,11 @@ replacement fades to silence before installing a new kernel. New settings supers
 returning to active values cancels pending replacement. Tire replacement is specified in
 [Tire audio](tire-audio.md#settings-replacement).
 
-Construction leaves the AudioContext unopened. An eligible user gesture starts or resumes audio.
-Hidden or stopped shells suspend it; mute fades before suspension. Disposal closes the context,
-including a graph completing initialization after disposal. Module URLs resolve within the selected
-commit-versioned build.
+Construction leaves the AudioContext unopened. An eligible user gesture starts or resumes audio. Only
+`setActive`, called by the run state's start/stop procedure, activates or deactivates audio; inactive audio
+suspends the context, and mute fades before suspension. A page hidden without entering the back/forward cache
+disposes it. Disposal closes the context, including a graph completing initialization after disposal. Module
+URLs resolve within the selected commit-versioned build.
 
 An audio failure closes the affected graph and exposes retry while driving continues. A late result
 from an older initialization cannot replace or close a newer graph. Invalid processor replacements

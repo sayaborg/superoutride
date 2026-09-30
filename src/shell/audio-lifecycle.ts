@@ -24,8 +24,9 @@ export function createAudioLifecycle(
   let context: AudioContext | null = null;
   let scene: Awaited<ReturnType<typeof createAudioScene>> | null = null;
   let loading: Promise<void> | null = null;
+  // The run state activates the audio through setActive; it starts inactive.
   let enabled = true,
-    active = true,
+    active = false,
     disposed = false;
   let failed = false;
   const playerEmitter = createVehicleAudioEmitter();
@@ -57,7 +58,7 @@ export function createAudioLifecycle(
     controls.showSoundState(text, enabled && supported);
   }
   function audible(): boolean {
-    return enabled && active && !document.hidden && !disposed;
+    return enabled && active && !disposed;
   }
   let suspendTimer: ReturnType<typeof setTimeout> | null = null;
   function closeGraph(retired: typeof scene, closing: AudioContext | null): void {
@@ -106,7 +107,7 @@ export function createAudioLifecycle(
       for (const bus of SOUND_BUSES) scene.setBusGain(bus, busVolumes[bus]);
       scene.setTireComponents(components);
       scene.setMasterGain(audible() ? volume : 0);
-      if (!active || document.hidden || disposed) void context.suspend().catch(() => {});
+      if (!active || disposed) void context.suspend().catch(() => {});
       else if (!enabled)
         suspendTimer = setTimeout(() => {
           suspendTimer = null;
@@ -165,38 +166,20 @@ export function createAudioLifecycle(
     if (enabled) unlock();
     sync();
   }
-  function visibility(): void {
-    sync();
-    if (audible() && context)
-      void context
-        .resume()
-        .then(sync)
-        .catch(() => {});
-  }
+  // A page hidden without entering the back/forward cache ends the audio lifetime.
   function hide(event: PageTransitionEvent): void {
-    if (event.persisted) {
-      active = false;
-      sync();
-    } else dispose();
-  }
-  function show(): void {
-    active = true;
-    visibility();
+    if (!event.persisted) dispose();
   }
   function dispose(): void {
     if (disposed) return;
     disposed = true;
     for (const type of GESTURE_EVENTS) window.removeEventListener(type, unlock);
     window.removeEventListener('pagehide', hide);
-    window.removeEventListener('pageshow', show);
-    document.removeEventListener('visibilitychange', visibility);
     controls.dispose();
     releaseAudio();
   }
   for (const type of GESTURE_EVENTS) window.addEventListener(type, unlock);
   window.addEventListener('pagehide', hide);
-  window.addEventListener('pageshow', show);
-  document.addEventListener('visibilitychange', visibility);
   return {
     update(player: CompetitorObservation, rivals: readonly CompetitorObservation[]): void {
       if (!scene || !context || context.state !== 'running' || !audible()) return;
@@ -215,7 +198,12 @@ export function createAudioLifecycle(
     },
     setActive(value: boolean): void {
       active = value;
-      visibility();
+      sync();
+      if (audible() && context)
+        void context
+          .resume()
+          .then(sync)
+          .catch(() => {});
     },
     dispose,
   };

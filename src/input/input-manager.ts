@@ -15,8 +15,8 @@ const NEUTRAL_DRIVING_INPUT: Readonly<DrivingInput> = Object.freeze({
 });
 
 /**
- * The one driving-input authority: it owns the steering and pedal arbiters, suspension, the lifecycle
- * resets and the final sample. Adapters publish through it and keep only their local held state.
+ * The one driving-input authority: it owns the steering and pedal arbiters, suspension, resets and the
+ * final sample. Adapters publish through it and keep only their local held state.
  */
 export class InputManager {
   private readonly pedals = new PedalInputArbiter();
@@ -26,7 +26,7 @@ export class InputManager {
   private suspended = false;
   private last: Readonly<DrivingInput> = NEUTRAL_DRIVING_INPUT;
 
-  constructor(target: Window, visibilityDocument: Document, touchArea: () => TouchArea) {
+  constructor(target: Window, touchArea: () => TouchArea) {
     const publisher: DrivingInputPublisher = {
       setSteering: (owner, value) => this.accept(() => this.steering.set(owner, value)),
       releaseSteering: (owner) => this.accept(() => this.steering.release(owner)),
@@ -36,11 +36,8 @@ export class InputManager {
     new KeyboardInput(target, publisher);
     this.touchInput = new TouchInput(target, publisher, touchArea);
     this.gamepadInput = new GamepadInput(target, publisher);
+    // Blur is not a run-state fact; the run state suspends input for pause, hiding and finish.
     target.addEventListener('blur', () => this.reset());
-    target.addEventListener('pagehide', () => this.reset());
-    visibilityDocument.addEventListener('visibilitychange', () => {
-      if (visibilityDocument.visibilityState === 'hidden') this.reset();
-    });
   }
 
   /** The latest final sample; neutral after a reset. */
@@ -82,7 +79,8 @@ export class InputManager {
     return true;
   }
 
-  private reset(): void {
+  /** Reset the arbiters, the adapters' held state and the final sample to neutral. */
+  reset(): void {
     this.steering.reset();
     this.pedals.reset();
     this.touchInput.reset();

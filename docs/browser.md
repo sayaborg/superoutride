@@ -14,15 +14,26 @@ The browser accumulates nonnegative elapsed time capped at 0.25 s per animation 
 uses fixed 1/60 s steps (`SIM_DT`): the frame loop runs one race `advance(input)` per whole step in the accumulated
 time, passing no step length, and the fractional remainder carries forward. One render follows the completed
 steps, including callbacks with no simulation step; it reads the race's competitor observations, which
-hold the values of the latest completed step. Starting renders immediately with a fresh clock.
-Loading and setup leave the race clock stopped until START.
+hold the values of the latest completed step. There is one frame loop; each start begins a fresh clock, so
+stopped real time never enters the simulation. Loading and setup leave the race clock stopped until START.
 Every Session assembly, a DEV tuning rebuild included, picks a new Session seed from `crypto.getRandomValues`;
 the composition root is the only place that draws randomness.
 
-PAUSE and document hiding suspend scheduling, input and audio. Visibility resumes a READY or RUNNING
-Session only when it is not manually paused. RESUME starts a fresh clock with cleared held input.
-Completion stops the field, hides PAUSE and displays results. NEW SESSION returns to setup.
-A persisted page restored from browser history reloads the page.
+The run state is the one owner of whether the run is running. It holds three facts: `paused` (manual PAUSE),
+`hidden` (the document is hidden or the page was hidden) and `finished` (the current Session reached GOAL or
+GAME OVER). The run is running exactly while none holds. Only the run state watches document visibility and
+page hiding, and a page restored from the back/forward cache reloads. The PAUSE button's label (PAUSE or
+RESUME) and its visibility follow the facts.
+
+When running changes, the shell runs one symmetric procedure. Starting clears input suspension, activates
+audio, renders once and starts the frame loop. Stopping stops the frame loop, suspends input (which resets it),
+deactivates audio and renders once; that frame shows neutral input in the DEV vehicle HUD, no touch
+indicators and the `PAUSED`, `GOAL` or `GAME OVER` status.
+
+After each simulation step, a race clock at GOAL or GAME OVER finishes the run: the field stops, PAUSE is
+hidden and the results are displayed; rendering changes no run state. A Session rebuilt by DEV tuning restarts
+the run, clearing `paused` and `finished`, so it drives at once. START resets driving input once. NEW
+SESSION returns to setup.
 
 ## Selection and URL parameters
 
@@ -82,9 +93,10 @@ and numeric requests in `[0,1]` have the same canonical meaning.
 
 Each fixed step, `sample()` polls the window's gamepads once and then builds one `DrivingInput` from the
 arbiters: each apply method is the winning owner's, or `RATE_LIMITED` without an owner. The latest final
-sample is a published read-only observation (`lastSample`); the DEV vehicle HUD reads it. Blur, page hiding, a
-hidden document and suspension reset the arbiters, the adapters' held state and the final sample to neutral.
-While suspended the manager accepts no publication.
+sample is a published read-only observation (`lastSample`); the DEV vehicle HUD reads it. The run state
+suspends input whenever the run stops; suspension resets the arbiters, the adapters' held state and the final
+sample to neutral, and while suspended the manager accepts no publication. Window blur, which is not a
+run-state fact, resets input the same way without suspending it. START resets input once.
 
 Touch pointers starting inside the touch area, and outside UI elements marked `data-driving-input="ignore"`,
 control driving. The shell supplies the touch area as a client rectangle; it is currently the whole
@@ -154,7 +166,7 @@ in DEV controls never reach driving input, while keyup can release an already-he
 Escape closes the panel and returns focus to its summary. DEV has no keyboard shortcuts.
 The vehicle is chosen in the Session setup, and choosing it starts a Session; there is no vehicle
 selection during a Session. Driving tuning, camera, sound and recovery controls remain available. RECOVER requests the race's manual recovery of the player vehicle when the active composition
-permits it: in a course session, only while the race is running and neither paused nor hidden. The shell supplies
+permits it: in a course session, only while the run is running and the race clock is RUNNING. The shell supplies
 the player's input only; it reads the Session vehicle for sound, HUD and export, and the race owns all mechanics.
 
 Driving tuning is grouped as STEERING, PEDALS, TIRES F/R, POWERTRAIN and ASSISTS. Each value uses a

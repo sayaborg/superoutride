@@ -19,7 +19,7 @@ import { mountDrivingTuningControls } from './driving-tuning-controls.js';
 import { downloadDefinition } from './definition-export.js';
 import type { BrowserCourseModeQuery } from './course-mode-selection.js';
 import { mustGet } from './dom.js';
-import { createFrameLoop, type FrameLoop } from './frame-loop.js';
+import { createFrameLoop } from './frame-loop.js';
 import { mountMobileCameraYawSelector } from './mobile-selector-controls.js';
 import { browserUsesTouchInterface } from './touch-interface.js';
 import { createTouchIndicators } from './touch-indicators.js';
@@ -32,8 +32,6 @@ interface BrowserDrivingShell {
   readonly inputManager: InputManager;
   readonly cameraRig: CameraRig;
   mountControls(options: DrivingLifecycleOptions): ReturnType<typeof createDrivingLifecycle>;
-  /** Redraw the input display after a reset that stops the frame loop. */
-  presentInput(): void;
   present(
     query: BrowserCourseModeQuery,
     camera: CameraState,
@@ -41,19 +39,20 @@ interface BrowserDrivingShell {
     observed: { readonly player: CompetitorObservation; readonly rivals: readonly CompetitorObservation[] },
     diagnostics: { readonly vehicle: VehicleState; readonly model: VehicleModel },
   ): void;
-  start(tick: () => void, render: () => void): void;
-  stop(): void;
+  /** The one start/stop procedure, called by the run state when `running` changes. */
+  setRunning(running: boolean): void;
   dispose(): void;
 }
 
 /**
- * Browser wiring for the Session vehicle: display, input, audio and DEV controls. It supplies the player's
- * input only; the race owns every competitor's mechanics.
+ * Browser wiring for the Session vehicle: display, input, audio, the one frame loop over `frame` and DEV
+ * controls. It supplies the player's input only; the race owns every competitor's mechanics.
  */
 export function createBrowserDrivingShell(
   sessionVehicle: SessionVehicle,
   surfaceSounds: TireSurfaceSounds,
   audioSettings: AudioSettings,
+  frame: { tick(): void; render(): void },
 ): BrowserDrivingShell {
   const canvas = mustGet<HTMLCanvasElement>('game');
   canvas.width = LOGICAL_WIDTH;
@@ -65,7 +64,7 @@ export function createBrowserDrivingShell(
   const imageData = ctx.createImageData(LOGICAL_WIDTH, LOGICAL_HEIGHT);
   const framebuffer = new SoftwareSurface(LOGICAL_WIDTH, LOGICAL_HEIGHT, new Uint32Array(imageData.data.buffer));
   // The whole viewport is the touch area.
-  const inputManager = new InputManager(window, document, () => ({
+  const inputManager = new InputManager(window, () => ({
     left: 0,
     top: 0,
     width: window.innerWidth,
@@ -79,31 +78,30 @@ export function createBrowserDrivingShell(
   const cameraRig = createCameraRig();
 
   const audio = createAudioLifecycle(sessionVehicleDefinition, surfaceSounds, audioSettings);
-  let loop: FrameLoop | null = null;
-  window.addEventListener('pagehide', () => {
-    loop?.stop();
-    audio.setActive(false);
-  });
-  window.addEventListener('pageshow', (event) => {
-    if (event.persisted) location.reload();
-  });
+  // Each start begins a new frame clock, so stopped real time never enters the simulation.
+  const loop = createFrameLoop(
+    () => frame.tick(),
+    () => frame.render(),
+  );
   return {
-    start(tick, render): void {
-      loop?.stop();
-      loop = createFrameLoop(tick, render);
-      inputManager.setSuspended(false);
-      audio.setActive(true);
-      render();
-      loop.start();
-    },
-    stop(): void {
-      loop?.stop();
-      audio.setActive(false);
+    setRunning(running): void {
+      if (running) {
+        inputManager.setSuspended(false);
+        audio.setActive(true);
+        frame.render();
+        loop.start();
+      } else {
+        loop.stop();
+        inputManager.setSuspended(true);
+        audio.setActive(false);
+        // The stopped frame shows neutral input, no touch indicators and the stopped status.
+        frame.render();
+      }
     },
     dispose(): void {
       inputManager.setSuspended(true);
       touchIndicators.update(inputManager.touch);
-      loop?.stop();
+      loop.stop();
       audio.dispose();
     },
     get presentation() {
@@ -157,9 +155,6 @@ export function createBrowserDrivingShell(
         if (options.canRecover?.() ?? true) lifecycle.recover();
       });
       return lifecycle;
-    },
-    presentInput(): void {
-      touchIndicators.update(inputManager.touch);
     },
     present(
       query: BrowserCourseModeQuery,

@@ -2,6 +2,7 @@ import type { ClassicRulesDocument } from '../course/course-document.js';
 import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
 import { compileSessionConfiguration, type SessionConfiguration } from '../race/session-configuration.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
+import type { RunFacts } from './run-state.js';
 
 /** The chosen settings; each Session assembly adds its own seed. */
 interface BrowserSessionSettings extends Omit<SessionConfiguration, 'seed'> {
@@ -35,14 +36,17 @@ export function readBrowserSessionSettings(
   return Object.freeze({ ...configuration, vehicleId: values.vehicleId });
 }
 
-/** Session settings precede the start signal; ordinary driving input remains unchanged. */
+/**
+ * Session settings precede the start signal; ordinary driving input remains unchanged. The PAUSE button asks
+ * the run state to toggle, and its label and visibility follow the run-state facts it is shown.
+ */
 export function mountCourseSessionControls(
   canvas: HTMLElement,
   current: BrowserSessionSettings,
   preset: BrowserSessionSettings,
   classic: ClassicRulesDocument | null,
   maxLaps: number,
-  actions: { start(): void; pause(paused: boolean): void },
+  actions: { start(): void; togglePause(): void },
   vehicles: readonly CompiledVehicleDefinition[],
 ) {
   const panel = document.createElement('form');
@@ -142,13 +146,7 @@ export function mountCourseSessionControls(
     p.delete('autostart');
     location.search = p.toString();
   });
-  let paused = false;
-  pause.addEventListener('click', () => {
-    paused = !paused;
-    pause.textContent = paused ? 'RESUME' : 'PAUSE';
-    actions.pause(paused);
-    if (!paused) canvas.focus();
-  });
+  pause.addEventListener('click', () => actions.togglePause());
   toolbar.append(pause, restart);
   const begin = () => {
     panel.hidden = true;
@@ -174,15 +172,10 @@ export function mountCourseSessionControls(
   canvas.insertAdjacentElement('afterend', toolbar);
   return Object.freeze({
     begin,
-    /** A rebuilt Session starts at once, running and unpaused, whatever state the previous one ended in. */
-    restart() {
-      paused = false;
-      pause.textContent = 'PAUSE';
-      pause.hidden = false;
-      begin();
-    },
-    complete() {
-      pause.hidden = true;
+    /** PAUSE or RESUME by `paused`; a finished Session hides the button. */
+    show(facts: RunFacts) {
+      pause.textContent = facts.paused ? 'RESUME' : 'PAUSE';
+      pause.hidden = facts.finished;
     },
   });
 }

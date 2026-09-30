@@ -19,6 +19,7 @@ import { isTimedCourse } from '../course/compiler/compiled-course.js';
 import { createSessionVehicle, type SessionVehicle } from '../content/session-vehicle.js';
 import { readBrowserSessionSettings, mountCourseSessionControls } from './course-session-controls.js';
 import { createCourseScene } from '../view/course-scene.js';
+import { createRunState } from './run-state.js';
 import { readRivalEnvelope, type RivalEnvelope } from '../content/rival-envelope.js';
 import { loadSurfaceMaterials } from '../content/surface-material-catalog.js';
 import { admitProduct } from '../content/delivered-product.js';
@@ -85,7 +86,10 @@ try {
     return { session, scene, race, tuned };
   };
   let active = build(vehicle, settings, rivalEnvelope, budgets, false);
-  const shell = createBrowserDrivingShell(vehicle, surfaceSounds, await loadAudioSettings(content));
+  const shell = createBrowserDrivingShell(vehicle, surfaceSounds, await loadAudioSettings(content), {
+    tick: () => tick(),
+    render: () => render(),
+  });
   const raceStatus = document.createElement('output');
   raceStatus.setAttribute('role', 'status');
   raceStatus.setAttribute('aria-label', 'Session status');
@@ -94,11 +98,12 @@ try {
   canvas.insertAdjacentElement('afterend', raceStatus);
   const lifecycle = shell.mountControls({
     world: () => active.scene.world,
-    canRecover: () => active.race.clock.status === 'RUNNING' && !manualPause && !document.hidden,
+    canRecover: () => runState.running && active.race.clock.status === 'RUNNING',
     observation: () => active.race.observe().player,
     recover: () => active.race.recoverPlayer(),
     // A tuned driving definition has no delivered identity, so the rebuilt Session has no envelope,
-    // time budgets, rivals or time limit. It starts from the grid at once; reloading the page restores the product Session.
+    // time budgets, rivals or time limit. It starts from the grid at once, unpaused; reloading the page restores the
+    // product Session.
     rebuildSession: (driving) => {
       active = build(
         createSessionVehicle(entry, driving, materials),
@@ -113,19 +118,19 @@ try {
         null,
         true,
       );
-      manualPause = false;
       lifecycle.update(true);
-      controls.restart();
-      shell.start(tick, render);
+      controls.begin();
+      runState.restart();
     },
   });
   const performanceHud = createCoursePerformanceHud(canvas, active.scene.groundMetrics);
-  let manualPause = false;
   const tick = () => {
     const started = performance.now();
-    const step = active.race.advance(shell.inputManager.sample());
+    const { race } = active;
+    const step = race.advance(shell.inputManager.sample());
     lifecycle.update(step.recovered);
     performanceHud.step(performance.now() - started);
+    if (race.clock.status === 'GOAL' || race.clock.status === 'GAME_OVER') runState.finish();
   };
   const render = () => {
     const { scene, race, tuned } = active;
@@ -139,19 +144,8 @@ try {
       raceSprites(observations.rivals, lifecycle.camera),
     );
     shell.present(mode, lifecycle.camera, result.playerScreenY, observations, race.playerDiagnostics);
-    raceStatus.textContent = raceStatusText(race, { paused: manualPause, tuned });
+    raceStatus.textContent = raceStatusText(race, { paused: runState.paused, tuned });
     performanceHud.frame(started, result.stripGround);
-    if (race.clock.status === 'GOAL' || race.clock.status === 'GAME_OVER') {
-      controls.complete();
-      shell.stop();
-      shell.inputManager.setSuspended(true);
-      shell.presentInput();
-    }
-  };
-  const suspend = () => {
-    shell.stop();
-    shell.inputManager.setSuspended(true);
-    shell.presentInput();
   };
   const controls = mountCourseSessionControls(
     canvas,
@@ -161,31 +155,24 @@ try {
     course.rules.maxLaps,
     {
       start: () => {
-        shell.inputManager.setSuspended(true);
-        shell.inputManager.setSuspended(false);
+        shell.inputManager.reset();
         active.race.start();
       },
-      pause: (paused) => {
-        manualPause = paused;
-        if (paused) {
-          suspend();
-          raceStatus.textContent = raceStatusText(active.race, { paused: true });
-        } else shell.start(tick, render);
+      togglePause: () => {
+        runState.setPaused(!runState.paused);
+        if (!runState.paused) canvas.focus();
       },
     },
     vehicles,
   );
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) suspend();
-    else if (!manualPause && (active.race.clock.status === 'RUNNING' || active.race.clock.status === 'READY'))
-      shell.start(tick, render);
-  });
   mountStripControls(displaySettings.stripMethod, (value) => {
     displaySettings.setStripMethod(value);
     render();
   });
   status.remove();
-  shell.start(tick, render);
+  // The one run state drives the shell from here on; it starts the run unless the page is hidden.
+  const runState = createRunState(window, document, shell.setRunning, controls.show);
+  runState.begin();
   if (parameters.get('autostart') === '1') controls.begin();
 } catch (error) {
   console.error('Course could not start', error);
