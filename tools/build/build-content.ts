@@ -26,7 +26,7 @@ import { compileVehicleSpriteLibrary } from '../graphics/vehicle-sprite-library.
  * The content build: every delivered file is compiled from authored documents in dependency order,
  * in one pass: vehicle sprite library, materials, surface sounds, audio settings, engine sounds, vehicle and driving definitions, courses and their
  * images, then reference runs. Each compile stage receives earlier products directly. Reference workers
- * are the exception: they run in separate threads and read this build's saved content until 14-5.
+ * are the exception: they run in separate threads and read this build's saved content until 15-5.
  */
 const content = new URL('../../content/', import.meta.url);
 const destination = new URL('../../dist/delivery/', import.meta.url);

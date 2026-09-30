@@ -5,7 +5,7 @@ Each concept has one owning document. Topic specifications describe the implemen
 
 | Document                                        | Owns                                                                                                                |
 | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| [Product](product.md)                           | Game content, play and visible behavior                                                                             |
+| [Product](product.md)                           | Target game content, play and visible behavior; NEXT schedules what is not yet implemented                          |
 | [Architecture](architecture.md)                 | Coordinates, geometry, projection, camera metric, rendering contracts and layer boundaries                          |
 | [Content and gameplay](content-and-gameplay.md) | Course vocabulary and schema, reference identities, topology, occurrences, Session rules, timing and recovery       |
 | [Image assets](image-assets.md)                 | Image and Sprite Tool save formats, normalization, palettes, LOD compilation and image-source admission             |
@@ -30,7 +30,9 @@ explicitly scheduled in [NEXT](NEXT.md) are replaced with their owning concepts.
 
 | Term                  | Meaning                                                                                                                                                                  |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `mode`                | Session rules selection only: CLASSIC, CUSTOM or TIME ATTACK.                                                                                                            |
+| `mode`                | Session rules selection only: ARCADE, FREE PLAY or TIME TRIAL.                                                                                                           |
+| `Series`              | A product grouping of courses with their ARCADE rules and vehicle candidates; the one owner of ARCADE settings.                                                          |
+| `Stage`               | The route interval between consecutive race gates; a rule and display term, never a course `Section`.                                                                    |
 | `method`              | A choice of algorithm or application method outside Session rules.                                                                                                       |
 | `view`                | The rendering layer (`src/view`), not an occurrence reader or an observation.                                                                                            |
 | `content`             | The delivery and catalog layer (`src/content`) when naming code; authored files live under the repository's `content/` directory.                                        |

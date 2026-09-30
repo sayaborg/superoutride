@@ -180,7 +180,7 @@ the LOD filter sample. The content build writes `dist/delivery` from authored do
 dependency order: the vehicle sprite library (compiled LOD and admitted), surface materials, surface sounds (resolved against those materials), audio settings, engine sounds,
 vehicle and driving definitions (admitted against that in-build library and engine-sound catalog), courses and their images, then reference
 runs. Each compile stage receives earlier products directly. Reference workers are the exception: until
-14-5 they read this build's saved `dist/delivery`, described below. A course and
+15-5 they read this build's saved `dist/delivery`, described below. A course and
 its images are staged only after the course compiles. The build
 saves the manifest before the references; reference workers run in separate threads, read the same
 `dist/delivery` definitions and courses, generate envelopes/runs, and add envelopes/budgets before

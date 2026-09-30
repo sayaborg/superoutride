@@ -19,7 +19,9 @@
 - Stage 11 is complete: the audio scene and sound graph are separate from the browser; engine sounds, surface sounds
   and the game-wide sound settings are content documents; every sound value is derived from physics or a DEV setting;
   exhausts are collector graphs.
-- TIME ATTACK, traffic, collisions, BGM, wind and sound effects are not implemented; vehicle, sound and difficulty tuning remain open.
+- The [product specification](product.md) is the target for Stages 12–16. The implementation still uses the
+  CLASSIC/CUSTOM mode names and course-owned CLASSIC settings; all competitors share one vehicle; series, TIME TRIAL,
+  traffic, collisions, music, sound effects and the product front end are not implemented.
 
 Next PR: **12-1 — Input composition**.
 
@@ -29,11 +31,13 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 ## Stage 12 — Product shell
 
-Define input, run state, framebuffer, persistent player settings, data-driven Sessions and product display
-independently of DEV.
+Define input, run state, framebuffer, persistent player data, data-driven Sessions, the product front end and the
+product HUD independently of DEV, as specified in the [product specification](product.md).
 
 - **12-1 — Input composition:** `InputManager` owns the arbiters, suspension, lifecycle resets and the final sample;
   the apply method is owner data, not a parsed string; the touch indicator is an observation drawn by the shell.
+  The final input sample is a published observation (the product HUD reads it).
+- **12-1b — Gamepad:** a standard-mapping gamepad owner ([Product](product.md#11-input-and-display)).
 - **12-2 — Duplicate input APIs (delete):** remove the adapters' own complete samples and resets.
 - **12-3 — Run state:** one run-state owner drives the loop, input and audio symmetrically; the displayed input clears
   on suspension.
@@ -47,63 +51,82 @@ independently of DEV.
   calibration stepper, the unused touch heuristic, the unused `presentation` getter and the second CLASSIC preset
   resolution.
 - **12-6 — Framebuffer:** RGB555; one authority for the 320×240 logical frame.
-- **12-7 — Player settings:** a persistent settings model, including each vehicle's selected color.
-- **12-8 — Session rules:** one settings record, modes as rule data and TIME ATTACK; CUSTOM has no time limit. Model
-  rival lifetime (whole race, per stage or until a fork) and fork decider (first arrival or player) as Session rule
-  components, with modes as their combinations; Cool Riders has one rival per stage, first-arrival fork choice and an
-  all-rival final stage. Rival exit intent and rival strength (`rivalUtilization`) are rule data. The Session assigns
-  rival vehicles and colors deterministically, avoiding repeated vehicle/color pairs where possible. This settles the
-  Rival intent row of the pending-decisions table.
-- **12-9 — Start procedure:** remove `updateHeldVehicle`; a held start constrains the body explicitly inside the one
+- **12-7 — Player settings:** one versioned persistent record for each vehicle's selected color, the three volumes
+  and the latest selections.
+- **12-8a — Mode names (rename only):** CLASSIC → ARCADE and CUSTOM → FREE PLAY in code, documents and URL values.
+- **12-8b — Series documents:** a `series` content kind owning ARCADE settings (courses, vehicle candidates, competitor
+  entries, rule components, time margin); course documents keep geometry, gates, grid slots and the lap maximum and lose
+  `rules.classic`. The RIBBON courses form a DEV series shown only with DEV. Split into a (add series) and b (remove
+  course CLASSIC settings) if one review would be exceeded.
+- **12-8c — Competitor vehicles:** every competitor has its own vehicle, calibration and envelope; runout admission
+  covers every vehicle in the field; time budgets are keyed by course, vehicle and route state; the Session product
+  maximum becomes sixteen competitors including the player.
+- **12-8d — Session rule components:** clock, per-gate rank limits (failure at the N-th earlier crossing, ties to the
+  player), competitor entries with stage intervals and grid or ahead appearance, player slot (own entry or last),
+  ARCADE rival pace ratio (target speed at most p times the player vehicle's reference speed at the route station), and
+  seeded rival vehicle/color assignment for FREE PLAY pools. Forks keep first arrival; there is no fork-decider or
+  until-fork lifetime component. This settles the Rival intent row of the pending-decisions table.
+- **12-8e — TIME TRIAL:** the third mode; solo, no traffic, no clock, route chosen by driving.
+- **12-9 — Start and finish:** remove `updateHeldVehicle`; a held start constrains the body explicitly inside the one
   vehicle update while the powertrain runs; READY has one meaning (today both the start phase and the checkpoint
-  clock have a READY state). Design countdown lamps and rolling starts as Session
-  rule components in this PR.
-- **12-10 — Cameras:** define camera methods, allowing later changes and mode-specific choices. The camera is rigidly
-  fixed to the player in the pseudo projection: constant player depth, pitch following the body, and height solved
-  each frame so the player sits at its target row; decide there whether a sprung
-  camera mount or a ground-clearance rule is wanted after playability evaluation. The loading window covers every
-  camera method. Rename camera yaw mode and current-camera-profile names according to the glossary. Use the camera
-  definition's `dCam` for the display-side rearward offset instead of `CURRENT_CAMERA_DISTANCE_METERS`. Define the
-  fixed 40 px/m player-depth display scale directly instead of deriving it from `CAR_WIDTH_METERS`.
+  clock have a READY state). Signal lamps count down the 3-second hold. After the player's finish the driver takes
+  over the player's vehicle and stops it; after GAME OVER the throttle is released; RESULT follows after 3 s (a DEV
+  setting), and the rest of the field keeps driving.
+- **12-10 — Camera:** one product camera, as specified; the body-yaw/movement-yaw choice remains DEV only. Decide
+  from playability evaluation whether a sprung camera mount or a ground-clearance rule is wanted (criterion: the view
+  must not shake excessively over elevation changes). The loading window covers every camera method. Rename camera
+  yaw mode and current-camera-profile names according to the glossary. Use the camera definition's `dCam` for the
+  display-side rearward offset instead of `CURRENT_CAMERA_DISTANCE_METERS`. Define the fixed 40 px/m player-depth
+  display scale directly instead of deriving it from `CAR_WIDTH_METERS`.
 - **12-11 — Ground sampling:** make a footprint-centred box the default Strip display method (dyadic box in s,
   lateral integration across the pixel), keeping LEVEL-POINT as the cheaper method. Confirm with the RIBBON ROUGH
   evaluation and real-device performance.
-- **12-12 — Navigation:** screen transitions within one page; rename the URL mode parameter and course-selection
-  names according to the glossary. Pass the manifest-derived course list explicitly instead of the mutable
-  `BROWSER_COURSE_MODES`.
-- **12-13 — Product HUD:** draw it inside the game frame from race facts, separately from DEV UI and HUD; separate
-  product and DEV observations in the render result, including the performance HUD's ground (Strip) metrics.
-- **12-14 — Language:** make all UI English.
+- **12-12 — Front end:** the screens and flow in one page, PRESS START as the sound and fullscreen gesture, PAUSE
+  menu, RESULT, landscape and portrait layouts with the touch area. URL parameters remain DEV and test deep links:
+  rename `mode` to `course` and `session` to `mode`. Pass the manifest-derived course list explicitly instead of the
+  mutable `BROWSER_COURSE_MODES`.
+- **12-13 — Product HUD:** independent elements drawn inside the game frame from published observations with the
+  8×8 bitmap font; the active rules select the elements. Separate product and DEV observations in the render result,
+  including the performance HUD's ground (Strip) metrics. Place the vehicle-state elements and review the layout.
+- **12-14 — Records:** TIME TRIAL and ARCADE records in the persistent record; DEV-tuned Sessions record nothing.
+- **12-15 — Language:** make all UI English.
 
 ## Stage 13 — Interaction
 
-Give vehicles physical extent and let them meet each other and traffic.
+Give vehicles physical extent and let them meet each other and traffic. Contact never ends a run and causes no
+damage; cars and motorcycles may share a field.
 
 - **13-1 — Vehicle dimensions:** vehicle mechanics documents declare dimensions; derive the course coordinate-domain
   margin from vehicle reach. The 40 px/m display scale stays independent.
-- **13-2 — Vehicle contacts:** contact response between competitors; the response model is proposed at the start of
-  this stage.
+- **13-2 — Vehicle contacts:** contact response between competitors, cars and motorcycles included; the response
+  model is proposed at the start of this stage.
 - **13-3 — Traffic:** traffic vehicles and their Session settings. Traffic does not participate in competitive route
-  locking.
+  locking or ranking.
 
-## Stage 14 — Production pipeline
+## Stage 14 — Music and sound effects
+
+- **14-1 — Music:** a music bus in the sound graph, the MUSIC selection screen and the MUSIC volume.
+- **14-2 — Sound effects:** an effects bus for countdown, gate, time-extension and menu sounds, and the EFFECTS volume.
+
+## Stage 15 — Production pipeline
 
 Build a shared authoring core and tools, with author-confirmed content independent of build-time reference driving.
 
-- **14-1 — Authoring foundation:** core and CLI.
-- **14-2 — Workbench:** workbench and sprite module. The sprite module authors multiple named color palettes per image (and hand-authored lighting palettes per color), keeps palette slot 15 reserved for the brake lamp in vehicle images (quantization never assigns artwork to it; lamp pixels can be marked for it), assembles vehicle sprite sets (yaw/bank bindings and the set's brake-lamp colors), and previews every color, lighting and lamp state. Palette adjustment derives a new named palette from an existing one by hue, saturation, lightness and tint changes on selected slots, applied to every image of a set at once in a perceptual color space; the reserved slot is never adjusted, only the resulting explicit palettes are saved, and each can then be edited slot by slot.
-- **14-3 — Course editor.**
-- **14-4 — Definition modules:** authoring for vehicle mechanics, vehicle appearance and sound documents.
-- **14-5 — Time limits and CI:** tool reference driving proposes limits; the author confirms and saves one
-  CLASSIC-only set per course. Builds do not run reference driving, so reference workers no longer read the build
-  back and the hand-listed model identity disappears. Review the route-count ceiling before branch courses with
-  three-way forks. Simplify CI.
+- **15-1 — Authoring foundation:** core and CLI.
+- **15-2 — Workbench:** workbench and sprite module. The sprite module authors multiple named color palettes per image (and hand-authored lighting palettes per color), keeps palette slot 15 reserved for the brake lamp in vehicle images (quantization never assigns artwork to it; lamp pixels can be marked for it), assembles vehicle sprite sets (yaw/bank bindings and the set's brake-lamp colors), and previews every color, lighting and lamp state. Palette adjustment derives a new named palette from an existing one by hue, saturation, lightness and tint changes on selected slots, applied to every image of a set at once in a perceptual color space; the reserved slot is never adjusted, only the resulting explicit palettes are saved, and each can then be edited slot by slot.
+- **15-3 — Course editor.**
+- **15-4 — Definition modules:** authoring for vehicle mechanics, vehicle appearance, sound and series documents.
+- **15-5 — Time limits and CI:** the tool's reference driving generates the time budgets for every series course,
+  candidate vehicle and route; the author sets the series time margin and confirms each course's generated set as a
+  whole. Builds do not run reference driving, so reference workers no longer read the build back and the hand-listed
+  model identity disappears. Review the route-count ceiling before branch courses with three-way forks. Simplify CI.
 
-## Stage 15 — Produce product courses
+## Stage 16 — Produce product courses
 
 Create the selected courses using the Strip schema and file/CLI authoring workflow. Review appearance,
-driving experience and time margins on real devices. The following production and authoring goals are
-collected from the topic specifications; their order within this stage is not yet scheduled.
+driving experience and time margins on real devices. The first product target is the OUTRUN, SUPER HANG-ON and
+CHASE H.Q. series, which together use every Session rule component. The following production and authoring goals
+are collected from the topic specifications; their order within this stage is not yet scheduled.
 
 ### Reference and remaster goals
 
@@ -114,6 +137,11 @@ and remaster departures. Preserve topology, characteristic turn order, elevation
 identity within the pseudo-projection and mechanics. Checkpoints and sprites/music changes may be
 independent of Section boundaries. Use schematic route maps rather than require one geographic embedding.
 Suzuka's lower crossing is represented as a tunnel with one road surface drawn at a time.
+
+### Series values
+
+Each series course sets its rule values from playtests on the produced course: rank limits, ahead distances,
+pace ratios, time margin, grid spacing and entry colors. Add the attract demo once product ARCADE courses exist.
 
 ### Time-based authoring
 
@@ -157,11 +185,10 @@ Tune physical parameters, tire sound and driver difficulty, including vehicle-sp
 reintroduce per-vehicle or per-axle tire parameters only when this tuning needs them. Add asymmetric
 (rebound-only) suspension damping only if landings bounce.
 Use continuous tool reference runs that complete reproducibly and use different vehicles' capabilities
-comparably; review proposed checkpoint margins against the resulting driving experience. The author confirms
-one CLASSIC time-limit set per course and saves it in the course; CUSTOM has no time limit. Reference driving
-stays outside builds. Review the complete sixteen-rival scene with graphics and audio on named devices.
-Establish device capacity/performance budgets from the whole application.
-Measure color-table preblend memory per km on the product courses (ribbon-coast is about 0.8 MiB/km;
+comparably; review proposed checkpoint margins against the resulting driving experience. FREE PLAY and
+TIME TRIAL have no time limit. Reference driving stays outside builds. Review the complete sixteen-competitor
+scene with graphics and audio on named devices. Establish device capacity/performance budgets from the whole
+application. Measure color-table preblend memory per km on the product courses (ribbon-coast is about 0.8 MiB/km;
 a dense 21 km probe used about 121 MiB). If it exceeds the device budget, build preblend levels only
 for the route window instead of the whole Section.
 
@@ -180,65 +207,49 @@ lighting at its own chainage, and switching is a cut.
 
 ### Pending product decisions
 
-- Start procedure: countdown lamps, rolling starts and their Session rules are designed in 12-9.
 - Vehicle sprite resolution: decide the yaw division count (currently 24) and the two-wheeler bank count (currently 5) before producing final vehicle art; the sprite set format already declares both as data.
 
 | Area             | Decision or future capability                                                                                                      |
 | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | References       | Exact editions/layout evidence, tolerances and remaster departures                                                                 |
-| Presets          | CLASSIC vehicles, rosters, checkpoints, laps, margins and traffic settings                                                         |
-| CUSTOM           | Exposed rival vehicle/difficulty choices and lap configurations; no time limit                                                     |
-| Rival intent     | Deterministic or seeded route preferences                                                                                          |
-| Interaction      | Traffic, rival/vehicle response, movable objects including cones, fixed roadside objects, barriers and track limits                |
+| Series values    | Rank limits, ahead distances, pace ratios, margins, grid spacing and colors per series course (Stage 16 playtests)                 |
+| Series content   | SUPER HANG-ON reference layouts; CISCO HEAT course type; COOL RIDERS connections, rivals and traffic; FINAL LAP layout and cars    |
+| Series content   | WEC LE MANS 24 layout and field; BIG RUN vehicles and field; RALLY STAGE title and course set                                      |
+| Vehicles         | Exact specifications of adopted vehicles (year, market, grade); BROUGHAM TUNED values                                              |
+| Circuits         | Series or FREE PLAY placement of the selected circuits below                                                                       |
+| Interaction      | Contact response, traffic behavior, movable objects including cones, fixed roadside objects, barriers and track limits (Stage 13)  |
 | Grade separation | Occurrence/neighborhood/height selection of surfaces, landmarks and contacts at nearby crossings                                   |
-| Records/results  | Eligibility, ranking/ties, continue, persistence and ghosts                                                                        |
+| Camera           | Sprung camera mount or ground-clearance rule (12-10 evaluation)                                                                    |
+| Front end        | Attract demo idle time; HUD layout of the vehicle-state elements (12-13)                                                           |
 | Art              | Production assets, new physical materials and tunnel/background content                                                            |
 | BG transitions   | Consider wipes or dissolves for environment changes; palette fades are not expected                                                |
-| Shell            | Front end, product HUD separate from DEV UI/HUD, music, progression, naming/distribution and future input devices                  |
 | Engine sound     | Tried, not adopted: displacement pulse. It did not improve driving sound and added computation (11-7b–11-7k)                       |
 | Engine sound     | Tried, not adopted: pipe cross-sections and muffler segments. It did not improve driving sound and added computation (11-7b–11-7k) |
 | Engine sound     | Tried, not adopted: packing absorption. It did not improve driving sound and added computation (11-7b–11-7k)                       |
 | Engine sound     | Tried, not adopted (not implemented): cycle speed fluctuation, for the same reason as 11-7b–11-7k                                  |
 
 Design traffic and collision/interaction response together. Traffic does not participate in competitive
-route locking. Product CLASSIC presets include sixteen motorcycle rivals for Super Hang-On and zero
-rivals for OutRun; real circuits need authored presets. Rolling starts and additional lamp states remain
-future choices.
+route locking.
 
-### Selected course master
+### Selected circuits
 
-These are production selections and reference labels. Exact source evidence is part of content production.
-Circuit selections use their 1989 layout with the identifying notes below.
+These real circuits remain production selections, using their 1989 layout with the identifying notes below.
+Series courses are listed in the [product specification](product.md#5-series).
 
-| ID  | Type    | Course                                  | Reference / identifying note                          |
-| --- | ------- | --------------------------------------- | ----------------------------------------------------- |
-| L01 | LINEAR  | Enduro Racer                            | SEGA, 1986; five stages                               |
-| L02 | LINEAR  | Super Hang-On — Africa / Mini Ride-On   | SEGA, 1987; six stages                                |
-| L03 | LINEAR  | Super Hang-On — Africa / Sit-Down       | SEGA, 1987; alternate layout                          |
-| L04 | LINEAR  | Super Hang-On — Asia                    | SEGA, 1987; ten stages; includes Hang-On motif        |
-| L05 | LINEAR  | Super Hang-On — America / Mini Ride-On  | SEGA, 1987; fourteen stages                           |
-| L06 | LINEAR  | Super Hang-On — America / Sit-Down      | SEGA, 1987; alternate layout                          |
-| L07 | LINEAR  | Super Hang-On — Europe / Mini Ride-On   | SEGA, 1987; eighteen stages                           |
-| L08 | LINEAR  | Super Hang-On — Europe / Sit-Down       | SEGA, 1987; alternate layout                          |
-| L09 | LINEAR  | Turbo OutRun — New York → Los Angeles   | SEGA, 1989; sixteen-stage crossing                    |
-| L10 | LINEAR  | Chase H.Q.                              | Taito, 1988; original five stages                     |
-| L11 | LINEAR  | Cisco Heat                              | Jaleco, 1990; San Francisco urban stages              |
-| B01 | BRANCH  | OutRun — Original Branch Course         | SEGA, 1986; fifteen nodes, sixteen routes, five goals |
-| B02 | BRANCH  | OutRunners — West Course                | SEGA, 1993; San Francisco side                        |
-| B03 | BRANCH  | OutRunners — East Course                | SEGA, 1993; Grand Canyon side                         |
-| B04 | BRANCH  | Cool Riders — World Course              | SEGA, 1995; left/middle/right, fifty stage positions  |
-| C01 | CIRCUIT | Nürburgring Nordschleife                | Germany, 1989                                         |
-| C02 | CIRCUIT | Spa-Francorchamps                       | Belgium, 1989; 1983–93 layout                         |
-| C03 | CIRCUIT | Circuit de la Sarthe / Le Mans          | France, 1989; before Mulsanne chicanes                |
-| C04 | CIRCUIT | Autodromo Nazionale Monza               | Italy, 1989 GP road course                            |
-| C05 | CIRCUIT | Silverstone Grand Prix Circuit          | UK, 1989; 1987–90 layout                              |
-| C06 | CIRCUIT | Laguna Seca                             | USA, 1989; 1988–89 layout                             |
-| C07 | CIRCUIT | Mount Panorama / Bathurst               | Australia, 1989                                       |
-| C08 | CIRCUIT | Interlagos / Autódromo José Carlos Pace | Brazil, 1989 long layout                              |
-| C09 | CIRCUIT | Monte Carlo / Monaco                    | Monaco, 1989                                          |
-| C10 | CIRCUIT | Phillip Island Grand Prix Circuit       | Australia, 1989                                       |
-| C11 | CIRCUIT | Mugello Circuit                         | Italy, 1989; 1974–90 family                           |
-| C12 | CIRCUIT | TT Circuit Assen                        | Netherlands, 1989 long GP layout                      |
-| C13 | CIRCUIT | Road America                            | USA, 1989                                             |
-| C14 | CIRCUIT | Brands Hatch Grand Prix Circuit         | UK, 1989; 1988–98 family                              |
-| C15 | CIRCUIT | Suzuka Circuit                          | Japan, 1989; figure eight with lower tunnel           |
+| ID  | Course                                  | Reference / identifying note                |
+| --- | --------------------------------------- | ------------------------------------------- |
+| C01 | Nürburgring Nordschleife                | Germany, 1989                               |
+| C02 | Spa-Francorchamps                       | Belgium, 1989; 1983–93 layout               |
+| C03 | Circuit de la Sarthe / Le Mans          | France, 1989; before Mulsanne chicanes      |
+| C04 | Autodromo Nazionale Monza               | Italy, 1989 GP road course                  |
+| C05 | Silverstone Grand Prix Circuit          | UK, 1989; 1987–90 layout                    |
+| C06 | Laguna Seca                             | USA, 1989; 1988–89 layout                   |
+| C07 | Mount Panorama / Bathurst               | Australia, 1989                             |
+| C08 | Interlagos / Autódromo José Carlos Pace | Brazil, 1989 long layout                    |
+| C09 | Monte Carlo / Monaco                    | Monaco, 1989                                |
+| C10 | Phillip Island Grand Prix Circuit       | Australia, 1989                             |
+| C11 | Mugello Circuit                         | Italy, 1989; 1974–90 family                 |
+| C12 | TT Circuit Assen                        | Netherlands, 1989 long GP layout            |
+| C13 | Road America                            | USA, 1989                                   |
+| C14 | Brands Hatch Grand Prix Circuit         | UK, 1989; 1988–98 family                    |
+| C15 | Suzuka Circuit                          | Japan, 1989; figure eight with lower tunnel |
