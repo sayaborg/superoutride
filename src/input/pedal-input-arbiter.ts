@@ -1,9 +1,10 @@
 import { normalizedPedalRequest, type PedalInput, type PedalRequest } from '../vehicle/driving-input.js';
+import type { InputOwner } from './input-owner.js';
 
 export type PedalChannel = 'throttle' | 'brake';
 
 interface HeldPedalOwner {
-  readonly owner: string;
+  readonly owner: InputOwner;
   readonly pedal: PedalChannel;
   readonly order: number;
   readonly request: PedalRequest;
@@ -12,31 +13,15 @@ interface HeldPedalOwner {
 /**
  * Device-independent held-owner arbitration. The most recently activated owner that remains held
  * wins; releasing it reveals the next-most-recent held owner without manufacturing another press.
- * Digital owners may use boolean shorthand; analog owners may remain actively held even at exact
- * zero so a touch origin is a real neutral authority rather than revealing an older device owner.
+ * An owner is held from its first set until its release, even at exact zero, so a touch origin is a
+ * real neutral authority rather than revealing an older owner. A held owner keeps its activation
+ * order when it sets again; a new owner takes the next order.
  */
 export class PedalInputArbiter {
-  private readonly heldOwners = new Map<string, HeldPedalOwner>();
+  private readonly heldOwners = new Map<InputOwner, HeldPedalOwner>();
   private nextOrder = 0;
 
-  setOwner(owner: string, pedal: PedalChannel, request: PedalRequest): void {
-    if (owner.length === 0) throw new RangeError('pedal input owner must be non-empty');
-    const amount = normalizedPedalRequest(request);
-    const current = this.heldOwners.get(owner);
-    if (!(amount > 0)) {
-      this.heldOwners.delete(owner);
-      return;
-    }
-    if (current?.pedal === pedal) {
-      this.heldOwners.set(owner, { ...current, request });
-      return;
-    }
-    this.nextOrder += 1;
-    this.heldOwners.set(owner, { owner, pedal, order: this.nextOrder, request });
-  }
-
-  setAnalogOwner(owner: string, pedal: PedalChannel, request: number): void {
-    if (owner.length === 0) throw new RangeError('pedal input owner must be non-empty');
+  set(owner: InputOwner, pedal: PedalChannel, request: PedalRequest): void {
     normalizedPedalRequest(request);
     const current = this.heldOwners.get(owner);
     if (current !== undefined) {
@@ -47,7 +32,7 @@ export class PedalInputArbiter {
     this.heldOwners.set(owner, { owner, pedal, order: this.nextOrder, request });
   }
 
-  releaseOwner(owner: string): void {
+  release(owner: InputOwner): void {
     this.heldOwners.delete(owner);
   }
 
@@ -59,7 +44,7 @@ export class PedalInputArbiter {
     };
   }
 
-  activeOwner(): string | null {
+  activeOwner(): InputOwner | null {
     return this.winner()?.owner ?? null;
   }
 

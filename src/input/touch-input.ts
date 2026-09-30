@@ -1,246 +1,202 @@
 import { clamp } from '../core/math.js';
-import type { DrivingInput } from '../vehicle/driving-input.js';
-import { PedalInputArbiter } from './pedal-input-arbiter.js';
-import { SteeringInputArbiter } from './steering-input-arbiter.js';
-
-type AnalogRole = 'steering' | 'pedal';
-
-interface AnalogPointer {
-  readonly pointerId: number;
-  readonly role: AnalogRole;
-  readonly startX: number;
-  readonly startY: number;
-  readonly fullScaleDistance: number;
-}
-
-interface TouchPedalRequests {
-  readonly throttle: number;
-  readonly brake: number;
-}
+import type { DrivingInputPublisher } from './driving-input-publisher.js';
+import { createInputOwner, type InputOwner } from './input-owner.js';
+import type { PedalChannel } from './pedal-input-arbiter.js';
 
 /** Compact touch calibration. CSS px is independent of backing-store/device pixel ratio. */
-const TOUCH_ANALOG_FULL_SCALE_DISTANCE_PX = 64;
+export const TOUCH_ANALOG_FULL_SCALE_DISTANCE_PX = 64;
 
-function touchAnalogFullScaleDistance(viewportWidth: number, viewportHeight: number): number {
-  if (
-    !(viewportWidth > 0) ||
-    !(viewportHeight > 0) ||
-    !Number.isFinite(viewportWidth) ||
-    !Number.isFinite(viewportHeight)
-  ) {
-    throw new RangeError('touch analog viewport dimensions must be finite and > 0');
-  }
-  return TOUCH_ANALOG_FULL_SCALE_DISTANCE_PX;
+/**
+ * The client rectangle (CSS px) where driving pointers may start. Its left half selects steering;
+ * the midpoint and right half select pedals.
+ */
+export interface TouchArea {
+  readonly left: number;
+  readonly top: number;
+  readonly width: number;
+  readonly height: number;
 }
 
-function touchSteeringRequest(startX: number, currentX: number, fullScaleDistance: number): number {
-  assertFiniteTouchAxis(startX, currentX, fullScaleDistance);
-  return clamp((currentX - startX) / fullScaleDistance, -1, 1);
+/** An active steering pointer: its origin (client CSS px), request in [-1,1] and vector length (CSS px). */
+export interface TouchSteeringObservation {
+  readonly originX: number;
+  readonly originY: number;
+  readonly request: number;
+  readonly vectorLength: number;
 }
 
-function touchPedalRequests(startY: number, currentY: number, fullScaleDistance: number): TouchPedalRequests {
-  assertFiniteTouchAxis(startY, currentY, fullScaleDistance);
-  const axis = clamp((startY - currentY) / fullScaleDistance, -1, 1);
-  return axis >= 0 ? { throttle: axis, brake: 0 } : { throttle: 0, brake: -axis };
+/** An active pedal pointer: its origin (client CSS px), pedal and request in [0,1], and vector length (CSS px). */
+export interface TouchPedalObservation {
+  readonly originX: number;
+  readonly originY: number;
+  readonly pedal: PedalChannel;
+  readonly request: number;
+  readonly vectorLength: number;
 }
 
+/** Each role's active pointer, or null while that role is inactive. */
+export interface TouchObservation {
+  readonly steering: TouchSteeringObservation | null;
+  readonly pedal: TouchPedalObservation | null;
+}
+
+interface TrackedPointer<Observation> {
+  readonly pointerId: number;
+  readonly owner: InputOwner;
+  readonly observation: Observation;
+}
+
+const INACTIVE_TOUCH: TouchObservation = Object.freeze({ steering: null, pedal: null });
+
+function touchSteeringRequest(originX: number, currentX: number): number {
+  assertFiniteTouchAxis(originX, currentX);
+  return clamp((currentX - originX) / TOUCH_ANALOG_FULL_SCALE_DISTANCE_PX, -1, 1);
+}
+
+/** Upward displacement is throttle and downward displacement is brake; the origin is neutral throttle. */
+function touchPedalRequest(
+  originY: number,
+  currentY: number,
+): { readonly pedal: PedalChannel; readonly request: number } {
+  assertFiniteTouchAxis(originY, currentY);
+  const axis = clamp((originY - currentY) / TOUCH_ANALOG_FULL_SCALE_DISTANCE_PX, -1, 1);
+  return axis >= 0 ? { pedal: 'throttle', request: axis } : { pedal: 'brake', request: -axis };
+}
+
+/**
+ * Touch adapter: each role's pointer is one DIRECT owner created on press, with its role and origin fixed
+ * until release. Its only local state is that pointer tracking, which the input manager resets.
+ */
 export class TouchInput {
-  private suspended = false;
-  private steeringPointer: AnalogPointer | null = null;
-  private pedalPointer: AnalogPointer | null = null;
-  private readonly steeringIndicator: HTMLElement | null;
-  private readonly pedalIndicator: HTMLElement | null;
+  private steering: TrackedPointer<TouchSteeringObservation> | null = null;
+  private pedal: TrackedPointer<TouchPedalObservation> | null = null;
+  private current: TouchObservation = INACTIVE_TOUCH;
 
   constructor(
-    private readonly lifecycleTarget: Window = window,
-    visibilityDocument: Document = document,
-    private readonly pedals = new PedalInputArbiter(),
-    private readonly steering = new SteeringInputArbiter(),
+    target: Window,
+    private readonly publisher: DrivingInputPublisher,
+    private readonly touchArea: () => TouchArea,
   ) {
-    this.steeringIndicator = createAnalogIndicator(visibilityDocument, 'steering');
-    this.pedalIndicator = createAnalogIndicator(visibilityDocument, 'pedal');
-
-    lifecycleTarget.addEventListener('pointerdown', (event) => this.beginAnalogPointer(event), true);
-    lifecycleTarget.addEventListener('pointermove', (event) => this.moveAnalogPointer(event), true);
-    lifecycleTarget.addEventListener('pointerup', (event) => this.releasePointer(event.pointerId), true);
-    lifecycleTarget.addEventListener('pointercancel', (event) => this.releasePointer(event.pointerId), true);
-    lifecycleTarget.addEventListener('blur', () => this.reset());
-    lifecycleTarget.addEventListener('pagehide', () => this.reset());
-    visibilityDocument.addEventListener('visibilitychange', () => {
-      if (visibilityDocument.visibilityState === 'hidden') this.reset();
-    });
+    target.addEventListener('pointerdown', (event) => this.beginPointer(event), true);
+    target.addEventListener('pointermove', (event) => this.movePointer(event), true);
+    target.addEventListener('pointerup', (event) => this.releasePointer(event.pointerId), true);
+    target.addEventListener('pointercancel', (event) => this.releasePointer(event.pointerId), true);
   }
 
-  setSuspended(suspended: boolean): void {
-    this.suspended = suspended;
-    if (suspended) this.reset();
+  get observation(): TouchObservation {
+    return this.current;
   }
 
-  sample(): DrivingInput {
-    const pedals = this.pedals.sample();
-    const steeringOwner = this.steering.activeOwner();
-    const pedalOwner = this.pedals.activeOwner();
-    return {
-      steering: this.steering.sample(),
-      ...pedals,
-      ...(steeringOwner?.startsWith('touch:analog-steering:') ? { steeringApplyMethod: 'DIRECT' as const } : {}),
-      ...(pedalOwner?.startsWith('touch:analog-pedal:') ? { pedalApplyMethod: 'DIRECT' as const } : {}),
-    };
+  reset(): void {
+    this.steering = null;
+    this.pedal = null;
+    this.publish();
   }
 
-  private beginAnalogPointer(event: PointerEvent): void {
-    if (this.suspended || event.pointerType !== 'touch') return;
+  private beginPointer(event: PointerEvent): void {
+    if (event.pointerType !== 'touch') return;
     // UI-owned gestures remain available for scrolling/sliders, not driving pointers.
     if (event.composedPath?.().some((target) => (target as Element).getAttribute?.('data-driving-input') === 'ignore'))
       return;
-    const viewportWidth = this.lifecycleTarget.innerWidth;
-    const viewportHeight = this.lifecycleTarget.innerHeight;
-    const fullScaleDistance = touchAnalogFullScaleDistance(viewportWidth, viewportHeight);
-    const role: AnalogRole = event.clientX < viewportWidth * 0.5 ? 'steering' : 'pedal';
+    const area = admittedTouchArea(this.touchArea());
+    const { clientX: x, clientY: y } = event;
+    if (x < area.left || x >= area.left + area.width || y < area.top || y >= area.top + area.height) return;
 
-    if (role === 'steering') {
-      if (this.steeringPointer !== null) return;
-      this.steeringPointer = {
-        pointerId: event.pointerId,
-        role,
-        startX: event.clientX,
-        startY: event.clientY,
-        fullScaleDistance,
-      };
-      this.steering.setValue(touchAnalogSteeringOwner(event.pointerId), 0);
-      showIndicator(this.steeringIndicator, event.clientX, event.clientY, 0, 0, 'STEER 0%');
+    if (x < area.left + area.width * 0.5) {
+      if (this.steering !== null) return;
+      const owner = createInputOwner('DIRECT');
+      if (!this.publisher.setSteering(owner, 0)) return;
+      this.steering = { pointerId: event.pointerId, owner, observation: steeringObservation(x, y, 0) };
     } else {
-      if (this.pedalPointer !== null) return;
-      this.pedalPointer = {
-        pointerId: event.pointerId,
-        role,
-        startX: event.clientX,
-        startY: event.clientY,
-        fullScaleDistance,
-      };
-      this.pedals.setAnalogOwner(touchAnalogPedalOwner(event.pointerId), 'throttle', 0);
-      showIndicator(this.pedalIndicator, event.clientX, event.clientY, 0, -90, 'PEDAL 0%');
+      if (this.pedal !== null) return;
+      const owner = createInputOwner('DIRECT');
+      if (!this.publisher.setPedal(owner, 'throttle', 0)) return;
+      this.pedal = { pointerId: event.pointerId, owner, observation: pedalObservation(x, y, 'throttle', 0) };
     }
+    this.publish();
   }
 
-  private moveAnalogPointer(event: PointerEvent): void {
-    if (this.suspended || event.pointerType !== 'touch') return;
+  private movePointer(event: PointerEvent): void {
+    if (event.pointerType !== 'touch') return;
 
-    if (this.steeringPointer?.pointerId === event.pointerId) {
-      const pointer = this.steeringPointer;
-      const request = touchSteeringRequest(pointer.startX, event.clientX, pointer.fullScaleDistance);
-      this.steering.setValue(touchAnalogSteeringOwner(event.pointerId), request);
-      showIndicator(
-        this.steeringIndicator,
-        pointer.startX,
-        pointer.startY,
-        Math.abs(request) * pointer.fullScaleDistance,
-        request < 0 ? 180 : 0,
-        `STEER ${Math.round(request * 100)}%`,
-      );
+    const steering = this.steering;
+    if (steering?.pointerId === event.pointerId) {
+      const { originX, originY } = steering.observation;
+      const request = touchSteeringRequest(originX, event.clientX);
+      if (!this.publisher.setSteering(steering.owner, request)) return;
+      this.steering = { ...steering, observation: steeringObservation(originX, originY, request) };
+      this.publish();
       return;
     }
 
-    if (this.pedalPointer?.pointerId === event.pointerId) {
-      const pointer = this.pedalPointer;
-      const requests = touchPedalRequests(pointer.startY, event.clientY, pointer.fullScaleDistance);
-      const owner = touchAnalogPedalOwner(event.pointerId);
-      if (requests.throttle > 0) {
-        this.pedals.setAnalogOwner(owner, 'throttle', requests.throttle);
-        showIndicator(
-          this.pedalIndicator,
-          pointer.startX,
-          pointer.startY,
-          requests.throttle * pointer.fullScaleDistance,
-          -90,
-          `ACCEL ${Math.round(requests.throttle * 100)}%`,
-        );
-      } else if (requests.brake > 0) {
-        this.pedals.setAnalogOwner(owner, 'brake', requests.brake);
-        showIndicator(
-          this.pedalIndicator,
-          pointer.startX,
-          pointer.startY,
-          requests.brake * pointer.fullScaleDistance,
-          90,
-          `BRAKE ${Math.round(requests.brake * 100)}%`,
-        );
-      } else {
-        this.pedals.setAnalogOwner(owner, 'throttle', 0);
-        showIndicator(this.pedalIndicator, pointer.startX, pointer.startY, 0, -90, 'PEDAL 0%');
-      }
+    const pedal = this.pedal;
+    if (pedal?.pointerId === event.pointerId) {
+      const { originX, originY } = pedal.observation;
+      const { pedal: channel, request } = touchPedalRequest(originY, event.clientY);
+      if (!this.publisher.setPedal(pedal.owner, channel, request)) return;
+      this.pedal = { ...pedal, observation: pedalObservation(originX, originY, channel, request) };
+      this.publish();
     }
   }
 
   private releasePointer(pointerId: number): void {
-    if (this.steeringPointer?.pointerId === pointerId) {
-      this.steering.release(touchAnalogSteeringOwner(pointerId));
-      this.steeringPointer = null;
-      hideIndicator(this.steeringIndicator);
+    if (this.steering?.pointerId === pointerId) {
+      this.publisher.releaseSteering(this.steering.owner);
+      this.steering = null;
+      this.publish();
     }
-    if (this.pedalPointer?.pointerId === pointerId) {
-      this.pedals.releaseOwner(touchAnalogPedalOwner(pointerId));
-      this.pedalPointer = null;
-      hideIndicator(this.pedalIndicator);
+    if (this.pedal?.pointerId === pointerId) {
+      this.publisher.releasePedal(this.pedal.owner);
+      this.pedal = null;
+      this.publish();
     }
   }
 
-  private reset(): void {
-    this.steering.reset();
-    this.steeringPointer = null;
-    this.pedalPointer = null;
-    this.pedals.reset();
-    hideIndicator(this.steeringIndicator);
-    hideIndicator(this.pedalIndicator);
+  private publish(): void {
+    this.current =
+      this.steering === null && this.pedal === null
+        ? INACTIVE_TOUCH
+        : Object.freeze({ steering: this.steering?.observation ?? null, pedal: this.pedal?.observation ?? null });
   }
 }
 
-function assertFiniteTouchAxis(start: number, current: number, fullScaleDistance: number): void {
-  if (![start, current, fullScaleDistance].every(Number.isFinite) || !(fullScaleDistance > 0)) {
-    throw new RangeError('touch analog axis values must be finite and full scale must be > 0');
+function steeringObservation(originX: number, originY: number, request: number): TouchSteeringObservation {
+  return Object.freeze({
+    originX,
+    originY,
+    request,
+    vectorLength: Math.abs(request) * TOUCH_ANALOG_FULL_SCALE_DISTANCE_PX,
+  });
+}
+
+function pedalObservation(
+  originX: number,
+  originY: number,
+  pedal: PedalChannel,
+  request: number,
+): TouchPedalObservation {
+  return Object.freeze({
+    originX,
+    originY,
+    pedal,
+    request,
+    vectorLength: request * TOUCH_ANALOG_FULL_SCALE_DISTANCE_PX,
+  });
+}
+
+function admittedTouchArea(area: TouchArea): TouchArea {
+  if (
+    ![area.left, area.top, area.width, area.height].every(Number.isFinite) ||
+    !(area.width > 0) ||
+    !(area.height > 0)
+  ) {
+    throw new RangeError('touch area must be finite with width and height > 0');
   }
+  return area;
 }
 
-function createAnalogIndicator(documentRef: Document, role: AnalogRole): HTMLElement | null {
-  if (typeof documentRef.createElement !== 'function' || documentRef.body === null || documentRef.body === undefined)
-    return null;
-  const root = documentRef.createElement('div');
-  root.className = `touch-analog-indicator touch-analog-${role}`;
-  root.setAttribute('aria-hidden', 'true');
-  const icon = documentRef.createElement('span');
-  icon.className = 'touch-analog-origin-icon';
-  const vector = documentRef.createElement('span');
-  vector.className = 'touch-analog-vector';
-  root.append(icon, vector);
-  documentRef.body.appendChild(root);
-  return root;
-}
-
-function showIndicator(
-  indicator: HTMLElement | null,
-  x: number,
-  y: number,
-  distance: number,
-  angleDegrees: number,
-  label: string,
-): void {
-  if (indicator === null) return;
-  indicator.style.setProperty('--touch-origin-x', `${x}px`);
-  indicator.style.setProperty('--touch-origin-y', `${y}px`);
-  indicator.style.setProperty('--touch-vector-length', `${Math.max(0, distance)}px`);
-  indicator.style.setProperty('--touch-vector-angle', `${angleDegrees}deg`);
-  indicator.dataset.value = label;
-  indicator.classList.add('active');
-}
-
-function hideIndicator(indicator: HTMLElement | null): void {
-  indicator?.classList.remove('active');
-}
-
-function touchAnalogSteeringOwner(pointerId: number): string {
-  return `touch:analog-steering:${pointerId}`;
-}
-
-function touchAnalogPedalOwner(pointerId: number): string {
-  return `touch:analog-pedal:${pointerId}`;
+function assertFiniteTouchAxis(origin: number, current: number): void {
+  if (!Number.isFinite(origin) || !Number.isFinite(current)) {
+    throw new RangeError('touch analog axis values must be finite');
+  }
 }

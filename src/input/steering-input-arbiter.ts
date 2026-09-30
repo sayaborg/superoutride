@@ -1,30 +1,24 @@
 import { clampSteering } from '../vehicle/driving-input.js';
-
-export type SteeringDirection = -1 | 1;
+import type { InputOwner } from './input-owner.js';
 
 interface ActiveSteeringOwner {
-  readonly owner: string;
+  readonly owner: InputOwner;
   readonly value: number;
 }
 
 /**
  * Device-independent single-owner steering authority. A new owner publication supersedes the
  * previous owner; releasing that active owner returns to neutral and never revives a superseded
- * owner. Digital devices use press(), while analog devices publish any finite value in [-1,+1].
+ * owner. Owners publish any finite value, clamped to [-1,+1].
  */
 export class SteeringInputArbiter {
   private active: ActiveSteeringOwner | null = null;
 
-  press(owner: string, direction: SteeringDirection): void {
-    this.setValue(owner, direction);
-  }
-
-  setValue(owner: string, value: number): void {
-    if (owner.length === 0) throw new RangeError('steering input owner must be non-empty');
+  set(owner: InputOwner, value: number): void {
     this.active = { owner, value: clampSteering(value) };
   }
 
-  release(owner: string): void {
+  release(owner: InputOwner): void {
     if (this.active?.owner === owner) this.active = null;
   }
 
@@ -32,7 +26,7 @@ export class SteeringInputArbiter {
     return this.active?.value ?? 0;
   }
 
-  activeOwner(): string | null {
+  activeOwner(): InputOwner | null {
     return this.active?.owner ?? null;
   }
 

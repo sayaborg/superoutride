@@ -61,19 +61,41 @@ Autostart affects gameplay; sound still requires an eligible browser gesture.
 ## Driving input
 
 Left/right arrows steer, Up or X accelerates, and Down or Z brakes. These are the only keyboard
-controls; DEV selections and manual recovery use DEV buttons. The latest still-held pedal wins; releasing it exposes the earlier
-held pedal. Steering uses the latest owner and does not revive a superseded direction on release.
-Boolean pedal input and numeric input in `[0,1]` have the same canonical meaning.
+controls; DEV selections and manual recovery use DEV buttons.
 
-Touch pointers starting outside UI elements marked `data-driving-input="ignore"` control driving.
-The viewport's left half selects steering; the midpoint and right half select pedals. Each pointer's
+`InputManager` is the one driving-input authority. It owns the steering and pedal arbiters, suspension,
+the lifecycle resets and the final sample; the window and document it listens to are passed in. Adapters
+publish through it and keep only their local held state.
+
+Every publisher is an owner: an object whose identity is its reference and which carries its apply method.
+Each driving key is one `RATE_LIMITED` owner; each touch role's pointer is a `DIRECT` owner created on press.
+An owner publishes with `set` and ends its publication with `release`; an owner that sets zero remains held
+as a neutral authority. Keys set on keydown and release on keyup. The pedal arbiter's winner is the most
+recently activated held owner: a held owner keeps its activation order when it sets again, a new owner takes
+the next order, and releasing the winner reveals the next-most-recent held owner. Steering follows the latest
+owner to set; releasing it returns to neutral and never revives a superseded owner. Boolean pedal requests
+and numeric requests in `[0,1]` have the same canonical meaning.
+
+Each fixed step, `sample()` builds one `DrivingInput` from the arbiters: each apply method is the winning
+owner's, or `RATE_LIMITED` without an owner. The latest final sample is a published read-only observation
+(`lastSample`); the DEV vehicle HUD reads it. Blur, page hiding, a hidden document and suspension reset the
+arbiters, the adapters' held state and the final sample to neutral. While suspended the manager accepts no
+publication.
+
+Touch pointers starting inside the touch area, and outside UI elements marked `data-driving-input="ignore"`,
+control driving. The shell supplies the touch area as a client rectangle; it is currently the whole
+viewport. The area's left half selects steering; the midpoint and right half select pedals. Each pointer's
 role and origin are fixed until release, with at most one steering and one pedal pointer at once.
 
 Horizontal displacement maps steering to `[-1,1]`. Upward displacement supplies throttle and downward
 displacement supplies brake. Full scale is 64 CSS pixels, with larger displacement saturated.
 Touching the origin owns neutral input. Held touch supplies direct analog displacement; release uses
-the ordinary actuator release behavior. Release, cancellation, suspension, blur and page hiding clear
-the corresponding ownership and visible origin/vector indicators.
+the ordinary actuator release behavior.
+
+The touch adapter publishes each role's observation (origin in client CSS pixels, current request and
+vector length), or null while the role is inactive. The shell draws the origin/vector indicators and their
+labels from it every frame, and once more after a reset that stops the frame loop, so release,
+cancellation, suspension, blur and page hiding clear them.
 
 ## Race status
 

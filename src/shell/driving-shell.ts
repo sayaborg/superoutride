@@ -7,7 +7,6 @@ import type { CameraRig } from '../view/camera.js';
 import { createCameraRig, setCameraYawMode, type CameraState } from '../view/camera.js';
 import { LOGICAL_HEIGHT, LOGICAL_WIDTH } from '../view/display-scale.js';
 import { SoftwareSurface } from '../view/software-surface.js';
-import type { DrivingInput } from '../vehicle/driving-input.js';
 import type { DrivingDocument } from '../vehicle/driving-definition.js';
 import { InputManager } from '../input/input-manager.js';
 import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
@@ -23,6 +22,7 @@ import { mustGet } from './dom.js';
 import { createFrameLoop, type FrameLoop } from './frame-loop.js';
 import { mountMobileCameraYawSelector } from './mobile-selector-controls.js';
 import { browserUsesTouchInterface } from './touch-interface.js';
+import { createTouchIndicators } from './touch-indicators.js';
 import { drawVehicleDebugHud } from './vehicle-debug-hud.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
 
@@ -32,9 +32,10 @@ interface BrowserDrivingShell {
   readonly inputManager: InputManager;
   readonly cameraRig: CameraRig;
   mountControls(options: DrivingLifecycleOptions): ReturnType<typeof createDrivingLifecycle>;
+  /** Redraw the input display after a reset that stops the frame loop. */
+  presentInput(): void;
   present(
     query: BrowserCourseModeQuery,
-    input: DrivingInput,
     camera: CameraState,
     playerScreenY: number,
     observed: { readonly player: CompetitorObservation; readonly rivals: readonly CompetitorObservation[] },
@@ -63,7 +64,14 @@ export function createBrowserDrivingShell(
   ctx.imageSmoothingEnabled = false;
   const imageData = ctx.createImageData(LOGICAL_WIDTH, LOGICAL_HEIGHT);
   const framebuffer = new SoftwareSurface(LOGICAL_WIDTH, LOGICAL_HEIGHT, new Uint32Array(imageData.data.buffer));
-  const inputManager = new InputManager();
+  // The whole viewport is the touch area.
+  const inputManager = new InputManager(window, document, () => ({
+    left: 0,
+    top: 0,
+    width: window.innerWidth,
+    height: window.innerHeight,
+  }));
+  const touchIndicators = createTouchIndicators(document);
   // The tuned driving definition persists across rebuilt Sessions for the next tuning step and export.
   let driving = sessionVehicle.drivingDefinition;
   const sessionVehicleDefinition = sessionVehicle.vehicleDefinition;
@@ -94,6 +102,7 @@ export function createBrowserDrivingShell(
     },
     dispose(): void {
       inputManager.setSuspended(true);
+      touchIndicators.update(inputManager.touch);
       loop?.stop();
       audio.dispose();
     },
@@ -149,9 +158,11 @@ export function createBrowserDrivingShell(
       });
       return lifecycle;
     },
+    presentInput(): void {
+      touchIndicators.update(inputManager.touch);
+    },
     present(
       query: BrowserCourseModeQuery,
-      input: DrivingInput,
       camera: CameraState,
       playerScreenY: number,
       observed: { readonly player: CompetitorObservation; readonly rivals: readonly CompetitorObservation[] },
@@ -160,11 +171,12 @@ export function createBrowserDrivingShell(
       const { player } = observed;
       audio.update(player, observed.rivals);
       ctx.putImageData(imageData, 0, 0);
+      touchIndicators.update(inputManager.touch);
       // The DEV vehicle HUD diagnoses mechanics internals through the race's DEV-only diagnostics.
       drawVehicleDebugHud(
         ctx,
         query,
-        input,
+        inputManager.lastSample,
         diagnostics.vehicle,
         diagnostics.model,
         driving.source,

@@ -23,7 +23,7 @@
   CLASSIC/CUSTOM mode names and course-owned CLASSIC settings; all competitors share one vehicle; series, TIME TRIAL,
   traffic, collisions, music, sound effects and the product front end are not implemented.
 
-Next PR: **12-1 — Input composition**.
+Next PR: **12-1b — Gamepad**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -34,11 +34,7 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 Define input, run state, framebuffer, persistent player data, data-driven Sessions, the product front end and the
 product HUD independently of DEV, as specified in the [product specification](product.md).
 
-- **12-1 — Input composition:** `InputManager` owns the arbiters, suspension, lifecycle resets and the final sample;
-  the apply method is owner data, not a parsed string; the touch indicator is an observation drawn by the shell.
-  The final input sample is a published observation (the product HUD reads it).
 - **12-1b — Gamepad:** a standard-mapping gamepad owner ([Product](product.md#11-input-and-display)).
-- **12-2 — Duplicate input APIs (delete):** remove the adapters' own complete samples and resets.
 - **12-3 — Run state:** one run-state owner drives the loop, input and audio symmetrically; the displayed input clears
   on suspension.
 - **12-4 — View consolidation:** separate small PRs: move the generic Strip slab resolver out of color ground; remove

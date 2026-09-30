@@ -8,7 +8,6 @@ import { selectBrowserCourseMode } from './course-mode-selection.js';
 import { mustGet } from './dom.js';
 import { loadDeliveredCourse } from '../content/load-delivered-course.js';
 import { createCourseGround } from '../course/compiler/course-ground.js';
-import type { DrivingInput } from '../vehicle/driving-input.js';
 import { loadVehicleDefinitions } from '../content/vehicle-catalog.js';
 import { loadEngineSounds } from '../content/engine-sound-catalog.js';
 import { createCourseRace } from '../race/course-race.js';
@@ -121,12 +120,10 @@ try {
     },
   });
   const performanceHud = createCoursePerformanceHud(canvas, active.scene.groundMetrics);
-  let input: DrivingInput = { steering: 0, throttle: false, brake: false };
   let manualPause = false;
   const tick = () => {
     const started = performance.now();
-    input = shell.inputManager.sample();
-    const step = active.race.advance(input);
+    const step = active.race.advance(shell.inputManager.sample());
     lifecycle.update(step.recovered);
     performanceHud.step(performance.now() - started);
   };
@@ -141,18 +138,20 @@ try {
       observations.player.brakeLampOn ? sprites.on : sprites.off,
       raceSprites(observations.rivals, lifecycle.camera),
     );
-    shell.present(mode, input, lifecycle.camera, result.playerScreenY, observations, race.playerDiagnostics);
+    shell.present(mode, lifecycle.camera, result.playerScreenY, observations, race.playerDiagnostics);
     raceStatus.textContent = raceStatusText(race, { paused: manualPause, tuned });
     performanceHud.frame(started, result.stripGround);
     if (race.clock.status === 'GOAL' || race.clock.status === 'GAME_OVER') {
       controls.complete();
       shell.stop();
       shell.inputManager.setSuspended(true);
+      shell.presentInput();
     }
   };
   const suspend = () => {
     shell.stop();
     shell.inputManager.setSuspended(true);
+    shell.presentInput();
   };
   const controls = mountCourseSessionControls(
     canvas,

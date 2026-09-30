@@ -62,6 +62,6 @@ explicitly scheduled in [NEXT](NEXT.md) are replaced with their owning concepts.
 | `Policy`              | Rules consumed by an algorithm, distinct from its live state.                                                                                                            |
 | `LateralField`        | A color-table cell’s preblended Strip color and coverage as a function of lateral position.                                                                              |
 | `native`              | Coordinates in the originating Section or data object's own ruler, before mapping into the shared Route.                                                                 |
-| `owner`               | The identity of an input publisher participating in arbitration.                                                                                                         |
+| `owner`               | An input publisher's identity in arbitration, carrying its apply method.                                                                                                 |
 | `excitation`          | A signal driving an acoustic system; a live sound generator is not an authored source.                                                                                   |
 | Prefixes              | Use the owning concept, such as `Vehicle*`, and semantic constant names; do not use historical `Arcade*` or `CURRENT_` prefixes for new names.                           |
