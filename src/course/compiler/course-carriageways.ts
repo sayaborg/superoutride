@@ -1,4 +1,4 @@
-import { stripEdgeAt, stripSlabAt } from '../strip-ground.js';
+import { stripEdgeAt, stripSlabAt } from '../strip-slabs.js';
 import { stripSupportedIntervals, type StripMaterial } from '../strip-material.js';
 import { requireCourse } from '../course-diagnostics.js';
 import { courseBoundaryAt, courseCarriagewayExists, type CompiledCarriageway } from '../course-boundaries.js';

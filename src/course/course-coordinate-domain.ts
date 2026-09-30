@@ -1,4 +1,4 @@
-import { stripEdgeAt, stripSlabAt } from './strip-ground.js';
+import { stripEdgeAt, stripSlabAt } from './strip-slabs.js';
 import type { StripMaterial } from './strip-material.js';
 import type { Writable } from '../core/writable.js';
 import { CourseInputError, requireCourse } from './course-diagnostics.js';

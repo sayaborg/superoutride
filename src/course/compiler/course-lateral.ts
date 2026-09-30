@@ -1,4 +1,4 @@
-import type { StripEdgeLine } from '../strip-ground.js';
+import type { StripEdgeLine } from '../strip-slabs.js';
 import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
 import { type Lateral, type CoursePosition, type SectionDocument } from '../course-document.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';

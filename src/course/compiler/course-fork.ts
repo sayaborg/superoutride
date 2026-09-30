@@ -2,7 +2,7 @@ import { courseBoundaryAt, courseCarriagewayExists } from '../course-boundaries.
 import { requireCourse } from '../course-diagnostics.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
 import { stripSupportedIntervals, stripSupportsInterval } from '../strip-material.js';
-import { stripEdgeAt, stripSlabAt } from '../strip-ground.js';
+import { stripEdgeAt, stripSlabAt } from '../strip-slabs.js';
 import type { CompiledFork, CompiledSection } from './course-graph.js';
 
 /** Resolve parallel-zone geometry after canonical outgoing Links exist, before publication. */

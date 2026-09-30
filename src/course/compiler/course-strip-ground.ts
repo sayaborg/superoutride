@@ -7,13 +7,8 @@ import type { CompiledCoursePosition } from '../course-geometry.js';
 import { resolveLateralInterval, resolveCourseLateral } from './course-lateral.js';
 import type { StripElementDocument, CoursePosition, Lateral } from '../course-document.js';
 import { requireCourse } from '../course-diagnostics.js';
-import {
-  STRIP_ACTIVE_LIMIT,
-  stripEdgeAt,
-  compileStripGround,
-  type StripPiece,
-  type StripEdgeLine,
-} from '../strip-ground.js';
+import { STRIP_ACTIVE_LIMIT, compileStripGround } from '../strip-ground.js';
+import { stripEdgeAt, type StripPiece, type StripEdgeLine } from '../strip-slabs.js';
 
 /** A small authored 5 by 7 block alphabet; rows expand to runs of Strips. */
 const GLYPHS: Readonly<Record<string, string>> = Object.freeze({

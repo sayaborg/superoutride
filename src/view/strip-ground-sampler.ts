@@ -1,4 +1,4 @@
-import { stripSlabAt } from '../course/strip-ground.js';
+import { stripEdgeAt, stripSlabAt } from '../course/strip-slabs.js';
 import {
   IMAGE_OPAQUE_COVERAGE,
   linearToRgb555,
@@ -6,13 +6,7 @@ import {
   selectImageLodLevel,
 } from '../image/image-filter.js';
 import { rgb555ToRgba } from '../image/rgb555.js';
-import {
-  STRIP_ACTIVE_LIMIT,
-  STRIP_BASE_STEP,
-  stripEdgeAt,
-  type StripGround,
-  type StripCellTarget,
-} from '../course/strip-ground.js';
+import { STRIP_ACTIVE_LIMIT, STRIP_BASE_STEP, type StripGround, type StripCellTarget } from '../course/strip-ground.js';
 import type { StripRenderMethod } from './display-settings.js';
 
 // Dimensionless coverage fraction: 64 eps (~1.42e-14) budgets rounding in the small

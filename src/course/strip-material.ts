@@ -5,7 +5,7 @@ import {
   resolveStripSlabs,
   type StripPiece,
   type StripSlab,
-} from './strip-ground.js';
+} from './strip-slabs.js';
 import type { SurfaceMaterial } from './surface-material.js';
 
 export interface StripMaterial {
