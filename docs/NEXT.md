@@ -23,7 +23,7 @@
   CLASSIC/CUSTOM mode names and course-owned CLASSIC settings; all competitors share one vehicle; series, TIME TRIAL,
   traffic, collisions, music, sound effects and the product front end are not implemented.
 
-Next PR: **12-1b — Gamepad**.
+Next PR: **12-3 — Run state**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -34,7 +34,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 Define input, run state, framebuffer, persistent player data, data-driven Sessions, the product front end and the
 product HUD independently of DEV, as specified in the [product specification](product.md).
 
-- **12-1b — Gamepad:** a standard-mapping gamepad owner ([Product](product.md#11-input-and-display)).
 - **12-3 — Run state:** one run-state owner drives the loop, input and audio symmetrically; the displayed input clears
   on suspension.
 - **12-4 — View consolidation:** separate small PRs: move the generic Strip slab resolver out of color ground; remove
@@ -78,9 +77,9 @@ product HUD independently of DEV, as specified in the [product specification](pr
   lateral integration across the pixel), keeping LEVEL-POINT as the cheaper method. Confirm with the RIBBON ROUGH
   evaluation and real-device performance.
 - **12-12 — Front end:** the screens and flow in one page, PRESS START as the sound and fullscreen gesture, PAUSE
-  menu, RESULT, landscape and portrait layouts with the touch area. URL parameters remain DEV and test deep links:
-  rename `mode` to `course` and `session` to `mode`. Pass the manifest-derived course list explicitly instead of the
-  mutable `BROWSER_COURSE_MODES`.
+  menu, RESULT, landscape and portrait layouts with the touch area, Escape and gamepad Start pause. URL parameters
+  remain DEV and test deep links: rename `mode` to `course` and `session` to `mode`. Pass the manifest-derived course
+  list explicitly instead of the mutable `BROWSER_COURSE_MODES`.
 - **12-13 — Product HUD:** independent elements drawn inside the game frame from published observations with the
   8×8 bitmap font; the active rules select the elements. Separate product and DEV observations in the render result,
   including the performance HUD's ground (Strip) metrics. Place the vehicle-state elements and review the layout.

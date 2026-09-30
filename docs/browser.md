@@ -1,6 +1,6 @@
 # Browser operation
 
-This document owns display, scheduling, keyboard/touch input, URL settings, race status, HUD and DEV controls.
+This document owns display, scheduling, keyboard/touch/gamepad input, URL settings, race status, HUD and DEV controls.
 [Content and gameplay](content-and-gameplay.md) owns Session rules and loading,
 [Audio](audio.md) owns audio lifetime, and [Calibration](calibration.md) owns numeric settings.
 
@@ -61,7 +61,9 @@ Autostart affects gameplay; sound still requires an eligible browser gesture.
 ## Driving input
 
 Left/right arrows steer, Up or X accelerates, and Down or Z brakes. These are the only keyboard
-controls; DEV selections and manual recovery use DEV buttons.
+controls; DEV selections and manual recovery use DEV buttons. A standard-mapping gamepad steers with the
+left stick X axis or the D-pad, accelerates with RT or A and brakes with LT or B; other gamepad mappings are
+ignored.
 
 `InputManager` is the one driving-input authority. It owns the steering and pedal arbiters, suspension,
 the lifecycle resets and the final sample; the window and document it listens to are passed in. Adapters
@@ -69,6 +71,8 @@ publish through it and keep only their local held state.
 
 Every publisher is an owner: an object whose identity is its reference and which carries its apply method.
 Each driving key is one `RATE_LIMITED` owner; each touch role's pointer is a `DIRECT` owner created on press.
+Each connected gamepad has one owner per control: the stick X axis, RT and LT are `DIRECT`; D-pad left,
+D-pad right, A and B are `RATE_LIMITED`. Owners of one gamepad arbitrate like any others.
 An owner publishes with `set` and ends its publication with `release`; an owner that sets zero remains held
 as a neutral authority. Keys set on keydown and release on keyup. The pedal arbiter's winner is the most
 recently activated held owner: a held owner keeps its activation order when it sets again, a new owner takes
@@ -76,11 +80,11 @@ the next order, and releasing the winner reveals the next-most-recent held owner
 owner to set; releasing it returns to neutral and never revives a superseded owner. Boolean pedal requests
 and numeric requests in `[0,1]` have the same canonical meaning.
 
-Each fixed step, `sample()` builds one `DrivingInput` from the arbiters: each apply method is the winning
-owner's, or `RATE_LIMITED` without an owner. The latest final sample is a published read-only observation
-(`lastSample`); the DEV vehicle HUD reads it. Blur, page hiding, a hidden document and suspension reset the
-arbiters, the adapters' held state and the final sample to neutral. While suspended the manager accepts no
-publication.
+Each fixed step, `sample()` polls the window's gamepads once and then builds one `DrivingInput` from the
+arbiters: each apply method is the winning owner's, or `RATE_LIMITED` without an owner. The latest final
+sample is a published read-only observation (`lastSample`); the DEV vehicle HUD reads it. Blur, page hiding, a
+hidden document and suspension reset the arbiters, the adapters' held state and the final sample to neutral.
+While suspended the manager accepts no publication.
 
 Touch pointers starting inside the touch area, and outside UI elements marked `data-driving-input="ignore"`,
 control driving. The shell supplies the touch area as a client rectangle; it is currently the whole
@@ -96,6 +100,14 @@ The touch adapter publishes each role's observation (origin in client CSS pixels
 vector length), or null while the role is inactive. The shell draws the origin/vector indicators and their
 labels from it every frame, and once more after a reset that stops the frame loop, so release,
 cancellation, suspension, blur and page hiding clear them.
+
+Stick X magnitude and RT/LT values at or below 0.15 are rest; above it they rescale linearly from 0.15..1
+to 0..1, keeping the stick's sign. Gamepad owners publish only on change, since the latest steering owner
+wins: a button sets when pressed and releases when released; an analog control sets when it leaves rest,
+sets again only when its rescaled value differs from its last publication, and releases at rest. After a
+manager reset or a new connection, each control publishes nothing until it has been seen at rest, as a held
+key is ignored until pressed again. A disconnected gamepad, or one no longer returned by polling, releases
+all its owners. Without the Gamepad API, polling does nothing.
 
 ## Race status
 

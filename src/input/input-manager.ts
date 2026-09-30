@@ -1,5 +1,6 @@
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import type { DrivingInputPublisher } from './driving-input-publisher.js';
+import { GamepadInput } from './gamepad-input.js';
 import { KeyboardInput } from './keyboard-input.js';
 import { PedalInputArbiter } from './pedal-input-arbiter.js';
 import { SteeringInputArbiter } from './steering-input-arbiter.js';
@@ -21,6 +22,7 @@ export class InputManager {
   private readonly pedals = new PedalInputArbiter();
   private readonly steering = new SteeringInputArbiter();
   private readonly touchInput: TouchInput;
+  private readonly gamepadInput: GamepadInput;
   private suspended = false;
   private last: Readonly<DrivingInput> = NEUTRAL_DRIVING_INPUT;
 
@@ -33,6 +35,7 @@ export class InputManager {
     };
     new KeyboardInput(target, publisher);
     this.touchInput = new TouchInput(target, publisher, touchArea);
+    this.gamepadInput = new GamepadInput(target, publisher);
     target.addEventListener('blur', () => this.reset());
     target.addEventListener('pagehide', () => this.reset());
     visibilityDocument.addEventListener('visibilitychange', () => {
@@ -56,8 +59,12 @@ export class InputManager {
     if (suspended) this.reset();
   }
 
-  /** One final sample from the arbiters; each apply method is the winning owner's, else RATE_LIMITED. */
+  /**
+   * Poll the gamepads, then build one final sample from the arbiters; each apply method is the winning
+   * owner's, else RATE_LIMITED.
+   */
   sample(): Readonly<DrivingInput> {
+    this.gamepadInput.poll();
     const pedals = this.pedals.sample();
     this.last = Object.freeze({
       steering: this.steering.sample(),
@@ -79,6 +86,7 @@ export class InputManager {
     this.steering.reset();
     this.pedals.reset();
     this.touchInput.reset();
+    this.gamepadInput.reset();
     this.last = NEUTRAL_DRIVING_INPUT;
   }
 }

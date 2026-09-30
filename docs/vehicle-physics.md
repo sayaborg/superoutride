@@ -410,8 +410,9 @@ state, so it does not chatter near the limit. Torque protection is the same for 
 
 ## Actuators and steering
 
-The solver consumes normalized steering and exclusive throttle/brake inputs. Keyboard and AI requests
-use finite-rate actuators; active analog touch supplies direct displacement, then uses normal release.
+The solver consumes normalized steering and exclusive throttle/brake inputs. Digital input (keys, D-pad,
+buttons) and AI requests use finite-rate actuators (`RATE_LIMITED`); positional analog input (touch, stick,
+triggers) is `DIRECT` while held, then uses normal release.
 Input arbitration is specified in [Browser](browser.md#driving-input).
 
 Automatic steering has one method: it follows the body's travel direction. For driver offset D and
