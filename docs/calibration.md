@@ -103,7 +103,7 @@ capability on unit grip without surface drag.
 
 | Setting               | Value | Meaning                                                      |
 | --------------------- | ----- | ------------------------------------------------------------ |
-| Rival utilization     | 0.75  | Session driver's fraction of the measured envelope           |
+| Rival utilization     | 0.75  | FREE PLAY rivals' fixed fraction of the measured envelope    |
 | Reference utilization | 0.9   | Offline reference driver's fraction of the measured envelope |
 
 ## Vehicle values

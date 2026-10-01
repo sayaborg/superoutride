@@ -633,7 +633,7 @@ competitors present.
 
 ## Series documents
 
-A series document (`superoutride.series` version 5) is the one owner of its courses' ARCADE settings. It is
+A series document (`superoutride.series` version 6) is the one owner of its courses' ARCADE settings. It is
 saved as `content/series/<id>.series.json`; `id` equals that file name stem, which is also its manifest ID.
 
 ```json
@@ -650,7 +650,9 @@ saved as `content/series/<id>.series.json`; `id` equals that file name stem, whi
     {
       "course": "ribbon-coast",
       "laps": 1,
-      "entries": [{ "vehicle": "TESTAROSSA", "color": "original", "stages": null, "slot": 15, "ahead": null }],
+      "entries": [
+        { "vehicle": "TESTAROSSA", "color": "original", "pace": 1, "stages": null, "slot": 15, "ahead": null }
+      ],
       "playerSlot": "last",
       "rankLimits": {}
     }
@@ -663,7 +665,7 @@ saved as `content/series/<id>.series.json`; `id` equals that file name stem, whi
 `timeMargin` is the series' one time margin: positive, finite and at most 10. `fixedColors` says whether the
 player drives in its entry's color rather than its own chosen color. `courses` lists at least one delivered
 course, each with its ARCADE `laps` (1 through 99), `entries`, `playerSlot` and `rankLimits`. `entries` lists the
-whole field, 1 through 16 entries, each a catalog vehicle, a color its sprite set declares, `stages` (null for the
+whole field, 1 through 16 entries, each a catalog vehicle, a color its sprite set declares, a positive pace ratio `pace`, `stages` (null for the
 whole run, or `{first, last}` with `last` at least `first` and no later than the stage count of every run of the
 course: its race gates per route, times the laps on a circuit) and one appearance. An entry taking part from STAGE
 1 has a grid `slot` index (0 through 15) and `ahead: null`; grid entries are in grid order with strictly increasing
@@ -679,7 +681,7 @@ with N an integer from 1 to below the field size (the number of entries). The bu
 Session admits the course it drives.
 
 The delivered series is RIBBON (`dev: true`, colors not fixed): RIBBON COAST, RIBBON FORK and RIBBON RING with
-TESTAROSSA, whose fields are 1, 3 and 3 TESTAROSSA entries in its default color in the grid's rearmost slots, with
+TESTAROSSA, whose fields are 1, 3 and 3 TESTAROSSA entries in its default color with pace ratio 1 in the grid's rearmost slots, with
 `playerSlot: last`.
 RIBBON ROUGH belongs to no series.
 
@@ -691,7 +693,7 @@ ARCADE resolves its series course: a series vehicle candidate, the course's seri
 checkpoint clock. The player takes the rearmost grid entry of its vehicle in grid order: with `own` it stands in
 that entry's slot and every other grid entry in its own; with `last` it stands in the rearmost of the grid entries'
 slots and the other grid entries, in order, take the slots in front. Each other entry is a rival with its own
-vehicle, envelope, color and stage interval; one with an ahead appearance has no slot. The player's color is its entry's when the series fixes colors, otherwise the player's chosen color (the
+vehicle, envelope, color, pace ratio and stage interval; one with an ahead appearance has no slot. The player's color is its entry's when the series fixes colors, otherwise the player's chosen color (the
 player record's color for the vehicle when its sprite set declares it), otherwise the vehicle's default color. FREE PLAY resolves a catalog
 vehicle, zero to fifteen rivals and permitted laps; it has no clock, and a FREE PLAY configuration with a time limit
 is rejected. On an untimed course, Session resolution rejects ARCADE; an ARCADE clock without its delivered time
@@ -717,7 +719,8 @@ identity—must have no rivals and no time limit; Session resolution rejects any
 and the race builds a rival driver only from an envelope.
 Before activation, every FINISH in a Section with no outgoing Link must have at least
 `maximumSpeed² / (2*a)` metres remaining to that Section's end for every entry with an envelope, the player
-included. Here `a` is the minimum measured envelope braking multiplied by the Session driver utilization (0.75);
+included. Here `a` is the minimum measured envelope braking multiplied by the fixed Session driver utilization (0.75),
+for ARCADE rivals too, whose own speed plan brakes for that end at their current utilization;
 the entry needing the longest stop decides the requirement. Admission rejects insufficient runout with a
 RangeError naming the FINISH, that entry's vehicle, available metres and required metres; the browser shows this
 through its loading failure state.
@@ -787,6 +790,18 @@ from the Section's start to each station it reaches, starting at 0; times increa
 both by interpolating the run's race time between fixed steps at each station's route station. An ARCADE Session
 admits the player vehicle's schedule once, against the compiled course and the Session vehicle; no other vehicle's
 schedule and no FREE PLAY Session reads one.
+
+An ARCADE rival follows that schedule divided by its entry's pace ratio p. Its target time at a station sums, Section
+by Section along the Route it runs, the schedule's times divided by p: a grid rival's from GO along the start
+schedule, from the player vehicle's reference start; a rival appearing ahead's from its appearance, on schedule at
+the first station its schedule times. Between stations the times are interpolated linearly. Its difference is race
+time minus target time, positive when behind. The rival's utilization starts at the middle of the driving
+definition's `rivalPace` bounds and, each fixed step, responds as a first-order lag with time constant
+`responseSeconds` toward `maximumUtilization` while the difference is positive and toward `minimumUtilization`
+otherwise. Where its schedule times no station (past the last timed station of a Section, or on a Section no
+reference run passes from its start), the utilization holds and the next timed station anchors the targets anew. The
+rival reads nothing else, in particular not the player's position. FREE PLAY rivals drive at the fixed Session
+driver utilization (0.75).
 
 ### Vehicle envelopes and drivers
 

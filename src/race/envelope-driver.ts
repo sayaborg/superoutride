@@ -36,15 +36,30 @@ export function envelopeAt(
   return out;
 }
 
+const minimumBraking = (envelope: RivalEnvelope) => Math.min(...envelope.rows.map((row) => row.braking));
+
 export function compileEnvelopeDriver(envelope: RivalEnvelope, utilization: number, speedCap: number) {
   return Object.freeze({
     envelope,
     utilization,
     speedCap: Math.min(speedCap, envelope.maximumSpeed),
-    braking: Math.min(...envelope.rows.map((row) => row.braking)) * utilization,
+    braking: minimumBraking(envelope) * utilization,
   });
 }
 type Driver = ReturnType<typeof compileEnvelopeDriver>;
+
+/** A driver whose owner changes its utilization between steps; its planning braking follows the utilization. */
+export function createVariableEnvelopeDriver(envelope: RivalEnvelope, utilization: number, speedCap: number) {
+  const braking = minimumBraking(envelope);
+  const driver = { ...compileEnvelopeDriver(envelope, utilization, speedCap) };
+  return Object.freeze({
+    driver: driver as Driver,
+    setUtilization(value: number) {
+      driver.utilization = value;
+      driver.braking = braking * value;
+    },
+  });
+}
 type Lane = number | ((s: number) => number);
 const CACHE_SIZE = Math.ceil(ENVELOPE_DRIVER.lookahead / ENVELOPE_DRIVER.spacing) + 1;
 

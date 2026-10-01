@@ -23,7 +23,7 @@
   fields; FREE PLAY rivals are drawn from vehicle pools; TIME TRIAL, traffic, collisions, music, sound effects and
   the product front end are not implemented.
 
-Next PR: **12-8d-5b-2 — Rival pace schedule**.
+Next PR: **12-9 — Start and finish**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -34,10 +34,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 Define input, run state, framebuffer, persistent player data, data-driven Sessions, the product front end and the
 product HUD independently of DEV, as specified in the [product specification](product.md).
 
-- **12-8d-5b-2 — Rival pace schedule:** series version with each entry's pace ratio p (RIBBON 1.0); an ARCADE rival
-  follows the player vehicle's schedule divided by p, accumulated along its own route from GO or its appearance,
-  by varying its utilization within the bounds and response from its schedule difference alone. FREE PLAY rivals
-  keep a fixed utilization.
 - **12-8e — TIME TRIAL:** the third mode; solo, no traffic, no clock, route chosen by driving.
 - **12-9 — Start and finish:** remove `updateHeldVehicle`; a held start constrains the body explicitly inside the one
   vehicle update while the powertrain runs; READY has one meaning (today both the start phase and the checkpoint

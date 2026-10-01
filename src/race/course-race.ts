@@ -13,9 +13,11 @@ import {
   recoverVehicleToPlanCoordinate,
   type RecoveryState,
 } from './recovery.js';
+import { createRivalPace } from './rival-pace.js';
 import {
   compileEnvelopeDriver,
   createEnvelopeDriverWorkspace,
+  createVariableEnvelopeDriver,
   plannedEnvelopeSpeed,
   sampleEnvelopeDrivingInput,
 } from './envelope-driver.js';
@@ -53,10 +55,10 @@ interface Actor {
  * rival's driver from its entry's envelope; callers supply the player's input only.
  */
 export function createCourseRace(options: { readonly session: ResolvedCourseSession; readonly runtime: RouteRuntime }) {
-  const { course, configuration, budgets, entries, rankLimits } = options.session;
+  const { course, configuration, budgets, entries, rankLimits, paceSchedule } = options.session;
   const { initialSpeed } = configuration;
   const { runtime } = options;
-  // Entries sharing a vehicle share its model, and entries sharing an envelope share its driver.
+  // Entries sharing a vehicle share its model, and unpaced entries sharing an envelope share its fixed driver.
   const models = new Map<SessionEntry['vehicle'], VehicleModel>();
   const modelOf = (vehicle: SessionEntry['vehicle']) => {
     let model = models.get(vehicle);
@@ -64,9 +66,24 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     return model;
   };
   const drivers = new Map<RivalEnvelope, ReturnType<typeof compileEnvelopeDriver>>();
-  // Rival driving exists only with an envelope; Session resolution admits no rivals without one.
-  const driverOf = (envelope: RivalEnvelope | null) => {
+  // Rival driving exists only with an envelope; Session resolution admits no rivals without one. An entry with a pace
+  // ratio drives its own driver at the utilization its pace sets; the others share their envelope's fixed driver.
+  const drivingOf = (entry: SessionEntry) => {
+    const { envelope } = entry;
     if (!envelope) throw new Error('rivals require an envelope driver');
+    if (entry.pace === null) return { driver: driverOf(envelope), pace: null, setUtilization: null };
+    if (!paceSchedule) throw new Error('a paced rival requires the pace schedule');
+    const pace = createRivalPace(
+      runtime.route,
+      paceSchedule,
+      entry.pace,
+      entry.vehicle.drivingDefinition.compiledDriving.rivalPace,
+      SIM_DT,
+    );
+    const variable = createVariableEnvelopeDriver(envelope, pace.utilization, envelope.maximumSpeed);
+    return { driver: variable.driver, pace, setUtilization: variable.setUtilization };
+  };
+  const driverOf = (envelope: RivalEnvelope) => {
     let driver = drivers.get(envelope);
     if (!driver)
       drivers.set(
@@ -128,7 +145,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       throw new RangeError(`${entry.id}: an ahead appearance beyond the loaded Route`);
   // ARCADE rank limits judge the player against every other competitor's crossings.
   const judge = createRankLimitJudge(rankLimits, player.id);
-  const rivalDrivers = rivalEntries.map((entry) => driverOf(entry.envelope));
+  const rivalDriving = rivalEntries.map(drivingOf);
   const rivals = rivalEntries.map((entry, rivalIndex) => {
     const lane = entry.slot ? entry.slot.l : entry.ahead!.lateral;
     // The race assigns each rival's target exits from the Session seed; its grid side implies none.
@@ -147,8 +164,8 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     c,
     id: c.id,
     index,
-    /** A rival's envelope driver; null for the player. */
-    driver: index === 0 ? null : rivalDrivers[index - 1]!,
+    /** A rival's envelope driver, with its pace and utilization setter when paced; null for the player. */
+    driving: index === 0 ? null : rivalDriving[index - 1]!,
     previous: { s: 0, l: 0 },
     current: c.actor.vehicle,
     recovered: false,
@@ -180,7 +197,9 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       const entry = rivalEntries[motion.index - 1]!;
       const s = player.actor.vehicle.course.s + entry.ahead!.distance;
       const lane = (station: number) => forks.targetL(station, c.intent!);
-      const speed = plannedEnvelopeSpeed(runtime.readers.coordinates, s, motion.driver!, lane, runtime.window);
+      const driving = motion.driving!;
+      driving.pace?.join(s);
+      const speed = plannedEnvelopeSpeed(runtime.readers.coordinates, s, driving.driver, lane, runtime.window);
       c.actor = spawn(entry, { s, l: lane(s), initialSpeed: speed });
       c.observer = createRouteProgress(lines, c.actor.vehicle.course, s);
       motion.current = c.actor.vehicle;
@@ -284,12 +303,17 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     move(active[0]!, input);
     for (let i = 1; i < active.length; i += 1) {
       const motion = active[i]!;
+      const driving = motion.driving!;
+      if (driving.pace) {
+        driving.pace.update(motion.c.actor.vehicle.course.s, stepStart);
+        driving.setUtilization(driving.pace.utilization);
+      }
       move(
         motion,
         sampleEnvelopeDrivingInput(
           runtime.readers.coordinates,
           motion.c.actor.vehicle,
-          motion.driver!,
+          driving.driver,
           motion.input,
           motion.driverWorkspace,
           runtime.window,
