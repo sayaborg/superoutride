@@ -23,7 +23,7 @@
   fields; FREE PLAY rivals are drawn from vehicle pools; TIME TRIAL, traffic, collisions, music, sound effects and
   the product front end are not implemented.
 
-Next PR: **12-8d-4b — Ahead appearance**.
+Next PR: **12-8d-5a — Pace schedule data**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -34,12 +34,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 Define input, run state, framebuffer, persistent player data, data-driven Sessions, the product front end and the
 product HUD independently of DEV, as specified in the [product specification](product.md).
 
-- **12-8d-4b — Ahead appearance:** series version 5: an entry whose first stage is 2 or later has, instead of a grid
-  slot, an ahead appearance (`distance`, `lateral`); admission keeps the distance positive and inside that stage on
-  every route (before the next race gate and the next fork lock), and Session assembly rejects one beyond the loading
-  coverage. The entry appears ahead of the player by its distance when the player enters its first stage, in its
-  lane, moving at its driver's planned speed there. Forks keep first arrival; there is no fork-decider or until-fork
-  lifetime component.
 - **12-8d-5a — Pace schedule data:** per series course and candidate vehicle, Section pass-time profiles (the
   fastest reference time from each Section's entry to each 5 m station) as a generated product with the time-budget
   identity rules; ARCADE admits the player vehicle's schedule once. No behavior change.

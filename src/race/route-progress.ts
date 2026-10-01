@@ -13,9 +13,16 @@ export interface RouteRaceEvent {
 }
 export type RouteRaceAdmission = (event: RouteRaceEvent) => boolean;
 
-/** Linear, branch and circuit races consume the same ordered route lines. */
-export function createRouteProgress(lines: ReturnType<typeof createRouteCrossSections>, initial: RoutePosition) {
-  let acceptedS = -Infinity;
+/**
+ * Linear, branch and circuit races consume the same ordered route lines. A competitor joining at route station
+ * `fromS` (one appearing ahead) awaits only the lines after it.
+ */
+export function createRouteProgress(
+  lines: ReturnType<typeof createRouteCrossSections>,
+  initial: RoutePosition,
+  fromS = -Infinity,
+) {
+  let acceptedS = fromS;
   const state = {
     next: lines.after(acceptedS),
     s: initial.s,

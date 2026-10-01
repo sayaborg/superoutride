@@ -63,16 +63,18 @@ export function createEnvelopeDriverWorkspace() {
   };
 }
 
-export function sampleEnvelopeDrivingInput(
+type DrivingDomain = { readonly start: number; readonly end: number; readonly terminal: number | null };
+
+/** The planned speed at route station `s` when moving at `speed`: curve limits braked back over the lookahead. */
+function plannedTargetSpeed(
   coordinates: PlanCoordinateReader,
-  car: VehicleMotionRead,
+  s: number,
+  speed: number,
   driver: Driver,
-  targetL: Lane = 0,
+  targetL: Lane,
   workspace: ReturnType<typeof createEnvelopeDriverWorkspace>,
-  domain: { readonly start: number; readonly end: number; readonly terminal: number | null },
-): DrivingInput {
-  const s = car.course.s;
-  const speed = Math.hypot(car.longitudinalSpeed, car.lateralSpeed);
+  domain: DrivingDomain,
+): number {
   const { envelope, speedCap, braking, utilization } = driver;
   if (workspace.coordinates !== coordinates || workspace.lane !== targetL || workspace.driver !== driver) {
     workspace.cells.fill(NaN);
@@ -126,7 +128,42 @@ export function sampleEnvelopeDrivingInput(
     );
     targetSquared = Math.min(targetSquared, 2 * braking * distance);
   }
-  const targetSpeed = Math.sqrt(targetSquared);
+  return Math.sqrt(targetSquared);
+}
+
+/**
+ * The driver's planned speed at route station `s` in lane `targetL`: the speed that is its own planned target there,
+ * found by iterating the plan from the speed cap.
+ */
+export function plannedEnvelopeSpeed(
+  coordinates: PlanCoordinateReader,
+  s: number,
+  driver: Driver,
+  targetL: Lane,
+  domain: DrivingDomain,
+): number {
+  const workspace = createEnvelopeDriverWorkspace();
+  let speed = driver.speedCap;
+  for (let iteration = 0; iteration < 16; iteration++) {
+    const next = plannedTargetSpeed(coordinates, s, speed, driver, targetL, workspace, domain);
+    if (Math.abs(next - speed) < 1e-6) return next;
+    speed = next;
+  }
+  return speed;
+}
+
+export function sampleEnvelopeDrivingInput(
+  coordinates: PlanCoordinateReader,
+  car: VehicleMotionRead,
+  driver: Driver,
+  targetL: Lane = 0,
+  workspace: ReturnType<typeof createEnvelopeDriverWorkspace>,
+  domain: DrivingDomain,
+): DrivingInput {
+  const s = car.course.s;
+  const speed = Math.hypot(car.longitudinalSpeed, car.lateralSpeed);
+  const { envelope } = driver;
+  const targetSpeed = plannedTargetSpeed(coordinates, s, speed, driver, targetL, workspace, domain);
   const lookahead = Math.min(ENVELOPE_DRIVER.lookahead, Math.max(8, speed * ENVELOPE_DRIVER.responseSeconds));
   const targetS = clamp(s + lookahead, domain.start, domain.end);
   const target = coordinates.toWorld(

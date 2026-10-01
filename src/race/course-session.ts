@@ -3,7 +3,7 @@ import type { RivalEnvelope } from '../content/rival-envelope.js';
 import type { CourseTimeBudgets } from '../content/course-time-budgets.js';
 import type { SessionVehicle } from '../content/session-vehicle.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
-import type { SeriesCourse, StageInterval } from '../content/series-catalog.js';
+import type { AheadAppearance, SeriesCourse, StageInterval } from '../content/series-catalog.js';
 import type { SessionConfiguration } from './session-configuration.js';
 import { drawRivalPairs, type VehicleColor } from './free-play-field.js';
 
@@ -17,10 +17,15 @@ export interface EntryVehicle {
   readonly envelope: RivalEnvelope | null;
 }
 
-/** One competitor's resolved entry: its stable ID, grid slot, color, Session vehicle and that vehicle's envelope. */
+/**
+ * One competitor's resolved entry: its stable ID, grid slot or ahead appearance, color, stage interval, Session
+ * vehicle and that vehicle's envelope.
+ */
 export interface SessionEntry extends EntryVehicle {
   readonly id: string;
-  readonly slot: GridSlot;
+  /** The grid slot of a competitor taking part from STAGE 1; null for one appearing ahead. */
+  readonly slot: GridSlot | null;
+  readonly ahead: AheadAppearance | null;
   /** A color of the vehicle's sprite set. */
   readonly color: string;
   /** The stages the competitor takes part in; null for the whole run. */
@@ -130,17 +135,21 @@ function arcadeEntries(
 ): readonly SessionEntry[] {
   const { grid } = course.gates;
   const playerVehicleId = player.vehicle.vehicleDefinition.compiledVehicle.id;
-  const own = [...arcade.entries].reverse().find((entry) => entry.vehicle === playerVehicleId)!;
+  const gridEntries = arcade.entries.filter((entry) => entry.slot !== null);
+  const own = [...gridEntries].reverse().find((entry) => entry.vehicle === playerVehicleId)!;
   const others = arcade.entries.filter((entry) => entry !== own);
-  // `own` keeps every entry's slot; `last` gives the player the rearmost of the entries' slots and the others, in
-  // order, the slots in front of it.
-  const slots = arcade.entries.map((entry) => entry.slot);
-  const playerSlot = arcade.playerSlot === 'own' ? own.slot : slots.at(-1)!;
-  const otherSlots = arcade.playerSlot === 'own' ? others.map((entry) => entry.slot) : slots.slice(0, -1);
+  // `own` keeps every grid entry's slot; `last` gives the player the rearmost of the grid entries' slots and the
+  // other grid entries, in order, the slots in front of it. Entries appearing ahead have no slot.
+  const slots = gridEntries.map((entry) => entry.slot!);
+  const otherGridSlots = arcade.playerSlot === 'own' ? null : slots.slice(0, -1);
+  let gridIndex = 0;
+  const slotOf = (entry: (typeof others)[number]) =>
+    entry.slot === null ? null : grid[otherGridSlots ? otherGridSlots[gridIndex++]! : entry.slot]!;
   return Object.freeze([
     Object.freeze({
       id: 'PLAYER',
-      slot: grid[playerSlot]!,
+      slot: grid[arcade.playerSlot === 'own' ? own.slot! : slots.at(-1)!]!,
+      ahead: null,
       color: arcade.series.fixedColors ? own.color : chosenColor,
       stages: null,
       ...player,
@@ -148,7 +157,8 @@ function arcadeEntries(
     ...others.map((entry, index) =>
       Object.freeze({
         id: rivalId(index),
-        slot: grid[otherSlots[index]!]!,
+        slot: slotOf(entry),
+        ahead: entry.ahead,
         color: entry.color,
         stages: entry.stages,
         ...entryVehicle(entry.vehicle, player, vehicleOf),
@@ -172,11 +182,12 @@ function freePlayEntries(
   const playerVehicleId = player.vehicle.vehicleDefinition.compiledVehicle.id;
   const drawn = drawRivalPairs(seed, rivalCount, pool, { vehicle: playerVehicleId, color: playerColor });
   return Object.freeze([
-    Object.freeze({ id: 'PLAYER', slot: grid.at(-1)!, color: playerColor, stages: null, ...player }),
+    Object.freeze({ id: 'PLAYER', slot: grid.at(-1)!, ahead: null, color: playerColor, stages: null, ...player }),
     ...drawn.map((pair, index) =>
       Object.freeze({
         id: rivalId(index),
         slot: grid[first + index]!,
+        ahead: null,
         color: pair.color,
         stages: null,
         ...entryVehicle(pair.vehicle, player, vehicleOf),

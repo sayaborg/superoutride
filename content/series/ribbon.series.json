@@ -1,6 +1,6 @@
 {
   "format": "superoutride.series",
-  "version": 4,
+  "version": 5,
   "id": "ribbon",
   "title": "RIBBON",
   "dev": true,
@@ -15,8 +15,9 @@
         {
           "vehicle": "TESTAROSSA",
           "color": "original",
+          "stages": null,
           "slot": 15,
-          "stages": null
+          "ahead": null
         }
       ],
       "playerSlot": "last",
@@ -29,20 +30,23 @@
         {
           "vehicle": "TESTAROSSA",
           "color": "original",
+          "stages": null,
           "slot": 13,
-          "stages": null
+          "ahead": null
         },
         {
           "vehicle": "TESTAROSSA",
           "color": "original",
+          "stages": null,
           "slot": 14,
-          "stages": null
+          "ahead": null
         },
         {
           "vehicle": "TESTAROSSA",
           "color": "original",
+          "stages": null,
           "slot": 15,
-          "stages": null
+          "ahead": null
         }
       ],
       "playerSlot": "last",
@@ -55,20 +59,23 @@
         {
           "vehicle": "TESTAROSSA",
           "color": "original",
+          "stages": null,
           "slot": 13,
-          "stages": null
+          "ahead": null
         },
         {
           "vehicle": "TESTAROSSA",
           "color": "original",
+          "stages": null,
           "slot": 14,
-          "stages": null
+          "ahead": null
         },
         {
           "vehicle": "TESTAROSSA",
           "color": "original",
+          "stages": null,
           "slot": 15,
-          "stages": null
+          "ahead": null
         }
       ],
       "playerSlot": "last",

@@ -620,7 +620,11 @@ stage interval is present in the Session until the player has crossed its last s
 competitor is out of view: behind the camera, or farther from it than the farthest rendered depth, both read from
 the camera window in the Route runtime's loading coverage. Leaving is final. A competitor that is not present is not
 moved, ranked, judged by rank limits, counted for fork arrival, observed, drawn or voiced; the race exposes each
-competitor's presence and the player's STAGE.
+competitor's presence and the player's STAGE. A competitor joining at a later stage appears in the step in which the
+player enters that stage: at the player's route station plus its ahead distance, in its lane, moving at its
+driver's planned speed there (the speed that is the driver's own planned target at that station), and awaits only
+the race gates after that station. Session assembly rejects an ahead distance beyond the Route kept loaded ahead of
+the player (the loading coverage's forward distance less one step).
 
 Ranking is one race-layer function (`rankRaceProgress`). Finished actors rank first by finish time. Unfinished
 actors rank by descending route s, which includes lap separation. Equal finish times or equal unfinished stations
@@ -629,13 +633,13 @@ competitors present.
 
 ## Series documents
 
-A series document (`superoutride.series` version 4) is the one owner of its courses' ARCADE settings. It is
+A series document (`superoutride.series` version 5) is the one owner of its courses' ARCADE settings. It is
 saved as `content/series/<id>.series.json`; `id` equals that file name stem, which is also its manifest ID.
 
 ```json
 {
   "format": "superoutride.series",
-  "version": 4,
+  "version": 5,
   "id": "ribbon",
   "title": "RIBBON",
   "dev": true,
@@ -646,7 +650,7 @@ saved as `content/series/<id>.series.json`; `id` equals that file name stem, whi
     {
       "course": "ribbon-coast",
       "laps": 1,
-      "entries": [{ "vehicle": "TESTAROSSA", "color": "original", "slot": 15, "stages": null }],
+      "entries": [{ "vehicle": "TESTAROSSA", "color": "original", "stages": null, "slot": 15, "ahead": null }],
       "playerSlot": "last",
       "rankLimits": {}
     }
@@ -659,11 +663,14 @@ saved as `content/series/<id>.series.json`; `id` equals that file name stem, whi
 `timeMargin` is the series' one time margin: positive, finite and at most 10. `fixedColors` says whether the
 player drives in its entry's color rather than its own chosen color. `courses` lists at least one delivered
 course, each with its ARCADE `laps` (1 through 99), `entries`, `playerSlot` and `rankLimits`. `entries` lists the
-whole field in grid order, 1 through 16 entries, each a catalog vehicle, a color its sprite set declares, a grid
-slot index (0 through 15), with strictly increasing slots, and `stages`: null for the whole run, or `{first, last}`
-with `last` at least `first` and no later than the stage count of every run of the course (its race gates per
-route, times the laps on a circuit); a grid entry takes part from STAGE 1; every candidate vehicle has at least one
-entry, which the player can take. `playerSlot` is `own` or `last`. `rankLimits` maps a race gate ID to its rank
+whole field, 1 through 16 entries, each a catalog vehicle, a color its sprite set declares, `stages` (null for the
+whole run, or `{first, last}` with `last` at least `first` and no later than the stage count of every run of the
+course: its race gates per route, times the laps on a circuit) and one appearance. An entry taking part from STAGE
+1 has a grid `slot` index (0 through 15) and `ahead: null`; grid entries are in grid order with strictly increasing
+slots. An entry whose first stage is later has `slot: null` and `ahead: {distance, lateral}`: a positive distance
+in metres ahead of the player and the lateral offset of its lane, as a grid slot's. On every route the distance
+falls short of the next race gate and the next fork lock after the gate opening that stage. Every candidate vehicle
+has at least one grid entry, which the player can take. `playerSlot` is `own` or `last`. `rankLimits` maps a race gate ID to its rank
 limit N. Admission checks each document once, from the build's files or the delivery manifest alike, against the
 delivered course IDs and the vehicle catalog. Until selection screens choose a series, a course belongs to at most
 one series; a second one is rejected. A series course is admitted against its compiled course: `laps` within
@@ -681,10 +688,10 @@ RIBBON ROUGH belongs to no series.
 ### Resolved Session
 
 ARCADE resolves its series course: a series vehicle candidate, the course's series entries and laps and the
-checkpoint clock. The player takes the rearmost entry of its vehicle in grid order: with `own` it stands in that
-entry's slot and every other entry in its own; with `last` it stands in the rearmost of the entries' slots and the
-other entries, in order, take the slots in front. Each other entry is a rival with its own vehicle, envelope and
-color. The player's color is its entry's when the series fixes colors, otherwise the player's chosen color (the
+checkpoint clock. The player takes the rearmost grid entry of its vehicle in grid order: with `own` it stands in
+that entry's slot and every other grid entry in its own; with `last` it stands in the rearmost of the grid entries'
+slots and the other grid entries, in order, take the slots in front. Each other entry is a rival with its own
+vehicle, envelope, color and stage interval; one with an ahead appearance has no slot. The player's color is its entry's when the series fixes colors, otherwise the player's chosen color (the
 player record's color for the vehicle when its sprite set declares it), otherwise the vehicle's default color. FREE PLAY resolves a catalog
 vehicle, zero to fifteen rivals and permitted laps; it has no clock, and a FREE PLAY configuration with a time limit
 is rejected. On an untimed course, Session resolution rejects ARCADE; an ARCADE clock without its delivered time

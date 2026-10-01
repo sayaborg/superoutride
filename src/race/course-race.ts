@@ -13,7 +13,12 @@ import {
   recoverVehicleToPlanCoordinate,
   type RecoveryState,
 } from './recovery.js';
-import { compileEnvelopeDriver, createEnvelopeDriverWorkspace, sampleEnvelopeDrivingInput } from './envelope-driver.js';
+import {
+  compileEnvelopeDriver,
+  createEnvelopeDriverWorkspace,
+  plannedEnvelopeSpeed,
+  sampleEnvelopeDrivingInput,
+} from './envelope-driver.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import { createVehicle, updateHeldVehicle, type VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import { createStartPhase } from './start-phase.js';
@@ -90,8 +95,13 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     intent,
     /** The stages this competitor takes part in; null for the whole run. */
     stages,
-    /** Whether the competitor is in the Session; one that has left is never ranked, judged, drawn or voiced. */
-    present: true,
+    /**
+     * Whether the competitor is in the Session: one that has not yet appeared or has left is never moved, ranked,
+     * judged, drawn or voiced.
+     */
+    present: stages === null || stages.first === 1,
+    /** Whether the competitor has entered the Session; its leaving is final. */
+    appeared: stages === null || stages.first === 1,
     /** The race's recovery lane resolver for this competitor. */
     recoveryLane: (s: number) => forks.recoveryL(s, lane),
     observer: createRouteProgress(lines, actor.vehicle.course),
@@ -101,34 +111,42 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     /** Race time of this competitor's finish event; null until it finishes. */
     finishSeconds: null as number | null,
   });
-  // Every competitor drives the model of its entry's vehicle, spawned at its grid slot with the Session's start speed.
-  const spawn = (entry: SessionEntry): Actor => {
+  // Every competitor drives the model of its entry's vehicle, spawned at its grid slot with the Session's start speed,
+  // or, appearing ahead, where and as fast as it appears.
+  const spawn = (entry: SessionEntry, at: { s: number; l: number; initialSpeed: number }): Actor => {
     const model = modelOf(entry.vehicle);
-    const { slot } = entry;
-    const vehicle = createVehicle(model, runtime.readers, { s: slot.at.s, l: slot.l, initialSpeed });
+    const vehicle = createVehicle(model, runtime.readers, at);
     return { vehicle, model, recovery: createRecoveryState(vehicle) };
   };
   const [playerEntry, ...rivalEntries] = entries;
-  const playerActor = spawn(playerEntry!);
-  const player = competitor(playerEntry!.id, playerActor, playerEntry!.slot.l, null, null);
+  const playerSlot = playerEntry!.slot!;
+  const playerActor = spawn(playerEntry!, { s: playerSlot.at.s, l: playerSlot.l, initialSpeed });
+  const player = competitor(playerEntry!.id, playerActor, playerSlot.l, null, null);
+  // An ahead appearance must lie within the Route the runtime keeps loaded ahead of the player.
+  for (const entry of rivalEntries)
+    if (entry.ahead && entry.ahead.distance > runtime.coverage.forwardMeters - runtime.coverage.maximumStepMeters)
+      throw new RangeError(`${entry.id}: an ahead appearance beyond the loaded Route`);
   // ARCADE rank limits judge the player against every other competitor's crossings.
   const judge = createRankLimitJudge(rankLimits, player.id);
   const rivalDrivers = rivalEntries.map((entry) => driverOf(entry.envelope));
   const rivals = rivalEntries.map((entry, rivalIndex) => {
-    const { slot } = entry;
+    const lane = entry.slot ? entry.slot.l : entry.ahead!.lateral;
     // The race assigns each rival's target exits from the Session seed; its grid side implies none.
     const intent: DriverIntent = {
-      lane: slot.l,
+      lane,
       exit: (occurrence) =>
         rivalExit(configuration.seed, rivalIndex, occurrence.ordinal, occurrence.section.fork!.exits.length),
     };
-    return competitor(entry.id, spawn(entry), slot.l, intent, entry.stages);
+    // Until it appears, an ahead entry's actor waits unmoved at the player's slot; nothing reads it.
+    const at = entry.slot ?? playerSlot;
+    return competitor(entry.id, spawn(entry, { s: at.at.s, l: at.l, initialSpeed }), lane, intent, entry.stages);
   });
   const resync = (c: typeof player) => c.observer.resync(c.actor.vehicle.course);
   const competitors = [player, ...rivals];
   const motions = competitors.map((c, index) => ({
     c,
     id: c.id,
+    index,
     /** A rival's envelope driver; null for the player. */
     driver: index === 0 ? null : rivalDrivers[index - 1]!,
     previous: { s: 0, l: 0 },
@@ -142,8 +160,8 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     },
     input: (s: number) => forks.targetL(s, c.intent!),
   }));
-  // The competitors present in the Session, the player first; a departure removes its motion.
-  let active = motions;
+  // The competitors present in the Session, the player first, in competitor order.
+  let active = motions.filter((motion) => motion.c.present);
   // The race gates the player has crossed since GO, across laps: the player is in STAGE playerGates + 1.
   let playerGates = 0;
   const { view } = runtime.coverage;
@@ -151,6 +169,26 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   const outOfView = (s: number) => {
     const cameraS = player.actor.vehicle.course.s - view.cameraDistance;
     return s < cameraS || s - cameraS > view.far;
+  };
+  // An entry from a later stage appears ahead of the player when the player enters that stage, in its lane, at its
+  // driver's planned speed there; its progress counts the gates after that station.
+  const appear = () => {
+    let appeared = false;
+    for (const motion of motions) {
+      const { c } = motion;
+      if (c.appeared || playerGates < c.stages!.first - 1) continue;
+      const entry = rivalEntries[motion.index - 1]!;
+      const s = player.actor.vehicle.course.s + entry.ahead!.distance;
+      const lane = (station: number) => forks.targetL(station, c.intent!);
+      const speed = plannedEnvelopeSpeed(runtime.readers.coordinates, s, motion.driver!, lane, runtime.window);
+      c.actor = spawn(entry, { s, l: lane(s), initialSpeed: speed });
+      c.observer = createRouteProgress(lines, c.actor.vehicle.course, s);
+      motion.current = c.actor.vehicle;
+      motion.step.state = c.actor.recovery;
+      c.present = c.appeared = true;
+      appeared = true;
+    }
+    if (appeared) active = motions.filter((motion) => motion.c.present);
   };
   const depart = () => {
     let departed = false;
@@ -293,6 +331,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       }
     }
     depart();
+    appear();
     // Time order; a stable sort keeps competitor order (player, then rivals) for equal times.
     events = stepEvents.length
       ? Object.freeze([...stepEvents].sort((a, b) => a.timeSeconds - b.timeSeconds))
