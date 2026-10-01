@@ -11,6 +11,7 @@ export type GameOverCause = 'TIME' | 'RANK';
 export function createRunOutcome() {
   let status: RunStatus = 'RUNNING';
   let cause: GameOverCause | null = null;
+  let endSeconds: number | null = null;
   return Object.freeze({
     get status() {
       return status;
@@ -19,11 +20,19 @@ export function createRunOutcome() {
     get cause() {
       return cause;
     },
-    /** Ends a running run once: GOAL, or GAME OVER with its cause. */
-    end(ending: { readonly status: 'GOAL' } | { readonly status: 'GAME_OVER'; readonly cause: GameOverCause }) {
+    /** The race time of the ending; null while running. */
+    get endSeconds() {
+      return endSeconds;
+    },
+    /** Ends a running run once at race time `seconds`: GOAL, or GAME OVER with its cause. */
+    end(
+      ending: { readonly status: 'GOAL' } | { readonly status: 'GAME_OVER'; readonly cause: GameOverCause },
+      seconds: number,
+    ) {
       if (status !== 'RUNNING') throw new Error('Only a running run ends');
       status = ending.status;
       cause = ending.status === 'GAME_OVER' ? ending.cause : null;
+      endSeconds = seconds;
     },
   });
 }

@@ -294,14 +294,44 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   let events = noEvents;
   const stepEvents: RaceEvent[] = [];
 
-  const step = (input: DrivingInput) => {
-    if (startPhase.status === 'WAITING') return;
-    if (startPhase.status === 'READY') {
-      holdReady(input);
-      return;
-    }
-    if (outcome.status !== 'RUNNING') return;
-    const stepStart = clock.beginStep();
+  // The player's driving after its finish: the envelope driver at the Session driver utilization, holding the lateral
+  // position it finished at and planning a stop at its runout distance past the finish, within any Route terminal. A
+  // Session without an envelope holds the brake instead.
+  const takeoverDriver = playerEntry!.envelope ? driverOf(playerEntry!.envelope) : null;
+  const takeoverWorkspace = createEnvelopeDriverWorkspace();
+  const takeoverIntent: { lane: number; exit: DriverIntent['exit'] } = { lane: 0, exit: () => 0 };
+  const takeoverLane = (s: number) => forks.targetL(s, takeoverIntent);
+  const takeoverDomain = { start: 0, end: 0, terminal: null as number | null };
+  let stopS = Infinity;
+  const takeOver = () => {
+    const { s, l } = player.actor.vehicle.course;
+    takeoverIntent.lane = forks.intentLane(s, l);
+    if (takeoverDriver) stopS = s + takeoverDriver.envelope.maximumSpeed ** 2 / (2 * takeoverDriver.braking);
+  };
+  const holdBrake: DrivingInput = Object.freeze({ steering: 0, throttle: false, brake: true });
+  // After GOAL the takeover drives the player and its input no longer reaches the vehicle; after GAME OVER the
+  // throttle is released and the player's steering and brake still apply.
+  const afterRunInput = (input: DrivingInput): DrivingInput => {
+    if (outcome.status === 'GAME_OVER') return { ...input, throttle: false };
+    if (!takeoverDriver) return holdBrake;
+    const { window } = runtime;
+    takeoverDomain.start = window.start;
+    takeoverDomain.end = window.end;
+    takeoverDomain.terminal = Math.min(window.terminal ?? Infinity, stopS);
+    return sampleEnvelopeDrivingInput(
+      runtime.readers.coordinates,
+      player.actor.vehicle,
+      takeoverDriver,
+      takeoverLane,
+      takeoverWorkspace,
+      takeoverDomain,
+    );
+  };
+  /**
+   * Moves the present field one step: the player by `input`, each rival by its driver, then fork observation and Route
+   * loading. A running step (`stepStart` set) also paces paced rivals; after the run ends they hold their pace.
+   */
+  const driveField = (input: DrivingInput, stepStart: number | null) => {
     let minS = Infinity,
       maxS = -Infinity;
     for (const motion of active) {
@@ -313,7 +343,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     for (let i = 1; i < active.length; i += 1) {
       const motion = active[i]!;
       const driving = motion.driving!;
-      if (driving.pace) {
+      if (driving.pace && stepStart !== null) {
         driving.pace.update(motion.c.actor.vehicle.course.s, stepStart);
         driving.set(driving.pace.utilization, driving.pace.speedFraction * driving.driver.envelope.maximumSpeed);
       }
@@ -333,8 +363,25 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     for (const motion of active) {
       minS = Math.min(minS, motion.c.actor.vehicle.course.s);
       maxS = Math.max(maxS, motion.c.actor.vehicle.course.s);
+      // After the run ends, progress, events, presence and the clock hold; recovery still keeps the field legal.
+      if (stepStart === null) motion.recovered = legalRecovery(motion.c) || motion.recovered;
     }
     runtime.refresh(minS, maxS);
+  };
+
+  const step = (input: DrivingInput) => {
+    if (startPhase.status === 'WAITING') return;
+    if (startPhase.status === 'READY') {
+      holdReady(input);
+      return;
+    }
+    if (outcome.status !== 'RUNNING') {
+      driveField(afterRunInput(input), null);
+      stepObservation.recovered = active[0]!.recovered;
+      return;
+    }
+    const stepStart = clock.beginStep();
+    driveField(input, stepStart);
     stepEvents.length = 0;
     let playerFinishSeconds: number | null = null;
     for (const motion of active) {
@@ -383,7 +430,10 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     )
       ending = { seconds: expiry, end: { status: 'GAME_OVER', cause: 'TIME' } };
     clock.completeStep(ending?.seconds ?? clock.stepEndSeconds);
-    if (ending) outcome.end(ending.end);
+    if (ending) {
+      outcome.end(ending.end, ending.seconds);
+      if (ending.end.status === 'GOAL') takeOver();
+    }
     stepObservation.recovered = active[0]!.recovered;
   };
 
@@ -402,6 +452,10 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       },
       get cause() {
         return outcome.cause;
+      },
+      /** The race time of the GOAL or GAME OVER; null before. The field keeps driving after it. */
+      get endSeconds() {
+        return outcome.endSeconds;
       },
     }),
     /** The last step's accepted crossings of every competitor, in race-time order. */

@@ -79,6 +79,12 @@ export function createCourseForkField(
         road = section.carriageways.find((c) => courseCarriagewayExists(c, at, section.coordinates.domain.end))!;
       return center(road, at) - occurrence.lateralOrigin;
     },
+    /** The intent lane whose target off forks is `l` at route station `s`; at a fork, `l`. */
+    intentLane(s: number, l: number) {
+      const occurrence = route.at(s)!;
+      if (occurrence.section.fork) return l;
+      return l - (occurrence.incoming ? occurrence.incoming.to.lateralOrigin - occurrence.lateralOrigin : 0);
+    },
     recoveryL(s: number, lane: number) {
       const occurrence = route.at(s)!;
       const at = routeSectionS(occurrence, s);

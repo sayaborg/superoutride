@@ -2,6 +2,8 @@ import { browserContent } from './browser-content.js';
 import { createRaceSprites } from '../view/race-sprites.js';
 import { createDisplaySettings } from '../view/display-settings.js';
 import { mountStripControls } from './strip-controls.js';
+import { DEFAULT_RESULT_DELAY_SECONDS, mountResultDelayControls } from './result-delay-controls.js';
+import { SIM_DT } from '../race/fixed-step.js';
 import { createVehicleSprites } from '../view/vehicle-sprites.js';
 import { createBrowserDrivingShell } from './driving-shell.js';
 import { selectBrowserCourseMode } from './course-mode-selection.js';
@@ -166,6 +168,7 @@ try {
         true,
       );
       lifecycle.update(true);
+      afterEndingSeconds = 0;
       controls.begin();
       runState.restart();
     },
@@ -174,13 +177,20 @@ try {
   const performanceHud = createCoursePerformanceHud(canvas, {
     maxActiveStrips: Math.max(...course.sections.map((section) => section.color.metrics.maxActiveStrips)),
   });
+  // RESULT (today, finishing the run state) follows GOAL or GAME OVER after the DEV delay, counted in fixed steps
+  // while the loop, the field, rendering and sound continue.
+  let resultDelaySeconds = DEFAULT_RESULT_DELAY_SECONDS;
+  let afterEndingSeconds = 0;
   const tick = () => {
     const started = performance.now();
     const { race } = active;
     const step = race.advance(shell.inputManager.sample());
     lifecycle.update(step.recovered);
     performanceHud.step(performance.now() - started);
-    if (race.outcome.status === 'GOAL' || race.outcome.status === 'GAME_OVER') runState.finish();
+    if (race.outcome.status === 'GOAL' || race.outcome.status === 'GAME_OVER') {
+      if (afterEndingSeconds + SIM_DT / 2 >= resultDelaySeconds) runState.finish();
+      else afterEndingSeconds += SIM_DT;
+    }
   };
   const render = () => {
     const { scene, race, tuned } = active;
@@ -225,6 +235,7 @@ try {
     },
     vehicles,
   );
+  mountResultDelayControls(resultDelaySeconds, (seconds) => (resultDelaySeconds = seconds));
   mountStripControls(displaySettings.stripMethod, (value) => {
     displaySettings.setStripMethod(value);
     render();

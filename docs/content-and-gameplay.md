@@ -598,9 +598,20 @@ The state before GO has one owner, the start phase: WAITING until the Session st
 hold (`READY_SECONDS`), GO on the step boundary nearest its end. The run outcome has one owner from GO: RUNNING, then
 GOAL or GAME_OVER with its cause, `TIME`
 (the deadline expired) or `RANK` (a rank limit failed the player). At the end of each running step the earliest
-ending among the player's finish, a rank failure and expiry decides it, and race time stops at that ending. The
+ending among the player's finish, a rank failure and expiry decides it, and race time stops at that ending; the race
+publishes the ending's race time. The
 player's own crossing wins an exact tie with a failure, as it does with expiry; expiry wins an exact tie with a rank
 failure.
+
+After the ending the race keeps moving the field: every present competitor advances each step with recovery, fork
+observation and Route loading, while race time, progress, events, presence and judging hold. The player's rank is
+therefore fixed at the ending: competitors unfinished at that moment rank behind a finished player. Paced rivals keep
+their last utilization and speed cap. After GOAL the player's input no longer reaches its vehicle: the envelope
+driver at the fixed Session driver utilization (0.75) drives it, holding the lateral position it finished at (its
+lane on a fork, the selected exit) and planning a stop at the finish station plus that vehicle's runout distance
+(`maximumSpeed² / (2*a)`, as admitted), within any Route terminal; a Session without an envelope (a DEV-tuned
+vehicle) holds the brake instead. After GAME OVER the player's throttle is released: its steering and brake still
+apply and the vehicle coasts.
 
 Rank limits are ARCADE series settings by race gate ID ([series](#series-documents)). At a gate with limit N, each
 lap's crossing is judged once: the player fails at the race time of the N-th crossing of that gate and lap by
@@ -826,8 +837,8 @@ The speed plan is bounded by `sqrt(2*a*d)`, with d reduced by the driver's respo
 2 m terminal clearance for the front footprint. The driver holds the brake when its target speed is
 zero, using ordinary vehicle physics. It does not inspect finish status or introduce a finished-driving
 state. Thus a finished LINEAR/BRANCH rival decelerates and stops on the runout while the Session
-continues; a finished CIRCUIT rival keeps driving. The existing player GOAL/GAME OVER still ends
-the whole Session.
+continues; a finished CIRCUIT rival keeps driving. The player's takeover after GOAL is the same driver with a stop
+station as its terminal.
 
 The same driver serves reference runs and live rivals. Generated runs contain precise landmark times
 and optional 10 Hz position/speed/utilization traces. The browser loads generated envelopes and compact

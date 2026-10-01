@@ -23,8 +23,7 @@ Every Session assembly, a DEV tuning rebuild included, picks a new Session seed 
 the composition root is the only place that draws randomness.
 
 The run state is the one owner of whether the run is running. It holds three facts: `paused` (manual PAUSE),
-`hidden` (the document is hidden or the page was hidden) and `finished` (the current Session reached GOAL or
-GAME OVER). The run is running exactly while none holds. Only the run state watches document visibility and
+`hidden` (the document is hidden or the page was hidden) and `finished` (the current Session reached RESULT). The run is running exactly while none holds. Only the run state watches document visibility and
 page hiding, and a page restored from the back/forward cache reloads. The PAUSE button's label (PAUSE or
 RESUME) and its visibility follow the facts.
 
@@ -33,8 +32,11 @@ audio, renders once and starts the frame loop. Stopping stops the frame loop, su
 deactivates audio and renders once; that frame shows neutral input in the DEV vehicle HUD, no touch
 indicators and the `PAUSED`, `GOAL` or `GAME OVER` status.
 
-After each simulation step, a race clock at GOAL or GAME OVER finishes the run: the field stops, PAUSE is
-hidden and the results are displayed; rendering changes no run state. A Session rebuilt by DEV tuning restarts
+RESULT follows GOAL or GAME OVER after the RESULT delay, a DEV setting (default 3 s; 0, 1, 2, 3, 5 or 10 s; not
+persisted), which the shell counts in fixed simulation steps after the step that ended the run. Until then the loop,
+the field, rendering and sound continue and PAUSE stays available; a pause stops the count with the simulation.
+Until selection screens exist, RESULT is finishing the run: the loop stops, PAUSE is hidden and the status line keeps
+the outcome; rendering changes no run state. A Session rebuilt by DEV tuning restarts
 the run, clearing `paused` and `finished`, so it drives at once. START resets driving input once. NEW
 SESSION returns to setup.
 
