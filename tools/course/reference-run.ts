@@ -40,7 +40,7 @@ export function runCourseReference(
     vehicleConfiguration,
     envelope,
   );
-  const slot = session.grid[0]!;
+  const slot = session.entries[0]!.slot;
   const race = createCourseRace({ session, runtime: scene.runtime });
   const { actor } = race.player;
   const { vehicle } = actor;

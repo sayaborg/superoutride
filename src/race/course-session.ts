@@ -8,9 +8,12 @@ import type { SessionConfiguration } from './session-configuration.js';
 
 const NO_RANK_LIMITS: Readonly<Record<string, number>> = Object.freeze({});
 
-/** One competitor's resolved entry: its stable ID, its Session vehicle and that vehicle's envelope. */
+type GridSlot = CompiledCourse['gates']['grid'][number];
+
+/** One competitor's resolved entry: its stable ID, its grid slot, its Session vehicle and that vehicle's envelope. */
 export interface SessionEntry {
   readonly id: string;
+  readonly slot: GridSlot;
   readonly vehicle: SessionVehicle;
   /** Null only for a DEV-tuned player, whose Session has no rivals. */
   readonly envelope: RivalEnvelope | null;
@@ -20,7 +23,8 @@ export interface SessionEntry {
  * Resolve one playable configuration before actors/ticks exist. Graph and catalog objects remain shared
  * references. `arcade` is the course's admitted series settings; a course without them has no ARCADE Session. Only
  * ARCADE has the clock. A Session without an envelope (a DEV-tuned vehicle) has no rivals and no time limit.
- * The resolved entries list the player first, then each rival; every rival currently drives the player's vehicle.
+ * The resolved entries list the player first, then each rival, with their grid slots: the player stands in the last
+ * slot and the rivals in the slots in front of it, in order; every rival currently drives the player's vehicle.
  */
 export function resolveCourseSession(
   course: CompiledCourse,
@@ -57,10 +61,18 @@ export function resolveCourseSession(
   if (!envelope && (configuration.rivalCount > 0 || configuration.timeLimit))
     throw new RangeError('A Session without an envelope has no rivals and no time limit');
   const rivalUtilization = 0.75;
+  // The field takes the rearmost slots in grid order: the rivals in order, then the player in the last slot.
+  const { grid } = course.gates;
+  const first = grid.length - 1 - configuration.rivalCount;
   const entries: readonly SessionEntry[] = Object.freeze([
-    Object.freeze({ id: 'PLAYER', vehicle, envelope }),
+    Object.freeze({ id: 'PLAYER', slot: grid.at(-1)!, vehicle, envelope }),
     ...Array.from({ length: configuration.rivalCount }, (_, index) =>
-      Object.freeze({ id: `RIVAL_${String(index + 1).padStart(2, '0')}`, vehicle, envelope }),
+      Object.freeze({
+        id: `RIVAL_${String(index + 1).padStart(2, '0')}`,
+        slot: grid[first + index]!,
+        vehicle,
+        envelope,
+      }),
     ),
   ]);
   // Runout covers the whole field: the entry needing the longest stop from its maximum speed decides it.
@@ -84,7 +96,6 @@ export function resolveCourseSession(
     course,
     configuration,
     entries,
-    grid: course.gates.grid,
     rivalUtilization,
     budgets: configuration.timeLimit ? budgets : null,
     /** Rank limit N by gate ID; ARCADE only. */

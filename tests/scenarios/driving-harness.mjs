@@ -83,7 +83,7 @@ export function runScenario({ course }, scenario) {
     configuration,
     envelope,
   );
-  const slot = session.grid[0];
+  const slot = session.entries[0].slot;
   // The race builds every competitor, the player included; the harness reads their state for evidence.
   const race = createCourseRace({ session, runtime: scene.runtime });
   const { actor } = race.player;

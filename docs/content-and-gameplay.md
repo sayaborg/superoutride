@@ -222,7 +222,9 @@ for author-confirmed time limits. Array order supplies checkpoint order within e
 | `lock`       | `at`                      | Exactly one in every Section with two or three outgoing Links                                                     |
 | `closure`    | `at`                      | Exactly one in every Section with two or three outgoing Links                                                     |
 
-Grid slots are ordered player first, then rivals in entry order. Each slot must be on supported
+Grid slots are listed in grid order, from the front of the grid to its back: their route s never increases along
+the list. A Session's field takes the rearmost slots: the rivals in order, then the player in the last slot. Each
+slot must be on supported
 material, at/after entry and before the first checkpoint, finish or lock gate. The grid must hold the
 Session entries; its capacity is one player plus the product maximum rival count. Starting velocity is zero.
 Checkpoint and finish Carriageways must exist at the gate and have positive supported width across their
@@ -658,9 +660,10 @@ checkpoint clock. FREE PLAY resolves a catalog
 vehicle, zero to fifteen rivals and permitted laps; it has no clock, and a FREE PLAY configuration with a time limit
 is rejected. On an untimed course, Session resolution rejects ARCADE; an ARCADE clock without its delivered time
 budgets fails. Unsupported course/vehicle/grid/lap combinations fail before
-activation. A Session binds immutable course, entries, grid, lap target, start speed and timing references. Its
-entries list the competitors in grid order, the player first: each has a stable ID (`PLAYER`, then `RIVAL_01`,
-`RIVAL_02`, …), its Session vehicle (vehicle calibration and protection settings) and that vehicle's envelope.
+activation. A Session binds immutable course, entries, lap target, start speed and timing references. Its entries
+list the player first, then the rivals: each has a stable ID (`PLAYER`, then `RIVAL_01`, `RIVAL_02`, …), its grid
+slot, its Session vehicle (vehicle calibration and protection settings) and that vehicle's envelope. The player
+stands in the grid's last slot and the rivals in the slots directly in front of it, `RIVAL_01` frontmost.
 Every rival entry currently carries the player's vehicle and envelope.
 The start speed is a resolved Session setting: every competitor spawns at its grid slot moving at it along the
 road tangent. It is finite and may be negative; product Sessions and reference runs use 0. The Session seed is a

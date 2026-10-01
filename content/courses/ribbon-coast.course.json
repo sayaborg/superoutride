@@ -1565,98 +1565,7 @@
             {
               "at": {
                 "pi": "start",
-                "offset": 15
-              },
-              "lateral": 0
-            },
-            {
-              "at": {
-                "pi": "start",
-                "offset": 25
-              },
-              "lateral": -2
-            },
-            {
-              "at": {
-                "pi": "start",
-                "offset": 37
-              },
-              "lateral": 2
-            },
-            {
-              "at": {
-                "pi": "start",
-                "offset": 49
-              },
-              "lateral": -2
-            },
-            {
-              "at": {
-                "pi": "start",
-                "offset": 61
-              },
-              "lateral": 2
-            },
-            {
-              "at": {
-                "pi": "start",
-                "offset": 73
-              },
-              "lateral": -2
-            },
-            {
-              "at": {
-                "pi": "start",
-                "offset": 85
-              },
-              "lateral": 2
-            },
-            {
-              "at": {
-                "pi": "start",
-                "offset": 97
-              },
-              "lateral": -2
-            },
-            {
-              "at": {
-                "pi": "start",
-                "offset": 109
-              },
-              "lateral": 2
-            },
-            {
-              "at": {
-                "pi": "start",
-                "offset": 121
-              },
-              "lateral": -2
-            },
-            {
-              "at": {
-                "pi": "start",
-                "offset": 133
-              },
-              "lateral": 2
-            },
-            {
-              "at": {
-                "pi": "start",
-                "offset": 145
-              },
-              "lateral": -2
-            },
-            {
-              "at": {
-                "pi": "start",
-                "offset": 157
-              },
-              "lateral": 2
-            },
-            {
-              "at": {
-                "pi": "start",
-                "offset": 169
+                "offset": 193
               },
               "lateral": -2
             },
@@ -1670,9 +1579,100 @@
             {
               "at": {
                 "pi": "start",
-                "offset": 193
+                "offset": 169
               },
               "lateral": -2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 157
+              },
+              "lateral": 2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 145
+              },
+              "lateral": -2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 133
+              },
+              "lateral": 2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 121
+              },
+              "lateral": -2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 109
+              },
+              "lateral": 2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 97
+              },
+              "lateral": -2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 85
+              },
+              "lateral": 2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 73
+              },
+              "lateral": -2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 61
+              },
+              "lateral": 2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 49
+              },
+              "lateral": -2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 37
+              },
+              "lateral": 2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 25
+              },
+              "lateral": -2
+            },
+            {
+              "at": {
+                "pi": "start",
+                "offset": 15
+              },
+              "lateral": 0
             }
           ]
         },

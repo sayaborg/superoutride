@@ -48,7 +48,7 @@ interface Actor {
  * rival's driver from its entry's envelope; callers supply the player's input only.
  */
 export function createCourseRace(options: { readonly session: ResolvedCourseSession; readonly runtime: RouteRuntime }) {
-  const { course, configuration, grid, budgets, entries, rankLimits } = options.session;
+  const { course, configuration, budgets, entries, rankLimits } = options.session;
   const { initialSpeed } = configuration;
   const { runtime } = options;
   // Entries sharing a vehicle share its model, and entries sharing an envelope share its driver.
@@ -92,26 +92,27 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     finishSeconds: null as number | null,
   });
   // Every competitor drives the model of its entry's vehicle, spawned at its grid slot with the Session's start speed.
-  const spawn = (entry: SessionEntry, slot: (typeof grid)[number]): Actor => {
+  const spawn = (entry: SessionEntry): Actor => {
     const model = modelOf(entry.vehicle);
+    const { slot } = entry;
     const vehicle = createVehicle(model, runtime.readers, { s: slot.at.s, l: slot.l, initialSpeed });
     return { vehicle, model, recovery: createRecoveryState(vehicle) };
   };
   const [playerEntry, ...rivalEntries] = entries;
-  const playerActor = spawn(playerEntry!, grid[0]!);
-  const player = competitor(playerEntry!.id, playerActor, grid[0]!.l, null);
+  const playerActor = spawn(playerEntry!);
+  const player = competitor(playerEntry!.id, playerActor, playerEntry!.slot.l, null);
   // ARCADE rank limits judge the player against every other competitor's crossings.
   const judge = createRankLimitJudge(rankLimits, player.id);
   const rivalDrivers = rivalEntries.map((entry) => driverOf(entry.envelope));
   const rivals = rivalEntries.map((entry, rivalIndex) => {
-    const slot = grid[rivalIndex + 1]!;
+    const { slot } = entry;
     // The race assigns each rival's target exits from the Session seed; its grid side implies none.
     const intent: DriverIntent = {
       lane: slot.l,
       exit: (occurrence) =>
         rivalExit(configuration.seed, rivalIndex, occurrence.ordinal, occurrence.section.fork!.exits.length),
     };
-    return competitor(entry.id, spawn(entry, slot), slot.l, intent);
+    return competitor(entry.id, spawn(entry), slot.l, intent);
   });
   const resync = (c: typeof player) => c.observer.resync(c.actor.vehicle.course);
   const competitors = [player, ...rivals];

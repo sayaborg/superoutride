@@ -114,6 +114,8 @@ export function compileCourseGates(
     entry.fork?.lock.s ?? Infinity,
   );
   const boundaries = new Map(entry.boundaries.map((boundary) => [boundary.id, boundary]));
+  // Grid order runs from the front of the grid to its back.
+  let front = Infinity;
   const grid = startGate.grid.map((slot, i) => {
     const position = resolve(entry, slot.at, `${start.path}/grid/${i}/at`);
     check(
@@ -121,6 +123,8 @@ export function compileCourseGates(
       `${start.path}/grid/${i}`,
       'Grid must lie between entry and the first gate',
     );
+    check(position.s <= front, `${start.path}/grid/${i}`, 'Grid slots must be ordered from front to back');
+    front = position.s;
     const l = resolveCourseLateral(slot.lateral, position.s, boundaries, `${start.path}/grid/${i}/lateral`);
     check(surface.sample(position.s, l) !== null, `${start.path}/grid/${i}`, 'Grid must be supported');
     return Object.freeze({ at: position, l });

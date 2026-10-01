@@ -23,7 +23,7 @@
   rival entries carry the player's vehicle; TIME TRIAL, traffic, collisions, music, sound effects and the product
   front end are not implemented.
 
-Next PR: **12-8d-3 — Entries and player slot**.
+Next PR: **12-8d-3b — Series entries and player slot**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -34,10 +34,16 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 Define input, run state, framebuffer, persistent player data, data-driven Sessions, the product front end and the
 product HUD independently of DEV, as specified in the [product specification](product.md).
 
-- **12-8d-3 — Entries and player slot:** whole-race competitor entries (vehicle, color, grid slot) replace the
-  provisional series `rivals`; the player slot (own entry or last; the rearmost entry of the selected vehicle);
-  seeded FREE PLAY rival vehicle and color assignment from the ALL, CARS or BIKES pool, defaulting to the player's
-  vehicle form, with the player last. This settles the Rival intent row of the pending-decisions table.
+- **12-8d-3b — Series entries and player slot:** series version 3: whole-race competitor entries (vehicle, color,
+  grid slot) in grid order replace the provisional `rivals`; `playerSlot` (`own` or `last`) and `fixedColors`. The
+  player takes the rearmost entry of the selected vehicle; with `last` it stands in the rearmost slot of the field's
+  slots and the other entries keep their order in the slots in front. The color comes from the entry when the series
+  fixes colors, otherwise from the player record; entry colors reach the sprites. RIBBON gets TESTAROSSA entries in
+  its default color (1, 3 and 3) with `last`.
+- **12-8d-3c — FREE PLAY rival assignment:** seeded FREE PLAY rival vehicle and color assignment from the ALL, CARS
+  or BIKES pool (URL `pool` until 12-12), defaulting to the player's vehicle form, avoiding the player's
+  vehicle/color pair and repeated pairs where the pool allows, with each drawn vehicle's envelope; the player last.
+  This settles the Rival intent row of the pending-decisions table.
 - **12-8d-4 — Stage intervals and ahead appearance:** entries take part in a stage interval; an entry joining later
   appears ahead of the player by its ahead distance when the player enters its first stage, moving at its driver's
   planned speed there, and leaves once out of view after its last stage. Forks keep first arrival; there is no
