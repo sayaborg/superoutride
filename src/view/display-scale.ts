@@ -1,5 +1,13 @@
+import { SoftwareSurface } from './software-surface.js';
+
+/** The logical frame's size; every 320×240 frame, its centre and its presentation derive from these. */
 export const LOGICAL_WIDTH = 320;
 export const LOGICAL_HEIGHT = 240;
+
+/** A logical frame, optionally over borrowed pixel storage (the browser's ImageData). */
+export function createLogicalFrame(pixels?: Uint32Array): SoftwareSurface {
+  return new SoftwareSurface(LOGICAL_WIDTH, LOGICAL_HEIGHT, pixels);
+}
 
 /**
  * SUPER OUTRIDE fixed display scale.

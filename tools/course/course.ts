@@ -21,7 +21,7 @@ import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { readDeliveredContent } from './read-content.js';
 import { createCameraRig, updateCamera } from '../../src/view/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../../src/view/current-camera-profile.js';
-import { SoftwareSurface } from '../../src/view/software-surface.js';
+import { createLogicalFrame } from '../../src/view/display-scale.js';
 import { courseReport } from './course-report.js';
 import { options, loadCourse, requireInput, finite, atomicWrite, reportError } from './authoring-io.js';
 
@@ -125,9 +125,9 @@ try {
           },
         );
         const camera = updateCamera(createCameraRig(), scene.world, vehicle, CURRENT_CAMERA_PROFILE),
-          target = new SoftwareSurface(320, 240);
+          target = createLogicalFrame();
         const stats = scene.render(target, vehicle, camera, sprites.off, []),
-          png = new PNG({ width: 320, height: 240 });
+          png = new PNG({ width: target.width, height: target.height });
         png.data = Buffer.from(target.pixels.buffer);
         const output = sequence ? path.join(destination, `${String(i).padStart(4, '0')}.png`) : destination;
         await atomicWrite(output, PNG.sync.write(png));

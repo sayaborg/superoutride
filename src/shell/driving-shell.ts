@@ -5,7 +5,7 @@ import type { AudioSettings } from '../audio/audio-document.js';
 import { createDrivingLifecycle, type DrivingLifecycleOptions } from './driving-lifecycle.js';
 import type { CameraRig } from '../view/camera.js';
 import { createCameraRig, setCameraYawMode, type CameraState } from '../view/camera.js';
-import { LOGICAL_HEIGHT, LOGICAL_WIDTH } from '../view/display-scale.js';
+import { createLogicalFrame, LOGICAL_HEIGHT, LOGICAL_WIDTH } from '../view/display-scale.js';
 import { SoftwareSurface } from '../view/software-surface.js';
 import type { DrivingDocument } from '../vehicle/driving-definition.js';
 import { InputManager } from '../input/input-manager.js';
@@ -59,7 +59,7 @@ export function createBrowserDrivingShell(
   if (!ctx) throw new Error('2D canvas context unavailable');
   ctx.imageSmoothingEnabled = false;
   const imageData = ctx.createImageData(LOGICAL_WIDTH, LOGICAL_HEIGHT);
-  const framebuffer = new SoftwareSurface(LOGICAL_WIDTH, LOGICAL_HEIGHT, new Uint32Array(imageData.data.buffer));
+  const framebuffer = createLogicalFrame(new Uint32Array(imageData.data.buffer));
   // The whole viewport is the touch area.
   const inputManager = new InputManager(window, () => ({
     left: 0,

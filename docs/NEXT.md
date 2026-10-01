@@ -23,7 +23,7 @@
   CLASSIC/CUSTOM mode names and course-owned CLASSIC settings; all competitors share one vehicle; series, TIME TRIAL,
   traffic, collisions, music, sound effects and the product front end are not implemented.
 
-Next PR: **12-6 — Framebuffer**.
+Next PR: **12-6b — RGB555 framebuffer**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -34,7 +34,8 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 Define input, run state, framebuffer, persistent player data, data-driven Sessions, the product front end and the
 product HUD independently of DEV, as specified in the [product specification](product.md).
 
-- **12-6 — Framebuffer:** RGB555; one authority for the 320×240 logical frame.
+- **12-6b — RGB555 framebuffer:** the logical frame stores RGB555 (`Uint16Array`); palettes, sprites, BG and ground write
+  RGB555, and the shell converts the frame to RGBA through a 32,768-entry table when presenting it.
 - **12-7 — Player settings:** one versioned persistent record for each vehicle's selected color, the three volumes
   and the latest selections.
 - **12-8a — Mode names (rename only):** CLASSIC → ARCADE and CUSTOM → FREE PLAY in code, documents and URL values.

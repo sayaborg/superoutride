@@ -16,7 +16,7 @@ import {
 } from '../../src/race/envelope-driver.js';
 import { createCameraRig, resetCameraRig, updateCamera } from '../../src/view/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../../src/view/current-camera-profile.js';
-import { SoftwareSurface } from '../../src/view/software-surface.js';
+import { createLogicalFrame } from '../../src/view/display-scale.js';
 import { createRaceSprites } from '../../src/view/race-sprites.js';
 import { createDisplaySettings, STRIP_RENDER_METHODS } from '../../src/view/display-settings.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
@@ -89,7 +89,7 @@ export function runScenario({ course }, scenario) {
   const { vehicle } = actor;
   const competitors = [race.player, ...race.rivals];
   const rig = createCameraRig();
-  const target = new SoftwareSurface(320, 240);
+  const target = createLogicalFrame();
   const visual = createVehicleSprites(entry);
   const sprites = createRaceSprites(visual);
   const workspace = createEnvelopeDriverWorkspace();

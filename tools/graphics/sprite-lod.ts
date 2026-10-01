@@ -1,16 +1,26 @@
 import { mustGet } from '../../src/shell/dom.js';
 import type { SpriteAsset, SpriteLodDocument } from '../../src/image/sprite.js';
-import { CURRENT_FOCAL_LENGTH_PIXELS, pixelsPerMeterAtDepth } from '../../src/view/display-scale.js';
+import {
+  createLogicalFrame,
+  CURRENT_FOCAL_LENGTH_PIXELS,
+  LOGICAL_HEIGHT,
+  LOGICAL_WIDTH,
+  pixelsPerMeterAtDepth,
+} from '../../src/view/display-scale.js';
 import { createSpriteLodFixture } from './fixtures/sprite-lod.js';
-import { SoftwareSurface } from '../../src/view/software-surface.js';
 import { rgba } from '../../src/image/rgb555.js';
 import { drawScaledSprite } from '../../src/view/sprite.js';
 import { readSpriteLodAsset, selectSpriteLevel, SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 
 const element = mustGet<HTMLElement>;
 const input = mustGet<HTMLInputElement | HTMLSelectElement>;
-const surfaces = [new SoftwareSurface(320, 240), new SoftwareSurface(320, 240)];
-const contexts = ['lod', 'master'].map((id) => mustGet<HTMLCanvasElement>(id).getContext('2d')!);
+const surfaces = [createLogicalFrame(), createLogicalFrame()];
+const contexts = ['lod', 'master'].map((id) => {
+  const canvas = mustGet<HTMLCanvasElement>(id);
+  canvas.width = LOGICAL_WIDTH;
+  canvas.height = LOGICAL_HEIGHT;
+  return canvas.getContext('2d')!;
+});
 let documentSource: SpriteLodDocument, asset: SpriteAsset, master: SpriteAsset, animation: number | undefined;
 function load(source: SpriteLodDocument) {
   const next = readSpriteLodAsset(source);
@@ -41,7 +51,11 @@ function render() {
     surface.clear(rgba(28, 42, 54));
     const result = drawScaledSprite(surface, sprite, 160 + phase, 200 + phase, ppm);
     const context = contexts[i]!;
-    context.putImageData(new ImageData(new Uint8ClampedArray(surface.pixels.buffer as ArrayBuffer), 320, 240), 0, 0);
+    context.putImageData(
+      new ImageData(new Uint8ClampedArray(surface.pixels.buffer as ArrayBuffer), surface.width, surface.height),
+      0,
+      0,
+    );
     context.strokeStyle = '#fff';
     context.lineWidth = 1;
     context.beginPath();

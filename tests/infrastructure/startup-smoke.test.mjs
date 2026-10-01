@@ -15,7 +15,7 @@ import { createCameraRig, updateCamera } from '../../src/view/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../../src/view/current-camera-profile.js';
 import { STRIP_RENDER_METHODS } from '../../src/view/display-settings.js';
 import { createDisplaySettings } from '../../src/view/display-settings.js';
-import { SoftwareSurface } from '../../src/view/software-surface.js';
+import { createLogicalFrame } from '../../src/view/display-scale.js';
 
 const definitionContent = await readDeliveredContent();
 const definitions = await loadVehicleDefinitions(definitionContent, await loadEngineSounds(definitionContent));
@@ -33,7 +33,7 @@ for (const { id: stem } of content.manifest.files.filter((file) => file.kind ===
     const model = createVehicleModel(createSessionVehicle(entry, definitions.driving, materials), SIM_DT);
     const vehicle = createVehicle(model, scene.world, { s: course.gates.grid[0].at.s, l: 0, initialSpeed: 0 });
     const rig = createCameraRig(),
-      target = new SoftwareSurface(320, 240);
+      target = createLogicalFrame();
     for (let frame = 0; frame < 3; frame++) {
       updateVehicle(scene.world, vehicle, model, { steering: 0, throttle: true, brake: false });
       const camera = updateCamera(rig, scene.world, vehicle, CURRENT_CAMERA_PROFILE);

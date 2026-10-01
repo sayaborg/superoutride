@@ -3,8 +3,11 @@ import { mustGet } from '../../src/shell/dom.js';
 import type { SpriteAsset } from '../../src/image/sprite.js';
 import type { SpriteSourceRecipe } from './sprite-source-compiler.js';
 import { PNG } from 'pngjs';
-import { CURRENT_FOCAL_LENGTH_PIXELS, pixelsPerMeterAtDepth } from '../../src/view/display-scale.js';
-import { SoftwareSurface } from '../../src/view/software-surface.js';
+import {
+  createLogicalFrame,
+  CURRENT_FOCAL_LENGTH_PIXELS,
+  pixelsPerMeterAtDepth,
+} from '../../src/view/display-scale.js';
 import { rgba, unpackRgba } from '../../src/image/rgb555.js';
 import { rgb555ToRgba } from '../../src/image/rgb555.js';
 import { readSpriteLodAsset, selectSpriteLevel, SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
@@ -22,8 +25,11 @@ const el = mustGet<HTMLElement>;
 const input = mustGet<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>;
 const canvas = mustGet<HTMLCanvasElement>('source'),
   context = canvas.getContext('2d')!;
-const surface = new SoftwareSurface(320, 240),
-  preview = mustGet<HTMLCanvasElement>('preview').getContext('2d')!;
+const surface = createLogicalFrame(),
+  previewCanvas = mustGet<HTMLCanvasElement>('preview'),
+  preview = previewCanvas.getContext('2d')!;
+previewCanvas.width = surface.width;
+previewCanvas.height = surface.height;
 const settingIds = [
   'name',
   'crop-x',
@@ -158,7 +164,11 @@ function drawPreview() {
     const stats = drawScaledSprite(surface, asset, 160, 200, ppm);
     metrics = `${asset.name} · ${asset.width} × ${asset.height} master · ${asset.levels.length} levels\nFrame: ${asset.worldWidthMeters.toFixed(3)} × ${(asset.height / SPRITE_SOURCE_TEXELS_PER_METER).toFixed(3)} m · ${ppm.toFixed(2)} screen px/m\nLOD ${k}: ${level.width} × ${level.height} · ${stats.outputSamples} samples · anchor at (160, 200)`;
   }
-  preview.putImageData(new ImageData(new Uint8ClampedArray(surface.pixels.buffer as ArrayBuffer), 320, 240), 0, 0);
+  preview.putImageData(
+    new ImageData(new Uint8ClampedArray(surface.pixels.buffer as ArrayBuffer), surface.width, surface.height),
+    0,
+    0,
+  );
   el('metrics').textContent = metrics;
 }
 function edited() {
