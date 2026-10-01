@@ -135,8 +135,8 @@ Manual pause shows `PAUSED`. A Session rebuilt by DEV tuning prefixes `TUNED · 
 
 - GOAL or GAME OVER shows `GOAL` or `GAME OVER`, the position and the race time; GAME OVER reads the same
   whatever its cause, as RESULT shows only the outcome ([product](product.md#6-flow-and-screens)).
-- During the start phase it shows `READY n`, n the seconds until GO rounded up; after the start phase and
-  before the clock starts, `READY`.
+- During READY it shows `READY n`, n the seconds until GO rounded up; while WAITING, before the Session starts,
+  `READY`.
 - While running it shows the state, the remaining time when there is a time limit, a current extension,
   the position and the race time, joined by `·`. The state is `LAP x/y` on a circuit (the player's accepted
   finish count plus one, capped at the lap count), or on another course `ROUTE` with the entry fork's choice,

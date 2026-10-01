@@ -30,7 +30,7 @@ export function raceStatusText(
 }
 
 function raceText(race: CourseRace): string {
-  const { clock, outcome, player, rivals, startPhase } = race;
+  const { clock, outcome, player, rivals, countdown } = race;
   // Rank counts the competitors present in the Session.
   const present = [player, ...rivals.filter((c) => c.present)];
   const standings = rankRaceProgress(
@@ -40,8 +40,8 @@ function raceText(race: CourseRace): string {
   const position = `P${rank}/${present.length}`;
   if (outcome.status === 'GOAL' || outcome.status === 'GAME_OVER')
     return `${outcome.status.replace('_', ' ')} · ${position} · ${formatRaceTime(clock.elapsedSeconds)}`;
-  if (startPhase.status === 'READY') return `READY ${Math.ceil(startPhase.remainingSeconds)}`;
-  if (outcome.status === 'READY') return 'READY';
+  if (outcome.status === 'READY') return `READY ${Math.ceil(countdown.remainingSeconds)}`;
+  if (outcome.status === 'WAITING') return 'READY';
   let state: string = outcome.status;
   if (player.progress.status !== 'FINISHED') {
     if (race.courseType === 'CIRCUIT')

@@ -1,7 +1,7 @@
 import type { ResolvedCourseSession, SessionEntry } from './course-session.js';
 import type { RivalEnvelope } from '../content/rival-envelope.js';
 import { createCheckpointClock, raceEventSeconds } from './checkpoint-clock.js';
-import { createRankLimitJudge, createRunOutcome } from './run-outcome.js';
+import { createRankLimitJudge, createRunOutcome, type RunStatus } from './run-outcome.js';
 import { createRouteProgress, type RouteRaceEvent } from './route-progress.js';
 import { createRouteCrossSections } from './route-cross-sections.js';
 import { createCourseForkField, type DriverIntent } from './course-fork-field.js';
@@ -23,7 +23,7 @@ import {
 } from './envelope-driver.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import { createVehicle, updateVehicle, type VehicleState } from '../vehicle/physics/vehicle-physics.js';
-import { createStartPhase } from './start-phase.js';
+import { createStartPhase, type StartStatus } from './start-phase.js';
 import { createVehicleModel, type VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import {
   createCompetitorObservation,
@@ -34,6 +34,9 @@ import { SIM_DT } from './fixed-step.js';
 import type { createRouteRuntime } from './route-runtime.js';
 
 type RouteRuntime = ReturnType<typeof createRouteRuntime>;
+
+/** The one run status: the start phase's WAITING or READY before GO, then the run outcome's. */
+export type RaceStatus = Exclude<StartStatus, 'GO'> | RunStatus;
 
 /** One accepted crossing: its competitor, line and race time (step start + u × SIM_DT). */
 export interface RaceEvent {
@@ -232,7 +235,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       motion.step.input = motion === active[0] ? input : idle;
       updateVehicle(runtime.readers, motion.c.actor.vehicle, motion.c.actor.model, motion.step.input, true);
     }
-    if (startPhase.advance()) outcome.start();
+    startPhase.advance();
   };
   const move = (motion: (typeof motions)[number], input: DrivingInput) => {
     const { c, previous } = motion;
@@ -292,6 +295,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   const stepEvents: RaceEvent[] = [];
 
   const step = (input: DrivingInput) => {
+    if (startPhase.status === 'WAITING') return;
     if (startPhase.status === 'READY') {
       holdReady(input);
       return;
@@ -391,10 +395,10 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     get stage() {
       return playerGates + 1;
     },
-    /** The run outcome: its status and GAME OVER cause. */
+    /** The run's one status (WAITING and READY before GO, then RUNNING, GOAL or GAME_OVER) and GAME OVER cause. */
     outcome: Object.freeze({
-      get status() {
-        return outcome.status;
+      get status(): RaceStatus {
+        return startPhase.status === 'GO' ? outcome.status : startPhase.status;
       },
       get cause() {
         return outcome.cause;
@@ -437,13 +441,13 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       observations();
       return observed;
     },
-    /** Start phase facts: its status and the seconds until GO. */
-    startPhase: Object.freeze({
-      get status() {
-        return startPhase.status;
-      },
+    /** The countdown to GO: the seconds until GO and the signal lamps lit, both 0 from GO. */
+    countdown: Object.freeze({
       get remainingSeconds() {
         return startPhase.remainingSeconds;
+      },
+      get signalLamps() {
+        return startPhase.signalLamps;
       },
     }),
     /** The read-only Route, whose entry occurrence carries the entry fork's choice. */

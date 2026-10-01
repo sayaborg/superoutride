@@ -23,7 +23,7 @@
   fields; FREE PLAY rivals are drawn from vehicle pools; TIME TRIAL runs alone; traffic, collisions, music, sound effects and
   the product front end are not implemented.
 
-Next PR: **12-9b — READY has one meaning**.
+Next PR: **12-9c — Finish and RESULT**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -34,10 +34,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 Define input, run state, framebuffer, persistent player data, data-driven Sessions, the product front end and the
 product HUD independently of DEV, as specified in the [product specification](product.md).
 
-- **12-9b — READY has one meaning:** today both the start phase and the run outcome have a READY state. One owner holds
-  the state before GO and the race publishes it as facts (status and seconds to GO); the 3-second hold's countdown is
-  a fact signal lamps can read (lamp state from the remaining seconds), drawn by the product HUD (12-13). The status
-  text (`READY n`) stays.
 - **12-9c — Finish and RESULT:** at the player's finish its rank is fixed (competitors not yet finished rank behind),
   the envelope driver takes over the player's vehicle and stops it in the runout, and player input no longer reaches
   the vehicle; without an envelope (a DEV-tuned Session) the brake is held. After GAME OVER the player's throttle is

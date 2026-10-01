@@ -1,12 +1,15 @@
 import type { RaceEvent } from './course-race.js';
 
-export type RunStatus = 'READY' | 'RUNNING' | 'GOAL' | 'GAME_OVER';
+export type RunStatus = 'RUNNING' | 'GOAL' | 'GAME_OVER';
 /** Why a run ended in GAME OVER: the clock expired, or a rank limit failed the player. */
 export type GameOverCause = 'TIME' | 'RANK';
 
-/** The one owner of the run outcome: READY until GO, RUNNING, then GOAL or GAME OVER with its cause. */
+/**
+ * The one owner of the run outcome from GO: RUNNING, then GOAL or GAME OVER with its cause. The state before GO belongs
+ * to the start phase.
+ */
 export function createRunOutcome() {
-  let status: RunStatus = 'READY';
+  let status: RunStatus = 'RUNNING';
   let cause: GameOverCause | null = null;
   return Object.freeze({
     get status() {
@@ -15,9 +18,6 @@ export function createRunOutcome() {
     /** The GAME OVER cause; null otherwise. */
     get cause() {
       return cause;
-    },
-    start() {
-      if (status === 'READY') status = 'RUNNING';
     },
     /** Ends a running run once: GOAL, or GAME OVER with its cause. */
     end(ending: { readonly status: 'GOAL' } | { readonly status: 'GAME_OVER'; readonly cause: GameOverCause }) {

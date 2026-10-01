@@ -594,7 +594,9 @@ deadline is refused, one exactly at the deadline is accepted, and an accepted ch
 deadline at once for later candidates in the same step. Each competitor's finish time is the time of its finish
 event, recorded once; the GOAL time and ranking read it.
 
-The run outcome has one owner in the race: READY until GO, RUNNING, then GOAL or GAME_OVER with its cause, `TIME`
+The state before GO has one owner, the start phase: WAITING until the Session starts, then READY for the 3-second
+hold (`READY_SECONDS`), GO on the step boundary nearest its end. The run outcome has one owner from GO: RUNNING, then
+GOAL or GAME_OVER with its cause, `TIME`
 (the deadline expired) or `RANK` (a rank limit failed the player). At the end of each running step the earliest
 ending among the player's finish, a rank failure and expiry decides it, and race time stops at that ending. The
 player's own crossing wins an exact tie with a failure, as it does with expiry; expiry wins an exact tie with a rank
@@ -605,10 +607,12 @@ lap's crossing is judged once: the player fails at the race time of the N-th cro
 another competitor before the player's own, read from the ordered event stream. Every competitor in the Session
 counts; an exact tie in event time goes to the player.
 
-The race and clock publish facts only, never display text or display durations. The race exposes the run outcome's
-status and cause; the clock exposes race time, the deadline in race time
+The race and clock publish facts only, never display text or display durations. The race exposes one run status
+(WAITING and READY from the start phase, then RUNNING, GOAL or GAME_OVER from the run outcome) and the GAME OVER
+cause, and the countdown to GO: the seconds until GO (3 while WAITING, 0 from GO) and the signal lamps lit, the
+remaining seconds rounded up (3, 2, 1, then 0 at GO), which the product HUD draws; the clock exposes race time, the deadline in race time
 (null without a time limit) and the last extension: its awarded amount and the race time of the checkpoint that
-earned it. The race exposes the start phase's status and seconds until GO; each competitor's progress (route s,
+earned it. The race exposes each competitor's progress (route s,
 accepted finish count and status) and finish time; the Route, whose occurrences carry fork choices; the lap count
 and course type. One race function gives a competitor's clock: its finish time, else race time. The shell derives
 the status line from these facts ([Browser](browser.md#race-status)).
