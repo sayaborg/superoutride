@@ -8,7 +8,7 @@ import type { SurfaceMapReader } from '../../src/course/vehicle-world.js';
 import type { SurfaceMaterial } from '../../src/course/surface-material.js';
 import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
 import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
-import { updateHeldVehicle, updateVehicle, vehicleBodyKinematics } from '../../src/vehicle/physics/vehicle-physics.js';
+import { updateVehicle, vehicleBodyKinematics } from '../../src/vehicle/physics/vehicle-physics.js';
 import { createStartPhase } from '../../src/race/start-phase.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
 import { wrapAngle } from '../../src/core/math.js';
@@ -62,7 +62,7 @@ export function measureRivalEnvelope(entry: SessionVehicle) {
   // The standing launch uses the race's start: held READY with the throttle closed, then GO.
   const start = createStartPhase();
   start.begin();
-  do updateHeldVehicle(run.vehicle, run.model, { steering: 0, throttle: false, brake: false });
+  do updateVehicle(run.world, run.vehicle, run.model, { steering: 0, throttle: false, brake: false }, true);
   while (!start.advance());
   let elapsed = 0,
     last = 0,

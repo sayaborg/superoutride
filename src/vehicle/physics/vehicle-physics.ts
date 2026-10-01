@@ -158,15 +158,43 @@ export function publishVehicleRenderY(vehicle: VehicleState, model: VehicleModel
   vehicle.renderY = vehicle.y - model.compiledVehicle.desiredCgHeight;
 }
 
+/**
+ * One fixed step of a vehicle. A `held` vehicle, as in a race's READY phase, is constrained explicitly: its body and
+ * wheels keep their pose and motion and its gear holds, while its actuators follow the input and its powertrain runs
+ * with the clutch open (zero capacity), so the engine revs freely with the throttle under its ordinary law, fuel cut
+ * and idle holding still bounding the opening. The next free step uses the fixed capacity again.
+ */
 export function updateVehicle(
   { coordinates, height, surfaces }: VehicleWorld,
   vehicle: VehicleState,
   model: VehicleModel,
   input: DrivingInput,
+  held = false,
 ): void {
   assertExclusivePedalInput(input);
   const { compiledVehicle, substep } = model;
   const workspace = stepWorkspace(vehicle, model);
+  if (held) {
+    for (let step = 0; step < VEHICLE_SUBSTEPS; step += 1) {
+      updateDrivingActuators(vehicle.actuator, input, substep, model.actuator);
+      const powertrainStep = prepareAutomaticPowertrain(
+        vehicle.powertrain,
+        compiledVehicle.powertrain,
+        model.powertrain,
+        drivenWheelOmega(compiledVehicle, vehicle.frontWheelOmega, vehicle.rearWheelOmega),
+        false,
+        substep,
+        workspace.powertrain,
+        0,
+      );
+      completeAutomaticPowertrain(vehicle.powertrain, powertrainStep, vehicle.actuator.throttle, UNBOUNDED_DRIVE);
+    }
+    vehicle.control.steeringRequest = clamp(input.steering, -1, 1);
+    vehicle.control.steeringActuator = vehicle.actuator.steering;
+    vehicle.control.throttleActuator = vehicle.actuator.throttle;
+    vehicle.control.brakeActuator = vehicle.actuator.brake;
+    return;
+  }
   const velocityBeforeX = vehicle.velocityX,
     velocityBeforeY = vehicle.velocityY,
     velocityBeforeZ = vehicle.velocityZ;
@@ -356,36 +384,6 @@ export function updateVehicle(
   vehicle.longitudinalAcceleration = dot3(velocityDelta, finalBody.forward) / model.step;
   vehicle.lateralAcceleration = dot3(velocityDelta, finalBody.right) / model.step;
   publishVehicleRenderY(vehicle, model);
-}
-
-/**
- * One step of a held vehicle. The body and wheels keep their state and the gear holds; the
- * actuators follow the input and the engine runs under its ordinary law with zero clutch capacity,
- * so the clutch transmits nothing and fuel cut and idle holding still bound the opening. The next
- * ordinary update restores the fixed capacity.
- */
-export function updateHeldVehicle(vehicle: VehicleState, model: VehicleModel, input: DrivingInput): void {
-  assertExclusivePedalInput(input);
-  const { compiledVehicle, substep } = model;
-  const workspace = stepWorkspace(vehicle, model);
-  for (let step = 0; step < VEHICLE_SUBSTEPS; step += 1) {
-    updateDrivingActuators(vehicle.actuator, input, substep, model.actuator);
-    const powertrainStep = prepareAutomaticPowertrain(
-      vehicle.powertrain,
-      compiledVehicle.powertrain,
-      model.powertrain,
-      drivenWheelOmega(compiledVehicle, vehicle.frontWheelOmega, vehicle.rearWheelOmega),
-      false,
-      substep,
-      workspace.powertrain,
-      0,
-    );
-    completeAutomaticPowertrain(vehicle.powertrain, powertrainStep, vehicle.actuator.throttle, UNBOUNDED_DRIVE);
-  }
-  vehicle.control.steeringRequest = clamp(input.steering, -1, 1);
-  vehicle.control.steeringActuator = vehicle.actuator.steering;
-  vehicle.control.throttleActuator = vehicle.actuator.throttle;
-  vehicle.control.brakeActuator = vehicle.actuator.brake;
 }
 
 const UNBOUNDED_DRIVE = Object.freeze({ upper: Infinity, lower: -Infinity });

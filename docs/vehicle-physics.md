@@ -32,8 +32,8 @@ steering, tires, stations, materials or numerical constants). They check the can
 and the finiteness of wheel state, contact observations and torque requests once per wheel and substep; numerical
 solvers keep guards on the values they generate.
 Browser, race, reference/envelope tools, scenarios, startup smoke and image generation use the same
-input. Creation, updates, held steps and recovery receive the vehicle state and its model separately;
-nothing copies a model value into state. Updates and held steps take no step argument; they integrate the
+input. Creation, updates and recovery receive the vehicle state and its model separately;
+nothing copies a model value into state. Updates take no step argument; they integrate the
 model's step and substep. Both stations' wheel solves and the steering limiter read the model's one tire. DEV tuning edits the driving definition and rebuilds the player's model from it;
 the next step uses the replacement.
 
@@ -328,12 +328,12 @@ opening while unlocked, and no bound limits an opening at which the clutch trans
 at or below zero allows up to the opening that lifts the engine to launch RPM, and at zero capacity
 every bound is at or above the capacity.
 
-A held vehicle, as in a race's READY phase, keeps its body and wheel state and its gear; its
-actuators follow the input and its engine runs under the same law with the step's clutch capacity
-set to zero, so the clutch transmits nothing and the observation is `OPEN`. Fuel cut and idle
-holding still bound the opening, and the effective opening follows the throttle as it does when
-driving. The next ordinary update uses the fixed capacity again, so the clutch slips from the engine
-speed the hold left.
+The one vehicle update takes a hold constraint. A held vehicle, as in a race's READY phase, is constrained
+explicitly inside that update: its body and wheels keep their pose and motion and its gear holds, while its
+actuators follow the input and its powertrain runs with the step's clutch capacity set to zero, so the clutch
+transmits nothing, the observation is `OPEN` and the engine revs freely with the throttle. Fuel cut and idle holding
+still bound the opening, and the effective opening follows the throttle as it does when driving. The next free update
+uses the fixed capacity again, so the clutch slips from the engine speed the hold left.
 
 The idle-holding opening is the opening whose step would land exactly on idle. Idle is therefore
 held by torque, not by a clamp on engine speed, and settles without oscillation. A small throttle whose torque cannot exceed friction does not raise engine speed or

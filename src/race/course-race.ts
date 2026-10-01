@@ -22,7 +22,7 @@ import {
   sampleEnvelopeDrivingInput,
 } from './envelope-driver.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
-import { createVehicle, updateHeldVehicle, type VehicleState } from '../vehicle/physics/vehicle-physics.js';
+import { createVehicle, updateVehicle, type VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import { createStartPhase } from './start-phase.js';
 import { createVehicleModel, type VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import {
@@ -225,12 +225,12 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     if (departed) active = active.filter((motion) => motion.c.present);
   };
   const idle: DrivingInput = Object.freeze({ steering: 0, throttle: false, brake: false });
-  // READY holds every vehicle with zero clutch capacity; race time and rival driving start at GO,
-  // where ordinary updates restore the fixed capacity.
+  // READY holds every vehicle in its update; race time and rival driving start at GO, where free updates restore
+  // the fixed clutch capacity.
   const holdReady = (input: DrivingInput) => {
     for (const motion of active) {
       motion.step.input = motion === active[0] ? input : idle;
-      updateHeldVehicle(motion.c.actor.vehicle, motion.c.actor.model, motion.step.input);
+      updateVehicle(runtime.readers, motion.c.actor.vehicle, motion.c.actor.model, motion.step.input, true);
     }
     if (startPhase.advance()) outcome.start();
   };
