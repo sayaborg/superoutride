@@ -27,12 +27,6 @@ export interface VisibleCourseSprite extends CourseSprite {
   projection: PseudoProjection;
 }
 
-/** Ordinary observed reader; neither topology nor a source graph enters the renderer. */
-interface CourseSpriteReader {
-  visible(camera: PseudoCamera, dStart: number, dEnd: number): readonly VisibleCourseSprite[];
-}
-export type CourseSpriteInput = readonly CourseSprite[] | CourseSpriteReader;
-
 export function compileCourseSprite(
   guide: { readonly coordinates: PlanCoordinateReader },
   height: ProfileReader,
@@ -51,12 +45,11 @@ export function compileCourseSprite(
 }
 
 export function collectVisibleCourseSprites(
-  sprites: CourseSpriteInput,
+  sprites: readonly CourseSprite[],
   camera: PseudoCamera,
   dStart: number,
   dEnd: number,
 ): readonly VisibleCourseSprite[] {
-  if ('visible' in sprites) return sprites.visible(camera, dStart, dEnd);
   const visible: VisibleCourseSprite[] = [];
   for (const sprite of sprites) {
     const d = pseudoDepth(sprite.sRender, camera.s);

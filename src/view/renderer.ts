@@ -12,7 +12,7 @@ import type { VehicleRenderRead } from '../vehicle/physics/vehicle-contract.js';
 import { generateTerrainLines, createTerrainWorkspace, type TerrainRenderParameters } from './terrain-line.js';
 import { drawTileBackground, type TileBackground } from './tile-background.js';
 import { selectVehicleSprite, type VehicleSpriteSet } from '../vehicle/vehicle-sprite-set.js';
-import { collectVisibleCourseSprites, type CourseSpriteInput, type VisibleCourseSprite } from './course-sprite.js';
+import { collectVisibleCourseSprites, type CourseSprite, type VisibleCourseSprite } from './course-sprite.js';
 
 import { deriveVehicleNormalizedBank } from './vehicle-visuals.js';
 
@@ -65,7 +65,7 @@ interface RenderScene {
   readonly camera: PseudoCamera;
   readonly vehicle: VehicleRenderRead;
   readonly terrainParameters: TerrainRenderParameters;
-  readonly worldSprites: CourseSpriteInput;
+  readonly worldSprites: readonly CourseSprite[];
   readonly playerSet: VehicleSpriteSet;
 }
 
