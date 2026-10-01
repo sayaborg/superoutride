@@ -26,6 +26,7 @@ import { compileSessionConfiguration, type SessionConfiguration } from '../race/
 import { resolveSurfaceSoundRecords } from '../audio/surface-sounds.js';
 import { loadSurfaceSounds } from '../content/surface-sound-catalog.js';
 import { loadAudioSettings } from '../content/audio-catalog.js';
+import { browserStorage, openPlayerRecord } from './player-record.js';
 
 const canvas = mustGet<HTMLCanvasElement>('game');
 const status = document.createElement('p');
@@ -83,7 +84,8 @@ try {
     return { session, scene, race, tuned };
   };
   let active = build(vehicle, settings, rivalEnvelope, budgets, false);
-  const shell = createBrowserDrivingShell(vehicle, surfaceSounds, await loadAudioSettings(content), {
+  const player = openPlayerRecord(browserStorage());
+  const shell = createBrowserDrivingShell(vehicle, surfaceSounds, await loadAudioSettings(content), player, {
     tick: () => tick(),
     render: () => render(),
   });

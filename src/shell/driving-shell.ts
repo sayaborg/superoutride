@@ -25,6 +25,7 @@ import { mountMobileCameraYawSelector } from './mobile-selector-controls.js';
 import { createTouchIndicators } from './touch-indicators.js';
 import { drawVehicleDebugHud } from './vehicle-debug-hud.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
+import type { PlayerRecord } from './player-record.js';
 
 interface BrowserDrivingShell {
   readonly framebuffer: SoftwareSurface;
@@ -51,6 +52,7 @@ export function createBrowserDrivingShell(
   sessionVehicle: SessionVehicle,
   surfaceSounds: TireSurfaceSounds,
   audioSettings: AudioSettings,
+  player: PlayerRecord,
   frame: { tick(): void; render(): void },
 ): BrowserDrivingShell {
   const canvas = mustGet<HTMLCanvasElement>('game');
@@ -76,7 +78,7 @@ export function createBrowserDrivingShell(
   const sessionVehicleId = sessionVehicleDefinition.compiledVehicle.id;
   const cameraRig = createCameraRig();
 
-  const audio = createAudioLifecycle(sessionVehicleDefinition, surfaceSounds, audioSettings);
+  const audio = createAudioLifecycle(sessionVehicleDefinition, surfaceSounds, audioSettings, player);
   // Each start begins a new frame clock, so stopped real time never enters the simulation.
   const loop = createFrameLoop(
     () => frame.tick(),

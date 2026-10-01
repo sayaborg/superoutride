@@ -162,6 +162,25 @@ CPU time adds fixed-step work since the preceding render to rendering/display wo
 interval is elapsed time between completed frames. FPS and frame/step/interval maxima reset each
 reporting window.
 
+## Player record
+
+[`src/shell/player-record.ts`](../src/shell/player-record.ts) owns the browser's one player record: a
+localStorage entry `super-outride-player` holding `{ "version": 1, "settings": { … } }`. The composition root
+opens it once at page load; shell controls read the admitted settings and change them only through the record.
+
+| Setting            | Shape and default                                                                     |
+| ------------------ | ------------------------------------------------------------------------------------- |
+| `vehicleColors`    | Selected color ID by vehicle ID; default `{}`                                         |
+| `volumes`          | `master`, `music` and `effects` as integer percentages 0–100; default 35, 100 and 100 |
+| `latestSelections` | Latest selection by selection-screen key; default `{}`                                |
+
+Loading admits only version 1 with exactly these keys and value types. An absent, unreadable, unparsable,
+malformed or other-version record starts from the defaults and is replaced by the next save; there are no
+migration readers. Each settings change saves the whole record at once. Where localStorage is missing or
+reading or writing it throws, the record lives in memory for the page and the game continues. Today only the
+MASTER volume has a control (the volume stepper in [Sound controls](#sound-controls)); colors, MUSIC, EFFECTS
+and selections keep their defaults until their screens exist. DEV tuning and DEV sound settings are not stored.
+
 ## DEV controls
 
 DEV is an initially closed disclosure overlay. Its body scrolls within the safe viewport without
@@ -210,6 +229,7 @@ or unmutes. SOUND RETRY offers a new initialization after failure. SOUND UNAVAIL
 the browser lacks the required audio support while gameplay remains usable.
 
 MASTER, ENG and TIRE independently control the complete output, engine output and tire output.
+MASTER is the player record's MASTER volume; ENG and TIRE are DEV mix values.
 A zero gain silences that output while DSP continues. R and Q buttons (`tire-component-rolling`, `tire-component-friction`) independently switch rolling
 and friction output for both axles. Their labels and pressed states show ON/OFF, and unavailable audio
 disables them. [Tire audio](tire-audio.md#settings-replacement) owns faded output and replacement semantics.

@@ -6,6 +6,7 @@ import { SOUND_BUSES } from '../audio/sound-graph.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
 import { createVehicleAudioEmitter, readVehicleAudio } from './vehicle-audio.js';
+import type { PlayerRecord } from './player-record.js';
 
 // Touch activation arrives on release; pointerdown activates only a mouse.
 const GESTURE_EVENTS = ['pointerdown', 'pointerup', 'touchend', 'keydown'] as const;
@@ -13,13 +14,14 @@ const GESTURE_EVENTS = ['pointerdown', 'pointerup', 'touchend', 'keydown'] as co
 /** DOM, permission and failure boundary. Presentation updates fail closed without stopping gameplay. */
 /**
  * Every competitor drives the Session vehicle, so player and rival engines use its sound. The DEV sound controls
- * start from the delivered audio document's `settings`; this lifecycle syncs their values to the scene and owns the
- * AudioContext.
+ * start from the delivered audio document's `settings` and the volume from the player record's MASTER volume, which
+ * keeps each change; this lifecycle syncs their values to the scene and owns the AudioContext.
  */
 export function createAudioLifecycle(
   sessionVehicle: CompiledVehicleDefinition,
   surfaces: TireSurfaceSounds,
   settings: AudioSettings,
+  player: PlayerRecord,
 ) {
   let context: AudioContext | null = null;
   let scene: Awaited<ReturnType<typeof createAudioScene>> | null = null;
@@ -33,10 +35,13 @@ export function createAudioLifecycle(
   const rivalEmitters: ReturnType<typeof createVehicleAudioEmitter>[] = [];
   const presentRivals: ReturnType<typeof createVehicleAudioEmitter>[] = [];
   const supported = typeof AudioContext !== 'undefined' && typeof AudioWorkletNode !== 'undefined';
-  const controls = mountSoundControls(document, settings, {
+  const controls = mountSoundControls(document, settings, player.settings.volumes.master, {
     onChange() {
       unlock();
       sync();
+    },
+    onVolume(master) {
+      player.updateSettings({ volumes: { ...player.settings.volumes, master } });
     },
     onToggle: toggle,
   });

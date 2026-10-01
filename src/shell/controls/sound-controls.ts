@@ -23,12 +23,18 @@ export interface SoundControlValues {
 /**
  * The DEV sound controls found by their ids in `root`: the sound toggle, volume stepper, ENG/TIRE volumes, R/Q
  * buttons, the six settings panels and the audio export. The panels start from, and reset to, `initial`; the
- * export saves their current values. A missing host leaves its control out and its value at `initial`.
+ * export saves their current values. The volume starts at `initialVolume` percent and reports each change to
+ * `onVolume`. A missing host leaves its control out and its value at its initial value.
  */
 export function mountSoundControls(
   root: Document,
   initial: AudioSettings,
-  callbacks: { readonly onChange: () => void; readonly onToggle: () => void },
+  initialVolume: number,
+  callbacks: {
+    readonly onChange: () => void;
+    readonly onVolume: (percent: number) => void;
+    readonly onToggle: () => void;
+  },
 ) {
   const button = root.getElementById('sound-toggle');
   const volumeContainer = root.getElementById('sound-volume');
@@ -51,7 +57,7 @@ export function mountSoundControls(
     componentHost?.appendChild(button);
     return { key, label, description, button, toggle };
   });
-  let volume = 0.35;
+  let volume = initialVolume / 100;
   const busVolumes: Record<SoundBus, number> = { engine: 1, tire: 1 };
   const engineSoundContainer = root.getElementById('engine-sound-settings');
   const engineSoundSettings = engineSoundContainer
@@ -63,10 +69,11 @@ export function mountSoundControls(
         min: 0,
         max: 100,
         step: 1,
-        value: volume * 100,
+        value: initialVolume,
         format: (value) => `${value}%`,
         onChange(value) {
           volume = value / 100;
+          callbacks.onVolume(value);
           callbacks.onChange();
         },
       })
