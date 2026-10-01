@@ -149,7 +149,7 @@ checks every fork Section reachable from the entry for `lock.s + forwardMeters <
 violation with a `RangeError` naming the Section.
 Advancing the window never changes existing stations or vehicle poses. A single-successor circuit repeats its
 ordered cycle of Sections for successive laps. Derived projection intervals, height knots, Strip
-intervals, sprite lists and environment boundaries rebuild only when the occurrence list changes.
+intervals and sprite lists rebuild only when the occurrence list changes.
 
 `PlanCoordinateReader` is the planar query interface for both a compiled Section and its mapped
 occurrences. `CompiledSection.coordinates` and `VehicleWorld.coordinates` expose this same type:

@@ -247,32 +247,14 @@ export function createCourseRouteReaders(route: RouteWindow) {
       sync();
       return renderVertices;
     },
-    sample(s: number, out = { y: 0, grade: 0, segmentIndex: 0, sStart: 0, sEnd: 0 }) {
+    sample(s: number, out = { y: 0, grade: 0 }) {
       const occurrence = lookup(s);
       if (!occurrence) {
-        const end = s < route.start ? route.start : route.end;
-        renderHeight.sample(end, out);
+        renderHeight.sample(s < route.start ? route.start : route.end, out);
         out.grade = 0;
-        out.sStart = s < route.start ? -Infinity : end;
-        out.sEnd = s < route.start ? end : Infinity;
-        out.segmentIndex = -1;
         return out;
       }
-      occurrence.section.renderHeight.sample(routeSectionS(occurrence, s), out);
-      out.sStart = Math.max(occurrence.start, routeS(occurrence, out.sStart));
-      out.sEnd = Math.min(occurrence.end, routeS(occurrence, out.sEnd));
-      return out;
-    },
-    distanceToNextVertex(s: number) {
-      const occurrence = lookup(s);
-      return occurrence
-        ? Math.min(
-            occurrence.section.renderHeight.distanceToNextVertex(routeSectionS(occurrence, s)),
-            occurrence.end - s,
-          )
-        : s < route.start
-          ? route.start - s
-          : Infinity;
+      return occurrence.section.renderHeight.sample(routeSectionS(occurrence, s), out);
     },
   });
   // The route has no material outside its coordinate domain.

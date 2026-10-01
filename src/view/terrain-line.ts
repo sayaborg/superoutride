@@ -107,7 +107,7 @@ export function createTerrainWorkspace() {
     pool: [] as TerrainLine[],
     boundaries: [] as number[],
     visible: { dStart: 0, dEnd: 0 },
-    height: { y: 0, grade: 0, segmentIndex: 0, sStart: 0, sEnd: 0 },
+    height: { y: 0, grade: 0 },
     left: point(),
     right: point(),
     projectedLeft: projection(),

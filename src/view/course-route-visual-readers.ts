@@ -38,24 +38,6 @@ export function createCourseRouteVisualReaders(route: RouteWindow) {
       };
     });
     const mappedByOccurrence = new Map(mapped.map((item) => [item.occurrence, item]));
-    const environmentIntervals = mapped.flatMap(({ occurrence, native }) => {
-      const nativeEnd = routeSectionS(occurrence, occurrence.end);
-      return [
-        native.environment.sample(0),
-        ...native.environment.intervals.filter((interval) => interval.sStart > 0 && interval.sStart < nativeEnd),
-      ].map((interval) => Object.freeze({ ...interval, sStart: routeS(occurrence, Math.max(interval.sStart, 0)) }));
-    });
-    const environment = Object.freeze({
-      intervals: Object.freeze(environmentIntervals),
-      sample(s: number) {
-        return environmentIntervals[stationIndexAt(environmentIntervals, 'sStart', s)]!;
-      },
-      distanceToNextInterval(s: number) {
-        if (!route.at(s)) return Infinity;
-        const index = stationIndexAt(environmentIntervals, 'sStart', s);
-        return (environmentIntervals[index + 1]?.sStart ?? route.end) - s;
-      },
-    });
     const sampler = createStripGroundSampler(
       occurrences.map((occurrence) => ({
         ground: occurrence.section.color,
@@ -86,7 +68,6 @@ export function createCourseRouteVisualReaders(route: RouteWindow) {
     );
     return Object.freeze({
       ground,
-      environment,
       worldSprites: Object.freeze(placements.filter((p) => p.unselectedCarriagewayId === null).map((p) => p.sprite)),
       // State-selected signs keep their fork occurrence; the scene shows them from that occurrence's choice.
       conditionalSprites: Object.freeze(

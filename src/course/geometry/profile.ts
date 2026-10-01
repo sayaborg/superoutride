@@ -17,14 +17,10 @@ export interface ProfileReader {
 export interface ProfilePolylineSample {
   y: number;
   grade: number;
-  segmentIndex: number;
-  sStart: number;
-  sEnd: number;
 }
 export interface ProfilePolylineReader {
   readonly vertices: readonly { readonly s: number; readonly y: number }[];
   sample(s: number, out?: ProfilePolylineSample): ProfilePolylineSample;
-  distanceToNextVertex(s: number): number;
 }
 
 /** Maximum station interval inside each vertical parabola, in metres. */
@@ -95,7 +91,7 @@ export class ProfilePolyline implements ProfilePolylineReader {
       [...stations].sort((a, b) => a - b).map((s) => Object.freeze({ s, y: profile.sample(s) })),
     );
   }
-  sample(s: number, out = { y: 0, grade: 0, segmentIndex: 0, sStart: 0, sEnd: 0 }): ProfilePolylineSample {
+  sample(s: number, out = { y: 0, grade: 0 }): ProfilePolylineSample {
     const local = stationSequenceChainage(s, this.courseLength);
     const i = Math.min(this.vertices.length - 2, stationIndexAt(this.vertices, 's', local));
     const a = this.vertices[i]!,
@@ -103,14 +99,6 @@ export class ProfilePolyline implements ProfilePolylineReader {
     const grade = (b.y - a.y) / (b.s - a.s);
     out.y = a.y + grade * (local - a.s);
     out.grade = grade;
-    out.segmentIndex = i;
-    out.sStart = a.s;
-    out.sEnd = b.s;
     return out;
-  }
-  distanceToNextVertex(s: number): number {
-    const local = stationSequenceChainage(s, this.courseLength);
-    if (local === this.courseLength) return 0;
-    return this.vertices[stationIndexAt(this.vertices, 's', local) + 1]!.s - local;
   }
 }

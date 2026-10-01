@@ -23,7 +23,7 @@
   CLASSIC/CUSTOM mode names and course-owned CLASSIC settings; all competitors share one vehicle; series, TIME TRIAL,
   traffic, collisions, music, sound effects and the product front end are not implemented.
 
-Next PR: **12-4 — View consolidation**, its next PR (12-4i): the unconsumed Route and environment readers (delete).
+Next PR: **12-5 — Shell leftovers (delete)**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -34,9 +34,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 Define input, run state, framebuffer, persistent player data, data-driven Sessions, the product front end and the
 product HUD independently of DEV, as specified in the [product specification](product.md).
 
-- **12-4 — View consolidation:** separate small PRs: remove the unconsumed Route `renderHeight.distanceToNextVertex`,
-  the `sStart`/`sEnd`/`segmentIndex` fields of Route `renderHeight.sample()`, the route-level environment reader in
-  the visual readers (unused since 12-4d) and `EnvironmentReader.distanceToNextInterval`.
 - **12-5 — Shell leftovers (delete):** the numeric selector branch, the thin selector-model layer, the misplaced
   calibration stepper, the unused touch heuristic, the unused `presentation` getter, the uncalled `shell.dispose()`
   (and the audio lifecycle's returned `dispose`, which only it calls), the second CLASSIC preset resolution, the stale
