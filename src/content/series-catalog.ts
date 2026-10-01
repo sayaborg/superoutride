@@ -13,6 +13,7 @@ import {
 } from '../core/admission.js';
 import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
+import { enumerateCourseRoutes } from '../course/compiler/course-routes.js';
 import type { VehicleId } from '../vehicle/physics/vehicle-definitions.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import { spriteSetHasColor } from '../vehicle/vehicle-sprite-set.js';
@@ -21,7 +22,7 @@ import { requireLoaded } from './content-load-error.js';
 import type { DocumentSource } from './document-catalog.js';
 
 export const SERIES_DOCUMENT_FORMAT = 'superoutride.series';
-export const SERIES_DOCUMENT_VERSION = 3;
+export const SERIES_DOCUMENT_VERSION = 4;
 const PLAYER_SLOTS = ['own', 'last'] as const;
 
 /** One series: the one owner of its courses' ARCADE settings. `dev` series appear only with DEV. */
@@ -42,6 +43,14 @@ export interface SeriesEntry {
   readonly vehicle: VehicleId;
   readonly color: string;
   readonly slot: number;
+  /** The stages the entry takes part in, `first` through `last`; null for the whole run. */
+  readonly stages: StageInterval | null;
+}
+
+/** An inclusive stage interval; STAGE k runs from the (k−1)-th race gate of the run to the k-th. */
+export interface StageInterval {
+  readonly first: number;
+  readonly last: number;
 }
 
 /** A course's ARCADE settings within its series. */
@@ -172,7 +181,7 @@ function readEntries(
     value,
     path,
     (item, at) => {
-      const record = readRecord(item, at, ['vehicle', 'color', 'slot']);
+      const record = readRecord(item, at, ['vehicle', 'color', 'slot', 'stages']);
       const id = readString(record.vehicle, `${at}/vehicle`);
       const vehicle = vehicleOf(id);
       requireAdmission(vehicle !== undefined, 'unresolved_reference', `${at}/vehicle`, `Unknown vehicle ${id}`);
@@ -190,7 +199,14 @@ function readEntries(
       });
       requireAdmission(slot > previous, 'invalid_value', `${at}/slot`, 'Entries must be in grid order, one per slot');
       previous = slot;
-      return Object.freeze({ vehicle: id, color, slot });
+      const stages = record.stages === null ? null : readStages(record.stages, `${at}/stages`);
+      requireAdmission(
+        stages === null || stages.first === 1,
+        'invalid_value',
+        `${at}/stages/first`,
+        'A grid entry takes part from STAGE 1',
+      );
+      return Object.freeze({ vehicle: id, color, slot, stages });
     },
     { min: 1, max: SESSION_RULE_LIMITS.competitors },
   );
@@ -202,6 +218,35 @@ function readEntries(
       `Candidate vehicle ${candidate} needs an entry for the player`,
     );
   return entries;
+}
+
+function readStages(value: unknown, path: string): StageInterval {
+  const record = readRecord(value, path, ['first', 'last']);
+  const first = readNumber(record.first, `${path}/first`, { min: 1, integer: true });
+  const last = readNumber(record.last, `${path}/last`, { min: 1, integer: true });
+  requireAdmission(last >= first, 'invalid_value', `${path}/last`, 'The last stage precedes the first');
+  return Object.freeze({ first, last });
+}
+
+/** The fewest stages any run of the course takes: race gates per route, times the laps on a circuit. */
+function courseStageCount(course: CompiledCourse, laps: number): number {
+  const gates = new Map(
+    course.gates.intervals.map(({ section, checkpoints, finish }) => [section, checkpoints.length + (finish ? 1 : 0)]),
+  );
+  if (course.type === 'CIRCUIT') {
+    let count = 0,
+      section = course.entry;
+    do {
+      count += gates.get(section) ?? 0;
+      section = section.outgoing[0]!.to.section;
+    } while (section !== course.entry);
+    return count * laps;
+  }
+  return Math.min(
+    ...enumerateCourseRoutes(course.entry, course.type).map((links) =>
+      [course.entry, ...links.map((link) => link.to.section)].reduce((n, s) => n + (gates.get(s) ?? 0), 0),
+    ),
+  );
 }
 
 function requireUnique(values: readonly string[], path: string, kind: string): void {
@@ -240,6 +285,15 @@ export function admitSeriesCourse(
       course.gates.intervals
         .flatMap(({ checkpoints, finish }) => [...checkpoints, ...(finish ? [finish] : [])])
         .map((gate) => gate.id),
+    );
+    const stageCount = courseStageCount(course, settings.laps);
+    settings.entries.forEach((entry, i) =>
+      requireAdmission(
+        entry.stages === null || entry.stages.last <= stageCount,
+        'invalid_value',
+        `/courses/${index}/entries/${i}/stages/last`,
+        `Every run of ${course.id} has ${stageCount} stages`,
+      ),
     );
     for (const [gate, limit] of Object.entries(settings.rankLimits)) {
       const at = `/courses/${index}/rankLimits/${gate.replaceAll('~', '~0').replaceAll('/', '~1')}`;

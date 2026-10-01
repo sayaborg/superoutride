@@ -13,6 +13,8 @@ export interface CourseLoadingWindow {
 }
 
 export interface LoadingCoverage {
+  /** The camera window the coverage derives from; the race reads what the observer can see from it. */
+  readonly view: CourseLoadingWindow;
   /** The largest route-s advance of one fixed step at the vehicle speed bound. */
   readonly maximumStepMeters: number;
   /** Route kept ahead of the foremost vehicle. */
@@ -40,6 +42,7 @@ export function resolveLoadingCoverage(
     ),
   );
   return Object.freeze({
+    view: window,
     maximumStepMeters,
     forwardMeters:
       Math.max(window.cameraDistance + window.far, ENVELOPE_DRIVER.lookahead, PLAN_PROJECTION_WINDOW_METERS) +

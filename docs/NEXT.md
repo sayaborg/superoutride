@@ -23,7 +23,7 @@
   fields; FREE PLAY rivals are drawn from vehicle pools; TIME TRIAL, traffic, collisions, music, sound effects and
   the product front end are not implemented.
 
-Next PR: **12-8d-4 — Stage intervals and ahead appearance**.
+Next PR: **12-8d-4b — Ahead appearance**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -34,13 +34,22 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 Define input, run state, framebuffer, persistent player data, data-driven Sessions, the product front end and the
 product HUD independently of DEV, as specified in the [product specification](product.md).
 
-- **12-8d-4 — Stage intervals and ahead appearance:** entries take part in a stage interval; an entry joining later
-  appears ahead of the player by its ahead distance when the player enters its first stage, moving at its driver's
-  planned speed there, and leaves once out of view after its last stage. Forks keep first arrival; there is no
-  fork-decider or until-fork lifetime component.
-- **12-8d-5 — Rival pace schedule:** per course and vehicle, Section pass-time profiles derived from reference runs;
-  an ARCADE rival follows the player's vehicle schedule divided by its pace ratio, accumulated along its own route,
-  by varying its driving utilization within DEV-set bounds and response.
+- **12-8d-4b — Ahead appearance:** series version 5: an entry whose first stage is 2 or later has, instead of a grid
+  slot, an ahead appearance (`distance`, `lateral`); admission keeps the distance positive and inside that stage on
+  every route (before the next race gate and the next fork lock), and Session assembly rejects one beyond the loading
+  coverage. The entry appears ahead of the player by its distance when the player enters its first stage, in its
+  lane, moving at its driver's planned speed there. Forks keep first arrival; there is no fork-decider or until-fork
+  lifetime component.
+- **12-8d-5a — Pace schedule data:** per series course and candidate vehicle, Section pass-time profiles (the
+  fastest reference time from each Section's entry to each 5 m station) as a generated product with the time-budget
+  identity rules; ARCADE admits the player vehicle's schedule once. No behavior change.
+- **12-8d-5b-1 — Variable driver utilization:** the envelope driver caches curvature instead of utilization-bound
+  curve speeds and takes its utilization per step; the game-wide driving definition gains the rival utilization
+  bounds (0.55–0.95) and response time, adjustable with DEV tuning. No behavior change.
+- **12-8d-5b-2 — Rival pace schedule:** series version with each entry's pace ratio p (RIBBON 1.0); an ARCADE rival
+  follows the player vehicle's schedule divided by p, accumulated along its own route from GO or its appearance,
+  by varying its utilization within the bounds and response from its schedule difference alone. FREE PLAY rivals
+  keep a fixed utilization.
 - **12-8e — TIME TRIAL:** the third mode; solo, no traffic, no clock, route chosen by driving.
 - **12-9 — Start and finish:** remove `updateHeldVehicle`; a held start constrains the body explicitly inside the one
   vehicle update while the powertrain runs; READY has one meaning (today both the start phase and the checkpoint

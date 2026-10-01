@@ -3,7 +3,7 @@ import type { RivalEnvelope } from '../content/rival-envelope.js';
 import type { CourseTimeBudgets } from '../content/course-time-budgets.js';
 import type { SessionVehicle } from '../content/session-vehicle.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
-import type { SeriesCourse } from '../content/series-catalog.js';
+import type { SeriesCourse, StageInterval } from '../content/series-catalog.js';
 import type { SessionConfiguration } from './session-configuration.js';
 import { drawRivalPairs, type VehicleColor } from './free-play-field.js';
 
@@ -23,6 +23,8 @@ export interface SessionEntry extends EntryVehicle {
   readonly slot: GridSlot;
   /** A color of the vehicle's sprite set. */
   readonly color: string;
+  /** The stages the competitor takes part in; null for the whole run. */
+  readonly stages: StageInterval | null;
 }
 
 const rivalId = (index: number) => `RIVAL_${String(index + 1).padStart(2, '0')}`;
@@ -140,6 +142,7 @@ function arcadeEntries(
       id: 'PLAYER',
       slot: grid[playerSlot]!,
       color: arcade.series.fixedColors ? own.color : chosenColor,
+      stages: null,
       ...player,
     }),
     ...others.map((entry, index) =>
@@ -147,6 +150,7 @@ function arcadeEntries(
         id: rivalId(index),
         slot: grid[otherSlots[index]!]!,
         color: entry.color,
+        stages: entry.stages,
         ...entryVehicle(entry.vehicle, player, vehicleOf),
       }),
     ),
@@ -168,12 +172,13 @@ function freePlayEntries(
   const playerVehicleId = player.vehicle.vehicleDefinition.compiledVehicle.id;
   const drawn = drawRivalPairs(seed, rivalCount, pool, { vehicle: playerVehicleId, color: playerColor });
   return Object.freeze([
-    Object.freeze({ id: 'PLAYER', slot: grid.at(-1)!, color: playerColor, ...player }),
+    Object.freeze({ id: 'PLAYER', slot: grid.at(-1)!, color: playerColor, stages: null, ...player }),
     ...drawn.map((pair, index) =>
       Object.freeze({
         id: rivalId(index),
         slot: grid[first + index]!,
         color: pair.color,
+        stages: null,
         ...entryVehicle(pair.vehicle, player, vehicleOf),
       }),
     ),

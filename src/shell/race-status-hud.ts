@@ -31,11 +31,13 @@ export function raceStatusText(
 
 function raceText(race: CourseRace): string {
   const { clock, outcome, player, rivals, startPhase } = race;
+  // Rank counts the competitors present in the Session.
+  const present = [player, ...rivals.filter((c) => c.present)];
   const standings = rankRaceProgress(
-    [player, ...rivals].map((c) => ({ competitorId: c.id, s: c.progress.s, finishSeconds: c.finishSeconds })),
+    present.map((c) => ({ competitorId: c.id, s: c.progress.s, finishSeconds: c.finishSeconds })),
   );
   const rank = standings.find((s) => s.competitorId === player.id)!.rank;
-  const position = `P${rank}/${rivals.length + 1}`;
+  const position = `P${rank}/${present.length}`;
   if (outcome.status === 'GOAL' || outcome.status === 'GAME_OVER')
     return `${outcome.status.replace('_', ' ')} · ${position} · ${formatRaceTime(clock.elapsedSeconds)}`;
   if (startPhase.status === 'READY') return `READY ${Math.ceil(startPhase.remainingSeconds)}`;

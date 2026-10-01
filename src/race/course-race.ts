@@ -77,11 +77,21 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   // The fork field is the fork decider: the only holder of the Route's selection authority.
   const forks = createCourseForkField(runtime.route, lines, runtime.selectSuccessor);
   // A rival's intent drives it; the player's input comes from its composition, so it has no intent here.
-  const competitor = (id: string, actor: Actor, lane: number, intent: DriverIntent | null) => ({
+  const competitor = (
+    id: string,
+    actor: Actor,
+    lane: number,
+    intent: DriverIntent | null,
+    stages: SessionEntry['stages'],
+  ) => ({
     id,
     actor,
     lane,
     intent,
+    /** The stages this competitor takes part in; null for the whole run. */
+    stages,
+    /** Whether the competitor is in the Session; one that has left is never ranked, judged, drawn or voiced. */
+    present: true,
     /** The race's recovery lane resolver for this competitor. */
     recoveryLane: (s: number) => forks.recoveryL(s, lane),
     observer: createRouteProgress(lines, actor.vehicle.course),
@@ -100,7 +110,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   };
   const [playerEntry, ...rivalEntries] = entries;
   const playerActor = spawn(playerEntry!);
-  const player = competitor(playerEntry!.id, playerActor, playerEntry!.slot.l, null);
+  const player = competitor(playerEntry!.id, playerActor, playerEntry!.slot.l, null, null);
   // ARCADE rank limits judge the player against every other competitor's crossings.
   const judge = createRankLimitJudge(rankLimits, player.id);
   const rivalDrivers = rivalEntries.map((entry) => driverOf(entry.envelope));
@@ -112,13 +122,15 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       exit: (occurrence) =>
         rivalExit(configuration.seed, rivalIndex, occurrence.ordinal, occurrence.section.fork!.exits.length),
     };
-    return competitor(entry.id, spawn(entry), slot.l, intent);
+    return competitor(entry.id, spawn(entry), slot.l, intent, entry.stages);
   });
   const resync = (c: typeof player) => c.observer.resync(c.actor.vehicle.course);
   const competitors = [player, ...rivals];
-  const motions = competitors.map((c) => ({
+  const motions = competitors.map((c, index) => ({
     c,
     id: c.id,
+    /** A rival's envelope driver; null for the player. */
+    driver: index === 0 ? null : rivalDrivers[index - 1]!,
     previous: { s: 0, l: 0 },
     current: c.actor.vehicle,
     recovered: false,
@@ -130,12 +142,32 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     },
     input: (s: number) => forks.targetL(s, c.intent!),
   }));
+  // The competitors present in the Session, the player first; a departure removes its motion.
+  let active = motions;
+  // The race gates the player has crossed since GO, across laps: the player is in STAGE playerGates + 1.
+  let playerGates = 0;
+  const { view } = runtime.coverage;
+  // A competitor out of view lies behind the camera or beyond the farthest rendered depth.
+  const outOfView = (s: number) => {
+    const cameraS = player.actor.vehicle.course.s - view.cameraDistance;
+    return s < cameraS || s - cameraS > view.far;
+  };
+  const depart = () => {
+    let departed = false;
+    for (const motion of active) {
+      const { c } = motion;
+      if (c.stages === null || playerGates < c.stages.last || !outOfView(c.actor.vehicle.course.s)) continue;
+      c.present = false;
+      departed = true;
+    }
+    if (departed) active = active.filter((motion) => motion.c.present);
+  };
   const idle: DrivingInput = Object.freeze({ steering: 0, throttle: false, brake: false });
   // READY holds every vehicle with zero clutch capacity; race time and rival driving start at GO,
   // where ordinary updates restore the fixed capacity.
   const holdReady = (input: DrivingInput) => {
-    for (const motion of motions) {
-      motion.step.input = motion === motions[0] ? input : idle;
+    for (const motion of active) {
+      motion.step.input = motion === active[0] ? input : idle;
       updateHeldVehicle(motion.c.actor.vehicle, motion.c.actor.model, motion.step.input);
     }
     if (startPhase.advance()) outcome.start();
@@ -182,7 +214,8 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   const observations = () => {
     visible.length = 0;
     for (let i = 0; i < rivals.length; i += 1)
-      if (runtime.window.at(rivals[i]!.actor.vehicle.course.s)) visible.push(rivalObservations[i]!);
+      if (rivals[i]!.present && runtime.window.at(rivals[i]!.actor.vehicle.course.s))
+        visible.push(rivalObservations[i]!);
   };
   const observed: { readonly player: CompetitorObservation; readonly rivals: readonly CompetitorObservation[] } = {
     player: playerObservation,
@@ -205,35 +238,35 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     const stepStart = clock.beginStep();
     let minS = Infinity,
       maxS = -Infinity;
-    for (const motion of motions) {
+    for (const motion of active) {
       minS = Math.min(minS, motion.c.actor.vehicle.course.s);
       maxS = Math.max(maxS, motion.c.actor.vehicle.course.s);
     }
     runtime.refresh(minS, maxS);
-    move(motions[0]!, input);
-    for (let i = 1; i < motions.length; i += 1) {
-      const motion = motions[i]!;
+    move(active[0]!, input);
+    for (let i = 1; i < active.length; i += 1) {
+      const motion = active[i]!;
       move(
         motion,
         sampleEnvelopeDrivingInput(
           runtime.readers.coordinates,
           motion.c.actor.vehicle,
-          rivalDrivers[i - 1]!,
+          motion.driver!,
           motion.input,
           motion.driverWorkspace,
           runtime.window,
         ),
       );
     }
-    forks.observe(motions);
-    for (const motion of motions) {
+    forks.observe(active);
+    for (const motion of active) {
       minS = Math.min(minS, motion.c.actor.vehicle.course.s);
       maxS = Math.max(maxS, motion.c.actor.vehicle.course.s);
     }
     runtime.refresh(minS, maxS);
     stepEvents.length = 0;
     let playerFinishSeconds: number | null = null;
-    for (const motion of motions) {
+    for (const motion of active) {
       const { c } = motion;
       motion.recovered = legalRecovery(c) || motion.recovered;
       const update = c.observer.update(
@@ -253,11 +286,13 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
             timeSeconds: raceEventSeconds(stepStart, event.u),
           }),
         );
+      if (c === player) playerGates += update.events.length;
       if (update.justFinished) {
         c.finishSeconds = stepEvents.at(-1)!.timeSeconds;
         if (c === player) playerFinishSeconds = c.finishSeconds;
       }
     }
+    depart();
     // Time order; a stable sort keeps competitor order (player, then rivals) for equal times.
     events = stepEvents.length
       ? Object.freeze([...stepEvents].sort((a, b) => a.timeSeconds - b.timeSeconds))
@@ -277,13 +312,17 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       ending = { seconds: expiry, end: { status: 'GAME_OVER', cause: 'TIME' } };
     clock.completeStep(ending?.seconds ?? clock.stepEndSeconds);
     if (ending) outcome.end(ending.end);
-    stepObservation.recovered = motions[0]!.recovered;
+    stepObservation.recovered = active[0]!.recovered;
   };
 
   return Object.freeze({
     player,
     rivals,
     clock,
+    /** The player's STAGE: one more than the race gates the player has crossed since GO, across laps. */
+    get stage() {
+      return playerGates + 1;
+    },
     /** The run outcome: its status and GAME OVER cause. */
     outcome: Object.freeze({
       get status() {
