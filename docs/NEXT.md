@@ -20,10 +20,10 @@
   and the game-wide sound settings are content documents; every sound value is derived from physics or a DEV setting;
   exhausts are collector graphs.
 - The [product specification](product.md) is the target for Stages 12–16. Series documents own ARCADE settings;
-  all competitors share one vehicle; TIME TRIAL, traffic, collisions, music, sound effects and the product front end
-  are not implemented.
+  rival entries carry the player's vehicle; TIME TRIAL, traffic, collisions, music, sound effects and the product
+  front end are not implemented.
 
-Next PR: **12-8c-c — Field maximum**.
+Next PR: **12-8d — Session rule components**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -34,8 +34,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 Define input, run state, framebuffer, persistent player data, data-driven Sessions, the product front end and the
 product HUD independently of DEV, as specified in the [product specification](product.md).
 
-- **12-8c-c — Field maximum:** the Session product maximum becomes sixteen competitors including the player; time
-  budgets are keyed by course, vehicle and route state.
 - **12-8d — Session rule components:** clock, per-gate rank limits (failure at the N-th earlier crossing, ties to the
   player), competitor entries with stage intervals and grid or ahead appearance, player slot (own entry or last),
   ARCADE rival pace ratio (target speed at most p times the player vehicle's reference speed at the route station), and

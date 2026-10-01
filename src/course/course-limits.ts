@@ -30,7 +30,7 @@ export const COURSE_DOCUMENT_LIMITS = Object.freeze({
   coefficientBytes: 512 * 1024 * 1024,
   boundaryVertices: 65536,
   gates: 2048,
-  startGridSlots: 1 + SESSION_RULE_LIMITS.rivals,
+  startGridSlots: SESSION_RULE_LIMITS.competitors,
   coordinateMeters: 1_000_000,
   lengthMeters: 42000,
   lateralMeters: 1000,

@@ -53,7 +53,7 @@ Session parameters are case-sensitive:
 | `mode`      | Lowercase registered course query; independent of Session mode                                   |
 | `session`   | `ARCADE` or `FREE_PLAY`, default `ARCADE`; other values fail                                     |
 | `vehicle`   | Exact catalog vehicle ID for FREE PLAY, such as `TESTAROSSA`; absent uses preset                 |
-| `rivals`    | FREE PLAY count parsed with `Number`; integer 0–16 within grid capacity; absent uses preset      |
+| `rivals`    | FREE PLAY count parsed with `Number`; integer 0–15 within grid capacity; absent uses preset      |
 | `laps`      | FREE PLAY count parsed with `Number`; positive integer within course limit; non-circuits use one |
 | `clock`     | FREE PLAY time limit: exactly `off` disables it, all other values enable it                      |
 | `autostart` | Exactly `1` starts after loading; other values show setup                                        |

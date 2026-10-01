@@ -473,8 +473,7 @@
             { "at": { "pi": "start", "offset": 157 }, "lateral": 2 },
             { "at": { "pi": "start", "offset": 169 }, "lateral": -2 },
             { "at": { "pi": "start", "offset": 181 }, "lateral": 2 },
-            { "at": { "pi": "start", "offset": 193 }, "lateral": -2 },
-            { "at": { "pi": "start", "offset": 205 }, "lateral": 2 }
+            { "at": { "pi": "start", "offset": 193 }, "lateral": -2 }
           ]
         },
         { "kind": "checkpoint", "id": "rough-CP1", "carriageway": "road", "at": { "pi": "start", "offset": 1150 } },

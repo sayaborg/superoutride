@@ -303,7 +303,7 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | Section `coefficientBytes`                                              |            512 MiB | Moving-edge 21 km probe uses about 121 MiB; ×2 length and ×2 Strip complexity, rounded up                               |
 | Section resolved `boundaryVertices`                                     |              65536 | 32 Boundaries × 1024 knots × 2 for inherited vertices                                                                   |
 | Course `gates` (also bounds each Section array)                         |               2048 | 50 stage positions × (8 checkpoints + 2 branch controls + 1 finish) × 2, plus one start, rounded up                     |
-| Start gate `startGridSlots`                                             |                 17 | `1 + SESSION_RULE_LIMITS.rivals`; player plus 16 rivals, a gameplay capacity rather than a density estimate             |
+| Start gate `startGridSlots`                                             |                 16 | `SESSION_RULE_LIMITS.competitors`; sixteen competitors, the player included: a gameplay capacity                        |
 | `lengthMeters` (chainage, signed offsets, radii and lengths)            |            42000 m | 21 km × 2                                                                                                               |
 | `coordinateMeters`                                                      |         ±1000000 m | Retains 100 km native-coordinate origin allowance × 10                                                                  |
 | `lateralMeters` / `heightMeters`                                        |   ±1000 / ±10000 m | 100 m lateral span / 1000 m elevation envelope, each × 10                                                               |
@@ -625,7 +625,7 @@ saved as `content/series/<id>.series.json`; `id` equals that file name stem, whi
 `title` is the display name. `dev: true` marks a development series: front ends show it only with DEV.
 `vehicles` lists the ARCADE vehicle candidates, at least one, unique and in the catalog, in selection order.
 `timeMargin` is the series' one time margin: positive, finite and at most 10. `courses` lists at least one
-delivered course, each with its ARCADE `laps` (1 through 99) and `rivals` (0 through 16). `rivals` is a
+delivered course, each with its ARCADE `laps` (1 through 99) and `rivals` (0 through 15). `rivals` is a
 count until competitor entries replace it. Admission checks each document once, from the build's files or
 the delivery manifest alike, against the delivered course IDs and the vehicle catalog. Until selection screens
 choose a series, a course belongs to at most one series; a second one is rejected. A series course is
@@ -641,7 +641,7 @@ RIBBON ROUGH belongs to no series.
 
 ARCADE resolves its series course: a series vehicle candidate, the course's series rivals and laps and the
 checkpoint clock. FREE PLAY resolves a catalog
-vehicle, zero to sixteen rivals, permitted laps and clock on/off. On an untimed course, Session
+vehicle, zero to fifteen rivals, permitted laps and clock on/off. On an untimed course, Session
 resolution rejects ARCADE and resolves every FREE PLAY Session with the clock off; on a timed course,
 a clock without its delivered time budgets fails. Unsupported course/vehicle/grid/lap combinations fail before
 activation. A Session binds immutable course, entries, grid, lap target, start speed and timing references. Its
@@ -707,6 +707,11 @@ continuous histories sharing that state and its legal next checkpoint/finish alt
 ```text
 budgetMs(state) = ceil(1000*timeMargin(series)*referenceSeconds(state))
 ```
+
+Time budgets are keyed by course, vehicle and route state. Each delivered budget file belongs to one course and
+vehicle (`<course>/<vehicle>`), and each of its values belongs to one route state, a gate and lap. A value is the
+longest legal upcoming interval from that state over every route the course admits, so it never depends on the
+route already driven.
 
 The margin and duration are positive finite values. START receives the initial budget. Each newly
 earned non-finish checkpoint adds the next budget once, carrying unused time without a cap. FINISH

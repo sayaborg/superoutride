@@ -856,13 +856,6 @@
                 "offset": 193
               },
               "lateral": -2
-            },
-            {
-              "at": {
-                "pi": "start",
-                "offset": 205
-              },
-              "lateral": 2
             }
           ]
         },

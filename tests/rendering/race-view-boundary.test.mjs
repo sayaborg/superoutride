@@ -60,7 +60,7 @@ test('shared route keeps vehicle and camera coordinates across forward and rever
   }
 });
 
-test('race actors have no cameras and view assembles sixteen rival sprites from observations', async () => {
+test('race actors have no cameras and view assembles fifteen rival sprites from observations', async () => {
   const { course, scene, compiledVehicle } = await setup();
   const admitted = await readRivalEnvelope(
     compiledVehicle,
@@ -71,17 +71,17 @@ test('race actors have no cameras and view assembles sixteen rival sprites from 
   const settings = resolveCourseSession(
     course,
     null,
-    { mode: 'FREE_PLAY', rivalCount: 16, lapCount: 1, timeLimit: false, initialSpeed: 0, seed: 0 },
+    { mode: 'FREE_PLAY', rivalCount: 15, lapCount: 1, timeLimit: false, initialSpeed: 0, seed: 0 },
     compiledVehicle,
     envelope,
   );
   const race = createCourseRace({ session: settings, runtime: scene.runtime });
   for (const c of [race.player, ...race.rivals]) assert.ok(!('cameraRig' in c.actor));
-  assert.equal(race.rivals.length, 16);
+  assert.equal(race.rivals.length, 15);
   assert.deepEqual(race.advance({ steering: 0, throttle: false, brake: false }), { recovered: false });
   const observed = race.observe();
   assert.ok(!('sprites' in observed));
-  assert.equal(observed.rivals.length, 16);
+  assert.equal(observed.rivals.length, 15);
   const camera = updateCamera(createCameraRig(), scene.world, observed.player, CURRENT_CAMERA_PROFILE);
   const sprites = createRaceSprites(definitions.vehicles)(observed.rivals, camera);
   assert.equal(sprites.length, observed.rivals.length);
