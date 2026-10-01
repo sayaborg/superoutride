@@ -44,18 +44,19 @@ The DEV course buttons map `ribbon-coast` / RIBBON COAST / 1, `ribbon-ring` / RI
 `ribbon-fork` / RIBBON FORK / 3 and `ribbon-rough` / RIBBON ROUGH / 4. Missing or unknown `mode` selects the first entry, RIBBON COAST.
 A series marked `dev: true` is shown only with DEV; until selection screens exist, these DEV course
 buttons select courses directly. Selecting the active course does nothing. Selecting another performs full-page navigation, changes
-`mode`, removes `session`, `vehicle`, `rivals`, `laps` and `autostart`, and preserves other URL data.
+`mode`, removes `session`, `vehicle`, `rivals`, `laps`, `pool` and `autostart`, and preserves other URL data.
 
 Session parameters are case-sensitive:
 
-| Parameter   | Meaning                                                                                          |
-| ----------- | ------------------------------------------------------------------------------------------------ |
-| `mode`      | Lowercase registered course query; independent of Session mode                                   |
-| `session`   | `ARCADE` or `FREE_PLAY`, default `ARCADE`; other values fail                                     |
-| `vehicle`   | Exact catalog vehicle ID for FREE PLAY, such as `TESTAROSSA`; absent uses preset                 |
-| `rivals`    | FREE PLAY count parsed with `Number`; integer 0–15 within grid capacity; absent uses preset      |
-| `laps`      | FREE PLAY count parsed with `Number`; positive integer within course limit; non-circuits use one |
-| `autostart` | Exactly `1` starts after loading; other values show setup                                        |
+| Parameter   | Meaning                                                                                                  |
+| ----------- | -------------------------------------------------------------------------------------------------------- |
+| `mode`      | Lowercase registered course query; independent of Session mode                                           |
+| `session`   | `ARCADE` or `FREE_PLAY`, default `ARCADE`; other values fail                                             |
+| `vehicle`   | Exact catalog vehicle ID for FREE PLAY, such as `TESTAROSSA`; absent uses preset                         |
+| `rivals`    | FREE PLAY count parsed with `Number`; integer 0–15 within grid capacity; absent uses preset              |
+| `laps`      | FREE PLAY count parsed with `Number`; positive integer within course limit; non-circuits use one         |
+| `pool`      | FREE PLAY rival pool: `ALL`, `CARS` or `BIKES`; absent uses the player vehicle's form; other values fail |
+| `autostart` | Exactly `1` starts after loading; other values show setup                                                |
 
 ARCADE uses the course's [series](content-and-gameplay.md#series-documents) settings: the series' first
 vehicle, its entries and laps, with the checkpoint clock, ignoring their individual query overrides. FREE PLAY exposes

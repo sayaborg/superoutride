@@ -19,11 +19,11 @@
 - Stage 11 is complete: the audio scene and sound graph are separate from the browser; engine sounds, surface sounds
   and the game-wide sound settings are content documents; every sound value is derived from physics or a DEV setting;
   exhausts are collector graphs.
-- The [product specification](product.md) is the target for Stages 12–16. Series documents own ARCADE settings;
-  rival entries carry the player's vehicle; TIME TRIAL, traffic, collisions, music, sound effects and the product
-  front end are not implemented.
+- The [product specification](product.md) is the target for Stages 12–16. Series documents own ARCADE settings and
+  fields; FREE PLAY rivals are drawn from vehicle pools; TIME TRIAL, traffic, collisions, music, sound effects and
+  the product front end are not implemented.
 
-Next PR: **12-8d-3c — FREE PLAY rival assignment**.
+Next PR: **12-8d-4 — Stage intervals and ahead appearance**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -34,10 +34,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 Define input, run state, framebuffer, persistent player data, data-driven Sessions, the product front end and the
 product HUD independently of DEV, as specified in the [product specification](product.md).
 
-- **12-8d-3c — FREE PLAY rival assignment:** seeded FREE PLAY rival vehicle and color assignment from the ALL, CARS
-  or BIKES pool (URL `pool` until 12-12), defaulting to the player's vehicle form, avoiding the player's
-  vehicle/color pair and repeated pairs where the pool allows, with each drawn vehicle's envelope; the player last.
-  This settles the Rival intent row of the pending-decisions table.
 - **12-8d-4 — Stage intervals and ahead appearance:** entries take part in a stage interval; an entry joining later
   appears ahead of the player by its ahead distance when the player enters its first stage, moving at its driver's
   planned speed there, and leaves once out of view after its last stage. Forks keep first arrival; there is no

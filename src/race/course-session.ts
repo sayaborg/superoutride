@@ -5,6 +5,7 @@ import type { SessionVehicle } from '../content/session-vehicle.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import type { SeriesCourse } from '../content/series-catalog.js';
 import type { SessionConfiguration } from './session-configuration.js';
+import { drawRivalPairs, type VehicleColor } from './free-play-field.js';
 
 const NO_RANK_LIMITS: Readonly<Record<string, number>> = Object.freeze({});
 
@@ -33,7 +34,7 @@ const rivalId = (index: number) => `RIVAL_${String(index + 1).padStart(2, '0')}`
  * The resolved entries list the player first, then each rival. ARCADE takes the series entries: the player the
  * rearmost entry of its vehicle, standing in that entry's slot (`own`) or the rearmost of their slots (`last`), and
  * every other entry its own vehicle (from `field.vehicleOf`) and color. FREE PLAY stands the player in the grid's
- * last slot and the rivals, in the player's vehicle and its default color, in the slots in front. The player's color
+ * last slot and the rivals in the slots in front, each a pair drawn from `field.rivalPool` by the Session seed. The player's color
  * is its entry's when the series fixes colors, else `field.playerColor`, else the vehicle's default color.
  */
 export function resolveCourseSession(
@@ -43,7 +44,12 @@ export function resolveCourseSession(
   vehicle: SessionVehicle,
   envelope: RivalEnvelope | null,
   budgets: CourseTimeBudgets | null = null,
-  field: { readonly playerColor?: string; readonly vehicleOf?: (vehicleId: string) => EntryVehicle } = {},
+  field: {
+    readonly playerColor?: string;
+    readonly vehicleOf?: (vehicleId: string) => EntryVehicle;
+    /** FREE PLAY rival vehicle/color pairs; by default the player's vehicle in its default color. */
+    readonly rivalPool?: readonly VehicleColor[];
+  } = {},
 ) {
   const playerVehicleId = vehicle.vehicleDefinition.compiledVehicle.id;
   const defaultColor = vehicle.vehicleDefinition.listing.visuals.palette;
@@ -74,7 +80,14 @@ export function resolveCourseSession(
   const entries =
     configuration.mode === 'ARCADE'
       ? arcadeEntries(course, arcade!, { vehicle, envelope }, field.playerColor ?? defaultColor, field.vehicleOf)
-      : freePlayEntries(course, configuration.rivalCount, { vehicle, envelope }, field.playerColor ?? defaultColor);
+      : freePlayEntries(
+          course,
+          configuration,
+          { vehicle, envelope },
+          field.playerColor ?? defaultColor,
+          field.rivalPool ?? [{ vehicle: playerVehicleId, color: defaultColor }],
+          field.vehicleOf,
+        );
   // Runout covers the whole field: the entry needing the longest stop from its maximum speed decides it.
   let longest: { readonly entry: SessionEntry; readonly distance: number } | null = null;
   for (const entry of entries) {
@@ -122,11 +135,6 @@ function arcadeEntries(
   const slots = arcade.entries.map((entry) => entry.slot);
   const playerSlot = arcade.playerSlot === 'own' ? own.slot : slots.at(-1)!;
   const otherSlots = arcade.playerSlot === 'own' ? others.map((entry) => entry.slot) : slots.slice(0, -1);
-  const rivalVehicle = (id: string): EntryVehicle => {
-    if (vehicleOf) return vehicleOf(id);
-    if (id !== playerVehicleId) throw new Error(`No Session vehicle for entry vehicle ${id}`);
-    return player;
-  };
   return Object.freeze([
     Object.freeze({
       id: 'PLAYER',
@@ -139,26 +147,47 @@ function arcadeEntries(
         id: rivalId(index),
         slot: grid[otherSlots[index]!]!,
         color: entry.color,
-        ...rivalVehicle(entry.vehicle),
+        ...entryVehicle(entry.vehicle, player, vehicleOf),
       }),
     ),
   ]);
 }
 
-/** FREE PLAY: the player in the grid's last slot and the rivals in the slots directly in front of it. */
+/** FREE PLAY: the player in the grid's last slot and the drawn rivals in the slots directly in front of it. */
 function freePlayEntries(
   course: CompiledCourse,
-  rivalCount: number,
+  configuration: SessionConfiguration,
   player: EntryVehicle,
   playerColor: string,
+  pool: readonly VehicleColor[],
+  vehicleOf: ((vehicleId: string) => EntryVehicle) | undefined,
 ): readonly SessionEntry[] {
   const { grid } = course.gates;
+  const { rivalCount, seed } = configuration;
   const first = grid.length - 1 - rivalCount;
-  const rivalColor = player.vehicle.vehicleDefinition.listing.visuals.palette;
+  const playerVehicleId = player.vehicle.vehicleDefinition.compiledVehicle.id;
+  const drawn = drawRivalPairs(seed, rivalCount, pool, { vehicle: playerVehicleId, color: playerColor });
   return Object.freeze([
     Object.freeze({ id: 'PLAYER', slot: grid.at(-1)!, color: playerColor, ...player }),
-    ...Array.from({ length: rivalCount }, (_, index) =>
-      Object.freeze({ id: rivalId(index), slot: grid[first + index]!, color: rivalColor, ...player }),
+    ...drawn.map((pair, index) =>
+      Object.freeze({
+        id: rivalId(index),
+        slot: grid[first + index]!,
+        color: pair.color,
+        ...entryVehicle(pair.vehicle, player, vehicleOf),
+      }),
     ),
   ]);
+}
+
+/** An entry vehicle's Session vehicle: from `vehicleOf`, or the player's own when it drives the player's vehicle. */
+function entryVehicle(
+  id: string,
+  player: EntryVehicle,
+  vehicleOf: ((vehicleId: string) => EntryVehicle) | undefined,
+): EntryVehicle {
+  if (vehicleOf) return vehicleOf(id);
+  if (id !== player.vehicle.vehicleDefinition.compiledVehicle.id)
+    throw new Error(`No Session vehicle for entry vehicle ${id}`);
+  return player;
 }

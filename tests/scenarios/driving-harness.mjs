@@ -6,6 +6,7 @@ import { readDeliveredContent } from '../../tools/course/read-content.ts';
 import { createCourseScene } from '../../src/view/course-scene.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
+import { formPool, rivalPoolPairs } from '../../src/race/free-play-field.js';
 import { createSessionVehicle } from '../../src/content/session-vehicle.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
@@ -34,6 +35,17 @@ const entry = definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTARO
 const configuration = createSessionVehicle(entry, definitions.driving, materials);
 const { envelope } = await content.json('envelope', 'TESTAROSSA');
 const driver = compileEnvelopeDriver(envelope, 0.75, envelope.maximumSpeed);
+// FREE PLAY rivals come from the player's form pool, as in the browser, each with its own vehicle and envelope.
+const rivalPool = rivalPoolPairs(definitions.vehicles, formPool(entry));
+const fieldVehicles = new Map();
+for (const id of new Set(rivalPool.map((pair) => pair.vehicle))) {
+  const vehicle = createSessionVehicle(
+    definitions.vehicles.find((v) => v.compiledVehicle.id === id),
+    definitions.driving,
+    materials,
+  );
+  fieldVehicles.set(id, { vehicle, envelope: (await content.json('envelope', id)).envelope });
+}
 
 export async function loadScenarioCourse(stem) {
   const course = await loadDeliveredCourse(content, stem, materials);
@@ -82,6 +94,8 @@ export function runScenario({ course }, scenario) {
     },
     configuration,
     envelope,
+    null,
+    { rivalPool, vehicleOf: (id) => fieldVehicles.get(id) },
   );
   const slot = session.entries[0].slot;
   // The race builds every competitor, the player included; the harness reads their state for evidence.

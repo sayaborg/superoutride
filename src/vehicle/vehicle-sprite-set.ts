@@ -18,6 +18,11 @@ export function spriteSetHasColor(set: VehicleSpriteSet, color: string): boolean
   return set.assets.every((row) => row.every((image) => Object.hasOwn(image.palettes, color)));
 }
 
+/** Every color the set can be drawn in, in its first image's declaration order. */
+export function spriteSetColors(set: VehicleSpriteSet): readonly string[] {
+  return Object.keys(set.assets[0]![0]!.palettes).filter((color) => spriteSetHasColor(set, color));
+}
+
 /** An instance resolves each image's own named color and lamp state once. */
 export function createVehiclePaletteVariant(
   set: VehicleSpriteSet,

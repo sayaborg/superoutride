@@ -13,6 +13,7 @@ import { createCourseRace } from '../race/course-race.js';
 import { raceStatusText } from './race-status-hud.js';
 import { createCoursePerformanceHud } from './course-performance-hud.js';
 import { resolveCourseSession, type EntryVehicle } from '../race/course-session.js';
+import { rivalPoolPairs } from '../race/free-play-field.js';
 import { readCourseTimeBudgets, type CourseTimeBudgets } from '../content/course-time-budgets.js';
 import { loadSeriesCatalog, loadSeriesCourse } from '../content/series-catalog.js';
 import { createSessionVehicle, type SessionVehicle } from '../content/session-vehicle.js';
@@ -58,9 +59,17 @@ try {
   const rivalEnvelope = await admitProduct(content, 'envelope', vehicleId, (value, document) =>
     readRivalEnvelope(vehicle, value, document),
   );
-  // Every other vehicle in the series field drives its own Session vehicle and envelope.
+  // Every other vehicle in the field (series entries, or the FREE PLAY rival pool) drives its own Session vehicle and
+  // envelope.
+  const rivalPool = settings.rivalPool === null ? [] : rivalPoolPairs(vehicles, settings.rivalPool);
   const fieldVehicles = new Map<string, EntryVehicle>([[vehicleId, { vehicle, envelope: rivalEnvelope }]]);
-  for (const id of new Set(settings.mode === 'ARCADE' ? arcade!.entries.map((e) => e.vehicle) : [])) {
+  const fieldIds =
+    settings.mode === 'ARCADE'
+      ? arcade!.entries.map((e) => e.vehicle)
+      : settings.rivalCount > 0
+        ? rivalPool.map((pair) => pair.vehicle)
+        : [];
+  for (const id of new Set(fieldIds)) {
     if (fieldVehicles.has(id)) continue;
     const other = createSessionVehicle(
       vehicles.find((v) => v.compiledVehicle.id === id)!,
@@ -106,6 +115,7 @@ try {
     const session = resolveCourseSession(course, arcade, configuration, sessionVehicle, envelope, sessionBudgets, {
       playerColor,
       vehicleOf,
+      rivalPool,
     });
     const scene = createCourseScene(course.entry, course.gates, vehicles, displaySettings);
     const race = createCourseRace({ session, runtime: scene.runtime });

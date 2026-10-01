@@ -3,14 +3,18 @@ import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
 import { compileSessionConfiguration, type SessionConfiguration } from '../race/session-configuration.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import type { RunFacts } from './run-state.js';
+import { formPool, RIVAL_POOLS, type RivalPool } from '../race/free-play-field.js';
 
 /** The chosen settings; each Session assembly adds its own seed. */
 interface BrowserSessionSettings extends Omit<SessionConfiguration, 'seed'> {
   readonly vehicleId: string;
+  /** The FREE PLAY rival pool; null in ARCADE. */
+  readonly rivalPool: RivalPool | null;
 }
 /**
  * A series course defaults to its ARCADE settings with the series' first vehicle and the clock. FREE PLAY has no clock.
  * A course in no series offers only FREE PLAY, defaulting to the first vehicle in selection order, no rivals and one lap.
+ * FREE PLAY draws its rivals from the `pool` parameter's pool, by default the one matching the player's vehicle form.
  */
 export function readBrowserSessionSettings(
   params: URLSearchParams,
@@ -32,10 +36,13 @@ export function readBrowserSessionSettings(
           timeLimit: false,
           vehicleId: params.get('vehicle') ?? preset.vehicleId,
         };
-  if (!vehicles.some((v) => v.compiledVehicle.id === values.vehicleId)) throw new RangeError('Unknown Session vehicle');
+  const vehicle = vehicles.find((v) => v.compiledVehicle.id === values.vehicleId);
+  if (!vehicle) throw new RangeError('Unknown Session vehicle');
+  const pool = mode === 'ARCADE' ? null : (params.get('pool') ?? formPool(vehicle));
+  if (pool !== null && !RIVAL_POOLS.includes(pool as RivalPool)) throw new RangeError('Unknown rival pool');
   // Product Sessions use standing starts. The seed is chosen per assembly, so validation uses a placeholder.
   const { seed: _seed, ...configuration } = compileSessionConfiguration({ mode, ...values, initialSpeed: 0, seed: 0 });
-  return Object.freeze({ ...configuration, vehicleId: values.vehicleId });
+  return Object.freeze({ ...configuration, vehicleId: values.vehicleId, rivalPool: pool as RivalPool | null });
 }
 
 /**
