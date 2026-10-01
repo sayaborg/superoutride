@@ -24,10 +24,16 @@ export interface DrivingDefinition {
    * ARCADE rival pace: the driving utilization a rival following its pace schedule varies within, and the time
    * constant in seconds of its response.
    */
-  readonly rivalPace: Readonly<{ minimumUtilization: number; maximumUtilization: number; responseSeconds: number }>;
+  readonly rivalPace: Readonly<{
+    minimumUtilization: number;
+    maximumUtilization: number;
+    minimumSpeedFraction: number;
+    bandSeconds: number;
+    responseSeconds: number;
+  }>;
 }
 
 export interface DrivingDocument extends DrivingDefinition {
   readonly format: 'superoutride.driving-definition';
-  readonly version: 11;
+  readonly version: 12;
 }

@@ -36,6 +36,8 @@ steps and never rejects a driving definition.
 | Powertrain | CLU   | `clutchCapacityFactor`                      | Clutch capacity × maximum curve torque       | 1.5     | 1.1–3.0 / 0.1              |
 | Rival pace | UMIN  | `rivalPace.minimumUtilization`              | ARCADE rival minimum driving utilization     | 0.55    | 0.30–1.00 / 0.05           |
 | Rival pace | UMAX  | `rivalPace.maximumUtilization`              | ARCADE rival maximum driving utilization     | 0.95    | 0.30–1.00 / 0.05           |
+| Rival pace | VMIN  | `rivalPace.minimumSpeedFraction`            | Rival speed cap at UMIN, × maximum speed     | 0.85    | 0.50–1.00 / 0.05           |
+| Rival pace | BAND  | `rivalPace.bandSeconds`                     | Schedule difference from UMIN to UMAX target | ±2.0 s  | 0.5–10.0 s / 0.5 s         |
 | Rival pace | RESP  | `rivalPace.responseSeconds`                 | Rival utilization response time constant     | 3.0 s   | 0.5–10.0 s / 0.5 s         |
 | Assists    | —     | `wheelSlip`                                 | TCS, MSR and ABS                             | on      | on / off                   |
 

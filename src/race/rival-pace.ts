@@ -1,3 +1,4 @@
+import { clamp } from '../core/math.js';
 import { paceScheduleStations, type PaceSchedule, type PaceTimes } from '../content/pace-schedule.js';
 import type { CompiledSection } from '../course/compiler/course-graph.js';
 import { routeSectionS, type CourseRoute, type RouteOccurrence } from '../course/course-route.js';
@@ -6,10 +7,12 @@ import type { CompiledDriving } from '../vehicle/physics/compiled-driving.js';
 /**
  * An ARCADE rival's pace: its target times are the player vehicle's schedule divided by the pace ratio, summed by
  * Section along the Route the rival runs. A grid rival's targets count from GO along the start schedule; a rival
- * joining later counts from where and when it joins. Its utilization starts at the middle of its bounds and responds,
- * with the bounds' time constant, toward the maximum while it is behind its target time and toward the minimum
- * otherwise. Where its schedule times no station, the utilization holds, and the next timed station re-anchors the
- * targets. It reads nothing else, in particular not the player's position.
+ * joining later counts from where and when it joins. Its target utilization is proportional to its schedule
+ * difference (race time minus target time): the minimum at minus the band or below, the maximum at plus the band or
+ * above. Its utilization starts at the middle of its bounds and follows the target with the response time constant;
+ * its speed cap, as a fraction of its maximum speed, runs linearly from the minimum speed fraction at the minimum
+ * utilization to 1 at the maximum. Where its schedule times no station, both hold, and the next timed station
+ * re-anchors the targets. It reads nothing else, in particular not the player's position.
  */
 export function createRivalPace(
   route: CourseRoute,
@@ -18,7 +21,8 @@ export function createRivalPace(
   bounds: CompiledDriving['rivalPace'],
   stepSeconds: number,
 ) {
-  const { minimumUtilization, maximumUtilization, responseSeconds } = bounds;
+  const { minimumUtilization, maximumUtilization, minimumSpeedFraction, bandSeconds, responseSeconds } = bounds;
+  const span = maximumUtilization - minimumUtilization;
   const response = 1 - Math.exp(-stepSeconds / responseSeconds);
   const timesOf = (occurrence: RouteOccurrence) =>
     occurrence.ordinal === 0 ? schedule.start : schedule.section(occurrence.section);
@@ -36,6 +40,12 @@ export function createRivalPace(
   return Object.freeze({
     get utilization() {
       return utilization;
+    },
+    /** The speed cap's fraction of the rival's maximum speed at its utilization. */
+    get speedFraction() {
+      return span > 0
+        ? minimumSpeedFraction + ((utilization - minimumUtilization) / span) * (1 - minimumSpeedFraction)
+        : 1;
     },
     /** Join the Session at route station `s`: on schedule at the first station its schedule times. */
     join(s: number) {
@@ -56,7 +66,8 @@ export function createRivalPace(
       const local = times && secondsAt(times, routeSectionS(route.occurrences[ordinal]!, s));
       if (local === null) return;
       if (Number.isNaN(zeroSeconds)) zeroSeconds = raceSeconds - local / ratio;
-      const target = raceSeconds > zeroSeconds + local / ratio ? maximumUtilization : minimumUtilization;
+      const difference = raceSeconds - (zeroSeconds + local / ratio);
+      const target = minimumUtilization + span * clamp((difference + bandSeconds) / (2 * bandSeconds), 0, 1);
       utilization += (target - utilization) * response;
     },
   });

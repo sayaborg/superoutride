@@ -67,11 +67,12 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   };
   const drivers = new Map<RivalEnvelope, ReturnType<typeof compileEnvelopeDriver>>();
   // Rival driving exists only with an envelope; Session resolution admits no rivals without one. An entry with a pace
-  // ratio drives its own driver at the utilization its pace sets; the others share their envelope's fixed driver.
+  // ratio drives its own driver at the utilization and speed cap its pace sets; the others share their envelope's
+  // fixed driver.
   const drivingOf = (entry: SessionEntry) => {
     const { envelope } = entry;
     if (!envelope) throw new Error('rivals require an envelope driver');
-    if (entry.pace === null) return { driver: driverOf(envelope), pace: null, setUtilization: null };
+    if (entry.pace === null) return { driver: driverOf(envelope), pace: null, set: null };
     if (!paceSchedule) throw new Error('a paced rival requires the pace schedule');
     const pace = createRivalPace(
       runtime.route,
@@ -80,8 +81,12 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       entry.vehicle.drivingDefinition.compiledDriving.rivalPace,
       SIM_DT,
     );
-    const variable = createVariableEnvelopeDriver(envelope, pace.utilization, envelope.maximumSpeed);
-    return { driver: variable.driver, pace, setUtilization: variable.setUtilization };
+    const variable = createVariableEnvelopeDriver(
+      envelope,
+      pace.utilization,
+      pace.speedFraction * envelope.maximumSpeed,
+    );
+    return { driver: variable.driver, pace, set: variable.set };
   };
   const driverOf = (envelope: RivalEnvelope) => {
     let driver = drivers.get(envelope);
@@ -164,7 +169,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     c,
     id: c.id,
     index,
-    /** A rival's envelope driver, with its pace and utilization setter when paced; null for the player. */
+    /** A rival's envelope driver, with its pace and utilization/speed-cap setter when paced; null for the player. */
     driving: index === 0 ? null : rivalDriving[index - 1]!,
     previous: { s: 0, l: 0 },
     current: c.actor.vehicle,
@@ -306,7 +311,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       const driving = motion.driving!;
       if (driving.pace) {
         driving.pace.update(motion.c.actor.vehicle.course.s, stepStart);
-        driving.setUtilization(driving.pace.utilization);
+        driving.set(driving.pace.utilization, driving.pace.speedFraction * driving.driver.envelope.maximumSpeed);
       }
       move(
         motion,

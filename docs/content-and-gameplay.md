@@ -795,12 +795,14 @@ An ARCADE rival follows that schedule divided by its entry's pace ratio p. Its t
 by Section along the Route it runs, the schedule's times divided by p: a grid rival's from GO along the start
 schedule, from the player vehicle's reference start; a rival appearing ahead's from its appearance, on schedule at
 the first station its schedule times. Between stations the times are interpolated linearly. Its difference is race
-time minus target time, positive when behind. The rival's utilization starts at the middle of the driving
-definition's `rivalPace` bounds and, each fixed step, responds as a first-order lag with time constant
-`responseSeconds` toward `maximumUtilization` while the difference is positive and toward `minimumUtilization`
-otherwise. Where its schedule times no station (past the last timed station of a Section, or on a Section no
-reference run passes from its start), the utilization holds and the next timed station anchors the targets anew. The
-rival reads nothing else, in particular not the player's position. FREE PLAY rivals drive at the fixed Session
+time minus target time, positive when behind. Its target utilization is proportional to the difference: the driving
+definition's `rivalPace.minimumUtilization` at `-bandSeconds` or below, `maximumUtilization` at `+bandSeconds` or
+above, linear between. The rival's utilization starts at the middle of the bounds and, each fixed step, follows the
+target as a first-order lag with time constant `responseSeconds`. Its speed cap is its own vehicle's envelope maximum
+speed times a fraction that runs linearly from `minimumSpeedFraction` at the minimum utilization to 1 at the maximum.
+Where its schedule times no station (past the last timed station of a Section, or on a Section no reference run
+passes from its start), the utilization and speed cap hold and the next timed station anchors the targets anew. The
+rival reads nothing else, in particular not the player's position or vehicle. FREE PLAY rivals drive at the fixed Session
 driver utilization (0.75).
 
 ### Vehicle envelopes and drivers

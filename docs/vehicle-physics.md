@@ -485,7 +485,7 @@ A vehicle is two documents with the same identifier. `content/vehicles/<id>.json
 `content/vehicle-listings/<id>.json` stores its `superoutride.vehicle-listing` version 1 document:
 everything else players see or hear of it. A value belongs to the mechanics document when physics
 reads it and to the listing otherwise; `form` and the metadata's `physicsAnchor` therefore belong to
-the listing. `content/driving/default.json` stores the sole `superoutride.driving-definition` version 11.
+the listing. `content/driving/default.json` stores the sole `superoutride.driving-definition` version 12.
 A material, vehicle or driving document's only identifier is its file name without `.json`, which is
 also its manifest ID; the documents carry none. The content layer's `compileVehicleDefinitions` admits
 the catalog from the build's files or delivery's manifest entries alike: exactly one driving definition,
@@ -527,8 +527,8 @@ fields: `maxRoadWheelSteerDegrees`, `steeringOffsetDegrees`,
 `pitchLimitDegrees` in (0,45], `throttle`
 and `brake` (each applySeconds/releaseSeconds), boolean
 `wheelSlip`, `tire` (gripX/peakSlipX/gripY/peakSlipY/knee), and `rivalPace`
-(minimumUtilization/maximumUtilization/responseSeconds, with 0 < minimum ≤ maximum ≤ 1 and a positive finite
-response time). `rivalPace` drives no vehicle mechanics: ARCADE rivals read it to pace their driving. Angles are degrees, traversal times
+(minimumUtilization/maximumUtilization/minimumSpeedFraction/bandSeconds/responseSeconds, with 0 < minimum ≤
+maximum ≤ 1, a speed fraction in (0,1], and a positive finite band and response time). `rivalPace` drives no vehicle mechanics: ARCADE rivals read it to pace their driving. Angles are degrees, traversal times
 are seconds, pressures are bar, inertia is kg m² per litre, and tire, fuel-cut and efficiency values
 are dimensionless. Require
 0 < offset < maximum < 90 degrees, positive finite actuator rates after conversion, positive finite

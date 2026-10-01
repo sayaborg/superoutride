@@ -48,15 +48,19 @@ export function compileEnvelopeDriver(envelope: RivalEnvelope, utilization: numb
 }
 type Driver = ReturnType<typeof compileEnvelopeDriver>;
 
-/** A driver whose owner changes its utilization between steps; its planning braking follows the utilization. */
+/**
+ * A driver whose owner changes its utilization and speed cap between steps; its planning braking follows the
+ * utilization, and its speed cap stays within the envelope's maximum speed.
+ */
 export function createVariableEnvelopeDriver(envelope: RivalEnvelope, utilization: number, speedCap: number) {
   const braking = minimumBraking(envelope);
   const driver = { ...compileEnvelopeDriver(envelope, utilization, speedCap) };
   return Object.freeze({
     driver: driver as Driver,
-    setUtilization(value: number) {
-      driver.utilization = value;
-      driver.braking = braking * value;
+    set(nextUtilization: number, nextSpeedCap: number) {
+      driver.utilization = nextUtilization;
+      driver.braking = braking * nextUtilization;
+      driver.speedCap = Math.min(nextSpeedCap, envelope.maximumSpeed);
     },
   });
 }

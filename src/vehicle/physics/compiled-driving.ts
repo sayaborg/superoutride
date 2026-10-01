@@ -21,7 +21,10 @@ export interface CompiledDriving {
   /** Suspension stiffness at full travel as a multiple of each ride spring rate. */
   readonly suspensionProgression: number;
   readonly torqueProtection: Readonly<TorqueProtectionPolicy>;
-  /** ARCADE rival pace: utilization bounds, 0 < minimum ≤ maximum ≤ 1, and the response time constant in seconds. */
+  /**
+   * ARCADE rival pace: utilization bounds, 0 < minimum ≤ maximum ≤ 1; the speed cap's fraction of maximum speed at
+   * the minimum utilization, in (0,1]; the schedule difference band and the response time constant, in seconds.
+   */
   readonly rivalPace: DrivingDefinition['rivalPace'];
 }
 
@@ -49,9 +52,17 @@ export function compileDriving(definition: DrivingDefinition): CompiledDriving {
       'pitchLimitDegrees',
       `pitchLimitDegrees must lie in (0,${PITCH_LIMIT_MAX_DEGREES}]`,
     );
-  const { minimumUtilization, maximumUtilization, responseSeconds } = definition.rivalPace;
+  const { minimumUtilization, maximumUtilization, minimumSpeedFraction, bandSeconds, responseSeconds } =
+    definition.rivalPace;
   if (!(minimumUtilization > 0 && minimumUtilization <= maximumUtilization && maximumUtilization <= 1))
     throw new DefinitionDomainError('rivalPace', 'rivalPace utilization must satisfy 0 < minimum ≤ maximum ≤ 1');
+  if (!(minimumSpeedFraction > 0 && minimumSpeedFraction <= 1))
+    throw new DefinitionDomainError(
+      'rivalPace/minimumSpeedFraction',
+      'rivalPace minimumSpeedFraction must lie in (0,1]',
+    );
+  if (!(bandSeconds > 0) || !Number.isFinite(bandSeconds))
+    throw new DefinitionDomainError('rivalPace/bandSeconds', 'rivalPace bandSeconds must be finite and > 0');
   if (!(responseSeconds > 0) || !Number.isFinite(responseSeconds))
     throw new DefinitionDomainError('rivalPace/responseSeconds', 'rivalPace responseSeconds must be finite and > 0');
   if (!(definition.drivelineEfficiency > 0 && definition.drivelineEfficiency <= 1))
@@ -107,6 +118,12 @@ export function compileDriving(definition: DrivingDefinition): CompiledDriving {
       wheelSlip: definition.wheelSlip,
       pitchLimit: (definition.pitchLimitDegrees * Math.PI) / 180,
     }),
-    rivalPace: Object.freeze({ minimumUtilization, maximumUtilization, responseSeconds }),
+    rivalPace: Object.freeze({
+      minimumUtilization,
+      maximumUtilization,
+      minimumSpeedFraction,
+      bandSeconds,
+      responseSeconds,
+    }),
   });
 }

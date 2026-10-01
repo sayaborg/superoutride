@@ -23,7 +23,7 @@
   fields; FREE PLAY rivals are drawn from vehicle pools; TIME TRIAL, traffic, collisions, music, sound effects and
   the product front end are not implemented.
 
-Next PR: **12-9 — Start and finish**.
+Next PR: **12-8e — TIME TRIAL**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -172,7 +172,8 @@ cycle-closure check from walking the single circuit cycle to every directed cycl
 
 Tune physical parameters, tire sound and driver difficulty, including vehicle-specific tire settings;
 reintroduce per-vehicle or per-axle tire parameters only when this tuning needs them. Add asymmetric
-(rebound-only) suspension damping only if landings bounce.
+(rebound-only) suspension damping only if landings bounce. Size terminal runouts for paced rivals at the minimum pace
+utilization; runout admission still checks the fixed 0.75.
 Use continuous tool reference runs that complete reproducibly and use different vehicles' capabilities
 comparably; review proposed checkpoint margins against the resulting driving experience. FREE PLAY and
 TIME TRIAL have no time limit. Reference driving stays outside builds. Review the complete sixteen-competitor
