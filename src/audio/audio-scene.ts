@@ -28,6 +28,8 @@ export interface AudioPose extends AudioPosition {
 /** Consumer-owned read contract: one competitor's acoustic observation, identity and world pose. */
 export interface VehicleAudioEmitter extends VehicleAudioObservation, AudioPose {
   readonly id: string;
+  /** The competitor's vehicle, whose engine sound voices it. */
+  readonly vehicleId: string;
 }
 
 /**
@@ -113,7 +115,8 @@ export function rivalSpatialization(
 /**
  * Loads the generators, owns the voices (player engine, rival engine and its panner, player tires) on the
  * sound graph's buses, and the rival voice assignment: a change silences the voice and waits before the new
- * rival sounds.
+ * rival sounds. Each engine voice sounds its emitter's vehicle; a voice whose sound changes fades out and waits
+ * before the new sound starts.
  */
 export async function createAudioScene(context: AudioContext, surfaces: TireSurfaceSounds) {
   await context.audioWorklet.addModule(new URL('./vehicle-processor.js', import.meta.url));
@@ -129,8 +132,12 @@ export async function createAudioScene(context: AudioContext, surfaces: TireSurf
   let switchAt = 0;
   let disposed = false;
   return {
-    update(player: VehicleAudioEmitter, rivals: readonly VehicleAudioEmitter[], sound: CompiledEngineSound): void {
-      playerEngine.update(player, sound);
+    update(
+      player: VehicleAudioEmitter,
+      rivals: readonly VehicleAudioEmitter[],
+      soundOf: (vehicleId: string) => CompiledEngineSound,
+    ): void {
+      playerEngine.update(player, soundOf(player.vehicleId));
       tires.update(player);
       const nearest = nearestAudibleRival(player, rivals, rival.audibleMeters);
       const nearestId = nearest?.id ?? null;
@@ -145,7 +152,7 @@ export async function createAudioScene(context: AudioContext, surfaces: TireSurf
         return;
       }
       const { gain, pan } = rivalSpatialization(player, nearest, rival);
-      rivalEngine.update(nearest, sound, gain);
+      rivalEngine.update(nearest, soundOf(nearest.vehicleId), gain);
       follow(rivalPan.pan, clamp(pan, -1, 1), context.currentTime, control.panSeconds);
     },
     setExhaustSettings(value: ExhaustSettings): void {

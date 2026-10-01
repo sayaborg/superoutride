@@ -9,11 +9,12 @@ import type { CompetitorObservation } from '../race/competitor-observation.js';
 
 type Emitter = MutableVehicleAudioObservation & Mutable<Omit<VehicleAudioEmitter, keyof VehicleAudioObservation>>;
 export function createVehicleAudioEmitter(): Emitter {
-  return { ...createVehicleAudioObservation(), id: '', x: 0, y: 0, z: 0, yaw: 0 };
+  return { ...createVehicleAudioObservation(), id: '', vehicleId: '', x: 0, y: 0, z: 0, yaw: 0 };
 }
 /** Copy one completed competitor observation into a reusable emitter; do not run contact or tire solvers here. */
 export function readVehicleAudio(competitor: CompetitorObservation, result: Emitter): void {
   result.id = competitor.id;
+  result.vehicleId = competitor.vehicleId;
   result.x = competitor.x;
   result.y = competitor.y;
   result.z = competitor.z;

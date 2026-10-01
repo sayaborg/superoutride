@@ -92,7 +92,7 @@ export function runScenario({ course }, scenario) {
   const rig = createCameraRig();
   const target = createLogicalFrame();
   const visual = createVehicleSprites(entry);
-  const sprites = createRaceSprites(visual);
+  const sprites = createRaceSprites(definitions.vehicles);
   const workspace = createEnvelopeDriverWorkspace();
   const digest = createHash('sha256');
   const evidence = {

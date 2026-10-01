@@ -69,7 +69,7 @@ try {
       : null;
   const sprites = createVehicleSprites(entry);
   const displaySettings = createDisplaySettings();
-  const raceSprites = createRaceSprites(sprites);
+  const raceSprites = createRaceSprites(vehicles);
   /**
    * The one assembly of a Session, its scene (with a new Route runtime) and its race. Startup and every DEV
    * tuning rebuild pass through it; the shell and its devices persist.
@@ -91,7 +91,7 @@ try {
   };
   let active = build(vehicle, settings, rivalEnvelope, budgets, false);
   const player = openPlayerRecord(browserStorage());
-  const shell = createBrowserDrivingShell(vehicle, surfaceSounds, await loadAudioSettings(content), player, {
+  const shell = createBrowserDrivingShell(vehicle, vehicles, surfaceSounds, await loadAudioSettings(content), player, {
     tick: () => tick(),
     render: () => render(),
   });

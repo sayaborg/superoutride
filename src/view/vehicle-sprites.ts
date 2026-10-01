@@ -6,7 +6,7 @@ export interface VehicleSpriteStates {
   readonly on: VehicleSpriteSet;
 }
 
-/** One startup binding shared by player and rivals; each image supplies its own named palette. */
+/** One vehicle's binding in its default color; each image supplies its own named palette. */
 export function createVehicleSprites(vehicle: CompiledVehicleDefinition): VehicleSpriteStates {
   const color = vehicle.listing.visuals.palette;
   return Object.freeze({

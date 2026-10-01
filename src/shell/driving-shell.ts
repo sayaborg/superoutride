@@ -9,6 +9,7 @@ import { createLogicalFrame, LOGICAL_HEIGHT, LOGICAL_WIDTH } from '../view/displ
 import { expandRgb555Pixels } from '../image/rgb555.js';
 import { SoftwareSurface } from '../view/software-surface.js';
 import type { DrivingDocument } from '../vehicle/driving-definition.js';
+import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import { InputManager } from '../input/input-manager.js';
 import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
@@ -50,6 +51,7 @@ interface BrowserDrivingShell {
  */
 export function createBrowserDrivingShell(
   sessionVehicle: SessionVehicle,
+  vehicles: readonly CompiledVehicleDefinition[],
   surfaceSounds: TireSurfaceSounds,
   audioSettings: AudioSettings,
   player: PlayerRecord,
@@ -78,7 +80,7 @@ export function createBrowserDrivingShell(
   const sessionVehicleId = sessionVehicleDefinition.compiledVehicle.id;
   const cameraRig = createCameraRig();
 
-  const audio = createAudioLifecycle(sessionVehicleDefinition, surfaceSounds, audioSettings, player);
+  const audio = createAudioLifecycle(vehicles, surfaceSounds, audioSettings, player);
   // Each start begins a new frame clock, so stopped real time never enters the simulation.
   const loop = createFrameLoop(
     () => frame.tick(),

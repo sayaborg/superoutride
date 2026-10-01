@@ -499,10 +499,10 @@ A different physical camera or depth interval rejects that observation. The arra
 
 ### Vehicle color and brake lamps
 
-Vehicle documents choose a named sprite set and default color. `view/vehicle-sprites.ts` creates the
-off/on sprite sets once at startup, using each image's own named palette and the sprite set's shared off/on colors for reserved slot 15.
-The same prepared states are passed to player rendering and `createRaceSprites`; no per-frame
-palette evaluation occurs. Every competitor observation, the player's included, publishes boolean
+Vehicle documents choose a named sprite set and default color. `view/vehicle-sprites.ts` creates a vehicle's
+off/on sprite sets, using each image's own named palette and the sprite set's shared off/on colors for reserved slot 15.
+Player rendering binds the player's vehicle at startup; `createRaceSprites` draws each rival from the sprite set of
+its observed vehicle ID, binding each vehicle once on first use. No per-frame palette evaluation occurs. Every competitor observation, the player's included, publishes boolean
 `brakeLampOn`: that competitor's brake request in its latest step input is greater than 0. All vehicles use their definition's default color;
 player color selection and rival color assignment are pending product decisions.
 

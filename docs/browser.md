@@ -191,7 +191,7 @@ Escape closes the panel and returns focus to its summary. DEV has no keyboard sh
 The vehicle is chosen in the Session setup, and choosing it starts a Session; there is no vehicle
 selection during a Session. Driving tuning, camera, sound and recovery controls remain available. RECOVER requests the race's manual recovery of the player vehicle when the active composition
 permits it: in a course session, only while the run is running and the race clock is RUNNING. The shell supplies
-the player's input only; it reads the Session vehicle for sound, HUD and export, and the race owns all mechanics.
+the player's input only; it reads the Session vehicle for HUD and export and each competitor's vehicle for sound, and the race owns all mechanics.
 
 Driving tuning is grouped as STEERING, PEDALS, TIRES F/R, POWERTRAIN and ASSISTS. Each value uses a
 minus/value/plus control in the driving definition's units, wrapping at range endpoints; ASSISTS

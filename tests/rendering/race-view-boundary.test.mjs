@@ -61,7 +61,7 @@ test('shared route keeps vehicle and camera coordinates across forward and rever
 });
 
 test('race actors have no cameras and view assembles sixteen rival sprites from observations', async () => {
-  const { course, scene, assets, compiledVehicle } = await setup();
+  const { course, scene, compiledVehicle } = await setup();
   const admitted = await readRivalEnvelope(
     compiledVehicle,
     await (await readDeliveredContent()).json('envelope', 'TESTAROSSA'),
@@ -83,7 +83,7 @@ test('race actors have no cameras and view assembles sixteen rival sprites from 
   assert.ok(!('sprites' in observed));
   assert.equal(observed.rivals.length, 16);
   const camera = updateCamera(createCameraRig(), scene.world, observed.player, CURRENT_CAMERA_PROFILE);
-  const sprites = createRaceSprites(assets)(observed.rivals, camera);
+  const sprites = createRaceSprites(definitions.vehicles)(observed.rivals, camera);
   assert.equal(sprites.length, observed.rivals.length);
   assert.deepEqual(
     sprites.map((s) => s.name),

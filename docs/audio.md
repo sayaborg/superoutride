@@ -23,7 +23,7 @@ reassignment), is only recorded. The browser supplies them once per presented fr
 which are copied at the end of each fixed step; audio reads nothing else.
 Physics owns RPM, actuators, contact loads, wheel motion and dissipated work; audio owns oscillator,
 filter and envelope state. Player tire sound reads the player's observed tire observations;
-rival sound uses the rival's observed powertrain values.
+rival sound uses the rival's observed powertrain values and its own vehicle's engine sound.
 
 An [engine sound](../src/audio/engine-sound.ts) contains one or two revolutions per
 cycle, ordered firing phases, each cylinder's junction (`banks`), primary lengths and the collector graph
@@ -162,7 +162,10 @@ spatialization; the RIVAL settings (`RivalSettings`) own the audible distance, r
 reassignment time. The nearest observed rival within `audibleMeters` occupies the rival slot; candidates are the
 rivals the race observes on the resident Route. That cutoff is game policy, not acoustics. The gain follows the
 inverse-distance law `referenceMeters/max(referenceMeters, distance)` over the 3D physical world distance, and the
-pan is lateral displacement in the player's yaw frame divided by `max(panMinimumMeters, distance)`. A change of rival ID silences the slot and waits the reassignment time before the new rival sounds. ENG, TIRE and MASTER independently multiply their
+pan is lateral displacement in the player's yaw frame divided by `max(panMinimumMeters, distance)`. A change of rival ID silences the slot and waits the reassignment time before the new rival sounds. Each engine
+voice sounds the engine sound of its competitor's vehicle (the observation's vehicle ID, resolved through the
+vehicle catalog); when a voice's sound changes, it fades out and waits the transition time before the new sound
+starts. ENG, TIRE and MASTER independently multiply their
 outputs. A new sound kind adds one bus and connects its voices to it. Component output switches leave synthesis
 state running.
 
