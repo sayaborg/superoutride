@@ -8,6 +8,7 @@ export type ContentKind =
   | 'image'
   | 'envelope'
   | 'budget'
+  | 'schedule'
   | 'vehicle'
   | 'vehicle-listing'
   | 'driving'

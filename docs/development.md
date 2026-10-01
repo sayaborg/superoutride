@@ -145,20 +145,21 @@ mechanics, vehicle listing, driving, material, surface-sound, audio, engine-soun
 encoding, so the build knows their delivered digests before staging them. Entries contain no payload
 format/version. The manifest writer is the only authority for these kinds, IDs and paths under `dist/delivery/`:
 
-| Kind              | ID                                                          | Path                              | Content                                                                                                      |
-| ----------------- | ----------------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `course`          | Course file name stem (the course selection key)            | `courses/<id>.course.json`        | Course document                                                                                              |
-| `series`          | Series file name stem                                       | `series/<id>.series.json`         | Series document ([Content and gameplay](content-and-gameplay.md#series-documents))                           |
-| `image`           | Image SHA-256, or `vehicles` for the vehicle sprite library | `images/<sha256>.json`            | Compiled course images and the vehicle sprite library                                                        |
-| `vehicle`         | Vehicle ID                                                  | `vehicles/<id>.json`              | Vehicle mechanics document                                                                                   |
-| `vehicle-listing` | Vehicle ID                                                  | `vehicle-listings/<id>.json`      | Vehicle listing document                                                                                     |
-| `driving`         | `default`                                                   | `driving/<id>.json`               | Game-wide driving definition                                                                                 |
-| `material`        | `surface`                                                   | `materials/<id>.json`             | Surface-material document                                                                                    |
-| `engine-sound`    | Sound ID                                                    | `engine-sounds/<id>.json`         | Engine-sound document ([Audio](audio.md#observations-and-engine-sounds))                                     |
-| `surface-sound`   | `default`                                                   | `surface-sounds/<id>.json`        | Surface-sound document ([Tire audio](tire-audio.md#surface-sounds))                                          |
-| `audio`           | `default`                                                   | `audio/<id>.json`                 | Game-wide sound settings ([Audio](audio.md#audio-document))                                                  |
-| `envelope`        | Vehicle ID                                                  | `envelopes/<id>.json`             | Rival driving envelope (`superoutride.rival-envelope` v1: vehicle identity, maximum speed and measured rows) |
-| `budget`          | `<course>/<vehicle>`                                        | `budgets/<course>/<vehicle>.json` | Timed Session budgets (`superoutride.course-time-budgets` v1)                                                |
+| Kind              | ID                                                          | Path                                | Content                                                                                                      |
+| ----------------- | ----------------------------------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `course`          | Course file name stem (the course selection key)            | `courses/<id>.course.json`          | Course document                                                                                              |
+| `series`          | Series file name stem                                       | `series/<id>.series.json`           | Series document ([Content and gameplay](content-and-gameplay.md#series-documents))                           |
+| `image`           | Image SHA-256, or `vehicles` for the vehicle sprite library | `images/<sha256>.json`              | Compiled course images and the vehicle sprite library                                                        |
+| `vehicle`         | Vehicle ID                                                  | `vehicles/<id>.json`                | Vehicle mechanics document                                                                                   |
+| `vehicle-listing` | Vehicle ID                                                  | `vehicle-listings/<id>.json`        | Vehicle listing document                                                                                     |
+| `driving`         | `default`                                                   | `driving/<id>.json`                 | Game-wide driving definition                                                                                 |
+| `material`        | `surface`                                                   | `materials/<id>.json`               | Surface-material document                                                                                    |
+| `engine-sound`    | Sound ID                                                    | `engine-sounds/<id>.json`           | Engine-sound document ([Audio](audio.md#observations-and-engine-sounds))                                     |
+| `surface-sound`   | `default`                                                   | `surface-sounds/<id>.json`          | Surface-sound document ([Tire audio](tire-audio.md#surface-sounds))                                          |
+| `audio`           | `default`                                                   | `audio/<id>.json`                   | Game-wide sound settings ([Audio](audio.md#audio-document))                                                  |
+| `envelope`        | Vehicle ID                                                  | `envelopes/<id>.json`               | Rival driving envelope (`superoutride.rival-envelope` v1: vehicle identity, maximum speed and measured rows) |
+| `budget`          | `<course>/<vehicle>`                                        | `budgets/<course>/<vehicle>.json`   | Timed Session budgets (`superoutride.course-time-budgets` v1)                                                |
+| `schedule`        | `<course>/<vehicle>`                                        | `schedules/<course>/<vehicle>.json` | ARCADE pace schedule (`superoutride.pace-schedule` v1)                                                       |
 
 The shared manifest reader admits the index through the admission toolkit as document `manifest.json`
 (format and version first, exact fields, unique kind/id identities and paths), resolves each logical identity to its relative path,
@@ -186,8 +187,8 @@ its images are staged only after the course compiles. The build
 saves the manifest before the references; reference workers run in separate threads, read the same
 `dist/delivery` definitions and courses, generate envelopes/runs, and add envelopes/budgets before
 publishing the completed build. Every catalog vehicle receives an envelope, which FREE PLAY rivals and runout
-admission read. Only series courses are timed: each receives reference runs and budgets, with its series' time
-margin, for its series' candidate vehicles only, since only ARCADE has the clock. Node tools also read vehicle/driving definitions from this distribution.
+admission read. Only series courses are timed: each receives reference runs, budgets and pace schedules, with its
+series' time margin, for its series' candidate vehicles only, since only ARCADE has the clock and rival pace. Node tools also read vehicle/driving definitions from this distribution.
 
 | Output                                 | Use                                                                                  |
 | -------------------------------------- | ------------------------------------------------------------------------------------ |

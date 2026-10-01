@@ -23,7 +23,7 @@
   fields; FREE PLAY rivals are drawn from vehicle pools; TIME TRIAL, traffic, collisions, music, sound effects and
   the product front end are not implemented.
 
-Next PR: **12-8d-5a — Pace schedule data**.
+Next PR: **12-8d-5b-1 — Variable driver utilization**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -34,9 +34,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 Define input, run state, framebuffer, persistent player data, data-driven Sessions, the product front end and the
 product HUD independently of DEV, as specified in the [product specification](product.md).
 
-- **12-8d-5a — Pace schedule data:** per series course and candidate vehicle, Section pass-time profiles (the
-  fastest reference time from each Section's entry to each 5 m station) as a generated product with the time-budget
-  identity rules; ARCADE admits the player vehicle's schedule once. No behavior change.
 - **12-8d-5b-1 — Variable driver utilization:** the envelope driver caches curvature instead of utilization-bound
   curve speeds and takes its utilization per step; the game-wide driving definition gains the rival utilization
   bounds (0.55–0.95) and response time, adjustable with DEV tuning. No behavior change.

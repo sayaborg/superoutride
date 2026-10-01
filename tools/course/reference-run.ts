@@ -1,4 +1,5 @@
-import { routeSectionS } from '../../src/course/course-route.js';
+import { routeS, routeSectionS } from '../../src/course/course-route.js';
+import { paceScheduleStations } from '../../src/content/pace-schedule.js';
 type CompiledLink = CompiledCourse['links'][number];
 import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import type { CompiledVehicleDefinition } from '../../src/vehicle/definition-document.js';
@@ -60,6 +61,8 @@ export function runCourseReference(
   const lane = (s: number) => race.forks.targetL(s, intent);
   const workspace = createEnvelopeDriverWorkspace();
   const driver = compileEnvelopeDriver(envelope, REFERENCE_DRIVER.utilization, envelope.maximumSpeed);
+  // Race time and route station after every step from GO: the pass times at schedule stations interpolate them.
+  const samples = { seconds: [0], s: [vehicle.course.s] };
   race.start();
   // Work bound, not a replacement finish. A timed-out/recovered run publishes no reference product.
   const maxTicks = Math.ceil((READY_SECONDS + 3600 * lapCount) / SIM_DT);
@@ -72,6 +75,10 @@ export function runCourseReference(
         ? IDLE_INPUT
         : sampleEnvelopeDrivingInput(scene.world.coordinates, vehicle, driver, lane, workspace, scene.runtime.window);
     race.advance(input);
+    if (race.outcome.status !== 'READY') {
+      samples.seconds.push(race.clock.elapsedSeconds);
+      samples.s.push(vehicle.course.s);
+    }
     if (actor.recovery.recoveries)
       throw new RangeError(`${entry.compiledVehicle.id}: reference recovered at ${section.id}:${vehicle.course.s}`);
     distance += vehicle.speed * SIM_DT;
@@ -123,7 +130,42 @@ export function runCourseReference(
     lapCount,
     elapsedSeconds: race.clock.elapsedSeconds,
     events,
+    passes: passTimes(scene.runtime.route.occurrences, samples),
     metrics: { maximumSpeed, maximumLateralUtilization, distance, recoveries: actor.recovery.recoveries },
     ...(capture ? { trace } : {}),
   };
+}
+
+/**
+ * Each Section occurrence's race times at its schedule stations, from the first station the run reaches to the last
+ * it passes: the first sample at or past a station, interpolated linearly from the one before it.
+ */
+function passTimes(
+  occurrences: ReturnType<typeof createCourseScene>['runtime']['route']['occurrences'],
+  samples: { readonly seconds: readonly number[]; readonly s: readonly number[] },
+) {
+  const { seconds, s } = samples;
+  const firstS = s[0]!,
+    lastS = s.at(-1)!;
+  let i = 1;
+  const passes: { section: string; first: number; seconds: number[] }[] = [];
+  for (const occurrence of occurrences) {
+    if (occurrence.start > lastS) break;
+    const stations = paceScheduleStations(occurrence.section);
+    const times: number[] = [];
+    let first = -1;
+    stations.forEach((station, index) => {
+      const at = routeS(occurrence, station);
+      if (at < firstS || at > lastS) return;
+      if (first < 0) first = index;
+      while (s[i]! < at) i++;
+      const before = Math.max(0, i - 1);
+      const span = s[i]! - s[before]!;
+      times.push(
+        span > 0 ? seconds[before]! + ((at - s[before]!) / span) * (seconds[i]! - seconds[before]!) : seconds[i]!,
+      );
+    });
+    if (first >= 0) passes.push({ section: occurrence.section.id, first, seconds: times });
+  }
+  return passes;
 }

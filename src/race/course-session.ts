@@ -1,6 +1,7 @@
 import { compileEnvelopeDriver } from './envelope-driver.js';
 import type { RivalEnvelope } from '../content/rival-envelope.js';
 import type { CourseTimeBudgets } from '../content/course-time-budgets.js';
+import type { PaceSchedule } from '../content/pace-schedule.js';
 import type { SessionVehicle } from '../content/session-vehicle.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import type { AheadAppearance, SeriesCourse, StageInterval } from '../content/series-catalog.js';
@@ -56,6 +57,8 @@ export function resolveCourseSession(
     readonly vehicleOf?: (vehicleId: string) => EntryVehicle;
     /** FREE PLAY rival vehicle/color pairs; by default the player's vehicle in its default color. */
     readonly rivalPool?: readonly VehicleColor[];
+    /** The player vehicle's pace schedule on this course; ARCADE requires it. */
+    readonly paceSchedule?: PaceSchedule;
   } = {},
 ) {
   const playerVehicleId = vehicle.vehicleDefinition.compiledVehicle.id;
@@ -79,6 +82,8 @@ export function resolveCourseSession(
     throw new RangeError('Lap count exceeds the authored course limit');
   if (configuration.rivalCount >= course.gates.grid.length)
     throw new RangeError('The authored grid cannot hold this field');
+  if (configuration.mode === 'ARCADE' && !field.paceSchedule)
+    throw new RangeError("ARCADE requires the player vehicle's delivered pace schedule");
   if (configuration.timeLimit && !budgets)
     throw new RangeError('A time limit requires current, complete reference runs');
   if (!envelope && (configuration.rivalCount > 0 || configuration.timeLimit))
@@ -118,6 +123,8 @@ export function resolveCourseSession(
     entries,
     rivalUtilization,
     budgets: configuration.timeLimit ? budgets : null,
+    /** The player vehicle's pace schedule; ARCADE only. */
+    paceSchedule: configuration.mode === 'ARCADE' ? field.paceSchedule! : null,
     /** Rank limit N by gate ID; ARCADE only. */
     rankLimits: configuration.mode === 'ARCADE' && arcade ? arcade.rankLimits : NO_RANK_LIMITS,
   });

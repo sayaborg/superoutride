@@ -15,6 +15,7 @@ import { createCoursePerformanceHud } from './course-performance-hud.js';
 import { resolveCourseSession, type EntryVehicle } from '../race/course-session.js';
 import { rivalPoolPairs } from '../race/free-play-field.js';
 import { readCourseTimeBudgets, type CourseTimeBudgets } from '../content/course-time-budgets.js';
+import { readPaceSchedule } from '../content/pace-schedule.js';
 import { loadSeriesCatalog, loadSeriesCourse } from '../content/series-catalog.js';
 import { createSessionVehicle, type SessionVehicle } from '../content/session-vehicle.js';
 import { readBrowserSessionSettings, mountCourseSessionControls } from './course-session-controls.js';
@@ -96,6 +97,13 @@ try {
           readCourseTimeBudgets(course, vehicle, value, document),
         )
       : null;
+  // ARCADE admits the player vehicle's pace schedule once.
+  const paceSchedule =
+    settings.mode === 'ARCADE'
+      ? await admitProduct(content, 'schedule', `${mode}/${vehicleId}`, (value, document) =>
+          readPaceSchedule(course, vehicle, value, document),
+        )
+      : undefined;
   const displaySettings = createDisplaySettings();
   const raceSprites = createRaceSprites(vehicles);
   /**
@@ -116,6 +124,7 @@ try {
       playerColor,
       vehicleOf,
       rivalPool,
+      paceSchedule,
     });
     const scene = createCourseScene(course.entry, course.gates, vehicles, displaySettings);
     const race = createCourseRace({ session, runtime: scene.runtime });

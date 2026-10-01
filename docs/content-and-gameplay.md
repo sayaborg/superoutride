@@ -776,6 +776,18 @@ adds none. Precise event times determine ordering; awarded budgets alone round t
 All consecutive gates crossed in one step retain their race times. Earlier expiry ends the
 run; a valid checkpoint or FINISH wins an exact expiry tie ([race time and events](#race-time-and-events)). Rejected late crossings earn no line or lap credit.
 
+### Pace schedules
+
+A pace schedule (`superoutride.pace-schedule` version 1) records a vehicle's reference pace on a series course for
+ARCADE rival pace. It carries the course build and vehicle identities of a time budget and the station spacing, 5 m:
+a Section's schedule stations are every 5 m from its start, then its end. `start` gives the race times from GO, in
+integer milliseconds, at the entry Section's stations from the first one the reference reaches. `sections` gives,
+for each Section a reference run passes from its start, the fastest time over all of that course's reference runs
+from the Section's start to each station it reaches, starting at 0; times increase strictly. The build derives
+both by interpolating the run's race time between fixed steps at each station's route station. An ARCADE Session
+admits the player vehicle's schedule once, against the compiled course and the Session vehicle; no other vehicle's
+schedule and no FREE PLAY Session reads one.
+
 ### Vehicle envelopes and drivers
 
 Generated envelopes contain maximum speed and speed-indexed acceleration, braking and lateral-response

@@ -29,6 +29,8 @@ function contentPath(kind: ContentKind, id: string, sha256: string): string {
       return `envelopes/${id}.json`;
     case 'budget':
       return `budgets/${id}.json`;
+    case 'schedule':
+      return `schedules/${id}.json`;
   }
 }
 

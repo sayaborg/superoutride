@@ -30,6 +30,7 @@ const CONTENT_KINDS: readonly ContentKind[] = [
   'image',
   'envelope',
   'budget',
+  'schedule',
   'vehicle',
   'vehicle-listing',
   'driving',
