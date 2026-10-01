@@ -18,7 +18,7 @@ color and material overwrite independently. Compiled Sections publish their two 
 Checkpoints, starts, finishes and environment changes are independent of Section boundaries.
 Source identity, traversal identity and race credit are distinct.
 
-## CourseDocument v28
+## CourseDocument v29
 
 The saved format is compact UTF-8 JSON. All declared fields are required; explicit null represents
 absent optional content. Unknown fields fail. Arrays preserve saved order; object-property order and
@@ -26,7 +26,7 @@ whitespace do not affect identity. Normalized records use schema field order and
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 28,
+  format: "superoutride.course", version: 29,
   entrySectionId,
   sections, links, assets, rules
 }
@@ -232,10 +232,8 @@ A circuit has exactly one finish; other circuit Sections have none. The fork sec
 closure geometry; the appearance compiler checks conditional signs against it. A Section with at most one outgoing Link cannot have either
 lock or closure gates.
 
-`rules` is required: `{maxLaps,classic}`. `maxLaps` is an integer from 1 through 99; non-circuits use 1.
-`classic` is a retired field that no Session, build or tool reads; [series](#series-documents) own ARCADE
-settings. It is still admitted as `{vehicleId,rivalCount,lapCount,timeMargin}` or null, with `rivalCount` 0
-through 16, `lapCount` within `maxLaps` and `timeMargin` positive, finite and at most 10, until its removal.
+`rules` is required: `{maxLaps}`, a position-free setting. `maxLaps` is an integer from 1 through 99;
+non-circuits use 1. [Series](#series-documents) own ARCADE settings.
 
 A course is timed exactly when a series holds it. The build generates reference runs and time budgets for
 timed courses only, and only a timed course offers ARCADE and the checkpoint clock. An untimed course runs
@@ -250,7 +248,6 @@ CourseDocument nulls each have one meaning:
 
 | Field                            | Meaning of null                                           |
 | -------------------------------- | --------------------------------------------------------- |
-| Rules `classic`                  | Retired field; no reader distinguishes null               |
 | Strip `color`                    | Leave the earlier color channel unchanged                 |
 | Strip `material`                 | Leave the earlier material channel unchanged              |
 | Strip knot `left` / `right`      | That edge is open to negative / positive lateral infinity |

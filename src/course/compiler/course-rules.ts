@@ -81,12 +81,6 @@ export function compileCourseGates(
     'Only CIRCUIT has repeated laps',
     'invalid_rules',
   );
-  requireCourse(
-    source.classic === null || source.classic.lapCount <= source.maxLaps,
-    '/rules/classic/lapCount',
-    'Preset laps exceed course limit',
-    'invalid_rules',
-  );
   const gatePath = (value: CompiledCourseLandmark) => landmarks.find((g) => g.value === value)!.path;
   const intervals = sections.map((section, index) => {
     const path = `/sections/${index}/gates`;
@@ -113,11 +107,7 @@ export function compileCourseGates(
     return Object.freeze({ section, checkpoints: Object.freeze(gates), finish });
   });
   const surface = entry.material;
-  check(
-    startGate.grid.length > (source.classic?.rivalCount ?? 0),
-    `${start.path}/grid`,
-    'Grid must contain the player and preset rivals',
-  );
+  check(startGate.grid.length > 0, `${start.path}/grid`, 'Grid must contain the player');
   const first = intervals.find((i) => i.section === entry)!;
   const firstGate = Math.min(
     first.checkpoints[0]?.at.s ?? first.finish?.at.s ?? endS(entry),

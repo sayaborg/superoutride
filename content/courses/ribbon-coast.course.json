@@ -1,15 +1,9 @@
 {
   "format": "superoutride.course",
-  "version": 28,
+  "version": 29,
   "entrySectionId": "coast-road",
   "rules": {
-    "maxLaps": 1,
-    "classic": {
-      "vehicleId": "TESTAROSSA",
-      "rivalCount": 0,
-      "lapCount": 1,
-      "timeMargin": 1.35
-    }
+    "maxLaps": 1
   },
   "sections": [
     {

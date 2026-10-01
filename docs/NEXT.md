@@ -20,10 +20,10 @@
   and the game-wide sound settings are content documents; every sound value is derived from physics or a DEV setting;
   exhausts are collector graphs.
 - The [product specification](product.md) is the target for Stages 12–16. Series documents own ARCADE settings;
-  course documents still carry the unread `rules.classic`; all competitors share one vehicle; TIME TRIAL,
-  traffic, collisions, music, sound effects and the product front end are not implemented.
+  all competitors share one vehicle; TIME TRIAL, traffic, collisions, music, sound effects and the product front end
+  are not implemented.
 
-Next PR: **12-8b-b — Course CLASSIC settings (delete)**.
+Next PR: **12-8c — Competitor vehicles**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -34,9 +34,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 Define input, run state, framebuffer, persistent player data, data-driven Sessions, the product front end and the
 product HUD independently of DEV, as specified in the [product specification](product.md).
 
-- **12-8b-b — Course CLASSIC settings (delete):** course documents keep geometry, gates, grid slots and the lap
-  maximum and lose the unread `rules.classic`, `ClassicRulesDocument`, the timed/untimed course rule types and
-  `isTimedCourse`.
 - **12-8c — Competitor vehicles:** every competitor has its own vehicle, calibration and envelope; runout admission
   covers every vehicle in the field; time budgets are keyed by course, vehicle and route state; the Session product
   maximum becomes sixteen competitors including the player.

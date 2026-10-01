@@ -1,15 +1,9 @@
 {
   "format": "superoutride.course",
-  "version": 28,
+  "version": 29,
   "entrySectionId": "ring-outward",
   "rules": {
-    "maxLaps": 3,
-    "classic": {
-      "vehicleId": "TESTAROSSA",
-      "rivalCount": 2,
-      "lapCount": 2,
-      "timeMargin": 1.35
-    }
+    "maxLaps": 3
   },
   "sections": [
     {

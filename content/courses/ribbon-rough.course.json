@@ -1,10 +1,9 @@
 {
   "format": "superoutride.course",
-  "version": 28,
+  "version": 29,
   "entrySectionId": "rough-bumps",
   "rules": {
-    "maxLaps": 3,
-    "classic": null
+    "maxLaps": 3
   },
   "sections": [
     {
