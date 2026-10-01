@@ -19,6 +19,9 @@ The game has no part purchases, tuning progression, upgrade choices during a run
 stopping another vehicle. Ordinary contact, rivals, traffic, rank and route choice remain.
 Every Session is single-player; there is no split screen or online play.
 
+A reference game's special controls are not adopted merely because it had them: there is no turbo
+button, jump control or siren.
+
 ### Era
 
 The world is the late 1980s. Vehicles existing by 1989 are eligible, including older cars; a vehicle's
@@ -143,8 +146,11 @@ in §3 are set during course production.
 - **COOL RIDERS** pairs the player with one rival per stage; whoever reaches a fork first chooses the
   next stage. All routes merge into the final NEW YORK stage against seven rivals. The course holds
   fifty stage nodes; one run drives six stages.
+- **WEC LE MANS 24** is about driving Le Mans in a Group C car. There is no real-time 24-hour play, fuel
+  strategy, pit work, repair or tire choice.
 - **RALLY STAGE** is an original game in the manner of a 1989 arcade release. Its core is surface
   changes between tarmac, gravel and snow within one run.
+  There are no tire changes or service parks.
 - Enduro Racer is not included.
 
 ## 6. Flow and screens
