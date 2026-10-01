@@ -13,7 +13,7 @@ import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import { drawVehicleLeanDebug } from './debug/vehicle-lean-debug.js';
 import { drawVehicleYawDebug } from './debug/vehicle-yaw-debug.js';
-import { compileDrivingDocument, type CompiledVehicleDefinition } from '../vehicle/definition-document.js';
+import { compileDrivingDocument } from '../vehicle/definition-document.js';
 import { DRIVING_DEFINITION_ID } from '../content/vehicle-catalog.js';
 import { mountDrivingTuningControls } from './driving-tuning-controls.js';
 import { downloadDefinition } from './definition-export.js';
@@ -21,13 +21,11 @@ import type { BrowserCourseModeQuery } from './course-mode-selection.js';
 import { mustGet } from './dom.js';
 import { createFrameLoop } from './frame-loop.js';
 import { mountMobileCameraYawSelector } from './mobile-selector-controls.js';
-import { browserUsesTouchInterface } from './touch-interface.js';
 import { createTouchIndicators } from './touch-indicators.js';
 import { drawVehicleDebugHud } from './vehicle-debug-hud.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
 
 interface BrowserDrivingShell {
-  readonly presentation: CompiledVehicleDefinition;
   readonly framebuffer: SoftwareSurface;
   readonly inputManager: InputManager;
   readonly cameraRig: CameraRig;
@@ -42,7 +40,6 @@ interface BrowserDrivingShell {
   ): void;
   /** The one start/stop procedure, called by the run state when `running` changes. */
   setRunning(running: boolean): void;
-  dispose(): void;
 }
 
 /**
@@ -58,7 +55,6 @@ export function createBrowserDrivingShell(
   const canvas = mustGet<HTMLCanvasElement>('game');
   canvas.width = LOGICAL_WIDTH;
   canvas.height = LOGICAL_HEIGHT;
-  document.documentElement.classList.toggle('touch-capable', browserUsesTouchInterface());
   const ctx = canvas.getContext('2d', { alpha: false });
   if (!ctx) throw new Error('2D canvas context unavailable');
   ctx.imageSmoothingEnabled = false;
@@ -98,15 +94,6 @@ export function createBrowserDrivingShell(
         // The stopped frame shows neutral input, no touch indicators and the stopped status.
         frame.render();
       }
-    },
-    dispose(): void {
-      inputManager.setSuspended(true);
-      touchIndicators.update(inputManager.touch);
-      loop.stop();
-      audio.dispose();
-    },
-    get presentation() {
-      return sessionVehicleDefinition;
     },
     framebuffer,
     inputManager,

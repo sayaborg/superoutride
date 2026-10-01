@@ -205,6 +205,5 @@ export function createAudioLifecycle(
           .then(sync)
           .catch(() => {});
     },
-    dispose,
   };
 }

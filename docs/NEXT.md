@@ -23,7 +23,7 @@
   CLASSIC/CUSTOM mode names and course-owned CLASSIC settings; all competitors share one vehicle; series, TIME TRIAL,
   traffic, collisions, music, sound effects and the product front end are not implemented.
 
-Next PR: **12-5 — Shell leftovers (delete)**.
+Next PR: **12-5b — Calibration stepper (move only)**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -34,11 +34,8 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 Define input, run state, framebuffer, persistent player data, data-driven Sessions, the product front end and the
 product HUD independently of DEV, as specified in the [product specification](product.md).
 
-- **12-5 — Shell leftovers (delete):** the numeric selector branch, the thin selector-model layer, the misplaced
-  calibration stepper, the unused touch heuristic, the unused `presentation` getter, the uncalled `shell.dispose()`
-  (and the audio lifecycle's returned `dispose`, which only it calls), the second CLASSIC preset resolution, the stale
-  `StripPiece.value` comment ("renamed in the naming stage") and the never-passed course-sprite `y` override
-  (`CourseSpriteAuthoring.y` and its `source.y ??` branch in `compileCourseSprite`).
+- **12-5b — Calibration stepper (move only):** move `createCalibrationStepper` out of the mobile selector controls
+  into its only user, the DEV driving tuning controls.
 - **12-6 — Framebuffer:** RGB555; one authority for the 320×240 logical frame.
 - **12-7 — Player settings:** one versioned persistent record for each vehicle's selected color, the three volumes
   and the latest selections.

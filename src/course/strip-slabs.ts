@@ -18,7 +18,7 @@ export interface StripPiece<Value = number | null> {
   readonly end: number;
   readonly left: StripEdgeLine | null;
   readonly right: StripEdgeLine | null;
-  /** Opaque cell payload; renamed in the naming stage. */
+  /** Opaque cell payload. */
   readonly value: Value;
 }
 export interface StripSlab<Value = number | null> {

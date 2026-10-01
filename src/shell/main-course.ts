@@ -47,7 +47,6 @@ try {
   const course = await loadDeliveredCourse(content, mode, materials);
   const parameters = new URLSearchParams(location.search);
   const settings = readBrowserSessionSettings(parameters, course.rules.classic, vehicles);
-  const preset = readBrowserSessionSettings(new URLSearchParams(), course.rules.classic, vehicles);
   const entry = vehicles.find((v) => v.compiledVehicle.id === settings.vehicleId)!;
   const vehicle = createSessionVehicle(entry, driving, materials);
   const vehicleId = vehicle.vehicleDefinition.compiledVehicle.id;
@@ -162,7 +161,6 @@ try {
   const controls = mountCourseSessionControls(
     canvas,
     settings,
-    preset,
     course.rules.classic,
     course.rules.maxLaps,
     {

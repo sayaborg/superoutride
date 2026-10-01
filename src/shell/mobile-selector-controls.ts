@@ -1,19 +1,19 @@
 import { type CameraYawMode } from '../view/camera.js';
-import {
-  createMobileCameraYawSelectorModel,
-  createMobileCourseSelectorModel,
-  type MobileSelectorButtonModel,
-} from './mobile-selector-model.js';
-import { sameSelectorValue } from './selector-values.js';
-
+import { BROWSER_CAMERA_YAW_MODES } from './camera-yaw-selection.js';
 import {
   BROWSER_COURSE_MODES,
   type BrowserCourseModeQuery,
   type BrowserCourseModeSelection,
 } from './course-mode-selection.js';
 
-interface MobileSelectorController<Value extends string | number> {
+interface MobileSelectorController<Value extends string> {
   setActive(value: Value): void;
+}
+
+interface MobileSelectorButton<Value extends string> {
+  readonly value: Value;
+  readonly label: string;
+  readonly ariaLabel: string;
 }
 
 export function mountMobileCourseSelector(
@@ -26,7 +26,12 @@ export function mountMobileCourseSelector(
   const selections = new Map(choices.map((selection) => [selection.query, selection]));
   return mountMobileSelector(
     container,
-    createMobileCourseSelectorModel(activeQuery, choices),
+    choices.map((mode) => ({
+      value: mode.query,
+      label: mode.buttonLabel ?? mode.label,
+      ariaLabel: `Select ${mode.label} course`,
+    })),
+    activeQuery,
     (query) => onSelect(mustSelect(selections, query, 'course')),
     documentRef,
   );
@@ -38,7 +43,7 @@ export function mountMobileCameraYawSelector(
   onSelect: (mode: CameraYawMode) => void,
   documentRef: Document = document,
 ): MobileSelectorController<CameraYawMode> {
-  return mountMobileSelector(container, createMobileCameraYawSelectorModel(activeMode), onSelect, documentRef);
+  return mountMobileSelector(container, BROWSER_CAMERA_YAW_MODES, activeMode, onSelect, documentRef);
 }
 
 /** Compact minus/value/plus presentation shared by DEV tuning items. */
@@ -62,9 +67,10 @@ export function createCalibrationStepper(label: string, onStep: (direction: -1 |
   return { group, value };
 }
 
-function mountMobileSelector<Value extends string | number>(
+function mountMobileSelector<Value extends string>(
   container: HTMLElement,
-  model: readonly MobileSelectorButtonModel<Value>[],
+  model: readonly MobileSelectorButton<Value>[],
+  activeValue: Value,
   onSelect: (value: Value) => void,
   documentRef: Document,
 ): MobileSelectorController<Value> {
@@ -83,17 +89,13 @@ function mountMobileSelector<Value extends string | number>(
   const controller: MobileSelectorController<Value> = {
     setActive(value) {
       for (const [buttonValue, button] of buttons) {
-        const active =
-          typeof value === 'number' && typeof buttonValue === 'number'
-            ? sameSelectorValue(buttonValue, value)
-            : buttonValue === value;
+        const active = buttonValue === value;
         button.classList.toggle('active', active);
         button.setAttribute('aria-pressed', String(active));
       }
     },
   };
-  const active = model.find((item) => item.active);
-  if (active !== undefined) controller.setActive(active.value);
+  controller.setActive(activeValue);
   return controller;
 }
 

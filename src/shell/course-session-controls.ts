@@ -43,7 +43,6 @@ export function readBrowserSessionSettings(
 export function mountCourseSessionControls(
   canvas: HTMLElement,
   current: BrowserSessionSettings,
-  preset: BrowserSessionSettings,
   classic: ClassicRulesDocument | null,
   maxLaps: number,
   actions: { start(): void; togglePause(): void },
@@ -110,17 +109,18 @@ export function mountCourseSessionControls(
     current.timeLimit ? 'on' : 'off',
   );
   const timed = classic !== null;
+  // CLASSIC is offered only for a timed course; it locks the course's CLASSIC settings.
   const lockPreset = () => {
-    const classic = mode.value === 'CLASSIC';
-    if (classic) {
-      vehicle.value = preset.vehicleId;
-      rivals.value = String(preset.rivalCount);
-      laps.value = String(preset.lapCount);
+    const locked = mode.value === 'CLASSIC';
+    if (locked && classic) {
+      vehicle.value = classic.vehicleId;
+      rivals.value = String(classic.rivalCount);
+      laps.value = String(classic.lapCount);
       clock.value = 'on';
     }
-    vehicle.disabled = rivals.disabled = classic;
-    clock.disabled = classic || !timed;
-    laps.disabled = classic || maxLaps === 1;
+    vehicle.disabled = rivals.disabled = locked;
+    clock.disabled = locked || !timed;
+    laps.disabled = locked || maxLaps === 1;
   };
   mode.addEventListener('change', lockPreset);
   lockPreset();

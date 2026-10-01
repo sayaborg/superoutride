@@ -9,7 +9,6 @@ interface CourseSpriteAuthoring {
   s: number;
   l: number;
   groundOffset?: number;
-  y?: number;
   asset: SpriteAsset;
 }
 
@@ -33,7 +32,7 @@ export function compileCourseSprite(
   source: CourseSpriteAuthoring,
 ): CourseSprite {
   const position = guide.coordinates.toWorld(source.s, source.l, createPlanCoordinateSample());
-  const y = source.y ?? height.sample(source.s) + (source.groundOffset ?? 0);
+  const y = height.sample(source.s) + (source.groundOffset ?? 0);
   return {
     name: source.name,
     x: position.x,
