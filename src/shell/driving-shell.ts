@@ -35,6 +35,7 @@ interface BrowserDrivingShell {
   present(
     query: BrowserCourseModeQuery,
     camera: CameraState,
+    playerScreenX: number,
     playerScreenY: number,
     observed: { readonly player: CompetitorObservation; readonly rivals: readonly CompetitorObservation[] },
     diagnostics: { readonly vehicle: VehicleState; readonly model: VehicleModel },
@@ -159,6 +160,7 @@ export function createBrowserDrivingShell(
     present(
       query: BrowserCourseModeQuery,
       camera: CameraState,
+      playerScreenX: number,
       playerScreenY: number,
       observed: { readonly player: CompetitorObservation; readonly rivals: readonly CompetitorObservation[] },
       diagnostics: { readonly vehicle: VehicleState; readonly model: VehicleModel },
@@ -178,11 +180,11 @@ export function createBrowserDrivingShell(
         sessionVehicleDefinition,
       );
       if (player.form === 'bike') {
-        drawVehicleLeanDebug(ctx, camera.playerScreenX, playerScreenY, player);
+        drawVehicleLeanDebug(ctx, playerScreenX, playerScreenY, player);
       }
       drawVehicleYawDebug(
         ctx,
-        camera.playerScreenX,
+        playerScreenX,
         playerScreenY,
         player.yaw,
         camera.movementYaw,

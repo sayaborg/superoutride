@@ -382,7 +382,9 @@ FOV changes preserve this metric. Ground and sprites share this depth interval.
 
 Camera chainage is `s_vehicle-D_cam`; its drawn XZ is the player's route-world XZ minus `D_cam` along
 body yaw by default or movement yaw as the alternate. The observer's shell owns the camera rig;
-rivals have no camera. Horizontal centering follows projection, and camera roll is zero.
+rivals have no camera. Horizontal centering follows projection: the player's screen position is the renderer's
+projection of its reference point, its one authority, and the camera on the player's yaw ray puts it at the centre
+column by construction. Camera roll is zero.
 
 The camera is rigidly fixed to the player: the player's depth `D_cam`, the camera pitch relative
 to the body and the player's screen row stay constant, so the player never moves, scales or changes attitude on screen.

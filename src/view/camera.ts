@@ -38,7 +38,6 @@ export interface CameraState extends PseudoCamera {
   readonly yawMode: CameraYawMode;
   readonly movementYaw: number;
   readonly movementYawDelta: number;
-  readonly playerScreenX: number;
 }
 
 interface BodyPitchMovementYaw {
@@ -142,19 +141,10 @@ export function updateCamera(
 
   const sCamera = vehicle.course.s - profile.dCam;
   // The camera occupies the selected yaw ray behind the authoritative vehicle position. Its
-  // camera-right displacement to the player is therefore exactly zero, so player X is centerX by
-  // construction without a safety-camera override or second lateral-coordinate authority.
+  // camera-right displacement to the player is therefore exactly zero, so the renderer's projection
+  // places the player at centerX by construction; the camera publishes no screen position of its own.
   const cameraX = vehicle.x - profile.dCam * Math.sin(rig.yaw);
   const cameraZ = vehicle.z - profile.dCam * Math.cos(rig.yaw);
-  const playerScreenX = projectedPlayerX(
-    vehicle.x,
-    vehicle.z,
-    cameraX,
-    cameraZ,
-    rig.yaw,
-    profile.centerX,
-    profile.focalLength / profile.dCam,
-  );
 
   // The camera is rigidly fixed to the player: constant depth D_cam, pitch following the body and a
   // height solved every frame so the player's reference point projects exactly to the target row.
@@ -182,21 +172,5 @@ export function updateCamera(
     yawMode: rig.yawMode,
     movementYaw: rig.movementYaw,
     movementYawDelta,
-    playerScreenX,
   };
-}
-
-function projectedPlayerX(
-  playerX: number,
-  playerZ: number,
-  cameraX: number,
-  cameraZ: number,
-  cameraYaw: number,
-  centerX: number,
-  scale: number,
-): number {
-  const dx = playerX - cameraX;
-  const dz = playerZ - cameraZ;
-  const xRight = dx * Math.cos(cameraYaw) - dz * Math.sin(cameraYaw);
-  return centerX + scale * xRight;
 }

@@ -144,7 +144,14 @@ try {
       observations.player.brakeLampOn ? sprites.on : sprites.off,
       raceSprites(observations.rivals, lifecycle.camera),
     );
-    shell.present(mode, lifecycle.camera, result.playerScreenY, observations, race.playerDiagnostics);
+    shell.present(
+      mode,
+      lifecycle.camera,
+      result.playerScreenX,
+      result.playerScreenY,
+      observations,
+      race.playerDiagnostics,
+    );
     raceStatus.textContent = raceStatusText(race, { paused: runState.paused, tuned });
     performanceHud.frame(started, result.stripGround);
   };

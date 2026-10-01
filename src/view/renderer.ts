@@ -9,12 +9,7 @@ import { mergeTerrainAndSprites } from './painter-merge.js';
 import { SoftwareSurface } from './software-surface.js';
 import { drawScaledSprite, type SpriteScanlineObserver } from './sprite.js';
 import type { VehicleRenderRead } from '../vehicle/physics/vehicle-contract.js';
-import {
-  computeForwardVisibleInterval,
-  generateTerrainLines,
-  createTerrainWorkspace,
-  type TerrainRenderParameters,
-} from './terrain-line.js';
+import { generateTerrainLines, createTerrainWorkspace, type TerrainRenderParameters } from './terrain-line.js';
 import { drawTileBackground, type TileBackground } from './tile-background.js';
 import { selectVehicleSprite, type VehicleSpriteSet } from '../vehicle/vehicle-sprite-set.js';
 import { collectVisibleCourseSprites, type CourseSpriteInput, type VisibleCourseSprite } from './course-sprite.js';
@@ -30,6 +25,8 @@ interface RenderResult {
   spriteWrittenPixels: number;
   playerOutputSamples: number;
   playerWrittenPixels: number;
+  /** The player's reference point on screen; the renderer's projection is its one authority. */
+  playerScreenX: number;
   playerScreenY: number;
   playerYawVariant: number;
   playerBankVariant: number;
@@ -98,16 +95,9 @@ export function renderDriving(
   }: RenderOptions,
 ): RenderResult {
   const renderCamera = camera;
-  const terrain = generateTerrainLines(guide, camera, terrainParameters, workspace.terrain);
+  // The terrain's forward visible interval also bounds the course sprites; it is computed once per frame.
+  const { lines: terrain, visible } = generateTerrainLines(guide, camera, terrainParameters, workspace.terrain);
   drawTileBackground(target, background, renderCamera);
-  const visible = computeForwardVisibleInterval(
-    guide,
-    terrainParameters.extent,
-    renderCamera.yaw,
-    renderCamera.s,
-    terrainParameters.dMin,
-    terrainParameters.dMax,
-  );
   const sprites = visible ? collectVisibleCourseSprites(worldSprites, renderCamera, visible.dStart, visible.dEnd) : [];
 
   const observation = observeWorkload
@@ -219,6 +209,7 @@ export function renderDriving(
     spriteWrittenPixels,
     playerOutputSamples: playerStats.outputSamples,
     playerWrittenPixels: playerStats.writtenPixels,
+    playerScreenX: playerProjection.x,
     playerScreenY: playerProjection.y,
     playerYawVariant: selected.yawIndex,
     playerBankVariant: selected.bankIndex,

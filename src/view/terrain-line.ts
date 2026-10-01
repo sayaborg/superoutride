@@ -35,6 +35,12 @@ interface ForwardVisibleInterval {
   dEnd: number;
 }
 
+/** One frame's terrain: its rows in Painter order and the forward visible interval they cover (null: nothing visible). */
+interface TerrainFrame {
+  readonly lines: TerrainLine[];
+  readonly visible: ForwardVisibleInterval | null;
+}
+
 /** Thin-span target rule: a projected segment thinner than one destination row collapses to one row. */
 const DEFAULT_THIN_SPAN_SCREEN_ROWS = 1;
 
@@ -45,7 +51,7 @@ const DEFAULT_THIN_SPAN_SCREEN_ROWS = 1;
  * interval simply ends there. Product courses author sufficient run-in/runout
  * so this clipping is not an ordinary gameplay special case.
  */
-export function computeForwardVisibleInterval(
+function computeForwardVisibleInterval(
   plan: { readonly coordinates: PlanCoordinateReader },
   extent: { readonly start: number; readonly end: number },
   cameraYaw: number,
@@ -94,8 +100,10 @@ interface TerrainLine extends TerrainLineGeometry {
 export function createTerrainWorkspace() {
   const point = () => ({ x: 0, z: 0, y: 0, s: 0, l: 0, heading: 0, segmentIndex: -1 });
   const projection = () => ({ x: 0, y: 0, scale: 0, depth: 0, cameraRightDistance: 0 });
+  const lines: TerrainLine[] = [];
   return {
-    lines: [] as TerrainLine[],
+    lines,
+    frame: { lines, visible: null as ForwardVisibleInterval | null },
     pool: [] as TerrainLine[],
     boundaries: [] as number[],
     visible: { dStart: 0, dEnd: 0 },
@@ -115,8 +123,8 @@ export function generateTerrainLines(
   camera: PseudoCamera,
   parameters: TerrainRenderParameters,
   workspace = createTerrainWorkspace(),
-): TerrainLine[] {
-  const { lines, boundaries } = workspace;
+): TerrainFrame {
+  const { lines, boundaries, frame } = workspace;
   lines.length = 0;
   boundaries.length = 0;
   const visible = computeForwardVisibleInterval(
@@ -128,7 +136,8 @@ export function generateTerrainLines(
     parameters.dMax,
     workspace.visible,
   );
-  if (!visible) return lines;
+  frame.visible = visible;
+  if (!visible) return frame;
 
   const thinSpanScreenRows = parameters.thinSpanScreenRows ?? DEFAULT_THIN_SPAN_SCREEN_ROWS;
   if (!(thinSpanScreenRows > 0) || !Number.isFinite(thinSpanScreenRows)) {
@@ -201,7 +210,7 @@ export function generateTerrainLines(
 
   // Core Painter order. Hills/dips may produce multiple TerrainLines on the same output row.
   lines.sort(painterOrder);
-  return lines;
+  return frame;
 }
 
 /** Projected vertical span of one clipped segment in destination-row units. */
