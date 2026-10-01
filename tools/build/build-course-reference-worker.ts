@@ -19,7 +19,6 @@ import { cachedReference, referenceCacheKey } from '../course/reference-cache.js
 import { ENVELOPE_MEASUREMENT, measureRivalEnvelope } from '../course/rival-envelope-measurement.js';
 import { runCourseReference } from '../course/reference-run.js';
 import { enumerateCourseRoutes } from '../../src/course/compiler/course-routes.js';
-import { loadCourseGround } from '../course/authoring-io.js';
 import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 
 const { vehicleId, stems, physicsSha256 } = workerData as CourseReferenceJob;
@@ -52,9 +51,8 @@ for (const stem of stems) {
   if (!isTimedCourse(course)) throw new Error(`${stem}: reference jobs require CLASSIC settings`);
   const key = referenceCacheKey(course.identity.buildSha256, vehicleSha256, REFERENCE_DRIVER_SHA256, physicsSha256);
   const cached = await cachedReference('runs', key, async () => {
-    const ground = await loadCourseGround(course);
     return enumerateCourseRoutes(course.entry, course.type).map((route) =>
-      runCourseReference(course, ground, vehicle, definitions.vehicles, envelope.value, route, course.rules.maxLaps),
+      runCourseReference(course, vehicle, definitions.vehicles, envelope.value, route, course.rules.maxLaps),
     );
   });
   if (cached.hit) hits++;

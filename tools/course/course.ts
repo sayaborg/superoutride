@@ -1,7 +1,6 @@
 import { createVehicleSprites } from '../../src/view/vehicle-sprites.js';
 import { createSessionVehicle } from '../../src/content/session-vehicle.js';
 import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
-import type { CourseGround } from '../../src/course/compiler/course-ground.js';
 interface RenderFrame {
   output: string;
   section: string;
@@ -24,15 +23,7 @@ import { createCameraRig, updateCamera } from '../../src/view/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../../src/view/current-camera-profile.js';
 import { SoftwareSurface } from '../../src/view/software-surface.js';
 import { courseReport } from './course-report.js';
-import {
-  options,
-  loadCourse,
-  loadCourseGround,
-  requireInput,
-  finite,
-  atomicWrite,
-  reportError,
-} from './authoring-io.js';
+import { options, loadCourse, requireInput, finite, atomicWrite, reportError } from './authoring-io.js';
 
 const [verb, file, ...args] = process.argv.slice(2);
 try {
@@ -61,7 +52,7 @@ try {
       course: string;
       identity: CompiledCourse['identity'];
       sections: { id: string; length: number; sprites: number }[];
-      ground?: CourseGround['metrics'];
+      ground?: Record<string, number>;
       render?: RenderFrame | { frames: RenderFrame[] };
       report?: Awaited<ReturnType<typeof courseReport>>;
     } = {
@@ -77,7 +68,19 @@ try {
     const section = opts.has('--section') ? course.sections.find((s) => s.id === opts.get('--section')) : course.entry;
     requireInput(section, '/section', 'Unknown Section');
     if (verb === 'compile') {
-      result.ground = (await loadCourseGround(course)).metrics;
+      // The report sums each Section's color ground metrics; the maximum is the course maximum.
+      const metrics = course.sections.map((s) => s.color.metrics);
+      const sum = (key: 'expandedStrips' | 'preblendCells' | 'lateralFields' | 'coefficientBytes' | 'directoryBytes') =>
+        metrics.reduce((n, m) => n + m[key], 0);
+      result.ground = {
+        sectionCount: metrics.length,
+        expandedStrips: sum('expandedStrips'),
+        maxActiveStrips: Math.max(...metrics.map((m) => m.maxActiveStrips)),
+        preblendCells: sum('preblendCells'),
+        lateralFields: sum('lateralFields'),
+        coefficientBytes: sum('coefficientBytes'),
+        directoryBytes: sum('directoryBytes'),
+      };
     } else if (verb === 'render') {
       const content = await readDeliveredContent();
       const definitions = await loadVehicleDefinitions(content, await loadEngineSounds(content));
@@ -102,7 +105,7 @@ try {
         stations = Array.from({ length: count }, (_, i) => start + i * step);
       } else stations = [finite(Number(opts.get('--s') ?? 45), '/s', 0, section.coordinates.domain.end)];
       const l = finite(Number(opts.get('--l') ?? 0), '/l', -1000, 1000),
-        scene = createCourseScene(section, await loadCourseGround(course), course.gates, definitions.vehicles);
+        scene = createCourseScene(section, course.gates, definitions.vehicles);
       if (opts.has('--exit')) {
         const link = section.outgoing.find((l) => l.id === opts.get('--exit'));
         requireInput(link, '/exit', 'Exit must name a canonical outgoing Link');

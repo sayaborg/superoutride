@@ -5,7 +5,6 @@ import test from 'node:test';
 import { readDeliveredContent } from '../../tools/course/read-content.ts';
 import { loadDeliveredCourse } from '../../src/content/load-delivered-course.js';
 import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
-import { loadCourseGround } from '../../tools/course/authoring-io.ts';
 import { createCourseScene } from '../../src/view/course-scene.js';
 import { createVehicle, updateVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
 import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
@@ -28,14 +27,7 @@ for (const { id: stem } of content.manifest.files.filter((file) => file.kind ===
     const course = await loadDeliveredCourse(content, stem, materials);
     const settings = createDisplaySettings();
     assert.equal(settings.stripMethod, 'LEVEL-POINT');
-    const scene = createCourseScene(
-      course.entry,
-      await loadCourseGround(course),
-
-      course.gates,
-      definitions.vehicles,
-      settings,
-    );
+    const scene = createCourseScene(course.entry, course.gates, definitions.vehicles, settings);
     const entry = definitions.vehicles[0];
     const sprites = createVehicleSprites(entry);
     const model = createVehicleModel(createSessionVehicle(entry, definitions.driving, materials), SIM_DT);

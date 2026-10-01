@@ -8,7 +8,7 @@ import { measureRivalEnvelope } from './rival-envelope-measurement.js';
 import { runCourseReference } from './reference-run.js';
 import { enumerateCourseRoutes } from '../../src/course/compiler/course-routes.js';
 import { referenceModelIdentity } from './reference-identity.js';
-import { options, loadCourse, loadCourseGround, requireInput, atomicWrite } from './authoring-io.js';
+import { options, loadCourse, requireInput, atomicWrite } from './authoring-io.js';
 import { isTimedCourse } from '../../src/course/compiler/compiled-course.js';
 
 /** Optional diagnostic exports; ordinary build owns all Session products. */
@@ -40,8 +40,7 @@ export async function referenceCommand(verb: string, file: string | null, args: 
   else {
     const { course } = loaded!;
     requireInput(isTimedCourse(course), '/rules/classic', 'Reference runs need CLASSIC settings');
-    const ground = await loadCourseGround(course),
-      routes = enumerateCourseRoutes(course.entry, course.type);
+    const routes = enumerateCourseRoutes(course.entry, course.type);
     const lapCount = Number(opts.get('--laps') ?? course.rules.classic.lapCount),
       routeIndex = Number(opts.get('--route') ?? 0);
     requireInput(Number.isInteger(routeIndex) && routes[routeIndex], '/route', 'Unknown route index');
@@ -52,16 +51,7 @@ export async function referenceCommand(verb: string, file: string | null, args: 
       modelSha256,
       driverSha256: REFERENCE_DRIVER_SHA256,
       vehicle,
-      ...runCourseReference(
-        course,
-        ground,
-        vehicle,
-        definitions.vehicles,
-        envelope,
-        routes[routeIndex]!,
-        lapCount,
-        true,
-      ),
+      ...runCourseReference(course, vehicle, definitions.vehicles, envelope, routes[routeIndex]!, lapCount, true),
     };
   }
   requireInput(opts.has('--out'), '/out', 'Reference commands require --out');

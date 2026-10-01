@@ -7,7 +7,6 @@ import { createBrowserDrivingShell } from './driving-shell.js';
 import { selectBrowserCourseMode } from './course-mode-selection.js';
 import { mustGet } from './dom.js';
 import { loadDeliveredCourse } from '../content/load-delivered-course.js';
-import { createCourseGround } from '../course/compiler/course-ground.js';
 import { loadVehicleDefinitions } from '../content/vehicle-catalog.js';
 import { loadEngineSounds } from '../content/engine-sound-catalog.js';
 import { createCourseRace } from '../race/course-race.js';
@@ -46,7 +45,6 @@ try {
   const { vehicles, driving } = definitions;
   const mode = selectBrowserCourseMode(new URLSearchParams(location.search).get('mode')).query;
   const course = await loadDeliveredCourse(content, mode, materials);
-  const ground = createCourseGround(course);
   const parameters = new URLSearchParams(location.search);
   const settings = readBrowserSessionSettings(parameters, course.rules.classic, vehicles);
   const preset = readBrowserSessionSettings(new URLSearchParams(), course.rules.classic, vehicles);
@@ -81,7 +79,7 @@ try {
     const seed = crypto.getRandomValues(new Uint32Array(1))[0]!;
     const configuration = compileSessionConfiguration({ ...settings, seed });
     const session = resolveCourseSession(course, configuration, sessionVehicle, envelope, sessionBudgets);
-    const scene = createCourseScene(course.entry, ground, course.gates, vehicles, displaySettings);
+    const scene = createCourseScene(course.entry, course.gates, vehicles, displaySettings);
     const race = createCourseRace({ session, runtime: scene.runtime });
     return { session, scene, race, tuned };
   };
@@ -123,7 +121,10 @@ try {
       runState.restart();
     },
   });
-  const performanceHud = createCoursePerformanceHud(canvas, active.scene.groundMetrics);
+  // Every Session shares the compiled course's ground, so its maximum is derived once.
+  const performanceHud = createCoursePerformanceHud(canvas, {
+    maxActiveStrips: Math.max(...course.sections.map((section) => section.color.metrics.maxActiveStrips)),
+  });
   const tick = () => {
     const started = performance.now();
     const { race } = active;

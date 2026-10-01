@@ -125,7 +125,6 @@ function lateralFieldFor(
 }
 
 export interface StripGround {
-  readonly kind: 'strips';
   readonly length: number;
   readonly slabs: readonly StripSlab[];
   readonly reader: StripGroundCellReader;
@@ -216,5 +215,5 @@ export function compileStripGround(length: number, pieces: readonly StripPiece[]
       target.data.set(field.data);
     },
   });
-  return Object.freeze({ kind: 'strips' as const, length, slabs, metrics, reader });
+  return Object.freeze({ length, slabs, metrics, reader });
 }

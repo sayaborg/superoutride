@@ -23,7 +23,7 @@
   CLASSIC/CUSTOM mode names and course-owned CLASSIC settings; all competitors share one vehicle; series, TIME TRIAL,
   traffic, collisions, music, sound effects and the product front end are not implemented.
 
-Next PR: **12-4 — View consolidation**, its next PR: remove `CourseGround` and one-valued `kind` tags.
+Next PR: **12-4 — View consolidation**, its next PR: remove environment boundaries and unused fields from terrain lines.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -34,15 +34,15 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 Define input, run state, framebuffer, persistent player data, data-driven Sessions, the product front end and the
 product HUD independently of DEV, as specified in the [product specification](product.md).
 
-- **12-4 — View consolidation:** separate small PRs: remove `CourseGround` and one-valued `kind` tags; remove
-  environment boundaries and unused fields from terrain lines; compute the visible interval and player projection
-  once; time the renderer from its caller; remove the unimplemented course-sprite reader branch; move the 45° bank
-  calibration into sprite-set data; remove the unconsumed Route `renderHeight.distanceToNextVertex`, the
-  `sStart`/`sEnd`/`segmentIndex` fields of Route `renderHeight.sample()`, and
-  `EnvironmentReader.distanceToNextInterval`.
+- **12-4 — View consolidation:** separate small PRs: remove environment boundaries and unused fields from terrain
+  lines; compute the visible interval and player projection once; time the renderer from its caller; remove the
+  unimplemented course-sprite reader branch; move the 45° bank calibration into sprite-set data; remove the unconsumed
+  Route `renderHeight.distanceToNextVertex`, the `sStart`/`sEnd`/`segmentIndex` fields of Route
+  `renderHeight.sample()`, and `EnvironmentReader.distanceToNextInterval`.
 - **12-5 — Shell leftovers (delete):** the numeric selector branch, the thin selector-model layer, the misplaced
   calibration stepper, the unused touch heuristic, the unused `presentation` getter, the uncalled `shell.dispose()`
-  (and the audio lifecycle's returned `dispose`, which only it calls) and the second CLASSIC preset resolution.
+  (and the audio lifecycle's returned `dispose`, which only it calls), the second CLASSIC preset resolution and the
+  stale `StripPiece.value` comment ("renamed in the naming stage").
 - **12-6 — Framebuffer:** RGB555; one authority for the 320×240 logical frame.
 - **12-7 — Player settings:** one versioned persistent record for each vehicle's selected color, the three volumes
   and the latest selections.

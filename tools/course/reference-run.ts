@@ -1,7 +1,6 @@
 import { routeSectionS } from '../../src/course/course-route.js';
 type CompiledLink = CompiledCourse['links'][number];
 import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
-import type { CourseGround } from '../../src/course/compiler/course-ground.js';
 import type { CompiledVehicleDefinition } from '../../src/vehicle/definition-document.js';
 import type { SessionVehicle } from '../../src/content/session-vehicle.js';
 import type { RivalEnvelope } from '../../src/content/rival-envelope.js';
@@ -24,7 +23,6 @@ const IDLE_INPUT = Object.freeze({ steering: 0, throttle: false, brake: false })
 
 export function runCourseReference(
   course: CompiledCourse,
-  ground: CourseGround,
   vehicleConfiguration: SessionVehicle,
   vehicles: readonly CompiledVehicleDefinition[],
   envelope: RivalEnvelope,
@@ -33,7 +31,7 @@ export function runCourseReference(
   capture = false,
 ) {
   const entry = vehicleConfiguration.vehicleDefinition,
-    scene = createCourseScene(course.entry, ground, course.gates, vehicles);
+    scene = createCourseScene(course.entry, course.gates, vehicles);
   const session = resolveCourseSession(
     course,
     // Reference runs have no rivals, so the seed is fixed.

@@ -50,7 +50,6 @@ interface RenderWorkload {
 }
 
 export interface StripGroundReader {
-  readonly kind: 'strips';
   sampleSpan(
     pixels: Uint32Array,
     offset: number,

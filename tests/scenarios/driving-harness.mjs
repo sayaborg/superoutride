@@ -3,7 +3,6 @@ import { loadDeliveredCourse } from '../../src/content/load-delivered-course.js'
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readDeliveredContent } from '../../tools/course/read-content.ts';
-import { loadCourseGround } from '../../tools/course/authoring-io.ts';
 import { createCourseScene } from '../../src/view/course-scene.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
@@ -38,7 +37,7 @@ const driver = compileEnvelopeDriver(envelope, 0.75, envelope.maximumSpeed);
 
 export async function loadScenarioCourse(stem) {
   const course = await loadDeliveredCourse(content, stem, materials);
-  return { course, ground: await loadCourseGround(course) };
+  return { course };
 }
 
 // Every numeric leaf in live state, including nested wheel/control telemetry and derived getters.
@@ -67,9 +66,9 @@ function pavementBounds(scene, vehicle) {
 }
 
 /** Fresh product assembly per replay; only initial conditions and input policy differ from the browser. */
-export function runScenario({ course, ground }, scenario) {
+export function runScenario({ course }, scenario) {
   const settings = createDisplaySettings();
-  const scene = createCourseScene(course.entry, ground, course.gates, definitions.vehicles, settings);
+  const scene = createCourseScene(course.entry, course.gates, definitions.vehicles, settings);
   const session = resolveCourseSession(
     course,
     {

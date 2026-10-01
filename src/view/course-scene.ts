@@ -2,7 +2,6 @@ import { createCourseRouteVisualReaders } from './course-route-visual-readers.js
 import { selectedSuccessor } from '../course/course-route.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import { createDisplaySettings, type DisplaySettings } from './display-settings.js';
-import type { CourseGround } from '../course/compiler/course-ground.js';
 import { LOGICAL_HEIGHT } from './display-scale.js';
 import { RENDER_NEAR_DEPTH_METERS, RENDER_FAR_DEPTH_METERS } from './camera.js';
 import type { CompiledSection } from '../course/compiler/course-graph.js';
@@ -26,13 +25,12 @@ const COURSE_LOADING_WINDOW: CourseLoadingWindow = Object.freeze({
 /** The race's course world plus its rendering, shared by browser, tools, scenarios and smoke checks. */
 export function createCourseScene(
   section: CompiledSection,
-  ground: CourseGround,
   gates: CompiledCourse['gates'],
   vehicles: readonly CompiledVehicleDefinition[],
   displaySettings: DisplaySettings = createDisplaySettings(),
 ) {
   const runtime = createCourseWorld(section, gates, vehicles, COURSE_LOADING_WINDOW);
-  const rendering = createCourseRouteVisualReaders(runtime.window, ground);
+  const rendering = createCourseRouteVisualReaders(runtime.window);
   rendering.read();
   const renderWorkspace = createRenderWorkspace();
   const worldSprites: CourseSprite[] = [];
@@ -42,7 +40,6 @@ export function createCourseScene(
   let terrainParameters: Parameters<typeof renderDriving>[1]['terrainParameters'];
   return Object.freeze({
     runtime,
-    groundMetrics: ground.metrics,
     get world() {
       return runtime.readers;
     },

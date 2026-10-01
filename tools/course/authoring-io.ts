@@ -1,6 +1,5 @@
 import { COURSE_DOCUMENT_LIMITS } from '../../src/course/course-limits.js';
 import type { CourseResult } from '../../src/course/course-diagnostics.js';
-import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import { readFile, mkdir, writeFile, rename, rm } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
@@ -112,10 +111,4 @@ export function reportError(input: unknown) {
     }),
   );
   process.exitCode = 1;
-}
-
-/** Authored Strip fields are compiled with the course and shared by all previews. */
-export async function loadCourseGround(course: CompiledCourse) {
-  const { createCourseGround } = await import('../../src/course/compiler/course-ground.js');
-  return createCourseGround(course);
 }

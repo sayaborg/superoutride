@@ -71,7 +71,6 @@ if (!result.ok) {
             section.appearance === null
               ? null
               : {
-                  kind: 'strips',
                   ...section.color.metrics,
                   environments: section.appearance.environments.length,
                   sprites: section.appearance.sprites.length,

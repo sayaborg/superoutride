@@ -2,7 +2,7 @@ import { createVehicleSprites } from '../../src/view/vehicle-sprites.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { loadCourse, loadCourseGround } from '../../tools/course/authoring-io.ts';
+import { loadCourse } from '../../tools/course/authoring-io.ts';
 import { createCourseScene } from '../../src/view/course-scene.js';
 import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
 import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
@@ -24,13 +24,7 @@ const definitions = await loadVehicleDefinitions(definitionContent, await loadEn
 async function setup() {
   const file = fileURLToPath(new URL('../../content/courses/ribbon-ring.course.json', import.meta.url));
   const { course, materials } = await loadCourse(file);
-  const scene = createCourseScene(
-    course.entry,
-    await loadCourseGround(course),
-
-    course.gates,
-    definitions.vehicles,
-  );
+  const scene = createCourseScene(course.entry, course.gates, definitions.vehicles);
   const assets = createVehicleSprites(definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA'));
   const compiledVehicle = createSessionVehicle(
     definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA'),
