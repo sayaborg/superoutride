@@ -148,9 +148,10 @@ The HUD displays FPS, maximum CPU frame time, maximum fixed-step time and maximu
 The first frame reports immediately, then approximately every half second.
 
 The ground detail shows the selected method, the reporting window's maximum visible active Strip count,
-the compiled course maximum and active limit, the latest frame's ground-sampling CPU milliseconds,
-and the maximum over the most recent 120 rendered frames (`max120`). Changing method clears this
-ground-timing history and reports immediately, including while paused. The active count includes
+the compiled course maximum and active limit, the latest frame's scene-render CPU milliseconds,
+and the maximum over the most recent 120 rendered frames (`max120`). The renderer reads no clock: its
+caller times the scene render. Changing method clears this render-timing history and reports immediately,
+including while paused. The active count includes
 hidden declarations in each contributing source slab; it is a maximum, not a sum over pixels or
 Sections. These observations are measurements, not device-capacity verdicts.
 

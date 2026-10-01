@@ -137,13 +137,17 @@ try {
     const { scene, race, tuned } = active;
     const started = performance.now(),
       observations = race.observe();
+    const others = raceSprites(observations.rivals, lifecycle.camera);
+    // The renderer reads no clock; its caller times the scene render for the performance HUD.
+    const renderStarted = performance.now();
     const result = scene.render(
       shell.framebuffer,
       observations.player,
       lifecycle.camera,
       observations.player.brakeLampOn ? sprites.on : sprites.off,
-      raceSprites(observations.rivals, lifecycle.camera),
+      others,
     );
+    const renderMilliseconds = performance.now() - renderStarted;
     shell.present(
       mode,
       lifecycle.camera,
@@ -153,7 +157,7 @@ try {
       race.playerDiagnostics,
     );
     raceStatus.textContent = raceStatusText(race, { paused: runState.paused, tuned });
-    performanceHud.frame(started, result.stripGround);
+    performanceHud.frame(started, result.stripGround, renderMilliseconds);
   };
   const controls = mountCourseSessionControls(
     canvas,

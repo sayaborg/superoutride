@@ -17,7 +17,7 @@ import { collectVisibleCourseSprites, type CourseSpriteInput, type VisibleCourse
 import { deriveVehicleNormalizedBank } from './vehicle-visuals.js';
 
 interface RenderResult {
-  stripGround: StripRenderMetrics & { method: StripRenderMethod; milliseconds: number };
+  stripGround: StripRenderMetrics & { method: StripRenderMethod };
   terrainLineCount: number;
   terrainOutputPixels: number;
   visibleSpriteCount: number;
@@ -122,12 +122,10 @@ export function renderDriving(
 
   const stripStats = workspace.strips;
   stripStats.activeStrips = stripStats.outputPixels = 0;
-  let stripMilliseconds = 0;
   mergeTerrainAndSprites(
     terrain,
     sprites,
     (line) => {
-      const started = performance.now();
       const span = line.xGroundR - line.xGroundL;
       const step = 2 / span;
       const lateral = -1 + (0.5 - line.xGroundL) * step;
@@ -144,7 +142,6 @@ export function renderDriving(
         stripStats,
       );
       const outputPixels = stripStats.outputPixels - before;
-      stripMilliseconds += performance.now() - started;
       terrainOutputPixels += outputPixels;
       if (observation) {
         observation.terrainLinesByRow[line.y]! += 1;
@@ -201,7 +198,7 @@ export function renderDriving(
   }
 
   return {
-    stripGround: { ...stripStats, method: stripMethod, milliseconds: stripMilliseconds },
+    stripGround: { ...stripStats, method: stripMethod },
     terrainLineCount: terrain.length,
     terrainOutputPixels,
     visibleSpriteCount: sprites.length,

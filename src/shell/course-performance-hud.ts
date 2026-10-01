@@ -16,7 +16,8 @@ export function createCoursePerformanceHud(canvas: HTMLCanvasElement, ground: { 
     stepMax = 0,
     intervalMax = 0;
   let strip: StripObservation | null = null;
-  const recentStripTimes = new Float64Array(120);
+  let renderMilliseconds = 0;
+  const recentRenderTimes = new Float64Array(120);
   let stripIndex = 0,
     activeMax = 0;
   return {
@@ -24,16 +25,18 @@ export function createCoursePerformanceHud(canvas: HTMLCanvasElement, ground: { 
       stepTotal += milliseconds;
       stepMax = Math.max(stepMax, milliseconds);
     },
-    frame(started: number, observation: StripObservation | null = null) {
+    /** `render` is the scene render's CPU milliseconds, timed by the caller around the renderer. */
+    frame(started: number, observation: StripObservation | null = null, render = 0) {
       const methodChanged = strip?.method !== observation?.method;
       if (methodChanged) {
-        recentStripTimes.fill(0);
+        recentRenderTimes.fill(0);
         stripIndex = activeMax = 0;
       }
       strip = observation;
+      renderMilliseconds = render;
       if (strip) {
-        recentStripTimes[stripIndex] = strip.milliseconds;
-        stripIndex = (stripIndex + 1) % recentStripTimes.length;
+        recentRenderTimes[stripIndex] = render;
+        stripIndex = (stripIndex + 1) % recentRenderTimes.length;
         activeMax = Math.max(activeMax, strip.activeStrips);
       }
       const now = performance.now();
@@ -45,7 +48,7 @@ export function createCoursePerformanceHud(canvas: HTMLCanvasElement, ground: { 
       if (reported && !methodChanged && now - first < 500) return;
       reported = true;
       const fps = (frames * 1000) / Math.max(1, now - first);
-      const detail = `Strips ${strip?.method ?? ''} · active ${activeMax} visible / ${ground.maxActiveStrips} course max / ${STRIP_ACTIVE_LIMIT} limit · ground ${(strip?.milliseconds ?? 0).toFixed(2)} ms / max120 ${Math.max(...recentStripTimes).toFixed(2)} ms`;
+      const detail = `Strips ${strip?.method ?? ''} · active ${activeMax} visible / ${ground.maxActiveStrips} course max / ${STRIP_ACTIVE_LIMIT} limit · render ${renderMilliseconds.toFixed(2)} ms / max120 ${Math.max(...recentRenderTimes).toFixed(2)} ms`;
       output.textContent = `${fps.toFixed(0)} fps · frame ${frameMax.toFixed(1)} ms · step ${stepMax.toFixed(1)} ms · interval ${intervalMax.toFixed(1)} ms · ${detail}`;
       activeMax = 0;
       first = now;
