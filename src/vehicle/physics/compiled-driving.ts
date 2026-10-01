@@ -21,6 +21,8 @@ export interface CompiledDriving {
   /** Suspension stiffness at full travel as a multiple of each ride spring rate. */
   readonly suspensionProgression: number;
   readonly torqueProtection: Readonly<TorqueProtectionPolicy>;
+  /** ARCADE rival pace: utilization bounds, 0 < minimum ≤ maximum ≤ 1, and the response time constant in seconds. */
+  readonly rivalPace: DrivingDefinition['rivalPace'];
 }
 
 /** Convert explicit design input at driving admission; never consult a vehicle definition. */
@@ -47,6 +49,11 @@ export function compileDriving(definition: DrivingDefinition): CompiledDriving {
       'pitchLimitDegrees',
       `pitchLimitDegrees must lie in (0,${PITCH_LIMIT_MAX_DEGREES}]`,
     );
+  const { minimumUtilization, maximumUtilization, responseSeconds } = definition.rivalPace;
+  if (!(minimumUtilization > 0 && minimumUtilization <= maximumUtilization && maximumUtilization <= 1))
+    throw new DefinitionDomainError('rivalPace', 'rivalPace utilization must satisfy 0 < minimum ≤ maximum ≤ 1');
+  if (!(responseSeconds > 0) || !Number.isFinite(responseSeconds))
+    throw new DefinitionDomainError('rivalPace/responseSeconds', 'rivalPace responseSeconds must be finite and > 0');
   if (!(definition.drivelineEfficiency > 0 && definition.drivelineEfficiency <= 1))
     throw new DefinitionDomainError('drivelineEfficiency', 'drivelineEfficiency must lie in (0,1]');
   // One traversal time sets both steering rates, so steering response is symmetric by construction.
@@ -100,5 +107,6 @@ export function compileDriving(definition: DrivingDefinition): CompiledDriving {
       wheelSlip: definition.wheelSlip,
       pitchLimit: (definition.pitchLimitDegrees * Math.PI) / 180,
     }),
+    rivalPace: Object.freeze({ minimumUtilization, maximumUtilization, responseSeconds }),
   });
 }

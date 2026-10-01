@@ -792,7 +792,8 @@ schedule and no FREE PLAY Session reads one.
 
 Generated envelopes contain maximum speed and speed-indexed acceleration, braking and lateral-response
 observations for each vehicle configuration. The driver consumes an envelope, utilization, speed cap
-and lane; it reads a contiguous 5 m lattice up to 480 m ahead and publishes canonical steering,
+and lane; the utilization may change from one step to the next. Its workspace caches each 5 m cell's curvature by
+road and lane, and its curve speed also by envelope, utilization and speed cap, so a steady utilization reuses both; it reads a contiguous 5 m lattice up to 480 m ahead and publishes canonical steering,
 throttle and brake. [Calibration](calibration.md) lists utilization values.
 
 The driver always treats the end of a Section with no outgoing Link as a zero-speed planning point.

@@ -85,7 +85,7 @@ export function runCourseReference(
     maximumSpeed = Math.max(maximumSpeed, vehicle.speed);
     const utilization =
       Math.abs(vehicle.yawRate * vehicle.longitudinalSpeed) /
-      envelopeAt(envelope, vehicle.speed, workspace.envelope).lateral;
+      envelopeAt(envelope, vehicle.speed, workspace.row).lateral;
     maximumLateralUtilization = Math.max(maximumLateralUtilization, utilization);
     for (const event of race.events) {
       if (event.competitorId !== race.player.id) continue;

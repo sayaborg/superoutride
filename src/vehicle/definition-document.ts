@@ -259,9 +259,9 @@ export function compileDrivingDocument(
     ] as const;
     const v = readDocument(
       value,
-      ['format', 'version', ...numbers, 'throttle', 'brake', 'wheelSlip', 'tire'],
+      ['format', 'version', ...numbers, 'throttle', 'brake', 'wheelSlip', 'tire', 'rivalPace'],
       'superoutride.driving-definition',
-      10,
+      11,
     );
     const wheelSlip = readBoolean(v.wheelSlip, '/wheelSlip');
     const pedal = (key: string) => {
@@ -273,14 +273,17 @@ export function compileDrivingDocument(
     };
     const keys = ['gripX', 'peakSlipX', 'gripY', 'peakSlipY', 'knee'] as const;
     const t = readRecord(v.tire, '/tire', keys);
+    const paceKeys = ['minimumUtilization', 'maximumUtilization', 'responseSeconds'] as const;
+    const pace = readRecord(v.rivalPace, '/rivalPace', paceKeys);
     const source = deepFreeze({
       format: 'superoutride.driving-definition',
-      version: 10,
+      version: 11,
       ...Object.fromEntries(numbers.map((key) => [key, readNumber(v[key], `/${key}`)])),
       throttle: pedal('throttle'),
       brake: pedal('brake'),
       wheelSlip,
       tire: Object.fromEntries(keys.map((key) => [key, readNumber(t[key], `/tire/${key}`)])),
+      rivalPace: Object.fromEntries(paceKeys.map((key) => [key, readNumber(pace[key], `/rivalPace/${key}`)])),
     } as DrivingDocument);
     return Object.freeze({ source, sha256, compiledDriving: deepFreeze(admitDomain(() => compileDriving(source))) });
   });

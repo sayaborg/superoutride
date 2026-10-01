@@ -21,7 +21,7 @@ export const ENVELOPE_DRIVER = Object.freeze({
 export function envelopeAt(
   envelope: RivalEnvelope,
   speed: number,
-  out: ReturnType<typeof createEnvelopeDriverWorkspace>['envelope'],
+  out: ReturnType<typeof createEnvelopeDriverWorkspace>['row'],
 ) {
   const rows = envelope.rows;
   let i = 1;
@@ -50,15 +50,20 @@ const CACHE_SIZE = Math.ceil(ENVELOPE_DRIVER.lookahead / ENVELOPE_DRIVER.spacing
 
 export function createEnvelopeDriverWorkspace() {
   return {
+    // Curvature depends on the road and lane only; curve speeds also on the envelope, utilization and speed cap.
     coordinates: null as PlanCoordinateReader | null,
     lane: null as Lane | null,
-    driver: null as Driver | null,
+    envelope: null as RivalEnvelope | null,
+    utilization: NaN,
+    speedCap: NaN,
     cells: new Float64Array(CACHE_SIZE).fill(NaN),
+    curvatures: new Float64Array(CACHE_SIZE),
+    speedCells: new Float64Array(CACHE_SIZE).fill(NaN),
     speedsSquared: new Float64Array(CACHE_SIZE),
     a: createPlanCoordinateSample(),
     b: createPlanCoordinateSample(),
     target: createPlanCoordinateSample(),
-    envelope: { acceleration: 0, braking: 0, lateral: 0, steeringGain: 0 },
+    row: { acceleration: 0, braking: 0, lateral: 0, steeringGain: 0 },
     input: { steering: 0, throttle: false, brake: false },
   };
 }
@@ -76,11 +81,17 @@ function plannedTargetSpeed(
   domain: DrivingDomain,
 ): number {
   const { envelope, speedCap, braking, utilization } = driver;
-  if (workspace.coordinates !== coordinates || workspace.lane !== targetL || workspace.driver !== driver) {
+  if (workspace.coordinates !== coordinates || workspace.lane !== targetL) {
     workspace.cells.fill(NaN);
+    workspace.speedCells.fill(NaN);
     workspace.coordinates = coordinates;
     workspace.lane = targetL;
-    workspace.driver = driver;
+  }
+  if (workspace.envelope !== envelope || workspace.utilization !== utilization || workspace.speedCap !== speedCap) {
+    workspace.speedCells.fill(NaN);
+    workspace.envelope = envelope;
+    workspace.utilization = utilization;
+    workspace.speedCap = speedCap;
   }
   let targetSquared = speedCap ** 2;
   const first = Math.floor(s / ENVELOPE_DRIVER.spacing);
@@ -107,15 +118,21 @@ function plannedTargetSpeed(
       previousX = b.x;
       previousZ = b.z;
       previousHeading = b.heading;
+      workspace.curvatures[index] = curvature;
+      workspace.cells[index] = cell;
+      workspace.speedCells[index] = NaN;
+    }
+    if (workspace.speedCells[index] !== cell) {
+      const curvature = workspace.curvatures[index]!;
       let curveSpeed = speedCap;
       if (curvature >= MIN_DRIVER_CURVATURE_PER_METER)
         for (let iteration = 0; iteration < 4; iteration++)
           curveSpeed = Math.min(
             speedCap,
-            Math.sqrt((utilization * envelopeAt(envelope, curveSpeed, workspace.envelope).lateral) / curvature),
+            Math.sqrt((utilization * envelopeAt(envelope, curveSpeed, workspace.row).lateral) / curvature),
           );
       workspace.speedsSquared[index] = curveSpeed ** 2;
-      workspace.cells[index] = cell;
+      workspace.speedCells[index] = cell;
     }
     const distance = Math.max(0, aS - s - speed * ENVELOPE_DRIVER.responseSeconds);
     targetSquared = Math.min(targetSquared, workspace.speedsSquared[index]! + 2 * braking * distance);
@@ -178,7 +195,7 @@ export function sampleEnvelopeDrivingInput(
   const steering =
     car.longitudinalSpeed <= 0
       ? 0
-      : clamp(acceleration / envelopeAt(envelope, Math.max(speed, 5), workspace.envelope).steeringGain, -1, 1);
+      : clamp(acceleration / envelopeAt(envelope, Math.max(speed, 5), workspace.row).steeringGain, -1, 1);
   workspace.input.steering = steering;
   workspace.input.throttle = speed < targetSpeed - ENVELOPE_DRIVER.speedDeadzone;
   workspace.input.brake = targetSpeed === 0 || speed > targetSpeed + ENVELOPE_DRIVER.speedDeadzone;

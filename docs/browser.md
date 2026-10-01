@@ -197,10 +197,11 @@ selection during a Session. Driving tuning, camera, sound and recovery controls 
 permits it: in a course session, only while the run is running and the race clock is RUNNING. The shell supplies
 the player's input only; it reads the Session vehicle for HUD and export and each competitor's vehicle for sound, and the race owns all mechanics.
 
-Driving tuning is grouped as STEERING, PEDALS, TIRES F/R, POWERTRAIN and ASSISTS. Each value uses a
+Driving tuning is grouped as STEERING, PEDALS, TIRES F/R, POWERTRAIN, RIVAL PACE and ASSISTS. Each value uses a
 minus/value/plus control in the driving definition's units, wrapping at range endpoints; ASSISTS
 toggles wheel slip protection. The DEV HUD shows one line per group (STEER with the derived automatic
-budget A, PEDAL, TIRE, ENGINE with ASSIST), read from the tuned definition. An admitted adjustment rebuilds the
+budget A, PEDAL, TIRE, ENGINE with ASSIST), read from the tuned definition; RIVAL PACE has no HUD line, since a
+tuned Session has no rivals: its values take effect once the exported definition is adopted as content. An admitted adjustment rebuilds the
 Session through the same assembly as startup: a new Session vehicle with the same vehicle definition and materials
 drives the tuned definition, in a FREE PLAY Session with no rivals, the current lap count, no time limit, start speed 0
 and no envelope or time budgets, on a new Route runtime from the grid. It enters READY → GO at once, and the Session

@@ -4,7 +4,7 @@ import type { DrivingDefinition, DrivingDocument } from '../vehicle/driving-defi
  * DEV tuning of the game-wide driving definition, in its saved units. Only author-facing design
  * values are listed; numerical margins (fuel-cut and clutch-lock idle margins) stay file-only.
  */
-export type DrivingTuningGroup = 'STEERING' | 'PEDALS' | 'TIRES' | 'POWERTRAIN';
+export type DrivingTuningGroup = 'STEERING' | 'PEDALS' | 'TIRES' | 'POWERTRAIN' | 'RIVALS';
 
 interface NumericTuningItem {
   readonly id: string;
@@ -34,6 +34,13 @@ const pedal = (pedalKey: 'throttle' | 'brake', key: 'applySeconds' | 'releaseSec
   write: (d: DrivingDocument, value: number): DrivingDocument => ({
     ...d,
     [pedalKey]: { ...d[pedalKey], [key]: value },
+  }),
+});
+const rivalPace = (key: keyof DrivingDefinition['rivalPace']) => ({
+  read: (d: DrivingDefinition) => d.rivalPace[key],
+  write: (d: DrivingDocument, value: number): DrivingDocument => ({
+    ...d,
+    rivalPace: { ...d.rivalPace, [key]: value },
   }),
 });
 const field = <K extends keyof DrivingDefinition>(key: K) => ({
@@ -249,6 +256,42 @@ const DRIVING_TUNING_ITEMS: readonly NumericTuningItem[] = Object.freeze([
     step: 1,
     ...field('clutchCapacityFactor'),
   }),
+  item({
+    id: 'UMIN',
+    group: 'RIVALS',
+    label: 'UMIN',
+    description: 'ARCADE rival minimum driving utilization',
+    unit: '',
+    scale: 100,
+    min: 30,
+    max: 100,
+    step: 5,
+    ...rivalPace('minimumUtilization'),
+  }),
+  item({
+    id: 'UMAX',
+    group: 'RIVALS',
+    label: 'UMAX',
+    description: 'ARCADE rival maximum driving utilization',
+    unit: '',
+    scale: 100,
+    min: 30,
+    max: 100,
+    step: 5,
+    ...rivalPace('maximumUtilization'),
+  }),
+  item({
+    id: 'RESP',
+    group: 'RIVALS',
+    label: 'RESP',
+    description: 'ARCADE rival utilization response time constant',
+    unit: 's',
+    scale: 10,
+    min: 5,
+    max: 100,
+    step: 5,
+    ...rivalPace('responseSeconds'),
+  }),
 ]);
 
 export const DRIVING_TUNING_GROUPS: readonly DrivingTuningGroup[] = Object.freeze([
@@ -256,6 +299,7 @@ export const DRIVING_TUNING_GROUPS: readonly DrivingTuningGroup[] = Object.freez
   'PEDALS',
   'TIRES',
   'POWERTRAIN',
+  'RIVALS',
 ]);
 
 // Integer grid ticks: tolerance for decimal definition values converted to ticks (e.g. 0.325*1000).
@@ -307,6 +351,7 @@ export function formatDrivingTuningLine(group: DrivingTuningGroup, definition: D
     return `STEER ${items} A ${definition.maxRoadWheelSteerDegrees - definition.steeringOffsetDegrees}°`;
   if (group === 'PEDALS') return `PEDAL ${items}`;
   if (group === 'TIRES') return `TIRE ${items}`;
+  if (group === 'RIVALS') return `RIVAL ${items}`;
   return `ENGINE ${items} ASSIST ${definition.wheelSlip ? 'ON' : 'OFF'}`;
 }
 

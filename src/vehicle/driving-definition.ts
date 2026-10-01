@@ -20,9 +20,14 @@ export interface DrivingDefinition {
   readonly brake: Readonly<{ applySeconds: number; releaseSeconds: number }>;
   readonly wheelSlip: boolean;
   readonly tire: Readonly<TireCharacteristics>;
+  /**
+   * ARCADE rival pace: the driving utilization a rival following its pace schedule varies within, and the time
+   * constant in seconds of its response.
+   */
+  readonly rivalPace: Readonly<{ minimumUtilization: number; maximumUtilization: number; responseSeconds: number }>;
 }
 
 export interface DrivingDocument extends DrivingDefinition {
   readonly format: 'superoutride.driving-definition';
-  readonly version: 10;
+  readonly version: 11;
 }

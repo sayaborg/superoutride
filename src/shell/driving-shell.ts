@@ -132,6 +132,7 @@ export function createBrowserDrivingShell(
           PEDALS: mustGet('tuning-pedal-buttons'),
           TIRES: mustGet('tuning-tire-buttons'),
           POWERTRAIN: mustGet('tuning-powertrain-buttons'),
+          RIVALS: mustGet('tuning-rival-buttons'),
           ASSIST: mustGet('tuning-assist-buttons'),
         },
         tuning,

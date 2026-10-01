@@ -34,6 +34,9 @@ steps and never rejects a driving definition.
 | Powertrain | J     | `engineInertiaKilogramSquareMetersPerLitre` | Engine inertia per litre (kg m²/L)           | 0.04    | 0.010–0.100 / 0.005        |
 | Powertrain | ETA   | `drivelineEfficiency`                       | Driveline efficiency                         | 0.90    | 0.70–1.00 / 0.01           |
 | Powertrain | CLU   | `clutchCapacityFactor`                      | Clutch capacity × maximum curve torque       | 1.5     | 1.1–3.0 / 0.1              |
+| Rival pace | UMIN  | `rivalPace.minimumUtilization`              | ARCADE rival minimum driving utilization     | 0.55    | 0.30–1.00 / 0.05           |
+| Rival pace | UMAX  | `rivalPace.maximumUtilization`              | ARCADE rival maximum driving utilization     | 0.95    | 0.30–1.00 / 0.05           |
+| Rival pace | RESP  | `rivalPace.responseSeconds`                 | Rival utilization response time constant     | 3.0 s   | 0.5–10.0 s / 0.5 s         |
 | Assists    | —     | `wheelSlip`                                 | TCS, MSR and ABS                             | on      | on / off                   |
 
 `fuelCutRedlineMargin` (0.02) and `clutchLockIdleMargin` (0.02) are numerical margins that keep
