@@ -84,22 +84,12 @@ export interface TerrainRenderParameters {
   thinSpanScreenRows?: number;
 }
 
-interface TerrainLineFootprint {
-  /** Ordinary vertical native footprint for one output scanline. */
-  deltaS: number;
-  /** Clipped chainage interval represented by a collapsed row. */
-  deltaSCollapse: number;
-  /** max(deltaS, deltaSCollapse), authoritative for Strip sampling. */
-  deltaSEffective: number;
-  /** Exact one-output-pixel lateral footprint from the scanline affine mapping. */
-  deltaL: number;
-  collapsed: boolean;
-}
-
 interface TerrainLine extends TerrainLineGeometry {
-  environmentName: string;
-  renderHeight: number;
-  footprint: TerrainLineFootprint;
+  /**
+   * Effective chainage footprint, authoritative for Strip sampling: the larger of the row's ordinary
+   * vertical footprint and the clipped interval a collapsed row represents.
+   */
+  deltaS: number;
 }
 
 /** Reused by one renderer; outputs are borrowed until its next render. */
@@ -188,7 +178,7 @@ export function generateTerrainLines(
       const y = Math.floor(representativeY);
       if (y >= 0 && y < parameters.screenHeight) {
         const deltaS = computeTerrainRowDeltaS(y, aY, bY, visible.dStart, visible.dEnd);
-        const line = createTerrainLine(plan, camera, parameters, d, y, deltaS, intervalLength, true, workspace);
+        const line = createTerrainLine(plan, camera, parameters, d, y, deltaS, intervalLength, workspace);
         if (line) lines.push(line);
       }
     } else {
@@ -206,7 +196,7 @@ export function generateTerrainLines(
         if (d < visible.dStart - DEPTH_INTERVAL_TOLERANCE_METERS || d > visible.dEnd + DEPTH_INTERVAL_TOLERANCE_METERS)
           continue;
         const deltaS = computeTerrainRowDeltaS(y, aY, bY, visible.dStart, visible.dEnd);
-        const line = createTerrainLine(plan, camera, parameters, d, y, deltaS, 0, false, workspace);
+        const line = createTerrainLine(plan, camera, parameters, d, y, deltaS, 0, workspace);
         if (line) lines.push(line);
       }
     }
@@ -260,7 +250,6 @@ function createTerrainLine(
   y: number,
   deltaS: number,
   deltaSCollapse: number,
-  collapsed: boolean,
   workspace: TerrainWorkspace,
 ): TerrainLine | null {
   const s = camera.s + d;
@@ -274,8 +263,6 @@ function createTerrainLine(
   const groundSpan = projectedRight.x - projectedLeft.x;
   if (!(groundSpan > MIN_TERRAIN_SPAN_PIXELS)) return null;
 
-  const environment = parameters.environment.sample(s);
-  const deltaL = 2 / groundSpan;
   let line = workspace.pool[workspace.lines.length];
   if (!line) {
     line = {
@@ -284,9 +271,7 @@ function createTerrainLine(
       y: 0,
       xGroundL: 0,
       xGroundR: 0,
-      environmentName: '',
-      renderHeight: 0,
-      footprint: { deltaS: 0, deltaSCollapse: 0, deltaSEffective: 0, deltaL: 0, collapsed: false },
+      deltaS: 0,
     };
     workspace.pool.push(line);
   }
@@ -295,13 +280,7 @@ function createTerrainLine(
   line.y = y;
   line.xGroundL = projectedLeft.x;
   line.xGroundR = projectedRight.x;
-  line.environmentName = environment.name;
-  line.renderHeight = renderHeight;
-  line.footprint.deltaS = deltaS;
-  line.footprint.deltaSCollapse = deltaSCollapse;
-  line.footprint.deltaSEffective = Math.max(deltaS, deltaSCollapse);
-  line.footprint.deltaL = deltaL;
-  line.footprint.collapsed = collapsed;
+  line.deltaS = Math.max(deltaS, deltaSCollapse);
   return line;
 }
 
