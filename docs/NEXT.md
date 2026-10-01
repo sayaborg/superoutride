@@ -23,7 +23,7 @@
   rival entries carry the player's vehicle; TIME TRIAL, traffic, collisions, music, sound effects and the product
   front end are not implemented.
 
-Next PR: **12-8d-1 — FREE PLAY clock**.
+Next PR: **12-8d-2 — Run outcome and rank limits**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -34,8 +34,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 Define input, run state, framebuffer, persistent player data, data-driven Sessions, the product front end and the
 product HUD independently of DEV, as specified in the [product specification](product.md).
 
-- **12-8d-1 — FREE PLAY clock:** FREE PLAY has no clock (product.md §4); with it, time budgets are generated only
-  for series courses × series candidate vehicles.
 - **12-8d-2 — Run outcome and rank limits:** one owner of the run outcome (GOAL, GAME OVER by time, GAME OVER by
   rank); per-gate rank limits in series documents (failure at the N-th earlier crossing by competitors present,
   ties to the player).

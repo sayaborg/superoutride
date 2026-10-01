@@ -237,7 +237,7 @@ non-circuits use 1. [Series](#series-documents) own ARCADE settings.
 
 A course is timed exactly when a series holds it. The build generates reference runs and time budgets for
 timed courses only, and only a timed course offers ARCADE and the checkpoint clock. An untimed course runs
-FREE PLAY Sessions without the clock. Compilation requires the start, grid and finish coverage described
+FREE PLAY Sessions only. Compilation requires the start, grid and finish coverage described
 above for every course; the grid holds at least the player. Compiled `rules` retain these settings;
 compiled `gates` provide the resolved grid and per-Section landmark intervals to race and tools.
 
@@ -641,9 +641,9 @@ RIBBON ROUGH belongs to no series.
 
 ARCADE resolves its series course: a series vehicle candidate, the course's series rivals and laps and the
 checkpoint clock. FREE PLAY resolves a catalog
-vehicle, zero to fifteen rivals, permitted laps and clock on/off. On an untimed course, Session
-resolution rejects ARCADE and resolves every FREE PLAY Session with the clock off; on a timed course,
-a clock without its delivered time budgets fails. Unsupported course/vehicle/grid/lap combinations fail before
+vehicle, zero to fifteen rivals and permitted laps; it has no clock, and a FREE PLAY configuration with a time limit
+is rejected. On an untimed course, Session resolution rejects ARCADE; an ARCADE clock without its delivered time
+budgets fails. Unsupported course/vehicle/grid/lap combinations fail before
 activation. A Session binds immutable course, entries, grid, lap target, start speed and timing references. Its
 entries list the competitors in grid order, the player first: each has a stable ID (`PLAYER`, then `RIVAL_01`,
 `RIVAL_02`, …), its Session vehicle (vehicle calibration and protection settings) and that vehicle's envelope.

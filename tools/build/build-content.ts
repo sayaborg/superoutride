@@ -131,7 +131,8 @@ const seriesCourses = courses.flatMap((course) => {
 await deliver('series', seriesSources);
 // Reference workers run in separate threads and read this build's saved content.
 await writer.save();
-// Only series courses are timed and receive reference runs and budgets, for every catalog vehicle.
+// Every catalog vehicle receives an envelope; only series courses × series candidate vehicles receive reference runs
+// and budgets.
 await buildCourseReferences(seriesCourses, definitions, writer.stage);
 await writer.save();
 console.log('Validated and staged manifest content');

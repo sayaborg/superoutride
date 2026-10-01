@@ -185,9 +185,9 @@ vehicle and driving definitions (admitted against that in-build library and engi
 its images are staged only after the course compiles. The build
 saves the manifest before the references; reference workers run in separate threads, read the same
 `dist/delivery` definitions and courses, generate envelopes/runs, and add envelopes/budgets before
-publishing the completed build. Only series courses are timed and receive reference runs and budgets, with
-their series' time margin, for every catalog vehicle: a FREE PLAY clock on a series course reads the selected
-vehicle's budgets. Node tools also read vehicle/driving definitions from this distribution.
+publishing the completed build. Every catalog vehicle receives an envelope, which FREE PLAY rivals and runout
+admission read. Only series courses are timed: each receives reference runs and budgets, with its series' time
+margin, for its series' candidate vehicles only, since only ARCADE has the clock. Node tools also read vehicle/driving definitions from this distribution.
 
 | Output                                 | Use                                                                                  |
 | -------------------------------------- | ------------------------------------------------------------------------------------ |

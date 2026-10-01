@@ -34,7 +34,7 @@ try {
     if (targetMode.query === selectedMode.query) return;
     const next = new URL(location.href);
     next.searchParams.set('mode', targetMode.query);
-    for (const key of ['session', 'vehicle', 'rivals', 'laps', 'clock', 'autostart']) next.searchParams.delete(key);
+    for (const key of ['session', 'vehicle', 'rivals', 'laps', 'autostart']) next.searchParams.delete(key);
     location.assign(next.href);
   }
 

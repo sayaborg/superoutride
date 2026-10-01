@@ -13,7 +13,7 @@ import type { runCourseReference } from '../course/reference-run.js';
 
 export interface CourseReferenceJob {
   readonly vehicleId: VehicleId;
-  /** Each timed course with its series' time margin. */
+  /** Each series course holding this vehicle as a candidate, with its series' time margin. */
   readonly courses: readonly { readonly stem: string; readonly timeMargin: number }[];
   readonly physicsSha256: string;
 }
@@ -39,14 +39,24 @@ export async function buildCourseReferences(
   stage: (kind: ContentKind, id: string, product: unknown) => Promise<unknown>,
 ) {
   const physicsSha256 = await referenceModelIdentity(),
-    jobs = courses.map(({ course, settings }) => ({ stem: course.id, timeMargin: settings.series.timeMargin }));
+    jobs = courses.map(({ course, settings }) => ({
+      stem: course.id,
+      timeMargin: settings.series.timeMargin,
+      vehicles: settings.series.vehicles,
+    }));
   const results = new Array<CourseReferenceResult>(definitions.vehicles.length),
     running = new Set<Worker>();
   let next = 0;
   const run = (vehicleId: VehicleId) =>
     new Promise<CourseReferenceResult>((resolve, reject) => {
       const worker = new Worker(new URL('./build-course-reference-worker.ts', import.meta.url), {
-        workerData: { vehicleId, courses: jobs, physicsSha256 } satisfies CourseReferenceJob,
+        workerData: {
+          vehicleId,
+          courses: jobs
+            .filter((job) => job.vehicles.includes(vehicleId))
+            .map(({ stem, timeMargin }) => ({ stem, timeMargin })),
+          physicsSha256,
+        } satisfies CourseReferenceJob,
       });
       running.add(worker);
       worker.once('message', resolve);

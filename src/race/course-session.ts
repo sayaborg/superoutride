@@ -16,8 +16,8 @@ export interface SessionEntry {
 
 /**
  * Resolve one playable configuration before actors/ticks exist. Graph and catalog objects remain shared
- * references. `arcade` is the course's admitted series settings; a course without them is untimed: it has no ARCADE
- * Session and no clock. A Session without an envelope (a DEV-tuned vehicle) has no rivals and no time limit.
+ * references. `arcade` is the course's admitted series settings; a course without them has no ARCADE Session. Only
+ * ARCADE has the clock. A Session without an envelope (a DEV-tuned vehicle) has no rivals and no time limit.
  * The resolved entries list the player first, then each rival; every rival currently drives the player's vehicle.
  */
 export function resolveCourseSession(
@@ -39,7 +39,7 @@ export function resolveCourseSession(
           initialSpeed: requested.initialSpeed,
           seed: requested.seed,
         })
-      : Object.freeze({ ...requested, timeLimit: arcade !== null && requested.timeLimit });
+      : Object.freeze({ ...requested });
   if (!Number.isFinite(configuration.initialSpeed)) throw new RangeError('Session initialSpeed must be finite');
   if (
     configuration.mode === 'ARCADE' &&

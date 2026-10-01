@@ -44,7 +44,7 @@ The DEV course buttons map `ribbon-coast` / RIBBON COAST / 1, `ribbon-ring` / RI
 `ribbon-fork` / RIBBON FORK / 3 and `ribbon-rough` / RIBBON ROUGH / 4. Missing or unknown `mode` selects the first entry, RIBBON COAST.
 A series marked `dev: true` is shown only with DEV; until selection screens exist, these DEV course
 buttons select courses directly. Selecting the active course does nothing. Selecting another performs full-page navigation, changes
-`mode`, removes `session`, `vehicle`, `rivals`, `laps`, `clock` and `autostart`, and preserves other URL data.
+`mode`, removes `session`, `vehicle`, `rivals`, `laps` and `autostart`, and preserves other URL data.
 
 Session parameters are case-sensitive:
 
@@ -55,18 +55,18 @@ Session parameters are case-sensitive:
 | `vehicle`   | Exact catalog vehicle ID for FREE PLAY, such as `TESTAROSSA`; absent uses preset                 |
 | `rivals`    | FREE PLAY count parsed with `Number`; integer 0–15 within grid capacity; absent uses preset      |
 | `laps`      | FREE PLAY count parsed with `Number`; positive integer within course limit; non-circuits use one |
-| `clock`     | FREE PLAY time limit: exactly `off` disables it, all other values enable it                      |
 | `autostart` | Exactly `1` starts after loading; other values show setup                                        |
 
 ARCADE uses the course's [series](content-and-gameplay.md#series-documents) settings: the series' first
-vehicle, its rivals and laps, with the time limit enabled, ignoring their individual query overrides. FREE PLAY exposes those settings. Invalid vehicle, numeric or course/Session combinations
+vehicle, its rivals and laps, with the checkpoint clock, ignoring their individual query overrides. FREE PLAY exposes
+those settings and has no clock; there is no `clock` parameter, so an old `clock` value is other URL data and ignored. Invalid vehicle, numeric or course/Session combinations
 produce an error. Setup locks preset fields in ARCADE and disables a single-lap course's lap control.
-A course in no series is untimed: it offers only FREE PLAY with the clock OFF and locked;
+A course in no series is untimed: it offers only FREE PLAY;
 `session=ARCADE` is an error there, and its defaults are the first vehicle in selection order, no
 rivals and one lap. A timed course whose time budgets are missing from delivery fails to load.
 
 ```text
-?mode=ribbon-coast&session=FREE_PLAY&vehicle=TESTAROSSA&rivals=16&laps=1&clock=off&autostart=1
+?mode=ribbon-coast&session=FREE_PLAY&vehicle=TESTAROSSA&rivals=15&laps=1&autostart=1
 ```
 
 Submitting equal resolved settings starts in place. Changed settings reload with their query values
