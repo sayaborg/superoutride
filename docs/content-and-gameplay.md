@@ -222,9 +222,9 @@ for author-confirmed time limits. Array order supplies checkpoint order within e
 | `lock`       | `at`                      | Exactly one in every Section with two or three outgoing Links                                                     |
 | `closure`    | `at`                      | Exactly one in every Section with two or three outgoing Links                                                     |
 
-Grid slots are ordered player first, then rivals in roster order. Each slot must be on supported
+Grid slots are ordered player first, then rivals in entry order. Each slot must be on supported
 material, at/after entry and before the first checkpoint, finish or lock gate. The grid must hold the
-Session roster; its capacity is one player plus the product maximum rival count. Starting velocity is zero.
+Session entries; its capacity is one player plus the product maximum rival count. Starting velocity is zero.
 Checkpoint and finish Carriageways must exist at the gate and have positive supported width across their
 edges. Runtime crossing width is the coordinate domain at the line. A checkpoint at a continuation seam
 belongs to the preceding Section, while the runtime bounds use the successor's domain at that station.
@@ -583,7 +583,7 @@ Race time is the seconds since GO, held once by the checkpoint clock: each RUNNI
 Each step produces one ordered event stream (`race.events`) of every competitor's accepted crossings. An event
 carries its competitor, its line (landmark, lap and whether it is the completing FINISH) and its race time,
 `stepStart + u*SIM_DT`, computed by one function (`raceEventSeconds`). The stream is in race-time order;
-equal times keep competitor order, the player before rivals in roster order. A step that does not run
+equal times keep competitor order, the player before rivals in entry order. A step that does not run
 (READY hold or a finished clock) has an empty stream. Reference runs and scenarios read event times from it.
 
 Each fact is decided once. `RouteProgress` alone records accepted crossings. The clock alone holds the deadline
@@ -643,24 +643,27 @@ ARCADE resolves its series course: a series vehicle candidate, the course's seri
 checkpoint clock. FREE PLAY resolves a catalog
 vehicle, zero to sixteen rivals, permitted laps and clock on/off. On an untimed course, Session
 resolution rejects ARCADE and resolves every FREE PLAY Session with the clock off; on a timed course,
-a clock without its delivered time budgets fails. Player and rivals share the resolved
-vehicle calibration and protection settings. Unsupported course/vehicle/grid/lap combinations fail before activation.
-A Session binds immutable course, vehicle, roster, grid, lap target, start speed, envelope and timing references.
+a clock without its delivered time budgets fails. Unsupported course/vehicle/grid/lap combinations fail before
+activation. A Session binds immutable course, entries, grid, lap target, start speed and timing references. Its
+entries list the competitors in grid order, the player first: each has a stable ID (`PLAYER`, then `RIVAL_01`,
+`RIVAL_02`, …), its Session vehicle (vehicle calibration and protection settings) and that vehicle's envelope.
+Every rival entry currently carries the player's vehicle and envelope.
 The start speed is a resolved Session setting: every competitor spawns at its grid slot moving at it along the
 road tangent. It is finite and may be negative; product Sessions and reference runs use 0. The Session seed is a
 resolved 32-bit unsigned integer that `compileSessionConfiguration` checks; rival target exits derive from it. The
 browser picks a new seed for every Session assembly ([Browser](browser.md#display-and-scheduling)); reference runs,
-which have no rivals, use 0, and scenarios and tests fix theirs. The race builds every
-competitor's mechanics from the Session vehicle; the player's composition supplies input only.
-The envelope is optional. A Session without one—a DEV-tuned vehicle, whose driving definition has no delivered
+which have no rivals, use 0, and scenarios and tests fix theirs. The race builds each
+competitor's mechanics from its entry's vehicle and each rival's driver from its entry's envelope; the player's
+composition supplies input only.
+The player's envelope is optional. A Session without one—a DEV-tuned vehicle, whose driving definition has no delivered
 identity—must have no rivals and no time limit; Session resolution rejects any other combination with a RangeError,
 and the race builds a rival driver only from an envelope.
-With an envelope, before activation, every FINISH in a Section with no outgoing Link must have at least
-`maximumSpeed² / (2*a)` metres remaining to that Section's end. Here `a` is the minimum measured
-envelope braking multiplied by the Session driver utilization (0.75). All current competitors share
-the admitted configuration and envelope, so this one requirement covers the complete field, including
-a solo player. Admission rejects insufficient runout with a RangeError naming the FINISH, vehicle,
-available metres and required metres; the browser shows this through its loading failure state.
+Before activation, every FINISH in a Section with no outgoing Link must have at least
+`maximumSpeed² / (2*a)` metres remaining to that Section's end for every entry with an envelope, the player
+included. Here `a` is the minimum measured envelope braking multiplied by the Session driver utilization (0.75);
+the entry needing the longest stop decides the requirement. Admission rejects insufficient runout with a
+RangeError naming the FINISH, that entry's vehicle, available metres and required metres; the browser shows this
+through its loading failure state.
 A circuit FINISH and an undecided fork are not terminal stopping points.
 
 START begins a standing run. PAUSE/hidden-page time consumes no simulation time. GOAL or GAME OVER

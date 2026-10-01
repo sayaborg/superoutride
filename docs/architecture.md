@@ -594,8 +594,9 @@ in `src/image`; authoring-only limits stay with the tools.
 
 Vehicle mechanics take dynamic state and an immutable vehicle model as separate inputs; state holds
 no definition value, and each race actor pairs its state with its model. The race builds every competitor's
-mechanics, the player's included: one model of the Session vehicle, and each competitor's state and recovery state
-at its grid slot with the Session's start speed. The shell and other compositions supply the player's input only;
+mechanics, the player's included, from its Session entry: one model per entry vehicle, shared by entries with the
+same vehicle, and each competitor's state and recovery state at its grid slot with the Session's start speed; each
+rival's driver comes from its entry's envelope. The shell and other compositions supply the player's input only;
 manual recovery is a race operation, and a DEV-only diagnostics accessor exposes the player's live state and model
 to the DEV vehicle HUD alone. `SIM_DT` is the only authority for the step length. The race advances in fixed
 steps of it: `advance(input)` takes no step length, and the start phase, the checkpoint clock's race time,

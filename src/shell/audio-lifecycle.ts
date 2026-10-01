@@ -13,7 +13,7 @@ const GESTURE_EVENTS = ['pointerdown', 'pointerup', 'touchend', 'keydown'] as co
 
 /** DOM, permission and failure boundary. Presentation updates fail closed without stopping gameplay. */
 /**
- * Every competitor drives the Session vehicle, so player and rival engines use its sound. The DEV sound controls
+ * Every competitor currently drives the player's Session vehicle, so player and rival engines use its sound. The DEV sound controls
  * start from the delivered audio document's `settings` and the volume from the player record's MASTER volume, which
  * keeps each change; this lifecycle syncs their values to the scene and owns the AudioContext.
  */

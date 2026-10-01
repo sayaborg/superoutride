@@ -1,4 +1,5 @@
-import type { ResolvedCourseSession } from './course-session.js';
+import type { ResolvedCourseSession, SessionEntry } from './course-session.js';
+import type { RivalEnvelope } from '../content/rival-envelope.js';
 import { createCheckpointClock, raceEventSeconds } from './checkpoint-clock.js';
 import { createRouteProgress, type RouteRaceEvent } from './route-progress.js';
 import { createRouteCrossSections } from './route-cross-sections.js';
@@ -16,7 +17,6 @@ import type { DrivingInput } from '../vehicle/driving-input.js';
 import { createVehicle, updateHeldVehicle, type VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import { createStartPhase } from './start-phase.js';
 import { createVehicleModel, type VehicleModel } from '../vehicle/physics/vehicle-model.js';
-import { createRivalRoster } from './rival-roster.js';
 import {
   createCompetitorObservation,
   writeCompetitorObservation,
@@ -43,18 +43,32 @@ interface Actor {
 
 /**
  * Field composition over shared course readers, ordinary mechanics and ordered physical gates. The race
- * builds every competitor's mechanics, the player's included, from the Session vehicle; callers supply
- * the player's input only.
+ * builds every competitor's mechanics, the player's included, from its Session entry's vehicle and each
+ * rival's driver from its entry's envelope; callers supply the player's input only.
  */
 export function createCourseRace(options: { readonly session: ResolvedCourseSession; readonly runtime: RouteRuntime }) {
-  const { course, configuration, grid, budgets } = options.session;
+  const { course, configuration, grid, budgets, entries } = options.session;
   const { initialSpeed } = configuration;
   const { runtime } = options;
-  const { vehicle: sessionVehicle, envelope } = options.session;
+  // Entries sharing a vehicle share its model, and entries sharing an envelope share its driver.
+  const models = new Map<SessionEntry['vehicle'], VehicleModel>();
+  const modelOf = (vehicle: SessionEntry['vehicle']) => {
+    let model = models.get(vehicle);
+    if (!model) models.set(vehicle, (model = createVehicleModel(vehicle, SIM_DT)));
+    return model;
+  };
+  const drivers = new Map<RivalEnvelope, ReturnType<typeof compileEnvelopeDriver>>();
   // Rival driving exists only with an envelope; Session resolution admits no rivals without one.
-  const driver = envelope
-    ? compileEnvelopeDriver(envelope, options.session.rivalUtilization, envelope.maximumSpeed)
-    : null;
+  const driverOf = (envelope: RivalEnvelope | null) => {
+    if (!envelope) throw new Error('rivals require an envelope driver');
+    let driver = drivers.get(envelope);
+    if (!driver)
+      drivers.set(
+        envelope,
+        (driver = compileEnvelopeDriver(envelope, options.session.rivalUtilization, envelope.maximumSpeed)),
+      );
+    return driver;
+  };
   const clock = createCheckpointClock(budgets);
   const startPhase = createStartPhase();
   const lines = createRouteCrossSections(runtime.route, course, configuration.lapCount);
@@ -75,15 +89,17 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     /** Race time of this competitor's finish event; null until it finishes. */
     finishSeconds: null as number | null,
   });
-  // Every competitor drives one model of the Session vehicle, spawned at its grid slot with the Session's start speed.
-  const model = createVehicleModel(sessionVehicle, SIM_DT);
-  const spawn = (slot: (typeof grid)[number]): Actor => {
+  // Every competitor drives the model of its entry's vehicle, spawned at its grid slot with the Session's start speed.
+  const spawn = (entry: SessionEntry, slot: (typeof grid)[number]): Actor => {
+    const model = modelOf(entry.vehicle);
     const vehicle = createVehicle(model, runtime.readers, { s: slot.at.s, l: slot.l, initialSpeed });
     return { vehicle, model, recovery: createRecoveryState(vehicle) };
   };
-  const playerActor = spawn(grid[0]!);
-  const player = competitor('PLAYER', playerActor, grid[0]!.l, null);
-  const rivals = createRivalRoster(configuration).map(({ actorId, rivalIndex }) => {
+  const [playerEntry, ...rivalEntries] = entries;
+  const playerActor = spawn(playerEntry!, grid[0]!);
+  const player = competitor(playerEntry!.id, playerActor, grid[0]!.l, null);
+  const rivalDrivers = rivalEntries.map((entry) => driverOf(entry.envelope));
+  const rivals = rivalEntries.map((entry, rivalIndex) => {
     const slot = grid[rivalIndex + 1]!;
     // The race assigns each rival's target exits from the Session seed; its grid side implies none.
     const intent: DriverIntent = {
@@ -91,9 +107,8 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       exit: (occurrence) =>
         rivalExit(configuration.seed, rivalIndex, occurrence.ordinal, occurrence.section.fork!.exits.length),
     };
-    return competitor(actorId, spawn(slot), slot.l, intent);
+    return competitor(entry.id, spawn(entry, slot), slot.l, intent);
   });
-  if (!driver && rivals.length > 0) throw new Error('rivals require an envelope driver');
   const resync = (c: typeof player) => c.observer.resync(c.actor.vehicle.course);
   const competitors = [player, ...rivals];
   const motions = competitors.map((c) => ({
@@ -141,19 +156,11 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     return true;
   };
   // Borrowed competitor observations: every advance overwrites them at the end of its fixed step.
-  const playerObservation = createCompetitorObservation(
-    player.id,
-    sessionVehicle.vehicleDefinition.compiledVehicle.id,
-    sessionVehicle.vehicleDefinition.form,
+  const competitorObservations = entries.map(({ id, vehicle }) =>
+    createCompetitorObservation(id, vehicle.vehicleDefinition.compiledVehicle.id, vehicle.vehicleDefinition.form),
   );
-  const rivalObservations = rivals.map((c) =>
-    createCompetitorObservation(
-      c.id,
-      sessionVehicle.vehicleDefinition.compiledVehicle.id,
-      sessionVehicle.vehicleDefinition.form,
-    ),
-  );
-  const competitorObservations = [playerObservation, ...rivalObservations];
+  const playerObservation = competitorObservations[0]!,
+    rivalObservations = competitorObservations.slice(1);
   const publish = () => {
     for (let i = 0; i < motions.length; i += 1) {
       const motion = motions[i]!;
@@ -201,7 +208,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
         sampleEnvelopeDrivingInput(
           runtime.readers.coordinates,
           motion.c.actor.vehicle,
-          driver!,
+          rivalDrivers[i - 1]!,
           motion.input,
           motion.driverWorkspace,
           runtime.window,

@@ -6,10 +6,19 @@ import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import type { SeriesCourse } from '../content/series-catalog.js';
 import type { SessionConfiguration } from './session-configuration.js';
 
+/** One competitor's resolved entry: its stable ID, its Session vehicle and that vehicle's envelope. */
+export interface SessionEntry {
+  readonly id: string;
+  readonly vehicle: SessionVehicle;
+  /** Null only for a DEV-tuned player, whose Session has no rivals. */
+  readonly envelope: RivalEnvelope | null;
+}
+
 /**
  * Resolve one playable configuration before actors/ticks exist. Graph and catalog objects remain shared
  * references. `arcade` is the course's admitted series settings; a course without them is untimed: it has no ARCADE
  * Session and no clock. A Session without an envelope (a DEV-tuned vehicle) has no rivals and no time limit.
+ * The resolved entries list the player first, then each rival; every rival currently drives the player's vehicle.
  */
 export function resolveCourseSession(
   course: CompiledCourse,
@@ -46,26 +55,35 @@ export function resolveCourseSession(
   if (!envelope && (configuration.rivalCount > 0 || configuration.timeLimit))
     throw new RangeError('A Session without an envelope has no rivals and no time limit');
   const rivalUtilization = 0.75;
-  if (envelope) {
-    // The entire current roster shares this admitted vehicle and envelope, including a solo player.
-    const driver = compileEnvelopeDriver(envelope, rivalUtilization, envelope.maximumSpeed);
-    const stoppingDistance = envelope.maximumSpeed ** 2 / (2 * driver.braking);
+  const entries: readonly SessionEntry[] = Object.freeze([
+    Object.freeze({ id: 'PLAYER', vehicle, envelope }),
+    ...Array.from({ length: configuration.rivalCount }, (_, index) =>
+      Object.freeze({ id: `RIVAL_${String(index + 1).padStart(2, '0')}`, vehicle, envelope }),
+    ),
+  ]);
+  // Runout covers the whole field: the entry needing the longest stop from its maximum speed decides it.
+  let longest: { readonly entry: SessionEntry; readonly distance: number } | null = null;
+  for (const entry of entries) {
+    if (!entry.envelope) continue;
+    const driver = compileEnvelopeDriver(entry.envelope, rivalUtilization, entry.envelope.maximumSpeed);
+    const distance = entry.envelope.maximumSpeed ** 2 / (2 * driver.braking);
+    if (!longest || distance > longest.distance) longest = { entry, distance };
+  }
+  if (longest)
     for (const { finish } of course.gates.intervals) {
       if (!finish || finish.section.outgoing.length !== 0) continue;
       const available = finish.section.coordinates.domain.end - finish.at.s;
-      if (available < stoppingDistance)
+      if (available < longest.distance)
         throw new RangeError(
-          `FINISH ${finish.id}: ${available.toFixed(2)} m of runout; ${vehicle.vehicleDefinition.compiledVehicle.id} requires ${stoppingDistance.toFixed(2)} m to stop from maximum speed`,
+          `FINISH ${finish.id}: ${available.toFixed(2)} m of runout; ${longest.entry.vehicle.vehicleDefinition.compiledVehicle.id} requires ${longest.distance.toFixed(2)} m to stop from maximum speed`,
         );
     }
-  }
   return Object.freeze({
     course,
     configuration,
-    vehicle,
+    entries,
     grid: course.gates.grid,
     rivalUtilization,
-    envelope,
     budgets: configuration.timeLimit ? budgets : null,
   });
 }
