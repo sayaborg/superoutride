@@ -1,5 +1,5 @@
 import { sessionVehicleSha256, type SessionVehicle } from '../../src/content/session-vehicle.js';
-import type { CompiledCourse, TimedCompiledCourse } from '../../src/course/compiler/compiled-course.js';
+import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import type { CompiledCourseLandmark } from '../../src/course/compiler/course-rules.js';
 import { REFERENCE_DRIVER_SHA256 } from './reference-driving-policy.js';
 import type { CourseTimeBudgets } from '../../src/content/course-time-budgets.js';
@@ -19,11 +19,15 @@ function expectedRaceLines(course: CompiledCourse, links: readonly CompiledCours
   return race.slice(0, race.findIndex((line) => line.finish) + 1);
 }
 
-/** Untrusted saved numeric results are resolved to the current canonical landmarks once, before play. */
+/**
+ * Untrusted saved numeric results are resolved to the current canonical landmarks once, before play; each budget is
+ * the reference interval multiplied by the series' `timeMargin`.
+ */
 export async function readCourseReference(
-  course: TimedCompiledCourse,
+  course: CompiledCourse,
   vehicle: SessionVehicle,
   input: unknown,
+  timeMargin: number,
 ): Promise<CourseTimeBudgets> {
   if (!course.rules) throw new RangeError('Reference requires authored rules');
   const fail = (condition: unknown, message: string) => {
@@ -91,8 +95,7 @@ export async function readCourseReference(
     }
     fail(run.elapsedSeconds === previous, 'completion time mismatch');
   }
-  const margin = course.rules.classic.timeMargin;
-  const milliseconds = (seconds: number) => Math.ceil(1000 * margin * seconds);
+  const milliseconds = (seconds: number) => Math.ceil(1000 * timeMargin * seconds);
   return Object.freeze({
     initialMs: milliseconds(initial),
     after(gate: CompiledCourseLandmark, lap: number) {

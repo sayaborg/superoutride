@@ -141,13 +141,14 @@ vehicle envelopes, continuous reference runs and game time budgets. Matching dis
 `dist/delivery/manifest.json` is the sole delivery index. Its own
 `format: "superoutride.content-manifest", version: 1` identifies the index format; entries have only
 `{kind, id, path, sha256}`. Every JSON file is delivered as compact JSON followed by a newline; vehicle
-mechanics, vehicle listing, driving, material, surface-sound, audio and engine-sound documents are delivered exactly as authored in that
+mechanics, vehicle listing, driving, material, surface-sound, audio, engine-sound and series documents are delivered exactly as authored in that
 encoding, so the build knows their delivered digests before staging them. Entries contain no payload
 format/version. The manifest writer is the only authority for these kinds, IDs and paths under `dist/delivery/`:
 
 | Kind              | ID                                                          | Path                              | Content                                                                                                      |
 | ----------------- | ----------------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | `course`          | Course file name stem (the course selection key)            | `courses/<id>.course.json`        | Course document                                                                                              |
+| `series`          | Series file name stem                                       | `series/<id>.series.json`         | Series document ([Content and gameplay](content-and-gameplay.md#series-documents))                           |
 | `image`           | Image SHA-256, or `vehicles` for the vehicle sprite library | `images/<sha256>.json`            | Compiled course images and the vehicle sprite library                                                        |
 | `vehicle`         | Vehicle ID                                                  | `vehicles/<id>.json`              | Vehicle mechanics document                                                                                   |
 | `vehicle-listing` | Vehicle ID                                                  | `vehicle-listings/<id>.json`      | Vehicle listing document                                                                                     |
@@ -178,14 +179,15 @@ Authoring inputs under `content/` still use explicit source filenames and image 
 The browser-tools build writes only `dist/tools`: the bundled tools, the Sprite Tool's PNG example and
 the LOD filter sample. The content build writes `dist/delivery` from authored documents in one pass, in
 dependency order: the vehicle sprite library (compiled LOD and admitted), surface materials, surface sounds (resolved against those materials), audio settings, engine sounds,
-vehicle and driving definitions (admitted against that in-build library and engine-sound catalog), courses and their images, then reference
-runs. Each compile stage receives earlier products directly. Reference workers are the exception: until
+vehicle and driving definitions (admitted against that in-build library and engine-sound catalog), courses and their images, series
+(admitted against those courses and the vehicle catalog), then reference runs. Each compile stage receives earlier products directly. Reference workers are the exception: until
 15-5 they read this build's saved `dist/delivery`, described below. A course and
 its images are staged only after the course compiles. The build
 saves the manifest before the references; reference workers run in separate threads, read the same
 `dist/delivery` definitions and courses, generate envelopes/runs, and add envelopes/budgets before
-publishing the completed build. Only timed courses (rules with ARCADE settings) receive reference runs
-and budgets; the build reads this from each course document. Node tools also read vehicle/driving definitions from this distribution.
+publishing the completed build. Only series courses are timed and receive reference runs and budgets, with
+their series' time margin, for every catalog vehicle: a FREE PLAY clock on a series course reads the selected
+vehicle's budgets. Node tools also read vehicle/driving definitions from this distribution.
 
 | Output                                 | Use                                                                                  |
 | -------------------------------------- | ------------------------------------------------------------------------------------ |

@@ -6,13 +6,15 @@ import type { VehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { REFERENCE_DRIVER_SHA256 } from '../course/reference-driving-policy.js';
 import { referenceModelIdentity } from '../course/reference-identity.js';
 
-import type { TimedCompiledCourse } from '../../src/course/compiler/compiled-course.js';
+import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
+import type { SeriesCourse } from '../../src/content/series-catalog.js';
 import type { VehicleId } from '../../src/vehicle/physics/vehicle-definitions.js';
 import type { runCourseReference } from '../course/reference-run.js';
 
 export interface CourseReferenceJob {
   readonly vehicleId: VehicleId;
-  readonly stems: readonly string[];
+  /** Each timed course with its series' time margin. */
+  readonly courses: readonly { readonly stem: string; readonly timeMargin: number }[];
   readonly physicsSha256: string;
 }
 
@@ -32,19 +34,19 @@ export interface CourseReferenceResult {
 
 /** Build authority: independent vehicle jobs share no mutable mechanics or course state. */
 export async function buildCourseReferences(
-  courses: readonly { course: TimedCompiledCourse; stem: string }[],
+  courses: readonly { course: CompiledCourse; settings: SeriesCourse }[],
   definitions: VehicleDefinitions,
   stage: (kind: ContentKind, id: string, product: unknown) => Promise<unknown>,
 ) {
   const physicsSha256 = await referenceModelIdentity(),
-    stems = courses.map((c) => c.stem);
+    jobs = courses.map(({ course, settings }) => ({ stem: course.id, timeMargin: settings.series.timeMargin }));
   const results = new Array<CourseReferenceResult>(definitions.vehicles.length),
     running = new Set<Worker>();
   let next = 0;
   const run = (vehicleId: VehicleId) =>
     new Promise<CourseReferenceResult>((resolve, reject) => {
       const worker = new Worker(new URL('./build-course-reference-worker.ts', import.meta.url), {
-        workerData: { vehicleId, stems, physicsSha256 } satisfies CourseReferenceJob,
+        workerData: { vehicleId, courses: jobs, physicsSha256 } satisfies CourseReferenceJob,
       });
       running.add(worker);
       worker.once('message', resolve);
@@ -69,8 +71,8 @@ export async function buildCourseReferences(
     await Promise.all([...running].map((worker) => worker.terminate()));
   }
   const references = new Map(
-    courses.map(({ course, stem }) => [
-      stem,
+    courses.map(({ course }) => [
+      course.id,
       {
         format: 'superoutride.course-reference',
         version: 2,

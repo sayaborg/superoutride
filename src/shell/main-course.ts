@@ -14,7 +14,7 @@ import { raceStatusText } from './race-status-hud.js';
 import { createCoursePerformanceHud } from './course-performance-hud.js';
 import { resolveCourseSession } from '../race/course-session.js';
 import { readCourseTimeBudgets, type CourseTimeBudgets } from '../content/course-time-budgets.js';
-import { isTimedCourse } from '../course/compiler/compiled-course.js';
+import { loadSeriesCatalog, loadSeriesCourse } from '../content/series-catalog.js';
 import { createSessionVehicle, type SessionVehicle } from '../content/session-vehicle.js';
 import { readBrowserSessionSettings, mountCourseSessionControls } from './course-session-controls.js';
 import { createCourseScene } from '../view/course-scene.js';
@@ -47,7 +47,13 @@ try {
   const mode = selectBrowserCourseMode(new URLSearchParams(location.search).get('mode')).query;
   const course = await loadDeliveredCourse(content, mode, materials);
   const parameters = new URLSearchParams(location.search);
-  const settings = readBrowserSessionSettings(parameters, course.rules.classic, vehicles);
+  // The course's ARCADE settings come from the one series holding it; a course in no series is untimed.
+  const series = await loadSeriesCatalog(
+    content,
+    vehicles.map((v) => v.compiledVehicle.id),
+  );
+  const arcade = loadSeriesCourse(content, series, course);
+  const settings = readBrowserSessionSettings(parameters, arcade, vehicles);
   const entry = vehicles.find((v) => v.compiledVehicle.id === settings.vehicleId)!;
   const vehicle = createSessionVehicle(entry, driving, materials);
   const vehicleId = vehicle.vehicleDefinition.compiledVehicle.id;
@@ -56,7 +62,7 @@ try {
   );
   // A timed course's budgets must be delivered; a missing file stops loading rather than dropping the clock.
   const budgets =
-    settings.timeLimit && isTimedCourse(course)
+    settings.timeLimit && arcade
       ? await admitProduct(content, 'budget', `${mode}/${vehicleId}`, (value, document) =>
           readCourseTimeBudgets(course, vehicle, value, document),
         )
@@ -78,7 +84,7 @@ try {
     // The composition root alone draws randomness: every assembly, a DEV rebuild included, picks a new seed.
     const seed = crypto.getRandomValues(new Uint32Array(1))[0]!;
     const configuration = compileSessionConfiguration({ ...settings, seed });
-    const session = resolveCourseSession(course, configuration, sessionVehicle, envelope, sessionBudgets);
+    const session = resolveCourseSession(course, arcade, configuration, sessionVehicle, envelope, sessionBudgets);
     const scene = createCourseScene(course.entry, course.gates, vehicles, displaySettings);
     const race = createCourseRace({ session, runtime: scene.runtime });
     return { session, scene, race, tuned };
@@ -163,7 +169,7 @@ try {
   const controls = mountCourseSessionControls(
     canvas,
     settings,
-    course.rules.classic,
+    arcade,
     course.rules.maxLaps,
     {
       start: () => {

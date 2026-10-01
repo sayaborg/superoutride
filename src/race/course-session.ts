@@ -3,36 +3,40 @@ import type { RivalEnvelope } from '../content/rival-envelope.js';
 import type { CourseTimeBudgets } from '../content/course-time-budgets.js';
 import type { SessionVehicle } from '../content/session-vehicle.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
+import type { SeriesCourse } from '../content/series-catalog.js';
 import type { SessionConfiguration } from './session-configuration.js';
 
 /**
  * Resolve one playable configuration before actors/ticks exist. Graph and catalog objects remain shared
- * references. A course without ARCADE settings is untimed: it has no ARCADE Session and no clock. A
- * Session without an envelope (a DEV-tuned vehicle) has no rivals and no time limit.
+ * references. `arcade` is the course's admitted series settings; a course without them is untimed: it has no ARCADE
+ * Session and no clock. A Session without an envelope (a DEV-tuned vehicle) has no rivals and no time limit.
  */
 export function resolveCourseSession(
   course: CompiledCourse,
+  arcade: SeriesCourse | null,
   requested: SessionConfiguration,
   vehicle: SessionVehicle,
   envelope: RivalEnvelope | null,
   budgets: CourseTimeBudgets | null = null,
 ) {
-  const preset = course.rules.classic;
-  if (requested.mode === 'ARCADE' && preset === null) throw new RangeError('An untimed course has no ARCADE Session');
+  if (requested.mode === 'ARCADE' && arcade === null) throw new RangeError('An untimed course has no ARCADE Session');
   const configuration: Readonly<SessionConfiguration> =
-    requested.mode === 'ARCADE' && preset !== null
+    requested.mode === 'ARCADE' && arcade !== null
       ? Object.freeze({
           mode: 'ARCADE',
-          rivalCount: preset.rivalCount,
-          lapCount: preset.lapCount,
+          rivalCount: arcade.rivals,
+          lapCount: arcade.laps,
           timeLimit: true,
           initialSpeed: requested.initialSpeed,
           seed: requested.seed,
         })
-      : Object.freeze({ ...requested, timeLimit: preset !== null && requested.timeLimit });
+      : Object.freeze({ ...requested, timeLimit: arcade !== null && requested.timeLimit });
   if (!Number.isFinite(configuration.initialSpeed)) throw new RangeError('Session initialSpeed must be finite');
-  if (configuration.mode === 'ARCADE' && vehicle.vehicleDefinition.compiledVehicle.id !== preset?.vehicleId)
-    throw new RangeError('ARCADE requires its preset vehicle');
+  if (
+    configuration.mode === 'ARCADE' &&
+    !arcade?.series.vehicles.includes(vehicle.vehicleDefinition.compiledVehicle.id)
+  )
+    throw new RangeError('ARCADE requires a series vehicle');
   if (configuration.lapCount > course.rules.maxLaps)
     throw new RangeError('Lap count exceeds the authored course limit');
   if (configuration.rivalCount >= course.gates.grid.length)

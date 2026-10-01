@@ -42,7 +42,8 @@ SESSION returns to setup.
 
 The DEV course buttons map `ribbon-coast` / RIBBON COAST / 1, `ribbon-ring` / RIBBON RING / 2,
 `ribbon-fork` / RIBBON FORK / 3 and `ribbon-rough` / RIBBON ROUGH / 4. Missing or unknown `mode` selects the first entry, RIBBON COAST.
-Selecting the active course does nothing. Selecting another performs full-page navigation, changes
+A series marked `dev: true` is shown only with DEV; until selection screens exist, these DEV course
+buttons select courses directly. Selecting the active course does nothing. Selecting another performs full-page navigation, changes
 `mode`, removes `session`, `vehicle`, `rivals`, `laps`, `clock` and `autostart`, and preserves other URL data.
 
 Session parameters are case-sensitive:
@@ -57,10 +58,10 @@ Session parameters are case-sensitive:
 | `clock`     | FREE PLAY time limit: exactly `off` disables it, all other values enable it                      |
 | `autostart` | Exactly `1` starts after loading; other values show setup                                        |
 
-ARCADE uses the saved vehicle, rivals and laps with the time limit enabled, ignoring their individual
-query overrides. FREE PLAY exposes those settings. Invalid vehicle, numeric or course/Session combinations
+ARCADE uses the course's [series](content-and-gameplay.md#series-documents) settings: the series' first
+vehicle, its rivals and laps, with the time limit enabled, ignoring their individual query overrides. FREE PLAY exposes those settings. Invalid vehicle, numeric or course/Session combinations
 produce an error. Setup locks preset fields in ARCADE and disables a single-lap course's lap control.
-An untimed course (rules without ARCADE settings) offers only FREE PLAY with the clock OFF and locked;
+A course in no series is untimed: it offers only FREE PLAY with the clock OFF and locked;
 `session=ARCADE` is an error there, and its defaults are the first vehicle in selection order, no
 rivals and one lap. A timed course whose time budgets are missing from delivery fails to load.
 

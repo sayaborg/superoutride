@@ -7,7 +7,7 @@ Each concept has one owning document. Topic specifications describe the implemen
 | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | [Product](product.md)                           | Target game content, play and visible behavior; NEXT schedules what is not yet implemented                                 |
 | [Architecture](architecture.md)                 | Coordinates, geometry, projection, camera metric, rendering contracts and layer boundaries                                 |
-| [Content and gameplay](content-and-gameplay.md) | Course vocabulary and schema, reference identities, topology, occurrences, Session rules, timing and recovery              |
+| [Content and gameplay](content-and-gameplay.md) | Course vocabulary, course and series schemas, reference identities, topology, occurrences, Session rules, timing, recovery |
 | [Image assets](image-assets.md)                 | Image and Sprite Tool save formats, normalization, palettes, LOD compilation and image-source admission                    |
 | [Vehicle physics](vehicle-physics.md)           | Vehicle/driving and Surface Material formats, mechanical state, contact, tires, powertrain, protection and steering        |
 | [Audio](audio.md)                               | Engine synthesis, engine-sound and audio documents, acoustic observations, the sound graph and audio lifetime              |

@@ -34,6 +34,7 @@ export function runCourseReference(
     scene = createCourseScene(course.entry, course.gates, vehicles);
   const session = resolveCourseSession(
     course,
+    null,
     // Reference runs have no rivals, so the seed is fixed.
     { mode: 'FREE_PLAY', rivalCount: 0, lapCount, timeLimit: false, initialSpeed: 0, seed: 0 },
     vehicleConfiguration,

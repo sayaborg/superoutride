@@ -60,7 +60,7 @@ test('Session rejects short terminal runout, including solo play; forks and loop
   );
   const { envelope } = await (await readDeliveredContent()).json('envelope', 'TESTAROSSA');
   const configuration = { mode: 'FREE_PLAY', rivalCount: 0, lapCount: 1, timeLimit: false, initialSpeed: 0, seed: 0 };
-  assert.doesNotThrow(() => resolveCourseSession(course, configuration, vehicle, envelope));
+  assert.doesNotThrow(() => resolveCourseSession(course, null, configuration, vehicle, envelope));
   const short = {
     ...course,
     gates: {
@@ -75,7 +75,7 @@ test('Session rejects short terminal runout, including solo play; forks and loop
     },
   };
   assert.throws(
-    () => resolveCourseSession(short, configuration, vehicle, envelope),
+    () => resolveCourseSession(short, null, configuration, vehicle, envelope),
     /FINISH .*TESTAROSSA requires .* m to stop/,
   );
   const fork = createCourseRoute((await load('ribbon-fork')).entry).route;
@@ -84,5 +84,5 @@ test('Session rejects short terminal runout, including solo play; forks and loop
   const ring = createCourseRoute(ringCourse.entry);
   ring.extendThrough(ring.route.end + 1);
   assert.equal(ring.route.terminal, null);
-  assert.doesNotThrow(() => resolveCourseSession(ringCourse, configuration, vehicle, envelope));
+  assert.doesNotThrow(() => resolveCourseSession(ringCourse, null, configuration, vehicle, envelope));
 });

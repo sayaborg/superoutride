@@ -71,6 +71,7 @@ export function runScenario({ course }, scenario) {
   const scene = createCourseScene(course.entry, course.gates, definitions.vehicles, settings);
   const session = resolveCourseSession(
     course,
+    null,
     {
       mode: 'FREE_PLAY',
       rivalCount: scenario.rivals ?? 0,

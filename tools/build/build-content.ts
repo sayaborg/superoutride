@@ -3,12 +3,8 @@ import { compileEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
 import { authoredDocumentSource, type DocumentSource } from '../../src/content/document-catalog.js';
 import type { ContentKind } from '../../src/content/content-load-error.js';
-import {
-  compileCourseDocument,
-  isTimedCourse,
-  type CompiledCourse,
-  type TimedCompiledCourse,
-} from '../../src/course/compiler/compiled-course.js';
+import { compileCourseDocument, type CompiledCourse } from '../../src/course/compiler/compiled-course.js';
+import { admitSeriesCourse, compileSeriesCatalog } from '../../src/content/series-catalog.js';
 import { buildCourseReferences } from './build-course-reference.js';
 import { readdir, readFile } from 'node:fs/promises';
 import { createContentWriter } from './content-manifest.js';
@@ -25,7 +21,7 @@ import { compileVehicleSpriteLibrary } from '../graphics/vehicle-sprite-library.
 /**
  * The content build: every delivered file is compiled from authored documents in dependency order,
  * in one pass: vehicle sprite library, materials, surface sounds, audio settings, engine sounds, vehicle and driving definitions, courses and their
- * images, then reference runs. Each compile stage receives earlier products directly. Reference workers
+ * images, series, then reference runs. Each compile stage receives earlier products directly. Reference workers
  * are the exception: they run in separate threads and read this build's saved content until 15-5.
  */
 const content = new URL('../../content/', import.meta.url);
@@ -48,12 +44,14 @@ console.log(
 );
 
 // Each document's file name is its manifest identity; catalogs admit these sources as delivery does.
-const sources = async (directory: string) => {
+const sources = async (directory: string, extension = '.json') => {
   const result: DocumentSource[] = [];
   for (const name of (await readdir(new URL(directory + '/', content))).sort()) {
-    if (!name.endsWith('.json')) continue;
+    if (!name.endsWith(extension)) continue;
     const path = `content/${directory}/${name}`;
-    result.push(await authoredDocumentSource(name.replace(/\.json$/, ''), path, await json(`${directory}/${name}`)));
+    result.push(
+      await authoredDocumentSource(name.slice(0, -extension.length), path, await json(`${directory}/${name}`)),
+    );
   }
   return result;
 };
@@ -94,7 +92,7 @@ await deliver('vehicle', vehicleSources);
 await deliver('vehicle-listing', listingSources);
 await deliver('driving', drivingSources);
 
-const courses: { course: CompiledCourse; stem: string }[] = [];
+const courses: CompiledCourse[] = [];
 for (const name of (await readdir(new URL('courses/', content))).sort()) {
   if (!name.endsWith('.course.json')) continue;
   const id = courseFileId(name);
@@ -112,15 +110,28 @@ for (const name of (await readdir(new URL('courses/', content))).sort()) {
     throw new Error(`Delivered bytes differ from the compiled course: ${name}`);
   for (const image of prepared.images) await writer.stage('image', image.sha256, null, new Uint8Array(image.bytes));
   console.log(`${name}: Strip ground compiled`);
-  courses.push({ course: compiled, stem: id });
+  courses.push(compiled);
 }
+
+// Every series course is admitted against its compiled course.
+const seriesSources = await sources('series', '.series.json');
+const series = requireLoaded(
+  compileSeriesCatalog(
+    seriesSources,
+    courses.map((course) => course.id),
+    definitions.vehicles.map((vehicle) => vehicle.compiledVehicle.id),
+  ),
+);
+const seriesCourses = courses.flatMap((course) => {
+  const settings = series.courseSettings(course.id);
+  if (!settings) return [];
+  const source = seriesSources.find((s) => s.id === settings.series.id)!;
+  return [{ course, settings: requireLoaded(admitSeriesCourse(settings, course, source.path)) }];
+});
+await deliver('series', seriesSources);
 // Reference workers run in separate threads and read this build's saved content.
 await writer.save();
-await buildCourseReferences(
-  // Only courses whose rules carry ARCADE settings are timed and receive reference runs and budgets.
-  courses.filter((entry): entry is { course: TimedCompiledCourse; stem: string } => isTimedCourse(entry.course)),
-  definitions,
-  writer.stage,
-);
+// Only series courses are timed and receive reference runs and budgets, for every catalog vehicle.
+await buildCourseReferences(seriesCourses, definitions, writer.stage);
 await writer.save();
 console.log('Validated and staged manifest content');

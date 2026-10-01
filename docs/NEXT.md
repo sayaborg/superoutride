@@ -19,11 +19,11 @@
 - Stage 11 is complete: the audio scene and sound graph are separate from the browser; engine sounds, surface sounds
   and the game-wide sound settings are content documents; every sound value is derived from physics or a DEV setting;
   exhausts are collector graphs.
-- The [product specification](product.md) is the target for Stages 12–16. The implementation still uses
-  course-owned ARCADE settings (`rules.classic`); all competitors share one vehicle; series, TIME TRIAL,
+- The [product specification](product.md) is the target for Stages 12–16. Series documents own ARCADE settings;
+  course documents still carry the unread `rules.classic`; all competitors share one vehicle; TIME TRIAL,
   traffic, collisions, music, sound effects and the product front end are not implemented.
 
-Next PR: **12-8b — Series documents**.
+Next PR: **12-8b-b — Course CLASSIC settings (delete)**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -34,17 +34,17 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 Define input, run state, framebuffer, persistent player data, data-driven Sessions, the product front end and the
 product HUD independently of DEV, as specified in the [product specification](product.md).
 
-- **12-8b — Series documents:** a `series` content kind owning ARCADE settings (courses, vehicle candidates, competitor
-  entries, rule components, time margin); course documents keep geometry, gates, grid slots and the lap maximum and lose
-  `rules.classic`. The RIBBON courses form a DEV series shown only with DEV. Split into a (add series) and b (remove
-  course ARCADE settings) if one review would be exceeded.
+- **12-8b-b — Course CLASSIC settings (delete):** course documents keep geometry, gates, grid slots and the lap
+  maximum and lose the unread `rules.classic`, `ClassicRulesDocument`, the timed/untimed course rule types and
+  `isTimedCourse`.
 - **12-8c — Competitor vehicles:** every competitor has its own vehicle, calibration and envelope; runout admission
   covers every vehicle in the field; time budgets are keyed by course, vehicle and route state; the Session product
   maximum becomes sixteen competitors including the player.
 - **12-8d — Session rule components:** clock, per-gate rank limits (failure at the N-th earlier crossing, ties to the
   player), competitor entries with stage intervals and grid or ahead appearance, player slot (own entry or last),
   ARCADE rival pace ratio (target speed at most p times the player vehicle's reference speed at the route station), and
-  seeded rival vehicle/color assignment for FREE PLAY pools. Forks keep first arrival; there is no fork-decider or
+  seeded rival vehicle/color assignment for FREE PLAY pools. FREE PLAY has no clock (product.md §4); with it, time
+  budgets are generated only for series courses × series candidate vehicles. Forks keep first arrival; there is no fork-decider or
   until-fork lifetime component. This settles the Rival intent row of the pending-decisions table.
 - **12-8e — TIME TRIAL:** the third mode; solo, no traffic, no clock, route chosen by driving.
 - **12-9 — Start and finish:** remove `updateHeldVehicle`; a held start constrains the body explicitly inside the one

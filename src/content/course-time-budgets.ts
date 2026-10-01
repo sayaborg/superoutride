@@ -9,7 +9,7 @@ import {
 } from '../core/admission.js';
 import { sessionVehicleSha256, type SessionVehicle } from './session-vehicle.js';
 import { SHA256_TEXT } from '../core/content-digest.js';
-import type { TimedCompiledCourse } from '../course/compiler/compiled-course.js';
+import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import type { CompiledCourseLandmark } from '../course/compiler/course-rules.js';
 
 export interface CourseTimeBudgets {
@@ -18,7 +18,7 @@ export interface CourseTimeBudgets {
 }
 
 /** Every admitted upcoming interval, including the final lap's checkpoints. */
-export function courseBudgetLandmarks(course: TimedCompiledCourse) {
+export function courseBudgetLandmarks(course: CompiledCourse) {
   const result: { gate: CompiledCourseLandmark; laps: number }[] = [];
   for (const interval of course.gates.intervals) {
     for (const gate of interval.checkpoints) result.push({ gate, laps: course.rules.maxLaps });
@@ -36,7 +36,7 @@ const MILLISECONDS = { min: 1, max: Number.MAX_SAFE_INTEGER, integer: true };
 
 /** Browser admission consumes only small build-generated budgets, never simulation traces. */
 export async function readCourseTimeBudgets(
-  course: TimedCompiledCourse,
+  course: CompiledCourse,
   vehicle: SessionVehicle,
   input: unknown,
   document = '',

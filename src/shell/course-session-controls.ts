@@ -1,4 +1,4 @@
-import type { ClassicRulesDocument } from '../course/course-document.js';
+import type { SeriesCourse } from '../content/series-catalog.js';
 import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
 import { compileSessionConfiguration, type SessionConfiguration } from '../race/session-configuration.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
@@ -9,25 +9,27 @@ interface BrowserSessionSettings extends Omit<SessionConfiguration, 'seed'> {
   readonly vehicleId: string;
 }
 /**
- * A timed course defaults to its ARCADE preset. An untimed course (no ARCADE settings) offers only
- * FREE PLAY without the clock, defaulting to the first vehicle in selection order, no rivals and one lap.
+ * A series course defaults to its ARCADE settings with the series' first vehicle. A course in no series is untimed: it
+ * offers only FREE PLAY without the clock, defaulting to the first vehicle in selection order, no rivals and one lap.
  */
 export function readBrowserSessionSettings(
   params: URLSearchParams,
-  classic: ClassicRulesDocument | null,
+  arcade: SeriesCourse | null,
   vehicles: readonly CompiledVehicleDefinition[],
 ): BrowserSessionSettings {
-  const preset = classic ?? { vehicleId: vehicles[0]!.compiledVehicle.id, rivalCount: 0, lapCount: 1 };
-  const mode = params.get('session') ?? (classic ? 'ARCADE' : 'FREE_PLAY');
+  const preset = arcade
+    ? { vehicleId: arcade.series.vehicles[0]!, rivalCount: arcade.rivals, lapCount: arcade.laps }
+    : { vehicleId: vehicles[0]!.compiledVehicle.id, rivalCount: 0, lapCount: 1 };
+  const mode = params.get('session') ?? (arcade ? 'ARCADE' : 'FREE_PLAY');
   if (mode !== 'ARCADE' && mode !== 'FREE_PLAY') throw new RangeError('Unknown Session mode');
-  if (mode === 'ARCADE' && !classic) throw new RangeError('An untimed course has no ARCADE Session');
+  if (mode === 'ARCADE' && !arcade) throw new RangeError('An untimed course has no ARCADE Session');
   const values =
     mode === 'ARCADE'
       ? { ...preset, timeLimit: true }
       : {
           rivalCount: Number(params.get('rivals') ?? preset.rivalCount),
           lapCount: Number(params.get('laps') ?? preset.lapCount),
-          timeLimit: classic !== null && params.get('clock') !== 'off',
+          timeLimit: arcade !== null && params.get('clock') !== 'off',
           vehicleId: params.get('vehicle') ?? preset.vehicleId,
         };
   if (!vehicles.some((v) => v.compiledVehicle.id === values.vehicleId)) throw new RangeError('Unknown Session vehicle');
@@ -43,7 +45,7 @@ export function readBrowserSessionSettings(
 export function mountCourseSessionControls(
   canvas: HTMLElement,
   current: BrowserSessionSettings,
-  classic: ClassicRulesDocument | null,
+  arcade: SeriesCourse | null,
   maxLaps: number,
   actions: { start(): void; togglePause(): void },
   vehicles: readonly CompiledVehicleDefinition[],
@@ -75,7 +77,7 @@ export function mountCourseSessionControls(
   };
   const mode = select(
     'Mode',
-    (classic ? ['ARCADE', 'FREE_PLAY'] : ['FREE_PLAY']).map((value) => ({ value, label: value.replace('_', ' ') })),
+    (arcade ? ['ARCADE', 'FREE_PLAY'] : ['FREE_PLAY']).map((value) => ({ value, label: value.replace('_', ' ') })),
     current.mode,
   );
   const vehicle = select(
@@ -108,14 +110,14 @@ export function mountCourseSessionControls(
     ],
     current.timeLimit ? 'on' : 'off',
   );
-  const timed = classic !== null;
-  // ARCADE is offered only for a timed course; it locks the course's ARCADE settings.
+  const timed = arcade !== null;
+  // ARCADE is offered only for a series course; it locks the series' ARCADE settings.
   const lockPreset = () => {
     const locked = mode.value === 'ARCADE';
-    if (locked && classic) {
-      vehicle.value = classic.vehicleId;
-      rivals.value = String(classic.rivalCount);
-      laps.value = String(classic.lapCount);
+    if (locked && arcade) {
+      vehicle.value = arcade.series.vehicles[0]!;
+      rivals.value = String(arcade.rivals);
+      laps.value = String(arcade.laps);
       clock.value = 'on';
     }
     vehicle.disabled = rivals.disabled = locked;
@@ -162,7 +164,7 @@ export function mountCourseSessionControls(
     params.set('rivals', rivals.value);
     params.set('laps', laps.value);
     params.set('clock', clock.value);
-    const next = readBrowserSessionSettings(params, classic, vehicles);
+    const next = readBrowserSessionSettings(params, arcade, vehicles);
     if (JSON.stringify(next) !== JSON.stringify(current)) {
       params.set('autostart', '1');
       location.search = params.toString();

@@ -224,7 +224,7 @@ for author-confirmed time limits. Array order supplies checkpoint order within e
 
 Grid slots are ordered player first, then rivals in roster order. Each slot must be on supported
 material, at/after entry and before the first checkpoint, finish or lock gate. The grid must hold the
-ARCADE roster; its capacity is one player plus the product maximum rival count. Starting velocity is zero.
+Session roster; its capacity is one player plus the product maximum rival count. Starting velocity is zero.
 Checkpoint and finish Carriageways must exist at the gate and have positive supported width across their
 edges. Runtime crossing width is the coordinate domain at the line. A checkpoint at a continuation seam
 belongs to the preceding Section, while the runtime bounds use the successor's domain at that station.
@@ -232,31 +232,29 @@ A circuit has exactly one finish; other circuit Sections have none. The fork sec
 closure geometry; the appearance compiler checks conditional signs against it. A Section with at most one outgoing Link cannot have either
 lock or closure gates.
 
-`rules` is required: `{maxLaps,classic}`. `classic` is the ARCADE settings
-`{vehicleId,rivalCount,lapCount,timeMargin}` or null; these are settings without positions. `maxLaps` is
-an integer from 1 through 99; non-circuits use 1. `rivalCount` is 0 through 16; `lapCount` cannot exceed
-`maxLaps`; `timeMargin` is positive, finite and at most 10. The composition root resolves vehicle IDs
-against the catalog.
+`rules` is required: `{maxLaps,classic}`. `maxLaps` is an integer from 1 through 99; non-circuits use 1.
+`classic` is a retired field that no Session, build or tool reads; [series](#series-documents) own ARCADE
+settings. It is still admitted as `{vehicleId,rivalCount,lapCount,timeMargin}` or null, with `rivalCount` 0
+through 16, `lapCount` within `maxLaps` and `timeMargin` positive, finite and at most 10, until its removal.
 
-A course is timed exactly when its rules carry ARCADE settings. The build generates reference runs and
-time budgets for timed courses only, and only a timed course offers ARCADE and the checkpoint clock.
-An untimed course (`classic: null`) runs FREE PLAY Sessions without the clock. Compilation requires the
-start, grid and finish coverage described above for every course; the grid holds at least the player.
-Compiled `rules` retain these settings, typed as timed or untimed by `classic`; compiled `gates` provide
-the resolved grid and per-Section landmark intervals to race and tools.
+A course is timed exactly when a series holds it. The build generates reference runs and time budgets for
+timed courses only, and only a timed course offers ARCADE and the checkpoint clock. An untimed course runs
+FREE PLAY Sessions without the clock. Compilation requires the start, grid and finish coverage described
+above for every course; the grid holds at least the player. Compiled `rules` retain these settings;
+compiled `gates` provide the resolved grid and per-Section landmark intervals to race and tools.
 
 ### Null meanings
 
 Empty collections are arrays: in particular, `environments: []` means no appearance.
 CourseDocument nulls each have one meaning:
 
-| Field                            | Meaning of null                                                       |
-| -------------------------------- | --------------------------------------------------------------------- |
-| Rules `classic`                  | Untimed course: no ARCADE Session, reference runs or checkpoint clock |
-| Strip `color`                    | Leave the earlier color channel unchanged                             |
-| Strip `material`                 | Leave the earlier material channel unchanged                          |
-| Strip knot `left` / `right`      | That edge is open to negative / positive lateral infinity             |
-| Sprite `unselectedCarriagewayId` | Ordinary sprite with no exit-selection condition                      |
+| Field                            | Meaning of null                                           |
+| -------------------------------- | --------------------------------------------------------- |
+| Rules `classic`                  | Retired field; no reader distinguishes null               |
+| Strip `color`                    | Leave the earlier color channel unchanged                 |
+| Strip `material`                 | Leave the earlier material channel unchanged              |
+| Strip knot `left` / `right`      | That edge is open to negative / positive lateral infinity |
+| Sprite `unselectedCarriagewayId` | Ordinary sprite with no exit-selection condition          |
 
 ### Numeric and resource domains
 
@@ -609,11 +607,43 @@ Ranking is one race-layer function (`rankRaceProgress`). Finished actors rank fi
 actors rank by descending route s, which includes lap separation. Equal finish times or equal unfinished stations
 share a rank. Rival positions and audio observations already use the same route coordinates as the player.
 
+## Series documents
+
+A series document (`superoutride.series` version 1) is the one owner of its courses' ARCADE settings. It is
+saved as `content/series/<id>.series.json`; `id` equals that file name stem, which is also its manifest ID.
+
+```json
+{
+  "format": "superoutride.series",
+  "version": 1,
+  "id": "ribbon",
+  "title": "RIBBON",
+  "dev": true,
+  "vehicles": ["TESTAROSSA"],
+  "timeMargin": 1.35,
+  "courses": [{ "course": "ribbon-coast", "laps": 1, "rivals": 0 }]
+}
+```
+
+`title` is the display name. `dev: true` marks a development series: front ends show it only with DEV.
+`vehicles` lists the ARCADE vehicle candidates, at least one, unique and in the catalog, in selection order.
+`timeMargin` is the series' one time margin: positive, finite and at most 10. `courses` lists at least one
+delivered course, each with its ARCADE `laps` (1 through 99) and `rivals` (0 through 16). `rivals` is a
+count until competitor entries replace it. Admission checks each document once, from the build's files or
+the delivery manifest alike, against the delivered course IDs and the vehicle catalog. Until selection screens
+choose a series, a course belongs to at most one series; a second one is rejected. A series course is
+admitted against its compiled course: `laps` within `maxLaps`, and a grid that holds the player and `rivals`.
+The build admits every series course; a Session admits the course it drives.
+
+The delivered series is RIBBON (`dev: true`): RIBBON COAST, RIBBON FORK and RIBBON RING with TESTAROSSA.
+RIBBON ROUGH belongs to no series.
+
 ## Session and reference timing
 
 ### Resolved Session
 
-ARCADE resolves the saved vehicle, rivals, laps and checkpoint clock. FREE PLAY resolves a catalog
+ARCADE resolves its series course: a series vehicle candidate, the course's series rivals and laps and the
+checkpoint clock. FREE PLAY resolves a catalog
 vehicle, zero to sixteen rivals, permitted laps and clock on/off. On an untimed course, Session
 resolution rejects ARCADE and resolves every FREE PLAY Session with the clock off; on a timed course,
 a clock without its delivered time budgets fails. Player and rivals share the resolved
@@ -675,7 +705,7 @@ the measurement record stays in the reference cache and the `envelope` command's
 continuous histories sharing that state and its legal next checkpoint/finish alternatives.
 
 ```text
-budgetMs(state) = ceil(1000*timeMargin(course)*referenceSeconds(state))
+budgetMs(state) = ceil(1000*timeMargin(series)*referenceSeconds(state))
 ```
 
 The margin and duration are positive finite values. START receives the initial budget. Each newly
@@ -745,7 +775,7 @@ camera before rendering. Unrelated internal faults propagate.
 
 `ribbon-rough` (RIBBON ROUGH, DEV button 4) is a playability test circuit, not a product course. Its
 extreme vertical profile and corners are authored for hands-on evaluation; its shape is not rounded off
-for completion. The reference driver cannot complete it, so its rules carry no ARCADE settings: it
+for completion. The reference driver cannot complete it, so no series holds it: it
 is untimed and delivered without reference runs or time budgets. It is a 4.2 km two-Section circuit on existing materials:
 
 | Section        | Stations (m) | Content                                                                         |

@@ -9,7 +9,7 @@ import { runCourseReference } from './reference-run.js';
 import { enumerateCourseRoutes } from '../../src/course/compiler/course-routes.js';
 import { referenceModelIdentity } from './reference-identity.js';
 import { options, loadCourse, requireInput, atomicWrite } from './authoring-io.js';
-import { isTimedCourse } from '../../src/course/compiler/compiled-course.js';
+import { loadSeriesCatalog, loadSeriesCourse } from '../../src/content/series-catalog.js';
 
 /** Optional diagnostic exports; ordinary build owns all Session products. */
 export async function referenceCommand(verb: string, file: string | null, args: readonly string[]) {
@@ -39,9 +39,14 @@ export async function referenceCommand(verb: string, file: string | null, args: 
     };
   else {
     const { course } = loaded!;
-    requireInput(isTimedCourse(course), '/rules/classic', 'Reference runs need ARCADE settings');
+    const series = await loadSeriesCatalog(
+      content,
+      definitions.vehicles.map((v) => v.compiledVehicle.id),
+    );
+    const arcade = loadSeriesCourse(content, series, course);
+    requireInput(arcade, '/course', 'Reference runs need a delivered series course');
     const routes = enumerateCourseRoutes(course.entry, course.type);
-    const lapCount = Number(opts.get('--laps') ?? course.rules.classic.lapCount),
+    const lapCount = Number(opts.get('--laps') ?? arcade.laps),
       routeIndex = Number(opts.get('--route') ?? 0);
     requireInput(Number.isInteger(routeIndex) && routes[routeIndex], '/route', 'Unknown route index');
     result = {

@@ -26,6 +26,7 @@ export type ContentTransport = (url: URL) => Promise<Uint8Array<ArrayBuffer>>;
 
 const CONTENT_KINDS: readonly ContentKind[] = [
   'course',
+  'series',
   'image',
   'envelope',
   'budget',

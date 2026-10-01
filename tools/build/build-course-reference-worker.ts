@@ -4,7 +4,6 @@ import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { readDeliveredContent } from '../course/read-content.js';
 import { loadDeliveredCourse } from '../../src/content/load-delivered-course.js';
-import { isTimedCourse } from '../../src/course/compiler/compiled-course.js';
 import { createSessionVehicle, sessionVehicleSha256 } from '../../src/content/session-vehicle.js';
 import { REFERENCE_DRIVER_SHA256 } from '../course/reference-driving-policy.js';
 import { readCourseReference } from '../course/course-reference.js';
@@ -21,7 +20,7 @@ import { runCourseReference } from '../course/reference-run.js';
 import { enumerateCourseRoutes } from '../../src/course/compiler/course-routes.js';
 import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 
-const { vehicleId, stems, physicsSha256 } = workerData as CourseReferenceJob;
+const { vehicleId, courses, physicsSha256 } = workerData as CourseReferenceJob;
 const content = await readDeliveredContent();
 const materials = await loadSurfaceMaterials(content);
 const definitions = await loadVehicleDefinitions(content, await loadEngineSounds(content));
@@ -46,9 +45,8 @@ const rivalEnvelope = {
 requireLoaded(await readRivalEnvelope(vehicle, rivalEnvelope, `envelope ${vehicleId}`));
 const products: CourseReferenceResult['products'] = [{ kind: 'envelope', id: vehicleId, value: rivalEnvelope }],
   references: CourseReferenceResult['references'] = [];
-for (const stem of stems) {
+for (const { stem, timeMargin } of courses) {
   const course = await loadDeliveredCourse(content, stem, materials);
-  if (!isTimedCourse(course)) throw new Error(`${stem}: reference jobs require ARCADE settings`);
   const key = referenceCacheKey(course.identity.buildSha256, vehicleSha256, REFERENCE_DRIVER_SHA256, physicsSha256);
   const cached = await cachedReference('runs', key, async () => {
     return enumerateCourseRoutes(course.entry, course.type).map((route) =>
@@ -66,7 +64,7 @@ for (const stem of stems) {
     driverSha256: REFERENCE_DRIVER_SHA256,
     vehicles: [candidate],
   };
-  const budgets = await readCourseReference(course, vehicle, reference);
+  const budgets = await readCourseReference(course, vehicle, reference, timeMargin);
   const product = {
     ...COURSE_TIME_BUDGETS_FORMAT,
     courseBuildSha256: course.identity.buildSha256,
