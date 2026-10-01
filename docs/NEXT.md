@@ -23,7 +23,7 @@
   CLASSIC/CUSTOM mode names and course-owned CLASSIC settings; all competitors share one vehicle; series, TIME TRIAL,
   traffic, collisions, music, sound effects and the product front end are not implemented.
 
-Next PR: **12-5b — Calibration stepper (move only)**.
+Next PR: **12-6 — Framebuffer**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -34,8 +34,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 Define input, run state, framebuffer, persistent player data, data-driven Sessions, the product front end and the
 product HUD independently of DEV, as specified in the [product specification](product.md).
 
-- **12-5b — Calibration stepper (move only):** move `createCalibrationStepper` out of the mobile selector controls
-  into its only user, the DEV driving tuning controls.
 - **12-6 — Framebuffer:** RGB555; one authority for the 320×240 logical frame.
 - **12-7 — Player settings:** one versioned persistent record for each vehicle's selected color, the three volumes
   and the latest selections.

@@ -1,5 +1,4 @@
 import type { DrivingDocument } from '../vehicle/driving-definition.js';
-import { createCalibrationStepper } from './mobile-selector-controls.js';
 import {
   DRIVING_TUNING_GROUPS,
   drivingTuningItems,
@@ -8,6 +7,27 @@ import {
   toggleDrivingWheelSlip,
   type DrivingTuningGroup,
 } from './driving-tuning.js';
+
+/** Compact minus/value/plus presentation shared by DEV tuning items. */
+export function createCalibrationStepper(label: string, onStep: (direction: -1 | 1) => void, documentRef: Document) {
+  const group = documentRef.createElement('div');
+  group.className = 'calibration-control';
+  group.setAttribute('role', 'group');
+  group.setAttribute('aria-label', `${label} calibration`);
+  const value = documentRef.createElement('span');
+  value.className = 'calibration-value';
+  const button = (direction: -1 | 1) => {
+    const element = documentRef.createElement('button');
+    element.type = 'button';
+    element.className = 'selector-button calibration-step';
+    element.textContent = direction < 0 ? '−' : '+';
+    element.setAttribute('aria-label', `${direction < 0 ? 'Decrease' : 'Increase'} ${label} (wrap at limit)`);
+    element.addEventListener('click', () => onStep(direction));
+    return element;
+  };
+  group.replaceChildren(button(-1), value, button(1));
+  return { group, value };
+}
 
 /** The player's tuned driving definition; `set` admits a candidate and rebuilds the model. */
 export interface DrivingTuningTarget {
