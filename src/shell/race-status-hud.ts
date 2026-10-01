@@ -30,17 +30,17 @@ export function raceStatusText(
 }
 
 function raceText(race: CourseRace): string {
-  const { clock, player, rivals, startPhase } = race;
+  const { clock, outcome, player, rivals, startPhase } = race;
   const standings = rankRaceProgress(
     [player, ...rivals].map((c) => ({ competitorId: c.id, s: c.progress.s, finishSeconds: c.finishSeconds })),
   );
   const rank = standings.find((s) => s.competitorId === player.id)!.rank;
   const position = `P${rank}/${rivals.length + 1}`;
-  if (clock.status === 'GOAL' || clock.status === 'GAME_OVER')
-    return `${clock.status.replace('_', ' ')} · ${position} · ${formatRaceTime(clock.elapsedSeconds)}`;
+  if (outcome.status === 'GOAL' || outcome.status === 'GAME_OVER')
+    return `${outcome.status.replace('_', ' ')} · ${position} · ${formatRaceTime(clock.elapsedSeconds)}`;
   if (startPhase.status === 'READY') return `READY ${Math.ceil(startPhase.remainingSeconds)}`;
-  if (clock.status === 'READY') return 'READY';
-  let state: string = clock.status;
+  if (outcome.status === 'READY') return 'READY';
+  let state: string = outcome.status;
   if (player.progress.status !== 'FINISHED') {
     if (race.courseType === 'CIRCUIT')
       state = `LAP ${Math.min(race.lapCount, player.progress.acceptedFinishCount + 1)}/${race.lapCount}`;

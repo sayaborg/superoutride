@@ -1,6 +1,7 @@
 import type { ResolvedCourseSession, SessionEntry } from './course-session.js';
 import type { RivalEnvelope } from '../content/rival-envelope.js';
 import { createCheckpointClock, raceEventSeconds } from './checkpoint-clock.js';
+import { createRankLimitJudge, createRunOutcome } from './run-outcome.js';
 import { createRouteProgress, type RouteRaceEvent } from './route-progress.js';
 import { createRouteCrossSections } from './route-cross-sections.js';
 import { createCourseForkField, type DriverIntent } from './course-fork-field.js';
@@ -47,7 +48,7 @@ interface Actor {
  * rival's driver from its entry's envelope; callers supply the player's input only.
  */
 export function createCourseRace(options: { readonly session: ResolvedCourseSession; readonly runtime: RouteRuntime }) {
-  const { course, configuration, grid, budgets, entries } = options.session;
+  const { course, configuration, grid, budgets, entries, rankLimits } = options.session;
   const { initialSpeed } = configuration;
   const { runtime } = options;
   // Entries sharing a vehicle share its model, and entries sharing an envelope share its driver.
@@ -70,6 +71,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     return driver;
   };
   const clock = createCheckpointClock(budgets);
+  const outcome = createRunOutcome();
   const startPhase = createStartPhase();
   const lines = createRouteCrossSections(runtime.route, course, configuration.lapCount);
   // The fork field is the fork decider: the only holder of the Route's selection authority.
@@ -98,6 +100,8 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   const [playerEntry, ...rivalEntries] = entries;
   const playerActor = spawn(playerEntry!, grid[0]!);
   const player = competitor(playerEntry!.id, playerActor, grid[0]!.l, null);
+  // ARCADE rank limits judge the player against every other competitor's crossings.
+  const judge = createRankLimitJudge(rankLimits, player.id);
   const rivalDrivers = rivalEntries.map((entry) => driverOf(entry.envelope));
   const rivals = rivalEntries.map((entry, rivalIndex) => {
     const slot = grid[rivalIndex + 1]!;
@@ -133,7 +137,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       motion.step.input = motion === motions[0] ? input : idle;
       updateHeldVehicle(motion.c.actor.vehicle, motion.c.actor.model, motion.step.input);
     }
-    if (startPhase.advance()) clock.start();
+    if (startPhase.advance()) outcome.start();
   };
   const move = (motion: (typeof motions)[number], input: DrivingInput) => {
     const { c, previous } = motion;
@@ -191,7 +195,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       holdReady(input);
       return;
     }
-    if (clock.status !== 'RUNNING') return;
+    if (outcome.status !== 'RUNNING') return;
     const stepStart = clock.beginStep();
     let minS = Infinity,
       maxS = -Infinity;
@@ -252,7 +256,21 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     events = stepEvents.length
       ? Object.freeze([...stepEvents].sort((a, b) => a.timeSeconds - b.timeSeconds))
       : noEvents;
-    clock.completeStep(playerFinishSeconds);
+    // The earliest ending decides the outcome: the player's finish, a rank failure, then expiry. The player's own
+    // crossing wins an exact tie with either failure, and expiry wins an exact tie with a rank failure.
+    let ending: { seconds: number; end: Parameters<typeof outcome.end>[0] } | null =
+      playerFinishSeconds === null ? null : { seconds: playerFinishSeconds, end: { status: 'GOAL' } };
+    const rankFailure = judge.observe(events);
+    if (rankFailure !== null && (ending === null || rankFailure < ending.seconds))
+      ending = { seconds: rankFailure, end: { status: 'GAME_OVER', cause: 'RANK' } };
+    const expiry = clock.expirySeconds;
+    if (
+      expiry !== null &&
+      (ending === null || expiry < ending.seconds || (expiry === ending.seconds && ending.end.status === 'GAME_OVER'))
+    )
+      ending = { seconds: expiry, end: { status: 'GAME_OVER', cause: 'TIME' } };
+    clock.completeStep(ending?.seconds ?? clock.stepEndSeconds);
+    if (ending) outcome.end(ending.end);
     stepObservation.recovered = motions[0]!.recovered;
   };
 
@@ -260,6 +278,15 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     player,
     rivals,
     clock,
+    /** The run outcome: its status and GAME OVER cause. */
+    outcome: Object.freeze({
+      get status() {
+        return outcome.status;
+      },
+      get cause() {
+        return outcome.cause;
+      },
+    }),
     /** The last step's accepted crossings of every competitor, in race-time order. */
     get events() {
       return events;

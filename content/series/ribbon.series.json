@@ -1,14 +1,29 @@
 {
   "format": "superoutride.series",
-  "version": 1,
+  "version": 2,
   "id": "ribbon",
   "title": "RIBBON",
   "dev": true,
   "vehicles": ["TESTAROSSA"],
   "timeMargin": 1.35,
   "courses": [
-    { "course": "ribbon-coast", "laps": 1, "rivals": 0 },
-    { "course": "ribbon-fork", "laps": 1, "rivals": 2 },
-    { "course": "ribbon-ring", "laps": 2, "rivals": 2 }
+    {
+      "course": "ribbon-coast",
+      "laps": 1,
+      "rivals": 0,
+      "rankLimits": {}
+    },
+    {
+      "course": "ribbon-fork",
+      "laps": 1,
+      "rivals": 2,
+      "rankLimits": {}
+    },
+    {
+      "course": "ribbon-ring",
+      "laps": 2,
+      "rivals": 2,
+      "rankLimits": {}
+    }
   ]
 }

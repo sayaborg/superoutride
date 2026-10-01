@@ -103,7 +103,7 @@ try {
   canvas.insertAdjacentElement('afterend', raceStatus);
   const lifecycle = shell.mountControls({
     world: () => active.scene.world,
-    canRecover: () => runState.running && active.race.clock.status === 'RUNNING',
+    canRecover: () => runState.running && active.race.outcome.status === 'RUNNING',
     observation: () => active.race.observe().player,
     recover: () => active.race.recoverPlayer(),
     // A tuned driving definition has no delivered identity, so the rebuilt Session has no envelope,
@@ -138,7 +138,7 @@ try {
     const step = race.advance(shell.inputManager.sample());
     lifecycle.update(step.recovered);
     performanceHud.step(performance.now() - started);
-    if (race.clock.status === 'GOAL' || race.clock.status === 'GAME_OVER') runState.finish();
+    if (race.outcome.status === 'GOAL' || race.outcome.status === 'GAME_OVER') runState.finish();
   };
   const render = () => {
     const { scene, race, tuned } = active;

@@ -152,7 +152,7 @@ export function runScenario({ course }, scenario) {
   for (; tick < maxTicks; tick++) {
     const previous = competitors.map((c) => ({ s: c.actor.vehicle.course.s, recoveries: c.actor.recovery.recoveries }));
     let input;
-    if (race.clock.status === 'READY') input = idle;
+    if (race.outcome.status === 'READY') input = idle;
     else if (scenario.policy === 'reverse') input = idle;
     else if (scenario.policy === 'departure') input = { ...idle, steering: scenario.steering, throttle: true };
     else if (scenario.waitForStop && evidence.recoveries.length && evidence.stoppedRivals.length < race.rivals.length)
@@ -251,12 +251,12 @@ export function runScenario({ course }, scenario) {
     if (
       tick % 60 === 0 ||
       step.recovered ||
-      race.clock.status === 'GOAL' ||
+      race.outcome.status === 'GOAL' ||
       (!vehicle.course.inDomain && tick % 6 === 0)
     )
       render();
     if (
-      race.clock.status === 'GOAL' ||
+      race.outcome.status === 'GOAL' ||
       ((scenario.policy === 'reverse' ||
         scenario.policy === 'departure' ||
         (scenario.policy === 'closed' && !scenario.finish)) &&
@@ -286,7 +286,7 @@ export function runScenario({ course }, scenario) {
     );
   }
   if (scenario.finish) {
-    assert.equal(race.clock.status, 'GOAL');
+    assert.equal(race.outcome.status, 'GOAL');
     if (scenario.waitForStop)
       assert.equal(
         evidence.stoppedRivals.length,
@@ -295,7 +295,7 @@ export function runScenario({ course }, scenario) {
       );
   }
   if (scenario.policy === 'finish') {
-    assert.equal(race.clock.status, 'GOAL');
+    assert.equal(race.outcome.status, 'GOAL');
     assert.equal(race.player.progress.acceptedFinishCount, scenario.laps ?? 1);
     assert.equal(evidence.recoveries.length, 0, 'ordinary driving recovered');
     if (course.entry.fork)

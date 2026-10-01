@@ -8,19 +8,15 @@ export function raceEventSeconds(stepStartSeconds: number, u: number): number {
 }
 
 /**
- * Race time (seconds since GO) and the checkpoint deadline, in fixed steps. The clock alone owns both:
- * it decides each player crossing candidate against the deadline in time order, and a checkpoint's award
- * applies at once to later candidates in the same step.
+ * Race time (seconds since GO) and the checkpoint deadline, in fixed steps. The clock owns time only: it
+ * decides each player crossing candidate against the deadline in time order, and a checkpoint's award
+ * applies at once to later candidates in the same step. The run outcome belongs to the race.
  */
 export function createCheckpointClock(budgets: CourseTimeBudgets | null) {
-  let status: 'READY' | 'RUNNING' | 'GOAL' | 'GAME_OVER' = 'READY';
   let elapsedSeconds = 0,
     deadline = budgets === null ? Infinity : budgets.initialMs / 1000;
   let lastExtension: { readonly ms: number; readonly atSeconds: number } | null = null;
   return Object.freeze({
-    get status() {
-      return status;
-    },
     /** Race time: the one competitor-independent clock since GO. */
     get elapsedSeconds() {
       return elapsedSeconds;
@@ -32,9 +28,6 @@ export function createCheckpointClock(budgets: CourseTimeBudgets | null) {
     /** The latest deadline extension: its amount and the race time of the checkpoint that earned it. */
     get lastExtension() {
       return lastExtension;
-    },
-    start() {
-      if (status === 'READY') status = 'RUNNING';
     },
     /** Opens one RUNNING step and returns its start time. */
     beginStep(): number {
@@ -53,18 +46,17 @@ export function createCheckpointClock(budgets: CourseTimeBudgets | null) {
       lastExtension = Object.freeze({ ms: awardMs, atSeconds: at });
       return true;
     },
-    /** Closes the open step: GOAL at the player's finish time, else expiry within the step or its end. */
-    completeStep(playerFinishSeconds: number | null) {
-      if (playerFinishSeconds !== null) {
-        elapsedSeconds = playerFinishSeconds;
-        status = 'GOAL';
-        return;
-      }
-      const end = elapsedSeconds + SIM_DT;
-      if (deadline <= end) {
-        elapsedSeconds = deadline;
-        status = 'GAME_OVER';
-      } else elapsedSeconds = end;
+    /** The open step's end in race time. */
+    get stepEndSeconds() {
+      return elapsedSeconds + SIM_DT;
+    },
+    /** The deadline when it falls within the open step, else null. */
+    get expirySeconds() {
+      return deadline <= elapsedSeconds + SIM_DT ? deadline : null;
+    },
+    /** Closes the open step at `seconds`: the step's end, or the race time the run ended within it. */
+    completeStep(seconds: number) {
+      elapsedSeconds = seconds;
     },
   });
 }

@@ -6,6 +6,8 @@ import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import type { SeriesCourse } from '../content/series-catalog.js';
 import type { SessionConfiguration } from './session-configuration.js';
 
+const NO_RANK_LIMITS: Readonly<Record<string, number>> = Object.freeze({});
+
 /** One competitor's resolved entry: its stable ID, its Session vehicle and that vehicle's envelope. */
 export interface SessionEntry {
   readonly id: string;
@@ -85,6 +87,8 @@ export function resolveCourseSession(
     grid: course.gates.grid,
     rivalUtilization,
     budgets: configuration.timeLimit ? budgets : null,
+    /** Rank limit N by gate ID; ARCADE only. */
+    rankLimits: configuration.mode === 'ARCADE' && arcade ? arcade.rankLimits : NO_RANK_LIMITS,
   });
 }
 

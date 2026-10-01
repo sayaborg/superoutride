@@ -584,16 +584,27 @@ Each step produces one ordered event stream (`race.events`) of every competitor'
 carries its competitor, its line (landmark, lap and whether it is the completing FINISH) and its race time,
 `stepStart + u*SIM_DT`, computed by one function (`raceEventSeconds`). The stream is in race-time order;
 equal times keep competitor order, the player before rivals in entry order. A step that does not run
-(READY hold or a finished clock) has an empty stream. Reference runs and scenarios read event times from it.
+(READY hold or an ended run) has an empty stream. Reference runs and scenarios read event times from it.
 
-Each fact is decided once. `RouteProgress` alone records accepted crossings. The clock alone holds the deadline
-and decides it: the player's crossing candidates go to it in time order, a candidate after the deadline is
-refused (and the step then ends in GAME OVER at the deadline), one exactly at the deadline is accepted, and an
-accepted checkpoint's award extends the deadline at once for later candidates in the same step. Each
-competitor's finish time is the time of its finish event, recorded once; the clock's GOAL time and ranking read it.
+Each fact is decided once. `RouteProgress` alone records accepted crossings. The clock holds time only: race time
+and the deadline, which it decides: the player's crossing candidates go to it in time order, a candidate after the
+deadline is refused, one exactly at the deadline is accepted, and an accepted checkpoint's award extends the
+deadline at once for later candidates in the same step. Each competitor's finish time is the time of its finish
+event, recorded once; the GOAL time and ranking read it.
 
-The race and clock publish facts only, never display text or display durations. The clock exposes its status
-(READY, RUNNING, GOAL or GAME_OVER), race time, the deadline in race time
+The run outcome has one owner in the race: READY until GO, RUNNING, then GOAL or GAME_OVER with its cause, `TIME`
+(the deadline expired) or `RANK` (a rank limit failed the player). At the end of each running step the earliest
+ending among the player's finish, a rank failure and expiry decides it, and race time stops at that ending. The
+player's own crossing wins an exact tie with a failure, as it does with expiry; expiry wins an exact tie with a rank
+failure.
+
+Rank limits are ARCADE series settings by race gate ID ([series](#series-documents)). At a gate with limit N, each
+lap's crossing is judged once: the player fails at the race time of the N-th crossing of that gate and lap by
+another competitor before the player's own, read from the ordered event stream. Every competitor in the Session
+counts; an exact tie in event time goes to the player.
+
+The race and clock publish facts only, never display text or display durations. The race exposes the run outcome's
+status and cause; the clock exposes race time, the deadline in race time
 (null without a time limit) and the last extension: its awarded amount and the race time of the checkpoint that
 earned it. The race exposes the start phase's status and seconds until GO; each competitor's progress (route s,
 accepted finish count and status) and finish time; the Route, whose occurrences carry fork choices; the lap count
@@ -606,30 +617,33 @@ share a rank. Rival positions and audio observations already use the same route 
 
 ## Series documents
 
-A series document (`superoutride.series` version 1) is the one owner of its courses' ARCADE settings. It is
+A series document (`superoutride.series` version 2) is the one owner of its courses' ARCADE settings. It is
 saved as `content/series/<id>.series.json`; `id` equals that file name stem, which is also its manifest ID.
 
 ```json
 {
   "format": "superoutride.series",
-  "version": 1,
+  "version": 2,
   "id": "ribbon",
   "title": "RIBBON",
   "dev": true,
   "vehicles": ["TESTAROSSA"],
   "timeMargin": 1.35,
-  "courses": [{ "course": "ribbon-coast", "laps": 1, "rivals": 0 }]
+  "courses": [{ "course": "ribbon-coast", "laps": 1, "rivals": 0, "rankLimits": {} }]
 }
 ```
 
 `title` is the display name. `dev: true` marks a development series: front ends show it only with DEV.
 `vehicles` lists the ARCADE vehicle candidates, at least one, unique and in the catalog, in selection order.
 `timeMargin` is the series' one time margin: positive, finite and at most 10. `courses` lists at least one
-delivered course, each with its ARCADE `laps` (1 through 99) and `rivals` (0 through 15). `rivals` is a
+delivered course, each with its ARCADE `laps` (1 through 99), `rivals` (0 through 15) and `rankLimits`, an object
+from race gate ID to rank limit N. `rivals` is a
 count until competitor entries replace it. Admission checks each document once, from the build's files or
 the delivery manifest alike, against the delivered course IDs and the vehicle catalog. Until selection screens
 choose a series, a course belongs to at most one series; a second one is rejected. A series course is
-admitted against its compiled course: `laps` within `maxLaps`, and a grid that holds the player and `rivals`.
+admitted against its compiled course: `laps` within `maxLaps`, a grid that holds the player and `rivals`, and
+rank limits naming checkpoint or FINISH gates of that course with N an integer from 1 to below the field size
+(`1 + rivals`).
 The build admits every series course; a Session admits the course it drives.
 
 The delivered series is RIBBON (`dev: true`): RIBBON COAST, RIBBON FORK and RIBBON RING with TESTAROSSA.

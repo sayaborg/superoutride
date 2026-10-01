@@ -68,7 +68,7 @@ export function runCourseReference(
       section = occurrence.section;
     // The reference driver leaves the throttle closed during READY.
     const input =
-      race.clock.status === 'READY'
+      race.outcome.status === 'READY'
         ? IDLE_INPUT
         : sampleEnvelopeDrivingInput(scene.world.coordinates, vehicle, driver, lane, workspace, scene.runtime.window);
     race.advance(input);
@@ -91,7 +91,7 @@ export function runCourseReference(
       });
       previousTime = timeSeconds;
     }
-    if (capture && (tick % 6 === 0 || race.clock.status === 'GOAL'))
+    if (capture && (tick % 6 === 0 || race.outcome.status === 'GOAL'))
       trace.push({
         timeSeconds: race.clock.elapsedSeconds,
         sectionId: scene.runtime.route.at(vehicle.course.s)!.section.id,
@@ -101,7 +101,7 @@ export function runCourseReference(
         speed: vehicle.speed,
         lateralUtilization: utilization,
       });
-    if (race.clock.status === 'GOAL') break;
+    if (race.outcome.status === 'GOAL') break;
     if (tick === maxTicks - 1)
       throw new RangeError(`${entry.compiledVehicle.id}: reference did not finish within the work limit`);
     // Require the requested route to be reached physically, never select it on behalf of the field.

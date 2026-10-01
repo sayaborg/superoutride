@@ -2,6 +2,7 @@ import {
   admit,
   readArray,
   readBoolean,
+  readDictionary,
   readDocument,
   readNumber,
   readRecord,
@@ -17,7 +18,7 @@ import { requireLoaded } from './content-load-error.js';
 import type { DocumentSource } from './document-catalog.js';
 
 export const SERIES_DOCUMENT_FORMAT = 'superoutride.series';
-export const SERIES_DOCUMENT_VERSION = 1;
+export const SERIES_DOCUMENT_VERSION = 2;
 
 /** One series: the one owner of its courses' ARCADE settings. `dev` series appear only with DEV. */
 export interface CompiledSeries {
@@ -36,6 +37,8 @@ export interface SeriesCourse {
   readonly course: string;
   readonly laps: number;
   readonly rivals: number;
+  /** Rank limit N by race gate ID: the player fails when the N-th other competitor crosses that gate first. */
+  readonly rankLimits: Readonly<Record<string, number>>;
 }
 
 export interface SeriesCatalog {
@@ -110,7 +113,7 @@ function readSeries(
     root.courses,
     '/courses',
     (value, at) => {
-      const entry = readRecord(value, at, ['course', 'laps', 'rivals']);
+      const entry = readRecord(value, at, ['course', 'laps', 'rivals', 'rankLimits']);
       const course = readString(entry.course, `${at}/course`);
       requireAdmission(courseIds.includes(course), 'unresolved_reference', `${at}/course`, `Unknown course ${course}`);
       requireAdmission(
@@ -124,6 +127,9 @@ function readSeries(
         course,
         laps: readNumber(entry.laps, `${at}/laps`, { min: 1, max: SESSION_RULE_LIMITS.laps, integer: true }),
         rivals: readNumber(entry.rivals, `${at}/rivals`, { min: 0, max: SESSION_RULE_LIMITS.rivals, integer: true }),
+        rankLimits: readDictionary(entry.rankLimits, `${at}/rankLimits`, (limit, path) =>
+          readNumber(limit, path, { min: 1, max: SESSION_RULE_LIMITS.rivals, integer: true }),
+        ),
       });
       owners.set(course, result);
       return result;
@@ -141,8 +147,8 @@ function requireUnique(values: readonly string[], path: string, kind: string): v
 }
 
 /**
- * Admit a series course against its compiled course: the laps fit the course's lap maximum and the grid holds the
- * player and the rivals. The build admits every series course; a Session admits the course it drives.
+ * Admit a series course against its compiled course: the laps fit the course's lap maximum, the grid holds the
+ * player and the rivals, and each rank limit names a race gate of the course with N below the field size. The build admits every series course; a Session admits the course it drives.
  */
 export function admitSeriesCourse(
   settings: SeriesCourse,
@@ -163,6 +169,21 @@ export function admitSeriesCourse(
       `/courses/${index}/rivals`,
       `The grid of ${course.id} cannot hold the player and these rivals`,
     );
+    const gates = new Set(
+      course.gates.intervals
+        .flatMap(({ checkpoints, finish }) => [...checkpoints, ...(finish ? [finish] : [])])
+        .map((gate) => gate.id),
+    );
+    for (const [gate, limit] of Object.entries(settings.rankLimits)) {
+      const at = `/courses/${index}/rankLimits/${gate.replaceAll('~', '~0').replaceAll('/', '~1')}`;
+      requireAdmission(gates.has(gate), 'unresolved_reference', at, `${course.id} has no race gate ${gate}`);
+      requireAdmission(
+        limit < 1 + settings.rivals,
+        'invalid_value',
+        at,
+        `Rank limit ${limit} must be below the field size ${1 + settings.rivals}`,
+      );
+    }
     return settings;
   });
 }
