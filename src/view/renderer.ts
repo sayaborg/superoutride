@@ -14,7 +14,7 @@ import { drawTileBackground, type TileBackground } from './tile-background.js';
 import { selectVehicleSprite, type VehicleSpriteSet } from '../vehicle/vehicle-sprite-set.js';
 import { collectVisibleCourseSprites, type CourseSprite, type VisibleCourseSprite } from './course-sprite.js';
 
-import { deriveVehicleNormalizedBank } from './vehicle-visuals.js';
+import { deriveVehicleLeanRadians } from './vehicle-visuals.js';
 
 interface RenderResult {
   stripGround: StripRenderMetrics & { method: StripRenderMethod };
@@ -160,8 +160,7 @@ export function renderDriving(
     camera,
   );
   const relativeYaw = wrapAngle(vehicle.yaw - renderCamera.yaw);
-  const normalizedBank = playerSet.bankVariants > 1 ? deriveVehicleNormalizedBank(vehicle) : 0;
-  const selected = selectVehicleSprite(playerSet, relativeYaw, normalizedBank);
+  const selected = selectVehicleSprite(playerSet, relativeYaw, deriveVehicleLeanRadians(vehicle));
   const playerStats = drawScaledSprite(
     target,
     selected.asset,

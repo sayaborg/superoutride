@@ -193,24 +193,29 @@ the constructs and builds private numeric fields; these are not image assets or 
 
 ## Vehicle sprite library
 
-`content/sprites/vehicles.json` uses `superoutride.vehicle-sprites` version 3:
+`content/sprites/vehicles.json` uses `superoutride.vehicle-sprites` version 4:
 
 ```text
 {format, version, sprites: [SpriteLodDocument, ...],
- sets: {coupe: {yawVariants, bankVariants, brakeLamp: {off: 12321, on: 32038}, assets: [[spriteIndex, ...], ...]}, ...}}
+ sets: {coupe: {yawVariants, bankVariants, brakeLamp: {off: 12321, on: 32038}, assets: [[spriteIndex, ...], ...]},
+       motorcycle: {yawVariants, bankVariants, bankDegrees: 60, brakeLamp, assets}, ...}}
 ```
 
 Set names are unique nonempty trimmed keys, independent of vehicle form. Each set binds a complete
-positive yaw × bank grid to library images. Every image belongs to a set; images shared between
-sets require identical lamp colors. The build admits the masters with the same library reader, then
-compiles each image with its set's lamp colors; delivered images have complete LOD pyramids. Every image
-in a set declares exactly the same set of at least two color names. Each set requires one
-`brakeLamp:{off,on}` declaration of RGB555 integers, shared by all its colors and angles. Slot 15
-always means the brake lamp within these images; slots 1 through 14 remain ordinary image colors. Vehicle admission checks form-specific bank dimensions and default-color
-references, as specified in [Vehicle physics](vehicle-physics.md#material-vehicle-and-driving-documents).
-This section is the library format's only specification. The vehicle domain admits the library and owns
-its sets at run time: per-vehicle color and lamp variants and yaw/bank image selection. The image domain
-supplies only the generic sprite LOD reader and palette resolution.
+positive yaw × bank grid to library images. A set declares `bankDegrees` exactly when it has more than
+one bank image: the lean from vertical, in degrees in (0, 90], of the rider-and-machine centre-of-mass
+line that its outermost bank images depict. Bank selection divides the vehicle's displayed lean by it.
+Every image belongs to a set; images shared between sets require identical lamp colors. The build admits
+the masters with the same library reader, then compiles each image with its set's lamp colors; delivered
+images have complete LOD pyramids. Every image in a set declares exactly the same set of at least two
+color names. Each set requires one `brakeLamp:{off,on}` declaration of RGB555 integers, shared by all
+its colors and angles. Slot 15 always means the brake lamp within these images; slots 1 through 14
+remain ordinary image colors. Vehicle admission checks form-specific bank dimensions and default-color
+references, as specified in
+[Vehicle physics](vehicle-physics.md#material-vehicle-and-driving-documents). This section is the library
+format's only specification. The vehicle domain admits the library and owns its sets at run time:
+per-vehicle color and lamp variants and yaw/bank image selection. The image domain supplies only the
+generic sprite LOD reader and palette resolution.
 
 The provisional coupe has its original palette and an alternate body color. Tail pixels use slot 15, with
 set off/on colors 12321/32038. Motorcycle tail pixels also use slot 15, with set colors 29445/32038.

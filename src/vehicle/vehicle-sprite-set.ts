@@ -5,6 +5,11 @@ export interface VehicleSpriteSet {
   readonly brakeLamp: Readonly<{ off: number; on: number }>;
   readonly yawVariants: number;
   readonly bankVariants: number;
+  /**
+   * The lean from vertical of the rider-and-machine centre-of-mass line that the outermost bank images
+   * depict; null for a set with one bank image.
+   */
+  readonly bankDegrees: number | null;
   readonly assets: readonly (readonly SpriteAsset[])[];
 }
 
@@ -44,13 +49,15 @@ function selectBankVariant(bank: number, count: number): number {
   return Math.round(t * (count - 1));
 }
 
+/** `leanRadians` is the vehicle's centre-of-mass lean; the set's bankDegrees maps it to its bank images. */
 export function selectVehicleSprite(
   set: VehicleSpriteSet,
   relativeYaw: number,
-  normalizedBank = 0,
+  leanRadians = 0,
 ): { asset: SpriteAsset; yawIndex: number; bankIndex: number } {
   const yawIndex = selectYawVariant(relativeYaw, set.yawVariants);
-  const bankIndex = selectBankVariant(normalizedBank, set.bankVariants);
+  const bank = set.bankDegrees === null ? 0 : leanRadians / ((set.bankDegrees * Math.PI) / 180);
+  const bankIndex = selectBankVariant(bank, set.bankVariants);
   return {
     asset: set.assets[yawIndex]![bankIndex]!,
     yawIndex,

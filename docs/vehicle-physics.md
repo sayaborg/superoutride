@@ -454,7 +454,8 @@ order is unchanged. This is a conservative current-contact slip constraint.
 HUD observations include input, actuators, automatic steering, requested/delivered offsets, target/actual
 rack, requested/delivered torques, the clutch observation and the last shift. The DEV HUD shows handwheel angle through the listing's `steeringRatio`.
 The mechanical state and compiled mechanics contain neither handwheel angle nor ratio. The bike lean display is
-`atan2(lateralAcceleration,g)` with discrete bank images; physical state contains yaw and pitch.
+`atan2(lateralAcceleration,g)`, the equilibrium lean of the rider-and-machine centre-of-mass line, shown with
+discrete bank images that the sprite set's `bankDegrees` calibrates; physical state contains yaw and pitch.
 
 Vehicle state holds one read-only tire observation per station, written only by vehicle physics. The last
 substep of every update writes it for every vehicle from the accepted wheel solve: contact longitudinal and

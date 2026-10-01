@@ -21,7 +21,7 @@ type BrakeLamp = VehicleSpriteSet['brakeLamp'];
 /** The vehicle sprite library document: indexed sprite images and the sets that bind them by index. */
 export interface VehicleSpriteLibraryDocument {
   readonly format: 'superoutride.vehicle-sprites';
-  readonly version: 3;
+  readonly version: 4;
   readonly sprites: readonly SpriteLodDocument[];
   readonly sets: Readonly<
     Record<
@@ -29,6 +29,8 @@ export interface VehicleSpriteLibraryDocument {
       {
         readonly yawVariants: number;
         readonly bankVariants: number;
+        /** Present exactly when the set has more than one bank image. */
+        readonly bankDegrees?: number;
         readonly assets: readonly (readonly number[])[];
         readonly brakeLamp: BrakeLamp;
       }
@@ -42,12 +44,19 @@ export interface VehicleSpriteLibraryDocument {
  * it publishes the admitted document and, by image index, the brake-lamp colors of the image's set.
  */
 export function readVehicleSpriteLibrary(value: unknown, completePyramids = true) {
-  const library = readDocument(value, ['format', 'version', 'sprites', 'sets'], 'superoutride.vehicle-sprites', 3);
+  const library = readDocument(value, ['format', 'version', 'sprites', 'sets'], 'superoutride.vehicle-sprites', 4);
   const spriteDocuments = readArray(library.sprites, '/sprites', (value) => value);
   const sprites = new Map<number, { asset: SpriteAsset; off: number; on: number }>();
   const setDocuments: Record<string, VehicleSpriteLibraryDocument['sets'][string]> = {};
   const set = (value: unknown, path: string, name: string): VehicleSpriteSet => {
-    const recordData = readRecord(value, path, ['yawVariants', 'bankVariants', 'assets', 'brakeLamp']);
+    const banked = typeof value === 'object' && value !== null && Object.hasOwn(value, 'bankDegrees');
+    const recordData = readRecord(value, path, [
+      'yawVariants',
+      'bankVariants',
+      ...(banked ? ['bankDegrees'] : []),
+      'assets',
+      'brakeLamp',
+    ]);
     const lamp = readRecord(recordData.brakeLamp, `${path}/brakeLamp`, ['off', 'on']);
     const brakeLamp = Object.freeze({
       off: readRgb555(lamp.off, `${path}/brakeLamp/off`),
@@ -56,6 +65,15 @@ export function readVehicleSpriteLibrary(value: unknown, completePyramids = true
     const count = { min: 1, max: Number.MAX_SAFE_INTEGER, integer: true };
     const yawVariants = readNumber(recordData.yawVariants, `${path}/yawVariants`, count);
     const bankVariants = readNumber(recordData.bankVariants, `${path}/bankVariants`, count);
+    requireAdmission(
+      banked === bankVariants > 1,
+      'invalid_shape',
+      `${path}/bankDegrees`,
+      'A set declares bankDegrees exactly when it has more than one bank image',
+    );
+    const bankDegrees = banked
+      ? readNumber(recordData.bankDegrees, `${path}/bankDegrees`, { min: 0, max: 90, exclusiveMin: true })
+      : null;
     const indices: number[][] = [];
     const assets = readArray(
       recordData.assets,
@@ -108,15 +126,21 @@ export function readVehicleSpriteLibrary(value: unknown, completePyramids = true
       `${path}/assets`,
       'Every image in a vehicle set must declare the same color names',
     );
-    setDocuments[name] = deepFreeze({ yawVariants, bankVariants, assets: indices, brakeLamp });
-    return Object.freeze({ brakeLamp, yawVariants, bankVariants, assets });
+    setDocuments[name] = deepFreeze({
+      yawVariants,
+      bankVariants,
+      ...(bankDegrees === null ? {} : { bankDegrees }),
+      assets: indices,
+      brakeLamp,
+    });
+    return Object.freeze({ brakeLamp, yawVariants, bankVariants, bankDegrees, assets });
   };
   const sets = readDictionary(library.sets, '/sets', set);
   const unbound = spriteDocuments.findIndex((_, id) => !sprites.has(id));
   requireAdmission(unbound < 0, 'invalid_value', `/sprites/${unbound}`, 'Vehicle image must belong to a sprite set');
   const document: VehicleSpriteLibraryDocument = Object.freeze({
     format: 'superoutride.vehicle-sprites',
-    version: 3,
+    version: 4,
     // Each image passed sprite-LOD admission above, which establishes its document shape.
     sprites: Object.freeze(spriteDocuments.map((image) => deepFreeze(image as SpriteLodDocument))),
     sets: Object.freeze(setDocuments),
