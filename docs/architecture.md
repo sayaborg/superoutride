@@ -623,7 +623,9 @@ resident window, the one residency decision. View owns rival sprite selection an
 readers and the physical driving source. Race consumes that source only. The course world owns the combined pre-lock render/driver query-depth
 admission, and the course scene binds physical and appearance products.
 RGBA conversion, sprite images and LOD formats belong
-to image; framebuffer writes and sprite drawing belong to view. Compiled Strip color fields
+to image; framebuffer writes and sprite drawing belong to view. The framebuffer stores RGB555: palettes, BG
+tiles and Strip ground write their RGB555 colors (sprite index 0 is transparent), and the shell expands the
+frame to RGBA through one 32,768-entry table when presenting it. Compiled Strip color fields
 and their scalar coefficient Reader belong to course. View owns Strip row sampling and the
 three display methods; shell obtains their names from view.
 Environment timelines are course data.

@@ -6,6 +6,7 @@ import { createDrivingLifecycle, type DrivingLifecycleOptions } from './driving-
 import type { CameraRig } from '../view/camera.js';
 import { createCameraRig, setCameraYawMode, type CameraState } from '../view/camera.js';
 import { createLogicalFrame, LOGICAL_HEIGHT, LOGICAL_WIDTH } from '../view/display-scale.js';
+import { expandRgb555Pixels } from '../image/rgb555.js';
 import { SoftwareSurface } from '../view/software-surface.js';
 import type { DrivingDocument } from '../vehicle/driving-definition.js';
 import { InputManager } from '../input/input-manager.js';
@@ -59,7 +60,8 @@ export function createBrowserDrivingShell(
   if (!ctx) throw new Error('2D canvas context unavailable');
   ctx.imageSmoothingEnabled = false;
   const imageData = ctx.createImageData(LOGICAL_WIDTH, LOGICAL_HEIGHT);
-  const framebuffer = createLogicalFrame(new Uint32Array(imageData.data.buffer));
+  const framebuffer = createLogicalFrame();
+  const presented = new Uint32Array(imageData.data.buffer);
   // The whole viewport is the touch area.
   const inputManager = new InputManager(window, () => ({
     left: 0,
@@ -154,6 +156,8 @@ export function createBrowserDrivingShell(
     ): void {
       const { player } = observed;
       audio.update(player, observed.rivals);
+      // The RGB555 frame is expanded to the canvas's RGBA once per presented frame.
+      expandRgb555Pixels(framebuffer.pixels, presented);
       ctx.putImageData(imageData, 0, 0);
       touchIndicators.update(inputManager.touch);
       // The DEV vehicle HUD diagnoses mechanics internals through the race's DEV-only diagnostics.

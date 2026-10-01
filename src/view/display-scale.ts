@@ -4,9 +4,9 @@ import { SoftwareSurface } from './software-surface.js';
 export const LOGICAL_WIDTH = 320;
 export const LOGICAL_HEIGHT = 240;
 
-/** A logical frame, optionally over borrowed pixel storage (the browser's ImageData). */
-export function createLogicalFrame(pixels?: Uint32Array): SoftwareSurface {
-  return new SoftwareSurface(LOGICAL_WIDTH, LOGICAL_HEIGHT, pixels);
+/** A logical RGB555 frame. */
+export function createLogicalFrame(): SoftwareSurface {
+  return new SoftwareSurface(LOGICAL_WIDTH, LOGICAL_HEIGHT);
 }
 
 /**

@@ -47,7 +47,7 @@ interface RenderWorkload {
 
 export interface StripGroundReader {
   sampleSpan(
-    pixels: Uint32Array,
+    pixels: Uint16Array,
     offset: number,
     count: number,
     s: number,

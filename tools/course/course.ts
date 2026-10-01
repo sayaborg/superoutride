@@ -22,6 +22,7 @@ import { readDeliveredContent } from './read-content.js';
 import { createCameraRig, updateCamera } from '../../src/view/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../../src/view/current-camera-profile.js';
 import { createLogicalFrame } from '../../src/view/display-scale.js';
+import { expandRgb555Pixels } from '../../src/image/rgb555.js';
 import { courseReport } from './course-report.js';
 import { options, loadCourse, requireInput, finite, atomicWrite, reportError } from './authoring-io.js';
 
@@ -128,7 +129,9 @@ try {
           target = createLogicalFrame();
         const stats = scene.render(target, vehicle, camera, sprites.off, []),
           png = new PNG({ width: target.width, height: target.height });
-        png.data = Buffer.from(target.pixels.buffer);
+        const rgba = new Uint32Array(target.pixels.length);
+        expandRgb555Pixels(target.pixels, rgba);
+        png.data = Buffer.from(rgba.buffer);
         const output = sequence ? path.join(destination, `${String(i).padStart(4, '0')}.png`) : destination;
         await atomicWrite(output, PNG.sync.write(png));
         frames.push({

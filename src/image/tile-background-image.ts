@@ -1,5 +1,5 @@
 import { readArray, readDocument, readNumber, readRecord, readString, requireAdmission } from '../core/admission.js';
-import { IndexedPattern, indexedPaletteRgba, readIndexedPalette, readPatternSymbol } from './indexed-image.js';
+import { IndexedPattern, readIndexedPalette, readPatternSymbol } from './indexed-image.js';
 
 const BACKGROUND_TILE_SIZE = 16;
 const BACKGROUND_TILE_COLUMNS = 80;
@@ -68,7 +68,7 @@ export class TileBackgroundImage {
   readonly width = BACKGROUND_WIDTH;
   readonly height = BACKGROUND_HEIGHT;
   readonly #patterns: readonly IndexedPattern[];
-  readonly #palettes: Uint32Array;
+  readonly #palettes: Uint16Array;
   readonly #tiles: Uint32Array;
 
   /** Admitted opaque 16x16 patterns, 16-color palettes and one in-range binding per tile. */
@@ -87,14 +87,14 @@ export class TileBackgroundImage {
       for (let i = 0; i < 256; i++)
         if (!pattern.indexAt(i)) throw new RangeError('A tiled background pattern is opaque and has no index 0');
     this.#patterns = patterns;
-    this.#palettes = new Uint32Array(palettes.length * 16);
-    palettes.forEach((palette, id) => this.#palettes.set(indexedPaletteRgba(palette), id << 4));
+    this.#palettes = new Uint16Array(palettes.length * 16);
+    palettes.forEach((palette, id) => this.#palettes.set(palette, id << 4));
     this.#tiles = new Uint32Array(tiles.flat());
     Object.freeze(this);
   }
 
   /** Writes every destination pixel of the row; interiors share their tile lookup. */
-  paintRow(target: Uint32Array, destination: number, imageX: number, imageY: number, width: number): void {
+  paintRow(target: Uint16Array, destination: number, imageX: number, imageY: number, width: number): void {
     let x = ((imageX % this.width) + this.width) % this.width,
       written = 0;
     const tileRow = (imageY >>> 4) * BACKGROUND_TILE_COLUMNS,

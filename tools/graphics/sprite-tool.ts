@@ -8,7 +8,7 @@ import {
   CURRENT_FOCAL_LENGTH_PIXELS,
   pixelsPerMeterAtDepth,
 } from '../../src/view/display-scale.js';
-import { rgba, unpackRgba } from '../../src/image/rgb555.js';
+import { expandRgb555Pixels, rgba, rgbaToRgb555, unpackRgba } from '../../src/image/rgb555.js';
 import { rgb555ToRgba } from '../../src/image/rgb555.js';
 import { readSpriteLodAsset, selectSpriteLevel, SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 import { drawScaledSprite } from '../../src/view/sprite.js';
@@ -153,7 +153,7 @@ function drawSource() {
   }
 }
 function drawPreview() {
-  surface.clear(rgba(28, 42, 54));
+  surface.clear(rgbaToRgb555(rgba(28, 42, 54)));
   let metrics = 'Build to preview the current image.';
   if (asset) {
     const depth = number('depth');
@@ -164,11 +164,7 @@ function drawPreview() {
     const stats = drawScaledSprite(surface, asset, 160, 200, ppm);
     metrics = `${asset.name} · ${asset.width} × ${asset.height} master · ${asset.levels.length} levels\nFrame: ${asset.worldWidthMeters.toFixed(3)} × ${(asset.height / SPRITE_SOURCE_TEXELS_PER_METER).toFixed(3)} m · ${ppm.toFixed(2)} screen px/m\nLOD ${k}: ${level.width} × ${level.height} · ${stats.outputSamples} samples · anchor at (160, 200)`;
   }
-  preview.putImageData(
-    new ImageData(new Uint8ClampedArray(surface.pixels.buffer as ArrayBuffer), surface.width, surface.height),
-    0,
-    0,
-  );
+  preview.putImageData(presentedRgba(surface), 0, 0);
   el('metrics').textContent = metrics;
 }
 function edited() {
@@ -427,3 +423,10 @@ for (const id of ['depth', 'distance'])
   );
 drawPreview();
 controls();
+
+/** The tool previews present the RGB555 frame as the game does. */
+function presentedRgba(surface: { readonly pixels: Uint16Array; readonly width: number; readonly height: number }) {
+  const rgbaPixels = new Uint32Array(surface.pixels.length);
+  expandRgb555Pixels(surface.pixels, rgbaPixels);
+  return new ImageData(new Uint8ClampedArray(rgbaPixels.buffer), surface.width, surface.height);
+}

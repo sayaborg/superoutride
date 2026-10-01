@@ -4,10 +4,10 @@ import { STRIP_ACTIVE_LIMIT, compileStripGround } from '../../dist/course/strip-
 import { STRIP_RENDER_METHODS } from '../../dist/view/display-settings.js';
 import { createStripGroundSampler, createStripRenderMetrics } from '../../dist/view/strip-ground-sampler.js';
 import { linearToRgb555 } from '../../dist/image/image-filter.js';
-import { rgb555ToRgba } from '../../dist/image/rgb555.js';
 import { selectSpriteLevel } from '../../dist/image/sprite.js';
 
-const BG = 0x44332211,
+// Bit 15 is never set in an RGB555 pixel, so it marks pixels the ground leaves unchanged.
+const BG = 0x8000,
   WHITE = 32767,
   RED = 31 << 10,
   BLUE = 31;
@@ -20,7 +20,7 @@ const piece = (start, end, left, right, color, leftEnd = left, rightEnd = right)
 });
 const whole = (ground) => [{ ground, start: 0, end: ground.length, lateralOrigin: 0 }];
 function row(intervals, { s = 4, l = -4, stepL = 0.25, deltaS = 0, count = 32, method = 'EXACT-BOX' } = {}) {
-  const pixels = new Uint32Array(count).fill(BG);
+  const pixels = new Uint16Array(count).fill(BG);
   createStripGroundSampler(intervals).sampleSpan(
     pixels,
     0,
@@ -45,17 +45,14 @@ test('ordered Strips preserve transparency, black, half-open edges, open sides a
   ];
   const ground = compileStripGround(16, pieces);
   const options = { s: 9, l: -3, stepL: 1, count: 8, method: 'POINT-POINT' };
-  const expected = [WHITE, BLUE, BLUE, null, 0, WHITE, WHITE, RED].map((c) => (c === null ? BG : rgb555ToRgba(c)));
+  const expected = [WHITE, BLUE, BLUE, null, 0, WHITE, WHITE, RED].map((c) => (c === null ? BG : c));
   assert.deepEqual(Array.from(row(whole(ground), options)), expected);
   pieces[0].value = BLUE;
   assert.deepEqual(Array.from(row(whole(ground), options)), expected);
   assert.throws(() => {
     ground.slabs[0].spans[0].value = 0;
   }, TypeError);
-  assert.deepEqual(Array.from(row(whole(ground), { ...options, l: -1e6, stepL: 2e6, count: 2 })), [
-    rgb555ToRgba(RED),
-    rgb555ToRgba(RED),
-  ]);
+  assert.deepEqual(Array.from(row(whole(ground), { ...options, l: -1e6, stepL: 2e6, count: 2 })), [RED, RED]);
   const active = Array.from({ length: STRIP_ACTIVE_LIMIT }, () => piece(0, 2, null, null, RED));
   assert.equal(compileStripGround(2, active).metrics.maxActiveStrips, STRIP_ACTIVE_LIMIT);
 });
@@ -69,7 +66,7 @@ test('POINT always reads s; LEVEL shares sprite octave selection and reads insta
   for (const deltaS of [0.5, 1, Math.SQRT2 * (1 - 1e-10), Math.SQRT2, 2, 2 * Math.SQRT2, 4 * Math.SQRT2, 64])
     for (const s of [0.2, 4.6, 12.25]) {
       const direct = row(whole(ground), { s, deltaS, method: 'POINT-POINT' });
-      assert.ok(direct.every((p) => p === rgb555ToRgba([RED, BLUE, WHITE][Math.floor(s) % 3])));
+      assert.ok(direct.every((p) => p === [RED, BLUE, WHITE][Math.floor(s) % 3]));
       const level = row(whole(ground), { s, deltaS, method: 'LEVEL-POINT' });
       const step = 2 ** selectSpriteLevel(sprite, 1 / deltaS);
       assert.deepEqual(
@@ -95,12 +92,12 @@ test('POINT always reads s; LEVEL shares sprite octave selection and reads insta
 
 test('EXACT-BOX integrates both dimensions and owned seam lengths before half-coverage thresholding', () => {
   const diagonal = compileStripGround(16, [piece(0, 16, 0, null, WHITE, 16, null)]);
-  assert.equal(row(whole(diagonal), { s: 8, l: 8, stepL: 1, deltaS: 4, count: 1 })[0], rgb555ToRgba(WHITE));
+  assert.equal(row(whole(diagonal), { s: 8, l: 8, stepL: 1, deltaS: 4, count: 1 })[0], WHITE);
   assert.equal(row(whole(diagonal), { s: 8, l: 8 - 1e-6, stepL: 1, deltaS: 4, count: 1 })[0], BG);
   const split = compileStripGround(8, [piece(0, 8, null, 0, RED), piece(0, 8, 0, null, BLUE)]);
-  const half = rgb555ToRgba(linearToRgb555(0.5, 0, 0.5));
+  const half = linearToRgb555(0.5, 0, 0.5);
   assert.equal(row(whole(split), { s: 4, l: 0, stepL: 2, count: 1 })[0], half);
-  assert.equal(row(whole(split), { s: 4, l: 0, stepL: 2, count: 1, method: 'LEVEL-POINT' })[0], rgb555ToRgba(BLUE));
+  assert.equal(row(whole(split), { s: 4, l: 0, stepL: 2, count: 1, method: 'LEVEL-POINT' })[0], BLUE);
   const red = compileStripGround(8, [piece(0, 8, null, null, RED)]);
   const blue = compileStripGround(8, [piece(0, 8, null, null, BLUE)]);
   const intervals = [
@@ -108,7 +105,7 @@ test('EXACT-BOX integrates both dimensions and owned seam lengths before half-co
     { ground: blue, start: 8, end: 16, lateralOrigin: -20 },
   ];
   assert.ok(row(intervals, { s: 8, deltaS: 6 }).every((p) => p === half));
-  assert.ok(row(intervals, { s: 8, deltaS: 6, method: 'POINT-POINT' }).every((p) => p === rgb555ToRgba(BLUE)));
+  assert.ok(row(intervals, { s: 8, deltaS: 6, method: 'POINT-POINT' }).every((p) => p === BLUE));
   assert.deepEqual(
     row(intervals, { s: 8, deltaS: 6, method: 'LEVEL-POINT' }),
     row(whole(blue), { s: 0, deltaS: 6, method: 'LEVEL-POINT' }),
@@ -128,7 +125,7 @@ test('row batching and lateral rebasing match individual pixels in either scan d
       const batch = row(whole(ground), args);
       assert.deepEqual(
         batch,
-        Uint32Array.from({ length: 48 }, (_, i) => row(whole(ground), { ...args, l: l + i * stepL, count: 1 })[0]),
+        Uint16Array.from({ length: 48 }, (_, i) => row(whole(ground), { ...args, l: l + i * stepL, count: 1 })[0]),
       );
       assert.deepEqual(
         batch,
@@ -155,7 +152,7 @@ test('interleaved cached and instantaneous rows do not inherit lateral slopes', 
   const intervals = whole(compileStripGround(128, pieces));
   const sampler = createStripGroundSampler(intervals);
   const draw = (reader, s, deltaS, method) => {
-    const pixels = new Uint32Array(320);
+    const pixels = new Uint16Array(320);
     reader.sampleSpan(pixels, 0, 320, s, -40, 0.25, deltaS, method, createStripRenderMetrics());
     return pixels;
   };

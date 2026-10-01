@@ -8,9 +8,10 @@ This document owns display, scheduling, keyboard/touch/gamepad input, URL settin
 
 The logical canvas is 320×240 with image smoothing disabled. `LOGICAL_WIDTH` and `LOGICAL_HEIGHT` are
 the frame size's only authority: every frame is made by `createLogicalFrame`, and the camera's
-projection centre is the frame centre. A shared driving scene supplies the game and headless previews.
-All selected course, image, ground and Session inputs are ready before driving starts. A failed load
-displays status and Retry; an incomplete Session stays inactive.
+projection centre is the frame centre. The frame stores RGB555; each presented frame is expanded to the
+canvas's RGBA through one 32,768-entry table. A shared driving scene supplies the game and headless
+previews. All selected course, image, ground and Session inputs are ready before driving starts. A
+failed load displays status and Retry; an incomplete Session stays inactive.
 
 The browser accumulates nonnegative elapsed time capped at 0.25 s per animation callback. Simulation
 uses fixed 1/60 s steps (`SIM_DT`): the frame loop runs one race `advance(input)` per whole step in the accumulated

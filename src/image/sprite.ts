@@ -8,7 +8,7 @@ import {
   readString,
   requireAdmission,
 } from '../core/admission.js';
-import { IndexedPattern, readIndexedPalette, indexedPaletteRgba, readPatternSymbol } from './indexed-image.js';
+import { IndexedPattern, readIndexedPalette, readPatternSymbol } from './indexed-image.js';
 import { evaluatePaletteMixture, linearToRgb555, selectImageLodLevel, type PaletteMixture } from './image-filter.js';
 // Dimensionless weight sum: 10^-10 normalization budget for serialized mixture sums.
 // Positive unit-total sums accumulate O(n*eps) error; this allows about 4.5e5 eps.
@@ -57,7 +57,6 @@ interface SpriteLevel {
   readonly height: number;
   readonly pattern: IndexedPattern;
   readonly paletteRgb555: readonly number[];
-  readonly paletteRgba: readonly number[];
   readonly mixtures: readonly PaletteMixture[];
 }
 export interface SpriteAsset {
@@ -141,7 +140,6 @@ export function readSpriteLodAsset(value: unknown, paletteSuffix: readonly numbe
       height: h,
       pattern: new IndexedPattern(w, h, indices),
       paletteRgb555,
-      paletteRgba: indexedPaletteRgba(paletteRgb555),
       mixtures,
     });
   });
@@ -217,7 +215,7 @@ function applySpritePalette(asset: SpriteAsset, base: readonly number[]): Sprite
         i === 0 || !mixture.length ? 0 : linearToRgb555(...evaluatePaletteMixture(mixture, base)),
       ),
     );
-    return Object.freeze({ ...level, paletteRgb555, paletteRgba: indexedPaletteRgba(paletteRgb555) });
+    return Object.freeze({ ...level, paletteRgb555 });
   });
   return Object.freeze({ ...asset, levels: Object.freeze(levels) });
 }

@@ -2,7 +2,8 @@ import { PIXEL_EDGE_TOLERANCE } from './pixel-coverage.js';
 import { SoftwareSurface } from './software-surface.js';
 import { selectSpriteLevel, type SpriteAsset } from '../image/sprite.js';
 
-const SPRITE_TRANSPARENT = 0;
+// Palette index 0 is transparent in every sprite image.
+const SPRITE_TRANSPARENT_INDEX = 0;
 
 interface SpriteDrawStats {
   outputSamples: number;
@@ -66,9 +67,9 @@ export function drawScaledSprite(
       if (sx < 0 || sx >= level.width) continue;
       outputSamples += 1;
       rowOutputSamples += 1;
-      const color = level.paletteRgba[level.pattern.indexAt(patternRow + sx)]!;
-      if (color === SPRITE_TRANSPARENT) continue;
-      target.pixels[targetRow + x] = color;
+      const index = level.pattern.indexAt(patternRow + sx);
+      if (index === SPRITE_TRANSPARENT_INDEX) continue;
+      target.pixels[targetRow + x] = level.paletteRgb555[index]!;
       writtenPixels += 1;
       rowWrittenPixels += 1;
     }

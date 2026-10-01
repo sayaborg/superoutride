@@ -8,7 +8,7 @@ import {
   pixelsPerMeterAtDepth,
 } from '../../src/view/display-scale.js';
 import { createSpriteLodFixture } from './fixtures/sprite-lod.js';
-import { rgba } from '../../src/image/rgb555.js';
+import { expandRgb555Pixels, rgba, rgbaToRgb555 } from '../../src/image/rgb555.js';
 import { drawScaledSprite } from '../../src/view/sprite.js';
 import { readSpriteLodAsset, selectSpriteLevel, SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 
@@ -48,14 +48,10 @@ function render() {
     level = asset.levels[k]!;
   const stats = [asset, master].map((sprite, i) => {
     const surface = surfaces[i]!;
-    surface.clear(rgba(28, 42, 54));
+    surface.clear(rgbaToRgb555(rgba(28, 42, 54)));
     const result = drawScaledSprite(surface, sprite, 160 + phase, 200 + phase, ppm);
     const context = contexts[i]!;
-    context.putImageData(
-      new ImageData(new Uint8ClampedArray(surface.pixels.buffer as ArrayBuffer), surface.width, surface.height),
-      0,
-      0,
-    );
+    context.putImageData(presentedRgba(surface), 0, 0);
     context.strokeStyle = '#fff';
     context.lineWidth = 1;
     context.beginPath();
@@ -134,3 +130,10 @@ element('download').addEventListener('click', () => {
 });
 window.addEventListener('pagehide', stop);
 load(createSpriteLodFixture());
+
+/** The tool previews present the RGB555 frame as the game does. */
+function presentedRgba(surface: { readonly pixels: Uint16Array; readonly width: number; readonly height: number }) {
+  const rgbaPixels = new Uint32Array(surface.pixels.length);
+  expandRgb555Pixels(surface.pixels, rgbaPixels);
+  return new ImageData(new Uint8ClampedArray(rgbaPixels.buffer), surface.width, surface.height);
+}

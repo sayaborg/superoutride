@@ -42,13 +42,14 @@ test('visual Strips can erase all ground without changing material slabs, suppor
   const surfaceB = b.material;
   for (const s of [0, 45, 350, 700, a.coordinates.domain.end])
     for (const l of [-100, -8, -3, 0, 3, 8, 100]) assert.deepEqual(surfaceA.sample(s, l), surfaceB.sample(s, l));
-  const pixels = new Uint32Array(320).fill(0xabcdef01);
+  // Bit 15 is never set in an RGB555 pixel.
+  const pixels = new Uint16Array(320).fill(0x8000);
   const sampler = createStripGroundSampler([
     { ground: b.color, start: 0, end: b.coordinates.domain.end, lateralOrigin: 0 },
   ]);
   sampler.sampleSpan(pixels, 0, 320, 350, -40, 0.25, 32, 'EXACT-BOX', createStripRenderMetrics());
   assert.ok(
-    pixels.every((p) => p === 0xabcdef01),
+    pixels.every((p) => p === 0x8000),
     'transparent plane must preserve the existing BG/Painter pixels',
   );
 

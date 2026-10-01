@@ -49,3 +49,15 @@ export function rgb555ToRgba(value: number): number {
   const b5 = value & 0x1f;
   return rgba(Math.round((r5 * 255) / 31), Math.round((g5 * 255) / 31), Math.round((b5 * 255) / 31));
 }
+
+let rgbaTable: Uint32Array | null = null;
+
+/** Expand an RGB555 raster into RGBA pixels through one 32,768-entry table of `rgb555ToRgba`. */
+export function expandRgb555Pixels(source: Uint16Array, target: Uint32Array): void {
+  if (target.length !== source.length) throw new RangeError('RGBA target must match the RGB555 source length');
+  if (rgbaTable === null) {
+    rgbaTable = new Uint32Array(0x8000);
+    for (let value = 0; value < 0x8000; value++) rgbaTable[value] = rgb555ToRgba(value);
+  }
+  for (let i = 0; i < source.length; i++) target[i] = rgbaTable[source[i]! & 0x7fff]!;
+}

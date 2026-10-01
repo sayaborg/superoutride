@@ -5,7 +5,6 @@ import {
   rgb555LinearChannel,
   selectImageLodLevel,
 } from '../image/image-filter.js';
-import { rgb555ToRgba } from '../image/rgb555.js';
 import { STRIP_ACTIVE_LIMIT, STRIP_BASE_STEP, type StripGround, type StripCellTarget } from '../course/strip-ground.js';
 import type { StripRenderMethod } from './display-settings.js';
 
@@ -292,7 +291,7 @@ export function createStripGroundSampler(intervals: readonly StripFieldSpan[]) {
   };
   return Object.freeze({
     sampleSpan(
-      pixels: Uint32Array,
+      pixels: Uint16Array,
       offset: number,
       count: number,
       s: number,
@@ -373,7 +372,7 @@ export function createStripGroundSampler(intervals: readonly StripFieldSpan[]) {
 
 /** Premultiplied channels and opacity are normalized only after all field-owned intervals are combined. */
 function writeStripPixels(
-  pixels: Uint32Array,
+  pixels: Uint16Array,
   offset: number,
   count: number,
   sample: Float64Array,
@@ -387,7 +386,7 @@ function writeStripPixels(
     g = sample[1]!,
     b = sample[2]!;
   if (r !== cache[0] || g !== cache[1] || b !== cache[2] || a !== cache[3]) {
-    cache[4] = rgb555ToRgba(linearToRgb555(r / a, g / a, b / a));
+    cache[4] = linearToRgb555(r / a, g / a, b / a);
     cache[0] = r;
     cache[1] = g;
     cache[2] = b;
