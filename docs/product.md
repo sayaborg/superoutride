@@ -66,7 +66,8 @@ Sessions ([Content and gameplay](content-and-gameplay.md) owns their definitions
 | Traffic            | On or off                                                                               |
 
 **Field.** A Session has at most sixteen competitors, the player included. The entries of a series
-course list its whole field in grid order. The player occupies one entry of the selected vehicle; the
+course list its whole field in grid order. The player occupies the rearmost entry of the selected vehicle in grid
+order, in that entry's color when the series fixes colors and otherwise in the player's chosen color; the
 remaining entries are the rivals. With the player slot "own entry position" the player starts where
 that entry stands (Turbo OutRun); with "last" the player starts in the last slot and the rivals keep
 their order in front. Rivals avoid repeating a vehicle/color pair where the entries allow.
@@ -87,10 +88,11 @@ run in GAME OVER. The time allowance on a course derives from the player's selec
 reference driver's time for that vehicle on that course and route, multiplied by the series margin.
 
 **Rival pace.** In ARCADE, rival driving is relative to the player's selected vehicle. Each entry has a pace ratio
-p. At every route station a rival's target speed is at most p times the speed of the player's vehicle
-in its reference run at that station on the selected route. Thus the choice of vehicle does not change
-the difficulty, and no vehicle's mechanics change. The limitation is visible driving, not a hidden
-correction.
+p. The rival follows a pace schedule: the times at which the player's vehicle passes each station in its reference
+run on that course, divided by p. A rival behind its schedule drives harder and one ahead of it drives easier,
+within its own vehicle's limits. The schedule does not depend on the player's actual position, so there is no
+catch-up. Thus the choice of vehicle does not change the difficulty, and no vehicle's mechanics change. The
+difference is visible driving, not a hidden correction.
 
 **Forks.** The first competitor to cross a fork's lock line selects the route for the whole field;
 alone, that is the player. Unselected roads show warnings and closure signs; vehicles remaining there
@@ -107,7 +109,7 @@ the player chooses the course, vehicle and color. A series may fix colors.
 count (0–15), the rival vehicle pool (ALL, CARS or BIKES; default: the player's vehicle form), traffic
 (on/off where the course has traffic) and laps on circuits. Rival vehicles and colors are drawn from
 the pool by the Session seed. FREE PLAY rivals drive at their own vehicles' pace, so the choice of
-vehicles shapes the race; FREE PLAY needs no reference runs.
+vehicles shapes the race; FREE PLAY needs no reference runs. The player starts from the last grid slot.
 
 **TIME TRIAL** runs any product course alone: no rivals, no traffic, no clock. On circuits the player
 chooses the lap count. On forks the player selects the route by driving; the record belongs to the

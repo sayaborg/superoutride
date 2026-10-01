@@ -23,7 +23,7 @@
   rival entries carry the player's vehicle; TIME TRIAL, traffic, collisions, music, sound effects and the product
   front end are not implemented.
 
-Next PR: **12-8d — Session rule components**.
+Next PR: **12-8d-1 — FREE PLAY clock**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -34,12 +34,22 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 Define input, run state, framebuffer, persistent player data, data-driven Sessions, the product front end and the
 product HUD independently of DEV, as specified in the [product specification](product.md).
 
-- **12-8d — Session rule components:** clock, per-gate rank limits (failure at the N-th earlier crossing, ties to the
-  player), competitor entries with stage intervals and grid or ahead appearance, player slot (own entry or last),
-  ARCADE rival pace ratio (target speed at most p times the player vehicle's reference speed at the route station), and
-  seeded rival vehicle/color assignment for FREE PLAY pools. FREE PLAY has no clock (product.md §4); with it, time
-  budgets are generated only for series courses × series candidate vehicles. Forks keep first arrival; there is no fork-decider or
-  until-fork lifetime component. This settles the Rival intent row of the pending-decisions table.
+- **12-8d-1 — FREE PLAY clock:** FREE PLAY has no clock (product.md §4); with it, time budgets are generated only
+  for series courses × series candidate vehicles.
+- **12-8d-2 — Run outcome and rank limits:** one owner of the run outcome (GOAL, GAME OVER by time, GAME OVER by
+  rank); per-gate rank limits in series documents (failure at the N-th earlier crossing by competitors present,
+  ties to the player).
+- **12-8d-3 — Entries and player slot:** whole-race competitor entries (vehicle, color, grid slot) replace the
+  provisional series `rivals`; the player slot (own entry or last; the rearmost entry of the selected vehicle);
+  seeded FREE PLAY rival vehicle and color assignment from the ALL, CARS or BIKES pool, defaulting to the player's
+  vehicle form, with the player last. This settles the Rival intent row of the pending-decisions table.
+- **12-8d-4 — Stage intervals and ahead appearance:** entries take part in a stage interval; an entry joining later
+  appears ahead of the player by its ahead distance when the player enters its first stage, moving at its driver's
+  planned speed there, and leaves once out of view after its last stage. Forks keep first arrival; there is no
+  fork-decider or until-fork lifetime component.
+- **12-8d-5 — Rival pace schedule:** per course and vehicle, Section pass-time profiles derived from reference runs;
+  an ARCADE rival follows the player's vehicle schedule divided by its pace ratio, accumulated along its own route,
+  by varying its driving utilization within DEV-set bounds and response.
 - **12-8e — TIME TRIAL:** the third mode; solo, no traffic, no clock, route chosen by driving.
 - **12-9 — Start and finish:** remove `updateHeldVehicle`; a held start constrains the body explicitly inside the one
   vehicle update while the powertrain runs; READY has one meaning (today both the start phase and the checkpoint
