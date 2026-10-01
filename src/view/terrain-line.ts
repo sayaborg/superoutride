@@ -3,7 +3,6 @@ import type { ProfilePolylineReader } from '../course/geometry/profile.js';
 import { stationIndexAt } from '../course/geometry/station-sequence.js';
 import { horizonY, pseudoProject, type PseudoCamera } from './projection.js';
 import { PIXEL_EDGE_TOLERANCE } from './pixel-coverage.js';
-import type { EnvironmentReader } from '../course/environment-timeline.js';
 
 // Metres: chainage subtraction budget, ~eight ulps at 10^6 m; rejects numerically empty intervals.
 const VISIBLE_INTERVAL_TOLERANCE_METERS = 1e-9;
@@ -79,7 +78,6 @@ export interface TerrainRenderParameters {
   dMin: number;
   dMax: number;
   height: ProfilePolylineReader;
-  environment: EnvironmentReader;
   /** Collapse threshold in destination scanline units. Defaults to one row. */
   thinSpanScreenRows?: number;
 }
@@ -145,7 +143,6 @@ export function generateTerrainLines(
   // Use boundary stations directly: rounding cannot strand a cursor before a vertex.
   boundaries.push(start, end);
   appendVisibleBoundaries(boundaries, parameters.height.vertices, 's', start, end);
-  appendVisibleBoundaries(boundaries, parameters.environment.intervals, 'sStart', start, end);
   boundaries.sort(ascending);
   let count = 0;
   for (let i = 0; i < boundaries.length; i++)

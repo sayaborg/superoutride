@@ -70,7 +70,6 @@ export function createCourseScene(
           dMax: RENDER_FAR_DEPTH_METERS,
           height: readers.renderHeight,
           extent: runtime.window,
-          environment: renderData.environment,
         };
         lastRenderData = renderData;
         lastSelection = selection;
