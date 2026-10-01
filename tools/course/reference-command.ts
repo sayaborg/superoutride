@@ -39,10 +39,7 @@ export async function referenceCommand(verb: string, file: string | null, args: 
     };
   else {
     const { course } = loaded!;
-    const series = await loadSeriesCatalog(
-      content,
-      definitions.vehicles.map((v) => v.compiledVehicle.id),
-    );
+    const series = await loadSeriesCatalog(content, definitions.vehicles);
     const arcade = loadSeriesCourse(content, series, course);
     requireInput(arcade, '/course', 'Reference runs need a delivered series course');
     const routes = enumerateCourseRoutes(course.entry, course.type);

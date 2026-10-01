@@ -6,9 +6,11 @@ export interface VehicleSpriteStates {
   readonly on: VehicleSpriteSet;
 }
 
-/** One vehicle's binding in its default color; each image supplies its own named palette. */
-export function createVehicleSprites(vehicle: CompiledVehicleDefinition): VehicleSpriteStates {
-  const color = vehicle.listing.visuals.palette;
+/** One vehicle's binding in one of its colors, by default its default color; each image supplies its own palette. */
+export function createVehicleSprites(
+  vehicle: CompiledVehicleDefinition,
+  color = vehicle.listing.visuals.palette,
+): VehicleSpriteStates {
   return Object.freeze({
     off: createVehiclePaletteVariant(vehicle.spriteSet, color),
     on: createVehiclePaletteVariant(vehicle.spriteSet, color, true),

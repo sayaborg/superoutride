@@ -12,7 +12,7 @@ import { loadEngineSounds } from '../content/engine-sound-catalog.js';
 import { createCourseRace } from '../race/course-race.js';
 import { raceStatusText } from './race-status-hud.js';
 import { createCoursePerformanceHud } from './course-performance-hud.js';
-import { resolveCourseSession } from '../race/course-session.js';
+import { resolveCourseSession, type EntryVehicle } from '../race/course-session.js';
 import { readCourseTimeBudgets, type CourseTimeBudgets } from '../content/course-time-budgets.js';
 import { loadSeriesCatalog, loadSeriesCourse } from '../content/series-catalog.js';
 import { createSessionVehicle, type SessionVehicle } from '../content/session-vehicle.js';
@@ -27,6 +27,7 @@ import { resolveSurfaceSoundRecords } from '../audio/surface-sounds.js';
 import { loadSurfaceSounds } from '../content/surface-sound-catalog.js';
 import { loadAudioSettings } from '../content/audio-catalog.js';
 import { browserStorage, openPlayerRecord } from './player-record.js';
+import { spriteSetHasColor } from '../vehicle/vehicle-sprite-set.js';
 
 const canvas = mustGet<HTMLCanvasElement>('game');
 const status = document.createElement('p');
@@ -48,10 +49,7 @@ try {
   const course = await loadDeliveredCourse(content, mode, materials);
   const parameters = new URLSearchParams(location.search);
   // The course's ARCADE settings come from the one series holding it; a course in no series is untimed.
-  const series = await loadSeriesCatalog(
-    content,
-    vehicles.map((v) => v.compiledVehicle.id),
-  );
+  const series = await loadSeriesCatalog(content, vehicles);
   const arcade = loadSeriesCourse(content, series, course);
   const settings = readBrowserSessionSettings(parameters, arcade, vehicles);
   const entry = vehicles.find((v) => v.compiledVehicle.id === settings.vehicleId)!;
@@ -60,6 +58,28 @@ try {
   const rivalEnvelope = await admitProduct(content, 'envelope', vehicleId, (value, document) =>
     readRivalEnvelope(vehicle, value, document),
   );
+  // Every other vehicle in the series field drives its own Session vehicle and envelope.
+  const fieldVehicles = new Map<string, EntryVehicle>([[vehicleId, { vehicle, envelope: rivalEnvelope }]]);
+  for (const id of new Set(settings.mode === 'ARCADE' ? arcade!.entries.map((e) => e.vehicle) : [])) {
+    if (fieldVehicles.has(id)) continue;
+    const other = createSessionVehicle(
+      vehicles.find((v) => v.compiledVehicle.id === id)!,
+      driving,
+      materials,
+    );
+    fieldVehicles.set(id, {
+      vehicle: other,
+      envelope: await admitProduct(content, 'envelope', id, (value, document) =>
+        readRivalEnvelope(other, value, document),
+      ),
+    });
+  }
+  const vehicleOf = (id: string) => fieldVehicles.get(id)!;
+  // The player's chosen color for the vehicle, from the player record when its sprite set has it.
+  const player = openPlayerRecord(browserStorage());
+  const recordedColor = player.settings.vehicleColors[vehicleId];
+  const playerColor =
+    recordedColor !== undefined && spriteSetHasColor(entry.spriteSet, recordedColor) ? recordedColor : undefined;
   // A timed course's budgets must be delivered; a missing file stops loading rather than dropping the clock.
   const budgets =
     settings.timeLimit && arcade
@@ -67,7 +87,6 @@ try {
           readCourseTimeBudgets(course, vehicle, value, document),
         )
       : null;
-  const sprites = createVehicleSprites(entry);
   const displaySettings = createDisplaySettings();
   const raceSprites = createRaceSprites(vehicles);
   /**
@@ -84,13 +103,17 @@ try {
     // The composition root alone draws randomness: every assembly, a DEV rebuild included, picks a new seed.
     const seed = crypto.getRandomValues(new Uint32Array(1))[0]!;
     const configuration = compileSessionConfiguration({ ...settings, seed });
-    const session = resolveCourseSession(course, arcade, configuration, sessionVehicle, envelope, sessionBudgets);
+    const session = resolveCourseSession(course, arcade, configuration, sessionVehicle, envelope, sessionBudgets, {
+      playerColor,
+      vehicleOf,
+    });
     const scene = createCourseScene(course.entry, course.gates, vehicles, displaySettings);
     const race = createCourseRace({ session, runtime: scene.runtime });
     return { session, scene, race, tuned };
   };
   let active = build(vehicle, settings, rivalEnvelope, budgets, false);
-  const player = openPlayerRecord(browserStorage());
+  // The player's color is resolved with the Session; a DEV rebuild keeps it.
+  const sprites = createVehicleSprites(entry, active.session.entries[0]!.color);
   const shell = createBrowserDrivingShell(vehicle, vehicles, surfaceSounds, await loadAudioSettings(content), player, {
     tick: () => tick(),
     render: () => render(),

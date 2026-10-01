@@ -4,6 +4,7 @@ import {
   readBoolean,
   readDictionary,
   readDocument,
+  readEnum,
   readNumber,
   readRecord,
   readString,
@@ -13,12 +14,15 @@ import {
 import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import type { VehicleId } from '../vehicle/physics/vehicle-definitions.js';
+import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
+import { spriteSetHasColor } from '../vehicle/vehicle-sprite-set.js';
 import type { ContentDelivery } from './content-manifest.js';
 import { requireLoaded } from './content-load-error.js';
 import type { DocumentSource } from './document-catalog.js';
 
 export const SERIES_DOCUMENT_FORMAT = 'superoutride.series';
-export const SERIES_DOCUMENT_VERSION = 2;
+export const SERIES_DOCUMENT_VERSION = 3;
+const PLAYER_SLOTS = ['own', 'last'] as const;
 
 /** One series: the one owner of its courses' ARCADE settings. `dev` series appear only with DEV. */
 export interface CompiledSeries {
@@ -28,15 +32,27 @@ export interface CompiledSeries {
   /** ARCADE vehicle candidates in selection order. */
   readonly vehicles: readonly VehicleId[];
   readonly timeMargin: number;
+  /** Whether the player drives in its entry's color rather than its own chosen color. */
+  readonly fixedColors: boolean;
   readonly courses: readonly SeriesCourse[];
 }
 
-/** A course's ARCADE settings within its series. `rivals` is provisional until competitor entries exist. */
+/** One whole-race competitor entry: its vehicle, color and grid slot index. */
+export interface SeriesEntry {
+  readonly vehicle: VehicleId;
+  readonly color: string;
+  readonly slot: number;
+}
+
+/** A course's ARCADE settings within its series. */
 export interface SeriesCourse {
   readonly series: CompiledSeries;
   readonly course: string;
   readonly laps: number;
-  readonly rivals: number;
+  /** The whole field in grid order; the player takes the rearmost entry of the selected vehicle. */
+  readonly entries: readonly SeriesEntry[];
+  /** `own`: the player stands in its entry's slot; `last`: in the rearmost of the entries' slots. */
+  readonly playerSlot: (typeof PLAYER_SLOTS)[number];
   /** Rank limit N by race gate ID: the player fails when the N-th other competitor crosses that gate first. */
   readonly rankLimits: Readonly<Record<string, number>>;
 }
@@ -49,17 +65,18 @@ export interface SeriesCatalog {
 
 /**
  * Admit every series document against the delivered course IDs and the vehicle catalog: each document is named by
- * its `id`, its candidates and courses exist and are unique, and a course belongs to at most one series.
+ * its `id`, its candidates and courses exist and are unique, a course belongs to at most one series, and each
+ * course's entries name catalog vehicles in colors of their sprite sets, with an entry for every candidate.
  */
 export function compileSeriesCatalog(
   sources: readonly DocumentSource[],
   courseIds: readonly string[],
-  vehicleIds: readonly VehicleId[],
+  vehicles: readonly CompiledVehicleDefinition[],
 ): AdmissionResult<SeriesCatalog> {
   const series: CompiledSeries[] = [];
   const owners = new Map<string, SeriesCourse>();
   for (const source of sources) {
-    const admitted = admit(source.path, () => readSeries(source, courseIds, vehicleIds, owners));
+    const admitted = admit(source.path, () => readSeries(source, courseIds, vehicles, owners));
     if (!admitted.ok) return admitted;
     series.push(admitted.value);
   }
@@ -75,12 +92,13 @@ export function compileSeriesCatalog(
 function readSeries(
   source: DocumentSource,
   courseIds: readonly string[],
-  vehicleIds: readonly VehicleId[],
+  catalog: readonly CompiledVehicleDefinition[],
   owners: Map<string, SeriesCourse>,
 ): CompiledSeries {
+  const vehicleOf = (id: string) => catalog.find((vehicle) => vehicle.compiledVehicle.id === id);
   const root = readDocument(
     source.value,
-    ['format', 'version', 'id', 'title', 'dev', 'vehicles', 'timeMargin', 'courses'],
+    ['format', 'version', 'id', 'title', 'dev', 'vehicles', 'timeMargin', 'fixedColors', 'courses'],
     SERIES_DOCUMENT_FORMAT,
     SERIES_DOCUMENT_VERSION,
   );
@@ -91,7 +109,7 @@ function readSeries(
     '/vehicles',
     (value, at) => {
       const vehicle = readString(value, at);
-      requireAdmission(vehicleIds.includes(vehicle), 'unresolved_reference', at, `Unknown vehicle ${vehicle}`);
+      requireAdmission(vehicleOf(vehicle) !== undefined, 'unresolved_reference', at, `Unknown vehicle ${vehicle}`);
       return vehicle;
     },
     { min: 1 },
@@ -107,13 +125,14 @@ function readSeries(
       max: SESSION_RULE_LIMITS.timeMargin,
       exclusiveMin: true,
     }),
+    fixedColors: readBoolean(root.fixedColors, '/fixedColors'),
     courses: [] as SeriesCourse[],
   };
   const courses = readArray(
     root.courses,
     '/courses',
     (value, at) => {
-      const entry = readRecord(value, at, ['course', 'laps', 'rivals', 'rankLimits']);
+      const entry = readRecord(value, at, ['course', 'laps', 'entries', 'playerSlot', 'rankLimits']);
       const course = readString(entry.course, `${at}/course`);
       requireAdmission(courseIds.includes(course), 'unresolved_reference', `${at}/course`, `Unknown course ${course}`);
       requireAdmission(
@@ -126,7 +145,8 @@ function readSeries(
         series: series as CompiledSeries,
         course,
         laps: readNumber(entry.laps, `${at}/laps`, { min: 1, max: SESSION_RULE_LIMITS.laps, integer: true }),
-        rivals: readNumber(entry.rivals, `${at}/rivals`, { min: 0, max: SESSION_RULE_LIMITS.rivals, integer: true }),
+        entries: readEntries(entry.entries, `${at}/entries`, vehicles, vehicleOf),
+        playerSlot: readEnum(entry.playerSlot, PLAYER_SLOTS, `${at}/playerSlot`),
         rankLimits: readDictionary(entry.rankLimits, `${at}/rankLimits`, (limit, path) =>
           readNumber(limit, path, { min: 1, max: SESSION_RULE_LIMITS.rivals, integer: true }),
         ),
@@ -140,6 +160,50 @@ function readSeries(
   return Object.freeze(series);
 }
 
+/** At most a full field of entries in grid order, with at least one entry for every candidate vehicle. */
+function readEntries(
+  value: unknown,
+  path: string,
+  candidates: readonly VehicleId[],
+  vehicleOf: (id: string) => CompiledVehicleDefinition | undefined,
+): readonly SeriesEntry[] {
+  let previous = -1;
+  const entries = readArray(
+    value,
+    path,
+    (item, at) => {
+      const record = readRecord(item, at, ['vehicle', 'color', 'slot']);
+      const id = readString(record.vehicle, `${at}/vehicle`);
+      const vehicle = vehicleOf(id);
+      requireAdmission(vehicle !== undefined, 'unresolved_reference', `${at}/vehicle`, `Unknown vehicle ${id}`);
+      const color = readString(record.color, `${at}/color`);
+      requireAdmission(
+        spriteSetHasColor(vehicle!.spriteSet, color),
+        'unresolved_reference',
+        `${at}/color`,
+        `${id} has no color ${color}`,
+      );
+      const slot = readNumber(record.slot, `${at}/slot`, {
+        min: 0,
+        max: SESSION_RULE_LIMITS.competitors - 1,
+        integer: true,
+      });
+      requireAdmission(slot > previous, 'invalid_value', `${at}/slot`, 'Entries must be in grid order, one per slot');
+      previous = slot;
+      return Object.freeze({ vehicle: id, color, slot });
+    },
+    { min: 1, max: SESSION_RULE_LIMITS.competitors },
+  );
+  for (const candidate of candidates)
+    requireAdmission(
+      entries.some((entry) => entry.vehicle === candidate),
+      'invalid_value',
+      path,
+      `Candidate vehicle ${candidate} needs an entry for the player`,
+    );
+  return entries;
+}
+
 function requireUnique(values: readonly string[], path: string, kind: string): void {
   values.forEach((value, index) =>
     requireAdmission(values.indexOf(value) === index, 'duplicate_id', `${path}/${index}`, `Duplicate ${kind} ${value}`),
@@ -147,8 +211,9 @@ function requireUnique(values: readonly string[], path: string, kind: string): v
 }
 
 /**
- * Admit a series course against its compiled course: the laps fit the course's lap maximum, the grid holds the
- * player and the rivals, and each rank limit names a race gate of the course with N below the field size. The build admits every series course; a Session admits the course it drives.
+ * Admit a series course against its compiled course: the laps fit the course's lap maximum, every entry's slot is in
+ * the grid, and each rank limit names a race gate of the course with N below the field size. The build admits every
+ * series course; a Session admits the course it drives.
  */
 export function admitSeriesCourse(
   settings: SeriesCourse,
@@ -163,11 +228,13 @@ export function admitSeriesCourse(
       `/courses/${index}/laps`,
       `Series laps exceed the lap maximum of ${course.id}`,
     );
-    requireAdmission(
-      settings.rivals < course.gates.grid.length,
-      'invalid_value',
-      `/courses/${index}/rivals`,
-      `The grid of ${course.id} cannot hold the player and these rivals`,
+    settings.entries.forEach((entry, i) =>
+      requireAdmission(
+        entry.slot < course.gates.grid.length,
+        'invalid_value',
+        `/courses/${index}/entries/${i}/slot`,
+        `The grid of ${course.id} has no slot ${entry.slot}`,
+      ),
     );
     const gates = new Set(
       course.gates.intervals
@@ -178,10 +245,10 @@ export function admitSeriesCourse(
       const at = `/courses/${index}/rankLimits/${gate.replaceAll('~', '~0').replaceAll('/', '~1')}`;
       requireAdmission(gates.has(gate), 'unresolved_reference', at, `${course.id} has no race gate ${gate}`);
       requireAdmission(
-        limit < 1 + settings.rivals,
+        limit < settings.entries.length,
         'invalid_value',
         at,
-        `Rank limit ${limit} must be below the field size ${1 + settings.rivals}`,
+        `Rank limit ${limit} must be below the field size ${settings.entries.length}`,
       );
     }
     return settings;
@@ -191,13 +258,13 @@ export function admitSeriesCourse(
 /** Admit the delivered series against the delivered courses and the given vehicle catalog. */
 export async function loadSeriesCatalog(
   content: ContentDelivery,
-  vehicleIds: readonly VehicleId[],
+  vehicles: readonly CompiledVehicleDefinition[],
 ): Promise<SeriesCatalog> {
   const sources: DocumentSource[] = [];
   for (const file of content.manifest.files.filter((file) => file.kind === 'series'))
     sources.push({ id: file.id, path: file.path, value: await content.json('series', file.id), sha256: file.sha256 });
   const courseIds = content.manifest.files.filter((file) => file.kind === 'course').map((file) => file.id);
-  return requireLoaded(compileSeriesCatalog(sources, courseIds, vehicleIds));
+  return requireLoaded(compileSeriesCatalog(sources, courseIds, vehicles));
 }
 
 /** The delivered course's ARCADE settings, admitted against it, or null when no series holds the course. */

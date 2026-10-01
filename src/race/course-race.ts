@@ -161,8 +161,13 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     return true;
   };
   // Borrowed competitor observations: every advance overwrites them at the end of its fixed step.
-  const competitorObservations = entries.map(({ id, vehicle }) =>
-    createCompetitorObservation(id, vehicle.vehicleDefinition.compiledVehicle.id, vehicle.vehicleDefinition.form),
+  const competitorObservations = entries.map(({ id, vehicle, color }) =>
+    createCompetitorObservation(
+      id,
+      vehicle.vehicleDefinition.compiledVehicle.id,
+      color,
+      vehicle.vehicleDefinition.form,
+    ),
   );
   const playerObservation = competitorObservations[0]!,
     rivalObservations = competitorObservations.slice(1);

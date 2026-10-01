@@ -1,5 +1,5 @@
 import type { SpriteAssets } from './vehicle-sprite-library.js';
-import type { VehicleSpriteSet } from './vehicle-sprite-set.js';
+import { spriteSetHasColor, type VehicleSpriteSet } from './vehicle-sprite-set.js';
 import { compileVehicle, type VehicleDefinition, type CompiledVehicle } from './physics/vehicle-definitions.js';
 import { compileDriving } from './physics/compiled-driving.js';
 import {
@@ -198,7 +198,7 @@ export function compileVehicleListingDocument(
       '/visuals/spriteSet',
       'Sprite bank dimensions do not support this vehicle form',
     );
-    if (!spriteSet.assets.every((row) => row.every((image) => Object.hasOwn(image.palettes, visuals.palette))))
+    if (!spriteSetHasColor(spriteSet, visuals.palette))
       throw new AdmissionError('unresolved_reference', '/visuals/palette', `Unknown sprite color: ${visuals.palette}`);
     const soundId = readString(v.sound, '/sound');
     if (!Object.hasOwn(sounds, soundId))

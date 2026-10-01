@@ -1,28 +1,70 @@
 {
   "format": "superoutride.series",
-  "version": 2,
+  "version": 3,
   "id": "ribbon",
   "title": "RIBBON",
   "dev": true,
   "vehicles": ["TESTAROSSA"],
   "timeMargin": 1.35,
+  "fixedColors": false,
   "courses": [
     {
       "course": "ribbon-coast",
       "laps": 1,
-      "rivals": 0,
+      "entries": [
+        {
+          "vehicle": "TESTAROSSA",
+          "color": "original",
+          "slot": 15
+        }
+      ],
+      "playerSlot": "last",
       "rankLimits": {}
     },
     {
       "course": "ribbon-fork",
       "laps": 1,
-      "rivals": 2,
+      "entries": [
+        {
+          "vehicle": "TESTAROSSA",
+          "color": "original",
+          "slot": 13
+        },
+        {
+          "vehicle": "TESTAROSSA",
+          "color": "original",
+          "slot": 14
+        },
+        {
+          "vehicle": "TESTAROSSA",
+          "color": "original",
+          "slot": 15
+        }
+      ],
+      "playerSlot": "last",
       "rankLimits": {}
     },
     {
       "course": "ribbon-ring",
       "laps": 2,
-      "rivals": 2,
+      "entries": [
+        {
+          "vehicle": "TESTAROSSA",
+          "color": "original",
+          "slot": 13
+        },
+        {
+          "vehicle": "TESTAROSSA",
+          "color": "original",
+          "slot": 14
+        },
+        {
+          "vehicle": "TESTAROSSA",
+          "color": "original",
+          "slot": 15
+        }
+      ],
+      "playerSlot": "last",
       "rankLimits": {}
     }
   ]

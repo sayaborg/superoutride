@@ -119,7 +119,7 @@ const series = requireLoaded(
   compileSeriesCatalog(
     seriesSources,
     courses.map((course) => course.id),
-    definitions.vehicles.map((vehicle) => vehicle.compiledVehicle.id),
+    definitions.vehicles,
   ),
 );
 const seriesCourses = courses.flatMap((course) => {

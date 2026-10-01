@@ -18,7 +18,7 @@ export function readBrowserSessionSettings(
   vehicles: readonly CompiledVehicleDefinition[],
 ): BrowserSessionSettings {
   const preset = arcade
-    ? { vehicleId: arcade.series.vehicles[0]!, rivalCount: arcade.rivals, lapCount: arcade.laps }
+    ? { vehicleId: arcade.series.vehicles[0]!, rivalCount: arcade.entries.length - 1, lapCount: arcade.laps }
     : { vehicleId: vehicles[0]!.compiledVehicle.id, rivalCount: 0, lapCount: 1 };
   const mode = params.get('session') ?? (arcade ? 'ARCADE' : 'FREE_PLAY');
   if (mode !== 'ARCADE' && mode !== 'FREE_PLAY') throw new RangeError('Unknown Session mode');
@@ -107,7 +107,7 @@ export function mountCourseSessionControls(
     const locked = mode.value === 'ARCADE';
     if (locked && arcade) {
       vehicle.value = arcade.series.vehicles[0]!;
-      rivals.value = String(arcade.rivals);
+      rivals.value = String(arcade.entries.length - 1);
       laps.value = String(arcade.laps);
     }
     vehicle.disabled = rivals.disabled = locked;

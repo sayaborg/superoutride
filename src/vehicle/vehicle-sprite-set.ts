@@ -13,6 +13,11 @@ export interface VehicleSpriteSet {
   readonly assets: readonly (readonly SpriteAsset[])[];
 }
 
+/** Whether every image of the set declares `color`: the colors a vehicle with this set can be drawn in. */
+export function spriteSetHasColor(set: VehicleSpriteSet, color: string): boolean {
+  return set.assets.every((row) => row.every((image) => Object.hasOwn(image.palettes, color)));
+}
+
 /** An instance resolves each image's own named color and lamp state once. */
 export function createVehiclePaletteVariant(
   set: VehicleSpriteSet,

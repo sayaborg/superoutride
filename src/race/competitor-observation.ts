@@ -13,6 +13,8 @@ import type { SessionVehicle } from '../content/session-vehicle.js';
 export interface CompetitorObservation extends VehicleMotionRead, VehicleRenderRead {
   readonly id: string;
   readonly vehicleId: string;
+  /** The color of the vehicle's sprite set this competitor is drawn in. */
+  readonly color: string;
   readonly form: SessionVehicle['vehicleDefinition']['form'];
   readonly y: number;
   readonly brakeLampOn: boolean;
@@ -36,6 +38,7 @@ type CompetitorObservationSlot = Mutable<Omit<CompetitorObservation, 'course' | 
 export function createCompetitorObservation(
   id: string,
   vehicleId: string,
+  color: string,
   form: CompetitorObservation['form'],
 ): CompetitorObservation {
   const tire = (): MutableTire => ({
@@ -51,6 +54,7 @@ export function createCompetitorObservation(
   const slot: CompetitorObservationSlot = {
     id,
     vehicleId,
+    color,
     form,
     x: 0,
     y: 0,

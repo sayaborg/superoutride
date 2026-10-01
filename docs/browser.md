@@ -58,7 +58,7 @@ Session parameters are case-sensitive:
 | `autostart` | Exactly `1` starts after loading; other values show setup                                        |
 
 ARCADE uses the course's [series](content-and-gameplay.md#series-documents) settings: the series' first
-vehicle, its rivals and laps, with the checkpoint clock, ignoring their individual query overrides. FREE PLAY exposes
+vehicle, its entries and laps, with the checkpoint clock, ignoring their individual query overrides. FREE PLAY exposes
 those settings and has no clock; there is no `clock` parameter, so an old `clock` value is other URL data and ignored. Invalid vehicle, numeric or course/Session combinations
 produce an error. Setup locks preset fields in ARCADE and disables a single-lap course's lap control.
 A course in no series is untimed: it offers only FREE PLAY;
@@ -172,7 +172,7 @@ opens it once at page load; shell controls read the admitted settings and change
 
 | Setting            | Shape and default                                                                     |
 | ------------------ | ------------------------------------------------------------------------------------- |
-| `vehicleColors`    | Selected color ID by vehicle ID; default `{}`                                         |
+| `vehicleColors`    | Selected color by vehicle ID, the player's Session color; default `{}`                |
 | `volumes`          | `master`, `music` and `effects` as integer percentages 0–100; default 35, 100 and 100 |
 | `latestSelections` | Latest selection by selection-screen key; default `{}`                                |
 
@@ -181,7 +181,9 @@ malformed or other-version record starts from the defaults and is replaced by th
 migration readers. Each settings change saves the whole record at once. Where localStorage is missing or
 reading or writing it throws, the record lives in memory for the page and the game continues. Today only the
 MASTER volume has a control (the volume stepper in [Sound controls](#sound-controls)); colors, MUSIC, EFFECTS
-and selections keep their defaults until their screens exist. DEV tuning and DEV sound settings are not stored.
+and selections keep their defaults until their screens exist. A Session reads the player's vehicle color from
+`vehicleColors`, falling back to the vehicle's default color when the record has none or names a color its sprite
+set lacks. DEV tuning and DEV sound settings are not stored.
 
 ## DEV controls
 

@@ -619,51 +619,69 @@ share a rank. Rival positions and audio observations already use the same route 
 
 ## Series documents
 
-A series document (`superoutride.series` version 2) is the one owner of its courses' ARCADE settings. It is
+A series document (`superoutride.series` version 3) is the one owner of its courses' ARCADE settings. It is
 saved as `content/series/<id>.series.json`; `id` equals that file name stem, which is also its manifest ID.
 
 ```json
 {
   "format": "superoutride.series",
-  "version": 2,
+  "version": 3,
   "id": "ribbon",
   "title": "RIBBON",
   "dev": true,
   "vehicles": ["TESTAROSSA"],
   "timeMargin": 1.35,
-  "courses": [{ "course": "ribbon-coast", "laps": 1, "rivals": 0, "rankLimits": {} }]
+  "fixedColors": false,
+  "courses": [
+    {
+      "course": "ribbon-coast",
+      "laps": 1,
+      "entries": [{ "vehicle": "TESTAROSSA", "color": "original", "slot": 15 }],
+      "playerSlot": "last",
+      "rankLimits": {}
+    }
+  ]
 }
 ```
 
 `title` is the display name. `dev: true` marks a development series: front ends show it only with DEV.
 `vehicles` lists the ARCADE vehicle candidates, at least one, unique and in the catalog, in selection order.
-`timeMargin` is the series' one time margin: positive, finite and at most 10. `courses` lists at least one
-delivered course, each with its ARCADE `laps` (1 through 99), `rivals` (0 through 15) and `rankLimits`, an object
-from race gate ID to rank limit N. `rivals` is a
-count until competitor entries replace it. Admission checks each document once, from the build's files or
-the delivery manifest alike, against the delivered course IDs and the vehicle catalog. Until selection screens
-choose a series, a course belongs to at most one series; a second one is rejected. A series course is
-admitted against its compiled course: `laps` within `maxLaps`, a grid that holds the player and `rivals`, and
-rank limits naming checkpoint or FINISH gates of that course with N an integer from 1 to below the field size
-(`1 + rivals`).
-The build admits every series course; a Session admits the course it drives.
+`timeMargin` is the series' one time margin: positive, finite and at most 10. `fixedColors` says whether the
+player drives in its entry's color rather than its own chosen color. `courses` lists at least one delivered
+course, each with its ARCADE `laps` (1 through 99), `entries`, `playerSlot` and `rankLimits`. `entries` lists the
+whole field in grid order, 1 through 16 whole-race entries, each a catalog vehicle, a color its sprite set declares
+and a grid slot index (0 through 15), with strictly increasing slots; every candidate vehicle has at least one
+entry, which the player can take. `playerSlot` is `own` or `last`. `rankLimits` maps a race gate ID to its rank
+limit N. Admission checks each document once, from the build's files or the delivery manifest alike, against the
+delivered course IDs and the vehicle catalog. Until selection screens choose a series, a course belongs to at most
+one series; a second one is rejected. A series course is admitted against its compiled course: `laps` within
+`maxLaps`, every entry's slot within the grid, and rank limits naming checkpoint or FINISH gates of that course
+with N an integer from 1 to below the field size (the number of entries). The build admits every series course; a
+Session admits the course it drives.
 
-The delivered series is RIBBON (`dev: true`): RIBBON COAST, RIBBON FORK and RIBBON RING with TESTAROSSA.
+The delivered series is RIBBON (`dev: true`, colors not fixed): RIBBON COAST, RIBBON FORK and RIBBON RING with
+TESTAROSSA, whose fields are 1, 3 and 3 TESTAROSSA entries in its default color in the grid's rearmost slots, with
+`playerSlot: last`.
 RIBBON ROUGH belongs to no series.
 
 ## Session and reference timing
 
 ### Resolved Session
 
-ARCADE resolves its series course: a series vehicle candidate, the course's series rivals and laps and the
-checkpoint clock. FREE PLAY resolves a catalog
+ARCADE resolves its series course: a series vehicle candidate, the course's series entries and laps and the
+checkpoint clock. The player takes the rearmost entry of its vehicle in grid order: with `own` it stands in that
+entry's slot and every other entry in its own; with `last` it stands in the rearmost of the entries' slots and the
+other entries, in order, take the slots in front. Each other entry is a rival with its own vehicle, envelope and
+color. The player's color is its entry's when the series fixes colors, otherwise the player's chosen color (the
+player record's color for the vehicle when its sprite set declares it), otherwise the vehicle's default color. FREE PLAY resolves a catalog
 vehicle, zero to fifteen rivals and permitted laps; it has no clock, and a FREE PLAY configuration with a time limit
 is rejected. On an untimed course, Session resolution rejects ARCADE; an ARCADE clock without its delivered time
 budgets fails. Unsupported course/vehicle/grid/lap combinations fail before
 activation. A Session binds immutable course, entries, lap target, start speed and timing references. Its entries
 list the player first, then the rivals: each has a stable ID (`PLAYER`, then `RIVAL_01`, `RIVAL_02`, …), its grid
-slot, its Session vehicle (vehicle calibration and protection settings) and that vehicle's envelope. The player
-stands in the grid's last slot and the rivals in the slots directly in front of it, `RIVAL_01` frontmost.
+slot, its Session vehicle (vehicle calibration and protection settings) and that vehicle's envelope. In FREE PLAY the
+player stands in the grid's last slot and the rivals, in the player's vehicle and its default color, in the slots
+directly in front of it, `RIVAL_01` frontmost. Each entry also carries its color.
 Every rival entry currently carries the player's vehicle and envelope.
 The start speed is a resolved Session setting: every competitor spawns at its grid slot moving at it along the
 road tangent. It is finite and may be negative; product Sessions and reference runs use 0. The Session seed is a
