@@ -20,10 +20,10 @@
   and the game-wide sound settings are content documents; every sound value is derived from physics or a DEV setting;
   exhausts are collector graphs.
 - The [product specification](product.md) is the target for Stages 12–16. Series documents own ARCADE settings and
-  fields; FREE PLAY rivals are drawn from vehicle pools; TIME TRIAL, traffic, collisions, music, sound effects and
+  fields; FREE PLAY rivals are drawn from vehicle pools; TIME TRIAL runs alone; traffic, collisions, music, sound effects and
   the product front end are not implemented.
 
-Next PR: **12-8e — TIME TRIAL**.
+Next PR: **12-9a — Held start**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -34,12 +34,19 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 Define input, run state, framebuffer, persistent player data, data-driven Sessions, the product front end and the
 product HUD independently of DEV, as specified in the [product specification](product.md).
 
-- **12-8e — TIME TRIAL:** the third mode; solo, no traffic, no clock, route chosen by driving.
-- **12-9 — Start and finish:** remove `updateHeldVehicle`; a held start constrains the body explicitly inside the one
-  vehicle update while the powertrain runs; READY has one meaning (today both the start phase and the checkpoint
-  clock have a READY state). Signal lamps count down the 3-second hold. After the player's finish the driver takes
-  over the player's vehicle and stops it; after GAME OVER the throttle is released; RESULT follows after 3 s (a DEV
-  setting), and the rest of the field keeps driving.
+- **12-9a — Held start:** remove `updateHeldVehicle`; during READY the one vehicle update constrains the body
+  explicitly while the powertrain runs and the engine revs freely with the throttle. Compare the launch with today's
+  zero-clutch-capacity hold.
+- **12-9b — READY has one meaning:** today both the start phase and the run outcome have a READY state. One owner holds
+  the state before GO and the race publishes it as facts (status and seconds to GO); the 3-second hold's countdown is
+  a fact signal lamps can read (lamp state from the remaining seconds), drawn by the product HUD (12-13). The status
+  text (`READY n`) stays.
+- **12-9c — Finish and RESULT:** at the player's finish its rank is fixed (competitors not yet finished rank behind),
+  the envelope driver takes over the player's vehicle and stops it in the runout, and player input no longer reaches
+  the vehicle; without an envelope (a DEV-tuned Session) the brake is held. After GAME OVER the player's throttle is
+  released and the vehicle coasts. The rest of the field keeps driving. The race publishes the player's finish or
+  failure and its time; the shell, which drives the run state, counts a DEV delay (default 3 s, not persisted) and
+  then performs RESULT — today's `finished` handling — while the loop, rendering and sound continue until then.
 - **12-10 — Camera:** one product camera, as specified; the body-yaw/movement-yaw choice remains DEV only. Decide
   from playability evaluation whether a sprung camera mount or a ground-clearance rule is wanted (criterion: the view
   must not shake excessively over elevation changes). The loading window covers every camera method. Rename camera

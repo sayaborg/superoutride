@@ -696,11 +696,13 @@ slots and the other grid entries, in order, take the slots in front. Each other 
 vehicle, envelope, color, pace ratio and stage interval; one with an ahead appearance has no slot. The player's color is its entry's when the series fixes colors, otherwise the player's chosen color (the
 player record's color for the vehicle when its sprite set declares it), otherwise the vehicle's default color. FREE PLAY resolves a catalog
 vehicle, zero to fifteen rivals and permitted laps; it has no clock, and a FREE PLAY configuration with a time limit
-is rejected. On an untimed course, Session resolution rejects ARCADE; an ARCADE clock without its delivered time
+is rejected. TIME TRIAL resolves a catalog vehicle and permitted laps on any course; the player runs alone, without
+rivals or clock, and selects fork routes by driving like any first competitor at a lock line. A TIME TRIAL
+configuration with rivals or a time limit is rejected. On an untimed course, Session resolution rejects ARCADE; an ARCADE clock without its delivered time
 budgets fails. Unsupported course/vehicle/grid/lap combinations fail before
 activation. A Session binds immutable course, entries, lap target, start speed and timing references. Its entries
 list the player first, then the rivals: each has a stable ID (`PLAYER`, then `RIVAL_01`, `RIVAL_02`, …), its grid
-slot, its Session vehicle (vehicle calibration and protection settings) and that vehicle's envelope. In FREE PLAY the
+slot, its Session vehicle (vehicle calibration and protection settings) and that vehicle's envelope. In FREE PLAY and TIME TRIAL the
 player stands in the grid's last slot and the rivals in the slots directly in front of it, `RIVAL_01` frontmost.
 Each FREE PLAY rival is a vehicle/color pair drawn from the rival pool (`ALL`, `CARS` or `BIKES`; every color each
 pool vehicle's sprite set declares) by the Session seed: a seeded shuffle of the pairs other than the player's own,

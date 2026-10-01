@@ -44,7 +44,8 @@ const rivalId = (index: number) => `RIVAL_${String(index + 1).padStart(2, '0')}`
  * The resolved entries list the player first, then each rival. ARCADE takes the series entries: the player the
  * rearmost entry of its vehicle, standing in that entry's slot (`own`) or the rearmost of their slots (`last`), and
  * every other entry its own vehicle (from `field.vehicleOf`) and color. FREE PLAY stands the player in the grid's
- * last slot and the rivals in the slots in front, each a pair drawn from `field.rivalPool` by the Session seed. The player's color
+ * last slot and the rivals in the slots in front, each a pair drawn from `field.rivalPool` by the Session seed;
+ * TIME TRIAL stands the player alone in the grid's last slot. The player's color
  * is its entry's when the series fixes colors, else `field.playerColor`, else the vehicle's default color.
  */
 export function resolveCourseSession(
@@ -178,7 +179,10 @@ function arcadeEntries(
   ]);
 }
 
-/** FREE PLAY: the player in the grid's last slot and the drawn rivals in the slots directly in front of it. */
+/**
+ * FREE PLAY: the player in the grid's last slot and the drawn rivals in the slots directly in front of it; TIME TRIAL,
+ * which has no rivals, is the player alone there.
+ */
 function freePlayEntries(
   course: CompiledCourse,
   configuration: SessionConfiguration,

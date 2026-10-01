@@ -1,11 +1,12 @@
 import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
 
 export interface SessionConfiguration {
-  readonly mode: 'ARCADE' | 'FREE_PLAY';
+  /** TIME TRIAL runs alone: no rivals and no clock. */
+  readonly mode: 'ARCADE' | 'FREE_PLAY' | 'TIME_TRIAL';
   /** Opponents only; the player is not included. */
   readonly rivalCount: number;
   readonly lapCount: number;
-  /** The checkpoint clock; ARCADE only, FREE PLAY has none. */
+  /** The checkpoint clock; ARCADE only, FREE PLAY and TIME TRIAL have none. */
   readonly timeLimit: boolean;
   /** m/s along the grid slot's road tangent for every competitor at spawn; finite, negative allowed. The product uses 0. */
   readonly initialSpeed: number;
@@ -14,8 +15,8 @@ export interface SessionConfiguration {
 }
 
 export function compileSessionConfiguration(authoring: SessionConfiguration): Readonly<SessionConfiguration> {
-  if (authoring.mode !== 'ARCADE' && authoring.mode !== 'FREE_PLAY')
-    throw new RangeError('Session mode must be ARCADE or FREE_PLAY');
+  if (authoring.mode !== 'ARCADE' && authoring.mode !== 'FREE_PLAY' && authoring.mode !== 'TIME_TRIAL')
+    throw new RangeError('Session mode must be ARCADE, FREE_PLAY or TIME_TRIAL');
   if (
     !Number.isInteger(authoring.rivalCount) ||
     authoring.rivalCount < 0 ||
@@ -26,6 +27,8 @@ export function compileSessionConfiguration(authoring: SessionConfiguration): Re
     throw new RangeError(`Session lapCount must be an integer within 1..${SESSION_RULE_LIMITS.laps}`);
   if (typeof authoring.timeLimit !== 'boolean') throw new TypeError('Session timeLimit must be boolean');
   if (authoring.mode === 'FREE_PLAY' && authoring.timeLimit) throw new RangeError('FREE PLAY has no clock');
+  if (authoring.mode === 'TIME_TRIAL' && (authoring.timeLimit || authoring.rivalCount !== 0))
+    throw new RangeError('TIME TRIAL has no rivals and no clock');
   if (!Number.isInteger(authoring.seed) || authoring.seed < 0 || authoring.seed > 0xffffffff)
     throw new RangeError('Session seed must be a 32-bit unsigned integer');
   return Object.freeze({

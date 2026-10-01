@@ -51,10 +51,10 @@ Session parameters are case-sensitive:
 | Parameter   | Meaning                                                                                                  |
 | ----------- | -------------------------------------------------------------------------------------------------------- |
 | `mode`      | Lowercase registered course query; independent of Session mode                                           |
-| `session`   | `ARCADE` or `FREE_PLAY`, default `ARCADE`; other values fail                                             |
-| `vehicle`   | Exact catalog vehicle ID for FREE PLAY, such as `TESTAROSSA`; absent uses preset                         |
+| `session`   | `ARCADE`, `FREE_PLAY` or `TIME_TRIAL`, default `ARCADE`; other values fail                               |
+| `vehicle`   | Exact catalog vehicle ID for FREE PLAY and TIME TRIAL, such as `TESTAROSSA`; absent uses preset          |
 | `rivals`    | FREE PLAY count parsed with `Number`; integer 0–15 within grid capacity; absent uses preset              |
-| `laps`      | FREE PLAY count parsed with `Number`; positive integer within course limit; non-circuits use one         |
+| `laps`      | FREE PLAY and TIME TRIAL count parsed with `Number`; positive integer within course limit                |
 | `pool`      | FREE PLAY rival pool: `ALL`, `CARS` or `BIKES`; absent uses the player vehicle's form; other values fail |
 | `autostart` | Exactly `1` starts after loading; other values show setup                                                |
 
@@ -62,7 +62,8 @@ ARCADE uses the course's [series](content-and-gameplay.md#series-documents) sett
 vehicle, its entries and laps, with the checkpoint clock, ignoring their individual query overrides. FREE PLAY exposes
 those settings and has no clock; there is no `clock` parameter, so an old `clock` value is other URL data and ignored. Invalid vehicle, numeric or course/Session combinations
 produce an error. Setup locks preset fields in ARCADE and disables a single-lap course's lap control.
-A course in no series is untimed: it offers only FREE PLAY;
+TIME TRIAL exposes the vehicle and laps, runs alone and has no clock; a `rivals` or `pool` parameter is an error
+there, and setup disables the rival control. A course in no series is untimed: it offers FREE PLAY and TIME TRIAL;
 `session=ARCADE` is an error there, and its defaults are the first vehicle in selection order, no
 rivals and one lap. A timed course whose time budgets are missing from delivery fails to load.
 
