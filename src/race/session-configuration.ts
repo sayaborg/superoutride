@@ -1,7 +1,7 @@
 import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
 
 export interface SessionConfiguration {
-  readonly mode: 'CLASSIC' | 'CUSTOM';
+  readonly mode: 'ARCADE' | 'FREE_PLAY';
   /** Opponents only; the player is not included. */
   readonly rivalCount: number;
   readonly lapCount: number;
@@ -13,8 +13,8 @@ export interface SessionConfiguration {
 }
 
 export function compileSessionConfiguration(authoring: SessionConfiguration): Readonly<SessionConfiguration> {
-  if (authoring.mode !== 'CLASSIC' && authoring.mode !== 'CUSTOM')
-    throw new RangeError('Session mode must be CLASSIC or CUSTOM');
+  if (authoring.mode !== 'ARCADE' && authoring.mode !== 'FREE_PLAY')
+    throw new RangeError('Session mode must be ARCADE or FREE_PLAY');
   if (
     !Number.isInteger(authoring.rivalCount) ||
     authoring.rivalCount < 0 ||

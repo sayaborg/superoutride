@@ -117,7 +117,7 @@ for (const name of (await readdir(new URL('courses/', content))).sort()) {
 // Reference workers run in separate threads and read this build's saved content.
 await writer.save();
 await buildCourseReferences(
-  // Only courses whose rules carry CLASSIC settings are timed and receive reference runs and budgets.
+  // Only courses whose rules carry ARCADE settings are timed and receive reference runs and budgets.
   courses.filter((entry): entry is { course: TimedCompiledCourse; stem: string } => isTimedCourse(entry.course)),
   definitions,
   writer.stage,

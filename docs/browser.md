@@ -47,25 +47,25 @@ Selecting the active course does nothing. Selecting another performs full-page n
 
 Session parameters are case-sensitive:
 
-| Parameter   | Meaning                                                                                       |
-| ----------- | --------------------------------------------------------------------------------------------- |
-| `mode`      | Lowercase registered course query; independent of Session mode                                |
-| `session`   | `CLASSIC` or `CUSTOM`, default `CLASSIC`; other values fail                                   |
-| `vehicle`   | Exact catalog vehicle ID for CUSTOM, such as `TESTAROSSA`; absent uses preset                 |
-| `rivals`    | CUSTOM count parsed with `Number`; integer 0–16 within grid capacity; absent uses preset      |
-| `laps`      | CUSTOM count parsed with `Number`; positive integer within course limit; non-circuits use one |
-| `clock`     | CUSTOM time limit: exactly `off` disables it, all other values enable it                      |
-| `autostart` | Exactly `1` starts after loading; other values show setup                                     |
+| Parameter   | Meaning                                                                                          |
+| ----------- | ------------------------------------------------------------------------------------------------ |
+| `mode`      | Lowercase registered course query; independent of Session mode                                   |
+| `session`   | `ARCADE` or `FREE_PLAY`, default `ARCADE`; other values fail                                     |
+| `vehicle`   | Exact catalog vehicle ID for FREE PLAY, such as `TESTAROSSA`; absent uses preset                 |
+| `rivals`    | FREE PLAY count parsed with `Number`; integer 0–16 within grid capacity; absent uses preset      |
+| `laps`      | FREE PLAY count parsed with `Number`; positive integer within course limit; non-circuits use one |
+| `clock`     | FREE PLAY time limit: exactly `off` disables it, all other values enable it                      |
+| `autostart` | Exactly `1` starts after loading; other values show setup                                        |
 
-CLASSIC uses the saved vehicle, rivals and laps with the time limit enabled, ignoring their individual
-query overrides. CUSTOM exposes those settings. Invalid vehicle, numeric or course/Session combinations
-produce an error. Setup locks preset fields in CLASSIC and disables a single-lap course's lap control.
-An untimed course (rules without CLASSIC settings) offers only CUSTOM with the clock OFF and locked;
-`session=CLASSIC` is an error there, and its defaults are the first vehicle in selection order, no
+ARCADE uses the saved vehicle, rivals and laps with the time limit enabled, ignoring their individual
+query overrides. FREE PLAY exposes those settings. Invalid vehicle, numeric or course/Session combinations
+produce an error. Setup locks preset fields in ARCADE and disables a single-lap course's lap control.
+An untimed course (rules without ARCADE settings) offers only FREE PLAY with the clock OFF and locked;
+`session=ARCADE` is an error there, and its defaults are the first vehicle in selection order, no
 rivals and one lap. A timed course whose time budgets are missing from delivery fails to load.
 
 ```text
-?mode=ribbon-coast&session=CUSTOM&vehicle=TESTAROSSA&rivals=16&laps=1&clock=off&autostart=1
+?mode=ribbon-coast&session=FREE_PLAY&vehicle=TESTAROSSA&rivals=16&laps=1&clock=off&autostart=1
 ```
 
 Submitting equal resolved settings starts in place. Changed settings reload with their query values
@@ -197,7 +197,7 @@ minus/value/plus control in the driving definition's units, wrapping at range en
 toggles wheel slip protection. The DEV HUD shows one line per group (STEER with the derived automatic
 budget A, PEDAL, TIRE, ENGINE with ASSIST), read from the tuned definition. An admitted adjustment rebuilds the
 Session through the same assembly as startup: a new Session vehicle with the same vehicle definition and materials
-drives the tuned definition, in a CUSTOM Session with no rivals, the current lap count, no time limit, start speed 0
+drives the tuned definition, in a FREE PLAY Session with no rivals, the current lap count, no time limit, start speed 0
 and no envelope or time budgets, on a new Route runtime from the grid. It enters READY → GO at once, and the Session
 status reads `TUNED`. The shell, its input, audio, camera device and DEV controls persist, and the shell keeps the
 tuned definition for further adjustments and export. Reloading the page restores the product Session. EXPORT saves the tuned

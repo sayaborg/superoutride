@@ -107,7 +107,7 @@ try {
       active = build(
         createSessionVehicle(entry, driving, materials),
         {
-          mode: 'CUSTOM',
+          mode: 'FREE_PLAY',
           rivalCount: 0,
           lapCount: active.session.configuration.lapCount,
           timeLimit: false,

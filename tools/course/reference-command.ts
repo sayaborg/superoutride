@@ -39,7 +39,7 @@ export async function referenceCommand(verb: string, file: string | null, args: 
     };
   else {
     const { course } = loaded!;
-    requireInput(isTimedCourse(course), '/rules/classic', 'Reference runs need CLASSIC settings');
+    requireInput(isTimedCourse(course), '/rules/classic', 'Reference runs need ARCADE settings');
     const routes = enumerateCourseRoutes(course.entry, course.type);
     const lapCount = Number(opts.get('--laps') ?? course.rules.classic.lapCount),
       routeIndex = Number(opts.get('--route') ?? 0);

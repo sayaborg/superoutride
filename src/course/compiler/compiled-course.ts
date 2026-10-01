@@ -46,7 +46,7 @@ interface SectionDraft extends Omit<CompiledSection, 'incoming' | 'outgoing' | '
 }
 
 /** Upper-level immutable product. Consumers receive its ordinary reader/data facets, never this root. */
-/** A course with CLASSIC settings: it has reference runs, time budgets and a checkpoint clock. */
+/** A course with ARCADE settings: it has reference runs, time budgets and a checkpoint clock. */
 export type TimedCompiledCourse = CompiledCourse<TimedCourseRules>;
 
 export function isTimedCourse(course: CompiledCourse): course is TimedCompiledCourse {

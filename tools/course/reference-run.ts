@@ -35,7 +35,7 @@ export function runCourseReference(
   const session = resolveCourseSession(
     course,
     // Reference runs have no rivals, so the seed is fixed.
-    { mode: 'CUSTOM', rivalCount: 0, lapCount, timeLimit: false, initialSpeed: 0, seed: 0 },
+    { mode: 'FREE_PLAY', rivalCount: 0, lapCount, timeLimit: false, initialSpeed: 0, seed: 0 },
     vehicleConfiguration,
     envelope,
   );

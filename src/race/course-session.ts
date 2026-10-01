@@ -7,7 +7,7 @@ import type { SessionConfiguration } from './session-configuration.js';
 
 /**
  * Resolve one playable configuration before actors/ticks exist. Graph and catalog objects remain shared
- * references. A course without CLASSIC settings is untimed: it has no CLASSIC Session and no clock. A
+ * references. A course without ARCADE settings is untimed: it has no ARCADE Session and no clock. A
  * Session without an envelope (a DEV-tuned vehicle) has no rivals and no time limit.
  */
 export function resolveCourseSession(
@@ -18,11 +18,11 @@ export function resolveCourseSession(
   budgets: CourseTimeBudgets | null = null,
 ) {
   const preset = course.rules.classic;
-  if (requested.mode === 'CLASSIC' && preset === null) throw new RangeError('An untimed course has no CLASSIC Session');
+  if (requested.mode === 'ARCADE' && preset === null) throw new RangeError('An untimed course has no ARCADE Session');
   const configuration: Readonly<SessionConfiguration> =
-    requested.mode === 'CLASSIC' && preset !== null
+    requested.mode === 'ARCADE' && preset !== null
       ? Object.freeze({
-          mode: 'CLASSIC',
+          mode: 'ARCADE',
           rivalCount: preset.rivalCount,
           lapCount: preset.lapCount,
           timeLimit: true,
@@ -31,8 +31,8 @@ export function resolveCourseSession(
         })
       : Object.freeze({ ...requested, timeLimit: preset !== null && requested.timeLimit });
   if (!Number.isFinite(configuration.initialSpeed)) throw new RangeError('Session initialSpeed must be finite');
-  if (configuration.mode === 'CLASSIC' && vehicle.vehicleDefinition.compiledVehicle.id !== preset?.vehicleId)
-    throw new RangeError('CLASSIC requires its preset vehicle');
+  if (configuration.mode === 'ARCADE' && vehicle.vehicleDefinition.compiledVehicle.id !== preset?.vehicleId)
+    throw new RangeError('ARCADE requires its preset vehicle');
   if (configuration.lapCount > course.rules.maxLaps)
     throw new RangeError('Lap count exceeds the authored course limit');
   if (configuration.rivalCount >= course.gates.grid.length)

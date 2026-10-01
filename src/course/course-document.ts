@@ -134,7 +134,7 @@ export type CourseGateDocument =
   | { readonly kind: 'start'; readonly grid: readonly { readonly at: CoursePosition; readonly lateral: Lateral }[] }
   | { readonly kind: 'lock' | 'closure'; readonly at: CoursePosition };
 
-/** CLASSIC settings; a course is timed exactly when its rules carry them. */
+/** ARCADE settings; a course is timed exactly when its rules carry them. */
 export interface ClassicRulesDocument {
   readonly vehicleId: string;
   readonly rivalCount: number;

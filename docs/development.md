@@ -184,7 +184,7 @@ runs. Each compile stage receives earlier products directly. Reference workers a
 its images are staged only after the course compiles. The build
 saves the manifest before the references; reference workers run in separate threads, read the same
 `dist/delivery` definitions and courses, generate envelopes/runs, and add envelopes/budgets before
-publishing the completed build. Only timed courses (rules with CLASSIC settings) receive reference runs
+publishing the completed build. Only timed courses (rules with ARCADE settings) receive reference runs
 and budgets; the build reads this from each course document. Node tools also read vehicle/driving definitions from this distribution.
 
 | Output                                 | Use                                                                                  |

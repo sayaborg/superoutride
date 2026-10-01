@@ -2,7 +2,7 @@
 
 ## Current state
 
-- One compiled graph scene serves RIBBON COAST, RIBBON FORK, RIBBON RING and RIBBON ROUGH with CLASSIC/CUSTOM Sessions;
+- One compiled graph scene serves RIBBON COAST, RIBBON FORK, RIBBON RING and RIBBON ROUGH with ARCADE/FREE PLAY Sessions;
   RIBBON ROUGH is an untimed evaluation course.
 - Course documents use PIs, `at` positions, Lateral values, Strips, Carriageways and gates.
   Circuits are closed cycles of two or more Sections.
@@ -19,11 +19,11 @@
 - Stage 11 is complete: the audio scene and sound graph are separate from the browser; engine sounds, surface sounds
   and the game-wide sound settings are content documents; every sound value is derived from physics or a DEV setting;
   exhausts are collector graphs.
-- The [product specification](product.md) is the target for Stages 12–16. The implementation still uses the
-  CLASSIC/CUSTOM mode names and course-owned CLASSIC settings; all competitors share one vehicle; series, TIME TRIAL,
+- The [product specification](product.md) is the target for Stages 12–16. The implementation still uses
+  course-owned ARCADE settings (`rules.classic`); all competitors share one vehicle; series, TIME TRIAL,
   traffic, collisions, music, sound effects and the product front end are not implemented.
 
-Next PR: **12-8a — Mode names (rename only)**.
+Next PR: **12-8b — Series documents**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -34,11 +34,10 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 Define input, run state, framebuffer, persistent player data, data-driven Sessions, the product front end and the
 product HUD independently of DEV, as specified in the [product specification](product.md).
 
-- **12-8a — Mode names (rename only):** CLASSIC → ARCADE and CUSTOM → FREE PLAY in code, documents and URL values.
 - **12-8b — Series documents:** a `series` content kind owning ARCADE settings (courses, vehicle candidates, competitor
   entries, rule components, time margin); course documents keep geometry, gates, grid slots and the lap maximum and lose
   `rules.classic`. The RIBBON courses form a DEV series shown only with DEV. Split into a (add series) and b (remove
-  course CLASSIC settings) if one review would be exceeded.
+  course ARCADE settings) if one review would be exceeded.
 - **12-8c — Competitor vehicles:** every competitor has its own vehicle, calibration and envelope; runout admission
   covers every vehicle in the field; time budgets are keyed by course, vehicle and route state; the Session product
   maximum becomes sixteen competitors including the player.

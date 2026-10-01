@@ -48,7 +48,7 @@ const products: CourseReferenceResult['products'] = [{ kind: 'envelope', id: veh
   references: CourseReferenceResult['references'] = [];
 for (const stem of stems) {
   const course = await loadDeliveredCourse(content, stem, materials);
-  if (!isTimedCourse(course)) throw new Error(`${stem}: reference jobs require CLASSIC settings`);
+  if (!isTimedCourse(course)) throw new Error(`${stem}: reference jobs require ARCADE settings`);
   const key = referenceCacheKey(course.identity.buildSha256, vehicleSha256, REFERENCE_DRIVER_SHA256, physicsSha256);
   const cached = await cachedReference('runs', key, async () => {
     return enumerateCourseRoutes(course.entry, course.type).map((route) =>

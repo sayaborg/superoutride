@@ -224,7 +224,7 @@ for author-confirmed time limits. Array order supplies checkpoint order within e
 
 Grid slots are ordered player first, then rivals in roster order. Each slot must be on supported
 material, at/after entry and before the first checkpoint, finish or lock gate. The grid must hold the
-CLASSIC roster; its capacity is one player plus the product maximum rival count. Starting velocity is zero.
+ARCADE roster; its capacity is one player plus the product maximum rival count. Starting velocity is zero.
 Checkpoint and finish Carriageways must exist at the gate and have positive supported width across their
 edges. Runtime crossing width is the coordinate domain at the line. A checkpoint at a continuation seam
 belongs to the preceding Section, while the runtime bounds use the successor's domain at that station.
@@ -232,15 +232,15 @@ A circuit has exactly one finish; other circuit Sections have none. The fork sec
 closure geometry; the appearance compiler checks conditional signs against it. A Section with at most one outgoing Link cannot have either
 lock or closure gates.
 
-`rules` is required: `{maxLaps,classic}`. `classic` is the CLASSIC settings
+`rules` is required: `{maxLaps,classic}`. `classic` is the ARCADE settings
 `{vehicleId,rivalCount,lapCount,timeMargin}` or null; these are settings without positions. `maxLaps` is
 an integer from 1 through 99; non-circuits use 1. `rivalCount` is 0 through 16; `lapCount` cannot exceed
 `maxLaps`; `timeMargin` is positive, finite and at most 10. The composition root resolves vehicle IDs
 against the catalog.
 
-A course is timed exactly when its rules carry CLASSIC settings. The build generates reference runs and
-time budgets for timed courses only, and only a timed course offers CLASSIC and the checkpoint clock.
-An untimed course (`classic: null`) runs CUSTOM Sessions without the clock. Compilation requires the
+A course is timed exactly when its rules carry ARCADE settings. The build generates reference runs and
+time budgets for timed courses only, and only a timed course offers ARCADE and the checkpoint clock.
+An untimed course (`classic: null`) runs FREE PLAY Sessions without the clock. Compilation requires the
 start, grid and finish coverage described above for every course; the grid holds at least the player.
 Compiled `rules` retain these settings, typed as timed or untimed by `classic`; compiled `gates` provide
 the resolved grid and per-Section landmark intervals to race and tools.
@@ -250,13 +250,13 @@ the resolved grid and per-Section landmark intervals to race and tools.
 Empty collections are arrays: in particular, `environments: []` means no appearance.
 CourseDocument nulls each have one meaning:
 
-| Field                            | Meaning of null                                                        |
-| -------------------------------- | ---------------------------------------------------------------------- |
-| Rules `classic`                  | Untimed course: no CLASSIC Session, reference runs or checkpoint clock |
-| Strip `color`                    | Leave the earlier color channel unchanged                              |
-| Strip `material`                 | Leave the earlier material channel unchanged                           |
-| Strip knot `left` / `right`      | That edge is open to negative / positive lateral infinity              |
-| Sprite `unselectedCarriagewayId` | Ordinary sprite with no exit-selection condition                       |
+| Field                            | Meaning of null                                                       |
+| -------------------------------- | --------------------------------------------------------------------- |
+| Rules `classic`                  | Untimed course: no ARCADE Session, reference runs or checkpoint clock |
+| Strip `color`                    | Leave the earlier color channel unchanged                             |
+| Strip `material`                 | Leave the earlier material channel unchanged                          |
+| Strip knot `left` / `right`      | That edge is open to negative / positive lateral infinity             |
+| Sprite `unselectedCarriagewayId` | Ordinary sprite with no exit-selection condition                      |
 
 ### Numeric and resource domains
 
@@ -613,9 +613,9 @@ share a rank. Rival positions and audio observations already use the same route 
 
 ### Resolved Session
 
-CLASSIC resolves the saved vehicle, rivals, laps and checkpoint clock. CUSTOM resolves a catalog
+ARCADE resolves the saved vehicle, rivals, laps and checkpoint clock. FREE PLAY resolves a catalog
 vehicle, zero to sixteen rivals, permitted laps and clock on/off. On an untimed course, Session
-resolution rejects CLASSIC and resolves every CUSTOM Session with the clock off; on a timed course,
+resolution rejects ARCADE and resolves every FREE PLAY Session with the clock off; on a timed course,
 a clock without its delivered time budgets fails. Player and rivals share the resolved
 vehicle calibration and protection settings. Unsupported course/vehicle/grid/lap combinations fail before activation.
 A Session binds immutable course, vehicle, roster, grid, lap target, start speed, envelope and timing references.
@@ -745,7 +745,7 @@ camera before rendering. Unrelated internal faults propagate.
 
 `ribbon-rough` (RIBBON ROUGH, DEV button 4) is a playability test circuit, not a product course. Its
 extreme vertical profile and corners are authored for hands-on evaluation; its shape is not rounded off
-for completion. The reference driver cannot complete it, so its rules carry no CLASSIC settings: it
+for completion. The reference driver cannot complete it, so its rules carry no ARCADE settings: it
 is untimed and delivered without reference runs or time budgets. It is a 4.2 km two-Section circuit on existing materials:
 
 | Section        | Stations (m) | Content                                                                         |

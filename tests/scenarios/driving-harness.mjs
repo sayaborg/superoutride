@@ -72,7 +72,7 @@ export function runScenario({ course }, scenario) {
   const session = resolveCourseSession(
     course,
     {
-      mode: 'CUSTOM',
+      mode: 'FREE_PLAY',
       rivalCount: scenario.rivals ?? 0,
       lapCount: scenario.laps ?? 1,
       timeLimit: false,
