@@ -23,7 +23,7 @@
   fields; FREE PLAY rivals are drawn from vehicle pools; TIME TRIAL runs alone; traffic, collisions, music, sound effects and
   the product front end are not implemented.
 
-Next PR: **12-9d-2 — Reference runs are TIME TRIAL Sessions**.
+Next PR: **12-9d-3 — Scenarios for Session rules and the finish**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -34,8 +34,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 Define input, run state, framebuffer, persistent player data, data-driven Sessions, the product front end and the
 product HUD independently of DEV, as specified in the [product specification](product.md).
 
-- **12-9d-2 — Reference runs are TIME TRIAL Sessions:** build reference runs, the `tools/course` reference command
-  and their documents from `TIME_TRIAL` Sessions instead of FREE PLAY with no rivals; the runs themselves do not change.
 - **12-9d-3 — Scenarios for Session rules and the finish:** a test-only series document under `tests/` (RIBBON courses,
   TESTAROSSA and its built budgets and schedules) and four driving scenarios: ARCADE GOAL with a paced rival and the
   takeover stop, a rank-limit GAME OVER, an ahead appearance and departure, and a TIME TRIAL GOAL.

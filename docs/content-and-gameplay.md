@@ -728,7 +728,7 @@ The start speed is a resolved Session setting: every competitor spawns at its gr
 road tangent. It is finite and may be negative; product Sessions and reference runs use 0. The Session seed is a
 resolved 32-bit unsigned integer that `compileSessionConfiguration` checks; rival target exits derive from it. The
 browser picks a new seed for every Session assembly ([Browser](browser.md#display-and-scheduling)); reference runs,
-which have no rivals, use 0, and scenarios and tests fix theirs. The race builds each
+TIME TRIAL Sessions without rivals, use 0, and scenarios and tests fix theirs. The race builds each
 competitor's mechanics from its entry's vehicle and each rival's driver from its entry's envelope; the player's
 composition supplies input only.
 The player's envelope is optional. A Session without one—a DEV-tuned vehicle, whose driving definition has no delivered
@@ -751,8 +751,8 @@ Recovery consumes simulation time and grants no crossing credit. Results are ses
 
 `tools/course` owns reference generation, its policy and report-to-budget admission. The product
 reads completed envelopes and time budgets and owns live Session driving policy.
-Build-generated continuous reference runs use product physics, the configured start and finite routes/laps,
-with the reference driver alone. Each successful run records the race's event stream for the player
+Build-generated continuous reference runs are TIME TRIAL Sessions: product physics, the configured start from the
+last grid slot and finite routes/laps, with the reference driver alone and no clock. Each successful run records the race's event stream for the player
 ([race time and events](#race-time-and-events)): ordered crossings with their race times, including within-step
 fractions. Reading a report derives the order and laps a run must record from the race's own lines: it builds the
 planned route's Route and reads its `RouteCrossSections` race lines through the completing FINISH. Recovery, wrong-route choice, timeout or incomplete FINISH invalidates a timing product.

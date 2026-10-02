@@ -36,8 +36,8 @@ export function runCourseReference(
   const session = resolveCourseSession(
     course,
     null,
-    // Reference runs have no rivals, so the seed is fixed.
-    { mode: 'FREE_PLAY', rivalCount: 0, lapCount, timeLimit: false, initialSpeed: 0, seed: 0 },
+    // A reference run is a TIME TRIAL Session: alone from the last grid slot, without a clock; the seed is fixed.
+    { mode: 'TIME_TRIAL', rivalCount: 0, lapCount, timeLimit: false, initialSpeed: 0, seed: 0 },
     vehicleConfiguration,
     envelope,
   );
