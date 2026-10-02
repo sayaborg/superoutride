@@ -6,6 +6,7 @@ import { compileCourseImages } from '../../tools/course/compile-course-images.ts
 import { compileCourseDocument } from '../../src/course/compiler/compiled-course.js';
 import { courseFileSha256 } from '../../tools/course/course-file-id.ts';
 import { readCourseDocument } from '../../src/course/course-document.js';
+import { STRIP_RENDER_METHODS } from '../../src/view/display-settings.js';
 import { createStripGroundSampler, createStripRenderMetrics } from '../../src/view/strip-ground-sampler.js';
 
 test('visual Strips can erase all ground without changing material slabs, support or material readings', async () => {
@@ -42,16 +43,18 @@ test('visual Strips can erase all ground without changing material slabs, suppor
   const surfaceB = b.material;
   for (const s of [0, 45, 350, 700, a.coordinates.domain.end])
     for (const l of [-100, -8, -3, 0, 3, 8, 100]) assert.deepEqual(surfaceA.sample(s, l), surfaceB.sample(s, l));
-  // Bit 15 is never set in an RGB555 pixel.
-  const pixels = new Uint16Array(320).fill(0x8000);
   const sampler = createStripGroundSampler([
     { ground: b.color, start: 0, end: b.coordinates.domain.end, lateralOrigin: 0 },
   ]);
-  sampler.sampleSpan(pixels, 0, 320, 350, -40, 0.25, 32, 'EXACT-BOX', createStripRenderMetrics());
-  assert.ok(
-    pixels.every((p) => p === 0x8000),
-    'transparent plane must preserve the existing BG/Painter pixels',
-  );
+  for (const method of STRIP_RENDER_METHODS) {
+    // Bit 15 is never set in an RGB555 pixel.
+    const pixels = new Uint16Array(320).fill(0x8000);
+    sampler.sampleSpan(pixels, 0, 320, 350, -40, 0.25, 32, method, createStripRenderMetrics());
+    assert.ok(
+      pixels.every((p) => p === 0x8000),
+      'transparent plane must preserve the existing BG/Painter pixels',
+    );
+  }
 
   const invalidText = structuredClone(document);
   invalidText.sections[0].strips = [

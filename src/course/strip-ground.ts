@@ -149,7 +149,6 @@ export interface StripCellTarget {
   base: number[];
   data: Float64Array;
   count: number;
-  length: number;
   active: number;
 }
 export interface StripGroundCellReader {
@@ -229,9 +228,8 @@ export function compileStripGround(length: number, pieces: readonly StripPiece[]
       end = Math.min(length, (cell + 1) * step - input.offset);
     return { cell, start, end };
   };
-  const copy = (input: LevelPhase, cell: number, cellLength: number, target: StripCellTarget) => {
+  const copy = (input: LevelPhase, cell: number, target: StripCellTarget) => {
     const field = lateralFields[input.indices[cell]!]!;
-    target.length = cellLength;
     target.active = input.active[cell]!;
     target.count = field.count;
     for (let c = 0; c < 4; c++) target.base[c] = field.base[c]!;
@@ -243,8 +241,7 @@ export function compileStripGround(length: number, pieces: readonly StripPiece[]
     levelCount: levels.length,
     read(level: number, s: number, target: StripCellTarget) {
       const { step, phases } = levels[level]!;
-      const { cell, start, end } = cellAt(step, phases[0], s);
-      copy(phases[0], cell, end - start, target);
+      copy(phases[0], cellAt(step, phases[0], s).cell, target);
     },
     readCentered(level: number, s: number, target: StripCellTarget) {
       const { step, phases } = levels[level]!;
@@ -252,8 +249,7 @@ export function compileStripGround(length: number, pieces: readonly StripPiece[]
         shifted = cellAt(step, phases[1], s);
       const nearer =
         Math.abs((shifted.start + shifted.end) / 2 - s) < Math.abs((aligned.start + aligned.end) / 2 - s) ? 1 : 0;
-      const chosen = nearer ? shifted : aligned;
-      copy(phases[nearer], chosen.cell, chosen.end - chosen.start, target);
+      copy(phases[nearer], (nearer ? shifted : aligned).cell, target);
     },
   });
   return Object.freeze({ length, slabs, metrics, reader });

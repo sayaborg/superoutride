@@ -23,7 +23,7 @@
   fields; FREE PLAY rivals are drawn from vehicle pools; TIME TRIAL runs alone; traffic, collisions, music, sound effects and
   the product front end are not implemented.
 
-Next PR: **12-11b — EXACT-BOX (delete)**.
+Next PR: **12-12 — Front end**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -34,8 +34,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 Define input, run state, framebuffer, persistent player data, data-driven Sessions, the product front end and the
 product HUD independently of DEV, as specified in the [product specification](product.md).
 
-- **12-11b — EXACT-BOX (delete):** remove the EXACT-BOX method, its selection, the code only it uses (exact
-  integration, dyadic interval decomposition) and its documentation; record the pending Ground decisions.
 - **12-12 — Front end:** the screens and flow in one page, PRESS START as the sound and fullscreen gesture, PAUSE
   menu, RESULT, landscape and portrait layouts with the touch area, Escape and gamepad Start pause. URL parameters
   remain DEV and test deep links: rename `mode` to `course` and `session` to `mode`. Pass the manifest-derived course
@@ -186,23 +184,25 @@ lighting at its own chainage, and switching is a cut.
 
 - Vehicle sprite resolution: decide the yaw division count (currently 24) and the two-wheeler bank count (currently 5) before producing final vehicle art; the sprite set format already declares both as data.
 
-| Area             | Decision or future capability                                                                                                      |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| References       | Exact editions/layout evidence, tolerances and remaster departures                                                                 |
-| Series values    | Rank limits, ahead distances, pace ratios, margins, grid spacing and colors per series course (Stage 16 playtests)                 |
-| Series content   | SUPER HANG-ON reference layouts; CISCO HEAT course type; COOL RIDERS connections, rivals and traffic; FINAL LAP layout and cars    |
-| Series content   | WEC LE MANS 24 layout and field; BIG RUN vehicles and field; RALLY STAGE title and course set                                      |
-| Vehicles         | Exact specifications of adopted vehicles (year, market, grade); BROUGHAM TUNED values                                              |
-| Circuits         | Series or FREE PLAY placement of the selected circuits below                                                                       |
-| Interaction      | Contact response, traffic behavior, movable objects including cones, fixed roadside objects, barriers and track limits (Stage 13)  |
-| Grade separation | Occurrence/neighborhood/height selection of surfaces, landmarks and contacts at nearby crossings                                   |
-| Front end        | Attract demo idle time; HUD layout of the vehicle-state elements (12-13)                                                           |
-| Art              | Production assets, new physical materials and tunnel/background content                                                            |
-| BG transitions   | Consider wipes or dissolves for environment changes; palette fades are not expected                                                |
-| Engine sound     | Tried, not adopted: displacement pulse. It did not improve driving sound and added computation (11-7b–11-7k)                       |
-| Engine sound     | Tried, not adopted: pipe cross-sections and muffler segments. It did not improve driving sound and added computation (11-7b–11-7k) |
-| Engine sound     | Tried, not adopted: packing absorption. It did not improve driving sound and added computation (11-7b–11-7k)                       |
-| Engine sound     | Tried, not adopted (not implemented): cycle speed fluctuation, for the same reason as 11-7b–11-7k                                  |
+| Area             | Decision or future capability                                                                                                                           |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| References       | Exact editions/layout evidence, tolerances and remaster departures                                                                                      |
+| Series values    | Rank limits, ahead distances, pace ratios, margins, grid spacing and colors per series course (Stage 16 playtests)                                      |
+| Series content   | SUPER HANG-ON reference layouts; CISCO HEAT course type; COOL RIDERS connections, rivals and traffic; FINAL LAP layout and cars                         |
+| Series content   | WEC LE MANS 24 layout and field; BIG RUN vehicles and field; RALLY STAGE title and course set                                                           |
+| Vehicles         | Exact specifications of adopted vehicles (year, market, grade); BROUGHAM TUNED values                                                                   |
+| Circuits         | Series or FREE PLAY placement of the selected circuits below                                                                                            |
+| Interaction      | Contact response, traffic behavior, movable objects including cones, fixed roadside objects, barriers and track limits (Stage 13)                       |
+| Grade separation | Occurrence/neighborhood/height selection of surfaces, landmarks and contacts at nearby crossings                                                        |
+| Front end        | Attract demo idle time; HUD layout of the vehicle-state elements (12-13)                                                                                |
+| Art              | Production assets, new physical materials and tunnel/background content                                                                                 |
+| BG transitions   | Consider wipes or dissolves for environment changes; palette fades are not expected                                                                     |
+| Engine sound     | Tried, not adopted: displacement pulse. It did not improve driving sound and added computation (11-7b–11-7k)                                            |
+| Engine sound     | Tried, not adopted: pipe cross-sections and muffler segments. It did not improve driving sound and added computation (11-7b–11-7k)                      |
+| Engine sound     | Tried, not adopted: packing absorption. It did not improve driving sound and added computation (11-7b–11-7k)                                            |
+| Engine sound     | Tried, not adopted (not implemented): cycle speed fluctuation, for the same reason as 11-7b–11-7k                                                       |
+| Ground           | Product default between LEVEL-POINT and LEVEL2-POINT (real-device evaluation); the method not chosen and its cells are then removed                     |
+| Ground           | Designed, not adopted: LEVEL-BOX (footprint-centred dyadic box with lateral pixel integration). It needs per-pixel blending beyond period road hardware |
 
 Design traffic and collision/interaction response together. Traffic does not participate in competitive
 route locking.

@@ -3,7 +3,7 @@ import test from 'node:test';
 import { STRIP_ACTIVE_LIMIT, compileStripGround } from '../../dist/course/strip-ground.js';
 import { STRIP_RENDER_METHODS } from '../../dist/view/display-settings.js';
 import { createStripGroundSampler, createStripRenderMetrics } from '../../dist/view/strip-ground-sampler.js';
-import { linearToRgb555 } from '../../dist/image/image-filter.js';
+import { linearToRgb555, rgb555LinearChannel } from '../../dist/image/image-filter.js';
 import { selectSpriteLevel } from '../../dist/image/sprite.js';
 
 // Bit 15 is never set in an RGB555 pixel, so it marks pixels the ground leaves unchanged.
@@ -18,8 +18,15 @@ const piece = (start, end, left, right, color, leftEnd = left, rightEnd = right)
   right: right === null ? null : { start, end, from: right, to: rightEnd },
   value: color,
 });
+// The RGB555 of the linear mean of opaque colors.
+const mean = (colors) =>
+  linearToRgb555(
+    ...[10, 5, 0].map(
+      (shift) => colors.reduce((sum, c) => sum + rgb555LinearChannel((c >>> shift) & 31), 0) / colors.length,
+    ),
+  );
 const whole = (ground) => [{ ground, start: 0, end: ground.length, lateralOrigin: 0 }];
-function row(intervals, { s = 4, l = -4, stepL = 0.25, deltaS = 0, count = 32, method = 'EXACT-BOX' } = {}) {
+function row(intervals, { s = 4, l = -4, stepL = 0.25, deltaS = 0, count = 32, method = 'LEVEL-POINT' } = {}) {
   const pixels = new Uint16Array(count).fill(BG);
   createStripGroundSampler(intervals).sampleSpan(
     pixels,
@@ -68,20 +75,23 @@ test('POINT always reads s; LEVEL shares sprite octave selection and reads insta
       const direct = row(whole(ground), { s, deltaS, method: 'POINT-POINT' });
       assert.ok(direct.every((p) => p === [RED, BLUE, WHITE][Math.floor(s) % 3]));
       const level = row(whole(ground), { s, deltaS, method: 'LEVEL-POINT' });
-      const step = 2 ** selectSpriteLevel(sprite, 1 / deltaS);
-      assert.deepEqual(
-        level,
-        deltaS < 1 ? direct : row(whole(ground), { s: (Math.floor(s / step) + 0.5) * step, deltaS: step }),
+      const step = 2 ** selectSpriteLevel(sprite, 1 / deltaS),
+        first = Math.floor(s / step) * step;
+      const cell = Array.from(
+        { length: Math.min(16, first + step) - first },
+        (_, i) => [RED, BLUE, WHITE][(first + i) % 3],
       );
+      assert.ok(level.every((p) => p === (deltaS < 1 ? direct[0] : mean(cell))));
     }
   const moving = compileStripGround(6.5, [piece(0, 6.5, null, null, RED), piece(0.5, 6.5, -3, 1, BLUE, 3, 7)]);
   for (const s of [0.6, 4.2, 6.25, 6.5]) {
     const direct = row(whole(moving), { s, method: 'POINT-POINT' });
     assert.deepEqual(row(whole(moving), { s, deltaS: 0.99, method: 'LEVEL-POINT' }), direct);
+    // The truncated last 4 m cell [4, 6.5) averages over its 2.5 m: BLUE covers l = 2 for s <= 5.5.
     if (s >= 6.25)
-      assert.deepEqual(
-        row(whole(moving), { s, deltaS: 4, method: 'LEVEL-POINT', l: -2, stepL: 0, count: 1 }),
-        row(whole(moving), { s: 5.25, deltaS: 2.5, l: -2, stepL: 0, count: 1 }),
+      assert.equal(
+        row(whole(moving), { s, deltaS: 4, method: 'LEVEL-POINT', l: 2, stepL: 0, count: 1 })[0],
+        linearToRgb555(0.4, 0, 0.6),
       );
   }
   assert.deepEqual(
@@ -90,26 +100,25 @@ test('POINT always reads s; LEVEL shares sprite octave selection and reads insta
   );
 });
 
-test('EXACT-BOX integrates both dimensions and owned seam lengths before half-coverage thresholding', () => {
+test('LEVEL methods threshold s-averaged coverage at half, read a lateral point and only the occurrence owning s', () => {
+  // Over the 4 m cell [4, 8) the edge moves from 4 to 8, so coverage at l = 6 is exactly one half.
   const diagonal = compileStripGround(16, [piece(0, 16, 0, null, WHITE, 16, null)]);
-  assert.equal(row(whole(diagonal), { s: 8, l: 8, stepL: 1, deltaS: 4, count: 1 })[0], WHITE);
-  assert.equal(row(whole(diagonal), { s: 8, l: 8 - 1e-6, stepL: 1, deltaS: 4, count: 1 })[0], BG);
+  for (const method of ['LEVEL-POINT', 'LEVEL2-POINT']) {
+    assert.equal(row(whole(diagonal), { s: 6, l: 6, stepL: 1, deltaS: 4, count: 1, method })[0], WHITE);
+    assert.equal(row(whole(diagonal), { s: 6, l: 6 - 1e-6, stepL: 1, deltaS: 4, count: 1, method })[0], BG);
+  }
   const split = compileStripGround(8, [piece(0, 8, null, 0, RED), piece(0, 8, 0, null, BLUE)]);
-  const half = linearToRgb555(0.5, 0, 0.5);
-  assert.equal(row(whole(split), { s: 4, l: 0, stepL: 2, count: 1 })[0], half);
-  assert.equal(row(whole(split), { s: 4, l: 0, stepL: 2, count: 1, method: 'LEVEL-POINT' })[0], BLUE);
+  for (const method of STRIP_RENDER_METHODS)
+    assert.equal(row(whole(split), { s: 4, l: 0, stepL: 2, deltaS: 4, count: 1, method })[0], BLUE);
   const red = compileStripGround(8, [piece(0, 8, null, null, RED)]);
   const blue = compileStripGround(8, [piece(0, 8, null, null, BLUE)]);
   const intervals = [
     { ground: red, start: 0, end: 8, lateralOrigin: 100 },
     { ground: blue, start: 8, end: 16, lateralOrigin: -20 },
   ];
-  assert.ok(row(intervals, { s: 8, deltaS: 6 }).every((p) => p === half));
   assert.ok(row(intervals, { s: 8, deltaS: 6, method: 'POINT-POINT' }).every((p) => p === BLUE));
-  assert.deepEqual(
-    row(intervals, { s: 8, deltaS: 6, method: 'LEVEL-POINT' }),
-    row(whole(blue), { s: 0, deltaS: 6, method: 'LEVEL-POINT' }),
-  );
+  for (const method of ['LEVEL-POINT', 'LEVEL2-POINT'])
+    assert.deepEqual(row(intervals, { s: 8, deltaS: 6, method }), row(whole(blue), { s: 0, deltaS: 6, method }));
 });
 
 test('row batching and lateral rebasing match individual pixels in either scan direction for all three methods', () => {

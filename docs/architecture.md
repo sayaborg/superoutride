@@ -455,21 +455,20 @@ Lateral fields store premultiplied linear-sRGB channels and coverage as piecewis
 functions of fixed source-l coordinates. An edge that moves across an interval becomes a ramp rather
 than a relocated hard edge. Equal lateral fields share private coefficient storage and per-level indices.
 Resolved records and public metadata are deeply immutable. The compiled product supplies a Reader that copies
-base and node coefficients, cell length and active count into view-owned reusable scratch; compiled numeric buffers stay private.
+base and node coefficients and active count into view-owned reusable scratch; compiled numeric buffers stay private.
 The view layer owns row sampling and display-method selection.
 
 A row uses the terrain projection's representative s and effective depth footprint `deltaS`.
 A projected `[-1,+1]` metre ruler supplies the affine screen-to-l map; it does not clip ground.
 The product has one complete method, not independently configurable s/l kernels:
 
-| Method       | Longitudinal read                                                                                  | Lateral read at pixel center x and width w |
-| ------------ | -------------------------------------------------------------------------------------------------- | ------------------------------------------ |
-| POINT-POINT  | Instantaneous resolved Strips at the row's s for every footprint                                   | Value at x                                 |
-| LEVEL-POINT  | One cached dyadic cell, or instantaneous Strips when `rho < 1`                                     | Value at x                                 |
-| LEVEL2-POINT | One cached dyadic cell of either phase, centered nearest s, or instantaneous Strips when `rho < 1` | Value at x                                 |
-| EXACT-BOX    | Exact integral over the row's centered depth interval                                              | Exact mean over `[x-w/2,x+w/2]`            |
+| Method       | Longitudinal read                                                                                  | Lateral read at pixel center x |
+| ------------ | -------------------------------------------------------------------------------------------------- | ------------------------------ |
+| POINT-POINT  | Instantaneous resolved Strips at the row's s for every footprint                                   | Value at x                     |
+| LEVEL-POINT  | One cached dyadic cell, or instantaneous Strips when `rho < 1`                                     | Value at x                     |
+| LEVEL2-POINT | One cached dyadic cell of either phase, centered nearest s, or instantaneous Strips when `rho < 1` | Value at x                     |
 
-POINT-POINT, LEVEL-POINT and LEVEL2-POINT use the source owning s and its lateral origin; a seam belongs to its
+Every method uses the source owning s and its lateral origin; a seam belongs to its
 successor. The instantaneous read follows the ordered resolved slab without preblending or sorting.
 LEVEL-POINT and LEVEL2-POINT use `rho = deltaS / 1 m` with the [shared image selector](#shared-image-level-selection).
 LEVEL-POINT reads only the containing aligned cell, without cell/level interpolation or mixing neighboring occurrences.
@@ -480,22 +479,12 @@ a new cell twice as often and its center lies at most a quarter cell from s, aga
 Every level covers the Section through its truncated last cell. The final closed endpoint uses
 that last cell.
 
-EXACT-BOX clips the centered depth interval to route occurrence spans, maps their lateral origins
-and decomposes the ranges into cached dyadic intervals, including truncated tail cells.
-Partial one-metre ends outside a complete cell integrate resolved affine edges directly.
-Sub-metre footprints use the same rule; zero-length footprints use the instantaneous slab.
-Every cut ends one owned interval and starts the next.
-Actual source lengths weight all contributions before coverage or color normalization. This is a
-separable source-(s,l) row footprint, not a full perspective pixel polygon. Dyadic decomposition
-does not change the mathematical integral.
-
-The exact row workspace composes weighted lateral-field events once; the other methods read their native
-lateral field directly. All methods batch constant spans with fills or transparent skips. Only varying
-lateral fields and box-boundary pixels need individual evaluation. No pixel loops over authored Strips.
+Every method reads its native lateral field directly and batches constant spans with fills or transparent skips;
+only varying lateral fields need individual evaluation. No pixel loops over authored Strips.
 
 RGB555 decodes through the common linear-sRGB channel table. Contributions stay premultiplied until
 final coverage is known. Coverage at least the shared 0.5 threshold is opaque, allowing 64 machine
-epsilons of relative row-area roundoff at equality. Opaque RGB divides by opaque area once, encodes
+epsilons of roundoff at equality. Opaque RGB divides by coverage once, encodes
 sRGB and rounds to RGB555; transparent pixels leave the existing image unchanged. Hidden colors and
 BG do not enter the average. [Browser](browser.md#ground-display-setting) owns live selection and HUD observations.
 
