@@ -1,5 +1,5 @@
-import { TEXT_PALETTES } from '../image/text-tiles.js';
-import { TEXT_COLUMNS, TEXT_ROWS, type TextLayer } from '../view/text-layer.js';
+import type { TextLayer } from '../view/text-layer.js';
+import { createMenu, type Menu } from './menu.js';
 import type { SoftwareSurface } from '../view/software-surface.js';
 import type { Screen } from './screen-host.js';
 import type { MenuCommand } from '../input/menu-input.js';
@@ -11,10 +11,8 @@ export interface RunFacts {
   readonly finished: boolean;
 }
 
-/** PAUSED is centred in the text grid while the run is paused. */
-const PAUSED = 'PAUSED';
-const PAUSED_COLUMN = (TEXT_COLUMNS - PAUSED.length) / 2;
-const PAUSED_ROW = Math.floor((TEXT_ROWS - 1) / 2);
+/** The PAUSE menu's items. */
+const PAUSE_ITEMS = Object.freeze([{ label: 'RESUME' }, { label: 'RETRY' }, { label: 'QUIT' }]);
 
 /**
  * The run screen's one state: running, paused or finished. The run runs only while neither fact holds; PAUSE and
@@ -60,8 +58,36 @@ export interface RunFrame {
   draw(): { present(): void };
 }
 
-/** The run screen: the race advances only while running; every frame draws the scene, with PAUSED while paused. */
-export function createRunScreen(state: RunScreenState, run: RunFrame, frame: SoftwareSurface, text: TextLayer): Screen {
+/** What the PAUSE menu's RETRY and QUIT do; RESUME and BACK resume the run. */
+export interface RunScreenActions {
+  /** Assemble the same request again, with a new seed. */
+  retry(): void;
+  quit(): void;
+}
+
+/**
+ * The run screen: the race advances only while running, and every frame draws the scene. While paused, the PAUSE menu
+ * (RESUME / RETRY / QUIT) is drawn over the stopped frame and takes the menu commands; PAUSE and BACK resume.
+ */
+export function createRunScreen(
+  state: RunScreenState,
+  run: RunFrame,
+  frame: SoftwareSurface,
+  text: TextLayer,
+  actions: RunScreenActions,
+): Screen {
+  const pauseMenu = () =>
+    createMenu({
+      title: 'PAUSED',
+      items: () => PAUSE_ITEMS,
+      confirm: (index) => {
+        if (index === 0) state.setPaused(false);
+        else if (index === 1) actions.retry();
+        else actions.quit();
+      },
+      back: () => state.setPaused(false),
+    });
+  let menu: Menu | null = null;
   return {
     get live() {
       return state.live;
@@ -69,15 +95,21 @@ export function createRunScreen(state: RunScreenState, run: RunFrame, frame: Sof
     tick() {
       if (state.live) run.tick();
     },
-    // PAUSE toggles the pause; BACK resumes.
     command(command: MenuCommand) {
-      if (command === 'PAUSE' && !state.finished) state.setPaused(!state.paused);
-      else if (command === 'BACK' && state.paused) state.setPaused(false);
+      if (state.finished) return;
+      if (command === 'PAUSE') {
+        state.setPaused(!state.paused);
+        return;
+      }
+      if (!state.paused) return;
+      menu ??= pauseMenu();
+      menu.command(command);
     },
     render() {
       const drawn = run.draw();
       text.clear();
-      if (state.paused) text.write(PAUSED_COLUMN, PAUSED_ROW, PAUSED, TEXT_PALETTES.WHITE);
+      if (state.paused) (menu ??= pauseMenu()).write(text);
+      else menu = null;
       text.draw(frame);
       drawn.present();
     },

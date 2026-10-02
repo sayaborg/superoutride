@@ -128,7 +128,13 @@ async function startPage(): Promise<void> {
         run = assembled;
         loadedCourse = next.courseId;
         status.hidden = true;
-        host.show(createRunScreen(state, assembled, shell.framebuffer, textLayer));
+        host.show(
+          createRunScreen(state, assembled, shell.framebuffer, textLayer, {
+            retry: () => void request({ ...next, autostart: true }),
+            // Until TITLE exists, QUIT returns to the run's setup.
+            quit: () => void request({ ...next, autostart: false }),
+          }),
+        );
         if (next.autostart) assembled.controls.begin();
       } catch (error) {
         console.error('Course could not start', error);

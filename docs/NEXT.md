@@ -36,8 +36,7 @@ product HUD independently of DEV, as specified in the [product specification](pr
 
 - **12-12 — Front end:** the screens and flow in one page, drawn inside the frame
   ([product](product.md#6-flow-and-screens)), on the page that assembles its runs and the frame's text layer:
-  menu input, with touch as specified in [product](product.md#11-input-and-display); the screen flow; the PAUSE menu
-  and RESULT; the layout, pause button and fullscreen; SETTINGS and the last selections; `dev=1`.
+  menu input, with touch as specified in [product](product.md#11-input-and-display); the screen flow; RESULT; the layout, pause button and fullscreen; SETTINGS and the last selections; `dev=1`.
 - **12-13 — Product HUD:** independent elements drawn inside the game frame from published observations with the
   text layer; the active rules select the elements. Separate product and DEV observations in the render result,
   including the performance HUD's ground (Strip) metrics. Place the vehicle-state elements and review the layout.

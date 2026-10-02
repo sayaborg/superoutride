@@ -57,7 +57,13 @@ after a failed assembly; the reason appears only in the console and the status e
 may hold characters without text tiles. The run screen holds the run and its state: running, paused (manual PAUSE)
 or finished (the Session reached RESULT). The run runs only while neither holds: paused and finished advance no race,
 and driving input and sound stop, so the DEV vehicle HUD shows neutral input and no touch indicator is drawn. Every
-frame still draws the scene; while paused the run screen writes `PAUSED` at the frame's centre. The PAUSE button's
+frame still draws the scene. While paused, the PAUSE menu is drawn over the stopped frame: the title `PAUSED` and
+RESUME, RETRY and QUIT. RESUME, BACK and PAUSE resume; RETRY requests the same run again, which starts at once with a
+new seed; QUIT requests it again waiting at setup, until the title screen exists.
+
+Every list screen uses one menu part: a title and items, the current item YELLOW, unselectable items DARK and the
+rest WHITE, centred in the text grid without shortening. UP and DOWN move over the selectable items and wrap around;
+CONFIRM chooses; LEFT and RIGHT change an item's value; BACK leaves. The PAUSE button's
 label (PAUSE or RESUME) and its visibility follow the run screen's state.
 
 RESULT follows GOAL or GAME OVER after the RESULT delay, a DEV setting (default 3 s; 0, 1, 2, 3, 5 or 10 s; not
@@ -189,8 +195,8 @@ While a run screen runs, PAUSE pauses; while it is paused, PAUSE or BACK resumes
 
 The status line derives its text from race facts alone
 ([race time and events](content-and-gameplay.md#race-time-and-events)); the race holds no display state.
-Manual pause shows `PAUSED` in white at the centre of the frame's [text layer](architecture.md#text-layer),
-not in the status line. A Session rebuilt by DEV tuning prefixes `TUNED · `. Otherwise:
+Manual pause shows the PAUSE menu in the frame's [text layer](architecture.md#text-layer), not in the
+status line. A Session rebuilt by DEV tuning prefixes `TUNED · `. Otherwise:
 
 - GOAL or GAME OVER shows `GOAL` or `GAME OVER`, the position and the race time; GAME OVER reads the same
   whatever its cause, as RESULT shows only the outcome ([product](product.md#6-flow-and-screens)).
