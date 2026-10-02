@@ -7,7 +7,7 @@ import type { VehicleMotionRead } from '../vehicle/physics/vehicle-contract.js';
 export const RENDER_NEAR_DEPTH_METERS = 2.5;
 export const RENDER_FAR_DEPTH_METERS = 200;
 
-export interface CameraProfile {
+export interface CameraDefinition {
   readonly dCam: number;
   /** Authored downward view angle relative to the vehicle-pitch reference. */
   readonly baseDownPitch: number;
@@ -44,7 +44,7 @@ export function updateCamera(
   rig: CameraRig,
   { coordinates }: Pick<VehicleWorld, 'coordinates'>,
   vehicle: VehicleMotionRead,
-  profile: CameraProfile,
+  definition: CameraDefinition,
 ): CameraState {
   let workspace = planWorkspaces.get(rig);
   if (!workspace) {
@@ -59,21 +59,21 @@ export function updateCamera(
   rig.yaw = vehicle.yaw;
   rig.initialized = true;
 
-  const sCamera = vehicle.course.s - profile.dCam;
+  const sCamera = vehicle.course.s - definition.dCam;
   // The camera occupies the body's yaw ray behind the authoritative vehicle position. Its
   // camera-right displacement to the player is therefore exactly zero, so the renderer's projection
   // places the player at centerX by construction; the camera publishes no screen position of its own.
-  const cameraX = vehicle.x - profile.dCam * Math.sin(rig.yaw);
-  const cameraZ = vehicle.z - profile.dCam * Math.cos(rig.yaw);
+  const cameraX = vehicle.x - definition.dCam * Math.sin(rig.yaw);
+  const cameraZ = vehicle.z - definition.dCam * Math.cos(rig.yaw);
 
   // The camera is rigidly fixed to the player: constant depth D_cam, pitch following the body and a
   // height solved every frame so the player's reference point projects exactly to the target row.
   // Body pitch is nose-up-positive; pseudo-camera pitch is downward-positive.
-  const cameraPitch = profile.baseDownPitch - bodyPitch;
+  const cameraPitch = definition.baseDownPitch - bodyPitch;
   const cameraY =
     vehicle.renderY -
-    (profile.dCam / (profile.focalLength * Math.cos(cameraPitch))) *
-      (profile.centerY - profile.focalLength * Math.sin(cameraPitch) - profile.playerTargetY);
+    (definition.dCam / (definition.focalLength * Math.cos(cameraPitch))) *
+      (definition.centerY - definition.focalLength * Math.sin(cameraPitch) - definition.playerTargetY);
 
   return {
     x: cameraX,
@@ -82,9 +82,9 @@ export function updateCamera(
     yaw: rig.yaw,
     pitch: cameraPitch,
     s: sCamera,
-    focalLength: profile.focalLength,
-    centerX: profile.centerX,
-    centerY: profile.centerY,
+    focalLength: definition.focalLength,
+    centerX: definition.centerX,
+    centerY: definition.centerY,
     planHeadingAtCar: planAtCar.heading,
     vehiclePlanYawDelta,
     cameraVehicleYawDelta: wrapAngle(vehicle.yaw - rig.yaw),

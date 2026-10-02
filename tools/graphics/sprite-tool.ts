@@ -3,11 +3,7 @@ import { mustGet } from '../../src/shell/dom.js';
 import type { SpriteAsset } from '../../src/image/sprite.js';
 import type { SpriteSourceRecipe } from './sprite-source-compiler.js';
 import { PNG } from 'pngjs';
-import {
-  createLogicalFrame,
-  CURRENT_FOCAL_LENGTH_PIXELS,
-  pixelsPerMeterAtDepth,
-} from '../../src/view/display-scale.js';
+import { createLogicalFrame, FOCAL_LENGTH_PIXELS, pixelsPerMeterAtDepth } from '../../src/view/display-scale.js';
 import { expandRgb555Pixels, rgba, rgbaToRgb555, unpackRgba } from '../../src/image/rgb555.js';
 import { rgb555ToRgba } from '../../src/image/rgb555.js';
 import { readSpriteLodAsset, selectSpriteLevel, SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
@@ -158,7 +154,7 @@ function drawPreview() {
   if (asset) {
     const depth = number('depth');
     if (depth < 2.5 || depth > 200) throw new Error('Preview depth must be 2.5–200 m.');
-    const ppm = pixelsPerMeterAtDepth(CURRENT_FOCAL_LENGTH_PIXELS, depth);
+    const ppm = pixelsPerMeterAtDepth(FOCAL_LENGTH_PIXELS, depth);
     const k = selectSpriteLevel(asset, ppm),
       level = asset.levels[k]!;
     const stats = drawScaledSprite(surface, asset, 160, 200, ppm);

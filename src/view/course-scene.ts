@@ -7,7 +7,7 @@ import { RENDER_NEAR_DEPTH_METERS, RENDER_FAR_DEPTH_METERS } from './camera.js';
 import type { CompiledSection } from '../course/compiler/course-graph.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import type { CameraState } from './camera.js';
-import { CURRENT_CAMERA_PROFILE } from './current-camera-profile.js';
+import { CAMERA_DEFINITION } from './camera-definition.js';
 import type { VehicleRenderRead } from '../vehicle/physics/vehicle-contract.js';
 import { createRenderWorkspace, renderDriving } from './renderer.js';
 import type { CourseSprite } from './course-sprite.js';
@@ -17,7 +17,7 @@ import type { CourseLoadingWindow } from '../race/loading-coverage.js';
 
 /** The current camera's loading window; reference driving and scenarios load the same Route. */
 const COURSE_LOADING_WINDOW: CourseLoadingWindow = Object.freeze({
-  cameraDistance: CURRENT_CAMERA_PROFILE.dCam,
+  cameraDistance: CAMERA_DEFINITION.dCam,
   near: RENDER_NEAR_DEPTH_METERS,
   far: RENDER_FAR_DEPTH_METERS,
 });

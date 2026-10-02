@@ -1,5 +1,5 @@
 import { resetCameraRig, updateCamera, type CameraRig } from '../view/camera.js';
-import { CURRENT_CAMERA_PROFILE } from '../view/current-camera-profile.js';
+import { CAMERA_DEFINITION } from '../view/camera-definition.js';
 import type { VehicleWorld } from '../course/vehicle-world.js';
 import type { VehicleMotionRead } from '../vehicle/physics/vehicle-contract.js';
 import type { CompiledDrivingDefinition } from '../vehicle/compiled-driving-definition.js';
@@ -17,10 +17,10 @@ export interface DrivingLifecycleOptions {
 
 /** Browser camera following; the race owns mechanics, recovery and progress. */
 export function createDrivingLifecycle(cameraRig: CameraRig, options: DrivingLifecycleOptions) {
-  let camera = updateCamera(cameraRig, options.world(), options.observation(), CURRENT_CAMERA_PROFILE);
+  let camera = updateCamera(cameraRig, options.world(), options.observation(), CAMERA_DEFINITION);
   function update(recovered = false): void {
     if (recovered) resetCameraRig(cameraRig);
-    camera = updateCamera(cameraRig, options.world(), options.observation(), CURRENT_CAMERA_PROFILE);
+    camera = updateCamera(cameraRig, options.world(), options.observation(), CAMERA_DEFINITION);
   }
   function recover(): void {
     options.recover();

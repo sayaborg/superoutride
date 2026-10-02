@@ -20,7 +20,7 @@ import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { readDeliveredContent } from './read-content.js';
 import { createCameraRig, updateCamera } from '../../src/view/camera.js';
-import { CURRENT_CAMERA_PROFILE } from '../../src/view/current-camera-profile.js';
+import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { createLogicalFrame } from '../../src/view/display-scale.js';
 import { expandRgb555Pixels } from '../../src/image/rgb555.js';
 import { courseReport } from './course-report.js';
@@ -125,7 +125,7 @@ try {
             initialSpeed: 0,
           },
         );
-        const camera = updateCamera(createCameraRig(), scene.world, vehicle, CURRENT_CAMERA_PROFILE),
+        const camera = updateCamera(createCameraRig(), scene.world, vehicle, CAMERA_DEFINITION),
           target = createLogicalFrame();
         const stats = scene.render(target, vehicle, camera, sprites.off, []),
           png = new PNG({ width: target.width, height: target.height });

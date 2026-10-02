@@ -2,7 +2,7 @@ import { mustGet } from '../../src/shell/dom.js';
 import type { SpriteAsset, SpriteLodDocument } from '../../src/image/sprite.js';
 import {
   createLogicalFrame,
-  CURRENT_FOCAL_LENGTH_PIXELS,
+  FOCAL_LENGTH_PIXELS,
   LOGICAL_HEIGHT,
   LOGICAL_WIDTH,
   pixelsPerMeterAtDepth,
@@ -43,7 +43,7 @@ function render() {
     return;
   }
   element('error').textContent = '';
-  const ppm = pixelsPerMeterAtDepth(CURRENT_FOCAL_LENGTH_PIXELS, depth);
+  const ppm = pixelsPerMeterAtDepth(FOCAL_LENGTH_PIXELS, depth);
   const k = selectSpriteLevel(asset, ppm),
     level = asset.levels[k]!;
   const stats = [asset, master].map((sprite, i) => {

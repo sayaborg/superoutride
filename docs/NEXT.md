@@ -23,7 +23,7 @@
   fields; FREE PLAY rivals are drawn from vehicle pools; TIME TRIAL runs alone; traffic, collisions, music, sound effects and
   the product front end are not implemented.
 
-Next PR: **12-10b — Camera names (rename only)**.
+Next PR: **12-10c — Camera definition as the one authority**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -34,11 +34,8 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 Define input, run state, framebuffer, persistent player data, data-driven Sessions, the product front end and the
 product HUD independently of DEV, as specified in the [product specification](product.md).
 
-- **12-10b — Camera names (rename only):** rename `CameraProfile`, `CURRENT_CAMERA_PROFILE` and
-  `current-camera-profile.ts` after the glossary's `Definition`, drop the `CURRENT_` prefix and any remaining camera
-  "mode" names; no behavior change.
 - **12-10c — Camera definition as the one authority:** the display-side rearward offset takes the camera definition's
-  `dCam` instead of `CURRENT_CAMERA_DISTANCE_METERS`; the 40 px/m player-depth display scale is defined directly, not
+  `dCam` instead of `CAMERA_DISTANCE_METERS`; the 40 px/m player-depth display scale is defined directly, not
   from `CAR_WIDTH_METERS`; check audit findings H11-03 and S14-01.
 - **12-10d — Sprung camera height:** the camera height follows its projection target through a spring and damper
   (natural frequency and damping ratio in the camera definition, DEV-adjustable), never below a minimum clearance over

@@ -23,8 +23,8 @@ const CAR_WIDTH_METERS = 2.0;
 const PLAYER_REFERENCE_WIDTH_PIXELS = 80;
 const PLAYER_PIXELS_PER_METER = PLAYER_REFERENCE_WIDTH_PIXELS / CAR_WIDTH_METERS; // 40
 
-export const CURRENT_FOCAL_LENGTH_PIXELS = 200;
-export const CURRENT_CAMERA_DISTANCE_METERS = cameraDistanceForFocalLength(CURRENT_FOCAL_LENGTH_PIXELS); // 5
+export const FOCAL_LENGTH_PIXELS = 200;
+export const CAMERA_DISTANCE_METERS = cameraDistanceForFocalLength(FOCAL_LENGTH_PIXELS); // 5
 
 function cameraDistanceForFocalLength(focalLengthPixels: number): number {
   if (!(focalLengthPixels > 0) || !Number.isFinite(focalLengthPixels)) {

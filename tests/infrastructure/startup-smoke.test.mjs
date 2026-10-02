@@ -12,7 +12,7 @@ import { SIM_DT } from '../../src/race/fixed-step.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { createCameraRig, updateCamera } from '../../src/view/camera.js';
-import { CURRENT_CAMERA_PROFILE } from '../../src/view/current-camera-profile.js';
+import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { STRIP_RENDER_METHODS } from '../../src/view/display-settings.js';
 import { createDisplaySettings } from '../../src/view/display-settings.js';
 import { createLogicalFrame } from '../../src/view/display-scale.js';
@@ -36,7 +36,7 @@ for (const { id: stem } of content.manifest.files.filter((file) => file.kind ===
       target = createLogicalFrame();
     for (let frame = 0; frame < 3; frame++) {
       updateVehicle(scene.world, vehicle, model, { steering: 0, throttle: true, brake: false });
-      const camera = updateCamera(rig, scene.world, vehicle, CURRENT_CAMERA_PROFILE);
+      const camera = updateCamera(rig, scene.world, vehicle, CAMERA_DEFINITION);
       target.pixels.fill(0);
       const result = scene.render(target, vehicle, camera, sprites.off, []);
       assert.ok(result.stripGround.outputPixels > 0);

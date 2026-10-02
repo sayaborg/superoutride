@@ -15,7 +15,7 @@ import { resolveCourseSession } from '../../src/race/course-session.js';
 import { readRivalEnvelope } from '../../src/content/rival-envelope.js';
 import { readDeliveredContent } from '../../tools/course/read-content.ts';
 import { createCameraRig, updateCamera } from '../../src/view/camera.js';
-import { CURRENT_CAMERA_PROFILE } from '../../src/view/current-camera-profile.js';
+import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { createRaceSprites } from '../../src/view/race-sprites.js';
 
 const definitionContent = await readDeliveredContent();
@@ -81,7 +81,7 @@ test('race actors have no cameras and view assembles fifteen rival sprites from 
   const observed = race.observe();
   assert.ok(!('sprites' in observed));
   assert.equal(observed.rivals.length, 15);
-  const camera = updateCamera(createCameraRig(), scene.world, observed.player, CURRENT_CAMERA_PROFILE);
+  const camera = updateCamera(createCameraRig(), scene.world, observed.player, CAMERA_DEFINITION);
   const sprites = createRaceSprites(definitions.vehicles)(observed.rivals, camera);
   assert.equal(sprites.length, observed.rivals.length);
   assert.deepEqual(
