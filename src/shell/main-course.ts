@@ -3,6 +3,8 @@ import { createRaceSprites } from '../view/race-sprites.js';
 import { createDisplaySettings } from '../view/display-settings.js';
 import { mountStripControls } from './strip-controls.js';
 import { DEFAULT_RESULT_DELAY_SECONDS, mountResultDelayControls } from './result-delay-controls.js';
+import { mountCameraControls } from './camera-controls.js';
+import { CAMERA_DEFINITION } from '../view/camera-definition.js';
 import { SIM_DT } from '../race/fixed-step.js';
 import { createVehicleSprites } from '../view/vehicle-sprites.js';
 import { createBrowserDrivingShell } from './driving-shell.js';
@@ -145,8 +147,11 @@ try {
   raceStatus.setAttribute('aria-live', 'off');
   raceStatus.className = 'course-status';
   canvas.insertAdjacentElement('afterend', raceStatus);
+  // The camera definition in use: the product's until a DEV adjustment replaces it.
+  let cameraDefinition = CAMERA_DEFINITION;
   const lifecycle = shell.mountControls({
     world: () => active.scene.world,
+    cameraDefinition: () => cameraDefinition,
     canRecover: () => runState.running && active.race.outcome.status === 'RUNNING',
     observation: () => active.race.observe().player,
     recover: () => active.race.recoverPlayer(),
@@ -226,6 +231,7 @@ try {
     {
       start: () => {
         shell.inputManager.reset();
+        lifecycle.reset();
         active.race.start();
       },
       togglePause: () => {
@@ -236,6 +242,7 @@ try {
     vehicles,
   );
   mountResultDelayControls(resultDelaySeconds, (seconds) => (resultDelaySeconds = seconds));
+  mountCameraControls((definition) => (cameraDefinition = definition));
   mountStripControls(displaySettings.stripMethod, (value) => {
     displaySettings.setStripMethod(value);
     render();

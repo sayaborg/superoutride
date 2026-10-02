@@ -108,6 +108,17 @@ capability on unit grip without surface drag.
 | Rival utilization     | 0.75  | FREE PLAY rivals' fixed fraction of the measured envelope    |
 | Reference utilization | 0.9   | Offline reference driver's fraction of the measured envelope |
 
+## Camera settings
+
+The [camera definition](../src/view/camera-definition.ts) holds the camera's values; DEV camera controls replace
+them for the session without saving, and a reload restores them.
+
+| Setting              | Value | DEV choices            | Meaning                                                     |
+| -------------------- | ----- | ---------------------- | ----------------------------------------------------------- |
+| Height frequency     | 2 Hz  | 0.5, 1, 2, 3, 5, 10 Hz | Natural frequency of the sprung camera height               |
+| Height damping ratio | 1.0   | 0.5, 0.7, 1, 1.5, 2    | Damping ratio of the sprung camera height                   |
+| Minimum clearance    | 0.3 m | 0, 0.3, 0.6, 1 m       | Lowest camera height above the rendered road at its station |
+
 ## Vehicle values
 
 The [vehicle mechanics documents](../content/vehicles/) and [vehicle listings](../content/vehicle-listings/)

@@ -387,20 +387,27 @@ rivals have no camera. Horizontal centering follows projection: the player's scr
 projection of its reference point, its one authority, and the camera on the player's yaw ray puts it at the centre
 column by construction. Camera roll is zero.
 
-The camera is rigidly fixed to the player: the player's depth `D_cam`, the camera pitch relative
-to the body and the player's screen row stay constant, so the player never moves, scales or changes attitude on screen.
-Pitch is `phi=phi_0-theta` (base downward pitch `phi_0` = 12 degrees, body pitch `theta` nose-up
-positive). Height is solved every frame from the projection with the player's reference height
-`Y_p` (`renderY`) at target row `y_t` = 190:
+The player's depth `D_cam` and the camera pitch relative to the body stay constant, so the player never scales or
+changes pitch on screen. Pitch is `phi=phi_0-theta` (base downward pitch `phi_0` = 12 degrees, body pitch `theta`
+nose-up positive). The height target is solved from the projection with the player's reference height `Y_p`
+(`renderY`) at target row `y_t` = 190:
 
 ```text
 Ycam = Y_p - (D_cam/(f*cos(phi)))*(cy - f*sin(phi) - y_t)
 ```
 
-This is the projection's `screenY` solved for the camera height with the player at row `y_t`. The camera holds no vertical state, so route
-seams and recovery need no vertical reset. The camera does not consult the ground: it can pass below
-the terrain under it, and no clearance rule applies. Near `|phi|=90` degrees (an overturning body)
-the solved height grows without bound, since `cos(phi)` approaches zero.
+This is the projection's `screenY` solved for the camera height with the player at row `y_t`. Near `|phi|=90` degrees
+(an overturning body) the target grows without bound, since `cos(phi)` approaches zero.
+
+The camera height is sprung to that target. Each fixed step (`SIM_DT`, the step of every camera update) it follows
+`Y'' = w^2*(Ycam_target - Ycam) + 2*zeta*w*(Ycam_target' - Ycam')`, `w = 2*pi*f`, stepped implicitly with the
+target's velocity taken from its previous step, so it is stable at any setting and follows a target moving at
+constant vertical speed (a steady grade) without lag: there the player sits at row `y_t`. Faster vertical motion
+(bumps, jumps, suspension) moves the player on screen instead of the view. The camera never drops below the rendered
+road height at its station `s_vehicle-D_cam` plus the minimum clearance; at that floor its vertical velocity is at
+least the floor's. The frequency `f` (2 Hz), damping ratio `zeta` (1.0) and minimum clearance (0.3 m) are camera
+definition values ([Calibration](calibration.md#camera-settings)). A new camera, recovery, a Session rebuild and START
+place the camera at its target, at rest relative to it; route seams need no reset.
 
 ## Ground and background
 

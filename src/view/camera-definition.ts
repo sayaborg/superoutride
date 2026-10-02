@@ -16,4 +16,7 @@ export const CAMERA_DEFINITION: Readonly<CameraDefinition> = Object.freeze({
   centerX: LOGICAL_WIDTH / 2,
   centerY: LOGICAL_HEIGHT / 2,
   playerTargetY: CAMERA_PLAYER_TARGET_Y,
+  heightFrequency: 2,
+  heightDampingRatio: 1,
+  minimumClearance: 0.3,
 });

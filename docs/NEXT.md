@@ -23,7 +23,7 @@
   fields; FREE PLAY rivals are drawn from vehicle pools; TIME TRIAL runs alone; traffic, collisions, music, sound effects and
   the product front end are not implemented.
 
-Next PR: **12-10d — Sprung camera height**.
+Next PR: **12-10e — Camera yaw limit and response**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -34,9 +34,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 Define input, run state, framebuffer, persistent player data, data-driven Sessions, the product front end and the
 product HUD independently of DEV, as specified in the [product specification](product.md).
 
-- **12-10d — Sprung camera height:** the camera height follows its projection target through a spring and damper
-  (natural frequency and damping ratio in the camera definition, DEV-adjustable), never below a minimum clearance over
-  the rendered road at the camera's station; reset on recovery, Session rebuild and START; fixed-step integration.
 - **12-10e — Camera yaw limit and response:** camera yaw is the body yaw limited to a DEV limit angle (45°) about the
   road heading at the car, followed with a DEV response time (0 s); product §8 states the one camera.
 - **12-11 — Ground sampling:** make a footprint-centred box the default Strip display method (dyadic box in s,
@@ -202,7 +199,6 @@ lighting at its own chainage, and switching is a cut.
 | Circuits         | Series or FREE PLAY placement of the selected circuits below                                                                       |
 | Interaction      | Contact response, traffic behavior, movable objects including cones, fixed roadside objects, barriers and track limits (Stage 13)  |
 | Grade separation | Occurrence/neighborhood/height selection of surfaces, landmarks and contacts at nearby crossings                                   |
-| Camera           | Sprung camera mount or ground-clearance rule (12-10 evaluation)                                                                    |
 | Front end        | Attract demo idle time; HUD layout of the vehicle-state elements (12-13)                                                           |
 | Art              | Production assets, new physical materials and tunnel/background content                                                            |
 | BG transitions   | Consider wipes or dissolves for environment changes; palette fades are not expected                                                |
