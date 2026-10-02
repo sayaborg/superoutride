@@ -106,6 +106,24 @@ camera yaw from the yaw origin and wrapping around 360 degrees. Frame changes tr
 `compileTileBackground` admits this document and builds the immutable `TileBackgroundImage` reader;
 the reader's constructor keeps only its local invariant that every tile binds an existing pattern and palette.
 
+## Text tiles
+
+`content/text-tiles/default.json` uses `superoutride.text-tiles` version 1, the tiled background's pattern and
+palette fields without a tile arrangement:
+
+```text
+{format: "superoutride.text-tiles", version: 1, name, patterns: [{indices}], palettes}
+```
+
+Patterns are 8 by 8 and, unlike the background, admit index 0 as transparent. Patterns 0 through 94 are the
+printable ASCII characters U+0020 through U+007E in code order, so the character mapping needs no saved table;
+later patterns are free for non-character tiles. Pattern 0, the space, must have only index 0: it is the empty
+tile. Palettes 0 through 3 are WHITE, YELLOW, RED and DARK (unselectable items); later palettes are free. The
+build admits the document and delivers it as authored as the manifest `image` entry `text-tiles`.
+`compileTextTiles` admits it and builds the immutable `TextTiles` reader, which encodes text to patterns
+(a character without a pattern is a `RangeError`) and paints one tile's opaque pixels.
+The original font draws each glyph in slot 1 with a slot 2 shadow one pixel right, down and diagonally down-right.
+
 ## External source normalization
 
 Decoded inputs are straight-alpha 8-bit sRGB pixels and this saved recipe:

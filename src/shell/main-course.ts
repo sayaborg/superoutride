@@ -34,6 +34,14 @@ import { loadSurfaceSounds } from '../content/surface-sound-catalog.js';
 import { loadAudioSettings } from '../content/audio-catalog.js';
 import { browserStorage, openPlayerRecord } from './player-record.js';
 import { spriteSetHasColor } from '../vehicle/vehicle-sprite-set.js';
+import { loadTextTiles } from '../content/text-tiles-catalog.js';
+import { TEXT_PALETTES } from '../image/text-tiles.js';
+import { createTextLayer, TEXT_COLUMNS, TEXT_ROWS } from '../view/text-layer.js';
+
+/** PAUSED is centred in the text grid while the run is paused. */
+const PAUSED = 'PAUSED';
+const PAUSED_COLUMN = (TEXT_COLUMNS - PAUSED.length) / 2;
+const PAUSED_ROW = Math.floor((TEXT_ROWS - 1) / 2);
 
 /** Start the course boot selected from the delivered courses. */
 export async function startCourse(
@@ -114,6 +122,7 @@ export async function startCourse(
           )
         : undefined;
     const displaySettings = createDisplaySettings();
+    const textLayer = createTextLayer(await loadTextTiles(content));
     const raceSprites = createRaceSprites(vehicles);
     /**
      * The one assembly of a Session, its scene (with a new Route runtime) and its race. Startup and every DEV
@@ -225,6 +234,10 @@ export async function startCourse(
         others,
       );
       const renderMilliseconds = performance.now() - renderStarted;
+      // The text layer draws over the scene before the frame is presented.
+      textLayer.clear();
+      if (runState.paused) textLayer.write(PAUSED_COLUMN, PAUSED_ROW, PAUSED, TEXT_PALETTES.WHITE);
+      textLayer.draw(shell.framebuffer);
       shell.present(
         courseId,
         lifecycle.camera,
@@ -233,7 +246,7 @@ export async function startCourse(
         observations,
         race.playerDiagnostics,
       );
-      raceStatus.textContent = raceStatusText(race, { paused: runState.paused, tuned });
+      raceStatus.textContent = raceStatusText(race, { tuned });
       performanceHud.frame(started, result.stripGround, renderMilliseconds);
     };
     const controls = mountCourseSessionControls(

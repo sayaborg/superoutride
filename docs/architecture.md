@@ -495,7 +495,7 @@ Magnification is `g=(f/d)*worldWidth/masterWidth`. Course anchors use known chai
 actors use observed chainage and physical-clearance mapping. Yaw/bank variants are authored images.
 Rendering uses nearest sampling, binary alpha and one SINGLE sprite per vehicle; bank is visual.
 
-Painter order is the opaque BG, a far-to-near terrain/world-sprite merge, the player, then HUD.
+Painter order is the opaque BG, a far-to-near terrain/world-sprite merge, the player, then HUD and the [text layer](#text-layer).
 The BG writes every pixel of every frame, so there is no clear step and no pixel keeps a previous frame.
 Transparent ground, including ground rows outside the Route, writes nothing and keeps the Painter image
 beneath it, such as BG below the horizon. At equal depth terrain draws before sprites. The player is last
@@ -505,6 +505,14 @@ Course sprites enter through either a sprite array or a camera/depth observation
 contains immutable camera/projection metadata and read-only image workspaces. An upright basis/ruler
 change transforms world metadata while preserving its recorded screen projections and depths.
 A different physical camera or depth interval rejects that observation. The array path computes its own projections.
+
+### Text layer
+
+The text layer is the one way to draw text in the frame: a 40 by 30 grid of [pattern, palette]
+[text tiles](image-assets.md#text-tiles) over the 320 by 240 logical frame. It clears, writes a string from a
+cell in one palette, puts one tile, and draws. A position, string or tile outside the grid is a `RangeError`;
+nothing is clipped. Drawing follows the scene render and precedes RGBA expansion; it paints the opaque pixels
+of every tile except the empty pattern, so index 0 and empty tiles leave the scene visible.
 
 ### Vehicle color and brake lamps
 

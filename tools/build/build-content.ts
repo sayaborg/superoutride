@@ -17,10 +17,13 @@ import { resolveSurfaceSoundRecords } from '../../src/audio/surface-sounds.js';
 import { compileSurfaceSounds } from '../../src/content/surface-sound-catalog.js';
 import { compileAudioSettings } from '../../src/content/audio-catalog.js';
 import { compileVehicleSpriteLibrary } from '../graphics/vehicle-sprite-library.js';
+import { admit } from '../../src/core/admission.js';
+import { compileTextTiles } from '../../src/image/text-tiles.js';
+import { TEXT_TILES_ID } from '../../src/content/text-tiles-catalog.js';
 
 /**
  * The content build: every delivered file is compiled from authored documents in dependency order,
- * in one pass: vehicle sprite library, materials, surface sounds, audio settings, engine sounds, vehicle and driving definitions, courses and their
+ * in one pass: vehicle sprite library, text tiles, materials, surface sounds, audio settings, engine sounds, vehicle and driving definitions, courses and their
  * images, series, then reference runs. Each compile stage receives earlier products directly. Reference workers
  * are the exception: they run in separate threads and read this build's saved content until 15-5.
  */
@@ -42,6 +45,12 @@ console.log(
     addedLodRgb555PaletteBytes: levels.length * 32,
   }),
 );
+
+// The text tiles are delivered as authored once admitted.
+const textTilesPath = 'content/text-tiles/default.json';
+const textTiles = await json('text-tiles/default.json');
+requireLoaded(admit(textTilesPath, () => compileTextTiles(textTiles)));
+await writer.stage('image', TEXT_TILES_ID, textTiles);
 
 // Each document's file name is its manifest identity; catalogs admit these sources as delivery does.
 const sources = async (directory: string, extension = '.json') => {

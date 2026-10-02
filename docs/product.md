@@ -214,8 +214,8 @@ elements, each reading one observation; the active Session rules determine which
 | One rival per stage        | Distance to that rival        |
 
 Vehicle-state elements follow: steering, throttle and brake (both the player's input and the vehicle's
-actual values) and a tachometer. Text uses one original 8×8 bitmap font of uppercase letters, digits
-and symbols. Fork guidance is course appearance (signs), not HUD. DEV UI and the DEV HUD stay separate.
+actual values) and a tachometer. Text uses one original font of 8×8 tiles (uppercase and lowercase letters, digits and symbols) in the
+same indexed format as sprites and backgrounds: 15 colors and transparency per palette, one palette per tile. Fork guidance is course appearance (signs), not HUD. DEV UI and the DEV HUD stay separate.
 
 ## 10. Records and settings
 

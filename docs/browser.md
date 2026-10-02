@@ -30,7 +30,7 @@ RESUME) and its visibility follow the facts.
 When running changes, the shell runs one symmetric procedure. Starting clears input suspension, activates
 audio, renders once and starts the frame loop. Stopping stops the frame loop, suspends input (which resets it),
 deactivates audio and renders once; that frame shows neutral input in the DEV vehicle HUD, no touch
-indicators and the `PAUSED`, `GOAL` or `GAME OVER` status.
+indicators, `PAUSED` in the frame while paused, and the `GOAL` or `GAME OVER` status.
 
 RESULT follows GOAL or GAME OVER after the RESULT delay, a DEV setting (default 3 s; 0, 1, 2, 3, 5 or 10 s; not
 persisted), which the shell counts in fixed simulation steps after the step that ended the run. Until then the loop,
@@ -136,7 +136,8 @@ all its owners. Without the Gamepad API, polling does nothing.
 
 The status line derives its text from race facts alone
 ([race time and events](content-and-gameplay.md#race-time-and-events)); the race holds no display state.
-Manual pause shows `PAUSED`. A Session rebuilt by DEV tuning prefixes `TUNED · `. Otherwise:
+Manual pause shows `PAUSED` in white at the centre of the frame's [text layer](architecture.md#text-layer),
+not in the status line. A Session rebuilt by DEV tuning prefixes `TUNED · `. Otherwise:
 
 - GOAL or GAME OVER shows `GOAL` or `GAME OVER`, the position and the race time; GAME OVER reads the same
   whatever its cause, as RESULT shows only the outcome ([product](product.md#6-flow-and-screens)).

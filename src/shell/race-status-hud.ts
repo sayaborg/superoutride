@@ -21,11 +21,7 @@ export function formatRaceTime(seconds: number): string {
 }
 
 /** The Session status line, derived from race facts only. */
-export function raceStatusText(
-  race: CourseRace,
-  { paused = false, tuned = false }: { readonly paused?: boolean; readonly tuned?: boolean } = {},
-): string {
-  if (paused) return 'PAUSED';
+export function raceStatusText(race: CourseRace, { tuned = false }: { readonly tuned?: boolean } = {}): string {
   return `${tuned ? 'TUNED · ' : ''}${raceText(race)}`;
 }
 
