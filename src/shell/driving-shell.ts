@@ -1,10 +1,7 @@
-import type { SessionVehicle } from '../content/session-vehicle.js';
 import { createAudioLifecycle } from './audio-lifecycle.js';
 import type { TireSurfaceSounds } from '../audio/surface-sounds.js';
 import type { AudioSettings } from '../audio/audio-document.js';
-import { createDrivingLifecycle, type DrivingLifecycleOptions } from './driving-lifecycle.js';
-import type { CameraRig } from '../view/camera.js';
-import { createCameraRig, type CameraState } from '../view/camera.js';
+import type { CameraState } from '../view/camera.js';
 import { createLogicalFrame, LOGICAL_HEIGHT, LOGICAL_WIDTH } from '../view/display-scale.js';
 import { expandRgb555Pixels } from '../image/rgb555.js';
 import { SoftwareSurface } from '../view/software-surface.js';
@@ -15,10 +12,6 @@ import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import { drawVehicleLeanDebug } from './debug/vehicle-lean-debug.js';
 import { drawVehicleYawDebug } from './debug/vehicle-yaw-debug.js';
-import { compileDrivingDocument } from '../vehicle/definition-document.js';
-import { DRIVING_DEFINITION_ID } from '../content/vehicle-catalog.js';
-import { mountDrivingTuningControls } from './driving-tuning-controls.js';
-import { downloadDefinition } from './definition-export.js';
 import type { BrowserCourseId, BrowserCourseSelection } from './course-selection.js';
 import { mustGet } from './dom.js';
 import { createFrameLoop } from './frame-loop.js';
@@ -27,30 +20,36 @@ import { drawVehicleDebugHud } from './vehicle-debug-hud.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
 import type { PlayerRecord } from './player-record.js';
 
+/** The DEV vehicle HUD's reading of the player: the race's diagnostics and the run's definitions. */
+export interface PlayerDiagnostics {
+  readonly vehicle: VehicleState;
+  readonly model: VehicleModel;
+  readonly driving: DrivingDocument;
+  readonly definition: CompiledVehicleDefinition;
+}
+
 interface BrowserDrivingShell {
   readonly framebuffer: SoftwareSurface;
   readonly inputManager: InputManager;
-  readonly cameraRig: CameraRig;
-  mountControls(options: DrivingLifecycleOptions): ReturnType<typeof createDrivingLifecycle>;
   present(
     query: BrowserCourseId,
     camera: CameraState,
     playerScreenX: number,
     playerScreenY: number,
     observed: { readonly player: CompetitorObservation; readonly rivals: readonly CompetitorObservation[] },
-    diagnostics: { readonly vehicle: VehicleState; readonly model: VehicleModel },
+    diagnostics: PlayerDiagnostics,
   ): void;
   /** The one start/stop procedure, called by the run state when `running` changes. */
   setRunning(running: boolean): void;
 }
 
 /**
- * Browser wiring for the Session vehicle: display, input, audio, the one frame loop over `frame` and DEV
- * controls. It supplies the player's input only; the race owns every competitor's mechanics.
+ * The page's browser devices: display, input, audio and the one frame loop over `frame`. They outlive every run and
+ * hold no run; each presented frame passes the run's observations. It supplies the player's input only; the race
+ * owns every competitor's mechanics.
  */
 export function createBrowserDrivingShell(
   courses: readonly BrowserCourseSelection[],
-  sessionVehicle: SessionVehicle,
   vehicles: readonly CompiledVehicleDefinition[],
   surfaceSounds: TireSurfaceSounds,
   audioSettings: AudioSettings,
@@ -74,11 +73,6 @@ export function createBrowserDrivingShell(
     height: window.innerHeight,
   }));
   const touchIndicators = createTouchIndicators(document);
-  // The tuned driving definition persists across rebuilt Sessions for the next tuning step and export.
-  let driving = sessionVehicle.drivingDefinition;
-  const sessionVehicleDefinition = sessionVehicle.vehicleDefinition;
-  const sessionVehicleId = sessionVehicleDefinition.compiledVehicle.id;
-  const cameraRig = createCameraRig();
 
   const audio = createAudioLifecycle(vehicles, surfaceSounds, audioSettings, player);
   // Each start begins a new frame clock, so stopped real time never enters the simulation.
@@ -103,54 +97,7 @@ export function createBrowserDrivingShell(
     },
     framebuffer,
     inputManager,
-    cameraRig,
-    mountControls(options: DrivingLifecycleOptions) {
-      const lifecycle = createDrivingLifecycle(cameraRig, options);
-      const tuning = {
-        get: () => driving.source,
-        set: (definition: DrivingDocument) => {
-          // A tuned definition is not a delivered document and has no reference identity.
-          const admitted = compileDrivingDocument(definition, 'DEV driving tuning', null);
-          if (!admitted.ok) return false;
-          driving = admitted.value;
-          options.rebuildSession(driving);
-          return true;
-        },
-      };
-      // DEV driving tuning stays available in a Session.
-      mountDrivingTuningControls(
-        {
-          STEERING: mustGet('tuning-steering-buttons'),
-          PEDALS: mustGet('tuning-pedal-buttons'),
-          TIRES: mustGet('tuning-tire-buttons'),
-          POWERTRAIN: mustGet('tuning-powertrain-buttons'),
-          RIVALS: mustGet('tuning-rival-buttons'),
-          ASSIST: mustGet('tuning-assist-buttons'),
-        },
-        tuning,
-      );
-      // Export writes the admitted source documents in the saved layout, never runtime values.
-      const exportVehicle = mustGet<HTMLButtonElement>('export-vehicle-button');
-      exportVehicle.textContent = `vehicles/${sessionVehicleId}.json`;
-      mustGet<HTMLButtonElement>('export-driving-button').addEventListener('click', () =>
-        downloadDefinition(`${DRIVING_DEFINITION_ID}.json`, driving.source),
-      );
-      exportVehicle.addEventListener('click', () =>
-        downloadDefinition(`${sessionVehicleId}.json`, sessionVehicleDefinition.mechanics),
-      );
-      mustGet<HTMLButtonElement>('recover-button').addEventListener('click', () => {
-        if (options.canRecover?.() ?? true) lifecycle.recover();
-      });
-      return lifecycle;
-    },
-    present(
-      query: BrowserCourseId,
-      camera: CameraState,
-      playerScreenX: number,
-      playerScreenY: number,
-      observed: { readonly player: CompetitorObservation; readonly rivals: readonly CompetitorObservation[] },
-      diagnostics: { readonly vehicle: VehicleState; readonly model: VehicleModel },
-    ): void {
+    present(query, camera, playerScreenX, playerScreenY, observed, diagnostics): void {
       const { player } = observed;
       audio.update(player, observed.rivals);
       // The RGB555 frame is expanded to the canvas's RGBA once per presented frame.
@@ -165,8 +112,8 @@ export function createBrowserDrivingShell(
         inputManager.lastSample,
         diagnostics.vehicle,
         diagnostics.model,
-        driving.source,
-        sessionVehicleDefinition,
+        diagnostics.driving,
+        diagnostics.definition,
       );
       if (player.form === 'bike') {
         drawVehicleLeanDebug(ctx, playerScreenX, playerScreenY, player);

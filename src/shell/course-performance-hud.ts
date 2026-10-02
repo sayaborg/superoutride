@@ -1,7 +1,9 @@
 import { STRIP_ACTIVE_LIMIT, type renderDriving } from '../view/renderer.js';
 type StripObservation = NonNullable<ReturnType<typeof renderDriving>['stripGround']>;
 /** Host measurements; the HUD reports observations and makes no device qualification claim. */
-export function createCoursePerformanceHud(canvas: HTMLCanvasElement, ground: { readonly maxActiveStrips: number }) {
+export function createCoursePerformanceHud(canvas: HTMLCanvasElement) {
+  // The run's course ground; each run sets its own.
+  let ground = { maxActiveStrips: 0 };
   const output = document.createElement('output');
   output.className = 'course-performance';
   output.setAttribute('aria-label', 'Course performance');
@@ -21,6 +23,10 @@ export function createCoursePerformanceHud(canvas: HTMLCanvasElement, ground: { 
   let stripIndex = 0,
     activeMax = 0;
   return {
+    /** The current run's course ground. */
+    setCourse(course: { readonly maxActiveStrips: number }) {
+      ground = course;
+    },
     step(milliseconds: number) {
       stepTotal += milliseconds;
       stepMax = Math.max(stepMax, milliseconds);

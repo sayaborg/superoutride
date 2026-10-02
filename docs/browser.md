@@ -22,6 +22,16 @@ stopped real time never enters the simulation. Loading and setup leave the race 
 Every Session assembly, a DEV tuning rebuild included, picks a new Session seed from `crypto.getRandomValues`;
 the composition root is the only place that draws randomness.
 
+The driving composition root owns two lifetimes. The page lifetime is created once: delivered content and
+catalogs (materials, surface sounds, vehicle and driving definitions, series, text tiles, audio settings), the
+player record, display settings, the text layer, race sprites, the browser devices (canvas, framebuffer, input,
+audio, frame loop), the run state, the status line, the performance HUD and the page's DEV controls (sound,
+ground display, camera, RESULT delay, course selection). The run lifetime holds the selected course, its Session
+settings, the field's Session vehicles, envelopes, time budgets and pace schedule, the Session, scene and race,
+the player's sprites, the camera rig and lifecycle, the course's performance-HUD values and the run's DEV
+controls (driving tuning, export, RECOVER, the Session form). Page devices hold no run: each frame passes the
+run's observations to them.
+
 The run state is the one owner of whether the run is running. It holds three facts: `paused` (manual PAUSE),
 `hidden` (the document is hidden or the page was hidden) and `finished` (the current Session reached RESULT). The run is running exactly while none holds. Only the run state watches document visibility and
 page hiding, and a page restored from the back/forward cache reloads. The PAUSE button's label (PAUSE or
