@@ -23,7 +23,7 @@
   fields; FREE PLAY rivals are drawn from vehicle pools; TIME TRIAL runs alone; traffic, collisions, music, sound effects and
   the product front end are not implemented.
 
-Next PR: **12-12 — Front end**.
+Next PR: **12-12a — URL and course selection names**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -34,12 +34,22 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 Define input, run state, framebuffer, persistent player data, data-driven Sessions, the product front end and the
 product HUD independently of DEV, as specified in the [product specification](product.md).
 
-- **12-12 — Front end:** the screens and flow in one page, PRESS START as the sound and fullscreen gesture, PAUSE
-  menu, RESULT, landscape and portrait layouts with the touch area, Escape and gamepad Start pause. URL parameters
-  remain DEV and test deep links: rename `mode` to `course` and `session` to `mode`. Pass the manifest-derived course
-  list explicitly instead of the mutable `BROWSER_COURSE_MODES`.
+- **12-12 — Front end:** the screens and flow in one page, drawn inside the frame
+  ([product](product.md#6-flow-and-screens)). The foundation comes first:
+  - **12-12a — URL and course selection names:** URL parameters remain DEV and test deep links: rename `mode` to
+    `course` and `session` to `mode`; course selection identifiers and files drop `mode`. Rename only.
+  - **12-12b — Course list is passed explicitly:** the manifest-derived course list is a value built once and passed to
+    its users instead of the mutable `BROWSER_COURSE_MODES`; the course page uses the selection made at boot.
+  - **12-12c — Bitmap font and text layer:** the 8×8 bitmap font as a content document and the 40×30 text layer drawn
+    into the frame; PAUSED is its first user.
+  - **12-12d — Runs assemble in the page:** separate page and run lifetimes; one procedure assembles a run and one
+    disposes of it, so changing course, vehicle or Session settings no longer reloads the page.
+
+  The second half builds on it: menu input; the screen flow; the PAUSE menu and RESULT; the layout, pause button
+  and fullscreen; SETTINGS and the last selections; `dev=1`.
+
 - **12-13 — Product HUD:** independent elements drawn inside the game frame from published observations with the
-  8×8 bitmap font; the active rules select the elements. Separate product and DEV observations in the render result,
+  text layer; the active rules select the elements. Separate product and DEV observations in the render result,
   including the performance HUD's ground (Strip) metrics. Place the vehicle-state elements and review the layout.
 - **12-14 — Records:** TIME TRIAL and ARCADE records in the persistent record; DEV-tuned Sessions record nothing.
 - **12-15 — Language:** make all UI English.
@@ -80,6 +90,9 @@ Create the selected courses using the Strip schema and file/CLI authoring workfl
 driving experience and time margins on real devices. The first product target is the OUTRUN, SUPER HANG-ON and
 CHASE H.Q. series, which together use every Session rule component. The following production and authoring goals
 are collected from the topic specifications; their order within this stage is not yet scheduled.
+
+- Series images and attract demo: each series has one 320×240 image (20×15 tiles of 16×16 px), and
+  SELECT SERIES switches between them; the attract demo replaces the text title.
 
 ### Reference and remaster goals
 

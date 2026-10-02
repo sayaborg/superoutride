@@ -168,11 +168,14 @@ PAUSE:  RESUME / RETRY / QUIT
 TITLE:  SETTINGS (MASTER, MUSIC and EFFECTS volume; controls)
 ```
 
-All screens are in one page, and all text is English. PRESS START is the first user gesture, which
+All screens are in one page and are drawn inside the 320×240 frame: text is a 40×30 grid of 8×8 font
+tiles over the frame, and every choice is made inside the frame. All text is English. The title is
+text until the attract demo exists. SELECT VEHICLE + COLOR shows the vehicle's image turning through
+its yaw frames with its name; left and right change the vehicle, up and down change the color. PRESS START is the first user gesture, which
 enables sound and requests fullscreen where the browser allows it. There is no continue. While the
 title is idle, an attract demo drives a product ARCADE course with the driver at the wheel; any input
 returns to the title. RESULT shows the outcome (GOAL or GAME OVER), rank when there were rivals, race
-time, best lap on circuits and new records. Development courses appear only with DEV.
+time, best lap on circuits and new records. DEV controls, DEV HUDs and development series appear only when the URL has `dev=1`.
 
 ## 7. Start and finish
 
@@ -229,15 +232,16 @@ DEV tuning record nothing. There is no name entry, ghost or online ranking.
 
 - **Keyboard:** Left/Right steer, Up or X accelerates, Down or Z brakes; menus use the arrows, Enter and
   Escape; Escape pauses.
-- **Touch:** analog steering in the left half and pedals in the right half of the touch area; menus use
-  taps; a pause button sits in a corner.
+- **Touch:** the touch area is the whole screen in both orientations, the frame and the margins around
+  it included: analog steering in its left half and pedals in its right half; menus use taps; a pause
+  button sits in a corner.
 - **Gamepad:** standard mapping: left stick or D-pad steers, RT or A accelerates, LT or B brakes, Start
   pauses.
 - There is no key remapping, gyro control, manual transmission, driving assist or manual recovery.
   Recovery is automatic.
 
-In landscape the 4:3 frame fills the screen and the touch area covers it. In portrait the frame spans
-the width at the top and the area below it is the touch area.
+In landscape the 4:3 frame fills the screen's height and is centered; in portrait it spans the width at
+the top. The touch area does not depend on where the frame is.
 
 ## 12. Interaction
 
