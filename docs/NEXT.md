@@ -41,7 +41,7 @@ product HUD independently of DEV, as specified in the [product specification](pr
   - **12-12d — Runs assemble in the page:** separate page and run lifetimes; one procedure assembles a run and one
     disposes of it, so changing course, vehicle or Session settings no longer reloads the page.
 
-  The second half builds on it: menu input; the screen flow; the PAUSE menu and RESULT; the layout, pause button
+  The second half builds on it: menu input, with touch as specified in [product](product.md#11-input-and-display); the screen flow; the PAUSE menu and RESULT; the layout, pause button
   and fullscreen; SETTINGS and the last selections; `dev=1`.
 
 - **12-13 — Product HUD:** independent elements drawn inside the game frame from published observations with the

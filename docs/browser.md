@@ -53,15 +53,15 @@ buttons select courses directly. Selecting the active course does nothing. Selec
 
 Session parameters are case-sensitive:
 
-| Parameter   | Meaning                                                                                                  |
-| ----------- | -------------------------------------------------------------------------------------------------------- |
-| `course`    | Lowercase registered course ID                                                                           |
-| `mode`      | `ARCADE`, `FREE_PLAY` or `TIME_TRIAL`, default `ARCADE`; other values fail                               |
-| `vehicle`   | Exact catalog vehicle ID for FREE PLAY and TIME TRIAL, such as `TESTAROSSA`; absent uses preset          |
-| `rivals`    | FREE PLAY count parsed with `Number`; integer 0–15 within grid capacity; absent uses preset              |
-| `laps`      | FREE PLAY and TIME TRIAL count parsed with `Number`; positive integer within course limit                |
-| `pool`      | FREE PLAY rival pool: `ALL`, `CARS` or `BIKES`; absent uses the player vehicle's form; other values fail |
-| `autostart` | Exactly `1` starts after loading; other values show setup                                                |
+| Parameter   | Meaning                                                                                                              |
+| ----------- | -------------------------------------------------------------------------------------------------------------------- |
+| `course`    | Lowercase registered course ID                                                                                       |
+| `mode`      | `ARCADE`, `FREE_PLAY` or `TIME_TRIAL`; default `ARCADE` on a series course, `FREE_PLAY` otherwise; other values fail |
+| `vehicle`   | Exact catalog vehicle ID for FREE PLAY and TIME TRIAL, such as `TESTAROSSA`; absent uses preset                      |
+| `rivals`    | FREE PLAY count parsed with `Number`; integer 0–15 within grid capacity; absent uses preset                          |
+| `laps`      | FREE PLAY and TIME TRIAL count parsed with `Number`; positive integer within course limit                            |
+| `pool`      | FREE PLAY rival pool: `ALL`, `CARS` or `BIKES`; absent uses the player vehicle's form; other values fail             |
+| `autostart` | Exactly `1` starts after loading; other values show setup                                                            |
 
 ARCADE uses the course's [series](content-and-gameplay.md#series-documents) settings: the series' first
 vehicle, its entries and laps, with the checkpoint clock, ignoring their individual query overrides. FREE PLAY exposes
@@ -225,7 +225,7 @@ DEV selection; the DEV overlay above the player shows its travel direction relat
 
 ### Ground display setting
 
-`graphics/display-settings.ts` owns the typed product display setting and its LEVEL-POINT default.
+`src/view/display-settings.ts` owns the typed product display setting and its LEVEL-POINT default.
 The driving composition root creates one settings object; the shared scene reads it when rendering.
 The browser control is only an adapter and does not own the value or its lifetime.
 

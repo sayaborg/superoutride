@@ -233,8 +233,9 @@ DEV tuning record nothing. There is no name entry, ghost or online ranking.
 - **Keyboard:** Left/Right steer, Up or X accelerates, Down or Z brakes; menus use the arrows, Enter and
   Escape; Escape pauses.
 - **Touch:** the touch area is the whole screen in both orientations, the frame and the margins around
-  it included: analog steering in its left half and pedals in its right half; menus use taps; a pause
-  button sits in a corner.
+  it included. While driving, its left half is analog steering and its right half the pedals. In menus,
+  a flick in the left half moves the selection, a tap in the right half confirms, and the top-left
+  corner goes back. A pause button sits in a corner.
 - **Gamepad:** standard mapping: left stick or D-pad steers, RT or A accelerates, LT or B brakes, Start
   pauses.
 - There is no key remapping, gyro control, manual transmission, driving assist or manual recovery.
