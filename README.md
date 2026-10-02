@@ -36,4 +36,4 @@ describes execution and browser-tool delivery.
 
 [Architecture](docs/architecture.md#layer-boundaries) defines the product layer order, responsibilities and dependency rules.
 
-`src/shell/boot.ts` selects the entry; `src/shell/main-course.ts` is the driving composition root.
+`src/shell/main-course.ts` is the one composition root: it creates the page and assembles its runs.

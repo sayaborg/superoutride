@@ -6,6 +6,8 @@ export interface RunFacts {
   readonly hidden: boolean;
   /** The current Session reached GOAL or GAME OVER. */
   readonly finished: boolean;
+  /** No run is loaded: one is being assembled, or its assembly failed. */
+  readonly unloaded: boolean;
 }
 
 export interface RunState extends RunFacts {
@@ -14,6 +16,10 @@ export interface RunState extends RunFacts {
   finish(): void;
   /** A rebuilt Session: clear `paused` and `finished`. */
   restart(): void;
+  /** The run is disposed: set `unloaded`. */
+  unload(): void;
+  /** A new run is loaded: clear `unloaded`, `paused` and `finished`. */
+  load(): void;
   /** Drive the initial state once, after the composition that `drive` renders is complete. */
   begin(): void;
 }
@@ -32,7 +38,8 @@ export function createRunState(
   let paused = false,
     hidden = visibilityDocument.hidden,
     finished = false,
-    running = !hidden,
+    unloaded = true,
+    running = false,
     begun = false;
   const state: RunState = {
     get paused() {
@@ -44,17 +51,26 @@ export function createRunState(
     get finished() {
       return finished;
     },
+    get unloaded() {
+      return unloaded;
+    },
     get running() {
       return running;
     },
     setPaused(value) {
-      update(value, hidden, finished);
+      update(value, hidden, finished, unloaded);
     },
     finish() {
-      update(paused, hidden, true);
+      update(paused, hidden, true, unloaded);
     },
     restart() {
-      update(false, hidden, false);
+      update(false, hidden, false, unloaded);
+    },
+    unload() {
+      update(paused, hidden, finished, true);
+    },
+    load() {
+      update(false, hidden, false, false);
     },
     begin() {
       if (begun) return;
@@ -63,20 +79,24 @@ export function createRunState(
       observe(state);
     },
   };
-  function update(nextPaused: boolean, nextHidden: boolean, nextFinished: boolean): void {
-    if (nextPaused === paused && nextHidden === hidden && nextFinished === finished) return;
+  function update(nextPaused: boolean, nextHidden: boolean, nextFinished: boolean, nextUnloaded: boolean): void {
+    if (nextPaused === paused && nextHidden === hidden && nextFinished === finished && nextUnloaded === unloaded)
+      return;
     paused = nextPaused;
     hidden = nextHidden;
     finished = nextFinished;
-    const next = !paused && !hidden && !finished;
+    unloaded = nextUnloaded;
+    const next = !paused && !hidden && !finished && !unloaded;
     const changed = next !== running;
     running = next;
     if (!begun) return;
     if (changed) drive(running);
     observe(state);
   }
-  visibilityDocument.addEventListener('visibilitychange', () => update(paused, visibilityDocument.hidden, finished));
-  target.addEventListener('pagehide', () => update(paused, true, finished));
+  visibilityDocument.addEventListener('visibilitychange', () =>
+    update(paused, visibilityDocument.hidden, finished, unloaded),
+  );
+  target.addEventListener('pagehide', () => update(paused, true, finished, unloaded));
   target.addEventListener('pageshow', (event) => {
     if (event.persisted) target.location.reload();
   });

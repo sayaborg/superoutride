@@ -105,9 +105,9 @@
     </main>
 
     <script type="module">
-      // One top-level boot selects the registered provisional courses.
-      // Lower engine layers receive only the ordinary runtime objects selected by that boot.
-      const entryName = 'shell/boot.js';
+      // One composition root creates the page and assembles its runs.
+      // Lower engine layers receive only the ordinary runtime objects it selects.
+      const entryName = 'shell/main-course.js';
       const localEntry = `./dist/${entryName}`;
       let entry = localEntry;
 

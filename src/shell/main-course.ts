@@ -9,7 +9,8 @@ import { SIM_DT } from '../race/fixed-step.js';
 import { createVehicleSprites } from '../view/vehicle-sprites.js';
 import { createBrowserDrivingShell } from './driving-shell.js';
 import { mountRunControls } from './run-controls.js';
-import type { BrowserCourseId, BrowserCourseSelection } from './course-selection.js';
+import { browserCourses, selectBrowserCourse, type BrowserCourseId } from './course-selection.js';
+import { mountMobileCourseSelector } from './mobile-selector-controls.js';
 import { mustGet } from './dom.js';
 import { loadDeliveredCourse } from '../content/load-delivered-course.js';
 import { loadVehicleDefinitions } from '../content/vehicle-catalog.js';
@@ -44,18 +45,27 @@ const PAUSED = 'PAUSED';
 const PAUSED_COLUMN = (TEXT_COLUMNS - PAUSED.length) / 2;
 const PAUSED_ROW = Math.floor((TEXT_ROWS - 1) / 2);
 
-/** The one run the page drives: its fixed step, its frame and its Session controls. */
+/** A requested run: its course, its Session parameters and whether it starts at once. */
+interface RunRequest {
+  readonly courseId: BrowserCourseId;
+  readonly parameters: URLSearchParams;
+  readonly autostart: boolean;
+}
+/** The one run the page drives: its fixed step, its frame, its Session controls and its disposal. */
 type Run = {
   readonly tick: () => void;
   readonly render: () => void;
   readonly controls: { show(facts: RunFacts): void; begin(): void };
+  dispose(): void;
 };
+/** Session parameters a course selection resets; other URL data is kept. */
+const SESSION_PARAMETERS = ['mode', 'vehicle', 'rivals', 'laps', 'pool', 'autostart'] as const;
 
-/** Start the page and the run of the course boot selected from the delivered courses. */
-export async function startCourse(
-  courses: readonly BrowserCourseSelection[],
-  selection: BrowserCourseSelection,
-): Promise<void> {
+/**
+ * The one composition root: it creates the page lifetime once, then assembles one run at a time in the page. The URL
+ * is read once, here; selections inside the page never rewrite it.
+ */
+async function startPage(): Promise<void> {
   const canvas = mustGet<HTMLCanvasElement>('game');
   const status = document.createElement('p');
   status.setAttribute('role', 'status');
@@ -74,6 +84,7 @@ export async function startCourse(
     const definitions = await loadVehicleDefinitions(content, await loadEngineSounds(content));
     const { vehicles, driving } = definitions;
     const parameters = new URLSearchParams(location.search);
+    const courses = browserCourses(content.manifest);
     const series = await loadSeriesCatalog(content, vehicles);
     const player = openPlayerRecord(browserStorage());
     const displaySettings = createDisplaySettings();
@@ -104,7 +115,7 @@ export async function startCourse(
     // RESULT (today, finishing the run state) follows GOAL or GAME OVER after the DEV delay, counted in fixed steps
     // while the loop, the field, rendering and sound continue.
     let resultDelaySeconds = DEFAULT_RESULT_DELAY_SECONDS;
-    // The one run state drives the shell once begun; it starts the run unless the page is hidden.
+    // The one run state drives the shell; it is running only while a run is loaded and nothing else holds.
     const runState = createRunState(window, document, shell.setRunning, (facts) => run?.controls.show(facts));
     mountResultDelayControls(resultDelaySeconds, (seconds) => (resultDelaySeconds = seconds));
     mountCameraControls((definition) => (cameraDefinition = definition));
@@ -117,7 +128,7 @@ export async function startCourse(
      * The run lifetime: the course, its Session settings, field, products and scene, the player's sprites and camera,
      * and the run's DEV controls.
      */
-    const assembleRun = async (courseId: BrowserCourseId) => {
+    const assembleRun = async ({ courseId, parameters }: RunRequest): Promise<Run> => {
       const course = await loadDeliveredCourse(content, courseId, materials);
       // The course's ARCADE settings come from the one series holding it; a course in no series is untimed.
       const arcade = loadSeriesCourse(content, series, course);
@@ -205,8 +216,8 @@ export async function startCourse(
         observation: () => active.race.observe().player,
         recover: () => active.race.recoverPlayer(),
         // A tuned driving definition has no delivered identity, so the rebuilt Session has no envelope,
-        // time budgets, rivals or time limit. It starts from the grid at once, unpaused; reloading the page restores
-        // the product Session.
+        // time budgets, rivals or time limit. It starts from the grid at once, unpaused; a new run restores the
+        // product Session and the delivered definition.
         rebuildSession: (driving) => {
           active = build(
             createSessionVehicle(entry, driving, materials),
@@ -273,6 +284,7 @@ export async function startCourse(
       };
       const controls = mountCourseSessionControls(
         canvas,
+        parameters,
         settings,
         arcade,
         course.rules.maxLaps,
@@ -286,15 +298,88 @@ export async function startCourse(
             runState.setPaused(!runState.paused);
             if (!runState.paused) canvas.focus();
           },
+          reassemble: (next, autostart) => void request({ courseId, parameters: next, autostart }),
         },
         vehicles,
       );
-      return { tick, render, controls };
+      return {
+        tick,
+        render,
+        controls,
+        dispose() {
+          controls.dispose();
+          runControls.dispose();
+        },
+      };
     };
-    run = await assembleRun(selection.query);
-    status.remove();
+
+    // The page holds one course: a request disposes of the current run before loading the next. One assembly runs at
+    // a time; a request made while one runs is ignored. A failure leaves no run, shows its reason and offers Retry
+    // and every course selection.
+    let assembling = false;
+    // The loaded run's course; null while no run is loaded.
+    let loadedCourse: BrowserCourseId | null = null;
+    const request = async (next: RunRequest) => {
+      if (assembling) return;
+      assembling = true;
+      courseSelector.setActive(next.courseId);
+      run?.dispose();
+      run = null;
+      loadedCourse = null;
+      runState.unload();
+      raceStatus.textContent = '';
+      status.replaceChildren('Loading course…');
+      status.hidden = false;
+      try {
+        run = await assembleRun(next);
+        loadedCourse = next.courseId;
+        status.hidden = true;
+        runState.load();
+        if (next.autostart) run.controls.begin();
+      } catch (error) {
+        console.error('Course could not start', error);
+        const retry = document.createElement('button');
+        retry.textContent = 'Retry';
+        retry.onclick = () => void request(next);
+        status.replaceChildren(
+          `Course could not start: ${error instanceof Error ? error.message : String(error)} `,
+          retry,
+        );
+      } finally {
+        assembling = false;
+      }
+    };
+    const devPanel = mustGet<HTMLDetailsElement>('dev-panel');
+    // Keys typed in DEV controls never reach driving input.
+    devPanel.addEventListener('keydown', (event) => {
+      event.stopPropagation();
+    });
+    devPanel.addEventListener(
+      'keydown',
+      (event) => {
+        if (event.key === 'Escape') {
+          devPanel.open = false;
+          devPanel.querySelector<HTMLElement>('summary')?.focus();
+        }
+      },
+      true,
+    );
+    const initial = selectBrowserCourse(courses, parameters.get('course'));
+    // Selecting the loaded course does nothing; any other course, or any course after a failure, starts a new run with
+    // default Session settings.
+    const courseSelector = mountMobileCourseSelector(
+      mustGet<HTMLElement>('course-selector-buttons'),
+      courses,
+      initial.query,
+      (target) => {
+        if (assembling || target.query === loadedCourse) return;
+        const next = new URLSearchParams(parameters);
+        for (const key of SESSION_PARAMETERS) next.delete(key);
+        void request({ courseId: target.query, parameters: next, autostart: false });
+      },
+    );
     runState.begin();
-    if (parameters.get('autostart') === '1') run.controls.begin();
+    await request({ courseId: initial.query, parameters, autostart: parameters.get('autostart') === '1' });
   } catch (error) {
     console.error('Course could not start', error);
     status.textContent = `Course could not start: ${error instanceof Error ? error.message : String(error)} `;
@@ -304,3 +389,5 @@ export async function startCourse(
     status.append(retry);
   }
 }
+
+await startPage();

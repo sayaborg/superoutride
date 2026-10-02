@@ -11,7 +11,7 @@ the frame size's only authority: every frame is made by `createLogicalFrame`, an
 projection centre is the frame centre. The frame stores RGB555; each presented frame is expanded to the
 canvas's RGBA through one 32,768-entry table. A shared driving scene supplies the game and headless
 previews. All selected course, image, ground and Session inputs are ready before driving starts. A
-failed load displays status and Retry; an incomplete Session stays inactive.
+failed run assembly displays its reason and Retry without reloading the page; an incomplete Session stays inactive.
 
 The browser accumulates nonnegative elapsed time capped at 0.25 s per animation callback. Simulation
 uses fixed 1/60 s steps (`SIM_DT`): the frame loop runs one race `advance(input)` per whole step in the accumulated
@@ -32,8 +32,20 @@ the player's sprites, the camera rig and lifecycle, the course's performance-HUD
 controls (driving tuning, export, RECOVER, the Session form). Page devices hold no run: each frame passes the
 run's observations to them.
 
-The run state is the one owner of whether the run is running. It holds three facts: `paused` (manual PAUSE),
-`hidden` (the document is hidden or the page was hidden) and `finished` (the current Session reached RESULT). The run is running exactly while none holds. Only the run state watches document visibility and
+The page is loaded once. Startup, a course selection, changed Session settings and NEW SESSION request a run, and
+every request passes the one assembly; a DEV tuning rebuild replaces the Session inside its run. Assembly is
+asynchronous and one runs at a time: a request made during an assembly is ignored. The page holds one course: a
+request first disposes of the current run, removing the listeners and DOM it added, then loads the next. A new run
+starts from delivered content, so DEV driving tuning and its displayed values return to the delivered definition.
+Sound, input, fullscreen, the DEV sound settings, the ground display method, the DEV camera adjustment and the
+RESULT delay belong to the page and persist. A failed assembly leaves no run, shows its reason with Retry, and every
+course selection remains available.
+
+The run state is the one owner of whether the run is running. It holds four facts: `paused` (manual PAUSE),
+`hidden` (the document is hidden or the page was hidden), `finished` (the current Session reached RESULT) and
+`unloaded` (no run is loaded: one is being assembled or its assembly failed). The run is running exactly while none
+holds, so the frame loop, input and sound stop while no run is loaded. Loading a run clears `unloaded`, `paused` and
+`finished`. Only the run state watches document visibility and
 page hiding, and a page restored from the back/forward cache reloads. The PAUSE button's label (PAUSE or
 RESUME) and its visibility follow the facts.
 
@@ -54,12 +66,14 @@ SESSION returns to setup.
 
 The DEV course buttons map `ribbon-coast` / RIBBON COAST / 1, `ribbon-ring` / RIBBON RING / 2,
 `ribbon-fork` / RIBBON FORK / 3 and `ribbon-rough` / RIBBON ROUGH / 4. Missing or unknown `course` selects the first entry, RIBBON COAST.
-Boot builds this list once from the delivered manifest, in this order with any other delivered course after it labeled by
-its ID, and passes it to the course selection, the DEV course buttons and the DEV HUD; the course page starts from the
-selection boot made.
+The composition root builds this list once from the delivered manifest, in this order with any other delivered course
+after it labeled by its ID, and passes it to the course selection, the DEV course buttons and the DEV HUD.
 A series marked `dev: true` is shown only with DEV; until selection screens exist, these DEV course
-buttons select courses directly. Selecting the active course does nothing. Selecting another performs full-page navigation, changes
-`course`, removes `mode`, `vehicle`, `rivals`, `laps`, `pool` and `autostart`, and preserves other URL data.
+buttons select courses directly. Selecting the loaded course does nothing. Selecting another course, or any course after a failed assembly, requests a
+run of that course with the default Session settings (as if `mode`, `vehicle`, `rivals`, `laps`, `pool` and
+`autostart` were absent) and does not start it.
+
+The URL is read once at startup, as a DEV and test entry point; selections inside the page never rewrite it.
 
 Session parameters are case-sensitive:
 
@@ -86,8 +100,8 @@ rivals and one lap. A timed course whose time budgets are missing from delivery 
 ?course=ribbon-coast&mode=FREE_PLAY&vehicle=TESTAROSSA&rivals=15&laps=1&autostart=1
 ```
 
-Submitting equal resolved settings starts in place. Changed settings reload with their query values
-and `autostart=1`. NEW SESSION preserves settings and removes `autostart`.
+Submitting equal resolved settings starts in place. Changed settings request a new run with them, which starts at
+once. NEW SESSION requests a new run with the same settings, which waits for START.
 Autostart affects gameplay; sound still requires an eligible browser gesture.
 
 ## Driving input
@@ -244,7 +258,7 @@ DEV's **Ground display** group exposes every method defined in
 [Architecture](architecture.md#strip-rendering), marking the selected button pressed. A click updates
 the single setting and redraws immediately, including before START and while paused. Camera, vehicle,
 Session and occurrence history are preserved, with no restart or course recompilation. The setting
-lasts for the loaded page; page/course reload restores the default. The controls use DEV input isolation.
+lasts for the loaded page and every run; a page reload restores the default. The controls use DEV input isolation.
 A player-facing settings screen is future work in [NEXT](NEXT.md).
 
 ### Sound controls
@@ -262,8 +276,8 @@ disables them. [Tire audio](tire-audio.md#settings-replacement) owns faded outpu
 
 The shell's reusable DOM controls ([`src/shell/controls/`](../src/shell/controls/)) build these sound controls
 (`mountSoundControls`); the audio lifecycle only syncs their values to the scene and owns the AudioContext.
-DEV sound settings come in groups, each with its own reset to the audio document's values; page/course reload
-restores those values and vehicle changes preserve them:
+DEV sound settings come in groups, each with its own reset to the audio document's values; a page reload
+restores those values and new runs preserve them:
 
 - **ENGINE** (`engine-sound-settings`): fifteen minus/plus controls for the exhaust settings; buttons stop at limits.
 - **MIX** (`mix-sound-settings`): the master compressor.

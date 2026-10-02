@@ -6,13 +6,10 @@ export interface BrowserCourseSelection {
   readonly buttonLabel?: string;
   readonly label: string;
   readonly query: BrowserCourseId;
-  readonly entryName: 'main-course.js';
 }
 
-/** The first saved course is the default; every selection uses the shared product root. */
-function compileBrowserCourses(
-  entries: readonly Omit<BrowserCourseSelection, 'entryName'>[],
-): readonly BrowserCourseSelection[] {
+/** The first saved course is the default. */
+function compileBrowserCourses(entries: readonly BrowserCourseSelection[]): readonly BrowserCourseSelection[] {
   const queries = new Set<string>();
   if (entries.length === 0) throw new RangeError('At least one course is required');
   return Object.freeze(
@@ -27,7 +24,7 @@ function compileBrowserCourses(
         throw new RangeError('course query and label must be nonempty; query must be trimmed');
       if (queries.has(entry.query)) throw new RangeError(`duplicate course query: ${entry.query}`);
       queries.add(entry.query);
-      return Object.freeze({ ...entry, entryName: 'main-course.js' as const });
+      return Object.freeze({ ...entry });
     }),
   );
 }

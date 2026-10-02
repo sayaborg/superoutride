@@ -51,14 +51,17 @@ export function readBrowserSessionSettings(
 
 /**
  * Session settings precede the start signal; ordinary driving input remains unchanged. The PAUSE button asks
- * the run state to toggle, and its label and visibility follow the run-state facts it is shown.
+ * the run state to toggle, and its label and visibility follow the run-state facts it is shown. Changed settings and
+ * NEW SESSION ask for a new run with the run's `parameters` updated; the form belongs to its run and is disposed
+ * with it.
  */
 export function mountCourseSessionControls(
   canvas: HTMLElement,
+  parameters: URLSearchParams,
   current: BrowserSessionSettings,
   arcade: SeriesCourse | null,
   maxLaps: number,
-  actions: { start(): void; togglePause(): void },
+  actions: { start(): void; togglePause(): void; reassemble(parameters: URLSearchParams, autostart: boolean): void },
   vehicles: readonly CompiledVehicleDefinition[],
 ) {
   const panel = document.createElement('form');
@@ -149,11 +152,7 @@ export function mountCourseSessionControls(
   const restart = document.createElement('button');
   restart.type = 'button';
   restart.textContent = 'NEW SESSION';
-  restart.addEventListener('click', () => {
-    const p = new URLSearchParams(location.search);
-    p.delete('autostart');
-    location.search = p.toString();
-  });
+  restart.addEventListener('click', () => actions.reassemble(new URLSearchParams(parameters), false));
   pause.addEventListener('click', () => actions.togglePause());
   toolbar.append(pause, restart);
   const begin = () => {
@@ -164,7 +163,7 @@ export function mountCourseSessionControls(
   };
   panel.addEventListener('submit', (event) => {
     event.preventDefault();
-    const params = new URLSearchParams(location.search);
+    const params = new URLSearchParams(parameters);
     params.set('mode', mode.value);
     params.set('vehicle', vehicle.value);
     params.set('laps', laps.value);
@@ -174,15 +173,18 @@ export function mountCourseSessionControls(
       params.delete('pool');
     } else params.set('rivals', rivals.value);
     const next = readBrowserSessionSettings(params, arcade, vehicles);
-    if (JSON.stringify(next) !== JSON.stringify(current)) {
-      params.set('autostart', '1');
-      location.search = params.toString();
-    } else begin();
+    if (JSON.stringify(next) !== JSON.stringify(current)) actions.reassemble(params, true);
+    else begin();
   });
   canvas.insertAdjacentElement('afterend', panel);
   canvas.insertAdjacentElement('afterend', toolbar);
   return Object.freeze({
     begin,
+    /** Remove the form and its toolbar with their run. */
+    dispose() {
+      panel.remove();
+      toolbar.remove();
+    },
     /** PAUSE or RESUME by `paused`; a finished Session hides the button. */
     show(facts: RunFacts) {
       pause.textContent = facts.paused ? 'RESUME' : 'PAUSE';

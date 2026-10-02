@@ -23,7 +23,7 @@
   fields; FREE PLAY rivals are drawn from vehicle pools; TIME TRIAL runs alone; traffic, collisions, music, sound effects and
   the product front end are not implemented.
 
-Next PR: **12-12d — Runs assemble in the page**.
+Next PR: **12-12d-3 — Course ID names**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -36,8 +36,8 @@ product HUD independently of DEV, as specified in the [product specification](pr
 
 - **12-12 — Front end:** the screens and flow in one page, drawn inside the frame
   ([product](product.md#6-flow-and-screens)). The foundation comes first:
-  - **12-12d — Runs assemble in the page:** separate page and run lifetimes; one procedure assembles a run and one
-    disposes of it, so changing course, vehicle or Session settings no longer reloads the page.
+  - **12-12d-3 — Course ID names:** the course selection's `query` becomes `id`, with the names that carry it.
+    Rename only; it completes 12-12d.
 
   The second half builds on it: menu input, with touch as specified in [product](product.md#11-input-and-display); the screen flow; the PAUSE menu and RESULT; the layout, pause button
   and fullscreen; SETTINGS and the last selections; `dev=1`.
