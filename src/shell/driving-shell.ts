@@ -7,6 +7,8 @@ import { SoftwareSurface } from '../view/software-surface.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import { InputManager } from '../input/input-manager.js';
 import { TouchPointers } from '../input/touch-pointers.js';
+import { MenuInput, type MenuCommand, type MenuInputMode } from '../input/menu-input.js';
+import { createCornerButtons } from './corner-buttons.js';
 import { mustGet } from './dom.js';
 import { createTouchIndicators } from './touch-indicators.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
@@ -19,8 +21,13 @@ interface BrowserDrivingShell {
   present(overlay?: (ctx: CanvasRenderingContext2D) => void): void;
   /** The run's competitors for the audio scene. */
   updateAudio(player: CompetitorObservation, rivals: readonly CompetitorObservation[]): void;
-  /** The one live/stopped procedure for driving input and sound, called by the screen host when `live` changes. */
-  setLive(live: boolean): void;
+  /**
+   * The one procedure that routes devices, called by the screen host when the mode changes: driving input and sound are
+   * live only while driving; menu commands follow the mode.
+   */
+  setMode(mode: MenuInputMode): void;
+  /** The menu commands since the last call. */
+  menuCommands(): MenuCommand[];
 }
 
 /**
@@ -44,19 +51,22 @@ export function createBrowserDrivingShell(
   const presented = new Uint32Array(imageData.data.buffer);
   // The page's one touch pointer reader; the whole viewport is the touch area.
   const pointers = new TouchPointers(window);
-  const inputManager = new InputManager(window, pointers, () => ({
-    left: 0,
-    top: 0,
-    width: window.innerWidth,
-    height: window.innerHeight,
-  }));
+  const touchArea = () => ({ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight });
+  const inputManager = new InputManager(window, pointers, touchArea);
+  const menuInput = new MenuInput(window, pointers, touchArea);
+  const corners = createCornerButtons(document, (command) => menuInput.press(command));
+  pointers.subscribe({ begin: () => corners.touched(), move: () => {}, end: () => {} });
   const touchIndicators = createTouchIndicators(document);
   const audio = createAudioLifecycle(vehicles, surfaceSounds, audioSettings, player);
   return {
-    setLive(live): void {
+    setMode(mode): void {
+      const live = mode === 'driving';
       inputManager.setSuspended(!live);
       audio.setActive(live);
+      menuInput.setMode(mode);
+      corners.setMode(mode);
     },
+    menuCommands: () => menuInput.poll(),
     framebuffer,
     inputManager,
     present(overlay): void {

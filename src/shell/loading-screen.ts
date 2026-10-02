@@ -20,6 +20,7 @@ export function createLoadingScreen(
   return {
     live: false,
     tick() {},
+    command() {},
     render() {
       frame.clear(SCREEN_BACKGROUND);
       text.clear();

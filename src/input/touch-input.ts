@@ -6,6 +6,8 @@ import type { TouchPointer, TouchPointers } from './touch-pointers.js';
 
 /** Compact touch calibration. CSS px is independent of backing-store/device pixel ratio. */
 export const TOUCH_ANALOG_FULL_SCALE_DISTANCE_PX = 64;
+/** The least displacement (CSS px) that makes a menu touch a flick; a shorter one is a tap. */
+export const TOUCH_FLICK_DISTANCE_PX = 24;
 
 /**
  * The client rectangle (CSS px) where driving pointers may start. Its left half selects steering;

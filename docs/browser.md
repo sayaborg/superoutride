@@ -162,6 +162,29 @@ manager reset or a new connection, each control publishes nothing until it has b
 key is ignored until pressed again. A disconnected gamepad, or one no longer returned by polling, releases
 all its owners. Without the Gamepad API, polling does nothing.
 
+## Menu input
+
+Menu commands are UP, DOWN, LEFT, RIGHT, CONFIRM, BACK and PAUSE. They have one authority, separate from driving
+input; it shares the page's touch-pointer reader and gamepad reading. The screen host sets the device mode: while
+driving, driving input takes the devices and only PAUSE reaches the current screen; in a menu (any screen that is not
+live, a paused or finished run included) driving input is suspended and every command arrives; while the page is
+hidden nothing does. Commands arrive at the current screen before each fixed step.
+
+- **Keyboard:** the arrows give the directions and Enter CONFIRM; Escape is BACK in a menu and PAUSE while driving.
+  Keys follow the operating system's repeat, except that a repeated Escape does not pause.
+- **Gamepad** (standard mapping): the D-pad and the left stick beyond half deflection give the directions, A CONFIRM
+  and B BACK; Start is PAUSE while driving and CONFIRM in a menu. A control commands once, on its press, and never
+  repeats; one held while the mode changes commands nothing until pressed again.
+- **Touch:** in a menu, a touch in the left half of the touch area that moves at least `TOUCH_FLICK_DISTANCE_PX`
+  (24 CSS px) is a flick in its larger axis's direction, and a touch in the right half that moves less is a tap,
+  CONFIRM. Touches never repeat. Two small buttons sit in the screen's corners, inside the safe area: BACK top left in
+  a menu and PAUSE top right while driving. They appear once touch has been used, and a press on them starts no
+  driving or menu touch.
+
+The same press never reaches both authorities. Suspension resets driving input, and a gamepad control needs rest and
+a key needs a new press before driving input accepts it, so the Enter, A or touch that resumes a run drives nothing.
+While a run screen runs, PAUSE pauses; while it is paused, PAUSE or BACK resumes.
+
 ## Race status
 
 The status line derives its text from race facts alone

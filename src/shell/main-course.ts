@@ -64,7 +64,7 @@ async function startPage(): Promise<void> {
     const loading = createLoadingScreen(shell.framebuffer, textLayer, present, false);
     const loadFailed = createLoadingScreen(shell.framebuffer, textLayer, present, true);
     // The one owner of the current screen; it runs the frame loop while the page is visible.
-    const host = createScreenHost(window, document, shell.setLive, loading);
+    const host = createScreenHost(window, document, shell, loading);
     const raceStatus = document.createElement('output');
     raceStatus.setAttribute('role', 'status');
     raceStatus.setAttribute('aria-label', 'Session status');

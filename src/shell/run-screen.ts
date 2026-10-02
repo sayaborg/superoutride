@@ -2,6 +2,7 @@ import { TEXT_PALETTES } from '../image/text-tiles.js';
 import { TEXT_COLUMNS, TEXT_ROWS, type TextLayer } from '../view/text-layer.js';
 import type { SoftwareSurface } from '../view/software-surface.js';
 import type { Screen } from './screen-host.js';
+import type { MenuCommand } from '../input/menu-input.js';
 
 /** The run screen's states besides running: manual PAUSE, and finished after GOAL or GAME OVER. */
 export interface RunFacts {
@@ -67,6 +68,11 @@ export function createRunScreen(state: RunScreenState, run: RunFrame, frame: Sof
     },
     tick() {
       if (state.live) run.tick();
+    },
+    // PAUSE toggles the pause; BACK resumes.
+    command(command: MenuCommand) {
+      if (command === 'PAUSE' && !state.finished) state.setPaused(!state.paused);
+      else if (command === 'BACK' && state.paused) state.setPaused(false);
     },
     render() {
       const drawn = run.draw();

@@ -516,3 +516,30 @@ body {
   display: flex;
   gap: 4px;
 }
+
+/* Screen-corner buttons for touch players: BACK top left in menus, PAUSE top right while driving. They stay above
+   the DEV panel's toggle, which shares the top-right corner. */
+.corner-button {
+  position: fixed;
+  z-index: 1200;
+  top: max(8px, env(safe-area-inset-top));
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgb(255 255 255 / 60%);
+  border-radius: 8px;
+  background: rgb(0 0 0 / 45%);
+  color: #fff;
+  font:
+    700 16px/1 system-ui,
+    sans-serif;
+  touch-action: none;
+}
+.corner-back {
+  left: max(8px, env(safe-area-inset-left));
+}
+.corner-pause {
+  right: max(8px, env(safe-area-inset-right));
+}
+.corner-button[hidden] {
+  display: none;
+}
