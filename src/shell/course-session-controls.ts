@@ -2,7 +2,7 @@ import type { SeriesCourse } from '../content/series-catalog.js';
 import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
 import { compileSessionConfiguration, type SessionConfiguration } from '../race/session-configuration.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
-import type { RunFacts } from './run-state.js';
+import type { RunFacts } from './run-screen.js';
 import { formPool, RIVAL_POOLS, type RivalPool } from '../race/free-play-field.js';
 
 /** The chosen settings; each Session assembly adds its own seed. */

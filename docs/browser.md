@@ -17,15 +17,16 @@ The browser accumulates nonnegative elapsed time capped at 0.25 s per animation 
 uses fixed 1/60 s steps (`SIM_DT`): the frame loop runs one race `advance(input)` per whole step in the accumulated
 time, passing no step length, and the fractional remainder carries forward. One render follows the completed
 steps, including callbacks with no simulation step; it reads the race's competitor observations, which
-hold the values of the latest completed step. There is one frame loop; each start begins a fresh clock, so
-stopped real time never enters the simulation. Loading and setup leave the race clock stopped until START.
+hold the values of the latest completed step. There is one frame loop; it runs while the page is visible and
+advances and draws the current screen. Each start begins a fresh clock, so stopped real time never enters the
+simulation. Loading and setup leave the race clock stopped until START.
 Every Session assembly, a DEV tuning rebuild included, picks a new Session seed from `crypto.getRandomValues`;
 the composition root is the only place that draws randomness.
 
 The driving composition root owns two lifetimes. The page lifetime is created once: delivered content and
 catalogs (materials, surface sounds, vehicle and driving definitions, series, text tiles, audio settings), the
 player record, display settings, the text layer, race sprites, the browser devices (canvas, framebuffer, input,
-audio, frame loop), the run state, the status line, the performance HUD and the page's DEV controls (sound,
+audio), the screen host with its frame loop, the status line, the performance HUD and the page's DEV controls (sound,
 ground display, camera, RESULT delay, course selection). The run lifetime holds the selected course, its Session
 settings, the field's Session vehicles, envelopes, time budgets and pace schedule, the Session, scene and race,
 the player's sprites, the camera rig and lifecycle, the course's performance-HUD values and the run's DEV
@@ -41,24 +42,29 @@ Sound, input, fullscreen, the DEV sound settings, the ground display method, the
 RESULT delay belong to the page and persist. A failed assembly leaves no run, shows its reason with Retry, and every
 course selection remains available.
 
-The run state is the one owner of whether the run is running. It holds four facts: `paused` (manual PAUSE),
-`hidden` (the document is hidden or the page was hidden), `finished` (the current Session reached RESULT) and
-`unloaded` (no run is loaded: one is being assembled or its assembly failed). The run is running exactly while none
-holds, so the frame loop, input and sound stop while no run is loaded. Loading a run clears `unloaded`, `paused` and
-`finished`. Only the run state watches document visibility and
-page hiding, and a page restored from the back/forward cache reloads. The PAUSE button's label (PAUSE or
-RESUME) and its visibility follow the facts.
+## Screens
 
-When running changes, the shell runs one symmetric procedure. Starting clears input suspension, activates
-audio, renders once and starts the frame loop. Stopping stops the frame loop, suspends input (which resets it),
-deactivates audio and renders once; that frame shows neutral input in the DEV vehicle HUD, no touch
-indicators, `PAUSED` in the frame while paused, and the `GOAL` or `GAME OVER` status.
+The page always has one current screen, owned by the screen host. A screen advances one fixed step, draws one
+frame (the framebuffer and the [text layer](architecture.md#text-layer)) and says whether it is live: whether the
+player's driving input and sound run on it. The host runs the frame loop while the page is visible and stops it
+while the document is hidden or after `pagehide`; only the host watches document visibility and page hiding, and a
+page restored from the back/forward cache reloads. Driving input and sound are live exactly while the page is
+visible and the current screen is live, and the host runs one symmetric procedure when that changes: live clears
+input suspension and activates audio; stopped suspends input (which resets it) and deactivates audio.
+
+The loading screen shows `LOADING` on the plain background while a run is assembled, and `LOAD FAILED` in red
+after a failed assembly; the reason appears only in the console and the status element outside the frame, since it
+may hold characters without text tiles. The run screen holds the run and its state: running, paused (manual PAUSE)
+or finished (the Session reached RESULT). The run runs only while neither holds: paused and finished advance no race,
+and driving input and sound stop, so the DEV vehicle HUD shows neutral input and no touch indicator is drawn. Every
+frame still draws the scene; while paused the run screen writes `PAUSED` at the frame's centre. The PAUSE button's
+label (PAUSE or RESUME) and its visibility follow the run screen's state.
 
 RESULT follows GOAL or GAME OVER after the RESULT delay, a DEV setting (default 3 s; 0, 1, 2, 3, 5 or 10 s; not
 persisted), which the shell counts in fixed simulation steps after the step that ended the run. Until then the loop,
 the field, rendering and sound continue and PAUSE stays available; a pause stops the count with the simulation.
-Until selection screens exist, RESULT is finishing the run: the loop stops, PAUSE is hidden and the status line keeps
-the outcome; rendering changes no run state. A Session rebuilt by DEV tuning restarts
+Until selection screens exist, RESULT is finishing the run: the race stops, PAUSE is hidden and the status line keeps
+the outcome; rendering changes no screen state. A Session rebuilt by DEV tuning restarts
 the run, clearing `paused` and `finished`, so it drives at once. START resets driving input once. NEW
 SESSION returns to setup.
 
@@ -128,10 +134,9 @@ and numeric requests in `[0,1]` have the same canonical meaning.
 
 Each fixed step, `sample()` polls the window's gamepads once and then builds one `DrivingInput` from the
 arbiters: each apply method is the winning owner's, or `RATE_LIMITED` without an owner. The latest final
-sample is a published read-only observation (`lastSample`); the DEV vehicle HUD reads it. The run state
-suspends input whenever the run stops; suspension resets the arbiters, the adapters' held state and the final
-sample to neutral, and while suspended the manager accepts no publication. Window blur, which is not a
-run-state fact, resets input the same way without suspending it. START resets input once.
+sample is a published read-only observation (`lastSample`); the DEV vehicle HUD reads it. The screen host
+suspends input whenever driving stops; suspension resets the arbiters, the adapters' held state and the final
+sample to neutral, and while suspended the manager accepts no publication. Window blur, which stops no screen, resets input the same way without suspending it. START resets input once.
 
 Touch pointers starting inside the touch area, and outside UI elements marked `data-driving-input="ignore"`,
 control driving. The shell supplies the touch area as a client rectangle; it is currently the whole

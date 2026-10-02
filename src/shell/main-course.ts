@@ -13,7 +13,9 @@ import { loadVehicleDefinitions } from '../content/vehicle-catalog.js';
 import { loadEngineSounds } from '../content/engine-sound-catalog.js';
 import { createCoursePerformanceHud } from './course-performance-hud.js';
 import { loadSeriesCatalog } from '../content/series-catalog.js';
-import { createRunState } from './run-state.js';
+import { createScreenHost } from './screen-host.js';
+import { createRunScreen, createRunScreenState } from './run-screen.js';
+import { createLoadingScreen } from './loading-screen.js';
 import { assembleRun, type Run, type RunPage, type RunRequest } from './run-assembly.js';
 import { loadSurfaceMaterials } from '../content/surface-material-catalog.js';
 import { resolveSurfaceSoundRecords } from '../audio/surface-sounds.js';
@@ -55,19 +57,14 @@ async function startPage(): Promise<void> {
     const displaySettings = createDisplaySettings();
     const textLayer = createTextLayer(await loadTextTiles(content));
     const raceSprites = createRaceSprites(vehicles);
-    // The one run; the page's frame callbacks drive it.
+    // The one run, which the current run screen shows.
     let run: Run | null = null;
-    const shell = createBrowserDrivingShell(
-      courses,
-      vehicles,
-      surfaceSounds,
-      await loadAudioSettings(content),
-      player,
-      {
-        tick: () => run?.tick(),
-        render: () => run?.render(),
-      },
-    );
+    const shell = createBrowserDrivingShell(vehicles, surfaceSounds, await loadAudioSettings(content), player);
+    const present = () => shell.present();
+    const loading = createLoadingScreen(shell.framebuffer, textLayer, present, false);
+    const loadFailed = createLoadingScreen(shell.framebuffer, textLayer, present, true);
+    // The one owner of the current screen; it runs the frame loop while the page is visible.
+    const host = createScreenHost(window, document, shell.setLive, loading);
     const raceStatus = document.createElement('output');
     raceStatus.setAttribute('role', 'status');
     raceStatus.setAttribute('aria-label', 'Session status');
@@ -80,14 +77,10 @@ async function startPage(): Promise<void> {
     // RESULT (today, finishing the run state) follows GOAL or GAME OVER after the DEV delay, counted in fixed steps
     // while the loop, the field, rendering and sound continue.
     let resultDelaySeconds = DEFAULT_RESULT_DELAY_SECONDS;
-    // The one run state drives the shell; it is running only while a run is loaded and nothing else holds.
-    const runState = createRunState(window, document, shell.setRunning, (facts) => run?.controls.show(facts));
     mountResultDelayControls(resultDelaySeconds, (seconds) => (resultDelaySeconds = seconds));
     mountCameraControls((definition) => (cameraDefinition = definition));
-    mountStripControls(displaySettings.stripMethod, (value) => {
-      displaySettings.setStripMethod(value);
-      run?.render();
-    });
+    // The frame loop redraws the current screen with the new method at the next frame, paused or not.
+    mountStripControls(displaySettings.stripMethod, (value) => displaySettings.setStripMethod(value));
 
     const page: RunPage = {
       content,
@@ -98,12 +91,11 @@ async function startPage(): Promise<void> {
       player,
       displaySettings,
       raceSprites,
-      textLayer,
       shell,
       canvas,
       raceStatus,
       performanceHud,
-      runState,
+      courses,
       cameraDefinition: () => cameraDefinition,
       resultDelaySeconds: () => resultDelaySeconds,
       drawSeed: () => crypto.getRandomValues(new Uint32Array(1))[0]!,
@@ -123,18 +115,24 @@ async function startPage(): Promise<void> {
       run?.dispose();
       run = null;
       loadedCourse = null;
-      runState.unload();
+      host.show(loading);
       raceStatus.textContent = '';
       status.replaceChildren('Loading course…');
       status.hidden = false;
       try {
-        run = await assembleRun(page, next);
+        const state = createRunScreenState((facts) => {
+          host.refresh();
+          run?.controls.show(facts);
+        });
+        const assembled = await assembleRun(page, next, state);
+        run = assembled;
         loadedCourse = next.courseId;
         status.hidden = true;
-        runState.load();
-        if (next.autostart) run.controls.begin();
+        host.show(createRunScreen(state, assembled, shell.framebuffer, textLayer));
+        if (next.autostart) assembled.controls.begin();
       } catch (error) {
         console.error('Course could not start', error);
+        host.show(loadFailed);
         const retry = document.createElement('button');
         retry.textContent = 'Retry';
         retry.onclick = () => void request(next);
@@ -175,7 +173,6 @@ async function startPage(): Promise<void> {
         void request({ courseId: target.id, parameters: next, autostart: false });
       },
     );
-    runState.begin();
     await request({ courseId: initial.id, parameters, autostart: parameters.get('autostart') === '1' });
   } catch (error) {
     console.error('Course could not start', error);

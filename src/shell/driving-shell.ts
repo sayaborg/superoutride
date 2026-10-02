@@ -1,60 +1,36 @@
 import { createAudioLifecycle } from './audio-lifecycle.js';
 import type { TireSurfaceSounds } from '../audio/surface-sounds.js';
 import type { AudioSettings } from '../audio/audio-document.js';
-import type { CameraState } from '../view/camera.js';
 import { createLogicalFrame, LOGICAL_HEIGHT, LOGICAL_WIDTH } from '../view/display-scale.js';
 import { expandRgb555Pixels } from '../image/rgb555.js';
 import { SoftwareSurface } from '../view/software-surface.js';
-import type { DrivingDocument } from '../vehicle/driving-definition.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import { InputManager } from '../input/input-manager.js';
-import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
-import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
-import { drawVehicleLeanDebug } from './debug/vehicle-lean-debug.js';
-import { drawVehicleYawDebug } from './debug/vehicle-yaw-debug.js';
-import type { BrowserCourseId, BrowserCourseSelection } from './course-selection.js';
 import { mustGet } from './dom.js';
-import { createFrameLoop } from './frame-loop.js';
 import { createTouchIndicators } from './touch-indicators.js';
-import { drawVehicleDebugHud } from './vehicle-debug-hud.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
 import type { PlayerRecord } from './player-record.js';
-
-/** The DEV vehicle HUD's reading of the player: the race's diagnostics and the run's definitions. */
-export interface PlayerDiagnostics {
-  readonly vehicle: VehicleState;
-  readonly model: VehicleModel;
-  readonly driving: DrivingDocument;
-  readonly definition: CompiledVehicleDefinition;
-}
 
 interface BrowserDrivingShell {
   readonly framebuffer: SoftwareSurface;
   readonly inputManager: InputManager;
-  present(
-    courseId: BrowserCourseId,
-    camera: CameraState,
-    playerScreenX: number,
-    playerScreenY: number,
-    observed: { readonly player: CompetitorObservation; readonly rivals: readonly CompetitorObservation[] },
-    diagnostics: PlayerDiagnostics,
-  ): void;
-  /** The one start/stop procedure, called by the run state when `running` changes. */
-  setRunning(running: boolean): void;
+  /** Expand the framebuffer to the canvas, update the touch indicators, then draw `overlay` (DEV only) on top. */
+  present(overlay?: (ctx: CanvasRenderingContext2D) => void): void;
+  /** The run's competitors for the audio scene. */
+  updateAudio(player: CompetitorObservation, rivals: readonly CompetitorObservation[]): void;
+  /** The one live/stopped procedure for driving input and sound, called by the screen host when `live` changes. */
+  setLive(live: boolean): void;
 }
 
 /**
- * The page's browser devices: display, input, audio and the one frame loop over `frame`. They outlive every run and
- * hold no run; each presented frame passes the run's observations. It supplies the player's input only; the race
- * owns every competitor's mechanics.
+ * The page's browser devices: display, input and audio. They outlive every screen and run and hold no run. They
+ * supply the player's input only; the race owns every competitor's mechanics.
  */
 export function createBrowserDrivingShell(
-  courses: readonly BrowserCourseSelection[],
   vehicles: readonly CompiledVehicleDefinition[],
   surfaceSounds: TireSurfaceSounds,
   audioSettings: AudioSettings,
   player: PlayerRecord,
-  frame: { tick(): void; render(): void },
 ): BrowserDrivingShell {
   const canvas = mustGet<HTMLCanvasElement>('game');
   canvas.width = LOGICAL_WIDTH;
@@ -73,52 +49,23 @@ export function createBrowserDrivingShell(
     height: window.innerHeight,
   }));
   const touchIndicators = createTouchIndicators(document);
-
   const audio = createAudioLifecycle(vehicles, surfaceSounds, audioSettings, player);
-  // Each start begins a new frame clock, so stopped real time never enters the simulation.
-  const loop = createFrameLoop(
-    () => frame.tick(),
-    () => frame.render(),
-  );
   return {
-    setRunning(running): void {
-      if (running) {
-        inputManager.setSuspended(false);
-        audio.setActive(true);
-        frame.render();
-        loop.start();
-      } else {
-        loop.stop();
-        inputManager.setSuspended(true);
-        audio.setActive(false);
-        // The stopped frame shows neutral input, no touch indicators and the stopped status.
-        frame.render();
-      }
+    setLive(live): void {
+      inputManager.setSuspended(!live);
+      audio.setActive(live);
     },
     framebuffer,
     inputManager,
-    present(courseId, camera, playerScreenX, playerScreenY, observed, diagnostics): void {
-      const { player } = observed;
-      audio.update(player, observed.rivals);
+    present(overlay): void {
       // The RGB555 frame is expanded to the canvas's RGBA once per presented frame.
       expandRgb555Pixels(framebuffer.pixels, presented);
       ctx.putImageData(imageData, 0, 0);
       touchIndicators.update(inputManager.touch);
-      // The DEV vehicle HUD diagnoses mechanics internals through the race's DEV-only diagnostics.
-      drawVehicleDebugHud(
-        ctx,
-        courses,
-        courseId,
-        inputManager.lastSample,
-        diagnostics.vehicle,
-        diagnostics.model,
-        diagnostics.driving,
-        diagnostics.definition,
-      );
-      if (player.form === 'bike') {
-        drawVehicleLeanDebug(ctx, playerScreenX, playerScreenY, player);
-      }
-      drawVehicleYawDebug(ctx, playerScreenX, playerScreenY, diagnostics.vehicle, camera.yaw);
+      overlay?.(ctx);
+    },
+    updateAudio(player, rivals): void {
+      audio.update(player, rivals);
     },
   };
 }

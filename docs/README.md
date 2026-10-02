@@ -55,6 +55,7 @@ explicitly scheduled in [NEXT](NEXT.md) are replaced with their owning concepts.
 | `Route`               | The one selected, append-only sequence of Section occurrences measured from the entry (start 0); all vehicles share its chainage and consumers read it only.             |
 | `RouteRuntime`        | The owner of the Route's extension, the resident window over it, the readers on that window and loading; race Session state belongs to the race.                         |
 | `Session`             | One race run and its selected rules, competitors, timing and progress.                                                                                                   |
+| `screen`              | What the page currently shows and runs: it advances fixed steps, draws the frame and takes menu commands; the shell's screen host owns the current one.                  |
 | `RouteOccurrence`     | A Section visit with its route start, lateral origin and world transform; repeating a Section creates a new occurrence.                                                  |
 | `Observation`         | A measured or derived fact at sampling time, not an independent authority.                                                                                               |
 | `State`               | Mutable live state owned by its responsible model or consumer.                                                                                                           |

@@ -4,7 +4,7 @@ import { SIM_DT } from '../race/fixed-step.js';
 import { createVehicleSprites } from '../view/vehicle-sprites.js';
 import type { createBrowserDrivingShell } from './driving-shell.js';
 import { mountRunControls } from './run-controls.js';
-import type { BrowserCourseId } from './course-selection.js';
+import type { BrowserCourseId, BrowserCourseSelection } from './course-selection.js';
 import { loadDeliveredCourse } from '../content/load-delivered-course.js';
 import type { loadVehicleDefinitions } from '../content/vehicle-catalog.js';
 import { createCourseRace } from '../race/course-race.js';
@@ -18,22 +18,18 @@ import { loadSeriesCourse, type loadSeriesCatalog } from '../content/series-cata
 import { createSessionVehicle, type SessionVehicle } from '../content/session-vehicle.js';
 import { readBrowserSessionSettings, mountCourseSessionControls } from './course-session-controls.js';
 import { createCourseScene } from '../view/course-scene.js';
-import type { RunFacts, RunState } from './run-state.js';
+import type { RunFacts, RunFrame, RunScreenState } from './run-screen.js';
+import { drawVehicleDebugHud } from './vehicle-debug-hud.js';
+import { drawVehicleLeanDebug } from './debug/vehicle-lean-debug.js';
+import { drawVehicleYawDebug } from './debug/vehicle-yaw-debug.js';
 import { readRivalEnvelope, type RivalEnvelope } from '../content/rival-envelope.js';
 import type { loadSurfaceMaterials } from '../content/surface-material-catalog.js';
 import { admitProduct } from '../content/delivered-product.js';
 import { compileSessionConfiguration, type SessionConfiguration } from '../race/session-configuration.js';
 import type { PlayerRecord } from './player-record.js';
 import { spriteSetHasColor } from '../vehicle/vehicle-sprite-set.js';
-import { TEXT_PALETTES } from '../image/text-tiles.js';
-import { TEXT_COLUMNS, TEXT_ROWS, type TextLayer } from '../view/text-layer.js';
 import type { DisplaySettings } from '../view/display-settings.js';
 import type { createRaceSprites } from '../view/race-sprites.js';
-
-/** PAUSED is centred in the text grid while the run is paused. */
-const PAUSED = 'PAUSED';
-const PAUSED_COLUMN = (TEXT_COLUMNS - PAUSED.length) / 2;
-const PAUSED_ROW = Math.floor((TEXT_ROWS - 1) / 2);
 
 /** A requested run: its course, its Session parameters and whether it starts at once. */
 export interface RunRequest {
@@ -42,12 +38,10 @@ export interface RunRequest {
   readonly autostart: boolean;
 }
 /** The one run the page drives: its fixed step, its frame, its Session controls and its disposal. */
-export type Run = {
-  readonly tick: () => void;
-  readonly render: () => void;
+export interface Run extends RunFrame {
   readonly controls: { show(facts: RunFacts): void; begin(): void };
   dispose(): void;
-};
+}
 /** The page-lifetime objects a run is assembled from and drives; the composition root supplies them. */
 export interface RunPage {
   readonly content: ContentDelivery;
@@ -58,12 +52,11 @@ export interface RunPage {
   readonly player: PlayerRecord;
   readonly displaySettings: DisplaySettings;
   readonly raceSprites: ReturnType<typeof createRaceSprites>;
-  readonly textLayer: TextLayer;
   readonly shell: ReturnType<typeof createBrowserDrivingShell>;
   readonly canvas: HTMLCanvasElement;
   readonly raceStatus: HTMLOutputElement;
   readonly performanceHud: ReturnType<typeof createCoursePerformanceHud>;
-  readonly runState: RunState;
+  readonly courses: readonly BrowserCourseSelection[];
   /** The camera definition in use. */
   cameraDefinition(): CameraDefinition;
   /** The DEV RESULT delay in use. */
@@ -78,7 +71,12 @@ export interface RunPage {
  * The run lifetime: the course, its Session settings, field, products and scene, the player's sprites and camera,
  * and the run's DEV controls.
  */
-export async function assembleRun(page: RunPage, { courseId, parameters }: RunRequest): Promise<Run> {
+/** Assemble a run for `request`; `state` is its run screen's state, which the run's controls and race end change. */
+export async function assembleRun(
+  page: RunPage,
+  { courseId, parameters }: RunRequest,
+  state: RunScreenState,
+): Promise<Run> {
   const {
     content,
     materials,
@@ -88,12 +86,10 @@ export async function assembleRun(page: RunPage, { courseId, parameters }: RunRe
     player,
     displaySettings,
     raceSprites,
-    textLayer,
     shell,
     canvas,
     raceStatus,
     performanceHud,
-    runState,
   } = page;
   const course = await loadDeliveredCourse(content, courseId, materials);
   // The course's ARCADE settings come from the one series holding it; a course in no series is untimed.
@@ -178,7 +174,7 @@ export async function assembleRun(page: RunPage, { courseId, parameters }: RunRe
   const runControls = mountRunControls(vehicle, {
     world: () => active.scene.world,
     cameraDefinition: page.cameraDefinition,
-    canRecover: () => runState.running && active.race.outcome.status === 'RUNNING',
+    canRecover: () => state.live && active.race.outcome.status === 'RUNNING',
     observation: () => active.race.observe().player,
     recover: () => active.race.recoverPlayer(),
     // A tuned driving definition has no delivered identity, so the rebuilt Session has no envelope,
@@ -201,7 +197,7 @@ export async function assembleRun(page: RunPage, { courseId, parameters }: RunRe
       lifecycle.update(true);
       afterEndingSeconds = 0;
       controls.begin();
-      runState.restart();
+      state.restart();
     },
   });
   const { lifecycle } = runControls;
@@ -217,11 +213,12 @@ export async function assembleRun(page: RunPage, { courseId, parameters }: RunRe
     lifecycle.update(step.recovered);
     performanceHud.step(performance.now() - started);
     if (race.outcome.status === 'GOAL' || race.outcome.status === 'GAME_OVER') {
-      if (afterEndingSeconds + SIM_DT / 2 >= page.resultDelaySeconds()) runState.finish();
+      if (afterEndingSeconds + SIM_DT / 2 >= page.resultDelaySeconds()) state.finish();
       else afterEndingSeconds += SIM_DT;
     }
   };
-  const render = () => {
+  // The scene is drawn first; presenting follows the run screen's text.
+  const draw = () => {
     const { scene, race, tuned } = active;
     const started = performance.now(),
       observations = race.observe();
@@ -236,17 +233,30 @@ export async function assembleRun(page: RunPage, { courseId, parameters }: RunRe
       others,
     );
     const renderMilliseconds = performance.now() - renderStarted;
-    // The text layer draws over the scene before the frame is presented.
-    textLayer.clear();
-    if (runState.paused) textLayer.write(PAUSED_COLUMN, PAUSED_ROW, PAUSED, TEXT_PALETTES.WHITE);
-    textLayer.draw(shell.framebuffer);
-    shell.present(courseId, lifecycle.camera, result.playerScreenX, result.playerScreenY, observations, {
-      ...race.playerDiagnostics,
-      driving: runControls.driving,
-      definition: runControls.definition,
-    });
-    raceStatus.textContent = raceStatusText(race, { tuned });
-    performanceHud.frame(started, result.stripGround, renderMilliseconds);
+    return {
+      present() {
+        const { player } = observations;
+        shell.updateAudio(player, observations.rivals);
+        // The DEV vehicle HUD diagnoses mechanics internals through the race's DEV-only diagnostics.
+        shell.present((ctx) => {
+          const { vehicle, model } = race.playerDiagnostics;
+          drawVehicleDebugHud(
+            ctx,
+            page.courses,
+            courseId,
+            shell.inputManager.lastSample,
+            vehicle,
+            model,
+            runControls.driving,
+            runControls.definition,
+          );
+          if (player.form === 'bike') drawVehicleLeanDebug(ctx, result.playerScreenX, result.playerScreenY, player);
+          drawVehicleYawDebug(ctx, result.playerScreenX, result.playerScreenY, vehicle, lifecycle.camera.yaw);
+        });
+        raceStatus.textContent = raceStatusText(race, { tuned });
+        performanceHud.frame(started, result.stripGround, renderMilliseconds);
+      },
+    };
   };
   const controls = mountCourseSessionControls(
     canvas,
@@ -261,8 +271,8 @@ export async function assembleRun(page: RunPage, { courseId, parameters }: RunRe
         active.race.start();
       },
       togglePause: () => {
-        runState.setPaused(!runState.paused);
-        if (!runState.paused) canvas.focus();
+        state.setPaused(!state.paused);
+        if (!state.paused) canvas.focus();
       },
       reassemble: (next, autostart) => page.request({ courseId, parameters: next, autostart }),
     },
@@ -270,7 +280,7 @@ export async function assembleRun(page: RunPage, { courseId, parameters }: RunRe
   );
   return {
     tick,
-    render,
+    draw,
     controls,
     dispose() {
       controls.dispose();
