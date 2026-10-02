@@ -5,6 +5,46 @@ import { loadScenarioCourse, runScenario } from './driving-harness.mjs';
 for (const stem of ['ribbon-coast', 'ribbon-fork', 'ribbon-ring']) {
   test(`${stem}: deterministic driving scenarios`, async (t) => {
     const loaded = await loadScenarioCourse(stem);
+    // Session-rule scenarios: ARCADE uses the test series' settings for the course (session-rules.series.json).
+    const sessionRules = {
+      'ribbon-coast': [
+        {
+          name: 'ARCADE finish ahead of a paced rival, then the takeover stops',
+          mode: 'ARCADE',
+          policy: 'finish',
+          afterEndingSeconds: 12,
+          seconds: 120,
+          expect: { outcome: 'GOAL', position: 'P1/2', stop: true, rivalsDrive: true },
+        },
+        {
+          name: 'TIME TRIAL finish from the last slot',
+          mode: 'TIME_TRIAL',
+          policy: 'finish',
+          seconds: 120,
+          expect: { outcome: 'GOAL', position: 'P1/1' },
+        },
+      ],
+      'ribbon-fork': [
+        {
+          name: 'ARCADE ahead entry appears and leaves',
+          mode: 'ARCADE',
+          policy: 'appearance',
+          exit: 0,
+          seconds: 120,
+          expect: { outcome: 'GOAL', position: 'P1/1', appearance: { stage: 2, distance: 80, last: 2 } },
+        },
+      ],
+      'ribbon-ring': [
+        {
+          name: 'ARCADE rank limit GAME OVER',
+          mode: 'ARCADE',
+          policy: 'rank',
+          afterEndingSeconds: 2,
+          seconds: 120,
+          expect: { outcome: 'GAME_OVER', cause: 'RANK', position: 'P2/2', rankGate: 'ring-CP1' },
+        },
+      ],
+    }[stem];
     const scenarios = [
       { name: 'reverse beyond entry', policy: 'reverse', exit: 1, seconds: 15 },
       ...[-1, 1].map((steering) => ({
@@ -66,6 +106,7 @@ for (const stem of ['ribbon-coast', 'ribbon-fork', 'ribbon-ring']) {
               seconds: 300,
             },
           ]),
+      ...sessionRules,
     ];
     for (const scenario of scenarios)
       await t.test(scenario.name, () => {

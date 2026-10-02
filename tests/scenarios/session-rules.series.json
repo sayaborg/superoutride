@@ -1,0 +1,49 @@
+{
+  "format": "superoutride.series",
+  "version": 6,
+  "id": "scenario-rules",
+  "title": "SCENARIO RULES",
+  "dev": true,
+  "vehicles": ["TESTAROSSA"],
+  "timeMargin": 1.35,
+  "fixedColors": false,
+  "courses": [
+    {
+      "course": "ribbon-coast",
+      "laps": 1,
+      "entries": [
+        { "vehicle": "TESTAROSSA", "color": "original", "pace": 1, "stages": null, "slot": 0, "ahead": null },
+        { "vehicle": "911_TURBO_3_3", "color": "original", "pace": 1, "stages": null, "slot": 15, "ahead": null }
+      ],
+      "playerSlot": "own",
+      "rankLimits": {}
+    },
+    {
+      "course": "ribbon-fork",
+      "laps": 1,
+      "entries": [
+        {
+          "vehicle": "TESTAROSSA",
+          "color": "original",
+          "pace": 1,
+          "stages": { "first": 2, "last": 2 },
+          "slot": null,
+          "ahead": { "distance": 80, "lateral": 2 }
+        },
+        { "vehicle": "TESTAROSSA", "color": "original", "pace": 1, "stages": null, "slot": 15, "ahead": null }
+      ],
+      "playerSlot": "last",
+      "rankLimits": {}
+    },
+    {
+      "course": "ribbon-ring",
+      "laps": 1,
+      "entries": [
+        { "vehicle": "TESTAROSSA", "color": "original", "pace": 1, "stages": null, "slot": 14, "ahead": null },
+        { "vehicle": "TESTAROSSA", "color": "original", "pace": 1, "stages": null, "slot": 15, "ahead": null }
+      ],
+      "playerSlot": "last",
+      "rankLimits": { "ring-CP1": 1 }
+    }
+  ]
+}

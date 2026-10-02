@@ -25,6 +25,12 @@ import { READY_SECONDS } from '../../src/race/start-phase.js';
 import { courseBoundaryAt, courseCarriagewayExists } from '../../src/course/course-boundaries.js';
 import { routeSectionS } from '../../src/course/course-route.js';
 import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
+import { readFileSync } from 'node:fs';
+import { admitSeriesCourse, compileSeriesCatalog } from '../../src/content/series-catalog.js';
+import { requireLoaded } from '../../src/content/content-load-error.js';
+import { readCourseTimeBudgets } from '../../src/content/course-time-budgets.js';
+import { readPaceSchedule } from '../../src/content/pace-schedule.js';
+import { raceStatusText } from '../../src/shell/race-status-hud.js';
 
 const content = await readDeliveredContent();
 const materials = await loadSurfaceMaterials(content);
@@ -47,9 +53,36 @@ for (const id of new Set(rivalPool.map((pair) => pair.vehicle))) {
   fieldVehicles.set(id, { vehicle, envelope: (await content.json('envelope', id)).envelope });
 }
 
+// The test-only series (never delivered) gives each RIBBON course ARCADE settings that exercise Session rules with the
+// build's TESTAROSSA time budgets and pace schedules.
+const SCENARIO_SERIES_PATH = new URL('./session-rules.series.json', import.meta.url);
+const scenarioSeries = requireLoaded(
+  compileSeriesCatalog(
+    [
+      {
+        id: 'scenario-rules',
+        path: SCENARIO_SERIES_PATH.pathname,
+        value: JSON.parse(readFileSync(SCENARIO_SERIES_PATH, 'utf8')),
+        sha256: '',
+      },
+    ],
+    ['ribbon-coast', 'ribbon-fork', 'ribbon-ring'],
+    definitions.vehicles,
+  ),
+);
+
 export async function loadScenarioCourse(stem) {
   const course = await loadDeliveredCourse(content, stem, materials);
-  return { course };
+  const settings = scenarioSeries.courseSettings(stem);
+  const arcade = settings && requireLoaded(admitSeriesCourse(settings, course, SCENARIO_SERIES_PATH.pathname));
+  const product = async (kind, read) =>
+    requireLoaded(await read(course, configuration, await content.json(kind, `${stem}/TESTAROSSA`), kind));
+  return {
+    course,
+    arcade,
+    budgets: arcade && (await product('budget', readCourseTimeBudgets)),
+    paceSchedule: arcade && (await product('schedule', readPaceSchedule)),
+  };
 }
 
 // Every numeric leaf in live state, including nested wheel/control telemetry and derived getters.
@@ -78,24 +111,30 @@ function pavementBounds(scene, vehicle) {
 }
 
 /** Fresh product assembly per replay; only initial conditions and input policy differ from the browser. */
-export function runScenario({ course }, scenario) {
+export function runScenario({ course, arcade, budgets, paceSchedule }, scenario) {
   const settings = createDisplaySettings();
   const scene = createCourseScene(course.entry, course.gates, definitions.vehicles, settings);
+  // ARCADE takes the test series' settings for the course; TIME TRIAL and FREE PLAY take the scenario's.
+  const mode = scenario.mode ?? 'FREE_PLAY';
   const session = resolveCourseSession(
     course,
-    null,
+    mode === 'ARCADE' ? arcade : null,
     {
-      mode: 'FREE_PLAY',
-      rivalCount: scenario.rivals ?? 0,
-      lapCount: scenario.laps ?? 1,
-      timeLimit: false,
+      mode,
+      rivalCount: mode === 'ARCADE' ? arcade.entries.length - 1 : (scenario.rivals ?? 0),
+      lapCount: mode === 'ARCADE' ? arcade.laps : (scenario.laps ?? 1),
+      timeLimit: mode === 'ARCADE',
       initialSpeed: scenario.policy === 'reverse' ? -20 : scenario.policy === 'departure' ? 30 : 0,
       seed: scenario.seed ?? 0,
     },
     configuration,
     envelope,
-    null,
-    { rivalPool, vehicleOf: (id) => fieldVehicles.get(id) },
+    mode === 'ARCADE' ? budgets : null,
+    {
+      rivalPool,
+      vehicleOf: (id) => fieldVehicles.get(id) ?? { vehicle: configuration, envelope },
+      paceSchedule: mode === 'ARCADE' ? paceSchedule : undefined,
+    },
   );
   const slot = session.entries[0].slot;
   // The race builds every competitor, the player included; the harness reads their state for evidence.
@@ -163,8 +202,17 @@ export function runScenario({ course }, scenario) {
   const accepted = new Set();
   const stoppedTicks = competitors.map(() => 0);
   const progress = competitors.map(() => ({ next: -Infinity, finishes: 0 }));
+  // Session-rule evidence (ARCADE and TIME TRIAL scenarios): the ending, what holds after it, appearances and
+  // departures, and the gate crossings of other competitors.
+  const rules = scenario.mode ? { appeared: [], departed: [], crossings: [] } : null;
+  const present = competitors.map((c) => c.present);
+  let ending = null;
   for (; tick < maxTicks; tick++) {
-    const previous = competitors.map((c) => ({ s: c.actor.vehicle.course.s, recoveries: c.actor.recovery.recoveries }));
+    const previous = competitors.map((c) => ({
+      actor: c.actor,
+      s: c.actor.vehicle.course.s,
+      recoveries: c.actor.recovery.recoveries,
+    }));
     let input;
     if (race.outcome.status === 'READY') input = idle;
     else if (scenario.policy === 'reverse') input = idle;
@@ -172,6 +220,14 @@ export function runScenario({ course }, scenario) {
     else if (scenario.waitForStop && evidence.recoveries.length && evidence.stoppedRivals.length < race.rivals.length)
       input = { ...idle, brake: true };
     else if (scenario.policy === 'closed' && race.clock.elapsedSeconds < 3) input = idle;
+    // After the appeared entry's last stage, the player brakes until the entry has left the view.
+    else if (
+      scenario.policy === 'appearance' &&
+      race.stage > scenario.expect.appearance.last &&
+      rules.appeared.length &&
+      !rules.departed.length
+    )
+      input = { ...idle, brake: true };
     else
       input = sampleEnvelopeDrivingInput(
         scene.world.coordinates,
@@ -207,8 +263,13 @@ export function runScenario({ course }, scenario) {
       finiteState(v, c.id);
       finiteState(c.actor.recovery, `${c.id}.recovery`);
       const recovered = c.actor.recovery.recoveries !== previous[index].recoveries;
-      // The loading coverage record's one-step ceiling; never a physics clamp.
-      if (!recovered && Math.abs(v.course.s - previous[index].s) > scene.runtime.coverage.maximumStepMeters)
+      // The loading coverage record's one-step ceiling; never a physics clamp. An appearing competitor's new actor
+      // starts where it appears.
+      if (
+        c.actor === previous[index].actor &&
+        !recovered &&
+        Math.abs(v.course.s - previous[index].s) > scene.runtime.coverage.maximumStepMeters
+      )
         assert.fail(`${c.id}: route s jumped at tick ${tick}: ${previous[index].s} -> ${v.course.s}`);
       if (index > 0 && c.progress.status === 'FINISHED' && scene.runtime.route.terminal !== null) {
         assert.ok(v.course.s < scene.runtime.route.terminal, `${c.id}: passed the terminal`);
@@ -262,15 +323,66 @@ export function runScenario({ course }, scenario) {
       evidence.leftRoad ||= vehicle.course.l < bounds.left;
       evidence.rightRoad ||= vehicle.course.l > bounds.right;
     }
+    const ended = race.outcome.status === 'GOAL' || race.outcome.status === 'GAME_OVER';
+    if (rules) {
+      for (const event of race.events)
+        if (event.competitorId !== race.player.id)
+          rules.crossings.push({ id: event.competitorId, gate: event.landmark.id, seconds: event.timeSeconds });
+      for (const [index, c] of competitors.entries()) {
+        if (c.present === present[index]) continue;
+        present[index] = c.present;
+        if (c.present)
+          rules.appeared.push({
+            id: c.id,
+            tick,
+            stage: race.stage,
+            s: c.actor.vehicle.course.s,
+            playerS: vehicle.course.s,
+          });
+        else rules.departed.push({ id: c.id, tick, stage: race.stage });
+      }
+      // A competitor out of the Session is neither observed nor counted in the position.
+      const counted = competitors.filter((c) => c.present);
+      const observedIds = race.observe().rivals.map((o) => o.id);
+      for (const c of race.rivals)
+        if (!c.present) assert.ok(!observedIds.includes(c.id), `${c.id}: observed while absent`);
+      if (race.outcome.status === 'RUNNING' || ended)
+        assert.match(
+          raceStatusText(race),
+          new RegExp(`P\\d+/${counted.length} `),
+          'position counts absent competitors',
+        );
+      if (ended && !ending) {
+        assert.equal(race.outcome.endSeconds, race.clock.elapsedSeconds, 'race time did not stop at the ending');
+        ending = {
+          tick,
+          status: raceStatusText(race),
+          progress: competitors.map((c) => [c.progress.s, c.progress.acceptedFinishCount]),
+          playerS: vehicle.course.s,
+          rivalS: race.rivals.map((c) => c.actor.vehicle.course.s),
+        };
+      } else if (ending) {
+        // After the ending race time, progress, events, presence and the position hold while the field moves.
+        assert.equal(race.clock.elapsedSeconds, race.outcome.endSeconds, 'race time moved after the ending');
+        assert.deepEqual(
+          competitors.map((c) => [c.progress.s, c.progress.acceptedFinishCount]),
+          ending.progress,
+          'progress moved after the ending',
+        );
+        assert.equal(race.events.length, 0, 'events after the ending');
+        assert.equal(raceStatusText(race), ending.status, 'status or position changed after the ending');
+      }
+    }
     if (
       tick % 60 === 0 ||
       step.recovered ||
-      race.outcome.status === 'GOAL' ||
+      (ended && (!ending || ending.tick === tick)) ||
       (!vehicle.course.inDomain && tick % 6 === 0)
     )
       render();
+    if (ending && tick - ending.tick < (scenario.afterEndingSeconds ?? 0) / SIM_DT) continue;
     if (
-      race.outcome.status === 'GOAL' ||
+      ended ||
       ((scenario.policy === 'reverse' ||
         scenario.policy === 'departure' ||
         (scenario.policy === 'closed' && !scenario.finish)) &&
@@ -314,6 +426,57 @@ export function runScenario({ course }, scenario) {
     assert.equal(evidence.recoveries.length, 0, 'ordinary driving recovered');
     if (course.entry.fork)
       assert.equal(race.forks.choice(scene.runtime.route.occurrences[0]), course.entry.fork.exits[scenario.exit].link);
+  }
+  if (rules) {
+    const { expect } = scenario;
+    assert.equal(race.outcome.status, expect.outcome);
+    assert.equal(race.outcome.cause, expect.cause ?? null);
+    assert.ok(ending, `${scenario.name}: never ended`);
+    if (scenario.mode === 'TIME_TRIAL') {
+      assert.equal(race.rivals.length, 0, 'TIME TRIAL has rivals');
+      assert.equal(slot, course.gates.grid.at(-1), 'TIME TRIAL does not start from the last grid slot');
+      assert.equal(race.clock.deadlineSeconds, null, 'TIME TRIAL has a clock');
+    }
+    if (expect.position) assert.match(ending.status, new RegExp(` · ${expect.position} · `));
+    // The takeover stops the finished player on its runout: the admitted maximumSpeed² / (2a) at the Session driver's a.
+    const runout = envelope.maximumSpeed ** 2 / (2 * Math.min(...envelope.rows.map((row) => row.braking)) * 0.75);
+    const pastFinish = vehicle.course.s - ending.progress[0][0];
+    const playerSpeed = Math.hypot(vehicle.longitudinalSpeed, vehicle.lateralSpeed);
+    if (expect.stop) {
+      assert.ok(playerSpeed < 0.05, `player still moving ${playerSpeed} m/s after the ending`);
+      assert.ok(pastFinish > 0 && pastFinish <= runout, `player stopped ${pastFinish} m past the finish`);
+    }
+    const rivalTravel = race.rivals.map((c, i) => c.actor.vehicle.course.s - ending.rivalS[i]);
+    if (expect.rivalsDrive)
+      assert.ok(
+        rivalTravel.every((d) => d > 0),
+        'the field stopped at the ending',
+      );
+    if (expect.rankGate) {
+      const first = rules.crossings.find((c) => c.gate === expect.rankGate);
+      assert.ok(first, 'no rival crossed the limited gate');
+      assert.equal(race.outcome.endSeconds, first.seconds, 'race time did not stop at the failing crossing');
+    }
+    if (expect.appearance) {
+      const { stage, distance, last } = expect.appearance;
+      assert.equal(rules.appeared.length, 1, 'expected one appearance');
+      const [appeared] = rules.appeared;
+      assert.equal(appeared.stage, stage, 'appeared outside its first stage');
+      assert.ok(Math.abs(appeared.s - (appeared.playerS + distance)) < 1e-6, 'appeared away from its ahead distance');
+      assert.equal(rules.departed.length, 1, 'the appeared entry never left');
+      assert.ok(rules.departed[0].stage > last, 'left before its last stage ended');
+    }
+    evidence.rules = {
+      outcome: race.outcome.status,
+      cause: race.outcome.cause,
+      endSeconds: race.outcome.endSeconds,
+      position: ending.status.split(' · ')[1],
+      pastFinish: Number(pastFinish.toFixed(3)),
+      playerSpeed: Number(playerSpeed.toFixed(3)),
+      rivalTravel: rivalTravel.map((d) => Number(d.toFixed(3))),
+      appeared: rules.appeared.map(({ id, tick: at, stage, s, playerS }) => ({ id, tick: at, stage, s, playerS })),
+      departed: rules.departed,
+    };
   }
   return {
     ...evidence,
