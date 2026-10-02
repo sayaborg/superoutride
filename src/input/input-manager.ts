@@ -5,6 +5,7 @@ import { KeyboardInput } from './keyboard-input.js';
 import { PedalInputArbiter } from './pedal-input-arbiter.js';
 import { SteeringInputArbiter } from './steering-input-arbiter.js';
 import { TouchInput, type TouchArea, type TouchObservation } from './touch-input.js';
+import type { TouchPointers } from './touch-pointers.js';
 
 const NEUTRAL_DRIVING_INPUT: Readonly<DrivingInput> = Object.freeze({
   steering: 0,
@@ -26,7 +27,7 @@ export class InputManager {
   private suspended = false;
   private last: Readonly<DrivingInput> = NEUTRAL_DRIVING_INPUT;
 
-  constructor(target: Window, touchArea: () => TouchArea) {
+  constructor(target: Window, pointers: TouchPointers, touchArea: () => TouchArea) {
     const publisher: DrivingInputPublisher = {
       setSteering: (owner, value) => this.accept(() => this.steering.set(owner, value)),
       releaseSteering: (owner) => this.accept(() => this.steering.release(owner)),
@@ -34,7 +35,7 @@ export class InputManager {
       releasePedal: (owner) => this.accept(() => this.pedals.release(owner)),
     };
     new KeyboardInput(target, publisher);
-    this.touchInput = new TouchInput(target, publisher, touchArea);
+    this.touchInput = new TouchInput(pointers, publisher, touchArea);
     this.gamepadInput = new GamepadInput(target, publisher);
     // Blur is not a run-state fact; the run state suspends input for pause, hiding and finish.
     target.addEventListener('blur', () => this.reset());

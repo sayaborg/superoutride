@@ -138,8 +138,10 @@ sample is a published read-only observation (`lastSample`); the DEV vehicle HUD 
 suspends input whenever driving stops; suspension resets the arbiters, the adapters' held state and the final
 sample to neutral, and while suspended the manager accepts no publication. Window blur, which stops no screen, resets input the same way without suspending it. START resets input once.
 
-Touch pointers starting inside the touch area, and outside UI elements marked `data-driving-input="ignore"`,
-control driving. The shell supplies the touch area as a client rectangle; it is currently the whole
+The page reads each device once and shares the reading: one touch-pointer reader listens to the window's pointer
+events and passes touch pointers to its consumers, and one function reads the connected standard-mapping gamepads.
+A press on a UI element marked `data-driving-input="ignore"` starts no touch pointer. Touch pointers starting inside
+the touch area control driving. The shell supplies the touch area as a client rectangle; it is currently the whole
 viewport. The area's left half selects steering; the midpoint and right half select pedals. Each pointer's
 role and origin are fixed until release, with at most one steering and one pedal pointer at once.
 
@@ -150,8 +152,7 @@ the ordinary actuator release behavior.
 
 The touch adapter publishes each role's observation (origin in client CSS pixels, current request and
 vector length), or null while the role is inactive. The shell draws the origin/vector indicators and their
-labels from it every frame, and once more after a reset that stops the frame loop, so release,
-cancellation, suspension, blur and page hiding clear them.
+labels from it every presented frame, so release, cancellation, suspension and blur clear them at the next frame.
 
 Stick X magnitude and RT/LT values at or below 0.15 are rest; above it they rescale linearly from 0.15..1
 to 0..1, keeping the stick's sign. Gamepad owners publish only on change, since the latest steering owner

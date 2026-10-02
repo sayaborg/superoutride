@@ -6,6 +6,7 @@ import { expandRgb555Pixels } from '../image/rgb555.js';
 import { SoftwareSurface } from '../view/software-surface.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import { InputManager } from '../input/input-manager.js';
+import { TouchPointers } from '../input/touch-pointers.js';
 import { mustGet } from './dom.js';
 import { createTouchIndicators } from './touch-indicators.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
@@ -41,8 +42,9 @@ export function createBrowserDrivingShell(
   const imageData = ctx.createImageData(LOGICAL_WIDTH, LOGICAL_HEIGHT);
   const framebuffer = createLogicalFrame();
   const presented = new Uint32Array(imageData.data.buffer);
-  // The whole viewport is the touch area.
-  const inputManager = new InputManager(window, () => ({
+  // The page's one touch pointer reader; the whole viewport is the touch area.
+  const pointers = new TouchPointers(window);
+  const inputManager = new InputManager(window, pointers, () => ({
     left: 0,
     top: 0,
     width: window.innerWidth,

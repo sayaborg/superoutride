@@ -2,6 +2,7 @@ import type { DrivingInputApplyMethod } from '../vehicle/driving-input.js';
 import type { DrivingInputPublisher } from './driving-input-publisher.js';
 import { createInputOwner, type InputOwner } from './input-owner.js';
 import type { PedalChannel } from './pedal-input-arbiter.js';
+import { standardGamepads } from './gamepads.js';
 
 /** Stick and trigger magnitudes at or below this are rest; above it they rescale to (0,1]. */
 const GAMEPAD_DEADZONE = 0.15;
@@ -59,11 +60,8 @@ export class GamepadInput {
 
   /** Read the gamepads once and publish their changes. Without the Gamepad API it does nothing. */
   poll(): void {
-    const navigator = this.target.navigator;
-    if (typeof navigator?.getGamepads !== 'function') return;
     const seen = new Set<number>();
-    for (const gamepad of navigator.getGamepads()) {
-      if (gamepad === null || !gamepad.connected || gamepad.mapping !== 'standard') continue;
+    for (const gamepad of standardGamepads(this.target)) {
       let connected = this.gamepads.get(gamepad.index);
       if (connected !== undefined && connected.id !== gamepad.id) {
         this.disconnect(gamepad.index);

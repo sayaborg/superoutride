@@ -2,6 +2,7 @@ import { clamp } from '../core/math.js';
 import type { DrivingInputPublisher } from './driving-input-publisher.js';
 import { createInputOwner, type InputOwner } from './input-owner.js';
 import type { PedalChannel } from './pedal-input-arbiter.js';
+import type { TouchPointer, TouchPointers } from './touch-pointers.js';
 
 /** Compact touch calibration. CSS px is independent of backing-store/device pixel ratio. */
 export const TOUCH_ANALOG_FULL_SCALE_DISTANCE_PX = 64;
@@ -73,14 +74,15 @@ export class TouchInput {
   private current: TouchObservation = INACTIVE_TOUCH;
 
   constructor(
-    target: Window,
+    pointers: TouchPointers,
     private readonly publisher: DrivingInputPublisher,
     private readonly touchArea: () => TouchArea,
   ) {
-    target.addEventListener('pointerdown', (event) => this.beginPointer(event), true);
-    target.addEventListener('pointermove', (event) => this.movePointer(event), true);
-    target.addEventListener('pointerup', (event) => this.releasePointer(event.pointerId), true);
-    target.addEventListener('pointercancel', (event) => this.releasePointer(event.pointerId), true);
+    pointers.subscribe({
+      begin: (pointer) => this.beginPointer(pointer),
+      move: (pointer) => this.movePointer(pointer),
+      end: (pointerId) => this.releasePointer(pointerId),
+    });
   }
 
   get observation(): TouchObservation {
@@ -93,36 +95,29 @@ export class TouchInput {
     this.publish();
   }
 
-  private beginPointer(event: PointerEvent): void {
-    if (event.pointerType !== 'touch') return;
-    // UI-owned gestures remain available for scrolling/sliders, not driving pointers.
-    if (event.composedPath?.().some((target) => (target as Element).getAttribute?.('data-driving-input') === 'ignore'))
-      return;
+  private beginPointer({ pointerId, x, y }: TouchPointer): void {
     const area = admittedTouchArea(this.touchArea());
-    const { clientX: x, clientY: y } = event;
     if (x < area.left || x >= area.left + area.width || y < area.top || y >= area.top + area.height) return;
 
     if (x < area.left + area.width * 0.5) {
       if (this.steering !== null) return;
       const owner = createInputOwner('DIRECT');
       if (!this.publisher.setSteering(owner, 0)) return;
-      this.steering = { pointerId: event.pointerId, owner, observation: steeringObservation(x, y, 0) };
+      this.steering = { pointerId, owner, observation: steeringObservation(x, y, 0) };
     } else {
       if (this.pedal !== null) return;
       const owner = createInputOwner('DIRECT');
       if (!this.publisher.setPedal(owner, 'throttle', 0)) return;
-      this.pedal = { pointerId: event.pointerId, owner, observation: pedalObservation(x, y, 'throttle', 0) };
+      this.pedal = { pointerId, owner, observation: pedalObservation(x, y, 'throttle', 0) };
     }
     this.publish();
   }
 
-  private movePointer(event: PointerEvent): void {
-    if (event.pointerType !== 'touch') return;
-
+  private movePointer({ pointerId, x, y }: TouchPointer): void {
     const steering = this.steering;
-    if (steering?.pointerId === event.pointerId) {
+    if (steering?.pointerId === pointerId) {
       const { originX, originY } = steering.observation;
-      const request = touchSteeringRequest(originX, event.clientX);
+      const request = touchSteeringRequest(originX, x);
       if (!this.publisher.setSteering(steering.owner, request)) return;
       this.steering = { ...steering, observation: steeringObservation(originX, originY, request) };
       this.publish();
@@ -130,9 +125,9 @@ export class TouchInput {
     }
 
     const pedal = this.pedal;
-    if (pedal?.pointerId === event.pointerId) {
+    if (pedal?.pointerId === pointerId) {
       const { originX, originY } = pedal.observation;
-      const { pedal: channel, request } = touchPedalRequest(originY, event.clientY);
+      const { pedal: channel, request } = touchPedalRequest(originY, y);
       if (!this.publisher.setPedal(pedal.owner, channel, request)) return;
       this.pedal = { ...pedal, observation: pedalObservation(originX, originY, channel, request) };
       this.publish();
