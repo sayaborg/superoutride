@@ -13,20 +13,20 @@ interface MobileSelectorButton<Value extends string> {
 export function mountMobileCourseSelector(
   container: HTMLElement,
   choices: readonly BrowserCourseSelection[],
-  activeQuery: BrowserCourseId,
+  activeId: BrowserCourseId,
   onSelect: (selection: BrowserCourseSelection) => void,
   documentRef: Document = document,
 ): MobileSelectorController<BrowserCourseId> {
-  const selections = new Map(choices.map((selection) => [selection.query, selection]));
+  const selections = new Map(choices.map((selection) => [selection.id, selection]));
   return mountMobileSelector(
     container,
     choices.map((course) => ({
-      value: course.query,
+      value: course.id,
       label: course.buttonLabel ?? course.label,
       ariaLabel: `Select ${course.label} course`,
     })),
-    activeQuery,
-    (query) => onSelect(mustSelect(selections, query, 'course')),
+    activeId,
+    (id) => onSelect(mustSelect(selections, id, 'course')),
     documentRef,
   );
 }

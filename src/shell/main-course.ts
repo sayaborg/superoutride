@@ -370,16 +370,16 @@ async function startPage(): Promise<void> {
     const courseSelector = mountMobileCourseSelector(
       mustGet<HTMLElement>('course-selector-buttons'),
       courses,
-      initial.query,
+      initial.id,
       (target) => {
-        if (assembling || target.query === loadedCourse) return;
+        if (assembling || target.id === loadedCourse) return;
         const next = new URLSearchParams(parameters);
         for (const key of SESSION_PARAMETERS) next.delete(key);
-        void request({ courseId: target.query, parameters: next, autostart: false });
+        void request({ courseId: target.id, parameters: next, autostart: false });
       },
     );
     runState.begin();
-    await request({ courseId: initial.query, parameters, autostart: parameters.get('autostart') === '1' });
+    await request({ courseId: initial.id, parameters, autostart: parameters.get('autostart') === '1' });
   } catch (error) {
     console.error('Course could not start', error);
     status.textContent = `Course could not start: ${error instanceof Error ? error.message : String(error)} `;

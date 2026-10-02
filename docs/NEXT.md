@@ -23,7 +23,7 @@
   fields; FREE PLAY rivals are drawn from vehicle pools; TIME TRIAL runs alone; traffic, collisions, music, sound effects and
   the product front end are not implemented.
 
-Next PR: **12-12d-3 — Course ID names**.
+Next PR: **12-12 — Front end**, beginning with menu input.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -35,13 +35,9 @@ Define input, run state, framebuffer, persistent player data, data-driven Sessio
 product HUD independently of DEV, as specified in the [product specification](product.md).
 
 - **12-12 — Front end:** the screens and flow in one page, drawn inside the frame
-  ([product](product.md#6-flow-and-screens)). The foundation comes first:
-  - **12-12d-3 — Course ID names:** the course selection's `query` becomes `id`, with the names that carry it.
-    Rename only; it completes 12-12d.
-
-  The second half builds on it: menu input, with touch as specified in [product](product.md#11-input-and-display); the screen flow; the PAUSE menu and RESULT; the layout, pause button
-  and fullscreen; SETTINGS and the last selections; `dev=1`.
-
+  ([product](product.md#6-flow-and-screens)), on the page that assembles its runs and the frame's text layer:
+  menu input, with touch as specified in [product](product.md#11-input-and-display); the screen flow; the PAUSE menu
+  and RESULT; the layout, pause button and fullscreen; SETTINGS and the last selections; `dev=1`.
 - **12-13 — Product HUD:** independent elements drawn inside the game frame from published observations with the
   text layer; the active rules select the elements. Separate product and DEV observations in the render result,
   including the performance HUD's ground (Strip) metrics. Place the vehicle-state elements and review the layout.

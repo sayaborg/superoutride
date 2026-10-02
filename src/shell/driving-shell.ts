@@ -32,7 +32,7 @@ interface BrowserDrivingShell {
   readonly framebuffer: SoftwareSurface;
   readonly inputManager: InputManager;
   present(
-    query: BrowserCourseId,
+    courseId: BrowserCourseId,
     camera: CameraState,
     playerScreenX: number,
     playerScreenY: number,
@@ -97,7 +97,7 @@ export function createBrowserDrivingShell(
     },
     framebuffer,
     inputManager,
-    present(query, camera, playerScreenX, playerScreenY, observed, diagnostics): void {
+    present(courseId, camera, playerScreenX, playerScreenY, observed, diagnostics): void {
       const { player } = observed;
       audio.update(player, observed.rivals);
       // The RGB555 frame is expanded to the canvas's RGBA once per presented frame.
@@ -108,7 +108,7 @@ export function createBrowserDrivingShell(
       drawVehicleDebugHud(
         ctx,
         courses,
-        query,
+        courseId,
         inputManager.lastSample,
         diagnostics.vehicle,
         diagnostics.model,

@@ -54,7 +54,7 @@ interface VehicleDebugHudModel {
 
 function createVehicleDebugHudModel(
   courses: readonly BrowserCourseSelection[],
-  activeCourseQuery: BrowserCourseId,
+  activeCourseId: BrowserCourseId,
   input: DrivingInput,
   vehicle: VehicleState,
   model: VehicleModel,
@@ -71,7 +71,7 @@ function createVehicleDebugHudModel(
   const opening = clampUnit(vehicle.powertrain.effectiveOpening);
   const frontShare = p.frontDriveTorqueFraction;
   return {
-    courseSelector: `COURSE ${formatBrowserCourseSelector(courses, activeCourseQuery)}`,
+    courseSelector: `COURSE ${formatBrowserCourseSelector(courses, activeCourseId)}`,
     vehicleDisplay: `VEHICLE ${formatVehicleCatalogLine(entry)}`,
     steeringTuning: formatDrivingTuningLine('STEERING', driving),
     pedalTuning: formatDrivingTuningLine('PEDALS', driving),
@@ -117,14 +117,14 @@ function createVehicleDebugHudModel(
 export function drawVehicleDebugHud(
   ctx: CanvasRenderingContext2D,
   courses: readonly BrowserCourseSelection[],
-  activeCourseQuery: BrowserCourseId,
+  activeCourseId: BrowserCourseId,
   input: DrivingInput,
   vehicle: VehicleState,
   model: VehicleModel,
   driving: DrivingDefinition,
   entry: CompiledVehicleDefinition,
 ): void {
-  const hud = createVehicleDebugHudModel(courses, activeCourseQuery, input, vehicle, model, driving, entry);
+  const hud = createVehicleDebugHudModel(courses, activeCourseId, input, vehicle, model, driving, entry);
   const lines = [
     `SUPER OUTRIDE ${hud.courseSelector}`,
     hud.vehicleDisplay,
