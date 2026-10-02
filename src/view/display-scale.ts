@@ -10,28 +10,10 @@ export function createLogicalFrame(): SoftwareSurface {
 }
 
 /**
- * SUPER OUTRIDE fixed display scale.
- *
- * Canonical rule requested by design:
- *   at player depth, 2.0 m = 80 screen pixels.
- * Therefore the player-depth scale is permanently 40 px/m.
- *
- * FOV may change in the future by changing focalLength, but dCam must then
- * move with it so focalLength / dCam remains exactly 40 px/m.
+ * The fixed display scale at the player's depth: 40 screen pixels per metre. It is a display fact, independent of
+ * any vehicle's dimensions; the camera definition places the player at the depth where its focal length gives it.
  */
-const CAR_WIDTH_METERS = 2.0;
-const PLAYER_REFERENCE_WIDTH_PIXELS = 80;
-const PLAYER_PIXELS_PER_METER = PLAYER_REFERENCE_WIDTH_PIXELS / CAR_WIDTH_METERS; // 40
-
-export const FOCAL_LENGTH_PIXELS = 200;
-export const CAMERA_DISTANCE_METERS = cameraDistanceForFocalLength(FOCAL_LENGTH_PIXELS); // 5
-
-function cameraDistanceForFocalLength(focalLengthPixels: number): number {
-  if (!(focalLengthPixels > 0) || !Number.isFinite(focalLengthPixels)) {
-    throw new RangeError('focalLengthPixels must be finite and > 0');
-  }
-  return focalLengthPixels / PLAYER_PIXELS_PER_METER;
-}
+export const PLAYER_DEPTH_PIXELS_PER_METER = 40;
 
 export function pixelsPerMeterAtDepth(focalLengthPixels: number, depthMeters: number): number {
   if (!(depthMeters > 0) || !Number.isFinite(depthMeters)) {

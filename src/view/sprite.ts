@@ -11,15 +11,12 @@ interface SpriteDrawStats {
   clipped: boolean;
 }
 
-export type SpriteScanlineObserver = (screenY: number, outputSamples: number, writtenPixels: number) => void;
-
 export function drawScaledSprite(
   target: SoftwareSurface,
   asset: SpriteAsset,
   xAnchor: number,
   yAnchor: number,
   pixelsPerMeter: number,
-  scanlineObserver?: SpriteScanlineObserver,
 ): SpriteDrawStats {
   const scale = pixelsPerMeter * (asset.worldWidthMeters / asset.width);
   if (!(scale > 0) || !Number.isFinite(scale)) {
@@ -58,24 +55,16 @@ export function drawScaledSprite(
     if (sy < 0 || sy >= level.height) continue;
     const targetRow = y * target.width;
     const patternRow = sy * level.width;
-    let rowOutputSamples = 0;
-    let rowWrittenPixels = 0;
 
     for (let x = x0; x <= x1; x += 1) {
       const masterX = asset.anchorX + (x + 0.5 - xAnchor) * invScale;
       const sx = Math.floor((masterX + 0.5) / masterStep);
       if (sx < 0 || sx >= level.width) continue;
       outputSamples += 1;
-      rowOutputSamples += 1;
       const index = level.pattern.indexAt(patternRow + sx);
       if (index === SPRITE_TRANSPARENT_INDEX) continue;
       target.pixels[targetRow + x] = level.paletteRgb555[index]!;
       writtenPixels += 1;
-      rowWrittenPixels += 1;
-    }
-
-    if (scanlineObserver && (rowOutputSamples > 0 || rowWrittenPixels > 0)) {
-      scanlineObserver(y, rowOutputSamples, rowWrittenPixels);
     }
   }
 

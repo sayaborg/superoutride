@@ -42,7 +42,7 @@ interface TerrainFrame {
 }
 
 /** Thin-span target rule: a projected segment thinner than one destination row collapses to one row. */
-const DEFAULT_THIN_SPAN_SCREEN_ROWS = 1;
+const THIN_SPAN_SCREEN_ROWS = 1;
 
 /**
  * Determine the ordinary forward renderer interval on the authoritative plan.
@@ -84,8 +84,6 @@ export interface TerrainRenderParameters {
   dMin: number;
   dMax: number;
   height: ProfilePolylineReader;
-  /** Collapse threshold in destination scanline units. Defaults to one row. */
-  thinSpanScreenRows?: number;
 }
 
 interface TerrainLine extends TerrainLineGeometry {
@@ -139,11 +137,6 @@ export function generateTerrainLines(
   frame.visible = visible;
   if (!visible) return frame;
 
-  const thinSpanScreenRows = parameters.thinSpanScreenRows ?? DEFAULT_THIN_SPAN_SCREEN_ROWS;
-  if (!(thinSpanScreenRows > 0) || !Number.isFinite(thinSpanScreenRows)) {
-    throw new RangeError('thinSpanScreenRows must be finite and > 0');
-  }
-
   const yH = horizonY(camera);
   const cosPitch = Math.cos(camera.pitch);
   const f = camera.focalLength;
@@ -177,7 +170,7 @@ export function generateTerrainLines(
     const y1 = aY + bY / d1;
     const projectedSpanRows = projectedTerrainSpanRows(bY, d0, d1);
 
-    if (projectedSpanRows < thinSpanScreenRows) {
+    if (projectedSpanRows < THIN_SPAN_SCREEN_ROWS) {
       // y is affine in u=1/d, so use the u-midpoint as the representative sample.
       const d = 2 / (1 / d0 + 1 / d1);
       const representativeY = (y0 + y1) * 0.5;

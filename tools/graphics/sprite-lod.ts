@@ -2,11 +2,11 @@ import { mustGet } from '../../src/shell/dom.js';
 import type { SpriteAsset, SpriteLodDocument } from '../../src/image/sprite.js';
 import {
   createLogicalFrame,
-  FOCAL_LENGTH_PIXELS,
   LOGICAL_HEIGHT,
   LOGICAL_WIDTH,
   pixelsPerMeterAtDepth,
 } from '../../src/view/display-scale.js';
+import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { createSpriteLodFixture } from './fixtures/sprite-lod.js';
 import { expandRgb555Pixels, rgba, rgbaToRgb555 } from '../../src/image/rgb555.js';
 import { drawScaledSprite } from '../../src/view/sprite.js';
@@ -43,7 +43,7 @@ function render() {
     return;
   }
   element('error').textContent = '';
-  const ppm = pixelsPerMeterAtDepth(FOCAL_LENGTH_PIXELS, depth);
+  const ppm = pixelsPerMeterAtDepth(CAMERA_DEFINITION.focalLength, depth);
   const k = selectSpriteLevel(asset, ppm),
     level = asset.levels[k]!;
   const stats = [asset, master].map((sprite, i) => {

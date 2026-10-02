@@ -1,13 +1,12 @@
 export { STRIP_ACTIVE_LIMIT } from '../course/strip-ground.js';
 import { createStripRenderMetrics, type StripRenderMetrics } from './strip-ground-sampler.js';
-import { DEFAULT_STRIP_RENDER_METHOD } from './display-settings.js';
 import type { StripRenderMethod } from './display-settings.js';
 import type { PlanCoordinateReader } from '../course/geometry/plan-coordinate.js';
 import { wrapAngle } from '../core/math.js';
 import { pseudoProject, type PseudoCamera } from './projection.js';
 import { mergeTerrainAndSprites } from './painter-merge.js';
 import { SoftwareSurface } from './software-surface.js';
-import { drawScaledSprite, type SpriteScanlineObserver } from './sprite.js';
+import { drawScaledSprite } from './sprite.js';
 import type { VehicleRenderRead } from '../vehicle/physics/vehicle-contract.js';
 import { generateTerrainLines, createTerrainWorkspace, type TerrainRenderParameters } from './terrain-line.js';
 import { drawTileBackground, type TileBackground } from './tile-background.js';
@@ -33,16 +32,6 @@ interface RenderResult {
   playerRelativeYaw: number;
   spriteOutputSamplesIncludingPlayer: number;
   spriteWrittenPixelsIncludingPlayer: number;
-  /** Detailed observation is absent during ordinary play. */
-  workload?: RenderWorkload;
-}
-
-interface RenderWorkload {
-  overdrawRows: number;
-  terrainLineCountPerScreenRowMax: number;
-  terrainOutputPixelsPerScreenRowMax: number;
-  spriteOutputSamplesPerScanlineMax: number;
-  spriteWrittenPixelsPerScanlineMax: number;
 }
 
 export interface StripGroundReader {
@@ -77,22 +66,16 @@ export function createRenderWorkspace() {
 }
 
 interface RenderOptions {
-  readonly workspace?: ReturnType<typeof createRenderWorkspace>;
-  readonly observeWorkload?: boolean;
+  readonly workspace: ReturnType<typeof createRenderWorkspace>;
   /** Final compiled color field in scene-local coordinates; never source-rebased or repainted. */
   readonly ground: StripGroundReader;
-  readonly stripMethod?: StripRenderMethod;
+  readonly stripMethod: StripRenderMethod;
 }
 
 export function renderDriving(
   target: SoftwareSurface,
   { background, guide, camera, vehicle, terrainParameters, worldSprites, playerSet }: RenderScene,
-  {
-    observeWorkload = false,
-    ground,
-    workspace = createRenderWorkspace(),
-    stripMethod = DEFAULT_STRIP_RENDER_METHOD,
-  }: RenderOptions,
+  { ground, workspace, stripMethod }: RenderOptions,
 ): RenderResult {
   const renderCamera = camera;
   // The terrain's forward visible interval also bounds the course sprites; it is computed once per frame.
@@ -100,25 +83,9 @@ export function renderDriving(
   drawTileBackground(target, background, renderCamera);
   const sprites = visible ? collectVisibleCourseSprites(worldSprites, renderCamera, visible.dStart, visible.dEnd) : [];
 
-  const observation = observeWorkload
-    ? {
-        terrainLinesByRow: new Uint16Array(target.height),
-        terrainOutputByRow: new Uint32Array(target.height),
-        spriteOutputByScanline: new Uint32Array(target.height),
-        spriteWrittenByScanline: new Uint32Array(target.height),
-      }
-    : undefined;
   let terrainOutputPixels = 0;
   let spriteOutputSamples = 0;
   let spriteWrittenPixels = 0;
-
-  const spriteObserver: SpriteScanlineObserver | undefined =
-    observation &&
-    ((screenY, outputSamples, writtenPixels) => {
-      if (screenY < 0 || screenY >= target.height) return;
-      observation.spriteOutputByScanline[screenY]! += outputSamples;
-      observation.spriteWrittenByScanline[screenY]! += writtenPixels;
-    });
 
   const stripStats = workspace.strips;
   stripStats.activeStrips = stripStats.outputPixels = 0;
@@ -141,15 +108,10 @@ export function renderDriving(
         stripMethod,
         stripStats,
       );
-      const outputPixels = stripStats.outputPixels - before;
-      terrainOutputPixels += outputPixels;
-      if (observation) {
-        observation.terrainLinesByRow[line.y]! += 1;
-        observation.terrainOutputByRow[line.y]! += outputPixels;
-      }
+      terrainOutputPixels += stripStats.outputPixels - before;
     },
     (sprite) => {
-      const stats = drawWorldSprite(target, sprite, spriteObserver);
+      const stats = drawWorldSprite(target, sprite);
       spriteOutputSamples += stats.outputSamples;
       spriteWrittenPixels += stats.writtenPixels;
     },
@@ -167,34 +129,7 @@ export function renderDriving(
     playerProjection.x,
     playerProjection.y,
     playerProjection.scale,
-    spriteObserver,
   );
-
-  let workload: RenderWorkload | undefined;
-  if (observation) {
-    const { terrainLinesByRow, terrainOutputByRow, spriteOutputByScanline, spriteWrittenByScanline } = observation;
-    let overdrawRows = 0;
-    let terrainLineCountPerScreenRowMax = 0;
-    let terrainOutputPixelsPerScreenRowMax = 0;
-    let spriteOutputSamplesPerScanlineMax = 0;
-    let spriteWrittenPixelsPerScanlineMax = 0;
-    for (let y = 0; y < target.height; y += 1) {
-      const terrainLines = terrainLinesByRow[y]!;
-      if (terrainLines > 1) overdrawRows += 1;
-      terrainLineCountPerScreenRowMax = Math.max(terrainLineCountPerScreenRowMax, terrainLines);
-      terrainOutputPixelsPerScreenRowMax = Math.max(terrainOutputPixelsPerScreenRowMax, terrainOutputByRow[y]!);
-      spriteOutputSamplesPerScanlineMax = Math.max(spriteOutputSamplesPerScanlineMax, spriteOutputByScanline[y]!);
-      spriteWrittenPixelsPerScanlineMax = Math.max(spriteWrittenPixelsPerScanlineMax, spriteWrittenByScanline[y]!);
-    }
-
-    workload = {
-      overdrawRows,
-      terrainLineCountPerScreenRowMax,
-      terrainOutputPixelsPerScreenRowMax,
-      spriteOutputSamplesPerScanlineMax,
-      spriteWrittenPixelsPerScanlineMax,
-    };
-  }
 
   return {
     stripGround: { ...stripStats, method: stripMethod },
@@ -212,21 +147,9 @@ export function renderDriving(
     playerRelativeYaw: relativeYaw,
     spriteOutputSamplesIncludingPlayer: spriteOutputSamples + playerStats.outputSamples,
     spriteWrittenPixelsIncludingPlayer: spriteWrittenPixels + playerStats.writtenPixels,
-    workload,
   };
 }
 
-function drawWorldSprite(
-  target: SoftwareSurface,
-  sprite: VisibleCourseSprite,
-  scanlineObserver?: SpriteScanlineObserver,
-) {
-  return drawScaledSprite(
-    target,
-    sprite.asset,
-    sprite.projection.x,
-    sprite.projection.y,
-    sprite.projection.scale,
-    scanlineObserver,
-  );
+function drawWorldSprite(target: SoftwareSurface, sprite: VisibleCourseSprite) {
+  return drawScaledSprite(target, sprite.asset, sprite.projection.x, sprite.projection.y, sprite.projection.scale);
 }
