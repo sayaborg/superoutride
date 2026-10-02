@@ -42,9 +42,8 @@ test('shared route keeps vehicle and camera coordinates across forward and rever
   const link = course.entry.outgoing[0];
   const seam = link.from.section.coordinates.domain.end;
   scene.runtime.refresh(0, seam + 100);
-  const rig = createCameraRig('MOVEMENT_FOLLOW');
+  const rig = createCameraRig();
   rig.yaw = 0.7;
-  rig.movementYaw = -0.4;
   rig.initialized = true;
   for (const [s, ordinal] of [
     [seam + 1, 1],

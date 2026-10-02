@@ -381,7 +381,7 @@ The player reference is 2 m wide, 80 source texels and 80 screen pixels:
 FOV changes preserve this metric. Ground and sprites share this depth interval.
 
 Camera chainage is `s_vehicle-D_cam`; its drawn XZ is the player's route-world XZ minus `D_cam` along
-body yaw by default or movement yaw as the alternate. The observer's shell owns the camera rig;
+body yaw. There is one camera. The observer's shell owns the camera rig;
 rivals have no camera. Horizontal centering follows projection: the player's screen position is the renderer's
 projection of its reference point, its one authority, and the camera on the player's yaw ray puts it at the centre
 column by construction. Camera roll is zero.

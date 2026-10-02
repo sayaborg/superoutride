@@ -15,6 +15,5 @@ export const CURRENT_CAMERA_PROFILE: Readonly<CameraProfile> = Object.freeze({
   focalLength: CURRENT_FOCAL_LENGTH_PIXELS,
   centerX: LOGICAL_WIDTH / 2,
   centerY: LOGICAL_HEIGHT / 2,
-  directionSpeedMin: 0.25,
   playerTargetY: CURRENT_CAMERA_PLAYER_TARGET_Y,
 });

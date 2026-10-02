@@ -213,8 +213,8 @@ tuned definition for further adjustments and export. Reloading the page restores
 driving definition (`default.json`) and the Session vehicle's definition (`<vehicle id>.json`) as browser downloads in the saved layout;
 its `audio/default.json` button (音の設定を書き出す) saves the DEV sound panels' current values as the
 [audio document](audio.md#audio-document) (`default.json`);
-[Calibration](calibration.md#vehicle-settings) describes adopting them as content. The selectable
-body-yaw and movement-yaw cameras use the same projection.
+[Calibration](calibration.md#vehicle-settings) describes adopting them as content. There is one camera, with no
+DEV selection; the DEV overlay above the player shows its travel direction relative to the camera yaw.
 [Calibration](calibration.md#vehicle-settings) lists values, units and ranges.
 
 ### Ground display setting

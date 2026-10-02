@@ -23,7 +23,7 @@
   fields; FREE PLAY rivals are drawn from vehicle pools; TIME TRIAL runs alone; traffic, collisions, music, sound effects and
   the product front end are not implemented.
 
-Next PR: **12-10 — Camera**.
+Next PR: **12-10b — Camera names (rename only)**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -34,12 +34,17 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 Define input, run state, framebuffer, persistent player data, data-driven Sessions, the product front end and the
 product HUD independently of DEV, as specified in the [product specification](product.md).
 
-- **12-10 — Camera:** one product camera, as specified; the body-yaw/movement-yaw choice remains DEV only. Decide
-  from playability evaluation whether a sprung camera mount or a ground-clearance rule is wanted (criterion: the view
-  must not shake excessively over elevation changes). The loading window covers every camera method. Rename camera
-  yaw mode and current-camera-profile names according to the glossary. Use the camera definition's `dCam` for the
-  display-side rearward offset instead of `CURRENT_CAMERA_DISTANCE_METERS`. Define the fixed 40 px/m player-depth
-  display scale directly instead of deriving it from `CAR_WIDTH_METERS`.
+- **12-10b — Camera names (rename only):** rename `CameraProfile`, `CURRENT_CAMERA_PROFILE` and
+  `current-camera-profile.ts` after the glossary's `Definition`, drop the `CURRENT_` prefix and any remaining camera
+  "mode" names; no behavior change.
+- **12-10c — Camera definition as the one authority:** the display-side rearward offset takes the camera definition's
+  `dCam` instead of `CURRENT_CAMERA_DISTANCE_METERS`; the 40 px/m player-depth display scale is defined directly, not
+  from `CAR_WIDTH_METERS`; check audit findings H11-03 and S14-01.
+- **12-10d — Sprung camera height:** the camera height follows its projection target through a spring and damper
+  (natural frequency and damping ratio in the camera definition, DEV-adjustable), never below a minimum clearance over
+  the rendered road at the camera's station; reset on recovery, Session rebuild and START; fixed-step integration.
+- **12-10e — Camera yaw limit and response:** camera yaw is the body yaw limited to a DEV limit angle (45°) about the
+  road heading at the car, followed with a DEV response time (0 s); product §8 states the one camera.
 - **12-11 — Ground sampling:** make a footprint-centred box the default Strip display method (dyadic box in s,
   lateral integration across the pixel), keeping LEVEL-POINT as the cheaper method. Confirm with the RIBBON ROUGH
   evaluation and real-device performance.

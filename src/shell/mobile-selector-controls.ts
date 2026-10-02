@@ -1,5 +1,3 @@
-import { type CameraYawMode } from '../view/camera.js';
-import { BROWSER_CAMERA_YAW_MODES } from './camera-yaw-selection.js';
 import {
   BROWSER_COURSE_MODES,
   type BrowserCourseModeQuery,
@@ -35,15 +33,6 @@ export function mountMobileCourseSelector(
     (query) => onSelect(mustSelect(selections, query, 'course')),
     documentRef,
   );
-}
-
-export function mountMobileCameraYawSelector(
-  container: HTMLElement,
-  activeMode: CameraYawMode,
-  onSelect: (mode: CameraYawMode) => void,
-  documentRef: Document = document,
-): MobileSelectorController<CameraYawMode> {
-  return mountMobileSelector(container, BROWSER_CAMERA_YAW_MODES, activeMode, onSelect, documentRef);
 }
 
 function mountMobileSelector<Value extends string>(

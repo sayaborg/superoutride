@@ -4,7 +4,7 @@ import type { TireSurfaceSounds } from '../audio/surface-sounds.js';
 import type { AudioSettings } from '../audio/audio-document.js';
 import { createDrivingLifecycle, type DrivingLifecycleOptions } from './driving-lifecycle.js';
 import type { CameraRig } from '../view/camera.js';
-import { createCameraRig, setCameraYawMode, type CameraState } from '../view/camera.js';
+import { createCameraRig, type CameraState } from '../view/camera.js';
 import { createLogicalFrame, LOGICAL_HEIGHT, LOGICAL_WIDTH } from '../view/display-scale.js';
 import { expandRgb555Pixels } from '../image/rgb555.js';
 import { SoftwareSurface } from '../view/software-surface.js';
@@ -22,7 +22,6 @@ import { downloadDefinition } from './definition-export.js';
 import type { BrowserCourseModeQuery } from './course-mode-selection.js';
 import { mustGet } from './dom.js';
 import { createFrameLoop } from './frame-loop.js';
-import { mountMobileCameraYawSelector } from './mobile-selector-controls.js';
 import { createTouchIndicators } from './touch-indicators.js';
 import { drawVehicleDebugHud } from './vehicle-debug-hud.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
@@ -117,14 +116,6 @@ export function createBrowserDrivingShell(
           return true;
         },
       };
-      const cameraYawSelector = mountMobileCameraYawSelector(
-        mustGet('camera-selector-buttons'),
-        cameraRig.yawMode,
-        (mode) => {
-          setCameraYawMode(cameraRig, mode);
-          cameraYawSelector.setActive(mode);
-        },
-      );
       // DEV driving tuning stays available in a Session.
       mountDrivingTuningControls(
         {
@@ -178,15 +169,7 @@ export function createBrowserDrivingShell(
       if (player.form === 'bike') {
         drawVehicleLeanDebug(ctx, playerScreenX, playerScreenY, player);
       }
-      drawVehicleYawDebug(
-        ctx,
-        playerScreenX,
-        playerScreenY,
-        player.yaw,
-        camera.movementYaw,
-        camera.yaw,
-        camera.yawMode,
-      );
+      drawVehicleYawDebug(ctx, playerScreenX, playerScreenY, diagnostics.vehicle, camera.yaw);
     },
   };
 }

@@ -1,58 +1,45 @@
-import type { CameraYawMode } from '../../view/camera.js';
 import { wrapAngle } from '../../core/math.js';
+import type { VehicleMotionRead } from '../../vehicle/physics/vehicle-contract.js';
 
-type VehicleYawDebugSubject = 'BODY' | 'TRAVEL';
+/** Minimum body-pitch-plane speed with a travel direction to show. */
+const TRAVEL_SPEED_MIN = 0.25;
 
-interface VehicleYawDebugModel {
-  readonly subject: VehicleYawDebugSubject;
-  readonly relativeYaw: number;
-  readonly relativeYawDegrees: number;
-  /** Screen-right component; zero means the body points with camera movement yaw. */
-  readonly directionX: number;
-  /** Screen-down component; -1 means the body points with camera movement yaw. */
-  readonly directionY: number;
-}
-
-function createVehicleYawDebugModel(
-  directionYaw: number,
-  cameraYaw: number,
-  subject: VehicleYawDebugSubject = 'BODY',
-): VehicleYawDebugModel {
-  if (![directionYaw, cameraYaw].every(Number.isFinite)) {
-    throw new RangeError('yaw debug angles must be finite');
+/**
+ * The travel direction's yaw relative to the camera: world velocity expressed in the body-pitch plane, its yaw
+ * retained; null below TRAVEL_SPEED_MIN.
+ */
+function travelYawRelativeToCamera(vehicle: VehicleMotionRead, cameraYaw: number): number | null {
+  const { yaw, sprungPitch: pitch, velocityX, velocityY, velocityZ } = vehicle;
+  if (![yaw, pitch, velocityX, velocityY, velocityZ, cameraYaw].every(Number.isFinite)) {
+    throw new RangeError('yaw debug inputs must be finite');
   }
-  const relativeYaw = wrapAngle(directionYaw - cameraYaw);
-  return {
-    subject,
-    relativeYaw,
-    relativeYawDegrees: (relativeYaw * 180) / Math.PI,
-    directionX: Math.sin(relativeYaw),
-    directionY: -Math.cos(relativeYaw),
-  };
+  const forwardSpeed =
+    velocityX * Math.sin(yaw) * Math.cos(pitch) +
+    velocityY * Math.sin(pitch) +
+    velocityZ * Math.cos(yaw) * Math.cos(pitch);
+  const lateralSpeed = velocityX * Math.cos(yaw) - velocityZ * Math.sin(yaw);
+  if (Math.hypot(forwardSpeed, lateralSpeed) < TRAVEL_SPEED_MIN) return null;
+  return wrapAngle(yaw + Math.atan2(lateralSpeed, forwardSpeed) - cameraYaw);
 }
 
-function createCameraYawDebugModel(
-  vehicleYaw: number,
-  movementYaw: number,
-  cameraYaw: number,
-  yawMode: CameraYawMode,
-): VehicleYawDebugModel {
-  return yawMode === 'BODY_FIXED'
-    ? createVehicleYawDebugModel(movementYaw, cameraYaw, 'TRAVEL')
-    : createVehicleYawDebugModel(vehicleYaw, cameraYaw, 'BODY');
-}
-
-/** DEV-only HUD overlay. This rotates vector geometry, never a vehicle sprite bitmap. */
+/**
+ * DEV-only HUD overlay of the player's travel direction relative to the camera. This rotates vector geometry, never a
+ * vehicle sprite bitmap.
+ */
 export function drawVehicleYawDebug(
   ctx: CanvasRenderingContext2D,
   playerAnchorX: number,
   playerAnchorY: number,
-  vehicleYaw: number,
-  movementYaw: number,
+  vehicle: VehicleMotionRead,
   cameraYaw: number,
-  yawMode: CameraYawMode,
 ): void {
-  const model = createCameraYawDebugModel(vehicleYaw, movementYaw, cameraYaw, yawMode);
+  const relativeYaw = travelYawRelativeToCamera(vehicle, cameraYaw);
+  if (relativeYaw === null) return;
+  const model = {
+    relativeYawDegrees: (relativeYaw * 180) / Math.PI,
+    directionX: Math.sin(relativeYaw),
+    directionY: -Math.cos(relativeYaw),
+  };
   const centerX = playerAnchorX;
   const centerY = playerAnchorY - 28;
   const shaftBack = 8;
@@ -91,7 +78,7 @@ export function drawVehicleYawDebug(
   ctx.lineTo(headBackX - perpendicularX * 5, headBackY - perpendicularY * 5);
   ctx.stroke();
 
-  const label = `${model.subject} YAW ${formatSigned(model.relativeYawDegrees)}deg`;
+  const label = `TRAVEL YAW ${formatSigned(model.relativeYawDegrees)}deg`;
   ctx.font = 'bold 7px monospace';
   ctx.textBaseline = 'bottom';
   const labelWidth = ctx.measureText(label).width;

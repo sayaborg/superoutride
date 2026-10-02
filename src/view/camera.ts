@@ -14,19 +14,11 @@ export interface CameraProfile {
   readonly focalLength: number;
   readonly centerX: number;
   readonly centerY: number;
-  /** Minimum body-pitch-plane speed at which movement owns camera yaw. */
-  readonly directionSpeedMin: number;
   readonly playerTargetY: number;
 }
 
-export type CameraYawMode = 'BODY_FIXED' | 'MOVEMENT_FOLLOW';
-
-const DEFAULT_CAMERA_YAW_MODE: CameraYawMode = 'BODY_FIXED';
-
 export interface CameraRig {
-  yawMode: CameraYawMode;
   yaw: number;
-  movementYaw: number;
   initialized: boolean;
 }
 
@@ -35,69 +27,17 @@ export interface CameraState extends PseudoCamera {
   readonly vehiclePlanYawDelta: number;
   readonly cameraVehicleYawDelta: number;
   readonly bodyPitch: number;
-  readonly yawMode: CameraYawMode;
-  readonly movementYaw: number;
-  readonly movementYawDelta: number;
-}
-
-interface BodyPitchMovementYaw {
-  readonly yaw: number;
-  readonly yawDelta: number;
-  readonly forwardSpeed: number;
-  readonly lateralSpeed: number;
-  readonly inPlaneSpeed: number;
 }
 
 const planWorkspaces = new WeakMap<CameraRig, { point: ReturnType<typeof createPlanCoordinateSample> }>();
 
-export function createCameraRig(yawMode: CameraYawMode = DEFAULT_CAMERA_YAW_MODE): CameraRig {
-  return { yawMode, yaw: 0, movementYaw: 0, initialized: false };
+export function createCameraRig(): CameraRig {
+  return { yaw: 0, initialized: false };
 }
 
 export function resetCameraRig(rig: CameraRig): void {
   rig.yaw = 0;
-  rig.movementYaw = 0;
   rig.initialized = false;
-}
-
-export function setCameraYawMode(rig: CameraRig, yawMode: CameraYawMode): void {
-  rig.yawMode = yawMode;
-}
-
-/**
- * Express authoritative world velocity in the vehicle-pitch plane, then retain only its yaw.
- * Camera pitch follows the body separately. Movement yaw remains the alternate camera direction
- * and the body-fixed overlay direction; neither use changes authoritative vehicle attitude.
- */
-function movementYawInBodyPitchFrame(
-  vehicleYaw: number,
-  bodyPitch: number,
-  velocityX: number,
-  velocityY: number,
-  velocityZ: number,
-): BodyPitchMovementYaw {
-  if (![vehicleYaw, bodyPitch, velocityX, velocityY, velocityZ].every(Number.isFinite)) {
-    throw new RangeError('camera movement-yaw inputs must be finite');
-  }
-  const cosYaw = Math.cos(vehicleYaw);
-  const sinYaw = Math.sin(vehicleYaw);
-  const cosPitch = Math.cos(bodyPitch);
-  const sinPitch = Math.sin(bodyPitch);
-  const rightX = cosYaw;
-  const rightZ = -sinYaw;
-  const forwardX = sinYaw * cosPitch;
-  const forwardY = sinPitch;
-  const forwardZ = cosYaw * cosPitch;
-  const forwardSpeed = velocityX * forwardX + velocityY * forwardY + velocityZ * forwardZ;
-  const lateralSpeed = velocityX * rightX + velocityZ * rightZ;
-  const yawDelta = Math.atan2(lateralSpeed, forwardSpeed);
-  return {
-    yaw: wrapAngle(vehicleYaw + yawDelta),
-    yawDelta,
-    forwardSpeed,
-    lateralSpeed,
-    inPlaneSpeed: Math.hypot(forwardSpeed, lateralSpeed),
-  };
 }
 
 export function updateCamera(
@@ -106,10 +46,6 @@ export function updateCamera(
   vehicle: VehicleMotionRead,
   profile: CameraProfile,
 ): CameraState {
-  if (!(profile.directionSpeedMin >= 0) || !Number.isFinite(profile.directionSpeedMin)) {
-    throw new RangeError('camera direction speed minimum must be finite and >= 0');
-  }
-
   let workspace = planWorkspaces.get(rig);
   if (!workspace) {
     workspace = { point: createPlanCoordinateSample() };
@@ -119,28 +55,12 @@ export function updateCamera(
   const vehiclePlanYawDelta = wrapAngle(vehicle.yaw - planAtCar.heading);
   const bodyPitch = vehicle.sprungPitch;
 
-  if (!rig.initialized) {
-    rig.yaw = vehicle.yaw;
-    rig.movementYaw = vehicle.yaw;
-    rig.initialized = true;
-  }
-
-  let movementYawDelta = wrapAngle(rig.movementYaw - vehicle.yaw);
-  const movement = movementYawInBodyPitchFrame(
-    vehicle.yaw,
-    bodyPitch,
-    vehicle.velocityX,
-    vehicle.velocityY,
-    vehicle.velocityZ,
-  );
-  if (movement.inPlaneSpeed >= profile.directionSpeedMin) {
-    rig.movementYaw = movement.yaw;
-    movementYawDelta = movement.yawDelta;
-  }
-  rig.yaw = rig.yawMode === 'BODY_FIXED' ? vehicle.yaw : rig.movementYaw;
+  // The camera yaw is the body's yaw.
+  rig.yaw = vehicle.yaw;
+  rig.initialized = true;
 
   const sCamera = vehicle.course.s - profile.dCam;
-  // The camera occupies the selected yaw ray behind the authoritative vehicle position. Its
+  // The camera occupies the body's yaw ray behind the authoritative vehicle position. Its
   // camera-right displacement to the player is therefore exactly zero, so the renderer's projection
   // places the player at centerX by construction; the camera publishes no screen position of its own.
   const cameraX = vehicle.x - profile.dCam * Math.sin(rig.yaw);
@@ -169,8 +89,5 @@ export function updateCamera(
     vehiclePlanYawDelta,
     cameraVehicleYawDelta: wrapAngle(vehicle.yaw - rig.yaw),
     bodyPitch,
-    yawMode: rig.yawMode,
-    movementYaw: rig.movementYaw,
-    movementYawDelta,
   };
 }
