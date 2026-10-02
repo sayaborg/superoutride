@@ -26,7 +26,7 @@ export function readBrowserSessionSettings(
   const preset = arcade
     ? { vehicleId: arcade.series.vehicles[0]!, rivalCount: arcade.entries.length - 1, lapCount: arcade.laps }
     : { vehicleId: vehicles[0]!.compiledVehicle.id, rivalCount: 0, lapCount: 1 };
-  const mode = params.get('session') ?? (arcade ? 'ARCADE' : 'FREE_PLAY');
+  const mode = params.get('mode') ?? (arcade ? 'ARCADE' : 'FREE_PLAY');
   if (mode !== 'ARCADE' && mode !== 'FREE_PLAY' && mode !== 'TIME_TRIAL') throw new RangeError('Unknown Session mode');
   if (mode === 'ARCADE' && !arcade) throw new RangeError('An untimed course has no ARCADE Session');
   if (mode === 'TIME_TRIAL' && (params.has('rivals') || params.has('pool')))
@@ -165,7 +165,7 @@ export function mountCourseSessionControls(
   panel.addEventListener('submit', (event) => {
     event.preventDefault();
     const params = new URLSearchParams(location.search);
-    params.set('session', mode.value);
+    params.set('mode', mode.value);
     params.set('vehicle', vehicle.value);
     params.set('laps', laps.value);
     // TIME TRIAL takes no rival parameters.

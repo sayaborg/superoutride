@@ -8,7 +8,7 @@ import { CAMERA_DEFINITION } from '../view/camera-definition.js';
 import { SIM_DT } from '../race/fixed-step.js';
 import { createVehicleSprites } from '../view/vehicle-sprites.js';
 import { createBrowserDrivingShell } from './driving-shell.js';
-import { selectBrowserCourseMode } from './course-mode-selection.js';
+import { selectBrowserCourse } from './course-selection.js';
 import { mustGet } from './dom.js';
 import { loadDeliveredCourse } from '../content/load-delivered-course.js';
 import { loadVehicleDefinitions } from '../content/vehicle-catalog.js';
@@ -51,8 +51,8 @@ try {
   };
   const definitions = await loadVehicleDefinitions(content, await loadEngineSounds(content));
   const { vehicles, driving } = definitions;
-  const mode = selectBrowserCourseMode(new URLSearchParams(location.search).get('mode')).query;
-  const course = await loadDeliveredCourse(content, mode, materials);
+  const courseId = selectBrowserCourse(new URLSearchParams(location.search).get('course')).query;
+  const course = await loadDeliveredCourse(content, courseId, materials);
   const parameters = new URLSearchParams(location.search);
   // The course's ARCADE settings come from the one series holding it; a course in no series is untimed.
   const series = await loadSeriesCatalog(content, vehicles);
@@ -97,14 +97,14 @@ try {
   // A timed course's budgets must be delivered; a missing file stops loading rather than dropping the clock.
   const budgets =
     settings.timeLimit && arcade
-      ? await admitProduct(content, 'budget', `${mode}/${vehicleId}`, (value, document) =>
+      ? await admitProduct(content, 'budget', `${courseId}/${vehicleId}`, (value, document) =>
           readCourseTimeBudgets(course, vehicle, value, document),
         )
       : null;
   // ARCADE admits the player vehicle's pace schedule once.
   const paceSchedule =
     settings.mode === 'ARCADE'
-      ? await admitProduct(content, 'schedule', `${mode}/${vehicleId}`, (value, document) =>
+      ? await admitProduct(content, 'schedule', `${courseId}/${vehicleId}`, (value, document) =>
           readPaceSchedule(course, vehicle, value, document),
         )
       : undefined;
@@ -213,7 +213,7 @@ try {
     );
     const renderMilliseconds = performance.now() - renderStarted;
     shell.present(
-      mode,
+      courseId,
       lifecycle.camera,
       result.playerScreenX,
       result.playerScreenY,

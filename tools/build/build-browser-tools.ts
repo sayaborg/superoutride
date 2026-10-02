@@ -44,7 +44,7 @@ for (const name of [
   const target = new URL(`dist/tools/${name}`, root);
   await mkdir(new URL('./', target), { recursive: true });
   const source = await readFile(new URL(`tools/${name}`, root), 'utf8');
-  await writeFile(target, source.replace('href="../../?mode=', 'href="../../../../?mode='));
+  await writeFile(target, source.replace('href="../../?course=', 'href="../../../../?course='));
 }
 
 // Browser-only delivery consumes source directly; Node tools never import generated modules.

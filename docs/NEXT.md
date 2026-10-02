@@ -23,7 +23,7 @@
   fields; FREE PLAY rivals are drawn from vehicle pools; TIME TRIAL runs alone; traffic, collisions, music, sound effects and
   the product front end are not implemented.
 
-Next PR: **12-12a — URL and course selection names**.
+Next PR: **12-12b — Course list is passed explicitly**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -36,10 +36,8 @@ product HUD independently of DEV, as specified in the [product specification](pr
 
 - **12-12 — Front end:** the screens and flow in one page, drawn inside the frame
   ([product](product.md#6-flow-and-screens)). The foundation comes first:
-  - **12-12a — URL and course selection names:** URL parameters remain DEV and test deep links: rename `mode` to
-    `course` and `session` to `mode`; course selection identifiers and files drop `mode`. Rename only.
   - **12-12b — Course list is passed explicitly:** the manifest-derived course list is a value built once and passed to
-    its users instead of the mutable `BROWSER_COURSE_MODES`; the course page uses the selection made at boot.
+    its users instead of the mutable `BROWSER_COURSES`; the course page uses the selection made at boot.
   - **12-12c — Bitmap font and text layer:** the 8×8 bitmap font as a content document and the 40×30 text layer drawn
     into the frame; PAUSED is its first user.
   - **12-12d — Runs assemble in the page:** separate page and run lifetimes; one procedure assembles a run and one

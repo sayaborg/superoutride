@@ -1,18 +1,18 @@
 import type { ContentManifest } from '../content/content-manifest.js';
-export type BrowserCourseModeQuery = string;
+export type BrowserCourseId = string;
 
-export interface BrowserCourseModeSelection {
+export interface BrowserCourseSelection {
   /** Compact DEV button text; the label when absent. */
   readonly buttonLabel?: string;
   readonly label: string;
-  readonly query: BrowserCourseModeQuery;
+  readonly query: BrowserCourseId;
   readonly entryName: 'main-course.js';
 }
 
 /** The first saved course is the default; every selection uses the shared product root. */
-function compileBrowserCourseModes(
-  entries: readonly Omit<BrowserCourseModeSelection, 'entryName'>[],
-): readonly BrowserCourseModeSelection[] {
+function compileBrowserCourses(
+  entries: readonly Omit<BrowserCourseSelection, 'entryName'>[],
+): readonly BrowserCourseSelection[] {
   const queries = new Set<string>();
   if (entries.length === 0) throw new RangeError('At least one course is required');
   return Object.freeze(
@@ -32,7 +32,7 @@ function compileBrowserCourseModes(
   );
 }
 
-const COURSE_CONTROLS = compileBrowserCourseModes([
+const COURSE_CONTROLS = compileBrowserCourses([
   { buttonLabel: '1', label: 'RIBBON COAST', query: 'ribbon-coast' },
   { buttonLabel: '2', label: 'RIBBON RING', query: 'ribbon-ring' },
   { buttonLabel: '3', label: 'RIBBON FORK', query: 'ribbon-fork' },
@@ -40,25 +40,25 @@ const COURSE_CONTROLS = compileBrowserCourseModes([
 ]);
 
 /** Availability comes exclusively from delivery; labels remain shell settings. */
-export let BROWSER_COURSE_MODES: readonly BrowserCourseModeSelection[] = Object.freeze([]);
+export let BROWSER_COURSES: readonly BrowserCourseSelection[] = Object.freeze([]);
 export function configureBrowserCourses(manifest: ContentManifest): void {
   const ids = manifest.files.filter((file) => file.kind === 'course').map((file) => file.id);
   const known = COURSE_CONTROLS.filter((control) => ids.includes(control.query));
-  BROWSER_COURSE_MODES = compileBrowserCourseModes([
+  BROWSER_COURSES = compileBrowserCourses([
     ...known,
     ...ids.filter((id) => !known.some((control) => control.query === id)).map((query) => ({ query, label: query })),
   ]);
 }
 
-export function formatBrowserCourseSelector(activeQuery: BrowserCourseModeQuery): string {
-  return BROWSER_COURSE_MODES.map((mode) => `${mode.label}${mode.query === activeQuery ? '*' : ''}`).join('  ');
+export function formatBrowserCourseSelector(activeQuery: BrowserCourseId): string {
+  return BROWSER_COURSES.map((course) => `${course.label}${course.query === activeQuery ? '*' : ''}`).join('  ');
 }
 
-export function selectBrowserCourseMode(
+export function selectBrowserCourse(
   query: string | null,
-  selections: readonly BrowserCourseModeSelection[] = BROWSER_COURSE_MODES,
-): BrowserCourseModeSelection {
-  const selected = selections.find((mode) => mode.query === query) ?? selections[0];
+  selections: readonly BrowserCourseSelection[] = BROWSER_COURSES,
+): BrowserCourseSelection {
+  const selected = selections.find((course) => course.query === query) ?? selections[0];
   if (!selected) throw new RangeError('course selection requires a default course');
   return selected;
 }

@@ -1,16 +1,12 @@
 import { browserContent } from './browser-content.js';
-import {
-  configureBrowserCourses,
-  selectBrowserCourseMode,
-  type BrowserCourseModeSelection,
-} from './course-mode-selection.js';
+import { configureBrowserCourses, selectBrowserCourse, type BrowserCourseSelection } from './course-selection.js';
 import { mustGet } from './dom.js';
 import { mountMobileCourseSelector } from './mobile-selector-controls.js';
 
 try {
   configureBrowserCourses((await browserContent()).manifest);
   const parameters = new URLSearchParams(location.search);
-  const selectedMode = selectBrowserCourseMode(parameters.get('mode'));
+  const selectedCourse = selectBrowserCourse(parameters.get('course'));
   const courseSelector = mustGet<HTMLElement>('course-selector-buttons');
   const devPanel = mustGet<HTMLDetailsElement>('dev-panel');
   // Keys typed in DEV controls never reach driving input.
@@ -28,17 +24,17 @@ try {
     true,
   );
 
-  mountMobileCourseSelector(courseSelector, selectedMode.query, navigateToCourseMode);
+  mountMobileCourseSelector(courseSelector, selectedCourse.query, navigateToCourse);
 
-  function navigateToCourseMode(targetMode: BrowserCourseModeSelection): void {
-    if (targetMode.query === selectedMode.query) return;
+  function navigateToCourse(target: BrowserCourseSelection): void {
+    if (target.query === selectedCourse.query) return;
     const next = new URL(location.href);
-    next.searchParams.set('mode', targetMode.query);
-    for (const key of ['session', 'vehicle', 'rivals', 'laps', 'pool', 'autostart']) next.searchParams.delete(key);
+    next.searchParams.set('course', target.query);
+    for (const key of ['mode', 'vehicle', 'rivals', 'laps', 'pool', 'autostart']) next.searchParams.delete(key);
     location.assign(next.href);
   }
 
-  await import(`./${selectedMode.entryName}`);
+  await import(`./${selectedCourse.entryName}`);
 } catch (error) {
   console.error('Course could not start', error);
   const status = document.createElement('p');
