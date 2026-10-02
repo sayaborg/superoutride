@@ -113,7 +113,7 @@ vehicles shapes the race; FREE PLAY needs no reference runs. The player starts f
 
 **TIME TRIAL** runs any product course alone: no rivals, no traffic, no clock. On circuits the player
 chooses the lap count. On forks the player selects the route by driving; the record belongs to the
-route driven.
+route driven. The player starts from the last grid slot, where the reference run starts.
 
 ## 5. Series
 
@@ -182,7 +182,8 @@ count down to GO; engines rev freely with the throttle. There are no rolling sta
 When the player finishes, the driver takes over the player's vehicle and brakes it to a stop on the
 runout while the rest of the field keeps driving; RESULT follows after 3 seconds. The player's rank is
 fixed at the finish: competitors unfinished at that moment rank behind. After GAME OVER the player's
-throttle is released and the vehicle coasts; RESULT follows after the same delay.
+throttle is released and the vehicle coasts, still answering the player's steering and
+brake; RESULT follows after the same delay.
 
 ## 8. Camera
 
