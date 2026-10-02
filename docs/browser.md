@@ -226,7 +226,7 @@ DEV selection; the DEV overlay above the player shows its travel direction relat
 The driving composition root creates one settings object; the shared scene reads it when rendering.
 The browser control is only an adapter and does not own the value or its lifetime.
 
-DEV's **Ground display** group exposes all three methods defined in
+DEV's **Ground display** group exposes every method defined in
 [Architecture](architecture.md#strip-rendering), marking the selected button pressed. A click updates
 the single setting and redraws immediately, including before START and while paused. Camera, vehicle,
 Session and occurrence history are preserved, with no restart or course recompilation. The setting

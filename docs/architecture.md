@@ -445,9 +445,12 @@ pieces and passes them through the shared material/color slab resolver described
 adjacent equal colors; transparent upper Strips erase lower colors before filtering. The active count
 includes hidden declarations, not just the visible resolved spans.
 
-The course compiler averages resolved colors over dyadic s cells starting at one metre.
-Each level has `ceil(L/2^n)` cells for Section length `L`; its last cell ends at `L` and
-is averaged over its actual length. The top level has one cell spanning the Section.
+The course compiler averages resolved colors over dyadic s cells starting at one metre, in two phases per level.
+The aligned phase of level `n` has `ceil(L/2^n)` cells `[i*2^n, (i+1)*2^n)` for Section length `L`; its last cell
+ends at `L` and is averaged over its actual length. The top level has one aligned cell spanning the Section. The
+half-shifted phase has cells `[i*2^n - 2^(n-1), (i+1)*2^n - 2^(n-1))` clipped to `[0, L]`: its first cell is
+`[0, 2^(n-1))` and its last ends at `L`, each averaged over its actual length. Both phases count toward the
+`preblendCells` and `coefficientBytes` ceilings.
 Lateral fields store premultiplied linear-sRGB channels and coverage as piecewise-linear
 functions of fixed source-l coordinates. An edge that moves across an interval becomes a ramp rather
 than a relocated hard edge. Equal lateral fields share private coefficient storage and per-level indices.
@@ -459,16 +462,21 @@ A row uses the terrain projection's representative s and effective depth footpri
 A projected `[-1,+1]` metre ruler supplies the affine screen-to-l map; it does not clip ground.
 The product has one complete method, not independently configurable s/l kernels:
 
-| Method      | Longitudinal read                                                | Lateral read at pixel center x and width w |
-| ----------- | ---------------------------------------------------------------- | ------------------------------------------ |
-| POINT-POINT | Instantaneous resolved Strips at the row's s for every footprint | Value at x                                 |
-| LEVEL-POINT | One cached dyadic cell, or instantaneous Strips when `rho < 1`   | Value at x                                 |
-| EXACT-BOX   | Exact integral over the row's centered depth interval            | Exact mean over `[x-w/2,x+w/2]`            |
+| Method       | Longitudinal read                                                                                  | Lateral read at pixel center x and width w |
+| ------------ | -------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| POINT-POINT  | Instantaneous resolved Strips at the row's s for every footprint                                   | Value at x                                 |
+| LEVEL-POINT  | One cached dyadic cell, or instantaneous Strips when `rho < 1`                                     | Value at x                                 |
+| LEVEL2-POINT | One cached dyadic cell of either phase, centered nearest s, or instantaneous Strips when `rho < 1` | Value at x                                 |
+| EXACT-BOX    | Exact integral over the row's centered depth interval                                              | Exact mean over `[x-w/2,x+w/2]`            |
 
-POINT-POINT and LEVEL-POINT use the source owning s and its lateral origin; a seam belongs to its
+POINT-POINT, LEVEL-POINT and LEVEL2-POINT use the source owning s and its lateral origin; a seam belongs to its
 successor. The instantaneous read follows the ordered resolved slab without preblending or sorting.
-LEVEL-POINT uses `rho = deltaS / 1 m` with the [shared image selector](#shared-image-level-selection).
-It reads only the containing cell, without cell/level interpolation or mixing neighboring occurrences.
+LEVEL-POINT and LEVEL2-POINT use `rho = deltaS / 1 m` with the [shared image selector](#shared-image-level-selection).
+LEVEL-POINT reads only the containing aligned cell, without cell/level interpolation or mixing neighboring occurrences.
+LEVEL2-POINT reads, of that level's aligned cell and half-shifted cell containing s, the one whose center (the
+midpoint of its actual, possibly clipped, extent) is nearest s; at an equal distance it reads the aligned cell. Like
+LEVEL-POINT it neither interpolates nor mixes occurrences. Its cell centers lie every half cell, so its read moves to
+a new cell twice as often and its center lies at most a quarter cell from s, against half a cell for LEVEL-POINT.
 Every level covers the Section through its truncated last cell. The final closed endpoint uses
 that last cell.
 
@@ -536,7 +544,7 @@ LOD for shipped sprites.
 ### Shared image level selection
 
 Image's `selectImageLodLevel(scale, maxLevel)` is the single nearest-octave selection rule used by
-both sprites and LEVEL-POINT. `scale = 1/rho`: destination pixels per master texel for sprites, or
+both sprites and the LEVEL methods. `scale = 1/rho`: destination pixels per master texel for sprites, or
 `1 m / deltaS` for Strips. It selects the nearest integer `log2(rho)` exponent, clamped to the available
 prefix `0..maxLevel`. There is one level per octave. At the geometric-mean boundary
 `scale = 2^(-n)/sqrt(2)`, it selects the coarser exponent `n+1`. No interpolation occurs.

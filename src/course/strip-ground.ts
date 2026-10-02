@@ -13,10 +13,16 @@ interface StripLateralField {
   /** x, premultiplied linear R/G/B/coverage, then their lateral slopes. Private owned storage. */
   readonly data: Float64Array;
 }
-interface Level {
-  readonly step: number;
+/** One phase of a level's cells: cell `i` spans `[i*step - offset, (i+1)*step - offset)`, clipped to `[0, length]`. */
+interface LevelPhase {
+  readonly offset: number;
   readonly indices: Uint32Array;
   readonly active: Uint8Array;
+}
+/** A level's aligned cells (offset 0) and its cells shifted by half a cell (offset `step/2`). */
+interface Level {
+  readonly step: number;
+  readonly phases: readonly [LevelPhase, LevelPhase];
 }
 interface Event {
   readonly x: number;
@@ -148,7 +154,13 @@ export interface StripCellTarget {
 }
 export interface StripGroundCellReader {
   readonly levelCount: number;
+  /** The aligned cell of `level` containing `s`. */
   read(level: number, s: number, target: StripCellTarget): void;
+  /**
+   * The cell of `level` whose center is nearest `s`, among its aligned and half-shifted cells; at an equal distance,
+   * the aligned cell.
+   */
+  readCentered(level: number, s: number, target: StripCellTarget): void;
 }
 
 /** Compile all s levels before driving. Storage is private; each renderer owns its sampling scratch. */
@@ -160,16 +172,23 @@ export function compileStripGround(length: number, pieces: readonly StripPiece[]
   let cells = 0,
     coefficientBytes = 0,
     directoryBytes = 0;
-  for (let step = STRIP_BASE_STEP; ; step *= 2) {
-    const count = Math.ceil(length / step);
+  // Each phase's cells average over their actual extent; equal lateral fields share storage across phases and levels.
+  const phase = (step: number, offset: number): LevelPhase => {
+    const count = Math.ceil((length + offset) / step);
     cells += count;
+    if (cells > COURSE_DOCUMENT_LIMITS.preblendCells)
+      throw new CourseInputError(
+        'resource_limit',
+        path,
+        `Strip preblend cells exceed ${COURSE_DOCUMENT_LIMITS.preblendCells}`,
+      );
     const indices = new Uint32Array(count),
       active = new Uint8Array(count);
     directoryBytes += indices.byteLength + active.byteLength;
     let slab = 0;
     for (let i = 0; i < count; i++) {
-      const start = i * step,
-        end = Math.min(length, (i + 1) * step);
+      const start = Math.max(0, i * step - offset),
+        end = Math.min(length, (i + 1) * step - offset);
       while (slab + 1 < slabs.length && slabs[slab]!.end <= start) slab++;
       const built = lateralFieldFor(slabs, slab, start, end, path);
       let index = intern.get(built.key);
@@ -188,8 +207,12 @@ export function compileStripGround(length: number, pieces: readonly StripPiece[]
       indices[i] = index;
       active[i] = built.active;
     }
-    levels.push({ step, indices, active });
-    if (count === 1) break;
+    return { offset, indices, active };
+  };
+  for (let step = STRIP_BASE_STEP; ; step *= 2) {
+    const aligned = phase(step, 0);
+    levels.push({ step, phases: [aligned, phase(step, step / 2)] });
+    if (aligned.indices.length === 1) break;
   }
   const metrics = Object.freeze({
     expandedStrips: pieces.length,
@@ -199,20 +222,38 @@ export function compileStripGround(length: number, pieces: readonly StripPiece[]
     coefficientBytes,
     directoryBytes,
   });
+  // A phase's cell containing s (the final closed endpoint uses the last cell) and its clipped extent.
+  const cellAt = (step: number, input: LevelPhase, s: number) => {
+    const cell = Math.min(input.indices.length - 1, Math.floor((s + input.offset) / step));
+    const start = Math.max(0, cell * step - input.offset),
+      end = Math.min(length, (cell + 1) * step - input.offset);
+    return { cell, start, end };
+  };
+  const copy = (input: LevelPhase, cell: number, cellLength: number, target: StripCellTarget) => {
+    const field = lateralFields[input.indices[cell]!]!;
+    target.length = cellLength;
+    target.active = input.active[cell]!;
+    target.count = field.count;
+    for (let c = 0; c < 4; c++) target.base[c] = field.base[c]!;
+    if (target.data.length < field.data.length)
+      target.data = new Float64Array(2 ** Math.ceil(Math.log2(field.data.length)));
+    target.data.set(field.data);
+  };
   const reader: StripGroundCellReader = Object.freeze({
     levelCount: levels.length,
     read(level: number, s: number, target: StripCellTarget) {
-      const input = levels[level]!;
-      const cell = Math.min(input.indices.length - 1, Math.floor(s / input.step));
-      const field = lateralFields[input.indices[cell]!]!;
-      const cellLength = Math.min(input.step, length - cell * input.step);
-      target.length = cellLength;
-      target.active = input.active[cell]!;
-      target.count = field.count;
-      for (let c = 0; c < 4; c++) target.base[c] = field.base[c]!;
-      if (target.data.length < field.data.length)
-        target.data = new Float64Array(2 ** Math.ceil(Math.log2(field.data.length)));
-      target.data.set(field.data);
+      const { step, phases } = levels[level]!;
+      const { cell, start, end } = cellAt(step, phases[0], s);
+      copy(phases[0], cell, end - start, target);
+    },
+    readCentered(level: number, s: number, target: StripCellTarget) {
+      const { step, phases } = levels[level]!;
+      const aligned = cellAt(step, phases[0], s),
+        shifted = cellAt(step, phases[1], s);
+      const nearer =
+        Math.abs((shifted.start + shifted.end) / 2 - s) < Math.abs((aligned.start + aligned.end) / 2 - s) ? 1 : 0;
+      const chosen = nearer ? shifted : aligned;
+      copy(phases[nearer], chosen.cell, chosen.end - chosen.start, target);
     },
   });
   return Object.freeze({ length, slabs, metrics, reader });

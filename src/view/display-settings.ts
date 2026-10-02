@@ -16,5 +16,5 @@ export function createDisplaySettings(initial: StripRenderMethod = DEFAULT_STRIP
   });
 }
 export type DisplaySettings = ReturnType<typeof createDisplaySettings>;
-export const STRIP_RENDER_METHODS = Object.freeze(['POINT-POINT', 'LEVEL-POINT', 'EXACT-BOX'] as const);
+export const STRIP_RENDER_METHODS = Object.freeze(['POINT-POINT', 'LEVEL-POINT', 'LEVEL2-POINT', 'EXACT-BOX'] as const);
 export type StripRenderMethod = (typeof STRIP_RENDER_METHODS)[number];

@@ -306,9 +306,11 @@ export function createStripGroundSampler(intervals: readonly StripFieldSpan[]) {
       if (method !== 'EXACT-BOX') {
         const span = spanAt(s);
         const at = Math.max(0, Math.min(span.ground.length, s - span.start));
-        if (method === 'LEVEL-POINT' && deltaS >= STRIP_BASE_STEP) {
+        if ((method === 'LEVEL-POINT' || method === 'LEVEL2-POINT') && deltaS >= STRIP_BASE_STEP) {
           const level = selectImageLodLevel(STRIP_BASE_STEP / deltaS, span.ground.reader.levelCount - 1);
-          span.ground.reader.read(level, at, pointField);
+          // LEVEL2-POINT reads, from the level's aligned and half-shifted cells, the one centered nearest the row.
+          if (method === 'LEVEL2-POINT') span.ground.reader.readCentered(level, at, pointField);
+          else span.ground.reader.read(level, at, pointField);
           stats.activeStrips = Math.max(stats.activeStrips, pointField.active);
           field = pointField;
         } else field = readPointField(pointField, span.ground, at, stats);
