@@ -113,11 +113,13 @@ capability on unit grip without surface drag.
 The [camera definition](../src/view/camera-definition.ts) holds the camera's values; DEV camera controls replace
 them for the session without saving, and a reload restores them.
 
-| Setting              | Value | DEV choices            | Meaning                                                     |
-| -------------------- | ----- | ---------------------- | ----------------------------------------------------------- |
-| Height frequency     | 2 Hz  | 0.5, 1, 2, 3, 5, 10 Hz | Natural frequency of the sprung camera height               |
-| Height damping ratio | 1.0   | 0.5, 0.7, 1, 1.5, 2    | Damping ratio of the sprung camera height                   |
-| Minimum clearance    | 0.3 m | 0, 0.3, 0.6, 1 m       | Lowest camera height above the rendered road at its station |
+| Setting              | Value | DEV choices              | Meaning                                                                |
+| -------------------- | ----- | ------------------------ | ---------------------------------------------------------------------- |
+| Height frequency     | 2 Hz  | 0.5, 1, 2, 3, 5, 10 Hz   | Natural frequency of the sprung camera height                          |
+| Height damping ratio | 1.0   | 0.5, 0.7, 1, 1.5, 2      | Damping ratio of the sprung camera height                              |
+| Minimum clearance    | 0.3 m | 0, 0.3, 0.6, 1 m         | Lowest camera height above the rendered road at its station            |
+| Yaw limit            | 45°   | 15, 30, 45, 60, 90, 180° | Camera yaw limit about the road heading at the car (stored in radians) |
+| Yaw response         | 0 s   | 0, 0.1, 0.25, 0.5, 1 s   | Time constant following the limited body yaw; 0 follows it at once     |
 
 ## Vehicle values
 

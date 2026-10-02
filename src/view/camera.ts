@@ -23,6 +23,10 @@ export interface CameraDefinition {
   readonly heightDampingRatio: number;
   /** Minimum camera height above the rendered road at the camera's station, metres. */
   readonly minimumClearance: number;
+  /** The camera yaw's limit about the road heading at the car, radians. */
+  readonly yawLimit: number;
+  /** The camera yaw's response time constant, seconds; 0 follows the limited body yaw at once. */
+  readonly yawResponseSeconds: number;
 }
 
 /** The camera's readers: the plan for the road heading and the rendered road height for its clearance. */
@@ -87,11 +91,19 @@ export function updateCamera(
   const vehiclePlanYawDelta = wrapAngle(vehicle.yaw - planAtCar.heading);
   const bodyPitch = vehicle.sprungPitch;
 
-  // The camera yaw is the body's yaw.
-  rig.yaw = vehicle.yaw;
+  // The camera yaw is the body's yaw limited to the definition's angle about the road heading at the car; beyond it
+  // the camera stays at the limit and the vehicle is shown turned. A response time follows the limited yaw with lag.
+  const limitedYaw =
+    Math.abs(vehiclePlanYawDelta) <= definition.yawLimit
+      ? vehicle.yaw
+      : wrapAngle(planAtCar.heading + Math.sign(vehiclePlanYawDelta) * definition.yawLimit);
+  rig.yaw =
+    rig.initialized && definition.yawResponseSeconds > 0
+      ? wrapAngle(rig.yaw + wrapAngle(limitedYaw - rig.yaw) * (1 - Math.exp(-SIM_DT / definition.yawResponseSeconds)))
+      : limitedYaw;
 
   const sCamera = vehicle.course.s - definition.dCam;
-  // The camera occupies the body's yaw ray behind the authoritative vehicle position. Its
+  // The camera occupies its yaw ray behind the authoritative vehicle position. Its
   // camera-right displacement to the player is therefore exactly zero, so the renderer's projection
   // places the player at centerX by construction; the camera publishes no screen position of its own.
   const cameraX = vehicle.x - definition.dCam * Math.sin(rig.yaw);

@@ -381,8 +381,12 @@ player reference is 80 source texels and 80 screen pixels. The camera definition
 length and the player depth: `f=200 px` and `D_cam=f/40=5 m`; near/far depths are 2.5/200 m. FOV changes preserve
 this metric. The loading window and the renderer read `D_cam` from the camera definition. Ground and sprites share this depth interval.
 
-Camera chainage is `s_vehicle-D_cam`; its drawn XZ is the player's route-world XZ minus `D_cam` along
-body yaw. There is one camera. The observer's shell owns the camera rig;
+Camera chainage is `s_vehicle-D_cam`; its drawn XZ is the player's route-world XZ minus `D_cam` along the camera
+yaw. There is one camera. Its yaw is the body yaw limited to the camera definition's limit angle (45 degrees) about
+the plan heading at the car's chainage; with a response time above zero (the definition's is 0 s) it follows that
+limited yaw as a first-order lag at the fixed step. Beyond the limit the camera stays at it, and the player sprite's
+yaw variant shows the body turned by the relative yaw, as for every vehicle sprite. A reset places it at the limited
+yaw. The observer's shell owns the camera rig;
 rivals have no camera. Horizontal centering follows projection: the player's screen position is the renderer's
 projection of its reference point, its one authority, and the camera on the player's yaw ray puts it at the centre
 column by construction. Camera roll is zero.

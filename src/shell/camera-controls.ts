@@ -1,7 +1,8 @@
 import type { CameraDefinition } from '../view/camera.js';
 import { CAMERA_DEFINITION } from '../view/camera-definition.js';
 
-type CameraTuningKey = 'heightFrequency' | 'heightDampingRatio' | 'minimumClearance';
+type CameraTuningKey =
+  'heightFrequency' | 'heightDampingRatio' | 'minimumClearance' | 'yawLimit' | 'yawResponseSeconds';
 
 /** DEV camera settings: each a choice of values for one camera definition field. */
 const CAMERA_TUNING: readonly {
@@ -9,10 +10,20 @@ const CAMERA_TUNING: readonly {
   readonly label: string;
   readonly unit: string;
   readonly choices: readonly number[];
+  /** The displayed value per definition unit; 1 when they agree. */
+  readonly scale?: number;
 }[] = [
   { key: 'heightFrequency', label: 'Camera height frequency', unit: 'Hz', choices: [0.5, 1, 2, 3, 5, 10] },
   { key: 'heightDampingRatio', label: 'Camera height damping ratio', unit: '', choices: [0.5, 0.7, 1, 1.5, 2] },
   { key: 'minimumClearance', label: 'Camera minimum clearance', unit: 'm', choices: [0, 0.3, 0.6, 1] },
+  {
+    key: 'yawLimit',
+    label: 'Camera yaw limit',
+    unit: '°',
+    choices: [15, 30, 45, 60, 90, 180].map((degrees) => (degrees * Math.PI) / 180),
+    scale: 180 / Math.PI,
+  },
+  { key: 'yawResponseSeconds', label: 'Camera yaw response', unit: 's', choices: [0, 0.1, 0.25, 0.5, 1] },
 ];
 
 /**
@@ -23,7 +34,7 @@ export function mountCameraControls(change: (definition: CameraDefinition) => vo
   const parent = document.querySelector('#dev-panel nav');
   if (!parent) throw new Error('DEV settings container is missing');
   let definition: CameraDefinition = CAMERA_DEFINITION;
-  const groups = CAMERA_TUNING.map(({ key, label, unit, choices }) => {
+  const groups = CAMERA_TUNING.map(({ key, label, unit, choices, scale = 1 }) => {
     const group = document.createElement('fieldset');
     group.className = 'selector-group';
     const legend = document.createElement('legend');
@@ -34,7 +45,8 @@ export function mountCameraControls(change: (definition: CameraDefinition) => vo
     const buttons = choices.map((value) => {
       const button = document.createElement('button');
       button.type = 'button';
-      button.textContent = unit ? `${value} ${unit}` : String(value);
+      const shown = Math.round(value * scale * 1000) / 1000;
+      button.textContent = unit ? `${shown} ${unit}` : String(shown);
       button.addEventListener('click', () => {
         definition = Object.freeze({ ...definition, [key]: value });
         show();

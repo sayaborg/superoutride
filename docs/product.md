@@ -187,9 +187,12 @@ brake; RESULT follows after the same delay.
 
 ## 8. Camera
 
-The product has one camera, shared by cars and motorcycles: the pseudo projection rigidly fixed behind
-the player at constant depth, pitching with the body, with its height solved so the player sits at
-its target row. The player does not select cameras.
+The product has one camera, shared by cars and motorcycles: the pseudo projection behind the player at constant
+depth. Its pitch is the body's pitch, so vehicle images need no pitch variants. Its yaw is the body's yaw while the
+body points within a limit angle of the road direction; beyond the limit the camera stays at the limit and the
+vehicle is shown turned. Its height is sprung to the body: on a steady grade the player sits at its target row,
+while bumps, jumps and suspension motion move the vehicle on screen and leave the view calm. The camera never drops
+below a minimum clearance above the road. The player does not select cameras.
 
 ## 9. HUD
 

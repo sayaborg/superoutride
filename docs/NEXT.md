@@ -23,7 +23,7 @@
   fields; FREE PLAY rivals are drawn from vehicle pools; TIME TRIAL runs alone; traffic, collisions, music, sound effects and
   the product front end are not implemented.
 
-Next PR: **12-10e — Camera yaw limit and response**.
+Next PR: **12-11 — Ground sampling**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -34,8 +34,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 Define input, run state, framebuffer, persistent player data, data-driven Sessions, the product front end and the
 product HUD independently of DEV, as specified in the [product specification](product.md).
 
-- **12-10e — Camera yaw limit and response:** camera yaw is the body yaw limited to a DEV limit angle (45°) about the
-  road heading at the car, followed with a DEV response time (0 s); product §8 states the one camera.
 - **12-11 — Ground sampling:** make a footprint-centred box the default Strip display method (dyadic box in s,
   lateral integration across the pixel), keeping LEVEL-POINT as the cheaper method. Confirm with the RIBBON ROUGH
   evaluation and real-device performance.
