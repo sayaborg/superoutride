@@ -1,4 +1,4 @@
-import { BROWSER_COURSES, type BrowserCourseId, type BrowserCourseSelection } from './course-selection.js';
+import type { BrowserCourseId, BrowserCourseSelection } from './course-selection.js';
 
 interface MobileSelectorController<Value extends string> {
   setActive(value: Value): void;
@@ -12,10 +12,10 @@ interface MobileSelectorButton<Value extends string> {
 
 export function mountMobileCourseSelector(
   container: HTMLElement,
+  choices: readonly BrowserCourseSelection[],
   activeQuery: BrowserCourseId,
   onSelect: (selection: BrowserCourseSelection) => void,
   documentRef: Document = document,
-  choices = BROWSER_COURSES,
 ): MobileSelectorController<BrowserCourseId> {
   const selections = new Map(choices.map((selection) => [selection.query, selection]));
   return mountMobileSelector(

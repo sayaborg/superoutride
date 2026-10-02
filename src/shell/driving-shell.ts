@@ -19,7 +19,7 @@ import { compileDrivingDocument } from '../vehicle/definition-document.js';
 import { DRIVING_DEFINITION_ID } from '../content/vehicle-catalog.js';
 import { mountDrivingTuningControls } from './driving-tuning-controls.js';
 import { downloadDefinition } from './definition-export.js';
-import type { BrowserCourseId } from './course-selection.js';
+import type { BrowserCourseId, BrowserCourseSelection } from './course-selection.js';
 import { mustGet } from './dom.js';
 import { createFrameLoop } from './frame-loop.js';
 import { createTouchIndicators } from './touch-indicators.js';
@@ -49,6 +49,7 @@ interface BrowserDrivingShell {
  * controls. It supplies the player's input only; the race owns every competitor's mechanics.
  */
 export function createBrowserDrivingShell(
+  courses: readonly BrowserCourseSelection[],
   sessionVehicle: SessionVehicle,
   vehicles: readonly CompiledVehicleDefinition[],
   surfaceSounds: TireSurfaceSounds,
@@ -159,6 +160,7 @@ export function createBrowserDrivingShell(
       // The DEV vehicle HUD diagnoses mechanics internals through the race's DEV-only diagnostics.
       drawVehicleDebugHud(
         ctx,
+        courses,
         query,
         inputManager.lastSample,
         diagnostics.vehicle,

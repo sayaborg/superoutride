@@ -4,7 +4,7 @@ import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import { VEHICLE_GRAVITY } from '../vehicle/physics/vehicle-state.js';
 import { observeClutch } from '../vehicle/physics/automatic-powertrain.js';
-import { formatBrowserCourseSelector, type BrowserCourseId } from './course-selection.js';
+import { formatBrowserCourseSelector, type BrowserCourseId, type BrowserCourseSelection } from './course-selection.js';
 import { formatDrivingTuningLine } from './driving-tuning.js';
 import type { DrivingDefinition } from '../vehicle/driving-definition.js';
 import { formatVehicleCatalogLine } from '../vehicle/vehicle-label.js';
@@ -53,6 +53,7 @@ interface VehicleDebugHudModel {
 }
 
 function createVehicleDebugHudModel(
+  courses: readonly BrowserCourseSelection[],
   activeCourseQuery: BrowserCourseId,
   input: DrivingInput,
   vehicle: VehicleState,
@@ -70,7 +71,7 @@ function createVehicleDebugHudModel(
   const opening = clampUnit(vehicle.powertrain.effectiveOpening);
   const frontShare = p.frontDriveTorqueFraction;
   return {
-    courseSelector: `COURSE ${formatBrowserCourseSelector(activeCourseQuery)}`,
+    courseSelector: `COURSE ${formatBrowserCourseSelector(courses, activeCourseQuery)}`,
     vehicleDisplay: `VEHICLE ${formatVehicleCatalogLine(entry)}`,
     steeringTuning: formatDrivingTuningLine('STEERING', driving),
     pedalTuning: formatDrivingTuningLine('PEDALS', driving),
@@ -115,6 +116,7 @@ function createVehicleDebugHudModel(
 
 export function drawVehicleDebugHud(
   ctx: CanvasRenderingContext2D,
+  courses: readonly BrowserCourseSelection[],
   activeCourseQuery: BrowserCourseId,
   input: DrivingInput,
   vehicle: VehicleState,
@@ -122,7 +124,7 @@ export function drawVehicleDebugHud(
   driving: DrivingDefinition,
   entry: CompiledVehicleDefinition,
 ): void {
-  const hud = createVehicleDebugHudModel(activeCourseQuery, input, vehicle, model, driving, entry);
+  const hud = createVehicleDebugHudModel(courses, activeCourseQuery, input, vehicle, model, driving, entry);
   const lines = [
     `SUPER OUTRIDE ${hud.courseSelector}`,
     hud.vehicleDisplay,

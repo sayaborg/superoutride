@@ -44,6 +44,9 @@ SESSION returns to setup.
 
 The DEV course buttons map `ribbon-coast` / RIBBON COAST / 1, `ribbon-ring` / RIBBON RING / 2,
 `ribbon-fork` / RIBBON FORK / 3 and `ribbon-rough` / RIBBON ROUGH / 4. Missing or unknown `course` selects the first entry, RIBBON COAST.
+Boot builds this list once from the delivered manifest, in this order with any other delivered course after it labeled by
+its ID, and passes it to the course selection, the DEV course buttons and the DEV HUD; the course page starts from the
+selection boot made.
 A series marked `dev: true` is shown only with DEV; until selection screens exist, these DEV course
 buttons select courses directly. Selecting the active course does nothing. Selecting another performs full-page navigation, changes
 `course`, removes `mode`, `vehicle`, `rivals`, `laps`, `pool` and `autostart`, and preserves other URL data.

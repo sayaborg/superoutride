@@ -8,7 +8,7 @@ import { CAMERA_DEFINITION } from '../view/camera-definition.js';
 import { SIM_DT } from '../race/fixed-step.js';
 import { createVehicleSprites } from '../view/vehicle-sprites.js';
 import { createBrowserDrivingShell } from './driving-shell.js';
-import { selectBrowserCourse } from './course-selection.js';
+import type { BrowserCourseSelection } from './course-selection.js';
 import { mustGet } from './dom.js';
 import { loadDeliveredCourse } from '../content/load-delivered-course.js';
 import { loadVehicleDefinitions } from '../content/vehicle-catalog.js';
@@ -35,228 +35,242 @@ import { loadAudioSettings } from '../content/audio-catalog.js';
 import { browserStorage, openPlayerRecord } from './player-record.js';
 import { spriteSetHasColor } from '../vehicle/vehicle-sprite-set.js';
 
-const canvas = mustGet<HTMLCanvasElement>('game');
-const status = document.createElement('p');
-status.setAttribute('role', 'status');
-status.textContent = 'Loading course…';
-canvas.insertAdjacentElement('afterend', status);
+/** Start the course boot selected from the delivered courses. */
+export async function startCourse(
+  courses: readonly BrowserCourseSelection[],
+  selection: BrowserCourseSelection,
+): Promise<void> {
+  const canvas = mustGet<HTMLCanvasElement>('game');
+  const status = document.createElement('p');
+  status.setAttribute('role', 'status');
+  status.textContent = 'Loading course…';
+  canvas.insertAdjacentElement('afterend', status);
 
-try {
-  const content = await browserContent();
-  const materials = await loadSurfaceMaterials(content);
-  const materialIds = materials.source.materials.map((material) => material.id);
-  const surfaceSounds = {
-    materialIds,
-    surfaces: resolveSurfaceSoundRecords(await loadSurfaceSounds(content), materialIds),
-  };
-  const definitions = await loadVehicleDefinitions(content, await loadEngineSounds(content));
-  const { vehicles, driving } = definitions;
-  const courseId = selectBrowserCourse(new URLSearchParams(location.search).get('course')).query;
-  const course = await loadDeliveredCourse(content, courseId, materials);
-  const parameters = new URLSearchParams(location.search);
-  // The course's ARCADE settings come from the one series holding it; a course in no series is untimed.
-  const series = await loadSeriesCatalog(content, vehicles);
-  const arcade = loadSeriesCourse(content, series, course);
-  const settings = readBrowserSessionSettings(parameters, arcade, vehicles);
-  const entry = vehicles.find((v) => v.compiledVehicle.id === settings.vehicleId)!;
-  const vehicle = createSessionVehicle(entry, driving, materials);
-  const vehicleId = vehicle.vehicleDefinition.compiledVehicle.id;
-  const rivalEnvelope = await admitProduct(content, 'envelope', vehicleId, (value, document) =>
-    readRivalEnvelope(vehicle, value, document),
-  );
-  // Every other vehicle in the field (series entries, or the FREE PLAY rival pool) drives its own Session vehicle and
-  // envelope.
-  const rivalPool = settings.rivalPool === null ? [] : rivalPoolPairs(vehicles, settings.rivalPool);
-  const fieldVehicles = new Map<string, EntryVehicle>([[vehicleId, { vehicle, envelope: rivalEnvelope }]]);
-  const fieldIds =
-    settings.mode === 'ARCADE'
-      ? arcade!.entries.map((e) => e.vehicle)
-      : settings.rivalCount > 0
-        ? rivalPool.map((pair) => pair.vehicle)
-        : [];
-  for (const id of new Set(fieldIds)) {
-    if (fieldVehicles.has(id)) continue;
-    const other = createSessionVehicle(
-      vehicles.find((v) => v.compiledVehicle.id === id)!,
-      driving,
-      materials,
+  try {
+    const content = await browserContent();
+    const materials = await loadSurfaceMaterials(content);
+    const materialIds = materials.source.materials.map((material) => material.id);
+    const surfaceSounds = {
+      materialIds,
+      surfaces: resolveSurfaceSoundRecords(await loadSurfaceSounds(content), materialIds),
+    };
+    const definitions = await loadVehicleDefinitions(content, await loadEngineSounds(content));
+    const { vehicles, driving } = definitions;
+    const courseId = selection.query;
+    const course = await loadDeliveredCourse(content, courseId, materials);
+    const parameters = new URLSearchParams(location.search);
+    // The course's ARCADE settings come from the one series holding it; a course in no series is untimed.
+    const series = await loadSeriesCatalog(content, vehicles);
+    const arcade = loadSeriesCourse(content, series, course);
+    const settings = readBrowserSessionSettings(parameters, arcade, vehicles);
+    const entry = vehicles.find((v) => v.compiledVehicle.id === settings.vehicleId)!;
+    const vehicle = createSessionVehicle(entry, driving, materials);
+    const vehicleId = vehicle.vehicleDefinition.compiledVehicle.id;
+    const rivalEnvelope = await admitProduct(content, 'envelope', vehicleId, (value, document) =>
+      readRivalEnvelope(vehicle, value, document),
     );
-    fieldVehicles.set(id, {
-      vehicle: other,
-      envelope: await admitProduct(content, 'envelope', id, (value, document) =>
-        readRivalEnvelope(other, value, document),
-      ),
-    });
-  }
-  const vehicleOf = (id: string) => fieldVehicles.get(id)!;
-  // The player's chosen color for the vehicle, from the player record when its sprite set has it.
-  const player = openPlayerRecord(browserStorage());
-  const recordedColor = player.settings.vehicleColors[vehicleId];
-  const playerColor =
-    recordedColor !== undefined && spriteSetHasColor(entry.spriteSet, recordedColor) ? recordedColor : undefined;
-  // A timed course's budgets must be delivered; a missing file stops loading rather than dropping the clock.
-  const budgets =
-    settings.timeLimit && arcade
-      ? await admitProduct(content, 'budget', `${courseId}/${vehicleId}`, (value, document) =>
-          readCourseTimeBudgets(course, vehicle, value, document),
-        )
-      : null;
-  // ARCADE admits the player vehicle's pace schedule once.
-  const paceSchedule =
-    settings.mode === 'ARCADE'
-      ? await admitProduct(content, 'schedule', `${courseId}/${vehicleId}`, (value, document) =>
-          readPaceSchedule(course, vehicle, value, document),
-        )
-      : undefined;
-  const displaySettings = createDisplaySettings();
-  const raceSprites = createRaceSprites(vehicles);
-  /**
-   * The one assembly of a Session, its scene (with a new Route runtime) and its race. Startup and every DEV
-   * tuning rebuild pass through it; the shell and its devices persist.
-   */
-  const build = (
-    sessionVehicle: SessionVehicle,
-    settings: Omit<SessionConfiguration, 'seed'>,
-    envelope: RivalEnvelope | null,
-    sessionBudgets: CourseTimeBudgets | null,
-    tuned: boolean,
-  ) => {
-    // The composition root alone draws randomness: every assembly, a DEV rebuild included, picks a new seed.
-    const seed = crypto.getRandomValues(new Uint32Array(1))[0]!;
-    const configuration = compileSessionConfiguration({ ...settings, seed });
-    const session = resolveCourseSession(course, arcade, configuration, sessionVehicle, envelope, sessionBudgets, {
-      playerColor,
-      vehicleOf,
-      rivalPool,
-      paceSchedule,
-    });
-    const scene = createCourseScene(course.entry, course.gates, vehicles, displaySettings);
-    const race = createCourseRace({ session, runtime: scene.runtime });
-    return { session, scene, race, tuned };
-  };
-  let active = build(vehicle, settings, rivalEnvelope, budgets, false);
-  // The player's color is resolved with the Session; a DEV rebuild keeps it.
-  const sprites = createVehicleSprites(entry, active.session.entries[0]!.color);
-  const shell = createBrowserDrivingShell(vehicle, vehicles, surfaceSounds, await loadAudioSettings(content), player, {
-    tick: () => tick(),
-    render: () => render(),
-  });
-  const raceStatus = document.createElement('output');
-  raceStatus.setAttribute('role', 'status');
-  raceStatus.setAttribute('aria-label', 'Session status');
-  raceStatus.setAttribute('aria-live', 'off');
-  raceStatus.className = 'course-status';
-  canvas.insertAdjacentElement('afterend', raceStatus);
-  // The camera definition in use: the product's until a DEV adjustment replaces it.
-  let cameraDefinition = CAMERA_DEFINITION;
-  const lifecycle = shell.mountControls({
-    world: () => active.scene.world,
-    cameraDefinition: () => cameraDefinition,
-    canRecover: () => runState.running && active.race.outcome.status === 'RUNNING',
-    observation: () => active.race.observe().player,
-    recover: () => active.race.recoverPlayer(),
-    // A tuned driving definition has no delivered identity, so the rebuilt Session has no envelope,
-    // time budgets, rivals or time limit. It starts from the grid at once, unpaused; reloading the page restores the
-    // product Session.
-    rebuildSession: (driving) => {
-      active = build(
-        createSessionVehicle(entry, driving, materials),
-        {
-          mode: 'FREE_PLAY',
-          rivalCount: 0,
-          lapCount: active.session.configuration.lapCount,
-          timeLimit: false,
-          initialSpeed: 0,
-        },
-        null,
-        null,
-        true,
+    // Every other vehicle in the field (series entries, or the FREE PLAY rival pool) drives its own Session vehicle and
+    // envelope.
+    const rivalPool = settings.rivalPool === null ? [] : rivalPoolPairs(vehicles, settings.rivalPool);
+    const fieldVehicles = new Map<string, EntryVehicle>([[vehicleId, { vehicle, envelope: rivalEnvelope }]]);
+    const fieldIds =
+      settings.mode === 'ARCADE'
+        ? arcade!.entries.map((e) => e.vehicle)
+        : settings.rivalCount > 0
+          ? rivalPool.map((pair) => pair.vehicle)
+          : [];
+    for (const id of new Set(fieldIds)) {
+      if (fieldVehicles.has(id)) continue;
+      const other = createSessionVehicle(
+        vehicles.find((v) => v.compiledVehicle.id === id)!,
+        driving,
+        materials,
       );
-      lifecycle.update(true);
-      afterEndingSeconds = 0;
-      controls.begin();
-      runState.restart();
-    },
-  });
-  // Every Session shares the compiled course's ground, so its maximum is derived once.
-  const performanceHud = createCoursePerformanceHud(canvas, {
-    maxActiveStrips: Math.max(...course.sections.map((section) => section.color.metrics.maxActiveStrips)),
-  });
-  // RESULT (today, finishing the run state) follows GOAL or GAME OVER after the DEV delay, counted in fixed steps
-  // while the loop, the field, rendering and sound continue.
-  let resultDelaySeconds = DEFAULT_RESULT_DELAY_SECONDS;
-  let afterEndingSeconds = 0;
-  const tick = () => {
-    const started = performance.now();
-    const { race } = active;
-    const step = race.advance(shell.inputManager.sample());
-    lifecycle.update(step.recovered);
-    performanceHud.step(performance.now() - started);
-    if (race.outcome.status === 'GOAL' || race.outcome.status === 'GAME_OVER') {
-      if (afterEndingSeconds + SIM_DT / 2 >= resultDelaySeconds) runState.finish();
-      else afterEndingSeconds += SIM_DT;
+      fieldVehicles.set(id, {
+        vehicle: other,
+        envelope: await admitProduct(content, 'envelope', id, (value, document) =>
+          readRivalEnvelope(other, value, document),
+        ),
+      });
     }
-  };
-  const render = () => {
-    const { scene, race, tuned } = active;
-    const started = performance.now(),
-      observations = race.observe();
-    const others = raceSprites(observations.rivals, lifecycle.camera);
-    // The renderer reads no clock; its caller times the scene render for the performance HUD.
-    const renderStarted = performance.now();
-    const result = scene.render(
-      shell.framebuffer,
-      observations.player,
-      lifecycle.camera,
-      observations.player.brakeLampOn ? sprites.on : sprites.off,
-      others,
-    );
-    const renderMilliseconds = performance.now() - renderStarted;
-    shell.present(
-      courseId,
-      lifecycle.camera,
-      result.playerScreenX,
-      result.playerScreenY,
-      observations,
-      race.playerDiagnostics,
-    );
-    raceStatus.textContent = raceStatusText(race, { paused: runState.paused, tuned });
-    performanceHud.frame(started, result.stripGround, renderMilliseconds);
-  };
-  const controls = mountCourseSessionControls(
-    canvas,
-    settings,
-    arcade,
-    course.rules.maxLaps,
-    {
-      start: () => {
-        shell.inputManager.reset();
-        lifecycle.reset();
-        active.race.start();
+    const vehicleOf = (id: string) => fieldVehicles.get(id)!;
+    // The player's chosen color for the vehicle, from the player record when its sprite set has it.
+    const player = openPlayerRecord(browserStorage());
+    const recordedColor = player.settings.vehicleColors[vehicleId];
+    const playerColor =
+      recordedColor !== undefined && spriteSetHasColor(entry.spriteSet, recordedColor) ? recordedColor : undefined;
+    // A timed course's budgets must be delivered; a missing file stops loading rather than dropping the clock.
+    const budgets =
+      settings.timeLimit && arcade
+        ? await admitProduct(content, 'budget', `${courseId}/${vehicleId}`, (value, document) =>
+            readCourseTimeBudgets(course, vehicle, value, document),
+          )
+        : null;
+    // ARCADE admits the player vehicle's pace schedule once.
+    const paceSchedule =
+      settings.mode === 'ARCADE'
+        ? await admitProduct(content, 'schedule', `${courseId}/${vehicleId}`, (value, document) =>
+            readPaceSchedule(course, vehicle, value, document),
+          )
+        : undefined;
+    const displaySettings = createDisplaySettings();
+    const raceSprites = createRaceSprites(vehicles);
+    /**
+     * The one assembly of a Session, its scene (with a new Route runtime) and its race. Startup and every DEV
+     * tuning rebuild pass through it; the shell and its devices persist.
+     */
+    const build = (
+      sessionVehicle: SessionVehicle,
+      settings: Omit<SessionConfiguration, 'seed'>,
+      envelope: RivalEnvelope | null,
+      sessionBudgets: CourseTimeBudgets | null,
+      tuned: boolean,
+    ) => {
+      // The composition root alone draws randomness: every assembly, a DEV rebuild included, picks a new seed.
+      const seed = crypto.getRandomValues(new Uint32Array(1))[0]!;
+      const configuration = compileSessionConfiguration({ ...settings, seed });
+      const session = resolveCourseSession(course, arcade, configuration, sessionVehicle, envelope, sessionBudgets, {
+        playerColor,
+        vehicleOf,
+        rivalPool,
+        paceSchedule,
+      });
+      const scene = createCourseScene(course.entry, course.gates, vehicles, displaySettings);
+      const race = createCourseRace({ session, runtime: scene.runtime });
+      return { session, scene, race, tuned };
+    };
+    let active = build(vehicle, settings, rivalEnvelope, budgets, false);
+    // The player's color is resolved with the Session; a DEV rebuild keeps it.
+    const sprites = createVehicleSprites(entry, active.session.entries[0]!.color);
+    const shell = createBrowserDrivingShell(
+      courses,
+      vehicle,
+      vehicles,
+      surfaceSounds,
+      await loadAudioSettings(content),
+      player,
+      {
+        tick: () => tick(),
+        render: () => render(),
       },
-      togglePause: () => {
-        runState.setPaused(!runState.paused);
-        if (!runState.paused) canvas.focus();
+    );
+    const raceStatus = document.createElement('output');
+    raceStatus.setAttribute('role', 'status');
+    raceStatus.setAttribute('aria-label', 'Session status');
+    raceStatus.setAttribute('aria-live', 'off');
+    raceStatus.className = 'course-status';
+    canvas.insertAdjacentElement('afterend', raceStatus);
+    // The camera definition in use: the product's until a DEV adjustment replaces it.
+    let cameraDefinition = CAMERA_DEFINITION;
+    const lifecycle = shell.mountControls({
+      world: () => active.scene.world,
+      cameraDefinition: () => cameraDefinition,
+      canRecover: () => runState.running && active.race.outcome.status === 'RUNNING',
+      observation: () => active.race.observe().player,
+      recover: () => active.race.recoverPlayer(),
+      // A tuned driving definition has no delivered identity, so the rebuilt Session has no envelope,
+      // time budgets, rivals or time limit. It starts from the grid at once, unpaused; reloading the page restores the
+      // product Session.
+      rebuildSession: (driving) => {
+        active = build(
+          createSessionVehicle(entry, driving, materials),
+          {
+            mode: 'FREE_PLAY',
+            rivalCount: 0,
+            lapCount: active.session.configuration.lapCount,
+            timeLimit: false,
+            initialSpeed: 0,
+          },
+          null,
+          null,
+          true,
+        );
+        lifecycle.update(true);
+        afterEndingSeconds = 0;
+        controls.begin();
+        runState.restart();
       },
-    },
-    vehicles,
-  );
-  mountResultDelayControls(resultDelaySeconds, (seconds) => (resultDelaySeconds = seconds));
-  mountCameraControls((definition) => (cameraDefinition = definition));
-  mountStripControls(displaySettings.stripMethod, (value) => {
-    displaySettings.setStripMethod(value);
-    render();
-  });
-  status.remove();
-  // The one run state drives the shell from here on; it starts the run unless the page is hidden.
-  const runState = createRunState(window, document, shell.setRunning, controls.show);
-  runState.begin();
-  if (parameters.get('autostart') === '1') controls.begin();
-} catch (error) {
-  console.error('Course could not start', error);
-  status.textContent = `Course could not start: ${error instanceof Error ? error.message : String(error)} `;
-  const retry = document.createElement('button');
-  retry.textContent = 'Retry';
-  retry.onclick = () => location.reload();
-  status.append(retry);
+    });
+    // Every Session shares the compiled course's ground, so its maximum is derived once.
+    const performanceHud = createCoursePerformanceHud(canvas, {
+      maxActiveStrips: Math.max(...course.sections.map((section) => section.color.metrics.maxActiveStrips)),
+    });
+    // RESULT (today, finishing the run state) follows GOAL or GAME OVER after the DEV delay, counted in fixed steps
+    // while the loop, the field, rendering and sound continue.
+    let resultDelaySeconds = DEFAULT_RESULT_DELAY_SECONDS;
+    let afterEndingSeconds = 0;
+    const tick = () => {
+      const started = performance.now();
+      const { race } = active;
+      const step = race.advance(shell.inputManager.sample());
+      lifecycle.update(step.recovered);
+      performanceHud.step(performance.now() - started);
+      if (race.outcome.status === 'GOAL' || race.outcome.status === 'GAME_OVER') {
+        if (afterEndingSeconds + SIM_DT / 2 >= resultDelaySeconds) runState.finish();
+        else afterEndingSeconds += SIM_DT;
+      }
+    };
+    const render = () => {
+      const { scene, race, tuned } = active;
+      const started = performance.now(),
+        observations = race.observe();
+      const others = raceSprites(observations.rivals, lifecycle.camera);
+      // The renderer reads no clock; its caller times the scene render for the performance HUD.
+      const renderStarted = performance.now();
+      const result = scene.render(
+        shell.framebuffer,
+        observations.player,
+        lifecycle.camera,
+        observations.player.brakeLampOn ? sprites.on : sprites.off,
+        others,
+      );
+      const renderMilliseconds = performance.now() - renderStarted;
+      shell.present(
+        courseId,
+        lifecycle.camera,
+        result.playerScreenX,
+        result.playerScreenY,
+        observations,
+        race.playerDiagnostics,
+      );
+      raceStatus.textContent = raceStatusText(race, { paused: runState.paused, tuned });
+      performanceHud.frame(started, result.stripGround, renderMilliseconds);
+    };
+    const controls = mountCourseSessionControls(
+      canvas,
+      settings,
+      arcade,
+      course.rules.maxLaps,
+      {
+        start: () => {
+          shell.inputManager.reset();
+          lifecycle.reset();
+          active.race.start();
+        },
+        togglePause: () => {
+          runState.setPaused(!runState.paused);
+          if (!runState.paused) canvas.focus();
+        },
+      },
+      vehicles,
+    );
+    mountResultDelayControls(resultDelaySeconds, (seconds) => (resultDelaySeconds = seconds));
+    mountCameraControls((definition) => (cameraDefinition = definition));
+    mountStripControls(displaySettings.stripMethod, (value) => {
+      displaySettings.setStripMethod(value);
+      render();
+    });
+    status.remove();
+    // The one run state drives the shell from here on; it starts the run unless the page is hidden.
+    const runState = createRunState(window, document, shell.setRunning, controls.show);
+    runState.begin();
+    if (parameters.get('autostart') === '1') controls.begin();
+  } catch (error) {
+    console.error('Course could not start', error);
+    status.textContent = `Course could not start: ${error instanceof Error ? error.message : String(error)} `;
+    const retry = document.createElement('button');
+    retry.textContent = 'Retry';
+    retry.onclick = () => location.reload();
+    status.append(retry);
+  }
 }

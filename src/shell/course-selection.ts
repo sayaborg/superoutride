@@ -39,24 +39,26 @@ const COURSE_CONTROLS = compileBrowserCourses([
   { buttonLabel: '4', label: 'RIBBON ROUGH', query: 'ribbon-rough' },
 ]);
 
-/** Availability comes exclusively from delivery; labels remain shell settings. */
-export let BROWSER_COURSES: readonly BrowserCourseSelection[] = Object.freeze([]);
-export function configureBrowserCourses(manifest: ContentManifest): void {
+/** The delivered courses in selection order. Availability comes exclusively from delivery; labels remain shell settings. */
+export function browserCourses(manifest: ContentManifest): readonly BrowserCourseSelection[] {
   const ids = manifest.files.filter((file) => file.kind === 'course').map((file) => file.id);
   const known = COURSE_CONTROLS.filter((control) => ids.includes(control.query));
-  BROWSER_COURSES = compileBrowserCourses([
+  return compileBrowserCourses([
     ...known,
     ...ids.filter((id) => !known.some((control) => control.query === id)).map((query) => ({ query, label: query })),
   ]);
 }
 
-export function formatBrowserCourseSelector(activeQuery: BrowserCourseId): string {
-  return BROWSER_COURSES.map((course) => `${course.label}${course.query === activeQuery ? '*' : ''}`).join('  ');
+export function formatBrowserCourseSelector(
+  courses: readonly BrowserCourseSelection[],
+  activeQuery: BrowserCourseId,
+): string {
+  return courses.map((course) => `${course.label}${course.query === activeQuery ? '*' : ''}`).join('  ');
 }
 
 export function selectBrowserCourse(
+  selections: readonly BrowserCourseSelection[],
   query: string | null,
-  selections: readonly BrowserCourseSelection[] = BROWSER_COURSES,
 ): BrowserCourseSelection {
   const selected = selections.find((course) => course.query === query) ?? selections[0];
   if (!selected) throw new RangeError('course selection requires a default course');
