@@ -9,6 +9,16 @@ import { PLAN_POSITION_TOLERANCE_METERS } from './geometry/plan-path.js';
 // Dimensionless cross product of d(X,Z)/ds: absolute conditioning floor, ~45 eps at unit scale.
 // Below it omit the ill-conditioned intersection; the F'' chord padding still encloses the edge.
 const MIN_TANGENT_INTERSECTION_DETERMINANT = 1e-14;
+/**
+ * The most a cell of an arc segment turns: five degrees. The check is conservative at any cell size (each cell's hull
+ * plus its chord padding encloses its edges), so this bound sets only how tight and how costly it is. For an edge at
+ * constant lateral offset, a circular arc of radius ρ, a cell turning θ spans ds = θρ: its hull through the tangent
+ * intersection lies at most ρ(sec(θ/2) − 1) ≈ θ²ρ/8 beyond the arc, and its chord padding is θ·ds/8 = θ²ρ/8 times
+ * (1 + k|l| + 2|l'|). At five degrees θ²/8 ≈ 9.5e-4, so a Section is rejected without overlapping only where it comes
+ * within about 0.1 % of its radius of itself, and a full turn costs at most 72 cells. It is an inspection bound,
+ * independent of rendered tessellation.
+ */
+const INJECTIVITY_CELL_TURN_RADIANS = Math.PI / 36;
 
 interface Cell {
   readonly start: number;
@@ -69,8 +79,7 @@ export function validatePlanDomainInjectivity(
     for (let i = 1; i < stops.length; i += 1) {
       const from = stops[i - 1]!;
       const to = stops[i]!;
-      // At most five degrees per arc cell. This is an inspection bound, independent of rendered tessellation.
-      const count = Math.max(1, Math.ceil((Math.abs(segment.curvature) * (to - from)) / (Math.PI / 36)));
+      const count = Math.max(1, Math.ceil((Math.abs(segment.curvature) * (to - from)) / INJECTIVITY_CELL_TURN_RADIANS));
       for (let j = 0; j < count; j += 1) {
         const start = from + ((to - from) * j) / count;
         const end = j === count - 1 ? to : from + ((to - from) * (j + 1)) / count;
