@@ -116,9 +116,24 @@ palette fields without a tile arrangement:
 ```
 
 Patterns are 8 by 8 and, unlike the background, admit index 0 as transparent. Patterns 0 through 94 are the
-printable ASCII characters U+0020 through U+007E in code order, so the character mapping needs no saved table;
-later patterns are free for non-character tiles. Pattern 0, the space, must have only index 0: it is the empty
-tile. Palettes 0 through 3 are WHITE, YELLOW, RED and DARK (unselectable items); later palettes are free. The
+printable ASCII characters U+0020 through U+007E in code order, so the character mapping needs no saved table.
+The HUD part tiles follow them in one fixed order that code names, the same way, so their mapping needs no saved
+table either; the document must hold at least all of them, and later patterns are free. Pattern 0, the space, must
+have only index 0: it is the empty tile.
+
+| Patterns | Names                   | Content                                                                   |
+| -------- | ----------------------- | ------------------------------------------------------------------------- |
+| 95–103   | `BAR_FILL_0`…`_8`       | A bar cell (rows 1–6) filled k pixels from the left in slot 1 over slot 3 |
+| 104–110  | `BAR_FILL_RIGHT_1`…`_7` | The same, filled k pixels from the right                                  |
+| 111–118  | `BAR_MARK_0`…`_7`       | A full-height line in column k (slot 1), drawn over a bar                 |
+| 119, 120 | `BAR_LEFT`, `BAR_RIGHT` | The bar's end caps                                                        |
+| 121–124  | `LAMP_ON_TL`…`_BR`      | A lit signal lamp, 2×2 tiles: body slot 1, gloss 5, rim 6, shade 7        |
+| 125–128  | `LAMP_OFF_TL`…`_BR`     | An unlit signal lamp: rim 6 over a shaded body 7 with a faint gloss 5     |
+
+Palettes 0 through 5 are WHITE, YELLOW, RED, DARK (unselectable items), GREEN (signal lamps and normal) and BAR
+(unlit lamps and empty HUD parts); later palettes are free. A tile's palette chooses its color, so one lamp or bar
+tile serves every color. Every named palette uses the same slots: 1 the main color, 2 the glyph shadow, 3 a bar's
+ground, 5 a lamp's gloss, 6 its rim and 7 its shaded body. The
 build admits the document and delivers it as authored as the manifest `image` entry `text-tiles`.
 `compileTextTiles` admits it and builds the immutable `TextTiles` reader, which encodes text to patterns
 (a character without a pattern is a `RangeError`) and paints one tile's opaque pixels.
