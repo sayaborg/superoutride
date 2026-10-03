@@ -61,3 +61,11 @@ export function expandRgb555Pixels(source: Uint16Array, target: Uint32Array): vo
   }
   for (let i = 0; i < source.length; i++) target[i] = rgbaTable[source[i]! & 0x7fff]!;
 }
+
+/** Each channel's high four bits once halved: shifting a whole RGB555 value right keeps only these. */
+const HALF_CHANNEL_MASK = 0x3def;
+
+/** Halve every channel of an RGB555 raster in place, flooring: the one half-brightness operation. */
+export function halveRgb555Pixels(pixels: Uint16Array): void {
+  for (let i = 0; i < pixels.length; i++) pixels[i] = (pixels[i]! >> 1) & HALF_CHANNEL_MASK;
+}

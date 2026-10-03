@@ -495,7 +495,9 @@ Magnification is `g=(f/d)*worldWidth/masterWidth`. Course anchors use known chai
 actors use observed chainage and physical-clearance mapping. Yaw/bank variants are authored images.
 Rendering uses nearest sampling, binary alpha and one SINGLE sprite per vehicle; bank is visual.
 
-Painter order is the opaque BG, a far-to-near terrain/world-sprite merge, the player, then HUD and the [text layer](#text-layer).
+Painter order is the opaque BG, a far-to-near terrain/world-sprite merge, the player, then, under the PAUSE menu or
+RESULT, the whole frame halved to half brightness (`halveRgb555Pixels`: each RGB555 channel halved, flooring, once per
+frame over a freshly drawn scene), then HUD and the [text layer](#text-layer).
 The BG writes every pixel of every frame, so there is no clear step and no pixel keeps a previous frame.
 Transparent ground, including ground rows outside the Route, writes nothing and keeps the Painter image
 beneath it, such as BG below the horizon. At equal depth terrain draws before sprites. The player is last

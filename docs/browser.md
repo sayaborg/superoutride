@@ -63,7 +63,8 @@ reason appears only in the console and the status element outside the frame, sin
 text tiles. The run screen holds the run and its state: running, paused (manual PAUSE)
 or finished (the Session reached RESULT). The run runs only while neither holds: paused and finished advance no race,
 and driving input and sound stop, so the DEV vehicle HUD shows neutral input and no touch indicator is drawn. Every
-frame still draws the scene. While paused, the PAUSE menu is drawn over the stopped frame: the title `PAUSED` and
+frame still draws the scene. While paused, the PAUSE menu is drawn over the stopped frame, which is first halved to
+half brightness while the text layer, the HUD included, stays at full brightness: the title `PAUSED` and
 RESUME, RETRY and QUIT. RESUME, BACK and PAUSE resume; RETRY requests the same run again, which starts at once with a
 new seed; QUIT ends the run and shows TITLE.
 
@@ -108,7 +109,7 @@ RESULT follows GOAL or GAME OVER after the RESULT delay, a DEV setting (default 
 persisted), which the shell counts in fixed simulation steps after the step that ended the run. Until then the loop,
 the field, rendering and sound continue and PAUSE stays available; a pause stops the count with the simulation.
 At RESULT the run finishes: the race stops, PAUSE is hidden, the status line keeps the outcome, and the RESULT menu
-is drawn over the stopped frame and takes the menu commands. Its title is the outcome, GOAL in yellow or GAME OVER in
+is drawn over the stopped frame at half brightness and takes the menu commands. Its title is the outcome, GOAL in yellow or GAME OVER in
 red; its lines are RANK n/m when the Session has rivals, TIME (race time) and, on a circuit, BEST LAP, all derived
 from race facts, the rank by the status line's ranking. Its items are RETRY (the same run again, starting at once with
 a new seed), CHANGE VEHICLE (SELECT VEHICLE with the run's selection), SELECT (the run mode's first selection screen

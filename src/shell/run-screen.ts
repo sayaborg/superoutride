@@ -2,6 +2,7 @@ import type { TextLayer } from '../view/text-layer.js';
 import { createMenu, type Menu, type MenuDefinition } from './menu.js';
 import { formatRaceTime, type RunResult } from './race-status-hud.js';
 import { TEXT_PALETTES } from '../image/text-tiles.js';
+import { halveRgb555Pixels } from '../image/rgb555.js';
 import type { SoftwareSurface } from '../view/software-surface.js';
 import type { Screen } from './screen-host.js';
 import type { MenuCommand } from '../input/menu-input.js';
@@ -92,8 +93,9 @@ function resultMenu(result: RunResult, actions: RunScreenActions): MenuDefinitio
 
 /**
  * The run screen: the race advances only while running, and every frame draws the scene. While paused, the PAUSE menu
- * (RESUME / RETRY / QUIT) is drawn over the stopped frame and takes the menu commands; PAUSE and BACK resume, and QUIT
- * goes to TITLE. Once finished, RESULT is drawn over the stopped frame and takes the menu commands.
+ * (RESUME / RETRY / QUIT) is drawn over the stopped frame, dimmed to half brightness, and takes the menu commands;
+ * PAUSE and BACK resume, and QUIT goes to TITLE. Once finished, RESULT is drawn over the dimmed stopped frame and takes
+ * the menu commands.
  */
 export function createRunScreen(
   state: RunScreenState,
@@ -139,6 +141,9 @@ export function createRunScreen(
     },
     render() {
       const drawn = run.draw();
+      // The PAUSE menu and RESULT sit over the stopped frame at half brightness; the scene is drawn anew each frame, so
+      // the halving never compounds, and the text layer, the HUD included, stays at full brightness.
+      if (!state.live) halveRgb555Pixels(frame.pixels);
       text.clear();
       drawn.writeHud(text, !state.live);
       if (state.live) menu = null;
