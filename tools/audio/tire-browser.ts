@@ -48,7 +48,7 @@ async function render(rate: number, axles: string) {
 }
 mustGet<HTMLElement>('stop').onclick = () => {
   stop();
-  result.textContent = '停止';
+  result.textContent = 'Stopped';
 };
 mustGet<HTMLElement>('play').onclick = async () => {
   stop();
@@ -56,16 +56,16 @@ mustGet<HTMLElement>('play').onclick = async () => {
   try {
     playback ??= new AudioContext();
     await playback.resume();
-    result.textContent = '準備中';
+    result.textContent = 'Preparing';
     const buffer = await render(48000, mustGet<HTMLSelectElement>('axles').value);
     if (current !== generation) return;
     playing = playback.createBufferSource();
     playing.buffer = buffer;
     playing.connect(playback.destination);
     playing.start();
-    result.textContent = '再生中：直進 → 横滑り → 回復 → ロック → 土 → 停止';
+    result.textContent = 'Playing: straight → sideslip → recovery → lock → dirt → stop';
     playing.onended = () => {
-      if (current === generation) result.textContent = '再生終了';
+      if (current === generation) result.textContent = 'Finished';
     };
   } catch (error) {
     if (current === generation) result.textContent = String(error);

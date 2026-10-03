@@ -65,7 +65,7 @@ export function mountSoundControls(
     : null;
   const volumeControl = volumeContainer
     ? createNumberStepper({
-        label: '音量',
+        label: 'Volume',
         min: 0,
         max: 100,
         step: 1,
@@ -85,7 +85,7 @@ export function mountSoundControls(
     const host = root.getElementById(`${bus}-volume`);
     if (!host) return [];
     const control = createRangeControl(
-      `${bus === 'engine' ? 'ENG' : 'TIRE'} 音量`,
+      `${bus === 'engine' ? 'ENG' : 'TIRE'} volume`,
       { min: 0, max: 100, step: 1 },
       100,
       (value) => {

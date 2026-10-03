@@ -27,7 +27,7 @@
   inside the frame with the text layer from race facts and the player's observation; DEV measurements stay with
   `dev=1`.
 
-Next PR: **12-15 — Language**.
+Next PR: **12-16a — Allocation-free ground reads**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -38,7 +38,8 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 Define input, run state, framebuffer, persistent player data, data-driven Sessions, the product front end and the
 product HUD independently of DEV, as specified in the [product specification](product.md).
 
-- **12-15 — Language:** make all UI English.
+- **12-16 — Cleanup:** allocation-free strip-ground reads, sign only on gamepad steering controls, and the
+  Session's fallback to the player vehicle without a pool.
 
 ## Stage 13 — Interaction
 

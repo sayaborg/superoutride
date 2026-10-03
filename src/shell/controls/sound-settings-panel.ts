@@ -19,7 +19,7 @@ export function createSoundSettingsPanel<T extends Readonly<Record<keyof T, numb
   legend.textContent = legendText;
   const note = document.createElement('p');
   note.textContent =
-    '実測値ではない音響調整です。初期値は音の設定の文書の値で、聴いて決めた値ではありません。設定は再読み込みで戻ります。';
+    'Acoustic adjustments, not measured values. Initial values come from the audio document and were not chosen by ear. Reloading restores them.';
   const controls = (Object.keys(labels) as (keyof T)[]).map((key) => {
     const [label, unit] = labels[key];
     const control = createRangeControl(

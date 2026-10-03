@@ -9,28 +9,28 @@ import { createSoundSettingsPanel, mountSoundSettingsPanel } from './sound-setti
 
 // Labels only: audio owns defaults, bounds and validation.
 const MIX_LABELS = {
-  thresholdDb: ['コンプレッサーのしきい値', 'dB'],
-  kneeDb: ['コンプレッサーのニー', 'dB'],
-  ratio: ['コンプレッサーの比', ':1'],
-  attackSeconds: ['コンプレッサーのアタック', 's'],
-  releaseSeconds: ['コンプレッサーのリリース', 's'],
+  thresholdDb: ['Compressor threshold', 'dB'],
+  kneeDb: ['Compressor knee', 'dB'],
+  ratio: ['Compressor ratio', ':1'],
+  attackSeconds: ['Compressor attack', 's'],
+  releaseSeconds: ['Compressor release', 's'],
 } as const satisfies Record<keyof MixSettings, readonly [string, string]>;
 
 const TIMING_LABELS = {
-  observationSeconds: ['観測値の追従', 's'],
-  gainSeconds: ['出力ゲインの追従', 's'],
-  mixSeconds: ['バス・MASTER音量の追従', 's'],
-  panSeconds: ['ライバルのパンの追従', 's'],
-  fadeSeconds: ['差し替え前のフェード', 's'],
-  componentSeconds: ['R/Q切り替えの追従', 's'],
-  transitionSeconds: ['不連続の前に待つ時間', 's'],
+  observationSeconds: ['Observation smoothing', 's'],
+  gainSeconds: ['Output gain smoothing', 's'],
+  mixSeconds: ['Bus and MASTER volume smoothing', 's'],
+  panSeconds: ['Rival pan smoothing', 's'],
+  fadeSeconds: ['Fade before replacement', 's'],
+  componentSeconds: ['R/Q switch smoothing', 's'],
+  transitionSeconds: ['Wait before a discontinuity', 's'],
 } as const satisfies Record<keyof ControlSettings, readonly [string, string]>;
 
 const RIVAL_LABELS = {
-  audibleMeters: ['聞こえる距離の上限', 'm'],
-  referenceMeters: ['音量1の基準距離', 'm'],
-  panMinimumMeters: ['パンの距離の下限', 'm'],
-  reassignmentSeconds: ['ライバル切り替えの待ち', 's'],
+  audibleMeters: ['Maximum audible distance', 'm'],
+  referenceMeters: ['Reference distance for level 1', 'm'],
+  panMinimumMeters: ['Minimum pan distance', 'm'],
+  reassignmentSeconds: ['Rival reassignment wait', 's'],
 } as const satisfies Record<keyof RivalSettings, readonly [string, string]>;
 
 export function mountMixSoundSettings(host: HTMLElement, initial: MixSettings, onChange: () => void) {
@@ -43,7 +43,7 @@ export function mountMixSoundSettings(host: HTMLElement, initial: MixSettings, o
       initial,
       MIX_LABELS,
       onChange,
-      'MIXを初期値に戻す',
+      'Reset MIX to defaults',
     ),
   );
 }
@@ -58,7 +58,7 @@ export function mountTimingSoundSettings(host: HTMLElement, initial: ControlSett
       initial,
       TIMING_LABELS,
       onChange,
-      'TIMINGを初期値に戻す',
+      'Reset TIMING to defaults',
     ),
   );
 }
@@ -73,7 +73,7 @@ export function mountRivalSoundSettings(host: HTMLElement, initial: RivalSetting
       initial,
       RIVAL_LABELS,
       onChange,
-      'RIVALを初期値に戻す',
+      'Reset RIVAL to defaults',
     ),
   );
 }

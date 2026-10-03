@@ -12,51 +12,51 @@ import { createSoundSettingsPanel, mountSoundSettingsPanel } from './sound-setti
 
 // Labels only: audio owns defaults, bounds and validation. These are not physical tire settings.
 const UNIFIED_LABELS = {
-  feedbackMaximumPerSecond: ['自己励振の強さ', '/s'],
-  powerReferenceWatts: ['摩擦仕事の基準', 'W'],
-  noiseForcePerSecond: ['入力ノイズの強さ', '/s'],
-  lowFrequencyHz: ['低域モードの固有周波数', 'Hz'],
-  highFrequencyHz: ['高域モードの固有周波数', 'Hz'],
-  outputGainPerSecond: ['摩擦音Qの出力ゲイン', '/s'],
-  saturationPerSecond: ['自己励振の飽和（3乗の散逸）', '/s'],
-  slipHalfMps: ['自己励振が半分になる滑り', 'm/s'],
-  slipRolloffMps: ['高い滑りで励振が落ちる速さ', 'm/s'],
-  noiseBandwidthHz: ['入力ノイズの帯域', 'Hz'],
-  outputCutoffHz: ['摩擦音Qの出力LPF', 'Hz'],
-  resonanceDampingPerSecond: ['2つのモードの減衰', '/s'],
-  lowParticipation: ['低域モードの参加率（高域は√(1−値²)）', ''],
-  dcHz: ['摩擦音QのDC除去', 'Hz'],
+  feedbackMaximumPerSecond: ['Self-excitation strength', '/s'],
+  powerReferenceWatts: ['Friction power reference', 'W'],
+  noiseForcePerSecond: ['Input noise strength', '/s'],
+  lowFrequencyHz: ['Low mode natural frequency', 'Hz'],
+  highFrequencyHz: ['High mode natural frequency', 'Hz'],
+  outputGainPerSecond: ['Friction Q output gain', '/s'],
+  saturationPerSecond: ['Self-excitation saturation (cubic dissipation)', '/s'],
+  slipHalfMps: ['Slip at half self-excitation', 'm/s'],
+  slipRolloffMps: ['Excitation roll-off at high slip', 'm/s'],
+  noiseBandwidthHz: ['Input noise bandwidth', 'Hz'],
+  outputCutoffHz: ['Friction Q output LPF', 'Hz'],
+  resonanceDampingPerSecond: ['Damping of both modes', '/s'],
+  lowParticipation: ['Low mode participation (high is √(1−value²))', ''],
+  dcHz: ['Friction Q DC removal', 'Hz'],
 } as const satisfies Record<keyof UnifiedSettings, readonly [string, string]>;
 
 const ROLLING_LABELS = {
-  toneSeconds: ['路面・車輪周波数の追従', 's'],
-  lowOrder: ['低い帯域の車輪次数', '次'],
-  highOrder: ['高い帯域の車輪次数', '次'],
-  minimumHz: ['帯域中心の下限', 'Hz'],
-  bandwidthRatio: ['帯域幅の比', ''],
-  loadHalfNewtons: ['音量が半分になる荷重', 'N'],
-  speedHalfMps: ['音量が半分になる速度', 'm/s'],
-  speedExponent: ['速度の指数', ''],
-  attackSeconds: ['音量の立ち上がり', 's'],
-  releaseSeconds: ['音量の立ち下がり', 's'],
-  textureMinimumDepth: ['路面テクスチャの最小の深さ', ''],
-  textureMaximumHz: ['テクスチャの最大の速さ', 'Hz'],
-  gain: ['転がり音Rの出力ゲイン', ''],
-  outputHz: ['転がり音Rの出力LPF', 'Hz'],
-  dcHz: ['転がり音RのDC除去', 'Hz'],
+  toneSeconds: ['Road and wheel frequency smoothing', 's'],
+  lowOrder: ['Low band wheel order', 'order'],
+  highOrder: ['High band wheel order', 'order'],
+  minimumHz: ['Minimum band center', 'Hz'],
+  bandwidthRatio: ['Bandwidth ratio', ''],
+  loadHalfNewtons: ['Load at half level', 'N'],
+  speedHalfMps: ['Speed at half level', 'm/s'],
+  speedExponent: ['Speed exponent', ''],
+  attackSeconds: ['Level attack', 's'],
+  releaseSeconds: ['Level release', 's'],
+  textureMinimumDepth: ['Minimum road texture depth', ''],
+  textureMaximumHz: ['Maximum texture rate', 'Hz'],
+  gain: ['Rolling R output gain', ''],
+  outputHz: ['Rolling R output LPF', 'Hz'],
+  dcHz: ['Rolling R DC removal', 'Hz'],
 } as const satisfies Record<keyof RollingSettings, readonly [string, string]>;
 
 export function mountTireSoundSettings(container: HTMLElement, initial: UnifiedSettings, onChange: () => void) {
   return mountSoundSettingsPanel(
     container,
     createSoundSettingsPanel(
-      'UNIFIED · 摩擦音Q',
+      'UNIFIED · friction Q',
       UNIFIED_SETTING_RANGES,
       resolveUnifiedSettings,
       initial,
       UNIFIED_LABELS,
       onChange,
-      'UNIFIEDを初期値に戻す',
+      'Reset UNIFIED to defaults',
     ),
   );
 }
@@ -65,13 +65,13 @@ export function mountRollingSoundSettings(container: HTMLElement, initial: Rolli
   return mountSoundSettingsPanel(
     container,
     createSoundSettingsPanel(
-      'ROLLING · 転がり音R',
+      'ROLLING · rolling R',
       ROLLING_SETTING_RANGES,
       resolveRollingSettings,
       initial,
       ROLLING_LABELS,
       onChange,
-      'ROLLINGを初期値に戻す',
+      'Reset ROLLING to defaults',
     ),
   );
 }

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ja">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <style>
@@ -42,61 +42,66 @@
     <title>Procedural audio verification</title>
   </head>
   <body>
-    <h1>エンジン音の調整</h1>
+    <h1>Engine sound tuning</h1>
     <p>
-      燃焼・排気パルスのみを比較します。固定音量では開度による音量差を保ちます。試聴は3秒で止まります。全9車種を確認できます。係数・管長は仮設定です。
+      Compares combustion and exhaust pulses only. A fixed volume keeps the level differences between throttle openings.
+      Playback stops after 3 seconds. All nine vehicles are available. Coefficients and pipe lengths are provisional.
     </p>
     <label
-      >車種
+      >Vehicle
       <select id="vehicle"></select
     ></label>
-    <label>回転数 <input id="rpm" type="number" min="1000" max="12000" value="3000" step="500" /></label>
+    <label>Engine speed <input id="rpm" type="number" min="1000" max="12000" value="3000" step="500" /></label>
     <label
-      >アクセル
+      >Throttle
       <select id="load">
-        <option value="1">全開</option>
+        <option value="1">Full</option>
         <option value="0.75">75%</option>
         <option value="0.5">50%</option>
         <option value="0.25">25%</option>
-        <option value="0">全閉</option>
+        <option value="0">Closed</option>
       </select></label
     >
     <label
-      >試聴内容
+      >Scenario
       <select id="scenario">
-        <option value="steady">一定回転</option>
-        <option value="rev">加速 → アクセルOFF</option>
+        <option value="steady">Steady speed</option>
+        <option value="rev">Accelerate → throttle off</option>
       </select></label
     >
-    <p>採用済みの軽量ウェーブガイドです。パラメータは調整中です。</p>
-    <button id="play" type="button">再生</button>
-    <button id="stop" type="button">停止</button>
-    <p id="listening">未再生</p>
+    <p>The adopted lightweight waveguide. Its parameters are still being tuned.</p>
+    <button id="play" type="button">Play</button>
+    <button id="stop" type="button">Stop</button>
+    <p id="listening">Not played</p>
     <fieldset>
-      <legend>共通の調整値（仮）</legend>
-      <p>ゲームと同じ音源と調整値を使います。− / + で各項目を調整できます。変更は次の再生に反映されます。</p>
+      <legend>Shared settings (provisional)</legend>
+      <p>
+        Uses the same sound source and settings as the game. Adjust each item with − / +. Changes apply from the next
+        playback.
+      </p>
       <p id="reference-conditions"></p>
       <div id="engine-sound-settings"></div>
       <p id="boundary-conditions"></p>
       <p id="output-conditions"></p>
     </fieldset>
     <fieldset>
-      <legend>選択車種の音源データ（読み取り専用）</legend>
+      <legend>Selected vehicle sound data (read-only)</legend>
       <p id="vehicle-summary"></p>
       <p>
-        以下は音源が使用している設定です。管長・集合先は音響用の仮設定を含み、実測済みの実車配管データではありません。
+        These are the settings the sound source uses. Pipe lengths and collector targets include provisional acoustic
+        values; they are not measured exhaust data from real vehicles.
       </p>
-      <p>行は発火イベント順です。実車の気筒番号や左右バンクの名称を示すものではありません。</p>
+      <p>Rows are in firing-event order. They do not name real cylinder numbers or left and right banks.</p>
       <table>
         <thead>
           <tr>
-            <th>発火順</th>
-            <th>位相</th>
-            <th>次の発火まで</th>
-            <th>集合先</th>
-            <th>枝管長</th>
-            <th>集合の管（接合点→接合点／出口）</th>
-            <th>出口までの最短経路</th>
+            <th>Firing</th>
+            <th>Phase</th>
+            <th>To next firing</th>
+            <th>Collector</th>
+            <th>Branch length</th>
+            <th>Collector pipes (junction → junction / outlet)</th>
+            <th>Shortest path to outlet</th>
           </tr>
         </thead>
         <tbody id="vehicle-pipes"></tbody>

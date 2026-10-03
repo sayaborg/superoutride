@@ -373,7 +373,7 @@ and no envelope or time budgets, on a new Route runtime from the grid. It enters
 first line starts with `TUNED · `; the product HUD never shows it. The shell, its input, audio, camera device and DEV controls persist, and the shell keeps the
 tuned definition for further adjustments and export. Reloading the page restores the product Session. EXPORT saves the tuned
 driving definition (`default.json`) and the Session vehicle's definition (`<vehicle id>.json`) as browser downloads in the saved layout;
-its `audio/default.json` button (音の設定を書き出す) saves the DEV sound panels' current values as the
+its `audio/default.json` button (titled Export sound settings) saves the DEV sound panels' current values as the
 [audio document](audio.md#audio-document) (`default.json`);
 [Calibration](calibration.md#vehicle-settings) describes adopting them as content. There is one camera, with no
 DEV selection; the DEV overlay above the player shows its travel direction relative to the camera yaw.

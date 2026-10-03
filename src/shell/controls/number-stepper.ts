@@ -27,7 +27,7 @@ export function createNumberStepper(options: NumberStepperOptions, documentRef: 
     element.type = 'button';
     element.className = 'selector-button number-step';
     element.textContent = direction < 0 ? '−' : '+';
-    element.setAttribute('aria-label', `${label}を${direction < 0 ? '下げる' : '上げる'}`);
+    element.setAttribute('aria-label', `${direction < 0 ? 'Decrease' : 'Increase'} ${label}`);
     const change = () => {
       const next = Math.max(0, Math.min(last, tick + direction));
       if (next === tick) return;

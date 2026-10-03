@@ -6,83 +6,93 @@ import { createNumberStepper } from './number-stepper.js';
 const CONTROLS = [
   [
     'closedExcitation',
-    '全閉時の励振',
+    'Closed-throttle excitation',
     '',
-    '全閉時に残す励振の割合。パルスの強さと立ち上がりを変える音作りの設定で、実測の燃焼圧力ではありません。',
+    'The share of excitation kept at closed throttle. A sound-design setting that changes pulse strength and rise; not measured combustion pressure.',
   ],
   [
     'outputCutoffHz',
-    '最終LPF（マフラー相当）',
+    'Final LPF (muffler)',
     'Hz',
-    'ソフトクリップ後の一次LPF、約−6 dB/oct。反射波用とは独立した音色調整です。実車マフラーの測定特性ではありません。',
+    'First-order LPF after the soft clip, about −6 dB/oct. A tone adjustment independent of the reflected waves; not a measured muffler response.',
   ],
   [
     'pulseVariation',
-    'パルスの揺らぎ',
+    'Pulse variation',
     '',
-    '全開時の強度を基準に、各点火へ±この割合の揺らぎを加えます。標準は±20%。アクセルオフでも同じ幅を保ち、強度の下限は0です。点火時刻とRPMは変えません。',
+    'Adds ± this share of the full-throttle strength to each firing. Standard is ±20%. The width stays the same off throttle and strength never goes below 0. Firing times and RPM are unchanged.',
   ],
   [
     'pumpingExcitation',
-    '燃料カット時の励振',
+    'Fuel-cut excitation',
     '',
-    '燃料が入らない間の、排気弁の開閉だけの弱い吹き出し。燃焼ではないので揺らぎは加わりません。',
+    'The weak blow-down from the exhaust valves alone while no fuel is injected. It is not combustion, so no variation is added.',
   ],
   [
     'pulseRiseMs',
-    'パルスの立ち上がり',
+    'Pulse rise',
     'ms',
-    '全車種共通の全励振時の立ち上がり。回転数によらない絶対時間です。二段に分けて立ち上がりを滑らかにします（クリック音を防ぐ）。小さいほど鋭くなり、低負荷では緩やかになります。',
+    'The rise at full excitation, shared by every vehicle. An absolute time independent of engine speed, smoothed in two stages to prevent clicks. Smaller is sharper; it softens at low load.',
   ],
   [
     'pulseDecayDegrees',
-    'パルスの減衰（クランク角）',
+    'Pulse decay (crank angle)',
     '°',
-    '全車種共通の減衰。クランク角で定義するので、低回転ほど尾が長く、高回転ほど短くなります。3000 rpm で ms に換算すると 18° = 1 ms。',
+    'The decay shared by every vehicle. Defined in crank angle, so the tail is longer at low speed and shorter at high speed. At 3000 rpm, 18° = 1 ms.',
   ],
   [
     'blipOpening',
-    'ブリッピングの開度',
+    'Blip opening',
     '',
-    'シフトダウンで回転を合わせるために重ねる短い開度の山。物理の変速は一瞬で、これは音だけの演出です。',
+    'A short throttle peak added to match revs on a downshift. The physical shift is instant; this is sound only.',
   ],
-  ['blipDecaySeconds', 'ブリッピングの減衰', 's', '開度の山が指数的に消える時定数。大きいほど長く吹かします。'],
+  [
+    'blipDecaySeconds',
+    'Blip decay',
+    's',
+    'The time constant over which the throttle peak decays exponentially. Larger blips longer.',
+  ],
   [
     'popProbability',
-    'アフターファイアの確率',
+    'Afterfire probability',
     '',
-    'アクセルオフ（燃料カットでない）の間、発火ごとにボッが出る確率。発火ごとの乱数で決めるので、頻度は回転数に比例します。',
+    'The chance of a pop at each firing while off throttle (not in fuel cut). Drawn per firing, so the rate is proportional to engine speed.',
   ],
-  ['popStrength', 'アフターファイアの強さ', '', '集合部に入れるボッのパルスの強さ。燃え残りや温度の状態は持ちません。'],
+  [
+    'popStrength',
+    'Afterfire strength',
+    '',
+    'The strength of the pop pulse injected at the collector. No unburnt-fuel or temperature state is kept.',
+  ],
   [
     'cylinderWindowCycles',
-    '気筒側の開口の幅',
-    '周期',
-    '排気が開いてから気筒側の反射が変わる窓の幅（発火周期の割合）。バルブの開いている期間ではありません。実装者の初期値で、オーナーが聴いて決めたものではありません。',
+    'Cylinder opening width',
+    'cycles',
+    'The width of the window after the exhaust opens in which the cylinder-side reflection changes, as a share of the firing period. Not the valve-open duration. An implementer default, not chosen by the owner by ear.',
   ],
   [
     'cylinderClosedReflection',
-    '気筒側の反射（閉）',
+    'Cylinder reflection (closed)',
     '',
-    '閉じているときの気筒側の圧力反射。1未満はエネルギーを吸収します。実装者の初期値で、オーナーが聴いて決めたものではありません。',
+    'The cylinder-side pressure reflection while closed. Below 1 absorbs energy. An implementer default, not chosen by the owner by ear.',
   ],
   [
     'cylinderOpenReflection',
-    '気筒側の反射（開）',
+    'Cylinder reflection (open)',
     '',
-    '開いているときの気筒側の圧力反射。バルブの流れの物理ではありません。実装者の初期値で、オーナーが聴いて決めたものではありません。',
+    'The cylinder-side pressure reflection while open. Not valve-flow physics. An implementer default, not chosen by the owner by ear.',
   ],
   [
     'dcHz',
-    '出力のDC除去',
+    'Output DC removal',
     'Hz',
-    '出力のDC除去の遮断周波数。実装者の初期値で、オーナーが聴いて決めたものではありません。',
+    'The cutoff frequency of the output DC removal. An implementer default, not chosen by the owner by ear.',
   ],
   [
     'clipCeiling',
-    'ソフトクリップの上限',
+    'Soft-clip ceiling',
     '',
-    'ソフトクリップの漸近的な上限で、小信号の利得でもあります。実装者の初期値で、オーナーが聴いて決めたものではありません。',
+    "The soft clip's asymptotic ceiling, which is also its small-signal gain. An implementer default, not chosen by the owner by ear.",
   ],
 ] as const;
 
@@ -117,7 +127,7 @@ export function mountEngineSoundSettings(
         value: settings[key],
         format: (value) =>
           key === 'pulseVariation'
-            ? `±${Math.round(value * 100)}%${value === 0 ? '（揺らぎなし）' : ''}`
+            ? `±${Math.round(value * 100)}%${value === 0 ? ' (none)' : ''}`
             : `${value} ${unit}`.trim(),
         onChange(value) {
           settings[key] = value;
@@ -133,7 +143,7 @@ export function mountEngineSoundSettings(
   const reset = documentRef.createElement('button');
   reset.type = 'button';
   reset.className = 'selector-button sound-settings-reset';
-  reset.textContent = 'デフォルトに戻す';
+  reset.textContent = 'Reset to defaults';
   listen(reset, 'click', () => {
     Object.assign(settings, initial);
     for (const [key, control] of steppers) control.setValue(settings[key]);

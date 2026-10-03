@@ -19,11 +19,11 @@ for (const entry of vehicles) {
   vehicle.append(option);
 }
 mustGet<HTMLElement>('reference-conditions').textContent =
-  `基準条件（仮定）：内径 ${REFLECTION_REFERENCE.radiusMeters * 2000} mm、温度 ${(REFLECTION_REFERENCE.temperatureK - 273.15).toFixed(0)} ℃の空気、開放管端。管内損失は ${REFLECTION_REFERENCE.frequencyHz} Hzで近似。実車の測定値ではありません。導出した管の係数（定数）：出口の反射 ${PIPE_COEFFICIENTS.outletReflection}、戻りの高域上限 ${PIPE_COEFFICIENTS.returnCutoffHz} Hz、減衰 ${PIPE_COEFFICIENTS.attenuationPerMeter} Np/m。全閉時の励振は音作りの設定です。`;
+  `Reference conditions (assumed): bore ${REFLECTION_REFERENCE.radiusMeters * 2000} mm, air at ${(REFLECTION_REFERENCE.temperatureK - 273.15).toFixed(0)} ℃, open pipe end. Pipe losses approximated at ${REFLECTION_REFERENCE.frequencyHz} Hz. Not measured on real vehicles. Derived pipe coefficients (constants): outlet reflection ${PIPE_COEFFICIENTS.outletReflection}, return high-frequency limit ${PIPE_COEFFICIENTS.returnCutoffHz} Hz, attenuation ${PIPE_COEFFICIENTS.attenuationPerMeter} Np/m. Closed-throttle excitation is a sound-design setting.`;
 mustGet<HTMLElement>('output-conditions').textContent =
-  `音作り・出力の設定：追従 ${(defaultControl.observationSeconds * 1000).toFixed(0)} ms。出力順：DC除去（初期値 ${defaultExhaust.dcHz} Hz）→ ソフトクリップ（上限の初期値 ${defaultExhaust.clipCeiling}）→ 最終LPF（一次、− / +で調整・初期値 ${defaultExhaust.outputCutoffHz} Hz）。排気の物理量とは区別します。`;
+  `Sound-design and output settings: smoothing ${(defaultControl.observationSeconds * 1000).toFixed(0)} ms. Output order: DC removal (default ${defaultExhaust.dcHz} Hz) → soft clip (default ceiling ${defaultExhaust.clipCeiling}) → final LPF (first order, adjust with − / +, default ${defaultExhaust.outputCutoffHz} Hz). Kept separate from the exhaust's physical quantities.`;
 mustGet<HTMLElement>('boundary-conditions').textContent =
-  `境界の設定（初期値、− / +で調整）：閉端側の圧力反射 ${defaultExhaust.cylinderClosedReflection}、開口側 ${defaultExhaust.cylinderOpenReflection}、開口変化の幅は発火周期の ${defaultExhaust.cylinderWindowCycles}。気筒への戻り波に周期的な境界変化を与えます。実測のバルブタイミングや流量ではありません。`;
+  `Boundary settings (defaults, adjust with − / +): closed-end pressure reflection ${defaultExhaust.cylinderClosedReflection}, open side ${defaultExhaust.cylinderOpenReflection}, opening window ${defaultExhaust.cylinderWindowCycles} of the firing period. Gives waves returning to the cylinder a periodic boundary change. Not measured valve timing or flow.`;
 const engineSoundSettings = mountEngineSoundSettings(
   mustGet<HTMLElement>('engine-sound-settings'),
   DEFAULT_AUDIO_SETTINGS.exhaust,
@@ -34,7 +34,7 @@ function showVehicleData() {
   const { sound, compiledVehicle } = vehicles[Number(vehicle.value)]!;
   const cycleDegrees = sound.cycleRevolutions * 360;
   mustGet<HTMLElement>('vehicle-summary').textContent =
-    `${compiledVehicle.id} ／ ${sound.firingPhases.length}気筒 ／ ${sound.cycleRevolutions * 2}ストローク ／ 1周期 ${cycleDegrees}° ／ アイドル ${compiledVehicle.powertrain.idleRpm} RPM ／ 上限 ${compiledVehicle.powertrain.redlineRpm} RPM`;
+    `${compiledVehicle.id} / ${sound.firingPhases.length} cylinders / ${sound.cycleRevolutions * 2}-stroke / cycle ${cycleDegrees}° / idle ${compiledVehicle.powertrain.idleRpm} RPM / redline ${compiledVehicle.powertrain.redlineRpm} RPM`;
   const body = mustGet<HTMLElement>('vehicle-pipes');
   body.replaceChildren();
   const degrees = (value: number) => `${Number(value.toFixed(2))}°`;
@@ -43,9 +43,9 @@ function showVehicleData() {
   const pipesText = pipes
     .map(
       ({ length, from, to }) =>
-        `${String.fromCharCode(65 + from)}→${to === null ? '出口' : String.fromCharCode(65 + to)} ${meters(length)}`,
+        `${String.fromCharCode(65 + from)}→${to === null ? 'outlet' : String.fromCharCode(65 + to)} ${meters(length)}`,
     )
-    .join('、');
+    .join(', ');
   // Shortest pipe path from a junction to an open end.
   const openPath = (start: number): number => {
     const best = new Map<number, number>([[start, 0]]);
@@ -88,7 +88,7 @@ function showVehicleData() {
     body.append(row);
   });
   mustGet<HTMLElement>('vehicle-pulse').textContent =
-    'パルスは全車種共通：基準強度1。立ち上がり・減衰は上の− / +で調整します。';
+    'Pulses are shared by every vehicle: reference strength 1. Adjust rise and decay with − / + above.';
 }
 vehicle.onchange = showVehicleData;
 vehicle.value = '1';
@@ -102,7 +102,7 @@ function stop() {
   playing?.stop();
   playing?.disconnect();
   playing = null;
-  listening.textContent = '停止';
+  listening.textContent = 'Stopped';
 }
 mustGet<HTMLElement>('stop').onclick = stop;
 async function audition() {
@@ -158,10 +158,10 @@ async function audition() {
     playing.buffer = buffer;
     playing.connect(playback.destination);
     playing.onended = () => {
-      if (current === request) listening.textContent = '再生終了';
+      if (current === request) listening.textContent = 'Finished';
     };
     playing.start();
-    listening.textContent = `WAVEGUIDE・${entry.compiledVehicle.id}`;
+    listening.textContent = `WAVEGUIDE · ${entry.compiledVehicle.id}`;
   } catch (error) {
     if (current === request) listening.textContent = String(error);
   }
