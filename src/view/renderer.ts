@@ -1,5 +1,5 @@
 export { STRIP_ACTIVE_LIMIT } from '../course/strip-ground.js';
-import { createStripRenderMetrics, type StripRenderMetrics } from './strip-ground-sampler.js';
+import { createStripRenderMetrics, type StripGroundReader, type StripRenderMetrics } from './strip-ground-sampler.js';
 import type { StripRenderMethod } from './display-settings.js';
 import type { PlanCoordinateReader } from '../course/geometry/plan-coordinate.js';
 import { wrapAngle } from '../core/math.js';
@@ -54,20 +54,6 @@ export function createRenderMeasurements(): RenderMeasurements {
     spriteOutputSamplesIncludingPlayer: 0,
     spriteWrittenPixelsIncludingPlayer: 0,
   };
-}
-
-export interface StripGroundReader {
-  sampleSpan(
-    pixels: Uint16Array,
-    offset: number,
-    count: number,
-    s: number,
-    l: number,
-    stepL: number,
-    deltaS: number,
-    method: StripRenderMethod,
-    stats: StripRenderMetrics,
-  ): void;
 }
 
 interface RenderScene {

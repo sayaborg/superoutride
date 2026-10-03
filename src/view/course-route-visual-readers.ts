@@ -3,9 +3,8 @@ import type { RouteWindow } from '../course/course-route.js';
 import { routeS, routeSectionS } from '../course/course-route.js';
 import { stationIndexAt } from '../course/geometry/station-sequence.js';
 import { transformPlanarPoint } from '../core/planar-transform.js';
-import { createStripGroundSampler } from './strip-ground-sampler.js';
+import { createStripGroundSampler, type StripGroundReader } from './strip-ground-sampler.js';
 import { createCourseRenderResources } from './course-render-resources.js';
-import type { StripGroundReader } from './renderer.js';
 
 /** Visual content over the same route ruler as the physical readers. Derived lists change with the route. */
 export function createCourseRouteVisualReaders(route: RouteWindow) {

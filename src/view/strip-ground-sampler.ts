@@ -20,6 +20,20 @@ export interface StripRenderMetrics {
   activeStrips: number;
   outputPixels: number;
 }
+export interface StripGroundReader {
+  sampleSpan(
+    pixels: Uint16Array,
+    offset: number,
+    count: number,
+    s: number,
+    l: number,
+    stepL: number,
+    deltaS: number,
+    method: StripRenderMethod,
+    stats: StripRenderMetrics,
+  ): void;
+}
+
 export function createStripRenderMetrics(): StripRenderMetrics {
   return { activeStrips: 0, outputPixels: 0 };
 }
