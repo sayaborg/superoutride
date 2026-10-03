@@ -76,12 +76,6 @@ async function startPage(): Promise<void> {
     const loading = createLoadingScreen(shell.framebuffer, textLayer, present);
     // The one owner of the current screen; it runs the frame loop while the page is visible.
     const host = createScreenHost(window, document, shell, loading);
-    const raceStatus = document.createElement('output');
-    raceStatus.setAttribute('role', 'status');
-    raceStatus.setAttribute('aria-label', 'Session status');
-    raceStatus.setAttribute('aria-live', 'off');
-    raceStatus.className = 'course-status';
-    canvas.insertAdjacentElement('afterend', raceStatus);
     // The camera definition in use: the product's until a DEV adjustment replaces it.
     let cameraDefinition = CAMERA_DEFINITION;
     const performanceHud = dev ? createCoursePerformanceHud(canvas) : null;
@@ -104,7 +98,6 @@ async function startPage(): Promise<void> {
       displaySettings,
       raceSprites,
       shell,
-      raceStatus,
       performanceHud,
       dev,
       courses,
@@ -140,7 +133,6 @@ async function startPage(): Promise<void> {
     const leave = (show: () => void) => {
       run?.dispose();
       run = null;
-      raceStatus.textContent = '';
       show();
     };
     // `back` leaves LOAD FAILED: to the screen that requested the run, by default TITLE.
@@ -150,7 +142,6 @@ async function startPage(): Promise<void> {
       run?.dispose();
       run = null;
       host.show(loading);
-      raceStatus.textContent = '';
       if (status) {
         status.replaceChildren('Loading course…');
         status.hidden = false;

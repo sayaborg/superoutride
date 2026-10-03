@@ -10,7 +10,7 @@ import type { BrowserCourseSelection } from './course-selection.js';
 import { loadDeliveredCourse } from '../content/load-delivered-course.js';
 import type { loadVehicleDefinitions } from '../content/vehicle-catalog.js';
 import { createCourseRace } from '../race/course-race.js';
-import { raceStatusText, runResult } from './race-status-hud.js';
+import { runResult } from './race-status-hud.js';
 import { writeHud } from './run-hud.js';
 import { fuelCutRpm } from '../vehicle/physics/automatic-powertrain.js';
 import type { TextLayer } from '../view/text-layer.js';
@@ -48,7 +48,6 @@ export interface RunPage {
   readonly displaySettings: DisplaySettings;
   readonly raceSprites: ReturnType<typeof createRaceSprites>;
   readonly shell: ReturnType<typeof createBrowserDrivingShell>;
-  readonly raceStatus: HTMLOutputElement;
   /** The DEV performance HUD; null without DEV. */
   readonly performanceHud: ReturnType<typeof createCoursePerformanceHud> | null;
   /** `dev=1`: the run builds its DEV controls and draws the DEV HUDs. */
@@ -71,18 +70,7 @@ export interface RunPage {
  * race end change.
  */
 export async function assembleRun(page: RunPage, request: RunRequest, state: RunScreenState): Promise<Run> {
-  const {
-    content,
-    materials,
-    series,
-    vehicles,
-    driving,
-    displaySettings,
-    raceSprites,
-    shell,
-    raceStatus,
-    performanceHud,
-  } = page;
+  const { content, materials, series, vehicles, driving, displaySettings, raceSprites, shell, performanceHud } = page;
   const { courseId } = request;
   const course = await loadDeliveredCourse(content, courseId, materials);
   // The course's ARCADE settings come from the one series holding it; a course in no series is untimed.
@@ -280,7 +268,6 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
               }
             : undefined,
         );
-        raceStatus.textContent = raceStatusText(race);
         performanceHud?.frame(started, result.stripGround, renderMilliseconds);
       },
     };

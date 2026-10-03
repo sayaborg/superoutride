@@ -640,7 +640,7 @@ gate (null without one or after finishing); and, when the only present rival tak
 the player's STAGE (one rival per stage), that rival's Route station less the player's, positive while it is ahead.
 The race also counts simulation seconds, every advanced fixed step (READY and after the ending included), the time
 base for displays timed across the ending, and stamps each competitor observation's latest shift with it. The shell
-derives the status line and the HUD from these facts ([Browser](browser.md#hud)).
+derives the HUD and RESULT from these facts ([Browser](browser.md#hud)).
 
 Stages count race gates: the player's STAGE is one more than the race gates (checkpoints and FINISH lines) the
 player has crossed since GO, continuing across laps and counted by number whichever branch the route takes. STAGE

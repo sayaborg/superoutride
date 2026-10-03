@@ -30,7 +30,7 @@ the composition root is the only place that draws randomness.
 The driving composition root owns two lifetimes. The page lifetime is created once: delivered content and
 catalogs (materials, surface sounds, vehicle and driving definitions, series, text tiles, audio settings), the
 player record, display settings, the text layer, race sprites, the browser devices (canvas, framebuffer, input,
-audio), the screen host with its frame loop, the status line and, with `dev=1`, the performance HUD and the page's DEV
+audio), the screen host with its frame loop and, with `dev=1`, the performance HUD and the page's DEV
 controls (sound, ground display, camera, RESULT delay). The run lifetime holds the selected course, its Session
 settings, the field's Session vehicles, envelopes, time budgets and pace schedule, the Session, scene and race,
 the player's sprites, the camera rig and lifecycle and, with `dev=1`, the course's performance-HUD
@@ -110,10 +110,10 @@ every delivered course is a DEV one today, so every mode is DARK.
 RESULT follows GOAL or GAME OVER after the RESULT delay, a DEV setting (default 3 s; 0, 1, 2, 3, 5 or 10 s; not
 persisted), which the shell counts in fixed simulation steps after the step that ended the run. Until then the loop,
 the field, rendering and sound continue and PAUSE stays available; a pause stops the count with the simulation.
-At RESULT the run finishes: the race stops, PAUSE is hidden, the status line keeps the outcome, and the RESULT menu
+At RESULT the run finishes: the race stops and the RESULT menu
 is drawn over the stopped frame at half brightness and takes the menu commands. Its title is the outcome, GOAL in yellow or GAME OVER in
 red; its lines are RANK n/m when the Session has rivals, TIME (race time) and, on a circuit, BEST LAP, all derived
-from race facts, the rank by the status line's ranking. Its items are RETRY (the same run again, starting at once with
+from race facts, the rank by the race's standing. Its items are RETRY (the same run again, starting at once with
 a new seed), CHANGE VEHICLE (SELECT VEHICLE with the run's selection), SELECT (the run mode's first selection screen
 with the run's selection) and TITLE; leaving the run ends it. A Session rebuilt by DEV tuning restarts
 the run, clearing `paused` and `finished`, so it drives at once. A run's start resets driving input once.
@@ -268,29 +268,6 @@ while race time is at most 2 s after an extension's race time, and red otherwise
 lap's time holds in yellow for 2 s of race time after the lap; the gear is yellow for 0.3 s of the race's
 simulation time (every advanced step, READY and after the ending included) after the shift the race stamped.
 The signal lamps are green for 1 s of race time after GO. Other text is white. These lengths sit in one constant.
-
-## Race status
-
-The status line derives its text from race facts alone
-([race time and events](content-and-gameplay.md#race-time-and-events)); the race holds no display state.
-Manual pause shows the PAUSE menu in the frame's [text layer](architecture.md#text-layer), not in the
-status line. Otherwise:
-
-- GOAL or GAME OVER shows `GOAL` or `GAME OVER`, the position and the race time; GAME OVER reads the same
-  whatever its cause, as RESULT shows only the outcome ([product](product.md#6-flow-and-screens)).
-- During READY it shows `READY n`, n the seconds until GO rounded up; while WAITING, before the Session starts,
-  `READY`.
-- While running it shows the state, the remaining time when there is a time limit, a current extension,
-  the position and the race time, joined by `·`. The state is `LAP x/y` on a circuit (the player's accepted
-  finish count plus one, capped at the lap count), or on another course `ROUTE` with the entry fork's choice,
-  `OPEN` while it is undecided, or `GO` when the entry has no fork; a finished player's state is the run outcome status.
-- `GO · ` prefixes the running line while the player's competitor clock is below 1 s.
-- Remaining time is `TIME n`, n = ceil(max(0, deadline − race time)).
-- A positive extension shows as `TIME EXTEND +x.x` (seconds, one decimal) while race time is at most 2 s after
-  the race time of the checkpoint that earned it.
-- Position is `Pr/n`: the player's rank among the n competitors present in the Session.
-- Race time is `m'ss"mmm` (the one time format, shared with the HUD and RESULT), floored to whole milliseconds after adding a display-only tolerance of 1e-7 ms for
-  accumulated fixed-step rounding.
 
 ## Performance HUD
 

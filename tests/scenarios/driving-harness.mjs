@@ -30,7 +30,9 @@ import { admitSeriesCourse, compileSeriesCatalog } from '../../src/content/serie
 import { requireLoaded } from '../../src/content/content-load-error.js';
 import { readCourseTimeBudgets } from '../../src/content/course-time-budgets.js';
 import { readPaceSchedule } from '../../src/content/pace-schedule.js';
-import { raceStatusText } from '../../src/shell/race-status-hud.js';
+
+/** The player's position as `P<rank>/<competitors present>`, from the race's standing. */
+const playerPosition = (race) => `P${race.standing.rank}/${race.standing.count}`;
 
 const content = await readDeliveredContent();
 const materials = await loadSurfaceMaterials(content);
@@ -347,16 +349,12 @@ export function runScenario({ course, arcade, budgets, paceSchedule }, scenario)
       for (const c of race.rivals)
         if (!c.present) assert.ok(!observedIds.includes(c.id), `${c.id}: observed while absent`);
       if (race.outcome.status === 'RUNNING' || ended)
-        assert.match(
-          raceStatusText(race),
-          new RegExp(`P\\d+/${counted.length} `),
-          'position counts absent competitors',
-        );
+        assert.equal(race.standing.count, counted.length, 'position counts absent competitors');
       if (ended && !ending) {
         assert.equal(race.outcome.endSeconds, race.clock.elapsedSeconds, 'race time did not stop at the ending');
         ending = {
           tick,
-          status: raceStatusText(race),
+          position: playerPosition(race),
           progress: competitors.map((c) => [c.progress.s, c.progress.acceptedFinishCount]),
           playerS: vehicle.course.s,
           rivalS: race.rivals.map((c) => c.actor.vehicle.course.s),
@@ -370,7 +368,7 @@ export function runScenario({ course, arcade, budgets, paceSchedule }, scenario)
           'progress moved after the ending',
         );
         assert.equal(race.events.length, 0, 'events after the ending');
-        assert.equal(raceStatusText(race), ending.status, 'status or position changed after the ending');
+        assert.equal(playerPosition(race), ending.position, 'position changed after the ending');
       }
     }
     if (
@@ -437,7 +435,7 @@ export function runScenario({ course, arcade, budgets, paceSchedule }, scenario)
       assert.equal(slot, course.gates.grid.at(-1), 'TIME TRIAL does not start from the last grid slot');
       assert.equal(race.clock.deadlineSeconds, null, 'TIME TRIAL has a clock');
     }
-    if (expect.position) assert.match(ending.status, new RegExp(` · ${expect.position} · `));
+    if (expect.position) assert.equal(ending.position, expect.position);
     // The takeover stops the finished player on its runout: the admitted maximumSpeed² / (2a) at the Session driver's a.
     const runout = envelope.maximumSpeed ** 2 / (2 * Math.min(...envelope.rows.map((row) => row.braking)) * 0.75);
     const pastFinish = vehicle.course.s - ending.progress[0][0];
@@ -470,7 +468,7 @@ export function runScenario({ course, arcade, budgets, paceSchedule }, scenario)
       outcome: race.outcome.status,
       cause: race.outcome.cause,
       endSeconds: race.outcome.endSeconds,
-      position: ending.status.split(' · ')[1],
+      position: ending.position,
       pastFinish: Number(pastFinish.toFixed(3)),
       playerSpeed: Number(playerSpeed.toFixed(3)),
       rivalTravel: rivalTravel.map((d) => Number(d.toFixed(3))),
