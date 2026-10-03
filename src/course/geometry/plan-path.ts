@@ -48,6 +48,13 @@ export interface PlanPathProjection {
   isFoot: boolean;
 }
 
+/**
+ * The plan path of `geometry` laid from `start`: each segment's chainage, start pose, curvature and arc center. A trusted
+ * transform that checks nothing itself. Its caller owns admission: course plans are admitted once by the course
+ * compiler (`compileCourseGeometry`), which checks the PIs before this call (distinct points, radii, deflections,
+ * non-overlapping tangents) and the result after it (every segment of positive representable length and finite
+ * curvature, the ruler within the document limit). Other callers pass constant geometry.
+ */
 export function compilePlanPath(
   start: Readonly<{ x: number; z: number; heading: number }>,
   geometry: readonly PlanSegmentGeometry[],
