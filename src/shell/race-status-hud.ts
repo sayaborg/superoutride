@@ -25,15 +25,40 @@ export function raceStatusText(race: CourseRace, { tuned = false }: { readonly t
   return `${tuned ? 'TUNED · ' : ''}${raceText(race)}`;
 }
 
-function raceText(race: CourseRace): string {
-  const { clock, outcome, player, rivals, countdown } = race;
-  // Rank counts the competitors present in the Session.
+/** The player's rank among the competitors present in the Session, and their count. */
+function playerStanding({ player, rivals }: CourseRace): { readonly rank: number; readonly count: number } {
   const present = [player, ...rivals.filter((c) => c.present)];
   const standings = rankRaceProgress(
     present.map((c) => ({ competitorId: c.id, s: c.progress.s, finishSeconds: c.finishSeconds })),
   );
-  const rank = standings.find((s) => s.competitorId === player.id)!.rank;
-  const position = `P${rank}/${present.length}`;
+  return { rank: standings.find((s) => s.competitorId === player.id)!.rank, count: present.length };
+}
+
+/** What RESULT shows of an ended run, derived from race facts only. */
+export interface RunResult {
+  readonly outcome: 'GOAL' | 'GAME OVER';
+  /** The player's standing; null in a Session without rivals. */
+  readonly standing: { readonly rank: number; readonly count: number } | null;
+  readonly raceSeconds: number;
+  /** The player's best lap on a CIRCUIT; null elsewhere or before a complete lap. */
+  readonly bestLapSeconds: number | null;
+}
+
+/** The ended run's result; the rank is the status line's. */
+export function runResult(race: CourseRace): RunResult {
+  return Object.freeze({
+    outcome: race.outcome.status === 'GOAL' ? 'GOAL' : 'GAME OVER',
+    standing: race.rivals.length > 0 ? playerStanding(race) : null,
+    raceSeconds: race.clock.elapsedSeconds,
+    bestLapSeconds: race.courseType === 'CIRCUIT' ? race.player.bestLapSeconds : null,
+  });
+}
+
+function raceText(race: CourseRace): string {
+  const { clock, outcome, player, countdown } = race;
+  // Rank counts the competitors present in the Session.
+  const standing = playerStanding(race);
+  const position = `P${standing.rank}/${standing.count}`;
   if (outcome.status === 'GOAL' || outcome.status === 'GAME_OVER')
     return `${outcome.status.replace('_', ' ')} · ${position} · ${formatRaceTime(clock.elapsedSeconds)}`;
   if (outcome.status === 'READY') return `READY ${Math.ceil(countdown.remainingSeconds)}`;

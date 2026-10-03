@@ -253,5 +253,27 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
       }
     }
   }
-  return Object.freeze({ title });
+  // A run's request becomes the current selection.
+  const adopt = (run: RunRequest) => {
+    mode = run.mode;
+    seriesChoice = catalog.series.courseSettings(run.courseId)?.series ?? null;
+    [courseId, vehicleId, color] = [run.courseId, run.vehicleId, run.color];
+    if (run.mode !== 'ARCADE') lapCount = run.lapCount;
+    if (run.mode === 'FREE_PLAY') [rivalCount, rivalPool] = [run.rivalCount, run.rivalPool];
+  };
+  return Object.freeze({
+    title,
+    /** SELECT VEHICLE with `run`'s selection. */
+    vehicle(run: RunRequest) {
+      adopt(run);
+      step = FLOW[mode].indexOf('VEHICLE');
+      showStep();
+    },
+    /** The first selection screen of `run`'s mode, with its selection. */
+    select(run: RunRequest) {
+      adopt(run);
+      step = -1;
+      forward();
+    },
+  });
 }

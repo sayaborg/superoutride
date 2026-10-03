@@ -25,6 +25,8 @@ export interface MenuDefinition {
   readonly title: string;
   /** The title's text palette; WHITE when absent. */
   readonly titlePalette?: number;
+  /** Lines of information between the title and the items, in WHITE. */
+  readonly lines?: readonly string[];
   items(): readonly MenuItem[];
   back?(): void;
 }
@@ -68,13 +70,17 @@ export function createMenu(definition: MenuDefinition, initial = 0) {
       else if (command === 'LEFT' || command === 'RIGHT') items[index]!.adjust?.(command === 'LEFT' ? -1 : 1);
     },
     write(text: TextLayer) {
-      const items = definition.items();
-      const top = Math.floor((TEXT_ROWS - (items.length + 2)) / 2);
+      const items = definition.items(),
+        lines = definition.lines ?? [];
+      // The title, a blank row, any lines and another blank row, then the items.
+      const first = 2 + (lines.length > 0 ? lines.length + 1 : 0);
+      const top = Math.floor((TEXT_ROWS - (items.length + first)) / 2);
       writeCentred(text, top, definition.title, definition.titlePalette ?? TEXT_PALETTES.WHITE);
+      lines.forEach((line, i) => writeCentred(text, top + 2 + i, line, TEXT_PALETTES.WHITE));
       items.forEach((item, i) =>
         writeCentred(
           text,
-          top + 2 + i,
+          top + first + i,
           item.value === undefined ? item.label : `${item.label}  ${item.value}`,
           item.disabled ? TEXT_PALETTES.DARK : i === index ? TEXT_PALETTES.YELLOW : TEXT_PALETTES.WHITE,
         ),

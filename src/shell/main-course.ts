@@ -128,6 +128,15 @@ async function startPage(): Promise<void> {
       );
       status.hidden = false;
     };
+    // Leaving a run for a selection screen ends it.
+    const leave = (show: () => void) => {
+      run?.dispose();
+      run = null;
+      loadedCourse = null;
+      raceStatus.textContent = '';
+      courseSelector.setActive('');
+      show();
+    };
     // `back` leaves LOAD FAILED: to the screen that requested the run, by default TITLE.
     const request = async (next: RunRequest, begin: boolean, back = () => flow.title()) => {
       if (assembling) return;
@@ -152,14 +161,9 @@ async function startPage(): Promise<void> {
         host.show(
           createRunScreen(state, assembled, shell.framebuffer, textLayer, {
             retry: () => void request(next, true, back),
-            quit: () => {
-              run?.dispose();
-              run = null;
-              loadedCourse = null;
-              raceStatus.textContent = '';
-              courseSelector.setActive('');
-              flow.title();
-            },
+            changeVehicle: () => leave(() => flow.vehicle(next)),
+            select: () => leave(() => flow.select(next)),
+            title: () => leave(() => flow.title()),
           }),
         );
         if (begin) assembled.controls.begin();

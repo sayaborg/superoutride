@@ -1,5 +1,7 @@
 import type { TextLayer } from '../view/text-layer.js';
-import { createMenu, type Menu } from './menu.js';
+import { createMenu, type Menu, type MenuDefinition } from './menu.js';
+import { formatRaceTime, type RunResult } from './race-status-hud.js';
+import { TEXT_PALETTES } from '../image/text-tiles.js';
 import type { SoftwareSurface } from '../view/software-surface.js';
 import type { Screen } from './screen-host.js';
 import type { MenuCommand } from '../input/menu-input.js';
@@ -53,18 +55,45 @@ export type RunScreenState = ReturnType<typeof createRunScreenState>;
 export interface RunFrame {
   tick(): void;
   draw(): { present(): void };
+  /** The ended run's result. */
+  result(): RunResult;
 }
 
-/** What the PAUSE menu's RETRY and QUIT do; RESUME and BACK resume the run. */
+/** What the PAUSE menu and RESULT lead to; RESUME and BACK on the PAUSE menu resume the run. */
 export interface RunScreenActions {
   /** Assemble the same request again, with a new seed. */
   retry(): void;
-  quit(): void;
+  /** SELECT VEHICLE with the run's selection. */
+  changeVehicle(): void;
+  /** The run's first selection screen with its selection. */
+  select(): void;
+  title(): void;
+}
+
+/** RESULT's lines: the outcome as its title, the rank when there were rivals, race time and a circuit's best lap. */
+function resultMenu(result: RunResult, actions: RunScreenActions): MenuDefinition {
+  const items = Object.freeze([
+    { label: 'RETRY', confirm: () => actions.retry() },
+    { label: 'CHANGE VEHICLE', confirm: () => actions.changeVehicle() },
+    { label: 'SELECT', confirm: () => actions.select() },
+    { label: 'TITLE', confirm: () => actions.title() },
+  ]);
+  return {
+    title: result.outcome,
+    titlePalette: result.outcome === 'GOAL' ? TEXT_PALETTES.YELLOW : TEXT_PALETTES.RED,
+    lines: [
+      ...(result.standing ? [`RANK ${result.standing.rank}/${result.standing.count}`] : []),
+      `TIME ${formatRaceTime(result.raceSeconds)}`,
+      ...(result.bestLapSeconds === null ? [] : [`BEST LAP ${formatRaceTime(result.bestLapSeconds)}`]),
+    ],
+    items: () => items,
+  };
 }
 
 /**
  * The run screen: the race advances only while running, and every frame draws the scene. While paused, the PAUSE menu
- * (RESUME / RETRY / QUIT) is drawn over the stopped frame and takes the menu commands; PAUSE and BACK resume.
+ * (RESUME / RETRY / QUIT) is drawn over the stopped frame and takes the menu commands; PAUSE and BACK resume, and QUIT
+ * goes to TITLE. Once finished, RESULT is drawn over the stopped frame and takes the menu commands.
  */
 export function createRunScreen(
   state: RunScreenState,
@@ -77,10 +106,19 @@ export function createRunScreen(
   const pauseItems = Object.freeze([
     { label: 'RESUME', confirm: resume },
     { label: 'RETRY', confirm: () => actions.retry() },
-    { label: 'QUIT', confirm: () => actions.quit() },
+    { label: 'QUIT', confirm: () => actions.title() },
   ]);
   const pauseMenu = () => createMenu({ title: 'PAUSED', items: () => pauseItems, back: resume });
-  let menu: Menu | null = null;
+  // The menu over the stopped frame: PAUSE's while paused, RESULT's once finished.
+  let menu: Menu | null = null,
+    menuFinished = false;
+  const current = () => {
+    if (!menu || menuFinished !== state.finished) {
+      menuFinished = state.finished;
+      menu = menuFinished ? createMenu(resultMenu(run.result(), actions)) : pauseMenu();
+    }
+    return menu;
+  };
   return {
     get live() {
       return state.live;
@@ -89,20 +127,21 @@ export function createRunScreen(
       if (state.live) run.tick();
     },
     command(command: MenuCommand) {
-      if (state.finished) return;
+      if (state.finished) {
+        current().command(command);
+        return;
+      }
       if (command === 'PAUSE') {
         state.setPaused(!state.paused);
         return;
       }
-      if (!state.paused) return;
-      menu ??= pauseMenu();
-      menu.command(command);
+      if (state.paused) current().command(command);
     },
     render() {
       const drawn = run.draw();
       text.clear();
-      if (state.paused) (menu ??= pauseMenu()).write(text);
-      else menu = null;
+      if (state.live) menu = null;
+      else current().write(text);
       text.draw(frame);
       drawn.present();
     },

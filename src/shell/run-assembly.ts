@@ -8,7 +8,7 @@ import type { BrowserCourseSelection } from './course-selection.js';
 import { loadDeliveredCourse } from '../content/load-delivered-course.js';
 import type { loadVehicleDefinitions } from '../content/vehicle-catalog.js';
 import { createCourseRace } from '../race/course-race.js';
-import { raceStatusText } from './race-status-hud.js';
+import { raceStatusText, runResult } from './race-status-hud.js';
 import type { createCoursePerformanceHud } from './course-performance-hud.js';
 import { resolveCourseSession, type EntryVehicle } from '../race/course-session.js';
 import { rivalPoolPairs } from '../race/free-play-field.js';
@@ -270,6 +270,7 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
   return {
     tick,
     draw,
+    result: () => runResult(active.race),
     controls,
     dispose() {
       controls.dispose();

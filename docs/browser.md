@@ -96,8 +96,12 @@ every delivered course is a DEV one today, so every mode is DARK.
 RESULT follows GOAL or GAME OVER after the RESULT delay, a DEV setting (default 3 s; 0, 1, 2, 3, 5 or 10 s; not
 persisted), which the shell counts in fixed simulation steps after the step that ended the run. Until then the loop,
 the field, rendering and sound continue and PAUSE stays available; a pause stops the count with the simulation.
-Until the RESULT screen exists, RESULT is finishing the run: the race stops, PAUSE is hidden and the status line
-keeps the outcome; rendering changes no screen state. A Session rebuilt by DEV tuning restarts
+At RESULT the run finishes: the race stops, PAUSE is hidden, the status line keeps the outcome, and the RESULT menu
+is drawn over the stopped frame and takes the menu commands. Its title is the outcome, GOAL in yellow or GAME OVER in
+red; its lines are RANK n/m when the Session has rivals, TIME (race time) and, on a circuit, BEST LAP, all derived
+from race facts, the rank by the status line's ranking. Its items are RETRY (the same run again, starting at once with
+a new seed), CHANGE VEHICLE (SELECT VEHICLE with the run's selection), SELECT (the run mode's first selection screen
+with the run's selection) and TITLE; leaving the run ends it. A Session rebuilt by DEV tuning restarts
 the run, clearing `paused` and `finished`, so it drives at once. START resets driving input once. NEW
 SESSION returns to setup.
 
