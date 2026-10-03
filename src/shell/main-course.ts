@@ -23,6 +23,7 @@ import { loadSurfaceSounds } from '../content/surface-sound-catalog.js';
 import { loadAudioSettings } from '../content/audio-catalog.js';
 import { browserStorage, openPlayerRecord } from './player-record.js';
 import { loadTextTiles } from '../content/text-tiles-catalog.js';
+import { loadCourseIndex } from '../content/course-index.js';
 import { createTextLayer } from '../view/text-layer.js';
 
 /** Session parameters a course selection resets; other URL data is kept. */
@@ -51,7 +52,7 @@ async function startPage(): Promise<void> {
     const definitions = await loadVehicleDefinitions(content, await loadEngineSounds(content));
     const { vehicles, driving } = definitions;
     const parameters = new URLSearchParams(location.search);
-    const courses = browserCourses(content.manifest);
+    const courses = browserCourses(await loadCourseIndex(content));
     const series = await loadSeriesCatalog(content, vehicles);
     const player = openPlayerRecord(browserStorage());
     const displaySettings = createDisplaySettings();

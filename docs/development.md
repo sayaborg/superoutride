@@ -160,6 +160,7 @@ format/version. The manifest writer is the only authority for these kinds, IDs a
 | Kind              | ID                                                                                          | Path                                | Content                                                                                                      |
 | ----------------- | ------------------------------------------------------------------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | `course`          | Course file name stem (the course selection key)                                            | `courses/<id>.course.json`          | Course document                                                                                              |
+| `course-index`    | `courses`                                                                                   | `course-index.json`                 | Course index ([Content and gameplay](content-and-gameplay.md#course-index))                                  |
 | `series`          | Series file name stem                                                                       | `series/<id>.series.json`           | Series document ([Content and gameplay](content-and-gameplay.md#series-documents))                           |
 | `image`           | Image SHA-256, `vehicles` for the vehicle sprite library or `text-tiles` for the text tiles | `images/<sha256>.json`              | Compiled course images, the vehicle sprite library and the text tiles                                        |
 | `vehicle`         | Vehicle ID                                                                                  | `vehicles/<id>.json`                | Vehicle mechanics document                                                                                   |
@@ -183,8 +184,7 @@ documents, and for an absent manifest entry a `content_missing` diagnostic namin
 transported bytes are not the ones the build indexed, so it is an integrity failure thrown as `Error`;
 transport and file-read failures propagate unchanged. Each composition loads the material catalog once
 and passes it to the course and the Session vehicle. The manifest itself is the bootstrap index inside the commit-versioned
-build; it cannot contain its own digest. Browser course availability is derived from its course entries;
-labels and known-course ordering remain shell settings until stage 10-5.
+build; it cannot contain its own digest. Browser course selection reads the course index.
 
 Only the manifest writer owns output naming. Browsers, Node consumers, startup smoke and public-site
 verification read indexed content through the shared reader, never by reconstructing output paths.
@@ -192,7 +192,7 @@ Authoring inputs under `content/` still use explicit source filenames and image 
 The browser-tools build writes only `dist/tools`: the bundled tools, the Sprite Tool's PNG example and
 the LOD filter sample. The content build writes `dist/delivery` from authored documents in one pass, in
 dependency order: the vehicle sprite library (compiled LOD and admitted), surface materials, surface sounds (resolved against those materials), audio settings, engine sounds,
-vehicle and driving definitions (admitted against that in-build library and engine-sound catalog), courses and their images, series
+vehicle and driving definitions (admitted against that in-build library and engine-sound catalog), courses and their images, the course index, series
 (admitted against those courses and the vehicle catalog), then reference runs. Each compile stage receives earlier products directly. Reference workers are the exception: until
 15-5 they read this build's saved `dist/delivery`, described below. A course and
 its images are staged only after the course compiles. The build

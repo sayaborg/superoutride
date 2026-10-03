@@ -957,6 +957,16 @@ per-channel RGB difference; ambiguous road runs or missing/tied HUD digits fail.
 calibrated planar pinhole approximation, horizon-based grade and integrated HUD speed. Output records
 frame SHA-256, centers/horizon, HUD mismatch and geometric residuals. Sprites and semantic landmarks are authored observations.
 
+## Course index
+
+The content build delivers one course index (`superoutride.course-index` version 1) so menus can show courses
+without loading them. It lists every compiled course once, in build order (course file name order), as
+`{id, name, type, maxLaps}`: the course ID, the document's display name, the compiled topology type
+(`CIRCUIT`, `LINEAR` or `BRANCH`) and the document's `rules.maxLaps`. Every value comes from the course
+document and its compilation. Admission requires exactly the delivered course entries of the manifest, each once,
+and the document rules for names and laps (only `CIRCUIT` has more than one lap). The first entry is the default
+course.
+
 ## Course loading
 
 All selected-course inputs and generated vehicle/timing data are ready before ticks. The shared

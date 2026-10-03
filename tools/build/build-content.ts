@@ -20,11 +20,12 @@ import { compileVehicleSpriteLibrary } from '../graphics/vehicle-sprite-library.
 import { admit } from '../../src/core/admission.js';
 import { compileTextTiles } from '../../src/image/text-tiles.js';
 import { TEXT_TILES_ID } from '../../src/content/text-tiles-catalog.js';
+import { COURSE_INDEX_ID, courseIndexDocument } from '../../src/content/course-index.js';
 
 /**
  * The content build: every delivered file is compiled from authored documents in dependency order,
  * in one pass: vehicle sprite library, text tiles, materials, surface sounds, audio settings, engine sounds, vehicle and driving definitions, courses and their
- * images, series, then reference runs. Each compile stage receives earlier products directly. Reference workers
+ * images, the course index, series, then reference runs. Each compile stage receives earlier products directly. Reference workers
  * are the exception: they run in separate threads and read this build's saved content until 15-5.
  */
 const content = new URL('../../content/', import.meta.url);
@@ -121,6 +122,7 @@ for (const name of (await readdir(new URL('courses/', content))).sort()) {
   console.log(`${name}: Strip ground compiled`);
   courses.push(compiled);
 }
+await writer.stage('course-index', COURSE_INDEX_ID, courseIndexDocument(courses));
 
 // Every series course is admitted against its compiled course.
 const seriesSources = await sources('series', '.series.json');

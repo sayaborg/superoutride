@@ -4,6 +4,7 @@ import type { CourseDiagnostic } from '../course/course-diagnostics.js';
 /** The kinds of delivered content; the manifest indexes them and missing content names one. */
 export type ContentKind =
   | 'course'
+  | 'course-index'
   | 'series'
   | 'image'
   | 'envelope'

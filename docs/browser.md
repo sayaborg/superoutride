@@ -76,10 +76,10 @@ SESSION returns to setup.
 
 ## Selection and URL parameters
 
-The DEV course buttons map `ribbon-coast` / RIBBON COAST / 1, `ribbon-ring` / RIBBON RING / 2,
-`ribbon-fork` / RIBBON FORK / 3 and `ribbon-rough` / RIBBON ROUGH / 4. Missing or unknown `course` selects the first entry, RIBBON COAST.
-The composition root builds this list once from the delivered manifest, in this order with any other delivered course
-after it labeled by its ID, and passes it to the course selection, the DEV course buttons and the DEV HUD.
+The composition root builds the course list once from the delivered
+[course index](content-and-gameplay.md#course-index), in its order and with its display names, and passes it to the
+course selection, the DEV course buttons and the DEV HUD. The DEV course buttons are numbered 1, 2, … in that order:
+RIBBON COAST, RIBBON FORK, RIBBON RING and RIBBON ROUGH. Missing or unknown `course` selects the first entry, RIBBON COAST.
 A series marked `dev: true` is shown only with DEV; until selection screens exist, these DEV course
 buttons select courses directly. Selecting the loaded course does nothing. Selecting another course, or any course after a failed assembly, requests a
 run of that course with the default Session settings (as if `mode`, `vehicle`, `rivals`, `laps`, `pool` and

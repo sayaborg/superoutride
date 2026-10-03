@@ -22,7 +22,7 @@ export function mountMobileCourseSelector(
     container,
     choices.map((course) => ({
       value: course.id,
-      label: course.buttonLabel ?? course.label,
+      label: course.buttonLabel,
       ariaLabel: `Select ${course.label} course`,
     })),
     activeId,
