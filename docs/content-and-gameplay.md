@@ -965,14 +965,17 @@ The race computes body contact once per fixed step, from the state at the step's
 in the Session (the competitors in competitor order, then the traffic in order of appearance); the force on each holds through that step and enters its vehicle mechanics as
 the external force ([Vehicle physics](vehicle-physics.md#body-contact)). There is no contact during READY. A
 vehicle's contact shape is its footprint laid along the road at its route position (s, l): it does not turn with the
-vehicle's yaw, and height is not compared, so airborne vehicles contact too. For two vehicles with route-coordinate
-differences Δs and Δl:
+vehicle's yaw. Its height range runs from its bottom, its world centre-of-mass height less `desiredCgHeight`, to its
+bottom plus `overallHeight`. For two vehicles with route-coordinate differences Δs and Δl and bottoms B₁ and B₂:
 
 ```text
 overlapS = (L₁ + L₂)/2 − |Δs|     overlapL = (W₁ + W₂)/2 − |Δl|
+overlapH = min(B₁ + H₁, B₂ + H₂) − max(B₁, B₂)
 ```
 
-with overall lengths L and widths W. They are in contact when both are positive; the smaller is the contact axis,
+with overall lengths L, widths W and heights H. They are in contact when all three are positive, so a vehicle in the
+air passes over one below it; the height overlap decides only whether they touch. The smaller of `overlapS` and
+`overlapL` is the contact axis,
 ahead-behind when they are equal. The force acts along the horizontal world direction of that axis, the road's
 tangent or its right, read at the pair's midpoint, with equal magnitude and opposite sign on the two vehicles, and
 its approach speed is their relative world velocity along that direction. The spring-damper uses the Session

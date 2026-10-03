@@ -271,7 +271,7 @@ the top. The touch area does not depend on where the frame is.
 
 Competitors and traffic have physical extent and contact each other, cars and motorcycles included.
 A vehicle's contact shape is its footprint, the overall length by overall width, laid along the road: it
-does not turn with the vehicle's yaw. Two vehicles whose shapes overlap push each other apart along the
+does not turn with the vehicle's yaw. Vehicles at different heights do not contact: a vehicle in the air passes over one below it. Two vehicles whose shapes overlap push each other apart along the
 shallower overlap, ahead-behind or side to side, with equal and opposite forces that act through the ordinary
 vehicle mechanics. Contact never turns a vehicle, never topples a motorcycle, never ends a run by itself and
 causes no damage. Rivals and traffic do not hit other vehicles on purpose. Movable and fixed roadside objects,

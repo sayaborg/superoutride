@@ -29,10 +29,12 @@ export interface ContactBody {
 }
 
 /**
- * The race's body contacts for one fixed step, from the state at the step's start. Every pair whose footprints
- * overlap pushes apart along the shallower overlap: along the road's horizontal tangent when the ahead-behind overlap
- * is the smaller (or equal), else along its horizontal right, both read at the pair's midpoint. Each body receives the
- * spring-damper force on the pair's reduced mass, equal and opposite, summed over its pairs in body order.
+ * The race's body contacts for one fixed step, from the state at the step's start. Every pair whose footprints and
+ * height ranges overlap pushes apart; a vehicle's height range runs from its bottom, its centre-of-mass height less
+ * `desiredCgHeight`, up `overallHeight`. The push acts along the shallower footprint overlap: along the road's
+ * horizontal tangent when the ahead-behind overlap is the smaller (or equal), else along its horizontal right, both read
+ * at the pair's midpoint. Each body receives the spring-damper force on the pair's reduced mass, equal and opposite,
+ * summed over its pairs in body order.
  */
 export function createBodyContacts(coordinates: PlanCoordinateReader, contact: CompiledBodyContact) {
   const sample = createPlanCoordinateSample();
@@ -56,6 +58,10 @@ export function createBodyContacts(coordinates: PlanCoordinateReader, contact: C
         const dl = bv.course.l - av.course.l;
         const overlapL = (am.overallWidth + bm.overallWidth) / 2 - Math.abs(dl);
         if (overlapL <= 0) continue;
+        const aBottom = av.y - am.desiredCgHeight,
+          bBottom = bv.y - bm.desiredCgHeight;
+        if (Math.min(aBottom + am.overallHeight, bBottom + bm.overallHeight) - Math.max(aBottom, bBottom) <= 0)
+          continue;
         const { heading } = coordinates.toWorld(
           (av.course.s + bv.course.s) / 2,
           (av.course.l + bv.course.l) / 2,
