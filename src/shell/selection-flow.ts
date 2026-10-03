@@ -2,6 +2,7 @@ import type { CourseIndex } from '../content/course-index.js';
 import type { CompiledSeries, SeriesCatalog } from '../content/series-catalog.js';
 import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
 import { formPool, RIVAL_POOLS, type RivalPool } from '../race/free-play-field.js';
+import { gridRivalCapacity } from '../race/course-session.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import type { SoftwareSurface } from '../view/software-surface.js';
 import type { TextLayer } from '../view/text-layer.js';
@@ -236,7 +237,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
             () => rivalCount,
             (n) => (rivalCount = n),
             0,
-            SESSION_RULE_LIMITS.rivals,
+            Math.min(SESSION_RULE_LIMITS.rivals, gridRivalCapacity(courseOf(courseId!).gridSlots)),
           ),
           {
             label: 'POOL',

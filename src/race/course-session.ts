@@ -12,6 +12,11 @@ const NO_RANK_LIMITS: Readonly<Record<string, number>> = Object.freeze({});
 
 type GridSlot = CompiledCourse['gates']['grid'][number];
 
+/** The most rivals a grid of `slots` holds: every slot but the player's. */
+export function gridRivalCapacity(slots: number): number {
+  return slots - 1;
+}
+
 /** A Session vehicle with its envelope; the envelope is null only for a DEV-tuned player, whose Session has no rivals. */
 export interface EntryVehicle {
   readonly vehicle: SessionVehicle;
@@ -83,7 +88,7 @@ export function resolveCourseSession(
     throw new RangeError('ARCADE requires a series vehicle');
   if (configuration.lapCount > course.rules.maxLaps)
     throw new RangeError('Lap count exceeds the authored course limit');
-  if (configuration.rivalCount >= course.gates.grid.length)
+  if (configuration.rivalCount > gridRivalCapacity(course.gates.grid.length))
     throw new RangeError('The authored grid cannot hold this field');
   if (configuration.mode === 'ARCADE' && !field.paceSchedule)
     throw new RangeError("ARCADE requires the player vehicle's delivered pace schedule");

@@ -962,12 +962,15 @@ frame SHA-256, centers/horizon, HUD mismatch and geometric residuals. Sprites an
 
 ## Course index
 
-The content build delivers one course index (`superoutride.course-index` version 1) so menus can show courses
+The content build delivers one course index (`superoutride.course-index` version 2) so menus can show courses
 without loading them. It lists every compiled course once, in build order (course file name order), as
-`{id, name, type, maxLaps}`: the course ID, the document's display name, the compiled topology type
-(`CIRCUIT`, `LINEAR` or `BRANCH`) and the document's `rules.maxLaps`. Every value comes from the course
+`{id, name, type, maxLaps, gridSlots}`: the course ID, the document's display name, the compiled topology type
+(`CIRCUIT`, `LINEAR` or `BRANCH`), the document's `rules.maxLaps` and the number of grid slots of its start gate
+(1 to `startGridSlots`). Every value comes from the course
 document and its compilation. Admission requires exactly the delivered course entries of the manifest, each once,
-and the document rules for names and laps (only `CIRCUIT` has more than one lap). The first entry is the default
+and the document rules for names, laps (only `CIRCUIT` has more than one lap) and grid slots. A Session's rivals fit
+the grid: at most its slots less the player's (`gridRivalCapacity`), which Session resolution checks and FREE PLAY
+OPTIONS offers. The first entry is the default
 course.
 
 ## Course loading

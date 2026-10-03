@@ -96,7 +96,8 @@ shows it; MUSIC and EFFECTS have no sound until their buses exist.
   player-depth scale, above its name (manufacturer and model). LEFT and RIGHT change the vehicle and UP and DOWN its
   color, both wrapping around; a series with fixed colors has no color choice. It starts from the player record's
   color for the vehicle, else the vehicle's default color, and CONFIRM saves the chosen color in the player record.
-- OPTIONS: RIVALS (0–15), POOL (ALL, CARS or BIKES; set to the vehicle's form when the vehicle changes) and, on a
+- OPTIONS: RIVALS (0 to the smaller of 15 and the rivals the course's grid holds, from the course index; a course
+  change lowers a larger count), POOL (ALL, CARS or BIKES; set to the vehicle's form when the vehicle changes) and, on a
   course with several laps, LAPS (1 to the course's maximum); LEFT and RIGHT change the value, and START confirms.
 - LAPS: LAPS (1 to the course's maximum) and START.
 

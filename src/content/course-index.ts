@@ -22,10 +22,12 @@ export interface CourseIndexEntry {
   readonly name: string;
   readonly type: CompiledCourse['type'];
   readonly maxLaps: number;
+  /** The grid's slots: how many competitors, the player included, can start from it. */
+  readonly gridSlots: number;
 }
 export type CourseIndex = readonly CourseIndexEntry[];
 
-export const COURSE_INDEX_FORMAT = Object.freeze({ format: 'superoutride.course-index', version: 1 } as const);
+export const COURSE_INDEX_FORMAT = Object.freeze({ format: 'superoutride.course-index', version: 2 } as const);
 /** The course index's manifest ID. */
 export const COURSE_INDEX_ID = 'courses';
 const COURSE_TYPES: readonly CompiledCourse['type'][] = ['CIRCUIT', 'LINEAR', 'BRANCH'];
@@ -39,6 +41,7 @@ export function courseIndexDocument(courses: readonly CompiledCourse[]) {
       name: course.name,
       type: course.type,
       maxLaps: course.rules.maxLaps,
+      gridSlots: course.gates.grid.length,
     })),
   };
 }
@@ -50,10 +53,15 @@ export function readCourseIndex(
   document = '',
 ): AdmissionResult<CourseIndex> {
   return admit(document, () => {
-    const data = readDocument(input, ['format', 'version', 'courses'], COURSE_INDEX_FORMAT.format, 1);
+    const data = readDocument(
+      input,
+      ['format', 'version', 'courses'],
+      COURSE_INDEX_FORMAT.format,
+      COURSE_INDEX_FORMAT.version,
+    );
     const delivered = manifest.files.filter((file) => file.kind === 'course').map((file) => file.id);
     const courses = readIdentified(data.courses, '/courses', (value, at) => {
-      const entry = readRecord(value, at, ['id', 'name', 'type', 'maxLaps']);
+      const entry = readRecord(value, at, ['id', 'name', 'type', 'maxLaps', 'gridSlots']);
       const id = readString(entry.id, `${at}/id`);
       requireAdmission(delivered.includes(id), 'invalid_value', `${at}/id`, `Course ${id} is not delivered`);
       const type = readEnum(entry.type, COURSE_TYPES, `${at}/type`);
@@ -73,7 +81,12 @@ export function readCourseIndex(
         pattern: TEXT_CHARACTERS,
         patternMessage: 'Expected printable ASCII text',
       });
-      return Object.freeze({ id, name, type, maxLaps });
+      const gridSlots = readNumber(entry.gridSlots, `${at}/gridSlots`, {
+        min: 1,
+        max: COURSE_DOCUMENT_LIMITS.startGridSlots,
+        integer: true,
+      });
+      return Object.freeze({ id, name, type, maxLaps, gridSlots });
     });
     requireAdmission(
       courses.length === delivered.length,
