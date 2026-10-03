@@ -904,6 +904,9 @@ lanes it overlaps where it is and the lane it is heading for: it is in a lane fo
 the lateral it is heading for lies nearer that lane's centre at its station than half the two vehicles' widths. One
 test decides this for the vehicle ahead, free lanes and appearances. The vehicle ahead in a driver's lane is the
 nearest one ahead in that lane.
+Drivers decide in turn, the competitors in competitor order and then the traffic in order of appearance; a driver that
+moves to another lane heads for it in the list at once, so drivers deciding later in the same step see the move, while
+positions and speeds stay as at the step's start.
 It is a constraint of the driver's plan, braked back like a curve speed: with the gap Δs to it, its speed `v_a`, the
 driver's speed `v` and planning braking `a`,
 

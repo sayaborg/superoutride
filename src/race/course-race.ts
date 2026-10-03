@@ -1,4 +1,5 @@
 import type { ResolvedCourseSession, SessionEntry } from './course-session.js';
+import type { Writable } from '../core/writable.js';
 import { createCheckpointClock, raceEventSeconds } from './checkpoint-clock.js';
 import { rankRaceProgress } from './race-ranking.js';
 import { enumerateCourseRoutes } from '../course/compiler/course-routes.js';
@@ -357,11 +358,13 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   // A driver's input this step: its plan, which the vehicle ahead in its lane constrains, then that plan's input. When
   // the vehicle ahead lowers the plan, a driver that changes lanes moves to the free adjacent lane where its plan allows
   // the most speed, if that beats its own lane by more than the deadzone, and drives that speed in its new lane (a new
-  // lane function, since the driver caches by lane); otherwise it follows.
+  // lane function, since the driver caches by lane); otherwise it follows. A move rewrites the lateral the driver's
+  // sighting is heading for at once, so drivers deciding later in the same step see it; position and speed keep their
+  // values from the step's start.
   const drive = (
     driven: {
       readonly vehicle: VehicleState;
-      readonly sighting: VehicleSighting;
+      readonly sighting: Writable<VehicleSighting>;
       readonly driverWorkspace: ReturnType<typeof createEnvelopeDriverWorkspace>;
       input: (s: number) => number;
     },
@@ -385,6 +388,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       );
       if (moved !== null) {
         driven.input = (s: number) => forks.targetL(s, intent);
+        driven.sighting.target = driven.input(driven.sighting.s);
         targetSpeed = moved;
       }
     }
