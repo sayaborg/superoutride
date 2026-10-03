@@ -625,8 +625,8 @@ counts; an exact tie in event time goes to the player.
 
 The race and clock publish facts only, never display text or display durations. The race exposes one run status
 (WAITING and READY from the start phase, then RUNNING, GOAL or GAME_OVER from the run outcome) and the GAME OVER
-cause, and the countdown to GO: the seconds until GO (3 while WAITING, 0 from GO) and the signal lamps lit, the
-remaining seconds rounded up (3, 2, 1, then 0 at GO), which the product HUD draws; the clock exposes race time, the deadline in race time
+cause, and the countdown to GO: the seconds until GO (3 while WAITING, 0 from GO) and the signal lamps lit: one as
+READY begins and one more each second (1, 2, 3), none while WAITING or from GO, which the product HUD draws; the clock exposes race time, the deadline in race time
 (null without a time limit) and the last extension: its awarded amount and the race time of the checkpoint that
 earned it. The race exposes each competitor's progress (route s,
 accepted finish count, status and next race line), finish time and, on a CIRCUIT, the race time its current lap

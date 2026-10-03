@@ -239,17 +239,24 @@ independent elements, each with its condition and what it writes; the table alon
 Session's rules (the clock, the course type) and race facts (others present, the next gate's rank limit, the stage
 rival ahead). Another table holds every element's place in the 40×30 grid, so moving one changes only its numbers.
 
-| Rows  | Elements                                                                                     |
-| ----- | -------------------------------------------------------------------------------------------- |
-| 1–2   | TIME and the remaining seconds (rounded up), race time, POS n/m, STAGE n                     |
-| 4–5   | LAP x/y and the lap's time, BEST and the best lap (`-'--"---` before one), PASS n, TARGET nM |
-| 27–28 | The gear and the speed in km/h with `KM/H`                                                   |
+| Rows  | Elements                                                                                                           |
+| ----- | ------------------------------------------------------------------------------------------------------------------ |
+| 1–2   | TIME and the remaining seconds (rounded up), race time, POS n/m, STAGE n                                           |
+| 4–5   | LAP x/y and the lap's time, BEST and the best lap (`-'--"---` before one), PASS n, TARGET nM                       |
+| 7     | `EXTEND +12"0` (seconds and tenths), yellow, while TIME is yellow after an extension                               |
+| 10–11 | Before GO: the course's display name and the mode                                                                  |
+| 13–14 | Three 2×2-tile signal lamps: before GO the race's lamps lit are red and the rest unlit; all green for 1 s after GO |
+| 16–17 | From the ending until RESULT: GOAL (yellow), or GAME OVER (red) with TIME UP or RANK OUT                           |
+| 27–28 | The gear and the speed in km/h with `KM/H`                                                                         |
+
+Rows 8 to 24, the road and the player's vehicle, hold only these passing notices. While the PAUSE menu or RESULT is
+over the frame, the notices in rows 7 to 17 are not drawn; the upper and lower rows stay.
 
 Durations come from race facts, never from wall-clock time or HUD timers, so a pause stops them: TIME is yellow
 while race time is at most 2 s after an extension's race time, and red otherwise under 10 s remaining; a finished
 lap's time holds in yellow for 2 s of race time after the lap; the gear is yellow for 0.3 s of the race's
 simulation time (every advanced step, READY and after the ending included) after the shift the race stamped.
-Other text is white. These lengths sit in one constant.
+The signal lamps are green for 1 s of race time after GO. Other text is white. These lengths sit in one constant.
 
 ## Race status
 

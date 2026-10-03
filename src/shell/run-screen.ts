@@ -54,7 +54,7 @@ export type RunScreenState = ReturnType<typeof createRunScreenState>;
 /** A run's step and frame: the frame draws the scene, then its HUD is written, then it presents after the text. */
 export interface RunFrame {
   tick(): void;
-  draw(): { writeHud(text: TextLayer): void; present(): void };
+  draw(): { writeHud(text: TextLayer, menu: boolean): void; present(): void };
   /** The ended run's result. */
   result(): RunResult;
 }
@@ -140,7 +140,7 @@ export function createRunScreen(
     render() {
       const drawn = run.draw();
       text.clear();
-      drawn.writeHud(text);
+      drawn.writeHud(text, !state.live);
       if (state.live) menu = null;
       else current().write(text);
       text.draw(frame);

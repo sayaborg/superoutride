@@ -7,8 +7,9 @@ export const READY_SECONDS = 3;
 export type StartStatus = 'WAITING' | 'READY' | 'GO';
 
 /**
- * The one owner of the state before GO, outside race time. GO falls on the step boundary nearest READY_SECONDS. The
- * signal lamps lit are the remaining seconds rounded up: all READY_SECONDS of them until the hold begins, none at GO.
+ * The one owner of the state before GO, outside race time. GO falls on the step boundary nearest READY_SECONDS. One
+ * signal lamp lights as the hold begins and one more each second, up to READY_SECONDS; none is lit while WAITING or
+ * from GO.
  */
 export function createStartPhase() {
   let status: StartStatus = 'WAITING';
@@ -22,9 +23,9 @@ export function createStartPhase() {
     get remainingSeconds() {
       return status === 'GO' ? 0 : remainingSeconds();
     },
-    /** Signal lamps lit, from READY_SECONDS down to 0 at GO. */
+    /** Signal lamps lit: 1, 2 and up to READY_SECONDS during READY, one more each second; 0 while WAITING and from GO. */
     get signalLamps() {
-      return status === 'GO' ? 0 : Math.ceil(remainingSeconds());
+      return status === 'READY' ? READY_SECONDS - Math.ceil(remainingSeconds()) + 1 : 0;
     },
     begin() {
       if (status === 'WAITING') status = 'READY';

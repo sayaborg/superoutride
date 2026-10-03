@@ -215,6 +215,8 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
     }
   };
   // The scene is drawn first; presenting follows the run screen's text.
+  // The Session's course and mode, which the HUD shows during READY.
+  const session = { courseName: course.name, mode: settings.mode };
   const draw = () => {
     const { scene, race, tuned } = active;
     const started = performance.now(),
@@ -231,7 +233,8 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
     );
     const renderMilliseconds = performance.now() - renderStarted;
     return {
-      writeHud: (text: TextLayer) => writeHud({ race, player: observations.player }, text),
+      writeHud: (text: TextLayer, menu: boolean) =>
+        writeHud({ race, player: observations.player, session }, text, menu),
       present() {
         const { player } = observations;
         shell.updateAudio(player, observations.rivals);
