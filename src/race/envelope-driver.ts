@@ -16,6 +16,23 @@ export const ENVELOPE_DRIVER = Object.freeze({
   responseSeconds: 0.45,
   terminalClearance: 2,
   speedDeadzone: 0.15,
+  /** Metres: the steering target's least distance ahead, which holds at low speed. */
+  minimumLookahead: 8,
+  /** Metres: the least chord a curvature cell divides its heading change by. */
+  minimumCurvatureChord: 0.01,
+  /** Fixed-point iterations of a cell's curve speed, whose lateral limit depends on the speed itself. */
+  curveSpeedIterations: 4,
+  /** Fixed-point iterations of the planned speed at a station, and their tolerance in m/s. */
+  plannedSpeedIterations: 16,
+  plannedSpeedTolerance: 1e-6,
+  /** m/s: the least forward speed the travel direction is taken from. */
+  travelYawMinimumSpeed: 0.1,
+  /** Metres: the least distance to the steering target. */
+  minimumTargetDistance: 1,
+  /** m/s: the least speed whose square scales the pursuit's lateral demand. */
+  steeringDemandMinimumSpeed: 5,
+  /** m/s: the least speed the steering gain is read at. */
+  steeringGainMinimumSpeed: 5,
 });
 
 export function envelopeAt(
@@ -133,7 +150,8 @@ function plannedTargetSpeed(
       }
       const b = coordinates.toWorld(bS, typeof targetL === 'number' ? targetL : targetL(bS), workspace.b);
       const curvature =
-        Math.abs(wrapAngle(b.heading - previousHeading)) / Math.max(0.01, Math.hypot(b.x - previousX, b.z - previousZ));
+        Math.abs(wrapAngle(b.heading - previousHeading)) /
+        Math.max(ENVELOPE_DRIVER.minimumCurvatureChord, Math.hypot(b.x - previousX, b.z - previousZ));
       previousS = bS;
       previousX = b.x;
       previousZ = b.z;
@@ -146,7 +164,7 @@ function plannedTargetSpeed(
       const curvature = workspace.curvatures[index]!;
       let curveSpeed = speedCap;
       if (curvature >= MIN_DRIVER_CURVATURE_PER_METER)
-        for (let iteration = 0; iteration < 4; iteration++)
+        for (let iteration = 0; iteration < ENVELOPE_DRIVER.curveSpeedIterations; iteration++)
           curveSpeed = Math.min(
             speedCap,
             Math.sqrt((utilization * envelopeAt(envelope, curveSpeed, workspace.row).lateral) / curvature),
@@ -181,9 +199,9 @@ export function plannedEnvelopeSpeed(
 ): number {
   const workspace = createEnvelopeDriverWorkspace();
   let speed = driver.speedCap;
-  for (let iteration = 0; iteration < 16; iteration++) {
+  for (let iteration = 0; iteration < ENVELOPE_DRIVER.plannedSpeedIterations; iteration++) {
     const next = plannedTargetSpeed(coordinates, s, speed, driver, targetL, workspace, domain);
-    if (Math.abs(next - speed) < 1e-6) return next;
+    if (Math.abs(next - speed) < ENVELOPE_DRIVER.plannedSpeedTolerance) return next;
     speed = next;
   }
   return speed;
@@ -201,21 +219,31 @@ export function sampleEnvelopeDrivingInput(
   const speed = Math.hypot(car.longitudinalSpeed, car.lateralSpeed);
   const { envelope } = driver;
   const targetSpeed = plannedTargetSpeed(coordinates, s, speed, driver, targetL, workspace, domain);
-  const lookahead = Math.min(ENVELOPE_DRIVER.lookahead, Math.max(8, speed * ENVELOPE_DRIVER.responseSeconds));
+  const lookahead = Math.min(
+    ENVELOPE_DRIVER.lookahead,
+    Math.max(ENVELOPE_DRIVER.minimumLookahead, speed * ENVELOPE_DRIVER.responseSeconds),
+  );
   const targetS = clamp(s + lookahead, domain.start, domain.end);
   const target = coordinates.toWorld(
     targetS,
     typeof targetL === 'number' ? targetL : targetL(targetS),
     workspace.target,
   );
-  const travelYaw = car.yaw + Math.atan2(car.lateralSpeed, Math.max(0.1, car.longitudinalSpeed));
+  const travelYaw =
+    car.yaw + Math.atan2(car.lateralSpeed, Math.max(ENVELOPE_DRIVER.travelYawMinimumSpeed, car.longitudinalSpeed));
   const angle = wrapAngle(Math.atan2(target.x - car.x, target.z - car.z) - travelYaw);
-  const distance = Math.max(1, Math.hypot(target.x - car.x, target.z - car.z));
-  const acceleration = (2 * Math.sin(angle) * Math.max(25, speed ** 2)) / distance;
+  const distance = Math.max(ENVELOPE_DRIVER.minimumTargetDistance, Math.hypot(target.x - car.x, target.z - car.z));
+  const acceleration =
+    (2 * Math.sin(angle) * Math.max(ENVELOPE_DRIVER.steeringDemandMinimumSpeed ** 2, speed ** 2)) / distance;
   const steering =
     car.longitudinalSpeed <= 0
       ? 0
-      : clamp(acceleration / envelopeAt(envelope, Math.max(speed, 5), workspace.row).steeringGain, -1, 1);
+      : clamp(
+          acceleration /
+            envelopeAt(envelope, Math.max(speed, ENVELOPE_DRIVER.steeringGainMinimumSpeed), workspace.row).steeringGain,
+          -1,
+          1,
+        );
   workspace.input.steering = steering;
   workspace.input.throttle = speed < targetSpeed - ENVELOPE_DRIVER.speedDeadzone;
   workspace.input.brake = targetSpeed === 0 || speed > targetSpeed + ENVELOPE_DRIVER.speedDeadzone;
