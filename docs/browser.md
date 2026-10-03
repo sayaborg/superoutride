@@ -11,7 +11,7 @@ the frame size's only authority: every frame is made by `createLogicalFrame`, an
 projection centre is the frame centre. The frame stores RGB555; each presented frame is expanded to the
 canvas's RGBA through one 32,768-entry table. A shared driving scene supplies the game and headless
 previews. All selected course, image, ground and Session inputs are ready before driving starts. A
-failed run assembly displays its reason and Retry without reloading the page; an incomplete Session stays inactive.
+failed run assembly shows LOAD FAILED in the frame without reloading the page; an incomplete Session stays inactive.
 
 The page is laid out by CSS alone. The frame keeps 4:3 without interpolation: in landscape it fills the height of the
 safe area and is centered; in portrait it spans the width at the top. The touch area is the whole viewport wherever
@@ -43,8 +43,8 @@ asynchronous and one runs at a time: a request made during an assembly is ignore
 request first disposes of the current run, removing the listeners and DOM it added, then loads the next. A new run
 starts from delivered content, so DEV driving tuning and its displayed values return to the delivered definition.
 Sound, input, fullscreen, the DEV sound settings, the ground display method, the DEV camera adjustment and the
-RESULT delay belong to the page and persist. A failed assembly leaves no run and shows LOAD FAILED, with its reason
-and Retry outside the frame.
+RESULT delay belong to the page and persist. A failed assembly leaves no run and shows LOAD FAILED; its reason goes to
+the console and, with `dev=1`, outside the frame with Retry.
 
 ## Screens
 
@@ -59,8 +59,10 @@ input suspension and activates audio; stopped suspends input (which resets it) a
 The loading screen shows `LOADING` on the plain background while a run is assembled. After a failed assembly the
 LOAD FAILED screen shows `LOAD FAILED` in red with RETRY, which requests the same run again, and BACK, which returns to
 the screen that requested it: the last selection screen, or TITLE for a run the URL or a DEV control requested. The
-reason appears only in the console and the status element outside the frame, since it may hold characters without
-text tiles. The run screen holds the run and its state: running, paused (manual PAUSE)
+reason is not drawn, since it may hold characters without text tiles: it goes to the console and, with `dev=1`, to a
+status element outside the frame, which also shows `Loading course…` while a run loads. Without `dev=1` nothing shows
+outside the frame, except when the page itself cannot start (its content or text tiles cannot load, so the frame
+cannot draw text): then its reason and a Retry that reloads the page show outside the frame. The run screen holds the run and its state: running, paused (manual PAUSE)
 or finished (the Session reached RESULT). The run runs only while neither holds: paused and finished advance no race,
 and driving input and sound stop, so the DEV vehicle HUD shows neutral input and no touch indicator is drawn. Every
 frame still draws the scene. While paused, the PAUSE menu is drawn over the stopped frame, which is first halved to
@@ -272,7 +274,7 @@ The signal lamps are green for 1 s of race time after GO. Other text is white. T
 The status line derives its text from race facts alone
 ([race time and events](content-and-gameplay.md#race-time-and-events)); the race holds no display state.
 Manual pause shows the PAUSE menu in the frame's [text layer](architecture.md#text-layer), not in the
-status line. A Session rebuilt by DEV tuning prefixes `TUNED · `. Otherwise:
+status line. Otherwise:
 
 - GOAL or GAME OVER shows `GOAL` or `GAME OVER`, the position and the race time; GAME OVER reads the same
   whatever its cause, as RESULT shows only the outcome ([product](product.md#6-flow-and-screens)).
@@ -354,8 +356,8 @@ budget A, PEDAL, TIRE, ENGINE with ASSIST), read from the tuned definition; RIVA
 tuned Session has no rivals: its values take effect once the exported definition is adopted as content. An admitted adjustment rebuilds the
 Session through the same assembly as startup: a new Session vehicle with the same vehicle definition and materials
 drives the tuned definition, in a FREE PLAY Session with no rivals, the current lap count, no time limit, start speed 0
-and no envelope or time budgets, on a new Route runtime from the grid. It enters READY → GO at once, and the Session
-status reads `TUNED`. The shell, its input, audio, camera device and DEV controls persist, and the shell keeps the
+and no envelope or time budgets, on a new Route runtime from the grid. It enters READY → GO at once, and the DEV vehicle HUD's
+first line starts with `TUNED · `; the product HUD never shows it. The shell, its input, audio, camera device and DEV controls persist, and the shell keeps the
 tuned definition for further adjustments and export. Reloading the page restores the product Session. EXPORT saves the tuned
 driving definition (`default.json`) and the Session vehicle's definition (`<vehicle id>.json`) as browser downloads in the saved layout;
 its `audio/default.json` button (音の設定を書き出す) saves the DEV sound panels' current values as the

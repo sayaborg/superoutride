@@ -33,10 +33,14 @@ import { createTextLayer } from '../view/text-layer.js';
  */
 async function startPage(): Promise<void> {
   const canvas = mustGet<HTMLCanvasElement>('game');
-  const status = document.createElement('p');
-  status.setAttribute('role', 'status');
-  status.textContent = 'Loading course…';
-  canvas.insertAdjacentElement('afterend', status);
+  // Text outside the frame: the product shows LOADING and LOAD FAILED inside it, so this appears only with DEV, or when
+  // the page itself cannot start and the frame cannot draw text.
+  const createStatus = () => {
+    const element = document.createElement('p');
+    element.setAttribute('role', 'status');
+    canvas.insertAdjacentElement('afterend', element);
+    return element;
+  };
 
   try {
     // The page lifetime: delivered content, catalogs, settings and browser devices are created once.
@@ -56,6 +60,8 @@ async function startPage(): Promise<void> {
       const template = mustGet<HTMLTemplateElement>('dev-panel-template');
       template.replaceWith(template.content.cloneNode(true));
     }
+    // With DEV, a loading run and a failure's reason with Retry also show outside the frame.
+    const status = dev ? createStatus() : null;
     const courseIndex = await loadCourseIndex(content);
     const courses = browserCourses(courseIndex);
     const series = await loadSeriesCatalog(content, vehicles);
@@ -111,15 +117,16 @@ async function startPage(): Promise<void> {
     // One assembly runs at a time; a request made while one runs is ignored. A failure leaves no run and shows LOAD
     // FAILED.
     let assembling = false;
-    // A run that could not be requested or assembled shows LOAD FAILED with RETRY and BACK, and its reason with Retry
-    // outside the frame.
+    // A run that could not be requested or assembled shows LOAD FAILED with RETRY and BACK; its reason goes to the
+    // console and, with DEV, outside the frame with Retry.
     const fail = (error: unknown, retryRun: () => void, back: () => void) => {
       console.error('Course could not start', error);
       const leave = () => {
-        status.hidden = true;
+        if (status) status.hidden = true;
         back();
       };
       host.show(createLoadFailedScreen(shell.framebuffer, textLayer, present, { retry: retryRun, back: leave }));
+      if (!status) return;
       const retry = document.createElement('button');
       retry.textContent = 'Retry';
       retry.onclick = retryRun;
@@ -144,13 +151,15 @@ async function startPage(): Promise<void> {
       run = null;
       host.show(loading);
       raceStatus.textContent = '';
-      status.replaceChildren('Loading course…');
-      status.hidden = false;
+      if (status) {
+        status.replaceChildren('Loading course…');
+        status.hidden = false;
+      }
       try {
         const state = createRunScreenState(() => host.refresh());
         const assembled = await assembleRun(page, next, state);
         run = assembled;
-        status.hidden = true;
+        if (status) status.hidden = true;
         host.show(
           createRunScreen(state, assembled, shell.framebuffer, textLayer, {
             retry: () => void request(next, back),
@@ -210,12 +219,11 @@ async function startPage(): Promise<void> {
       }
     };
     if (named) urlRequest(named.id);
-    else {
-      status.hidden = true;
-      flow.title();
-    }
+    else flow.title();
   } catch (error) {
+    // The page itself could not start: the frame cannot draw text, so its reason and a reload show outside it.
     console.error('Course could not start', error);
+    const status = createStatus();
     status.textContent = `Course could not start: ${error instanceof Error ? error.message : String(error)} `;
     const retry = document.createElement('button');
     retry.textContent = 'Retry';

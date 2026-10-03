@@ -123,10 +123,12 @@ export function drawVehicleDebugHud(
   model: VehicleModel,
   driving: DrivingDefinition,
   entry: CompiledVehicleDefinition,
+  tuned: boolean,
 ): void {
   const hud = createVehicleDebugHudModel(courses, activeCourseId, input, vehicle, model, driving, entry);
   const lines = [
-    `SUPER OUTRIDE ${hud.courseSelector}`,
+    // A Session rebuilt by DEV tuning is marked here, never in the product HUD.
+    `${tuned ? 'TUNED · ' : ''}SUPER OUTRIDE ${hud.courseSelector}`,
     hud.vehicleDisplay,
     hud.steeringTuning,
     hud.pedalTuning,

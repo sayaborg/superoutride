@@ -272,6 +272,7 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
                   model,
                   devControls.driving,
                   devControls.definition,
+                  tuned,
                 );
                 if (player.form === 'bike')
                   drawVehicleLeanDebug(ctx, result.playerScreenX, result.playerScreenY, player);
@@ -279,7 +280,7 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
               }
             : undefined,
         );
-        raceStatus.textContent = raceStatusText(race, { tuned });
+        raceStatus.textContent = raceStatusText(race);
         performanceHud?.frame(started, result.stripGround, renderMilliseconds);
       },
     };

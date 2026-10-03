@@ -26,9 +26,11 @@ for (let attempt = 1; attempt <= 10; attempt++) {
     const content = await loadContentManifest(new URL(`build/${sha}/delivery/`, root));
     for (const entry of content.manifest.files) await content.bytes(entry.kind, entry.id);
     userDataDirectory = await mkdtemp(path.join(tmpdir(), 'superoutride-startup-'));
-    // A URL that names a course starts its run directly; the first indexed course is the default.
+    // A URL that names a course starts its run directly; the first indexed course is the default. DEV adds the
+    // performance HUD, which only rendered frames fill.
     const page = new URL(root);
     page.searchParams.set('course', (await loadCourseIndex(content))[0]!.id);
+    page.searchParams.set('dev', '1');
     page.searchParams.set('verify', sha);
     const { stdout } = await run(
       process.env.CHROME_BIN ?? 'google-chrome',
@@ -45,8 +47,8 @@ for (let attempt = 1; attempt <= 10; attempt++) {
       ],
       { timeout: 60000, maxBuffer: 4 * 1024 * 1024 },
     );
-    // The Session output is populated by the first completed shared-scene render, not static HTML.
-    const status = stdout.match(/<output\b[^>]*aria-label="Session status"[^>]*>([\s\S]*?)<\/output>/)?.[1];
+    // The performance HUD is filled by rendered frames of the shared scene, not static HTML.
+    const status = stdout.match(/<output\b[^>]*aria-label="Course performance"[^>]*>([\s\S]*?)<\/output>/)?.[1];
     assert.ok(status && status.trim(), 'Published game did not reach its first rendered Session frame');
     console.log(
       JSON.stringify({

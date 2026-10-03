@@ -20,8 +20,8 @@ export function formatRaceTime(seconds: number): string {
 }
 
 /** The Session status line, derived from race facts only. */
-export function raceStatusText(race: CourseRace, { tuned = false }: { readonly tuned?: boolean } = {}): string {
-  return `${tuned ? 'TUNED · ' : ''}${raceText(race)}`;
+export function raceStatusText(race: CourseRace): string {
+  return raceText(race);
 }
 
 /** What RESULT shows of an ended run, derived from race facts only. */
