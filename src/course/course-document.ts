@@ -290,15 +290,19 @@ function stripLeaf(value: unknown, path: string): Exclude<StripElementDocument, 
   }
   if (kind === 'text') {
     const v = readRecord(value, path, ['kind', 'at', 'lateral', 'text', 'height', 'color']);
-    if (
-      typeof v.text !== 'string' ||
-      !/^[A-Z0-9 ]+$/.test(v.text) ||
-      v.text.length > COURSE_DOCUMENT_LIMITS.textCodeUnits
-    )
+    // A wrong type is a shape error; a string outside the character set is a value error.
+    if (typeof v.text !== 'string') throw new CourseInputError('invalid_shape', `${path}/text`, 'Expected a string');
+    if (v.text.length > COURSE_DOCUMENT_LIMITS.textCodeUnits)
       throw new CourseInputError(
-        'invalid_shape',
+        'resource_limit',
         `${path}/text`,
-        `Strip text supports 1–${COURSE_DOCUMENT_LIMITS.textCodeUnits} uppercase ASCII letters, digits or spaces`,
+        `Strip text exceeds ${COURSE_DOCUMENT_LIMITS.textCodeUnits} code units`,
+      );
+    if (!/^[A-Z0-9 ]+$/.test(v.text))
+      throw new CourseInputError(
+        'invalid_value',
+        `${path}/text`,
+        'Strip text supports one or more uppercase ASCII letters, digits or spaces',
       );
     return Object.freeze({
       kind,
