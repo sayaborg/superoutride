@@ -1,7 +1,13 @@
 import type { CourseIndex } from '../content/course-index.js';
 import type { CompiledSeries, SeriesCatalog } from '../content/series-catalog.js';
-import { FREE_PLAY_TRAFFIC_LEVELS, SESSION_RULE_LIMITS, type FreePlayTraffic } from '../course/session-rules.js';
-import { formPool, RIVAL_POOLS, type RivalPool } from '../race/free-play-field.js';
+import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
+import {
+  formPool,
+  FREE_PLAY_TRAFFIC_LEVELS,
+  RIVAL_POOLS,
+  type FreePlayTraffic,
+  type RivalPool,
+} from '../race/free-play-field.js';
 import { gridRivalCapacity } from '../race/course-session.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import type { SoftwareSurface } from '../view/software-surface.js';

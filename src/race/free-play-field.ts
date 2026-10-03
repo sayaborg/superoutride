@@ -6,6 +6,16 @@ import { mix } from './rival-exit.js';
 export const RIVAL_POOLS = ['ALL', 'CARS', 'BIKES'] as const;
 export type RivalPool = (typeof RIVAL_POOLS)[number];
 
+/** The FREE PLAY TRAFFIC choices; OFF has none. */
+export const FREE_PLAY_TRAFFIC_LEVELS = ['OFF', 'LOW', 'HIGH'] as const;
+export type FreePlayTraffic = (typeof FREE_PLAY_TRAFFIC_LEVELS)[number];
+
+/** FREE PLAY traffic is the same on every course: its density (vehicles/km) and speed fraction, drawn from every vehicle. */
+export const FREE_PLAY_TRAFFIC = Object.freeze({
+  LOW: Object.freeze({ density: 5, speed: 0.45 }),
+  HIGH: Object.freeze({ density: 15, speed: 0.45 }),
+});
+
 /** A vehicle in one of its colors. */
 export interface VehicleColor {
   readonly vehicle: string;

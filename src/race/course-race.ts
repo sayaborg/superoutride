@@ -18,7 +18,7 @@ import {
 } from './recovery.js';
 import { createBodyContacts, footprintsOverlap, type RouteFootprint } from './body-contacts.js';
 import { createLaneFollowing, type LaneIntent, type VehicleSighting } from './lane-following.js';
-import { createTrafficPositions, trafficDraw } from './traffic.js';
+import { createTrafficField, type TrafficMotion } from './traffic.js';
 import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
 import { createRivalPace } from './rival-pace.js';
 import {
@@ -58,23 +58,6 @@ export interface RaceEvent {
 interface Body {
   readonly vehicle: VehicleState;
   readonly model: VehicleModel;
-}
-/** One traffic vehicle: its mechanics, recovery and driver, its sighting and contact force, and its observation. */
-interface TrafficMotion extends Body {
-  readonly id: string;
-  readonly intent: LaneIntent;
-  readonly driver: EnvelopeDriver;
-  readonly driverWorkspace: ReturnType<typeof createEnvelopeDriverWorkspace>;
-  input: (s: number) => number;
-  readonly contactForce: { x: number; y: number; z: number };
-  readonly sighting: { s: number; l: number; length: number; width: number; speed: number };
-  readonly step: {
-    readonly state: RecoveryState;
-    input: DrivingInput;
-    readonly place: (s: number) => RecoveryTarget;
-    readonly externalForce: { readonly x: number; readonly y: number; readonly z: number };
-  };
-  readonly observation: CompetitorObservation;
 }
 interface Actor {
   readonly vehicle: VehicleState;
@@ -234,8 +217,6 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   });
   // The competitors present in the Session, the player first, in competitor order.
   let active = motions.filter((motion) => motion.c.present);
-  // The traffic present, in order of appearance.
-  const traffic: TrafficMotion[] = [];
   // Every vehicle present: the present competitors, then the traffic. Contacts, sightings and placement read it.
   const bodies: (Body & {
     readonly sighting: VehicleSighting;
@@ -245,7 +226,6 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     bodies.length = 0;
     bodies.push(...active, ...traffic);
   };
-  refreshBodies();
   // Drivers follow and change lanes over the race's sightings of the present vehicles.
   const follow = createLaneFollowing(forks);
   const sightings: VehicleSighting[] = [];
@@ -400,67 +380,25 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       speedLimit,
     );
   };
-  // Traffic appears at its positions as the appearance line, the farthest rendered station ahead of the player,
-  // reaches them, at most `trafficLimit` at once, and leaves once out of view.
+  // The traffic field owns traffic appearance, holding and departure; the race supplies what it shares.
   const appearanceLine = () => player.actor.vehicle.course.s - view.cameraDistance + view.far;
-  const trafficPositions =
-    options.session.traffic && createTrafficPositions(options.session.traffic, configuration.seed, appearanceLine());
-  const trafficLimit = Math.min(SESSION_RULE_LIMITS.traffic, SESSION_RULE_LIMITS.vehicles - competitors.length);
-  const updateTraffic = () => {
-    if (!trafficPositions) return;
-    const before = traffic.length;
-    for (let i = traffic.length - 1; i >= 0; i -= 1) if (outOfView(traffic[i]!.vehicle.course.s)) traffic.splice(i, 1);
-    let changed = traffic.length !== before;
-    const { seed } = configuration;
-    const { candidates } = options.session.traffic!;
-    trafficPositions.pass(appearanceLine(), (position, s) => {
-      // A position passes unused when the traffic is full, the Route does not reach it yet or its place is occupied.
-      if (traffic.length >= trafficLimit || !runtime.window.at(s)) return;
-      const candidate = candidates[trafficDraw(seed, 'vehicle', position, candidates.length)]!;
-      const model = modelOf(candidate.vehicle);
-      const intent: LaneIntent = {
-        lane: 0,
-        exit: (occurrence) =>
-          trafficDraw(seed, 'exit', position, occurrence.section.fork!.exits.length, occurrence.ordinal),
-      };
-      intent.lane = trafficDraw(seed, 'lane', position, forks.targetCarriageway(s, intent.exit).road.lanes);
-      const lane = (station: number) => forks.targetL(station, intent);
-      const l = lane(s);
-      if (occupant(model, s, l)) return;
-      const speed = plannedEnvelopeSpeed(runtime.readers.coordinates, s, candidate.driver, lane, runtime.window);
-      const vehicle = createVehicle(model, runtime.readers, { s, l, initialSpeed: speed });
-      const contactForce = { x: 0, y: 0, z: 0 };
-      const id = `TRAFFIC_${String(position + 1).padStart(4, '0')}`;
-      const color = candidate.colors[trafficDraw(seed, 'color', position, candidate.colors.length)]!;
-      const motion: TrafficMotion = {
-        id,
-        vehicle,
-        model,
-        intent,
-        driver: candidate.driver,
-        driverWorkspace: createEnvelopeDriverWorkspace(),
-        input: lane,
-        contactForce,
-        sighting: { s: 0, l: 0, length: 0, width: 0, speed: 0 },
-        step: {
-          state: createRecoveryState(vehicle),
-          input: idle,
-          place: (station: number) => vacantPlace(motion, station, (at) => forks.recoveryL(at, intent)),
-          externalForce: contactForce,
-        },
-        observation: createCompetitorObservation(
-          id,
-          candidate.vehicle.vehicleDefinition.compiledVehicle.id,
-          color,
-          candidate.vehicle.vehicleDefinition.form,
-        ),
-      };
-      traffic.push(motion);
-      writeCompetitorObservation(motion.observation, vehicle, model, idle, simulationSeconds);
-      changed = true;
-    });
-    if (changed) refreshBodies();
-  };
+  const trafficField = createTrafficField({
+    traffic: options.session.traffic,
+    seed: configuration.seed,
+    limit: Math.min(SESSION_RULE_LIMITS.traffic, SESSION_RULE_LIMITS.vehicles - competitors.length),
+    runtime,
+    forks,
+    modelOf,
+    occupant,
+    vacantPlace,
+    appearanceLine,
+    outOfView,
+    simulationSeconds: () => simulationSeconds,
+    idle,
+  });
+  // The traffic present, in order of appearance.
+  const traffic: readonly TrafficMotion[] = trafficField.vehicles;
+  refreshBodies();
   // Seconds of every advanced fixed step, READY and after the ending included; it stops only when no step runs.
   let simulationSeconds = 0;
   // Borrowed competitor observations: every advance overwrites them at the end of its fixed step.
@@ -612,11 +550,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       move(motion, drive(motion, motion.c.intent!, driving.driver));
     }
     // Traffic drives as rivals do; it never selects a route, and recovery keeps it legal like any vehicle.
-    for (const motion of traffic) {
-      motion.step.input = drive(motion, motion.intent, motion.driver);
-      advanceVehicleWithRecovery(runtime.readers, motion.vehicle, motion.model, motion.step);
-      legalRecovery(motion);
-    }
+    trafficField.advance(drive, legalRecovery);
     forks.observe(active);
     for (const motion of active) {
       minS = Math.min(minS, motion.c.actor.vehicle.course.s);
@@ -625,7 +559,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       if (stepStart === null) motion.recovered = legalRecovery(motion) || motion.recovered;
     }
     runtime.refresh(minS, maxS);
-    updateTraffic();
+    if (trafficField.update()) refreshBodies();
   };
 
   const step = (input: DrivingInput) => {
