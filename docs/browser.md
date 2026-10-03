@@ -71,7 +71,8 @@ RESUME, RETRY and QUIT. RESUME, BACK and PAUSE resume; RETRY requests the same r
 new seed; QUIT ends the run and shows TITLE.
 
 Every list screen uses one menu part: a title and items, the current item YELLOW, unselectable items DARK and the
-rest WHITE, centred in the text grid without shortening. UP and DOWN move over the selectable items and wrap around;
+rest WHITE, centred in the text grid without shortening, with the items on every second row; the title and any
+information lines keep one row each. A menu taller than the 30 rows is a `RangeError`. UP and DOWN move over the selectable items and wrap around;
 each item carries what CONFIRM and LEFT/RIGHT do on it, so no action depends on its position; BACK leaves.
 
 The selection screens follow one flow table ([product](product.md#6-flow-and-screens)). TITLE offers START and

@@ -7,6 +7,9 @@ import type { Screen } from './screen-host.js';
 /** The plain background of screens without a scene. */
 export const SCREEN_BACKGROUND = 0;
 
+/** Rows from one menu item to the next: items sit on every second row. */
+const ITEM_ROWS = 2;
+
 /** One menu line and what choosing or adjusting it does. */
 export interface MenuItem {
   readonly label: string;
@@ -72,15 +75,17 @@ export function createMenu(definition: MenuDefinition, initial = 0) {
     write(text: TextLayer) {
       const items = definition.items(),
         lines = definition.lines ?? [];
-      // The title, a blank row, any lines and another blank row, then the items.
+      // The title, a blank row, any lines and another blank row, then the items on every second row.
       const first = 2 + (lines.length > 0 ? lines.length + 1 : 0);
-      const top = Math.floor((TEXT_ROWS - (items.length + first)) / 2);
+      const height = first + Math.max(0, items.length * ITEM_ROWS - 1);
+      if (height > TEXT_ROWS) throw new RangeError(`A menu of ${height} rows does not fit the text grid`);
+      const top = Math.floor((TEXT_ROWS - height) / 2);
       writeCentred(text, top, definition.title, definition.titlePalette ?? TEXT_PALETTES.WHITE);
       lines.forEach((line, i) => writeCentred(text, top + 2 + i, line, TEXT_PALETTES.WHITE));
       items.forEach((item, i) =>
         writeCentred(
           text,
-          top + first + i,
+          top + first + i * ITEM_ROWS,
           item.value === undefined ? item.label : `${item.label}  ${item.value}`,
           item.disabled ? TEXT_PALETTES.DARK : i === index ? TEXT_PALETTES.YELLOW : TEXT_PALETTES.WHITE,
         ),
