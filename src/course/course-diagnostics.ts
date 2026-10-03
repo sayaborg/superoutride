@@ -1,16 +1,9 @@
 import { AdmissionError, type AdmissionCode, type AdmissionDiagnostic } from '../core/admission.js';
 
+/** The shared admission codes and the course's own. */
 type CourseDiagnosticCode =
   | AdmissionCode
   | 'parse_failure'
-  | 'invalid_shape'
-  | 'unsupported_version'
-  | 'unsupported_format'
-  | 'duplicate_id'
-  | 'unresolved_reference'
-  | 'invalid_numeric_domain'
-  | 'resource_limit'
-  | 'unsupported_feature'
   | 'empty_course'
   | 'empty_section'
   | 'invalid_position'
