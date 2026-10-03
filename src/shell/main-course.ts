@@ -6,8 +6,7 @@ import { DEFAULT_RESULT_DELAY_SECONDS, mountResultDelayControls } from './result
 import { mountCameraControls } from './camera-controls.js';
 import { CAMERA_DEFINITION } from '../view/camera-definition.js';
 import { createBrowserDrivingShell } from './driving-shell.js';
-import { browserCourses, type BrowserCourseId, type BrowserCourseSelection } from './course-selection.js';
-import { mountMobileCourseSelector } from './mobile-selector-controls.js';
+import { browserCourses } from './course-selection.js';
 import { mustGet } from './dom.js';
 import { loadVehicleDefinitions } from '../content/vehicle-catalog.js';
 import { loadEngineSounds } from '../content/engine-sound-catalog.js';
@@ -96,11 +95,9 @@ async function startPage(): Promise<void> {
       series,
       vehicles,
       driving,
-      player,
       displaySettings,
       raceSprites,
       shell,
-      canvas,
       raceStatus,
       performanceHud,
       dev,
@@ -108,15 +105,12 @@ async function startPage(): Promise<void> {
       cameraDefinition: () => cameraDefinition,
       resultDelaySeconds: () => resultDelaySeconds,
       drawSeed: () => crypto.getRandomValues(new Uint32Array(1))[0]!,
-      request: (next, begin) => void request(next, begin),
     };
 
-    // The page holds one course: a request disposes of the current run before loading the next, and `begin` starts
-    // it at once. One assembly runs at a time; a request made while one runs is ignored. A failure leaves no run,
-    // shows its reason and offers Retry and every course selection.
+    // The page holds one course: a request disposes of the current run before loading the next, which starts at once.
+    // One assembly runs at a time; a request made while one runs is ignored. A failure leaves no run and shows LOAD
+    // FAILED.
     let assembling = false;
-    // The loaded run's course; null while no run is loaded.
-    let loadedCourse: BrowserCourseId | null = null;
     // A run that could not be requested or assembled shows LOAD FAILED with RETRY and BACK, and its reason with Retry
     // outside the frame.
     const fail = (error: unknown, retryRun: () => void, back: () => void) => {
@@ -139,43 +133,34 @@ async function startPage(): Promise<void> {
     const leave = (show: () => void) => {
       run?.dispose();
       run = null;
-      loadedCourse = null;
       raceStatus.textContent = '';
-      courseSelector?.setActive('');
       show();
     };
     // `back` leaves LOAD FAILED: to the screen that requested the run, by default TITLE.
-    const request = async (next: RunRequest, begin: boolean, back = () => flow.title()) => {
+    const request = async (next: RunRequest, back = () => flow.title()) => {
       if (assembling) return;
       assembling = true;
-      courseSelector?.setActive(next.courseId);
       run?.dispose();
       run = null;
-      loadedCourse = null;
       host.show(loading);
       raceStatus.textContent = '';
       status.replaceChildren('Loading course…');
       status.hidden = false;
       try {
-        const state = createRunScreenState((facts) => {
-          host.refresh();
-          run?.controls.show(facts);
-        });
+        const state = createRunScreenState(() => host.refresh());
         const assembled = await assembleRun(page, next, state);
         run = assembled;
-        loadedCourse = next.courseId;
         status.hidden = true;
         host.show(
           createRunScreen(state, assembled, shell.framebuffer, textLayer, {
-            retry: () => void request(next, true, back),
+            retry: () => void request(next, back),
             changeVehicle: () => leave(() => flow.vehicle(next)),
             select: () => leave(() => flow.select(next)),
             title: () => leave(() => flow.title()),
           }),
         );
-        if (begin) assembled.controls.begin();
       } catch (error) {
-        fail(error, () => void request(next, begin, back), back);
+        fail(error, () => void request(next, back), back);
       } finally {
         assembling = false;
       }
@@ -207,39 +192,24 @@ async function startPage(): Promise<void> {
         show: (screen) => host.show(screen),
         activate: () => shell.activate(),
         setMasterVolume: (percent) => shell.setMasterVolume(percent),
-        run: (next, back) => void request(next, true, back),
+        run: (next, back) => void request(next, back),
       },
     );
-    const defaultRequest = (courseId: string, params = new URLSearchParams()) =>
-      readUrlRunRequest(params, courseId, series.courseSettings(courseId), vehicles, player);
-    // Selecting the loaded course does nothing; any other course, or any course after a failure, requests its default
-    // run without starting it.
-    const named = courses.find((course) => course.id === parameters.get('course')) ?? null;
-    const courseSelector = dev
-      ? mountMobileCourseSelector(
-          mustGet<HTMLElement>('course-selector-buttons'),
-          courses,
-          named?.id ?? '',
-          (target) => {
-            if (assembling || target.id === loadedCourse) return;
-            void request(defaultRequest(target.id), false);
-          },
-        )
-      : null;
     // A URL that names a delivered course starts that run at once; an invalid URL request fails like an assembly.
     // Otherwise the page starts at TITLE.
-    const urlRequest = (course: BrowserCourseSelection) => {
+    const named = courses.find((course) => course.id === parameters.get('course')) ?? null;
+    const urlRequest = (courseId: string) => {
       try {
-        void request(defaultRequest(course.id, parameters), true);
+        void request(readUrlRunRequest(parameters, courseId, series.courseSettings(courseId), vehicles, player));
       } catch (error) {
         fail(
           error,
-          () => urlRequest(course),
+          () => urlRequest(courseId),
           () => flow.title(),
         );
       }
     };
-    if (named) urlRequest(named);
+    if (named) urlRequest(named.id);
     else {
       status.hidden = true;
       flow.title();

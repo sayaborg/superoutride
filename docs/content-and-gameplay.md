@@ -751,8 +751,8 @@ RangeError naming the FINISH, that entry's vehicle, available metres and require
 through its loading failure state.
 A circuit FINISH and an undecided fork are not terminal stopping points.
 
-START begins a standing run. PAUSE/hidden-page time consumes no simulation time. GOAL or GAME OVER
-stops the field and preserves final rank and precise event time. NEW SESSION returns to setup.
+A run's start begins a standing run. PAUSE/hidden-page time consumes no simulation time. GOAL or GAME OVER
+stops the field and preserves final rank and precise event time.
 Recovery consumes simulation time and grants no crossing credit. Results are session-local.
 
 ### Reference times and clock

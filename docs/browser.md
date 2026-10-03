@@ -23,7 +23,7 @@ time, passing no step length, and the fractional remainder carries forward. One 
 steps, including callbacks with no simulation step; it reads the race's competitor observations, which
 hold the values of the latest completed step. There is one frame loop; it runs while the page is visible and
 advances and draws the current screen. Each start begins a fresh clock, so stopped real time never enters the
-simulation. Loading and setup leave the race clock stopped until START.
+simulation. Loading leaves the race clock stopped; an assembled run starts at once.
 Every Session assembly, a DEV tuning rebuild included, picks a new Session seed from `crypto.getRandomValues`;
 the composition root is the only place that draws randomness.
 
@@ -31,21 +31,20 @@ The driving composition root owns two lifetimes. The page lifetime is created on
 catalogs (materials, surface sounds, vehicle and driving definitions, series, text tiles, audio settings), the
 player record, display settings, the text layer, race sprites, the browser devices (canvas, framebuffer, input,
 audio), the screen host with its frame loop, the status line and, with `dev=1`, the performance HUD and the page's DEV
-controls (sound, ground display, camera, RESULT delay, course selection). The run lifetime holds the selected course, its Session
+controls (sound, ground display, camera, RESULT delay). The run lifetime holds the selected course, its Session
 settings, the field's Session vehicles, envelopes, time budgets and pace schedule, the Session, scene and race,
-the player's sprites, the camera rig and lifecycle, the Session form and, with `dev=1`, the course's performance-HUD
+the player's sprites, the camera rig and lifecycle and, with `dev=1`, the course's performance-HUD
 values and the run's DEV controls (driving tuning, export, RECOVER). Page devices hold no run: each frame passes the
 run's observations to them.
 
-The page is loaded once. A URL that names a course, the selection screens, RETRY, a DEV course selection, changed
-Session settings and NEW SESSION request a run, and
-every request passes the one assembly; a DEV tuning rebuild replaces the Session inside its run. Assembly is
+The page is loaded once. A URL that names a course, the selection screens and RETRY request a run, and every request
+passes the one assembly, after which the run starts at once; a DEV tuning rebuild replaces the Session inside its run. Assembly is
 asynchronous and one runs at a time: a request made during an assembly is ignored. The page holds one course: a
 request first disposes of the current run, removing the listeners and DOM it added, then loads the next. A new run
 starts from delivered content, so DEV driving tuning and its displayed values return to the delivered definition.
 Sound, input, fullscreen, the DEV sound settings, the ground display method, the DEV camera adjustment and the
-RESULT delay belong to the page and persist. A failed assembly leaves no run, shows its reason with Retry, and every
-course selection remains available.
+RESULT delay belong to the page and persist. A failed assembly leaves no run and shows LOAD FAILED, with its reason
+and Retry outside the frame.
 
 ## Screens
 
@@ -70,8 +69,7 @@ new seed; QUIT ends the run and shows TITLE.
 
 Every list screen uses one menu part: a title and items, the current item YELLOW, unselectable items DARK and the
 rest WHITE, centred in the text grid without shortening. UP and DOWN move over the selectable items and wrap around;
-each item carries what CONFIRM and LEFT/RIGHT do on it, so no action depends on its position; BACK leaves. The PAUSE button's
-label (PAUSE or RESUME) and its visibility follow the run screen's state.
+each item carries what CONFIRM and LEFT/RIGHT do on it, so no action depends on its position; BACK leaves.
 
 The selection screens follow one flow table ([product](product.md#6-flow-and-screens)). TITLE offers START and
 SETTINGS; START leads to SELECT MODE. A CONFIRM on TITLE is the user gesture that enables
@@ -114,18 +112,12 @@ red; its lines are RANK n/m when the Session has rivals, TIME (race time) and, o
 from race facts, the rank by the status line's ranking. Its items are RETRY (the same run again, starting at once with
 a new seed), CHANGE VEHICLE (SELECT VEHICLE with the run's selection), SELECT (the run mode's first selection screen
 with the run's selection) and TITLE; leaving the run ends it. A Session rebuilt by DEV tuning restarts
-the run, clearing `paused` and `finished`, so it drives at once. START resets driving input once. NEW
-SESSION returns to setup.
+the run, clearing `paused` and `finished`, so it drives at once. A run's start resets driving input once.
 
 ## Selection and URL parameters
 
-The composition root builds the course list once from the delivered
-[course index](content-and-gameplay.md#course-index), in its order and with its display names, and passes it to the
-course selection, the DEV course buttons and the DEV HUD. The DEV course buttons are numbered 1, 2, … in that order:
-RIBBON COAST, RIBBON FORK, RIBBON RING and RIBBON ROUGH.
-The DEV course buttons select courses directly. Selecting the loaded course does nothing. Selecting another course, or any course after a failed assembly, requests a
-run of that course with the default Session settings (as if `mode`, `vehicle`, `rivals`, `laps` and `pool` were
-absent) and does not start it.
+The composition root reads the delivered [course index](content-and-gameplay.md#course-index) once and passes it to
+the selection screens and the DEV HUD's course line, in its order and with its display names.
 
 A run is requested as a typed run request: the course, the mode, the vehicle and the player's color, plus the
 rival count, rival pool and laps in FREE PLAY and the laps in TIME TRIAL. ARCADE takes its laps and field from the
@@ -151,9 +143,8 @@ Session parameters are case-sensitive:
 ARCADE uses the course's [series](content-and-gameplay.md#series-documents) settings: the series' first
 vehicle, its entries and laps, with the checkpoint clock, ignoring their individual query overrides. FREE PLAY exposes
 those settings and has no clock; there is no `clock` parameter, so an old `clock` value is other URL data and ignored. Invalid vehicle, numeric or course/Session combinations
-produce an error. Setup locks preset fields in ARCADE and disables a single-lap course's lap control.
-TIME TRIAL exposes the vehicle and laps, runs alone and has no clock; a `rivals` or `pool` parameter is an error
-there, and setup disables the rival control. A course in no series is untimed: it offers FREE PLAY and TIME TRIAL;
+produce an error. TIME TRIAL exposes the vehicle and laps, runs alone and has no clock; a `rivals` or `pool`
+parameter is an error there. A course in no series is untimed: it offers FREE PLAY and TIME TRIAL;
 `mode=ARCADE` is an error there, and its defaults are the first vehicle in selection order, no
 rivals and one lap. A timed course whose time budgets are missing from delivery fails to load.
 
@@ -161,8 +152,6 @@ rivals and one lap. A timed course whose time budgets are missing from delivery 
 ?course=ribbon-coast&mode=FREE_PLAY&vehicle=TESTAROSSA&rivals=15&laps=1
 ```
 
-Submitting equal resolved settings starts in place. Changed settings request a new run with them, which starts at
-once. NEW SESSION requests a new run with the same settings, which waits for START.
 A run started from the URL drives without a gesture; sound still requires an eligible browser gesture.
 
 ## Driving input
@@ -191,7 +180,7 @@ Each fixed step, `sample()` polls the window's gamepads once and then builds one
 arbiters: each apply method is the winning owner's, or `RATE_LIMITED` without an owner. The latest final
 sample is a published read-only observation (`lastSample`); the DEV vehicle HUD reads it. The screen host
 suspends input whenever driving stops; suspension resets the arbiters, the adapters' held state and the final
-sample to neutral, and while suspended the manager accepts no publication. Window blur, which stops no screen, resets input the same way without suspending it. START resets input once.
+sample to neutral, and while suspended the manager accepts no publication. Window blur, which stops no screen, resets input the same way without suspending it. A run's start resets input once.
 
 The page reads each device once and shares the reading: one touch-pointer reader listens to the window's pointer
 events and passes touch pointers to its consumers, and one function reads the connected standard-mapping gamepads.
@@ -304,7 +293,7 @@ set lacks. DEV tuning and DEV sound settings are not stored.
 ## DEV controls
 
 Only a URL with `dev=1` builds DEV: the composition root reads it once and then builds the DEV panel from its
-template in the page, its controls (sound, ground display, camera, RESULT delay, course selection and each run's
+template in the page, its controls (sound, ground display, camera, RESULT delay and each run's
 driving tuning, export and RECOVER), the performance HUD and the DEV vehicle HUDs drawn over the frame. Without it
 none of these exist, in the DOM or as listeners, and DEV series and courses in no series are not offered. The status
 line, the touch indicators and the corner buttons are not DEV. The DEV toggle sits left of the PAUSE corner button.
@@ -313,8 +302,7 @@ DEV is an initially closed disclosure overlay. Its body scrolls within the safe 
 resizing the game. UI pointer starts stay outside driving input. Keydown is isolated, so keys typed
 in DEV controls never reach driving input, while keyup can release an already-held driving key.
 Escape closes the panel and returns focus to its summary. DEV has no keyboard shortcuts.
-The vehicle is chosen in the Session setup, and choosing it starts a Session; there is no vehicle
-selection during a Session. Driving tuning, camera, sound and recovery controls remain available. The camera controls choose the
+The vehicle is chosen on SELECT VEHICLE; there is no vehicle selection during a Session. Driving tuning, camera, sound and recovery controls remain available. The camera controls choose the
 camera definition's height frequency, damping ratio, minimum clearance, yaw limit and yaw response for the session,
 unsaved
 ([Calibration](calibration.md#camera-settings)). RECOVER requests the race's manual recovery of the player vehicle when the active composition
@@ -346,7 +334,7 @@ The browser control is only an adapter and does not own the value or its lifetim
 
 DEV's **Ground display** group exposes every method defined in
 [Architecture](architecture.md#strip-rendering), marking the selected button pressed. A click updates
-the single setting and redraws immediately, including before START and while paused. Camera, vehicle,
+the single setting and redraws immediately, including while paused. Camera, vehicle,
 Session and occurrence history are preserved, with no restart or course recompilation. The setting
 lasts for the loaded page and every run; a page reload restores the default. The controls use DEV input isolation.
 

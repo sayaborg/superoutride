@@ -18,10 +18,9 @@ import { readCourseTimeBudgets, type CourseTimeBudgets } from '../content/course
 import { readPaceSchedule } from '../content/pace-schedule.js';
 import { loadSeriesCourse, type loadSeriesCatalog } from '../content/series-catalog.js';
 import { createSessionVehicle, type SessionVehicle } from '../content/session-vehicle.js';
-import { mountCourseSessionControls } from './course-session-controls.js';
 import { runSettings, type RunRequest } from './run-request.js';
 import { createCourseScene } from '../view/course-scene.js';
-import type { RunFacts, RunFrame, RunScreenState } from './run-screen.js';
+import type { RunFrame, RunScreenState } from './run-screen.js';
 import { drawVehicleDebugHud } from './vehicle-debug-hud.js';
 import { drawVehicleLeanDebug } from './debug/vehicle-lean-debug.js';
 import { drawVehicleYawDebug } from './debug/vehicle-yaw-debug.js';
@@ -29,13 +28,11 @@ import { readRivalEnvelope, type RivalEnvelope } from '../content/rival-envelope
 import type { loadSurfaceMaterials } from '../content/surface-material-catalog.js';
 import { admitProduct } from '../content/delivered-product.js';
 import { compileSessionConfiguration, type SessionConfiguration } from '../race/session-configuration.js';
-import type { PlayerRecord } from './player-record.js';
 import type { DisplaySettings } from '../view/display-settings.js';
 import type { createRaceSprites } from '../view/race-sprites.js';
 
-/** The one run the page drives: its fixed step, its frame, its Session controls and its disposal. */
+/** The one run the page drives: its fixed step, its frame, its result and its disposal. */
 export interface Run extends RunFrame {
-  readonly controls: { show(facts: RunFacts): void; begin(): void };
   dispose(): void;
 }
 /** The page-lifetime objects a run is assembled from and drives; the composition root supplies them. */
@@ -45,11 +42,9 @@ export interface RunPage {
   readonly series: Awaited<ReturnType<typeof loadSeriesCatalog>>;
   readonly vehicles: Awaited<ReturnType<typeof loadVehicleDefinitions>>['vehicles'];
   readonly driving: Awaited<ReturnType<typeof loadVehicleDefinitions>>['driving'];
-  readonly player: PlayerRecord;
   readonly displaySettings: DisplaySettings;
   readonly raceSprites: ReturnType<typeof createRaceSprites>;
   readonly shell: ReturnType<typeof createBrowserDrivingShell>;
-  readonly canvas: HTMLCanvasElement;
   readonly raceStatus: HTMLOutputElement;
   /** The DEV performance HUD; null without DEV. */
   readonly performanceHud: ReturnType<typeof createCoursePerformanceHud> | null;
@@ -62,15 +57,16 @@ export interface RunPage {
   resultDelaySeconds(): number;
   /** A new Session seed; only the composition root draws randomness. */
   drawSeed(): number;
-  /** Request a new run; `begin` starts it at once. */
-  request(request: RunRequest, begin: boolean): void;
 }
 
 /**
  * The run lifetime: the course, its Session settings, field, products and scene, the player's sprites and camera,
  * and the run's DEV controls.
  */
-/** Assemble a run for `request`; `state` is its run screen's state, which the run's controls and race end change. */
+/**
+ * Assemble a run for `request`, started at once; `state` is its run screen's state, which the run's DEV controls and
+ * race end change.
+ */
 export async function assembleRun(page: RunPage, request: RunRequest, state: RunScreenState): Promise<Run> {
   const {
     content,
@@ -81,7 +77,6 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
     displaySettings,
     raceSprites,
     shell,
-    canvas,
     raceStatus,
     performanceHud,
   } = page;
@@ -196,7 +191,7 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
           );
           lifecycle.update(true);
           afterEndingSeconds = 0;
-          controls.begin();
+          start();
           state.restart();
         },
       })
@@ -263,34 +258,18 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
       },
     };
   };
-  const controls = mountCourseSessionControls(
-    canvas,
-    request,
-    settings,
-    arcade,
-    course.rules.maxLaps,
-    page.player,
-    {
-      start: () => {
-        shell.inputManager.reset();
-        lifecycle.reset();
-        active.race.start();
-      },
-      togglePause: () => {
-        state.setPaused(!state.paused);
-        if (!state.paused) canvas.focus();
-      },
-      reassemble: (next, begin) => page.request(next, begin),
-    },
-    vehicles,
-  );
+  // A run starts at once: driving input and the camera are reset and the race enters READY.
+  const start = () => {
+    shell.inputManager.reset();
+    lifecycle.reset();
+    active.race.start();
+  };
+  start();
   return {
     tick,
     draw,
     result: () => runResult(active.race),
-    controls,
     dispose() {
-      controls.dispose();
       devControls?.dispose();
     },
   };

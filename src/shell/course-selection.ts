@@ -2,19 +2,13 @@ import type { CourseIndex } from '../content/course-index.js';
 export type BrowserCourseId = string;
 
 export interface BrowserCourseSelection {
-  /** Compact DEV button text. */
-  readonly buttonLabel: string;
   readonly label: string;
   readonly id: BrowserCourseId;
 }
 
-/** The indexed courses in selection order; the first is the default. DEV buttons are numbered in that order. */
+/** The indexed courses in index order, with their display names. */
 export function browserCourses(index: CourseIndex): readonly BrowserCourseSelection[] {
-  return Object.freeze(
-    index.map((course, position) =>
-      Object.freeze({ buttonLabel: String(position + 1), label: course.name, id: course.id }),
-    ),
-  );
+  return Object.freeze(index.map((course) => Object.freeze({ label: course.name, id: course.id })));
 }
 
 export function formatBrowserCourseSelector(
