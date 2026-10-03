@@ -221,13 +221,12 @@ export function compileStripGround(length: number, pieces: readonly StripPiece[]
     coefficientBytes,
     directoryBytes,
   });
-  // A phase's cell containing s (the final closed endpoint uses the last cell) and its clipped extent.
-  const cellAt = (step: number, input: LevelPhase, s: number) => {
-    const cell = Math.min(input.indices.length - 1, Math.floor((s + input.offset) / step));
-    const start = Math.max(0, cell * step - input.offset),
-      end = Math.min(length, (cell + 1) * step - input.offset);
-    return { cell, start, end };
-  };
+  // A phase's cell containing s (the final closed endpoint uses the last cell), and the center of its clipped extent.
+  // Both return numbers so reading a cell allocates nothing.
+  const cellAt = (step: number, input: LevelPhase, s: number) =>
+    Math.min(input.indices.length - 1, Math.floor((s + input.offset) / step));
+  const cellCenter = (step: number, input: LevelPhase, cell: number) =>
+    (Math.max(0, cell * step - input.offset) + Math.min(length, (cell + 1) * step - input.offset)) / 2;
   const copy = (input: LevelPhase, cell: number, target: StripCellTarget) => {
     const field = lateralFields[input.indices[cell]!]!;
     target.active = input.active[cell]!;
@@ -241,15 +240,16 @@ export function compileStripGround(length: number, pieces: readonly StripPiece[]
     levelCount: levels.length,
     read(level: number, s: number, target: StripCellTarget) {
       const { step, phases } = levels[level]!;
-      copy(phases[0], cellAt(step, phases[0], s).cell, target);
+      copy(phases[0], cellAt(step, phases[0], s), target);
     },
     readCentered(level: number, s: number, target: StripCellTarget) {
       const { step, phases } = levels[level]!;
       const aligned = cellAt(step, phases[0], s),
         shifted = cellAt(step, phases[1], s);
       const nearer =
-        Math.abs((shifted.start + shifted.end) / 2 - s) < Math.abs((aligned.start + aligned.end) / 2 - s) ? 1 : 0;
-      copy(phases[nearer], (nearer ? shifted : aligned).cell, target);
+        Math.abs(cellCenter(step, phases[1], shifted) - s) < Math.abs(cellCenter(step, phases[0], aligned) - s);
+      if (nearer) copy(phases[1], shifted, target);
+      else copy(phases[0], aligned, target);
     },
   });
   return Object.freeze({ length, slabs, metrics, reader });

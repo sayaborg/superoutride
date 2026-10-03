@@ -455,7 +455,8 @@ Lateral fields store premultiplied linear-sRGB channels and coverage as piecewis
 functions of fixed source-l coordinates. An edge that moves across an interval becomes a ramp rather
 than a relocated hard edge. Equal lateral fields share private coefficient storage and per-level indices.
 Resolved records and public metadata are deeply immutable. The compiled product supplies a Reader that copies
-base and node coefficients and active count into view-owned reusable scratch; compiled numeric buffers stay private.
+base and node coefficients and active count into view-owned reusable scratch without allocating once the scratch
+holds the largest field; compiled numeric buffers stay private.
 The view layer owns row sampling and display-method selection.
 
 A row uses the terrain projection's representative s and effective depth footprint `deltaS`.
