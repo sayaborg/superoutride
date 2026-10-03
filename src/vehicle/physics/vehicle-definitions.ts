@@ -16,6 +16,11 @@ export type VehicleId = string;
  * road speed exceeds it, and race loading coverage reads it; physics never clamps to it.
  */
 export const MAXIMUM_VEHICLE_SPEED = 240;
+/** Kilometres per hour in one metre per second: the one factor between speeds authored in km/h and m/s. */
+export const KILOMETERS_PER_HOUR_PER_METER_PER_SECOND = 3.6;
+/** `MAXIMUM_VEHICLE_SPEED` in km/h (864), the ceiling of speeds authored in km/h. */
+export const MAXIMUM_VEHICLE_SPEED_KILOMETERS_PER_HOUR =
+  MAXIMUM_VEHICLE_SPEED * KILOMETERS_PER_HOUR_PER_METER_PER_SECOND;
 
 /** Road speed at redline in top gear on the larger driven rolling radius, in m/s. */
 export function topGearRedlineSpeed(

@@ -1,3 +1,4 @@
+import { MAXIMUM_VEHICLE_SPEED_KILOMETERS_PER_HOUR } from '../vehicle/physics/vehicle-definitions.js';
 import { SESSION_RULE_LIMITS, compileTrafficSettings, type TrafficSettings } from '../course/session-rules.js';
 
 export interface SessionConfiguration {
@@ -40,6 +41,9 @@ export function compileSessionConfiguration(authoring: SessionConfiguration): Re
     timeLimit: authoring.timeLimit,
     initialSpeed: authoring.initialSpeed,
     seed: authoring.seed,
-    traffic: authoring.traffic === null ? null : compileTrafficSettings(authoring.traffic),
+    traffic:
+      authoring.traffic === null
+        ? null
+        : compileTrafficSettings(authoring.traffic, MAXIMUM_VEHICLE_SPEED_KILOMETERS_PER_HOUR),
   });
 }

@@ -682,13 +682,13 @@ competitors present.
 
 ## Series documents
 
-A series document (`superoutride.series` version 8) is the one owner of its courses' ARCADE settings. It is
+A series document (`superoutride.series` version 9) is the one owner of its courses' ARCADE settings. It is
 saved as `content/series/<id>.series.json`; `id` equals that file name stem, which is also its manifest ID.
 
 ```json
 {
   "format": "superoutride.series",
-  "version": 8,
+  "version": 9,
   "id": "ribbon",
   "title": "RIBBON",
   "dev": true,
@@ -707,7 +707,7 @@ saved as `content/series/<id>.series.json`; `id` equals that file name stem, whi
       "traffic": {
         "density": 10,
         "vehicles": ["GOLF_GTI_16V", "DELTA_HF_INTEGRALE", "PX200E_ARCOBALENO"],
-        "speed": 0.45
+        "speedKilometersPerHour": 80
       }
     }
   ]
@@ -740,7 +740,7 @@ Session admits the course it drives.
 The delivered series is RIBBON (`dev: true`, colors not fixed): RIBBON COAST, RIBBON FORK and RIBBON RING with
 TESTAROSSA, whose fields are 1, 3 and 3 TESTAROSSA entries in its default color with pace ratio 1 in the grid's rearmost slots, with
 `playerSlot: last`. RIBBON COAST has traffic (10 vehicles/km of GOLF_GTI_16V, DELTA_HF_INTEGRALE and PX200E_ARCOBALENO
-at 0.45); RIBBON FORK and RIBBON RING have none.
+at 80 km/h); RIBBON FORK and RIBBON RING have none.
 RIBBON ROUGH belongs to no series.
 
 ## Session and reference timing
@@ -758,11 +758,14 @@ is rejected. TIME TRIAL resolves a catalog vehicle and permitted laps on any cou
 rivals or clock, and selects fork routes by driving like any first competitor at a lock line. A TIME TRIAL
 configuration with rivals, traffic or a time limit is rejected. ARCADE takes its series course's traffic; FREE PLAY
 takes the TRAFFIC choice: OFF is none, and LOW and HIGH are `FREE_PLAY_TRAFFIC` in the FREE PLAY rules (`race/free-play-field.ts`; 5 and 15
-vehicles/km, speed 0.45) with every catalog vehicle as candidates. Traffic settings are null or `{density, vehicles, speed}`
-(`compileTrafficSettings`): a density in vehicles per kilometre in (0, 40] (`SESSION_RULE_LIMITS.trafficDensity`), at
-least one unique vehicle ID, and a speed fraction in (0, 1]. Session resolution resolves each traffic vehicle's Session
-vehicle and envelope (a missing envelope is a `RangeError`) and compiles its driver once: the rival utilization 0.75
-with the speed cap `speed × maximumSpeed` of that vehicle's envelope. On an untimed course, Session resolution rejects ARCADE; an ARCADE clock without its delivered time
+vehicles/km) at `FREE_PLAY_TRAFFIC_SPEED_KILOMETERS_PER_HOUR` (80 km/h) with every catalog vehicle as candidates.
+Traffic settings are null or `{density, vehicles, speedKilometersPerHour}` (`compileTrafficSettings`): a density in
+vehicles per kilometre in (0, 40] (`SESSION_RULE_LIMITS.trafficDensity`), at least one unique vehicle ID, and the one
+traffic speed in km/h in (0, 864] (`MAXIMUM_VEHICLE_SPEED` in km/h). Session resolution converts that speed to m/s once
+(÷ `KILOMETERS_PER_HOUR_PER_METER_PER_SECOND`, 3.6), resolves each traffic vehicle's Session vehicle and envelope (a
+missing envelope is a `RangeError`) and compiles its driver once: the rival utilization 0.75 with that speed as its
+speed cap, so a vehicle whose envelope maximum is lower keeps its own maximum; curve speeds and following are any
+driver's. On an untimed course, Session resolution rejects ARCADE; an ARCADE clock without its delivered time
 budgets fails. Unsupported course/vehicle/grid/lap combinations fail before
 activation. A Session binds immutable course, entries, lap target, start speed and timing references. Its entries
 list the player first, then the rivals: each has a stable ID (`PLAYER`, then `RIVAL_01`, `RIVAL_02`, …), its grid

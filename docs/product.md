@@ -63,7 +63,7 @@ Sessions ([Content and gameplay](content-and-gameplay.md) owns their definitions
 | Competitor entries | Vehicle, color, pace ratio, stage interval and appearance (grid slot or ahead distance) |
 | Player slot        | The player's own entry position, or the last grid slot                                  |
 | Laps               | Circuits only                                                                           |
-| Traffic            | Off, or a density in vehicles per kilometre, vehicle candidates and a speed fraction    |
+| Traffic            | Off, or a density in vehicles per kilometre, vehicle candidates and a speed             |
 
 **Field.** A Session has at most sixteen competitors, the player included. The entries of a series
 course list its whole field in grid order. The player occupies the rearmost entry of the selected vehicle in grid
@@ -101,7 +101,8 @@ at closure recover to the selected road. Recovery preserves earned progress.
 **Traffic** vehicles are not competitors: they take no rank, never select a route and have no part in records.
 They are ordinary vehicles with ordinary drivers, travelling the player's way. Where each one appears along the
 road, its vehicle, color and lane follow from the Session seed. A traffic vehicle appears ahead at the farthest
-visible distance, keeps its lane at no more than its speed fraction of its own maximum speed, and leaves once it
+visible distance, keeps its lane at the traffic speed, the same for every traffic vehicle as on a public road, slowing for
+corners as any driver does, and leaves once it
 is out of view. At most eight traffic vehicles are present at once, and a Session never holds more than
 twenty-four vehicles.
 
@@ -115,7 +116,7 @@ count (0–15), the rival vehicle pool (ALL, CARS or BIKES; default: the player'
 the pool by the Session seed. FREE PLAY rivals drive at their own vehicles' pace, so the choice of
 vehicles shapes the race; FREE PLAY needs no reference runs. The player starts from the last grid slot.
 FREE PLAY traffic is the same on every course: LOW is 5 and HIGH 15 vehicles per kilometre, drawn from every
-vehicle, at 0.45 of each vehicle's maximum speed.
+vehicle, at 80 km/h.
 
 **TIME TRIAL** runs any product course alone: no rivals, no traffic, no clock. On circuits the player
 chooses the lap count. On forks the player selects the route by driving; the record belongs to the

@@ -4,6 +4,7 @@ import {
   formPool,
   FREE_PLAY_TRAFFIC,
   FREE_PLAY_TRAFFIC_LEVELS,
+  FREE_PLAY_TRAFFIC_SPEED_KILOMETERS_PER_HOUR,
   RIVAL_POOLS,
   type FreePlayTraffic,
   type RivalPool,
@@ -130,7 +131,11 @@ export function runSettings(
       request.mode === 'ARCADE'
         ? arcade!.traffic
         : request.mode === 'FREE_PLAY' && request.traffic !== 'OFF'
-          ? { ...FREE_PLAY_TRAFFIC[request.traffic], vehicles: vehicles.map((v) => v.compiledVehicle.id) }
+          ? {
+              ...FREE_PLAY_TRAFFIC[request.traffic],
+              vehicles: vehicles.map((v) => v.compiledVehicle.id),
+              speedKilometersPerHour: FREE_PLAY_TRAFFIC_SPEED_KILOMETERS_PER_HOUR,
+            }
           : null,
   });
   return Object.freeze({ ...configuration, vehicleId: request.vehicleId, rivalPool: values.rivalPool });

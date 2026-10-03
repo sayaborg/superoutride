@@ -15,7 +15,7 @@ import { SESSION_RULE_LIMITS, type TrafficSettings } from '../course/session-rul
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import { enumerateCourseRoutes } from '../course/compiler/course-routes.js';
 import { createCourseRoute } from '../course/course-route.js';
-import type { VehicleId } from '../vehicle/physics/vehicle-definitions.js';
+import { MAXIMUM_VEHICLE_SPEED_KILOMETERS_PER_HOUR, type VehicleId } from '../vehicle/physics/vehicle-definitions.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import { spriteSetHasColor } from '../vehicle/vehicle-sprite-set.js';
 import type { ContentDelivery } from './content-manifest.js';
@@ -23,7 +23,7 @@ import { requireLoaded } from './content-load-error.js';
 import type { DocumentSource } from './document-catalog.js';
 
 export const SERIES_DOCUMENT_FORMAT = 'superoutride.series';
-export const SERIES_DOCUMENT_VERSION = 8;
+export const SERIES_DOCUMENT_VERSION = 9;
 const PLAYER_SLOTS = ['own', 'last'] as const;
 
 /** One series: the one owner of its courses' ARCADE settings. `dev` series appear only with DEV. */
@@ -254,13 +254,13 @@ function readEntries(
   return entries;
 }
 
-/** Traffic settings: a density within the Session rule ceiling, unique catalog vehicles and a speed fraction. */
+/** Traffic settings: a density within the Session rule ceiling, unique catalog vehicles and a speed in km/h. */
 function readTraffic(
   value: unknown,
   path: string,
   vehicleOf: (id: string) => CompiledVehicleDefinition | undefined,
 ): TrafficSettings {
-  const record = readRecord(value, path, ['density', 'vehicles', 'speed']);
+  const record = readRecord(value, path, ['density', 'vehicles', 'speedKilometersPerHour']);
   const vehicles = readArray(
     record.vehicles,
     `${path}/vehicles`,
@@ -279,7 +279,11 @@ function readTraffic(
       max: SESSION_RULE_LIMITS.trafficDensity,
     }),
     vehicles,
-    speed: readNumber(record.speed, `${path}/speed`, { min: 0, exclusiveMin: true, max: 1 }),
+    speedKilometersPerHour: readNumber(record.speedKilometersPerHour, `${path}/speedKilometersPerHour`, {
+      min: 0,
+      exclusiveMin: true,
+      max: MAXIMUM_VEHICLE_SPEED_KILOMETERS_PER_HOUR,
+    }),
   });
 }
 

@@ -8,6 +8,7 @@ import type { AheadAppearance, SeriesCourse, StageInterval } from '../content/se
 import type { SessionConfiguration } from './session-configuration.js';
 import { drawRivalPairs, type VehicleColor } from './free-play-field.js';
 import { spriteSetColors } from '../vehicle/vehicle-sprite-set.js';
+import { KILOMETERS_PER_HOUR_PER_METER_PER_SECOND } from '../vehicle/physics/vehicle-definitions.js';
 
 const NO_RANK_LIMITS: Readonly<Record<string, number>> = Object.freeze({});
 
@@ -155,8 +156,11 @@ export function resolveCourseSession(
           `FINISH ${finish.id}: ${available.toFixed(2)} m of runout; ${longest.entry.vehicle.vehicleDefinition.compiledVehicle.id} requires ${longest.distance.toFixed(2)} m to stop from maximum speed`,
         );
     }
-  // Traffic drives each candidate vehicle's driver at the rival utilization, capped at the traffic speed fraction of
-  // that vehicle's maximum speed; each is compiled once here.
+  // Traffic drives each candidate vehicle's driver at the rival utilization, capped at the one traffic speed, converted
+  // from km/h here once (a vehicle slower than it keeps its own maximum speed); each driver is compiled once here.
+  const trafficSpeed = configuration.traffic
+    ? configuration.traffic.speedKilometersPerHour / KILOMETERS_PER_HOUR_PER_METER_PER_SECOND
+    : 0;
   const traffic: ResolvedTraffic | null = configuration.traffic
     ? Object.freeze({
         spacing: 1000 / configuration.traffic.density,
@@ -168,11 +172,7 @@ export function resolveCourseSession(
               ...candidate,
               envelope: candidate.envelope,
               colors: spriteSetColors(candidate.vehicle.vehicleDefinition.spriteSet),
-              driver: compileEnvelopeDriver(
-                candidate.envelope,
-                rivalUtilization,
-                configuration.traffic!.speed * candidate.envelope.maximumSpeed,
-              ),
+              driver: compileEnvelopeDriver(candidate.envelope, rivalUtilization, trafficSpeed),
             });
           }),
         ),

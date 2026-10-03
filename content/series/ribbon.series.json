@@ -1,6 +1,6 @@
 {
   "format": "superoutride.series",
-  "version": 8,
+  "version": 9,
   "id": "ribbon",
   "title": "RIBBON",
   "dev": true,
@@ -26,7 +26,7 @@
       "traffic": {
         "density": 10,
         "vehicles": ["GOLF_GTI_16V", "DELTA_HF_INTEGRALE", "PX200E_ARCOBALENO"],
-        "speed": 0.45
+        "speedKilometersPerHour": 80
       }
     },
     {
