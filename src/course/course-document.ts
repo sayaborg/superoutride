@@ -2,6 +2,7 @@ import type { RepeatElement } from './course-repeat.js';
 import { COURSE_DOCUMENT_LIMITS } from './course-limits.js';
 import { SHA256_TEXT } from '../core/content-digest.js';
 import { SESSION_RULE_LIMITS } from './session-rules.js';
+import { TEXT_CHARACTERS } from '../image/text-tiles.js';
 import { CourseInputError, courseFailure, courseSuccess, type CourseResult } from './course-diagnostics.js';
 import {
   AdmissionError,
@@ -15,7 +16,7 @@ import {
   readString,
 } from '../core/admission.js';
 
-const COURSE_DOCUMENT_VERSION = 29;
+const COURSE_DOCUMENT_VERSION = 30;
 const ID = { maxLength: COURSE_DOCUMENT_LIMITS.idCodeUnits };
 
 export interface CoursePosition {
@@ -142,6 +143,8 @@ export interface CourseRulesDocument {
 export interface CourseDocument {
   readonly format: 'superoutride.course';
   readonly version: typeof COURSE_DOCUMENT_VERSION;
+  /** The course's display name: one line of printable ASCII text. */
+  readonly name: string;
   readonly entrySectionId: string;
   readonly rules: CourseRulesDocument;
   readonly sections: readonly SectionDocument[];
@@ -477,13 +480,18 @@ export function readCourseDocument(input: unknown, document = ''): CourseResult<
     // Format and version are checked before the current schema's fields.
     const v = readDocument(
       input,
-      ['rules', 'format', 'version', 'entrySectionId', 'sections', 'links', 'assets'],
+      ['rules', 'format', 'version', 'name', 'entrySectionId', 'sections', 'links', 'assets'],
       'superoutride.course',
       COURSE_DOCUMENT_VERSION,
     );
     const result: CourseDocument = Object.freeze({
       format: 'superoutride.course',
       version: COURSE_DOCUMENT_VERSION,
+      name: readString(v.name, '/name', {
+        maxLength: COURSE_DOCUMENT_LIMITS.nameCodeUnits,
+        pattern: TEXT_CHARACTERS,
+        patternMessage: 'Expected printable ASCII text',
+      }),
       entrySectionId: readString(v.entrySectionId, '/entrySectionId', ID),
       rules: rules(v.rules, '/rules'),
       sections: readIdentified(v.sections, '/sections', section, { max: COURSE_DOCUMENT_LIMITS.sections }),

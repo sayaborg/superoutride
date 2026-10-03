@@ -48,6 +48,8 @@ interface SectionDraft extends Omit<CompiledSection, 'incoming' | 'outgoing' | '
 /** Upper-level immutable product. Consumers receive its ordinary reader/data facets, never this root. */
 export interface CompiledCourse {
   readonly id: string;
+  /** The display name. */
+  readonly name: string;
   readonly type: ReturnType<typeof compileCourseTopology>;
   readonly rules: CourseRulesDocument;
   readonly gates: ReturnType<typeof compileCourseGates>;
@@ -65,7 +67,7 @@ export interface CompiledCourse {
 
 const COURSE_COMPILER = Object.freeze({
   id: 'superoutride.course-compiler',
-  version: 37,
+  version: 38,
   links: COURSE_LINK_RECIPE,
   physical: COURSE_PHYSICAL_RECIPE,
   images: COURSE_IMAGE_SOURCE_RECIPE,
@@ -272,6 +274,7 @@ export async function compileCourseDocument(
     return courseSuccess(
       Object.freeze({
         id,
+        name: document.name,
         type,
         rules: document.rules,
         gates,

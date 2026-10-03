@@ -18,7 +18,7 @@ color and material overwrite independently. Compiled Sections publish their two 
 Checkpoints, starts, finishes and environment changes are independent of Section boundaries.
 Source identity, traversal identity and race credit are distinct.
 
-## CourseDocument v29
+## CourseDocument v30
 
 The saved format is compact UTF-8 JSON. All declared fields are required; explicit null represents
 absent optional content. Unknown fields fail. Arrays preserve saved order; object-property order and
@@ -26,8 +26,8 @@ whitespace do not affect identity. Normalized records use schema field order and
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 29,
-  entrySectionId,
+  format: "superoutride.course", version: 30,
+  name, entrySectionId,
   sections, links, assets, rules
 }
 Section {
@@ -53,6 +53,10 @@ belong exclusively to the referenced file. Compilation admits that file and chec
 against each use (sprite or background). A course's relation to its images is this declared digest:
 delivery supplies each reference with the bytes of the manifest `image` entry whose `sha256` equals it,
 never by assuming an entry ID. [Development](development.md#build-outputs) owns the index and output layout.
+
+`name` is the course's display name: nonblank printable ASCII (the
+[text tiles'](image-assets.md#text-tiles) characters) without surrounding whitespace, at most `nameCodeUnits`
+long, so it fits one line of the frame's text grid. It is shown, never used as an identity.
 
 IDs are opaque nonblank strings without surrounding whitespace and compare exactly. A course's only
 identifier is its file name without `.course.json`, which is also its manifest ID; the document carries
@@ -284,6 +288,7 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | ----------------------------------------------------------------------- | -----------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Document `jsonBytes`                                                    |       64 MiB UTF-8 | 50 stages × 2 km/stage × 1000 records/km × 256 encoded bytes/record × 2, rounded up                                                                                       |
 | `idCodeUnits`                                                           |                128 | 64-character stable paths/names × 2                                                                                                                                       |
+| `nameCodeUnits`                                                         |                 40 | One line of the 40-column text grid                                                                                                                                       |
 | Graph `sections` / `links`                                              |          128 / 384 | 50 positions × 2, rounded up; three outgoing choices per Section                                                                                                          |
 | Document `assets`                                                       |               2048 | (50 × 16 local image types + 128 shared types) × 2, rounded up                                                                                                            |
 | Section `pis`                                                           |                512 | (21 × 10 + 2 endpoints) × 2, rounded up                                                                                                                                   |
@@ -438,7 +443,7 @@ clock state belong to Sessions. Object identity is local to a compilation; cross
 `sourceSha256` and `materialsSha256` are the delivered SHA-256 of the course document and the
 surface-material document, the [document identity](#reference-times-and-clock) the catalog supplies.
 `buildSha256` hashes `{sourceSha256,materialsSha256,compiler}`.
-The compiler is `superoutride.course-compiler` version 37, incorporating Link recipe v3, physical
+The compiler is `superoutride.course-compiler` version 38, incorporating Link recipe v3, physical
 recipe v5, image-source recipe v2 and appearance recipe v11. Source, material or compiler/recipe
 changes invalidate dependent products.
 

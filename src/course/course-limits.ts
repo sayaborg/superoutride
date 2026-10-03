@@ -6,6 +6,7 @@ const graphSections = 128;
 export const COURSE_DOCUMENT_LIMITS = Object.freeze({
   jsonBytes: 64 * 1024 * 1024,
   idCodeUnits: 128,
+  nameCodeUnits: 40,
   sections: graphSections,
   links: 3 * graphSections,
   assets: 2048,

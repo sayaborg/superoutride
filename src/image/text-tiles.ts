@@ -6,6 +6,8 @@ export const TEXT_TILE_SIZE = 8;
 /** Patterns 0 through 94 are the printable ASCII characters U+0020 through U+007E, in code order. */
 const FIRST_CHARACTER = 0x20;
 const CHARACTER_COUNT = 0x7f - FIRST_CHARACTER;
+/** Text the text tiles can draw: printable ASCII only. */
+export const TEXT_CHARACTERS = /^[\x20-\x7e]*$/;
 /** The empty tile: pattern 0 (the space) has no opaque pixel and is never painted. */
 export const EMPTY_TEXT_TILE = 0;
 /** Palettes 0 through 3 name the text colors; later palettes are free. */
