@@ -7,7 +7,7 @@ import { SoftwareSurface } from '../view/software-surface.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import { InputManager } from '../input/input-manager.js';
 import { TouchPointers } from '../input/touch-pointers.js';
-import { MenuInput, type MenuCommand, type MenuInputMode } from '../input/menu-input.js';
+import { MenuInput, type MenuCommand, type InputRoute } from '../input/menu-input.js';
 import { createCornerButtons } from './corner-buttons.js';
 import { mustGet } from './dom.js';
 import { createTouchIndicators } from './touch-indicators.js';
@@ -22,10 +22,10 @@ interface BrowserDrivingShell {
   /** The run's competitors for the audio scene. */
   updateAudio(player: CompetitorObservation, rivals: readonly CompetitorObservation[]): void;
   /**
-   * The one procedure that routes devices, called by the screen host when the mode changes: driving input and sound are
-   * live only while driving; menu commands follow the mode.
+   * The one procedure that routes devices, called by the screen host when the route changes: driving input and sound are
+   * live only while driving; menu commands follow the route.
    */
-  setMode(mode: MenuInputMode): void;
+  setRoute(route: InputRoute): void;
   /** The menu commands since the last call. */
   menuCommands(): MenuCommand[];
 }
@@ -59,12 +59,12 @@ export function createBrowserDrivingShell(
   const touchIndicators = createTouchIndicators(document);
   const audio = createAudioLifecycle(vehicles, surfaceSounds, audioSettings, player);
   return {
-    setMode(mode): void {
-      const live = mode === 'driving';
+    setRoute(route): void {
+      const live = route === 'driving';
       inputManager.setSuspended(!live);
       audio.setActive(live);
-      menuInput.setMode(mode);
-      corners.setMode(mode);
+      menuInput.setRoute(route);
+      corners.setRoute(route);
     },
     menuCommands: () => menuInput.poll(),
     framebuffer,

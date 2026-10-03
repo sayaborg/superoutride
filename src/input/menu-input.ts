@@ -8,7 +8,7 @@ export type MenuCommand = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'CONFIRM' | 'BACK' 
  * Where devices go: while driving, driving input takes them and only PAUSE reaches the menu; in a menu every command
  * does; off (page hidden) nothing does.
  */
-export type MenuInputMode = 'driving' | 'menu' | 'off';
+export type InputRoute = 'driving' | 'menu' | 'off';
 
 const KEYS: ReadonlyMap<string, MenuCommand> = new Map<string, MenuCommand>([
   ['ArrowUp', 'UP'],
@@ -34,11 +34,11 @@ const STICK_DIRECTION_THRESHOLD = 0.5;
 /**
  * The one menu-command authority, apart from driving input. Keys follow the operating system's repeat; gamepad
  * controls and touch never repeat. A gamepad control commands on its press only, so a control already held when the
- * mode changes commands nothing until pressed again. A menu touch is a flick in the touch area's left half (its larger
+ * route changes commands nothing until pressed again. A menu touch is a flick in the touch area's left half (its larger
  * axis gives the direction) or a tap in its right half. The shell's corner buttons `press` BACK and PAUSE.
  */
 export class MenuInput {
-  private mode: MenuInputMode = 'off';
+  private route: InputRoute = 'off';
   private readonly queue: MenuCommand[] = [];
   private readonly held = new Map<number, Set<string>>();
   private readonly touches = new Map<
@@ -62,9 +62,9 @@ export class MenuInput {
     });
   }
 
-  setMode(mode: MenuInputMode): void {
-    if (mode === this.mode) return;
-    this.mode = mode;
+  setRoute(route: InputRoute): void {
+    if (route === this.route) return;
+    this.route = route;
     this.queue.length = 0;
     this.touches.clear();
   }
@@ -83,7 +83,7 @@ export class MenuInput {
         if (!this.held.get(gamepad.index)?.has(name)) this.accept(command);
       };
       for (const [index, command] of BUTTONS) if (gamepad.buttons[index]?.pressed) fire(`b${index}`, command);
-      if (gamepad.buttons[START_BUTTON]?.pressed) fire('start', this.mode === 'driving' ? 'PAUSE' : 'CONFIRM');
+      if (gamepad.buttons[START_BUTTON]?.pressed) fire('start', this.route === 'driving' ? 'PAUSE' : 'CONFIRM');
       const [x = 0, y = 0] = gamepad.axes;
       if (Math.max(Math.abs(x), Math.abs(y)) > STICK_DIRECTION_THRESHOLD)
         fire('stick', Math.abs(x) > Math.abs(y) ? (x < 0 ? 'LEFT' : 'RIGHT') : y < 0 ? 'UP' : 'DOWN');
@@ -93,19 +93,19 @@ export class MenuInput {
   }
 
   private accept(command: MenuCommand): boolean {
-    if (this.mode === 'off' || (this.mode === 'driving' && command !== 'PAUSE')) return false;
+    if (this.route === 'off' || (this.route === 'driving' && command !== 'PAUSE')) return false;
     this.queue.push(command);
     return true;
   }
 
   private key(event: KeyboardEvent): void {
-    const command = event.code === 'Escape' ? (this.mode === 'driving' ? 'PAUSE' : 'BACK') : KEYS.get(event.code);
+    const command = event.code === 'Escape' ? (this.route === 'driving' ? 'PAUSE' : 'BACK') : KEYS.get(event.code);
     if (command === undefined || (command === 'PAUSE' && event.repeat)) return;
     if (this.accept(command)) event.preventDefault();
   }
 
   private beginTouch(pointer: TouchPointer): void {
-    if (this.mode !== 'menu') return;
+    if (this.route !== 'menu') return;
     const area = this.touchArea();
     this.touches.set(pointer.pointerId, {
       left: pointer.x < area.left + area.width * 0.5,

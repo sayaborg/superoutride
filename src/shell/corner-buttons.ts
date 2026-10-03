@@ -1,4 +1,4 @@
-import type { MenuInputMode } from '../input/menu-input.js';
+import type { InputRoute } from '../input/menu-input.js';
 
 /**
  * The small screen-corner buttons: BACK top left in menus and PAUSE top right while driving. They appear once the
@@ -20,10 +20,10 @@ export function createCornerButtons(documentRef: Document, press: (command: 'BAC
   const back = button('BACK', '◀'),
     pause = button('PAUSE', 'II');
   let touched = false,
-    mode: MenuInputMode = 'off';
+    route: InputRoute = 'off';
   const show = () => {
-    back.hidden = !touched || mode !== 'menu';
-    pause.hidden = !touched || mode !== 'driving';
+    back.hidden = !touched || route !== 'menu';
+    pause.hidden = !touched || route !== 'driving';
   };
   return Object.freeze({
     /** Touch has been used: show the buttons from now on. */
@@ -31,8 +31,8 @@ export function createCornerButtons(documentRef: Document, press: (command: 'BAC
       touched = true;
       show();
     },
-    setMode(next: MenuInputMode) {
-      mode = next;
+    setRoute(next: InputRoute) {
+      route = next;
       show();
     },
   });
