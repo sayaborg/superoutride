@@ -2,6 +2,7 @@ import type { ResolvedCourseSession, SessionEntry } from './course-session.js';
 import type { RivalEnvelope } from '../content/rival-envelope.js';
 import { createCheckpointClock, raceEventSeconds } from './checkpoint-clock.js';
 import { rankRaceProgress } from './race-ranking.js';
+import { enumerateCourseRoutes } from '../course/compiler/course-routes.js';
 import { createRankLimitJudge, createRunOutcome, type RunStatus } from './run-outcome.js';
 import { createRouteProgress, type RouteRaceEvent } from './route-progress.js';
 import { createRouteCrossSections } from './route-cross-sections.js';
@@ -105,6 +106,8 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   const outcome = createRunOutcome();
   const startPhase = createStartPhase();
   const lines = createRouteCrossSections(runtime.route, course, configuration.lapCount);
+  // The course's routes as reference runs name them: each its Links in canonical order; a circuit's is empty.
+  const routes = enumerateCourseRoutes(course.entry, course.type);
   // The fork field is the fork decider: the only holder of the Route's selection authority.
   const forks = createCourseForkField(runtime.route, lines, runtime.selectSuccessor);
   // A rival's intent drives it; the player's input comes from its composition, so it has no intent here.
@@ -145,6 +148,10 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     bestLapSeconds: null as number | null,
     /** On a CIRCUIT, its latest complete lap in seconds; null until it completes one, and on other course types. */
     lastLapSeconds: null as number | null,
+    /** The race time of each race line it has crossed (every checkpoint and FINISH line, every lap), in order. */
+    crossingSeconds: [] as number[],
+    /** The ID of the FINISH gate it finished at; null until it finishes. */
+    finishGateId: null as string | null,
   });
   // Every competitor drives the model of its entry's vehicle, spawned at its grid slot with the Session's start speed,
   // or, appearing ahead, where and as fast as it appears.
@@ -414,6 +421,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       );
       for (const event of update.events) {
         const timeSeconds = raceEventSeconds(stepStart, event.u);
+        c.crossingSeconds.push(timeSeconds);
         stepEvents.push(
           Object.freeze({
             competitorId: c.id,
@@ -434,6 +442,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       if (c === player) playerGates += update.events.length;
       if (update.justFinished) {
         c.finishSeconds = stepEvents.at(-1)!.timeSeconds;
+        c.finishGateId = stepEvents.at(-1)!.landmark.id;
         if (c === player) playerFinishSeconds = c.finishSeconds;
       }
     }
@@ -489,6 +498,20 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
         present.map((c) => ({ competitorId: c.id, s: c.progress.s, finishSeconds: c.finishSeconds })),
       );
       return { rank: standings.find((s) => s.competitorId === player.id)!.rank, count: present.length };
+    },
+    /**
+     * The course route the Route is taking, as reference runs and records name routes (its Link IDs in canonical
+     * order; empty on a CIRCUIT): the one enumerated route that holds every Link the Route has appended. Null while
+     * more than one still does.
+     */
+    get routeLinks(): readonly string[] | null {
+      const taken = runtime.route.occurrences.flatMap((occurrence) =>
+        occurrence.incoming ? [occurrence.incoming] : [],
+      );
+      const matching = routes.filter(
+        (route) => course.type === 'CIRCUIT' || taken.every((link, i) => route[i] === link),
+      );
+      return matching.length === 1 ? matching[0]!.map((link) => link.id) : null;
     },
     /**
      * The rank limit N of the player's next race gate: the player fails there when N other competitors cross it first.

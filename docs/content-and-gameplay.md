@@ -638,7 +638,12 @@ its finish time, else race time. The race also publishes the player's standing, 
 present by `rankRaceProgress` and their count, which every display reads; the rank limit of the player's next race
 gate (null without one or after finishing); and, when the only present rival takes part in a stage interval holding
 the player's STAGE (one rival per stage), that rival's Route station less the player's, positive while it is ahead.
-The race also counts simulation seconds, every advanced fixed step (READY and after the ending included), the time
+For records the race also publishes each competitor's race time at every race line it has crossed (every
+checkpoint and FINISH line, every lap, in order) and the FINISH gate it finished at, and the route the Route is
+taking, named as reference runs name routes: the Link IDs of the one enumerated course route (`enumerateCourseRoutes`)
+that holds every Link the Route has appended, empty on a CIRCUIT, and null while more than one route still does.
+The run's other identities already exist: the compiled course's build identity and the Session vehicle's identity
+(`sessionVehicleSha256`), which time budgets also carry. The race also counts simulation seconds, every advanced fixed step (READY and after the ending included), the time
 base for displays timed across the ending, and stamps each competitor observation's latest shift with it. The shell
 derives the HUD and RESULT from these facts ([Browser](browser.md#hud)).
 
