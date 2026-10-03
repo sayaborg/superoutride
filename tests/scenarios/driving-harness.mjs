@@ -31,6 +31,7 @@ import { admitSeriesCourse, compileSeriesCatalog, loadSeriesCatalog } from '../.
 import { requireLoaded } from '../../src/content/content-load-error.js';
 import { readCourseTimeBudgets } from '../../src/content/course-time-budgets.js';
 import { readPaceSchedule } from '../../src/content/pace-schedule.js';
+import { SESSION_RULE_LIMITS } from '../../src/course/session-rules.js';
 
 /** The player's position as `P<rank>/<competitors present>`, from the race's standing. */
 const playerPosition = (race) => `P${race.standing.rank}/${race.standing.count}`;
@@ -318,7 +319,10 @@ export function runScenario({ course, arcade: scenarioArcade, productArcade, bud
     for (const id of trafficIds) if (!presentTraffic.has(id)) traffic.departed++;
     trafficIds = presentTraffic;
     traffic.maxPresent = Math.max(traffic.maxPresent, presentTraffic.size);
-    assert.ok(presentTraffic.size <= 8, 'more than eight traffic vehicles at once');
+    assert.ok(
+      presentTraffic.size <= SESSION_RULE_LIMITS.traffic,
+      'more traffic vehicles at once than the Session rules allow',
+    );
     // The resident occurrences, as rendered and sampled physically.
     for (const occurrence of scene.runtime.window.occurrences) {
       finiteState(

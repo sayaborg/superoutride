@@ -758,7 +758,7 @@ vehicle, zero to fifteen rivals and permitted laps; it has no clock, and a FREE 
 is rejected. TIME TRIAL resolves a catalog vehicle and permitted laps on any course; the player runs alone, without
 rivals or clock, and selects fork routes by driving like any first competitor at a lock line. A TIME TRIAL
 configuration with rivals, traffic or a time limit is rejected. ARCADE takes its series course's traffic; FREE PLAY
-takes the TRAFFIC choice: OFF is none, and LOW and HIGH are `FREE_PLAY_TRAFFIC` in the FREE PLAY rules (`race/free-play-field.ts`; 5 and 15
+takes the TRAFFIC choice: OFF is none, and LOW and HIGH are `FREE_PLAY_TRAFFIC` in the FREE PLAY rules (`race/free-play-field.ts`; 5 and 30
 vehicles/km) at `FREE_PLAY_TRAFFIC_SPEED_KILOMETERS_PER_HOUR` (80 km/h) with every catalog vehicle as candidates.
 Traffic settings are null or `{density, vehicles, speedKilometersPerHour}` (`compileTrafficSettings`): a density in
 vehicles per kilometre in (0, 40] (`SESSION_RULE_LIMITS.trafficDensity`), at least one unique vehicle ID, and the one
@@ -949,7 +949,7 @@ The appearance line is the player's route station plus the farthest rendered dis
 `s − cameraDistance + far` from the loading coverage's view. In each step in which the line reaches a position, a
 traffic vehicle appears there, at its lane's centre and its driver's planned speed behind the vehicle ahead in that
 lane, the same appearance as a later stage's entry. Positions at or before the line when the Session starts never appear. A position passes unused,
-never to appear later, when `min(8, 24 − competitors)` traffic vehicles are present (`SESSION_RULE_LIMITS.traffic`
+never to appear later, when `min(16, 32 − competitors)` traffic vehicles are present (`SESSION_RULE_LIMITS.traffic`
 and `.vehicles`), when the resident Route does not reach it yet, when its place overlaps another vehicle's footprint
 ([Body contact](#body-contact)), or when a vehicle behind in its lane could not stop for it (the appearance rule above). A traffic vehicle leaves, for good, once out of view by the same rule as competitors.
 Traffic exists only where the player can see it: it appears at the farthest visible distance ahead of the player

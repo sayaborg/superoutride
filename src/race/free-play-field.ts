@@ -13,7 +13,7 @@ export type FreePlayTraffic = (typeof FREE_PLAY_TRAFFIC_LEVELS)[number];
 /** FREE PLAY traffic is the same on every course: the levels' densities (vehicles/km), drawn from every vehicle. */
 export const FREE_PLAY_TRAFFIC = Object.freeze({
   LOW: Object.freeze({ density: 5 }),
-  HIGH: Object.freeze({ density: 15 }),
+  HIGH: Object.freeze({ density: 30 }),
 });
 /** FREE PLAY traffic's one speed in km/h, at every level. */
 export const FREE_PLAY_TRAFFIC_SPEED_KILOMETERS_PER_HOUR = 80;
