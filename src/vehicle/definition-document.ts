@@ -32,10 +32,10 @@ export interface VehicleMetadata {
   readonly physicsAnchor: Readonly<{ modelYear: string; market: string }>;
   readonly mobileLabel: string;
 }
-/** The mechanics document: exactly the values vehicle physics reads. */
+/** The mechanics document: the vehicle's physical description, the values physics reads and its dimensions. */
 export interface VehicleMechanicsDocument extends Omit<VehicleDefinition, 'id'> {
   readonly format: 'superoutride.vehicle-mechanics';
-  readonly version: 1;
+  readonly version: 2;
 }
 /** The listing document: how a vehicle is named, ordered, drawn, heard and shown on the HUD. */
 export interface VehicleListingDocument {
@@ -70,6 +70,9 @@ export interface CompiledVehicleDefinition extends VehicleMetadata {
   readonly sound: CompiledEngineSound;
 }
 const mechanicalNumbers = [
+  'overallLength',
+  'overallWidth',
+  'overallHeight',
   'mass',
   'yawInertia',
   'pitchInertia',
@@ -105,7 +108,7 @@ export function compileVehicleMechanicsDocument(
       value,
       ['format', 'version', ...mechanicalNumbers, 'powertrain'],
       'superoutride.vehicle-mechanics',
-      1,
+      2,
     );
     const mechanics = Object.fromEntries(mechanicalNumbers.map((key) => [key, readNumber(v[key], `/${key}`)]));
     const p = readRecord(v.powertrain, '/powertrain', [...powertrainNumbers, 'gearRatios', 'torqueCurve']);
@@ -123,7 +126,7 @@ export function compileVehicleMechanicsDocument(
     const definition = { ...mechanics, powertrain } as unknown as Omit<VehicleDefinition, 'id'>;
     const source: VehicleMechanicsDocument = deepFreeze({
       format: 'superoutride.vehicle-mechanics',
-      version: 1,
+      version: 2,
       ...definition,
     });
     const compiledVehicle = admitDomain(

@@ -34,6 +34,10 @@ export function topGearRedlineSpeed(
 export interface VehicleDefinition {
   /** Composition/presentation identity. Common mechanics never branches on this value. */
   readonly id: VehicleId;
+  /** Body overall dimensions in metres, mirrors excluded. Physics does not read them. */
+  readonly overallLength: number;
+  readonly overallWidth: number;
+  readonly overallHeight: number;
   readonly mass: number;
   readonly yawInertia: number;
   readonly pitchInertia: number;
@@ -65,6 +69,9 @@ export interface VehicleDefinition {
 export interface CompiledVehicle extends Pick<
   VehicleDefinition,
   | 'id'
+  | 'overallLength'
+  | 'overallWidth'
+  | 'overallHeight'
   | 'mass'
   | 'yawInertia'
   | 'pitchInertia'
@@ -74,6 +81,8 @@ export interface CompiledVehicle extends Pick<
   | 'frontDriveTorqueFraction'
   | 'quadraticDrag'
 > {
+  /** The footprint's half diagonal, `hypot(overallLength / 2, overallWidth / 2)`, in metres. */
+  readonly reach: number;
   readonly powertrain: CompiledAutomaticPowertrainDefinition;
   readonly frontStation: CompiledContactStation;
   readonly rearStation: CompiledContactStation;
@@ -84,6 +93,9 @@ export function compileVehicle(definition: VehicleDefinition): Readonly<Compiled
     throw new DefinitionDomainError('id', 'vehicle definition id must be a nonempty trimmed string');
   }
   for (const field of [
+    'overallLength',
+    'overallWidth',
+    'overallHeight',
     'mass',
     'yawInertia',
     'pitchInertia',
@@ -102,6 +114,12 @@ export function compileVehicle(definition: VehicleDefinition): Readonly<Compiled
     if (!(definition[field] >= 0) || !Number.isFinite(definition[field]))
       throw new DefinitionDomainError(field, `${field} must be finite and >= 0`);
   }
+  // The footprint, centred on the vehicle centre, contains both contact stations.
+  if (!(definition.overallLength / 2 >= Math.max(definition.frontAxle, definition.rearAxle)))
+    throw new DefinitionDomainError(
+      'overallLength',
+      'overallLength / 2 must be at least max(frontAxle, rearAxle) so the footprint contains both contact stations',
+    );
   if (
     !(definition.frontDriveTorqueFraction >= 0 && definition.frontDriveTorqueFraction <= 1) ||
     !Number.isFinite(definition.frontDriveTorqueFraction)
@@ -178,6 +196,10 @@ export function compileVehicle(definition: VehicleDefinition): Readonly<Compiled
   });
   return Object.freeze({
     id: definition.id,
+    overallLength: definition.overallLength,
+    overallWidth: definition.overallWidth,
+    overallHeight: definition.overallHeight,
+    reach: Math.hypot(definition.overallLength / 2, definition.overallWidth / 2),
     mass: definition.mass,
     yawInertia: definition.yawInertia,
     pitchInertia: definition.pitchInertia,

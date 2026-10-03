@@ -482,11 +482,12 @@ document, named `surface`. It publishes one immutable catalog. Course compilatio
 runtime physics receives the resolved object or `null`, never a fixed material enum.
 
 A vehicle is two documents with the same identifier. `content/vehicles/<id>.json` stores its
-`superoutride.vehicle-mechanics` version 1 document: exactly the values vehicle physics reads.
+`superoutride.vehicle-mechanics` version 2 document: the vehicle's physical description — the values
+vehicle physics reads and its overall dimensions.
 `content/vehicle-listings/<id>.json` stores its `superoutride.vehicle-listing` version 1 document:
-everything else players see or hear of it. A value belongs to the mechanics document when physics
-reads it and to the listing otherwise; `form` and the metadata's `physicsAnchor` therefore belong to
-the listing. `content/driving/default.json` stores the sole `superoutride.driving-definition` version 12.
+everything else players see or hear of it. A value belongs to the mechanics document when it describes
+the physical vehicle and to the listing otherwise; `form` and the metadata's `physicsAnchor` therefore
+belong to the listing. `content/driving/default.json` stores the sole `superoutride.driving-definition` version 12.
 A material, vehicle or driving document's only identifier is its file name without `.json`, which is
 also its manifest ID; the documents carry none. The content layer's `compileVehicleDefinitions` admits
 the catalog from the build's files or delivery's manifest entries alike: exactly one driving definition,
@@ -498,7 +499,7 @@ same identifier, which becomes the compiled vehicle ID, and rejects either docum
 
 | Mechanics field     | Contract                                                                        |
 | ------------------- | ------------------------------------------------------------------------------- |
-| `format`, `version` | `superoutride.vehicle-mechanics`, `1`                                           |
+| `format`, `version` | `superoutride.vehicle-mechanics`, `2`                                           |
 | Remaining fields    | All `VehicleDefinition` fields except `id`, including `powertrain`, at the root |
 
 | Listing field       | Contract                                                                                                                                                                                                                                                                                                                           |
@@ -517,7 +518,12 @@ A vehicle's top-gear redline road speed, `redlineRpm * 2π/60 / (top gear ratio 
 larger rolling radius among its driven wheels (front when the front drive fraction is above 0, rear when it is
 below 1), must not exceed the product's vehicle speed bound `MAXIMUM_VEHICLE_SPEED`, 240 m/s; a violation
 points to the top gear's `powertrain/gearRatios` element.
-No dimensions are saved in this format.
+`overallLength`, `overallWidth` and `overallHeight` are the body's overall dimensions in metres, positive and
+finite. The vehicle's footprint is the `overallLength` by `overallWidth` rectangle centred on the vehicle
+centre; it must contain both contact stations (`overallLength / 2 >= max(frontAxle, rearAxle)`). Its reach is
+the footprint's half diagonal. Physics does not read the dimensions; `overallHeight` has no consumer yet.
+A footprint that does not contain both contact stations points to `overallLength`. The compiled vehicle
+publishes the three dimensions and its derived `reach`.
 
 The driving document has `format`, `version` and the current `DrivingDefinition`
 fields: `maxRoadWheelSteerDegrees`, `steeringOffsetDegrees`,
