@@ -30,7 +30,7 @@
   latency, clock and worklet overruns; headless Chromium did not reproduce the lag, so its fix waits on a reading
   from an affected device ([Browser](browser.md#performance-hud)).
 
-Next PR: **13-3a — Traffic**.
+Next PR: **13-3b — FREE PLAY traffic option**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -193,6 +193,7 @@ lighting at its own chainage, and switching is a cut.
 | Vehicles         | Exact specifications of adopted vehicles (year, market, grade); BROUGHAM TUNED values                                                                   |
 | Circuits         | Series or FREE PLAY placement of the selected circuits below                                                                                            |
 | Interaction      | Contact response, traffic behavior, movable objects including cones, fixed roadside objects, barriers and track limits (Stage 13)                       |
+| Records          | Whether traffic settings belong to the ARCADE record key                                                                                                |
 | Grade separation | Occurrence/neighborhood/height selection of surfaces, landmarks and contacts at nearby crossings                                                        |
 | Front end        | Attract demo idle time                                                                                                                                  |
 | HUD              | Layout of the HUD elements, the vehicle-state elements included (real-device evaluation)                                                                |

@@ -11,7 +11,7 @@ import {
   requireAdmission,
   type AdmissionResult,
 } from '../core/admission.js';
-import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
+import { SESSION_RULE_LIMITS, type TrafficSettings } from '../course/session-rules.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import { enumerateCourseRoutes } from '../course/compiler/course-routes.js';
 import { createCourseRoute } from '../course/course-route.js';
@@ -23,7 +23,7 @@ import { requireLoaded } from './content-load-error.js';
 import type { DocumentSource } from './document-catalog.js';
 
 export const SERIES_DOCUMENT_FORMAT = 'superoutride.series';
-export const SERIES_DOCUMENT_VERSION = 7;
+export const SERIES_DOCUMENT_VERSION = 8;
 const PLAYER_SLOTS = ['own', 'last'] as const;
 
 /** One series: the one owner of its courses' ARCADE settings. `dev` series appear only with DEV. */
@@ -78,6 +78,8 @@ export interface SeriesCourse {
   readonly playerSlot: (typeof PLAYER_SLOTS)[number];
   /** Rank limit N by race gate ID: the player fails when the N-th other competitor crosses that gate first. */
   readonly rankLimits: Readonly<Record<string, number>>;
+  /** The course's ARCADE traffic; null for none. */
+  readonly traffic: TrafficSettings | null;
 }
 
 export interface SeriesCatalog {
@@ -155,7 +157,7 @@ function readSeries(
     root.courses,
     '/courses',
     (value, at) => {
-      const entry = readRecord(value, at, ['course', 'laps', 'entries', 'playerSlot', 'rankLimits']);
+      const entry = readRecord(value, at, ['course', 'laps', 'entries', 'playerSlot', 'rankLimits', 'traffic']);
       const course = readString(entry.course, `${at}/course`);
       requireAdmission(courseIds.includes(course), 'unresolved_reference', `${at}/course`, `Unknown course ${course}`);
       requireAdmission(
@@ -173,6 +175,7 @@ function readSeries(
         rankLimits: readDictionary(entry.rankLimits, `${at}/rankLimits`, (limit, path) =>
           readNumber(limit, path, { min: 1, max: SESSION_RULE_LIMITS.rivals, integer: true }),
         ),
+        traffic: entry.traffic === null ? null : readTraffic(entry.traffic, `${at}/traffic`, vehicleOf),
       });
       owners.set(course, result);
       return result;
@@ -249,6 +252,35 @@ function readEntries(
       `Candidate vehicle ${candidate} needs a grid entry for the player`,
     );
   return entries;
+}
+
+/** Traffic settings: a density within the Session rule ceiling, unique catalog vehicles and a speed fraction. */
+function readTraffic(
+  value: unknown,
+  path: string,
+  vehicleOf: (id: string) => CompiledVehicleDefinition | undefined,
+): TrafficSettings {
+  const record = readRecord(value, path, ['density', 'vehicles', 'speed']);
+  const vehicles = readArray(
+    record.vehicles,
+    `${path}/vehicles`,
+    (item, at) => {
+      const id = readString(item, at);
+      requireAdmission(vehicleOf(id) !== undefined, 'unresolved_reference', at, `Unknown vehicle ${id}`);
+      return id;
+    },
+    { min: 1 },
+  );
+  requireUnique(vehicles, `${path}/vehicles`, 'vehicle');
+  return Object.freeze({
+    density: readNumber(record.density, `${path}/density`, {
+      min: 0,
+      exclusiveMin: true,
+      max: SESSION_RULE_LIMITS.trafficDensity,
+    }),
+    vehicles,
+    speed: readNumber(record.speed, `${path}/speed`, { min: 0, exclusiveMin: true, max: 1 }),
+  });
 }
 
 function readStages(value: unknown, path: string): StageInterval {

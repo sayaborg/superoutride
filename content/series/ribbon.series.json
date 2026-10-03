@@ -1,6 +1,6 @@
 {
   "format": "superoutride.series",
-  "version": 7,
+  "version": 8,
   "id": "ribbon",
   "title": "RIBBON",
   "dev": true,
@@ -22,7 +22,12 @@
         }
       ],
       "playerSlot": "last",
-      "rankLimits": {}
+      "rankLimits": {},
+      "traffic": {
+        "density": 10,
+        "vehicles": ["GOLF_GTI_16V", "DELTA_HF_INTEGRALE", "PX200E_ARCOBALENO"],
+        "speed": 0.45
+      }
     },
     {
       "course": "ribbon-fork",
@@ -54,7 +59,8 @@
         }
       ],
       "playerSlot": "last",
-      "rankLimits": {}
+      "rankLimits": {},
+      "traffic": null
     },
     {
       "course": "ribbon-ring",
@@ -86,7 +92,8 @@
         }
       ],
       "playerSlot": "last",
-      "rankLimits": {}
+      "rankLimits": {},
+      "traffic": null
     }
   ]
 }

@@ -40,12 +40,14 @@ until the finished rival has stayed below 0.05 m/s for two seconds before the te
 reverse input); lateral departures start at 30 m/s and hold steering and throttle. These are initial
 conditions through the ordinary vehicle constructor, with no pose or progress edits during a run.
 
-Four scenarios cover Session rules. Their ARCADE settings come from a test-only series document,
+Five scenarios cover Session rules. Their ARCADE settings come from a test-only series document,
 `tests/scenarios/session-rules.series.json` (never delivered; the product RIBBON series is unchanged), with the
 build's TESTAROSSA time budgets and pace schedules. Coast runs ARCADE from the player's own front slot ahead of a
 paced 911 rival (p = 1), finishes first and continues 12 seconds: the takeover stops the player within its runout,
 race time, progress, events and the position (P1/2) hold, and the rival keeps driving. Coast also finishes TIME TRIAL
-from the last grid slot without rivals or clock. Fork has an entry appearing 80 m ahead in STAGE 2 only: it appears
+from the last grid slot without rivals or clock, and runs ARCADE with the delivered RIBBON series' settings (seed 7),
+whose traffic must appear and leave the view, at most eight at once; traffic states join the digest and the
+`traffic` evidence (appearances, departures, the most present at once, the first appearance). Fork has an entry appearing 80 m ahead in STAGE 2 only: it appears
 when the player enters STAGE 2 at the player's s plus 80 m, and after STAGE 2 the player brakes until it leaves the
 view; absent, it is neither observed nor counted in the position. Ring limits `ring-CP1` to rank 1, so the paced rival
 starting a slot ahead crosses first: GAME OVER by RANK at that crossing's race time, which then holds. These

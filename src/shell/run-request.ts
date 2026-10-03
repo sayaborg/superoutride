@@ -114,6 +114,8 @@ export function runSettings(
     timeLimit: values.timeLimit,
     initialSpeed: 0,
     seed: 0,
+    // ARCADE takes its series course's traffic; FREE PLAY and TIME TRIAL have none.
+    traffic: request.mode === 'ARCADE' ? arcade!.traffic : null,
   });
   return Object.freeze({ ...configuration, vehicleId: request.vehicleId, rivalPool: values.rivalPool });
 }

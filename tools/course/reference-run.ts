@@ -36,7 +36,7 @@ export function runCourseReference(
     course,
     null,
     // A reference run is a TIME TRIAL Session: alone from the last grid slot, without a clock; the seed is fixed.
-    { mode: 'TIME_TRIAL', rivalCount: 0, lapCount, timeLimit: false, initialSpeed: 0, seed: 0 },
+    { mode: 'TIME_TRIAL', rivalCount: 0, lapCount, timeLimit: false, initialSpeed: 0, seed: 0, traffic: null },
     vehicleConfiguration,
     envelope,
   );

@@ -650,8 +650,9 @@ and tire observations)
 and never vehicle state or a model. The race copies them at the end of every advance, including held READY steps,
 once at creation and after a manual recovery. They are borrowed: the race overwrites the same objects on the next
 advance, so consumers read them before then. Display, the camera and audio read only these observations; the DEV
-vehicle HUD alone reads mechanics internals. `observe()` returns the player's observation and those of rivals on the
-resident window, the one residency decision. View owns rival sprite selection and assembly. Course owns VehicleWorld, surface
+vehicle HUD alone reads mechanics internals. `observe()` returns the player's observation and those of rivals and,
+in a separate list, of traffic on the resident window, the one residency decision; displays draw and voice rivals and
+traffic by the same rules. View owns rival sprite selection and assembly. Course owns VehicleWorld, surface
 readers and the physical driving source. Race consumes that source only. The course world owns the combined pre-lock render/driver query-depth
 admission, and the course scene binds physical and appearance products.
 RGBA conversion, sprite images and LOD formats belong

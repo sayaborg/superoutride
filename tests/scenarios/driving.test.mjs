@@ -17,6 +17,15 @@ for (const stem of ['ribbon-coast', 'ribbon-fork', 'ribbon-ring']) {
           expect: { outcome: 'GOAL', position: 'P1/2', stop: true, rivalsDrive: true },
         },
         {
+          name: 'ARCADE with the RIBBON series traffic',
+          mode: 'ARCADE',
+          series: 'product',
+          policy: 'finish',
+          seed: 7,
+          seconds: 120,
+          expect: { outcome: 'GOAL', position: 'P1/1', traffic: true },
+        },
+        {
           name: 'TIME TRIAL finish from the last slot',
           mode: 'TIME_TRIAL',
           policy: 'finish',

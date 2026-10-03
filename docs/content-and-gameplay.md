@@ -679,13 +679,13 @@ competitors present.
 
 ## Series documents
 
-A series document (`superoutride.series` version 7) is the one owner of its courses' ARCADE settings. It is
+A series document (`superoutride.series` version 8) is the one owner of its courses' ARCADE settings. It is
 saved as `content/series/<id>.series.json`; `id` equals that file name stem, which is also its manifest ID.
 
 ```json
 {
   "format": "superoutride.series",
-  "version": 7,
+  "version": 8,
   "id": "ribbon",
   "title": "RIBBON",
   "dev": true,
@@ -700,7 +700,12 @@ saved as `content/series/<id>.series.json`; `id` equals that file name stem, whi
         { "vehicle": "TESTAROSSA", "color": "original", "pace": 1, "stages": null, "slot": 15, "ahead": null }
       ],
       "playerSlot": "last",
-      "rankLimits": {}
+      "rankLimits": {},
+      "traffic": {
+        "density": 10,
+        "vehicles": ["GOLF_GTI_16V", "DELTA_HF_INTEGRALE", "PX200E_ARCOBALENO"],
+        "speed": 0.45
+      }
     }
   ]
 }
@@ -710,7 +715,8 @@ saved as `content/series/<id>.series.json`; `id` equals that file name stem, whi
 `vehicles` lists the ARCADE vehicle candidates, at least one, unique and in the catalog, in selection order.
 `timeMargin` is the series' one time margin: positive, finite and at most 10. `fixedColors` says whether the
 player drives in its entry's color rather than its own chosen color. `courses` lists at least one delivered
-course, each with its ARCADE `laps` (1 through 99), `entries`, `playerSlot` and `rankLimits`. `entries` lists the
+course, each with its ARCADE `laps` (1 through 99), `entries`, `playerSlot`, `rankLimits` and `traffic` (null, or
+traffic settings whose vehicles are catalog vehicles; see [Traffic](#traffic)). `entries` lists the
 whole field, 1 through 16 entries, each a catalog vehicle, a color its sprite set declares, a positive pace ratio `pace`, `stages` (null for the
 whole run, or `{first, last}` with `last` at least `first` and no later than the stage count of every run of the
 course: its race gates per route, times the laps on a circuit) and one appearance. An entry taking part from STAGE
@@ -730,7 +736,8 @@ Session admits the course it drives.
 
 The delivered series is RIBBON (`dev: true`, colors not fixed): RIBBON COAST, RIBBON FORK and RIBBON RING with
 TESTAROSSA, whose fields are 1, 3 and 3 TESTAROSSA entries in its default color with pace ratio 1 in the grid's rearmost slots, with
-`playerSlot: last`.
+`playerSlot: last`. RIBBON COAST has traffic (10 vehicles/km of GOLF_GTI_16V, DELTA_HF_INTEGRALE and PX200E_ARCOBALENO
+at 0.45); RIBBON FORK and RIBBON RING have none.
 RIBBON ROUGH belongs to no series.
 
 ## Session and reference timing
@@ -746,7 +753,12 @@ player record's color for the vehicle when its sprite set declares it), otherwis
 vehicle, zero to fifteen rivals and permitted laps; it has no clock, and a FREE PLAY configuration with a time limit
 is rejected. TIME TRIAL resolves a catalog vehicle and permitted laps on any course; the player runs alone, without
 rivals or clock, and selects fork routes by driving like any first competitor at a lock line. A TIME TRIAL
-configuration with rivals or a time limit is rejected. On an untimed course, Session resolution rejects ARCADE; an ARCADE clock without its delivered time
+configuration with rivals, traffic or a time limit is rejected. ARCADE takes its series course's traffic; FREE PLAY
+takes the requested traffic (null for none). Traffic settings are null or `{density, vehicles, speed}`
+(`compileTrafficSettings`): a density in vehicles per kilometre in (0, 40] (`SESSION_RULE_LIMITS.trafficDensity`), at
+least one unique vehicle ID, and a speed fraction in (0, 1]. Session resolution resolves each traffic vehicle's Session
+vehicle and envelope (a missing envelope is a `RangeError`) and compiles its driver once: the rival utilization 0.75
+with the speed cap `speed × maximumSpeed` of that vehicle's envelope. On an untimed course, Session resolution rejects ARCADE; an ARCADE clock without its delivered time
 budgets fails. Unsupported course/vehicle/grid/lap combinations fail before
 activation. A Session binds immutable course, entries, lap target, start speed and timing references. Its entries
 list the player first, then the rivals: each has a stable ID (`PLAYER`, then `RIVAL_01`, `RIVAL_02`, …), its grid
@@ -891,10 +903,30 @@ The same driver serves reference runs and live rivals. Generated runs contain pr
 and optional 10 Hz position/speed/utilization traces. The browser loads generated envelopes and compact
 integer-millisecond budgets. [Development](development.md#build-outputs) owns generated file locations.
 
+## Traffic
+
+Traffic vehicles are not competitors: they have no rank, rank limit, fork decision (the fork field never observes
+them), progress, events, record or pace, and the HUD does not count them. Each is an ordinary vehicle (its own
+mechanics, recovery and the same driver as rivals, lane following included) whose role in the Session is traffic; no
+vehicle document marks it. Traffic positions lie on the Route at stations `offset + k × 1000/density` (k = 0, 1, …);
+the offset in [0, spacing), and each position's vehicle, color and lane (a lane number of the Carriageway at that
+station), derive from the Session seed and k through the same 32-bit mixing as rival exits. At a fork a traffic
+vehicle heads for the selected exit, else for an exit drawn from the seed, k and the occurrence ordinal; one left on a
+closed road recovers like any vehicle.
+
+The appearance line is the player's route station plus the farthest rendered distance ahead of it,
+`s − cameraDistance + far` from the loading coverage's view. In each step in which the line reaches a position, a
+traffic vehicle appears there, at its lane's centre and its driver's planned speed, the same appearance as a later
+stage's entry. Positions at or before the line when the Session starts never appear. A position passes unused,
+never to appear later, when `min(8, 24 − competitors)` traffic vehicles are present (`SESSION_RULE_LIMITS.traffic`
+and `.vehicles`), when the resident Route does not reach it yet, or when its place overlaps another vehicle's footprint
+([Body contact](#body-contact)). A traffic vehicle leaves, for good, once out of view by the same rule as competitors.
+The race publishes traffic observations in their own list. Records do not depend on traffic settings.
+
 ## Body contact
 
-The race computes body contact once per fixed step, from the state at the step's start, over the competitors present
-in the Session in competitor order; the force on each holds through that step and enters its vehicle mechanics as
+The race computes body contact once per fixed step, from the state at the step's start, over the vehicles present
+in the Session (the competitors in competitor order, then the traffic in order of appearance); the force on each holds through that step and enters its vehicle mechanics as
 the external force ([Vehicle physics](vehicle-physics.md#body-contact)). There is no contact during READY. A
 vehicle's contact shape is its footprint laid along the road at its route position (s, l): it does not turn with the
 vehicle's yaw, and height is not compared, so airborne vehicles contact too. For two vehicles with route-coordinate
@@ -910,8 +942,8 @@ tangent or its right, read at the pair's midpoint, with equal magnitude and oppo
 its approach speed is their relative world velocity along that direction. The spring-damper uses the Session
 driving definition's `bodyContact` (the player's vehicle model).
 
-Recovery and appearance place no vehicle on another present competitor's footprint. Recovery backs its target along
-the Route behind each competitor in the way, by `placementClearance`, until the place in its lane there is free (or
+Recovery and appearance place no vehicle on another present vehicle's footprint. Recovery backs its target along
+the Route behind each vehicle in the way, by `placementClearance`, until the place in its lane there is free (or
 the resident Route begins); wrong-course recovery does the same on the selected road. An appearance whose place is
 occupied waits for a later step. These choose where a vehicle is placed; they move no vehicle.
 

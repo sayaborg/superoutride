@@ -27,7 +27,7 @@ import { courseBoundaryAt, courseCarriagewayExists } from '../../src/course/cour
 import { routeSectionS } from '../../src/course/course-route.js';
 import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 import { readFileSync } from 'node:fs';
-import { admitSeriesCourse, compileSeriesCatalog } from '../../src/content/series-catalog.js';
+import { admitSeriesCourse, compileSeriesCatalog, loadSeriesCatalog } from '../../src/content/series-catalog.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
 import { readCourseTimeBudgets } from '../../src/content/course-time-budgets.js';
 import { readPaceSchedule } from '../../src/content/pace-schedule.js';
@@ -44,10 +44,11 @@ const entry = definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTARO
 const configuration = createSessionVehicle(entry, definitions.driving, materials);
 const { envelope } = await content.json('envelope', 'TESTAROSSA');
 const driver = compileEnvelopeDriver(envelope, 0.75, envelope.maximumSpeed);
-// FREE PLAY rivals come from the player's form pool, as in the browser, each with its own vehicle and envelope.
+// FREE PLAY rivals come from the player's form pool, as in the browser; every other vehicle (traffic included) drives
+// its own vehicle and envelope.
 const rivalPool = rivalPoolPairs(definitions.vehicles, formPool(entry));
 const fieldVehicles = new Map();
-for (const id of new Set(rivalPool.map((pair) => pair.vehicle))) {
+for (const id of definitions.vehicles.map((v) => v.compiledVehicle.id)) {
   const vehicle = createSessionVehicle(
     definitions.vehicles.find((v) => v.compiledVehicle.id === id),
     definitions.driving,
@@ -74,15 +75,20 @@ const scenarioSeries = requireLoaded(
   ),
 );
 
+// The delivered series, for scenarios that run a course's product ARCADE settings (RIBBON COAST's traffic).
+const productSeries = await loadSeriesCatalog(content, definitions.vehicles);
+
 export async function loadScenarioCourse(stem) {
   const course = await loadDeliveredCourse(content, stem, materials);
   const settings = scenarioSeries.courseSettings(stem);
   const arcade = settings && requireLoaded(admitSeriesCourse(settings, course, SCENARIO_SERIES_PATH.pathname));
+  const productSettings = productSeries.courseSettings(stem);
   const product = async (kind, read) =>
     requireLoaded(await read(course, configuration, await content.json(kind, `${stem}/TESTAROSSA`), kind));
   return {
     course,
     arcade,
+    productArcade: productSettings && requireLoaded(admitSeriesCourse(productSettings, course, 'ribbon.series.json')),
     budgets: arcade && (await product('budget', readCourseTimeBudgets)),
     paceSchedule: arcade && (await product('schedule', readPaceSchedule)),
   };
@@ -114,7 +120,9 @@ function pavementBounds(scene, vehicle) {
 }
 
 /** Fresh product assembly per replay; only initial conditions and input policy differ from the browser. */
-export function runScenario({ course, arcade, budgets, paceSchedule }, scenario) {
+export function runScenario({ course, arcade: scenarioArcade, productArcade, budgets, paceSchedule }, scenario) {
+  // ARCADE takes the test series' settings, or the delivered series' with `series: 'product'`.
+  const arcade = scenario.series === 'product' ? productArcade : scenarioArcade;
   const settings = createDisplaySettings();
   const scene = createCourseScene(course.entry, course.gates, definitions.vehicles, settings);
   // ARCADE takes the test series' settings for the course; TIME TRIAL and FREE PLAY take the scenario's.
@@ -129,6 +137,7 @@ export function runScenario({ course, arcade, budgets, paceSchedule }, scenario)
       timeLimit: mode === 'ARCADE',
       initialSpeed: scenario.policy === 'reverse' ? -20 : scenario.policy === 'departure' ? 30 : 0,
       seed: scenario.seed ?? 0,
+      traffic: null,
     },
     configuration,
     envelope,
@@ -191,7 +200,7 @@ export function runScenario({ course, arcade, budgets, paceSchedule }, scenario)
       observed.player,
       camera,
       observed.player.brakeLampOn ? visual.on : visual.off,
-      sprites(observed.rivals, camera),
+      sprites([...observed.rivals, ...observed.traffic], camera),
     );
     evidence.frames++;
   };
@@ -205,6 +214,9 @@ export function runScenario({ course, arcade, budgets, paceSchedule }, scenario)
   // Session-rule evidence (ARCADE and TIME TRIAL scenarios): the ending, what holds after it, appearances and
   // departures, and the gate crossings of other competitors.
   const rules = scenario.mode ? { appeared: [], departed: [], crossings: [] } : null;
+  // Traffic evidence: each traffic vehicle's appearance and departure ticks, and the most present at once.
+  const traffic = { appeared: [], departed: 0, maxPresent: 0 };
+  let trafficIds = new Set();
   const present = competitors.map((c) => c.present);
   let ending = null;
   for (; tick < maxTicks; tick++) {
@@ -296,6 +308,17 @@ export function runScenario({ course, arcade, budgets, paceSchedule }, scenario)
         ]),
       );
     }
+    const presentTraffic = new Set(race.traffic.map((t) => t.id));
+    for (const t of race.traffic) {
+      finiteState(t.vehicle, t.id);
+      if (!trafficIds.has(t.id))
+        traffic.appeared.push({ id: t.id, tick, s: t.vehicle.course.s, playerS: vehicle.course.s });
+      digest.update(JSON.stringify([t.id, t.vehicle, t.step.state]));
+    }
+    for (const id of trafficIds) if (!presentTraffic.has(id)) traffic.departed++;
+    trafficIds = presentTraffic;
+    traffic.maxPresent = Math.max(traffic.maxPresent, presentTraffic.size);
+    assert.ok(presentTraffic.size <= 8, 'more than eight traffic vehicles at once');
     // The resident occurrences, as rendered and sampled physically.
     for (const occurrence of scene.runtime.window.occurrences) {
       finiteState(
@@ -473,6 +496,16 @@ export function runScenario({ course, arcade, budgets, paceSchedule }, scenario)
       rivalTravel: rivalTravel.map((d) => Number(d.toFixed(3))),
       appeared: rules.appeared.map(({ id, tick: at, stage, s, playerS }) => ({ id, tick: at, stage, s, playerS })),
       departed: rules.departed,
+    };
+  }
+  if (scenario.expect?.traffic) {
+    assert.ok(traffic.appeared.length > 0, 'no traffic appeared');
+    assert.ok(traffic.departed > 0, 'no traffic left the view');
+    evidence.traffic = {
+      appeared: traffic.appeared.length,
+      departed: traffic.departed,
+      maxPresent: traffic.maxPresent,
+      first: traffic.appeared[0],
     };
   }
   return {

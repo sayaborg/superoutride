@@ -1,4 +1,4 @@
-import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
+import { SESSION_RULE_LIMITS, compileTrafficSettings, type TrafficSettings } from '../course/session-rules.js';
 
 export interface SessionConfiguration {
   /** TIME TRIAL runs alone: no rivals and no clock. */
@@ -10,8 +10,10 @@ export interface SessionConfiguration {
   readonly timeLimit: boolean;
   /** m/s along the grid slot's road tangent for every competitor at spawn; finite, negative allowed. The product uses 0. */
   readonly initialSpeed: number;
-  /** The Session's 32-bit unsigned random seed; rival target exits derive from it. */
+  /** The Session's 32-bit unsigned random seed; rival target exits and traffic derive from it. */
   readonly seed: number;
+  /** Traffic, or null for none; TIME TRIAL has none. ARCADE takes its series course's. */
+  readonly traffic: TrafficSettings | null;
 }
 
 export function compileSessionConfiguration(authoring: SessionConfiguration): Readonly<SessionConfiguration> {
@@ -27,8 +29,8 @@ export function compileSessionConfiguration(authoring: SessionConfiguration): Re
     throw new RangeError(`Session lapCount must be an integer within 1..${SESSION_RULE_LIMITS.laps}`);
   if (typeof authoring.timeLimit !== 'boolean') throw new TypeError('Session timeLimit must be boolean');
   if (authoring.mode === 'FREE_PLAY' && authoring.timeLimit) throw new RangeError('FREE PLAY has no clock');
-  if (authoring.mode === 'TIME_TRIAL' && (authoring.timeLimit || authoring.rivalCount !== 0))
-    throw new RangeError('TIME TRIAL has no rivals and no clock');
+  if (authoring.mode === 'TIME_TRIAL' && (authoring.timeLimit || authoring.rivalCount !== 0 || authoring.traffic))
+    throw new RangeError('TIME TRIAL has no rivals, no traffic and no clock');
   if (!Number.isInteger(authoring.seed) || authoring.seed < 0 || authoring.seed > 0xffffffff)
     throw new RangeError('Session seed must be a 32-bit unsigned integer');
   return Object.freeze({
@@ -38,5 +40,6 @@ export function compileSessionConfiguration(authoring: SessionConfiguration): Re
     timeLimit: authoring.timeLimit,
     initialSpeed: authoring.initialSpeed,
     seed: authoring.seed,
+    traffic: authoring.traffic === null ? null : compileTrafficSettings(authoring.traffic),
   });
 }

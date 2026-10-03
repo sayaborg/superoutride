@@ -7,6 +7,7 @@ import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import type { AheadAppearance, SeriesCourse, StageInterval } from '../content/series-catalog.js';
 import type { SessionConfiguration } from './session-configuration.js';
 import { drawRivalPairs, type VehicleColor } from './free-play-field.js';
+import { spriteSetColors } from '../vehicle/vehicle-sprite-set.js';
 
 const NO_RANK_LIMITS: Readonly<Record<string, number>> = Object.freeze({});
 
@@ -40,6 +41,19 @@ export interface SessionEntry extends EntryVehicle {
   readonly stages: StageInterval | null;
 }
 
+/** A traffic vehicle candidate: its Session vehicle and envelope, its sprite colors and its driver, compiled once. */
+export interface TrafficCandidate extends EntryVehicle {
+  readonly envelope: RivalEnvelope;
+  readonly colors: readonly string[];
+  readonly driver: EnvelopeDriver;
+}
+
+/** The Session's resolved traffic: metres between traffic positions and the candidates drawn for them. */
+export interface ResolvedTraffic {
+  readonly spacing: number;
+  readonly candidates: readonly TrafficCandidate[];
+}
+
 const rivalId = (index: number) => `RIVAL_${String(index + 1).padStart(2, '0')}`;
 
 /**
@@ -50,7 +64,8 @@ const rivalId = (index: number) => `RIVAL_${String(index + 1).padStart(2, '0')}`
  * rearmost entry of its vehicle, standing in that entry's slot (`own`) or the rearmost of their slots (`last`), and
  * every other entry its own vehicle (from `field.vehicleOf`) and color. FREE PLAY stands the player in the grid's
  * last slot and the rivals in the slots in front, each a pair drawn from `field.rivalPool` by the Session seed;
- * TIME TRIAL stands the player alone in the grid's last slot. The player's color
+ * TIME TRIAL stands the player alone in the grid's last slot, without traffic. Traffic candidates come from
+ * `field.vehicleOf` with their drivers, compiled once. The player's color
  * is its entry's when the series fixes colors, else `field.playerColor`, else the vehicle's default color.
  */
 export function resolveCourseSession(
@@ -82,8 +97,10 @@ export function resolveCourseSession(
           timeLimit: true,
           initialSpeed: requested.initialSpeed,
           seed: requested.seed,
+          traffic: arcade.traffic,
         })
       : Object.freeze({ ...requested });
+  if (configuration.mode === 'TIME_TRIAL' && configuration.traffic) throw new RangeError('TIME TRIAL has no traffic');
   if (!Number.isFinite(configuration.initialSpeed)) throw new RangeError('Session initialSpeed must be finite');
   if (configuration.mode === 'ARCADE' && !arcade?.series.vehicles.includes(playerVehicleId))
     throw new RangeError('ARCADE requires a series vehicle');
@@ -99,6 +116,8 @@ export function resolveCourseSession(
     throw new RangeError('A Session without an envelope has no rivals and no time limit');
   if (configuration.rivalCount > 0 && !field.vehicleOf)
     throw new RangeError('A Session with rivals requires their Session vehicles');
+  if (configuration.traffic && !field.vehicleOf)
+    throw new RangeError('A Session with traffic requires its Session vehicles');
   // Each envelope's fixed driver, compiled once at the rival utilization: the runout check below and the race's unpaced
   // rivals use the same one.
   const rivalUtilization = 0.75;
@@ -136,10 +155,34 @@ export function resolveCourseSession(
           `FINISH ${finish.id}: ${available.toFixed(2)} m of runout; ${longest.entry.vehicle.vehicleDefinition.compiledVehicle.id} requires ${longest.distance.toFixed(2)} m to stop from maximum speed`,
         );
     }
+  // Traffic drives each candidate vehicle's driver at the rival utilization, capped at the traffic speed fraction of
+  // that vehicle's maximum speed; each is compiled once here.
+  const traffic: ResolvedTraffic | null = configuration.traffic
+    ? Object.freeze({
+        spacing: 1000 / configuration.traffic.density,
+        candidates: Object.freeze(
+          configuration.traffic.vehicles.map((id) => {
+            const candidate = field.vehicleOf!(id);
+            if (!candidate.envelope) throw new RangeError(`Traffic vehicle ${id} has no envelope`);
+            return Object.freeze({
+              ...candidate,
+              envelope: candidate.envelope,
+              colors: spriteSetColors(candidate.vehicle.vehicleDefinition.spriteSet),
+              driver: compileEnvelopeDriver(
+                candidate.envelope,
+                rivalUtilization,
+                configuration.traffic!.speed * candidate.envelope.maximumSpeed,
+              ),
+            });
+          }),
+        ),
+      })
+    : null;
   return Object.freeze({
     course,
     configuration,
     entries,
+    traffic,
     /** The fixed driver of an entry's envelope, at the rival utilization and the envelope's maximum speed. */
     driverOf(envelope: RivalEnvelope): EnvelopeDriver {
       const driver = drivers.get(envelope);

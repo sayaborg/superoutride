@@ -259,7 +259,7 @@ drawn ([product](product.md#9-hud)). The HUD reads only race facts ([race time a
 events](content-and-gameplay.md#race-time-and-events)) and the player's competitor observation. It is one table of
 independent elements, each with its condition and what it writes; the table alone decides which show, from the
 Session's rules (the clock, the course type) and race facts (others present, the next gate's rank limit, the stage
-rival ahead). Another table holds every element's place in the 40×30 grid, so moving one changes only its numbers.
+rival ahead). Traffic is not counted: POS and every other count read the competitors only. Another table holds every element's place in the 40×30 grid, so moving one changes only its numbers.
 
 | Rows  | Elements                                                                                                           |
 | ----- | ------------------------------------------------------------------------------------------------------------------ |

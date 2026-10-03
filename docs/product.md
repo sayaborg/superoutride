@@ -63,7 +63,7 @@ Sessions ([Content and gameplay](content-and-gameplay.md) owns their definitions
 | Competitor entries | Vehicle, color, pace ratio, stage interval and appearance (grid slot or ahead distance) |
 | Player slot        | The player's own entry position, or the last grid slot                                  |
 | Laps               | Circuits only                                                                           |
-| Traffic            | On or off                                                                               |
+| Traffic            | Off, or a density in vehicles per kilometre, vehicle candidates and a speed fraction    |
 
 **Field.** A Session has at most sixteen competitors, the player included. The entries of a series
 course list its whole field in grid order. The player occupies the rearmost entry of the selected vehicle in grid
@@ -98,7 +98,12 @@ difference is visible driving, not a hidden correction.
 alone, that is the player. Unselected roads show warnings and closure signs; vehicles remaining there
 at closure recover to the selected road. Recovery preserves earned progress.
 
-**Traffic** vehicles are not competitors: they take no rank and never select a route.
+**Traffic** vehicles are not competitors: they take no rank, never select a route and have no part in records.
+They are ordinary vehicles with ordinary drivers, travelling the player's way. Where each one appears along the
+road, its vehicle, color and lane follow from the Session seed. A traffic vehicle appears ahead at the farthest
+visible distance, keeps its lane at no more than its speed fraction of its own maximum speed, and leaves once it
+is out of view. At most eight traffic vehicles are present at once, and a Session never holds more than
+twenty-four vehicles.
 
 ## 4. Modes
 

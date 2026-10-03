@@ -10,6 +10,7 @@ import type { BrowserCourseSelection } from './course-selection.js';
 import { loadDeliveredCourse } from '../content/load-delivered-course.js';
 import type { loadVehicleDefinitions } from '../content/vehicle-catalog.js';
 import { createCourseRace } from '../race/course-race.js';
+import type { CompetitorObservation } from '../race/competitor-observation.js';
 import { runResult } from './race-status-hud.js';
 import { writeHud, type HudFacts } from './run-hud.js';
 import { fuelCutRpm } from '../vehicle/physics/automatic-powertrain.js';
@@ -91,12 +92,15 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
   // and envelope.
   const rivalPool = settings.rivalPool === null ? [] : rivalPoolPairs(vehicles, settings.rivalPool);
   const fieldVehicles = new Map<string, EntryVehicle>([[vehicleId, { vehicle, envelope: rivalEnvelope }]]);
-  const fieldIds =
-    settings.mode === 'ARCADE'
+  // The field's vehicles and the traffic candidates each load their Session vehicle and envelope once.
+  const fieldIds = [
+    ...(settings.mode === 'ARCADE'
       ? arcade!.entries.map((e) => e.vehicle)
       : settings.rivalCount > 0
         ? rivalPool.map((pair) => pair.vehicle)
-        : [];
+        : []),
+    ...(settings.traffic?.vehicles ?? []),
+  ];
   for (const id of new Set(fieldIds)) {
     if (fieldVehicles.has(id)) continue;
     const other = createSessionVehicle(
@@ -181,6 +185,7 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
               lapCount: active.session.configuration.lapCount,
               timeLimit: false,
               initialSpeed: 0,
+              traffic: null,
             },
             null,
             null,
@@ -268,11 +273,15 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
       fuelCutRpm: fuelCutRpm(redlineRpm, drivingDefinition.compiledDriving.powertrain.fuelCutRedlineMargin),
     };
   };
+  // Rivals and traffic are drawn and voiced by the same rules: one reused list of their observations per frame.
+  const otherVehicles: CompetitorObservation[] = [];
   const draw = () => {
     const { scene, race, tuned } = active;
     const started = performanceHud ? performance.now() : 0,
       observations = race.observe();
-    const others = raceSprites(observations.rivals, lifecycle.camera);
+    otherVehicles.length = 0;
+    otherVehicles.push(...observations.rivals, ...observations.traffic);
+    const others = raceSprites(otherVehicles, lifecycle.camera);
     // The renderer reads no clock; with DEV its caller times the scene render for the performance HUD.
     const renderStarted = performanceHud ? performance.now() : 0;
     scene.render(
@@ -299,7 +308,7 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
         ),
       present() {
         const { player } = observations;
-        shell.updateAudio(player, observations.rivals);
+        shell.updateAudio(player, otherVehicles);
         // The DEV vehicle HUD diagnoses mechanics internals through the race's DEV-only diagnostics.
         shell.present(
           devControls && measurements
