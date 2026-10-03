@@ -9,24 +9,23 @@ const GAMEPAD_DEADZONE = 0.15;
 
 /**
  * One standard-mapping control. A stick axis or trigger is analog (its rescaled position, DIRECT); a button
- * is digital (full scale while pressed, RATE_LIMITED). A positive value steers in `sign`'s direction.
+ * is digital (full scale while pressed, RATE_LIMITED). A steering control's positive value steers in `sign`'s
+ * direction; a pedal control has no direction.
  */
-interface GamepadControl {
+type GamepadControl = {
   readonly input: 'axis' | 'trigger' | 'button';
   readonly index: number;
-  readonly target: 'steering' | PedalChannel;
-  readonly sign: -1 | 1;
-}
+} & ({ readonly target: 'steering'; readonly sign: -1 | 1 } | { readonly target: PedalChannel });
 
 /** Standard mapping: left stick X and D-pad steer, RT or A accelerates, LT or B brakes. */
 const STANDARD_CONTROLS: readonly GamepadControl[] = [
   { input: 'axis', index: 0, target: 'steering', sign: 1 },
   { input: 'button', index: 14, target: 'steering', sign: -1 },
   { input: 'button', index: 15, target: 'steering', sign: 1 },
-  { input: 'button', index: 0, target: 'throttle', sign: 1 },
-  { input: 'trigger', index: 7, target: 'throttle', sign: 1 },
-  { input: 'button', index: 1, target: 'brake', sign: 1 },
-  { input: 'trigger', index: 6, target: 'brake', sign: 1 },
+  { input: 'button', index: 0, target: 'throttle' },
+  { input: 'trigger', index: 7, target: 'throttle' },
+  { input: 'button', index: 1, target: 'brake' },
+  { input: 'trigger', index: 6, target: 'brake' },
 ];
 
 interface ControlState {
