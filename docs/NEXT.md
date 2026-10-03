@@ -30,7 +30,7 @@
   latency, clock and worklet overruns; headless Chromium did not reproduce the lag, so its fix waits on a reading
   from an affected device ([Browser](browser.md#performance-hud)).
 
-Next PR: **13-1b — Vehicle reach bound**.
+Next PR: **13-2a — Lanes**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -40,7 +40,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Findings of the second design audit not yet addressed, by when they are taken up:
 
-- **Stage 13-1:** A6d2-04 (derive the coordinate-domain margin from vehicle reach), which 13-1 already schedules.
 - **Stage 14 or 15, when nearby code changes:** D8e-03, P7b-02, P7f-08, A6d3-02.
 - **Stage 15:** P7a-01, P7a-02, A6g-07, H15-02, H14-02, H18-01, D3-06.
 - **Not addressed, with reasons:** D8c-03 (it concerns the DEV HUD only); D8e-05 (a documentation contract, already
@@ -51,8 +50,6 @@ Findings of the second design audit not yet addressed, by when they are taken up
 Give vehicles physical extent and let them meet each other and traffic. Contact never ends a run and causes no
 damage; cars and motorcycles may share a field.
 
-- **13-1 — Vehicle dimensions:** vehicle mechanics documents declare dimensions; derive the course coordinate-domain
-  margin from vehicle reach. The 40 px/m display scale stays independent.
 - **13-2 — Vehicle contacts:** contact response between competitors, cars and motorcycles included; the response
   model is proposed at the start of this stage.
 - **13-3 — Traffic:** traffic vehicles and their Session settings. Traffic does not participate in competitive route

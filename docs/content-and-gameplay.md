@@ -397,7 +397,7 @@ owns the Surface Material format and the material catalog, the only set of mater
 An authored Strip material resolves its ID against the admitted
 catalog; an unknown ID reports `unresolved_reference` at that Strip's `/material` path.
 Material-bearing Strips compile to finite affine pieces through the same slab resolver as color. The
-coordinate domain follows the material table's outer finite covered edges plus margin. Color remains
+coordinate domain follows the material table's outer finite covered edges plus the vehicle reach bound. Color remains
 independent of physical support. Outside material-bearing coverage, point reads return no material.
 
 ## Cut lines, Links and topology

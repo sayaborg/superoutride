@@ -5,7 +5,11 @@ import { CourseInputError, requireCourse } from './course-diagnostics.js';
 import { validatePlanDomainInjectivity } from './plan-domain-injectivity.js';
 import type { CompiledPlanSegment } from './geometry/plan-path.js';
 
-const PLAN_COORDINATE_MARGIN_METERS = 4;
+/**
+ * The product's bound on vehicle reach in metres (the footprint's half diagonal). Vehicle admission rejects a vehicle
+ * beyond it, so a vehicle centred on covered material keeps its whole footprint, at any yaw, in the lateral domain.
+ */
+export const MAXIMUM_VEHICLE_REACH = 4;
 
 export interface CompiledPlanLateralDomain {
   readonly stations: readonly number[];
@@ -28,8 +32,8 @@ function lateralDomain(material: StripMaterial, path: string): CompiledPlanLater
     stations: Object.freeze(stations),
     lateralAt(s: number, out: Writable<{ left: number; right: number }>) {
       const edge = edges[stripSlabAt(material.slabs, s)]!;
-      out.left = stripEdgeAt(edge.left, 'left', s) - PLAN_COORDINATE_MARGIN_METERS;
-      out.right = stripEdgeAt(edge.right, 'right', s) + PLAN_COORDINATE_MARGIN_METERS;
+      out.left = stripEdgeAt(edge.left, 'left', s) - MAXIMUM_VEHICLE_REACH;
+      out.right = stripEdgeAt(edge.right, 'right', s) + MAXIMUM_VEHICLE_REACH;
       return out;
     },
   });

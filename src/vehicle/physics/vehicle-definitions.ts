@@ -1,4 +1,5 @@
 import { DefinitionDomainError, withDefinitionPath } from '../../core/admission.js';
+import { MAXIMUM_VEHICLE_REACH } from '../../course/course-coordinate-domain.js';
 import {
   compileAutomaticPowertrainDefinition,
   type AutomaticPowertrainDefinition,
@@ -120,6 +121,12 @@ export function compileVehicle(definition: VehicleDefinition): Readonly<Compiled
       'overallLength',
       'overallLength / 2 must be at least max(frontAxle, rearAxle) so the footprint contains both contact stations',
     );
+  const reach = Math.hypot(definition.overallLength / 2, definition.overallWidth / 2);
+  if (!(reach <= MAXIMUM_VEHICLE_REACH))
+    throw new DefinitionDomainError(
+      'overallLength',
+      `vehicle reach ${reach.toFixed(3)} m (overallLength by overallWidth half diagonal) exceeds the ${MAXIMUM_VEHICLE_REACH} m vehicle reach bound`,
+    );
   if (
     !(definition.frontDriveTorqueFraction >= 0 && definition.frontDriveTorqueFraction <= 1) ||
     !Number.isFinite(definition.frontDriveTorqueFraction)
@@ -199,7 +206,7 @@ export function compileVehicle(definition: VehicleDefinition): Readonly<Compiled
     overallLength: definition.overallLength,
     overallWidth: definition.overallWidth,
     overallHeight: definition.overallHeight,
-    reach: Math.hypot(definition.overallLength / 2, definition.overallWidth / 2),
+    reach,
     mass: definition.mass,
     yawInertia: definition.yawInertia,
     pitchInertia: definition.pitchInertia,

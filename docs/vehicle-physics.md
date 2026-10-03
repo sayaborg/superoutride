@@ -517,7 +517,9 @@ front drive fraction in [0,1], feasible static suspension compression and ordere
 A vehicle's top-gear redline road speed, `redlineRpm * 2π/60 / (top gear ratio * finalDriveRatio)` times the
 larger rolling radius among its driven wheels (front when the front drive fraction is above 0, rear when it is
 below 1), must not exceed the product's vehicle speed bound `MAXIMUM_VEHICLE_SPEED`, 240 m/s; a violation
-points to the top gear's `powertrain/gearRatios` element.
+points to the top gear's `powertrain/gearRatios` element. A vehicle's reach must not exceed the product's vehicle
+reach bound `MAXIMUM_VEHICLE_REACH`, 4 m, which the course layer owns and from which the Section lateral domain extends
+([Architecture](architecture.md#plan-authority)); a violation points to `overallLength`.
 `overallLength`, `overallWidth` and `overallHeight` are the body's overall dimensions in metres, positive and
 finite. The vehicle's footprint is the `overallLength` by `overallWidth` rectangle centred on the vehicle
 centre; it must contain both contact stations (`overallLength / 2 >= max(frontAxle, rearAxle)`). Its reach is

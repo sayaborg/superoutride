@@ -275,7 +275,9 @@ The projection result's `inDomain` reports geometric membership; physics and rec
 as specified in [Vehicle physics](vehicle-physics.md#surface-and-contact).
 
 At each s, the Section lateral domain runs from the material table's leftmost finite covered edge minus
-`PLAN_COORDINATE_MARGIN_METERS` to its rightmost finite covered edge plus that margin; the margin is 4 m.
+`MAXIMUM_VEHICLE_REACH` to its rightmost finite covered edge plus that bound. `MAXIMUM_VEHICLE_REACH` is the
+product's 4 m bound on vehicle reach, which vehicle admission enforces: while a vehicle's centre lies on covered
+material, every point of its footprint, at any yaw, has coordinates in the domain.
 The uncovered exterior does not contribute.
 The domain uses the material slab's half-open station ownership, including the Section terminal.
 It retains the outer span references and reads them by binary slab lookup, without scanning authored Strips.
