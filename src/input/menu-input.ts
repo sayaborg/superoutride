@@ -35,7 +35,8 @@ const STICK_DIRECTION_THRESHOLD = 0.5;
  * The one menu-command authority, apart from driving input. Keys follow the operating system's repeat; gamepad
  * controls and touch never repeat. A gamepad control commands on its press only, so a control already held when the
  * route changes commands nothing until pressed again. A menu touch is a flick in the touch area's left half (its larger
- * axis gives the direction) or a tap in its right half. The shell's corner buttons `press` BACK and PAUSE.
+ * axis gives the direction) or a tap in its right half, decided when the finger lifts; a cancelled touch commands
+ * nothing. The shell's corner buttons `press` BACK and PAUSE.
  */
 export class MenuInput {
   private route: InputRoute = 'off';
@@ -58,7 +59,7 @@ export class MenuInput {
         const touch = this.touches.get(pointer.pointerId);
         if (touch) touch.at = pointer;
       },
-      end: (pointerId) => this.endTouch(pointerId),
+      end: (pointerId, lifted) => this.endTouch(pointerId, lifted),
     });
   }
 
@@ -115,10 +116,12 @@ export class MenuInput {
     });
   }
 
-  private endTouch(pointerId: number): void {
+  /** A lifted touch commands by its path; a cancelled one commands nothing. */
+  private endTouch(pointerId: number, lifted: boolean): void {
     const touch = this.touches.get(pointerId);
     if (!touch) return;
     this.touches.delete(pointerId);
+    if (!lifted) return;
     const dx = touch.at.x - touch.x,
       dy = touch.at.y - touch.y;
     const flick = Math.max(Math.abs(dx), Math.abs(dy)) >= TOUCH_FLICK_DISTANCE_PX;

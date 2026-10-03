@@ -204,6 +204,14 @@ the touch area control driving. The shell supplies the touch area as a client re
 viewport. The area's left half selects steering; the midpoint and right half select pedals. Each pointer's
 role and origin are fixed until release, with at most one steering and one pedal pointer at once.
 
+Invariant: while no finger touches the screen, no touch pointer is active and no touch input owner exists. The
+touch-pointer reader alone ends pointers, and every consumer (driving and menu touch) receives the same end, once per
+pointer. A pointer begins on its press with pointer capture (UI marked `ignore` takes none), so its `pointerup`
+(lifted) or `pointercancel` reaches the page; `lostpointercapture` also cancels it. Facts that do not depend on a lost
+event end every active pointer: a `touchend` or `touchcancel` whose `touches` is empty (lifted), window blur and a
+hidden page (cancelled). A lifted menu touch commands by its path; a cancelled one commands nothing. Moves of
+untracked pointers and a second finger on a role already held are ignored, as before.
+
 Horizontal displacement maps steering to `[-1,1]`. Upward displacement supplies throttle and downward
 displacement supplies brake. Full scale is 64 CSS pixels, with larger displacement saturated.
 Touching the origin owns neutral input. Held touch supplies direct analog displacement; release uses
@@ -236,7 +244,7 @@ hidden nothing does. Commands arrive at the current screen before each fixed ste
   repeats; one held while the route changes commands nothing until pressed again.
 - **Touch:** in a menu, a touch in the left half of the touch area that moves at least `TOUCH_FLICK_DISTANCE_PX`
   (24 CSS px) is a flick in its larger axis's direction, and a touch in the right half that moves less is a tap,
-  CONFIRM. Touches never repeat. Two small buttons sit in the screen's corners, inside the safe area: BACK top left in
+  CONFIRM, decided when the finger lifts; a cancelled touch commands nothing. Touches never repeat. Two small buttons sit in the screen's corners, inside the safe area: BACK top left in
   a menu and PAUSE top right while driving. They appear once touch has been used, and a press on them starts no
   driving or menu touch.
 
