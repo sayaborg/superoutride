@@ -909,10 +909,14 @@ target² ≤ v_a² + 2 × a × margin
 so a driver following at the leader's speed keeps the footprint gap `v × responseSeconds + v_a × followSeconds`. The
 plan is computed once per step, with and without this constraint. Whether a driver changes lanes is an attribute its
 builder gives it (`changesLanes`): rivals' drivers and the player's takeover change lanes; traffic drivers, which
-Session resolution compiles, do not. When the constraint lowers the planned speed, a driver that changes lanes moves to a free adjacent lane of the Carriageway it follows, the left one first and never the lane it last
-left, and drives that step on its plan without the constraint; it stays in the new lane. A lane is free when no
+Session resolution compiles, do not. When the constraint lowers the planned speed, a driver that changes lanes
+weighs each free adjacent lane of the Carriageway it follows by the speed its plan allows there: its plan without a
+vehicle ahead, behind that lane's vehicle ahead under the same constraint (the current lane's curve speeds serve, since
+adjacent lanes differ little in them). It moves to the lane allowing the most, the left one on a tie, when that exceeds
+its constrained plan by more than `speedDeadzone`, and drives that speed in its new lane. It keeps no memory of lanes:
+it stays where it is until another lane is faster by that margin, its former lane included. A lane is free when no
 footprint in it lies between the driver's following distance ahead, `(L₁ + L₂)/2 + v × followSeconds`, and, behind,
-half the two lengths plus that vehicle's speed times `followSeconds`. With no adjacent lane free, or when it does not
+half the two lengths plus that vehicle's speed times `followSeconds`. With no faster free lane, or when it does not
 change lanes, the driver follows on the constrained plan; its inputs stay throttle, brake and steering. Every driver's `a` is its envelope's minimum
 braking times its utilization; the player's, for others' checks, is the Session driver's. The reference line plans
 without a vehicle ahead and meets no other vehicle, so reference runs are unchanged.

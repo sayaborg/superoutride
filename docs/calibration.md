@@ -118,7 +118,7 @@ capability on unit grip without surface drag.
 The following time sets the gap a driver keeps behind the vehicle ahead beyond its response distance, that vehicle's
 speed times the following time; the free space a lane needs ahead, half the two lengths plus the driver's own speed
 times it; and behind, the rear vehicle's speed times it
-([Content and gameplay](content-and-gameplay.md#vehicle-envelopes-and-drivers)). `ENVELOPE_DRIVER` is version 5.
+([Content and gameplay](content-and-gameplay.md#vehicle-envelopes-and-drivers)). `ENVELOPE_DRIVER` is version 6.
 
 ## Camera settings
 

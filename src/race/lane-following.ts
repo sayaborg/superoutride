@@ -7,16 +7,16 @@ export interface VehicleSighting extends RouteFootprint {
   readonly speed: number;
 }
 
-/** A driver's intent whose lane the driver itself changes; it never returns to the lane it last left (null: none). */
+/** A driver's intent whose lane the driver itself changes. */
 export interface LaneIntent extends DriverIntent {
   lane: number;
-  left?: number | null;
 }
 
 /**
  * Lane following for drivers, over the race's read-only sightings of the present vehicles. The vehicle ahead in a
- * driver's lane constrains its plan; when that constraint lowers the driver's planned speed, the driver moves to a free
- * adjacent lane (the left one first) and stays there, and otherwise follows within it.
+ * driver's lane constrains its plan; when that constraint lowers the driver's planned speed, the driver moves to the
+ * free adjacent lane where its plan allows the most speed, if that beats its own lane by more than the speed deadzone,
+ * and otherwise follows within its lane.
  */
 export function createLaneFollowing(forks: {
   targetL(s: number, intent: DriverIntent): number;
@@ -48,46 +48,53 @@ export function createLaneFollowing(forks: {
   };
   // The leader record reused for the driver's plan.
   const leader = { s: 0, speed: 0, clearance: 0 };
+  // The vehicle ahead in `lane` as a plan reads it — the nearest one ahead whose footprint overlaps the driver's width
+  // centred in that lane — or null.
+  const leaderIn = (
+    self: VehicleSighting,
+    exit: DriverIntent['exit'],
+    lane: number,
+    sightings: readonly VehicleSighting[],
+  ): EnvelopeLeader | null => {
+    let nearest: VehicleSighting | null = null;
+    for (const other of sightings)
+      if (other !== self && other.s > self.s && (!nearest || other.s < nearest.s) && inLane(self, exit, lane, other))
+        nearest = other;
+    if (!nearest) return null;
+    leader.s = nearest.s;
+    leader.speed = nearest.speed;
+    leader.clearance = (self.length + nearest.length) / 2;
+    return leader;
+  };
   return Object.freeze({
+    /** The vehicle ahead in the driver's lane, or null. `self` is the driver's own sighting in `sightings`. */
+    leader: (intent: LaneIntent, self: VehicleSighting, sightings: readonly VehicleSighting[]) =>
+      leaderIn(self, intent.exit, intent.lane, sightings),
     /**
-     * The vehicle ahead in the driver's lane as its plan reads it — the nearest one ahead whose footprint overlaps the
-     * driver's width centred in its lane — or null. `self` is the driver's own sighting in `sightings`.
+     * Move the driver, whose plan behind its own lane's vehicle allows `target`, to the free adjacent lane of the
+     * Carriageway it follows where its plan allows the most speed (`speedBehind` of that lane's vehicle ahead), when that
+     * exceeds `target` by more than the speed deadzone; the left one on a tie. Returns the speed its plan allows in the
+     * new lane, or null when no lane qualifies.
      */
-    leader(intent: LaneIntent, self: VehicleSighting, sightings: readonly VehicleSighting[]): EnvelopeLeader | null {
-      let nearest: VehicleSighting | null = null;
-      for (const other of sightings)
-        if (
-          other !== self &&
-          other.s > self.s &&
-          (!nearest || other.s < nearest.s) &&
-          inLane(self, intent.exit, intent.lane, other)
-        )
-          nearest = other;
-      if (!nearest) return null;
-      leader.s = nearest.s;
-      leader.speed = nearest.speed;
-      leader.clearance = (self.length + nearest.length) / 2;
-      return leader;
-    },
-    /**
-     * Move the driver to a free adjacent lane of the Carriageway it follows, the left one first and never the lane it
-     * last left, so it stays in the lane it moved to; false when none is.
-     */
-    moveOver(intent: LaneIntent, self: VehicleSighting, sightings: readonly VehicleSighting[]): boolean {
+    moveOver(
+      intent: LaneIntent,
+      self: VehicleSighting,
+      sightings: readonly VehicleSighting[],
+      target: number,
+      speedBehind: (leader: EnvelopeLeader | null) => number,
+    ): number | null {
       const lanes = forks.targetCarriageway(self.s, intent.exit).road.lanes;
       const lane = Math.min(intent.lane, lanes - 1);
-      for (const candidate of [lane - 1, lane + 1])
-        if (
-          candidate >= 0 &&
-          candidate < lanes &&
-          candidate !== intent.left &&
-          free(self, intent.exit, candidate, sightings)
-        ) {
-          intent.left = lane;
-          intent.lane = candidate;
-          return true;
-        }
-      return false;
+      let best = -1,
+        bestSpeed = target + ENVELOPE_DRIVER.speedDeadzone;
+      for (const candidate of [lane - 1, lane + 1]) {
+        if (candidate < 0 || candidate >= lanes || !free(self, intent.exit, candidate, sightings)) continue;
+        const speed = speedBehind(leaderIn(self, intent.exit, candidate, sightings));
+        if (speed > bestSpeed) [best, bestSpeed] = [candidate, speed];
+      }
+      if (best < 0) return null;
+      intent.lane = best;
+      return bestSpeed;
     },
   });
 }

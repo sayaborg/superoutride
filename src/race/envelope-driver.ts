@@ -10,7 +10,7 @@ const MIN_DRIVER_CURVATURE_PER_METER = 1e-7;
 
 /** Input/planning policy only. The measured envelope and production mechanics retain their own authority. */
 export const ENVELOPE_DRIVER = Object.freeze({
-  version: 5,
+  version: 6,
   lookahead: 480,
   spacing: 5,
   responseSeconds: 0.45,
@@ -217,21 +217,41 @@ function plannedTargetSpeed(
     targetSquared = Math.min(targetSquared, 2 * braking * distance);
   }
   workspace.plan.free = Math.sqrt(targetSquared);
-  if (leader !== null) {
-    // The vehicle ahead is a moving planning point: reach its speed with the following gap kept beyond the response
-    // distance, as a curve speed is reached over the remaining distance.
-    const margin = Math.max(
-      0,
-      leader.s -
-        s -
-        leader.clearance -
-        speed * ENVELOPE_DRIVER.responseSeconds -
-        leader.speed * ENVELOPE_DRIVER.followSeconds,
-    );
-    targetSquared = Math.min(targetSquared, leader.speed ** 2 + 2 * braking * margin);
-  }
+  if (leader !== null) targetSquared = Math.min(targetSquared, leaderBoundSquared(s, speed, braking, leader));
   workspace.plan.target = Math.sqrt(targetSquared);
   return workspace.plan.target;
+}
+
+/**
+ * The square of the speed a driver at station `s` moving at `speed` with planning braking `braking` may plan behind
+ * `leader`: the vehicle ahead is a moving planning point, reached at its speed with the following gap kept beyond the
+ * response distance, as a curve speed is reached over the remaining distance.
+ */
+function leaderBoundSquared(s: number, speed: number, braking: number, leader: EnvelopeLeader): number {
+  const margin = Math.max(
+    0,
+    leader.s -
+      s -
+      leader.clearance -
+      speed * ENVELOPE_DRIVER.responseSeconds -
+      leader.speed * ENVELOPE_DRIVER.followSeconds,
+  );
+  return leader.speed ** 2 + 2 * braking * margin;
+}
+
+/**
+ * The speed the driver's current plan would allow in a lane whose vehicle ahead is `leader`: the plan without a vehicle
+ * ahead (`free`), behind that lane's leader. Curve speeds are the current lane's; adjacent lanes differ little in them.
+ */
+export function envelopeSpeedBehind(
+  car: VehicleMotionRead,
+  driver: Driver,
+  free: number,
+  leader: EnvelopeLeader | null,
+): number {
+  if (leader === null) return free;
+  const speed = Math.hypot(car.longitudinalSpeed, car.lateralSpeed);
+  return Math.sqrt(Math.min(free ** 2, leaderBoundSquared(car.course.s, speed, driver.braking, leader)));
 }
 
 /**

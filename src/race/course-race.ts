@@ -26,6 +26,7 @@ import {
   createVariableEnvelopeDriver,
   ENVELOPE_DRIVER,
   envelopeDrivingInput,
+  envelopeSpeedBehind,
   planEnvelopeDriving,
   plannedEnvelopeSpeed,
   type EnvelopeDriver,
@@ -353,8 +354,9 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     return true;
   };
   // A driver's input this step: its plan, which the vehicle ahead in its lane constrains, then that plan's input. When
-  // the vehicle ahead lowers the plan, a driver that changes lanes and has a free adjacent lane moves over and drives
-  // the free plan in its new lane, a new lane function since the driver caches by lane; any other follows.
+  // the vehicle ahead lowers the plan, a driver that changes lanes moves to the free adjacent lane where its plan allows
+  // the most speed, if that beats its own lane by more than the deadzone, and drives that speed in its new lane (a new
+  // lane function, since the driver caches by lane); otherwise it follows.
   const drive = (
     driven: {
       readonly vehicle: VehicleState;
@@ -376,9 +378,14 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       following.leader(intent, driven.sighting, sightings),
     );
     let targetSpeed = plan.target;
-    if (plan.target < plan.free && driver.changesLanes && following.moveOver(intent, driven.sighting, sightings)) {
-      driven.input = (s: number) => forks.targetL(s, intent);
-      targetSpeed = plan.free;
+    if (plan.target < plan.free && driver.changesLanes) {
+      const moved = following.moveOver(intent, driven.sighting, sightings, plan.target, (leader) =>
+        envelopeSpeedBehind(driven.vehicle, driver, plan.free, leader),
+      );
+      if (moved !== null) {
+        driven.input = (s: number) => forks.targetL(s, intent);
+        targetSpeed = moved;
+      }
     }
     return envelopeDrivingInput(
       runtime.readers.coordinates,
