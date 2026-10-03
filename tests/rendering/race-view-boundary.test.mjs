@@ -73,6 +73,11 @@ test('race actors have no cameras and view assembles fifteen rival sprites from 
     { mode: 'FREE_PLAY', rivalCount: 15, lapCount: 1, timeLimit: false, initialSpeed: 0, seed: 0 },
     compiledVehicle,
     envelope,
+    null,
+    {
+      rivalPool: [{ vehicle: 'TESTAROSSA', color: compiledVehicle.vehicleDefinition.listing.visuals.palette }],
+      vehicleOf: () => ({ vehicle: compiledVehicle, envelope }),
+    },
   );
   const race = createCourseRace({ session: settings, runtime: scene.runtime });
   for (const c of [race.player, ...race.rivals]) assert.ok(!('cameraRig' in c.actor));

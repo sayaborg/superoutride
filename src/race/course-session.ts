@@ -62,8 +62,9 @@ export function resolveCourseSession(
   budgets: CourseTimeBudgets | null = null,
   field: {
     readonly playerColor?: string;
+    /** Every other entry's Session vehicle; a Session with rivals requires it. */
     readonly vehicleOf?: (vehicleId: string) => EntryVehicle;
-    /** FREE PLAY rival vehicle/color pairs; by default the player's vehicle in its default color. */
+    /** FREE PLAY rival vehicle/color pairs; FREE PLAY with rivals requires them. */
     readonly rivalPool?: readonly VehicleColor[];
     /** The player vehicle's pace schedule on this course; ARCADE requires it. */
     readonly paceSchedule?: PaceSchedule;
@@ -96,17 +97,19 @@ export function resolveCourseSession(
     throw new RangeError('A time limit requires current, complete reference runs');
   if (!envelope && (configuration.rivalCount > 0 || configuration.timeLimit))
     throw new RangeError('A Session without an envelope has no rivals and no time limit');
+  if (configuration.rivalCount > 0 && !field.vehicleOf)
+    throw new RangeError('A Session with rivals requires their Session vehicles');
   const rivalUtilization = 0.75;
   const entries =
     configuration.mode === 'ARCADE'
-      ? arcadeEntries(course, arcade!, { vehicle, envelope }, field.playerColor ?? defaultColor, field.vehicleOf)
+      ? arcadeEntries(course, arcade!, { vehicle, envelope }, field.playerColor ?? defaultColor, field.vehicleOf!)
       : freePlayEntries(
           course,
           configuration,
           { vehicle, envelope },
           field.playerColor ?? defaultColor,
-          field.rivalPool ?? [{ vehicle: playerVehicleId, color: defaultColor }],
-          field.vehicleOf,
+          field.rivalPool ?? [],
+          field.vehicleOf!,
         );
   // Runout covers the whole field: the entry needing the longest stop from its maximum speed decides it.
   let longest: { readonly entry: SessionEntry; readonly distance: number } | null = null;
@@ -146,7 +149,7 @@ function arcadeEntries(
   arcade: SeriesCourse,
   player: EntryVehicle,
   chosenColor: string,
-  vehicleOf: ((vehicleId: string) => EntryVehicle) | undefined,
+  vehicleOf: (vehicleId: string) => EntryVehicle,
 ): readonly SessionEntry[] {
   const { grid } = course.gates;
   const playerVehicleId = player.vehicle.vehicleDefinition.compiledVehicle.id;
@@ -178,7 +181,7 @@ function arcadeEntries(
         color: entry.color,
         pace: entry.pace,
         stages: entry.stages,
-        ...entryVehicle(entry.vehicle, player, vehicleOf),
+        ...vehicleOf(entry.vehicle),
       }),
     ),
   ]);
@@ -194,7 +197,7 @@ function freePlayEntries(
   player: EntryVehicle,
   playerColor: string,
   pool: readonly VehicleColor[],
-  vehicleOf: ((vehicleId: string) => EntryVehicle) | undefined,
+  vehicleOf: (vehicleId: string) => EntryVehicle,
 ): readonly SessionEntry[] {
   const { grid } = course.gates;
   const { rivalCount, seed } = configuration;
@@ -219,20 +222,8 @@ function freePlayEntries(
         color: pair.color,
         pace: null,
         stages: null,
-        ...entryVehicle(pair.vehicle, player, vehicleOf),
+        ...vehicleOf(pair.vehicle),
       }),
     ),
   ]);
-}
-
-/** An entry vehicle's Session vehicle: from `vehicleOf`, or the player's own when it drives the player's vehicle. */
-function entryVehicle(
-  id: string,
-  player: EntryVehicle,
-  vehicleOf: ((vehicleId: string) => EntryVehicle) | undefined,
-): EntryVehicle {
-  if (vehicleOf) return vehicleOf(id);
-  if (id !== player.vehicle.vehicleDefinition.compiledVehicle.id)
-    throw new Error(`No Session vehicle for entry vehicle ${id}`);
-  return player;
 }

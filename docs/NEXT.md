@@ -21,24 +21,17 @@
   exhausts are collector graphs.
 - The [product specification](product.md) is the target for Stages 12–16. Series documents own ARCADE settings and
   fields; FREE PLAY rivals are drawn from vehicle pools; TIME TRIAL runs alone; traffic, collisions, music and sound
-  effects are not implemented. The front end runs inside the frame from TITLE through RESULT, with SETTINGS and `dev=1`;
-  SELECT MUSIC and the attract demo wait for their stages. TIME TRIAL and ARCADE records are kept in the player
-  record and shown at READY, at TIME TRIAL crossings and on RESULT; SETTINGS can clear them. The product HUD is drawn
-  inside the frame with the text layer from race facts and the player's observation; DEV measurements stay with
-  `dev=1`.
+  effects are not implemented; SELECT MUSIC and the attract demo wait for their stages.
+- Stage 12 is complete: the front end runs inside the frame from TITLE through RESULT, with SETTINGS and `dev=1`; the
+  product HUD is drawn with the text layer from race facts and the player's observation, and DEV measurements stay with
+  `dev=1`; the player record keeps settings and the TIME TRIAL and ARCADE records shown at READY, at TIME TRIAL
+  crossings and on RESULT; all UI is English.
 
-Next PR: **12-16c — Session vehicle without a pool**.
+Next PR: **13-1 — Vehicle dimensions**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
 PRs hold rationale and verification evidence. Each stage first consolidates the structure its later PRs consume.
-
-## Stage 12 — Product shell
-
-Define input, run state, framebuffer, persistent player data, data-driven Sessions, the product front end and the
-product HUD independently of DEV, as specified in the [product specification](product.md).
-
-- **12-16 — Cleanup:** the Session's fallback to the player vehicle without a pool.
 
 ## Stage 13 — Interaction
 
@@ -193,7 +186,11 @@ lighting at its own chainage, and switching is a cut.
 | Circuits         | Series or FREE PLAY placement of the selected circuits below                                                                                            |
 | Interaction      | Contact response, traffic behavior, movable objects including cones, fixed roadside objects, barriers and track limits (Stage 13)                       |
 | Grade separation | Occurrence/neighborhood/height selection of surfaces, landmarks and contacts at nearby crossings                                                        |
-| Front end        | Attract demo idle time; HUD layout of the vehicle-state elements (12-13)                                                                                |
+| Front end        | Attract demo idle time                                                                                                                                  |
+| HUD              | Layout of the HUD elements, the vehicle-state elements included (real-device evaluation)                                                                |
+| HUD              | Text backing behind HUD text: none for now                                                                                                              |
+| Camera           | Height spring (frequency and damping ratio) and yaw response (real-device evaluation of the DEV choices)                                                |
+| Bank             | How the displayed vehicle bank follows lean (real-device evaluation)                                                                                    |
 | Art              | Production assets, new physical materials and tunnel/background content                                                                                 |
 | BG transitions   | Consider wipes or dissolves for environment changes; palette fades are not expected                                                                     |
 | Engine sound     | Tried, not adopted: displacement pulse. It did not improve driving sound and added computation (11-7b–11-7k)                                            |

@@ -742,7 +742,8 @@ Each FREE PLAY rival is a vehicle/color pair drawn from the rival pool (`ALL`, `
 pool vehicle's sprite set declares) by the Session seed: a seeded shuffle of the pairs other than the player's own,
 reused in the same order only after every pair has been drawn, so the player's pair is drawn only when the pool
 holds nothing else. Each rival drives its own vehicle with that vehicle's envelope. Each entry also carries its color.
-Every rival entry currently carries the player's vehicle and envelope.
+Resolving a Session with rivals requires every rival's Session vehicle and, in FREE PLAY, the pool; a missing one is a
+`RangeError`, never the player's vehicle.
 The start speed is a resolved Session setting: every competitor spawns at its grid slot moving at it along the
 road tangent. It is finite and may be negative; product Sessions and reference runs use 0. The Session seed is a
 resolved 32-bit unsigned integer that `compileSessionConfiguration` checks; rival target exits derive from it. The
