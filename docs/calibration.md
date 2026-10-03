@@ -109,16 +109,17 @@ in `tools/course/rival-envelope-measurement.ts`: grip factor 1 and rolling resis
 catalog material, so material IDs and values do not move the envelope; the reference is the vehicle's
 capability on unit grip without surface drag.
 
-| Setting               | Value | Meaning                                                      |
-| --------------------- | ----- | ------------------------------------------------------------ |
-| Rival utilization     | 0.75  | FREE PLAY rivals' fixed fraction of the measured envelope    |
-| Reference utilization | 0.9   | Offline reference driver's fraction of the measured envelope |
-| Following time        | 1.5 s | Drivers' following time (`ENVELOPE_DRIVER.followSeconds`)    |
+| Setting               | Value | Meaning                                                                                              |
+| --------------------- | ----- | ---------------------------------------------------------------------------------------------------- |
+| Rival utilization     | 0.75  | FREE PLAY rivals' fixed fraction of the measured envelope                                            |
+| Reference utilization | 0.9   | Offline reference driver's fraction of the measured envelope                                         |
+| Following time        | 1.5 s | Drivers' following time (`ENVELOPE_DRIVER.followSeconds`)                                            |
+| Terminal clearance    | 2 m   | Left before a terminal, or behind the vehicle ahead, at a stop (`ENVELOPE_DRIVER.terminalClearance`) |
 
 The following time sets the gap a driver keeps behind the vehicle ahead beyond its response distance, that vehicle's
 speed times the following time; the free space a lane needs ahead, half the two lengths plus the driver's own speed
 times it; and behind, the rear vehicle's speed times it
-([Content and gameplay](content-and-gameplay.md#vehicle-envelopes-and-drivers)). `ENVELOPE_DRIVER` is version 6.
+([Content and gameplay](content-and-gameplay.md#vehicle-envelopes-and-drivers)). `ENVELOPE_DRIVER` is version 7.
 
 ## Camera settings
 

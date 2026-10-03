@@ -10,10 +10,11 @@ const MIN_DRIVER_CURVATURE_PER_METER = 1e-7;
 
 /** Input/planning policy only. The measured envelope and production mechanics retain their own authority. */
 export const ENVELOPE_DRIVER = Object.freeze({
-  version: 6,
+  version: 7,
   lookahead: 480,
   spacing: 5,
   responseSeconds: 0.45,
+  /** Metres: the distance a driver leaves before a terminal, or behind the vehicle ahead, when it stops. */
   terminalClearance: 2,
   speedDeadzone: 0.15,
   /** Metres: the steering target's least distance ahead, which holds at low speed. */
@@ -224,8 +225,8 @@ function plannedTargetSpeed(
 
 /**
  * The square of the speed a driver at station `s` moving at `speed` with planning braking `braking` may plan behind
- * `leader`: the vehicle ahead is a moving planning point, reached at its speed with the following gap kept beyond the
- * response distance, as a curve speed is reached over the remaining distance.
+ * `leader`: the vehicle ahead is a moving planning point, reached at its speed with the terminal clearance and the
+ * following gap kept beyond the response distance, as a curve speed is reached over the remaining distance.
  */
 function leaderBoundSquared(s: number, speed: number, braking: number, leader: EnvelopeLeader): number {
   const margin = Math.max(
@@ -233,10 +234,16 @@ function leaderBoundSquared(s: number, speed: number, braking: number, leader: E
     leader.s -
       s -
       leader.clearance -
+      ENVELOPE_DRIVER.terminalClearance -
       speed * ENVELOPE_DRIVER.responseSeconds -
       leader.speed * ENVELOPE_DRIVER.followSeconds,
   );
   return leader.speed ** 2 + 2 * braking * margin;
+}
+
+/** Whether a driver at station `s` moving at `speed` with planning braking `braking` can stop for `leader` ahead. */
+export function envelopeCanFollow(s: number, speed: number, braking: number, leader: EnvelopeLeader): boolean {
+  return speed ** 2 <= leaderBoundSquared(s, speed, braking, leader);
 }
 
 /**
@@ -347,6 +354,8 @@ export function envelopeDrivingInput(
         );
   workspace.input.steering = steering;
   workspace.input.throttle = speed < targetSpeed - ENVELOPE_DRIVER.speedDeadzone;
-  workspace.input.brake = targetSpeed === 0 || speed > targetSpeed + ENVELOPE_DRIVER.speedDeadzone;
+  // A target within the deadzone of standstill is a stop: the brake holds, whatever the residual speed of a stopped leader.
+  workspace.input.brake =
+    targetSpeed < ENVELOPE_DRIVER.speedDeadzone || speed > targetSpeed + ENVELOPE_DRIVER.speedDeadzone;
   return workspace.input;
 }

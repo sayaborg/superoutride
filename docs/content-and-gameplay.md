@@ -672,7 +672,8 @@ driver's planned speed there (the speed that is the driver's own planned target 
 ahead in that lane as its constraint), and awaits only the race gates after that station. An appearance waits for a
 later step while its place overlaps another vehicle's footprint or while a vehicle behind in its lane could not stop
 for it: for that vehicle's speed `v_b` and braking `a_b`, the gap Δs and the appearing speed `v`,
-`v_b² > v² + 2 × a_b × max(0, Δs − (L₁ + L₂)/2 − v_b × responseSeconds − v × followSeconds)`. Session assembly rejects an ahead distance beyond the Route kept loaded ahead of
+`v_b² > v² + 2 × a_b × max(0, Δs − (L₁ + L₂)/2 − terminalClearance − v_b × responseSeconds − v × followSeconds)`,
+the same constraint the drivers plan with. Session assembly rejects an ahead distance beyond the Route kept loaded ahead of
 the player (the loading coverage's forward distance less one step).
 
 Ranking is one race-layer function (`rankRaceProgress`). Finished actors rank first by finish time. Unfinished
@@ -888,8 +889,9 @@ The driver always treats the end of a Section with no outgoing Link as a zero-sp
 The Route exposes that terminal station only when its tail is such a Section; loaded tails
 with outgoing Links, including undecided forks and circuit continuations, do not request a stop.
 The speed plan is bounded by `sqrt(2*a*d)`, with d reduced by the driver's response distance and a
-2 m terminal clearance for the front footprint. The driver holds the brake when its target speed is
-zero, using ordinary vehicle physics. It does not inspect finish status or introduce a finished-driving
+2 m terminal clearance (`terminalClearance`, the distance left before a terminal or behind the vehicle ahead). The
+driver holds the brake when its target speed is within the speed deadzone of zero (a stopped vehicle ahead keeps a
+residual speed), using ordinary vehicle physics. It does not inspect finish status or introduce a finished-driving
 state. Thus a finished LINEAR/BRANCH rival decelerates and stops on the runout while the Session
 continues; a finished CIRCUIT rival keeps driving. The player's takeover after GOAL is the same driver with a stop
 station as its terminal.
@@ -902,11 +904,13 @@ It is a constraint of the driver's plan, braked back like a curve speed: with th
 driver's speed `v` and planning braking `a`,
 
 ```text
-margin = max(0, Δs − (L₁ + L₂)/2 − v × responseSeconds − v_a × followSeconds)
+margin = max(0, Δs − (L₁ + L₂)/2 − terminalClearance − v × responseSeconds − v_a × followSeconds)
 target² ≤ v_a² + 2 × a × margin
 ```
 
-so a driver following at the leader's speed keeps the footprint gap `v × responseSeconds + v_a × followSeconds`. The
+so a driver following at the leader's speed keeps the footprint gap
+`terminalClearance + v × responseSeconds + v_a × followSeconds`, and stops `terminalClearance` (2 m) behind a stopped
+vehicle. The
 plan is computed once per step, with and without this constraint. Whether a driver changes lanes is an attribute its
 builder gives it (`changesLanes`): rivals' drivers and the player's takeover change lanes; traffic drivers, which
 Session resolution compiles, do not. When the constraint lowers the planned speed, a driver that changes lanes

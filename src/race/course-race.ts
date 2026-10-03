@@ -24,8 +24,8 @@ import { createRivalPace } from './rival-pace.js';
 import {
   createEnvelopeDriverWorkspace,
   createVariableEnvelopeDriver,
-  ENVELOPE_DRIVER,
   envelopeDrivingInput,
+  envelopeCanFollow,
   envelopeSpeedBehind,
   planEnvelopeDriving,
   plannedEnvelopeSpeed,
@@ -428,19 +428,17 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
         clearance: (length + ahead.model.compiledVehicle.overallLength) / 2,
       },
     );
-    for (const body of bodies) {
-      if (body.vehicle.course.s > s || !inLane(body)) continue;
-      const rear = speedOf(body);
-      const margin = Math.max(
-        0,
-        s -
-          body.vehicle.course.s -
-          (length + body.model.compiledVehicle.overallLength) / 2 -
-          rear * ENVELOPE_DRIVER.responseSeconds -
-          speed * ENVELOPE_DRIVER.followSeconds,
-      );
-      if (rear ** 2 > speed ** 2 + 2 * body.braking * margin) return null;
-    }
+    for (const body of bodies)
+      if (
+        body.vehicle.course.s <= s &&
+        inLane(body) &&
+        !envelopeCanFollow(body.vehicle.course.s, speedOf(body), body.braking, {
+          s,
+          speed,
+          clearance: (length + body.model.compiledVehicle.overallLength) / 2,
+        })
+      )
+        return null;
     return speed;
   };
   // The traffic field owns traffic appearance, holding and departure; the race supplies what it shares.
