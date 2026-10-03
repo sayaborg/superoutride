@@ -245,7 +245,7 @@ rival ahead). Another table holds every element's place in the 40×30 grid, so m
 | Rows  | Elements                                                                                                           |
 | ----- | ------------------------------------------------------------------------------------------------------------------ |
 | 1–2   | TIME and the remaining seconds (rounded up), race time, POS n/m, STAGE n                                           |
-| 4–5   | LAP x/y and the lap's time, BEST and the best lap (`-'--"---` before one), PASS n, TARGET nM                       |
+| 4–5   | LAP x/y and the lap's time, BEST and the best lap (`-'--"---` before one), PASS n until the ending, TARGET nM      |
 | 7     | `EXTEND +12"0` (seconds and tenths), yellow, while TIME is yellow after an extension                               |
 | 10–11 | Before GO: the course's display name and the mode                                                                  |
 | 13–14 | Three 2×2-tile signal lamps: before GO the race's lamps lit are red and the rest unlit; all green for 1 s after GO |

@@ -217,7 +217,8 @@ const HUD_ELEMENTS: readonly HudElement[] = [
     },
   },
   {
-    when: ({ race }) => race.nextRankLimit !== null,
+    // Until the run ends: an ended run has no next gate to pass.
+    when: ({ race }) => !ended(race) && race.nextRankLimit !== null,
     write: ({ race }, text) => write(text, 'pass', `PASS ${race.nextRankLimit}`),
   },
   {
