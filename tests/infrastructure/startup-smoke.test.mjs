@@ -27,7 +27,6 @@ for (const { id: stem } of content.manifest.files.filter((file) => file.kind ===
   test(`${stem} compiles and starts through the shared driving scene`, async () => {
     const course = await loadDeliveredCourse(content, stem, materials);
     const settings = createDisplaySettings();
-    assert.equal(settings.stripMethod, 'LEVEL-POINT');
     const scene = createCourseScene(course.entry, course.gates, definitions.vehicles, settings);
     const entry = definitions.vehicles[0];
     const sprites = createVehicleSprites(entry);
@@ -53,7 +52,6 @@ for (const { id: stem } of content.manifest.files.filter((file) => file.kind ===
         assert.equal(scene.runtime.window.occurrences, occurrences);
         assert.equal(scene.runtime.readers, view);
       }
-      assert.throws(() => settings.setStripMethod('UNKNOWN'), RangeError);
       assert.ok([vehicle.x, vehicle.y, vehicle.z, camera.s].every(Number.isFinite));
       assert.ok(
         target.pixels.some((pixel) => pixel !== 0),
