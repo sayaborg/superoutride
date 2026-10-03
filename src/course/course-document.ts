@@ -16,7 +16,7 @@ import {
   readString,
 } from '../core/admission.js';
 
-const COURSE_DOCUMENT_VERSION = 30;
+const COURSE_DOCUMENT_VERSION = 31;
 const ID = { maxLength: COURSE_DOCUMENT_LIMITS.idCodeUnits };
 
 export interface CoursePosition {
@@ -42,6 +42,8 @@ interface CarriagewayDocument {
   readonly id: string;
   readonly left: string;
   readonly right: string;
+  /** The number of lanes dividing the road between its Boundaries equally. */
+  readonly lanes: number;
 }
 
 interface LinkDocument {
@@ -204,11 +206,16 @@ function boundary(value: unknown, path: string): BoundaryDocument {
 }
 
 function carriageway(value: unknown, path: string): CarriagewayDocument {
-  const v = readRecord(value, path, ['id', 'left', 'right']);
+  const v = readRecord(value, path, ['id', 'left', 'right', 'lanes']);
   return Object.freeze({
     id: readString(v.id, `${path}/id`, ID),
     left: readString(v.left, `${path}/left`, ID),
     right: readString(v.right, `${path}/right`, ID),
+    lanes: readNumber(v.lanes, `${path}/lanes`, {
+      min: 1,
+      max: COURSE_DOCUMENT_LIMITS.carriagewayLanes,
+      integer: true,
+    }),
   });
 }
 

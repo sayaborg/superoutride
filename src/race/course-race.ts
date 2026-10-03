@@ -99,16 +99,9 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   // The fork field is the fork decider: the only holder of the Route's selection authority.
   const forks = createCourseForkField(runtime.route, lines, runtime.selectSuccessor);
   // A rival's intent drives it; the player's input comes from its composition, so it has no intent here.
-  const competitor = (
-    id: string,
-    actor: Actor,
-    lane: number,
-    intent: DriverIntent | null,
-    stages: SessionEntry['stages'],
-  ) => ({
+  const competitor = (id: string, actor: Actor, intent: DriverIntent | null, stages: SessionEntry['stages']) => ({
     id,
     actor,
-    lane,
     intent,
     /** The stages this competitor takes part in; null for the whole run. */
     stages,
@@ -120,7 +113,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     /** Whether the competitor has entered the Session; its leaving is final. */
     appeared: stages === null || stages.first === 1,
     /** The race's recovery lane resolver for this competitor. */
-    recoveryLane: (s: number) => forks.recoveryL(s, lane),
+    recoveryLane: (s: number) => forks.recoveryL(s, intent),
     observer: createRouteProgress(lines, actor.vehicle.course),
     get progress() {
       return this.observer.state;
@@ -153,7 +146,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   const [playerEntry, ...rivalEntries] = entries;
   const playerSlot = playerEntry!.slot!;
   const playerActor = spawn(playerEntry!, { s: playerSlot.at.s, l: playerSlot.l, initialSpeed });
-  const player = competitor(playerEntry!.id, playerActor, playerSlot.l, null, null);
+  const player = competitor(playerEntry!.id, playerActor, null, null);
   // An ahead appearance must lie within the Route the runtime keeps loaded ahead of the player.
   for (const entry of rivalEntries)
     if (entry.ahead && entry.ahead.distance > runtime.coverage.forwardMeters - runtime.coverage.maximumStepMeters)
@@ -162,7 +155,8 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   const judge = createRankLimitJudge(rankLimits, player.id);
   const rivalDriving = rivalEntries.map(drivingOf);
   const rivals = rivalEntries.map((entry, rivalIndex) => {
-    const lane = entry.slot ? entry.slot.l : entry.ahead!.lateral;
+    // A grid rival starts in the lane nearest its slot; an ahead entry names its lane.
+    const lane = entry.slot ? forks.intentLane(entry.slot.at.s, entry.slot.l) : entry.ahead!.lane;
     // The race assigns each rival's target exits from the Session seed; its grid side implies none.
     const intent: DriverIntent = {
       lane,
@@ -171,7 +165,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     };
     // Until it appears, an ahead entry's actor waits unmoved at the player's slot; nothing reads it.
     const at = entry.slot ?? playerSlot;
-    return competitor(entry.id, spawn(entry, { s: at.at.s, l: at.l, initialSpeed }), lane, intent, entry.stages);
+    return competitor(entry.id, spawn(entry, { s: at.at.s, l: at.l, initialSpeed }), intent, entry.stages);
   });
   const resync = (c: typeof player) => c.observer.resync(c.actor.vehicle.course);
   const competitors = [player, ...rivals];
@@ -309,8 +303,8 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   let events = noEvents;
   const stepEvents: RaceEvent[] = [];
 
-  // The player's driving after its finish: the envelope driver at the Session driver utilization, holding the lateral
-  // position it finished at and planning a stop at its runout distance past the finish, within any Route terminal. A
+  // The player's driving after its finish: the envelope driver at the Session driver utilization, in the lane nearest
+  // the position it finished at, planning a stop at its runout distance past the finish, within any Route terminal. A
   // Session without an envelope holds the brake instead.
   const takeoverDriver = playerEntry!.envelope ? options.session.driverOf(playerEntry!.envelope) : null;
   const takeoverWorkspace = createEnvelopeDriverWorkspace();

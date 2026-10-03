@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 30,
+  "version": 31,
   "name": "RIBBON COAST",
   "entrySectionId": "coast-road",
   "rules": {
@@ -1484,7 +1484,8 @@
         {
           "id": "road",
           "left": "road-left",
-          "right": "road-right"
+          "right": "road-right",
+          "lanes": 4
         }
       ],
       "environments": [

@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 30,
+  "version": 31,
   "name": "RIBBON FORK",
   "entrySectionId": "junction-road",
   "rules": {
@@ -816,17 +816,20 @@
         {
           "id": "APPROACH",
           "left": "approach-left",
-          "right": "approach-right"
+          "right": "approach-right",
+          "lanes": 4
         },
         {
           "id": "LEFT",
           "left": "left-outer",
-          "right": "left-inner"
+          "right": "left-inner",
+          "lanes": 2
         },
         {
           "id": "RIGHT",
           "left": "right-inner",
-          "right": "right-outer"
+          "right": "right-outer",
+          "lanes": 2
         }
       ],
       "environments": [
@@ -1454,7 +1457,8 @@
         {
           "id": "road",
           "left": "road-left",
-          "right": "road-right"
+          "right": "road-right",
+          "lanes": 2
         }
       ],
       "environments": [
@@ -1807,7 +1811,8 @@
         {
           "id": "road",
           "left": "road-left",
-          "right": "road-right"
+          "right": "road-right",
+          "lanes": 2
         }
       ],
       "environments": [
@@ -2263,7 +2268,8 @@
         {
           "id": "road",
           "left": "road-left",
-          "right": "road-right"
+          "right": "road-right",
+          "lanes": 2
         }
       ],
       "environments": [

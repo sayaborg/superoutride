@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 30,
+  "version": 31,
   "name": "RIBBON ROUGH",
   "entrySectionId": "rough-bumps",
   "rules": {
@@ -447,7 +447,7 @@
         { "at": { "pi": "start", "offset": 2187.3555275509593 }, "y": -7, "curveLength": 4 },
         { "at": { "pi": "end", "offset": 0 }, "y": -7, "curveLength": 0 }
       ],
-      "carriageways": [{ "id": "road", "left": "road-left", "right": "road-right" }],
+      "carriageways": [{ "id": "road", "left": "road-left", "right": "road-right", "lanes": 3 }],
       "environments": [
         {
           "at": { "pi": "start", "offset": 0 },
@@ -853,7 +853,7 @@
         { "at": { "pi": "start", "offset": 847.469776266572 }, "y": 0, "curveLength": 20 },
         { "at": { "pi": "end", "offset": 0 }, "y": 0, "curveLength": 0 }
       ],
-      "carriageways": [{ "id": "road", "left": "road-left", "right": "road-right" }],
+      "carriageways": [{ "id": "road", "left": "road-left", "right": "road-right", "lanes": 3 }],
       "environments": [
         {
           "at": { "pi": "start", "offset": 0 },

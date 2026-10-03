@@ -18,7 +18,7 @@ color and material overwrite independently. Compiled Sections publish their two 
 Checkpoints, starts, finishes and environment changes are independent of Section boundaries.
 Source identity, traversal identity and race credit are distinct.
 
-## CourseDocument v30
+## CourseDocument v31
 
 The saved format is compact UTF-8 JSON. All declared fields are required; explicit null represents
 absent optional content. Unknown fields fail. Arrays preserve saved order; object-property order and
@@ -26,7 +26,7 @@ whitespace do not affect identity. Normalized records use schema field order and
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 30,
+  format: "superoutride.course", version: 31,
   name, entrySectionId,
   sections, links, assets, rules
 }
@@ -44,7 +44,7 @@ Section {
 | Plan PI         | `id`, `x`, `z`, `radius`                                                                   |
 | Position        | `at: {pi, offset}`; interval `start`/`end` and gate `at` use the same `{pi, offset}` value |
 | Boundary        | `id`, `knots: [{at,lateral}]`                                                              |
-| Carriageway     | `id`, `left`, `right`                                                                      |
+| Carriageway     | `id`, `left`, `right`, `lanes`                                                             |
 | Link            | `id`, `from: {sectionId,carriagewayId}`, `to: {sectionId}`                                 |
 | Asset reference | `id`, lowercase `sha256`                                                                   |
 
@@ -297,6 +297,7 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | Environment array and expanded Section `environmentKnots`               |                256 | (21 × 4 + 1) × 2, rounded up                                                                                                                                              |
 | Section `boundaries`                                                    |                 32 | 16 road, median, shoulder and outer Boundaries × 2                                                                                                                        |
 | Section `carriageways`                                                  |                 64 | One road activation/km × 21 × 2, rounded up; supports three-way splits                                                                                                    |
+| Carriageway `carriagewayLanes`                                          |                  8 | Four lanes each way on the widest planned roads                                                                                                                           |
 | Non-circuit finite `routes` from the entry                              |                256 | Reference work bound: one continuous reference run per route and vehicle                                                                                                  |
 | Section `spritePlacements` (expanded)                                   |              16384 | 21 × (200 + 20)/km × 2, rounded up                                                                                                                                        |
 | Each Strip/sprite array `stripElements` / `spriteElements`              |               2048 | 21 × 30/km × 2, rounded up                                                                                                                                                |
@@ -361,7 +362,11 @@ is specified in [Architecture](architecture.md#plan-authority).
 
 Boundary knots strictly increase. Their resolved vertices define affine edges; width and center are derived.
 
-A Carriageway is `{id, left, right}`; both edge IDs resolve to Boundaries in its Section.
+A Carriageway is `{id, left, right, lanes}`; both edge IDs resolve to Boundaries in its Section. `lanes`, an
+integer from 1 through `carriagewayLanes` (8), divides the road between its Boundaries into equal lanes numbered from
+0 at the left: the centre of lane i at station s is `left + (i + 0.5) / lanes × (right − left)`
+(`courseLaneCenterAt`), and the lane nearest a lateral position is the one whose interval holds it, ties to the right
+(`courseLaneAt`). The compiled Carriageway publishes `lanes`.
 Its existence interval is the intersection of those Boundary domains, with no separate range field.
 The intersection must have positive length. Membership is `[start,end)`, including the end only
 when it is the Section terminal. Boundary values themselves remain readable at both endpoints.
@@ -533,10 +538,13 @@ passes of one fork Section are distinct. The lock, the closed Carriageways, the 
 derive from that successor.
 Checkpoint credit remains per actor.
 
-A driver's intent has two separate values: its lane, the lateral position on Sections without a fork (a
-competitor's grid slot l), and its target exit, an exit index at each fork occurrence. At a fork the fork field's
-target (`targetL`) is the selected exit's Carriageway center once the occurrence is decided, else the intended
-exit's; any exit, a middle one included, can be intended, and the grid side implies none. The recovery lane
+A driver's intent has two separate values: its lane, a lane number, and its target exit, an exit index at each fork
+occurrence. The fork field's target (`targetL`) is the centre of that lane in the Carriageway the intent follows
+(`targetCarriageway`), the number limited to that Carriageway's lanes: off forks the Carriageway existing there; at a
+fork the selected exit's Carriageway once the occurrence is decided, else the intended exit's, and the Carriageway
+existing there where that exit does not; any exit, a middle one included, can be intended, and the grid side
+implies none. A grid rival's lane is the lane nearest its slot, whose lateral position stays the slot's
+(`intentLane`: on the Carriageway holding or nearest the position). The recovery lane
 (`recoveryL`) keeps its own rule ([Recovery](#recovery)). The race assigns each rival's target exits from the
 Session seed:
 
@@ -545,7 +553,9 @@ exit = hash(seed, rivalIndex, occurrence.ordinal) mod exitCount
 ```
 
 `hash` (`rivalExit`) chains 32-bit integer avalanche steps (`Math.imul`, shifts and xor), so every runtime computes
-the same exits. Reference runs intend each planned Link's exit; scenarios name their exit indices.
+the same exits. Reference runs intend each planned Link's exit and follow no lanes: their target is the start slot's
+lateral position off forks and the target exit's Carriageway centre at forks (the reference line), so lanes do not
+change their path. Scenarios drive the player on the same line and name their exit indices.
 Rivals immediately follow the selected Carriageway center once the fork is decided. Unselected roads show saved
 state-selected signs. At/beyond closure, an actor is on a closed Carriageway when that exit exists at its s and
 its l lies between the two edges (including the edges). It recovers at the same chainage onto the selected
@@ -614,8 +624,8 @@ After the ending the race keeps moving the field: every present competitor advan
 observation and Route loading, while race time, progress, events, presence and judging hold. The player's rank is
 therefore fixed at the ending: competitors unfinished at that moment rank behind a finished player. Paced rivals keep
 their last utilization and speed cap. After GOAL the player's input no longer reaches its vehicle: the envelope
-driver at the fixed Session driver utilization (0.75) drives it, holding the lateral position it finished at (its
-lane on a fork, the selected exit) and planning a stop at the finish station plus that vehicle's runout distance
+driver at the fixed Session driver utilization (0.75) drives it in the lane nearest the position it finished at
+(on a fork, in the selected exit) and planning a stop at the finish station plus that vehicle's runout distance
 (`maximumSpeed² / (2*a)`, as admitted), within any Route terminal; a Session without an envelope (a DEV-tuned
 vehicle) holds the brake instead. After GAME OVER the player's throttle is released: its steering and brake still
 apply and the vehicle coasts.
@@ -669,13 +679,13 @@ competitors present.
 
 ## Series documents
 
-A series document (`superoutride.series` version 6) is the one owner of its courses' ARCADE settings. It is
+A series document (`superoutride.series` version 7) is the one owner of its courses' ARCADE settings. It is
 saved as `content/series/<id>.series.json`; `id` equals that file name stem, which is also its manifest ID.
 
 ```json
 {
   "format": "superoutride.series",
-  "version": 5,
+  "version": 7,
   "id": "ribbon",
   "title": "RIBBON",
   "dev": true,
@@ -705,14 +715,16 @@ whole field, 1 through 16 entries, each a catalog vehicle, a color its sprite se
 whole run, or `{first, last}` with `last` at least `first` and no later than the stage count of every run of the
 course: its race gates per route, times the laps on a circuit) and one appearance. An entry taking part from STAGE
 1 has a grid `slot` index (0 through 15) and `ahead: null`; grid entries are in grid order with strictly increasing
-slots. An entry whose first stage is later has `slot: null` and `ahead: {distance, lateral}`: a positive distance
-in metres ahead of the player and the lateral offset of its lane, as a grid slot's. On every route the distance
+slots. An entry whose first stage is later has `slot: null` and `ahead: {distance, lane}`: a positive distance
+in metres ahead of the player and its lane number, which every Carriageway of the course has, so it is a lane on
+every route. On every route the distance
 falls short of the next race gate and the next fork lock after the gate opening that stage. Every candidate vehicle
 has at least one grid entry, which the player can take. `playerSlot` is `own` or `last`. `rankLimits` maps a race gate ID to its rank
 limit N. Admission checks each document once, from the build's files or the delivery manifest alike, against the
 delivered course IDs and the vehicle catalog. Until selection screens choose a series, a course belongs to at most
 one series; a second one is rejected. A series course is admitted against its compiled course: `laps` within
-`maxLaps`, every entry's slot within the grid, and rank limits naming checkpoint or FINISH gates of that course
+`maxLaps`, every entry's slot within the grid, every ahead lane below the fewest lanes of the course's Carriageways,
+and rank limits naming checkpoint or FINISH gates of that course
 with N an integer from 1 to below the field size (the number of entries). The build admits every series course; a
 Session admits the course it drives.
 
@@ -874,7 +886,7 @@ exit, an inverted landing, falling through the heightfield, leaving the locked f
 manual request. [Vehicle physics](vehicle-physics.md#airborne-state-and-recovery) owns the conditions. It reconstructs
 pose, velocities, wheels, actuators, powertrain and observations at known supported coordinates while
 preserving steering/tire calibration and earned gates, locks and laps. Manual recovery is a race operation on the
-player: the ordinary recovery toward the player's lane, the legal-road check, a progress baseline reset that awards
+player: the ordinary recovery toward the centre of its road, the legal-road check, a progress baseline reset that awards
 no progress, then a fresh player observation.
 
 The fixed recovery policy is one immutable record (`RECOVERY_POLICY`) shared by every competitor; it holds
@@ -893,8 +905,9 @@ recovers the vehicle on that step, and returning inside resets it. Recovery is n
 
 Route recovery backs off from the farther of causal current chainage and last-safe chainage
 ([Vehicle physics](vehicle-physics.md#airborne-state-and-recovery)). The race owns target resolution: its
-recovery lane function (the fork field's `recoveryL`: the selected Carriageway, else the Carriageway containing
-the competitor's lane, else an active one, at its center) is passed to recovery separately from the policy.
+recovery lane function (the fork field's `recoveryL`) is passed to recovery separately from the policy: a driven
+competitor recovers to its driving target (`targetL`, the centre of its lane); the player, which has no driver intent,
+recovers to the centre of the selected Carriageway, else of the Carriageway existing there.
 Wrong-route recovery uses the selected Carriageway at the observed station (`legalTarget`).
 Every spawn and recovery target, route-derived or explicit, passes one check (`supportedTargetSurface`): its l
 lies within the coordinate domain (`lateralAt`) and its surface has a material. Targets are race-made, so a

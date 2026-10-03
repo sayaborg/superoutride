@@ -23,7 +23,7 @@ import { requireLoaded } from './content-load-error.js';
 import type { DocumentSource } from './document-catalog.js';
 
 export const SERIES_DOCUMENT_FORMAT = 'superoutride.series';
-export const SERIES_DOCUMENT_VERSION = 6;
+export const SERIES_DOCUMENT_VERSION = 7;
 const PLAYER_SLOTS = ['own', 'last'] as const;
 
 /** One series: the one owner of its courses' ARCADE settings. `dev` series appear only with DEV. */
@@ -57,8 +57,8 @@ export interface SeriesEntry {
 /** Where a later entry appears when the player enters its first stage: metres ahead of the player, in its lane. */
 export interface AheadAppearance {
   readonly distance: number;
-  /** The lane's lateral offset in metres, as a grid slot's. */
-  readonly lateral: number;
+  /** Its lane number (0 is the leftmost lane), valid on every Carriageway of the course. */
+  readonly lane: number;
 }
 
 /** An inclusive stage interval; STAGE k runs from the (k−1)-th race gate of the run to the k-th. */
@@ -226,7 +226,7 @@ function readEntries(
         return Object.freeze({ vehicle: id, color, pace, stages, slot, ahead: null });
       }
       requireAdmission(record.slot === null, 'invalid_value', `${at}/slot`, 'An entry from a later stage has no slot');
-      const ahead = readRecord(record.ahead, `${at}/ahead`, ['distance', 'lateral']);
+      const ahead = readRecord(record.ahead, `${at}/ahead`, ['distance', 'lane']);
       return Object.freeze({
         vehicle: id,
         color,
@@ -235,7 +235,7 @@ function readEntries(
         slot: null,
         ahead: Object.freeze({
           distance: readNumber(ahead.distance, `${at}/ahead/distance`, { min: 0, exclusiveMin: true }),
-          lateral: readNumber(ahead.lateral, `${at}/ahead/lateral`),
+          lane: readNumber(ahead.lane, `${at}/ahead/lane`, { min: 0, integer: true }),
         }),
       });
     },
@@ -324,7 +324,7 @@ function requireUnique(values: readonly string[], path: string, kind: string): v
 
 /**
  * Admit a series course against its compiled course: the laps fit the course's lap maximum, every entry's slot is in
- * the grid, and each rank limit names a race gate of the course with N below the field size. The build admits every
+ * the grid, every ahead entry's lane exists on every Carriageway of the course, and each rank limit names a race gate of the course with N below the field size. The build admits every
  * series course; a Session admits the course it drives.
  */
 export function admitSeriesCourse(
@@ -362,8 +362,16 @@ export function admitSeriesCourse(
         `Every run of ${course.id} has ${stageCount} stages`,
       ),
     );
+    // A lane number is valid on every route when every Carriageway of the course has that lane.
+    const lanes = Math.min(...course.sections.flatMap((section) => section.carriageways.map((road) => road.lanes)));
     settings.entries.forEach((entry, i) => {
       if (!entry.ahead) return;
+      requireAdmission(
+        entry.ahead.lane < lanes,
+        'invalid_value',
+        `/courses/${index}/entries/${i}/ahead/lane`,
+        `Some Carriageway of ${course.id} has only ${lanes} lanes`,
+      );
       const room = aheadRoom(course, settings.laps, entry.stages!.first);
       requireAdmission(
         entry.ahead.distance < room,

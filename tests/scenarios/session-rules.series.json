@@ -1,6 +1,6 @@
 {
   "format": "superoutride.series",
-  "version": 6,
+  "version": 7,
   "id": "scenario-rules",
   "title": "SCENARIO RULES",
   "dev": true,
@@ -28,7 +28,7 @@
           "pace": 1,
           "stages": { "first": 2, "last": 2 },
           "slot": null,
-          "ahead": { "distance": 80, "lateral": 2 }
+          "ahead": { "distance": 80, "lane": 1 }
         },
         { "vehicle": "TESTAROSSA", "color": "original", "pace": 1, "stages": null, "slot": 15, "ahead": null }
       ],

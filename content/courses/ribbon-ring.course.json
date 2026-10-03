@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 30,
+  "version": 31,
   "name": "RIBBON RING",
   "entrySectionId": "ring-outward",
   "rules": {
@@ -679,7 +679,8 @@
         {
           "id": "road",
           "left": "road-left",
-          "right": "road-right"
+          "right": "road-right",
+          "lanes": 4
         }
       ],
       "environments": [
@@ -1577,7 +1578,8 @@
         {
           "id": "road",
           "left": "road-left",
-          "right": "road-right"
+          "right": "road-right",
+          "lanes": 4
         }
       ],
       "environments": [

@@ -123,6 +123,7 @@ function compileSection(
       id: source.id,
       left: reference(boundaryTable, source.left, `${at}/left`),
       right: reference(boundaryTable, source.right, `${at}/right`),
+      lanes: source.lanes,
     });
   });
   const strips = compileCourseStrips(section.strips, length, `${path}/strips`, resolve, boundaryTable, materials);

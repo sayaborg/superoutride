@@ -5,10 +5,9 @@ import type { CompiledCourse } from '../../src/course/compiler/compiled-course.j
 import type { CompiledVehicleDefinition } from '../../src/vehicle/definition-document.js';
 import type { SessionVehicle } from '../../src/content/session-vehicle.js';
 import type { RivalEnvelope } from '../../src/content/rival-envelope.js';
-import { REFERENCE_DRIVER } from './reference-driving-policy.js';
+import { REFERENCE_DRIVER, referenceLine } from './reference-driving-policy.js';
 import { createCourseScene } from '../../src/view/course-scene.js';
 import { createCourseRace } from '../../src/race/course-race.js';
-import type { DriverIntent } from '../../src/race/course-fork-field.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
 import {
   createEnvelopeDriverWorkspace,
@@ -52,13 +51,10 @@ export function runCourseReference(
     maximumSpeed = 0,
     maximumLateralUtilization = 0;
   const planned = new Map(route.map((link) => [link.from.section, link]));
-  // The planned Link at each fork is the intended exit.
-  const intent: DriverIntent = {
-    lane: slot.l,
-    exit: (occurrence) =>
-      occurrence.section.fork!.exits.findIndex((exit) => exit.link === planned.get(occurrence.section)),
-  };
-  const lane = (s: number) => race.forks.targetL(s, intent);
+  // The reference line from the start slot; the planned Link at each fork is the intended exit.
+  const lane = referenceLine(race.forks, scene.runtime.route, slot.l, (occurrence) =>
+    occurrence.section.fork!.exits.findIndex((exit) => exit.link === planned.get(occurrence.section)),
+  );
   const workspace = createEnvelopeDriverWorkspace();
   const driver = compileEnvelopeDriver(envelope, REFERENCE_DRIVER.utilization, envelope.maximumSpeed);
   // Race time and route station after every step from GO: the pass times at schedule stations interpolate them.

@@ -3,6 +3,7 @@ import { loadDeliveredCourse } from '../../src/content/load-delivered-course.js'
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readDeliveredContent } from '../../tools/course/read-content.ts';
+import { referenceLine } from '../../tools/course/reference-driving-policy.ts';
 import { createCourseScene } from '../../src/view/course-scene.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
@@ -160,14 +161,11 @@ export function runScenario({ course, arcade, budgets, paceSchedule }, scenario)
     frames: 0,
     stoppedRivals: [],
   };
-  // The player's intent: the scenario's lane off forks and its target exit index at every fork.
-  const intent = {
-    lane: scenario.lane ?? slot.l,
-    exit: () => {
-      assert.ok(Number.isInteger(scenario.exit), `${scenario.name}: a fork needs the scenario's target exit`);
-      return scenario.exit;
-    },
-  };
+  // The player follows the reference line: the scenario's lateral off forks and its target exit index at every fork.
+  const line = referenceLine(race.forks, scene.runtime.route, scenario.lane ?? slot.l, () => {
+    assert.ok(Number.isInteger(scenario.exit), `${scenario.name}: a fork needs the scenario's target exit`);
+    return scenario.exit;
+  });
   const lane = (s) => {
     const occurrence = scene.runtime.route.at(s);
     const fork = occurrence?.section.fork;
@@ -180,7 +178,7 @@ export function runScenario({ course, arcade, budgets, paceSchedule }, scenario)
           (courseBoundaryAt(road.left, nativeS) + courseBoundaryAt(road.right, nativeS)) / 2 - occurrence.lateralOrigin
         );
     }
-    return race.forks.targetL(s, intent);
+    return line(s);
   };
   const entryPose = scene.world.coordinates.toWorld(0, 0, { x: 0, z: 0, s: 0, l: 0, heading: 0 });
   let camera;
