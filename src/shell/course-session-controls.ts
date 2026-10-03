@@ -1,67 +1,25 @@
 import type { SeriesCourse } from '../content/series-catalog.js';
 import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
-import { compileSessionConfiguration, type SessionConfiguration } from '../race/session-configuration.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import type { RunFacts } from './run-screen.js';
-import { formPool, RIVAL_POOLS, type RivalPool } from '../race/free-play-field.js';
-
-/** The chosen settings; each Session assembly adds its own seed. */
-interface BrowserSessionSettings extends Omit<SessionConfiguration, 'seed'> {
-  readonly vehicleId: string;
-  /** The FREE PLAY rival pool; null in ARCADE and TIME TRIAL. */
-  readonly rivalPool: RivalPool | null;
-}
-/**
- * A series course defaults to its ARCADE settings with the series' first vehicle and the clock. FREE PLAY has no clock.
- * A course in no series offers FREE PLAY and TIME TRIAL, defaulting to FREE PLAY with the first vehicle in selection
- * order, no rivals and one lap. FREE PLAY draws its rivals from the `pool` parameter's pool, by default the one
- * matching the player's vehicle form. TIME TRIAL runs alone without a clock; a `rivals` or `pool` parameter is an
- * error there.
- */
-export function readBrowserSessionSettings(
-  params: URLSearchParams,
-  arcade: SeriesCourse | null,
-  vehicles: readonly CompiledVehicleDefinition[],
-): BrowserSessionSettings {
-  const preset = arcade
-    ? { vehicleId: arcade.series.vehicles[0]!, rivalCount: arcade.entries.length - 1, lapCount: arcade.laps }
-    : { vehicleId: vehicles[0]!.compiledVehicle.id, rivalCount: 0, lapCount: 1 };
-  const mode = params.get('mode') ?? (arcade ? 'ARCADE' : 'FREE_PLAY');
-  if (mode !== 'ARCADE' && mode !== 'FREE_PLAY' && mode !== 'TIME_TRIAL') throw new RangeError('Unknown Session mode');
-  if (mode === 'ARCADE' && !arcade) throw new RangeError('An untimed course has no ARCADE Session');
-  if (mode === 'TIME_TRIAL' && (params.has('rivals') || params.has('pool')))
-    throw new RangeError('TIME TRIAL has no rivals');
-  const values =
-    mode === 'ARCADE'
-      ? { ...preset, timeLimit: true }
-      : {
-          rivalCount: mode === 'TIME_TRIAL' ? 0 : Number(params.get('rivals') ?? preset.rivalCount),
-          lapCount: Number(params.get('laps') ?? preset.lapCount),
-          timeLimit: false,
-          vehicleId: params.get('vehicle') ?? preset.vehicleId,
-        };
-  const vehicle = vehicles.find((v) => v.compiledVehicle.id === values.vehicleId);
-  if (!vehicle) throw new RangeError('Unknown Session vehicle');
-  const pool = mode === 'FREE_PLAY' ? (params.get('pool') ?? formPool(vehicle)) : null;
-  if (pool !== null && !RIVAL_POOLS.includes(pool as RivalPool)) throw new RangeError('Unknown rival pool');
-  // Product Sessions use standing starts. The seed is chosen per assembly, so validation uses a placeholder.
-  const { seed: _seed, ...configuration } = compileSessionConfiguration({ mode, ...values, initialSpeed: 0, seed: 0 });
-  return Object.freeze({ ...configuration, vehicleId: values.vehicleId, rivalPool: pool as RivalPool | null });
-}
+import { formPool } from '../race/free-play-field.js';
+import { recordedColor, runSettings, type RunRequest, type RunSettings } from './run-request.js';
+import type { PlayerRecord } from './player-record.js';
 
 /**
  * Session settings precede the start signal; ordinary driving input remains unchanged. The PAUSE button asks
- * the run state to toggle, and its label and visibility follow the run-state facts it is shown. Changed settings and
- * NEW SESSION ask for a new run with the run's `parameters` updated; the form belongs to its run and is disposed
- * with it.
+ * the run state to toggle, and its label and visibility follow the run-state facts it is shown. Changed settings ask
+ * for a new run of the changed request, and NEW SESSION for the same request; the form belongs to its run and is
+ * disposed with it.
  */
 export function mountCourseSessionControls(
   canvas: HTMLElement,
-  parameters: URLSearchParams,
-  current: BrowserSessionSettings,
+  request: RunRequest,
+  current: RunSettings,
   arcade: SeriesCourse | null,
   maxLaps: number,
-  actions: { start(): void; togglePause(): void; reassemble(parameters: URLSearchParams, autostart: boolean): void },
+  player: PlayerRecord,
+  actions: { start(): void; togglePause(): void; reassemble(request: RunRequest, begin: boolean): void },
   vehicles: readonly CompiledVehicleDefinition[],
 ) {
   const panel = document.createElement('form');
@@ -152,7 +110,7 @@ export function mountCourseSessionControls(
   const restart = document.createElement('button');
   restart.type = 'button';
   restart.textContent = 'NEW SESSION';
-  restart.addEventListener('click', () => actions.reassemble(new URLSearchParams(parameters), false));
+  restart.addEventListener('click', () => actions.reassemble(request, false));
   pause.addEventListener('click', () => actions.togglePause());
   toolbar.append(pause, restart);
   const begin = () => {
@@ -163,17 +121,25 @@ export function mountCourseSessionControls(
   };
   panel.addEventListener('submit', (event) => {
     event.preventDefault();
-    const params = new URLSearchParams(parameters);
-    params.set('mode', mode.value);
-    params.set('vehicle', vehicle.value);
-    params.set('laps', laps.value);
-    // TIME TRIAL takes no rival parameters.
-    if (mode.value === 'TIME_TRIAL') {
-      params.delete('rivals');
-      params.delete('pool');
-    } else params.set('rivals', rivals.value);
-    const next = readBrowserSessionSettings(params, arcade, vehicles);
-    if (JSON.stringify(next) !== JSON.stringify(current)) actions.reassemble(params, true);
+    const entry = vehicles.find((v) => v.compiledVehicle.id === vehicle.value)!;
+    const choice = { courseId: request.courseId, vehicleId: vehicle.value, color: recordedColor(player, entry) };
+    const lapCount = Number(laps.value);
+    const next: RunRequest =
+      mode.value === 'ARCADE'
+        ? { ...choice, mode: 'ARCADE' }
+        : mode.value === 'TIME_TRIAL'
+          ? { ...choice, mode: 'TIME_TRIAL', lapCount }
+          : {
+              ...choice,
+              mode: 'FREE_PLAY',
+              lapCount,
+              rivalCount: Number(rivals.value),
+              rivalPool: request.mode === 'FREE_PLAY' ? request.rivalPool : formPool(entry),
+            };
+    const changed =
+      JSON.stringify(runSettings(next, arcade, vehicles, maxLaps)) !== JSON.stringify(current) ||
+      next.color !== request.color;
+    if (changed) actions.reassemble(next, true);
     else begin();
   });
   canvas.insertAdjacentElement('afterend', panel);

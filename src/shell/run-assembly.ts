@@ -4,7 +4,7 @@ import { SIM_DT } from '../race/fixed-step.js';
 import { createVehicleSprites } from '../view/vehicle-sprites.js';
 import type { createBrowserDrivingShell } from './driving-shell.js';
 import { mountRunControls } from './run-controls.js';
-import type { BrowserCourseId, BrowserCourseSelection } from './course-selection.js';
+import type { BrowserCourseSelection } from './course-selection.js';
 import { loadDeliveredCourse } from '../content/load-delivered-course.js';
 import type { loadVehicleDefinitions } from '../content/vehicle-catalog.js';
 import { createCourseRace } from '../race/course-race.js';
@@ -16,7 +16,8 @@ import { readCourseTimeBudgets, type CourseTimeBudgets } from '../content/course
 import { readPaceSchedule } from '../content/pace-schedule.js';
 import { loadSeriesCourse, type loadSeriesCatalog } from '../content/series-catalog.js';
 import { createSessionVehicle, type SessionVehicle } from '../content/session-vehicle.js';
-import { readBrowserSessionSettings, mountCourseSessionControls } from './course-session-controls.js';
+import { mountCourseSessionControls } from './course-session-controls.js';
+import { runSettings, type RunRequest } from './run-request.js';
 import { createCourseScene } from '../view/course-scene.js';
 import type { RunFacts, RunFrame, RunScreenState } from './run-screen.js';
 import { drawVehicleDebugHud } from './vehicle-debug-hud.js';
@@ -27,16 +28,9 @@ import type { loadSurfaceMaterials } from '../content/surface-material-catalog.j
 import { admitProduct } from '../content/delivered-product.js';
 import { compileSessionConfiguration, type SessionConfiguration } from '../race/session-configuration.js';
 import type { PlayerRecord } from './player-record.js';
-import { spriteSetHasColor } from '../vehicle/vehicle-sprite-set.js';
 import type { DisplaySettings } from '../view/display-settings.js';
 import type { createRaceSprites } from '../view/race-sprites.js';
 
-/** A requested run: its course, its Session parameters and whether it starts at once. */
-export interface RunRequest {
-  readonly courseId: BrowserCourseId;
-  readonly parameters: URLSearchParams;
-  readonly autostart: boolean;
-}
 /** The one run the page drives: its fixed step, its frame, its Session controls and its disposal. */
 export interface Run extends RunFrame {
   readonly controls: { show(facts: RunFacts): void; begin(): void };
@@ -63,8 +57,8 @@ export interface RunPage {
   resultDelaySeconds(): number;
   /** A new Session seed; only the composition root draws randomness. */
   drawSeed(): number;
-  /** Request a new run. */
-  request(request: RunRequest): void;
+  /** Request a new run; `begin` starts it at once. */
+  request(request: RunRequest, begin: boolean): void;
 }
 
 /**
@@ -72,18 +66,13 @@ export interface RunPage {
  * and the run's DEV controls.
  */
 /** Assemble a run for `request`; `state` is its run screen's state, which the run's controls and race end change. */
-export async function assembleRun(
-  page: RunPage,
-  { courseId, parameters }: RunRequest,
-  state: RunScreenState,
-): Promise<Run> {
+export async function assembleRun(page: RunPage, request: RunRequest, state: RunScreenState): Promise<Run> {
   const {
     content,
     materials,
     series,
     vehicles,
     driving,
-    player,
     displaySettings,
     raceSprites,
     shell,
@@ -91,10 +80,11 @@ export async function assembleRun(
     raceStatus,
     performanceHud,
   } = page;
+  const { courseId } = request;
   const course = await loadDeliveredCourse(content, courseId, materials);
   // The course's ARCADE settings come from the one series holding it; a course in no series is untimed.
   const arcade = loadSeriesCourse(content, series, course);
-  const settings = readBrowserSessionSettings(parameters, arcade, vehicles);
+  const settings = runSettings(request, arcade, vehicles, course.rules.maxLaps);
   const entry = vehicles.find((v) => v.compiledVehicle.id === settings.vehicleId)!;
   const vehicle = createSessionVehicle(entry, driving, materials);
   const vehicleId = vehicle.vehicleDefinition.compiledVehicle.id;
@@ -126,10 +116,8 @@ export async function assembleRun(
     });
   }
   const vehicleOf = (id: string) => fieldVehicles.get(id)!;
-  // The player's chosen color for the vehicle, from the player record when its sprite set has it.
-  const recordedColor = player.settings.vehicleColors[vehicleId];
-  const playerColor =
-    recordedColor !== undefined && spriteSetHasColor(entry.spriteSet, recordedColor) ? recordedColor : undefined;
+  // The player's chosen color for the vehicle.
+  const playerColor = request.color ?? undefined;
   // A timed course's budgets must be delivered; a missing file stops loading rather than dropping the clock.
   const budgets =
     settings.timeLimit && arcade
@@ -260,10 +248,11 @@ export async function assembleRun(
   };
   const controls = mountCourseSessionControls(
     canvas,
-    parameters,
+    request,
     settings,
     arcade,
     course.rules.maxLaps,
+    page.player,
     {
       start: () => {
         shell.inputManager.reset();
@@ -274,7 +263,7 @@ export async function assembleRun(
         state.setPaused(!state.paused);
         if (!state.paused) canvas.focus();
       },
-      reassemble: (next, autostart) => page.request({ courseId, parameters: next, autostart }),
+      reassemble: (next, begin) => page.request(next, begin),
     },
     vehicles,
   );

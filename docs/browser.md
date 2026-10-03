@@ -79,25 +79,32 @@ SESSION returns to setup.
 The composition root builds the course list once from the delivered
 [course index](content-and-gameplay.md#course-index), in its order and with its display names, and passes it to the
 course selection, the DEV course buttons and the DEV HUD. The DEV course buttons are numbered 1, 2, … in that order:
-RIBBON COAST, RIBBON FORK, RIBBON RING and RIBBON ROUGH. Missing or unknown `course` selects the first entry, RIBBON COAST.
+RIBBON COAST, RIBBON FORK, RIBBON RING and RIBBON ROUGH.
 A series marked `dev: true` is shown only with DEV; until selection screens exist, these DEV course
 buttons select courses directly. Selecting the loaded course does nothing. Selecting another course, or any course after a failed assembly, requests a
-run of that course with the default Session settings (as if `mode`, `vehicle`, `rivals`, `laps`, `pool` and
-`autostart` were absent) and does not start it.
+run of that course with the default Session settings (as if `mode`, `vehicle`, `rivals`, `laps` and `pool` were
+absent) and does not start it.
 
-The URL is read once at startup, as a DEV and test entry point; selections inside the page never rewrite it.
+A run is requested as a typed run request: the course, the mode, the vehicle and the player's color, plus the
+rival count, rival pool and laps in FREE PLAY and the laps in TIME TRIAL. ARCADE takes its laps and field from the
+series. The run's assembly admits the request against the course and the catalogs and derives its Session settings;
+it is the one admission of every request.
+
+The URL is read once at startup, as a DEV and test entry point; selections inside the page never rewrite it. A URL
+whose `course` names a delivered course builds that run's request and starts the run at once. Without one, the
+first course, RIBBON COAST, waits for its setup. The player's color is the player record's color for the vehicle.
+A URL request that cannot be built fails like an assembly.
 
 Session parameters are case-sensitive:
 
-| Parameter   | Meaning                                                                                                              |
-| ----------- | -------------------------------------------------------------------------------------------------------------------- |
-| `course`    | Lowercase registered course ID                                                                                       |
-| `mode`      | `ARCADE`, `FREE_PLAY` or `TIME_TRIAL`; default `ARCADE` on a series course, `FREE_PLAY` otherwise; other values fail |
-| `vehicle`   | Exact catalog vehicle ID for FREE PLAY and TIME TRIAL, such as `TESTAROSSA`; absent uses preset                      |
-| `rivals`    | FREE PLAY count parsed with `Number`; integer 0–15 within grid capacity; absent uses preset                          |
-| `laps`      | FREE PLAY and TIME TRIAL count parsed with `Number`; positive integer within course limit                            |
-| `pool`      | FREE PLAY rival pool: `ALL`, `CARS` or `BIKES`; absent uses the player vehicle's form; other values fail             |
-| `autostart` | Exactly `1` starts after loading; other values show setup                                                            |
+| Parameter | Meaning                                                                                                              |
+| --------- | -------------------------------------------------------------------------------------------------------------------- |
+| `course`  | Lowercase registered course ID                                                                                       |
+| `mode`    | `ARCADE`, `FREE_PLAY` or `TIME_TRIAL`; default `ARCADE` on a series course, `FREE_PLAY` otherwise; other values fail |
+| `vehicle` | Exact catalog vehicle ID for FREE PLAY and TIME TRIAL, such as `TESTAROSSA`; absent uses preset                      |
+| `rivals`  | FREE PLAY count parsed with `Number`; integer 0–15 within grid capacity; absent uses preset                          |
+| `laps`    | FREE PLAY and TIME TRIAL count parsed with `Number`; positive integer within course limit                            |
+| `pool`    | FREE PLAY rival pool: `ALL`, `CARS` or `BIKES`; absent uses the player vehicle's form; other values fail             |
 
 ARCADE uses the course's [series](content-and-gameplay.md#series-documents) settings: the series' first
 vehicle, its entries and laps, with the checkpoint clock, ignoring their individual query overrides. FREE PLAY exposes
@@ -109,12 +116,12 @@ there, and setup disables the rival control. A course in no series is untimed: i
 rivals and one lap. A timed course whose time budgets are missing from delivery fails to load.
 
 ```text
-?course=ribbon-coast&mode=FREE_PLAY&vehicle=TESTAROSSA&rivals=15&laps=1&autostart=1
+?course=ribbon-coast&mode=FREE_PLAY&vehicle=TESTAROSSA&rivals=15&laps=1
 ```
 
 Submitting equal resolved settings starts in place. Changed settings request a new run with them, which starts at
 once. NEW SESSION requests a new run with the same settings, which waits for START.
-Autostart affects gameplay; sound still requires an eligible browser gesture.
+A run started from the URL drives without a gesture; sound still requires an eligible browser gesture.
 
 ## Driving input
 

@@ -16,7 +16,8 @@ import { loadSeriesCatalog } from '../content/series-catalog.js';
 import { createScreenHost } from './screen-host.js';
 import { createRunScreen, createRunScreenState } from './run-screen.js';
 import { createLoadingScreen } from './loading-screen.js';
-import { assembleRun, type Run, type RunPage, type RunRequest } from './run-assembly.js';
+import { assembleRun, type Run, type RunPage } from './run-assembly.js';
+import { readUrlRunRequest, type RunRequest } from './run-request.js';
 import { loadSurfaceMaterials } from '../content/surface-material-catalog.js';
 import { resolveSurfaceSoundRecords } from '../audio/surface-sounds.js';
 import { loadSurfaceSounds } from '../content/surface-sound-catalog.js';
@@ -25,9 +26,6 @@ import { browserStorage, openPlayerRecord } from './player-record.js';
 import { loadTextTiles } from '../content/text-tiles-catalog.js';
 import { loadCourseIndex } from '../content/course-index.js';
 import { createTextLayer } from '../view/text-layer.js';
-
-/** Session parameters a course selection resets; other URL data is kept. */
-const SESSION_PARAMETERS = ['mode', 'vehicle', 'rivals', 'laps', 'pool', 'autostart'] as const;
 
 /**
  * The one composition root: it creates the page lifetime once, then assembles one run at a time in the page. The URL
@@ -100,16 +98,29 @@ async function startPage(): Promise<void> {
       cameraDefinition: () => cameraDefinition,
       resultDelaySeconds: () => resultDelaySeconds,
       drawSeed: () => crypto.getRandomValues(new Uint32Array(1))[0]!,
-      request: (next) => void request(next),
+      request: (next, begin) => void request(next, begin),
     };
 
-    // The page holds one course: a request disposes of the current run before loading the next. One assembly runs at
-    // a time; a request made while one runs is ignored. A failure leaves no run, shows its reason and offers Retry
-    // and every course selection.
+    // The page holds one course: a request disposes of the current run before loading the next, and `begin` starts
+    // it at once. One assembly runs at a time; a request made while one runs is ignored. A failure leaves no run,
+    // shows its reason and offers Retry and every course selection.
     let assembling = false;
     // The loaded run's course; null while no run is loaded.
     let loadedCourse: BrowserCourseId | null = null;
-    const request = async (next: RunRequest) => {
+    // A run that could not be requested or assembled shows LOAD FAILED and its reason, with Retry.
+    const fail = (error: unknown, retryRun: () => void) => {
+      console.error('Course could not start', error);
+      host.show(loadFailed);
+      const retry = document.createElement('button');
+      retry.textContent = 'Retry';
+      retry.onclick = retryRun;
+      status.replaceChildren(
+        `Course could not start: ${error instanceof Error ? error.message : String(error)} `,
+        retry,
+      );
+      status.hidden = false;
+    };
+    const request = async (next: RunRequest, begin: boolean) => {
       if (assembling) return;
       assembling = true;
       courseSelector.setActive(next.courseId);
@@ -131,22 +142,14 @@ async function startPage(): Promise<void> {
         status.hidden = true;
         host.show(
           createRunScreen(state, assembled, shell.framebuffer, textLayer, {
-            retry: () => void request({ ...next, autostart: true }),
+            retry: () => void request(next, true),
             // Until TITLE exists, QUIT returns to the run's setup.
-            quit: () => void request({ ...next, autostart: false }),
+            quit: () => void request(next, false),
           }),
         );
-        if (next.autostart) assembled.controls.begin();
+        if (begin) assembled.controls.begin();
       } catch (error) {
-        console.error('Course could not start', error);
-        host.show(loadFailed);
-        const retry = document.createElement('button');
-        retry.textContent = 'Retry';
-        retry.onclick = () => void request(next);
-        status.replaceChildren(
-          `Course could not start: ${error instanceof Error ? error.message : String(error)} `,
-          retry,
-        );
+        fail(error, () => void request(next, begin));
       } finally {
         assembling = false;
       }
@@ -166,21 +169,31 @@ async function startPage(): Promise<void> {
       },
       true,
     );
-    const initial = selectBrowserCourse(courses, parameters.get('course'));
-    // Selecting the loaded course does nothing; any other course, or any course after a failure, starts a new run with
-    // default Session settings.
+    // A URL that names a delivered course starts that run at once; otherwise the first course waits for its setup.
+    const named = parameters.get('course');
+    const initial = selectBrowserCourse(courses, named);
+    const defaultRequest = (courseId: string, params = new URLSearchParams()) =>
+      readUrlRunRequest(params, courseId, series.courseSettings(courseId), vehicles, player);
+    // Selecting the loaded course does nothing; any other course, or any course after a failure, requests its default
+    // run without starting it.
     const courseSelector = mountMobileCourseSelector(
       mustGet<HTMLElement>('course-selector-buttons'),
       courses,
       initial.id,
       (target) => {
         if (assembling || target.id === loadedCourse) return;
-        const next = new URLSearchParams(parameters);
-        for (const key of SESSION_PARAMETERS) next.delete(key);
-        void request({ courseId: target.id, parameters: next, autostart: false });
+        void request(defaultRequest(target.id), false);
       },
     );
-    await request({ courseId: initial.id, parameters, autostart: parameters.get('autostart') === '1' });
+    // An invalid URL request fails like an assembly.
+    const urlRequest = () => {
+      try {
+        void request(defaultRequest(initial.id, parameters), initial.id === named);
+      } catch (error) {
+        fail(error, urlRequest);
+      }
+    };
+    urlRequest();
   } catch (error) {
     console.error('Course could not start', error);
     status.textContent = `Course could not start: ${error instanceof Error ? error.message : String(error)} `;
