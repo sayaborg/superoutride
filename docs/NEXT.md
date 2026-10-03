@@ -20,8 +20,8 @@
   and the game-wide sound settings are content documents; every sound value is derived from physics or a DEV setting;
   exhausts are collector graphs.
 - The [product specification](product.md) is the target for Stages 12–16. Series documents own ARCADE settings and
-  fields; FREE PLAY rivals are drawn from vehicle pools; TIME TRIAL runs alone; traffic, collisions, music and sound
-  effects are not implemented; SELECT MUSIC and the attract demo wait for their stages.
+  fields; FREE PLAY rivals are drawn from vehicle pools; TIME TRIAL runs alone; music and sound effects are not
+  implemented; SELECT MUSIC and the attract demo wait for their stages.
 - Stage 12 is complete: the front end runs inside the frame from TITLE through RESULT, with SETTINGS and `dev=1`; the
   product HUD is drawn with the text layer from race facts and the player's observation, and DEV measurements stay with
   `dev=1`; the player record keeps settings and the TIME TRIAL and ARCADE records shown at READY, at TIME TRIAL
@@ -29,8 +29,12 @@
 - Engine sound can lag on some devices and stay late. With `dev=1` the audio timing line measures the AudioContext's
   latency, clock and worklet overruns; headless Chromium did not reproduce the lag, so its fix waits on a reading
   from an affected device ([Browser](browser.md#performance-hud)).
+- Stage 13 is complete: vehicles declare overall dimensions and the coordinate domain extends by the 4 m vehicle reach
+  bound; Carriageways have lanes and drivers intend lane numbers; road-aligned footprints contact through one
+  external force on the ordinary mechanics; drivers change lanes past slower vehicles or follow them; traffic appears
+  at seeded Route positions from the series (RIBBON COAST ARCADE) or FREE PLAY's TRAFFIC option, at most eight at once.
 
-Next PR: **13-3c — Stage 13 close**.
+Next PR: **13-4 — Roadside contacts**, awaiting its proposal.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -45,13 +49,10 @@ Findings of the second design audit not yet addressed, by when they are taken up
 - **Not addressed, with reasons:** D8c-03 (it concerns the DEV HUD only); D8e-05 (a documentation contract, already
   stated); S12-02 (the scope of the guarantee is documented).
 
-## Stage 13 — Interaction
+## Stage 13-4 — Roadside contacts
 
-Give vehicles physical extent and let them meet each other and traffic. Contact never ends a run and causes no
-damage; cars and motorcycles may share a field.
-
-- **13-3 — Traffic:** traffic vehicles and their Session settings. Traffic does not participate in competitive route
-  locking or ranking.
+Movable objects including cones, fixed roadside objects, barriers and track limits. The method is proposed once
+traffic has been evaluated on real devices.
 
 ## Stage 14 — Music and sound effects
 
@@ -192,7 +193,7 @@ lighting at its own chainage, and switching is a cut.
 | Series content   | WEC LE MANS 24 layout and field; BIG RUN vehicles and field; RALLY STAGE title and course set                                                           |
 | Vehicles         | Exact specifications of adopted vehicles (year, market, grade); BROUGHAM TUNED values                                                                   |
 | Circuits         | Series or FREE PLAY placement of the selected circuits below                                                                                            |
-| Interaction      | Contact response, traffic behavior, movable objects including cones, fixed roadside objects, barriers and track limits (Stage 13)                       |
+| Interaction      | Movable objects including cones, fixed roadside objects, barriers and track limits (Stage 13-4); oncoming traffic (Stage 16)                            |
 | Records          | Whether traffic settings belong to the ARCADE record key                                                                                                |
 | Grade separation | Occurrence/neighborhood/height selection of surfaces, landmarks and contacts at nearby crossings                                                        |
 | Front end        | Attract demo idle time                                                                                                                                  |
@@ -208,9 +209,6 @@ lighting at its own chainage, and switching is a cut.
 | Engine sound     | Tried, not adopted (not implemented): cycle speed fluctuation, for the same reason as 11-7b–11-7k                                                       |
 | Ground           | Product default between LEVEL-POINT and LEVEL2-POINT (real-device evaluation); the method not chosen and its cells are then removed                     |
 | Ground           | Designed, not adopted: LEVEL-BOX (footprint-centred dyadic box with lateral pixel integration). It needs per-pixel blending beyond period road hardware |
-
-Design traffic and collision/interaction response together. Traffic does not participate in competitive
-route locking.
 
 ### Selected circuits
 
