@@ -197,6 +197,7 @@ async function startPage(): Promise<void> {
         present,
         show: (screen) => host.show(screen),
         activate: () => shell.activate(),
+        setMasterVolume: (percent) => shell.setMasterVolume(percent),
         run: (next, back) => void request(next, true, back),
       },
     );

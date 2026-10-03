@@ -74,13 +74,20 @@ each item carries what CONFIRM and LEFT/RIGHT do on it, so no action depends on 
 label (PAUSE or RESUME) and its visibility follow the run screen's state.
 
 The selection screens follow one flow table ([product](product.md#6-flow-and-screens)). TITLE offers START and
-SETTINGS (DARK until SETTINGS exists); START leads to SELECT MODE. A CONFIRM on TITLE is the user gesture that enables
+SETTINGS; START leads to SELECT MODE. A CONFIRM on TITLE is the user gesture that enables
 sound and requests fullscreen of the page where the browser allows them; a refusal is ignored, and a gamepad press is
 not a gesture the browser accepts. After SELECT MODE each mode's screens follow in order: ARCADE: SELECT SERIES, SELECT
 COURSE (only for a series with several courses), SELECT VEHICLE; FREE PLAY: SELECT COURSE, SELECT VEHICLE, OPTIONS;
 TIME TRIAL: SELECT COURSE, SELECT VEHICLE, LAPS (only on a course with several laps). BACK returns to the previous
 screen and does nothing on TITLE; the last CONFIRM requests the run, which shows LOADING and then starts at once.
-Each screen starts from the current selection, otherwise its first selectable item.
+Each screen starts from the current selection, else the player record's latest selection for that screen (SELECT
+MODE, SELECT SERIES, SELECT COURSE and SELECT VEHICLE under the keys `mode`, `series`, `course` and `vehicle`), else
+its first selectable item; each CONFIRM on those screens saves its choice as the latest.
+
+SETTINGS lists MASTER, MUSIC and EFFECTS with their volumes, which LEFT and RIGHT change in steps of 5 within 0–100
+(to the adjacent multiple of 5), and CONTROLS, which shows the keyboard, touch and gamepad controls; BACK leaves each.
+The player record keeps every volume. MASTER applies at once through the same path as the DEV volume stepper, which
+shows it; MUSIC and EFFECTS have no sound until their buses exist.
 
 - SELECT MODE: a mode with no selectable course is DARK.
 - SELECT SERIES lists the series with their titles; SELECT COURSE lists course display names from the course index.
@@ -288,9 +295,9 @@ opens it once at page load; shell controls read the admitted settings and change
 Loading admits only version 1 with exactly these keys and value types. An absent, unreadable, unparsable,
 malformed or other-version record starts from the defaults and is replaced by the next save; there are no
 migration readers. Each settings change saves the whole record at once. Where localStorage is missing or
-reading or writing it throws, the record lives in memory for the page and the game continues. Today only the
-MASTER volume has a control (the volume stepper in [Sound controls](#sound-controls)) and SELECT VEHICLE saves
-colors; MUSIC, EFFECTS and selections keep their defaults until their screens exist. A Session reads the player's vehicle color from
+reading or writing it throws, the record lives in memory for the page and the game continues. SETTINGS and the
+DEV volume stepper ([Sound controls](#sound-controls)) save volumes, SELECT VEHICLE saves colors, and the selection
+screens save their latest selections. A Session reads the player's vehicle color from
 `vehicleColors`, falling back to the vehicle's default color when the record has none or names a color its sprite
 set lacks. DEV tuning and DEV sound settings are not stored.
 
@@ -336,7 +343,6 @@ DEV's **Ground display** group exposes every method defined in
 the single setting and redraws immediately, including before START and while paused. Camera, vehicle,
 Session and occurrence history are preserved, with no restart or course recompilation. The setting
 lasts for the loaded page and every run; a page reload restores the default. The controls use DEV input isolation.
-A player-facing settings screen is future work in [NEXT](NEXT.md).
 
 ### Sound controls
 

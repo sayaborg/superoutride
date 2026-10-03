@@ -196,6 +196,10 @@ export function createAudioLifecycle(
   for (const type of GESTURE_EVENTS) window.addEventListener(type, unlock);
   window.addEventListener('pagehide', hide);
   return {
+    /** Set the MASTER volume in percent through the volume control's own path, which the player record keeps. */
+    setMasterVolume(percent: number): void {
+      controls.setVolume(percent);
+    },
     /** A user gesture outside driving: create the audio now, so the next run sounds from its start. */
     enable(): void {
       if (supported && enabled && !disposed) start();

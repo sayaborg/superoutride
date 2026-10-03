@@ -71,13 +71,15 @@ export function mountSoundControls(
         step: 1,
         value: initialVolume,
         format: (value) => `${value}%`,
-        onChange(value) {
-          volume = value / 100;
-          callbacks.onVolume(value);
-          callbacks.onChange();
-        },
+        onChange: changeVolume,
       })
     : null;
+  // The one way the MASTER volume changes: the stepper here and SETTINGS both pass through it.
+  function changeVolume(value: number): void {
+    volume = value / 100;
+    callbacks.onVolume(value);
+    callbacks.onChange();
+  }
   if (volumeControl) volumeContainer!.replaceChildren(volumeControl.group);
   const mixControls = SOUND_BUSES.flatMap((bus) => {
     const host = root.getElementById(`${bus}-volume`);
@@ -149,6 +151,11 @@ export function mountSoundControls(
       busVolumes,
       components: componentState,
     }),
+    /** Set the MASTER volume in percent, as the volume stepper does, and show it there. */
+    setVolume(percent: number): void {
+      volumeControl?.setValue(percent);
+      changeVolume(percent);
+    },
     /** The sound toggle's label and pressed state, which the audio lifecycle owns. */
     showSoundState(text: string, pressed: boolean): void {
       if (!button) return;

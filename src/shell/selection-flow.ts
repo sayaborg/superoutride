@@ -10,6 +10,7 @@ import type { PlayerRecord } from './player-record.js';
 import { recordedColor, type RunRequest } from './run-request.js';
 import type { Screen } from './screen-host.js';
 import { createVehicleScreen } from './vehicle-screen.js';
+import { showSettings } from './settings-screens.js';
 
 type Mode = RunRequest['mode'];
 type Step = 'SERIES' | 'COURSE' | 'VEHICLE' | 'OPTIONS' | 'LAPS';
@@ -46,6 +47,8 @@ export interface SelectionDevices {
   activate(): void;
   /** Request the selected run; `back` returns to the last selection screen. */
   run(request: RunRequest, back: () => void): void;
+  /** Set the MASTER volume in percent. */
+  setMasterVolume(percent: number): void;
 }
 
 /**
@@ -65,8 +68,13 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
   const offered = (mode: Mode) => (mode === 'ARCADE' ? series.length > 0 : groups.length > 0);
   const courseOf = (id: string) => courses.find((c) => c.id === id)!;
 
+  // The latest choice on each selection screen, kept in the player record; a screen starts from the current
+  // selection, else the latest, else its first selectable item.
+  const latest = (key: string): string | undefined => player.settings.latestSelections[key];
+  const remember = (key: string, value: string) =>
+    player.updateSettings({ latestSelections: { ...player.settings.latestSelections, [key]: value } });
   // The current selection.
-  let mode: Mode = 'ARCADE',
+  let mode: Mode = MODES.find((m) => m.mode === latest('mode'))?.mode ?? 'ARCADE',
     step = -1,
     seriesChoice: CompiledSeries | null = null,
     courseId: string | null = null,
@@ -119,7 +127,13 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
           selectMode();
         },
       },
-      { label: 'SETTINGS', disabled: true },
+      {
+        label: 'SETTINGS',
+        confirm: () => {
+          devices.activate();
+          showSettings(player, { menu, setMasterVolume: devices.setMasterVolume }, title);
+        },
+      },
     ];
     menu({ title: 'SUPER OUTRIDE', items: () => items });
   }
@@ -131,6 +145,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
       confirm: () => {
         if (m.mode !== mode) [seriesChoice, courseId, vehicleId] = [null, null, null];
         mode = m.mode;
+        remember('mode', mode);
         forward();
       },
     }));
@@ -148,28 +163,38 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
         const items = series.map((s): MenuItem => ({
           label: s.title,
           confirm: () => {
-            if (s !== seriesChoice) [courseId, vehicleId] = [s.courses[0]!.course, null];
+            // A series with one course needs no SELECT COURSE.
+            if (s !== seriesChoice)
+              [courseId, vehicleId] = [s.courses.length === 1 ? s.courses[0]!.course : null, null];
             seriesChoice = s;
+            remember('series', s.id);
             forward();
           },
         }));
-        return menu({ title: 'SELECT SERIES', items: () => items, back }, Math.max(0, series.indexOf(seriesChoice!)));
+        const current = series.findIndex((s) => s.id === (seriesChoice?.id ?? latest('series')));
+        return menu({ title: 'SELECT SERIES', items: () => items, back }, Math.max(0, current));
       }
       case 'COURSE': {
         const lists = mode === 'ARCADE' ? [{ title: '', ids: seriesChoice!.courses.map((c) => c.course) }] : groups;
         // Series titles head their groups; they cannot be chosen.
-        const items = lists.flatMap((group): MenuItem[] => [
-          ...(lists.length > 1 || group.title ? [{ label: group.title || ' ', disabled: true }] : []),
-          ...group.ids.map((id) => ({
-            label: courseOf(id).name,
-            confirm: () => {
-              courseId = id;
-              lapCount = Math.min(lapCount, courseOf(id).maxLaps);
-              forward();
-            },
-          })),
+        const rows = lists.flatMap((group) => [
+          ...(lists.length > 1 || group.title ? [{ id: null, label: group.title || ' ' }] : []),
+          ...group.ids.map((id) => ({ id, label: courseOf(id).name })),
         ]);
-        const current = items.findIndex((item) => item.label === (courseId && courseOf(courseId).name));
+        const items = rows.map(({ id, label }): MenuItem =>
+          id === null
+            ? { label, disabled: true }
+            : {
+                label,
+                confirm: () => {
+                  courseId = id;
+                  lapCount = Math.min(lapCount, courseOf(id).maxLaps);
+                  remember('course', id);
+                  forward();
+                },
+              },
+        );
+        const current = rows.findIndex((row) => row.id !== null && row.id === (courseId ?? latest('course')));
         return menu({ title: 'SELECT COURSE', items: () => items, back }, Math.max(0, current));
       }
       case 'VEHICLE': {
@@ -184,7 +209,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
             devices.present,
             candidates,
             {
-              vehicleId,
+              vehicleId: vehicleId ?? latest('vehicle') ?? null,
               fixedColors: mode === 'ARCADE' && seriesChoice!.fixedColors,
               colorOf: (v) => recordedColor(player, v) ?? v.listing.visuals.palette,
             },
@@ -195,6 +220,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
                   player.updateSettings({ vehicleColors: { ...player.settings.vehicleColors, [id]: chosen } });
                 if (id !== vehicleId) rivalPool = formPool(vehicle);
                 [vehicleId, color] = [id, chosen];
+                remember('vehicle', id);
                 forward();
               },
               back,

@@ -33,6 +33,8 @@ interface BrowserDrivingShell {
    * fullscreen; a refusal is ignored.
    */
   activate(): void;
+  /** Set the MASTER volume in percent, as the DEV volume stepper does. */
+  setMasterVolume(percent: number): void;
 }
 
 /**
@@ -72,6 +74,7 @@ export function createBrowserDrivingShell(
       corners.setRoute(route);
     },
     menuCommands: () => menuInput.poll(),
+    setMasterVolume: (percent) => audio.setMasterVolume(percent),
     activate(): void {
       audio.enable();
       const page = document.documentElement;
