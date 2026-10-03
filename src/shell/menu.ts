@@ -2,27 +2,29 @@ import { TEXT_PALETTES } from '../image/text-tiles.js';
 import { TEXT_COLUMNS, TEXT_ROWS, type TextLayer } from '../view/text-layer.js';
 import type { MenuCommand } from '../input/menu-input.js';
 
-/** One menu line. */
+/** One menu line and what choosing or adjusting it does. */
 export interface MenuItem {
   readonly label: string;
-  /** A value shown after the label; LEFT and RIGHT change it. */
+  /** A value shown after the label. */
   readonly value?: string;
   /** An item that cannot be chosen: drawn DARK and skipped by the selection. */
   readonly disabled?: boolean;
+  /** CONFIRM on this item. */
+  confirm?(): void;
+  /** LEFT (-1) or RIGHT (+1) on this item, changing its value. */
+  adjust?(step: -1 | 1): void;
 }
 
-/** A list to choose from: a title, items read at each use, and what CONFIRM, BACK and LEFT/RIGHT do. */
+/** A list to choose from: a title, items read at each use, and what BACK does. */
 export interface MenuDefinition {
   readonly title: string;
   items(): readonly MenuItem[];
-  confirm(index: number): void;
   back?(): void;
-  adjust?(index: number, step: -1 | 1): void;
 }
 
 /**
  * The one menu part every list screen uses. UP and DOWN move over the selectable items, wrapping around; CONFIRM
- * chooses the current item; LEFT and RIGHT change its value; BACK leaves. It writes the title and the items centred in
+ * and LEFT/RIGHT go to the current item's own actions; BACK leaves. It writes the title and the items centred in
  * the text grid: the current item YELLOW, unselectable items DARK, the rest WHITE. Text is never shortened, so a line
  * longer than the grid is a `RangeError`.
  */
@@ -53,10 +55,10 @@ export function createMenu(definition: MenuDefinition, initial = 0) {
       if (!selectable(items, index)) index = first(items, 0);
       if (command === 'UP') move(-1);
       else if (command === 'DOWN') move(1);
-      else if (command === 'CONFIRM' && index >= 0) definition.confirm(index);
       else if (command === 'BACK') definition.back?.();
-      else if ((command === 'LEFT' || command === 'RIGHT') && index >= 0)
-        definition.adjust?.(index, command === 'LEFT' ? -1 : 1);
+      else if (index < 0) return;
+      else if (command === 'CONFIRM') items[index]!.confirm?.();
+      else if (command === 'LEFT' || command === 'RIGHT') items[index]!.adjust?.(command === 'LEFT' ? -1 : 1);
     },
     write(text: TextLayer) {
       const items = definition.items();

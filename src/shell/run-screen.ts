@@ -11,9 +11,6 @@ export interface RunFacts {
   readonly finished: boolean;
 }
 
-/** The PAUSE menu's items. */
-const PAUSE_ITEMS = Object.freeze([{ label: 'RESUME' }, { label: 'RETRY' }, { label: 'QUIT' }]);
-
 /**
  * The run screen's one state: running, paused or finished. The run runs only while neither fact holds; PAUSE and
  * finishing stop the race, driving input and sound. Every change is reported to `observe`.
@@ -76,17 +73,13 @@ export function createRunScreen(
   text: TextLayer,
   actions: RunScreenActions,
 ): Screen {
-  const pauseMenu = () =>
-    createMenu({
-      title: 'PAUSED',
-      items: () => PAUSE_ITEMS,
-      confirm: (index) => {
-        if (index === 0) state.setPaused(false);
-        else if (index === 1) actions.retry();
-        else actions.quit();
-      },
-      back: () => state.setPaused(false),
-    });
+  const resume = () => state.setPaused(false);
+  const pauseItems = Object.freeze([
+    { label: 'RESUME', confirm: resume },
+    { label: 'RETRY', confirm: () => actions.retry() },
+    { label: 'QUIT', confirm: () => actions.quit() },
+  ]);
+  const pauseMenu = () => createMenu({ title: 'PAUSED', items: () => pauseItems, back: resume });
   let menu: Menu | null = null;
   return {
     get live() {

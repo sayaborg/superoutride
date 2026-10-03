@@ -63,7 +63,7 @@ new seed; QUIT requests it again waiting at setup, until the title screen exists
 
 Every list screen uses one menu part: a title and items, the current item YELLOW, unselectable items DARK and the
 rest WHITE, centred in the text grid without shortening. UP and DOWN move over the selectable items and wrap around;
-CONFIRM chooses; LEFT and RIGHT change an item's value; BACK leaves. The PAUSE button's
+each item carries what CONFIRM and LEFT/RIGHT do on it, so no action depends on its position; BACK leaves. The PAUSE button's
 label (PAUSE or RESUME) and its visibility follow the run screen's state.
 
 RESULT follows GOAL or GAME OVER after the RESULT delay, a DEV setting (default 3 s; 0, 1, 2, 3, 5 or 10 s; not
