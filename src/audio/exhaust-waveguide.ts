@@ -5,6 +5,14 @@ import type { ExhaustSettings } from './exhaust-acoustics.js';
 import { resolveControlSettings, type ControlSettings } from './audio-control-policy.js';
 
 /**
+ * Below this |x| = |riseRate − decayRate| · duration, the pulse cascade uses its series. The closed form's second weight
+ * `(first − e^−x)/x` subtracts two values near 1, losing about eps/|x| relative accuracy; the series truncated after x⁴
+ * errs by at most |x|⁵/720 (first) and |x|⁵/840 (second). At 1e-2 both are below 3e-13 relative, far below the
+ * worklet's 32-bit output resolution (about 6e-8), so either form is exact for the output on both sides of the switch.
+ */
+const PULSE_CASCADE_SERIES_LIMIT = 1e-2;
+
+/**
  * Exact response over `duration` of a unit decaying pulse p' = -decayRate * p feeding two equal rise stages
  * r1' = riseRate * (p - r1), r2' = riseRate * (r1 - r2) from rest. Writes [pulse, r1, r2] into `weights`;
  * a series replaces the closed form near equal rates.
@@ -14,7 +22,7 @@ function pulseCascade(decayRate: number, riseRate: number, duration: number, wei
   const x = (riseRate - decayRate) * duration;
   let first: number;
   let second: number;
-  if (Math.abs(x) < 1e-2) {
+  if (Math.abs(x) < PULSE_CASCADE_SERIES_LIMIT) {
     first = 1 - x / 2 + (x * x) / 6 - (x * x * x) / 24 + (x * x * x * x) / 120;
     second = 1 / 2 - x / 3 + (x * x) / 8 - (x * x * x) / 30 + (x * x * x * x) / 144;
   } else {
