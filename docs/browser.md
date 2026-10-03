@@ -290,8 +290,9 @@ reporting window.
 ## Player record
 
 [`src/shell/player-record.ts`](../src/shell/player-record.ts) owns the browser's one player record: a
-localStorage entry `super-outride-player` holding `{ "version": 1, "settings": { … } }`. The composition root
-opens it once at page load; shell controls read the admitted settings and change them only through the record.
+localStorage entry `super-outride-player` holding `{ "version": 2, "settings": { … }, "records": { … } }`. The
+composition root opens it once at page load; shell controls read the admitted settings and records and change them only
+through the record.
 
 | Setting            | Shape and default                                                                     |
 | ------------------ | ------------------------------------------------------------------------------------- |
@@ -299,9 +300,24 @@ opens it once at page load; shell controls read the admitted settings and change
 | `volumes`          | `master`, `music` and `effects` as integer percentages 0–100; default 35, 100 and 100 |
 | `latestSelections` | Latest selection by selection-screen key; default `{}`                                |
 
-Loading admits only version 1 with exactly these keys and value types. An absent, unreadable, unparsable,
-malformed or other-version record starts from the defaults and is replaced by the next save; there are no
-migration readers. Each settings change saves the whole record at once. Where localStorage is missing or
+`records` holds `timeTrial` and `arcade`, each an object of records by key. Keys are JSON arrays made in one place:
+a TIME TRIAL key is `[course ID, route, laps, vehicle ID]`, the route being the Link IDs the run took in canonical
+order (empty on a circuit), as reference runs name routes; an ARCADE key is `[series ID, course ID, goal, vehicle ID]`,
+the goal being the FINISH gate the run reached. JSON array keys cannot collide however IDs are spelled.
+
+| Record     | Value                                                                                                                                                        |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| TIME TRIAL | `timeMs`, `splitsMs` (the record run's race time at each gate and lap crossing, in order), `bestLapMs` (null off a circuit), `courseSha256`, `vehicleSha256` |
+| ARCADE     | `timeMs`, `courseSha256`, `vehicleSha256`                                                                                                                    |
+
+Times are whole milliseconds by the one rule displays use (`raceMilliseconds`: floored after the display tolerance).
+`courseSha256` is the course's build identity and `vehicleSha256` the Session vehicle's delivered-definition identity,
+the identities time budgets carry.
+
+Loading admits version 2 with exactly these keys and value types, and version 1 (settings only), whose settings
+carry over with no records; there are no other migration readers. An absent, unreadable, unparsable or other-version
+record, or one whose settings are malformed, starts from the defaults and is replaced by the next save. A record entry
+whose key or value is malformed is dropped alone. Each settings or records change saves the whole record at once. Where localStorage is missing or
 reading or writing it throws, the record lives in memory for the page and the game continues. SETTINGS and the
 DEV volume stepper ([Sound controls](#sound-controls)) save volumes, SELECT VEHICLE saves colors, and the selection
 screens save their latest selections. A Session reads the player's vehicle color from
@@ -313,8 +329,8 @@ set lacks. DEV tuning and DEV sound settings are not stored.
 Only a URL with `dev=1` builds DEV: the composition root reads it once and then builds the DEV panel from its
 template in the page, its controls (sound, ground display, camera, RESULT delay and each run's
 driving tuning, export and RECOVER), the performance HUD and the DEV vehicle HUDs drawn over the frame. Without it
-none of these exist, in the DOM or as listeners, and DEV series and courses in no series are not offered. The status
-line, the touch indicators and the corner buttons are not DEV. The DEV toggle sits left of the PAUSE corner button.
+none of these exist, in the DOM or as listeners, and DEV series and courses in no series are not offered. The touch
+indicators and the corner buttons are not DEV. The DEV toggle sits left of the PAUSE corner button.
 
 DEV is an initially closed disclosure overlay. Its body scrolls within the safe viewport without
 resizing the game. UI pointer starts stay outside driving input. Keydown is isolated, so keys typed

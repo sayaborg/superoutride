@@ -6,9 +6,14 @@ type CourseRace = ReturnType<typeof createCourseRace>;
 // For example, 60 additions of 1/60 s err by about 1e-12 ms; ranking/deadlines remain exact.
 const TIMER_ROUNDING_TOLERANCE_MILLISECONDS = 1e-7;
 
-/** The one time format: minutes ' seconds " thousandths, such as 1'23"456, floored to whole milliseconds. */
+/** Race seconds as the whole milliseconds displays and records keep: floored, after the rounding tolerance. */
+export function raceMilliseconds(seconds: number): number {
+  return Math.floor(seconds * 1000 + TIMER_ROUNDING_TOLERANCE_MILLISECONDS);
+}
+
+/** The one time format: minutes ' seconds " thousandths, such as 1'23"456, of whole milliseconds. */
 export function formatRaceTime(seconds: number): string {
-  const totalMilliseconds = Math.floor(seconds * 1000 + TIMER_ROUNDING_TOLERANCE_MILLISECONDS);
+  const totalMilliseconds = raceMilliseconds(seconds);
   const minutes = Math.floor(totalMilliseconds / 60_000);
   const secondsPart = Math.floor((totalMilliseconds % 60_000) / 1000);
   const milliseconds = totalMilliseconds % 1000;
