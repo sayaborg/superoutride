@@ -15,6 +15,16 @@ export const SESSION_RULE_LIMITS = Object.freeze({
   trafficDensity: 40,
 });
 
+/** The FREE PLAY TRAFFIC choices; OFF has none. */
+export const FREE_PLAY_TRAFFIC_LEVELS = ['OFF', 'LOW', 'HIGH'] as const;
+export type FreePlayTraffic = (typeof FREE_PLAY_TRAFFIC_LEVELS)[number];
+
+/** FREE PLAY traffic is the same on every course: its density (vehicles/km) and speed fraction, drawn from every vehicle. */
+export const FREE_PLAY_TRAFFIC = Object.freeze({
+  LOW: Object.freeze({ density: 5, speed: 0.45 }),
+  HIGH: Object.freeze({ density: 15, speed: 0.45 }),
+});
+
 /**
  * A Session's traffic: positions along the Route at `density` vehicles per kilometre, each a vehicle drawn from
  * `vehicles` (vehicle IDs) driving at no more than `speed` of its own maximum speed.

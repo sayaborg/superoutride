@@ -30,7 +30,7 @@
   latency, clock and worklet overruns; headless Chromium did not reproduce the lag, so its fix waits on a reading
   from an affected device ([Browser](browser.md#performance-hud)).
 
-Next PR: **13-3b — FREE PLAY traffic option**.
+Next PR: **13-3c — Stage 13 close**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.

@@ -1,5 +1,6 @@
 import type { SeriesCourse } from '../content/series-catalog.js';
 import { compileSessionConfiguration, type SessionConfiguration } from '../race/session-configuration.js';
+import { FREE_PLAY_TRAFFIC, FREE_PLAY_TRAFFIC_LEVELS, type FreePlayTraffic } from '../course/session-rules.js';
 import { formPool, RIVAL_POOLS, type RivalPool } from '../race/free-play-field.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import { spriteSetHasColor } from '../vehicle/vehicle-sprite-set.js';
@@ -12,8 +13,8 @@ interface RunChoice {
   readonly color: string | null;
 }
 /**
- * A requested run: what the player chose, and nothing else. ARCADE takes its laps and field from the series;
- * FREE PLAY chooses rivals, their pool and laps; TIME TRIAL runs alone and chooses laps.
+ * A requested run: what the player chose, and nothing else. ARCADE takes its laps, field and traffic from the series;
+ * FREE PLAY chooses rivals, their pool, traffic and laps; TIME TRIAL runs alone and chooses laps.
  */
 export type RunRequest =
   | (RunChoice & { readonly mode: 'ARCADE' })
@@ -22,6 +23,7 @@ export type RunRequest =
       readonly lapCount: number;
       readonly rivalCount: number;
       readonly rivalPool: RivalPool;
+      readonly traffic: FreePlayTraffic;
     })
   | (RunChoice & { readonly mode: 'TIME_TRIAL'; readonly lapCount: number });
 
@@ -40,9 +42,9 @@ export function recordedColor(player: PlayerRecord, vehicle: CompiledVehicleDefi
 
 /**
  * The run a URL names for `courseId`. Absent parameters take the defaults: ARCADE on a series course, else FREE PLAY;
- * the series' first vehicle in ARCADE, else the parameter's or the first catalog vehicle; one lap, no rivals and the
- * pool of the player's vehicle form; the player record's color. A `rivals` or `pool` parameter is an error in TIME
- * TRIAL. Values are checked when the run is assembled ({@link runSettings}).
+ * the series' first vehicle in ARCADE, else the parameter's or the first catalog vehicle; one lap, no rivals, the
+ * pool of the player's vehicle form and no traffic; the player record's color. A `rivals`, `pool` or `traffic`
+ * parameter is an error in TIME TRIAL. Values are checked when the run is assembled ({@link runSettings}).
  */
 export function readUrlRunRequest(
   params: URLSearchParams,
@@ -53,8 +55,8 @@ export function readUrlRunRequest(
 ): RunRequest {
   const mode = params.get('mode') ?? (arcade ? 'ARCADE' : 'FREE_PLAY');
   if (mode !== 'ARCADE' && mode !== 'FREE_PLAY' && mode !== 'TIME_TRIAL') throw new RangeError('Unknown Session mode');
-  if (mode === 'TIME_TRIAL' && (params.has('rivals') || params.has('pool')))
-    throw new RangeError('TIME TRIAL has no rivals');
+  if (mode === 'TIME_TRIAL' && (params.has('rivals') || params.has('pool') || params.has('traffic')))
+    throw new RangeError('TIME TRIAL has no rivals and no traffic');
   const vehicleId =
     mode === 'ARCADE' && arcade
       ? arcade.series.vehicles[0]!
@@ -67,12 +69,15 @@ export function readUrlRunRequest(
   if (mode === 'TIME_TRIAL') return Object.freeze({ ...choice, mode, lapCount });
   const pool = params.get('pool') ?? formPool(vehicle);
   if (!RIVAL_POOLS.includes(pool as RivalPool)) throw new RangeError('Unknown rival pool');
+  const traffic = params.get('traffic') ?? 'OFF';
+  if (!FREE_PLAY_TRAFFIC_LEVELS.includes(traffic as FreePlayTraffic)) throw new RangeError('Unknown traffic level');
   return Object.freeze({
     ...choice,
     mode,
     lapCount,
     rivalCount: Number(params.get('rivals') ?? 0),
     rivalPool: pool as RivalPool,
+    traffic: traffic as FreePlayTraffic,
   });
 }
 
@@ -114,8 +119,13 @@ export function runSettings(
     timeLimit: values.timeLimit,
     initialSpeed: 0,
     seed: 0,
-    // ARCADE takes its series course's traffic; FREE PLAY and TIME TRIAL have none.
-    traffic: request.mode === 'ARCADE' ? arcade!.traffic : null,
+    // ARCADE takes its series course's traffic; FREE PLAY its level's, from every vehicle; TIME TRIAL has none.
+    traffic:
+      request.mode === 'ARCADE'
+        ? arcade!.traffic
+        : request.mode === 'FREE_PLAY' && request.traffic !== 'OFF'
+          ? { ...FREE_PLAY_TRAFFIC[request.traffic], vehicles: vehicles.map((v) => v.compiledVehicle.id) }
+          : null,
   });
   return Object.freeze({ ...configuration, vehicleId: request.vehicleId, rivalPool: values.rivalPool });
 }

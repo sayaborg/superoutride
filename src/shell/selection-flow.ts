@@ -1,6 +1,6 @@
 import type { CourseIndex } from '../content/course-index.js';
 import type { CompiledSeries, SeriesCatalog } from '../content/series-catalog.js';
-import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
+import { FREE_PLAY_TRAFFIC_LEVELS, SESSION_RULE_LIMITS, type FreePlayTraffic } from '../course/session-rules.js';
 import { formPool, RIVAL_POOLS, type RivalPool } from '../race/free-play-field.js';
 import { gridRivalCapacity } from '../race/course-session.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
@@ -83,7 +83,8 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     color: string | null = null,
     lapCount = 1,
     rivalCount = 0,
-    rivalPool: RivalPool = 'ALL';
+    rivalPool: RivalPool = 'ALL',
+    traffic: FreePlayTraffic = FREE_PLAY_TRAFFIC_LEVELS.find((level) => level === latest('traffic')) ?? 'OFF';
   const needed = (at: Step) =>
     at === 'COURSE'
       ? mode !== 'ARCADE' || seriesChoice!.courses.length > 1
@@ -108,7 +109,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     const choice = { courseId: courseId!, vehicleId: vehicleId!, color };
     if (mode === 'ARCADE') return Object.freeze({ ...choice, mode });
     if (mode === 'TIME_TRIAL') return Object.freeze({ ...choice, mode, lapCount });
-    return Object.freeze({ ...choice, mode, lapCount, rivalCount, rivalPool });
+    return Object.freeze({ ...choice, mode, lapCount, rivalCount, rivalPool, traffic });
   };
   // A number item LEFT/RIGHT changes within [min, max].
   const number = (label: string, value: () => number, set: (n: number) => void, min: number, max: number) => ({
@@ -246,6 +247,16 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
               (rivalPool =
                 RIVAL_POOLS[(RIVAL_POOLS.indexOf(rivalPool) + by + RIVAL_POOLS.length) % RIVAL_POOLS.length]!),
           },
+          // The TRAFFIC choice is a player setting, kept in the record.
+          {
+            label: 'TRAFFIC',
+            value: traffic,
+            adjust: (by) => {
+              const levels = FREE_PLAY_TRAFFIC_LEVELS;
+              traffic = levels[(levels.indexOf(traffic) + by + levels.length) % levels.length]!;
+              remember('traffic', traffic);
+            },
+          },
           ...(maxLaps > 1
             ? [
                 number(
@@ -286,7 +297,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     seriesChoice = catalog.series.courseSettings(run.courseId)?.series ?? null;
     [courseId, vehicleId, color] = [run.courseId, run.vehicleId, run.color];
     if (run.mode !== 'ARCADE') lapCount = run.lapCount;
-    if (run.mode === 'FREE_PLAY') [rivalCount, rivalPool] = [run.rivalCount, run.rivalPool];
+    if (run.mode === 'FREE_PLAY') [rivalCount, rivalPool, traffic] = [run.rivalCount, run.rivalPool, run.traffic];
   };
   return Object.freeze({
     title,

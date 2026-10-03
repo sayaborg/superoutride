@@ -103,8 +103,10 @@ shows it; MUSIC and EFFECTS have no sound until their buses exist.
   color, both wrapping around; a series with fixed colors has no color choice. It starts from the player record's
   color for the vehicle, else the vehicle's default color, and CONFIRM saves the chosen color in the player record.
 - OPTIONS: RIVALS (0 to the smaller of 15 and the rivals the course's grid holds, from the course index; a course
-  change lowers a larger count), POOL (ALL, CARS or BIKES; set to the vehicle's form when the vehicle changes) and, on a
-  course with several laps, LAPS (1 to the course's maximum); LEFT and RIGHT change the value, and START confirms.
+  change lowers a larger count), POOL (ALL, CARS or BIKES; set to the vehicle's form when the vehicle changes), TRAFFIC
+  (OFF, LOW or HIGH; it starts from the player record's latest choice, else OFF, and each change is saved there as the
+  `traffic` latest selection) and, on a course with several laps, LAPS (1 to the course's maximum); LEFT and RIGHT
+  change the value, and START confirms. TIME TRIAL has no TRAFFIC choice, and ARCADE takes its series course's traffic.
 - LAPS: LAPS (1 to the course's maximum) and START.
 
 DEV series and courses in no series are offered only with `dev=1`, which the composition root reads once. Without it
@@ -148,12 +150,13 @@ Session parameters are case-sensitive:
 | `rivals`  | FREE PLAY count parsed with `Number`; integer 0–15 within grid capacity; absent uses preset                          |
 | `laps`    | FREE PLAY and TIME TRIAL count parsed with `Number`; positive integer within course limit                            |
 | `pool`    | FREE PLAY rival pool: `ALL`, `CARS` or `BIKES`; absent uses the player vehicle's form; other values fail             |
+| `traffic` | FREE PLAY traffic: `OFF`, `LOW` or `HIGH`; absent is `OFF`; other values fail                                        |
 
 ARCADE uses the course's [series](content-and-gameplay.md#series-documents) settings: the series' first
 vehicle, its entries and laps, with the checkpoint clock, ignoring their individual query overrides. FREE PLAY exposes
 those settings and has no clock; there is no `clock` parameter, so an old `clock` value is other URL data and ignored. Invalid vehicle, numeric or course/Session combinations
-produce an error. TIME TRIAL exposes the vehicle and laps, runs alone and has no clock; a `rivals` or `pool`
-parameter is an error there. A course in no series is untimed: it offers FREE PLAY and TIME TRIAL;
+produce an error. TIME TRIAL exposes the vehicle and laps, runs alone and has no clock; a `rivals`, `pool` or
+`traffic` parameter is an error there. A course in no series is untimed: it offers FREE PLAY and TIME TRIAL;
 `mode=ARCADE` is an error there, and its defaults are the first vehicle in selection order, no
 rivals and one lap. A timed course whose time budgets are missing from delivery fails to load.
 

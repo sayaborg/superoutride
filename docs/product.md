@@ -111,10 +111,11 @@ twenty-four vehicles.
 the player chooses the course, vehicle and color. A series may fix colors.
 
 **FREE PLAY** runs any product course with any vehicle. There is no clock. OPTIONS choose the rival
-count (0–15), the rival vehicle pool (ALL, CARS or BIKES; default: the player's vehicle form), traffic
-(on/off where the course has traffic) and laps on circuits. Rival vehicles and colors are drawn from
+count (0–15), the rival vehicle pool (ALL, CARS or BIKES; default: the player's vehicle form), traffic (OFF, LOW or HIGH; default OFF) and laps on circuits. Rival vehicles and colors are drawn from
 the pool by the Session seed. FREE PLAY rivals drive at their own vehicles' pace, so the choice of
 vehicles shapes the race; FREE PLAY needs no reference runs. The player starts from the last grid slot.
+FREE PLAY traffic is the same on every course: LOW is 5 and HIGH 15 vehicles per kilometre, drawn from every
+vehicle, at 0.45 of each vehicle's maximum speed.
 
 **TIME TRIAL** runs any product course alone: no rivals, no traffic, no clock. On circuits the player
 chooses the lap count. On forks the player selects the route by driving; the record belongs to the

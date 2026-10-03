@@ -754,7 +754,8 @@ vehicle, zero to fifteen rivals and permitted laps; it has no clock, and a FREE 
 is rejected. TIME TRIAL resolves a catalog vehicle and permitted laps on any course; the player runs alone, without
 rivals or clock, and selects fork routes by driving like any first competitor at a lock line. A TIME TRIAL
 configuration with rivals, traffic or a time limit is rejected. ARCADE takes its series course's traffic; FREE PLAY
-takes the requested traffic (null for none). Traffic settings are null or `{density, vehicles, speed}`
+takes the TRAFFIC choice: OFF is none, and LOW and HIGH are `FREE_PLAY_TRAFFIC` in the Session rules (5 and 15
+vehicles/km, speed 0.45) with every catalog vehicle as candidates. Traffic settings are null or `{density, vehicles, speed}`
 (`compileTrafficSettings`): a density in vehicles per kilometre in (0, 40] (`SESSION_RULE_LIMITS.trafficDensity`), at
 least one unique vehicle ID, and a speed fraction in (0, 1]. Session resolution resolves each traffic vehicle's Session
 vehicle and envelope (a missing envelope is a `RangeError`) and compiles its driver once: the rival utilization 0.75
