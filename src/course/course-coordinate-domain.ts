@@ -74,31 +74,3 @@ function validatePlanMetric(
     }
   }
 }
-
-/** The union of material-bearing cells has matching limits at every slab transition. */
-export function validateMaterialContinuity(material: StripMaterial, path: string): void {
-  const union = (slab: StripMaterial['slabs'][number], s: number) => {
-    const result: [number, number][] = [];
-    for (const span of slab.spans) {
-      if (span.value === null) continue;
-      const left = stripEdgeAt(span, 'left', s),
-        right = stripEdgeAt(span, 'right', s);
-      if (left === right) continue;
-      const previous = result.at(-1);
-      if (previous && previous[1] >= left) previous[1] = Math.max(previous[1], right);
-      else result.push([left, right]);
-    }
-    return result;
-  };
-  for (let i = 1; i < material.slabs.length; i++) {
-    const s = material.slabs[i]!.start;
-    const before = union(material.slabs[i - 1]!, s),
-      after = union(material.slabs[i]!, s);
-    requireCourse(
-      before.length === after.length && before.every((r, j) => r[0] === after[j]![0] && r[1] === after[j]![1]),
-      path,
-      `Material union must be continuous at s=${s}`,
-      'material_transition_discontinuity',
-    );
-  }
-}

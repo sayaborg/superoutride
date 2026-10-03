@@ -12,7 +12,8 @@ import {
 } from '../course-diagnostics.js';
 import type { CourseDocument, CourseRulesDocument, SectionDocument } from '../course-document.js';
 import { compileCourseGeometry, resolveCoursePosition } from '../course-geometry.js';
-import { validateMaterialContinuity, compileMaterialCoordinateDomain } from '../course-coordinate-domain.js';
+import { compileMaterialCoordinateDomain } from '../course-coordinate-domain.js';
+import { validateMaterialContinuity } from '../strip-material.js';
 import type { CompiledCarriageway } from '../course-boundaries.js';
 import type { CompiledSection, CompiledLink } from './course-graph.js';
 import { COURSE_PHYSICAL_RECIPE, compileCoursePhysicalContent } from './course-physical-content.js';
