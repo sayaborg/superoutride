@@ -4,6 +4,7 @@ import { validateCompiledDrivingActuators, type CompiledDrivingActuators } from 
 import type { PowertrainRules } from './automatic-powertrain.js';
 import { compileTireCharacteristics, type CompiledTireCharacteristics } from './tire-friction-calibration.js';
 import type { TorqueProtectionPolicy } from './torque-protection.js';
+import { compileBodyContact, type CompiledBodyContact } from './body-contact.js';
 import { createVehicleSteeringCalibration, type CompiledVehicleSteeringCalibration } from './vehicle-calibration.js';
 
 const PASCALS_PER_BAR = 1e5;
@@ -26,6 +27,8 @@ export interface CompiledDriving {
    * the minimum utilization, in (0,1]; the schedule difference band and the response time constant, in seconds.
    */
   readonly rivalPace: DrivingDefinition['rivalPace'];
+  /** The body contact spring-damper between vehicles. */
+  readonly bodyContact: CompiledBodyContact;
 }
 
 /** Convert explicit design input at driving admission; never consult a vehicle definition. */
@@ -125,5 +128,9 @@ export function compileDriving(definition: DrivingDefinition): CompiledDriving {
       bandSeconds,
       responseSeconds,
     }),
+    bodyContact: withDefinitionPath(
+      () => compileBodyContact(definition.bodyContact),
+      (path) => `bodyContact/${path}`,
+    ),
   });
 }

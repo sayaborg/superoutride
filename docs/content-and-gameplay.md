@@ -879,6 +879,30 @@ The same driver serves reference runs and live rivals. Generated runs contain pr
 and optional 10 Hz position/speed/utilization traces. The browser loads generated envelopes and compact
 integer-millisecond budgets. [Development](development.md#build-outputs) owns generated file locations.
 
+## Body contact
+
+The race computes body contact once per fixed step, from the state at the step's start, over the competitors present
+in the Session in competitor order; the force on each holds through that step and enters its vehicle mechanics as
+the external force ([Vehicle physics](vehicle-physics.md#body-contact)). There is no contact during READY. A
+vehicle's contact shape is its footprint laid along the road at its route position (s, l): it does not turn with the
+vehicle's yaw, and height is not compared, so airborne vehicles contact too. For two vehicles with route-coordinate
+differences Δs and Δl:
+
+```text
+overlapS = (L₁ + L₂)/2 − |Δs|     overlapL = (W₁ + W₂)/2 − |Δl|
+```
+
+with overall lengths L and widths W. They are in contact when both are positive; the smaller is the contact axis,
+ahead-behind when they are equal. The force acts along the horizontal world direction of that axis, the road's
+tangent or its right, read at the pair's midpoint, with equal magnitude and opposite sign on the two vehicles, and
+its approach speed is their relative world velocity along that direction. The spring-damper uses the Session
+driving definition's `bodyContact` (the player's vehicle model).
+
+Recovery and appearance place no vehicle on another present competitor's footprint. Recovery backs its target along
+the Route behind each competitor in the way, by `placementClearance`, until the place in its lane there is free (or
+the resident Route begins); wrong-course recovery does the same on the selected road. An appearance whose place is
+occupied waits for a later step. These choose where a vehicle is placed; they move no vehicle.
+
 ## Recovery
 
 Airborne driving is ordinary; recovery applies only when driving cannot continue: coordinate-domain
@@ -899,13 +923,15 @@ rules only, no live state or target resolution:
 | `minRecoverySpeed`   | 18 m/s | Lower bound of the recovery speed                                              |
 | `maxRecoverySpeed`   | 32 m/s | Upper bound of the recovery speed                                              |
 | `speedRetention`     | 0.58   | Share of forward speed kept, before the bounds                                 |
+| `placementClearance` | 1 m    | Gap left behind the competitor a recovered vehicle is placed behind            |
 
 A vehicle's recovery state counts consecutive outside-domain steps as an integer; reaching the policy's count
 recovers the vehicle on that step, and returning inside resets it. Recovery is not a Session rule.
 
 Route recovery backs off from the farther of causal current chainage and last-safe chainage
 ([Vehicle physics](vehicle-physics.md#airborne-state-and-recovery)). The race owns target resolution: its
-recovery lane function (the fork field's `recoveryL`) is passed to recovery separately from the policy: a driven
+recovery placement (its target lateral from the fork field's `recoveryL`, behind any competitor in the way, see
+[Body contact](#body-contact)) is passed to recovery separately from the policy: a driven
 competitor recovers to its driving target (`targetL`, the centre of its lane); the player, which has no driver intent,
 recovers to the centre of the selected Carriageway, else of the Carriageway existing there.
 Wrong-route recovery uses the selected Carriageway at the observed station (`legalTarget`).

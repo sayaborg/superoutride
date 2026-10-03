@@ -625,7 +625,8 @@ no definition value, and each race actor pairs its state with its model. The rac
 mechanics, the player's included, from its Session entry: one model per entry vehicle, shared by entries with the
 same vehicle, and each competitor's state and recovery state at its grid slot with the Session's start speed; each
 rival's driver comes from its entry's envelope. The shell and other compositions supply the player's input only;
-manual recovery is a race operation, and a DEV-only diagnostics accessor exposes the player's live state and model
+manual recovery is a race operation, and body contact is a race computation whose force reaches each vehicle as the
+mechanics' one external-force input, so physics never sees another vehicle. A DEV-only diagnostics accessor exposes the player's live state and model
 to the DEV vehicle HUD alone. `SIM_DT` is the only authority for the step length. The race advances in fixed
 steps of it: `advance(input)` takes no step length, and the start phase, the checkpoint clock's race time,
 recovery timing and event times all use `SIM_DT`. The model carries its fixed step, received when

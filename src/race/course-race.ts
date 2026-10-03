@@ -12,8 +12,11 @@ import {
   advanceVehicleWithRecovery,
   recoverVehicle,
   recoverVehicleToPlanCoordinate,
+  RECOVERY_POLICY,
   type RecoveryState,
+  type RecoveryTarget,
 } from './recovery.js';
+import { createBodyContacts, footprintsOverlap, type RouteFootprint } from './body-contacts.js';
 import { createRivalPace } from './rival-pace.js';
 import {
   createEnvelopeDriverWorkspace,
@@ -169,25 +172,69 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   });
   const resync = (c: typeof player) => c.observer.resync(c.actor.vehicle.course);
   const competitors = [player, ...rivals];
-  const motions = competitors.map((c, index) => ({
-    c,
-    id: c.id,
-    index,
-    /** A rival's envelope driver, with its pace and utilization/speed-cap setter when paced; null for the player. */
-    driving: index === 0 ? null : rivalDriving[index - 1]!,
-    previous: { s: 0, l: 0 },
-    current: c.actor.vehicle,
-    recovered: false,
-    driverWorkspace: createEnvelopeDriverWorkspace(),
-    step: {
-      state: c.actor.recovery,
-      input: { steering: 0, throttle: false, brake: false } as DrivingInput,
-      lane: c.recoveryLane,
-    },
-    input: (s: number) => forks.targetL(s, c.intent!),
-  }));
+  const motions = competitors.map((c, index) => {
+    /** The body contacts' force on this competitor through the current step (N, world). */
+    const contactForce = { x: 0, y: 0, z: 0 };
+    return {
+      c,
+      id: c.id,
+      index,
+      /** A rival's envelope driver, with its pace and utilization/speed-cap setter when paced; null for the player. */
+      driving: index === 0 ? null : rivalDriving[index - 1]!,
+      previous: { s: 0, l: 0 },
+      current: c.actor.vehicle,
+      recovered: false,
+      driverWorkspace: createEnvelopeDriverWorkspace(),
+      contactForce,
+      get vehicle() {
+        return c.actor.vehicle;
+      },
+      get model() {
+        return c.actor.model;
+      },
+      step: {
+        state: c.actor.recovery,
+        input: { steering: 0, throttle: false, brake: false } as DrivingInput,
+        place: (s: number) => vacantPlace(c, s, c.recoveryLane),
+        externalForce: contactForce,
+      },
+      input: (s: number) => forks.targetL(s, c.intent!),
+    };
+  });
   // The competitors present in the Session, the player first, in competitor order.
   let active = motions.filter((motion) => motion.c.present);
+  // Body contacts push present competitors apart; the Session's driving definition holds the spring-damper.
+  const bodyContacts = createBodyContacts(runtime.readers.coordinates, playerActor.model.bodyContact);
+  const footprint = (c: typeof player, s: number, l: number): RouteFootprint => ({
+    s,
+    l,
+    length: c.actor.model.compiledVehicle.overallLength,
+    width: c.actor.model.compiledVehicle.overallWidth,
+  });
+  // The present competitor, other than `c`, whose footprint `c`'s would overlap at (s, l); null when the place is free.
+  const occupant = (c: typeof player, s: number, l: number) => {
+    const at = footprint(c, s, l);
+    for (const motion of active)
+      if (
+        motion.c !== c &&
+        footprintsOverlap(at, footprint(motion.c, motion.vehicle.course.s, motion.vehicle.course.l))
+      )
+        return motion.c;
+    return null;
+  };
+  // Recovery places no vehicle on another's footprint: from station s it backs along the Route behind each competitor
+  // in the way, by the policy's clearance, until the place in its lane there is free (or the resident Route begins).
+  const vacantPlace = (c: typeof player, s: number, lane: (s: number) => number, l = lane(s)): RecoveryTarget => {
+    for (let other = occupant(c, s, l); other && s > runtime.window.start; other = occupant(c, s, l)) {
+      const behind =
+        other.actor.vehicle.course.s -
+        (c.actor.model.compiledVehicle.overallLength + other.actor.model.compiledVehicle.overallLength) / 2 -
+        RECOVERY_POLICY.placementClearance;
+      s = Math.max(runtime.window.start, behind);
+      l = lane(s);
+    }
+    return { s, l };
+  };
   // The race gates the player has crossed since GO, across laps: the player is in STAGE playerGates + 1.
   let playerGates = 0;
   const { view } = runtime.coverage;
@@ -206,6 +253,8 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       const entry = rivalEntries[motion.index - 1]!;
       const s = player.actor.vehicle.course.s + entry.ahead!.distance;
       const lane = (station: number) => forks.targetL(station, c.intent!);
+      // An appearance on another competitor's footprint waits for a later step.
+      if (occupant(c, s, lane(s))) continue;
       const driving = motion.driving!;
       driving.pace?.join(s);
       const speed = plannedEnvelopeSpeed(runtime.readers.coordinates, s, driving.driver, lane, runtime.window);
@@ -254,7 +303,8 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     recoverVehicleToPlanCoordinate(runtime.readers, c.actor.vehicle, c.actor.model, {
       state: c.actor.recovery,
       reason: 'wrong-course',
-      target,
+      // Behind a competitor in the way, the selected road's centre.
+      target: vacantPlace(c, target.s, (s) => forks.recoveryL(s, null), target.l),
     });
     return true;
   };
@@ -348,6 +398,8 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       maxS = Math.max(maxS, motion.c.actor.vehicle.course.s);
     }
     runtime.refresh(minS, maxS);
+    // Contact forces come from the state at the step's start and hold through it.
+    bodyContacts(active);
     move(active[0]!, input);
     for (let i = 1; i < active.length; i += 1) {
       const motion = active[i]!;
@@ -557,7 +609,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       recoverVehicle(runtime.readers, playerActor.vehicle, playerActor.model, {
         state: playerActor.recovery,
         reason: 'manual',
-        lane: player.recoveryLane,
+        place: motions[0]!.step.place,
       });
       legalRecovery(player);
       resync(player);

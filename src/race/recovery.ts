@@ -21,7 +21,7 @@ import {
   sampleSurfaceGeometryAtCoordinate,
   createSurfaceGeometryWorkspace,
 } from '../vehicle/physics/vehicle-surface-sampling.js';
-import { add3, dot3, scale3 } from '../core/vector3.js';
+import { add3, dot3, scale3, type Vec3 } from '../core/vector3.js';
 import { drivenWheelOmega } from '../vehicle/physics/vehicle-definitions.js';
 import { initializeVehicleTireObservation } from '../vehicle/physics/vehicle-tire-observation.js';
 
@@ -42,6 +42,8 @@ export interface RecoveryPolicy {
   readonly maxRecoverySpeed: number;
   /** Share of the forward speed kept through recovery, before the bounds. */
   readonly speedRetention: number;
+  /** Metres left between a recovered vehicle's footprint and the competitor it is placed behind. */
+  readonly placementClearance: number;
 }
 
 export const RECOVERY_POLICY: RecoveryPolicy = Object.freeze({
@@ -51,10 +53,14 @@ export const RECOVERY_POLICY: RecoveryPolicy = Object.freeze({
   minRecoverySpeed: 18,
   maxRecoverySpeed: 32,
   speedRetention: 0.58,
+  placementClearance: 1,
 });
 
-/** The race's recovery lane at a route station; target resolution belongs to the race, not the policy. */
-export type RecoveryLane = (s: number) => number;
+/**
+ * The race's recovery place for a route station: the target it chooses there or behind it. Target resolution belongs
+ * to the race, not the policy.
+ */
+export type RecoveryPlacement = (s: number) => RecoveryTarget;
 
 export interface RecoveryState {
   lastSafeS: number;
@@ -64,7 +70,7 @@ export interface RecoveryState {
   lastReason: RecoveryReason | null;
 }
 
-interface RecoveryTarget {
+export interface RecoveryTarget {
   readonly s: number;
   readonly l: number;
 }
@@ -80,18 +86,21 @@ export function createRecoveryState(vehicle: VehicleState): RecoveryState {
 
 interface RecoveryOptions {
   readonly state: RecoveryState;
-  readonly lane: RecoveryLane;
+  readonly place: RecoveryPlacement;
 }
 
-/** One fixed gameplay step. Recovery observes the completed step; physics faults stay visible. */
+/**
+ * One fixed gameplay step under the step's input and external force (N, world). Recovery observes the completed step;
+ * physics faults stay visible.
+ */
 export function advanceVehicleWithRecovery(
   world: VehicleWorld,
   vehicle: VehicleState,
   model: VehicleModel,
-  { state, input, lane }: RecoveryOptions & { input: DrivingInput },
+  { state, input, place, externalForce }: RecoveryOptions & { input: DrivingInput; externalForce: Readonly<Vec3> },
 ): RecoveryReason | null {
-  updateVehicle(world, vehicle, model, input);
-  return updateRecovery(world, vehicle, model, { state, lane });
+  updateVehicle(world, vehicle, model, input, false, externalForce);
+  return updateRecovery(world, vehicle, model, { state, place });
 }
 
 const observationWorkspaces = new WeakMap<
@@ -107,12 +116,12 @@ function updateRecovery(
   world: VehicleWorld,
   vehicle: VehicleState,
   model: VehicleModel,
-  { state, lane }: RecoveryOptions,
+  { state, place }: RecoveryOptions,
 ): RecoveryReason | null {
   if (!vehicle.course.inDomain) {
     state.outsideDomainSteps += 1;
     if (state.outsideDomainSteps < RECOVERY_POLICY.outsideDomainSteps) return null;
-    recoverVehicle(world, vehicle, model, { state, reason: 'outside-domain', lane });
+    recoverVehicle(world, vehicle, model, { state, reason: 'outside-domain', place });
     return 'outside-domain';
   }
   state.outsideDomainSteps = 0;
@@ -143,7 +152,7 @@ function updateRecovery(
   // A CG below the heightfield has fallen into a hole or through material-free ground.
   else if (surfaceDistance < -SURFACE_PENETRATION_TOLERANCE_METERS) reason = 'surface-penetration';
 
-  if (reason !== null) recoverVehicle(world, vehicle, model, { state, reason, lane });
+  if (reason !== null) recoverVehicle(world, vehicle, model, { state, reason, place });
   return reason;
 }
 
@@ -151,11 +160,11 @@ export function recoverVehicle(
   world: VehicleWorld,
   vehicle: VehicleState,
   model: VehicleModel,
-  { state, reason = 'manual', lane }: RecoveryOptions & { reason?: RecoveryReason },
+  { state, reason = 'manual', place }: RecoveryOptions & { reason?: RecoveryReason },
 ): void {
   recoverVehicleToPlanCoordinate(world, vehicle, model, {
     state,
-    target: routeRecoveryTarget(world, vehicle, state, lane),
+    target: routeRecoveryTarget(world, vehicle, state, place),
     reason,
   });
 }
@@ -164,7 +173,7 @@ function routeRecoveryTarget(
   world: VehicleWorld,
   vehicle: VehicleState,
   state: RecoveryState,
-  lane: RecoveryLane,
+  place: RecoveryPlacement,
 ): RecoveryTarget {
   // Airborne world motion can advance well beyond the last loaded station. Recovering only from
   // lastSafeS can place the vehicle back on the same launch face forever. Preserve the farther
@@ -172,7 +181,7 @@ function routeRecoveryTarget(
   const domain = world.extent;
   const recoveryBaseS = clamp(Math.max(state.lastSafeS, vehicle.course.s), domain.start, domain.end);
   const s = Math.max(domain.start, recoveryBaseS - RECOVERY_POLICY.backtrackDistance);
-  return { s, l: lane(s) };
+  return place(s);
 }
 
 /**

@@ -156,6 +156,42 @@ without renormalization: the rotation preserves the unit length and is rebuilt f
 plane transmits zero tire force. The shared wrench combines contact,
 wheel reaction, gravity and planar quadratic drag for protection and integration.
 
+## Body contact
+
+Vehicle mechanics takes one external force as an input of each update: a world force from outside the vehicle,
+held through the fixed step and integrated in every substep with the vehicle's own forces (velocity before pose). It
+acts at the centre of mass, so it makes no yaw, pitch or roll moment; a held (READY) vehicle ignores it. Physics knows
+neither the other vehicle nor the race: the race computes the force ([Content and gameplay](content-and-gameplay.md#body-contact))
+and nothing writes velocity, pose or progress to separate vehicles.
+
+The force law (`physics/body-contact.ts`) is a spring-damper on the reduced mass of the two vehicles,
+`μ = m₁m₂/(m₁ + m₂)`, along their contact axis:
+
+```text
+F = max(0, μ(ω²x + 2ζωv))     ω = 2π × bodyContact.frequencyHertz, ζ = bodyContact.dampingRatio
+```
+
+`x` is the overlap along the axis and `v` the approach speed along it. It never pulls. On the reduced mass the
+relative motion is the oscillator `x'' = −ω²x − 2ζωx'`, so the frequency and damping ratio hold for every pair of
+vehicles, cars and motorcycles alike.
+
+### Body contact stability
+
+The force is held through one fixed step `T` of `N = 12` substeps, each updating velocity before position. One step
+then maps the overlap and its rate by a linear map; with `p = ωT` and `c = (N + 1)/(2N)` its trace is
+`2 − cp² − 2ζp` and its determinant `1 − 2ζp + (1 − c)p²`. Both eigenvalues lie inside the unit circle (Jury) exactly
+when:
+
+```text
+(1 − c)·p < 2ζ
+2 − 2ζp + (1 − c)·p² > 0
+4 − 4ζp + (1 − 2c)·p² > 0
+```
+
+so ζ must be positive. Each vehicle model admits these at its step (`assertBodyContactStability`); a violation is a
+`RangeError`. At the 1/60 s step the defaults (3 Hz, ζ = 1) give p = 0.314; with ζ = 1 the third condition bounds
+p below 0.98 (about 9.4 Hz).
+
 ## Airborne state and recovery
 
 Airborne driving is an ordinary state. Unsupported contacts carry no load and no tire force; the
@@ -487,7 +523,7 @@ vehicle physics reads and its overall dimensions.
 `content/vehicle-listings/<id>.json` stores its `superoutride.vehicle-listing` version 1 document:
 everything else players see or hear of it. A value belongs to the mechanics document when it describes
 the physical vehicle and to the listing otherwise; `form` and the metadata's `physicsAnchor` therefore
-belong to the listing. `content/driving/default.json` stores the sole `superoutride.driving-definition` version 12.
+belong to the listing. `content/driving/default.json` stores the sole `superoutride.driving-definition` version 13.
 A material, vehicle or driving document's only identifier is its file name without `.json`, which is
 also its manifest ID; the documents carry none. The content layer's `compileVehicleDefinitions` admits
 the catalog from the build's files or delivery's manifest entries alike: exactly one driving definition,
@@ -535,9 +571,12 @@ fields: `maxRoadWheelSteerDegrees`, `steeringOffsetDegrees`,
 `clutchLockIdleMargin`, `clutchCapacityFactor` above 1, finite `suspensionProgression` of at least 1,
 `pitchLimitDegrees` in (0,45], `throttle`
 and `brake` (each applySeconds/releaseSeconds), boolean
-`wheelSlip`, `tire` (gripX/peakSlipX/gripY/peakSlipY/knee), and `rivalPace`
+`wheelSlip`, `tire` (gripX/peakSlipX/gripY/peakSlipY/knee), `rivalPace`
 (minimumUtilization/maximumUtilization/minimumSpeedFraction/bandSeconds/responseSeconds, with 0 < minimum ≤
-maximum ≤ 1, a speed fraction in (0,1], and a positive finite band and response time). `rivalPace` drives no vehicle mechanics: ARCADE rivals read it to pace their driving. Angles are degrees, traversal times
+maximum ≤ 1, a speed fraction in (0,1], and a positive finite band and response time) and `bodyContact`
+(frequencyHertz/dampingRatio, both positive and finite). `rivalPace` drives no vehicle mechanics: ARCADE rivals read it
+to pace their driving. `bodyContact` is the [body contact](#body-contact) spring-damper; each vehicle model admits its
+stability at the model's step. Angles are degrees, traversal times
 are seconds, pressures are bar, inertia is kg m² per litre, and tire, fuel-cut and efficiency values
 are dimensionless. Require
 0 < offset < maximum < 90 degrees, positive finite actuator rates after conversion, positive finite

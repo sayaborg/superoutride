@@ -47,6 +47,7 @@ export function mountRunDevControls(sessionVehicle: SessionVehicle, actions: Run
     TIRES: mustGet('tuning-tire-buttons'),
     POWERTRAIN: mustGet('tuning-powertrain-buttons'),
     RIVALS: mustGet('tuning-rival-buttons'),
+    CONTACT: mustGet('tuning-contact-buttons'),
     ASSIST: mustGet('tuning-assist-buttons'),
   };
   mountDrivingTuningControls(tuningContainers, tuning);

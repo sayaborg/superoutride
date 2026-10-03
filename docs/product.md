@@ -264,8 +264,12 @@ the top. The touch area does not depend on where the frame is.
 ## 12. Interaction
 
 Competitors and traffic have physical extent and contact each other, cars and motorcycles included.
-Contact never ends a run by itself and causes no damage. The response model, traffic behavior, movable
-and fixed roadside objects, barriers and track limits are designed at the start of Stage 13.
+A vehicle's contact shape is its footprint, the overall length by overall width, laid along the road: it
+does not turn with the vehicle's yaw. Two vehicles whose shapes overlap push each other apart along the
+shallower overlap, ahead-behind or side to side, with equal and opposite forces that act through the ordinary
+vehicle mechanics. Contact never turns a vehicle, never topples a motorcycle, never ends a run by itself and
+causes no damage. Rivals and traffic do not hit other vehicles on purpose. Movable and fixed roadside objects,
+barriers and track limits are not yet part of the game.
 
 ## 13. Music and sound effects
 

@@ -31,9 +31,11 @@ export interface DrivingDefinition {
     bandSeconds: number;
     responseSeconds: number;
   }>;
+  /** The game-wide body contact spring-damper between vehicles: natural frequency in hertz and damping ratio. */
+  readonly bodyContact: Readonly<{ frequencyHertz: number; dampingRatio: number }>;
 }
 
 export interface DrivingDocument extends DrivingDefinition {
   readonly format: 'superoutride.driving-definition';
-  readonly version: 12;
+  readonly version: 13;
 }

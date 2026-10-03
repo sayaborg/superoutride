@@ -39,6 +39,8 @@ steps and never rejects a driving definition.
 | Rival pace | VMIN  | `rivalPace.minimumSpeedFraction`            | Rival speed cap at UMIN, × maximum speed     | 0.85    | 0.50–1.00 / 0.05           |
 | Rival pace | BAND  | `rivalPace.bandSeconds`                     | Schedule difference from UMIN to UMAX target | ±2.0 s  | 0.5–10.0 s / 0.5 s         |
 | Rival pace | RESP  | `rivalPace.responseSeconds`                 | Rival utilization response time constant     | 3.0 s   | 0.5–10.0 s / 0.5 s         |
+| Contact    | BCF   | `bodyContact.frequencyHertz`                | Body contact natural frequency (Hz)          | 3.0 Hz  | 1.0–6.0 Hz / 0.5 Hz        |
+| Contact    | BCZ   | `bodyContact.dampingRatio`                  | Body contact damping ratio                   | 1.0     | 0.2–1.5 / 0.1              |
 | Assists    | —     | `wheelSlip`                                 | TCS, MSR and ABS                             | on      | on / off                   |
 
 `fuelCutRedlineMargin` (0.02) and `clutchLockIdleMargin` (0.02) are numerical margins that keep
@@ -94,6 +96,10 @@ down, for both forms, against the road line under the wheels
 ([Vehicle physics](vehicle-physics.md#torque-protection)); it is edited only in the file. Torque
 protection is the same for both forms.
 Tire and steering low-speed regularization are engine constants of 1.0 m/s.
+`bodyContact` is the spring-damper between two vehicles whose footprints overlap
+([Vehicle physics](vehicle-physics.md#body-contact)): `frequencyHertz` is the natural frequency of the pair's
+relative motion in hertz, independent of the masses because the force scales with the pair's reduced mass, and
+`dampingRatio` is dimensionless (1 is critical damping: no rebound). Every DEV grid point is stable at the 1/60 s step.
 
 The full driving source document participates in vehicle identity for generated envelopes, reference
 caches and time budgets. Top-speed envelope measurement ends at steady-speed convergence or at the first

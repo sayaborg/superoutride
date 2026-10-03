@@ -4,7 +4,7 @@ import type { DrivingDefinition, DrivingDocument } from '../vehicle/driving-defi
  * DEV tuning of the game-wide driving definition, in its saved units. Only author-facing design
  * values are listed; numerical margins (fuel-cut and clutch-lock idle margins) stay file-only.
  */
-export type DrivingTuningGroup = 'STEERING' | 'PEDALS' | 'TIRES' | 'POWERTRAIN' | 'RIVALS';
+export type DrivingTuningGroup = 'STEERING' | 'PEDALS' | 'TIRES' | 'POWERTRAIN' | 'RIVALS' | 'CONTACT';
 
 interface NumericTuningItem {
   readonly id: string;
@@ -41,6 +41,13 @@ const rivalPace = (key: keyof DrivingDefinition['rivalPace']) => ({
   write: (d: DrivingDocument, value: number): DrivingDocument => ({
     ...d,
     rivalPace: { ...d.rivalPace, [key]: value },
+  }),
+});
+const bodyContact = (key: keyof DrivingDefinition['bodyContact']) => ({
+  read: (d: DrivingDefinition) => d.bodyContact[key],
+  write: (d: DrivingDocument, value: number): DrivingDocument => ({
+    ...d,
+    bodyContact: { ...d.bodyContact, [key]: value },
   }),
 });
 const field = <K extends keyof DrivingDefinition>(key: K) => ({
@@ -316,6 +323,31 @@ const DRIVING_TUNING_ITEMS: readonly NumericTuningItem[] = Object.freeze([
     step: 5,
     ...rivalPace('responseSeconds'),
   }),
+  // Every grid point is stable at the 1/60 s step (the model admits the body contact's stability).
+  item({
+    id: 'BCF',
+    group: 'CONTACT',
+    label: 'BCF',
+    description: 'body contact natural frequency',
+    unit: 'Hz',
+    scale: 10,
+    min: 10,
+    max: 60,
+    step: 5,
+    ...bodyContact('frequencyHertz'),
+  }),
+  item({
+    id: 'BCZ',
+    group: 'CONTACT',
+    label: 'BCZ',
+    description: 'body contact damping ratio',
+    unit: '',
+    scale: 10,
+    min: 2,
+    max: 15,
+    step: 1,
+    ...bodyContact('dampingRatio'),
+  }),
 ]);
 
 export const DRIVING_TUNING_GROUPS: readonly DrivingTuningGroup[] = Object.freeze([
@@ -324,6 +356,7 @@ export const DRIVING_TUNING_GROUPS: readonly DrivingTuningGroup[] = Object.freez
   'TIRES',
   'POWERTRAIN',
   'RIVALS',
+  'CONTACT',
 ]);
 
 // Integer grid ticks: tolerance for decimal definition values converted to ticks (e.g. 0.325*1000).
@@ -376,6 +409,7 @@ export function formatDrivingTuningLine(group: DrivingTuningGroup, definition: D
   if (group === 'PEDALS') return `PEDAL ${items}`;
   if (group === 'TIRES') return `TIRE ${items}`;
   if (group === 'RIVALS') return `RIVAL ${items}`;
+  if (group === 'CONTACT') return `CONTACT ${items}`;
   return `ENGINE ${items} ASSIST ${definition.wheelSlip ? 'ON' : 'OFF'}`;
 }
 

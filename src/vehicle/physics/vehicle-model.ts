@@ -6,6 +6,7 @@ import type { TorqueProtectionPolicy } from './torque-protection.js';
 import type { CompiledVehicleSteeringCalibration } from './vehicle-calibration.js';
 import type { CompiledVehicle } from './vehicle-definitions.js';
 import { assertSuspensionStability } from './vehicle-suspension.js';
+import { assertBodyContactStability, type CompiledBodyContact } from './body-contact.js';
 import type { CompiledVehicleDefinition } from '../definition-document.js';
 
 export const VEHICLE_SUBSTEPS = 12;
@@ -28,6 +29,8 @@ export interface VehicleModel {
   readonly torqueProtection: Readonly<TorqueProtectionPolicy>;
   /** Game-wide suspension stiffness at full travel as a multiple of each ride spring rate. */
   readonly suspensionProgression: number;
+  /** The body contact spring-damper between vehicles, admitted stable at this model's step. */
+  readonly bodyContact: CompiledBodyContact;
 }
 
 /** The admitted vehicle and driving definitions a model is built from. */
@@ -38,7 +41,7 @@ export interface VehicleModelInput {
 
 /**
  * The single place a vehicle model is built, for one fixed outer step. It admits each station's
- * suspension stability at that step's substep. Every part is an admitted, deeply frozen product or
+ * suspension stability at that step's substep and the body contact's stability at the step. Every part is an admitted, deeply frozen product or
  * is frozen by its constructor, so the model itself needs only a shallow freeze.
  */
 export function createVehicleModel(input: VehicleModelInput, step: number): VehicleModel {
@@ -48,6 +51,7 @@ export function createVehicleModel(input: VehicleModelInput, step: number): Vehi
   const substep = step / VEHICLE_SUBSTEPS;
   for (const station of [compiledVehicle.frontStation, compiledVehicle.rearStation])
     assertSuspensionStability(compiledVehicle.id, station, driving.suspensionProgression, substep);
+  assertBodyContactStability(driving.bodyContact, step, VEHICLE_SUBSTEPS);
   return Object.freeze({
     compiledVehicle,
     step,
@@ -58,5 +62,6 @@ export function createVehicleModel(input: VehicleModelInput, step: number): Vehi
     powertrain: resolvePowertrainConstants(compiledVehicle.powertrain, driving.powertrain),
     torqueProtection: driving.torqueProtection,
     suspensionProgression: driving.suspensionProgression,
+    bodyContact: driving.bodyContact,
   });
 }

@@ -40,7 +40,7 @@ import { applySuspensionBumpStops, createBumpStopWorkspace } from './suspension-
 
 /** m/s: smooth the travel-direction steering angle at standstill. */
 const STEERING_LOW_SPEED_REGULARIZATION = 1.0;
-import { WORLD_UP, add3, cross3, dot3, normalize3, scale3 } from '../../core/vector3.js';
+import { WORLD_UP, add3, cross3, dot3, normalize3, scale3, type Vec3 } from '../../core/vector3.js';
 import { drivenWheelOmega } from './vehicle-definitions.js';
 import {
   createDriveTorqueBounds,
@@ -158,11 +158,15 @@ export function publishVehicleRenderY(vehicle: VehicleState, model: VehicleModel
   vehicle.renderY = vehicle.y - model.compiledVehicle.desiredCgHeight;
 }
 
+const NO_EXTERNAL_FORCE: Readonly<Vec3> = Object.freeze({ x: 0, y: 0, z: 0 });
+
 /**
  * One fixed step of a vehicle. A `held` vehicle, as in a race's READY phase, is constrained explicitly: its body and
  * wheels keep their pose and motion and its gear holds, while its actuators follow the input and its powertrain runs
  * with the clutch open (zero capacity), so the engine revs freely with the throttle under its ordinary law, fuel cut
  * and idle holding still bounding the opening. The next free step uses the fixed capacity again.
+ * `externalForce` is a world force (N) from outside the vehicle, held through the step: it acts at the centre of mass,
+ * so it adds no moment, and every substep integrates it with the vehicle's own forces. A held vehicle ignores it.
  */
 export function updateVehicle(
   { coordinates, height, surfaces }: VehicleWorld,
@@ -170,6 +174,7 @@ export function updateVehicle(
   model: VehicleModel,
   input: DrivingInput,
   held = false,
+  externalForce: Readonly<Vec3> = NO_EXTERNAL_FORCE,
 ): void {
   assertExclusivePedalInput(input);
   const { compiledVehicle, substep } = model;
@@ -326,9 +331,9 @@ export function updateVehicle(
 
     const { force: totalForce, moment: totalMoment } = resolved.wrench;
 
-    vehicle.velocityX += (totalForce.x / compiledVehicle.mass) * substep;
-    vehicle.velocityY += (totalForce.y / compiledVehicle.mass) * substep;
-    vehicle.velocityZ += (totalForce.z / compiledVehicle.mass) * substep;
+    vehicle.velocityX += ((totalForce.x + externalForce.x) / compiledVehicle.mass) * substep;
+    vehicle.velocityY += ((totalForce.y + externalForce.y) / compiledVehicle.mass) * substep;
+    vehicle.velocityZ += ((totalForce.z + externalForce.z) / compiledVehicle.mass) * substep;
     vehicle.yawRate += (totalMoment.y / compiledVehicle.yawInertia) * substep;
     vehicle.pitchRate -= (dot3(totalMoment, body.right) / compiledVehicle.pitchInertia) * substep;
     applySuspensionBumpStops(vehicle, compiledVehicle, body, front, rear, substep, workspace.bumpStop);
