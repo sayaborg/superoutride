@@ -629,7 +629,10 @@ cause, and the countdown to GO: the seconds until GO (3 while WAITING, 0 from GO
 remaining seconds rounded up (3, 2, 1, then 0 at GO), which the product HUD draws; the clock exposes race time, the deadline in race time
 (null without a time limit) and the last extension: its awarded amount and the race time of the checkpoint that
 earned it. The race exposes each competitor's progress (route s,
-accepted finish count and status) and finish time; the Route, whose occurrences carry fork choices; the lap count
+accepted finish count and status), finish time and, on a CIRCUIT, best lap: its fastest complete lap, null until it
+completes one. A lap runs from GO (for a competitor on the grid) or from a FINISH line crossing to the next FINISH line
+crossing, both at their event times; a competitor that appeared ahead completes its first lap at its second FINISH
+line crossing. The Route, whose occurrences carry fork choices; the lap count
 and course type. One race function gives a competitor's clock: its finish time, else race time. The shell derives
 the status line from these facts ([Browser](browser.md#race-status)).
 

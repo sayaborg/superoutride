@@ -7,6 +7,7 @@ import {
 
 export interface RouteRaceEvent {
   readonly landmark: RouteRaceLine['landmark'];
+  readonly kind: RouteRaceLine['kind'];
   readonly lap: number;
   readonly u: number;
   readonly finish: boolean;
@@ -32,7 +33,13 @@ export function createRouteProgress(
   let indexed = lines.race;
   const events: RouteRaceEvent[] = [];
   const result = { justFinished: false, events };
-  const observation = { landmark: null! as RouteRaceLine['landmark'], lap: 0, u: 0, finish: false };
+  const observation = {
+    landmark: null! as RouteRaceLine['landmark'],
+    kind: 'checkpoint' as RouteRaceLine['kind'],
+    lap: 0,
+    u: 0,
+    finish: false,
+  };
   return Object.freeze({
     state,
     update(previous: RoutePosition, current: RoutePosition, recovered: boolean, admit?: RouteRaceAdmission) {
@@ -52,6 +59,7 @@ export function createRouteProgress(
         const u = routeCrossingFraction(line, previous, current);
         if (u === null) break;
         observation.landmark = line.landmark;
+        observation.kind = line.kind;
         observation.lap = line.lap;
         observation.u = u;
         observation.finish = line.finish;

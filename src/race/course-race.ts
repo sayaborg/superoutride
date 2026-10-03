@@ -135,6 +135,13 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     },
     /** Race time of this competitor's finish event; null until it finishes. */
     finishSeconds: null as number | null,
+    /**
+     * Race time its current lap began: GO for a competitor on the grid, else its latest FINISH line crossing; null for
+     * one that appeared ahead until it first crosses the FINISH line.
+     */
+    lapStartSeconds: (stages === null || stages.first === 1 ? 0 : null) as number | null,
+    /** On a CIRCUIT, its fastest complete lap in seconds; null until it completes one, and on other course types. */
+    bestLapSeconds: null as number | null,
   });
   // Every competitor drives the model of its entry's vehicle, spawned at its grid slot with the Session's start speed,
   // or, appearing ahead, where and as fast as it appears.
@@ -394,16 +401,23 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
         // The clock decides the player's crossing candidates, in time order, against its deadline.
         c === player ? clock.admit : undefined,
       );
-      for (const event of update.events)
+      for (const event of update.events) {
+        const timeSeconds = raceEventSeconds(stepStart, event.u);
         stepEvents.push(
           Object.freeze({
             competitorId: c.id,
             landmark: event.landmark,
             lap: event.lap,
             finish: event.finish,
-            timeSeconds: raceEventSeconds(stepStart, event.u),
+            timeSeconds,
           }),
         );
+        if (course.type === 'CIRCUIT' && event.kind === 'finish') {
+          if (c.lapStartSeconds !== null)
+            c.bestLapSeconds = Math.min(c.bestLapSeconds ?? Infinity, timeSeconds - c.lapStartSeconds);
+          c.lapStartSeconds = timeSeconds;
+        }
+      }
       if (c === player) playerGates += update.events.length;
       if (update.justFinished) {
         c.finishSeconds = stepEvents.at(-1)!.timeSeconds;
