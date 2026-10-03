@@ -30,11 +30,11 @@ the composition root is the only place that draws randomness.
 The driving composition root owns two lifetimes. The page lifetime is created once: delivered content and
 catalogs (materials, surface sounds, vehicle and driving definitions, series, text tiles, audio settings), the
 player record, display settings, the text layer, race sprites, the browser devices (canvas, framebuffer, input,
-audio), the screen host with its frame loop, the status line, the performance HUD and the page's DEV controls (sound,
-ground display, camera, RESULT delay, course selection). The run lifetime holds the selected course, its Session
+audio), the screen host with its frame loop, the status line and, with `dev=1`, the performance HUD and the page's DEV
+controls (sound, ground display, camera, RESULT delay, course selection). The run lifetime holds the selected course, its Session
 settings, the field's Session vehicles, envelopes, time budgets and pace schedule, the Session, scene and race,
-the player's sprites, the camera rig and lifecycle, the course's performance-HUD values and the run's DEV
-controls (driving tuning, export, RECOVER, the Session form). Page devices hold no run: each frame passes the
+the player's sprites, the camera rig and lifecycle, the Session form and, with `dev=1`, the course's performance-HUD
+values and the run's DEV controls (driving tuning, export, RECOVER). Page devices hold no run: each frame passes the
 run's observations to them.
 
 The page is loaded once. A URL that names a course, the selection screens, RETRY, a DEV course selection, changed
@@ -265,7 +265,7 @@ status line. A Session rebuilt by DEV tuning prefixes `TUNED · `. Otherwise:
 
 ## Performance HUD
 
-The HUD displays FPS, maximum CPU frame time, maximum fixed-step time and maximum frame interval.
+The DEV performance HUD (with `dev=1`) displays FPS, maximum CPU frame time, maximum fixed-step time and maximum frame interval.
 The first frame reports immediately, then approximately every half second.
 
 The ground detail shows the selected method, the reporting window's maximum visible active Strip count,
@@ -302,6 +302,12 @@ screens save their latest selections. A Session reads the player's vehicle color
 set lacks. DEV tuning and DEV sound settings are not stored.
 
 ## DEV controls
+
+Only a URL with `dev=1` builds DEV: the composition root reads it once and then builds the DEV panel from its
+template in the page, its controls (sound, ground display, camera, RESULT delay, course selection and each run's
+driving tuning, export and RECOVER), the performance HUD and the DEV vehicle HUDs drawn over the frame. Without it
+none of these exist, in the DOM or as listeners, and DEV series and courses in no series are not offered. The status
+line, the touch indicators and the corner buttons are not DEV. The DEV toggle sits left of the PAUSE corner button.
 
 DEV is an initially closed disclosure overlay. Its body scrolls within the safe viewport without
 resizing the game. UI pointer starts stay outside driving input. Keydown is isolated, so keys typed

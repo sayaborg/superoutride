@@ -1,25 +1,34 @@
 import type { SessionVehicle } from '../content/session-vehicle.js';
-import { createDrivingLifecycle, type DrivingLifecycleOptions } from './driving-lifecycle.js';
-import { createCameraRig } from '../view/camera.js';
 import type { DrivingDocument } from '../vehicle/driving-definition.js';
 import { compileDrivingDocument } from '../vehicle/definition-document.js';
+import type { CompiledDrivingDefinition } from '../vehicle/compiled-driving-definition.js';
 import { DRIVING_DEFINITION_ID } from '../content/vehicle-catalog.js';
 import { mountDrivingTuningControls } from './driving-tuning-controls.js';
 import { downloadDefinition } from './definition-export.js';
 import { mustGet } from './dom.js';
 
+/** What the run's DEV controls ask of the run. */
+export interface RunDevActions {
+  /** Whether manual recovery may run now. */
+  canRecover(): boolean;
+  /** The race's manual recovery of the player, followed by a camera reset. */
+  recover(): void;
+  /** DEV tuning: rebuild the Session around a vehicle driving the admitted tuned definition. */
+  rebuildSession(driving: CompiledDrivingDefinition): void;
+}
+
 /**
- * A run's camera and its DEV controls for the player's Session vehicle: driving tuning, export and RECOVER. The tuned
- * driving definition belongs to the run and persists across its rebuilt Sessions for the next tuning step and export.
+ * A run's DEV controls for the player's Session vehicle: driving tuning, export and RECOVER, mounted in the DEV
+ * panel. The tuned driving definition belongs to the run and persists across its rebuilt Sessions for the next tuning
+ * step and export.
  */
-export function mountRunControls(sessionVehicle: SessionVehicle, options: DrivingLifecycleOptions) {
+export function mountRunDevControls(sessionVehicle: SessionVehicle, actions: RunDevActions) {
   // The run's listeners on page elements end with the run.
   const listeners = new AbortController();
   const { signal } = listeners;
   let driving = sessionVehicle.drivingDefinition;
   const definition = sessionVehicle.vehicleDefinition;
   const vehicleId = definition.compiledVehicle.id;
-  const lifecycle = createDrivingLifecycle(createCameraRig(), options);
   const tuning = {
     get: () => driving.source,
     set: (document: DrivingDocument) => {
@@ -27,7 +36,7 @@ export function mountRunControls(sessionVehicle: SessionVehicle, options: Drivin
       const admitted = compileDrivingDocument(document, 'DEV driving tuning', null);
       if (!admitted.ok) return false;
       driving = admitted.value;
-      options.rebuildSession(driving);
+      actions.rebuildSession(driving);
       return true;
     },
   };
@@ -55,12 +64,11 @@ export function mountRunControls(sessionVehicle: SessionVehicle, options: Drivin
   mustGet<HTMLButtonElement>('recover-button').addEventListener(
     'click',
     () => {
-      if (options.canRecover?.() ?? true) lifecycle.recover();
+      if (actions.canRecover()) actions.recover();
     },
     { signal },
   );
   return Object.freeze({
-    lifecycle,
     /** The run's driving and vehicle definitions for the DEV vehicle HUD. */
     get driving() {
       return driving.source;

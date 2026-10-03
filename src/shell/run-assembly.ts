@@ -3,7 +3,9 @@ import type { CameraDefinition } from '../view/camera.js';
 import { SIM_DT } from '../race/fixed-step.js';
 import { createVehicleSprites } from '../view/vehicle-sprites.js';
 import type { createBrowserDrivingShell } from './driving-shell.js';
-import { mountRunControls } from './run-controls.js';
+import { mountRunDevControls } from './run-controls.js';
+import { createDrivingLifecycle } from './driving-lifecycle.js';
+import { createCameraRig } from '../view/camera.js';
 import type { BrowserCourseSelection } from './course-selection.js';
 import { loadDeliveredCourse } from '../content/load-delivered-course.js';
 import type { loadVehicleDefinitions } from '../content/vehicle-catalog.js';
@@ -49,7 +51,10 @@ export interface RunPage {
   readonly shell: ReturnType<typeof createBrowserDrivingShell>;
   readonly canvas: HTMLCanvasElement;
   readonly raceStatus: HTMLOutputElement;
-  readonly performanceHud: ReturnType<typeof createCoursePerformanceHud>;
+  /** The DEV performance HUD; null without DEV. */
+  readonly performanceHud: ReturnType<typeof createCoursePerformanceHud> | null;
+  /** `dev=1`: the run builds its DEV controls and draws the DEV HUDs. */
+  readonly dev: boolean;
   readonly courses: readonly BrowserCourseSelection[];
   /** The camera definition in use. */
   cameraDefinition(): CameraDefinition;
@@ -159,38 +164,45 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
   let active = build(vehicle, settings, rivalEnvelope, budgets, false);
   // The player's color is resolved with the Session; a DEV rebuild keeps it.
   const sprites = createVehicleSprites(entry, active.session.entries[0]!.color);
-  const runControls = mountRunControls(vehicle, {
+  const lifecycle = createDrivingLifecycle(createCameraRig(), {
     world: () => active.scene.world,
     cameraDefinition: page.cameraDefinition,
-    canRecover: () => state.live && active.race.outcome.status === 'RUNNING',
     observation: () => active.race.observe().player,
-    recover: () => active.race.recoverPlayer(),
-    // A tuned driving definition has no delivered identity, so the rebuilt Session has no envelope,
-    // time budgets, rivals or time limit. It starts from the grid at once, unpaused; a new run restores the
-    // product Session and the delivered definition.
-    rebuildSession: (driving) => {
-      active = build(
-        createSessionVehicle(entry, driving, materials),
-        {
-          mode: 'FREE_PLAY',
-          rivalCount: 0,
-          lapCount: active.session.configuration.lapCount,
-          timeLimit: false,
-          initialSpeed: 0,
-        },
-        null,
-        null,
-        true,
-      );
-      lifecycle.update(true);
-      afterEndingSeconds = 0;
-      controls.begin();
-      state.restart();
-    },
   });
-  const { lifecycle } = runControls;
+  // The run's DEV controls, only with DEV.
+  const devControls = page.dev
+    ? mountRunDevControls(vehicle, {
+        canRecover: () => state.live && active.race.outcome.status === 'RUNNING',
+        recover: () => {
+          active.race.recoverPlayer();
+          lifecycle.reset();
+        },
+        // A tuned driving definition has no delivered identity, so the rebuilt Session has no envelope,
+        // time budgets, rivals or time limit. It starts from the grid at once, unpaused; a new run restores the
+        // product Session and the delivered definition.
+        rebuildSession: (driving) => {
+          active = build(
+            createSessionVehicle(entry, driving, materials),
+            {
+              mode: 'FREE_PLAY',
+              rivalCount: 0,
+              lapCount: active.session.configuration.lapCount,
+              timeLimit: false,
+              initialSpeed: 0,
+            },
+            null,
+            null,
+            true,
+          );
+          lifecycle.update(true);
+          afterEndingSeconds = 0;
+          controls.begin();
+          state.restart();
+        },
+      })
+    : null;
   // Every Session shares the compiled course's ground, so its maximum is derived once.
-  performanceHud.setCourse({
+  performanceHud?.setCourse({
     maxActiveStrips: Math.max(...course.sections.map((section) => section.color.metrics.maxActiveStrips)),
   });
   let afterEndingSeconds = 0;
@@ -199,7 +211,7 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
     const { race } = active;
     const step = race.advance(shell.inputManager.sample());
     lifecycle.update(step.recovered);
-    performanceHud.step(performance.now() - started);
+    performanceHud?.step(performance.now() - started);
     if (race.outcome.status === 'GOAL' || race.outcome.status === 'GAME_OVER') {
       if (afterEndingSeconds + SIM_DT / 2 >= page.resultDelaySeconds()) state.finish();
       else afterEndingSeconds += SIM_DT;
@@ -226,23 +238,28 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
         const { player } = observations;
         shell.updateAudio(player, observations.rivals);
         // The DEV vehicle HUD diagnoses mechanics internals through the race's DEV-only diagnostics.
-        shell.present((ctx) => {
-          const { vehicle, model } = race.playerDiagnostics;
-          drawVehicleDebugHud(
-            ctx,
-            page.courses,
-            courseId,
-            shell.inputManager.lastSample,
-            vehicle,
-            model,
-            runControls.driving,
-            runControls.definition,
-          );
-          if (player.form === 'bike') drawVehicleLeanDebug(ctx, result.playerScreenX, result.playerScreenY, player);
-          drawVehicleYawDebug(ctx, result.playerScreenX, result.playerScreenY, vehicle, lifecycle.camera.yaw);
-        });
+        shell.present(
+          devControls
+            ? (ctx) => {
+                const { vehicle, model } = race.playerDiagnostics;
+                drawVehicleDebugHud(
+                  ctx,
+                  page.courses,
+                  courseId,
+                  shell.inputManager.lastSample,
+                  vehicle,
+                  model,
+                  devControls.driving,
+                  devControls.definition,
+                );
+                if (player.form === 'bike')
+                  drawVehicleLeanDebug(ctx, result.playerScreenX, result.playerScreenY, player);
+                drawVehicleYawDebug(ctx, result.playerScreenX, result.playerScreenY, vehicle, lifecycle.camera.yaw);
+              }
+            : undefined,
+        );
         raceStatus.textContent = raceStatusText(race, { tuned });
-        performanceHud.frame(started, result.stripGround, renderMilliseconds);
+        performanceHud?.frame(started, result.stripGround, renderMilliseconds);
       },
     };
   };
@@ -274,7 +291,7 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
     controls,
     dispose() {
       controls.dispose();
-      runControls.dispose();
+      devControls?.dispose();
     },
   };
 }

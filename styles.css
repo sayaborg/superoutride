@@ -324,12 +324,13 @@ body {
 }
 
 /* Overlay never consumes game layout; only the DEV body scrolls. */
+/* The DEV panel's toggle sits left of the PAUSE corner button (44 px wide, 8 px apart). */
 #dev-panel {
   position: fixed;
   top: max(8px, env(safe-area-inset-top));
-  right: max(8px, env(safe-area-inset-right));
+  right: calc(max(8px, env(safe-area-inset-right)) + 52px);
   z-index: 1100;
-  max-width: calc(100vw - 16px - env(safe-area-inset-left) - env(safe-area-inset-right));
+  max-width: calc(100vw - 68px - env(safe-area-inset-left) - env(safe-area-inset-right));
   touch-action: pan-y;
 }
 .dev-toggle {
@@ -520,8 +521,7 @@ body {
   gap: 4px;
 }
 
-/* Screen-corner buttons for touch players: BACK top left in menus, PAUSE top right while driving. They stay above
-   the DEV panel's toggle, which shares the top-right corner. */
+/* Screen-corner buttons for touch players: BACK top left in menus, PAUSE top right while driving. */
 .corner-button {
   position: fixed;
   z-index: 1200;

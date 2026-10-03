@@ -51,8 +51,12 @@ async function startPage(): Promise<void> {
     const definitions = await loadVehicleDefinitions(content, await loadEngineSounds(content));
     const { vehicles, driving } = definitions;
     const parameters = new URLSearchParams(location.search);
-    // `dev=1` is read here only.
+    // `dev=1` is read here only. Without it no DEV panel, DEV HUD or DEV control is built.
     const dev = parameters.get('dev') === '1';
+    if (dev) {
+      const template = mustGet<HTMLTemplateElement>('dev-panel-template');
+      template.replaceWith(template.content.cloneNode(true));
+    }
     const courseIndex = await loadCourseIndex(content);
     const courses = browserCourses(courseIndex);
     const series = await loadSeriesCatalog(content, vehicles);
@@ -75,14 +79,16 @@ async function startPage(): Promise<void> {
     canvas.insertAdjacentElement('afterend', raceStatus);
     // The camera definition in use: the product's until a DEV adjustment replaces it.
     let cameraDefinition = CAMERA_DEFINITION;
-    const performanceHud = createCoursePerformanceHud(canvas);
-    // RESULT (today, finishing the run state) follows GOAL or GAME OVER after the DEV delay, counted in fixed steps
-    // while the loop, the field, rendering and sound continue.
+    const performanceHud = dev ? createCoursePerformanceHud(canvas) : null;
+    // RESULT follows GOAL or GAME OVER after the DEV delay, counted in fixed steps while the loop, the field,
+    // rendering and sound continue.
     let resultDelaySeconds = DEFAULT_RESULT_DELAY_SECONDS;
-    mountResultDelayControls(resultDelaySeconds, (seconds) => (resultDelaySeconds = seconds));
-    mountCameraControls((definition) => (cameraDefinition = definition));
-    // The frame loop redraws the current screen with the new method at the next frame, paused or not.
-    mountStripControls(displaySettings.stripMethod, (value) => displaySettings.setStripMethod(value));
+    if (dev) {
+      mountResultDelayControls(resultDelaySeconds, (seconds) => (resultDelaySeconds = seconds));
+      mountCameraControls((definition) => (cameraDefinition = definition));
+      // The frame loop redraws the current screen with the new method at the next frame, paused or not.
+      mountStripControls(displaySettings.stripMethod, (value) => displaySettings.setStripMethod(value));
+    }
 
     const page: RunPage = {
       content,
@@ -97,6 +103,7 @@ async function startPage(): Promise<void> {
       canvas,
       raceStatus,
       performanceHud,
+      dev,
       courses,
       cameraDefinition: () => cameraDefinition,
       resultDelaySeconds: () => resultDelaySeconds,
@@ -134,14 +141,14 @@ async function startPage(): Promise<void> {
       run = null;
       loadedCourse = null;
       raceStatus.textContent = '';
-      courseSelector.setActive('');
+      courseSelector?.setActive('');
       show();
     };
     // `back` leaves LOAD FAILED: to the screen that requested the run, by default TITLE.
     const request = async (next: RunRequest, begin: boolean, back = () => flow.title()) => {
       if (assembling) return;
       assembling = true;
-      courseSelector.setActive(next.courseId);
+      courseSelector?.setActive(next.courseId);
       run?.dispose();
       run = null;
       loadedCourse = null;
@@ -173,21 +180,23 @@ async function startPage(): Promise<void> {
         assembling = false;
       }
     };
-    const devPanel = mustGet<HTMLDetailsElement>('dev-panel');
-    // Keys typed in DEV controls never reach driving input.
-    devPanel.addEventListener('keydown', (event) => {
-      event.stopPropagation();
-    });
-    devPanel.addEventListener(
-      'keydown',
-      (event) => {
-        if (event.key === 'Escape') {
-          devPanel.open = false;
-          devPanel.querySelector<HTMLElement>('summary')?.focus();
-        }
-      },
-      true,
-    );
+    if (dev) {
+      const devPanel = mustGet<HTMLDetailsElement>('dev-panel');
+      // Keys typed in DEV controls never reach driving input.
+      devPanel.addEventListener('keydown', (event) => {
+        event.stopPropagation();
+      });
+      devPanel.addEventListener(
+        'keydown',
+        (event) => {
+          if (event.key === 'Escape') {
+            devPanel.open = false;
+            devPanel.querySelector<HTMLElement>('summary')?.focus();
+          }
+        },
+        true,
+      );
+    }
     // The selection screens request runs that start at once; LOAD FAILED's BACK returns to the last of them.
     const flow = createSelectionFlow(
       { courses: courseIndex, series, vehicles, player, dev },
@@ -206,15 +215,17 @@ async function startPage(): Promise<void> {
     // Selecting the loaded course does nothing; any other course, or any course after a failure, requests its default
     // run without starting it.
     const named = courses.find((course) => course.id === parameters.get('course')) ?? null;
-    const courseSelector = mountMobileCourseSelector(
-      mustGet<HTMLElement>('course-selector-buttons'),
-      courses,
-      named?.id ?? '',
-      (target) => {
-        if (assembling || target.id === loadedCourse) return;
-        void request(defaultRequest(target.id), false);
-      },
-    );
+    const courseSelector = dev
+      ? mountMobileCourseSelector(
+          mustGet<HTMLElement>('course-selector-buttons'),
+          courses,
+          named?.id ?? '',
+          (target) => {
+            if (assembling || target.id === loadedCourse) return;
+            void request(defaultRequest(target.id), false);
+          },
+        )
+      : null;
     // A URL that names a delivered course starts that run at once; an invalid URL request fails like an assembly.
     // Otherwise the page starts at TITLE.
     const urlRequest = (course: BrowserCourseSelection) => {
