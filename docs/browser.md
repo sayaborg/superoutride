@@ -314,6 +314,14 @@ Times are whole milliseconds by the one rule displays use (`raceMilliseconds`: f
 `courseSha256` is the course's build identity and `vehicleSha256` the Session vehicle's delivered-definition identity,
 the identities time budgets carry.
 
+[`src/shell/run-records.ts`](../src/shell/run-records.ts) judges a run once, when its product Session first reaches
+GOAL; RESULT and saving use that one judgement. GAME OVER, QUIT, RETRY, FREE PLAY and a DEV-tuned rebuilt Session
+record nothing; a run requested by URL records as one requested from the menus. A stored record whose identities differ
+from the run's counts as none and is replaced. TIME TRIAL records against the route the race reports
+(`routeLinks`) and records nothing while it is undecided: a faster time replaces the time and splits, and a faster lap
+replaces the best lap alone. ARCADE records against the goal reached: a faster time replaces the record. An equal
+time replaces nothing.
+
 Loading admits version 2 with exactly these keys and value types, and version 1 (settings only), whose settings
 carry over with no records; there are no other migration readers. An absent, unreadable, unparsable or other-version
 record, or one whose settings are malformed, starts from the defaults and is replaced by the next save. A record entry

@@ -101,6 +101,7 @@ async function startPage(): Promise<void> {
       performanceHud,
       dev,
       courses,
+      player,
       cameraDefinition: () => cameraDefinition,
       resultDelaySeconds: () => resultDelaySeconds,
       drawSeed: () => crypto.getRandomValues(new Uint32Array(1))[0]!,

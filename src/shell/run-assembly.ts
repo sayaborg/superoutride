@@ -20,7 +20,7 @@ import { rivalPoolPairs } from '../race/free-play-field.js';
 import { readCourseTimeBudgets, type CourseTimeBudgets } from '../content/course-time-budgets.js';
 import { readPaceSchedule } from '../content/pace-schedule.js';
 import { loadSeriesCourse, type loadSeriesCatalog } from '../content/series-catalog.js';
-import { createSessionVehicle, type SessionVehicle } from '../content/session-vehicle.js';
+import { createSessionVehicle, sessionVehicleSha256, type SessionVehicle } from '../content/session-vehicle.js';
 import { runSettings, type RunRequest } from './run-request.js';
 import { createCourseScene } from '../view/course-scene.js';
 import { createRenderMeasurements } from '../view/renderer.js';
@@ -34,6 +34,8 @@ import { admitProduct } from '../content/delivered-product.js';
 import { compileSessionConfiguration, type SessionConfiguration } from '../race/session-configuration.js';
 import type { DisplaySettings } from '../view/display-settings.js';
 import type { createRaceSprites } from '../view/race-sprites.js';
+import type { PlayerRecord } from './player-record.js';
+import { judgeRun, type RecordJudgement } from './run-records.js';
 
 /** The one run the page drives: its fixed step, its frame, its result and its disposal. */
 export interface Run extends RunFrame {
@@ -54,6 +56,8 @@ export interface RunPage {
   /** `dev=1`: the run builds its DEV controls and draws the DEV HUDs. */
   readonly dev: boolean;
   readonly courses: readonly BrowserCourseSelection[];
+  /** The player record, which a run reaching GOAL updates. */
+  readonly player: PlayerRecord;
   /** The camera definition in use. */
   cameraDefinition(): CameraDefinition;
   /** The DEV RESULT delay in use. */
@@ -108,6 +112,7 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
     });
   }
   const vehicleOf = (id: string) => fieldVehicles.get(id)!;
+  const vehicleSha256 = await sessionVehicleSha256(vehicle);
   // The player's chosen color for the vehicle.
   const playerColor = request.color ?? undefined;
   // A timed course's budgets must be delivered; a missing file stops loading rather than dropping the clock.
@@ -193,6 +198,30 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
     maxActiveStrips: Math.max(...course.sections.map((section) => section.color.metrics.maxActiveStrips)),
   });
   let afterEndingSeconds = 0;
+  // The run's judgement against the records, made once when the product Session reaches GOAL; a DEV-tuned Session
+  // records nothing.
+  let judgement: RecordJudgement | null = null,
+    recorded = false;
+  const record = () => {
+    recorded = true;
+    const { race } = active;
+    const { player } = race;
+    judgement = judgeRun(page.player.records, {
+      mode: settings.mode,
+      courseId,
+      seriesId: arcade?.series.id ?? null,
+      vehicleId,
+      lapCount: race.lapCount,
+      routeLinks: race.routeLinks,
+      goal: player.finishGateId!,
+      finishSeconds: player.finishSeconds!,
+      crossingSeconds: player.crossingSeconds,
+      bestLapSeconds: player.bestLapSeconds,
+      courseSha256: course.identity.buildSha256,
+      vehicleSha256,
+    });
+    if (judgement?.records) page.player.updateRecords(judgement.records);
+  };
   // DEV only: the frame's render measurements and the performance HUD's timings; the product path takes neither.
   const measurements = page.dev ? createRenderMeasurements() : null;
   const tick = () => {
@@ -202,6 +231,7 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
     lifecycle.update(step.recovered);
     performanceHud?.step(performance.now() - started);
     if (race.outcome.status === 'GOAL' || race.outcome.status === 'GAME_OVER') {
+      if (race.outcome.status === 'GOAL' && !recorded && !active.tuned) record();
       if (afterEndingSeconds + SIM_DT / 2 >= page.resultDelaySeconds()) state.finish();
       else afterEndingSeconds += SIM_DT;
     }
