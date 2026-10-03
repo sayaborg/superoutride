@@ -445,7 +445,8 @@ body {
   font-size: 12px;
 }
 
-.course-performance {
+.course-performance,
+.audio-timing {
   position: fixed;
   top: 4px;
   left: 50%;
@@ -459,6 +460,12 @@ body {
   text-align: center;
   padding: 3px 6px;
   pointer-events: none;
+}
+
+/* The DEV audio timing line sits at the bottom, clear of the performance line. */
+.audio-timing {
+  top: auto;
+  bottom: 4px;
 }
 
 /* Screen-corner buttons for touch players: BACK top left in menus, PAUSE top right while driving. */

@@ -6,6 +6,7 @@ import { resolveRollingSettings, sameRollingSettings, type RollingSettings } fro
 import { TIRE_COMPONENTS, type TireComponents } from './tire-sound-components.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
 import type { TireSurfaceSounds } from './surface-sounds.js';
+import type { ProcessingReport } from './processing-meter.js';
 
 /**
  * One reusable worklet. Only tire sound settings fade/replace generators; engines, context and driving continue.
@@ -80,6 +81,12 @@ export function createTireVoice(
         follow(output.gain, 1, now, control.gainSeconds);
       } else if (pending) follow(output.gain, 1, now, control.gainSeconds);
       pending = null;
+    },
+    /** DEV: report the worklet's processing to `listener`, or stop with null. */
+    measureProcessing(listener: ((report: ProcessingReport) => void) | null): void {
+      if (disposed) return;
+      node.port.onmessage = listener && (({ data }) => listener(data as ProcessingReport));
+      node.port.postMessage({ measure: listener !== null });
     },
     dispose(): void {
       if (disposed) return;

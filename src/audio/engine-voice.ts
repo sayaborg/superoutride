@@ -5,6 +5,7 @@ import { EXHAUST_SETTING_RANGES, resolveExhaustSettings } from './exhaust-acoust
 import type { ExhaustSettings } from './exhaust-acoustics.js';
 import type { CompiledEngineSound } from './engine-sound.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
+import type { ProcessingReport } from './processing-meter.js';
 
 function sameExhaustSettings(left: ExhaustSettings | undefined, right: ExhaustSettings): boolean {
   if (!left) return false;
@@ -97,6 +98,11 @@ export function createEngineVoice(
     },
     setControl(value: ControlSettings): void {
       if (!sameControlSettings(control, value)) control = resolveControlSettings(value);
+    },
+    /** DEV: report the worklet's processing to `listener`, or stop with null. */
+    measureProcessing(listener: ((report: ProcessingReport) => void) | null): void {
+      exhaust.port.onmessage = listener && (({ data }) => listener(data as ProcessingReport));
+      exhaust.port.postMessage({ measure: listener !== null });
     },
     silence(): void {
       // A newly assigned competitor's earlier shifts must not sound.

@@ -10,6 +10,7 @@ import { resolveRollingSettings, sameRollingSettings, type RollingSettings } fro
 import { TIRE_SOUND_INPUT_KEYS, TIRE_CONTROL_RANGES, type TireSoundObservation } from './tire-sound-transport.js';
 import { compileSurfaceSound, type SurfaceSound } from './surface-sounds.js';
 import { TIRE_COMPONENTS, TIRE_COMPONENT_RANGE } from './tire-sound-components.js';
+import { ProcessingMeter } from './processing-meter.js';
 declare const sampleRate: number;
 declare const AudioWorkletProcessor: { new (): { readonly port: MessagePort } };
 declare function registerProcessor(name: string, processor: typeof AudioWorkletProcessor): void;
@@ -60,6 +61,7 @@ class TireProcessor extends AudioWorkletProcessor {
   private rollingMix = 1;
   private frictionMix = 1;
   private valid = true;
+  private readonly meter = new ProcessingMeter(this.port, sampleRate);
   static get parameterDescriptors() {
     return [
       ...TIRE_COMPONENTS.map(({ key }) => ({ name: `mix_${key}`, ...TIRE_COMPONENT_RANGE, automationRate: 'k-rate' })),
@@ -78,6 +80,7 @@ class TireProcessor extends AudioWorkletProcessor {
     this.surfaces = readSurfaces(options?.processorOptions?.surfaces);
     this.pair = createPair(this.surfaces, this.settings, this.rolling, this.control);
     this.port.onmessage = ({ data }) => {
+      if (this.meter.receive(data)) return;
       if (data === 'stop') this.pair = null;
       else if (this.pair !== null) {
         try {
@@ -143,6 +146,7 @@ class TireProcessor extends AudioWorkletProcessor {
       return false;
     }
     if (!output) return true;
+    const started = this.meter.begin();
     this.updateObserved(p, 'front', this.frontObservation, pair.front);
     this.updateObserved(p, 'rear', this.rearObservation, pair.rear);
     const rolling = this.readMix(p, 'mix_rolling'),
@@ -157,6 +161,7 @@ class TireProcessor extends AudioWorkletProcessor {
         pair.front.frictionOutput * this.frictionMix +
         (pair.rear.rollingOutput * this.rollingMix + pair.rear.frictionOutput * this.frictionMix);
     }
+    this.meter.end(started, output.length);
     return true;
   }
 }

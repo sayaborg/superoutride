@@ -308,6 +308,15 @@ CPU time adds fixed-step work since the preceding render to rendering/display wo
 interval is elapsed time between completed frames. FPS and frame/step/interval maxima reset each
 reporting window.
 
+With `dev=1` a second line at the bottom of the page, the audio timing HUD
+([`audio-timing-hud.ts`](../src/shell/audio-timing-hud.ts)), shows the AudioContext's timing every half second, to
+find when engine sound starts to lag: its state and sample rate, `baseLatency`, `outputLatency`, the stamp lag
+(`currentTime` less `getOutputTimestamp().contextTime`), the stamp's age, the clock deficit (wall time less context
+time since the context last started running), the state changes to suspended and to running it has seen, and the
+worklets' render blocks with those that took longer than their own duration and the longest. The worklets time their
+blocks only after this HUD asks them to ([Audio](audio.md#mix-and-lifetime)). The latest reading is also the element's
+`data-reading` JSON. These are observations, not device verdicts.
+
 ## Player record
 
 [`src/shell/player-record.ts`](../src/shell/player-record.ts) owns the browser's one player record: a

@@ -1,3 +1,4 @@
+import { createAudioTimingHud } from './audio-timing-hud.js';
 import { browserContent } from './browser-content.js';
 import { createRaceSprites } from '../view/race-sprites.js';
 import { createDisplaySettings } from '../view/display-settings.js';
@@ -81,6 +82,7 @@ async function startPage(): Promise<void> {
     // The camera definition in use: the product's until a DEV adjustment replaces it.
     let cameraDefinition = CAMERA_DEFINITION;
     const performanceHud = dev ? createCoursePerformanceHud(canvas) : null;
+    if (dev) createAudioTimingHud(canvas, shell.audioTiming);
     // RESULT follows GOAL or GAME OVER after the DEV delay, counted in fixed steps while the loop, the field,
     // rendering and sound continue.
     let resultDelaySeconds = DEFAULT_RESULT_DELAY_SECONDS;

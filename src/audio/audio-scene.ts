@@ -1,3 +1,4 @@
+import type { ProcessingReport } from './processing-meter.js';
 import { clamp } from '../core/math.js';
 import { resolveControlSettings, type ControlSettings } from './audio-control-policy.js';
 import { follow } from './audio-parameter.js';
@@ -186,6 +187,10 @@ export async function createAudioScene(context: AudioContext, surfaces: TireSurf
     },
     setMasterGain(value: number): void {
       graph.setMasterGain(value);
+    },
+    /** DEV: report each worklet's processing to `listener`, or stop with null. */
+    measureProcessing(listener: ((report: ProcessingReport) => void) | null): void {
+      for (const voice of [playerEngine, rivalEngine, tires]) voice.measureProcessing(listener);
     },
     dispose(): void {
       if (disposed) return;

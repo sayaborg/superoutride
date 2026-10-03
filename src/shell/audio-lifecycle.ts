@@ -7,6 +7,15 @@ import type { CompiledVehicleDefinition } from '../vehicle/definition-document.j
 import type { CompetitorObservation } from '../race/competitor-observation.js';
 import { createVehicleAudioEmitter, readVehicleAudio } from './vehicle-audio.js';
 import type { PlayerRecord } from './player-record.js';
+import type { ProcessingReport } from '../audio/processing-meter.js';
+
+/** DEV: what the audio timing HUD reads of the audio lifetime. */
+export interface AudioTimingSource {
+  /** The current AudioContext, or null before the audio starts or after it fails. */
+  context(): AudioContext | null;
+  /** Report every worklet's processing to `listener`, including scenes built later; null stops it. */
+  measureProcessing(listener: ((report: ProcessingReport) => void) | null): void;
+}
 
 // Touch activation arrives on release; pointerdown activates only a mouse.
 const GESTURE_EVENTS = ['pointerdown', 'pointerup', 'touchend', 'keydown'] as const;
@@ -31,6 +40,8 @@ export function createAudioLifecycle(
     active = false,
     disposed = false;
   let failed = false;
+  // DEV: the processing listener, applied to every scene built while it is set.
+  let processingListener: ((report: ProcessingReport) => void) | null = null;
   const sounds = new Map(vehicles.map((vehicle) => [vehicle.compiledVehicle.id, vehicle.sound]));
   const soundOf = (vehicleId: string) => {
     const sound = sounds.get(vehicleId);
@@ -147,6 +158,7 @@ export function createAudioLifecycle(
         return;
       }
       scene = built;
+      if (processingListener) built.measureProcessing(processingListener);
       if (!(await resumed)) throw new Error('audio resume failed');
       if (context === created) sync();
     } catch {
@@ -219,6 +231,14 @@ export function createAudioLifecycle(
         fail();
       }
     },
+    /** DEV only: the audio timing HUD's source. */
+    timing: Object.freeze<AudioTimingSource>({
+      context: () => context,
+      measureProcessing(listener) {
+        processingListener = listener;
+        scene?.measureProcessing(listener);
+      },
+    }),
     setActive(value: boolean): void {
       active = value;
       sync();

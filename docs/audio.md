@@ -188,6 +188,12 @@ suspends the context, and mute fades before suspension. A page hidden without en
 disposes it. Disposal closes the context, including a graph completing initialization after disposal. Module
 URLs resolve within the selected commit-versioned build.
 
+For DEV measurement only, each worklet carries a processing meter
+([`processing-meter.ts`](../src/audio/processing-meter.ts)) that reads no clock until its voice asks it to measure;
+then it times each render block with `Date.now()` (whole milliseconds, the one clock every worklet scope has) and
+posts the blocks, the overruns (blocks that took longer than the audio they produced) and the longest block about once
+a second. The audio lifetime applies a measuring listener to every scene it builds.
+
 An audio failure closes the affected graph and exposes retry while driving continues. A late result
 from an older initialization cannot replace or close a newer graph. Invalid processor replacements
 produce silence. Browsers without AudioWorklet support remain playable with unavailable sound.

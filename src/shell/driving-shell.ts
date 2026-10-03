@@ -1,4 +1,4 @@
-import { createAudioLifecycle } from './audio-lifecycle.js';
+import { createAudioLifecycle, type AudioTimingSource } from './audio-lifecycle.js';
 import type { TireSurfaceSounds } from '../audio/surface-sounds.js';
 import type { AudioSettings } from '../audio/audio-document.js';
 import { createLogicalFrame, LOGICAL_HEIGHT, LOGICAL_WIDTH } from '../view/display-scale.js';
@@ -35,6 +35,8 @@ interface BrowserDrivingShell {
   activate(): void;
   /** Set the MASTER volume in percent, as the DEV volume stepper does. */
   setMasterVolume(percent: number): void;
+  /** DEV only: the audio timing HUD's source. */
+  readonly audioTiming: AudioTimingSource;
 }
 
 /**
@@ -75,6 +77,7 @@ export function createBrowserDrivingShell(
     },
     menuCommands: () => menuInput.poll(),
     setMasterVolume: (percent) => audio.setMasterVolume(percent),
+    audioTiming: audio.timing,
     activate(): void {
       audio.enable();
       const page = document.documentElement;
