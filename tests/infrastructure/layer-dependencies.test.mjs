@@ -21,7 +21,8 @@ async function collectFiles(directory) {
   return files;
 }
 
-// Lower domains precede their consumers. Imports within one domain are unrestricted.
+// Lower domains precede their consumers. Imports within one domain are unrestricted. Every dependency between domains
+// goes to a strictly lower rank, so the domains can form no cycle.
 const layers = ['core', 'image', 'audio', 'course', 'vehicle', 'content', 'input', 'race', 'view', 'shell'];
 const rank = new Map(layers.map((layer, index) => [layer, index]));
 
@@ -162,7 +163,6 @@ test('engine and authoring dependencies follow their declared directions, includ
     'src has no root-level files',
   );
 
-  const graph = new Map();
   for (const root of [sourceRoot, toolRoot]) {
     const configPath = path.join(repositoryRoot, root === sourceRoot ? 'tsconfig.json' : 'tsconfig.tools.json');
     const config = ts.getParsedCommandLineOfConfigFile(
@@ -181,23 +181,7 @@ test('engine and authoring dependencies follow their declared directions, includ
         const to = dependencyTarget(file, ref, config.options);
         if (!to) continue;
         checkDirection(from, to);
-        if (from.startsWith('src/') && to.startsWith('src/')) {
-          const source = layerOf(from),
-            target = layerOf(to);
-          if (source === target) continue;
-          const targets = graph.get(source) ?? new Set();
-          targets.add(target);
-          graph.set(source, targets);
-        }
       }
     }
   }
-  const complete = new Set();
-  function visit(layer, trail = []) {
-    assert.ok(!trail.includes(layer), `layer cycle: ${[...trail, layer].join(' -> ')}`);
-    if (complete.has(layer)) return;
-    for (const target of graph.get(layer) ?? []) visit(target, [...trail, layer]);
-    complete.add(layer);
-  }
-  for (const layer of graph.keys()) visit(layer);
 });
