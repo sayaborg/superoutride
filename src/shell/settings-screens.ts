@@ -29,7 +29,8 @@ function stepVolume(value: number, by: -1 | 1): number {
 
 /**
  * SETTINGS: MASTER, MUSIC and EFFECTS volumes, which LEFT and RIGHT change in steps of five and the player record
- * keeps, and CONTROLS, a screen listing the controls. MASTER applies at once through `setMasterVolume`. BACK leaves.
+ * keeps; CONTROLS, a screen listing the controls; and CLEAR RECORDS, which asks once (NO first) before emptying the
+ * records and keeps the settings. MASTER applies at once through `setMasterVolume`. BACK leaves.
  */
 export function showSettings(
   player: PlayerRecord,
@@ -48,10 +49,25 @@ export function showSettings(
         },
       })),
       { label: 'CONTROLS', confirm: controls },
+      { label: 'CLEAR RECORDS', confirm: clearRecords },
     ];
     devices.menu({ title: 'SETTINGS', items, back }, initial);
   };
   const controls = () =>
     devices.menu({ title: 'CONTROLS', lines: CONTROLS, items: () => [], back: () => settings(VOLUME_NAMES.length) });
+  const clearRecords = () => {
+    const back = () => settings(VOLUME_NAMES.length + 1);
+    const items: readonly MenuItem[] = [
+      { label: 'NO', confirm: back },
+      {
+        label: 'YES',
+        confirm: () => {
+          player.updateRecords({ timeTrial: {}, arcade: {} });
+          back();
+        },
+      },
+    ];
+    devices.menu({ title: 'CLEAR RECORDS?', items: () => items, back });
+  };
   settings();
 }

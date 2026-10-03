@@ -87,7 +87,9 @@ MODE, SELECT SERIES, SELECT COURSE and SELECT VEHICLE under the keys `mode`, `se
 its first selectable item; each CONFIRM on those screens saves its choice as the latest.
 
 SETTINGS lists MASTER, MUSIC and EFFECTS with their volumes, which LEFT and RIGHT change in steps of 5 within 0–100
-(to the adjacent multiple of 5), and CONTROLS, which shows the keyboard, touch and gamepad controls; BACK leaves each.
+(to the adjacent multiple of 5), CONTROLS, which shows the keyboard, touch and gamepad controls, and CLEAR RECORDS,
+which asks CLEAR RECORDS? with NO (selected first) and YES: YES empties the records, saves the player record with its
+settings unchanged and returns to SETTINGS, as NO and BACK do; BACK leaves each screen.
 The player record keeps every volume. MASTER applies at once through the same path as the DEV volume stepper, which
 shows it; MUSIC and EFFECTS have no sound until their buses exist.
 
@@ -330,15 +332,16 @@ from the run's counts as none and is replaced. TIME TRIAL records against the ro
 replaces the best lap alone. ARCADE records against the goal reached: a faster time replaces the record. An equal
 time replaces nothing.
 
-Loading admits version 2 with exactly these keys and value types, and version 1 (settings only), whose settings
-carry over with no records; there are no other migration readers. An absent, unreadable, unparsable or other-version
-record, or one whose settings are malformed, starts from the defaults and is replaced by the next save. A record entry
-whose key or value is malformed is dropped alone. Each settings or records change saves the whole record at once. Where localStorage is missing or
-reading or writing it throws, the record lives in memory for the page and the game continues. SETTINGS and the
-DEV volume stepper ([Sound controls](#sound-controls)) save volumes, SELECT VEHICLE saves colors, and the selection
-screens save their latest selections. A Session reads the player's vehicle color from
-`vehicleColors`, falling back to the vehicle's default color when the record has none or names a color its sprite
-set lacks. DEV tuning and DEV sound settings are not stored.
+Loading admits version 2 with exactly these keys and value types, and version 1 (settings only), whose settings carry
+over with no records; there are no other migration readers. An absent, unreadable, unparsable or other-version
+record, or one whose settings are malformed, starts from the defaults and is replaced by the next save. A record
+entry whose key or value is malformed is dropped alone. Each settings or records change saves the whole record at
+once. Where localStorage is missing or reading or writing it throws, the record lives in memory for the page and the
+game continues. SETTINGS and the DEV volume stepper ([Sound controls](#sound-controls)) save volumes, SELECT VEHICLE
+saves colors, the selection screens save their latest selections, a run reaching GOAL saves records and CLEAR RECORDS
+empties them. A Session reads the player's vehicle color from `vehicleColors`, falling back to the vehicle's default
+color when the record has none or names a color its sprite set lacks. DEV tuning and DEV sound settings are not
+stored.
 
 ## DEV controls
 
