@@ -629,12 +629,16 @@ cause, and the countdown to GO: the seconds until GO (3 while WAITING, 0 from GO
 remaining seconds rounded up (3, 2, 1, then 0 at GO), which the product HUD draws; the clock exposes race time, the deadline in race time
 (null without a time limit) and the last extension: its awarded amount and the race time of the checkpoint that
 earned it. The race exposes each competitor's progress (route s,
-accepted finish count and status), finish time and, on a CIRCUIT, best lap: its fastest complete lap, null until it
-completes one. A lap runs from GO (for a competitor on the grid) or from a FINISH line crossing to the next FINISH line
-crossing, both at their event times; a competitor that appeared ahead completes its first lap at its second FINISH
-line crossing. The Route, whose occurrences carry fork choices; the lap count
-and course type. One race function gives a competitor's clock: its finish time, else race time. The shell derives
-the status line from these facts ([Browser](browser.md#race-status)).
+accepted finish count, status and next race line), finish time and, on a CIRCUIT, the race time its current lap
+began, its latest lap and its best lap (its fastest complete lap); the laps are null until it completes one. A lap runs
+from GO (for a competitor on the grid) or from a FINISH line crossing to the next FINISH line crossing, both at their
+event times; a competitor that appeared ahead completes its first lap at its second FINISH line crossing. The Route,
+whose occurrences carry fork choices; the lap count and course type. One race function gives a competitor's clock:
+its finish time, else race time. The race also publishes the player's standing, its rank among the competitors
+present by `rankRaceProgress` and their count, which every display reads; the rank limit of the player's next race
+gate (null without one or after finishing); and, when the only present rival takes part in a stage interval holding
+the player's STAGE (one rival per stage), that rival's Route station less the player's, positive while it is ahead.
+The shell derives the status line and the HUD from these facts ([Browser](browser.md#race-status)).
 
 Stages count race gates: the player's STAGE is one more than the race gates (checkpoints and FINISH lines) the
 player has crossed since GO, continuing across laps and counted by number whichever branch the route takes. STAGE

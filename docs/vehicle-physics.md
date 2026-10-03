@@ -452,7 +452,8 @@ order is unchanged. This is a conservative current-contact slip constraint.
 ## Observations
 
 HUD observations include input, actuators, automatic steering, requested/delivered offsets, target/actual
-rack, requested/delivered torques, the clutch observation and the last shift. The DEV HUD shows handwheel angle through the listing's `steeringRatio`.
+rack, requested/delivered torques, the clutch observation, the selected gear and the last shift. The race copies the
+product HUD's subset into each competitor observation ([Architecture](architecture.md)). The DEV HUD shows handwheel angle through the listing's `steeringRatio`.
 The mechanical state and compiled mechanics contain neither handwheel angle nor ratio. The bike lean display is
 `atan2(lateralAcceleration,g)`, the equilibrium lean of the rider-and-machine centre-of-mass line, shown with
 discrete bank images that the sprite set's `bankDegrees` calibrates; physical state contains yaw and pitch.

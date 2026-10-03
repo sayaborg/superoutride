@@ -1,6 +1,7 @@
 import type { ResolvedCourseSession, SessionEntry } from './course-session.js';
 import type { RivalEnvelope } from '../content/rival-envelope.js';
 import { createCheckpointClock, raceEventSeconds } from './checkpoint-clock.js';
+import { rankRaceProgress } from './race-ranking.js';
 import { createRankLimitJudge, createRunOutcome, type RunStatus } from './run-outcome.js';
 import { createRouteProgress, type RouteRaceEvent } from './route-progress.js';
 import { createRouteCrossSections } from './route-cross-sections.js';
@@ -142,6 +143,8 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     lapStartSeconds: (stages === null || stages.first === 1 ? 0 : null) as number | null,
     /** On a CIRCUIT, its fastest complete lap in seconds; null until it completes one, and on other course types. */
     bestLapSeconds: null as number | null,
+    /** On a CIRCUIT, its latest complete lap in seconds; null until it completes one, and on other course types. */
+    lastLapSeconds: null as number | null,
   });
   // Every competitor drives the model of its entry's vehicle, spawned at its grid slot with the Session's start speed,
   // or, appearing ahead, where and as fast as it appears.
@@ -278,7 +281,12 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   const publish = () => {
     for (let i = 0; i < motions.length; i += 1) {
       const motion = motions[i]!;
-      writeCompetitorObservation(competitorObservations[i]!, motion.c.actor.vehicle, motion.step.input);
+      writeCompetitorObservation(
+        competitorObservations[i]!,
+        motion.c.actor.vehicle,
+        motion.c.actor.model,
+        motion.step.input,
+      );
     }
   };
   // Only rivals in the resident window are observable; this is the single residency decision.
@@ -413,8 +421,10 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
           }),
         );
         if (course.type === 'CIRCUIT' && event.kind === 'finish') {
-          if (c.lapStartSeconds !== null)
-            c.bestLapSeconds = Math.min(c.bestLapSeconds ?? Infinity, timeSeconds - c.lapStartSeconds);
+          if (c.lapStartSeconds !== null) {
+            c.lastLapSeconds = timeSeconds - c.lapStartSeconds;
+            c.bestLapSeconds = Math.min(c.bestLapSeconds ?? Infinity, c.lastLapSeconds);
+          }
           c.lapStartSeconds = timeSeconds;
         }
       }
@@ -458,6 +468,37 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     /** The player's STAGE: one more than the race gates the player has crossed since GO, across laps. */
     get stage() {
       return playerGates + 1;
+    },
+    /**
+     * The player's rank among the competitors present in the Session (`rankRaceProgress`) and their count: the one
+     * standing every display reads.
+     */
+    get standing(): { readonly rank: number; readonly count: number } {
+      const present = [player, ...rivals.filter((c) => c.present)];
+      const standings = rankRaceProgress(
+        present.map((c) => ({ competitorId: c.id, s: c.progress.s, finishSeconds: c.finishSeconds })),
+      );
+      return { rank: standings.find((s) => s.competitorId === player.id)!.rank, count: present.length };
+    },
+    /**
+     * The rank limit N of the player's next race gate: the player fails there when N other competitors cross it first.
+     * Null when that gate has none or the player has finished.
+     */
+    get nextRankLimit(): number | null {
+      const next = player.progress.next;
+      return next && Object.hasOwn(rankLimits, next.landmark.id) ? rankLimits[next.landmark.id]! : null;
+    },
+    /**
+     * When the only present rival takes part in a stage interval holding the player's STAGE (one rival per stage), its
+     * Route station less the player's, in metres: positive while it is ahead. Null otherwise.
+     */
+    get stageRivalGap(): number | null {
+      const present = rivals.filter((c) => c.present);
+      if (present.length !== 1) return null;
+      const [rival] = present;
+      const stage = playerGates + 1;
+      if (rival!.stages === null || stage < rival!.stages.first || stage > rival!.stages.last) return null;
+      return rival!.progress.s - player.progress.s;
     },
     /** The run's one status (WAITING and READY before GO, then RUNNING, GOAL or GAME_OVER) and GAME OVER cause. */
     outcome: Object.freeze({

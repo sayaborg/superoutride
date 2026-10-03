@@ -2,6 +2,7 @@ import type { DrivingInput } from '../vehicle/driving-input.js';
 import type { PowertrainShiftObservation } from '../vehicle/physics/automatic-powertrain.js';
 import type { VehicleMotionRead, VehicleRenderRead } from '../vehicle/physics/vehicle-contract.js';
 import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
+import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import type { TireObservation, VehicleTireObservation } from '../vehicle/physics/vehicle-tire-observation.js';
 import type { SessionVehicle } from '../content/session-vehicle.js';
 
@@ -18,7 +19,14 @@ export interface CompetitorObservation extends VehicleMotionRead, VehicleRenderR
   readonly form: SessionVehicle['vehicleDefinition']['form'];
   readonly y: number;
   readonly brakeLampOn: boolean;
+  /** Speed over ground, m/s. */
+  readonly speed: number;
+  /** The vehicle's actual controls: the delivered driver steering offset as a fraction of its maximum, in [-1, 1], and
+   * the throttle and brake actuators, in [0, 1]. */
+  readonly control: { readonly steering: number; readonly throttle: number; readonly brake: number };
   readonly powertrain: {
+    /** The selected forward gear, from 1. */
+    readonly gear: number;
     readonly engineRpm: number;
     readonly effectiveOpening: number;
     readonly fuelCut: boolean;
@@ -29,9 +37,16 @@ export interface CompetitorObservation extends VehicleMotionRead, VehicleRenderR
 
 type Mutable<T> = { -readonly [Key in keyof T]: T[Key] };
 type MutableTire = Mutable<TireObservation>;
-type CompetitorObservationSlot = Mutable<Omit<CompetitorObservation, 'course' | 'powertrain' | 'tires'>> & {
+type CompetitorObservationSlot = Mutable<Omit<CompetitorObservation, 'course' | 'control' | 'powertrain' | 'tires'>> & {
   course: { s: number };
-  powertrain: { engineRpm: number; effectiveOpening: number; fuelCut: boolean; shift: PowertrainShiftObservation };
+  control: Mutable<CompetitorObservation['control']>;
+  powertrain: {
+    gear: number;
+    engineRpm: number;
+    effectiveOpening: number;
+    fuelCut: boolean;
+    shift: PowertrainShiftObservation;
+  };
   tires: { front: MutableTire; rear: MutableTire };
 };
 
@@ -70,7 +85,10 @@ export function createCompetitorObservation(
     sprungPitch: 0,
     lateralAcceleration: 0,
     brakeLampOn: false,
+    speed: 0,
+    control: { steering: 0, throttle: 0, brake: 0 },
     powertrain: {
+      gear: 1,
       engineRpm: 0,
       effectiveOpening: 0,
       fuelCut: false,
@@ -85,6 +103,7 @@ export function createCompetitorObservation(
 export function writeCompetitorObservation(
   observation: CompetitorObservation,
   vehicle: VehicleState,
+  model: VehicleModel,
   input: DrivingInput,
 ): void {
   const out = observation as CompetitorObservationSlot;
@@ -102,7 +121,13 @@ export function writeCompetitorObservation(
   out.sprungPitch = vehicle.sprungPitch;
   out.lateralAcceleration = vehicle.lateralAcceleration;
   out.brakeLampOn = Number(input.brake) > 0;
+  out.speed = vehicle.speed;
+  const { control } = vehicle;
+  out.control.steering = control.deliveredSteerOffset / model.steering.steeringOffsetMax;
+  out.control.throttle = control.throttleActuator;
+  out.control.brake = control.brakeActuator;
   const { powertrain } = vehicle;
+  out.powertrain.gear = powertrain.gear;
   out.powertrain.engineRpm = powertrain.engineRpm;
   out.powertrain.effectiveOpening = powertrain.effectiveOpening;
   out.powertrain.fuelCut = powertrain.fuelCut;
