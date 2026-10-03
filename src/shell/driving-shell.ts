@@ -28,6 +28,8 @@ interface BrowserDrivingShell {
   setRoute(route: InputRoute): void;
   /** The menu commands since the last call. */
   menuCommands(): MenuCommand[];
+  /** Called within a user gesture outside driving: prepare sound so runs sound from their start. */
+  enableSound(): void;
 }
 
 /**
@@ -67,6 +69,7 @@ export function createBrowserDrivingShell(
       corners.setRoute(route);
     },
     menuCommands: () => menuInput.poll(),
+    enableSound: () => audio.enable(),
     framebuffer,
     inputManager,
     present(overlay): void {

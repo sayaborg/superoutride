@@ -33,7 +33,8 @@ the player's sprites, the camera rig and lifecycle, the course's performance-HUD
 controls (driving tuning, export, RECOVER, the Session form). Page devices hold no run: each frame passes the
 run's observations to them.
 
-The page is loaded once. Startup, a course selection, changed Session settings and NEW SESSION request a run, and
+The page is loaded once. A URL that names a course, the selection screens, RETRY, a DEV course selection, changed
+Session settings and NEW SESSION request a run, and
 every request passes the one assembly; a DEV tuning rebuild replaces the Session inside its run. Assembly is
 asynchronous and one runs at a time: a request made during an assembly is ignored. The page holds one course: a
 request first disposes of the current run, removing the listeners and DOM it added, then loads the next. A new run
@@ -52,25 +53,51 @@ page restored from the back/forward cache reloads. Driving input and sound are l
 visible and the current screen is live, and the host runs one symmetric procedure when that changes: live clears
 input suspension and activates audio; stopped suspends input (which resets it) and deactivates audio.
 
-The loading screen shows `LOADING` on the plain background while a run is assembled, and `LOAD FAILED` in red
-after a failed assembly; the reason appears only in the console and the status element outside the frame, since it
-may hold characters without text tiles. The run screen holds the run and its state: running, paused (manual PAUSE)
+The loading screen shows `LOADING` on the plain background while a run is assembled. After a failed assembly the
+LOAD FAILED screen shows `LOAD FAILED` in red with RETRY, which requests the same run again, and BACK, which returns to
+the screen that requested it: the last selection screen, or TITLE for a run the URL or a DEV control requested. The
+reason appears only in the console and the status element outside the frame, since it may hold characters without
+text tiles. The run screen holds the run and its state: running, paused (manual PAUSE)
 or finished (the Session reached RESULT). The run runs only while neither holds: paused and finished advance no race,
 and driving input and sound stop, so the DEV vehicle HUD shows neutral input and no touch indicator is drawn. Every
 frame still draws the scene. While paused, the PAUSE menu is drawn over the stopped frame: the title `PAUSED` and
 RESUME, RETRY and QUIT. RESUME, BACK and PAUSE resume; RETRY requests the same run again, which starts at once with a
-new seed; QUIT requests it again waiting at setup, until the title screen exists.
+new seed; QUIT ends the run and shows TITLE.
 
 Every list screen uses one menu part: a title and items, the current item YELLOW, unselectable items DARK and the
 rest WHITE, centred in the text grid without shortening. UP and DOWN move over the selectable items and wrap around;
 each item carries what CONFIRM and LEFT/RIGHT do on it, so no action depends on its position; BACK leaves. The PAUSE button's
 label (PAUSE or RESUME) and its visibility follow the run screen's state.
 
+The selection screens follow one flow table ([product](product.md#6-flow-and-screens)). TITLE offers START and
+SETTINGS (DARK until SETTINGS exists); START leads to SELECT MODE, and the page's first CONFIRM on TITLE enables sound
+where the browser allows it. After SELECT MODE each mode's screens follow in order: ARCADE: SELECT SERIES, SELECT
+COURSE (only for a series with several courses), SELECT VEHICLE; FREE PLAY: SELECT COURSE, SELECT VEHICLE, OPTIONS;
+TIME TRIAL: SELECT COURSE, SELECT VEHICLE, LAPS (only on a course with several laps). BACK returns to the previous
+screen and does nothing on TITLE; the last CONFIRM requests the run, which shows LOADING and then starts at once.
+Each screen starts from the current selection, otherwise its first selectable item.
+
+- SELECT MODE: a mode with no selectable course is DARK.
+- SELECT SERIES lists the series with their titles; SELECT COURSE lists course display names from the course index.
+  In FREE PLAY and TIME TRIAL its courses are grouped by series, each group headed by its series title (DARK); courses
+  in no series follow last, after a blank line.
+- SELECT VEHICLE offers the series' vehicles in ARCADE and every catalog vehicle otherwise. The vehicle turns through
+  its yaw images on the plain background, one image every six fixed steps, drawn like a race vehicle at the
+  player-depth scale, above its name (manufacturer and model). LEFT and RIGHT change the vehicle and UP and DOWN its
+  color, both wrapping around; a series with fixed colors has no color choice. It starts from the player record's
+  color for the vehicle, else the vehicle's default color, and CONFIRM saves the chosen color in the player record.
+- OPTIONS: RIVALS (0–15), POOL (ALL, CARS or BIKES; set to the vehicle's form when the vehicle changes) and, on a
+  course with several laps, LAPS (1 to the course's maximum); LEFT and RIGHT change the value, and START confirms.
+- LAPS: LAPS (1 to the course's maximum) and START.
+
+DEV series and courses in no series are offered only with `dev=1`, which the composition root reads once. Without it
+every delivered course is a DEV one today, so every mode is DARK.
+
 RESULT follows GOAL or GAME OVER after the RESULT delay, a DEV setting (default 3 s; 0, 1, 2, 3, 5 or 10 s; not
 persisted), which the shell counts in fixed simulation steps after the step that ended the run. Until then the loop,
 the field, rendering and sound continue and PAUSE stays available; a pause stops the count with the simulation.
-Until selection screens exist, RESULT is finishing the run: the race stops, PAUSE is hidden and the status line keeps
-the outcome; rendering changes no screen state. A Session rebuilt by DEV tuning restarts
+Until the RESULT screen exists, RESULT is finishing the run: the race stops, PAUSE is hidden and the status line
+keeps the outcome; rendering changes no screen state. A Session rebuilt by DEV tuning restarts
 the run, clearing `paused` and `finished`, so it drives at once. START resets driving input once. NEW
 SESSION returns to setup.
 
@@ -80,8 +107,7 @@ The composition root builds the course list once from the delivered
 [course index](content-and-gameplay.md#course-index), in its order and with its display names, and passes it to the
 course selection, the DEV course buttons and the DEV HUD. The DEV course buttons are numbered 1, 2, … in that order:
 RIBBON COAST, RIBBON FORK, RIBBON RING and RIBBON ROUGH.
-A series marked `dev: true` is shown only with DEV; until selection screens exist, these DEV course
-buttons select courses directly. Selecting the loaded course does nothing. Selecting another course, or any course after a failed assembly, requests a
+The DEV course buttons select courses directly. Selecting the loaded course does nothing. Selecting another course, or any course after a failed assembly, requests a
 run of that course with the default Session settings (as if `mode`, `vehicle`, `rivals`, `laps` and `pool` were
 absent) and does not start it.
 
@@ -91,9 +117,9 @@ series. The run's assembly admits the request against the course and the catalog
 it is the one admission of every request.
 
 The URL is read once at startup, as a DEV and test entry point; selections inside the page never rewrite it. A URL
-whose `course` names a delivered course builds that run's request and starts the run at once. Without one, the
-first course, RIBBON COAST, waits for its setup. The player's color is the player record's color for the vehicle.
-A URL request that cannot be built fails like an assembly.
+whose `course` names a delivered course builds that run's request and starts the run at once; otherwise the page starts
+at TITLE. The player's color is the player record's color for the vehicle. A URL request that cannot be built fails
+like an assembly.
 
 Session parameters are case-sensitive:
 
@@ -254,8 +280,8 @@ Loading admits only version 1 with exactly these keys and value types. An absent
 malformed or other-version record starts from the defaults and is replaced by the next save; there are no
 migration readers. Each settings change saves the whole record at once. Where localStorage is missing or
 reading or writing it throws, the record lives in memory for the page and the game continues. Today only the
-MASTER volume has a control (the volume stepper in [Sound controls](#sound-controls)); colors, MUSIC, EFFECTS
-and selections keep their defaults until their screens exist. A Session reads the player's vehicle color from
+MASTER volume has a control (the volume stepper in [Sound controls](#sound-controls)) and SELECT VEHICLE saves
+colors; MUSIC, EFFECTS and selections keep their defaults until their screens exist. A Session reads the player's vehicle color from
 `vehicleColors`, falling back to the vehicle's default color when the record has none or names a color its sprite
 set lacks. DEV tuning and DEV sound settings are not stored.
 

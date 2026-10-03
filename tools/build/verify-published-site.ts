@@ -1,4 +1,5 @@
 import { loadContentManifest } from '../../src/content/content-manifest.js';
+import { loadCourseIndex } from '../../src/content/course-index.js';
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -25,7 +26,9 @@ for (let attempt = 1; attempt <= 10; attempt++) {
     const content = await loadContentManifest(new URL(`build/${sha}/delivery/`, root));
     for (const entry of content.manifest.files) await content.bytes(entry.kind, entry.id);
     userDataDirectory = await mkdtemp(path.join(tmpdir(), 'superoutride-startup-'));
+    // A URL that names a course starts its run directly; the first indexed course is the default.
     const page = new URL(root);
+    page.searchParams.set('course', (await loadCourseIndex(content))[0]!.id);
     page.searchParams.set('verify', sha);
     const { stdout } = await run(
       process.env.CHROME_BIN ?? 'google-chrome',

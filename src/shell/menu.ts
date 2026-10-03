@@ -1,6 +1,11 @@
 import { TEXT_PALETTES } from '../image/text-tiles.js';
 import { TEXT_COLUMNS, TEXT_ROWS, type TextLayer } from '../view/text-layer.js';
 import type { MenuCommand } from '../input/menu-input.js';
+import type { SoftwareSurface } from '../view/software-surface.js';
+import type { Screen } from './screen-host.js';
+
+/** The plain background of screens without a scene. */
+export const SCREEN_BACKGROUND = 0;
 
 /** One menu line and what choosing or adjusting it does. */
 export interface MenuItem {
@@ -18,6 +23,8 @@ export interface MenuItem {
 /** A list to choose from: a title, items read at each use, and what BACK does. */
 export interface MenuDefinition {
   readonly title: string;
+  /** The title's text palette; WHITE when absent. */
+  readonly titlePalette?: number;
   items(): readonly MenuItem[];
   back?(): void;
 }
@@ -62,12 +69,11 @@ export function createMenu(definition: MenuDefinition, initial = 0) {
     },
     write(text: TextLayer) {
       const items = definition.items();
-      const centre = (row: number, line: string, palette: number) =>
-        text.write(Math.floor((TEXT_COLUMNS - line.length) / 2), row, line, palette);
       const top = Math.floor((TEXT_ROWS - (items.length + 2)) / 2);
-      centre(top, definition.title, TEXT_PALETTES.WHITE);
+      writeCentred(text, top, definition.title, definition.titlePalette ?? TEXT_PALETTES.WHITE);
       items.forEach((item, i) =>
-        centre(
+        writeCentred(
+          text,
           top + 2 + i,
           item.value === undefined ? item.label : `${item.label}  ${item.value}`,
           item.disabled ? TEXT_PALETTES.DARK : i === index ? TEXT_PALETTES.YELLOW : TEXT_PALETTES.WHITE,
@@ -77,3 +83,31 @@ export function createMenu(definition: MenuDefinition, initial = 0) {
   });
 }
 export type Menu = ReturnType<typeof createMenu>;
+
+/** Write `line` centred on `row` of the text grid. */
+export function writeCentred(text: TextLayer, row: number, line: string, palette: number) {
+  text.write(Math.floor((TEXT_COLUMNS - line.length) / 2), row, line, palette);
+}
+
+/** A screen showing one menu on the plain background. */
+export function createMenuScreen(
+  frame: SoftwareSurface,
+  text: TextLayer,
+  present: () => void,
+  definition: MenuDefinition,
+  initial = 0,
+): Screen {
+  const menu = createMenu(definition, initial);
+  return {
+    live: false,
+    tick() {},
+    command: (command) => menu.command(command),
+    render() {
+      frame.clear(SCREEN_BACKGROUND);
+      text.clear();
+      menu.write(text);
+      text.draw(frame);
+      present();
+    },
+  };
+}

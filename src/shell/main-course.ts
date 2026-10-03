@@ -6,7 +6,7 @@ import { DEFAULT_RESULT_DELAY_SECONDS, mountResultDelayControls } from './result
 import { mountCameraControls } from './camera-controls.js';
 import { CAMERA_DEFINITION } from '../view/camera-definition.js';
 import { createBrowserDrivingShell } from './driving-shell.js';
-import { browserCourses, selectBrowserCourse, type BrowserCourseId } from './course-selection.js';
+import { browserCourses, type BrowserCourseId, type BrowserCourseSelection } from './course-selection.js';
 import { mountMobileCourseSelector } from './mobile-selector-controls.js';
 import { mustGet } from './dom.js';
 import { loadVehicleDefinitions } from '../content/vehicle-catalog.js';
@@ -15,7 +15,8 @@ import { createCoursePerformanceHud } from './course-performance-hud.js';
 import { loadSeriesCatalog } from '../content/series-catalog.js';
 import { createScreenHost } from './screen-host.js';
 import { createRunScreen, createRunScreenState } from './run-screen.js';
-import { createLoadingScreen } from './loading-screen.js';
+import { createLoadFailedScreen, createLoadingScreen } from './loading-screen.js';
+import { createSelectionFlow } from './selection-flow.js';
 import { assembleRun, type Run, type RunPage } from './run-assembly.js';
 import { readUrlRunRequest, type RunRequest } from './run-request.js';
 import { loadSurfaceMaterials } from '../content/surface-material-catalog.js';
@@ -50,7 +51,10 @@ async function startPage(): Promise<void> {
     const definitions = await loadVehicleDefinitions(content, await loadEngineSounds(content));
     const { vehicles, driving } = definitions;
     const parameters = new URLSearchParams(location.search);
-    const courses = browserCourses(await loadCourseIndex(content));
+    // `dev=1` is read here only.
+    const dev = parameters.get('dev') === '1';
+    const courseIndex = await loadCourseIndex(content);
+    const courses = browserCourses(courseIndex);
     const series = await loadSeriesCatalog(content, vehicles);
     const player = openPlayerRecord(browserStorage());
     const displaySettings = createDisplaySettings();
@@ -60,8 +64,7 @@ async function startPage(): Promise<void> {
     let run: Run | null = null;
     const shell = createBrowserDrivingShell(vehicles, surfaceSounds, await loadAudioSettings(content), player);
     const present = () => shell.present();
-    const loading = createLoadingScreen(shell.framebuffer, textLayer, present, false);
-    const loadFailed = createLoadingScreen(shell.framebuffer, textLayer, present, true);
+    const loading = createLoadingScreen(shell.framebuffer, textLayer, present);
     // The one owner of the current screen; it runs the frame loop while the page is visible.
     const host = createScreenHost(window, document, shell, loading);
     const raceStatus = document.createElement('output');
@@ -107,10 +110,15 @@ async function startPage(): Promise<void> {
     let assembling = false;
     // The loaded run's course; null while no run is loaded.
     let loadedCourse: BrowserCourseId | null = null;
-    // A run that could not be requested or assembled shows LOAD FAILED and its reason, with Retry.
-    const fail = (error: unknown, retryRun: () => void) => {
+    // A run that could not be requested or assembled shows LOAD FAILED with RETRY and BACK, and its reason with Retry
+    // outside the frame.
+    const fail = (error: unknown, retryRun: () => void, back: () => void) => {
       console.error('Course could not start', error);
-      host.show(loadFailed);
+      const leave = () => {
+        status.hidden = true;
+        back();
+      };
+      host.show(createLoadFailedScreen(shell.framebuffer, textLayer, present, { retry: retryRun, back: leave }));
       const retry = document.createElement('button');
       retry.textContent = 'Retry';
       retry.onclick = retryRun;
@@ -120,7 +128,8 @@ async function startPage(): Promise<void> {
       );
       status.hidden = false;
     };
-    const request = async (next: RunRequest, begin: boolean) => {
+    // `back` leaves LOAD FAILED: to the screen that requested the run, by default TITLE.
+    const request = async (next: RunRequest, begin: boolean, back = () => flow.title()) => {
       if (assembling) return;
       assembling = true;
       courseSelector.setActive(next.courseId);
@@ -142,14 +151,20 @@ async function startPage(): Promise<void> {
         status.hidden = true;
         host.show(
           createRunScreen(state, assembled, shell.framebuffer, textLayer, {
-            retry: () => void request(next, true),
-            // Until TITLE exists, QUIT returns to the run's setup.
-            quit: () => void request(next, false),
+            retry: () => void request(next, true, back),
+            quit: () => {
+              run?.dispose();
+              run = null;
+              loadedCourse = null;
+              raceStatus.textContent = '';
+              courseSelector.setActive('');
+              flow.title();
+            },
           }),
         );
         if (begin) assembled.controls.begin();
       } catch (error) {
-        fail(error, () => void request(next, begin));
+        fail(error, () => void request(next, begin, back), back);
       } finally {
         assembling = false;
       }
@@ -169,31 +184,50 @@ async function startPage(): Promise<void> {
       },
       true,
     );
-    // A URL that names a delivered course starts that run at once; otherwise the first course waits for its setup.
-    const named = parameters.get('course');
-    const initial = selectBrowserCourse(courses, named);
+    // The selection screens request runs that start at once; LOAD FAILED's BACK returns to the last of them.
+    const flow = createSelectionFlow(
+      { courses: courseIndex, series, vehicles, player, dev },
+      {
+        frame: shell.framebuffer,
+        text: textLayer,
+        present,
+        show: (screen) => host.show(screen),
+        enableSound: () => shell.enableSound(),
+        run: (next, back) => void request(next, true, back),
+      },
+    );
     const defaultRequest = (courseId: string, params = new URLSearchParams()) =>
       readUrlRunRequest(params, courseId, series.courseSettings(courseId), vehicles, player);
     // Selecting the loaded course does nothing; any other course, or any course after a failure, requests its default
     // run without starting it.
+    const named = courses.find((course) => course.id === parameters.get('course')) ?? null;
     const courseSelector = mountMobileCourseSelector(
       mustGet<HTMLElement>('course-selector-buttons'),
       courses,
-      initial.id,
+      named?.id ?? '',
       (target) => {
         if (assembling || target.id === loadedCourse) return;
         void request(defaultRequest(target.id), false);
       },
     );
-    // An invalid URL request fails like an assembly.
-    const urlRequest = () => {
+    // A URL that names a delivered course starts that run at once; an invalid URL request fails like an assembly.
+    // Otherwise the page starts at TITLE.
+    const urlRequest = (course: BrowserCourseSelection) => {
       try {
-        void request(defaultRequest(initial.id, parameters), initial.id === named);
+        void request(defaultRequest(course.id, parameters), true);
       } catch (error) {
-        fail(error, urlRequest);
+        fail(
+          error,
+          () => urlRequest(course),
+          () => flow.title(),
+        );
       }
     };
-    urlRequest();
+    if (named) urlRequest(named);
+    else {
+      status.hidden = true;
+      flow.title();
+    }
   } catch (error) {
     console.error('Course could not start', error);
     status.textContent = `Course could not start: ${error instanceof Error ? error.message : String(error)} `;

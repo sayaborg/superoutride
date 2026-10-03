@@ -217,4 +217,5 @@ and budgets belong to the index; this keeps every manifest entry available on th
 Dependencies, caches, dist, previews and Pages staging are generated rather than committed source.
 Pages serves one complete commit-versioned ESM build, including its relative module URLs.
 After `npm ci`, `node --import tsx tools/build/verify-published-site.ts <Pages URL> <commit>` checks the public
-version, verifies every indexed payload through the manifest and starts the served game in headless Chrome. `CHROME_BIN` selects a local Chromium executable.
+version, verifies every indexed payload through the manifest and starts the served game in headless Chrome with a URL
+naming the course index's first course, so its run starts directly. `CHROME_BIN` selects a local Chromium executable.

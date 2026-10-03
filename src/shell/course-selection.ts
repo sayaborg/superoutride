@@ -23,12 +23,3 @@ export function formatBrowserCourseSelector(
 ): string {
   return courses.map((course) => `${course.label}${course.id === activeId ? '*' : ''}`).join('  ');
 }
-
-export function selectBrowserCourse(
-  selections: readonly BrowserCourseSelection[],
-  id: string | null,
-): BrowserCourseSelection {
-  const selected = selections.find((course) => course.id === id) ?? selections[0];
-  if (!selected) throw new RangeError('course selection requires a default course');
-  return selected;
-}

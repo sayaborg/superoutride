@@ -158,6 +158,10 @@ export function createAudioLifecycle(
   function unlock(event?: Event): void {
     if (event?.type === 'pointerdown' && (event as PointerEvent).pointerType !== 'mouse') return;
     if (controls.isSoundToggle(event?.target ?? null) || !supported || !audible()) return;
+    start();
+  }
+  /** Create the audio, or resume it; within a user gesture the browser lets it run. */
+  function start(): void {
     if (!context && !loading) {
       const pending = initialize();
       loading = pending;
@@ -192,6 +196,10 @@ export function createAudioLifecycle(
   for (const type of GESTURE_EVENTS) window.addEventListener(type, unlock);
   window.addEventListener('pagehide', hide);
   return {
+    /** A user gesture outside driving: create the audio now, so the next run sounds from its start. */
+    enable(): void {
+      if (supported && enabled && !disposed) start();
+    },
     update(player: CompetitorObservation, rivals: readonly CompetitorObservation[]): void {
       if (!scene || !context || context.state !== 'running' || !audible()) return;
       try {
