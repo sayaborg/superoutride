@@ -510,9 +510,11 @@ A different physical camera or depth interval rejects that observation. The arra
 
 The text layer is the one way to draw text in the frame: a 40 by 30 grid of [pattern, palette]
 [text tiles](image-assets.md#text-tiles) over the 320 by 240 logical frame. It clears, writes a string from a
-cell in one palette, puts one tile, and draws. A position, string or tile outside the grid is a `RangeError`;
-nothing is clipped. Drawing follows the scene render and precedes RGBA expansion; it paints the opaque pixels
-of every tile except the empty pattern, so index 0 and empty tiles leave the scene visible.
+cell in one palette, puts one tile, puts one overlay tile, and draws. Each cell holds a tile and an overlay tile, such
+as a 1-pixel mark over a HUD bar, so a mark needs no tile per combination with the bar under it. A position, string or
+tile outside the grid is a `RangeError`; nothing is clipped. Drawing follows the scene render and precedes RGBA
+expansion; it paints the opaque pixels of every tile except the empty pattern, then each overlay tile over its cell,
+so index 0 and empty tiles leave the scene visible.
 
 ### Vehicle color and brake lamps
 

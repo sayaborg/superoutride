@@ -1,16 +1,27 @@
 import { HUD_TILES, TEXT_PALETTES } from '../image/text-tiles.js';
 import type { createCourseRace } from '../race/course-race.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
+import type { DrivingInput } from '../vehicle/driving-input.js';
 import { TEXT_COLUMNS, type TextLayer } from '../view/text-layer.js';
 import { formatRaceTime } from './race-status-hud.js';
 
 type CourseRace = ReturnType<typeof createCourseRace>;
 
-/** What the HUD reads in one frame: the race's facts, the player's observation and the Session's course and mode. */
+/**
+ * What the HUD reads in one frame: the race's facts, the player's observation, the player's final input sample and the
+ * Session's course, mode and the player vehicle's engine speeds from its definitions.
+ */
 export interface HudFacts {
   readonly race: CourseRace;
   readonly player: CompetitorObservation;
-  readonly session: { readonly courseName: string; readonly mode: string };
+  readonly input: DrivingInput;
+  readonly session: {
+    readonly courseName: string;
+    readonly mode: string;
+    /** The tachometer's redline and full scale, where the limiter cuts fuel. */
+    readonly redlineRpm: number;
+    readonly fuelCutRpm: number;
+  };
 }
 
 /** Seconds a passing display lasts, in the time base its fact is stamped in. */
@@ -61,6 +72,14 @@ export const HUD_LAYOUT = Object.freeze({
   lamp3: [23, 13],
   outcome: ['center', 16],
   cause: ['center', 17],
+  steerLabel: [1, 26],
+  steerBar: [7, 26],
+  gasLabel: [1, 27],
+  gasBar: [7, 27],
+  brakeLabel: [1, 28],
+  brakeBar: [7, 28],
+  rpmLabel: [1, 29],
+  rpmBar: [7, 29],
 } as const satisfies Record<string, readonly [number | 'center', number]>);
 
 type Place = keyof typeof HUD_LAYOUT;
@@ -81,6 +100,40 @@ const writeLamp = (text: TextLayer, place: Place, lit: boolean, palette: number)
     text.put(column + (i & 1), row + (i >> 1), HUD_TILES[`LAMP_${lit ? 'ON' : 'OFF'}_${part}`]!, palette),
   );
 };
+/** A bar's cells; each holds 8 pixels, so a bar is 80 pixels long between its end caps. */
+const BAR_CELLS = 10;
+const BAR_PIXELS = BAR_CELLS * 8;
+const barPixel = (fraction: number) => Math.min(BAR_PIXELS, Math.max(0, Math.round(fraction * BAR_PIXELS)));
+/**
+ * The one bar part: end caps at the place and after its cells, the pixels `[from, to)` filled, each cell RED from the
+ * `red` pixel on (`'all'` for every cell) and WHITE before it, and 1-pixel marks drawn over the cells in their palettes.
+ */
+const writeBar = (
+  text: TextLayer,
+  place: Place,
+  from: number,
+  to: number,
+  red: number | 'all' | null,
+  marks: readonly { readonly pixel: number; readonly palette: number }[],
+) => {
+  const column = columnOf(place, 1),
+    row = HUD_LAYOUT[place][1];
+  text.put(column, row, HUD_TILES.BAR_LEFT!, TEXT_PALETTES.WHITE);
+  text.put(column + BAR_CELLS + 1, row, HUD_TILES.BAR_RIGHT!, TEXT_PALETTES.WHITE);
+  for (let cell = 0; cell < BAR_CELLS; cell++) {
+    const start = cell * 8,
+      filled = Math.max(0, Math.min(to, start + 8) - Math.max(from, start));
+    const tile = filled > 0 && from > start ? `BAR_FILL_RIGHT_${filled}` : `BAR_FILL_${filled}`;
+    const palette = red === 'all' || (red !== null && start >= red) ? TEXT_PALETTES.RED : TEXT_PALETTES.WHITE;
+    text.put(column + 1 + cell, row, HUD_TILES[tile]!, palette);
+  }
+  for (const { pixel, palette } of marks) {
+    const at = Math.min(BAR_PIXELS - 1, pixel);
+    text.overlay(column + 1 + (at >> 3), row, HUD_TILES[`BAR_MARK_${at & 7}`]!, palette);
+  }
+};
+const inputMark = (fraction: number) => ({ pixel: barPixel(fraction), palette: TEXT_PALETTES.YELLOW });
+
 const extended = ({ clock }: CourseRace) => {
   const extension = clock.lastExtension;
   return (
@@ -185,6 +238,49 @@ const HUD_ELEMENTS: readonly HudElement[] = [
     write({ player }, text) {
       writeRight(text, 'speed', String(Math.round(player.speed * 3.6)));
       write(text, 'speedUnit', 'KM/H');
+    },
+  },
+  {
+    // Steering: the delivered offset fills from the centre (DARK mark); the input is the yellow mark.
+    when: () => true,
+    write({ player, input }, text) {
+      const half = BAR_PIXELS / 2,
+        actual = half + Math.round(player.control.steering * half);
+      write(text, 'steerLabel', 'STEER');
+      writeBar(text, 'steerBar', Math.min(half, actual), Math.max(half, actual), null, [
+        { pixel: half, palette: TEXT_PALETTES.DARK },
+        inputMark((1 + input.steering) / 2),
+      ]);
+    },
+  },
+  {
+    when: () => true,
+    write({ player, input }, text) {
+      write(text, 'gasLabel', 'GAS');
+      writeBar(text, 'gasBar', 0, barPixel(player.control.throttle), null, [inputMark(Number(input.throttle))]);
+    },
+  },
+  {
+    when: () => true,
+    write({ player, input }, text) {
+      write(text, 'brakeLabel', 'BRAKE');
+      writeBar(text, 'brakeBar', 0, barPixel(player.control.brake), null, [inputMark(Number(input.brake))]);
+    },
+  },
+  {
+    // The tachometer to the fuel cut: red from the redline (a red mark), wholly red while the limiter cuts fuel.
+    when: () => true,
+    write({ player: { powertrain }, session }, text) {
+      const redline = barPixel(session.redlineRpm / session.fuelCutRpm);
+      write(text, 'rpmLabel', 'RPM');
+      writeBar(
+        text,
+        'rpmBar',
+        0,
+        barPixel(powertrain.engineRpm / session.fuelCutRpm),
+        powertrain.fuelCut ? 'all' : redline,
+        [{ pixel: redline, palette: TEXT_PALETTES.RED }],
+      );
     },
   },
   {

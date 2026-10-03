@@ -13,6 +13,9 @@ export const TEXT_ROWS = LOGICAL_HEIGHT / TEXT_TILE_SIZE;
 export function createTextLayer(tiles: TextTiles) {
   const patterns = new Uint16Array(TEXT_COLUMNS * TEXT_ROWS),
     palettes = new Uint8Array(TEXT_COLUMNS * TEXT_ROWS);
+  // One overlay tile per cell, painted over the cell's tile: a mark drawn over a bar.
+  const overlays = new Uint16Array(TEXT_COLUMNS * TEXT_ROWS),
+    overlayPalettes = new Uint8Array(TEXT_COLUMNS * TEXT_ROWS);
   const at = (column: number, row: number, length: number) => {
     if (
       !Number.isInteger(column) ||
@@ -34,6 +37,8 @@ export function createTextLayer(tiles: TextTiles) {
     clear() {
       patterns.fill(EMPTY_TEXT_TILE);
       palettes.fill(0);
+      overlays.fill(EMPTY_TEXT_TILE);
+      overlayPalettes.fill(0);
     },
     /** Place `text` from (`column`, `row`) rightward in one palette; it must fit the row. */
     write(column: number, row: number, text: string, palette: number) {
@@ -52,20 +57,27 @@ export function createTextLayer(tiles: TextTiles) {
       patterns[index] = pattern;
       palettes[index] = palette;
     },
-    /** Paint the non-empty tiles over a logical frame. */
+    /** Place one overlay tile, painted over the cell's tile, such as a mark over a bar. */
+    overlay(column: number, row: number, pattern: number, palette: number) {
+      requirePalette(palette);
+      if (!Number.isInteger(pattern) || pattern < 0 || pattern >= tiles.patternCount)
+        throw new RangeError('unknown text pattern');
+      const index = at(column, row, 1);
+      overlays[index] = pattern;
+      overlayPalettes[index] = palette;
+    },
+    /** Paint the non-empty tiles over a logical frame, each cell's overlay tile over its tile. */
     draw(frame: SoftwareSurface) {
       if (frame.width !== LOGICAL_WIDTH || frame.height !== LOGICAL_HEIGHT)
         throw new RangeError('the text layer draws over the logical frame');
       for (let row = 0, i = 0; row < TEXT_ROWS; row++)
-        for (let column = 0; column < TEXT_COLUMNS; column++, i++)
+        for (let column = 0; column < TEXT_COLUMNS; column++, i++) {
+          const offset = row * TEXT_TILE_SIZE * LOGICAL_WIDTH + column * TEXT_TILE_SIZE;
           if (patterns[i] !== EMPTY_TEXT_TILE)
-            tiles.paint(
-              frame.pixels,
-              row * TEXT_TILE_SIZE * LOGICAL_WIDTH + column * TEXT_TILE_SIZE,
-              LOGICAL_WIDTH,
-              patterns[i]!,
-              palettes[i]!,
-            );
+            tiles.paint(frame.pixels, offset, LOGICAL_WIDTH, patterns[i]!, palettes[i]!);
+          if (overlays[i] !== EMPTY_TEXT_TILE)
+            tiles.paint(frame.pixels, offset, LOGICAL_WIDTH, overlays[i]!, overlayPalettes[i]!);
+        }
     },
   });
 }

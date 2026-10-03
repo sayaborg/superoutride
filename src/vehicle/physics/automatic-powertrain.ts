@@ -233,7 +233,7 @@ export function prepareAutomaticPowertrain(
   }
   if (state.fuelCut) {
     if (rpm <= definition.redlineRpm) state.fuelCut = false;
-  } else if (rpm > definition.redlineRpm * (1 + constants.fuelCutRedlineMargin)) {
+  } else if (rpm > fuelCutRpm(definition.redlineRpm, constants.fuelCutRedlineMargin)) {
     state.fuelCut = true;
   }
 
@@ -365,6 +365,11 @@ function sampleEngineTorque(
     }
   }
   return curve[curve.length - 1]!.torqueNewtonMeters;
+}
+
+/** The engine speed above which the limiter cuts fuel: the redline plus the game-wide margin. */
+export function fuelCutRpm(redlineRpm: number, fuelCutRedlineMargin: number): number {
+  return redlineRpm * (1 + fuelCutRedlineMargin);
 }
 
 function coupledEngineRpm(definition: AutomaticPowertrainDefinition, wheelOmega: number, gear: number): number {

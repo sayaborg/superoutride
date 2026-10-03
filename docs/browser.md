@@ -248,6 +248,14 @@ rival ahead). Another table holds every element's place in the 40×30 grid, so m
 | 13–14 | Three 2×2-tile signal lamps: before GO the race's lamps lit are red and the rest unlit; all green for 1 s after GO |
 | 16–17 | From the ending until RESULT: GOAL (yellow), or GAME OVER (red) with TIME UP or RANK OUT                           |
 | 27–28 | The gear and the speed in km/h with `KM/H`                                                                         |
+| 26–29 | Bars of 10 cells (1-pixel steps) between end caps: STEER, GAS, BRAKE and RPM                                       |
+
+Steering, throttle and brake are bars whose fill is the vehicle's actual value from the player's observation (the
+delivered steering offset as a fraction of its maximum, from the centre; the throttle and brake actuators) and whose
+yellow 1-pixel mark is the player's input from the final input sample; a dark mark shows the steering centre. The
+tachometer bar runs from 0 to the fuel-cut speed (`fuelCutRpm`: the player vehicle's redline plus the driving
+definition's margin): cells from the redline on are red, with a red mark at the redline, and the whole bar is red while
+the limiter cuts fuel. One bar part draws all four, its marks on the text layer's overlay tiles.
 
 Rows 8 to 24, the road and the player's vehicle, hold only these passing notices. While the PAUSE menu or RESULT is
 over the frame, the notices in rows 7 to 17 are not drawn; the upper and lower rows stay.

@@ -12,6 +12,7 @@ import type { loadVehicleDefinitions } from '../content/vehicle-catalog.js';
 import { createCourseRace } from '../race/course-race.js';
 import { raceStatusText, runResult } from './race-status-hud.js';
 import { writeHud } from './run-hud.js';
+import { fuelCutRpm } from '../vehicle/physics/automatic-powertrain.js';
 import type { TextLayer } from '../view/text-layer.js';
 import type { createCoursePerformanceHud } from './course-performance-hud.js';
 import { resolveCourseSession, type EntryVehicle } from '../race/course-session.js';
@@ -215,8 +216,18 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
     }
   };
   // The scene is drawn first; presenting follows the run screen's text.
-  // The Session's course and mode, which the HUD shows during READY.
-  const session = { courseName: course.name, mode: settings.mode };
+  // The Session's course and mode, which the HUD shows during READY, and the player vehicle's tachometer scale from
+  // its definitions; a DEV rebuild's tuned definition gives its own.
+  const hudSession = ({ entries }: { readonly entries: readonly { readonly vehicle: SessionVehicle }[] }) => {
+    const { vehicleDefinition, drivingDefinition } = entries[0]!.vehicle;
+    const { redlineRpm } = vehicleDefinition.compiledVehicle.powertrain;
+    return {
+      courseName: course.name,
+      mode: settings.mode,
+      redlineRpm,
+      fuelCutRpm: fuelCutRpm(redlineRpm, drivingDefinition.compiledDriving.powertrain.fuelCutRedlineMargin),
+    };
+  };
   const draw = () => {
     const { scene, race, tuned } = active;
     const started = performance.now(),
@@ -234,7 +245,16 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
     const renderMilliseconds = performance.now() - renderStarted;
     return {
       writeHud: (text: TextLayer, menu: boolean) =>
-        writeHud({ race, player: observations.player, session }, text, menu),
+        writeHud(
+          {
+            race,
+            player: observations.player,
+            input: shell.inputManager.lastSample,
+            session: hudSession(active.session),
+          },
+          text,
+          menu,
+        ),
       present() {
         const { player } = observations;
         shell.updateAudio(player, observations.rivals);
