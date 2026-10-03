@@ -193,7 +193,13 @@ sample to neutral, and while suspended the manager accepts no publication. Windo
 
 The page reads each device once and shares the reading: one touch-pointer reader listens to the window's pointer
 events and passes touch pointers to its consumers, and one function reads the connected standard-mapping gamepads.
-A press on a UI element marked `data-driving-input="ignore"` starts no touch pointer. Touch pointers starting inside
+A press on a UI element marked `data-driving-input="ignore"` starts no touch pointer.
+Because the whole viewport is the touch area, the page keeps no browser touch gesture of its own outside those
+elements (the DEV panel, the corner buttons and the DEV status line with its Retry). The style sheet turns off text
+selection, the long-press callout, tap highlights, panning and zooming on `html`, `body` and `#app`; next to the
+touch-pointer reader, one capturing non-passive listener prevents `selectstart`, `contextmenu`, `gesturestart`,
+`touchstart` and `touchmove`, which stops long-press selection and menus where CSS alone does not (iOS Safari). The
+DEV panel's scroll body pans vertically. Touch pointers starting inside
 the touch area control driving. The shell supplies the touch area as a client rectangle; it is currently the whole
 viewport. The area's left half selects steering; the midpoint and right half select pedals. Each pointer's
 role and origin are fixed until release, with at most one steering and one pedal pointer at once.

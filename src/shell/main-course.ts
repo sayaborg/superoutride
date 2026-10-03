@@ -38,6 +38,8 @@ async function startPage(): Promise<void> {
   const createStatus = () => {
     const element = document.createElement('p');
     element.setAttribute('role', 'status');
+    // Its Retry is UI: a touch on it starts no driving or menu touch and keeps the browser's click.
+    element.setAttribute('data-driving-input', 'ignore');
     canvas.insertAdjacentElement('afterend', element);
     return element;
   };
