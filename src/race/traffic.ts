@@ -2,7 +2,7 @@ import { mix } from './rival-exit.js';
 import type { ResolvedTraffic, TrafficCandidate } from './course-session.js';
 import type { DriverIntent, TargetCarriageway } from './course-fork-field.js';
 import type { LaneIntent } from './lane-following.js';
-import { createEnvelopeDriverWorkspace, plannedEnvelopeSpeed, type EnvelopeDriver } from './envelope-driver.js';
+import { createEnvelopeDriverWorkspace, type EnvelopeDriver } from './envelope-driver.js';
 import {
   advanceVehicleWithRecovery,
   createRecoveryState,
@@ -69,6 +69,8 @@ export interface TrafficMotion extends TrafficBody {
   readonly id: string;
   readonly intent: LaneIntent;
   readonly driver: EnvelopeDriver;
+  /** Its driver's planning braking (m/s²). */
+  readonly braking: number;
   readonly driverWorkspace: ReturnType<typeof createEnvelopeDriverWorkspace>;
   input: (s: number) => number;
   readonly contactForce: { x: number; y: number; z: number };
@@ -107,13 +109,21 @@ export function createTrafficField(options: {
   };
   readonly modelOf: (vehicle: TrafficCandidate['vehicle']) => VehicleModel;
   readonly occupant: (model: VehicleModel, s: number, l: number) => TrafficBody | null;
-  readonly vacantPlace: (self: TrafficBody, s: number, lane: (s: number) => number) => RecoveryTarget;
+  readonly vacantPlace: (self: TrafficMotion, s: number, lane: (s: number) => number) => RecoveryTarget;
+  /** How fast a vehicle appears at (s, lane(s)) under its driver; null when it cannot appear there now. */
+  readonly appearanceSpeed: (
+    model: VehicleModel,
+    s: number,
+    lane: (s: number) => number,
+    driver: EnvelopeDriver,
+  ) => number | null;
   readonly appearanceLine: () => number;
   readonly outOfView: (s: number) => boolean;
   readonly simulationSeconds: () => number;
   readonly idle: DrivingInput;
 }) {
-  const { runtime, forks, modelOf, occupant, vacantPlace, appearanceLine, outOfView, idle, seed } = options;
+  const { runtime, forks, modelOf, occupant, vacantPlace, appearanceSpeed, appearanceLine, outOfView, idle, seed } =
+    options;
   const vehicles: TrafficMotion[] = [];
   const positions = options.traffic && createTrafficPositions(options.traffic, seed, appearanceLine());
   return Object.freeze({
@@ -139,7 +149,8 @@ export function createTrafficField(options: {
       let changed = vehicles.length !== before;
       const { candidates } = options.traffic!;
       positions.pass(appearanceLine(), (position, s) => {
-        // A position passes unused when the traffic is full, the Route does not reach it yet or its place is occupied.
+        // A position passes unused when the traffic is full, the Route does not reach it yet, its place is occupied or a
+        // vehicle behind could not stop for it.
         if (vehicles.length >= options.limit || !runtime.window.at(s)) return;
         const candidate = candidates[trafficDraw(seed, 'vehicle', position, candidates.length)]!;
         const model = modelOf(candidate.vehicle);
@@ -152,7 +163,8 @@ export function createTrafficField(options: {
         const lane = (station: number) => forks.targetL(station, intent);
         const l = lane(s);
         if (occupant(model, s, l)) return;
-        const speed = plannedEnvelopeSpeed(runtime.readers.coordinates, s, candidate.driver, lane, runtime.window);
+        const speed = appearanceSpeed(model, s, lane, candidate.driver);
+        if (speed === null) return;
         const vehicle = createVehicle(model, runtime.readers, { s, l, initialSpeed: speed });
         const contactForce = { x: 0, y: 0, z: 0 };
         const id = `TRAFFIC_${String(position + 1).padStart(4, '0')}`;
@@ -163,6 +175,7 @@ export function createTrafficField(options: {
           model,
           intent,
           driver: candidate.driver,
+          braking: candidate.driver.braking,
           driverWorkspace: createEnvelopeDriverWorkspace(),
           input: lane,
           contactForce,

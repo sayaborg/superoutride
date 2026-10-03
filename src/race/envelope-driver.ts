@@ -10,7 +10,7 @@ const MIN_DRIVER_CURVATURE_PER_METER = 1e-7;
 
 /** Input/planning policy only. The measured envelope and production mechanics retain their own authority. */
 export const ENVELOPE_DRIVER = Object.freeze({
-  version: 4,
+  version: 5,
   lookahead: 480,
   spacing: 5,
   responseSeconds: 0.45,
@@ -34,8 +34,8 @@ export const ENVELOPE_DRIVER = Object.freeze({
   /** m/s: the least speed the steering gain is read at. */
   steeringGainMinimumSpeed: 5,
   /**
-   * Seconds: the following time. A driver follows a vehicle ahead in its lane within half their lengths plus its own
-   * speed times this, and a lane is free behind it to the rear vehicle's speed times this.
+   * Seconds: the following time. A driver keeps the vehicle ahead in its lane this many seconds of that vehicle's speed
+   * beyond its response distance, and a lane is free behind it to the rear vehicle's speed times this.
    */
   followSeconds: 1.5,
 });
@@ -88,6 +88,13 @@ export function createVariableEnvelopeDriver(envelope: RivalEnvelope, utilizatio
   });
 }
 type Lane = number | ((s: number) => number);
+
+/** The vehicle ahead in the driver's lane: its route station, its speed (m/s) and half the two lengths (m). */
+export interface EnvelopeLeader {
+  readonly s: number;
+  readonly speed: number;
+  readonly clearance: number;
+}
 const CACHE_SIZE = Math.ceil(ENVELOPE_DRIVER.lookahead / ENVELOPE_DRIVER.spacing) + 1;
 
 export function createEnvelopeDriverWorkspace() {
@@ -106,13 +113,18 @@ export function createEnvelopeDriverWorkspace() {
     b: createPlanCoordinateSample(),
     target: createPlanCoordinateSample(),
     row: { acceleration: 0, braking: 0, lateral: 0, steeringGain: 0 },
+    /** The latest plan: its target speed without the vehicle ahead (`free`) and with it (`target`), in m/s. */
+    plan: { free: 0, target: 0 },
     input: { steering: 0, throttle: false, brake: false },
   };
 }
 
 type DrivingDomain = { readonly start: number; readonly end: number; readonly terminal: number | null };
 
-/** The planned speed at route station `s` when moving at `speed`: curve limits braked back over the lookahead. */
+/**
+ * The planned speed at route station `s` when moving at `speed`: curve limits braked back over the lookahead, the
+ * terminal, and the vehicle ahead braked back over its margin. Writes the plan with and without the vehicle ahead.
+ */
 function plannedTargetSpeed(
   coordinates: PlanCoordinateReader,
   s: number,
@@ -121,6 +133,7 @@ function plannedTargetSpeed(
   targetL: Lane,
   workspace: ReturnType<typeof createEnvelopeDriverWorkspace>,
   domain: DrivingDomain,
+  leader: EnvelopeLeader | null,
 ): number {
   const { envelope, speedCap, braking, utilization } = driver;
   if (workspace.coordinates !== coordinates || workspace.lane !== targetL) {
@@ -188,12 +201,27 @@ function plannedTargetSpeed(
     );
     targetSquared = Math.min(targetSquared, 2 * braking * distance);
   }
-  return Math.sqrt(targetSquared);
+  workspace.plan.free = Math.sqrt(targetSquared);
+  if (leader !== null) {
+    // The vehicle ahead is a moving planning point: reach its speed with the following gap kept beyond the response
+    // distance, as a curve speed is reached over the remaining distance.
+    const margin = Math.max(
+      0,
+      leader.s -
+        s -
+        leader.clearance -
+        speed * ENVELOPE_DRIVER.responseSeconds -
+        leader.speed * ENVELOPE_DRIVER.followSeconds,
+    );
+    targetSquared = Math.min(targetSquared, leader.speed ** 2 + 2 * braking * margin);
+  }
+  workspace.plan.target = Math.sqrt(targetSquared);
+  return workspace.plan.target;
 }
 
 /**
- * The driver's planned speed at route station `s` in lane `targetL`: the speed that is its own planned target there,
- * found by iterating the plan from the speed cap.
+ * The driver's planned speed at route station `s` in lane `targetL`, behind `leader` when one is given: the speed that
+ * is its own planned target there, found by iterating the plan from the speed cap.
  */
 export function plannedEnvelopeSpeed(
   coordinates: PlanCoordinateReader,
@@ -201,31 +229,37 @@ export function plannedEnvelopeSpeed(
   driver: Driver,
   targetL: Lane,
   domain: DrivingDomain,
+  leader: EnvelopeLeader | null = null,
 ): number {
   const workspace = createEnvelopeDriverWorkspace();
   let speed = driver.speedCap;
   for (let iteration = 0; iteration < ENVELOPE_DRIVER.plannedSpeedIterations; iteration++) {
-    const next = plannedTargetSpeed(coordinates, s, speed, driver, targetL, workspace, domain);
+    const next = plannedTargetSpeed(coordinates, s, speed, driver, targetL, workspace, domain, leader);
     if (Math.abs(next - speed) < ENVELOPE_DRIVER.plannedSpeedTolerance) return next;
     speed = next;
   }
   return speed;
 }
 
-/** The speed the driver's plan targets now, at the vehicle's station and speed in lane `targetL`. */
-export function envelopeTargetSpeed(
+/**
+ * The driver's plan now, at the vehicle's station and speed in lane `targetL`, behind `leader` when one is given: its
+ * target speed without and with the vehicle ahead (borrowed from the workspace).
+ */
+export function planEnvelopeDriving(
   coordinates: PlanCoordinateReader,
   car: VehicleMotionRead,
   driver: Driver,
   targetL: Lane,
   workspace: ReturnType<typeof createEnvelopeDriverWorkspace>,
   domain: DrivingDomain,
-): number {
+  leader: EnvelopeLeader | null,
+): { readonly free: number; readonly target: number } {
   const speed = Math.hypot(car.longitudinalSpeed, car.lateralSpeed);
-  return plannedTargetSpeed(coordinates, car.course.s, speed, driver, targetL, workspace, domain);
+  plannedTargetSpeed(coordinates, car.course.s, speed, driver, targetL, workspace, domain, leader);
+  return workspace.plan;
 }
 
-/** The driver's input; `speedLimit` caps its planned target speed (following a slower vehicle). */
+/** The driver's input, planning alone: no vehicle ahead constrains it (reference runs and scenario policies). */
 export function sampleEnvelopeDrivingInput(
   coordinates: PlanCoordinateReader,
   car: VehicleMotionRead,
@@ -233,15 +267,24 @@ export function sampleEnvelopeDrivingInput(
   targetL: Lane = 0,
   workspace: ReturnType<typeof createEnvelopeDriverWorkspace>,
   domain: DrivingDomain,
-  speedLimit = Infinity,
+): DrivingInput {
+  const { target } = planEnvelopeDriving(coordinates, car, driver, targetL, workspace, domain, null);
+  return envelopeDrivingInput(coordinates, car, driver, targetL, workspace, domain, target);
+}
+
+/** The driver's input toward lane `targetL` at the planned `targetSpeed`: pursuit steering and pedals. */
+export function envelopeDrivingInput(
+  coordinates: PlanCoordinateReader,
+  car: VehicleMotionRead,
+  driver: Driver,
+  targetL: Lane,
+  workspace: ReturnType<typeof createEnvelopeDriverWorkspace>,
+  domain: DrivingDomain,
+  targetSpeed: number,
 ): DrivingInput {
   const s = car.course.s;
   const speed = Math.hypot(car.longitudinalSpeed, car.lateralSpeed);
   const { envelope } = driver;
-  const targetSpeed = Math.min(
-    plannedTargetSpeed(coordinates, s, speed, driver, targetL, workspace, domain),
-    speedLimit,
-  );
   const lookahead = Math.min(
     ENVELOPE_DRIVER.lookahead,
     Math.max(ENVELOPE_DRIVER.minimumLookahead, speed * ENVELOPE_DRIVER.responseSeconds),

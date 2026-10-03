@@ -668,8 +668,11 @@ the camera window in the Route runtime's loading coverage. Leaving is final. A c
 moved, ranked, judged by rank limits, counted for fork arrival, observed, drawn or voiced; the race exposes each
 competitor's presence and the player's STAGE. A competitor joining at a later stage appears in the step in which the
 player enters that stage: at the player's route station plus its ahead distance, in its lane, moving at its
-driver's planned speed there (the speed that is the driver's own planned target at that station), and awaits only
-the race gates after that station. Session assembly rejects an ahead distance beyond the Route kept loaded ahead of
+driver's planned speed there (the speed that is the driver's own planned target at that station, with the vehicle
+ahead in that lane as its constraint), and awaits only the race gates after that station. An appearance waits for a
+later step while its place overlaps another vehicle's footprint or while a vehicle behind in its lane could not stop
+for it: for that vehicle's speed `v_b` and braking `a_b`, the gap Δs and the appearing speed `v`,
+`v_b² > v² + 2 × a_b × max(0, Δs − (L₁ + L₂)/2 − v_b × responseSeconds − v × followSeconds)`. Session assembly rejects an ahead distance beyond the Route kept loaded ahead of
 the player (the loading coverage's forward distance less one step).
 
 Ranking is one race-layer function (`rankRaceProgress`). Finished actors rank first by finish time. Unfinished
@@ -892,13 +895,23 @@ Drivers keep clear of other vehicles. Each step the race gives every driver (riv
 GOAL) a read-only list of the vehicles present in the Session as they stand at the step's start: route position,
 speed and dimensions, the player's vehicle included; drivers write no vehicle state. The vehicle ahead in a driver's
 lane is the nearest one ahead whose footprint overlaps, side to side, the driver's own width centred in that lane.
-When it lies within the driver's following distance, `(L₁ + L₂)/2 + v × followSeconds` with the driver's speed v, and
-is slower than the driver's planned speed, the driver moves to a free adjacent lane of the Carriageway it follows,
-the left one first, and stays in it; it does not return. A lane is free when no footprint in it lies between the
-driver's following distance ahead and, behind, half the two lengths plus that vehicle's speed times `followSeconds`.
-With neither adjacent lane free, the driver limits its planned target speed to that vehicle's speed; its inputs stay
-throttle, brake and steering. The reference line follows no lanes and meets no other vehicle, so reference runs are
-unchanged.
+It is a constraint of the driver's plan, braked back like a curve speed: with the gap Δs to it, its speed `v_a`, the
+driver's speed `v` and planning braking `a`,
+
+```text
+margin = max(0, Δs − (L₁ + L₂)/2 − v × responseSeconds − v_a × followSeconds)
+target² ≤ v_a² + 2 × a × margin
+```
+
+so a driver following at the leader's speed keeps the footprint gap `v × responseSeconds + v_a × followSeconds`. The
+plan is computed once per step, with and without this constraint. When the constraint lowers the planned speed, the
+driver moves to a free adjacent lane of the Carriageway it follows, the left one first and never the lane it last
+left, and drives that step on its plan without the constraint; it stays in the new lane. A lane is free when no
+footprint in it lies between the driver's following distance ahead, `(L₁ + L₂)/2 + v × followSeconds`, and, behind,
+half the two lengths plus that vehicle's speed times `followSeconds`. With no adjacent lane free, the driver follows
+on the constrained plan; its inputs stay throttle, brake and steering. Every driver's `a` is its envelope's minimum
+braking times its utilization; the player's, for others' checks, is the Session driver's. The reference line plans
+without a vehicle ahead and meets no other vehicle, so reference runs are unchanged.
 
 The same driver serves reference runs and live rivals. Generated runs contain precise landmark times
 and optional 10 Hz position/speed/utilization traces. The browser loads generated envelopes and compact
@@ -917,11 +930,11 @@ closed road recovers like any vehicle.
 
 The appearance line is the player's route station plus the farthest rendered distance ahead of it,
 `s − cameraDistance + far` from the loading coverage's view. In each step in which the line reaches a position, a
-traffic vehicle appears there, at its lane's centre and its driver's planned speed, the same appearance as a later
-stage's entry. Positions at or before the line when the Session starts never appear. A position passes unused,
+traffic vehicle appears there, at its lane's centre and its driver's planned speed behind the vehicle ahead in that
+lane, the same appearance as a later stage's entry. Positions at or before the line when the Session starts never appear. A position passes unused,
 never to appear later, when `min(8, 24 − competitors)` traffic vehicles are present (`SESSION_RULE_LIMITS.traffic`
-and `.vehicles`), when the resident Route does not reach it yet, or when its place overlaps another vehicle's footprint
-([Body contact](#body-contact)). A traffic vehicle leaves, for good, once out of view by the same rule as competitors.
+and `.vehicles`), when the resident Route does not reach it yet, when its place overlaps another vehicle's footprint
+([Body contact](#body-contact)), or when a vehicle behind in its lane could not stop for it (the appearance rule above). A traffic vehicle leaves, for good, once out of view by the same rule as competitors.
 The race publishes traffic observations in their own list. Records do not depend on traffic settings.
 
 ## Body contact

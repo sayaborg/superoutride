@@ -1,21 +1,22 @@
 import type { DriverIntent, TargetCarriageway } from './course-fork-field.js';
 import type { RouteFootprint } from './body-contacts.js';
-import { ENVELOPE_DRIVER } from './envelope-driver.js';
+import { ENVELOPE_DRIVER, type EnvelopeLeader } from './envelope-driver.js';
 
 /** A present vehicle as drivers see it: its route footprint and speed (m/s). The race writes it; drivers only read. */
 export interface VehicleSighting extends RouteFootprint {
   readonly speed: number;
 }
 
-/** A driver's intent whose lane the driver itself changes. */
+/** A driver's intent whose lane the driver itself changes; it never returns to the lane it last left (null: none). */
 export interface LaneIntent extends DriverIntent {
   lane: number;
+  left?: number | null;
 }
 
 /**
- * Lane following for drivers, over the race's read-only sightings of the present vehicles. A driver whose lane holds,
- * within its following distance, a vehicle slower than its own planned speed moves to a free adjacent lane (the left
- * one first) and stays there; with neither adjacent lane free it follows that vehicle at its speed.
+ * Lane following for drivers, over the race's read-only sightings of the present vehicles. The vehicle ahead in a
+ * driver's lane constrains its plan; when that constraint lowers the driver's planned speed, the driver moves to a free
+ * adjacent lane (the left one first) and stays there, and otherwise follows within it.
  */
 export function createLaneFollowing(forks: {
   targetL(s: number, intent: DriverIntent): number;
@@ -45,33 +46,48 @@ export function createLaneFollowing(forks: {
     }
     return true;
   };
-  /**
-   * The driver's speed limit for this step (Infinity when it need not follow), changing `intent.lane` when it moves to a
-   * free adjacent lane. `self` is the driver's own sighting in `sightings`.
-   */
-  return (
-    intent: LaneIntent,
-    self: VehicleSighting,
-    plannedSpeed: number,
-    sightings: readonly VehicleSighting[],
-  ): number => {
-    let leader: VehicleSighting | null = null;
-    for (const other of sightings)
-      if (
-        other !== self &&
-        other.s > self.s &&
-        (!leader || other.s < leader.s) &&
-        inLane(self, intent.exit, intent.lane, other)
-      )
-        leader = other;
-    if (!leader || leader.speed >= plannedSpeed || leader.s - self.s >= followDistance(self, leader)) return Infinity;
-    const lanes = forks.targetCarriageway(self.s, intent.exit).road.lanes;
-    const lane = Math.min(intent.lane, lanes - 1);
-    for (const candidate of [lane - 1, lane + 1])
-      if (candidate >= 0 && candidate < lanes && free(self, intent.exit, candidate, sightings)) {
-        intent.lane = candidate;
-        return Infinity;
-      }
-    return leader.speed;
-  };
+  // The leader record reused for the driver's plan.
+  const leader = { s: 0, speed: 0, clearance: 0 };
+  return Object.freeze({
+    /**
+     * The vehicle ahead in the driver's lane as its plan reads it — the nearest one ahead whose footprint overlaps the
+     * driver's width centred in its lane — or null. `self` is the driver's own sighting in `sightings`.
+     */
+    leader(intent: LaneIntent, self: VehicleSighting, sightings: readonly VehicleSighting[]): EnvelopeLeader | null {
+      let nearest: VehicleSighting | null = null;
+      for (const other of sightings)
+        if (
+          other !== self &&
+          other.s > self.s &&
+          (!nearest || other.s < nearest.s) &&
+          inLane(self, intent.exit, intent.lane, other)
+        )
+          nearest = other;
+      if (!nearest) return null;
+      leader.s = nearest.s;
+      leader.speed = nearest.speed;
+      leader.clearance = (self.length + nearest.length) / 2;
+      return leader;
+    },
+    /**
+     * Move the driver to a free adjacent lane of the Carriageway it follows, the left one first and never the lane it
+     * last left, so it stays in the lane it moved to; false when none is.
+     */
+    moveOver(intent: LaneIntent, self: VehicleSighting, sightings: readonly VehicleSighting[]): boolean {
+      const lanes = forks.targetCarriageway(self.s, intent.exit).road.lanes;
+      const lane = Math.min(intent.lane, lanes - 1);
+      for (const candidate of [lane - 1, lane + 1])
+        if (
+          candidate >= 0 &&
+          candidate < lanes &&
+          candidate !== intent.left &&
+          free(self, intent.exit, candidate, sightings)
+        ) {
+          intent.left = lane;
+          intent.lane = candidate;
+          return true;
+        }
+      return false;
+    },
+  });
 }
