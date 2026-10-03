@@ -6,6 +6,7 @@ import { readDeliveredContent } from '../../tools/course/read-content.ts';
 import { loadDeliveredCourse } from '../../src/content/load-delivered-course.js';
 import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 import { createCourseScene } from '../../src/view/course-scene.js';
+import { createRenderMeasurements } from '../../src/view/renderer.js';
 import { createVehicle, updateVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
 import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
@@ -38,14 +39,16 @@ for (const { id: stem } of content.manifest.files.filter((file) => file.kind ===
       updateVehicle(scene.world, vehicle, model, { steering: 0, throttle: true, brake: false });
       const camera = updateCamera(rig, scene.world, vehicle, CAMERA_DEFINITION);
       target.pixels.fill(0);
-      const result = scene.render(target, vehicle, camera, sprites.off, []);
+      const result = createRenderMeasurements();
+      scene.render(target, vehicle, camera, sprites.off, [], result);
       assert.ok(result.stripGround.outputPixels > 0);
       const before = JSON.stringify(vehicle),
         occurrences = scene.runtime.window.occurrences,
         view = scene.runtime.readers;
       for (const method of STRIP_RENDER_METHODS) {
         settings.setStripMethod(method);
-        assert.equal(scene.render(target, vehicle, camera, sprites.off, []).stripGround.method, method);
+        scene.render(target, vehicle, camera, sprites.off, [], result);
+        assert.equal(result.stripGround.method, method);
         assert.equal(JSON.stringify(vehicle), before);
         assert.equal(scene.runtime.window.occurrences, occurrences);
         assert.equal(scene.runtime.readers, view);

@@ -495,6 +495,10 @@ Magnification is `g=(f/d)*worldWidth/masterWidth`. Course anchors use known chai
 actors use observed chainage and physical-clearance mapping. Yaw/bank variants are authored images.
 Rendering uses nearest sampling, binary alpha and one SINGLE sprite per vehicle; bank is visual.
 
+The product render draws the frame and returns nothing. Measurements of a frame (the Strip ground's metrics, terrain
+and sprite counts, the player's screen point and image choice) go only to a measurement sink the caller passes: DEV
+(the performance HUD and the vehicle overlays, with `dev=1`), the course tool and tests; the product path passes
+none and carries no DEV value.
 Painter order is the opaque BG, a far-to-near terrain/world-sprite merge, the player, then, under the PAUSE menu or
 RESULT, the whole frame halved to half brightness (`halveRgb555Pixels`: each RGB555 channel halved, flooring, once per
 frame over a freshly drawn scene), then HUD and the [text layer](#text-layer).

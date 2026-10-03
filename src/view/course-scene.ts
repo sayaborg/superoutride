@@ -9,7 +9,7 @@ import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import type { CameraState } from './camera.js';
 import { CAMERA_DEFINITION } from './camera-definition.js';
 import type { VehicleRenderRead } from '../vehicle/physics/vehicle-contract.js';
-import { createRenderWorkspace, renderDriving } from './renderer.js';
+import { createRenderWorkspace, renderDriving, type RenderMeasurements } from './renderer.js';
 import type { CourseSprite } from './course-sprite.js';
 import type { VehicleSpriteSet } from '../vehicle/vehicle-sprite-set.js';
 import { createCourseWorld } from '../race/course-world.js';
@@ -49,6 +49,8 @@ export function createCourseScene(
       camera: CameraState,
       playerSet: VehicleSpriteSet,
       others: readonly CourseSprite[],
+      /** DEV and tools only: receives the frame's measurements. */
+      measurements: RenderMeasurements | null = null,
     ) {
       const readers = runtime.readers;
       const renderData = rendering.read();
@@ -88,6 +90,7 @@ export function createCourseScene(
           playerSet,
         },
         { ground: renderData.ground, workspace: renderWorkspace, stripMethod: displaySettings.stripMethod },
+        measurements,
       );
     },
   });

@@ -1,5 +1,5 @@
-import { STRIP_ACTIVE_LIMIT, type renderDriving } from '../view/renderer.js';
-type StripObservation = NonNullable<ReturnType<typeof renderDriving>['stripGround']>;
+import { STRIP_ACTIVE_LIMIT, type RenderMeasurements } from '../view/renderer.js';
+type StripObservation = RenderMeasurements['stripGround'];
 /** Host measurements; the HUD reports observations and makes no device qualification claim. */
 export function createCoursePerformanceHud(canvas: HTMLCanvasElement) {
   // The run's course ground; each run sets its own.

@@ -22,9 +22,10 @@
 - The [product specification](product.md) is the target for Stages 12–16. Series documents own ARCADE settings and
   fields; FREE PLAY rivals are drawn from vehicle pools; TIME TRIAL runs alone; traffic, collisions, music and sound
   effects are not implemented. The front end runs inside the frame from TITLE through RESULT, with SETTINGS and `dev=1`;
-  SELECT MUSIC, RESULT's new records and the attract demo wait for their stages.
+  SELECT MUSIC, RESULT's new records and the attract demo wait for their stages. The product HUD is drawn inside the
+  frame with the text layer from race facts and the player's observation; DEV measurements stay with `dev=1`.
 
-Next PR: **12-13 — Product HUD**.
+Next PR: **12-14 — Records**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -35,10 +36,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 Define input, run state, framebuffer, persistent player data, data-driven Sessions, the product front end and the
 product HUD independently of DEV, as specified in the [product specification](product.md).
 
-- **12-13 — Product HUD:** independent elements drawn inside the game frame from published observations with the
-  text layer; the active rules select the elements. Separate product and DEV observations in the render result,
-  including the performance HUD's ground (Strip) metrics. Place the vehicle-state elements and review the layout.
-  Remove the HTML status line, whose facts the product HUD then shows.
 - **12-14 — Records:** TIME TRIAL and ARCADE records in the persistent record; DEV-tuned Sessions record nothing.
 - **12-15 — Language:** make all UI English.
 

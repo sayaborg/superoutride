@@ -23,6 +23,7 @@ import { loadSeriesCourse, type loadSeriesCatalog } from '../content/series-cata
 import { createSessionVehicle, type SessionVehicle } from '../content/session-vehicle.js';
 import { runSettings, type RunRequest } from './run-request.js';
 import { createCourseScene } from '../view/course-scene.js';
+import { createRenderMeasurements } from '../view/renderer.js';
 import type { RunFrame, RunScreenState } from './run-screen.js';
 import { drawVehicleDebugHud } from './vehicle-debug-hud.js';
 import { drawVehicleLeanDebug } from './debug/vehicle-lean-debug.js';
@@ -192,8 +193,10 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
     maxActiveStrips: Math.max(...course.sections.map((section) => section.color.metrics.maxActiveStrips)),
   });
   let afterEndingSeconds = 0;
+  // DEV only: the frame's render measurements and the performance HUD's timings; the product path takes neither.
+  const measurements = page.dev ? createRenderMeasurements() : null;
   const tick = () => {
-    const started = performance.now();
+    const started = performanceHud ? performance.now() : 0;
     const { race } = active;
     const step = race.advance(shell.inputManager.sample());
     lifecycle.update(step.recovered);
@@ -218,19 +221,20 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
   };
   const draw = () => {
     const { scene, race, tuned } = active;
-    const started = performance.now(),
+    const started = performanceHud ? performance.now() : 0,
       observations = race.observe();
     const others = raceSprites(observations.rivals, lifecycle.camera);
-    // The renderer reads no clock; its caller times the scene render for the performance HUD.
-    const renderStarted = performance.now();
-    const result = scene.render(
+    // The renderer reads no clock; with DEV its caller times the scene render for the performance HUD.
+    const renderStarted = performanceHud ? performance.now() : 0;
+    scene.render(
       shell.framebuffer,
       observations.player,
       lifecycle.camera,
       observations.player.brakeLampOn ? sprites.on : sprites.off,
       others,
+      measurements,
     );
-    const renderMilliseconds = performance.now() - renderStarted;
+    const renderMilliseconds = performanceHud ? performance.now() - renderStarted : 0;
     return {
       writeHud: (text: TextLayer, menu: boolean) =>
         writeHud(
@@ -248,7 +252,7 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
         shell.updateAudio(player, observations.rivals);
         // The DEV vehicle HUD diagnoses mechanics internals through the race's DEV-only diagnostics.
         shell.present(
-          devControls
+          devControls && measurements
             ? (ctx) => {
                 const { vehicle, model } = race.playerDiagnostics;
                 drawVehicleDebugHud(
@@ -263,12 +267,18 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
                   tuned,
                 );
                 if (player.form === 'bike')
-                  drawVehicleLeanDebug(ctx, result.playerScreenX, result.playerScreenY, player);
-                drawVehicleYawDebug(ctx, result.playerScreenX, result.playerScreenY, vehicle, lifecycle.camera.yaw);
+                  drawVehicleLeanDebug(ctx, measurements.playerScreenX, measurements.playerScreenY, player);
+                drawVehicleYawDebug(
+                  ctx,
+                  measurements.playerScreenX,
+                  measurements.playerScreenY,
+                  vehicle,
+                  lifecycle.camera.yaw,
+                );
               }
             : undefined,
         );
-        performanceHud?.frame(started, result.stripGround, renderMilliseconds);
+        if (performanceHud && measurements) performanceHud.frame(started, measurements.stripGround, renderMilliseconds);
       },
     };
   };

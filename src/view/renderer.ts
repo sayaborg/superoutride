@@ -15,7 +15,8 @@ import { collectVisibleCourseSprites, type CourseSprite, type VisibleCourseSprit
 
 import { deriveVehicleLeanRadians } from './vehicle-visuals.js';
 
-interface RenderResult {
+/** DEV and tool measurements of one rendered frame; the product render takes none. */
+export interface RenderMeasurements {
   stripGround: StripRenderMetrics & { method: StripRenderMethod };
   terrainLineCount: number;
   terrainOutputPixels: number;
@@ -32,6 +33,27 @@ interface RenderResult {
   playerRelativeYaw: number;
   spriteOutputSamplesIncludingPlayer: number;
   spriteWrittenPixelsIncludingPlayer: number;
+}
+
+/** A measurement sink to pass to every measured render. */
+export function createRenderMeasurements(): RenderMeasurements {
+  return {
+    stripGround: { ...createStripRenderMetrics(), method: 'LEVEL-POINT' },
+    terrainLineCount: 0,
+    terrainOutputPixels: 0,
+    visibleSpriteCount: 0,
+    spriteOutputSamples: 0,
+    spriteWrittenPixels: 0,
+    playerOutputSamples: 0,
+    playerWrittenPixels: 0,
+    playerScreenX: 0,
+    playerScreenY: 0,
+    playerYawVariant: 0,
+    playerBankVariant: 0,
+    playerRelativeYaw: 0,
+    spriteOutputSamplesIncludingPlayer: 0,
+    spriteWrittenPixelsIncludingPlayer: 0,
+  };
 }
 
 export interface StripGroundReader {
@@ -76,7 +98,8 @@ export function renderDriving(
   target: SoftwareSurface,
   { background, guide, camera, vehicle, terrainParameters, worldSprites, playerSet }: RenderScene,
   { ground, workspace, stripMethod }: RenderOptions,
-): RenderResult {
+  measurements: RenderMeasurements | null = null,
+): void {
   const renderCamera = camera;
   // The terrain's forward visible interval also bounds the course sprites; it is computed once per frame.
   const { lines: terrain, visible } = generateTerrainLines(guide, camera, terrainParameters, workspace.terrain);
@@ -131,23 +154,24 @@ export function renderDriving(
     playerProjection.scale,
   );
 
-  return {
-    stripGround: { ...stripStats, method: stripMethod },
-    terrainLineCount: terrain.length,
-    terrainOutputPixels,
-    visibleSpriteCount: sprites.length,
-    spriteOutputSamples,
-    spriteWrittenPixels,
-    playerOutputSamples: playerStats.outputSamples,
-    playerWrittenPixels: playerStats.writtenPixels,
-    playerScreenX: playerProjection.x,
-    playerScreenY: playerProjection.y,
-    playerYawVariant: selected.yawIndex,
-    playerBankVariant: selected.bankIndex,
-    playerRelativeYaw: relativeYaw,
-    spriteOutputSamplesIncludingPlayer: spriteOutputSamples + playerStats.outputSamples,
-    spriteWrittenPixelsIncludingPlayer: spriteWrittenPixels + playerStats.writtenPixels,
-  };
+  // Only a measured render keeps the frame's measurements; the product render leaves them.
+  if (!measurements) return;
+  Object.assign(measurements.stripGround, stripStats);
+  measurements.stripGround.method = stripMethod;
+  measurements.terrainLineCount = terrain.length;
+  measurements.terrainOutputPixels = terrainOutputPixels;
+  measurements.visibleSpriteCount = sprites.length;
+  measurements.spriteOutputSamples = spriteOutputSamples;
+  measurements.spriteWrittenPixels = spriteWrittenPixels;
+  measurements.playerOutputSamples = playerStats.outputSamples;
+  measurements.playerWrittenPixels = playerStats.writtenPixels;
+  measurements.playerScreenX = playerProjection.x;
+  measurements.playerScreenY = playerProjection.y;
+  measurements.playerYawVariant = selected.yawIndex;
+  measurements.playerBankVariant = selected.bankIndex;
+  measurements.playerRelativeYaw = relativeYaw;
+  measurements.spriteOutputSamplesIncludingPlayer = spriteOutputSamples + playerStats.outputSamples;
+  measurements.spriteWrittenPixelsIncludingPlayer = spriteWrittenPixels + playerStats.writtenPixels;
 }
 
 function drawWorldSprite(target: SoftwareSurface, sprite: VisibleCourseSprite) {

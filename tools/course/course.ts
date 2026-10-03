@@ -7,12 +7,13 @@ interface RenderFrame {
   s: number;
   l: number;
   vehicle: string;
-  stats: ReturnType<ReturnType<typeof createCourseScene>['render']>;
+  stats: RenderMeasurements;
 }
 import { referenceCommand } from './reference-command.js';
 import path from 'node:path';
 import { PNG } from 'pngjs';
 import { createCourseScene } from '../../src/view/course-scene.js';
+import { createRenderMeasurements, type RenderMeasurements } from '../../src/view/renderer.js';
 import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
 import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
@@ -127,8 +128,9 @@ try {
         );
         const camera = updateCamera(createCameraRig(), scene.world, vehicle, CAMERA_DEFINITION),
           target = createLogicalFrame();
-        const stats = scene.render(target, vehicle, camera, sprites.off, []),
+        const stats = createRenderMeasurements(),
           png = new PNG({ width: target.width, height: target.height });
+        scene.render(target, vehicle, camera, sprites.off, [], stats);
         const rgba = new Uint32Array(target.pixels.length);
         expandRgb555Pixels(target.pixels, rgba);
         png.data = Buffer.from(rgba.buffer);
