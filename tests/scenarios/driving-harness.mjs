@@ -354,6 +354,7 @@ export function runScenario({ course, arcade, budgets, paceSchedule }, scenario)
         assert.equal(race.outcome.endSeconds, race.clock.elapsedSeconds, 'race time did not stop at the ending');
         ending = {
           tick,
+          seconds: race.outcome.endSeconds,
           position: playerPosition(race),
           progress: competitors.map((c) => [c.progress.s, c.progress.acceptedFinishCount]),
           playerS: vehicle.course.s,
@@ -361,7 +362,7 @@ export function runScenario({ course, arcade, budgets, paceSchedule }, scenario)
         };
       } else if (ending) {
         // After the ending race time, progress, events, presence and the position hold while the field moves.
-        assert.equal(race.clock.elapsedSeconds, race.outcome.endSeconds, 'race time moved after the ending');
+        assert.equal(race.clock.elapsedSeconds, ending.seconds, 'race time moved after the ending');
         assert.deepEqual(
           competitors.map((c) => [c.progress.s, c.progress.acceptedFinishCount]),
           ending.progress,

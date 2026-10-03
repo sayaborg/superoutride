@@ -125,8 +125,6 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     get progress() {
       return this.observer.state;
     },
-    /** Race time of this competitor's finish event; null until it finishes. */
-    finishSeconds: null as number | null,
     /**
      * Race time its current lap began: GO for a competitor on the grid, else its latest FINISH line crossing; null for
      * one that appeared ahead until it first crosses the FINISH line.
@@ -140,6 +138,10 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     crossingSeconds: [] as number[],
     /** The ID of the FINISH gate it finished at; null until it finishes. */
     finishGateId: null as string | null,
+    /** Race time of its finish: its last crossing, which no later crossing follows; null until it finishes. */
+    get finishSeconds(): number | null {
+      return this.finishGateId === null ? null : this.crossingSeconds.at(-1)!;
+    },
   });
   // Every competitor drives the model of its entry's vehicle, spawned at its grid slot with the Session's start speed,
   // or, appearing ahead, where and as fast as it appears.
@@ -429,7 +431,6 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       }
       if (c === player) playerGates += update.events.length;
       if (update.justFinished) {
-        c.finishSeconds = stepEvents.at(-1)!.timeSeconds;
         c.finishGateId = stepEvents.at(-1)!.landmark.id;
         if (c === player) playerFinishSeconds = c.finishSeconds;
       }
@@ -453,9 +454,10 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       (ending === null || expiry < ending.seconds || (expiry === ending.seconds && ending.end.status === 'GAME_OVER'))
     )
       ending = { seconds: expiry, end: { status: 'GAME_OVER', cause: 'TIME' } };
+    // Race time stops at the ending: the clock's time is then the ending's, the one record of it.
     clock.completeStep(ending?.seconds ?? clock.stepEndSeconds);
     if (ending) {
-      outcome.end(ending.end, ending.seconds);
+      outcome.end(ending.end);
       if (ending.end.status === 'GOAL') takeOver();
     }
     stepObservation.recovered = active[0]!.recovered;
@@ -529,9 +531,12 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       get cause() {
         return outcome.cause;
       },
-      /** The race time of the GOAL or GAME OVER; null before. The field keeps driving after it. */
-      get endSeconds() {
-        return outcome.endSeconds;
+      /**
+       * The race time of the GOAL or GAME OVER, where the race clock stopped; null before. At GOAL it is the player's
+       * finish crossing. The field keeps driving after it.
+       */
+      get endSeconds(): number | null {
+        return startPhase.status !== 'GO' || outcome.status === 'RUNNING' ? null : clock.elapsedSeconds;
       },
     }),
     /** The last step's accepted crossings of every competitor, in race-time order. */

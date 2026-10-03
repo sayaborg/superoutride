@@ -56,12 +56,12 @@ export interface RunResult {
   readonly record: RecordOutcome | null;
 }
 
-/** The ended run's result; the rank is the race's standing. */
+/** The ended run's result: its time is the ending's race time; the rank is the race's standing. */
 export function runResult(race: CourseRace, record: RecordOutcome | null): RunResult {
   return Object.freeze({
     outcome: race.outcome.status === 'GOAL' ? 'GOAL' : 'GAME OVER',
     standing: race.rivals.length > 0 ? race.standing : null,
-    raceSeconds: race.clock.elapsedSeconds,
+    raceSeconds: race.outcome.endSeconds!,
     bestLapSeconds: race.courseType === 'CIRCUIT' ? race.player.bestLapSeconds : null,
     record,
   });

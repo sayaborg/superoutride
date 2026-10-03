@@ -597,7 +597,9 @@ Each fact is decided once. `RouteProgress` alone records accepted crossings. The
 and the deadline, which it decides: the player's crossing candidates go to it in time order, a candidate after the
 deadline is refused, one exactly at the deadline is accepted, and an accepted checkpoint's award extends the
 deadline at once for later candidates in the same step. Each competitor's finish time is the time of its finish
-event, recorded once; the GOAL time and ranking read it.
+event, its last crossing (no crossing follows a finish), recorded once in its crossings; ranking reads it. The run's
+ending time is the race clock's, which stops at the ending: the race publishes it as the ending's race time, which
+at GOAL is the player's finish crossing. RESULT and records read that one value.
 
 The state before GO has one owner, the start phase: WAITING until the Session starts, then READY for the 3-second
 hold (`READY_SECONDS`), GO on the step boundary nearest its end. The run outcome has one owner from GO: RUNNING, then

@@ -235,7 +235,7 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
       ...selection,
       routeLinks,
       goal: player.finishGateId!,
-      finishSeconds: player.finishSeconds!,
+      finishSeconds: active.race.outcome.endSeconds!,
       crossingSeconds: player.crossingSeconds,
       bestLapSeconds: player.bestLapSeconds,
     });

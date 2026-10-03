@@ -26,6 +26,7 @@ export interface RecordedRun extends RecordSelection {
   readonly routeLinks: readonly string[] | null;
   /** The FINISH gate reached. */
   readonly goal: string;
+  /** The run's ending race time (`race.outcome.endSeconds`). */
   readonly finishSeconds: number;
   readonly crossingSeconds: readonly number[];
   readonly bestLapSeconds: number | null;
