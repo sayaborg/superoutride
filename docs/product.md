@@ -216,6 +216,7 @@ elements, each reading one observation; the active Session rules determine which
 | CIRCUIT                    | LAP x/y, lap time, BEST lap                                          |
 | One rival per stage        | TARGET distance while that rival is ahead                            |
 | Ended                      | GOAL, or GAME OVER with TIME UP or RANK OUT, until RESULT            |
+| A record exists            | RECORD at READY; in TIME TRIAL the difference at each gate and lap   |
 
 Race rules sit in the upper rows, the vehicle's state in the lower rows, and passing notices in the
 middle; the road and the player's vehicle stay clear. Times read `1'23"456`. TIME turns red under ten
@@ -235,6 +236,11 @@ The browser keeps one versioned record of settings and records:
 - **Settings:** each vehicle's selected color, the three volumes and the latest selections.
 - **TIME TRIAL records:** best time and best lap for each course, route, lap count and vehicle.
 - **ARCADE records:** best completion time for each series, course, reached goal and vehicle.
+
+A record keeps the identities of its course and vehicle definitions and is discarded when either
+changes. Only a run that reaches GOAL records. READY shows the record for the selection and RESULT
+shows it with NEW RECORD when it is beaten. In TIME TRIAL each gate and lap shows the difference from
+the record run for two seconds, green when faster and red when slower. SETTINGS can clear all records.
 
 An equal time keeps the earlier record. Color and music are not record conditions. Sessions rebuilt by
 DEV tuning record nothing. There is no name entry, ghost or online ranking.

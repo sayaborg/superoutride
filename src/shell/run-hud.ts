@@ -3,13 +3,14 @@ import type { createCourseRace } from '../race/course-race.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import { TEXT_COLUMNS, type TextLayer } from '../view/text-layer.js';
-import { formatRaceTime } from './race-status-hud.js';
+import { formatMilliseconds, formatRaceTime, formatTimeDifference, raceMilliseconds } from './race-status-hud.js';
 
 type CourseRace = ReturnType<typeof createCourseRace>;
 
 /**
- * What the HUD reads in one frame: the race's facts, the player's observation, the player's final input sample and the
- * Session's course, mode and the player vehicle's engine speeds from its definitions.
+ * What the HUD reads in one frame: the race's facts, the player's observation, the player's final input sample, the
+ * Session's course, mode and the player vehicle's engine speeds from its definitions, and the record the run compares
+ * against.
  */
 export interface HudFacts {
   readonly race: CourseRace;
@@ -22,6 +23,11 @@ export interface HudFacts {
     readonly redlineRpm: number;
     readonly fuelCutRpm: number;
   };
+  /**
+   * The stored record for the selection, from the records before the run, once its route (TIME TRIAL) or goal (ARCADE)
+   * is decided; `splitsMs` are a TIME TRIAL record run's gate and lap crossings. Null without one.
+   */
+  readonly record: { readonly timeMs: number; readonly splitsMs: readonly number[] | null } | null;
 }
 
 /** Seconds a passing display lasts, in the time base its fact is stamped in. */
@@ -34,6 +40,8 @@ export const HUD_DURATIONS = Object.freeze({
   shift: 0.3,
   /** The signal lamps stay green after GO (race time). */
   go: 1,
+  /** The difference from the record run shows after each gate and lap crossing (race time). */
+  split: 2,
 });
 const MODE_NAMES: Readonly<Record<string, string>> = {
   ARCADE: 'ARCADE',
@@ -65,8 +73,10 @@ export const HUD_LAYOUT = Object.freeze({
   speed: [29, 28],
   speedUnit: [31, 28],
   extend: ['center', 7],
+  split: ['center', 7],
   courseName: ['center', 10],
   mode: ['center', 11],
+  record: ['center', 12],
   lamp1: [15, 13],
   lamp2: [19, 13],
   lamp3: [23, 13],
@@ -304,6 +314,32 @@ const HUD_ELEMENTS: readonly HudElement[] = [
     write({ session }, text) {
       write(text, 'courseName', session.courseName);
       write(text, 'mode', MODE_NAMES[session.mode]!);
+    },
+  },
+  {
+    middle: true,
+    when: ({ race, record }) => beforeGo(race) && record !== null,
+    write: ({ record }, text) => write(text, 'record', `RECORD ${formatMilliseconds(record!.timeMs)}`),
+  },
+  {
+    // The difference from the record run at the latest gate or lap crossing: green when faster, red otherwise.
+    middle: true,
+    when: ({ race, record }) => {
+      const crossings = race.player.crossingSeconds,
+        latest = crossings.length - 1,
+        splits = record?.splitsMs;
+      return (
+        !!splits &&
+        latest >= 0 &&
+        latest < splits.length &&
+        race.clock.elapsedSeconds - crossings[latest]! < HUD_DURATIONS.split
+      );
+    },
+    write({ race, record }, text) {
+      const crossings = race.player.crossingSeconds,
+        latest = crossings.length - 1;
+      const difference = raceMilliseconds(crossings[latest]!) - record!.splitsMs![latest]!;
+      write(text, 'split', formatTimeDifference(difference), difference < 0 ? TEXT_PALETTES.GREEN : TEXT_PALETTES.RED);
     },
   },
   {

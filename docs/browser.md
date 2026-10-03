@@ -113,8 +113,10 @@ persisted), which the shell counts in fixed simulation steps after the step that
 the field, rendering and sound continue and PAUSE stays available; a pause stops the count with the simulation.
 At RESULT the run finishes: the race stops and the RESULT menu
 is drawn over the stopped frame at half brightness and takes the menu commands. Its title is the outcome, GOAL in yellow or GAME OVER in
-red; its lines are RANK n/m when the Session has rivals, TIME (race time) and, on a circuit, BEST LAP, all derived
-from race facts, the rank by the race's standing. Its items are RETRY (the same run again, starting at once with
+red; its lines are RANK n/m when the Session has rivals, TIME (race time), RECORD (the record before the run) when
+one exists, NEW RECORD in yellow when the run beat it or set the first, and, on a circuit, BEST LAP with NEW in yellow
+when it beat the recorded best lap. The race facts give the rank (by the race's standing) and times; the run's one
+record judgement ([Player record](#player-record)) gives the record lines. Its items are RETRY (the same run again, starting at once with
 a new seed), CHANGE VEHICLE (SELECT VEHICLE with the run's selection), SELECT (the run mode's first selection screen
 with the run's selection) and TITLE; leaving the run ends it. A Session rebuilt by DEV tuning restarts
 the run, clearing `paused` and `finished`, so it drives at once. A run's start resets driving input once.
@@ -248,7 +250,8 @@ rival ahead). Another table holds every element's place in the 40×30 grid, so m
 | 1–2   | TIME and the remaining seconds (rounded up), race time, POS n/m, STAGE n                                           |
 | 4–5   | LAP x/y and the lap's time, BEST and the best lap (`-'--"---` before one), PASS n until the ending, TARGET nM      |
 | 7     | `EXTEND +12"0` (seconds and tenths), yellow, while TIME is yellow after an extension                               |
-| 10–11 | Before GO: the course's display name and the mode                                                                  |
+| 7     | TIME TRIAL with a record: the difference from the record run for 2 s after each gate and lap crossing              |
+| 10–12 | Before GO: the course's display name, the mode and, when one exists, `RECORD 1'23"456`                             |
 | 13–14 | Three 2×2-tile signal lamps: before GO the race's lamps lit are red and the rest unlit; all green for 1 s after GO |
 | 16–17 | From the ending until RESULT: GOAL (yellow), or GAME OVER (red) with TIME UP or RANK OUT                           |
 | 27–28 | The gear and the speed in km/h with `KM/H`                                                                         |
@@ -268,7 +271,9 @@ Durations come from race facts, never from wall-clock time or HUD timers, so a p
 while race time is at most 2 s after an extension's race time, and red otherwise under 10 s remaining; a finished
 lap's time holds in yellow for 2 s of race time after the lap; the gear is yellow for 0.3 s of the race's
 simulation time (every advanced step, READY and after the ending included) after the shift the race stamped.
-The signal lamps are green for 1 s of race time after GO. Other text is white. These lengths sit in one constant.
+The signal lamps are green for 1 s of race time after GO. The difference from the record run shows for 2 s of race
+time after each crossing, green when faster (`-0"312`) and red otherwise (`+0"312`; `-1'02"312` from one minute on).
+Other text is white. These lengths sit in one constant.
 
 ## Performance HUD
 
@@ -316,7 +321,10 @@ the identities time budgets carry.
 
 [`src/shell/run-records.ts`](../src/shell/run-records.ts) judges a run once, when its product Session first reaches
 GOAL; RESULT and saving use that one judgement. GAME OVER, QUIT, RETRY, FREE PLAY and a DEV-tuned rebuilt Session
-record nothing; a run requested by URL records as one requested from the menus. A stored record whose identities differ
+record nothing; a run requested by URL records as one requested from the menus. The HUD compares with the records as
+they stood before the run: RECORD at READY needs the record's key decided before driving (a TIME TRIAL on a course
+with one route, an ARCADE course with one FINISH), and TIME TRIAL crossing differences start once the route is
+decided, each against the record run's crossing of the same index. A DEV-tuned Session shows no record. A stored record whose identities differ
 from the run's counts as none and is replaced. TIME TRIAL records against the route the race reports
 (`routeLinks`) and records nothing while it is undecided: a faster time replaces the time and splits, and a faster lap
 replaces the best lap alone. ARCADE records against the goal reached: a faster time replaces the record. An equal

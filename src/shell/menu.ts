@@ -23,13 +23,16 @@ export interface MenuItem {
   adjust?(step: -1 | 1): void;
 }
 
+/** A line of text in WHITE, or segments written one after another in their palettes. */
+export type MenuLine = string | readonly { readonly text: string; readonly palette: number }[];
+
 /** A list to choose from: a title, items read at each use, and what BACK does. */
 export interface MenuDefinition {
   readonly title: string;
   /** The title's text palette; WHITE when absent. */
   readonly titlePalette?: number;
-  /** Lines of information between the title and the items, in WHITE. */
-  readonly lines?: readonly string[];
+  /** Lines of information between the title and the items: WHITE text, or segments in their own palettes. */
+  readonly lines?: readonly MenuLine[];
   items(): readonly MenuItem[];
   back?(): void;
 }
@@ -81,7 +84,14 @@ export function createMenu(definition: MenuDefinition, initial = 0) {
       if (height > TEXT_ROWS) throw new RangeError(`A menu of ${height} rows does not fit the text grid`);
       const top = Math.floor((TEXT_ROWS - height) / 2);
       writeCentred(text, top, definition.title, definition.titlePalette ?? TEXT_PALETTES.WHITE);
-      lines.forEach((line, i) => writeCentred(text, top + 2 + i, line, TEXT_PALETTES.WHITE));
+      lines.forEach((line, i) => {
+        const segments = typeof line === 'string' ? [{ text: line, palette: TEXT_PALETTES.WHITE }] : line;
+        let column = Math.floor((TEXT_COLUMNS - segments.reduce((n, segment) => n + segment.text.length, 0)) / 2);
+        for (const segment of segments) {
+          text.write(column, top + 2 + i, segment.text, segment.palette);
+          column += segment.text.length;
+        }
+      });
       items.forEach((item, i) =>
         writeCentred(
           text,

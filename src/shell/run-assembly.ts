@@ -11,7 +11,7 @@ import { loadDeliveredCourse } from '../content/load-delivered-course.js';
 import type { loadVehicleDefinitions } from '../content/vehicle-catalog.js';
 import { createCourseRace } from '../race/course-race.js';
 import { runResult } from './race-status-hud.js';
-import { writeHud } from './run-hud.js';
+import { writeHud, type HudFacts } from './run-hud.js';
 import { fuelCutRpm } from '../vehicle/physics/automatic-powertrain.js';
 import type { TextLayer } from '../view/text-layer.js';
 import type { createCoursePerformanceHud } from './course-performance-hud.js';
@@ -35,7 +35,7 @@ import { compileSessionConfiguration, type SessionConfiguration } from '../race/
 import type { DisplaySettings } from '../view/display-settings.js';
 import type { createRaceSprites } from '../view/race-sprites.js';
 import type { PlayerRecord } from './player-record.js';
-import { judgeRun, type RecordJudgement } from './run-records.js';
+import { judgeRun, storedRecord, type RecordJudgement, type RecordSelection } from './run-records.js';
 
 /** The one run the page drives: its fixed step, its frame, its result and its disposal. */
 export interface Run extends RunFrame {
@@ -198,27 +198,46 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
     maxActiveStrips: Math.max(...course.sections.map((section) => section.color.metrics.maxActiveStrips)),
   });
   let afterEndingSeconds = 0;
+  // What the run records against, and the records before it, which the HUD compares with.
+  const selection: RecordSelection = {
+    mode: settings.mode,
+    courseId,
+    seriesId: arcade?.series.id ?? null,
+    vehicleId,
+    lapCount: settings.lapCount,
+    courseSha256: course.identity.buildSha256,
+    vehicleSha256,
+  };
+  const recordsBefore = page.player.records;
+  // An ARCADE goal is known before the run only on a course with one FINISH.
+  const goals = course.gates.intervals.flatMap((interval) => (interval.finish ? [interval.finish.id] : []));
+  const soleGoal = goals.length === 1 ? goals[0]! : null;
+  // The HUD's record, resolved once the TIME TRIAL route is decided; a DEV-tuned Session compares with none.
+  let hudRecord: HudFacts['record'] | undefined;
+  const runRecord = (): HudFacts['record'] => {
+    if (active.tuned) return null;
+    if (hudRecord === undefined) {
+      const routeLinks = settings.mode === 'TIME_TRIAL' ? active.race.routeLinks : null;
+      if (settings.mode === 'TIME_TRIAL' && routeLinks === null) return null;
+      const stored = storedRecord(recordsBefore, selection, routeLinks, soleGoal);
+      hudRecord = stored && { timeMs: stored.timeMs, splitsMs: 'splitsMs' in stored ? stored.splitsMs : null };
+    }
+    return hudRecord;
+  };
   // The run's judgement against the records, made once when the product Session reaches GOAL; a DEV-tuned Session
   // records nothing.
   let judgement: RecordJudgement | null = null,
     recorded = false;
   const record = () => {
     recorded = true;
-    const { race } = active;
-    const { player } = race;
+    const { player, routeLinks } = active.race;
     judgement = judgeRun(page.player.records, {
-      mode: settings.mode,
-      courseId,
-      seriesId: arcade?.series.id ?? null,
-      vehicleId,
-      lapCount: race.lapCount,
-      routeLinks: race.routeLinks,
+      ...selection,
+      routeLinks,
       goal: player.finishGateId!,
       finishSeconds: player.finishSeconds!,
       crossingSeconds: player.crossingSeconds,
       bestLapSeconds: player.bestLapSeconds,
-      courseSha256: course.identity.buildSha256,
-      vehicleSha256,
     });
     if (judgement?.records) page.player.updateRecords(judgement.records);
   };
@@ -273,6 +292,7 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
             player: observations.player,
             input: shell.inputManager.lastSample,
             session: hudSession(active.session),
+            record: runRecord(),
           },
           text,
           menu,
@@ -322,7 +342,7 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
   return {
     tick,
     draw,
-    result: () => runResult(active.race),
+    result: () => runResult(active.race, judgement),
     dispose() {
       devControls?.dispose();
     },

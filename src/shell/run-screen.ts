@@ -1,6 +1,6 @@
 import type { TextLayer } from '../view/text-layer.js';
 import { createMenu, type Menu, type MenuDefinition } from './menu.js';
-import { formatRaceTime, type RunResult } from './race-status-hud.js';
+import { formatMilliseconds, formatRaceTime, type RunResult } from './race-status-hud.js';
 import { TEXT_PALETTES } from '../image/text-tiles.js';
 import { halveRgb555Pixels } from '../image/rgb555.js';
 import type { SoftwareSurface } from '../view/software-surface.js';
@@ -71,8 +71,12 @@ export interface RunScreenActions {
   title(): void;
 }
 
-/** RESULT's lines: the outcome as its title, the rank when there were rivals, race time and a circuit's best lap. */
+/**
+ * RESULT's lines: the outcome as its title, the rank when there were rivals, race time, the record before the run and
+ * NEW RECORD when it was beaten, and a circuit's best lap with NEW when it beat the recorded one.
+ */
 function resultMenu(result: RunResult, actions: RunScreenActions): MenuDefinition {
+  const { record } = result;
   const items = Object.freeze([
     { label: 'RETRY', confirm: () => actions.retry() },
     { label: 'CHANGE VEHICLE', confirm: () => actions.changeVehicle() },
@@ -85,7 +89,16 @@ function resultMenu(result: RunResult, actions: RunScreenActions): MenuDefinitio
     lines: [
       ...(result.standing ? [`RANK ${result.standing.rank}/${result.standing.count}`] : []),
       `TIME ${formatRaceTime(result.raceSeconds)}`,
-      ...(result.bestLapSeconds === null ? [] : [`BEST LAP ${formatRaceTime(result.bestLapSeconds)}`]),
+      ...(record?.previous ? [`RECORD ${formatMilliseconds(record.previous.timeMs)}`] : []),
+      ...(record?.newRecord ? [[{ text: 'NEW RECORD', palette: TEXT_PALETTES.YELLOW }]] : []),
+      ...(result.bestLapSeconds === null
+        ? []
+        : [
+            [
+              { text: `BEST LAP ${formatRaceTime(result.bestLapSeconds)}`, palette: TEXT_PALETTES.WHITE },
+              ...(record?.newBestLap ? [{ text: ' NEW', palette: TEXT_PALETTES.YELLOW }] : []),
+            ],
+          ]),
     ],
     items: () => items,
   };
