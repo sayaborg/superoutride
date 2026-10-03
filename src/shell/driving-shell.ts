@@ -28,8 +28,11 @@ interface BrowserDrivingShell {
   setRoute(route: InputRoute): void;
   /** The menu commands since the last call. */
   menuCommands(): MenuCommand[];
-  /** Called within a user gesture outside driving: prepare sound so runs sound from their start. */
-  enableSound(): void;
+  /**
+   * Called within a user gesture outside driving: prepare sound so runs sound from their start, and request
+   * fullscreen; a refusal is ignored.
+   */
+  activate(): void;
 }
 
 /**
@@ -69,7 +72,11 @@ export function createBrowserDrivingShell(
       corners.setRoute(route);
     },
     menuCommands: () => menuInput.poll(),
-    enableSound: () => audio.enable(),
+    activate(): void {
+      audio.enable();
+      const page = document.documentElement;
+      if (!document.fullscreenElement && page.requestFullscreen) void page.requestFullscreen().catch(() => {});
+    },
     framebuffer,
     inputManager,
     present(overlay): void {

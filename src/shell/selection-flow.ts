@@ -42,8 +42,8 @@ export interface SelectionDevices {
   readonly text: TextLayer;
   present(): void;
   show(screen: Screen): void;
-  /** A confirm on TITLE: the user gesture that enables sound where the browser allows it. */
-  enableSound(): void;
+  /** A confirm on TITLE: the user gesture that enables sound and fullscreen where the browser allows them. */
+  activate(): void;
   /** Request the selected run; `back` returns to the last selection screen. */
   run(request: RunRequest, back: () => void): void;
 }
@@ -115,7 +115,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
       {
         label: 'START',
         confirm: () => {
-          devices.enableSound();
+          devices.activate();
           selectMode();
         },
       },

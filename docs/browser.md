@@ -13,6 +13,10 @@ canvas's RGBA through one 32,768-entry table. A shared driving scene supplies th
 previews. All selected course, image, ground and Session inputs are ready before driving starts. A
 failed run assembly displays its reason and Retry without reloading the page; an incomplete Session stays inactive.
 
+The page is laid out by CSS alone. The frame keeps 4:3 without interpolation: in landscape it fills the height of the
+safe area and is centered; in portrait it spans the width at the top. The touch area is the whole viewport wherever
+the frame is.
+
 The browser accumulates nonnegative elapsed time capped at 0.25 s per animation callback. Simulation
 uses fixed 1/60 s steps (`SIM_DT`): the frame loop runs one race `advance(input)` per whole step in the accumulated
 time, passing no step length, and the fractional remainder carries forward. One render follows the completed
@@ -70,8 +74,9 @@ each item carries what CONFIRM and LEFT/RIGHT do on it, so no action depends on 
 label (PAUSE or RESUME) and its visibility follow the run screen's state.
 
 The selection screens follow one flow table ([product](product.md#6-flow-and-screens)). TITLE offers START and
-SETTINGS (DARK until SETTINGS exists); START leads to SELECT MODE, and the page's first CONFIRM on TITLE enables sound
-where the browser allows it. After SELECT MODE each mode's screens follow in order: ARCADE: SELECT SERIES, SELECT
+SETTINGS (DARK until SETTINGS exists); START leads to SELECT MODE. A CONFIRM on TITLE is the user gesture that enables
+sound and requests fullscreen of the page where the browser allows them; a refusal is ignored, and a gamepad press is
+not a gesture the browser accepts. After SELECT MODE each mode's screens follow in order: ARCADE: SELECT SERIES, SELECT
 COURSE (only for a series with several courses), SELECT VEHICLE; FREE PLAY: SELECT COURSE, SELECT VEHICLE, OPTIONS;
 TIME TRIAL: SELECT COURSE, SELECT VEHICLE, LAPS (only on a course with several laps). BACK returns to the previous
 screen and does nothing on TITLE; the last CONFIRM requests the run, which shows LOADING and then starts at once.

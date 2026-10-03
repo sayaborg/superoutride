@@ -196,7 +196,7 @@ async function startPage(): Promise<void> {
         text: textLayer,
         present,
         show: (screen) => host.show(screen),
-        enableSound: () => shell.enableSound(),
+        activate: () => shell.activate(),
         run: (next, back) => void request(next, true, back),
       },
     );
