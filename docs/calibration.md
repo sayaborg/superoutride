@@ -113,6 +113,11 @@ capability on unit grip without surface drag.
 | --------------------- | ----- | ------------------------------------------------------------ |
 | Rival utilization     | 0.75  | FREE PLAY rivals' fixed fraction of the measured envelope    |
 | Reference utilization | 0.9   | Offline reference driver's fraction of the measured envelope |
+| Following time        | 1.5 s | Drivers' following time (`ENVELOPE_DRIVER.followSeconds`)    |
+
+The following time sets a driver's following distance, half the two vehicles' lengths plus its own speed times the
+following time, and the free space a lane needs behind it, the rear vehicle's speed times the following time
+([Content and gameplay](content-and-gameplay.md#vehicle-envelopes-and-drivers)). `ENVELOPE_DRIVER` is version 4.
 
 ## Camera settings
 

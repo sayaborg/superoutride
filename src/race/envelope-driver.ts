@@ -10,7 +10,7 @@ const MIN_DRIVER_CURVATURE_PER_METER = 1e-7;
 
 /** Input/planning policy only. The measured envelope and production mechanics retain their own authority. */
 export const ENVELOPE_DRIVER = Object.freeze({
-  version: 3,
+  version: 4,
   lookahead: 480,
   spacing: 5,
   responseSeconds: 0.45,
@@ -33,6 +33,11 @@ export const ENVELOPE_DRIVER = Object.freeze({
   steeringDemandMinimumSpeed: 5,
   /** m/s: the least speed the steering gain is read at. */
   steeringGainMinimumSpeed: 5,
+  /**
+   * Seconds: the following time. A driver follows a vehicle ahead in its lane within half their lengths plus its own
+   * speed times this, and a lane is free behind it to the rear vehicle's speed times this.
+   */
+  followSeconds: 1.5,
 });
 
 export function envelopeAt(
@@ -207,6 +212,20 @@ export function plannedEnvelopeSpeed(
   return speed;
 }
 
+/** The speed the driver's plan targets now, at the vehicle's station and speed in lane `targetL`. */
+export function envelopeTargetSpeed(
+  coordinates: PlanCoordinateReader,
+  car: VehicleMotionRead,
+  driver: Driver,
+  targetL: Lane,
+  workspace: ReturnType<typeof createEnvelopeDriverWorkspace>,
+  domain: DrivingDomain,
+): number {
+  const speed = Math.hypot(car.longitudinalSpeed, car.lateralSpeed);
+  return plannedTargetSpeed(coordinates, car.course.s, speed, driver, targetL, workspace, domain);
+}
+
+/** The driver's input; `speedLimit` caps its planned target speed (following a slower vehicle). */
 export function sampleEnvelopeDrivingInput(
   coordinates: PlanCoordinateReader,
   car: VehicleMotionRead,
@@ -214,11 +233,15 @@ export function sampleEnvelopeDrivingInput(
   targetL: Lane = 0,
   workspace: ReturnType<typeof createEnvelopeDriverWorkspace>,
   domain: DrivingDomain,
+  speedLimit = Infinity,
 ): DrivingInput {
   const s = car.course.s;
   const speed = Math.hypot(car.longitudinalSpeed, car.lateralSpeed);
   const { envelope } = driver;
-  const targetSpeed = plannedTargetSpeed(coordinates, s, speed, driver, targetL, workspace, domain);
+  const targetSpeed = Math.min(
+    plannedTargetSpeed(coordinates, s, speed, driver, targetL, workspace, domain),
+    speedLimit,
+  );
   const lookahead = Math.min(
     ENVELOPE_DRIVER.lookahead,
     Math.max(ENVELOPE_DRIVER.minimumLookahead, speed * ENVELOPE_DRIVER.responseSeconds),

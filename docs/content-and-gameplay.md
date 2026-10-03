@@ -875,6 +875,18 @@ state. Thus a finished LINEAR/BRANCH rival decelerates and stops on the runout w
 continues; a finished CIRCUIT rival keeps driving. The player's takeover after GOAL is the same driver with a stop
 station as its terminal.
 
+Drivers keep clear of other vehicles. Each step the race gives every driver (rivals and the player's takeover after
+GOAL) a read-only list of the vehicles present in the Session as they stand at the step's start: route position,
+speed and dimensions, the player's vehicle included; drivers write no vehicle state. The vehicle ahead in a driver's
+lane is the nearest one ahead whose footprint overlaps, side to side, the driver's own width centred in that lane.
+When it lies within the driver's following distance, `(L₁ + L₂)/2 + v × followSeconds` with the driver's speed v, and
+is slower than the driver's planned speed, the driver moves to a free adjacent lane of the Carriageway it follows,
+the left one first, and stays in it; it does not return. A lane is free when no footprint in it lies between the
+driver's following distance ahead and, behind, half the two lengths plus that vehicle's speed times `followSeconds`.
+With neither adjacent lane free, the driver limits its planned target speed to that vehicle's speed; its inputs stay
+throttle, brake and steering. The reference line follows no lanes and meets no other vehicle, so reference runs are
+unchanged.
+
 The same driver serves reference runs and live rivals. Generated runs contain precise landmark times
 and optional 10 Hz position/speed/utilization traces. The browser loads generated envelopes and compact
 integer-millisecond budgets. [Development](development.md#build-outputs) owns generated file locations.

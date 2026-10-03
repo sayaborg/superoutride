@@ -30,7 +30,7 @@
   latency, clock and worklet overruns; headless Chromium did not reproduce the lag, so its fix waits on a reading
   from an affected device ([Browser](browser.md#performance-hud)).
 
-Next PR: **13-2c — Rival avoidance**.
+Next PR: **13-3a — Traffic**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -50,8 +50,6 @@ Findings of the second design audit not yet addressed, by when they are taken up
 Give vehicles physical extent and let them meet each other and traffic. Contact never ends a run and causes no
 damage; cars and motorcycles may share a field.
 
-- **13-2 — Vehicle contacts:** lanes (13-2a) and body contact (13-2b) are in; 13-2c gives drivers lane changes and
-  following so rivals do not hit other vehicles on purpose.
 - **13-3 — Traffic:** traffic vehicles and their Session settings. Traffic does not participate in competitive route
   locking or ranking.
 

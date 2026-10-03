@@ -5,7 +5,7 @@ import { enumerateCourseRoutes } from '../course/compiler/course-routes.js';
 import { createRankLimitJudge, createRunOutcome, type RunStatus } from './run-outcome.js';
 import { createRouteProgress, type RouteRaceEvent } from './route-progress.js';
 import { createRouteCrossSections } from './route-cross-sections.js';
-import { createCourseForkField, type DriverIntent } from './course-fork-field.js';
+import { createCourseForkField } from './course-fork-field.js';
 import { rivalExit } from './rival-exit.js';
 import {
   createRecoveryState,
@@ -17,10 +17,12 @@ import {
   type RecoveryTarget,
 } from './recovery.js';
 import { createBodyContacts, footprintsOverlap, type RouteFootprint } from './body-contacts.js';
+import { createLaneFollowing, type LaneIntent, type VehicleSighting } from './lane-following.js';
 import { createRivalPace } from './rival-pace.js';
 import {
   createEnvelopeDriverWorkspace,
   createVariableEnvelopeDriver,
+  envelopeTargetSpeed,
   plannedEnvelopeSpeed,
   sampleEnvelopeDrivingInput,
 } from './envelope-driver.js';
@@ -102,7 +104,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   // The fork field is the fork decider: the only holder of the Route's selection authority.
   const forks = createCourseForkField(runtime.route, lines, runtime.selectSuccessor);
   // A rival's intent drives it; the player's input comes from its composition, so it has no intent here.
-  const competitor = (id: string, actor: Actor, intent: DriverIntent | null, stages: SessionEntry['stages']) => ({
+  const competitor = (id: string, actor: Actor, intent: LaneIntent | null, stages: SessionEntry['stages']) => ({
     id,
     actor,
     intent,
@@ -161,7 +163,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     // A grid rival starts in the lane nearest its slot; an ahead entry names its lane.
     const lane = entry.slot ? forks.intentLane(entry.slot.at.s, entry.slot.l) : entry.ahead!.lane;
     // The race assigns each rival's target exits from the Session seed; its grid side implies none.
-    const intent: DriverIntent = {
+    const intent: LaneIntent = {
       lane,
       exit: (occurrence) =>
         rivalExit(configuration.seed, rivalIndex, occurrence.ordinal, occurrence.section.fork!.exits.length),
@@ -198,11 +200,17 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
         place: (s: number) => vacantPlace(c, s, c.recoveryLane),
         externalForce: contactForce,
       },
+      /** The driver's target lateral; a new function whenever its lane changes, since the driver caches by lane. */
       input: (s: number) => forks.targetL(s, c.intent!),
+      /** How the drivers see this competitor; the race writes it at the start of every moving step. */
+      sighting: { s: 0, l: 0, length: 0, width: 0, speed: 0 },
     };
   });
   // The competitors present in the Session, the player first, in competitor order.
   let active = motions.filter((motion) => motion.c.present);
+  // Drivers follow and change lanes over the race's sightings of the present vehicles.
+  const follow = createLaneFollowing(forks);
+  const sightings: VehicleSighting[] = [];
   // Body contacts push present competitors apart; the Session's driving definition holds the spring-damper.
   const bodyContacts = createBodyContacts(runtime.readers.coordinates, playerActor.model.bodyContact);
   const footprint = (c: typeof player, s: number, l: number): RouteFootprint => ({
@@ -358,8 +366,8 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   // Session without an envelope holds the brake instead.
   const takeoverDriver = playerEntry!.envelope ? options.session.driverOf(playerEntry!.envelope) : null;
   const takeoverWorkspace = createEnvelopeDriverWorkspace();
-  const takeoverIntent: { lane: number; exit: DriverIntent['exit'] } = { lane: 0, exit: () => 0 };
-  const takeoverLane = (s: number) => forks.targetL(s, takeoverIntent);
+  const takeoverIntent: LaneIntent = { lane: 0, exit: () => 0 };
+  let takeoverLane = (s: number) => forks.targetL(s, takeoverIntent);
   const takeoverDomain = { start: 0, end: 0, terminal: null as number | null };
   let stopS = Infinity;
   const takeOver = () => {
@@ -377,6 +385,21 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     takeoverDomain.start = window.start;
     takeoverDomain.end = window.end;
     takeoverDomain.terminal = Math.min(window.terminal ?? Infinity, stopS);
+    const lane = takeoverIntent.lane;
+    const speedLimit = follow(
+      takeoverIntent,
+      active[0]!.sighting,
+      envelopeTargetSpeed(
+        runtime.readers.coordinates,
+        player.actor.vehicle,
+        takeoverDriver,
+        takeoverLane,
+        takeoverWorkspace,
+        takeoverDomain,
+      ),
+      sightings,
+    );
+    if (takeoverIntent.lane !== lane) takeoverLane = (s: number) => forks.targetL(s, takeoverIntent);
     return sampleEnvelopeDrivingInput(
       runtime.readers.coordinates,
       player.actor.vehicle,
@@ -384,6 +407,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       takeoverLane,
       takeoverWorkspace,
       takeoverDomain,
+      speedLimit,
     );
   };
   /**
@@ -391,6 +415,20 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
    * loading. A running step (`stepStart` set) also paces paced rivals; after the run ends they hold their pace.
    */
   const driveField = (input: DrivingInput, stepStart: number | null) => {
+    // Drivers see the present vehicles as they stand at the step's start.
+    sightings.length = 0;
+    for (const motion of active) {
+      const { vehicle, model } = motion;
+      Object.assign(motion.sighting, {
+        s: vehicle.course.s,
+        l: vehicle.course.l,
+        length: model.compiledVehicle.overallLength,
+        width: model.compiledVehicle.overallWidth,
+        speed: Math.hypot(vehicle.longitudinalSpeed, vehicle.lateralSpeed),
+      });
+      sightings.push(motion.sighting);
+    }
+    const playerInput = stepStart === null ? afterRunInput(input) : input;
     let minS = Infinity,
       maxS = -Infinity;
     for (const motion of active) {
@@ -400,7 +438,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     runtime.refresh(minS, maxS);
     // Contact forces come from the state at the step's start and hold through it.
     bodyContacts(active);
-    move(active[0]!, input);
+    move(active[0]!, playerInput);
     for (let i = 1; i < active.length; i += 1) {
       const motion = active[i]!;
       const driving = motion.driving!;
@@ -408,15 +446,32 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
         driving.pace.update(motion.c.actor.vehicle.course.s, stepStart);
         driving.set(driving.pace.utilization, driving.pace.speedFraction * driving.driver.envelope.maximumSpeed);
       }
-      move(
-        motion,
-        sampleEnvelopeDrivingInput(
+      const intent = motion.c.intent!;
+      const lane = intent.lane;
+      const speedLimit = follow(
+        intent,
+        motion.sighting,
+        envelopeTargetSpeed(
           runtime.readers.coordinates,
-          motion.c.actor.vehicle,
+          motion.vehicle,
           driving.driver,
           motion.input,
           motion.driverWorkspace,
           runtime.window,
+        ),
+        sightings,
+      );
+      if (intent.lane !== lane) motion.input = (s: number) => forks.targetL(s, intent);
+      move(
+        motion,
+        sampleEnvelopeDrivingInput(
+          runtime.readers.coordinates,
+          motion.vehicle,
+          driving.driver,
+          motion.input,
+          motion.driverWorkspace,
+          runtime.window,
+          speedLimit,
         ),
       );
     }
@@ -437,7 +492,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       return;
     }
     if (outcome.status !== 'RUNNING') {
-      driveField(afterRunInput(input), null);
+      driveField(input, null);
       stepObservation.recovered = active[0]!.recovered;
       return;
     }
