@@ -74,7 +74,7 @@ export interface TrafficMotion extends TrafficBody {
   readonly driverWorkspace: ReturnType<typeof createEnvelopeDriverWorkspace>;
   input: (s: number) => number;
   readonly contactForce: { x: number; y: number; z: number };
-  readonly sighting: { s: number; l: number; length: number; width: number; speed: number };
+  readonly sighting: { s: number; l: number; length: number; width: number; speed: number; target: number };
   readonly step: {
     readonly state: RecoveryState;
     input: DrivingInput;
@@ -179,7 +179,7 @@ export function createTrafficField(options: {
           driverWorkspace: createEnvelopeDriverWorkspace(),
           input: lane,
           contactForce,
-          sighting: { s: 0, l: 0, length: 0, width: 0, speed: 0 },
+          sighting: { s: 0, l: 0, length: 0, width: 0, speed: 0, target: 0 },
           step: {
             state: createRecoveryState(vehicle),
             input: idle,

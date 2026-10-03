@@ -17,7 +17,7 @@ import {
   type RecoveryTarget,
 } from './recovery.js';
 import { createBodyContacts, footprintsOverlap, type RouteFootprint } from './body-contacts.js';
-import { createLaneFollowing, type LaneIntent, type VehicleSighting } from './lane-following.js';
+import { createLaneFollowing, occupiesLane, type LaneIntent, type VehicleSighting } from './lane-following.js';
 import { createTrafficField, type TrafficMotion } from './traffic.js';
 import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
 import { createRivalPace } from './rival-pace.js';
@@ -219,7 +219,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       /** The driver's target lateral; a new function whenever its lane changes, since the driver caches by lane. */
       input: (s: number) => forks.targetL(s, c.intent!),
       /** How the drivers see this competitor; the race writes it at the start of every moving step. */
-      sighting: { s: 0, l: 0, length: 0, width: 0, speed: 0 },
+      sighting: { s: 0, l: 0, length: 0, width: 0, speed: 0, target: 0 },
     };
     return motion;
   });
@@ -229,6 +229,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   const bodies: (Body & {
     readonly sighting: VehicleSighting;
     readonly contactForce: { x: number; y: number; z: number };
+    readonly input: (s: number) => number;
   })[] = [];
   const refreshBodies = () => {
     bodies.length = 0;
@@ -408,11 +409,15 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   ): number | null => {
     const length = model.compiledVehicle.overallLength,
       width = model.compiledVehicle.overallWidth;
-    const inLane = (body: Body) =>
-      Math.abs(body.vehicle.course.l - lane(body.vehicle.course.s)) <
-      (width + body.model.compiledVehicle.overallWidth) / 2;
+    const inLane = (body: (typeof bodies)[number]) =>
+      occupiesLane(
+        body.vehicle.course.l,
+        targetOf(body),
+        lane(body.vehicle.course.s),
+        (width + body.model.compiledVehicle.overallWidth) / 2,
+      );
     const speedOf = (body: Body) => Math.hypot(body.vehicle.longitudinalSpeed, body.vehicle.lateralSpeed);
-    let ahead: Body | null = null;
+    let ahead: (typeof bodies)[number] | null = null;
     for (const body of bodies)
       if (body.vehicle.course.s > s && (!ahead || body.vehicle.course.s < ahead.vehicle.course.s) && inLane(body))
         ahead = body;
@@ -560,6 +565,13 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     takeoverDomain.terminal = Math.min(window.terminal ?? Infinity, stopS);
     return drive(takeover, takeoverIntent, takeoverDriver, takeoverDomain);
   };
+  // The lateral a present vehicle is heading for at its station: its driver's target lateral; the player's own lateral
+  // while the player drives it, or the takeover's target after GOAL.
+  const targetOf = (body: (typeof bodies)[number]) => {
+    const { s, l } = body.vehicle.course;
+    if (body !== motions[0]) return body.input(s);
+    return outcome.status === 'GOAL' && takeoverDriver ? takeover.input(s) : l;
+  };
   /**
    * Moves the present field one step: the player by `input`, each rival by its driver, then fork observation and Route
    * loading. A running step (`stepStart` set) also paces paced rivals; after the run ends they hold their pace.
@@ -575,6 +587,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
         length: model.compiledVehicle.overallLength,
         width: model.compiledVehicle.overallWidth,
         speed: Math.hypot(vehicle.longitudinalSpeed, vehicle.lateralSpeed),
+        target: targetOf(motion),
       });
       sightings.push(motion.sighting);
     }

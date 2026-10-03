@@ -898,8 +898,12 @@ station as its terminal.
 
 Drivers keep clear of other vehicles. Each step the race gives every driver (rivals and the player's takeover after
 GOAL) a read-only list of the vehicles present in the Session as they stand at the step's start: route position,
-speed and dimensions, the player's vehicle included; drivers write no vehicle state. The vehicle ahead in a driver's
-lane is the nearest one ahead whose footprint overlaps, side to side, the driver's own width centred in that lane.
+speed, dimensions and the lateral each is heading for at its station (its driver's target lateral; its own lateral
+while the player drives it), the player's vehicle included; drivers write no vehicle state. A vehicle occupies both the
+lanes it overlaps where it is and the lane it is heading for: it is in a lane for a driver when either its lateral or
+the lateral it is heading for lies nearer that lane's centre at its station than half the two vehicles' widths. One
+test decides this for the vehicle ahead, free lanes and appearances. The vehicle ahead in a driver's lane is the
+nearest one ahead in that lane.
 It is a constraint of the driver's plan, braked back like a curve speed: with the gap Δs to it, its speed `v_a`, the
 driver's speed `v` and planning braking `a`,
 
@@ -919,7 +923,7 @@ vehicle ahead, behind that lane's vehicle ahead under the same constraint (the c
 adjacent lanes differ little in them). It moves to the lane allowing the most, the left one on a tie, when that exceeds
 its constrained plan by more than `speedDeadzone`, and drives that speed in its new lane. It keeps no memory of lanes:
 it stays where it is until another lane is faster by that margin, its former lane included. A lane is free when no
-footprint in it lies between the driver's following distance ahead, `(L₁ + L₂)/2 + v × followSeconds`, and, behind,
+vehicle in it lies between the driver's following distance ahead, `(L₁ + L₂)/2 + v × followSeconds`, and, behind,
 half the two lengths plus that vehicle's speed times `followSeconds`. With no faster free lane, or when it does not
 change lanes, the driver follows on the constrained plan; its inputs stay throttle, brake and steering. Every driver's `a` is its envelope's minimum
 braking times its utilization; the player's, for others' checks, is the Session driver's. The reference line plans
@@ -948,6 +952,8 @@ lane, the same appearance as a later stage's entry. Positions at or before the l
 never to appear later, when `min(8, 24 − competitors)` traffic vehicles are present (`SESSION_RULE_LIMITS.traffic`
 and `.vehicles`), when the resident Route does not reach it yet, when its place overlaps another vehicle's footprint
 ([Body contact](#body-contact)), or when a vehicle behind in its lane could not stop for it (the appearance rule above). A traffic vehicle leaves, for good, once out of view by the same rule as competitors.
+Traffic exists only where the player can see it: it appears at the farthest visible distance ahead of the player
+and leaves once out of the player's view, so competitors far from the player meet none.
 The race publishes traffic observations in their own list. Records do not depend on traffic settings.
 
 ## Body contact

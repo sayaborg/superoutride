@@ -2,9 +2,23 @@ import type { DriverIntent, TargetCarriageway } from './course-fork-field.js';
 import type { RouteFootprint } from './body-contacts.js';
 import { ENVELOPE_DRIVER, type EnvelopeLeader } from './envelope-driver.js';
 
-/** A present vehicle as drivers see it: its route footprint and speed (m/s). The race writes it; drivers only read. */
+/**
+ * A present vehicle as drivers see it: its route footprint, speed (m/s) and the lateral it is heading for at its
+ * station (`target`: its driver's target lateral, or its own lateral while the player drives it). The race writes it;
+ * drivers only read.
+ */
 export interface VehicleSighting extends RouteFootprint {
   readonly speed: number;
+  readonly target: number;
+}
+
+/**
+ * Whether a vehicle at lateral `l` heading for lateral `target` is in a lane for a driver: either lateral is nearer the
+ * driver's lane centre at the vehicle's station (`centre`) than `halfWidths`, half the two vehicles' widths. A vehicle
+ * thus occupies both the lanes it overlaps where it is and the lane it is heading for.
+ */
+export function occupiesLane(l: number, target: number, centre: number, halfWidths: number): boolean {
+  return Math.abs(l - centre) < halfWidths || Math.abs(target - centre) < halfWidths;
 }
 
 /** A driver's intent whose lane the driver itself changes. */
@@ -24,11 +38,11 @@ export function createLaneFollowing(forks: {
 }) {
   const { followSeconds } = ENVELOPE_DRIVER;
   const probe = { lane: 0, exit: (() => 0) as DriverIntent['exit'] };
-  // Whether `other`'s footprint overlaps, side to side, the driver's width centred in `lane` at other's station.
+  // Whether `other` occupies `lane` for the driver, at other's station.
   const inLane = (self: VehicleSighting, exit: DriverIntent['exit'], lane: number, other: VehicleSighting) => {
     probe.lane = lane;
     probe.exit = exit;
-    return Math.abs(other.l - forks.targetL(other.s, probe)) < (other.width + self.width) / 2;
+    return occupiesLane(other.l, other.target, forks.targetL(other.s, probe), (other.width + self.width) / 2);
   };
   // Half their lengths plus the follower's speed times the following time.
   const followDistance = (follower: VehicleSighting, leader: VehicleSighting) =>
@@ -48,8 +62,7 @@ export function createLaneFollowing(forks: {
   };
   // The leader record reused for the driver's plan.
   const leader = { s: 0, speed: 0, clearance: 0 };
-  // The vehicle ahead in `lane` as a plan reads it — the nearest one ahead whose footprint overlaps the driver's width
-  // centred in that lane — or null.
+  // The vehicle ahead in `lane` as a plan reads it — the nearest one ahead that occupies that lane — or null.
   const leaderIn = (
     self: VehicleSighting,
     exit: DriverIntent['exit'],
