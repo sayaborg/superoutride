@@ -205,19 +205,28 @@ The product HUD is drawn inside the 320×240 frame. It reads only published obse
 the player's final input sample and the player vehicle's observations. It is a set of independent
 elements, each reading one observation; the active Session rules determine which appear.
 
-| Condition                  | Elements                      |
-| -------------------------- | ----------------------------- |
-| Always                     | SPEED (km/h), GEAR, race time |
-| Clock on                   | TIME remaining, TIME EXTEND   |
-| Other competitors present  | POS n/m                       |
-| Next gate has a rank limit | PASS n                        |
-| LINEAR or BRANCH           | STAGE n                       |
-| CIRCUIT                    | LAP x/y, lap time             |
-| One rival per stage        | Distance to that rival        |
+| Condition                  | Elements                                                             |
+| -------------------------- | -------------------------------------------------------------------- |
+| Always                     | SPEED (km/h), GEAR, race time, tachometer, steering, throttle, brake |
+| READY                      | Signal lamps, course name and mode                                   |
+| Clock on                   | TIME remaining, EXTEND                                               |
+| Other competitors present  | POS n/m                                                              |
+| Next gate has a rank limit | PASS n                                                               |
+| LINEAR or BRANCH           | STAGE n                                                              |
+| CIRCUIT                    | LAP x/y, lap time, BEST lap                                          |
+| One rival per stage        | TARGET distance while that rival is ahead                            |
+| Ended                      | GOAL, or GAME OVER with TIME UP or RANK OUT, until RESULT            |
 
-Vehicle-state elements follow: steering, throttle and brake (both the player's input and the vehicle's
-actual values) and a tachometer. Text uses one original font of 8×8 tiles (uppercase and lowercase letters, digits and symbols) in the
-same indexed format as sprites and backgrounds: 15 colors and transparency per palette, one palette per tile. Fork guidance is course appearance (signs), not HUD. DEV UI and the DEV HUD stay separate.
+Race rules sit in the upper rows, the vehicle's state in the lower rows, and passing notices in the
+middle; the road and the player's vehicle stay clear. Times read `1'23"456`. TIME turns red under ten
+seconds and yellow for two seconds after an extension, shown as EXTEND with its seconds. A finished
+lap's time holds in yellow for two seconds. Steering, throttle and brake are bars whose fill is the
+vehicle's actual value and whose mark is the player's input; the tachometer bar is red from the
+redline and wholly red while the limiter cuts fuel; the gear turns yellow briefly at a shift. Three
+signal lamps light red one per second and turn green at GO. Text and HUD parts use one original font
+of 8×8 tiles (uppercase and lowercase letters, digits and symbols) in the same indexed format as
+sprites and backgrounds: 15 colors and transparency per palette, one palette per tile. Fork guidance
+is course appearance (signs), not HUD. DEV UI and the DEV HUD stay separate.
 
 ## 10. Records and settings
 

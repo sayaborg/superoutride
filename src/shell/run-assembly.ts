@@ -11,6 +11,8 @@ import { loadDeliveredCourse } from '../content/load-delivered-course.js';
 import type { loadVehicleDefinitions } from '../content/vehicle-catalog.js';
 import { createCourseRace } from '../race/course-race.js';
 import { raceStatusText, runResult } from './race-status-hud.js';
+import { writeHud } from './run-hud.js';
+import type { TextLayer } from '../view/text-layer.js';
 import type { createCoursePerformanceHud } from './course-performance-hud.js';
 import { resolveCourseSession, type EntryVehicle } from '../race/course-session.js';
 import { rivalPoolPairs } from '../race/free-play-field.js';
@@ -229,6 +231,7 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
     );
     const renderMilliseconds = performance.now() - renderStarted;
     return {
+      writeHud: (text: TextLayer) => writeHud({ race, player: observations.player }, text),
       present() {
         const { player } = observations;
         shell.updateAudio(player, observations.rivals);

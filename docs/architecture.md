@@ -633,7 +633,8 @@ vehicle state. Race owns the camera-independent competitor observations (`compet
 competitor, the player included, holding only the values display, camera and audio read (identity and form, pose,
 render height, chainage, velocities, speed, body pitch, lateral acceleration, brake lamp, the actual controls (the
 delivered driver steering offset as a fraction of its maximum, and the throttle and brake actuators), powertrain
-observations including the selected gear and the fuel-cut latch, and tire observations)
+observations including the selected gear, the fuel-cut latch and the race's simulation seconds at the latest shift,
+and tire observations)
 and never vehicle state or a model. The race copies them at the end of every advance, including held READY steps,
 once at creation and after a manual recovery. They are borrowed: the race overwrites the same objects on the next
 advance, so consumers read them before then. Display, the camera and audio read only these observations; the DEV

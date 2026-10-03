@@ -10,13 +10,13 @@ const EXTENSION_DISPLAY_SECONDS = 2;
 /** Seconds of race time the GO prefix stays on the status line. */
 const GO_DISPLAY_SECONDS = 1;
 
-/** m:ss.mmm, floored to whole milliseconds. */
+/** The one time format: minutes ' seconds " thousandths, such as 1'23"456, floored to whole milliseconds. */
 export function formatRaceTime(seconds: number): string {
   const totalMilliseconds = Math.floor(seconds * 1000 + TIMER_ROUNDING_TOLERANCE_MILLISECONDS);
   const minutes = Math.floor(totalMilliseconds / 60_000);
   const secondsPart = Math.floor((totalMilliseconds % 60_000) / 1000);
   const milliseconds = totalMilliseconds % 1000;
-  return `${minutes}:${secondsPart.toString().padStart(2, '0')}.${milliseconds.toString().padStart(3, '0')}`;
+  return `${minutes}'${secondsPart.toString().padStart(2, '0')}"${milliseconds.toString().padStart(3, '0')}`;
 }
 
 /** The Session status line, derived from race facts only. */

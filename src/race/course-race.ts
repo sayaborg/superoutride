@@ -267,6 +267,8 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     });
     return true;
   };
+  // Seconds of every advanced fixed step, READY and after the ending included; it stops only when no step runs.
+  let simulationSeconds = 0;
   // Borrowed competitor observations: every advance overwrites them at the end of its fixed step.
   const competitorObservations = entries.map(({ id, vehicle, color }) =>
     createCompetitorObservation(
@@ -286,6 +288,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
         motion.c.actor.vehicle,
         motion.c.actor.model,
         motion.step.input,
+        simulationSeconds,
       );
     }
   };
@@ -465,6 +468,13 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     player,
     rivals,
     clock,
+    /**
+     * Seconds of every fixed step advanced so far, READY and after the ending included: the time base of displays
+     * timed across the ending, such as a shift's.
+     */
+    get simulationSeconds() {
+      return simulationSeconds;
+    },
     /** The player's STAGE: one more than the race gates the player has crossed since GO, across laps. */
     get stage() {
       return playerGates + 1;
@@ -525,6 +535,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       events = noEvents;
       motions[0]!.step.input = input;
       step(input);
+      simulationSeconds += SIM_DT;
       publish();
       return stepObservation;
     },

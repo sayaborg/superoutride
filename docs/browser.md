@@ -230,6 +230,27 @@ The same press never reaches both authorities. Suspension resets driving input, 
 a key needs a new press before driving input accepts it, so the Enter, A or touch that resumes a run drives nothing.
 While a run screen runs, PAUSE pauses; while it is paused, PAUSE or BACK resumes.
 
+## HUD
+
+The run screen writes the product HUD into the text layer after the scene is drawn and before the text layer is
+drawn ([product](product.md#9-hud)). The HUD reads only race facts ([race time and
+events](content-and-gameplay.md#race-time-and-events)) and the player's competitor observation. It is one table of
+independent elements, each with its condition and what it writes; the table alone decides which show, from the
+Session's rules (the clock, the course type) and race facts (others present, the next gate's rank limit, the stage
+rival ahead). Another table holds every element's place in the 40×30 grid, so moving one changes only its numbers.
+
+| Rows  | Elements                                                                                     |
+| ----- | -------------------------------------------------------------------------------------------- |
+| 1–2   | TIME and the remaining seconds (rounded up), race time, POS n/m, STAGE n                     |
+| 4–5   | LAP x/y and the lap's time, BEST and the best lap (`-'--"---` before one), PASS n, TARGET nM |
+| 27–28 | The gear and the speed in km/h with `KM/H`                                                   |
+
+Durations come from race facts, never from wall-clock time or HUD timers, so a pause stops them: TIME is yellow
+while race time is at most 2 s after an extension's race time, and red otherwise under 10 s remaining; a finished
+lap's time holds in yellow for 2 s of race time after the lap; the gear is yellow for 0.3 s of the race's
+simulation time (every advanced step, READY and after the ending included) after the shift the race stamped.
+Other text is white. These lengths sit in one constant.
+
 ## Race status
 
 The status line derives its text from race facts alone
@@ -250,7 +271,7 @@ status line. A Session rebuilt by DEV tuning prefixes `TUNED · `. Otherwise:
 - A positive extension shows as `TIME EXTEND +x.x` (seconds, one decimal) while race time is at most 2 s after
   the race time of the checkpoint that earned it.
 - Position is `Pr/n`: the player's rank among the n competitors present in the Session.
-- Race time is `m:ss.mmm`, floored to whole milliseconds after adding a display-only tolerance of 1e-7 ms for
+- Race time is `m'ss"mmm` (the one time format, shared with the HUD and RESULT), floored to whole milliseconds after adding a display-only tolerance of 1e-7 ms for
   accumulated fixed-step rounding.
 
 ## Performance HUD
