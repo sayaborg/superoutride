@@ -54,6 +54,12 @@ Findings of the second design audit not yet addressed, by when they are taken up
 Movable objects including cones, fixed roadside objects, barriers and track limits. The method is proposed once
 traffic has been evaluated on real devices.
 
+## Stage 13-5 — Rival racing line
+
+Rivals follow lane centres and change lanes past slower vehicles. A racing line within the road width (the
+minimum-curvature line, compiled with the course), whether reference runs drive it, and passing off that line are
+designed once product courses exist to evaluate it on.
+
 ## Stage 14 — Music and sound effects
 
 - **14-1 — Music:** a music bus in the sound graph, the MUSIC selection screen and the MUSIC volume.

@@ -142,7 +142,7 @@ export function resolveCourseSession(
     if (!driver)
       drivers.set(
         entry.envelope,
-        (driver = compileEnvelopeDriver(entry.envelope, rivalUtilization, entry.envelope.maximumSpeed)),
+        (driver = compileEnvelopeDriver(entry.envelope, rivalUtilization, entry.envelope.maximumSpeed, true)),
       );
     const distance = entry.envelope.maximumSpeed ** 2 / (2 * driver.braking);
     if (!longest || distance > longest.distance) longest = { entry, distance };
@@ -172,7 +172,8 @@ export function resolveCourseSession(
               ...candidate,
               envelope: candidate.envelope,
               colors: spriteSetColors(candidate.vehicle.vehicleDefinition.spriteSet),
-              driver: compileEnvelopeDriver(candidate.envelope, rivalUtilization, trafficSpeed),
+              // Traffic never changes lanes; it follows a slower vehicle in its lane.
+              driver: compileEnvelopeDriver(candidate.envelope, rivalUtilization, trafficSpeed, false),
             });
           }),
         ),

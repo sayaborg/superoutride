@@ -56,7 +56,7 @@ export function runCourseReference(
     occurrence.section.fork!.exits.findIndex((exit) => exit.link === planned.get(occurrence.section)),
   );
   const workspace = createEnvelopeDriverWorkspace();
-  const driver = compileEnvelopeDriver(envelope, REFERENCE_DRIVER.utilization, envelope.maximumSpeed);
+  const driver = compileEnvelopeDriver(envelope, REFERENCE_DRIVER.utilization, envelope.maximumSpeed, true);
   // Race time and route station after every step from GO: the pass times at schedule stations interpolate them.
   const samples = { seconds: [0], s: [vehicle.course.s] };
   race.start();

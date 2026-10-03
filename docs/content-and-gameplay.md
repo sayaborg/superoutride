@@ -907,12 +907,13 @@ target² ≤ v_a² + 2 × a × margin
 ```
 
 so a driver following at the leader's speed keeps the footprint gap `v × responseSeconds + v_a × followSeconds`. The
-plan is computed once per step, with and without this constraint. When the constraint lowers the planned speed, the
-driver moves to a free adjacent lane of the Carriageway it follows, the left one first and never the lane it last
+plan is computed once per step, with and without this constraint. Whether a driver changes lanes is an attribute its
+builder gives it (`changesLanes`): rivals' drivers and the player's takeover change lanes; traffic drivers, which
+Session resolution compiles, do not. When the constraint lowers the planned speed, a driver that changes lanes moves to a free adjacent lane of the Carriageway it follows, the left one first and never the lane it last
 left, and drives that step on its plan without the constraint; it stays in the new lane. A lane is free when no
 footprint in it lies between the driver's following distance ahead, `(L₁ + L₂)/2 + v × followSeconds`, and, behind,
-half the two lengths plus that vehicle's speed times `followSeconds`. With no adjacent lane free, the driver follows
-on the constrained plan; its inputs stay throttle, brake and steering. Every driver's `a` is its envelope's minimum
+half the two lengths plus that vehicle's speed times `followSeconds`. With no adjacent lane free, or when it does not
+change lanes, the driver follows on the constrained plan; its inputs stay throttle, brake and steering. Every driver's `a` is its envelope's minimum
 braking times its utilization; the player's, for others' checks, is the Session driver's. The reference line plans
 without a vehicle ahead and meets no other vehicle, so reference runs are unchanged.
 
@@ -924,8 +925,9 @@ integer-millisecond budgets. [Development](development.md#build-outputs) owns ge
 
 Traffic vehicles are not competitors: they have no rank, rank limit, fork decision (the fork field never observes
 them), progress, events, record or pace, and the HUD does not count them. Each is an ordinary vehicle (its own
-mechanics, recovery and the same driver as rivals, lane following included) whose role in the Session is traffic; no
-vehicle document marks it. Traffic positions lie on the Route at stations `offset + k × 1000/density` (k = 0, 1, …);
+mechanics, recovery and the same driver as rivals, except that its driver never changes lanes: behind a slower vehicle
+it follows at that vehicle's speed) whose role in the Session is traffic; no vehicle document marks it. Heading for a
+fork's exit Carriageway is not a lane change. Traffic positions lie on the Route at stations `offset + k × 1000/density` (k = 0, 1, …);
 the offset in [0, spacing), and each position's vehicle, color and lane (a lane number of the Carriageway at that
 station), derive from the Session seed and k through the same 32-bit mixing as rival exits. At a fork a traffic
 vehicle heads for the selected exit, else for an exit drawn from the seed, k and the occurrence ordinal; one left on a

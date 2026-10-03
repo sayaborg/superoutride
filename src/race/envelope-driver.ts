@@ -60,12 +60,22 @@ export function envelopeAt(
 
 const minimumBraking = (envelope: RivalEnvelope) => Math.min(...envelope.rows.map((row) => row.braking));
 
-export function compileEnvelopeDriver(envelope: RivalEnvelope, utilization: number, speedCap: number) {
+/**
+ * A driver: its envelope, utilization, speed cap (within the envelope's maximum speed), planning braking, and whether it
+ * changes lanes past slower vehicles (a driver that does not only follows them). Its builder decides each.
+ */
+export function compileEnvelopeDriver(
+  envelope: RivalEnvelope,
+  utilization: number,
+  speedCap: number,
+  changesLanes: boolean,
+) {
   return Object.freeze({
     envelope,
     utilization,
     speedCap: Math.min(speedCap, envelope.maximumSpeed),
     braking: minimumBraking(envelope) * utilization,
+    changesLanes,
   });
 }
 export type EnvelopeDriver = ReturnType<typeof compileEnvelopeDriver>;
@@ -75,9 +85,14 @@ type Driver = EnvelopeDriver;
  * A driver whose owner changes its utilization and speed cap between steps; its planning braking follows the
  * utilization, and its speed cap stays within the envelope's maximum speed.
  */
-export function createVariableEnvelopeDriver(envelope: RivalEnvelope, utilization: number, speedCap: number) {
+export function createVariableEnvelopeDriver(
+  envelope: RivalEnvelope,
+  utilization: number,
+  speedCap: number,
+  changesLanes: boolean,
+) {
   const braking = minimumBraking(envelope);
-  const driver = { ...compileEnvelopeDriver(envelope, utilization, speedCap) };
+  const driver = { ...compileEnvelopeDriver(envelope, utilization, speedCap, changesLanes) };
   return Object.freeze({
     driver: driver as Driver,
     set(nextUtilization: number, nextSpeedCap: number) {

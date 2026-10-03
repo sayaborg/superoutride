@@ -103,7 +103,7 @@ They are ordinary vehicles with ordinary drivers, travelling the player's way. W
 road, its vehicle, color and lane follow from the Session seed. A traffic vehicle appears ahead at the farthest
 visible distance, keeps its lane at the traffic speed, the same for every traffic vehicle as on a public road, slowing for
 corners as any driver does, and leaves once it
-is out of view. At most eight traffic vehicles are present at once, and a Session never holds more than
+is out of view. A traffic vehicle never changes lanes: behind a slower vehicle it matches that vehicle's speed. At most eight traffic vehicles are present at once, and a Session never holds more than
 twenty-four vehicles.
 
 ## 4. Modes

@@ -43,7 +43,7 @@ const idle = { steering: 0, throttle: false, brake: false };
 const entry = definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA');
 const configuration = createSessionVehicle(entry, definitions.driving, materials);
 const { envelope } = await content.json('envelope', 'TESTAROSSA');
-const driver = compileEnvelopeDriver(envelope, 0.75, envelope.maximumSpeed);
+const driver = compileEnvelopeDriver(envelope, 0.75, envelope.maximumSpeed, true);
 // FREE PLAY rivals come from the player's form pool, as in the browser; every other vehicle (traffic included) drives
 // its own vehicle and envelope.
 const rivalPool = rivalPoolPairs(definitions.vehicles, formPool(entry));

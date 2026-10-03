@@ -103,6 +103,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       envelope,
       pace.utilization,
       pace.speedFraction * envelope.maximumSpeed,
+      true,
     );
     return { driver: variable.driver, pace, set: variable.set };
   };
@@ -352,8 +353,8 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     return true;
   };
   // A driver's input this step: its plan, which the vehicle ahead in its lane constrains, then that plan's input. When
-  // the vehicle ahead lowers the plan and an adjacent lane is free, it moves over and drives the free plan in its new
-  // lane, a new lane function since the driver caches by lane.
+  // the vehicle ahead lowers the plan, a driver that changes lanes and has a free adjacent lane moves over and drives
+  // the free plan in its new lane, a new lane function since the driver caches by lane; any other follows.
   const drive = (
     driven: {
       readonly vehicle: VehicleState;
@@ -375,7 +376,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       following.leader(intent, driven.sighting, sightings),
     );
     let targetSpeed = plan.target;
-    if (plan.target < plan.free && following.moveOver(intent, driven.sighting, sightings)) {
+    if (plan.target < plan.free && driver.changesLanes && following.moveOver(intent, driven.sighting, sightings)) {
       driven.input = (s: number) => forks.targetL(s, intent);
       targetSpeed = plan.free;
     }
