@@ -46,7 +46,8 @@ export function compileEnvelopeDriver(envelope: RivalEnvelope, utilization: numb
     braking: minimumBraking(envelope) * utilization,
   });
 }
-type Driver = ReturnType<typeof compileEnvelopeDriver>;
+export type EnvelopeDriver = ReturnType<typeof compileEnvelopeDriver>;
+type Driver = EnvelopeDriver;
 
 /**
  * A driver whose owner changes its utilization and speed cap between steps; its planning braking follows the

@@ -840,7 +840,8 @@ speed times a fraction that runs linearly from `minimumSpeedFraction` at the min
 Where its schedule times no station (past the last timed station of a Section, or on a Section no reference run
 passes from its start), the utilization and speed cap hold and the next timed station anchors the targets anew. The
 rival reads nothing else, in particular not the player's position or vehicle. FREE PLAY rivals drive at the fixed Session
-driver utilization (0.75).
+driver utilization (0.75). Session resolution compiles each entry envelope's fixed driver (that utilization at the envelope's
+maximum speed) once; the runout check, the race's unpaced rivals and the player's post-finish driver use that one.
 
 ### Vehicle envelopes and drivers
 

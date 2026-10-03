@@ -1,5 +1,4 @@
 import type { ResolvedCourseSession, SessionEntry } from './course-session.js';
-import type { RivalEnvelope } from '../content/rival-envelope.js';
 import { createCheckpointClock, raceEventSeconds } from './checkpoint-clock.js';
 import { rankRaceProgress } from './race-ranking.js';
 import { enumerateCourseRoutes } from '../course/compiler/course-routes.js';
@@ -17,7 +16,6 @@ import {
 } from './recovery.js';
 import { createRivalPace } from './rival-pace.js';
 import {
-  compileEnvelopeDriver,
   createEnvelopeDriverWorkspace,
   createVariableEnvelopeDriver,
   plannedEnvelopeSpeed,
@@ -70,14 +68,13 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     if (!model) models.set(vehicle, (model = createVehicleModel(vehicle, SIM_DT)));
     return model;
   };
-  const drivers = new Map<RivalEnvelope, ReturnType<typeof compileEnvelopeDriver>>();
   // Rival driving exists only with an envelope; Session resolution admits no rivals without one. An entry with a pace
   // ratio drives its own driver at the utilization and speed cap its pace sets; the others share their envelope's
-  // fixed driver.
+  // fixed driver, which the Session compiled.
   const drivingOf = (entry: SessionEntry) => {
     const { envelope } = entry;
     if (!envelope) throw new Error('rivals require an envelope driver');
-    if (entry.pace === null) return { driver: driverOf(envelope), pace: null, set: null };
+    if (entry.pace === null) return { driver: options.session.driverOf(envelope), pace: null, set: null };
     if (!paceSchedule) throw new Error('a paced rival requires the pace schedule');
     const pace = createRivalPace(
       runtime.route,
@@ -92,15 +89,6 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       pace.speedFraction * envelope.maximumSpeed,
     );
     return { driver: variable.driver, pace, set: variable.set };
-  };
-  const driverOf = (envelope: RivalEnvelope) => {
-    let driver = drivers.get(envelope);
-    if (!driver)
-      drivers.set(
-        envelope,
-        (driver = compileEnvelopeDriver(envelope, options.session.rivalUtilization, envelope.maximumSpeed)),
-      );
-    return driver;
   };
   const clock = createCheckpointClock(budgets);
   const outcome = createRunOutcome();
@@ -322,7 +310,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   // The player's driving after its finish: the envelope driver at the Session driver utilization, holding the lateral
   // position it finished at and planning a stop at its runout distance past the finish, within any Route terminal. A
   // Session without an envelope holds the brake instead.
-  const takeoverDriver = playerEntry!.envelope ? driverOf(playerEntry!.envelope) : null;
+  const takeoverDriver = playerEntry!.envelope ? options.session.driverOf(playerEntry!.envelope) : null;
   const takeoverWorkspace = createEnvelopeDriverWorkspace();
   const takeoverIntent: { lane: number; exit: DriverIntent['exit'] } = { lane: 0, exit: () => 0 };
   const takeoverLane = (s: number) => forks.targetL(s, takeoverIntent);

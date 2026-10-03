@@ -1,4 +1,4 @@
-import { compileEnvelopeDriver } from './envelope-driver.js';
+import { compileEnvelopeDriver, type EnvelopeDriver } from './envelope-driver.js';
 import type { RivalEnvelope } from '../content/rival-envelope.js';
 import type { CourseTimeBudgets } from '../content/course-time-budgets.js';
 import type { PaceSchedule } from '../content/pace-schedule.js';
@@ -99,7 +99,10 @@ export function resolveCourseSession(
     throw new RangeError('A Session without an envelope has no rivals and no time limit');
   if (configuration.rivalCount > 0 && !field.vehicleOf)
     throw new RangeError('A Session with rivals requires their Session vehicles');
+  // Each envelope's fixed driver, compiled once at the rival utilization: the runout check below and the race's unpaced
+  // rivals use the same one.
   const rivalUtilization = 0.75;
+  const drivers = new Map<RivalEnvelope, EnvelopeDriver>();
   const entries =
     configuration.mode === 'ARCADE'
       ? arcadeEntries(course, arcade!, { vehicle, envelope }, field.playerColor ?? defaultColor, field.vehicleOf!)
@@ -115,7 +118,12 @@ export function resolveCourseSession(
   let longest: { readonly entry: SessionEntry; readonly distance: number } | null = null;
   for (const entry of entries) {
     if (!entry.envelope) continue;
-    const driver = compileEnvelopeDriver(entry.envelope, rivalUtilization, entry.envelope.maximumSpeed);
+    let driver = drivers.get(entry.envelope);
+    if (!driver)
+      drivers.set(
+        entry.envelope,
+        (driver = compileEnvelopeDriver(entry.envelope, rivalUtilization, entry.envelope.maximumSpeed)),
+      );
     const distance = entry.envelope.maximumSpeed ** 2 / (2 * driver.braking);
     if (!longest || distance > longest.distance) longest = { entry, distance };
   }
@@ -132,7 +140,12 @@ export function resolveCourseSession(
     course,
     configuration,
     entries,
-    rivalUtilization,
+    /** The fixed driver of an entry's envelope, at the rival utilization and the envelope's maximum speed. */
+    driverOf(envelope: RivalEnvelope): EnvelopeDriver {
+      const driver = drivers.get(envelope);
+      if (!driver) throw new Error('The envelope belongs to no Session entry');
+      return driver;
+    },
     budgets: configuration.timeLimit ? budgets : null,
     /** The player vehicle's pace schedule; ARCADE only. */
     paceSchedule: configuration.mode === 'ARCADE' ? field.paceSchedule! : null,
