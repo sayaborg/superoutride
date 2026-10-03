@@ -26,12 +26,25 @@
   product HUD is drawn with the text layer from race facts and the player's observation, and DEV measurements stay with
   `dev=1`; the player record keeps settings and the TIME TRIAL and ARCADE records shown at READY, at TIME TRIAL
   crossings and on RESULT; all UI is English.
+- Engine sound can lag on some devices and stay late. With `dev=1` the audio timing line measures the AudioContext's
+  latency, clock and worklet overruns; headless Chromium did not reproduce the lag, so its fix waits on a reading
+  from an affected device ([Browser](browser.md#performance-hud)).
 
 Next PR: **13-1 — Vehicle dimensions**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
 PRs hold rationale and verification evidence. Each stage first consolidates the structure its later PRs consume.
+
+## Audit 2 leftovers
+
+Findings of the second design audit not yet addressed, by when they are taken up:
+
+- **Stage 13-1:** A6d2-04 (derive the coordinate-domain margin from vehicle reach), which 13-1 already schedules.
+- **Stage 14 or 15, when nearby code changes:** D8e-03, P7b-02, P7f-08, A6d3-02.
+- **Stage 15:** P7a-01, P7a-02, A6g-07, H15-02, H14-02, H18-01, D3-06.
+- **Not addressed, with reasons:** D8c-03 (it concerns the DEV HUD only); D8e-05 (a documentation contract, already
+  stated); S12-02 (the scope of the guarantee is documented).
 
 ## Stage 13 — Interaction
 
