@@ -44,13 +44,47 @@ function createEnvelopeRun(entry: SessionVehicle, initialSpeed: number) {
 }
 
 /** The flat reference surface, production control/protection, ordinary inputs; no imposed velocity or force during measurement. */
-/** The envelope measurement procedure's identity: its version, fixed step and reference surface. */
+/**
+ * The envelope measurement procedure and its identity: its version, fixed step, reference surface, and the values
+ * that decide convergence, the trials and which trials are admitted.
+ */
 export const ENVELOPE_MEASUREMENT = Object.freeze({
   // Version 2: measured on the unit reference surface, ENVELOPE_REFERENCE_SURFACE.
   version: 2,
   dt: SIM_DT,
   surface: ENVELOPE_REFERENCE_SURFACE.id,
+  /** Seconds the full-throttle launch may take to reach top speed before measurement fails. */
+  topSpeedSeconds: 240,
+  /** Steps per acceleration sample. */
+  accelerationSampleSteps: 30,
+  /** m/s: a sample changing speed less than this is stable; this many stable samples in a row reach top speed. */
+  stableSpeedChange: 0.002,
+  stableSamples: 8,
+  /** Seconds the braking run may last; it ends below the stop speed (m/s). */
+  brakingSeconds: 60,
+  brakingStopSpeed: 1,
+  /** Steps per braking sample; samples start after the settle steps, while the brakes build up. */
+  brakingSampleSteps: 6,
+  brakingSettleSteps: 30,
+  /** m/s²: the least braking a sample records. */
+  minimumBraking: 0.1,
+  /** m/s: lateral trials run at the first speed and every spacing above it below top speed, then at top speed. */
+  firstTrialSpeed: 5,
+  trialSpeedSpacing: 10,
+  /** Each speed's steering trials: the steering held, in order; the first also gives the steering gain. */
+  trialSteering: Object.freeze([0.05, 0.1, 0.2, 0.3, 0.5, 0.75, 1]),
+  /** Steps per trial, of which the first settle steps are not measured. */
+  trialSteps: 240,
+  trialSettleSteps: 120,
+  /** m/s: a trial holds its speed within this of the target with throttle and brake. */
+  trialSpeedDeadzone: 0.15,
+  /** A trial is admitted below this body slip (radians), above this body up component, and within this speed error. */
+  maximumSlipRadians: 0.2,
+  minimumBodyUp: 0.25,
+  speedToleranceMeters: 1,
+  speedToleranceFraction: 0.12,
 });
+const M = ENVELOPE_MEASUREMENT;
 
 export function measureRivalEnvelope(entry: SessionVehicle) {
   const make = (initialSpeed: number) => createEnvelopeRun(entry, initialSpeed);
@@ -70,7 +104,7 @@ export function measureRivalEnvelope(entry: SessionVehicle) {
     maximumObservedSpeed = 0,
     wasFuelCut = false,
     limiterCycle = false;
-  for (let tick = 0; tick < 240 / SIM_DT; tick++) {
+  for (let tick = 0; tick < M.topSpeedSeconds / SIM_DT; tick++) {
     step(run, { steering: 0, throttle: true, brake: false });
     elapsed += SIM_DT;
     maximumObservedSpeed = Math.max(maximumObservedSpeed, run.vehicle.speed);
@@ -80,37 +114,42 @@ export function measureRivalEnvelope(entry: SessionVehicle) {
       wasFuelCut && !fuelCut && gear === entry.vehicleDefinition.compiledVehicle.powertrain.gearRatios.length;
     wasFuelCut = fuelCut;
     if (limiterCycle) break;
-    if (tick % 30 === 29) {
+    if (tick % M.accelerationSampleSteps === M.accelerationSampleSteps - 1) {
       const speed = run.vehicle.speed;
-      acceleration.push({ speed: (last + speed) / 2, value: (speed - last) / (30 * SIM_DT) });
-      stable = Math.abs(speed - last) < 0.002 ? stable + 1 : 0;
+      acceleration.push({ speed: (last + speed) / 2, value: (speed - last) / (M.accelerationSampleSteps * SIM_DT) });
+      stable = Math.abs(speed - last) < M.stableSpeedChange ? stable + 1 : 0;
       last = speed;
-      if (stable >= 8) break;
+      if (stable >= M.stableSamples) break;
     }
   }
-  if (stable < 8 && !limiterCycle)
+  if (stable < M.stableSamples && !limiterCycle)
     throw new RangeError(
-      `${entry.vehicleDefinition.compiledVehicle.id}: top speed did not converge within 240 seconds`,
+      `${entry.vehicleDefinition.compiledVehicle.id}: top speed did not converge within ${M.topSpeedSeconds} seconds`,
     );
   const maximumSpeed = limiterCycle ? maximumObservedSpeed : run.vehicle.speed;
   const brakingRun = make(maximumSpeed);
   last = maximumSpeed;
-  for (let tick = 0; tick < 60 / SIM_DT && brakingRun.vehicle.speed > 1; tick++) {
+  for (let tick = 0; tick < M.brakingSeconds / SIM_DT && brakingRun.vehicle.speed > M.brakingStopSpeed; tick++) {
     step(brakingRun, { steering: 0, throttle: false, brake: true });
-    if (tick % 6 === 5) {
+    if (tick % M.brakingSampleSteps === M.brakingSampleSteps - 1) {
       const speed = brakingRun.vehicle.speed;
-      if (tick >= 30) braking.push({ speed: (last + speed) / 2, value: Math.max(0.1, (last - speed) / (6 * SIM_DT)) });
+      if (tick >= M.brakingSettleSteps)
+        braking.push({
+          speed: (last + speed) / 2,
+          value: Math.max(M.minimumBraking, (last - speed) / (M.brakingSampleSteps * SIM_DT)),
+        });
       last = speed;
     }
   }
-  const speeds = Array.from({ length: Math.ceil(maximumSpeed / 10) }, (_, i) => 5 + i * 10).filter(
-    (v) => v < maximumSpeed,
-  );
+  const speeds = Array.from(
+    { length: Math.ceil(maximumSpeed / M.trialSpeedSpacing) },
+    (_, i) => M.firstTrialSpeed + i * M.trialSpeedSpacing,
+  ).filter((v) => v < maximumSpeed);
   speeds.push(maximumSpeed);
   const samples = [];
   for (const speed of speeds) {
     const trials = [];
-    for (const steering of [0.05, 0.1, 0.2, 0.3, 0.5, 0.75, 1]) {
+    for (const steering of M.trialSteering) {
       const p = make(speed);
       let sum = 0,
         velocity = 0,
@@ -118,12 +157,16 @@ export function measureRivalEnvelope(entry: SessionVehicle) {
         minimumUp = 1,
         count = 0;
       let heading = p.vehicle.yaw;
-      for (let tick = 0; tick < 240; tick++) {
+      for (let tick = 0; tick < M.trialSteps; tick++) {
         const v = p.vehicle,
           previousSpeed = v.speed;
-        step(p, { steering, throttle: v.speed < speed - 0.15, brake: v.speed > speed + 0.15 });
+        step(p, {
+          steering,
+          throttle: v.speed < speed - M.trialSpeedDeadzone,
+          brake: v.speed > speed + M.trialSpeedDeadzone,
+        });
         const next = Math.atan2(v.velocityX, v.velocityZ);
-        if (tick >= 120) {
+        if (tick >= M.trialSettleSteps) {
           sum += (Math.abs(wrapAngle(next - heading)) * (previousSpeed + v.speed)) / (2 * SIM_DT);
           velocity += v.speed;
           count++;
@@ -135,7 +178,10 @@ export function measureRivalEnvelope(entry: SessionVehicle) {
       trials.push({ steering, speed: velocity / count, lateral: sum / count, maxBeta, minimumUp });
     }
     const admissible = trials.filter(
-      (t) => t.maxBeta < 0.2 && t.minimumUp > 0.25 && Math.abs(t.speed - speed) < Math.max(1, speed * 0.12),
+      (t) =>
+        t.maxBeta < M.maximumSlipRadians &&
+        t.minimumUp > M.minimumBodyUp &&
+        Math.abs(t.speed - speed) < Math.max(M.speedToleranceMeters, speed * M.speedToleranceFraction),
     );
     if (!admissible.length)
       throw new RangeError(
