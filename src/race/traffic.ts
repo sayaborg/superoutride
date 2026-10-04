@@ -3,18 +3,14 @@ import type { ResolvedTraffic, TrafficCandidate } from './course-session.js';
 import type { DriverIntent, TargetCarriageway } from './course-fork-field.js';
 import type { LaneIntent } from './lane-following.js';
 import { createEnvelopeDriverWorkspace, type EnvelopeDriver } from './envelope-driver.js';
-import {
-  advanceVehicleWithRecovery,
-  createRecoveryState,
-  type RecoveryState,
-  type RecoveryTarget,
-} from './recovery.js';
+import { advanceVehicleWithRecovery, createRecoveryState, type RecoveryTarget } from './recovery.js';
+import { createPresentVehicle, type PresentVehicle, type VehicleDriving } from './present-vehicle.js';
 import {
   createCompetitorObservation,
   writeCompetitorObservation,
   type CompetitorObservation,
 } from './competitor-observation.js';
-import { createVehicle, type VehicleState } from '../vehicle/physics/vehicle-physics.js';
+import { createVehicle } from '../vehicle/physics/vehicle-physics.js';
 import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import type { VehicleWorld } from '../course/vehicle-world.js';
@@ -58,31 +54,9 @@ export function createTrafficPositions(traffic: ResolvedTraffic, seed: number, s
   });
 }
 
-/** A present vehicle as contacts and placement read it: its live state and model. */
-export interface TrafficBody {
-  readonly vehicle: VehicleState;
-  readonly model: VehicleModel;
-}
-
-/** One traffic vehicle: its mechanics, recovery and driver, its sighting and contact force, and its observation. */
-export interface TrafficMotion extends TrafficBody {
-  readonly id: string;
-  readonly intent: LaneIntent;
-  readonly driver: EnvelopeDriver;
-  readonly driverWorkspace: ReturnType<typeof createEnvelopeDriverWorkspace>;
-  input: (s: number) => number;
-  readonly contactForce: { x: number; y: number; z: number };
-  /** Its route position at the start of the previous step. */
-  readonly previous: { s: number; l: number };
-  readonly sighting: { s: number; l: number; length: number; width: number; speed: number; target: number };
-  readonly step: {
-    readonly state: RecoveryState;
-    input: DrivingInput;
-    readonly place: (s: number) => RecoveryTarget;
-    readonly externalForce: { readonly x: number; readonly y: number; readonly z: number };
-    /** Whether a fixed object holds the vehicle this step; the race writes it for recovery. */
-    blocked: boolean;
-  };
+/** One traffic vehicle: a present vehicle its driver always drives, and its observation. */
+export interface TrafficMotion extends PresentVehicle {
+  readonly driving: VehicleDriving;
   readonly observation: CompetitorObservation;
 }
 
@@ -111,7 +85,7 @@ export function createTrafficField(options: {
   };
   readonly modelOf: (vehicle: TrafficCandidate['vehicle']) => VehicleModel;
   readonly occupant: (model: VehicleModel, s: number, l: number) => { readonly s: number } | null;
-  readonly vacantPlace: (self: TrafficMotion, s: number, lane: (s: number) => number) => RecoveryTarget;
+  readonly vacantPlace: (self: PresentVehicle, s: number, lane: (s: number) => number) => RecoveryTarget;
   /** How fast a vehicle appears at (s, its intent's target) under its driver; null when it cannot appear there now. */
   readonly appearanceSpeed: (
     model: VehicleModel,
@@ -122,22 +96,17 @@ export function createTrafficField(options: {
   readonly appearanceLine: () => number;
   readonly outOfView: (s: number) => boolean;
   readonly simulationSeconds: () => number;
-  readonly idle: DrivingInput;
 }) {
-  const { runtime, forks, modelOf, occupant, vacantPlace, appearanceSpeed, appearanceLine, outOfView, idle, seed } =
-    options;
+  const { runtime, forks, modelOf, occupant, vacantPlace, appearanceSpeed, appearanceLine, outOfView, seed } = options;
   const vehicles: TrafficMotion[] = [];
   const positions = options.traffic && createTrafficPositions(options.traffic, seed, appearanceLine());
   return Object.freeze({
     /** The traffic present, in order of appearance. */
     vehicles: vehicles as readonly TrafficMotion[],
     /** One step of every traffic vehicle: its driver's input, ordinary mechanics with recovery, then the legal road. */
-    advance(
-      drive: (motion: TrafficMotion, intent: LaneIntent, driver: EnvelopeDriver) => DrivingInput,
-      legalRecovery: (motion: TrafficMotion) => boolean,
-    ) {
+    advance(drive: (motion: TrafficMotion) => DrivingInput, legalRecovery: (motion: TrafficMotion) => boolean) {
       for (const motion of vehicles) {
-        motion.step.input = drive(motion, motion.intent, motion.driver);
+        motion.step.input = drive(motion);
         motion.previous.s = motion.vehicle.course.s;
         motion.previous.l = motion.vehicle.course.l;
         advanceVehicleWithRecovery(runtime.readers, motion.vehicle, motion.model, motion.step);
@@ -173,36 +142,33 @@ export function createTrafficField(options: {
         const speed = appearanceSpeed(model, s, intent, candidate.driver);
         if (speed === null) return;
         const vehicle = createVehicle(model, runtime.readers, { s, l, initialSpeed: speed });
-        const contactForce = { x: 0, y: 0, z: 0 };
         const id = `TRAFFIC_${String(position + 1).padStart(4, '0')}`;
         const color = candidate.colors[trafficDraw(seed, 'color', position, candidate.colors.length)]!;
-        const motion: TrafficMotion = {
-          id,
-          vehicle,
-          model,
-          intent,
+        const driving = {
           driver: candidate.driver,
-          driverWorkspace: createEnvelopeDriverWorkspace(),
-          input: lane,
-          contactForce,
-          previous: { s, l },
-          sighting: { s: 0, l: 0, length: 0, width: 0, speed: 0, target: 0 },
-          step: {
-            state: createRecoveryState(vehicle),
-            input: idle,
-            place: (station: number) => vacantPlace(motion, station, (at) => forks.recoveryL(at, intent)),
-            externalForce: contactForce,
-            blocked: false,
-          },
-          observation: createCompetitorObservation(
-            id,
-            candidate.vehicle.vehicleDefinition.compiledVehicle.id,
-            color,
-            candidate.vehicle.vehicleDefinition.form,
-          ),
+          intent,
+          workspace: createEnvelopeDriverWorkspace(),
+          target: lane,
         };
+        const motion: TrafficMotion = Object.assign(
+          createPresentVehicle(
+            id,
+            { vehicle, model, recovery: createRecoveryState(vehicle) },
+            driving,
+            (self, station) => vacantPlace(self, station, (at) => forks.recoveryL(at, intent)),
+          ),
+          {
+            driving,
+            observation: createCompetitorObservation(
+              id,
+              candidate.vehicle.vehicleDefinition.compiledVehicle.id,
+              color,
+              candidate.vehicle.vehicleDefinition.form,
+            ),
+          },
+        );
         vehicles.push(motion);
-        writeCompetitorObservation(motion.observation, vehicle, model, idle, options.simulationSeconds());
+        writeCompetitorObservation(motion.observation, vehicle, model, motion.step.input, options.simulationSeconds());
         changed = true;
       });
       return changed;

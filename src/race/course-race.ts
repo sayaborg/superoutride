@@ -1,5 +1,4 @@
 import type { ResolvedCourseSession, SessionEntry } from './course-session.js';
-import type { Writable } from '../core/writable.js';
 import { createCheckpointClock, raceEventSeconds } from './checkpoint-clock.js';
 import { rankRaceProgress } from './race-ranking.js';
 import { enumerateCourseRoutes } from '../course/compiler/course-routes.js';
@@ -20,6 +19,13 @@ import {
 import { createBodyContacts, createContactFaces, footprintsOverlap, type RouteFootprint } from './body-contacts.js';
 import { createLaneFollowing, occupiesLane, type LaneIntent, type VehicleSighting } from './lane-following.js';
 import { createTrafficField, type TrafficMotion } from './traffic.js';
+import {
+  createPresentVehicle,
+  presentTarget,
+  type PresentVehicle,
+  type VehicleActor,
+  type VehicleDriving,
+} from './present-vehicle.js';
 import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
 import { createRivalPace } from './rival-pace.js';
 import {
@@ -61,17 +67,11 @@ export interface RaceEvent {
   readonly finish: boolean;
   readonly timeSeconds: number;
 }
-/** A present vehicle as contacts and placement read it: its live state and model. */
-interface Body {
-  readonly vehicle: VehicleState;
-  readonly model: VehicleModel;
-  /** The driver driving it now: a rival's, a traffic vehicle's or the player's takeover after GOAL; null otherwise. */
-  readonly driver: EnvelopeDriver | null;
-}
-interface Actor {
-  readonly vehicle: VehicleState;
-  readonly model: VehicleModel;
-  readonly recovery: RecoveryState;
+
+/** A paced rival's pace and the utilization/speed-cap setter of its driver. */
+interface RivalPacing {
+  readonly pace: ReturnType<typeof createRivalPace>;
+  readonly set: (utilization: number, speedCap: number) => void;
 }
 
 /**
@@ -121,47 +121,64 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   const routes = enumerateCourseRoutes(course.entry, course.type);
   // The fork field is the fork decider: the only holder of the Route's selection authority.
   const forks = createCourseForkField(runtime.route, lines, runtime.selectSuccessor);
-  // A rival's intent drives it; the player's input comes from its composition, so it has no intent here.
-  const competitor = (id: string, actor: Actor, intent: LaneIntent | null, stages: SessionEntry['stages']) => ({
-    id,
-    actor,
-    intent,
-    /** The stages this competitor takes part in; null for the whole run. */
-    stages,
-    /**
-     * Whether the competitor is in the Session: one that has not yet appeared or has left is never moved, ranked,
-     * judged, drawn or voiced.
-     */
-    present: stages === null || stages.first === 1,
-    /** Whether the competitor has entered the Session; its leaving is final. */
-    appeared: stages === null || stages.first === 1,
-    /** The race's recovery lane resolver for this competitor. */
-    recoveryLane: (s: number) => forks.recoveryL(s, intent),
-    observer: createRouteProgress(lines, actor.vehicle.course),
-    get progress() {
-      return this.observer.state;
-    },
-    /**
-     * Race time its current lap began: GO for a competitor on the grid, else its latest FINISH line crossing; null for
-     * one that appeared ahead until it first crosses the FINISH line.
-     */
-    lapStartSeconds: (stages === null || stages.first === 1 ? 0 : null) as number | null,
-    /** On a CIRCUIT, its fastest complete lap in seconds; null until it completes one, and on other course types. */
-    bestLapSeconds: null as number | null,
-    /** On a CIRCUIT, its latest complete lap in seconds; null until it completes one, and on other course types. */
-    lastLapSeconds: null as number | null,
-    /** The race time of each race line it has crossed (every checkpoint and FINISH line, every lap), in order. */
-    crossingSeconds: [] as number[],
-    /** The ID of the FINISH gate it finished at; null until it finishes. */
-    finishGateId: null as string | null,
-    /** Race time of its finish: its last crossing, which no later crossing follows; null until it finishes. */
-    get finishSeconds(): number | null {
-      return this.finishGateId === null ? null : this.crossingSeconds.at(-1)!;
-    },
-  });
+  // A competitor: its present vehicle (`body`), which the race moves, and its part in the race. A rival's driver drives
+  // it, paced when `pacing` is set; the player's input comes from its composition until the takeover after GOAL.
+  const competitor = (
+    id: string,
+    actor: VehicleActor,
+    driving: VehicleDriving | null,
+    pacing: RivalPacing | null,
+    stages: SessionEntry['stages'],
+  ) => {
+    // The race's recovery lane resolver: a rival's lane; the player recovers to the centre of its road.
+    const recoveryIntent = driving?.intent ?? null;
+    const recoveryLane = (s: number) => forks.recoveryL(s, recoveryIntent);
+    const body = createPresentVehicle(id, actor, driving, (self, s) => vacantPlace(self, s, recoveryLane));
+    return {
+      id,
+      /** Its present vehicle. */
+      body,
+      /** Its mechanics. */
+      get actor(): VehicleActor {
+        return body.actor;
+      },
+      /** A paced rival's pace and the utilization/speed-cap setter of its driver; null otherwise. */
+      pacing,
+      /** The stages this competitor takes part in; null for the whole run. */
+      stages,
+      /**
+       * Whether the competitor is in the Session: one that has not yet appeared or has left is never moved, ranked,
+       * judged, drawn or voiced.
+       */
+      present: stages === null || stages.first === 1,
+      /** Whether the competitor has entered the Session; its leaving is final. */
+      appeared: stages === null || stages.first === 1,
+      observer: createRouteProgress(lines, body.vehicle.course),
+      get progress() {
+        return this.observer.state;
+      },
+      /**
+       * Race time its current lap began: GO for a competitor on the grid, else its latest FINISH line crossing; null for
+       * one that appeared ahead until it first crosses the FINISH line.
+       */
+      lapStartSeconds: (stages === null || stages.first === 1 ? 0 : null) as number | null,
+      /** On a CIRCUIT, its fastest complete lap in seconds; null until it completes one, and on other course types. */
+      bestLapSeconds: null as number | null,
+      /** On a CIRCUIT, its latest complete lap in seconds; null until it completes one, and on other course types. */
+      lastLapSeconds: null as number | null,
+      /** The race time of each race line it has crossed (every checkpoint and FINISH line, every lap), in order. */
+      crossingSeconds: [] as number[],
+      /** The ID of the FINISH gate it finished at; null until it finishes. */
+      finishGateId: null as string | null,
+      /** Race time of its finish: its last crossing, which no later crossing follows; null until it finishes. */
+      get finishSeconds(): number | null {
+        return this.finishGateId === null ? null : this.crossingSeconds.at(-1)!;
+      },
+    };
+  };
   // Every competitor drives the model of its entry's vehicle, spawned at its grid slot with the Session's start speed,
   // or, appearing ahead, where and as fast as it appears.
-  const spawn = (entry: SessionEntry, at: { s: number; l: number; initialSpeed: number }): Actor => {
+  const spawn = (entry: SessionEntry, at: { s: number; l: number; initialSpeed: number }): VehicleActor => {
     const model = modelOf(entry.vehicle);
     const vehicle = createVehicle(model, runtime.readers, at);
     return { vehicle, model, recovery: createRecoveryState(vehicle) };
@@ -169,7 +186,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   const [playerEntry, ...rivalEntries] = entries;
   const playerSlot = playerEntry!.slot!;
   const playerActor = spawn(playerEntry!, { s: playerSlot.at.s, l: playerSlot.l, initialSpeed });
-  const player = competitor(playerEntry!.id, playerActor, null, null);
+  const player = competitor(playerEntry!.id, playerActor, null, null, null);
   // An ahead appearance must lie within the Route the runtime keeps loaded ahead of the player.
   for (const entry of rivalEntries)
     if (entry.ahead && entry.ahead.distance > runtime.coverage.forwardMeters - runtime.coverage.maximumStepMeters)
@@ -190,61 +207,31 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     };
     // Until it appears, an ahead entry's actor waits unmoved at the player's slot; nothing reads it.
     const at = entry.slot ?? playerSlot;
-    return competitor(entry.id, spawn(entry, { s: at.at.s, l: at.l, initialSpeed }), intent, entry.stages);
+    const { driver, pace, set } = rivalDriving[rivalIndex]!;
+    return competitor(
+      entry.id,
+      spawn(entry, { s: at.at.s, l: at.l, initialSpeed }),
+      {
+        driver,
+        intent,
+        workspace: createEnvelopeDriverWorkspace(),
+        target: (s: number) => forks.targetL(s, intent),
+      },
+      pace ? { pace, set: set! } : null,
+      entry.stages,
+    );
   });
   const resync = (c: typeof player) => c.observer.resync(c.actor.vehicle.course);
   const competitors = [player, ...rivals];
-  const motions = competitors.map((c, index) => {
-    /** The body contacts' force on this competitor through the current step (N, world). */
-    const contactForce = { x: 0, y: 0, z: 0 };
-    const motion = {
-      c,
-      id: c.id,
-      index,
-      /** A rival's envelope driver, with its pace and utilization/speed-cap setter when paced; null for the player. */
-      driving: index === 0 ? null : rivalDriving[index - 1]!,
-      previous: { s: c.actor.vehicle.course.s, l: c.actor.vehicle.course.l },
-      current: c.actor.vehicle,
-      recovered: false,
-      driverWorkspace: createEnvelopeDriverWorkspace(),
-      contactForce,
-      get vehicle() {
-        return c.actor.vehicle;
-      },
-      get model() {
-        return c.actor.model;
-      },
-      get driver() {
-        return index === 0 ? (outcome.status === 'GOAL' ? takeoverDriver : null) : rivalDriving[index - 1]!.driver;
-      },
-      step: {
-        state: c.actor.recovery,
-        input: { steering: 0, throttle: false, brake: false } as DrivingInput,
-        place: (s: number) => vacantPlace(motion, s, c.recoveryLane),
-        externalForce: contactForce,
-        blocked: false,
-      },
-      /** The driver's target lateral; a new function whenever its lane changes, since the driver caches by lane. */
-      input: (s: number) => forks.targetL(s, c.intent!),
-      /** How the drivers see this competitor; the race writes it at the start of every moving step. */
-      sighting: { s: 0, l: 0, length: 0, width: 0, speed: 0, target: 0 },
-    };
-    return motion;
-  });
-  // The competitors present in the Session, the player first, in competitor order.
-  let active = motions.filter((motion) => motion.c.present);
+  // The competitors present in the Session, the player first, in competitor order, and their present vehicles.
+  let active = competitors.filter((c) => c.present);
+  let activeBodies = active.map((c) => c.body);
   // Every vehicle present: the present competitors, then the traffic. Contacts, sightings and placement read it.
-  const bodies: (Body & {
-    readonly id: string;
-    readonly previous: { readonly s: number; readonly l: number };
-    readonly step: { blocked: boolean };
-    readonly sighting: VehicleSighting;
-    readonly contactForce: { x: number; y: number; z: number };
-    readonly input: (s: number) => number;
-  })[] = [];
+  const bodies: PresentVehicle[] = [];
   const refreshBodies = () => {
+    activeBodies = active.map((c) => c.body);
     bodies.length = 0;
-    bodies.push(...active, ...traffic);
+    bodies.push(...activeBodies, ...traffic);
   };
   // Drivers follow and change lanes over the race's sightings of the present vehicles.
   const following = createLaneFollowing(forks);
@@ -309,7 +296,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   };
   // Recovery places no vehicle on another's footprint: from station s it backs along the Route behind each vehicle in
   // the way, by the policy's clearance, until the place in its lane there is free (or the resident Route begins).
-  const vacantPlace = (self: Body, s: number, lane: (s: number) => number, l = lane(s)): RecoveryTarget => {
+  const vacantPlace = (self: PresentVehicle, s: number, lane: (s: number) => number, l = lane(s)): RecoveryTarget => {
     for (
       let other = occupant(self.model, s, l, self.vehicle);
       other && s > runtime.window.start;
@@ -334,42 +321,39 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   // driver's planned speed there; its progress counts the gates after that station.
   const appear = () => {
     let appeared = false;
-    for (const motion of motions) {
-      const { c } = motion;
+    for (let i = 0; i < rivals.length; i += 1) {
+      const c = rivals[i]!;
       if (c.appeared || playerGates < c.stages!.first - 1) continue;
-      const entry = rivalEntries[motion.index - 1]!;
+      const entry = rivalEntries[i]!;
       const s = player.actor.vehicle.course.s + entry.ahead!.distance;
+      const { intent, driver } = c.body.driving!;
       // Its lane number is the one of the occurrence it appears in.
-      c.intent!.ordinal = runtime.route.at(s)!.ordinal;
-      const lane = (station: number) => forks.targetL(station, c.intent!);
+      intent.ordinal = runtime.route.at(s)!.ordinal;
+      const lane = (station: number) => forks.targetL(station, intent);
       // An appearance on another vehicle's footprint, or one a vehicle behind could not stop for, waits for a later step.
       if (occupant(c.actor.model, s, lane(s))) continue;
-      const driving = motion.driving!;
-      const speed = appearanceSpeed(c.actor.model, s, c.intent!, driving.driver);
+      const speed = appearanceSpeed(c.actor.model, s, intent, driver);
       if (speed === null) continue;
-      driving.pace?.join(s);
-      c.actor = spawn(entry, { s, l: lane(s), initialSpeed: speed });
+      c.pacing?.pace.join(s);
+      c.body.actor = spawn(entry, { s, l: lane(s), initialSpeed: speed });
       c.observer = createRouteProgress(lines, c.actor.vehicle.course, s);
-      motion.current = c.actor.vehicle;
-      motion.step.state = c.actor.recovery;
       c.present = c.appeared = true;
       appeared = true;
     }
     if (appeared) {
-      active = motions.filter((motion) => motion.c.present);
+      active = competitors.filter((c) => c.present);
       refreshBodies();
     }
   };
   const depart = () => {
     let departed = false;
-    for (const motion of active) {
-      const { c } = motion;
+    for (const c of active) {
       if (c.stages === null || playerGates < c.stages.last || !outOfView(c.actor.vehicle.course.s)) continue;
       c.present = false;
       departed = true;
     }
     if (departed) {
-      active = active.filter((motion) => motion.c.present);
+      active = active.filter((c) => c.present);
       refreshBodies();
     }
   };
@@ -377,23 +361,20 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   // READY holds every vehicle in its update; race time and rival driving start at GO, where free updates restore
   // the fixed clutch capacity.
   const holdReady = (input: DrivingInput) => {
-    for (const motion of active) {
-      motion.step.input = motion === active[0] ? input : idle;
-      updateVehicle(runtime.readers, motion.c.actor.vehicle, motion.c.actor.model, motion.step.input, true);
+    for (const body of activeBodies) {
+      body.step.input = body === activeBodies[0] ? input : idle;
+      updateVehicle(runtime.readers, body.vehicle, body.model, body.step.input, true);
     }
     startPhase.advance();
   };
-  const move = (motion: (typeof motions)[number], input: DrivingInput) => {
-    const { c, previous } = motion;
-    const { actor } = c;
-    previous.l = actor.vehicle.course.l;
-    previous.s = actor.vehicle.course.s;
-    motion.current = actor.vehicle;
-    motion.step.input = input;
-    const recovered = advanceVehicleWithRecovery(runtime.readers, actor.vehicle, actor.model, motion.step) !== null;
-    motion.recovered = recovered;
+  const move = (body: PresentVehicle, input: DrivingInput) => {
+    const { previous, vehicle } = body;
+    previous.l = vehicle.course.l;
+    previous.s = vehicle.course.s;
+    body.step.input = input;
+    body.recovered = advanceVehicleWithRecovery(runtime.readers, vehicle, body.model, body.step) !== null;
   };
-  const legalRecovery = (body: Body & { readonly step: { readonly state: RecoveryState } }) => {
+  const legalRecovery = (body: PresentVehicle) => {
     const target = forks.legalTarget(body.vehicle.course.s, body.vehicle.course.l);
     if (!target) return false;
     recoverVehicleToPlanCoordinate(runtime.readers, body.vehicle, body.model, {
@@ -415,16 +396,11 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   const laneDomain = { start: 0, end: 0, terminal: null as number | null };
   const probe: LaneIntent = { lane: 0, ordinal: 0, exit: () => 0 };
   const drive = (
-    driven: {
-      readonly vehicle: VehicleState;
-      readonly sighting: Writable<VehicleSighting>;
-      readonly driverWorkspace: ReturnType<typeof createEnvelopeDriverWorkspace>;
-      input: (s: number) => number;
-    },
-    intent: LaneIntent,
-    driver: EnvelopeDriver,
+    driven: PresentVehicle,
     domain: { readonly start: number; readonly end: number; readonly terminal: number | null } = runtime.window,
   ): DrivingInput => {
+    const driving = driven.driving!;
+    const { intent, driver } = driving;
     const s = driven.vehicle.course.s;
     forks.carry(intent, s);
     const endOf = (lane: number) => {
@@ -442,7 +418,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       probe.exit = intent.exit;
       for (const body of bodies)
         if (
-          body.driver &&
+          body.driving &&
           body.sighting !== self &&
           body.vehicle.course.s <= self.s &&
           occupiesLane(
@@ -451,7 +427,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
             forks.targetL(body.vehicle.course.s, probe),
             (self.width + body.model.compiledVehicle.overallWidth) / 2,
           ) &&
-          !envelopeCanFollow(body.vehicle.course.s, body.sighting.speed, body.driver.braking, {
+          !envelopeCanFollow(body.vehicle.course.s, body.sighting.speed, body.driving.driver.braking, {
             s: self.s,
             speed: self.speed,
             clearance: (self.length + body.model.compiledVehicle.overallLength) / 2,
@@ -465,8 +441,8 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       end.merge !== null &&
       following.merge(intent, driven.sighting, sightings, end.merge, followable)
     ) {
-      driven.input = (station: number) => forks.targetL(station, intent);
-      driven.sighting.target = driven.input(driven.sighting.s);
+      driving.target = (station: number) => forks.targetL(station, intent);
+      driven.sighting.target = driving.target(driven.sighting.s);
       end = endOf(intent.lane);
     }
     const laneEnd = end?.s ?? null;
@@ -481,8 +457,8 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       runtime.readers.coordinates,
       driven.vehicle,
       driver,
-      driven.input,
-      driven.driverWorkspace,
+      driving.target,
+      driving.workspace,
       planned,
       following.leader(intent, driven.sighting, sightings),
     );
@@ -497,8 +473,8 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
         (lane) => endOf(lane) !== null,
       );
       if (moved !== null) {
-        driven.input = (station: number) => forks.targetL(station, intent);
-        driven.sighting.target = driven.input(driven.sighting.s);
+        driving.target = (station: number) => forks.targetL(station, intent);
+        driven.sighting.target = driving.target(driven.sighting.s);
         targetSpeed = moved;
       }
     }
@@ -506,8 +482,8 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       runtime.readers.coordinates,
       driven.vehicle,
       driver,
-      driven.input,
-      driven.driverWorkspace,
+      driving.target,
+      driving.workspace,
       planned,
       targetSpeed,
     );
@@ -531,14 +507,14 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
         : { start: window.start, end: window.end, terminal: Math.min(window.terminal ?? Infinity, laneEnd) };
     const length = model.compiledVehicle.overallLength,
       width = model.compiledVehicle.overallWidth;
-    const inLane = (body: (typeof bodies)[number]) =>
+    const inLane = (body: PresentVehicle) =>
       occupiesLane(
         body.vehicle.course.l,
-        targetOf(body),
+        presentTarget(body),
         lane(body.vehicle.course.s),
         (width + body.model.compiledVehicle.overallWidth) / 2,
       );
-    const speedOf = (body: Body) => Math.hypot(body.vehicle.longitudinalSpeed, body.vehicle.lateralSpeed);
+    const speedOf = (body: PresentVehicle) => Math.hypot(body.vehicle.longitudinalSpeed, body.vehicle.lateralSpeed);
     let ahead: { s: number; speed: number; clearance: number } | null = null;
     for (const body of bodies)
       if (body.vehicle.course.s > s && (!ahead || body.vehicle.course.s < ahead.s) && inLane(body))
@@ -555,11 +531,11 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     const speed = plannedEnvelopeSpeed(runtime.readers.coordinates, s, driver, lane, domain, ahead);
     for (const body of bodies)
       if (
-        body.driver &&
-        !body.driver.passes &&
+        body.driving &&
+        !body.driving.driver.passes &&
         body.vehicle.course.s <= s &&
         inLane(body) &&
-        !envelopeCanFollow(body.vehicle.course.s, speedOf(body), body.driver.braking, {
+        !envelopeCanFollow(body.vehicle.course.s, speedOf(body), body.driving.driver.braking, {
           s,
           speed,
           clearance: (length + body.model.compiledVehicle.overallLength) / 2,
@@ -583,7 +559,6 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     appearanceLine,
     outOfView,
     simulationSeconds: () => simulationSeconds,
-    idle,
   });
   // The traffic present, in order of appearance.
   const traffic: readonly TrafficMotion[] = trafficField.vehicles;
@@ -602,22 +577,22 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   const playerObservation = competitorObservations[0]!,
     rivalObservations = competitorObservations.slice(1);
   const publish = () => {
-    for (let i = 0; i < motions.length; i += 1) {
-      const motion = motions[i]!;
+    for (let i = 0; i < competitors.length; i += 1) {
+      const { body } = competitors[i]!;
       writeCompetitorObservation(
         competitorObservations[i]!,
-        motion.c.actor.vehicle,
-        motion.c.actor.model,
-        motion.step.input,
+        body.vehicle,
+        body.model,
+        body.step.input,
         simulationSeconds,
       );
     }
-    for (const motion of traffic)
+    for (const vehicle of traffic)
       writeCompetitorObservation(
-        motion.observation,
-        motion.vehicle,
-        motion.model,
-        motion.step.input,
+        vehicle.observation,
+        vehicle.vehicle,
+        vehicle.model,
+        vehicle.step.input,
         simulationSeconds,
       );
   };
@@ -630,8 +605,8 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       if (rivals[i]!.present && runtime.window.at(rivals[i]!.actor.vehicle.course.s))
         visible.push(rivalObservations[i]!);
     visibleTraffic.length = 0;
-    for (const motion of traffic)
-      if (runtime.window.at(motion.vehicle.course.s)) visibleTraffic.push(motion.observation);
+    for (const vehicle of traffic)
+      if (runtime.window.at(vehicle.vehicle.course.s)) visibleTraffic.push(vehicle.observation);
   };
   const observed: {
     readonly player: CompetitorObservation;
@@ -660,24 +635,21 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   const takeoverDriver = playerEntry!.envelope ? options.session.driverOf(playerEntry!.envelope) : null;
   const takeoverWorkspace = createEnvelopeDriverWorkspace();
   const takeoverIntent: LaneIntent = { lane: 0, ordinal: 0, exit: () => 0 };
-  // The takeover drives the player's vehicle as a driver does, seen through the player's sighting.
-  const takeover = {
-    get vehicle() {
-      return player.actor.vehicle;
-    },
-    get sighting() {
-      return motions[0]!.sighting;
-    },
-    driverWorkspace: takeoverWorkspace,
-    input: (s: number) => forks.targetL(s, takeoverIntent),
-  };
   const takeoverDomain = { start: 0, end: 0, terminal: null as number | null };
   let stopS = Infinity;
   const takeOver = () => {
     const { s, l } = player.actor.vehicle.course;
     takeoverIntent.lane = forks.intentLane(s, l);
     takeoverIntent.ordinal = runtime.route.at(s)!.ordinal;
-    if (takeoverDriver) stopS = s + takeoverDriver.envelope.maximumSpeed ** 2 / (2 * takeoverDriver.braking);
+    if (!takeoverDriver) return;
+    stopS = s + takeoverDriver.envelope.maximumSpeed ** 2 / (2 * takeoverDriver.braking);
+    // The takeover drives the player's vehicle as a driver does, seen through the player's sighting.
+    player.body.driving = {
+      driver: takeoverDriver,
+      intent: takeoverIntent,
+      workspace: takeoverWorkspace,
+      target: (station: number) => forks.targetL(station, takeoverIntent),
+    };
   };
   const holdBrake: DrivingInput = Object.freeze({ steering: 0, throttle: false, brake: true });
   // After GOAL the takeover drives the player and its input no longer reaches the vehicle; after GAME OVER the
@@ -689,14 +661,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     takeoverDomain.start = window.start;
     takeoverDomain.end = window.end;
     takeoverDomain.terminal = Math.min(window.terminal ?? Infinity, stopS);
-    return drive(takeover, takeoverIntent, takeoverDriver, takeoverDomain);
-  };
-  // The lateral a present vehicle is heading for at its station: its driver's target lateral; the player's own lateral
-  // while the player drives it, or the takeover's target after GOAL.
-  const targetOf = (body: (typeof bodies)[number]) => {
-    const { s, l } = body.vehicle.course;
-    if (body !== motions[0]) return body.input(s);
-    return outcome.status === 'GOAL' && takeoverDriver ? takeover.input(s) : l;
+    return drive(player.body, takeoverDomain);
   };
   /**
    * Moves the present field one step: the player by `input`, each rival by its driver, then fork observation and Route
@@ -705,24 +670,24 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   const driveField = (input: DrivingInput, stepStart: number | null) => {
     // Drivers see the present vehicles as they stand at the step's start.
     sightings.length = 0;
-    for (const motion of bodies) {
-      const { vehicle, model } = motion;
-      Object.assign(motion.sighting, {
+    for (const body of bodies) {
+      const { vehicle, model } = body;
+      Object.assign(body.sighting, {
         s: vehicle.course.s,
         l: vehicle.course.l,
         length: model.compiledVehicle.overallLength,
         width: model.compiledVehicle.overallWidth,
         speed: Math.hypot(vehicle.longitudinalSpeed, vehicle.lateralSpeed),
-        target: targetOf(motion),
+        target: presentTarget(body),
       });
-      sightings.push(motion.sighting);
+      sightings.push(body.sighting);
     }
     // And the standing objects from the rearmost present vehicle to the foremost one's driver lookahead, as stopped vehicles.
     let rearS = Infinity,
       frontS = -Infinity;
-    for (const motion of bodies) {
-      rearS = Math.min(rearS, motion.vehicle.course.s);
-      frontS = Math.max(frontS, motion.vehicle.course.s);
+    for (const body of bodies) {
+      rearS = Math.min(rearS, body.vehicle.course.s);
+      frontS = Math.max(frontS, body.vehicle.course.s);
     }
     let sighted = 0;
     roadsideObjects.sight(rearS, frontS + ENVELOPE_DRIVER.lookahead, (s, l, width) => {
@@ -737,9 +702,9 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     const playerInput = stepStart === null ? afterRunInput(input) : input;
     let minS = Infinity,
       maxS = -Infinity;
-    for (const motion of active) {
-      minS = Math.min(minS, motion.c.actor.vehicle.course.s);
-      maxS = Math.max(maxS, motion.c.actor.vehicle.course.s);
+    for (const body of activeBodies) {
+      minS = Math.min(minS, body.vehicle.course.s);
+      maxS = Math.max(maxS, body.vehicle.course.s);
     }
     runtime.refresh(minS, maxS);
     // Contact forces come from the state at the step's start and hold through it.
@@ -749,25 +714,24 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     roadsideObjects.contacts(bodies);
     // A vehicle a fixed object holds may recover; the step's recovery reads it.
     for (const body of bodies) body.step.blocked = roadsideObjects.blocks(body.id);
-    move(active[0]!, playerInput);
+    move(activeBodies[0]!, playerInput);
     for (let i = 1; i < active.length; i += 1) {
-      const motion = active[i]!;
-      const driving = motion.driving!;
-      if (driving.pace && stepStart !== null) {
-        driving.pace.update(motion.c.actor.vehicle.course.s, stepStart);
-        driving.set(driving.pace.utilization, driving.pace.speedFraction * driving.driver.envelope.maximumSpeed);
+      const { body, pacing } = active[i]!;
+      if (pacing && stepStart !== null) {
+        pacing.pace.update(body.vehicle.course.s, stepStart);
+        pacing.set(pacing.pace.utilization, pacing.pace.speedFraction * body.driving!.driver.envelope.maximumSpeed);
       }
-      move(motion, drive(motion, motion.c.intent!, driving.driver));
+      move(body, drive(body));
     }
     // Traffic drives as rivals do; it never selects a route, and recovery keeps it legal like any vehicle.
     trafficField.advance(drive, legalRecovery);
     roadsideObjects.advance();
-    forks.observe(active);
-    for (const motion of active) {
-      minS = Math.min(minS, motion.c.actor.vehicle.course.s);
-      maxS = Math.max(maxS, motion.c.actor.vehicle.course.s);
+    forks.observe(activeBodies);
+    for (const body of activeBodies) {
+      minS = Math.min(minS, body.vehicle.course.s);
+      maxS = Math.max(maxS, body.vehicle.course.s);
       // After the run ends, progress, events, presence and the clock hold; recovery still keeps the field legal.
-      if (stepStart === null) motion.recovered = legalRecovery(motion) || motion.recovered;
+      if (stepStart === null) body.recovered = legalRecovery(body) || body.recovered;
     }
     runtime.refresh(minS, maxS);
     if (trafficField.update()) refreshBodies();
@@ -781,20 +745,20 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     }
     if (outcome.status !== 'RUNNING') {
       driveField(input, null);
-      stepObservation.recovered = active[0]!.recovered;
+      stepObservation.recovered = player.body.recovered;
       return;
     }
     const stepStart = clock.beginStep();
     driveField(input, stepStart);
     stepEvents.length = 0;
     let playerFinishSeconds: number | null = null;
-    for (const motion of active) {
-      const { c } = motion;
-      motion.recovered = legalRecovery(motion) || motion.recovered;
+    for (const c of active) {
+      const { body } = c;
+      body.recovered = legalRecovery(body) || body.recovered;
       const update = c.observer.update(
-        motion.previous,
-        c.actor.vehicle.course,
-        motion.recovered,
+        body.previous,
+        body.vehicle.course,
+        body.recovered,
         // The clock decides the player's crossing candidates, in time order, against its deadline.
         c === player ? clock.admit : undefined,
       );
@@ -849,7 +813,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       outcome.end(ending.end);
       if (ending.end.status === 'GOAL') takeOver();
     }
-    stepObservation.recovered = active[0]!.recovered;
+    stepObservation.recovered = player.body.recovered;
   };
 
   return Object.freeze({
@@ -946,7 +910,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     advance(input: DrivingInput) {
       stepObservation.recovered = false;
       events = noEvents;
-      motions[0]!.step.input = input;
+      player.body.step.input = input;
       step(input);
       simulationSeconds += SIM_DT;
       publish();
@@ -960,9 +924,9 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       recoverVehicle(runtime.readers, playerActor.vehicle, playerActor.model, {
         state: playerActor.recovery,
         reason: 'manual',
-        place: motions[0]!.step.place,
+        place: player.body.step.place,
       });
-      legalRecovery(motions[0]!);
+      legalRecovery(player.body);
       resync(player);
       publish();
     },

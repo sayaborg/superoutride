@@ -86,7 +86,7 @@ export function createCourseForkField(
       motions: readonly {
         readonly id: string;
         readonly previous: RoutePosition;
-        readonly current: { readonly course: RoutePosition };
+        readonly vehicle: { readonly course: RoutePosition };
         readonly recovered: boolean;
       }[],
     ) {
@@ -100,9 +100,9 @@ export function createCourseForkField(
         let selected: CompiledLink | null = null;
         for (const motion of motions) {
           if (motion.recovered) continue;
-          const u = routeCrossingFraction(line, motion.previous, motion.current.course);
+          const u = routeCrossingFraction(line, motion.previous, motion.vehicle.course);
           if (u === null || u > firstU || (u === firstU && first && motion.id >= first.id)) continue;
-          const l = motion.previous.l + u * (motion.current.course.l - motion.previous.l) + occurrence.lateralOrigin;
+          const l = motion.previous.l + u * (motion.vehicle.course.l - motion.previous.l) + occurrence.lateralOrigin;
           const exit = fork.exits.find((exit) => l >= exit.left && l < exit.right);
           if (!exit) continue;
           first = motion;
