@@ -104,7 +104,7 @@ road, its vehicle, color and lane follow from the Session seed. A traffic vehicl
 visible distance, keeps its lane at the traffic speed, the same for every traffic vehicle as on a public road, slowing for
 corners as any driver does, and leaves once it
 is out of view. A traffic vehicle never changes lanes to pass: behind a slower vehicle it matches that vehicle's speed. Where
-its lane ends, it merges into the lane beside it once that lane is free. At most sixteen traffic vehicles are present at once, and a Session never holds more than thirty-two vehicles.
+its lane ends, it merges into the lane beside it once that lane is free. At most sixteen traffic vehicles are present at once.
 
 ## 4. Modes
 

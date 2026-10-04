@@ -8,6 +8,7 @@ import { createCourseScene } from '../../src/view/course-scene.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
 import { compileSessionConfiguration } from '../../src/race/session-configuration.js';
+import { loadFreePlayRules } from '../../src/content/free-play-rules.js';
 import { formPool, rivalPoolPairs } from '../../src/race/free-play-field.js';
 import { createSessionVehicle, sessionVehicleSha256 } from '../../src/content/session-vehicle.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
@@ -49,7 +50,8 @@ const { envelope } = await content.json('envelope', 'TESTAROSSA');
 const driver = compileEnvelopeDriver(envelope, 0.75, envelope.maximumSpeed, true);
 // FREE PLAY rivals come from the player's form pool, as in the browser; every other vehicle (traffic included) drives
 // its own vehicle and envelope.
-const rivalPool = rivalPoolPairs(definitions.vehicles, formPool(entry));
+const freePlay = await loadFreePlayRules(content);
+const rivalPool = rivalPoolPairs(definitions.vehicles, formPool(freePlay, entry));
 const fieldVehicles = new Map();
 for (const id of definitions.vehicles.map((v) => v.compiledVehicle.id)) {
   const vehicle = createSessionVehicle(
@@ -155,7 +157,7 @@ export function runScenario({ course, arcade: scenarioArcade, productArcade, bud
             color: null,
             lapCount: scenario.laps ?? 1,
             rivalCount: scenario.rivals ?? 0,
-            rivalPool: formPool(entry),
+            rivalPool: formPool(freePlay, entry).id,
             traffic: 'OFF',
           };
   const initialSpeed =
@@ -163,7 +165,13 @@ export function runScenario({ course, arcade: scenarioArcade, productArcade, bud
   const session = resolveCourseSession(
     course,
     mode === 'ARCADE' ? arcade : null,
-    compileSessionConfiguration(request, course, mode === 'ARCADE' ? arcade : null, definitions.vehicles, initialSpeed),
+    compileSessionConfiguration(
+      request,
+      course,
+      mode === 'ARCADE' ? arcade : null,
+      { vehicles: definitions.vehicles, freePlay },
+      initialSpeed,
+    ),
     scenario.seed ?? 0,
     configuration,
     envelope,

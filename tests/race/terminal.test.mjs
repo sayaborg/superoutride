@@ -10,12 +10,14 @@ import {
 } from '../../src/course/geometry/plan-coordinate.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
 import { compileSessionConfiguration } from '../../src/race/session-configuration.js';
+import { loadFreePlayRules } from '../../src/content/free-play-rules.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { createSessionVehicle } from '../../src/content/session-vehicle.js';
 
 const definitionContent = await readDeliveredContent();
 const definitions = await loadVehicleDefinitions(definitionContent, await loadEngineSounds(definitionContent));
+const catalog = { vehicles: definitions.vehicles, freePlay: await loadFreePlayRules(definitionContent) };
 
 const load = async (stem) =>
   (await loadCourse(new URL(`../../content/courses/${stem}.course.json`, import.meta.url).pathname)).course;
@@ -69,7 +71,7 @@ test('Session rejects short terminal runout, including solo play; forks and loop
     rivalPool: 'CARS',
     traffic: 'OFF',
   };
-  const configuration = compileSessionConfiguration(request, course, null, definitions.vehicles);
+  const configuration = compileSessionConfiguration(request, course, null, catalog);
   assert.doesNotThrow(() => resolveCourseSession(course, null, configuration, 0, vehicle, envelope));
   const short = {
     ...course,
@@ -98,7 +100,7 @@ test('Session rejects short terminal runout, including solo play; forks and loop
     resolveCourseSession(
       ringCourse,
       null,
-      compileSessionConfiguration(request, ringCourse, null, definitions.vehicles),
+      compileSessionConfiguration(request, ringCourse, null, catalog),
       0,
       vehicle,
       envelope,

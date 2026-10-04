@@ -322,7 +322,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   const trafficField = createTrafficField({
     traffic: options.session.traffic,
     seed: options.session.seed,
-    limit: Math.min(SESSION_RULE_LIMITS.traffic, SESSION_RULE_LIMITS.vehicles - competitors.length),
+    limit: SESSION_RULE_LIMITS.traffic,
     runtime,
     forks,
     modelOf,

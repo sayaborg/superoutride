@@ -9,8 +9,6 @@ export const SESSION_RULE_LIMITS = Object.freeze({
   timeMargin: 10,
   /** Traffic vehicles present at once. */
   traffic: 16,
-  /** Vehicles in a Session at once: competitors and traffic. */
-  vehicles: 32,
   /** Traffic density ceiling in vehicles per kilometre: one position every 25 m. */
   trafficDensity: 40,
 });

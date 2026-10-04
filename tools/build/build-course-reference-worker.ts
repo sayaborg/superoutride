@@ -20,11 +20,13 @@ import { ENVELOPE_MEASUREMENT, measureRivalEnvelope } from '../course/rival-enve
 import { runCourseReference } from '../course/reference-run.js';
 import { enumerateCourseRoutes } from '../../src/course/compiler/course-routes.js';
 import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
+import { loadFreePlayRules } from '../../src/content/free-play-rules.js';
 
 const { vehicleId, courses, physicsSha256 } = workerData as CourseReferenceJob;
 const content = await readDeliveredContent();
 const materials = await loadSurfaceMaterials(content);
 const definitions = await loadVehicleDefinitions(content, await loadEngineSounds(content));
+const catalog = { vehicles: definitions.vehicles, freePlay: await loadFreePlayRules(content) };
 const entry = definitions.vehicles.find((v) => v.compiledVehicle.id === vehicleId)!;
 const vehicle = createSessionVehicle(entry, definitions.driving),
   vehicleSha256 = await sessionVehicleSha256(vehicle, materials);
@@ -51,7 +53,7 @@ for (const { stem, timeMargin } of courses) {
   const key = referenceCacheKey(course.identity.buildSha256, vehicleSha256, REFERENCE_DRIVER_SHA256, physicsSha256);
   const cached = await cachedReference('runs', key, async () => {
     return enumerateCourseRoutes(course.entry, course.type).map((route) =>
-      runCourseReference(course, vehicle, definitions.vehicles, envelope.value, route, course.rules.maxLaps),
+      runCourseReference(course, vehicle, catalog, envelope.value, route, course.rules.maxLaps),
     );
   });
   if (cached.hit) hits++;

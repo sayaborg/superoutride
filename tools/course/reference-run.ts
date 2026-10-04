@@ -10,6 +10,7 @@ import { createCourseScene } from '../../src/view/course-scene.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
 import { compileSessionConfiguration } from '../../src/race/session-configuration.js';
+import type { FreePlayRules } from '../../src/content/free-play-rules.js';
 import {
   createEnvelopeDriverWorkspace,
   sampleEnvelopeDrivingInput,
@@ -25,20 +26,20 @@ const IDLE_INPUT = Object.freeze({ steering: 0, throttle: false, brake: false })
 export function runCourseReference(
   course: CompiledCourse,
   vehicleConfiguration: SessionVehicle,
-  vehicles: readonly CompiledVehicleDefinition[],
+  catalog: { readonly vehicles: readonly CompiledVehicleDefinition[]; readonly freePlay: FreePlayRules },
   envelope: RivalEnvelope,
   route: readonly CompiledLink[],
   lapCount: number,
   capture = false,
 ) {
   const entry = vehicleConfiguration.vehicleDefinition,
-    scene = createCourseScene(course.entry, course.gates, vehicles);
+    scene = createCourseScene(course.entry, course.gates, catalog.vehicles);
   // A reference run is a TIME TRIAL Session: alone from the last grid slot, without a clock; the seed is fixed.
   const configuration = compileSessionConfiguration(
     { mode: 'TIME_TRIAL', vehicleId: entry.compiledVehicle.id, color: null, lapCount },
     course,
     null,
-    vehicles,
+    catalog,
   );
   const session = resolveCourseSession(course, null, configuration, 0, vehicleConfiguration, envelope);
   const slot = session.entries[0]!.slot!;

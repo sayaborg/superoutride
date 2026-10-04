@@ -16,6 +16,7 @@ import { compileSurfaceMaterials } from '../../src/content/surface-material-cata
 import { resolveSurfaceSoundRecords } from '../../src/audio/surface-sounds.js';
 import { compileSurfaceSounds } from '../../src/content/surface-sound-catalog.js';
 import { compileAudioSettings } from '../../src/content/audio-catalog.js';
+import { compileFreePlayRules } from '../../src/content/free-play-rules.js';
 import { compileVehicleSpriteLibrary } from '../graphics/vehicle-sprite-library.js';
 import { admit } from '../../src/core/admission.js';
 import { compileTextTiles } from '../../src/image/text-tiles.js';
@@ -24,7 +25,7 @@ import { COURSE_INDEX_ID, courseIndexDocument } from '../../src/content/course-i
 
 /**
  * The content build: every delivered file is compiled from authored documents in dependency order,
- * in one pass: vehicle sprite library, text tiles, materials, surface sounds, audio settings, engine sounds, vehicle and driving definitions, courses and their
+ * in one pass: vehicle sprite library, text tiles, materials, surface sounds, audio settings, FREE PLAY rules, engine sounds, vehicle and driving definitions, courses and their
  * images, the course index, series, then reference runs. Each compile stage receives earlier products directly. Reference workers
  * are the exception: they run in separate threads and read this build's saved content until 15-5.
  */
@@ -87,6 +88,10 @@ await deliver('surface-sound', surfaceSoundSources);
 const audioSources = await sources('audio');
 requireLoaded(compileAudioSettings(audioSources));
 await deliver('audio', audioSources);
+
+const freePlaySources = await sources('free-play');
+requireLoaded(compileFreePlayRules(freePlaySources));
+await deliver('free-play', freePlaySources);
 
 const soundSources = await sources('engine-sounds');
 const sounds = requireLoaded(compileEngineSounds(soundSources));

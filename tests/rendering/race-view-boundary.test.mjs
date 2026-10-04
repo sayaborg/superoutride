@@ -13,6 +13,7 @@ import { SIM_DT } from '../../src/race/fixed-step.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
 import { compileSessionConfiguration } from '../../src/race/session-configuration.js';
+import { loadFreePlayRules } from '../../src/content/free-play-rules.js';
 import { readRivalEnvelope } from '../../src/content/rival-envelope.js';
 import { readDeliveredContent } from '../../tools/course/read-content.ts';
 import { createCameraRig, updateCamera } from '../../src/view/camera.js';
@@ -79,7 +80,7 @@ test('the view assembles fifteen rival sprites from race observations', async ()
     },
     course,
     null,
-    definitions.vehicles,
+    { vehicles: definitions.vehicles, freePlay: await loadFreePlayRules(definitionContent) },
   );
   const settings = resolveCourseSession(course, null, configuration, 0, compiledVehicle, envelope, null, {
     rivalPool: [{ vehicle: 'TESTAROSSA', color: compiledVehicle.vehicleDefinition.listing.visuals.palette }],

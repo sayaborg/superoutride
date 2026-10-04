@@ -1,6 +1,7 @@
 import type { SeriesCourse } from '../content/series-catalog.js';
 import type { SessionRequest } from '../race/session-configuration.js';
-import { formPool, type FreePlayTraffic, type RivalPool } from '../race/free-play-field.js';
+import { formPool } from '../race/free-play-field.js';
+import { NO_TRAFFIC, type FreePlayRules } from '../content/free-play-rules.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import { spriteSetHasColor } from '../vehicle/vehicle-sprite-set.js';
 import type { PlayerRecord } from './player-record.js';
@@ -26,6 +27,7 @@ export function readUrlRunRequest(
   courseId: string,
   arcade: SeriesCourse | null,
   vehicles: readonly CompiledVehicleDefinition[],
+  freePlay: FreePlayRules,
   player: PlayerRecord,
 ): RunRequest {
   const mode = params.get('mode') ?? (arcade ? 'ARCADE' : 'FREE_PLAY');
@@ -47,7 +49,7 @@ export function readUrlRunRequest(
     mode,
     lapCount,
     rivalCount: Number(params.get('rivals') ?? 0),
-    rivalPool: (params.get('pool') ?? (vehicle ? formPool(vehicle) : 'ALL')) as RivalPool,
-    traffic: (params.get('traffic') ?? 'OFF') as FreePlayTraffic,
+    rivalPool: params.get('pool') ?? (vehicle ? formPool(freePlay, vehicle) : freePlay.rivalPools[0]!).id,
+    traffic: params.get('traffic') ?? NO_TRAFFIC,
   });
 }

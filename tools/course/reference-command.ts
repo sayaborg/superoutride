@@ -2,6 +2,7 @@ import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { readDeliveredContent } from './read-content.js';
 import { createSessionVehicle } from '../../src/content/session-vehicle.js';
+import { loadFreePlayRules } from '../../src/content/free-play-rules.js';
 import { REFERENCE_DRIVER_SHA256 } from './reference-driving-policy.js';
 import { measureRivalEnvelope } from './rival-envelope-measurement.js';
 import { runCourseReference } from './reference-run.js';
@@ -48,7 +49,15 @@ export async function referenceCommand(verb: string, file: string | null, args: 
       modelSha256,
       driverSha256: REFERENCE_DRIVER_SHA256,
       vehicle,
-      ...runCourseReference(course, vehicle, definitions.vehicles, envelope, routes[routeIndex]!, lapCount, true),
+      ...runCourseReference(
+        course,
+        vehicle,
+        { vehicles: definitions.vehicles, freePlay: await loadFreePlayRules(content) },
+        envelope,
+        routes[routeIndex]!,
+        lapCount,
+        true,
+      ),
     };
   }
   requireInput(opts.has('--out'), '/out', 'Reference commands require --out');

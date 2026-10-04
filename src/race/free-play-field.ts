@@ -1,22 +1,7 @@
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import { spriteSetColors } from '../vehicle/vehicle-sprite-set.js';
 import { mix } from './rival-exit.js';
-
-/** The FREE PLAY rival vehicle pools. */
-export const RIVAL_POOLS = ['ALL', 'CARS', 'BIKES'] as const;
-export type RivalPool = (typeof RIVAL_POOLS)[number];
-
-/** The FREE PLAY TRAFFIC choices; OFF has none. */
-export const FREE_PLAY_TRAFFIC_LEVELS = ['OFF', 'LOW', 'HIGH'] as const;
-export type FreePlayTraffic = (typeof FREE_PLAY_TRAFFIC_LEVELS)[number];
-
-/** FREE PLAY traffic is the same on every course: the levels' densities (vehicles/km), drawn from every vehicle. */
-export const FREE_PLAY_TRAFFIC = Object.freeze({
-  LOW: Object.freeze({ density: 5 }),
-  HIGH: Object.freeze({ density: 30 }),
-});
-/** FREE PLAY traffic's one speed in km/h, at every level. */
-export const FREE_PLAY_TRAFFIC_SPEED_KILOMETERS_PER_HOUR = 80;
+import type { FreePlayRules, RivalPoolRule } from '../content/free-play-rules.js';
 
 /** A vehicle in one of its colors. */
 export interface VehicleColor {
@@ -24,19 +9,19 @@ export interface VehicleColor {
   readonly color: string;
 }
 
-/** The pool matching a vehicle's form: the FREE PLAY default. */
-export function formPool(vehicle: CompiledVehicleDefinition): RivalPool {
-  return vehicle.form === 'bike' ? 'BIKES' : 'CARS';
+/** The pool of the vehicle's form alone: the FREE PLAY default. FREE PLAY admission guarantees one. */
+export function formPool(rules: FreePlayRules, vehicle: CompiledVehicleDefinition): RivalPoolRule {
+  return rules.rivalPools.find((pool) => pool.forms.length === 1 && pool.forms[0] === vehicle.form)!;
 }
 
 /** Every vehicle/color pair of the pool, in catalog order. */
 export function rivalPoolPairs(
   vehicles: readonly CompiledVehicleDefinition[],
-  pool: RivalPool,
+  pool: RivalPoolRule,
 ): readonly VehicleColor[] {
   return Object.freeze(
     vehicles
-      .filter((vehicle) => pool === 'ALL' || vehicle.form === (pool === 'BIKES' ? 'bike' : 'car'))
+      .filter((vehicle) => pool.forms.includes(vehicle.form))
       .flatMap((vehicle) =>
         spriteSetColors(vehicle.spriteSet).map((color) =>
           Object.freeze({ vehicle: vehicle.compiledVehicle.id, color }),

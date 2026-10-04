@@ -1,13 +1,8 @@
 import type { CourseIndex } from '../content/course-index.js';
 import type { CompiledSeries, SeriesCatalog } from '../content/series-catalog.js';
 import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
-import {
-  formPool,
-  FREE_PLAY_TRAFFIC_LEVELS,
-  RIVAL_POOLS,
-  type FreePlayTraffic,
-  type RivalPool,
-} from '../race/free-play-field.js';
+import { formPool } from '../race/free-play-field.js';
+import { NO_TRAFFIC, type FreePlayRules } from '../content/free-play-rules.js';
 import { gridRivalCapacity } from '../race/session-configuration.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import type { SoftwareSurface } from '../view/software-surface.js';
@@ -34,11 +29,15 @@ const MODES: readonly { readonly mode: Mode; readonly label: string }[] = [
   { mode: 'TIME_TRIAL', label: 'TIME TRIAL' },
 ];
 
-/** What the selection offers: delivered courses, series and vehicles, and whether DEV content is shown. */
+/**
+ * What the selection offers: delivered courses, series and vehicles, FREE PLAY's rules, and whether DEV content is
+ * shown.
+ */
 export interface SelectionCatalog {
   readonly courses: CourseIndex;
   readonly series: SeriesCatalog;
   readonly vehicles: readonly CompiledVehicleDefinition[];
+  readonly freePlay: FreePlayRules;
   readonly player: PlayerRecord;
   /** `dev=1`: DEV series and courses in no series are offered. */
   readonly dev: boolean;
@@ -64,7 +63,10 @@ export interface SelectionDevices {
  * laps. BACK returns to the previous screen. A mode, series or course that offers nothing to select is DARK.
  */
 export function createSelectionFlow(catalog: SelectionCatalog, devices: SelectionDevices) {
-  const { courses, vehicles, player, dev } = catalog;
+  const { courses, vehicles, player, dev, freePlay } = catalog;
+  // FREE PLAY's POOL and TRAFFIC choices, in their rules' order; TRAFFIC starts with OFF.
+  const pools = freePlay.rivalPools.map((pool) => pool.id);
+  const trafficLevels = [NO_TRAFFIC, ...freePlay.traffic.map((level) => level.id)];
   const series = catalog.series.series.filter((s) => (dev || !s.dev) && s.courses.length > 0);
   const inSeries = new Set(catalog.series.series.flatMap((s) => s.courses.map((c) => c.course)));
   // FREE PLAY and TIME TRIAL courses grouped by series; courses in no series last, only with DEV.
@@ -89,8 +91,8 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     color: string | null = null,
     lapCount = 1,
     rivalCount = 0,
-    rivalPool: RivalPool = 'ALL',
-    traffic: FreePlayTraffic = FREE_PLAY_TRAFFIC_LEVELS.find((level) => level === latest('traffic')) ?? 'OFF';
+    rivalPool = pools[0]!,
+    traffic = trafficLevels.find((level) => level === latest('traffic')) ?? NO_TRAFFIC;
   const needed = (at: Step) =>
     at === 'COURSE'
       ? mode !== 'ARCADE' || seriesChoice!.courses.length > 1
@@ -226,7 +228,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
                 const id = vehicle.compiledVehicle.id;
                 if (chosen !== null)
                   player.updateSettings({ vehicleColors: { ...player.settings.vehicleColors, [id]: chosen } });
-                if (id !== vehicleId) rivalPool = formPool(vehicle);
+                if (id !== vehicleId) rivalPool = formPool(freePlay, vehicle).id;
                 [vehicleId, color] = [id, chosen];
                 remember('vehicle', id);
                 forward();
@@ -249,16 +251,14 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
           {
             label: 'POOL',
             value: rivalPool,
-            adjust: (by) =>
-              (rivalPool =
-                RIVAL_POOLS[(RIVAL_POOLS.indexOf(rivalPool) + by + RIVAL_POOLS.length) % RIVAL_POOLS.length]!),
+            adjust: (by) => (rivalPool = pools[(pools.indexOf(rivalPool) + by + pools.length) % pools.length]!),
           },
           // The TRAFFIC choice is a player setting, kept in the record.
           {
             label: 'TRAFFIC',
             value: traffic,
             adjust: (by) => {
-              const levels = FREE_PLAY_TRAFFIC_LEVELS;
+              const levels = trafficLevels;
               traffic = levels[(levels.indexOf(traffic) + by + levels.length) % levels.length]!;
               remember('traffic', traffic);
             },

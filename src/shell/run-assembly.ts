@@ -18,6 +18,7 @@ import type { TextLayer } from '../view/text-layer.js';
 import type { createCoursePerformanceHud } from './course-performance-hud.js';
 import { resolveCourseSession, sessionDemand, type EntryVehicle } from '../race/course-session.js';
 import { formPool } from '../race/free-play-field.js';
+import { NO_TRAFFIC, type FreePlayRules } from '../content/free-play-rules.js';
 import { readCourseTimeBudgets, type CourseTimeBudgets } from '../content/course-time-budgets.js';
 import { readPaceSchedule } from '../content/pace-schedule.js';
 import { loadSeriesCourse, type loadSeriesCatalog } from '../content/series-catalog.js';
@@ -47,6 +48,7 @@ export interface RunPage {
   readonly content: ContentDelivery;
   readonly materials: Awaited<ReturnType<typeof loadSurfaceMaterials>>;
   readonly series: Awaited<ReturnType<typeof loadSeriesCatalog>>;
+  readonly freePlay: FreePlayRules;
   readonly vehicles: Awaited<ReturnType<typeof loadVehicleDefinitions>>['vehicles'];
   readonly driving: Awaited<ReturnType<typeof loadVehicleDefinitions>>['driving'];
   readonly displaySettings: DisplaySettings;
@@ -82,7 +84,8 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
   // The course's ARCADE settings come from the one series holding it; a course in no series is untimed.
   const arcade = loadSeriesCourse(content, series, course);
   // The request's one admission: its Session rules on this course.
-  const settings = compileSessionConfiguration(request, course, arcade, vehicles);
+  const catalog = { vehicles, freePlay: page.freePlay };
+  const settings = compileSessionConfiguration(request, course, arcade, catalog);
   const entry = vehicles.find((v) => v.compiledVehicle.id === settings.vehicleId)!;
   // The Session decides what it needs; the run loads each once: every Session vehicle with its reference identity on
   // the course's materials and its envelope, the clock's budgets and ARCADE's pace schedule.
@@ -175,12 +178,12 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
                 color: settings.color,
                 lapCount: active.session.configuration.lapCount,
                 rivalCount: 0,
-                rivalPool: formPool(entry),
-                traffic: 'OFF',
+                rivalPool: formPool(page.freePlay, entry).id,
+                traffic: NO_TRAFFIC,
               },
               course,
               arcade,
-              vehicles,
+              catalog,
             ),
             null,
             null,

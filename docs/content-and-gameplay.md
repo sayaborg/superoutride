@@ -819,6 +819,25 @@ TESTAROSSA, whose fields are 1, 3 and 3 TESTAROSSA entries in its default color 
 at 80 km/h); RIBBON FORK and RIBBON RING have none. RIBBON COAST is the [verification course](#verification-course).
 RIBBON ROUGH belongs to no series.
 
+## FREE PLAY document
+
+`content/free-play/default.json` is the one `superoutride.free-play` version 1 document (manifest kind `free-play`,
+ID `default`): FREE PLAY's own rules, the same on every course.
+
+```text
+FreePlay {
+  format: "superoutride.free-play", version: 1,
+  rivalPools: [{id, forms}], traffic: [{id, density}], trafficSpeedKilometersPerHour
+}
+```
+
+`rivalPools` are the POOL choices in order: each an uppercase ID and the nonempty, unique vehicle forms (`car`, `bike`)
+it draws from. Each form has a pool of that form alone, the default pool of a vehicle of that form. `traffic` are the
+TRAFFIC levels after OFF, in order: each an uppercase ID other than `OFF` and a density in vehicles per kilometre in
+(0, 40] (`SESSION_RULE_LIMITS.trafficDensity`). `trafficSpeedKilometersPerHour` is the one traffic speed, in
+(0, 864]. Admission checks the document once, from the build's file or the delivery manifest alike. The delivered
+document has the pools ALL (cars and bikes), CARS and BIKES, the levels LOW (5 vehicles/km) and HIGH (30) and 80 km/h.
+
 ## Session and reference timing
 
 ### Resolved Session
@@ -833,9 +852,9 @@ vehicle, zero to fifteen rivals within the grid, a rival pool, a traffic level a
 TIME TRIAL resolves a catalog vehicle and permitted laps on any course; the player runs alone, without
 rivals or clock, and selects fork routes by driving like any first competitor at a lock line. One admission,
 `compileSessionConfiguration`, derives these rules from a request and checks it against the course, its series course and
-the vehicle catalog; the configuration carries the FREE PLAY rival pool. ARCADE takes its series course's traffic; FREE PLAY
-takes the TRAFFIC choice: OFF is none, and LOW and HIGH are `FREE_PLAY_TRAFFIC` in the FREE PLAY rules (`race/free-play-field.ts`; 5 and 30
-vehicles/km) at `FREE_PLAY_TRAFFIC_SPEED_KILOMETERS_PER_HOUR` (80 km/h) with every catalog vehicle as candidates.
+the vehicle catalog and the [FREE PLAY document](#free-play-document); the configuration carries the FREE PLAY rival pool.
+ARCADE takes its series course's traffic; FREE PLAY takes the TRAFFIC choice: OFF is none, and every other level is the
+FREE PLAY document's density at its traffic speed with every catalog vehicle as candidates.
 Traffic settings are null or `{density, vehicles, speedKilometersPerHour}`, which series admission checks: a density in
 vehicles per kilometre in (0, 40] (`SESSION_RULE_LIMITS.trafficDensity`), at least one unique vehicle ID, and the one
 traffic speed in km/h in (0, 864] (`MAXIMUM_VEHICLE_SPEED` in km/h). Session resolution converts that speed to m/s once

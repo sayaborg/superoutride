@@ -3,14 +3,7 @@ import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import type { SeriesCourse } from '../content/series-catalog.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import { spriteSetHasColor } from '../vehicle/vehicle-sprite-set.js';
-import {
-  FREE_PLAY_TRAFFIC,
-  FREE_PLAY_TRAFFIC_LEVELS,
-  FREE_PLAY_TRAFFIC_SPEED_KILOMETERS_PER_HOUR,
-  RIVAL_POOLS,
-  type FreePlayTraffic,
-  type RivalPool,
-} from './free-play-field.js';
+import { NO_TRAFFIC, type FreePlayRules, type RivalPoolRule } from '../content/free-play-rules.js';
 
 /** The most rivals a grid of `slots` holds: every slot but the player's. */
 export function gridRivalCapacity(slots: number): number {
@@ -33,8 +26,10 @@ export type SessionRequest =
       readonly mode: 'FREE_PLAY';
       readonly lapCount: number;
       readonly rivalCount: number;
-      readonly rivalPool: RivalPool;
-      readonly traffic: FreePlayTraffic;
+      /** A rival pool ID of the FREE PLAY rules. */
+      readonly rivalPool: string;
+      /** OFF, or a TRAFFIC level ID of the FREE PLAY rules. */
+      readonly traffic: string;
     })
   | (SessionChoice & { readonly mode: 'TIME_TRIAL'; readonly lapCount: number });
 
@@ -45,7 +40,7 @@ export interface SessionConfiguration extends SessionChoice {
   /** Opponents only; the player is not included. */
   readonly rivalCount: number;
   /** The FREE PLAY rival pool; null in ARCADE and TIME TRIAL. */
-  readonly rivalPool: RivalPool | null;
+  readonly rivalPool: RivalPoolRule | null;
   readonly lapCount: number;
   /** The checkpoint clock; ARCADE only, FREE PLAY and TIME TRIAL have none. */
   readonly timeLimit: boolean;
@@ -56,20 +51,21 @@ export interface SessionConfiguration extends SessionChoice {
 }
 
 /**
- * Admit a requested Session against its course, its series course (`arcade`, null on an untimed course) and the
- * vehicle catalog, and derive its rules: the one admission and derivation of every request. The vehicle must be a
+ * Admit a requested Session against its course, its series course (`arcade`, null on an untimed course), the vehicle
+ * catalog and FREE PLAY's rules, and derive its rules: the one admission and derivation of every request. The vehicle must be a
  * catalog vehicle and the color one of its sprite set. ARCADE needs a series course and one of the series' vehicles
  * and takes the series' field, laps and traffic with the checkpoint clock. FREE PLAY and TIME TRIAL take up to the
- * course's `maxLaps`; FREE PLAY's rivals fit the grid, its pool and traffic level are FREE PLAY's, and its traffic
- * draws from every catalog vehicle at the FREE PLAY speed. `initialSpeed` is the start speed (the product's is 0).
+ * course's `maxLaps`; FREE PLAY's rivals fit the grid, its pool and traffic level are its rules', and its traffic
+ * draws from every catalog vehicle at their traffic speed. `initialSpeed` is the start speed (the product's is 0).
  */
 export function compileSessionConfiguration(
   request: SessionRequest,
   course: Pick<CompiledCourse, 'rules' | 'gates'>,
   arcade: SeriesCourse | null,
-  vehicles: readonly CompiledVehicleDefinition[],
+  catalog: { readonly vehicles: readonly CompiledVehicleDefinition[]; readonly freePlay: FreePlayRules },
   initialSpeed = 0,
 ): SessionConfiguration {
+  const { vehicles, freePlay } = catalog;
   const vehicle = vehicles.find((v) => v.compiledVehicle.id === request.vehicleId);
   if (!vehicle) throw new RangeError('Unknown Session vehicle');
   if (request.color !== null && !spriteSetHasColor(vehicle.spriteSet, request.color))
@@ -98,23 +94,24 @@ export function compileSessionConfiguration(
       const { rivalCount, rivalPool, traffic } = request;
       if (!Number.isInteger(rivalCount) || rivalCount < 0 || rivalCount > SESSION_RULE_LIMITS.rivals)
         throw new RangeError(`Session rivalCount must be an integer within 0..${SESSION_RULE_LIMITS.rivals}`);
-      if (!RIVAL_POOLS.includes(rivalPool)) throw new RangeError('Unknown rival pool');
-      if (!FREE_PLAY_TRAFFIC_LEVELS.includes(traffic)) throw new RangeError('Unknown traffic level');
+      const pool = freePlay.rivalPools.find((candidate) => candidate.id === rivalPool);
+      if (!pool) throw new RangeError('Unknown rival pool');
+      const level = freePlay.traffic.find((candidate) => candidate.id === traffic);
+      if (!level && traffic !== NO_TRAFFIC) throw new RangeError('Unknown traffic level');
       rules = {
         mode: 'FREE_PLAY',
         rivalCount,
-        rivalPool,
+        rivalPool: pool,
         lapCount,
         timeLimit: false,
         // FREE PLAY traffic is its level's, drawn from every vehicle.
-        traffic:
-          traffic === 'OFF'
-            ? null
-            : Object.freeze({
-                ...FREE_PLAY_TRAFFIC[traffic],
-                vehicles: Object.freeze(vehicles.map((v) => v.compiledVehicle.id)),
-                speedKilometersPerHour: FREE_PLAY_TRAFFIC_SPEED_KILOMETERS_PER_HOUR,
-              }),
+        traffic: level
+          ? Object.freeze({
+              density: level.density,
+              vehicles: Object.freeze(vehicles.map((v) => v.compiledVehicle.id)),
+              speedKilometersPerHour: freePlay.trafficSpeedKilometersPerHour,
+            })
+          : null,
       };
     }
   }

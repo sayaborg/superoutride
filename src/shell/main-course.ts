@@ -13,6 +13,7 @@ import { loadVehicleDefinitions } from '../content/vehicle-catalog.js';
 import { loadEngineSounds } from '../content/engine-sound-catalog.js';
 import { createCoursePerformanceHud } from './course-performance-hud.js';
 import { loadSeriesCatalog } from '../content/series-catalog.js';
+import { loadFreePlayRules } from '../content/free-play-rules.js';
 import { createScreenHost } from './screen-host.js';
 import { createRunScreen, createRunScreenState } from './run-screen.js';
 import { createLoadFailedScreen, createLoadingScreen } from './loading-screen.js';
@@ -68,6 +69,7 @@ async function startPage(): Promise<void> {
     const courseIndex = await loadCourseIndex(content);
     const courses = browserCourses(courseIndex);
     const series = await loadSeriesCatalog(content, vehicles);
+    const freePlay = await loadFreePlayRules(content);
     const player = openPlayerRecord(browserStorage());
     const displaySettings = createDisplaySettings();
     const textLayer = createTextLayer(await loadTextTiles(content));
@@ -97,6 +99,7 @@ async function startPage(): Promise<void> {
       content,
       materials,
       series,
+      freePlay,
       vehicles,
       driving,
       displaySettings,
@@ -189,7 +192,7 @@ async function startPage(): Promise<void> {
     }
     // The selection screens request runs that start at once; LOAD FAILED's BACK returns to the last of them.
     const flow = createSelectionFlow(
-      { courses: courseIndex, series, vehicles, player, dev },
+      { courses: courseIndex, series, vehicles, freePlay, player, dev },
       {
         frame: shell.framebuffer,
         text: textLayer,
@@ -205,7 +208,9 @@ async function startPage(): Promise<void> {
     const named = courses.find((course) => course.id === parameters.get('course')) ?? null;
     const urlRequest = (courseId: string) => {
       try {
-        void request(readUrlRunRequest(parameters, courseId, series.courseSettings(courseId), vehicles, player));
+        void request(
+          readUrlRunRequest(parameters, courseId, series.courseSettings(courseId), vehicles, freePlay, player),
+        );
       } catch (error) {
         fail(
           error,
