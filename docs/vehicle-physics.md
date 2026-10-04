@@ -583,8 +583,8 @@ and `brake` (each applySeconds/releaseSeconds), boolean
 (minimumUtilization/maximumUtilization/minimumSpeedFraction/bandSeconds/responseSeconds, with 0 < minimum ≤
 maximum ≤ 1, a speed fraction in (0,1], and a positive finite band and response time) and `bodyContact`
 (frequencyHertz/dampingRatio, both positive and finite, and barrierFriction, finite and at least 0). `rivalPace` drives no vehicle mechanics: ARCADE rivals read it
-to pace their driving. `bodyContact` is the [body contact](#body-contact) spring-damper; each vehicle model admits its
-stability at the model's step. Angles are degrees, traversal times
+to pace their driving. `bodyContact` is the [body contact](#body-contact) spring-damper. Vehicle models do not carry it: a Session reads it
+once, from the Session's driving definition, and admits its stability at the race's fixed step. Angles are degrees, traversal times
 are seconds, pressures are bar, inertia is kg m² per litre, and tire, fuel-cut and efficiency values
 are dimensionless. Require
 0 < offset < maximum < 90 degrees, positive finite actuator rates after conversion, positive finite

@@ -1155,7 +1155,8 @@ and those of vehicles gone from the Session, are forgotten. The height overlap d
 touch: while it is not positive there is no force, and a contact does not begin. The force acts along the
 horizontal world direction of the face's axis, the road's tangent or its right, read at the pair's midpoint, with
 equal magnitude and opposite sign on the two vehicles, on the overlap along the face; its approach speed is their
-relative world velocity along that direction. The spring-damper uses the Session driving definition's `bodyContact` (the player's vehicle model).
+relative world velocity along that direction. The spring-damper is the Session's one `bodyContact`, read at Session resolution from the Session's driving definition
+(the player's), for every contact, wall, course limit and object in the Session.
 
 A standing object meets every vehicle present by the same rule, as a party of zero length and its width at its route
 position, with its height range, at rest: its position one step earlier is its position. A fixed object never moves, so
@@ -1206,7 +1207,7 @@ rules only, no live state or target resolution:
 | `holdSteps`          | 44       | Consecutive fixed steps a condition holds before recovery (44 × 1/60 s ≈ 0.733 s) |
 | `blockedSpeed`       | 0.15 m/s | Speed below which a vehicle held against a fixed object counts as stopped         |
 | `backtrackDistance`  | 8 m      | Route distance recovery backs off; loading coverage reads it                      |
-| `minRecoverySpeed`   | 18 m/s   | Lower bound of the recovery speed                                                 |
+| `minRecoverySpeed`   | 18 m/s   | Lower bound of the recovery speed (none for `blocked`, which recovers at rest)    |
 | `maxRecoverySpeed`   | 32 m/s   | Upper bound of the recovery speed                                                 |
 | `speedRetention`     | 0.58     | Share of forward speed kept, before the bounds                                    |
 | `placementClearance` | 1 m      | Gap left behind the competitor a recovered vehicle is placed behind               |
@@ -1214,7 +1215,8 @@ rules only, no live state or target resolution:
 A vehicle's recovery state counts consecutive outside-domain steps, and consecutive steps held against a fixed object
 below `blockedSpeed` (`blocked`, for every vehicle present; the race reports the fixed objects' pushes from
 the step's contacts), each as an integer; reaching `holdSteps` recovers the vehicle on that step, by the ordinary
-placement and speed rules, and returning inside, or the contact ending or the speed rising, resets that count. Movable
+placement and speed rules — except that a vehicle recovered from `blocked` recovers at rest, since it had stopped
+against the object and a recovery speed would carry it back into the same object from behind it — and returning inside, or the contact ending or the speed rising, resets that count. Movable
 objects, barrier lines and other vehicles never count. Recovery is not a Session rule.
 
 Route recovery backs off from the farther of causal current chainage and last-safe chainage

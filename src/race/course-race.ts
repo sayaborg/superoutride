@@ -223,13 +223,13 @@ export function createCourseRace(options: {
   };
   // Body contacts push present vehicles apart, by one face rule for every pair (fixed objects included); the Session's
   // driving definition holds the spring-damper.
-  const contactFaces = createContactFaces(runtime.readers.coordinates, playerActor.model.bodyContact);
+  const contactFaces = createContactFaces(runtime.readers.coordinates, options.session.bodyContact);
   const bodyContacts = createBodyContacts(contactFaces);
   // Walls and course limits push every present vehicle back with the same spring-damper.
   const barrierContacts = createBarrierContacts(
     runtime.readers.coordinates,
     runtime.window,
-    playerActor.model.bodyContact,
+    options.session.bodyContact,
     contactFaces,
     SIM_DT,
   );

@@ -42,7 +42,7 @@ export interface RecoveryPolicy {
   readonly blockedSpeed: number;
   /** Metres recovery backs off along the Route. */
   readonly backtrackDistance: number;
-  /** Recovery speed bounds in m/s. */
+  /** Recovery speed bounds in m/s; a vehicle recovered from being blocked recovers at rest. */
   readonly minRecoverySpeed: number;
   readonly maxRecoverySpeed: number;
   /** Share of the forward speed kept through recovery, before the bounds. */
@@ -221,11 +221,16 @@ export function recoverVehicleToPlanCoordinate(
 ): void {
   const surface = supportedTargetSurface(world, target.s, target.l);
 
-  const speed = clamp(
-    Math.max(0, vehicle.longitudinalSpeed) * RECOVERY_POLICY.speedRetention,
-    RECOVERY_POLICY.minRecoverySpeed,
-    RECOVERY_POLICY.maxRecoverySpeed,
-  );
+  // A vehicle a fixed object held had stopped against it: it recovers at rest behind it, since a recovery speed would
+  // carry it back into the same object. Every other recovery keeps a bounded share of its forward speed.
+  const speed =
+    reason === 'blocked'
+      ? 0
+      : clamp(
+          Math.max(0, vehicle.longitudinalSpeed) * RECOVERY_POLICY.speedRetention,
+          RECOVERY_POLICY.minRecoverySpeed,
+          RECOVERY_POLICY.maxRecoverySpeed,
+        );
 
   vehicle.longitudinalAcceleration = 0;
   vehicle.lateralAcceleration = 0;

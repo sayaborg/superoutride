@@ -1,4 +1,7 @@
 import { compileEnvelopeDriver, type EnvelopeDriver } from './envelope-driver.js';
+import { SIM_DT } from './fixed-step.js';
+import { assertBodyContactStability } from '../vehicle/physics/body-contact.js';
+import { VEHICLE_SUBSTEPS } from '../vehicle/physics/vehicle-model.js';
 import type { RivalEnvelope } from '../content/rival-envelope.js';
 import type { CourseTimeBudgets } from '../content/course-time-budgets.js';
 import type { PaceSchedule } from '../content/pace-schedule.js';
@@ -110,6 +113,10 @@ export function resolveCourseSession(
     readonly paceSchedule?: PaceSchedule;
   } = {},
 ) {
+  // The Session's body contact: its driving definition's spring-damper, the one every contact in the Session reads,
+  // admitted stable at the race's fixed step.
+  const { bodyContact } = vehicle.drivingDefinition.compiledDriving;
+  assertBodyContactStability(bodyContact, SIM_DT, VEHICLE_SUBSTEPS);
   if (!Number.isInteger(seed) || seed < 0 || seed > 0xffffffff)
     throw new RangeError('Session seed must be a 32-bit unsigned integer');
   if (vehicle.vehicleDefinition.compiledVehicle.id !== configuration.vehicleId)
@@ -204,6 +211,7 @@ export function resolveCourseSession(
     paceSchedule: configuration.mode === 'ARCADE' ? field.paceSchedule! : null,
     /** Rank limit N by gate ID; ARCADE only. */
     rankLimits: configuration.mode === 'ARCADE' && arcade ? arcade.rankLimits : NO_RANK_LIMITS,
+    bodyContact,
   });
 }
 
