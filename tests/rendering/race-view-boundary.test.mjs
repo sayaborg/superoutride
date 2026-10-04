@@ -88,7 +88,7 @@ test('the view assembles fifteen rival sprites from race observations', async ()
   });
   const race = createCourseRace({ session: settings, runtime: scene.runtime });
   assert.equal(race.rivals.length, 15);
-  assert.deepEqual(race.advance({ steering: 0, throttle: false, brake: false }), { recovered: false });
+  assert.deepEqual(race.advance({ steering: 0, throttle: false, brake: false }), { recovered: false, barrier: false });
   const observed = race.observe();
   assert.equal(observed.rivals.length, 15);
   const camera = updateCamera(createCameraRig(), scene.world, observed.player, CAMERA_DEFINITION);
@@ -99,5 +99,4 @@ test('the view assembles fifteen rival sprites from race observations', async ()
     observed.rivals.map((a) => a.id),
   );
   assert.ok(sprites.every((s) => s.asset && Number.isFinite(s.x) && Number.isFinite(s.y) && Number.isFinite(s.z)));
-  race.recoverPlayer();
 });

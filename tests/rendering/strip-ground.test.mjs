@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { STRIP_ACTIVE_LIMIT, compileStripGround } from '../../dist/course/strip-ground.js';
-import { STRIP_RENDER_METHODS } from '../../dist/view/display-settings.js';
-import { createStripGroundSampler, createStripRenderMetrics } from '../../dist/view/strip-ground-sampler.js';
-import { linearToRgb555, rgb555LinearChannel } from '../../dist/image/image-filter.js';
-import { selectSpriteLevel } from '../../dist/image/sprite.js';
+import { STRIP_ACTIVE_LIMIT, compileStripGround } from '../../src/course/strip-ground.js';
+import { STRIP_RENDER_METHODS } from '../../src/view/display-settings.js';
+import { createStripGroundSampler, createStripRenderMetrics } from '../../src/view/strip-ground-sampler.js';
+import { linearToRgb555, rgb555LinearChannel } from '../../src/image/image-filter.js';
+import { selectSpriteLevel } from '../../src/image/sprite.js';
 
 // Bit 15 is never set in an RGB555 pixel, so it marks pixels the ground leaves unchanged.
 const BG = 0x8000,

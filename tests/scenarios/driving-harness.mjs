@@ -23,7 +23,7 @@ import { createDisplaySettings, STRIP_RENDER_METHODS } from '../../src/view/disp
 import { SIM_DT } from '../../src/race/fixed-step.js';
 import { READY_SECONDS } from '../../src/race/start-phase.js';
 import { courseBoundaryAt, courseCarriagewayExists } from '../../src/course/course-boundaries.js';
-import { routeSectionS } from '../../src/course/course-route.js';
+import { routeS, routeSectionS } from '../../src/course/course-route.js';
 import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 import { readFileSync } from 'node:fs';
 import { admitSeriesCourse, compileSeriesCatalog, loadSeriesCatalog } from '../../src/content/series-catalog.js';
@@ -87,21 +87,6 @@ function finiteState(value, path = '', seen = new Set()) {
     seen.add(value);
     for (const [key, child] of Object.entries(value)) finiteState(child, `${path}.${key}`, seen);
   }
-}
-
-/** Whether a course limit overlaps the vehicle's half width at its station. */
-function limitTouched(scene, vehicle, model) {
-  const occurrence = scene.runtime.route.at(vehicle.course.s);
-  if (!occurrence) return false;
-  const s = routeSectionS(occurrence, vehicle.course.s),
-    l = vehicle.course.l + occurrence.lateralOrigin;
-  return occurrence.section.barriers.some(
-    (line) =>
-      line.keep !== 0 &&
-      s >= line.start &&
-      s <= line.end &&
-      model.compiledVehicle.overallWidth / 2 - line.keep * (l - line.lateralAt(s)) > 0,
-  );
 }
 
 function pavementBounds(scene, vehicle) {
@@ -179,7 +164,7 @@ export async function runScenario({ course, arcade: scenarioArcade, productArcad
     outsideDomain: false,
     leftRoad: false,
     rightRoad: false,
-    /** The first tick a course limit pushed the player, and its farthest lateral from the road centre line. */
+    /** The first tick a wall or course limit pushed the player, and its farthest lateral from the road centre line. */
     limitContact: null,
     farthestL: 0,
     recoveries: [],
@@ -188,7 +173,7 @@ export async function runScenario({ course, arcade: scenarioArcade, productArcad
     stoppedRivals: [],
   };
   // Scripted laterals leave the player's driver: the closed policy keeps approaching the opposite road at the fork
-  // after a rival locks its choice, until it recovers; the cones policy keeps the scenario's lateral over its stretch.
+  // after a rival locks its choice, until it recovers; the cones policy keeps to its row of objects.
   const closedRoad = (s) => {
     const occurrence = scene.runtime.route.at(s);
     const fork = occurrence?.section.fork;
@@ -200,9 +185,31 @@ export async function runScenario({ course, arcade: scenarioArcade, productArcad
       (courseBoundaryAt(road.left, nativeS) + courseBoundaryAt(road.right, nativeS)) / 2 - occurrence.lateralOrigin
     );
   };
+  // The cones policy's row, from the course's authored objects: the movable objects of the first Section on the Route
+  // that has any, at the lateral of its first one, as route stations and a route lateral.
+  let coneRow = null;
+  const findConeRow = (s) => {
+    const occurrence = scene.runtime.route.at(s);
+    const first = occurrence?.section.objects.find((object) => object.movable);
+    if (!first) return;
+    const row = occurrence.section.objects.filter((object) => object.movable && object.l === first.l);
+    coneRow = {
+      start: routeS(occurrence, row[0].s),
+      end: routeS(occurrence, row.at(-1).s),
+      l: first.l - occurrence.lateralOrigin,
+      count: row.length,
+    };
+  };
+  // From its approach distance before the row until the player has passed every object it knocked, landed.
+  const CONE_APPROACH = 120;
+  const inConeStretch = (s) =>
+    s >= coneRow.start - CONE_APPROACH &&
+    (s <= coneRow.end || race.observe().knocked.some((k) => k.state !== 'landed' || k.s >= s));
   const scripted = (s) => {
-    if (scenario.policy === 'cones' && s >= scenario.detour.start && s <= scenario.detour.end)
-      return () => scenario.detour.l;
+    if (scenario.policy === 'cones') {
+      if (!coneRow) findConeRow(s);
+      return coneRow && inConeStretch(s) ? () => coneRow.l : null;
+    }
     return closedRoad(s) === null ? null : (station) => closedRoad(station) ?? closedRoad(s);
   };
   const entryPose = scene.world.coordinates.toWorld(0, 0, { x: 0, z: 0, s: 0, l: 0, heading: 0 });
@@ -363,7 +370,7 @@ export async function runScenario({ course, arcade: scenarioArcade, productArcad
       0;
     evidence.outsideDomain ||= !vehicle.course.inDomain;
     evidence.farthestL = Math.max(evidence.farthestL, Math.abs(vehicle.course.l));
-    if (evidence.limitContact === null && limitTouched(scene, vehicle, actor.model)) evidence.limitContact = tick;
+    if (evidence.limitContact === null && step.barrier) evidence.limitContact = tick;
     const bounds = pavementBounds(scene, vehicle);
     if (bounds) {
       evidence.leftRoad ||= vehicle.course.l < bounds.left;
@@ -424,13 +431,11 @@ export async function runScenario({ course, arcade: scenarioArcade, productArcad
     )
       render();
     if (ending && tick - ending.tick < (scenario.afterEndingSeconds ?? 0) / SIM_DT) continue;
-    // The cones policy ends once past its stretch, the knocked objects all landed.
-    if (
-      scenario.policy === 'cones' &&
-      vehicle.course.s > scenario.detour.end &&
-      race.observe().knocked.every((k) => k.state === 'landed')
-    )
-      break;
+    if (coneRow && inConeStretch(vehicle.course.s) && vehicle.course.s > coneRow.start)
+      evidence.coneSpeed = Math.min(
+        evidence.coneSpeed ?? Infinity,
+        Math.hypot(vehicle.longitudinalSpeed, vehicle.lateralSpeed),
+      );
     if (
       ended ||
       ((scenario.policy === 'reverse' ||
@@ -445,9 +450,18 @@ export async function runScenario({ course, arcade: scenarioArcade, productArcad
   if (!held) assert.ok(tick < maxTicks, `${scenario.name}: did not reach its outcome: ${JSON.stringify(evidence)}`);
   if (scenario.policy === 'reverse') assert.ok(evidence.outsideEntry, 'never backed beyond the entry');
   if (scenario.policy === 'cones') {
-    // Evidence: how many objects the player knocked and where they landed (Section stations and laterals).
+    // The player knocked every object of the row, kept to it over the landed ones without being held or recovered,
+    // and finished. Evidence: how many it knocked, where they landed (Section stations and laterals) and its least
+    // speed from the row's first object on.
     const knocked = race.observe().knocked;
-    assert.ok(knocked.length > 0, 'knocked no object');
+    assert.ok(coneRow, 'the course has no movable object');
+    assert.equal(knocked.length, coneRow.count, 'did not knock every object of the row');
+    assert.ok(
+      knocked.every((k) => k.state === 'landed'),
+      'an object never landed',
+    );
+    assert.equal(race.outcome.status, 'GOAL');
+    assert.equal(evidence.recoveries.length, 0, 'the row held or recovered the player');
     const range = (values) => [Math.min(...values), Math.max(...values)].map((v) => Math.round(v * 100) / 100);
     evidence.knocked = {
       count: knocked.length,

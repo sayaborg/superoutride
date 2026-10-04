@@ -35,36 +35,39 @@ and every tenth of a second outside the coordinate domain; it cycles through all
 All live vehicle numeric leaves, camera values and route occurrence coordinates/transforms must remain
 finite. Each actor's s may move at most the loading coverage record's one-step allowance per step unless recovered.
 The next pending crossing cannot move backward (an undiscovered fork successor is not a finish),
-and accepted finish counts cannot decrease. Scenario-specific evidence requires actual entry/domain
-exit, departure on the requested road side, selected fork, wrong-course recovery or completed laps.
+and accepted finish counts cannot decrease. Reverse starts at −20 m/s with neutral pedals (there is no reverse
+input) and departures at 30 m/s: initial conditions through the ordinary vehicle constructor, with no pose or progress
+edits during a run. Each row checks a situation no other row does:
 
-The three provisional courses each exercise backward motion beyond the entry and both road sides.
-Coast finishes with two rivals; fork finishes through each branch and attempts a rival-closed Carriageway;
-ring finishes three laps with two rivals. A second closed-Carriageway scenario continues through player
-finish and checks every actor for non-recovery s jumps. A third holds the recovered player on the brake
-until the finished rival has stayed below 0.05 m/s for two seconds before the terminal, then finishes. Reverse starts with -20 m/s and neutral pedals (there is no
-reverse input); lateral departures start at 30 m/s and hold steering and throttle. These are initial
-conditions through the ordinary vehicle constructor, with no pose or progress edits during a run.
+| Row (course)                                                 | Policy                                                                                                                                          | Passes when                                                                                                                                                                     |
+| ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| reverse beyond entry (coast)                                 | neutral pedals from −20 m/s                                                                                                                     | the player backs beyond the entry and out of the coordinate domain, and recovery (`outside-domain`) returns it into the domain                                                  |
+| departure right (coast, ring), departure left (fork)         | full lock and throttle for 20 s                                                                                                                 | the player leaves the pavement on that side, a wall or course limit pushes it (`limitContact`, from the race's step observation), and it neither recovers nor leaves the domain |
+| course limit pushes back (coast)                             | steering −0.12 for 4 s, then its driver                                                                                                         | the left course limit pushes the player, which neither recovers nor leaves the domain, returns to the road and drives on above 20 m/s                                           |
+| fork left finish, fork right finish (fork)                   | its driver, to exit 0 / 1                                                                                                                       | GOAL through the selected exit, without recovery                                                                                                                                |
+| closed Carriageway through player finish (fork)              | idle for 3 s while the rival locks exit 0, then the exit-1 road until recovery, then its driver                                                 | wrong-course recovery off the closed Carriageway (the seed's rival choice is checked), then GOAL; no actor's s jumps without recovery                                           |
+| finished rival stops while player waits then finishes (fork) | as above, braking after recovery until the rival has stopped                                                                                    | the finished rival stays below 0.05 m/s for two seconds before the terminal, then the player reaches GOAL                                                                       |
+| finish with rivals (coast, 1 lap; ring, 3 laps)              | its driver, two rivals                                                                                                                          | GOAL after the course's laps, without recovery                                                                                                                                  |
+| through the cone row (coast)                                 | its driver, keeping to the lateral of the Route's first row of movable objects from 120 m before it until it has passed every object it knocked | every object of the row is knocked and landed, and the player drives on over them to GOAL without recovery                                                                      |
 
-Five scenarios cover Session rules. Their ARCADE settings come from a test-only series document,
+Five rows cover Session rules. Their ARCADE settings come from a test-only series document,
 `tests/scenarios/session-rules.series.json` (never delivered; the product RIBBON series is unchanged), with the
-build's TESTAROSSA time budgets and pace schedules. Coast runs ARCADE from the player's own front slot ahead of a
-paced 911 rival (p = 1), finishes first and continues 12 seconds: the takeover stops the player within its runout,
-race time, progress, events and the position (P1/2) hold, and the rival keeps driving. Coast also finishes TIME TRIAL
-from the last grid slot without rivals or clock, and runs ARCADE with the delivered RIBBON series' settings (seed 7),
-whose traffic must appear and leave the view, at most sixteen at once; traffic states join the digest and the
-`traffic` evidence (appearances, departures, the most present at once, the first appearance). Fork has an entry appearing 80 m ahead in STAGE 2 only: it appears
-when the player enters STAGE 2 at the player's s plus 80 m, and after STAGE 2 the player brakes until it leaves the
-view; absent, it is neither observed nor counted in the position. Ring limits `ring-CP1` to rank 1, so the paced rival
-starting a slot ahead crosses first: GAME OVER by RANK at that crossing's race time, which then holds. These
-scenarios add `rules` evidence: outcome, cause, ending time, position, distance past the finish, player speed, rival
-travel after the ending, and appearances and departures.
+build's TESTAROSSA time budgets and pace schedules; RIBBON COAST's traffic row uses the delivered series. They add
+`rules` evidence: outcome, cause, ending time, position, distance past the finish, player speed, rival travel after the
+ending, and appearances and departures. After the ending, race time, progress, events and the position hold.
+
+| Row (course)                                                          | Passes when                                                                                                                                                                                                |
+| --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ARCADE finish ahead of a paced rival, then the takeover stops (coast) | from the player's own front slot ahead of a paced 911 rival (p = 1): GOAL at P1/2; over the 12 seconds after it the takeover stops the player within its runout and the rival keeps driving                |
+| ARCADE with the RIBBON series traffic (coast, seed 7)                 | traffic appears and leaves the view, at most sixteen at once (its states join the digest and the `traffic` evidence); the player runs out of time behind it on the narrow roads, GAME OVER by TIME at P1/1 |
+| TIME TRIAL finish from the last slot (coast)                          | from the last grid slot, without rivals or clock: GOAL at P1/1                                                                                                                                             |
+| ARCADE ahead entry appears and leaves (fork)                          | an entry in STAGE 2 only appears 80 m ahead of the player when it enters STAGE 2 and, while the player brakes after STAGE 2, leaves the view; absent, it is neither observed nor counted in the position   |
+| ARCADE rank limit GAME OVER (ring)                                    | `ring-CP1` is limited to rank 1 and the paced rival a slot ahead crosses it first: GAME OVER by RANK at that crossing's race time                                                                          |
 
 To add a scenario, add a policy/outcome record to the course's list, with a finite simulated work limit.
 Compose ordinary inputs in the harness, and require evidence that the intended situation occurred.
 Use authored grid slots, fork intervals, Carriageways and crossing stations rather than world positions
-or fixed ticks to locate course features. The closed-road policy lets a rival lead for three seconds,
-then follows the other authored Carriageway until legal-route recovery.
+or fixed ticks to locate course features.
 When course shapes change, adapt these semantic targets and bounds instead of recording a new trace hash.
 Expected results are compared between fresh runs, not committed as golden hashes. A defect regression
 should fail when the original failure is temporarily reintroduced; never retain that mutation.
@@ -75,7 +78,7 @@ Visual correctness remains a manual check.
 Product and tool checking share `tsconfig.base.json`; `tsconfig.json` checks the browser product without
 Node globals, and `tsconfig.tools.json` checks TypeScript tools with Node types and no emitted files.
 Both roots use the same lint rules. `npm run check:dependencies` checks the boundaries described in
-[Architecture](architecture.md#layer-boundaries); `check` and CI's `npm test` include it.
+[Architecture](architecture.md#layer-boundaries); `check`, and so CI's `npm test`, runs it once.
 
 Run a TypeScript tool with `node --import tsx tools/<domain>/<name>.ts`. The pinned loader resolves the
 product's `.js` module specifiers to TypeScript source without a tool compilation directory; it does

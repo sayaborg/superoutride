@@ -23,7 +23,7 @@ for (const stem of ['ribbon-coast', 'ribbon-fork', 'ribbon-ring']) {
           policy: 'finish',
           seed: 7,
           seconds: 240,
-          // The policy keeps the road centre through traffic that never yields, so on the narrow roads it runs out of time.
+          // Behind traffic that never yields on the narrow roads, the player's driver runs out of time.
           expect: { outcome: 'GAME_OVER', cause: 'TIME', position: 'P1/1', traffic: true },
         },
         {
@@ -56,13 +56,15 @@ for (const stem of ['ribbon-coast', 'ribbon-fork', 'ribbon-ring']) {
       ],
     }[stem];
     const scenarios = [
-      { name: 'reverse beyond entry', policy: 'reverse', exit: 1, seconds: 15 },
-      ...[-1, 1].map((steering) => ({
-        name: `departure ${steering < 0 ? 'left' : 'right'}`,
+      // Backing beyond the entry is the same on every course; coast runs it.
+      ...(stem === 'ribbon-coast' ? [{ name: 'reverse beyond entry', policy: 'reverse', seconds: 15 }] : []),
+      // Departures are symmetric, so each course departs to one side: fork to the left, the others to the right.
+      {
+        name: `departure ${stem === 'ribbon-fork' ? 'left' : 'right'}`,
         policy: 'departure',
-        steering,
+        steering: stem === 'ribbon-fork' ? -1 : 1,
         seconds: 20,
-      })),
+      },
       ...(stem === 'ribbon-fork'
         ? [
             ...[0, 1].map((exit) => ({
@@ -72,15 +74,6 @@ for (const stem of ['ribbon-coast', 'ribbon-fork', 'ribbon-ring']) {
               seconds: 180,
             })),
             // Seed 0 sends the rival to exit 0 while the player approaches exit 1.
-            {
-              name: 'closed Carriageway entry and recovery',
-              policy: 'closed',
-              rivals: 1,
-              seed: 0,
-              rivalExit: 0,
-              exit: 1,
-              seconds: 180,
-            },
             {
               name: 'closed Carriageway through player finish',
               policy: 'closed',
@@ -116,13 +109,8 @@ for (const stem of ['ribbon-coast', 'ribbon-fork', 'ribbon-ring']) {
         ? [
             // On RIBBON COAST's first straight the player steers into the left course limit, which pushes it back.
             { name: 'course limit pushes back', policy: 'limit', steering: -0.12, steerSeconds: 4, seconds: 14 },
-            // In coast-fast the player drives through the cone row in the outermost right lane (Section 1000–1090).
-            {
-              name: 'through the cone row',
-              policy: 'cones',
-              detour: { start: 7640.3 + 880, end: 7640.3 + 1100, l: 5.25 },
-              seconds: 240,
-            },
+            // The player keeps to the course's first row of movable objects, knocks them all and drives on over them.
+            { name: 'through the cone row', policy: 'cones', seconds: 240 },
           ]
         : []),
       ...sessionRules,

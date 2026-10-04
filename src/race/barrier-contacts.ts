@@ -12,7 +12,8 @@ import type { ContactBody } from './body-contacts.js';
  * approach speed: how fast the overlap grows, the vehicle's lateral speed toward the line plus the line's slope times its
  * speed along the road (a slanted line closes on a vehicle driving along it). Friction along the road's tangent opposes
  * the vehicle's speed along the road, at
- * `barrierFriction` times the push, never enough to reverse that speed within the step. Height is not compared.
+ * `barrierFriction` times the push, never enough to reverse that speed within the step. Height is not compared. Each
+ * body a line pushes is passed to `pushed`.
  */
 export function createBarrierContacts(
   coordinates: PlanCoordinateReader,
@@ -21,7 +22,7 @@ export function createBarrierContacts(
   step: number,
 ) {
   const sample = createPlanCoordinateSample();
-  return (bodies: readonly ContactBody[]) => {
+  return (bodies: readonly ContactBody[], pushed: (body: ContactBody) => void) => {
     for (const body of bodies) {
       const vehicle = body.vehicle;
       const occurrence = route.at(vehicle.course.s);
@@ -49,6 +50,7 @@ export function createBarrierContacts(
         const friction = Math.sign(along) * Math.min(contact.barrierFriction * push, (mass * Math.abs(along)) / step);
         body.contactForce.x += push * nx - friction * tx;
         body.contactForce.z += push * nz - friction * tz;
+        pushed(body);
       }
     }
   };

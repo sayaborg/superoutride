@@ -42,16 +42,17 @@ test('outside projection follows previous chainage across clamped and tangent-ra
   // When previous s is already on the ray, that foot wins the chainage comparison.
   readers.coordinates.locateLocal(world, route.end + 39, out, workspace);
   assert.ok(Math.abs(out.s - (route.end + 40)) < 1e-8);
-  // A genuine in-domain foot still wins over an endpoint nearer previous s: 10 m into the first arc, which begins at 450.
+  // A genuine in-domain foot still wins over an endpoint nearer previous s: 10 m into the entry Section's first arc.
+  const arc = course.entry.segments.find((segment) => segment.curvature !== 0).sStart;
   for (const coordinates of [course.entry.coordinates, readers.coordinates]) {
-    coordinates.toWorld(460, 0, world);
-    coordinates.locateLocal(world, 450, out, workspace);
+    coordinates.toWorld(arc + 10, 0, world);
+    coordinates.locateLocal(world, arc, out, workspace);
     assert.ok(out.inDomain);
-    assert.ok(Math.abs(out.s - 460) < 1e-8);
-    coordinates.toWorld(460, 100, world);
-    coordinates.locateLocal(world, 450, out, workspace);
+    assert.ok(Math.abs(out.s - (arc + 10)) < 1e-8);
+    coordinates.toWorld(arc + 10, 100, world);
+    coordinates.locateLocal(world, arc, out, workspace);
     assert.equal(out.inDomain, false);
-    assert.ok(Math.abs(out.s - 450) < 1e-8);
+    assert.ok(Math.abs(out.s - arc) < 1e-8);
   }
 });
 

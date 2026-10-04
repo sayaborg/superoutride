@@ -399,8 +399,9 @@ export function createCourseRace(options: {
     knocked: roadsideObjects.knocked,
   };
   publish();
-  // Borrowed fixed-step observation; the camera owner consumes it before the next advance.
-  const stepObservation = { recovered: false };
+  // Borrowed fixed-step observation: whether the step recovered the player and whether a wall or course limit pushed it;
+  // the camera owner consumes it before the next advance.
+  const stepObservation = { recovered: false, barrier: false };
   // One ordered stream per step: every competitor's accepted crossings at their race time.
   const noEvents: readonly RaceEvent[] = Object.freeze([]);
   let events = noEvents;
@@ -477,7 +478,9 @@ export function createCourseRace(options: {
     // Contact forces come from the state at the step's start and hold through it.
     contactFaces.beginStep();
     bodyContacts(bodies);
-    barrierContacts(bodies);
+    barrierContacts(bodies, (body) => {
+      if (body === player.body) stepObservation.barrier = true;
+    });
     roadsideObjects.contacts(bodies);
     // A vehicle a fixed object holds may recover; the step's recovery reads it.
     for (const body of bodies) body.step.blocked = roadsideObjects.blocks(body.id);
@@ -680,6 +683,7 @@ export function createCourseRace(options: {
      */
     advance(input: DrivingInput | null) {
       stepObservation.recovered = false;
+      stepObservation.barrier = false;
       events = noEvents;
       player.body.step.input = input ?? idle;
       step(input);
