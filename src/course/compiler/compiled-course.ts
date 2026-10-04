@@ -132,12 +132,12 @@ function compileSection(
   validateMaterialContinuity(strips.material, `${path}/strips`);
   validateCourseCarriageways(carriageways, strips.material, length, `${path}/carriageways`);
   const walls = compileCourseWalls(section.walls, boundaryTable, resolve, materials, `${path}/walls`);
-  const barriers = compileCourseBarriers(walls, strips.material, length, `${path}/strips`);
+  const barriers = compileCourseBarriers(walls, section.openLimits, resolve, strips.material, length, path);
   const physical = compileCoursePhysicalContent(section, length, resolve, path);
   const objects = Object.freeze(
     [
       ...compileCourseSpriteObjects(section, length, boundaryTable, assets, physical.height, resolve, path),
-      ...compileWallEnds(walls, barriers),
+      ...compileWallEnds(walls, barriers, `${path}/walls`),
     ].sort((a, b) => a.s - b.s),
   );
   const lateralDomain = compileMaterialCoordinateDomain(section.id, segments, strips.material, path);

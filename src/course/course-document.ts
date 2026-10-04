@@ -7,7 +7,6 @@ import { CourseInputError, courseFailure, courseSuccess, type CourseResult } fro
 import {
   AdmissionError,
   readArray,
-  readBoolean,
   readDocument,
   readEnum,
   readIdentified,
@@ -17,7 +16,7 @@ import {
   readString,
 } from '../core/admission.js';
 
-const COURSE_DOCUMENT_VERSION = 38;
+const COURSE_DOCUMENT_VERSION = 39;
 const ID = { maxLength: COURSE_DOCUMENT_LIMITS.idCodeUnits };
 
 export interface CoursePosition {
@@ -144,17 +143,32 @@ interface WallStripDocument {
 export type WallStripElementDocument = RepeatElement<WallStripDocument>;
 
 /**
- * A wall along a Boundary from `from` to `to`. A solid wall is a line vehicles cannot cross; `thickness` is the width of
- * its ends. Its picture is its `strips`, read like the road's with height as lateral, each within `[from, to]`. An
- * invisible wall has no strips and must be solid.
+ * A wall along a Boundary from `from` to `to`. A solid wall is a line vehicles cannot cross; `solid` is null for a wall
+ * vehicles pass through. Its picture is its `strips`, read like the road's with height as lateral, each within
+ * `[from, to]`. An invisible wall has no strips and must be solid.
  */
 export interface WallDocument {
   readonly boundary: string;
   readonly from: CoursePosition;
   readonly to: CoursePosition;
-  readonly solid: boolean;
-  readonly thickness: number;
+  readonly solid: SolidWallDocument | null;
   readonly strips: readonly WallStripElementDocument[];
+}
+
+/**
+ * A solid wall's ends, at `from` and at `to`: each null where it joins a course limit or another solid wall, or the
+ * thickness (m) of a declared free end, a fixed object that wide.
+ */
+export interface SolidWallDocument {
+  readonly freeFrom: number | null;
+  readonly freeTo: number | null;
+}
+
+/** A stretch of one side of a Section where no course limit runs: `side` from `from` to `to`. */
+export interface OpenLimitDocument {
+  readonly side: 'left' | 'right';
+  readonly from: CoursePosition;
+  readonly to: CoursePosition;
 }
 
 export interface SectionDocument {
@@ -163,6 +177,7 @@ export interface SectionDocument {
   readonly boundaries: readonly BoundaryDocument[];
   readonly strips: readonly StripElementDocument[];
   readonly walls: readonly WallDocument[];
+  readonly openLimits: readonly OpenLimitDocument[];
   readonly sprites: readonly RepeatElement<SpriteDocument>[];
   readonly height: readonly { readonly at: CoursePosition; readonly y: number; readonly curveLength: number }[];
   readonly carriageways: readonly CarriagewayDocument[];
@@ -477,8 +492,8 @@ function wallStrip(value: unknown, path: string): WallStripDocument {
   });
 }
 function wall(value: unknown, path: string): WallDocument {
-  const v = readRecord(value, path, ['boundary', 'from', 'to', 'solid', 'thickness', 'strips']);
-  const solid = readBoolean(v.solid, `${path}/solid`);
+  const v = readRecord(value, path, ['boundary', 'from', 'to', 'solid', 'strips']);
+  const solid = v.solid === null ? null : solidWall(v.solid, `${path}/solid`);
   const strips = readArray(
     v.strips,
     `${path}/strips`,
@@ -492,12 +507,26 @@ function wall(value: unknown, path: string): WallDocument {
     from: position(v.from, `${path}/from`),
     to: position(v.to, `${path}/to`),
     solid,
-    thickness: readNumber(v.thickness, `${path}/thickness`, {
-      min: 0,
-      max: COURSE_DOCUMENT_LIMITS.lateralMeters,
-      exclusiveMin: true,
-    }),
     strips,
+  });
+}
+function solidWall(value: unknown, path: string): SolidWallDocument {
+  const v = readRecord(value, path, ['freeFrom', 'freeTo']);
+  const thickness = (end: unknown, at: string) =>
+    end === null
+      ? null
+      : readNumber(end, at, { min: 0, max: COURSE_DOCUMENT_LIMITS.lateralMeters, exclusiveMin: true });
+  return Object.freeze({
+    freeFrom: thickness(v.freeFrom, `${path}/freeFrom`),
+    freeTo: thickness(v.freeTo, `${path}/freeTo`),
+  });
+}
+function openLimit(value: unknown, path: string): OpenLimitDocument {
+  const v = readRecord(value, path, ['side', 'from', 'to']);
+  return Object.freeze({
+    side: readEnum(v.side, ['left', 'right'] as const, `${path}/side`),
+    from: position(v.from, `${path}/from`),
+    to: position(v.to, `${path}/to`),
   });
 }
 
@@ -517,6 +546,7 @@ function section(value: unknown, path: string): SectionDocument {
     'boundaries',
     'strips',
     'walls',
+    'openLimits',
     'sprites',
     'height',
     'carriageways',
@@ -533,6 +563,7 @@ function section(value: unknown, path: string): SectionDocument {
       max: COURSE_DOCUMENT_LIMITS.stripElements,
     }),
     walls: readArray(v.walls, `${path}/walls`, wall, { max: COURSE_DOCUMENT_LIMITS.walls }),
+    openLimits: readArray(v.openLimits, `${path}/openLimits`, openLimit, { max: COURSE_DOCUMENT_LIMITS.openLimits }),
     sprites: readArray(
       v.sprites,
       `${path}/sprites`,

@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 38,
+  "version": 39,
   "name": "RIBBON RING",
   "entrySectionId": "ring-outward",
   "rules": {
@@ -658,6 +658,7 @@
         }
       ],
       "walls": [],
+      "openLimits": [],
       "height": [
         {
           "at": {
@@ -1560,6 +1561,7 @@
         }
       ],
       "walls": [],
+      "openLimits": [],
       "height": [
         {
           "at": {

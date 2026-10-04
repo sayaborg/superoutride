@@ -35,7 +35,7 @@
   appears at seeded Route positions from the series or FREE PLAY's TRAFFIC option; RIBBON COAST is the verification
   course of all of it.
 
-Next PR: **AU3-16** — the third design audit's fixes, in the order of its instructions.
+Next PR: **AU3-17** — the third design audit's fixes, in the order of its instructions.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -187,34 +187,33 @@ lighting at its own chainage, and switching is a cut.
 
 - Vehicle sprite resolution: decide the yaw division count (currently 24) and the two-wheeler bank count (currently 5) before producing final vehicle art; the sprite set format already declares both as data.
 
-| Area             | Decision or future capability                                                                                                                                  |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| References       | Exact editions/layout evidence, tolerances and remaster departures                                                                                             |
-| Series values    | Rank limits, ahead distances, pace ratios, margins, grid spacing and colors per series course (Stage 16 playtests)                                             |
-| Series content   | SUPER HANG-ON reference layouts; CISCO HEAT course type; COOL RIDERS connections, rivals and traffic; FINAL LAP layout and cars                                |
-| Series content   | WEC LE MANS 24 layout and field; BIG RUN vehicles and field; RALLY STAGE title and course set                                                                  |
-| Vehicles         | Exact specifications of adopted vehicles (year, market, grade); BROUGHAM TUNED values                                                                          |
-| Circuits         | Series or FREE PLAY placement of the selected circuits below                                                                                                   |
-| Interaction      | Oncoming traffic (Stage 16)                                                                                                                                    |
-| Tunnels          | Whether tunnel sides and ceilings are drawn by the renderer like walls (a ceiling is a second surface above the road), replacing sprite frames                 |
-| Walls            | Whether compilation should require a solid wall's ends to lie on the course limit or another solid wall (guardrail lead-ins are an authoring convention today) |
-| Walls            | Whether walls take the ground's arrow, text and curb constructs as well as strip and repeat (when a product course needs them)                                 |
-| Walls            | Whether wall friction varies by wall rather than being one game-wide `barrierFriction`                                                                         |
-| Walls            | Whether walls' preblend memory (about 1.3–2.5 MB per km of cliff on RIBBON COAST, about 0.3 MB per km of road) fits the device budget                          |
-| Rivals           | Whether rivals follow closer than traffic (in dense traffic they keep the 1.5 s following time and queue)                                                      |
-| Rivals           | Whether an ahead entry's lane is checked where it appears rather than against the course's fewest lanes (Stage 16)                                             |
-| Interaction      | Whether a slight front-face overlap with a solid object deflects the vehicle instead of stopping it (real devices)                                             |
-| Interaction      | How far a vehicle rebounds from a solid object (about 7 m/s back from 40 m/s today; real devices)                                                              |
-| Records          | Whether traffic settings belong to the ARCADE record key                                                                                                       |
-| Grade separation | Occurrence/neighborhood/height selection of surfaces, landmarks and contacts at nearby crossings                                                               |
-| Front end        | Attract demo idle time                                                                                                                                         |
-| HUD              | Layout of the HUD elements, the vehicle-state elements included (real-device evaluation)                                                                       |
-| HUD              | Whether HUD text has a backing (none today)                                                                                                                    |
-| Camera           | Height spring (frequency and damping ratio) and yaw response (real-device evaluation of the DEV choices)                                                       |
-| Bank             | How the displayed vehicle bank follows lean (real-device evaluation)                                                                                           |
-| Art              | Production assets, new physical materials and tunnel/background content                                                                                        |
-| BG transitions   | Whether environment changes use wipes or dissolves (palette fades are not expected)                                                                            |
-| Ground           | Which of LEVEL-POINT and LEVEL2-POINT is the product default (real devices); the other and its cells are then removed                                          |
+| Area             | Decision or future capability                                                                                                                  |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| References       | Exact editions/layout evidence, tolerances and remaster departures                                                                             |
+| Series values    | Rank limits, ahead distances, pace ratios, margins, grid spacing and colors per series course (Stage 16 playtests)                             |
+| Series content   | SUPER HANG-ON reference layouts; CISCO HEAT course type; COOL RIDERS connections, rivals and traffic; FINAL LAP layout and cars                |
+| Series content   | WEC LE MANS 24 layout and field; BIG RUN vehicles and field; RALLY STAGE title and course set                                                  |
+| Vehicles         | Exact specifications of adopted vehicles (year, market, grade); BROUGHAM TUNED values                                                          |
+| Circuits         | Series or FREE PLAY placement of the selected circuits below                                                                                   |
+| Interaction      | Oncoming traffic (Stage 16)                                                                                                                    |
+| Tunnels          | Whether tunnel sides and ceilings are drawn by the renderer like walls (a ceiling is a second surface above the road), replacing sprite frames |
+| Walls            | Whether walls take the ground's arrow, text and curb constructs as well as strip and repeat (when a product course needs them)                 |
+| Walls            | Whether wall friction varies by wall rather than being one game-wide `barrierFriction`                                                         |
+| Walls            | Whether walls' preblend memory (about 1.3–2.5 MB per km of cliff on RIBBON COAST, about 0.3 MB per km of road) fits the device budget          |
+| Rivals           | Whether rivals follow closer than traffic (in dense traffic they keep the 1.5 s following time and queue)                                      |
+| Rivals           | Whether an ahead entry's lane is checked where it appears rather than against the course's fewest lanes (Stage 16)                             |
+| Interaction      | Whether a slight front-face overlap with a solid object deflects the vehicle instead of stopping it (real devices)                             |
+| Interaction      | How far a vehicle rebounds from a solid object (about 7 m/s back from 40 m/s today; real devices)                                              |
+| Records          | Whether traffic settings belong to the ARCADE record key                                                                                       |
+| Grade separation | Occurrence/neighborhood/height selection of surfaces, landmarks and contacts at nearby crossings                                               |
+| Front end        | Attract demo idle time                                                                                                                         |
+| HUD              | Layout of the HUD elements, the vehicle-state elements included (real-device evaluation)                                                       |
+| HUD              | Whether HUD text has a backing (none today)                                                                                                    |
+| Camera           | Height spring (frequency and damping ratio) and yaw response (real-device evaluation of the DEV choices)                                       |
+| Bank             | How the displayed vehicle bank follows lean (real-device evaluation)                                                                           |
+| Art              | Production assets, new physical materials and tunnel/background content                                                                        |
+| BG transitions   | Whether environment changes use wipes or dissolves (palette fades are not expected)                                                            |
+| Ground           | Which of LEVEL-POINT and LEVEL2-POINT is the product default (real devices); the other and its cells are then removed                          |
 
 ### Selected circuits
 

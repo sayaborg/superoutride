@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 38,
+  "version": 39,
   "name": "RIBBON COAST",
   "entrySectionId": "coast-wide",
   "rules": { "maxLaps": 1 },
@@ -265,8 +265,7 @@
           "boundary": "grass-wall",
           "from": { "pi": "start", "offset": 1300 },
           "to": { "pi": "start", "offset": 1320 },
-          "solid": true,
-          "thickness": 0.5,
+          "solid": { "freeFrom": 0.5, "freeTo": 0.5 },
           "strips": [
             {
               "kind": "strip",
@@ -279,6 +278,7 @@
           ]
         }
       ],
+      "openLimits": [],
       "height": [
         { "at": { "pi": "start", "offset": 0 }, "y": 0, "curveLength": 0 },
         { "at": { "pi": "start", "offset": 450 }, "y": 0, "curveLength": 80 },
@@ -423,7 +423,7 @@
         {
           "id": "rail-lead-in",
           "knots": [
-            { "at": { "pi": "start", "offset": 382.173048 }, "lateral": 22 },
+            { "at": { "pi": "start", "offset": 382.173048 }, "lateral": { "boundary": "outer-right", "offset": 0 } },
             { "at": { "pi": "start", "offset": 432.173048 }, "lateral": { "boundary": "verge-right", "offset": 0 } }
           ]
         },
@@ -431,13 +431,13 @@
           "id": "rail-lead-out",
           "knots": [
             { "at": { "pi": "start", "offset": 732.173048 }, "lateral": { "boundary": "verge-right", "offset": 0 } },
-            { "at": { "pi": "start", "offset": 782.173048 }, "lateral": 22 }
+            { "at": { "pi": "start", "offset": 782.173048 }, "lateral": { "boundary": "outer-right", "offset": 0 } }
           ]
         },
         {
           "id": "cliff-lead-in",
           "knots": [
-            { "at": { "pi": "start", "offset": 917.836754 }, "lateral": -22 },
+            { "at": { "pi": "start", "offset": 917.836754 }, "lateral": { "boundary": "outer-left", "offset": 0 } },
             { "at": { "pi": "start", "offset": 967.836754 }, "lateral": { "boundary": "verge-left", "offset": 0 } }
           ]
         },
@@ -445,7 +445,7 @@
           "id": "cliff-lead-out",
           "knots": [
             { "at": { "pi": "start", "offset": 1167.836754 }, "lateral": { "boundary": "verge-left", "offset": 0 } },
-            { "at": { "pi": "start", "offset": 1217.836754 }, "lateral": -22 }
+            { "at": { "pi": "start", "offset": 1217.836754 }, "lateral": { "boundary": "outer-left", "offset": 0 } }
           ]
         }
       ],
@@ -617,16 +617,14 @@
           "boundary": "rail-lead-in",
           "from": { "pi": "start", "offset": 382.173048 },
           "to": { "pi": "start", "offset": 432.173048 },
-          "solid": true,
-          "thickness": 0.3,
+          "solid": { "freeFrom": null, "freeTo": null },
           "strips": []
         },
         {
           "boundary": "verge-right",
           "from": { "pi": "start", "offset": 432.173048 },
           "to": { "pi": "start", "offset": 732.173048 },
-          "solid": true,
-          "thickness": 0.3,
+          "solid": { "freeFrom": null, "freeTo": null },
           "strips": [
             {
               "kind": "strip",
@@ -657,24 +655,21 @@
           "boundary": "rail-lead-out",
           "from": { "pi": "start", "offset": 732.173048 },
           "to": { "pi": "start", "offset": 782.173048 },
-          "solid": true,
-          "thickness": 0.3,
+          "solid": { "freeFrom": null, "freeTo": null },
           "strips": []
         },
         {
           "boundary": "cliff-lead-in",
           "from": { "pi": "start", "offset": 917.836754 },
           "to": { "pi": "start", "offset": 967.836754 },
-          "solid": true,
-          "thickness": 1,
+          "solid": { "freeFrom": null, "freeTo": null },
           "strips": []
         },
         {
           "boundary": "verge-left",
           "from": { "pi": "start", "offset": 967.836754 },
           "to": { "pi": "start", "offset": 1167.836754 },
-          "solid": true,
-          "thickness": 1,
+          "solid": { "freeFrom": null, "freeTo": null },
           "strips": [
             {
               "kind": "strip",
@@ -739,16 +734,14 @@
           "boundary": "cliff-lead-out",
           "from": { "pi": "start", "offset": 1167.836754 },
           "to": { "pi": "start", "offset": 1217.836754 },
-          "solid": true,
-          "thickness": 1,
+          "solid": { "freeFrom": null, "freeTo": null },
           "strips": []
         },
         {
           "boundary": "verge-right",
           "from": { "pi": "start", "offset": 1383.028484 },
           "to": { "pi": "start", "offset": 1583.028484 },
-          "solid": false,
-          "thickness": 1,
+          "solid": null,
           "strips": [
             {
               "kind": "strip",
@@ -769,6 +762,13 @@
               ]
             }
           ]
+        }
+      ],
+      "openLimits": [
+        {
+          "side": "right",
+          "from": { "pi": "start", "offset": 1383.028484 },
+          "to": { "pi": "start", "offset": 1583.028484 }
         }
       ],
       "height": [
@@ -1000,6 +1000,7 @@
         }
       ],
       "walls": [],
+      "openLimits": [],
       "height": [
         { "at": { "pi": "start", "offset": 0 }, "y": 0, "curveLength": 0 },
         { "at": { "pi": "start", "offset": 150 }, "y": 0, "curveLength": 6 },
@@ -1308,6 +1309,7 @@
         }
       ],
       "walls": [],
+      "openLimits": [],
       "height": [
         { "at": { "pi": "start", "offset": 0 }, "y": 0, "curveLength": 0 },
         { "at": { "pi": "end", "offset": 0 }, "y": 0, "curveLength": 0 }
@@ -1617,6 +1619,7 @@
         }
       ],
       "walls": [],
+      "openLimits": [],
       "height": [
         { "at": { "pi": "start", "offset": 0 }, "y": 0, "curveLength": 0 },
         { "at": { "pi": "start", "offset": 700 }, "y": 0, "curveLength": 80 },

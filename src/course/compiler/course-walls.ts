@@ -1,5 +1,6 @@
 import type {
   CoursePosition,
+  OpenLimitDocument,
   StripElementDocument,
   WallDocument,
   WallStripElementDocument,
@@ -16,10 +17,10 @@ import type { SurfaceMaterialCatalog } from '../surface-material.js';
 import { compileCourseStrips } from './course-strip-ground.js';
 
 /**
- * Metres: how close a wall that is not solid must run to the outer edge of the covered material for that edge to be open
- * (no course limit there). It absorbs only the arithmetic of reading one line through two compiled readers.
+ * Metres: how close a solid wall's end must lie to a course limit or another solid wall to join it. It absorbs only the
+ * arithmetic of reading one line through two compiled readers; authors join lines by referring to the same Boundary.
  */
-export const OPEN_EDGE_TOLERANCE_METERS = 1e-6;
+export const JOIN_TOLERANCE_METERS = 1e-6;
 
 /**
  * A wall resolved on its Section: its Boundary and station interval with the authored record, and its picture as a color
@@ -103,53 +104,62 @@ export function compileCourseWalls(
 }
 
 /**
- * The free ends of the solid walls as fixed objects: at each solid wall's start and end, its thickness wide and of
- * unlimited height, except where that end lies on another barrier line — a course limit or another solid wall, from its
- * start through its end — within `OPEN_EDGE_TOLERANCE_METERS`. `lines` are the barriers, the solid walls first in order.
+ * The ends of the solid walls. An end joins a barrier line — a course limit or another solid wall, from its start
+ * through its end — when it lies on it within `JOIN_TOLERANCE_METERS`; an end declared free becomes a fixed object of its
+ * thickness and unlimited height. Every end is one or the other: an undeclared end that joins nothing, or a declared
+ * free end that joins a line, is `invalid_wall`. `lines` are the barriers, the solid walls first in order.
  */
-export function compileWallEnds(walls: readonly CompiledWall[], lines: readonly CourseBarrierLine[]): CourseObject[] {
+export function compileWallEnds(
+  walls: readonly CompiledWall[],
+  lines: readonly CourseBarrierLine[],
+  path: string,
+): CourseObject[] {
   const ends: CourseObject[] = [];
-  walls
-    .filter((wall) => wall.source.solid)
-    .forEach((wall, own) => {
-      for (const s of [wall.start, wall.end]) {
-        const l = courseBoundaryAt(wall.boundary, s);
-        const joined = lines.some(
-          (line, index) =>
-            index !== own &&
-            s >= line.start &&
-            s <= line.end &&
-            Math.abs(line.lateralAt(s) - l) <= OPEN_EDGE_TOLERANCE_METERS,
-        );
-        if (!joined)
-          ends.push(
-            Object.freeze({
-              s,
-              l,
-              width: wall.source.thickness,
-              bottom: -Infinity,
-              top: Infinity,
-              sprite: null,
-              movable: null,
-            }),
-          );
-      }
-    });
+  let own = 0;
+  walls.forEach((wall, index) => {
+    const solid = wall.source.solid;
+    if (!solid) return;
+    const line = own++;
+    for (const [s, free, field] of [
+      [wall.start, solid.freeFrom, 'freeFrom'],
+      [wall.end, solid.freeTo, 'freeTo'],
+    ] as const) {
+      const l = courseBoundaryAt(wall.boundary, s);
+      const joined = lines.some(
+        (other, at) =>
+          at !== line &&
+          s >= other.start &&
+          s <= other.end &&
+          Math.abs(other.lateralAt(s) - l) <= JOIN_TOLERANCE_METERS,
+      );
+      requireCourse(
+        joined !== (free !== null),
+        `${path}/${index}/solid/${field}`,
+        free === null
+          ? 'A solid wall end must join a course limit or another solid wall, or be declared free'
+          : 'A free wall end must not lie on a course limit or another solid wall',
+        'invalid_wall',
+      );
+      if (free !== null)
+        ends.push(Object.freeze({ s, l, width: free, bottom: -Infinity, top: Infinity, sprite: null, movable: null }));
+    }
+  });
   return ends;
 }
 
 /**
  * A Section's barrier lines: every solid wall, then each side's course limit along the outer edge of the covered material,
- * except where a wall that is not solid runs along that edge (an open edge).
+ * except over the Section's declared open limits.
  */
 export function compileCourseBarriers(
   walls: readonly CompiledWall[],
+  openLimits: readonly OpenLimitDocument[],
+  resolve: (at: CoursePosition, path: string) => CompiledCoursePosition,
   material: StripMaterial,
   length: number,
   path: string,
 ): readonly CourseBarrierLine[] {
-  const edges = materialOuterEdges(material, path);
-  const edge = { left: 0, right: 0 };
+  const edges = materialOuterEdges(material, `${path}/strips`);
   const lines: CourseBarrierLine[] = [];
   for (const wall of walls)
     if (wall.source.solid)
@@ -162,28 +172,14 @@ export function compileCourseBarriers(
           slopeAt: (s: number) => courseBoundarySlopeAt(wall.boundary, s),
         }),
       );
-  // Open intervals per side: pieces between every Boundary vertex and material station where a non-solid wall runs along
-  // that side's edge at both ends (both are affine there, so along the whole piece).
   const open = { left: [] as [number, number][], right: [] as [number, number][] };
-  for (const wall of walls) {
-    if (wall.source.solid) continue;
-    const stations = [
-      ...new Set([
-        wall.start,
-        wall.end,
-        ...wall.boundary.vertices.map((v) => v.at.s).filter((s) => s > wall.start && s < wall.end),
-        ...edges.stations.filter((s) => s > wall.start && s < wall.end),
-      ]),
-    ].sort((a, b) => a - b);
-    const along = (s: number, side: 'left' | 'right') => {
-      edges.at(s, edge);
-      return Math.abs(courseBoundaryAt(wall.boundary, s) - edge[side]) <= OPEN_EDGE_TOLERANCE_METERS;
-    };
-    for (let i = 0; i + 1 < stations.length; i++)
-      for (const side of ['left', 'right'] as const)
-        if (along(stations[i]!, side) && along(stations[i + 1]!, side))
-          open[side].push([stations[i]!, stations[i + 1]!]);
-  }
+  openLimits.forEach((declared, index) => {
+    const at = `${path}/openLimits/${index}`;
+    const start = resolve(declared.from, `${at}/from`).s,
+      end = resolve(declared.to, `${at}/to`).s;
+    requireCourse(start < end, `${at}/to`, 'An open limit needs from < to', 'invalid_value');
+    open[declared.side].push([start, end]);
+  });
   for (const side of ['left', 'right'] as const) {
     const intervals = open[side].sort((a, b) => a[0] - b[0]);
     let s = 0;

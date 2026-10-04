@@ -26,13 +26,13 @@ whitespace do not affect identity. Normalized records use schema field order and
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 38,
+  format: "superoutride.course", version: 39,
   name, entrySectionId,
   sections, links, assets, rules
 }
 Section {
   id, pis,
-  boundaries, strips, walls, sprites, height: [{at, y, curveLength}],
+  boundaries, strips, walls, openLimits, sprites, height: [{at, y, curveLength}],
   carriageways, environments, gates
 }
 ```
@@ -221,10 +221,16 @@ a piece carrying both payloads counts once. Limits reject rather than truncate.
 
 ### Walls
 
-Section `walls` is an array (empty when the Section has none) of `{boundary, from, to, solid, thickness, strips}`: a wall
-along the Section Boundary `boundary` from Position `from` to Position `to`. Compilation requires `from < to` and the
-Boundary to cover that interval (`invalid_wall`; an unknown Boundary is `unresolved_reference`). `solid` (true or false)
-says whether vehicles meet it; `thickness`, positive metres, is the width of its ends.
+Section `walls` is an array (empty when the Section has none) of `{boundary, from, to, solid, strips}`: a wall along the
+Section Boundary `boundary` from Position `from` to Position `to`. Compilation requires `from < to` and the Boundary to
+cover that interval (`invalid_wall`; an unknown Boundary is `unresolved_reference`). `solid` is null for a wall vehicles
+pass through (for looks only), or `{freeFrom, freeTo}` for a solid one, which vehicles meet. Each solid end, at `from`
+and at `to`, either joins another barrier line — it lies on a course limit, or on another solid wall from its `from`
+through its `to`, ends included — and is then null, or is declared free with its thickness, positive metres. Compilation
+checks every solid end once, within `JOIN_TOLERANCE_METERS` (1e-6 m, reading one line through two compiled readers): an
+end declared joined that joins nothing, or declared free that joins a line, is `invalid_wall`. Authors join lines by
+referring to the same Boundary (a slanted lead-in's knot refers to the outer Boundary the material's edge follows), so
+editing one keeps them joined; a guardrail so joined to the course limit at both ends leaves no way behind it.
 
 `strips` colors the wall as the road's [Strips](#strips) color the ground, with height in place of lateral: an array of
 `{kind: "strip", color, knots}` and `repeat` elements (`repeat` as for road Strips). `color` is an RGB555 integer or
@@ -242,15 +248,11 @@ table over the wall's own interval (station `s - from`) and keeps the height ran
 
 Solid walls and the course limits are the Section's barrier lines ([Body contact](#barrier-lines)). The course limits
 run along the left and right outer edges of the covered material — the material table's outermost finite covered
-edges, the lateral domain's edges before `MAXIMUM_VEHICLE_REACH` — and authors never write them. A wall that is not solid
-opens the edge it runs along: wherever its Boundary lies within `OPEN_EDGE_TOLERANCE_METERS` (1e-6 m, reading one line
-through two compiled readers) of that side's outer material edge, that side has no course limit. Compilation decides
-this once, over the pieces between the Boundary's vertices and the material slab stations. A vehicle leaving through an
-open edge has no support beyond it and falls; ordinary recovery returns it.
-
-A guardrail is authored as a visible solid wall at the road side, joined to the course limit at both ends by invisible
-solid walls on slanted Boundaries running from the outer material edge to the guardrail's line, so no vehicle can get
-behind it. This is an authoring convention; compilation does not check where a solid wall's ends lie.
+edges, the lateral domain's edges before `MAXIMUM_VEHICLE_REACH` — and authors never write them. Section `openLimits`
+declares where a course limit does not run: an array (empty when the Section has none) of `{side, from, to}`, side
+`"left"` or `"right"` from Position `from` to Position `to` (`from < to`, `invalid_value` otherwise). That side has no
+course limit over the declared interval; a wall for looks only beside it does not open it. A vehicle leaving through an
+open limit has no support beyond the material and falls; ordinary recovery returns it.
 
 ### Roadside objects
 
@@ -260,10 +262,8 @@ along it, from height `bottom` to `top`. A solid sprite, every expanded placemen
 from the road height plus `groundOffset` up its image's world height (read from the image once, at compilation);
 `sprite` is its placement's index among the Section's expanded sprites, the identity race and appearance share, and
 `movable` holds a movable body's mass and launch elevation (null for a fixed one). Each free end of a
-solid wall is another: at the wall's `from` and `to`, the wall's `thickness` wide and of unlimited height. An end is not
-free, and makes no object, when it lies on another barrier line within `OPEN_EDGE_TOLERANCE_METERS`: a course limit, or
-another solid wall from its `from` through its `to`, ends included; compilation decides this once. A wall that is not
-solid has no end objects (`sprite` and `movable` are null). Vehicles meet standing objects as they meet each other
+solid wall is another: at that end's station and the wall's lateral there, its declared thickness wide and of unlimited
+height (`sprite` and `movable` are null). Joined ends and walls for looks only make no objects. Vehicles meet standing objects as they meet each other
 ([Body contact](#body-contact)).
 
 The race keeps the knocked movable objects, keyed by Section and placement index, so a Section met again keeps them
@@ -368,6 +368,7 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | Section `spritePlacements` (expanded)                                   |              16384 | 21 × (200 + 20)/km × 2, rounded up                                                                                                                                        |
 | Each Strip/sprite array `stripElements` / `spriteElements`              |               2048 | 21 × 30/km × 2, rounded up                                                                                                                                                |
 | Section `walls` / each wall's `wallStrips`                              |          1024 / 64 | Both sides × 21 km × 10 wall runs/km × 2, rounded up; 32 Strips or repeats (layers, rails, posts, patches) × 2                                                            |
+| Section `openLimits`                                                    |                256 | Both sides × 21 km × 3 open stretches/km × 2, rounded up                                                                                                                  |
 | Wall Strip heights `wallHeightMeters` (absolute)                        |               1000 | The Strip lateral ceiling `lateralMeters`: wall heights are read as Strip laterals                                                                                        |
 | `repeatCount`                                                           |              65536 | Whole-length 1 m repetitions: 21000 × 2, rounded up                                                                                                                       |
 | `repeatDepth` / `textCodeUnits`                                         |             8 / 64 | Four organizational levels × 2; 32-character road legend × 2                                                                                                              |

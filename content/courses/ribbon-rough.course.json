@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 38,
+  "version": 39,
   "name": "RIBBON ROUGH",
   "entrySectionId": "rough-bumps",
   "rules": { "maxLaps": 3 },
@@ -304,6 +304,7 @@
         }
       ],
       "walls": [],
+      "openLimits": [],
       "sprites": [
         {
           "kind": "repeat",
@@ -788,6 +789,7 @@
         }
       ],
       "walls": [],
+      "openLimits": [],
       "sprites": [
         {
           "kind": "repeat",
