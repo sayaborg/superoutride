@@ -118,7 +118,7 @@ the field, rendering and sound continue and PAUSE stays available; a pause stops
 At RESULT the run finishes: the race stops and the RESULT menu
 is drawn over the stopped frame at half brightness and takes the menu commands. Its title is the outcome, GOAL in yellow or GAME OVER in
 red; its lines are RANK n/m when two or more competitors are ranked (the POS rule), TIME (race time), RECORD (the record before the run) when
-one exists, NEW RECORD in yellow when the run beat it or set the first, and, on a circuit, BEST LAP with NEW in yellow
+the run was judged at GOAL and one existed, NEW RECORD in yellow when the run beat it or set the first, and, on a circuit, BEST LAP with NEW in yellow
 when it beat the recorded best lap. The race facts give the rank (by the race's standing) and times; the run's one
 record judgement ([Player record](#player-record)) gives the record lines. Its items are RETRY (the same run again, starting at once with
 a new seed), CHANGE VEHICLE (SELECT VEHICLE with the run's selection), SELECT (the run mode's first selection screen

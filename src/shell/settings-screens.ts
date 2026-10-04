@@ -37,7 +37,8 @@ export function showSettings(
   devices: { menu(definition: MenuDefinition, initial?: number): void; setMasterVolume(percent: number): void },
   back: () => void,
 ) {
-  const settings = (initial = 0) => {
+  // SETTINGS with the cursor on the item labelled `current` (the first item when null).
+  const settings = (current: string | null = null) => {
     const items = (): readonly MenuItem[] => [
       ...VOLUME_NAMES.map((name): MenuItem => ({
         label: VOLUME_LABELS[name],
@@ -51,12 +52,18 @@ export function showSettings(
       { label: 'CONTROLS', confirm: controls },
       { label: 'CLEAR RECORDS', confirm: clearRecords },
     ];
-    devices.menu({ title: 'SETTINGS', items, back }, initial);
+    devices.menu(
+      { title: 'SETTINGS', items, back },
+      Math.max(
+        0,
+        items().findIndex((item) => item.label === current),
+      ),
+    );
   };
   const controls = () =>
-    devices.menu({ title: 'CONTROLS', lines: CONTROLS, items: () => [], back: () => settings(VOLUME_NAMES.length) });
+    devices.menu({ title: 'CONTROLS', lines: CONTROLS, items: () => [], back: () => settings('CONTROLS') });
   const clearRecords = () => {
-    const back = () => settings(VOLUME_NAMES.length + 1);
+    const back = () => settings('CLEAR RECORDS');
     const items: readonly MenuItem[] = [
       { label: 'NO', confirm: back },
       {

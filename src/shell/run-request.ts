@@ -9,6 +9,13 @@ import type { PlayerRecord } from './player-record.js';
 /** A requested run: its course and its Session request, which the run's assembly admits. */
 export type RunRequest = SessionRequest & { readonly courseId: string };
 
+/** Every mode's display name, in the order SELECT MODE lists them: the one source of mode names. */
+export const MODE_NAMES: Readonly<Record<RunRequest['mode'], string>> = Object.freeze({
+  ARCADE: 'ARCADE',
+  FREE_PLAY: 'FREE PLAY',
+  TIME_TRIAL: 'TIME TRIAL',
+});
+
 /** The player record's color for `vehicle` when its sprite set has it, else null. */
 export function recordedColor(player: PlayerRecord, vehicle: CompiledVehicleDefinition): string | null {
   const color = player.settings.vehicleColors[vehicle.compiledVehicle.id];

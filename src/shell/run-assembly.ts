@@ -66,12 +66,9 @@ export interface RunPage {
 }
 
 /**
- * The run lifetime: the course, its Session settings, field, products and scene, the player's sprites and camera,
- * and the run's DEV controls.
- */
-/**
- * Assemble a run for `request`, started at once; `state` is its run screen's state, which the run's DEV controls and
- * race end change.
+ * Assemble a run for `request`, started at once: the run lifetime of the course, its Session settings, field, products
+ * and scene, the player's sprites and camera, and the run's DEV controls. `state` is its run screen's state, which the
+ * run's DEV controls and race end change.
  */
 export async function assembleRun(page: RunPage, request: RunRequest, state: RunScreenState): Promise<Run> {
   const { content, materials, series, vehicles, driving, displaySettings, raceSprites, shell, performanceHud } = page;

@@ -1,5 +1,7 @@
 import { HUD_TILES, TEXT_PALETTES } from '../image/text-tiles.js';
 import type { RaceFacts } from '../race/course-race.js';
+import type { GameOverCause } from '../race/run-outcome.js';
+import { MODE_NAMES, type RunRequest } from './run-request.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import { TEXT_COLUMNS, type TextLayer } from '../view/text-layer.js';
@@ -18,7 +20,7 @@ export interface HudFacts {
   readonly input: DrivingInput;
   readonly session: {
     readonly courseName: string;
-    readonly mode: string;
+    readonly mode: RunRequest['mode'];
     /** The tachometer's redline and full scale, where the limiter cuts fuel. */
     readonly redlineRpm: number;
     readonly fuelCutRpm: number;
@@ -43,12 +45,7 @@ export const HUD_DURATIONS = Object.freeze({
   /** The difference from the record run shows after each gate and lap crossing (race time). */
   split: 2,
 });
-const MODE_NAMES: Readonly<Record<string, string>> = {
-  ARCADE: 'ARCADE',
-  FREE_PLAY: 'FREE PLAY',
-  TIME_TRIAL: 'TIME TRIAL',
-};
-const CAUSE_NAMES: Readonly<Record<string, string>> = { TIME: 'TIME UP', RANK: 'RANK OUT' };
+const CAUSE_NAMES: Readonly<Record<GameOverCause, string>> = { TIME: 'TIME UP', RANK: 'RANK OUT' };
 
 /**
  * Where every HUD element sits in the 40×30 text grid, as [column, row]; a value written right-aligned ends at its
@@ -314,7 +311,7 @@ const HUD_ELEMENTS: readonly HudElement[] = [
     when: ({ race }) => beforeGo(race),
     write({ session }, text) {
       write(text, 'courseName', session.courseName);
-      write(text, 'mode', MODE_NAMES[session.mode]!);
+      write(text, 'mode', MODE_NAMES[session.mode]);
     },
   },
   {
@@ -359,7 +356,7 @@ const HUD_ELEMENTS: readonly HudElement[] = [
     write({ race: { outcome } }, text) {
       const goal = outcome.status === 'GOAL';
       write(text, 'outcome', goal ? 'GOAL' : 'GAME OVER', goal ? TEXT_PALETTES.YELLOW : TEXT_PALETTES.RED);
-      if (!goal) write(text, 'cause', CAUSE_NAMES[outcome.cause!]!);
+      if (!goal) write(text, 'cause', CAUSE_NAMES[outcome.cause!]);
     },
   },
 ];

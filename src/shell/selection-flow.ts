@@ -9,7 +9,7 @@ import type { SoftwareSurface } from '../view/software-surface.js';
 import type { TextLayer } from '../view/text-layer.js';
 import { createMenuScreen, type MenuDefinition, type MenuItem } from './menu.js';
 import type { PlayerRecord } from './player-record.js';
-import { recordedColor, type RunRequest } from './run-request.js';
+import { MODE_NAMES, recordedColor, type RunRequest } from './run-request.js';
 import type { Screen } from './screen-host.js';
 import { createVehicleScreen } from './vehicle-screen.js';
 import { showSettings } from './settings-screens.js';
@@ -23,11 +23,7 @@ const FLOW: Readonly<Record<Mode, readonly Step[]>> = Object.freeze({
   FREE_PLAY: ['COURSE', 'VEHICLE', 'OPTIONS'],
   TIME_TRIAL: ['COURSE', 'VEHICLE', 'LAPS'],
 });
-const MODES: readonly { readonly mode: Mode; readonly label: string }[] = [
-  { mode: 'ARCADE', label: 'ARCADE' },
-  { mode: 'FREE_PLAY', label: 'FREE PLAY' },
-  { mode: 'TIME_TRIAL', label: 'TIME TRIAL' },
-];
+const MODES = (Object.keys(MODE_NAMES) as Mode[]).map((mode) => ({ mode, label: MODE_NAMES[mode] }));
 
 /**
  * What the selection offers: delivered courses, series and vehicles, FREE PLAY's rules, and whether DEV content is
