@@ -131,9 +131,10 @@ The composition root reads the delivered [course index](content-and-gameplay.md#
 the selection screens and the DEV HUD's course line, in its order and with its display names.
 
 A run is requested as a typed run request: the course, the mode, the vehicle and the player's color, plus the
-rival count, rival pool and laps in FREE PLAY and the laps in TIME TRIAL. ARCADE takes its laps and field from the
-series. The run's assembly admits the request against the course and the catalogs and derives its Session settings;
-it is the one admission of every request.
+rival count, rival pool, traffic and laps in FREE PLAY and the laps in TIME TRIAL. ARCADE takes its laps, field and
+traffic from the series. The run's assembly admits the request against the course, its series course and the vehicle
+catalog and derives its Session configuration (`compileSessionConfiguration`); a request from the URL, the selection
+screens or RETRY passes the same admission, and a DEV rebuild's request too.
 
 The URL is read once at startup, as a DEV and test entry point; selections inside the page never rewrite it. A URL
 whose `course` names a delivered course builds that run's request and starts the run at once; otherwise the page starts

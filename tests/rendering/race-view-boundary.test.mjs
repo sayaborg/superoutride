@@ -12,6 +12,7 @@ import { createSessionVehicle } from '../../src/content/session-vehicle.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
+import { compileSessionConfiguration } from '../../src/race/session-configuration.js';
 import { readRivalEnvelope } from '../../src/content/rival-envelope.js';
 import { readDeliveredContent } from '../../tools/course/read-content.ts';
 import { createCameraRig, updateCamera } from '../../src/view/camera.js';
@@ -67,18 +68,24 @@ test('the view assembles fifteen rival sprites from race observations', async ()
   );
   assert.ok(admitted.ok);
   const envelope = admitted.value;
-  const settings = resolveCourseSession(
+  const configuration = compileSessionConfiguration(
+    {
+      mode: 'FREE_PLAY',
+      vehicleId: compiledVehicle.vehicleDefinition.compiledVehicle.id,
+      color: null,
+      lapCount: 1,
+      rivalCount: 15,
+      rivalPool: 'CARS',
+      traffic: 'OFF',
+    },
     course,
     null,
-    { mode: 'FREE_PLAY', rivalCount: 15, lapCount: 1, timeLimit: false, initialSpeed: 0, seed: 0 },
-    compiledVehicle,
-    envelope,
-    null,
-    {
-      rivalPool: [{ vehicle: 'TESTAROSSA', color: compiledVehicle.vehicleDefinition.listing.visuals.palette }],
-      vehicleOf: () => ({ vehicle: compiledVehicle, envelope }),
-    },
+    definitions.vehicles,
   );
+  const settings = resolveCourseSession(course, null, configuration, 0, compiledVehicle, envelope, null, {
+    rivalPool: [{ vehicle: 'TESTAROSSA', color: compiledVehicle.vehicleDefinition.listing.visuals.palette }],
+    vehicleOf: () => ({ vehicle: compiledVehicle, envelope }),
+  });
   const race = createCourseRace({ session: settings, runtime: scene.runtime });
   assert.equal(race.rivals.length, 15);
   assert.deepEqual(race.advance({ steering: 0, throttle: false, brake: false }), { recovered: false });

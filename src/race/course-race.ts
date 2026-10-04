@@ -185,7 +185,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       // An ahead entry's lane is read where it appears; until then nothing reads it.
       ordinal: 0,
       exit: (occurrence) =>
-        rivalExit(configuration.seed, rivalIndex, occurrence.ordinal, occurrence.section.fork!.exits.length),
+        rivalExit(options.session.seed, rivalIndex, occurrence.ordinal, occurrence.section.fork!.exits.length),
     };
     // Until it appears, an ahead entry's actor waits unmoved at the player's slot; nothing reads it.
     const at = entry.slot ?? playerSlot;
@@ -321,7 +321,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   const appearanceLine = () => player.actor.vehicle.course.s - view.cameraDistance + view.far;
   const trafficField = createTrafficField({
     traffic: options.session.traffic,
-    seed: configuration.seed,
+    seed: options.session.seed,
     limit: Math.min(SESSION_RULE_LIMITS.traffic, SESSION_RULE_LIMITS.vehicles - competitors.length),
     runtime,
     forks,

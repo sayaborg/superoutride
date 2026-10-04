@@ -14,11 +14,6 @@ const NO_RANK_LIMITS: Readonly<Record<string, number>> = Object.freeze({});
 
 type GridSlot = CompiledCourse['gates']['grid'][number];
 
-/** The most rivals a grid of `slots` holds: every slot but the player's. */
-export function gridRivalCapacity(slots: number): number {
-  return slots - 1;
-}
-
 /** A Session vehicle with its envelope; the envelope is null only for a DEV-tuned player, whose Session has no rivals. */
 export interface EntryVehicle {
   readonly vehicle: SessionVehicle;
@@ -58,26 +53,26 @@ export interface ResolvedTraffic {
 const rivalId = (index: number) => `RIVAL_${String(index + 1).padStart(2, '0')}`;
 
 /**
- * Resolve one playable configuration before actors/ticks exist. Graph and catalog objects remain shared
- * references. `arcade` is the course's admitted series settings; a course without them has no ARCADE Session. Only
- * ARCADE has the clock. A Session without an envelope (a DEV-tuned vehicle) has no rivals and no time limit.
- * The resolved entries list the player first, then each rival. ARCADE takes the series entries: the player the
- * rearmost entry of its vehicle, standing in that entry's slot (`own`) or the rearmost of their slots (`last`), and
- * every other entry its own vehicle (from `field.vehicleOf`) and color. FREE PLAY stands the player in the grid's
- * last slot and the rivals in the slots in front, each a pair drawn from `field.rivalPool` by the Session seed;
- * TIME TRIAL stands the player alone in the grid's last slot, without traffic. Traffic candidates come from
- * `field.vehicleOf` with their drivers, compiled once. The player's color
- * is its entry's when the series fixes colors, else `field.playerColor`, else the vehicle's default color.
+ * Resolve one admitted Session configuration (`compileSessionConfiguration`) with its `seed` before actors/ticks
+ * exist. Graph and catalog objects remain shared references. `arcade` is the course's admitted series settings, which
+ * ARCADE reads. A Session without an envelope (a DEV-tuned vehicle) has no rivals and no time limit. The resolved
+ * entries list the player first, then each rival. ARCADE takes the series entries: the player the rearmost entry of
+ * its vehicle, standing in that entry's slot (`own`) or the rearmost of their slots (`last`), and every other entry
+ * its own vehicle (from `field.vehicleOf`) and color. FREE PLAY stands the player in the grid's last slot and the
+ * rivals in the slots in front, each a pair drawn from `field.rivalPool` (the configuration's pool's pairs) by the
+ * Session seed; TIME TRIAL stands the player alone in the grid's last slot, without traffic. Traffic candidates come
+ * from `field.vehicleOf` with their drivers, compiled once. The player's color is its entry's when the series fixes
+ * colors, else the configuration's, else the vehicle's default color.
  */
 export function resolveCourseSession(
   course: CompiledCourse,
   arcade: SeriesCourse | null,
-  requested: SessionConfiguration,
+  configuration: SessionConfiguration,
+  seed: number,
   vehicle: SessionVehicle,
   envelope: RivalEnvelope | null,
   budgets: CourseTimeBudgets | null = null,
   field: {
-    readonly playerColor?: string;
     /** Every other entry's Session vehicle; a Session with rivals requires it. */
     readonly vehicleOf?: (vehicleId: string) => EntryVehicle;
     /** FREE PLAY rival vehicle/color pairs; FREE PLAY with rivals requires them. */
@@ -86,29 +81,11 @@ export function resolveCourseSession(
     readonly paceSchedule?: PaceSchedule;
   } = {},
 ) {
-  const playerVehicleId = vehicle.vehicleDefinition.compiledVehicle.id;
-  const defaultColor = vehicle.vehicleDefinition.listing.visuals.palette;
-  if (requested.mode === 'ARCADE' && arcade === null) throw new RangeError('An untimed course has no ARCADE Session');
-  const configuration: Readonly<SessionConfiguration> =
-    requested.mode === 'ARCADE' && arcade !== null
-      ? Object.freeze({
-          mode: 'ARCADE',
-          rivalCount: arcade.entries.length - 1,
-          lapCount: arcade.laps,
-          timeLimit: true,
-          initialSpeed: requested.initialSpeed,
-          seed: requested.seed,
-          traffic: arcade.traffic,
-        })
-      : Object.freeze({ ...requested });
-  if (configuration.mode === 'TIME_TRIAL' && configuration.traffic) throw new RangeError('TIME TRIAL has no traffic');
-  if (!Number.isFinite(configuration.initialSpeed)) throw new RangeError('Session initialSpeed must be finite');
-  if (configuration.mode === 'ARCADE' && !arcade?.series.vehicles.includes(playerVehicleId))
-    throw new RangeError('ARCADE requires a series vehicle');
-  if (configuration.lapCount > course.rules.maxLaps)
-    throw new RangeError('Lap count exceeds the authored course limit');
-  if (configuration.rivalCount > gridRivalCapacity(course.gates.grid.length))
-    throw new RangeError('The authored grid cannot hold this field');
+  if (!Number.isInteger(seed) || seed < 0 || seed > 0xffffffff)
+    throw new RangeError('Session seed must be a 32-bit unsigned integer');
+  if (vehicle.vehicleDefinition.compiledVehicle.id !== configuration.vehicleId)
+    throw new Error("The Session vehicle is not the configuration's vehicle");
+  const playerColor = configuration.color ?? vehicle.vehicleDefinition.listing.visuals.palette;
   if (configuration.mode === 'ARCADE' && !field.paceSchedule)
     throw new RangeError("ARCADE requires the player vehicle's delivered pace schedule");
   if (configuration.timeLimit && !budgets)
@@ -125,12 +102,13 @@ export function resolveCourseSession(
   const drivers = new Map<RivalEnvelope, EnvelopeDriver>();
   const entries =
     configuration.mode === 'ARCADE'
-      ? arcadeEntries(course, arcade!, { vehicle, envelope }, field.playerColor ?? defaultColor, field.vehicleOf!)
+      ? arcadeEntries(course, arcade!, { vehicle, envelope }, playerColor, field.vehicleOf!)
       : freePlayEntries(
           course,
-          configuration,
+          configuration.rivalCount,
+          seed,
           { vehicle, envelope },
-          field.playerColor ?? defaultColor,
+          playerColor,
           field.rivalPool ?? [],
           field.vehicleOf!,
         );
@@ -182,6 +160,8 @@ export function resolveCourseSession(
   return Object.freeze({
     course,
     configuration,
+    /** The Session's 32-bit unsigned random seed; rival target exits and traffic derive from it. */
+    seed,
     entries,
     traffic,
     /** The fixed driver of an entry's envelope, at the rival utilization and the envelope's maximum speed. */
@@ -250,14 +230,14 @@ function arcadeEntries(
  */
 function freePlayEntries(
   course: CompiledCourse,
-  configuration: SessionConfiguration,
+  rivalCount: number,
+  seed: number,
   player: EntryVehicle,
   playerColor: string,
   pool: readonly VehicleColor[],
   vehicleOf: (vehicleId: string) => EntryVehicle,
 ): readonly SessionEntry[] {
   const { grid } = course.gates;
-  const { rivalCount, seed } = configuration;
   const first = grid.length - 1 - rivalCount;
   const playerVehicleId = player.vehicle.vehicleDefinition.compiledVehicle.id;
   const drawn = drawRivalPairs(seed, rivalCount, pool, { vehicle: playerVehicleId, color: playerColor });

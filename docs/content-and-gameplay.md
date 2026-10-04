@@ -829,13 +829,14 @@ that entry's slot and every other grid entry in its own; with `last` it stands i
 slots and the other grid entries, in order, take the slots in front. Each other entry is a rival with its own
 vehicle, envelope, color, pace ratio and stage interval; one with an ahead appearance has no slot. The player's color is its entry's when the series fixes colors, otherwise the player's chosen color (the
 player record's color for the vehicle when its sprite set declares it), otherwise the vehicle's default color. FREE PLAY resolves a catalog
-vehicle, zero to fifteen rivals and permitted laps; it has no clock, and a FREE PLAY configuration with a time limit
-is rejected. TIME TRIAL resolves a catalog vehicle and permitted laps on any course; the player runs alone, without
-rivals or clock, and selects fork routes by driving like any first competitor at a lock line. A TIME TRIAL
-configuration with rivals, traffic or a time limit is rejected. ARCADE takes its series course's traffic; FREE PLAY
+vehicle, zero to fifteen rivals within the grid, a rival pool, a traffic level and permitted laps; it has no clock.
+TIME TRIAL resolves a catalog vehicle and permitted laps on any course; the player runs alone, without
+rivals or clock, and selects fork routes by driving like any first competitor at a lock line. One admission,
+`compileSessionConfiguration`, derives these rules from a request and checks it against the course, its series course and
+the vehicle catalog; the configuration carries the FREE PLAY rival pool. ARCADE takes its series course's traffic; FREE PLAY
 takes the TRAFFIC choice: OFF is none, and LOW and HIGH are `FREE_PLAY_TRAFFIC` in the FREE PLAY rules (`race/free-play-field.ts`; 5 and 30
 vehicles/km) at `FREE_PLAY_TRAFFIC_SPEED_KILOMETERS_PER_HOUR` (80 km/h) with every catalog vehicle as candidates.
-Traffic settings are null or `{density, vehicles, speedKilometersPerHour}` (`compileTrafficSettings`): a density in
+Traffic settings are null or `{density, vehicles, speedKilometersPerHour}`, which series admission checks: a density in
 vehicles per kilometre in (0, 40] (`SESSION_RULE_LIMITS.trafficDensity`), at least one unique vehicle ID, and the one
 traffic speed in km/h in (0, 864] (`MAXIMUM_VEHICLE_SPEED` in km/h). Session resolution converts that speed to m/s once
 (÷ `KILOMETERS_PER_HOUR_PER_METER_PER_SECOND`, 3.6), resolves each traffic vehicle's Session vehicle and envelope (a
@@ -855,7 +856,7 @@ Resolving a Session with rivals requires every rival's Session vehicle and, in F
 `RangeError`, never the player's vehicle.
 The start speed is a resolved Session setting: every competitor spawns at its grid slot moving at it along the
 road tangent. It is finite and may be negative; product Sessions and reference runs use 0. The Session seed is a
-resolved 32-bit unsigned integer that `compileSessionConfiguration` checks; rival target exits derive from it. The
+32-bit unsigned integer that Session resolution takes with the configuration and checks; rival target exits derive from it. The
 browser picks a new seed for every Session assembly ([Browser](browser.md#display-and-scheduling)); reference runs,
 TIME TRIAL Sessions without rivals, use 0, and scenarios and tests fix theirs. The race builds each
 competitor's mechanics from its entry's vehicle and each rival's driver from its entry's envelope; the player's

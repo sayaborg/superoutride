@@ -9,6 +9,7 @@ import { REFERENCE_DRIVER, referenceLine } from './reference-driving-policy.js';
 import { createCourseScene } from '../../src/view/course-scene.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
+import { compileSessionConfiguration } from '../../src/race/session-configuration.js';
 import {
   createEnvelopeDriverWorkspace,
   sampleEnvelopeDrivingInput,
@@ -32,14 +33,14 @@ export function runCourseReference(
 ) {
   const entry = vehicleConfiguration.vehicleDefinition,
     scene = createCourseScene(course.entry, course.gates, vehicles);
-  const session = resolveCourseSession(
+  // A reference run is a TIME TRIAL Session: alone from the last grid slot, without a clock; the seed is fixed.
+  const configuration = compileSessionConfiguration(
+    { mode: 'TIME_TRIAL', vehicleId: entry.compiledVehicle.id, color: null, lapCount },
     course,
     null,
-    // A reference run is a TIME TRIAL Session: alone from the last grid slot, without a clock; the seed is fixed.
-    { mode: 'TIME_TRIAL', rivalCount: 0, lapCount, timeLimit: false, initialSpeed: 0, seed: 0, traffic: null },
-    vehicleConfiguration,
-    envelope,
+    vehicles,
   );
+  const session = resolveCourseSession(course, null, configuration, 0, vehicleConfiguration, envelope);
   const slot = session.entries[0]!.slot!;
   const race = createCourseRace({ session, runtime: scene.runtime });
   const { actor } = race.player;

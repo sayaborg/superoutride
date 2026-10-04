@@ -9,6 +9,7 @@ import {
   createPlanProjectionWorkspace,
 } from '../../src/course/geometry/plan-coordinate.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
+import { compileSessionConfiguration } from '../../src/race/session-configuration.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { createSessionVehicle } from '../../src/content/session-vehicle.js';
@@ -62,8 +63,17 @@ test('Session rejects short terminal runout, including solo play; forks and loop
     materials,
   );
   const { envelope } = await (await readDeliveredContent()).json('envelope', 'TESTAROSSA');
-  const configuration = { mode: 'FREE_PLAY', rivalCount: 0, lapCount: 1, timeLimit: false, initialSpeed: 0, seed: 0 };
-  assert.doesNotThrow(() => resolveCourseSession(course, null, configuration, vehicle, envelope));
+  const request = {
+    mode: 'FREE_PLAY',
+    vehicleId: 'TESTAROSSA',
+    color: null,
+    lapCount: 1,
+    rivalCount: 0,
+    rivalPool: 'CARS',
+    traffic: 'OFF',
+  };
+  const configuration = compileSessionConfiguration(request, course, null, definitions.vehicles);
+  assert.doesNotThrow(() => resolveCourseSession(course, null, configuration, 0, vehicle, envelope));
   const short = {
     ...course,
     gates: {
@@ -78,7 +88,7 @@ test('Session rejects short terminal runout, including solo play; forks and loop
     },
   };
   assert.throws(
-    () => resolveCourseSession(short, null, configuration, vehicle, envelope),
+    () => resolveCourseSession(short, null, configuration, 0, vehicle, envelope),
     /FINISH .*TESTAROSSA requires .* m to stop/,
   );
   const fork = createCourseRoute((await load('ribbon-fork')).entry).route;
@@ -87,5 +97,14 @@ test('Session rejects short terminal runout, including solo play; forks and loop
   const ring = createCourseRoute(ringCourse.entry);
   ring.extendThrough(ring.route.end + 1);
   assert.equal(ring.route.terminal, null);
-  assert.doesNotThrow(() => resolveCourseSession(ringCourse, null, configuration, vehicle, envelope));
+  assert.doesNotThrow(() =>
+    resolveCourseSession(
+      ringCourse,
+      null,
+      compileSessionConfiguration(request, ringCourse, null, definitions.vehicles),
+      0,
+      vehicle,
+      envelope,
+    ),
+  );
 });

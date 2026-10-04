@@ -7,6 +7,7 @@ import { referenceLine } from '../../tools/course/reference-driving-policy.ts';
 import { createCourseScene } from '../../src/view/course-scene.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
+import { compileSessionConfiguration } from '../../src/race/session-configuration.js';
 import { formPool, rivalPoolPairs } from '../../src/race/free-play-field.js';
 import { createSessionVehicle } from '../../src/content/session-vehicle.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
@@ -143,19 +144,27 @@ export function runScenario({ course, arcade: scenarioArcade, productArcade, bud
   const scene = createCourseScene(course.entry, course.gates, definitions.vehicles, settings);
   // ARCADE takes the test series' settings for the course; TIME TRIAL and FREE PLAY take the scenario's.
   const mode = scenario.mode ?? 'FREE_PLAY';
+  const request =
+    mode === 'ARCADE'
+      ? { mode, vehicleId: 'TESTAROSSA', color: null }
+      : mode === 'TIME_TRIAL'
+        ? { mode, vehicleId: 'TESTAROSSA', color: null, lapCount: scenario.laps ?? 1 }
+        : {
+            mode,
+            vehicleId: 'TESTAROSSA',
+            color: null,
+            lapCount: scenario.laps ?? 1,
+            rivalCount: scenario.rivals ?? 0,
+            rivalPool: formPool(entry),
+            traffic: 'OFF',
+          };
+  const initialSpeed =
+    scenario.policy === 'reverse' ? -20 : scenario.policy === 'departure' || scenario.policy === 'limit' ? 30 : 0;
   const session = resolveCourseSession(
     course,
     mode === 'ARCADE' ? arcade : null,
-    {
-      mode,
-      rivalCount: mode === 'ARCADE' ? arcade.entries.length - 1 : (scenario.rivals ?? 0),
-      lapCount: mode === 'ARCADE' ? arcade.laps : (scenario.laps ?? 1),
-      timeLimit: mode === 'ARCADE',
-      initialSpeed:
-        scenario.policy === 'reverse' ? -20 : scenario.policy === 'departure' || scenario.policy === 'limit' ? 30 : 0,
-      seed: scenario.seed ?? 0,
-      traffic: null,
-    },
+    compileSessionConfiguration(request, course, mode === 'ARCADE' ? arcade : null, definitions.vehicles, initialSpeed),
+    scenario.seed ?? 0,
     configuration,
     envelope,
     mode === 'ARCADE' ? budgets : null,

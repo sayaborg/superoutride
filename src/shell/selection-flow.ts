@@ -8,7 +8,7 @@ import {
   type FreePlayTraffic,
   type RivalPool,
 } from '../race/free-play-field.js';
-import { gridRivalCapacity } from '../race/course-session.js';
+import { gridRivalCapacity } from '../race/session-configuration.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import type { SoftwareSurface } from '../view/software-surface.js';
 import type { TextLayer } from '../view/text-layer.js';

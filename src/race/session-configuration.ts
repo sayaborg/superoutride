@@ -1,49 +1,124 @@
-import { MAXIMUM_VEHICLE_SPEED_KILOMETERS_PER_HOUR } from '../vehicle/physics/vehicle-definitions.js';
-import { SESSION_RULE_LIMITS, compileTrafficSettings, type TrafficSettings } from '../course/session-rules.js';
+import { SESSION_RULE_LIMITS, type TrafficSettings } from '../course/session-rules.js';
+import type { CompiledCourse } from '../course/compiler/compiled-course.js';
+import type { SeriesCourse } from '../content/series-catalog.js';
+import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
+import { spriteSetHasColor } from '../vehicle/vehicle-sprite-set.js';
+import {
+  FREE_PLAY_TRAFFIC,
+  FREE_PLAY_TRAFFIC_LEVELS,
+  FREE_PLAY_TRAFFIC_SPEED_KILOMETERS_PER_HOUR,
+  RIVAL_POOLS,
+  type FreePlayTraffic,
+  type RivalPool,
+} from './free-play-field.js';
 
-export interface SessionConfiguration {
+/** The most rivals a grid of `slots` holds: every slot but the player's. */
+export function gridRivalCapacity(slots: number): number {
+  return slots - 1;
+}
+
+interface SessionChoice {
+  readonly vehicleId: string;
+  /** The player's color; null for the Session's own choice (the vehicle's default, or a fixed series color). */
+  readonly color: string | null;
+}
+
+/**
+ * A requested Session: what the player chose, and nothing else. ARCADE takes its laps, field and traffic from the
+ * series; FREE PLAY chooses rivals, their pool, traffic and laps; TIME TRIAL runs alone and chooses laps.
+ */
+export type SessionRequest =
+  | (SessionChoice & { readonly mode: 'ARCADE' })
+  | (SessionChoice & {
+      readonly mode: 'FREE_PLAY';
+      readonly lapCount: number;
+      readonly rivalCount: number;
+      readonly rivalPool: RivalPool;
+      readonly traffic: FreePlayTraffic;
+    })
+  | (SessionChoice & { readonly mode: 'TIME_TRIAL'; readonly lapCount: number });
+
+/** A Session's admitted rules: what it runs, before its seed is drawn. */
+export interface SessionConfiguration extends SessionChoice {
   /** TIME TRIAL runs alone: no rivals and no clock. */
-  readonly mode: 'ARCADE' | 'FREE_PLAY' | 'TIME_TRIAL';
+  readonly mode: SessionRequest['mode'];
   /** Opponents only; the player is not included. */
   readonly rivalCount: number;
+  /** The FREE PLAY rival pool; null in ARCADE and TIME TRIAL. */
+  readonly rivalPool: RivalPool | null;
   readonly lapCount: number;
   /** The checkpoint clock; ARCADE only, FREE PLAY and TIME TRIAL have none. */
   readonly timeLimit: boolean;
   /** m/s along the grid slot's road tangent for every competitor at spawn; finite, negative allowed. The product uses 0. */
   readonly initialSpeed: number;
-  /** The Session's 32-bit unsigned random seed; rival target exits and traffic derive from it. */
-  readonly seed: number;
   /** Traffic, or null for none; TIME TRIAL has none. ARCADE takes its series course's. */
   readonly traffic: TrafficSettings | null;
 }
 
-export function compileSessionConfiguration(authoring: SessionConfiguration): Readonly<SessionConfiguration> {
-  if (authoring.mode !== 'ARCADE' && authoring.mode !== 'FREE_PLAY' && authoring.mode !== 'TIME_TRIAL')
-    throw new RangeError('Session mode must be ARCADE, FREE_PLAY or TIME_TRIAL');
-  if (
-    !Number.isInteger(authoring.rivalCount) ||
-    authoring.rivalCount < 0 ||
-    authoring.rivalCount > SESSION_RULE_LIMITS.rivals
-  )
-    throw new RangeError(`session rivalCount must be an integer within 0..${SESSION_RULE_LIMITS.rivals}`);
-  if (!Number.isInteger(authoring.lapCount) || authoring.lapCount < 1 || authoring.lapCount > SESSION_RULE_LIMITS.laps)
-    throw new RangeError(`Session lapCount must be an integer within 1..${SESSION_RULE_LIMITS.laps}`);
-  if (typeof authoring.timeLimit !== 'boolean') throw new TypeError('Session timeLimit must be boolean');
-  if (authoring.mode === 'FREE_PLAY' && authoring.timeLimit) throw new RangeError('FREE PLAY has no clock');
-  if (authoring.mode === 'TIME_TRIAL' && (authoring.timeLimit || authoring.rivalCount !== 0 || authoring.traffic))
-    throw new RangeError('TIME TRIAL has no rivals, no traffic and no clock');
-  if (!Number.isInteger(authoring.seed) || authoring.seed < 0 || authoring.seed > 0xffffffff)
-    throw new RangeError('Session seed must be a 32-bit unsigned integer');
-  return Object.freeze({
-    mode: authoring.mode,
-    rivalCount: authoring.rivalCount,
-    lapCount: authoring.lapCount,
-    timeLimit: authoring.timeLimit,
-    initialSpeed: authoring.initialSpeed,
-    seed: authoring.seed,
-    traffic:
-      authoring.traffic === null
-        ? null
-        : compileTrafficSettings(authoring.traffic, MAXIMUM_VEHICLE_SPEED_KILOMETERS_PER_HOUR),
-  });
+/**
+ * Admit a requested Session against its course, its series course (`arcade`, null on an untimed course) and the
+ * vehicle catalog, and derive its rules: the one admission and derivation of every request. The vehicle must be a
+ * catalog vehicle and the color one of its sprite set. ARCADE needs a series course and one of the series' vehicles
+ * and takes the series' field, laps and traffic with the checkpoint clock. FREE PLAY and TIME TRIAL take up to the
+ * course's `maxLaps`; FREE PLAY's rivals fit the grid, its pool and traffic level are FREE PLAY's, and its traffic
+ * draws from every catalog vehicle at the FREE PLAY speed. `initialSpeed` is the start speed (the product's is 0).
+ */
+export function compileSessionConfiguration(
+  request: SessionRequest,
+  course: Pick<CompiledCourse, 'rules' | 'gates'>,
+  arcade: SeriesCourse | null,
+  vehicles: readonly CompiledVehicleDefinition[],
+  initialSpeed = 0,
+): SessionConfiguration {
+  const vehicle = vehicles.find((v) => v.compiledVehicle.id === request.vehicleId);
+  if (!vehicle) throw new RangeError('Unknown Session vehicle');
+  if (request.color !== null && !spriteSetHasColor(vehicle.spriteSet, request.color))
+    throw new RangeError('Unknown vehicle color');
+  if (!Number.isFinite(initialSpeed)) throw new RangeError('Session initialSpeed must be finite');
+  const choice = { vehicleId: request.vehicleId, color: request.color, initialSpeed };
+  let rules: Pick<SessionConfiguration, 'mode' | 'rivalCount' | 'rivalPool' | 'lapCount' | 'timeLimit' | 'traffic'>;
+  if (request.mode === 'ARCADE') {
+    if (!arcade) throw new RangeError('An untimed course has no ARCADE Session');
+    if (!arcade.series.vehicles.includes(request.vehicleId)) throw new RangeError('ARCADE requires a series vehicle');
+    rules = {
+      mode: 'ARCADE',
+      rivalCount: arcade.entries.length - 1,
+      rivalPool: null,
+      lapCount: arcade.laps,
+      timeLimit: true,
+      traffic: arcade.traffic,
+    };
+  } else {
+    const { lapCount } = request;
+    if (!Number.isInteger(lapCount) || lapCount < 1 || lapCount > course.rules.maxLaps)
+      throw new RangeError(`Session lapCount must be an integer within 1..${course.rules.maxLaps}`);
+    if (request.mode === 'TIME_TRIAL')
+      rules = { mode: 'TIME_TRIAL', rivalCount: 0, rivalPool: null, lapCount, timeLimit: false, traffic: null };
+    else {
+      const { rivalCount, rivalPool, traffic } = request;
+      if (!Number.isInteger(rivalCount) || rivalCount < 0 || rivalCount > SESSION_RULE_LIMITS.rivals)
+        throw new RangeError(`Session rivalCount must be an integer within 0..${SESSION_RULE_LIMITS.rivals}`);
+      if (!RIVAL_POOLS.includes(rivalPool)) throw new RangeError('Unknown rival pool');
+      if (!FREE_PLAY_TRAFFIC_LEVELS.includes(traffic)) throw new RangeError('Unknown traffic level');
+      rules = {
+        mode: 'FREE_PLAY',
+        rivalCount,
+        rivalPool,
+        lapCount,
+        timeLimit: false,
+        // FREE PLAY traffic is its level's, drawn from every vehicle.
+        traffic:
+          traffic === 'OFF'
+            ? null
+            : Object.freeze({
+                ...FREE_PLAY_TRAFFIC[traffic],
+                vehicles: Object.freeze(vehicles.map((v) => v.compiledVehicle.id)),
+                speedKilometersPerHour: FREE_PLAY_TRAFFIC_SPEED_KILOMETERS_PER_HOUR,
+              }),
+      };
+    }
+  }
+  if (rules.rivalCount > gridRivalCapacity(course.gates.grid.length))
+    throw new RangeError('The authored grid cannot hold this field');
+  return Object.freeze({ ...choice, ...rules });
 }

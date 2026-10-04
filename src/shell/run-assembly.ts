@@ -17,12 +17,12 @@ import { fuelCutRpm } from '../vehicle/physics/automatic-powertrain.js';
 import type { TextLayer } from '../view/text-layer.js';
 import type { createCoursePerformanceHud } from './course-performance-hud.js';
 import { resolveCourseSession, type EntryVehicle } from '../race/course-session.js';
-import { rivalPoolPairs } from '../race/free-play-field.js';
+import { formPool, rivalPoolPairs } from '../race/free-play-field.js';
 import { readCourseTimeBudgets, type CourseTimeBudgets } from '../content/course-time-budgets.js';
 import { readPaceSchedule } from '../content/pace-schedule.js';
 import { loadSeriesCourse, type loadSeriesCatalog } from '../content/series-catalog.js';
 import { createSessionVehicle, sessionVehicleSha256, type SessionVehicle } from '../content/session-vehicle.js';
-import { runSettings, type RunRequest } from './run-request.js';
+import type { RunRequest } from './run-request.js';
 import { createCourseScene } from '../view/course-scene.js';
 import { createRenderMeasurements } from '../view/renderer.js';
 import type { RunFrame, RunScreenState } from './run-screen.js';
@@ -81,7 +81,8 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
   const course = await loadDeliveredCourse(content, courseId, materials);
   // The course's ARCADE settings come from the one series holding it; a course in no series is untimed.
   const arcade = loadSeriesCourse(content, series, course);
-  const settings = runSettings(request, arcade, vehicles, course.rules.maxLaps);
+  // The request's one admission: its Session rules on this course.
+  const settings = compileSessionConfiguration(request, course, arcade, vehicles);
   const entry = vehicles.find((v) => v.compiledVehicle.id === settings.vehicleId)!;
   const vehicle = createSessionVehicle(entry, driving, materials);
   const vehicleId = vehicle.vehicleDefinition.compiledVehicle.id;
@@ -90,7 +91,9 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
   );
   // Every other vehicle in the field (series entries, or the FREE PLAY rival pool) drives its own Session vehicle
   // and envelope.
-  const rivalPool = settings.rivalPool === null ? [] : rivalPoolPairs(vehicles, settings.rivalPool);
+  const rivalPoolOf = (configuration: SessionConfiguration) =>
+    configuration.rivalPool === null ? [] : rivalPoolPairs(vehicles, configuration.rivalPool);
+  const rivalPool = rivalPoolOf(settings);
   const fieldVehicles = new Map<string, EntryVehicle>([[vehicleId, { vehicle, envelope: rivalEnvelope }]]);
   // The field's vehicles and the traffic candidates each load their Session vehicle and envelope once.
   const fieldIds = [
@@ -117,8 +120,6 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
   }
   const vehicleOf = (id: string) => fieldVehicles.get(id)!;
   const vehicleSha256 = await sessionVehicleSha256(vehicle);
-  // The player's chosen color for the vehicle.
-  const playerColor = request.color ?? undefined;
   // A timed course's budgets must be delivered; a missing file stops loading rather than dropping the clock.
   const budgets =
     settings.timeLimit && arcade
@@ -139,20 +140,27 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
    */
   const build = (
     sessionVehicle: SessionVehicle,
-    settings: Omit<SessionConfiguration, 'seed'>,
+    configuration: SessionConfiguration,
     envelope: RivalEnvelope | null,
     sessionBudgets: CourseTimeBudgets | null,
     tuned: boolean,
   ) => {
     // The composition root alone draws randomness: every assembly, a DEV rebuild included, takes a new seed from it.
     const seed = page.drawSeed();
-    const configuration = compileSessionConfiguration({ ...settings, seed });
-    const session = resolveCourseSession(course, arcade, configuration, sessionVehicle, envelope, sessionBudgets, {
-      playerColor,
-      vehicleOf,
-      rivalPool,
-      paceSchedule,
-    });
+    const session = resolveCourseSession(
+      course,
+      arcade,
+      configuration,
+      seed,
+      sessionVehicle,
+      envelope,
+      sessionBudgets,
+      {
+        vehicleOf,
+        rivalPool: rivalPoolOf(configuration),
+        paceSchedule,
+      },
+    );
     const scene = createCourseScene(course.entry, course.gates, vehicles, displaySettings);
     const race = createCourseRace({ session, runtime: scene.runtime });
     return { session, scene, race, tuned };
@@ -179,14 +187,20 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
         rebuildSession: (driving) => {
           active = build(
             createSessionVehicle(entry, driving, materials),
-            {
-              mode: 'FREE_PLAY',
-              rivalCount: 0,
-              lapCount: active.session.configuration.lapCount,
-              timeLimit: false,
-              initialSpeed: 0,
-              traffic: null,
-            },
+            compileSessionConfiguration(
+              {
+                mode: 'FREE_PLAY',
+                vehicleId: settings.vehicleId,
+                color: settings.color,
+                lapCount: active.session.configuration.lapCount,
+                rivalCount: 0,
+                rivalPool: formPool(entry),
+                traffic: 'OFF',
+              },
+              course,
+              arcade,
+              vehicles,
+            ),
             null,
             null,
             true,
