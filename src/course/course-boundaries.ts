@@ -50,13 +50,13 @@ export function courseLaneCenterAt(road: CompiledCarriageway, lane: number, s: n
 }
 
 /**
- * The lane whose centre lies nearest Section lateral `l` at station `s`, within the road's lanes; an exact tie goes to
- * the right, as the half-open lateral rule assigns ties.
+ * The lane whose centre lies nearest Section lateral `l` at station `s`, within the road's lanes; an equal distance, on
+ * the line between two lanes, goes to the lower-numbered lane, as every nearest-lane choice does.
  */
 export function courseLaneAt(road: CompiledCarriageway, l: number, s: number): number {
   const left = courseBoundaryAt(road.left, s),
     width = courseBoundaryAt(road.right, s) - left;
-  const lane = width > 0 ? Math.floor(((l - left) / width) * road.lanes) : 0;
+  const lane = width > 0 ? Math.ceil(((l - left) / width) * road.lanes) - 1 : 0;
   return Math.min(road.lanes - 1, Math.max(0, lane));
 }
 

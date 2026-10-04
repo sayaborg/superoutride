@@ -184,15 +184,13 @@ export function createCourseRace(options: {
   const rivalDriving = rivalEntries.map(drivingOf);
   const rivals = rivalEntries.map((entry, rivalIndex) => {
     // A grid rival starts in the lane nearest its slot; an ahead entry names its lane.
-    const lane = entry.slot ? forks.intentLane(entry.slot.at.s, entry.slot.l) : entry.ahead!.lane;
     // The race assigns each rival's target exits from the Session seed; its grid side implies none.
-    const intent: LaneIntent = {
-      lane,
-      // An ahead entry's lane is read where it appears; until then nothing reads it.
-      ordinal: 0,
-      exit: (occurrence) =>
-        rivalExit(options.session.seed, rivalIndex, occurrence.ordinal, occurrence.section.fork!.exits.length),
-    };
+    const exit = (occurrence: RouteOccurrence) =>
+      rivalExit(options.session.seed, rivalIndex, occurrence.ordinal, occurrence.section.fork!.exits.length);
+    // An ahead entry's lane is read where it appears; until then nothing reads it.
+    const intent: LaneIntent = entry.slot
+      ? { lane: forks.intentLane(entry.slot.at.s, entry.slot.l, exit), at: entry.slot.at.s, exit }
+      : { lane: entry.ahead!.lane, at: 0, exit };
     // Until it appears, an ahead entry's actor waits unmoved at the player's slot; nothing reads it.
     const at = entry.slot ?? playerSlot;
     const { driver, pace, set } = rivalDriving[rivalIndex]!;
@@ -276,8 +274,8 @@ export function createCourseRace(options: {
       const entry = rivalEntries[i]!;
       const s = player.actor.vehicle.course.s + entry.ahead!.distance;
       const { intent, driver } = c.body.driving!;
-      // Its lane number is the one of the occurrence it appears in.
-      intent.ordinal = runtime.route.at(s)!.ordinal;
+      // Its lane number is the one of the Carriageway it follows where it appears.
+      intent.at = s;
       const lane = (station: number) => forks.targetL(station, intent);
       // An appearance on another vehicle's footprint, or one a vehicle behind could not stop for, waits for a later step.
       if (placement.occupied(c.actor.model, s, lane(s))) continue;
@@ -413,13 +411,13 @@ export function createCourseRace(options: {
   // Session without an envelope holds the brake instead.
   const takeoverDriver = playerEntry!.envelope ? options.session.driverOf(playerEntry!.envelope) : null;
   const takeoverWorkspace = createEnvelopeDriverWorkspace();
-  const takeoverIntent: LaneIntent = { lane: 0, ordinal: 0, exit: () => 0 };
+  const takeoverIntent: LaneIntent = { lane: 0, at: 0, exit: () => 0 };
   const takeoverDomain = { start: 0, end: 0, terminal: null as number | null };
   let stopS = Infinity;
   const takeOver = () => {
     const { s, l } = player.actor.vehicle.course;
-    takeoverIntent.lane = forks.intentLane(s, l);
-    takeoverIntent.ordinal = runtime.route.at(s)!.ordinal;
+    takeoverIntent.lane = forks.intentLane(s, l, takeoverIntent.exit);
+    takeoverIntent.at = s;
     if (!takeoverDriver) return;
     stopS = s + takeoverDriver.envelope.maximumSpeed ** 2 / (2 * takeoverDriver.braking);
     // The takeover drives the player's vehicle as a driver does, seen through the player's sighting.
@@ -432,7 +430,7 @@ export function createCourseRace(options: {
   };
   // Before GOAL the player's Session driver drives the player when the composition asks (an advance without input), as
   // the takeover does after GOAL, toward the composition's target exits from the lane nearest the player at the time.
-  const playerIntent: LaneIntent = { lane: 0, ordinal: 0, exit: options.playerExit ?? (() => 0) };
+  const playerIntent: LaneIntent = { lane: 0, at: 0, exit: options.playerExit ?? (() => 0) };
   const playerWorkspace = createEnvelopeDriverWorkspace();
   const handOver = (driven: boolean) => {
     if (outcome.status === 'GOAL') return;
@@ -443,8 +441,8 @@ export function createCourseRace(options: {
     if (!takeoverDriver) throw new RangeError('A Session without an envelope has no player driver');
     if (player.body.driving) return;
     const { s, l } = player.actor.vehicle.course;
-    playerIntent.lane = forks.intentLane(s, l);
-    playerIntent.ordinal = runtime.route.at(s)!.ordinal;
+    playerIntent.lane = forks.intentLane(s, l, playerIntent.exit);
+    playerIntent.at = s;
     player.body.driving = {
       driver: takeoverDriver,
       intent: playerIntent,

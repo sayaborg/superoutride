@@ -5,7 +5,6 @@ import {
   type PlanarTransform,
 } from '../core/planar-transform.js';
 import type { CompiledLink, CompiledSection } from './compiler/course-graph.js';
-import { courseLaneCenterAt, type CompiledCarriageway } from './course-boundaries.js';
 
 /** One selected traversal, shared by all vehicles. Stations never change when the resident window advances. */
 export interface RouteOccurrence {
@@ -179,21 +178,7 @@ export function selectedSuccessor(route: CourseRoute, occurrence: RouteOccurrenc
   return route.occurrences[occurrence.ordinal + 1]?.incoming ?? null;
 }
 
-/** A Route occurrence and the Carriageway followed at its side of a seam. */
-export interface RouteRoad {
-  readonly occurrence: RouteOccurrence;
-  readonly road: CompiledCarriageway;
-}
-
-// Lane centres at a seam on the route ruler: the `before` occurrence's at its Section end, the `after` one's at 0.
-const seamCentres = (side: RouteRoad, atEnd: boolean) => {
-  const s = atEnd ? side.occurrence.end - side.occurrence.start : 0;
-  return Array.from(
-    { length: side.road.lanes },
-    (_, lane) => courseLaneCenterAt(side.road, lane, s) - side.occurrence.lateralOrigin,
-  );
-};
-// The index of the value nearest `x`; an equal distance goes to the lower index (the left lane).
+// The index of the value nearest `x`; an equal distance goes to the lower index (the lower-numbered lane).
 const nearest = (values: readonly number[], x: number) => {
   let best = 0;
   for (let i = 1; i < values.length; i++) if (Math.abs(values[i]! - x) < Math.abs(values[best]! - x)) best = i;
@@ -201,17 +186,16 @@ const nearest = (values: readonly number[], x: number) => {
 };
 
 /**
- * A lane across the seam from `before` to the next occurrence `after`, by position on the route ruler: it runs on as
- * the lane of `after` whose centre is nearest its centre at the seam. Where several lanes run on as one, the nearest of
- * them continues and the others end; on an equal distance the left lane wins either choice.
+ * A lane across a change of the Carriageway followed — a seam, or a station within a Section where the followed
+ * Carriageway changes — by position: with `from` and `to` the lane centres on either side at that station (route
+ * laterals), lane `lane` runs on as the lane whose centre is nearest its centre. Where several lanes run on as one, the
+ * nearest of them continues and the others end there; an equal distance goes to the lower-numbered lane in either choice.
  */
 export function routeLaneAcross(
-  before: RouteRoad,
+  from: readonly number[],
   lane: number,
-  after: RouteRoad,
+  to: readonly number[],
 ): { readonly lane: number; readonly continues: boolean } {
-  const from = seamCentres(before, true),
-    to = seamCentres(after, false);
   const next = nearest(to, from[lane]!);
   let continuing = -1;
   for (let i = 0; i < from.length; i++)
@@ -224,14 +208,12 @@ export function routeLaneAcross(
 }
 
 /**
- * The lane of `before` that runs on as lane `lane` of the next occurrence `after`: the one that continues into it, or,
- * for a lane that begins at the seam, the lane of `before` whose centre is nearest its centre there.
+ * The lane on the `from` side of a change that runs on as lane `lane` on the `to` side: the one that continues into it,
+ * or, for a lane that begins there, the lane whose centre is nearest its centre.
  */
-export function routeLaneBefore(before: RouteRoad, after: RouteRoad, lane: number): number {
-  const from = seamCentres(before, true),
-    to = seamCentres(after, false);
+export function routeLaneBefore(from: readonly number[], to: readonly number[], lane: number): number {
   for (let i = 0; i < from.length; i++) {
-    const across = routeLaneAcross(before, i, after);
+    const across = routeLaneAcross(from, i, to);
     if (across.lane === lane && across.continues) return i;
   }
   return nearest(from, to[lane]!);

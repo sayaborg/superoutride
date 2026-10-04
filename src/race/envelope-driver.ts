@@ -15,7 +15,7 @@ const MIN_DRIVER_CURVATURE_PER_METER = 1e-7;
  * driver's input for the same state and observations ([Calibration](../../docs/calibration.md)).
  */
 export const ENVELOPE_DRIVER = Object.freeze({
-  version: 12,
+  version: 13,
   lookahead: 480,
   spacing: 5,
   responseSeconds: 0.45,

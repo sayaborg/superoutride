@@ -120,13 +120,12 @@ export function createTrafficField(options: {
         const model = modelOf(candidate.vehicle);
         const intent: LaneIntent = {
           lane: 0,
-          ordinal: 0,
+          at: s,
           exit: (occurrence) =>
             trafficDraw(seed, 'exit', position, occurrence.section.fork!.exits.length, occurrence.ordinal),
         };
         const appearing = forks.targetCarriageway(s, intent.exit);
         intent.lane = trafficDraw(seed, 'lane', position, appearing.road.lanes);
-        intent.ordinal = appearing.occurrence.ordinal;
         const lane = (station: number) => forks.targetL(station, intent);
         const l = lane(s);
         if (placement.occupied(model, s, l)) return;

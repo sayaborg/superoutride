@@ -21,14 +21,22 @@ function center(road: CompiledCarriageway, s: number) {
 }
 
 /**
- * A driver's intent: its lane, a lane number (0 is the leftmost lane of the Carriageway it follows) in the Route
- * occurrence `ordinal`, and its target exit, an index into each fork occurrence's exits. Elsewhere on the Route the lane
- * is the one it runs on as, or runs on from, across each seam between (`routeLaneAcross`, `routeLaneBefore`).
+ * A driver's intent: its lane, a lane number (0 is the leftmost lane) of the Carriageway it follows at route station
+ * `at`, and its target exit, an index into each fork occurrence's exits. Elsewhere on the Route the lane is the one it
+ * runs on as, or runs on from, across each change of the Carriageway followed between (`routeLaneAcross`,
+ * `routeLaneBefore`).
  */
 export interface DriverIntent {
   readonly lane: number;
-  readonly ordinal: number;
+  readonly at: number;
   exit(occurrence: RouteOccurrence): number;
+}
+
+/** A change of the Carriageway followed, at route station `s`: the lane centres on either side there (route laterals). */
+interface RoadChange {
+  readonly s: number;
+  readonly from: readonly number[];
+  readonly to: readonly number[];
 }
 
 /** The Carriageway followed at a route station, with its occurrence and the clamped native station it is read at. */
@@ -44,38 +52,81 @@ export function createCourseForkField(
   lines: ReturnType<typeof createRouteCrossSections>,
   select: (link: CompiledLink) => void,
 ) {
-  const targetCarriageway = (s: number, exit: DriverIntent['exit']): TargetCarriageway => {
-    const occurrence = route.at(s)!;
+  // The Carriageway an intent follows at Section station `at` of `occurrence`.
+  const roadAt = (occurrence: RouteOccurrence, at: number, exit: DriverIntent['exit']) => {
     const section = occurrence.section;
-    const at = Math.min(
-      section.coordinates.domain.end,
-      Math.max(section.coordinates.domain.start, routeSectionS(occurrence, s)),
-    );
     const exists = (road: CompiledCarriageway) => courseCarriagewayExists(road, at, section.coordinates.domain.end);
     const fork = section.fork;
-    let road = fork
+    const road = fork
       ? (selectedSuccessor(route, occurrence)?.from.carriageway ?? fork.exits[exit(occurrence)]!.link.from.carriageway)
       : null;
-    if (!road || !exists(road)) road = section.carriageways.find(exists)!;
-    return { occurrence, road, at };
+    return road && exists(road) ? road : section.carriageways.find(exists)!;
   };
-  // A seam's two sides: the occurrence before `next` with the Carriageway it leaves by, and `next` with the one the
-  // intent's exit enters.
-  const seam = (next: RouteOccurrence, exit: DriverIntent['exit']) => ({
-    before: { occurrence: route.occurrences[next.ordinal - 1]!, road: next.incoming!.from.carriageway },
-    after: { occurrence: next, road: targetCarriageway(next.start, exit).road },
-  });
-  // The intent's lane in `occurrence`, carried across each seam between by position; within a Section a lane number
-  // beyond the Carriageway's lanes reads as its last lane.
-  const laneIn = (intent: DriverIntent, occurrence: RouteOccurrence) => {
-    let lane = intent.lane;
-    for (let o = intent.ordinal + 1; o <= occurrence.ordinal; o++) {
-      const { before, after } = seam(route.occurrences[o]!, intent.exit);
-      lane = routeLaneAcross(before, Math.min(lane, before.road.lanes - 1), after).lane;
+  const targetCarriageway = (s: number, exit: DriverIntent['exit']): TargetCarriageway => {
+    const occurrence = route.at(s)!;
+    const domain = occurrence.section.coordinates.domain;
+    const at = Math.min(domain.end, Math.max(domain.start, routeSectionS(occurrence, s)));
+    return { occurrence, road: roadAt(occurrence, at, exit), at };
+  };
+  // The lane centres of `road` at Section station `at` of `occurrence`, as route laterals.
+  const centres = (occurrence: RouteOccurrence, road: CompiledCarriageway, at: number) =>
+    Array.from({ length: road.lanes }, (_, lane) => courseLaneCenterAt(road, lane, at) - occurrence.lateralOrigin);
+  /*
+   * Visit, in order, the changes of the Carriageway an intent following `exit` follows after route station `start`
+   * through `end`: each seam (the Carriageway the earlier occurrence leaves by, at its end, then the one followed at the
+   * start of the next), and each station within a Section where the followed Carriageway changes (a road ending or
+   * beginning there). A visit returning true stops the walk.
+   */
+  const changes = (start: number, end: number, exit: DriverIntent['exit'], visit: (change: RoadChange) => boolean) => {
+    for (const occurrence of route.occurrences) {
+      if (occurrence.end < start || occurrence.start > end) continue;
+      if (occurrence.ordinal > 0 && occurrence.start > start && occurrence.start <= end) {
+        const before = route.occurrences[occurrence.ordinal - 1]!;
+        const from = centres(before, occurrence.incoming!.from.carriageway, before.end - before.start);
+        if (visit({ s: occurrence.start, from, to: centres(occurrence, roadAt(occurrence, 0, exit), 0) })) return;
+      }
+      const section = occurrence.section;
+      if (section.carriageways.length < 2) continue;
+      const stations = [
+        ...new Set(
+          section.carriageways.flatMap((road) => [
+            Math.max(road.left.vertices[0]!.at.s, road.right.vertices[0]!.at.s),
+            Math.min(road.left.vertices.at(-1)!.at.s, road.right.vertices.at(-1)!.at.s),
+          ]),
+        ),
+      ]
+        .filter((at) => at > 0 && at < section.coordinates.domain.end)
+        .sort((a, b) => a - b);
+      let road = roadAt(occurrence, 0, exit);
+      for (const at of stations) {
+        const next = roadAt(occurrence, at, exit);
+        if (next === road) continue;
+        const s = occurrence.start + at;
+        if (
+          s > start &&
+          s <= end &&
+          visit({ s, from: centres(occurrence, road, at), to: centres(occurrence, next, at) })
+        )
+          return;
+        road = next;
+      }
     }
-    for (let o = intent.ordinal; o > occurrence.ordinal; o--) {
-      const { before, after } = seam(route.occurrences[o]!, intent.exit);
-      lane = routeLaneBefore(before, after, Math.min(lane, after.road.lanes - 1));
+  };
+  // The intent's lane at route station `s`: carried by position across each change of the followed Carriageway between.
+  const laneIn = (intent: DriverIntent, s: number) => {
+    let lane = intent.lane;
+    if (s > intent.at)
+      changes(intent.at, s, intent.exit, (change) => {
+        lane = routeLaneAcross(change.from, lane, change.to).lane;
+        return false;
+      });
+    else if (s < intent.at) {
+      const between: RoadChange[] = [];
+      changes(s, intent.at, intent.exit, (change) => {
+        between.push(change);
+        return false;
+      });
+      for (let i = between.length - 1; i >= 0; i--) lane = routeLaneBefore(between[i]!.from, between[i]!.to, lane);
     }
     return lane;
   };
@@ -118,62 +169,45 @@ export function createCourseForkField(
      * Carriageway existing there.
      */
     targetCarriageway,
-    /** The target l for an intent: the centre of its lane there, within the lanes of the Carriageway it follows. */
+    /** The target l for an intent: the centre of its lane there, in the Carriageway it follows. */
     targetL(s: number, intent: DriverIntent) {
       const { occurrence, road, at } = targetCarriageway(s, intent.exit);
-      return (
-        courseLaneCenterAt(road, Math.min(laneIn(intent, occurrence), road.lanes - 1), at) - occurrence.lateralOrigin
-      );
+      return courseLaneCenterAt(road, laneIn(intent, s), at) - occurrence.lateralOrigin;
     },
-    /** Rewrite an intent's lane as its lane in the occurrence at route station `s`. */
-    carry(intent: { lane: number; ordinal: number; exit: DriverIntent['exit'] }, s: number) {
-      const occurrence = route.at(s)!;
-      if (occurrence.ordinal === intent.ordinal) return;
-      intent.lane = laneIn(intent, occurrence);
-      intent.ordinal = occurrence.ordinal;
+    /** Rewrite an intent's lane as its lane at route station `s`. */
+    carry(intent: { lane: number; at: number; exit: DriverIntent['exit'] }, s: number) {
+      intent.lane = laneIn(intent, s);
+      intent.at = s;
     },
     /**
-     * Where the intent's lane ends ahead: the first seam after route station `s`, through `end`, at which it does not
-     * continue (`routeLaneAcross`), and, when that seam ends the occurrence at `s`, the lane there that continues into
-     * the same lane (the lane to merge toward); null when the lane runs on through `end`.
+     * Where the intent's lane ends ahead: the first change of the followed Carriageway after route station `s`, through
+     * `end`, across which it does not continue (`routeLaneAcross`), and, when that is the first change ahead, the lane
+     * before it that continues into the same lane (the lane to merge toward); null when the lane runs on through `end`.
      */
     laneEnd(
       s: number,
       end: number,
       intent: DriverIntent,
     ): { readonly s: number; readonly merge: number | null } | null {
-      const occurrence = route.at(s)!;
-      let lane = laneIn(intent, occurrence);
-      for (let o = occurrence.ordinal + 1; o < route.occurrences.length; o++) {
-        const next = route.occurrences[o]!;
-        if (next.start > end) break;
-        const { before, after } = seam(next, intent.exit);
-        const across = routeLaneAcross(before, Math.min(lane, before.road.lanes - 1), after);
-        if (!across.continues)
-          return {
-            s: next.start,
-            merge: o === occurrence.ordinal + 1 ? routeLaneBefore(before, after, across.lane) : null,
-          };
+      let lane = laneIn(intent, s),
+        first = true;
+      let ended: { readonly s: number; readonly merge: number | null } | null = null;
+      changes(s, end, intent.exit, (change) => {
+        const across = routeLaneAcross(change.from, lane, change.to);
+        if (!across.continues) {
+          ended = { s: change.s, merge: first ? routeLaneBefore(change.from, change.to, across.lane) : null };
+          return true;
+        }
         lane = across.lane;
-      }
-      return null;
+        first = false;
+        return false;
+      });
+      return ended;
     },
-    /** The lane number whose centre lies nearest route lateral `l` at route station `s`, on the road holding or nearest `l`. */
-    intentLane(s: number, l: number) {
-      const occurrence = route.at(s)!;
-      const section = occurrence.section;
-      const at = routeSectionS(occurrence, s);
-      const native = l + occurrence.lateralOrigin;
-      const distance = (road: CompiledCarriageway) =>
-        Math.max(courseBoundaryAt(road.left, at) - native, native - courseBoundaryAt(road.right, at), 0);
-      let nearest: CompiledCarriageway | null = null;
-      for (const road of section.carriageways)
-        if (
-          courseCarriagewayExists(road, at, section.coordinates.domain.end) &&
-          (!nearest || distance(road) < distance(nearest))
-        )
-          nearest = road;
-      return courseLaneAt(nearest!, native, at);
+    /** The lane of the Carriageway an intent following `exit` follows at route station `s` nearest route lateral `l`. */
+    intentLane(s: number, l: number, exit: DriverIntent['exit']) {
+      const { occurrence, road, at } = targetCarriageway(s, exit);
+      return courseLaneAt(road, l + occurrence.lateralOrigin, at);
     },
     /**
      * The recovery l at route station `s`: a driven competitor's target l for its intent; the player, which has no

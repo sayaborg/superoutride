@@ -446,8 +446,8 @@ Boundary knots strictly increase. Their resolved vertices define affine edges; w
 A Carriageway is `{id, left, right, lanes}`; both edge IDs resolve to Boundaries in its Section. `lanes`, an
 integer from 1 through `carriagewayLanes` (8), divides the road between its Boundaries into equal lanes numbered from
 0 at the left: the centre of lane i at station s is `left + (i + 0.5) / lanes × (right − left)`
-(`courseLaneCenterAt`), and the lane nearest a lateral position is the one whose interval holds it, ties to the right
-(`courseLaneAt`). The compiled Carriageway publishes `lanes`.
+(`courseLaneCenterAt`), and the lane nearest a lateral position is the one whose interval holds it, a position on the
+line between two lanes going to the lower-numbered one (`courseLaneAt`), the one tie rule of every nearest-lane choice. The compiled Carriageway publishes `lanes`.
 Its existence interval is the intersection of those Boundary domains, with no separate range field.
 The intersection must have positive length. Membership is `[start,end)`, including the end only
 when it is the Section terminal. Boundary values themselves remain readable at both endpoints.
@@ -619,20 +619,22 @@ passes of one fork Section are distinct. The lock, the closed Carriageways, the 
 derive from that successor.
 Checkpoint credit remains per actor.
 
-A driver's intent has two separate values: its lane, a lane number in one Route occurrence (`ordinal`), and its target
-exit, an exit index at each fork occurrence. Lanes run on across the seam between two occurrences by position on the
-route ruler (`routeLaneAcross`): a lane continues as the lane of the next Section whose centre is nearest its centre at
-the seam (Carriageway centres compared after each occurrence's `lateralOrigin`); where several lanes run on as one, the
-nearest of them continues and the others end there; on an equal distance the left lane wins either choice. Going back
-across a seam, a lane comes from the lane that continues into it, or from the nearest lane where it begins there
-(`routeLaneBefore`). The race carries each driver's lane number into the occurrence it is in every step. The fork
-field's target (`targetL`) is the centre of the intent's lane, carried to the station's occurrence, in the Carriageway
-the intent follows (`targetCarriageway`), the number limited to that Carriageway's lanes (the fork exits within one
-Section keep this limit): off forks the Carriageway existing there; at a
-fork the selected exit's Carriageway once the occurrence is decided, else the intended exit's, and the Carriageway
-existing there where that exit does not; any exit, a middle one included, can be intended, and the grid side
-implies none. A grid rival's lane is the lane nearest its slot, whose lateral position stays the slot's
-(`intentLane`: on the Carriageway holding or nearest the position). The recovery lane
+A driver's intent has two separate values: its lane, a lane number of the Carriageway it follows at a route station,
+and its target exit, an exit index at each fork occurrence. The Carriageway an intent follows (`targetCarriageway`) is,
+off forks, the Carriageway existing there; at a fork, the selected exit's once the occurrence is decided, else the
+intended exit's, and the Carriageway existing there where that exit does not exist; any exit, a middle one included,
+can be intended, and the grid side implies none. The followed Carriageway changes at seams and, in a branching Section,
+where one road ends and another begins; at every such change lanes run on by position (`routeLaneAcross`): with the lane
+centres on either side compared on the route ruler (after each occurrence's `lateralOrigin`), a lane continues as the
+lane whose centre is nearest its centre there; where several lanes run on as one, the nearest of them continues and the
+others end there; an equal distance goes to the lower-numbered lane in either choice. Going back across a change, a
+lane comes from the lane that continues into it, or from the nearest lane where it begins there (`routeLaneBefore`).
+A lane number thus names one lane of one Carriageway at every station, and a lane that does not continue ends at the
+change, where its driver merges (below). Lane centres need not line up across a change: the lane that continues is the
+same lane, and its driver steers for its centre. The race carries each driver's lane to its station every step. The
+fork field's target (`targetL`) is the centre of the intent's lane, carried to the station, in the Carriageway the
+intent follows. A grid rival's lane is the lane of the Carriageway it follows that is nearest its slot (`intentLane`),
+and the player's driver and takeover start in the lane nearest the player. The recovery lane
 (`recoveryL`) keeps its own rule ([Recovery](#recovery)). The race assigns each rival's target exits from the
 Session seed:
 
@@ -643,8 +645,8 @@ exit = hash(seed, rivalIndex, occurrence.ordinal) mod exitCount
 `hash` (`rivalExit`) chains 32-bit integer avalanche steps (`Math.imul`, shifts and xor), so every runtime computes
 the same exits. Reference runs intend each planned Link's exit and follow no lanes: their target is the start slot's
 lateral position off forks and the target exit's Carriageway centre at forks (the reference line), so lanes do not
-change their path. Scenarios drive the player on the same line and name their exit indices.
-Rivals immediately follow the selected Carriageway center once the fork is decided. Unselected roads show saved
+change their path. Scenarios drive the player by its Session driver and name their exit indices. Once a fork is decided,
+drivers follow the selected exit's Carriageway, their lanes carried to it by position. Unselected roads show saved
 state-selected signs. At/beyond closure, an actor is on a closed Carriageway when that exit exists at its s and
 its l lies between the two edges (including the edges). It recovers at the same chainage onto the selected
 road; progress observations resynchronize. Geometry stays static.
@@ -1076,25 +1078,25 @@ pass, the driver follows on the constrained plan; its inputs stay throttle, brak
 braking times its utilization; the player's, for others' checks, is the Session driver's. The reference line plans
 without a vehicle ahead and meets no other vehicle, so reference runs are unchanged.
 
-Where a driver's lane ends, it merges first, passing or not: this is not a pass. A lane ends at the first seam within
-the driver's lookahead across which it does not continue, by the position rule above, or at a standing object in it
-(one that occupies the lane) nearer than that, whichever comes first. At a seam the lane to merge toward is the lane of
-its own occurrence that continues into the same lane; at a standing object it is the adjacent lane that does not end
+Where a driver's lane ends, it merges first, passing or not: this is not a pass. A lane ends at the first change of the
+followed Carriageway within the driver's lookahead across which it does not continue, by the position rule above, or at
+a standing object in it (one that occupies the lane) nearer than that, whichever comes first. At a change the lane to
+merge toward, when it is the first change ahead, is the lane before it that continues into the same lane; at a standing object it is the adjacent lane that does not end
 within the lookahead, the lower-numbered one when both qualify, and none when neither does. The driver moves toward it
 one lane at a time. Each
 step that its lane ends ahead, the driver moves to the next lane toward it when that lane is free (the free-lane test
 above) and every driven vehicle behind in it can follow the driver, the plan constraint above with the driver as the
-vehicle ahead at its speed; vehicles in the lanes that continue do not yield. While its lane still ends at a seam, the
-seam is a terminal of its plan, so it slows to stop `terminalClearance` short of it until it can merge; an appearance in
+vehicle ahead at its speed; vehicles in the lanes that continue do not yield. While its lane still ends at a change, the
+change is a terminal of its plan, so it slows to stop `terminalClearance` short of it until it can merge; an appearance in
 a lane that ends there plans to stop the same way. A standing object is the vehicle ahead in the lane it ends, and every
 driver keeps its escape gap behind it, passing or not, so it can still merge from rest. A driver that passes does not move into a lane that ends within its
 lookahead. Where a seam adds lanes, every lane continues as its nearest lane, and only a driver that passes moves into
 an added lane, by the passing rule.
 
-Courses add or remove lanes at a seam so that the continuing lanes keep their centres (an authoring convention, not
-checked). A Link matches the outgoing and incoming Carriageways' edges, so a seam that changes the lane count also
-changes the lane width and moves the centres; RIBBON COAST's seams move them by the amounts in the Verification
-course section.
+A lane count changes only at a seam or within a branching Section: in any other Section the followed Carriageway keeps
+its lane count wherever it changes (`invalid_carriageway`). A Link matches the outgoing and incoming Carriageways' edges,
+so a seam that changes the lane count also changes the lane width and moves the centres; RIBBON COAST's seams move them
+by the amounts in the Verification course section, and its drivers steer for the new centres.
 
 The same driver serves reference runs and live rivals. Generated runs contain precise landmark times
 and optional 10 Hz position/speed/utilization traces. The browser loads generated envelopes and compact

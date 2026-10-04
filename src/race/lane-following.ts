@@ -40,7 +40,7 @@ export function occupiesLane(l: number, target: number, centre: number, halfWidt
 /** A driver's intent whose lane the driver itself changes. */
 export interface LaneIntent extends DriverIntent {
   lane: number;
-  ordinal: number;
+  at: number;
 }
 
 /**
@@ -57,11 +57,11 @@ export function createLaneFollowing(
   window: Pick<DrivingDomain, 'end'>,
 ) {
   const { followSeconds } = ENVELOPE_DRIVER;
-  const probe = { lane: 0, ordinal: 0, exit: (() => 0) as DriverIntent['exit'] };
+  const probe = { lane: 0, at: 0, exit: (() => 0) as DriverIntent['exit'] };
   // The centre of `lane` of the driver's intent at station s.
   const centre = (intent: DriverIntent, lane: number, s: number) => {
     probe.lane = lane;
-    probe.ordinal = intent.ordinal;
+    probe.at = intent.at;
     probe.exit = intent.exit;
     return forks.targetL(s, probe);
   };
@@ -246,7 +246,7 @@ export function createLaneFollowing(
       ends: (lane: number) => boolean,
     ): number | null {
       const lanes = forks.targetCarriageway(self.s, intent.exit).road.lanes;
-      const lane = Math.min(intent.lane, lanes - 1);
+      const lane = intent.lane;
       let best = -1,
         bestSpeed = target + ENVELOPE_DRIVER.passingMargin;
       for (const candidate of [lane - 1, lane + 1]) {

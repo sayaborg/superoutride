@@ -19,7 +19,7 @@ export function compileCourseFork(
     condition: boolean,
     message: string,
     at: string,
-    code: 'invalid_gate' | 'invalid_fork' = 'invalid_gate',
+    code: 'invalid_gate' | 'invalid_fork' | 'invalid_carriageway' = 'invalid_gate',
   ) => requireCourse(condition, at, message, code);
   if (section.outgoing.length < 2) {
     check(
@@ -27,6 +27,19 @@ export function compileCourseFork(
       'Lock and closure gates require a branching Section',
       controls[0]?.path ?? `${path}/gates`,
     );
+    // Lane counts change only at seams and within branching Sections: here the Carriageway followed (the first that
+    // exists) keeps its lane count wherever it changes.
+    const end = section.coordinates.domain.end;
+    const followed = (s: number) => section.carriageways.find((road) => courseCarriagewayExists(road, s, end))!;
+    for (const road of section.carriageways)
+      for (const s of [road.left, road.right].flatMap((edge) => [edge.vertices[0]!.at.s, edge.vertices.at(-1)!.at.s]))
+        if (s > 0 && s < end)
+          check(
+            followed(s).lanes === followed(0).lanes,
+            'Only a branching Section changes the lane count within it',
+            `${path}/carriageways`,
+            'invalid_carriageway',
+          );
     return null;
   }
   const locks = controls.filter((gate) => gate.kind === 'lock');

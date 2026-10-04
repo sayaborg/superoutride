@@ -45,7 +45,7 @@ export function createLaneDriving(options: {
   const roadHeading = (vehicle: PresentVehicle['vehicle']) =>
     road.coordinates.toWorld(vehicle.course.s, vehicle.course.l, roadSample).heading;
   const laneDomain = { start: 0, end: 0, terminal: null as number | null };
-  const probe: LaneIntent = { lane: 0, ordinal: 0, exit: () => 0 };
+  const probe: LaneIntent = { lane: 0, at: 0, exit: () => 0 };
   // Drivers see the present vehicles as they stand now, and the standing objects as stopped vehicles from the rearmost
   // present vehicle to the driver lookahead beyond the foremost one, or beyond station `through` when that is farther.
   const observe = (through = -Infinity) => {
@@ -130,7 +130,7 @@ export function createLaneDriving(options: {
       // it, whichever comes first.
       const seamEnd = (lane: number) => {
         probe.lane = lane;
-        probe.ordinal = intent.ordinal;
+        probe.at = intent.at;
         probe.exit = intent.exit;
         return forks.laneEnd(s, ahead, probe);
       };
