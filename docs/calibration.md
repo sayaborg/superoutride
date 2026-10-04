@@ -123,7 +123,14 @@ capability on unit grip without surface drag.
 The following time sets the gap a driver keeps behind the vehicle ahead beyond its response distance, that vehicle's
 speed times the following time; the free space a lane needs ahead, half the two lengths plus the driver's own speed
 times it; and behind, the rear vehicle's speed times it
-([Content and gameplay](content-and-gameplay.md#vehicle-envelopes-and-drivers)). `ENVELOPE_DRIVER` is version 7.
+([Content and gameplay](content-and-gameplay.md#vehicle-envelopes-and-drivers)).
+
+`ENVELOPE_DRIVER.version` identifies the driver policy: the record's values and the driving law that reads them —
+planning, following, lane choice and merging, pedals and steering. It rises by one with every change that alters a
+driver's input for the same vehicle state and observations, whether the change is to a value or to that law, and with
+every field added to or removed from the record; a change that leaves every input the same keeps it. The reference
+driver's identity (`REFERENCE_DRIVER_SHA256`) contains it. It is 8: the passing margin's own field and the lane, object
+and lane-end rules since version 7.
 
 ## Camera settings
 

@@ -8,9 +8,13 @@ import type { RivalEnvelope } from '../content/rival-envelope.js';
 // differencing noise. At 100 m/s the omitted lateral demand is at most 0.001 m/s^2.
 const MIN_DRIVER_CURVATURE_PER_METER = 1e-7;
 
-/** Input/planning policy only. The measured envelope and production mechanics retain their own authority. */
+/**
+ * Input/planning policy only. The measured envelope and production mechanics retain their own authority. `version`
+ * identifies the driver policy, these values and the driving law that reads them; it rises with any change that alters a
+ * driver's input for the same state and observations ([Calibration](../../docs/calibration.md)).
+ */
 export const ENVELOPE_DRIVER = Object.freeze({
-  version: 7,
+  version: 8,
   lookahead: 480,
   spacing: 5,
   responseSeconds: 0.45,
