@@ -929,8 +929,9 @@ vehicle ahead, behind that lane's vehicle ahead under the same constraint (the c
 adjacent lanes differ little in them). It moves to the lane allowing the most, the left one on a tie, when that exceeds
 its constrained plan by more than `speedDeadzone`, and drives that speed in its new lane. It keeps no memory of lanes:
 it stays where it is until another lane is faster by that margin, its former lane included. A lane is free when no
-vehicle in it lies between the driver's following distance ahead, `(L₁ + L₂)/2 + v × followSeconds`, and, behind,
-half the two lengths plus that vehicle's speed times `followSeconds`. With no faster free lane, or when it does not
+vehicle in it is alongside the driver: none lies between half the two lengths plus `terminalClearance` ahead,
+`(L₁ + L₂)/2 + terminalClearance`, and, behind, half the two lengths plus that vehicle's speed times `followSeconds`.
+How far ahead the next vehicle in the lane is, the lane's planned speed already weighs. With no faster free lane, or when it does not
 change lanes, the driver follows on the constrained plan; its inputs stay throttle, brake and steering. Every driver's `a` is its envelope's minimum
 braking times its utilization; the player's, for others' checks, is the Session driver's. The reference line plans
 without a vehicle ahead and meets no other vehicle, so reference runs are unchanged.

@@ -36,7 +36,7 @@ export function createLaneFollowing(forks: {
   targetL(s: number, intent: DriverIntent): number;
   targetCarriageway(s: number, exit: DriverIntent['exit']): TargetCarriageway;
 }) {
-  const { followSeconds } = ENVELOPE_DRIVER;
+  const { followSeconds, terminalClearance } = ENVELOPE_DRIVER;
   const probe = { lane: 0, exit: (() => 0) as DriverIntent['exit'] };
   // Whether `other` occupies `lane` for the driver, at other's station.
   const inLane = (self: VehicleSighting, exit: DriverIntent['exit'], lane: number, other: VehicleSighting) => {
@@ -47,6 +47,9 @@ export function createLaneFollowing(forks: {
   // Half their lengths plus the follower's speed times the following time.
   const followDistance = (follower: VehicleSighting, leader: VehicleSighting) =>
     (follower.length + leader.length) / 2 + follower.speed * followSeconds;
+  // A lane is free when no vehicle in it is alongside the driver — ahead within half their lengths plus the terminal
+  // clearance — or behind within that vehicle's following distance. How far ahead the next vehicle is, the lane's
+  // planned speed already weighs.
   const free = (
     self: VehicleSighting,
     exit: DriverIntent['exit'],
@@ -56,7 +59,7 @@ export function createLaneFollowing(forks: {
     for (const other of sightings) {
       if (other === self || !inLane(self, exit, lane, other)) continue;
       const ds = other.s - self.s;
-      if (ds > -followDistance(other, self) && ds < followDistance(self, other)) return false;
+      if (ds > -followDistance(other, self) && ds < (self.length + other.length) / 2 + terminalClearance) return false;
     }
     return true;
   };
