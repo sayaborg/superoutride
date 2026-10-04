@@ -35,6 +35,7 @@ import { SIM_DT } from './fixed-step.js';
 import { createBarrierContacts } from './barrier-contacts.js';
 import { createRoadsideObjects, type KnockedObjectObservation } from './object-contacts.js';
 import type { createRouteRuntime } from './route-runtime.js';
+import type { RouteOccurrence } from '../course/course-route.js';
 
 type RouteRuntime = ReturnType<typeof createRouteRuntime>;
 
@@ -61,7 +62,12 @@ interface RivalPacing {
  * builds every competitor's mechanics, the player's included, from its Session entry's vehicle and each
  * rival's driver from its entry's envelope; callers supply the player's input only.
  */
-export function createCourseRace(options: { readonly session: ResolvedCourseSession; readonly runtime: RouteRuntime }) {
+export function createCourseRace(options: {
+  readonly session: ResolvedCourseSession;
+  readonly runtime: RouteRuntime;
+  /** The target exit at each fork occurrence of the player's Session driver, which drives the player on request. */
+  readonly playerExit?: (occurrence: RouteOccurrence) => number;
+}) {
   const { course, configuration, budgets, entries, rankLimits, paceSchedule } = options.session;
   const { initialSpeed } = configuration;
   const { runtime } = options;
@@ -422,11 +428,34 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       target: (station: number) => forks.targetL(station, takeoverIntent),
     };
   };
+  // Before GOAL the player's Session driver drives the player when the composition asks (an advance without input), as
+  // the takeover does after GOAL, toward the composition's target exits from the lane nearest the player at the time.
+  const playerIntent: LaneIntent = { lane: 0, ordinal: 0, exit: options.playerExit ?? (() => 0) };
+  const playerWorkspace = createEnvelopeDriverWorkspace();
+  const handOver = (driven: boolean) => {
+    if (outcome.status === 'GOAL') return;
+    if (!driven) {
+      player.body.driving = null;
+      return;
+    }
+    if (!takeoverDriver) throw new RangeError('A Session without an envelope has no player driver');
+    if (player.body.driving) return;
+    const { s, l } = player.actor.vehicle.course;
+    playerIntent.lane = forks.intentLane(s, l);
+    playerIntent.ordinal = runtime.route.at(s)!.ordinal;
+    player.body.driving = {
+      driver: takeoverDriver,
+      intent: playerIntent,
+      workspace: playerWorkspace,
+      target: (station: number) => forks.targetL(station, playerIntent),
+    };
+  };
   const holdBrake: DrivingInput = Object.freeze({ steering: 0, throttle: false, brake: true });
-  // After GOAL the takeover drives the player and its input no longer reaches the vehicle; after GAME OVER the
-  // throttle is released and the player's steering and brake still apply.
-  const afterRunInput = (input: DrivingInput): DrivingInput => {
-    if (outcome.status === 'GAME_OVER') return { ...input, throttle: false };
+  // The player's input this step: its own, or its driver's. After GOAL the takeover drives the player and its input no
+  // longer reaches the vehicle; after GAME OVER the throttle is released and the steering and brake still apply.
+  const playerInputOf = (input: DrivingInput | null, running: boolean): DrivingInput => {
+    if (running) return input ?? laneDriving.drive(player.body);
+    if (outcome.status === 'GAME_OVER') return { ...(input ?? laneDriving.drive(player.body)), throttle: false };
     if (!takeoverDriver) return holdBrake;
     return laneDriving.drive(player.body, drivingDomainBefore(runtime.window, stopS, takeoverDomain));
   };
@@ -434,10 +463,10 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
    * Moves the present field one step: the player by `input`, each rival by its driver, then fork observation and Route
    * loading. A running step (`stepStart` set) also paces paced rivals; after the run ends they hold their pace.
    */
-  const driveField = (input: DrivingInput, stepStart: number | null) => {
+  const driveField = (input: DrivingInput | null, stepStart: number | null) => {
     // Drivers see the present vehicles as they stand at the step's start.
     laneDriving.observe();
-    const playerInput = stepStart === null ? afterRunInput(input) : input;
+    const playerInput = playerInputOf(input, stepStart !== null);
     let minS = Infinity,
       maxS = -Infinity;
     for (const body of activeBodies) {
@@ -475,12 +504,13 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     if (trafficField.update()) refreshBodies();
   };
 
-  const step = (input: DrivingInput) => {
+  const step = (input: DrivingInput | null) => {
     if (startPhase.status === 'WAITING') return;
     if (startPhase.status === 'READY') {
-      holdReady(input);
+      holdReady(input ?? idle);
       return;
     }
+    handOver(input === null);
     if (outcome.status !== 'RUNNING') {
       driveField(input, null);
       stepObservation.recovered = player.body.recovered;
@@ -644,11 +674,14 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     },
     start: () => startPhase.begin(),
     forks,
-    /** One fixed step of SIM_DT; the race takes no step length. */
-    advance(input: DrivingInput) {
+    /**
+     * One fixed step of SIM_DT; the race takes no step length. `input` is the player's; null hands the player to its
+     * Session driver for the step (the player's own input resumes when one is given).
+     */
+    advance(input: DrivingInput | null) {
       stepObservation.recovered = false;
       events = noEvents;
-      player.body.step.input = input;
+      player.body.step.input = input ?? idle;
       step(input);
       simulationSeconds += SIM_DT;
       publish();

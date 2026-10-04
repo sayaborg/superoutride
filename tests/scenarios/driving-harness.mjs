@@ -3,7 +3,6 @@ import { loadDeliveredCourse } from '../../src/content/load-delivered-course.js'
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readDeliveredContent } from '../../tools/course/read-content.ts';
-import { referenceLine } from '../../tools/course/reference-driving-policy.ts';
 import { createCourseScene } from '../../src/view/course-scene.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { prepareSession } from '../../src/race/session-preparation.js';
@@ -157,7 +156,15 @@ export async function runScenario({ course, arcade: scenarioArcade, productArcad
   const session = prepared.resolve(scenario.seed ?? 0);
   const slot = session.entries[0].slot;
   // The race builds every competitor, the player included; the harness reads their state for evidence.
-  const race = createCourseRace({ session, runtime: scene.runtime });
+  // The player's Session driver drives toward the scenario's target exit at every fork.
+  const race = createCourseRace({
+    session,
+    runtime: scene.runtime,
+    playerExit: () => {
+      assert.ok(Number.isInteger(scenario.exit), `${scenario.name}: a fork needs the scenario's target exit`);
+      return scenario.exit;
+    },
+  });
   const { actor } = race.player;
   const { vehicle } = actor;
   const competitors = [race.player, ...race.rivals];
@@ -180,26 +187,21 @@ export async function runScenario({ course, arcade: scenarioArcade, productArcad
     frames: 0,
     stoppedRivals: [],
   };
-  // The player follows the reference line: the scenario's lateral off forks and its target exit index at every fork.
-  const line = referenceLine(race.forks, scene.runtime.route, scenario.lane ?? slot.l, () => {
-    assert.ok(Number.isInteger(scenario.exit), `${scenario.name}: a fork needs the scenario's target exit`);
-    return scenario.exit;
-  });
-  const lane = (s) => {
+  // Scripted laterals leave the player's driver: the closed policy keeps approaching the opposite road at the fork
+  // after a rival locks its choice, until it recovers; the cones policy keeps the scenario's lateral over its stretch.
+  const closedRoad = (s) => {
     const occurrence = scene.runtime.route.at(s);
     const fork = occurrence?.section.fork;
-    if (scenario.policy === 'closed' && fork && actor.recovery.recoveries === 0) {
-      // Deliberately keep approaching the opposite road after a rival locks its choice.
-      const road = fork.exits.at(-1).link.from.carriageway;
-      const nativeS = routeSectionS(occurrence, s);
-      if (courseCarriagewayExists(road, nativeS, occurrence.section.coordinates.domain.end))
-        return (
-          (courseBoundaryAt(road.left, nativeS) + courseBoundaryAt(road.right, nativeS)) / 2 - occurrence.lateralOrigin
-        );
-    }
-    // The cones policy leaves the reference line for the scenario's lateral over its stretch of the Route.
-    if (scenario.policy === 'cones' && s >= scenario.detour.start && s <= scenario.detour.end) return scenario.detour.l;
-    return line(s);
+    if (scenario.policy !== 'closed' || !fork || actor.recovery.recoveries !== 0) return null;
+    const road = fork.exits.at(-1).link.from.carriageway;
+    const nativeS = routeSectionS(occurrence, s);
+    if (!courseCarriagewayExists(road, nativeS, occurrence.section.coordinates.domain.end)) return null;
+    return (courseBoundaryAt(road.left, nativeS) + courseBoundaryAt(road.right, nativeS)) / 2 - occurrence.lateralOrigin;
+  };
+  const scripted = (s) => {
+    if (scenario.policy === 'cones' && s >= scenario.detour.start && s <= scenario.detour.end)
+      return () => scenario.detour.l;
+    return closedRoad(s) === null ? null : (station) => closedRoad(station) ?? closedRoad(s);
   };
   const entryPose = scene.world.coordinates.toWorld(0, 0, { x: 0, z: 0, s: 0, l: 0, heading: 0 });
   let camera;
@@ -256,15 +258,13 @@ export async function runScenario({ course, arcade: scenarioArcade, productArcad
       !rules.departed.length
     )
       input = { ...idle, brake: true };
-    else
-      input = sampleEnvelopeDrivingInput(
-        scene.world.coordinates,
-        vehicle,
-        driver,
-        lane,
-        workspace,
-        scene.runtime.window,
-      );
+    else {
+      // The player's Session driver drives, unless the policy scripts the lateral here.
+      const lateral = scripted(vehicle.course.s);
+      input = lateral
+        ? sampleEnvelopeDrivingInput(scene.world.coordinates, vehicle, driver, lateral, workspace, scene.runtime.window)
+        : null;
+    }
     const step = race.advance(input);
     if (step.recovered) {
       resetCameraRig(rig);
