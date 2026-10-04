@@ -670,10 +670,13 @@ competitor's presence and the player's STAGE. A competitor joining at a later st
 player enters that stage: at the player's route station plus its ahead distance, in its lane, moving at its
 driver's planned speed there (the speed that is the driver's own planned target at that station, with the vehicle
 ahead in that lane as its constraint), and awaits only the race gates after that station. An appearance waits for a
-later step while its place overlaps another vehicle's footprint or while a vehicle behind in its lane could not stop
-for it: for that vehicle's speed `v_b` and braking `a_b`, the gap Δs and the appearing speed `v`,
+later step while its place overlaps another vehicle's footprint or while a vehicle behind in its lane, driven by a
+driver that never changes lanes, could not stop for it: for that vehicle's speed `v_b` and its driver's braking `a_b`,
+the gap Δs and the appearing speed `v`,
 `v_b² > v² + 2 × a_b × max(0, Δs − (L₁ + L₂)/2 − terminalClearance − v_b × responseSeconds − v × followSeconds)`,
-the same constraint the drivers plan with. Session assembly rejects an ahead distance beyond the Route kept loaded ahead of
+the same constraint the drivers plan with. A vehicle behind whose driver changes lanes (a rival, or the player's
+takeover after GOAL) moves over or matches the new vehicle's speed, and the player avoids it, so neither holds an
+appearance back, however close. Session assembly rejects an ahead distance beyond the Route kept loaded ahead of
 the player (the loading coverage's forward distance less one step).
 
 Ranking is one race-layer function (`rankRaceProgress`). Finished actors rank first by finish time. Unfinished
@@ -954,7 +957,8 @@ traffic vehicle appears there, at its lane's centre and its driver's planned spe
 lane, the same appearance as a later stage's entry. Positions at or before the line when the Session starts never appear. A position passes unused,
 never to appear later, when `min(16, 32 − competitors)` traffic vehicles are present (`SESSION_RULE_LIMITS.traffic`
 and `.vehicles`), when the resident Route does not reach it yet, when its place overlaps another vehicle's footprint
-([Body contact](#body-contact)), or when a vehicle behind in its lane could not stop for it (the appearance rule above). A traffic vehicle leaves, for good, once out of view by the same rule as competitors.
+([Body contact](#body-contact)), or when a vehicle behind in its lane whose driver never changes lanes, another traffic
+vehicle in practice, could not stop for it (the appearance rule above). A traffic vehicle leaves, for good, once out of view by the same rule as competitors.
 Traffic exists only where the player can see it: it appears at the farthest visible distance ahead of the player
 and leaves once out of the player's view, so competitors far from the player meet none.
 The race publishes traffic observations in their own list. Records do not depend on traffic settings.

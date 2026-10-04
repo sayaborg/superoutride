@@ -69,8 +69,6 @@ export interface TrafficMotion extends TrafficBody {
   readonly id: string;
   readonly intent: LaneIntent;
   readonly driver: EnvelopeDriver;
-  /** Its driver's planning braking (m/s²). */
-  readonly braking: number;
   readonly driverWorkspace: ReturnType<typeof createEnvelopeDriverWorkspace>;
   input: (s: number) => number;
   readonly contactForce: { x: number; y: number; z: number };
@@ -150,7 +148,7 @@ export function createTrafficField(options: {
       const { candidates } = options.traffic!;
       positions.pass(appearanceLine(), (position, s) => {
         // A position passes unused when the traffic is full, the Route does not reach it yet, its place is occupied or a
-        // vehicle behind could not stop for it.
+        // vehicle behind whose driver keeps its lane could not stop for it.
         if (vehicles.length >= options.limit || !runtime.window.at(s)) return;
         const candidate = candidates[trafficDraw(seed, 'vehicle', position, candidates.length)]!;
         const model = modelOf(candidate.vehicle);
@@ -175,7 +173,6 @@ export function createTrafficField(options: {
           model,
           intent,
           driver: candidate.driver,
-          braking: candidate.driver.braking,
           driverWorkspace: createEnvelopeDriverWorkspace(),
           input: lane,
           contactForce,

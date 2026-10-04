@@ -61,8 +61,8 @@ export interface RaceEvent {
 interface Body {
   readonly vehicle: VehicleState;
   readonly model: VehicleModel;
-  /** Its driver's planning braking (m/s²): the player's is the Session driver's. */
-  readonly braking: number;
+  /** The driver driving it now: a rival's, a traffic vehicle's or the player's takeover after GOAL; null otherwise. */
+  readonly driver: EnvelopeDriver | null;
 }
 interface Actor {
   readonly vehicle: VehicleState;
@@ -208,8 +208,8 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       get model() {
         return c.actor.model;
       },
-      get braking() {
-        return index === 0 ? (takeoverDriver?.braking ?? 0) : rivalDriving[index - 1]!.driver.braking;
+      get driver() {
+        return index === 0 ? (outcome.status === 'GOAL' ? takeoverDriver : null) : rivalDriving[index - 1]!.driver;
       },
       step: {
         state: c.actor.recovery,
@@ -403,8 +403,9 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     );
   };
   // How fast a vehicle of `model` appears at (s, lane(s)) under `driver`: its planned speed there behind the vehicle
-  // ahead in that lane. Null when a vehicle behind in that lane could not stop for it — its own plan, seeing the new
-  // vehicle ahead at that speed, would ask more than its speed — so the appearance waits or passes like an occupied one.
+  // ahead in that lane. Null when a vehicle behind in that lane whose driver never changes lanes could not stop for it —
+  // its own plan, seeing the new vehicle ahead at that speed, would ask more than its speed — so the appearance waits or
+  // passes like an occupied one. Drivers that change lanes move over or match its speed; the player avoids it.
   const appearanceSpeed = (
     model: VehicleModel,
     s: number,
@@ -439,9 +440,11 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     );
     for (const body of bodies)
       if (
+        body.driver &&
+        !body.driver.changesLanes &&
         body.vehicle.course.s <= s &&
         inLane(body) &&
-        !envelopeCanFollow(body.vehicle.course.s, speedOf(body), body.braking, {
+        !envelopeCanFollow(body.vehicle.course.s, speedOf(body), body.driver.braking, {
           s,
           speed,
           clearance: (length + body.model.compiledVehicle.overallLength) / 2,
