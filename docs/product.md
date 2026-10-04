@@ -285,7 +285,7 @@ open edge: there a vehicle can drive off, falls, and returns to the road. A road
 A solid object's solid part is a width across the road, no wider than its picture, with no depth along the road
 and the picture's height; a vehicle that meets it squarely stops, and one that clips its edge is pushed aside.
 A free end of a solid wall is solid in the same way, across the wall's thickness. Solid objects are never
-damaged. A movable object such as a cone or a barricade has a mass. A vehicle that hits one knocks it away and loses
+damaged. A vehicle held against a solid object returns to the road by itself. A movable object such as a cone or a barricade has a mass. A vehicle that hits one knocks it away and loses
 speed in proportion to that mass: a cone costs almost nothing, a heavy barricade is felt. A knocked object shows
 one picture while it flies and another once it has landed, lies where it fell for the rest of the Session and is
 no longer solid.

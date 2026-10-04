@@ -22,10 +22,11 @@ import {
   createSurfaceGeometryWorkspace,
 } from '../vehicle/physics/vehicle-surface-sampling.js';
 import { add3, dot3, scale3, type Vec3 } from '../core/vector3.js';
+import { ENVELOPE_DRIVER } from './envelope-driver.js';
 import { drivenWheelOmega } from '../vehicle/physics/vehicle-definitions.js';
 import { initializeVehicleTireObservation } from '../vehicle/physics/vehicle-tire-observation.js';
 
-type RecoveryReason = 'surface-penetration' | 'outside-domain' | 'overturned' | 'manual' | 'wrong-course';
+type RecoveryReason = 'surface-penetration' | 'outside-domain' | 'blocked' | 'overturned' | 'manual' | 'wrong-course';
 
 // Metres: 1 mm contact/recovery deadband, not floating-point epsilon.
 // At a 1/720 s vehicle substep, gravity alone contributes about 0.019 mm of displacement.
@@ -33,8 +34,11 @@ const SURFACE_PENETRATION_TOLERANCE_METERS = 1e-3;
 
 /** The fixed recovery policy: rules only, shared by every competitor; no live state or target resolution. */
 export interface RecoveryPolicy {
-  /** Consecutive outside-domain fixed steps after which the vehicle recovers. */
-  readonly outsideDomainSteps: number;
+  /**
+   * Consecutive fixed steps a recovery condition holds before the vehicle recovers: outside the coordinate domain, or
+   * held against a fixed object below the driver speed deadzone.
+   */
+  readonly holdSteps: number;
   /** Metres recovery backs off along the Route. */
   readonly backtrackDistance: number;
   /** Recovery speed bounds in m/s. */
@@ -47,8 +51,8 @@ export interface RecoveryPolicy {
 }
 
 export const RECOVERY_POLICY: RecoveryPolicy = Object.freeze({
-  // 44 fixed steps of 1/60 s, about 0.733 s outside the coordinate domain.
-  outsideDomainSteps: 44,
+  // 44 fixed steps of 1/60 s, about 0.733 s.
+  holdSteps: 44,
   backtrackDistance: 8,
   minRecoverySpeed: 18,
   maxRecoverySpeed: 32,
@@ -66,6 +70,8 @@ export interface RecoveryState {
   lastSafeS: number;
   /** Consecutive fixed steps the vehicle center has been outside the coordinate domain. */
   outsideDomainSteps: number;
+  /** Consecutive fixed steps the vehicle has been held against a fixed object below the speed deadzone. */
+  blockedSteps: number;
   recoveries: number;
   lastReason: RecoveryReason | null;
 }
@@ -79,6 +85,7 @@ export function createRecoveryState(vehicle: VehicleState): RecoveryState {
   return {
     lastSafeS: vehicle.course.s,
     outsideDomainSteps: 0,
+    blockedSteps: 0,
     recoveries: 0,
     lastReason: null,
   };
@@ -90,17 +97,24 @@ interface RecoveryOptions {
 }
 
 /**
- * One fixed gameplay step under the step's input and external force (N, world). Recovery observes the completed step;
- * physics faults stay visible.
+ * One fixed gameplay step under the step's input and external force (N, world). `blocked` says whether a fixed object
+ * (a solid sprite or a wall's free end) pushes the vehicle this step. Recovery observes the completed step; physics
+ * faults stay visible.
  */
 export function advanceVehicleWithRecovery(
   world: VehicleWorld,
   vehicle: VehicleState,
   model: VehicleModel,
-  { state, input, place, externalForce }: RecoveryOptions & { input: DrivingInput; externalForce: Readonly<Vec3> },
+  {
+    state,
+    input,
+    place,
+    externalForce,
+    blocked = false,
+  }: RecoveryOptions & { input: DrivingInput; externalForce: Readonly<Vec3>; blocked?: boolean },
 ): RecoveryReason | null {
   updateVehicle(world, vehicle, model, input, false, externalForce);
-  return updateRecovery(world, vehicle, model, { state, place });
+  return updateRecovery(world, vehicle, model, { state, place }, blocked);
 }
 
 const observationWorkspaces = new WeakMap<
@@ -117,14 +131,23 @@ function updateRecovery(
   vehicle: VehicleState,
   model: VehicleModel,
   { state, place }: RecoveryOptions,
+  blocked: boolean,
 ): RecoveryReason | null {
   if (!vehicle.course.inDomain) {
     state.outsideDomainSteps += 1;
-    if (state.outsideDomainSteps < RECOVERY_POLICY.outsideDomainSteps) return null;
+    if (state.outsideDomainSteps < RECOVERY_POLICY.holdSteps) return null;
     recoverVehicle(world, vehicle, model, { state, reason: 'outside-domain', place });
     return 'outside-domain';
   }
   state.outsideDomainSteps = 0;
+  // Held against a fixed object it cannot leave, with no reverse gear: as long as outside the domain, then recovery.
+  if (blocked && Math.hypot(vehicle.longitudinalSpeed, vehicle.lateralSpeed) < ENVELOPE_DRIVER.speedDeadzone) {
+    state.blockedSteps += 1;
+    if (state.blockedSteps >= RECOVERY_POLICY.holdSteps) {
+      recoverVehicle(world, vehicle, model, { state, reason: 'blocked', place });
+      return 'blocked';
+    }
+  } else state.blockedSteps = 0;
   const { coordinates, height, surfaces } = world;
   let workspace = observationWorkspaces.get(vehicle);
   if (!workspace) {
@@ -217,6 +240,7 @@ export function recoverVehicleToPlanCoordinate(
 
   state.lastSafeS = target.s;
   state.outsideDomainSteps = 0;
+  state.blockedSteps = 0;
   state.recoveries += 1;
   state.lastReason = reason;
 }

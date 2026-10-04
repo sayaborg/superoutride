@@ -222,6 +222,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
         input: { steering: 0, throttle: false, brake: false } as DrivingInput,
         place: (s: number) => vacantPlace(motion, s, c.recoveryLane),
         externalForce: contactForce,
+        blocked: false,
       },
       /** The driver's target lateral; a new function whenever its lane changes, since the driver caches by lane. */
       input: (s: number) => forks.targetL(s, c.intent!),
@@ -236,6 +237,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   const bodies: (Body & {
     readonly id: string;
     readonly previous: { readonly s: number; readonly l: number };
+    readonly step: { blocked: boolean };
     readonly sighting: VehicleSighting;
     readonly contactForce: { x: number; y: number; z: number };
     readonly input: (s: number) => number;
@@ -745,6 +747,8 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     bodyContacts(bodies);
     barrierContacts(bodies);
     roadsideObjects.contacts(bodies);
+    // A vehicle a fixed object holds may recover; the step's recovery reads it.
+    for (const body of bodies) body.step.blocked = roadsideObjects.blocks(body.id);
     move(active[0]!, playerInput);
     for (let i = 1; i < active.length; i += 1) {
       const motion = active[i]!;

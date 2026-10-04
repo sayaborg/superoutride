@@ -80,6 +80,8 @@ export interface TrafficMotion extends TrafficBody {
     input: DrivingInput;
     readonly place: (s: number) => RecoveryTarget;
     readonly externalForce: { readonly x: number; readonly y: number; readonly z: number };
+    /** Whether a fixed object holds the vehicle this step; the race writes it for recovery. */
+    blocked: boolean;
   };
   readonly observation: CompetitorObservation;
 }
@@ -190,6 +192,7 @@ export function createTrafficField(options: {
             input: idle,
             place: (station: number) => vacantPlace(motion, station, (at) => forks.recoveryL(at, intent)),
             externalForce: contactForce,
+            blocked: false,
           },
           observation: createCompetitorObservation(
             id,

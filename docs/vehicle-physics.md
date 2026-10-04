@@ -203,17 +203,20 @@ stop. No time limit applies to unsupported flight, and body rotation in the air 
 Pitch protection is inactive in the air; see [Torque protection](#torque-protection).
 
 Recovery applies only when driving cannot continue. After each gameplay step, recovery checks the
-first three conditions in order; race composition and the player request the last two:
+first four conditions in order; race composition and the player request the last two:
 
-| Reason                | Condition                                                                                                                                  |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `outside-domain`      | The vehicle center's projected `inDomain` is false for 44 consecutive fixed steps (about 0.733 s)                                          |
-| `overturned`          | Body up points at or below the surface plane (`up dot normal <= 0`) and the CG is within `desiredCgHeight` of the surface along its normal |
-| `surface-penetration` | Unsupported, and the CG lies more than 1 mm below the heightfield along its normal (a hole or material-free ground)                        |
-| `wrong-course`        | Race composition: the vehicle left the route its locked fork allows; it returns to the selected Carriageway                                |
-| `manual`              | The player's request                                                                                                                       |
+| Reason                | Condition                                                                                                                                                                        |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `outside-domain`      | The vehicle center's projected `inDomain` is false for 44 consecutive fixed steps (about 0.733 s)                                                                                |
+| `blocked`             | The race reports a fixed object (a solid sprite or a wall's free end) pushing the vehicle and its speed is below `ENVELOPE_DRIVER.speedDeadzone`, for 44 consecutive fixed steps |
+| `overturned`          | Body up points at or below the surface plane (`up dot normal <= 0`) and the CG is within `desiredCgHeight` of the surface along its normal                                       |
+| `surface-penetration` | Unsupported, and the CG lies more than 1 mm below the heightfield along its normal (a hole or material-free ground)                                                              |
+| `wrong-course`        | Race composition: the vehicle left the route its locked fork allows; it returns to the selected Carriageway                                                                      |
+| `manual`              | The player's request                                                                                                                                                             |
 
-The outside-domain step count resets when the center returns inside; the same condition covers lateral
+The blocked step count resets when the contact ends or the speed reaches the deadzone: there is no reverse gear, so a
+vehicle held against a fixed object returns to the road this way, while one that steers or rolls away does not
+recover. The outside-domain step count resets when the center returns inside; the same condition covers lateral
 exits and either end of the resident window. Course limits keep vehicles inside the lateral domain except past an open
 edge ([Content and gameplay](content-and-gameplay.md#walls)), so lateral exits happen only there. The 44 steps let a short excursion return and an
 unsupported vehicle visibly fall (about 2.64 m from rest) before reconstruction. Outside the domain,

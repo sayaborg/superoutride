@@ -1130,17 +1130,20 @@ no progress, then a fresh player observation.
 The fixed recovery policy is one immutable record (`RECOVERY_POLICY`) shared by every competitor; it holds
 rules only, no live state or target resolution:
 
-| Policy value         | Value  | Meaning                                                                        |
-| -------------------- | ------ | ------------------------------------------------------------------------------ |
-| `outsideDomainSteps` | 44     | Consecutive outside-domain fixed steps before recovery (44 × 1/60 s ≈ 0.733 s) |
-| `backtrackDistance`  | 8 m    | Route distance recovery backs off; loading coverage reads it                   |
-| `minRecoverySpeed`   | 18 m/s | Lower bound of the recovery speed                                              |
-| `maxRecoverySpeed`   | 32 m/s | Upper bound of the recovery speed                                              |
-| `speedRetention`     | 0.58   | Share of forward speed kept, before the bounds                                 |
-| `placementClearance` | 1 m    | Gap left behind the competitor a recovered vehicle is placed behind            |
+| Policy value         | Value  | Meaning                                                                           |
+| -------------------- | ------ | --------------------------------------------------------------------------------- |
+| `holdSteps`          | 44     | Consecutive fixed steps a condition holds before recovery (44 × 1/60 s ≈ 0.733 s) |
+| `backtrackDistance`  | 8 m    | Route distance recovery backs off; loading coverage reads it                      |
+| `minRecoverySpeed`   | 18 m/s | Lower bound of the recovery speed                                                 |
+| `maxRecoverySpeed`   | 32 m/s | Upper bound of the recovery speed                                                 |
+| `speedRetention`     | 0.58   | Share of forward speed kept, before the bounds                                    |
+| `placementClearance` | 1 m    | Gap left behind the competitor a recovered vehicle is placed behind               |
 
-A vehicle's recovery state counts consecutive outside-domain steps as an integer; reaching the policy's count
-recovers the vehicle on that step, and returning inside resets it. Recovery is not a Session rule.
+A vehicle's recovery state counts consecutive outside-domain steps, and consecutive steps held against a fixed object
+below the driver speed deadzone (`blocked`, for every vehicle present; the race reports the fixed objects' pushes from
+the step's contacts), each as an integer; reaching `holdSteps` recovers the vehicle on that step, by the ordinary
+placement and speed rules, and returning inside, or the contact ending or the speed rising, resets that count. Movable
+objects, barrier lines and other vehicles never count. Recovery is not a Session rule.
 
 Route recovery backs off from the farther of causal current chainage and last-safe chainage
 ([Vehicle physics](vehicle-physics.md#airborne-state-and-recovery)). The race owns target resolution: its
