@@ -272,26 +272,32 @@ the top. The touch area does not depend on where the frame is.
 ## 12. Interaction
 
 Competitors and traffic have physical extent and contact each other, cars and motorcycles included.
-A vehicle's contact shape is its footprint, the overall length by overall width, laid along the road: it
-does not turn with the vehicle's yaw. Vehicles at different heights do not contact: a vehicle in the air passes over one below it. Two vehicles whose shapes overlap push each other apart through the face they met at, ahead-behind or side to
-side, until they separate, with equal and opposite forces that act through the ordinary
-vehicle mechanics. Contact never turns a vehicle, never topples a motorcycle, never ends a run by itself and
-causes no damage. Rivals and traffic do not hit other vehicles or solid objects on purpose: a solid object standing in a lane is
-to them a stopped vehicle. Walls — guardrails, walls and cliff faces — run along the road. A visible wall is drawn as a surface standing on its line, rising above the road, dropping below it, or both, in
-strips of color that may repeat along the road. To vehicles a solid wall is a line of unlimited
-height: a vehicle touching it is pushed back across the road, never along it, and scraping along it slows the
-vehicle. A wall may be invisible, and a wall may be for looks only. The edge of the course's ground is an
-invisible solid wall, so a vehicle cannot leave the course sideways, except where the course declares the edge
-open: there a vehicle can drive off, falls, and returns to the road. A roadside object such as a tree, a sign or a building can be solid; grass, bushes and other scenery are not.
-A solid object's solid part is a width across the road, no wider than its picture, with no depth along the road
-and the picture's height; a vehicle that meets it with its front stops and is pushed back, and one that meets it with its side is
-pushed aside.
-A solid wall's end either joins the edge of the course or another solid wall, or is a free end, solid in the same way
-across the thickness its course gives it. Solid objects are never
-damaged. A vehicle held against a solid object returns to the road by itself. A movable object such as a cone or a barricade has a mass. A vehicle that hits one knocks it away and loses
-speed in proportion to that mass: a cone costs almost nothing, a heavy barricade is felt. A knocked object shows
-one picture while it flies and another once it has landed, lies where it fell for the rest of the Session and is
-no longer solid.
+Vehicles that touch push each other apart, ahead-behind or side to side, with equal and opposite forces
+that act through the ordinary vehicle mechanics. A vehicle in the air passes over one below it. Contact
+never turns a vehicle, never topples a motorcycle, never ends a run by itself and causes no damage.
+
+Rivals and traffic drive along lane centres. A rival that catches a slower vehicle moves to a neighbouring
+lane where it can go faster, or else matches its speed and follows. Traffic keeps its lane, leaves it only
+where the lane ends or a solid object stands in it, and does not yield to faster vehicles. Neither hits
+another vehicle or a solid object on purpose. Drivers read the surface ahead: on a surface with less grip
+they corner and brake within what it gives.
+
+Walls — guardrails, walls and cliff faces — run along the road. A visible wall stands on its line, rising
+above the road, dropping below it, or both, in strips of color that may repeat along the road. A solid
+wall cannot be crossed at any height: a vehicle touching it is pushed back across the road, and scraping
+along it slows the vehicle. A wall may be invisible, and a wall may be for looks only. The edge of the
+course's ground is an invisible solid wall, except where the course opens it: there a vehicle can drive
+off, falls, and returns to the road.
+
+A roadside object such as a tree, a sign or a building can be solid; grass, bushes and other scenery are
+not. A solid object is solid across a width no wider than its picture and has no depth along the road. A
+vehicle that meets one is stopped or pushed aside, and a vehicle held against one returns to the road by
+itself. Solid objects are never damaged.
+
+A movable object such as a cone or a barricade has a mass. A vehicle that hits one knocks it away and
+loses speed in proportion to that mass: a cone costs almost nothing, a heavy barricade is felt. A knocked
+object shows one picture while it flies and another once it has landed, lies where it fell for the rest of
+the Session and is no longer solid.
 
 ## 13. Music and sound effects
 
