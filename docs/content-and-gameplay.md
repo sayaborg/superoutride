@@ -780,7 +780,8 @@ competitors present.
 ## Series documents
 
 A series document (`superoutride.series` version 9) is the one owner of its courses' ARCADE settings. It is
-saved as `content/series/<id>.series.json`; `id` equals that file name stem, which is also its manifest ID.
+saved as `content/series/<id>.series.json`; `id` equals that file name stem, which is also its manifest ID. For
+example:
 
 ```json
 {
@@ -834,12 +835,8 @@ and rank limits naming checkpoint or FINISH gates of that course
 with N an integer from 1 to below the field size (the number of entries). The build admits every series course; a
 Session admits the course it drives.
 
-The delivered series is RIBBON (`dev: true`, colors not fixed): RIBBON COAST, RIBBON FORK and RIBBON RING with
-TESTAROSSA, whose fields are 1, 3 and 3 TESTAROSSA entries in its default color with pace ratio 1 in the grid's rearmost slots, with
-`playerSlot: last`. RIBBON COAST has traffic (10 vehicles/km of GOLF_GTI_16V, DELTA_HF_INTEGRALE and PX200E_ARCOBALENO
-at 80 km/h) on its four- and two-lane Sections, none on the one-lane `rough-track`; RIBBON FORK and RIBBON RING have
-none. RIBBON COAST is the [verification course](#verification-course).
-RIBBON ROUGH belongs to no series.
+The delivered series is RIBBON, a development series; its document holds its courses, fields and traffic. RIBBON
+COAST is the [verification course](#verification-course); RIBBON ROUGH belongs to no series.
 
 ## FREE PLAY document
 
@@ -1096,8 +1093,8 @@ an added lane, by the passing rule.
 
 A lane count changes only at a seam or within a branching Section: in any other Section the followed Carriageway keeps
 its lane count wherever it changes (`invalid_carriageway`). A Link matches the outgoing and incoming Carriageways' edges,
-so a seam that changes the lane count also changes the lane width and moves the centres; RIBBON COAST's seams move them
-by the amounts in the Verification course section, and its drivers steer for the new centres.
+so a seam that changes the lane count also changes the lane width and moves the centres, and drivers steer for the new
+centres.
 
 The same driver serves reference runs and live rivals. Generated runs contain precise landmark times
 and optional 10 Hz position/speed/utilization traces. The browser loads generated envelopes and compact
@@ -1235,94 +1232,19 @@ camera before rendering. Unrelated internal faults propagate.
 
 ## Verification course
 
-`ribbon-coast` (RIBBON COAST) is a 10.1 km LINEAR verification course, not a product course: it gathers the
-situations Stage 13 exercises — lane counts, contacts, traffic, walls and roadside objects — in one timed ARCADE
-course, favouring kinds of scene over looks. Its five Sections chain by Links; every Section starts and ends level at
-height 0, and each starts with a taper from the previous road width. Lane counts run 4 → 2 → 1 → 2 → 4. The
-reference driver completes it in 170.4 s; checkpoints come about every 2 km.
-
-At each seam the Carriageway keeps the previous road's width (the Link rule) and then tapers, so the lane centres
-move across it. Lanes continue by position (the left lane on a tie), and every continuing lane's centre moves:
-
-| Seam                                     | Lane centres before → after (m)            | Continuing lanes | Ending lanes           | Centre shift of the continuing lanes |
-| ---------------------------------------- | ------------------------------------------ | ---------------- | ---------------------- | ------------------------------------ |
-| `coast-wide` → `cliff-mountain` (4 → 2)  | −5.25, −1.75, 1.75, 5.25 → −3.5, 3.5       | 0 → 0, 2 → 1     | 1 (into 0), 3 (into 2) | 1.75                                 |
-| `cliff-mountain` → `rough-track` (2 → 1) | −1.75, 1.75 → 0                            | 0 → 0            | 1 (into 0)             | 1.75                                 |
-| `rough-track` → `town` (1 → 2)           | 0 → −1.25, 1.25                            | 0 → 0            | —                      | 1.25                                 |
-| `town` → `coast-fast` (2 → 4)            | −1.75, 1.75 → −2.625, −0.875, 0.875, 2.625 | 0 → 0, 1 → 2     | —                      | 0.875                                |
-
-| Section            | Course stations (m) | Section stations (m) | Lanes, width                  | Content                                                                                                                     |
-| ------------------ | ------------------- | -------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| A `coast-wide`     | 0–1982              | 0–1982               | 4, 14 m                       | Seaside road, grid and start, curves of 350–500 m, gentle rise; `coast-CP1` at 1950                                         |
-| B `cliff-mountain` | 1982–3615           | 0–1633               | 2, 7 m (14 m tapering by 200) | Cliff road, curves of 180–220 m between straights; mountain on the left, sea on the right                                   |
-| C `cliff-mountain` | 3615–5140           | 1633–3158            | 2, 7 m                        | Mountain climb and descent at 6.5–7 %, curves of 90–140 m, a sharp crest at 2278 (12 m vertical curve); `coast-CP2` at 2000 |
-| D `rough-track`    | 5140–6640           | 0–1500               | 1, 5 m DIRT                   | Straight rough track, 50 m / 0.3 m undulations from 200 to 1400, sand (3 m) then grass outside; `coast-CP3` at 855          |
-| E `town`           | 6640–7640           | 0–1000               | 2, 7 m with 2 m shoulders     | Town streets: straights and two near-right-angle corners of 65 and 70 m; trees and signs just outside the shoulders         |
-| F `coast-fast`     | 7640–10140          | 0–2500               | 4, 14 m                       | Fast finish: long straights, curves of 450–500 m; `coast-CP4` at 362, `coast-FINISH` at 2050, 450 m runout                  |
-
-D's undulations rise and fall 0.3 m every 25 m through 25 m vertical curves, so a crest's curvature is
-0.3 × 2 / 25² = 0.00096 /m and `v² × κ` stays within 0.75 g up to 87.5 m/s, above every course vehicle's maximum speed.
-
-Places of the Stage 13-4 content, in Section stations:
-
-| Place                         | Section          | Stations (m)                                                            | Side            |
-| ----------------------------- | ---------------- | ----------------------------------------------------------------------- | --------------- |
-| Guardrail and its lead-ins    | `cliff-mountain` | Lead-in 382–432, guardrail 432–732, lead-out 732–782 (straight 372–792) | Right (sea)     |
-| Rising cliff and its lead-ins | `cliff-mountain` | Lead-in 918–968, cliff 968–1168, lead-out 1168–1218 (straight 918–1218) | Left (mountain) |
-| Falling cliff (open edge)     | `cliff-mountain` | 1383–1583 (straight 1333–1633)                                          | Right (sea)     |
-| Short free-standing wall      | `coast-wide`     | 1300–1320 at l = −15, in the grass (straight 1108–1408)                 | Left            |
-| Solid trees and signs         | `town`           | 110–980, just outside the shoulders                                     | Both            |
-| Cone row                      | `coast-fast`     | 1000–1090, ten cones in the outermost right lane (straight 862–1362)    | Right           |
-| Barricade                     | `coast-fast`     | 1800, outermost left lane (finish straight 1637–2500)                   | Left            |
-
-The three walls are in place. The guardrail is a solid wall 0.3 m thick and 0.8 m high on the shoulder's outer edge
-(5 m right of the centre line): a rail Strip from 0.45 to 0.75 m and a repeat of 0.2 m post Strips every 2 m over it;
-invisible solid lead-ins run from the outer material edge (22 m) to it over 50 m at each end, so none of its ends is
-free. The rising cliff is a solid wall 1 m thick on the left shoulder edge, with the same invisible lead-ins. Its top
-rises from the road (zero height) to 20 m over its first 25 m, varies between 12 and 25 m along it and returns to the road
-at its end, in three rock Strips following the top, with two single patches of other rock (at 40–55 m and 118–140 m along it).
-The falling cliff is a wall for looks only, 1 m thick, dropping 40 m below the road on the right shoulder edge in two rock
-Strips; the outer material narrows to that edge over 30 m before and after it, so the right side has no course limit
-there and nothing is drawn beyond it. The free-standing wall is solid, 0.5 m thick and 1 m high, parallel to the road and
-joined to nothing, so both its ends are fixed objects. In `town` every tree (0.6 m) and sign (0.4 m) is solid. In
-`coast-fast` ten cones (0.3 m wide, 3 kg, launched at 10°) stand 10 m apart from 1000 to 1090 at l = 5.25, the centre of
-the outermost right lane, and one barricade (1.5 m, 50 kg, 8°) at 1800, l = −5.25; their images and launch elevations
-are provisional. Every other sprite on the course has no body.
+`ribbon-coast` (RIBBON COAST) is a LINEAR verification course, not a product course: it gathers the situations Stage 13
+exercises in one timed ARCADE course, favouring kinds of scene over looks — lane counts that change at seams, roads of
+four, two and one lanes, a dirt section, walls with joined and free ends, an open course edge, solid trees and signs,
+and movable cones and a barricade. Its course document holds every Section, wall and object; the driving scenarios
+locate what they exercise from it ([Development](development.md)).
 
 ## Evaluation test course
 
-`ribbon-rough` (RIBBON ROUGH, DEV button 4) is a playability test circuit, not a product course. Its
-extreme vertical profile and corners are authored for hands-on evaluation; its shape is not rounded off
-for completion. The reference driver cannot complete it, so no series holds it: it
-is untimed and delivered without reference runs or time budgets. It is a 4.2 km two-Section circuit on existing materials:
-
-| Section        | Stations (m) | Content                                                                         |
-| -------------- | ------------ | ------------------------------------------------------------------------------- |
-| `rough-bumps`  | 0–260        | Start straight, grid                                                            |
-|                | 270–482      | Narrow road; short waves 8 m / 0.3 m, 12 m / 0.45 m, 15 m / 0.6 m               |
-|                | 540–1100     | Undulations 80 m / 1.6 m; 200 m right sweeper (800–1114) inside them, wide road |
-|                | 1160–1340    | 12 % ramp to a sharp crest (12 m), 18.75 % landing slope                        |
-|                | 1480–1485    | 4 m step drop                                                                   |
-|                | 1550–1670    | Valley: 20 % down, tight sag, 20 % up                                           |
-|                | 1794–1862    | Narrow hairpin of two 20 m right turns, sand trap outside                       |
-|                | 1902–1965    | 40 m left turn                                                                  |
-|                | 1990–2190    | Chicane of 30 m radii over 10 m / 0.3 m bumps                                   |
-| `rough-return` | 8–179        | 15 % climb to a crest carrying an 80 m right kink, 15 % descent                 |
-|                | 235–282      | 80 m left kink on the flat below                                                |
-|                | 320–640      | Dirt road over 25 m / 0.35 m ruts, wide road                                    |
-|                | 640–847      | Gradual climb                                                                   |
-|                | 867–1739     | Two 150 m right sweepers, sand trap outside the first                           |
-
-Speed and ground motion read from 1 m brightness bands on every surface (grass, shoulder, road, dirt,
-sand). Each surface's colored Strip is followed by color-only curb elements over the same lateral and
-longitudinal extent (grass, whose Strip is laterally open, uses ±1000 m). A band's color keeps its
-surface's color and moves the brightest RGB555 channel by one of seven steps from −3 to +3, scaling the
-other channels in proportion; every step stays a distinct color. The step order is one saved 64-entry
-list, drawn once by a fixed-seed generator: adjacent bands differ, including across the 64 m repetition,
-and no shorter period occurs. Every surface indexes that list by the band's whole-metre station (plus
-the first Section's rounded-up length in `rough-return`, so the sequence continues around the lap). Equal
-brightness therefore lines up across the road; an extent starting between whole metres begins with a
-partial band. The bands carry no material.
+`ribbon-rough` (RIBBON ROUGH, DEV button 4) is a playability test circuit, not a product course. Its extreme vertical
+profile and corners are authored for hands-on evaluation; its shape is not rounded off for completion. The reference
+driver cannot complete it, so no series holds it: it is untimed and delivered without reference runs or time budgets.
+Its surfaces carry color-only brightness Strips every metre, so speed and ground motion read on every surface; its
+course document holds them.
 
 ## Observation formats
 
