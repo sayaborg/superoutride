@@ -283,7 +283,8 @@ vehicle. A wall may be invisible, and a wall may be for looks only. The edge of 
 invisible solid wall, so a vehicle cannot leave the course sideways, except where a wall for looks only marks an
 open edge: there a vehicle can drive off, falls, and returns to the road. A roadside object such as a tree, a sign or a building can be solid; grass, bushes and other scenery are not.
 A solid object's solid part is a width across the road, no wider than its picture, with no depth along the road
-and the picture's height; a vehicle that meets it squarely stops, and one that clips its edge is pushed aside.
+and the picture's height; a vehicle that meets it with its front stops and is pushed back, and one that meets it with its side is
+pushed aside.
 A free end of a solid wall is solid in the same way, across the wall's thickness. Solid objects are never
 damaged. A vehicle held against a solid object returns to the road by itself. A movable object such as a cone or a barricade has a mass. A vehicle that hits one knocks it away and loses
 speed in proportion to that mass: a cone costs almost nothing, a heavy barricade is felt. A knocked object shows
