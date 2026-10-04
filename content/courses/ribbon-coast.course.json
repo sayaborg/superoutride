@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 36,
+  "version": 37,
   "name": "RIBBON COAST",
   "entrySectionId": "coast-wide",
   "rules": { "maxLaps": 1 },
@@ -1334,7 +1334,7 @@
               "lateral": { "boundary": "verge-left", "offset": -1.5 },
               "groundOffset": 0,
               "unselectedCarriagewayId": null,
-              "body": { "width": 0.6 }
+              "body": { "width": 0.6, "movable": null }
             }
           ]
         },
@@ -1351,7 +1351,7 @@
               "lateral": { "boundary": "verge-right", "offset": 1.5 },
               "groundOffset": 0,
               "unselectedCarriagewayId": null,
-              "body": { "width": 0.6 }
+              "body": { "width": 0.6, "movable": null }
             }
           ]
         },
@@ -1368,7 +1368,7 @@
               "lateral": { "boundary": "verge-right", "offset": 2.5 },
               "groundOffset": 0,
               "unselectedCarriagewayId": null,
-              "body": { "width": 0.4 }
+              "body": { "width": 0.4, "movable": null }
             }
           ]
         }
@@ -1692,9 +1692,11 @@
               "unselectedCarriagewayId": null,
               "body": {
                 "width": 0.3,
-                "mass": 3,
-                "launchDegrees": 10,
-                "knocked": { "airborne": "cone-flying", "landed": "cone-down" }
+                "movable": {
+                  "mass": 3,
+                  "launchDegrees": 10,
+                  "knocked": { "airborne": "cone-flying", "landed": "cone-down" }
+                }
               }
             }
           ]
@@ -1709,9 +1711,11 @@
           "unselectedCarriagewayId": null,
           "body": {
             "width": 1.5,
-            "mass": 50,
-            "launchDegrees": 8,
-            "knocked": { "airborne": "barricade-flying", "landed": "barricade-down" }
+            "movable": {
+              "mass": 50,
+              "launchDegrees": 8,
+              "knocked": { "airborne": "barricade-flying", "landed": "barricade-down" }
+            }
           }
         }
       ],

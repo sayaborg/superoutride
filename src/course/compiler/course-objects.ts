@@ -60,10 +60,9 @@ export function compileCourseSpriteObjects(
           bottom,
           top: bottom + asset.image.height / SPRITE_SOURCE_TEXELS_PER_METER,
           sprite,
-          movable:
-            'mass' in body
-              ? Object.freeze({ mass: body.mass, launchRadians: (body.launchDegrees * Math.PI) / 180 })
-              : null,
+          movable: body.movable
+            ? Object.freeze({ mass: body.movable.mass, launchRadians: (body.movable.launchDegrees * Math.PI) / 180 })
+            : null,
         }),
       );
     },

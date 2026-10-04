@@ -17,7 +17,7 @@ import {
   readString,
 } from '../core/admission.js';
 
-const COURSE_DOCUMENT_VERSION = 36;
+const COURSE_DOCUMENT_VERSION = 37;
 const ID = { maxLength: COURSE_DOCUMENT_LIMITS.idCodeUnits };
 
 export interface CoursePosition {
@@ -116,19 +116,20 @@ export interface SpriteDocument {
   readonly body: SpriteBodyDocument | null;
 }
 
+/** A solid placement's body: its width across the road (m) and, for a movable one, how it moves (null: fixed). */
+export interface SpriteBodyDocument {
+  readonly width: number;
+  readonly movable: MovableBodyDocument | null;
+}
 /**
- * A solid placement's body: its width across the road (m). A movable one also has a `mass` (kg), the elevation
- * `launchDegrees` (0 or more, under 90) at which a hit throws it, and the sprite images it shows while flying and once
- * landed (`knocked`), drawn in the placement's palette.
+ * How a movable body moves: its `mass` (kg), the elevation `launchDegrees` (0 or more, under 90) at which a hit throws
+ * it, and the sprite images it shows while flying and once landed (`knocked`), drawn in the placement's palette.
  */
-export type SpriteBodyDocument =
-  | { readonly width: number }
-  | {
-      readonly width: number;
-      readonly mass: number;
-      readonly launchDegrees: number;
-      readonly knocked: { readonly airborne: string; readonly landed: string };
-    };
+export interface MovableBodyDocument {
+  readonly mass: number;
+  readonly launchDegrees: number;
+  readonly knocked: { readonly airborne: string; readonly landed: string };
+}
 
 /**
  * One color Strip of a wall: the road's Strip with height in place of lateral. Each knot gives the Strip's `bottom` and
@@ -426,26 +427,26 @@ function sprite(value: unknown, path: string): SpriteDocument {
   });
 }
 function spriteBody(value: unknown, path: string): SpriteBodyDocument {
-  const movable = value !== null && typeof value === 'object' && 'mass' in value;
-  const b = readRecord(value, path, movable ? ['width', 'mass', 'launchDegrees', 'knocked'] : ['width']);
-  const width = readNumber(b.width, `${path}/width`, {
-    min: 0,
-    max: COURSE_DOCUMENT_LIMITS.lateralMeters,
-    exclusiveMin: true,
-  });
-  if (!movable) return Object.freeze({ width });
-  const knocked = readRecord(b.knocked, `${path}/knocked`, ['airborne', 'landed']);
-  const launchDegrees = readNumber(b.launchDegrees, `${path}/launchDegrees`, { min: 0, max: 90 });
-  if (launchDegrees === 90)
-    throw new CourseInputError('invalid_value', `${path}/launchDegrees`, 'A launch elevation is under 90 degrees');
+  const b = readRecord(value, path, ['width', 'movable']);
   return Object.freeze({
-    width,
-    mass: readNumber(b.mass, `${path}/mass`, {
+    width: readNumber(b.width, `${path}/width`, {
+      min: 0,
+      max: COURSE_DOCUMENT_LIMITS.lateralMeters,
+      exclusiveMin: true,
+    }),
+    movable: b.movable === null ? null : movableBody(b.movable, `${path}/movable`),
+  });
+}
+function movableBody(value: unknown, path: string): MovableBodyDocument {
+  const m = readRecord(value, path, ['mass', 'launchDegrees', 'knocked']);
+  const knocked = readRecord(m.knocked, `${path}/knocked`, ['airborne', 'landed']);
+  return Object.freeze({
+    mass: readNumber(m.mass, `${path}/mass`, {
       min: 0,
       max: COURSE_DOCUMENT_LIMITS.objectMassKilograms,
       exclusiveMin: true,
     }),
-    launchDegrees,
+    launchDegrees: readNumber(m.launchDegrees, `${path}/launchDegrees`, { min: 0, max: 90, exclusiveMax: true }),
     knocked: Object.freeze({
       airborne: readString(knocked.airborne, `${path}/knocked/airborne`, ID),
       landed: readString(knocked.landed, `${path}/knocked/landed`, ID),

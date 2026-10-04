@@ -171,15 +171,20 @@ export function readNumber(
     min = -Infinity,
     max = Infinity,
     exclusiveMin = false,
+    exclusiveMax = false,
     integer = false,
-  }: { min?: number; max?: number; exclusiveMin?: boolean; integer?: boolean } = {},
+  }: { min?: number; max?: number; exclusiveMin?: boolean; exclusiveMax?: boolean; integer?: boolean } = {},
 ): number {
   if (typeof value !== 'number') throw new AdmissionError('invalid_shape', path, 'Expected a number');
-  if (!Number.isFinite(value) || value > max || (exclusiveMin ? value <= min : value < min))
+  if (
+    !Number.isFinite(value) ||
+    (exclusiveMax ? value >= max : value > max) ||
+    (exclusiveMin ? value <= min : value < min)
+  )
     throw new AdmissionError(
       'invalid_numeric_domain',
       path,
-      `Expected a finite number in ${exclusiveMin ? '(' : '['}${min}, ${max}]`,
+      `Expected a finite number in ${exclusiveMin ? '(' : '['}${min}, ${max}${exclusiveMax ? ')' : ']'}`,
     );
   if (integer && !Number.isInteger(value))
     throw new AdmissionError('invalid_numeric_domain', path, 'Expected an integer');

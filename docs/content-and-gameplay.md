@@ -26,7 +26,7 @@ whitespace do not affect identity. Normalized records use schema field order and
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 36,
+  format: "superoutride.course", version: 37,
   name, entrySectionId,
   sections, links, assets, rules
 }
@@ -113,10 +113,11 @@ Each expanded placement resolves `lateral` at its own s, so repetitions follow r
 Compilation shares one immutable resource for each image/palette-name pair across Sections; the
 renderer borrows the compiled decoded image and materializes one palette variant per resource. Sprites have no authored identity.
 
-`body` is null for scenery vehicles pass through (grass, bushes), `{width}`, a positive width in metres, for a fixed solid
-object, or `{width, mass, launchDegrees, knocked: {airborne, landed}}` for a movable one ([Roadside
-objects](#roadside-objects)): `mass` in kilograms (positive, up to `objectMassKilograms`), `launchDegrees` the elevation a
-hit throws it at (0 or more, under 90), and `airborne` and `landed` the sprite images in the course `assets` it shows while
+`body` is null for scenery vehicles pass through (grass, bushes), or `{width, movable}` for a solid object: `width` a
+positive width in metres, and `movable` null for a fixed object or `{mass, launchDegrees, knocked: {airborne, landed}}`
+for a movable one ([Roadside objects](#roadside-objects)): `mass` in kilograms (positive, up to `objectMassKilograms`),
+`launchDegrees` the elevation a hit throws it at (0 or more, under 90; one `invalid_numeric_domain` outside), and
+`airborne` and `landed` the sprite images in the course `assets` it shows while
 flying and once landed, drawn in the placement's palette (they may name one image twice). Compilation rejects a width
 wider than the image's world width (its master width at 40 texels/m) and a body on a state-selected sign
 (`invalid_placement`); the appearance compiler resolves the knocked images like the placement's own.
@@ -322,6 +323,7 @@ CourseDocument nulls each have one meaning:
 | Strip knot `left` / `right`      | That edge is open to negative / positive lateral infinity |
 | Sprite `unselectedCarriagewayId` | Ordinary sprite with no exit-selection condition          |
 | Sprite `body`                    | Scenery: vehicles pass through it                         |
+| Sprite body `movable`            | A fixed object                                            |
 
 ### Numeric and resource domains
 

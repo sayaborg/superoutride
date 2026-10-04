@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 36,
+  "version": 37,
   "name": "RIBBON ROUGH",
   "entrySectionId": "rough-bumps",
   "rules": { "maxLaps": 3 },

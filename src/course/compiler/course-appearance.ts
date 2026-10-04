@@ -161,17 +161,17 @@ export function compileCourseAppearance(
       );
       const instance = resource(image(placement.image, `${at}/image`), placement.palette, `${at}/palette`);
       // A movable placement's knocked pictures share its palette.
-      const body = placement.body;
+      const movable = placement.body?.movable ?? null;
       const knocked =
-        body !== null && 'mass' in body
+        movable !== null
           ? Object.freeze({
               airborne: resource(
-                image(body.knocked.airborne, `${at}/body/knocked/airborne`),
+                image(movable.knocked.airborne, `${at}/body/knocked/airborne`),
                 placement.palette,
                 `${at}/palette`,
               ),
               landed: resource(
-                image(body.knocked.landed, `${at}/body/knocked/landed`),
+                image(movable.knocked.landed, `${at}/body/knocked/landed`),
                 placement.palette,
                 `${at}/palette`,
               ),
