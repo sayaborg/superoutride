@@ -1373,9 +1373,9 @@ without loading them. It lists every compiled course once, in build order (cours
 (`CIRCUIT`, `LINEAR` or `BRANCH`), the document's `rules.maxLaps` and the number of grid slots of its start gate
 (1 to `startGridSlots`). Every value comes from the course
 document and its compilation. Admission requires exactly the delivered course entries of the manifest, each once,
-and the document rules for names, laps (only `CIRCUIT` has more than one lap) and grid slots. A Session's rivals fit
-the grid: at most its slots less the player's (`gridRivalCapacity`), which Session resolution checks and FREE PLAY
-OPTIONS offers. The first entry is the default
+and the document rules for names, laps (only `CIRCUIT` has more than one lap) and grid slots. A Session's rivals that
+start from the grid fit it: at most its slots less the player's (`gridRivalCapacity`), which Session resolution checks
+and FREE PLAY OPTIONS offers; ARCADE entries that appear ahead do not stand in the grid and do not count. The first entry is the default
 course.
 
 ## Course loading

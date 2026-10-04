@@ -115,7 +115,10 @@ export function compileSessionConfiguration(
       };
     }
   }
-  if (rules.rivalCount > gridRivalCapacity(course.gates.grid.length))
+  // The grid holds the rivals that start from it: in ARCADE the entries with a slot, not those appearing ahead.
+  const gridRivals =
+    rules.mode === 'ARCADE' ? arcade!.entries.filter((entry) => entry.slot !== null).length - 1 : rules.rivalCount;
+  if (gridRivals > gridRivalCapacity(course.gates.grid.length))
     throw new RangeError('The authored grid cannot hold this field');
   return Object.freeze({ ...choice, ...rules });
 }
