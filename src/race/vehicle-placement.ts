@@ -5,27 +5,18 @@ import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import { footprintsOverlap, type RouteFootprint } from './body-contacts.js';
 import type { createCourseForkField } from './course-fork-field.js';
-import {
-  drivingDomainBefore,
-  ENVELOPE_DRIVER,
-  envelopeCanFollow,
-  plannedEnvelopeSpeed,
-  type EnvelopeDriver,
-} from './envelope-driver.js';
-import { occupiesLane, type LaneIntent } from './lane-following.js';
 import { firstObjectFrom, type createRoadsideObjects } from './object-contacts.js';
-import { presentTarget, type PresentVehicle } from './present-vehicle.js';
+import type { PresentVehicle } from './present-vehicle.js';
 import { RECOVERY_POLICY, recoverVehicleToPlanCoordinate, type RecoveryTarget } from './recovery.js';
 
 /**
- * Where the race places vehicles: whether a place is free, where recovery backs a vehicle to, how fast an appearing
- * vehicle enters, and the return of a vehicle off its locked fork route to the selected road. It reads the present
+ * Where the race places vehicles: whether a place is free, where recovery backs a vehicle to, and the return of a vehicle off its locked fork route to the selected road. It reads the present
  * vehicles (`bodies`, which the race keeps current) and the standing roadside objects; it moves no vehicle but the one
  * it recovers.
  */
 export function createVehiclePlacement(options: {
   readonly readers: VehicleWorld & { readonly coordinates: PlanCoordinateReader };
-  readonly window: Pick<RouteView, 'at' | 'start' | 'end' | 'terminal'>;
+  readonly window: Pick<RouteView, 'at' | 'start'>;
   readonly forks: ReturnType<typeof createCourseForkField>;
   readonly roadsideObjects: ReturnType<typeof createRoadsideObjects>;
   readonly bodies: readonly PresentVehicle[];
@@ -82,65 +73,10 @@ export function createVehiclePlacement(options: {
     }
     return { s, l };
   };
-  const appearanceDomain = { start: 0, end: 0, terminal: null as number | null };
   return Object.freeze({
     /** Whether a footprint of `model` at (s, l) would overlap a present vehicle or a standing fixed object. */
     occupied: (model: VehicleModel, s: number, l: number) => occupant(model, s, l) !== null,
     vacantPlace,
-    /**
-     * How fast a vehicle of `model` appears at (s, its intent's target) under `driver`: its planned speed there behind
-     * the vehicle ahead in that lane, and short of that lane's end when it ends within the lookahead. Null when a
-     * vehicle behind in that lane whose driver does not pass could not stop for it — its own plan, seeing the new
-     * vehicle ahead at that speed, would ask more than its speed — so the appearance waits or passes like an occupied
-     * one. Drivers that pass move over or match its speed; the player avoids it.
-     */
-    appearanceSpeed(model: VehicleModel, s: number, intent: LaneIntent, driver: EnvelopeDriver): number | null {
-      const lane = (station: number) => forks.targetL(station, intent);
-      const laneEnd = forks.laneEnd(s, s + ENVELOPE_DRIVER.lookahead, intent)?.s ?? null;
-      const domain = laneEnd === null ? window : drivingDomainBefore(window, laneEnd, appearanceDomain);
-      const length = model.compiledVehicle.overallLength,
-        width = model.compiledVehicle.overallWidth;
-      const inLane = (body: PresentVehicle) =>
-        occupiesLane(
-          body.vehicle.course.l,
-          presentTarget(body),
-          lane(body.vehicle.course.s),
-          (width + body.model.compiledVehicle.overallWidth) / 2,
-        );
-      const speedOf = (body: PresentVehicle) => Math.hypot(body.vehicle.longitudinalSpeed, body.vehicle.lateralSpeed);
-      let ahead: { s: number; speed: number; clearance: number } | null = null;
-      for (const body of bodies)
-        if (body.vehicle.course.s > s && (!ahead || body.vehicle.course.s < ahead.s) && inLane(body))
-          ahead = {
-            s: body.vehicle.course.s,
-            speed: speedOf(body),
-            clearance: (length + body.model.compiledVehicle.overallLength) / 2,
-          };
-      // A standing object in the lane is a stopped vehicle to the appearing driver, as to every driver.
-      roadsideObjects.sight(s, s + ENVELOPE_DRIVER.lookahead, (objectS, l, objectWidth) => {
-        if (
-          objectS > s &&
-          (!ahead || objectS < ahead.s) &&
-          occupiesLane(l, l, lane(objectS), (width + objectWidth) / 2)
-        )
-          ahead = { s: objectS, speed: 0, clearance: length / 2 };
-      });
-      const speed = plannedEnvelopeSpeed(readers.coordinates, s, driver, lane, domain, ahead);
-      for (const body of bodies)
-        if (
-          body.driving &&
-          !body.driving.driver.passes &&
-          body.vehicle.course.s <= s &&
-          inLane(body) &&
-          !envelopeCanFollow(body.vehicle.course.s, speedOf(body), body.driving.driver.braking, {
-            s,
-            speed,
-            clearance: (length + body.model.compiledVehicle.overallLength) / 2,
-          })
-        )
-          return null;
-      return speed;
-    },
     /**
      * Return `body` to the selected road when it has left the route its locked fork allows: behind a vehicle in the
      * way, the selected road's centre. Returns whether it recovered.

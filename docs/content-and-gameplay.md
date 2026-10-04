@@ -741,9 +741,11 @@ competitor's presence and the player's STAGE. A competitor joining at a later st
 player enters that stage: at the player's route station plus its ahead distance, in its lane, moving at its
 driver's planned speed there (the speed that is the driver's own planned target at that station, with the vehicle
 ahead in that lane as its constraint, a standing object in that lane counting as a stopped vehicle), and awaits only
-the race gates after that station. An appearance waits for a
-later step while its place overlaps another vehicle's footprint or while a vehicle behind in its lane, driven by a
-driver that never changes lanes to pass, could not stop for it: for that vehicle's speed `v_b` and its driver's braking `a_b`,
+the race gates after that station. An appearance reads the drivers' sightings, refreshed as the vehicles stand when it
+is decided, and the drivers' rules ([Vehicle envelopes and drivers](#vehicle-envelopes-and-drivers)): the appearing
+vehicle, at its lane's centre, in line with the road and at its planned speed, is a vehicle ahead to those behind it. It waits for a
+later step while its place overlaps another vehicle's footprint or while a driven vehicle behind in its lane, whose
+driver never changes lanes to pass, could not stop for it: for that vehicle's speed `v_b` and its driver's braking `a_b`,
 the gap Δs and the appearing speed `v`,
 `v_b² > v² + 2 × a_b × max(0, Δs − (L₁ + L₂)/2 − terminalClearance − v_b × responseSeconds − v × followSeconds)`,
 the same constraint the drivers plan with. A vehicle behind whose driver passes (a rival, or the player's
@@ -995,17 +997,28 @@ station as its terminal.
 
 Drivers keep clear of other vehicles. Each step the race gives every driver (rivals and the player's takeover after
 GOAL) a read-only list of the vehicles present in the Session as they stand at the step's start: route position,
-speed, dimensions and the lateral each is heading for at its station (its driver's target lateral; its own lateral
-while the player drives it), the player's vehicle included; drivers write no vehicle state. The list also holds the standing
+speed, travel direction relative to the road, dimensions, the lateral each is heading for at its station (its driver's
+target lateral; its own lateral while the player drives it) and the driver driving it, the player's vehicle included;
+drivers write no vehicle state. The list also holds the standing
 roadside objects ([Roadside objects](#roadside-objects)), fixed and movable, wall ends included, from the rearmost
 present vehicle's station to the foremost one's plus the driver lookahead (`ENVELOPE_DRIVER.lookahead`), each read
 from its Section's station-ordered list: an object is a stopped vehicle of zero length and its width, heading for its
-own lateral. Knocked objects and barrier lines are not in it. An object standing in a driver's lane is thus a stopped
+own lateral, at rest in line with the road. Knocked objects and barrier lines are not in it. An object standing in a driver's lane is thus a stopped
 vehicle ahead to it, and one outside every lane occupies none. A vehicle occupies both the
 lanes it overlaps where it is and the lane it is heading for: it is in a lane for a driver when either its lateral or
-the lateral it is heading for lies nearer that lane's centre at its station than half the two vehicles' widths. One
-test decides this for the vehicle ahead, free lanes and appearances. The vehicle ahead in a driver's lane is the
-nearest one ahead in that lane.
+the lateral it is heading for lies nearer that lane's centre at its station than half the two vehicles' widths. Three
+judgements, each with one implementation, decide every driver decision (merging, passing, following, the player's
+takeover after GOAL) and every appearance: whether a vehicle occupies a lane (this test), which vehicle is ahead in a
+lane, and whether the driven vehicles behind in a lane can stop for one ahead (the plan constraint below with that one
+as their vehicle ahead).
+
+A driver's steering path into a lane is where its pursuit steering takes it: traced kinematically in the road's frame,
+as on a straight road, from its lateral and travel direction, steering for the lane's centre its steering lookahead
+ahead (its response distance at its speed, at least `minimumLookahead`, 8 m; within the resident Route), over four
+lookaheads; the lane's centre beyond. The vehicle ahead in a lane is the nearest vehicle ahead that occupies that lane
+or that the driver's steering path into it meets: comes nearer to it side to side than half the two widths anywhere
+over the stations where their footprints overlap lengthwise. A vehicle a driver is moving away from thus stays ahead of
+it until its path clears that vehicle, and one it can steer clear of no longer holds it back.
 Drivers decide in turn, the competitors in competitor order and then the traffic in order of appearance; a driver that
 moves to another lane heads for it in the list at once, so drivers deciding later in the same step see the move, while
 positions and speeds stay as at the step's start.
@@ -1013,13 +1026,17 @@ It is a constraint of the driver's plan, braked back like a curve speed: with th
 driver's speed `v` and planning braking `a`,
 
 ```text
-margin = max(0, Δs − (L₁ + L₂)/2 − terminalClearance − v × responseSeconds − v_a × followSeconds)
+gap    = max(terminalClearance + v_a × followSeconds, escape)
+margin = max(0, Δs − (L₁ + L₂)/2 − gap − v × responseSeconds)
 target² ≤ v_a² + 2 × a × margin
 ```
 
-so a driver following at the leader's speed keeps the footprint gap
-`terminalClearance + v × responseSeconds + v_a × followSeconds`, and stops `terminalClearance` (2 m) behind a stopped
-vehicle. The
+so a driver following at the leader's speed keeps the footprint gap `gap + v × responseSeconds`. `escape` is 0 for a
+driver that does not pass. For one that passes it is the least footprint gap from which its steering path from rest
+(at its lateral, in line with the road) into an adjacent lane of the Carriageway it follows passes clear of the vehicle
+ahead side to side and stays clear, or 0 when no adjacent lane does: a driver that passes stops that far behind a
+stopped vehicle, at least `terminalClearance` (2 m), and when the adjacent lane is free it starts and steers into it
+past the stopped vehicle. A driver that does not pass stops `terminalClearance` behind it. The
 plan is computed once per step, with and without this constraint. Whether a driver changes lanes to pass is an attribute its
 builder gives it (`passes`: whether it changes lanes to pass): rivals' drivers and the player's takeover pass; traffic
 drivers, which Session resolution compiles, do not. When the constraint lowers the planned speed, a driver that passes

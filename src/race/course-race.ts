@@ -274,7 +274,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       const lane = (station: number) => forks.targetL(station, intent);
       // An appearance on another vehicle's footprint, or one a vehicle behind could not stop for, waits for a later step.
       if (placement.occupied(c.actor.model, s, lane(s))) continue;
-      const speed = placement.appearanceSpeed(c.actor.model, s, intent, driver);
+      const speed = laneDriving.appearanceSpeed(c.actor.model, s, intent, driver);
       if (speed === null) continue;
       c.pacing?.pace.join(s);
       c.body.actor = spawn(entry, { s, l: lane(s), initialSpeed: speed });

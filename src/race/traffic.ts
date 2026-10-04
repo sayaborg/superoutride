@@ -130,7 +130,7 @@ export function createTrafficField(options: {
         const lane = (station: number) => forks.targetL(station, intent);
         const l = lane(s);
         if (placement.occupied(model, s, l)) return;
-        const speed = placement.appearanceSpeed(model, s, intent, candidate.driver);
+        const speed = laneDriving.appearanceSpeed(model, s, intent, candidate.driver);
         if (speed === null) return;
         const vehicle = createVehicle(model, runtime.readers, { s, l, initialSpeed: speed });
         const id = `TRAFFIC_${String(position + 1).padStart(4, '0')}`;

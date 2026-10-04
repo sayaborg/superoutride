@@ -14,7 +14,7 @@ const MIN_DRIVER_CURVATURE_PER_METER = 1e-7;
  * driver's input for the same state and observations ([Calibration](../../docs/calibration.md)).
  */
 export const ENVELOPE_DRIVER = Object.freeze({
-  version: 8,
+  version: 9,
   lookahead: 480,
   spacing: 5,
   responseSeconds: 0.45,
@@ -108,11 +108,16 @@ export function createVariableEnvelopeDriver(
 }
 type Lane = number | ((s: number) => number);
 
-/** The vehicle ahead in the driver's lane: its route station, its speed (m/s) and half the two lengths (m). */
+/**
+ * The vehicle ahead in the driver's lane: its route station, its speed (m/s), half the two lengths (m) and the least
+ * footprint gap (m) the driver keeps behind it so that, at rest there, it can still steer around it into an adjacent
+ * lane (`escape`; 0 when it would not).
+ */
 export interface EnvelopeLeader {
   readonly s: number;
   readonly speed: number;
   readonly clearance: number;
+  readonly escape: number;
 }
 const CACHE_SIZE = Math.ceil(ENVELOPE_DRIVER.lookahead / ENVELOPE_DRIVER.spacing) + 1;
 
@@ -245,19 +250,13 @@ function plannedTargetSpeed(
 
 /**
  * The square of the speed a driver at station `s` moving at `speed` with planning braking `braking` may plan behind
- * `leader`: the vehicle ahead is a moving planning point, reached at its speed with the terminal clearance and the
- * following gap kept beyond the response distance, as a curve speed is reached over the remaining distance.
+ * `leader`: the vehicle ahead is a moving planning point, reached at its speed with a footprint gap kept beyond the
+ * response distance — the terminal clearance plus the following gap, or the leader's escape gap when that is more — as a
+ * curve speed is reached over the remaining distance.
  */
 function leaderBoundSquared(s: number, speed: number, braking: number, leader: EnvelopeLeader): number {
-  const margin = Math.max(
-    0,
-    leader.s -
-      s -
-      leader.clearance -
-      ENVELOPE_DRIVER.terminalClearance -
-      speed * ENVELOPE_DRIVER.responseSeconds -
-      leader.speed * ENVELOPE_DRIVER.followSeconds,
-  );
+  const gap = Math.max(ENVELOPE_DRIVER.terminalClearance + leader.speed * ENVELOPE_DRIVER.followSeconds, leader.escape);
+  const margin = Math.max(0, leader.s - s - leader.clearance - gap - speed * ENVELOPE_DRIVER.responseSeconds);
   return leader.speed ** 2 + 2 * braking * margin;
 }
 
@@ -334,7 +333,79 @@ export function sampleEnvelopeDrivingInput(
   return envelopeDrivingInput(coordinates, car, driver, targetL, workspace, domain, target);
 }
 
-/** The driver's input toward lane `targetL` at the planned `targetSpeed`: pursuit steering and pedals. */
+/** The direction a vehicle travels in (rad, as yaw): its yaw turned by its slip, read at a least forward speed. */
+export function travelYaw(car: VehicleMotionRead): number {
+  return car.yaw + Math.atan2(car.lateralSpeed, Math.max(ENVELOPE_DRIVER.travelYawMinimumSpeed, car.longitudinalSpeed));
+}
+
+/** Steps of a traced steering path per steering lookahead, and the lookaheads it is traced over. */
+const STEERING_PATH_STEPS = 16;
+const STEERING_PATH_LOOKAHEADS = 4;
+
+/** A traced steering path: forward distances along the road and the laterals reached there. */
+export function createSteeringPath() {
+  const samples = STEERING_PATH_STEPS * STEERING_PATH_LOOKAHEADS + 1;
+  return { count: 0, distances: new Float64Array(samples), laterals: new Float64Array(samples) };
+}
+
+/**
+ * The path a driver's pursuit steering takes from route station `s` and lateral `l`, travelling at `heading` (rad) to
+ * the road, toward the lateral `target` gives its steering `lookahead` ahead: traced kinematically in the road's frame,
+ * as on a straight road, over four lookaheads, in which the steering settles. Written to `path`.
+ */
+export function traceSteeringPath(
+  path: ReturnType<typeof createSteeringPath>,
+  s: number,
+  l: number,
+  heading: number,
+  lookahead: number,
+  target: (s: number) => number,
+): ReturnType<typeof createSteeringPath> {
+  const step = lookahead / STEERING_PATH_STEPS;
+  let x = 0;
+  path.distances[0] = 0;
+  path.laterals[0] = l;
+  for (let i = 1; i < path.distances.length; i++) {
+    const toward = target(s + x + lookahead) - l;
+    const curvature =
+      (2 * Math.sin(Math.atan2(toward, lookahead) - heading)) /
+      Math.max(ENVELOPE_DRIVER.minimumTargetDistance, Math.hypot(lookahead, toward));
+    x += step * Math.cos(heading);
+    l += step * Math.sin(heading);
+    heading += curvature * step;
+    path.distances[i] = x;
+    path.laterals[i] = l;
+  }
+  path.count = path.distances.length;
+  return path;
+}
+
+/** The lateral a traced steering path reaches `x` metres ahead, or null beyond the traced distance. */
+export function steeringPathLateral(path: ReturnType<typeof createSteeringPath>, x: number): number | null {
+  if (x <= 0) return path.laterals[0]!;
+  for (let i = 1; i < path.count; i++)
+    if (path.distances[i]! >= x) {
+      const a = path.distances[i - 1]!;
+      return path.laterals[i - 1]! + ((path.laterals[i]! - path.laterals[i - 1]!) * (x - a)) / (path.distances[i]! - a);
+    }
+  return null;
+}
+
+/**
+ * How far ahead (m) a driver moving at `speed` (m/s) steers for: its response distance, at least `minimumLookahead` and
+ * at most the plan's lookahead.
+ */
+export function steeringLookahead(speed: number): number {
+  return Math.min(
+    ENVELOPE_DRIVER.lookahead,
+    Math.max(ENVELOPE_DRIVER.minimumLookahead, speed * ENVELOPE_DRIVER.responseSeconds),
+  );
+}
+
+/**
+ * The driver's input toward lane `targetL` at the planned `targetSpeed`: pursuit steering for the lane's lateral its
+ * steering lookahead ahead, and pedals.
+ */
 export function envelopeDrivingInput(
   coordinates: PlanCoordinateReader,
   car: VehicleMotionRead,
@@ -347,19 +418,13 @@ export function envelopeDrivingInput(
   const s = car.course.s;
   const speed = Math.hypot(car.longitudinalSpeed, car.lateralSpeed);
   const { envelope } = driver;
-  const lookahead = Math.min(
-    ENVELOPE_DRIVER.lookahead,
-    Math.max(ENVELOPE_DRIVER.minimumLookahead, speed * ENVELOPE_DRIVER.responseSeconds),
-  );
-  const targetS = clamp(s + lookahead, domain.start, domain.end);
+  const targetS = clamp(s + steeringLookahead(speed), domain.start, domain.end);
   const target = coordinates.toWorld(
     targetS,
     typeof targetL === 'number' ? targetL : targetL(targetS),
     workspace.target,
   );
-  const travelYaw =
-    car.yaw + Math.atan2(car.lateralSpeed, Math.max(ENVELOPE_DRIVER.travelYawMinimumSpeed, car.longitudinalSpeed));
-  const angle = wrapAngle(Math.atan2(target.x - car.x, target.z - car.z) - travelYaw);
+  const angle = wrapAngle(Math.atan2(target.x - car.x, target.z - car.z) - travelYaw(car));
   const distance = Math.max(ENVELOPE_DRIVER.minimumTargetDistance, Math.hypot(target.x - car.x, target.z - car.z));
   const acceleration =
     (2 * Math.sin(angle) * Math.max(ENVELOPE_DRIVER.steeringDemandMinimumSpeed ** 2, speed ** 2)) / distance;

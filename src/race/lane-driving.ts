@@ -1,24 +1,28 @@
-import type { PlanCoordinateReader } from '../course/geometry/plan-coordinate.js';
+import { wrapAngle } from '../core/math.js';
+import { createPlanCoordinateSample, type PlanCoordinateReader } from '../course/geometry/plan-coordinate.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
+import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import type { createCourseForkField } from './course-fork-field.js';
 import {
   drivingDomainBefore,
   ENVELOPE_DRIVER,
-  envelopeCanFollow,
   envelopeDrivingInput,
   envelopeSpeedBehind,
   planEnvelopeDriving,
+  plannedEnvelopeSpeed,
+  travelYaw,
   type DrivingDomain,
+  type EnvelopeDriver,
 } from './envelope-driver.js';
-import { createLaneFollowing, occupiesLane, type LaneIntent, type VehicleSighting } from './lane-following.js';
+import { createLaneFollowing, type LaneIntent, type VehicleSighting } from './lane-following.js';
 import type { createRoadsideObjects } from './object-contacts.js';
 import { presentTarget, type PresentVehicle } from './present-vehicle.js';
 
 /**
- * The drivers' lane decisions over one step's sightings: which lane a driver drives, merging where its lane ends,
- * passing or following a slower vehicle, and the input that follows. `observe` writes, at the step's start, how drivers
- * see the present vehicles (`bodies`, which the race keeps current) and the standing objects ahead; `drive` decides one
- * driver's input from them.
+ * The drivers' lane decisions over the sightings: which lane a driver drives, merging where its lane ends, passing or
+ * following a slower vehicle, and the input that follows; and how fast an appearing vehicle enters. `observe` writes how
+ * drivers see the present vehicles (`bodies`, which the race keeps current) and the standing objects ahead; `drive`
+ * decides one driver's input from them and `appearanceSpeed` one appearance.
  */
 export function createLaneDriving(options: {
   readonly coordinates: PlanCoordinateReader;
@@ -29,48 +33,66 @@ export function createLaneDriving(options: {
 }) {
   const { coordinates, window, forks, roadsideObjects, bodies } = options;
   // Drivers follow and change lanes over the race's sightings of the present vehicles.
-  const following = createLaneFollowing(forks);
+  const following = createLaneFollowing(forks, window);
   const sightings: VehicleSighting[] = [];
-  // Reused records for the standing objects drivers see: zero length, the object's width, at rest, heading nowhere.
-  const objectSightings: { s: number; l: number; length: number; width: number; speed: number; target: number }[] = [];
+  // Reused records for the standing objects drivers see: zero length, the object's width, at rest in line with the
+  // road, heading for their own lateral.
+  const objectSightings: VehicleSighting[] = [];
+  const roadSample = createPlanCoordinateSample();
   const laneDomain = { start: 0, end: 0, terminal: null as number | null };
   const probe: LaneIntent = { lane: 0, ordinal: 0, exit: () => 0 };
-  return Object.freeze({
-    /**
-     * Drivers see the present vehicles as they stand at the step's start, and the standing objects from the rearmost
-     * present vehicle to the foremost one's driver lookahead, as stopped vehicles.
-     */
-    observe() {
-      sightings.length = 0;
-      for (const body of bodies) {
-        const { vehicle, model } = body;
-        Object.assign(body.sighting, {
-          s: vehicle.course.s,
-          l: vehicle.course.l,
-          length: model.compiledVehicle.overallLength,
-          width: model.compiledVehicle.overallWidth,
-          speed: Math.hypot(vehicle.longitudinalSpeed, vehicle.lateralSpeed),
-          target: presentTarget(body),
-        });
-        sightings.push(body.sighting);
-      }
-      let rearS = Infinity,
-        frontS = -Infinity;
-      for (const body of bodies) {
-        rearS = Math.min(rearS, body.vehicle.course.s);
-        frontS = Math.max(frontS, body.vehicle.course.s);
-      }
-      let sighted = 0;
-      roadsideObjects.sight(rearS, frontS + ENVELOPE_DRIVER.lookahead, (s, l, width) => {
-        if (sighted === objectSightings.length)
-          objectSightings.push({ s: 0, l: 0, length: 0, width: 0, speed: 0, target: 0 });
-        const sighting = objectSightings[sighted++]!;
-        sighting.s = s;
-        sighting.l = sighting.target = l;
-        sighting.width = width;
-        sightings.push(sighting);
+  // Drivers see the present vehicles as they stand now, and the standing objects as stopped vehicles from the rearmost
+  // present vehicle to the driver lookahead beyond the foremost one, or beyond station `through` when that is farther.
+  const observe = (through = -Infinity) => {
+    sightings.length = 0;
+    for (const body of bodies) {
+      const { vehicle, model } = body;
+      Object.assign(body.sighting, {
+        s: vehicle.course.s,
+        l: vehicle.course.l,
+        length: model.compiledVehicle.overallLength,
+        width: model.compiledVehicle.overallWidth,
+        speed: Math.hypot(vehicle.longitudinalSpeed, vehicle.lateralSpeed),
+        heading: wrapAngle(
+          travelYaw(vehicle) - coordinates.toWorld(vehicle.course.s, vehicle.course.l, roadSample).heading,
+        ),
+        target: presentTarget(body),
+        driver: body.driving?.driver ?? null,
       });
-    },
+      sightings.push(body.sighting);
+    }
+    let rearS = through,
+      frontS = through;
+    for (const body of bodies) {
+      rearS = Math.min(rearS, body.vehicle.course.s);
+      frontS = Math.max(frontS, body.vehicle.course.s);
+    }
+    let sighted = 0;
+    roadsideObjects.sight(rearS, frontS + ENVELOPE_DRIVER.lookahead, (s, l, width) => {
+      if (sighted === objectSightings.length)
+        objectSightings.push({ s: 0, l: 0, length: 0, width: 0, speed: 0, heading: 0, target: 0, driver: null });
+      const sighting = objectSightings[sighted++] as { s: number; l: number; width: number; target: number };
+      sighting.s = s;
+      sighting.l = sighting.target = l;
+      sighting.width = width;
+      sightings.push(sighting as VehicleSighting);
+    });
+  };
+  // The appearing vehicle as drivers would see it.
+  const appearing = {
+    s: 0,
+    l: 0,
+    length: 0,
+    width: 0,
+    speed: 0,
+    heading: 0,
+    target: 0,
+    driver: null as EnvelopeDriver | null,
+  };
+  const appearanceDomain = { start: 0, end: 0, terminal: null as number | null };
+  return Object.freeze({
+    /** Drivers see the present vehicles and the standing objects ahead as they stand at the step's start. */
+    observe: () => observe(),
     /**
      * A driver's input this step, for the present vehicle `driven` that its driver drives. Its lane is first carried to
      * the occurrence it is in. Where that lane ends within its lookahead (`laneEnd`), it first merges one lane toward the
@@ -95,37 +117,7 @@ export function createLaneDriving(options: {
         return forks.laneEnd(s, s + ENVELOPE_DRIVER.lookahead, probe);
       };
       let end = endOf(intent.lane);
-      // A driven vehicle behind in the lane merged into must be able to stop behind the driver, as for an appearance.
-      const followable = (lane: number) => {
-        const self = driven.sighting;
-        probe.lane = lane;
-        probe.ordinal = intent.ordinal;
-        probe.exit = intent.exit;
-        for (const body of bodies)
-          if (
-            body.driving &&
-            body.sighting !== self &&
-            body.vehicle.course.s <= self.s &&
-            occupiesLane(
-              body.vehicle.course.l,
-              body.sighting.target,
-              forks.targetL(body.vehicle.course.s, probe),
-              (self.width + body.model.compiledVehicle.overallWidth) / 2,
-            ) &&
-            !envelopeCanFollow(body.vehicle.course.s, body.sighting.speed, body.driving.driver.braking, {
-              s: self.s,
-              speed: self.speed,
-              clearance: (self.length + body.model.compiledVehicle.overallLength) / 2,
-            })
-          )
-            return false;
-        return true;
-      };
-      if (
-        end !== null &&
-        end.merge !== null &&
-        following.merge(intent, driven.sighting, sightings, end.merge, followable)
-      ) {
+      if (end !== null && end.merge !== null && following.merge(intent, driven.sighting, sightings, end.merge)) {
         driving.target = (station: number) => forks.targetL(station, intent);
         driven.sighting.target = driving.target(driven.sighting.s);
         end = endOf(intent.lane);
@@ -166,6 +158,39 @@ export function createLaneDriving(options: {
         planned,
         targetSpeed,
       );
+    },
+    /**
+     * How fast a vehicle of `model` appears at (s, its intent's lane centre) under `driver`, seeing the present vehicles
+     * and standing objects as they stand now: its planned speed there behind the vehicle ahead in that lane, and short of
+     * that lane's end when it ends within the lookahead. Null when a driven vehicle behind in that lane whose driver does
+     * not pass could not stop for it at that speed, so the appearance waits or passes like an occupied one. Drivers that
+     * pass move over or match its speed; the player avoids it.
+     */
+    appearanceSpeed(model: VehicleModel, s: number, intent: LaneIntent, driver: EnvelopeDriver): number | null {
+      observe(s);
+      const lane = (station: number) => forks.targetL(station, intent);
+      const laneEnd = forks.laneEnd(s, s + ENVELOPE_DRIVER.lookahead, intent)?.s ?? null;
+      const domain = laneEnd === null ? window : drivingDomainBefore(window, laneEnd, appearanceDomain);
+      Object.assign(appearing, {
+        s,
+        l: lane(s),
+        length: model.compiledVehicle.overallLength,
+        width: model.compiledVehicle.overallWidth,
+        speed: 0,
+        target: lane(s),
+        driver,
+      });
+      appearing.speed = plannedEnvelopeSpeed(
+        coordinates,
+        s,
+        driver,
+        lane,
+        domain,
+        following.leader(intent, appearing, sightings),
+      );
+      return following.followersCanStop(appearing, intent, intent.lane, sightings, (other) => !other.passes)
+        ? appearing.speed
+        : null;
     },
   });
 }

@@ -75,7 +75,7 @@ export function createPresentVehicle(
     previous: { s: actor.vehicle.course.s, l: actor.vehicle.course.l },
     recovered: false,
     contactForce,
-    sighting: { s: 0, l: 0, length: 0, width: 0, speed: 0, target: 0 },
+    sighting: { s: 0, l: 0, length: 0, width: 0, speed: 0, heading: 0, target: 0, driver: null },
     step: {
       get state() {
         return present.actor.recovery;
