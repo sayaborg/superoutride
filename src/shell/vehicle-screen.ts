@@ -26,9 +26,9 @@ export function vehicleName(vehicle: CompiledVehicleDefinition): string {
 
 /**
  * SELECT VEHICLE: the current vehicle turns through its yaw images, drawn as the race draws vehicles, over its name.
- * LEFT and RIGHT change the vehicle and UP and DOWN its color, each wrapping around, starting from `choice`. With
- * fixed colors the vehicle is shown in its default color and has no color choice. CONFIRM chooses the shown vehicle
- * and color (null with fixed colors).
+ * LEFT and RIGHT change the vehicle and UP and DOWN its color, each wrapping around, starting from `choice`; each
+ * vehicle is first shown in `colorOf` its color. With fixed colors it has no color choice and keeps that color. CONFIRM
+ * chooses the shown vehicle and color (null with fixed colors).
  */
 export function createVehicleScreen(
   frame: SoftwareSurface,
@@ -69,7 +69,7 @@ export function createVehicleScreen(
     },
     render() {
       const vehicle = candidates[index]!;
-      const palette = colors[color] ?? vehicle.listing.visuals.palette;
+      const palette = colors[color] ?? choice.colorOf(vehicle);
       const key = `${vehicle.compiledVehicle.id}/${palette}`;
       let set = sets.get(key);
       if (!set) sets.set(key, (set = createVehiclePaletteVariant(vehicle.spriteSet, palette)));

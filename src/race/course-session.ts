@@ -84,6 +84,23 @@ export function sessionDemand(
 
 const rivalId = (index: number) => `RIVAL_${String(index + 1).padStart(2, '0')}`;
 
+// The ARCADE series entry the player takes: the rearmost grid entry of its vehicle.
+const ownEntry = (arcade: SeriesCourse, vehicleId: string) =>
+  arcade.entries.filter((entry) => entry.slot !== null && entry.vehicle === vehicleId).at(-1);
+
+/**
+ * The player's color in a Session: with ARCADE settings whose series fixes colors, its own entry's; else the chosen
+ * color, else the vehicle's default color. Selection screens show the same color.
+ */
+export function sessionPlayerColor(
+  arcade: SeriesCourse | null,
+  vehicle: CompiledVehicleDefinition,
+  chosen: string | null,
+): string {
+  const own = arcade?.series.fixedColors ? ownEntry(arcade, vehicle.compiledVehicle.id) : undefined;
+  return own?.color ?? chosen ?? vehicle.listing.visuals.palette;
+}
+
 /**
  * Resolve one admitted Session configuration (`compileSessionConfiguration`) with its `seed` before actors/ticks
  * exist. Graph and catalog objects remain shared references. `arcade` is the course's admitted series settings, which
@@ -93,8 +110,7 @@ const rivalId = (index: number) => `RIVAL_${String(index + 1).padStart(2, '0')}`
  * its own vehicle (from `field.vehicleOf`) and color. FREE PLAY stands the player in the grid's last slot and the
  * rivals in the slots in front, each a pair drawn from `field.rivalPool` (the configuration's pool's pairs) by the
  * Session seed; TIME TRIAL stands the player alone in the grid's last slot, without traffic. Traffic candidates come
- * from `field.vehicleOf` with their drivers, compiled once. The player's color is its entry's when the series fixes
- * colors, else the configuration's, else the vehicle's default color.
+ * from `field.vehicleOf` with their drivers, compiled once. The player's color is `sessionPlayerColor`'s.
  */
 export function resolveCourseSession(
   course: CompiledCourse,
@@ -121,7 +137,11 @@ export function resolveCourseSession(
     throw new RangeError('Session seed must be a 32-bit unsigned integer');
   if (vehicle.vehicleDefinition.compiledVehicle.id !== configuration.vehicleId)
     throw new Error("The Session vehicle is not the configuration's vehicle");
-  const playerColor = configuration.color ?? vehicle.vehicleDefinition.listing.visuals.palette;
+  const playerColor = sessionPlayerColor(
+    configuration.mode === 'ARCADE' ? arcade : null,
+    vehicle.vehicleDefinition,
+    configuration.color,
+  );
   if (configuration.mode === 'ARCADE' && !field.paceSchedule)
     throw new RangeError("ARCADE requires the player vehicle's delivered pace schedule");
   if (configuration.timeLimit && !budgets)
@@ -222,13 +242,13 @@ function arcadeEntries(
   course: CompiledCourse,
   arcade: SeriesCourse,
   player: EntryVehicle,
-  chosenColor: string,
+  playerColor: string,
   vehicleOf: (vehicleId: string) => EntryVehicle,
 ): readonly SessionEntry[] {
   const { grid } = course.gates;
   const playerVehicleId = player.vehicle.vehicleDefinition.compiledVehicle.id;
   const gridEntries = arcade.entries.filter((entry) => entry.slot !== null);
-  const own = [...gridEntries].reverse().find((entry) => entry.vehicle === playerVehicleId)!;
+  const own = ownEntry(arcade, playerVehicleId)!;
   const others = arcade.entries.filter((entry) => entry !== own);
   // `own` keeps every grid entry's slot; `last` gives the player the rearmost of the grid entries' slots and the
   // other grid entries, in order, the slots in front of it. Entries appearing ahead have no slot.
@@ -242,7 +262,7 @@ function arcadeEntries(
       id: 'PLAYER',
       slot: grid[arcade.playerSlot === 'own' ? own.slot! : slots.at(-1)!]!,
       ahead: null,
-      color: arcade.series.fixedColors ? own.color : chosenColor,
+      color: playerColor,
       pace: null,
       stages: null,
       ...player,

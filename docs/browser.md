@@ -100,8 +100,9 @@ shows it; MUSIC and EFFECTS have no sound until their buses exist.
 - SELECT VEHICLE offers the series' vehicles in ARCADE and every catalog vehicle otherwise. The vehicle turns through
   its yaw images on the plain background, one image every six fixed steps, drawn like a race vehicle at the
   player-depth scale, above its name (manufacturer and model). LEFT and RIGHT change the vehicle and UP and DOWN its
-  color, both wrapping around; a series with fixed colors has no color choice. It starts from the player record's
-  color for the vehicle, else the vehicle's default color, and CONFIRM saves the chosen color in the player record.
+  color, both wrapping around. Each vehicle shows the color its Session would give the player (one rule with the
+  race): the player record's color for the vehicle, else the vehicle's default color; in a series with fixed colors,
+  its series entry's color, with no color choice. CONFIRM saves a chosen color in the player record.
 - OPTIONS: RIVALS (0 to the smaller of 15 and the rivals the course's grid holds, from the course index; a course
   change lowers a larger count), POOL (ALL, CARS or BIKES; set to the vehicle's form when the vehicle changes), TRAFFIC
   (OFF, LOW or HIGH; it starts from the player record's latest choice, else OFF, and each change is saved there as the

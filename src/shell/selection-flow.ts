@@ -4,6 +4,7 @@ import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
 import { formPool } from '../race/free-play-field.js';
 import { NO_TRAFFIC, type FreePlayRules } from '../content/free-play-rules.js';
 import { gridRivalCapacity } from '../race/session-configuration.js';
+import { sessionPlayerColor } from '../race/course-session.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import type { SoftwareSurface } from '../view/software-surface.js';
 import type { TextLayer } from '../view/text-layer.js';
@@ -220,7 +221,13 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
             {
               vehicleId: vehicleId ?? latest('vehicle') ?? null,
               fixedColors: mode === 'ARCADE' && seriesChoice!.fixedColors,
-              colorOf: (v) => recordedColor(player, v) ?? v.listing.visuals.palette,
+              // The color the Session gives the player: with fixed colors its series entry's.
+              colorOf: (v) =>
+                sessionPlayerColor(
+                  mode === 'ARCADE' ? catalog.series.courseSettings(courseId!) : null,
+                  v,
+                  recordedColor(player, v),
+                ),
             },
             {
               confirm: (vehicle, chosen) => {
