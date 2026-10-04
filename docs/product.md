@@ -279,8 +279,11 @@ bands of color that may repeat along the road. To vehicles a solid wall is a lin
 height: a vehicle touching it is pushed back across the road, never along it, and scraping along it slows the
 vehicle. A wall may be invisible, and a wall may be for looks only. The edge of the course's ground is an
 invisible solid wall, so a vehicle cannot leave the course sideways, except where a wall for looks only marks an
-open edge: there a vehicle can drive off, falls, and returns to the road. Movable and fixed roadside objects are
-not yet part of the game.
+open edge: there a vehicle can drive off, falls, and returns to the road. A roadside object such as a tree, a sign or a building can be solid; grass, bushes and other scenery are not.
+A solid object's solid part is a width across the road, no wider than its picture, with no depth along the road
+and the picture's height; a vehicle that meets it squarely stops, and one that clips its edge is pushed aside.
+A free end of a solid wall is solid in the same way, across the wall's thickness. Solid objects are never
+damaged. Movable roadside objects are not yet part of the game.
 
 ## 13. Music and sound effects
 

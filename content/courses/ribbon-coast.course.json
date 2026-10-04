@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 33,
+  "version": 34,
   "name": "RIBBON COAST",
   "entrySectionId": "coast-wide",
   "rules": { "maxLaps": 1 },
@@ -55,6 +55,13 @@
           "knots": [
             { "at": { "pi": "start", "offset": 0 }, "lateral": 25 },
             { "at": { "pi": "end", "offset": 0 }, "lateral": 25 }
+          ]
+        },
+        {
+          "id": "grass-wall",
+          "knots": [
+            { "at": { "pi": "start", "offset": 1290 }, "lateral": -15 },
+            { "at": { "pi": "start", "offset": 1330 }, "lateral": -15 }
           ]
         }
       ],
@@ -253,7 +260,25 @@
           "color": 32765
         }
       ],
-      "walls": [],
+      "walls": [
+        {
+          "boundary": "grass-wall",
+          "from": { "pi": "start", "offset": 1300 },
+          "to": { "pi": "start", "offset": 1320 },
+          "solid": true,
+          "thickness": 0.5,
+          "strips": [
+            {
+              "kind": "strip",
+              "color": 18991,
+              "knots": [
+                { "at": { "pi": "start", "offset": 1300 }, "bottom": 0, "top": 1 },
+                { "at": { "pi": "start", "offset": 1320 }, "bottom": 0, "top": 1 }
+              ]
+            }
+          ]
+        }
+      ],
       "height": [
         { "at": { "pi": "start", "offset": 0 }, "y": 0, "curveLength": 0 },
         { "at": { "pi": "start", "offset": 450 }, "y": 0, "curveLength": 80 },
@@ -283,7 +308,8 @@
               "at": { "pi": "start", "offset": 230 },
               "lateral": { "boundary": "verge-left", "offset": -6 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null
+              "unselectedCarriagewayId": null,
+              "body": null
             }
           ]
         },
@@ -299,7 +325,8 @@
               "at": { "pi": "start", "offset": 250 },
               "lateral": { "boundary": "verge-right", "offset": 6 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null
+              "unselectedCarriagewayId": null,
+              "body": null
             }
           ]
         }
@@ -780,7 +807,8 @@
               "at": { "pi": "start", "offset": 260 },
               "lateral": { "boundary": "verge-left", "offset": -5 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null
+              "unselectedCarriagewayId": null,
+              "body": null
             }
           ]
         },
@@ -796,7 +824,8 @@
               "at": { "pi": "start", "offset": 1653.028484 },
               "lateral": { "boundary": "verge-left", "offset": -5 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null
+              "unselectedCarriagewayId": null,
+              "body": null
             }
           ]
         },
@@ -812,7 +841,8 @@
               "at": { "pi": "start", "offset": 1668.028484 },
               "lateral": { "boundary": "verge-right", "offset": 5 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null
+              "unselectedCarriagewayId": null,
+              "body": null
             }
           ]
         }
@@ -1098,7 +1128,8 @@
               "at": { "pi": "start", "offset": 120 },
               "lateral": { "boundary": "sand-left", "offset": -4 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null
+              "unselectedCarriagewayId": null,
+              "body": null
             }
           ]
         },
@@ -1114,7 +1145,8 @@
               "at": { "pi": "start", "offset": 140 },
               "lateral": { "boundary": "sand-right", "offset": 4 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null
+              "unselectedCarriagewayId": null,
+              "body": null
             }
           ]
         }
@@ -1349,7 +1381,8 @@
               "at": { "pi": "start", "offset": 110 },
               "lateral": { "boundary": "verge-left", "offset": -1.5 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null
+              "unselectedCarriagewayId": null,
+              "body": { "width": 0.6 }
             }
           ]
         },
@@ -1365,7 +1398,8 @@
               "at": { "pi": "start", "offset": 125 },
               "lateral": { "boundary": "verge-right", "offset": 1.5 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null
+              "unselectedCarriagewayId": null,
+              "body": { "width": 0.6 }
             }
           ]
         },
@@ -1381,7 +1415,8 @@
               "at": { "pi": "start", "offset": 140 },
               "lateral": { "boundary": "verge-right", "offset": 2.5 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null
+              "unselectedCarriagewayId": null,
+              "body": { "width": 0.4 }
             }
           ]
         }
@@ -1668,7 +1703,8 @@
               "at": { "pi": "start", "offset": 220 },
               "lateral": { "boundary": "verge-left", "offset": -6 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null
+              "unselectedCarriagewayId": null,
+              "body": null
             }
           ]
         },
@@ -1684,7 +1720,8 @@
               "at": { "pi": "start", "offset": 240 },
               "lateral": { "boundary": "verge-right", "offset": 6 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null
+              "unselectedCarriagewayId": null,
+              "body": null
             }
           ]
         }

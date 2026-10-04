@@ -18,7 +18,7 @@ color and material overwrite independently. Compiled Sections publish their two 
 Checkpoints, starts, finishes and environment changes are independent of Section boundaries.
 Source identity, traversal identity and race credit are distinct.
 
-## CourseDocument v33
+## CourseDocument v34
 
 The saved format is compact UTF-8 JSON. All declared fields are required; explicit null represents
 absent optional content. Unknown fields fail. Arrays preserve saved order; object-property order and
@@ -103,7 +103,7 @@ resolve authored references.
 ### Sprites and environment
 
 Section `sprites` is an ordered array of `sprite` or `repeat` elements. A sprite is
-`{kind:"sprite",image,palette,at,lateral,groundOffset,unselectedCarriagewayId}`.
+`{kind:"sprite",image,palette,at,lateral,groundOffset,unselectedCarriagewayId,body}`.
 `image` names a sprite image in the course `assets`; `palette` is a required nonempty name
 without surrounding whitespace, declared by that image. To use its default color, write the image's
 `defaultPalette` name explicitly; arrays, null and omission are invalid. Compilation rejects unknown
@@ -112,6 +112,10 @@ names with `unresolved_reference` at the sprite's `/palette` JSON Pointer.
 Each expanded placement resolves `lateral` at its own s, so repetitions follow referenced Boundaries.
 Compilation shares one immutable resource for each image/palette-name pair across Sections; the
 renderer borrows the compiled decoded image and materializes one palette variant per resource. Sprites have no authored identity.
+
+`body` is null for scenery vehicles pass through (grass, bushes) or `{width}`, a positive width in metres: the placement
+is then a solid object ([Fixed objects](#fixed-objects)). Compilation rejects a width wider than the image's world width
+(its master width at 40 texels/m) and a body on a state-selected sign (`invalid_placement`).
 
 `unselectedCarriagewayId` is null for ordinary sprites or names, by id, a canonical exit Carriageway of the
 Section's fork. Compiled appearance keeps that id, never a physical Carriageway object. A state-selected sign
@@ -241,6 +245,17 @@ open edge has no support beyond it and falls; ordinary recovery returns it.
 A guardrail is authored as a visible solid wall at the road side, joined to the course limit at both ends by invisible
 solid walls on slanted Boundaries running from the outer material edge to the guardrail's line, so no vehicle can get
 behind it. This is an authoring convention; compilation does not check where a solid wall's ends lie.
+
+### Fixed objects
+
+Compilation publishes each Section's fixed objects, a physical product apart from appearance, in station order: each
+`{s, l, width, bottom, top}`, a solid width across the road at station `s` and lateral `l`, with no depth along it, from
+height `bottom` to `top`. A solid sprite, every expanded placement with a body, is one: its body's width, from the road
+height plus `groundOffset` up its image's world height (read from the image once, at compilation). Each free end of a
+solid wall is another: at the wall's `from` and `to`, the wall's `thickness` wide and of unlimited height. An end is not
+free, and makes no object, when it lies on another barrier line within `OPEN_EDGE_TOLERANCE_METERS`: a course limit, or
+another solid wall from its `from` through its `to`, ends included; compilation decides this once. A wall that is not
+solid has no end objects. Vehicles meet fixed objects as they meet each other ([Body contact](#body-contact)).
 
 ### Section gates and Session settings
 
@@ -481,8 +496,8 @@ clock state belong to Sessions. Object identity is local to a compilation; cross
 `sourceSha256` and `materialsSha256` are the delivered SHA-256 of the course document and the
 surface-material document, the [document identity](#reference-times-and-clock) the catalog supplies.
 `buildSha256` hashes `{sourceSha256,materialsSha256,compiler}`.
-The compiler is `superoutride.course-compiler` version 40, incorporating Link recipe v3, physical
-recipe v6, image-source recipe v2 and appearance recipe v13. Source, material or compiler/recipe
+The compiler is `superoutride.course-compiler` version 41, incorporating Link recipe v3, physical
+recipe v7, image-source recipe v2 and appearance recipe v13. Source, material or compiler/recipe
 changes invalidate dependent products.
 
 Image inputs are explicit saved bytes addressed by each declared SHA-256. Shared digests resolve to
@@ -1027,6 +1042,13 @@ horizontal world direction of the face's axis, the road's tangent or its right, 
 equal magnitude and opposite sign on the two vehicles, on the overlap along the face; its approach speed is their
 relative world velocity along that direction. The spring-damper uses the Session driving definition's `bodyContact` (the player's vehicle model).
 
+A fixed object meets every vehicle present by the same rule, as a party of zero length and its width at its route
+position, with its height range, that never moves: its position one step earlier is its position, the reduced mass is
+the vehicle's mass, and only the vehicle receives the force. Its contact is first met where the object lies within the
+vehicle's length in the Route occurrence at the vehicle's centre, keyed by the vehicle's id and the object's occurrence
+and index, and is then followed until the pair separates. Near a solid wall's free end both the wall's line and the end
+object can push a vehicle; their forces add.
+
 ### Barrier lines
 
 Walls and course limits act on every vehicle present, in every step after READY, from the state at the step's start;
@@ -1074,8 +1096,8 @@ recovers the vehicle on that step, and returning inside resets it. Recovery is n
 
 Route recovery backs off from the farther of causal current chainage and last-safe chainage
 ([Vehicle physics](vehicle-physics.md#airborne-state-and-recovery)). The race owns target resolution: its
-recovery placement (its target lateral from the fork field's `recoveryL`, behind any competitor in the way, see
-[Body contact](#body-contact)) is passed to recovery separately from the policy: a driven
+recovery placement (its target lateral from the fork field's `recoveryL`, behind any vehicle or fixed object in the
+way, see [Body contact](#body-contact)) is passed to recovery separately from the policy: a driven
 competitor recovers to its driving target (`targetL`, the centre of its lane); the player, which has no driver intent,
 recovers to the centre of the selected Carriageway, else of the Carriageway existing there.
 Wrong-route recovery uses the selected Carriageway at the observed station (`legalTarget`).
@@ -1105,26 +1127,29 @@ reference driver completes it in 170.4 s; checkpoints come about every 2 km.
 
 D is straight: the reference driver plans corner speeds from its envelope, measured on asphalt, so on dirt every
 corner arrives faster than dirt grip holds, and even 1000 m bends on dirt set its steering swinging at 60 m/s.
-Places reserved for later Stage 13-4 content, in Section stations:
+Places of the Stage 13-4 content, in Section stations:
 
 | Place                         | Section          | Stations (m)                                                            | Side            |
 | ----------------------------- | ---------------- | ----------------------------------------------------------------------- | --------------- |
 | Guardrail and its lead-ins    | `cliff-mountain` | Lead-in 382–432, guardrail 432–732, lead-out 732–782 (straight 372–792) | Right (sea)     |
 | Rising cliff and its lead-ins | `cliff-mountain` | Lead-in 918–968, cliff 968–1168, lead-out 1168–1218 (straight 918–1218) | Left (mountain) |
 | Falling cliff (open edge)     | `cliff-mountain` | 1383–1583 (straight 1333–1633)                                          | Right (sea)     |
+| Short free-standing wall      | `coast-wide`     | 1300–1320 at l = −15, in the grass (straight 1108–1408)                 | Left            |
+| Solid trees and signs         | `town`           | 110–980, just outside the shoulders                                     | Both            |
+| Cone row                      | `coast-fast`     | 1000–1090, ten cones in the outermost right lane (straight 862–1362)    | Right           |
+| Barricade                     | `coast-fast`     | 1800, outermost left lane (finish straight 1637–2500)                   | Left            |
 
 The three walls are in place. The guardrail is a solid wall 0.3 m thick and 0.8 m high on the shoulder's outer edge
 (5 m right of the centre line): a rail Strip from 0.45 to 0.75 m and a repeat of 0.2 m post Strips every 2 m over it;
-invisible solid lead-ins run from the outer material edge (22 m) to it over 50 m at each end. The rising cliff is a solid
-wall 1 m thick on the left shoulder edge, with the same invisible lead-ins. Its top rises from the road (0.1 m) to 20 m
-over its first 25 m, varies between 12 and 25 m along it and returns to 0.1 m at its end, in three rock bands following
-the top, with two single patches of other rock (at 40–55 m and 118–140 m along it). The falling cliff is a wall for
-looks only, 1 m thick, dropping 40 m below the road on the right shoulder edge in two rock bands; the outer material narrows to that edge over 30 m before and after it, so the
-right side has no course limit there and nothing is drawn beyond it.
-| Short free-standing wall | `coast-wide` | 1100–1120, in the grass | Left |
-| Solid trees and signs | `town` | 110–980, just outside the shoulders | Both |
-| Cone row | `coast-fast` | 1000–1090, ten cones in the outermost right lane (straight 862–1362) | Right |
-| Barricade | `coast-fast` | 1800, outermost left lane (finish straight 1637–2500) | Left |
+invisible solid lead-ins run from the outer material edge (22 m) to it over 50 m at each end, so none of its ends is
+free. The rising cliff is a solid wall 1 m thick on the left shoulder edge, with the same invisible lead-ins. Its top
+rises from the road (0.1 m) to 20 m over its first 25 m, varies between 12 and 25 m along it and returns to 0.1 m at its
+end, in three rock bands following the top, with two single patches of other rock (at 40–55 m and 118–140 m along it).
+The falling cliff is a wall for looks only, 1 m thick, dropping 40 m below the road on the right shoulder edge in two rock
+bands; the outer material narrows to that edge over 30 m before and after it, so the right side has no course limit
+there and nothing is drawn beyond it. The free-standing wall is solid, 0.5 m thick and 1 m high, parallel to the road and
+joined to nothing, so both its ends are fixed objects. In `town` every tree (0.6 m) and sign (0.4 m) is solid; every
+other sprite on the course has no body.
 
 ## Evaluation test course
 

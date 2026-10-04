@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 33,
+  "version": 34,
   "name": "RIBBON RING",
   "entrySectionId": "ring-outward",
   "rules": {
@@ -717,7 +717,8 @@
                 "offset": -5
               },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null
+              "unselectedCarriagewayId": null,
+              "body": null
             }
           ]
         },
@@ -739,7 +740,8 @@
                 "offset": 5
               },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null
+              "unselectedCarriagewayId": null,
+              "body": null
             }
           ]
         }
@@ -1617,7 +1619,8 @@
                 "offset": -5
               },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null
+              "unselectedCarriagewayId": null,
+              "body": null
             }
           ]
         },
@@ -1639,7 +1642,8 @@
                 "offset": 5
               },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null
+              "unselectedCarriagewayId": null,
+              "body": null
             }
           ]
         }

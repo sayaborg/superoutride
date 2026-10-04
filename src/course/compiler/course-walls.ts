@@ -7,6 +7,7 @@ import type {
 import { courseBoundaryAt, courseBoundarySlopeAt, type CompiledBoundary } from '../course-boundaries.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
 import type { CourseBarrierLine } from '../course-barriers.js';
+import type { CourseFixedObject } from '../course-objects.js';
 import { CourseInputError, requireCourse } from '../course-diagnostics.js';
 import { materialOuterEdges } from '../course-coordinate-domain.js';
 import type { StripMaterial } from '../strip-material.js';
@@ -99,6 +100,34 @@ export function compileCourseWalls(
       return Object.freeze({ source, boundary, start, end, color });
     }),
   );
+}
+
+/**
+ * The free ends of the solid walls as fixed objects: at each solid wall's start and end, its thickness wide and of
+ * unlimited height, except where that end lies on another barrier line — a course limit or another solid wall, from its
+ * start through its end — within `OPEN_EDGE_TOLERANCE_METERS`. `lines` are the barriers, the solid walls first in order.
+ */
+export function compileWallEnds(
+  walls: readonly CompiledWall[],
+  lines: readonly CourseBarrierLine[],
+): CourseFixedObject[] {
+  const ends: CourseFixedObject[] = [];
+  walls
+    .filter((wall) => wall.source.solid)
+    .forEach((wall, own) => {
+      for (const s of [wall.start, wall.end]) {
+        const l = courseBoundaryAt(wall.boundary, s);
+        const joined = lines.some(
+          (line, index) =>
+            index !== own &&
+            s >= line.start &&
+            s <= line.end &&
+            Math.abs(line.lateralAt(s) - l) <= OPEN_EDGE_TOLERANCE_METERS,
+        );
+        if (!joined) ends.push(Object.freeze({ s, l, width: wall.source.thickness, bottom: -Infinity, top: Infinity }));
+      }
+    });
+  return ends;
 }
 
 /**

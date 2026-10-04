@@ -17,7 +17,7 @@ import {
   readString,
 } from '../core/admission.js';
 
-const COURSE_DOCUMENT_VERSION = 33;
+const COURSE_DOCUMENT_VERSION = 34;
 const ID = { maxLength: COURSE_DOCUMENT_LIMITS.idCodeUnits };
 
 export interface CoursePosition {
@@ -112,6 +112,8 @@ export interface SpriteDocument {
   readonly at: CoursePosition;
   readonly lateral: Lateral;
   readonly groundOffset: number;
+  /** The placement's solid part, a width across the road (m), or null when vehicles pass through it. */
+  readonly body: { readonly width: number } | null;
 }
 
 /**
@@ -388,6 +390,7 @@ function sprite(value: unknown, path: string): SpriteDocument {
     'lateral',
     'groundOffset',
     'unselectedCarriagewayId',
+    'body',
   ]);
   if (s.kind !== 'sprite') throw new CourseInputError('unsupported_feature', `${path}/kind`, 'Expected sprite');
   return Object.freeze({
@@ -404,6 +407,17 @@ function sprite(value: unknown, path: string): SpriteDocument {
       s.unselectedCarriagewayId === null
         ? null
         : readString(s.unselectedCarriagewayId, `${path}/unselectedCarriagewayId`, ID),
+    body: s.body === null ? null : spriteBody(s.body, `${path}/body`),
+  });
+}
+function spriteBody(value: unknown, path: string): NonNullable<SpriteDocument['body']> {
+  const b = readRecord(value, path, ['width']);
+  return Object.freeze({
+    width: readNumber(b.width, `${path}/width`, {
+      min: 0,
+      max: COURSE_DOCUMENT_LIMITS.lateralMeters,
+      exclusiveMin: true,
+    }),
   });
 }
 function wallStrip(value: unknown, path: string): WallStripDocument {

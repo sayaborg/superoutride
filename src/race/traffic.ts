@@ -108,7 +108,7 @@ export function createTrafficField(options: {
     recoveryL(s: number, intent: DriverIntent | null): number;
   };
   readonly modelOf: (vehicle: TrafficCandidate['vehicle']) => VehicleModel;
-  readonly occupant: (model: VehicleModel, s: number, l: number) => TrafficBody | null;
+  readonly occupant: (model: VehicleModel, s: number, l: number) => { readonly s: number } | null;
   readonly vacantPlace: (self: TrafficMotion, s: number, lane: (s: number) => number) => RecoveryTarget;
   /** How fast a vehicle appears at (s, lane(s)) under its driver; null when it cannot appear there now. */
   readonly appearanceSpeed: (

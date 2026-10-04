@@ -22,7 +22,7 @@ Tile palettes begin at `paletteId << 4`; the format has no separate palette-coun
 }
 ```
 
-Master width at 40 texels/m defines physical width. Each level has at most 15 opaque colors.
+Master width at 40 texels/m defines physical width; a course sprite's solid width is bounded by it, and its master height at the same scale is the solid object's height. Each level has at most 15 opaque colors.
 Level zero preserves semantic palette slots and identity mixtures for slots 1 through 15.
 A coarse slot is a positive-weight mixture of original opaque slots summing to one; unused slots
 have empty mixtures. Its normal color is the mixture evaluated in the original palette.

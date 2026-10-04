@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 33,
+  "version": 34,
   "name": "RIBBON FORK",
   "entrySectionId": "junction-road",
   "rules": {
@@ -858,7 +858,8 @@
           },
           "lateral": -5.5,
           "groundOffset": 0,
-          "unselectedCarriagewayId": "LEFT"
+          "unselectedCarriagewayId": "LEFT",
+          "body": null
         },
         {
           "kind": "sprite",
@@ -870,7 +871,8 @@
           },
           "lateral": -5.5,
           "groundOffset": 0,
-          "unselectedCarriagewayId": "LEFT"
+          "unselectedCarriagewayId": "LEFT",
+          "body": null
         },
         {
           "kind": "sprite",
@@ -882,7 +884,8 @@
           },
           "lateral": 5.5,
           "groundOffset": 0,
-          "unselectedCarriagewayId": "RIGHT"
+          "unselectedCarriagewayId": "RIGHT",
+          "body": null
         },
         {
           "kind": "sprite",
@@ -894,7 +897,8 @@
           },
           "lateral": 5.5,
           "groundOffset": 0,
-          "unselectedCarriagewayId": "RIGHT"
+          "unselectedCarriagewayId": "RIGHT",
+          "body": null
         },
         {
           "kind": "repeat",
@@ -914,7 +918,8 @@
                 "offset": -8
               },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null
+              "unselectedCarriagewayId": null,
+              "body": null
             }
           ]
         },
@@ -936,7 +941,8 @@
                 "offset": 8
               },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null
+              "unselectedCarriagewayId": null,
+              "body": null
             }
           ]
         }
@@ -1851,7 +1857,8 @@
                 "offset": -8
               },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null
+              "unselectedCarriagewayId": null,
+              "body": null
             }
           ]
         }
@@ -2309,7 +2316,8 @@
                 "offset": -8
               },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null
+              "unselectedCarriagewayId": null,
+              "body": null
             }
           ]
         }

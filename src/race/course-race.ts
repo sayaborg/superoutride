@@ -17,7 +17,7 @@ import {
   type RecoveryState,
   type RecoveryTarget,
 } from './recovery.js';
-import { createBodyContacts, footprintsOverlap, type RouteFootprint } from './body-contacts.js';
+import { createBodyContacts, createContactFaces, footprintsOverlap, type RouteFootprint } from './body-contacts.js';
 import { createLaneFollowing, occupiesLane, type LaneIntent, type VehicleSighting } from './lane-following.js';
 import { createTrafficField, type TrafficMotion } from './traffic.js';
 import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
@@ -42,7 +42,9 @@ import {
   type CompetitorObservation,
 } from './competitor-observation.js';
 import { SIM_DT } from './fixed-step.js';
+import { routeS, routeSectionS } from '../course/course-route.js';
 import { createBarrierContacts } from './barrier-contacts.js';
+import { createObjectContacts, firstObjectFrom } from './object-contacts.js';
 import type { createRouteRuntime } from './route-runtime.js';
 
 type RouteRuntime = ReturnType<typeof createRouteRuntime>;
@@ -242,8 +244,10 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   // Drivers follow and change lanes over the race's sightings of the present vehicles.
   const following = createLaneFollowing(forks);
   const sightings: VehicleSighting[] = [];
-  // Body contacts push present competitors apart; the Session's driving definition holds the spring-damper.
-  const bodyContacts = createBodyContacts(runtime.readers.coordinates, playerActor.model.bodyContact);
+  // Body contacts push present vehicles apart, by one face rule for every pair (fixed objects included); the Session's
+  // driving definition holds the spring-damper.
+  const contactFaces = createContactFaces(runtime.readers.coordinates, playerActor.model.bodyContact);
+  const bodyContacts = createBodyContacts(contactFaces);
   // Walls and course limits push every present vehicle back with the same spring-damper.
   const barrierContacts = createBarrierContacts(
     runtime.readers.coordinates,
@@ -251,21 +255,39 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     playerActor.model.bodyContact,
     SIM_DT,
   );
+  // Fixed objects push every present vehicle back as a vehicle would, without moving.
+  const objectContacts = createObjectContacts(runtime.window, contactFaces);
   const footprint = (model: VehicleModel, s: number, l: number): RouteFootprint => ({
     s,
     l,
     length: model.compiledVehicle.overallLength,
     width: model.compiledVehicle.overallWidth,
   });
-  // The present vehicle, other than `self`, that a footprint of `model` at (s, l) would overlap; null when it is free.
-  const occupant = (model: VehicleModel, s: number, l: number, self: VehicleState | null = null): Body | null => {
+  // What a footprint of `model` at (s, l) would overlap — a present vehicle other than `self`, or a fixed object — as its
+  // route station and length; null when the place is free.
+  const occupant = (
+    model: VehicleModel,
+    s: number,
+    l: number,
+    self: VehicleState | null = null,
+  ): { readonly s: number; readonly length: number } | null => {
     const at = footprint(model, s, l);
     for (const body of bodies)
       if (
         body.vehicle !== self &&
         footprintsOverlap(at, footprint(body.model, body.vehicle.course.s, body.vehicle.course.l))
       )
-        return body;
+        return { s: body.vehicle.course.s, length: body.model.compiledVehicle.overallLength };
+    const occurrence = runtime.window.at(s);
+    if (!occurrence) return null;
+    const objects = occurrence.section.objects;
+    const native = { ...at, s: routeSectionS(occurrence, s), l: l + occurrence.lateralOrigin };
+    for (let i = firstObjectFrom(objects, native.s - at.length / 2); i < objects.length; i++) {
+      const object = objects[i]!;
+      if (object.s > native.s + at.length / 2) break;
+      if (footprintsOverlap(native, { s: object.s, l: object.l, length: 0, width: object.width }))
+        return { s: routeS(occurrence, object.s), length: 0 };
+    }
     return null;
   };
   // Recovery places no vehicle on another's footprint: from station s it backs along the Route behind each vehicle in
@@ -277,9 +299,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       other = occupant(self.model, s, l, self.vehicle)
     ) {
       const behind =
-        other.vehicle.course.s -
-        (self.model.compiledVehicle.overallLength + other.model.compiledVehicle.overallLength) / 2 -
-        RECOVERY_POLICY.placementClearance;
+        other.s - (self.model.compiledVehicle.overallLength + other.length) / 2 - RECOVERY_POLICY.placementClearance;
       s = Math.max(runtime.window.start, behind);
       l = lane(s);
     }
@@ -617,8 +637,10 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     }
     runtime.refresh(minS, maxS);
     // Contact forces come from the state at the step's start and hold through it.
+    contactFaces.beginStep();
     bodyContacts(bodies);
     barrierContacts(bodies);
+    objectContacts(bodies);
     move(active[0]!, playerInput);
     for (let i = 1; i < active.length; i += 1) {
       const motion = active[i]!;

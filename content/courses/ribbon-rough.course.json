@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 33,
+  "version": 34,
   "name": "RIBBON ROUGH",
   "entrySectionId": "rough-bumps",
   "rules": { "maxLaps": 3 },
@@ -317,7 +317,8 @@
               "at": { "pi": "start", "offset": 17.5 },
               "lateral": { "boundary": "road-left", "offset": -5 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null
+              "unselectedCarriagewayId": null,
+              "body": null
             }
           ]
         },
@@ -333,7 +334,8 @@
               "at": { "pi": "start", "offset": 17.5 },
               "lateral": { "boundary": "road-right", "offset": 5 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null
+              "unselectedCarriagewayId": null,
+              "body": null
             }
           ]
         }
@@ -799,7 +801,8 @@
               "at": { "pi": "start", "offset": 17.5 },
               "lateral": { "boundary": "road-left", "offset": -5 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null
+              "unselectedCarriagewayId": null,
+              "body": null
             }
           ]
         },
@@ -815,7 +818,8 @@
               "at": { "pi": "start", "offset": 17.5 },
               "lateral": { "boundary": "road-right", "offset": 5 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null
+              "unselectedCarriagewayId": null,
+              "body": null
             }
           ]
         }
