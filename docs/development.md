@@ -18,7 +18,9 @@ Use Node.js 24. [AGENTS](../AGENTS.md) owns checks and release procedure.
 ### Driving scenarios
 
 `tests/scenarios/driving.test.mjs` defines the scenarios; `driving-harness.mjs` assembles the same
-scene, race, vehicle physics, route readers, camera and rival sprite rendering as the browser.
+scene, race, vehicle physics, route readers, camera and rival sprite rendering as the browser, and prepares each
+Session from a request through the browser's path (`prepareSession`: the Session admission, the products it needs from
+delivery, and resolution).
 `npm test` runs them on every CI build. After `npm run build`, use `npm run test:scenarios` alone.
 The Node test runner reports total wall time and per-scenario times; these are observations, not timing gates.
 

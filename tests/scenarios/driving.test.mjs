@@ -132,9 +132,9 @@ for (const stem of ['ribbon-coast', 'ribbon-fork', 'ribbon-ring']) {
       ...sessionRules,
     ];
     for (const scenario of scenarios)
-      await t.test(scenario.name, () => {
-        const result = runScenario(loaded, scenario);
-        assert.deepEqual(runScenario(loaded, scenario), result, 'fixed-input replay diverged');
+      await t.test(scenario.name, async () => {
+        const result = await runScenario(loaded, scenario);
+        assert.deepEqual(await runScenario(loaded, scenario), result, 'fixed-input replay diverged');
         t.diagnostic(`${scenario.name}: ${JSON.stringify(result)}`);
       });
   });

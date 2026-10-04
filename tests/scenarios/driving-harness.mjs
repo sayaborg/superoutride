@@ -6,11 +6,9 @@ import { readDeliveredContent } from '../../tools/course/read-content.ts';
 import { referenceLine } from '../../tools/course/reference-driving-policy.ts';
 import { createCourseScene } from '../../src/view/course-scene.js';
 import { createCourseRace } from '../../src/race/course-race.js';
-import { resolveCourseSession } from '../../src/race/course-session.js';
-import { compileSessionConfiguration } from '../../src/race/session-configuration.js';
+import { prepareSession } from '../../src/race/session-preparation.js';
 import { loadFreePlayRules } from '../../src/content/free-play-rules.js';
-import { formPool, rivalPoolPairs } from '../../src/race/free-play-field.js';
-import { createSessionVehicle, sessionVehicleSha256 } from '../../src/content/session-vehicle.js';
+import { formPool } from '../../src/race/free-play-field.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import {
@@ -31,8 +29,6 @@ import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog
 import { readFileSync } from 'node:fs';
 import { admitSeriesCourse, compileSeriesCatalog, loadSeriesCatalog } from '../../src/content/series-catalog.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
-import { readCourseTimeBudgets } from '../../src/content/course-time-budgets.js';
-import { readPaceSchedule } from '../../src/content/pace-schedule.js';
 import { SESSION_RULE_LIMITS } from '../../src/course/session-rules.js';
 
 /** The player's position as `P<rank>/<competitors present>`, from the race's standing. */
@@ -44,22 +40,11 @@ const definitions = await loadVehicleDefinitions(content, await loadEngineSounds
 
 const idle = { steering: 0, throttle: false, brake: false };
 const entry = definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA');
-const configuration = createSessionVehicle(entry, definitions.driving);
-const configurationSha256 = await sessionVehicleSha256(configuration, materials);
 const { envelope } = await content.json('envelope', 'TESTAROSSA');
 const driver = compileEnvelopeDriver(envelope, 0.75, envelope.maximumSpeed, true);
-// FREE PLAY rivals come from the player's form pool, as in the browser; every other vehicle (traffic included) drives
-// its own vehicle and envelope.
+// Sessions are prepared from the delivered catalogs as in the browser.
 const freePlay = await loadFreePlayRules(content);
-const rivalPool = rivalPoolPairs(definitions.vehicles, formPool(freePlay, entry));
-const fieldVehicles = new Map();
-for (const id of definitions.vehicles.map((v) => v.compiledVehicle.id)) {
-  const vehicle = createSessionVehicle(
-    definitions.vehicles.find((v) => v.compiledVehicle.id === id),
-    definitions.driving,
-  );
-  fieldVehicles.set(id, { vehicle, envelope: (await content.json('envelope', id)).envelope });
-}
+const catalog = { vehicles: definitions.vehicles, driving: definitions.driving, materials, freePlay };
 
 // The test-only series (never delivered) gives each RIBBON course ARCADE settings that exercise Session rules with the
 // build's TESTAROSSA time budgets and pace schedules.
@@ -87,14 +72,10 @@ export async function loadScenarioCourse(stem) {
   const settings = scenarioSeries.courseSettings(stem);
   const arcade = settings && requireLoaded(admitSeriesCourse(settings, course, SCENARIO_SERIES_PATH.pathname));
   const productSettings = productSeries.courseSettings(stem);
-  const product = async (kind, read) =>
-    requireLoaded(read(course, configurationSha256, await content.json(kind, `${stem}/TESTAROSSA`), kind));
   return {
     course,
     arcade,
     productArcade: productSettings && requireLoaded(admitSeriesCourse(productSettings, course, 'ribbon.series.json')),
-    budgets: arcade && (await product('budget', readCourseTimeBudgets)),
-    paceSchedule: arcade && (await product('schedule', readPaceSchedule)),
   };
 }
 
@@ -138,8 +119,11 @@ function pavementBounds(scene, vehicle) {
   };
 }
 
-/** Fresh product assembly per replay; only initial conditions and input policy differ from the browser. */
-export function runScenario({ course, arcade: scenarioArcade, productArcade, budgets, paceSchedule }, scenario) {
+/**
+ * Fresh product assembly per replay, through the browser's path from a request to a Session (`prepareSession`); only
+ * the series, initial conditions and input policy differ from the browser.
+ */
+export async function runScenario({ course, arcade: scenarioArcade, productArcade }, scenario) {
   // ARCADE takes the test series' settings, or the delivered series' with `series: 'product'`.
   const arcade = scenario.series === 'product' ? productArcade : scenarioArcade;
   const settings = createDisplaySettings();
@@ -162,26 +146,15 @@ export function runScenario({ course, arcade: scenarioArcade, productArcade, bud
           };
   const initialSpeed =
     scenario.policy === 'reverse' ? -20 : scenario.policy === 'departure' || scenario.policy === 'limit' ? 30 : 0;
-  const session = resolveCourseSession(
+  const prepared = await prepareSession(
+    content,
+    catalog,
     course,
     mode === 'ARCADE' ? arcade : null,
-    compileSessionConfiguration(
-      request,
-      course,
-      mode === 'ARCADE' ? arcade : null,
-      { vehicles: definitions.vehicles, freePlay },
-      initialSpeed,
-    ),
-    scenario.seed ?? 0,
-    configuration,
-    envelope,
-    mode === 'ARCADE' ? budgets : null,
-    {
-      rivalPool,
-      vehicleOf: (id) => fieldVehicles.get(id) ?? { vehicle: configuration, envelope },
-      paceSchedule: mode === 'ARCADE' ? paceSchedule : undefined,
-    },
+    request,
+    initialSpeed,
   );
+  const session = prepared.resolve(scenario.seed ?? 0);
   const slot = session.entries[0].slot;
   // The race builds every competitor, the player included; the harness reads their state for evidence.
   const race = createCourseRace({ session, runtime: scene.runtime });
