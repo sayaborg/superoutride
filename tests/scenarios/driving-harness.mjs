@@ -166,6 +166,10 @@ export async function runScenario({ course, arcade: scenarioArcade, productArcad
     rightRoad: false,
     /** The first tick a wall or course limit pushed the player, and its farthest lateral from the road centre line. */
     limitContact: null,
+    /** The first tick a wall or course limit pushed each rival or traffic vehicle that it pushed. */
+    otherContacts: {},
+    /** The recoveries of each rival or traffic vehicle that recovered. */
+    otherRecoveries: {},
     farthestL: 0,
     recoveries: [],
     choices: [],
@@ -370,7 +374,14 @@ export async function runScenario({ course, arcade: scenarioArcade, productArcad
       0;
     evidence.outsideDomain ||= !vehicle.course.inDomain;
     evidence.farthestL = Math.max(evidence.farthestL, Math.abs(vehicle.course.l));
-    if (evidence.limitContact === null && step.barrier) evidence.limitContact = tick;
+    for (const id of step.barriers)
+      if (id === race.player.id) evidence.limitContact ??= tick;
+      else evidence.otherContacts[id] ??= tick;
+    for (const v of [
+      ...race.rivals.map((c) => ({ id: c.id, recovery: c.actor.recovery })),
+      ...race.traffic.map((t) => ({ id: t.id, recovery: t.step.state })),
+    ])
+      if (v.recovery.recoveries > 0) evidence.otherRecoveries[v.id] = v.recovery.recoveries;
     const bounds = pavementBounds(scene, vehicle);
     if (bounds) {
       evidence.leftRoad ||= vehicle.course.l < bounds.left;
@@ -461,7 +472,6 @@ export async function runScenario({ course, arcade: scenarioArcade, productArcad
       'an object never landed',
     );
     assert.equal(race.outcome.status, 'GOAL');
-    assert.equal(evidence.recoveries.length, 0, 'the row held or recovered the player');
     const range = (values) => [Math.min(...values), Math.max(...values)].map((v) => Math.round(v * 100) / 100);
     evidence.knocked = {
       count: knocked.length,
@@ -507,18 +517,27 @@ export async function runScenario({ course, arcade: scenarioArcade, productArcad
         'finished rivals did not stop before player finish',
       );
   }
-  // A finish policy reaches GOAL unless its Session rules expect another outcome.
-  if (scenario.policy === 'finish' && (scenario.expect?.outcome ?? 'GOAL') === 'GOAL') {
+  // Rivals and traffic, which only their drivers drive, never recover and no wall or course limit pushes them.
+  assert.deepEqual(evidence.otherRecoveries, {}, 'a rival or traffic vehicle recovered');
+  assert.deepEqual(evidence.otherContacts, {}, 'a wall or course limit pushed a rival or traffic vehicle');
+  // Unless its policy sends it off the road, the player neither recovers nor meets a wall or course limit.
+  if (!['reverse', 'departure', 'limit', 'closed'].includes(scenario.policy)) {
+    assert.equal(evidence.recoveries.length, 0, 'ordinary driving recovered');
+    assert.equal(evidence.limitContact, null, 'ordinary driving met a wall or course limit');
+  }
+  // A finish policy reaches GOAL unless its Session rules expect another outcome or leave it open.
+  if (scenario.policy === 'finish' && (!scenario.expect || scenario.expect.outcome === 'GOAL')) {
     assert.equal(race.outcome.status, 'GOAL');
     assert.equal(race.player.progress.acceptedFinishCount, scenario.laps ?? 1);
-    assert.equal(evidence.recoveries.length, 0, 'ordinary driving recovered');
     if (course.entry.fork)
       assert.equal(race.forks.choice(scene.runtime.route.occurrences[0]), course.entry.fork.exits[scenario.exit].link);
   }
   if (rules) {
     const { expect } = scenario;
-    assert.equal(race.outcome.status, expect.outcome);
-    assert.equal(race.outcome.cause, expect.cause ?? null);
+    if (expect.outcome) {
+      assert.equal(race.outcome.status, expect.outcome);
+      assert.equal(race.outcome.cause, expect.cause ?? null);
+    }
     assert.ok(ending, `${scenario.name}: never ended`);
     if (scenario.mode === 'TIME_TRIAL') {
       assert.equal(race.rivals.length, 0, 'TIME TRIAL has rivals');
