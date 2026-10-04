@@ -1,5 +1,11 @@
 import type { CompiledLink } from '../course/compiler/course-graph.js';
-import { routeSectionS, selectedSuccessor, type RouteOccurrence } from '../course/course-route.js';
+import {
+  routeLaneAcross,
+  routeLaneBefore,
+  routeSectionS,
+  selectedSuccessor,
+  type RouteOccurrence,
+} from '../course/course-route.js';
 import {
   courseCarriagewayExists,
   courseBoundaryAt,
@@ -15,11 +21,13 @@ function center(road: CompiledCarriageway, s: number) {
 }
 
 /**
- * A driver's intent: its lane, a lane number (0 is the leftmost lane of the Carriageway it follows), and its target
- * exit, an index into each fork occurrence's exits.
+ * A driver's intent: its lane, a lane number (0 is the leftmost lane of the Carriageway it follows) in the Route
+ * occurrence `ordinal`, and its target exit, an index into each fork occurrence's exits. Elsewhere on the Route the lane
+ * is the one it runs on as, or runs on from, across each seam between (`routeLaneAcross`, `routeLaneBefore`).
  */
 export interface DriverIntent {
   readonly lane: number;
+  readonly ordinal: number;
   exit(occurrence: RouteOccurrence): number;
 }
 
@@ -50,6 +58,26 @@ export function createCourseForkField(
       : null;
     if (!road || !exists(road)) road = section.carriageways.find(exists)!;
     return { occurrence, road, at };
+  };
+  // A seam's two sides: the occurrence before `next` with the Carriageway it leaves by, and `next` with the one the
+  // intent's exit enters.
+  const seam = (next: RouteOccurrence, exit: DriverIntent['exit']) => ({
+    before: { occurrence: route.occurrences[next.ordinal - 1]!, road: next.incoming!.from.carriageway },
+    after: { occurrence: next, road: targetCarriageway(next.start, exit).road },
+  });
+  // The intent's lane in `occurrence`, carried across each seam between by position; within a Section a lane number
+  // beyond the Carriageway's lanes reads as its last lane.
+  const laneIn = (intent: DriverIntent, occurrence: RouteOccurrence) => {
+    let lane = intent.lane;
+    for (let o = intent.ordinal + 1; o <= occurrence.ordinal; o++) {
+      const { before, after } = seam(route.occurrences[o]!, intent.exit);
+      lane = routeLaneAcross(before, Math.min(lane, before.road.lanes - 1), after).lane;
+    }
+    for (let o = intent.ordinal; o > occurrence.ordinal; o--) {
+      const { before, after } = seam(route.occurrences[o]!, intent.exit);
+      lane = routeLaneBefore(before, after, Math.min(lane, after.road.lanes - 1));
+    }
+    return lane;
   };
   // The Route's selected successor is the only stored choice; locks and legal targets derive from it.
   const forkField = Object.freeze({
@@ -90,10 +118,45 @@ export function createCourseForkField(
      * Carriageway existing there.
      */
     targetCarriageway,
-    /** The target l for an intent: the centre of its lane, within the lanes of the Carriageway it follows. */
+    /** The target l for an intent: the centre of its lane there, within the lanes of the Carriageway it follows. */
     targetL(s: number, intent: DriverIntent) {
       const { occurrence, road, at } = targetCarriageway(s, intent.exit);
-      return courseLaneCenterAt(road, Math.min(intent.lane, road.lanes - 1), at) - occurrence.lateralOrigin;
+      return (
+        courseLaneCenterAt(road, Math.min(laneIn(intent, occurrence), road.lanes - 1), at) - occurrence.lateralOrigin
+      );
+    },
+    /** Rewrite an intent's lane as its lane in the occurrence at route station `s`. */
+    carry(intent: { lane: number; ordinal: number; exit: DriverIntent['exit'] }, s: number) {
+      const occurrence = route.at(s)!;
+      if (occurrence.ordinal === intent.ordinal) return;
+      intent.lane = laneIn(intent, occurrence);
+      intent.ordinal = occurrence.ordinal;
+    },
+    /**
+     * Where the intent's lane ends ahead: the first seam after route station `s`, through `end`, at which it does not
+     * continue (`routeLaneAcross`), and, when that seam ends the occurrence at `s`, the lane there that continues into
+     * the same lane (the lane to merge toward); null when the lane runs on through `end`.
+     */
+    laneEnd(
+      s: number,
+      end: number,
+      intent: DriverIntent,
+    ): { readonly s: number; readonly merge: number | null } | null {
+      const occurrence = route.at(s)!;
+      let lane = laneIn(intent, occurrence);
+      for (let o = occurrence.ordinal + 1; o < route.occurrences.length; o++) {
+        const next = route.occurrences[o]!;
+        if (next.start > end) break;
+        const { before, after } = seam(next, intent.exit);
+        const across = routeLaneAcross(before, Math.min(lane, before.road.lanes - 1), after);
+        if (!across.continues)
+          return {
+            s: next.start,
+            merge: o === occurrence.ordinal + 1 ? routeLaneBefore(before, after, across.lane) : null,
+          };
+        lane = across.lane;
+      }
+      return null;
     },
     /** The lane number whose centre lies nearest route lateral `l` at route station `s`, on the road holding or nearest `l`. */
     intentLane(s: number, l: number) {

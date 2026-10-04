@@ -183,6 +183,8 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     // The race assigns each rival's target exits from the Session seed; its grid side implies none.
     const intent: LaneIntent = {
       lane,
+      // An ahead entry's lane is read where it appears; until then nothing reads it.
+      ordinal: 0,
       exit: (occurrence) =>
         rivalExit(configuration.seed, rivalIndex, occurrence.ordinal, occurrence.section.fork!.exits.length),
     };
@@ -335,11 +337,13 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       if (c.appeared || playerGates < c.stages!.first - 1) continue;
       const entry = rivalEntries[motion.index - 1]!;
       const s = player.actor.vehicle.course.s + entry.ahead!.distance;
+      // Its lane number is the one of the occurrence it appears in.
+      c.intent!.ordinal = runtime.route.at(s)!.ordinal;
       const lane = (station: number) => forks.targetL(station, c.intent!);
       // An appearance on another vehicle's footprint, or one a vehicle behind could not stop for, waits for a later step.
       if (occupant(c.actor.model, s, lane(s))) continue;
       const driving = motion.driving!;
-      const speed = appearanceSpeed(c.actor.model, s, lane, driving.driver);
+      const speed = appearanceSpeed(c.actor.model, s, c.intent!, driving.driver);
       if (speed === null) continue;
       driving.pace?.join(s);
       c.actor = spawn(entry, { s, l: lane(s), initialSpeed: speed });
@@ -398,12 +402,16 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     });
     return true;
   };
-  // A driver's input this step: its plan, which the vehicle ahead in its lane constrains, then that plan's input. When
-  // the vehicle ahead lowers the plan, a driver that changes lanes moves to the free adjacent lane where its plan allows
-  // the most speed, if that beats its own lane by more than the deadzone, and drives that speed in its new lane (a new
-  // lane function, since the driver caches by lane); otherwise it follows. A move rewrites the lateral the driver's
-  // sighting is heading for at once, so drivers deciding later in the same step see it; position and speed keep their
-  // values from the step's start.
+  // A driver's input this step. Its lane is first carried to the occurrence it is in. Where that lane ends within its
+  // lookahead (`laneEnd`), it first merges one lane toward the lane that continues there when that lane is free; while its lane still ends, the lane's end is its plan's
+  // terminal, so it slows to stop there short of `terminalClearance` until it can merge. Then its plan, which the
+  // vehicle ahead in its lane constrains, and that plan's input. When the vehicle ahead lowers the plan, a driver that
+  // passes moves to the free adjacent lane where its plan allows the most speed, if that beats its own lane by more than
+  // the deadzone and that lane does not end ahead, and drives that speed in its new lane (a new lane function, since the
+  // driver caches by lane); otherwise it follows. A move rewrites the lateral the driver's sighting is heading for at
+  // once, so drivers deciding later in the same step see it; position and speed keep their values from the step's start.
+  const laneDomain = { start: 0, end: 0, terminal: null as number | null };
+  const probe: LaneIntent = { lane: 0, ordinal: 0, exit: () => 0 };
   const drive = (
     driven: {
       readonly vehicle: VehicleState;
@@ -415,22 +423,79 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     driver: EnvelopeDriver,
     domain: { readonly start: number; readonly end: number; readonly terminal: number | null } = runtime.window,
   ): DrivingInput => {
+    const s = driven.vehicle.course.s;
+    forks.carry(intent, s);
+    const endOf = (lane: number) => {
+      probe.lane = lane;
+      probe.ordinal = intent.ordinal;
+      probe.exit = intent.exit;
+      return forks.laneEnd(s, s + ENVELOPE_DRIVER.lookahead, probe);
+    };
+    let end = endOf(intent.lane);
+    // A driven vehicle behind in the lane merged into must be able to stop behind the driver, as for an appearance.
+    const followable = (lane: number) => {
+      const self = driven.sighting;
+      probe.lane = lane;
+      probe.ordinal = intent.ordinal;
+      probe.exit = intent.exit;
+      for (const body of bodies)
+        if (
+          body.driver &&
+          body.sighting !== self &&
+          body.vehicle.course.s <= self.s &&
+          occupiesLane(
+            body.vehicle.course.l,
+            body.sighting.target,
+            forks.targetL(body.vehicle.course.s, probe),
+            (self.width + body.model.compiledVehicle.overallWidth) / 2,
+          ) &&
+          !envelopeCanFollow(body.vehicle.course.s, body.sighting.speed, body.driver.braking, {
+            s: self.s,
+            speed: self.speed,
+            clearance: (self.length + body.model.compiledVehicle.overallLength) / 2,
+          })
+        )
+          return false;
+      return true;
+    };
+    if (
+      end !== null &&
+      end.merge !== null &&
+      following.merge(intent, driven.sighting, sightings, end.merge, followable)
+    ) {
+      driven.input = (station: number) => forks.targetL(station, intent);
+      driven.sighting.target = driven.input(driven.sighting.s);
+      end = endOf(intent.lane);
+    }
+    const laneEnd = end?.s ?? null;
+    let planned = domain;
+    if (laneEnd !== null) {
+      laneDomain.start = domain.start;
+      laneDomain.end = domain.end;
+      laneDomain.terminal = Math.min(domain.terminal ?? Infinity, laneEnd);
+      planned = laneDomain;
+    }
     const plan = planEnvelopeDriving(
       runtime.readers.coordinates,
       driven.vehicle,
       driver,
       driven.input,
       driven.driverWorkspace,
-      domain,
+      planned,
       following.leader(intent, driven.sighting, sightings),
     );
     let targetSpeed = plan.target;
-    if (plan.target < plan.free && driver.changesLanes) {
-      const moved = following.moveOver(intent, driven.sighting, sightings, plan.target, (leader) =>
-        envelopeSpeedBehind(driven.vehicle, driver, plan.free, leader),
+    if (plan.target < plan.free && driver.passes && laneEnd === null) {
+      const moved = following.moveOver(
+        intent,
+        driven.sighting,
+        sightings,
+        plan.target,
+        (leader) => envelopeSpeedBehind(driven.vehicle, driver, plan.free, leader),
+        (lane) => endOf(lane) !== null,
       );
       if (moved !== null) {
-        driven.input = (s: number) => forks.targetL(s, intent);
+        driven.input = (station: number) => forks.targetL(station, intent);
         driven.sighting.target = driven.input(driven.sighting.s);
         targetSpeed = moved;
       }
@@ -441,20 +506,27 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       driver,
       driven.input,
       driven.driverWorkspace,
-      domain,
+      planned,
       targetSpeed,
     );
   };
-  // How fast a vehicle of `model` appears at (s, lane(s)) under `driver`: its planned speed there behind the vehicle
-  // ahead in that lane. Null when a vehicle behind in that lane whose driver never changes lanes could not stop for it —
+  // How fast a vehicle of `model` appears at (s, its intent's target) under `driver`: its planned speed there behind the
+  // vehicle ahead in that lane, and short of that lane's end when it ends within the lookahead. Null when a vehicle behind in that lane whose driver never changes lanes could not stop for it —
   // its own plan, seeing the new vehicle ahead at that speed, would ask more than its speed — so the appearance waits or
   // passes like an occupied one. Drivers that change lanes move over or match its speed; the player avoids it.
   const appearanceSpeed = (
     model: VehicleModel,
     s: number,
-    lane: (s: number) => number,
+    intent: LaneIntent,
     driver: EnvelopeDriver,
   ): number | null => {
+    const lane = (station: number) => forks.targetL(station, intent);
+    const laneEnd = forks.laneEnd(s, s + ENVELOPE_DRIVER.lookahead, intent)?.s ?? null;
+    const window = runtime.window;
+    const domain =
+      laneEnd === null
+        ? window
+        : { start: window.start, end: window.end, terminal: Math.min(window.terminal ?? Infinity, laneEnd) };
     const length = model.compiledVehicle.overallLength,
       width = model.compiledVehicle.overallWidth;
     const inLane = (body: (typeof bodies)[number]) =>
@@ -478,11 +550,11 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       if (objectS > s && (!ahead || objectS < ahead.s) && occupiesLane(l, l, lane(objectS), (width + objectWidth) / 2))
         ahead = { s: objectS, speed: 0, clearance: length / 2 };
     });
-    const speed = plannedEnvelopeSpeed(runtime.readers.coordinates, s, driver, lane, runtime.window, ahead);
+    const speed = plannedEnvelopeSpeed(runtime.readers.coordinates, s, driver, lane, domain, ahead);
     for (const body of bodies)
       if (
         body.driver &&
-        !body.driver.changesLanes &&
+        !body.driver.passes &&
         body.vehicle.course.s <= s &&
         inLane(body) &&
         !envelopeCanFollow(body.vehicle.course.s, speedOf(body), body.driver.braking, {
@@ -585,7 +657,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   // Session without an envelope holds the brake instead.
   const takeoverDriver = playerEntry!.envelope ? options.session.driverOf(playerEntry!.envelope) : null;
   const takeoverWorkspace = createEnvelopeDriverWorkspace();
-  const takeoverIntent: LaneIntent = { lane: 0, exit: () => 0 };
+  const takeoverIntent: LaneIntent = { lane: 0, ordinal: 0, exit: () => 0 };
   // The takeover drives the player's vehicle as a driver does, seen through the player's sighting.
   const takeover = {
     get vehicle() {
@@ -602,6 +674,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   const takeOver = () => {
     const { s, l } = player.actor.vehicle.course;
     takeoverIntent.lane = forks.intentLane(s, l);
+    takeoverIntent.ordinal = runtime.route.at(s)!.ordinal;
     if (takeoverDriver) stopS = s + takeoverDriver.envelope.maximumSpeed ** 2 / (2 * takeoverDriver.braking);
   };
   const holdBrake: DrivingInput = Object.freeze({ steering: 0, throttle: false, brake: true });

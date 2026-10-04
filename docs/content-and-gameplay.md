@@ -604,9 +604,16 @@ passes of one fork Section are distinct. The lock, the closed Carriageways, the 
 derive from that successor.
 Checkpoint credit remains per actor.
 
-A driver's intent has two separate values: its lane, a lane number, and its target exit, an exit index at each fork
-occurrence. The fork field's target (`targetL`) is the centre of that lane in the Carriageway the intent follows
-(`targetCarriageway`), the number limited to that Carriageway's lanes: off forks the Carriageway existing there; at a
+A driver's intent has two separate values: its lane, a lane number in one Route occurrence (`ordinal`), and its target
+exit, an exit index at each fork occurrence. Lanes run on across the seam between two occurrences by position on the
+route ruler (`routeLaneAcross`): a lane continues as the lane of the next Section whose centre is nearest its centre at
+the seam (Carriageway centres compared after each occurrence's `lateralOrigin`); where several lanes run on as one, the
+nearest of them continues and the others end there; on an equal distance the left lane wins either choice. Going back
+across a seam, a lane comes from the lane that continues into it, or from the nearest lane where it begins there
+(`routeLaneBefore`). The race carries each driver's lane number into the occurrence it is in every step. The fork
+field's target (`targetL`) is the centre of the intent's lane, carried to the station's occurrence, in the Carriageway
+the intent follows (`targetCarriageway`), the number limited to that Carriageway's lanes (the fork exits within one
+Section keep this limit): off forks the Carriageway existing there; at a
 fork the selected exit's Carriageway once the occurrence is decided, else the intended exit's, and the Carriageway
 existing there where that exit does not; any exit, a middle one included, can be intended, and the grid side
 implies none. A grid rival's lane is the lane nearest its slot, whose lateral position stays the slot's
@@ -738,10 +745,10 @@ driver's planned speed there (the speed that is the driver's own planned target 
 ahead in that lane as its constraint, a standing object in that lane counting as a stopped vehicle), and awaits only
 the race gates after that station. An appearance waits for a
 later step while its place overlaps another vehicle's footprint or while a vehicle behind in its lane, driven by a
-driver that never changes lanes, could not stop for it: for that vehicle's speed `v_b` and its driver's braking `a_b`,
+driver that never changes lanes to pass, could not stop for it: for that vehicle's speed `v_b` and its driver's braking `a_b`,
 the gap Δs and the appearing speed `v`,
 `v_b² > v² + 2 × a_b × max(0, Δs − (L₁ + L₂)/2 − terminalClearance − v_b × responseSeconds − v × followSeconds)`,
-the same constraint the drivers plan with. A vehicle behind whose driver changes lanes (a rival, or the player's
+the same constraint the drivers plan with. A vehicle behind whose driver passes (a rival, or the player's
 takeover after GOAL) moves over or matches the new vehicle's speed, and the player avoids it, so neither holds an
 appearance back, however close. Session assembly rejects an ahead distance beyond the Route kept loaded ahead of
 the player (the loading coverage's forward distance less one step).
@@ -993,9 +1000,9 @@ target² ≤ v_a² + 2 × a × margin
 so a driver following at the leader's speed keeps the footprint gap
 `terminalClearance + v × responseSeconds + v_a × followSeconds`, and stops `terminalClearance` (2 m) behind a stopped
 vehicle. The
-plan is computed once per step, with and without this constraint. Whether a driver changes lanes is an attribute its
-builder gives it (`changesLanes`): rivals' drivers and the player's takeover change lanes; traffic drivers, which
-Session resolution compiles, do not. When the constraint lowers the planned speed, a driver that changes lanes
+plan is computed once per step, with and without this constraint. Whether a driver changes lanes to pass is an attribute its
+builder gives it (`passes`: whether it changes lanes to pass): rivals' drivers and the player's takeover pass; traffic
+drivers, which Session resolution compiles, do not. When the constraint lowers the planned speed, a driver that passes
 weighs each free adjacent lane of the Carriageway it follows by the speed its plan allows there: its plan without a
 vehicle ahead, behind that lane's vehicle ahead under the same constraint (the current lane's curve speeds serve, since
 adjacent lanes differ little in them). It moves to the lane allowing the most, the left one on a tie, when that exceeds
@@ -1003,9 +1010,25 @@ its constrained plan by more than `speedDeadzone`, and drives that speed in its 
 it stays where it is until another lane is faster by that margin, its former lane included. A lane is free when no
 vehicle in it lies between the driver's following distance ahead, `(L₁ + L₂)/2 + v × followSeconds`, and, behind,
 half the two lengths plus that vehicle's speed times `followSeconds`. With no faster free lane, or when it does not
-change lanes, the driver follows on the constrained plan; its inputs stay throttle, brake and steering. Every driver's `a` is its envelope's minimum
+pass, the driver follows on the constrained plan; its inputs stay throttle, brake and steering. Every driver's `a` is its envelope's minimum
 braking times its utilization; the player's, for others' checks, is the Session driver's. The reference line plans
 without a vehicle ahead and meets no other vehicle, so reference runs are unchanged.
+
+Where a driver's lane ends, it merges first, passing or not: this is not a pass. A lane ends at the first seam within
+the driver's lookahead across which it does not continue, by the position rule above; the lane to merge toward is the
+lane of its own occurrence that continues into the same lane, and the driver moves toward it one lane at a time. Each
+step that its lane ends ahead, the driver moves to the next lane toward it when that lane is free (the free-lane test
+above) and every driven vehicle behind in it can follow the driver, the plan constraint above with the driver as the
+vehicle ahead at its speed; vehicles in the lanes that continue do not yield. While its lane still ends, the lane's end
+is a terminal of its plan, so it slows to stop `terminalClearance` short of it until it can merge; an appearance in a
+lane that ends plans to stop there the same way. A driver that passes does not move into a lane that ends within its
+lookahead. Where a seam adds lanes, every lane continues as its nearest lane, and only a driver that passes moves into
+an added lane, by the passing rule.
+
+Courses add or remove lanes at a seam so that the continuing lanes keep their centres (an authoring convention, not
+checked). A Link matches the outgoing and incoming Carriageways' edges, so a seam that changes the lane count also
+changes the lane width and moves the centres; RIBBON COAST's seams move them by the amounts in the Verification
+course section.
 
 The same driver serves reference runs and live rivals. Generated runs contain precise landmark times
 and optional 10 Hz position/speed/utilization traces. The browser loads generated envelopes and compact
@@ -1015,8 +1038,8 @@ integer-millisecond budgets. [Development](development.md#build-outputs) owns ge
 
 Traffic vehicles are not competitors: they have no rank, rank limit, fork decision (the fork field never observes
 them), progress, events, record or pace, and the HUD does not count them. Each is an ordinary vehicle (its own
-mechanics, recovery and the same driver as rivals, except that its driver never changes lanes: behind a slower vehicle
-it follows at that vehicle's speed) whose role in the Session is traffic; no vehicle document marks it. Heading for a
+mechanics, recovery and the same driver as rivals, except that its driver never changes lanes to pass: behind a slower
+vehicle it follows at that vehicle's speed; where its lane ends it merges as every driver does) whose role in the Session is traffic; no vehicle document marks it. Heading for a
 fork's exit Carriageway is not a lane change. Traffic positions lie on the Route at stations `offset + k × 1000/density` (k = 0, 1, …);
 the offset in [0, spacing), and each position's vehicle, color and lane (a lane number of the Carriageway at that
 station), derive from the Session seed and k through the same 32-bit mixing as rival exits. At a fork a traffic
@@ -1029,7 +1052,7 @@ traffic vehicle appears there, at its lane's centre and its driver's planned spe
 lane, the same appearance as a later stage's entry. Positions at or before the line when the Session starts never appear. A position passes unused,
 never to appear later, when `min(16, 32 − competitors)` traffic vehicles are present (`SESSION_RULE_LIMITS.traffic`
 and `.vehicles`), when the resident Route does not reach it yet, when its place overlaps another vehicle's footprint
-([Body contact](#body-contact)), or when a vehicle behind in its lane whose driver never changes lanes, another traffic
+([Body contact](#body-contact)), or when a vehicle behind in its lane whose driver never changes lanes to pass, another traffic
 vehicle in practice, could not stop for it (the appearance rule above). A traffic vehicle leaves, for good, once out of view by the same rule as competitors.
 Traffic exists only where the player can see it: it appears at the farthest visible distance ahead of the player
 and leaves once out of the player's view, so competitors far from the player meet none.
@@ -1140,6 +1163,16 @@ situations Stage 13 exercises — lane counts, contacts, traffic, walls and road
 course, favouring kinds of scene over looks. Its five Sections chain by Links; every Section starts and ends level at
 height 0, and each starts with a taper from the previous road width. Lane counts run 4 → 2 → 1 → 2 → 4. The
 reference driver completes it in 170.4 s; checkpoints come about every 2 km.
+
+At each seam the Carriageway keeps the previous road's width (the Link rule) and then tapers, so the lane centres
+move across it. Lanes continue by position (the left lane on a tie), and every continuing lane's centre moves:
+
+| Seam                                     | Lane centres before → after (m)            | Continuing lanes | Ending lanes           | Centre shift of the continuing lanes |
+| ---------------------------------------- | ------------------------------------------ | ---------------- | ---------------------- | ------------------------------------ |
+| `coast-wide` → `cliff-mountain` (4 → 2)  | −5.25, −1.75, 1.75, 5.25 → −3.5, 3.5       | 0 → 0, 2 → 1     | 1 (into 0), 3 (into 2) | 1.75                                 |
+| `cliff-mountain` → `rough-track` (2 → 1) | −1.75, 1.75 → 0                            | 0 → 0            | 1 (into 0)             | 1.75                                 |
+| `rough-track` → `town` (1 → 2)           | 0 → −1.25, 1.25                            | 0 → 0            | —                      | 1.25                                 |
+| `town` → `coast-fast` (2 → 4)            | −1.75, 1.75 → −2.625, −0.875, 0.875, 2.625 | 0 → 0, 1 → 2     | —                      | 0.875                                |
 
 | Section            | Course stations (m) | Section stations (m) | Lanes, width                  | Content                                                                                                                     |
 | ------------------ | ------------------- | -------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------- |

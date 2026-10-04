@@ -110,11 +110,11 @@ export function createTrafficField(options: {
   readonly modelOf: (vehicle: TrafficCandidate['vehicle']) => VehicleModel;
   readonly occupant: (model: VehicleModel, s: number, l: number) => { readonly s: number } | null;
   readonly vacantPlace: (self: TrafficMotion, s: number, lane: (s: number) => number) => RecoveryTarget;
-  /** How fast a vehicle appears at (s, lane(s)) under its driver; null when it cannot appear there now. */
+  /** How fast a vehicle appears at (s, its intent's target) under its driver; null when it cannot appear there now. */
   readonly appearanceSpeed: (
     model: VehicleModel,
     s: number,
-    lane: (s: number) => number,
+    intent: LaneIntent,
     driver: EnvelopeDriver,
   ) => number | null;
   readonly appearanceLine: () => number;
@@ -158,14 +158,17 @@ export function createTrafficField(options: {
         const model = modelOf(candidate.vehicle);
         const intent: LaneIntent = {
           lane: 0,
+          ordinal: 0,
           exit: (occurrence) =>
             trafficDraw(seed, 'exit', position, occurrence.section.fork!.exits.length, occurrence.ordinal),
         };
-        intent.lane = trafficDraw(seed, 'lane', position, forks.targetCarriageway(s, intent.exit).road.lanes);
+        const appearing = forks.targetCarriageway(s, intent.exit);
+        intent.lane = trafficDraw(seed, 'lane', position, appearing.road.lanes);
+        intent.ordinal = appearing.occurrence.ordinal;
         const lane = (station: number) => forks.targetL(station, intent);
         const l = lane(s);
         if (occupant(model, s, l)) return;
-        const speed = appearanceSpeed(model, s, lane, candidate.driver);
+        const speed = appearanceSpeed(model, s, intent, candidate.driver);
         if (speed === null) return;
         const vehicle = createVehicle(model, runtime.readers, { s, l, initialSpeed: speed });
         const contactForce = { x: 0, y: 0, z: 0 };

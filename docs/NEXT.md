@@ -34,7 +34,7 @@
   external force on the ordinary mechanics; drivers change lanes past slower vehicles or follow them; traffic appears
   at seeded Route positions from the series (RIBBON COAST ARCADE) or FREE PLAY's TRAFFIC option, at most eight at once.
 
-Next PR: **13-4h — Lane ends**.
+Next PR: **13-4g — Stage 13-4 close**.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
