@@ -111,7 +111,9 @@ names with `unresolved_reference` at the sprite's `/palette` JSON Pointer.
 `groundOffset` is height above the authoritative road height, in metres.
 Each expanded placement resolves `lateral` at its own s, so repetitions follow referenced Boundaries.
 Compilation shares one immutable resource for each image/palette-name pair across Sections; the
-renderer borrows the compiled decoded image and materializes one palette variant per resource. Sprites have no authored identity.
+renderer borrows the compiled decoded image and materializes one palette variant per resource. Sprites have no authored identity: compilation expands a Section's sprites once, in document order and within
+`spritePlacements`, into its placements, each with its resolved position, lateral and sprite image, and a placement's
+index is its identity; the solid objects and the appearance are both compiled from that one list.
 
 `body` is null for scenery vehicles pass through (grass, bushes), or `{width, movable}` for a solid object: `width` a
 positive width in metres, and `movable` null for a fixed object or `{mass, launchDegrees, knocked: {airborne, landed}}`

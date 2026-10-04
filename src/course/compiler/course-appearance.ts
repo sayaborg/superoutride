@@ -1,8 +1,7 @@
 import { expandCourseElements, shiftedCoursePosition } from '../course-repeat.js';
-import { resolveCourseLateral } from './course-lateral.js';
 import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
 import { type CoursePosition, type SectionDocument } from '../course-document.js';
-import type { CompiledBoundary, CompiledCarriageway } from '../course-boundaries.js';
+import type { CompiledCarriageway } from '../course-boundaries.js';
 import type { CompiledFork } from './course-graph.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
 import { CourseInputError, requireCourse } from '../course-diagnostics.js';
@@ -11,6 +10,7 @@ import type { CourseAppearance, CourseSpriteResource, CourseWallAppearance } fro
 import type { StripGround } from '../strip-ground.js';
 import { stripEdgeAt } from '../strip-slabs.js';
 import type { CompiledWall } from './course-walls.js';
+import type { CourseSpritePlacement } from './course-objects.js';
 import type { CompiledCourseImageSource } from './course-image-source.js';
 
 export const COURSE_APPEARANCE_RECIPE = Object.freeze({ id: 'superoutride.course-appearance', version: 14 });
@@ -60,7 +60,6 @@ export function createCourseSpriteResources() {
 export function compileCourseAppearance(
   section: SectionDocument,
   length: number,
-  boundaries: ReadonlyMap<string, CompiledBoundary>,
   assets: ReadonlyMap<string, CompiledCourseImageSource>,
   resource: ReturnType<typeof createCourseSpriteResources>,
   resolve: (at: CoursePosition, path: string) => CompiledCoursePosition,
@@ -68,6 +67,7 @@ export function compileCourseAppearance(
   carriageways: readonly CompiledCarriageway[],
   fork: Readonly<CompiledFork> | null,
   walls: readonly CompiledWall[],
+  placements: readonly CourseSpritePlacement[],
 ): CourseAppearance | null {
   const source = section.environments;
   const visible = walls.filter((wall): wall is CompiledWall & { readonly color: StripGround } => wall.color !== null);
@@ -147,74 +147,59 @@ export function compileCourseAppearance(
     length,
     `${path}/environments`,
   );
-  const sprites: CourseAppearance['sprites'][number][] = [];
-  expandCourseElements(
-    section.sprites,
-    `${path}/sprites`,
-    COURSE_DOCUMENT_LIMITS.spritePlacements * (2 * COURSE_DOCUMENT_LIMITS.repeatDepth + 1),
-    (placement, offset, at) => {
+  const sprites = placements.map(({ source: placement, path: at, at: position, l, image: asset }) => {
+    const instance = resource(asset, placement.palette, `${at}/palette`);
+    // A movable placement's knocked pictures share its palette.
+    const movable = placement.body?.movable ?? null;
+    const knocked =
+      movable !== null
+        ? Object.freeze({
+            airborne: resource(
+              image(movable.knocked.airborne, `${at}/body/knocked/airborne`),
+              placement.palette,
+              `${at}/palette`,
+            ),
+            landed: resource(
+              image(movable.knocked.landed, `${at}/body/knocked/landed`),
+              placement.palette,
+              `${at}/palette`,
+            ),
+          })
+        : null;
+    const unselectedCarriagewayId = placement.unselectedCarriagewayId;
+    const unselected =
+      unselectedCarriagewayId === null ? null : carriageways.find((c) => c.id === unselectedCarriagewayId);
+    if (unselected === undefined)
+      throw new CourseInputError(
+        'unresolved_reference',
+        `${at}/unselectedCarriagewayId`,
+        'Unknown state-selected carriageway',
+      );
+    if (unselected !== null) {
+      requireCourse(fork !== null, at, 'State-selected road signs require a fork', 'invalid_fork');
       requireCourse(
-        sprites.length < COURSE_DOCUMENT_LIMITS.spritePlacements,
+        fork!.exits.some((exit) => exit.link.from.carriageway === unselected),
         at,
-        'Expanded sprite placement limit exceeded',
-        'resource_limit',
+        'Road sign state must name a canonical exit carriageway',
+        'invalid_fork',
       );
-      const instance = resource(image(placement.image, `${at}/image`), placement.palette, `${at}/palette`);
-      // A movable placement's knocked pictures share its palette.
-      const movable = placement.body?.movable ?? null;
-      const knocked =
-        movable !== null
-          ? Object.freeze({
-              airborne: resource(
-                image(movable.knocked.airborne, `${at}/body/knocked/airborne`),
-                placement.palette,
-                `${at}/palette`,
-              ),
-              landed: resource(
-                image(movable.knocked.landed, `${at}/body/knocked/landed`),
-                placement.palette,
-                `${at}/palette`,
-              ),
-            })
-          : null;
-      const unselectedCarriagewayId = placement.unselectedCarriagewayId;
-      const unselected =
-        unselectedCarriagewayId === null ? null : carriageways.find((c) => c.id === unselectedCarriagewayId);
-      if (unselected === undefined)
-        throw new CourseInputError(
-          'unresolved_reference',
-          `${at}/unselectedCarriagewayId`,
-          'Unknown state-selected carriageway',
-        );
-      const position = shiftedCoursePosition(resolve, offset, length)(placement.at, `${at}/at`);
-      if (unselected !== null) {
-        requireCourse(fork !== null, at, 'State-selected road signs require a fork', 'invalid_fork');
-        requireCourse(
-          fork!.exits.some((exit) => exit.link.from.carriageway === unselected),
-          at,
-          'Road sign state must name a canonical exit carriageway',
-          'invalid_fork',
-        );
-        // Between lock and closure, a sign also precedes every exit cut.
-        requireCourse(
-          position.s >= fork!.lock.s && position.s <= fork!.closure.s,
-          at,
-          'Road signs lie between lock and closure',
-          'invalid_fork',
-        );
-      }
-      sprites.push(
-        Object.freeze({
-          unselectedCarriagewayId,
-          instance,
-          at: position,
-          l: resolveCourseLateral(placement.lateral, position.s, boundaries, `${at}/lateral`),
-          groundOffset: placement.groundOffset,
-          knocked,
-        }),
+      // Between lock and closure, a sign also precedes every exit cut.
+      requireCourse(
+        position.s >= fork!.lock.s && position.s <= fork!.closure.s,
+        at,
+        'Road signs lie between lock and closure',
+        'invalid_fork',
       );
-    },
-  );
+    }
+    return Object.freeze({
+      unselectedCarriagewayId,
+      instance,
+      at: position,
+      l,
+      groundOffset: placement.groundOffset,
+      knocked,
+    });
+  });
   return Object.freeze({
     environments: Object.freeze(environments),
     sprites: Object.freeze(sprites),

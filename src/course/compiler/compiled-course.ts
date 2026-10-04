@@ -33,7 +33,7 @@ import {
 import { COURSE_APPEARANCE_RECIPE, compileCourseAppearance, createCourseSpriteResources } from './course-appearance.js';
 import { compileCourseBoundaries } from './course-lateral.js';
 import { compileCourseBarriers, compileCourseWalls, compileWallEnds } from './course-walls.js';
-import { compileCourseSpriteObjects } from './course-objects.js';
+import { compileCourseSpriteObjects, compileCourseSpritePlacements } from './course-objects.js';
 import { compileCourseGates } from './course-rules.js';
 import { compileCourseFork } from './course-fork.js';
 import { enumerateCourseRoutes } from './course-routes.js';
@@ -134,9 +134,11 @@ function compileSection(
   const walls = compileCourseWalls(section.walls, boundaryTable, resolve, materials, `${path}/walls`);
   const barriers = compileCourseBarriers(walls, section.openLimits, resolve, strips.material, length, path);
   const physical = compileCoursePhysicalContent(section, length, resolve, path);
+  // The Section's sprites expanded once: the placements, and their identities, objects and appearance share.
+  const placements = compileCourseSpritePlacements(section, length, boundaryTable, assets, resolve, path);
   const objects = Object.freeze(
     [
-      ...compileCourseSpriteObjects(section, length, boundaryTable, assets, physical.height, resolve, path),
+      ...compileCourseSpriteObjects(placements, physical.height),
       ...compileWallEnds(walls, barriers, `${path}/walls`),
     ].sort((a, b) => a.s - b.s),
   );
@@ -162,7 +164,6 @@ function compileSection(
     const appearance = compileCourseAppearance(
       section,
       length,
-      boundaryTable,
       assets,
       resources,
       resolve,
@@ -170,6 +171,7 @@ function compileSection(
       carriageways,
       result.fork,
       walls,
+      placements,
     );
     // A Section's images are exactly those its backgrounds and sprites reference, in course asset order.
     const used = new Set<object>([

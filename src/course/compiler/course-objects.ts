@@ -1,4 +1,4 @@
-import type { CoursePosition, SectionDocument } from '../course-document.js';
+import type { CoursePosition, SectionDocument, SpriteDocument } from '../course-document.js';
 import type { CompiledBoundary } from '../course-boundaries.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
 import type { CourseObject } from '../course-objects.js';
@@ -11,61 +11,101 @@ import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../image/sprite.js';
 import type { CompiledCourseImageSource } from './course-image-source.js';
 
 /**
- * The Section's solid sprites as objects, one per expanded placement with a body: its width, no wider than the image's
- * world width, from the road height plus `groundOffset` up the image's world height, and, for a movable body, its mass
- * and launch elevation. The image's size is read here once; a state-selected sign cannot be solid. Each object keeps
- * its placement's index among the expanded sprites, the identity appearance and race share.
+ * One expanded sprite placement of a Section: its authored record, its document path, its resolved position and
+ * lateral, and its sprite image. Its index among the Section's placements is the sprite identity race and appearance
+ * share.
  */
-export function compileCourseSpriteObjects(
+export interface CourseSpritePlacement {
+  readonly source: SpriteDocument;
+  readonly path: string;
+  readonly at: CompiledCoursePosition;
+  readonly l: number;
+  readonly image: CompiledCourseImageSource & { readonly kind: 'sprite' };
+}
+
+/**
+ * The Section's sprites expanded once, in document order, within `spritePlacements`: the one list of placements, with
+ * their identities and positions, that the object and appearance compilers read.
+ */
+export function compileCourseSpritePlacements(
   section: SectionDocument,
   length: number,
   boundaries: ReadonlyMap<string, CompiledBoundary>,
   assets: ReadonlyMap<string, CompiledCourseImageSource>,
-  height: ProfileReader,
   resolve: (at: CoursePosition, path: string) => CompiledCoursePosition,
   path: string,
-): CourseObject[] {
-  const objects: CourseObject[] = [];
-  let sprite = -1;
+): readonly CourseSpritePlacement[] {
+  const placements: CourseSpritePlacement[] = [];
   expandCourseElements(
     section.sprites,
     `${path}/sprites`,
     COURSE_DOCUMENT_LIMITS.spritePlacements * (2 * COURSE_DOCUMENT_LIMITS.repeatDepth + 1),
-    (placement, offset, at) => {
-      sprite += 1;
-      const body = placement.body;
-      if (body === null) return;
+    (source, offset, at) => {
       requireCourse(
-        placement.unselectedCarriagewayId === null,
-        `${at}/body`,
-        'A state-selected sign cannot be solid',
-        'invalid_placement',
+        placements.length < COURSE_DOCUMENT_LIMITS.spritePlacements,
+        at,
+        'Expanded sprite placement limit exceeded',
+        'resource_limit',
       );
-      const asset = assets.get(placement.image);
-      if (!asset || asset.kind !== 'sprite')
-        throw new CourseInputError('unresolved_reference', `${at}/image`, 'Unknown sprite image');
-      requireCourse(
-        body.width <= asset.image.worldWidthMeters,
-        `${at}/body/width`,
-        'A solid width cannot exceed its image width',
-        'invalid_placement',
-      );
-      const s = shiftedCoursePosition(resolve, offset, length)(placement.at, `${at}/at`).s;
-      const bottom = height.sample(s) + placement.groundOffset;
-      objects.push(
+      const image = assets.get(source.image);
+      if (!image) throw new CourseInputError('unresolved_reference', `${at}/image`, 'Unknown course asset');
+      if (image.kind !== 'sprite')
+        throw new CourseInputError('invalid_image_role', `${at}/image`, 'Sprites require sprite patterns');
+      const position = shiftedCoursePosition(resolve, offset, length)(source.at, `${at}/at`);
+      placements.push(
         Object.freeze({
-          s,
-          l: resolveCourseLateral(placement.lateral, s, boundaries, `${at}/lateral`),
-          width: body.width,
-          bottom,
-          top: bottom + asset.image.height / SPRITE_SOURCE_TEXELS_PER_METER,
-          sprite,
-          movable: body.movable
-            ? Object.freeze({ mass: body.movable.mass, launchRadians: (body.movable.launchDegrees * Math.PI) / 180 })
-            : null,
+          source,
+          path: at,
+          at: position,
+          l: resolveCourseLateral(source.lateral, position.s, boundaries, `${at}/lateral`),
+          image,
         }),
       );
     },
   );
+  return Object.freeze(placements);
+}
+
+/**
+ * The Section's solid sprites as objects, one per placement with a body: its width, no wider than the image's world
+ * width, from the road height plus `groundOffset` up the image's world height, and, for a movable body, its mass and
+ * launch elevation. The image's size is read here once; a state-selected sign cannot be solid. Each object keeps its
+ * placement's index, the sprite identity.
+ */
+export function compileCourseSpriteObjects(
+  placements: readonly CourseSpritePlacement[],
+  height: ProfileReader,
+): CourseObject[] {
+  const objects: CourseObject[] = [];
+  placements.forEach(({ source, path, at, l, image }, sprite) => {
+    const body = source.body;
+    if (body === null) return;
+    requireCourse(
+      source.unselectedCarriagewayId === null,
+      `${path}/body`,
+      'A state-selected sign cannot be solid',
+      'invalid_placement',
+    );
+    requireCourse(
+      body.width <= image.image.worldWidthMeters,
+      `${path}/body/width`,
+      'A solid width cannot exceed its image width',
+      'invalid_placement',
+    );
+    const bottom = height.sample(at.s) + source.groundOffset;
+    objects.push(
+      Object.freeze({
+        s: at.s,
+        l,
+        width: body.width,
+        bottom,
+        top: bottom + image.image.height / SPRITE_SOURCE_TEXELS_PER_METER,
+        sprite,
+        movable: body.movable
+          ? Object.freeze({ mass: body.movable.mass, launchRadians: (body.movable.launchDegrees * Math.PI) / 180 })
+          : null,
+      }),
+    );
+  });
   return objects;
 }
