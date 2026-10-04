@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 37,
+  "version": 38,
   "name": "RIBBON COAST",
   "entrySectionId": "coast-wide",
   "rules": { "maxLaps": 1 },
@@ -680,39 +680,39 @@
               "kind": "strip",
               "color": 9479,
               "knots": [
-                { "at": { "pi": "start", "offset": 967.836754 }, "bottom": 0.0, "top": 0.1 },
+                { "at": { "pi": "start", "offset": 967.836754 }, "bottom": 0, "top": 0 },
                 { "at": { "pi": "start", "offset": 992.836754 }, "bottom": 0, "top": 20 },
                 { "at": { "pi": "start", "offset": 1037.836754 }, "bottom": 0, "top": 12 },
                 { "at": { "pi": "start", "offset": 1077.836754 }, "bottom": 0, "top": 25 },
                 { "at": { "pi": "start", "offset": 1117.836754 }, "bottom": 0, "top": 16 },
                 { "at": { "pi": "start", "offset": 1142.836754 }, "bottom": 0, "top": 20 },
-                { "at": { "pi": "start", "offset": 1167.836754 }, "bottom": 0.0, "top": 0.1 }
+                { "at": { "pi": "start", "offset": 1167.836754 }, "bottom": 0, "top": 0 }
               ]
             },
             {
               "kind": "strip",
               "color": 13673,
               "knots": [
-                { "at": { "pi": "start", "offset": 967.836754 }, "bottom": 0.035, "top": 0.1 },
+                { "at": { "pi": "start", "offset": 967.836754 }, "bottom": 0, "top": 0 },
                 { "at": { "pi": "start", "offset": 992.836754 }, "bottom": 7.0, "top": 20 },
                 { "at": { "pi": "start", "offset": 1037.836754 }, "bottom": 4.2, "top": 12 },
                 { "at": { "pi": "start", "offset": 1077.836754 }, "bottom": 8.75, "top": 25 },
                 { "at": { "pi": "start", "offset": 1117.836754 }, "bottom": 5.6, "top": 16 },
                 { "at": { "pi": "start", "offset": 1142.836754 }, "bottom": 7.0, "top": 20 },
-                { "at": { "pi": "start", "offset": 1167.836754 }, "bottom": 0.035, "top": 0.1 }
+                { "at": { "pi": "start", "offset": 1167.836754 }, "bottom": 0, "top": 0 }
               ]
             },
             {
               "kind": "strip",
               "color": 17900,
               "knots": [
-                { "at": { "pi": "start", "offset": 967.836754 }, "bottom": 0.07, "top": 0.1 },
+                { "at": { "pi": "start", "offset": 967.836754 }, "bottom": 0, "top": 0 },
                 { "at": { "pi": "start", "offset": 992.836754 }, "bottom": 14.0, "top": 20 },
                 { "at": { "pi": "start", "offset": 1037.836754 }, "bottom": 8.4, "top": 12 },
                 { "at": { "pi": "start", "offset": 1077.836754 }, "bottom": 17.5, "top": 25 },
                 { "at": { "pi": "start", "offset": 1117.836754 }, "bottom": 11.2, "top": 16 },
                 { "at": { "pi": "start", "offset": 1142.836754 }, "bottom": 14.0, "top": 20 },
-                { "at": { "pi": "start", "offset": 1167.836754 }, "bottom": 0.07, "top": 0.1 }
+                { "at": { "pi": "start", "offset": 1167.836754 }, "bottom": 0, "top": 0 }
               ]
             },
             {

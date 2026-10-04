@@ -26,7 +26,7 @@ whitespace do not affect identity. Normalized records use schema field order and
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 37,
+  format: "superoutride.course", version: 38,
   name, entrySectionId,
   sections, links, assets, rules
 }
@@ -229,12 +229,13 @@ says whether vehicles meet it; `thickness`, positive metres, is the width of its
 `strips` colors the wall as the road's [Strips](#strips) color the ground, with height in place of lateral: an array of
 `{kind: "strip", color, knots}` and `repeat` elements (`repeat` as for road Strips). `color` is an RGB555 integer or
 `"transparent"`, with the road Strip's meanings; a wall has no material, so a wall Strip cannot leave color unchanged and
-its `color` is never null. Each of at least two knots is `{at, bottom, top}`: Position `at`, and `bottom < top`, metres above the
-road height at that station (negative below it). Knot stations, edge interpolation, repetition, later Strips overwriting
+its `color` is never null. Each of at least two knots is `{at, bottom, top}`: Position `at`, and `bottom` and `top`, metres above the
+road height at that station (negative below it), the Strip's lower and upper edges. Knot stations, the edge rule
+(`bottom <= top`, so a Strip may taper to zero height; `invalid_strip` otherwise), edge interpolation, repetition, later Strips overwriting
 earlier ones, and the expansion and active-piece ceilings are those of road Strips; every Strip, repeated ones included,
 lies within `[from, to]` (`invalid_wall` for an authored knot, `invalid_position` or `invalid_strip` for a repeated or
 expanded one). The wall is visible where its Strips are. A wall with no Strips is invisible and must be solid (a wall
-neither seen nor met is rejected); reading rejects this and `bottom >= top` with `invalid_value`. Whether a wall is solid
+neither seen nor met is rejected); reading rejects this with `invalid_value`. Whether a wall is solid
 does not affect its picture. Compilation turns a visible wall's Strips, with the road's Strip compiler, into a color
 table over the wall's own interval (station `s - from`) and keeps the height range its opaque Strips span;
 [Architecture](architecture.md#walls) owns how it is drawn. A visible wall needs the Section's environments.
@@ -1258,8 +1259,8 @@ The three walls are in place. The guardrail is a solid wall 0.3 m thick and 0.8 
 (5 m right of the centre line): a rail Strip from 0.45 to 0.75 m and a repeat of 0.2 m post Strips every 2 m over it;
 invisible solid lead-ins run from the outer material edge (22 m) to it over 50 m at each end, so none of its ends is
 free. The rising cliff is a solid wall 1 m thick on the left shoulder edge, with the same invisible lead-ins. Its top
-rises from the road (0.1 m) to 20 m over its first 25 m, varies between 12 and 25 m along it and returns to 0.1 m at its
-end, in three rock Strips following the top, with two single patches of other rock (at 40–55 m and 118–140 m along it).
+rises from the road (zero height) to 20 m over its first 25 m, varies between 12 and 25 m along it and returns to the road
+at its end, in three rock Strips following the top, with two single patches of other rock (at 40–55 m and 118–140 m along it).
 The falling cliff is a wall for looks only, 1 m thick, dropping 40 m below the road on the right shoulder edge in two rock
 Strips; the outer material narrows to that edge over 30 m before and after it, so the right side has no course limit
 there and nothing is drawn beyond it. The free-standing wall is solid, 0.5 m thick and 1 m high, parallel to the road and

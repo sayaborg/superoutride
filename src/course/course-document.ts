@@ -17,7 +17,7 @@ import {
   readString,
 } from '../core/admission.js';
 
-const COURSE_DOCUMENT_VERSION = 37;
+const COURSE_DOCUMENT_VERSION = 38;
 const ID = { maxLength: COURSE_DOCUMENT_LIMITS.idCodeUnits };
 
 export interface CoursePosition {
@@ -133,7 +133,7 @@ export interface MovableBodyDocument {
 
 /**
  * One color Strip of a wall: the road's Strip with height in place of lateral. Each knot gives the Strip's `bottom` and
- * `top` (bottom < top) in metres above the road at that station. Its color has the road Strip's meanings; a wall has no
+ * `top` in metres above the road at that station, under the road Strip's edge rule (bottom <= top). Its color has the road Strip's meanings; a wall has no
  * material, so a wall Strip never leaves color unchanged and its color is not null.
  */
 interface WallStripDocument {
@@ -466,11 +466,11 @@ function wallStrip(value: unknown, path: string): WallStripDocument {
       `${path}/knots`,
       (item, at) => {
         const knot = readRecord(item, at, ['at', 'bottom', 'top']);
-        const bottom = readNumber(knot.bottom, `${at}/bottom`, height);
-        const top = readNumber(knot.top, `${at}/top`, height);
-        if (!(bottom < top))
-          throw new CourseInputError('invalid_value', `${at}/top`, 'A wall Strip needs bottom < top');
-        return Object.freeze({ at: position(knot.at, `${at}/at`), bottom, top });
+        return Object.freeze({
+          at: position(knot.at, `${at}/at`),
+          bottom: readNumber(knot.bottom, `${at}/bottom`, height),
+          top: readNumber(knot.top, `${at}/top`, height),
+        });
       },
       { max: COURSE_DOCUMENT_LIMITS.knots },
     ),
