@@ -44,7 +44,7 @@ export function shiftedCoursePosition<T>(
   return (at: T, path: string): Readonly<{ s: number }> => {
     const s = resolve(at, path).s + offset;
     if (!Number.isFinite(s) || s < 0 || s > length)
-      throw new CourseInputError('invalid_position', path, 'Repeated Position is outside the Section');
+      throw new CourseInputError('invalid_position', path, 'Repeated Position is outside its Section or wall');
     return Object.freeze({ s });
   };
 }

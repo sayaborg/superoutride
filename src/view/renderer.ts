@@ -12,7 +12,7 @@ import { generateTerrainLines, createTerrainWorkspace, type TerrainRenderParamet
 import { drawTileBackground, type TileBackground } from './tile-background.js';
 import { selectVehicleSprite, type VehicleSpriteSet } from '../vehicle/vehicle-sprite-set.js';
 import { collectVisibleCourseSprites, type CourseSprite, type VisibleCourseSprite } from './course-sprite.js';
-import { drawWallColumn, type RouteWall } from './course-wall.js';
+import { drawWallColumn, type RouteWall, type WallWorkspace } from './course-wall.js';
 
 import { deriveVehicleLeanRadians } from './vehicle-visuals.js';
 
@@ -79,7 +79,7 @@ export function createRenderWorkspace() {
     /** Each frame's walls within the visible interval and the x of each one's last column. */
     walls: [] as RouteWall[],
     wallX: [] as number[],
-    wallStats: { wallPixels: 0 },
+    wall: { column: new Uint16Array(0), strips: createStripRenderMetrics(), wallPixels: 0 } as WallWorkspace,
   };
 }
 
@@ -104,9 +104,9 @@ export function renderDriving(
   // Walls reaching the visible interval; each paints a column after every terrain row at its stations.
   const shownWalls = workspace.walls,
     wallX = workspace.wallX,
-    wallStats = workspace.wallStats;
+    wallWorkspace = workspace.wall;
   shownWalls.length = wallX.length = 0;
-  wallStats.wallPixels = 0;
+  wallWorkspace.wallPixels = 0;
   if (visible)
     for (const wall of walls)
       if (wall.end >= camera.s + visible.dStart && wall.start <= camera.s + visible.dEnd) {
@@ -144,7 +144,7 @@ export function renderDriving(
       for (let i = 0; i < shownWalls.length; i++) {
         const wall = shownWalls[i]!;
         if (line.s >= wall.start && line.s <= wall.end)
-          wallX[i] = drawWallColumn(target, wall, line, renderCamera, wallX[i]!, wallStats);
+          wallX[i] = drawWallColumn(target, wall, line, renderCamera, wallX[i]!, stripMethod, wallWorkspace);
       }
     },
     (sprite) => {
@@ -174,7 +174,7 @@ export function renderDriving(
   measurements.stripGround.method = stripMethod;
   measurements.terrainLineCount = terrain.length;
   measurements.terrainOutputPixels = terrainOutputPixels;
-  measurements.wallPixels = wallStats.wallPixels;
+  measurements.wallPixels = wallWorkspace.wallPixels;
   measurements.visibleSpriteCount = sprites.length;
   measurements.spriteOutputSamples = spriteOutputSamples;
   measurements.spriteWrittenPixels = spriteWrittenPixels;

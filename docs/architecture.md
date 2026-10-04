@@ -515,13 +515,15 @@ is last among world visuals.
 
 A visible wall is drawn inside the terrain order, with no separate pass: right after each terrain row whose station lies
 on the wall, the wall paints that row's column. Its screen x comes from the row's own affine lateral mapping (the one
-the ground reads, l = ±1 at the row's two projected points) at the wall's Boundary lateral there; from the row it rises
-`top` and drops `bottom` metres at that depth's vertical scale `f/d × cos(pitch)`. The column fills across from the x
+the ground reads, l = ±1 at the row's two projected points) at the wall's Boundary lateral there; from the row it spans
+the height range of the wall's opaque Strips at that depth's vertical scale `f/d × cos(pitch)`. The column fills across from the x
 of the previous, farther row on the same wall this frame, so consecutive columns join into one surface, seen from either
 side alike. Nearer ground rows drawn later cover what lies behind a hill; transparent ground beyond an open edge keeps a
-falling cliff and the BG below it. Height picks the band and the station along the wall picks the pattern entry; where a
-row's station footprint is wider than the wall's shortest entry, the row uses the period's compiled blend instead (like
-the Strip preblend along s), so a pattern finer than a pixel does not flicker. Columns clip to the frame; a wall beside
+falling cliff and the BG below it. The column's colors come from the wall's color table through the road's
+[Strip sampler](#strip-rendering), unchanged, with height as lateral: one height per pixel row at the pixel's centre,
+the row's station and station footprint, so the same preblend along s keeps a pattern finer than a pixel from flickering,
+and the DEV Strip render method selects the wall's read as it does the ground's. Transparent heights write nothing.
+Columns clip to the frame; a wall beside
 the camera clips as any other. Solid or not makes no difference to drawing, and an invisible wall draws nothing. A
 measured render counts the painted wall pixels.
 

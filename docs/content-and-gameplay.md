@@ -18,7 +18,7 @@ color and material overwrite independently. Compiled Sections publish their two 
 Checkpoints, starts, finishes and environment changes are independent of Section boundaries.
 Source identity, traversal identity and race credit are distinct.
 
-## CourseDocument v32
+## CourseDocument v33
 
 The saved format is compact UTF-8 JSON. All declared fields are required; explicit null represents
 absent optional content. Unknown fields fail. Arrays preserve saved order; object-property order and
@@ -213,20 +213,22 @@ a piece carrying both payloads counts once. Limits reject rather than truncate.
 
 ### Walls
 
-Section `walls` is an array (empty when the Section has none) of
-`{boundary, from, to, solid, thickness, top, bottom, pattern}`: a wall along the Section Boundary `boundary` from Position
-`from` to Position `to`. Compilation requires `from < to` and the Boundary to cover that interval (`invalid_wall`; an
-unknown Boundary is `unresolved_reference`). `solid` (true or false) says whether vehicles meet it; `thickness`, positive
-metres, is the width of its ends. `top` (0 or more) and `bottom` (0 or less) are metres above and below the road height
-that bound its picture. `pattern` lists `{length, bands}` entries, positive `length` metres each, repeating in order along
-the road from the wall's start; `bands` rise from `bottom` to `top` as `{to, color}`: each band reaches up to height
-`to`, the `to` values increase strictly, lie above `bottom` and end exactly at `top`, and `color` is an RGB555 integer or
-null for transparent. A wall with `top` and `bottom` both zero is invisible: it has no pattern and must be solid (a wall
-neither seen nor met is rejected). Any other wall is visible and has at least one pattern entry. Whether a wall is solid
-does not affect its picture. Reading rejects these value errors with `invalid_value`. The appearance compiler keeps each
-visible wall's picture (its Boundary, interval, top, bottom, pattern entries and the period blended at every band height:
-transparent where transparent entries cover at least half the period, else the length-weighted average of the opaque
-colors); [Architecture](architecture.md#walls) owns how it is drawn. A visible wall needs the Section's environments.
+Section `walls` is an array (empty when the Section has none) of `{boundary, from, to, solid, thickness, strips}`: a wall
+along the Section Boundary `boundary` from Position `from` to Position `to`. Compilation requires `from < to` and the
+Boundary to cover that interval (`invalid_wall`; an unknown Boundary is `unresolved_reference`). `solid` (true or false)
+says whether vehicles meet it; `thickness`, positive metres, is the width of its ends.
+
+`strips` colors the wall as the road's [Strips](#strips) color the ground, with height in place of lateral: an array of
+`{kind: "strip", color, knots}` and `repeat` elements (`repeat` as for road Strips). `color` is an RGB555 integer or null
+for transparent. Each of at least two knots is `{at, bottom, top}`: Position `at`, and `bottom < top`, metres above the
+road height at that station (negative below it). Knot stations, edge interpolation, repetition, later Strips overwriting
+earlier ones, and the expansion and active-piece ceilings are those of road Strips; every Strip, repeated ones included,
+lies within `[from, to]` (`invalid_wall` for an authored knot, `invalid_position` or `invalid_strip` for a repeated or
+expanded one). The wall is visible where its Strips are. A wall with no Strips is invisible and must be solid (a wall
+neither seen nor met is rejected); reading rejects this and `bottom >= top` with `invalid_value`. Whether a wall is solid
+does not affect its picture. Compilation turns a visible wall's Strips, with the road's Strip compiler, into a color
+table over the wall's own interval (station `s - from`) and keeps the height range its opaque Strips span;
+[Architecture](architecture.md#walls) owns how it is drawn. A visible wall needs the Section's environments.
 
 Solid walls and the course limits are the Section's barrier lines ([Body contact](#barrier-lines)). The course limits
 run along the left and right outer edges of the covered material — the material table's outermost finite covered
@@ -330,7 +332,8 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | Non-circuit finite `routes` from the entry                              |                256 | Reference work bound: one continuous reference run per route and vehicle                                                                                                  |
 | Section `spritePlacements` (expanded)                                   |              16384 | 21 × (200 + 20)/km × 2, rounded up                                                                                                                                        |
 | Each Strip/sprite array `stripElements` / `spriteElements`              |               2048 | 21 × 30/km × 2, rounded up                                                                                                                                                |
-| Section `walls` / each wall's `wallPatterns` / each entry's `wallBands` |     1024 / 64 / 16 | Both sides × 21 km × 10 wall runs/km × 2, rounded up; a 32-entry facade repeat × 2; 8 color bands × 2                                                                     |
+| Section `walls` / each wall's `wallStrips`                              |          1024 / 64 | Both sides × 21 km × 10 wall runs/km × 2, rounded up; 32 Strips or repeats (bands, rails, posts, patches) × 2                                                             |
+| Wall Strip heights `wallHeightMeters` (absolute)                        |               1000 | The Strip lateral ceiling `lateralMeters`: wall heights are read as Strip laterals                                                                                        |
 | `repeatCount`                                                           |              65536 | Whole-length 1 m repetitions: 21000 × 2, rounded up                                                                                                                       |
 | `repeatDepth` / `textCodeUnits`                                         |             8 / 64 | Four organizational levels × 2; 32-character road legend × 2                                                                                                              |
 | Section `stripExpansion` (pieces and visited constructs separately)     |             131072 | 21 × 3000/km × 2, rounded up                                                                                                                                              |
@@ -478,8 +481,8 @@ clock state belong to Sessions. Object identity is local to a compilation; cross
 `sourceSha256` and `materialsSha256` are the delivered SHA-256 of the course document and the
 surface-material document, the [document identity](#reference-times-and-clock) the catalog supplies.
 `buildSha256` hashes `{sourceSha256,materialsSha256,compiler}`.
-The compiler is `superoutride.course-compiler` version 38, incorporating Link recipe v3, physical
-recipe v5, image-source recipe v2 and appearance recipe v11. Source, material or compiler/recipe
+The compiler is `superoutride.course-compiler` version 40, incorporating Link recipe v3, physical
+recipe v6, image-source recipe v2 and appearance recipe v13. Source, material or compiler/recipe
 changes invalidate dependent products.
 
 Image inputs are explicit saved bytes addressed by each declared SHA-256. Shared digests resolve to
@@ -1102,10 +1105,12 @@ Places reserved for later Stage 13-4 content, in Section stations:
 | Falling cliff (open edge)     | `cliff-mountain` | 1383–1583 (straight 1333–1633)                                          | Right (sea)     |
 
 The three walls are in place. The guardrail is a solid wall 0.3 m thick and 0.8 m high on the shoulder's outer edge
-(5 m right of the centre line), posts every 2 m under a rail; invisible solid lead-ins run from the outer material edge
-(22 m) to it over 50 m at each end. The rising cliff is a solid wall 1 m thick and 20 m high on the left shoulder edge in
-three rock bands, with the same invisible lead-ins. The falling cliff is a wall for looks only, 1 m thick, dropping 40 m
-below the road on the right shoulder edge; the outer material narrows to that edge over 30 m before and after it, so the
+(5 m right of the centre line): a rail Strip from 0.45 to 0.75 m and a repeat of 0.2 m post Strips every 2 m over it;
+invisible solid lead-ins run from the outer material edge (22 m) to it over 50 m at each end. The rising cliff is a solid
+wall 1 m thick on the left shoulder edge, with the same invisible lead-ins. Its top rises from the road (0.1 m) to 20 m
+over its first 25 m, varies between 12 and 25 m along it and returns to 0.1 m at its end, in three rock bands following
+the top, with two single patches of other rock (at 40–55 m and 118–140 m along it). The falling cliff is a wall for
+looks only, 1 m thick, dropping 40 m below the road on the right shoulder edge in two rock bands; the outer material narrows to that edge over 30 m before and after it, so the
 right side has no course limit there and nothing is drawn beyond it.
 | Short free-standing wall | `coast-wide` | 1100–1120, in the grass | Left |
 | Solid trees and signs | `town` | 110–980, just outside the shoulders | Both |

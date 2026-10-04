@@ -69,7 +69,7 @@ export interface CompiledCourse {
 
 const COURSE_COMPILER = Object.freeze({
   id: 'superoutride.course-compiler',
-  version: 39,
+  version: 40,
   links: COURSE_LINK_RECIPE,
   physical: COURSE_PHYSICAL_RECIPE,
   images: COURSE_IMAGE_SOURCE_RECIPE,
@@ -130,7 +130,7 @@ function compileSection(
   const strips = compileCourseStrips(section.strips, length, `${path}/strips`, resolve, boundaryTable, materials);
   validateMaterialContinuity(strips.material, `${path}/strips`);
   validateCourseCarriageways(carriageways, strips.material, length, `${path}/carriageways`);
-  const walls = compileCourseWalls(section.walls, boundaryTable, resolve, `${path}/walls`);
+  const walls = compileCourseWalls(section.walls, boundaryTable, resolve, materials, `${path}/walls`);
   const barriers = compileCourseBarriers(walls, strips.material, length, `${path}/strips`);
   const physical = compileCoursePhysicalContent(section, length, resolve, path);
   const lateralDomain = compileMaterialCoordinateDomain(section.id, segments, strips.material, path);

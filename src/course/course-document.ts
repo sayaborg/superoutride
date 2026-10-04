@@ -17,7 +17,7 @@ import {
   readString,
 } from '../core/admission.js';
 
-const COURSE_DOCUMENT_VERSION = 32;
+const COURSE_DOCUMENT_VERSION = 33;
 const ID = { maxLength: COURSE_DOCUMENT_LIMITS.idCodeUnits };
 
 export interface CoursePosition {
@@ -114,17 +114,21 @@ export interface SpriteDocument {
   readonly groundOffset: number;
 }
 
-/** One band of a wall pattern: its color (null is transparent) up to height `to` above the road. */
-export interface WallBandDocument {
-  readonly to: number;
+/**
+ * One color Strip of a wall: the road's Strip with height in place of lateral. Each knot gives the Strip's `bottom` and
+ * `top` (bottom < top) in metres above the road at that station; a null color is transparent.
+ */
+interface WallStripDocument {
+  readonly kind: 'strip';
   readonly color: number | null;
+  readonly knots: readonly { readonly at: CoursePosition; readonly bottom: number; readonly top: number }[];
 }
+export type WallStripElementDocument = RepeatElement<WallStripDocument>;
 
 /**
  * A wall along a Boundary from `from` to `to`. A solid wall is a line vehicles cannot cross; `thickness` is the width of
- * its ends. `top` (≥ 0) and `bottom` (≤ 0) bound its picture above and below the road, drawn in `pattern`: entries of
- * `length` metres repeating along the road from the wall's start, each with bands from `bottom` up to `top`. An
- * invisible wall has `top` and `bottom` zero and no pattern, and must be solid.
+ * its ends. Its picture is its `strips`, read like the road's with height as lateral, each within `[from, to]`. An
+ * invisible wall has no strips and must be solid.
  */
 export interface WallDocument {
   readonly boundary: string;
@@ -132,9 +136,7 @@ export interface WallDocument {
   readonly to: CoursePosition;
   readonly solid: boolean;
   readonly thickness: number;
-  readonly top: number;
-  readonly bottom: number;
-  readonly pattern: readonly { readonly length: number; readonly bands: readonly WallBandDocument[] }[];
+  readonly strips: readonly WallStripElementDocument[];
 }
 
 export interface SectionDocument {
@@ -404,61 +406,40 @@ function sprite(value: unknown, path: string): SpriteDocument {
         : readString(s.unselectedCarriagewayId, `${path}/unselectedCarriagewayId`, ID),
   });
 }
+function wallStrip(value: unknown, path: string): WallStripDocument {
+  const v = readRecord(value, path, ['kind', 'color', 'knots']);
+  if (v.kind !== 'strip')
+    throw new CourseInputError('unsupported_feature', `${path}/kind`, 'Unknown wall Strip construct');
+  const height = { min: -COURSE_DOCUMENT_LIMITS.wallHeightMeters, max: COURSE_DOCUMENT_LIMITS.wallHeightMeters };
+  return Object.freeze({
+    kind: 'strip',
+    color: v.color === null ? null : readRgb555(v.color, `${path}/color`),
+    knots: readArray(
+      v.knots,
+      `${path}/knots`,
+      (item, at) => {
+        const knot = readRecord(item, at, ['at', 'bottom', 'top']);
+        const bottom = readNumber(knot.bottom, `${at}/bottom`, height);
+        const top = readNumber(knot.top, `${at}/top`, height);
+        if (!(bottom < top))
+          throw new CourseInputError('invalid_value', `${at}/top`, 'A wall Strip needs bottom < top');
+        return Object.freeze({ at: position(knot.at, `${at}/at`), bottom, top });
+      },
+      { max: COURSE_DOCUMENT_LIMITS.knots },
+    ),
+  });
+}
 function wall(value: unknown, path: string): WallDocument {
-  const v = readRecord(value, path, ['boundary', 'from', 'to', 'solid', 'thickness', 'top', 'bottom', 'pattern']);
-  const height = COURSE_DOCUMENT_LIMITS.heightMeters;
-  const top = readNumber(v.top, `${path}/top`, { min: 0, max: height });
-  const bottom = readNumber(v.bottom, `${path}/bottom`, { min: -height, max: 0 });
+  const v = readRecord(value, path, ['boundary', 'from', 'to', 'solid', 'thickness', 'strips']);
   const solid = readBoolean(v.solid, `${path}/solid`);
-  const pattern = readArray(
-    v.pattern,
-    `${path}/pattern`,
-    (item, at) => {
-      const entry = readRecord(item, at, ['length', 'bands']);
-      const bands = readArray(
-        entry.bands,
-        `${at}/bands`,
-        (band, bandAt) => {
-          const b = readRecord(band, bandAt, ['to', 'color']);
-          return Object.freeze({
-            to: readNumber(b.to, `${bandAt}/to`, { min: bottom, max: top, exclusiveMin: true }),
-            color: b.color === null ? null : readRgb555(b.color, `${bandAt}/color`),
-          });
-        },
-        { min: 1, max: COURSE_DOCUMENT_LIMITS.wallBands },
-      );
-      bands.forEach((band, i) => {
-        if (i > 0 && !(band.to > bands[i - 1]!.to))
-          throw new CourseInputError('invalid_value', `${at}/bands/${i}/to`, 'Wall bands must rise strictly');
-      });
-      if (bands.at(-1)!.to !== top)
-        throw new CourseInputError(
-          'invalid_value',
-          `${at}/bands/${bands.length - 1}/to`,
-          'The last band must end at top',
-        );
-      return Object.freeze({
-        length: readNumber(entry.length, `${at}/length`, {
-          min: 0,
-          max: COURSE_DOCUMENT_LIMITS.lengthMeters,
-          exclusiveMin: true,
-        }),
-        bands,
-      });
-    },
-    { max: COURSE_DOCUMENT_LIMITS.wallPatterns },
+  const strips = readArray(
+    v.strips,
+    `${path}/strips`,
+    (item, at) => repeated(item, at, COURSE_DOCUMENT_LIMITS.wallStrips, wallStrip),
+    { max: COURSE_DOCUMENT_LIMITS.wallStrips },
   );
-  const invisible = top === 0 && bottom === 0;
-  if (invisible && pattern.length)
-    throw new CourseInputError(
-      'invalid_value',
-      `${path}/pattern`,
-      'An invisible wall (top and bottom 0) has no pattern',
-    );
-  if (invisible && !solid)
-    throw new CourseInputError('invalid_value', `${path}/solid`, 'An invisible wall must be solid');
-  if (!invisible && !pattern.length)
-    throw new CourseInputError('invalid_value', `${path}/pattern`, 'A visible wall needs a pattern');
+  if (strips.length === 0 && !solid)
+    throw new CourseInputError('invalid_value', `${path}/solid`, 'An invisible wall (no strips) must be solid');
   return Object.freeze({
     boundary: readString(v.boundary, `${path}/boundary`, ID),
     from: position(v.from, `${path}/from`),
@@ -469,9 +450,7 @@ function wall(value: unknown, path: string): WallDocument {
       max: COURSE_DOCUMENT_LIMITS.lateralMeters,
       exclusiveMin: true,
     }),
-    top,
-    bottom,
-    pattern,
+    strips,
   });
 }
 

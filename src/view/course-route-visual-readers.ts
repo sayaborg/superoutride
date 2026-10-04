@@ -67,17 +67,22 @@ export function createCourseRouteVisualReaders(route: RouteWindow) {
           return { occurrence, sprite: positioned, unselectedCarriagewayId };
         }),
     );
-    // Each occurrence's visible walls on the route ruler; the lateral reads the Boundary in its Section.
+    // Each occurrence's visible walls on the route ruler; the lateral reads the Boundary in its Section and the color
+    // sampler reads the wall's Strips from its route start.
     const walls: RouteWall[] = occurrences.flatMap((occurrence) =>
-      occurrence.section.appearance!.walls.map((picture) =>
-        Object.freeze({
-          start: routeS(occurrence, picture.start),
-          end: routeS(occurrence, picture.end),
+      occurrence.section.appearance!.walls.map((picture) => {
+        const start = routeS(occurrence, picture.start),
+          end = routeS(occurrence, picture.end);
+        return Object.freeze({
+          start,
+          end,
           lateralAt: (s: number) =>
             courseBoundaryAt(picture.boundary, routeSectionS(occurrence, s)) - occurrence.lateralOrigin,
-          picture,
-        }),
-      ),
+          bottom: picture.bottom,
+          top: picture.top,
+          color: createStripGroundSampler([{ ground: picture.color, start, end, lateralOrigin: 0 }]),
+        });
+      }),
     );
     return Object.freeze({
       ground,

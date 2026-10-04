@@ -68,7 +68,7 @@ function expandCourseStrips(
     requireCourse(
       shape.start >= 0 && shape.end > shape.start && shape.end <= length,
       sourcePath,
-      'Expanded Strip interval must lie inside the Section',
+      'Expanded Strip interval must lie inside its Section or wall',
       'invalid_strip',
     );
     const piece = { ...shape, value: null };
@@ -126,7 +126,7 @@ function expandCourseStrips(
       requireCourse(
         b.s > a.s && a.s >= 0 && b.s <= length,
         at,
-        'Resolved Strip knots must strictly increase inside the Section',
+        'Resolved Strip knots must strictly increase inside their Section or wall',
         'invalid_strip',
       );
       const edge = (side: 'left' | 'right') =>
