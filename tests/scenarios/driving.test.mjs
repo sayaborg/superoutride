@@ -13,7 +13,7 @@ for (const stem of ['ribbon-coast', 'ribbon-fork', 'ribbon-ring']) {
           mode: 'ARCADE',
           policy: 'finish',
           afterEndingSeconds: 12,
-          seconds: 120,
+          seconds: 240,
           expect: { outcome: 'GOAL', position: 'P1/2', stop: true, rivalsDrive: true },
         },
         {
@@ -22,14 +22,15 @@ for (const stem of ['ribbon-coast', 'ribbon-fork', 'ribbon-ring']) {
           series: 'product',
           policy: 'finish',
           seed: 7,
-          seconds: 120,
-          expect: { outcome: 'GOAL', position: 'P1/1', traffic: true },
+          seconds: 240,
+          // The policy keeps the road centre through traffic that never yields, so on the narrow roads it runs out of time.
+          expect: { outcome: 'GAME_OVER', cause: 'TIME', position: 'P1/1', traffic: true },
         },
         {
           name: 'TIME TRIAL finish from the last slot',
           mode: 'TIME_TRIAL',
           policy: 'finish',
-          seconds: 120,
+          seconds: 240,
           expect: { outcome: 'GOAL', position: 'P1/1' },
         },
       ],

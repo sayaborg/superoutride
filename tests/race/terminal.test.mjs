@@ -23,7 +23,10 @@ const load = async (stem) =>
 
 test('outside projection follows previous chainage across clamped and tangent-ray candidates', async () => {
   const course = await load('ribbon-coast');
-  const { route } = createCourseRoute(course.entry);
+  // The linear chain loaded through its terminal Section.
+  const chain = createCourseRoute(course.entry);
+  chain.extendThrough(Infinity);
+  const { route } = chain;
   const readers = createCourseRouteReaders(route);
   const workspace = createPlanProjectionWorkspace();
   const world = createPlanCoordinateSample();
@@ -38,16 +41,16 @@ test('outside projection follows previous chainage across clamped and tangent-ra
   // When previous s is already on the ray, that foot wins the chainage comparison.
   readers.coordinates.locateLocal(world, route.end + 39, out, workspace);
   assert.ok(Math.abs(out.s - (route.end + 40)) < 1e-8);
-  // A genuine in-domain foot still wins over an endpoint nearer previous s.
+  // A genuine in-domain foot still wins over an endpoint nearer previous s: 10 m into the first arc, which begins at 450.
   for (const coordinates of [course.entry.coordinates, readers.coordinates]) {
-    coordinates.toWorld(400, 0, world);
-    coordinates.locateLocal(world, 390, out, workspace);
+    coordinates.toWorld(460, 0, world);
+    coordinates.locateLocal(world, 450, out, workspace);
     assert.ok(out.inDomain);
-    assert.ok(Math.abs(out.s - 400) < 1e-8);
-    coordinates.toWorld(400, 100, world);
-    coordinates.locateLocal(world, 390, out, workspace);
+    assert.ok(Math.abs(out.s - 460) < 1e-8);
+    coordinates.toWorld(460, 100, world);
+    coordinates.locateLocal(world, 450, out, workspace);
     assert.equal(out.inDomain, false);
-    assert.ok(Math.abs(out.s - 390) < 1e-8);
+    assert.ok(Math.abs(out.s - 450) < 1e-8);
   }
 });
 
@@ -67,7 +70,7 @@ test('Session rejects short terminal runout, including solo play; forks and loop
       ...course.gates,
       intervals: course.gates.intervals.map((interval) => ({
         ...interval,
-        finish: {
+        finish: interval.finish && {
           ...interval.finish,
           at: { ...interval.finish.at, s: interval.section.coordinates.domain.end - 1 },
         },

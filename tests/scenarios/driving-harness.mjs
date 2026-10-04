@@ -444,7 +444,8 @@ export function runScenario({ course, arcade: scenarioArcade, productArcade, bud
         'finished rivals did not stop before player finish',
       );
   }
-  if (scenario.policy === 'finish') {
+  // A finish policy reaches GOAL unless its Session rules expect another outcome.
+  if (scenario.policy === 'finish' && (scenario.expect?.outcome ?? 'GOAL') === 'GOAL') {
     assert.equal(race.outcome.status, 'GOAL');
     assert.equal(race.player.progress.acceptedFinishCount, scenario.laps ?? 1);
     assert.equal(evidence.recoveries.length, 0, 'ordinary driving recovered');

@@ -744,7 +744,7 @@ Session admits the course it drives.
 The delivered series is RIBBON (`dev: true`, colors not fixed): RIBBON COAST, RIBBON FORK and RIBBON RING with
 TESTAROSSA, whose fields are 1, 3 and 3 TESTAROSSA entries in its default color with pace ratio 1 in the grid's rearmost slots, with
 `playerSlot: last`. RIBBON COAST has traffic (10 vehicles/km of GOLF_GTI_16V, DELTA_HF_INTEGRALE and PX200E_ARCOBALENO
-at 80 km/h); RIBBON FORK and RIBBON RING have none.
+at 80 km/h); RIBBON FORK and RIBBON RING have none. RIBBON COAST is the [verification course](#verification-course).
 RIBBON ROUGH belongs to no series.
 
 ## Session and reference timing
@@ -1028,6 +1028,37 @@ violation is an internal invariant failure (`Error`).
 Known recovery coordinates use the shared route. Observers resynchronize once, suppress reset
 crossing credit and update the player
 camera before rendering. Unrelated internal faults propagate.
+
+## Verification course
+
+`ribbon-coast` (RIBBON COAST) is a 10.1 km LINEAR verification course, not a product course: it gathers the
+situations Stage 13 exercises — lane counts, contacts, traffic, walls and roadside objects — in one timed ARCADE
+course, favouring kinds of scene over looks. Its five Sections chain by Links; every Section starts and ends level at
+height 0, and each starts with a taper from the previous road width. Lane counts run 4 → 2 → 1 → 2 → 4. The
+reference driver completes it in 170.4 s; checkpoints come about every 2 km.
+
+| Section            | Course stations (m) | Section stations (m) | Lanes, width                  | Content                                                                                                                     |
+| ------------------ | ------------------- | -------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| A `coast-wide`     | 0–1982              | 0–1982               | 4, 14 m                       | Seaside road, grid and start, curves of 350–500 m, gentle rise; `coast-CP1` at 1950                                         |
+| B `cliff-mountain` | 1982–3615           | 0–1633               | 2, 7 m (14 m tapering by 200) | Cliff road, curves of 180–220 m between straights; mountain on the left, sea on the right                                   |
+| C `cliff-mountain` | 3615–5140           | 1633–3158            | 2, 7 m                        | Mountain climb and descent at 6.5–7 %, curves of 90–140 m, a sharp crest at 2278 (12 m vertical curve); `coast-CP2` at 2000 |
+| D `rough-track`    | 5140–6640           | 0–1500               | 1, 5 m DIRT                   | Straight rough track, 25 m / 0.3 m undulations from 200 to 1400, sand (3 m) then grass outside; `coast-CP3` at 855          |
+| E `town`           | 6640–7640           | 0–1000               | 2, 7 m with 2 m shoulders     | Town streets: straights and two near-right-angle corners of 65 and 70 m; trees and signs just outside the shoulders         |
+| F `coast-fast`     | 7640–10140          | 0–2500               | 4, 14 m                       | Fast finish: long straights, curves of 450–500 m; `coast-CP4` at 362, `coast-FINISH` at 2050, 450 m runout                  |
+
+D is straight: the reference driver plans corner speeds from its envelope, measured on asphalt, so on dirt every
+corner arrives faster than dirt grip holds, and even 1000 m bends on dirt set its steering swinging at 60 m/s.
+Places reserved for later Stage 13-4 content, in Section stations:
+
+| Place                         | Section          | Stations (m)                                                            | Side            |
+| ----------------------------- | ---------------- | ----------------------------------------------------------------------- | --------------- |
+| Guardrail and its lead-ins    | `cliff-mountain` | Lead-in 382–432, guardrail 432–732, lead-out 732–782 (straight 372–792) | Right (sea)     |
+| Rising cliff and its lead-ins | `cliff-mountain` | Lead-in 918–968, cliff 968–1168, lead-out 1168–1218 (straight 918–1218) | Left (mountain) |
+| Falling cliff (open edge)     | `cliff-mountain` | 1383–1583 (straight 1333–1633)                                          | Right (sea)     |
+| Short free-standing wall      | `coast-wide`     | 1100–1120, in the grass                                                 | Left            |
+| Solid trees and signs         | `town`           | 110–980, just outside the shoulders                                     | Both            |
+| Cone row                      | `coast-fast`     | 1000–1090, ten cones in the outermost right lane (straight 862–1362)    | Right           |
+| Barricade                     | `coast-fast`     | 1800, outermost left lane (finish straight 1637–2500)                   | Left            |
 
 ## Evaluation test course
 
