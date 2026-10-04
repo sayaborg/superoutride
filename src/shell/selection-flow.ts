@@ -79,6 +79,11 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
   const latest = (key: string): string | undefined => player.settings.latestSelections[key];
   const remember = (key: string, value: string) =>
     player.updateSettings({ latestSelections: { ...player.settings.latestSelections, [key]: value } });
+  // A remembered whole number within [min, max], else null.
+  const latestCount = (key: string, min: number, max: number) => {
+    const value = Number(latest(key));
+    return Number.isInteger(value) && value >= min && value <= max ? value : null;
+  };
   // The current selection.
   let mode: Mode = MODES.find((m) => m.mode === latest('mode'))?.mode ?? 'ARCADE',
     step = -1,
@@ -86,9 +91,9 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     courseId: string | null = null,
     vehicleId: string | null = null,
     color: string | null = null,
-    lapCount = 1,
-    rivalCount = 0,
-    rivalPool = pools[0]!,
+    lapCount = latestCount('laps', 1, Infinity) ?? 1,
+    rivalCount = latestCount('rivals', 0, SESSION_RULE_LIMITS.rivals) ?? 0,
+    rivalPool = pools.find((pool) => pool === latest('pool')) ?? pools[0]!,
     traffic = trafficLevels.find((level) => level === latest('traffic')) ?? NO_TRAFFIC;
   // The most rivals a course's grid holds within the Session rules: the RIVALS range, which a course change keeps to.
   const maxRivals = (id: string) => Math.min(SESSION_RULE_LIMITS.rivals, gridRivalCapacity(courseOf(id).gridSlots));
@@ -234,7 +239,8 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
                 const id = vehicle.compiledVehicle.id;
                 if (chosen !== null)
                   player.updateSettings({ vehicleColors: { ...player.settings.vehicleColors, [id]: chosen } });
-                if (id !== vehicleId) rivalPool = formPool(freePlay, vehicle).id;
+                // A vehicle other than the current or latest one sets POOL to its form.
+                if (id !== (vehicleId ?? latest('vehicle'))) rivalPool = formPool(freePlay, vehicle).id;
                 [vehicleId, color] = [id, chosen];
                 remember('vehicle', id);
                 forward();
@@ -247,19 +253,22 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
       case 'OPTIONS': {
         const maxLaps = courseOf(courseId!).maxLaps;
         const items = (): readonly MenuItem[] => [
+          // Every option is a player setting, kept in the record.
           number(
             'RIVALS',
             () => rivalCount,
-            (n) => (rivalCount = n),
+            (n) => remember('rivals', String((rivalCount = n))),
             0,
             maxRivals(courseId!),
           ),
           {
             label: 'POOL',
             value: rivalPool,
-            adjust: (by) => (rivalPool = pools[(pools.indexOf(rivalPool) + by + pools.length) % pools.length]!),
+            adjust: (by) => {
+              rivalPool = pools[(pools.indexOf(rivalPool) + by + pools.length) % pools.length]!;
+              remember('pool', rivalPool);
+            },
           },
-          // The TRAFFIC choice is a player setting, kept in the record.
           {
             label: 'TRAFFIC',
             value: traffic,
@@ -274,7 +283,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
                 number(
                   'LAPS',
                   () => lapCount,
-                  (n) => (lapCount = n),
+                  (n) => remember('laps', String((lapCount = n))),
                   1,
                   maxLaps,
                 ),
@@ -292,7 +301,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
             number(
               'LAPS',
               () => lapCount,
-              (n) => (lapCount = n),
+              (n) => remember('laps', String((lapCount = n))),
               1,
               maxLaps,
             ),

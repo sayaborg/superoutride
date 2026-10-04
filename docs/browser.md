@@ -104,11 +104,13 @@ shows it; MUSIC and EFFECTS have no sound until their buses exist.
   race): the player record's color for the vehicle, else the vehicle's default color; in a series with fixed colors,
   its series entry's color, with no color choice. CONFIRM saves a chosen color in the player record.
 - OPTIONS: RIVALS (0 to the smaller of 15 and the rivals the course's grid holds, from the course index; a course
-  change lowers a larger count), POOL (ALL, CARS or BIKES; set to the vehicle's form when the vehicle changes), TRAFFIC
-  (OFF, LOW or HIGH; it starts from the player record's latest choice, else OFF, and each change is saved there as the
-  `traffic` latest selection) and, on a course with several laps, LAPS (1 to the course's maximum); LEFT and RIGHT
-  change the value, and START confirms. TIME TRIAL has no TRAFFIC choice, and ARCADE takes its series course's traffic.
-- LAPS: LAPS (1 to the course's maximum) and START.
+  change lowers a larger count), POOL (ALL, CARS or BIKES; set to the vehicle's form when a vehicle other than the
+  current or latest one is chosen), TRAFFIC (OFF, LOW or HIGH) and, on a course with several laps, LAPS (1 to the
+  course's maximum; a course change lowers a larger count); LEFT and RIGHT change the value, and START confirms. TIME
+  TRIAL has no TRAFFIC choice, and ARCADE takes its series course's traffic. Every option starts from the player
+  record's latest choice (keys `rivals`, `pool`, `traffic` and `laps`), else 0, the first pool, OFF and 1, and each
+  change is saved there.
+- LAPS: LAPS (1 to the course's maximum, the same `laps` latest choice) and START.
 
 DEV series and courses in no series are offered only with `dev=1`, which the composition root reads once. Without it
 every delivered course is a DEV one today, so every mode is DARK.

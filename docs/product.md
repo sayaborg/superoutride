@@ -241,7 +241,7 @@ is course appearance (signs), not HUD. DEV UI and the DEV HUD stay separate.
 
 The browser keeps one versioned record of settings and records:
 
-- **Settings:** each vehicle's selected color, the three volumes and the latest selections.
+- **Settings:** each vehicle's selected color, the three volumes and the latest selections, FREE PLAY's options included.
 - **TIME TRIAL records:** best time and best lap for each course, route, lap count and vehicle.
 - **ARCADE records:** best completion time for each series, course, reached goal and vehicle.
 
