@@ -1,3 +1,4 @@
+import type { StripBudget } from '../strip-budget.js';
 import type {
   CoursePosition,
   OpenLimitDocument,
@@ -57,6 +58,7 @@ export function compileCourseWalls(
   boundaries: ReadonlyMap<string, CompiledBoundary>,
   resolve: (at: CoursePosition, path: string) => CompiledCoursePosition,
   materials: SurfaceMaterialCatalog,
+  budget: StripBudget,
   path: string,
 ): readonly CompiledWall[] {
   return Object.freeze(
@@ -97,6 +99,7 @@ export function compileCourseWalls(
               },
               new Map(),
               materials,
+              budget,
             ).color;
       return Object.freeze({ source, boundary, start, end, color });
     }),

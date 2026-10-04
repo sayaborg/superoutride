@@ -1,3 +1,4 @@
+import type { StripBudget } from '../strip-budget.js';
 import { expandCourseElements, shiftedCoursePosition } from '../course-repeat.js';
 import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
 import { compileStripMaterial } from '../strip-material.js';
@@ -58,6 +59,7 @@ function expandCourseStrips(
   resolve: (at: CoursePosition, path: string) => CompiledCoursePosition,
   boundaries: ReadonlyMap<string, CompiledBoundary>,
   materialCatalog: SurfaceMaterialCatalog,
+  budget: StripBudget,
 ) {
   const pieces: StripPiece[] = [];
   const materialPieces: StripPiece<SurfaceMaterial | null>[] = [];
@@ -78,12 +80,7 @@ function expandCourseStrips(
       'Strip left edge cannot exceed its right edge',
       'invalid_strip',
     );
-    requireCourse(
-      extents.length < COURSE_DOCUMENT_LIMITS.stripExpansion,
-      path,
-      `Expanded Strip pieces exceed ${COURSE_DOCUMENT_LIMITS.stripExpansion}`,
-      'resource_limit',
-    );
+    budget.spend('stripExpansion', 1, path, "The Section's expanded Strip pieces");
     extents.push(shape);
   };
   const add = (piece: StripPiece) => {
@@ -300,6 +297,7 @@ export function compileCourseStrips(
   resolve: (at: CoursePosition, path: string) => CompiledCoursePosition,
   boundaries: ReadonlyMap<string, CompiledBoundary>,
   materials: SurfaceMaterialCatalog,
+  budget: StripBudget,
 ) {
   const { pieces, materials: materialPieces } = expandCourseStrips(
     elements,
@@ -308,9 +306,10 @@ export function compileCourseStrips(
     resolve,
     boundaries,
     materials,
+    budget,
   );
   return Object.freeze({
-    color: compileStripGround(length, pieces, path),
-    material: compileStripMaterial(length, materialPieces, path),
+    color: compileStripGround(length, pieces, path, budget),
+    material: compileStripMaterial(length, materialPieces, path, budget),
   });
 }

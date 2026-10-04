@@ -1,3 +1,4 @@
+import { createStripBudget } from '../strip-budget.js';
 import { compileCourseStrips } from './course-strip-ground.js';
 import { validateCourseCarriageways } from './course-carriageways.js';
 import { createPlanCoordinateReader } from '../geometry/plan-coordinate-reader.js';
@@ -128,10 +129,20 @@ function compileSection(
       lanes: source.lanes,
     });
   });
-  const strips = compileCourseStrips(section.strips, length, `${path}/strips`, resolve, boundaryTable, materials);
+  // The road's and the walls' Strips spend from one Section budget.
+  const stripBudget = createStripBudget();
+  const strips = compileCourseStrips(
+    section.strips,
+    length,
+    `${path}/strips`,
+    resolve,
+    boundaryTable,
+    materials,
+    stripBudget,
+  );
   validateMaterialContinuity(strips.material, `${path}/strips`);
   validateCourseCarriageways(carriageways, strips.material, length, `${path}/carriageways`);
-  const walls = compileCourseWalls(section.walls, boundaryTable, resolve, materials, `${path}/walls`);
+  const walls = compileCourseWalls(section.walls, boundaryTable, resolve, materials, stripBudget, `${path}/walls`);
   const barriers = compileCourseBarriers(walls, section.openLimits, resolve, strips.material, length, path);
   const physical = compileCoursePhysicalContent(section, length, resolve, path);
   // The Section's sprites expanded once: the placements, and their identities, objects and appearance share.

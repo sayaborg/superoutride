@@ -1,3 +1,4 @@
+import type { StripBudget } from './strip-budget.js';
 import { CourseInputError } from './course-diagnostics.js';
 import { COURSE_DOCUMENT_LIMITS } from './course-limits.js';
 import { rgb555LinearChannel } from '../image/image-filter.js';
@@ -163,8 +164,13 @@ export interface StripGroundCellReader {
 }
 
 /** Compile all s levels before driving. Storage is private; each renderer owns its sampling scratch. */
-export function compileStripGround(length: number, pieces: readonly StripPiece[], path: string): StripGround {
-  const slabs = resolveStripSlabs(length, pieces, null, path),
+export function compileStripGround(
+  length: number,
+  pieces: readonly StripPiece[],
+  path: string,
+  budget: StripBudget,
+): StripGround {
+  const slabs = resolveStripSlabs(length, pieces, null, path, budget),
     levels: Level[] = [],
     lateralFields: StripLateralField[] = [],
     intern = new Map<string, number>();
@@ -175,12 +181,7 @@ export function compileStripGround(length: number, pieces: readonly StripPiece[]
   const phase = (step: number, offset: number): LevelPhase => {
     const count = Math.ceil((length + offset) / step);
     cells += count;
-    if (cells > COURSE_DOCUMENT_LIMITS.preblendCells)
-      throw new CourseInputError(
-        'resource_limit',
-        path,
-        `Strip preblend cells exceed ${COURSE_DOCUMENT_LIMITS.preblendCells}`,
-      );
+    budget.spend('preblendCells', count, path, "The Section's Strip preblend cells");
     const indices = new Uint32Array(count),
       active = new Uint8Array(count);
     directoryBytes += indices.byteLength + active.byteLength;
@@ -196,12 +197,12 @@ export function compileStripGround(length: number, pieces: readonly StripPiece[]
         intern.set(built.key, index);
         lateralFields.push(built.field);
         coefficientBytes += built.field.data.byteLength + 32;
-        if (coefficientBytes > COURSE_DOCUMENT_LIMITS.coefficientBytes)
-          throw new CourseInputError(
-            'resource_limit',
-            path,
-            `Strip coefficient storage exceeds ${COURSE_DOCUMENT_LIMITS.coefficientBytes} bytes`,
-          );
+        budget.spend(
+          'coefficientBytes',
+          built.field.data.byteLength + 32,
+          path,
+          "The Section's Strip coefficient bytes",
+        );
       }
       indices[i] = index;
       active[i] = built.active;

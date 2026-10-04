@@ -1,3 +1,4 @@
+import type { StripBudget } from './strip-budget.js';
 import {
   stripEdgeAt,
   stripSlabAt,
@@ -21,8 +22,9 @@ export function compileStripMaterial(
   length: number,
   pieces: readonly StripPiece<SurfaceMaterial | null>[],
   path: string,
+  budget: StripBudget,
 ): StripMaterial {
-  const slabs = resolveStripSlabs(length, pieces, null, path);
+  const slabs = resolveStripSlabs(length, pieces, null, path, budget);
   const sampleInChart = (s: number, l: number, lateralOrigin: number) =>
     stripSpanAt(slabs[stripSlabAt(slabs, s)]!, s, l, lateralOrigin).value;
   return Object.freeze({ length, slabs, sample: (s: number, l: number) => sampleInChart(s, l, 0), sampleInChart });

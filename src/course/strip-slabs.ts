@@ -1,5 +1,4 @@
-import { CourseInputError } from './course-diagnostics.js';
-import { COURSE_DOCUMENT_LIMITS } from './course-limits.js';
+import type { StripBudget } from './strip-budget.js';
 
 /** Original affine arithmetic retained when a material edge is split at unrelated stations. */
 export interface StripEdgeLine {
@@ -46,6 +45,7 @@ export function resolveStripSlabs<Value>(
   pieces: readonly StripPiece<Value>[],
   outside: Value,
   path: string,
+  budget: StripBudget,
 ): readonly StripSlab<Value>[] {
   const stations = [...new Set([0, length, ...pieces.flatMap((p) => [p.start, p.end])])].sort((a, b) => a - b);
   const starts = pieces.map((piece, order) => ({ piece, order })).sort((a, b) => a.piece.start - b.piece.start);
@@ -123,8 +123,7 @@ export function resolveStripSlabs<Value>(
           spans: Object.freeze(spans.map((p) => Object.freeze(p))),
         }),
       );
-      if (slabs.length > COURSE_DOCUMENT_LIMITS.stripSlabs)
-        throw new CourseInputError('resource_limit', path, 'Resolved Strip slab limit exceeded');
+      budget.spend('stripSlabs', 1, path, "The Section's resolved Strip slabs");
     }
   }
   return Object.freeze(slabs);

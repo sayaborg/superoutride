@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { STRIP_ACTIVE_LIMIT, compileStripGround } from '../../src/course/strip-ground.js';
+import { createStripBudget } from '../../src/course/strip-budget.js';
 import { STRIP_RENDER_METHODS } from '../../src/view/display-settings.js';
 import { createStripGroundSampler, createStripRenderMetrics } from '../../src/view/strip-ground-sampler.js';
 import { linearToRgb555, rgb555LinearChannel } from '../../src/image/image-filter.js';
@@ -50,7 +51,7 @@ test('ordered Strips preserve transparency, black, half-open edges, open sides a
     piece(7, 13, 0, 1, null),
     piece(0, 16, 1, 2, 0),
   ];
-  const ground = compileStripGround(16, pieces);
+  const ground = compileStripGround(16, pieces, '', createStripBudget());
   const options = { s: 9, l: -3, stepL: 1, count: 8, method: 'POINT-POINT' };
   const expected = [WHITE, BLUE, BLUE, null, 0, WHITE, WHITE, RED].map((c) => (c === null ? BG : c));
   assert.deepEqual(Array.from(row(whole(ground), options)), expected);
@@ -61,13 +62,15 @@ test('ordered Strips preserve transparency, black, half-open edges, open sides a
   }, TypeError);
   assert.deepEqual(Array.from(row(whole(ground), { ...options, l: -1e6, stepL: 2e6, count: 2 })), [RED, RED]);
   const active = Array.from({ length: STRIP_ACTIVE_LIMIT }, () => piece(0, 2, null, null, RED));
-  assert.equal(compileStripGround(2, active).metrics.maxActiveStrips, STRIP_ACTIVE_LIMIT);
+  assert.equal(compileStripGround(2, active, '', createStripBudget()).metrics.maxActiveStrips, STRIP_ACTIVE_LIMIT);
 });
 
 test('POINT always reads s; LEVEL shares sprite octave selection and reads instantaneous Strips below one metre', () => {
   const ground = compileStripGround(
     16,
     Array.from({ length: 16 }, (_, i) => piece(i, i + 1, null, null, [RED, BLUE, WHITE][i % 3])),
+    '',
+    createStripBudget(),
   );
   const sprite = { width: 1, worldWidthMeters: 1, levels: new Array(5) };
   for (const deltaS of [0.5, 1, Math.SQRT2 * (1 - 1e-10), Math.SQRT2, 2, 2 * Math.SQRT2, 4 * Math.SQRT2, 64])
@@ -83,7 +86,12 @@ test('POINT always reads s; LEVEL shares sprite octave selection and reads insta
       );
       assert.ok(level.every((p) => p === (deltaS < 1 ? direct[0] : mean(cell))));
     }
-  const moving = compileStripGround(6.5, [piece(0, 6.5, null, null, RED), piece(0.5, 6.5, -3, 1, BLUE, 3, 7)]);
+  const moving = compileStripGround(
+    6.5,
+    [piece(0, 6.5, null, null, RED), piece(0.5, 6.5, -3, 1, BLUE, 3, 7)],
+    '',
+    createStripBudget(),
+  );
   for (const s of [0.6, 4.2, 6.25, 6.5]) {
     const direct = row(whole(moving), { s, method: 'POINT-POINT' });
     assert.deepEqual(row(whole(moving), { s, deltaS: 0.99, method: 'LEVEL-POINT' }), direct);
@@ -102,16 +110,16 @@ test('POINT always reads s; LEVEL shares sprite octave selection and reads insta
 
 test('LEVEL methods threshold s-averaged coverage at half, read a lateral point and only the occurrence owning s', () => {
   // Over the 4 m cell [4, 8) the edge moves from 4 to 8, so coverage at l = 6 is exactly one half.
-  const diagonal = compileStripGround(16, [piece(0, 16, 0, null, WHITE, 16, null)]);
+  const diagonal = compileStripGround(16, [piece(0, 16, 0, null, WHITE, 16, null)], '', createStripBudget());
   for (const method of ['LEVEL-POINT', 'LEVEL2-POINT']) {
     assert.equal(row(whole(diagonal), { s: 6, l: 6, stepL: 1, deltaS: 4, count: 1, method })[0], WHITE);
     assert.equal(row(whole(diagonal), { s: 6, l: 6 - 1e-6, stepL: 1, deltaS: 4, count: 1, method })[0], BG);
   }
-  const split = compileStripGround(8, [piece(0, 8, null, 0, RED), piece(0, 8, 0, null, BLUE)]);
+  const split = compileStripGround(8, [piece(0, 8, null, 0, RED), piece(0, 8, 0, null, BLUE)], '', createStripBudget());
   for (const method of STRIP_RENDER_METHODS)
     assert.equal(row(whole(split), { s: 4, l: 0, stepL: 2, deltaS: 4, count: 1, method })[0], BLUE);
-  const red = compileStripGround(8, [piece(0, 8, null, null, RED)]);
-  const blue = compileStripGround(8, [piece(0, 8, null, null, BLUE)]);
+  const red = compileStripGround(8, [piece(0, 8, null, null, RED)], '', createStripBudget());
+  const blue = compileStripGround(8, [piece(0, 8, null, null, BLUE)], '', createStripBudget());
   const intervals = [
     { ground: red, start: 0, end: 8, lateralOrigin: 100 },
     { ground: blue, start: 8, end: 16, lateralOrigin: -20 },
@@ -122,11 +130,12 @@ test('LEVEL methods threshold s-averaged coverage at half, read a lateral point 
 });
 
 test('row batching and lateral rebasing match individual pixels in either scan direction for all three methods', () => {
-  const ground = compileStripGround(16, [
-    piece(0, 16, null, null, RED),
-    piece(0, 16, -2, 2, null),
-    piece(0, 16, 3, 6, BLUE, -5, -2),
-  ]);
+  const ground = compileStripGround(
+    16,
+    [piece(0, 16, null, null, RED), piece(0, 16, -2, 2, null), piece(0, 16, 3, 6, BLUE, -5, -2)],
+    '',
+    createStripBudget(),
+  );
   for (const method of STRIP_RENDER_METHODS)
     for (const stepL of [0.5, -0.5]) {
       const l = stepL > 0 ? -12 : 12;
@@ -158,7 +167,7 @@ test('interleaved cached and instantaneous rows do not inherit lateral slopes', 
       rightEnd = leftEnd + 1 + random() * 12;
     pieces.push(piece(0, 128, left, right, k % 5 === 0 ? null : Math.floor(random() * 32768), leftEnd, rightEnd));
   }
-  const intervals = whole(compileStripGround(128, pieces));
+  const intervals = whole(compileStripGround(128, pieces, '', createStripBudget()));
   const sampler = createStripGroundSampler(intervals);
   const draw = (reader, s, deltaS, method) => {
     const pixels = new Uint16Array(320);

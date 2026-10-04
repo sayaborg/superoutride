@@ -240,7 +240,8 @@ editing one keeps them joined; a guardrail so joined to the course limit at both
 its `color` is never null. Each of at least two knots is `{at, bottom, top}`: Position `at`, and `bottom` and `top`, metres above the
 road height at that station (negative below it), the Strip's lower and upper edges. Knot stations, the edge rule
 (`bottom <= top`, so a Strip may taper to zero height; `invalid_strip` otherwise), edge interpolation, repetition, later Strips overwriting
-earlier ones, and the expansion and active-piece ceilings are those of road Strips; every Strip, repeated ones included,
+earlier ones, and the active-piece ceiling is those of road Strips, and a wall's Strip products count against the
+Section's Strip ceilings together with the road's ([Numeric and resource domains](#numeric-and-resource-domains)); every Strip, repeated ones included,
 lies within `[from, to]` (`invalid_wall` for an authored knot, `invalid_position` or `invalid_strip` for a repeated or
 expanded one). The wall is visible where its Strips are. A wall with no Strips is invisible and must be solid (a wall
 neither seen nor met is rejected); reading rejects this with `invalid_value`. Whether a wall is solid
@@ -263,7 +264,9 @@ Compilation publishes each Section's solid objects, a physical product apart fro
 along it, from height `bottom` to `top`. A solid sprite, every expanded placement with a body, is one: its body's width,
 from the road height plus `groundOffset` up its image's world height (read from the image once, at compilation);
 `sprite` is its placement's index among the Section's expanded sprites, the identity race and appearance share, and
-`movable` holds a movable body's mass and launch elevation (null for a fixed one). Each free end of a
+`movable` holds a movable body's mass and launch elevation (null for a fixed one). A solid sprite's height, and the
+widest its body may be, thus come from its image's dimensions: redrawing the image at another size changes how it
+collides. Each free end of a
 solid wall is another: at that end's station and the wall's lateral there, its declared thickness wide and of unlimited
 height (`sprite` and `movable` are null). Joined ends and walls for looks only make no objects. Vehicles meet standing objects as they meet each other
 ([Body contact](#body-contact)).
@@ -377,7 +380,7 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | Section `stripExpansion` (pieces and visited constructs separately)     |             131072 | 21 × 3000/km × 2, rounded up                                                                                                                                              |
 | Each curb `curbColors`                                                  |                 64 | Two 16-step hue ramps (32 colors) × 2                                                                                                                                     |
 | Section `activeStrips`                                                  |                 64 | 16 base layers + 14 glyph/marking runs + 2 curbs, doubled; counts hidden pieces                                                                                           |
-| Each color/material table `stripSlabs`                                  |            1048576 | Expanded-piece budget × two endpoints × four for crossing subdivisions                                                                                                    |
+| Section `stripSlabs` (all color and material tables)                    |            1048576 | Expanded-piece budget × two endpoints × four for crossing subdivisions                                                                                                    |
 | Section `preblendCells`                                                 |             262144 | All 1 m dyadic levels at 42000 m in both phases (aligned and half-shifted) total fewer than 168100 cells, rounded up                                                      |
 | Section `coefficientBytes`                                              |              1 GiB | Moving-edge 21 km probe used about 121 MiB in one phase; both phases measure 1.9–2.0× on the RIBBON courses, about 242 MiB; ×2 length and ×2 Strip complexity, rounded up |
 | Section resolved `boundaryVertices`                                     |              65536 | 32 Boundaries × 1024 knots × 2 for inherited vertices                                                                                                                     |
@@ -392,7 +395,10 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 
 Sprite and environment expansion each allow at most `expandedLimit * (2*repeatDepth+1)` work visits:
 one leaf plus up to one repeat node and one iteration per permitted nesting level. Strip expansion
-retains its independent `stripExpansion` work and piece budgets. This bounds empty nested repetitions
+retains its independent `stripExpansion` work and piece budgets. The Section ceilings on Strip products — expanded
+pieces (`stripExpansion`), resolved slabs (`stripSlabs`), preblend cells (`preblendCells`) and coefficient storage
+(`coefficientBytes`) — count the Section's road Strips and every wall's Strips together, color and material tables
+alike. This bounds empty nested repetitions
 as well as visible output. Sprite element arrays use the same 30 authored records/km × 21 km × 2
 planning density as Strip arrays, rounded up to 2048; expanded placements retain the 220/km basis.
 
