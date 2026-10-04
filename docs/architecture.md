@@ -503,13 +503,27 @@ The product render draws the frame and returns nothing. Measurements of a frame 
 and sprite counts, the player's screen point and image choice) go only to a measurement sink the caller passes: DEV
 (the performance HUD and the vehicle overlays, with `dev=1`), the course tool and tests; the product path passes
 none and carries no DEV value.
-Painter order is the opaque BG, a far-to-near terrain/world-sprite merge, the player, then, under the PAUSE menu or
+Painter order is the opaque BG, a far-to-near terrain/wall/world-sprite merge, the player, then, under the PAUSE menu or
 RESULT, the whole frame halved to half brightness (`halveRgb555Pixels`: each RGB555 channel halved, flooring, once per
 frame over a freshly drawn scene), then HUD and the [text layer](#text-layer).
 The BG writes every pixel of every frame, so there is no clear step and no pixel keeps a previous frame.
 Transparent ground, including ground rows outside the Route, writes nothing and keeps the Painter image
-beneath it, such as BG below the horizon. At equal depth terrain draws before sprites. The player is last
-among world visuals.
+beneath it, such as BG below the horizon. At equal depth terrain draws before walls and walls before sprites. The player
+is last among world visuals.
+
+### Walls
+
+A visible wall is drawn inside the terrain order, with no separate pass: right after each terrain row whose station lies
+on the wall, the wall paints that row's column. Its screen x comes from the row's own affine lateral mapping (the one
+the ground reads, l = ±1 at the row's two projected points) at the wall's Boundary lateral there; from the row it rises
+`top` and drops `bottom` metres at that depth's vertical scale `f/d × cos(pitch)`. The column fills across from the x
+of the previous, farther row on the same wall this frame, so consecutive columns join into one surface, seen from either
+side alike. Nearer ground rows drawn later cover what lies behind a hill; transparent ground beyond an open edge keeps a
+falling cliff and the BG below it. Height picks the band and the station along the wall picks the pattern entry; where a
+row's station footprint is wider than the wall's shortest entry, the row uses the period's compiled blend instead (like
+the Strip preblend along s), so a pattern finer than a pixel does not flicker. Columns clip to the frame; a wall beside
+the camera clips as any other. Solid or not makes no difference to drawing, and an invisible wall draws nothing. A
+measured render counts the painted wall pixels.
 
 Course sprites enter through either a sprite array or a camera/depth observation reader. The reader
 contains immutable camera/projection metadata and read-only image workspaces. An upright basis/ruler

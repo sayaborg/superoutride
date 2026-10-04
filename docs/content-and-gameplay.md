@@ -223,7 +223,10 @@ the road from the wall's start; `bands` rise from `bottom` to `top` as `{to, col
 `to`, the `to` values increase strictly, lie above `bottom` and end exactly at `top`, and `color` is an RGB555 integer or
 null for transparent. A wall with `top` and `bottom` both zero is invisible: it has no pattern and must be solid (a wall
 neither seen nor met is rejected). Any other wall is visible and has at least one pattern entry. Whether a wall is solid
-does not affect its picture. Reading rejects these value errors with `invalid_value`.
+does not affect its picture. Reading rejects these value errors with `invalid_value`. The appearance compiler keeps each
+visible wall's picture (its Boundary, interval, top, bottom, pattern entries and the period blended at every band height:
+transparent where transparent entries cover at least half the period, else the length-weighted average of the opaque
+colors); [Architecture](architecture.md#walls) owns how it is drawn. A visible wall needs the Section's environments.
 
 Solid walls and the course limits are the Section's barrier lines ([Body contact](#barrier-lines)). The course limits
 run along the left and right outer edges of the covered material — the material table's outermost finite covered

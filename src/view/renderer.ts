@@ -12,6 +12,7 @@ import { generateTerrainLines, createTerrainWorkspace, type TerrainRenderParamet
 import { drawTileBackground, type TileBackground } from './tile-background.js';
 import { selectVehicleSprite, type VehicleSpriteSet } from '../vehicle/vehicle-sprite-set.js';
 import { collectVisibleCourseSprites, type CourseSprite, type VisibleCourseSprite } from './course-sprite.js';
+import { drawWallColumn, type RouteWall } from './course-wall.js';
 
 import { deriveVehicleLeanRadians } from './vehicle-visuals.js';
 
@@ -20,6 +21,8 @@ export interface RenderMeasurements {
   stripGround: StripRenderMetrics & { method: StripRenderMethod };
   terrainLineCount: number;
   terrainOutputPixels: number;
+  /** Pixels the visible walls painted. */
+  wallPixels: number;
   visibleSpriteCount: number;
   spriteOutputSamples: number;
   spriteWrittenPixels: number;
@@ -41,6 +44,7 @@ export function createRenderMeasurements(): RenderMeasurements {
     stripGround: { ...createStripRenderMetrics(), method: 'LEVEL-POINT' },
     terrainLineCount: 0,
     terrainOutputPixels: 0,
+    wallPixels: 0,
     visibleSpriteCount: 0,
     spriteOutputSamples: 0,
     spriteWrittenPixels: 0,
@@ -63,6 +67,8 @@ interface RenderScene {
   readonly vehicle: VehicleRenderRead;
   readonly terrainParameters: TerrainRenderParameters;
   readonly worldSprites: readonly CourseSprite[];
+  /** The visible walls on the resident Route. */
+  readonly walls: readonly RouteWall[];
   readonly playerSet: VehicleSpriteSet;
 }
 
@@ -70,6 +76,10 @@ export function createRenderWorkspace() {
   return {
     terrain: createTerrainWorkspace(),
     strips: createStripRenderMetrics(),
+    /** Each frame's walls within the visible interval and the x of each one's last column. */
+    walls: [] as RouteWall[],
+    wallX: [] as number[],
+    wallStats: { wallPixels: 0 },
   };
 }
 
@@ -82,7 +92,7 @@ interface RenderOptions {
 
 export function renderDriving(
   target: SoftwareSurface,
-  { background, guide, camera, vehicle, terrainParameters, worldSprites, playerSet }: RenderScene,
+  { background, guide, camera, vehicle, terrainParameters, worldSprites, walls, playerSet }: RenderScene,
   { ground, workspace, stripMethod }: RenderOptions,
   measurements: RenderMeasurements | null = null,
 ): void {
@@ -91,6 +101,18 @@ export function renderDriving(
   const { lines: terrain, visible } = generateTerrainLines(guide, camera, terrainParameters, workspace.terrain);
   drawTileBackground(target, background, renderCamera);
   const sprites = visible ? collectVisibleCourseSprites(worldSprites, renderCamera, visible.dStart, visible.dEnd) : [];
+  // Walls reaching the visible interval; each paints a column after every terrain row at its stations.
+  const shownWalls = workspace.walls,
+    wallX = workspace.wallX,
+    wallStats = workspace.wallStats;
+  shownWalls.length = wallX.length = 0;
+  wallStats.wallPixels = 0;
+  if (visible)
+    for (const wall of walls)
+      if (wall.end >= camera.s + visible.dStart && wall.start <= camera.s + visible.dEnd) {
+        shownWalls.push(wall);
+        wallX.push(NaN);
+      }
 
   let terrainOutputPixels = 0;
   let spriteOutputSamples = 0;
@@ -118,6 +140,12 @@ export function renderDriving(
         stripStats,
       );
       terrainOutputPixels += stripStats.outputPixels - before;
+      // At equal depth: ground, then walls, then sprites.
+      for (let i = 0; i < shownWalls.length; i++) {
+        const wall = shownWalls[i]!;
+        if (line.s >= wall.start && line.s <= wall.end)
+          wallX[i] = drawWallColumn(target, wall, line, renderCamera, wallX[i]!, wallStats);
+      }
     },
     (sprite) => {
       const stats = drawWorldSprite(target, sprite);
@@ -146,6 +174,7 @@ export function renderDriving(
   measurements.stripGround.method = stripMethod;
   measurements.terrainLineCount = terrain.length;
   measurements.terrainOutputPixels = terrainOutputPixels;
+  measurements.wallPixels = wallStats.wallPixels;
   measurements.visibleSpriteCount = sprites.length;
   measurements.spriteOutputSamples = spriteOutputSamples;
   measurements.spriteWrittenPixels = spriteWrittenPixels;

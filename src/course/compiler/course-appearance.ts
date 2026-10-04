@@ -7,10 +7,65 @@ import type { CompiledFork } from './course-graph.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
 import { CourseInputError, requireCourse } from '../course-diagnostics.js';
 import { BACKGROUND_HEIGHT, BACKGROUND_PIXELS_PER_RADIAN } from '../../image/tile-background-image.js';
-import type { CourseAppearance, CourseSpriteResource } from '../course-appearance.js';
+import type {
+  CourseAppearance,
+  CourseSpriteResource,
+  CourseWallAppearance,
+  CourseWallBand,
+} from '../course-appearance.js';
+import type { CompiledWall } from './course-walls.js';
 import type { CompiledCourseImageSource } from './course-image-source.js';
 
-export const COURSE_APPEARANCE_RECIPE = Object.freeze({ id: 'superoutride.course-appearance', version: 11 });
+export const COURSE_APPEARANCE_RECIPE = Object.freeze({ id: 'superoutride.course-appearance', version: 12 });
+
+// The RGB555 channel of a color, and a color from three channels.
+const channel = (color: number, shift: number) => (color >> shift) & 31;
+const rgb555 = (r: number, g: number, b: number) => (Math.round(r) << 10) | (Math.round(g) << 5) | Math.round(b);
+
+/**
+ * A visible wall's picture. Its far bands blend the whole period at every height: transparent where transparent entries
+ * cover at least half of it, else the length-weighted average of the opaque colors there.
+ */
+function compileWallAppearance(wall: CompiledWall): CourseWallAppearance {
+  const { top, bottom, pattern } = wall.source;
+  let from = 0;
+  const entries = pattern.map((entry) => {
+    const placed = Object.freeze({ from, to: from + entry.length, bands: entry.bands });
+    from += entry.length;
+    return placed;
+  });
+  const period = from;
+  const heights = [...new Set(pattern.flatMap((entry) => entry.bands.map((band) => band.to)))].sort((a, b) => a - b);
+  const far: CourseWallBand[] = heights.map((to) => {
+    let clear = 0,
+      r = 0,
+      g = 0,
+      b = 0,
+      opaque = 0;
+    for (const entry of pattern) {
+      const color = entry.bands.find((band) => band.to >= to)!.color;
+      if (color === null) clear += entry.length;
+      else {
+        opaque += entry.length;
+        r += channel(color, 10) * entry.length;
+        g += channel(color, 5) * entry.length;
+        b += channel(color, 0) * entry.length;
+      }
+    }
+    return Object.freeze({ to, color: clear >= period / 2 ? null : rgb555(r / opaque, g / opaque, b / opaque) });
+  });
+  return Object.freeze({
+    boundary: wall.boundary,
+    start: wall.start,
+    end: wall.end,
+    top,
+    bottom,
+    period,
+    entries: Object.freeze(entries),
+    shortestEntry: Math.min(...pattern.map((entry) => entry.length)),
+    far: Object.freeze(far),
+  });
+}
 
 /** Share one immutable image/palette binding across every Section in a compilation. */
 export function createCourseSpriteResources() {
@@ -50,10 +105,13 @@ export function compileCourseAppearance(
   path: string,
   carriageways: readonly CompiledCarriageway[],
   fork: Readonly<CompiledFork> | null,
+  walls: readonly CompiledWall[],
 ): CourseAppearance | null {
   const source = section.environments;
+  const visible = walls.filter((wall) => wall.source.pattern.length > 0);
   if (source.length === 0) {
     requireCourse(section.sprites.length === 0, `${path}/sprites`, 'Sprites require environments', 'invalid_placement');
+    requireCourse(visible.length === 0, `${path}/walls`, 'Visible walls require environments', 'invalid_placement');
     return null;
   }
   const image = (id: string, at: string) => {
@@ -180,5 +238,6 @@ export function compileCourseAppearance(
   return Object.freeze({
     environments: Object.freeze(environments),
     sprites: Object.freeze(sprites),
+    walls: Object.freeze(visible.map(compileWallAppearance)),
   });
 }

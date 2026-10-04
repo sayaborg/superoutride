@@ -337,7 +337,8 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
               }
             : undefined,
         );
-        if (performanceHud && measurements) performanceHud.frame(started, measurements.stripGround, renderMilliseconds);
+        if (performanceHud && measurements)
+          performanceHud.frame(started, measurements.stripGround, renderMilliseconds, measurements.wallPixels);
       },
     };
   };

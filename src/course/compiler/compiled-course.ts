@@ -161,6 +161,7 @@ function compileSection(
       path,
       carriageways,
       result.fork,
+      walls,
     );
     // A Section's images are exactly those its backgrounds and sprites reference, in course asset order.
     const used = new Set<object>([

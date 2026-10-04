@@ -5,6 +5,8 @@ import { stationIndexAt } from '../course/geometry/station-sequence.js';
 import { transformPlanarPoint } from '../core/planar-transform.js';
 import { createStripGroundSampler, type StripGroundReader } from './strip-ground-sampler.js';
 import { createCourseRenderResources } from './course-render-resources.js';
+import { courseBoundaryAt } from '../course/course-boundaries.js';
+import type { RouteWall } from './course-wall.js';
 
 /** Visual content over the same route ruler as the physical readers. Derived lists change with the route. */
 export function createCourseRouteVisualReaders(route: RouteWindow) {
@@ -65,8 +67,21 @@ export function createCourseRouteVisualReaders(route: RouteWindow) {
           return { occurrence, sprite: positioned, unselectedCarriagewayId };
         }),
     );
+    // Each occurrence's visible walls on the route ruler; the lateral reads the Boundary in its Section.
+    const walls: RouteWall[] = occurrences.flatMap((occurrence) =>
+      occurrence.section.appearance!.walls.map((picture) =>
+        Object.freeze({
+          start: routeS(occurrence, picture.start),
+          end: routeS(occurrence, picture.end),
+          lateralAt: (s: number) =>
+            courseBoundaryAt(picture.boundary, routeSectionS(occurrence, s)) - occurrence.lateralOrigin,
+          picture,
+        }),
+      ),
+    );
     return Object.freeze({
       ground,
+      walls: Object.freeze(walls),
       worldSprites: Object.freeze(placements.filter((p) => p.unselectedCarriagewayId === null).map((p) => p.sprite)),
       // State-selected signs keep their fork occurrence; the scene shows them from that occurrence's choice.
       conditionalSprites: Object.freeze(

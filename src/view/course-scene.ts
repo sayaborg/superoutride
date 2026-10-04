@@ -87,6 +87,7 @@ export function createCourseScene(
           vehicle,
           terrainParameters,
           worldSprites,
+          walls: renderData.walls,
           playerSet,
         },
         { ground: renderData.ground, workspace: renderWorkspace, stripMethod: displaySettings.stripMethod },
