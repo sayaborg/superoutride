@@ -70,8 +70,9 @@ function overlapStart(before: number, now: number, half: number): number {
  * Decide the face of a contact beginning this step from the pair's relative positions one step earlier (`ps`, `pl`) and
  * now (`ds`, `dl`), with half sums `hs` and `hl`: the axis that was separated while the other overlapped; when both were
  * separated, the one that began to overlap later within the step (ahead-behind when equal). The sign is b's side of a
- * along that axis one step earlier. Should both have overlapped already, the shallower current overlap decides, signed by
- * the current side.
+ * along that axis one step earlier. A contact that begins with both axes already overlapping — two footprints that
+ * overlapped while their heights did not, when their heights come to overlap — takes the shallower overlap of this step,
+ * signed by the current side.
  */
 function entryFace(ps: number, pl: number, ds: number, dl: number, hs: number, hl: number): ContactFace {
   const apartS = hs - Math.abs(ps) <= 0,

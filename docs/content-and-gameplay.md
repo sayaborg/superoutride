@@ -1144,9 +1144,11 @@ positions at the start of the previous step (Δs⁻, Δl⁻): the axis is ahead-
 ahead-behind (`(L₁ + L₂)/2 − |Δs⁻| ≤ 0`) while overlapping side to side, and side to side in the opposite case. When
 they were apart on both axes, the axis is the one that began to overlap later within the step, moving each relative
 position linearly from Δ⁻ to Δ; ahead-behind when both began together. The side is the sign of that axis's relative
-position Δ⁻. Recovery and appearance never place a vehicle overlapping another, so a contact always begins from apart;
-should both axes have overlapped already, the smaller current overlap is the axis and the current relative position
-its side. The race keeps each pair's face, keyed by the two vehicles' ids, until their footprints separate: until the
+position Δ⁻. A contact begins with both axes already overlapping when two footprints overlapped while their heights did
+not — a vehicle in the air above another vehicle or a standing object — and their heights come to overlap;
+recovery and appearance never place a vehicle on another's footprint or a standing object's, so no other contact begins
+overlapped. Such a contact's axis is the one with the smaller overlap in the step it begins, and its side the current
+relative position. The race keeps each pair's face, keyed by the two vehicles' ids, until their footprints separate: until the
 overlap along the face, `(L₁ + L₂)/2 − side × Δs` (or the width form), or the other axis's overlap is no longer
 positive. The overlap along the face grows on even if a vehicle passes the other's centre. Pairs no longer in contact,
 and those of vehicles gone from the Session, are forgotten. The height overlap decides only whether the vehicles
