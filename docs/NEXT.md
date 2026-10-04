@@ -35,7 +35,7 @@
   appears at seeded Route positions from the series or FREE PLAY's TRAFFIC option; RIBBON COAST is the verification
   course of all of it.
 
-Next PR: **AU3-10b** — the third design audit's fixes, in the order of its instructions.
+Next PR: **AU3-10c** — the third design audit's fixes, in the order of its instructions.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -203,7 +203,6 @@ lighting at its own chainage, and switching is a cut.
 | Walls            | Whether walls' preblend memory (about 1.3–2.5 MB per km of cliff on RIBBON COAST, about 0.3 MB per km of road) fits the device budget                          |
 | Rivals           | Whether rivals follow closer than traffic (in dense traffic they keep the 1.5 s following time and queue)                                                      |
 | Rivals           | Whether an ahead entry's lane is checked where it appears rather than against the course's fewest lanes (Stage 16)                                             |
-| Drivers          | Whether drivers read surface grip (they plan corner speeds from an envelope measured on asphalt and spin on dirt)                                              |
 | Interaction      | Whether a slight front-face overlap with a solid object deflects the vehicle instead of stopping it (real devices)                                             |
 | Interaction      | How far a vehicle rebounds from a solid object (about 7 m/s back from 40 m/s today; real devices)                                                              |
 | Records          | Whether traffic settings belong to the ARCADE record key                                                                                                       |

@@ -245,7 +245,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   });
   const { vacantPlace } = placement;
   const laneDriving = createLaneDriving({
-    coordinates: runtime.readers.coordinates,
+    road: runtime.readers,
     window: runtime.window,
     forks,
     roadsideObjects,

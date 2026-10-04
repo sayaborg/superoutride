@@ -256,15 +256,7 @@ export async function runScenario({ course, arcade: scenarioArcade, productArcad
       !rules.departed.length
     )
       input = { ...idle, brake: true };
-    else
-      input = sampleEnvelopeDrivingInput(
-        scene.world.coordinates,
-        vehicle,
-        driver,
-        lane,
-        workspace,
-        scene.runtime.window,
-      );
+    else input = sampleEnvelopeDrivingInput(scene.world, vehicle, driver, lane, workspace, scene.runtime.window);
     const step = race.advance(input);
     if (step.recovered) {
       resetCameraRig(rig);

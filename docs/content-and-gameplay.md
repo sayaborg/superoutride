@@ -984,6 +984,12 @@ and lane; the utilization may change from one step to the next. Its workspace ca
 road and lane, and its curve speed also by envelope, utilization and speed cap, so a steady utilization reuses both; it reads a contiguous 5 m lattice up to 480 m ahead and publishes canonical steering,
 throttle and brake. [Calibration](calibration.md) lists utilization values.
 
+Drivers read the surface ahead. Each cell reads the grip factor of the material under its lane at the cell's start (no
+material: no grip): its curve speed uses the envelope's lateral limit times that grip, and braking toward a cell, the
+terminal or the vehicle ahead uses the planning braking times the least grip on the lane from the driver's first cell
+through the cell where that braking ends. On asphalt (grip 1) the plan is the envelope's own. Steering does not read
+grip.
+
 The driver always treats the end of a Section with no outgoing Link as a zero-speed planning point.
 The Route exposes that terminal station only when its tail is such a Section; loaded tails
 with outgoing Links, including undecided forks and circuit continuations, do not request a stop.
@@ -1224,8 +1230,6 @@ move across it. Lanes continue by position (the left lane on a tie), and every c
 | E `town`           | 6640–7640           | 0–1000               | 2, 7 m with 2 m shoulders     | Town streets: straights and two near-right-angle corners of 65 and 70 m; trees and signs just outside the shoulders         |
 | F `coast-fast`     | 7640–10140          | 0–2500               | 4, 14 m                       | Fast finish: long straights, curves of 450–500 m; `coast-CP4` at 362, `coast-FINISH` at 2050, 450 m runout                  |
 
-D is straight: the reference driver plans corner speeds from its envelope, measured on asphalt, so on dirt every
-corner arrives faster than dirt grip holds, and even 1000 m bends on dirt set its steering swinging at 60 m/s.
 Places of the Stage 13-4 content, in Section stations:
 
 | Place                         | Section          | Stations (m)                                                            | Side            |

@@ -1,5 +1,5 @@
 import { wrapAngle } from '../core/math.js';
-import { createPlanCoordinateSample, type PlanCoordinateReader } from '../course/geometry/plan-coordinate.js';
+import { createPlanCoordinateSample } from '../course/geometry/plan-coordinate.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import type { createCourseForkField } from './course-fork-field.js';
@@ -11,6 +11,7 @@ import {
   planEnvelopeDriving,
   plannedEnvelopeSpeed,
   travelYaw,
+  type DriverRoad,
   type DrivingDomain,
   type EnvelopeDriver,
 } from './envelope-driver.js';
@@ -25,13 +26,13 @@ import { presentTarget, type PresentVehicle } from './present-vehicle.js';
  * decides one driver's input from them and `appearanceSpeed` one appearance.
  */
 export function createLaneDriving(options: {
-  readonly coordinates: PlanCoordinateReader;
+  readonly road: DriverRoad;
   readonly window: DrivingDomain;
   readonly forks: ReturnType<typeof createCourseForkField>;
   readonly roadsideObjects: ReturnType<typeof createRoadsideObjects>;
   readonly bodies: readonly PresentVehicle[];
 }) {
-  const { coordinates, window, forks, roadsideObjects, bodies } = options;
+  const { road, window, forks, roadsideObjects, bodies } = options;
   // Drivers follow and change lanes over the race's sightings of the present vehicles.
   const following = createLaneFollowing(forks, window);
   const sightings: VehicleSighting[] = [];
@@ -54,7 +55,7 @@ export function createLaneDriving(options: {
         width: model.compiledVehicle.overallWidth,
         speed: Math.hypot(vehicle.longitudinalSpeed, vehicle.lateralSpeed),
         heading: wrapAngle(
-          travelYaw(vehicle) - coordinates.toWorld(vehicle.course.s, vehicle.course.l, roadSample).heading,
+          travelYaw(vehicle) - road.coordinates.toWorld(vehicle.course.s, vehicle.course.l, roadSample).heading,
         ),
         target: presentTarget(body),
         driver: body.driving?.driver ?? null,
@@ -125,7 +126,7 @@ export function createLaneDriving(options: {
       const laneEnd = end?.s ?? null;
       const planned = laneEnd === null ? domain : drivingDomainBefore(domain, laneEnd, laneDomain);
       const plan = planEnvelopeDriving(
-        coordinates,
+        road,
         driven.vehicle,
         driver,
         driving.target,
@@ -140,7 +141,7 @@ export function createLaneDriving(options: {
           driven.sighting,
           sightings,
           plan.target,
-          (leader) => envelopeSpeedBehind(driven.vehicle, driver, plan.free, leader),
+          (leader) => envelopeSpeedBehind(driven.vehicle, driver, driving.workspace, plan.free, leader),
           (lane) => endOf(lane) !== null,
         );
         if (moved !== null) {
@@ -150,7 +151,7 @@ export function createLaneDriving(options: {
         }
       }
       return envelopeDrivingInput(
-        coordinates,
+        road,
         driven.vehicle,
         driver,
         driving.target,
@@ -181,7 +182,7 @@ export function createLaneDriving(options: {
         driver,
       });
       appearing.speed = plannedEnvelopeSpeed(
-        coordinates,
+        road,
         s,
         driver,
         lane,

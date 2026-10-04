@@ -71,7 +71,7 @@ export function runCourseReference(
     const input =
       race.outcome.status === 'READY'
         ? IDLE_INPUT
-        : sampleEnvelopeDrivingInput(scene.world.coordinates, vehicle, driver, lane, workspace, scene.runtime.window);
+        : sampleEnvelopeDrivingInput(scene.world, vehicle, driver, lane, workspace, scene.runtime.window);
     race.advance(input);
     if (race.outcome.status !== 'READY') {
       samples.seconds.push(race.clock.elapsedSeconds);

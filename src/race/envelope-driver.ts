@@ -3,6 +3,7 @@ import { clamp, wrapAngle } from '../core/math.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import type { VehicleMotionRead } from '../vehicle/physics/vehicle-contract.js';
 import type { RivalEnvelope } from '../content/rival-envelope.js';
+import type { SurfaceMapReader } from '../course/vehicle-world.js';
 
 // Inverse metres: curvature resolution floor (radius 10,000 km); suppresses heading
 // differencing noise. At 100 m/s the omitted lateral demand is at most 0.001 m/s^2.
@@ -14,7 +15,7 @@ const MIN_DRIVER_CURVATURE_PER_METER = 1e-7;
  * driver's input for the same state and observations ([Calibration](../../docs/calibration.md)).
  */
 export const ENVELOPE_DRIVER = Object.freeze({
-  version: 9,
+  version: 10,
   lookahead: 480,
   spacing: 5,
   responseSeconds: 0.45,
@@ -109,6 +110,16 @@ export function createVariableEnvelopeDriver(
 type Lane = number | ((s: number) => number);
 
 /**
+ * The road a driver reads: its plan coordinates and the surface material at a route position, whose grip factor scales
+ * what the driver plans for there (no material: no grip).
+ */
+export interface DriverRoad {
+  readonly coordinates: PlanCoordinateReader;
+  readonly surfaces: SurfaceMapReader;
+}
+const gripAt = (road: DriverRoad, s: number, l: number) => road.surfaces.sample(s, l)?.gripFactor ?? 0;
+
+/**
  * The vehicle ahead in the driver's lane: its route station, its speed (m/s), half the two lengths (m) and the least
  * footprint gap (m) the driver keeps behind it so that, at rest there, it can still steer around it into an adjacent
  * lane (`escape`; 0 when it would not).
@@ -123,14 +134,19 @@ const CACHE_SIZE = Math.ceil(ENVELOPE_DRIVER.lookahead / ENVELOPE_DRIVER.spacing
 
 export function createEnvelopeDriverWorkspace() {
   return {
-    // Curvature depends on the road and lane only; curve speeds also on the envelope, utilization and speed cap.
-    coordinates: null as PlanCoordinateReader | null,
+    // Curvature and grip depend on the road and lane only; curve speeds also on the envelope, utilization and speed cap.
+    road: null as DriverRoad | null,
     lane: null as Lane | null,
     envelope: null as RivalEnvelope | null,
     utilization: NaN,
     speedCap: NaN,
     cells: new Float64Array(CACHE_SIZE).fill(NaN),
     curvatures: new Float64Array(CACHE_SIZE),
+    grips: new Float64Array(CACHE_SIZE),
+    /** The latest plan's least grip from its first cell through each cell, in plan order, and that first cell. */
+    leastGrips: new Float64Array(CACHE_SIZE),
+    leastGripCount: 0,
+    leastGripFirst: 0,
     speedCells: new Float64Array(CACHE_SIZE).fill(NaN),
     speedsSquared: new Float64Array(CACHE_SIZE),
     a: createPlanCoordinateSample(),
@@ -165,9 +181,12 @@ export function drivingDomainBefore(
 /**
  * The planned speed at route station `s` when moving at `speed`: curve limits braked back over the lookahead, the
  * terminal, and the vehicle ahead braked back over its margin. Writes the plan with and without the vehicle ahead.
+ * Each 5 m cell reads the grip of the surface on the lane at its start: its curve speed uses the lateral limit times
+ * that grip, and braking toward it, toward the terminal or behind the vehicle ahead uses the least grip on the lane
+ * from the first cell through the cell where the braking ends (recorded in the workspace for `envelopeSpeedBehind`).
  */
 function plannedTargetSpeed(
-  coordinates: PlanCoordinateReader,
+  road: DriverRoad,
   s: number,
   speed: number,
   driver: Driver,
@@ -177,10 +196,11 @@ function plannedTargetSpeed(
   leader: EnvelopeLeader | null,
 ): number {
   const { envelope, speedCap, braking, utilization } = driver;
-  if (workspace.coordinates !== coordinates || workspace.lane !== targetL) {
+  const { coordinates } = road;
+  if (workspace.road !== road || workspace.lane !== targetL) {
     workspace.cells.fill(NaN);
     workspace.speedCells.fill(NaN);
-    workspace.coordinates = coordinates;
+    workspace.road = road;
     workspace.lane = targetL;
   }
   if (workspace.envelope !== envelope || workspace.utilization !== utilization || workspace.speedCap !== speedCap) {
@@ -195,6 +215,9 @@ function plannedTargetSpeed(
     previousX = 0,
     previousZ = 0,
     previousHeading = 0;
+  let leastGrip = Infinity;
+  workspace.leastGripFirst = first;
+  workspace.leastGripCount = 0;
   for (let cell = first; cell < first + CACHE_SIZE - 1; cell++) {
     const aS = Math.max(domain.start, cell * ENVELOPE_DRIVER.spacing);
     const bS = Math.min(domain.end, (cell + 1) * ENVELOPE_DRIVER.spacing);
@@ -216,6 +239,7 @@ function plannedTargetSpeed(
       previousZ = b.z;
       previousHeading = b.heading;
       workspace.curvatures[index] = curvature;
+      workspace.grips[index] = gripAt(road, aS, typeof targetL === 'number' ? targetL : targetL(aS));
       workspace.cells[index] = cell;
       workspace.speedCells[index] = NaN;
     }
@@ -226,13 +250,18 @@ function plannedTargetSpeed(
         for (let iteration = 0; iteration < ENVELOPE_DRIVER.curveSpeedIterations; iteration++)
           curveSpeed = Math.min(
             speedCap,
-            Math.sqrt((utilization * envelopeAt(envelope, curveSpeed, workspace.row).lateral) / curvature),
+            Math.sqrt(
+              (utilization * envelopeAt(envelope, curveSpeed, workspace.row).lateral * workspace.grips[index]!) /
+                curvature,
+            ),
           );
       workspace.speedsSquared[index] = curveSpeed ** 2;
       workspace.speedCells[index] = cell;
     }
+    leastGrip = Math.min(leastGrip, workspace.grips[index]!);
+    workspace.leastGrips[workspace.leastGripCount++] = leastGrip;
     const distance = Math.max(0, aS - s - speed * ENVELOPE_DRIVER.responseSeconds);
-    targetSquared = Math.min(targetSquared, workspace.speedsSquared[index]! + 2 * braking * distance);
+    targetSquared = Math.min(targetSquared, workspace.speedsSquared[index]! + 2 * braking * leastGrip * distance);
   }
   if (domain.terminal !== null) {
     // Leave room for input response and the front contact footprint; no pose/velocity correction.
@@ -240,12 +269,26 @@ function plannedTargetSpeed(
       0,
       domain.terminal - s - ENVELOPE_DRIVER.terminalClearance - speed * ENVELOPE_DRIVER.responseSeconds,
     );
-    targetSquared = Math.min(targetSquared, 2 * braking * distance);
+    targetSquared = Math.min(targetSquared, 2 * braking * leastGripTo(workspace, domain.terminal) * distance);
   }
   workspace.plan.free = Math.sqrt(targetSquared);
-  if (leader !== null) targetSquared = Math.min(targetSquared, leaderBoundSquared(s, speed, braking, leader));
+  if (leader !== null)
+    targetSquared = Math.min(
+      targetSquared,
+      leaderBoundSquared(s, speed, braking * leastGripTo(workspace, leader.s), leader),
+    );
   workspace.plan.target = Math.sqrt(targetSquared);
   return workspace.plan.target;
+}
+
+/**
+ * The least grip of the latest plan's lane from its first cell through the cell holding route station `s` (the last
+ * planned cell's beyond it; grip 1 when nothing was planned).
+ */
+function leastGripTo(workspace: ReturnType<typeof createEnvelopeDriverWorkspace>, s: number): number {
+  if (workspace.leastGripCount === 0) return 1;
+  const k = Math.floor(s / ENVELOPE_DRIVER.spacing) - workspace.leastGripFirst;
+  return workspace.leastGrips[Math.min(workspace.leastGripCount - 1, Math.max(0, k))]!;
 }
 
 /**
@@ -267,17 +310,20 @@ export function envelopeCanFollow(s: number, speed: number, braking: number, lea
 
 /**
  * The speed the driver's current plan would allow in a lane whose vehicle ahead is `leader`: the plan without a vehicle
- * ahead (`free`), behind that lane's leader. Curve speeds are the current lane's; adjacent lanes differ little in them.
+ * ahead (`free`), behind that lane's leader. Curve speeds and grip are the current lane's (the plan in `workspace`);
+ * adjacent lanes differ little in them.
  */
 export function envelopeSpeedBehind(
   car: VehicleMotionRead,
   driver: Driver,
+  workspace: ReturnType<typeof createEnvelopeDriverWorkspace>,
   free: number,
   leader: EnvelopeLeader | null,
 ): number {
   if (leader === null) return free;
   const speed = Math.hypot(car.longitudinalSpeed, car.lateralSpeed);
-  return Math.sqrt(Math.min(free ** 2, leaderBoundSquared(car.course.s, speed, driver.braking, leader)));
+  const braking = driver.braking * leastGripTo(workspace, leader.s);
+  return Math.sqrt(Math.min(free ** 2, leaderBoundSquared(car.course.s, speed, braking, leader)));
 }
 
 /**
@@ -285,7 +331,7 @@ export function envelopeSpeedBehind(
  * is its own planned target there, found by iterating the plan from the speed cap.
  */
 export function plannedEnvelopeSpeed(
-  coordinates: PlanCoordinateReader,
+  road: DriverRoad,
   s: number,
   driver: Driver,
   targetL: Lane,
@@ -295,7 +341,7 @@ export function plannedEnvelopeSpeed(
   const workspace = createEnvelopeDriverWorkspace();
   let speed = driver.speedCap;
   for (let iteration = 0; iteration < ENVELOPE_DRIVER.plannedSpeedIterations; iteration++) {
-    const next = plannedTargetSpeed(coordinates, s, speed, driver, targetL, workspace, domain, leader);
+    const next = plannedTargetSpeed(road, s, speed, driver, targetL, workspace, domain, leader);
     if (Math.abs(next - speed) < ENVELOPE_DRIVER.plannedSpeedTolerance) return next;
     speed = next;
   }
@@ -307,7 +353,7 @@ export function plannedEnvelopeSpeed(
  * target speed without and with the vehicle ahead (borrowed from the workspace).
  */
 export function planEnvelopeDriving(
-  coordinates: PlanCoordinateReader,
+  road: DriverRoad,
   car: VehicleMotionRead,
   driver: Driver,
   targetL: Lane,
@@ -316,21 +362,21 @@ export function planEnvelopeDriving(
   leader: EnvelopeLeader | null,
 ): { readonly free: number; readonly target: number } {
   const speed = Math.hypot(car.longitudinalSpeed, car.lateralSpeed);
-  plannedTargetSpeed(coordinates, car.course.s, speed, driver, targetL, workspace, domain, leader);
+  plannedTargetSpeed(road, car.course.s, speed, driver, targetL, workspace, domain, leader);
   return workspace.plan;
 }
 
 /** The driver's input, planning alone: no vehicle ahead constrains it (reference runs and scenario policies). */
 export function sampleEnvelopeDrivingInput(
-  coordinates: PlanCoordinateReader,
+  road: DriverRoad,
   car: VehicleMotionRead,
   driver: Driver,
   targetL: Lane = 0,
   workspace: ReturnType<typeof createEnvelopeDriverWorkspace>,
   domain: DrivingDomain,
 ): DrivingInput {
-  const { target } = planEnvelopeDriving(coordinates, car, driver, targetL, workspace, domain, null);
-  return envelopeDrivingInput(coordinates, car, driver, targetL, workspace, domain, target);
+  const { target } = planEnvelopeDriving(road, car, driver, targetL, workspace, domain, null);
+  return envelopeDrivingInput(road, car, driver, targetL, workspace, domain, target);
 }
 
 /** The direction a vehicle travels in (rad, as yaw): its yaw turned by its slip, read at a least forward speed. */
@@ -407,7 +453,7 @@ export function steeringLookahead(speed: number): number {
  * steering lookahead ahead, and pedals.
  */
 export function envelopeDrivingInput(
-  coordinates: PlanCoordinateReader,
+  road: DriverRoad,
   car: VehicleMotionRead,
   driver: Driver,
   targetL: Lane,
@@ -419,7 +465,7 @@ export function envelopeDrivingInput(
   const speed = Math.hypot(car.longitudinalSpeed, car.lateralSpeed);
   const { envelope } = driver;
   const targetS = clamp(s + steeringLookahead(speed), domain.start, domain.end);
-  const target = coordinates.toWorld(
+  const target = road.coordinates.toWorld(
     targetS,
     typeof targetL === 'number' ? targetL : targetL(targetS),
     workspace.target,
