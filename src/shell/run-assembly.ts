@@ -11,7 +11,7 @@ import { loadDeliveredCourse } from '../content/load-delivered-course.js';
 import type { loadVehicleDefinitions } from '../content/vehicle-catalog.js';
 import { createCourseRace } from '../race/course-race.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
-import { runResult } from './race-status-hud.js';
+import { runResult } from './run-result.js';
 import { writeHud, type HudFacts } from './run-hud.js';
 import { fuelCutRpm } from '../vehicle/physics/automatic-powertrain.js';
 import type { TextLayer } from '../view/text-layer.js';

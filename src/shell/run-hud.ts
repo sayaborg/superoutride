@@ -3,13 +3,8 @@ import type { RaceFacts } from '../race/course-race.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import { TEXT_COLUMNS, type TextLayer } from '../view/text-layer.js';
-import {
-  formatMilliseconds,
-  formatRaceTime,
-  formatTimeDifference,
-  raceMilliseconds,
-  shownStanding,
-} from './race-status-hud.js';
+import { formatMilliseconds, formatRaceTime, formatTimeDifference, raceMilliseconds } from './race-time.js';
+import { shownStanding } from './run-result.js';
 
 /**
  * What the HUD reads in one frame: the race's facts, the player's observation, the player's final input sample, the

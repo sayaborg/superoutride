@@ -6,7 +6,7 @@ import {
   type PlayerRecords,
   type TimeTrialRecord,
 } from './player-record.js';
-import { raceMilliseconds, type RecordOutcome } from './race-status-hud.js';
+import { raceMilliseconds } from './race-time.js';
 
 /** What a run records against before it is driven: its rules and its identities. */
 export interface RecordSelection {
@@ -30,6 +30,15 @@ export interface RecordedRun extends RecordSelection {
   readonly finishSeconds: number;
   readonly crossingSeconds: readonly number[];
   readonly bestLapSeconds: number | null;
+}
+
+/** A run's standing against the record it was judged against, as RESULT shows it. */
+export interface RecordOutcome {
+  /** The record before the run; null when none, or when its identities differ from the run's. */
+  readonly previous: { readonly timeMs: number; readonly bestLapMs: number | null } | null;
+  readonly newRecord: boolean;
+  /** TIME TRIAL on a CIRCUIT: the run's best lap beat the recorded one. */
+  readonly newBestLap: boolean;
 }
 
 /** The one judgement of a run against the records: what RESULT shows and what is saved. */

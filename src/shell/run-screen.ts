@@ -1,6 +1,7 @@
 import type { TextLayer } from '../view/text-layer.js';
 import { createMenu, type Menu, type MenuDefinition } from './menu.js';
-import { formatMilliseconds, formatRaceTime, type RunResult } from './race-status-hud.js';
+import { formatMilliseconds, formatRaceTime } from './race-time.js';
+import type { RunResult } from './run-result.js';
 import { TEXT_PALETTES } from '../image/text-tiles.js';
 import { halveRgb555Pixels } from '../image/rgb555.js';
 import type { SoftwareSurface } from '../view/software-surface.js';
