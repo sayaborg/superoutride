@@ -102,6 +102,9 @@ open duration: a window spanning the valve event removed the pipe resonance. The
 mean of 8/15. Cylinder-end and outlet low-pass filters act inside their return paths. The listening pickup
 sums each open end's outgoing and low-passed outgoing waves, divided by `sqrt(openEndCount)`.
 
+A displacement pulse, pipe cross-sections and muffler segments, and packing absorption were tried (11-7b–11-7k) and
+cycle speed fluctuation was considered: none improved driving sound, and each added computation.
+
 Each acoustic step runs at the output sample rate. Integer pipe delays, the pulse approximation and
 native-rate nonlinear stages define the model's temporal and spectral resolution.
 

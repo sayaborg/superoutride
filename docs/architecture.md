@@ -480,6 +480,8 @@ LEVEL2-POINT reads, of that level's aligned cell and half-shifted cell containin
 midpoint of its actual, possibly clipped, extent) is nearest s; at an equal distance it reads the aligned cell. Like
 LEVEL-POINT it neither interpolates nor mixes occurrences. Its cell centers lie every half cell, so its read moves to
 a new cell twice as often and its center lies at most a quarter cell from s, against half a cell for LEVEL-POINT.
+A footprint-centred dyadic box with lateral pixel integration (LEVEL-BOX) was designed and not adopted: it needs
+per-pixel blending beyond period road hardware.
 Every level covers the Section through its truncated last cell. The final closed endpoint uses
 that last cell.
 

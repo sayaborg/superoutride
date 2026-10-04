@@ -29,16 +29,13 @@
 - Engine sound can lag on some devices and stay late. With `dev=1` the audio timing line measures the AudioContext's
   latency, clock and worklet overruns; headless Chromium did not reproduce the lag, so its fix waits on a reading
   from an affected device ([Browser](browser.md#performance-hud)).
-- Stage 13 is complete: vehicles declare overall dimensions and the coordinate domain extends by the 4 m vehicle reach
-  bound; Carriageways have lanes and drivers intend lane numbers; road-aligned footprints contact through one
-  external force on the ordinary mechanics; drivers change lanes past slower vehicles or follow them; traffic appears
-  at seeded Route positions from the series (RIBBON COAST ARCADE) or FREE PLAY's TRAFFIC option, at most sixteen at once.
-- Stage 13-4 is complete: walls drawn in Strips and course limits keep vehicles on the course; contacts keep the face
-  they met at; solid and movable roadside objects meet vehicles by the same contact, drivers see standing objects as
-  stopped vehicles and a vehicle held against a fixed object recovers; lanes continue across seams by position and
-  drivers whose lane ends merge first; RIBBON COAST is the 10.1 km verification course of all of it.
+- Stage 13 is complete: vehicles have overall dimensions and road-aligned footprints that contact vehicles, walls,
+  course limits and roadside objects through one external force on the ordinary mechanics; Carriageways have lanes,
+  drivers follow lane centres, change lanes past slower vehicles or follow them and merge where their lane ends; traffic
+  appears at seeded Route positions from the series or FREE PLAY's TRAFFIC option; RIBBON COAST is the verification
+  course of all of it.
 
-Next PR: **13-5 — Rival racing line**, awaiting its proposal.
+Next PR: **AU3-3** — the third design audit's fixes, in the order of its instructions.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -52,12 +49,6 @@ Findings of the second design audit not yet addressed, by when they are taken up
 - **Stage 15:** P7a-01, P7a-02, A6g-07, H15-02, H14-02, H18-01, D3-06.
 - **Not addressed, with reasons:** D8c-03 (it concerns the DEV HUD only); D8e-05 (a documentation contract, already
   stated); S12-02 (the scope of the guarantee is documented).
-
-## Stage 13-5 — Rival racing line
-
-Rivals follow lane centres and change lanes past slower vehicles. A racing line within the road width (the
-minimum-curvature line, compiled with the course), whether reference runs drive it, and passing off that line are
-designed once product courses exist to evaluate it on.
 
 ## Stage 14 — Music and sound effects
 
@@ -86,6 +77,12 @@ are collected from the topic specifications; their order within this stage is no
 
 - Series images and attract demo: each series has one 320×240 image (20×15 tiles of 16×16 px), and
   SELECT SERIES switches between them; the attract demo replaces the text title.
+
+### Rival racing line
+
+Rivals follow lane centres and change lanes past slower vehicles. A racing line within the road width (the
+minimum-curvature line, compiled with the course), whether reference runs drive it, and passing off that line are
+designed once product courses exist to evaluate it on.
 
 ### Reference and remaster goals
 
@@ -167,8 +164,8 @@ reintroduce per-vehicle or per-axle tire parameters only when this tuning needs 
 utilization; runout admission still checks the fixed 0.75.
 Use continuous tool reference runs that complete reproducibly and use different vehicles' capabilities
 comparably; review proposed checkpoint margins against the resulting driving experience. FREE PLAY and
-TIME TRIAL have no time limit. Reference driving stays outside builds. Review the complete sixteen-competitor
-scene with graphics and audio on named devices. Establish device capacity/performance budgets from the whole
+TIME TRIAL have no time limit. Reference driving stays outside builds. Review the complete 32-vehicle
+scene (sixteen competitors and sixteen traffic vehicles) with graphics and audio on named devices. Establish device capacity/performance budgets from the whole
 application. Measure color-table preblend memory per km on the product courses (ribbon-coast's road is about 0.3 MB per km;
 a dense 21 km probe used about 121 MiB). If it exceeds the device budget, build preblend levels only
 for the route window instead of the whole Section.
@@ -190,39 +187,35 @@ lighting at its own chainage, and switching is a cut.
 
 - Vehicle sprite resolution: decide the yaw division count (currently 24) and the two-wheeler bank count (currently 5) before producing final vehicle art; the sprite set format already declares both as data.
 
-| Area             | Decision or future capability                                                                                                                                                |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| References       | Exact editions/layout evidence, tolerances and remaster departures                                                                                                           |
-| Series values    | Rank limits, ahead distances, pace ratios, margins, grid spacing and colors per series course (Stage 16 playtests)                                                           |
-| Series content   | SUPER HANG-ON reference layouts; CISCO HEAT course type; COOL RIDERS connections, rivals and traffic; FINAL LAP layout and cars                                              |
-| Series content   | WEC LE MANS 24 layout and field; BIG RUN vehicles and field; RALLY STAGE title and course set                                                                                |
-| Vehicles         | Exact specifications of adopted vehicles (year, market, grade); BROUGHAM TUNED values                                                                                        |
-| Circuits         | Series or FREE PLAY placement of the selected circuits below                                                                                                                 |
-| Interaction      | Oncoming traffic (Stage 16)                                                                                                                                                  |
-| Tunnels          | Whether tunnel sides and ceilings are drawn by the renderer like walls (a ceiling is a second surface above the road), replacing sprite frames                               |
-| Walls            | Whether compilation should require a solid wall's ends to lie on the course limit or another solid wall (guardrail lead-ins are an authoring convention today)               |
-| Walls            | Whether walls take the ground's arrow, text and curb constructs as well as strip and repeat (when a product course needs them)                                               |
-| Walls            | Preblend memory of walls whose edges vary along the road (about 1.3–2.5 MB per km of cliff on RIBBON COAST, against about 0.3 MB per km of road)                             |
-| Rivals           | In dense traffic rivals keep the 1.5 s following time and queue behind it; whether rivals follow closer than traffic (with Stage 13-5)                                       |
-| Drivers          | Drivers plan corner speeds from an envelope measured on asphalt and do not read surface grip; RIBBON COAST's dirt section is straight for that reason                        |
-| Traffic          | Traffic on one-lane roads cannot be passed and does not yield                                                                                                                |
-| Interaction      | A vehicle that meets a solid object through its front face stops, however little of it overlaps; whether a slight overlap should deflect it instead (real-device evaluation) |
-| Interaction      | Rebound after hitting a solid object (about 7 m/s back from 40 m/s); tune with the body contact values on real devices                                                       |
-| Records          | Whether traffic settings belong to the ARCADE record key                                                                                                                     |
-| Grade separation | Occurrence/neighborhood/height selection of surfaces, landmarks and contacts at nearby crossings                                                                             |
-| Front end        | Attract demo idle time                                                                                                                                                       |
-| HUD              | Layout of the HUD elements, the vehicle-state elements included (real-device evaluation)                                                                                     |
-| HUD              | Text backing behind HUD text: none for now                                                                                                                                   |
-| Camera           | Height spring (frequency and damping ratio) and yaw response (real-device evaluation of the DEV choices)                                                                     |
-| Bank             | How the displayed vehicle bank follows lean (real-device evaluation)                                                                                                         |
-| Art              | Production assets, new physical materials and tunnel/background content                                                                                                      |
-| BG transitions   | Consider wipes or dissolves for environment changes; palette fades are not expected                                                                                          |
-| Engine sound     | Tried, not adopted: displacement pulse. It did not improve driving sound and added computation (11-7b–11-7k)                                                                 |
-| Engine sound     | Tried, not adopted: pipe cross-sections and muffler segments. It did not improve driving sound and added computation (11-7b–11-7k)                                           |
-| Engine sound     | Tried, not adopted: packing absorption. It did not improve driving sound and added computation (11-7b–11-7k)                                                                 |
-| Engine sound     | Tried, not adopted (not implemented): cycle speed fluctuation, for the same reason as 11-7b–11-7k                                                                            |
-| Ground           | Product default between LEVEL-POINT and LEVEL2-POINT (real-device evaluation); the method not chosen and its cells are then removed                                          |
-| Ground           | Designed, not adopted: LEVEL-BOX (footprint-centred dyadic box with lateral pixel integration). It needs per-pixel blending beyond period road hardware                      |
+| Area             | Decision or future capability                                                                                                                                  |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| References       | Exact editions/layout evidence, tolerances and remaster departures                                                                                             |
+| Series values    | Rank limits, ahead distances, pace ratios, margins, grid spacing and colors per series course (Stage 16 playtests)                                             |
+| Series content   | SUPER HANG-ON reference layouts; CISCO HEAT course type; COOL RIDERS connections, rivals and traffic; FINAL LAP layout and cars                                |
+| Series content   | WEC LE MANS 24 layout and field; BIG RUN vehicles and field; RALLY STAGE title and course set                                                                  |
+| Vehicles         | Exact specifications of adopted vehicles (year, market, grade); BROUGHAM TUNED values                                                                          |
+| Circuits         | Series or FREE PLAY placement of the selected circuits below                                                                                                   |
+| Interaction      | Oncoming traffic (Stage 16)                                                                                                                                    |
+| Tunnels          | Whether tunnel sides and ceilings are drawn by the renderer like walls (a ceiling is a second surface above the road), replacing sprite frames                 |
+| Walls            | Whether compilation should require a solid wall's ends to lie on the course limit or another solid wall (guardrail lead-ins are an authoring convention today) |
+| Walls            | Whether walls take the ground's arrow, text and curb constructs as well as strip and repeat (when a product course needs them)                                 |
+| Walls            | Whether wall friction varies by wall rather than being one game-wide `barrierFriction`                                                                         |
+| Walls            | Whether walls' preblend memory (about 1.3–2.5 MB per km of cliff on RIBBON COAST, about 0.3 MB per km of road) fits the device budget                          |
+| Rivals           | Whether rivals follow closer than traffic (in dense traffic they keep the 1.5 s following time and queue)                                                      |
+| Rivals           | Whether an ahead entry's lane is checked where it appears rather than against the course's fewest lanes (Stage 16)                                             |
+| Drivers          | Whether drivers read surface grip (they plan corner speeds from an envelope measured on asphalt and spin on dirt)                                              |
+| Interaction      | Whether a slight front-face overlap with a solid object deflects the vehicle instead of stopping it (real devices)                                             |
+| Interaction      | How far a vehicle rebounds from a solid object (about 7 m/s back from 40 m/s today; real devices)                                                              |
+| Records          | Whether traffic settings belong to the ARCADE record key                                                                                                       |
+| Grade separation | Occurrence/neighborhood/height selection of surfaces, landmarks and contacts at nearby crossings                                                               |
+| Front end        | Attract demo idle time                                                                                                                                         |
+| HUD              | Layout of the HUD elements, the vehicle-state elements included (real-device evaluation)                                                                       |
+| HUD              | Whether HUD text has a backing (none today)                                                                                                                    |
+| Camera           | Height spring (frequency and damping ratio) and yaw response (real-device evaluation of the DEV choices)                                                       |
+| Bank             | How the displayed vehicle bank follows lean (real-device evaluation)                                                                                           |
+| Art              | Production assets, new physical materials and tunnel/background content                                                                                        |
+| BG transitions   | Whether environment changes use wipes or dissolves (palette fades are not expected)                                                                            |
+| Ground           | Which of LEVEL-POINT and LEVEL2-POINT is the product default (real devices); the other and its cells are then removed                                          |
 
 ### Selected circuits
 
