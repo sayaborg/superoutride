@@ -41,6 +41,7 @@ steps and never rejects a driving definition.
 | Rival pace | RESP  | `rivalPace.responseSeconds`                 | Rival utilization response time constant     | 3.0 s   | 0.5–10.0 s / 0.5 s         |
 | Contact    | BCF   | `bodyContact.frequencyHertz`                | Body contact natural frequency (Hz)          | 3.0 Hz  | 1.0–6.0 Hz / 0.5 Hz        |
 | Contact    | BCZ   | `bodyContact.dampingRatio`                  | Body contact damping ratio                   | 1.0     | 0.2–1.5 / 0.1              |
+| Contact    | BWF   | `bodyContact.barrierFriction`               | Wall friction, as a fraction of the push     | 0.30    | 0.00–1.00 / 0.05           |
 | Assists    | —     | `wheelSlip`                                 | TCS, MSR and ABS                             | on      | on / off                   |
 
 `fuelCutRedlineMargin` (0.02) and `clutchLockIdleMargin` (0.02) are numerical margins that keep
@@ -100,6 +101,9 @@ Tire and steering low-speed regularization are engine constants of 1.0 m/s.
 ([Vehicle physics](vehicle-physics.md#body-contact)): `frequencyHertz` is the natural frequency of the pair's
 relative motion in hertz, independent of the masses because the force scales with the pair's reduced mass, and
 `dampingRatio` is dimensionless (1 is critical damping: no rebound). Every DEV grid point is stable at the 1/60 s step.
+Walls and course limits push with the same spring-damper on the vehicle's own mass, so they share its frequency and
+damping; `barrierFriction` scales that push into the friction slowing a vehicle that scrapes along them (0.3 is a
+provisional value, to be judged on devices).
 
 The full driving source document participates in vehicle identity for generated envelopes, reference
 caches and time budgets. Top-speed envelope measurement ends at steady-speed convergence or at the first

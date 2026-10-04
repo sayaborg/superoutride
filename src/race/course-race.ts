@@ -42,6 +42,7 @@ import {
   type CompetitorObservation,
 } from './competitor-observation.js';
 import { SIM_DT } from './fixed-step.js';
+import { createBarrierContacts } from './barrier-contacts.js';
 import type { createRouteRuntime } from './route-runtime.js';
 
 type RouteRuntime = ReturnType<typeof createRouteRuntime>;
@@ -241,6 +242,13 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   const sightings: VehicleSighting[] = [];
   // Body contacts push present competitors apart; the Session's driving definition holds the spring-damper.
   const bodyContacts = createBodyContacts(runtime.readers.coordinates, playerActor.model.bodyContact);
+  // Walls and course limits push every present vehicle back with the same spring-damper.
+  const barrierContacts = createBarrierContacts(
+    runtime.readers.coordinates,
+    runtime.window,
+    playerActor.model.bodyContact,
+    SIM_DT,
+  );
   const footprint = (model: VehicleModel, s: number, l: number): RouteFootprint => ({
     s,
     l,
@@ -608,6 +616,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     runtime.refresh(minS, maxS);
     // Contact forces come from the state at the step's start and hold through it.
     bodyContacts(bodies);
+    barrierContacts(bodies);
     move(active[0]!, playerInput);
     for (let i = 1; i < active.length; i += 1) {
       const motion = active[i]!;

@@ -1,18 +1,32 @@
 import { DefinitionDomainError } from '../../core/admission.js';
 
-/** The game-wide body contact spring-damper: angular frequency `2π × frequencyHertz` (rad/s) and damping ratio. */
+/**
+ * The game-wide body contact spring-damper: angular frequency `2π × frequencyHertz` (rad/s) and damping ratio; and the
+ * friction coefficient of a vehicle scraping along a wall, as a fraction of the wall's push.
+ */
 export interface CompiledBodyContact {
   readonly angularFrequency: number;
   readonly dampingRatio: number;
+  readonly barrierFriction: number;
 }
 
 /** Convert the saved body contact values; the stability bound needs the fixed step and is admitted with the model. */
-export function compileBodyContact(value: { frequencyHertz: number; dampingRatio: number }): CompiledBodyContact {
+export function compileBodyContact(value: {
+  frequencyHertz: number;
+  dampingRatio: number;
+  barrierFriction: number;
+}): CompiledBodyContact {
   if (!(value.frequencyHertz > 0) || !Number.isFinite(value.frequencyHertz))
     throw new DefinitionDomainError('frequencyHertz', 'body contact frequencyHertz must be finite and > 0');
   if (!(value.dampingRatio > 0) || !Number.isFinite(value.dampingRatio))
     throw new DefinitionDomainError('dampingRatio', 'body contact dampingRatio must be finite and > 0');
-  return Object.freeze({ angularFrequency: 2 * Math.PI * value.frequencyHertz, dampingRatio: value.dampingRatio });
+  if (!(value.barrierFriction >= 0) || !Number.isFinite(value.barrierFriction))
+    throw new DefinitionDomainError('barrierFriction', 'body contact barrierFriction must be finite and >= 0');
+  return Object.freeze({
+    angularFrequency: 2 * Math.PI * value.frequencyHertz,
+    dampingRatio: value.dampingRatio,
+    barrierFriction: value.barrierFriction,
+  });
 }
 
 /**

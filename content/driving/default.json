@@ -1,6 +1,6 @@
 {
   "format": "superoutride.driving-definition",
-  "version": 13,
+  "version": 14,
   "maxRoadWheelSteerDegrees": 65,
   "steeringOffsetDegrees": 20,
   "steeringTraversalSeconds": 0.3,
@@ -24,5 +24,5 @@
     "bandSeconds": 2,
     "responseSeconds": 3
   },
-  "bodyContact": { "frequencyHertz": 3, "dampingRatio": 1 }
+  "bodyContact": { "frequencyHertz": 3, "dampingRatio": 1, "barrierFriction": 0.3 }
 }

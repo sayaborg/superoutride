@@ -348,6 +348,18 @@ const DRIVING_TUNING_ITEMS: readonly NumericTuningItem[] = Object.freeze([
     step: 1,
     ...bodyContact('dampingRatio'),
   }),
+  item({
+    id: 'BWF',
+    group: 'CONTACT',
+    label: 'BWF',
+    description: 'wall friction, as a fraction of the push',
+    unit: '',
+    scale: 100,
+    min: 0,
+    max: 100,
+    step: 5,
+    ...bodyContact('barrierFriction'),
+  }),
 ]);
 
 export const DRIVING_TUNING_GROUPS: readonly DrivingTuningGroup[] = Object.freeze([

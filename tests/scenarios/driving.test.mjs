@@ -116,6 +116,12 @@ for (const stem of ['ribbon-coast', 'ribbon-fork', 'ribbon-ring']) {
               seconds: 300,
             },
           ]),
+      ...(stem === 'ribbon-coast'
+        ? [
+            // On RIBBON COAST's first straight the player steers into the left course limit, which pushes it back.
+            { name: 'course limit pushes back', policy: 'limit', steering: -0.12, steerSeconds: 4, seconds: 14 },
+          ]
+        : []),
       ...sessionRules,
     ];
     for (const scenario of scenarios)

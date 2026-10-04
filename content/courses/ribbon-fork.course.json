@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 31,
+  "version": 32,
   "name": "RIBBON FORK",
   "entrySectionId": "junction-road",
   "rules": {
@@ -794,6 +794,7 @@
           ]
         }
       ],
+      "walls": [],
       "height": [
         {
           "at": {
@@ -1435,6 +1436,7 @@
           ]
         }
       ],
+      "walls": [],
       "height": [
         {
           "at": {
@@ -1789,6 +1791,7 @@
           "colors": [32765, 27781]
         }
       ],
+      "walls": [],
       "height": [
         {
           "at": {
@@ -2238,6 +2241,7 @@
           "color": 32765
         }
       ],
+      "walls": [],
       "height": [
         {
           "at": {

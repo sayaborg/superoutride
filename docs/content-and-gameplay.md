@@ -18,7 +18,7 @@ color and material overwrite independently. Compiled Sections publish their two 
 Checkpoints, starts, finishes and environment changes are independent of Section boundaries.
 Source identity, traversal identity and race credit are distinct.
 
-## CourseDocument v31
+## CourseDocument v32
 
 The saved format is compact UTF-8 JSON. All declared fields are required; explicit null represents
 absent optional content. Unknown fields fail. Arrays preserve saved order; object-property order and
@@ -26,13 +26,13 @@ whitespace do not affect identity. Normalized records use schema field order and
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 31,
+  format: "superoutride.course", version: 32,
   name, entrySectionId,
   sections, links, assets, rules
 }
 Section {
   id, pis,
-  boundaries, strips, sprites, height: [{at, y, curveLength}],
+  boundaries, strips, walls, sprites, height: [{at, y, curveLength}],
   carriageways, environments, gates
 }
 ```
@@ -211,6 +211,32 @@ simultaneously active pieces, resolved slabs and cached fields. Covered pieces s
 a piece carrying both payloads counts once. Limits reject rather than truncate.
 [Architecture](architecture.md#strip-rendering) owns averaging, immutable storage and pixel kernels.
 
+### Walls
+
+Section `walls` is an array (empty when the Section has none) of
+`{boundary, from, to, solid, thickness, top, bottom, pattern}`: a wall along the Section Boundary `boundary` from Position
+`from` to Position `to`. Compilation requires `from < to` and the Boundary to cover that interval (`invalid_wall`; an
+unknown Boundary is `unresolved_reference`). `solid` (true or false) says whether vehicles meet it; `thickness`, positive
+metres, is the width of its ends. `top` (0 or more) and `bottom` (0 or less) are metres above and below the road height
+that bound its picture. `pattern` lists `{length, bands}` entries, positive `length` metres each, repeating in order along
+the road from the wall's start; `bands` rise from `bottom` to `top` as `{to, color}`: each band reaches up to height
+`to`, the `to` values increase strictly, lie above `bottom` and end exactly at `top`, and `color` is an RGB555 integer or
+null for transparent. A wall with `top` and `bottom` both zero is invisible: it has no pattern and must be solid (a wall
+neither seen nor met is rejected). Any other wall is visible and has at least one pattern entry. Whether a wall is solid
+does not affect its picture. Reading rejects these value errors with `invalid_value`.
+
+Solid walls and the course limits are the Section's barrier lines ([Body contact](#barrier-lines)). The course limits
+run along the left and right outer edges of the covered material — the material table's outermost finite covered
+edges, the lateral domain's edges before `MAXIMUM_VEHICLE_REACH` — and authors never write them. A wall that is not solid
+opens the edge it runs along: wherever its Boundary lies within `OPEN_EDGE_TOLERANCE_METERS` (1e-6 m, reading one line
+through two compiled readers) of that side's outer material edge, that side has no course limit. Compilation decides
+this once, over the pieces between the Boundary's vertices and the material slab stations. A vehicle leaving through an
+open edge has no support beyond it and falls; ordinary recovery returns it.
+
+A guardrail is authored as a visible solid wall at the road side, joined to the course limit at both ends by invisible
+solid walls on slanted Boundaries running from the outer material edge to the guardrail's line, so no vehicle can get
+behind it. This is an authoring convention; compilation does not check where a solid wall's ends lie.
+
 ### Section gates and Session settings
 
 Section `gates` is an array with these records. Every `at` uses the enclosing Section's Position;
@@ -301,6 +327,7 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | Non-circuit finite `routes` from the entry                              |                256 | Reference work bound: one continuous reference run per route and vehicle                                                                                                  |
 | Section `spritePlacements` (expanded)                                   |              16384 | 21 × (200 + 20)/km × 2, rounded up                                                                                                                                        |
 | Each Strip/sprite array `stripElements` / `spriteElements`              |               2048 | 21 × 30/km × 2, rounded up                                                                                                                                                |
+| Section `walls` / each wall's `wallPatterns` / each entry's `wallBands` |     1024 / 64 / 16 | Both sides × 21 km × 10 wall runs/km × 2, rounded up; a 32-entry facade repeat × 2; 8 color bands × 2                                                                     |
 | `repeatCount`                                                           |              65536 | Whole-length 1 m repetitions: 21000 × 2, rounded up                                                                                                                       |
 | `repeatDepth` / `textCodeUnits`                                         |             8 / 64 | Four organizational levels × 2; 32-character road legend × 2                                                                                                              |
 | Section `stripExpansion` (pieces and visited constructs separately)     |             131072 | 21 × 3000/km × 2, rounded up                                                                                                                                              |
@@ -985,6 +1012,21 @@ tangent or its right, read at the pair's midpoint, with equal magnitude and oppo
 its approach speed is their relative world velocity along that direction. The spring-damper uses the Session
 driving definition's `bodyContact` (the player's vehicle model).
 
+### Barrier lines
+
+Walls and course limits act on every vehicle present, in every step after READY, from the state at the step's start;
+the race adds their force to the body contact force. A barrier line acts on a vehicle whose centre's Section station
+lies within it (a wall: from its `from` through its `to`). Its overlap is half the vehicle's overall width less the
+centre's lateral distance from the line, measured toward the side the line keeps it on: a course limit keeps vehicles on
+its material side, a wall on the side the vehicle's centre is on. While the overlap is positive the line pushes along the
+road's horizontal right, away from the line, with the same spring-damper on the vehicle's own mass (the line does not
+move), `F = max(0, m(ω²x + 2ζωv))`; `v` is how fast the overlap grows: the vehicle's lateral speed toward the line plus
+the line's slope times the vehicle's speed along the road, since a slanted line closes on a vehicle driving along it.
+Friction along the road's horizontal tangent opposes the vehicle's speed along the road with magnitude
+`min(barrierFriction × F, m × |v_along| / step)`, never reversing that speed within the step. No vertical force or moment
+arises and height is not compared. Recovery rules are unchanged: a vehicle past an open edge, or beyond either end of the
+resident Route, recovers as before.
+
 Recovery and appearance place no vehicle on another present vehicle's footprint. Recovery backs its target along
 the Route behind each vehicle in the way, by `placementClearance`, until the place in its lane there is free (or
 the resident Route begins); wrong-course recovery does the same on the selected road. An appearance whose place is
@@ -1055,10 +1097,17 @@ Places reserved for later Stage 13-4 content, in Section stations:
 | Guardrail and its lead-ins    | `cliff-mountain` | Lead-in 382–432, guardrail 432–732, lead-out 732–782 (straight 372–792) | Right (sea)     |
 | Rising cliff and its lead-ins | `cliff-mountain` | Lead-in 918–968, cliff 968–1168, lead-out 1168–1218 (straight 918–1218) | Left (mountain) |
 | Falling cliff (open edge)     | `cliff-mountain` | 1383–1583 (straight 1333–1633)                                          | Right (sea)     |
-| Short free-standing wall      | `coast-wide`     | 1100–1120, in the grass                                                 | Left            |
-| Solid trees and signs         | `town`           | 110–980, just outside the shoulders                                     | Both            |
-| Cone row                      | `coast-fast`     | 1000–1090, ten cones in the outermost right lane (straight 862–1362)    | Right           |
-| Barricade                     | `coast-fast`     | 1800, outermost left lane (finish straight 1637–2500)                   | Left            |
+
+The three walls are in place. The guardrail is a solid wall 0.3 m thick and 0.8 m high on the shoulder's outer edge
+(5 m right of the centre line), posts every 2 m under a rail; invisible solid lead-ins run from the outer material edge
+(22 m) to it over 50 m at each end. The rising cliff is a solid wall 1 m thick and 20 m high on the left shoulder edge in
+three rock bands, with the same invisible lead-ins. The falling cliff is a wall for looks only, 1 m thick, dropping 40 m
+below the road on the right shoulder edge; the outer material narrows to that edge over 30 m before and after it, so the
+right side has no course limit there and nothing is drawn beyond it.
+| Short free-standing wall | `coast-wide` | 1100–1120, in the grass | Left |
+| Solid trees and signs | `town` | 110–980, just outside the shoulders | Both |
+| Cone row | `coast-fast` | 1000–1090, ten cones in the outermost right lane (straight 862–1362) | Right |
+| Barricade | `coast-fast` | 1800, outermost left lane (finish straight 1637–2500) | Left |
 
 ## Evaluation test course
 

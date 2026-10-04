@@ -16,7 +16,11 @@ export interface CompiledPlanLateralDomain {
   lateralAt(s: number, out: Writable<{ left: number; right: number }>): { left: number; right: number };
 }
 
-function lateralDomain(material: StripMaterial, path: string): CompiledPlanLateralDomain {
+/**
+ * The outer edges of a Section's covered material: at each station its leftmost and rightmost finite covered edges, affine
+ * within each material slab (`stations` are the slab ends).
+ */
+export function materialOuterEdges(material: StripMaterial, path: string) {
   const stations = [material.slabs[0]!.start, ...material.slabs.map((slab) => slab.end)];
   const edges = material.slabs.map((slab) => {
     const spans = slab.spans.filter((span) => span.value !== null);
@@ -30,10 +34,28 @@ function lateralDomain(material: StripMaterial, path: string): CompiledPlanLater
   });
   return Object.freeze({
     stations: Object.freeze(stations),
-    lateralAt(s: number, out: Writable<{ left: number; right: number }>) {
+    at(s: number, out: Writable<{ left: number; right: number }>) {
       const edge = edges[stripSlabAt(material.slabs, s)]!;
-      out.left = stripEdgeAt(edge.left, 'left', s) - MAXIMUM_VEHICLE_REACH;
-      out.right = stripEdgeAt(edge.right, 'right', s) + MAXIMUM_VEHICLE_REACH;
+      out.left = stripEdgeAt(edge.left, 'left', s);
+      out.right = stripEdgeAt(edge.right, 'right', s);
+      return out;
+    },
+    /** The edge's lateral change per metre of station at s, within its slab. */
+    slopeAt(s: number, side: 'left' | 'right') {
+      const line = edges[stripSlabAt(material.slabs, s)]![side][side]!;
+      return (line.to - line.from) / (line.end - line.start);
+    },
+  });
+}
+
+function lateralDomain(material: StripMaterial, path: string): CompiledPlanLateralDomain {
+  const edges = materialOuterEdges(material, path);
+  return Object.freeze({
+    stations: edges.stations,
+    lateralAt(s: number, out: Writable<{ left: number; right: number }>) {
+      edges.at(s, out);
+      out.left -= MAXIMUM_VEHICLE_REACH;
+      out.right += MAXIMUM_VEHICLE_REACH;
       return out;
     },
   });

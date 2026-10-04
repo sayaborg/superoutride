@@ -106,6 +106,21 @@ function finiteState(value, path = '', seen = new Set()) {
   }
 }
 
+/** Whether a course limit overlaps the vehicle's half width at its station. */
+function limitTouched(scene, vehicle, model) {
+  const occurrence = scene.runtime.route.at(vehicle.course.s);
+  if (!occurrence) return false;
+  const s = routeSectionS(occurrence, vehicle.course.s),
+    l = vehicle.course.l + occurrence.lateralOrigin;
+  return occurrence.section.barriers.some(
+    (line) =>
+      line.keep !== 0 &&
+      s >= line.start &&
+      s <= line.end &&
+      model.compiledVehicle.overallWidth / 2 - line.keep * (l - line.lateralAt(s)) > 0,
+  );
+}
+
 function pavementBounds(scene, vehicle) {
   const occurrence = scene.runtime.route.at(vehicle.course.s);
   if (!occurrence) return null;
@@ -136,7 +151,8 @@ export function runScenario({ course, arcade: scenarioArcade, productArcade, bud
       rivalCount: mode === 'ARCADE' ? arcade.entries.length - 1 : (scenario.rivals ?? 0),
       lapCount: mode === 'ARCADE' ? arcade.laps : (scenario.laps ?? 1),
       timeLimit: mode === 'ARCADE',
-      initialSpeed: scenario.policy === 'reverse' ? -20 : scenario.policy === 'departure' ? 30 : 0,
+      initialSpeed:
+        scenario.policy === 'reverse' ? -20 : scenario.policy === 'departure' || scenario.policy === 'limit' ? 30 : 0,
       seed: scenario.seed ?? 0,
       traffic: null,
     },
@@ -166,6 +182,9 @@ export function runScenario({ course, arcade: scenarioArcade, productArcade, bud
     outsideDomain: false,
     leftRoad: false,
     rightRoad: false,
+    /** The first tick a course limit pushed the player, and its farthest lateral from the road centre line. */
+    limitContact: null,
+    farthestL: 0,
     recoveries: [],
     choices: [],
     frames: 0,
@@ -230,6 +249,9 @@ export function runScenario({ course, arcade: scenarioArcade, productArcade, bud
     if (race.outcome.status === 'READY') input = idle;
     else if (scenario.policy === 'reverse') input = idle;
     else if (scenario.policy === 'departure') input = { ...idle, steering: scenario.steering, throttle: true };
+    // Toward a course limit for a while, then back to the reference line.
+    else if (scenario.policy === 'limit' && race.clock.elapsedSeconds < scenario.steerSeconds)
+      input = { ...idle, steering: scenario.steering, throttle: true };
     else if (scenario.waitForStop && evidence.recoveries.length && evidence.stoppedRivals.length < race.rivals.length)
       input = { ...idle, brake: true };
     else if (scenario.policy === 'closed' && race.clock.elapsedSeconds < 3) input = idle;
@@ -345,6 +367,8 @@ export function runScenario({ course, arcade: scenarioArcade, productArcade, bud
         (vehicle.z - entryPose.z) * Math.cos(entryPose.heading) <
       0;
     evidence.outsideDomain ||= !vehicle.course.inDomain;
+    evidence.farthestL = Math.max(evidence.farthestL, Math.abs(vehicle.course.l));
+    if (evidence.limitContact === null && limitTouched(scene, vehicle, actor.model)) evidence.limitContact = tick;
     const bounds = pavementBounds(scene, vehicle);
     if (bounds) {
       evidence.leftRoad ||= vehicle.course.l < bounds.left;
@@ -414,9 +438,21 @@ export function runScenario({ course, arcade: scenarioArcade, productArcade, bud
     )
       break;
   }
-  assert.ok(tick < maxTicks, `${scenario.name}: did not reach its outcome: ${JSON.stringify(evidence)}`);
+  // A departure or a run into a course limit succeeds by lasting its time on the course.
+  const held = scenario.policy === 'departure' || scenario.policy === 'limit';
+  if (!held) assert.ok(tick < maxTicks, `${scenario.name}: did not reach its outcome: ${JSON.stringify(evidence)}`);
   if (scenario.policy === 'reverse') assert.ok(evidence.outsideEntry, 'never backed beyond the entry');
-  if (scenario.policy === 'reverse' || scenario.policy === 'departure') {
+  if (held) {
+    assert.equal(evidence.recoveries.length, 0, 'a course limit let the player leave the course');
+    assert.ok(!evidence.outsideDomain, 'left the coordinate domain');
+    assert.notEqual(evidence.limitContact, null, 'never reached a course limit');
+  }
+  if (scenario.policy === 'limit') {
+    const bounds = pavementBounds(scene, vehicle);
+    assert.ok(vehicle.course.l > bounds.left && vehicle.course.l < bounds.right, 'did not return to the road');
+    assert.ok(Math.hypot(vehicle.longitudinalSpeed, vehicle.lateralSpeed) > 20, 'did not drive on after the limit');
+  }
+  if (scenario.policy === 'reverse') {
     assert.ok(evidence.outsideDomain, 'never left the coordinate domain');
     assert.equal(evidence.recoveries.at(-1)?.reason, 'outside-domain');
     assert.ok(vehicle.course.inDomain, 'recovery did not restore domain membership');

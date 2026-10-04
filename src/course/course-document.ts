@@ -7,6 +7,7 @@ import { CourseInputError, courseFailure, courseSuccess, type CourseResult } fro
 import {
   AdmissionError,
   readArray,
+  readBoolean,
   readDocument,
   readEnum,
   readIdentified,
@@ -16,7 +17,7 @@ import {
   readString,
 } from '../core/admission.js';
 
-const COURSE_DOCUMENT_VERSION = 31;
+const COURSE_DOCUMENT_VERSION = 32;
 const ID = { maxLength: COURSE_DOCUMENT_LIMITS.idCodeUnits };
 
 export interface CoursePosition {
@@ -113,11 +114,35 @@ export interface SpriteDocument {
   readonly groundOffset: number;
 }
 
+/** One band of a wall pattern: its color (null is transparent) up to height `to` above the road. */
+export interface WallBandDocument {
+  readonly to: number;
+  readonly color: number | null;
+}
+
+/**
+ * A wall along a Boundary from `from` to `to`. A solid wall is a line vehicles cannot cross; `thickness` is the width of
+ * its ends. `top` (≥ 0) and `bottom` (≤ 0) bound its picture above and below the road, drawn in `pattern`: entries of
+ * `length` metres repeating along the road from the wall's start, each with bands from `bottom` up to `top`. An
+ * invisible wall has `top` and `bottom` zero and no pattern, and must be solid.
+ */
+export interface WallDocument {
+  readonly boundary: string;
+  readonly from: CoursePosition;
+  readonly to: CoursePosition;
+  readonly solid: boolean;
+  readonly thickness: number;
+  readonly top: number;
+  readonly bottom: number;
+  readonly pattern: readonly { readonly length: number; readonly bands: readonly WallBandDocument[] }[];
+}
+
 export interface SectionDocument {
   readonly id: string;
   readonly pis: readonly PlanPI[];
   readonly boundaries: readonly BoundaryDocument[];
   readonly strips: readonly StripElementDocument[];
+  readonly walls: readonly WallDocument[];
   readonly sprites: readonly RepeatElement<SpriteDocument>[];
   readonly height: readonly { readonly at: CoursePosition; readonly y: number; readonly curveLength: number }[];
   readonly carriageways: readonly CarriagewayDocument[];
@@ -379,6 +404,77 @@ function sprite(value: unknown, path: string): SpriteDocument {
         : readString(s.unselectedCarriagewayId, `${path}/unselectedCarriagewayId`, ID),
   });
 }
+function wall(value: unknown, path: string): WallDocument {
+  const v = readRecord(value, path, ['boundary', 'from', 'to', 'solid', 'thickness', 'top', 'bottom', 'pattern']);
+  const height = COURSE_DOCUMENT_LIMITS.heightMeters;
+  const top = readNumber(v.top, `${path}/top`, { min: 0, max: height });
+  const bottom = readNumber(v.bottom, `${path}/bottom`, { min: -height, max: 0 });
+  const solid = readBoolean(v.solid, `${path}/solid`);
+  const pattern = readArray(
+    v.pattern,
+    `${path}/pattern`,
+    (item, at) => {
+      const entry = readRecord(item, at, ['length', 'bands']);
+      const bands = readArray(
+        entry.bands,
+        `${at}/bands`,
+        (band, bandAt) => {
+          const b = readRecord(band, bandAt, ['to', 'color']);
+          return Object.freeze({
+            to: readNumber(b.to, `${bandAt}/to`, { min: bottom, max: top, exclusiveMin: true }),
+            color: b.color === null ? null : readRgb555(b.color, `${bandAt}/color`),
+          });
+        },
+        { min: 1, max: COURSE_DOCUMENT_LIMITS.wallBands },
+      );
+      bands.forEach((band, i) => {
+        if (i > 0 && !(band.to > bands[i - 1]!.to))
+          throw new CourseInputError('invalid_value', `${at}/bands/${i}/to`, 'Wall bands must rise strictly');
+      });
+      if (bands.at(-1)!.to !== top)
+        throw new CourseInputError(
+          'invalid_value',
+          `${at}/bands/${bands.length - 1}/to`,
+          'The last band must end at top',
+        );
+      return Object.freeze({
+        length: readNumber(entry.length, `${at}/length`, {
+          min: 0,
+          max: COURSE_DOCUMENT_LIMITS.lengthMeters,
+          exclusiveMin: true,
+        }),
+        bands,
+      });
+    },
+    { max: COURSE_DOCUMENT_LIMITS.wallPatterns },
+  );
+  const invisible = top === 0 && bottom === 0;
+  if (invisible && pattern.length)
+    throw new CourseInputError(
+      'invalid_value',
+      `${path}/pattern`,
+      'An invisible wall (top and bottom 0) has no pattern',
+    );
+  if (invisible && !solid)
+    throw new CourseInputError('invalid_value', `${path}/solid`, 'An invisible wall must be solid');
+  if (!invisible && !pattern.length)
+    throw new CourseInputError('invalid_value', `${path}/pattern`, 'A visible wall needs a pattern');
+  return Object.freeze({
+    boundary: readString(v.boundary, `${path}/boundary`, ID),
+    from: position(v.from, `${path}/from`),
+    to: position(v.to, `${path}/to`),
+    solid,
+    thickness: readNumber(v.thickness, `${path}/thickness`, {
+      min: 0,
+      max: COURSE_DOCUMENT_LIMITS.lateralMeters,
+      exclusiveMin: true,
+    }),
+    top,
+    bottom,
+    pattern,
+  });
+}
+
 function environments(value: unknown, path: string): SectionDocument['environments'] {
   return readArray(
     value,
@@ -394,6 +490,7 @@ function section(value: unknown, path: string): SectionDocument {
     'pis',
     'boundaries',
     'strips',
+    'walls',
     'sprites',
     'height',
     'carriageways',
@@ -409,6 +506,7 @@ function section(value: unknown, path: string): SectionDocument {
     strips: readArray(v.strips, `${path}/strips`, (item, at) => stripElement(item, at), {
       max: COURSE_DOCUMENT_LIMITS.stripElements,
     }),
+    walls: readArray(v.walls, `${path}/walls`, wall, { max: COURSE_DOCUMENT_LIMITS.walls }),
     sprites: readArray(
       v.sprites,
       `${path}/sprites`,

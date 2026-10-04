@@ -274,8 +274,12 @@ A vehicle's contact shape is its footprint, the overall length by overall width,
 does not turn with the vehicle's yaw. Vehicles at different heights do not contact: a vehicle in the air passes over one below it. Two vehicles whose shapes overlap push each other apart along the
 shallower overlap, ahead-behind or side to side, with equal and opposite forces that act through the ordinary
 vehicle mechanics. Contact never turns a vehicle, never topples a motorcycle, never ends a run by itself and
-causes no damage. Rivals and traffic do not hit other vehicles on purpose. Movable and fixed roadside objects,
-barriers and track limits are not yet part of the game.
+causes no damage. Rivals and traffic do not hit other vehicles on purpose. Walls — guardrails, walls and cliff faces — run along the road. To vehicles a solid wall is a line of unlimited
+height: a vehicle touching it is pushed back across the road, never along it, and scraping along it slows the
+vehicle. A wall may be invisible, and a wall may be for looks only. The edge of the course's ground is an
+invisible solid wall, so a vehicle cannot leave the course sideways, except where a wall for looks only marks an
+open edge: there a vehicle can drive off, falls, and returns to the road. Movable and fixed roadside objects are
+not yet part of the game.
 
 ## 13. Music and sound effects
 

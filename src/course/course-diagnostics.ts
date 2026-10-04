@@ -15,6 +15,7 @@ type CourseDiagnosticCode =
   | 'plan_coordinate_inversion'
   | 'invalid_carriageway'
   | 'invalid_height'
+  | 'invalid_wall'
   | 'invalid_link'
   | 'seam_edge_mismatch'
   | 'seam_height_mismatch'

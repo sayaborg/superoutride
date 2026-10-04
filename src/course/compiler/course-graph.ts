@@ -7,6 +7,7 @@ import type { CourseAppearance } from '../course-appearance.js';
 import type { CompiledCoursePosition, CompiledPlanSegment } from '../course-geometry.js';
 import type { CompiledBoundary, CompiledCarriageway } from '../course-boundaries.js';
 import type { StripMaterial } from '../strip-material.js';
+import type { CourseBarrierLine } from '../course-barriers.js';
 
 /** Canonical reusable node, including back-references. Topology may intentionally cycle. */
 export interface CompiledSection {
@@ -18,6 +19,8 @@ export interface CompiledSection {
   readonly height: ProfileReader;
   readonly renderHeight: ProfilePolylineReader;
   readonly material: StripMaterial;
+  /** The lines vehicles cannot cross: solid walls and the course limits. */
+  readonly barriers: readonly CourseBarrierLine[];
   readonly carriageways: readonly CompiledCarriageway[];
   readonly assets: readonly CompiledCourseImageSource[];
   readonly appearance: CourseAppearance | null;

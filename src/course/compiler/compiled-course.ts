@@ -32,6 +32,7 @@ import {
 } from './course-image-source.js';
 import { COURSE_APPEARANCE_RECIPE, compileCourseAppearance, createCourseSpriteResources } from './course-appearance.js';
 import { compileCourseBoundaries } from './course-lateral.js';
+import { compileCourseBarriers, compileCourseWalls } from './course-walls.js';
 import { compileCourseGates } from './course-rules.js';
 import { compileCourseFork } from './course-fork.js';
 import { enumerateCourseRoutes } from './course-routes.js';
@@ -68,7 +69,7 @@ export interface CompiledCourse {
 
 const COURSE_COMPILER = Object.freeze({
   id: 'superoutride.course-compiler',
-  version: 38,
+  version: 39,
   links: COURSE_LINK_RECIPE,
   physical: COURSE_PHYSICAL_RECIPE,
   images: COURSE_IMAGE_SOURCE_RECIPE,
@@ -129,6 +130,8 @@ function compileSection(
   const strips = compileCourseStrips(section.strips, length, `${path}/strips`, resolve, boundaryTable, materials);
   validateMaterialContinuity(strips.material, `${path}/strips`);
   validateCourseCarriageways(carriageways, strips.material, length, `${path}/carriageways`);
+  const walls = compileCourseWalls(section.walls, boundaryTable, resolve, `${path}/walls`);
+  const barriers = compileCourseBarriers(walls, strips.material, length, `${path}/strips`);
   const physical = compileCoursePhysicalContent(section, length, resolve, path);
   const lateralDomain = compileMaterialCoordinateDomain(section.id, segments, strips.material, path);
   const result: SectionDraft = {
@@ -138,6 +141,7 @@ function compileSection(
     boundaries: Object.freeze(boundaries),
     ...physical,
     ...strips,
+    barriers,
     carriageways: Object.freeze(carriageways),
     assets: Object.freeze([]),
     appearance: null,

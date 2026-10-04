@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 31,
+  "version": 32,
   "name": "RIBBON COAST",
   "entrySectionId": "coast-wide",
   "rules": { "maxLaps": 1 },
@@ -253,6 +253,7 @@
           "color": 32765
         }
       ],
+      "walls": [],
       "height": [
         { "at": { "pi": "start", "offset": 0 }, "y": 0, "curveLength": 0 },
         { "at": { "pi": "start", "offset": 450 }, "y": 0, "curveLength": 80 },
@@ -385,7 +386,39 @@
           "id": "outer-right",
           "knots": [
             { "at": { "pi": "start", "offset": 0 }, "lateral": 22 },
+            { "at": { "pi": "start", "offset": 1353.028484 }, "lateral": 22 },
+            { "at": { "pi": "start", "offset": 1383.028484 }, "lateral": { "boundary": "verge-right", "offset": 0 } },
+            { "at": { "pi": "start", "offset": 1583.028484 }, "lateral": { "boundary": "verge-right", "offset": 0 } },
+            { "at": { "pi": "start", "offset": 1613.028484 }, "lateral": 22 },
             { "at": { "pi": "end", "offset": 0 }, "lateral": 22 }
+          ]
+        },
+        {
+          "id": "rail-lead-in",
+          "knots": [
+            { "at": { "pi": "start", "offset": 382.173048 }, "lateral": 22 },
+            { "at": { "pi": "start", "offset": 432.173048 }, "lateral": { "boundary": "verge-right", "offset": 0 } }
+          ]
+        },
+        {
+          "id": "rail-lead-out",
+          "knots": [
+            { "at": { "pi": "start", "offset": 732.173048 }, "lateral": { "boundary": "verge-right", "offset": 0 } },
+            { "at": { "pi": "start", "offset": 782.173048 }, "lateral": 22 }
+          ]
+        },
+        {
+          "id": "cliff-lead-in",
+          "knots": [
+            { "at": { "pi": "start", "offset": 917.836754 }, "lateral": -22 },
+            { "at": { "pi": "start", "offset": 967.836754 }, "lateral": { "boundary": "verge-left", "offset": 0 } }
+          ]
+        },
+        {
+          "id": "cliff-lead-out",
+          "knots": [
+            { "at": { "pi": "start", "offset": 1167.836754 }, "lateral": { "boundary": "verge-left", "offset": 0 } },
+            { "at": { "pi": "start", "offset": 1217.836754 }, "lateral": -22 }
           ]
         }
       ],
@@ -530,6 +563,139 @@
               "knots": [
                 { "at": { "pi": "start", "offset": 220 }, "left": -0.075, "right": 0.075 },
                 { "at": { "pi": "start", "offset": 226 }, "left": -0.075, "right": 0.075 }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "color": "transparent",
+          "material": null,
+          "knots": [
+            {
+              "at": { "pi": "start", "offset": 1383.028484 },
+              "left": { "boundary": "verge-right", "offset": 0 },
+              "right": null
+            },
+            {
+              "at": { "pi": "start", "offset": 1583.028484 },
+              "left": { "boundary": "verge-right", "offset": 0 },
+              "right": null
+            }
+          ]
+        }
+      ],
+      "walls": [
+        {
+          "boundary": "rail-lead-in",
+          "from": { "pi": "start", "offset": 382.173048 },
+          "to": { "pi": "start", "offset": 432.173048 },
+          "solid": true,
+          "thickness": 0.3,
+          "top": 0,
+          "bottom": 0,
+          "pattern": []
+        },
+        {
+          "boundary": "verge-right",
+          "from": { "pi": "start", "offset": 432.173048 },
+          "to": { "pi": "start", "offset": 732.173048 },
+          "solid": true,
+          "thickness": 0.3,
+          "top": 0.8,
+          "bottom": 0,
+          "pattern": [
+            { "length": 0.2, "bands": [{ "to": 0.8, "color": 19027 }] },
+            {
+              "length": 1.8,
+              "bands": [
+                { "to": 0.45, "color": null },
+                { "to": 0.75, "color": 28540 },
+                { "to": 0.8, "color": null }
+              ]
+            }
+          ]
+        },
+        {
+          "boundary": "rail-lead-out",
+          "from": { "pi": "start", "offset": 732.173048 },
+          "to": { "pi": "start", "offset": 782.173048 },
+          "solid": true,
+          "thickness": 0.3,
+          "top": 0,
+          "bottom": 0,
+          "pattern": []
+        },
+        {
+          "boundary": "cliff-lead-in",
+          "from": { "pi": "start", "offset": 917.836754 },
+          "to": { "pi": "start", "offset": 967.836754 },
+          "solid": true,
+          "thickness": 1,
+          "top": 0,
+          "bottom": 0,
+          "pattern": []
+        },
+        {
+          "boundary": "verge-left",
+          "from": { "pi": "start", "offset": 967.836754 },
+          "to": { "pi": "start", "offset": 1167.836754 },
+          "solid": true,
+          "thickness": 1,
+          "top": 20,
+          "bottom": 0,
+          "pattern": [
+            {
+              "length": 7,
+              "bands": [
+                { "to": 6, "color": 9479 },
+                { "to": 13, "color": 13673 },
+                { "to": 20, "color": 17900 }
+              ]
+            },
+            {
+              "length": 5,
+              "bands": [
+                { "to": 8, "color": 9479 },
+                { "to": 15, "color": 13673 },
+                { "to": 20, "color": 17900 }
+              ]
+            }
+          ]
+        },
+        {
+          "boundary": "cliff-lead-out",
+          "from": { "pi": "start", "offset": 1167.836754 },
+          "to": { "pi": "start", "offset": 1217.836754 },
+          "solid": true,
+          "thickness": 1,
+          "top": 0,
+          "bottom": 0,
+          "pattern": []
+        },
+        {
+          "boundary": "verge-right",
+          "from": { "pi": "start", "offset": 1383.028484 },
+          "to": { "pi": "start", "offset": 1583.028484 },
+          "solid": false,
+          "thickness": 1,
+          "top": 0,
+          "bottom": -40,
+          "pattern": [
+            {
+              "length": 9,
+              "bands": [
+                { "to": -26, "color": 9479 },
+                { "to": -10, "color": 13673 },
+                { "to": 0, "color": 17900 }
+              ]
+            },
+            {
+              "length": 6,
+              "bands": [
+                { "to": -22, "color": 9479 },
+                { "to": -6, "color": 13673 },
+                { "to": 0, "color": 17900 }
               ]
             }
           ]
@@ -760,6 +926,7 @@
           ]
         }
       ],
+      "walls": [],
       "height": [
         { "at": { "pi": "start", "offset": 0 }, "y": 0, "curveLength": 0 },
         { "at": { "pi": "start", "offset": 150 }, "y": 0, "curveLength": 6 },
@@ -1113,6 +1280,7 @@
           ]
         }
       ],
+      "walls": [],
       "height": [
         { "at": { "pi": "start", "offset": 0 }, "y": 0, "curveLength": 0 },
         { "at": { "pi": "end", "offset": 0 }, "y": 0, "curveLength": 0 }
@@ -1418,6 +1586,7 @@
           ]
         }
       ],
+      "walls": [],
       "height": [
         { "at": { "pi": "start", "offset": 0 }, "y": 0, "curveLength": 0 },
         { "at": { "pi": "start", "offset": 700 }, "y": 0, "curveLength": 80 },

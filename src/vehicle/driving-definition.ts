@@ -31,11 +31,15 @@ export interface DrivingDefinition {
     bandSeconds: number;
     responseSeconds: number;
   }>;
-  /** The game-wide body contact spring-damper between vehicles: natural frequency in hertz and damping ratio. */
-  readonly bodyContact: Readonly<{ frequencyHertz: number; dampingRatio: number }>;
+  /**
+   * The game-wide body contact spring-damper between vehicles, and against walls and course limits: natural frequency
+   * in hertz and damping ratio; `barrierFriction` scales a wall's push into the friction that slows a vehicle scraping
+   * along it.
+   */
+  readonly bodyContact: Readonly<{ frequencyHertz: number; dampingRatio: number; barrierFriction: number }>;
 }
 
 export interface DrivingDocument extends DrivingDefinition {
   readonly format: 'superoutride.driving-definition';
-  readonly version: 13;
+  readonly version: 14;
 }

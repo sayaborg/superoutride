@@ -171,7 +171,9 @@ The force law (`physics/body-contact.ts`) is a spring-damper on the reduced mass
 F = max(0, μ(ω²x + 2ζωv))     ω = 2π × bodyContact.frequencyHertz, ζ = bodyContact.dampingRatio
 ```
 
-`x` is the overlap along the axis and `v` the approach speed along it. It never pulls. On the reduced mass the
+`x` is the overlap along the axis and `v` the approach speed along it. It never pulls. Against a wall or course limit the
+same law uses the vehicle's own mass for `μ`, since the line does not move, and `bodyContact.barrierFriction` (0 or
+more) scales the push into friction along the road ([Content and gameplay](content-and-gameplay.md#barrier-lines)). On the reduced mass the
 relative motion is the oscillator `x'' = −ω²x − 2ζωx'`, so the frequency and damping ratio hold for every pair of
 vehicles, cars and motorcycles alike.
 
@@ -212,7 +214,8 @@ first three conditions in order; race composition and the player request the las
 | `manual`              | The player's request                                                                                                                       |
 
 The outside-domain step count resets when the center returns inside; the same condition covers lateral
-exits and either end of the resident window. The 44 steps let a short excursion return and an
+exits and either end of the resident window. Course limits keep vehicles inside the lateral domain except past an open
+edge ([Content and gameplay](content-and-gameplay.md#walls)), so lateral exits happen only there. The 44 steps let a short excursion return and an
 unsupported vehicle visibly fall (about 2.64 m from rest) before reconstruction. Outside the domain,
 recovery does not query a fictitious surface normal or penetration plane. Inside it, the surface is
 the heightfield at the center's route coordinate, material-free ground included.
@@ -523,7 +526,7 @@ vehicle physics reads and its overall dimensions.
 `content/vehicle-listings/<id>.json` stores its `superoutride.vehicle-listing` version 1 document:
 everything else players see or hear of it. A value belongs to the mechanics document when it describes
 the physical vehicle and to the listing otherwise; `form` and the metadata's `physicsAnchor` therefore
-belong to the listing. `content/driving/default.json` stores the sole `superoutride.driving-definition` version 13.
+belong to the listing. `content/driving/default.json` stores the sole `superoutride.driving-definition` version 14.
 A material, vehicle or driving document's only identifier is its file name without `.json`, which is
 also its manifest ID; the documents carry none. The content layer's `compileVehicleDefinitions` admits
 the catalog from the build's files or delivery's manifest entries alike: exactly one driving definition,

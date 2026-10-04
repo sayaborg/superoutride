@@ -278,7 +278,8 @@ At each s, the Section lateral domain runs from the material table's leftmost fi
 `MAXIMUM_VEHICLE_REACH` to its rightmost finite covered edge plus that bound. `MAXIMUM_VEHICLE_REACH` is the
 product's 4 m bound on vehicle reach, which vehicle admission enforces: while a vehicle's centre lies on covered
 material, every point of its footprint, at any yaw, has coordinates in the domain.
-The uncovered exterior does not contribute.
+The uncovered exterior does not contribute. The same outer covered edges, before the reach bound, are the course limits
+that keep vehicles on the course ([Content and gameplay](content-and-gameplay.md#walls)).
 The domain uses the material slab's half-open station ownership, including the Section terminal.
 It retains the outer span references and reads them by binary slab lookup, without scanning authored Strips.
 The map from `(s,l)` in the entire closed Section coordinate domain to world XZ is injective:
