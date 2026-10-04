@@ -11,7 +11,6 @@ import {
 import { SHA256_TEXT } from '../core/content-digest.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import type { CompiledSection } from '../course/compiler/course-graph.js';
-import { sessionVehicleSha256, type SessionVehicle } from './session-vehicle.js';
 
 export const PACE_SCHEDULE_FORMAT = Object.freeze({ format: 'superoutride.pace-schedule', version: 1 } as const);
 
@@ -47,14 +46,13 @@ export interface PaceSchedule {
 
 const MILLISECONDS = { min: 0, max: Number.MAX_SAFE_INTEGER, integer: true };
 
-/** Browser admission of the build-generated schedule for one course and Session vehicle. */
-export async function readPaceSchedule(
+/** Browser admission of the build-generated schedule for one course and the Session vehicle of `vehicleSha256`. */
+export function readPaceSchedule(
   course: CompiledCourse,
-  vehicle: SessionVehicle,
+  vehicleSha256: string,
   input: unknown,
   document = '',
-): Promise<AdmissionResult<PaceSchedule>> {
-  const vehicleSha256 = await sessionVehicleSha256(vehicle);
+): AdmissionResult<PaceSchedule> {
   const sections = new Map(course.sections.map((section) => [section.id, section]));
   return admit(document, () => {
     const data = readDocument(

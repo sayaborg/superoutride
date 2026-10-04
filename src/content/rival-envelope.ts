@@ -8,7 +8,6 @@ import {
   requireAdmission,
   type AdmissionResult,
 } from '../core/admission.js';
-import { sessionVehicleSha256, type SessionVehicle } from './session-vehicle.js';
 import { SHA256_TEXT } from '../core/content-digest.js';
 
 export interface RivalEnvelope {
@@ -24,13 +23,15 @@ export interface RivalEnvelope {
 
 export const RIVAL_ENVELOPE_FORMAT = Object.freeze({ format: 'superoutride.rival-envelope', version: 1 } as const);
 
-/** Admit the delivered rival envelope: only the measured rows needed by driving, for this Session vehicle. */
-export async function readRivalEnvelope(
-  vehicle: SessionVehicle,
+/**
+ * Admit the delivered rival envelope: only the measured rows needed by driving, for the Session vehicle whose reference
+ * identity is `vehicleSha256` (`sessionVehicleSha256`).
+ */
+export function readRivalEnvelope(
+  vehicleSha256: string,
   input: unknown,
   document = '',
-): Promise<AdmissionResult<RivalEnvelope>> {
-  const digest = await sessionVehicleSha256(vehicle);
+): AdmissionResult<RivalEnvelope> {
   return admit(document, () => {
     const data = readDocument(
       input,
@@ -39,7 +40,7 @@ export async function readRivalEnvelope(
       RIVAL_ENVELOPE_FORMAT.version,
     );
     requireAdmission(
-      readString(data.vehicleSha256, '/vehicleSha256', SHA256_TEXT) === digest,
+      readString(data.vehicleSha256, '/vehicleSha256', SHA256_TEXT) === vehicleSha256,
       'invalid_value',
       '/vehicleSha256',
       'Stale envelope vehicle/calibration/assist identity',

@@ -7,7 +7,6 @@ import {
   requireAdmission,
   type AdmissionResult,
 } from '../core/admission.js';
-import { sessionVehicleSha256, type SessionVehicle } from './session-vehicle.js';
 import { SHA256_TEXT } from '../core/content-digest.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import type { CompiledCourseLandmark } from '../course/compiler/course-rules.js';
@@ -35,13 +34,12 @@ export const COURSE_TIME_BUDGETS_FORMAT = Object.freeze({
 const MILLISECONDS = { min: 1, max: Number.MAX_SAFE_INTEGER, integer: true };
 
 /** Browser admission consumes only small build-generated budgets, never simulation traces. */
-export async function readCourseTimeBudgets(
+export function readCourseTimeBudgets(
   course: CompiledCourse,
-  vehicle: SessionVehicle,
+  vehicleSha256: string,
   input: unknown,
   document = '',
-): Promise<AdmissionResult<CourseTimeBudgets>> {
-  const vehicleSha256 = await sessionVehicleSha256(vehicle);
+): AdmissionResult<CourseTimeBudgets> {
   return admit(document, () => {
     const data = readDocument(
       input,

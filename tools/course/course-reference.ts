@@ -1,4 +1,3 @@
-import { sessionVehicleSha256, type SessionVehicle } from '../../src/content/session-vehicle.js';
 import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import type { CompiledCourseLandmark } from '../../src/course/compiler/course-rules.js';
 import { REFERENCE_DRIVER_SHA256 } from './reference-driving-policy.js';
@@ -21,14 +20,16 @@ function expectedRaceLines(course: CompiledCourse, links: readonly CompiledCours
 
 /**
  * Untrusted saved numeric results are resolved to the current canonical landmarks once, before play; each budget is
- * the reference interval multiplied by the series' `timeMargin`.
+ * the reference interval multiplied by the series' `timeMargin`. The runs are the vehicle `vehicleId`'s, whose Session
+ * vehicle has the reference identity `vehicleSha256`.
  */
-export async function readCourseReference(
+export function readCourseReference(
   course: CompiledCourse,
-  vehicle: SessionVehicle,
+  vehicleId: string,
+  vehicleSha256: string,
   input: unknown,
   timeMargin: number,
-): Promise<CourseTimeBudgets> {
+): CourseTimeBudgets {
   if (!course.rules) throw new RangeError('Reference requires authored rules');
   const fail = (condition: unknown, message: string) => {
     if (!condition) throw new RangeError('Course reference: ' + message);
@@ -53,10 +54,9 @@ export async function readCourseReference(
   fail(source.driverSha256 === REFERENCE_DRIVER_SHA256, 'stale driver identity');
   const candidates = array(source.vehicles)
     .map(record)
-    .filter((r) => r.vehicleId === vehicle.vehicleDefinition.compiledVehicle.id);
+    .filter((r) => r.vehicleId === vehicleId);
   fail(candidates.length === 1, 'missing or duplicate vehicle');
   const candidate = candidates[0]!;
-  const vehicleSha256 = await sessionVehicleSha256(vehicle);
   fail(candidate.vehicleSha256 === vehicleSha256, 'stale vehicle/calibration/assist identity');
   const budgets = new Map<CompiledCourseLandmark, Map<number, number>>();
   let initial = 0;

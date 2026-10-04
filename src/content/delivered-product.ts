@@ -7,7 +7,7 @@ export async function admitProduct<T>(
   content: ContentDelivery,
   kind: 'course-index' | 'envelope' | 'budget' | 'schedule',
   id: string,
-  read: (value: unknown, document: string) => Promise<AdmissionResult<T>>,
+  read: (value: unknown, document: string) => AdmissionResult<T> | Promise<AdmissionResult<T>>,
 ): Promise<T> {
   const value = await content.json(kind, id);
   const document = content.manifest.files.find((file) => file.kind === kind && file.id === id)!.path;

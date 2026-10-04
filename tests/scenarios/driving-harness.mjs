@@ -9,7 +9,7 @@ import { createCourseRace } from '../../src/race/course-race.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
 import { compileSessionConfiguration } from '../../src/race/session-configuration.js';
 import { formPool, rivalPoolPairs } from '../../src/race/free-play-field.js';
-import { createSessionVehicle } from '../../src/content/session-vehicle.js';
+import { createSessionVehicle, sessionVehicleSha256 } from '../../src/content/session-vehicle.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import {
@@ -43,7 +43,8 @@ const definitions = await loadVehicleDefinitions(content, await loadEngineSounds
 
 const idle = { steering: 0, throttle: false, brake: false };
 const entry = definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA');
-const configuration = createSessionVehicle(entry, definitions.driving, materials);
+const configuration = createSessionVehicle(entry, definitions.driving);
+const configurationSha256 = await sessionVehicleSha256(configuration, materials);
 const { envelope } = await content.json('envelope', 'TESTAROSSA');
 const driver = compileEnvelopeDriver(envelope, 0.75, envelope.maximumSpeed, true);
 // FREE PLAY rivals come from the player's form pool, as in the browser; every other vehicle (traffic included) drives
@@ -54,7 +55,6 @@ for (const id of definitions.vehicles.map((v) => v.compiledVehicle.id)) {
   const vehicle = createSessionVehicle(
     definitions.vehicles.find((v) => v.compiledVehicle.id === id),
     definitions.driving,
-    materials,
   );
   fieldVehicles.set(id, { vehicle, envelope: (await content.json('envelope', id)).envelope });
 }
@@ -86,7 +86,7 @@ export async function loadScenarioCourse(stem) {
   const arcade = settings && requireLoaded(admitSeriesCourse(settings, course, SCENARIO_SERIES_PATH.pathname));
   const productSettings = productSeries.courseSettings(stem);
   const product = async (kind, read) =>
-    requireLoaded(await read(course, configuration, await content.json(kind, `${stem}/TESTAROSSA`), kind));
+    requireLoaded(read(course, configurationSha256, await content.json(kind, `${stem}/TESTAROSSA`), kind));
   return {
     course,
     arcade,

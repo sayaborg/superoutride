@@ -651,7 +651,8 @@ steps of it: `advance(input)` takes no step length, and the start phase, the che
 recovery timing and event times all use `SIM_DT`. The model carries its fixed step, received when
 it is built; vehicle mechanics never import race, so every composition passes `SIM_DT` when it builds a model. The composition shared by
 browser, race, tools and scenarios lives below shell: content owns the Session vehicle (vehicle and
-driving definitions only: `SessionVehicle`, `createSessionVehicle` and its identity `sessionVehicleSha256`) and the
+driving definitions only: `SessionVehicle`, `createSessionVehicle` and its identity on a material catalog,
+`sessionVehicleSha256`) and the
 generated product formats with their admission (`rival-envelope.ts`, `course-time-budgets.ts`, and `admitProduct`,
 which admits a delivered product with its delivered path as the diagnostic document), shared by the build's
 producers and the race and browser that admit them; race owns the fixed simulation step (`SIM_DT`) and the course

@@ -13,11 +13,9 @@ import { compileSessionConfiguration } from '../../src/race/session-configuratio
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { createSessionVehicle } from '../../src/content/session-vehicle.js';
-import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 
 const definitionContent = await readDeliveredContent();
 const definitions = await loadVehicleDefinitions(definitionContent, await loadEngineSounds(definitionContent));
-const materials = await loadSurfaceMaterials(await readDeliveredContent());
 
 const load = async (stem) =>
   (await loadCourse(new URL(`../../content/courses/${stem}.course.json`, import.meta.url).pathname)).course;
@@ -60,7 +58,6 @@ test('Session rejects short terminal runout, including solo play; forks and loop
   const vehicle = createSessionVehicle(
     definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA'),
     definitions.driving,
-    materials,
   );
   const { envelope } = await (await readDeliveredContent()).json('envelope', 'TESTAROSSA');
   const request = {

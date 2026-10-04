@@ -48,7 +48,7 @@ try {
           ? ['--images', '--section', '--out', '--step']
           : ['--images', '--section', '--s', '--l', '--vehicle', '--out', '--start', '--end', '--step', '--exit'];
     const opts = options(args, flags),
-      { course, materials } = await loadCourse(file, opts.get('--images'));
+      { course } = await loadCourse(file, opts.get('--images'));
     const result: {
       ok: boolean;
       course: string;
@@ -118,7 +118,7 @@ try {
       const frames: RenderFrame[] = [];
       for (const [i, s] of stations.entries()) {
         const vehicle = createVehicle(
-          createVehicleModel(createSessionVehicle(entry, definitions.driving, materials), SIM_DT),
+          createVehicleModel(createSessionVehicle(entry, definitions.driving), SIM_DT),
           scene.world,
           {
             s,

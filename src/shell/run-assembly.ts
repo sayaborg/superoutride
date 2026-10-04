@@ -16,8 +16,8 @@ import { writeHud, type HudFacts } from './run-hud.js';
 import { fuelCutRpm } from '../vehicle/physics/automatic-powertrain.js';
 import type { TextLayer } from '../view/text-layer.js';
 import type { createCoursePerformanceHud } from './course-performance-hud.js';
-import { resolveCourseSession, type EntryVehicle } from '../race/course-session.js';
-import { formPool, rivalPoolPairs } from '../race/free-play-field.js';
+import { resolveCourseSession, sessionDemand, type EntryVehicle } from '../race/course-session.js';
+import { formPool } from '../race/free-play-field.js';
 import { readCourseTimeBudgets, type CourseTimeBudgets } from '../content/course-time-budgets.js';
 import { readPaceSchedule } from '../content/pace-schedule.js';
 import { loadSeriesCourse, type loadSeriesCatalog } from '../content/series-catalog.js';
@@ -84,56 +84,37 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
   // The request's one admission: its Session rules on this course.
   const settings = compileSessionConfiguration(request, course, arcade, vehicles);
   const entry = vehicles.find((v) => v.compiledVehicle.id === settings.vehicleId)!;
-  const vehicle = createSessionVehicle(entry, driving, materials);
-  const vehicleId = vehicle.vehicleDefinition.compiledVehicle.id;
-  const rivalEnvelope = await admitProduct(content, 'envelope', vehicleId, (value, document) =>
-    readRivalEnvelope(vehicle, value, document),
-  );
-  // Every other vehicle in the field (series entries, or the FREE PLAY rival pool) drives its own Session vehicle
-  // and envelope.
-  const rivalPoolOf = (configuration: SessionConfiguration) =>
-    configuration.rivalPool === null ? [] : rivalPoolPairs(vehicles, configuration.rivalPool);
-  const rivalPool = rivalPoolOf(settings);
-  const fieldVehicles = new Map<string, EntryVehicle>([[vehicleId, { vehicle, envelope: rivalEnvelope }]]);
-  // The field's vehicles and the traffic candidates each load their Session vehicle and envelope once.
-  const fieldIds = [
-    ...(settings.mode === 'ARCADE'
-      ? arcade!.entries.map((e) => e.vehicle)
-      : settings.rivalCount > 0
-        ? rivalPool.map((pair) => pair.vehicle)
-        : []),
-    ...(settings.traffic?.vehicles ?? []),
-  ];
-  for (const id of new Set(fieldIds)) {
-    if (fieldVehicles.has(id)) continue;
-    const other = createSessionVehicle(
+  // The Session decides what it needs; the run loads each once: every Session vehicle with its reference identity on
+  // the course's materials and its envelope, the clock's budgets and ARCADE's pace schedule.
+  const demand = sessionDemand(settings, arcade, vehicles);
+  const loadEntryVehicle = async (id: string): Promise<EntryVehicle & { readonly sha256: string }> => {
+    const sessionVehicle = createSessionVehicle(
       vehicles.find((v) => v.compiledVehicle.id === id)!,
       driving,
-      materials,
     );
-    fieldVehicles.set(id, {
-      vehicle: other,
-      envelope: await admitProduct(content, 'envelope', id, (value, document) =>
-        readRivalEnvelope(other, value, document),
-      ),
-    });
-  }
+    const sha256 = await sessionVehicleSha256(sessionVehicle, materials);
+    const envelope = await admitProduct(content, 'envelope', id, (value, document) =>
+      readRivalEnvelope(sha256, value, document),
+    );
+    return { vehicle: sessionVehicle, envelope, sha256 };
+  };
+  const player = await loadEntryVehicle(settings.vehicleId);
+  const { vehicle, envelope: rivalEnvelope, sha256: vehicleSha256 } = player;
+  const vehicleId = settings.vehicleId;
+  const fieldVehicles = new Map<string, EntryVehicle>([[vehicleId, player]]);
+  for (const id of demand.vehicleIds) if (!fieldVehicles.has(id)) fieldVehicles.set(id, await loadEntryVehicle(id));
   const vehicleOf = (id: string) => fieldVehicles.get(id)!;
-  const vehicleSha256 = await sessionVehicleSha256(vehicle);
-  // A timed course's budgets must be delivered; a missing file stops loading rather than dropping the clock.
-  const budgets =
-    settings.timeLimit && arcade
-      ? await admitProduct(content, 'budget', `${courseId}/${vehicleId}`, (value, document) =>
-          readCourseTimeBudgets(course, vehicle, value, document),
-        )
-      : null;
-  // ARCADE admits the player vehicle's pace schedule once.
-  const paceSchedule =
-    settings.mode === 'ARCADE'
-      ? await admitProduct(content, 'schedule', `${courseId}/${vehicleId}`, (value, document) =>
-          readPaceSchedule(course, vehicle, value, document),
-        )
-      : undefined;
+  // A timed Session's budgets must be delivered; a missing file stops loading rather than dropping the clock.
+  const budgets = demand.budgets
+    ? await admitProduct(content, 'budget', `${courseId}/${vehicleId}`, (value, document) =>
+        readCourseTimeBudgets(course, vehicleSha256, value, document),
+      )
+    : null;
+  const paceSchedule = demand.paceSchedule
+    ? await admitProduct(content, 'schedule', `${courseId}/${vehicleId}`, (value, document) =>
+        readPaceSchedule(course, vehicleSha256, value, document),
+      )
+    : undefined;
   /**
    * The one assembly of a Session, its scene (with a new Route runtime) and its race. The run's start and every
    * DEV tuning rebuild pass through it; the page's devices persist.
@@ -157,7 +138,7 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
       sessionBudgets,
       {
         vehicleOf,
-        rivalPool: rivalPoolOf(configuration),
+        rivalPool: sessionDemand(configuration, arcade, vehicles).rivalPool,
         paceSchedule,
       },
     );
@@ -186,7 +167,7 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
         // product Session and the delivered definition.
         rebuildSession: (driving) => {
           active = build(
-            createSessionVehicle(entry, driving, materials),
+            createSessionVehicle(entry, driving),
             compileSessionConfiguration(
               {
                 mode: 'FREE_PLAY',

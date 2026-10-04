@@ -30,7 +30,7 @@ for (const { id: stem } of content.manifest.files.filter((file) => file.kind ===
     const scene = createCourseScene(course.entry, course.gates, definitions.vehicles, settings);
     const entry = definitions.vehicles[0];
     const sprites = createVehicleSprites(entry);
-    const model = createVehicleModel(createSessionVehicle(entry, definitions.driving, materials), SIM_DT);
+    const model = createVehicleModel(createSessionVehicle(entry, definitions.driving), SIM_DT);
     // The player's grid slot, as a product Session places it.
     const slot = course.gates.grid.at(-1);
     const vehicle = createVehicle(model, scene.world, { s: slot.at.s, l: slot.l, initialSpeed: 0 });

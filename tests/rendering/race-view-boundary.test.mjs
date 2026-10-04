@@ -8,7 +8,7 @@ import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
 import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
-import { createSessionVehicle } from '../../src/content/session-vehicle.js';
+import { createSessionVehicle, sessionVehicleSha256 } from '../../src/content/session-vehicle.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
@@ -30,9 +30,8 @@ async function setup() {
   const compiledVehicle = createSessionVehicle(
     definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA'),
     definitions.driving,
-    materials,
   );
-  return { course, assets, scene, compiledVehicle };
+  return { course, materials, assets, scene, compiledVehicle };
 }
 
 test('shared route keeps vehicle and camera coordinates across forward and reverse seams', async () => {
@@ -61,9 +60,9 @@ test('shared route keeps vehicle and camera coordinates across forward and rever
 });
 
 test('the view assembles fifteen rival sprites from race observations', async () => {
-  const { course, scene, compiledVehicle } = await setup();
-  const admitted = await readRivalEnvelope(
-    compiledVehicle,
+  const { course, materials, scene, compiledVehicle } = await setup();
+  const admitted = readRivalEnvelope(
+    await sessionVehicleSha256(compiledVehicle, materials),
     await (await readDeliveredContent()).json('envelope', 'TESTAROSSA'),
   );
   assert.ok(admitted.ok);

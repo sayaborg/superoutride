@@ -26,8 +26,8 @@ const content = await readDeliveredContent();
 const materials = await loadSurfaceMaterials(content);
 const definitions = await loadVehicleDefinitions(content, await loadEngineSounds(content));
 const entry = definitions.vehicles.find((v) => v.compiledVehicle.id === vehicleId)!;
-const vehicle = createSessionVehicle(entry, definitions.driving, materials),
-  vehicleSha256 = await sessionVehicleSha256(vehicle);
+const vehicle = createSessionVehicle(entry, definitions.driving),
+  vehicleSha256 = await sessionVehicleSha256(vehicle, materials);
 let hits = 0,
   misses = 0;
 const envelope = await cachedReference(
@@ -43,7 +43,7 @@ const rivalEnvelope = {
   vehicleSha256,
   envelope: { maximumSpeed: envelope.value.maximumSpeed, rows: envelope.value.rows },
 };
-requireLoaded(await readRivalEnvelope(vehicle, rivalEnvelope, `envelope ${vehicleId}`));
+requireLoaded(readRivalEnvelope(vehicleSha256, rivalEnvelope, `envelope ${vehicleId}`));
 const products: CourseReferenceResult['products'] = [{ kind: 'envelope', id: vehicleId, value: rivalEnvelope }],
   references: CourseReferenceResult['references'] = [];
 for (const { stem, timeMargin } of courses) {
@@ -65,7 +65,7 @@ for (const { stem, timeMargin } of courses) {
     driverSha256: REFERENCE_DRIVER_SHA256,
     vehicles: [candidate],
   };
-  const budgets = await readCourseReference(course, vehicle, reference, timeMargin);
+  const budgets = readCourseReference(course, vehicleId, vehicleSha256, reference, timeMargin);
   const product = {
     ...COURSE_TIME_BUDGETS_FORMAT,
     courseBuildSha256: course.identity.buildSha256,
@@ -76,10 +76,10 @@ for (const { stem, timeMargin } of courses) {
       Array.from({ length: laps }, (_, index) => budgets.after(gate, index + 1)),
     ]),
   };
-  requireLoaded(await readCourseTimeBudgets(course, vehicle, product, `budget ${stem}/${vehicleId}`));
+  requireLoaded(readCourseTimeBudgets(course, vehicleSha256, product, `budget ${stem}/${vehicleId}`));
   products.push({ kind: 'budget', id: `${stem}/${vehicleId}`, value: product });
   const schedule = paceScheduleProduct(course.entry.id, course.identity.buildSha256, vehicleSha256, cached.value);
-  requireLoaded(await readPaceSchedule(course, vehicle, schedule, `schedule ${stem}/${vehicleId}`));
+  requireLoaded(readPaceSchedule(course, vehicleSha256, schedule, `schedule ${stem}/${vehicleId}`));
   products.push({ kind: 'schedule', id: `${stem}/${vehicleId}`, value: schedule });
   references.push({ stem, candidate });
 }

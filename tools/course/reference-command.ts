@@ -2,7 +2,6 @@ import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { readDeliveredContent } from './read-content.js';
 import { createSessionVehicle } from '../../src/content/session-vehicle.js';
-import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 import { REFERENCE_DRIVER_SHA256 } from './reference-driving-policy.js';
 import { measureRivalEnvelope } from './rival-envelope-measurement.js';
 import { runCourseReference } from './reference-run.js';
@@ -19,13 +18,9 @@ export async function referenceCommand(verb: string, file: string | null, args: 
   requireInput(opts.has('--vehicle'), '/vehicle', 'Reference commands require --vehicle');
   const entry = definitions.vehicles.find((e) => e.compiledVehicle.id === opts.get('--vehicle'));
   requireInput(entry, '/vehicle', 'Unknown catalog vehicle');
-  // One material catalog serves the vehicle and the course: the course's own, or the delivered one for an envelope.
+  // A reference run drives the course document with its own materials; an envelope needs no course.
   const loaded = verb === 'envelope' ? null : await loadCourse(file!, opts.get('--images'));
-  const vehicle = createSessionVehicle(
-    entry,
-    definitions.driving,
-    loaded ? loaded.materials : await loadSurfaceMaterials(content),
-  );
+  const vehicle = createSessionVehicle(entry, definitions.driving);
   const modelSha256 = await referenceModelIdentity(),
     envelope = measureRivalEnvelope(vehicle);
   let result;

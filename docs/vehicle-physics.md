@@ -37,9 +37,9 @@ nothing copies a model value into state. Updates take no step argument; they int
 model's step and substep. Both stations' wheel solves and the steering limiter read the model's one tire. DEV tuning edits the driving definition and rebuilds the player's model from it;
 the next step uses the replacement.
 
-`SessionVehicle` holds the admitted vehicle, driving and surface-material definitions;
-`createVehicleModel` derives nothing from the vehicle's listing, and `vehicleSha256` derives from the
-delivered SHA-256 of the mechanics, driving and material documents.
+`SessionVehicle` holds the admitted vehicle and driving definitions; `createVehicleModel` derives nothing from the
+vehicle's listing. Its reference identity `vehicleSha256` (`sessionVehicleSha256`, with the surface material catalog it
+drives on) derives from the delivered SHA-256 of the mechanics, driving and material documents.
 [Content and gameplay](content-and-gameplay.md#reference-times-and-clock) owns this cross-product identity.
 
 The engine owns tire and steering low-speed regularization (both 1.0 m/s): the tire law

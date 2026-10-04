@@ -6,7 +6,8 @@ import type { SessionVehicle } from '../content/session-vehicle.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import type { AheadAppearance, SeriesCourse, StageInterval } from '../content/series-catalog.js';
 import type { SessionConfiguration } from './session-configuration.js';
-import { drawRivalPairs, type VehicleColor } from './free-play-field.js';
+import { drawRivalPairs, rivalPoolPairs, type VehicleColor } from './free-play-field.js';
+import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import { spriteSetColors } from '../vehicle/vehicle-sprite-set.js';
 import { KILOMETERS_PER_HOUR_PER_METER_PER_SECOND } from '../vehicle/physics/vehicle-definitions.js';
 
@@ -48,6 +49,34 @@ export interface TrafficCandidate extends EntryVehicle {
 export interface ResolvedTraffic {
   readonly spacing: number;
   readonly candidates: readonly TrafficCandidate[];
+}
+
+/**
+ * What a Session of `configuration` needs besides the player's own vehicle and envelope, decided with its entries: the
+ * FREE PLAY rival pairs it draws from (`rivalPool`), every other vehicle that may drive in it — ARCADE's series
+ * entries, FREE PLAY's pool when it has rivals, and the traffic candidates — each with its Session vehicle and
+ * envelope (`vehicleIds`, unique, in first-use order), the time budgets of its clock and ARCADE's pace schedule.
+ */
+export function sessionDemand(
+  configuration: SessionConfiguration,
+  arcade: SeriesCourse | null,
+  vehicles: readonly CompiledVehicleDefinition[],
+) {
+  const rivalPool = configuration.rivalPool === null ? [] : rivalPoolPairs(vehicles, configuration.rivalPool);
+  const ids = [
+    ...(configuration.mode === 'ARCADE'
+      ? arcade!.entries.map((entry) => entry.vehicle)
+      : configuration.rivalCount > 0
+        ? rivalPool.map((pair) => pair.vehicle)
+        : []),
+    ...(configuration.traffic?.vehicles ?? []),
+  ];
+  return Object.freeze({
+    rivalPool,
+    vehicleIds: Object.freeze([...new Set(ids)]),
+    budgets: configuration.timeLimit,
+    paceSchedule: configuration.mode === 'ARCADE',
+  });
 }
 
 const rivalId = (index: number) => `RIVAL_${String(index + 1).padStart(2, '0')}`;
