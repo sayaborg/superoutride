@@ -1,9 +1,11 @@
 import { mix } from './rival-exit.js';
 import type { ResolvedTraffic, TrafficCandidate } from './course-session.js';
-import type { DriverIntent, TargetCarriageway } from './course-fork-field.js';
+import type { createCourseForkField } from './course-fork-field.js';
 import type { LaneIntent } from './lane-following.js';
-import { createEnvelopeDriverWorkspace, type EnvelopeDriver } from './envelope-driver.js';
-import { advanceVehicleWithRecovery, createRecoveryState, type RecoveryTarget } from './recovery.js';
+import type { createLaneDriving } from './lane-driving.js';
+import type { createVehiclePlacement } from './vehicle-placement.js';
+import { createEnvelopeDriverWorkspace } from './envelope-driver.js';
+import { advanceVehicleWithRecovery, createRecoveryState } from './recovery.js';
 import { createPresentVehicle, type PresentVehicle, type VehicleDriving } from './present-vehicle.js';
 import {
   createCompetitorObservation,
@@ -12,7 +14,6 @@ import {
 } from './competitor-observation.js';
 import { createVehicle } from '../vehicle/physics/vehicle-physics.js';
 import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
-import type { DrivingInput } from '../vehicle/driving-input.js';
 import type { VehicleWorld } from '../course/vehicle-world.js';
 import type { PlanCoordinateReader } from '../course/geometry/plan-coordinate.js';
 
@@ -62,8 +63,9 @@ export interface TrafficMotion extends PresentVehicle {
 
 /**
  * The Session's traffic: it appears at its positions as the appearance line, the farthest rendered station ahead of
- * the player, reaches them, at most `limit` at once, drives as rivals do and leaves once out of view. The race supplies
- * the Route, placement and driving it shares with competitors.
+ * the player, reaches them, at most `limit` at once, drives as rivals do and leaves once out of view. It shares the
+ * Route, the vehicle models, placement and the drivers' lane decisions with the competitors, and reads the player's
+ * view (`appearanceLine`, `outOfView`).
  */
 export function createTrafficField(options: {
   readonly traffic: ResolvedTraffic | null;
@@ -78,39 +80,28 @@ export function createTrafficField(options: {
       at(s: number): unknown;
     };
   };
-  readonly forks: {
-    targetL(s: number, intent: DriverIntent): number;
-    targetCarriageway(s: number, exit: DriverIntent['exit']): TargetCarriageway;
-    recoveryL(s: number, intent: DriverIntent | null): number;
-  };
+  readonly forks: ReturnType<typeof createCourseForkField>;
   readonly modelOf: (vehicle: TrafficCandidate['vehicle']) => VehicleModel;
-  readonly occupant: (model: VehicleModel, s: number, l: number) => { readonly s: number } | null;
-  readonly vacantPlace: (self: PresentVehicle, s: number, lane: (s: number) => number) => RecoveryTarget;
-  /** How fast a vehicle appears at (s, its intent's target) under its driver; null when it cannot appear there now. */
-  readonly appearanceSpeed: (
-    model: VehicleModel,
-    s: number,
-    intent: LaneIntent,
-    driver: EnvelopeDriver,
-  ) => number | null;
-  readonly appearanceLine: () => number;
-  readonly outOfView: (s: number) => boolean;
+  readonly placement: ReturnType<typeof createVehiclePlacement>;
+  readonly laneDriving: ReturnType<typeof createLaneDriving>;
+  readonly view: { readonly appearanceLine: () => number; readonly outOfView: (s: number) => boolean };
   readonly simulationSeconds: () => number;
 }) {
-  const { runtime, forks, modelOf, occupant, vacantPlace, appearanceSpeed, appearanceLine, outOfView, seed } = options;
+  const { runtime, forks, modelOf, placement, laneDriving, seed } = options;
+  const { appearanceLine, outOfView } = options.view;
   const vehicles: TrafficMotion[] = [];
   const positions = options.traffic && createTrafficPositions(options.traffic, seed, appearanceLine());
   return Object.freeze({
     /** The traffic present, in order of appearance. */
     vehicles: vehicles as readonly TrafficMotion[],
     /** One step of every traffic vehicle: its driver's input, ordinary mechanics with recovery, then the legal road. */
-    advance(drive: (motion: TrafficMotion) => DrivingInput, legalRecovery: (motion: TrafficMotion) => boolean) {
+    advance() {
       for (const motion of vehicles) {
-        motion.step.input = drive(motion);
+        motion.step.input = laneDriving.drive(motion);
         motion.previous.s = motion.vehicle.course.s;
         motion.previous.l = motion.vehicle.course.l;
         advanceVehicleWithRecovery(runtime.readers, motion.vehicle, motion.model, motion.step);
-        legalRecovery(motion);
+        placement.legalRecovery(motion);
       }
     },
     /** Traffic out of view leaves, then the positions the appearance line reached appear; true when either changed. */
@@ -138,8 +129,8 @@ export function createTrafficField(options: {
         intent.ordinal = appearing.occurrence.ordinal;
         const lane = (station: number) => forks.targetL(station, intent);
         const l = lane(s);
-        if (occupant(model, s, l)) return;
-        const speed = appearanceSpeed(model, s, intent, candidate.driver);
+        if (placement.occupied(model, s, l)) return;
+        const speed = placement.appearanceSpeed(model, s, intent, candidate.driver);
         if (speed === null) return;
         const vehicle = createVehicle(model, runtime.readers, { s, l, initialSpeed: speed });
         const id = `TRAFFIC_${String(position + 1).padStart(4, '0')}`;
@@ -155,7 +146,7 @@ export function createTrafficField(options: {
             id,
             { vehicle, model, recovery: createRecoveryState(vehicle) },
             driving,
-            (self, station) => vacantPlace(self, station, (at) => forks.recoveryL(at, intent)),
+            (self, station) => placement.vacantPlace(self, station, (at) => forks.recoveryL(at, intent)),
           ),
           {
             driving,
