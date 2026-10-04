@@ -1,11 +1,15 @@
 import { HUD_TILES, TEXT_PALETTES } from '../image/text-tiles.js';
-import type { createCourseRace } from '../race/course-race.js';
+import type { RaceFacts } from '../race/course-race.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import { TEXT_COLUMNS, type TextLayer } from '../view/text-layer.js';
-import { formatMilliseconds, formatRaceTime, formatTimeDifference, raceMilliseconds } from './race-status-hud.js';
-
-type CourseRace = ReturnType<typeof createCourseRace>;
+import {
+  formatMilliseconds,
+  formatRaceTime,
+  formatTimeDifference,
+  raceMilliseconds,
+  shownStanding,
+} from './race-status-hud.js';
 
 /**
  * What the HUD reads in one frame: the race's facts, the player's observation, the player's final input sample, the
@@ -13,7 +17,7 @@ type CourseRace = ReturnType<typeof createCourseRace>;
  * against.
  */
 export interface HudFacts {
-  readonly race: CourseRace;
+  readonly race: RaceFacts;
   readonly player: CompetitorObservation;
   readonly input: DrivingInput;
   readonly session: {
@@ -144,14 +148,14 @@ const writeBar = (
 };
 const inputMark = (fraction: number) => ({ pixel: barPixel(fraction), palette: TEXT_PALETTES.YELLOW });
 
-const extended = ({ clock }: CourseRace) => {
+const extended = ({ clock }: RaceFacts) => {
   const extension = clock.lastExtension;
   return (
     extension !== null && extension.ms > 0 && clock.elapsedSeconds <= extension.atSeconds + HUD_DURATIONS.extension
   );
 };
-const beforeGo = ({ outcome }: CourseRace) => outcome.status === 'WAITING' || outcome.status === 'READY';
-const ended = ({ outcome }: CourseRace) => outcome.status === 'GOAL' || outcome.status === 'GAME_OVER';
+const beforeGo = ({ outcome }: RaceFacts) => outcome.status === 'WAITING' || outcome.status === 'READY';
+const ended = ({ outcome }: RaceFacts) => outcome.status === 'GOAL' || outcome.status === 'GAME_OVER';
 
 /**
  * One HUD element: when it shows, decided from Session rules and race facts, and what it writes. A passing notice in
@@ -189,8 +193,9 @@ const HUD_ELEMENTS: readonly HudElement[] = [
     write: ({ race }, text) => write(text, 'elapsed', formatRaceTime(race.clock.elapsedSeconds)),
   },
   {
-    when: ({ race }) => race.standing.count > 1,
-    write({ race: { standing } }, text) {
+    when: ({ race }) => shownStanding(race) !== null,
+    write({ race }, text) {
+      const standing = shownStanding(race)!;
       write(text, 'positionLabel', 'POS');
       write(text, 'positionValue', `${standing.rank}/${standing.count}`);
     },
@@ -206,8 +211,8 @@ const HUD_ELEMENTS: readonly HudElement[] = [
     // The lap and its time; a finished lap's time holds in yellow.
     when: ({ race }) => race.courseType === 'CIRCUIT',
     write({ race }, text) {
-      const { player, clock, lapCount } = race;
-      write(text, 'lapLabel', `LAP ${Math.min(lapCount, player.progress.acceptedFinishCount + 1)}/${lapCount}`);
+      const { player, clock, lap, lapCount } = race;
+      write(text, 'lapLabel', `LAP ${lap}/${lapCount}`);
       const lapStart = player.lapStartSeconds ?? 0;
       const held = player.lastLapSeconds !== null && clock.elapsedSeconds - lapStart < HUD_DURATIONS.lapHold;
       write(

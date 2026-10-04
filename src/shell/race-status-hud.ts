@@ -1,6 +1,4 @@
-import type { createCourseRace } from '../race/course-race.js';
-
-type CourseRace = ReturnType<typeof createCourseRace>;
+import type { RaceFacts } from '../race/course-race.js';
 
 // Milliseconds: display-only budget of 0.1 ns for accumulated fixed steps at an integer-ms tie.
 // For example, 60 additions of 1/60 s err by about 1e-12 ms; ranking/deadlines remain exact.
@@ -47,7 +45,7 @@ export interface RecordOutcome {
 /** What RESULT shows of an ended run: race facts and the run's record judgement. */
 export interface RunResult {
   readonly outcome: 'GOAL' | 'GAME OVER';
-  /** The player's standing; null in a Session without rivals. */
+  /** The player's standing; null unless two or more competitors are ranked. */
   readonly standing: { readonly rank: number; readonly count: number } | null;
   readonly raceSeconds: number;
   /** The player's best lap on a CIRCUIT; null elsewhere or before a complete lap. */
@@ -56,11 +54,20 @@ export interface RunResult {
   readonly record: RecordOutcome | null;
 }
 
-/** The ended run's result: its time is the ending's race time; the rank is the race's standing. */
-export function runResult(race: CourseRace, record: RecordOutcome | null): RunResult {
+/**
+ * The player's standing as displays show it, POS on the HUD and RANK on RESULT: shown when two or more competitors are
+ * ranked, else null.
+ */
+export function shownStanding(race: Pick<RaceFacts, 'standing'>): RaceFacts['standing'] | null {
+  const { standing } = race;
+  return standing.count >= 2 ? standing : null;
+}
+
+/** The ended run's result: its time is the ending's race time; the rank is the shown standing. */
+export function runResult(race: RaceFacts, record: RecordOutcome | null): RunResult {
   return Object.freeze({
     outcome: race.outcome.status === 'GOAL' ? 'GOAL' : 'GAME OVER',
-    standing: race.rivals.length > 0 ? race.standing : null,
+    standing: shownStanding(race),
     raceSeconds: race.outcome.endSeconds!,
     bestLapSeconds: race.courseType === 'CIRCUIT' ? race.player.bestLapSeconds : null,
     record,

@@ -182,7 +182,7 @@ text until the attract demo exists. SELECT VEHICLE + COLOR shows the vehicle's i
 its yaw frames with its name; left and right change the vehicle, up and down change the color. PRESS START is the first user gesture, which
 enables sound and requests fullscreen where the browser allows it. There is no continue. While the
 title is idle, an attract demo drives a product ARCADE course with the driver at the wheel; any input
-returns to the title. RESULT shows the outcome (GOAL or GAME OVER), rank when there were rivals, race
+returns to the title. RESULT shows the outcome (GOAL or GAME OVER), rank when two or more competitors are ranked, race
 time, best lap on circuits and new records. DEV controls, DEV HUDs and development series appear only when the URL has `dev=1`.
 
 Menu screens are text on a plain background. A mode, series or course that offers nothing to select is shown dimmed and cannot be chosen. While a run loads, the frame shows LOADING; a failed load shows LOAD FAILED with RETRY and BACK. RESULT and the PAUSE menu are drawn over the stopped frame, dimmed to half brightness. A URL that names a course starts that run directly, for development and tests.
@@ -213,18 +213,18 @@ The product HUD is drawn inside the 320×240 frame. It reads only published obse
 the player's final input sample and the player vehicle's observations. It is a set of independent
 elements, each reading one observation; the active Session rules determine which appear.
 
-| Condition                  | Elements                                                             |
-| -------------------------- | -------------------------------------------------------------------- |
-| Always                     | SPEED (km/h), GEAR, race time, tachometer, steering, throttle, brake |
-| READY                      | Signal lamps, course name and mode                                   |
-| Clock on                   | TIME remaining, EXTEND                                               |
-| Other competitors present  | POS n/m                                                              |
-| Next gate has a rank limit | PASS n                                                               |
-| LINEAR or BRANCH           | STAGE n                                                              |
-| CIRCUIT                    | LAP x/y, lap time, BEST lap                                          |
-| One rival per stage        | TARGET distance while that rival is ahead                            |
-| Ended                      | GOAL, or GAME OVER with TIME UP or RANK OUT, until RESULT            |
-| A record exists            | RECORD at READY; in TIME TRIAL the difference at each gate and lap   |
+| Condition                      | Elements                                                             |
+| ------------------------------ | -------------------------------------------------------------------- |
+| Always                         | SPEED (km/h), GEAR, race time, tachometer, steering, throttle, brake |
+| READY                          | Signal lamps, course name and mode                                   |
+| Clock on                       | TIME remaining, EXTEND                                               |
+| Two or more competitors ranked | POS n/m                                                              |
+| Next gate has a rank limit     | PASS n                                                               |
+| LINEAR or BRANCH               | STAGE n                                                              |
+| CIRCUIT                        | LAP x/y, lap time, BEST lap                                          |
+| One rival per stage            | TARGET distance while that rival is ahead                            |
+| Ended                          | GOAL, or GAME OVER with TIME UP or RANK OUT, until RESULT            |
+| A record exists                | RECORD at READY; in TIME TRIAL the difference at each gate and lap   |
 
 Race rules sit in the upper rows, the vehicle's state in the lower rows, and passing notices in the
 middle; the road and the player's vehicle stay clear. Times read `1'23"456`. TIME turns red under ten

@@ -610,6 +610,10 @@ export function createCourseRace(options: {
     get stage() {
       return playerGates + 1;
     },
+    /** The player's LAP on a CIRCUIT: one more than its accepted finishes, at most the Session's lap count. */
+    get lap() {
+      return Math.min(configuration.lapCount, player.progress.acceptedFinishCount + 1);
+    },
     /**
      * The player's rank among the competitors present in the Session (`rankRaceProgress`) and their count: the one
      * standing every display reads.
@@ -730,3 +734,31 @@ export function createCourseRace(options: {
     competitorSeconds: (c: typeof player) => c.finishSeconds ?? clock.elapsedSeconds,
   });
 }
+
+type CourseRace = ReturnType<typeof createCourseRace>;
+
+/**
+ * The race facts displays read (the HUD and RESULT): the run's published state, never its controls, mechanics or
+ * other competitors' internals.
+ */
+export type RaceFacts = Pick<
+  CourseRace,
+  | 'simulationSeconds'
+  | 'stage'
+  | 'lap'
+  | 'lapCount'
+  | 'courseType'
+  | 'standing'
+  | 'nextRankLimit'
+  | 'stageRivalGap'
+  | 'outcome'
+> & {
+  readonly clock: Pick<CourseRace['clock'], 'elapsedSeconds' | 'deadlineSeconds' | 'lastExtension'>;
+  readonly countdown: Pick<CourseRace['countdown'], 'signalLamps'>;
+  readonly player: {
+    readonly crossingSeconds: readonly number[];
+    readonly lapStartSeconds: number | null;
+    readonly lastLapSeconds: number | null;
+    readonly bestLapSeconds: number | null;
+  };
+};
