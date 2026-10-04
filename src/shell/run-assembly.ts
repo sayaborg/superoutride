@@ -33,7 +33,7 @@ import { compileSessionConfiguration, type SessionConfiguration } from '../race/
 import type { DisplaySettings } from '../view/display-settings.js';
 import type { createRaceSprites } from '../view/race-sprites.js';
 import type { PlayerRecord } from './player-record.js';
-import { judgeRun, storedRecord, type RecordJudgement, type RecordSelection } from './run-records.js';
+import { comparedRecord, judgeRun, type RecordJudgement, type RecordSelection } from './run-records.js';
 
 /** The one run the page drives: its fixed step, its frame, its result and its disposal. */
 export interface Run extends RunFrame {
@@ -160,29 +160,21 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
   let afterEndingSeconds = 0;
   // What the run records against, and the records before it, which the HUD compares with.
   const selection: RecordSelection = {
-    mode: settings.mode,
+    rules: settings.mode === 'ARCADE' ? { mode: settings.mode, seriesId: arcade!.series.id } : { mode: settings.mode },
     courseId,
-    seriesId: arcade?.series.id ?? null,
     vehicleId,
     lapCount: settings.lapCount,
     courseSha256: course.identity.buildSha256,
     vehicleSha256,
+    goals: course.gates.intervals.flatMap((interval) => (interval.finish ? [interval.finish.id] : [])),
   };
   const recordsBefore = page.player.records;
-  // An ARCADE goal is known before the run only on a course with one FINISH.
-  const goals = course.gates.intervals.flatMap((interval) => (interval.finish ? [interval.finish.id] : []));
-  const soleGoal = goals.length === 1 ? goals[0]! : null;
   // The active Session's HUD record.
   const runRecord = (): HudFacts['record'] => {
     if (active.tuned) return null;
     const { records } = active;
-    if (records.hud === undefined) {
-      const routeLinks = settings.mode === 'TIME_TRIAL' ? active.race.routeLinks : null;
-      if (settings.mode === 'TIME_TRIAL' && routeLinks === null) return null;
-      const stored = storedRecord(recordsBefore, selection, routeLinks, soleGoal);
-      records.hud = stored && { timeMs: stored.timeMs, splitsMs: 'splitsMs' in stored ? stored.splitsMs : null };
-    }
-    return records.hud;
+    if (records.hud === undefined) records.hud = comparedRecord(recordsBefore, selection, active.race.routeLinks);
+    return records.hud ?? null;
   };
   // The product Session's judgement against the records, made once when it reaches GOAL.
   const record = () => {

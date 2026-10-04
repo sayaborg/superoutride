@@ -5,6 +5,7 @@ import type { DrivingInput } from '../vehicle/driving-input.js';
 import { TEXT_COLUMNS, type TextLayer } from '../view/text-layer.js';
 import { formatMilliseconds, formatRaceTime, formatTimeDifference, raceMilliseconds } from './race-time.js';
 import { shownStanding } from './run-result.js';
+import type { ComparedRecord } from './run-records.js';
 
 /**
  * What the HUD reads in one frame: the race's facts, the player's observation, the player's final input sample, the
@@ -26,7 +27,7 @@ export interface HudFacts {
    * The stored record for the selection, from the records before the run, once its route (TIME TRIAL) or goal (ARCADE)
    * is decided; `splitsMs` are a TIME TRIAL record run's gate and lap crossings. Null without one.
    */
-  readonly record: { readonly timeMs: number; readonly splitsMs: readonly number[] | null } | null;
+  readonly record: ComparedRecord | null;
 }
 
 /** Seconds a passing display lasts, in the time base its fact is stamped in. */

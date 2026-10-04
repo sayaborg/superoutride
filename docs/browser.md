@@ -347,10 +347,12 @@ the goal being the FINISH gate the run reached. JSON array keys cannot collide h
 
 Times are whole milliseconds by the one rule displays use (`raceMilliseconds`: floored after the display tolerance).
 `courseSha256` is the course's build identity and `vehicleSha256` the Session vehicle's delivered-definition identity,
-the identities time budgets carry.
+the identities time budgets carry. The player record publishes its records read-only down to every record and its
+splits, loaded or set at GOAL alike.
 
-[`src/shell/run-records.ts`](../src/shell/run-records.ts) judges a run once, when its product Session first reaches
-GOAL; RESULT and saving use that one judgement. GAME OVER, QUIT, RETRY, FREE PLAY and a DEV-tuned rebuilt Session
+[`src/shell/run-records.ts`](../src/shell/run-records.ts) alone decides what a run compares with and records, from
+its mode's records (ARCADE's in its series): it judges a run once, when its product Session first reaches GOAL; RESULT
+and saving use that one judgement. GAME OVER, QUIT, RETRY, FREE PLAY and a DEV-tuned rebuilt Session
 record nothing; a run requested by URL records as one requested from the menus. The HUD compares with the records as
 they stood before the run: RECORD at READY needs the record's key decided before driving (a TIME TRIAL on a course
 with one route, an ARCADE course with one FINISH), and TIME TRIAL crossing differences start once the route is

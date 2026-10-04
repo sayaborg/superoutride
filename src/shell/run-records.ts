@@ -8,16 +8,17 @@ import {
 } from './player-record.js';
 import { raceMilliseconds } from './race-time.js';
 
-/** What a run records against before it is driven: its rules and its identities. */
+/** What a run records against before it is driven: its mode's records (ARCADE's in its series) and its identities. */
 export interface RecordSelection {
-  readonly mode: RunRequest['mode'];
+  readonly rules:
+    { readonly mode: 'ARCADE'; readonly seriesId: string } | { readonly mode: Exclude<RunRequest['mode'], 'ARCADE'> };
   readonly courseId: string;
-  /** The ARCADE series; null in other modes. */
-  readonly seriesId: string | null;
   readonly vehicleId: string;
   readonly lapCount: number;
   readonly courseSha256: string;
   readonly vehicleSha256: string;
+  /** The course's FINISH gates: an ARCADE goal is known before driving only on a course with one. */
+  readonly goals: readonly string[];
 }
 
 /** A run that reached GOAL: its selection and the race's facts at GOAL. */
@@ -48,30 +49,44 @@ export interface RecordJudgement extends RecordOutcome {
   readonly records: PlayerRecords | null;
 }
 
+/** The record a run compares with while driven: its time and, for a TIME TRIAL record, its gate and lap crossings. */
+export interface ComparedRecord {
+  readonly timeMs: number;
+  readonly splitsMs: readonly number[] | null;
+}
+
+// A stored record counts only while its identities are the selection's.
+const identical = <T extends TimeTrialRecord | ArcadeRecord>(stored: T | undefined, selection: RecordSelection) =>
+  stored && stored.courseSha256 === selection.courseSha256 && stored.vehicleSha256 === selection.vehicleSha256
+    ? stored
+    : null;
+const timeTrialRecord = (records: PlayerRecords, selection: RecordSelection, routeLinks: readonly string[]) =>
+  identical(
+    records.timeTrial[timeTrialRecordKey(selection.courseId, routeLinks, selection.lapCount, selection.vehicleId)],
+    selection,
+  );
+const arcadeRecord = (records: PlayerRecords, selection: RecordSelection, seriesId: string, goal: string) =>
+  identical(records.arcade[arcadeRecordKey(seriesId, selection.courseId, goal, selection.vehicleId)], selection);
+
 /**
- * The record a selection compares against on a route (TIME TRIAL) or at a goal (ARCADE): null when there is none,
- * when its identities differ from the selection's, when the route or goal is undecided (null), and in FREE PLAY.
+ * The record a run compares with while it is driven, from the records before it: on its route (TIME TRIAL; undefined
+ * while the route is undecided) or at the course's one goal (ARCADE). Null when there is none, when its identities
+ * differ from the selection's, on an ARCADE course with several goals, and in FREE PLAY.
  */
-export function storedRecord(
+export function comparedRecord(
   records: PlayerRecords,
   selection: RecordSelection,
   routeLinks: readonly string[] | null,
-  goal: string | null,
-): TimeTrialRecord | ArcadeRecord | null {
-  const key = recordKey(selection, routeLinks, goal);
-  const stored = key && (key.table === 'timeTrial' ? records.timeTrial : records.arcade)[key.key];
-  return stored && stored.courseSha256 === selection.courseSha256 && stored.vehicleSha256 === selection.vehicleSha256
-    ? stored
-    : null;
-}
-
-function recordKey(selection: RecordSelection, routeLinks: readonly string[] | null, goal: string | null) {
-  const { mode, seriesId, courseId, vehicleId, lapCount } = selection;
-  if (mode === 'ARCADE' && seriesId !== null && goal !== null)
-    return { table: 'arcade', key: arcadeRecordKey(seriesId, courseId, goal, vehicleId) } as const;
-  if (mode === 'TIME_TRIAL' && routeLinks !== null)
-    return { table: 'timeTrial', key: timeTrialRecordKey(courseId, routeLinks, lapCount, vehicleId) } as const;
-  return null;
+): ComparedRecord | null | undefined {
+  const { rules, goals } = selection;
+  if (rules.mode === 'TIME_TRIAL') {
+    if (routeLinks === null) return undefined;
+    const stored = timeTrialRecord(records, selection, routeLinks);
+    return stored && { timeMs: stored.timeMs, splitsMs: stored.splitsMs };
+  }
+  if (rules.mode !== 'ARCADE' || goals.length !== 1) return null;
+  const stored = arcadeRecord(records, selection, rules.seriesId, goals[0]!);
+  return stored && { timeMs: stored.timeMs, splitsMs: null };
 }
 
 /**
@@ -81,12 +96,12 @@ function recordKey(selection: RecordSelection, routeLinks: readonly string[] | n
  * differ from the run's counts as none. FREE PLAY, and a TIME TRIAL whose route is undecided, record nothing (null).
  */
 export function judgeRun(records: PlayerRecords, run: RecordedRun): RecordJudgement | null {
-  const key = recordKey(run, run.routeLinks, run.goal);
-  if (!key) return null;
+  const { rules } = run;
   const timeMs = raceMilliseconds(run.finishSeconds);
   const identity = { courseSha256: run.courseSha256, vehicleSha256: run.vehicleSha256 };
-  if (key.table === 'arcade') {
-    const previous = storedRecord(records, run, null, run.goal) as ArcadeRecord | null;
+  if (rules.mode === 'ARCADE') {
+    const key = arcadeRecordKey(rules.seriesId, run.courseId, run.goal, run.vehicleId);
+    const previous = arcadeRecord(records, run, rules.seriesId, run.goal);
     const newRecord = previous === null || timeMs < previous.timeMs;
     const record: ArcadeRecord = { timeMs, ...identity };
     return {
@@ -94,10 +109,12 @@ export function judgeRun(records: PlayerRecords, run: RecordedRun): RecordJudgem
       timeMs,
       newRecord,
       newBestLap: false,
-      records: newRecord ? { ...records, arcade: { ...records.arcade, [key.key]: record } } : null,
+      records: newRecord ? { ...records, arcade: { ...records.arcade, [key]: record } } : null,
     };
   }
-  const previous = storedRecord(records, run, run.routeLinks, null) as TimeTrialRecord | null;
+  if (rules.mode !== 'TIME_TRIAL' || run.routeLinks === null) return null;
+  const key = timeTrialRecordKey(run.courseId, run.routeLinks, run.lapCount, run.vehicleId);
+  const previous = timeTrialRecord(records, run, run.routeLinks);
   const newRecord = previous === null || timeMs < previous.timeMs;
   const bestLapMs = run.bestLapSeconds === null ? null : raceMilliseconds(run.bestLapSeconds);
   const newBestLap =
@@ -113,6 +130,6 @@ export function judgeRun(records: PlayerRecords, run: RecordedRun): RecordJudgem
     timeMs,
     newRecord,
     newBestLap,
-    records: newRecord || newBestLap ? { ...records, timeTrial: { ...records.timeTrial, [key.key]: record } } : null,
+    records: newRecord || newBestLap ? { ...records, timeTrial: { ...records.timeTrial, [key]: record } } : null,
   };
 }

@@ -221,12 +221,12 @@ function admitTimeTrialRecord(value: unknown): TimeTrialRecord | null {
   const { timeMs, splitsMs, bestLapMs } = value;
   if (!identity || !isMilliseconds(timeMs) || !Array.isArray(splitsMs) || !splitsMs.every(isMilliseconds)) return null;
   if (bestLapMs !== null && !isMilliseconds(bestLapMs)) return null;
-  return Object.freeze({ ...identity, timeMs, splitsMs: Object.freeze([...splitsMs]), bestLapMs });
+  return { ...identity, timeMs, splitsMs, bestLapMs };
 }
 function admitArcadeRecord(value: unknown): ArcadeRecord | null {
   if (!hasExactKeys(value, ['timeMs', 'courseSha256', 'vehicleSha256'])) return null;
   const identity = admitIdentity(value);
-  return identity && isMilliseconds(value.timeMs) ? Object.freeze({ ...identity, timeMs: value.timeMs }) : null;
+  return identity && isMilliseconds(value.timeMs) ? { ...identity, timeMs: value.timeMs } : null;
 }
 
 function freezeSettings(settings: PlayerSettings): PlayerSettings {
@@ -236,10 +236,15 @@ function freezeSettings(settings: PlayerSettings): PlayerSettings {
     latestSelections: Object.freeze({ ...settings.latestSelections }),
   });
 }
+// The records the player record publishes, read-only down to every record and its splits, wherever they came from.
 function freezeRecords(records: PlayerRecords): PlayerRecords {
+  const freezeEach = <T>(table: Readonly<Record<string, T>>, freeze: (record: T) => T) =>
+    Object.freeze(Object.fromEntries(Object.entries(table).map(([key, record]) => [key, freeze(record)])));
   return Object.freeze({
-    timeTrial: Object.freeze({ ...records.timeTrial }),
-    arcade: Object.freeze({ ...records.arcade }),
+    timeTrial: freezeEach(records.timeTrial, (record) =>
+      Object.freeze({ ...record, splitsMs: Object.freeze([...record.splitsMs]) }),
+    ),
+    arcade: freezeEach(records.arcade, (record) => Object.freeze({ ...record })),
   });
 }
 
