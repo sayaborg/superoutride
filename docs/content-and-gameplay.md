@@ -593,8 +593,8 @@ accepted cross sections and laps and suppresses crossing credit for that step.
 
 The number of outgoing Links determines branching. A Section with two or three exits requires exactly
 one `lock` and one `closure` gate with `0 < lock < closure < every exit seam`.
-The compiler builds its branch controls from those gates after Links are resolved. The parallel-zone subset
-is contained in straight parts of the plan. Through closure, edges are constant, roads have positive
+The compiler builds its branch controls from those gates after Links are resolved. The zone from lock through
+closure lies on straight plan: every plan segment it overlaps has zero curvature. Through closure, edges are constant, roads have positive
 width, and the material table supplies one contiguous supported interval at lock. Through closure,
 material span edges remain parallel and the supported interval retains the same bounds. Gate and
 grid support checks also read this table. Adjacent exit Carriageways require a positive-width

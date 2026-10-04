@@ -43,6 +43,15 @@ export function compileCourseFork(
     'Fork positions require 0 < lock < closure < every exit seam',
     lock.s <= 0 ? locks[0]!.path : closures[0]!.path,
   );
+  // The parallel zone lies on straight plan: every plan segment it overlaps has zero curvature.
+  check(
+    section.segments.every(
+      (segment) => segment.sEnd <= lock.s || segment.sStart >= closure.s || segment.curvature === 0,
+    ),
+    'The lock-to-closure zone must lie on a straight part of the plan',
+    closures[0]!.path,
+    'invalid_fork',
+  );
   const material = section.material;
   const supported = stripSupportedIntervals(material.slabs[stripSlabAt(material.slabs, lock.s)]!, lock.s);
   check(supported.length === 1, 'Supported lock space must be one continuous interval', locks[0]!.path);
