@@ -101,8 +101,7 @@ Tire and steering low-speed regularization are engine constants of 1.0 m/s.
 ([Vehicle physics](vehicle-physics.md#body-contact)), and against walls, course limits and roadside objects: `frequencyHertz` is the natural frequency of the pair's
 relative motion in hertz, independent of the masses because the force scales with the pair's reduced mass, and
 `dampingRatio` is dimensionless (1 is critical damping: no rebound). Every DEV grid point is stable at the 1/60 s step.
-Walls, course limits and fixed objects push with the same spring-damper on the vehicle's own mass, and movable objects
-on the pair's reduced mass, so they share its frequency and damping; `barrierFriction` scales that push into the friction slowing a vehicle that scrapes along them (0.3 is a
+`barrierFriction` is the dimensionless ratio of the friction along a wall or course limit to its push (0.3 is a
 provisional value, to be judged on devices).
 
 The full driving source document participates in vehicle identity for generated envelopes, reference
@@ -120,9 +119,7 @@ capability on unit grip without surface drag.
 | Following time        | 1.5 s | Drivers' following time (`ENVELOPE_DRIVER.followSeconds`)                                            |
 | Terminal clearance    | 2 m   | Left before a terminal, or behind the vehicle ahead, at a stop (`ENVELOPE_DRIVER.terminalClearance`) |
 
-The following time sets the gap a driver keeps behind the vehicle ahead beyond its response distance, that vehicle's
-speed times the following time; the free space a lane needs ahead, half the two lengths plus the driver's own speed
-times it; and behind, the rear vehicle's speed times it
+Drivers' rules read the following time and the terminal clearance
 ([Content and gameplay](content-and-gameplay.md#vehicle-envelopes-and-drivers)).
 
 `ENVELOPE_DRIVER.version` identifies the driver policy: the record's values and the driving law that reads them —

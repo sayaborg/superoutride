@@ -171,9 +171,8 @@ The force law (`physics/body-contact.ts`) is a spring-damper on the reduced mass
 F = max(0, μ(ω²x + 2ζωv))     ω = 2π × bodyContact.frequencyHertz, ζ = bodyContact.dampingRatio
 ```
 
-`x` is the overlap along the axis and `v` the approach speed along it. It never pulls. Against a wall or course limit the
-same law uses the vehicle's own mass for `μ`, since the line does not move, and `bodyContact.barrierFriction` (0 or
-more) scales the push into friction along the road ([Content and gameplay](content-and-gameplay.md#barrier-lines)). On the reduced mass the
+`x` is the overlap along the axis and `v` the approach speed along it. It never pulls. Walls, course limits and
+standing objects push by the same law ([Content and gameplay](content-and-gameplay.md#barrier-lines)). On the reduced mass the
 relative motion is the oscillator `x'' = −ω²x − 2ζωx'`, so the frequency and damping ratio hold for every pair of
 vehicles, cars and motorcycles alike.
 
@@ -216,7 +215,8 @@ first four conditions in order; race composition and the player request the last
 
 The blocked step count resets when the contact ends or the speed reaches `blockedSpeed`: there is no reverse gear, so a
 vehicle held against a fixed object returns to the road this way, while one that steers or rolls away does not
-recover. The outside-domain step count resets when the center returns inside; the same condition covers lateral
+recover. Movable objects, barrier lines and other vehicles never count. A blocked vehicle recovers at rest, since a
+recovery speed would carry it back into the same object. The outside-domain step count resets when the center returns inside; the same condition covers lateral
 exits and either end of the resident window. Course limits keep vehicles inside the lateral domain except past an open
 edge ([Content and gameplay](content-and-gameplay.md#walls)), so lateral exits happen only there. The 44 steps let a short excursion return and an
 unsupported vehicle visibly fall (about 2.64 m from rest) before reconstruction. Outside the domain,

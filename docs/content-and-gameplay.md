@@ -1216,12 +1216,8 @@ rules only, no live state or target resolution:
 | `speedRetention`     | 0.58     | Share of forward speed kept, before the bounds                                    |
 | `placementClearance` | 1 m      | Gap left behind the competitor a recovered vehicle is placed behind               |
 
-A vehicle's recovery state counts consecutive outside-domain steps, and consecutive steps held against a fixed object
-below `blockedSpeed` (`blocked`, for every vehicle present; the race reports the fixed objects' pushes from
-the step's contacts), each as an integer; reaching `holdSteps` recovers the vehicle on that step, by the ordinary
-placement and speed rules — except that a vehicle recovered from `blocked` recovers at rest, since it had stopped
-against the object and a recovery speed would carry it back into the same object from behind it — and returning inside, or the contact ending or the speed rising, resets that count. Movable
-objects, barrier lines and other vehicles never count. Recovery is not a Session rule.
+The race reports, for every vehicle present, whether a fixed object pushed it in the step's contacts; the `blocked`
+condition reads that report. Recovery is not a Session rule.
 
 Route recovery backs off from the farther of causal current chainage and last-safe chainage
 ([Vehicle physics](vehicle-physics.md#airborne-state-and-recovery)). The race owns target resolution: its
