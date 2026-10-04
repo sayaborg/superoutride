@@ -93,6 +93,8 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     rivalCount = 0,
     rivalPool = pools[0]!,
     traffic = trafficLevels.find((level) => level === latest('traffic')) ?? NO_TRAFFIC;
+  // The most rivals a course's grid holds within the Session rules: the RIVALS range, which a course change keeps to.
+  const maxRivals = (id: string) => Math.min(SESSION_RULE_LIMITS.rivals, gridRivalCapacity(courseOf(id).gridSlots));
   const needed = (at: Step) =>
     at === 'COURSE'
       ? mode !== 'ARCADE' || seriesChoice!.courses.length > 1
@@ -199,6 +201,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
                 confirm: () => {
                   courseId = id;
                   lapCount = Math.min(lapCount, courseOf(id).maxLaps);
+                  rivalCount = Math.min(rivalCount, maxRivals(id));
                   remember('course', id);
                   forward();
                 },
@@ -246,7 +249,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
             () => rivalCount,
             (n) => (rivalCount = n),
             0,
-            Math.min(SESSION_RULE_LIMITS.rivals, gridRivalCapacity(courseOf(courseId!).gridSlots)),
+            maxRivals(courseId!),
           ),
           {
             label: 'POOL',

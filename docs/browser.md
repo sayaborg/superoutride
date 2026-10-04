@@ -353,7 +353,8 @@ GOAL; RESULT and saving use that one judgement. GAME OVER, QUIT, RETRY, FREE PLA
 record nothing; a run requested by URL records as one requested from the menus. The HUD compares with the records as
 they stood before the run: RECORD at READY needs the record's key decided before driving (a TIME TRIAL on a course
 with one route, an ARCADE course with one FINISH), and TIME TRIAL crossing differences start once the route is
-decided, each against the record run's crossing of the same index. A DEV-tuned Session shows no record. A stored record whose identities differ
+decided, each against the record run's crossing of the same index. The judgement and the HUD's record belong to the
+Session they were made for: a DEV-tuned Session shows no record, on the HUD or on RESULT. A stored record whose identities differ
 from the run's counts as none and is replaced. TIME TRIAL records against the route the race reports
 (`routeLinks`) and records nothing while it is undecided: a faster time replaces the time and splits, and a faster lap
 replaces the best lap alone. ARCADE records against the goal reached: a faster time replaces the record. An equal
@@ -398,7 +399,7 @@ is adopted as content. BODY CONTACT is the rebuilt Session's own: its walls, cou
 tuned values at once. An admitted adjustment rebuilds the
 Session through the same assembly as startup: a new Session vehicle with the same vehicle definition and materials
 drives the tuned definition, in a FREE PLAY Session with no rivals, the current lap count, no time limit, start speed 0
-and no envelope or time budgets, on a new Route runtime from the grid. It enters READY → GO at once, and the DEV vehicle HUD's
+and no envelope or time budgets, on a new Route runtime from the grid. It enters READY → GO at once, the HUD naming its own mode (FREE PLAY), and the DEV vehicle HUD's
 first line starts with `TUNED · `; the product HUD never shows it. The shell, its input, audio, camera device and DEV controls persist, and the shell keeps the
 tuned definition for further adjustments and export. Reloading the page restores the product Session. EXPORT saves the tuned
 driving definition (`default.json`) and the Session vehicle's definition (`<vehicle id>.json`) as browser downloads in the saved layout;

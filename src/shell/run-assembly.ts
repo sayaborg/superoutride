@@ -100,7 +100,14 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
     const session = prepared.resolve(page.drawSeed(), tuned);
     const scene = createCourseScene(course.entry, course.gates, vehicles, displaySettings);
     const race = createCourseRace({ session, runtime: scene.runtime });
-    return { session, scene, race, tuned: tuned !== null };
+    // The Session's records: the HUD's record, resolved once the TIME TRIAL route is decided, and the judgement made
+    // when the product Session reaches GOAL. A DEV-tuned Session compares with and records nothing.
+    const records = {
+      hud: undefined as HudFacts['record'] | undefined,
+      judgement: null as RecordJudgement | null,
+      recorded: false,
+    };
+    return { session, scene, race, tuned: tuned !== null, records };
   };
   let active = build(null);
   // The player's color is resolved with the Session; a DEV rebuild keeps it.
@@ -165,34 +172,32 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
   // An ARCADE goal is known before the run only on a course with one FINISH.
   const goals = course.gates.intervals.flatMap((interval) => (interval.finish ? [interval.finish.id] : []));
   const soleGoal = goals.length === 1 ? goals[0]! : null;
-  // The HUD's record, resolved once the TIME TRIAL route is decided; a DEV-tuned Session compares with none.
-  let hudRecord: HudFacts['record'] | undefined;
+  // The active Session's HUD record.
   const runRecord = (): HudFacts['record'] => {
     if (active.tuned) return null;
-    if (hudRecord === undefined) {
+    const { records } = active;
+    if (records.hud === undefined) {
       const routeLinks = settings.mode === 'TIME_TRIAL' ? active.race.routeLinks : null;
       if (settings.mode === 'TIME_TRIAL' && routeLinks === null) return null;
       const stored = storedRecord(recordsBefore, selection, routeLinks, soleGoal);
-      hudRecord = stored && { timeMs: stored.timeMs, splitsMs: 'splitsMs' in stored ? stored.splitsMs : null };
+      records.hud = stored && { timeMs: stored.timeMs, splitsMs: 'splitsMs' in stored ? stored.splitsMs : null };
     }
-    return hudRecord;
+    return records.hud;
   };
-  // The run's judgement against the records, made once when the product Session reaches GOAL; a DEV-tuned Session
-  // records nothing.
-  let judgement: RecordJudgement | null = null,
-    recorded = false;
+  // The product Session's judgement against the records, made once when it reaches GOAL.
   const record = () => {
-    recorded = true;
-    const { player, routeLinks } = active.race;
-    judgement = judgeRun(page.player.records, {
+    const { race, records } = active;
+    records.recorded = true;
+    const { player, routeLinks } = race;
+    records.judgement = judgeRun(page.player.records, {
       ...selection,
       routeLinks,
       goal: player.finishGateId!,
-      finishSeconds: active.race.outcome.endSeconds!,
+      finishSeconds: race.outcome.endSeconds!,
       crossingSeconds: player.crossingSeconds,
       bestLapSeconds: player.bestLapSeconds,
     });
-    if (judgement?.records) page.player.updateRecords(judgement.records);
+    if (records.judgement?.records) page.player.updateRecords(records.judgement.records);
   };
   // DEV only: the frame's render measurements and the performance HUD's timings; the product path takes neither.
   const measurements = page.dev ? createRenderMeasurements() : null;
@@ -203,20 +208,26 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
     lifecycle.update(step.recovered);
     performanceHud?.step(performance.now() - started);
     if (race.outcome.status === 'GOAL' || race.outcome.status === 'GAME_OVER') {
-      if (race.outcome.status === 'GOAL' && !recorded && !active.tuned) record();
+      if (race.outcome.status === 'GOAL' && !active.records.recorded && !active.tuned) record();
       if (afterEndingSeconds + SIM_DT / 2 >= page.resultDelaySeconds()) state.finish();
       else afterEndingSeconds += SIM_DT;
     }
   };
   // The scene is drawn first; presenting follows the run screen's text.
   // The Session's course and mode, which the HUD shows during READY, and the player vehicle's tachometer scale from
-  // its definitions; a DEV rebuild's tuned definition gives its own.
-  const hudSession = ({ entries }: { readonly entries: readonly { readonly vehicle: SessionVehicle }[] }) => {
+  // its definitions; a DEV rebuild's Session gives its own mode and tuned definition.
+  const hudSession = ({
+    configuration,
+    entries,
+  }: {
+    readonly configuration: SessionConfiguration;
+    readonly entries: readonly { readonly vehicle: SessionVehicle }[];
+  }) => {
     const { vehicleDefinition, drivingDefinition } = entries[0]!.vehicle;
     const { redlineRpm } = vehicleDefinition.compiledVehicle.powertrain;
     return {
       courseName: course.name,
-      mode: settings.mode,
+      mode: configuration.mode,
       redlineRpm,
       fuelCutRpm: fuelCutRpm(redlineRpm, drivingDefinition.compiledDriving.powertrain.fuelCutRedlineMargin),
     };
@@ -301,7 +312,7 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
   return {
     tick,
     draw,
-    result: () => runResult(active.race, judgement),
+    result: () => runResult(active.race, active.records.judgement),
     dispose() {
       devControls?.dispose();
     },
