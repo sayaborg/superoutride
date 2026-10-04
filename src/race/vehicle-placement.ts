@@ -1,11 +1,11 @@
-import { routeS, routeSectionS, type RouteView } from '../course/course-route.js';
+import type { RouteView } from '../course/course-route.js';
 import type { PlanCoordinateReader } from '../course/geometry/plan-coordinate.js';
 import type { VehicleWorld } from '../course/vehicle-world.js';
 import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import { footprintsOverlap, type RouteFootprint } from './body-contacts.js';
 import type { createCourseForkField } from './course-fork-field.js';
-import { firstObjectFrom, type createRoadsideObjects } from './object-contacts.js';
+import type { createRoadsideObjects } from './object-contacts.js';
 import type { PresentVehicle } from './present-vehicle.js';
 import { RECOVERY_POLICY, recoverVehicleToPlanCoordinate, type RecoveryTarget } from './recovery.js';
 
@@ -16,7 +16,7 @@ import { RECOVERY_POLICY, recoverVehicleToPlanCoordinate, type RecoveryTarget } 
  */
 export function createVehiclePlacement(options: {
   readonly readers: VehicleWorld & { readonly coordinates: PlanCoordinateReader };
-  readonly window: Pick<RouteView, 'at' | 'start'>;
+  readonly window: Pick<RouteView, 'start'>;
   readonly forks: ReturnType<typeof createCourseForkField>;
   readonly roadsideObjects: ReturnType<typeof createRoadsideObjects>;
   readonly bodies: readonly PresentVehicle[];
@@ -43,20 +43,12 @@ export function createVehiclePlacement(options: {
         footprintsOverlap(at, footprint(body.model, body.vehicle.course.s, body.vehicle.course.l))
       )
         return { s: body.vehicle.course.s, length: body.model.compiledVehicle.overallLength };
-    const occurrence = window.at(s);
-    if (!occurrence) return null;
-    const objects = occurrence.section.objects;
-    const native = { ...at, s: routeSectionS(occurrence, s), l: l + occurrence.lateralOrigin };
-    for (let i = firstObjectFrom(objects, native.s - at.length / 2); i < objects.length; i++) {
-      const object = objects[i]!;
-      if (object.s > native.s + at.length / 2) break;
-      if (
-        roadsideObjects.standing(occurrence, i) &&
-        footprintsOverlap(native, { s: object.s, l: object.l, length: 0, width: object.width })
-      )
-        return { s: routeS(occurrence, object.s), length: 0 };
-    }
-    return null;
+    let object: { s: number; length: number } | null = null;
+    roadsideObjects.sight(s - at.length / 2, s + at.length / 2, (objectS, objectL, width) => {
+      if (!object && footprintsOverlap(at, { s: objectS, l: objectL, length: 0, width }))
+        object = { s: objectS, length: 0 };
+    });
+    return object;
   };
   // Recovery places no vehicle on another's footprint: from station s it backs along the Route behind each vehicle in
   // the way, by the policy's clearance, until the place in its lane there is free (or the resident Route begins).

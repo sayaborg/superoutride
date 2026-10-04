@@ -108,10 +108,6 @@ export function createContactFaces(coordinates: PlanCoordinateReader, contact: C
       [faces, next] = [next, faces];
       next.clear();
     },
-    /** Whether the pair of keys had a face at the start of this step. */
-    held(a: string, b: string): boolean {
-      return (a < b ? faceOf(a, b) : faceOf(b, a)) !== undefined;
-    },
     /**
      * Meet `a` and `b` this step: true while they are in contact, with the force on `b` (world x and z, N) written to
      * `out` (zero while their heights do not overlap); `a` receives the opposite force.

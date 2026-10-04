@@ -271,8 +271,11 @@ solid wall is another: at that end's station and the wall's lateral there, its d
 height (`sprite` and `movable` are null). Joined ends and walls for looks only make no objects. Vehicles meet standing objects as they meet each other
 ([Body contact](#body-contact)).
 
-The race keeps the knocked movable objects, keyed by Section and placement index, so a Section met again keeps them
-knocked; a standing object has no state. In the step a vehicle pushes a movable object it is knocked: it takes the
+An object is identified by its Section and its index among that Section's solid objects: every occurrence of a Section
+holds the same objects, so a Section met again meets, and keeps knocked, the same ones. The race keeps the knocked
+movable objects by that identity; a standing object has no state. One search finds the standing objects near a stretch
+of Route: those of the resident occurrences whose route stations lie in it, across seams; drivers' sightings, placement
+and contacts all use it. In the step a vehicle pushes a movable object it is knocked: it takes the
 opposite of the push on the vehicle as its horizontal force, and an upward force of that force times
 `tan(launchDegrees)`, as the velocity change of that one step, and its contacts end. Flying, it is a point under gravity
 alone (`VEHICLE_GRAVITY`) on its route position and height, at constant horizontal speed, stepped with the fixed step;
@@ -1155,9 +1158,10 @@ relative world velocity along that direction. The spring-damper uses the Session
 A standing object meets every vehicle present by the same rule, as a party of zero length and its width at its route
 position, with its height range, at rest: its position one step earlier is its position. A fixed object never moves, so
 the reduced mass is the vehicle's and only the vehicle receives the force. A movable one's reduced mass comes from the
-two masses, and the push knocks it ([Roadside objects](#roadside-objects)). Its contact is first met where the object lies within the
-vehicle's length in the Route occurrence at the vehicle's centre, keyed by the vehicle's id and the object's occurrence
-and index, and is then followed until the pair separates. Near a solid wall's free end both the wall's line and the end
+two masses, and the push knocks it ([Roadside objects](#roadside-objects)). Each step a vehicle meets every standing
+object whose route station lies within its length, across seams, so an object just past a seam is met before the
+vehicle's centre crosses it; the pair is keyed by the vehicle's id and the object's identity, and the contact faces alone
+hold which pairs are in contact. Near a solid wall's free end both the wall's line and the end
 object can push a vehicle; their forces add.
 
 ### Barrier lines

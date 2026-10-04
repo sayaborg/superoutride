@@ -54,10 +54,16 @@ interface KnockedObject {
   at: { section: CompiledSection; s: number; l: number } | null;
 }
 
+/**
+ * A roadside object's identity: its Section and its index among the Section's objects. Every occurrence of a Section
+ * holds the same objects, so a Section met again meets, and shows knocked, the same ones.
+ */
+const objectKey = (section: CompiledSection, index: number) => `object ${section.id} ${index}`;
+
 /** A standing object of a Route occurrence as a contact party: zero length, its width and height range, at rest. */
 function writeObjectParty(party: ContactParty, occurrence: RouteOccurrence, index: number): ContactParty {
   const object = occurrence.section.objects[index]!;
-  party.key = `object ${occurrence.ordinal} ${index}`;
+  party.key = objectKey(occurrence.section, index);
   party.s = party.previousS = routeS(occurrence, object.s);
   party.l = party.previousL = object.l - occurrence.lateralOrigin;
   party.length = 0;
@@ -76,9 +82,9 @@ function writeObjectParty(party: ContactParty, occurrence: RouteOccurrence, inde
  * pushed it is knocked: it receives the opposite horizontal force and an upward force of that force times
  * `tan(launch)`, as the velocity change of one step, and contacts end. Knocked, it flies as a point under gravity alone
  * with constant horizontal speed, on route coordinates, until its height reaches the road height at its station, where it
- * lands and stays. Lines and limits do not act on it. Knocked objects are keyed by Section and placement index, so a
- * Section met again keeps them knocked. A contact is first met where the object lies within the vehicle's length in the
- * occurrence at the vehicle's centre; once begun it is followed until the pair separates, in the order contacts began.
+ * lands and stays. Lines and limits do not act on it. An object is identified by its Section and index (`objectKey`), so a
+ * Section met again keeps its objects knocked. Each step a vehicle meets every standing object whose station lies within
+ * its length, across occurrences (`sight`); the contact faces hold which pairs are in contact.
  */
 export function createRoadsideObjects(options: {
   readonly route: Pick<RouteView, 'at' | 'occurrences'>;
@@ -97,16 +103,28 @@ export function createRoadsideObjects(options: {
   // The ids of the bodies a fixed object pushes this step.
   const pressed = new Set<string>();
   const observations: KnockedObject[] = [];
-  const keyOf = (section: CompiledSection, sprite: number) => `${section.id} ${sprite}`;
   /** Whether the object at `index` of an occurrence still stands. */
-  const standing = (occurrence: RouteOccurrence, index: number) => {
-    const sprite = occurrence.section.objects[index]!.sprite;
-    return sprite === null || !knocked.has(keyOf(occurrence.section, sprite));
+  const standing = (occurrence: RouteOccurrence, index: number) => !knocked.has(objectKey(occurrence.section, index));
+  /*
+   * Visit the standing objects of the resident occurrences whose route stations lie from `start` through `end`, in
+   * occurrence and station order, each read from its Section's station-ordered list, never by scanning.
+   */
+  const visitStanding = (
+    start: number,
+    end: number,
+    visit: (occurrence: RouteOccurrence, index: number, s: number, l: number, width: number) => void,
+  ) => {
+    for (const occurrence of route.occurrences) {
+      if (occurrence.end < start || occurrence.start > end) continue;
+      const objects = occurrence.section.objects;
+      for (let i = firstObjectFrom(objects, start - occurrence.start); i < objects.length; i++) {
+        const object = objects[i]!;
+        if (occurrence.start + object.s > end) break;
+        if (standing(occurrence, i))
+          visit(occurrence, i, occurrence.start + object.s, object.l - occurrence.lateralOrigin, object.width);
+      }
+    }
   };
-  // The pairs in contact at the end of the previous step, by key: the body's id and the object's occurrence and index.
-  type Pair = { readonly id: string; readonly occurrence: RouteOccurrence; readonly index: number };
-  let held = new Map<string, Pair>(),
-    next = new Map<string, Pair>();
   const knock = (occurrence: RouteOccurrence, index: number, mass: number, launchRadians: number) => {
     const source = occurrence.section.objects[index]!;
     // The object's share of the step's push, as its velocity change: horizontal along the push, upward by the elevation.
@@ -125,7 +143,7 @@ export function createRoadsideObjects(options: {
       speedY: (push * Math.tan(launchRadians) * step) / mass,
       at: null,
     };
-    knocked.set(keyOf(occurrence.section, record.sprite), record);
+    knocked.set(objectKey(occurrence.section, index), record);
     observations.push(record);
   };
   const meet = (body: ContactBody, occurrence: RouteOccurrence, index: number) => {
@@ -136,25 +154,15 @@ export function createRoadsideObjects(options: {
     const movable = occurrence.section.objects[index]!.movable;
     if (!movable && (force.x !== 0 || force.z !== 0)) pressed.add(body.id);
     if (movable && (force.x !== 0 || force.z !== 0)) knock(occurrence, index, movable.mass, movable.launchRadians);
-    else next.set(`${body.id}\u0000${object.key}`, { id: body.id, occurrence, index });
   };
   return Object.freeze({
     /**
-     * Visit the standing objects of the resident occurrences between route stations `start` and `end`, in occurrence and
-     * station order, with each one's route station, lateral and width. Each object is read from its Section's
-     * station-ordered list, never by scanning.
+     * Visit the standing objects of the resident occurrences whose route stations lie from `start` through `end`, in
+     * occurrence and station order, with each one's route station, lateral and width: the one search for standing
+     * objects that drivers' sightings, placement and contacts all use.
      */
     sight(start: number, end: number, visit: (s: number, l: number, width: number) => void) {
-      for (const occurrence of route.occurrences) {
-        if (occurrence.end < start || occurrence.start > end) continue;
-        const objects = occurrence.section.objects;
-        for (let i = firstObjectFrom(objects, start - occurrence.start); i < objects.length; i++) {
-          const object = objects[i]!;
-          if (occurrence.start + object.s > end) break;
-          if (standing(occurrence, i))
-            visit(occurrence.start + object.s, object.l - occurrence.lateralOrigin, object.width);
-        }
-      }
+      visitStanding(start, end, (_occurrence, _index, s, l, width) => visit(s, l, width));
     },
     /** The knocked objects, in the order they were knocked. */
     knocked: observations as readonly KnockedObjectObservation[],
@@ -164,29 +172,14 @@ export function createRoadsideObjects(options: {
     blocks: (id: string) => pressed.has(id),
     /** The standing objects' contacts for one step, from the state at its start, added to each body's contact force. */
     contacts(bodies: readonly ContactBody[]) {
-      next.clear();
       pressed.clear();
-      for (const [, pair] of held) {
-        const body = bodies.find((candidate) => candidate.id === pair.id);
-        if (!body || route.at(pair.occurrence.start) !== pair.occurrence || !standing(pair.occurrence, pair.index))
-          continue;
-        writeVehicleParty(vehicle, body);
-        meet(body, pair.occurrence, pair.index);
-      }
       for (const body of bodies) {
-        const occurrence = route.at(body.vehicle.course.s);
-        if (!occurrence) continue;
-        const objects = occurrence.section.objects;
-        if (!objects.length) continue;
         writeVehicleParty(vehicle, body);
-        const s = body.vehicle.course.s - occurrence.start;
-        for (let i = firstObjectFrom(objects, s - vehicle.length / 2); i < objects.length; i++) {
-          if (objects[i]!.s > s + vehicle.length / 2) break;
-          if (!standing(occurrence, i) || faces.held(body.id, `object ${occurrence.ordinal} ${i}`)) continue;
-          meet(body, occurrence, i);
-        }
+        const s = body.vehicle.course.s;
+        visitStanding(s - vehicle.length / 2, s + vehicle.length / 2, (occurrence, index) =>
+          meet(body, occurrence, index),
+        );
       }
-      [held, next] = [next, held];
     },
     /** One step of every flying object: gravity on its height, its horizontal speeds on its route position, landing. */
     advance() {
