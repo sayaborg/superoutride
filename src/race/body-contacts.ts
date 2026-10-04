@@ -103,11 +103,32 @@ export function createContactFaces(coordinates: PlanCoordinateReader, contact: C
   let faces: Faces = new Map(),
     next: Faces = new Map();
   const faceOf = (low: string, high: string) => faces.get(low)?.get(high);
+  const record = (low: string, high: string, face: ContactFace) => {
+    let met = next.get(low);
+    if (!met) next.set(low, (met = new Map()));
+    met.set(high, face);
+  };
+  // Side faces of a vehicle against a line, by side.
+  const lineFaces = {
+    [-1]: Object.freeze({ alongS: false, sign: -1 }),
+    [1]: Object.freeze({ alongS: false, sign: 1 }),
+  };
   return Object.freeze({
     /** Start a step: only the pairs met in the previous step keep their faces. */
     beginStep() {
       [faces, next] = [next, faces];
       next.clear();
+    },
+    /**
+     * The side of a line (keyed `line`) that the body keyed `body` is kept on: the one it was on when it began to touch
+     * the line, kept from the previous step, or `current` for a contact beginning now. Call `touchLine` while they touch.
+     */
+    lineSide(body: string, line: string, current: 1 | -1): 1 | -1 {
+      return faceOf(body, line)?.sign ?? current;
+    },
+    /** Record that the body keyed `body` touches the line keyed `line` this step, kept on `side`. */
+    touchLine(body: string, line: string, side: 1 | -1) {
+      record(body, line, lineFaces[side]);
     },
     /**
      * Meet `a` and `b` this step: true while they are in contact, with the force on `b` (world x and z, N) written to
@@ -142,9 +163,7 @@ export function createContactFaces(coordinates: PlanCoordinateReader, contact: C
       const touching = Math.min(a.top, b.top) - Math.max(a.bottom, b.bottom) > 0;
       // A contact begins only where the parties touch; once begun, its face holds while their footprints overlap.
       if (!touching && !begun) return false;
-      let met = next.get(low);
-      if (!met) next.set(low, (met = new Map()));
-      met.set(high, face);
+      record(low, high, face);
       out.x = 0;
       out.z = 0;
       if (!touching) return true;

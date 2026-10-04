@@ -230,6 +230,7 @@ export function createCourseRace(options: {
     runtime.readers.coordinates,
     runtime.window,
     playerActor.model.bodyContact,
+    contactFaces,
     SIM_DT,
   );
   // Standing roadside objects push every present vehicle back as a vehicle would; movable ones are knocked away.

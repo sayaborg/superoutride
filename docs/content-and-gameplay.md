@@ -1172,13 +1172,15 @@ Walls and course limits act on every vehicle present, in every step after READY,
 the race adds their force to the body contact force. A barrier line acts on a vehicle whose centre's Section station
 lies within it (a wall: from its `from` through its `to`). Its overlap is half the vehicle's overall width less the
 centre's lateral distance from the line, measured toward the side the line keeps it on: a course limit keeps vehicles on
-its material side, a wall on the side the vehicle's centre is on. While the overlap is positive the line pushes along the
+its material side; a wall keeps a vehicle on the side its centre was on when it began to touch the wall, as a contact
+keeps its face, until they no longer overlap (the contact faces hold that side, keyed by the vehicle's id and the wall), so
+a vehicle whose centre crosses the line is pushed back, never through. While the overlap is positive the line pushes along the
 road's horizontal right, away from the line, with the same spring-damper on the vehicle's own mass (the line does not
 move), `F = max(0, m(ω²x + 2ζωv))`; `v` is how fast the overlap grows: the vehicle's lateral speed toward the line plus
 the line's slope times the vehicle's speed along the road, since a slanted line closes on a vehicle driving along it.
 Friction along the road's horizontal tangent opposes the vehicle's speed along the road with magnitude
 `min(barrierFriction × F, m × |v_along| / step)`, never reversing that speed within the step. No vertical force or moment
-arises and height is not compared. Recovery rules are unchanged: a vehicle past an open edge, or beyond either end of the
+arises and height is not compared. Recovery rules are unchanged: a vehicle past an open limit, or beyond either end of the
 resident Route, recovers as before.
 
 Recovery and appearance place no vehicle on another present vehicle's footprint. Recovery backs its target along
