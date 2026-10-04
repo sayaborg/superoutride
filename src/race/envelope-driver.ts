@@ -15,7 +15,7 @@ const MIN_DRIVER_CURVATURE_PER_METER = 1e-7;
  * driver's input for the same state and observations ([Calibration](../../docs/calibration.md)).
  */
 export const ENVELOPE_DRIVER = Object.freeze({
-  version: 11,
+  version: 12,
   lookahead: 480,
   spacing: 5,
   responseSeconds: 0.45,
@@ -298,14 +298,19 @@ function leastGripTo(workspace: ReturnType<typeof createEnvelopeDriverWorkspace>
  * curve speed is reached over the remaining distance.
  */
 function leaderBoundSquared(s: number, speed: number, braking: number, leader: EnvelopeLeader): number {
-  const gap = Math.max(ENVELOPE_DRIVER.terminalClearance + leader.speed * ENVELOPE_DRIVER.followSeconds, leader.escape);
+  // A vehicle ahead moving backward along the Route is planned for as a stopped one.
+  const ahead = Math.max(0, leader.speed);
+  const gap = Math.max(ENVELOPE_DRIVER.terminalClearance + ahead * ENVELOPE_DRIVER.followSeconds, leader.escape);
   const margin = Math.max(0, leader.s - s - leader.clearance - gap - speed * ENVELOPE_DRIVER.responseSeconds);
-  return leader.speed ** 2 + 2 * braking * margin;
+  return ahead ** 2 + 2 * braking * margin;
 }
 
-/** Whether a driver at station `s` moving at `speed` with planning braking `braking` can stop for `leader` ahead. */
+/**
+ * Whether a driver at station `s` moving at route speed `speed` with planning braking `braking` can stop for `leader`
+ * ahead; one moving backward can.
+ */
 export function envelopeCanFollow(s: number, speed: number, braking: number, leader: EnvelopeLeader): boolean {
-  return speed ** 2 <= leaderBoundSquared(s, speed, braking, leader);
+  return speed <= 0 || speed ** 2 <= leaderBoundSquared(s, speed, braking, leader);
 }
 
 /**
@@ -377,6 +382,14 @@ export function sampleEnvelopeDrivingInput(
 ): DrivingInput {
   const { target } = planEnvelopeDriving(road, car, driver, targetL, workspace, domain, null);
   return envelopeDrivingInput(road, car, driver, targetL, workspace, domain, target);
+}
+
+/**
+ * A vehicle's route speed (m/s): its velocity along the road's tangent at its route position, whose heading is
+ * `roadHeading`; negative while it moves backward along the Route. Drivers see other vehicles' speeds as this.
+ */
+export function routeSpeed(car: VehicleMotionRead, roadHeading: number): number {
+  return car.velocityX * Math.sin(roadHeading) + car.velocityZ * Math.cos(roadHeading);
 }
 
 /** The direction a vehicle travels in (rad, as yaw): its yaw turned by its slip, read at a least forward speed. */

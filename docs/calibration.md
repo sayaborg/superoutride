@@ -131,7 +131,8 @@ driver's input for the same vehicle state and observations, whether the change i
 every field added to or removed from the record; a change that leaves every input the same keeps it. The reference
 driver's identity (`REFERENCE_DRIVER_SHA256`) contains it. It is 10: since version 8, one implementation of the vehicle ahead,
 lane occupancy and stopping followers, the steering path that decides the vehicle ahead, the escape gap (9), the
-surface grip drivers plan with (10), and standing objects that end a lane (11).
+surface grip drivers plan with (10), standing objects that end a lane (11), and other
+vehicles' route speeds (12).
 
 ## Camera settings
 

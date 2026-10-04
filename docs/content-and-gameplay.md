@@ -759,7 +759,7 @@ the race gates after that station. An appearance reads the drivers' sightings, r
 is decided, and the drivers' rules ([Vehicle envelopes and drivers](#vehicle-envelopes-and-drivers)): the appearing
 vehicle, at its lane's centre, in line with the road and at its planned speed, is a vehicle ahead to those behind it. It waits for a
 later step while its place overlaps another vehicle's footprint or while a driven vehicle behind in its lane, whose
-driver never changes lanes to pass, could not stop for it: for that vehicle's speed `v_b` and its driver's braking `a_b`,
+driver never changes lanes to pass, could not stop for it (one moving backward can): for that vehicle's route speed `v_b` and its driver's braking `a_b`,
 the gap Δs and the appearing speed `v`,
 `v_b² > v² + 2 × a_b × max(0, Δs − (L₁ + L₂)/2 − terminalClearance − v_b × responseSeconds − v × followSeconds)`,
 the same constraint the drivers plan with. A vehicle behind whose driver passes (a rival, or the player's
@@ -1017,7 +1017,8 @@ station as its terminal.
 
 Drivers keep clear of other vehicles. Each step the race gives every driver (rivals and the player's takeover after
 GOAL) a read-only list of the vehicles present in the Session as they stand at the step's start: route position,
-speed, travel direction relative to the road, dimensions, the lateral each is heading for at its station (its driver's
+route speed (its velocity along the road's tangent at its station, negative while it moves backward), travel
+direction relative to the road, dimensions, the lateral each is heading for at its station (its driver's
 target lateral; its own lateral while the player drives it) and the driver driving it, the player's vehicle included;
 drivers write no vehicle state. The list also holds the standing
 roadside objects ([Roadside objects](#roadside-objects)), fixed and movable, wall ends included, from the rearmost
@@ -1042,8 +1043,8 @@ it until its path clears that vehicle, and one it can steer clear of no longer h
 Drivers decide in turn, the competitors in competitor order and then the traffic in order of appearance; a driver that
 moves to another lane heads for it in the list at once, so drivers deciding later in the same step see the move, while
 positions and speeds stay as at the step's start.
-It is a constraint of the driver's plan, braked back like a curve speed: with the gap Δs to it, its speed `v_a`, the
-driver's speed `v` and planning braking `a`,
+It is a constraint of the driver's plan, braked back like a curve speed: with the gap Δs to it, its route speed `v_a`
+(0 while it moves backward: it is planned for as stopped), the driver's speed `v` and planning braking `a`,
 
 ```text
 gap    = max(terminalClearance + v_a × followSeconds, escape)

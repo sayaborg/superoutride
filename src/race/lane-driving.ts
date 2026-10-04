@@ -10,6 +10,7 @@ import {
   envelopeSpeedBehind,
   planEnvelopeDriving,
   plannedEnvelopeSpeed,
+  routeSpeed,
   travelYaw,
   type DriverRoad,
   type DrivingDomain,
@@ -40,6 +41,9 @@ export function createLaneDriving(options: {
   // road, heading for their own lateral.
   const objectSightings: VehicleSighting[] = [];
   const roadSample = createPlanCoordinateSample();
+  // The road's heading at a vehicle's route position (kept in `roadSample`).
+  const roadHeading = (vehicle: PresentVehicle['vehicle']) =>
+    road.coordinates.toWorld(vehicle.course.s, vehicle.course.l, roadSample).heading;
   const laneDomain = { start: 0, end: 0, terminal: null as number | null };
   const probe: LaneIntent = { lane: 0, ordinal: 0, exit: () => 0 };
   // Drivers see the present vehicles as they stand now, and the standing objects as stopped vehicles from the rearmost
@@ -53,10 +57,8 @@ export function createLaneDriving(options: {
         l: vehicle.course.l,
         length: model.compiledVehicle.overallLength,
         width: model.compiledVehicle.overallWidth,
-        speed: Math.hypot(vehicle.longitudinalSpeed, vehicle.lateralSpeed),
-        heading: wrapAngle(
-          travelYaw(vehicle) - road.coordinates.toWorld(vehicle.course.s, vehicle.course.l, roadSample).heading,
-        ),
+        speed: routeSpeed(vehicle, roadHeading(vehicle)),
+        heading: wrapAngle(travelYaw(vehicle) - roadSample.heading),
         target: presentTarget(body),
         driver: body.driving?.driver ?? null,
       });
