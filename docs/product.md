@@ -274,7 +274,8 @@ A vehicle's contact shape is its footprint, the overall length by overall width,
 does not turn with the vehicle's yaw. Vehicles at different heights do not contact: a vehicle in the air passes over one below it. Two vehicles whose shapes overlap push each other apart through the face they met at, ahead-behind or side to
 side, until they separate, with equal and opposite forces that act through the ordinary
 vehicle mechanics. Contact never turns a vehicle, never topples a motorcycle, never ends a run by itself and
-causes no damage. Rivals and traffic do not hit other vehicles on purpose. Walls — guardrails, walls and cliff faces — run along the road. A visible wall is drawn as a surface standing on its line, rising above the road, dropping below it, or both, in
+causes no damage. Rivals and traffic do not hit other vehicles or solid objects on purpose: a solid object standing in a lane is
+to them a stopped vehicle. Walls — guardrails, walls and cliff faces — run along the road. A visible wall is drawn as a surface standing on its line, rising above the road, dropping below it, or both, in
 bands of color that may repeat along the road. To vehicles a solid wall is a line of unlimited
 height: a vehicle touching it is pushed back across the road, never along it, and scraping along it slows the
 vehicle. A wall may be invisible, and a wall may be for looks only. The edge of the course's ground is an

@@ -735,7 +735,8 @@ moved, ranked, judged by rank limits, counted for fork arrival, observed, drawn 
 competitor's presence and the player's STAGE. A competitor joining at a later stage appears in the step in which the
 player enters that stage: at the player's route station plus its ahead distance, in its lane, moving at its
 driver's planned speed there (the speed that is the driver's own planned target at that station, with the vehicle
-ahead in that lane as its constraint), and awaits only the race gates after that station. An appearance waits for a
+ahead in that lane as its constraint, a standing object in that lane counting as a stopped vehicle), and awaits only
+the race gates after that station. An appearance waits for a
 later step while its place overlaps another vehicle's footprint or while a vehicle behind in its lane, driven by a
 driver that never changes lanes, could not stop for it: for that vehicle's speed `v_b` and its driver's braking `a_b`,
 the gap Δs and the appearing speed `v`,
@@ -968,7 +969,12 @@ station as its terminal.
 Drivers keep clear of other vehicles. Each step the race gives every driver (rivals and the player's takeover after
 GOAL) a read-only list of the vehicles present in the Session as they stand at the step's start: route position,
 speed, dimensions and the lateral each is heading for at its station (its driver's target lateral; its own lateral
-while the player drives it), the player's vehicle included; drivers write no vehicle state. A vehicle occupies both the
+while the player drives it), the player's vehicle included; drivers write no vehicle state. The list also holds the standing
+roadside objects ([Roadside objects](#roadside-objects)), fixed and movable, wall ends included, from the rearmost
+present vehicle's station to the foremost one's plus the driver lookahead (`ENVELOPE_DRIVER.lookahead`), each read
+from its Section's station-ordered list: an object is a stopped vehicle of zero length and its width, heading for its
+own lateral. Knocked objects and barrier lines are not in it. An object standing in a driver's lane is thus a stopped
+vehicle ahead to it, and one outside every lane occupies none. A vehicle occupies both the
 lanes it overlaps where it is and the lane it is heading for: it is in a lane for a driver when either its lateral or
 the lateral it is heading for lies nearer that lane's centre at its station than half the two vehicles' widths. One
 test decides this for the vehicle ahead, free lanes and appearances. The vehicle ahead in a driver's lane is the

@@ -81,7 +81,7 @@ function writeObjectParty(party: ContactParty, occurrence: RouteOccurrence, inde
  * occurrence at the vehicle's centre; once begun it is followed until the pair separates, in the order contacts began.
  */
 export function createRoadsideObjects(options: {
-  readonly route: Pick<RouteView, 'at'>;
+  readonly route: Pick<RouteView, 'at' | 'occurrences'>;
   readonly coordinates: PlanCoordinateReader;
   readonly height: ProfileReader;
   readonly extent: { readonly start: number; readonly end: number };
@@ -136,6 +136,23 @@ export function createRoadsideObjects(options: {
     else next.set(`${body.id}\u0000${object.key}`, { id: body.id, occurrence, index });
   };
   return Object.freeze({
+    /**
+     * Visit the standing objects of the resident occurrences between route stations `start` and `end`, in occurrence and
+     * station order, with each one's route station, lateral and width. Each object is read from its Section's
+     * station-ordered list, never by scanning.
+     */
+    sight(start: number, end: number, visit: (s: number, l: number, width: number) => void) {
+      for (const occurrence of route.occurrences) {
+        if (occurrence.end < start || occurrence.start > end) continue;
+        const objects = occurrence.section.objects;
+        for (let i = firstObjectFrom(objects, start - occurrence.start); i < objects.length; i++) {
+          const object = objects[i]!;
+          if (occurrence.start + object.s > end) break;
+          if (standing(occurrence, i))
+            visit(occurrence.start + object.s, object.l - occurrence.lateralOrigin, object.width);
+        }
+      }
+    },
     /** The knocked objects, in the order they were knocked. */
     knocked: observations as readonly KnockedObjectObservation[],
     /** Whether the object at `index` of an occurrence still stands (fixed objects always do). */

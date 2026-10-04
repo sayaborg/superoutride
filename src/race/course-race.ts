@@ -27,6 +27,7 @@ import {
   createVariableEnvelopeDriver,
   envelopeDrivingInput,
   envelopeCanFollow,
+  ENVELOPE_DRIVER,
   envelopeSpeedBehind,
   planEnvelopeDriving,
   plannedEnvelopeSpeed,
@@ -244,6 +245,8 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   // Drivers follow and change lanes over the race's sightings of the present vehicles.
   const following = createLaneFollowing(forks);
   const sightings: VehicleSighting[] = [];
+  // Reused records for the standing objects drivers see: zero length, the object's width, at rest, heading nowhere.
+  const objectSightings: { s: number; l: number; length: number; width: number; speed: number; target: number }[] = [];
   // Body contacts push present vehicles apart, by one face rule for every pair (fixed objects included); the Session's
   // driving definition holds the spring-damper.
   const contactFaces = createContactFaces(runtime.readers.coordinates, playerActor.model.bodyContact);
@@ -462,22 +465,20 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
         (width + body.model.compiledVehicle.overallWidth) / 2,
       );
     const speedOf = (body: Body) => Math.hypot(body.vehicle.longitudinalSpeed, body.vehicle.lateralSpeed);
-    let ahead: (typeof bodies)[number] | null = null;
+    let ahead: { s: number; speed: number; clearance: number } | null = null;
     for (const body of bodies)
-      if (body.vehicle.course.s > s && (!ahead || body.vehicle.course.s < ahead.vehicle.course.s) && inLane(body))
-        ahead = body;
-    const speed = plannedEnvelopeSpeed(
-      runtime.readers.coordinates,
-      s,
-      driver,
-      lane,
-      runtime.window,
-      ahead && {
-        s: ahead.vehicle.course.s,
-        speed: speedOf(ahead),
-        clearance: (length + ahead.model.compiledVehicle.overallLength) / 2,
-      },
-    );
+      if (body.vehicle.course.s > s && (!ahead || body.vehicle.course.s < ahead.s) && inLane(body))
+        ahead = {
+          s: body.vehicle.course.s,
+          speed: speedOf(body),
+          clearance: (length + body.model.compiledVehicle.overallLength) / 2,
+        };
+    // A standing object in the lane is a stopped vehicle to the appearing driver, as to every driver.
+    roadsideObjects.sight(s, s + ENVELOPE_DRIVER.lookahead, (objectS, l, objectWidth) => {
+      if (objectS > s && (!ahead || objectS < ahead.s) && occupiesLane(l, l, lane(objectS), (width + objectWidth) / 2))
+        ahead = { s: objectS, speed: 0, clearance: length / 2 };
+    });
+    const speed = plannedEnvelopeSpeed(runtime.readers.coordinates, s, driver, lane, runtime.window, ahead);
     for (const body of bodies)
       if (
         body.driver &&
@@ -641,6 +642,23 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       });
       sightings.push(motion.sighting);
     }
+    // And the standing objects from the rearmost present vehicle to the foremost one's driver lookahead, as stopped vehicles.
+    let rearS = Infinity,
+      frontS = -Infinity;
+    for (const motion of bodies) {
+      rearS = Math.min(rearS, motion.vehicle.course.s);
+      frontS = Math.max(frontS, motion.vehicle.course.s);
+    }
+    let sighted = 0;
+    roadsideObjects.sight(rearS, frontS + ENVELOPE_DRIVER.lookahead, (s, l, width) => {
+      if (sighted === objectSightings.length)
+        objectSightings.push({ s: 0, l: 0, length: 0, width: 0, speed: 0, target: 0 });
+      const sighting = objectSightings[sighted++]!;
+      sighting.s = s;
+      sighting.l = sighting.target = l;
+      sighting.width = width;
+      sightings.push(sighting);
+    });
     const playerInput = stepStart === null ? afterRunInput(input) : input;
     let minS = Infinity,
       maxS = -Infinity;
