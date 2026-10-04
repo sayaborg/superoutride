@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 35,
+  "version": 36,
   "name": "RIBBON COAST",
   "entrySectionId": "coast-wide",
   "rules": { "maxLaps": 1 },

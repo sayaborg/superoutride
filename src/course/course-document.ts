@@ -17,7 +17,7 @@ import {
   readString,
 } from '../core/admission.js';
 
-const COURSE_DOCUMENT_VERSION = 35;
+const COURSE_DOCUMENT_VERSION = 36;
 const ID = { maxLength: COURSE_DOCUMENT_LIMITS.idCodeUnits };
 
 export interface CoursePosition {
@@ -132,11 +132,12 @@ export type SpriteBodyDocument =
 
 /**
  * One color Strip of a wall: the road's Strip with height in place of lateral. Each knot gives the Strip's `bottom` and
- * `top` (bottom < top) in metres above the road at that station; a null color is transparent.
+ * `top` (bottom < top) in metres above the road at that station. Its color has the road Strip's meanings; a wall has no
+ * material, so a wall Strip never leaves color unchanged and its color is not null.
  */
 interface WallStripDocument {
   readonly kind: 'strip';
-  readonly color: number | null;
+  readonly color: number | 'transparent';
   readonly knots: readonly { readonly at: CoursePosition; readonly bottom: number; readonly top: number }[];
 }
 export type WallStripElementDocument = RepeatElement<WallStripDocument>;
@@ -458,7 +459,7 @@ function wallStrip(value: unknown, path: string): WallStripDocument {
   const height = { min: -COURSE_DOCUMENT_LIMITS.wallHeightMeters, max: COURSE_DOCUMENT_LIMITS.wallHeightMeters };
   return Object.freeze({
     kind: 'strip',
-    color: v.color === null ? null : readRgb555(v.color, `${path}/color`),
+    color: v.color === 'transparent' ? v.color : readRgb555(v.color, `${path}/color`),
     knots: readArray(
       v.knots,
       `${path}/knots`,

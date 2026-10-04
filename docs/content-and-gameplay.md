@@ -26,7 +26,7 @@ whitespace do not affect identity. Normalized records use schema field order and
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 35,
+  format: "superoutride.course", version: 36,
   name, entrySectionId,
   sections, links, assets, rules
 }
@@ -226,8 +226,9 @@ Boundary to cover that interval (`invalid_wall`; an unknown Boundary is `unresol
 says whether vehicles meet it; `thickness`, positive metres, is the width of its ends.
 
 `strips` colors the wall as the road's [Strips](#strips) color the ground, with height in place of lateral: an array of
-`{kind: "strip", color, knots}` and `repeat` elements (`repeat` as for road Strips). `color` is an RGB555 integer or null
-for transparent. Each of at least two knots is `{at, bottom, top}`: Position `at`, and `bottom < top`, metres above the
+`{kind: "strip", color, knots}` and `repeat` elements (`repeat` as for road Strips). `color` is an RGB555 integer or
+`"transparent"`, with the road Strip's meanings; a wall has no material, so a wall Strip cannot leave color unchanged and
+its `color` is never null. Each of at least two knots is `{at, bottom, top}`: Position `at`, and `bottom < top`, metres above the
 road height at that station (negative below it). Knot stations, edge interpolation, repetition, later Strips overwriting
 earlier ones, and the expansion and active-piece ceilings are those of road Strips; every Strip, repeated ones included,
 lies within `[from, to]` (`invalid_wall` for an authored knot, `invalid_position` or `invalid_strip` for a repeated or
@@ -320,6 +321,7 @@ CourseDocument nulls each have one meaning:
 | Strip `material`                 | Leave the earlier material channel unchanged              |
 | Strip knot `left` / `right`      | That edge is open to negative / positive lateral infinity |
 | Sprite `unselectedCarriagewayId` | Ordinary sprite with no exit-selection condition          |
+| Sprite `body`                    | Scenery: vehicles pass through it                         |
 
 ### Numeric and resource domains
 

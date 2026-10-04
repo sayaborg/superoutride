@@ -33,14 +33,14 @@ export interface CompiledWall {
   readonly color: StripGround | null;
 }
 
-/** A wall's Strips as road Strips: each knot's bottom and top are the left and right edges, a null color transparent. */
+/** A wall's Strips as road Strips: each knot's bottom and top are the left and right edges. */
 function roadStrips(elements: readonly WallStripElementDocument[]): StripElementDocument[] {
   return elements.map((element) =>
     element.kind === 'repeat'
       ? { ...element, elements: roadStrips(element.elements) }
       : {
           kind: 'strip',
-          color: element.color ?? 'transparent',
+          color: element.color,
           material: null,
           knots: element.knots.map((knot) => ({ at: knot.at, left: knot.bottom, right: knot.top })),
         },
