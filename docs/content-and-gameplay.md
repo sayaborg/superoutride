@@ -1037,12 +1037,13 @@ margin = max(0, Δs − (L₁ + L₂)/2 − gap − v × responseSeconds)
 target² ≤ v_a² + 2 × a × margin
 ```
 
-so a driver following at the leader's speed keeps the footprint gap `gap + v × responseSeconds`. `escape` is 0 for a
-driver that does not pass. For one that passes it is the least footprint gap from which its steering path from rest
-(at its lateral, in line with the road) into an adjacent lane of the Carriageway it follows passes clear of the vehicle
-ahead side to side and stays clear, or 0 when no adjacent lane does: a driver that passes stops that far behind a
-stopped vehicle, at least `terminalClearance` (2 m), and when the adjacent lane is free it starts and steers into it
-past the stopped vehicle. A driver that does not pass stops `terminalClearance` behind it. The
+so a driver following at the leader's speed keeps the footprint gap `gap + v × responseSeconds`. `escape` applies to a
+driver that passes, and to any driver behind a standing object (which ends its lane, below); for others it is 0. It is
+the least footprint gap from which the driver's steering path from rest (at its lateral, in line with the road) into an
+adjacent lane of the Carriageway it follows passes clear of the vehicle ahead side to side and stays clear, or 0 when
+no adjacent lane does. Such a driver stops that far behind a stopped vehicle, at least `terminalClearance` (2 m), and
+when the adjacent lane is free it starts and steers into it past the stopped vehicle; any other driver stops
+`terminalClearance` behind it. The
 plan is computed once per step, with and without this constraint. Whether a driver changes lanes to pass is an attribute its
 builder gives it (`passes`: whether it changes lanes to pass): rivals' drivers and the player's takeover pass; traffic
 drivers, which Session resolution compiles, do not. When the constraint lowers the planned speed, a driver that passes
@@ -1058,13 +1059,17 @@ braking times its utilization; the player's, for others' checks, is the Session 
 without a vehicle ahead and meets no other vehicle, so reference runs are unchanged.
 
 Where a driver's lane ends, it merges first, passing or not: this is not a pass. A lane ends at the first seam within
-the driver's lookahead across which it does not continue, by the position rule above; the lane to merge toward is the
-lane of its own occurrence that continues into the same lane, and the driver moves toward it one lane at a time. Each
+the driver's lookahead across which it does not continue, by the position rule above, or at a standing object in it
+(one that occupies the lane) nearer than that, whichever comes first. At a seam the lane to merge toward is the lane of
+its own occurrence that continues into the same lane; at a standing object it is the adjacent lane that does not end
+within the lookahead, the lower-numbered one when both qualify, and none when neither does. The driver moves toward it
+one lane at a time. Each
 step that its lane ends ahead, the driver moves to the next lane toward it when that lane is free (the free-lane test
 above) and every driven vehicle behind in it can follow the driver, the plan constraint above with the driver as the
-vehicle ahead at its speed; vehicles in the lanes that continue do not yield. While its lane still ends, the lane's end
-is a terminal of its plan, so it slows to stop `terminalClearance` short of it until it can merge; an appearance in a
-lane that ends plans to stop there the same way. A driver that passes does not move into a lane that ends within its
+vehicle ahead at its speed; vehicles in the lanes that continue do not yield. While its lane still ends at a seam, the
+seam is a terminal of its plan, so it slows to stop `terminalClearance` short of it until it can merge; an appearance in
+a lane that ends there plans to stop the same way. A standing object is the vehicle ahead in the lane it ends, and every
+driver keeps its escape gap behind it, passing or not, so it can still merge from rest. A driver that passes does not move into a lane that ends within its
 lookahead. Where a seam adds lanes, every lane continues as its nearest lane, and only a driver that passes moves into
 an added lane, by the passing rule.
 

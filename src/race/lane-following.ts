@@ -15,8 +15,8 @@ import {
 /**
  * A present vehicle as drivers see it: its route footprint, speed (m/s), travel direction, the lateral it is heading
  * for at its station (`target`: its driver's target lateral, or its own lateral while the player drives it) and the
- * driver driving it (null while the player drives it, and for a standing object). The race writes it; drivers only
- * read.
+ * driver driving it (null while the player drives it, and for a standing object), and whether it is a standing
+ * object. The race writes it; drivers only read.
  */
 export interface VehicleSighting extends RouteFootprint {
   readonly speed: number;
@@ -24,6 +24,8 @@ export interface VehicleSighting extends RouteFootprint {
   readonly heading: number;
   readonly target: number;
   readonly driver: EnvelopeDriver | null;
+  /** Whether it is a standing roadside object. */
+  readonly standing: boolean;
 }
 
 /**
@@ -136,7 +138,8 @@ export function createLaneFollowing(
   };
   /*
    * The vehicle ahead in `lane` for the driver `self`: the nearest one ahead that occupies that lane, or that the
-   * driver's steering path into it meets. A driver that passes keeps its escape gap behind it. Null when none.
+   * driver's steering path into it meets. A driver keeps its escape gap behind it when it passes, or when that vehicle
+   * is a standing object, which ends the lane. Null when none.
    */
   const ahead = (
     self: VehicleSighting,
@@ -154,7 +157,7 @@ export function createLaneFollowing(
     leader.s = nearest.s;
     leader.speed = nearest.speed;
     leader.clearance = (self.length + nearest.length) / 2;
-    leader.escape = self.driver?.passes ? escape(self, intent, lane, nearest) : 0;
+    leader.escape = self.driver?.passes || nearest.standing ? escape(self, intent, lane, nearest) : 0;
     return leader;
   };
   /*
@@ -189,6 +192,29 @@ export function createLaneFollowing(
     leader: (intent: LaneIntent, self: VehicleSighting, sightings: readonly VehicleSighting[]) =>
       ahead(self, intent, intent.lane, sightings),
     followersCanStop,
+    /**
+     * The station of the nearest standing object ahead of the driver `self`, up to station `end`, that occupies `lane`:
+     * where that lane ends for the driver. Null when none.
+     */
+    standingEnd(
+      intent: DriverIntent,
+      lane: number,
+      self: VehicleSighting,
+      sightings: readonly VehicleSighting[],
+      end: number,
+    ) {
+      let nearest: number | null = null;
+      for (const other of sightings)
+        if (
+          other.standing &&
+          other.s > self.s &&
+          other.s <= end &&
+          (nearest === null || other.s < nearest) &&
+          inLane(self, intent, lane, other)
+        )
+          nearest = other.s;
+      return nearest;
+    },
     /**
      * Merge the driver, whose lane ends ahead, one lane toward lane `toward` (the lane that continues where its own
      * ends) when that lane is free and every driven vehicle behind in it can stop for the driver. Returns whether it

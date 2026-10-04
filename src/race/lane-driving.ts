@@ -71,7 +71,17 @@ export function createLaneDriving(options: {
     let sighted = 0;
     roadsideObjects.sight(rearS, frontS + ENVELOPE_DRIVER.lookahead, (s, l, width) => {
       if (sighted === objectSightings.length)
-        objectSightings.push({ s: 0, l: 0, length: 0, width: 0, speed: 0, heading: 0, target: 0, driver: null });
+        objectSightings.push({
+          s: 0,
+          l: 0,
+          length: 0,
+          width: 0,
+          speed: 0,
+          heading: 0,
+          target: 0,
+          driver: null,
+          standing: true,
+        });
       const sighting = objectSightings[sighted++] as { s: number; l: number; width: number; target: number };
       sighting.s = s;
       sighting.l = sighting.target = l;
@@ -89,6 +99,7 @@ export function createLaneDriving(options: {
     heading: 0,
     target: 0,
     driver: null as EnvelopeDriver | null,
+    standing: false,
   };
   const appearanceDomain = { start: 0, end: 0, terminal: null as number | null };
   return Object.freeze({
@@ -96,9 +107,10 @@ export function createLaneDriving(options: {
     observe: () => observe(),
     /**
      * A driver's input this step, for the present vehicle `driven` that its driver drives. Its lane is first carried to
-     * the occurrence it is in. Where that lane ends within its lookahead (`laneEnd`), it first merges one lane toward the
-     * lane that continues there when that lane is free; while its lane still ends, the lane's end is its plan's
-     * terminal, so it slows to stop there short of `terminalClearance` until it can merge. Then its plan, which the
+     * the occurrence it is in. Where that lane ends within its lookahead — at a seam, or at a standing object in it — it
+     * first merges one lane toward the lane that continues there (beside an object, an adjacent lane that does not end)
+     * when that lane is free; while its lane still ends at a seam, the seam is its plan's terminal, so it slows to stop
+     * there short of `terminalClearance` until it can merge, and an object is its vehicle ahead. Then its plan, which the
      * vehicle ahead in its lane constrains, and that plan's input. When the vehicle ahead lowers the plan, a driver that
      * passes moves to the free adjacent lane where its plan allows the most speed, if that beats its own lane by more
      * than the passing margin and that lane does not end ahead, and drives that speed in its new lane (a new lane function,
@@ -111,11 +123,31 @@ export function createLaneDriving(options: {
       const { intent, driver } = driving;
       const s = driven.vehicle.course.s;
       forks.carry(intent, s);
-      const endOf = (lane: number) => {
+      const ahead = s + ENVELOPE_DRIVER.lookahead;
+      // Where `lane` ends within the lookahead: at a seam across which it does not continue, or at a standing object in
+      // it, whichever comes first.
+      const seamEnd = (lane: number) => {
         probe.lane = lane;
         probe.ordinal = intent.ordinal;
         probe.exit = intent.exit;
-        return forks.laneEnd(s, s + ENVELOPE_DRIVER.lookahead, probe);
+        return forks.laneEnd(s, ahead, probe);
+      };
+      const objectEnd = (lane: number, seam: { readonly s: number } | null) =>
+        following.standingEnd(intent, lane, driven.sighting, sightings, seam?.s ?? ahead);
+      const ends = (lane: number) => {
+        const seam = seamEnd(lane);
+        return seam !== null || objectEnd(lane, seam) !== null;
+      };
+      const endOf = (lane: number) => {
+        const seam = seamEnd(lane);
+        const object = objectEnd(lane, seam);
+        if (object === null) return seam && { s: seam.s, merge: seam.merge, seam: true };
+        // A lane a standing object ends is left toward an adjacent lane that does not end, the lower-numbered one first.
+        const lanes = forks.targetCarriageway(s, intent.exit).road.lanes;
+        let merge: number | null = null;
+        for (const candidate of [lane - 1, lane + 1])
+          if (merge === null && candidate >= 0 && candidate < lanes && !ends(candidate)) merge = candidate;
+        return { s: object, merge, seam: false };
       };
       let end = endOf(intent.lane);
       if (end !== null && end.merge !== null && following.merge(intent, driven.sighting, sightings, end.merge)) {
@@ -123,8 +155,8 @@ export function createLaneDriving(options: {
         driven.sighting.target = driving.target(driven.sighting.s);
         end = endOf(intent.lane);
       }
-      const laneEnd = end?.s ?? null;
-      const planned = laneEnd === null ? domain : drivingDomainBefore(domain, laneEnd, laneDomain);
+      // A seam where the lane ends is a terminal of the plan; a standing object is the vehicle ahead in the lane.
+      const planned = end?.seam ? drivingDomainBefore(domain, end.s, laneDomain) : domain;
       const plan = planEnvelopeDriving(
         road,
         driven.vehicle,
@@ -135,14 +167,14 @@ export function createLaneDriving(options: {
         following.leader(intent, driven.sighting, sightings),
       );
       let targetSpeed = plan.target;
-      if (plan.target < plan.free && driver.passes && laneEnd === null) {
+      if (plan.target < plan.free && driver.passes && end === null) {
         const moved = following.moveOver(
           intent,
           driven.sighting,
           sightings,
           plan.target,
           (leader) => envelopeSpeedBehind(driven.vehicle, driver, driving.workspace, plan.free, leader),
-          (lane) => endOf(lane) !== null,
+          ends,
         );
         if (moved !== null) {
           driving.target = (station: number) => forks.targetL(station, intent);

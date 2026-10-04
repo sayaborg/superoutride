@@ -130,8 +130,8 @@ planning, following, lane choice and merging, pedals and steering. It rises by o
 driver's input for the same vehicle state and observations, whether the change is to a value or to that law, and with
 every field added to or removed from the record; a change that leaves every input the same keeps it. The reference
 driver's identity (`REFERENCE_DRIVER_SHA256`) contains it. It is 10: since version 8, one implementation of the vehicle ahead,
-lane occupancy and stopping followers, the steering path that decides the vehicle ahead, the escape gap (9), and the
-surface grip drivers plan with (10).
+lane occupancy and stopping followers, the steering path that decides the vehicle ahead, the escape gap (9), the
+surface grip drivers plan with (10), and standing objects that end a lane (11).
 
 ## Camera settings
 
