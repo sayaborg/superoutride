@@ -290,6 +290,7 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
       lifecycle.camera,
       observations.player.brakeLampOn ? sprites.on : sprites.off,
       others,
+      observations.knocked,
       measurements,
     );
     const renderMilliseconds = performanceHud ? performance.now() - renderStarted : 0;

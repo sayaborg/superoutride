@@ -120,6 +120,13 @@ for (const stem of ['ribbon-coast', 'ribbon-fork', 'ribbon-ring']) {
         ? [
             // On RIBBON COAST's first straight the player steers into the left course limit, which pushes it back.
             { name: 'course limit pushes back', policy: 'limit', steering: -0.12, steerSeconds: 4, seconds: 14 },
+            // In coast-fast the player drives through the cone row in the outermost right lane (Section 1000–1090).
+            {
+              name: 'through the cone row',
+              policy: 'cones',
+              detour: { start: 7640.3 + 880, end: 7640.3 + 1100, l: 5.25 },
+              seconds: 240,
+            },
           ]
         : []),
       ...sessionRules,

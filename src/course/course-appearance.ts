@@ -45,6 +45,8 @@ export interface CourseAppearance {
     readonly at: CompiledCoursePosition;
     readonly l: number;
     readonly groundOffset: number;
+    /** A movable placement's pictures while flying and once landed, in its palette; null for any other. */
+    readonly knocked: { readonly airborne: CourseSpriteResource; readonly landed: CourseSpriteResource } | null;
   }[];
   /** The visible walls, in authored order; invisible walls draw nothing. */
   readonly walls: readonly CourseWallAppearance[];

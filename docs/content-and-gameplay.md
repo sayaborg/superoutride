@@ -18,7 +18,7 @@ color and material overwrite independently. Compiled Sections publish their two 
 Checkpoints, starts, finishes and environment changes are independent of Section boundaries.
 Source identity, traversal identity and race credit are distinct.
 
-## CourseDocument v34
+## CourseDocument v35
 
 The saved format is compact UTF-8 JSON. All declared fields are required; explicit null represents
 absent optional content. Unknown fields fail. Arrays preserve saved order; object-property order and
@@ -113,9 +113,13 @@ Each expanded placement resolves `lateral` at its own s, so repetitions follow r
 Compilation shares one immutable resource for each image/palette-name pair across Sections; the
 renderer borrows the compiled decoded image and materializes one palette variant per resource. Sprites have no authored identity.
 
-`body` is null for scenery vehicles pass through (grass, bushes) or `{width}`, a positive width in metres: the placement
-is then a solid object ([Fixed objects](#fixed-objects)). Compilation rejects a width wider than the image's world width
-(its master width at 40 texels/m) and a body on a state-selected sign (`invalid_placement`).
+`body` is null for scenery vehicles pass through (grass, bushes), `{width}`, a positive width in metres, for a fixed solid
+object, or `{width, mass, launchDegrees, knocked: {airborne, landed}}` for a movable one ([Roadside
+objects](#roadside-objects)): `mass` in kilograms (positive, up to `objectMassKilograms`), `launchDegrees` the elevation a
+hit throws it at (0 or more, under 90), and `airborne` and `landed` the sprite images in the course `assets` it shows while
+flying and once landed, drawn in the placement's palette (they may name one image twice). Compilation rejects a width
+wider than the image's world width (its master width at 40 texels/m) and a body on a state-selected sign
+(`invalid_placement`); the appearance compiler resolves the knocked images like the placement's own.
 
 `unselectedCarriagewayId` is null for ordinary sprites or names, by id, a canonical exit Carriageway of the
 Section's fork. Compiled appearance keeps that id, never a physical Carriageway object. A state-selected sign
@@ -246,16 +250,29 @@ A guardrail is authored as a visible solid wall at the road side, joined to the 
 solid walls on slanted Boundaries running from the outer material edge to the guardrail's line, so no vehicle can get
 behind it. This is an authoring convention; compilation does not check where a solid wall's ends lie.
 
-### Fixed objects
+### Roadside objects
 
-Compilation publishes each Section's fixed objects, a physical product apart from appearance, in station order: each
-`{s, l, width, bottom, top}`, a solid width across the road at station `s` and lateral `l`, with no depth along it, from
-height `bottom` to `top`. A solid sprite, every expanded placement with a body, is one: its body's width, from the road
-height plus `groundOffset` up its image's world height (read from the image once, at compilation). Each free end of a
+Compilation publishes each Section's solid objects, a physical product apart from appearance, in station order: each
+`{s, l, width, bottom, top, sprite, movable}`, a solid width across the road at station `s` and lateral `l`, with no depth
+along it, from height `bottom` to `top`. A solid sprite, every expanded placement with a body, is one: its body's width,
+from the road height plus `groundOffset` up its image's world height (read from the image once, at compilation);
+`sprite` is its placement's index among the Section's expanded sprites, the identity race and appearance share, and
+`movable` holds a movable body's mass and launch elevation (null for a fixed one). Each free end of a
 solid wall is another: at the wall's `from` and `to`, the wall's `thickness` wide and of unlimited height. An end is not
 free, and makes no object, when it lies on another barrier line within `OPEN_EDGE_TOLERANCE_METERS`: a course limit, or
 another solid wall from its `from` through its `to`, ends included; compilation decides this once. A wall that is not
-solid has no end objects. Vehicles meet fixed objects as they meet each other ([Body contact](#body-contact)).
+solid has no end objects (`sprite` and `movable` are null). Vehicles meet standing objects as they meet each other
+([Body contact](#body-contact)).
+
+The race keeps the knocked movable objects, keyed by Section and placement index, so a Section met again keeps them
+knocked; a standing object has no state. In the step a vehicle pushes a movable object it is knocked: it takes the
+opposite of the push on the vehicle as its horizontal force, and an upward force of that force times
+`tan(launchDegrees)`, as the velocity change of that one step, and its contacts end. Flying, it is a point under gravity
+alone (`VEHICLE_GRAVITY`) on its route position and height, at constant horizontal speed, stepped with the fixed step;
+walls, limits and other objects do not act on it. In the step its height reaches the road height at its station it
+lands: it stays there, no longer solid, for the rest of the Session, outside the Route or off any material included. The
+race publishes each knocked object's Section, placement index, state (flying or landed) and place: its route position
+and height while flying, and once landed the Section and Section coordinates it lies at.
 
 ### Section gates and Session settings
 
@@ -363,6 +380,7 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | `lengthMeters` (chainage, signed offsets, radii and lengths)            |            42000 m | 21 km × 2                                                                                                                                                                 |
 | `coordinateMeters`                                                      |         ±1000000 m | Retains 100 km native-coordinate origin allowance × 10                                                                                                                    |
 | `lateralMeters` / `heightMeters`                                        |   ±1000 / ±10000 m | 100 m lateral span / 1000 m elevation envelope, each × 10                                                                                                                 |
+| Movable object `objectMassKilograms`                                    |           10000 kg | A 5 t concrete barrier × 2                                                                                                                                                |
 | `imageEncodedBytes` / `imageMasterTexels` per image                     |    8 MiB / 1048576 | Retained 1024² master allowance; up to 8 encoded bytes/master texel                                                                                                       |
 | Unique course images `imageTotalEncodedBytes` / `imageTotalLevelTexels` | 128 MiB / 33554432 | 928 image types averaging 128×64 master texels, ×4/3 mip texels, ×2 margin; allow 4 encoded bytes/level texel, round up                                                   |
 
@@ -496,8 +514,8 @@ clock state belong to Sessions. Object identity is local to a compilation; cross
 `sourceSha256` and `materialsSha256` are the delivered SHA-256 of the course document and the
 surface-material document, the [document identity](#reference-times-and-clock) the catalog supplies.
 `buildSha256` hashes `{sourceSha256,materialsSha256,compiler}`.
-The compiler is `superoutride.course-compiler` version 41, incorporating Link recipe v3, physical
-recipe v7, image-source recipe v2 and appearance recipe v13. Source, material or compiler/recipe
+The compiler is `superoutride.course-compiler` version 42, incorporating Link recipe v3, physical
+recipe v8, image-source recipe v2 and appearance recipe v14. Source, material or compiler/recipe
 changes invalidate dependent products.
 
 Image inputs are explicit saved bytes addressed by each declared SHA-256. Shared digests resolve to
@@ -1042,9 +1060,10 @@ horizontal world direction of the face's axis, the road's tangent or its right, 
 equal magnitude and opposite sign on the two vehicles, on the overlap along the face; its approach speed is their
 relative world velocity along that direction. The spring-damper uses the Session driving definition's `bodyContact` (the player's vehicle model).
 
-A fixed object meets every vehicle present by the same rule, as a party of zero length and its width at its route
-position, with its height range, that never moves: its position one step earlier is its position, the reduced mass is
-the vehicle's mass, and only the vehicle receives the force. Its contact is first met where the object lies within the
+A standing object meets every vehicle present by the same rule, as a party of zero length and its width at its route
+position, with its height range, at rest: its position one step earlier is its position. A fixed object never moves, so
+the reduced mass is the vehicle's and only the vehicle receives the force. A movable one's reduced mass comes from the
+two masses, and the push knocks it ([Roadside objects](#roadside-objects)). Its contact is first met where the object lies within the
 vehicle's length in the Route occurrence at the vehicle's centre, keyed by the vehicle's id and the object's occurrence
 and index, and is then followed until the pair separates. Near a solid wall's free end both the wall's line and the end
 object can push a vehicle; their forces add.
@@ -1096,7 +1115,7 @@ recovers the vehicle on that step, and returning inside resets it. Recovery is n
 
 Route recovery backs off from the farther of causal current chainage and last-safe chainage
 ([Vehicle physics](vehicle-physics.md#airborne-state-and-recovery)). The race owns target resolution: its
-recovery placement (its target lateral from the fork field's `recoveryL`, behind any vehicle or fixed object in the
+recovery placement (its target lateral from the fork field's `recoveryL`, behind any vehicle or standing object in the
 way, see [Body contact](#body-contact)) is passed to recovery separately from the policy: a driven
 competitor recovers to its driving target (`targetL`, the centre of its lane); the player, which has no driver intent,
 recovers to the centre of the selected Carriageway, else of the Carriageway existing there.
@@ -1148,8 +1167,10 @@ end, in three rock bands following the top, with two single patches of other roc
 The falling cliff is a wall for looks only, 1 m thick, dropping 40 m below the road on the right shoulder edge in two rock
 bands; the outer material narrows to that edge over 30 m before and after it, so the right side has no course limit
 there and nothing is drawn beyond it. The free-standing wall is solid, 0.5 m thick and 1 m high, parallel to the road and
-joined to nothing, so both its ends are fixed objects. In `town` every tree (0.6 m) and sign (0.4 m) is solid; every
-other sprite on the course has no body.
+joined to nothing, so both its ends are fixed objects. In `town` every tree (0.6 m) and sign (0.4 m) is solid. In
+`coast-fast` ten cones (0.3 m wide, 3 kg, launched at 10°) stand 10 m apart from 1000 to 1090 at l = 5.25, the centre of
+the outermost right lane, and one barricade (1.5 m, 50 kg, 8°) at 1800, l = −5.25; their images and launch elevations
+are provisional. Every other sprite on the course has no body.
 
 ## Evaluation test course
 

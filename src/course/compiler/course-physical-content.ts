@@ -5,7 +5,7 @@ import { requireCourse } from '../course-diagnostics.js';
 
 export const COURSE_PHYSICAL_RECIPE = Object.freeze({
   id: 'superoutride.course-physical',
-  version: 7,
+  version: 8,
 });
 
 /** Static compilation resolves authored physics once; no default height or implicit height. */

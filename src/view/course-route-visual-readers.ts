@@ -57,14 +57,15 @@ export function createCourseRouteVisualReaders(route: RouteWindow) {
     Object.freeze(ground);
     const placements = mapped.flatMap(({ occurrence, native }) =>
       native.sprites
+        .map((entry, index) => ({ ...entry, index }))
         .filter(({ sprite }) => route.at(routeS(occurrence, sprite.sRender)) === occurrence)
-        .map(({ sprite, unselectedCarriagewayId }) => {
+        .map(({ sprite, unselectedCarriagewayId, knocked, index }) => {
           const positioned = Object.freeze({
             ...sprite,
             ...transformPlanarPoint(occurrence.worldFromSection, sprite),
             sRender: routeS(occurrence, sprite.sRender),
           });
-          return { occurrence, sprite: positioned, unselectedCarriagewayId };
+          return { occurrence, sprite: positioned, unselectedCarriagewayId, movable: knocked !== null, index };
         }),
     );
     // Each occurrence's visible walls on the route ruler; the lateral reads the Boundary in its Section and the color
@@ -87,7 +88,15 @@ export function createCourseRouteVisualReaders(route: RouteWindow) {
     return Object.freeze({
       ground,
       walls: Object.freeze(walls),
-      worldSprites: Object.freeze(placements.filter((p) => p.unselectedCarriagewayId === null).map((p) => p.sprite)),
+      worldSprites: Object.freeze(
+        placements.filter((p) => p.unselectedCarriagewayId === null && !p.movable).map((p) => p.sprite),
+      ),
+      // Movable placements stand until the race knocks them; the scene shows each by its Section and placement index.
+      movableSprites: Object.freeze(
+        placements
+          .filter((p) => p.movable)
+          .map((p) => ({ section: p.occurrence.section, index: p.index, sprite: p.sprite })),
+      ),
       // State-selected signs keep their fork occurrence; the scene shows them from that occurrence's choice.
       conditionalSprites: Object.freeze(
         placements
@@ -98,6 +107,10 @@ export function createCourseRouteVisualReaders(route: RouteWindow) {
             sprite: p.sprite,
           })),
       ),
+      /** A movable placement's flying and landed pictures, by its Section and placement index. */
+      knockedPictures(section: CompiledSection, index: number) {
+        return sectionReaders(section).sprites[index]!.knocked!;
+      },
       backgroundAt(s: number) {
         const occurrence = route.at(s) ?? (s < route.start ? occurrences[0]! : occurrences.at(-1)!);
         const mappedSection = mappedByOccurrence.get(occurrence)!;

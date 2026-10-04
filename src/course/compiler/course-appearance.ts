@@ -13,7 +13,7 @@ import { stripEdgeAt } from '../strip-slabs.js';
 import type { CompiledWall } from './course-walls.js';
 import type { CompiledCourseImageSource } from './course-image-source.js';
 
-export const COURSE_APPEARANCE_RECIPE = Object.freeze({ id: 'superoutride.course-appearance', version: 13 });
+export const COURSE_APPEARANCE_RECIPE = Object.freeze({ id: 'superoutride.course-appearance', version: 14 });
 
 /** A visible wall's picture: its color ground and the height range its opaque Strips span. */
 function compileWallAppearance(wall: CompiledWall & { readonly color: StripGround }): CourseWallAppearance {
@@ -160,6 +160,23 @@ export function compileCourseAppearance(
         'resource_limit',
       );
       const instance = resource(image(placement.image, `${at}/image`), placement.palette, `${at}/palette`);
+      // A movable placement's knocked pictures share its palette.
+      const body = placement.body;
+      const knocked =
+        body !== null && 'mass' in body
+          ? Object.freeze({
+              airborne: resource(
+                image(body.knocked.airborne, `${at}/body/knocked/airborne`),
+                placement.palette,
+                `${at}/palette`,
+              ),
+              landed: resource(
+                image(body.knocked.landed, `${at}/body/knocked/landed`),
+                placement.palette,
+                `${at}/palette`,
+              ),
+            })
+          : null;
       const unselectedCarriagewayId = placement.unselectedCarriagewayId;
       const unselected =
         unselectedCarriagewayId === null ? null : carriageways.find((c) => c.id === unselectedCarriagewayId);
@@ -193,6 +210,7 @@ export function compileCourseAppearance(
           at: position,
           l: resolveCourseLateral(placement.lateral, position.s, boundaries, `${at}/lateral`),
           groundOffset: placement.groundOffset,
+          knocked,
         }),
       );
     },

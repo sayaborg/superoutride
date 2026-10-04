@@ -14,6 +14,8 @@ import type { CourseSprite } from './course-sprite.js';
 import type { VehicleSpriteSet } from '../vehicle/vehicle-sprite-set.js';
 import { createCourseWorld } from '../race/course-world.js';
 import type { CourseLoadingWindow } from '../race/loading-coverage.js';
+import type { KnockedObjectObservation } from '../race/object-contacts.js';
+import { createPlanCoordinateSample } from '../course/geometry/plan-coordinate.js';
 
 /** The current camera's loading window; reference driving and scenarios load the same Route. */
 const COURSE_LOADING_WINDOW: CourseLoadingWindow = Object.freeze({
@@ -34,6 +36,7 @@ export function createCourseScene(
   rendering.read();
   const renderWorkspace = createRenderWorkspace();
   const worldSprites: CourseSprite[] = [];
+  const sample = createPlanCoordinateSample();
   let lastRenderData: ReturnType<typeof rendering.read> | null = null;
   let lastSelection: typeof runtime.route.occurrences | null = null;
   let staticSpriteCount = 0;
@@ -49,6 +52,8 @@ export function createCourseScene(
       camera: CameraState,
       playerSet: VehicleSpriteSet,
       others: readonly CourseSprite[],
+      /** The race's knocked movable objects; every other movable placement stands. */
+      knocked: readonly KnockedObjectObservation[],
       /** DEV and tools only: receives the frame's measurements. */
       measurements: RenderMeasurements | null = null,
     ) {
@@ -77,6 +82,24 @@ export function createCourseScene(
         lastSelection = selection;
       }
       worldSprites.length = staticSpriteCount;
+      const down = knocked.length ? new Set(knocked.map((k) => `${k.section.id} ${k.sprite}`)) : null;
+      for (const movable of renderData.movableSprites)
+        if (!down?.has(`${movable.section.id} ${movable.index}`)) worldSprites.push(movable.sprite);
+      for (const k of knocked) {
+        const pictures = renderData.knockedPictures(k.section, k.sprite);
+        const show = (s: number, l: number, asset: CourseSprite['asset']) => {
+          const position = readers.coordinates.toWorld(s, l, sample);
+          worldSprites.push({ name: asset.name, x: position.x, y: k.y, z: position.z, sRender: s, asset });
+        };
+        if (k.state === 'airborne') {
+          if (runtime.window.at(k.s)) show(k.s, k.l, pictures.airborne);
+          continue;
+        }
+        // A landed object lies at its place in every resident occurrence of its Section.
+        for (const occurrence of runtime.window.occurrences)
+          if (occurrence.section === k.at!.section && runtime.window.at(occurrence.start + k.at!.s) === occurrence)
+            show(occurrence.start + k.at!.s, k.at!.l - occurrence.lateralOrigin, pictures.landed);
+      }
       for (const sprite of others) worldSprites.push(sprite);
       return renderDriving(
         target,

@@ -47,6 +47,10 @@ export function createCourseRenderResources() {
           Object.freeze({
             l: placement.l,
             unselectedCarriagewayId: placement.unselectedCarriagewayId,
+            knocked: placement.knocked && {
+              airborne: instanceImage(placement.knocked.airborne),
+              landed: instanceImage(placement.knocked.landed),
+            },
             sprite: Object.freeze(
               compileCourseSprite(geometry, height, {
                 name: placement.instance.asset.image.name,

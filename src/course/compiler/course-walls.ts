@@ -7,7 +7,7 @@ import type {
 import { courseBoundaryAt, courseBoundarySlopeAt, type CompiledBoundary } from '../course-boundaries.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
 import type { CourseBarrierLine } from '../course-barriers.js';
-import type { CourseFixedObject } from '../course-objects.js';
+import type { CourseObject } from '../course-objects.js';
 import { CourseInputError, requireCourse } from '../course-diagnostics.js';
 import { materialOuterEdges } from '../course-coordinate-domain.js';
 import type { StripMaterial } from '../strip-material.js';
@@ -107,11 +107,8 @@ export function compileCourseWalls(
  * unlimited height, except where that end lies on another barrier line — a course limit or another solid wall, from its
  * start through its end — within `OPEN_EDGE_TOLERANCE_METERS`. `lines` are the barriers, the solid walls first in order.
  */
-export function compileWallEnds(
-  walls: readonly CompiledWall[],
-  lines: readonly CourseBarrierLine[],
-): CourseFixedObject[] {
-  const ends: CourseFixedObject[] = [];
+export function compileWallEnds(walls: readonly CompiledWall[], lines: readonly CourseBarrierLine[]): CourseObject[] {
+  const ends: CourseObject[] = [];
   walls
     .filter((wall) => wall.source.solid)
     .forEach((wall, own) => {
@@ -124,7 +121,18 @@ export function compileWallEnds(
             s <= line.end &&
             Math.abs(line.lateralAt(s) - l) <= OPEN_EDGE_TOLERANCE_METERS,
         );
-        if (!joined) ends.push(Object.freeze({ s, l, width: wall.source.thickness, bottom: -Infinity, top: Infinity }));
+        if (!joined)
+          ends.push(
+            Object.freeze({
+              s,
+              l,
+              width: wall.source.thickness,
+              bottom: -Infinity,
+              top: Infinity,
+              sprite: null,
+              movable: null,
+            }),
+          );
       }
     });
   return ends;

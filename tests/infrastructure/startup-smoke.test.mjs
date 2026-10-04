@@ -41,14 +41,14 @@ for (const { id: stem } of content.manifest.files.filter((file) => file.kind ===
       const camera = updateCamera(rig, scene.world, vehicle, CAMERA_DEFINITION);
       target.pixels.fill(0);
       const result = createRenderMeasurements();
-      scene.render(target, vehicle, camera, sprites.off, [], result);
+      scene.render(target, vehicle, camera, sprites.off, [], [], result);
       assert.ok(result.stripGround.outputPixels > 0);
       const before = JSON.stringify(vehicle),
         occurrences = scene.runtime.window.occurrences,
         view = scene.runtime.readers;
       for (const method of STRIP_RENDER_METHODS) {
         settings.setStripMethod(method);
-        scene.render(target, vehicle, camera, sprites.off, [], result);
+        scene.render(target, vehicle, camera, sprites.off, [], [], result);
         assert.equal(result.stripGround.method, method);
         assert.equal(JSON.stringify(vehicle), before);
         assert.equal(scene.runtime.window.occurrences, occurrences);

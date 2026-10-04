@@ -8,7 +8,7 @@ import type { CompiledCoursePosition, CompiledPlanSegment } from '../course-geom
 import type { CompiledBoundary, CompiledCarriageway } from '../course-boundaries.js';
 import type { StripMaterial } from '../strip-material.js';
 import type { CourseBarrierLine } from '../course-barriers.js';
-import type { CourseFixedObject } from '../course-objects.js';
+import type { CourseObject } from '../course-objects.js';
 
 /** Canonical reusable node, including back-references. Topology may intentionally cycle. */
 export interface CompiledSection {
@@ -22,8 +22,8 @@ export interface CompiledSection {
   readonly material: StripMaterial;
   /** The lines vehicles cannot cross: solid walls and the course limits. */
   readonly barriers: readonly CourseBarrierLine[];
-  /** Fixed solid objects — solid sprites and free wall ends — in station order. */
-  readonly objects: readonly CourseFixedObject[];
+  /** Solid objects — solid sprites, fixed or movable, and free wall ends — in station order. */
+  readonly objects: readonly CourseObject[];
   readonly carriageways: readonly CompiledCarriageway[];
   readonly assets: readonly CompiledCourseImageSource[];
   readonly appearance: CourseAppearance | null;

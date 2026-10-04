@@ -207,6 +207,8 @@ export function runScenario({ course, arcade: scenarioArcade, productArcade, bud
           (courseBoundaryAt(road.left, nativeS) + courseBoundaryAt(road.right, nativeS)) / 2 - occurrence.lateralOrigin
         );
     }
+    // The cones policy leaves the reference line for the scenario's lateral over its stretch of the Route.
+    if (scenario.policy === 'cones' && s >= scenario.detour.start && s <= scenario.detour.end) return scenario.detour.l;
     return line(s);
   };
   const entryPose = scene.world.coordinates.toWorld(0, 0, { x: 0, z: 0, s: 0, l: 0, heading: 0 });
@@ -221,6 +223,7 @@ export function runScenario({ course, arcade: scenarioArcade, productArcade, bud
       camera,
       observed.player.brakeLampOn ? visual.on : visual.off,
       sprites([...observed.rivals, ...observed.traffic], camera),
+      observed.knocked,
     );
     evidence.frames++;
   };
@@ -429,6 +432,13 @@ export function runScenario({ course, arcade: scenarioArcade, productArcade, bud
     )
       render();
     if (ending && tick - ending.tick < (scenario.afterEndingSeconds ?? 0) / SIM_DT) continue;
+    // The cones policy ends once past its stretch, the knocked objects all landed.
+    if (
+      scenario.policy === 'cones' &&
+      vehicle.course.s > scenario.detour.end &&
+      race.observe().knocked.every((k) => k.state === 'landed')
+    )
+      break;
     if (
       ended ||
       ((scenario.policy === 'reverse' ||
@@ -442,6 +452,17 @@ export function runScenario({ course, arcade: scenarioArcade, productArcade, bud
   const held = scenario.policy === 'departure' || scenario.policy === 'limit';
   if (!held) assert.ok(tick < maxTicks, `${scenario.name}: did not reach its outcome: ${JSON.stringify(evidence)}`);
   if (scenario.policy === 'reverse') assert.ok(evidence.outsideEntry, 'never backed beyond the entry');
+  if (scenario.policy === 'cones') {
+    // Evidence: how many objects the player knocked and where they landed (Section stations and laterals).
+    const knocked = race.observe().knocked;
+    assert.ok(knocked.length > 0, 'knocked no object');
+    const range = (values) => [Math.min(...values), Math.max(...values)].map((v) => Math.round(v * 100) / 100);
+    evidence.knocked = {
+      count: knocked.length,
+      landedS: range(knocked.map((k) => k.at.s)),
+      landedL: range(knocked.map((k) => k.at.l)),
+    };
+  }
   if (held) {
     assert.equal(evidence.recoveries.length, 0, 'a course limit let the player leave the course');
     assert.ok(!evidence.outsideDomain, 'left the coordinate domain');

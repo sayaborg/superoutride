@@ -44,7 +44,7 @@ import {
 import { SIM_DT } from './fixed-step.js';
 import { routeS, routeSectionS } from '../course/course-route.js';
 import { createBarrierContacts } from './barrier-contacts.js';
-import { createObjectContacts, firstObjectFrom } from './object-contacts.js';
+import { createRoadsideObjects, firstObjectFrom, type KnockedObjectObservation } from './object-contacts.js';
 import type { createRouteRuntime } from './route-runtime.js';
 
 type RouteRuntime = ReturnType<typeof createRouteRuntime>;
@@ -255,8 +255,15 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     playerActor.model.bodyContact,
     SIM_DT,
   );
-  // Fixed objects push every present vehicle back as a vehicle would, without moving.
-  const objectContacts = createObjectContacts(runtime.window, contactFaces);
+  // Standing roadside objects push every present vehicle back as a vehicle would; movable ones are knocked away.
+  const roadsideObjects = createRoadsideObjects({
+    route: runtime.window,
+    coordinates: runtime.readers.coordinates,
+    height: runtime.readers.height,
+    extent: runtime.readers.extent,
+    faces: contactFaces,
+    step: SIM_DT,
+  });
   const footprint = (model: VehicleModel, s: number, l: number): RouteFootprint => ({
     s,
     l,
@@ -285,7 +292,10 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     for (let i = firstObjectFrom(objects, native.s - at.length / 2); i < objects.length; i++) {
       const object = objects[i]!;
       if (object.s > native.s + at.length / 2) break;
-      if (footprintsOverlap(native, { s: object.s, l: object.l, length: 0, width: object.width }))
+      if (
+        roadsideObjects.standing(occurrence, i) &&
+        footprintsOverlap(native, { s: object.s, l: object.l, length: 0, width: object.width })
+      )
         return { s: routeS(occurrence, object.s), length: 0 };
     }
     return null;
@@ -553,10 +563,13 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     readonly rivals: readonly CompetitorObservation[];
     /** Traffic observations, separate from the competitors'. */
     readonly traffic: readonly CompetitorObservation[];
+    /** The movable objects knocked so far, flying or landed, in the order they were knocked. */
+    readonly knocked: readonly KnockedObjectObservation[];
   } = {
     player: playerObservation,
     rivals: visible,
     traffic: visibleTraffic,
+    knocked: roadsideObjects.knocked,
   };
   publish();
   // Borrowed fixed-step observation; the camera owner consumes it before the next advance.
@@ -640,7 +653,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     contactFaces.beginStep();
     bodyContacts(bodies);
     barrierContacts(bodies);
-    objectContacts(bodies);
+    roadsideObjects.contacts(bodies);
     move(active[0]!, playerInput);
     for (let i = 1; i < active.length; i += 1) {
       const motion = active[i]!;
@@ -653,6 +666,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     }
     // Traffic drives as rivals do; it never selects a route, and recovery keeps it legal like any vehicle.
     trafficField.advance(drive, legalRecovery);
+    roadsideObjects.advance();
     forks.observe(active);
     for (const motion of active) {
       minS = Math.min(minS, motion.c.actor.vehicle.course.s);

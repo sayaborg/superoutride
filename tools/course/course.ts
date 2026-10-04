@@ -130,7 +130,7 @@ try {
           target = createLogicalFrame();
         const stats = createRenderMeasurements(),
           png = new PNG({ width: target.width, height: target.height });
-        scene.render(target, vehicle, camera, sprites.off, [], stats);
+        scene.render(target, vehicle, camera, sprites.off, [], [], stats);
         const rgba = new Uint32Array(target.pixels.length);
         expandRgb555Pixels(target.pixels, rgba);
         png.data = Buffer.from(rgba.buffer);
