@@ -30,7 +30,7 @@ export interface LaneIntent extends DriverIntent {
 /**
  * Lane following for drivers, over the race's read-only sightings of the present vehicles. The vehicle ahead in a
  * driver's lane constrains its plan; when that constraint lowers the driver's planned speed, the driver moves to the
- * free adjacent lane where its plan allows the most speed, if that beats its own lane by more than the speed deadzone,
+ * free adjacent lane where its plan allows the most speed, if that beats its own lane by more than the passing margin,
  * and otherwise follows within its lane.
  */
 export function createLaneFollowing(forks: {
@@ -107,7 +107,7 @@ export function createLaneFollowing(forks: {
     /**
      * Move the driver, whose plan behind its own lane's vehicle allows `target`, to the free adjacent lane of the
      * Carriageway it follows where its plan allows the most speed (`speedBehind` of that lane's vehicle ahead), when that
-     * exceeds `target` by more than the speed deadzone; the left one on a tie. A lane that `ends` ahead does not qualify.
+     * exceeds `target` by more than the passing margin; the left one on a tie. A lane that `ends` ahead does not qualify.
      * Returns the speed its plan allows in the new lane, or null when no lane qualifies.
      */
     moveOver(
@@ -121,7 +121,7 @@ export function createLaneFollowing(forks: {
       const lanes = forks.targetCarriageway(self.s, intent.exit).road.lanes;
       const lane = Math.min(intent.lane, lanes - 1);
       let best = -1,
-        bestSpeed = target + ENVELOPE_DRIVER.speedDeadzone;
+        bestSpeed = target + ENVELOPE_DRIVER.passingMargin;
       for (const candidate of [lane - 1, lane + 1]) {
         if (candidate < 0 || candidate >= lanes || ends(candidate) || !free(self, intent, candidate, sightings))
           continue;

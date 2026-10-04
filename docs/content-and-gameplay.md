@@ -1004,7 +1004,7 @@ drivers, which Session resolution compiles, do not. When the constraint lowers t
 weighs each free adjacent lane of the Carriageway it follows by the speed its plan allows there: its plan without a
 vehicle ahead, behind that lane's vehicle ahead under the same constraint (the current lane's curve speeds serve, since
 adjacent lanes differ little in them). It moves to the lane allowing the most, the left one on a tie, when that exceeds
-its constrained plan by more than `speedDeadzone`, and drives that speed in its new lane. It stays
+its constrained plan by more than `passingMargin` (0.15 m/s), and drives that speed in its new lane. It stays
 in its lane until another lane is faster by that margin. A lane is free when no
 vehicle in it lies between the driver's following distance ahead, `(L₁ + L₂)/2 + v × followSeconds`, and, behind,
 half the two lengths plus that vehicle's speed times `followSeconds`. With no faster free lane, or when it does not
@@ -1128,17 +1128,18 @@ no progress, then a fresh player observation.
 The fixed recovery policy is one immutable record (`RECOVERY_POLICY`) shared by every competitor; it holds
 rules only, no live state or target resolution:
 
-| Policy value         | Value  | Meaning                                                                           |
-| -------------------- | ------ | --------------------------------------------------------------------------------- |
-| `holdSteps`          | 44     | Consecutive fixed steps a condition holds before recovery (44 × 1/60 s ≈ 0.733 s) |
-| `backtrackDistance`  | 8 m    | Route distance recovery backs off; loading coverage reads it                      |
-| `minRecoverySpeed`   | 18 m/s | Lower bound of the recovery speed                                                 |
-| `maxRecoverySpeed`   | 32 m/s | Upper bound of the recovery speed                                                 |
-| `speedRetention`     | 0.58   | Share of forward speed kept, before the bounds                                    |
-| `placementClearance` | 1 m    | Gap left behind the competitor a recovered vehicle is placed behind               |
+| Policy value         | Value    | Meaning                                                                           |
+| -------------------- | -------- | --------------------------------------------------------------------------------- |
+| `holdSteps`          | 44       | Consecutive fixed steps a condition holds before recovery (44 × 1/60 s ≈ 0.733 s) |
+| `blockedSpeed`       | 0.15 m/s | Speed below which a vehicle held against a fixed object counts as stopped         |
+| `backtrackDistance`  | 8 m      | Route distance recovery backs off; loading coverage reads it                      |
+| `minRecoverySpeed`   | 18 m/s   | Lower bound of the recovery speed                                                 |
+| `maxRecoverySpeed`   | 32 m/s   | Upper bound of the recovery speed                                                 |
+| `speedRetention`     | 0.58     | Share of forward speed kept, before the bounds                                    |
+| `placementClearance` | 1 m      | Gap left behind the competitor a recovered vehicle is placed behind               |
 
 A vehicle's recovery state counts consecutive outside-domain steps, and consecutive steps held against a fixed object
-below the driver speed deadzone (`blocked`, for every vehicle present; the race reports the fixed objects' pushes from
+below `blockedSpeed` (`blocked`, for every vehicle present; the race reports the fixed objects' pushes from
 the step's contacts), each as an integer; reaching `holdSteps` recovers the vehicle on that step, by the ordinary
 placement and speed rules, and returning inside, or the contact ending or the speed rising, resets that count. Movable
 objects, barrier lines and other vehicles never count. Recovery is not a Session rule.

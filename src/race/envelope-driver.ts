@@ -16,7 +16,10 @@ export const ENVELOPE_DRIVER = Object.freeze({
   responseSeconds: 0.45,
   /** Metres: the distance a driver leaves before a terminal, or behind the vehicle ahead, when it stops. */
   terminalClearance: 2,
+  /** m/s: the pedal deadzone around the target speed; a target within it of standstill is a stop. */
   speedDeadzone: 0.15,
+  /** m/s: how much more speed another lane must allow before a driver that passes moves to it. */
+  passingMargin: 0.15,
   /** Metres: the steering target's least distance ahead, which holds at low speed. */
   minimumLookahead: 8,
   /** Metres: the least chord a curvature cell divides its heading change by. */
@@ -131,7 +134,24 @@ export function createEnvelopeDriverWorkspace() {
   };
 }
 
-type DrivingDomain = { readonly start: number; readonly end: number; readonly terminal: number | null };
+/** A driver's planning domain: the resident Route and any terminal it plans to stop short of. */
+export interface DrivingDomain {
+  readonly start: number;
+  readonly end: number;
+  readonly terminal: number | null;
+}
+
+/** `domain` with the terminal at `terminal` when that comes first, written to `out`. */
+export function drivingDomainBefore(
+  domain: DrivingDomain,
+  terminal: number,
+  out: { start: number; end: number; terminal: number | null },
+): DrivingDomain {
+  out.start = domain.start;
+  out.end = domain.end;
+  out.terminal = Math.min(domain.terminal ?? Infinity, terminal);
+  return out;
+}
 
 /**
  * The planned speed at route station `s` when moving at `speed`: curve limits braked back over the lookahead, the

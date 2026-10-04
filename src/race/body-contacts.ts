@@ -97,8 +97,11 @@ function entryFace(ps: number, pl: number, ds: number, dl: number, hs: number, h
  */
 export function createContactFaces(coordinates: PlanCoordinateReader, contact: CompiledBodyContact) {
   const sample = createPlanCoordinateSample();
-  let faces = new Map<string, ContactFace>(),
-    next = new Map<string, ContactFace>();
+  // Faces by the pair's lesser key, then its greater one: a lookup allocates nothing.
+  type Faces = Map<string, Map<string, ContactFace>>;
+  let faces: Faces = new Map(),
+    next: Faces = new Map();
+  const faceOf = (low: string, high: string) => faces.get(low)?.get(high);
   return Object.freeze({
     /** Start a step: only the pairs met in the previous step keep their faces. */
     beginStep() {
@@ -107,7 +110,7 @@ export function createContactFaces(coordinates: PlanCoordinateReader, contact: C
     },
     /** Whether the pair of keys had a face at the start of this step. */
     held(a: string, b: string): boolean {
-      return faces.has(a < b ? `${a}\u0000${b}` : `${b}\u0000${a}`);
+      return (a < b ? faceOf(a, b) : faceOf(b, a)) !== undefined;
     },
     /**
      * Meet `a` and `b` this step: true while they are in contact, with the force on `b` (world x and z, N) written to
@@ -119,9 +122,10 @@ export function createContactFaces(coordinates: PlanCoordinateReader, contact: C
       const ds = b.s - a.s,
         dl = b.l - a.l;
       const ordered = a.key < b.key;
-      const key = ordered ? `${a.key}\u0000${b.key}` : `${b.key}\u0000${a.key}`;
+      const low = ordered ? a.key : b.key,
+        high = ordered ? b.key : a.key;
       const flip = ordered ? 1 : -1;
-      let face = faces.get(key);
+      let face = faceOf(low, high);
       const begun = face !== undefined;
       if (face) {
         const along = face.sign * flip * (face.alongS ? ds : dl);
@@ -141,7 +145,9 @@ export function createContactFaces(coordinates: PlanCoordinateReader, contact: C
       const touching = Math.min(a.top, b.top) - Math.max(a.bottom, b.bottom) > 0;
       // A contact begins only where the parties touch; once begun, its face holds while their footprints overlap.
       if (!touching && !begun) return false;
-      next.set(key, face);
+      let met = next.get(low);
+      if (!met) next.set(low, (met = new Map()));
+      met.set(high, face);
       out.x = 0;
       out.z = 0;
       if (!touching) return true;

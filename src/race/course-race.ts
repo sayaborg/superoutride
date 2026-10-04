@@ -21,7 +21,7 @@ import {
 } from './present-vehicle.js';
 import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
 import { createRivalPace } from './rival-pace.js';
-import { createEnvelopeDriverWorkspace, createVariableEnvelopeDriver } from './envelope-driver.js';
+import { createEnvelopeDriverWorkspace, createVariableEnvelopeDriver, drivingDomainBefore } from './envelope-driver.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import { createVehicle, updateVehicle, type VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import { createStartPhase, type StartStatus } from './start-phase.js';
@@ -428,11 +428,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   const afterRunInput = (input: DrivingInput): DrivingInput => {
     if (outcome.status === 'GAME_OVER') return { ...input, throttle: false };
     if (!takeoverDriver) return holdBrake;
-    const { window } = runtime;
-    takeoverDomain.start = window.start;
-    takeoverDomain.end = window.end;
-    takeoverDomain.terminal = Math.min(window.terminal ?? Infinity, stopS);
-    return laneDriving.drive(player.body, takeoverDomain);
+    return laneDriving.drive(player.body, drivingDomainBefore(runtime.window, stopS, takeoverDomain));
   };
   /**
    * Moves the present field one step: the player by `input`, each rival by its driver, then fork observation and Route

@@ -2,22 +2,17 @@ import type { PlanCoordinateReader } from '../course/geometry/plan-coordinate.js
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import type { createCourseForkField } from './course-fork-field.js';
 import {
+  drivingDomainBefore,
   ENVELOPE_DRIVER,
   envelopeCanFollow,
   envelopeDrivingInput,
   envelopeSpeedBehind,
   planEnvelopeDriving,
+  type DrivingDomain,
 } from './envelope-driver.js';
 import { createLaneFollowing, occupiesLane, type LaneIntent, type VehicleSighting } from './lane-following.js';
 import type { createRoadsideObjects } from './object-contacts.js';
 import { presentTarget, type PresentVehicle } from './present-vehicle.js';
-
-/** A planning domain: the resident Route and any terminal a driver plans to stop short of. */
-interface PlanDomain {
-  readonly start: number;
-  readonly end: number;
-  readonly terminal: number | null;
-}
 
 /**
  * The drivers' lane decisions over one step's sightings: which lane a driver drives, merging where its lane ends,
@@ -27,7 +22,7 @@ interface PlanDomain {
  */
 export function createLaneDriving(options: {
   readonly coordinates: PlanCoordinateReader;
-  readonly window: PlanDomain;
+  readonly window: DrivingDomain;
   readonly forks: ReturnType<typeof createCourseForkField>;
   readonly roadsideObjects: ReturnType<typeof createRoadsideObjects>;
   readonly bodies: readonly PresentVehicle[];
@@ -83,12 +78,12 @@ export function createLaneDriving(options: {
      * terminal, so it slows to stop there short of `terminalClearance` until it can merge. Then its plan, which the
      * vehicle ahead in its lane constrains, and that plan's input. When the vehicle ahead lowers the plan, a driver that
      * passes moves to the free adjacent lane where its plan allows the most speed, if that beats its own lane by more
-     * than the deadzone and that lane does not end ahead, and drives that speed in its new lane (a new lane function,
+     * than the passing margin and that lane does not end ahead, and drives that speed in its new lane (a new lane function,
      * since the driver caches by lane); otherwise it follows. A move rewrites the lateral the driver's sighting is
      * heading for at once, so drivers deciding later in the same step see it; position and speed keep their values from
      * the step's start.
      */
-    drive(driven: PresentVehicle, domain: PlanDomain = window): DrivingInput {
+    drive(driven: PresentVehicle, domain: DrivingDomain = window): DrivingInput {
       const driving = driven.driving!;
       const { intent, driver } = driving;
       const s = driven.vehicle.course.s;
@@ -136,13 +131,7 @@ export function createLaneDriving(options: {
         end = endOf(intent.lane);
       }
       const laneEnd = end?.s ?? null;
-      let planned = domain;
-      if (laneEnd !== null) {
-        laneDomain.start = domain.start;
-        laneDomain.end = domain.end;
-        laneDomain.terminal = Math.min(domain.terminal ?? Infinity, laneEnd);
-        planned = laneDomain;
-      }
+      const planned = laneEnd === null ? domain : drivingDomainBefore(domain, laneEnd, laneDomain);
       const plan = planEnvelopeDriving(
         coordinates,
         driven.vehicle,

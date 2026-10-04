@@ -5,7 +5,13 @@ import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import { footprintsOverlap, type RouteFootprint } from './body-contacts.js';
 import type { createCourseForkField } from './course-fork-field.js';
-import { ENVELOPE_DRIVER, envelopeCanFollow, plannedEnvelopeSpeed, type EnvelopeDriver } from './envelope-driver.js';
+import {
+  drivingDomainBefore,
+  ENVELOPE_DRIVER,
+  envelopeCanFollow,
+  plannedEnvelopeSpeed,
+  type EnvelopeDriver,
+} from './envelope-driver.js';
 import { occupiesLane, type LaneIntent } from './lane-following.js';
 import { firstObjectFrom, type createRoadsideObjects } from './object-contacts.js';
 import { presentTarget, type PresentVehicle } from './present-vehicle.js';
@@ -76,6 +82,7 @@ export function createVehiclePlacement(options: {
     }
     return { s, l };
   };
+  const appearanceDomain = { start: 0, end: 0, terminal: null as number | null };
   return Object.freeze({
     /** Whether a footprint of `model` at (s, l) would overlap a present vehicle or a standing fixed object. */
     occupied: (model: VehicleModel, s: number, l: number) => occupant(model, s, l) !== null,
@@ -90,10 +97,7 @@ export function createVehiclePlacement(options: {
     appearanceSpeed(model: VehicleModel, s: number, intent: LaneIntent, driver: EnvelopeDriver): number | null {
       const lane = (station: number) => forks.targetL(station, intent);
       const laneEnd = forks.laneEnd(s, s + ENVELOPE_DRIVER.lookahead, intent)?.s ?? null;
-      const domain =
-        laneEnd === null
-          ? window
-          : { start: window.start, end: window.end, terminal: Math.min(window.terminal ?? Infinity, laneEnd) };
+      const domain = laneEnd === null ? window : drivingDomainBefore(window, laneEnd, appearanceDomain);
       const length = model.compiledVehicle.overallLength,
         width = model.compiledVehicle.overallWidth;
       const inLane = (body: PresentVehicle) =>

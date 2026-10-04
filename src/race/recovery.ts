@@ -22,7 +22,6 @@ import {
   createSurfaceGeometryWorkspace,
 } from '../vehicle/physics/vehicle-surface-sampling.js';
 import { add3, dot3, scale3, type Vec3 } from '../core/vector3.js';
-import { ENVELOPE_DRIVER } from './envelope-driver.js';
 import { drivenWheelOmega } from '../vehicle/physics/vehicle-definitions.js';
 import { initializeVehicleTireObservation } from '../vehicle/physics/vehicle-tire-observation.js';
 
@@ -36,9 +35,11 @@ const SURFACE_PENETRATION_TOLERANCE_METERS = 1e-3;
 export interface RecoveryPolicy {
   /**
    * Consecutive fixed steps a recovery condition holds before the vehicle recovers: outside the coordinate domain, or
-   * held against a fixed object below the driver speed deadzone.
+   * held against a fixed object below `blockedSpeed`.
    */
   readonly holdSteps: number;
+  /** m/s: the speed below which a vehicle held against a fixed object counts as stopped there. */
+  readonly blockedSpeed: number;
   /** Metres recovery backs off along the Route. */
   readonly backtrackDistance: number;
   /** Recovery speed bounds in m/s. */
@@ -53,6 +54,7 @@ export interface RecoveryPolicy {
 export const RECOVERY_POLICY: RecoveryPolicy = Object.freeze({
   // 44 fixed steps of 1/60 s, about 0.733 s.
   holdSteps: 44,
+  blockedSpeed: 0.15,
   backtrackDistance: 8,
   minRecoverySpeed: 18,
   maxRecoverySpeed: 32,
@@ -70,7 +72,7 @@ export interface RecoveryState {
   lastSafeS: number;
   /** Consecutive fixed steps the vehicle center has been outside the coordinate domain. */
   outsideDomainSteps: number;
-  /** Consecutive fixed steps the vehicle has been held against a fixed object below the speed deadzone. */
+  /** Consecutive fixed steps the vehicle has been held against a fixed object below `blockedSpeed`. */
   blockedSteps: number;
   recoveries: number;
   lastReason: RecoveryReason | null;
@@ -141,7 +143,7 @@ function updateRecovery(
   }
   state.outsideDomainSteps = 0;
   // Held against a fixed object it cannot leave, with no reverse gear: as long as outside the domain, then recovery.
-  if (blocked && Math.hypot(vehicle.longitudinalSpeed, vehicle.lateralSpeed) < ENVELOPE_DRIVER.speedDeadzone) {
+  if (blocked && Math.hypot(vehicle.longitudinalSpeed, vehicle.lateralSpeed) < RECOVERY_POLICY.blockedSpeed) {
     state.blockedSteps += 1;
     if (state.blockedSteps >= RECOVERY_POLICY.holdSteps) {
       recoverVehicle(world, vehicle, model, { state, reason: 'blocked', place });
