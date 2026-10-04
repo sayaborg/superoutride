@@ -113,8 +113,8 @@ export function createTrafficField(options: {
       let changed = vehicles.length !== before;
       const { candidates } = options.traffic!;
       positions.pass(appearanceLine(), (position, s) => {
-        // A position passes unused when the traffic is full, the Route does not reach it yet, its place is occupied or a
-        // vehicle behind whose driver does not pass could not stop for it.
+        // A position passes unused when the traffic is full, the Route does not reach it yet, its road has one lane, its
+        // place is occupied or a vehicle behind whose driver does not pass could not stop for it.
         if (vehicles.length >= options.limit || !runtime.window.at(s)) return;
         const candidate = candidates[trafficDraw(seed, 'vehicle', position, candidates.length)]!;
         const model = modelOf(candidate.vehicle);
@@ -125,6 +125,8 @@ export function createTrafficField(options: {
             trafficDraw(seed, 'exit', position, occurrence.section.fork!.exits.length, occurrence.ordinal),
         };
         const appearing = forks.targetCarriageway(s, intent.exit);
+        // Traffic appears only on roads of two or more lanes.
+        if (appearing.road.lanes < 2) return;
         intent.lane = trafficDraw(seed, 'lane', position, appearing.road.lanes);
         const lane = (station: number) => forks.targetL(station, intent);
         const l = lane(s);

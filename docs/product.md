@@ -99,6 +99,7 @@ alone, that is the player. Unselected roads show warnings and closure signs; veh
 at closure recover to the selected road. Recovery preserves earned progress.
 
 **Traffic** vehicles are not competitors: they take no rank, never select a route and have no part in records.
+Traffic appears only on roads of two or more lanes.
 They are ordinary vehicles with ordinary drivers, travelling the player's way. Where each one appears along the
 road, its vehicle, color and lane follow from the Session seed. A traffic vehicle appears ahead at the farthest
 visible distance, keeps its lane at the traffic speed, the same for every traffic vehicle as on a public road, slowing for

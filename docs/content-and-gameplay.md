@@ -837,7 +837,8 @@ Session admits the course it drives.
 The delivered series is RIBBON (`dev: true`, colors not fixed): RIBBON COAST, RIBBON FORK and RIBBON RING with
 TESTAROSSA, whose fields are 1, 3 and 3 TESTAROSSA entries in its default color with pace ratio 1 in the grid's rearmost slots, with
 `playerSlot: last`. RIBBON COAST has traffic (10 vehicles/km of GOLF_GTI_16V, DELTA_HF_INTEGRALE and PX200E_ARCOBALENO
-at 80 km/h); RIBBON FORK and RIBBON RING have none. RIBBON COAST is the [verification course](#verification-course).
+at 80 km/h) on its four- and two-lane Sections, none on the one-lane `rough-track`; RIBBON FORK and RIBBON RING have
+none. RIBBON COAST is the [verification course](#verification-course).
 RIBBON ROUGH belongs to no series.
 
 ## FREE PLAY document
@@ -1119,7 +1120,8 @@ The appearance line is the player's route station plus the farthest rendered dis
 traffic vehicle appears there, at its lane's centre and its driver's planned speed behind the vehicle ahead in that
 lane, the same appearance as a later stage's entry. Positions at or before the line when the Session starts never appear. A position passes unused,
 never to appear later, when `min(16, 32 − competitors)` traffic vehicles are present (`SESSION_RULE_LIMITS.traffic`
-and `.vehicles`), when the resident Route does not reach it yet, when its place overlaps another vehicle's footprint
+and `.vehicles`), when the resident Route does not reach it yet, when the Carriageway there has one lane (traffic
+appears only on roads of two or more lanes), when its place overlaps another vehicle's footprint
 ([Body contact](#body-contact)), or when a vehicle behind in its lane whose driver never changes lanes to pass, another traffic
 vehicle in practice, could not stop for it (the appearance rule above). A traffic vehicle leaves, for good, once out of view by the same rule as competitors.
 Traffic exists only where the player can see it: it appears at the farthest visible distance ahead of the player
