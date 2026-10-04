@@ -1226,9 +1226,12 @@ move across it. Lanes continue by position (the left lane on a tie), and every c
 | A `coast-wide`     | 0–1982              | 0–1982               | 4, 14 m                       | Seaside road, grid and start, curves of 350–500 m, gentle rise; `coast-CP1` at 1950                                         |
 | B `cliff-mountain` | 1982–3615           | 0–1633               | 2, 7 m (14 m tapering by 200) | Cliff road, curves of 180–220 m between straights; mountain on the left, sea on the right                                   |
 | C `cliff-mountain` | 3615–5140           | 1633–3158            | 2, 7 m                        | Mountain climb and descent at 6.5–7 %, curves of 90–140 m, a sharp crest at 2278 (12 m vertical curve); `coast-CP2` at 2000 |
-| D `rough-track`    | 5140–6640           | 0–1500               | 1, 5 m DIRT                   | Straight rough track, 25 m / 0.3 m undulations from 200 to 1400, sand (3 m) then grass outside; `coast-CP3` at 855          |
+| D `rough-track`    | 5140–6640           | 0–1500               | 1, 5 m DIRT                   | Straight rough track, 50 m / 0.3 m undulations from 200 to 1400, sand (3 m) then grass outside; `coast-CP3` at 855          |
 | E `town`           | 6640–7640           | 0–1000               | 2, 7 m with 2 m shoulders     | Town streets: straights and two near-right-angle corners of 65 and 70 m; trees and signs just outside the shoulders         |
 | F `coast-fast`     | 7640–10140          | 0–2500               | 4, 14 m                       | Fast finish: long straights, curves of 450–500 m; `coast-CP4` at 362, `coast-FINISH` at 2050, 450 m runout                  |
+
+D's undulations rise and fall 0.3 m every 25 m through 25 m vertical curves, so a crest's curvature is
+0.3 × 2 / 25² = 0.00096 /m and `v² × κ` stays within 0.75 g up to 87.5 m/s, above every course vehicle's maximum speed.
 
 Places of the Stage 13-4 content, in Section stations:
 
