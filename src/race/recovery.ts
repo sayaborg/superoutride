@@ -169,7 +169,7 @@ function updateRecovery(
     (vehicle.y - surface.point.y) * surface.normal.y +
     (vehicle.z - surface.point.z) * surface.normal.z;
   let reason: RecoveryReason | null = null;
-  // There is no body collision shape. An inverted body counts as landed once its CG is within the
+  // No collision shape meets the ground. An inverted body counts as landed once its CG is within the
   // ride CG height of the surface; higher up it is still rotating in the air and may recover itself.
   if (inverted && surfaceDistance <= model.compiledVehicle.desiredCgHeight) reason = 'overturned';
   // A CG below the heightfield has fallen into a hole or through material-free ground.

@@ -39,7 +39,7 @@ explicitly scheduled in [NEXT](NEXT.md) are replaced with their owning concepts.
 | `Window`              | A bounded query interval.                                                                                                                                                |
 | `source`              | Author-supplied data before compilation, including retained copies of that authored representation; not live readers, coordinate origins or input owners.                |
 | `presentation`        | Retired; use `appearance` for authored course visuals and a concrete rendering, display or audio name elsewhere.                                                         |
-| `Strip`               | An ordered Section surface declaration with independently optional color and material; later declarations overwrite each supplied channel.                               |
+| `Strip`               | An ordered declaration of a Section's ground or a wall's face (height read as lateral); later ones overwrite each supplied channel.                                      |
 | `Region`              | Retired; use `Strip` for surface declarations and `Carriageway` for roads between Boundaries.                                                                            |
 | `Band`                | Retired; use `Strip` for authored and compiled surface pieces, tables and readers.                                                                                       |
 | `appearance`          | Authored course visuals, independent of physical structure and materials; compiled as `CourseAppearance`.                                                                |

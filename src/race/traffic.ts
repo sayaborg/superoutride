@@ -154,7 +154,7 @@ export function createTrafficField(options: {
       const { candidates } = options.traffic!;
       positions.pass(appearanceLine(), (position, s) => {
         // A position passes unused when the traffic is full, the Route does not reach it yet, its place is occupied or a
-        // vehicle behind whose driver keeps its lane could not stop for it.
+        // vehicle behind whose driver does not pass could not stop for it.
         if (vehicles.length >= options.limit || !runtime.window.at(s)) return;
         const candidate = candidates[trafficDraw(seed, 'vehicle', position, candidates.length)]!;
         const model = modelOf(candidate.vehicle);

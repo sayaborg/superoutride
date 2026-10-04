@@ -513,9 +513,9 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
     );
   };
   // How fast a vehicle of `model` appears at (s, its intent's target) under `driver`: its planned speed there behind the
-  // vehicle ahead in that lane, and short of that lane's end when it ends within the lookahead. Null when a vehicle behind in that lane whose driver never changes lanes could not stop for it —
+  // vehicle ahead in that lane, and short of that lane's end when it ends within the lookahead. Null when a vehicle behind in that lane whose driver does not pass could not stop for it —
   // its own plan, seeing the new vehicle ahead at that speed, would ask more than its speed — so the appearance waits or
-  // passes like an occupied one. Drivers that change lanes move over or match its speed; the player avoids it.
+  // passes like an occupied one. Drivers that pass move over or match its speed; the player avoids it.
   const appearanceSpeed = (
     model: VehicleModel,
     s: number,

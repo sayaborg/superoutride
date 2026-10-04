@@ -32,7 +32,7 @@
 - Stage 13 is complete: vehicles declare overall dimensions and the coordinate domain extends by the 4 m vehicle reach
   bound; Carriageways have lanes and drivers intend lane numbers; road-aligned footprints contact through one
   external force on the ordinary mechanics; drivers change lanes past slower vehicles or follow them; traffic appears
-  at seeded Route positions from the series (RIBBON COAST ARCADE) or FREE PLAY's TRAFFIC option, at most eight at once.
+  at seeded Route positions from the series (RIBBON COAST ARCADE) or FREE PLAY's TRAFFIC option, at most sixteen at once.
 - Stage 13-4 is complete: walls drawn in Strips and course limits keep vehicles on the course; contacts keep the face
   they met at; solid and movable roadside objects meet vehicles by the same contact, drivers see standing objects as
   stopped vehicles and a vehicle held against a fixed object recovers; lanes continue across seams by position and
@@ -169,7 +169,7 @@ Use continuous tool reference runs that complete reproducibly and use different 
 comparably; review proposed checkpoint margins against the resulting driving experience. FREE PLAY and
 TIME TRIAL have no time limit. Reference driving stays outside builds. Review the complete sixteen-competitor
 scene with graphics and audio on named devices. Establish device capacity/performance budgets from the whole
-application. Measure color-table preblend memory per km on the product courses (ribbon-coast is about 0.8 MiB/km;
+application. Measure color-table preblend memory per km on the product courses (ribbon-coast's road is about 0.3 MB per km;
 a dense 21 km probe used about 121 MiB). If it exceeds the device budget, build preblend levels only
 for the route window instead of the whole Section.
 

@@ -26,7 +26,7 @@ whitespace do not affect identity. Normalized records use schema field order and
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 32,
+  format: "superoutride.course", version: 35,
   name, entrySectionId,
   sections, links, assets, rules
 }
@@ -169,8 +169,7 @@ a tunnel; a sprite repeat at 100 with every=20 and count=6 supplies its frames. 
 The renderer selects the background at `camera.s`, not at a visible sprite or a distant ground row.
 Thus an entrance frame visible ahead retains the exterior background; the interior begins exactly
 when camera.s reaches the entrance knot, and the exterior returns at the exit knot. With the current
-rearward camera, this follows the vehicle crossing by its camera distance. This is an immediate switch;
-wipes and other transition effects remain a separate decision before Stage 12.
+rearward camera, this follows the vehicle crossing by its camera distance. This is an immediate switch.
 
 ### Strips
 
@@ -306,7 +305,7 @@ non-circuits use 1. [Series](#series-documents) own ARCADE settings.
 
 A course is timed exactly when a series holds it. The build generates reference runs and time budgets for
 timed courses only, and only a timed course offers ARCADE and the checkpoint clock. An untimed course runs
-FREE PLAY Sessions only. Compilation requires the start, grid and finish coverage described
+FREE PLAY and TIME TRIAL Sessions. Compilation requires the start, grid and finish coverage described
 above for every course; the grid holds at least the player. Compiled `rules` retain these settings;
 compiled `gates` provide the resolved grid and per-Section landmark intervals to race and tools.
 
@@ -330,7 +329,6 @@ protect compiler resources; they are not rendering, resident-memory or device-pe
 `jsonBytes` measures a saved course document's raw bytes before UTF-8 decoding and JSON parsing
 (`readCourseDocumentBytes`, used by delivery, the build and authoring tools); an in-memory value given to
 `readCourseDocument`, such as a live editor draft, has no byte ceiling.
-Stage 12 establishes those budgets from the complete application on named devices.
 
 Use 21 km as the planning envelope for the approximately 20.8 km Nordschleife, with a factor of two
 for longitudinal detail and length. One Section can therefore hold nearly the whole circuit; the
@@ -364,7 +362,7 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | Non-circuit finite `routes` from the entry                              |                256 | Reference work bound: one continuous reference run per route and vehicle                                                                                                  |
 | Section `spritePlacements` (expanded)                                   |              16384 | 21 × (200 + 20)/km × 2, rounded up                                                                                                                                        |
 | Each Strip/sprite array `stripElements` / `spriteElements`              |               2048 | 21 × 30/km × 2, rounded up                                                                                                                                                |
-| Section `walls` / each wall's `wallStrips`                              |          1024 / 64 | Both sides × 21 km × 10 wall runs/km × 2, rounded up; 32 Strips or repeats (bands, rails, posts, patches) × 2                                                             |
+| Section `walls` / each wall's `wallStrips`                              |          1024 / 64 | Both sides × 21 km × 10 wall runs/km × 2, rounded up; 32 Strips or repeats (layers, rails, posts, patches) × 2                                                            |
 | Wall Strip heights `wallHeightMeters` (absolute)                        |               1000 | The Strip lateral ceiling `lateralMeters`: wall heights are read as Strip laterals                                                                                        |
 | `repeatCount`                                                           |              65536 | Whole-length 1 m repetitions: 21000 × 2, rounded up                                                                                                                       |
 | `repeatDepth` / `textCodeUnits`                                         |             8 / 64 | Four organizational levels × 2; 32-character road legend × 2                                                                                                              |
@@ -1006,8 +1004,8 @@ drivers, which Session resolution compiles, do not. When the constraint lowers t
 weighs each free adjacent lane of the Carriageway it follows by the speed its plan allows there: its plan without a
 vehicle ahead, behind that lane's vehicle ahead under the same constraint (the current lane's curve speeds serve, since
 adjacent lanes differ little in them). It moves to the lane allowing the most, the left one on a tie, when that exceeds
-its constrained plan by more than `speedDeadzone`, and drives that speed in its new lane. It keeps no memory of lanes:
-it stays where it is until another lane is faster by that margin, its former lane included. A lane is free when no
+its constrained plan by more than `speedDeadzone`, and drives that speed in its new lane. It stays
+in its lane until another lane is faster by that margin. A lane is free when no
 vehicle in it lies between the driver's following distance ahead, `(L₁ + L₂)/2 + v × followSeconds`, and, behind,
 half the two lengths plus that vehicle's speed times `followSeconds`. With no faster free lane, or when it does not
 pass, the driver follows on the constrained plan; its inputs stay throttle, brake and steering. Every driver's `a` is its envelope's minimum
@@ -1120,8 +1118,8 @@ occupied waits for a later step. These choose where a vehicle is placed; they mo
 ## Recovery
 
 Airborne driving is ordinary; recovery applies only when driving cannot continue: coordinate-domain
-exit, an inverted landing, falling through the heightfield, leaving the locked fork route (wrong course) or a
-manual request. [Vehicle physics](vehicle-physics.md#airborne-state-and-recovery) owns the conditions. It reconstructs
+exit, an inverted landing, falling through the heightfield, being held against a fixed object (blocked), leaving the
+locked fork route (wrong course) or a manual request. [Vehicle physics](vehicle-physics.md#airborne-state-and-recovery) owns the conditions. It reconstructs
 pose, velocities, wheels, actuators, powertrain and observations at known supported coordinates while
 preserving steering/tire calibration and earned gates, locks and laps. Manual recovery is a race operation on the
 player: the ordinary recovery toward the centre of its road, the legal-road check, a progress baseline reset that awards
@@ -1205,9 +1203,9 @@ The three walls are in place. The guardrail is a solid wall 0.3 m thick and 0.8 
 invisible solid lead-ins run from the outer material edge (22 m) to it over 50 m at each end, so none of its ends is
 free. The rising cliff is a solid wall 1 m thick on the left shoulder edge, with the same invisible lead-ins. Its top
 rises from the road (0.1 m) to 20 m over its first 25 m, varies between 12 and 25 m along it and returns to 0.1 m at its
-end, in three rock bands following the top, with two single patches of other rock (at 40–55 m and 118–140 m along it).
+end, in three rock Strips following the top, with two single patches of other rock (at 40–55 m and 118–140 m along it).
 The falling cliff is a wall for looks only, 1 m thick, dropping 40 m below the road on the right shoulder edge in two rock
-bands; the outer material narrows to that edge over 30 m before and after it, so the right side has no course limit
+Strips; the outer material narrows to that edge over 30 m before and after it, so the right side has no course limit
 there and nothing is drawn beyond it. The free-standing wall is solid, 0.5 m thick and 1 m high, parallel to the road and
 joined to nothing, so both its ends are fixed objects. In `town` every tree (0.6 m) and sign (0.4 m) is solid. In
 `coast-fast` ten cones (0.3 m wide, 3 kg, launched at 10°) stand 10 m apart from 1000 to 1090 at l = 5.25, the centre of

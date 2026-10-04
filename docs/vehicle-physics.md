@@ -223,7 +223,8 @@ unsupported vehicle visibly fall (about 2.64 m from rest) before reconstruction.
 recovery does not query a fictitious surface normal or penetration plane. Inside it, the surface is
 the heightfield at the center's route coordinate, material-free ground included.
 
-There is no body collision shape, so overturning is judged by pose and height: an inverted body
+No collision shape meets the ground (body contact footprints act only between vehicles, walls and objects), so
+overturning is judged by pose and height: an inverted body
 higher than its ride CG height above the surface is still rotating in the air and may right itself
 before landing; at or below that height it has landed inverted. Any inverted CG below the surface
 therefore reports `overturned`. A supported, upright vehicle is never checked further; an upright
@@ -231,8 +232,8 @@ unsupported vehicle recovers only after falling through the heightfield.
 
 The last safe station is the route s of the latest step that was supported and not inverted.
 Recovery clamps the farther of current and last-safe route s to the retained extent, then backs up
-by the policy's backtrack distance within it; the race resolves the lane at that final station
-([Recovery](content-and-gameplay.md#recovery)). Reset steps award no crossing credit.
+by the policy's backtrack distance within it; from that station the race resolves the place: the lane there, and
+further back behind any vehicle or standing object in the way ([Recovery](content-and-gameplay.md#recovery)). Reset steps award no crossing credit.
 
 ## Tire law
 
@@ -581,7 +582,7 @@ and `brake` (each applySeconds/releaseSeconds), boolean
 `wheelSlip`, `tire` (gripX/peakSlipX/gripY/peakSlipY/knee), `rivalPace`
 (minimumUtilization/maximumUtilization/minimumSpeedFraction/bandSeconds/responseSeconds, with 0 < minimum ≤
 maximum ≤ 1, a speed fraction in (0,1], and a positive finite band and response time) and `bodyContact`
-(frequencyHertz/dampingRatio, both positive and finite). `rivalPace` drives no vehicle mechanics: ARCADE rivals read it
+(frequencyHertz/dampingRatio, both positive and finite, and barrierFriction, finite and at least 0). `rivalPace` drives no vehicle mechanics: ARCADE rivals read it
 to pace their driving. `bodyContact` is the [body contact](#body-contact) spring-damper; each vehicle model admits its
 stability at the model's step. Angles are degrees, traversal times
 are seconds, pressures are bar, inertia is kg m² per litre, and tire, fuel-cut and efficiency values

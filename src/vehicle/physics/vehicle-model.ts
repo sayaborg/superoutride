@@ -29,7 +29,8 @@ export interface VehicleModel {
   readonly torqueProtection: Readonly<TorqueProtectionPolicy>;
   /** Game-wide suspension stiffness at full travel as a multiple of each ride spring rate. */
   readonly suspensionProgression: number;
-  /** The body contact spring-damper between vehicles, admitted stable at this model's step. */
+  /** The body contact spring-damper between vehicles, and against walls, course limits and objects, admitted stable at
+   * this model's step. */
   readonly bodyContact: CompiledBodyContact;
 }
 

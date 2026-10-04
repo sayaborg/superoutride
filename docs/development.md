@@ -46,7 +46,7 @@ build's TESTAROSSA time budgets and pace schedules. Coast runs ARCADE from the p
 paced 911 rival (p = 1), finishes first and continues 12 seconds: the takeover stops the player within its runout,
 race time, progress, events and the position (P1/2) hold, and the rival keeps driving. Coast also finishes TIME TRIAL
 from the last grid slot without rivals or clock, and runs ARCADE with the delivered RIBBON series' settings (seed 7),
-whose traffic must appear and leave the view, at most eight at once; traffic states join the digest and the
+whose traffic must appear and leave the view, at most sixteen at once; traffic states join the digest and the
 `traffic` evidence (appearances, departures, the most present at once, the first appearance). Fork has an entry appearing 80 m ahead in STAGE 2 only: it appears
 when the player enters STAGE 2 at the player's s plus 80 m, and after STAGE 2 the player brakes until it leaves the
 view; absent, it is neither observed nor counted in the position. Ring limits `ring-CP1` to rank 1, so the paced rival

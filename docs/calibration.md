@@ -97,12 +97,12 @@ down, for both forms, against the road line under the wheels
 ([Vehicle physics](vehicle-physics.md#torque-protection)); it is edited only in the file. Torque
 protection is the same for both forms.
 Tire and steering low-speed regularization are engine constants of 1.0 m/s.
-`bodyContact` is the spring-damper between two vehicles whose footprints overlap
-([Vehicle physics](vehicle-physics.md#body-contact)): `frequencyHertz` is the natural frequency of the pair's
+`bodyContact` is the spring-damper of every body contact: between two vehicles whose footprints overlap
+([Vehicle physics](vehicle-physics.md#body-contact)), and against walls, course limits and roadside objects: `frequencyHertz` is the natural frequency of the pair's
 relative motion in hertz, independent of the masses because the force scales with the pair's reduced mass, and
 `dampingRatio` is dimensionless (1 is critical damping: no rebound). Every DEV grid point is stable at the 1/60 s step.
-Walls and course limits push with the same spring-damper on the vehicle's own mass, so they share its frequency and
-damping; `barrierFriction` scales that push into the friction slowing a vehicle that scrapes along them (0.3 is a
+Walls, course limits and fixed objects push with the same spring-damper on the vehicle's own mass, and movable objects
+on the pair's reduced mass, so they share its frequency and damping; `barrierFriction` scales that push into the friction slowing a vehicle that scrapes along them (0.3 is a
 provisional value, to be judged on devices).
 
 The full driving source document participates in vehicle identity for generated envelopes, reference
@@ -115,7 +115,7 @@ capability on unit grip without surface drag.
 
 | Setting               | Value | Meaning                                                                                              |
 | --------------------- | ----- | ---------------------------------------------------------------------------------------------------- |
-| Rival utilization     | 0.75  | FREE PLAY rivals' fixed fraction of the measured envelope                                            |
+| Rival utilization     | 0.75  | Fixed fraction of the measured envelope for unpaced rivals, traffic and the takeover after GOAL      |
 | Reference utilization | 0.9   | Offline reference driver's fraction of the measured envelope                                         |
 | Following time        | 1.5 s | Drivers' following time (`ENVELOPE_DRIVER.followSeconds`)                                            |
 | Terminal clearance    | 2 m   | Left before a terminal, or behind the vehicle ahead, at a stop (`ENVELOPE_DRIVER.terminalClearance`) |

@@ -27,7 +27,7 @@ export interface CompiledDriving {
    * the minimum utilization, in (0,1]; the schedule difference band and the response time constant, in seconds.
    */
   readonly rivalPace: DrivingDefinition['rivalPace'];
-  /** The body contact spring-damper between vehicles. */
+  /** The body contact spring-damper between vehicles, and against walls, course limits and objects. */
   readonly bodyContact: CompiledBodyContact;
 }
 

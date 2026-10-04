@@ -277,7 +277,7 @@ side, until they separate, with equal and opposite forces that act through the o
 vehicle mechanics. Contact never turns a vehicle, never topples a motorcycle, never ends a run by itself and
 causes no damage. Rivals and traffic do not hit other vehicles or solid objects on purpose: a solid object standing in a lane is
 to them a stopped vehicle. Walls — guardrails, walls and cliff faces — run along the road. A visible wall is drawn as a surface standing on its line, rising above the road, dropping below it, or both, in
-bands of color that may repeat along the road. To vehicles a solid wall is a line of unlimited
+strips of color that may repeat along the road. To vehicles a solid wall is a line of unlimited
 height: a vehicle touching it is pushed back across the road, never along it, and scraping along it slows the
 vehicle. A wall may be invisible, and a wall may be for looks only. The edge of the course's ground is an
 invisible solid wall, so a vehicle cannot leave the course sideways, except where a wall for looks only marks an

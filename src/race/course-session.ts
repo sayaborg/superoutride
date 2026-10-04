@@ -119,8 +119,8 @@ export function resolveCourseSession(
     throw new RangeError('A Session with rivals requires their Session vehicles');
   if (configuration.traffic && !field.vehicleOf)
     throw new RangeError('A Session with traffic requires its Session vehicles');
-  // Each envelope's fixed driver, compiled once at the rival utilization: the runout check below and the race's unpaced
-  // rivals use the same one.
+  // Each envelope's fixed driver, compiled once at the rival utilization: the runout check below, the race's unpaced
+  // rivals and the takeover after GOAL use the same one; traffic drivers use the same utilization.
   const rivalUtilization = 0.75;
   const drivers = new Map<RivalEnvelope, EnvelopeDriver>();
   const entries =
@@ -172,7 +172,7 @@ export function resolveCourseSession(
               ...candidate,
               envelope: candidate.envelope,
               colors: spriteSetColors(candidate.vehicle.vehicleDefinition.spriteSet),
-              // Traffic never changes lanes; it follows a slower vehicle in its lane.
+              // Traffic never changes lanes to pass; it follows a slower vehicle in its lane and merges where its lane ends.
               driver: compileEnvelopeDriver(candidate.envelope, rivalUtilization, trafficSpeed, false),
             });
           }),
