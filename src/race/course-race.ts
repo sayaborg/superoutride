@@ -198,7 +198,7 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
       index,
       /** A rival's envelope driver, with its pace and utilization/speed-cap setter when paced; null for the player. */
       driving: index === 0 ? null : rivalDriving[index - 1]!,
-      previous: { s: 0, l: 0 },
+      previous: { s: c.actor.vehicle.course.s, l: c.actor.vehicle.course.l },
       current: c.actor.vehicle,
       recovered: false,
       driverWorkspace: createEnvelopeDriverWorkspace(),
@@ -229,6 +229,8 @@ export function createCourseRace(options: { readonly session: ResolvedCourseSess
   let active = motions.filter((motion) => motion.c.present);
   // Every vehicle present: the present competitors, then the traffic. Contacts, sightings and placement read it.
   const bodies: (Body & {
+    readonly id: string;
+    readonly previous: { readonly s: number; readonly l: number };
     readonly sighting: VehicleSighting;
     readonly contactForce: { x: number; y: number; z: number };
     readonly input: (s: number) => number;

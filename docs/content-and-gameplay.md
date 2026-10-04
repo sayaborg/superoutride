@@ -1010,13 +1010,22 @@ overlapS = (L₁ + L₂)/2 − |Δs|     overlapL = (W₁ + W₂)/2 − |Δl|
 overlapH = min(B₁ + H₁, B₂ + H₂) − max(B₁, B₂)
 ```
 
-with overall lengths L, widths W and heights H. They are in contact when all three are positive, so a vehicle in the
-air passes over one below it; the height overlap decides only whether they touch. The smaller of `overlapS` and
-`overlapL` is the contact axis,
-ahead-behind when they are equal. The force acts along the horizontal world direction of that axis, the road's
-tangent or its right, read at the pair's midpoint, with equal magnitude and opposite sign on the two vehicles, and
-its approach speed is their relative world velocity along that direction. The spring-damper uses the Session
-driving definition's `bodyContact` (the player's vehicle model).
+with overall lengths L, widths W and heights H. A contact begins when all three are positive, so a vehicle in the
+air passes over one below it. Its face, an axis and a side, is decided once, as it begins, from the pair's route
+positions at the start of the previous step (Δs⁻, Δl⁻): the axis is ahead-behind when the vehicles were apart
+ahead-behind (`(L₁ + L₂)/2 − |Δs⁻| ≤ 0`) while overlapping side to side, and side to side in the opposite case. When
+they were apart on both axes, the axis is the one that began to overlap later within the step, moving each relative
+position linearly from Δ⁻ to Δ; ahead-behind when both began together. The side is the sign of that axis's relative
+position Δ⁻. Recovery and appearance never place a vehicle overlapping another, so a contact always begins from apart;
+should both axes have overlapped already, the smaller current overlap is the axis and the current relative position
+its side. The race keeps each pair's face, keyed by the two vehicles' ids, until their footprints separate: until the
+overlap along the face, `(L₁ + L₂)/2 − side × Δs` (or the width form), or the other axis's overlap is no longer
+positive. The overlap along the face grows on even if a vehicle passes the other's centre. Pairs no longer in contact,
+and those of vehicles gone from the Session, are forgotten. The height overlap decides only whether the vehicles
+touch: while it is not positive there is no force, and a contact does not begin. The force acts along the
+horizontal world direction of the face's axis, the road's tangent or its right, read at the pair's midpoint, with
+equal magnitude and opposite sign on the two vehicles, on the overlap along the face; its approach speed is their
+relative world velocity along that direction. The spring-damper uses the Session driving definition's `bodyContact` (the player's vehicle model).
 
 ### Barrier lines
 

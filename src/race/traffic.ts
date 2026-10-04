@@ -72,6 +72,8 @@ export interface TrafficMotion extends TrafficBody {
   readonly driverWorkspace: ReturnType<typeof createEnvelopeDriverWorkspace>;
   input: (s: number) => number;
   readonly contactForce: { x: number; y: number; z: number };
+  /** Its route position at the start of the previous step. */
+  readonly previous: { s: number; l: number };
   readonly sighting: { s: number; l: number; length: number; width: number; speed: number; target: number };
   readonly step: {
     readonly state: RecoveryState;
@@ -134,6 +136,8 @@ export function createTrafficField(options: {
     ) {
       for (const motion of vehicles) {
         motion.step.input = drive(motion, motion.intent, motion.driver);
+        motion.previous.s = motion.vehicle.course.s;
+        motion.previous.l = motion.vehicle.course.l;
         advanceVehicleWithRecovery(runtime.readers, motion.vehicle, motion.model, motion.step);
         legalRecovery(motion);
       }
@@ -176,6 +180,7 @@ export function createTrafficField(options: {
           driverWorkspace: createEnvelopeDriverWorkspace(),
           input: lane,
           contactForce,
+          previous: { s, l },
           sighting: { s: 0, l: 0, length: 0, width: 0, speed: 0, target: 0 },
           step: {
             state: createRecoveryState(vehicle),
