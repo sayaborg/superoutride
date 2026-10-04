@@ -18,7 +18,7 @@ color and material overwrite independently. Compiled Sections publish their two 
 Checkpoints, starts, finishes and environment changes are independent of Section boundaries.
 Source identity, traversal identity and race credit are distinct.
 
-## CourseDocument v35
+## CourseDocument
 
 The saved format is compact UTF-8 JSON. All declared fields are required; explicit null represents
 absent optional content. Unknown fields fail. Arrays preserve saved order; object-property order and
