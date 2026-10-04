@@ -65,13 +65,9 @@ for (const stem of ['ribbon-coast', 'ribbon-fork', 'ribbon-ring']) {
       })),
       ...(stem === 'ribbon-fork'
         ? [
-            ...[
-              { lane: -1, exit: 0 },
-              { lane: 1, exit: 1 },
-            ].map(({ lane, exit }) => ({
+            ...[0, 1].map((exit) => ({
               name: `fork ${exit === 0 ? 'left' : 'right'} finish`,
               policy: 'finish',
-              lane,
               exit,
               seconds: 180,
             })),

@@ -21,6 +21,10 @@ Use Node.js 24. [AGENTS](../AGENTS.md) owns checks and release procedure.
 scene, race, vehicle physics, route readers, camera and rival sprite rendering as the browser, and prepares each
 Session from a request through the browser's path (`prepareSession`: the Session admission, the products it needs from
 delivery, and resolution).
+The player is driven by the product's driver: an advance without input hands the player to its Session driver (the
+driver of the takeover after GOAL), which plans, follows, passes and merges by the drivers' rules toward the
+scenario's target exit at every fork. Policies that need other inputs script them: reverse, departure and the course
+limit hold pedals and steering, and the closed-road and cone policies steer for a scripted lateral over their stretch.
 `npm test` runs them on every CI build. After `npm run build`, use `npm run test:scenarios` alone.
 The Node test runner reports total wall time and per-scenario times; these are observations, not timing gates.
 
