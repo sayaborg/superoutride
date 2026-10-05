@@ -219,7 +219,10 @@ step. **Import** opens a source of `content/sprite-sources/` or adds one (a name
 image); the source shows its crop, mask, lamp rectangles and anchor, and dragging on it with the crop, hide, show, lamp
 or anchor tool edits the recipe, as do its fields. The master is imported as the build would and previewed with the
 product's sprite drawing and LOD at a chosen depth, a vehicle image with its lamp off and on; a course image is written
-as its content-addressed file.
+as its content-addressed file. **Sets** shows the open set's yaw × bank grid: a chosen cell shows any of the set's
+images, the imported image is added or replaces an image, an image no cell shows is removed, and a new set starts from
+the imported image. The set preview draws the compiled library's set, turned and leaned by cell and moved away by
+depth.
 
 To apply an archive to the repository, extract it at the repository root, delete the files `workbench-changes.json`
 marks `deleted`, delete `workbench-changes.json`, then run `npm run measure -- generate`, `npm run check` and

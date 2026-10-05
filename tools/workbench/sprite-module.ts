@@ -1,25 +1,26 @@
 import type { WorkbenchContext, WorkbenchModule } from './workbench-context.js';
-import { mountSourceView } from './sprite-source-view.js';
+import { mountSetView } from './sprite-set-view.js';
+import { mountSourceView, type ImportedMaster } from './sprite-source-view.js';
 import { make } from './dom.js';
 
-/** Lamp colors the import preview shows a vehicle image with: the provisional coupe's. */
-const PREVIEW_LAMP = { off: 12321, on: 32038 } as const;
-
 /**
- * The sprite module: import (a source PNG and its recipe make a master). Every edit goes through the sprite
- * operations and is one step of the workbench's history.
+ * The sprite module: import (a source PNG and its recipe make a master) and vehicle sprite sets (the yaw × bank grid
+ * and its preview). Every edit goes through the sprite operations and is one step of the workbench's history.
  */
 export const spriteModule: WorkbenchModule = {
   id: 'sprites',
   title: 'Sprites',
   mount(element: HTMLElement, context: WorkbenchContext) {
-    const importPane = make('section');
-    element.append(importPane);
+    const importPane = make('section'),
+      setPane = make('section');
+    element.append(importPane, setPane);
+    let imported: ImportedMaster | null = null;
+    const sets = mountSetView(setPane, context, () => imported);
     mountSourceView(
       importPane,
       context,
-      () => {},
-      () => PREVIEW_LAMP,
+      (master) => (imported = master),
+      () => sets.lamp(),
     );
   },
 };
