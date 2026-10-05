@@ -26,6 +26,7 @@ import { RECORDING_GROUPS, recordingId } from '../../src/audio/recordings.js';
 import { compileMusicCatalog, compileRecordings, type RecordingSource } from '../../src/content/recording-catalog.js';
 import { TEXT_COLUMNS } from '../../src/view/text-layer.js';
 import { admitCourseWallSounds, compileWallSounds } from '../../src/content/wall-sound-catalog.js';
+import { assembleVehicleSpriteLibrary } from '../graphics/vehicle-sprite-sets.js';
 import { compileVehicleSpriteLibrary } from '../graphics/vehicle-sprite-library.js';
 import { compileCourseImages } from '../course/compile-course-images.js';
 import { readCourseImages } from '../course/read-course-images.js';
@@ -106,7 +107,16 @@ async function compile(store: ContentStore, measured: boolean): Promise<Compiled
     files.push(Object.freeze({ kind, id, bytes }));
   const json = (path: string) => readJson(store, path);
 
-  const library = compileVehicleSpriteLibrary(await json('sprites/vehicles.json'), 'content/sprites/vehicles.json');
+  // The vehicle sprite library, assembled from one document per set.
+  const setDocuments = [];
+  for (const name of await store.list('sprites'))
+    if (name.endsWith('.json'))
+      setDocuments.push({
+        name: name.slice(0, -'.json'.length),
+        document: `content/sprites/${name}`,
+        value: await json(`sprites/${name}`),
+      });
+  const library = compileVehicleSpriteLibrary(assembleVehicleSpriteLibrary(setDocuments), 'content/sprites');
   add('image', 'vehicles', encodeContentJson(library.product));
 
   // The text tiles are delivered as authored once admitted.

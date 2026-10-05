@@ -46,7 +46,7 @@ export interface VehicleSpriteLibraryDocument {
 export function readVehicleSpriteLibrary(value: unknown, completePyramids = true) {
   const library = readDocument(value, ['format', 'version', 'sprites', 'sets'], 'superoutride.vehicle-sprites', 4);
   const spriteDocuments = readArray(library.sprites, '/sprites', (value) => value);
-  const sprites = new Map<number, { asset: SpriteAsset; off: number; on: number }>();
+  const sprites = new Map<number, { asset: SpriteAsset; set: string; off: number; on: number }>();
   const setDocuments: Record<string, VehicleSpriteLibraryDocument['sets'][string]> = {};
   const set = (value: unknown, path: string, name: string): VehicleSpriteSet => {
     const banked = typeof value === 'object' && value !== null && Object.hasOwn(value, 'bankDegrees');
@@ -97,15 +97,10 @@ export function readVehicleSpriteLibrary(value: unknown, completePyramids = true
                 `${image}/levels`,
                 'Shipped sprites require the complete build-generated pyramid',
               );
-              admitted = { asset, ...brakeLamp };
+              admitted = { asset, set: name, ...brakeLamp };
               sprites.set(id, admitted);
             }
-            requireAdmission(
-              admitted.off === brakeLamp.off && admitted.on === brakeLamp.on,
-              'invalid_value',
-              `${path}/brakeLamp`,
-              'Shared vehicle images require the same set brake-lamp colors',
-            );
+            requireAdmission(admitted.set === name, 'invalid_value', at, 'A vehicle image belongs to one sprite set');
             return admitted.asset;
           },
           { length: bankVariants },

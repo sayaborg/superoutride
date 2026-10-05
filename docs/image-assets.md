@@ -73,8 +73,8 @@ distance is the maximum across all declared color/lamp combinations; the greates
 splits around its farthest representatives. Representatives are area-weighted mixture centroids;
 stable input order resolves ties. Color or lamp edits invalidate the generated pyramid.
 
-`content/sprites/vehicles.json` is a normalized-master dictionary with yaw/bank bindings.
-Its generated library uses the same `dist/delivery/images/<sha256>.json` location as course images.
+The vehicle sprite set documents under `content/sprites/` hold normalized masters with yaw/bank bindings.
+Their generated library uses the same `dist/delivery/images/<sha256>.json` location as course images.
 The content manifest maps the logical image name `vehicles` to its path and exact-byte SHA-256;
 courses find their images by that digest ([Content and gameplay](content-and-gameplay.md#geometry-and-reference-records)).
 All consumers resolve these entries through the manifest
@@ -226,19 +226,32 @@ the constructs and builds private numeric fields; these are not image assets or 
 
 ## Vehicle sprite library
 
-`content/sprites/vehicles.json` uses `superoutride.vehicle-sprites` version 4:
+Each vehicle sprite set is authored as one document, `content/sprites/<set>.json`, using
+`superoutride.vehicle-sprite-set` version 1. The set's name is its file name without `.json`; the document carries
+none:
+
+```text
+{format, version, yawVariants, bankVariants, bankDegrees?, brakeLamp: {off: 12321, on: 32038},
+ assets: [[spriteIndex, ...], ...], sprites: [SpriteLodDocument, ...]}
+```
+
+`assets` indexes the document's own `sprites`. The authoring core
+([`vehicle-sprite-sets.ts`](../tools/graphics/vehicle-sprite-sets.ts)) admits each set document by the library's rules,
+with diagnostics at the set document's own pointers, then assembles the library's masters: sets in name order, each
+set's images after the earlier sets' and its indices offset to match. The delivered library (manifest `image` /
+`vehicles`) is one document, `superoutride.vehicle-sprites` version 4:
 
 ```text
 {format, version, sprites: [SpriteLodDocument, ...],
- sets: {coupe: {yawVariants, bankVariants, brakeLamp: {off: 12321, on: 32038}, assets: [[spriteIndex, ...], ...]},
-       motorcycle: {yawVariants, bankVariants, bankDegrees: 60, brakeLamp, assets}, ...}}
+ sets: {coupe: {yawVariants, bankVariants, assets: [[spriteIndex, ...], ...], brakeLamp: {off, on}},
+       motorcycle: {yawVariants, bankVariants, bankDegrees: 60, assets, brakeLamp}, ...}}
 ```
 
 Set names are unique nonempty trimmed keys, independent of vehicle form. Each set binds a complete
 positive yaw × bank grid to library images. A set declares `bankDegrees` exactly when it has more than
 one bank image: the lean from vertical, in degrees in (0, 90], of the rider-and-machine centre-of-mass
 line that its outermost bank images depict. Bank selection divides the vehicle's displayed lean by it.
-Every image belongs to a set; images shared between sets require identical lamp colors. The build admits
+Every image belongs to exactly one set; a set may bind one image to several cells. The build admits
 the masters with the same library reader, then compiles each image with its set's lamp colors; delivered
 images have complete LOD pyramids. Every image in a set declares exactly the same set of at least two
 color names. Each set requires one `brakeLamp:{off,on}` declaration of RGB555 integers, shared by all
