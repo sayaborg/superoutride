@@ -705,7 +705,8 @@ Vehicle mechanics, vehicle listing and driving documents are manifest entries li
 [Development](development.md#build-outputs) owns the manifest kinds and output layout.
 Vehicle and driving document formats and their compilation belong to the vehicle layer; the content layer
 assembles their catalog, and the generic manifest only resolves and verifies their bytes. Definition compilation resolves named sprite sets/default colors from the SHA-verified image library and sound IDs through the lower audio layer's
-TypeScript sound products and returns deeply immutable records. [Vehicle physics](vehicle-physics.md#material-vehicle-and-driving-documents)
+TypeScript sound products and returns deeply immutable records that publish each fact once: the source documents and
+what they compile to or name, never a copy of a document field. [Vehicle physics](vehicle-physics.md#material-vehicle-and-driving-documents)
 owns the versioned formats and their format-specific admission rules. Composition roots load the collection before scene/Session creation and explicitly pass it to
 selection controls, HUD/audio, scene coverage, reference tools and scenarios. `compileVehicleDefinitions` admits the collection from
 definition documents and an admitted sprite library: consumers call it through `loadVehicleDefinitions` with delivered content, and the

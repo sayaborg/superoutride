@@ -155,7 +155,7 @@ export function createTrafficField(options: {
               id,
               candidate.vehicle.vehicleDefinition.compiledVehicle.id,
               color,
-              candidate.vehicle.vehicleDefinition.form,
+              candidate.vehicle.vehicleDefinition.listing.form,
             ),
           },
         );

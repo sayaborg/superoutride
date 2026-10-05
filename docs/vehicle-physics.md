@@ -538,7 +538,10 @@ named `default`, and at least one vehicle. It pairs each mechanics document with
 same identifier, which becomes the compiled vehicle ID, and rejects either document without the other
 (`unresolved_reference` at that document's root); selection orders are unique.
 [Calibration](calibration.md) owns tuning meanings and units. Document admission in
-`vehicle/definition-document.ts` publishes detached, deeply immutable source and compiled products.
+`vehicle/definition-document.ts` publishes detached, deeply immutable source and compiled products. A compiled
+vehicle definition publishes each fact once: its two admitted documents (`mechanics` and `listing`, from which form
+and metadata are read), the vehicle the mechanics compile to (`compiledVehicle`), and what the listing's IDs name (the
+admitted sprite set `spriteSet` and the engine sound `sound`).
 
 | Mechanics field     | Contract                                                                        |
 | ------------------- | ------------------------------------------------------------------------------- |

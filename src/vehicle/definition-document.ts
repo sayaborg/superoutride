@@ -53,19 +53,22 @@ export interface CompiledVehicleMechanics {
   readonly sha256: string;
   readonly compiledVehicle: CompiledVehicle;
 }
-export interface CompiledVehicleListing extends VehicleMetadata {
+/** An admitted listing: its document, which holds every listed fact, and what its sprite set and sound IDs name. */
+export interface CompiledVehicleListing {
   readonly source: VehicleListingDocument;
   readonly spriteSet: VehicleSpriteSet;
-  readonly form: VehicleForm;
   readonly sound: CompiledEngineSound;
 }
-/** One vehicle: its mechanics and listing documents, paired by identifier in the catalog. */
-export interface CompiledVehicleDefinition extends VehicleMetadata {
+/**
+ * One vehicle: its mechanics and listing documents, paired by identifier in the catalog, each fact published once. The
+ * documents hold the authored facts (form and metadata are read from `listing`); `compiledVehicle`, `spriteSet` and
+ * `sound` are what the mechanics compile to and what the listing's IDs name.
+ */
+export interface CompiledVehicleDefinition {
   readonly mechanics: VehicleMechanicsDocument;
   readonly mechanicsSha256: string;
   readonly listing: VehicleListingDocument;
   readonly spriteSet: VehicleSpriteSet;
-  readonly form: VehicleForm;
   readonly compiledVehicle: CompiledVehicle;
   readonly sound: CompiledEngineSound;
 }
@@ -215,13 +218,7 @@ export function compileVehicleListingDocument(
       sound: soundId,
       metadata,
     } as unknown as VehicleListingDocument);
-    return Object.freeze({
-      ...metadata,
-      source,
-      spriteSet,
-      form: source.form,
-      sound: sounds[soundId]!,
-    });
+    return Object.freeze({ source, spriteSet, sound: sounds[soundId]! });
   });
 }
 
@@ -230,13 +227,13 @@ export function createVehicleDefinition(
   mechanics: CompiledVehicleMechanics,
   listing: CompiledVehicleListing,
 ): CompiledVehicleDefinition {
-  const { source, ...shown } = listing;
   return Object.freeze({
-    ...shown,
     mechanics: mechanics.source,
     mechanicsSha256: mechanics.sha256,
-    listing: source,
+    listing: listing.source,
+    spriteSet: listing.spriteSet,
     compiledVehicle: mechanics.compiledVehicle,
+    sound: listing.sound,
   });
 }
 

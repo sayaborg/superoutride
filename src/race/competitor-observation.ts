@@ -16,7 +16,7 @@ export interface CompetitorObservation extends VehicleMotionRead, VehicleRenderR
   readonly vehicleId: string;
   /** The color of the vehicle's sprite set this competitor is drawn in. */
   readonly color: string;
-  readonly form: SessionVehicle['vehicleDefinition']['form'];
+  readonly form: SessionVehicle['vehicleDefinition']['listing']['form'];
   readonly y: number;
   readonly brakeLampOn: boolean;
   /** Speed over ground, m/s. */

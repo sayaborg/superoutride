@@ -21,7 +21,8 @@ const VEHICLE_GROUND_Y = 150;
 
 /** A vehicle's display name: its manufacturer and model. */
 export function vehicleName(vehicle: CompiledVehicleDefinition): string {
-  return `${vehicle.manufacturer} ${vehicle.model}`;
+  const { manufacturer, model } = vehicle.listing.metadata;
+  return `${manufacturer} ${model}`;
 }
 
 /**

@@ -54,8 +54,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 Requirements left from the second design audit, by when they are taken up:
 
 - **Stage 15:**
-  - H14-02 (15-3): a compiled vehicle definition publishes each fact once, not both in its source document and in an
-    expanded field (form, sound, sprite set, metadata).
   - H18-01 (15-3): the HUD's `steeringRatio` is not copied per vehicle: one value for cars and one for motorcycles.
 - **Not addressed, with reasons:**
   - P7a-01 (content digest): `contentDigest` and `SHA256_TEXT` stay in core. The course layer, below content, derives

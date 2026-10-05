@@ -11,7 +11,7 @@ export interface VehicleColor {
 
 /** The pool of the vehicle's form alone: the FREE PLAY default. FREE PLAY admission guarantees one. */
 export function formPool(rules: FreePlayRules, vehicle: CompiledVehicleDefinition): RivalPoolRule {
-  return rules.rivalPools.find((pool) => pool.forms.length === 1 && pool.forms[0] === vehicle.form)!;
+  return rules.rivalPools.find((pool) => pool.forms.length === 1 && pool.forms[0] === vehicle.listing.form)!;
 }
 
 /** Every vehicle/color pair of the pool, in catalog order. */
@@ -21,7 +21,7 @@ export function rivalPoolPairs(
 ): readonly VehicleColor[] {
   return Object.freeze(
     vehicles
-      .filter((vehicle) => pool.forms.includes(vehicle.form))
+      .filter((vehicle) => pool.forms.includes(vehicle.listing.form))
       .flatMap((vehicle) =>
         spriteSetColors(vehicle.spriteSet).map((color) =>
           Object.freeze({ vehicle: vehicle.compiledVehicle.id, color }),

@@ -72,7 +72,7 @@ function createVehicleDebugHudModel(
   const frontShare = p.frontDriveTorqueFraction;
   return {
     courseSelector: `COURSE ${formatBrowserCourseSelector(courses, activeCourseId)}`,
-    vehicleDisplay: `VEHICLE ${formatVehicleCatalogLine(entry)}`,
+    vehicleDisplay: `VEHICLE ${formatVehicleCatalogLine(entry.listing.metadata)}`,
     steeringTuning: formatDrivingTuningLine('STEERING', driving),
     pedalTuning: formatDrivingTuningLine('PEDALS', driving),
     tireTuning: formatDrivingTuningLine('TIRES', driving),

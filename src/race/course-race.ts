@@ -359,7 +359,7 @@ export function createCourseRace(options: {
       id,
       vehicle.vehicleDefinition.compiledVehicle.id,
       color,
-      vehicle.vehicleDefinition.form,
+      vehicle.vehicleDefinition.listing.form,
     ),
   );
   const playerObservation = competitorObservations[0]!,
