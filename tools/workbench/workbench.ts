@@ -46,6 +46,8 @@ function start(index: AuthoredIndex, published: ContentStore) {
   // Compiles run one at a time off the page's thread; an older result never replaces a newer one.
   const worker = new Worker(new URL('./compile-worker.js', import.meta.url), { type: 'module' });
   let state: CompileState = { status: 'running', last: null };
+  // Preview measurements live beside the compile, never in the changes: no step, no archive, no change list.
+  let preview = new Map<string, Uint8Array<ArrayBuffer>>();
   let running = false,
     wanted = 0;
   const compile = () => {
@@ -58,14 +60,26 @@ function start(index: AuthoredIndex, published: ContentStore) {
       generation,
       root: authoredRoot.href,
       changes: [...history.changes],
+      preview: [...preview].map(([path, bytes]) => [path, bytes.slice()] as const),
     } satisfies CompileRequest);
   };
   worker.addEventListener('message', ({ data }: MessageEvent<CompileResponse>) => {
     running = false;
     if (data.generation !== wanted) return compile();
+    // Preview measurements no longer current are discarded.
+    preview = new Map([...preview].filter(([path]) => data.preview.includes(path)));
     state = data.ok
-      ? { status: 'ok', last: { step: data.generation, seconds: data.seconds, files: data.files } }
-      : { status: 'failed', diagnostics: data.diagnostics, last: state.last };
+      ? {
+          status: 'ok',
+          last: { step: data.generation, seconds: data.seconds, files: data.files },
+          measurements: data.measurements,
+        }
+      : {
+          status: 'failed',
+          diagnostics: data.diagnostics,
+          last: state.last,
+          unmeasured: data.unmeasured ? { step: data.generation, seconds: data.seconds, files: data.unmeasured } : null,
+        };
     notify();
   });
   const moved = () => {
@@ -75,13 +89,15 @@ function start(index: AuthoredIndex, published: ContentStore) {
 
   // One edit: a new state of the changes. A file equal to the build's own is no change. Edits apply in order.
   let edits = Promise.resolve();
-  const edit = (path: string, bytes: Uint8Array<ArrayBuffer> | null, label: string) =>
+  const edit = (files: readonly (readonly [string, Uint8Array<ArrayBuffer> | null])[], label: string) =>
     (edits = edits.then(async () => {
-      const original = index.files.find((file) => file.path === path);
-      const same = bytes ? original !== undefined && (await contentDigest(bytes)) === original.sha256 : !original;
       const next = new Map(history.changes);
-      if (same) next.delete(path);
-      else next.set(path, bytes);
+      for (const [path, bytes] of files) {
+        const original = index.files.find((file) => file.path === path);
+        const same = bytes ? original !== undefined && (await contentDigest(bytes)) === original.sha256 : !original;
+        if (same) next.delete(path);
+        else next.set(path, bytes);
+      }
       history.push(next, label);
       moved();
     }));
@@ -99,10 +115,16 @@ function start(index: AuthoredIndex, published: ContentStore) {
         else paths.delete(path);
       return [...paths].sort();
     },
+    root: authoredRoot.href,
     replace: (path: string, value: unknown, label = `Edit ${path}`) =>
-      void edit(path, new TextEncoder().encode(formatSavedJson(value)), label),
+      void edit([[path, new TextEncoder().encode(formatSavedJson(value))]], label),
     setFile: (path: string, bytes: Uint8Array<ArrayBuffer> | null, label = `${bytes ? 'Set' : 'Delete'} ${path}`) =>
-      void edit(path, bytes, label),
+      void edit([[path, bytes]], label),
+    preview: () => preview,
+    addPreview(files: readonly (readonly [string, Uint8Array<ArrayBuffer>])[]) {
+      preview = new Map([...preview, ...files]);
+      moved();
+    },
     revert(path: string) {
       const next = new Map(history.changes);
       next.delete(path);
@@ -191,11 +213,18 @@ function start(index: AuthoredIndex, published: ContentStore) {
       state.status === 'running'
         ? 'compiling…'
         : state.status === 'ok'
-          ? `compiled in ${state.last.seconds.toFixed(1)} s`
-          : `failed (${state.diagnostics.length})${state.last ? ' · products are stale' : ''}`;
+          ? `compiled in ${state.last.seconds.toFixed(1)} s · ${state.measurements === 'saved' ? 'saved measurements' : 'preview measurements (not saved)'}`
+          : state.unmeasured
+            ? 'measurements are stale (Measure to preview)'
+            : `failed (${state.diagnostics.length})${state.last ? ' · products are stale' : ''}`;
     const unsaved = count && history.changes !== saved ? ' (unsaved)' : '';
     status.textContent = `build ${commit.slice(0, 7)} · ${count} change${count === 1 ? '' : 's'}${unsaved} · ${compileText}`;
-    status.dataset.state = state.status;
+    status.dataset.state =
+      state.status === 'failed' && state.unmeasured
+        ? 'stale'
+        : state.status === 'ok' && state.measurements === 'preview'
+          ? 'preview'
+          : state.status;
     const { undo: undoLabel, redo: redoLabel } = history.labels;
     labelled(element<HTMLButtonElement>('undo'), !history.canUndo, undoLabel ? `Undo: ${undoLabel}` : 'Undo');
     labelled(element<HTMLButtonElement>('redo'), !history.canRedo, redoLabel ? `Redo: ${redoLabel}` : 'Redo');

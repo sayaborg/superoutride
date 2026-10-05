@@ -20,6 +20,7 @@ await build({
     'tools/graphics/sprite-lod.ts',
     'tools/workbench/workbench.ts',
     'tools/workbench/compile-worker.ts',
+    'tools/workbench/measure-worker.ts',
   ],
   outbase: 'tools',
   outdir: 'dist/tools',

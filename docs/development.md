@@ -192,8 +192,17 @@ their JSON Pointer, or at the nearest existing parent with the pointer named; ch
 its document there. Containers open on demand, a long one 200 entries at a time, so large image documents open
 without expanding.
 
+When only measured products are stale, the header says so and the workbench also compiles the content without them,
+so editing and previews go on. The Measure module lists the stale envelopes and course entries and measures them with
+the measurement tool's implementation, on up to four workers off the page's thread, showing which vehicle and phase it
+is on; it can be cancelled. The results are preview measurements for this build only: they are not changes, not a
+history step and not in the archive, and they are used only while their vehicle, course and procedure identities match
+the current documents, then discarded. The header and the Measure module always show whether the build uses the saved
+measurements, preview measurements (not saved) or stale ones.
+
 To apply an archive to the repository, extract it at the repository root, delete the files `workbench-changes.json`
-marks `deleted`, delete `workbench-changes.json`, then run `npm run check` and `npm run build`. Authors without a
+marks `deleted`, delete `workbench-changes.json`, then run `npm run measure -- generate`, `npm run check` and
+`npm run build`. Authors without a
 checkout hand the archive to the implementer.
 
 The file compilers are `npm run build:sprite-source -- <arguments>` and

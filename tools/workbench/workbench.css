@@ -34,6 +34,12 @@ h2 {
 #status[data-state='failed'] {
   color: var(--bad);
 }
+#status[data-state='preview'] {
+  color: var(--accent);
+}
+#status[data-state='stale'] {
+  color: #e3b341;
+}
 #status[data-state='ok'] {
   color: var(--good);
 }

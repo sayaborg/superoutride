@@ -993,6 +993,10 @@ malformed values fail as any admitted document does. Changing a series' `timeMar
 budgets and needs no measurement. Tools that produce the measured products, or need none, compile the content without
 them (`measured: false`).
 
+Measurement is reproducible within one JavaScript engine. `Math.sin` and `Math.cos` differ between engines in their
+last bits, so the saved products are written by the Node tool alone; the workbench measures with the same
+implementation for its own build only, and never saves the result.
+
 ### Pace schedules
 
 A pace schedule (`superoutride.pace-schedule` version 1) records a vehicle's reference pace on a series course for

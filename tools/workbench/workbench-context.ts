@@ -5,12 +5,19 @@ import type { WorkbenchDiagnostic } from './compile-protocol.js';
 /** The latest compile the workbench knows: its products, or its diagnostics with the last products that compiled. */
 export type CompileState =
   | { readonly status: 'running'; readonly last: CompiledState | null }
-  | { readonly status: 'ok'; readonly last: CompiledState }
+  | {
+      readonly status: 'ok';
+      readonly last: CompiledState;
+      /** Whether the measured products are the saved ones or the workbench's unsaved preview measurements. */
+      readonly measurements: 'saved' | 'preview';
+    }
   | {
       readonly status: 'failed';
       readonly diagnostics: readonly WorkbenchDiagnostic[];
       /** The last products that compiled, from an earlier state: stale. */
       readonly last: CompiledState | null;
+      /** When only measured products are stale: this state's products without them. */
+      readonly unmeasured: CompiledState | null;
     };
 
 export interface CompiledState {
@@ -39,6 +46,12 @@ export interface WorkbenchContext {
   replace(path: string, value: unknown, label?: string): void;
   /** Set a file's bytes, or delete it with null: one edit. */
   setFile(path: string, bytes: Uint8Array<ArrayBuffer> | null, label?: string): void;
+  /** The preview measurements: saved-product files measured here, used while current, never saved or undone. */
+  preview(): ReadonlyMap<string, Uint8Array<ArrayBuffer>>;
+  /** Add preview measurements and compile again. */
+  addPreview(files: readonly (readonly [string, Uint8Array<ArrayBuffer>])[]): void;
+  /** The published build's `authored/` directory, which workers open. */
+  readonly root: string;
   /** Called after every change of state: an edit, an undo or a compile. */
   subscribe(listener: () => void): () => void;
   /** Ask the documents module to show a document at a JSON Pointer. */
