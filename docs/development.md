@@ -219,6 +219,21 @@ marks `deleted`, delete `workbench-changes.json`, then run `npm run measure -- g
 `npm run build`. Authors without a
 checkout hand the archive to the implementer.
 
+The sprite command runs the [sprite operations](image-assets.md#sprite-operations) on `content/`, printing one JSON
+result (or the diagnostics, exiting 1):
+
+```sh
+npm run sprite -- import tree
+npm run sprite -- import car-front --set coupe --cells 0:0,12:0
+npm run sprite -- new-set van --image van-0 --yaw 24 --bank 1 --lamp 12321,32038
+npm run sprite -- adjust --set coupe --from original --to blue --slots 1,3 --hue 120
+```
+
+`import` makes the master of `content/sprite-sources/<name>.png` and its recipe: a course image is written as
+`content/images/<sha256>.json`; a vehicle image replaces the set's image of that name or is added, and fills the given
+`yaw:bank` cells. `new-set` starts a set whose every cell shows one imported image. `adjust` derives a named palette
+for every image of a set (`--saturation`, `--lightness`, `--tint-hue` and `--tint-amount` too).
+
 The file compilers are `npm run build:sprite-source -- <arguments>` and
 `npm run build:sprite-lod -- <arguments>`; [Image assets](image-assets.md) owns their formats.
 

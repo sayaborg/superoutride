@@ -18,6 +18,7 @@
     "build:sprite-source": "node --import tsx tools/build/build-sprite-source.ts",
     "course": "node --import tsx tools/course/course.ts",
     "measure": "node --import tsx tools/course/measure-products.ts",
+    "sprite": "node --import tsx tools/build/sprite.ts",
     "check:dependencies": "node --test tests/infrastructure/layer-dependencies.test.mjs"
   },
   "devDependencies": {
