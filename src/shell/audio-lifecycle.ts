@@ -8,6 +8,7 @@ import type { CompetitorObservation } from '../race/competitor-observation.js';
 import { createVehicleAudioEmitter, readVehicleAudio } from './vehicle-audio.js';
 import type { PlayerRecord } from './player-record.js';
 import type { ProcessingReport } from '../audio/processing-meter.js';
+import type { InputRoute } from '../input/menu-input.js';
 
 /** DEV: what the audio timing HUD reads of the audio lifetime. */
 export interface AudioTimingSource {
@@ -35,9 +36,10 @@ export function createAudioLifecycle(
   let context: AudioContext | null = null;
   let scene: Awaited<ReturnType<typeof createAudioScene>> | null = null;
   let loading: Promise<void> | null = null;
-  // The run state activates the audio through setActive; it starts inactive.
+  // The screen host's route sets whether the page is visible and a run is driven; both start false.
   let enabled = true,
-    active = false,
+    visible = false,
+    live = false,
     disposed = false;
   let failed = false;
   // DEV: the processing listener, applied to every scene built while it is set.
@@ -80,9 +82,8 @@ export function createAudioLifecycle(
     controls.showSoundState(text, enabled && supported);
   }
   function audible(): boolean {
-    return enabled && active && !disposed;
+    return enabled && visible && !disposed;
   }
-  let suspendTimer: ReturnType<typeof setTimeout> | null = null;
   function closeGraph(retired: typeof scene, closing: AudioContext | null): void {
     try {
       retired?.dispose();
@@ -104,8 +105,6 @@ export function createAudioLifecycle(
     scene = null;
     context = null;
     loading = null;
-    if (suspendTimer !== null) clearTimeout(suspendTimer);
-    suspendTimer = null;
     closeGraph(retired, closing);
   }
   function fail(): void {
@@ -114,8 +113,6 @@ export function createAudioLifecycle(
     showSoundState();
   }
   function sync(): void {
-    if (suspendTimer !== null) clearTimeout(suspendTimer);
-    suspendTimer = null;
     showSoundState();
     if (!context || !scene) return;
     try {
@@ -129,12 +126,9 @@ export function createAudioLifecycle(
       for (const bus of SOUND_BUSES) scene.setBusGain(bus, busVolumes[bus]);
       scene.setTireComponents(components);
       scene.setMasterGain(audible() ? volume : 0);
-      if (!active || disposed) void context.suspend().catch(() => {});
-      else if (!enabled)
-        suspendTimer = setTimeout(() => {
-          suspendTimer = null;
-          if (!audible()) void context?.suspend().catch(() => {});
-        }, current.control.transitionSeconds * 1000);
+      scene.setLive(live);
+      // Only a hidden page suspends the context; SOUND OFF only silences the output.
+      if (!visible || disposed) void context.suspend().catch(() => {});
     } catch {
       fail();
     }
@@ -170,7 +164,8 @@ export function createAudioLifecycle(
   function unlock(event?: Event): void {
     if (event?.type === 'pointerdown' && (event as PointerEvent).pointerType !== 'mouse') return;
     if (controls.isSoundToggle(event?.target ?? null) || !supported || !audible()) return;
-    start();
+    // Outside driving only `enable` creates the audio; any gesture resumes it.
+    if (context || live) start();
   }
   /** Create the audio, or resume it; within a user gesture the browser lets it run. */
   function start(): void {
@@ -217,7 +212,7 @@ export function createAudioLifecycle(
       if (supported && enabled && !disposed) start();
     },
     update(player: CompetitorObservation, rivals: readonly CompetitorObservation[]): void {
-      if (!scene || !context || context.state !== 'running' || !audible()) return;
+      if (!scene || !context || context.state !== 'running' || !audible() || !live) return;
       try {
         readVehicleAudio(player, playerEmitter);
         while (rivalEmitters.length < rivals.length) rivalEmitters.push(createVehicleAudioEmitter());
@@ -239,8 +234,13 @@ export function createAudioLifecycle(
         scene?.measureProcessing(listener);
       },
     }),
-    setActive(value: boolean): void {
-      active = value;
+    /**
+     * The screen host's route: the context runs while the page is visible and is suspended while it is hidden; the
+     * live buses sound only while driving.
+     */
+    setRoute(route: InputRoute): void {
+      visible = route !== 'off';
+      live = route === 'driving';
       sync();
       if (audible() && context)
         void context

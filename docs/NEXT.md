@@ -35,7 +35,7 @@
   appears at seeded Route positions from the series or FREE PLAY's TRAFFIC option; RIBBON COAST is the verification
   course of all of it.
 
-Next PR: **14-0c** — audio runs while the page is visible.
+Next PR: **14-0d** — sound settings are admitted once.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -74,8 +74,6 @@ Requirements left from the second design audit, by when they are taken up:
 
 [Product](product.md#13-music-and-sound-effects) §13 states the target. The remaining PRs, in order:
 
-- **14-0c — Audio lifetime:** the AudioContext runs from PRESS START while the page is visible; the vehicle sounds are
-  silent while no run is live and resume from the current observation.
 - **14-0d — Sound settings admitted once:** tire and engine sound settings are validated at the audio document's
   compilation and at DEV replacement only; voices, worklets and kernels use the admitted values (D8e-03).
 - **14-0e — Sound layer without DEV labels:** sound-layer definitions hold only sound values and ranges; the shell owns

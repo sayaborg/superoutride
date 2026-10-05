@@ -71,7 +71,7 @@ export function createBrowserDrivingShell(
     setRoute(route): void {
       const live = route === 'driving';
       inputManager.setSuspended(!live);
-      audio.setActive(live);
+      audio.setRoute(route);
       menuInput.setRoute(route);
       corners.setRoute(route);
     },

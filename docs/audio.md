@@ -158,12 +158,13 @@ document, the audition tools.
 
 The [sound graph](../src/audio/sound-graph.ts) owns the named buses (`engine`, `tire`) and the master path:
 each bus feeds the MASTER gain, then a compressor set by the MIX settings (`MixSettings`, written directly to
-the compressor's parameters), then the output.
+the compressor's parameters), then the output. Each bus declares whether it is live: a live bus sounds only while a
+run is driven, through one live gate before the MASTER gain. Both buses are live.
 The [audio scene](../src/audio/audio-scene.ts) loads the generators, owns the voices (player engine, selected
 rival engine with its panner, player tires) on those buses, and owns rival selection, reassignment and
 spatialization; the RIVAL settings (`RivalSettings`) own the audible distance, reference distance, pan floor and
-reassignment time. The nearest observed rival within `audibleMeters` occupies the rival slot; candidates are the
-rivals the race observes on the resident Route. That cutoff is game policy, not acoustics. The gain follows the
+reassignment time. The nearest observed vehicle within `audibleMeters` occupies the rival slot; candidates are the
+rivals and traffic vehicles the race observes on the resident Route. That cutoff is game policy, not acoustics. The gain follows the
 inverse-distance law `referenceMeters/max(referenceMeters, distance)` over the 3D physical world distance, and the
 pan is lateral displacement in the player's yaw frame divided by `max(panMinimumMeters, distance)`. A change of rival ID silences the slot and waits the reassignment time before the new rival sounds. Each engine
 voice sounds the engine sound of its competitor's vehicle (the observation's vehicle ID, resolved through the
@@ -185,11 +186,19 @@ replacement fades to silence before installing a new kernel. New settings supers
 returning to active values cancels pending replacement. Tire replacement is specified in
 [Tire audio](tire-audio.md#settings-replacement).
 
-Construction leaves the AudioContext unopened. An eligible user gesture starts or resumes audio. Only
-`setActive`, called by the screen host's live/stopped procedure, activates or deactivates audio; inactive audio
-suspends the context, and mute fades before suspension. A page hidden without entering the back/forward cache
-disposes it. Disposal closes the context, including a graph completing initialization after disposal. Module
-URLs resolve within the selected commit-versioned build.
+Construction leaves the AudioContext unopened. The first eligible gesture creates it: the CONFIRM on TITLE, or any
+gesture during a run the URL started. From then on the context runs while the page is visible; only a hidden page
+suspends it, and becoming visible resumes it (an eligible gesture resumes it where the browser requires one). Pause,
+menus, LOADING and RESULT leave it running, and SOUND OFF only sets the MASTER gain to zero. The screen host's route
+is the one procedure that tells audio both facts, whether the page is visible and whether a run is driven
+(`setRoute`); audio never reads document visibility itself. While no run is driven, the live gate closes with the
+silence fade (`fadeSeconds`), the worklets of the voices on live buses rest from the transition time
+(`transitionSeconds`) after it, rendering silence without running their kernels, and the voices receive no
+observations. When a run is driven again, the worklets wake at once and continue from the state they rested in, the
+voices write the current observations, and the gate opens after the transition time, so the kernels have followed the
+observations before they are heard. A page hidden without entering the back/forward cache disposes the context.
+Disposal closes the context, including a graph completing initialization after disposal. Module URLs resolve within
+the selected commit-versioned build.
 
 For DEV measurement only, each worklet carries a processing meter
 ([`processing-meter.ts`](../src/audio/processing-meter.ts)) that reads no clock until its voice asks it to measure;

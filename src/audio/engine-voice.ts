@@ -99,6 +99,10 @@ export function createEngineVoice(
     setControl(value: ControlSettings): void {
       if (!sameControlSettings(control, value)) control = resolveControlSettings(value);
     },
+    /** Rest the worklet from context time `at` (its kernels stop and it renders silence), or wake it with null. */
+    rest(at: number | null): void {
+      exhaust.port.postMessage({ restAt: at });
+    },
     /** DEV: report the worklet's processing to `listener`, or stop with null. */
     measureProcessing(listener: ((report: ProcessingReport) => void) | null): void {
       exhaust.port.onmessage = listener && (({ data }) => listener(data as ProcessingReport));

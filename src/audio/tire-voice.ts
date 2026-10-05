@@ -82,6 +82,11 @@ export function createTireVoice(
       } else if (pending) follow(output.gain, 1, now, control.gainSeconds);
       pending = null;
     },
+    /** Rest the worklet from context time `at` (its kernels stop and it renders silence), or wake it with null. */
+    rest(at: number | null): void {
+      if (disposed) return;
+      node.port.postMessage({ restAt: at });
+    },
     /** DEV: report the worklet's processing to `listener`, or stop with null. */
     measureProcessing(listener: ((report: ProcessingReport) => void) | null): void {
       if (disposed) return;

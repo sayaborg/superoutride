@@ -3,9 +3,18 @@ import type { ControlSettings } from './audio-control-policy.js';
 import { DEFAULT_AUDIO_SETTINGS } from './audio-defaults.js';
 import { follow } from './audio-parameter.js';
 
-// A new sound kind adds one bus here and connects its voices to that bus's input.
-export const SOUND_BUSES = Object.freeze(['engine', 'tire'] as const);
-export type SoundBus = (typeof SOUND_BUSES)[number];
+/**
+ * The buses and what each declares: `live` buses sound only while a run is driven. A new sound kind adds one bus
+ * here and connects its voices to that bus's input.
+ */
+const BUS_DECLARATIONS = Object.freeze({
+  engine: Object.freeze({ live: true }),
+  tire: Object.freeze({ live: true }),
+});
+export type SoundBus = keyof typeof BUS_DECLARATIONS;
+export const SOUND_BUSES = Object.freeze(Object.keys(BUS_DECLARATIONS) as SoundBus[]);
+/** Whether `bus` sounds only while a run is driven. */
+export const isLiveBus = (bus: SoundBus): boolean => BUS_DECLARATIONS[bus].live;
 
 /**
  * Master compressor: output protection for the summed mix, not a vehicle or pipe property. No derivation;
@@ -40,10 +49,16 @@ export function resolveMixSettings(overrides: Partial<MixSettings> = {}): MixSet
   return Object.freeze(settings);
 }
 
-/** Named buses into one master gain and compressor; voices connect to a bus input. */
+/**
+ * Named buses into one master gain and compressor; voices connect to a bus input. The live buses pass one live gate,
+ * open only while a run is driven.
+ */
 export function createSoundGraph(context: BaseAudioContext) {
   const master = context.createGain();
   master.gain.value = 0;
+  const liveGate = context.createGain();
+  liveGate.gain.value = 0;
+  liveGate.connect(master);
   const compressor = context.createDynamicsCompressor();
   const applyMix = (mix: MixSettings): void => {
     compressor.threshold.value = mix.thresholdDb;
@@ -59,7 +74,7 @@ export function createSoundGraph(context: BaseAudioContext) {
     SOUND_BUSES.map((bus) => {
       const gain = context.createGain();
       gain.gain.value = 1;
-      gain.connect(master);
+      gain.connect(isLiveBus(bus) ? liveGate : master);
       return [bus, gain];
     }),
   ) as Record<SoundBus, GainNode>;
@@ -74,6 +89,15 @@ export function createSoundGraph(context: BaseAudioContext) {
     setMasterGain(value: number): void {
       follow(master.gain, clamp(value, 0, 1), context.currentTime, control.mixSeconds);
     },
+    /**
+     * Close the live gate with the silence fade, or open it: closed first, it opens after the transition time, so
+     * kernels that woke from rest reach the current observation before they are heard.
+     */
+    setLive(live: boolean): void {
+      const now = context.currentTime;
+      follow(liveGate.gain, 0, now, control.fadeSeconds);
+      if (live) liveGate.gain.setTargetAtTime(1, now + control.transitionSeconds, control.mixSeconds);
+    },
     /** Written directly to the compressor's parameters. */
     setMixSettings(value: MixSettings): void {
       applyMix(resolveMixSettings(value));
@@ -83,6 +107,7 @@ export function createSoundGraph(context: BaseAudioContext) {
     },
     dispose(): void {
       for (const bus of SOUND_BUSES) buses[bus].disconnect();
+      liveGate.disconnect();
       master.disconnect();
       compressor.disconnect();
     },

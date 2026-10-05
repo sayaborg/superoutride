@@ -5,7 +5,7 @@ import { follow } from './audio-parameter.js';
 import { DEFAULT_AUDIO_SETTINGS } from './audio-defaults.js';
 import { createEngineVoice } from './engine-voice.js';
 import type { ExhaustSettings } from './exhaust-acoustics.js';
-import { createSoundGraph, type MixSettings, type SoundBus } from './sound-graph.js';
+import { createSoundGraph, isLiveBus, type MixSettings, type SoundBus } from './sound-graph.js';
 import type { TireComponents } from './tire-sound-components.js';
 import type { UnifiedSettings } from './tire-unified-acoustics.js';
 import type { RollingSettings } from './tire-rolling-acoustics.js';
@@ -87,7 +87,7 @@ export function nearestAudibleRival<T extends AudioPosition>(
   rivals: readonly T[],
   audibleMeters = DEFAULT_AUDIO_SETTINGS.rival.audibleMeters,
 ): T | null {
-  // Candidates are the race's observed rivals, which never include the listener.
+  // Candidates are the race's observed rivals and traffic, which never include the listener.
   let nearest: T | null = null;
   let distanceSquared = audibleMeters ** 2;
   for (const candidate of rivals) {
@@ -115,8 +115,8 @@ export function rivalSpatialization(
 
 /**
  * Loads the generators, owns the voices (player engine, rival engine and its panner, player tires) on the
- * sound graph's buses, and the rival voice assignment: a change silences the voice and waits before the new
- * rival sounds. Each engine voice sounds its emitter's vehicle; a voice whose sound changes fades out and waits
+ * sound graph's buses and whether those on live buses run, and the rival voice assignment: a change silences the
+ * voice and waits before the new rival sounds. Each engine voice sounds its emitter's vehicle; a voice whose sound changes fades out and waits
  * before the new sound starts.
  */
 export async function createAudioScene(context: AudioContext, surfaces: TireSurfaceSounds) {
@@ -127,6 +127,13 @@ export async function createAudioScene(context: AudioContext, surfaces: TireSurf
   rivalPan.connect(graph.input('engine'));
   const rivalEngine = createEngineVoice(context, rivalPan);
   const tires = createTireVoice(context, graph.input('tire'), surfaces);
+  const voices = [
+    { voice: playerEngine, bus: 'engine' },
+    { voice: rivalEngine, bus: 'engine' },
+    { voice: tires, bus: 'tire' },
+  ] as const satisfies readonly { voice: { rest(at: number | null): void }; bus: SoundBus }[];
+  // Unknown until the first setLive applies it.
+  let live: boolean | null = null;
   let rival = DEFAULT_AUDIO_SETTINGS.rival;
   let control = resolveControlSettings();
   let assignedId: string | null = null;
@@ -155,6 +162,17 @@ export async function createAudioScene(context: AudioContext, surfaces: TireSurf
       const { gain, pan } = rivalSpatialization(player, nearest, rival);
       rivalEngine.update(nearest, soundOf(nearest.vehicleId), gain);
       follow(rivalPan.pan, clamp(pan, -1, 1), context.currentTime, control.panSeconds);
+    },
+    /**
+     * Whether a run is driven. The live buses' gate closes, and their voices' worklets rest once the transition has
+     * passed; they wake at once and are heard after the transition, from the observations of the updates since.
+     */
+    setLive(value: boolean): void {
+      if (value === live) return;
+      live = value;
+      graph.setLive(value);
+      const restAt = value ? null : context.currentTime + control.transitionSeconds;
+      for (const { voice, bus } of voices) if (isLiveBus(bus)) voice.rest(restAt);
     },
     setExhaustSettings(value: ExhaustSettings): void {
       playerEngine.setSettings(value);
@@ -190,7 +208,7 @@ export async function createAudioScene(context: AudioContext, surfaces: TireSurf
     },
     /** DEV: report each worklet's processing to `listener`, or stop with null. */
     measureProcessing(listener: ((report: ProcessingReport) => void) | null): void {
-      for (const voice of [playerEngine, rivalEngine, tires]) voice.measureProcessing(listener);
+      for (const { voice } of voices) voice.measureProcessing(listener);
     },
     dispose(): void {
       if (disposed) return;

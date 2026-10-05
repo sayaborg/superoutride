@@ -11,6 +11,7 @@ import { TIRE_SOUND_INPUT_KEYS, TIRE_CONTROL_RANGES, type TireSoundObservation }
 import { compileSurfaceSound, type SurfaceSound } from './surface-sounds.js';
 import { TIRE_COMPONENTS, TIRE_COMPONENT_RANGE } from './tire-sound-components.js';
 import { ProcessingMeter } from './processing-meter.js';
+import { WorkletRest } from './worklet-rest.js';
 declare const sampleRate: number;
 declare const AudioWorkletProcessor: { new (): { readonly port: MessagePort } };
 declare function registerProcessor(name: string, processor: typeof AudioWorkletProcessor): void;
@@ -62,6 +63,7 @@ class TireProcessor extends AudioWorkletProcessor {
   private frictionMix = 1;
   private valid = true;
   private readonly meter = new ProcessingMeter(this.port, sampleRate);
+  private readonly rest = new WorkletRest();
   static get parameterDescriptors() {
     return [
       ...TIRE_COMPONENTS.map(({ key }) => ({ name: `mix_${key}`, ...TIRE_COMPONENT_RANGE, automationRate: 'k-rate' })),
@@ -80,7 +82,7 @@ class TireProcessor extends AudioWorkletProcessor {
     this.surfaces = readSurfaces(options?.processorOptions?.surfaces);
     this.pair = createPair(this.surfaces, this.settings, this.rolling, this.control);
     this.port.onmessage = ({ data }) => {
-      if (this.meter.receive(data)) return;
+      if (this.meter.receive(data) || this.rest.receive(data)) return;
       if (data === 'stop') this.pair = null;
       else if (this.pair !== null) {
         try {
@@ -147,6 +149,11 @@ class TireProcessor extends AudioWorkletProcessor {
     }
     if (!output) return true;
     const started = this.meter.begin();
+    if (this.rest.resting) {
+      output.fill(0);
+      this.meter.end(started, output.length);
+      return true;
+    }
     this.updateObserved(p, 'front', this.frontObservation, pair.front);
     this.updateObserved(p, 'rear', this.rearObservation, pair.rear);
     const rolling = this.readMix(p, 'mix_rolling'),

@@ -53,8 +53,9 @@ frame (the framebuffer and the [text layer](architecture.md#text-layer)) and say
 player's driving input and sound run on it. The host runs the frame loop while the page is visible and stops it
 while the document is hidden or after `pagehide`; only the host watches document visibility and page hiding, and a
 page restored from the back/forward cache reloads. Driving input and sound are live exactly while the page is
-visible and the current screen is live, and the host runs one symmetric procedure when that changes: live clears
-input suspension and activates audio; stopped suspends input (which resets it) and deactivates audio.
+visible and the current screen is live, and the host runs one symmetric procedure when its route changes (driving,
+menu or off while hidden): driving clears input suspension; otherwise input is suspended (which resets it). The same
+procedure tells audio whether the page is visible and whether a run is driven ([Audio](audio.md#mix-and-lifetime)).
 
 The loading screen shows `LOADING` on the plain background while a run is assembled. After a failed assembly the
 LOAD FAILED screen shows `LOAD FAILED` in red with RETRY, which requests the same run again, and BACK, which returns to
@@ -429,7 +430,8 @@ lasts for the loaded page and every run; a page reload restores the default. The
 
 ### Sound controls
 
-A mouse press, touch/pen release, touchend or eligible keyboard gesture starts/resumes sound.
+A mouse press, touch/pen release, touchend or eligible keyboard gesture resumes sound, and starts it during a run the
+URL started ([Audio](audio.md#mix-and-lifetime)).
 Touch pointerdown alone does not activate it. SOUND START starts or resumes; SOUND ON/OFF then mutes
 or unmutes. SOUND RETRY offers a new initialization after failure. SOUND UNAVAILABLE indicates that
 the browser lacks the required audio support while gameplay remains usable.
