@@ -5,7 +5,6 @@ import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { readDeliveredContent } from '../course/read-content.js';
 import { loadDeliveredCourse } from '../../src/content/load-delivered-course.js';
 import { createSessionVehicle, sessionVehicleSha256 } from '../../src/content/session-vehicle.js';
-import { REFERENCE_DRIVER_SHA256 } from '../course/reference-driving-policy.js';
 import { readCourseReference } from '../course/course-reference.js';
 import {
   COURSE_TIME_BUDGETS_FORMAT,
@@ -16,13 +15,13 @@ import { RIVAL_ENVELOPE_FORMAT, readRivalEnvelope } from '../../src/content/riva
 import { PACE_SCHEDULE_FORMAT, PACE_SCHEDULE_SPACING, readPaceSchedule } from '../../src/content/pace-schedule.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
 import { cachedReference, referenceCacheKey } from '../course/reference-cache.js';
-import { ENVELOPE_MEASUREMENT, measureRivalEnvelope } from '../course/rival-envelope-measurement.js';
+import { measureRivalEnvelope } from '../course/rival-envelope-measurement.js';
 import { runCourseReference } from '../course/reference-run.js';
 import { enumerateCourseRoutes } from '../../src/course/compiler/course-routes.js';
 import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 import { loadFreePlayRules } from '../../src/content/free-play-rules.js';
 
-const { vehicleId, courses, physicsSha256 } = workerData as CourseReferenceJob;
+const { vehicleId, courses, measurementSha256, referenceSha256 } = workerData as CourseReferenceJob;
 const content = await readDeliveredContent();
 const materials = await loadSurfaceMaterials(content);
 const definitions = await loadVehicleDefinitions(content, await loadEngineSounds(content));
@@ -32,10 +31,8 @@ const vehicle = createSessionVehicle(entry, definitions.driving),
   vehicleSha256 = await sessionVehicleSha256(vehicle, materials);
 let hits = 0,
   misses = 0;
-const envelope = await cachedReference(
-  'envelopes',
-  referenceCacheKey(null, vehicleSha256, ENVELOPE_MEASUREMENT, physicsSha256),
-  () => measureRivalEnvelope(vehicle),
+const envelope = await cachedReference('envelopes', referenceCacheKey(null, vehicleSha256, measurementSha256), () =>
+  measureRivalEnvelope(vehicle),
 );
 if (envelope.hit) hits++;
 else misses++;
@@ -50,7 +47,7 @@ const products: CourseReferenceResult['products'] = [{ kind: 'envelope', id: veh
   references: CourseReferenceResult['references'] = [];
 for (const { stem, timeMargin } of courses) {
   const course = await loadDeliveredCourse(content, stem, materials);
-  const key = referenceCacheKey(course.identity.buildSha256, vehicleSha256, REFERENCE_DRIVER_SHA256, physicsSha256);
+  const key = referenceCacheKey(course.identity.buildSha256, vehicleSha256, referenceSha256);
   const cached = await cachedReference('runs', key, async () => {
     return enumerateCourseRoutes(course.entry, course.type).map((route) =>
       runCourseReference(course, vehicle, catalog, envelope.value, route, course.rules.maxLaps),
@@ -61,13 +58,12 @@ for (const { stem, timeMargin } of courses) {
   const candidate = { vehicleId, vehicleSha256, runs: cached.value };
   const reference = {
     format: 'superoutride.course-reference',
-    version: 2,
+    version: 3,
     courseBuildSha256: course.identity.buildSha256,
-    modelSha256: physicsSha256,
-    driverSha256: REFERENCE_DRIVER_SHA256,
+    procedureSha256: referenceSha256,
     vehicles: [candidate],
   };
-  const budgets = readCourseReference(course, vehicleId, vehicleSha256, reference, timeMargin);
+  const budgets = readCourseReference(course, vehicleId, vehicleSha256, reference, timeMargin, referenceSha256);
   const product = {
     ...COURSE_TIME_BUDGETS_FORMAT,
     courseBuildSha256: course.identity.buildSha256,

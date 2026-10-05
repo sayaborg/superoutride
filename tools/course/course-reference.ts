@@ -1,6 +1,5 @@
 import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import type { CompiledCourseLandmark } from '../../src/course/compiler/course-rules.js';
-import { REFERENCE_DRIVER_SHA256 } from './reference-driving-policy.js';
 import type { CourseTimeBudgets } from '../../src/content/course-time-budgets.js';
 import { enumerateCourseRoutes } from '../../src/course/compiler/course-routes.js';
 import { createCourseRoute } from '../../src/course/course-route.js';
@@ -29,6 +28,7 @@ export function readCourseReference(
   vehicleSha256: string,
   input: unknown,
   timeMargin: number,
+  referenceSha256: string,
 ): CourseTimeBudgets {
   if (!course.rules) throw new RangeError('Reference requires authored rules');
   const fail = (condition: unknown, message: string) => {
@@ -49,9 +49,9 @@ export function readCourseReference(
     return value;
   };
   const source = record(structuredClone(input));
-  fail(source.format === 'superoutride.course-reference' && source.version === 2, 'unsupported format/version');
+  fail(source.format === 'superoutride.course-reference' && source.version === 3, 'unsupported format/version');
   fail(source.courseBuildSha256 === course.identity.buildSha256, 'stale course identity');
-  fail(source.driverSha256 === REFERENCE_DRIVER_SHA256, 'stale driver identity');
+  fail(source.procedureSha256 === referenceSha256, 'stale reference run identity');
   const candidates = array(source.vehicles)
     .map(record)
     .filter((r) => r.vehicleId === vehicleId);

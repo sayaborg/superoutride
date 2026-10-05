@@ -6,15 +6,10 @@ const referenceCacheDirectory = new URL('../../.cache/course-reference/', import
 export const digest = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 /**
  * Vehicle values are an independent key component; editing one vehicle definition cannot invalidate its peers.
- * `procedure` identifies what produced the value: the reference driver for runs, the measurement for envelopes.
+ * `procedureSha256` identifies what produced the value: the reference run for runs, the measurement for envelopes.
  */
-export function referenceCacheKey(
-  courseBuildSha256: string | null,
-  vehicleSha256: string,
-  procedure: unknown,
-  physicsSha256: string,
-) {
-  return digest({ courseBuildSha256, vehicleSha256, procedure, physicsSha256 });
+export function referenceCacheKey(courseBuildSha256: string | null, vehicleSha256: string, procedureSha256: string) {
+  return digest({ courseBuildSha256, vehicleSha256, procedureSha256 });
 }
 export async function cachedReference<T>(
   kind: string,

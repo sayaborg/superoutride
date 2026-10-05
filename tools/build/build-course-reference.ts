@@ -3,8 +3,9 @@ import { writeFile, mkdir } from 'node:fs/promises';
 import { Worker } from 'node:worker_threads';
 import { availableParallelism } from 'node:os';
 import type { VehicleDefinitions } from '../../src/content/vehicle-catalog.js';
-import { REFERENCE_DRIVER_SHA256 } from '../course/reference-driving-policy.js';
-import { referenceModelIdentity } from '../course/reference-identity.js';
+import { procedureSha256 } from '../course/procedure.js';
+import { ENVELOPE_MEASUREMENT } from '../course/rival-envelope-measurement.js';
+import { REFERENCE_RUN } from '../course/reference-run.js';
 
 import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import type { SeriesCourse } from '../../src/content/series-catalog.js';
@@ -15,7 +16,8 @@ export interface CourseReferenceJob {
   readonly vehicleId: VehicleId;
   /** Each series course holding this vehicle as a candidate, with its series' time margin. */
   readonly courses: readonly { readonly stem: string; readonly timeMargin: number }[];
-  readonly physicsSha256: string;
+  readonly measurementSha256: string;
+  readonly referenceSha256: string;
 }
 
 interface ReferenceCandidate {
@@ -38,7 +40,8 @@ export async function buildCourseReferences(
   definitions: VehicleDefinitions,
   stage: (kind: ContentKind, id: string, product: unknown) => Promise<unknown>,
 ) {
-  const physicsSha256 = await referenceModelIdentity(),
+  const measurementSha256 = await procedureSha256(ENVELOPE_MEASUREMENT),
+    referenceSha256 = await procedureSha256(REFERENCE_RUN),
     jobs = courses.map(({ course, settings }) => ({
       stem: course.id,
       timeMargin: settings.series.timeMargin,
@@ -55,7 +58,8 @@ export async function buildCourseReferences(
           courses: jobs
             .filter((job) => job.vehicles.includes(vehicleId))
             .map(({ stem, timeMargin }) => ({ stem, timeMargin })),
-          physicsSha256,
+          measurementSha256,
+          referenceSha256,
         } satisfies CourseReferenceJob,
       });
       running.add(worker);
@@ -85,10 +89,9 @@ export async function buildCourseReferences(
       course.id,
       {
         format: 'superoutride.course-reference',
-        version: 2,
+        version: 3,
         courseBuildSha256: course.identity.buildSha256,
-        modelSha256: physicsSha256,
-        driverSha256: REFERENCE_DRIVER_SHA256,
+        procedureSha256: referenceSha256,
         vehicles: [] as ReferenceCandidate[],
       },
     ]),

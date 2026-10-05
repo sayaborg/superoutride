@@ -1,19 +1,10 @@
-import { createHash } from 'node:crypto';
 import { ENVELOPE_DRIVER } from '../../src/race/envelope-driver.js';
 import type { createCourseForkField, DriverIntent } from '../../src/race/course-fork-field.js';
 import type { CourseRoute } from '../../src/course/course-route.js';
 import { courseBoundaryAt } from '../../src/course/course-boundaries.js';
 
-/** Offline reference policy is part of the reference identity, not vehicle mechanics. */
+/** The reference driver: the driver policy at the reference utilization, part of the reference run's record. */
 export const REFERENCE_DRIVER = Object.freeze({ ...ENVELOPE_DRIVER, utilization: 0.9 });
-
-/**
- * The reference driver's one identity: SHA-256 of its record's JSON with sorted keys. Run cache keys, saved
- * reports and report admission all use it.
- */
-export const REFERENCE_DRIVER_SHA256 = createHash('sha256')
-  .update(JSON.stringify(REFERENCE_DRIVER, Object.keys(REFERENCE_DRIVER).sort()))
-  .digest('hex');
 
 /**
  * The reference driver's lateral target: the fixed lateral line `l` off forks and, at a fork, the centre of the

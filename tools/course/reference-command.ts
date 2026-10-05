@@ -1,9 +1,8 @@
 import { createSessionVehicle } from '../../src/content/session-vehicle.js';
-import { REFERENCE_DRIVER_SHA256 } from './reference-driving-policy.js';
-import { measureRivalEnvelope } from './rival-envelope-measurement.js';
-import { runCourseReference } from './reference-run.js';
+import { ENVELOPE_MEASUREMENT, measureRivalEnvelope } from './rival-envelope-measurement.js';
+import { REFERENCE_RUN, runCourseReference } from './reference-run.js';
+import { procedureSha256 } from './procedure.js';
 import { enumerateCourseRoutes } from '../../src/course/compiler/course-routes.js';
-import { referenceModelIdentity } from './reference-identity.js';
 import { options, loadCourse, requireInput, atomicWrite, requireCompiled } from './authoring-io.js';
 import { compileContent } from '../authoring/compile-content.js';
 import { createNodeContentStore } from '../build/node-content-store.js';
@@ -19,14 +18,13 @@ export async function referenceCommand(verb: string, file: string | null, args: 
   const entry = definitions.vehicles.find((e) => e.compiledVehicle.id === opts.get('--vehicle'));
   requireInput(entry, '/vehicle', 'Unknown catalog vehicle');
   const vehicle = createSessionVehicle(entry, definitions.driving);
-  const modelSha256 = await referenceModelIdentity(),
-    envelope = measureRivalEnvelope(vehicle);
+  const envelope = measureRivalEnvelope(vehicle);
   let result;
   if (verb === 'envelope')
     result = {
       format: 'superoutride.vehicle-envelope',
-      version: 1,
-      modelSha256,
+      version: 2,
+      procedureSha256: await procedureSha256(ENVELOPE_MEASUREMENT),
       vehicle,
       ...envelope,
     };
@@ -40,10 +38,9 @@ export async function referenceCommand(verb: string, file: string | null, args: 
     requireInput(Number.isInteger(routeIndex) && routes[routeIndex], '/route', 'Unknown route index');
     result = {
       format: 'superoutride.reference-run',
-      version: 2,
+      version: 3,
       courseBuildSha256: course.identity.buildSha256,
-      modelSha256,
-      driverSha256: REFERENCE_DRIVER_SHA256,
+      procedureSha256: await procedureSha256(REFERENCE_RUN),
       vehicle,
       ...runCourseReference(
         course,
@@ -62,7 +59,7 @@ export async function referenceCommand(verb: string, file: string | null, args: 
     ok: true,
     output: opts.get('--out'),
     format: result.format,
-    modelSha256,
+    procedureSha256: result.procedureSha256,
     ...('elapsedSeconds' in result && result.elapsedSeconds
       ? { elapsedSeconds: result.elapsedSeconds, events: result.events }
       : {}),

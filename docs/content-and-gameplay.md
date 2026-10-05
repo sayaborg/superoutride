@@ -936,14 +936,18 @@ definition is not delivered and has no identity, so a Session rebuilt by DEV tun
 budgets ([Browser](browser.md#dev-controls)). This digest is a
 reference-cache key component and is independently recomputed by browser envelope and budget admission;
 both reject products carrying an old digest.
-The reference model hash tracks compiler/mechanics code; authored JSON values belong to the per-vehicle
-digest, so editing one vehicle does not invalidate unchanged vehicles' cache keys. The reference driver has one
-identity, `REFERENCE_DRIVER_SHA256`: SHA-256 of its record's JSON with sorted keys. Reference-run cache keys,
-saved reports (`superoutride.course-reference` and `superoutride.reference-run` version 2 record it as
-`driverSha256`) and report admission all use it. Envelope measurement does not use the reference driver: its cache
-key names the measurement procedure (`ENVELOPE_MEASUREMENT`: version, fixed step and reference surface). Measurement
-version 2 measures on the unit reference surface ([Calibration](calibration.md#vehicle-settings));
-the version advances whenever the procedure changes. The delivered envelope carries only its rows and maximum speed;
+Each procedure that produces a measured product has one record, its name, version and the values that decide its
+results, and one identity: the SHA-256 of the record's JSON ([procedure](../tools/course/procedure.ts)), as the course
+compiler's record is part of a course build identity. A code change that changes a procedure's results raises that
+procedure's version. Envelope measurement (`ENVELOPE_MEASUREMENT`, `superoutride.envelope-measurement` version 2)
+records its fixed step, reference surface and the values deciding convergence and its trials; it measures on the unit
+reference surface ([Calibration](calibration.md#vehicle-settings)). The reference run (`REFERENCE_RUN`,
+`superoutride.reference-driving` version 1) records the race's fixed step, the Session seed, the reference driver (the
+driver policy `ENVELOPE_DRIVER` at utilization 0.9), the envelope measurement's record and the pace schedule's station
+spacing. Authored values belong to the per-vehicle digest, so editing one vehicle does not invalidate unchanged
+vehicles' products. Reference-run cache keys, saved reports (`superoutride.course-reference` version 3,
+`superoutride.reference-run` version 3 and `superoutride.vehicle-envelope` version 2 record it as `procedureSha256`)
+and report admission use these identities. The delivered envelope carries only its rows and maximum speed;
 the measurement record stays in the reference cache and the `envelope` command's output. For a budget state, reference duration is the maximum upcoming interval among
 continuous histories sharing that state and its legal next checkpoint/finish alternatives.
 

@@ -52,8 +52,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 Requirements left from the second design audit, by when they are taken up:
 
 - **Stage 15:**
-  - A6g-07 (15-5): the procedural identities — reference driving, envelope measurement and the driving policy — come
-    from one method (today a hand-listed file hash, a manual version and a record hash).
   - H15-02 (15-5): the reference report reader uses the same admission toolkit and error classes as other generated
     products.
   - H14-02 (15-4): a compiled vehicle definition publishes each fact once, not both in its source document and in an

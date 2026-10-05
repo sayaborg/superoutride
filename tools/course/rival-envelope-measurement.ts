@@ -45,10 +45,11 @@ function createEnvelopeRun(entry: SessionVehicle, initialSpeed: number) {
 
 /** The flat reference surface, production control/protection, ordinary inputs; no imposed velocity or force during measurement. */
 /**
- * The envelope measurement procedure and its identity: its version, fixed step, reference surface, and the values
- * that decide convergence, the trials and which trials are admitted.
+ * The envelope measurement procedure's record ([procedure](./procedure.ts)): its fixed step, reference surface, and
+ * the values that decide convergence, the trials and which trials are admitted.
  */
 export const ENVELOPE_MEASUREMENT = Object.freeze({
+  name: 'superoutride.envelope-measurement',
   // Version 2: measured on the unit reference surface, ENVELOPE_REFERENCE_SURFACE.
   version: 2,
   dt: SIM_DT,

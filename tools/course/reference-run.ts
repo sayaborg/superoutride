@@ -19,9 +19,25 @@ import {
 } from '../../src/race/envelope-driver.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
 import { READY_SECONDS } from '../../src/race/start-phase.js';
+import { ENVELOPE_MEASUREMENT } from './rival-envelope-measurement.js';
+import { PACE_SCHEDULE_SPACING } from '../../src/content/pace-schedule.js';
 import { courseBoundaryAt, courseCarriagewayExists } from '../../src/course/course-boundaries.js';
 
 const IDLE_INPUT = Object.freeze({ steering: 0, throttle: false, brake: false });
+
+/**
+ * The reference run procedure's record ([procedure](./procedure.ts)): the race's fixed step, the Session seed, the
+ * reference driver, the measurement of the envelope it drives with and the pace schedule's station spacing.
+ */
+export const REFERENCE_RUN = Object.freeze({
+  name: 'superoutride.reference-driving',
+  version: 1,
+  dt: SIM_DT,
+  seed: 0,
+  driver: REFERENCE_DRIVER,
+  envelope: ENVELOPE_MEASUREMENT,
+  scheduleSpacing: PACE_SCHEDULE_SPACING,
+});
 
 export function runCourseReference(
   course: CompiledCourse,
@@ -41,7 +57,7 @@ export function runCourseReference(
     null,
     catalog,
   );
-  const session = resolveCourseSession(course, null, configuration, 0, vehicleConfiguration, envelope);
+  const session = resolveCourseSession(course, null, configuration, REFERENCE_RUN.seed, vehicleConfiguration, envelope);
   const slot = session.entries[0]!.slot!;
   const race = createCourseRace({ session, runtime: scene.runtime });
   const { actor } = race.player;
@@ -58,7 +74,7 @@ export function runCourseReference(
     occurrence.section.fork!.exits.findIndex((exit) => exit.link === planned.get(occurrence.section)),
   );
   const workspace = createEnvelopeDriverWorkspace();
-  const driver = compileEnvelopeDriver(envelope, REFERENCE_DRIVER.utilization, envelope.maximumSpeed, true);
+  const driver = compileEnvelopeDriver(envelope, REFERENCE_RUN.driver.utilization, envelope.maximumSpeed, true);
   // Race time and route station after every step from GO: the pass times at schedule stations interpolate them.
   const samples = { seconds: [0], s: [vehicle.course.s] };
   race.start();
