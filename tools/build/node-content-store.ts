@@ -9,11 +9,17 @@ export const CONTENT_ROOT = new URL('../../content/', import.meta.url);
 export function createNodeContentStore(root: URL = CONTENT_ROOT): ContentStore {
   return Object.freeze({
     read: async (path: string) => new Uint8Array(await readFile(new URL(path, root))),
-    list: async (directory: string) =>
-      (await readdir(new URL(`${directory}/`, root), { withFileTypes: true }))
-        .filter((entry) => entry.isFile())
-        .map((entry) => entry.name)
-        .sort(),
+    async list(directory: string) {
+      try {
+        return (await readdir(new URL(`${directory}/`, root), { withFileTypes: true }))
+          .filter((entry) => entry.isFile())
+          .map((entry) => entry.name)
+          .sort();
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') return [];
+        throw error;
+      }
+    },
     async write(path: string, bytes: Uint8Array<ArrayBuffer>) {
       const target = new URL(path, root),
         temporary = new URL(`${path}.${randomUUID()}.tmp`, root);

@@ -99,7 +99,7 @@ function courseFileStore(file: string, imagesDirectory: string): ContentStore {
  */
 export async function loadCourse(file: string, imagesDirectory?: string) {
   const store = courseFileStore(file, imagesDirectory ?? path.resolve(path.dirname(file), '../images'));
-  const content = requireCompiled(await compileContent(store));
+  const content = requireCompiled(await compileContent(store, { measured: false }));
   const id = courseFileId(file);
   const document = readCourseDocumentBytes(await store.read(`courses/${id}.course.json`), file);
   if (!document.ok) throw new AuthoringError(document.diagnostics);

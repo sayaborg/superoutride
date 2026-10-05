@@ -917,7 +917,7 @@ Recovery consumes simulation time and grants no crossing credit. Results are ses
 
 `tools/course` owns reference generation, its policy and report-to-budget admission. The product
 reads completed envelopes and time budgets and owns live Session driving policy.
-Build-generated continuous reference runs are TIME TRIAL Sessions: product physics, the configured start from the
+The measurement tool's continuous reference runs are TIME TRIAL Sessions: product physics, the configured start from the
 last grid slot and finite routes/laps, with the reference driver alone and no clock. Each successful run records the race's event stream for the player
 ([race time and events](#race-time-and-events)): ordered crossings with their race times, including within-step
 fractions. Reading a report derives the order and laps a run must record from the race's own lines: it builds the
@@ -986,7 +986,13 @@ once, after the margin is applied. The delivered pace schedule carries the sched
 identities and the station spacing.
 
 A saved product is current while its identities equal the current course build, Session vehicle and procedure
-identities. Changing a series' `timeMargin` changes only the delivered budgets, never the saved times.
+identities. Builds admit the saved products ([`compileContent`](../tools/authoring/compile-content.ts)) and derive the
+delivered envelopes, budgets and schedules from them. A saved product that is stale, absent or owned by no catalog
+vehicle or series course, or reference times whose entries are not the series' candidate vehicles in its order, fail
+with a `measurement_stale` diagnostic at the file and the stale field that names `npm run measure -- generate`; other
+malformed values fail as any admitted document does. Changing a series' `timeMargin` changes only the delivered
+budgets and needs no measurement. Tools that produce the measured products, or need none, compile the content without
+them (`measured: false`).
 
 ### Pace schedules
 

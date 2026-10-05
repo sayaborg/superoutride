@@ -1,13 +1,11 @@
 import { requireLoaded } from '../../src/content/content-load-error.js';
 import { compileContent } from '../authoring/compile-content.js';
-import { buildCourseReferences } from './build-course-reference.js';
 import { createContentWriter } from './content-manifest.js';
 import { createNodeContentStore } from './node-content-store.js';
 
 /**
- * The content build: the authoring core compiles `content/` into every delivered file, which this script writes to
- * `dist/delivery` with the manifest, then reference runs. Reference workers run in separate threads and read this
- * build's saved content until 15-2.
+ * The content build: the authoring core compiles `content/` into every delivered file, the saved measured products'
+ * included, which this script writes to `dist/delivery` with the manifest. It runs no driving.
  */
 const writer = createContentWriter(new URL('../../dist/delivery/', import.meta.url));
 const content = requireLoaded(await compileContent(createNodeContentStore()));
@@ -25,10 +23,5 @@ console.log(
 );
 for (const file of content.files) await writer.stage(file.kind, file.id, null, file.bytes);
 for (const course of content.courses) console.log(`${course.id}.course.json: Strip ground compiled`);
-// Reference workers run in separate threads and read this build's saved content.
-await writer.save();
-// Every catalog vehicle receives an envelope; only series courses × series candidate vehicles receive reference runs
-// and budgets.
-await buildCourseReferences(content.seriesCourses, content.definitions, writer.stage);
 await writer.save();
 console.log('Validated and staged manifest content');

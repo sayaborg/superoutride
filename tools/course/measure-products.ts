@@ -67,7 +67,7 @@ async function savedNames(directory: string): Promise<readonly string[]> {
 
 async function measure(verb: 'generate' | 'regenerate' | 'compare') {
   const started = performance.now();
-  const content = requireCompiled(await compileContent(store));
+  const content = requireCompiled(await compileContent(store, { measured: false }));
   const measurementSha256 = await procedureSha256(ENVELOPE_MEASUREMENT),
     referenceSha256 = await procedureSha256(REFERENCE_RUN);
   const everything = verb !== 'generate';
@@ -272,7 +272,7 @@ async function runJobs(jobs: readonly MeasureJob[]): Promise<Map<string, Measure
 async function trace(args: readonly string[]) {
   const opts = options(args, ['--vehicle', '--course', '--route', '--laps', '--out']);
   requireInput(opts.has('--vehicle') && opts.has('--out'), '/arguments', USAGE);
-  const content: CompiledContent = requireCompiled(await compileContent(store));
+  const content: CompiledContent = requireCompiled(await compileContent(store, { measured: false }));
   const entry = content.definitions.vehicles.find((e) => e.compiledVehicle.id === opts.get('--vehicle'));
   requireInput(entry, '/vehicle', 'Unknown catalog vehicle');
   const vehicle = createSessionVehicle(entry, content.definitions.driving);

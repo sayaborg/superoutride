@@ -57,7 +57,7 @@ for (const { stem, timeMargin } of courses) {
   const product = courseTimeBudgetsProduct(course, vehicleSha256, referenceTimes(saved), timeMargin);
   requireLoaded(readCourseTimeBudgets(course, vehicleSha256, product, `budget ${stem}/${vehicleId}`));
   products.push({ kind: 'budget', id: `${stem}/${vehicleId}`, value: product });
-  const schedule = deliveredSchedule(course.identity.buildSha256, saved);
+  const schedule = deliveredSchedule(course.identity.buildSha256, vehicleSha256, saved.schedule);
   requireLoaded(readPaceSchedule(course, vehicleSha256, schedule, `schedule ${stem}/${vehicleId}`));
   products.push({ kind: 'schedule', id: `${stem}/${vehicleId}`, value: schedule });
   references.push({ stem, candidate });

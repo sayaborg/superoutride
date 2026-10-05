@@ -173,9 +173,9 @@ reference evidence. Product-renderer previews and reports are generated outputs.
 listed below and the content manifest. Product modules compile to `dist/<layer>/`, including the `content`
 layer's modules in `dist/content/`; delivered files stay under `dist/delivery/` so modules and data never share a directory. Course JSON retains authored Strip constructs; the shared compiler expands them and builds immutable
 preblend fields before browser driving or headless rendering. Expanded Strips and their knots are
-in-memory compiler products, not committed files or an additional delivered image format. Build also generates
-vehicle envelopes, continuous reference runs and game time budgets. Matching disposable data under
-`.cache/course-reference/` is reused; changed inputs regenerate it. Browsers load these products.
+in-memory compiler products, not committed files or an additional delivered image format. Build also delivers the
+vehicle envelopes, game time budgets and pace schedules from the [measured products](#measured-products) saved under
+`content/`; it runs no driving. Browsers load these products.
 
 `dist/delivery/manifest.json` is the sole delivery index. Its own
 `format: "superoutride.content-manifest", version: 1` identifies the index format; entries have only
@@ -233,23 +233,19 @@ music documents (admitted against those recordings), FREE PLAY rules, engine sou
 (admitted against that library and engine-sound catalog), courses (their solid walls admitted against the wall
 sounds) and their images, the course index, then series (admitted against those courses and the vehicle catalog).
 Each stage receives earlier products directly, and a course and its images are delivered only after the course
-compiles. The build stages the returned files through the manifest writer, saves the manifest, then runs the reference
-runs. Reference workers run in separate threads and, until 15-2, read this build's saved `dist/delivery` definitions
-and courses, generate envelopes/runs, and add envelopes/budgets before publishing the completed build. Every catalog vehicle receives an envelope, which FREE PLAY rivals and runout
-admission read. Only series courses are timed: each receives reference runs, budgets and pace schedules, with its
-series' time margin, for its series' candidate vehicles only, since only ARCADE has the clock and rival pace.
+compiles. Last, the core admits the saved measured products against this content and delivers each catalog vehicle's
+envelope, which FREE PLAY rivals and runout admission read, and for each series course its candidate vehicles' time
+budgets (the saved times with the series' time margin) and pace schedules; only series courses are timed, since only
+ARCADE has the clock and rival pace. A stale, absent or unowned saved product fails the build
+([Measured products](content-and-gameplay.md#measured-products)). The build stages the returned files through the
+manifest writer and saves the manifest.
 
-| Output                                 | Use                                                                                  |
-| -------------------------------------- | ------------------------------------------------------------------------------------ |
-| `dist/delivery/manifest.json`          | Delivery index and digest authority                                                  |
-| `dist/delivery/<path>`                 | Each manifest entry above; the offline envelope measurement trace stays in the cache |
-| `dist/offline/reference/<course>.json` | Full reference runs, excluded from Pages                                             |
-| `_site/build/<commit>/`                | Complete commit-versioned Pages build                                                |
-| `_site/version.txt`                    | Published build identifier                                                           |
-
-Offline reference runs are excluded from the delivery manifest because they are build/authoring
-observations, never fetched by the game and not published to Pages. Only their delivered envelopes
-and budgets belong to the index; this keeps every manifest entry available on the published site.
+| Output                        | Use                                   |
+| ----------------------------- | ------------------------------------- |
+| `dist/delivery/manifest.json` | Delivery index and digest authority   |
+| `dist/delivery/<path>`        | Each manifest entry above             |
+| `_site/build/<commit>/`       | Complete commit-versioned Pages build |
+| `_site/version.txt`           | Published build identifier            |
 
 Dependencies, caches, dist, previews and Pages staging are generated rather than committed source.
 Pages serves one complete commit-versioned ESM build, including its relative module URLs.

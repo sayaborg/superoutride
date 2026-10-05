@@ -7,7 +7,7 @@ import { formatSavedJson } from '../../src/content/saved-json.js';
 export interface ContentStore {
   /** The bytes saved at `path`; an absent file rejects with the platform's error. */
   read(path: string): Promise<Uint8Array<ArrayBuffer>>;
-  /** The names of the files directly inside `directory`, sorted. */
+  /** The names of the files directly inside `directory`, sorted; none when the directory is absent. */
   list(directory: string): Promise<readonly string[]>;
   /** Save `bytes` at `path`, replacing any file there. */
   write(path: string, bytes: Uint8Array<ArrayBuffer>): Promise<void>;

@@ -30,6 +30,23 @@ import { compileVehicleSpriteLibrary } from '../graphics/vehicle-sprite-library.
 import { compileCourseImages } from '../course/compile-course-images.js';
 import { readCourseImages } from '../course/read-course-images.js';
 import { courseFileId, courseFileSha256 } from '../course/course-file-id.js';
+import { createSessionVehicle, sessionVehicleSha256 } from '../../src/content/session-vehicle.js';
+import { readCourseTimeBudgets } from '../../src/content/course-time-budgets.js';
+import { procedureSha256 } from '../course/procedure.js';
+import { ENVELOPE_MEASUREMENT } from '../course/rival-envelope-measurement.js';
+import { REFERENCE_RUN } from '../course/reference-run.js';
+import { courseTimeBudgetsProduct } from '../course/course-reference.js';
+import {
+  deliveredEnvelope,
+  deliveredSchedule,
+  measuredEnvelopePath,
+  readSavedEnvelope,
+  readSavedReferenceTimes,
+  referenceTimes,
+  referenceTimesPath,
+  staleMeasurement,
+  type SavedReferenceTimes,
+} from '../course/measured-products.js';
 import type { ContentStore } from './content-store.js';
 
 /** One delivered file: its manifest kind and ID and its exact bytes, which belong to the caller alone. */
@@ -59,13 +76,18 @@ export type ContentCompilation =
  * The authoring core: compile the authored documents of `store` into every delivered file, in dependency order and in
  * one pass: vehicle sprite library, text tiles, materials, surface sounds, wall sounds, audio settings, recordings and
  * music, FREE PLAY rules, engine sounds, vehicle and driving definitions, courses (their walls' sounds admitted against
- * the wall sounds) and their images, the course index, then series. Each stage receives earlier products directly and
- * admits its documents as delivery does. An expected content error ends compilation with its diagnostics and no
+ * the wall sounds) and their images, the course index, series, then the measured products: each catalog vehicle's
+ * envelope and each series course's time budgets and pace schedules from the saved measurements, which must be current.
+ * Each stage receives earlier products directly and admits its documents as delivery does. With `measured: false` it
+ * stops before the measured products, for tools that produce them or do not use them. An expected content error ends compilation with its diagnostics and no
  * product; other failures, store reads included, propagate.
  */
-export async function compileContent(store: ContentStore): Promise<ContentCompilation> {
+export async function compileContent(
+  store: ContentStore,
+  { measured = true }: { readonly measured?: boolean } = {},
+): Promise<ContentCompilation> {
   try {
-    return Object.freeze({ ok: true as const, value: await compile(store) });
+    return Object.freeze({ ok: true as const, value: await compile(store, measured) });
   } catch (error) {
     if (error instanceof ContentLoadError) return Object.freeze({ ok: false as const, diagnostics: error.diagnostics });
     if (error instanceof CourseAssetError) return courseFailures([error]);
@@ -73,11 +95,16 @@ export async function compileContent(store: ContentStore): Promise<ContentCompil
   }
 }
 
-async function compile(store: ContentStore): Promise<CompiledContent> {
+/** The JSON value saved at `path`. */
+async function readJson(store: ContentStore, path: string): Promise<unknown> {
+  return JSON.parse(new TextDecoder().decode(await store.read(path)));
+}
+
+async function compile(store: ContentStore, measured: boolean): Promise<CompiledContent> {
   const files: DeliveredFile[] = [];
   const add = (kind: ContentKind, id: string, bytes: Uint8Array<ArrayBuffer>) =>
     files.push(Object.freeze({ kind, id, bytes }));
-  const json = async (path: string) => JSON.parse(new TextDecoder().decode(await store.read(path))) as unknown;
+  const json = (path: string) => readJson(store, path);
 
   const library = compileVehicleSpriteLibrary(await json('sprites/vehicles.json'), 'content/sprites/vehicles.json');
   add('image', 'vehicles', encodeContentJson(library.product));
@@ -203,6 +230,7 @@ async function compile(store: ContentStore): Promise<CompiledContent> {
     return [Object.freeze({ course, settings: requireLoaded(admitSeriesCourse(settings, course, source.path)) })];
   });
   deliver('series', seriesSources);
+  if (measured) files.push(...(await measuredFiles(store, definitions, materials, seriesCourses)));
   return Object.freeze({
     files: Object.freeze(files),
     library,
@@ -212,4 +240,80 @@ async function compile(store: ContentStore): Promise<CompiledContent> {
     courses: Object.freeze(courses),
     seriesCourses: Object.freeze(seriesCourses),
   });
+}
+
+/**
+ * The measured products: each catalog vehicle's delivered envelope and, for each series course it is a candidate of,
+ * its time budgets and pace schedule, from the saved measurements. Every saved file must be current and owned; the
+ * series' margin applies to the saved times here.
+ */
+async function measuredFiles(
+  store: ContentStore,
+  definitions: VehicleDefinitions,
+  materials: SurfaceMaterialCatalog,
+  seriesCourses: CompiledContent['seriesCourses'],
+): Promise<DeliveredFile[]> {
+  const files: DeliveredFile[] = [];
+  const add = (kind: ContentKind, id: string, bytes: Uint8Array<ArrayBuffer>) =>
+    files.push(Object.freeze({ kind, id, bytes }));
+  const json = (path: string) => readJson(store, path);
+  const measurementSha256 = await procedureSha256(ENVELOPE_MEASUREMENT),
+    referenceSha256 = await procedureSha256(REFERENCE_RUN);
+  const vehicleSha256 = new Map<string, string>();
+  for (const entry of definitions.vehicles)
+    vehicleSha256.set(
+      entry.compiledVehicle.id,
+      await sessionVehicleSha256(createSessionVehicle(entry, definitions.driving), materials),
+    );
+  // Every saved measurement belongs to a catalog vehicle or a series course, and each of those has its own.
+  const owned = new Set([
+    ...definitions.vehicles.map((entry) => measuredEnvelopePath(entry.compiledVehicle.id)),
+    ...seriesCourses.map(({ course }) => referenceTimesPath(course.id)),
+  ]);
+  const saved = new Set<string>();
+  for (const directory of ['envelopes', 'reference-times'])
+    for (const name of await store.list(directory)) saved.add(`${directory}/${name}`);
+  for (const path of saved)
+    if (!owned.has(path))
+      requireLoaded(
+        admit(`content/${path}`, () => staleMeasurement('', 'No catalog vehicle or series course owns it')),
+      );
+  const savedJson = async (path: string) => {
+    if (!saved.has(path)) requireLoaded(admit(`content/${path}`, () => staleMeasurement('', 'It is absent')));
+    return json(path);
+  };
+  const times = new Map<string, SavedReferenceTimes>();
+  for (const { course, settings } of seriesCourses) {
+    const path = referenceTimesPath(course.id);
+    const candidates = settings.series.vehicles.map((vehicleId) => ({
+      vehicleId,
+      vehicleSha256: vehicleSha256.get(vehicleId)!,
+    }));
+    times.set(
+      course.id,
+      requireLoaded(
+        readSavedReferenceTimes(course, candidates, referenceSha256, await savedJson(path), `content/${path}`),
+      ),
+    );
+  }
+  for (const entry of definitions.vehicles) {
+    const id = entry.compiledVehicle.id,
+      sha256 = vehicleSha256.get(id)!,
+      path = measuredEnvelopePath(id);
+    const saved = requireLoaded(readSavedEnvelope(sha256, measurementSha256, await savedJson(path), `content/${path}`));
+    add('envelope', id, encodeContentJson(deliveredEnvelope(saved)));
+    for (const { course, settings } of seriesCourses) {
+      const vehicle = times.get(course.id)!.vehicles.find((candidate) => candidate.vehicleId === id);
+      if (!vehicle) continue;
+      const budget = courseTimeBudgetsProduct(course, sha256, referenceTimes(vehicle), settings.series.timeMargin);
+      requireLoaded(readCourseTimeBudgets(course, sha256, budget, `budgets/${course.id}/${id}.json`));
+      add('budget', `${course.id}/${id}`, encodeContentJson(budget));
+      add(
+        'schedule',
+        `${course.id}/${id}`,
+        encodeContentJson(deliveredSchedule(course.identity.buildSha256, sha256, vehicle.schedule)),
+      );
+    }
+  }
+  return files;
 }

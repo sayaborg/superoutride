@@ -23,7 +23,7 @@ export interface MeasureResult {
 }
 
 const job = workerData as MeasureJob;
-const content = requireCompiled(await compileContent(createNodeContentStore()));
+const content = requireCompiled(await compileContent(createNodeContentStore(), { measured: false }));
 const entry = content.definitions.vehicles.find((vehicle) => vehicle.compiledVehicle.id === job.vehicleId)!;
 const vehicle = createSessionVehicle(entry, content.definitions.driving);
 const measured = job.envelope ? null : measureRivalEnvelope(vehicle);

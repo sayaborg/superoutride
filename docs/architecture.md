@@ -638,8 +638,9 @@ dependency check enforces this one rule.
 The authoring core in `tools/authoring` is one function and one edit over a content store. A content store
 (`ContentStore`) reads, lists and writes the documents and files under `content/` by relative path; each platform
 supplies one, and the build and Node tools use the file-system store in `tools/build`. `compileContent(store)` admits
-and compiles every authored document in the build's dependency order and returns every delivered file (kind, ID and
-bytes) with the compiled products tools consume, or the admission diagnostics and no product. The one edit,
+and compiles every authored document in the build's dependency order, the saved measured products last, and returns
+every delivered file (kind, ID and bytes) with the compiled products tools consume, or the admission diagnostics and no
+product; `measured: false` stops before the measured products for tools that produce or do not use them. The one edit,
 `replaceDocument(store, path, value)`, replaces a document with an admitted value in the saved JSON layout
 (`formatSavedJson`); compiling the store again gives the edited products. Selection, undo and views belong to the
 callers. File I/O, workers and exit codes belong to the entries. Nothing the core reaches imports a Node module or the
