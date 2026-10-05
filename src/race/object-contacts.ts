@@ -7,10 +7,12 @@ import { VEHICLE_GRAVITY } from '../vehicle/physics/vehicle-state.js';
 import {
   createContactParty,
   writeVehicleParty,
+  createContactPush,
   type ContactBody,
   type ContactParty,
   type createContactFaces,
 } from './body-contacts.js';
+import type { ContactLog } from './contact-log.js';
 
 /** The index of the first object at or after station `s` in a station-ordered list. */
 export function firstObjectFrom(objects: readonly CourseObject[], s: number): number {
@@ -84,7 +86,9 @@ function writeObjectParty(party: ContactParty, occurrence: RouteOccurrence, inde
  * with constant horizontal speed, on route coordinates, until its height reaches the road height at its station, where it
  * lands and stays. Lines and limits do not act on it. An object is identified by its Section and index (`objectKey`), so a
  * Section met again keeps its objects knocked. Each step a vehicle meets every standing object whose station lies within
- * its length, across occurrences (`sight`); the contact faces hold which pairs are in contact.
+ * its length, across occurrences (`sight`); the contact faces hold which pairs are in contact. `log` receives each
+ * contact that begins, with its damper term's work over the step: a fixed object's (`object`, or `wall` for a wall's
+ * free end) as its face begins, a movable object's in the step it is knocked.
  */
 export function createRoadsideObjects(options: {
   readonly route: Pick<RouteView, 'at' | 'occurrences'>;
@@ -93,11 +97,12 @@ export function createRoadsideObjects(options: {
   readonly extent: { readonly start: number; readonly end: number };
   readonly faces: ReturnType<typeof createContactFaces>;
   readonly step: number;
+  readonly log: ContactLog;
 }) {
-  const { route, coordinates, height, extent, faces, step } = options;
+  const { route, coordinates, height, extent, faces, step, log } = options;
   const vehicle = createContactParty(),
     object = createContactParty(),
-    force = { x: 0, z: 0 },
+    force = createContactPush(),
     sample = createPlanCoordinateSample();
   const knocked = new Map<string, KnockedObject>();
   // The ids of the bodies a fixed object pushes this step.
@@ -151,9 +156,16 @@ export function createRoadsideObjects(options: {
     if (!faces.push(vehicle, object, force)) return;
     body.contactForce.x -= force.x;
     body.contactForce.z -= force.z;
-    const movable = occurrence.section.objects[index]!.movable;
-    if (!movable && (force.x !== 0 || force.z !== 0)) pressed.add(body.id);
-    if (movable && (force.x !== 0 || force.z !== 0)) knock(occurrence, index, movable.mass, movable.launchRadians);
+    const source = occurrence.section.objects[index]!;
+    const movable = source.movable;
+    const pushed = force.x !== 0 || force.z !== 0;
+    if (!movable && force.began)
+      log.start(body.id, source.sprite === null ? 'wall' : 'object', force.dampingPower * step);
+    if (!movable && pushed) pressed.add(body.id);
+    if (movable && pushed) {
+      log.start(body.id, 'movable', force.dampingPower * step);
+      knock(occurrence, index, movable.mass, movable.launchRadians);
+    }
   };
   return Object.freeze({
     /**

@@ -49,6 +49,18 @@ export function assertBodyContactStability(contact: CompiledBodyContact, step: n
  * The magnitude of the force pushing two overlapping bodies apart along their contact axis: the spring-damper on the
  * pair's reduced mass, `max(0, μ(ω²x + 2ζωv))` for overlap `x` and approach speed `v`. It never pulls.
  */
+/**
+ * The power the damper term of {@link bodyContactForce} dissipates at `approachSpeed`: `reducedMass·2ζω·approach²`, never
+ * negative. The spring term stores energy and is not included.
+ */
+export function bodyContactDampingPower(
+  contact: CompiledBodyContact,
+  reducedMass: number,
+  approachSpeed: number,
+): number {
+  return reducedMass * 2 * contact.dampingRatio * contact.angularFrequency * approachSpeed * approachSpeed;
+}
+
 export function bodyContactForce(
   contact: CompiledBodyContact,
   reducedMass: number,

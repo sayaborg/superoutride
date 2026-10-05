@@ -9,6 +9,7 @@ import { createCourseForkField } from './course-fork-field.js';
 import { rivalExit } from './rival-exit.js';
 import { createRecoveryState, advanceVehicleWithRecovery, recoverVehicle, type RecoveryState } from './recovery.js';
 import { createBodyContacts, createContactFaces } from './body-contacts.js';
+import { createContactLog, type PlayerContacts } from './contact-log.js';
 import type { LaneIntent } from './lane-following.js';
 import { createTrafficField, type TrafficMotion } from './traffic.js';
 import { createVehiclePlacement } from './vehicle-placement.js';
@@ -228,7 +229,10 @@ export function createCourseRace(options: {
   // Body contacts push present vehicles apart, by one face rule for every pair (fixed objects included); the Session's
   // driving definition holds the spring-damper.
   const contactFaces = createContactFaces(runtime.readers.coordinates, options.session.bodyContact);
-  const bodyContacts = createBodyContacts(contactFaces);
+  // The player's contacts of each step, published at its end.
+  const contactLog = createContactLog(player.id);
+  let playerContacts: PlayerContacts = contactLog.publish();
+  const bodyContacts = createBodyContacts(contactFaces, SIM_DT, contactLog);
   // Walls and course limits push every present vehicle back with the same spring-damper.
   const barrierContacts = createBarrierContacts(
     runtime.readers.coordinates,
@@ -236,6 +240,7 @@ export function createCourseRace(options: {
     options.session.bodyContact,
     contactFaces,
     SIM_DT,
+    contactLog,
   );
   // Standing roadside objects push every present vehicle back as a vehicle would; movable ones are knocked away.
   const roadsideObjects = createRoadsideObjects({
@@ -245,6 +250,7 @@ export function createCourseRace(options: {
     extent: runtime.readers.extent,
     faces: contactFaces,
     step: SIM_DT,
+    log: contactLog,
   });
   // Placement and the drivers' lane decisions read the present vehicles.
   const placement = createVehiclePlacement({
@@ -687,6 +693,13 @@ export function createCourseRace(options: {
     get events() {
       return events;
     },
+    /**
+     * The last step's contacts of the player's vehicle: each barrier line pushing it, with its friction's power, and
+     * each contact that began, with its counterpart and its damper term's work.
+     */
+    get playerContacts(): PlayerContacts {
+      return playerContacts;
+    },
     start: () => startPhase.begin(),
     forks,
     /**
@@ -700,6 +713,7 @@ export function createCourseRace(options: {
       player.body.step.input = input ?? idle;
       step(input);
       simulationSeconds += SIM_DT;
+      playerContacts = contactLog.publish();
       publish();
       return stepObservation;
     },

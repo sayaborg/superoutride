@@ -1,7 +1,12 @@
 import { createPlanCoordinateSample, type PlanCoordinateReader } from '../course/geometry/plan-coordinate.js';
 import type { Writable } from '../core/writable.js';
 import type { Vec3 } from '../core/vector3.js';
-import { bodyContactForce, type CompiledBodyContact } from '../vehicle/physics/body-contact.js';
+import {
+  bodyContactDampingPower,
+  bodyContactForce,
+  type CompiledBodyContact,
+} from '../vehicle/physics/body-contact.js';
+import type { ContactLog } from './contact-log.js';
 import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 
@@ -30,6 +35,20 @@ export interface ContactBody {
   readonly previous: Readonly<{ s: number; l: number }>;
   readonly contactForce: Writable<Vec3>;
 }
+
+/**
+ * What one meeting of a pair wrote: the force on `b` (world x and z, N), whether the contact began this step, and the
+ * power its damper term dissipates (W; zero while the heights do not overlap).
+ */
+export interface ContactPush {
+  x: number;
+  z: number;
+  began: boolean;
+  dampingPower: number;
+}
+
+/** An empty contact push, written by each meeting. */
+export const createContactPush = (): ContactPush => ({ x: 0, z: 0, began: false, dampingPower: 0 });
 
 /** A pair's contact face, fixed when the contact begins: ahead-behind (`s`) or side to side (`l`), and b's side of a. */
 interface ContactFace {
@@ -126,15 +145,20 @@ export function createContactFaces(coordinates: PlanCoordinateReader, contact: C
     lineSide(body: string, line: string, current: 1 | -1): 1 | -1 {
       return faceOf(body, line)?.sign ?? current;
     },
-    /** Record that the body keyed `body` touches the line keyed `line` this step, kept on `side`. */
-    touchLine(body: string, line: string, side: 1 | -1) {
+    /**
+     * Record that the body keyed `body` touches the line keyed `line` this step, kept on `side`; true when the contact
+     * begins (they did not touch in the previous step).
+     */
+    touchLine(body: string, line: string, side: 1 | -1): boolean {
       record(body, line, lineFaces[side]);
+      return faceOf(body, line) === undefined;
     },
     /**
-     * Meet `a` and `b` this step: true while they are in contact, with the force on `b` (world x and z, N) written to
-     * `out` (zero while their heights do not overlap); `a` receives the opposite force.
+     * Meet `a` and `b` this step: true while they are in contact, with the force on `b` (world x and z, N; zero while
+     * their heights do not overlap), whether the contact began and its damping power written to `out`; `a` receives the
+     * opposite force.
      */
-    push(a: ContactParty, b: ContactParty, out: { x: number; z: number }): boolean {
+    push(a: ContactParty, b: ContactParty, out: ContactPush): boolean {
       const hs = (a.length + b.length) / 2,
         hl = (a.width + b.width) / 2;
       const ds = b.s - a.s,
@@ -166,6 +190,8 @@ export function createContactFaces(coordinates: PlanCoordinateReader, contact: C
       record(low, high, face);
       out.x = 0;
       out.z = 0;
+      out.began = !begun;
+      out.dampingPower = 0;
       if (!touching) return true;
       const { heading } = coordinates.toWorld((a.s + b.s) / 2, (a.l + b.l) / 2, sample);
       // The unit axis from a towards b, and the overlap along it.
@@ -182,6 +208,7 @@ export function createContactFaces(coordinates: PlanCoordinateReader, contact: C
       const force = bodyContactForce(contact, reduced, overlap, approach);
       out.x = force * nx;
       out.z = force * nz;
+      if (force > 0) out.dampingPower = bodyContactDampingPower(contact, reduced, approach);
       return true;
     },
   });
@@ -225,14 +252,15 @@ export function createContactParty(): ContactParty {
 }
 
 /**
- * The race's body contacts between the present vehicles for one fixed step, from the state at the step's start (a
- * vehicle's height range runs from its bottom, its centre-of-mass height less `desiredCgHeight`, up `overallHeight`).
- * It resets every body's contact force, then adds each pair's equal and opposite push (`createContactFaces`), summed over
- * its pairs in body order.
+ * The race's body contacts between the present vehicles for fixed steps of `step` seconds, from the state at the step's
+ * start (a vehicle's height range runs from its bottom, its centre-of-mass height less `desiredCgHeight`, up
+ * `overallHeight`). It resets every body's contact force, then adds each pair's equal and opposite push
+ * (`createContactFaces`), summed over its pairs in body order. A contact that begins is reported to `log` for both
+ * vehicles, with its damper term's work over the step.
  */
-export function createBodyContacts(faces: ReturnType<typeof createContactFaces>) {
+export function createBodyContacts(faces: ReturnType<typeof createContactFaces>, step: number, log: ContactLog) {
   const parties: ContactParty[] = [];
-  const force = { x: 0, z: 0 };
+  const force = createContactPush();
   return (bodies: readonly ContactBody[]) => {
     while (parties.length < bodies.length) parties.push(createContactParty());
     for (let i = 0; i < bodies.length; i += 1) {
@@ -245,6 +273,11 @@ export function createBodyContacts(faces: ReturnType<typeof createContactFaces>)
     for (let i = 0; i < bodies.length; i += 1)
       for (let j = i + 1; j < bodies.length; j += 1) {
         if (!faces.push(parties[i]!, parties[j]!, force)) continue;
+        if (force.began) {
+          const work = force.dampingPower * step;
+          log.start(bodies[i]!.id, 'vehicle', work);
+          log.start(bodies[j]!.id, 'vehicle', work);
+        }
         const a = bodies[i]!.contactForce,
           b = bodies[j]!.contactForce;
         a.x -= force.x;

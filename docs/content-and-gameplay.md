@@ -1186,6 +1186,25 @@ Friction along the road's horizontal tangent opposes the vehicle's speed along t
 arises and height is not compared. Recovery rules are unchanged: a vehicle past an open limit, or beyond either end of the
 resident Route, recovers as before.
 
+The contact faces record every line a vehicle touches (overlap positive), course limits included, so a line's contact
+begins as a pair's does: in the step it overlaps after a step it did not.
+
+### Player contact observations
+
+The race publishes the contacts of the player's vehicle at the end of each fixed step (`race.playerContacts`): read-only,
+the last step's only, with no sound values, and none of other vehicles' contacts with each other, with walls or with
+objects. It changes no mechanics; it reports quantities the contacts already compute.
+
+- **Rubs:** each barrier line pushing the player this step: the line, its push `F` (N), the player's speed along the
+  road `|v_along|` (m/s) and the power the line's friction removes, `|friction × v_along|` (W), which is
+  `barrierFriction × F × |v_along|` unless the friction is at its `m × |v_along| / step` bound.
+- **Starts:** each contact of the player that began this step: its counterpart (`vehicle`; `wall` for a wall, a course
+  limit or a solid wall's free end; `object` for a fixed object; `movable` for a movable one) and the work the
+  spring-damper's damper term dissipated over the step, `m × 2ζω × v² × step` (J, never negative; `m` the mass the push
+  acts on, the reduced mass for two vehicles, `v` the approach speed; zero when the push is zero). The spring term
+  stores energy and is not included. A pair's and a line's contact begins as the contact faces say; a movable object's
+  contact is the step it is pushed and knocked.
+
 Recovery and appearance place no vehicle on another present vehicle's footprint. Recovery backs its target along
 the Route behind each vehicle in the way, by `placementClearance`, until the place in its lane there is free (or
 the resident Route begins); wrong-course recovery does the same on the selected road. An appearance whose place is
