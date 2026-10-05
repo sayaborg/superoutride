@@ -13,6 +13,7 @@ import { resolveMixSettings, type MixSettings } from './sound-graph.js';
 import { resolveRollingSettings, type RollingSettings } from './tire-rolling-acoustics.js';
 import { resolveUnifiedSettings, type UnifiedSettings } from './tire-unified-acoustics.js';
 import { resolveScrapeSettings, type ScrapeSettings } from './wall-scrape-acoustics.js';
+import { resolveImpactSettings, type ImpactSettings } from './impact-acoustics.js';
 import { DEFAULT_AUDIO_SETTINGS } from './audio-defaults.js';
 
 /** The game-wide sound settings: every DEV sound panel's record. */
@@ -24,6 +25,7 @@ export interface AudioSettings {
   readonly mix: MixSettings;
   readonly control: ControlSettings;
   readonly rival: RivalSettings;
+  readonly impact: ImpactSettings;
 }
 
 export interface CompiledAudioSettings extends AudioSettings {
@@ -31,7 +33,7 @@ export interface CompiledAudioSettings extends AudioSettings {
 }
 
 export const AUDIO_DOCUMENT_FORMAT = 'superoutride.audio';
-export const AUDIO_DOCUMENT_VERSION = 2;
+export const AUDIO_DOCUMENT_VERSION = 3;
 
 /**
  * Each record's resolver: the one value check, applied where settings are admitted (this document and the DEV
@@ -45,6 +47,7 @@ const RESOLVERS = {
   mix: resolveMixSettings,
   control: resolveControlSettings,
   rival: resolveRivalSettings,
+  impact: resolveImpactSettings,
 } as const satisfies { [K in keyof AudioSettings]: (value: Partial<AudioSettings[K]>) => AudioSettings[K] };
 type Section = keyof typeof RESOLVERS;
 const SECTIONS = Object.keys(RESOLVERS) as Section[];
@@ -103,6 +106,7 @@ export function compileAudioDocument(
       mix: read('mix'),
       control: read('control'),
       rival: read('rival'),
+      impact: read('impact'),
       sha256,
     });
   });

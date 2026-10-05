@@ -5,6 +5,7 @@ import {
   mountTireSoundSettings,
 } from './tire-sound-settings-controls.js';
 import {
+  mountImpactSoundSettings,
   mountMixSoundSettings,
   mountRivalSoundSettings,
   mountTimingSoundSettings,
@@ -27,7 +28,7 @@ const TIRE_COMPONENT_LABELS: Readonly<Record<TireComponent, { readonly label: st
 const MIX_BUSES = Object.freeze({ engine: 'ENG', tire: 'TIRE' }) satisfies Partial<Record<SoundBus, string>>;
 type MixBus = keyof typeof MIX_BUSES;
 
-/** What the DEV sound controls currently hold: the seven settings records, the mix volumes and R/Q components. */
+/** What the DEV sound controls currently hold: the eight settings records, the mix volumes and R/Q components. */
 export interface SoundControlValues {
   readonly settings: AudioSettings;
   readonly busVolumes: Readonly<Partial<Record<SoundBus, number>>>;
@@ -36,7 +37,7 @@ export interface SoundControlValues {
 
 /**
  * The DEV sound controls found by their ids in `root`: the sound toggle, MASTER volume stepper, ENG/TIRE volumes,
- * R/Q buttons, the seven settings panels and the audio export. The panels start from, and reset to, `initial`; the
+ * R/Q buttons, the eight settings panels and the audio export. The panels start from, and reset to, `initial`; the
  * export saves their current values. The stepper shows the MASTER volume, starting at `initialVolume` percent, and
  * passes each press to `onVolume`; the player record keeps the volume. A missing host leaves its control out and its
  * value at its initial value.
@@ -123,6 +124,7 @@ export function mountSoundControls(
   const rivalSettings = mountHost('rival-sound-settings', initial.rival, mountRivalSoundSettings);
   const rollingSettings = mountHost('rolling-sound-settings', initial.rolling, mountRollingSoundSettings);
   const scrapeSettings = mountHost('scrape-sound-settings', initial.scrape, mountScrapeSoundSettings);
+  const impactSettings = mountHost('impact-sound-settings', initial.impact, mountImpactSoundSettings);
   // The current values of every panel; a missing panel keeps the document's record.
   const currentSettings = (): AudioSettings => ({
     exhaust: engineSoundSettings?.read() ?? initial.exhaust,
@@ -132,6 +134,7 @@ export function mountSoundControls(
     mix: mixSettings?.read() ?? initial.mix,
     control: timingSettings?.read() ?? initial.control,
     rival: rivalSettings?.read() ?? initial.rival,
+    impact: impactSettings?.read() ?? initial.impact,
   });
   const exportButton = root.getElementById('export-audio-button');
   const exportAudio = (): void => downloadDefinition('default.json', audioSettingsDocument(currentSettings()));
@@ -185,6 +188,7 @@ export function mountSoundControls(
         mixSettings,
         timingSettings,
         rivalSettings,
+        impactSettings,
       ])
         panel?.setEnabled(value);
     },
@@ -205,6 +209,7 @@ export function mountSoundControls(
       rivalSettings?.dispose();
       rollingSettings?.dispose();
       scrapeSettings?.dispose();
+      impactSettings?.dispose();
       for (const { host, control } of mixControls) {
         control.dispose();
         host.replaceChildren();

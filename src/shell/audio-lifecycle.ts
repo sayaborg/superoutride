@@ -10,7 +10,8 @@ import type { CompetitorObservation } from '../race/competitor-observation.js';
 import { createVehicleAudioEmitter, readVehicleAudio } from './vehicle-audio.js';
 import type { PlayerRecord, VolumeName } from './player-record.js';
 import { createRecordingPlayer } from './recording-player.js';
-import { EFFECT_RECORDINGS, recordingId } from '../audio/recordings.js';
+import { EFFECT_RECORDINGS, IMPACT_RECORDINGS, recordingId, type ImpactRecording } from '../audio/recordings.js';
+import { impactVolume } from '../audio/impact-acoustics.js';
 import type { ProcessingReport } from '../audio/processing-meter.js';
 import type { InputRoute } from '../input/menu-input.js';
 
@@ -184,8 +185,9 @@ export function createAudioLifecycle(
       }
       scene = built;
       recordings.setScene(built);
-      // Effects are decoded ahead, so the first of each sounds when it happens.
+      // Effects and impacts are decoded ahead, so the first of each sounds when it happens.
       for (const name of EFFECT_RECORDINGS) recordings.prepare(recordingId('effects', name));
+      for (const name of IMPACT_RECORDINGS) recordings.prepare(recordingId('impacts', name));
       if (processingListener) built.measureProcessing(processingListener);
       if (!(await resumed)) throw new Error('audio resume failed');
       if (context === created) sync();
@@ -240,6 +242,14 @@ export function createAudioLifecycle(
     setVolume,
     /** Play a recording on a bus; see {@link createRecordingPlayer}. Without audio it stays silent. */
     playRecording: recordings.play,
+    /**
+     * A contact of the player's that began, with its damper term's work `work` (J): its counterpart's impact recording
+     * once on the contact bus, at `W / (W + reference)` with the IMPACT settings' reference work.
+     */
+    playImpact(counterpart: ImpactRecording, work: number): void {
+      const volume = impactVolume(controls.read().settings.impact, counterpart, work);
+      if (volume > 0) recordings.play(recordingId('impacts', counterpart), 'contact', { volume });
+    },
     /** A user gesture outside driving: create the audio now, so the next run sounds from its start. */
     enable(): void {
       if (supported && enabled && !disposed) start();

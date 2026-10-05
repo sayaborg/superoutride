@@ -6,6 +6,7 @@ import type { MixSettings } from './sound-graph.js';
 import type { RollingSettings } from './tire-rolling-acoustics.js';
 import type { UnifiedSettings } from './tire-unified-acoustics.js';
 import type { ScrapeSettings } from './wall-scrape-acoustics.js';
+import type { ImpactSettings } from './impact-acoustics.js';
 
 /**
  * The implementer's default sound settings: the one authority for each resolver's omitted values, and the
@@ -111,6 +112,14 @@ export const DEFAULT_AUDIO_SETTINGS: AudioSettings = Object.freeze({
     componentSeconds: 0.005,
     transitionSeconds: 0.09,
     musicFadeSeconds: 2,
+  }),
+  // The reference work of each counterpart's impact: about a 10 m/s closing of two cars, a hard wall or object hit (wall
+  // starts on RIBBON COAST's departures range from about 300 J to 1.6 MJ) and a cone at race speed (about 7 kJ).
+  impact: Object.freeze<ImpactSettings>({
+    vehicleJoules: 50000,
+    wallJoules: 100000,
+    objectJoules: 100000,
+    movableJoules: 7000,
   }),
   rival: Object.freeze<RivalSettings>({
     audibleMeters: 100,

@@ -35,7 +35,7 @@
   appears at seeded Route positions from the series or FREE PLAY's TRAFFIC option; RIBBON COAST is the verification
   course of all of it.
 
-Next PR: **14-3d** — impacts.
+Next PR: **14-4** — close Stage 14.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -71,7 +71,6 @@ Requirements left from the second design audit, by when they are taken up:
 `content/effects/` and `content/impacts/` are placeholders (electronic tones) for building the stage; before the product
 they are replaced by K's files under the same names. The remaining PRs, in order:
 
-- **14-3d — Impacts:** a recording per contact counterpart, its volume from the contact's work.
 - **14-4 — Close Stage 14:** NEXT, the owner table and the list of placeholder recordings.
 
 ## Stage 15 — Production pipeline

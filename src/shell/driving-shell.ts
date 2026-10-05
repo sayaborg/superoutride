@@ -19,6 +19,7 @@ import type { PlayerRecord, VolumeName } from './player-record.js';
 import type { RecordingHandle } from './recording-player.js';
 import type { RecordingLoop } from '../audio/recording-playback.js';
 import type { SoundBus } from '../audio/sound-graph.js';
+import type { ImpactRecording } from '../audio/recordings.js';
 
 export interface BrowserDrivingShell {
   readonly framebuffer: SoftwareSurface;
@@ -47,6 +48,8 @@ export interface BrowserDrivingShell {
   activate(): void;
   /** Set a volume in percent: the player record keeps it and the sound follows at once. */
   setVolume(name: VolumeName, percent: number): void;
+  /** A player contact that began: its counterpart's impact at a volume from its work (J). */
+  playImpact(counterpart: ImpactRecording, work: number): void;
   /** Play the delivered recording `id` on `bus`; it sounds once decoded. */
   playRecording(
     id: string,
@@ -99,6 +102,7 @@ export function createBrowserDrivingShell(
     menuSound: (response) => void audio.playRecording(`effects/menu-${response}`, 'effects'),
     setVolume: (name, percent) => audio.setVolume(name, percent),
     playRecording: (id, bus, options) => audio.playRecording(id, bus, options),
+    playImpact: (counterpart, work) => audio.playImpact(counterpart, work),
     audioTiming: audio.timing,
     activate(): void {
       audio.enable();

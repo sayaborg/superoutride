@@ -136,16 +136,18 @@ The derivation uses `c=sqrt(gamma*R*T)`, the open-end negative reflection limit,
 The resulting loss is about 0.034 Np/m before rounding.
 
 Every other value is a DEV setting in one of the groups ENGINE (`ExhaustSettings`), MIX (`MixSettings`),
-TIMING (`ControlSettings`), RIVAL (`RivalSettings`), the walls' SCRAPE (`ScrapeSettings`) and the tire groups UNIFIED
+TIMING (`ControlSettings`), RIVAL (`RivalSettings`), the walls' SCRAPE (`ScrapeSettings`), IMPACT (`ImpactSettings`)
+and the tire groups UNIFIED
 (`UnifiedSettings`) and ROLLING
 (`RollingSettings`); the values are the implementer's, not values chosen by listening, and
 [Calibration](calibration.md) lists them.
 
 ## Audio document
 
-The game's source of these seven records is content: `content/audio/default.json` is the one `superoutride.audio`
-version 2 document (manifest kind `audio`, ID `default`) with exactly the fields `format`, `version`, `exhaust`,
-`unified`, `scrape`, `rolling`, `mix`, `control` and `rival`, each holding every field of its record as a number.
+The game's source of these eight records is content: `content/audio/default.json` is the one `superoutride.audio`
+version 3 document (manifest kind `audio`, ID `default`) with exactly the fields `format`, `version`, `exhaust`,
+`unified`, `scrape`, `rolling`, `mix`, `control`, `rival` and `impact`, each holding every field of its record as a
+number.
 [`compileAudioDocument`](../src/audio/audio-document.ts) checks format, version and shapes with the admission
 toolkit and leaves value validation to each record's resolver (`resolveExhaustSettings` and the others); a resolver's
 `RangeError` becomes an `invalid_value` diagnostic at the field it names, such as `/exhaust/pulseRiseMs`. The
@@ -252,6 +254,15 @@ wall-sound document names). One voice sounds the line with the most friction pow
 the player, its excitation stops at once and the stored vibration decays, as a released tire's does. Its settings are
 their own record, SCRAPE (`ScrapeSettings`), with the same items as the tire's UNIFIED and its own values; a change
 fades and replaces the kernel as the tire's do.
+
+A hit is a recording: each contact of the player's that begins plays its counterpart's impact recording
+(`impacts/vehicle`, `impacts/wall` for a wall, a course limit or a wall's free end, `impacts/object`,
+`impacts/movable`) once on the `contact` bus, in the fixed step the contact begins, with no lookahead and no waiting
+for the contact to end. Its volume is `W / (W + reference)` of the recording's full volume, from the work `W` the
+contact's damper term dissipated, the same form as the tire's `w = P/(P+powerReferenceWatts)`; the reference work is
+one IMPACT setting ([`ImpactSettings`](../src/audio/impact-acoustics.ts)) per counterpart, since the counterparts'
+masses differ by orders of magnitude. There is no threshold: a small work gives a quiet hit. Impacts are decoded when
+the scene is built.
 
 ## Mix and lifetime
 

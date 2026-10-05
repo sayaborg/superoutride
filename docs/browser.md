@@ -474,7 +474,8 @@ restores those values and new runs preserve them:
 - **RIVAL** (`rival-sound-settings`): rival audible distance, reference distance, pan floor and reassignment time.
 - **UNIFIED** (`tire-sound-settings`): the friction-model settings.
 - **SCRAPE** (`scrape-sound-settings`): the walls' scraping, the same items and panel as UNIFIED.
+- **IMPACT** (`impact-sound-settings`): each counterpart's impact reference work.
 - **ROLLING** (`rolling-sound-settings`): the rolling-model settings.
 
-MIX, TIMING, RIVAL, UNIFIED, SCRAPE and ROLLING use sliders with the acoustic ranges. Engine sound rows show cycle, cylinder count, idle/redline, firing phases,
+MIX, TIMING, RIVAL, UNIFIED, SCRAPE, IMPACT and ROLLING use sliders with the acoustic ranges. Engine sound rows show cycle, cylinder count, idle/redline, firing phases,
 collector grouping and path lengths. [Calibration](calibration.md) lists the numeric settings.

@@ -1,6 +1,6 @@
 {
   "format": "superoutride.audio",
-  "version": 2,
+  "version": 3,
   "exhaust": {
     "closedExcitation": 0.22,
     "pulseRiseMs": 0.2,
@@ -78,5 +78,6 @@
     "transitionSeconds": 0.09,
     "musicFadeSeconds": 2
   },
-  "rival": { "audibleMeters": 100, "referenceMeters": 3, "panMinimumMeters": 3, "reassignmentSeconds": 0.09 }
+  "rival": { "audibleMeters": 100, "referenceMeters": 3, "panMinimumMeters": 3, "reassignmentSeconds": 0.09 },
+  "impact": { "vehicleJoules": 50000, "wallJoules": 100000, "objectJoules": 100000, "movableJoules": 7000 }
 }

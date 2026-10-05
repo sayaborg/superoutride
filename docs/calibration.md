@@ -250,6 +250,21 @@ UNIFIED defaults, a work half-response near the median wall-rub power of RIBBON 
 | `slipRolloffMps`      | 80 m/s    | 20–80 m/s / 1           |
 | Every other key       | UNIFIED's | UNIFIED's               |
 
+## IMPACT settings
+
+[Impact acoustics](../src/audio/impact-acoustics.ts) supplies each counterpart's impact reference work
+(`ImpactSettings`): an impact sounds at `W / (W + reference)`. Ranges are about a quarter to four times each default.
+The defaults are the implementer's, not chosen by listening: about a 10 m/s closing of two cars (about 45 kJ), a hard
+hit of a wall or object (wall starts on RIBBON COAST's departures run from about 300 J to 1.6 MJ) and a cone at race
+speed (about 7 kJ).
+
+| Key             | Counterpart                       | Default  | Range / step            |
+| --------------- | --------------------------------- | -------- | ----------------------- |
+| `vehicleJoules` | Another vehicle                   | 50000 J  | 12500–200000 J / 500 J  |
+| `wallJoules`    | Wall, course limit, wall free end | 100000 J | 25000–400000 J / 1000 J |
+| `objectJoules`  | Fixed object                      | 100000 J | 25000–400000 J / 1000 J |
+| `movableJoules` | Movable object                    | 7000 J   | 1750–28000 J / 50 J     |
+
 ## ROLLING tire settings
 
 [Rolling acoustics](../src/audio/tire-rolling-acoustics.ts) supplies the rolling-model listening settings

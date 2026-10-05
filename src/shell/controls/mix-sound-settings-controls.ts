@@ -5,6 +5,7 @@ import {
 } from '../../audio/audio-control-policy.js';
 import { RIVAL_SETTING_RANGES, resolveRivalSettings, type RivalSettings } from '../../audio/audio-scene.js';
 import { MIX_SETTING_RANGES, resolveMixSettings, type MixSettings } from '../../audio/sound-graph.js';
+import { IMPACT_SETTING_RANGES, resolveImpactSettings, type ImpactSettings } from '../../audio/impact-acoustics.js';
 import { createSoundSettingsPanel, mountSoundSettingsPanel } from './sound-settings-panel.js';
 
 // Labels only: audio owns defaults, bounds and validation.
@@ -26,6 +27,13 @@ const TIMING_LABELS = {
   transitionSeconds: ['Wait before a discontinuity', 's'],
   musicFadeSeconds: ['Music fade at GOAL and GAME OVER', 's'],
 } as const satisfies Record<keyof ControlSettings, readonly [string, string]>;
+
+const IMPACT_LABELS = {
+  vehicleJoules: ['Vehicle impact work at half volume', 'J'],
+  wallJoules: ['Wall impact work at half volume', 'J'],
+  objectJoules: ['Object impact work at half volume', 'J'],
+  movableJoules: ['Movable impact work at half volume', 'J'],
+} as const satisfies Record<keyof ImpactSettings, readonly [string, string]>;
 
 const RIVAL_LABELS = {
   audibleMeters: ['Maximum audible distance', 'm'],
@@ -75,6 +83,21 @@ export function mountRivalSoundSettings(host: HTMLElement, initial: RivalSetting
       RIVAL_LABELS,
       onChange,
       'Reset RIVAL to defaults',
+    ),
+  );
+}
+
+export function mountImpactSoundSettings(host: HTMLElement, initial: ImpactSettings, onChange: () => void) {
+  return mountSoundSettingsPanel(
+    host,
+    createSoundSettingsPanel(
+      'IMPACT',
+      IMPACT_SETTING_RANGES,
+      resolveImpactSettings,
+      initial,
+      IMPACT_LABELS,
+      onChange,
+      'Reset IMPACT to defaults',
     ),
   );
 }

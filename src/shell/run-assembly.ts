@@ -205,6 +205,8 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
     const { race } = active;
     const step = race.advance(shell.inputManager.sample());
     effects.step(race, race);
+    // Each contact of the player's that began in the step sounds once, as it begins.
+    for (const start of race.playerContacts.starts) shell.playImpact(start.counterpart, start.work);
     lifecycle.update(step.recovered);
     performanceHud?.step(performance.now() - started);
     if (race.outcome.status === 'GOAL' || race.outcome.status === 'GAME_OVER') {
