@@ -52,8 +52,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 Requirements left from the second design audit, by when they are taken up:
 
 - **Stage 15:**
-  - H15-02 (15-5): the reference report reader uses the same admission toolkit and error classes as other generated
-    products.
   - H14-02 (15-4): a compiled vehicle definition publishes each fact once, not both in its source document and in an
     expanded field (form, sound, sprite set, metadata).
   - H18-01 (15-4): the HUD's `steeringRatio` is not copied per vehicle: one value for cars and one for motorcycles.

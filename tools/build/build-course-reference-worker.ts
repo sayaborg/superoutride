@@ -5,12 +5,8 @@ import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { readDeliveredContent } from '../course/read-content.js';
 import { loadDeliveredCourse } from '../../src/content/load-delivered-course.js';
 import { createSessionVehicle, sessionVehicleSha256 } from '../../src/content/session-vehicle.js';
-import { readCourseReference } from '../course/course-reference.js';
-import {
-  COURSE_TIME_BUDGETS_FORMAT,
-  courseBudgetLandmarks,
-  readCourseTimeBudgets,
-} from '../../src/content/course-time-budgets.js';
+import { courseTimeBudgetsProduct, readCourseReference } from '../course/course-reference.js';
+import { readCourseTimeBudgets } from '../../src/content/course-time-budgets.js';
 import { RIVAL_ENVELOPE_FORMAT, readRivalEnvelope } from '../../src/content/rival-envelope.js';
 import { PACE_SCHEDULE_FORMAT, PACE_SCHEDULE_SPACING, readPaceSchedule } from '../../src/content/pace-schedule.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
@@ -63,17 +59,10 @@ for (const { stem, timeMargin } of courses) {
     procedureSha256: referenceSha256,
     vehicles: [candidate],
   };
-  const budgets = readCourseReference(course, vehicleId, vehicleSha256, reference, timeMargin, referenceSha256);
-  const product = {
-    ...COURSE_TIME_BUDGETS_FORMAT,
-    courseBuildSha256: course.identity.buildSha256,
-    vehicleSha256,
-    initialMs: budgets.initialMs,
-    after: courseBudgetLandmarks(course).map(({ gate, laps }) => [
-      gate.id,
-      Array.from({ length: laps }, (_, index) => budgets.after(gate, index + 1)),
-    ]),
-  };
+  const times = requireLoaded(
+    readCourseReference(course, vehicleId, vehicleSha256, referenceSha256, reference, `reference ${stem}`),
+  );
+  const product = courseTimeBudgetsProduct(course, vehicleSha256, times, timeMargin);
   requireLoaded(readCourseTimeBudgets(course, vehicleSha256, product, `budget ${stem}/${vehicleId}`));
   products.push({ kind: 'budget', id: `${stem}/${vehicleId}`, value: product });
   const schedule = paceScheduleProduct(course.entry.id, course.identity.buildSha256, vehicleSha256, cached.value);
