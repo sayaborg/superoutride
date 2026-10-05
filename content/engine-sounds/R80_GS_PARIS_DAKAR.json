@@ -12,8 +12,5 @@
       { "length": 0.85, "from": 2, "to": null }
     ]
   },
-  "metadata": {
-    "topology": "2-1",
-    "note": "Both cylinders' pipes merge into one outlet."
-  }
+  "metadata": { "topology": "2-1", "note": "Both cylinders' pipes merge into one outlet." }
 }

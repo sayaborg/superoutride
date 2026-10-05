@@ -12,14 +12,7 @@
       "course": "ribbon-coast",
       "laps": 1,
       "entries": [
-        {
-          "vehicle": "TESTAROSSA",
-          "color": "original",
-          "pace": 1,
-          "stages": null,
-          "slot": 15,
-          "ahead": null
-        }
+        { "vehicle": "TESTAROSSA", "color": "original", "pace": 1, "stages": null, "slot": 15, "ahead": null }
       ],
       "playerSlot": "last",
       "rankLimits": {},
@@ -33,30 +26,9 @@
       "course": "ribbon-fork",
       "laps": 1,
       "entries": [
-        {
-          "vehicle": "TESTAROSSA",
-          "color": "original",
-          "pace": 1,
-          "stages": null,
-          "slot": 13,
-          "ahead": null
-        },
-        {
-          "vehicle": "TESTAROSSA",
-          "color": "original",
-          "pace": 1,
-          "stages": null,
-          "slot": 14,
-          "ahead": null
-        },
-        {
-          "vehicle": "TESTAROSSA",
-          "color": "original",
-          "pace": 1,
-          "stages": null,
-          "slot": 15,
-          "ahead": null
-        }
+        { "vehicle": "TESTAROSSA", "color": "original", "pace": 1, "stages": null, "slot": 13, "ahead": null },
+        { "vehicle": "TESTAROSSA", "color": "original", "pace": 1, "stages": null, "slot": 14, "ahead": null },
+        { "vehicle": "TESTAROSSA", "color": "original", "pace": 1, "stages": null, "slot": 15, "ahead": null }
       ],
       "playerSlot": "last",
       "rankLimits": {},
@@ -66,30 +38,9 @@
       "course": "ribbon-ring",
       "laps": 2,
       "entries": [
-        {
-          "vehicle": "TESTAROSSA",
-          "color": "original",
-          "pace": 1,
-          "stages": null,
-          "slot": 13,
-          "ahead": null
-        },
-        {
-          "vehicle": "TESTAROSSA",
-          "color": "original",
-          "pace": 1,
-          "stages": null,
-          "slot": 14,
-          "ahead": null
-        },
-        {
-          "vehicle": "TESTAROSSA",
-          "color": "original",
-          "pace": 1,
-          "stages": null,
-          "slot": 15,
-          "ahead": null
-        }
+        { "vehicle": "TESTAROSSA", "color": "original", "pace": 1, "stages": null, "slot": 13, "ahead": null },
+        { "vehicle": "TESTAROSSA", "color": "original", "pace": 1, "stages": null, "slot": 14, "ahead": null },
+        { "vehicle": "TESTAROSSA", "color": "original", "pace": 1, "stages": null, "slot": 15, "ahead": null }
       ],
       "playerSlot": "last",
       "rankLimits": {},

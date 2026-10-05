@@ -3,42 +3,24 @@
   "version": 40,
   "name": "RIBBON FORK",
   "entrySectionId": "junction-road",
-  "rules": {
-    "maxLaps": 1
-  },
+  "rules": { "maxLaps": 1 },
   "sections": [
     {
       "id": "junction-road",
       "pis": [
-        {
-          "id": "start",
-          "x": 0,
-          "z": 0,
-          "radius": 0
-        },
-        {
-          "id": "end",
-          "x": 0,
-          "z": 720,
-          "radius": 0
-        }
+        { "id": "start", "x": 0, "z": 0, "radius": 0 },
+        { "id": "end", "x": 0, "z": 720, "radius": 0 }
       ],
       "boundaries": [
         {
           "id": "outer-left",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 0
-              },
+              "at": { "pi": "start", "offset": 0 },
               "lateral": -110
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": 0
-              },
+              "at": { "pi": "end", "offset": 0 },
               "lateral": -110
             }
           ]
@@ -47,17 +29,11 @@
           "id": "outer-right",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 0
-              },
+              "at": { "pi": "start", "offset": 0 },
               "lateral": 110
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": 0
-              },
+              "at": { "pi": "end", "offset": 0 },
               "lateral": 110
             }
           ]
@@ -66,17 +42,11 @@
           "id": "initial-left",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 0
-              },
+              "at": { "pi": "start", "offset": 0 },
               "lateral": -7
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": 0
-              },
+              "at": { "pi": "end", "offset": 0 },
               "lateral": -7
             }
           ]
@@ -85,17 +55,11 @@
           "id": "initial-right",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 0
-              },
+              "at": { "pi": "start", "offset": 0 },
               "lateral": 7
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": 0
-              },
+              "at": { "pi": "end", "offset": 0 },
               "lateral": 7
             }
           ]
@@ -104,38 +68,23 @@
           "id": "left-outer",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 70
-              },
+              "at": { "pi": "start", "offset": 70 },
               "lateral": -7
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 170
-              },
+              "at": { "pi": "start", "offset": 170 },
               "lateral": -9
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": -200
-              },
+              "at": { "pi": "end", "offset": -200 },
               "lateral": -9
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": -40
-              },
+              "at": { "pi": "end", "offset": -40 },
               "lateral": -43.5
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": 0
-              },
+              "at": { "pi": "end", "offset": 0 },
               "lateral": -43.5
             }
           ]
@@ -144,24 +93,12 @@
           "id": "left-inner",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 70
-              },
-              "lateral": {
-                "boundary": "left-outer",
-                "offset": 7
-              }
+              "at": { "pi": "start", "offset": 70 },
+              "lateral": { "boundary": "left-outer", "offset": 7 }
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": 0
-              },
-              "lateral": {
-                "boundary": "left-outer",
-                "offset": 7
-              }
+              "at": { "pi": "end", "offset": 0 },
+              "lateral": { "boundary": "left-outer", "offset": 7 }
             }
           ]
         },
@@ -169,38 +106,23 @@
           "id": "right-outer",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 70
-              },
+              "at": { "pi": "start", "offset": 70 },
               "lateral": 7
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 170
-              },
+              "at": { "pi": "start", "offset": 170 },
               "lateral": 9
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": -200
-              },
+              "at": { "pi": "end", "offset": -200 },
               "lateral": 9
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": -40
-              },
+              "at": { "pi": "end", "offset": -40 },
               "lateral": 43.5
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": 0
-              },
+              "at": { "pi": "end", "offset": 0 },
               "lateral": 43.5
             }
           ]
@@ -209,24 +131,12 @@
           "id": "right-inner",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 70
-              },
-              "lateral": {
-                "boundary": "right-outer",
-                "offset": -7
-              }
+              "at": { "pi": "start", "offset": 70 },
+              "lateral": { "boundary": "right-outer", "offset": -7 }
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": 0
-              },
-              "lateral": {
-                "boundary": "right-outer",
-                "offset": -7
-              }
+              "at": { "pi": "end", "offset": 0 },
+              "lateral": { "boundary": "right-outer", "offset": -7 }
             }
           ]
         },
@@ -234,24 +144,12 @@
           "id": "approach-left",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 0
-              },
-              "lateral": {
-                "boundary": "initial-left",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 0 },
+              "lateral": { "boundary": "initial-left", "offset": 0 }
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 70
-              },
-              "lateral": {
-                "boundary": "initial-left",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 70 },
+              "lateral": { "boundary": "initial-left", "offset": 0 }
             }
           ]
         },
@@ -259,24 +157,12 @@
           "id": "approach-right",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 0
-              },
-              "lateral": {
-                "boundary": "initial-right",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 0 },
+              "lateral": { "boundary": "initial-right", "offset": 0 }
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 70
-              },
-              "lateral": {
-                "boundary": "initial-right",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 70 },
+              "lateral": { "boundary": "initial-right", "offset": 0 }
             }
           ]
         }
@@ -288,32 +174,14 @@
           "material": "GRASS",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 0
-              },
-              "left": {
-                "boundary": "outer-left",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "initial-left",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 0 },
+              "left": { "boundary": "outer-left", "offset": 0 },
+              "right": { "boundary": "initial-left", "offset": 0 }
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 70
-              },
-              "left": {
-                "boundary": "outer-left",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "initial-left",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 70 },
+              "left": { "boundary": "outer-left", "offset": 0 },
+              "right": { "boundary": "initial-left", "offset": 0 }
             }
           ]
         },
@@ -323,32 +191,14 @@
           "material": "GRASS",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 0
-              },
-              "left": {
-                "boundary": "initial-right",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "outer-right",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 0 },
+              "left": { "boundary": "initial-right", "offset": 0 },
+              "right": { "boundary": "outer-right", "offset": 0 }
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 70
-              },
-              "left": {
-                "boundary": "initial-right",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "outer-right",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 70 },
+              "left": { "boundary": "initial-right", "offset": 0 },
+              "right": { "boundary": "outer-right", "offset": 0 }
             }
           ]
         },
@@ -358,32 +208,14 @@
           "material": "GRASS",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 70
-              },
-              "left": {
-                "boundary": "left-inner",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "right-inner",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 70 },
+              "left": { "boundary": "left-inner", "offset": 0 },
+              "right": { "boundary": "right-inner", "offset": 0 }
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": 0
-              },
-              "left": {
-                "boundary": "left-inner",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "right-inner",
-                "offset": 0
-              }
+              "at": { "pi": "end", "offset": 0 },
+              "left": { "boundary": "left-inner", "offset": 0 },
+              "right": { "boundary": "right-inner", "offset": 0 }
             }
           ]
         },
@@ -393,32 +225,14 @@
           "material": "GRASS",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 70
-              },
-              "left": {
-                "boundary": "outer-left",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "left-outer",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 70 },
+              "left": { "boundary": "outer-left", "offset": 0 },
+              "right": { "boundary": "left-outer", "offset": 0 }
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": 0
-              },
-              "left": {
-                "boundary": "outer-left",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "left-outer",
-                "offset": 0
-              }
+              "at": { "pi": "end", "offset": 0 },
+              "left": { "boundary": "outer-left", "offset": 0 },
+              "right": { "boundary": "left-outer", "offset": 0 }
             }
           ]
         },
@@ -428,32 +242,14 @@
           "material": "GRASS",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 70
-              },
-              "left": {
-                "boundary": "right-outer",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "outer-right",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 70 },
+              "left": { "boundary": "right-outer", "offset": 0 },
+              "right": { "boundary": "outer-right", "offset": 0 }
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": 0
-              },
-              "left": {
-                "boundary": "right-outer",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "outer-right",
-                "offset": 0
-              }
+              "at": { "pi": "end", "offset": 0 },
+              "left": { "boundary": "right-outer", "offset": 0 },
+              "right": { "boundary": "outer-right", "offset": 0 }
             }
           ]
         },
@@ -463,18 +259,12 @@
           "material": null,
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 0
-              },
+              "at": { "pi": "start", "offset": 0 },
               "left": null,
               "right": null
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 720
-              },
+              "at": { "pi": "start", "offset": 720 },
               "left": null,
               "right": null
             }
@@ -486,32 +276,14 @@
           "material": "ASPHALT",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 0
-              },
-              "left": {
-                "boundary": "initial-left",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "initial-right",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 0 },
+              "left": { "boundary": "initial-left", "offset": 0 },
+              "right": { "boundary": "initial-right", "offset": 0 }
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 70
-              },
-              "left": {
-                "boundary": "initial-left",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "initial-right",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 70 },
+              "left": { "boundary": "initial-left", "offset": 0 },
+              "right": { "boundary": "initial-right", "offset": 0 }
             }
           ]
         },
@@ -521,74 +293,29 @@
           "material": "ASPHALT",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 70
-              },
-              "left": {
-                "boundary": "left-outer",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "left-inner",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 70 },
+              "left": { "boundary": "left-outer", "offset": 0 },
+              "right": { "boundary": "left-inner", "offset": 0 }
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 170
-              },
-              "left": {
-                "boundary": "left-outer",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "left-inner",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 170 },
+              "left": { "boundary": "left-outer", "offset": 0 },
+              "right": { "boundary": "left-inner", "offset": 0 }
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 520
-              },
-              "left": {
-                "boundary": "left-outer",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "left-inner",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 520 },
+              "left": { "boundary": "left-outer", "offset": 0 },
+              "right": { "boundary": "left-inner", "offset": 0 }
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 680
-              },
-              "left": {
-                "boundary": "left-outer",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "left-inner",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 680 },
+              "left": { "boundary": "left-outer", "offset": 0 },
+              "right": { "boundary": "left-inner", "offset": 0 }
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 720
-              },
-              "left": {
-                "boundary": "left-outer",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "left-inner",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 720 },
+              "left": { "boundary": "left-outer", "offset": 0 },
+              "right": { "boundary": "left-inner", "offset": 0 }
             }
           ]
         },
@@ -598,83 +325,35 @@
           "material": "ASPHALT",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 70
-              },
-              "left": {
-                "boundary": "right-inner",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "right-outer",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 70 },
+              "left": { "boundary": "right-inner", "offset": 0 },
+              "right": { "boundary": "right-outer", "offset": 0 }
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 170
-              },
-              "left": {
-                "boundary": "right-inner",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "right-outer",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 170 },
+              "left": { "boundary": "right-inner", "offset": 0 },
+              "right": { "boundary": "right-outer", "offset": 0 }
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 520
-              },
-              "left": {
-                "boundary": "right-inner",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "right-outer",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 520 },
+              "left": { "boundary": "right-inner", "offset": 0 },
+              "right": { "boundary": "right-outer", "offset": 0 }
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 680
-              },
-              "left": {
-                "boundary": "right-inner",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "right-outer",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 680 },
+              "left": { "boundary": "right-inner", "offset": 0 },
+              "right": { "boundary": "right-outer", "offset": 0 }
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 720
-              },
-              "left": {
-                "boundary": "right-inner",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "right-outer",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 720 },
+              "left": { "boundary": "right-inner", "offset": 0 },
+              "right": { "boundary": "right-outer", "offset": 0 }
             }
           ]
         },
         {
           "kind": "text",
-          "at": {
-            "pi": "start",
-            "offset": 33
-          },
+          "at": { "pi": "start", "offset": 33 },
           "lateral": -5,
           "text": "FORK",
           "height": 2.8,
@@ -682,10 +361,7 @@
         },
         {
           "kind": "arrow",
-          "at": {
-            "pi": "start",
-            "offset": 90
-          },
+          "at": { "pi": "start", "offset": 90 },
           "lateral": -3,
           "width": 3,
           "length": 12,
@@ -694,10 +370,7 @@
         },
         {
           "kind": "arrow",
-          "at": {
-            "pi": "start",
-            "offset": 90
-          },
+          "at": { "pi": "start", "offset": 90 },
           "lateral": 3,
           "width": 3,
           "length": 12,
@@ -706,46 +379,25 @@
         },
         {
           "kind": "curb",
-          "start": {
-            "pi": "start",
-            "offset": 185
-          },
-          "end": {
-            "pi": "start",
-            "offset": 480
-          },
+          "start": { "pi": "start", "offset": 185 },
+          "end": { "pi": "start", "offset": 480 },
           "left": -9.6,
-          "right": {
-            "boundary": "left-outer",
-            "offset": 0
-          },
+          "right": { "boundary": "left-outer", "offset": 0 },
           "stripe": 4,
           "colors": [32765, 27781]
         },
         {
           "kind": "curb",
-          "start": {
-            "pi": "start",
-            "offset": 185
-          },
-          "end": {
-            "pi": "start",
-            "offset": 480
-          },
-          "left": {
-            "boundary": "right-outer",
-            "offset": 0
-          },
+          "start": { "pi": "start", "offset": 185 },
+          "end": { "pi": "start", "offset": 480 },
+          "left": { "boundary": "right-outer", "offset": 0 },
           "right": 9.6,
           "stripe": 4,
           "colors": [32765, 27781]
         },
         {
           "kind": "text",
-          "at": {
-            "pi": "start",
-            "offset": 240
-          },
+          "at": { "pi": "start", "offset": 240 },
           "lateral": -7.5,
           "text": "SEA",
           "height": 1.4,
@@ -753,10 +405,7 @@
         },
         {
           "kind": "text",
-          "at": {
-            "pi": "start",
-            "offset": 240
-          },
+          "at": { "pi": "start", "offset": 240 },
           "lateral": 3.5,
           "text": "PARK",
           "height": 1.4,
@@ -769,10 +418,7 @@
           "elements": [
             {
               "kind": "arrow",
-              "at": {
-                "pi": "start",
-                "offset": 250
-              },
+              "at": { "pi": "start", "offset": 250 },
               "lateral": -5.5,
               "width": 2,
               "length": 9,
@@ -781,10 +427,7 @@
             },
             {
               "kind": "arrow",
-              "at": {
-                "pi": "start",
-                "offset": 250
-              },
+              "at": { "pi": "start", "offset": 250 },
               "lateral": 5.5,
               "width": 2,
               "length": 9,
@@ -798,54 +441,26 @@
       "openLimits": [],
       "height": [
         {
-          "at": {
-            "pi": "start",
-            "offset": 0
-          },
+          "at": { "pi": "start", "offset": 0 },
           "y": 0,
           "curveLength": 0
         },
         {
-          "at": {
-            "pi": "end",
-            "offset": 0
-          },
+          "at": { "pi": "end", "offset": 0 },
           "y": 0,
           "curveLength": 0
         }
       ],
       "carriageways": [
-        {
-          "id": "APPROACH",
-          "left": "approach-left",
-          "right": "approach-right",
-          "lanes": 4
-        },
-        {
-          "id": "LEFT",
-          "left": "left-outer",
-          "right": "left-inner",
-          "lanes": 2
-        },
-        {
-          "id": "RIGHT",
-          "left": "right-inner",
-          "right": "right-outer",
-          "lanes": 2
-        }
+        { "id": "APPROACH", "left": "approach-left", "right": "approach-right", "lanes": 4 },
+        { "id": "LEFT", "left": "left-outer", "right": "left-inner", "lanes": 2 },
+        { "id": "RIGHT", "left": "right-inner", "right": "right-outer", "lanes": 2 }
       ],
       "environments": [
         {
-          "at": {
-            "pi": "start",
-            "offset": 0
-          },
+          "at": { "pi": "start", "offset": 0 },
           "name": "RIBBON FORK",
-          "background": {
-            "assetId": "coast-sky",
-            "horizonY": 320,
-            "yawOrigin": 0
-          }
+          "background": { "assetId": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
         }
       ],
       "sprites": [
@@ -853,10 +468,7 @@
           "kind": "sprite",
           "image": "fork-warning",
           "palette": "original",
-          "at": {
-            "pi": "start",
-            "offset": 250
-          },
+          "at": { "pi": "start", "offset": 250 },
           "lateral": -5.5,
           "groundOffset": 0,
           "unselectedCarriagewayId": "LEFT",
@@ -866,10 +478,7 @@
           "kind": "sprite",
           "image": "fork-closed",
           "palette": "original",
-          "at": {
-            "pi": "end",
-            "offset": -200
-          },
+          "at": { "pi": "end", "offset": -200 },
           "lateral": -5.5,
           "groundOffset": 0,
           "unselectedCarriagewayId": "LEFT",
@@ -879,10 +488,7 @@
           "kind": "sprite",
           "image": "fork-warning",
           "palette": "original",
-          "at": {
-            "pi": "start",
-            "offset": 250
-          },
+          "at": { "pi": "start", "offset": 250 },
           "lateral": 5.5,
           "groundOffset": 0,
           "unselectedCarriagewayId": "RIGHT",
@@ -892,10 +498,7 @@
           "kind": "sprite",
           "image": "fork-closed",
           "palette": "original",
-          "at": {
-            "pi": "end",
-            "offset": -200
-          },
+          "at": { "pi": "end", "offset": -200 },
           "lateral": 5.5,
           "groundOffset": 0,
           "unselectedCarriagewayId": "RIGHT",
@@ -910,14 +513,8 @@
               "kind": "sprite",
               "image": "tree",
               "palette": "original",
-              "at": {
-                "pi": "start",
-                "offset": 220
-              },
-              "lateral": {
-                "boundary": "left-outer",
-                "offset": -8
-              },
+              "at": { "pi": "start", "offset": 220 },
+              "lateral": { "boundary": "left-outer", "offset": -8 },
               "groundOffset": 0,
               "unselectedCarriagewayId": null,
               "body": null
@@ -933,14 +530,8 @@
               "kind": "sprite",
               "image": "tree",
               "palette": "original",
-              "at": {
-                "pi": "start",
-                "offset": 220
-              },
-              "lateral": {
-                "boundary": "right-outer",
-                "offset": 8
-              },
+              "at": { "pi": "start", "offset": 220 },
+              "lateral": { "boundary": "right-outer", "offset": 8 },
               "groundOffset": 0,
               "unselectedCarriagewayId": null,
               "body": null
@@ -953,167 +544,97 @@
           "kind": "start",
           "grid": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 193
-              },
+              "at": { "pi": "start", "offset": 193 },
               "lateral": -2
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 181
-              },
+              "at": { "pi": "start", "offset": 181 },
               "lateral": 2
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 169
-              },
+              "at": { "pi": "start", "offset": 169 },
               "lateral": -2
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 157
-              },
+              "at": { "pi": "start", "offset": 157 },
               "lateral": 2
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 145
-              },
+              "at": { "pi": "start", "offset": 145 },
               "lateral": -2
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 133
-              },
+              "at": { "pi": "start", "offset": 133 },
               "lateral": 2
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 121
-              },
+              "at": { "pi": "start", "offset": 121 },
               "lateral": -2
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 109
-              },
+              "at": { "pi": "start", "offset": 109 },
               "lateral": 2
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 97
-              },
+              "at": { "pi": "start", "offset": 97 },
               "lateral": -2
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 85
-              },
+              "at": { "pi": "start", "offset": 85 },
               "lateral": 2
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 73
-              },
+              "at": { "pi": "start", "offset": 73 },
               "lateral": -2
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 61
-              },
+              "at": { "pi": "start", "offset": 61 },
               "lateral": 2
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 49
-              },
+              "at": { "pi": "start", "offset": 49 },
               "lateral": -2
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 37
-              },
+              "at": { "pi": "start", "offset": 37 },
               "lateral": 2
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 25
-              },
+              "at": { "pi": "start", "offset": 25 },
               "lateral": -2
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 15
-              },
+              "at": { "pi": "start", "offset": 15 },
               "lateral": 0
             }
           ]
         },
         {
           "kind": "lock",
-          "at": {
-            "pi": "start",
-            "offset": 220
-          }
+          "at": { "pi": "start", "offset": 220 }
         },
         {
           "kind": "closure",
-          "at": {
-            "pi": "end",
-            "offset": -200
-          }
+          "at": { "pi": "end", "offset": -200 }
         }
       ]
     },
     {
       "id": "cliff-route",
       "pis": [
-        {
-          "id": "start",
-          "x": 0,
-          "z": 0,
-          "radius": 0
-        },
-        {
-          "id": "end",
-          "x": 0,
-          "z": 800,
-          "radius": 0
-        }
+        { "id": "start", "x": 0, "z": 0, "radius": 0 },
+        { "id": "end", "x": 0, "z": 800, "radius": 0 }
       ],
       "boundaries": [
         {
           "id": "outer-left",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 0
-              },
+              "at": { "pi": "start", "offset": 0 },
               "lateral": -70
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": 0
-              },
+              "at": { "pi": "end", "offset": 0 },
               "lateral": -70
             }
           ]
@@ -1122,17 +643,11 @@
           "id": "road-left",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 0
-              },
+              "at": { "pi": "start", "offset": 0 },
               "lateral": -3.5
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": 0
-              },
+              "at": { "pi": "end", "offset": 0 },
               "lateral": -3.5
             }
           ]
@@ -1141,17 +656,11 @@
           "id": "road-right",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 0
-              },
+              "at": { "pi": "start", "offset": 0 },
               "lateral": 3.5
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": 0
-              },
+              "at": { "pi": "end", "offset": 0 },
               "lateral": 3.5
             }
           ]
@@ -1160,17 +669,11 @@
           "id": "outer-right",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 0
-              },
+              "at": { "pi": "start", "offset": 0 },
               "lateral": 70
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": 0
-              },
+              "at": { "pi": "end", "offset": 0 },
               "lateral": 70
             }
           ]
@@ -1183,32 +686,14 @@
           "material": "GRASS",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 0
-              },
-              "left": {
-                "boundary": "outer-left",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "road-left",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 0 },
+              "left": { "boundary": "outer-left", "offset": 0 },
+              "right": { "boundary": "road-left", "offset": 0 }
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": 0
-              },
-              "left": {
-                "boundary": "outer-left",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "road-left",
-                "offset": 0
-              }
+              "at": { "pi": "end", "offset": 0 },
+              "left": { "boundary": "outer-left", "offset": 0 },
+              "right": { "boundary": "road-left", "offset": 0 }
             }
           ]
         },
@@ -1218,32 +703,14 @@
           "material": "GRASS",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 0
-              },
-              "left": {
-                "boundary": "road-right",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "outer-right",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 0 },
+              "left": { "boundary": "road-right", "offset": 0 },
+              "right": { "boundary": "outer-right", "offset": 0 }
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": 0
-              },
-              "left": {
-                "boundary": "road-right",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "outer-right",
-                "offset": 0
-              }
+              "at": { "pi": "end", "offset": 0 },
+              "left": { "boundary": "road-right", "offset": 0 },
+              "right": { "boundary": "outer-right", "offset": 0 }
             }
           ]
         },
@@ -1253,18 +720,12 @@
           "material": null,
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 0
-              },
+              "at": { "pi": "start", "offset": 0 },
               "left": null,
               "right": null
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 800
-              },
+              "at": { "pi": "start", "offset": 800 },
               "left": null,
               "right": null
             }
@@ -1276,41 +737,20 @@
           "material": "ASPHALT",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 0
-              },
-              "left": {
-                "boundary": "road-left",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "road-right",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 0 },
+              "left": { "boundary": "road-left", "offset": 0 },
+              "right": { "boundary": "road-right", "offset": 0 }
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 800
-              },
-              "left": {
-                "boundary": "road-left",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "road-right",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 800 },
+              "left": { "boundary": "road-left", "offset": 0 },
+              "right": { "boundary": "road-right", "offset": 0 }
             }
           ]
         },
         {
           "kind": "text",
-          "at": {
-            "pi": "start",
-            "offset": 85
-          },
+          "at": { "pi": "start", "offset": 85 },
           "lateral": -2.6,
           "text": "SEA",
           "height": 1.8,
@@ -1318,10 +758,7 @@
         },
         {
           "kind": "arrow",
-          "at": {
-            "pi": "start",
-            "offset": 118
-          },
+          "at": { "pi": "start", "offset": 118 },
           "lateral": 0,
           "width": 2,
           "length": 10,
@@ -1330,36 +767,18 @@
         },
         {
           "kind": "curb",
-          "start": {
-            "pi": "start",
-            "offset": 100
-          },
-          "end": {
-            "pi": "start",
-            "offset": 690
-          },
+          "start": { "pi": "start", "offset": 100 },
+          "end": { "pi": "start", "offset": 690 },
           "left": -4.1,
-          "right": {
-            "boundary": "road-left",
-            "offset": 0
-          },
+          "right": { "boundary": "road-left", "offset": 0 },
           "stripe": 3,
           "colors": [32765, 27781]
         },
         {
           "kind": "curb",
-          "start": {
-            "pi": "start",
-            "offset": 100
-          },
-          "end": {
-            "pi": "start",
-            "offset": 690
-          },
-          "left": {
-            "boundary": "road-right",
-            "offset": 0
-          },
+          "start": { "pi": "start", "offset": 100 },
+          "end": { "pi": "start", "offset": 690 },
+          "left": { "boundary": "road-right", "offset": 0 },
           "right": 4.1,
           "stripe": 3,
           "colors": [32765, 27781]
@@ -1370,34 +789,22 @@
           "material": null,
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 170
-              },
+              "at": { "pi": "start", "offset": 170 },
               "left": 30,
               "right": null
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 250
-              },
+              "at": { "pi": "start", "offset": 250 },
               "left": 5,
               "right": null
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 520
-              },
+              "at": { "pi": "start", "offset": 520 },
               "left": 5,
               "right": null
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 600
-              },
+              "at": { "pi": "start", "offset": 600 },
               "left": 30,
               "right": null
             }
@@ -1409,34 +816,22 @@
           "material": null,
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 210
-              },
+              "at": { "pi": "start", "offset": 210 },
               "left": null,
               "right": -30
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 270
-              },
+              "at": { "pi": "start", "offset": 270 },
               "left": null,
               "right": -5
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 470
-              },
+              "at": { "pi": "start", "offset": 470 },
               "left": null,
               "right": -5
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 560
-              },
+              "at": { "pi": "start", "offset": 560 },
               "left": null,
               "right": -30
             }
@@ -1447,42 +842,22 @@
       "openLimits": [],
       "height": [
         {
-          "at": {
-            "pi": "start",
-            "offset": 0
-          },
+          "at": { "pi": "start", "offset": 0 },
           "y": 0,
           "curveLength": 0
         },
         {
-          "at": {
-            "pi": "end",
-            "offset": 0
-          },
+          "at": { "pi": "end", "offset": 0 },
           "y": 0,
           "curveLength": 0
         }
       ],
-      "carriageways": [
-        {
-          "id": "road",
-          "left": "road-left",
-          "right": "road-right",
-          "lanes": 2
-        }
-      ],
+      "carriageways": [{ "id": "road", "left": "road-left", "right": "road-right", "lanes": 2 }],
       "environments": [
         {
-          "at": {
-            "pi": "start",
-            "offset": 0
-          },
+          "at": { "pi": "start", "offset": 0 },
           "name": "RIBBON FORK",
-          "background": {
-            "assetId": "coast-sky",
-            "horizonY": 320,
-            "yawOrigin": -20
-          }
+          "background": { "assetId": "coast-sky", "horizonY": 320, "yawOrigin": -20 }
         }
       ],
       "sprites": [],
@@ -1491,45 +866,26 @@
           "kind": "checkpoint",
           "id": "cliff-route-CP1",
           "carriageway": "road",
-          "at": {
-            "pi": "start",
-            "offset": 400
-          }
+          "at": { "pi": "start", "offset": 400 }
         }
       ]
     },
     {
       "id": "garden-route",
       "pis": [
-        {
-          "id": "start",
-          "x": 0,
-          "z": 0,
-          "radius": 0
-        },
-        {
-          "id": "end",
-          "x": 0,
-          "z": 1000,
-          "radius": 0
-        }
+        { "id": "start", "x": 0, "z": 0, "radius": 0 },
+        { "id": "end", "x": 0, "z": 1000, "radius": 0 }
       ],
       "boundaries": [
         {
           "id": "outer-left",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 0
-              },
+              "at": { "pi": "start", "offset": 0 },
               "lateral": -70
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": 0
-              },
+              "at": { "pi": "end", "offset": 0 },
               "lateral": -70
             }
           ]
@@ -1538,17 +894,11 @@
           "id": "road-left",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 0
-              },
+              "at": { "pi": "start", "offset": 0 },
               "lateral": -3.5
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": 0
-              },
+              "at": { "pi": "end", "offset": 0 },
               "lateral": -3.5
             }
           ]
@@ -1557,17 +907,11 @@
           "id": "road-right",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 0
-              },
+              "at": { "pi": "start", "offset": 0 },
               "lateral": 3.5
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": 0
-              },
+              "at": { "pi": "end", "offset": 0 },
               "lateral": 3.5
             }
           ]
@@ -1576,17 +920,11 @@
           "id": "outer-right",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 0
-              },
+              "at": { "pi": "start", "offset": 0 },
               "lateral": 70
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": 0
-              },
+              "at": { "pi": "end", "offset": 0 },
               "lateral": 70
             }
           ]
@@ -1599,32 +937,14 @@
           "material": "GRASS",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 0
-              },
-              "left": {
-                "boundary": "outer-left",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "road-left",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 0 },
+              "left": { "boundary": "outer-left", "offset": 0 },
+              "right": { "boundary": "road-left", "offset": 0 }
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": 0
-              },
-              "left": {
-                "boundary": "outer-left",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "road-left",
-                "offset": 0
-              }
+              "at": { "pi": "end", "offset": 0 },
+              "left": { "boundary": "outer-left", "offset": 0 },
+              "right": { "boundary": "road-left", "offset": 0 }
             }
           ]
         },
@@ -1634,32 +954,14 @@
           "material": "GRASS",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 0
-              },
-              "left": {
-                "boundary": "road-right",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "outer-right",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 0 },
+              "left": { "boundary": "road-right", "offset": 0 },
+              "right": { "boundary": "outer-right", "offset": 0 }
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": 0
-              },
-              "left": {
-                "boundary": "road-right",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "outer-right",
-                "offset": 0
-              }
+              "at": { "pi": "end", "offset": 0 },
+              "left": { "boundary": "road-right", "offset": 0 },
+              "right": { "boundary": "outer-right", "offset": 0 }
             }
           ]
         },
@@ -1669,18 +971,12 @@
           "material": null,
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 0
-              },
+              "at": { "pi": "start", "offset": 0 },
               "left": null,
               "right": null
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 1000
-              },
+              "at": { "pi": "start", "offset": 1000 },
               "left": null,
               "right": null
             }
@@ -1692,41 +988,20 @@
           "material": "ASPHALT",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 0
-              },
-              "left": {
-                "boundary": "road-left",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "road-right",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 0 },
+              "left": { "boundary": "road-left", "offset": 0 },
+              "right": { "boundary": "road-right", "offset": 0 }
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 1000
-              },
-              "left": {
-                "boundary": "road-left",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "road-right",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 1000 },
+              "left": { "boundary": "road-left", "offset": 0 },
+              "right": { "boundary": "road-right", "offset": 0 }
             }
           ]
         },
         {
           "kind": "text",
-          "at": {
-            "pi": "start",
-            "offset": 85
-          },
+          "at": { "pi": "start", "offset": 85 },
           "lateral": -2.6,
           "text": "PARK",
           "height": 1.4,
@@ -1743,18 +1018,12 @@
               "material": null,
               "knots": [
                 {
-                  "at": {
-                    "pi": "start",
-                    "offset": 120
-                  },
+                  "at": { "pi": "start", "offset": 120 },
                   "left": -0.08,
                   "right": 0.08
                 },
                 {
-                  "at": {
-                    "pi": "start",
-                    "offset": 130
-                  },
+                  "at": { "pi": "start", "offset": 130 },
                   "left": -0.08,
                   "right": 0.08
                 }
@@ -1764,36 +1033,18 @@
         },
         {
           "kind": "curb",
-          "start": {
-            "pi": "start",
-            "offset": 100
-          },
-          "end": {
-            "pi": "start",
-            "offset": 910
-          },
+          "start": { "pi": "start", "offset": 100 },
+          "end": { "pi": "start", "offset": 910 },
           "left": -4.1,
-          "right": {
-            "boundary": "road-left",
-            "offset": 0
-          },
+          "right": { "boundary": "road-left", "offset": 0 },
           "stripe": 5,
           "colors": [32765, 27781]
         },
         {
           "kind": "curb",
-          "start": {
-            "pi": "start",
-            "offset": 100
-          },
-          "end": {
-            "pi": "start",
-            "offset": 910
-          },
-          "left": {
-            "boundary": "road-right",
-            "offset": 0
-          },
+          "start": { "pi": "start", "offset": 100 },
+          "end": { "pi": "start", "offset": 910 },
+          "left": { "boundary": "road-right", "offset": 0 },
           "right": 4.1,
           "stripe": 5,
           "colors": [32765, 27781]
@@ -1803,42 +1054,22 @@
       "openLimits": [],
       "height": [
         {
-          "at": {
-            "pi": "start",
-            "offset": 0
-          },
+          "at": { "pi": "start", "offset": 0 },
           "y": 0,
           "curveLength": 0
         },
         {
-          "at": {
-            "pi": "end",
-            "offset": 0
-          },
+          "at": { "pi": "end", "offset": 0 },
           "y": 0,
           "curveLength": 0
         }
       ],
-      "carriageways": [
-        {
-          "id": "road",
-          "left": "road-left",
-          "right": "road-right",
-          "lanes": 2
-        }
-      ],
+      "carriageways": [{ "id": "road", "left": "road-left", "right": "road-right", "lanes": 2 }],
       "environments": [
         {
-          "at": {
-            "pi": "start",
-            "offset": 0
-          },
+          "at": { "pi": "start", "offset": 0 },
           "name": "RIBBON FORK",
-          "background": {
-            "assetId": "coast-sky",
-            "horizonY": 320,
-            "yawOrigin": 20
-          }
+          "background": { "assetId": "coast-sky", "horizonY": 320, "yawOrigin": 20 }
         }
       ],
       "sprites": [
@@ -1851,14 +1082,8 @@
               "kind": "sprite",
               "image": "tree",
               "palette": "original",
-              "at": {
-                "pi": "start",
-                "offset": 60
-              },
-              "lateral": {
-                "boundary": "road-left",
-                "offset": -8
-              },
+              "at": { "pi": "start", "offset": 60 },
+              "lateral": { "boundary": "road-left", "offset": -8 },
               "groundOffset": 0,
               "unselectedCarriagewayId": null,
               "body": null
@@ -1871,52 +1096,30 @@
           "kind": "checkpoint",
           "id": "garden-route-CP1",
           "carriageway": "road",
-          "at": {
-            "pi": "start",
-            "offset": 500
-          }
+          "at": { "pi": "start", "offset": 500 }
         }
       ]
     },
     {
       "id": "home-road",
       "pis": [
-        {
-          "id": "start",
-          "x": 0,
-          "z": 0,
-          "radius": 0
-        },
-        {
-          "id": "end",
-          "x": 0,
-          "z": 1300,
-          "radius": 0
-        }
+        { "id": "start", "x": 0, "z": 0, "radius": 0 },
+        { "id": "end", "x": 0, "z": 1300, "radius": 0 }
       ],
       "boundaries": [
         {
           "id": "outer-left",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 0
-              },
+              "at": { "pi": "start", "offset": 0 },
               "lateral": -70
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": -300
-              },
+              "at": { "pi": "end", "offset": -300 },
               "lateral": -70
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": 0
-              },
+              "at": { "pi": "end", "offset": 0 },
               "lateral": -70
             }
           ]
@@ -1925,24 +1128,15 @@
           "id": "road-left",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 0
-              },
+              "at": { "pi": "start", "offset": 0 },
               "lateral": -3.5
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": -300
-              },
+              "at": { "pi": "end", "offset": -300 },
               "lateral": -3.5
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": 0
-              },
+              "at": { "pi": "end", "offset": 0 },
               "lateral": -3.5
             }
           ]
@@ -1951,24 +1145,15 @@
           "id": "road-right",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 0
-              },
+              "at": { "pi": "start", "offset": 0 },
               "lateral": 3.5
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": -300
-              },
+              "at": { "pi": "end", "offset": -300 },
               "lateral": 3.5
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": 0
-              },
+              "at": { "pi": "end", "offset": 0 },
               "lateral": 3.5
             }
           ]
@@ -1977,24 +1162,15 @@
           "id": "outer-right",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 0
-              },
+              "at": { "pi": "start", "offset": 0 },
               "lateral": 70
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": -300
-              },
+              "at": { "pi": "end", "offset": -300 },
               "lateral": 70
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": 0
-              },
+              "at": { "pi": "end", "offset": 0 },
               "lateral": 70
             }
           ]
@@ -2007,32 +1183,14 @@
           "material": "GRASS",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 0
-              },
-              "left": {
-                "boundary": "outer-left",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "road-left",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 0 },
+              "left": { "boundary": "outer-left", "offset": 0 },
+              "right": { "boundary": "road-left", "offset": 0 }
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": 0
-              },
-              "left": {
-                "boundary": "outer-left",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "road-left",
-                "offset": 0
-              }
+              "at": { "pi": "end", "offset": 0 },
+              "left": { "boundary": "outer-left", "offset": 0 },
+              "right": { "boundary": "road-left", "offset": 0 }
             }
           ]
         },
@@ -2042,32 +1200,14 @@
           "material": "GRASS",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 0
-              },
-              "left": {
-                "boundary": "road-right",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "outer-right",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 0 },
+              "left": { "boundary": "road-right", "offset": 0 },
+              "right": { "boundary": "outer-right", "offset": 0 }
             },
             {
-              "at": {
-                "pi": "end",
-                "offset": 0
-              },
-              "left": {
-                "boundary": "road-right",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "outer-right",
-                "offset": 0
-              }
+              "at": { "pi": "end", "offset": 0 },
+              "left": { "boundary": "road-right", "offset": 0 },
+              "right": { "boundary": "outer-right", "offset": 0 }
             }
           ]
         },
@@ -2077,26 +1217,17 @@
           "material": null,
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 0
-              },
+              "at": { "pi": "start", "offset": 0 },
               "left": null,
               "right": null
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 1000
-              },
+              "at": { "pi": "start", "offset": 1000 },
               "left": null,
               "right": null
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 1300
-              },
+              "at": { "pi": "start", "offset": 1300 },
               "left": null,
               "right": null
             }
@@ -2108,55 +1239,25 @@
           "material": "ASPHALT",
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 0
-              },
-              "left": {
-                "boundary": "road-left",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "road-right",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 0 },
+              "left": { "boundary": "road-left", "offset": 0 },
+              "right": { "boundary": "road-right", "offset": 0 }
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 1000
-              },
-              "left": {
-                "boundary": "road-left",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "road-right",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 1000 },
+              "left": { "boundary": "road-left", "offset": 0 },
+              "right": { "boundary": "road-right", "offset": 0 }
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 1300
-              },
-              "left": {
-                "boundary": "road-left",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "road-right",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 1300 },
+              "left": { "boundary": "road-left", "offset": 0 },
+              "right": { "boundary": "road-right", "offset": 0 }
             }
           ]
         },
         {
           "kind": "text",
-          "at": {
-            "pi": "start",
-            "offset": 90
-          },
+          "at": { "pi": "start", "offset": 90 },
           "lateral": -2.4,
           "text": "HOME",
           "height": 1.4,
@@ -2164,10 +1265,7 @@
         },
         {
           "kind": "arrow",
-          "at": {
-            "pi": "start",
-            "offset": 130
-          },
+          "at": { "pi": "start", "offset": 130 },
           "lateral": 0,
           "width": 2,
           "length": 10,
@@ -2185,18 +1283,12 @@
               "material": null,
               "knots": [
                 {
-                  "at": {
-                    "pi": "start",
-                    "offset": 140
-                  },
+                  "at": { "pi": "start", "offset": 140 },
                   "left": -0.08,
                   "right": 0.08
                 },
                 {
-                  "at": {
-                    "pi": "start",
-                    "offset": 150
-                  },
+                  "at": { "pi": "start", "offset": 150 },
                   "left": -0.08,
                   "right": 0.08
                 }
@@ -2210,41 +1302,20 @@
           "material": null,
           "knots": [
             {
-              "at": {
-                "pi": "start",
-                "offset": 895
-              },
-              "left": {
-                "boundary": "road-left",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "road-right",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 895 },
+              "left": { "boundary": "road-left", "offset": 0 },
+              "right": { "boundary": "road-right", "offset": 0 }
             },
             {
-              "at": {
-                "pi": "start",
-                "offset": 897
-              },
-              "left": {
-                "boundary": "road-left",
-                "offset": 0
-              },
-              "right": {
-                "boundary": "road-right",
-                "offset": 0
-              }
+              "at": { "pi": "start", "offset": 897 },
+              "left": { "boundary": "road-left", "offset": 0 },
+              "right": { "boundary": "road-right", "offset": 0 }
             }
           ]
         },
         {
           "kind": "text",
-          "at": {
-            "pi": "start",
-            "offset": 880
-          },
+          "at": { "pi": "start", "offset": 880 },
           "lateral": -2.4,
           "text": "GOAL",
           "height": 1.4,
@@ -2255,50 +1326,27 @@
       "openLimits": [],
       "height": [
         {
-          "at": {
-            "pi": "start",
-            "offset": 0
-          },
+          "at": { "pi": "start", "offset": 0 },
           "y": 0,
           "curveLength": 0
         },
         {
-          "at": {
-            "pi": "end",
-            "offset": -300
-          },
+          "at": { "pi": "end", "offset": -300 },
           "y": 0,
           "curveLength": 0
         },
         {
-          "at": {
-            "pi": "end",
-            "offset": 0
-          },
+          "at": { "pi": "end", "offset": 0 },
           "y": 0,
           "curveLength": 0
         }
       ],
-      "carriageways": [
-        {
-          "id": "road",
-          "left": "road-left",
-          "right": "road-right",
-          "lanes": 2
-        }
-      ],
+      "carriageways": [{ "id": "road", "left": "road-left", "right": "road-right", "lanes": 2 }],
       "environments": [
         {
-          "at": {
-            "pi": "start",
-            "offset": 0
-          },
+          "at": { "pi": "start", "offset": 0 },
           "name": "RIBBON FORK",
-          "background": {
-            "assetId": "coast-sky",
-            "horizonY": 320,
-            "yawOrigin": 0
-          }
+          "background": { "assetId": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
         }
       ],
       "sprites": [
@@ -2311,14 +1359,8 @@
               "kind": "sprite",
               "image": "tree",
               "palette": "original",
-              "at": {
-                "pi": "start",
-                "offset": 60
-              },
-              "lateral": {
-                "boundary": "road-left",
-                "offset": -8
-              },
+              "at": { "pi": "start", "offset": 60 },
+              "lateral": { "boundary": "road-left", "offset": -8 },
               "groundOffset": 0,
               "unselectedCarriagewayId": null,
               "body": null
@@ -2331,19 +1373,13 @@
           "kind": "checkpoint",
           "id": "home-road-CP1",
           "carriageway": "road",
-          "at": {
-            "pi": "start",
-            "offset": 470
-          }
+          "at": { "pi": "start", "offset": 470 }
         },
         {
           "kind": "finish",
           "id": "home-road-FINISH",
           "carriageway": "road",
-          "at": {
-            "pi": "end",
-            "offset": -360
-          }
+          "at": { "pi": "end", "offset": -360 }
         }
       ]
     }
@@ -2351,61 +1387,29 @@
   "links": [
     {
       "id": "left-exit",
-      "from": {
-        "sectionId": "junction-road",
-        "carriagewayId": "LEFT"
-      },
-      "to": {
-        "sectionId": "cliff-route"
-      }
+      "from": { "sectionId": "junction-road", "carriagewayId": "LEFT" },
+      "to": { "sectionId": "cliff-route" }
     },
     {
       "id": "left-merge",
-      "from": {
-        "sectionId": "cliff-route",
-        "carriagewayId": "road"
-      },
-      "to": {
-        "sectionId": "home-road"
-      }
+      "from": { "sectionId": "cliff-route", "carriagewayId": "road" },
+      "to": { "sectionId": "home-road" }
     },
     {
       "id": "right-exit",
-      "from": {
-        "sectionId": "junction-road",
-        "carriagewayId": "RIGHT"
-      },
-      "to": {
-        "sectionId": "garden-route"
-      }
+      "from": { "sectionId": "junction-road", "carriagewayId": "RIGHT" },
+      "to": { "sectionId": "garden-route" }
     },
     {
       "id": "right-merge",
-      "from": {
-        "sectionId": "garden-route",
-        "carriagewayId": "road"
-      },
-      "to": {
-        "sectionId": "home-road"
-      }
+      "from": { "sectionId": "garden-route", "carriagewayId": "road" },
+      "to": { "sectionId": "home-road" }
     }
   ],
   "assets": [
-    {
-      "id": "coast-sky",
-      "sha256": "0e4c15f03d93e1202735af76ae62f620d6adb0ae060236670fd58feff95fad00"
-    },
-    {
-      "id": "tree",
-      "sha256": "99304e169e065b4528945b14eac5082a84356ee2218e72e99571a971c64eeb40"
-    },
-    {
-      "id": "fork-warning",
-      "sha256": "6a9cd48d0640c95bc688e449b58af39f47f110decf96a450959f5da3b05e57f8"
-    },
-    {
-      "id": "fork-closed",
-      "sha256": "4e50983b03f9f3a25dba9cf5fc6f4a35953c9b14173e4019ec2183c6900c3e6b"
-    }
+    { "id": "coast-sky", "sha256": "0e4c15f03d93e1202735af76ae62f620d6adb0ae060236670fd58feff95fad00" },
+    { "id": "tree", "sha256": "99304e169e065b4528945b14eac5082a84356ee2218e72e99571a971c64eeb40" },
+    { "id": "fork-warning", "sha256": "6a9cd48d0640c95bc688e449b58af39f47f110decf96a450959f5da3b05e57f8" },
+    { "id": "fork-closed", "sha256": "4e50983b03f9f3a25dba9cf5fc6f4a35953c9b14173e4019ec2183c6900c3e6b" }
   ]
 }

@@ -2,9 +2,18 @@
   "format": "superoutride.free-play",
   "version": 1,
   "rivalPools": [
-    { "id": "ALL", "forms": ["car", "bike"] },
-    { "id": "CARS", "forms": ["car"] },
-    { "id": "BIKES", "forms": ["bike"] }
+    {
+      "id": "ALL",
+      "forms": ["car", "bike"]
+    },
+    {
+      "id": "CARS",
+      "forms": ["car"]
+    },
+    {
+      "id": "BIKES",
+      "forms": ["bike"]
+    }
   ],
   "traffic": [
     { "id": "LOW", "density": 5 },

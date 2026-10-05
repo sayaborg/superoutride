@@ -93,13 +93,10 @@ export const changesModule: WorkbenchModule = {
         details.append(make('summary', `${kind} · ${changed}`));
         const before = text(original),
           after = text(bytes);
-        // Documents compare by value in the saved layout; a build file in another layout is noted, not diffed.
+        // Documents compare by value in the saved layout.
         const [layoutBefore, layoutAfter] = [before, after].map((value) => (value === null ? null : saved(value)));
-        if (layoutBefore && layoutAfter) {
-          if (layoutBefore !== before)
-            details.append(make('p', 'The build’s file is not in the saved layout; saving writes it in that layout.'));
-          details.append(difference(layoutBefore, layoutAfter));
-        } else if (before !== null && after !== null) details.append(difference(before, after));
+        if (layoutBefore && layoutAfter) details.append(difference(layoutBefore, layoutAfter));
+        else if (before !== null && after !== null) details.append(difference(before, after));
         else
           details.append(
             make('p', `${original?.byteLength ?? 0} bytes in the build → ${bytes?.byteLength ?? 0} bytes now`),

@@ -3,8 +3,5 @@
   "version": 1,
   "title": "PLACEHOLDER ONE",
   "selectionOrder": 1,
-  "loop": {
-    "start": 2.0,
-    "end": 10.0
-  }
+  "loop": { "start": 2, "end": 10 }
 }

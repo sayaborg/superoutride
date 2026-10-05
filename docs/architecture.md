@@ -642,7 +642,9 @@ and compiles every authored document in the build's dependency order, the saved 
 every delivered file (kind, ID and bytes) with the compiled products tools consume, or the admission diagnostics and no
 product; `measured: false` stops before the measured products for tools that produce or do not use them. The one edit,
 `replaceDocument(store, path, value)`, replaces a document with an admitted value in the saved JSON layout
-(`formatSavedJson`); compiling the store again gives the edited products. Selection, undo and views belong to the
+(`formatSavedJson`); compiling the store again gives the edited products. Every authored JSON document under
+`content/` is kept in that layout, so a replacement changes only the edited values, except the image documents, which
+are named by their bytes' digest. Selection, undo and views belong to the
 callers. File I/O, workers and exit codes belong to the entries. Nothing the core reaches imports a Node module or the
 shell; the dependency check enforces this rule. The workbench (`tools/workbench`) is a browser page over the same core:
 a browser content store, a layered store for its changes (`createLayeredStore`) and a worker that runs

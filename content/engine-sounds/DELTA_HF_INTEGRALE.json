@@ -8,8 +8,5 @@
     "lengths": [0.3, 0.24, 0.27, 0.34],
     "pipes": [{ "length": 1.65, "from": 0, "to": null }]
   },
-  "metadata": {
-    "topology": "4-1",
-    "note": "One collector, one outlet."
-  }
+  "metadata": { "topology": "4-1", "note": "One collector, one outlet." }
 }

@@ -12,8 +12,5 @@
       { "length": 0.75, "from": 2, "to": null }
     ]
   },
-  "metadata": {
-    "topology": "2-1",
-    "note": "Both headers merge into one collector and a single outlet."
-  }
+  "metadata": { "topology": "2-1", "note": "Both headers merge into one collector and a single outlet." }
 }
