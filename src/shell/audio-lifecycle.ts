@@ -1,6 +1,8 @@
 import { mountSoundControls } from './controls/sound-controls.js';
 import { createAudioScene } from '../audio/audio-scene.js';
 import type { TireSurfaceSounds } from '../audio/surface-sounds.js';
+import type { WallSoundRecords } from '../audio/wall-sounds.js';
+import type { WallRubObservation } from '../audio/scrape-voice.js';
 import type { AudioSettings } from '../audio/audio-document.js';
 import { SOUND_BUSES, type SoundBus } from '../audio/sound-graph.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
@@ -42,6 +44,7 @@ const GESTURE_EVENTS = ['pointerdown', 'pointerup', 'touchend', 'keydown'] as co
 export function createAudioLifecycle(
   vehicles: readonly CompiledVehicleDefinition[],
   surfaces: TireSurfaceSounds,
+  walls: WallSoundRecords,
   settings: AudioSettings,
   player: PlayerRecord,
   recordingBytes: (id: string) => Promise<Uint8Array>,
@@ -146,6 +149,7 @@ export function createAudioLifecycle(
       scene.setRivalSettings(current.rival);
       scene.setExhaustSettings(current.exhaust);
       scene.setTireSettings(current.unified);
+      scene.setScrapeSettings(current.scrape);
       scene.setRollingSettings(current.rolling);
       for (const bus of SOUND_BUSES) {
         const volume = BUS_VOLUMES[bus];
@@ -173,7 +177,7 @@ export function createAudioLifecycle(
         () => true,
         () => false,
       );
-      built = await createAudioScene(created, surfaces);
+      built = await createAudioScene(created, surfaces, walls);
       if (disposed || context !== created) {
         closeGraph(built, created);
         return;
@@ -240,7 +244,11 @@ export function createAudioLifecycle(
     enable(): void {
       if (supported && enabled && !disposed) start();
     },
-    update(player: CompetitorObservation, rivals: readonly CompetitorObservation[]): void {
+    update(
+      player: CompetitorObservation,
+      rivals: readonly CompetitorObservation[],
+      rubs: readonly WallRubObservation[],
+    ): void {
       if (!scene || !context || context.state !== 'running' || !audible() || !live) return;
       try {
         readVehicleAudio(player, playerEmitter);
@@ -250,7 +258,7 @@ export function createAudioLifecycle(
           readVehicleAudio(rivals[i]!, rivalEmitters[i]!);
           presentRivals[i] = rivalEmitters[i]!;
         }
-        scene.update(playerEmitter, presentRivals, soundOf);
+        scene.update(playerEmitter, presentRivals, soundOf, rubs);
       } catch {
         fail();
       }

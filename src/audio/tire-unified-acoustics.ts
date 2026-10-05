@@ -36,21 +36,34 @@ export const UNIFIED_SETTING_RANGES = Object.freeze({
 
 export type UnifiedSettings = Readonly<Record<keyof typeof UNIFIED_SETTING_RANGES, number>>;
 
-export function resolveUnifiedSettings(value: Partial<UnifiedSettings> = {}): UnifiedSettings {
+/**
+ * The one check of a friction-synthesis settings record, for the tire's UNIFIED and the walls' SCRAPE alike: each value
+ * within `ranges`, omitted ones from `defaults`, and both modes underdamped (half damping below the lower modal
+ * frequency).
+ */
+export function resolveFrictionSettings(
+  name: string,
+  ranges: Readonly<Record<keyof UnifiedSettings, { readonly min: number; readonly max: number }>>,
+  defaults: UnifiedSettings,
+  value: Partial<UnifiedSettings> = {},
+): UnifiedSettings {
   if (value === null || typeof value !== 'object' || Array.isArray(value))
-    throw new TypeError('tire sound settings must be an object');
+    throw new TypeError(`${name} settings must be an object`);
   const result = {} as Record<keyof UnifiedSettings, number>;
-  for (const key of Object.keys(UNIFIED_SETTING_RANGES) as (keyof UnifiedSettings)[]) {
-    const range = UNIFIED_SETTING_RANGES[key];
-    const number = value[key] === undefined ? DEFAULT_AUDIO_SETTINGS.unified[key] : value[key];
+  for (const key of Object.keys(ranges) as (keyof UnifiedSettings)[]) {
+    const range = ranges[key];
+    const number = value[key] === undefined ? defaults[key] : value[key];
     if (!Number.isFinite(number) || number < range.min || number > range.max)
-      throw new RangeError(`invalid unified settings: ${key}`);
+      throw new RangeError(`invalid ${name} settings: ${key}`);
     result[key] = number;
   }
-  // Cross-field domain: both modes must stay underdamped (half damping below the lower modal frequency).
   if (result.resonanceDampingPerSecond / 2 >= 2 * Math.PI * result.lowFrequencyHz)
-    throw new RangeError('invalid unified settings: resonanceDampingPerSecond');
+    throw new RangeError(`invalid ${name} settings: resonanceDampingPerSecond`);
   return Object.freeze(result);
+}
+
+export function resolveUnifiedSettings(value: Partial<UnifiedSettings> = {}): UnifiedSettings {
+  return resolveFrictionSettings('unified', UNIFIED_SETTING_RANGES, DEFAULT_AUDIO_SETTINGS.unified, value);
 }
 
 export function sameUnifiedSettings(a: UnifiedSettings, b: UnifiedSettings): boolean {

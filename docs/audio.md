@@ -136,15 +136,16 @@ The derivation uses `c=sqrt(gamma*R*T)`, the open-end negative reflection limit,
 The resulting loss is about 0.034 Np/m before rounding.
 
 Every other value is a DEV setting in one of the groups ENGINE (`ExhaustSettings`), MIX (`MixSettings`),
-TIMING (`ControlSettings`), RIVAL (`RivalSettings`) and the tire groups UNIFIED (`UnifiedSettings`) and ROLLING
+TIMING (`ControlSettings`), RIVAL (`RivalSettings`), the walls' SCRAPE (`ScrapeSettings`) and the tire groups UNIFIED
+(`UnifiedSettings`) and ROLLING
 (`RollingSettings`); the values are the implementer's, not values chosen by listening, and
 [Calibration](calibration.md) lists them.
 
 ## Audio document
 
-The game's source of these six records is content: `content/audio/default.json` is the one `superoutride.audio`
-version 1 document (manifest kind `audio`, ID `default`) with exactly the fields `format`, `version`, `exhaust`,
-`unified`, `rolling`, `mix`, `control` and `rival`, each holding every field of its record as a number.
+The game's source of these seven records is content: `content/audio/default.json` is the one `superoutride.audio`
+version 2 document (manifest kind `audio`, ID `default`) with exactly the fields `format`, `version`, `exhaust`,
+`unified`, `scrape`, `rolling`, `mix`, `control` and `rival`, each holding every field of its record as a number.
 [`compileAudioDocument`](../src/audio/audio-document.ts) checks format, version and shapes with the admission
 toolkit and leaves value validation to each record's resolver (`resolveExhaustSettings` and the others); a resolver's
 `RangeError` becomes an `invalid_value` diagnostic at the field it names, such as `/exhaust/pulseRiseMs`. The
@@ -237,13 +238,28 @@ stops when the run is left. Each happening sounds once: a step's facts are read 
 both sound, a pause runs no steps, and a new Session (RETRY or a DEV rebuild) starts afresh. Other competitors'
 crossings never sound. Menu commands sound through the screen host ([Browser](browser.md#menu-input)).
 
+## Contact sound
+
+The player's contacts sound on the `contact` bus, a live bus that follows the MASTER volume alone. Only contacts of the
+player's own vehicle sound, from the race's [player contact
+observations](content-and-gameplay.md#player-contact-observations); vehicles rubbing each other make no scraping sound.
+
+Scraping along a wall is synthesized, never recorded: the [scraping voice](../src/audio/scrape-voice.ts) and its worklet
+run the tire's one [friction synthesis](tire-audio.md#friction-synthesis) with the same input mapping. The accepted power
+is the power the wall's friction removes, the slip speed is the speed along the road, and the surface's `roughness`
+and `susceptibility` are the rubbed wall's [wall sound](tire-audio.md#wall-sounds) (a course limit's is the record the
+wall-sound document names). One voice sounds the line with the most friction power in the step. When no line pushes
+the player, its excitation stops at once and the stored vibration decays, as a released tire's does. Its settings are
+their own record, SCRAPE (`ScrapeSettings`), with the same items as the tire's UNIFIED and its own values; a change
+fades and replaces the kernel as the tire's do.
+
 ## Mix and lifetime
 
 The [sound graph](../src/audio/sound-graph.ts) owns the named buses (`engine`, `tire`) and the master path:
 each bus feeds the MASTER gain, then a compressor set by the MIX settings (`MixSettings`, written directly to
 the compressor's parameters), then the output. Each bus declares whether it is live: a live bus sounds only while a
-run is driven, through one live gate before the MASTER gain. `engine` and `tire` are live; `music` and `effects` are
-not. The player record's volumes are the one source of the MASTER gain and of the `music` (MUSIC) and `effects`
+run is driven, through one live gate before the MASTER gain. `engine`, `tire` and `contact` are live; `music` and
+`effects` are not. The player record's volumes are the one source of the MASTER gain and of the `music` (MUSIC) and `effects`
 (EFFECTS) bus gains; the DEV ENG and TIRE mix
 values set the live buses' gains. A volume change applies at once through the bus and master gains.
 The [audio scene](../src/audio/audio-scene.ts) loads the generators, owns the voices (player engine, selected

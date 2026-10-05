@@ -235,6 +235,21 @@ Resolution also requires `resonanceDampingPerSecond/2 < 2*pi*lowFrequencyHz`, so
 the DEV slider keeps its previous value when a change would break it. Control following uses the TIMING
 `observationSeconds`.
 
+## SCRAPE settings
+
+[Wall scrape acoustics](../src/audio/wall-scrape-acoustics.ts) supplies the walls' scraping settings
+(`ScrapeSettings`): the items, meanings and ranges of the UNIFIED table above, except the work half-response, whose
+range is about a quarter to four times its default. The defaults are the implementer's, not chosen by listening: the
+UNIFIED defaults, a work half-response near the median wall-rub power of RIBBON COAST's departures (about 90 kW at about
+30 m/s, peaks about 12 MW) and slip half-response and rolloff for wall speeds.
+
+| Key                   | Default   | Range / step            |
+| --------------------- | --------- | ----------------------- |
+| `powerReferenceWatts` | 90000 W   | 22500–360000 W / 2500 W |
+| `slipHalfMps`         | 8 m/s     | 1–12 m/s / 0.25         |
+| `slipRolloffMps`      | 80 m/s    | 20–80 m/s / 1           |
+| Every other key       | UNIFIED's | UNIFIED's               |
+
 ## ROLLING tire settings
 
 [Rolling acoustics](../src/audio/tire-rolling-acoustics.ts) supplies the rolling-model listening settings

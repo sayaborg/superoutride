@@ -268,7 +268,7 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
         ),
       present() {
         const { player } = observations;
-        shell.updateAudio(player, otherVehicles);
+        shell.updateAudio(player, otherVehicles, race.playerContacts.rubs);
         music.update(race, race.outcome.status, state.live);
         // The DEV vehicle HUD diagnoses mechanics internals through the race's DEV-only diagnostics.
         shell.present(

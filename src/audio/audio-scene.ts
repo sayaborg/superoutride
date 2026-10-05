@@ -10,6 +10,9 @@ import type { TireComponents } from './tire-sound-components.js';
 import type { UnifiedSettings } from './tire-unified-acoustics.js';
 import type { RollingSettings } from './tire-rolling-acoustics.js';
 import { createTireVoice } from './tire-voice.js';
+import { createScrapeVoice, type WallRubObservation } from './scrape-voice.js';
+import type { WallSoundRecords } from './wall-sounds.js';
+import type { ScrapeSettings } from './wall-scrape-acoustics.js';
 import { createRecordingPlayback, type RecordingPlayback, type RecordingLoop } from './recording-playback.js';
 import type { TireSurfaceSounds } from './surface-sounds.js';
 import type { CompiledEngineSound } from './engine-sound.js';
@@ -115,12 +118,12 @@ export function rivalSpatialization(
 }
 
 /**
- * Loads the generators, owns the voices (player engine, rival engine and its panner, player tires) on the
+ * Loads the generators, owns the voices (player engine, rival engine and its panner, player tires, the player's wall scraping) on the
  * sound graph's buses and whether those on live buses run, and the rival voice assignment: a change silences the
  * voice and waits before the new rival sounds. Each engine voice sounds its emitter's vehicle; a voice whose sound
  * changes fades out and waits before the new sound starts. Every settings record it receives is an admitted one.
  */
-export async function createAudioScene(context: AudioContext, surfaces: TireSurfaceSounds) {
+export async function createAudioScene(context: AudioContext, surfaces: TireSurfaceSounds, walls: WallSoundRecords) {
   await context.audioWorklet.addModule(new URL('./vehicle-processor.js', import.meta.url));
   const graph = createSoundGraph(context);
   const playerEngine = createEngineVoice(context, graph.input('engine'));
@@ -128,10 +131,12 @@ export async function createAudioScene(context: AudioContext, surfaces: TireSurf
   rivalPan.connect(graph.input('engine'));
   const rivalEngine = createEngineVoice(context, rivalPan);
   const tires = createTireVoice(context, graph.input('tire'), surfaces);
+  const scrape = createScrapeVoice(context, graph.input('contact'), walls);
   const voices = [
     { voice: playerEngine, bus: 'engine' },
     { voice: rivalEngine, bus: 'engine' },
     { voice: tires, bus: 'tire' },
+    { voice: scrape, bus: 'contact' },
   ] as const satisfies readonly { voice: { rest(at: number | null): void }; bus: SoundBus }[];
   // Unknown until the first setLive applies it.
   let live: boolean | null = null;
@@ -141,13 +146,16 @@ export async function createAudioScene(context: AudioContext, surfaces: TireSurf
   let switchAt = 0;
   let disposed = false;
   return {
+    /** The player's and the nearest vehicle's voices, and the player's wall rubs (its scraping). */
     update(
       player: VehicleAudioEmitter,
       rivals: readonly VehicleAudioEmitter[],
       soundOf: (vehicleId: string) => CompiledEngineSound,
+      rubs: readonly WallRubObservation[],
     ): void {
       playerEngine.update(player, soundOf(player.vehicleId));
       tires.update(player);
+      scrape.update(rubs);
       const nearest = nearestAudibleRival(player, rivals, rival.audibleMeters);
       const nearestId = nearest?.id ?? null;
       if (nearestId !== assignedId) {
@@ -182,6 +190,9 @@ export async function createAudioScene(context: AudioContext, surfaces: TireSurf
     setTireSettings(value: UnifiedSettings): void {
       tires.setSettings(value);
     },
+    setScrapeSettings(value: ScrapeSettings): void {
+      scrape.setSettings(value);
+    },
     setRollingSettings(value: RollingSettings): void {
       tires.setRollingSettings(value);
     },
@@ -197,6 +208,7 @@ export async function createAudioScene(context: AudioContext, surfaces: TireSurf
       playerEngine.setControl(control);
       rivalEngine.setControl(control);
       tires.setControl(control);
+      scrape.setControl(control);
     },
     setRivalSettings(value: RivalSettings): void {
       rival = value;
@@ -229,6 +241,7 @@ export async function createAudioScene(context: AudioContext, surfaces: TireSurf
       playerEngine.dispose();
       rivalEngine.dispose();
       tires.dispose();
+      scrape.dispose();
       rivalPan.disconnect();
       graph.dispose();
     },

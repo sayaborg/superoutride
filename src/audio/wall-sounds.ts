@@ -65,6 +65,23 @@ export function compileWallSoundDocument(
   });
 }
 
+/** The wall sounds as the scraping worklet takes them: the records in ID order and each line's number among them. */
+export interface WallSoundRecords {
+  readonly walls: readonly WallSound[];
+  /** The number of a line's wall sound: its wall's ID, or the course limits' record for null. */
+  indexOf(sound: string | null): number;
+}
+
+/** Number the admitted wall sounds for transport. */
+export function wallSoundRecords(sounds: CompiledWallSounds): WallSoundRecords {
+  const ids = Object.keys(sounds.walls).sort();
+  const index = new Map(ids.map((id, i) => [id, i]));
+  return Object.freeze({
+    walls: Object.freeze(ids.map((id) => sounds.walls[id]!)),
+    indexOf: (sound: string | null) => index.get(sound ?? sounds.courseLimit) ?? -1,
+  });
+}
+
 /** The wall sound of a barrier line: its wall's `sound`, or the course limits' record for a course limit (null). */
 export function barrierWallSound(sounds: CompiledWallSounds, sound: string | null): WallSound {
   const record = sounds.walls[sound ?? sounds.courseLimit];

@@ -8,6 +8,11 @@ import {
   resolveRollingSettings,
   type RollingSettings,
 } from '../../audio/tire-rolling-acoustics.js';
+import {
+  SCRAPE_SETTING_RANGES,
+  resolveScrapeSettings,
+  type ScrapeSettings,
+} from '../../audio/wall-scrape-acoustics.js';
 import { createSoundSettingsPanel, mountSoundSettingsPanel } from './sound-settings-panel.js';
 
 // Labels only: audio owns defaults, bounds and validation. These are not physical tire settings.
@@ -57,6 +62,22 @@ export function mountTireSoundSettings(container: HTMLElement, initial: UnifiedS
       UNIFIED_LABELS,
       onChange,
       'Reset UNIFIED to defaults',
+    ),
+  );
+}
+
+/** The walls' scraping: the same friction-synthesis items and panel as UNIFIED, with its own values. */
+export function mountScrapeSoundSettings(container: HTMLElement, initial: ScrapeSettings, onChange: () => void) {
+  return mountSoundSettingsPanel(
+    container,
+    createSoundSettingsPanel(
+      'SCRAPE · wall friction',
+      SCRAPE_SETTING_RANGES,
+      resolveScrapeSettings,
+      initial,
+      UNIFIED_LABELS,
+      onChange,
+      'Reset SCRAPE to defaults',
     ),
   );
 }

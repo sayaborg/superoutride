@@ -1,6 +1,6 @@
 {
   "format": "superoutride.audio",
-  "version": 1,
+  "version": 2,
   "exhaust": {
     "closedExcitation": 0.22,
     "pulseRiseMs": 0.2,
@@ -28,6 +28,22 @@
     "saturationPerSecond": 6000,
     "slipHalfMps": 3,
     "slipRolloffMps": 45,
+    "noiseBandwidthHz": 600,
+    "outputCutoffHz": 8000,
+    "resonanceDampingPerSecond": 3141.592653589793,
+    "lowParticipation": 0.45,
+    "dcHz": 18
+  },
+  "scrape": {
+    "feedbackMaximumPerSecond": 8500,
+    "powerReferenceWatts": 90000,
+    "noiseForcePerSecond": 1200,
+    "lowFrequencyHz": 300,
+    "highFrequencyHz": 1000,
+    "outputGainPerSecond": 900,
+    "saturationPerSecond": 6000,
+    "slipHalfMps": 8,
+    "slipRolloffMps": 80,
     "noiseBandwidthHz": 600,
     "outputCutoffHz": 8000,
     "resonanceDampingPerSecond": 3141.592653589793,

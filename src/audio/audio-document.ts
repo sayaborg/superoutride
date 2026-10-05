@@ -12,12 +12,14 @@ import { resolveExhaustSettings, type ExhaustSettings } from './exhaust-acoustic
 import { resolveMixSettings, type MixSettings } from './sound-graph.js';
 import { resolveRollingSettings, type RollingSettings } from './tire-rolling-acoustics.js';
 import { resolveUnifiedSettings, type UnifiedSettings } from './tire-unified-acoustics.js';
+import { resolveScrapeSettings, type ScrapeSettings } from './wall-scrape-acoustics.js';
 import { DEFAULT_AUDIO_SETTINGS } from './audio-defaults.js';
 
 /** The game-wide sound settings: every DEV sound panel's record. */
 export interface AudioSettings {
   readonly exhaust: ExhaustSettings;
   readonly unified: UnifiedSettings;
+  readonly scrape: ScrapeSettings;
   readonly rolling: RollingSettings;
   readonly mix: MixSettings;
   readonly control: ControlSettings;
@@ -29,7 +31,7 @@ export interface CompiledAudioSettings extends AudioSettings {
 }
 
 export const AUDIO_DOCUMENT_FORMAT = 'superoutride.audio';
-export const AUDIO_DOCUMENT_VERSION = 1;
+export const AUDIO_DOCUMENT_VERSION = 2;
 
 /**
  * Each record's resolver: the one value check, applied where settings are admitted (this document and the DEV
@@ -38,6 +40,7 @@ export const AUDIO_DOCUMENT_VERSION = 1;
 const RESOLVERS = {
   exhaust: resolveExhaustSettings,
   unified: resolveUnifiedSettings,
+  scrape: resolveScrapeSettings,
   rolling: resolveRollingSettings,
   mix: resolveMixSettings,
   control: resolveControlSettings,
@@ -95,6 +98,7 @@ export function compileAudioDocument(
     return Object.freeze({
       exhaust: read('exhaust'),
       unified: read('unified'),
+      scrape: read('scrape'),
       rolling: read('rolling'),
       mix: read('mix'),
       control: read('control'),

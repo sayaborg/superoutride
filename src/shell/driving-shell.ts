@@ -1,5 +1,7 @@
 import { createAudioLifecycle, type AudioTimingSource } from './audio-lifecycle.js';
 import type { TireSurfaceSounds } from '../audio/surface-sounds.js';
+import type { WallSoundRecords } from '../audio/wall-sounds.js';
+import type { WallRubObservation } from '../audio/scrape-voice.js';
 import type { AudioSettings } from '../audio/audio-document.js';
 import { createLogicalFrame, LOGICAL_HEIGHT, LOGICAL_WIDTH } from '../view/display-scale.js';
 import { expandRgb555Pixels } from '../image/rgb555.js';
@@ -23,8 +25,12 @@ export interface BrowserDrivingShell {
   readonly inputManager: InputManager;
   /** Expand the framebuffer to the canvas, update the touch indicators, then draw `overlay` (DEV only) on top. */
   present(overlay?: (ctx: CanvasRenderingContext2D) => void): void;
-  /** The run's competitors for the audio scene. */
-  updateAudio(player: CompetitorObservation, rivals: readonly CompetitorObservation[]): void;
+  /** The run's vehicles for the audio scene, and the player's wall rubs of the last step. */
+  updateAudio(
+    player: CompetitorObservation,
+    rivals: readonly CompetitorObservation[],
+    rubs: readonly WallRubObservation[],
+  ): void;
   /**
    * The one procedure that routes devices, called by the screen host when the route changes: driving input and sound are
    * live only while driving; menu commands follow the route.
@@ -58,6 +64,7 @@ export interface BrowserDrivingShell {
 export function createBrowserDrivingShell(
   vehicles: readonly CompiledVehicleDefinition[],
   surfaceSounds: TireSurfaceSounds,
+  wallSounds: WallSoundRecords,
   audioSettings: AudioSettings,
   player: PlayerRecord,
   recordingBytes: (id: string) => Promise<Uint8Array>,
@@ -79,7 +86,7 @@ export function createBrowserDrivingShell(
   const corners = createCornerButtons(document, (command) => menuInput.press(command));
   pointers.subscribe({ begin: () => corners.touched(), move: () => {}, end: () => {} });
   const touchIndicators = createTouchIndicators(document);
-  const audio = createAudioLifecycle(vehicles, surfaceSounds, audioSettings, player, recordingBytes);
+  const audio = createAudioLifecycle(vehicles, surfaceSounds, wallSounds, audioSettings, player, recordingBytes);
   return {
     setRoute(route): void {
       const live = route === 'driving';
@@ -107,8 +114,8 @@ export function createBrowserDrivingShell(
       touchIndicators.update(inputManager.touch);
       overlay?.(ctx);
     },
-    updateAudio(player, rivals): void {
-      audio.update(player, rivals);
+    updateAudio(player, rivals, rubs): void {
+      audio.update(player, rivals, rubs);
     },
   };
 }

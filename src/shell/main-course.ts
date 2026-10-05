@@ -29,6 +29,8 @@ import { loadTextTiles } from '../content/text-tiles-catalog.js';
 import { loadCourseIndex } from '../content/course-index.js';
 import { createTextLayer, TEXT_COLUMNS } from '../view/text-layer.js';
 import { loadMusic } from '../content/recording-catalog.js';
+import { loadWallSounds } from '../content/wall-sound-catalog.js';
+import { wallSoundRecords } from '../audio/wall-sounds.js';
 import { playTrack } from './run-music.js';
 
 /**
@@ -79,8 +81,13 @@ async function startPage(): Promise<void> {
     const raceSprites = createRaceSprites(vehicles);
     // The one run, which the current run screen shows.
     let run: Run | null = null;
-    const shell = createBrowserDrivingShell(vehicles, surfaceSounds, await loadAudioSettings(content), player, (id) =>
-      content.bytes('recording', id),
+    const shell = createBrowserDrivingShell(
+      vehicles,
+      surfaceSounds,
+      wallSoundRecords(await loadWallSounds(content)),
+      await loadAudioSettings(content),
+      player,
+      (id) => content.bytes('recording', id),
     );
     const present = () => shell.present();
     const loading = createLoadingScreen(shell.framebuffer, textLayer, present);
