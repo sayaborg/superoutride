@@ -154,6 +154,14 @@ them, and the DEV export saves the panels' current values in the same format. [`
 is the one set of default values: each resolver fills omitted fields from it, and it serves assemblies without the
 document, the audition tools.
 
+Sound settings are admitted once. The resolvers are the one value check, applied only where settings enter: the
+audio document's compilation and each change on a DEV sound panel (the ENGINE panel included), where a rejected value
+keeps the previous setting. Loading the audio document module admits `DEFAULT_AUDIO_SETTINGS` through the same
+resolvers, so the defaults are admitted records too; an invalid default is an internal `Error`. The sound graph, the
+scene, the voices, the worklets and the kernels take admitted records and use them as given; they never resolve a
+record again. A worklet is a thread boundary, but its messages carry the same page's admitted records, so it checks
+neither their shape nor their values.
+
 ## Mix and lifetime
 
 The [sound graph](../src/audio/sound-graph.ts) owns the named buses (`engine`, `tire`) and the master path:

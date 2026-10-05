@@ -35,7 +35,7 @@
   appears at seeded Route positions from the series or FREE PLAY's TRAFFIC option; RIBBON COAST is the verification
   course of all of it.
 
-Next PR: **14-0d** — sound settings are admitted once.
+Next PR: **14-0e** — the sound layer holds no DEV labels.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -46,8 +46,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 Requirements left from the second design audit, by when they are taken up:
 
 - **Stage 14:**
-  - D8e-03: tire sound settings are validated once, at admission; the voice, the worklet and its kernels use the
-    admitted values as given (today `tire-voice.ts`, `tire-processor.ts` and the kernels each resolve them again).
   - P7b-02: sound-layer definitions hold only sound values and ranges; the shell owns the DEV screen's labels and
     descriptions (today `TIRE_COMPONENTS` carries them).
 - **Stage 15:**
@@ -74,8 +72,6 @@ Requirements left from the second design audit, by when they are taken up:
 
 [Product](product.md#13-music-and-sound-effects) §13 states the target. The remaining PRs, in order:
 
-- **14-0d — Sound settings admitted once:** tire and engine sound settings are validated at the audio document's
-  compilation and at DEV replacement only; voices, worklets and kernels use the admitted values (D8e-03).
 - **14-0e — Sound layer without DEV labels:** sound-layer definitions hold only sound values and ranges; the shell owns
   the DEV screen's labels and descriptions (P7b-02).
 - **14-1a — Recordings delivered:** AAC recordings and music documents are authored content in the manifest, verified

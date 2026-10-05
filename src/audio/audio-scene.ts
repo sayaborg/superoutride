@@ -1,6 +1,6 @@
 import type { ProcessingReport } from './processing-meter.js';
 import { clamp } from '../core/math.js';
-import { resolveControlSettings, type ControlSettings } from './audio-control-policy.js';
+import type { ControlSettings } from './audio-control-policy.js';
 import { follow } from './audio-parameter.js';
 import { DEFAULT_AUDIO_SETTINGS } from './audio-defaults.js';
 import { createEngineVoice } from './engine-voice.js';
@@ -116,8 +116,8 @@ export function rivalSpatialization(
 /**
  * Loads the generators, owns the voices (player engine, rival engine and its panner, player tires) on the
  * sound graph's buses and whether those on live buses run, and the rival voice assignment: a change silences the
- * voice and waits before the new rival sounds. Each engine voice sounds its emitter's vehicle; a voice whose sound changes fades out and waits
- * before the new sound starts.
+ * voice and waits before the new rival sounds. Each engine voice sounds its emitter's vehicle; a voice whose sound
+ * changes fades out and waits before the new sound starts. Every settings record it receives is an admitted one.
  */
 export async function createAudioScene(context: AudioContext, surfaces: TireSurfaceSounds) {
   await context.audioWorklet.addModule(new URL('./vehicle-processor.js', import.meta.url));
@@ -135,7 +135,7 @@ export async function createAudioScene(context: AudioContext, surfaces: TireSurf
   // Unknown until the first setLive applies it.
   let live: boolean | null = null;
   let rival = DEFAULT_AUDIO_SETTINGS.rival;
-  let control = resolveControlSettings();
+  let control = DEFAULT_AUDIO_SETTINGS.control;
   let assignedId: string | null = null;
   let switchAt = 0;
   let disposed = false;
@@ -191,14 +191,14 @@ export async function createAudioScene(context: AudioContext, surfaces: TireSurf
       graph.setMixSettings(value);
     },
     setControlSettings(value: ControlSettings): void {
-      control = resolveControlSettings(value);
+      control = value;
       graph.setControlSettings(control);
       playerEngine.setControl(control);
       rivalEngine.setControl(control);
       tires.setControl(control);
     },
     setRivalSettings(value: RivalSettings): void {
-      rival = resolveRivalSettings(value);
+      rival = value;
     },
     setBusGain(bus: SoundBus, value: number): void {
       graph.setBusGain(bus, value);

@@ -25,8 +25,8 @@ class ExhaustProcessor extends AudioWorkletProcessor {
   constructor(options?: {
     processorOptions?: {
       sound: EngineSound;
-      settings?: Partial<ExhaustSettings>;
-      control?: Partial<ControlSettings>;
+      settings: ExhaustSettings;
+      control: ControlSettings;
     };
   }) {
     super();
@@ -47,11 +47,8 @@ class ExhaustProcessor extends AudioWorkletProcessor {
       }
     };
   }
-  private configure(
-    sound: EngineSound,
-    settings: Partial<ExhaustSettings> = {},
-    control: Partial<ControlSettings> = {},
-  ): void {
+  /** The voice sends admitted settings, used as given. */
+  private configure(sound: EngineSound, settings: ExhaustSettings, control: ControlSettings): void {
     this.engine = new ExhaustWaveguide(compileEngineSound(sound), sampleRate, settings, control);
   }
   process(_inputs: Float32Array[][], outputs: Float32Array[][], parameters: Record<string, Float32Array>): boolean {

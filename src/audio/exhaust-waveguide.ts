@@ -1,8 +1,9 @@
 import type { EngineSound } from './engine-sound.js';
 
-import { ACOUSTICS, PIPE_COEFFICIENTS, resolveExhaustSettings } from './exhaust-acoustics.js';
+import { ACOUSTICS, PIPE_COEFFICIENTS } from './exhaust-acoustics.js';
 import type { ExhaustSettings } from './exhaust-acoustics.js';
-import { resolveControlSettings, type ControlSettings } from './audio-control-policy.js';
+import type { ControlSettings } from './audio-control-policy.js';
+import { DEFAULT_AUDIO_SETTINGS } from './audio-defaults.js';
 
 /**
  * Below this |x| = |riseRate − decayRate| · duration, the pulse cascade uses its series. The closed form's second weight
@@ -109,10 +110,10 @@ export class ExhaustWaveguide {
   constructor(
     private readonly sound: EngineSound,
     private readonly rate: number,
-    settings: Partial<ExhaustSettings> = {},
-    control: Partial<ControlSettings> = {},
+    settings: ExhaustSettings = DEFAULT_AUDIO_SETTINGS.exhaust,
+    control: ControlSettings = DEFAULT_AUDIO_SETTINGS.control,
   ) {
-    this.settings = resolveExhaustSettings(settings);
+    this.settings = settings;
     const n = sound.firingPhases.length;
     const exhaust = sound.exhaust;
     this.banks = exhaust.banks;
@@ -149,7 +150,7 @@ export class ExhaustWaveguide {
     this.popEmission = new Float64Array(groups);
     this.openNormalization = Math.sqrt(pipes.filter(({ to }) => to === null).length);
     for (const bank of this.banks) this.counts[bank]!++;
-    this.smoothing = 1 - Math.exp(-1 / (resolveControlSettings(control).observationSeconds * rate));
+    this.smoothing = 1 - Math.exp(-1 / (control.observationSeconds * rate));
     this.dcCoefficient = 1 - Math.exp((-2 * Math.PI * this.settings.dcHz) / rate);
     this.toneCoefficient = 1 - Math.exp((-2 * Math.PI * this.settings.outputCutoffHz) / rate);
     this.loss = 1 - Math.exp((-2 * Math.PI * PIPE_COEFFICIENTS.returnCutoffHz) / rate);

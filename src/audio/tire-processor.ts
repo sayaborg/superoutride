@@ -1,14 +1,10 @@
-import { resolveControlSettings, sameControlSettings, type ControlSettings } from './audio-control-policy.js';
+import { sameControlSettings, type ControlSettings } from './audio-control-policy.js';
+import { DEFAULT_AUDIO_SETTINGS } from './audio-defaults.js';
 import { TireUnifiedSynthesis } from './tire-unified-model.js';
-import {
-  UNIFIED_SYNTHESIS,
-  resolveUnifiedSettings,
-  sameUnifiedSettings,
-  type UnifiedSettings,
-} from './tire-unified-acoustics.js';
-import { resolveRollingSettings, sameRollingSettings, type RollingSettings } from './tire-rolling-acoustics.js';
+import { UNIFIED_SYNTHESIS, sameUnifiedSettings, type UnifiedSettings } from './tire-unified-acoustics.js';
+import { sameRollingSettings, type RollingSettings } from './tire-rolling-acoustics.js';
 import { TIRE_SOUND_INPUT_KEYS, TIRE_CONTROL_RANGES, type TireSoundObservation } from './tire-sound-transport.js';
-import { compileSurfaceSound, type SurfaceSound } from './surface-sounds.js';
+import type { SurfaceSound } from './surface-sounds.js';
 import { TIRE_COMPONENTS, TIRE_COMPONENT_RANGE } from './tire-sound-components.js';
 import { ProcessingMeter } from './processing-meter.js';
 import { WorkletRest } from './worklet-rest.js';
@@ -28,12 +24,6 @@ function createPair(
   };
 }
 
-/** The worklet boundary re-checks the transported records, as it resolves the settings. */
-function readSurfaces(value: unknown): readonly SurfaceSound[] {
-  if (!Array.isArray(value) || value.length === 0) throw new TypeError('tire surfaces must be a nonempty array');
-  return Object.freeze(value.map((record: SurfaceSound) => compileSurfaceSound(record)));
-}
-
 const sameSurfaces = (a: readonly SurfaceSound[], b: readonly SurfaceSound[]): boolean =>
   a.length === b.length &&
   a.every(
@@ -49,9 +39,9 @@ const sameSurfaces = (a: readonly SurfaceSound[], b: readonly SurfaceSound[]): b
 const componentFollow = (control: ControlSettings) => 1 - Math.exp(-1 / (sampleRate * control.componentSeconds));
 
 class TireProcessor extends AudioWorkletProcessor {
-  private settings = resolveUnifiedSettings();
-  private rolling = resolveRollingSettings();
-  private control = resolveControlSettings();
+  private settings = DEFAULT_AUDIO_SETTINGS.unified;
+  private rolling = DEFAULT_AUDIO_SETTINGS.rolling;
+  private control = DEFAULT_AUDIO_SETTINGS.control;
   private surfaces: readonly SurfaceSound[];
   private pair: ReturnType<typeof createPair> | null;
   private readonly frontObservation = Object.fromEntries(TIRE_SOUND_INPUT_KEYS.map((key) => [key, 0])) as {
@@ -61,7 +51,6 @@ class TireProcessor extends AudioWorkletProcessor {
   private componentFollow = componentFollow(this.control);
   private rollingMix = 1;
   private frictionMix = 1;
-  private valid = true;
   private readonly meter = new ProcessingMeter(this.port, sampleRate);
   private readonly rest = new WorkletRest();
   static get parameterDescriptors() {
@@ -76,39 +65,37 @@ class TireProcessor extends AudioWorkletProcessor {
       ),
     ];
   }
-  /** The voice supplies its surfaces at construction; settings messages repeat them. */
-  constructor(options?: { processorOptions?: { surfaces?: unknown } }) {
+  /**
+   * The voice supplies its admitted surfaces at construction; settings messages repeat them with admitted settings.
+   * The worklet uses both as given.
+   */
+  constructor(options?: { processorOptions: { surfaces: readonly SurfaceSound[] } }) {
     super();
-    this.surfaces = readSurfaces(options?.processorOptions?.surfaces);
+    this.surfaces = options!.processorOptions.surfaces;
     this.pair = createPair(this.surfaces, this.settings, this.rolling, this.control);
     this.port.onmessage = ({ data }) => {
       if (this.meter.receive(data) || this.rest.receive(data)) return;
       if (data === 'stop') this.pair = null;
       else if (this.pair !== null) {
-        try {
-          if (data === null || typeof data !== 'object' || !Object.hasOwn(data, 'settings'))
-            throw new TypeError('tire settings message must contain settings');
-          const settings = resolveUnifiedSettings(data.settings);
-          const rolling = resolveRollingSettings(data.rolling);
-          const control = resolveControlSettings(data.control);
-          const surfaces = readSurfaces(data.surfaces);
-          // Replace after the voice fade; identical settings preserve the running state.
-          if (
-            !sameUnifiedSettings(settings, this.settings) ||
-            !sameRollingSettings(rolling, this.rolling) ||
-            !sameControlSettings(this.control, control) ||
-            !sameSurfaces(this.surfaces, surfaces)
-          )
-            this.pair = createPair(surfaces, settings, rolling, control);
-          this.surfaces = surfaces;
-          this.settings = settings;
-          this.rolling = rolling;
-          this.control = control;
-          this.componentFollow = componentFollow(control);
-          this.valid = true;
-        } catch {
-          this.valid = false;
-        }
+        const { settings, rolling, control, surfaces } = data as {
+          settings: UnifiedSettings;
+          rolling: RollingSettings;
+          control: ControlSettings;
+          surfaces: readonly SurfaceSound[];
+        };
+        // Replace after the voice fade; identical settings preserve the running state.
+        if (
+          !sameUnifiedSettings(settings, this.settings) ||
+          !sameRollingSettings(rolling, this.rolling) ||
+          !sameControlSettings(this.control, control) ||
+          !sameSurfaces(this.surfaces, surfaces)
+        )
+          this.pair = createPair(surfaces, settings, rolling, control);
+        this.surfaces = surfaces;
+        this.settings = settings;
+        this.rolling = rolling;
+        this.control = control;
+        this.componentFollow = componentFollow(control);
       }
     };
   }
@@ -125,7 +112,7 @@ class TireProcessor extends AudioWorkletProcessor {
     for (const key of TIRE_SOUND_INPUT_KEYS) observation[key] = this.read(p, axle, `tire_${key}`);
     // Numerical stability only: float transport must still name a surface record.
     const surface = Math.round(this.read(p, axle, 'tire_surfaceIndex'));
-    if (this.valid && surface >= 0 && surface < this.surfaces.length) kernel.update(observation, surface);
+    if (surface >= 0 && surface < this.surfaces.length) kernel.update(observation, surface);
     else {
       for (const key of TIRE_SOUND_INPUT_KEYS) observation[key] = 0;
       kernel.update(observation, 0); // Release only this axle; preserve finite tails and later recovery.

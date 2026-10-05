@@ -1,8 +1,9 @@
 import { TIRE_SOUND_INPUT_KEYS, tireSoundParameters } from './tire-sound-transport.js';
 import { follow } from './audio-parameter.js';
-import { resolveControlSettings, sameControlSettings, type ControlSettings } from './audio-control-policy.js';
-import { resolveUnifiedSettings, sameUnifiedSettings, type UnifiedSettings } from './tire-unified-acoustics.js';
-import { resolveRollingSettings, sameRollingSettings, type RollingSettings } from './tire-rolling-acoustics.js';
+import { sameControlSettings, type ControlSettings } from './audio-control-policy.js';
+import { DEFAULT_AUDIO_SETTINGS } from './audio-defaults.js';
+import { sameUnifiedSettings, type UnifiedSettings } from './tire-unified-acoustics.js';
+import { sameRollingSettings, type RollingSettings } from './tire-rolling-acoustics.js';
 import { TIRE_COMPONENTS, type TireComponents } from './tire-sound-components.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
 import type { TireSurfaceSounds } from './surface-sounds.js';
@@ -10,7 +11,8 @@ import type { ProcessingReport } from './processing-meter.js';
 
 /**
  * One reusable worklet. Only tire sound settings fade/replace generators; engines, context and driving continue.
- * Surface numbers are positions in `materialIds`; the worklet receives the records at the same numbers.
+ * Surface numbers are positions in `materialIds`; the worklet receives the records at the same numbers. Settings and
+ * surfaces are admitted ones, used as given.
  */
 export function createTireVoice(
   context: BaseAudioContext,
@@ -26,9 +28,9 @@ export function createTireVoice(
   const output = context.createGain();
   output.gain.value = 0;
   node.connect(output).connect(destination);
-  let desiredSettings = resolveUnifiedSettings();
-  let rolling = resolveRollingSettings();
-  let control = resolveControlSettings();
+  let desiredSettings = DEFAULT_AUDIO_SETTINGS.unified;
+  let rolling = DEFAULT_AUDIO_SETTINGS.rolling;
+  let control = DEFAULT_AUDIO_SETTINGS.control;
   type Entry = { settings: UnifiedSettings; rolling: RollingSettings; control: ControlSettings };
   let active: Entry | null = null;
   let pending: (Entry & { at: number }) | null = null;
@@ -44,13 +46,13 @@ export function createTireVoice(
   };
   return {
     setSettings(value: UnifiedSettings): void {
-      desiredSettings = resolveUnifiedSettings(value);
+      desiredSettings = value;
     },
     setRollingSettings(value: RollingSettings): void {
-      rolling = resolveRollingSettings(value);
+      rolling = value;
     },
     setControl(value: ControlSettings): void {
-      if (!sameControlSettings(control, value)) control = resolveControlSettings(value);
+      if (!sameControlSettings(control, value)) control = value;
     },
     setComponents(value: TireComponents): void {
       if (disposed) return;

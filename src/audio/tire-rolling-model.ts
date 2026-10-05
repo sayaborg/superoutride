@@ -1,5 +1,6 @@
 import { NoiseBand, SmoothRandom, deriveNoiseSeed, NOISE_BAND_DOMAIN } from './noise.js';
-import { ROLLING_SYNTHESIS as S, resolveRollingSettings, type RollingSettings } from './tire-rolling-acoustics.js';
+import { ROLLING_SYNTHESIS as S, type RollingSettings } from './tire-rolling-acoustics.js';
+import { DEFAULT_AUDIO_SETTINGS } from './audio-defaults.js';
 import type { SurfaceSound } from './surface-sounds.js';
 import type { TireSoundObservation } from './tire-sound-transport.js';
 
@@ -38,9 +39,9 @@ export class TireRollingSynthesis {
     private readonly rate: number,
     private readonly surfaces: readonly SurfaceSound[],
     seed: number,
-    settings: Partial<RollingSettings> = {},
+    settings: RollingSettings = DEFAULT_AUDIO_SETTINGS.rolling,
   ) {
-    this.settings = resolveRollingSettings(settings);
+    this.settings = settings;
     this.targetMaterial = surfaces[0]!.rolling;
     this.material = { ...this.targetMaterial };
     this.orders = [this.settings.lowOrder, this.settings.highOrder];

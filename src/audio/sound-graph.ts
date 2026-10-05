@@ -98,9 +98,9 @@ export function createSoundGraph(context: BaseAudioContext) {
       follow(liveGate.gain, 0, now, control.fadeSeconds);
       if (live) liveGate.gain.setTargetAtTime(1, now + control.transitionSeconds, control.mixSeconds);
     },
-    /** Written directly to the compressor's parameters. */
+    /** Admitted settings, written directly to the compressor's parameters. */
     setMixSettings(value: MixSettings): void {
-      applyMix(resolveMixSettings(value));
+      applyMix(value);
     },
     setControlSettings(value: ControlSettings): void {
       control = value;

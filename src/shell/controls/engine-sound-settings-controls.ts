@@ -1,4 +1,4 @@
-import { EXHAUST_SETTING_RANGES } from '../../audio/exhaust-acoustics.js';
+import { EXHAUST_SETTING_RANGES, resolveExhaustSettings } from '../../audio/exhaust-acoustics.js';
 import type { ExhaustSettings } from '../../audio/exhaust-acoustics.js';
 import { createNumberStepper } from './number-stepper.js';
 
@@ -130,6 +130,13 @@ export function mountEngineSoundSettings(
             ? `±${Math.round(value * 100)}%${value === 0 ? ' (none)' : ''}`
             : `${value} ${unit}`.trim(),
         onChange(value) {
+          // The panel admits each change; a rejected value keeps the previous setting.
+          try {
+            resolveExhaustSettings({ ...settings, [key]: value });
+          } catch {
+            control.setValue(settings[key]);
+            return;
+          }
           settings[key] = value;
           onChange({ ...settings });
         },

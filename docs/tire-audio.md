@@ -20,8 +20,8 @@ The voice's `tireSoundParameters` ([observation domains](../src/audio/tire-sound
 validation: it rejects non-finite values, negative load or power and unknown surfaces with `RangeError`, then
 bounds the acoustic transport. Zero load or no material yields a silent contact observation. The worklet and kernels read
 the transported values as trusted; the AudioParam ranges only clamp automation.
-The worklet rounds the surface index and releases the affected axle's forcing when it names no record or the
-settings message was invalid; finite stored tails decay, and subsequent valid input restores excitation.
+The worklet rounds the surface index and releases the affected axle's forcing when it names no record; finite stored
+tails decay, and subsequent input naming a record restores excitation.
 
 ## Surface sounds
 
@@ -36,8 +36,8 @@ calls it. `resolveSurfaceSoundRecords` numbers the records in material catalog o
 material and more than `SURFACE_SOUND_LIMIT` (256, the `surfaceIndex` transport range) materials; the content
 build applies it before delivery and the game at startup. The voice looks up each observed material's number in
 the catalog order; the worklet receives the records at construction and in every settings message
-(`{ settings, rolling, control, surfaces }`), re-checks them and replaces its kernels when they change, and the
-kernels read them by number.
+(`{ settings, rolling, control, surfaces }`), uses them as given ([admitted once](audio.md#audio-document)) and
+replaces its kernels when they change, and the kernels read them by number.
 
 ## Rolling synthesis
 
@@ -116,11 +116,10 @@ coupled stochastic system at the native rate. The displacement pickup uses the `
 
 ## Settings replacement
 
-`resolveUnifiedSettings` and `resolveRollingSettings` produce validated frozen snapshots using the acoustic ranges;
-the worklet message carries `{ settings, rolling, control }` and a change to any of them replaces the kernels. Replacement
+`resolveUnifiedSettings` and `resolveRollingSettings` admit frozen snapshots using the acoustic ranges, where settings
+are admitted ([Audio](audio.md#audio-document)); the worklet message carries `{ settings, rolling, control }` and a change to any of them replaces the kernels. Replacement
 uses a tire-only fade and installs fresh kernels at silence. Rapid edits supersede pending settings;
 returning to active values cancels replacement, and equal values preserve synthesis state.
 
-Vehicle changes, mute and sound retry retain settings and mix. Reload restores defaults. Invalid
-replacement settings release forcing without terminating the worklet. R/Q switches (`rolling`/`friction` components) fade (`componentSeconds`) only their
+Vehicle changes, mute and sound retry retain settings and mix. Reload restores defaults. R/Q switches (`rolling`/`friction` components) fade (`componentSeconds`) only their
 output taps for both axles; synthesis and the other component continue at their own levels.

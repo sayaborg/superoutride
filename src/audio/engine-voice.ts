@@ -1,7 +1,8 @@
 import { clamp } from '../core/math.js';
 import { follow } from './audio-parameter.js';
-import { resolveControlSettings, sameControlSettings, type ControlSettings } from './audio-control-policy.js';
-import { EXHAUST_SETTING_RANGES, resolveExhaustSettings } from './exhaust-acoustics.js';
+import { sameControlSettings, type ControlSettings } from './audio-control-policy.js';
+import { DEFAULT_AUDIO_SETTINGS } from './audio-defaults.js';
+import { EXHAUST_SETTING_RANGES } from './exhaust-acoustics.js';
 import type { ExhaustSettings } from './exhaust-acoustics.js';
 import type { CompiledEngineSound } from './engine-sound.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
@@ -16,22 +17,25 @@ function sameExhaustSettings(left: ExhaustSettings | undefined, right: ExhaustSe
   return true;
 }
 
-/** One reusable exhaust worklet. Engine sound, exhaust settings and kernel control changes share the same fade. */
+/**
+ * One reusable exhaust worklet. Engine sound, exhaust settings and kernel control changes share the same fade. Settings
+ * are admitted ones, used as given.
+ */
 export function createEngineVoice(
   context: BaseAudioContext,
   destination: AudioNode,
   {
     sound: initialSound,
-    settings: initialSettings = {},
-    control: initialControl = {},
+    settings: initialSettings = DEFAULT_AUDIO_SETTINGS.exhaust,
+    control: initialControl = DEFAULT_AUDIO_SETTINGS.control,
   }: {
     sound?: CompiledEngineSound;
-    settings?: Partial<ExhaustSettings>;
-    control?: Partial<ControlSettings>;
+    settings?: ExhaustSettings;
+    control?: ControlSettings;
   } = {},
 ) {
-  let settings = resolveExhaustSettings(initialSettings);
-  let control = resolveControlSettings(initialControl);
+  let settings = initialSettings;
+  let control = initialControl;
   const output = context.createGain();
   output.gain.value = 0;
   output.connect(destination);
@@ -94,10 +98,10 @@ export function createEngineVoice(
       follow(output.gain, clamp(gain, 0, 1), now, control.gainSeconds);
     },
     setSettings(value: ExhaustSettings): void {
-      if (!sameExhaustSettings(settings, value)) settings = resolveExhaustSettings(value);
+      if (!sameExhaustSettings(settings, value)) settings = value;
     },
     setControl(value: ControlSettings): void {
-      if (!sameControlSettings(control, value)) control = resolveControlSettings(value);
+      if (!sameControlSettings(control, value)) control = value;
     },
     /** Rest the worklet from context time `at` (its kernels stop and it renders silence), or wake it with null. */
     rest(at: number | null): void {

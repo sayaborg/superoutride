@@ -31,7 +31,10 @@ export interface CompiledAudioSettings extends AudioSettings {
 export const AUDIO_DOCUMENT_FORMAT = 'superoutride.audio';
 export const AUDIO_DOCUMENT_VERSION = 1;
 
-/** Each record's resolver: the one value check, shared by the document, the DEV panels and the worklets. */
+/**
+ * Each record's resolver: the one value check, applied where settings are admitted (this document and the DEV
+ * panels). Voices, worklets and kernels use admitted records as given.
+ */
 const RESOLVERS = {
   exhaust: resolveExhaustSettings,
   unified: resolveUnifiedSettings,
@@ -42,6 +45,15 @@ const RESOLVERS = {
 } as const satisfies { [K in keyof AudioSettings]: (value: Partial<AudioSettings[K]>) => AudioSettings[K] };
 type Section = keyof typeof RESOLVERS;
 const SECTIONS = Object.keys(RESOLVERS) as Section[];
+
+// The defaults are admitted here, once, like a document: assemblies that use them use admitted records.
+for (const section of SECTIONS) {
+  try {
+    (RESOLVERS[section] as (value: object) => unknown)(DEFAULT_AUDIO_SETTINGS[section]);
+  } catch (error) {
+    throw new Error(`Default audio settings are invalid: ${section}`, { cause: error });
+  }
+}
 
 /** The saved document for a settings snapshot, as the DEV export writes it. */
 export function audioSettingsDocument(settings: AudioSettings) {

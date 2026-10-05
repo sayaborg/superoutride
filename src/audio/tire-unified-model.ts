@@ -1,8 +1,9 @@
-import { resolveControlSettings, type ControlSettings } from './audio-control-policy.js';
+import type { ControlSettings } from './audio-control-policy.js';
+import { DEFAULT_AUDIO_SETTINGS } from './audio-defaults.js';
 import { FrictionResonator } from './friction-resonator.js';
 import { TireRollingSynthesis } from './tire-rolling-model.js';
 import type { RollingSettings } from './tire-rolling-acoustics.js';
-import { UNIFIED_SYNTHESIS as S, resolveUnifiedSettings, type UnifiedSettings } from './tire-unified-acoustics.js';
+import { UNIFIED_SYNTHESIS as S, type UnifiedSettings } from './tire-unified-acoustics.js';
 import type { SurfaceSound } from './surface-sounds.js';
 import type { TireSoundObservation } from './tire-sound-transport.js';
 
@@ -31,11 +32,11 @@ export class TireUnifiedSynthesis {
     rate: number,
     private readonly surfaces: readonly SurfaceSound[],
     seed: number = S.frontSeed,
-    settings: Partial<UnifiedSettings> = {},
-    rolling: Partial<RollingSettings> = {},
-    control: Partial<ControlSettings> = {},
+    settings: UnifiedSettings = DEFAULT_AUDIO_SETTINGS.unified,
+    rolling: RollingSettings = DEFAULT_AUDIO_SETTINGS.rolling,
+    control: ControlSettings = DEFAULT_AUDIO_SETTINGS.control,
   ) {
-    this.settings = resolveUnifiedSettings(settings);
+    this.settings = settings;
     this.friction = new FrictionResonator(
       rate,
       {
@@ -59,7 +60,7 @@ export class TireUnifiedSynthesis {
       seed,
     );
     this.rolling = new TireRollingSynthesis(rate, surfaces, seed, rolling);
-    this.follow = 1 - Math.exp(-1 / (rate * resolveControlSettings(control).observationSeconds));
+    this.follow = 1 - Math.exp(-1 / (rate * control.observationSeconds));
     this.dcPole = Math.exp((-2 * Math.PI * this.settings.dcHz) / rate);
     this.outputFollow = 1 - Math.exp((-2 * Math.PI * this.settings.outputCutoffHz) / rate);
   }
