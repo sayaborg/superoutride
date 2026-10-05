@@ -161,7 +161,8 @@ root). Like the game, it reads `version.txt` and opens the workbench of that bui
 `build/<commit>/tools/workbench/workbench.html`; without `version.txt` it opens `dist/tools/workbench/workbench.html`.
 The game's DEV panel links to it. The page works on the build it belongs to: its store is that build's published
 authored files ([Build outputs](#build-outputs)) under the session's changes, and the authoring core compiles it in a
-worker, so the page never waits on a compile; an older compile's result never replaces a newer one's. The header
+worker, so the page never waits on a compile, and each compile reuses the unchanged stages of the one before
+([Architecture](architecture.md#layer-boundaries)); an older compile's result never replaces a newer one's. The header
 always shows the build's commit, the number of changes and the compile's state; a failed compile lists its
 diagnostics (document, JSON Pointer, code and message) and keeps the last products that compiled, marked stale. The
 products of the last compile are listed with their digests. Modules are screens of the same page; each receives only

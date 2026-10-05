@@ -640,7 +640,13 @@ The authoring core in `tools/authoring` is one function and one edit over a cont
 supplies one, and the build and Node tools use the file-system store in `tools/build`. `compileContent(store)` admits
 and compiles every authored document in the build's dependency order, the saved measured products last, and returns
 every delivered file (kind, ID and bytes) with the compiled products tools consume, or the admission diagnostics and no
-product; `measured: false` stops before the measured products for tools that produce or do not use them. The one edit,
+product; `measured: false` stops before the measured products for tools that produce or do not use them. Each stage,
+and each course on its own, is keyed by the SHA-256 of what it reads: its documents' bytes and the keys of the earlier
+stages it uses. Given a `previous` compilation (succeeded or failed; each carries its completed stages), a stage whose
+key is unchanged takes its earlier result instead of running again, so a changed course recompiles only that course,
+the course index, the series and the measured products, and the products equal those of a compile without
+`previous`. Reused products are shared between compilations; callers read delivered bytes and never modify them. The
+build and the CLI compile without `previous`. The one edit,
 `replaceDocument(store, path, value)`, replaces a document with an admitted value in the saved JSON layout
 (`formatSavedJson`); compiling the store again gives the edited products. Every authored JSON document under
 `content/` is kept in that layout, so a replacement changes only the edited values, except the image documents, which

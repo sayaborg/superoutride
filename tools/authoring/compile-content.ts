@@ -48,9 +48,10 @@ import {
   staleMeasurement,
   type SavedReferenceTimes,
 } from '../course/measured-products.js';
+import { contentDigest } from '../../src/core/content-digest.js';
 import type { ContentStore } from './content-store.js';
 
-/** One delivered file: its manifest kind and ID and its exact bytes, which belong to the caller alone. */
+/** One delivered file: its manifest kind and ID and its exact bytes, which callers read and never modify. */
 export interface DeliveredFile {
   readonly kind: ContentKind;
   readonly id: string;
@@ -69,9 +70,16 @@ export interface CompiledContent {
   readonly seriesCourses: readonly { readonly course: CompiledCourse; readonly settings: SeriesCourse }[];
 }
 
-export type ContentCompilation =
+/** Each stage's result with the key of its inputs, which a later compile may reuse. */
+export type CompileStages = ReadonlyMap<string, { readonly key: string; readonly value: unknown }>;
+
+export type ContentCompilation = (
   | { readonly ok: true; readonly value: CompiledContent }
-  | { readonly ok: false; readonly diagnostics: readonly ContentLoadDiagnostic[] };
+  | { readonly ok: false; readonly diagnostics: readonly ContentLoadDiagnostic[] }
+) & {
+  /** The stages that completed, for `previous`. */
+  readonly stages: CompileStages;
+};
 
 /**
  * The authoring core: compile the authored documents of `store` into every delivered file, in dependency order and in
@@ -80,85 +88,138 @@ export type ContentCompilation =
  * the wall sounds) and their images, the course index, series, then the measured products: each catalog vehicle's
  * envelope and each series course's time budgets and pace schedules from the saved measurements, which must be current.
  * Each stage receives earlier products directly and admits its documents as delivery does. With `measured: false` it
- * stops before the measured products, for tools that produce them or do not use them. An expected content error ends compilation with its diagnostics and no
- * product; other failures, store reads included, propagate.
+ * stops before the measured products, for tools that produce them or do not use them. An expected content error ends
+ * compilation with its diagnostics and no product; other failures, store reads included, propagate.
+ *
+ * Each stage, and each course on its own, is keyed by the SHA-256 of what it reads: its documents' bytes and the keys
+ * of the earlier stages it uses. Given a `previous` compilation, a stage whose key is unchanged takes its earlier
+ * result instead of running again, so the products equal those of a compile without it; reused products are shared
+ * between the compilations.
  */
 export async function compileContent(
   store: ContentStore,
-  { measured = true }: { readonly measured?: boolean } = {},
+  { measured = true, previous }: { readonly measured?: boolean; readonly previous?: ContentCompilation } = {},
 ): Promise<ContentCompilation> {
+  const stages = new Map<string, { readonly key: string; readonly value: unknown }>();
+  const done = () => Object.freeze(new Map(stages));
   try {
-    return Object.freeze({ ok: true as const, value: await compile(store, measured) });
+    const value = await compile(store, measured, createStageRunner(previous?.stages, stages));
+    return Object.freeze({ ok: true as const, value, stages: done() });
   } catch (error) {
-    if (error instanceof ContentLoadError) return Object.freeze({ ok: false as const, diagnostics: error.diagnostics });
-    if (error instanceof CourseAssetError) return courseFailures([error]);
+    if (error instanceof ContentLoadError)
+      return Object.freeze({ ok: false as const, diagnostics: error.diagnostics, stages: done() });
+    if (error instanceof CourseAssetError) return Object.freeze({ ...courseFailures([error]), stages: done() });
     throw error;
   }
 }
 
-/** The JSON value saved at `path`. */
-async function readJson(store: ContentStore, path: string): Promise<unknown> {
-  return JSON.parse(new TextDecoder().decode(await store.read(path)));
+/** One input of a stage: a file's bytes, or the key of an earlier stage or another identifying text. */
+type StageInput = Uint8Array<ArrayBuffer> | string;
+
+function createStageRunner(
+  previous: CompileStages | undefined,
+  next: Map<string, { readonly key: string; readonly value: unknown }>,
+) {
+  return async <T>(name: string, inputs: readonly StageInput[], run: () => Promise<T> | T) => {
+    const parts = [name];
+    for (const input of inputs) parts.push(typeof input === 'string' ? input : await contentDigest(input));
+    const key = await contentDigest(new TextEncoder().encode(JSON.stringify(parts)));
+    const earlier = previous?.get(name);
+    const value = earlier?.key === key ? (earlier.value as T) : await run();
+    next.set(name, Object.freeze({ key, value }));
+    return { key, value };
+  };
+}
+type Stage = ReturnType<typeof createStageRunner>;
+
+/** The JSON value of saved bytes. */
+function parseJson(bytes: Uint8Array): unknown {
+  return JSON.parse(new TextDecoder().decode(bytes));
 }
 
-async function compile(store: ContentStore, measured: boolean): Promise<CompiledContent> {
-  const files: DeliveredFile[] = [];
-  const add = (kind: ContentKind, id: string, bytes: Uint8Array<ArrayBuffer>) =>
-    files.push(Object.freeze({ kind, id, bytes }));
-  const json = (path: string) => readJson(store, path);
+const deliveredFile = (kind: ContentKind, id: string, bytes: Uint8Array<ArrayBuffer>): DeliveredFile =>
+  Object.freeze({ kind, id, bytes });
 
-  // The vehicle sprite library, assembled from one document per set.
-  const setDocuments = [];
-  for (const name of await store.list('sprites'))
-    if (name.endsWith('.json'))
-      setDocuments.push({
-        name: name.slice(0, -'.json'.length),
-        document: `content/sprites/${name}`,
-        value: await json(`sprites/${name}`),
-      });
-  const library = compileVehicleSpriteLibrary(assembleVehicleSpriteLibrary(setDocuments), 'content/sprites');
-  add('image', 'vehicles', encodeContentJson(library.product));
-
-  // The text tiles are delivered as authored once admitted.
-  const textTiles = await json('text-tiles/default.json');
-  requireLoaded(admit('content/text-tiles/default.json', () => compileTextTiles(textTiles)));
-  add('image', TEXT_TILES_ID, encodeContentJson(textTiles));
-
+async function compile(store: ContentStore, measured: boolean, stage: Stage): Promise<CompiledContent> {
+  // The files of a directory with an extension: each one's name, its path under `content/` and its bytes.
+  const read = async (directory: string, extension = '.json') => {
+    const files = [];
+    for (const name of await store.list(directory))
+      if (name.endsWith(extension))
+        files.push({
+          name,
+          id: name.slice(0, name.length - extension.length),
+          bytes: await store.read(`${directory}/${name}`),
+        });
+    return files;
+  };
+  type Read = Awaited<ReturnType<typeof read>>;
+  const inputs = (files: Read) => files.flatMap((file) => [file.name, file.bytes]);
   // Each document's file name is its manifest identity; catalogs admit these sources as delivery does.
-  const sources = async (directory: string, extension = '.json') => {
+  const sources = async (directory: string, files: Read) => {
     const result: DocumentSource[] = [];
-    for (const name of await store.list(directory)) {
-      if (!name.endsWith(extension)) continue;
-      const path = `${directory}/${name}`;
-      result.push(await authoredDocumentSource(name.slice(0, -extension.length), `content/${path}`, await json(path)));
-    }
+    for (const file of files)
+      result.push(await authoredDocumentSource(file.id, `content/${directory}/${file.name}`, parseJson(file.bytes)));
     return result;
   };
   // Admitted documents are delivered as authored.
-  const deliver = (kind: ContentKind, documents: readonly DocumentSource[]) => {
-    for (const source of documents) add(kind, source.id, encodeContentJson(source.value));
-  };
-  const materialSources = await sources('materials');
-  const materials = requireLoaded(compileSurfaceMaterials(materialSources));
-  deliver('material', materialSources);
+  const delivered = (kind: ContentKind, documents: readonly DocumentSource[]) =>
+    documents.map((source) => deliveredFile(kind, source.id, encodeContentJson(source.value)));
+
+  // The vehicle sprite library, assembled from one document per set.
+  const spriteFiles = await read('sprites');
+  const sprites = await stage('sprites', inputs(spriteFiles), () => {
+    const library = compileVehicleSpriteLibrary(
+      assembleVehicleSpriteLibrary(
+        spriteFiles.map((file) => ({
+          name: file.id,
+          document: `content/sprites/${file.name}`,
+          value: parseJson(file.bytes),
+        })),
+      ),
+      'content/sprites',
+    );
+    return { library, files: [deliveredFile('image', 'vehicles', encodeContentJson(library.product))] };
+  });
+
+  // The text tiles are delivered as authored once admitted.
+  const textTileBytes = await store.read('text-tiles/default.json');
+  const textTiles = await stage('text-tiles', [textTileBytes], () => {
+    const value = parseJson(textTileBytes);
+    requireLoaded(admit('content/text-tiles/default.json', () => compileTextTiles(value)));
+    return [deliveredFile('image', TEXT_TILES_ID, encodeContentJson(value))];
+  });
+
+  const materialFiles = await read('materials');
+  const materials = await stage('materials', inputs(materialFiles), async () => {
+    const documents = await sources('materials', materialFiles);
+    return { catalog: requireLoaded(compileSurfaceMaterials(documents)), files: delivered('material', documents) };
+  });
 
   // A catalog material without a surface sound and a surface sound for an unknown material are rejected here.
-  const surfaceSoundSources = await sources('surface-sounds');
-  const surfaceSounds = requireLoaded(compileSurfaceSounds(surfaceSoundSources));
-  resolveSurfaceSoundRecords(
-    surfaceSounds,
-    materials.source.materials.map((material) => material.id),
-  );
-  deliver('surface-sound', surfaceSoundSources);
+  const surfaceSoundFiles = await read('surface-sounds');
+  const surfaceSounds = await stage('surface-sounds', [materials.key, ...inputs(surfaceSoundFiles)], async () => {
+    const documents = await sources('surface-sounds', surfaceSoundFiles);
+    resolveSurfaceSoundRecords(
+      requireLoaded(compileSurfaceSounds(documents)),
+      materials.value.catalog.source.materials.map((material) => material.id),
+    );
+    return delivered('surface-sound', documents);
+  });
 
   // Each course's solid walls are admitted against the wall sounds below.
-  const wallSoundSources = await sources('wall-sounds');
-  const wallSounds = requireLoaded(compileWallSounds(wallSoundSources));
-  deliver('wall-sound', wallSoundSources);
+  const wallSoundFiles = await read('wall-sounds');
+  const wallSounds = await stage('wall-sounds', inputs(wallSoundFiles), async () => {
+    const documents = await sources('wall-sounds', wallSoundFiles);
+    return { catalog: requireLoaded(compileWallSounds(documents)), files: delivered('wall-sound', documents) };
+  });
 
-  const audioSources = await sources('audio');
-  requireLoaded(compileAudioSettings(audioSources));
-  deliver('audio', audioSources);
+  const audioFiles = await read('audio');
+  const audio = await stage('audio', inputs(audioFiles), async () => {
+    const documents = await sources('audio', audioFiles);
+    requireLoaded(compileAudioSettings(documents));
+    return delivered('audio', documents);
+  });
 
   // Recordings are delivered as their authored bytes once admitted; music documents are admitted against them, with
   // titles that fit one line of the text grid.
@@ -172,84 +233,170 @@ async function compile(store: ContentStore, measured: boolean): Promise<Compiled
         bytes: await store.read(`${group}/${name}`),
       });
     }
-  const recordings = requireLoaded(compileRecordings(recordingSources));
-  const musicSources = await sources('music');
-  requireLoaded(compileMusicCatalog(musicSources, TEXT_COLUMNS, recordings));
-  for (const source of recordingSources) add('recording', source.id, source.bytes);
-  deliver('music', musicSources);
-
-  const freePlaySources = await sources('free-play');
-  const freePlay = requireLoaded(compileFreePlayRules(freePlaySources));
-  deliver('free-play', freePlaySources);
-
-  const soundSources = await sources('engine-sounds');
-  const sounds = requireLoaded(compileEngineSounds(soundSources));
-  deliver('engine-sound', soundSources);
-
-  const vehicleSources = await sources('vehicles'),
-    listingSources = await sources('vehicle-listings'),
-    drivingSources = await sources('driving');
-  const definitions = requireLoaded(
-    compileVehicleDefinitions(library.sprites, sounds, drivingSources, vehicleSources, listingSources),
+  const musicFiles = await read('music');
+  const recordings = await stage(
+    'recordings',
+    [...recordingSources.flatMap((source) => [source.path, source.bytes]), ...inputs(musicFiles)],
+    async () => {
+      const admitted = requireLoaded(compileRecordings(recordingSources));
+      const documents = await sources('music', musicFiles);
+      requireLoaded(compileMusicCatalog(documents, TEXT_COLUMNS, admitted));
+      return [
+        ...recordingSources.map((source) => deliveredFile('recording', source.id, source.bytes)),
+        ...delivered('music', documents),
+      ];
+    },
   );
-  deliver('vehicle', vehicleSources);
-  deliver('vehicle-listing', listingSources);
-  deliver('driving', drivingSources);
 
-  // A course and its images are delivered only once the course compiles.
-  const courses: CompiledCourse[] = [];
-  for (const name of await store.list('courses')) {
-    if (!name.endsWith('.course.json')) continue;
+  const freePlayFiles = await read('free-play');
+  const freePlay = await stage('free-play', inputs(freePlayFiles), async () => {
+    const documents = await sources('free-play', freePlayFiles);
+    return { rules: requireLoaded(compileFreePlayRules(documents)), files: delivered('free-play', documents) };
+  });
+
+  const soundFiles = await read('engine-sounds');
+  const sounds = await stage('engine-sounds', inputs(soundFiles), async () => {
+    const documents = await sources('engine-sounds', soundFiles);
+    return { catalog: requireLoaded(compileEngineSounds(documents)), files: delivered('engine-sound', documents) };
+  });
+
+  const vehicleFiles = await read('vehicles'),
+    listingFiles = await read('vehicle-listings'),
+    drivingFiles = await read('driving');
+  const definitions = await stage(
+    'definitions',
+    [sprites.key, sounds.key, ...inputs(vehicleFiles), ...inputs(listingFiles), ...inputs(drivingFiles)],
+    async () => {
+      const vehicles = await sources('vehicles', vehicleFiles),
+        listings = await sources('vehicle-listings', listingFiles),
+        driving = await sources('driving', drivingFiles);
+      const value = requireLoaded(
+        compileVehicleDefinitions(sprites.value.library.sprites, sounds.value.catalog, driving, vehicles, listings),
+      );
+      return {
+        definitions: value,
+        files: [
+          ...delivered('vehicle', vehicles),
+          ...delivered('vehicle-listing', listings),
+          ...delivered('driving', driving),
+        ],
+      };
+    },
+  );
+
+  // Each course is its own stage: its document, the images it names, the materials and the wall sounds. A course and
+  // its images are delivered only once the course compiles.
+  const courses: { readonly key: string; readonly value: { compiled: CompiledCourse; files: DeliveredFile[] } }[] = [];
+  for (const { name, bytes } of await read('courses', '.course.json')) {
     const path = `content/courses/${name}`;
-    const document = requireLoaded(readCourseDocumentBytes(await store.read(`courses/${name}`), path));
-    requireLoaded(admitCourseWallSounds(document, wallSounds, path));
-    const prepared = await compileCourseImages(
-      document,
-      await readCourseImages(document.assets, (file) => store.read(`images/${file}`)),
+    const imageBytes = [];
+    for (const sha256 of namedImages(bytes))
+      imageBytes.push(sha256, await store.read(`images/${sha256}.json`).catch(() => sha256));
+    courses.push(
+      await stage(`course:${name}`, [materials.key, wallSounds.key, bytes, ...imageBytes], async () => {
+        const document = requireLoaded(readCourseDocumentBytes(bytes, path));
+        requireLoaded(admitCourseWallSounds(document, wallSounds.value.catalog, path));
+        const prepared = await compileCourseImages(
+          document,
+          await readCourseImages(document.assets, (file) => store.read(`images/${file}`)),
+        );
+        const id = courseFileId(name);
+        const compiled = requireLoaded(
+          await compileCourseDocument(
+            prepared.document,
+            id,
+            await courseFileSha256(prepared.document),
+            prepared.images,
+            materials.value.catalog,
+            path,
+          ),
+        );
+        return {
+          compiled,
+          files: [
+            deliveredFile('course', id, encodeContentJson(prepared.document)),
+            ...prepared.images.map((image) => deliveredFile('image', image.sha256, new Uint8Array(image.bytes))),
+          ],
+        };
+      }),
     );
-    const id = courseFileId(name);
-    const compiled = requireLoaded(
-      await compileCourseDocument(
-        prepared.document,
-        id,
-        await courseFileSha256(prepared.document),
-        prepared.images,
-        materials,
-        path,
-      ),
-    );
-    add('course', id, encodeContentJson(prepared.document));
-    for (const image of prepared.images) add('image', image.sha256, new Uint8Array(image.bytes));
-    courses.push(compiled);
   }
-  add('course-index', COURSE_INDEX_ID, encodeContentJson(courseIndexDocument(courses)));
+  const compiledCourses = courses.map((course) => course.value.compiled);
+  const courseKeys = courses.map((course) => course.key);
+  const courseIndex = await stage('course-index', courseKeys, () => [
+    deliveredFile('course-index', COURSE_INDEX_ID, encodeContentJson(courseIndexDocument(compiledCourses))),
+  ]);
 
   // Every series course is admitted against its compiled course.
-  const seriesSources = await sources('series', '.series.json');
-  const series = requireLoaded(
-    compileSeriesCatalog(
-      seriesSources,
-      courses.map((course) => course.id),
-      definitions.vehicles,
-    ),
-  );
-  const seriesCourses = courses.flatMap((course) => {
-    const settings = series.courseSettings(course.id);
-    if (!settings) return [];
-    const source = seriesSources.find((s) => s.id === settings.series.id)!;
-    return [Object.freeze({ course, settings: requireLoaded(admitSeriesCourse(settings, course, source.path)) })];
+  const seriesFiles = await read('series', '.series.json');
+  const series = await stage('series', [definitions.key, ...courseKeys, ...inputs(seriesFiles)], async () => {
+    const documents = await sources('series', seriesFiles);
+    const catalog = requireLoaded(
+      compileSeriesCatalog(
+        documents,
+        compiledCourses.map((course) => course.id),
+        definitions.value.definitions.vehicles,
+      ),
+    );
+    const seriesCourses = compiledCourses.flatMap((course) => {
+      const settings = catalog.courseSettings(course.id);
+      if (!settings) return [];
+      const source = documents.find((s) => s.id === settings.series.id)!;
+      return [Object.freeze({ course, settings: requireLoaded(admitSeriesCourse(settings, course, source.path)) })];
+    });
+    return { seriesCourses: Object.freeze(seriesCourses), files: delivered('series', documents) };
   });
-  deliver('series', seriesSources);
-  if (measured) files.push(...(await measuredFiles(store, definitions, materials, seriesCourses)));
+
+  const files: DeliveredFile[] = [
+    ...sprites.value.files,
+    ...textTiles.value,
+    ...materials.value.files,
+    ...surfaceSounds.value,
+    ...wallSounds.value.files,
+    ...audio.value,
+    ...recordings.value,
+    ...freePlay.value.files,
+    ...sounds.value.files,
+    ...definitions.value.files,
+    ...courses.flatMap((course) => course.value.files),
+    ...courseIndex.value,
+    ...series.value.files,
+  ];
+  if (measured) {
+    const envelopeFiles = await read('envelopes', ''),
+      timeFiles = await read('reference-times', '');
+    const products = await stage(
+      'measured',
+      [definitions.key, materials.key, series.key, ...inputs(envelopeFiles), ...inputs(timeFiles)],
+      () => measuredFiles(store, definitions.value.definitions, materials.value.catalog, series.value.seriesCourses),
+    );
+    files.push(...products.value);
+  }
   return Object.freeze({
     files: Object.freeze(files),
-    library,
-    materials,
-    freePlay,
-    definitions,
-    courses: Object.freeze(courses),
-    seriesCourses: Object.freeze(seriesCourses),
+    library: sprites.value.library,
+    materials: materials.value.catalog,
+    freePlay: freePlay.value.rules,
+    definitions: definitions.value.definitions,
+    courses: Object.freeze(compiledCourses),
+    seriesCourses: series.value.seriesCourses,
   });
+}
+
+/** The image digests a course document's bytes name, read leniently: only to key the course's stage. */
+function namedImages(bytes: Uint8Array): string[] {
+  try {
+    const assets = (parseJson(bytes) as { assets?: unknown }).assets;
+    if (!Array.isArray(assets)) return [];
+    const digests = assets.map((asset) => (asset as { sha256?: unknown } | null)?.sha256);
+    return [
+      ...new Set(
+        digests.filter((sha256): sha256 is string => typeof sha256 === 'string' && /^[0-9a-f]{64}$/.test(sha256)),
+      ),
+    ];
+  } catch {
+    return [];
+  }
 }
 
 /**
@@ -266,7 +413,7 @@ async function measuredFiles(
   const files: DeliveredFile[] = [];
   const add = (kind: ContentKind, id: string, bytes: Uint8Array<ArrayBuffer>) =>
     files.push(Object.freeze({ kind, id, bytes }));
-  const json = (path: string) => readJson(store, path);
+  const json = async (path: string) => parseJson(await store.read(path));
   const measurementSha256 = await procedureSha256(ENVELOPE_MEASUREMENT),
     referenceSha256 = await procedureSha256(REFERENCE_RUN);
   const vehicleSha256 = new Map<string, string>();

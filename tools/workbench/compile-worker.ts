@@ -1,4 +1,4 @@
-import { compileContent } from '../authoring/compile-content.js';
+import { compileContent, type ContentCompilation } from '../authoring/compile-content.js';
 import { createLayeredStore } from '../authoring/layered-store.js';
 import { planMeasurement } from '../authoring/measure.js';
 import { MEASUREMENT_STALE, measuredEnvelopePath, referenceTimesPath } from '../course/measured-products.js';
@@ -9,12 +9,17 @@ import type { CompileRequest, CompileResponse } from './compile-protocol.js';
  * The workbench's compiler, off the page's thread: one authoring-core compile per request. Saved measured products are
  * used while current. When they are stale, the preview measurements that are current take their place; when those do
  * not cover every stale product, the content also compiles without measured products, which editing, previews and
- * running without them use.
+ * running without them use. Each compile reuses the stages of the one before whose inputs are unchanged.
  */
 const scope = globalThis as unknown as {
   addEventListener(type: 'message', listener: (event: MessageEvent<CompileRequest>) => void): void;
-  postMessage(message: CompileResponse, transfer: Transferable[]): void;
+  postMessage(message: CompileResponse): void;
 };
+
+// The latest compilation, whose unchanged stages the next compile reuses.
+let previous: ContentCompilation | undefined;
+const compile = async (...[store, options]: Parameters<typeof compileContent>) =>
+  (previous = await compileContent(store, { ...options, previous }));
 
 const onlyStale = (diagnostics: readonly { readonly code: string }[]) =>
   diagnostics.every((diagnostic) => diagnostic.code === MEASUREMENT_STALE);
@@ -26,7 +31,7 @@ scope.addEventListener('message', async ({ data }) => {
   let response: CompileResponse;
   try {
     const store = await workerStore(data.root, data.changes);
-    const saved = await compileContent(store);
+    const saved = await compile(store);
     if (saved.ok)
       response = {
         ...base,
@@ -46,7 +51,7 @@ scope.addEventListener('message', async ({ data }) => {
         preview: [],
       };
     else {
-      const unmeasured = await compileContent(store, { measured: false });
+      const unmeasured = await compile(store, { measured: false });
       // The preview files still current: those the plan over them finds nothing stale in.
       let current: string[] = [];
       if (data.preview.length && unmeasured.ok) {
@@ -59,9 +64,7 @@ scope.addEventListener('message', async ({ data }) => {
         current = data.preview.map(([path]) => path).filter((path) => !stale.has(path));
       }
       const withPreview = current.length
-        ? await compileContent(
-            createLayeredStore(store, new Map(data.preview.filter(([path]) => current.includes(path)))),
-          )
+        ? await compile(createLayeredStore(store, new Map(data.preview.filter(([path]) => current.includes(path)))))
         : null;
       response = withPreview?.ok
         ? {
@@ -92,6 +95,6 @@ scope.addEventListener('message', async ({ data }) => {
       preview: [],
     };
   }
-  const files = response.ok ? response.files : (response.unmeasured ?? []);
-  scope.postMessage(response, [...new Set(files.map((file) => file.bytes.buffer))]);
+  // The files are copied, not transferred: reused stages share their bytes with the next compile.
+  scope.postMessage(response);
 });
