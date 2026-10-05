@@ -118,6 +118,7 @@ function start(index: AuthoredIndex, published: ContentStore) {
       moved();
     }));
   const modules: WorkbenchModule[] = [];
+  let selection: { readonly document: string; readonly pointer: string } | null = null;
   const context: WorkbenchContext = Object.freeze({
     store,
     published,
@@ -156,6 +157,12 @@ function start(index: AuthoredIndex, published: ContentStore) {
     subscribe(listener: () => void) {
       listeners.add(listener);
       return () => listeners.delete(listener);
+    },
+    selection: () => selection,
+    select(document: string, pointer: string) {
+      if (selection?.document === document && selection.pointer === pointer) return;
+      selection = { document, pointer };
+      notify();
     },
     reveal(documentPath: string, pointer: string) {
       const target = modules.find((module) => module.reveal);

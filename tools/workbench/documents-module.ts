@@ -261,6 +261,11 @@ export function createDocumentsModule(): WorkbenchModule {
       pane = make('div', '', { class: 'document' });
       pane.append(make('p', 'Choose a document.'));
       element.append(list, pane);
+      // A place chosen in the tree is the workbench's selection.
+      pane.addEventListener('click', (event) => {
+        const at = (event.target as HTMLElement).closest<HTMLElement>('[data-pointer]');
+        if (at && current) context.select(current, at.dataset.pointer!);
+      });
       let shownChanges: unknown = null,
         shownCompile: unknown = null;
       context.subscribe(() => {
@@ -292,6 +297,7 @@ export function createDocumentsModule(): WorkbenchModule {
         opened.add(path);
         highlight = at;
         showDocument(0);
+        context.select(document, at);
       });
     },
   };

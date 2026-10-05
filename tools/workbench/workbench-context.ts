@@ -61,6 +61,10 @@ export interface WorkbenchContext {
   subscribe(listener: () => void): () => void;
   /** Ask the documents module to show a document at a JSON Pointer. */
   reveal(document: string, pointer: string): void;
+  /** The one selection shared by the modules: a document and a JSON Pointer in it. */
+  selection(): { readonly document: string; readonly pointer: string } | null;
+  /** Select a place in a document; every module hears it. */
+  select(document: string, pointer: string): void;
 }
 
 /** One screen of the workbench page. */

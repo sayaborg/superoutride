@@ -176,7 +176,7 @@ export function createPlanView(
       if (fill) {
         const color = own ?? stripColor(element.values.color);
         if (color) {
-          context.globalAlpha = 0.85;
+          context.globalAlpha = own ? 0.45 : 0.85;
           context.fillStyle = color;
           context.fill(path);
           context.globalAlpha = 1;

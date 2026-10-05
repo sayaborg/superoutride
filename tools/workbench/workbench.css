@@ -294,9 +294,12 @@ button.active {
 input[type='number'] {
   width: 7em;
 }
+.course-centre {
+  flex: 1 1 600px;
+  min-width: 0;
+}
 .course-plan {
-  width: 900px;
-  max-width: 100%;
+  width: 100%;
   border: 1px solid var(--line);
   cursor: crosshair;
 }
@@ -318,4 +321,8 @@ input[type='number'] {
 .layers .layer {
   margin-right: 8px;
   white-space: nowrap;
+}
+.legend span {
+  margin-right: 12px;
+  font-size: 12px;
 }
