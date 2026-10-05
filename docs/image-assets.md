@@ -201,6 +201,56 @@ and sorted. Fully transparent input yields 16 zeros; unused opaque slots repeat 
 Coincident means can reduce distinct colors. The generated palette is a saved editable value;
 mask/crop edits leave it in place until explicit regeneration.
 
+## Sprite operations
+
+The sprite operations are functions over the content store, free of Node and the DOM; the workbench's sprite module
+and the sprite command (`npm run sprite`, [Development](development.md#workbench)) call them. Each reads documents and
+returns new ones, which the caller saves as one edit.
+
+**Sources and recipes.** A source image and its recipe are production-only data: `content/sprite-sources/<name>.png`
+(the PNG's own bytes) and `content/sprite-sources/<name>.json`. The build delivers neither; the authored files are
+published with each build, so the workbench reopens them. The master's name is `<name>`. The recipe is
+`superoutride.sprite-recipe` version 1:
+
+```text
+{format, version, target: "vehicle" | "course", crop: {x,y,width,height}, widthMeters, anchor: {x,y},
+ mask: [{x,y,width,height,hidden}, ...], palette: [rgb555, ...] | null, lamp: {rectangles: [{x,y,width,height}, ...], colors: [rgb555, ...]}}
+```
+
+`mask` rectangles are applied in order: a hidden pixel keeps its color and takes alpha zero, and a shown one gets its
+source alpha back. `palette` has 16 slots for a course image and 15 for a vehicle image (slot 15 is the set's brake
+lamp); null generates it from the masked crop ([Candidate palettes](#candidate-palettes)) with 15 or 14 colors. Only a
+vehicle image has lamp pixels: those inside a `lamp` rectangle or whose source color, as RGB555, is in `lamp.colors`.
+
+**Import.** The masked source is normalized as [External source normalization](#external-source-normalization)
+describes, with the recipe's palette. A vehicle image is normalized with its 15 colors and slot 15 repeating slot 1,
+which the area filter's lower-code tie rule never chooses, so artwork never takes slot 15. Then the lamp mask, as an
+image of the same alpha (lamp pixels white, others black), is normalized the same way, and each opaque texel whose
+lamp sample is white takes slot 15. A course image is written as its content-addressed file,
+`content/images/<sha256>.json` with the master's compact JSON; binding it to a course is the course's edit.
+
+**Sets.** An imported image joins a set with every palette name of the set, each starting as its own colors, and the
+set's default palette. Images are added, replaced (every cell showing one shows the new one) and removed (only when
+no cell shows it, later indices moving down); a cell of the yaw × bank grid is bound to any image of the set, and one
+image may fill several cells. The set's brake-lamp colors and `bankDegrees` are set directly.
+
+**Named palettes.** A palette is added (a copy of an existing one), renamed or removed in every image of a set at once,
+so the set's images keep one set of names; a set keeps at least two, and an image's default palette cannot be
+removed. One slot of one image's palette can be set to an RGB555 color; slots 1 to 14 only.
+
+**Adjustment.** A new named palette is derived from an existing one in every image of a set: the chosen slots (from 1
+to 14; never 0 or the lamp slot) are adjusted, the others copied, and only the resulting RGB555 colors are saved. In
+Oklab's polar form the hue turns by `hue` degrees, the chroma scales by `1 + saturation` (at least zero), the lightness
+gains `lightness`, and then `tint.amount` of chroma is added toward `tint.hue` degrees. All zero changes nothing.
+
+**Oklab.** An RGB555 channel code `c` is the sRGB-encoded value `c/31`; the sRGB transfer function decodes it to
+linear light (`v/12.92` up to 0.04045, else `((v+0.055)/1.055)^2.4`), and linear sRGB maps to Oklab by Björn
+Ottosson's published matrices and cube root. The way back inverts them, encodes with the sRGB transfer function
+(`12.92v` up to 0.0031308, else `1.055v^(1/2.4)-0.055`) and rounds `31v` to the nearest code, so an unadjusted color
+returns to its own code. Lightness is limited to [0, 1]; a color still outside the sRGB gamut keeps its lightness and
+hue and loses chroma, the largest in-gamut fraction found by 32 bisection steps, so a color that left the gamut does
+not return to its code when the adjustment is undone.
+
 ## Course image sources
 
 Each declared digest receives explicit `{sha256,bytes:Uint8Array}` input. Exact bytes must match the
