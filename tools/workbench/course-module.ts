@@ -1,5 +1,6 @@
 import {
   createSectionPlan,
+  createSectionProfile,
   readCourseStructure,
   type CourseElement,
   type CourseStructure,
@@ -8,6 +9,9 @@ import {
 import type { SectionDocument } from '../../src/course/course-document.js';
 import type { WorkbenchContext, WorkbenchModule } from './workbench-context.js';
 import { createPlanView, PLAN_LAYERS, type PlanLayer, type PlanStyle } from './course-plan-view.js';
+import { createProfileView } from './course-profile-view.js';
+import { createSectionView } from './course-section-view.js';
+import { createGameView } from './course-game-view.js';
 
 /** The colours of the forms an element is written in. */
 const FORM = {
@@ -34,8 +38,9 @@ import { confirmField, finiteNumber } from './pending-edit.js';
 import { valueAt } from './json-pointer.js';
 
 /**
- * The course editor: a course's Sections and Links, and a Section's plan drawn from the document's form
- * (`readCourseStructure`), with one cursor (Section and s) and one selection, which the document view opens.
+ * The course editor: a course's Sections and Links, and four views of a Section seen together — its plan and profile
+ * drawn from the document's form (`readCourseStructure`), the cross section at the cursor, and the game's frame there
+ * from the compile worker — with one cursor (Section and s) and one selection, which the document view opens.
  */
 export const courseModule: WorkbenchModule = {
   id: 'course',
@@ -46,6 +51,12 @@ export const courseModule: WorkbenchModule = {
     const cursorField = make('input', '', { type: 'number', step: 'any', min: '0' });
     const layerBoxes = make('span', '', { class: 'layers' });
     const canvas = make('canvas', '', { width: '900', height: '640', class: 'course-plan' });
+    const profileCanvas = make('canvas', '', { width: '640', height: '220', class: 'course-profile' });
+    const sectionCanvas = make('canvas', '', { width: '640', height: '220', class: 'course-cross-section' });
+    const gameCanvas = make('canvas', '', { width: '320', height: '240', class: 'course-game' });
+    const gameStatus = make('div', '', { class: 'hint course-game-status', role: 'status' });
+    const lateralField = make('input', '', { type: 'number', step: 'any', value: '0' });
+    const vehicle = make('select');
     const selection = make('div', '', { class: 'course-selection' });
     const formColors = make('input', '', { type: 'checkbox' });
     const legend = make('div', '', { class: 'legend' });
@@ -74,6 +85,10 @@ export const courseModule: WorkbenchModule = {
     }
     const side = make('div', '', { class: 'course-side' });
     side.append(make('h3', 'Sections and Links'), sections, make('h3', 'Selection'), selection);
+    const views = make('div', '', { class: 'course-views' });
+    const game = make('div', '', { class: 'course-game-pane' });
+    game.append(gameCanvas, gameStatus);
+    views.append(canvas, profileCanvas, sectionCanvas, game);
     const centre = make('div', '', { class: 'course-centre' });
     centre.append(
       field('Cursor s (m)', cursorField),
@@ -81,8 +96,11 @@ export const courseModule: WorkbenchModule = {
       layerBoxes,
       ' ',
       field('Color by form', formColors),
-      make('br'),
-      canvas,
+      ' ',
+      field('Game lateral l (m)', lateralField),
+      ' ',
+      field('Vehicle', vehicle),
+      views,
       legend,
       note,
     );
@@ -98,6 +116,7 @@ export const courseModule: WorkbenchModule = {
     let sectionId: string | null = null,
       plan: SectionPlan | null = null,
       cursor = 0,
+      lateral = 0,
       selected: CourseElement | null = null;
     const path = () => `courses/${id}.course.json`;
     // Each Strip's knots, by the Strip's Pointer, for its form.
@@ -106,6 +125,24 @@ export const courseModule: WorkbenchModule = {
       pick: (picked) => select(picked),
       cursor: (s) => moveCursor(s),
     });
+    const profileView = createProfileView(profileCanvas, {
+      pick: (picked) => select(picked),
+      cursor: (s) => moveCursor(s),
+    });
+    const sectionView = createSectionView(sectionCanvas, { pick: (picked) => select(picked) });
+    const gameView = createGameView(gameCanvas, gameStatus, (query) => context.query(query));
+    /** Every view at the cursor. */
+    const showCursor = () => {
+      cursorField.value = String(Math.round(cursor * 1000) / 1000);
+      view.setCursor(cursor);
+      profileView.setCursor(cursor);
+      sectionView.setCursor(cursor);
+      gameView.show(
+        id && sectionId && plan
+          ? { kind: 'render', course: id, section: sectionId, s: cursor, l: lateral, vehicle: vehicle.value || null }
+          : null,
+      );
+    };
 
     const openSection = (next: string | null) => {
       sectionId = next;
@@ -116,16 +153,23 @@ export const courseModule: WorkbenchModule = {
         : null;
       if (selected && selected.section !== next) selected = null;
       view.setSection(section, plan);
+      profileView.setSection(
+        section,
+        plan,
+        section
+          ? createSectionProfile((document as { sections: SectionDocument[] }).sections[index]!, section.pointer, plan)
+              .profile
+          : null,
+      );
+      sectionView.setSection(section);
       cursor = Math.min(cursor, plan?.length ?? 0);
-      cursorField.value = String(Math.round(cursor * 1000) / 1000);
-      view.setCursor(cursor);
+      showCursor();
       showSections();
       showSelection();
     };
     const moveCursor = (s: number) => {
       cursor = Math.max(0, Math.min(s, plan?.length ?? 0));
-      cursorField.value = String(Math.round(cursor * 1000) / 1000);
-      view.setCursor(cursor);
+      showCursor();
     };
     /** The elements drawn with a selection: every copy of a repeated record, or everything a repeat holds. */
     const companions = (element: CourseElement | null) => {
@@ -136,10 +180,7 @@ export const courseModule: WorkbenchModule = {
     };
     const select = (element: CourseElement | null, announce = true) => {
       selected = element;
-      view.setSelection(
-        element?.pointer ?? null,
-        companions(element).map((e) => e.pointer),
-      );
+      showSelected();
       showSelection();
       if (element && announce) context.select(path(), element.pointer);
     };
@@ -165,7 +206,17 @@ export const courseModule: WorkbenchModule = {
         pointer = pointer.slice(0, pointer.lastIndexOf('/'));
       }
     };
-    formColors.addEventListener('change', () => view.setStyle(style()));
+    /** The selection and its companions in every view. */
+    const showSelected = () => {
+      const others = companions(selected).map((e) => e.pointer);
+      view.setSelection(selected?.pointer ?? null, others);
+      profileView.setSelection(selected?.pointer ?? null, others);
+      sectionView.setSelection(selected?.pointer ?? null);
+    };
+    formColors.addEventListener('change', () => {
+      view.setStyle(style());
+      profileView.setStyle(style());
+    });
     /** How elements are drawn: by form when asked, with the marks of references and of the selection. */
     const style = (): PlanStyle => ({
       colorOf: (element) => (formColors.checked ? formColor(element, knotsOf.get(element.pointer)) : null),
@@ -202,7 +253,13 @@ export const courseModule: WorkbenchModule = {
       },
     });
     view.setStyle(style());
+    profileView.setStyle(style());
     confirmField(cursorField, finiteNumber, moveCursor);
+    confirmField(lateralField, finiteNumber, (l) => {
+      lateral = l;
+      showCursor();
+    });
+    vehicle.addEventListener('change', showCursor);
     layerBoxes.addEventListener('change', () =>
       view.setLayers(
         [...layerBoxes.querySelectorAll<HTMLInputElement>('input:checked')].map((box) => box.value as PlanLayer),
@@ -285,6 +342,15 @@ export const courseModule: WorkbenchModule = {
         .paths()
         .filter((p) => /^courses\/[^/]+\.course\.json$/.test(p))
         .map((p) => p.slice('courses/'.length, -'.course.json'.length));
+      const vehicles = context
+        .paths()
+        .filter((p) => /^vehicles\/[^/]+\.json$/.test(p))
+        .map((p) => p.slice('vehicles/'.length, -'.json'.length));
+      if (vehicles.join() !== [...vehicle.options].map((o) => o.value).join()) {
+        const chosen = vehicle.value;
+        vehicle.replaceChildren(...vehicles.map((v) => make('option', v, { value: v })));
+        if (vehicles.includes(chosen)) vehicle.value = chosen;
+      }
       if (courses.join() !== [...course.options].map((o) => o.value).join()) {
         const chosen = course.value;
         course.replaceChildren(...courses.map((c) => make('option', c, { value: c })));
@@ -322,10 +388,7 @@ export const courseModule: WorkbenchModule = {
         selected = again ?? null;
       }
       openSection(keep ? sectionId : (structure?.entrySectionId ?? structure?.sections[0]?.id ?? null));
-      view.setSelection(
-        selected?.pointer ?? null,
-        companions(selected).map((e) => e.pointer),
-      );
+      showSelected();
     };
     /** The compile's diagnostics in this course's document under `pointer`. */
     const diagnosticsOf = (pointer: string) => {
@@ -357,6 +420,9 @@ export const courseModule: WorkbenchModule = {
       void refresh().then(() => {
         follow();
         showProblems();
+        // The game's frame follows the latest compile that succeeded, stale while the document is newer.
+        const state = context.compile();
+        if (state.last) gameView.compiled(state.last.step, state.status === 'ok');
       });
     });
     course.addEventListener('change', () => void refresh());

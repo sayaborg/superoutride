@@ -229,6 +229,8 @@ export function createPlanView(
     context.fill();
     crossLine(drawn, cursor, 25, '#ff7b72');
     overlay(context, canvas, scale);
+    context.fillStyle = '#ff7b72';
+    context.fillText(`${section.id} · s ${cursor.toFixed(1)} m`, 16, 20);
   };
 
   const pickAt = (px: number, py: number): CourseElement | null => {

@@ -241,6 +241,26 @@ the set is previewed with the adjusted colors as the sliders move, and saving ma
 slot of one image's palette is set by number; the lamp slot's off and on colors are the set's. A preview shows the
 chosen cell's image in every color with the lamp off and on. Lighting palettes are not authored yet.
 
+The Course module shows a course document as written ([form](content-and-gameplay.md#course-authoring-operations)),
+one Section at a time, with the Sections and their Links (entry, forks, merges) beside it. Four views are seen
+together and share one cursor (the Section and a station s) and one selection:
+
+- the plan, north up, with the Strips, Boundaries, lane centres, walls, limits, centreline, gates, sprites, objects and
+  PIs, zoomed with the wheel and panned by dragging;
+- the profile, the road height across s, with the PVIs and the PI and gate stations;
+- the cross section at the cursor, with the Boundaries, the Strips covering it in order with their materials, walls,
+  lane centres and nearby objects;
+- the game's frame at the cursor, at a chosen lateral and vehicle.
+
+The plan, profile and cross section are drawn from the document through the course compiler's own functions, so they
+follow every edit at once, and draw written points filled and derived points hollow; layers can be hidden, and
+"Color by form" colours repeat originals, repeat copies, single elements by reference and absolute ones apart. The
+game's frame is the compile worker's answer for the latest compile that succeeded, marked stale when that compile is
+older than the document. A click on an element in any view selects it and opens its record in the Documents module's
+tree, which selects it back; a click away from elements moves the cursor. A selected repeat shows what it holds and
+every copy, a reference its line to the Boundary it reads, a Position the centreline from its PI, and the compile's
+diagnostics show on the element their Pointer falls in.
+
 To apply an archive to the repository, extract it at the repository root, delete the files `workbench-changes.json`
 marks `deleted`, delete `workbench-changes.json`, then run `npm run measure -- generate`, `npm run check` and
 `npm run build`. Authors without a

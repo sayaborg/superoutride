@@ -326,3 +326,25 @@ input[type='number'] {
   margin-right: 12px;
   font-size: 12px;
 }
+.course-views {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 8px;
+  align-items: start;
+}
+.course-views .course-plan {
+  grid-row: span 3;
+}
+.course-views canvas {
+  width: 100%;
+  border: 1px solid var(--line);
+}
+.course-profile {
+  cursor: crosshair;
+}
+.course-game {
+  image-rendering: pixelated;
+}
+.course-game-status.stale {
+  color: #ff7b72;
+}

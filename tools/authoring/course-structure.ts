@@ -16,7 +16,7 @@ import { courseLaneCenterAt, type CompiledBoundary } from '../../src/course/cour
 import { expandCourseElements, type CourseRepeatCopy, type RepeatElement } from '../../src/course/course-repeat.js';
 import { createPlanCoordinateReader } from '../../src/course/geometry/plan-coordinate-reader.js';
 import { createPlanCoordinateSample } from '../../src/course/geometry/plan-coordinate.js';
-import { Profile } from '../../src/course/geometry/profile.js';
+import { compileCoursePhysicalContent } from '../../src/course/compiler/course-physical-content.js';
 
 /**
  * A course's form: every element an author draws or edits, where it is in the document (its JSON Pointer), where it
@@ -201,6 +201,17 @@ export function createSectionPlan(section: SectionDocument, pointer: string) {
 }
 export type SectionPlan = NonNullable<ReturnType<typeof createSectionPlan>['plan']>;
 
+/** A Section's road height as the compiler builds it from the PVIs, or null with the problem. */
+export function createSectionProfile(section: SectionDocument, pointer: string, plan: SectionPlan | null) {
+  if (!plan) return { profile: null, problem: null };
+  try {
+    const resolve = (at: CoursePosition, path: string) => resolveCoursePosition(at, plan.stations, plan.length, path);
+    return { profile: compileCoursePhysicalContent(section, plan.length, resolve, pointer).height, problem: null };
+  } catch (error) {
+    return { profile: null, problem: problemOf(error, `${pointer}/height`) };
+  }
+}
+
 function readSection(section: SectionDocument, pointer: string): SectionStructure {
   const elements: CourseElement[] = [];
   const id = String(section.id ?? '');
@@ -230,20 +241,7 @@ function readSection(section: SectionDocument, pointer: string): SectionStructur
   } catch (error) {
     boundaryProblem = problemOf(error, `${pointer}/boundaries`);
   }
-  let height: Profile | null = null;
-  try {
-    const nodes = list(section.height).map((node, i) => {
-      const v = record(node);
-      return {
-        s: resolve(v.at as CoursePosition, `${pointer}/height/${i}/at`).s,
-        y: Number(v.y),
-        curveLength: Number(v.curveLength),
-      };
-    });
-    if (length !== null) height = new Profile(length, nodes);
-  } catch {
-    height = null;
-  }
+  const height = createSectionProfile(section, pointer, plan).profile;
 
   /** One element: its written positions and laterals resolved at the element's station. */
   const add = (
