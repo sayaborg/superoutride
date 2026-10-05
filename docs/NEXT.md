@@ -54,7 +54,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 Requirements left from the second design audit, by when they are taken up:
 
 - **Stage 15:**
-  - H18-01 (15-3): the HUD's `steeringRatio` is not copied per vehicle: one value for cars and one for motorcycles.
 - **Not addressed, with reasons:**
   - P7a-01 (content digest): `contentDigest` and `SHA256_TEXT` stay in core. The course layer, below content, derives
     the course build identity and verifies its image digests while compiling; moving the digest to content needs those

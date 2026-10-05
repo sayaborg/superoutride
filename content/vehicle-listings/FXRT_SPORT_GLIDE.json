@@ -1,9 +1,9 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 1,
+  "version": 2,
   "form": "bike",
   "selectionOrder": 8,
-  "visuals": { "spriteSet": "motorcycle", "palette": "original", "steeringRatio": 1 },
+  "visuals": { "spriteSet": "motorcycle", "palette": "original" },
   "sound": "FXRT_SPORT_GLIDE",
   "metadata": {
     "manufacturer": "Harley-Davidson",

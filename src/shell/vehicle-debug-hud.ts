@@ -108,11 +108,17 @@ function createVehicleDebugHudModel(
       1,
       brakeCapacity > 0 ? p.rearStation.maxBrakeTorque / brakeCapacity : 0,
     ),
-    handwheelAngle: vehicle.control.actualSteerAngle * entry.listing.visuals.steeringRatio,
+    handwheelAngle: vehicle.control.actualSteerAngle * HANDWHEEL_RATIO[entry.listing.form],
     longitudinalG: finiteG(vehicle.longitudinalAcceleration),
     lateralG: finiteG(vehicle.lateralAcceleration),
   };
 }
+
+/**
+ * The ratio of handwheel angle to road-wheel steer angle the DEV HUD shows handwheel angle with: one for every car and
+ * one for every motorcycle, whose bars turn with the wheel.
+ */
+const HANDWHEEL_RATIO = Object.freeze({ car: 18, bike: 1 });
 
 export function drawVehicleDebugHud(
   ctx: CanvasRenderingContext2D,

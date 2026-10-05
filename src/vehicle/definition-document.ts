@@ -40,10 +40,10 @@ export interface VehicleMechanicsDocument extends Omit<VehicleDefinition, 'id'> 
 /** The listing document: how a vehicle is named, ordered, drawn, heard and shown on the HUD. */
 export interface VehicleListingDocument {
   readonly format: 'superoutride.vehicle-listing';
-  readonly version: 1;
+  readonly version: 2;
   readonly form: VehicleForm;
   readonly selectionOrder: number;
-  readonly visuals: Readonly<{ spriteSet: string; palette: string; steeringRatio: number }>;
+  readonly visuals: Readonly<{ spriteSet: string; palette: string }>;
   readonly sound: string;
   readonly metadata: VehicleMetadata;
 }
@@ -153,7 +153,7 @@ export function compileVehicleListingDocument(
       value,
       ['format', 'version', 'form', 'selectionOrder', 'visuals', 'sound', 'metadata'],
       'superoutride.vehicle-listing',
-      1,
+      2,
     );
     requireAdmission(v.form === 'car' || v.form === 'bike', 'invalid_value', '/form', 'Expected car or bike');
     const selectionOrder = readNumber(v.selectionOrder, '/selectionOrder');
@@ -185,11 +185,10 @@ export function compileVehicleListingDocument(
       ),
       physicsAnchor: named(meta.physicsAnchor, '/metadata/physicsAnchor', ['modelYear', 'market']),
     } as unknown as VehicleMetadata;
-    const visual = readRecord(v.visuals, '/visuals', ['spriteSet', 'palette', 'steeringRatio']);
+    const visual = readRecord(v.visuals, '/visuals', ['spriteSet', 'palette']);
     const visuals = {
       spriteSet: readString(visual.spriteSet, '/visuals/spriteSet'),
       palette: readString(visual.palette, '/visuals/palette'),
-      steeringRatio: readNumber(visual.steeringRatio, '/visuals/steeringRatio', { min: 0 }),
     };
     if (!Object.hasOwn(sprites.sets, visuals.spriteSet))
       throw new AdmissionError(
@@ -211,7 +210,7 @@ export function compileVehicleListingDocument(
       throw new AdmissionError('unresolved_reference', '/sound', `Unknown sound ID: ${soundId}`);
     const source = deepFreeze({
       format: 'superoutride.vehicle-listing',
-      version: 1,
+      version: 2,
       form: v.form,
       selectionOrder,
       visuals,

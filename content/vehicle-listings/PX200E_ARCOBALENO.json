@@ -1,9 +1,9 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 1,
+  "version": 2,
   "form": "bike",
   "selectionOrder": 9,
-  "visuals": { "spriteSet": "motorcycle", "palette": "original", "steeringRatio": 1 },
+  "visuals": { "spriteSet": "motorcycle", "palette": "original" },
   "sound": "PX200E_ARCOBALENO",
   "metadata": {
     "manufacturer": "Vespa",

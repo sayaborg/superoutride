@@ -1,9 +1,9 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 1,
+  "version": 2,
   "form": "car",
   "selectionOrder": 1,
-  "visuals": { "spriteSet": "coupe", "palette": "original", "steeringRatio": 18 },
+  "visuals": { "spriteSet": "coupe", "palette": "original" },
   "sound": "TESTAROSSA",
   "metadata": {
     "manufacturer": "Ferrari",

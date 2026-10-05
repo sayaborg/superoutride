@@ -496,7 +496,7 @@ order is unchanged. This is a conservative current-contact slip constraint.
 
 HUD observations include input, actuators, automatic steering, requested/delivered offsets, target/actual
 rack, requested/delivered torques, the clutch observation, the selected gear and the last shift. The race copies the
-product HUD's subset into each competitor observation ([Architecture](architecture.md)). The DEV HUD shows handwheel angle through the listing's `steeringRatio`.
+product HUD's subset into each competitor observation ([Architecture](architecture.md)). The DEV HUD shows handwheel angle at a fixed ratio to the road-wheel steer angle, 18 for cars and 1 for motorcycles, whose bars turn with the wheel (`HANDWHEEL_RATIO` in the [DEV vehicle HUD](../src/shell/vehicle-debug-hud.ts)).
 The mechanical state and compiled mechanics contain neither handwheel angle nor ratio. The bike lean display is
 `atan2(lateralAcceleration,g)`, the equilibrium lean of the rider-and-machine centre-of-mass line, shown with
 discrete bank images that the sprite set's `bankDegrees` calibrates; physical state contains yaw and pitch.
@@ -527,7 +527,7 @@ runtime physics receives the resolved object or `null`, never a fixed material e
 A vehicle is two documents with the same identifier. `content/vehicles/<id>.json` stores its
 `superoutride.vehicle-mechanics` version 2 document: the vehicle's physical description — the values
 vehicle physics reads and its overall dimensions.
-`content/vehicle-listings/<id>.json` stores its `superoutride.vehicle-listing` version 1 document:
+`content/vehicle-listings/<id>.json` stores its `superoutride.vehicle-listing` version 2 document:
 everything else players see or hear of it. A value belongs to the mechanics document when it describes
 the physical vehicle and to the listing otherwise; `form` and the metadata's `physicsAnchor` therefore
 belong to the listing. `content/driving/default.json` stores the sole `superoutride.driving-definition` version 14.
@@ -548,14 +548,14 @@ admitted sprite set `spriteSet` and the engine sound `sound`).
 | `format`, `version` | `superoutride.vehicle-mechanics`, `2`                                           |
 | Remaining fields    | All `VehicleDefinition` fields except `id`, including `powertrain`, at the root |
 
-| Listing field       | Contract                                                                                                                                                                                                                                                                                                                           |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`, `version` | `superoutride.vehicle-listing`, `1`                                                                                                                                                                                                                                                                                                |
-| `form`              | `car` or `bike`; selects sprite bank dimensions and form-specific displays; physics does not read it                                                                                                                                                                                                                               |
-| `selectionOrder`    | Positive safe integer, unique across the catalog; ascending selection order independent of filenames and manifest order                                                                                                                                                                                                            |
-| `visuals`           | `spriteSet` names a vehicle sprite set; `palette` names its default color; `steeringRatio` is the finite nonnegative ratio of handwheel angle to road-wheel steer angle, from which the DEV HUD shows handwheel angle (`control.actualSteerAngle * steeringRatio`): 18 for cars, 1 for motorcycles, whose bars turn with the wheel |
-| `sound`             | Existing sound ID in the admitted engine-sound catalog ([Audio](audio.md#observations-and-engine-sounds))                                                                                                                                                                                                                          |
-| `metadata`          | Required manufacturer, model, period and mobileLabel strings; identifier (null or officialLabel/shortLabel); selectedSpecification string array; physicsAnchor (modelYear/market)                                                                                                                                                  |
+| Listing field       | Contract                                                                                                                                                                          |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`, `version` | `superoutride.vehicle-listing`, `2`                                                                                                                                               |
+| `form`              | `car` or `bike`; selects sprite bank dimensions and form-specific displays; physics does not read it                                                                              |
+| `selectionOrder`    | Positive safe integer, unique across the catalog; ascending selection order independent of filenames and manifest order                                                           |
+| `visuals`           | `spriteSet` names a vehicle sprite set; `palette` names its default color                                                                                                         |
+| `sound`             | Existing sound ID in the admitted engine-sound catalog ([Audio](audio.md#observations-and-engine-sounds))                                                                         |
+| `metadata`          | Required manufacturer, model, period and mobileLabel strings; identifier (null or officialLabel/shortLabel); selectedSpecification string array; physicsAnchor (modelYear/market) |
 
 Vehicle numerical domains and cross-field relationships are those of vehicle, suspension and
 powertrain compilation: positive mass/inertia/geometry, finite nonnegative brakes/drag/damping,
