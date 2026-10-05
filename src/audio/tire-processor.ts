@@ -55,7 +55,7 @@ class TireProcessor extends AudioWorkletProcessor {
   private readonly rest = new WorkletRest();
   static get parameterDescriptors() {
     return [
-      ...TIRE_COMPONENTS.map(({ key }) => ({ name: `mix_${key}`, ...TIRE_COMPONENT_RANGE, automationRate: 'k-rate' })),
+      ...TIRE_COMPONENTS.map((key) => ({ name: `mix_${key}`, ...TIRE_COMPONENT_RANGE, automationRate: 'k-rate' })),
       ...['front', 'rear'].flatMap((axle) =>
         Object.entries(TIRE_CONTROL_RANGES).map(([key, range]) => ({
           name: `${axle}_${key}`,

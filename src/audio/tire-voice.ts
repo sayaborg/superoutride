@@ -56,9 +56,9 @@ export function createTireVoice(
     },
     setComponents(value: TireComponents): void {
       if (disposed) return;
-      for (const { key } of TIRE_COMPONENTS)
+      for (const key of TIRE_COMPONENTS)
         if (typeof value[key] !== 'boolean') throw new RangeError('invalid tire component state');
-      for (const { key } of TIRE_COMPONENTS) node.parameters.get(`mix_${key}`)!.value = value[key] ? 1 : 0;
+      for (const key of TIRE_COMPONENTS) node.parameters.get(`mix_${key}`)!.value = value[key] ? 1 : 0;
     },
     update(state: VehicleAudioObservation): void {
       if (disposed) return;

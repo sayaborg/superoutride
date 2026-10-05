@@ -7,10 +7,17 @@ import {
 } from './mix-sound-settings-controls.js';
 import { createRangeControl } from './range-control.js';
 import { createNumberStepper } from './number-stepper.js';
-import { TIRE_COMPONENTS, type TireComponents } from '../../audio/tire-sound-components.js';
+import { TIRE_COMPONENTS, type TireComponent, type TireComponents } from '../../audio/tire-sound-components.js';
 import { audioSettingsDocument, type AudioSettings } from '../../audio/audio-document.js';
 import { SOUND_BUSES, type SoundBus } from '../../audio/sound-graph.js';
 import { downloadDefinition } from '../definition-export.js';
+
+/** The DEV screen's name for each tire component: its button label and description. */
+const TIRE_COMPONENT_LABELS: Readonly<Record<TireComponent, { readonly label: string; readonly description: string }>> =
+  Object.freeze({
+    rolling: Object.freeze({ label: 'R', description: 'Rolling' }),
+    friction: Object.freeze({ label: 'Q', description: 'Friction' }),
+  });
 
 /** What the DEV sound controls currently hold: the six settings records, volumes and R/Q components. */
 export interface SoundControlValues {
@@ -41,7 +48,8 @@ export function mountSoundControls(
   const componentState = { rolling: true, friction: true };
   let supported = true;
   const componentHost = root.getElementById('tire-component-controls');
-  const componentButtons = TIRE_COMPONENTS.map(({ key, label, description }) => {
+  const componentButtons = TIRE_COMPONENTS.map((key) => {
+    const { label, description } = TIRE_COMPONENT_LABELS[key];
     const button = root.createElement('button');
     button.type = 'button';
     button.className = 'selector-button';
@@ -128,7 +136,7 @@ export function mountSoundControls(
   function showComponents(): void {
     componentHost?.setAttribute(
       'aria-label',
-      `Tire sound components: ${TIRE_COMPONENTS.map(({ label, description }) => `${label} ${description}`).join(', ')}`,
+      `Tire sound components: ${TIRE_COMPONENTS.map((key) => `${TIRE_COMPONENT_LABELS[key].label} ${TIRE_COMPONENT_LABELS[key].description}`).join(', ')}`,
     );
     for (const { key, label, description, button } of componentButtons) {
       const on = componentState[key];

@@ -35,7 +35,7 @@
   appears at seeded Route positions from the series or FREE PLAY's TRAFFIC option; RIBBON COAST is the verification
   course of all of it.
 
-Next PR: **14-0e** — the sound layer holds no DEV labels.
+Next PR: **14-1a** — recordings and music documents are delivered and admitted.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -45,9 +45,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 Requirements left from the second design audit, by when they are taken up:
 
-- **Stage 14:**
-  - P7b-02: sound-layer definitions hold only sound values and ranges; the shell owns the DEV screen's labels and
-    descriptions (today `TIRE_COMPONENTS` carries them).
 - **Stage 15:**
   - P7a-01: core holds only mathematical primitives; format-specific readers of the admission toolkit and the content
     digest belong to the content side.
@@ -72,8 +69,6 @@ Requirements left from the second design audit, by when they are taken up:
 
 [Product](product.md#13-music-and-sound-effects) §13 states the target. The remaining PRs, in order:
 
-- **14-0e — Sound layer without DEV labels:** sound-layer definitions hold only sound values and ranges; the shell owns
-  the DEV screen's labels and descriptions (P7b-02).
 - **14-1a — Recordings delivered:** AAC recordings and music documents are authored content in the manifest, verified
   by SHA-256 and admitted at build with diagnostics.
 - **14-1b — Recording playback:** one sound-layer player plays recordings once or looped on a bus; a `music` bus; the
