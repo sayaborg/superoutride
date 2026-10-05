@@ -12,7 +12,7 @@ import {
   resolveCourseLateral,
   resolveLateralInterval,
 } from '../../src/course/compiler/course-lateral.js';
-import type { CompiledBoundary } from '../../src/course/course-boundaries.js';
+import { courseLaneCenterAt, type CompiledBoundary } from '../../src/course/course-boundaries.js';
 import { expandCourseElements, type CourseRepeatCopy, type RepeatElement } from '../../src/course/course-repeat.js';
 import { createPlanCoordinateReader } from '../../src/course/geometry/plan-coordinate-reader.js';
 import { createPlanCoordinateSample } from '../../src/course/geometry/plan-coordinate.js';
@@ -157,29 +157,59 @@ export function readCourseStructure(value: unknown): CourseStructure {
   };
 }
 
+/**
+ * A Section's plan as the compiler builds it: its ruler `length`, plan segments and PI stations, the plan point and
+ * heading of (s, l), and the station nearest a plan point. Null with the problem when the plan does not compile.
+ */
+export function createSectionPlan(section: SectionDocument, pointer: string) {
+  let geometry: ReturnType<typeof compileCourseGeometry>;
+  try {
+    geometry = compileCourseGeometry(section, pointer);
+  } catch (error) {
+    return { plan: null, problem: problemOf(error, `${pointer}/pis`) };
+  }
+  const reader = createPlanCoordinateReader(geometry.segments, geometry.length, (_s, out) => {
+    out.left = -COURSE_DOCUMENT_LIMITS.lateralMeters;
+    out.right = COURSE_DOCUMENT_LIMITS.lateralMeters;
+    return out;
+  });
+  const sample = createPlanCoordinateSample();
+  const candidate = { s: 0, l: 0, isFoot: false, distanceSquared: 0 };
+  const candidates = reader.projectionCandidates(0, geometry.length);
+  return {
+    plan: Object.freeze({
+      length: geometry.length,
+      segments: geometry.segments,
+      stations: geometry.stations,
+      toWorld(s: number, l: number) {
+        const point = reader.toWorld(s, l, sample);
+        return { x: point.x, z: point.z, heading: point.heading };
+      },
+      /** The station and lateral of the plan point nearest `(x, z)` on the Section's ruler. */
+      nearest(x: number, z: number) {
+        let best = { s: 0, l: 0, distanceSquared: Infinity };
+        for (const interval of candidates) {
+          interval.project({ x, z }, interval.start, interval.end, candidate);
+          if (candidate.distanceSquared < best.distanceSquared)
+            best = { s: candidate.s, l: candidate.l, distanceSquared: candidate.distanceSquared };
+        }
+        return { s: best.s, l: best.l };
+      },
+    }),
+    problem: null,
+  };
+}
+export type SectionPlan = NonNullable<ReturnType<typeof createSectionPlan>['plan']>;
+
 function readSection(section: SectionDocument, pointer: string): SectionStructure {
   const elements: CourseElement[] = [];
   const id = String(section.id ?? '');
   // The plan: PI stations, the ruler and the coordinate reader that places (s, l) in the plan.
-  let plan: ReturnType<typeof compileCourseGeometry> | null = null,
-    planProblem: Problem | null = null;
-  try {
-    plan = compileCourseGeometry(section, pointer);
-  } catch (error) {
-    planProblem = problemOf(error, `${pointer}/pis`);
-  }
+  const { plan, problem: planProblem } = createSectionPlan(section, pointer);
   const length = plan?.length ?? null;
-  const reader = plan
-    ? createPlanCoordinateReader(plan.segments, plan.length, (_s, out) => {
-        out.left = -COURSE_DOCUMENT_LIMITS.lateralMeters;
-        out.right = COURSE_DOCUMENT_LIMITS.lateralMeters;
-        return out;
-      })
-    : null;
-  const sample = createPlanCoordinateSample();
   const world = (s: number | null, l: number | null) => {
-    if (!reader || s === null) return { x: null, z: null };
-    const point = reader.toWorld(s, l ?? 0, sample);
+    if (!plan || s === null) return { x: null, z: null };
+    const point = plan.toWorld(s, l ?? 0);
     return { x: point.x, z: point.z };
   };
   const resolve = (at: CoursePosition, path: string) => {
@@ -522,10 +552,33 @@ function readSection(section: SectionDocument, pointer: string): SectionStructur
       );
     else add('gate', at, v, { positions: ['at'], values: { kind: v.kind, id: v.id, carriageway: v.carriageway } });
   });
+  // Carriageways: each lane's centre line over the road's existence, as the race reads it.
   list(section.carriageways).forEach((road, i) => {
     const v = record(road);
+    const left = boundaries.get(String(v.left)),
+      right = boundaries.get(String(v.right)),
+      lanes = Number(v.lanes);
+    const lines: Record<string, ResolvedLine> = {};
+    let station: { s: number; l: number } | undefined;
+    if (left && right && Number.isInteger(lanes) && lanes > 0) {
+      const start = Math.max(left.vertices[0]!.at.s, right.vertices[0]!.at.s),
+        end = Math.min(left.vertices.at(-1)!.at.s, right.vertices.at(-1)!.at.s);
+      const stations = [...new Set([start, end, ...[...left.vertices, ...right.vertices].map((vertex) => vertex.at.s)])]
+        .filter((s) => s >= start && s <= end)
+        .sort((a, b) => a - b);
+      const carriageway = { id: String(v.id), left, right, lanes };
+      for (let lane = 0; lane < lanes; lane++)
+        lines[`lane${lane}`] = stations.map((s) => ({
+          s,
+          l: courseLaneCenterAt(carriageway, lane, s),
+          authored: false,
+        }));
+      if (stations.length) station = { s: stations[0]!, l: lines.lane0![0]!.l };
+    }
     add('carriageway', `${pointer}/carriageways/${i}`, v, {
       values: { id: v.id, left: v.left, right: v.right, lanes: v.lanes },
+      lines,
+      station,
     });
   });
   return { id, pointer, length, elements };
