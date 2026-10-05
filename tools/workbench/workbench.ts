@@ -92,6 +92,13 @@ function start(index: AuthoredIndex, published: ContentStore) {
     commit,
     compile: () => state,
     changes: () => history.changes,
+    paths() {
+      const paths = new Set(index.files.map((file) => file.path));
+      for (const [path, bytes] of history.changes)
+        if (bytes) paths.add(path);
+        else paths.delete(path);
+      return [...paths].sort();
+    },
     replace: (path: string, value: unknown, label = `Edit ${path}`) =>
       void edit(path, new TextEncoder().encode(formatSavedJson(value)), label),
     setFile: (path: string, bytes: Uint8Array<ArrayBuffer> | null, label = `${bytes ? 'Set' : 'Delete'} ${path}`) =>

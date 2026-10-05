@@ -37,7 +37,7 @@ h2 {
 #status[data-state='ok'] {
   color: var(--good);
 }
-nav {
+#modules {
   display: flex;
   gap: 4px;
   padding: 8px 16px;
@@ -133,4 +133,83 @@ dialog {
 }
 .diff .added {
   color: var(--good);
+}
+
+.documents {
+  display: grid;
+  grid-template-columns: minmax(200px, 260px) minmax(0, 1fr);
+  gap: 12px;
+}
+.document-list {
+  display: block;
+  padding: 0;
+  overflow: auto;
+  max-height: calc(100vh - 110px);
+}
+.document-list button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: none;
+  padding: 1px 8px;
+}
+.document-list button[aria-pressed='true'] {
+  background: var(--panel);
+}
+.document-list .has-diagnostics {
+  color: var(--bad);
+}
+.document {
+  overflow: auto;
+  max-height: calc(100vh - 110px);
+}
+.tree {
+  font:
+    13px/1.5 ui-monospace,
+    monospace;
+}
+.tree .children {
+  padding-left: 16px;
+  border-left: 1px solid var(--line);
+  margin-left: 4px;
+}
+.tree .key {
+  color: var(--accent);
+}
+.tree .size,
+.tree .inside {
+  color: var(--muted);
+}
+.tree .inside {
+  color: var(--bad);
+}
+.tree input.value {
+  font: inherit;
+  padding: 0 4px;
+}
+.tree input.invalid {
+  border-color: var(--bad);
+}
+.tree .diagnostic,
+.json-editor .diagnostic {
+  color: var(--bad);
+  padding-left: 16px;
+}
+.tree .revealed {
+  outline: 2px solid var(--bad);
+}
+.swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-left: 6px;
+  vertical-align: middle;
+  border: 1px solid var(--line);
+}
+.json-editor textarea {
+  width: 100%;
+  font:
+    12px/1.4 ui-monospace,
+    monospace;
 }

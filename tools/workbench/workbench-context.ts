@@ -28,6 +28,8 @@ export interface WorkbenchContext {
   readonly published: ContentStore;
   /** The session's changes: each changed path's bytes, or null for a deleted file. */
   changes(): ReadonlyMap<string, Uint8Array<ArrayBuffer> | null>;
+  /** Every path the store holds, sorted. */
+  paths(): readonly string[];
   /** Return a path to the build's own file: one edit. */
   revert(path: string): void;
   /** The published build's commit. */

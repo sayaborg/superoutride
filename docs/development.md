@@ -180,6 +180,15 @@ is deleted). **Open archive** restores the changes as one step. When the archive
 it changes was changed by this build too, the workbench names the file and asks which version to keep; it never merges.
 Leaving the page with unsaved changes asks first.
 
+The Documents module is the one view of every kind of document. It lists the store's files by directory, marking
+changed files and files with diagnostics, and shows a document's JSON tree: numbers, strings, booleans and null are
+edited in place, confirmed with Enter or by leaving the field (text that is not a value stays in the field and is not
+saved), and an RGB555 color field shows its color. Adding, removing and reordering entries edit a container's JSON
+text, shown in the saved layout. Each confirmed edit replaces the document, one step, and compiles. Diagnostics show at
+their JSON Pointer, or at the nearest existing parent with the pointer named; choosing a diagnostic in the list opens
+its document there. Containers open on demand, a long one 200 entries at a time, so large image documents open
+without expanding.
+
 To apply an archive to the repository, extract it at the repository root, delete the files `workbench-changes.json`
 marks `deleted`, delete `workbench-changes.json`, then run `npm run check` and `npm run build`. Authors without a
 checkout hand the archive to the implementer.
