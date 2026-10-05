@@ -12,9 +12,9 @@ import {
   readIdentified,
   readNumber,
   readRecord,
-  readRgb555,
   readString,
 } from '../core/admission.js';
+import { readRgb555 } from '../image/rgb555.js';
 
 const COURSE_DOCUMENT_VERSION = 40;
 const ID = { maxLength: COURSE_DOCUMENT_LIMITS.idCodeUnits };

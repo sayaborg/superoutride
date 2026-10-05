@@ -1,4 +1,5 @@
-import { readArray, readNumber, readRgb555 } from '../core/admission.js';
+import { readArray, readNumber } from '../core/admission.js';
+import { readRgb555 } from './rgb555.js';
 
 /** Shared sprite/tile source symbols. The owned runtime pattern packs two symbols per byte. */
 export class IndexedPattern {

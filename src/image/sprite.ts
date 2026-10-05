@@ -4,10 +4,10 @@ import {
   readDocument,
   readNumber,
   readRecord,
-  readRgb555,
   readString,
   requireAdmission,
 } from '../core/admission.js';
+import { readRgb555 } from './rgb555.js';
 import { IndexedPattern, readIndexedPalette, readPatternSymbol } from './indexed-image.js';
 import { evaluatePaletteMixture, linearToRgb555, selectImageLodLevel, type PaletteMixture } from './image-filter.js';
 // Dimensionless weight sum: 10^-10 normalization budget for serialized mixture sums.

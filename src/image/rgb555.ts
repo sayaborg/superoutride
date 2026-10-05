@@ -1,3 +1,5 @@
+import { readNumber } from '../core/admission.js';
+
 const endianProbe = new Uint32Array([0x0a0b0c0d]);
 
 const LITTLE_ENDIAN = new Uint8Array(endianProbe.buffer)[0] === 0x0d;
@@ -31,6 +33,11 @@ export function unpackRgba(color: number): { r: number; g: number; b: number; a:
     b: (color >>> 8) & 0xff,
     a: color & 0xff,
   };
+}
+
+/** Admit an RGB555 color integer. */
+export function readRgb555(value: unknown, path: string): number {
+  return readNumber(value, path, { min: 0, max: 0x7fff, integer: true });
 }
 
 /** Pack the framebuffer's RGBA value into opaque RGB555 storage. */

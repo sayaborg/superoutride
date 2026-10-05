@@ -191,11 +191,6 @@ export function readNumber(
   return Object.is(value, -0) ? 0 : value;
 }
 
-/** RGB555 color integer. */
-export function readRgb555(value: unknown, path: string): number {
-  return readNumber(value, path, { min: 0, max: 0x7fff, integer: true });
-}
-
 export function readEnum<T extends string>(value: unknown, allowed: readonly T[], path: string): T {
   if (typeof value !== 'string' || !allowed.includes(value as T))
     throw new AdmissionError('invalid_value', path, `Expected one of ${allowed.join(', ')}`);

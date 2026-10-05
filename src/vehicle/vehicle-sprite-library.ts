@@ -6,9 +6,9 @@ import {
   readEmbedded,
   readNumber,
   readRecord,
-  readRgb555,
   requireAdmission,
 } from '../core/admission.js';
+import { readRgb555 } from '../image/rgb555.js';
 import { readSpriteLodAsset, spriteLodLayout, type SpriteAsset, type SpriteLodDocument } from '../image/sprite.js';
 import type { VehicleSpriteSet } from './vehicle-sprite-set.js';
 

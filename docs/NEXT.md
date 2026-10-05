@@ -52,8 +52,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 Requirements left from the second design audit, by when they are taken up:
 
 - **Stage 15:**
-  - P7a-01: core holds only mathematical primitives; format-specific readers of the admission toolkit and the content
-    digest belong to the content side.
   - P7a-02: reading the manifest's saved format and delivery (fetch, digest verification, decode) have separate owners
     (today both are in `content-manifest.ts`).
   - A6g-07 (15-5): the procedural identities — reference driving, envelope measurement and the driving policy — come
@@ -64,6 +62,9 @@ Requirements left from the second design audit, by when they are taken up:
     expanded field (form, sound, sprite set, metadata).
   - H18-01 (15-4): the HUD's `steeringRatio` is not copied per vehicle: one value for cars and one for motorcycles.
 - **Not addressed, with reasons:**
+  - P7a-01 (content digest): `contentDigest` and `SHA256_TEXT` stay in core. The course layer, below content, derives
+    the course build identity and verifies its image digests while compiling; moving the digest to content needs those
+    two duties moved to content or the digest passed into the course compiler.
   - D8c-03: only the DEV vehicle HUD reads the player's vehicle state directly (`playerDiagnostics`); no product path
     does.
   - D8e-05: the surface sounds and the material catalog must match exactly at startup too, as the documented contract

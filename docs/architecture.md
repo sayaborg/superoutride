@@ -24,12 +24,13 @@ Its shape readers check a JSON value and throw one `AdmissionError` addressed by
 with exactly the named fields; unknown fields first, then missing ones), `readDictionary` (a JSON object of
 named entries), `readString` (nonempty, no surrounding whitespace, optional length ceiling and pattern), `readBoolean`,
 `readNumber` (finite, optional closed or half-open range and integer; negative zero reads as zero),
-`readRgb555`, `readEnum`, `readArray` (optional floor, ceiling or exact length), `readIdentified` (unique
+`readEnum`, `readArray` (optional floor, ceiling or exact length), `readIdentified` (unique
 `id` values) and `deepFreeze`, the one recursive freeze in the product: it ends at cycles and does not walk
 again what it has already frozen. A JSON object is a non-array object whose prototype is the plain object
 prototype or none, for records and dictionaries alike. A wrong type is `invalid_shape`; a string outside
 its declared pattern, such as an ID or a SHA-256 digest (`SHA256_TEXT`), is `invalid_value`. Formats keep their semantic checks and report them through the same
-error, with `requireAdmission` or a format subclass carrying its own codes.
+error, with `requireAdmission` or a format subclass carrying its own codes. Readers of one format's values belong to
+that format's owner, such as `readRgb555` in [`image/rgb555.ts`](../src/image/rgb555.ts).
 
 Every expected admission failure is one diagnostic:
 
@@ -613,7 +614,7 @@ belong inside that domain; an upper domain depends only on lower domains, and sa
 | Order | Layer   | Responsibility                                                                                                                                                                                                                                                                                                  |
 | ----- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1     | core    | General mathematics, vectors, planar transforms, the admission toolkit and content digests                                                                                                                                                                                                                      |
-| 2     | image   | Indexed images, RGB555/RGBA codecs, palettes, sprite/LOD formats, BG tiles and image filters                                                                                                                                                                                                                    |
+| 2     | image   | Indexed images, RGB555/RGBA codecs and the RGB555 reader, palettes, sprite/LOD formats, BG tiles and image filters                                                                                                                                                                                              |
 | 3     | audio   | Sound synthesis, voices and the sound graph                                                                                                                                                                                                                                                                     |
 | 4     | course  | Course documents and compilation, road geometry, lanes, walls, course limits and roadside objects, materials, the coordinate domain, occurrences, environment timelines and shared Route readers                                                                                                                |
 | 5     | vehicle | Vehicle mechanics, vehicle and driving document compilation, vehicle sprite sets (library admission, color/lamp variants, yaw/bank selection) and accepted operation requests                                                                                                                                   |
