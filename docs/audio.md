@@ -202,8 +202,9 @@ A looped playback starts at the recording's beginning and, once it reaches `loop
 sample-accurately (the source's own loop). A playback from the beginning starts at full volume, since recordings start
 at their first sample; pausing fades out with the silence fade (`fadeSeconds`) and stops the source after the
 transition time (`transitionSeconds`), keeping the position, and playing again starts a new source from that position
-with the silence fade in. Stopping fades the same way and ends the playback; a fade-out ramps linearly to zero over a
-given time and ends it.
+with the silence fade in. A playback sounds one source at a time: playing again before the paused source has stopped
+starts the new source when it stops. Stopping fades the same way and ends the playback; a fade-out ramps linearly to
+zero over a given time and ends it.
 
 The shell's [recording player](../src/shell/recording-player.ts) decodes off the frame and menu path: a request returns
 at once and sounds when its recording is decoded, unless it was stopped first. Decoded effects and impacts are kept;

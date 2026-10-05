@@ -25,7 +25,8 @@ export interface RecordingPlayback {
  * Play `buffer` into `destination` at `volume` (0–1), once or looped. Each playback has its own source and gain, so
  * playbacks of one recording overlap. A loop runs sample-accurately between its points (the source's own loop). A
  * playback starting from the beginning starts at full volume; one continuing from a pause fades in with the silence
- * fade (`fadeSeconds`), and pause and stop fade out with it before the source stops (`transitionSeconds`).
+ * fade (`fadeSeconds`), and pause and stop fade out with it before the source stops (`transitionSeconds`). A playback
+ * sounds one source at a time: playing again before a paused source has stopped starts when it stops.
  */
 export function createRecordingPlayback(
   context: BaseAudioContext,
@@ -38,13 +39,15 @@ export function createRecordingPlayback(
   gain.gain.value = 0;
   gain.connect(destination);
   let source: AudioBufferSourceNode | null = null;
-  // While playing: the context time the source started and the position it started from.
+  // While playing: the context time the source starts and the position it starts from. A released source sounds
+  // until `releasedUntil`.
   let startedAt = 0,
     offset = 0,
+    releasedUntil = 0,
     ended = false;
   const position = (): number => {
     if (!source) return offset;
-    const elapsed = offset + (context.currentTime - startedAt);
+    const elapsed = offset + Math.max(0, context.currentTime - startedAt);
     if (loop && elapsed >= loop.end) return loop.start + ((elapsed - loop.start) % (loop.end - loop.start));
     return Math.min(elapsed, buffer.duration);
   };
@@ -54,6 +57,7 @@ export function createRecordingPlayback(
     if (!playing) return;
     offset = position();
     source = null;
+    releasedUntil = Math.max(releasedUntil, at);
     playing.stop(at);
   };
   const pause = (): void => {
@@ -65,7 +69,8 @@ export function createRecordingPlayback(
     play(): void {
       if (ended || source) return;
       if (!loop && offset >= buffer.duration) return;
-      const now = context.currentTime;
+      const now = context.currentTime,
+        at = Math.max(now, releasedUntil);
       const playing = context.createBufferSource();
       playing.buffer = buffer;
       if (loop) {
@@ -83,13 +88,15 @@ export function createRecordingPlayback(
         }
         if (ended && !source) gain.disconnect();
       };
-      if (offset === 0) {
+      // A source still released keeps its fade to silence; this one fades in when it stops.
+      if (at > now) gain.gain.setTargetAtTime(volume, at, control().fadeSeconds);
+      else if (offset === 0) {
         gain.gain.cancelScheduledValues(now);
         gain.gain.setValueAtTime(volume, now);
       } else follow(gain.gain, volume, now, control().fadeSeconds);
-      playing.start(now, offset);
+      playing.start(at, offset);
       source = playing;
-      startedAt = now;
+      startedAt = at;
     },
     pause,
     stop(): void {
