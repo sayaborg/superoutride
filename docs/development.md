@@ -240,7 +240,7 @@ mechanics, vehicle listing, driving, material, surface-sound, wall-sound, audio,
 encoding, so the build knows their delivered digests before staging them. Recordings are not JSON: each is delivered
 as the exact bytes its author placed under `content/`. Entries contain no payload
 format/version. The delivery layout (`layoutDelivery` in
-[`content-manifest.ts`](../tools/build/content-manifest.ts)) is the only authority for these kinds, IDs and paths under
+[`delivery-layout.ts`](../tools/authoring/delivery-layout.ts)) is the only authority for these kinds, IDs and paths under
 `dist/delivery/`:
 
 | Kind              | ID                                                                                          | Path                                | Content                                                                                                      |

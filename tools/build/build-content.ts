@@ -1,6 +1,6 @@
 import { compileContent } from '../authoring/compile-content.js';
 import { mkdir, writeFile } from 'node:fs/promises';
-import { layoutDelivery } from './content-manifest.js';
+import { layoutDelivery } from '../authoring/delivery-layout.js';
 import { createNodeContentStore } from './node-content-store.js';
 
 /**

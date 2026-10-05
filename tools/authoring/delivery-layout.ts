@@ -1,7 +1,7 @@
 import { contentDigest } from '../../src/core/content-digest.js';
 import { requireLoaded, type ContentKind } from '../../src/content/content-load-error.js';
 import { readContentManifest, type ContentEntry } from '../../src/content/content-manifest.js';
-import type { DeliveredFile } from '../authoring/compile-content.js';
+import type { DeliveredFile } from './compile-content.js';
 
 function contentPath(kind: ContentKind, id: string, sha256: string): string {
   switch (kind) {
