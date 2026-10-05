@@ -61,8 +61,9 @@ at zero friction work.
 
 ## Friction synthesis
 
-[UNIFIED synthesis](../src/audio/tire-unified-model.ts) drives two passive vibration resonances through one
-scalar nonlinear friction input. With `x_i=omega_i*q_i`, modal velocity `v_i` and participation
+The [friction synthesis](../src/audio/friction-synthesis.ts) is one friction system, which
+[UNIFIED synthesis](../src/audio/tire-unified-model.ts) uses as its Q beside rolling R. It drives two passive vibration
+resonances ([friction resonator](../src/audio/friction-resonator.ts)) through one scalar nonlinear friction input. With `x_i=omega_i*q_i`, modal velocity `v_i` and participation
 normalized to `sum(b_i²)=1`:
 
 ```text
