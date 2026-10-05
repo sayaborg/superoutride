@@ -136,7 +136,10 @@ them, removes saved products no catalog vehicle or series course owns, and print
 time (`before`, `after` and `difference` by gate and lap). `regenerate` measures and writes everything. `compare`
 measures everything, writes nothing, and fails listing the files that would change; CI does not run it. `trace` writes
 one complete envelope measurement, or with `--course` one reference run of a series course (route index and laps
-optional), to a disposable file. Vehicles are measured in parallel on up to four workers.
+optional), to a disposable file. Vehicles are measured in parallel on up to four workers. The measurement itself
+(which products are stale, the jobs, the saved files) is one implementation in
+[`tools/authoring/measure.ts`](../tools/authoring/measure.ts), free of Node and the browser; the tool and the
+workbench differ only in how they start workers and write files.
 
 ### Browser tools
 
