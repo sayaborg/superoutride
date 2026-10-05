@@ -112,10 +112,6 @@ export async function loadCourse(file: string, imagesDirectory?: string) {
     content,
   };
 }
-/** Reads the files of `directory` by name. */
-export function readDirectoryFile(directory: string) {
-  return async (file: string) => new Uint8Array(await readFile(path.join(directory, file)));
-}
 export async function atomicWrite(file: string, data: string | Uint8Array) {
   await mkdir(path.dirname(file), { recursive: true });
   const temporary = `${file}.${randomUUID()}.tmp`;

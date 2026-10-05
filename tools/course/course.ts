@@ -51,6 +51,9 @@ try {
       course: string;
       identity: CompiledCourse['identity'];
       sections: { id: string; length: number; sprites: number }[];
+      type?: CompiledCourse['type'];
+      entrySection?: string;
+      forks?: { section: string; lock: number; closure: number; exits: unknown[] }[];
       ground?: Record<string, number>;
       render?: RenderFrame | { frames: RenderFrame[] };
       report?: Awaited<ReturnType<typeof courseReport>>;
@@ -67,6 +70,20 @@ try {
     const section = opts.has('--section') ? course.sections.find((s) => s.id === opts.get('--section')) : course.entry;
     requireInput(section, '/section', 'Unknown Section');
     if (verb === 'compile') {
+      result.type = course.type;
+      result.entrySection = course.entry.id;
+      result.forks = course.sections.flatMap(({ id, fork }) =>
+        fork
+          ? [
+              {
+                section: id,
+                lock: fork.lock.s,
+                closure: fork.closure.s,
+                exits: fork.exits.map(({ link, ...exit }) => ({ ...exit, link: link.id })),
+              },
+            ]
+          : [],
+      );
       // The report sums each Section's color ground metrics; the maximum is the course maximum.
       const metrics = course.sections.map((s) => s.color.metrics);
       const sum = (key: 'expandedStrips' | 'preblendCells' | 'lateralFields' | 'coefficientBytes' | 'directoryBytes') =>

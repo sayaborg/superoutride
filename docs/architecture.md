@@ -644,7 +644,7 @@ bytes) with the compiled products tools consume, or the admission diagnostics an
 callers. File I/O, workers and exit codes belong to the entries. Nothing the core reaches imports a Node module or the
 shell; the dependency check enforces this rule.
 
-There are no other dependency exceptions. Course project sessions, text parsing/saving and reference
+There are no other dependency exceptions. Course commands and reference
 production belong to `tools/course`; the product retains shared course admission, live driving policy,
 and envelope/time-budget readers. Sprite normalization, palette generation, LOD compilation and
 fixtures belong to `tools/graphics`. Shared image formats, filters, codecs and product limits remain

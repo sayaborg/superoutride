@@ -23,7 +23,6 @@ export async function referenceModelIdentity() {
     'tools/course/reference-run.ts',
     'tools/course/rival-envelope-measurement.ts',
     'tools/build/build-course-reference-worker.ts',
-    'tools/course/course-project.ts',
     'tools/course/course-reference.ts',
     'tools/course/reference-driving-policy.ts',
   );

@@ -113,7 +113,7 @@ npm run course -- envelope --vehicle TESTAROSSA --out /tmp/envelope.json
 node --import tsx tools/course/measure.ts request.json --out observations.json
 ```
 
-`npm run compile:course -- <source.json> [--images directory]` reports the compiled course. The `reference` and
+`compile` reports the compiled course: its identity, type, entry Section, Sections, forks and ground metrics. The `reference` and
 `envelope` diagnostic exports require `--vehicle` with a catalog vehicle ID and `--out`.
 [Content and gameplay](content-and-gameplay.md#observation-formats) owns saved tool formats.
 The render command uses the shared product scene; reports and preview images are disposable outputs.
@@ -123,12 +123,10 @@ The render command uses the shared product scene; reports and preview images are
 Run `npm run build`, then serve the repository root with `python3 -m http.server 8000`.
 Open the generated pages, not the source HTML templates:
 
-| Tool            | Local URL                                                    |
-| --------------- | ------------------------------------------------------------ |
-| Sprite Tool     | `http://localhost:8000/dist/tools/graphics/sprite-tool.html` |
-| LOD preview     | `http://localhost:8000/dist/tools/graphics/sprite-lod.html`  |
-| Engine audition | `http://localhost:8000/dist/tools/audio/audio-browser.html`  |
-| Tire audition   | `http://localhost:8000/dist/tools/audio/tire-browser.html`   |
+| Tool        | Local URL                                                    |
+| ----------- | ------------------------------------------------------------ |
+| Sprite Tool | `http://localhost:8000/dist/tools/graphics/sprite-tool.html` |
+| LOD preview | `http://localhost:8000/dist/tools/graphics/sprite-lod.html`  |
 
 On Pages these same `tools/...` paths live beneath `build/<commit>/`, where `<commit>` is the
 published `version.txt` value. Each tool, its shared chunks, worklets, stylesheet and sample assets
@@ -137,17 +135,9 @@ resolve within that one build. The ordinary build command is the only generation
 The file compilers are `npm run build:sprite-source -- <arguments>` and
 `npm run build:sprite-lod -- <arguments>`; [Image assets](image-assets.md) owns their formats.
 
-### Audio audition
+### Listening on devices
 
-Both auditions use production voices and render at 48 kHz with fixed playback gain; game audio uses
-the device's supported native rate. [Browser tools](#browser-tools) gives the build and opening instructions.
-
-For engine adjustment, select a catalog vehicle and compare steady RPM/excitation with acceleration
-and coast. Commit settings before the next audition playback. Keep playback gain fixed when comparing
-timbre or output level. For tire adjustment, use independent front/rear/both scenarios for rolling,
-cornering, wheel lock, loose surfaces and release. R/Q output controls isolate the two components.
-[Calibration](calibration.md) gives values; the audio specifications define their effect.
-
+Sound settings are tuned by ear with `dev=1` in the game ([Browser](browser.md#sound-controls)).
 On a device, check media volume and silent mode, then use SOUND START. Browser context state and audible
 speaker output are separate observations. Record device/browser, scenario, settings and listening
 findings with the change. [NEXT](NEXT.md) owns outstanding tuning and device work.

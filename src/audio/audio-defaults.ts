@@ -10,7 +10,7 @@ import type { ImpactSettings } from './impact-acoustics.js';
 
 /**
  * The implementer's default sound settings: the one authority for each resolver's omitted values, and the
- * settings of assemblies without the delivered audio document (the audition tools). The game reads the document.
+ * settings of an assembly built without the delivered audio document. The game reads the document.
  * Values are not measured and not chosen by the owner's listening.
  */
 export const DEFAULT_AUDIO_SETTINGS: AudioSettings = Object.freeze({

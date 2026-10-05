@@ -26,8 +26,7 @@ The product display setting defaults to LEVEL-POINT; DEV provides its live selec
 ## Controls and authoring
 
 [Browser](docs/browser.md) defines keyboard/touch operation, Session setup, URLs and DEV controls.
-[Development](docs/development.md) lists course compilation, PNG previews, reports, graphics tools and
-audio auditions. Authored content lives under `content/`; generated outputs are disposable.
+[Development](docs/development.md) lists course compilation, PNG previews, reports and graphics tools. Authored content lives under `content/`; generated outputs are disposable.
 
 ## Structure
 

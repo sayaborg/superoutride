@@ -141,7 +141,6 @@ test('root and layer direction rejects inverse dependencies without broad exempt
   assert.throws(() => checkDirection('tools/build/a.ts', 'dist/core/b.js'), /source imports delivery output/);
   assert.throws(() => checkDirection('src/image/a.ts', 'dist/core/b.js'), /source imports delivery output/);
   assert.throws(() => checkDirection('tools/graphics/a.ts', 'dist/core/b.js'), /source imports delivery output/);
-  assert.throws(() => checkDirection('tools/audio/a.ts', 'dist/core/b.js'), /source imports delivery output/);
   assert.doesNotThrow(() => checkDirection('tools/build/a.ts', 'src/core/b.ts'));
   assert.throws(() => checkDirection('tools/course/a.ts', 'src/shell/b.ts'), /tool depends on shell/);
   assert.doesNotThrow(() => checkDirection('tools/graphics/a.ts', 'src/shell/dom.ts'));

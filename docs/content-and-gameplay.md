@@ -573,17 +573,6 @@ schema reports a deterministic first error; independent semantic failures follow
 Expected failures include shape, version, reference, resource, geometry, coverage, material, topology
 and appearance errors. Failed compilation publishes no partial product.
 
-`tools/course/course-project.ts` owns live source/publication state through `createCourseProject`,
-text parsing through the shared product document reader, and saving of the admitted source. `editDocument` installs a schema-valid
-immutable draft; a changed normalized value makes the prior product stale, while an equal value
-keeps it current. `save` accepts semantic drafts. `importDocument` installs parsed source and compiled
-product together on success. Failed imports/builds preserve source and prior successful output.
-Stale output is comparison data and cannot be exported as the edited course.
-
-`compile(assetSources)` and `importDocument(text,assetSources)` use explicit image inputs.
-A superseded operation cannot publish over a newer source. `no_source` and `stale_source` are project
-outcomes. API shape/domain errors follow [AGENTS](../AGENTS.md); unexpected internal faults remain visible.
-
 ## Shared route occurrences
 
 All vehicles use one selected sequence of RouteOccurrences, including repeated circuit laps. Route

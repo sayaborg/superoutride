@@ -4,8 +4,7 @@ Audio renders completed vehicle observations and never changes them. Its pressur
 pipe dimensions and output gains form an authored acoustic surrogate rather than measured vehicle
 sound. Every audio value is either derived from physics or a DEV listening setting; implementer-chosen
 empirical constants are not kept. [Tire audio](tire-audio.md) owns UNIFIED synthesis, [Calibration](calibration.md) owns numeric
-values, [Browser](browser.md#sound-controls) owns operation, and
-[Development](development.md#audio-audition) owns audition commands and workflow.
+values, [Browser](browser.md#sound-controls) owns operation.
 
 ## Observations and engine sounds
 
@@ -154,8 +153,8 @@ toolkit and leaves value validation to each record's resolver (`resolveExhaustSe
 content layer ([audio catalog](../src/content/audio-catalog.ts)) admits and delivers it, and the shell loads it
 at startup: the DEV sound panels and the scene's first sync start from its values, each panel's reset returns to
 them, and the DEV export saves the panels' current values in the same format. [`DEFAULT_AUDIO_SETTINGS`](../src/audio/audio-defaults.ts)
-is the one set of default values: each resolver fills omitted fields from it, and it serves assemblies without the
-document, the audition tools.
+is the one set of default values: each resolver fills omitted fields from it, and it serves an assembly built without
+the document.
 
 Sound settings are admitted once. The resolvers are the one value check, applied only where settings enter: the
 audio document's compilation and each change on a DEV sound panel (the ENGINE panel included), where a rejected value

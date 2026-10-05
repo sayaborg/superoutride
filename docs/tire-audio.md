@@ -14,7 +14,6 @@ indices, the internal rolling control rate `controlHz` and the noise band's nume
 The browser supplies completed physical observations: signed longitudinal/lateral contact velocities,
 wheel peripheral/angular velocity, normal load, longitudinal/lateral dissipated power and surface.
 One tire worklet receives independent k-rate parameter sets and seeded histories for both axles.
-The game and tire audition use the same voice, processor and observation mapping.
 
 The voice's `tireSoundParameters` ([observation domains](../src/audio/tire-sound-transport.ts)) is the one
 validation: it rejects non-finite values, negative load or power and unknown surfaces with `RangeError`, then
