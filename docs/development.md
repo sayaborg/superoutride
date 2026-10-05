@@ -86,7 +86,7 @@ Both roots use the same lint rules. `npm run check:dependencies` checks the boun
 
 Run a TypeScript tool with `node --import tsx tools/<domain>/<name>.ts`. The pinned loader resolves the
 product's `.js` module specifiers to TypeScript source without a tool compilation directory; it does
-not replace the strict `tsc` check. Reference workers and tests consuming typed course helpers use the same loader.
+not replace the strict `tsc` check. Measurement workers and tests consuming typed course helpers use the same loader.
 Those tests import product source too, so a process has one module identity for compiled course objects.
 Test files remain JavaScript. Authoring tools compile `content/` through the authoring core and never read `dist/`;
 only checks of delivered results (startup smoke, driving scenarios, delivered-product tests and public-site

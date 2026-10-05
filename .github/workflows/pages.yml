@@ -43,13 +43,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Restore generated reference cache
-        uses: actions/cache@v4
-        with:
-          path: .cache/course-reference
-          key: course-reference-${{ runner.os }}-node24-${{ github.sha }}
-          restore-keys: course-reference-${{ runner.os }}-node24-
-
       - name: Test and build
         run: npm test
 
@@ -67,8 +60,6 @@ jobs:
           # new cached modules.
           cp -R dist/. "_site/build/${BUILD_ID}/"
           printf '%s\n' "${BUILD_ID}" > _site/version.txt
-
-          rm -rf "_site/build/${BUILD_ID}/offline"
           touch _site/.nojekyll
 
       - name: Setup Pages

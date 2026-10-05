@@ -16,8 +16,7 @@
 *.avi
 *.m4v
 
-# Disposable build measurements and authoring previews.
-/.cache/
+# Disposable authoring previews.
 /content/authoring/**/*.svg
 /content/authoring/**/*.png
 /content/authoring/**/*.report.json

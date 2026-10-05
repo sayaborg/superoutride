@@ -933,9 +933,8 @@ driving and surface-material documents. Everything a Session drives—compiled m
 settings and material physics—derives from those documents; the vehicle listing is not part of it. Any
 change to their delivered bytes changes `vehicleSha256`; a listing change does not. A DEV-tuned driving
 definition is not delivered and has no identity, so a Session rebuilt by DEV tuning uses no envelope or time
-budgets ([Browser](browser.md#dev-controls)). This digest is a
-reference-cache key component and is independently recomputed by browser envelope and budget admission;
-both reject products carrying an old digest.
+budgets ([Browser](browser.md#dev-controls)). This digest is saved with each measured product and is independently
+recomputed by build and browser envelope and budget admission; both reject products carrying an old digest.
 Each procedure that produces a measured product has one record, its name, version and the values that decide its
 results, and one identity: the SHA-256 of the record's JSON ([procedure](../tools/course/procedure.ts)), as the course
 compiler's record is part of a course build identity. A code change that changes a procedure's results raises that
@@ -945,10 +944,10 @@ reference surface ([Calibration](calibration.md#vehicle-settings)). The referenc
 `superoutride.reference-driving` version 1) records the race's fixed step, the Session seed, the reference driver (the
 driver policy `ENVELOPE_DRIVER` at utilization 0.9), the envelope measurement's record and the pace schedule's station
 spacing. Authored values belong to the per-vehicle digest, so editing one vehicle does not invalidate unchanged
-vehicles' products. Reference-run cache keys, saved reports (`superoutride.course-reference` version 3,
-`superoutride.reference-run` version 3 and `superoutride.vehicle-envelope` version 2 record it as `procedureSha256`)
-and report admission use these identities. The delivered envelope carries only its rows and maximum speed;
-the measurement record stays in the reference cache and the measurement trace (`npm run measure -- trace`). For a budget state, reference duration is the maximum upcoming interval among
+vehicles' products. The saved measured products, report admission and the traces (`superoutride.reference-run`
+version 3 and `superoutride.vehicle-envelope` version 2) record these identities as `procedureSha256`. The delivered
+envelope carries only its rows and maximum speed; the measurement record is in the measurement trace
+(`npm run measure -- trace`). For a budget state, reference duration is the maximum upcoming interval among
 continuous histories sharing that state and its legal next checkpoint/finish alternatives.
 
 ```text
