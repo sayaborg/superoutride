@@ -5,10 +5,11 @@ import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { readDeliveredContent } from '../course/read-content.js';
 import { loadDeliveredCourse } from '../../src/content/load-delivered-course.js';
 import { createSessionVehicle, sessionVehicleSha256 } from '../../src/content/session-vehicle.js';
-import { courseTimeBudgetsProduct, readCourseReference } from '../course/course-reference.js';
+import { courseTimeBudgetsProduct } from '../course/course-reference.js';
+import { deliveredSchedule, referenceTimes, savedReferenceVehicle } from '../course/measured-products.js';
 import { readCourseTimeBudgets } from '../../src/content/course-time-budgets.js';
 import { RIVAL_ENVELOPE_FORMAT, readRivalEnvelope } from '../../src/content/rival-envelope.js';
-import { PACE_SCHEDULE_FORMAT, PACE_SCHEDULE_SPACING, readPaceSchedule } from '../../src/content/pace-schedule.js';
+import { readPaceSchedule } from '../../src/content/pace-schedule.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
 import { cachedReference, referenceCacheKey } from '../course/reference-cache.js';
 import { measureRivalEnvelope } from '../course/rival-envelope-measurement.js';
@@ -52,63 +53,13 @@ for (const { stem, timeMargin } of courses) {
   if (cached.hit) hits++;
   else misses++;
   const candidate = { vehicleId, vehicleSha256, runs: cached.value };
-  const reference = {
-    format: 'superoutride.course-reference',
-    version: 3,
-    courseBuildSha256: course.identity.buildSha256,
-    procedureSha256: referenceSha256,
-    vehicles: [candidate],
-  };
-  const times = requireLoaded(
-    readCourseReference(course, vehicleId, vehicleSha256, referenceSha256, reference, `reference ${stem}`),
-  );
-  const product = courseTimeBudgetsProduct(course, vehicleSha256, times, timeMargin);
+  const saved = savedReferenceVehicle(course, vehicleId, vehicleSha256, referenceSha256, cached.value);
+  const product = courseTimeBudgetsProduct(course, vehicleSha256, referenceTimes(saved), timeMargin);
   requireLoaded(readCourseTimeBudgets(course, vehicleSha256, product, `budget ${stem}/${vehicleId}`));
   products.push({ kind: 'budget', id: `${stem}/${vehicleId}`, value: product });
-  const schedule = paceScheduleProduct(course.entry.id, course.identity.buildSha256, vehicleSha256, cached.value);
+  const schedule = deliveredSchedule(course.identity.buildSha256, saved);
   requireLoaded(readPaceSchedule(course, vehicleSha256, schedule, `schedule ${stem}/${vehicleId}`));
   products.push({ kind: 'schedule', id: `${stem}/${vehicleId}`, value: schedule });
   references.push({ stem, candidate });
 }
 parentPort!.postMessage({ vehicleId, products, references, hits, misses } satisfies CourseReferenceResult);
-
-/**
- * The delivered pace schedule of one course and vehicle from its reference runs: the start times from GO along the
- * entry Section, and for each Section run from its start the fastest times from that start, in integer milliseconds.
- */
-function paceScheduleProduct(
-  entryId: string,
-  courseBuildSha256: string,
-  vehicleSha256: string,
-  runs: readonly ReturnType<typeof runCourseReference>[],
-) {
-  const fastest = (into: number[], values: readonly number[]) =>
-    values.forEach((value, index) => (into[index] = Math.min(into[index] ?? Infinity, value)));
-  const start: number[] = [];
-  const sections = new Map<string, number[]>();
-  for (const run of runs) {
-    const [first, ...rest] = run.passes;
-    if (first!.section !== entryId) throw new Error('A reference run starts outside the entry Section');
-    fastest(
-      start,
-      first!.seconds.map((seconds) => Math.round(1000 * seconds)),
-    );
-    for (const pass of rest) {
-      if (pass.first !== 0) throw new Error(`A reference run enters ${pass.section} past its start`);
-      const values = sections.get(pass.section) ?? [];
-      fastest(
-        values,
-        pass.seconds.map((seconds) => Math.round(1000 * (seconds - pass.seconds[0]!))),
-      );
-      sections.set(pass.section, values);
-    }
-  }
-  return {
-    ...PACE_SCHEDULE_FORMAT,
-    courseBuildSha256,
-    vehicleSha256,
-    spacing: PACE_SCHEDULE_SPACING,
-    start: { section: entryId, first: runs[0]!.passes[0]!.first, milliseconds: start },
-    sections: [...sections].filter(([, values]) => values.length >= 2),
-  };
-}

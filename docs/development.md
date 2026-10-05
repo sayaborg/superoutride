@@ -108,15 +108,32 @@ and series come from the same compiled content.
 npm run course -- compile content/courses/ribbon-coast.course.json
 npm run course -- render content/courses/ribbon-coast.course.json --s 100 --l 0 --vehicle TESTAROSSA --out /tmp/course.png
 npm run course -- report content/courses/ribbon-coast.course.json --step 25 --out /tmp/course-report
-npm run course -- reference content/courses/ribbon-coast.course.json --vehicle TESTAROSSA --out /tmp/reference.json
-npm run course -- envelope --vehicle TESTAROSSA --out /tmp/envelope.json
 node --import tsx tools/course/measure.ts request.json --out observations.json
 ```
 
-`compile` reports the compiled course: its identity, type, entry Section, Sections, forks and ground metrics. The `reference` and
-`envelope` diagnostic exports require `--vehicle` with a catalog vehicle ID and `--out`.
+`compile` reports the compiled course: its identity, type, entry Section, Sections, forks and ground metrics.
 [Content and gameplay](content-and-gameplay.md#observation-formats) owns saved tool formats.
 The render command uses the shared product scene; reports and preview images are disposable outputs.
+
+### Measured products
+
+The measurement tool writes the [measured products](content-and-gameplay.md#measured-products) under `content/` from
+the content compiled by the authoring core; it never reads `dist/`:
+
+```sh
+npm run measure -- generate
+npm run measure -- regenerate
+npm run measure -- compare
+npm run measure -- trace --vehicle TESTAROSSA --out /tmp/envelope.json
+npm run measure -- trace --course ribbon-coast --vehicle TESTAROSSA --route 0 --out /tmp/reference.json
+```
+
+`generate` measures again only the envelopes and reference times whose identities are stale or that are absent, writes
+them, removes saved products no catalog vehicle or series course owns, and prints what it measured with each changed
+time (`before`, `after` and `difference` by gate and lap). `regenerate` measures and writes everything. `compare`
+measures everything, writes nothing, and fails listing the files that would change; CI does not run it. `trace` writes
+one complete envelope measurement, or with `--course` one reference run of a series course (route index and laps
+optional), to a disposable file. Vehicles are measured in parallel on up to four workers.
 
 ### Browser tools
 

@@ -17,6 +17,7 @@
     "build:sprite-lod": "node --import tsx tools/build/build-sprite-lod.ts",
     "build:sprite-source": "node --import tsx tools/build/build-sprite-source.ts",
     "course": "node --import tsx tools/course/course.ts",
+    "measure": "node --import tsx tools/course/measure-products.ts",
     "check:dependencies": "node --test tests/infrastructure/layer-dependencies.test.mjs"
   },
   "devDependencies": {

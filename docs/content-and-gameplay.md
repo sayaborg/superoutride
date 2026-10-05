@@ -948,7 +948,7 @@ spacing. Authored values belong to the per-vehicle digest, so editing one vehicl
 vehicles' products. Reference-run cache keys, saved reports (`superoutride.course-reference` version 3,
 `superoutride.reference-run` version 3 and `superoutride.vehicle-envelope` version 2 record it as `procedureSha256`)
 and report admission use these identities. The delivered envelope carries only its rows and maximum speed;
-the measurement record stays in the reference cache and the `envelope` command's output. For a budget state, reference duration is the maximum upcoming interval among
+the measurement record stays in the reference cache and the measurement trace (`npm run measure -- trace`). For a budget state, reference duration is the maximum upcoming interval among
 continuous histories sharing that state and its legal next checkpoint/finish alternatives.
 
 ```text
@@ -965,6 +965,28 @@ earned non-finish checkpoint adds the next budget once, carrying unused time wit
 adds none. Precise event times determine ordering; awarded budgets alone round to integer milliseconds.
 All consecutive gates crossed in one step retain their race times. Earlier expiry ends the
 run; a valid checkpoint or FINISH wins an exact expiry tie ([race time and events](#race-time-and-events)). Rejected late crossings earn no line or lap credit.
+
+### Measured products
+
+The measurement tool (`npm run measure`, [Development](development.md#course-commands)) saves the measured products
+under `content/` in the saved JSON layout; nothing else writes them, and they hold no run traces. Each catalog vehicle
+has `content/envelopes/<vehicle>.json` and each series course has `content/reference-times/<course>.json`.
+
+A measured envelope (`superoutride.measured-envelope` version 1) has `vehicleSha256` (the Session vehicle's identity),
+`procedureSha256` (the envelope measurement's identity) and `envelope`, the delivered envelope's `maximumSpeed` and
+`rows`. The delivered envelope is `superoutride.rival-envelope` with the same `vehicleSha256` and `envelope`.
+
+Reference times (`superoutride.reference-times` version 1) have `courseBuildSha256`, `procedureSha256` (the reference
+run's identity) and `vehicles`: one entry per candidate vehicle of the course's series, in the series' order. An entry
+has `vehicleId`, `vehicleSha256`, `initialSeconds` (the longest interval from START to the first gate), `after` (for
+each budget landmark in the course's order, `[gate, seconds]` with one longest next interval per lap, as a time
+budget's `after`) and `schedule` (the pace schedule's `start` and `sections`). The
+times are seconds before the series margin, as the reference runs measured them; only the delivered budget rounds,
+once, after the margin is applied. The delivered pace schedule carries the schedule's times with the course and vehicle
+identities and the station spacing.
+
+A saved product is current while its identities equal the current course build, Session vehicle and procedure
+identities. Changing a series' `timeMargin` changes only the delivered budgets, never the saved times.
 
 ### Pace schedules
 
