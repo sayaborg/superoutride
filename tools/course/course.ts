@@ -15,15 +15,26 @@ import { expandRgb555Pixels } from '../../src/image/rgb555.js';
 import { writeCourseReport } from './course-report.js';
 import { options, loadCourse, requireInput, finite, atomicWrite, reportError, jsonFile } from './authoring-io.js';
 import { readCourseStructure } from '../authoring/course-structure.js';
+import {
+  addCoursePi,
+  moveCourseElement,
+  removeCoursePi,
+  setCourseNumbers,
+  type CourseEditResult,
+} from '../authoring/course-edits.js';
+import type { Json } from '../authoring/json-pointer.js';
+import { formatSavedJson } from '../../src/content/saved-json.js';
 
+const EDITS = ['set', 'move', 'add-pi', 'remove-pi'];
 const [verb, file, ...args] = process.argv.slice(2);
 try {
   requireInput(
-    ['compile', 'render', 'report', 'structure'].includes(verb!) && file,
+    ['compile', 'render', 'report', 'structure', ...EDITS].includes(verb!) && file,
     '/arguments',
-    'Usage: npm run course -- compile|render|report|structure course.json [options]',
+    `Usage: npm run course -- compile|render|report|structure|${EDITS.join('|')} course.json [options]`,
   );
-  if (verb === 'structure') {
+  if (EDITS.includes(verb!)) await editVerb(file);
+  else if (verb === 'structure') {
     // The form of the document as saved, compiled or not: read alone, without the content.
     const opts = options(args, ['--section']);
     const structure = readCourseStructure((await jsonFile(file)).value);
@@ -35,6 +46,59 @@ try {
   } else await compiledCourseVerb(file);
 } catch (error) {
   reportError(error);
+}
+
+/**
+ * The edits that keep the document's form, read from the document as saved: the changed values are printed, and with
+ * `--out` the edited document is written in the saved layout.
+ */
+async function editVerb(file: string) {
+  const flags = {
+    set: ['--values'],
+    move: ['--element', '--ds', '--dl', '--fields', '--step'],
+    'add-pi': ['--section', '--index', '--x', '--z', '--radius'],
+    'remove-pi': ['--pi'],
+  }[verb!]!;
+  const opts = options(args, [...flags, '--out']);
+  const document = (await jsonFile(file)).value as Json;
+  const number = (flag: string) => finite(Number(opts.get(flag)), `/${flag.slice(2)}`);
+  let result: CourseEditResult;
+  if (verb === 'set') {
+    requireInput(opts.has('--values'), '/values', 'Name the values: /pointer=number,...');
+    result = setCourseNumbers(
+      document,
+      opts
+        .get('--values')!
+        .split(',')
+        .map((pair) => {
+          const at = pair.lastIndexOf('=');
+          requireInput(at > 0, '/values', `Expected /pointer=number: ${pair}`);
+          return { pointer: pair.slice(0, at), value: finite(Number(pair.slice(at + 1)), '/values') };
+        }),
+    );
+  } else if (verb === 'move') {
+    const pointer = opts.get('--element');
+    const elements = readCourseStructure(document).sections.flatMap((section) => section.elements);
+    const element =
+      elements.find((e) => e.pointer === pointer && e.point === 'authored') ??
+      elements.find((e) => e.pointer === pointer);
+    requireInput(element, '/element', 'Name an element by its Pointer');
+    result = moveCourseElement(document, element, {
+      ds: opts.has('--ds') ? number('--ds') : 0,
+      dl: opts.has('--dl') ? number('--dl') : 0,
+      ...(opts.has('--fields') ? { fields: opts.get('--fields')!.split(',') } : {}),
+      step: opts.has('--step') ? number('--step') : null,
+    });
+  } else if (verb === 'add-pi')
+    result = addCoursePi(document, opts.get('--section') ?? '', number('--index'), {
+      x: number('--x'),
+      z: number('--z'),
+      radius: opts.has('--radius') ? number('--radius') : 0,
+    });
+  else result = removeCoursePi(document, opts.get('--pi') ?? '');
+  requireInput(result.ok, '/edit', result.ok ? '' : result.reason);
+  if (opts.has('--out')) await atomicWrite(path.resolve(opts.get('--out')!), formatSavedJson(result.document));
+  console.log(JSON.stringify({ ok: true, changes: result.changes }));
 }
 
 /** The verbs over the compiled course: compile, render and report. */

@@ -546,6 +546,18 @@ Boundaries, Strip and curb edges and walls. Repetitions expand with `expandCours
 `resolveLateralInterval`. A document admission rejects is read as far as it goes: the result keeps admission's first
 diagnostic, and each element that does not resolve carries its problem (code, message and Pointer).
 
+**Edits that keep form** ([`course-edits.ts`](../tools/authoring/course-edits.ts)) change written numbers and nothing
+else, returning the new document with each changed value's Pointer, before and after, or the reason the edit cannot
+be made, leaving the document unchanged. `setCourseNumbers` sets values where a number is written (a PI's `x`, `z` or
+`radius`, a PVI's `y` or `curveLength`, a repeat's `every` or `count`), refusing a Pointer that holds anything else.
+`moveCourseElement` moves an element along and across the Section as written: each Position's `offset` (its PI stays)
+and each lateral's number, or a reference's `offset` (the reference stays); a repeat copy's record is its original's,
+so moving any copy moves the original and every copy, and Positions measured from a moved PI move with it. A move can
+be limited to some fields (a wall's `from`, a Strip's `left`) and snapped: each changed value goes to the nearest
+multiple of a step, nothing else. Derived points do not move. `addCoursePi` inserts a PI at a plan point and radius with a new id;
+`removeCoursePi` is refused while a Position in its Section measures from it. An edit may produce a document admission
+rejects; the compile's diagnostics then say why.
+
 ## Compiled identity and project publication
 
 CompiledCourse contains canonical Section, plan segment, Boundary, Carriageway, Link,

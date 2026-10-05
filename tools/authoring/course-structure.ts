@@ -16,6 +16,7 @@ import { courseLaneCenterAt, type CompiledBoundary } from '../../src/course/cour
 import { expandCourseElements, type CourseRepeatCopy, type RepeatElement } from '../../src/course/course-repeat.js';
 import { createPlanCoordinateReader } from '../../src/course/geometry/plan-coordinate-reader.js';
 import { createPlanCoordinateSample } from '../../src/course/geometry/plan-coordinate.js';
+import { valueAt, type Json } from './json-pointer.js';
 import { compileCoursePhysicalContent } from '../../src/course/compiler/course-physical-content.js';
 
 /**
@@ -295,7 +296,7 @@ function readSection(section: SectionDocument, pointer: string): SectionStructur
     }
     const l = options.station?.l ?? Object.values(laterals)[0]?.l ?? null;
     const copies = (options.copies ?? []).map((copy) => {
-      const repeat = record(valueAt(section, copy.path.slice(pointer.length)));
+      const repeat = record(valueAt(section as unknown as Json, copy.path.slice(pointer.length)));
       return { ...copy, count: Number(repeat.count), every: Number(repeat.every) };
     });
     elements.push({
@@ -602,14 +603,4 @@ function blank(kind: CourseElementKind, pointer: string, section: string): Cours
     values: {},
     problem: null,
   };
-}
-
-/** The value at a JSON Pointer relative to `root`, undefined when absent. */
-function valueAt(root: unknown, pointer: string): unknown {
-  let value = root;
-  for (const token of pointer.split('/').slice(1)) {
-    const key = token.replaceAll('~1', '/').replaceAll('~0', '~');
-    value = Array.isArray(value) ? value[Number(key)] : record(value)[key];
-  }
-  return value;
 }
