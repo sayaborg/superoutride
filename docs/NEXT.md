@@ -35,7 +35,7 @@
   appears at seeded Route positions from the series or FREE PLAY's TRAFFIC option; RIBBON COAST is the verification
   course of all of it.
 
-Next PR: **AU3-36** — the third design audit's fixes, in the order of its instructions.
+Next PR: **14-0** — the first PR of Stage 14, awaiting its proposal.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -43,12 +43,32 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 ## Audit 2 leftovers
 
-Findings of the second design audit not yet addressed, by when they are taken up:
+Requirements left from the second design audit, by when they are taken up:
 
-- **Stage 14 or 15, when nearby code changes:** D8e-03, P7b-02, P7f-08, A6d3-02.
-- **Stage 15:** P7a-01, P7a-02, A6g-07, H15-02, H14-02, H18-01, D3-06.
-- **Not addressed, with reasons:** D8c-03 (it concerns the DEV HUD only); D8e-05 (a documentation contract, already
-  stated); S12-02 (the scope of the guarantee is documented).
+- **Stage 14:**
+  - D8e-03: tire sound settings are validated once, at admission; the voice, the worklet and its kernels use the
+    admitted values as given (today `tire-voice.ts`, `tire-processor.ts` and the kernels each resolve them again).
+  - P7b-02: sound-layer definitions hold only sound values and ranges; the shell owns the DEV screen's labels and
+    descriptions (today `TIRE_COMPONENTS` carries them).
+- **Stage 15:**
+  - P7a-01: core holds only mathematical primitives; format-specific readers of the admission toolkit and the content
+    digest belong to the content side.
+  - P7a-02: reading the manifest's saved format and delivery (fetch, digest verification, decode) have separate owners
+    (today both are in `content-manifest.ts`).
+  - A6g-07 (15-5): the procedural identities — reference driving, envelope measurement and the driving policy — come
+    from one method (today a hand-listed file hash, a manual version and a record hash).
+  - H15-02 (15-5): the reference report reader uses the same admission toolkit and error classes as other generated
+    products.
+  - H14-02 (15-4): a compiled vehicle definition publishes each fact once, not both in its source document and in an
+    expanded field (form, sound, sprite set, metadata).
+  - H18-01 (15-4): the HUD's `steeringRatio` is not copied per vehicle: one value for cars and one for motorcycles.
+- **Not addressed, with reasons:**
+  - D8c-03: only the DEV vehicle HUD reads the player's vehicle state directly (`playerDiagnostics`); no product path
+    does.
+  - D8e-05: the surface sounds and the material catalog must match exactly at startup too, as the documented contract
+    says.
+  - S12-02: pitch protection guarantees what its documentation states, excluding the road line's own acceleration,
+    bump-stop impulses and discretization error.
 
 ## Stage 14 — Music and sound effects
 
