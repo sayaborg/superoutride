@@ -166,6 +166,24 @@ diagnostics (document, JSON Pointer, code and message) and keeps the last produc
 products of the last compile are listed with their digests. Modules are screens of the same page; each receives only
 the store, the compile and the one edit.
 
+Every edit is one step of the session's history: a document replaced (saved with `formatSavedJson`), a file's bytes set
+or a file deleted. A file equal to the build's own is no change. Undo and redo (the header's buttons, Ctrl+Z,
+Ctrl+Shift+Z or Ctrl+Y outside text fields) move through the history, which the workbench keeps: at most 200 steps and
+128 MiB of distinct file versions, the oldest steps going first. The Changes module lists every changed, added and
+deleted path with its difference from the build, each with a revert; it also sets a file's bytes from a file on disk
+and deletes a file by path.
+
+The workbench keeps nothing in the browser. **Save archive** downloads one stored (uncompressed) zip: each changed or
+added file at its `content/` path, and `workbench-changes.json` (`superoutride.workbench-changes` version 1: the
+build's `commit` and, for each changed path, the digest it had in that build, `null` for an added file, and whether it
+is deleted). **Open archive** restores the changes as one step. When the archive was made on another build and a file
+it changes was changed by this build too, the workbench names the file and asks which version to keep; it never merges.
+Leaving the page with unsaved changes asks first.
+
+To apply an archive to the repository, extract it at the repository root, delete the files `workbench-changes.json`
+marks `deleted`, delete `workbench-changes.json`, then run `npm run check` and `npm run build`. Authors without a
+checkout hand the archive to the implementer.
+
 The file compilers are `npm run build:sprite-source -- <arguments>` and
 `npm run build:sprite-lod -- <arguments>`; [Image assets](image-assets.md) owns their formats.
 

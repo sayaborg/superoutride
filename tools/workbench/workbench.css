@@ -93,3 +93,44 @@ th {
   border-bottom: 1px solid var(--line);
   white-space: nowrap;
 }
+
+.actions {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+}
+.file-button {
+  padding: 2px 10px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--panel);
+  cursor: pointer;
+}
+.file-button input {
+  display: none;
+}
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+dialog {
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--line);
+}
+.diff {
+  font:
+    12px/1.35 ui-monospace,
+    monospace;
+  white-space: pre;
+  overflow: auto;
+  max-height: 360px;
+  background: #0f141a;
+  padding: 6px;
+}
+.diff .removed {
+  color: var(--bad);
+}
+.diff .added {
+  color: var(--good);
+}

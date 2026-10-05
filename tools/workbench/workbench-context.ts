@@ -24,6 +24,12 @@ export interface CompiledState {
 export interface WorkbenchContext {
   /** The authored files as they stand, published build and changes together; it reads only. */
   readonly store: ContentStore;
+  /** The build's own authored files, without the changes. */
+  readonly published: ContentStore;
+  /** The session's changes: each changed path's bytes, or null for a deleted file. */
+  changes(): ReadonlyMap<string, Uint8Array<ArrayBuffer> | null>;
+  /** Return a path to the build's own file: one edit. */
+  revert(path: string): void;
   /** The published build's commit. */
   readonly commit: string;
   compile(): CompileState;

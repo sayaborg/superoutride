@@ -10,7 +10,23 @@
     <header>
       <h1>SUPER OUTRIDE workbench</h1>
       <p id="status" role="status" data-state="running">Opening the build…</p>
+      <div class="actions">
+        <button id="undo" type="button" disabled>Undo</button>
+        <button id="redo" type="button" disabled>Redo</button>
+        <button id="save" type="button">Save archive</button>
+        <label class="file-button"
+          >Open archive<input id="open-archive" type="file" accept=".zip,application/zip"
+        /></label>
+      </div>
     </header>
+    <dialog id="conflicts">
+      <form method="dialog">
+        <p id="conflict-build"></p>
+        <ul id="conflict-list"></ul>
+        <button value="cancel">Cancel</button>
+        <button value="apply">Open with these versions</button>
+      </form>
+    </dialog>
     <nav id="modules" aria-label="Modules"></nav>
     <main>
       <div id="module"></div>

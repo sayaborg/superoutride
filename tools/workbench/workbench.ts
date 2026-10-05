@@ -1,18 +1,20 @@
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import { contentDigest } from '../../src/core/content-digest.js';
-import { AUTHORED_DIRECTORY } from '../authoring/authored-index.js';
+import { AUTHORED_DIRECTORY, type AuthoredIndex } from '../authoring/authored-index.js';
 import type { ContentStore } from '../authoring/content-store.js';
 import { createLayeredStore } from '../authoring/layered-store.js';
 import { openPublishedStore } from './published-store.js';
 import type { CompileRequest, CompileResponse, WorkbenchDiagnostic } from './compile-protocol.js';
 import type { CompileState, WorkbenchContext, WorkbenchModule } from './workbench-context.js';
 import { WORKBENCH_MODULES } from './modules.js';
+import { createHistory, type Changes } from './history.js';
+import { readChangeArchive, writeChangeArchive, type ArchivedChange } from './change-archive.js';
+import { element, labelled } from './dom.js';
 
 /**
  * The workbench page: the build's published authored files under the session's changes, compiled by the authoring
  * core in a worker, with modules that read the store and the compile and edit by replacing documents.
  */
-const element = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 // The page is `tools/workbench/workbench.html` inside a build; the build's root is two directories up.
 const buildRoot = new URL('../../', location.href);
 const authoredRoot = new URL(`${AUTHORED_DIRECTORY}/`, buildRoot);
@@ -20,21 +22,24 @@ const status = element('status');
 
 try {
   const { index, store: published } = await openPublishedStore(authoredRoot);
-  start(index.commit, published);
+  start(index, published);
 } catch (error) {
   status.textContent = `The workbench could not open this build: ${error instanceof Error ? error.message : error}`;
   status.dataset.state = 'failed';
 }
 
-function start(commit: string, published: ContentStore) {
-  const changes = new Map<string, Uint8Array<ArrayBuffer> | null>();
-  let step = 0;
+function start(index: AuthoredIndex, published: ContentStore) {
+  const { commit } = index;
+  const history = createHistory();
+  // Each history state compiles once, numbered by its generation.
+  let generation = 0,
+    saved: Changes = history.changes;
   const listeners = new Set<() => void>();
   const notify = () => listeners.forEach((listener) => listener());
-  const view = createLayeredStore(published, changes);
+  const view = () => createLayeredStore(published, new Map(history.changes));
   const store: ContentStore = Object.freeze({
-    read: view.read,
-    list: view.list,
+    read: (path: string) => view().read(path),
+    list: (directory: string) => view().list(directory),
     write: () => Promise.reject(new Error('Edit through the workbench')),
   });
 
@@ -44,12 +49,16 @@ function start(commit: string, published: ContentStore) {
   let running = false,
     wanted = 0;
   const compile = () => {
-    wanted = step;
+    wanted = generation;
     if (running) return;
     running = true;
     state = { status: 'running', last: state.last };
     notify();
-    worker.postMessage({ generation: step, root: authoredRoot.href, changes: [...changes] } satisfies CompileRequest);
+    worker.postMessage({
+      generation,
+      root: authoredRoot.href,
+      changes: [...history.changes],
+    } satisfies CompileRequest);
   };
   worker.addEventListener('message', ({ data }: MessageEvent<CompileResponse>) => {
     running = false;
@@ -59,19 +68,40 @@ function start(commit: string, published: ContentStore) {
       : { status: 'failed', diagnostics: data.diagnostics, last: state.last };
     notify();
   });
-
-  const modules: WorkbenchModule[] = [];
-  const setFile = (path: string, bytes: Uint8Array<ArrayBuffer> | null) => {
-    changes.set(path, bytes);
-    step++;
+  const moved = () => {
+    generation++;
     compile();
   };
+
+  // One edit: a new state of the changes. A file equal to the build's own is no change. Edits apply in order.
+  let edits = Promise.resolve();
+  const edit = (path: string, bytes: Uint8Array<ArrayBuffer> | null, label: string) =>
+    (edits = edits.then(async () => {
+      const original = index.files.find((file) => file.path === path);
+      const same = bytes ? original !== undefined && (await contentDigest(bytes)) === original.sha256 : !original;
+      const next = new Map(history.changes);
+      if (same) next.delete(path);
+      else next.set(path, bytes);
+      history.push(next, label);
+      moved();
+    }));
+  const modules: WorkbenchModule[] = [];
   const context: WorkbenchContext = Object.freeze({
     store,
+    published,
     commit,
     compile: () => state,
-    replace: (path: string, value: unknown) => setFile(path, new TextEncoder().encode(formatSavedJson(value))),
-    setFile,
+    changes: () => history.changes,
+    replace: (path: string, value: unknown, label = `Edit ${path}`) =>
+      void edit(path, new TextEncoder().encode(formatSavedJson(value)), label),
+    setFile: (path: string, bytes: Uint8Array<ArrayBuffer> | null, label = `${bytes ? 'Set' : 'Delete'} ${path}`) =>
+      void edit(path, bytes, label),
+    revert(path: string) {
+      const next = new Map(history.changes);
+      next.delete(path);
+      history.push(next, `Revert ${path}`);
+      moved();
+    },
     subscribe(listener: () => void) {
       listeners.add(listener);
       return () => listeners.delete(listener);
@@ -84,17 +114,84 @@ function start(commit: string, published: ContentStore) {
     },
   });
 
-  // The header: the build, the changes and the compile.
+  // Undo and redo move through the history; each position compiles again.
+  const undo = () => {
+    if (!history.canUndo) return;
+    history.undo();
+    moved();
+  };
+  const redo = () => {
+    if (!history.canRedo) return;
+    history.redo();
+    moved();
+  };
+  element('undo').addEventListener('click', undo);
+  element('redo').addEventListener('click', redo);
+  document.addEventListener('keydown', (event) => {
+    const typing = (event.target as HTMLElement).closest('input, textarea, select, [contenteditable]');
+    if (typing || !(event.ctrlKey || event.metaKey)) return;
+    const key = event.key.toLowerCase();
+    if (key === 'z' && !event.shiftKey) undo();
+    else if ((key === 'z' && event.shiftKey) || key === 'y') redo();
+    else return;
+    event.preventDefault();
+  });
+
+  // Saving downloads one archive of the changes; nothing is kept in the browser.
+  element('save').addEventListener('click', () => {
+    const changes: ArchivedChange[] = [...history.changes].map(([path, bytes]) => ({
+      path,
+      base: index.files.find((file) => file.path === path)?.sha256 ?? null,
+      bytes,
+    }));
+    const archive = writeChangeArchive({ commit, changes });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(new Blob([archive], { type: 'application/zip' }));
+    link.download = `superoutride-changes-${commit.slice(0, 7)}.zip`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+    saved = history.changes;
+    notify();
+  });
+  element<HTMLInputElement>('open-archive').addEventListener('change', async (event) => {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    const result = readChangeArchive(new Uint8Array(await file.arrayBuffer()));
+    if (!result.ok) {
+      alert(`The archive cannot be opened: ${result.diagnostics[0]!.message}`);
+      return;
+    }
+    if (history.changes.size && history.changes !== saved && !confirm('Replace the unsaved changes with the archive?'))
+      return;
+    const chosen = await resolveConflicts(index, result.value.commit, result.value.changes);
+    if (!chosen) return;
+    history.push(new Map(chosen.map((change) => [change.path, change.bytes])), `Open ${file.name}`);
+    saved = history.changes;
+    moved();
+  });
+  addEventListener('beforeunload', (event) => {
+    if (history.changes === saved || !history.changes.size) return;
+    event.preventDefault();
+    event.returnValue = '';
+  });
+
+  // The header: the build, the changes, the compile and the history.
   const header = () => {
-    const count = changes.size;
+    const count = history.changes.size;
     const compileText =
       state.status === 'running'
         ? 'compiling…'
         : state.status === 'ok'
           ? `compiled in ${state.last.seconds.toFixed(1)} s`
           : `failed (${state.diagnostics.length})${state.last ? ' · products are stale' : ''}`;
-    status.textContent = `build ${commit.slice(0, 7)} · ${count} change${count === 1 ? '' : 's'} · ${compileText}`;
+    const unsaved = count && history.changes !== saved ? ' (unsaved)' : '';
+    status.textContent = `build ${commit.slice(0, 7)} · ${count} change${count === 1 ? '' : 's'}${unsaved} · ${compileText}`;
     status.dataset.state = state.status;
+    const { undo: undoLabel, redo: redoLabel } = history.labels;
+    labelled(element<HTMLButtonElement>('undo'), !history.canUndo, undoLabel ? `Undo: ${undoLabel}` : 'Undo');
+    labelled(element<HTMLButtonElement>('redo'), !history.canRedo, redoLabel ? `Redo: ${redoLabel}` : 'Redo');
   };
   listeners.add(header);
   listeners.add(() => showDiagnostics(context));
@@ -126,6 +223,56 @@ function start(commit: string, published: ContentStore) {
   }
   if (modules[0]) select(modules[0]);
   compile();
+}
+
+/**
+ * The changes of an archive made on another build: a file changed in both the archive and this build (its digest here
+ * is not the one the archive started from) is the author's choice, never merged. Null when the author cancels.
+ */
+async function resolveConflicts(
+  index: AuthoredIndex,
+  archiveCommit: string,
+  changes: readonly ArchivedChange[],
+): Promise<ArchivedChange[] | null> {
+  const here = (path: string) => index.files.find((file) => file.path === path)?.sha256 ?? null;
+  const conflicts = changes.filter((change) => here(change.path) !== change.base);
+  if (!conflicts.length) return [...changes];
+  const dialog = element<HTMLDialogElement>('conflicts');
+  const list = element('conflict-list');
+  element('conflict-build').textContent =
+    `The archive was made on build ${archiveCommit.slice(0, 7)}, and this build (${index.commit.slice(0, 7)}) ` +
+    'changed these files too. Choose each file’s version:';
+  list.replaceChildren(
+    ...conflicts.map((change, i) => {
+      const row = document.createElement('li');
+      const path = document.createElement('code');
+      path.textContent = change.path;
+      row.append(path);
+      for (const [value, text] of [
+        ['archive', 'the archive’s'],
+        ['build', 'this build’s'],
+      ] as const) {
+        const label = document.createElement('label');
+        const radio = document.createElement('input');
+        Object.assign(radio, { type: 'radio', name: `c${i}`, value, checked: value === 'archive' });
+        label.append(' ', radio, ` ${text}`);
+        row.append(label);
+      }
+      return row;
+    }),
+  );
+  dialog.returnValue = '';
+  dialog.showModal();
+  const answer = await new Promise<string>((resolve) =>
+    dialog.addEventListener('close', () => resolve(dialog.returnValue), { once: true }),
+  );
+  if (answer !== 'apply') return null;
+  const keepBuild = new Set(
+    conflicts
+      .filter((_, i) => (list.querySelector(`input[name=c${i}]:checked`) as HTMLInputElement).value === 'build')
+      .map((change) => change.path),
+  );
+  return changes.filter((change) => !keepBuild.has(change.path));
 }
 
 /** The diagnostics of a failed compile; each opens its document at its pointer. */
