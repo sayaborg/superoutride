@@ -100,7 +100,12 @@ are collected from the topic specifications; their order within this stage is no
 
 ### Rival racing line
 
-Rivals follow lane centres and change lanes past slower vehicles. A racing line within the road width (the
+The [product specification](product.md#12-interaction) states the target: traffic keeps its lane and the
+traffic speed, and rivals take the shortest line and thread between vehicles regardless of lanes. Until this
+work, rivals follow lane centres and change lanes past slower vehicles. The algorithm and its tuning start
+once product circuits are being produced.
+
+A racing line within the road width (the
 minimum-curvature line, compiled with the course), whether reference runs drive it, and passing off that line are
 designed once product courses exist to evaluate it on.
 

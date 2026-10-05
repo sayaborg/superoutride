@@ -276,11 +276,11 @@ Vehicles that touch push each other apart, ahead-behind or side to side, with eq
 that act through the ordinary vehicle mechanics. A vehicle in the air passes over one below it. Contact
 never turns a vehicle, never topples a motorcycle, never ends a run by itself and causes no damage.
 
-Rivals and traffic drive along lane centres. A rival that catches a slower vehicle moves to a neighbouring
-lane where it can go faster, or else matches its speed and follows. Traffic keeps its lane, leaves it only
-where the lane ends or a solid object stands in it, and does not yield to faster vehicles. Neither hits
-another vehicle or a solid object on purpose. Drivers read the surface ahead: on a surface with less grip
-they corner and brake within what it gives.
+Traffic drives as on a public road: each vehicle keeps its lane and the traffic speed, leaves its lane
+only where the lane ends or a solid object stands in it, and does not yield to faster vehicles. Rivals
+race: they are bound neither to lanes nor to the traffic speed, take the shortest line the road allows and
+thread between other vehicles to pass them. Neither hits another vehicle or a solid object on purpose.
+Drivers read the surface ahead: on a surface with less grip they corner and brake within what it gives.
 
 Walls — guardrails, walls and cliff faces — run along the road. A visible wall stands on its line, rising
 above the road, dropping below it, or both, in strips of color that may repeat along the road. A solid
