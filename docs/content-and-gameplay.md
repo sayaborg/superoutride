@@ -525,6 +525,27 @@ Nonclosing cycles report `cycle_not_closed`, naming a Section on the cycle and b
 Acyclic branch merges have no closure condition. [Architecture](architecture.md#cycle-closure)
 owns the bounded algorithm and tolerance accumulation.
 
+## Course authoring operations
+
+The authoring core reads and edits course documents for the workbench's course editor and the course command alike,
+as functions from a document (and arguments) to a document or a result, free of Node and the DOM
+([`tools/authoring`](../tools/authoring)). The document stays the one source: the editor keeps no model of its own,
+and every result resolves through the course compiler's functions.
+
+**Form.** `readCourseStructure` lists every element of a course an author draws or edits, by Section: PIs and the arc
+ends the plan derives between them, PVIs and their vertical-curve ends, Boundaries (their written knots, and every
+vertex the compiler resolves, written or inherited from a referenced Boundary), repeats, Strips and their knots,
+arrows, texts, curbs, walls and their Strips and knots, open limits, sprites (an object when it has a body),
+environments, gates, grid slots and Carriageways, and the course's Links. Each element has the JSON Pointer of its
+record (a repeated element's one authored record), whether it is written or derived (and from what), every Position
+as written (`pi`, `offset`) and resolved (`s`), every lateral as written (a number, or a Boundary and offset) and
+resolved at the element's station (`l`), the repetitions enclosing it (each repeat's Pointer, the copy's index (0 the
+original), its `count` and `every`, outermost first), its resolved height and plan `x` and `z`, and resolved lines for
+Boundaries, Strip and curb edges and walls. Repetitions expand with `expandCourseElements`, Positions with
+`resolveCoursePosition`, Boundaries with `compileCourseBoundaries` and laterals with `resolveCourseLateral` and
+`resolveLateralInterval`. A document admission rejects is read as far as it goes: the result keeps admission's first
+diagnostic, and each element that does not resolve carries its problem (code, message and Pointer).
+
 ## Compiled identity and project publication
 
 CompiledCourse contains canonical Section, plan segment, Boundary, Carriageway, Link,

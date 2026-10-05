@@ -13,15 +13,32 @@ import type { RenderMeasurements } from '../../src/view/renderer.js';
 import { createCourseFrameRenderer } from '../authoring/course-views.js';
 import { expandRgb555Pixels } from '../../src/image/rgb555.js';
 import { writeCourseReport } from './course-report.js';
-import { options, loadCourse, requireInput, finite, atomicWrite, reportError } from './authoring-io.js';
+import { options, loadCourse, requireInput, finite, atomicWrite, reportError, jsonFile } from './authoring-io.js';
+import { readCourseStructure } from '../authoring/course-structure.js';
 
 const [verb, file, ...args] = process.argv.slice(2);
 try {
   requireInput(
-    ['compile', 'render', 'report'].includes(verb!) && file,
+    ['compile', 'render', 'report', 'structure'].includes(verb!) && file,
     '/arguments',
-    'Usage: npm run course -- compile|render|report course.json [options]',
+    'Usage: npm run course -- compile|render|report|structure course.json [options]',
   );
+  if (verb === 'structure') {
+    // The form of the document as saved, compiled or not: read alone, without the content.
+    const opts = options(args, ['--section']);
+    const structure = readCourseStructure((await jsonFile(file)).value);
+    const sections = opts.has('--section')
+      ? structure.sections.filter((section) => section.id === opts.get('--section'))
+      : structure.sections;
+    requireInput(sections.length, '/section', 'Unknown Section');
+    console.log(JSON.stringify({ ok: true, ...structure, sections }));
+  } else await compiledCourseVerb(file);
+} catch (error) {
+  reportError(error);
+}
+
+/** The verbs over the compiled course: compile, render and report. */
+async function compiledCourseVerb(file: string) {
   const flags =
     verb === 'compile'
       ? ['--images']
@@ -143,6 +160,4 @@ try {
     );
   }
   console.log(JSON.stringify(result));
-} catch (error) {
-  reportError(error);
 }

@@ -111,10 +111,14 @@ and series come from the same compiled content.
 npm run course -- compile content/courses/ribbon-coast.course.json
 npm run course -- render content/courses/ribbon-coast.course.json --s 100 --l 0 --vehicle TESTAROSSA --out /tmp/course.png
 npm run course -- report content/courses/ribbon-coast.course.json --step 25 --out /tmp/course-report
+npm run course -- structure content/courses/ribbon-coast.course.json --section coast-wide
 node --import tsx tools/course/measure.ts request.json --out observations.json
 ```
 
 `compile` reports the compiled course: its identity, type, entry Section, Sections, forks and ground metrics.
+`structure` prints the document's form as JSON
+([Course authoring operations](content-and-gameplay.md#course-authoring-operations)), read alone without compiling
+the content, so a document that does not compile still shows; `--section` keeps one Section.
 [Content and gameplay](content-and-gameplay.md#observation-formats) owns saved tool formats.
 `report` and `render` write what two core functions in
 [`course-views.ts`](../tools/authoring/course-views.ts) return from the compiled course: `courseReport` (a Section's

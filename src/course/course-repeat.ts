@@ -12,15 +12,29 @@ function isRepeat<T extends object>(element: RepeatElement<T>): element is Repea
   return 'kind' in element && element.kind === 'repeat';
 }
 
-/** Depth-first authored order; offsets accumulate without changing the leaf's native Position. */
+/** One repetition enclosing an expanded element: the repeat's JSON Pointer and the repetition's index, 0 the original. */
+export interface CourseRepeatCopy {
+  readonly path: string;
+  readonly index: number;
+}
+
+/**
+ * Depth-first authored order; offsets accumulate without changing the leaf's native Position. `visit` also receives the
+ * repetitions enclosing the element, outermost first (none when it is not repeated).
+ */
 export function expandCourseElements<T extends object>(
   elements: readonly RepeatElement<T>[],
   path: string,
   workLimit: number,
-  visit: (element: T, offset: number, path: string, repeated: boolean) => void,
+  visit: (element: T, offset: number, path: string, repeated: boolean, copies: readonly CourseRepeatCopy[]) => void,
 ): void {
   let work = 0;
-  const expand = (items: readonly RepeatElement<T>[], offset: number, path: string, repeated: boolean) => {
+  const expand = (
+    items: readonly RepeatElement<T>[],
+    offset: number,
+    path: string,
+    copies: readonly CourseRepeatCopy[],
+  ) => {
     items.forEach((element, index) => {
       const at = `${path}/${index}`;
       if (++work > workLimit) throw new CourseInputError('resource_limit', at, 'Repeat expansion work limit exceeded');
@@ -28,12 +42,15 @@ export function expandCourseElements<T extends object>(
         for (let i = 0; i < element.count; i++) {
           if (++work > workLimit)
             throw new CourseInputError('resource_limit', at, 'Repeat expansion work limit exceeded');
-          expand(element.elements, offset + i * element.every, `${at}/elements`, true);
+          expand(element.elements, offset + i * element.every, `${at}/elements`, [
+            ...copies,
+            Object.freeze({ path: at, index: i }),
+          ]);
         }
-      } else visit(element, offset, at, repeated);
+      } else visit(element, offset, at, copies.length > 0, copies);
     });
   };
-  expand(elements, 0, path, false);
+  expand(elements, 0, path, []);
 }
 
 export function shiftedCoursePosition<T>(
