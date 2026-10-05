@@ -222,7 +222,11 @@ product's sprite drawing and LOD at a chosen depth, a vehicle image with its lam
 as its content-addressed file. **Sets** shows the open set's yaw × bank grid: a chosen cell shows any of the set's
 images, the imported image is added or replaces an image, an image no cell shows is removed, and a new set starts from
 the imported image. The set preview draws the compiled library's set, turned and leaned by cell and moved away by
-depth.
+depth. **Palettes** lists the open set's named palettes, copied, renamed or removed for every image at once. An
+adjustment chooses a source palette, slots 1 to 14 and the hue, saturation, lightness and tint sliders; every image of
+the set is previewed with the adjusted colors as the sliders move, and saving makes a new named palette, one step. One
+slot of one image's palette is set by number; the lamp slot's off and on colors are the set's. A preview shows the
+chosen cell's image in every color with the lamp off and on. Lighting palettes are not authored yet.
 
 To apply an archive to the repository, extract it at the repository root, delete the files `workbench-changes.json`
 marks `deleted`, delete `workbench-changes.json`, then run `npm run measure -- generate`, `npm run check` and

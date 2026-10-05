@@ -23,7 +23,12 @@ const FIRST_LAMP = { off: 12321, on: 32038 } as const;
  * operations (one step each); its lamp colors and lean; and a preview of the compiled library's set turned, leaned and
  * moved away with the product's drawing.
  */
-export function mountSetView(element: HTMLElement, context: WorkbenchContext, master: () => ImportedMaster | null) {
+export function mountSetView(
+  element: HTMLElement,
+  context: WorkbenchContext,
+  master: () => ImportedMaster | null,
+  shown: () => void,
+) {
   const set = make('select');
   const grid = make('table', '', { class: 'sprite-grid' });
   const images = make('ol', '', { start: '0', class: 'sprite-images' });
@@ -226,6 +231,7 @@ export function mountSetView(element: HTMLElement, context: WorkbenchContext, ma
     add.disabled = !master() || master()!.recipe.target !== 'vehicle';
     create.disabled = add.disabled;
     drawPreview();
+    shown();
   };
   let showing = Promise.resolve();
   const refresh = () => (showing = showing.then(show));
@@ -271,6 +277,9 @@ export function mountSetView(element: HTMLElement, context: WorkbenchContext, ma
   );
 
   return {
+    /** The open set: its document, its compiled set and the chosen cell (the first until one is chosen). */
+    current: () =>
+      name && value ? { path: path(), value, compiled: compiled(), cell: cell ?? { yaw: 0, bank: 0 } } : null,
     /** The open set's lamp colors, which the import preview uses. */
     lamp: () => value?.brakeLamp ?? FIRST_LAMP,
   };

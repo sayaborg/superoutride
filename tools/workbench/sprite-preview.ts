@@ -24,18 +24,22 @@ export function createSpritePreview() {
   return {
     canvas,
     /**
-     * Draw each asset with its palette and lamp slot color, side by side at `depth` metres, anchors on one line; returns
-     * each drawn level.
+     * Draw each asset with its palette and lamp slot color at `depth` metres, in `columns` columns of rows, each anchor
+     * near the foot of its place; returns each drawn level.
      */
     draw(
       sprites: readonly { readonly asset: SpriteAsset; readonly palette: string; readonly lamp?: number }[],
       depth: number,
+      columns = sprites.length,
     ) {
       surface.clear(background);
       const ppm = pixelsPerMeterAtDepth(CAMERA_DEFINITION.focalLength, depth);
+      const rows = Math.max(1, Math.ceil(sprites.length / columns));
       const levels = sprites.map(({ asset, palette, lamp }, i) => {
         const colored = createSpritePalette(asset, palette, lamp === undefined ? [] : [lamp]);
-        drawScaledSprite(surface, colored, ((i + 0.5) * surface.width) / sprites.length, surface.height * 0.8, ppm);
+        const x = (((i % columns) + 0.5) * surface.width) / columns,
+          y = ((Math.floor(i / columns) + 0.85) * surface.height) / rows;
+        drawScaledSprite(surface, colored, x, y, ppm);
         return selectSpriteLevel(asset, ppm);
       });
       expandRgb555Pixels(surface.pixels, pixels);
