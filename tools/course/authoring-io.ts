@@ -122,17 +122,14 @@ export async function atomicWrite(file: string, data: string | Uint8Array) {
     await rm(temporary, { force: true });
   }
 }
+/**
+ * End a command that failed: expected content and input errors print their diagnostics as JSON alone; any other error
+ * is an internal fault and prints with its stack.
+ */
 export function reportError(input: unknown) {
   const error = input as Error & { diagnostics?: readonly AuthoringDiagnostic[]; diagnostic?: AuthoringDiagnostic };
-  console.log(
-    JSON.stringify({
-      ok: false,
-      diagnostics:
-        error.diagnostics ??
-        (error.diagnostic
-          ? [error.diagnostic]
-          : [{ kind: 'tool', code: 'operation_failed', message: (error as Error).message }]),
-    }),
-  );
+  const diagnostics = error?.diagnostics ?? (error?.diagnostic ? [error.diagnostic] : null);
+  if (diagnostics) console.log(JSON.stringify({ ok: false, diagnostics }));
+  else console.error(input);
   process.exitCode = 1;
 }

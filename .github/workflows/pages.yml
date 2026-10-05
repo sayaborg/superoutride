@@ -51,7 +51,7 @@ jobs:
         run: |
           BUILD_ID="${GITHUB_SHA}"
           mkdir -p "_site/build/${BUILD_ID}"
-          cp index.html styles.css _site/
+          cp index.html workbench.html styles.css _site/
           cp styles.css "_site/build/${BUILD_ID}/styles.css"
           sed -i "s|href=\"./styles.css\"|href=\"./build/${BUILD_ID}/styles.css\"|" _site/index.html
 

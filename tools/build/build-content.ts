@@ -1,4 +1,3 @@
-import { requireLoaded } from '../../src/content/content-load-error.js';
 import { compileContent } from '../authoring/compile-content.js';
 import { createContentWriter } from './content-manifest.js';
 import { createNodeContentStore } from './node-content-store.js';
@@ -8,7 +7,13 @@ import { createNodeContentStore } from './node-content-store.js';
  * included, which this script writes to `dist/delivery` with the manifest. It runs no driving.
  */
 const writer = createContentWriter(new URL('../../dist/delivery/', import.meta.url));
-const content = requireLoaded(await compileContent(createNodeContentStore()));
+const compiled = await compileContent(createNodeContentStore());
+// An expected content error prints its diagnostics alone; internal faults keep their stack.
+if (!compiled.ok) {
+  console.error(JSON.stringify(compiled.diagnostics));
+  process.exit(1);
+}
+const content = compiled.value;
 const { library } = content;
 const levels = library.product.sprites.flatMap((sprite) => sprite.levels.slice(1));
 console.log(

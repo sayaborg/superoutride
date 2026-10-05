@@ -644,7 +644,9 @@ product; `measured: false` stops before the measured products for tools that pro
 `replaceDocument(store, path, value)`, replaces a document with an admitted value in the saved JSON layout
 (`formatSavedJson`); compiling the store again gives the edited products. Selection, undo and views belong to the
 callers. File I/O, workers and exit codes belong to the entries. Nothing the core reaches imports a Node module or the
-shell; the dependency check enforces this rule.
+shell; the dependency check enforces this rule. The workbench (`tools/workbench`) is a browser page over the same core:
+a browser content store, a layered store for its changes (`createLayeredStore`) and a worker that runs
+`compileContent`.
 
 There are no other dependency exceptions. Course commands and reference
 production belong to `tools/course`; the product retains shared course admission, live driving policy,

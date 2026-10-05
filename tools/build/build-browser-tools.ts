@@ -8,14 +8,19 @@ import { createSpriteSourceFixture } from '../graphics/fixtures/sprite-source.js
 import { unpackRgba } from '../../src/image/rgb555.js';
 
 /**
- * The browser-tools build: two browser tools form one self-contained,
+ * The browser-tools build: the workbench and two graphics tools form one self-contained,
  * versioned output tree under dist/tools, with the Sprite Tool's PNG example and the LOD filter sample.
  * It delivers no content; the content build owns dist/delivery.
  */
 const root = new URL('../../', import.meta.url);
 await build({
   absWorkingDir: fileURLToPath(root),
-  entryPoints: ['tools/graphics/sprite-tool.ts', 'tools/graphics/sprite-lod.ts'],
+  entryPoints: [
+    'tools/graphics/sprite-tool.ts',
+    'tools/graphics/sprite-lod.ts',
+    'tools/workbench/workbench.ts',
+    'tools/workbench/compile-worker.ts',
+  ],
   outbase: 'tools',
   outdir: 'dist/tools',
   bundle: true,
@@ -27,7 +32,13 @@ await build({
   chunkNames: 'shared/[name]-[hash]',
   alias: { pngjs: 'pngjs/browser.js' },
 });
-for (const name of ['graphics/sprite-tool.html', 'graphics/sprite-tool.css', 'graphics/sprite-lod.html']) {
+for (const name of [
+  'graphics/sprite-tool.html',
+  'graphics/sprite-tool.css',
+  'graphics/sprite-lod.html',
+  'workbench/workbench.html',
+  'workbench/workbench.css',
+]) {
   const target = new URL(`dist/tools/${name}`, root);
   await mkdir(new URL('./', target), { recursive: true });
   const source = await readFile(new URL(`tools/${name}`, root), 'utf8');

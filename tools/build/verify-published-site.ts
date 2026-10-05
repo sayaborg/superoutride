@@ -1,5 +1,8 @@
 import { loadContentManifest } from '../../src/content/content-delivery.js';
 import { loadCourseIndex } from '../../src/content/course-index.js';
+import { contentDigest } from '../../src/core/content-digest.js';
+import { compileContent } from '../authoring/compile-content.js';
+import { openPublishedStore } from '../workbench/published-store.js';
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -50,12 +53,35 @@ for (let attempt = 1; attempt <= 10; attempt++) {
     // The performance HUD is filled by rendered frames of the shared scene, not static HTML.
     const status = stdout.match(/<output\b[^>]*aria-label="Course performance"[^>]*>([\s\S]*?)<\/output>/)?.[1];
     assert.ok(status && status.trim(), 'Published game did not reach its first rendered Session frame');
+    // The workbench's one address leads to this build's workbench, whose store is the build's published authored
+    // files: the authoring core compiles them over HTTP, as the page does, into exactly the published delivery.
+    const workbenchPage: URL = new URL(`build/${sha}/tools/workbench/workbench.html`, root);
+    for (const url of [new URL('workbench.html', root), workbenchPage, new URL('workbench.js', workbenchPage)] as URL[])
+      assert.equal((await fetch(url, { cache: 'no-store' })).status, 200, `Workbench file unavailable: ${url}`);
+    const published = await openPublishedStore(new URL(`build/${sha}/authored/`, root));
+    assert.equal(published.index.commit, sha, 'Published authored files belong to another commit');
+    const compiled = await compileContent(published.store);
+    assert.ok(
+      compiled.ok,
+      `Published authored files do not compile: ${JSON.stringify(!compiled.ok && compiled.diagnostics)}`,
+    );
+    for (const file of compiled.value.files) {
+      const entry = content.manifest.files.find(
+        (delivered) => delivered.kind === file.kind && delivered.id === file.id,
+      );
+      assert.equal(
+        await contentDigest(file.bytes),
+        entry?.sha256,
+        `Workbench product differs: ${file.kind} ${file.id}`,
+      );
+    }
     console.log(
       JSON.stringify({
         publishedCommit: sha,
         started: true,
         verifiedFiles: content.manifest.files.length,
         status: status.trim(),
+        workbenchFiles: published.index.files.length,
       }),
     );
     failure = null;

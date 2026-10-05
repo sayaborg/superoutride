@@ -93,6 +93,9 @@ only checks of delivered results (startup smoke, driving scenarios, delivered-pr
 verification) read `dist/delivery` through `tools/course/read-content.ts`. Build clears `dist`, compiles the product, runs the browser-tools build
 (`tools/build/build-browser-tools.ts`), then runs the content build (`tools/build/build-content.ts`).
 
+The build and the command-line tools end an expected content or input error by printing its diagnostics as JSON alone
+and exiting with code 1; only an internal fault prints a stack.
+
 All authoring implementations are TypeScript. Browser entries and worklet adapters are bundled from
 source with pinned esbuild; bundling does not replace type checking. The browser build uses pngjs's
 pinned browser distribution for the same PNG codec API used by Node file compilers.
@@ -142,12 +145,26 @@ Open the generated pages, not the source HTML templates:
 
 | Tool        | Local URL                                                    |
 | ----------- | ------------------------------------------------------------ |
+| Workbench   | `http://localhost:8000/workbench.html`                       |
 | Sprite Tool | `http://localhost:8000/dist/tools/graphics/sprite-tool.html` |
 | LOD preview | `http://localhost:8000/dist/tools/graphics/sprite-lod.html`  |
 
 On Pages these same `tools/...` paths live beneath `build/<commit>/`, where `<commit>` is the
 published `version.txt` value. Each tool, its shared chunks, worklets, stylesheet and sample assets
 resolve within that one build. The ordinary build command is the only generation step.
+
+### Workbench
+
+The workbench has one address: `workbench.html` at the site root (on Pages beside `index.html`, locally the repository
+root). Like the game, it reads `version.txt` and opens the workbench of that build,
+`build/<commit>/tools/workbench/workbench.html`; without `version.txt` it opens `dist/tools/workbench/workbench.html`.
+The game's DEV panel links to it. The page works on the build it belongs to: its store is that build's published
+authored files ([Build outputs](#build-outputs)) under the session's changes, and the authoring core compiles it in a
+worker, so the page never waits on a compile; an older compile's result never replaces a newer one's. The header
+always shows the build's commit, the number of changes and the compile's state; a failed compile lists its
+diagnostics (document, JSON Pointer, code and message) and keeps the last products that compiled, marked stale. The
+products of the last compile are listed with their digests. Modules are screens of the same page; each receives only
+the store, the compile and the one edit.
 
 The file compilers are `npm run build:sprite-source -- <arguments>` and
 `npm run build:sprite-lod -- <arguments>`; [Image assets](image-assets.md) owns their formats.
@@ -261,4 +278,7 @@ Pages serves one complete commit-versioned ESM build, including its relative mod
 After `npm ci`, `node --import tsx tools/build/verify-published-site.ts <Pages URL> <commit>` checks the public
 version, verifies every indexed payload through the manifest and starts the served game in headless Chrome with a URL
 naming the course index's first course, so its run starts directly, and `dev=1`, whose performance HUD only rendered
-frames fill: the check passes once it has text. `CHROME_BIN` selects a local Chromium executable.
+frames fill: the check passes once it has text. It then follows the workbench's address to that build's workbench page
+and script, and compiles the build's published authored files over HTTP with the authoring core and the workbench's own
+store: the compile must succeed and every product must equal the published delivery (Chrome's `--dump-dom` does not
+finish a page with a worker, so this part runs the core in Node). `CHROME_BIN` selects a local Chromium executable.
