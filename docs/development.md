@@ -240,12 +240,21 @@ ARCADE has the clock and rival pace. A stale, absent or unowned saved product fa
 ([Measured products](content-and-gameplay.md#measured-products)). The build stages the returned files through the
 manifest writer and saves the manifest.
 
-| Output                        | Use                                   |
-| ----------------------------- | ------------------------------------- |
-| `dist/delivery/manifest.json` | Delivery index and digest authority   |
-| `dist/delivery/<path>`        | Each manifest entry above             |
-| `_site/build/<commit>/`       | Complete commit-versioned Pages build |
-| `_site/version.txt`           | Published build identifier            |
+| Output                        | Use                                                                           |
+| ----------------------------- | ----------------------------------------------------------------------------- |
+| `dist/delivery/manifest.json` | Delivery index and digest authority                                           |
+| `dist/delivery/<path>`        | Each manifest entry above                                                     |
+| `dist/authored/index.json`    | Index of the build's authored files (`superoutride.authored-index` version 1) |
+| `dist/authored/<path>`        | Each authored file under `content/`, byte for byte                            |
+| `_site/build/<commit>/`       | Complete commit-versioned Pages build                                         |
+| `_site/version.txt`           | Published build identifier                                                    |
+
+The build also publishes the documents it was built from, for the workbench: every file under `content/` that belongs
+to the repository (tracked, or new and not ignored, as `git ls-files --cached --others --exclude-standard` lists them)
+is copied to `dist/authored/` under its `content/` path, with `index.json` (`superoutride.authored-index` version 1:
+the build's `commit` and each file's `path` and `sha256`, in path order). Readers take paths from the index, never from
+a directory listing, and verify each file's bytes against its digest. The game never reads them, and the delivery and
+its manifest are unchanged by them.
 
 Dependencies, caches, dist, previews and Pages staging are generated rather than committed source.
 Pages serves one complete commit-versioned ESM build, including its relative module URLs.
