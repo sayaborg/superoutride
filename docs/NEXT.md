@@ -20,8 +20,7 @@
   and the game-wide sound settings are content documents; every sound value is derived from physics or a DEV setting;
   exhausts are collector graphs.
 - The [product specification](product.md) is the target for Stages 12–16. Series documents own ARCADE settings and
-  fields; FREE PLAY rivals are drawn from vehicle pools; TIME TRIAL runs alone; SELECT MUSIC chooses the run's track;
-  countdown, crossing, jingle and menu effects sound; the attract demo waits for its stage.
+  fields; FREE PLAY rivals are drawn from vehicle pools; TIME TRIAL runs alone; the attract demo waits for its stage.
 - Stage 12 is complete: the front end runs inside the frame from TITLE through RESULT, with SETTINGS and `dev=1`; the
   product HUD is drawn with the text layer from race facts and the player's observation, and DEV measurements stay with
   `dev=1`; the player record keeps settings and the TIME TRIAL and ARCADE records shown at READY, at TIME TRIAL
@@ -34,8 +33,15 @@
   drivers follow lane centres, change lanes past slower vehicles or follow them and merge where their lane ends; traffic
   appears at seeded Route positions from the series or FREE PLAY's TRAFFIC option; RIBBON COAST is the verification
   course of all of it.
+- Stage 14 is complete: the AudioContext runs while the page is visible and the vehicle sounds only while a run is
+  driven; recordings (AAC in MP4) and music documents are delivered and admitted; SELECT MUSIC chooses the run's track,
+  which starts at READY, loops, pauses with the run and fades under the GOAL or GAME OVER jingle; countdown, crossing,
+  extension and menu effects sound from race facts and menu commands; the player's wall scraping runs the tire's
+  friction synthesis on the wall's sound, and its impacts are recordings at a volume from their work; the player record
+  owns the MASTER, MUSIC and EFFECTS volumes. Its recordings are placeholders until K's files replace them
+  ([placeholder recordings](#placeholder-recordings)).
 
-Next PR: **14-4** — close Stage 14.
+Next PR: **15** — the first PR of Stage 15, awaiting its proposal.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -64,14 +70,6 @@ Requirements left from the second design audit, by when they are taken up:
     says.
   - S12-02: pitch protection guarantees what its documentation states, excluding the road line's own acceleration,
     bump-stop impulses and discretization error.
-
-## Stage 14 — Music and sound effects
-
-[Product](product.md#13-music-and-sound-effects) §13 states the target. The recordings under `content/music/`,
-`content/effects/` and `content/impacts/` are placeholders (electronic tones) for building the stage; before the product
-they are replaced by K's files under the same names. The remaining PRs, in order:
-
-- **14-4 — Close Stage 14:** NEXT, the owner table and the list of placeholder recordings.
 
 ## Stage 15 — Production pipeline
 
@@ -103,9 +101,19 @@ traffic speed, and rivals take the shortest line and thread between vehicles reg
 work, rivals follow lane centres and change lanes past slower vehicles. The algorithm and its tuning start
 once product circuits are being produced.
 
-A racing line within the road width (the
-minimum-curvature line, compiled with the course), whether reference runs drive it, and passing off that line are
-designed once product courses exist to evaluate it on.
+A racing line within the road width (the minimum-curvature line, compiled with the course), whether reference runs drive
+it, and passing off that line are designed once product courses exist to evaluate it on.
+
+### Placeholder recordings
+
+The recordings delivered today are placeholders (electronic tones) for building Stage 14. Before the product, K's files
+replace them under the same names, with no code change ([Audio](audio.md#recordings-and-music-documents)):
+
+- Music (`content/music/`): `placeholder-one.m4a` and `placeholder-two.m4a`, each with its music document; the product
+  tracks bring their own names and documents.
+- Effects (`content/effects/`): `countdown-lamp`, `countdown-go`, `checkpoint`, `lap`, `extend`, `goal`, `game-over`,
+  `menu-move`, `menu-confirm` and `menu-back` (`.m4a`).
+- Impacts (`content/impacts/`): `vehicle`, `wall`, `object` and `movable` (`.m4a`).
 
 ### Reference and remaster goals
 
@@ -240,6 +248,11 @@ lighting at its own chainage, and switching is a cut.
 | Art              | Production assets, new physical materials and tunnel/background content                                                                        |
 | BG transitions   | Whether environment changes use wipes or dissolves (palette fades are not expected)                                                            |
 | Ground           | Which of LEVEL-POINT and LEVEL2-POINT is the product default (real devices); the other and its cells are then removed                          |
+| Menus            | How SELECT MUSIC and SELECT COURSE show more than the 14 items a list screen holds                                                             |
+| Audio            | Whether a decoded track (about 63 MB for three minutes of stereo at 44.1 kHz) fits the devices' memory budget                                  |
+| Audio            | Whether the music, passing the master compressor with the engines, pumps with them (real devices)                                              |
+| Audio            | Whether impacts need finer recordings than one per counterpart (by wall sound, by object or by strength)                                       |
+| Audio            | Whether other vehicles' contacts sound, and how many other vehicles have voices (after measuring the 32-vehicle scene on devices)              |
 
 ### Selected circuits
 
