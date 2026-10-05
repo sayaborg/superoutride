@@ -230,3 +230,33 @@ dialog {
 .hint {
   color: var(--muted);
 }
+.sprite-panes {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.sprite-source {
+  max-width: 640px;
+  image-rendering: pixelated;
+  cursor: crosshair;
+}
+.sprite-preview {
+  width: 640px;
+  image-rendering: pixelated;
+}
+.sprite-grid button {
+  font-size: 11px;
+  padding: 0 4px;
+}
+button.active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.swatches .swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--line);
+  vertical-align: middle;
+}

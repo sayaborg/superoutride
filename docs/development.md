@@ -214,6 +214,13 @@ file sets a recording's bytes at `<group>/<name>.m4a` in the music, effects or i
 the next compile admits its name and format as the build does. The browser decodes recordings (`decodeAudioData`); a
 recording it cannot decode is not played and the module says so.
 
+The Sprites module edits through the [sprite operations](image-assets.md#sprite-operations), each edit one
+step. **Import** opens a source of `content/sprite-sources/` or adds one (a named PNG and a recipe over the whole
+image); the source shows its crop, mask, lamp rectangles and anchor, and dragging on it with the crop, hide, show, lamp
+or anchor tool edits the recipe, as do its fields. The master is imported as the build would and previewed with the
+product's sprite drawing and LOD at a chosen depth, a vehicle image with its lamp off and on; a course image is written
+as its content-addressed file.
+
 To apply an archive to the repository, extract it at the repository root, delete the files `workbench-changes.json`
 marks `deleted`, delete `workbench-changes.json`, then run `npm run measure -- generate`, `npm run check` and
 `npm run build`. Authors without a
