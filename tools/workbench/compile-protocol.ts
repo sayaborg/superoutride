@@ -1,8 +1,10 @@
 import type { ContentLoadDiagnostic } from '../../src/content/content-load-error.js';
 import type { DeliveredFile } from '../authoring/compile-content.js';
+import type { CourseFrame, CourseReport } from '../authoring/course-views.js';
 
 /** One compile of the published build's authored files under `changes`, numbered by its generation. */
 export interface CompileRequest {
+  readonly type: 'compile';
   readonly generation: number;
   /** The build's `authored/` directory. */
   readonly root: string;
@@ -25,7 +27,7 @@ export interface InternalDiagnostic {
 
 export type WorkbenchDiagnostic = ContentLoadDiagnostic | InternalDiagnostic;
 
-export type CompileResponse =
+export type CompileResponse = { readonly type: 'compiled' } & (
   | {
       readonly generation: number;
       readonly seconds: number;
@@ -43,4 +45,40 @@ export type CompileResponse =
       /** When only measured products are stale: every product except them. */
       readonly unmeasured: readonly DeliveredFile[] | null;
       readonly preview: readonly string[];
+    }
+);
+
+/** A view of a compiled course: a Section's numeric report, or the game's frame at a position. */
+export type CourseQuery =
+  | { readonly kind: 'report'; readonly course: string; readonly section: string; readonly step: number }
+  | {
+      readonly kind: 'render';
+      readonly course: string;
+      readonly section: string;
+      readonly s: number;
+      readonly l: number;
+      /** A catalog vehicle, or the first. */
+      readonly vehicle: string | null;
     };
+
+/** A query, answered from the latest compile that succeeded. */
+export interface QueryRequest {
+  readonly type: 'query';
+  readonly id: number;
+  readonly query: CourseQuery;
+}
+
+/**
+ * A query's answer, with the generation of the compile it came from, so an older answer never replaces a newer one's,
+ * and the milliseconds the worker took. A query before any compile succeeded, or outside its domain, has a message.
+ */
+export type QueryResponse = {
+  readonly type: 'answer';
+  readonly id: number;
+  readonly generation: number | null;
+  readonly milliseconds: number;
+} & (
+  | { readonly kind: 'report'; readonly report: CourseReport }
+  | { readonly kind: 'render'; readonly frame: Omit<CourseFrame, 'stats'> }
+  | { readonly kind: 'failed'; readonly message: string }
+);

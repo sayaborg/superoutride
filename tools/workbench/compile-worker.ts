@@ -3,31 +3,78 @@ import { createLayeredStore } from '../authoring/layered-store.js';
 import { planMeasurement } from '../authoring/measure.js';
 import { MEASUREMENT_STALE, measuredEnvelopePath, referenceTimesPath } from '../course/measured-products.js';
 import { workerStore } from './worker-store.js';
-import type { CompileRequest, CompileResponse } from './compile-protocol.js';
+import { courseReport, courseSection, createCourseFrameRenderer } from '../authoring/course-views.js';
+import type { CompiledContent } from '../authoring/compile-content.js';
+import type { CompileRequest, CompileResponse, CourseQuery, QueryRequest, QueryResponse } from './compile-protocol.js';
 
 /**
  * The workbench's compiler, off the page's thread: one authoring-core compile per request. Saved measured products are
  * used while current. When they are stale, the preview measurements that are current take their place; when those do
  * not cover every stale product, the content also compiles without measured products, which editing, previews and
- * running without them use. Each compile reuses the stages of the one before whose inputs are unchanged.
+ * running without them use. Each compile reuses the stages of the one before whose inputs are unchanged. Queries about
+ * a compiled course are answered from the latest compile that succeeded, with or without measured products.
  */
 const scope = globalThis as unknown as {
-  addEventListener(type: 'message', listener: (event: MessageEvent<CompileRequest>) => void): void;
-  postMessage(message: CompileResponse): void;
+  addEventListener(type: 'message', listener: (event: MessageEvent<CompileRequest | QueryRequest>) => void): void;
+  postMessage(message: CompileResponse | QueryResponse): void;
 };
 
-// The latest compilation, whose unchanged stages the next compile reuses.
+// The latest compilation, whose unchanged stages the next compile reuses, and the latest that succeeded.
 let previous: ContentCompilation | undefined;
-const compile = async (...[store, options]: Parameters<typeof compileContent>) =>
-  (previous = await compileContent(store, { ...options, previous }));
+let latest: { readonly generation: number; readonly content: CompiledContent } | null = null;
+let compiling = 0;
+const compile = async (...[store, options]: Parameters<typeof compileContent>) => {
+  previous = await compileContent(store, { ...options, previous });
+  if (previous.ok) latest = { generation: compiling, content: previous.value };
+  return previous;
+};
+
+// The last frame renderer, kept while its compile, course, Section and vehicle are asked for again.
+let renderer: { readonly key: string; readonly render: ReturnType<typeof createCourseFrameRenderer>['render'] } | null =
+  null;
+function answer(query: CourseQuery, compiled: NonNullable<typeof latest>) {
+  const course = compiled.content.courses.find((candidate) => candidate.id === query.course);
+  if (!course) throw new RangeError(`Unknown course ${query.course}`);
+  const section = courseSection(course, query.section);
+  if (query.kind === 'report') return { kind: 'report' as const, report: courseReport(course, section, query.step) };
+  const key = JSON.stringify([compiled.generation, query.course, query.section, query.vehicle]);
+  if (renderer?.key !== key)
+    renderer = {
+      key,
+      render: createCourseFrameRenderer(
+        compiled.content,
+        course,
+        section,
+        query.vehicle ? { vehicle: query.vehicle } : {},
+      ).render,
+    };
+  const { stats: _stats, ...frame } = renderer.render(query.s, query.l);
+  return { kind: 'render' as const, frame };
+}
+
+function query({ id, query }: QueryRequest) {
+  const started = performance.now();
+  const base = { type: 'answer' as const, id, generation: latest?.generation ?? null };
+  let response: QueryResponse;
+  try {
+    if (!latest) throw new RangeError('Nothing has compiled yet');
+    response = { ...base, milliseconds: 0, ...answer(query, latest) };
+  } catch (error) {
+    if (!(error instanceof RangeError)) throw error;
+    response = { ...base, milliseconds: 0, kind: 'failed', message: error.message };
+  }
+  scope.postMessage({ ...response, milliseconds: performance.now() - started });
+}
 
 const onlyStale = (diagnostics: readonly { readonly code: string }[]) =>
   diagnostics.every((diagnostic) => diagnostic.code === MEASUREMENT_STALE);
 
 scope.addEventListener('message', async ({ data }) => {
+  if (data.type === 'query') return query(data);
+  compiling = data.generation;
   const started = performance.now();
   const seconds = () => (performance.now() - started) / 1000;
-  const base = { generation: data.generation, seconds: 0 };
+  const base = { type: 'compiled' as const, generation: data.generation, seconds: 0 };
   let response: CompileResponse;
   try {
     const store = await workerStore(data.root, data.changes);

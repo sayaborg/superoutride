@@ -1,5 +1,3 @@
-import { createVehicleSprites } from '../../src/view/vehicle-sprites.js';
-import { createSessionVehicle } from '../../src/content/session-vehicle.js';
 import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 interface RenderFrame {
   output: string;
@@ -11,16 +9,10 @@ interface RenderFrame {
 }
 import path from 'node:path';
 import { PNG } from 'pngjs';
-import { createCourseScene } from '../../src/view/course-scene.js';
-import { createRenderMeasurements, type RenderMeasurements } from '../../src/view/renderer.js';
-import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
-import { SIM_DT } from '../../src/race/fixed-step.js';
-import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
-import { createCameraRig, updateCamera } from '../../src/view/camera.js';
-import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
-import { createLogicalFrame } from '../../src/view/display-scale.js';
+import type { RenderMeasurements } from '../../src/view/renderer.js';
+import { createCourseFrameRenderer } from '../authoring/course-views.js';
 import { expandRgb555Pixels } from '../../src/image/rgb555.js';
-import { courseReport } from './course-report.js';
+import { writeCourseReport } from './course-report.js';
 import { options, loadCourse, requireInput, finite, atomicWrite, reportError } from './authoring-io.js';
 
 const [verb, file, ...args] = process.argv.slice(2);
@@ -48,7 +40,7 @@ try {
     forks?: { section: string; lock: number; closure: number; exits: unknown[] }[];
     ground?: Record<string, number>;
     render?: RenderFrame | { frames: RenderFrame[] };
-    report?: Awaited<ReturnType<typeof courseReport>>;
+    report?: Awaited<ReturnType<typeof writeCourseReport>>;
   } = {
     ok: true,
     course: course.id,
@@ -90,12 +82,6 @@ try {
       directoryBytes: sum('directoryBytes'),
     };
   } else if (verb === 'render') {
-    const { definitions } = content;
-    const entry = opts.has('--vehicle')
-      ? definitions.vehicles.find((e) => e.compiledVehicle.id === opts.get('--vehicle'))
-      : definitions.vehicles[0];
-    requireInput(entry, '/vehicle', 'Unknown vehicle');
-    const sprites = createVehicleSprites(entry);
     const sequence = ['--start', '--end', '--step'].some((f) => opts.has(f));
     let stations;
     if (sequence) {
@@ -111,49 +97,45 @@ try {
       requireInput(count <= 240, '/sequence', 'At most 240 frames per command');
       stations = Array.from({ length: count }, (_, i) => start + i * step);
     } else stations = [finite(Number(opts.get('--s') ?? 45), '/s', 0, section.coordinates.domain.end)];
-    const l = finite(Number(opts.get('--l') ?? 0), '/l', -1000, 1000),
-      scene = createCourseScene(section, course.gates, definitions.vehicles);
-    if (opts.has('--exit')) {
-      const link = section.outgoing.find((l) => l.id === opts.get('--exit'));
-      requireInput(link, '/exit', 'Exit must name a canonical outgoing Link');
-      scene.runtime.selectSuccessor(link);
-      scene.runtime.refresh(0, Math.max(...stations));
-    }
+    const l = finite(Number(opts.get('--l') ?? 0), '/l', -1000, 1000);
+    requireInput(
+      !opts.has('--vehicle') ||
+        content.definitions.vehicles.some((e) => e.compiledVehicle.id === opts.get('--vehicle')),
+      '/vehicle',
+      'Unknown vehicle',
+    );
+    requireInput(
+      !opts.has('--exit') || section.outgoing.some((link) => link.id === opts.get('--exit')),
+      '/exit',
+      'Exit must name a canonical outgoing Link',
+    );
+    const renderer = createCourseFrameRenderer(content, course, section, {
+      ...(opts.has('--vehicle') ? { vehicle: opts.get('--vehicle')! } : {}),
+      ...(opts.has('--exit') ? { exit: opts.get('--exit')!, through: Math.max(...stations) } : {}),
+    });
     const destination = path.resolve(opts.get('--out') ?? (sequence ? 'frames' : 'frame.png'));
     const frames: RenderFrame[] = [];
     for (const [i, s] of stations.entries()) {
-      const vehicle = createVehicle(
-        createVehicleModel(createSessionVehicle(entry, definitions.driving), SIM_DT),
-        scene.world,
-        {
-          s,
-          l,
-          initialSpeed: 0,
-        },
-      );
-      const camera = updateCamera(createCameraRig(), scene.world, vehicle, CAMERA_DEFINITION),
-        target = createLogicalFrame();
-      const stats = createRenderMeasurements(),
-        png = new PNG({ width: target.width, height: target.height });
-      scene.render(target, vehicle, camera, sprites.off, [], [], stats);
-      const rgba = new Uint32Array(target.pixels.length);
-      expandRgb555Pixels(target.pixels, rgba);
+      const frame = renderer.render(s, l);
+      const rgba = new Uint32Array(frame.pixels.length),
+        png = new PNG({ width: frame.width, height: frame.height });
+      expandRgb555Pixels(frame.pixels, rgba);
       png.data = Buffer.from(rgba.buffer);
       const output = sequence ? path.join(destination, `${String(i).padStart(4, '0')}.png`) : destination;
       await atomicWrite(output, PNG.sync.write(png));
       frames.push({
         output,
-        section: section.id,
-        s: vehicle.course.s,
-        l: vehicle.course.l,
-        vehicle: entry.compiledVehicle.id,
-        stats,
+        section: frame.section,
+        s: frame.s,
+        l: frame.l,
+        vehicle: frame.vehicle,
+        stats: frame.stats,
       });
     }
     result.render = sequence ? { frames } : frames[0];
   } else if (verb === 'report') {
     requireInput(section.appearance, '/section', 'Report needs explicit saved appearance');
-    result.report = await courseReport(
+    result.report = await writeCourseReport(
       course,
       section,
       path.resolve(opts.get('--out') ?? 'course-report'),

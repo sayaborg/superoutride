@@ -1,4 +1,4 @@
-import type { CourseReport } from './course-report.js';
+import type { CourseReport } from '../authoring/course-views.js';
 /** Deterministic SVG plots from numeric compiled observations. No raster or Python dependency. */
 const escape = (value: unknown) =>
   String(value).replace(

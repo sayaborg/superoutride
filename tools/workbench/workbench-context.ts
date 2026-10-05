@@ -1,6 +1,6 @@
 import type { ContentStore } from '../authoring/content-store.js';
 import type { DeliveredFile } from '../authoring/compile-content.js';
-import type { WorkbenchDiagnostic } from './compile-protocol.js';
+import type { CourseQuery, QueryResponse, WorkbenchDiagnostic } from './compile-protocol.js';
 
 /** The latest compile the workbench knows: its products, or its diagnostics with the last products that compiled. */
 export type CompileState =
@@ -48,6 +48,11 @@ export interface WorkbenchContext {
   setFile(path: string, bytes: Uint8Array<ArrayBuffer> | null, label?: string): void;
   /** The preview measurements: saved-product files measured here, used while current, never saved or undone. */
   preview(): ReadonlyMap<string, Uint8Array<ArrayBuffer>>;
+  /**
+   * Ask about a compiled course: answered from the latest compile that succeeded, whose generation (the history step it
+   * compiled) the answer carries.
+   */
+  query(query: CourseQuery): Promise<QueryResponse>;
   /** Add preview measurements and compile again. */
   addPreview(files: readonly (readonly [string, Uint8Array<ArrayBuffer>])[]): void;
   /** The published build's `authored/` directory, which workers open. */

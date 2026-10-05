@@ -4,7 +4,14 @@ import { AUTHORED_DIRECTORY, type AuthoredIndex } from '../authoring/authored-in
 import type { ContentStore } from '../authoring/content-store.js';
 import { createLayeredStore } from '../authoring/layered-store.js';
 import { openPublishedStore } from './published-store.js';
-import type { CompileRequest, CompileResponse, WorkbenchDiagnostic } from './compile-protocol.js';
+import type {
+  CompileRequest,
+  CompileResponse,
+  CourseQuery,
+  QueryRequest,
+  QueryResponse,
+  WorkbenchDiagnostic,
+} from './compile-protocol.js';
 import type { CompileState, WorkbenchContext, WorkbenchModule } from './workbench-context.js';
 import { WORKBENCH_MODULES } from './modules.js';
 import { createHistory, type Changes } from './history.js';
@@ -57,13 +64,22 @@ function start(index: AuthoredIndex, published: ContentStore) {
     state = { status: 'running', last: state.last };
     notify();
     worker.postMessage({
+      type: 'compile',
       generation,
       root: authoredRoot.href,
       changes: [...history.changes],
       preview: [...preview].map(([path, bytes]) => [path, bytes.slice()] as const),
     } satisfies CompileRequest);
   };
-  worker.addEventListener('message', ({ data }: MessageEvent<CompileResponse>) => {
+  // Queries about the compiled courses, answered in the order asked.
+  const queries = new Map<number, (answer: QueryResponse) => void>();
+  let queryId = 0;
+  worker.addEventListener('message', ({ data }: MessageEvent<CompileResponse | QueryResponse>) => {
+    if (data.type === 'answer') {
+      queries.get(data.id)?.(data);
+      queries.delete(data.id);
+      return;
+    }
     running = false;
     if (data.generation !== wanted) return compile();
     // Preview measurements no longer current are discarded.
@@ -121,6 +137,12 @@ function start(index: AuthoredIndex, published: ContentStore) {
     setFile: (path: string, bytes: Uint8Array<ArrayBuffer> | null, label = `${bytes ? 'Set' : 'Delete'} ${path}`) =>
       void edit([[path, bytes]], label),
     preview: () => preview,
+    query: (query: CourseQuery) =>
+      new Promise<QueryResponse>((resolve) => {
+        const id = ++queryId;
+        queries.set(id, resolve);
+        worker.postMessage({ type: 'query', id, query } satisfies QueryRequest);
+      }),
     addPreview(files: readonly (readonly [string, Uint8Array<ArrayBuffer>])[]) {
       preview = new Map([...preview, ...files]);
       moved();

@@ -116,7 +116,12 @@ node --import tsx tools/course/measure.ts request.json --out observations.json
 
 `compile` reports the compiled course: its identity, type, entry Section, Sections, forks and ground metrics.
 [Content and gameplay](content-and-gameplay.md#observation-formats) owns saved tool formats.
-The render command uses the shared product scene; reports and preview images are disposable outputs.
+`report` and `render` write what two core functions in
+[`course-views.ts`](../tools/authoring/course-views.ts) return from the compiled course: `courseReport` (a Section's
+plan position, curvature, height and Boundary positions at regular and knot stations, its sprites, environments and
+plan segments) and `createCourseFrameRenderer` (the game's logical frame in RGB555 through the shared product scene,
+a vehicle at rest at `s` and `l`). The commands add the JSON, text and SVG files and the PNG; reports and preview
+images are disposable outputs.
 
 ### Measured products
 
@@ -162,7 +167,9 @@ root). Like the game, it reads `version.txt` and opens the workbench of that bui
 The game's DEV panel links to it. The page works on the build it belongs to: its store is that build's published
 authored files ([Build outputs](#build-outputs)) under the session's changes, and the authoring core compiles it in a
 worker, so the page never waits on a compile, and each compile reuses the unchanged stages of the one before
-([Architecture](architecture.md#layer-boundaries)); an older compile's result never replaces a newer one's. The header
+([Architecture](architecture.md#layer-boundaries)); an older compile's result never replaces a newer one's. The
+worker also answers the page's course queries, a Section's report or a frame at a position (the course commands' core
+functions), from the latest compile that succeeded; each answer carries that compile's step. The header
 always shows the build's commit, the number of changes and the compile's state; a failed compile lists its
 diagnostics (document, JSON Pointer, code and message) and keeps the last products that compiled, marked stale. The
 products of the last compile are listed with their digests. Modules are screens of the same page; each receives only

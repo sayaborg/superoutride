@@ -1,78 +1,26 @@
-import { createPlanCoordinateSample } from '../../src/course/geometry/plan-coordinate.js';
+import path from 'node:path';
 import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
+import { courseReport, type CourseReport } from '../authoring/course-views.js';
+import { plotCourseReport } from './plot-report.js';
+import { atomicWrite, finite, requireInput } from './authoring-io.js';
 
 type CompiledSection = CompiledCourse['sections'][number];
 
-export interface CourseReport {
-  course: string;
-  section: string;
-  lengthMeters: number;
-  identity: CompiledCourse['identity'];
-  boundaries: string[];
-  samples: {
-    s: number;
-    curvaturePerMeter: number;
-    heightMeters: number;
-    x: number;
-    z: number;
-    boundaries: (number | null)[];
-  }[];
-  sprites: { s: number; l: number; asset: string; state: string | null }[];
-  environments: { s: number; name: string }[];
-  segments: { index: number; kind: string; start: number; end: number }[];
-}
-
-import path from 'node:path';
-import { plotCourseReport } from './plot-report.js';
-
-import { courseBoundaryAt } from '../../src/course/course-boundaries.js';
-import { atomicWrite, finite, requireInput } from './authoring-io.js';
-
-export async function courseReport(course: CompiledCourse, section: CompiledSection, directory: string, step = 10) {
+/** The course command's report: the core's numeric report of a Section written as JSON, text and SVG plots. */
+export async function writeCourseReport(
+  course: CompiledCourse,
+  section: CompiledSection,
+  directory: string,
+  step = 10,
+) {
   finite(step, '/step', 0.01, 100000);
-  const length = section.coordinates.domain.end;
-  requireInput(Math.ceil(length / step) <= 4096, '/step', 'Report is limited to 4096 regular stations');
-  const stations = [
-    ...new Set([
-      0,
-      length,
-      ...Array.from({ length: Math.ceil(length / step) }, (_, i) => i * step),
-      ...section.height.knots.map((n) => n.s),
-      ...section.segments.flatMap((p) => [p.sStart, p.sEnd]),
-      ...section.height.knots.flatMap((n) => [n.s - n.curveLength / 2, n.s + n.curveLength / 2]),
-      ...section.boundaries.flatMap((b) => b.vertices.map((k) => k.at.s)),
-    ]),
-  ].sort((a, b) => a - b);
-  const metric = { curvature: 0, offsetMetric: 1 };
-  const samples = stations.map((s) => {
-    const world = section.coordinates.toWorld(s, 0, createPlanCoordinateSample());
-    return {
-      s,
-      curvaturePerMeter: section.coordinates.metricsAt(s, 0, metric).curvature,
-      heightMeters: section.height.sample(s),
-      x: world.x,
-      z: world.z,
-      boundaries: section.boundaries.map((b) =>
-        s < b.vertices[0]!.at.s || s > b.vertices.at(-1)!.at.s ? null : courseBoundaryAt(b, s),
-      ),
-    };
-  });
-  const report: CourseReport = {
-    course: course.id,
-    section: section.id,
-    lengthMeters: length,
-    identity: course.identity,
-    boundaries: section.boundaries.map((b) => b.id),
-    samples,
-    sprites: section.appearance!.sprites.map((p) => ({
-      s: p.at.s,
-      l: p.l,
-      asset: p.instance.asset.image.name,
-      state: p.unselectedCarriagewayId,
-    })),
-    environments: section.appearance!.environments.map((e) => ({ s: e.at.s, name: e.name })),
-    segments: section.segments.map((p) => ({ index: p.index, kind: p.geometry.kind, start: p.sStart, end: p.sEnd })),
-  };
+  requireInput(
+    Math.ceil(section.coordinates.domain.end / step) <= 4096,
+    '/step',
+    'Report is limited to 4096 regular stations',
+  );
+  const report: CourseReport = courseReport(course, section, step);
+  const samples = report.samples;
   const json = path.join(directory, 'report.json');
   await atomicWrite(json, JSON.stringify(report, null, 2) + '\n');
   const text =
