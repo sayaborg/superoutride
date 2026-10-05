@@ -1,12 +1,12 @@
 import { compileContent } from '../authoring/compile-content.js';
-import { createContentWriter } from './content-manifest.js';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { layoutDelivery } from './content-manifest.js';
 import { createNodeContentStore } from './node-content-store.js';
 
 /**
  * The content build: the authoring core compiles `content/` into every delivered file, the saved measured products'
- * included, which this script writes to `dist/delivery` with the manifest. It runs no driving.
+ * included, which this script writes to `dist/delivery` in the delivery layout. It runs no driving.
  */
-const writer = createContentWriter(new URL('../../dist/delivery/', import.meta.url));
 const compiled = await compileContent(createNodeContentStore());
 // An expected content error prints its diagnostics alone; internal faults keep their stack.
 if (!compiled.ok) {
@@ -26,7 +26,12 @@ console.log(
     addedLodRgb555PaletteBytes: levels.length * 32,
   }),
 );
-for (const file of content.files) await writer.stage(file.kind, file.id, null, file.bytes);
 for (const course of content.courses) console.log(`${course.id}.course.json: Strip ground compiled`);
-await writer.save();
+const root = new URL('../../dist/delivery/', import.meta.url);
+// The layout lists the manifest last, so it is written after every file it indexes.
+for (const [path, bytes] of await layoutDelivery(content.files)) {
+  const target = new URL(path, root);
+  await mkdir(new URL('./', target), { recursive: true });
+  await writeFile(target, bytes);
+}
 console.log('Validated and staged manifest content');

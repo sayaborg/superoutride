@@ -239,7 +239,9 @@ vehicle envelopes, game time budgets and pace schedules from the [measured produ
 mechanics, vehicle listing, driving, material, surface-sound, wall-sound, audio, engine-sound, music, series and text tile documents are delivered exactly as authored in that
 encoding, so the build knows their delivered digests before staging them. Recordings are not JSON: each is delivered
 as the exact bytes its author placed under `content/`. Entries contain no payload
-format/version. The manifest writer is the only authority for these kinds, IDs and paths under `dist/delivery/`:
+format/version. The delivery layout (`layoutDelivery` in
+[`content-manifest.ts`](../tools/build/content-manifest.ts)) is the only authority for these kinds, IDs and paths under
+`dist/delivery/`:
 
 | Kind              | ID                                                                                          | Path                                | Content                                                                                                      |
 | ----------------- | ------------------------------------------------------------------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------ |
@@ -267,7 +269,7 @@ admission toolkit as document `manifest.json` (format and version first, exact f
 paths) and owns the delivered JSON encoding; it knows no transport. Delivery
 ([`content-delivery.ts`](../src/content/content-delivery.ts)) reads the index through it, resolves each logical
 identity to its relative path, and verifies the exact downloaded/read bytes against SHA-256 before JSON decoding. The
-build's manifest writer uses only the format. Missing entries
+delivery layout uses only the format. Missing entries
 or digest mismatches stop loading. Loaders report expected content and build errors as one
 `ContentLoadError` whose `diagnostics` keep their structure: the admission diagnostics of the loaded
 documents, and for an absent manifest entry a `content_missing` diagnostic naming `manifest.json`, the
@@ -277,7 +279,7 @@ transport and file-read failures propagate unchanged. Each composition loads the
 and passes it to the course and the Session vehicle. The manifest itself is the bootstrap index inside the commit-versioned
 build; it cannot contain its own digest. Browser course selection reads the course index.
 
-Only the manifest writer owns output naming. Browsers, Node consumers, startup smoke and public-site
+Only the delivery layout owns output naming. Browsers, Node consumers, startup smoke and public-site
 verification read indexed content through the shared reader, never by reconstructing output paths.
 Authoring inputs under `content/` still use explicit source filenames and image directories.
 The browser-tools build writes only `dist/tools`: the bundled tools, the Sprite Tool's PNG example and
@@ -293,8 +295,8 @@ compiles. Last, the core admits the saved measured products against this content
 envelope, which FREE PLAY rivals and runout admission read, and for each series course its candidate vehicles' time
 budgets (the saved times with the series' time margin) and pace schedules; only series courses are timed, since only
 ARCADE has the clock and rival pace. A stale, absent or unowned saved product fails the build
-([Measured products](content-and-gameplay.md#measured-products)). The build stages the returned files through the
-manifest writer and saves the manifest.
+([Measured products](content-and-gameplay.md#measured-products)). The build lays the returned files out with the
+delivery layout and writes them, the manifest last.
 
 | Output                        | Use                                                                           |
 | ----------------------------- | ----------------------------------------------------------------------------- |

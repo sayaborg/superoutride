@@ -1,7 +1,7 @@
-import { mkdir, writeFile } from 'node:fs/promises';
 import { contentDigest } from '../../src/core/content-digest.js';
 import { requireLoaded, type ContentKind } from '../../src/content/content-load-error.js';
-import { encodeContentJson, readContentManifest, type ContentEntry } from '../../src/content/content-manifest.js';
+import { readContentManifest, type ContentEntry } from '../../src/content/content-manifest.js';
+import type { DeliveredFile } from '../authoring/compile-content.js';
 
 function contentPath(kind: ContentKind, id: string, sha256: string): string {
   switch (kind) {
@@ -44,32 +44,29 @@ function contentPath(kind: ContentKind, id: string, sha256: string): string {
   }
 }
 
-/** Sole output layout authority. Consumers resolve logical identities through the saved manifest. */
-export function createContentWriter(root: URL) {
-  const files: ContentEntry[] = [];
-  return {
-    /** Stage one file and return the SHA-256 of its delivered bytes. */
-    async stage(kind: ContentKind, id: string, value: unknown, encoded?: Uint8Array<ArrayBuffer>): Promise<string> {
-      const bytes = encoded ?? encodeContentJson(value);
-      const sha256 = await contentDigest(bytes);
-      const path = contentPath(kind, id, sha256);
-      const entry = { kind, id, path, sha256 };
-      const previous = files.find((file) => file.kind === kind && file.id === id);
-      if (previous) {
-        if (previous.sha256 !== sha256) throw new Error(`Conflicting content: ${kind} ${id}`);
-        return sha256;
-      }
-      const target = new URL(path, root);
-      await mkdir(new URL('./', target), { recursive: true });
-      await writeFile(target, bytes);
-      files.push(entry);
-      return sha256;
-    },
-    async save() {
-      const manifest = requireLoaded(
-        readContentManifest({ format: 'superoutride.content-manifest', version: 1, files }),
-      );
-      await writeFile(new URL('manifest.json', root), JSON.stringify(manifest) + '\n');
-    },
-  };
+/**
+ * The delivery layout, its sole authority: each delivered file's bytes at its path, and `manifest.json` indexing them.
+ * The manifest comes last. Consumers resolve logical identities through it. A kind and ID delivered twice must have the same bytes.
+ */
+export async function layoutDelivery(
+  files: readonly DeliveredFile[],
+): Promise<ReadonlyMap<string, Uint8Array<ArrayBuffer>>> {
+  const entries: ContentEntry[] = [];
+  const layout = new Map<string, Uint8Array<ArrayBuffer>>();
+  for (const { kind, id, bytes } of files) {
+    const sha256 = await contentDigest(bytes);
+    const previous = entries.find((entry) => entry.kind === kind && entry.id === id);
+    if (previous) {
+      if (previous.sha256 !== sha256) throw new Error(`Conflicting content: ${kind} ${id}`);
+      continue;
+    }
+    const path = contentPath(kind, id, sha256);
+    entries.push({ kind, id, path, sha256 });
+    layout.set(path, bytes);
+  }
+  const manifest = requireLoaded(
+    readContentManifest({ format: 'superoutride.content-manifest', version: 1, files: entries }),
+  );
+  layout.set('manifest.json', new TextEncoder().encode(JSON.stringify(manifest) + '\n'));
+  return layout;
 }
