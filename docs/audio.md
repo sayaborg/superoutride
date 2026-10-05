@@ -179,7 +179,8 @@ Each track has a music document, `content/music/<id>.json`: one `superoutride.mu
 kind `music`, ID `<id>`, its file name without `.json`; the document carries none) with exactly `format`, `version`,
 `title` (the text SELECT MUSIC lists, in characters the text tiles draw), `selectionOrder` (a positive integer, unique
 among tracks, ordering the list) and `loop` (`start` and `end` in seconds from the start of the decoded recording,
-`0 <= start < end`). [`compileMusicDocument`](../src/audio/music-document.ts) admits one document.
+`0 <= start < end`). [`compileMusicDocument`](../src/audio/music-document.ts) admits one document. Loop points are set
+by ear in the workbench's music module ([Development](development.md#workbench)).
 
 The content build ([recording catalog](../src/content/recording-catalog.ts)) admits the recordings and the music
 documents together; each failure is a diagnostic and nothing falls back. It reads each recording's MP4 boxes without a

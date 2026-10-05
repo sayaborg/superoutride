@@ -206,6 +206,14 @@ compile's products, laid out by the build's delivery layout when the tab opened.
 With saved or preview measurements every mode runs, ARCADE with its time limit. While measurements are stale the game
 opens in FREE PLAY without rivals, traffic or a time limit. A failed compile cannot run.
 
+The Music module plays a track's recording with the product's recording playback (`createRecordingPlayback`) and the
+authored sound settings' timing: from the start, or from 3 s before `loop.end` to hear the seam. `loop.start` and
+`loop.end` are set by number or on the waveform, where a press moves the nearer point and its release saves it;
+`title` and `selectionOrder` are fields too. Each confirmed change replaces the music document: one step. A chosen
+file sets a recording's bytes at `<group>/<name>.m4a` in the music, effects or impacts group, adding or replacing it;
+the next compile admits its name and format as the build does. The browser decodes recordings (`decodeAudioData`); a
+recording it cannot decode is not played and the module says so.
+
 To apply an archive to the repository, extract it at the repository root, delete the files `workbench-changes.json`
 marks `deleted`, delete `workbench-changes.json`, then run `npm run measure -- generate`, `npm run check` and
 `npm run build`. Authors without a

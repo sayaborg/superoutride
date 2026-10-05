@@ -219,3 +219,14 @@ dialog {
     12px/1.4 ui-monospace,
     monospace;
 }
+.waveform {
+  display: block;
+  width: 100%;
+  max-width: 1000px;
+  height: 120px;
+  border: 1px solid var(--line);
+  cursor: col-resize;
+}
+.hint {
+  color: var(--muted);
+}
