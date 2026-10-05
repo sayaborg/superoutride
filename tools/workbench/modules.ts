@@ -5,6 +5,7 @@ import { measureModule } from './measure-module.js';
 import { runModule } from './run-module.js';
 import { musicModule } from './music-module.js';
 import { spriteModule } from './sprite-module.js';
+import { courseModule } from './course-module.js';
 
 /** The workbench's modules, in tab order: the one place a module is added. */
 export const WORKBENCH_MODULES: readonly WorkbenchModule[] = Object.freeze([
@@ -14,4 +15,5 @@ export const WORKBENCH_MODULES: readonly WorkbenchModule[] = Object.freeze([
   runModule,
   musicModule,
   spriteModule,
+  courseModule,
 ]);

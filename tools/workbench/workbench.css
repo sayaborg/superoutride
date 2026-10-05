@@ -294,3 +294,28 @@ button.active {
 input[type='number'] {
   width: 7em;
 }
+.course-plan {
+  width: 900px;
+  max-width: 100%;
+  border: 1px solid var(--line);
+  cursor: crosshair;
+}
+.course-side {
+  width: 320px;
+}
+.course-sections {
+  list-style: none;
+  padding: 0;
+}
+.course-selection {
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.course-selection pre {
+  max-height: 260px;
+  overflow: auto;
+}
+.layers .layer {
+  margin-right: 8px;
+  white-space: nowrap;
+}
