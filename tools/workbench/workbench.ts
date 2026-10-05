@@ -337,7 +337,14 @@ async function resolveConflicts(
 function showDiagnostics(context: WorkbenchContext) {
   const list = element('diagnostics');
   const state = context.compile();
+  if (state.status === 'running') return;
   list.replaceChildren();
+  // The one place diagnostics show for every module: its summary counts them, and a newly failed compile opens it.
+  const panel = element<HTMLDetailsElement>('compile-panel');
+  const count = state.status === 'failed' ? state.diagnostics.length : 0;
+  element('compile-summary').textContent = `Diagnostics: ${count}`;
+  if (count && !panel.hasAttribute('data-failed')) panel.open = true;
+  panel.toggleAttribute('data-failed', count > 0);
   if (state.status !== 'failed') return;
   for (const diagnostic of state.diagnostics as readonly WorkbenchDiagnostic[]) {
     // A course asset diagnostic names its saved image by digest.

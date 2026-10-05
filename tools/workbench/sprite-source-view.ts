@@ -19,6 +19,7 @@ import type { SpriteLodDocument } from '../../src/image/sprite.js';
 import type { WorkbenchContext } from './workbench-context.js';
 import { createSpritePreview, PREVIEW_DEPTH } from './sprite-preview.js';
 import { make } from './dom.js';
+import { confirmField, finiteNumber, pointerDrag } from './pending-edit.js';
 
 /** What the set view needs of the source view: the imported master and the lamp colors to preview it with. */
 export interface ImportedMaster {
@@ -126,7 +127,9 @@ export function mountSourceView(
     make('div', '', { class: 'sprite-panes' }),
     note,
   );
-  const panes = element.querySelector('.sprite-panes')!;
+  const panes = element.querySelector<HTMLElement>('.sprite-panes')!;
+  const empty = make('p', 'No source is open: name a new source and choose its PNG.', { class: 'hint' });
+  panes.before(empty);
   const previewPane = make('div');
   previewPane.append(preview.canvas, make('br'), field('Depth (m)', depth), ' ', writeCourse);
   panes.append(canvas, previewPane);
@@ -138,7 +141,8 @@ export function mountSourceView(
     decodedKey: string | null = null,
     decoded: SourceImage | null = null,
     master: SpriteLodDocument | null = null;
-  let drag: { x0: number; y0: number; x1: number; y1: number } | null = null;
+  // A rectangle being dragged on the source, shown before the recipe changes.
+  let drag: Drag | null = null;
   const recipePath = () => `${SPRITE_SOURCES_DIRECTORY}/${name}.json`;
   const save = (next: SpriteRecipe, label: string) => context.replace(recipePath(), next, `${label} (${name})`);
 
@@ -207,6 +211,8 @@ export function mountSourceView(
     name = source.value || null;
     recipe = image = master = null;
     if (!name) {
+      panes.hidden = true;
+      empty.hidden = false;
       imported(null);
       return;
     }
@@ -241,6 +247,9 @@ export function mountSourceView(
       automatic.disabled = recipe.palette === null;
     }
     writeCourse.hidden = recipe?.target !== 'course';
+    // Without an open source there is nothing to show but how to add one.
+    panes.hidden = !recipe;
+    empty.hidden = !!recipe;
     draw();
     drawPreview();
     imported(master && recipe && name ? { name, recipe, master } : null);
@@ -289,35 +298,38 @@ export function mountSourceView(
   });
 
   // Fields are saved when confirmed.
-  const number = (input: HTMLInputElement) => (input.value.trim() === '' ? NaN : Number(input.value));
-  const edit = (input: HTMLElement, apply: (current: SpriteRecipe) => SpriteRecipe | null, label: string) =>
-    input.addEventListener('change', () => {
-      if (!recipe) return;
-      const next = apply(recipe);
-      if (next) save(next, label);
-    });
-  edit(target, (r) => ({ ...r, target: target.value as SpriteRecipe['target'], palette: null }), 'Set target');
-  edit(fields.widthMeters, (r) => ({ ...r, widthMeters: number(fields.widthMeters) }), 'Set width');
+  const recipeField = <T>(
+    input: HTMLInputElement | HTMLSelectElement,
+    parse: (text: string) => T | null,
+    apply: (current: SpriteRecipe, value: T) => SpriteRecipe,
+    label: string,
+  ) => confirmField(input, parse, (value) => recipe && save(apply(recipe, value), label));
+  recipeField(
+    target,
+    (text) => text as SpriteRecipe['target'],
+    (r, value) => ({ ...r, target: value, palette: null }),
+    'Set target',
+  );
+  recipeField(fields.widthMeters, finiteNumber, (r, widthMeters) => ({ ...r, widthMeters }), 'Set width');
   for (const [key, input] of [
     ['x', fields.cropX],
     ['y', fields.cropY],
     ['width', fields.cropWidth],
     ['height', fields.cropHeight],
   ] as const)
-    edit(input, (r) => ({ ...r, crop: { ...r.crop, [key]: number(input) } }), 'Set crop');
-  edit(fields.anchorX, (r) => ({ ...r, anchor: { ...r.anchor, x: number(fields.anchorX) } }), 'Set anchor');
-  edit(fields.anchorY, (r) => ({ ...r, anchor: { ...r.anchor, y: number(fields.anchorY) } }), 'Set anchor');
-  edit(
+    recipeField(input, finiteNumber, (r, value) => ({ ...r, crop: { ...r.crop, [key]: value } }), 'Set crop');
+  recipeField(fields.anchorX, finiteNumber, (r, x) => ({ ...r, anchor: { ...r.anchor, x } }), 'Set anchor');
+  recipeField(fields.anchorY, finiteNumber, (r, y) => ({ ...r, anchor: { ...r.anchor, y } }), 'Set anchor');
+  recipeField(
     fields.lampColors,
-    (r) => {
-      const colors = fields.lampColors.value
+    (text) => {
+      const colors = text
         .split(/[\s,]+/)
         .filter(Boolean)
         .map(Number);
-      return colors.every((c) => Number.isInteger(c) && c >= 0 && c <= 0x7fff)
-        ? { ...r, lamp: { ...r.lamp, colors } }
-        : null;
+      return colors.every((c) => Number.isInteger(c) && c >= 0 && c <= 0x7fff) ? colors : null;
     },
+    (r, colors) => ({ ...r, lamp: { ...r.lamp, colors } }),
     'Set lamp colors',
   );
   generate.addEventListener('click', () => {
@@ -345,39 +357,47 @@ export function mountSourceView(
       y: Math.floor(((event.clientY - box.top) / box.height) * (image?.height ?? 0)),
     };
   };
-  canvas.addEventListener('pointerdown', (event) => {
-    if (!image || !recipe) return;
-    const { x, y } = at(event);
-    drag = { x0: x, y0: y, x1: x, y1: y };
-    canvas.setPointerCapture(event.pointerId);
-    draw();
-  });
-  canvas.addEventListener('pointermove', (event) => {
-    if (!drag) return;
-    const { x, y } = at(event);
-    drag = { ...drag, x1: x, y1: y };
-    draw();
-  });
-  canvas.addEventListener('pointerup', () => {
-    if (!drag || !recipe || !image) return;
-    const rect = clip(rectangle(drag), image);
-    const point = { x: drag.x1, y: drag.y1 };
-    drag = null;
-    if (tool === 'anchor') save({ ...recipe, anchor: point }, 'Set anchor');
-    else if (!rect) draw();
-    else if (tool === 'crop') save({ ...recipe, crop: rect }, 'Set crop');
-    else if (tool === 'lamp')
-      save({ ...recipe, lamp: { ...recipe.lamp, rectangles: [...recipe.lamp.rectangles, rect] } }, 'Mark lamp');
-    else
-      save(
-        { ...recipe, mask: [...recipe.mask, { ...rect, hidden: tool === 'hide' }] },
-        tool === 'hide' ? 'Hide' : 'Show',
-      );
+  pointerDrag<Drag>(canvas, {
+    start: (event) => {
+      if (!image || !recipe) return null;
+      const { x, y } = at(event);
+      return { x0: x, y0: y, x1: x, y1: y };
+    },
+    move: (pending, event) => {
+      const { x, y } = at(event);
+      return { ...pending, x1: x, y1: y };
+    },
+    show: (pending) => {
+      drag = pending;
+      draw();
+    },
+    commit: (pending) => {
+      if (!recipe || !image) return;
+      const rect = clip(rectangle(pending), image);
+      if (tool === 'anchor') save({ ...recipe, anchor: { x: pending.x1, y: pending.y1 } }, 'Set anchor');
+      else if (!rect) return;
+      else if (tool === 'crop') save({ ...recipe, crop: rect }, 'Set crop');
+      else if (tool === 'lamp')
+        save({ ...recipe, lamp: { ...recipe.lamp, rectangles: [...recipe.lamp.rectangles, rect] } }, 'Mark lamp');
+      else
+        save(
+          { ...recipe, mask: [...recipe.mask, { ...rect, hidden: tool === 'hide' }] },
+          tool === 'hide' ? 'Hide' : 'Show',
+        );
+    },
   });
 }
 
+/** A drag on the source: where it started and where it is, in source pixels. */
+interface Drag {
+  readonly x0: number;
+  readonly y0: number;
+  readonly x1: number;
+  readonly y1: number;
+}
+
 /** The rectangle a drag spans, both corners included. */
-function rectangle({ x0, y0, x1, y1 }: { x0: number; y0: number; x1: number; y1: number }): SpriteCrop {
+function rectangle({ x0, y0, x1, y1 }: Drag): SpriteCrop {
   return { x: Math.min(x0, x1), y: Math.min(y0, y1), width: Math.abs(x1 - x0) + 1, height: Math.abs(y1 - y0) + 1 };
 }
 

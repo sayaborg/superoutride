@@ -3,6 +3,7 @@ import { rgb555ToRgba, unpackRgba } from '../../src/image/rgb555.js';
 import type { WorkbenchDiagnostic } from './compile-protocol.js';
 import type { WorkbenchContext, WorkbenchModule } from './workbench-context.js';
 import { make } from './dom.js';
+import { confirmField } from './pending-edit.js';
 import { childPointer, nearestPointer, withValue, type Json } from './json-pointer.js';
 
 /** Children of an opened container are shown this many at a time. */
@@ -208,24 +209,20 @@ export function createDocumentsModule(): WorkbenchModule {
     const input = make('input', '', { type: 'text', class: `value ${value === null ? 'null' : typeof value}` });
     input.value = typeof value === 'string' ? value : JSON.stringify(value);
     input.size = Math.min(60, Math.max(6, input.value.length + 1));
-    input.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') input.blur();
-    });
-    input.addEventListener('change', () => {
-      let next: Json;
-      if (typeof value === 'string') next = input.value;
-      else
+    confirmField(
+      input,
+      (text): { next: Json } | null => {
+        if (typeof value === 'string') return { next: text };
         try {
-          next = JSON.parse(input.value) as Json;
-          if (typeof value === 'number' && typeof next !== 'number') throw new SyntaxError('Expected a number');
+          const next = JSON.parse(text) as Json;
+          return typeof value === 'number' && typeof next !== 'number' ? null : { next };
         } catch {
-          input.classList.add('invalid');
-          input.title = 'Not a JSON value; the document keeps its saved value';
-          return;
+          return null;
         }
-      input.classList.remove('invalid');
-      replaceAt(pointer, next);
-    });
+      },
+      ({ next }) => replaceAt(pointer, next),
+    );
+    input.title = 'Text that is not a value stays in the field; the document keeps its saved value';
     return input;
   };
 

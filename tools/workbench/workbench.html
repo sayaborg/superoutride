@@ -28,11 +28,13 @@
       </form>
     </dialog>
     <nav id="modules" aria-label="Modules"></nav>
-    <main>
-      <div id="module"></div>
-      <aside aria-label="Compile">
-        <h2>Diagnostics</h2>
-        <ul id="diagnostics"></ul>
+    <details id="compile-panel">
+      <summary id="compile-summary">Diagnostics</summary>
+      <div class="compile-lists">
+        <section aria-label="Diagnostics">
+          <h2>Diagnostics</h2>
+          <ul id="diagnostics"></ul>
+        </section>
         <details>
           <summary id="products-summary">Products</summary>
           <table>
@@ -47,8 +49,9 @@
             <tbody id="products"></tbody>
           </table>
         </details>
-      </aside>
-    </main>
+      </div>
+    </details>
+    <main id="module"></main>
     <script type="module" src="./workbench.js"></script>
   </body>
 </html>

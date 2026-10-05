@@ -3,11 +3,18 @@ import { createRecordingPlayback, type RecordingPlayback } from '../../src/audio
 import { contentDigest } from '../../src/core/content-digest.js';
 import type { WorkbenchContext, WorkbenchModule } from './workbench-context.js';
 import { make } from './dom.js';
+import { confirmField, finiteNumber, pointerDrag } from './pending-edit.js';
 
 /** Seconds before `loop.end` that listening to the seam starts. */
 const SEAM_LEAD_SECONDS = 3;
 /** The recording groups, each an authored directory of `.m4a` files. */
 const GROUPS = ['music', 'effects', 'impacts'] as const;
+
+/** A loop point being dragged on the waveform, shown before it is saved. */
+interface LoopDrag {
+  readonly point: 'start' | 'end';
+  readonly seconds: number;
+}
 
 interface MusicDocument {
   readonly format: string;
@@ -83,7 +90,7 @@ export const musicModule: WorkbenchModule = {
       buffer: AudioBuffer | null = null,
       decoded: string | null = null;
     // A loop point being dragged, shown before it is saved.
-    let dragging: { readonly point: 'start' | 'end'; seconds: number } | null = null;
+    let dragging: LoopDrag | null = null;
 
     const halt = () => {
       playback?.stop();
@@ -187,22 +194,23 @@ export const musicModule: WorkbenchModule = {
     group.addEventListener('change', () => void refresh());
     void refresh();
 
-    // Numbers are saved when confirmed: Enter or leaving the field.
-    const confirm = (input: HTMLInputElement, apply: (document: MusicDocument, text: string) => MusicDocument | null) =>
-      input.addEventListener('change', () => {
-        if (!value) return;
-        const next = apply(value, input.value);
-        if (next) replace(next, `Edit ${path} ${input.title || input.parentElement?.textContent?.trim() || ''}`);
-      });
-    const number = (text: string) => (text.trim() === '' || !Number.isFinite(Number(text)) ? null : Number(text));
-    confirm(title, (document, text) => ({ ...document, title: text }));
-    confirm(order, (document, text) => (number(text) === null ? null : { ...document, selectionOrder: number(text)! }));
-    confirm(start, (document, text) =>
-      number(text) === null ? null : { ...document, loop: { ...document.loop, start: number(text)! } },
+    // Fields are saved when confirmed: Enter or leaving the field.
+    const numberField = (
+      input: HTMLInputElement,
+      label: string,
+      apply: (document: MusicDocument, number: number) => MusicDocument,
+    ) => confirmField(input, finiteNumber, (number) => value && replace(apply(value, number), `Edit ${path} ${label}`));
+    confirmField(
+      title,
+      (text) => text,
+      (text) => value && replace({ ...value, title: text }, `Edit ${path} title`),
     );
-    confirm(end, (document, text) =>
-      number(text) === null ? null : { ...document, loop: { ...document.loop, end: number(text)! } },
-    );
+    numberField(order, 'selection order', (document, number) => ({ ...document, selectionOrder: number }));
+    numberField(start, 'loop start', (document, number) => ({
+      ...document,
+      loop: { ...document.loop, start: number },
+    }));
+    numberField(end, 'loop end', (document, number) => ({ ...document, loop: { ...document.loop, end: number } }));
 
     // On the waveform, a press moves the nearer loop point, a drag follows it, and the release saves it.
     const secondsAt = (event: PointerEvent) => {
@@ -210,24 +218,22 @@ export const musicModule: WorkbenchModule = {
       const seconds = ((event.clientX - box.left) / box.width) * buffer!.duration;
       return Math.round(Math.min(buffer!.duration, Math.max(0, seconds)) * 1000) / 1000;
     };
-    wave.addEventListener('pointerdown', (event) => {
-      if (!buffer || !value) return;
-      const seconds = secondsAt(event);
-      const point = Math.abs(seconds - value.loop.start) <= Math.abs(seconds - value.loop.end) ? 'start' : 'end';
-      dragging = { point, seconds };
-      wave.setPointerCapture(event.pointerId);
-      draw();
-    });
-    wave.addEventListener('pointermove', (event) => {
-      if (!dragging) return;
-      dragging.seconds = secondsAt(event);
-      draw();
-    });
-    wave.addEventListener('pointerup', () => {
-      if (!dragging || !value) return;
-      const { point, seconds } = dragging;
-      dragging = null;
-      replace({ ...value, loop: { ...value.loop, [point]: seconds } }, `Move ${path} loop ${point}`);
+    pointerDrag<LoopDrag>(wave, {
+      start: (event) => {
+        if (!buffer || !value) return null;
+        const seconds = secondsAt(event);
+        return {
+          point: Math.abs(seconds - value.loop.start) <= Math.abs(seconds - value.loop.end) ? 'start' : 'end',
+          seconds,
+        };
+      },
+      move: (pending, event) => ({ ...pending, seconds: secondsAt(event) }),
+      show: (pending) => {
+        dragging = pending;
+        draw();
+      },
+      commit: ({ point, seconds }) =>
+        value && replace({ ...value, loop: { ...value.loop, [point]: seconds } }, `Move ${path} loop ${point}`),
     });
 
     // Listening uses the product's playback with the authored sound settings' timing.

@@ -172,8 +172,11 @@ worker also answers the page's course queries, a Section's report or a frame at 
 functions), from the latest compile that succeeded; each answer carries that compile's step. The header
 always shows the build's commit, the number of changes and the compile's state; a failed compile lists its
 diagnostics (document, JSON Pointer, code and message) and keeps the last products that compiled, marked stale. The
-products of the last compile are listed with their digests. Modules are screens of the same page; each receives only
-the store, the compile and the one edit.
+products of the last compile are listed with their digests; both lists are in one panel under the module tabs, seen
+from every module, which a newly failed compile opens. Modules are screens of the same page, each using the full width
+below that panel; each receives only the store, the compile and the one edit. An edit in progress, a field being typed
+or a drag, is the screen's alone until it is confirmed (Enter, leaving the field or releasing the pointer), which
+replaces the document once: one step. Escape drops a drag.
 
 Every edit is one step of the session's history: a document replaced (saved with `formatSavedJson`), a file's bytes set
 or a file deleted. A file equal to the build's own is no change. Undo and redo (the header's buttons, Ctrl+Z,
@@ -221,7 +224,7 @@ the next compile admits its name and format as the build does. The browser decod
 recording it cannot decode is not played and the module says so.
 
 The Sprites module edits through the [sprite operations](image-assets.md#sprite-operations), each edit one
-step. **Import** opens a source of `content/sprite-sources/` or adds one (a named PNG and a recipe over the whole
+step, on three screens chosen by tab. **Import** opens a source of `content/sprite-sources/` or adds one (a named PNG and a recipe over the whole
 image); the source shows its crop, mask, lamp rectangles and anchor, and dragging on it with the crop, hide, show, lamp
 or anchor tool edits the recipe, as do its fields. The master is imported as the build would and previewed with the
 product's sprite drawing and LOD at a chosen depth, a vehicle image with its lamp off and on; a course image is written

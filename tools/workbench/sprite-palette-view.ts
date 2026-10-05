@@ -59,39 +59,50 @@ export function mountPaletteView(
     label.append(control);
     return label;
   };
-  element.append(
-    make('h2', 'Palettes'),
-    palettes,
-    make('h3', 'Adjust (Oklab)'),
-    field('From', from),
-    make('p'),
-    'Slots: ',
-    slots,
-    make('p'),
-    field('Hue', sliders.hue),
-    field('Saturation', sliders.saturation),
-    field('Lightness', sliders.lightness),
-    field('Tint hue', sliders.tintHue),
-    field('Tint amount', sliders.tintAmount),
-    make('p'),
-    newName,
-    ' ',
-    save,
-    ' ',
-    reset,
-    make('p', 'Every image of the set, adjusted:', { class: 'hint' }),
-    adjustPreview.canvas,
-    make('h3', 'One slot'),
-    field('Image', slotImage),
-    field('Palette', slotPalette),
-    field('Slot', slotIndex),
-    field('RGB555', slotColor),
-    ' ',
-    setSlot,
-    make('h3', 'Every color, lamp off and on (the chosen cell)'),
-    statesPreview.canvas,
-    note,
+  // The controls beside the two previews.
+  const column = (...children: (string | HTMLElement)[]) => {
+    const div = make('div');
+    div.append(...children);
+    return div;
+  };
+  const panes = make('div', '', { class: 'side-by-side' });
+  panes.append(
+    column(
+      palettes,
+      make('h3', 'Adjust (Oklab)'),
+      field('From', from),
+      make('p'),
+      'Slots: ',
+      slots,
+      make('p'),
+      field('Hue', sliders.hue),
+      field('Saturation', sliders.saturation),
+      field('Lightness', sliders.lightness),
+      field('Tint hue', sliders.tintHue),
+      field('Tint amount', sliders.tintAmount),
+      make('p'),
+      newName,
+      ' ',
+      save,
+      ' ',
+      reset,
+      make('h3', 'One slot'),
+      field('Image', slotImage),
+      field('Palette', slotPalette),
+      field('Slot', slotIndex),
+      field('RGB555', slotColor),
+      ' ',
+      setSlot,
+      note,
+    ),
+    column(
+      make('p', 'Every image of the set, adjusted:', { class: 'hint' }),
+      adjustPreview.canvas,
+      make('p', 'Every color, lamp off and on (the chosen cell):', { class: 'hint' }),
+      statesPreview.canvas,
+    ),
   );
+  element.append(make('h2', 'Palettes'), panes);
   for (let slot = 1; slot < BRAKE_LAMP_SLOT; slot++) {
     const box = make('input', '', { type: 'checkbox', value: String(slot), 'data-slot': String(slot) });
     const label = make('label', '', { class: 'slot' });

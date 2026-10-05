@@ -14,6 +14,7 @@ import type { WorkbenchContext } from './workbench-context.js';
 import type { ImportedMaster } from './sprite-source-view.js';
 import { createSpritePreview, PREVIEW_DEPTH } from './sprite-preview.js';
 import { make } from './dom.js';
+import { confirmField, finiteNumber } from './pending-edit.js';
 
 /** Lamp colors before any set is open: the provisional coupe's. */
 const FIRST_LAMP = { off: 12321, on: 32038 } as const;
@@ -56,6 +57,28 @@ export function mountSetView(
     label.append(control);
     return label;
   };
+  // The grid beside the images, the new set and the preview.
+  const column = (...children: (string | HTMLElement)[]) => {
+    const div = make('div');
+    div.append(...children);
+    return div;
+  };
+  const panes = make('div', '', { class: 'side-by-side' });
+  panes.append(
+    column(make('p', 'Choose a cell, then an image to show in it.', { class: 'hint' }), grid),
+    column(images, add, make('p'), newName, ' ', field('yaw', newYaw), field('bank', newBank), ' ', create),
+    column(
+      make('h3', 'Set preview (compiled library)'),
+      preview.canvas,
+      make('br'),
+      field('Yaw', yaw),
+      ' ',
+      field('Bank', bank),
+      ' ',
+      field('Depth (m)', depth),
+      note,
+    ),
+  );
   element.append(
     make('h2', 'Sets'),
     field('Set', set),
@@ -64,26 +87,7 @@ export function mountSetView(
     field('on', lampOn),
     ' ',
     field('Bank degrees', bankDegrees),
-    make('p', 'Choose a cell, then an image to show in it.', { class: 'hint' }),
-    grid,
-    images,
-    add,
-    make('p'),
-    newName,
-    ' ',
-    field('yaw', newYaw),
-    field('bank', newBank),
-    ' ',
-    create,
-    make('h2', 'Set preview (compiled library)'),
-    preview.canvas,
-    make('br'),
-    field('Yaw', yaw),
-    ' ',
-    field('Bank', bank),
-    ' ',
-    field('Depth (m)', depth),
-    note,
+    panes,
   );
 
   let name: string | null = null,
@@ -193,7 +197,7 @@ export function mountSetView(
     images.replaceChildren(
       ...value.sprites.map((sprite, index) => {
         const item = make('li');
-        const showIt = make('button', cell ? `Show in ${cell.yaw}:${cell.bank}` : 'Choose a cell', {
+        const showIt = make('button', cell ? `Show in ${cell.yaw}:${cell.bank}` : 'Show', {
           type: 'button',
           'data-image': String(index),
         });
@@ -205,7 +209,7 @@ export function mountSetView(
               save(bindSetCell(value!, cell.yaw, cell.bank, index), `Show image ${index} in ${cell.yaw}:${cell.bank}`),
           ),
         );
-        const replace = make('button', 'Replace with the imported image', { type: 'button' });
+        const replace = make('button', 'Replace', { type: 'button', title: 'Replace with the imported image' });
         replace.addEventListener('click', () =>
           attempt(() => {
             const imported = master();
@@ -246,15 +250,15 @@ export function mountSetView(
       if (value && imported) save(addSetSprite(value, imported.master), `Add image ${imported.name}`);
     }),
   );
-  const lamp = () =>
-    attempt(
-      () =>
-        value && save(setBrakeLamp(value, { off: Number(lampOff.value), on: Number(lampOn.value) }), 'Set lamp colors'),
+  // The set's fields are saved when confirmed.
+  const lampField = (input: HTMLInputElement, which: 'off' | 'on') =>
+    confirmField(input, finiteNumber, (color) =>
+      attempt(() => value && save(setBrakeLamp(value, { ...value.brakeLamp, [which]: color }), `Set lamp ${which}`)),
     );
-  lampOff.addEventListener('change', lamp);
-  lampOn.addEventListener('change', lamp);
-  bankDegrees.addEventListener('change', () =>
-    attempt(() => value && save(setBankDegrees(value, Number(bankDegrees.value)), 'Set bank degrees')),
+  lampField(lampOff, 'off');
+  lampField(lampOn, 'on');
+  confirmField(bankDegrees, finiteNumber, (degrees) =>
+    attempt(() => value && save(setBankDegrees(value, degrees), 'Set bank degrees')),
   );
   create.addEventListener('click', () =>
     attempt(() => {
