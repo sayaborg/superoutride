@@ -22,18 +22,23 @@ export interface RecordingPlayback {
 }
 
 /**
- * Play `buffer` into `destination` at `volume` (0–1), once or looped. Each playback has its own source and gain, so
- * playbacks of one recording overlap. A loop runs sample-accurately between its points (the source's own loop). A
- * playback starting from the beginning starts at full volume; one continuing from a pause fades in with the silence
- * fade (`fadeSeconds`), and pause and stop fade out with it before the source stops (`transitionSeconds`). A playback
- * sounds one source at a time: playing again before a paused source has stopped starts when it stops.
+ * Play `buffer` into `destination` at `volume` (0–1), once or looped, from `from` seconds (the beginning unless given).
+ * Each playback has its own source and gain, so playbacks of one recording overlap. A loop runs sample-accurately
+ * between its points (the source's own loop). A playback starting from the beginning starts at full volume; one
+ * starting elsewhere or continuing from a pause fades in with the silence fade (`fadeSeconds`), and pause and stop fade
+ * out with it before the source stops (`transitionSeconds`). A playback sounds one source at a time: playing again
+ * before a paused source has stopped starts when it stops.
  */
 export function createRecordingPlayback(
   context: BaseAudioContext,
   destination: AudioNode,
   buffer: AudioBuffer,
   control: () => ControlSettings,
-  { volume = 1, loop = null }: { readonly volume?: number; readonly loop?: RecordingLoop | null } = {},
+  {
+    volume = 1,
+    loop = null,
+    from = 0,
+  }: { readonly volume?: number; readonly loop?: RecordingLoop | null; readonly from?: number } = {},
 ): RecordingPlayback {
   const gain = context.createGain();
   gain.gain.value = 0;
@@ -42,7 +47,7 @@ export function createRecordingPlayback(
   // While playing: the context time the source starts and the position it starts from. A released source sounds
   // until `releasedUntil`.
   let startedAt = 0,
-    offset = 0,
+    offset = from,
     releasedUntil = 0,
     ended = false;
   const position = (): number => {

@@ -197,11 +197,12 @@ recording is known only when it decodes it. The game admits delivered music docu
 impacts alike. The shell reads a recording's verified bytes from delivery and the scene decodes them
 (`decodeAudioData`), so the audio layer never reads delivery. A playback plays a decoded recording on a named bus at a
 volume from 0 to 1, once or looped; each playback has its own source and gain, so playbacks of one recording overlap.
-A looped playback starts at the recording's beginning and, once it reaches `loop.end`, returns to `loop.start`
+A playback starts at the recording's beginning unless it is given a start position (the workbench's music module
+starts a few seconds before `loop.end`); a looped playback, once it reaches `loop.end`, returns to `loop.start`
 sample-accurately (the source's own loop). A playback from the beginning starts at full volume, since recordings start
-at their first sample; pausing fades out with the silence fade (`fadeSeconds`) and stops the source after the
-transition time (`transitionSeconds`), keeping the position, and playing again starts a new source from that position
-with the silence fade in. A playback sounds one source at a time: playing again before the paused source has stopped
+at their first sample, and one from elsewhere fades in with the silence fade (`fadeSeconds`); pausing fades out with
+the silence fade and stops the source after the transition time (`transitionSeconds`), keeping the position, and
+playing again starts a new source from that position with the silence fade in. A playback sounds one source at a time: playing again before the paused source has stopped
 starts the new source when it stops. Stopping fades the same way and ends the playback; a fade-out ramps linearly to
 zero over a given time and ends it.
 
