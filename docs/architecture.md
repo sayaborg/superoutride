@@ -48,7 +48,7 @@ or a format's semantic code. `admit(document, read)` returns `{ok:true,value}` o
 with the first failure; admission stops there and never publishes a partial product. Only admission
 errors become diagnostics; other exceptions are internal faults and propagate.
 `readEmbedded(base, read)` reads a document embedded in another, such as a sprite image inside the
-vehicle sprite library or a recipe inside a Sprite Tool session, relocating its pointers under `base`.
+vehicle sprite library, relocating its pointers under `base`.
 
 The content layer owns catalogs of documents. A catalog admits `DocumentSource` records (`id`, `path`, `value`, `sha256`); `id` is the document's only
 identifier, which the documents themselves do not repeat, and `sha256` is the digest of its delivered
@@ -652,8 +652,8 @@ a browser content store, a layered store for its changes (`createLayeredStore`) 
 
 There are no other dependency exceptions. Course commands and reference
 production belong to `tools/course`; the product retains shared course admission, live driving policy,
-and envelope/time-budget readers. Sprite normalization, palette generation, LOD compilation and
-fixtures belong to `tools/graphics`. Shared image formats, filters, codecs and product limits remain
+and envelope/time-budget readers. Sprite normalization, palette generation, LOD compilation and the
+sprite operations belong to `tools/graphics`. Shared image formats, filters, codecs and product limits remain
 in `src/image`; authoring-only limits stay with the tools.
 
 Vehicle mechanics take dynamic state and an immutable vehicle model as separate inputs; state holds

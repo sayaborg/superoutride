@@ -1,23 +1,15 @@
 import { build } from 'esbuild';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { copyFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import { PNG } from 'pngjs';
-import { createSpriteLodFilterFixture } from '../graphics/fixtures/sprite-lod.js';
-import { compileSpriteLod } from '../graphics/sprite-lod-compiler.js';
-import { createSpriteSourceFixture } from '../graphics/fixtures/sprite-source.js';
-import { unpackRgba } from '../../src/image/rgb555.js';
 
 /**
- * The browser-tools build: the workbench and two graphics tools form one self-contained,
- * versioned output tree under dist/tools, with the Sprite Tool's PNG example and the LOD filter sample.
- * It delivers no content; the content build owns dist/delivery.
+ * The browser-tools build: the workbench forms one self-contained, versioned output tree under dist/tools, with the
+ * license of the PNG codec it bundles. It delivers no content; the content build owns dist/delivery.
  */
 const root = new URL('../../', import.meta.url);
 await build({
   absWorkingDir: fileURLToPath(root),
   entryPoints: [
-    'tools/graphics/sprite-tool.ts',
-    'tools/graphics/sprite-lod.ts',
     'tools/workbench/workbench.ts',
     'tools/workbench/compile-worker.ts',
     'tools/workbench/measure-worker.ts',
@@ -33,34 +25,10 @@ await build({
   chunkNames: 'shared/[name]-[hash]',
   alias: { pngjs: 'pngjs/browser.js' },
 });
-for (const name of [
-  'graphics/sprite-tool.html',
-  'graphics/sprite-tool.css',
-  'graphics/sprite-lod.html',
-  'workbench/workbench.html',
-  'workbench/workbench.css',
-]) {
-  const target = new URL(`dist/tools/${name}`, root);
-  await mkdir(new URL('./', target), { recursive: true });
-  const source = await readFile(new URL(`tools/${name}`, root), 'utf8');
-  await writeFile(target, source.replace('href="../../?course=', 'href="../../../../?course='));
-}
-
-// Browser-only delivery consumes source directly; Node tools never import generated modules.
-const output = new URL('dist/tools/graphics/', root);
-await writeFile(new URL('png-codec-LICENSE.txt', output), await readFile(new URL('node_modules/pngjs/LICENSE', root)));
-const sample = createSpriteSourceFixture(),
-  bytes = Buffer.alloc(sample.pixels.length * 4);
-for (let i = 0; i < sample.pixels.length; i++) {
-  const { r, g, b, a } = unpackRgba(sample.pixels[i]!);
-  bytes.set([r, g, b, a], i * 4);
-}
-const png = new PNG({ width: sample.width, height: sample.height });
-png.data = bytes;
-await writeFile(new URL('sprite-source-example.png', output), PNG.sync.write(png));
-
-// One shared production filter; the browser receives completed products only.
-await writeFile(
-  new URL('sprite-lod-linear.json', output),
-  JSON.stringify(compileSpriteLod(createSpriteLodFilterFixture())) + '\n',
+for (const name of ['workbench.html', 'workbench.css'])
+  await copyFile(new URL(`tools/workbench/${name}`, root), new URL(`dist/tools/workbench/${name}`, root));
+// The bundled PNG codec's license travels with the workbench.
+await copyFile(
+  new URL('node_modules/pngjs/LICENSE', root),
+  new URL('dist/tools/workbench/png-codec-LICENSE.txt', root),
 );

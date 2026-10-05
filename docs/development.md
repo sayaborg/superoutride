@@ -98,7 +98,7 @@ and exiting with code 1; only an internal fault prints a stack.
 
 All authoring implementations are TypeScript. Browser entries and worklet adapters are bundled from
 source with pinned esbuild; bundling does not replace type checking. The browser build uses pngjs's
-pinned browser distribution for the same PNG codec API used by Node file compilers.
+pinned browser distribution for the same PNG codec API the sprite command uses in Node.
 
 ### Course commands
 
@@ -146,11 +146,9 @@ workbench differ only in how they start workers and write files.
 Run `npm run build`, then serve the repository root with `python3 -m http.server 8000`.
 Open the generated pages, not the source HTML templates:
 
-| Tool        | Local URL                                                    |
-| ----------- | ------------------------------------------------------------ |
-| Workbench   | `http://localhost:8000/workbench.html`                       |
-| Sprite Tool | `http://localhost:8000/dist/tools/graphics/sprite-tool.html` |
-| LOD preview | `http://localhost:8000/dist/tools/graphics/sprite-lod.html`  |
+| Tool      | Local URL                              |
+| --------- | -------------------------------------- |
+| Workbench | `http://localhost:8000/workbench.html` |
 
 On Pages these same `tools/...` paths live beneath `build/<commit>/`, where `<commit>` is the
 published `version.txt` value. Each tool, its shared chunks, worklets, stylesheet and sample assets
@@ -248,9 +246,6 @@ npm run sprite -- adjust --set coupe --from original --to blue --slots 1,3 --hue
 `yaw:bank` cells. `new-set` starts a set whose every cell shows one imported image. `adjust` derives a named palette
 for every image of a set (`--saturation`, `--lightness`, `--tint-hue` and `--tint-amount` too).
 
-The file compilers are `npm run build:sprite-source -- <arguments>` and
-`npm run build:sprite-lod -- <arguments>`; [Image assets](image-assets.md) owns their formats.
-
 ### Listening on devices
 
 Sound settings are tuned by ear with `dev=1` in the game ([Browser](browser.md#sound-controls)).
@@ -325,8 +320,7 @@ build; it cannot contain its own digest. Browser course selection reads the cour
 Only the delivery layout owns output naming. Browsers, Node consumers, startup smoke and public-site
 verification read indexed content through the shared reader, never by reconstructing output paths.
 Authoring inputs under `content/` still use explicit source filenames and image directories.
-The browser-tools build writes only `dist/tools`: the bundled tools, the Sprite Tool's PNG example and
-the LOD filter sample. The content build writes `dist/delivery` with the authoring core ([Architecture](architecture.md#layer-boundaries)):
+The browser-tools build writes only `dist/tools`: the bundled workbench and the license of the PNG codec it bundles. The content build writes `dist/delivery` with the authoring core ([Architecture](architecture.md#layer-boundaries)):
 `compileContent` reads `content/` through the Node content store and compiles every delivered file from authored
 documents in one pass, in dependency order: the vehicle sprite library (compiled LOD and admitted), text tiles,
 surface materials, surface sounds (resolved against those materials), wall sounds, audio settings, recordings and the

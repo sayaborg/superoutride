@@ -330,9 +330,11 @@ identity within the pseudo projection and mechanics, and records deliberate depa
 ## 15. Rendering and authoring
 
 The view combines a tiled background, road and sprites with the player and HUD. Vehicle brake lamps
-select a saved palette. Courses and assets are saved files. The CLI compiles courses, reports
-diagnostics and renders previews through the game scene. The Sprite Tool edits image inputs and exports
-compiled sprites. [Development](development.md) owns the commands.
+select a saved palette. Courses and assets are saved files.
+Courses, images and definitions are saved documents. One authoring core compiles them for the build, the CLI and the
+workbench. The workbench is a browser page served with each build: it edits documents, previews measured envelopes and
+reference times, authors sprites and palettes, and starts the game on its own build. Its changes leave as one archive
+of documents. [Development](development.md) owns the commands.
 
 ## 16. Ground
 

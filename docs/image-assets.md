@@ -43,7 +43,7 @@ selected palette once; no raw course replacement palettes or value-by-value LOD 
 [Architecture](architecture.md#sprite-lod-metric-and-read-contract) owns level dimensions and anchors.
 
 Invalid dimensions, anchors, indices, palettes, mixtures or unknown fields
-fail. Every saved image format in this document, the source recipe and the Sprite Tool session admit
+fail. Every saved image format in this document and the sprite recipe admit
 through the [content admission toolkit](architecture.md#content-admission-toolkit) and report the
 first failure at its JSON Pointer. Coarse colors must agree with their mixtures. Readers own packed buffers and immutable metadata.
 One normalized master level is valid input; shipped sprites have full build-generated LOD.
@@ -63,9 +63,9 @@ and pixel reads.
 
 ## Sprite LOD compilation
 
-Source normalization, candidate palettes, LOD compilation and diagnostic fixtures are authoring code
+Source normalization, candidate palettes, LOD compilation and the sprite operations are authoring code
 under `tools/graphics`. `src/image` owns the shared image readers, saved formats, filters and codecs.
-The browser tools and Node file compilers consume those same TypeScript implementations.
+The workbench, the sprite command and the build consume those same TypeScript implementations.
 
 The compiler integrates exact master index counts in each clipped octave box. Fifteen or fewer
 mixtures pass through directly. Larger sets use deterministic divisive clustering: squared linear-color
@@ -141,7 +141,8 @@ The original font draws each glyph in slot 1 with a slot 2 shadow one pixel righ
 
 ## External source normalization
 
-Decoded inputs are straight-alpha 8-bit sRGB pixels and this saved recipe:
+Decoded inputs are straight-alpha 8-bit sRGB pixels and this normalization recipe, which the
+[import](#sprite-operations) makes from a saved sprite recipe:
 
 ```text
 {
@@ -167,29 +168,7 @@ Source limits are 16777216 decoded pixels and 1048576 master texels. PNG input i
 with 8-bit channels. The shared PNG adapter checks signature, dimensions, chunk bounds and CRC and
 rejects animation. The input color space is sRGB; embedded metadata does not request color conversion.
 
-## Sprite Tool session
-
-The Sprite Tool uses the same normalization, palette, LOD and drawing functions as file compilation.
-Its saved session contains original pixels, a binary hidden mask and the normalization recipe:
-
-```text
-{
-  format: "superoutride.sprite-session", version: 2,
-  source: {width,height,rgbaBase64}, hiddenBase64, recipe
-}
-```
-
-`rgbaBase64` contains row-major R,G,B,A bytes; `hiddenBase64` has one byte, zero or one, per source
-pixel. Both use canonical padded base64. Hide sets alpha to zero; restore recovers original alpha.
-Undo/redo holds at most 32 mask operations and 8 MiB of saved mask bytes. New edits discard redo;
-no-op edits consume no history. Save contains inputs rather than undo history.
-
-Source/recipe edits make compiled products stale and disable export until a successful build.
-Failed or superseded imports preserve the current session. Source/master/LOD export uses explicit actions.
-Editor limits are 1048576 source pixels, 4096 per axis, 32 MiB PNG and 16 MiB session JSON.
-Files are decoded locally. Preview uses the product metric and blitter.
-
-### Candidate palettes
+## Candidate palettes
 
 Palette generation uses alpha-weighted median cut in encoded RGB555 over visible cropped samples.
 Up to the requested 1 through 15 colors preserve exact codes. Otherwise choose the box by greatest
