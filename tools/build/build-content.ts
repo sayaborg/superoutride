@@ -22,10 +22,13 @@ import { admit } from '../../src/core/admission.js';
 import { compileTextTiles } from '../../src/image/text-tiles.js';
 import { TEXT_TILES_ID } from '../../src/content/text-tiles-catalog.js';
 import { COURSE_INDEX_ID, courseIndexDocument } from '../../src/content/course-index.js';
+import { RECORDING_GROUPS, recordingId } from '../../src/audio/recordings.js';
+import { compileMusicCatalog, compileRecordings, type RecordingSource } from '../../src/content/recording-catalog.js';
+import { TEXT_COLUMNS } from '../../src/view/text-layer.js';
 
 /**
  * The content build: every delivered file is compiled from authored documents in dependency order,
- * in one pass: vehicle sprite library, text tiles, materials, surface sounds, audio settings, FREE PLAY rules, engine sounds, vehicle and driving definitions, courses and their
+ * in one pass: vehicle sprite library, text tiles, materials, surface sounds, audio settings, recordings and music, FREE PLAY rules, engine sounds, vehicle and driving definitions, courses and their
  * images, the course index, series, then reference runs. Each compile stage receives earlier products directly. Reference workers
  * are the exception: they run in separate threads and read this build's saved content until 15-5.
  */
@@ -88,6 +91,24 @@ await deliver('surface-sound', surfaceSoundSources);
 const audioSources = await sources('audio');
 requireLoaded(compileAudioSettings(audioSources));
 await deliver('audio', audioSources);
+
+// Recordings are delivered as their authored bytes once admitted; music documents are admitted against them, with
+// titles that fit one line of the text grid.
+const recordingSources: RecordingSource[] = [];
+for (const group of RECORDING_GROUPS)
+  for (const name of (await readdir(new URL(`${group}/`, content))).sort()) {
+    if (group === 'music' && name.endsWith('.json')) continue;
+    recordingSources.push({
+      id: recordingId(group, name.replace(/\.[^.]*$/, '')),
+      path: `content/${group}/${name}`,
+      bytes: new Uint8Array(await readFile(new URL(`${group}/${name}`, content))),
+    });
+  }
+const recordings = requireLoaded(compileRecordings(recordingSources));
+const musicSources = await sources('music');
+requireLoaded(compileMusicCatalog(musicSources, TEXT_COLUMNS, recordings));
+for (const source of recordingSources) await writer.stage('recording', source.id, null, source.bytes);
+await deliver('music', musicSources);
 
 const freePlaySources = await sources('free-play');
 requireLoaded(compileFreePlayRules(freePlaySources));

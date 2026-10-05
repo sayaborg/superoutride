@@ -65,4 +65,5 @@ explicitly scheduled in [NEXT](NEXT.md) are replaced with their owning concepts.
 | `native`              | Coordinates in the originating Section or data object's own ruler, before mapping into the shared Route.                                                                 |
 | `owner`               | An input publisher's identity in arbitration, carrying its apply method.                                                                                                 |
 | `excitation`          | A signal driving an acoustic system; a live sound generator is not an authored source.                                                                                   |
+| `recording`           | A delivered audio file played as it is (music, effects, impacts), never a synthesis input; `sample` keeps its meaning of one audio sample.                               |
 | Prefixes              | Use the owning concept, such as `Vehicle*`, and semantic constant names; do not use historical `Arcade*` or `CURRENT_` prefixes for new names.                           |

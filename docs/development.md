@@ -168,8 +168,9 @@ vehicle envelopes, continuous reference runs and game time budgets. Matching dis
 `dist/delivery/manifest.json` is the sole delivery index. Its own
 `format: "superoutride.content-manifest", version: 1` identifies the index format; entries have only
 `{kind, id, path, sha256}`. Every JSON file is delivered as compact JSON followed by a newline; vehicle
-mechanics, vehicle listing, driving, material, surface-sound, audio, engine-sound, series and text tile documents are delivered exactly as authored in that
-encoding, so the build knows their delivered digests before staging them. Entries contain no payload
+mechanics, vehicle listing, driving, material, surface-sound, audio, engine-sound, music, series and text tile documents are delivered exactly as authored in that
+encoding, so the build knows their delivered digests before staging them. Recordings are not JSON: each is delivered
+as the exact bytes its author placed under `content/`. Entries contain no payload
 format/version. The manifest writer is the only authority for these kinds, IDs and paths under `dist/delivery/`:
 
 | Kind              | ID                                                                                          | Path                                | Content                                                                                                      |
@@ -186,6 +187,8 @@ format/version. The manifest writer is the only authority for these kinds, IDs a
 | `surface-sound`   | `default`                                                                                   | `surface-sounds/<id>.json`          | Surface-sound document ([Tire audio](tire-audio.md#surface-sounds))                                          |
 | `audio`           | `default`                                                                                   | `audio/<id>.json`                   | Game-wide sound settings ([Audio](audio.md#audio-document))                                                  |
 | `free-play`       | `default`                                                                                   | `free-play/<id>.json`               | FREE PLAY rules ([Content and gameplay](content-and-gameplay.md#free-play-document))                         |
+| `recording`       | `<group>/<name>`: `music/<id>`, `effects/<name>` or `impacts/<name>`                        | `recordings/<id>.m4a`               | Recording, AAC-LC in MP4 ([Audio](audio.md#recordings-and-music-documents))                                  |
+| `music`           | Track ID                                                                                    | `music/<id>.json`                   | Music document ([Audio](audio.md#recordings-and-music-documents))                                            |
 | `envelope`        | Vehicle ID                                                                                  | `envelopes/<id>.json`               | Rival driving envelope (`superoutride.rival-envelope` v1: vehicle identity, maximum speed and measured rows) |
 | `budget`          | `<course>/<vehicle>`                                                                        | `budgets/<course>/<vehicle>.json`   | Timed Session budgets (`superoutride.course-time-budgets` v1)                                                |
 | `schedule`        | `<course>/<vehicle>`                                                                        | `schedules/<course>/<vehicle>.json` | ARCADE pace schedule (`superoutride.pace-schedule` v1)                                                       |
@@ -207,7 +210,7 @@ verification read indexed content through the shared reader, never by reconstruc
 Authoring inputs under `content/` still use explicit source filenames and image directories.
 The browser-tools build writes only `dist/tools`: the bundled tools, the Sprite Tool's PNG example and
 the LOD filter sample. The content build writes `dist/delivery` from authored documents in one pass, in
-dependency order: the vehicle sprite library (compiled LOD and admitted), surface materials, surface sounds (resolved against those materials), audio settings, engine sounds,
+dependency order: the vehicle sprite library (compiled LOD and admitted), surface materials, surface sounds (resolved against those materials), audio settings, recordings and the music documents (admitted against those recordings), engine sounds,
 vehicle and driving definitions (admitted against that in-build library and engine-sound catalog), courses and their images, the course index, series
 (admitted against those courses and the vehicle catalog), then reference runs. Each compile stage receives earlier products directly. Reference workers are the exception: until
 15-5 they read this build's saved `dist/delivery`, described below. A course and

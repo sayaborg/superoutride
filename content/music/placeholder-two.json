@@ -1,0 +1,10 @@
+{
+  "format": "superoutride.music",
+  "version": 1,
+  "title": "PLACEHOLDER TWO",
+  "selectionOrder": 2,
+  "loop": {
+    "start": 1.6,
+    "end": 11.2
+  }
+}

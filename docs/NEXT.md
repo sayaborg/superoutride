@@ -35,7 +35,7 @@
   appears at seeded Route positions from the series or FREE PLAY's TRAFFIC option; RIBBON COAST is the verification
   course of all of it.
 
-Next PR: **14-1a** — recordings and music documents are delivered and admitted.
+Next PR: **14-1b** — recordings play on the sound graph's buses.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -67,10 +67,10 @@ Requirements left from the second design audit, by when they are taken up:
 
 ## Stage 14 — Music and sound effects
 
-[Product](product.md#13-music-and-sound-effects) §13 states the target. The remaining PRs, in order:
+[Product](product.md#13-music-and-sound-effects) §13 states the target. The recordings under `content/music/`,
+`content/effects/` and `content/impacts/` are placeholders (electronic tones) for building the stage; before the product
+they are replaced by K's files under the same names. The remaining PRs, in order:
 
-- **14-1a — Recordings delivered:** AAC recordings and music documents are authored content in the manifest, verified
-  by SHA-256 and admitted at build with diagnostics.
 - **14-1b — Recording playback:** one sound-layer player plays recordings once or looped on a bus; a `music` bus; the
   player record is the one owner of the MASTER, MUSIC and EFFECTS volumes.
 - **14-1c — SELECT MUSIC:** the track list with the track under the cursor playing, the run request's track, its start

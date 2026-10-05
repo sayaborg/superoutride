@@ -162,6 +162,33 @@ scene, the voices, the worklets and the kernels take admitted records and use th
 record again. A worklet is a thread boundary, but its messages carry the same page's admitted records, so it checks
 neither their shape nor their values.
 
+## Recordings and music documents
+
+A recording is an authored audio file played as it is: AAC-LC in an MP4 container (`.m4a`), one format with no
+fallback and no conversion. Recordings are content in three groups, each an authored directory: `content/music/<id>.m4a`,
+`content/effects/<name>.m4a` and `content/impacts/<name>.m4a`. Each is delivered as its authored bytes under manifest
+kind `recording` with the ID `<group>/<name>` (such as `effects/goal`), verified by SHA-256 like every delivered file.
+[`recordings.ts`](../src/audio/recordings.ts) is the one list of the effect names (`countdown-lamp`, `countdown-go`,
+`checkpoint`, `lap`, `extend`, `goal`, `game-over`, `menu-move`, `menu-confirm`, `menu-back`) and impact names
+(`vehicle`, `wall`, `object`, `movable`); the build requires exactly these and playback reads the same list. Volume
+balance between recordings is authored in the files: the game keeps no per-recording gain, equalization or trim.
+
+Each track has a music document, `content/music/<id>.json`: one `superoutride.music` version 1 document (manifest
+kind `music`, ID `<id>`, its file name without `.json`; the document carries none) with exactly `format`, `version`,
+`title` (the text SELECT MUSIC lists, in characters the text tiles draw), `selectionOrder` (a positive integer, unique
+among tracks, ordering the list) and `loop` (`start` and `end` in seconds from the start of the decoded recording,
+`0 <= start < end`). [`compileMusicDocument`](../src/audio/music-document.ts) admits one document.
+
+The content build ([recording catalog](../src/content/recording-catalog.ts)) admits the recordings and the music
+documents together; each failure is a diagnostic and nothing falls back. It reads each recording's MP4 boxes without a
+decoder: the file starts with `ftyp`, the movie holds exactly one track, an audio (`soun`) track with one `mp4a` sample
+description whose decoder configuration is MPEG-4 audio with audio object type 2 (AAC-LC). The track's duration is
+its edit list's playable span when it has one, which excludes the encoder's priming, else its media duration. The effect
+and impact groups must hold exactly the listed names; every track's document has its `music/<id>` recording and every
+music recording its document; there is at least one track; selection orders are unique; a title fits one menu line
+(the text grid's 40 columns); and `loop.end` is within the recording's duration. Whether a browser can decode a
+recording is known only when it decodes it. The game admits delivered music documents again when it loads them.
+
 ## Mix and lifetime
 
 The [sound graph](../src/audio/sound-graph.ts) owns the named buses (`engine`, `tire`) and the master path:

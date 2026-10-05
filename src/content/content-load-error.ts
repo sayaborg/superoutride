@@ -17,7 +17,9 @@ export type ContentKind =
   | 'engine-sound'
   | 'surface-sound'
   | 'audio'
-  | 'free-play';
+  | 'free-play'
+  | 'recording'
+  | 'music';
 
 /** A required delivered or built file is absent from the content manifest. */
 export interface MissingContentDiagnostic {
