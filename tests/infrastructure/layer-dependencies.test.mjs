@@ -163,6 +163,8 @@ test('engine and authoring dependencies follow their declared directions, includ
     'src has no root-level files',
   );
 
+  // Each source file's dependencies, for the authoring core's platform rule below.
+  const graph = new Map();
   for (const root of [sourceRoot, toolRoot]) {
     const configPath = path.join(repositoryRoot, root === sourceRoot ? 'tsconfig.json' : 'tsconfig.tools.json');
     const config = ts.getParsedCommandLineOfConfigFile(
@@ -177,11 +179,27 @@ test('engine and authoring dependencies follow their declared directions, includ
     assert.ok(config, 'dependency resolution has a valid TypeScript configuration');
     for (const file of await collectFiles(root)) {
       const from = relativePath(file);
+      const targets = [];
       for (const ref of moduleReferences(file, await readFile(file, 'utf8'))) {
+        if (ref.startsWith('node:')) targets.push(ref);
         const to = dependencyTarget(file, ref, config.options);
         if (!to) continue;
         checkDirection(from, to);
+        targets.push(to);
       }
+      graph.set(from, targets);
     }
   }
+  // The authoring core runs in Node and in the browser: nothing it reaches imports a Node module or the shell.
+  const reached = [...graph.keys()].filter((file) => file.startsWith('tools/authoring/'));
+  for (const file of reached)
+    for (const target of graph.get(file) ?? []) {
+      // Relative imports name the emitted `.js` file of a TypeScript source.
+      const to = graph.has(target) ? target : target.replace(/\.js$/, '.ts');
+      assert.ok(
+        !to.startsWith('node:') && !to.startsWith('src/shell/'),
+        `authoring core reaches a platform module: ${file} -> ${to}`,
+      );
+      if (!reached.includes(to)) reached.push(to);
+    }
 });

@@ -1,45 +1,17 @@
-import { compileVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
-import { compileEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
-import { authoredDocumentSource, type DocumentSource } from '../../src/content/document-catalog.js';
-import type { ContentKind } from '../../src/content/content-load-error.js';
-import { compileCourseDocument, type CompiledCourse } from '../../src/course/compiler/compiled-course.js';
-import { admitSeriesCourse, compileSeriesCatalog } from '../../src/content/series-catalog.js';
+import { compileContent } from '../authoring/compile-content.js';
 import { buildCourseReferences } from './build-course-reference.js';
-import { readdir, readFile } from 'node:fs/promises';
 import { createContentWriter } from './content-manifest.js';
-import { readCourseDocumentBytes } from '../../src/course/course-document.js';
-import { compileCourseImages } from '../course/compile-course-images.js';
-import { readCourseImages } from '../course/read-course-images.js';
-import { courseFileId, courseFileSha256 } from '../course/course-file-id.js';
-import { compileSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
-import { resolveSurfaceSoundRecords } from '../../src/audio/surface-sounds.js';
-import { compileSurfaceSounds } from '../../src/content/surface-sound-catalog.js';
-import { compileAudioSettings } from '../../src/content/audio-catalog.js';
-import { compileFreePlayRules } from '../../src/content/free-play-rules.js';
-import { compileVehicleSpriteLibrary } from '../graphics/vehicle-sprite-library.js';
-import { admit } from '../../src/core/admission.js';
-import { compileTextTiles } from '../../src/image/text-tiles.js';
-import { TEXT_TILES_ID } from '../../src/content/text-tiles-catalog.js';
-import { COURSE_INDEX_ID, courseIndexDocument } from '../../src/content/course-index.js';
-import { RECORDING_GROUPS, recordingId } from '../../src/audio/recordings.js';
-import { compileMusicCatalog, compileRecordings, type RecordingSource } from '../../src/content/recording-catalog.js';
-import { TEXT_COLUMNS } from '../../src/view/text-layer.js';
-import { admitCourseWallSounds, compileWallSounds } from '../../src/content/wall-sound-catalog.js';
+import { createNodeContentStore } from './node-content-store.js';
 
 /**
- * The content build: every delivered file is compiled from authored documents in dependency order,
- * in one pass: vehicle sprite library, text tiles, materials, surface sounds, wall sounds, audio settings, recordings and music, FREE PLAY rules, engine sounds, vehicle and driving definitions, courses (their walls' sounds admitted against the wall sounds) and their
- * images, the course index, series, then reference runs. Each compile stage receives earlier products directly. Reference workers
- * are the exception: they run in separate threads and read this build's saved content until 15-5.
+ * The content build: the authoring core compiles `content/` into every delivered file, which this script writes to
+ * `dist/delivery` with the manifest, then reference runs. Reference workers run in separate threads and read this
+ * build's saved content until 15-2.
  */
-const content = new URL('../../content/', import.meta.url);
-const destination = new URL('../../dist/delivery/', import.meta.url);
-const writer = createContentWriter(destination);
-const json = async (path: string) => JSON.parse(await readFile(new URL(path, content), 'utf8')) as unknown;
-
-const library = compileVehicleSpriteLibrary(await json('sprites/vehicles.json'), 'content/sprites/vehicles.json');
-await writer.stage('image', 'vehicles', library.product);
+const writer = createContentWriter(new URL('../../dist/delivery/', import.meta.url));
+const content = requireLoaded(await compileContent(createNodeContentStore()));
+const { library } = content;
 const levels = library.product.sprites.flatMap((sprite) => sprite.levels.slice(1));
 console.log(
   JSON.stringify({
@@ -51,132 +23,12 @@ console.log(
     addedLodRgb555PaletteBytes: levels.length * 32,
   }),
 );
-
-// The text tiles are delivered as authored once admitted.
-const textTilesPath = 'content/text-tiles/default.json';
-const textTiles = await json('text-tiles/default.json');
-requireLoaded(admit(textTilesPath, () => compileTextTiles(textTiles)));
-await writer.stage('image', TEXT_TILES_ID, textTiles);
-
-// Each document's file name is its manifest identity; catalogs admit these sources as delivery does.
-const sources = async (directory: string, extension = '.json') => {
-  const result: DocumentSource[] = [];
-  for (const name of (await readdir(new URL(directory + '/', content))).sort()) {
-    if (!name.endsWith(extension)) continue;
-    const path = `content/${directory}/${name}`;
-    result.push(
-      await authoredDocumentSource(name.slice(0, -extension.length), path, await json(`${directory}/${name}`)),
-    );
-  }
-  return result;
-};
-// Admitted documents are delivered as authored, so each delivered digest is its source's `sha256`.
-const deliver = async (kind: ContentKind, documents: readonly DocumentSource[]) => {
-  for (const source of documents)
-    if ((await writer.stage(kind, source.id, source.value)) !== source.sha256)
-      throw new Error(`Delivered bytes differ from the admitted source: ${source.path}`);
-};
-const materialSources = await sources('materials');
-const materials = requireLoaded(compileSurfaceMaterials(materialSources));
-await deliver('material', materialSources);
-
-// A catalog material without a surface sound and a surface sound for an unknown material are rejected here.
-const surfaceSoundSources = await sources('surface-sounds');
-const surfaceSounds = requireLoaded(compileSurfaceSounds(surfaceSoundSources));
-resolveSurfaceSoundRecords(
-  surfaceSounds,
-  materials.source.materials.map((material) => material.id),
-);
-await deliver('surface-sound', surfaceSoundSources);
-
-// Each course's solid walls are admitted against the wall sounds below.
-const wallSoundSources = await sources('wall-sounds');
-const wallSounds = requireLoaded(compileWallSounds(wallSoundSources));
-await deliver('wall-sound', wallSoundSources);
-
-const audioSources = await sources('audio');
-requireLoaded(compileAudioSettings(audioSources));
-await deliver('audio', audioSources);
-
-// Recordings are delivered as their authored bytes once admitted; music documents are admitted against them, with
-// titles that fit one line of the text grid.
-const recordingSources: RecordingSource[] = [];
-for (const group of RECORDING_GROUPS)
-  for (const name of (await readdir(new URL(`${group}/`, content))).sort()) {
-    if (group === 'music' && name.endsWith('.json')) continue;
-    recordingSources.push({
-      id: recordingId(group, name.replace(/\.[^.]*$/, '')),
-      path: `content/${group}/${name}`,
-      bytes: new Uint8Array(await readFile(new URL(`${group}/${name}`, content))),
-    });
-  }
-const recordings = requireLoaded(compileRecordings(recordingSources));
-const musicSources = await sources('music');
-requireLoaded(compileMusicCatalog(musicSources, TEXT_COLUMNS, recordings));
-for (const source of recordingSources) await writer.stage('recording', source.id, null, source.bytes);
-await deliver('music', musicSources);
-
-const freePlaySources = await sources('free-play');
-requireLoaded(compileFreePlayRules(freePlaySources));
-await deliver('free-play', freePlaySources);
-
-const soundSources = await sources('engine-sounds');
-const sounds = requireLoaded(compileEngineSounds(soundSources));
-await deliver('engine-sound', soundSources);
-
-const vehicleSources = await sources('vehicles'),
-  listingSources = await sources('vehicle-listings'),
-  drivingSources = await sources('driving');
-const definitions = requireLoaded(
-  compileVehicleDefinitions(library.sprites, sounds, drivingSources, vehicleSources, listingSources),
-);
-await deliver('vehicle', vehicleSources);
-await deliver('vehicle-listing', listingSources);
-await deliver('driving', drivingSources);
-
-const courses: CompiledCourse[] = [];
-for (const name of (await readdir(new URL('courses/', content))).sort()) {
-  if (!name.endsWith('.course.json')) continue;
-  const id = courseFileId(name);
-  const bytes = await readFile(new URL(`courses/${name}`, content));
-  const document = requireLoaded(readCourseDocumentBytes(bytes, `content/courses/${name}`));
-  requireLoaded(admitCourseWallSounds(document, wallSounds, `content/courses/${name}`));
-  const prepared = await compileCourseImages(
-    document,
-    await readCourseImages(document.assets, new URL('images/', content).pathname),
-  );
-  const sha256 = await courseFileSha256(prepared.document);
-  const compiled = requireLoaded(
-    await compileCourseDocument(prepared.document, id, sha256, prepared.images, materials, `content/courses/${name}`),
-  );
-  if ((await writer.stage('course', id, prepared.document)) !== sha256)
-    throw new Error(`Delivered bytes differ from the compiled course: ${name}`);
-  for (const image of prepared.images) await writer.stage('image', image.sha256, null, new Uint8Array(image.bytes));
-  console.log(`${name}: Strip ground compiled`);
-  courses.push(compiled);
-}
-await writer.stage('course-index', COURSE_INDEX_ID, courseIndexDocument(courses));
-
-// Every series course is admitted against its compiled course.
-const seriesSources = await sources('series', '.series.json');
-const series = requireLoaded(
-  compileSeriesCatalog(
-    seriesSources,
-    courses.map((course) => course.id),
-    definitions.vehicles,
-  ),
-);
-const seriesCourses = courses.flatMap((course) => {
-  const settings = series.courseSettings(course.id);
-  if (!settings) return [];
-  const source = seriesSources.find((s) => s.id === settings.series.id)!;
-  return [{ course, settings: requireLoaded(admitSeriesCourse(settings, course, source.path)) }];
-});
-await deliver('series', seriesSources);
+for (const file of content.files) await writer.stage(file.kind, file.id, null, file.bytes);
+for (const course of content.courses) console.log(`${course.id}.course.json: Strip ground compiled`);
 // Reference workers run in separate threads and read this build's saved content.
 await writer.save();
 // Every catalog vehicle receives an envelope; only series courses × series candidate vehicles receive reference runs
 // and budgets.
-await buildCourseReferences(seriesCourses, definitions, writer.stage);
+await buildCourseReferences(content.seriesCourses, content.definitions, writer.stage);
 await writer.save();
 console.log('Validated and staged manifest content');

@@ -74,7 +74,7 @@ export async function loadCourse(file: string, imagesDirectory?: string) {
   const admitted = readCourseDocumentBytes(await readFile(file), file);
   if (!admitted.ok) throw new AuthoringError(admitted.diagnostics);
   const directory = imagesDirectory ?? path.resolve(path.dirname(file), '../images');
-  const images = await readCourseImages(admitted.value.assets, directory);
+  const images = await readCourseImages(admitted.value.assets, readDirectoryFile(directory));
   const prepared = await compileCourseImages(admitted.value, images);
   const materials = await loadAuthoringSurfaceMaterials();
   const compiled = await compileCourseDocument(
@@ -87,6 +87,10 @@ export async function loadCourse(file: string, imagesDirectory?: string) {
   );
   if (!compiled.ok) throw new AuthoringError(compiled.diagnostics);
   return { document: admitted.value, course: compiled.value, images, materials };
+}
+/** Reads the files of `directory` by name. */
+export function readDirectoryFile(directory: string) {
+  return async (file: string) => new Uint8Array(await readFile(path.join(directory, file)));
 }
 export async function atomicWrite(file: string, data: string | Uint8Array) {
   await mkdir(path.dirname(file), { recursive: true });

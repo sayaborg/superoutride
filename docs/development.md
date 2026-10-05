@@ -213,15 +213,17 @@ Only the manifest writer owns output naming. Browsers, Node consumers, startup s
 verification read indexed content through the shared reader, never by reconstructing output paths.
 Authoring inputs under `content/` still use explicit source filenames and image directories.
 The browser-tools build writes only `dist/tools`: the bundled tools, the Sprite Tool's PNG example and
-the LOD filter sample. The content build writes `dist/delivery` from authored documents in one pass, in
-dependency order: the vehicle sprite library (compiled LOD and admitted), surface materials, surface sounds (resolved against those materials), wall sounds, audio settings, recordings and the music documents (admitted against those recordings), engine sounds,
-vehicle and driving definitions (admitted against that in-build library and engine-sound catalog), courses (their solid walls admitted against the wall sounds) and their images, the course index, series
-(admitted against those courses and the vehicle catalog), then reference runs. Each compile stage receives earlier products directly. Reference workers are the exception: until
-15-5 they read this build's saved `dist/delivery`, described below. A course and
-its images are staged only after the course compiles. The build
-saves the manifest before the references; reference workers run in separate threads, read the same
-`dist/delivery` definitions and courses, generate envelopes/runs, and add envelopes/budgets before
-publishing the completed build. Every catalog vehicle receives an envelope, which FREE PLAY rivals and runout
+the LOD filter sample. The content build writes `dist/delivery` with the authoring core ([Architecture](architecture.md#layer-boundaries)):
+`compileContent` reads `content/` through the Node content store and compiles every delivered file from authored
+documents in one pass, in dependency order: the vehicle sprite library (compiled LOD and admitted), text tiles,
+surface materials, surface sounds (resolved against those materials), wall sounds, audio settings, recordings and the
+music documents (admitted against those recordings), FREE PLAY rules, engine sounds, vehicle and driving definitions
+(admitted against that library and engine-sound catalog), courses (their solid walls admitted against the wall
+sounds) and their images, the course index, then series (admitted against those courses and the vehicle catalog).
+Each stage receives earlier products directly, and a course and its images are delivered only after the course
+compiles. The build stages the returned files through the manifest writer, saves the manifest, then runs the reference
+runs. Reference workers run in separate threads and, until 15-2, read this build's saved `dist/delivery` definitions
+and courses, generate envelopes/runs, and add envelopes/budgets before publishing the completed build. Every catalog vehicle receives an envelope, which FREE PLAY rivals and runout
 admission read. Only series courses are timed: each receives reference runs, budgets and pace schedules, with its
 series' time margin, for its series' candidate vehicles only, since only ARCADE has the clock and rival pace. Node tools also read vehicle/driving definitions from this distribution.
 

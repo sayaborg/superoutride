@@ -2,7 +2,7 @@ import { expandCourseElements } from '../../src/course/course-repeat.js';
 import { COURSE_DOCUMENT_LIMITS } from '../../src/course/course-limits.js';
 import type { CourseDocument } from '../../src/course/course-document.js';
 import type { CourseAssetBytes } from '../../src/course/compiler/course-image-source.js';
-import { createHash } from 'node:crypto';
+import { contentDigest } from '../../src/core/content-digest.js';
 import { readCourseImageSources } from '../../src/course/compiler/course-image-source.js';
 import { compileSpriteLod } from '../graphics/sprite-lod-compiler.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
@@ -35,8 +35,10 @@ export async function compileCourseImages(document: CourseDocument, inputs: read
   for (const master of masters) {
     if (master.kind !== 'sprite') throw new RangeError('Sprites require a sprite master');
     if (lods.has(master.sha256)) continue;
-    const bytes = Buffer.from(JSON.stringify(compileSpriteLod(master.document, [[]], master.image)) + '\n');
-    lods.set(master.sha256, { sha256: createHash('sha256').update(bytes).digest('hex'), bytes });
+    const bytes = new TextEncoder().encode(
+      JSON.stringify(compileSpriteLod(master.document, [[]], master.image)) + '\n',
+    );
+    lods.set(master.sha256, { sha256: await contentDigest(bytes), bytes });
   }
   const original = new Map(inputs.map((input) => [input.sha256, input]));
   const products = new Map<string, CourseAssetBytes>();

@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { readCourseImages } from './read-course-images.js';
 import { parseCourseDocument } from './course-project.js';
-import { loadAuthoringSurfaceMaterials } from './authoring-io.js';
+import { loadAuthoringSurfaceMaterials, readDirectoryFile } from './authoring-io.js';
 import { courseFailures, CourseAssetError } from '../../src/course/course-diagnostics.js';
 import { compileCourseDocument } from '../../src/course/compiler/compiled-course.js';
 import { courseFileId, courseFileSha256 } from './course-file-id.js';
@@ -13,7 +13,7 @@ const parsed = parseCourseDocument(await readFile(sourcePath, 'utf8'), sourcePat
 let result: Awaited<ReturnType<typeof compileCourseDocument>>;
 if (parsed.ok) {
   try {
-    const inputs = imageDirectory ? await readCourseImages(parsed.value.assets, imageDirectory) : [];
+    const inputs = imageDirectory ? await readCourseImages(parsed.value.assets, readDirectoryFile(imageDirectory)) : [];
     result = await compileCourseDocument(
       parsed.value,
       courseFileId(sourcePath),
