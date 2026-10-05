@@ -237,8 +237,8 @@ as each signal lamp lights during READY, `countdown-go` at GO, and for each of t
 events one sound: none for the crossing that finishes the run (GOAL's jingle sounds), else `extend` when the crossing
 extended the clock, else `lap` at the finish line and `checkpoint` at a checkpoint. At GOAL `goal` and at GAME OVER
 `game-over` play once, from that moment, while the track fades beneath them; a jingle may sound on into RESULT and
-stops when the run is left. Each happening sounds once: a step's facts are read once, so two crossings in one frame
-both sound, a pause runs no steps, and a new Session (RETRY or a DEV rebuild) starts afresh. Other competitors'
+stops when the run is left or its Session is replaced. Each happening sounds once: a step's facts are read once, so two
+crossings in one frame both sound, a pause runs no steps, and a new Session (RETRY or a DEV rebuild) starts afresh. Other competitors'
 crossings never sound. Menu commands sound through the screen host ([Browser](browser.md#menu-input)).
 
 ## Contact sound

@@ -16,7 +16,8 @@ function crossingEffect(event: RaceFacts['events'][number]): EffectRecording | n
 /**
  * The one owner of a run's race effects, read from race facts after every fixed step: a signal lamp lighting, GO, the
  * player's crossings and the GOAL or GAME OVER jingle. Each happening sounds once: a Session's step is read once, and a
- * new Session (a DEV rebuild) starts afresh. The jingle sounds on into RESULT and stops when the run is left.
+ * new Session (a DEV rebuild) starts afresh. The jingle sounds on into RESULT and stops when the run is left or its
+ * Session is replaced.
  */
 export function createRunEffects(play: (effect: EffectRecording) => RecordingHandle) {
   let session: object | null = null,
@@ -26,7 +27,10 @@ export function createRunEffects(play: (effect: EffectRecording) => RecordingHan
   return {
     /** After each fixed step: the current Session (any object identifying it) and its race facts. */
     step(current: object, race: RaceFacts): void {
-      if (current !== session) [session, lamps, status] = [current, 0, 'WAITING'];
+      if (current !== session) {
+        jingle?.stop();
+        [session, lamps, status, jingle] = [current, 0, 'WAITING', null];
+      }
       const { signalLamps } = race.countdown;
       if (signalLamps > lamps) play('countdown-lamp');
       lamps = signalLamps;
