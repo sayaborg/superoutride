@@ -63,9 +63,10 @@ leaves the definition unchanged) and rebuilds the Session around a Session vehic
 Tuned values reach the product only through the definition files. DEV EXPORT downloads the tuned
 driving source document as `default.json` and the selected vehicle's source document as
 `<vehicle id>.json`, written from the admitted documents, never from runtime values. Both use the
-saved layout of [`formatSavedJson`](../src/content/saved-json.ts): admission's field order, two-space
-indentation, 120 columns, containers broken except a primitive array or a below-root object of
-primitives that fits on one line, and JSON's own number and string spelling. The files in
+saved layout of [`formatSavedJson`](../src/content/saved-json.ts), which Prettier leaves unchanged: admission's field
+order, two-space indentation, 120 columns, a below-root value on one line when it fits unless it is an object holding
+more than primitives or an array Prettier always breaks, otherwise one entry per line with an array of numbers filling
+each line, and JSON's own number and string spelling. The files in
 `content/driving/` and `content/vehicles/` are kept in that layout, so an untuned export is
 byte-identical to its content file. To adopt tuned values, replace `content/driving/default.json`
 (or a vehicle file) with the export and rebuild; admission, identity and generated references follow
