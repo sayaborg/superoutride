@@ -7,6 +7,8 @@ export interface CourseBarrierLine {
   readonly start: number;
   readonly end: number;
   readonly keep: -1 | 0 | 1;
+  /** Its wall sound: a solid wall's `sound`, or null for a course limit, which uses the wall-sound document's own. */
+  readonly sound: string | null;
   /** The line's lateral at Section station `s` in `[start, end]`. */
   lateralAt(s: number): number;
   /** Its lateral change per metre of station at `s`: a slanted line moves across a vehicle travelling along the road. */

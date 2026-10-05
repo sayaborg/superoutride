@@ -16,7 +16,7 @@ import {
   readString,
 } from '../core/admission.js';
 
-const COURSE_DOCUMENT_VERSION = 39;
+const COURSE_DOCUMENT_VERSION = 40;
 const ID = { maxLength: COURSE_DOCUMENT_LIMITS.idCodeUnits };
 
 export interface CoursePosition {
@@ -157,11 +157,12 @@ export interface WallDocument {
 
 /**
  * A solid wall's ends, at `from` and at `to`: each null where it joins a course limit or another solid wall, or the
- * thickness (m) of a declared free end, a fixed object that wide.
+ * thickness (m) of a declared free end, a fixed object that wide; and its wall sound, an ID of the wall-sound document.
  */
 export interface SolidWallDocument {
   readonly freeFrom: number | null;
   readonly freeTo: number | null;
+  readonly sound: string;
 }
 
 /** A stretch of one side of a Section where no course limit runs: `side` from `from` to `to`. */
@@ -511,7 +512,7 @@ function wall(value: unknown, path: string): WallDocument {
   });
 }
 function solidWall(value: unknown, path: string): SolidWallDocument {
-  const v = readRecord(value, path, ['freeFrom', 'freeTo']);
+  const v = readRecord(value, path, ['freeFrom', 'freeTo', 'sound']);
   const thickness = (end: unknown, at: string) =>
     end === null
       ? null
@@ -519,6 +520,7 @@ function solidWall(value: unknown, path: string): SolidWallDocument {
   return Object.freeze({
     freeFrom: thickness(v.freeFrom, `${path}/freeFrom`),
     freeTo: thickness(v.freeTo, `${path}/freeTo`),
+    sound: readString(v.sound, `${path}/sound`),
   });
 }
 function openLimit(value: unknown, path: string): OpenLimitDocument {

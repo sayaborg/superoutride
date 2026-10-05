@@ -1,10 +1,10 @@
 /** What a contact's other side is: another vehicle, a wall or course limit, a fixed object or a movable one. */
 export type ContactCounterpart = 'vehicle' | 'wall' | 'object' | 'movable';
 
-/** A barrier line pushing the player during one step: the line, its friction's power and the speeds it acts on. */
+/** A barrier line pushing the player during one step: its wall sound, its friction's power and the speeds it acts on. */
 export interface BarrierRub {
-  /** The barrier line's identity. */
-  readonly line: string;
+  /** The line's wall sound: its wall's ID, or null for a course limit (the wall-sound document's own). */
+  readonly sound: string | null;
   /** The power its friction removes: the friction force times the speed along the road, W. */
   readonly frictionPower: number;
   /** The player's speed along the road, m/s. */
@@ -36,8 +36,8 @@ export function createContactLog(playerId: string) {
     starts: ContactStart[] = [];
   return Object.freeze({
     /** A barrier line pushes the body `id` this step. */
-    rub(id: string, line: string, frictionPower: number, speed: number, push: number): void {
-      if (id === playerId) rubs.push(Object.freeze({ line, frictionPower, speed, push }));
+    rub(id: string, sound: string | null, frictionPower: number, speed: number, push: number): void {
+      if (id === playerId) rubs.push(Object.freeze({ sound, frictionPower, speed, push }));
     },
     /** A contact of the body `id` with `counterpart` began this step, its damper term dissipating `work`. */
     start(id: string, counterpart: ContactCounterpart, work: number): void {

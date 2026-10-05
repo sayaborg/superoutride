@@ -39,6 +39,16 @@ the catalog order; the worklet receives the records at construction and in every
 (`{ settings, rolling, control, surfaces }`), uses them as given ([admitted once](audio.md#audio-document)) and
 replaces its kernels when they change, and the kernels read them by number.
 
+## Wall sounds
+
+Wall sounds are content: `content/wall-sounds/default.json` is the one `superoutride.wall-sounds` version 1 document
+(manifest kind `wall-sound`, ID `default`) with exactly `format`, `version`, `courseLimit` and `walls`. `walls` holds one
+record per wall-sound ID, `{friction: {roughness, susceptibility}}`: the friction input of a wall rubbed along, with
+the same meaning and the same one value check as a surface's ([`compileFrictionInput`](../src/audio/surface-sounds.ts):
+both finite and at least 0, `susceptibility` at most 1). `courseLimit` names the record every course limit uses; it must
+name a record (`unresolved_reference`). [`compileWallSoundDocument`](../src/audio/wall-sounds.ts) admits it, and the
+content build admits each course's solid walls against it ([Content and gameplay](content-and-gameplay.md#walls)).
+
 ## Rolling synthesis
 
 [Rolling synthesis](../src/audio/tire-rolling-model.ts) uses wheel angular velocity for noise-band

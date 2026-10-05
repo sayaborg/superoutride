@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 39,
+  "version": 40,
   "name": "RIBBON COAST",
   "entrySectionId": "coast-wide",
   "rules": { "maxLaps": 1 },
@@ -265,7 +265,7 @@
           "boundary": "grass-wall",
           "from": { "pi": "start", "offset": 1300 },
           "to": { "pi": "start", "offset": 1320 },
-          "solid": { "freeFrom": 0.5, "freeTo": 0.5 },
+          "solid": { "freeFrom": 0.5, "freeTo": 0.5, "sound": "wall" },
           "strips": [
             {
               "kind": "strip",
@@ -617,14 +617,14 @@
           "boundary": "rail-lead-in",
           "from": { "pi": "start", "offset": 382.173048 },
           "to": { "pi": "start", "offset": 432.173048 },
-          "solid": { "freeFrom": null, "freeTo": null },
+          "solid": { "freeFrom": null, "freeTo": null, "sound": "guardrail" },
           "strips": []
         },
         {
           "boundary": "verge-right",
           "from": { "pi": "start", "offset": 432.173048 },
           "to": { "pi": "start", "offset": 732.173048 },
-          "solid": { "freeFrom": null, "freeTo": null },
+          "solid": { "freeFrom": null, "freeTo": null, "sound": "guardrail" },
           "strips": [
             {
               "kind": "strip",
@@ -655,21 +655,21 @@
           "boundary": "rail-lead-out",
           "from": { "pi": "start", "offset": 732.173048 },
           "to": { "pi": "start", "offset": 782.173048 },
-          "solid": { "freeFrom": null, "freeTo": null },
+          "solid": { "freeFrom": null, "freeTo": null, "sound": "guardrail" },
           "strips": []
         },
         {
           "boundary": "cliff-lead-in",
           "from": { "pi": "start", "offset": 917.836754 },
           "to": { "pi": "start", "offset": 967.836754 },
-          "solid": { "freeFrom": null, "freeTo": null },
+          "solid": { "freeFrom": null, "freeTo": null, "sound": "rock" },
           "strips": []
         },
         {
           "boundary": "verge-left",
           "from": { "pi": "start", "offset": 967.836754 },
           "to": { "pi": "start", "offset": 1167.836754 },
-          "solid": { "freeFrom": null, "freeTo": null },
+          "solid": { "freeFrom": null, "freeTo": null, "sound": "rock" },
           "strips": [
             {
               "kind": "strip",
@@ -734,7 +734,7 @@
           "boundary": "cliff-lead-out",
           "from": { "pi": "start", "offset": 1167.836754 },
           "to": { "pi": "start", "offset": 1217.836754 },
-          "solid": { "freeFrom": null, "freeTo": null },
+          "solid": { "freeFrom": null, "freeTo": null, "sound": "rock" },
           "strips": []
         },
         {

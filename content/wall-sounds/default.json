@@ -1,0 +1,11 @@
+{
+  "format": "superoutride.wall-sounds",
+  "version": 1,
+  "courseLimit": "limit",
+  "walls": {
+    "limit": { "friction": { "roughness": 1, "susceptibility": 0.5 } },
+    "guardrail": { "friction": { "roughness": 1, "susceptibility": 1 } },
+    "rock": { "friction": { "roughness": 2, "susceptibility": 0.2 } },
+    "wall": { "friction": { "roughness": 1.5, "susceptibility": 0.5 } }
+  }
+}

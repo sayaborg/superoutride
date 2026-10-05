@@ -269,6 +269,16 @@ The [surface-sound document](../content/surface-sounds/default.json) holds these
 | DIRT     | 1           | 0.55         | 0.8 m          | 0.8           | 1.5                | 0.12                    |
 | SAND     | 0.3         | 0.8          | 0.12 m         | 0.2           | 1.1                | 0.02                    |
 
+The [wall-sound document](../content/wall-sounds/default.json) holds the walls' friction inputs. They are the
+implementer's values, not chosen by listening. Course limits use `limit`.
+
+| Wall sound  | Used by (RIBBON COAST)             | Friction roughness | Friction susceptibility |
+| ----------- | ---------------------------------- | ------------------ | ----------------------- |
+| `limit`     | Every course limit                 | 1                  | 0.5                     |
+| `guardrail` | The guardrail and its lead-in/out  | 1                  | 1                       |
+| `rock`      | The cliff face and its lead-in/out | 2                  | 0.2                     |
+| `wall`      | The low wall beside the wide road  | 1.5                | 0.5                     |
+
 The only tire constants are structural: the random seeds (`UNIFIED_SYNTHESIS`), the rolling noise stream indices
 and the internal rolling control rate (`ROLLING_SYNTHESIS`), and the noise band's numerical domain
 (`NOISE_BAND_DOMAIN`).

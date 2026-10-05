@@ -61,7 +61,7 @@ export function createBarrierContacts(
         if (began) log.start(body.id, 'wall', push > 0 ? bodyContactDampingPower(contact, mass, approach) * step : 0);
         if (push === 0) return;
         const friction = Math.sign(along) * Math.min(contact.barrierFriction * push, (mass * Math.abs(along)) / step);
-        log.rub(body.id, key, Math.abs(friction * along), Math.abs(along), push);
+        log.rub(body.id, line.sound, Math.abs(friction * along), Math.abs(along), push);
         body.contactForce.x += push * nx - friction * tx;
         body.contactForce.z += push * nz - friction * tz;
         pushed(body);

@@ -26,7 +26,7 @@ whitespace do not affect identity. Normalized records use schema field order and
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 39,
+  format: "superoutride.course", version: 40,
   name, entrySectionId,
   sections, links, assets, rules
 }
@@ -226,7 +226,11 @@ a piece carrying both payloads counts once. Limits reject rather than truncate.
 Section `walls` is an array (empty when the Section has none) of `{boundary, from, to, solid, strips}`: a wall along the
 Section Boundary `boundary` from Position `from` to Position `to`. Compilation requires `from < to` and the Boundary to
 cover that interval (`invalid_wall`; an unknown Boundary is `unresolved_reference`). `solid` is null for a wall vehicles
-pass through (for looks only), or `{freeFrom, freeTo}` for a solid one, which vehicles meet. Each solid end, at `from`
+pass through (for looks only), or `{freeFrom, freeTo, sound}` for a solid one, which vehicles meet; an invisible solid
+wall is solid too. `sound` names the wall's record in the [wall-sound document](tire-audio.md#wall-sounds), which the
+content build checks (`unresolved_reference` at `/sections/i/walls/j/solid/sound` for an unknown ID); the compiled
+barrier line carries it, and a course limit's line carries none (null): it uses the record the wall-sound document
+names for course limits. Each solid end, at `from`
 and at `to`, either joins another barrier line — it lies on a course limit, or on another solid wall from its `from`
 through its `to`, ends included — and is then null, or is declared free with its thickness, positive metres. Compilation
 checks every solid end once, within `JOIN_TOLERANCE_METERS` (1e-6 m, reading one line through two compiled readers): an
@@ -333,6 +337,8 @@ CourseDocument nulls each have one meaning:
 | Sprite `unselectedCarriagewayId` | Ordinary sprite with no exit-selection condition          |
 | Sprite `body`                    | Scenery: vehicles pass through it                         |
 | Sprite body `movable`            | A fixed object                                            |
+| Wall `solid`                     | A wall for looks only: vehicles pass through it           |
+| Solid wall `freeFrom` / `freeTo` | That end joins a course limit or another solid wall       |
 
 ### Numeric and resource domains
 
@@ -1195,7 +1201,8 @@ The race publishes the contacts of the player's vehicle at the end of each fixed
 the last step's only, with no sound values, and none of other vehicles' contacts with each other, with walls or with
 objects. It changes no mechanics; it reports quantities the contacts already compute.
 
-- **Rubs:** each barrier line pushing the player this step: the line, its push `F` (N), the player's speed along the
+- **Rubs:** each barrier line pushing the player this step: the line's wall sound (its wall's `sound`, or null for a
+  course limit, which uses the wall-sound document's own), its push `F` (N), the player's speed along the
   road `|v_along|` (m/s) and the power the line's friction removes, `|friction × v_along|` (W), which is
   `barrierFriction × F × |v_along|` unless the friction is at its `m × |v_along| / step` bound.
 - **Starts:** each contact of the player that began this step: its counterpart (`vehicle`; `wall` for a wall, a course

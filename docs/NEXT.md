@@ -35,7 +35,7 @@
   appears at seeded Route positions from the series or FREE PLAY's TRAFFIC option; RIBBON COAST is the verification
   course of all of it.
 
-Next PR: **14-3b** — wall-sound documents and walls that name their sound.
+Next PR: **14-3c** — the contact bus and wall scraping.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -71,7 +71,6 @@ Requirements left from the second design audit, by when they are taken up:
 `content/effects/` and `content/impacts/` are placeholders (electronic tones) for building the stage; before the product
 they are replaced by K's files under the same names. The remaining PRs, in order:
 
-- **14-3b — Wall sounds:** a wall-sound document and solid walls naming their wall sound.
 - **14-3c — Scraping:** a `contact` bus and wall scraping synthesized with the tire friction resonator.
 - **14-3d — Impacts:** a recording per contact counterpart, its volume from the contact's work.
 - **14-4 — Close Stage 14:** NEXT, the owner table and the list of placeholder recordings.

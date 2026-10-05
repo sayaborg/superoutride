@@ -25,10 +25,11 @@ import { COURSE_INDEX_ID, courseIndexDocument } from '../../src/content/course-i
 import { RECORDING_GROUPS, recordingId } from '../../src/audio/recordings.js';
 import { compileMusicCatalog, compileRecordings, type RecordingSource } from '../../src/content/recording-catalog.js';
 import { TEXT_COLUMNS } from '../../src/view/text-layer.js';
+import { admitCourseWallSounds, compileWallSounds } from '../../src/content/wall-sound-catalog.js';
 
 /**
  * The content build: every delivered file is compiled from authored documents in dependency order,
- * in one pass: vehicle sprite library, text tiles, materials, surface sounds, audio settings, recordings and music, FREE PLAY rules, engine sounds, vehicle and driving definitions, courses and their
+ * in one pass: vehicle sprite library, text tiles, materials, surface sounds, wall sounds, audio settings, recordings and music, FREE PLAY rules, engine sounds, vehicle and driving definitions, courses (their walls' sounds admitted against the wall sounds) and their
  * images, the course index, series, then reference runs. Each compile stage receives earlier products directly. Reference workers
  * are the exception: they run in separate threads and read this build's saved content until 15-5.
  */
@@ -88,6 +89,11 @@ resolveSurfaceSoundRecords(
 );
 await deliver('surface-sound', surfaceSoundSources);
 
+// Each course's solid walls are admitted against the wall sounds below.
+const wallSoundSources = await sources('wall-sounds');
+const wallSounds = requireLoaded(compileWallSounds(wallSoundSources));
+await deliver('wall-sound', wallSoundSources);
+
 const audioSources = await sources('audio');
 requireLoaded(compileAudioSettings(audioSources));
 await deliver('audio', audioSources);
@@ -134,6 +140,7 @@ for (const name of (await readdir(new URL('courses/', content))).sort()) {
   const id = courseFileId(name);
   const bytes = await readFile(new URL(`courses/${name}`, content));
   const document = requireLoaded(readCourseDocumentBytes(bytes, `content/courses/${name}`));
+  requireLoaded(admitCourseWallSounds(document, wallSounds, `content/courses/${name}`));
   const prepared = await compileCourseImages(
     document,
     await readCourseImages(document.assets, new URL('images/', content).pathname),

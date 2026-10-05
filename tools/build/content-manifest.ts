@@ -25,6 +25,8 @@ function contentPath(kind: ContentKind, id: string, sha256: string): string {
       return `recordings/${id}.m4a`;
     case 'music':
       return `music/${id}.json`;
+    case 'wall-sound':
+      return `wall-sounds/${id}.json`;
     case 'image':
       return `images/${sha256}.json`;
     case 'course':

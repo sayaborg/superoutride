@@ -1,11 +1,29 @@
 /**
+ * The friction system's input from what is rubbed: `roughness` scales its forcing and `susceptibility` its feedback.
+ * Listening values, NOT measured properties.
+ */
+export type FrictionInput = Readonly<{ roughness: number; susceptibility: number }>;
+
+/**
  * One sound record per material ID: the rolling generator's surface palette and the friction system's input.
  * Listening values, NOT measured surface properties.
  */
 export type SurfaceSound = Readonly<{
   rolling: Readonly<{ low: number; high: number; textureLengthMeters: number; textureDepth: number }>;
-  friction: Readonly<{ roughness: number; susceptibility: number }>;
+  friction: FrictionInput;
 }>;
+
+/**
+ * The one value check of a friction input, for surfaces and walls alike: both numbers finite and at least 0, and
+ * `susceptibility` at most 1. Returns a detached frozen record.
+ */
+export function compileFrictionInput({ roughness, susceptibility }: FrictionInput): FrictionInput {
+  for (const value of [roughness, susceptibility])
+    if (typeof value !== 'number' || !Number.isFinite(value) || value < 0)
+      throw new RangeError('invalid friction input: values must be finite and nonnegative');
+  if (susceptibility > 1) throw new RangeError('invalid friction input: susceptibility');
+  return Object.freeze({ roughness, susceptibility });
+}
 
 /** The transport bound on surface numbers: the worklet's `surfaceIndex` parameter range. */
 export const SURFACE_SOUND_LIMIT = 256;
@@ -15,13 +33,12 @@ export const SURFACE_SOUND_LIMIT = 256;
  * least 0, `textureLengthMeters` above 0 and `susceptibility` at most 1. Returns a detached frozen record.
  */
 export function compileSurfaceSound(record: SurfaceSound): SurfaceSound {
-  const { rolling, friction } = record;
+  const { rolling } = record;
   const values = [rolling.low, rolling.high, rolling.textureLengthMeters, rolling.textureDepth];
-  values.push(friction.roughness, friction.susceptibility);
   if (values.some((value) => typeof value !== 'number' || !Number.isFinite(value) || value < 0))
     throw new RangeError('invalid surface sound: values must be finite and nonnegative');
   if (rolling.textureLengthMeters <= 0) throw new RangeError('invalid surface sound: textureLengthMeters');
-  if (friction.susceptibility > 1) throw new RangeError('invalid surface sound: susceptibility');
+  const friction = compileFrictionInput(record.friction);
   return Object.freeze({
     rolling: Object.freeze({
       low: rolling.low,
@@ -29,7 +46,7 @@ export function compileSurfaceSound(record: SurfaceSound): SurfaceSound {
       textureLengthMeters: rolling.textureLengthMeters,
       textureDepth: rolling.textureDepth,
     }),
-    friction: Object.freeze({ roughness: friction.roughness, susceptibility: friction.susceptibility }),
+    friction,
   });
 }
 
