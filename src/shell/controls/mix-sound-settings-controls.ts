@@ -24,6 +24,7 @@ const TIMING_LABELS = {
   fadeSeconds: ['Fade before replacement', 's'],
   componentSeconds: ['R/Q switch smoothing', 's'],
   transitionSeconds: ['Wait before a discontinuity', 's'],
+  musicFadeSeconds: ['Music fade at GOAL and GAME OVER', 's'],
 } as const satisfies Record<keyof ControlSettings, readonly [string, string]>;
 
 const RIVAL_LABELS = {

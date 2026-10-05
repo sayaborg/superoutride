@@ -91,6 +91,7 @@ export const DEFAULT_AUDIO_SETTINGS: AudioSettings = Object.freeze({
     fadeSeconds: 0.01,
     componentSeconds: 0.005,
     transitionSeconds: 0.09,
+    musicFadeSeconds: 2,
   }),
   rival: Object.freeze<RivalSettings>({
     audibleMeters: 100,

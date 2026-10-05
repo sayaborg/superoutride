@@ -11,8 +11,8 @@ export interface RecordingHandle {
   resume(): void;
   /** Stop with the silence fade. */
   stop(): void;
-  /** Fade out linearly over `seconds` and stop. */
-  fadeOut(seconds: number): void;
+  /** Fade out over the music fade and stop. */
+  fadeOut(): void;
 }
 
 const SILENT: RecordingHandle = Object.freeze({ pause() {}, resume() {}, stop() {}, fadeOut() {} });
@@ -79,9 +79,9 @@ export function createRecordingPlayer(
           state = 'ended';
           playback?.stop();
         },
-        fadeOut(seconds) {
+        fadeOut() {
           state = 'ended';
-          playback?.fadeOut(seconds);
+          playback?.fadeOut();
         },
       };
     },

@@ -18,6 +18,8 @@ export interface ControlSettings {
   readonly componentSeconds: number;
   /** Time given to a fade before a discontinuity (kernel replacement, context suspension). */
   readonly transitionSeconds: number;
+  /** The run's track fades out over this time at GOAL and GAME OVER. */
+  readonly musicFadeSeconds: number;
 }
 
 interface SettingRange {
@@ -34,6 +36,7 @@ export const CONTROL_SETTING_RANGES: Readonly<Record<keyof ControlSettings, Sett
   fadeSeconds: Object.freeze({ min: 0.003, max: 0.04, step: 0.001 }),
   componentSeconds: Object.freeze({ min: 0.001, max: 0.02, step: 0.001 }),
   transitionSeconds: Object.freeze({ min: 0.023, max: 0.36, step: 0.001 }),
+  musicFadeSeconds: Object.freeze({ min: 0.5, max: 8, step: 0.1 }),
 });
 
 export function resolveControlSettings(overrides: Partial<ControlSettings> = {}): ControlSettings {

@@ -59,7 +59,8 @@
     "panSeconds": 0.06,
     "fadeSeconds": 0.01,
     "componentSeconds": 0.005,
-    "transitionSeconds": 0.09
+    "transitionSeconds": 0.09,
+    "musicFadeSeconds": 2
   },
   "rival": { "audibleMeters": 100, "referenceMeters": 3, "panMinimumMeters": 3, "reassignmentSeconds": 0.09 }
 }

@@ -288,7 +288,8 @@ and the internal rolling control rate (`ROLLING_SYNTHESIS`), and the noise band'
 ## TIMING settings
 
 [Audio control](../src/audio/audio-control-policy.ts) supplies the control time constants (`ControlSettings`);
-each range is about a quarter to four times its default, with step 0.001 s.
+each range is about a quarter to four times its default, with step 0.001 s (0.1 s for `musicFadeSeconds`, the
+implementer's value, not chosen by listening).
 
 | Key                  | Meaning                                   | Default | Range        |
 | -------------------- | ----------------------------------------- | ------- | ------------ |
@@ -299,6 +300,7 @@ each range is about a quarter to four times its default, with step 0.001 s.
 | `fadeSeconds`        | Fade before replacement and on silence    | 0.01 s  | 0.003–0.04 s |
 | `componentSeconds`   | R/Q output switching in the tire kernel   | 0.005 s | 0.001–0.02 s |
 | `transitionSeconds`  | Wait after a fade before a discontinuity  | 0.09 s  | 0.023–0.36 s |
+| `musicFadeSeconds`   | Run's track fade at GOAL and GAME OVER    | 2 s     | 0.5–8 s      |
 
 ## RIVAL settings
 

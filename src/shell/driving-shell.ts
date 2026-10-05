@@ -17,7 +17,7 @@ import type { RecordingHandle } from './recording-player.js';
 import type { RecordingLoop } from '../audio/recording-playback.js';
 import type { SoundBus } from '../audio/sound-graph.js';
 
-interface BrowserDrivingShell {
+export interface BrowserDrivingShell {
   readonly framebuffer: SoftwareSurface;
   readonly inputManager: InputManager;
   /** Expand the framebuffer to the canvas, update the touch indicators, then draw `overlay` (DEV only) on top. */

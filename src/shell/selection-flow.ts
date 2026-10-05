@@ -10,19 +10,21 @@ import type { SoftwareSurface } from '../view/software-surface.js';
 import type { TextLayer } from '../view/text-layer.js';
 import { createMenuScreen, type MenuDefinition, type MenuItem } from './menu.js';
 import type { PlayerRecord, VolumeName } from './player-record.js';
-import { MODE_NAMES, recordedColor, type RunRequest } from './run-request.js';
+import { MODE_NAMES, latestTrack, recordedColor, type RunRequest } from './run-request.js';
+import type { MusicCatalog } from '../content/recording-catalog.js';
+import type { MusicTrack } from '../audio/music-document.js';
 import type { Screen } from './screen-host.js';
 import { createVehicleScreen } from './vehicle-screen.js';
 import { showSettings } from './settings-screens.js';
 
 type Mode = RunRequest['mode'];
-type Step = 'SERIES' | 'COURSE' | 'VEHICLE' | 'OPTIONS' | 'LAPS';
+type Step = 'SERIES' | 'COURSE' | 'VEHICLE' | 'OPTIONS' | 'LAPS' | 'MUSIC';
 
-/** The selection screens after SELECT MODE, by mode; the last confirm requests the run. */
+/** The selection screens after SELECT MODE, by mode; SELECT MUSIC is last, and its confirm requests the run. */
 const FLOW: Readonly<Record<Mode, readonly Step[]>> = Object.freeze({
-  ARCADE: ['SERIES', 'COURSE', 'VEHICLE'],
-  FREE_PLAY: ['COURSE', 'VEHICLE', 'OPTIONS'],
-  TIME_TRIAL: ['COURSE', 'VEHICLE', 'LAPS'],
+  ARCADE: ['SERIES', 'COURSE', 'VEHICLE', 'MUSIC'],
+  FREE_PLAY: ['COURSE', 'VEHICLE', 'OPTIONS', 'MUSIC'],
+  TIME_TRIAL: ['COURSE', 'VEHICLE', 'LAPS', 'MUSIC'],
 });
 const MODES = (Object.keys(MODE_NAMES) as Mode[]).map((mode) => ({ mode, label: MODE_NAMES[mode] }));
 
@@ -35,6 +37,8 @@ export interface SelectionCatalog {
   readonly series: SeriesCatalog;
   readonly vehicles: readonly CompiledVehicleDefinition[];
   readonly freePlay: FreePlayRules;
+  /** The delivered tracks in selection order. */
+  readonly music: MusicCatalog;
   readonly player: PlayerRecord;
   /** `dev=1`: DEV series and courses in no series are offered. */
   readonly dev: boolean;
@@ -52,6 +56,8 @@ export interface SelectionDevices {
   run(request: RunRequest, back: () => void): void;
   /** Set a volume in percent. */
   setVolume(name: VolumeName, percent: number): void;
+  /** Play `track` from its start as an audition; the returned function stops it. */
+  audition(track: MusicTrack): () => void;
 }
 
 /**
@@ -60,7 +66,7 @@ export interface SelectionDevices {
  * laps. BACK returns to the previous screen. A mode, series or course that offers nothing to select is DARK.
  */
 export function createSelectionFlow(catalog: SelectionCatalog, devices: SelectionDevices) {
-  const { courses, vehicles, player, dev, freePlay } = catalog;
+  const { courses, vehicles, player, dev, freePlay, music } = catalog;
   // FREE PLAY's POOL and TRAFFIC choices, in their rules' order; TRAFFIC starts with OFF.
   const pools = freePlay.rivalPools.map((pool) => pool.id);
   const trafficLevels = [NO_TRAFFIC, ...freePlay.traffic.map((level) => level.id)];
@@ -91,6 +97,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     courseId: string | null = null,
     vehicleId: string | null = null,
     color: string | null = null,
+    track: string | null = null,
     lapCount = latestCount('laps', 1, Infinity) ?? 1,
     rivalCount = latestCount('rivals', 0, SESSION_RULE_LIMITS.rivals) ?? 0,
     rivalPool = pools.find((pool) => pool === latest('pool')) ?? pools[0]!,
@@ -118,7 +125,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     else devices.run(request(), back);
   };
   const request = (): RunRequest => {
-    const choice = { courseId: courseId!, vehicleId: vehicleId!, color };
+    const choice = { courseId: courseId!, vehicleId: vehicleId!, color, track: track! };
     if (mode === 'ARCADE') return Object.freeze({ ...choice, mode });
     if (mode === 'TIME_TRIAL') return Object.freeze({ ...choice, mode, lapCount });
     return Object.freeze({ ...choice, mode, lapCount, rivalCount, rivalPool, traffic });
@@ -129,7 +136,8 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     value: String(value()),
     adjust: (by: -1 | 1) => set(Math.min(max, Math.max(min, value() + by))),
   });
-  const start: MenuItem = { label: 'START', confirm: forward };
+  // OPTIONS and LAPS lead on to SELECT MUSIC.
+  const next: MenuItem = { label: 'NEXT', confirm: forward };
 
   function title() {
     step = -1;
@@ -145,7 +153,15 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
         label: 'SETTINGS',
         confirm: () => {
           devices.activate();
-          showSettings(player, { menu, setVolume: devices.setVolume }, title);
+          showSettings(
+            player,
+            {
+              menu,
+              setVolume: devices.setVolume,
+              audition: () => devices.audition(music.find((t) => t.id === latestTrack(player, music))!),
+            },
+            title,
+          );
         },
       },
     ];
@@ -289,7 +305,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
                 ),
               ]
             : []),
-          start,
+          next,
         ];
         return menu({ title: 'OPTIONS', items, back });
       }
@@ -305,10 +321,24 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
               1,
               maxLaps,
             ),
-            start,
+            next,
           ],
           back,
         });
+      }
+      case 'MUSIC': {
+        // The track under the cursor plays from its start; CONFIRM starts the run with it.
+        const items = music.map((t): MenuItem => ({
+          label: t.title,
+          focus: () => devices.audition(t),
+          confirm: () => {
+            track = t.id;
+            remember('music', t.id);
+            forward();
+          },
+        }));
+        const current = music.findIndex((t) => t.id === (track ?? latest('music')));
+        return menu({ title: 'SELECT MUSIC', items: () => items, back }, Math.max(0, current));
       }
     }
   }
@@ -316,7 +346,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
   const adopt = (run: RunRequest) => {
     mode = run.mode;
     seriesChoice = catalog.series.courseSettings(run.courseId)?.series ?? null;
-    [courseId, vehicleId, color] = [run.courseId, run.vehicleId, run.color];
+    [courseId, vehicleId, color, track] = [run.courseId, run.vehicleId, run.color, run.track];
     if (run.mode !== 'ARCADE') lapCount = run.lapCount;
     if (run.mode === 'FREE_PLAY') [rivalCount, rivalPool, traffic] = [run.rivalCount, run.rivalPool, run.traffic];
   };

@@ -30,13 +30,16 @@ function stepVolume(value: number, by: -1 | 1): number {
 /**
  * SETTINGS: MASTER, MUSIC and EFFECTS volumes, which LEFT and RIGHT change in steps of five and the player record
  * keeps; CONTROLS, a screen listing the controls; and CLEAR RECORDS, which asks once (NO first) before emptying the
- * records and keeps the settings. Each volume applies at once through `setVolume`. BACK leaves.
+ * records and keeps the settings. Each volume applies at once through `setVolume`. While the cursor is on MUSIC, the
+ * latest track plays as an audition. BACK leaves.
  */
 export function showSettings(
   player: PlayerRecord,
   devices: {
     menu(definition: MenuDefinition, initial?: number): void;
     setVolume(name: VolumeName, percent: number): void;
+    /** Play the latest track as an audition; the returned function stops it. */
+    audition(): () => void;
   },
   back: () => void,
 ) {
@@ -49,6 +52,7 @@ export function showSettings(
         adjust: (by) => {
           devices.setVolume(name, stepVolume(player.settings.volumes[name], by));
         },
+        ...(name === 'music' ? { focus: devices.audition } : {}),
       })),
       { label: 'CONTROLS', confirm: controls },
       { label: 'CLEAR RECORDS', confirm: clearRecords },

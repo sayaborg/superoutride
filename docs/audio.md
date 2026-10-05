@@ -209,6 +209,20 @@ one music track is kept at a time, and a request for another releases the previo
 A recording the browser cannot decode stays silent: the reason goes to the console once and, with `dev=1`, the audio
 timing HUD names it; it is not decoded again, and the game continues.
 
+## Music
+
+The run request carries its track, as it carries the color; the track is neither a Session rule nor a record
+condition. A run from the selection screens plays the track chosen on SELECT MUSIC; one from the URL plays the player
+record's latest track, else the first, and adds no URL parameter. The [run music](../src/shell/run-music.ts) is the
+one owner of when a run's track plays, and it reads only the race's status and whether the run is live, never a clock
+or a HUD timer. When a Session's race enters READY (its first signal lamp), its track starts from its beginning and
+loops. While the run is not live (paused, or the page hidden) the track pauses, and it continues from where it paused
+when the run is live again. At GOAL or GAME OVER it fades out over the TIMING `musicFadeSeconds` and stays silent
+through RESULT. Leaving the run (RETRY, QUIT or a RESULT item) stops it, and a new Session, whether RETRY's or a DEV
+rebuild's, starts its track from the beginning at its own READY. Menus, LOADING and RESULT play no run track. A run the
+URL started before any gesture has no audio at its READY, so its track does not play. Auditions on SELECT MUSIC and
+SETTINGS play a track from its beginning, looped, through the same form; they are not the run's track.
+
 ## Mix and lifetime
 
 The [sound graph](../src/audio/sound-graph.ts) owns the named buses (`engine`, `tire`) and the master path:

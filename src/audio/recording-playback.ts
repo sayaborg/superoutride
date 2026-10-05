@@ -15,8 +15,8 @@ export interface RecordingPlayback {
   pause(): void;
   /** Stop with the silence fade; the playback ends. */
   stop(): void;
-  /** Fade out linearly over `seconds` and end. */
-  fadeOut(seconds: number): void;
+  /** Fade out linearly over the music fade (`musicFadeSeconds`) and end. */
+  fadeOut(): void;
   /** The position in seconds within the recording. */
   position(): number;
 }
@@ -96,8 +96,9 @@ export function createRecordingPlayback(
       pause();
       ended = true;
     },
-    fadeOut(seconds: number): void {
-      const now = context.currentTime;
+    fadeOut(): void {
+      const now = context.currentTime,
+        seconds = control().musicFadeSeconds;
       hold(gain.gain, now);
       // A linear ramp runs from the previous event: anchor it at the value held now.
       gain.gain.setValueAtTime(gain.gain.value, now);

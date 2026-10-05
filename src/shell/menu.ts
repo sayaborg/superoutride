@@ -21,6 +21,11 @@ export interface MenuItem {
   confirm?(): void;
   /** LEFT (-1) or RIGHT (+1) on this item, changing its value. */
   adjust?(step: -1 | 1): void;
+  /**
+   * The cursor came to this item while its menu is shown; the returned function is called once when the cursor
+   * leaves the item or the menu's screen is left.
+   */
+  focus?(): () => void;
 }
 
 /** A line of text in WHITE, or segments written one after another in their palettes. */
@@ -41,7 +46,8 @@ export interface MenuDefinition {
  * The one menu part every list screen uses. UP and DOWN move over the selectable items, wrapping around; CONFIRM
  * and LEFT/RIGHT go to the current item's own actions; BACK leaves. It writes the title and the items centred in
  * the text grid: the current item YELLOW, unselectable items DARK, the rest WHITE. Text is never shortened, so a line
- * longer than the grid is a `RangeError`.
+ * longer than the grid is a `RangeError`. The current item's `focus` follows the cursor from the menu's first command or
+ * drawing until `leave`.
  */
 export function createMenu(definition: MenuDefinition, initial = 0) {
   const selectable = (items: readonly MenuItem[], i: number) => i >= 0 && i < items.length && !items[i]!.disabled;
@@ -51,6 +57,20 @@ export function createMenu(definition: MenuDefinition, initial = 0) {
     return -1;
   };
   let index = first(definition.items(), Math.max(0, initial));
+  // The item whose focus is held, and its release.
+  let focused = -1,
+    release: (() => void) | null = null;
+  const leave = () => {
+    release?.();
+    release = null;
+    focused = -1;
+  };
+  const settle = () => {
+    if (index === focused) return;
+    leave();
+    focused = index;
+    release = definition.items()[index]?.focus?.() ?? null;
+  };
   const move = (step: 1 | -1) => {
     const items = definition.items();
     for (let i = 1; i <= items.length; i++) {
@@ -74,8 +94,12 @@ export function createMenu(definition: MenuDefinition, initial = 0) {
       else if (index < 0) return;
       else if (command === 'CONFIRM') items[index]!.confirm?.();
       else if (command === 'LEFT' || command === 'RIGHT') items[index]!.adjust?.(command === 'LEFT' ? -1 : 1);
+      if (command === 'UP' || command === 'DOWN') settle();
     },
+    /** The menu's screen is left: release the current item's focus. */
+    leave,
     write(text: TextLayer) {
+      settle();
       const items = definition.items(),
         lines = definition.lines ?? [];
       // The title, a blank row, any lines and another blank row, then the items on every second row.
@@ -123,6 +147,7 @@ export function createMenuScreen(
     live: false,
     tick() {},
     command: (command) => menu.command(command),
+    leave: () => menu.leave(),
     render() {
       frame.clear(SCREEN_BACKGROUND);
       text.clear();

@@ -9,6 +9,8 @@ export interface Screen {
   render(): void;
   /** One menu command; while the screen is live only PAUSE arrives. */
   command(command: MenuCommand): void;
+  /** The host made another screen current. */
+  leave?(): void;
 }
 
 /** The devices the host routes: driving input, sound and menu commands. */
@@ -69,8 +71,9 @@ export function createScreenHost(
     get live() {
       return route === 'driving';
     },
-    /** Make `next` the current screen. */
+    /** Make `next` the current screen; the screen it replaces is told it was left. */
     show(next: Screen) {
+      if (next !== screen) screen.leave?.();
       screen = next;
       update();
     },

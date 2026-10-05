@@ -27,7 +27,9 @@ import { loadAudioSettings } from '../content/audio-catalog.js';
 import { browserStorage, openPlayerRecord } from './player-record.js';
 import { loadTextTiles } from '../content/text-tiles-catalog.js';
 import { loadCourseIndex } from '../content/course-index.js';
-import { createTextLayer } from '../view/text-layer.js';
+import { createTextLayer, TEXT_COLUMNS } from '../view/text-layer.js';
+import { loadMusic } from '../content/recording-catalog.js';
+import { playTrack } from './run-music.js';
 
 /**
  * The one composition root: it creates the page lifetime once, then assembles one run at a time in the page. The URL
@@ -70,6 +72,7 @@ async function startPage(): Promise<void> {
     const courses = browserCourses(courseIndex);
     const series = await loadSeriesCatalog(content, vehicles);
     const freePlay = await loadFreePlayRules(content);
+    const music = await loadMusic(content, TEXT_COLUMNS);
     const player = openPlayerRecord(browserStorage());
     const displaySettings = createDisplaySettings();
     const textLayer = createTextLayer(await loadTextTiles(content));
@@ -102,6 +105,7 @@ async function startPage(): Promise<void> {
       materials,
       series,
       freePlay,
+      music,
       vehicles,
       driving,
       displaySettings,
@@ -194,7 +198,7 @@ async function startPage(): Promise<void> {
     }
     // The selection screens request runs that start at once; LOAD FAILED's BACK returns to the last of them.
     const flow = createSelectionFlow(
-      { courses: courseIndex, series, vehicles, freePlay, player, dev },
+      { courses: courseIndex, series, vehicles, freePlay, music, player, dev },
       {
         frame: shell.framebuffer,
         text: textLayer,
@@ -202,6 +206,10 @@ async function startPage(): Promise<void> {
         show: (screen) => host.show(screen),
         activate: () => shell.activate(),
         setVolume: (name, percent) => shell.setVolume(name, percent),
+        audition: (track) => {
+          const audition = playTrack(shell, track);
+          return () => audition.stop();
+        },
         run: (next, back) => void request(next, back),
       },
     );
@@ -211,7 +219,7 @@ async function startPage(): Promise<void> {
     const urlRequest = (courseId: string) => {
       try {
         void request(
-          readUrlRunRequest(parameters, courseId, series.courseSettings(courseId), vehicles, freePlay, player),
+          readUrlRunRequest(parameters, courseId, series.courseSettings(courseId), vehicles, freePlay, player, music),
         );
       } catch (error) {
         fail(

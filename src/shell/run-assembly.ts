@@ -34,6 +34,8 @@ import type { DisplaySettings } from '../view/display-settings.js';
 import type { createRaceSprites } from '../view/race-sprites.js';
 import type { PlayerRecord } from './player-record.js';
 import { comparedRecord, judgeRun, type RecordJudgement, type RecordSelection } from './run-records.js';
+import type { MusicCatalog } from '../content/recording-catalog.js';
+import { createRunMusic } from './run-music.js';
 
 /** The one run the page drives: its fixed step, its frame, its result and its disposal. */
 export interface Run extends RunFrame {
@@ -45,6 +47,8 @@ export interface RunPage {
   readonly materials: Awaited<ReturnType<typeof loadSurfaceMaterials>>;
   readonly series: Awaited<ReturnType<typeof loadSeriesCatalog>>;
   readonly freePlay: FreePlayRules;
+  /** The delivered tracks; a run plays its request's. */
+  readonly music: MusicCatalog;
   readonly vehicles: Awaited<ReturnType<typeof loadVehicleDefinitions>>['vehicles'];
   readonly driving: Awaited<ReturnType<typeof loadVehicleDefinitions>>['driving'];
   readonly displaySettings: DisplaySettings;
@@ -155,6 +159,10 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
     maxActiveStrips: Math.max(...course.sections.map((section) => section.color.metrics.maxActiveStrips)),
   });
   let afterEndingSeconds = 0;
+  // The run's track, which the request names among the delivered tracks.
+  const track = page.music.find((t) => t.id === request.track);
+  if (!track) throw new RangeError(`Unknown track ${request.track}`);
+  const music = createRunMusic(shell, track);
   // What the run records against, and the records before it, which the HUD compares with.
   const selection: RecordSelection = {
     rules: settings.mode === 'ARCADE' ? { mode: settings.mode, seriesId: arcade!.series.id } : { mode: settings.mode },
@@ -258,6 +266,7 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
       present() {
         const { player } = observations;
         shell.updateAudio(player, otherVehicles);
+        music.update(race, race.outcome.status, state.live);
         // The DEV vehicle HUD diagnoses mechanics internals through the race's DEV-only diagnostics.
         shell.present(
           devControls && measurements
@@ -303,6 +312,7 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
     draw,
     result: () => runResult(active.race, active.records.judgement),
     dispose() {
+      music.stop();
       devControls?.dispose();
     },
   };
