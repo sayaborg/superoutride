@@ -35,7 +35,7 @@
   appears at seeded Route positions from the series or FREE PLAY's TRAFFIC option; RIBBON COAST is the verification
   course of all of it.
 
-Next PR: **14-0** — the first PR of Stage 14, awaiting its proposal.
+Next PR: **14-0c** — audio runs while the page is visible.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -72,8 +72,28 @@ Requirements left from the second design audit, by when they are taken up:
 
 ## Stage 14 — Music and sound effects
 
-- **14-1 — Music:** a music bus in the sound graph, the MUSIC selection screen and the MUSIC volume.
-- **14-2 — Sound effects:** an effects bus for countdown, gate, time-extension and menu sounds, and the EFFECTS volume.
+[Product](product.md#13-music-and-sound-effects) §13 states the target. The remaining PRs, in order:
+
+- **14-0c — Audio lifetime:** the AudioContext runs from PRESS START while the page is visible; the vehicle sounds are
+  silent while no run is live and resume from the current observation.
+- **14-0d — Sound settings admitted once:** tire and engine sound settings are validated at the audio document's
+  compilation and at DEV replacement only; voices, worklets and kernels use the admitted values (D8e-03).
+- **14-0e — Sound layer without DEV labels:** sound-layer definitions hold only sound values and ranges; the shell owns
+  the DEV screen's labels and descriptions (P7b-02).
+- **14-1a — Recordings delivered:** AAC recordings and music documents are authored content in the manifest, verified
+  by SHA-256 and admitted at build with diagnostics.
+- **14-1b — Recording playback:** one sound-layer player plays recordings once or looped on a bus; a `music` bus; the
+  player record is the one owner of the MASTER, MUSIC and EFFECTS volumes.
+- **14-1c — SELECT MUSIC:** the track list with the track under the cursor playing, the run request's track, its start
+  at READY, pause and resume, the fade at GOAL and GAME OVER, and the SETTINGS audition.
+- **14-2 — Sound effects:** an `effects` bus; countdown, crossing, extension, jingle and menu effects from race facts
+  and menu commands, each event once; the EFFECTS volume.
+- **14-3a — Player contact observations:** the race publishes the player's barrier friction power and the work of each
+  contact that begins, without changing mechanics.
+- **14-3b — Wall sounds:** a wall-sound document and solid walls naming their wall sound.
+- **14-3c — Scraping:** a `contact` bus and wall scraping synthesized with the tire friction resonator.
+- **14-3d — Impacts:** a recording per contact counterpart, its volume from the contact's work.
+- **14-4 — Close Stage 14:** NEXT, the owner table and the list of placeholder recordings.
 
 ## Stage 15 — Production pipeline
 

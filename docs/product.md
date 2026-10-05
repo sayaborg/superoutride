@@ -301,9 +301,25 @@ the Session and is no longer solid.
 
 ## 13. Music and sound effects
 
-Engine and tire sound follow physical observations. Music is original; the player selects a track before
-each race. Sound effects cover the countdown, gate crossings, time extensions and menus. Music and
-effects have separate volumes.
+Engine, tire and contact sound follow physical observations. Scraping along a wall sounds for as long as
+it lasts, stronger the faster and the harder the vehicle rubs, and differently on different walls. A hit
+on a vehicle, a wall or an object sounds once, louder the harder the hit. Only contacts of the player's
+own vehicle sound; vehicles rubbing each other make no scraping sound.
+
+Music is original. The player selects a track on SELECT MUSIC before each race; every track is available
+in every mode and series, and there is no silent choice. The track under the cursor plays. The selected
+track starts from its beginning at READY and loops; it stops while the run is paused and continues from
+the same place. At GOAL and at GAME OVER a jingle plays once while the track fades out beneath it. Menus
+and RESULT have no music. RETRY keeps the track; CHANGE VEHICLE passes SELECT MUSIC again.
+
+Sound effects cover the signal lamps and GO, checkpoint and lap crossings, time extensions, menu commands
+and the two jingles. One crossing gives one sound: the jingle at GOAL, else the time extension, else the
+crossing itself.
+
+Music and effects have separate volumes; engine, tire and contact sound follow the master volume alone.
+In SETTINGS the latest selected track plays while the cursor is on MUSIC, so its volume is set by ear.
+Sound starts at PRESS START and runs while the page is visible. While no run is being driven, the vehicle
+sounds and the run's track are silent, and only menu sounds and those auditions play.
 
 ## 14. References and remaster
 
