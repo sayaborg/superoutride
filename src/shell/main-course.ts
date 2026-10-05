@@ -1,5 +1,5 @@
 import { createAudioTimingHud } from './audio-timing-hud.js';
-import { browserContent } from './browser-content.js';
+import { browserContent, isWorkbenchRun } from './browser-content.js';
 import { createRaceSprites } from '../view/race-sprites.js';
 import { createDisplaySettings } from '../view/display-settings.js';
 import { mountStripControls } from './strip-controls.js';
@@ -67,6 +67,8 @@ async function startPage(): Promise<void> {
     if (dev) {
       const template = mustGet<HTMLTemplateElement>('dev-panel-template');
       template.replaceWith(template.content.cloneNode(true));
+      // A run of the workbench's build says so on its DEV toggle: its products are that compile's, not the published.
+      if (isWorkbenchRun()) mustGet('dev-panel').querySelector('summary')!.prepend('WORKBENCH BUILD · ');
     }
     // With DEV, a loading run and a failure's reason with Retry also show outside the frame.
     const status = dev ? createStatus() : null;

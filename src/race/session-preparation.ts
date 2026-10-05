@@ -31,7 +31,9 @@ export interface SessionCatalog {
  * (`compileSessionConfiguration`, with the start speed `initialSpeed`), then loads from delivery, once each, what the
  * Session needs (`sessionDemand`): the player's and every other Session vehicle with its reference identity and
  * envelope, the clock's time budgets and ARCADE's pace schedule. `resolve(seed)` resolves the Session with a seed; a
- * DEV rebuild passes its tuned vehicle and configuration, which have no envelope or budgets.
+ * DEV rebuild passes its tuned vehicle and configuration, which have no envelope or budgets. A delivery without
+ * measured products (no envelope in its manifest: the workbench's build while measurements are stale) admits only a
+ * Session that demands none, and its player drives without an envelope, as a DEV-tuned vehicle does.
  */
 export async function prepareSession(
   content: ContentDelivery,
@@ -44,15 +46,18 @@ export async function prepareSession(
   const { vehicles, driving, materials } = catalog;
   const configuration = compileSessionConfiguration(request, course, arcade, catalog, initialSpeed);
   const demand = sessionDemand(configuration, arcade, vehicles);
+  const measured = content.manifest.files.some((file) => file.kind === 'envelope');
+  if (!measured && (demand.vehicleIds.length || demand.budgets || demand.paceSchedule))
+    throw new RangeError('Without measured products a Session has no rivals, no traffic and no time limit');
   const loadEntryVehicle = async (id: string): Promise<EntryVehicle & { readonly sha256: string }> => {
     const vehicle = createSessionVehicle(
       vehicles.find((v) => v.compiledVehicle.id === id)!,
       driving,
     );
     const sha256 = await sessionVehicleSha256(vehicle, materials);
-    const envelope = await admitProduct(content, 'envelope', id, (value, document) =>
-      readRivalEnvelope(sha256, value, document),
-    );
+    const envelope = measured
+      ? await admitProduct(content, 'envelope', id, (value, document) => readRivalEnvelope(sha256, value, document))
+      : null;
     return { vehicle, envelope, sha256 };
   };
   const { vehicleId } = configuration;

@@ -18,7 +18,10 @@ const NO_RANK_LIMITS: Readonly<Record<string, number>> = Object.freeze({});
 
 type GridSlot = CompiledCourse['gates']['grid'][number];
 
-/** A Session vehicle with its envelope; the envelope is null only for a DEV-tuned player, whose Session has no rivals. */
+/**
+ * A Session vehicle with its envelope; the envelope is null only for a player without one (a DEV-tuned vehicle, or a
+ * delivery without measured products), whose Session has no rivals.
+ */
 export interface EntryVehicle {
   readonly vehicle: SessionVehicle;
   readonly envelope: RivalEnvelope | null;
@@ -104,7 +107,7 @@ export function sessionPlayerColor(
 /**
  * Resolve one admitted Session configuration (`compileSessionConfiguration`) with its `seed` before actors/ticks
  * exist. Graph and catalog objects remain shared references. `arcade` is the course's admitted series settings, which
- * ARCADE reads. A Session without an envelope (a DEV-tuned vehicle) has no rivals and no time limit. The resolved
+ * ARCADE reads. A Session without an envelope (a DEV-tuned vehicle, or no measured products) has no rivals and no time limit. The resolved
  * entries list the player first, then each rival. ARCADE takes the series entries: the player the rearmost entry of
  * its vehicle, standing in that entry's slot (`own`) or the rearmost of their slots (`last`), and every other entry
  * its own vehicle (from `field.vehicleOf`) and color. FREE PLAY stands the player in the grid's last slot and the

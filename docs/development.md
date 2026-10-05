@@ -200,6 +200,12 @@ history step and not in the archive, and they are used only while their vehicle,
 the current documents, then discarded. The header and the Measure module always show whether the build uses the saved
 measurements, preview measurements (not saved) or stale ones.
 
+The Run module opens the game in a new tab on the current compile, with a chosen course, vehicle and mode, `dev=1` and
+`workbench=<commit>` ([Browser](browser.md#selection-and-url-parameters)): the game imports this build and takes the
+compile's products, laid out by the build's delivery layout when the tab opened. Later edits do not reach an open game.
+With saved or preview measurements every mode runs, ARCADE with its time limit. While measurements are stale the game
+opens in FREE PLAY without rivals, traffic or a time limit. A failed compile cannot run.
+
 To apply an archive to the repository, extract it at the repository root, delete the files `workbench-changes.json`
 marks `deleted`, delete `workbench-changes.json`, then run `npm run measure -- generate`, `npm run check` and
 `npm run build`. Authors without a

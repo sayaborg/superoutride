@@ -182,6 +182,14 @@ rivals and one lap. A timed course whose time budgets are missing from delivery 
 
 A run started from the URL drives without a gesture; sound still requires an eligible browser gesture.
 
+`workbench=<commit>` is the workbench's run ([Development](development.md#workbench)). The page loader imports that
+commit's build instead of `version.txt`'s, and the page takes its delivery from the workbench page that opened it
+(`window.opener`, same origin) instead of fetching `../delivery/`. That delivery passes the same manifest admission and
+digest checks; only the transport differs. Without that workbench page, or without its answer within 10 s, the page
+fails to start and says why. With `dev=1`, the DEV toggle reads `WORKBENCH BUILD`. A delivery without measured
+products admits only Sessions that need none: FREE PLAY without rivals or traffic, with the player driving without an
+envelope, as after a DEV rebuild.
+
 ## Driving input
 
 Left/right arrows steer, Up or X accelerates, and Down or Z brakes. These are the only keyboard

@@ -135,7 +135,9 @@
           if (/^[0-9a-f]{40}$/.test(version)) {
             // Import the complete build from a commit-specific directory. Relative ESM imports
             // therefore inherit the versioned path without mixing modules from different commits.
-            entry = `./build/${version}/${entryName}`;
+            // A page the workbench opens names the workbench's build, which runs its delivery.
+            const workbench = new URLSearchParams(location.search).get('workbench') ?? '';
+            entry = `./build/${/^[0-9a-f]{40}$/.test(workbench) ? workbench : version}/${entryName}`;
           }
         }
       } catch {
