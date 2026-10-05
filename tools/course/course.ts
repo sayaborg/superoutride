@@ -17,9 +17,6 @@ import { createRenderMeasurements, type RenderMeasurements } from '../../src/vie
 import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
 import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
-import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
-import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
-import { readDeliveredContent } from './read-content.js';
 import { createCameraRig, updateCamera } from '../../src/view/camera.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { createLogicalFrame } from '../../src/view/display-scale.js';
@@ -48,7 +45,7 @@ try {
           ? ['--images', '--section', '--out', '--step']
           : ['--images', '--section', '--s', '--l', '--vehicle', '--out', '--start', '--end', '--step', '--exit'];
     const opts = options(args, flags),
-      { course } = await loadCourse(file, opts.get('--images'));
+      { course, content } = await loadCourse(file, opts.get('--images'));
     const result: {
       ok: boolean;
       course: string;
@@ -84,8 +81,7 @@ try {
         directoryBytes: sum('directoryBytes'),
       };
     } else if (verb === 'render') {
-      const content = await readDeliveredContent();
-      const definitions = await loadVehicleDefinitions(content, await loadEngineSounds(content));
+      const { definitions } = content;
       const entry = opts.has('--vehicle')
         ? definitions.vehicles.find((e) => e.compiledVehicle.id === opts.get('--vehicle'))
         : definitions.vehicles[0];

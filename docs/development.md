@@ -88,7 +88,9 @@ Run a TypeScript tool with `node --import tsx tools/<domain>/<name>.ts`. The pin
 product's `.js` module specifiers to TypeScript source without a tool compilation directory; it does
 not replace the strict `tsc` check. Reference workers and tests consuming typed course helpers use the same loader.
 Those tests import product source too, so a process has one module identity for compiled course objects.
-Test files remain JavaScript. Build clears `dist`, compiles the product, runs the browser-tools build
+Test files remain JavaScript. Authoring tools compile `content/` through the authoring core and never read `dist/`;
+only checks of delivered results (startup smoke, driving scenarios, delivered-product tests and public-site
+verification) read `dist/delivery` through `tools/course/read-content.ts`. Build clears `dist`, compiles the product, runs the browser-tools build
 (`tools/build/build-browser-tools.ts`), then runs the content build (`tools/build/build-content.ts`).
 
 All authoring implementations are TypeScript. Browser entries and worklet adapters are bundled from
@@ -97,7 +99,10 @@ pinned browser distribution for the same PNG codec API used by Node file compile
 
 ### Course commands
 
-Run after building the completed vehicle sprite library (read as content data, not imported code):
+The course commands compile the content through the authoring core and need no build: the named course document
+stands in for the content course of its file name (or joins the content under it), and its images are read from
+`--images` (by default the `images` directory beside its directory), then from `content/images/`. Vehicles, materials
+and series come from the same compiled content.
 
 ```sh
 npm run course -- compile content/courses/ribbon-coast.course.json
@@ -225,7 +230,7 @@ compiles. The build stages the returned files through the manifest writer, saves
 runs. Reference workers run in separate threads and, until 15-2, read this build's saved `dist/delivery` definitions
 and courses, generate envelopes/runs, and add envelopes/budgets before publishing the completed build. Every catalog vehicle receives an envelope, which FREE PLAY rivals and runout
 admission read. Only series courses are timed: each receives reference runs, budgets and pace schedules, with its
-series' time margin, for its series' candidate vehicles only, since only ARCADE has the clock and rival pace. Node tools also read vehicle/driving definitions from this distribution.
+series' time margin, for its series' candidate vehicles only, since only ARCADE has the clock and rival pace.
 
 | Output                                 | Use                                                                                  |
 | -------------------------------------- | ------------------------------------------------------------------------------------ |

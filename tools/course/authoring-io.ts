@@ -1,19 +1,19 @@
 import { COURSE_DOCUMENT_LIMITS } from '../../src/course/course-limits.js';
 import type { CourseResult } from '../../src/course/course-diagnostics.js';
+import type { ContentLoadDiagnostic } from '../../src/content/content-load-error.js';
 import { readFile, mkdir, writeFile, rename, rm } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { readCourseDocumentBytes } from '../../src/course/course-document.js';
-import { compileCourseDocument } from '../../src/course/compiler/compiled-course.js';
-import { compileSurfaceMaterials, SURFACE_MATERIALS_ID } from '../../src/content/surface-material-catalog.js';
-import { authoredDocumentSource } from '../../src/content/document-catalog.js';
-import { compileCourseImages } from './compile-course-images.js';
+import { compileContent, type CompiledContent, type ContentCompilation } from '../authoring/compile-content.js';
+import type { ContentStore } from '../authoring/content-store.js';
+import { createNodeContentStore } from '../build/node-content-store.js';
 import { readCourseImages } from './read-course-images.js';
-import { courseFileId, courseFileSha256 } from './course-file-id.js';
+import { courseFileId } from './course-file-id.js';
 
 type AuthoringDiagnostic =
   | Extract<CourseResult<never>, { ok: false }>['diagnostics'][number]
+  | ContentLoadDiagnostic
   | { kind: string; code: string; path?: string; message: string };
 
 class AuthoringError extends Error {
@@ -60,33 +60,57 @@ export async function jsonFile(file: string): Promise<{ bytes: Buffer; value: un
     throw new AuthoringError([{ kind: 'tool', code: 'parse_failure', path: file, message: (error as Error).message }]);
   }
 }
-export async function loadAuthoringSurfaceMaterials() {
-  const filename = fileURLToPath(new URL('../../content/materials/surface.json', import.meta.url));
-  const value = (await jsonFile(filename)).value;
-  const result = compileSurfaceMaterials([
-    await authoredDocumentSource(SURFACE_MATERIALS_ID, 'content/materials/surface.json', value),
-  ]);
+/** The authoring core's result, or an AuthoringError carrying its diagnostics. */
+export function requireCompiled(result: ContentCompilation): CompiledContent {
   if (!result.ok) throw new AuthoringError(result.diagnostics);
   return result.value;
 }
 
+/**
+ * The repository's content store with `file` as the course of its name and, before `content/images/`, the saved
+ * images of `imagesDirectory`. It reads only.
+ */
+function courseFileStore(file: string, imagesDirectory: string): ContentStore {
+  const content = createNodeContentStore(),
+    name = `${courseFileId(file)}.course.json`;
+  return Object.freeze({
+    async read(target: string) {
+      if (target === `courses/${name}`) return new Uint8Array(await readFile(file));
+      if (target.startsWith('images/'))
+        try {
+          return new Uint8Array(await readFile(path.join(imagesDirectory, target.slice('images/'.length))));
+        } catch (error) {
+          if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+        }
+      return content.read(target);
+    },
+    list: async (directory: string) => {
+      const names = await content.list(directory);
+      return directory === 'courses' && !names.includes(name) ? [...names, name].sort() : names;
+    },
+    write: () => Promise.reject(new Error('The course file store reads only')),
+  });
+}
+
+/**
+ * Compile the content with the course document `file` (its images from `imagesDirectory`, by default the `images`
+ * directory beside its directory) through the authoring core: the compiled course, its admitted document and saved
+ * image inputs, and the compiled content.
+ */
 export async function loadCourse(file: string, imagesDirectory?: string) {
-  const admitted = readCourseDocumentBytes(await readFile(file), file);
-  if (!admitted.ok) throw new AuthoringError(admitted.diagnostics);
-  const directory = imagesDirectory ?? path.resolve(path.dirname(file), '../images');
-  const images = await readCourseImages(admitted.value.assets, readDirectoryFile(directory));
-  const prepared = await compileCourseImages(admitted.value, images);
-  const materials = await loadAuthoringSurfaceMaterials();
-  const compiled = await compileCourseDocument(
-    prepared.document,
-    courseFileId(file),
-    await courseFileSha256(prepared.document),
-    prepared.images,
-    materials,
-    file,
-  );
-  if (!compiled.ok) throw new AuthoringError(compiled.diagnostics);
-  return { document: admitted.value, course: compiled.value, images, materials };
+  const store = courseFileStore(file, imagesDirectory ?? path.resolve(path.dirname(file), '../images'));
+  const content = requireCompiled(await compileContent(store));
+  const id = courseFileId(file);
+  const document = readCourseDocumentBytes(await store.read(`courses/${id}.course.json`), file);
+  if (!document.ok) throw new AuthoringError(document.diagnostics);
+  const images = await readCourseImages(document.value.assets, (name) => store.read(`images/${name}`));
+  return {
+    document: document.value,
+    course: content.courses.find((course) => course.id === id)!,
+    images,
+    materials: content.materials,
+    content,
+  };
 }
 /** Reads the files of `directory` by name. */
 export function readDirectoryFile(directory: string) {

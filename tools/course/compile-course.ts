@@ -1,14 +1,16 @@
 import { readFile } from 'node:fs/promises';
 import { readCourseImages } from './read-course-images.js';
 import { parseCourseDocument } from './course-project.js';
-import { loadAuthoringSurfaceMaterials, readDirectoryFile } from './authoring-io.js';
+import { readDirectoryFile, requireCompiled } from './authoring-io.js';
+import { compileContent } from '../authoring/compile-content.js';
+import { createNodeContentStore } from '../build/node-content-store.js';
 import { courseFailures, CourseAssetError } from '../../src/course/course-diagnostics.js';
 import { compileCourseDocument } from '../../src/course/compiler/compiled-course.js';
 import { courseFileId, courseFileSha256 } from './course-file-id.js';
 const [sourcePath, flag, imageDirectory, ...extra] = process.argv.slice(2);
 if (!sourcePath || (flag !== undefined && (flag !== '--images' || !imageDirectory)) || extra.length)
   throw new TypeError('Usage: npm run compile:course -- CourseDocument.json [--images directory]');
-const materials = await loadAuthoringSurfaceMaterials();
+const { materials } = requireCompiled(await compileContent(createNodeContentStore()));
 const parsed = parseCourseDocument(await readFile(sourcePath, 'utf8'), sourcePath);
 let result: Awaited<ReturnType<typeof compileCourseDocument>>;
 if (parsed.ok) {
