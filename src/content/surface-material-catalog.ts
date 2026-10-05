@@ -1,6 +1,6 @@
 import type { AdmissionResult } from '../core/admission.js';
 import { compileSurfaceMaterialDocument, type SurfaceMaterialCatalog } from '../course/surface-material.js';
-import type { ContentDelivery } from './content-manifest.js';
+import type { ContentDelivery } from './content-delivery.js';
 import { requireLoaded } from './content-load-error.js';
 import { admitSingleDocument, type DocumentSource } from './document-catalog.js';
 

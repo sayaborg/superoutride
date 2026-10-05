@@ -7,7 +7,7 @@ import {
   recordingId,
   type RecordingGroup,
 } from '../audio/recordings.js';
-import type { ContentDelivery } from './content-manifest.js';
+import type { ContentDelivery } from './content-delivery.js';
 import { requireLoaded } from './content-load-error.js';
 import type { DocumentSource } from './document-catalog.js';
 import { readMp4Audio, type Mp4AudioFacts } from './mp4-audio.js';

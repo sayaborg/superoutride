@@ -7,7 +7,7 @@ import { mountEngineSoundSettings } from '../../src/shell/controls/engine-sound-
 import { createEngineVoice } from '../../src/audio/engine-voice.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
-import { loadContentManifest } from '../../src/content/content-manifest.js';
+import { loadContentManifest } from '../../src/content/content-delivery.js';
 const content = await loadContentManifest(new URL('../../delivery/', import.meta.url));
 const { vehicles } = await loadVehicleDefinitions(content, await loadEngineSounds(content));
 import { createVehicleAudioObservation } from '../../src/audio/vehicle-audio-observation.js';

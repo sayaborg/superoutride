@@ -1,4 +1,4 @@
-import type { ContentDelivery } from '../content/content-manifest.js';
+import type { ContentDelivery } from '../content/content-delivery.js';
 import type { CameraDefinition } from '../view/camera.js';
 import { SIM_DT } from '../race/fixed-step.js';
 import { createVehicleSprites } from '../view/vehicle-sprites.js';

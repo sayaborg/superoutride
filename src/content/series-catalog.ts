@@ -18,7 +18,7 @@ import { createCourseRoute } from '../course/course-route.js';
 import { MAXIMUM_VEHICLE_SPEED_KILOMETERS_PER_HOUR, type VehicleId } from '../vehicle/physics/vehicle-definitions.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import { spriteSetHasColor } from '../vehicle/vehicle-sprite-set.js';
-import type { ContentDelivery } from './content-manifest.js';
+import type { ContentDelivery } from './content-delivery.js';
 import { requireLoaded } from './content-load-error.js';
 import type { DocumentSource } from './document-catalog.js';
 

@@ -13,7 +13,8 @@ import { COURSE_DOCUMENT_LIMITS } from '../course/course-limits.js';
 import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import { TEXT_CHARACTERS } from '../image/text-tiles.js';
-import type { ContentDelivery, ContentManifest } from './content-manifest.js';
+import type { ContentManifest } from './content-manifest.js';
+import type { ContentDelivery } from './content-delivery.js';
 import { admitProduct } from './delivered-product.js';
 
 /** What a menu shows of a delivered course before loading it. */

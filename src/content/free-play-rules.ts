@@ -13,7 +13,7 @@ import {
 import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
 import type { VehicleForm } from '../vehicle/definition-document.js';
 import { MAXIMUM_VEHICLE_SPEED_KILOMETERS_PER_HOUR } from '../vehicle/physics/vehicle-definitions.js';
-import type { ContentDelivery } from './content-manifest.js';
+import type { ContentDelivery } from './content-delivery.js';
 import { requireLoaded } from './content-load-error.js';
 import { admitSingleDocument, type DocumentSource } from './document-catalog.js';
 

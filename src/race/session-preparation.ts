@@ -1,4 +1,4 @@
-import type { ContentDelivery } from '../content/content-manifest.js';
+import type { ContentDelivery } from '../content/content-delivery.js';
 import { readCourseTimeBudgets } from '../content/course-time-budgets.js';
 import { admitProduct } from '../content/delivered-product.js';
 import type { FreePlayRules } from '../content/free-play-rules.js';

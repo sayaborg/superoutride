@@ -3,7 +3,7 @@ import { createTireVoice } from '../../src/audio/tire-voice.js';
 import { createVehicleAudioObservation, type TireAudioObservation } from '../../src/audio/vehicle-audio-observation.js';
 import { TIRE_AUDITION_PHASES as phases, TIRE_AUDITION_SECONDS as seconds } from './tire-scenarios.js';
 import { resolveSurfaceSoundRecords } from '../../src/audio/surface-sounds.js';
-import { loadContentManifest } from '../../src/content/content-manifest.js';
+import { loadContentManifest } from '../../src/content/content-delivery.js';
 import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 import { loadSurfaceSounds } from '../../src/content/surface-sound-catalog.js';
 // The audition hears the delivered material catalog and surface-sound document, numbered as in the game.

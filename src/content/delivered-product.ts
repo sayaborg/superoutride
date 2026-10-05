@@ -1,6 +1,6 @@
 import type { AdmissionResult } from '../core/admission.js';
 import { requireLoaded } from './content-load-error.js';
-import type { ContentDelivery } from './content-manifest.js';
+import type { ContentDelivery } from './content-delivery.js';
 
 /** Generated products are admitted with their delivered path as the diagnostic document. */
 export async function admitProduct<T>(

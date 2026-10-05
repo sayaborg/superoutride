@@ -194,9 +194,12 @@ format/version. The manifest writer is the only authority for these kinds, IDs a
 | `budget`          | `<course>/<vehicle>`                                                                        | `budgets/<course>/<vehicle>.json`   | Timed Session budgets (`superoutride.course-time-budgets` v1)                                                |
 | `schedule`        | `<course>/<vehicle>`                                                                        | `schedules/<course>/<vehicle>.json` | ARCADE pace schedule (`superoutride.pace-schedule` v1)                                                       |
 
-The shared manifest reader admits the index through the admission toolkit as document `manifest.json`
-(format and version first, exact fields, unique kind/id identities and paths), resolves each logical identity to its relative path,
-and verifies the exact downloaded/read bytes against SHA-256 before JSON decoding. Missing entries
+The manifest format ([`content-manifest.ts`](../src/content/content-manifest.ts)) admits the index through the
+admission toolkit as document `manifest.json` (format and version first, exact fields, unique kind/id identities and
+paths) and owns the delivered JSON encoding; it knows no transport. Delivery
+([`content-delivery.ts`](../src/content/content-delivery.ts)) reads the index through it, resolves each logical
+identity to its relative path, and verifies the exact downloaded/read bytes against SHA-256 before JSON decoding. The
+build's manifest writer uses only the format. Missing entries
 or digest mismatches stop loading. Loaders report expected content and build errors as one
 `ContentLoadError` whose `diagnostics` keep their structure: the admission diagnostics of the loaded
 documents, and for an absent manifest entry a `content_missing` diagnostic naming `manifest.json`, the

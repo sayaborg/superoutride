@@ -1,6 +1,6 @@
 import { admit } from '../core/admission.js';
 import { compileTextTiles, type TextTiles } from '../image/text-tiles.js';
-import type { ContentDelivery } from './content-manifest.js';
+import type { ContentDelivery } from './content-delivery.js';
 import { missingContent, requireLoaded } from './content-load-error.js';
 
 /** The text tiles' manifest image ID. */

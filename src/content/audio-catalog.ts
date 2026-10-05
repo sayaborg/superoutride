@@ -1,6 +1,6 @@
 import type { AdmissionResult } from '../core/admission.js';
 import { compileAudioDocument, type CompiledAudioSettings } from '../audio/audio-document.js';
-import type { ContentDelivery } from './content-manifest.js';
+import type { ContentDelivery } from './content-delivery.js';
 import { requireLoaded } from './content-load-error.js';
 import { admitSingleDocument, type DocumentSource } from './document-catalog.js';
 

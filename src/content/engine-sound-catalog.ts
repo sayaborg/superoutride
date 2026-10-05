@@ -1,7 +1,7 @@
 import type { AdmissionResult } from '../core/admission.js';
 import { compileEngineSoundDocument, type EngineSoundCatalog } from '../audio/engine-sound-document.js';
 import type { CompiledEngineSound } from '../audio/engine-sound.js';
-import type { ContentDelivery } from './content-manifest.js';
+import type { ContentDelivery } from './content-delivery.js';
 import { requireLoaded } from './content-load-error.js';
 import type { DocumentSource } from './document-catalog.js';
 

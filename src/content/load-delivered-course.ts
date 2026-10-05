@@ -1,4 +1,4 @@
-import type { ContentDelivery } from './content-manifest.js';
+import type { ContentDelivery } from './content-delivery.js';
 import { readCourseDocumentBytes } from '../course/course-document.js';
 import { compileCourseDocument } from '../course/compiler/compiled-course.js';
 import type { SurfaceMaterialCatalog } from '../course/surface-material.js';

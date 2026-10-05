@@ -1,7 +1,7 @@
 import type { AdmissionResult } from '../core/admission.js';
 import { compileSurfaceSoundDocument } from '../audio/surface-sound-document.js';
 import type { CompiledSurfaceSounds } from '../audio/surface-sounds.js';
-import type { ContentDelivery } from './content-manifest.js';
+import type { ContentDelivery } from './content-delivery.js';
 import { requireLoaded } from './content-load-error.js';
 import { admitSingleDocument, type DocumentSource } from './document-catalog.js';
 

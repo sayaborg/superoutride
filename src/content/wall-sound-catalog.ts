@@ -1,7 +1,7 @@
 import { AdmissionError, admit, type AdmissionResult } from '../core/admission.js';
 import { compileWallSoundDocument, type CompiledWallSounds } from '../audio/wall-sounds.js';
 import type { CourseDocument } from '../course/course-document.js';
-import type { ContentDelivery } from './content-manifest.js';
+import type { ContentDelivery } from './content-delivery.js';
 import { requireLoaded } from './content-load-error.js';
 import { admitSingleDocument, type DocumentSource } from './document-catalog.js';
 

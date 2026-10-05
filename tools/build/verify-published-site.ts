@@ -1,4 +1,4 @@
-import { loadContentManifest } from '../../src/content/content-manifest.js';
+import { loadContentManifest } from '../../src/content/content-delivery.js';
 import { loadCourseIndex } from '../../src/content/course-index.js';
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';

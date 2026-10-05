@@ -8,7 +8,7 @@ import {
   createVehicleDefinition,
   type CompiledVehicleDefinition,
 } from '../vehicle/definition-document.js';
-import type { ContentDelivery } from './content-manifest.js';
+import type { ContentDelivery } from './content-delivery.js';
 import { missingContent, requireLoaded } from './content-load-error.js';
 import { admitSingleDocument, type DocumentSource } from './document-catalog.js';
 import type { EngineSoundCatalog } from './engine-sound-catalog.js';
