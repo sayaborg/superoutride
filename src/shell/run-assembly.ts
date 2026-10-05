@@ -36,6 +36,7 @@ import type { PlayerRecord } from './player-record.js';
 import { comparedRecord, judgeRun, type RecordJudgement, type RecordSelection } from './run-records.js';
 import type { MusicCatalog } from '../content/recording-catalog.js';
 import { createRunMusic } from './run-music.js';
+import { createRunEffects } from './run-effects.js';
 
 /** The one run the page drives: its fixed step, its frame, its result and its disposal. */
 export interface Run extends RunFrame {
@@ -163,6 +164,7 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
   const track = page.music.find((t) => t.id === request.track);
   if (!track) throw new RangeError(`Unknown track ${request.track}`);
   const music = createRunMusic(shell, track);
+  const effects = createRunEffects((effect) => shell.playRecording(`effects/${effect}`, 'effects'));
   // What the run records against, and the records before it, which the HUD compares with.
   const selection: RecordSelection = {
     rules: settings.mode === 'ARCADE' ? { mode: settings.mode, seriesId: arcade!.series.id } : { mode: settings.mode },
@@ -202,6 +204,7 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
     const started = performanceHud ? performance.now() : 0;
     const { race } = active;
     const step = race.advance(shell.inputManager.sample());
+    effects.step(race, race);
     lifecycle.update(step.recovered);
     performanceHud?.step(performance.now() - started);
     if (race.outcome.status === 'GOAL' || race.outcome.status === 'GAME_OVER') {
@@ -313,6 +316,7 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
     result: () => runResult(active.race, active.records.judgement),
     dispose() {
       music.stop();
+      effects.stop();
       devControls?.dispose();
     },
   };

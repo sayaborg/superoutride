@@ -16,6 +16,8 @@ export function createCheckpointClock(budgets: CourseTimeBudgets | null) {
   let elapsedSeconds = 0,
     deadline = budgets === null ? Infinity : budgets.initialMs / 1000;
   let lastExtension: { readonly ms: number; readonly atSeconds: number } | null = null;
+  // The extensions the open step's crossings earned.
+  const stepExtensions: { readonly ms: number; readonly atSeconds: number }[] = [];
   return Object.freeze({
     /** Race time: the one competitor-independent clock since GO. */
     get elapsedSeconds() {
@@ -31,7 +33,12 @@ export function createCheckpointClock(budgets: CourseTimeBudgets | null) {
     },
     /** Opens one RUNNING step and returns its start time. */
     beginStep(): number {
+      stepExtensions.length = 0;
       return elapsedSeconds;
+    },
+    /** The extension, in ms, that the open step's crossing at race time `seconds` earned; null when none. */
+    extensionAt(seconds: number): number | null {
+      return stepExtensions.find((extension) => extension.atSeconds === seconds)?.ms ?? null;
     },
     /**
      * Decides one player crossing candidate of the open step. A crossing past the deadline is refused;
@@ -44,6 +51,7 @@ export function createCheckpointClock(budgets: CourseTimeBudgets | null) {
       const awardMs = budgets.after(event.landmark, event.lap);
       deadline += awardMs / 1000;
       lastExtension = Object.freeze({ ms: awardMs, atSeconds: at });
+      stepExtensions.push(lastExtension);
       return true;
     },
     /** The open step's end in race time. */

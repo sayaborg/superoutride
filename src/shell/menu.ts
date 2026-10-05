@@ -2,7 +2,7 @@ import { TEXT_PALETTES } from '../image/text-tiles.js';
 import { TEXT_COLUMNS, TEXT_ROWS, type TextLayer } from '../view/text-layer.js';
 import type { MenuCommand } from '../input/menu-input.js';
 import type { SoftwareSurface } from '../view/software-surface.js';
-import type { Screen } from './screen-host.js';
+import type { MenuResponse, Screen } from './screen-host.js';
 
 /** The plain background of screens without a scene. */
 export const SCREEN_BACKGROUND = 0;
@@ -85,16 +85,32 @@ export function createMenu(definition: MenuDefinition, initial = 0) {
     get index() {
       return index;
     },
-    command(command: MenuCommand) {
+    /** One command and what it did: a cursor move or value change, a CONFIRM with an action, or a BACK that leaves. */
+    command(command: MenuCommand): MenuResponse | null {
       const items = definition.items();
       if (!selectable(items, index)) index = first(items, 0);
-      if (command === 'UP') move(-1);
-      else if (command === 'DOWN') move(1);
-      else if (command === 'BACK') definition.back?.();
-      else if (index < 0) return;
-      else if (command === 'CONFIRM') items[index]!.confirm?.();
-      else if (command === 'LEFT' || command === 'RIGHT') items[index]!.adjust?.(command === 'LEFT' ? -1 : 1);
-      if (command === 'UP' || command === 'DOWN') settle();
+      const before = index;
+      if (command === 'UP' || command === 'DOWN') {
+        move(command === 'UP' ? -1 : 1);
+        settle();
+        return index === before ? null : 'move';
+      }
+      if (command === 'BACK') {
+        if (!definition.back) return null;
+        definition.back();
+        return 'back';
+      }
+      const item = index < 0 ? undefined : items[index];
+      if (command === 'CONFIRM') {
+        if (!item?.confirm) return null;
+        item.confirm();
+        return 'confirm';
+      }
+      if ((command === 'LEFT' || command === 'RIGHT') && item?.adjust) {
+        item.adjust(command === 'LEFT' ? -1 : 1);
+        return definition.items()[index]?.value === item.value ? null : 'move';
+      }
+      return null;
     },
     /** The menu's screen is left: release the current item's focus. */
     leave,

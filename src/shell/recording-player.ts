@@ -49,6 +49,10 @@ export function createRecordingPlayer(
     setScene(value: AudioScene | null): void {
       scene = value;
     },
+    /** Decode the recording `id` ahead of its first play. */
+    prepare(id: string): void {
+      if (scene) void decode(id, scene);
+    },
     /** Play the recording `id` on `bus` from its start, once or looped, at `volume` (0–1). */
     play(
       id: string,

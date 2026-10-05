@@ -99,8 +99,8 @@ SETTINGS lists MASTER, MUSIC and EFFECTS with their volumes, which LEFT and RIGH
 which asks CLEAR RECORDS? with NO (selected first) and YES: YES empties the records, saves the player record with its
 settings unchanged and returns to SETTINGS, as NO and BACK do; BACK leaves each screen.
 The player record is the one owner of every volume. Each change, from SETTINGS or the DEV MASTER stepper, goes through
-the audio lifetime's one path (`setVolume`): the record keeps it, the stepper shows MASTER, and MASTER and MUSIC apply
-at once; EFFECTS has no sound until its bus exists. While the cursor is on MUSIC, the player record's latest track (else
+the audio lifetime's one path (`setVolume`): the record keeps it, the stepper shows MASTER, and every volume applies at
+once; LEFT and RIGHT on EFFECTS sound `menu-move` at the new volume, which is its audition. While the cursor is on MUSIC, the player record's latest track (else
 the first track) plays as an audition, so its volume is set by ear.
 
 - SELECT MODE: a mode with no selectable course is DARK.
@@ -256,6 +256,13 @@ driving, driving input takes the devices and only PAUSE reaches the current scre
 live, a paused or finished run included) driving input is suspended and every command arrives; while the page is
 hidden nothing does. Commands arrive at the current screen before each fixed step.
 
+Each screen says what a command did: moved the cursor or changed a value, confirmed something, or went back; a command
+that does nothing (CONFIRM on an item without an action, BACK on TITLE, a value at its end, a single-item move) says
+nothing. The screen host is the one place that turns that into a sound: `menu-move`, `menu-confirm` or `menu-back`
+([Audio](audio.md#sound-effects)). Every list screen answers through the menu part, and SELECT VEHICLE (a vehicle or
+color change moves) and the run screen too: PAUSE that opens the PAUSE menu confirms, and PAUSE or BACK that closes it
+goes back. The CONFIRM on TITLE that starts the audio is not heard, since the audio is not yet running.
+
 - **Keyboard:** the arrows give the directions and Enter CONFIRM; Escape is BACK in a menu and PAUSE while driving.
   Keys follow the operating system's repeat, except that a repeated Escape does not pause.
 - **Gamepad** (standard mapping): the D-pad and the left stick beyond half deflection give the directions, A CONFIRM
@@ -279,7 +286,8 @@ events](content-and-gameplay.md#race-time-and-events)), typed as the race's `Rac
 mechanics, and the HUD the player's competitor observation; the race gives the STAGE and the LAP. It is one table of
 independent elements, each with its condition and what it writes; the table alone decides which show, from the
 Session's rules (the clock, the course type) and race facts (two or more competitors ranked, the next gate's rank limit, the stage
-rival ahead). Traffic is not counted: POS and every other count read the competitors only. Another table holds every element's place in the 40×30 grid, so moving one changes only its numbers.
+rival ahead). Traffic is not counted: POS and every other count read the competitors only. The run's sound effects read
+the same race facts, their crossing events included ([Audio](audio.md#sound-effects)), and nothing else of the race. Another table holds every element's place in the 40×30 grid, so moving one changes only its numbers.
 
 | Rows  | Elements                                                                                                           |
 | ----- | ------------------------------------------------------------------------------------------------------------------ |

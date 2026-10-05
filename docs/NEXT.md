@@ -21,7 +21,7 @@
   exhausts are collector graphs.
 - The [product specification](product.md) is the target for Stages 12–16. Series documents own ARCADE settings and
   fields; FREE PLAY rivals are drawn from vehicle pools; TIME TRIAL runs alone; SELECT MUSIC chooses the run's track;
-  sound effects are not implemented; the attract demo waits for its stage.
+  countdown, crossing, jingle and menu effects sound; the attract demo waits for its stage.
 - Stage 12 is complete: the front end runs inside the frame from TITLE through RESULT, with SETTINGS and `dev=1`; the
   product HUD is drawn with the text layer from race facts and the player's observation, and DEV measurements stay with
   `dev=1`; the player record keeps settings and the TIME TRIAL and ARCADE records shown at READY, at TIME TRIAL
@@ -35,7 +35,7 @@
   appears at seeded Route positions from the series or FREE PLAY's TRAFFIC option; RIBBON COAST is the verification
   course of all of it.
 
-Next PR: **14-2** — sound effects and the EFFECTS volume.
+Next PR: **14-3a** — the race publishes the player's contacts.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -71,8 +71,6 @@ Requirements left from the second design audit, by when they are taken up:
 `content/effects/` and `content/impacts/` are placeholders (electronic tones) for building the stage; before the product
 they are replaced by K's files under the same names. The remaining PRs, in order:
 
-- **14-2 — Sound effects:** an `effects` bus; countdown, crossing, extension, jingle and menu effects from race facts
-  and menu commands, each event once; the EFFECTS volume.
 - **14-3a — Player contact observations:** the race publishes the player's barrier friction power and the work of each
   contact that begins, without changing mechanics.
 - **14-3b — Wall sounds:** a wall-sound document and solid walls naming their wall sound.

@@ -334,6 +334,7 @@ change them.
 | ------- | ------- | ----------------------------------------- |
 | MASTER  | 35%     | 0–100%; complete audio output             |
 | MUSIC   | 100%    | 0–100%; the `music` bus                   |
+| EFFECTS | 100%    | 0–100%; the `effects` bus                 |
 | ENG     | 100%    | 0–100%; player and selected rival engines |
 | TIRE    | 100%    | 0–100%; player tire output                |
 | R       | ON      | Rolling output tap for both axles         |

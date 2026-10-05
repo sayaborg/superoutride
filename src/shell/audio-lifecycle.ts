@@ -8,6 +8,7 @@ import type { CompetitorObservation } from '../race/competitor-observation.js';
 import { createVehicleAudioEmitter, readVehicleAudio } from './vehicle-audio.js';
 import type { PlayerRecord, VolumeName } from './player-record.js';
 import { createRecordingPlayer } from './recording-player.js';
+import { EFFECT_RECORDINGS, recordingId } from '../audio/recordings.js';
 import type { ProcessingReport } from '../audio/processing-meter.js';
 import type { InputRoute } from '../input/menu-input.js';
 
@@ -22,7 +23,10 @@ export interface AudioTimingSource {
 }
 
 /** The player record's volume that sets a bus's gain; the other buses take the DEV mix values. */
-const BUS_VOLUMES: Readonly<Partial<Record<SoundBus, VolumeName>>> = Object.freeze({ music: 'music' });
+const BUS_VOLUMES: Readonly<Partial<Record<SoundBus, VolumeName>>> = Object.freeze({
+  music: 'music',
+  effects: 'effects',
+});
 
 // Touch activation arrives on release; pointerdown activates only a mouse.
 const GESTURE_EVENTS = ['pointerdown', 'pointerup', 'touchend', 'keydown'] as const;
@@ -176,6 +180,8 @@ export function createAudioLifecycle(
       }
       scene = built;
       recordings.setScene(built);
+      // Effects are decoded ahead, so the first of each sounds when it happens.
+      for (const name of EFFECT_RECORDINGS) recordings.prepare(recordingId('effects', name));
       if (processingListener) built.measureProcessing(processingListener);
       if (!(await resumed)) throw new Error('audio resume failed');
       if (context === created) sync();

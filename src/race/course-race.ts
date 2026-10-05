@@ -42,13 +42,19 @@ type RouteRuntime = ReturnType<typeof createRouteRuntime>;
 /** The one run status: the start phase's WAITING or READY before GO, then the run outcome's. */
 export type RaceStatus = Exclude<StartStatus, 'GO'> | RunStatus;
 
-/** One accepted crossing: its competitor, line and race time (step start + u × SIM_DT). */
+/**
+ * One accepted crossing: its competitor, line and its kind (a checkpoint or the finish line, which a CIRCUIT's laps
+ * cross), the race time (step start + u × SIM_DT), whether it finished the competitor's race, and the clock extension
+ * it earned in ms (the player's checkpoints with a time limit; null otherwise).
+ */
 export interface RaceEvent {
   readonly competitorId: string;
   readonly landmark: RouteRaceEvent['landmark'];
+  readonly kind: RouteRaceEvent['kind'];
   readonly lap: number;
   readonly finish: boolean;
   readonly timeSeconds: number;
+  readonly extensionMs: number | null;
 }
 
 /** A paced rival's pace and the utilization/speed-cap setter of its driver. */
@@ -540,9 +546,11 @@ export function createCourseRace(options: {
           Object.freeze({
             competitorId: c.id,
             landmark: event.landmark,
+            kind: event.kind,
             lap: event.lap,
             finish: event.finish,
             timeSeconds,
+            extensionMs: c === player ? clock.extensionAt(timeSeconds) : null,
           }),
         );
         if (course.type === 'CIRCUIT' && event.kind === 'finish') {
@@ -738,11 +746,12 @@ export function createCourseRace(options: {
 type CourseRace = ReturnType<typeof createCourseRace>;
 
 /**
- * The race facts displays read (the HUD and RESULT): the run's published state, never its controls, mechanics or
- * other competitors' internals.
+ * The race facts displays and sound effects read (the HUD, RESULT and the run's effects): the run's published state,
+ * never its controls, mechanics or other competitors' internals.
  */
 export type RaceFacts = Pick<
   CourseRace,
+  | 'events'
   | 'simulationSeconds'
   | 'stage'
   | 'lap'
@@ -756,6 +765,7 @@ export type RaceFacts = Pick<
   readonly clock: Pick<CourseRace['clock'], 'elapsedSeconds' | 'deadlineSeconds' | 'lastExtension'>;
   readonly countdown: Pick<CourseRace['countdown'], 'signalLamps'>;
   readonly player: {
+    readonly id: string;
     readonly crossingSeconds: readonly number[];
     readonly lapStartSeconds: number | null;
     readonly lastLapSeconds: number | null;

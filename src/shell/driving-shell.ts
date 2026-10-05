@@ -8,6 +8,7 @@ import type { CompiledVehicleDefinition } from '../vehicle/definition-document.j
 import { InputManager } from '../input/input-manager.js';
 import { TouchPointers } from '../input/touch-pointers.js';
 import { MenuInput, type MenuCommand, type InputRoute } from '../input/menu-input.js';
+import type { MenuResponse } from './screen-host.js';
 import { createCornerButtons } from './corner-buttons.js';
 import { mustGet } from './dom.js';
 import { createTouchIndicators } from './touch-indicators.js';
@@ -31,6 +32,8 @@ export interface BrowserDrivingShell {
   setRoute(route: InputRoute): void;
   /** The menu commands since the last call. */
   menuCommands(): MenuCommand[];
+  /** Play what a menu command did: `menu-move`, `menu-confirm` or `menu-back`. */
+  menuSound(response: MenuResponse): void;
   /**
    * Called within a user gesture outside driving: prepare sound so runs sound from their start, and request
    * fullscreen; a refusal is ignored.
@@ -86,6 +89,7 @@ export function createBrowserDrivingShell(
       corners.setRoute(route);
     },
     menuCommands: () => menuInput.poll(),
+    menuSound: (response) => void audio.playRecording(`effects/menu-${response}`, 'effects'),
     setVolume: (name, percent) => audio.setVolume(name, percent),
     playRecording: (id, bus, options) => audio.playRecording(id, bus, options),
     audioTiming: audio.timing,

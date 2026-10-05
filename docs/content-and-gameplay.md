@@ -688,8 +688,9 @@ distance follows route s, including backward movement, without checkpoint-based 
 
 Race time is the seconds since GO, held once by the checkpoint clock: each RUNNING fixed step adds `SIM_DT`.
 Each step produces one ordered event stream (`race.events`) of every competitor's accepted crossings. An event
-carries its competitor, its line (landmark, lap and whether it is the completing FINISH) and its race time,
-`stepStart + u*SIM_DT`, computed by one function (`raceEventSeconds`). The stream is in race-time order;
+carries its competitor, its line (landmark, its kind, a checkpoint or the finish line, lap and whether it is the
+completing FINISH), its race time, `stepStart + u*SIM_DT`, computed by one function (`raceEventSeconds`), and the
+extension it earned (the clock's award in ms for a player crossing that extended the deadline, else null). The stream is in race-time order;
 equal times keep competitor order, the player before rivals in entry order. A step that does not run
 (READY hold or an ended run) has an empty stream. Reference runs and scenarios read event times from it.
 

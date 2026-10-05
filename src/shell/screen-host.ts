@@ -1,22 +1,26 @@
 import { createFrameLoop } from './frame-loop.js';
 import type { MenuCommand, InputRoute } from '../input/menu-input.js';
 
+/** What a menu command did: moved the cursor or changed a value, confirmed something, or went back. */
+export type MenuResponse = 'move' | 'confirm' | 'back';
+
 /** A screen owns the frame while it is current: it advances one fixed step and draws one frame. */
 export interface Screen {
   /** Whether the player's driving input and sound are live on this screen; only a running run is. */
   readonly live: boolean;
   tick(): void;
   render(): void;
-  /** One menu command; while the screen is live only PAUSE arrives. */
-  command(command: MenuCommand): void;
+  /** One menu command and what it did; nothing for a command that does nothing. While live only PAUSE arrives. */
+  command(command: MenuCommand): MenuResponse | null | void;
   /** The host made another screen current. */
   leave?(): void;
 }
 
-/** The devices the host routes: driving input, sound and menu commands. */
+/** The devices the host routes: driving input, sound and menu commands, and the sound of what a command did. */
 export interface ScreenDevices {
   setRoute(route: InputRoute): void;
   menuCommands(): MenuCommand[];
+  menuSound(response: MenuResponse): void;
 }
 
 /**
@@ -39,7 +43,11 @@ export function createScreenHost(
   // the menu commands to the current screen.
   const loop = createFrameLoop(
     () => {
-      for (const command of devices.menuCommands()) screen.command(command);
+      // The one place a menu command's sound is decided: from what the screen says the command did.
+      for (const command of devices.menuCommands()) {
+        const response = screen.command(command);
+        if (response) devices.menuSound(response);
+      }
       screen.tick();
     },
     () => screen.render(),

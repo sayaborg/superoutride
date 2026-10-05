@@ -11,6 +11,7 @@ const BUS_DECLARATIONS = Object.freeze({
   engine: Object.freeze({ live: true }),
   tire: Object.freeze({ live: true }),
   music: Object.freeze({ live: false }),
+  effects: Object.freeze({ live: false }),
 });
 export type SoundBus = keyof typeof BUS_DECLARATIONS;
 export const SOUND_BUSES = Object.freeze(Object.keys(BUS_DECLARATIONS) as SoundBus[]);

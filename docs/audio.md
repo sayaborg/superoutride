@@ -223,13 +223,28 @@ rebuild's, starts its track from the beginning at its own READY. Menus, LOADING 
 URL started before any gesture has no audio at its READY, so its track does not play. Auditions on SELECT MUSIC and
 SETTINGS play a track from its beginning, looped, through the same form; they are not the run's track.
 
+## Sound effects
+
+Effects are recordings played once on the `effects` bus, each at full volume; the game keeps no per-effect gain. The
+scene decodes every effect when it is built, so the first of each sounds when it happens.
+
+The [run effects](../src/shell/run-effects.ts) read only race facts, after every fixed step of the run: `countdown-lamp`
+as each signal lamp lights during READY, `countdown-go` at GO, and for each of the player's crossings in the step's
+events one sound: none for the crossing that finishes the run (GOAL's jingle sounds), else `extend` when the crossing
+extended the clock, else `lap` at the finish line and `checkpoint` at a checkpoint. At GOAL `goal` and at GAME OVER
+`game-over` play once, from that moment, while the track fades beneath them; a jingle may sound on into RESULT and
+stops when the run is left. Each happening sounds once: a step's facts are read once, so two crossings in one frame
+both sound, a pause runs no steps, and a new Session (RETRY or a DEV rebuild) starts afresh. Other competitors'
+crossings never sound. Menu commands sound through the screen host ([Browser](browser.md#menu-input)).
+
 ## Mix and lifetime
 
 The [sound graph](../src/audio/sound-graph.ts) owns the named buses (`engine`, `tire`) and the master path:
 each bus feeds the MASTER gain, then a compressor set by the MIX settings (`MixSettings`, written directly to
 the compressor's parameters), then the output. Each bus declares whether it is live: a live bus sounds only while a
-run is driven, through one live gate before the MASTER gain. `engine` and `tire` are live; `music` is not. The player
-record's volumes are the one source of the MASTER gain and of the `music` bus gain (MUSIC); the DEV ENG and TIRE mix
+run is driven, through one live gate before the MASTER gain. `engine` and `tire` are live; `music` and `effects` are
+not. The player record's volumes are the one source of the MASTER gain and of the `music` (MUSIC) and `effects`
+(EFFECTS) bus gains; the DEV ENG and TIRE mix
 values set the live buses' gains. A volume change applies at once through the bus and master gains.
 The [audio scene](../src/audio/audio-scene.ts) loads the generators, owns the voices (player engine, selected
 rival engine with its panner, player tires) on those buses, and owns rival selection, reassignment and

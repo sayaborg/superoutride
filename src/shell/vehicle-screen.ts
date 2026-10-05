@@ -12,7 +12,7 @@ import {
   type VehicleSpriteSet,
 } from '../vehicle/vehicle-sprite-set.js';
 import { SCREEN_BACKGROUND, writeCentred } from './menu.js';
-import type { Screen } from './screen-host.js';
+import type { MenuResponse, Screen } from './screen-host.js';
 
 /** Fixed steps each yaw image stays on SELECT VEHICLE. */
 const YAW_IMAGE_STEPS = 6;
@@ -58,14 +58,27 @@ export function createVehicleScreen(
     tick() {
       steps++;
     },
-    command(command: MenuCommand) {
+    command(command: MenuCommand): MenuResponse | null {
       if (command === 'LEFT' || command === 'RIGHT') {
+        const before = index;
         index = turn(candidates.length, command === 'LEFT' ? -1 : 1, index);
         show();
-      } else if ((command === 'UP' || command === 'DOWN') && colors.length > 0)
+        return index === before ? null : 'move';
+      }
+      if ((command === 'UP' || command === 'DOWN') && colors.length > 0) {
+        const before = color;
         color = turn(colors.length, command === 'UP' ? -1 : 1, color);
-      else if (command === 'CONFIRM') actions.confirm(candidates[index]!, colors[color] ?? null);
-      else if (command === 'BACK') actions.back();
+        return color === before ? null : 'move';
+      }
+      if (command === 'CONFIRM') {
+        actions.confirm(candidates[index]!, colors[color] ?? null);
+        return 'confirm';
+      }
+      if (command === 'BACK') {
+        actions.back();
+        return 'back';
+      }
+      return null;
     },
     render() {
       const vehicle = candidates[index]!;

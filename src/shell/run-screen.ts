@@ -5,7 +5,7 @@ import type { RunResult } from './run-result.js';
 import { TEXT_PALETTES } from '../image/text-tiles.js';
 import { halveRgb555Pixels } from '../image/rgb555.js';
 import type { SoftwareSurface } from '../view/software-surface.js';
-import type { Screen } from './screen-host.js';
+import type { MenuResponse, Screen } from './screen-host.js';
 import type { MenuCommand } from '../input/menu-input.js';
 
 /** The run screen's states besides running: manual PAUSE, and finished after GOAL or GAME OVER. */
@@ -142,16 +142,14 @@ export function createRunScreen(
     tick() {
       if (state.live) run.tick();
     },
-    command(command: MenuCommand) {
-      if (state.finished) {
-        current().command(command);
-        return;
-      }
+    /** PAUSE opening the PAUSE menu confirms, and PAUSE closing it goes back; the menus say what theirs did. */
+    command(command: MenuCommand): MenuResponse | null {
+      if (state.finished) return current().command(command);
       if (command === 'PAUSE') {
         state.setPaused(!state.paused);
-        return;
+        return state.paused ? 'confirm' : 'back';
       }
-      if (state.paused) current().command(command);
+      return state.paused ? current().command(command) : null;
     },
     render() {
       const drawn = run.draw();
