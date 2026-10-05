@@ -76,7 +76,9 @@ async function startPage(): Promise<void> {
     const raceSprites = createRaceSprites(vehicles);
     // The one run, which the current run screen shows.
     let run: Run | null = null;
-    const shell = createBrowserDrivingShell(vehicles, surfaceSounds, await loadAudioSettings(content), player);
+    const shell = createBrowserDrivingShell(vehicles, surfaceSounds, await loadAudioSettings(content), player, (id) =>
+      content.bytes('recording', id),
+    );
     const present = () => shell.present();
     const loading = createLoadingScreen(shell.framebuffer, textLayer, present);
     // The one owner of the current screen; it runs the frame loop while the page is visible.
@@ -199,7 +201,7 @@ async function startPage(): Promise<void> {
         present,
         show: (screen) => host.show(screen),
         activate: () => shell.activate(),
-        setMasterVolume: (percent) => shell.setMasterVolume(percent),
+        setVolume: (name, percent) => shell.setVolume(name, percent),
         run: (next, back) => void request(next, back),
       },
     );

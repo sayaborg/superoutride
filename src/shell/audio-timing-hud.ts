@@ -22,6 +22,8 @@ export interface AudioTimingReading {
   readonly blocks: number;
   readonly overruns: number;
   readonly maxBlock: number;
+  /** The recordings that could not be decoded. */
+  readonly recordingFailures: readonly string[];
 }
 
 /**
@@ -81,6 +83,7 @@ export function createAudioTimingHud(anchor: HTMLElement, source: AudioTimingSou
       blocks,
       overruns,
       maxBlock,
+      recordingFailures: source.recordingFailures(),
     };
   };
   const show = () => {
@@ -89,7 +92,8 @@ export function createAudioTimingHud(anchor: HTMLElement, source: AudioTimingSou
     output.textContent =
       `AUDIO ${r.state} ${r.sampleRate} Hz · base ${r.baseLatency.toFixed(1)} ms · output ${r.outputLatency.toFixed(1)} ms` +
       ` · stamp lag ${r.timestampLag.toFixed(1)} ms age ${r.timestampAge.toFixed(1)} ms · deficit ${r.clockDeficit.toFixed(1)} ms` +
-      ` · suspend ${r.suspends} resume ${r.resumes} · overrun ${r.overruns}/${r.blocks} max ${r.maxBlock} ms`;
+      ` · suspend ${r.suspends} resume ${r.resumes} · overrun ${r.overruns}/${r.blocks} max ${r.maxBlock} ms` +
+      (r.recordingFailures.length ? ` · not decoded: ${r.recordingFailures.join(', ')}` : '');
   };
   show();
   setInterval(show, REFRESH_MILLISECONDS);

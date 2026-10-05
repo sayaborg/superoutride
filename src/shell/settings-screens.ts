@@ -30,11 +30,14 @@ function stepVolume(value: number, by: -1 | 1): number {
 /**
  * SETTINGS: MASTER, MUSIC and EFFECTS volumes, which LEFT and RIGHT change in steps of five and the player record
  * keeps; CONTROLS, a screen listing the controls; and CLEAR RECORDS, which asks once (NO first) before emptying the
- * records and keeps the settings. MASTER applies at once through `setMasterVolume`. BACK leaves.
+ * records and keeps the settings. Each volume applies at once through `setVolume`. BACK leaves.
  */
 export function showSettings(
   player: PlayerRecord,
-  devices: { menu(definition: MenuDefinition, initial?: number): void; setMasterVolume(percent: number): void },
+  devices: {
+    menu(definition: MenuDefinition, initial?: number): void;
+    setVolume(name: VolumeName, percent: number): void;
+  },
   back: () => void,
 ) {
   // SETTINGS with the cursor on the item labelled `current` (the first item when null).
@@ -44,9 +47,7 @@ export function showSettings(
         label: VOLUME_LABELS[name],
         value: String(player.settings.volumes[name]),
         adjust: (by) => {
-          const value = stepVolume(player.settings.volumes[name], by);
-          if (name === 'master') devices.setMasterVolume(value);
-          else player.updateSettings({ volumes: { ...player.settings.volumes, [name]: value } });
+          devices.setVolume(name, stepVolume(player.settings.volumes[name], by));
         },
       })),
       { label: 'CONTROLS', confirm: controls },

@@ -9,7 +9,7 @@ import type { CompiledVehicleDefinition } from '../vehicle/definition-document.j
 import type { SoftwareSurface } from '../view/software-surface.js';
 import type { TextLayer } from '../view/text-layer.js';
 import { createMenuScreen, type MenuDefinition, type MenuItem } from './menu.js';
-import type { PlayerRecord } from './player-record.js';
+import type { PlayerRecord, VolumeName } from './player-record.js';
 import { MODE_NAMES, recordedColor, type RunRequest } from './run-request.js';
 import type { Screen } from './screen-host.js';
 import { createVehicleScreen } from './vehicle-screen.js';
@@ -50,8 +50,8 @@ export interface SelectionDevices {
   activate(): void;
   /** Request the selected run; `back` returns to the last selection screen. */
   run(request: RunRequest, back: () => void): void;
-  /** Set the MASTER volume in percent. */
-  setMasterVolume(percent: number): void;
+  /** Set a volume in percent. */
+  setVolume(name: VolumeName, percent: number): void;
 }
 
 /**
@@ -145,7 +145,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
         label: 'SETTINGS',
         confirm: () => {
           devices.activate();
-          showSettings(player, { menu, setMasterVolume: devices.setMasterVolume }, title);
+          showSettings(player, { menu, setVolume: devices.setVolume }, title);
         },
       },
     ];

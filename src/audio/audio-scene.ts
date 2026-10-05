@@ -10,6 +10,7 @@ import type { TireComponents } from './tire-sound-components.js';
 import type { UnifiedSettings } from './tire-unified-acoustics.js';
 import type { RollingSettings } from './tire-rolling-acoustics.js';
 import { createTireVoice } from './tire-voice.js';
+import { createRecordingPlayback, type RecordingPlayback, type RecordingLoop } from './recording-playback.js';
 import type { TireSurfaceSounds } from './surface-sounds.js';
 import type { CompiledEngineSound } from './engine-sound.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
@@ -205,6 +206,18 @@ export async function createAudioScene(context: AudioContext, surfaces: TireSurf
     },
     setMasterGain(value: number): void {
       graph.setMasterGain(value);
+    },
+    /** Decode a recording's delivered bytes; the bytes stay with the caller. */
+    decodeRecording(bytes: Uint8Array): Promise<AudioBuffer> {
+      return context.decodeAudioData(bytes.slice().buffer);
+    },
+    /** A playback of a decoded recording on `bus`, not yet playing. */
+    createPlayback(
+      buffer: AudioBuffer,
+      bus: SoundBus,
+      options?: { readonly volume?: number; readonly loop?: RecordingLoop | null },
+    ): RecordingPlayback {
+      return createRecordingPlayback(context, graph.input(bus), buffer, () => control, options);
     },
     /** DEV: report each worklet's processing to `listener`, or stop with null. */
     measureProcessing(listener: ((report: ProcessingReport) => void) | null): void {

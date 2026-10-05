@@ -189,12 +189,34 @@ music recording its document; there is at least one track; selection orders are 
 (the text grid's 40 columns); and `loop.end` is within the recording's duration. Whether a browser can decode a
 recording is known only when it decodes it. The game admits delivered music documents again when it loads them.
 
+## Recording playback
+
+[Recording playback](../src/audio/recording-playback.ts) is the one player of recordings, for music, effects and
+impacts alike. The shell reads a recording's verified bytes from delivery and the scene decodes them
+(`decodeAudioData`), so the audio layer never reads delivery. A playback plays a decoded recording on a named bus at a
+volume from 0 to 1, once or looped; each playback has its own source and gain, so playbacks of one recording overlap.
+A looped playback starts at the recording's beginning and, once it reaches `loop.end`, returns to `loop.start`
+sample-accurately (the source's own loop). A playback from the beginning starts at full volume, since recordings start
+at their first sample; pausing fades out with the silence fade (`fadeSeconds`) and stops the source after the
+transition time (`transitionSeconds`), keeping the position, and playing again starts a new source from that position
+with the silence fade in. Stopping fades the same way and ends the playback; a fade-out ramps linearly to zero over a
+given time and ends it.
+
+The shell's [recording player](../src/shell/recording-player.ts) decodes off the frame and menu path: a request returns
+at once and sounds when its recording is decoded, unless it was stopped first. Decoded effects and impacts are kept;
+one music track is kept at a time, and a request for another releases the previous. A decoded stereo track takes
+`duration × sampleRate × 2 × 4` bytes (about 63 MB for three minutes at 44.1 kHz, 3.9 MB for an 11-second placeholder).
+A recording the browser cannot decode stays silent: the reason goes to the console once and, with `dev=1`, the audio
+timing HUD names it; it is not decoded again, and the game continues.
+
 ## Mix and lifetime
 
 The [sound graph](../src/audio/sound-graph.ts) owns the named buses (`engine`, `tire`) and the master path:
 each bus feeds the MASTER gain, then a compressor set by the MIX settings (`MixSettings`, written directly to
 the compressor's parameters), then the output. Each bus declares whether it is live: a live bus sounds only while a
-run is driven, through one live gate before the MASTER gain. Both buses are live.
+run is driven, through one live gate before the MASTER gain. `engine` and `tire` are live; `music` is not. The player
+record's volumes are the one source of the MASTER gain and of the `music` bus gain (MUSIC); the DEV ENG and TIRE mix
+values set the live buses' gains. A volume change applies at once through the bus and master gains.
 The [audio scene](../src/audio/audio-scene.ts) loads the generators, owns the voices (player engine, selected
 rival engine with its panner, player tires) on those buses, and owns rival selection, reassignment and
 spatialization; the RIVAL settings (`RivalSettings`) own the audible distance, reference distance, pan floor and

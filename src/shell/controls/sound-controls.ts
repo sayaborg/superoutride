@@ -9,7 +9,7 @@ import { createRangeControl } from './range-control.js';
 import { createNumberStepper } from './number-stepper.js';
 import { TIRE_COMPONENTS, type TireComponent, type TireComponents } from '../../audio/tire-sound-components.js';
 import { audioSettingsDocument, type AudioSettings } from '../../audio/audio-document.js';
-import { SOUND_BUSES, type SoundBus } from '../../audio/sound-graph.js';
+import type { SoundBus } from '../../audio/sound-graph.js';
 import { downloadDefinition } from '../definition-export.js';
 
 /** The DEV screen's name for each tire component: its button label and description. */
@@ -19,19 +19,23 @@ const TIRE_COMPONENT_LABELS: Readonly<Record<TireComponent, { readonly label: st
     friction: Object.freeze({ label: 'Q', description: 'Friction' }),
   });
 
-/** What the DEV sound controls currently hold: the six settings records, volumes and R/Q components. */
+/** The buses whose volume is a DEV mix value, with their labels; the player record sets the others. */
+const MIX_BUSES = Object.freeze({ engine: 'ENG', tire: 'TIRE' }) satisfies Partial<Record<SoundBus, string>>;
+type MixBus = keyof typeof MIX_BUSES;
+
+/** What the DEV sound controls currently hold: the six settings records, the mix volumes and R/Q components. */
 export interface SoundControlValues {
   readonly settings: AudioSettings;
-  readonly volume: number;
-  readonly busVolumes: Readonly<Record<SoundBus, number>>;
+  readonly busVolumes: Readonly<Partial<Record<SoundBus, number>>>;
   readonly components: TireComponents;
 }
 
 /**
- * The DEV sound controls found by their ids in `root`: the sound toggle, volume stepper, ENG/TIRE volumes, R/Q
- * buttons, the six settings panels and the audio export. The panels start from, and reset to, `initial`; the
- * export saves their current values. The volume starts at `initialVolume` percent and reports each change to
- * `onVolume`. A missing host leaves its control out and its value at its initial value.
+ * The DEV sound controls found by their ids in `root`: the sound toggle, MASTER volume stepper, ENG/TIRE volumes,
+ * R/Q buttons, the six settings panels and the audio export. The panels start from, and reset to, `initial`; the
+ * export saves their current values. The stepper shows the MASTER volume, starting at `initialVolume` percent, and
+ * passes each press to `onVolume`; the player record keeps the volume. A missing host leaves its control out and its
+ * value at its initial value.
  */
 export function mountSoundControls(
   root: Document,
@@ -65,8 +69,7 @@ export function mountSoundControls(
     componentHost?.appendChild(button);
     return { key, label, description, button, toggle };
   });
-  let volume = initialVolume / 100;
-  const busVolumes: Record<SoundBus, number> = { engine: 1, tire: 1 };
+  const busVolumes: Record<MixBus, number> = { engine: 1, tire: 1 };
   const engineSoundContainer = root.getElementById('engine-sound-settings');
   const engineSoundSettings = engineSoundContainer
     ? mountEngineSoundSettings(engineSoundContainer, initial.exhaust, callbacks.onChange)
@@ -79,21 +82,15 @@ export function mountSoundControls(
         step: 1,
         value: initialVolume,
         format: (value) => `${value}%`,
-        onChange: changeVolume,
+        onChange: callbacks.onVolume,
       })
     : null;
-  // The one way the MASTER volume changes: the stepper here and SETTINGS both pass through it.
-  function changeVolume(value: number): void {
-    volume = value / 100;
-    callbacks.onVolume(value);
-    callbacks.onChange();
-  }
   if (volumeControl) volumeContainer!.replaceChildren(volumeControl.group);
-  const mixControls = SOUND_BUSES.flatMap((bus) => {
+  const mixControls = (Object.keys(MIX_BUSES) as MixBus[]).flatMap((bus) => {
     const host = root.getElementById(`${bus}-volume`);
     if (!host) return [];
     const control = createRangeControl(
-      `${bus === 'engine' ? 'ENG' : 'TIRE'} volume`,
+      `${MIX_BUSES[bus]} volume`,
       { min: 0, max: 100, step: 1 },
       100,
       (value) => {
@@ -155,14 +152,12 @@ export function mountSoundControls(
   return {
     read: (): SoundControlValues => ({
       settings: currentSettings(),
-      volume,
       busVolumes,
       components: componentState,
     }),
-    /** Set the MASTER volume in percent, as the volume stepper does, and show it there. */
-    setVolume(percent: number): void {
+    /** Show the MASTER volume in percent on the stepper. */
+    showVolume(percent: number): void {
       volumeControl?.setValue(percent);
-      changeVolume(percent);
     },
     /** The sound toggle's label and pressed state, which the audio lifecycle owns. */
     showSoundState(text: string, pressed: boolean): void {

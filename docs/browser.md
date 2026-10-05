@@ -91,8 +91,9 @@ SETTINGS lists MASTER, MUSIC and EFFECTS with their volumes, which LEFT and RIGH
 (to the adjacent multiple of 5), CONTROLS, which shows the keyboard, touch and gamepad controls, and CLEAR RECORDS,
 which asks CLEAR RECORDS? with NO (selected first) and YES: YES empties the records, saves the player record with its
 settings unchanged and returns to SETTINGS, as NO and BACK do; BACK leaves each screen.
-The player record keeps every volume. MASTER applies at once through the same path as the DEV volume stepper, which
-shows it; MUSIC and EFFECTS have no sound until their buses exist.
+The player record is the one owner of every volume. Each change, from SETTINGS or the DEV MASTER stepper, goes through
+the audio lifetime's one path (`setVolume`): the record keeps it, the stepper shows MASTER, and MASTER and MUSIC apply
+at once; EFFECTS has no sound until its bus exists.
 
 - SELECT MODE: a mode with no selectable course is DARK.
 - SELECT SERIES lists the series with their titles; SELECT COURSE lists course display names from the course index.
@@ -322,7 +323,8 @@ With `dev=1` a second line at the bottom of the page, the audio timing HUD
 find when engine sound starts to lag: its state and sample rate, `baseLatency`, `outputLatency`, the stamp lag
 (`currentTime` less `getOutputTimestamp().contextTime`), the stamp's age, the clock deficit (wall time less context
 time since the context last started running), the state changes to suspended and to running it has seen, and the
-worklets' render blocks with those that took longer than their own duration and the longest. The worklets time their
+worklets' render blocks with those that took longer than their own duration and the longest, and the recordings that
+could not be decoded ([Audio](audio.md#recording-playback)). The worklets time their
 blocks only after this HUD asks them to ([Audio](audio.md#mix-and-lifetime)). The latest reading is also the element's
 `data-reading` JSON. These are observations, not device verdicts.
 
@@ -437,7 +439,8 @@ or unmutes. SOUND RETRY offers a new initialization after failure. SOUND UNAVAIL
 the browser lacks the required audio support while gameplay remains usable.
 
 MASTER, ENG and TIRE independently control the complete output, engine output and tire output.
-MASTER is the player record's MASTER volume; ENG and TIRE are DEV mix values.
+MASTER is the player record's MASTER volume, which the stepper shows and changes through the one volume path;
+ENG and TIRE are DEV mix values.
 A zero gain silences that output while DSP continues. R and Q buttons (`tire-component-rolling`, `tire-component-friction`) independently switch rolling
 and friction output for both axles. Their labels and pressed states show ON/OFF, and unavailable audio
 disables them. [Tire audio](tire-audio.md#settings-replacement) owns faded output and replacement semantics.

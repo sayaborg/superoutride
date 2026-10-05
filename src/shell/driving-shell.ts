@@ -12,7 +12,10 @@ import { createCornerButtons } from './corner-buttons.js';
 import { mustGet } from './dom.js';
 import { createTouchIndicators } from './touch-indicators.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
-import type { PlayerRecord } from './player-record.js';
+import type { PlayerRecord, VolumeName } from './player-record.js';
+import type { RecordingHandle } from './recording-player.js';
+import type { RecordingLoop } from '../audio/recording-playback.js';
+import type { SoundBus } from '../audio/sound-graph.js';
 
 interface BrowserDrivingShell {
   readonly framebuffer: SoftwareSurface;
@@ -33,8 +36,14 @@ interface BrowserDrivingShell {
    * fullscreen; a refusal is ignored.
    */
   activate(): void;
-  /** Set the MASTER volume in percent, as the DEV volume stepper does. */
-  setMasterVolume(percent: number): void;
+  /** Set a volume in percent: the player record keeps it and the sound follows at once. */
+  setVolume(name: VolumeName, percent: number): void;
+  /** Play the delivered recording `id` on `bus`; it sounds once decoded. */
+  playRecording(
+    id: string,
+    bus: SoundBus,
+    options?: { readonly volume?: number; readonly loop?: RecordingLoop | null },
+  ): RecordingHandle;
   /** DEV only: the audio timing HUD's source. */
   readonly audioTiming: AudioTimingSource;
 }
@@ -48,6 +57,7 @@ export function createBrowserDrivingShell(
   surfaceSounds: TireSurfaceSounds,
   audioSettings: AudioSettings,
   player: PlayerRecord,
+  recordingBytes: (id: string) => Promise<Uint8Array>,
 ): BrowserDrivingShell {
   const canvas = mustGet<HTMLCanvasElement>('game');
   canvas.width = LOGICAL_WIDTH;
@@ -66,7 +76,7 @@ export function createBrowserDrivingShell(
   const corners = createCornerButtons(document, (command) => menuInput.press(command));
   pointers.subscribe({ begin: () => corners.touched(), move: () => {}, end: () => {} });
   const touchIndicators = createTouchIndicators(document);
-  const audio = createAudioLifecycle(vehicles, surfaceSounds, audioSettings, player);
+  const audio = createAudioLifecycle(vehicles, surfaceSounds, audioSettings, player, recordingBytes);
   return {
     setRoute(route): void {
       const live = route === 'driving';
@@ -76,7 +86,8 @@ export function createBrowserDrivingShell(
       corners.setRoute(route);
     },
     menuCommands: () => menuInput.poll(),
-    setMasterVolume: (percent) => audio.setMasterVolume(percent),
+    setVolume: (name, percent) => audio.setVolume(name, percent),
+    playRecording: (id, bus, options) => audio.playRecording(id, bus, options),
     audioTiming: audio.timing,
     activate(): void {
       audio.enable();

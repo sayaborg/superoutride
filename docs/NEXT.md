@@ -35,7 +35,7 @@
   appears at seeded Route positions from the series or FREE PLAY's TRAFFIC option; RIBBON COAST is the verification
   course of all of it.
 
-Next PR: **14-1b** — recordings play on the sound graph's buses.
+Next PR: **14-1c** — SELECT MUSIC and the run's track.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -71,8 +71,6 @@ Requirements left from the second design audit, by when they are taken up:
 `content/effects/` and `content/impacts/` are placeholders (electronic tones) for building the stage; before the product
 they are replaced by K's files under the same names. The remaining PRs, in order:
 
-- **14-1b — Recording playback:** one sound-layer player plays recordings once or looped on a bus; a `music` bus; the
-  player record is the one owner of the MASTER, MUSIC and EFFECTS volumes.
 - **14-1c — SELECT MUSIC:** the track list with the track under the cursor playing, the run request's track, its start
   at READY, pause and resume, the fade at GOAL and GAME OVER, and the SETTINGS audition.
 - **14-2 — Sound effects:** an `effects` bus; countdown, crossing, extension, jingle and menu effects from race facts

@@ -331,6 +331,7 @@ change them.
 | Control | Default | Range / meaning                           |
 | ------- | ------- | ----------------------------------------- |
 | MASTER  | 35%     | 0–100%; complete audio output             |
+| MUSIC   | 100%    | 0–100%; the `music` bus                   |
 | ENG     | 100%    | 0–100%; player and selected rival engines |
 | TIRE    | 100%    | 0–100%; player tire output                |
 | R       | ON      | Rolling output tap for both axles         |
