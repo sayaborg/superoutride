@@ -4,7 +4,7 @@ import type { WorkbenchDiagnostic } from './compile-protocol.js';
 import type { WorkbenchContext, WorkbenchModule } from './workbench-context.js';
 import { make } from './dom.js';
 import { confirmField } from './pending-edit.js';
-import { childPointer, nearestPointer, withValue, type Json } from './json-pointer.js';
+import { childPointer, nearestPointer, withValue, type Json } from '../authoring/json-pointer.js';
 
 /** Children of an opened container are shown this many at a time. */
 const PAGE = 200;

@@ -35,7 +35,7 @@ function formColor(element: CourseElement, parts: readonly CourseElement[] = [])
 }
 import { make } from './dom.js';
 import { confirmField, finiteNumber } from './pending-edit.js';
-import { valueAt } from './json-pointer.js';
+import { valueAt } from '../authoring/json-pointer.js';
 
 /**
  * The course editor: a course's Sections and Links, and four views of a Section seen together — its plan and profile
