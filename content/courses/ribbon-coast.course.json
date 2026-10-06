@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 46,
+  "version": 47,
   "name": "RIBBON COAST",
   "entry": "coast-wide",
   "maxLaps": 1,
@@ -328,7 +328,7 @@
               "at": { "joint": "pi-01", "offset": -220 },
               "lateral": { "boundary": "verge-left", "offset": -6 },
               "groundOffset": 0,
-              "unselectedCarriageway": null,
+              "unselectedLink": null,
               "body": null
             }
           ]
@@ -345,7 +345,7 @@
               "at": { "joint": "pi-01", "offset": -200 },
               "lateral": { "boundary": "verge-right", "offset": 6 },
               "groundOffset": 0,
-              "unselectedCarriageway": null,
+              "unselectedLink": null,
               "body": null
             }
           ]
@@ -364,74 +364,73 @@
           "grid": [
             {
               "at": { "joint": "straight-1", "offset": 193 },
-              "lateral": -0.25
+              "lane": "b"
             },
             {
               "at": { "joint": "straight-1", "offset": 181 },
-              "lateral": 3.75
+              "lane": "c"
             },
             {
               "at": { "joint": "straight-1", "offset": 169 },
-              "lateral": -0.25
+              "lane": "b"
             },
             {
               "at": { "joint": "straight-1", "offset": 157 },
-              "lateral": 3.75
+              "lane": "c"
             },
             {
               "at": { "joint": "straight-1", "offset": 145 },
-              "lateral": -0.25
+              "lane": "b"
             },
             {
               "at": { "joint": "straight-1", "offset": 133 },
-              "lateral": 3.75
+              "lane": "c"
             },
             {
               "at": { "joint": "straight-1", "offset": 121 },
-              "lateral": -0.25
+              "lane": "b"
             },
             {
               "at": { "joint": "straight-1", "offset": 109 },
-              "lateral": 3.75
+              "lane": "c"
             },
             {
               "at": { "joint": "straight-1", "offset": 97 },
-              "lateral": -0.25
+              "lane": "b"
             },
             {
               "at": { "joint": "straight-1", "offset": 85 },
-              "lateral": 3.75
+              "lane": "c"
             },
             {
               "at": { "joint": "straight-1", "offset": 73 },
-              "lateral": -0.25
+              "lane": "b"
             },
             {
               "at": { "joint": "straight-1", "offset": 61 },
-              "lateral": 3.75
+              "lane": "c"
             },
             {
               "at": { "joint": "straight-1", "offset": 49 },
-              "lateral": -0.25
+              "lane": "b"
             },
             {
               "at": { "joint": "straight-1", "offset": 37 },
-              "lateral": 3.75
+              "lane": "c"
             },
             {
               "at": { "joint": "straight-1", "offset": 25 },
-              "lateral": -0.25
+              "lane": "b"
             },
             {
               "at": { "joint": "straight-1", "offset": 15 },
-              "lateral": 1.75
+              "lane": "b"
             }
           ]
         },
         {
           "kind": "checkpoint",
           "id": "coast-CP1",
-          "carriageway": "road",
           "at": { "joint": "end", "offset": -32.325421861 }
         }
       ]
@@ -1110,7 +1109,7 @@
               "at": { "joint": "pi-01", "offset": 10 },
               "lateral": { "boundary": "verge-left", "offset": -5 },
               "groundOffset": 0,
-              "unselectedCarriageway": null,
+              "unselectedLink": null,
               "body": null
             }
           ]
@@ -1127,7 +1126,7 @@
               "at": { "joint": "pi-04", "offset": -40.000000415 },
               "lateral": { "boundary": "verge-left", "offset": -5 },
               "groundOffset": 0,
-              "unselectedCarriageway": null,
+              "unselectedLink": null,
               "body": null
             }
           ]
@@ -1144,7 +1143,7 @@
               "at": { "joint": "pi-04", "offset": -25.000000415 },
               "lateral": { "boundary": "verge-right", "offset": 5 },
               "groundOffset": 0,
-              "unselectedCarriageway": null,
+              "unselectedLink": null,
               "body": null
             }
           ]
@@ -1166,7 +1165,6 @@
         {
           "kind": "checkpoint",
           "id": "coast-CP2",
-          "carriageway": "road",
           "at": { "joint": "straight-6", "offset": -0.865238197 }
         }
       ]
@@ -1627,7 +1625,7 @@
               "at": { "joint": "straight-1", "offset": 120 },
               "lateral": { "boundary": "sand-left", "offset": -4 },
               "groundOffset": 0,
-              "unselectedCarriageway": null,
+              "unselectedLink": null,
               "body": null
             }
           ]
@@ -1644,7 +1642,7 @@
               "at": { "joint": "straight-1", "offset": 140 },
               "lateral": { "boundary": "sand-right", "offset": 4 },
               "groundOffset": 0,
-              "unselectedCarriageway": null,
+              "unselectedLink": null,
               "body": null
             }
           ]
@@ -1666,7 +1664,6 @@
         {
           "kind": "checkpoint",
           "id": "coast-CP3",
-          "carriageway": "road",
           "at": { "joint": "end", "offset": -645 }
         }
       ]
@@ -1917,7 +1914,7 @@
               "at": { "joint": "straight-1", "offset": 110 },
               "lateral": { "boundary": "verge-left", "offset": -1.5 },
               "groundOffset": 0,
-              "unselectedCarriageway": null,
+              "unselectedLink": null,
               "body": { "width": 0.6, "movable": null }
             }
           ]
@@ -1934,7 +1931,7 @@
               "at": { "joint": "pi-01", "offset": -95 },
               "lateral": { "boundary": "verge-right", "offset": 1.5 },
               "groundOffset": 0,
-              "unselectedCarriageway": null,
+              "unselectedLink": null,
               "body": { "width": 0.6, "movable": null }
             }
           ]
@@ -1951,7 +1948,7 @@
               "at": { "joint": "pi-01", "offset": -80 },
               "lateral": { "boundary": "verge-right", "offset": 2.5 },
               "groundOffset": 0,
-              "unselectedCarriageway": null,
+              "unselectedLink": null,
               "body": { "width": 0.4, "movable": null }
             }
           ]
@@ -2270,7 +2267,7 @@
               "at": { "joint": "straight-1", "offset": 220 },
               "lateral": { "boundary": "verge-left", "offset": -6 },
               "groundOffset": 0,
-              "unselectedCarriageway": null,
+              "unselectedLink": null,
               "body": null
             }
           ]
@@ -2287,7 +2284,7 @@
               "at": { "joint": "straight-1", "offset": 240 },
               "lateral": { "boundary": "verge-right", "offset": 6 },
               "groundOffset": 0,
-              "unselectedCarriageway": null,
+              "unselectedLink": null,
               "body": null
             }
           ]
@@ -2304,7 +2301,7 @@
               "at": { "joint": "straight-2", "offset": 138.2006122 },
               "lateral": 7,
               "groundOffset": 0,
-              "unselectedCarriageway": null,
+              "unselectedLink": null,
               "body": {
                 "width": 0.3,
                 "movable": {
@@ -2323,7 +2320,7 @@
           "at": { "joint": "straight-3", "offset": 163.311255011 },
           "lateral": -3.5,
           "groundOffset": 0,
-          "unselectedCarriageway": null,
+          "unselectedLink": null,
           "body": {
             "width": 1.5,
             "movable": {
@@ -2355,13 +2352,11 @@
         {
           "kind": "checkpoint",
           "id": "coast-CP4",
-          "carriageway": "road",
           "at": { "joint": "pi-01", "offset": -238 }
         },
         {
           "kind": "finish",
           "id": "coast-FINISH",
-          "carriageway": "road",
           "at": { "joint": "straight-3", "offset": 413.000000011 }
         }
       ]
@@ -2370,22 +2365,22 @@
   "links": [
     {
       "id": "coast-wide-to-cliff-mountain",
-      "from": { "section": "coast-wide", "carriageway": "road" },
+      "from": { "section": "coast-wide", "lane": "b" },
       "to": "cliff-mountain"
     },
     {
       "id": "cliff-mountain-to-rough-track",
-      "from": { "section": "cliff-mountain", "carriageway": "road" },
+      "from": { "section": "cliff-mountain", "lane": "b" },
       "to": "rough-track"
     },
     {
       "id": "rough-track-to-town",
-      "from": { "section": "rough-track", "carriageway": "road" },
+      "from": { "section": "rough-track", "lane": "b" },
       "to": "town"
     },
     {
       "id": "town-to-coast-fast",
-      "from": { "section": "town", "carriageway": "road" },
+      "from": { "section": "town", "lane": "b" },
       "to": "coast-fast"
     }
   ]

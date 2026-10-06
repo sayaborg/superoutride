@@ -475,7 +475,7 @@ export const courseModule: WorkbenchModule = {
           ].filter(Boolean);
           item.append(button, ` ${marks.join(' · ')}`);
           for (const link of outgoing)
-            item.append(make('div', `→ ${link.to} (${link.id}, from ${link.from.carriageway})`, { class: 'hint' }));
+            item.append(make('div', `→ ${link.to} (${link.id}, from lane ${link.from.lane})`, { class: 'hint' }));
           return item;
         }),
       );

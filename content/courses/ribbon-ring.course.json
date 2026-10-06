@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 46,
+  "version": 47,
   "name": "RIBBON RING",
   "entry": "ring-outward",
   "maxLaps": 3,
@@ -334,7 +334,7 @@
               "at": { "joint": "straight-1", "offset": 17.50162686430845 },
               "lateral": { "boundary": "road-left", "offset": -5 },
               "groundOffset": 0,
-              "unselectedCarriageway": null,
+              "unselectedLink": null,
               "body": null
             }
           ]
@@ -351,7 +351,7 @@
               "at": { "joint": "straight-1", "offset": 17.50162686430845 },
               "lateral": { "boundary": "road-right", "offset": 5 },
               "groundOffset": 0,
-              "unselectedCarriageway": null,
+              "unselectedLink": null,
               "body": null
             }
           ]
@@ -370,80 +370,78 @@
           "grid": [
             {
               "at": { "joint": "bend", "offset": 101.407044967 },
-              "lateral": -0.25
+              "lane": "b"
             },
             {
               "at": { "joint": "bend", "offset": 89.407044967 },
-              "lateral": 3.75
+              "lane": "c"
             },
             {
               "at": { "joint": "bend", "offset": 77.407044967 },
-              "lateral": -0.25
+              "lane": "b"
             },
             {
               "at": { "joint": "bend", "offset": 65.407044967 },
-              "lateral": 3.75
+              "lane": "c"
             },
             {
               "at": { "joint": "bend", "offset": 53.407044967 },
-              "lateral": -0.25
+              "lane": "b"
             },
             {
               "at": { "joint": "bend", "offset": 41.407044967 },
-              "lateral": 3.75
+              "lane": "c"
             },
             {
               "at": { "joint": "bend", "offset": 29.407044967 },
-              "lateral": -0.25
+              "lane": "b"
             },
             {
               "at": { "joint": "bend", "offset": 17.407044967 },
-              "lateral": 3.75
+              "lane": "c"
             },
             {
               "at": { "joint": "bend", "offset": 5.407044967 },
-              "lateral": -0.25
+              "lane": "b"
             },
             {
               "at": { "joint": "bend", "offset": -6.592955033 },
-              "lateral": 3.75
+              "lane": "c"
             },
             {
               "at": { "joint": "bend", "offset": -18.592955033 },
-              "lateral": -0.25
+              "lane": "b"
             },
             {
               "at": { "joint": "bend", "offset": -30.592955033 },
-              "lateral": 3.75
+              "lane": "c"
             },
             {
               "at": { "joint": "bend", "offset": -42.592955033 },
-              "lateral": -0.25
+              "lane": "b"
             },
             {
               "at": { "joint": "straight-1", "offset": 37 },
-              "lateral": 3.75
+              "lane": "c"
             },
             {
               "at": { "joint": "straight-1", "offset": 25 },
-              "lateral": -0.25
+              "lane": "b"
             },
             {
               "at": { "joint": "straight-1", "offset": 15 },
-              "lateral": 1.75
+              "lane": "b"
             }
           ]
         },
         {
           "kind": "checkpoint",
           "id": "ring-CP1",
-          "carriageway": "road",
           "at": { "joint": "bend", "offset": 408.407044966673 }
         },
         {
           "kind": "checkpoint",
           "id": "ring-CP2",
-          "carriageway": "road",
           "at": { "joint": "end", "offset": 0 }
         }
       ]
@@ -768,7 +766,7 @@
               "at": { "joint": "straight-1", "offset": 17.50162686430845 },
               "lateral": { "boundary": "road-left", "offset": -5 },
               "groundOffset": 0,
-              "unselectedCarriageway": null,
+              "unselectedLink": null,
               "body": null
             }
           ]
@@ -785,7 +783,7 @@
               "at": { "joint": "straight-1", "offset": 17.50162686430845 },
               "lateral": { "boundary": "road-right", "offset": 5 },
               "groundOffset": 0,
-              "unselectedCarriageway": null,
+              "unselectedLink": null,
               "body": null
             }
           ]
@@ -802,13 +800,11 @@
         {
           "kind": "checkpoint",
           "id": "ring-CP3",
-          "carriageway": "road",
           "at": { "joint": "bend", "offset": 408.407044966673 }
         },
         {
           "kind": "finish",
           "id": "ring-FINISH",
-          "carriageway": "road",
           "at": { "joint": "end", "offset": 0 }
         }
       ]
@@ -817,12 +813,12 @@
   "links": [
     {
       "id": "outward-to-return",
-      "from": { "section": "ring-outward", "carriageway": "road" },
+      "from": { "section": "ring-outward", "lane": "b" },
       "to": "ring-return"
     },
     {
       "id": "return-to-entry",
-      "from": { "section": "ring-return", "carriageway": "road" },
+      "from": { "section": "ring-return", "lane": "b" },
       "to": "ring-outward"
     }
   ]

@@ -13,7 +13,7 @@ import {
   resolveCourseLateral,
   resolveLateralInterval,
 } from '../../src/course/compiler/course-lateral.js';
-import { courseLaneCenterAt, type CompiledBoundary } from '../../src/course/course-boundaries.js';
+import { courseBoundaryAt, courseLaneCenterAt, type CompiledBoundary } from '../../src/course/course-boundaries.js';
 import { expandCourseElements, type CourseRepeatCopy, type RepeatElement } from '../../src/course/course-repeat.js';
 import { createPlanCoordinateReader } from '../../src/course/geometry/plan-coordinate-reader.js';
 import { createPlanCoordinateSample } from '../../src/course/geometry/plan-coordinate.js';
@@ -136,7 +136,7 @@ export interface CourseStructure {
   readonly links: readonly {
     readonly pointer: string;
     readonly id: string;
-    readonly from: { readonly section: string; readonly carriageway: string };
+    readonly from: { readonly section: string; readonly lane: string };
     readonly to: string;
   }[];
   readonly entry: string | null;
@@ -611,14 +611,24 @@ function readSection(
     const at = `${pointer}/gates/${i}`;
     const v = record(gate);
     if (v.kind === 'start')
-      list(v.grid).forEach((slot, k) =>
-        add('grid-slot', `${at}/grid/${k}`, record(slot), {
+      list(v.grid).forEach((slot, k) => {
+        // A slot lies at its lane's centre.
+        const sv = record(slot);
+        const lane = lanes.byId.get(String(sv.lane));
+        let station: { s: number; l: number } | undefined;
+        try {
+          const s = resolve(sv.at as unknown as CoursePosition, `${at}/grid/${k}/at`).s;
+          if (lane) station = { s, l: courseBoundaryAt(lane.center, s) };
+        } catch {
+          // The Position's problem is read with it below.
+        }
+        add('grid-slot', `${at}/grid/${k}`, sv, {
           positions: ['at'],
-          laterals: ['lateral'],
-          values: { slot: k },
-        }),
-      );
-    else add('gate', at, v, { positions: ['at'], values: { kind: v.kind, id: v.id, carriageway: v.carriageway } });
+          values: { slot: k, lane: sv.lane },
+          ...(station ? { station } : {}),
+        });
+      });
+    else add('gate', at, v, { positions: ['at'], values: { kind: v.kind, id: v.id } });
   });
   // Carriageways: each lane's centre line over the road's existence, as the race reads it.
   list(section.carriageways).forEach((road, i) => {

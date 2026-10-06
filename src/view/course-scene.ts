@@ -67,8 +67,7 @@ export function createCourseScene(
         // A state-selected sign shows once its own fork occurrence has selected another exit.
         for (const placement of renderData.conditionalSprites) {
           const selected = selectedSuccessor(runtime.route, placement.occurrence);
-          if (selected && selected.from.carriageway.id !== placement.unselectedCarriagewayId)
-            worldSprites.push(placement.sprite);
+          if (selected && selected.id !== placement.unselectedLink) worldSprites.push(placement.sprite);
         }
         staticSpriteCount = worldSprites.length;
         terrainParameters = {

@@ -1,13 +1,14 @@
 import { createPlanCoordinateSample } from '../geometry/plan-coordinate.js';
-import { compilePlanarTransform, composePlanarTransforms, transformPlanarPoint } from '../../core/planar-transform.js';
+import { compilePlanarTransform, composePlanarTransforms } from '../../core/planar-transform.js';
 import { courseBoundaryAt, courseCarriagewayExists, type CompiledCarriageway } from '../course-boundaries.js';
+import { courseRoadsAt, type CompiledLane } from '../course-lanes.js';
 import { requireCourse } from '../course-diagnostics.js';
 import type { CompiledCut, CompiledLink, CompiledSection } from './course-graph.js';
 
 /** Roundoff of plan evaluation and rigid rotation over the admitted 1,000,000 m coordinate domain. */
 export const COURSE_LINK_RECIPE = Object.freeze({
   id: 'superoutride.cut-line-link',
-  version: 3,
+  version: 4,
   // Metres: rigid transform/evaluation budget; ~860 ulps at the admitted 10^6 m scale.
   edgeToleranceMeters: 1e-7,
   // Radians: wrapped heading/composition roundoff, below 0.1 mm at a 10^6 m lever arm.
@@ -18,80 +19,79 @@ export const COURSE_LINK_RECIPE = Object.freeze({
   gradeTolerance: 1e-10,
 });
 
-function edges(road: CompiledCarriageway, s: number, path: string): readonly [number, number] {
-  requireCourse(
-    s >= Math.max(road.left.vertices[0]!.at.s, road.right.vertices[0]!.at.s) &&
-      s <= Math.min(road.left.vertices.at(-1)!.at.s, road.right.vertices.at(-1)!.at.s),
-    path,
-    `Carriageway ${road.id} must reach the cut line`,
-    'invalid_carriageway',
-  );
-  const left = courseBoundaryAt(road.left, s);
-  const right = courseBoundaryAt(road.right, s);
-  requireCourse(
-    right > left,
-    path,
-    `Carriageway ${road.id} must have positive width at the cut line`,
-    'invalid_carriageway',
-  );
-  return [left, right];
+/**
+ * The road a lane belongs to at station `s`, and the lane's place in it, counted from the road's left. The lane must be
+ * wider than zero there.
+ */
+function roadOf(section: CompiledSection, lane: CompiledLane, s: number, path: string) {
+  const road = courseRoadsAt(section.lanes, s).find((candidate) => candidate.lanes.includes(lane));
+  requireCourse(road !== undefined, path, `Lane ${lane.id} must be wider than zero at the cut line`, 'invalid_link');
+  return { road, index: road.lanes.indexOf(lane) };
 }
 
-export function compileCourseCut(
-  section: CompiledSection,
-  road: CompiledCarriageway,
-  s: number,
-  path: string,
-): CompiledCut {
-  const [left, right] = edges(road, s, path);
-  const { x, z, heading } = section.coordinates.toWorld(s, (left + right) / 2, createPlanCoordinateSample());
+/** The Carriageway, until lanes replace them, that holds lateral `l` at station `s`. */
+function carriagewayAt(section: CompiledSection, l: number, s: number, path: string): CompiledCarriageway {
+  const road = section.carriageways.find(
+    (candidate) =>
+      courseCarriagewayExists(candidate, s, section.coordinates.domain.end) &&
+      courseBoundaryAt(candidate.left, s) <= l &&
+      l <= courseBoundaryAt(candidate.right, s),
+  );
+  requireCourse(road !== undefined, path, 'A Carriageway must hold the cut lane', 'invalid_carriageway');
+  return road;
+}
+
+/** A cut across a Section at station `s` through lane `lane`'s centre: the frame a Link maps. */
+export function compileCourseCut(section: CompiledSection, lane: CompiledLane, s: number, path: string): CompiledCut {
+  const lateralOrigin = courseBoundaryAt(lane.center, s);
+  const { x, z, heading } = section.coordinates.toWorld(s, lateralOrigin, createPlanCoordinateSample());
   return Object.freeze({
     section,
-    carriageway: road,
-    lateralOrigin: (left + right) / 2,
+    lane,
+    carriageway: carriagewayAt(section, lateralOrigin, s, path),
+    lateralOrigin,
     pose: Object.freeze({ x, z, heading }),
   });
 }
 
-export function entryCut(section: CompiledSection, path: string): CompiledCut {
-  const roads = section.carriageways.filter(
-    (road) =>
-      courseCarriagewayExists(road, 0, section.coordinates.domain.end) &&
-      courseBoundaryAt(road.right, 0) > courseBoundaryAt(road.left, 0),
-  );
+/**
+ * A Section's entry: its centre lane at s=0. A Link's destination has exactly one road there; the course's entry
+ * Section may have any number.
+ */
+export function entryCut(section: CompiledSection, destination: boolean, path: string): CompiledCut {
   requireCourse(
-    roads.length === 1,
+    !destination || courseRoadsAt(section.lanes, 0).length === 1,
     path,
-    'An entry Section must have exactly one Carriageway at s=0',
-    'invalid_carriageway',
+    "A Link's destination Section begins with exactly one road",
+    'invalid_link',
   );
-  return compileCourseCut(section, roads[0]!, 0, path);
+  return compileCourseCut(section, section.lanes.center, 0, path);
 }
 
+/**
+ * The Link from `from` to `to`. The named lane continues as the next Section's centre lane, and the lanes either side
+ * of it, in order, as the lanes either side of that: the two roads have as many lanes, of the same widths. The
+ * transform lays the named lane's centre on the next Section's centreline; height and grade agree at the seam.
+ */
 export function compileCourseLink(id: string, from: CompiledCut, to: CompiledCut, path: string): CompiledLink {
   requireCourse(from.section !== to.section, path, `Link ${id} cannot return to its own Section`, 'invalid_topology');
   const toFromFrom = compilePlanarTransform(from.pose, to.pose);
-  const [aLeft, aRight] = edges(from.carriageway, from.section.coordinates.domain.end, path);
-  const [bLeft, bRight] = edges(to.carriageway, 0, path);
-  for (const [a, b] of [
-    [aLeft, bLeft],
-    [aRight, bRight],
-  ] as const) {
-    const fromPoint = from.section.coordinates.toWorld(
-      from.section.coordinates.domain.end,
-      a,
-      createPlanCoordinateSample(),
-    );
-    const toPoint = to.section.coordinates.toWorld(0, b, createPlanCoordinateSample());
-    const mapped = transformPlanarPoint(toFromFrom, fromPoint);
-    requireCourse(
-      Math.hypot(mapped.x - toPoint.x, mapped.z - toPoint.z) <= COURSE_LINK_RECIPE.edgeToleranceMeters,
-      path,
-      `Connecting Carriageway edges disagree at Link ${id}`,
-      'seam_edge_mismatch',
-    );
-  }
-  const aHeight = from.section.height.sampleDifferential(from.section.coordinates.domain.end);
+  const end = from.section.coordinates.domain.end;
+  const a = roadOf(from.section, from.lane, end, `${path}/from/lane`),
+    b = roadOf(to.section, to.lane, 0, path);
+  requireCourse(
+    a.road.lanes.length === b.road.lanes.length &&
+      a.index === b.index &&
+      a.road.lanes.every(
+        (lane, i) =>
+          Math.abs(courseBoundaryAt(lane.width, end) - courseBoundaryAt(b.road.lanes[i]!.width, 0)) <=
+          COURSE_LINK_RECIPE.edgeToleranceMeters,
+      ),
+    path,
+    `Link ${id} joins roads of different lanes: the named lane continues as the centre lane, its neighbours in order`,
+    'seam_edge_mismatch',
+  );
+  const aHeight = from.section.height.sampleDifferential(end);
   const bHeight = to.section.height.sampleDifferential(0);
   requireCourse(
     Math.abs(aHeight.y - bHeight.y) <= COURSE_LINK_RECIPE.heightToleranceMeters,
@@ -140,11 +140,14 @@ export function compileCourseTopology(entry: CompiledSection, sections: readonly
   const type = hasCycle ? 'CIRCUIT' : hasBranches ? 'BRANCH' : 'LINEAR';
   for (const [index, section] of sections.entries()) {
     const path = `/sections/${index}`;
-    const exits = section.outgoing.map((link) => link.from.carriageway);
+    // Each Link leaves by a lane of its own road, and every road at the end has a Link (one at least).
+    const end = section.coordinates.domain.end;
+    const roads = courseRoadsAt(section.lanes, end);
+    const exits = section.outgoing.map((link) => roads.findIndex((road) => road.lanes.includes(link.from.lane)));
     requireCourse(
-      new Set(exits).size === exits.length,
+      new Set(exits).size === exits.length && (exits.length === 0 || exits.length === roads.length),
       path,
-      'A Section cannot have two exits on one Carriageway',
+      'Each road at the Section end needs a Link of its own',
       'invalid_topology',
     );
     requireCourse(

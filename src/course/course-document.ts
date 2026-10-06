@@ -15,7 +15,7 @@ import {
 } from '../core/admission.js';
 import { readRgb555 } from '../image/rgb555.js';
 
-const COURSE_DOCUMENT_VERSION = 46;
+const COURSE_DOCUMENT_VERSION = 47;
 const ID = { maxLength: COURSE_DOCUMENT_LIMITS.idCodeUnits };
 
 /** A station: `offset` metres (negative before) from a joint, the start of the plan element `joint` or `"end"`. */
@@ -73,7 +73,8 @@ interface CarriagewayDocument {
 
 interface LinkDocument {
   readonly id: string;
-  readonly from: { readonly section: string; readonly carriageway: string };
+  /** The lane the Link leaves by, at its Section's end; it continues as the next Section's centre lane. */
+  readonly from: { readonly section: string; readonly lane: string };
   /** The Section the Link enters. */
   readonly to: string;
 }
@@ -130,7 +131,8 @@ export interface SpriteDocument {
   readonly kind: 'sprite';
   readonly image: string;
   readonly palette: string;
-  readonly unselectedCarriageway: string | null;
+  /** Null, or the id of a Link leaving the Section: the sprite shows when that Link is not chosen. */
+  readonly unselectedLink: string | null;
   readonly at: CoursePosition;
   readonly lateral: Lateral;
   readonly groundOffset: number;
@@ -216,13 +218,13 @@ export interface SectionDocument {
 export interface CourseLandmarkDocument {
   readonly kind: 'checkpoint' | 'finish';
   readonly id: string;
-  readonly carriageway: string;
   readonly at: CoursePosition;
 }
 
 export type CourseGateDocument =
   | CourseLandmarkDocument
-  | { readonly kind: 'start'; readonly grid: readonly { readonly at: CoursePosition; readonly lateral: Lateral }[] }
+  /** The grid: each slot a lane at a Position, its lateral the lane's centre. */
+  | { readonly kind: 'start'; readonly grid: readonly { readonly at: CoursePosition; readonly lane: string }[] }
   | { readonly kind: 'lock' | 'closure'; readonly at: CoursePosition };
 
 /** Position-free course rules; series own ARCADE settings. */
@@ -516,7 +518,7 @@ function sprite(value: unknown, path: string): SpriteDocument {
     'at',
     'lateral',
     'groundOffset',
-    'unselectedCarriageway',
+    'unselectedLink',
     'body',
   ]);
   if (s.kind !== 'sprite') throw new CourseInputError('unsupported_feature', `${path}/kind`, 'Expected sprite');
@@ -530,10 +532,7 @@ function sprite(value: unknown, path: string): SpriteDocument {
       min: -COURSE_DOCUMENT_LIMITS.heightMeters,
       max: COURSE_DOCUMENT_LIMITS.heightMeters,
     }),
-    unselectedCarriageway:
-      s.unselectedCarriageway === null
-        ? null
-        : readString(s.unselectedCarriageway, `${path}/unselectedCarriageway`, ID),
+    unselectedLink: s.unselectedLink === null ? null : readString(s.unselectedLink, `${path}/unselectedLink`, ID),
     body: s.body === null ? null : spriteBody(s.body, `${path}/body`),
   });
 }
@@ -708,19 +707,18 @@ function gate(value: unknown, path: string): CourseGateDocument {
         v.grid,
         `${path}/grid`,
         (item, at) => {
-          const slot = readRecord(item, at, ['at', 'lateral']);
-          return Object.freeze({ at: position(slot.at, `${at}/at`), lateral: lateral(slot.lateral, `${at}/lateral`) });
+          const slot = readRecord(item, at, ['at', 'lane']);
+          return Object.freeze({ at: position(slot.at, `${at}/at`), lane: readString(slot.lane, `${at}/lane`, ID) });
         },
         { max: COURSE_DOCUMENT_LIMITS.startGridSlots },
       ),
     });
   }
   if (kind === 'checkpoint' || kind === 'finish') {
-    const v = readRecord(value, path, ['kind', 'id', 'carriageway', 'at']);
+    const v = readRecord(value, path, ['kind', 'id', 'at']);
     return Object.freeze({
       kind,
       id: readString(v.id, `${path}/id`, ID),
-      carriageway: readString(v.carriageway, `${path}/carriageway`, ID),
       at: position(v.at, `${path}/at`),
     });
   }
@@ -760,12 +758,12 @@ export function readCourseDocument(input: unknown, document = ''): CourseResult<
         '/links',
         (item, at) => {
           const link = readRecord(item, at, ['id', 'from', 'to']);
-          const from = readRecord(link.from, `${at}/from`, ['section', 'carriageway']);
+          const from = readRecord(link.from, `${at}/from`, ['section', 'lane']);
           return Object.freeze({
             id: readString(link.id, `${at}/id`, ID),
             from: Object.freeze({
               section: readString(from.section, `${at}/from/section`, ID),
-              carriageway: readString(from.carriageway, `${at}/from/carriageway`, ID),
+              lane: readString(from.lane, `${at}/from/lane`, ID),
             }),
             to: readString(link.to, `${at}/to`, ID),
           });

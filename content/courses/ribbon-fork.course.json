@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 46,
+  "version": 47,
   "name": "RIBBON FORK",
   "entry": "junction-road",
   "maxLaps": 1,
@@ -403,7 +403,7 @@
           "at": { "joint": "straight-1", "offset": 250 },
           "lateral": -1.75,
           "groundOffset": 0,
-          "unselectedCarriageway": "LEFT",
+          "unselectedLink": "left-exit",
           "body": null
         },
         {
@@ -413,7 +413,7 @@
           "at": { "joint": "end", "offset": -200 },
           "lateral": -1.75,
           "groundOffset": 0,
-          "unselectedCarriageway": "LEFT",
+          "unselectedLink": "left-exit",
           "body": null
         },
         {
@@ -423,7 +423,7 @@
           "at": { "joint": "straight-1", "offset": 250 },
           "lateral": 9.25,
           "groundOffset": 0,
-          "unselectedCarriageway": "RIGHT",
+          "unselectedLink": "right-exit",
           "body": null
         },
         {
@@ -433,7 +433,7 @@
           "at": { "joint": "end", "offset": -200 },
           "lateral": 9.25,
           "groundOffset": 0,
-          "unselectedCarriageway": "RIGHT",
+          "unselectedLink": "right-exit",
           "body": null
         },
         {
@@ -448,7 +448,7 @@
               "at": { "joint": "straight-1", "offset": 220 },
               "lateral": { "boundary": "left-outer", "offset": -8 },
               "groundOffset": 0,
-              "unselectedCarriageway": null,
+              "unselectedLink": null,
               "body": null
             }
           ]
@@ -465,7 +465,7 @@
               "at": { "joint": "straight-1", "offset": 220 },
               "lateral": { "boundary": "right-outer", "offset": 8 },
               "groundOffset": 0,
-              "unselectedCarriageway": null,
+              "unselectedLink": null,
               "body": null
             }
           ]
@@ -484,67 +484,67 @@
           "grid": [
             {
               "at": { "joint": "straight-1", "offset": 193 },
-              "lateral": 1.75
+              "lane": "b"
             },
             {
               "at": { "joint": "straight-1", "offset": 181 },
-              "lateral": 5.75
+              "lane": "c"
             },
             {
               "at": { "joint": "straight-1", "offset": 169 },
-              "lateral": 1.73
+              "lane": "b"
             },
             {
               "at": { "joint": "straight-1", "offset": 157 },
-              "lateral": 5.49
+              "lane": "c"
             },
             {
               "at": { "joint": "straight-1", "offset": 145 },
-              "lateral": 1.25
+              "lane": "b"
             },
             {
               "at": { "joint": "straight-1", "offset": 133 },
-              "lateral": 5.01
+              "lane": "c"
             },
             {
               "at": { "joint": "straight-1", "offset": 121 },
-              "lateral": 0.77
+              "lane": "b"
             },
             {
               "at": { "joint": "straight-1", "offset": 109 },
-              "lateral": 4.53
+              "lane": "c"
             },
             {
               "at": { "joint": "straight-1", "offset": 97 },
-              "lateral": 0.29
+              "lane": "b"
             },
             {
               "at": { "joint": "straight-1", "offset": 85 },
-              "lateral": 4.05
+              "lane": "c"
             },
             {
               "at": { "joint": "straight-1", "offset": 73 },
-              "lateral": -0.19
+              "lane": "b"
             },
             {
               "at": { "joint": "straight-1", "offset": 61 },
-              "lateral": 3.75
+              "lane": "c"
             },
             {
               "at": { "joint": "straight-1", "offset": 49 },
-              "lateral": -0.25
+              "lane": "b"
             },
             {
               "at": { "joint": "straight-1", "offset": 37 },
-              "lateral": 3.75
+              "lane": "c"
             },
             {
               "at": { "joint": "straight-1", "offset": 25 },
-              "lateral": -0.25
+              "lane": "b"
             },
             {
               "at": { "joint": "straight-1", "offset": 15 },
-              "lateral": 1.75
+              "lane": "b"
             }
           ]
         },
@@ -780,7 +780,6 @@
         {
           "kind": "checkpoint",
           "id": "cliff-route-CP1",
-          "carriageway": "road",
           "at": { "joint": "straight-1", "offset": 400 }
         }
       ]
@@ -955,7 +954,7 @@
               "at": { "joint": "straight-1", "offset": 60 },
               "lateral": { "boundary": "road-left", "offset": -8 },
               "groundOffset": 0,
-              "unselectedCarriageway": null,
+              "unselectedLink": null,
               "body": null
             }
           ]
@@ -972,7 +971,6 @@
         {
           "kind": "checkpoint",
           "id": "garden-route-CP1",
-          "carriageway": "road",
           "at": { "joint": "straight-1", "offset": 500 }
         }
       ]
@@ -1160,7 +1158,7 @@
               "at": { "joint": "straight-1", "offset": 60 },
               "lateral": { "boundary": "road-left", "offset": -8 },
               "groundOffset": 0,
-              "unselectedCarriageway": null,
+              "unselectedLink": null,
               "body": null
             }
           ]
@@ -1177,13 +1175,11 @@
         {
           "kind": "checkpoint",
           "id": "home-road-CP1",
-          "carriageway": "road",
           "at": { "joint": "straight-1", "offset": 470 }
         },
         {
           "kind": "finish",
           "id": "home-road-FINISH",
-          "carriageway": "road",
           "at": { "joint": "end", "offset": -360 }
         }
       ]
@@ -1192,22 +1188,22 @@
   "links": [
     {
       "id": "left-exit",
-      "from": { "section": "junction-road", "carriageway": "LEFT" },
+      "from": { "section": "junction-road", "lane": "a" },
       "to": "cliff-route"
     },
     {
       "id": "left-merge",
-      "from": { "section": "cliff-route", "carriageway": "road" },
+      "from": { "section": "cliff-route", "lane": "a" },
       "to": "home-road"
     },
     {
       "id": "right-exit",
-      "from": { "section": "junction-road", "carriageway": "RIGHT" },
+      "from": { "section": "junction-road", "lane": "c" },
       "to": "garden-route"
     },
     {
       "id": "right-merge",
-      "from": { "section": "garden-route", "carriageway": "road" },
+      "from": { "section": "garden-route", "lane": "a" },
       "to": "home-road"
     }
   ]

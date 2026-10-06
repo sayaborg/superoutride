@@ -1,19 +1,16 @@
 import type { compileCourseTopology } from './course-links.js';
-import { resolveCourseLateral } from './course-lateral.js';
 import type { CourseDocument, CourseLandmarkDocument } from '../course-document.js';
 import { requireCourse } from '../course-diagnostics.js';
 import { resolveCoursePosition, type CompiledCoursePosition, type CourseJoints } from '../course-geometry.js';
-import { courseBoundaryAt, courseCarriagewayExists, type CompiledCarriageway } from '../course-boundaries.js';
+import { courseBoundaryAt } from '../course-boundaries.js';
+import { courseRoadsAt } from '../course-lanes.js';
 import { stripSupportsInterval } from '../strip-material.js';
 import type { CompiledSection } from './course-graph.js';
 
 export interface CompiledCourseLandmark {
   readonly id: string;
   readonly section: CompiledSection;
-  readonly carriageway: CompiledCarriageway;
   readonly at: CompiledCoursePosition;
-  readonly left: number;
-  readonly right: number;
 }
 
 /** Canonical references and ordinary geometry; no live race, driver or vehicle catalog dependency. */
@@ -45,28 +42,30 @@ export function compileCourseGates(
     resolveCoursePosition(position, joints.get(section)!, path);
   const endS = (section: CompiledSection) => section.coordinates.domain.end;
   const compile = (g: CourseLandmarkDocument, section: CompiledSection, path: string): CompiledCourseLandmark => {
-    const carriageway = section.carriageways.find((c) => c.id === g.carriageway);
-    requireCourse(
-      carriageway !== undefined,
-      path + '/carriageway',
-      'Unknown landmark Carriageway',
-      'unresolved_reference',
-    );
     const position = resolve(section, g.at, path + '/at');
     check(
       position.s > 0 && position.s <= endS(section),
       path,
       'Landmark must lie after entry and no later than its ownership exit',
     );
-    check(courseCarriagewayExists(carriageway, position.s, endS(section)), path, 'Landmark requires a Carriageway');
-    const left = courseBoundaryAt(carriageway.left, position.s);
-    const right = courseBoundaryAt(carriageway.right, position.s);
+    // The line spans the course; every lane there is supported.
+    const roads = courseRoadsAt(section.lanes, position.s);
     check(
-      stripSupportsInterval(section.material, position.s, left, right),
+      roads.length > 0 &&
+        roads.every((road) =>
+          road.lanes.every((lane) =>
+            stripSupportsInterval(
+              section.material,
+              position.s,
+              courseBoundaryAt(lane.left, position.s),
+              courseBoundaryAt(lane.right, position.s),
+            ),
+          ),
+        ),
       path,
-      'Landmark requires positive supported width',
+      'Landmark requires supported lanes',
     );
-    return Object.freeze({ id: g.id, section, carriageway, at: position, left, right });
+    return Object.freeze({ id: g.id, section, at: position });
   };
   const landmarks = authored.flatMap(({ gate, section, path }) =>
     gate.kind === 'checkpoint' || gate.kind === 'finish'
@@ -113,10 +112,6 @@ export function compileCourseGates(
     first.checkpoints[0]?.at.s ?? first.finish?.at.s ?? endS(entry),
     entry.fork?.lock.s ?? Infinity,
   );
-  const lines = {
-    boundaries: new Map(entry.boundaries.map((boundary) => [boundary.id, boundary])),
-    lanes: entry.lanes,
-  };
   // Grid order runs from the front of the grid to its back.
   let front = Infinity;
   const grid = startGate.grid.map((slot, i) => {
@@ -128,7 +123,14 @@ export function compileCourseGates(
     );
     check(position.s <= front, `${start.path}/grid/${i}`, 'Grid slots must be ordered from front to back');
     front = position.s;
-    const l = resolveCourseLateral(slot.lateral, position.s, lines, `${start.path}/grid/${i}/lateral`);
+    const lane = entry.lanes.byId.get(slot.lane);
+    requireCourse(lane !== undefined, `${start.path}/grid/${i}/lane`, 'Unknown lane', 'unresolved_reference');
+    check(
+      courseBoundaryAt(lane.width, position.s) > 0,
+      `${start.path}/grid/${i}/lane`,
+      'A grid slot lies in a lane wider than zero',
+    );
+    const l = courseBoundaryAt(lane.center, position.s);
     check(surface.sample(position.s, l) !== null, `${start.path}/grid/${i}`, 'Grid must be supported');
     return Object.freeze({ at: position, l });
   });

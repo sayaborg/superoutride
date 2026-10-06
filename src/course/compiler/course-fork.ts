@@ -1,4 +1,5 @@
-import { courseBoundaryAt, courseCarriagewayExists } from '../course-boundaries.js';
+import { courseBoundaryAt } from '../course-boundaries.js';
+import { courseRoadsAt } from '../course-lanes.js';
 import { requireCourse } from '../course-diagnostics.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
 import { stripSupportedIntervals, stripSupportsInterval } from '../strip-material.js';
@@ -19,7 +20,7 @@ export function compileCourseFork(
     condition: boolean,
     message: string,
     at: string,
-    code: 'invalid_gate' | 'invalid_fork' | 'invalid_carriageway' = 'invalid_gate',
+    code: 'invalid_gate' | 'invalid_fork' = 'invalid_gate',
   ) => requireCourse(condition, at, message, code);
   if (section.outgoing.length < 2) {
     check(
@@ -27,19 +28,6 @@ export function compileCourseFork(
       'Lock and closure gates require a branching Section',
       controls[0]?.path ?? `${path}/gates`,
     );
-    // Lane counts change only at seams and within branching Sections: here the Carriageway followed (the first that
-    // exists) keeps its lane count wherever it changes.
-    const end = section.coordinates.domain.end;
-    const followed = (s: number) => section.carriageways.find((road) => courseCarriagewayExists(road, s, end))!;
-    for (const road of section.carriageways)
-      for (const s of [road.left, road.right].flatMap((edge) => [edge.vertices[0]!.at.s, edge.vertices.at(-1)!.at.s]))
-        if (s > 0 && s < end)
-          check(
-            followed(s).lanes === followed(0).lanes,
-            'Only a branching Section changes the lane count within it',
-            `${path}/carriageways`,
-            'invalid_carriageway',
-          );
     return null;
   }
   const locks = controls.filter((gate) => gate.kind === 'lock');
@@ -91,45 +79,41 @@ export function compileCourseFork(
       );
     }
   }
+  // Every lane and median keeps its width from lock to closure.
+  for (const element of section.lanes.elements) {
+    const width = element.kind === 'lane' ? element.lane.width : element.width;
+    const value = courseBoundaryAt(width, lock.s);
+    check(
+      courseBoundaryAt(width, closure.s) === value &&
+        width.vertices.every((k) => k.at.s <= lock.s || k.at.s >= closure.s || k.l === value),
+      'Every lane and median keeps its width from lock to closure',
+      `${path}/lanes`,
+      'invalid_fork',
+    );
+  }
+  // Each exit is a road at the lock line, the road of its Link's lane; every road there is an exit's.
+  const roads = courseRoadsAt(section.lanes, lock.s);
   const exitRoads = section.outgoing
     .map((link) => {
-      const road = link.from.carriageway;
+      const road = roads.find((candidate) => candidate.lanes.includes(link.from.lane));
+      requireCourse(
+        road !== undefined,
+        locks[0]!.path,
+        'Each exit lane lies in a road at the lock line',
+        'invalid_fork',
+      );
       check(
-        courseCarriagewayExists(road, lock.s, section.coordinates.domain.end) &&
-          courseCarriagewayExists(road, closure.s, section.coordinates.domain.end),
-        'Each exit carriageway must exist from lock through closure',
+        stripSupportsInterval(material, lock.s, road.left, road.right),
+        'Each exit road must have positive supported width at lock',
         locks[0]!.path,
       );
-      const left = courseBoundaryAt(road.left, lock.s),
-        right = courseBoundaryAt(road.right, lock.s);
-      check(
-        stripSupportsInterval(material, lock.s, left, right),
-        'Each exit carriageway must have positive supported width at lock',
-        locks[0]!.path,
-      );
-      for (const boundary of [road.left, road.right]) {
-        const value = courseBoundaryAt(boundary, lock.s);
-        check(
-          courseBoundaryAt(boundary, closure.s) === value &&
-            boundary.vertices.every((k) => k.at.s <= lock.s || k.at.s >= closure.s || k.l === value),
-          'Lock-to-closure Carriageway edges must remain parallel',
-          `${path}/boundaries/${section.boundaries.indexOf(boundary)}`,
-          'invalid_fork',
-        );
-      }
-      return { link, left, right };
+      return { link, left: road.left, right: road.right };
     })
     .sort((a, b) => a.left - b.left);
   check(
-    section.carriageways
-      .filter(
-        (road) =>
-          courseCarriagewayExists(road, lock.s, section.coordinates.domain.end) &&
-          courseBoundaryAt(road.right, lock.s) > courseBoundaryAt(road.left, lock.s),
-      )
-      .every((road) => exitRoads.some((exit) => exit.link.from.carriageway === road)),
-    'Every lock-line pavement belongs to an exit carriageway',
-    `${path}/carriageways`,
+    roads.length === exitRoads.length && new Set(exitRoads.map((exit) => exit.left)).size === exitRoads.length,
+    'Every road at the lock line is the exit of one Link',
+    `${path}/lanes`,
     'invalid_fork',
   );
   const cuts: number[] = [outerLeft];
@@ -137,9 +121,9 @@ export function compileCourseFork(
     const left = exitRoads[i - 1]!.right,
       right = exitRoads[i]!.left;
     check(
-      stripSupportsInterval(material, lock.s, left, right),
-      'Exit carriageways need a positive supported separating median',
-      `${path}/carriageways`,
+      right > left && stripSupportsInterval(material, lock.s, left, right),
+      'Exit roads need a positive supported separating median',
+      `${path}/lanes`,
       'invalid_fork',
     );
     cuts.push(left + (right - left) / 2);

@@ -27,7 +27,7 @@ authoring core and its tools save a course document that admits in that order.
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 46,
+  format: "superoutride.course", version: 47,
   name, entry, maxLaps,
   sections, links
 }
@@ -49,7 +49,7 @@ Section {
 | Width       | a number, or `[{at, width}]`                                                       |
 | Boundary    | `id`, `knots: [{at,lateral}]`                                                      |
 | Carriageway | `id`, `left`, `right`, `lanes`                                                     |
-| Link        | `id`, `from: {section, carriageway}`, `to` (a Section id)                          |
+| Link        | `id`, `from: {section, lane}`, `to` (a Section id)                                 |
 
 A course names its images: each name is the file `content/images/<name>.json` (the image's file name without
 `.json`). The build works out each image's identity from its bytes; the delivery manifest's `image` entry of that
@@ -126,7 +126,7 @@ resolve authored references.
 ### Sprites and environment
 
 Section `sprites` is an ordered array of `sprite` or `repeat` elements. A sprite is
-`{kind:"sprite",image,palette,at,lateral,groundOffset,unselectedCarriageway,body}`.
+`{kind:"sprite",image,palette,at,lateral,groundOffset,unselectedLink,body}`.
 `image` names a sprite image; `palette` is a required nonempty name
 without surrounding whitespace, declared by that image. To use its default color, write the image's
 `defaultPalette` name explicitly; arrays, null and omission are invalid. Compilation rejects unknown
@@ -147,13 +147,12 @@ flying and once landed, drawn in the placement's palette (they may name one imag
 wider than the image's world width (its master width at 40 texels/m) and a body on a state-selected sign
 (`invalid_placement`); the appearance compiler resolves the knocked images like the placement's own.
 
-`unselectedCarriageway` is null for ordinary sprites or names, by id, a canonical exit Carriageway of the
-Section's fork. Compiled appearance keeps that id, never a physical Carriageway object. A state-selected sign
-appears at a fork occurrence once that occurrence has a selected successor on the Route whose Carriageway id
-differs from the sign's; each occurrence follows its own choice, so repeated passes do not mix. The appearance
-compiler owns these checks and reads the compiled fork after it: a state-selected sign requires a fork, its id
-names one of that fork's exit Carriageways, and it lies from lock through closure (`invalid_fork` at the sprite;
-an unknown id is `unresolved_reference` at `/unselectedCarriageway`). Lying at or before closure already places
+`unselectedLink` is null for ordinary sprites or names, by id, a Link leaving the Section's fork. A state-selected
+sign appears at a fork occurrence once that occurrence has a selected successor on the Route whose Link is not the
+sign's; each occurrence follows its own choice, so repeated passes do not mix. The appearance compiler owns these
+checks and reads the compiled fork after it: a state-selected sign requires a fork and lies from lock through closure
+(`invalid_fork` at the sprite); an id that is not one of the fork's Links is `unresolved_reference` at
+`/unselectedLink`. Lying at or before closure already places
 it before every exit cut; a sprite's image width is not a length along s and does not enter the check.
 
 Section `environments` is an array at the same level as `strips` and `sprites`, with at least one element; every
@@ -314,26 +313,25 @@ and height while flying, and once landed the Section and Section coordinates it 
 
 ### Section gates and Session settings
 
-Section `gates` is an array with these records. Every `at` uses the enclosing Section's Position;
-`carriageway` names a Carriageway in that Section. Only checkpoint and finish gates have IDs, and
+Section `gates` is an array with these records. Every `at` uses the enclosing Section's Position; a grid slot's
+`lane` names a lane of the entry Section, and the slot lies at that lane's centre. Only checkpoint and finish gates have IDs, and
 those IDs are unique across the whole course, including across the two kinds. They are stable keys
 for author-confirmed time limits. Array order supplies checkpoint order within each Section.
 
-| Kind         | Fields after `kind`       | Placement                                                                                                         |
-| ------------ | ------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `start`      | `grid: [{at,lateral}]`    | Exactly one, in the entry Section, when race settings exist                                                       |
-| `checkpoint` | `id`, `carriageway`, `at` | Increasing Section positions after zero, through a continuation's terminal station and strictly before its finish |
-| `finish`     | `id`, `carriageway`, `at` | One per terminal Section; in a circuit, only at the terminal station of the Section returning to entry            |
-| `lock`       | `at`                      | Exactly one in every Section with two or three outgoing Links                                                     |
-| `closure`    | `at`                      | Exactly one in every Section with two or three outgoing Links                                                     |
+| Kind         | Fields after `kind` | Placement                                                                                                         |
+| ------------ | ------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `start`      | `grid: [{at,lane}]` | Exactly one, in the entry Section, when race settings exist                                                       |
+| `checkpoint` | `id`, `at`          | Increasing Section positions after zero, through a continuation's terminal station and strictly before its finish |
+| `finish`     | `id`, `at`          | One per terminal Section; in a circuit, only at the terminal station of the Section returning to entry            |
+| `lock`       | `at`                | Exactly one in every Section with two or three outgoing Links                                                     |
+| `closure`    | `at`                | Exactly one in every Section with two or three outgoing Links                                                     |
 
 Grid slots are listed in grid order, from the front of the grid to its back: their route s never increases along
 the list. A Session's field takes the rearmost slots: the rivals in order, then the player in the last slot. Each
-slot must be on supported
+slot must be in a lane wider than zero there, on supported
 material, at/after entry and before the first checkpoint, finish or lock gate. The grid must hold the
 Session entries; its capacity is one player plus the product maximum rival count. Starting velocity is zero.
-Checkpoint and finish Carriageways must exist at the gate and have positive supported width across their
-edges. Runtime crossing width is the coordinate domain at the line. A checkpoint at a continuation seam
+At a checkpoint or finish there is a road, and every lane wider than zero there is supported across its edges. Runtime crossing width is the coordinate domain at the line. A checkpoint at a continuation seam
 belongs to the preceding Section, while the runtime bounds use the successor's domain at that station.
 A circuit has exactly one finish; other circuit Sections have none. The fork section below owns lock and
 closure geometry; the appearance compiler checks conditional signs against it. A Section with at most one outgoing Link cannot have either
@@ -357,7 +355,7 @@ Empty collections are arrays. CourseDocument nulls each have one meaning:
 | Strip `color`                    | Leave the earlier color channel unchanged                 |
 | Strip `material`                 | Leave the earlier material channel unchanged              |
 | Strip `left` / `right`           | That edge is open to negative / positive lateral infinity |
-| Sprite `unselectedCarriageway`   | Ordinary sprite with no exit-selection condition          |
+| Sprite `unselectedLink`          | Ordinary sprite with no exit-selection condition          |
 | Sprite `body`                    | Scenery: vehicles pass through it                         |
 | Sprite body `movable`            | A fixed object                                            |
 | Wall `solid`                     | A wall for looks only: vehicles pass through it           |
@@ -523,15 +521,17 @@ independent of physical support. Outside material-bearing coverage, point reads 
 
 Each Section's native frame is its plan's: its origin, facing +Z. It owns its full `[0,L]` ruler.
 The entry Section's native frame is the world frame. Its entry is the cut
-at `s=0`; its outgoing cut is `(s=L, Carriageway)`. The course entry and every Link destination
-have exactly one positive-width Carriageway at `s=0`. Every outgoing Link names a positive-width
-Carriageway at `s=L`; outgoing Links from one Section use distinct Carriageways. Violations produce
-structured compilation diagnostics.
+at `s=0` through its centre lane; its outgoing cut is `(s=L, lane)`. Every Link destination begins with exactly one
+road at `s=0`; the course entry may begin with any number (`invalid_link`). At a Section's end there is a road for
+each outgoing Link, each Link naming a lane of its own road (one road at least when no Link leaves); otherwise
+`invalid_topology`.
 
-`from` identifies the outgoing `section` and `carriageway`; `to` names the destination Section.
-The rigid yaw/translation maps the outgoing Carriageway center and heading at `L` to the unique
-incoming center and heading at zero. Each Link independently checks that transformed left and right
-edges match within 1e-7 m, heights within 1e-8 m and profile grades within 1e-10.
+`from` identifies the outgoing `section` and the `lane` the Link leaves by, wider than zero at `s=L`; `to` names the
+destination Section. The named lane continues as the destination's centre lane, and the lanes either side of it, in
+order, as the lanes either side of that: the two roads have as many lanes, the named lane in the same place, and each
+pair's widths agree within 1e-7 m (`seam_edge_mismatch`). So lanes are added or ended only inside a Section, where a
+width reaches zero. The rigid yaw/translation maps the named lane's centre and heading at `L` to the destination's
+centreline and heading at zero. Heights agree within 1e-8 m and profile grades within 1e-10.
 These bounds cover double-precision evaluation of boundaries, plan coordinates and rigid rotation
 at the admitted 1,000,000 m coordinate limit; they are not a visual or driving allowance.
 Other boundaries, materials, Strips and appearance may change at the cut.
@@ -665,7 +665,7 @@ clock state belong to Sessions. Object identity is local to a compilation; cross
 `sourceSha256` and `materialsSha256` are the delivered SHA-256 of the course document and the
 surface-material document, the [document identity](#reference-times-and-clock) the catalog supplies.
 `buildSha256` hashes `{sourceSha256,materialsSha256,compiler}`.
-The compiler is `superoutride.course-compiler` version 45, incorporating Link recipe v3, physical
+The compiler is `superoutride.course-compiler` version 46, incorporating Link recipe v4, physical
 recipe v8, image-source recipe v3 and appearance recipe v14. Source, material or compiler/recipe
 changes invalidate dependent products.
 
@@ -721,14 +721,15 @@ accepted cross sections and laps and suppresses crossing credit for that step.
 The number of outgoing Links determines branching. A Section with two or three exits requires exactly
 one `lock` and one `closure` gate with `0 < lock < closure < every exit seam`.
 The compiler builds its branch controls from those gates after Links are resolved. The zone from lock through
-closure lies on straight plan: every plan segment it overlaps has zero curvature. Through closure, edges are constant, roads have positive
-width, and the material table supplies one contiguous supported interval at lock. Through closure,
+closure lies on straight plan: every plan segment it overlaps has zero curvature. From lock through closure every lane and median keeps its width, and the material table supplies one contiguous
+supported interval at lock. Through closure,
 material span edges remain parallel and the supported interval retains the same bounds. Gate and
-grid support checks also read this table. Adjacent exit Carriageways require a positive-width
-supported interval between their edges; this is the separating median, defined by Carriageway edges and material.
+grid support checks also read this table. The roads at the lock line are the exits, each the road of one outgoing
+Link's lane, supported across its edges. Adjacent exit roads require a positive-width supported interval between
+their edges: the separating median, defined by lane edges and material.
 Invalid controls produce `invalid_fork`.
 
-Exit Carriageways are ordered by their actual lock-line edges. Median centers divide supported
+Exit roads are ordered by their actual lock-line edges. Median centers divide supported
 space into exit intervals; outer supported shoulders belong to the outer exits. The shared half-open
 [lateral rule](architecture.md#boundary-geometry-and-point-ownership) assigns exact ties to the right.
 A crossing outside the coordinate domain or outside every fork interval selects no route.

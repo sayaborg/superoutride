@@ -40,8 +40,8 @@ export interface CourseAppearance {
   }[];
   readonly sprites: readonly {
     readonly instance: CourseSpriteResource;
-    /** A state-selected sign names the fork exit Carriageway whose non-selection shows it; null is always shown. */
-    readonly unselectedCarriagewayId: string | null;
+    /** A state-selected sign names the fork's exit Link whose non-selection shows it; null is always shown. */
+    readonly unselectedLink: string | null;
     readonly at: CompiledCoursePosition;
     readonly l: number;
     readonly groundOffset: number;

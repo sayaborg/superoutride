@@ -58,13 +58,13 @@ export function createCourseRouteVisualReaders(route: RouteWindow) {
       native.sprites
         .map((entry, index) => ({ ...entry, index }))
         .filter(({ sprite }) => route.at(routeS(occurrence, sprite.sRender)) === occurrence)
-        .map(({ sprite, unselectedCarriagewayId, knocked, index }) => {
+        .map(({ sprite, unselectedLink, knocked, index }) => {
           const positioned = Object.freeze({
             ...sprite,
             ...transformPlanarPoint(occurrence.worldFromSection, sprite),
             sRender: routeS(occurrence, sprite.sRender),
           });
-          return { occurrence, sprite: positioned, unselectedCarriagewayId, movable: knocked !== null, index };
+          return { occurrence, sprite: positioned, unselectedLink, movable: knocked !== null, index };
         }),
     );
     // Each occurrence's visible walls on the route ruler; the lateral reads the Boundary in its Section and the color
@@ -88,7 +88,7 @@ export function createCourseRouteVisualReaders(route: RouteWindow) {
       ground,
       walls: Object.freeze(walls),
       worldSprites: Object.freeze(
-        placements.filter((p) => p.unselectedCarriagewayId === null && !p.movable).map((p) => p.sprite),
+        placements.filter((p) => p.unselectedLink === null && !p.movable).map((p) => p.sprite),
       ),
       // Movable placements stand until the race knocks them; the scene shows each by its Section and placement index.
       movableSprites: Object.freeze(
@@ -99,10 +99,10 @@ export function createCourseRouteVisualReaders(route: RouteWindow) {
       // State-selected signs keep their fork occurrence; the scene shows them from that occurrence's choice.
       conditionalSprites: Object.freeze(
         placements
-          .filter((p) => p.unselectedCarriagewayId !== null)
+          .filter((p) => p.unselectedLink !== null)
           .map((p) => ({
             occurrence: p.occurrence,
-            unselectedCarriagewayId: p.unselectedCarriagewayId!,
+            unselectedLink: p.unselectedLink!,
             sprite: p.sprite,
           })),
       ),

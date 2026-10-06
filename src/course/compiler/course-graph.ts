@@ -6,7 +6,7 @@ import type { CompiledCourseImageSource } from './course-image-source.js';
 import type { CourseAppearance } from '../course-appearance.js';
 import type { CompiledCoursePosition, CompiledPlanSegment } from '../course-geometry.js';
 import type { CompiledBoundary, CompiledCarriageway } from '../course-boundaries.js';
-import type { CompiledLanes } from '../course-lanes.js';
+import type { CompiledLane, CompiledLanes } from '../course-lanes.js';
 import type { StripMaterial } from '../strip-material.js';
 import type { CourseBarrierLine } from '../course-barriers.js';
 import type { CourseObject } from '../course-objects.js';
@@ -38,7 +38,11 @@ export interface CompiledSection {
 /** Derived terminal cross-section. Its chainage is either zero or the Section length. */
 export interface CompiledCut {
   readonly section: CompiledSection;
+  /** The lane the cut runs through: a Link's named lane, or the entered Section's centre lane. */
+  readonly lane: CompiledLane;
+  /** The cut lane's centre, the lateral of the cut's frame. */
   readonly lateralOrigin: number;
+  /** The Carriageway holding the cut lane, until lanes replace Carriageways. */
   readonly carriageway: CompiledCarriageway;
   readonly pose: PlanarPose;
 }

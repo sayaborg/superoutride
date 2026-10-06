@@ -1,7 +1,6 @@
 import { expandCourseElements, shiftedCoursePosition } from '../course-repeat.js';
 import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
 import { type CoursePosition, type SectionDocument } from '../course-document.js';
-import type { CompiledCarriageway } from '../course-boundaries.js';
 import type { CompiledFork } from './course-graph.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
 import { CourseInputError, requireCourse } from '../course-diagnostics.js';
@@ -64,7 +63,6 @@ export function compileCourseAppearance(
   resource: ReturnType<typeof createCourseSpriteResources>,
   resolve: (at: CoursePosition, path: string) => CompiledCoursePosition,
   path: string,
-  carriageways: readonly CompiledCarriageway[],
   fork: Readonly<CompiledFork> | null,
   walls: readonly CompiledWall[],
   placements: readonly CourseSpritePlacement[],
@@ -160,23 +158,11 @@ export function compileCourseAppearance(
             ),
           })
         : null;
-    const unselectedCarriagewayId = placement.unselectedCarriageway;
-    const unselected =
-      unselectedCarriagewayId === null ? null : carriageways.find((c) => c.id === unselectedCarriagewayId);
-    if (unselected === undefined)
-      throw new CourseInputError(
-        'unresolved_reference',
-        `${at}/unselectedCarriageway`,
-        'Unknown state-selected carriageway',
-      );
-    if (unselected !== null) {
+    const unselectedLink = placement.unselectedLink;
+    if (unselectedLink !== null) {
       requireCourse(fork !== null, at, 'State-selected road signs require a fork', 'invalid_fork');
-      requireCourse(
-        fork!.exits.some((exit) => exit.link.from.carriageway === unselected),
-        at,
-        'Road sign state must name a canonical exit carriageway',
-        'invalid_fork',
-      );
+      if (!fork!.exits.some((exit) => exit.link.id === unselectedLink))
+        throw new CourseInputError('unresolved_reference', `${at}/unselectedLink`, 'Not a Link leaving this fork');
       // Between lock and closure, a sign also precedes every exit cut.
       requireCourse(
         position.s >= fork!.lock.s && position.s <= fork!.closure.s,
@@ -186,7 +172,7 @@ export function compileCourseAppearance(
       );
     }
     return Object.freeze({
-      unselectedCarriagewayId,
+      unselectedLink,
       instance,
       at: position,
       l,

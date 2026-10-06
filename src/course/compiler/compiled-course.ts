@@ -73,7 +73,7 @@ export interface CompiledCourse {
 
 const COURSE_COMPILER = Object.freeze({
   id: 'superoutride.course-compiler',
-  version: 45,
+  version: 46,
   links: COURSE_LINK_RECIPE,
   physical: COURSE_PHYSICAL_RECIPE,
   images: COURSE_IMAGE_SOURCE_RECIPE,
@@ -178,7 +178,6 @@ function compileSection(
       resources,
       resolve,
       path,
-      carriageways,
       result.fork,
       walls,
       placements,
@@ -241,19 +240,19 @@ export async function compileCourseDocument(
         .filter((s) => s === entry || document.links.some((l) => l.to === s.id))
         .map((s) => [
           s,
-          entryCut(s, `/sections/${document.sections.findIndex((item) => item.id === s.id)}/carriageways`),
+          entryCut(
+            s,
+            document.links.some((l) => l.to === s.id),
+            `/sections/${document.sections.findIndex((item) => item.id === s.id)}/lanes`,
+          ),
         ]),
     );
     const links = compileStage(document.links, (source, index) => {
       const path = `/links/${index}`;
       const from = reference(sectionTable, source.from.section, `${path}/from/section`);
       const to = reference(sectionTable, source.to, `${path}/to`);
-      const road = reference(
-        new Map(from.carriageways.map((r) => [r.id, r])),
-        source.from.carriageway,
-        `${path}/from/carriageway`,
-      );
-      const cut = compileCourseCut(from, road, from.coordinates.domain.end, `${path}/from`);
+      const lane = reference(from.lanes.byId, source.from.lane, `${path}/from/lane`);
+      const cut = compileCourseCut(from, lane, from.coordinates.domain.end, `${path}/from`);
       const link = compileCourseLink(source.id, cut, entrances.get(to)!, path);
       from.outgoing.push(link);
       to.incoming.push(link);
