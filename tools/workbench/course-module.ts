@@ -15,6 +15,7 @@ import { createProfileView } from './course-profile-view.js';
 import { createSectionView } from './course-section-view.js';
 import { createGameView } from './course-game-view.js';
 import { createFormPanel } from './course-form-panel.js';
+import { createCleaningPanel, refreshCleaningPanel } from './course-cleaning-panel.js';
 import { createPlanEditing, createProfileEditing, writtenNumbers, type CourseEditHost } from './course-editing.js';
 import { addCoursePi, removeCoursePi, setCourseNumbers, type CourseEditResult } from '../authoring/course-edits.js';
 
@@ -97,6 +98,18 @@ export const courseModule: WorkbenchModule = {
     }
     const side = make('div', '', { class: 'course-side' });
     side.append(make('h3', 'Sections and Links'), sections, make('h3', 'Selection'), selection);
+    const cleaning = createCleaningPanel({
+      document: () => document as Json | null,
+      section: () => sectionId,
+      chosen: () => group,
+      mark: (pointers) => {
+        marked = pointers;
+        showSelected();
+      },
+      preview: (result) => showPending(result),
+      select: (pointer) => context.select(path(), pointer),
+      commit: (next, label) => commit(next, label),
+    });
     const views = make('div', '', { class: 'course-views' });
     const game = make('div', '', { class: 'course-game-pane' });
     game.append(gameCanvas, gameStatus);
@@ -123,6 +136,7 @@ export const courseModule: WorkbenchModule = {
       views,
       legend,
       note,
+      cleaning,
     );
     const panes = make('div', '', { class: 'side-by-side' });
     panes.append(side, centre);
@@ -142,6 +156,8 @@ export const courseModule: WorkbenchModule = {
       lateral = 0,
       // The elements chosen together (the selection and shift-clicked ones), for Combine.
       group: string[] = [],
+      // The cleaning candidates' elements, ringed on the plan.
+      marked: readonly string[] = [],
       selected: CourseElement | null = null;
     const path = () => `courses/${id}.course.json`;
     // Each Strip's knots, by the Strip's Pointer, for its form.
@@ -284,7 +300,7 @@ export const courseModule: WorkbenchModule = {
     };
     /** The selection and its companions in every view. */
     const showSelected = () => {
-      const others = [...companions(selected).map((e) => e.pointer), ...group];
+      const others = [...companions(selected).map((e) => e.pointer), ...group, ...marked];
       view.setSelection(selected?.pointer ?? null, others);
       profileView.setSelection(selected?.pointer ?? null, others);
       sectionView.setSelection(selected?.pointer ?? null);
@@ -552,12 +568,13 @@ export const courseModule: WorkbenchModule = {
       void refresh().then(() => {
         follow();
         showProblems();
+        refreshCleaningPanel(cleaning);
         // The game's frame follows the latest compile that succeeded, stale while the document is newer.
         const state = context.compile();
         if (state.last) gameView.compiled(state.last.step, state.status === 'ok');
       });
     });
-    course.addEventListener('change', () => void refresh());
+    course.addEventListener('change', () => void refresh().then(() => refreshCleaningPanel(cleaning)));
     void refresh();
   },
 };

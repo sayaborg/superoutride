@@ -297,6 +297,15 @@ reference, re-anchor a Position to a chosen PI, and combine the elements chosen 
 shift-clicked on the plan) within a tolerance. Choosing one previews it on the plan and lists each changed Pointer with
 its value before and after and the shift; Apply makes it one step, and Cancel or another selection drops it.
 
+"Clean" runs the [cleaning operations](content-and-gameplay.md#course-authoring-operations) over the whole course,
+the open Section or the selection: round values (a step and the kinds of value), remove unneeded knots (a tolerance),
+join near things (a tolerance) or merge equal things (a colour tolerance). "Find candidates" lists each candidate
+with what it changes and whether the driving changes (its shift), rings their elements on the plan, and selects one
+when its row is clicked; applying any of them makes the measured products stale. "Preview chosen" draws the checked
+candidates applied with their shift and each Section's centreline shift and length change, and "Apply chosen" makes
+them one step. Below, what is written alike (colours with their uses, references and absolute laterals) is shown.
+The candidates are found on the page's thread; RIBBON COAST's unneeded knots take about 3 s.
+
 To apply an archive to the repository, extract it at the repository root, delete the files `workbench-changes.json`
 marks `deleted`, delete `workbench-changes.json`, then run `npm run measure -- generate`, `npm run check` and
 `npm run build`. Authors without a
