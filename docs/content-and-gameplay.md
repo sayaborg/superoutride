@@ -568,7 +568,7 @@ while a Position in its Section measures from its joint. `splitCoursePlanElement
 shape, the second with a new id; two straights or two like arcs in a row are a state between edits, which the course
 does not admit until one of them changes.
 `normalizeCoursePositions` measures every Position again from the joint nearest its station, the station kept and the
-offset written to 1e-9 m. Every edit and operation that changes form ends with it over the Sections it changed, so a
+offset written to 1e-9 m. Every edit, operation that changes form and applied cleaning ends with it over the Sections it changed, so a
 plan edit, whose joints move, and a move past a midpoint between joints leave each Position written the one way; the
 rewritten Positions are among the changes. An edit may produce a document admission rejects; the compile's
 diagnostics then say why.

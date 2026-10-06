@@ -12,6 +12,7 @@ import { valueAt, withValue, type Json } from './json-pointer.js';
 import type { ProfileReader } from '../../src/course/geometry/profile.js';
 import { courseBoundaryAt } from '../../src/course/course-boundaries.js';
 import { SECTION_END_JOINT } from '../../src/course/course-document.js';
+import { withNormalizedPositions } from './course-joints.js';
 
 /**
  * One change a cleaning operation proposes: where it is (the element's Pointer, for the figure), what it changes, and
@@ -235,8 +236,8 @@ function withShifts(document: Json, proposals: readonly Omit<CleaningCandidate, 
  * Sections resolve, and each changed Section's centreline shift and length change.
  */
 export function applyCleaning(document: Json, candidates: readonly CleaningCandidate[]): CleaningResult {
-  const changes = candidates.flatMap((candidate) => candidate.changes);
-  const next = applyCourseChanges(document, changes);
+  const edits = candidates.flatMap((candidate) => candidate.changes);
+  const { document: next, changes } = withNormalizedPositions(document, applyCourseChanges(document, edits), edits);
   const indexes = [...new Set(changes.map((change) => sectionIndexOf(change.pointer)))].filter((i) => i >= 0);
   let shift = 0;
   const sections = indexes.map((index) => {
