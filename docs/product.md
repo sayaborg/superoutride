@@ -276,6 +276,10 @@ Vehicles that touch push each other apart, ahead-behind or side to side, with eq
 that act through the ordinary vehicle mechanics. A vehicle in the air passes over one below it. Contact
 never turns a vehicle, never topples a motorcycle, never ends a run by itself and causes no damage.
 
+A road is made of lanes. Every course has at least one lane, and the course's centre line is the centre of one of
+them. Lanes begin and end by widening from nothing or narrowing to nothing, and a median may separate them; a road
+may have lanes and no painted lines.
+
 Traffic drives as on a public road: each vehicle keeps its lane and the traffic speed, leaves its lane
 only where the lane ends or a solid object stands in it, and does not yield to faster vehicles. Rivals
 race: they are bound neither to lanes nor to the traffic speed, take the shortest line the road allows and

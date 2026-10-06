@@ -40,7 +40,10 @@ explicitly scheduled in [NEXT](NEXT.md) are replaced with their owning concepts.
 | `source`              | Author-supplied data before compilation, including retained copies of that authored representation; not live readers, coordinate origins or input owners.                |
 | `presentation`        | Retired; use `appearance` for authored course visuals and a concrete rendering, display or audio name elsewhere.                                                         |
 | `Strip`               | An ordered declaration of a Section's ground or a wall's face (height read as lateral); later ones overwrite each supplied channel.                                      |
-| `Region`              | Retired; use `Strip` for surface declarations and `Carriageway` for roads between Boundaries.                                                                            |
+| `Region`              | Retired; use `Strip` for surface declarations and lanes for roads.                                                                                                       |
+| `Carriageway`         | Retired; a road is lanes touching side by side, derived from a Section's `lanes`.                                                                                        |
+| `Lane`                | One lane of a Section's cross-section, written as a width; its edges and centre are derived from the centre lane outward.                                                |
+| `Median`              | A width between two lanes; where it is wider than zero it separates roads.                                                                                               |
 | `Band`                | Retired; use `Strip` for authored and compiled surface pieces, tables and readers.                                                                                       |
 | `appearance`          | Authored course visuals, independent of physical structure and materials; compiled as `CourseAppearance`.                                                                |
 | `Section`             | A reusable course interval; environment-name intervals are `EnvironmentInterval` records in an `EnvironmentTimeline`.                                                    |
@@ -48,6 +51,7 @@ explicitly scheduled in [NEXT](NEXT.md) are replaced with their owning concepts.
 | `Knot` / `Knots`      | An authored s-position/value record / ordered sequence, including vertical PVIs and Boundary knots; not a derived polyline point. Use `*Knot` and `*Knots` consistently. |
 | `vertex`              | A polyline point derived during compilation, including compiled Boundary vertices and `ProfilePolyline` points; never authored.                                          |
 | `segment`             | A compiled planar straight or circular arc, one per authored plan element.                                                                                               |
+| `joint`               | A station a Position is measured from: the start of a plan element, or a Section's end (`"end"`).                                                                        |
 | `Definition`          | An author-written parameter record; vehicle and game-wide driving definitions have versioned JSON documents. Validated immutable products use `Compiled*`.               |
 | `listing`             | A vehicle's non-mechanical document: form, labels and metadata, selection order, sprite set and default color, sound ID and HUD steering ratio.                          |
 | `Compiled*`           | A validated immutable product derived from authored inputs.                                                                                                              |

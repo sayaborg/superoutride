@@ -50,6 +50,9 @@
   and its changes leave as one archive; the course editor shows a course's form in four views (plan, profile, cross
   section, game frame) and edits it, changes its form, cleans it and lists its findings through core functions the
   course command shares, with an underlay to trace from.
+- Course documents are written in their final Stage 15 form: a plan of straights and arcs by length from each Section's
+  origin, Positions measured from the nearest joint, lanes as widths left to right from a centre lane (roads, edges and
+  centres derived), and images named by file.
 
 Next PR: **16** — the first PR of Stage 16, awaiting its proposal.
 
@@ -81,6 +84,16 @@ are collected from the topic specifications; their order within this stage is no
 
 - Series images and attract demo: each series has one 320×240 image (20×15 tiles of 16×16 px), and
   SELECT SERIES switches between them; the attract demo replaces the text title.
+
+### Course format follow-ups
+
+- Circuit closure: a circuit written in round lengths does not close. Before the first product circuit, decide how
+  the tool solves the closing elements (the last arc's length and the last two straights' lengths) so that authors do
+  not write the residual.
+- Conditional solid objects: a sprite shown by a fork's choice (`unselectedLink`) may also have a body in the format;
+  the race does not place such objects yet (cones lining the closed exit once a fork is decided).
+- Wall Strips keep knots of their own because heights have no named lines; revisit with the first product walls.
+- Oncoming lanes: a lane direction, when oncoming traffic is decided.
 
 ### Rival racing line
 
@@ -218,7 +231,6 @@ lighting at its own chainage, and switching is a cut.
 | Series content   | WEC LE MANS 24 layout and field; BIG RUN vehicles and field; RALLY STAGE title and course set                                                  |
 | Vehicles         | Exact specifications of adopted vehicles (year, market, grade); BROUGHAM TUNED values                                                          |
 | Circuits         | Series or FREE PLAY placement of the selected circuits below                                                                                   |
-| Interaction      | Oncoming traffic (Stage 16)                                                                                                                    |
 | Tunnels          | Whether tunnel sides and ceilings are drawn by the renderer like walls (a ceiling is a second surface above the road), replacing sprite frames |
 | Walls            | Whether walls take the ground's arrow, text and curb constructs as well as strip and repeat (when a product course needs them)                 |
 | Walls            | Whether wall friction varies by wall rather than being one game-wide `barrierFriction`                                                         |

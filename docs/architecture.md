@@ -299,9 +299,11 @@ on the local passage.
 
 ## Boundary geometry and point ownership
 
-Compiled Boundaries remain piecewise linear on the authoritative s ruler. Their vertices come
-from their own knot stations and, within each knot interval, both endpoint references' Boundary
-vertices, including inherited ones. Compilation evaluates and blends the endpoint Lateral
+Compiled Boundaries and lane lines remain piecewise linear on the authoritative s ruler. A Section's lane lines (each
+lane's edges and centre, and each median's width) have a vertex at every station where any width changes slope, laid
+outward from the centre lane, and are compiled before the Boundaries, which may refer to them. A Boundary's vertices
+come from its own knot stations and, within each knot interval, both endpoint references' line vertices (a Boundary's
+or a lane's), including inherited ones. Compilation evaluates and blends the endpoint Lateral
 expressions at those stations as specified in [Content and gameplay](content-and-gameplay.md#lateral-positions).
 The published resolved l sequence is the only input to `courseBoundaryAt` and its consumers.
 Width and center are derived from
