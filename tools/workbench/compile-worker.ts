@@ -4,6 +4,8 @@ import { planMeasurement } from '../authoring/measure.js';
 import { MEASUREMENT_STALE, measuredEnvelopePath, referenceTimesPath } from '../course/measured-products.js';
 import { workerStore } from './worker-store.js';
 import { courseReport, courseSection, createCourseFrameRenderer } from '../authoring/course-views.js';
+import { courseFindings } from '../authoring/course-findings.js';
+import type { Json } from '../authoring/json-pointer.js';
 import type { CompiledContent } from '../authoring/compile-content.js';
 import type { CompileRequest, CompileResponse, CourseQuery, QueryRequest, QueryResponse } from './compile-protocol.js';
 
@@ -32,7 +34,7 @@ const compile = async (...[store, options]: Parameters<typeof compileContent>) =
 // The last frame renderer, kept while its compile, course, Section and vehicle are asked for again.
 let renderer: { readonly key: string; readonly render: ReturnType<typeof createCourseFrameRenderer>['render'] } | null =
   null;
-function answer(query: CourseQuery, compiled: NonNullable<typeof latest>) {
+function answer(query: Exclude<CourseQuery, { kind: 'findings' }>, compiled: NonNullable<typeof latest>) {
   const course = compiled.content.courses.find((candidate) => candidate.id === query.course);
   if (!course) throw new RangeError(`Unknown course ${query.course}`);
   const section = courseSection(course, query.section);
@@ -57,11 +59,22 @@ function query({ id, query }: QueryRequest) {
   const base = { type: 'answer' as const, id, generation: latest?.generation ?? null };
   let response: QueryResponse;
   try {
-    if (!latest) throw new RangeError('Nothing has compiled yet');
-    response = { ...base, milliseconds: 0, ...answer(query, latest) };
+    if (query.kind === 'findings') {
+      const { document, ...options } = query;
+      response = { ...base, milliseconds: 0, kind: 'findings', findings: courseFindings(document as Json, options) };
+    } else {
+      if (!latest) throw new RangeError('Nothing has compiled yet');
+      response = { ...base, milliseconds: 0, ...answer(query, latest) };
+    }
   } catch (error) {
-    if (!(error instanceof RangeError)) throw error;
-    response = { ...base, milliseconds: 0, kind: 'failed', message: error.message };
+    // A document findings cannot read is answered, not thrown: findings never fail.
+    if (!(error instanceof RangeError) && query.kind !== 'findings') throw error;
+    response = {
+      ...base,
+      milliseconds: 0,
+      kind: 'failed',
+      message: error instanceof Error ? error.message : String(error),
+    };
   }
   scope.postMessage({ ...response, milliseconds: performance.now() - started });
 }

@@ -381,3 +381,27 @@ input[type='number'] {
   padding: 0;
   cursor: pointer;
 }
+.course-findings {
+  margin: 6px 0;
+  font-size: 12px;
+}
+.course-findings button[data-kind] {
+  margin-right: 4px;
+}
+.course-findings details {
+  display: inline-block;
+  margin-left: 8px;
+}
+.course-finding-list {
+  max-height: 160px;
+  overflow: auto;
+  margin: 4px 0;
+}
+.course-finding-list .link {
+  background: none;
+  border: none;
+  color: inherit;
+  text-align: left;
+  padding: 0;
+  cursor: pointer;
+}

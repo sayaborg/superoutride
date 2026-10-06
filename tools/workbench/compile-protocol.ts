@@ -1,6 +1,7 @@
 import type { ContentLoadDiagnostic } from '../../src/content/content-load-error.js';
 import type { DeliveredFile } from '../authoring/compile-content.js';
 import type { CourseFrame, CourseReport } from '../authoring/course-views.js';
+import type { CourseFinding, FindingOptions } from '../authoring/course-findings.js';
 
 /** One compile of the published build's authored files under `changes`, numbered by its generation. */
 export interface CompileRequest {
@@ -48,8 +49,12 @@ export type CompileResponse = { readonly type: 'compiled' } & (
     }
 );
 
-/** A view of a compiled course: a Section's numeric report, or the game's frame at a position. */
+/**
+ * A view of a compiled course: a Section's numeric report, or the game's frame at a position; or a course document's
+ * findings, worked out off the page's thread from the document sent, compiled or not.
+ */
 export type CourseQuery =
+  | ({ readonly kind: 'findings'; readonly document: unknown } & FindingOptions)
   | { readonly kind: 'report'; readonly course: string; readonly section: string; readonly step: number }
   | {
       readonly kind: 'render';
@@ -80,5 +85,6 @@ export type QueryResponse = {
 } & (
   | { readonly kind: 'report'; readonly report: CourseReport }
   | { readonly kind: 'render'; readonly frame: Omit<CourseFrame, 'stats'> }
+  | { readonly kind: 'findings'; readonly findings: readonly CourseFinding[] }
   | { readonly kind: 'failed'; readonly message: string }
 );

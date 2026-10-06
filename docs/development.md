@@ -309,6 +309,11 @@ candidates applied with their shift and each Section's centreline shift and leng
 them one step. Below, what is written alike (colours with their uses, references and absolute laterals) is shown.
 The candidates are found on the page's thread; RIBBON COAST's unneeded knots take about 3 s.
 
+The course's [findings](content-and-gameplay.md#course-authoring-operations), apart from its diagnostics, are always
+counted by kind above the views. The compile worker works them out after each change, from the document as it stands,
+compiled or not (a `findings` query), with the chosen step and tolerances. A kind lists its findings; choosing one
+selects its element and opens its cleaning operation's candidates for that element.
+
 To apply an archive to the repository, extract it at the repository root, delete the files `workbench-changes.json`
 marks `deleted`, delete `workbench-changes.json`, then run `npm run measure -- generate`, `npm run check` and
 `npm run build`. Authors without a

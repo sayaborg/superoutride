@@ -16,6 +16,7 @@ import { createSectionView } from './course-section-view.js';
 import { createGameView } from './course-game-view.js';
 import { createFormPanel } from './course-form-panel.js';
 import { createCleaningPanel, refreshCleaningPanel } from './course-cleaning-panel.js';
+import { createFindingsBar } from './course-findings-bar.js';
 import { createPlanEditing, createProfileEditing, writtenNumbers, type CourseEditHost } from './course-editing.js';
 import { addCoursePi, removeCoursePi, setCourseNumbers, type CourseEditResult } from '../authoring/course-edits.js';
 
@@ -110,6 +111,12 @@ export const courseModule: WorkbenchModule = {
       select: (pointer) => context.select(path(), pointer),
       commit: (next, label) => commit(next, label),
     });
+    const findings = createFindingsBar({
+      document: () => document as Json | null,
+      query: (query) => context.query(query),
+      select: (pointer) => context.select(path(), pointer),
+      open: (operation, pointer, amount) => cleaning.findFor(operation, [pointer], amount),
+    });
     const views = make('div', '', { class: 'course-views' });
     const game = make('div', '', { class: 'course-game-pane' });
     game.append(gameCanvas, gameStatus);
@@ -133,10 +140,11 @@ export const courseModule: WorkbenchModule = {
       field('with radius (m)', newRadius),
       ' ',
       removePi,
+      findings.element,
       views,
       legend,
       note,
-      cleaning,
+      cleaning.element,
     );
     const panes = make('div', '', { class: 'side-by-side' });
     panes.append(side, centre);
@@ -568,13 +576,21 @@ export const courseModule: WorkbenchModule = {
       void refresh().then(() => {
         follow();
         showProblems();
-        refreshCleaningPanel(cleaning);
+        refreshCleaningPanel(cleaning.element);
+        findings.update();
         // The game's frame follows the latest compile that succeeded, stale while the document is newer.
         const state = context.compile();
         if (state.last) gameView.compiled(state.last.step, state.status === 'ok');
       });
     });
-    course.addEventListener('change', () => void refresh().then(() => refreshCleaningPanel(cleaning)));
+    course.addEventListener(
+      'change',
+      () =>
+        void refresh().then(() => {
+          refreshCleaningPanel(cleaning.element);
+          findings.update();
+        }),
+    );
     void refresh();
   },
 };

@@ -43,7 +43,7 @@ const OPERATIONS = {
  * driving changes) and rings it on the plan; "Apply chosen" makes the checked ones one step, after a preview of their
  * shift and each Section's centreline shift and length change. What is written alike is shown below, unchanged.
  */
-export function createCleaningPanel(host: CleaningPanelHost): HTMLElement {
+export function createCleaningPanel(host: CleaningPanelHost) {
   const panel = make('details', '', { class: 'course-cleaning' });
   const operation = make('select');
   for (const [value, label] of Object.entries(OPERATIONS)) operation.append(make('option', label, { value }));
@@ -93,11 +93,13 @@ export function createCleaningPanel(host: CleaningPanelHost): HTMLElement {
     host.preview(null);
     host.mark([]);
   };
-  find.addEventListener('click', () => {
+  /** Find the chosen operation's candidates, over the chosen scope or the elements given. */
+  const search = (pointers?: readonly string[]) => {
     const document = host.document();
     if (!document) return;
-    const where: CleaningScope =
-      scope.value === 'section'
+    const where: CleaningScope = pointers
+      ? { pointers }
+      : scope.value === 'section'
         ? { section: host.section() ?? '' }
         : scope.value === 'chosen'
           ? { pointers: host.chosen() }
@@ -126,7 +128,8 @@ export function createCleaningPanel(host: CleaningPanelHost): HTMLElement {
       status.textContent = `${candidates.length} candidate${candidates.length === 1 ? '' : 's'} · ${Math.round(performance.now() - started)} ms. Applying any changes the course, so its measured products become stale; the driving changes only where the shift is not 0.`;
       showCandidates();
     });
-  });
+  };
+  find.addEventListener('click', () => search());
 
   const showCandidates = () => {
     host.mark(candidates.map((c) => c.pointer));
@@ -211,6 +214,15 @@ export function createCleaningPanel(host: CleaningPanelHost): HTMLElement {
     );
   };
   panel.addEventListener('toggle', showGroups);
+  /** Open the candidates an operation has for some elements: what a finding's operation proposes there. */
+  const findFor = (kind: keyof typeof OPERATIONS, pointers: readonly string[], amount?: number) => {
+    panel.open = true;
+    operation.value = kind;
+    showParameters();
+    if (amount !== undefined) (kind === 'round' ? step : tolerance).value = String(amount);
+    if (kind === 'round') for (const box of values.querySelectorAll<HTMLInputElement>('input')) box.checked = true;
+    search(pointers);
+  };
 
   panel.append(
     make('summary', 'Clean'),
@@ -228,7 +240,7 @@ export function createCleaningPanel(host: CleaningPanelHost): HTMLElement {
     list,
     groups,
   );
-  return panel;
+  return { element: panel, findFor };
 }
 
 /** Refresh the panel's view of what is written alike after the document changes. */
