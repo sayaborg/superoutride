@@ -1,4 +1,4 @@
-import type { DriverIntent, TargetCarriageway } from './course-fork-field.js';
+import type { DriverIntent } from './course-fork-field.js';
 import type { RouteFootprint } from './body-contacts.js';
 import {
   createSteeringPath,
@@ -52,7 +52,7 @@ export interface LaneIntent extends DriverIntent {
 export function createLaneFollowing(
   forks: {
     targetL(s: number, intent: DriverIntent): number;
-    targetCarriageway(s: number, exit: DriverIntent['exit']): TargetCarriageway;
+    adjacentLanes(s: number, lane: number): readonly number[];
   },
   window: Pick<DrivingDomain, 'end'>,
 ) {
@@ -122,10 +122,8 @@ export function createLaneFollowing(
    */
   const escape = (self: VehicleSighting, intent: DriverIntent, lane: number, other: VehicleSighting) => {
     const halfWidths = (self.width + other.width) / 2;
-    const lanes = forks.targetCarriageway(self.s, intent.exit).road.lanes;
     let least = Infinity;
-    for (const candidate of [lane - 1, lane + 1]) {
-      if (candidate < 0 || candidate >= lanes) continue;
+    for (const candidate of forks.adjacentLanes(self.s, lane)) {
       trace(rest, self, intent, candidate, true);
       // The first distance after which the path stays clear.
       let clearFrom = -1;
@@ -223,7 +221,7 @@ export function createLaneFollowing(
     merge(intent: LaneIntent, self: VehicleSighting, sightings: readonly VehicleSighting[], toward: number): boolean {
       const candidate = intent.lane + Math.sign(toward - intent.lane);
       if (
-        candidate < 0 ||
+        candidate === intent.lane ||
         !free(self, intent, candidate, sightings) ||
         !followersCanStop(self, intent, candidate, sightings, () => true)
       )
@@ -232,8 +230,8 @@ export function createLaneFollowing(
       return true;
     },
     /**
-     * Move the driver, whose plan behind its own lane's vehicle allows `target`, to the free adjacent lane of the
-     * Carriageway it follows where its plan allows the most speed (`speedBehind` of that lane's vehicle ahead), when that
+     * Move the driver, whose plan behind its own lane's vehicle allows `target`, to the free adjacent lane of its road
+     * where its plan allows the most speed (`speedBehind` of that lane's vehicle ahead), when that
      * exceeds `target` by more than the passing margin; the left one on a tie. A lane that `ends` ahead does not qualify.
      * Returns the speed its plan allows in the new lane, or null when no lane qualifies.
      */
@@ -245,13 +243,10 @@ export function createLaneFollowing(
       speedBehind: (leader: EnvelopeLeader | null) => number,
       ends: (lane: number) => boolean,
     ): number | null {
-      const lanes = forks.targetCarriageway(self.s, intent.exit).road.lanes;
-      const lane = intent.lane;
       let best = -1,
         bestSpeed = target + ENVELOPE_DRIVER.passingMargin;
-      for (const candidate of [lane - 1, lane + 1]) {
-        if (candidate < 0 || candidate >= lanes || ends(candidate) || !free(self, intent, candidate, sightings))
-          continue;
+      for (const candidate of forks.adjacentLanes(self.s, intent.lane)) {
+        if (ends(candidate) || !free(self, intent, candidate, sightings)) continue;
         const speed = speedBehind(ahead(self, intent, candidate, sightings));
         if (speed > bestSpeed) [best, bestSpeed] = [candidate, speed];
       }

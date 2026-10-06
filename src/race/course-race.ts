@@ -125,9 +125,9 @@ export function createCourseRace(options: {
     pacing: RivalPacing | null,
     stages: SessionEntry['stages'],
   ) => {
-    // The race's recovery lane resolver: a rival's lane; the player recovers to the centre of its road.
+    // The race's recovery lane resolver: a rival's lane; the player recovers to the centre of the lane nearest it.
     const recoveryIntent = driving?.intent ?? null;
-    const recoveryLane = (s: number) => forks.recoveryL(s, recoveryIntent);
+    const recoveryLane = (s: number) => forks.recoveryL(s, recoveryIntent, body.vehicle.course.l);
     const body = createPresentVehicle(id, actor, driving, (self, s) => vacantPlace(self, s, recoveryLane));
     return {
       id,

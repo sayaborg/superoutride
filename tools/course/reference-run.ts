@@ -21,7 +21,7 @@ import { SIM_DT } from '../../src/race/fixed-step.js';
 import { READY_SECONDS } from '../../src/race/start-phase.js';
 import { ENVELOPE_MEASUREMENT } from './rival-envelope-measurement.js';
 import { PACE_SCHEDULE_SPACING } from '../../src/content/pace-schedule.js';
-import { courseBoundaryAt, courseCarriagewayExists } from '../../src/course/course-boundaries.js';
+import { courseRoadsAt } from '../../src/course/course-lanes.js';
 
 const IDLE_INPUT = Object.freeze({ steering: 0, throttle: false, brake: false });
 
@@ -31,7 +31,7 @@ const IDLE_INPUT = Object.freeze({ steering: 0, throttle: false, brake: false })
  */
 export const REFERENCE_RUN = Object.freeze({
   name: 'superoutride.reference-driving',
-  version: 1,
+  version: 2,
   dt: SIM_DT,
   seed: 0,
   driver: REFERENCE_DRIVER,
@@ -58,7 +58,6 @@ export function runCourseReference(
     catalog,
   );
   const session = resolveCourseSession(course, null, configuration, REFERENCE_RUN.seed, vehicleConfiguration, envelope);
-  const slot = session.entries[0]!.slot!;
   const race = createCourseRace({ session, runtime: scene.runtime });
   const { actor } = race.player;
   const { vehicle } = actor;
@@ -69,8 +68,8 @@ export function runCourseReference(
     maximumSpeed = 0,
     maximumLateralUtilization = 0;
   const planned = new Map(route.map((link) => [link.from.section, link]));
-  // The reference line from the start slot; the planned Link at each fork is the intended exit.
-  const lane = referenceLine(race.forks, scene.runtime.route, slot.l, (occurrence) =>
+  // The reference line: the centre lane; the planned Link at each fork is the intended exit.
+  const lane = referenceLine(scene.runtime.route, (occurrence) =>
     occurrence.section.fork!.exits.findIndex((exit) => exit.link === planned.get(occurrence.section)),
   );
   const workspace = createEnvelopeDriverWorkspace();
@@ -134,9 +133,7 @@ export function runCourseReference(
   const finalSection = finalOccurrence.section;
   const finalS = routeSectionS(finalOccurrence, vehicle.course.s);
   const finalL = vehicle.course.l + finalOccurrence.lateralOrigin;
-  const lateralBounds = finalSection.carriageways
-    .filter((b) => courseCarriagewayExists(b, finalS, finalSection.coordinates.domain.end))
-    .map((b) => [courseBoundaryAt(b.left, finalS), courseBoundaryAt(b.right, finalS)] as const);
+  const lateralBounds = courseRoadsAt(finalSection.lanes, finalS).map((road) => [road.left, road.right] as const);
   if (!lateralBounds.some(([left, right]) => finalL >= left && finalL < right))
     throw new RangeError('Reference FINISH lies outside pavement');
   return {

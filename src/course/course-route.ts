@@ -178,47 +178,6 @@ export function selectedSuccessor(route: CourseRoute, occurrence: RouteOccurrenc
   return route.occurrences[occurrence.ordinal + 1]?.incoming ?? null;
 }
 
-// The index of the value nearest `x`; an equal distance goes to the lower index (the lower-numbered lane).
-const nearest = (values: readonly number[], x: number) => {
-  let best = 0;
-  for (let i = 1; i < values.length; i++) if (Math.abs(values[i]! - x) < Math.abs(values[best]! - x)) best = i;
-  return best;
-};
-
-/**
- * A lane across a change of the Carriageway followed — a seam, or a station within a Section where the followed
- * Carriageway changes — by position: with `from` and `to` the lane centres on either side at that station (route
- * laterals), lane `lane` runs on as the lane whose centre is nearest its centre. Where several lanes run on as one, the
- * nearest of them continues and the others end there; an equal distance goes to the lower-numbered lane in either choice.
- */
-export function routeLaneAcross(
-  from: readonly number[],
-  lane: number,
-  to: readonly number[],
-): { readonly lane: number; readonly continues: boolean } {
-  const next = nearest(to, from[lane]!);
-  let continuing = -1;
-  for (let i = 0; i < from.length; i++)
-    if (
-      nearest(to, from[i]!) === next &&
-      (continuing < 0 || Math.abs(from[i]! - to[next]!) < Math.abs(from[continuing]! - to[next]!))
-    )
-      continuing = i;
-  return { lane: next, continues: continuing === lane };
-}
-
-/**
- * The lane on the `from` side of a change that runs on as lane `lane` on the `to` side: the one that continues into it,
- * or, for a lane that begins there, the lane whose centre is nearest its centre.
- */
-export function routeLaneBefore(from: readonly number[], to: readonly number[], lane: number): number {
-  for (let i = 0; i < from.length; i++) {
-    const across = routeLaneAcross(from, i, to);
-    if (across.lane === lane && across.continues) return i;
-  }
-  return nearest(from, to[lane]!);
-}
-
 /** The single route-to-Section conversion used by all route readers. */
 export function routeSectionS(occurrence: RouteOccurrence, s: number): number {
   return s - occurrence.start;

@@ -144,11 +144,9 @@ export function createLaneDriving(options: {
         const seam = seamEnd(lane);
         const object = objectEnd(lane, seam);
         if (object === null) return seam && { s: seam.s, merge: seam.merge, seam: true };
-        // A lane a standing object ends is left toward an adjacent lane that does not end, the lower-numbered one first.
-        const lanes = forks.targetCarriageway(s, intent.exit).road.lanes;
+        // A lane a standing object ends is left toward an adjacent lane of its road that does not end, the left one first.
         let merge: number | null = null;
-        for (const candidate of [lane - 1, lane + 1])
-          if (merge === null && candidate >= 0 && candidate < lanes && !ends(candidate)) merge = candidate;
+        for (const candidate of forks.adjacentLanes(s, lane)) if (merge === null && !ends(candidate)) merge = candidate;
         return { s: object, merge, seam: false };
       };
       let end = endOf(intent.lane);

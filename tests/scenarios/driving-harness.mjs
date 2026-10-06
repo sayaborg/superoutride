@@ -22,7 +22,7 @@ import { createRaceSprites } from '../../src/view/race-sprites.js';
 import { createDisplaySettings, STRIP_RENDER_METHODS } from '../../src/view/display-settings.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
 import { READY_SECONDS } from '../../src/race/start-phase.js';
-import { courseBoundaryAt, courseCarriagewayExists } from '../../src/course/course-boundaries.js';
+import { courseRoadsAt } from '../../src/course/course-lanes.js';
 import { routeS, routeSectionS } from '../../src/course/course-route.js';
 import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 import { readFileSync } from 'node:fs';
@@ -93,13 +93,11 @@ function pavementBounds(scene, vehicle) {
   const occurrence = scene.runtime.route.at(vehicle.course.s);
   if (!occurrence) return null;
   const s = routeSectionS(occurrence, vehicle.course.s);
-  const roads = occurrence.section.carriageways.filter((r) =>
-    courseCarriagewayExists(r, s, occurrence.section.coordinates.domain.end),
-  );
+  const roads = courseRoadsAt(occurrence.section.lanes, s);
   if (!roads.length) return null;
   return {
-    left: Math.min(...roads.map((r) => courseBoundaryAt(r.left, s))) - occurrence.lateralOrigin,
-    right: Math.max(...roads.map((r) => courseBoundaryAt(r.right, s))) - occurrence.lateralOrigin,
+    left: Math.min(...roads.map((r) => r.left)) - occurrence.lateralOrigin,
+    right: Math.max(...roads.map((r) => r.right)) - occurrence.lateralOrigin,
   };
 }
 
@@ -182,12 +180,11 @@ export async function runScenario({ course, arcade: scenarioArcade, productArcad
     const occurrence = scene.runtime.route.at(s);
     const fork = occurrence?.section.fork;
     if (scenario.policy !== 'closed' || !fork || actor.recovery.recoveries !== 0) return null;
-    const road = fork.exits.at(-1).link.from.carriageway;
+    const lane = fork.exits.at(-1).link.from.lane;
     const nativeS = routeSectionS(occurrence, s);
-    if (!courseCarriagewayExists(road, nativeS, occurrence.section.coordinates.domain.end)) return null;
-    return (
-      (courseBoundaryAt(road.left, nativeS) + courseBoundaryAt(road.right, nativeS)) / 2 - occurrence.lateralOrigin
-    );
+    const road = courseRoadsAt(occurrence.section.lanes, nativeS).find((r) => r.lanes.includes(lane));
+    if (!road) return null;
+    return (road.left + road.right) / 2 - occurrence.lateralOrigin;
   };
   // The cones policy's row, from the course's authored objects: the movable objects of the first Section on the Route
   // that has any, at the lateral of its first one, as route stations and a route lateral.

@@ -124,10 +124,10 @@ export function createTrafficField(options: {
           exit: (occurrence) =>
             trafficDraw(seed, 'exit', position, occurrence.section.fork!.exits.length, occurrence.ordinal),
         };
-        const appearing = forks.targetCarriageway(s, intent.exit);
+        const road = forks.roadLanes(s, intent.exit);
         // Traffic appears only on roads of two or more lanes.
-        if (appearing.road.lanes < 2) return;
-        intent.lane = trafficDraw(seed, 'lane', position, appearing.road.lanes);
+        if (road.length < 2) return;
+        intent.lane = road[trafficDraw(seed, 'lane', position, road.length)]!;
         const lane = (station: number) => forks.targetL(station, intent);
         const l = lane(s);
         if (placement.occupied(model, s, l)) return;

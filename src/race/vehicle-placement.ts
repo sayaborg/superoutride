@@ -79,7 +79,7 @@ export function createVehiclePlacement(options: {
       recoverVehicleToPlanCoordinate(readers, body.vehicle, body.model, {
         state: body.step.state,
         reason: 'wrong-course',
-        target: vacantPlace(body, target.s, (s) => forks.recoveryL(s, null), target.l),
+        target: vacantPlace(body, target.s, (s) => forks.recoveryL(s, null, target.l), target.l),
       });
       return true;
     },
