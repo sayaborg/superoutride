@@ -114,6 +114,7 @@ npm run course -- report content/courses/ribbon-coast.course.json --step 25 --ou
 npm run course -- structure content/courses/ribbon-coast.course.json --section coast-wide
 npm run course -- move content/courses/ribbon-coast.course.json --element /sections/0/sprites/0/elements/0 --ds 5 --step 0.5
 npm run course -- set content/courses/ribbon-coast.course.json --values /sections/0/pis/1/radius=420 --out content/courses/ribbon-coast.course.json
+npm run course -- unbind content/courses/ribbon-coast.course.json --lateral /sections/0/boundaries/1/knots/0/lateral
 node --import tsx tools/course/measure.ts request.json --out observations.json
 ```
 
@@ -125,6 +126,10 @@ the content, so a document that does not compile still shows; `--section` keeps 
 [edits that keep form](content-and-gameplay.md#course-authoring-operations) on the document as saved (`--values` takes
 `/pointer=number` pairs, `--element` an element's Pointer, `--section` a Section's and `--pi` a PI's), print the
 changed values, and with `--out` write the edited document in the saved layout.
+`explode` (`--repeat`), `combine` (`--elements` as comma-separated Pointers, `--tolerance`), `bind`
+(`--lateral` as the lateral's Pointer, `--boundary`), `unbind` (`--lateral`) and `reanchor` (`--position`, `--pi`) make
+the [operations that change form](content-and-gameplay.md#course-authoring-operations), printing the shift with the
+changed values.
 [Content and gameplay](content-and-gameplay.md#observation-formats) owns saved tool formats.
 `report` and `render` write what two core functions in
 [`course-views.ts`](../tools/authoring/course-views.ts) return from the compiled course: `courseReport` (a Section's

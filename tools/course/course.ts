@@ -23,17 +23,27 @@ import {
   type CourseEditResult,
 } from '../authoring/course-edits.js';
 import type { Json } from '../authoring/json-pointer.js';
+import {
+  bindCourseLateral,
+  combineCourseElements,
+  explodeCourseRepeat,
+  reanchorCoursePosition,
+  unbindCourseLateral,
+  type CourseFormResult,
+} from '../authoring/course-forms.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
 
 const EDITS = ['set', 'move', 'add-pi', 'remove-pi'];
+const FORMS = ['explode', 'combine', 'bind', 'unbind', 'reanchor'];
 const [verb, file, ...args] = process.argv.slice(2);
 try {
   requireInput(
-    ['compile', 'render', 'report', 'structure', ...EDITS].includes(verb!) && file,
+    ['compile', 'render', 'report', 'structure', ...EDITS, ...FORMS].includes(verb!) && file,
     '/arguments',
-    `Usage: npm run course -- compile|render|report|structure|${EDITS.join('|')} course.json [options]`,
+    `Usage: npm run course -- compile|render|report|structure|${[...EDITS, ...FORMS].join('|')} course.json [options]`,
   );
   if (EDITS.includes(verb!)) await editVerb(file);
+  else if (FORMS.includes(verb!)) await formVerb(file);
   else if (verb === 'structure') {
     // The form of the document as saved, compiled or not: read alone, without the content.
     const opts = options(args, ['--section']);
@@ -99,6 +109,41 @@ async function editVerb(file: string) {
   requireInput(result.ok, '/edit', result.ok ? '' : result.reason);
   if (opts.has('--out')) await atomicWrite(path.resolve(opts.get('--out')!), formatSavedJson(result.document));
   console.log(JSON.stringify({ ok: true, changes: result.changes }));
+}
+
+/**
+ * The operations that change how the document is written: the changed values and the shift (the largest move of
+ * anything the Section resolves, metres) are printed, and with `--out` the edited document is written.
+ */
+async function formVerb(file: string) {
+  const flags = {
+    explode: ['--repeat'],
+    combine: ['--elements', '--tolerance'],
+    bind: ['--lateral', '--boundary'],
+    unbind: ['--lateral'],
+    reanchor: ['--position', '--pi'],
+  }[verb!]!;
+  const opts = options(args, [...flags, '--out']);
+  const document = (await jsonFile(file)).value as Json;
+  const lateral = opts.get('--lateral') ?? '';
+  const [element, field] = [lateral.slice(0, lateral.lastIndexOf('/')), lateral.slice(lateral.lastIndexOf('/') + 1)];
+  const result: CourseFormResult =
+    verb === 'explode'
+      ? explodeCourseRepeat(document, opts.get('--repeat') ?? '')
+      : verb === 'combine'
+        ? combineCourseElements(
+            document,
+            (opts.get('--elements') ?? '').split(','),
+            opts.has('--tolerance') ? finite(Number(opts.get('--tolerance')), '/tolerance', 0) : 0,
+          )
+        : verb === 'bind'
+          ? bindCourseLateral(document, element, field, opts.get('--boundary') ?? '')
+          : verb === 'unbind'
+            ? unbindCourseLateral(document, element, field)
+            : reanchorCoursePosition(document, opts.get('--position') ?? '', opts.get('--pi') ?? '');
+  requireInput(result.ok, '/operation', result.ok ? '' : result.reason);
+  if (opts.has('--out')) await atomicWrite(path.resolve(opts.get('--out')!), formatSavedJson(result.document));
+  console.log(JSON.stringify({ ok: true, shift: result.shift, changes: result.changes }));
 }
 
 /** The verbs over the compiled course: compile, render and report. */

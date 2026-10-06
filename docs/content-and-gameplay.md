@@ -558,6 +558,24 @@ multiple of a step, nothing else. Derived points do not move. `addCoursePi` inse
 `removeCoursePi` is refused while a Position in its Section measures from it. An edit may produce a document admission
 rejects; the compile's diagnostics then say why.
 
+**Operations that change form** ([`course-forms.ts`](../tools/authoring/course-forms.ts)) are made only when an author
+chooses them. Each returns the new document, each changed value's Pointer, before and after, and the shift: the largest
+move, in metres, of anything the Section resolves (plan points, stations, heights and lines, paired in order with the
+repeats expanded); or the reason it cannot be made, leaving the document unchanged. Numbers an operation computes from
+resolved values are written to 1e-9 m, which drops floating-point noise.
+
+- `explodeCourseRepeat` replaces a repeat by the elements it stands for, in place, one level at a time: copy k is the
+  repeat's elements with every Position's `offset` moved by k × `every`, as the course expands it. Its shift is 0.
+- `combineCourseElements` replaces elements of one list by a repeat when they are one block (one element in station
+  order, or several in list order) repeated at one spacing, each copy the same but for its Positions. The repeat holds
+  the first block, in the first element's place. With tolerance 0 only exact steps combine; with a tolerance the steps
+  are evened out and the largest move is the shift. Exploding and combining again gives the same values.
+- `bindCourseLateral` makes an absolute lateral a reference to a chosen Boundary, its offset giving the same lateral at
+  the element's station; between knots the line then follows the Boundary. `unbindCourseLateral` makes a reference the
+  number it resolves to at the element's station; between knots the line then runs straight. A Boundary cannot refer
+  to itself.
+- `reanchorCoursePosition` measures a Position from another PI of its Section, its offset chosen so its station stays.
+
 ## Compiled identity and project publication
 
 CompiledCourse contains canonical Section, plan segment, Boundary, Carriageway, Link,
