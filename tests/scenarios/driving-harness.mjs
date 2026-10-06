@@ -225,6 +225,7 @@ export async function runScenario({ course, arcade: scenarioArcade, productArcad
       camera,
       observed.player.brakeLampOn ? visual.on : visual.off,
       sprites([...observed.rivals, ...observed.traffic], camera),
+      [observed.player, ...observed.rivals, ...observed.traffic],
       observed.knocked,
     );
     evidence.frames++;

@@ -230,14 +230,18 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
       fuelCutRpm: fuelCutRpm(redlineRpm, drivingDefinition.compiledDriving.powertrain.fuelCutRedlineMargin),
     };
   };
-  // Rivals and traffic are drawn and voiced by the same rules: one reused list of their observations per frame.
+  // Rivals and traffic are drawn and voiced by the same rules: one reused list of their observations per frame. Every
+  // vehicle, the player included, casts a shadow by one rule.
   const otherVehicles: CompetitorObservation[] = [];
+  const shadowed: CompetitorObservation[] = [];
   const draw = () => {
     const { scene, race } = active;
     const started = performanceHud ? performance.now() : 0,
       observations = race.observe();
     otherVehicles.length = 0;
     otherVehicles.push(...observations.rivals, ...observations.traffic);
+    shadowed.length = 0;
+    shadowed.push(observations.player, ...otherVehicles);
     const others = raceSprites(otherVehicles, lifecycle.camera);
     // The renderer reads no clock; with DEV its caller times the scene render for the performance HUD.
     const renderStarted = performanceHud ? performance.now() : 0;
@@ -247,6 +251,7 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
       lifecycle.camera,
       observations.player.brakeLampOn ? sprites.on : sprites.off,
       others,
+      shadowed,
       observations.knocked,
       measurements,
     );

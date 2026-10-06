@@ -92,6 +92,8 @@ interface TerrainLine extends TerrainLineGeometry {
    * vertical footprint and the clipped interval a collapsed row represents.
    */
   deltaS: number;
+  /** The footprint's nearer chainage: the row represents `[sNear, sNear + deltaS]`. */
+  sNear: number;
 }
 
 /** Reused by one renderer; outputs are borrowed until its next render. */
@@ -106,6 +108,7 @@ export function createTerrainWorkspace() {
     boundaries: [] as number[],
     visible: { dStart: 0, dEnd: 0 },
     height: { y: 0, grade: 0 },
+    footprint: { near: 0, length: 0 },
     left: point(),
     right: point(),
     projectedLeft: projection(),
@@ -176,8 +179,13 @@ export function generateTerrainLines(
       const representativeY = (y0 + y1) * 0.5;
       const y = Math.floor(representativeY);
       if (y >= 0 && y < parameters.screenHeight) {
-        const deltaS = computeTerrainRowDeltaS(y, aY, bY, visible.dStart, visible.dEnd);
-        const line = createTerrainLine(plan, camera, parameters, d, y, deltaS, intervalLength, workspace);
+        const footprint = computeTerrainRowFootprint(y, d, aY, bY, visible.dStart, visible.dEnd, workspace.footprint);
+        // The collapsed row represents the larger of its own footprint and the whole thin interval.
+        if (intervalLength > footprint.length) {
+          footprint.near = d0;
+          footprint.length = intervalLength;
+        }
+        const line = createTerrainLine(plan, camera, parameters, d, y, footprint, workspace);
         if (line) lines.push(line);
       }
     } else {
@@ -194,8 +202,8 @@ export function generateTerrainLines(
         if (d < d0 - DEPTH_INTERVAL_TOLERANCE_METERS || d > d1 + DEPTH_INTERVAL_TOLERANCE_METERS) continue;
         if (d < visible.dStart - DEPTH_INTERVAL_TOLERANCE_METERS || d > visible.dEnd + DEPTH_INTERVAL_TOLERANCE_METERS)
           continue;
-        const deltaS = computeTerrainRowDeltaS(y, aY, bY, visible.dStart, visible.dEnd);
-        const line = createTerrainLine(plan, camera, parameters, d, y, deltaS, 0, workspace);
+        const footprint = computeTerrainRowFootprint(y, d, aY, bY, visible.dStart, visible.dEnd, workspace.footprint);
+        const line = createTerrainLine(plan, camera, parameters, d, y, footprint, workspace);
         if (line) lines.push(line);
       }
     }
@@ -216,19 +224,34 @@ function projectedTerrainSpanRows(bY: number, d0: number, d1: number): number {
 }
 
 /**
- * For integer output row y, Delta s = |s(y+1)-s(y)| at its screen boundaries.
- * The footprint is clipped only by the current forward near/far interval.
+ * For integer output row y, the depth interval between its screen boundaries: its nearer depth and its length
+ * Delta s = |s(y+1)-s(y)|. The footprint is clipped only by the current forward near/far interval; a flat row
+ * has none: length 0 at its representative depth `d`.
  */
-function computeTerrainRowDeltaS(row: number, aY: number, bY: number, dMin: number, dMax: number): number {
+function computeTerrainRowFootprint(
+  row: number,
+  d: number,
+  aY: number,
+  bY: number,
+  dMin: number,
+  dMax: number,
+  out: { near: number; length: number },
+): { near: number; length: number } {
   if (!Number.isFinite(row) || !Number.isFinite(aY) || !Number.isFinite(bY)) {
     throw new RangeError('terrain footprint inputs must be finite');
   }
   if (!(dMin > 0 && dMax > dMin)) throw new RangeError('terrain footprint requires 0 < dMin < dMax');
-  if (Math.abs(bY) < FLAT_HEIGHT_COEFFICIENT_TOLERANCE_PIXEL_METERS) return 0;
+  if (Math.abs(bY) < FLAT_HEIGHT_COEFFICIENT_TOLERANCE_PIXEL_METERS) {
+    out.near = d;
+    out.length = 0;
+    return out;
+  }
 
   const dTop = depthAtScreenBoundary(row, aY, bY, dMin, dMax);
   const dBottom = depthAtScreenBoundary(row + 1, aY, bY, dMin, dMax);
-  return Math.abs(dTop - dBottom);
+  out.near = Math.min(dTop, dBottom);
+  out.length = Math.abs(dTop - dBottom);
+  return out;
 }
 
 function depthAtScreenBoundary(screenY: number, aY: number, bY: number, dMin: number, dMax: number): number {
@@ -247,8 +270,7 @@ function createTerrainLine(
   parameters: TerrainRenderParameters,
   d: number,
   y: number,
-  deltaS: number,
-  deltaSCollapse: number,
+  footprint: { readonly near: number; readonly length: number },
   workspace: TerrainWorkspace,
 ): TerrainLine | null {
   const s = camera.s + d;
@@ -271,6 +293,7 @@ function createTerrainLine(
       xGroundL: 0,
       xGroundR: 0,
       deltaS: 0,
+      sNear: 0,
     };
     workspace.pool.push(line);
   }
@@ -279,7 +302,8 @@ function createTerrainLine(
   line.y = y;
   line.xGroundL = projectedLeft.x;
   line.xGroundR = projectedRight.x;
-  line.deltaS = Math.max(deltaS, deltaSCollapse);
+  line.deltaS = footprint.length;
+  line.sNear = camera.s + footprint.near;
   return line;
 }
 

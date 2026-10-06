@@ -510,6 +510,27 @@ Transparent ground, including ground rows outside the Route, writes nothing and 
 beneath it, such as BG below the horizon. At equal depth terrain draws before walls and walls before sprites. The player
 is last among world visuals.
 
+### Vehicle shadows
+
+Every vehicle, the player included, has a shadow on the ground directly below it, drawn by one rule. Its shape is a
+rectangle in route coordinates: from its chainage, half its vehicle definition's `overallLength` back and forth, and
+from its lateral, half its `overallWidth` left and right. Yaw, pitch, roll, lean and height do not change it; there is
+no light direction. The ground rows project it: each row tests its own chainage footprint (`[sNear, sNear + deltaS]`)
+and maps the rectangle's laterals to pixels with its projected metre ruler, so shadows follow slopes and crests with no
+projection or height of their own, and a row hidden behind a crest hides its part of a shadow.
+
+A row takes a shadow where they cover at least half of the shorter of the two, with the shared 0.5 coverage
+threshold: the row's footprint against the shadow's length and, along the row, a pixel against the shadow's projected
+width. A shadow shorter than a row thus darkens the row holding at least half of it, and one narrower than a pixel the
+pixel holding its centre, so a distant shadow keeps at least one pixel while its rows are visible. Rows and pixels
+outside the frame and the near and far depths clip it.
+
+The ground sampler writes the covered pixels of its row at half brightness (`halveRgb555`, the one half-brightness
+operation) as it writes them, for every display method; transparent ground writes nothing and so stays undarkened.
+Overlapping shadows form one set of pixels per row, darkened once. Walls and sprites draw over the ground in Painter
+order, so no shadow darkens a body, a sprite or a wall, and a vehicle's own body draws over its shadow. Within a fork
+Section every road shares the Section's route coordinates, so a shadow lies on the road its vehicle is on.
+
 ### Walls
 
 A visible wall is drawn inside the terrain order, with no separate pass: right after each terrain row whose station lies
@@ -680,7 +701,7 @@ physics read vehicles through read contracts (`vehicle-contract.ts`) whose field
 consumers; the plan coordinate projection in them is read-only, and only physics and recovery write it through the
 vehicle state. Race owns the camera-independent competitor observations (`competitor-observation.ts`): one per
 competitor, the player included, holding only the values display, camera and audio read (identity and form, pose,
-render height, chainage, velocities, speed, body pitch, lateral acceleration, brake lamp, the actual controls (the
+render height, chainage and lateral, velocities, speed, body pitch, lateral acceleration, brake lamp, the actual controls (the
 delivered driver steering offset as a fraction of its maximum, and the throttle and brake actuators), powertrain
 observations including the selected gear, the fuel-cut latch and the race's simulation seconds at the latest shift,
 and tire observations)

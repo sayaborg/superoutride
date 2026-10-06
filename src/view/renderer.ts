@@ -15,6 +15,7 @@ import { collectVisibleCourseSprites, type CourseSprite, type VisibleCourseSprit
 import { drawWallColumn, type RouteWall, type WallWorkspace } from './course-wall.js';
 
 import { deriveVehicleLeanRadians } from './vehicle-visuals.js';
+import { shadowRowSpans, type VehicleShadow } from './vehicle-shadow.js';
 
 /** DEV and tool measurements of one rendered frame; the product render takes none. */
 export interface RenderMeasurements {
@@ -70,6 +71,8 @@ interface RenderScene {
   /** The visible walls on the resident Route. */
   readonly walls: readonly RouteWall[];
   readonly playerSet: VehicleSpriteSet;
+  /** Every vehicle's shadow, the player's included. */
+  readonly shadows: readonly VehicleShadow[];
 }
 
 export function createRenderWorkspace() {
@@ -80,6 +83,8 @@ export function createRenderWorkspace() {
     walls: [] as RouteWall[],
     wallX: [] as number[],
     wall: { column: new Uint16Array(0), strips: createStripRenderMetrics(), wallPixels: 0 } as WallWorkspace,
+    /** Each row's shaded pixel spans. */
+    shade: [] as number[],
   };
 }
 
@@ -92,7 +97,7 @@ interface RenderOptions {
 
 export function renderDriving(
   target: SoftwareSurface,
-  { background, guide, camera, vehicle, terrainParameters, worldSprites, walls, playerSet }: RenderScene,
+  { background, guide, camera, vehicle, terrainParameters, worldSprites, walls, playerSet, shadows }: RenderScene,
   { ground, workspace, stripMethod }: RenderOptions,
   measurements: RenderMeasurements | null = null,
 ): void {
@@ -138,6 +143,8 @@ export function renderDriving(
         line.deltaS,
         stripMethod,
         stripStats,
+        // Shadows darken the row's own ground as it is written, before any wall or sprite at its depth.
+        shadowRowSpans(line, shadows, target.width, workspace.shade),
       );
       terrainOutputPixels += stripStats.outputPixels - before;
       // At equal depth: ground, then walls, then sprites.

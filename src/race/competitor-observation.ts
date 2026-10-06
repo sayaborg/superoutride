@@ -40,7 +40,7 @@ export interface CompetitorObservation extends VehicleMotionRead, VehicleRenderR
 type Mutable<T> = { -readonly [Key in keyof T]: T[Key] };
 type MutableTire = Mutable<TireObservation>;
 type CompetitorObservationSlot = Mutable<Omit<CompetitorObservation, 'course' | 'control' | 'powertrain' | 'tires'>> & {
-  course: { s: number };
+  course: { s: number; l: number };
   control: Mutable<CompetitorObservation['control']>;
   powertrain: {
     gear: number;
@@ -79,7 +79,7 @@ export function createCompetitorObservation(
     z: 0,
     yaw: 0,
     renderY: 0,
-    course: { s: 0 },
+    course: { s: 0, l: 0 },
     velocityX: 0,
     velocityY: 0,
     velocityZ: 0,
@@ -121,6 +121,7 @@ export function writeCompetitorObservation(
   out.yaw = vehicle.yaw;
   out.renderY = vehicle.renderY;
   out.course.s = vehicle.course.s;
+  out.course.l = vehicle.course.l;
   out.velocityX = vehicle.velocityX;
   out.velocityY = vehicle.velocityY;
   out.velocityZ = vehicle.velocityZ;

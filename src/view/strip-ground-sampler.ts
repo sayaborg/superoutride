@@ -5,6 +5,7 @@ import {
   rgb555LinearChannel,
   selectImageLodLevel,
 } from '../image/image-filter.js';
+import { halveRgb555 } from '../image/rgb555.js';
 import { STRIP_ACTIVE_LIMIT, STRIP_BASE_STEP, type StripGround, type StripCellTarget } from '../course/strip-ground.js';
 import type { StripRenderMethod } from './display-settings.js';
 
@@ -21,6 +22,10 @@ export interface StripRenderMetrics {
   outputPixels: number;
 }
 export interface StripGroundReader {
+  /**
+   * Write one ground row of `count` pixels from `offset`. Its opaque pixels within `shade`, ascending disjoint
+   * `[start, end)` pixel pairs counted from `offset`, are written at half brightness; transparent pixels stay unwritten.
+   */
   sampleSpan(
     pixels: Uint16Array,
     offset: number,
@@ -31,8 +36,12 @@ export interface StripGroundReader {
     deltaS: number,
     method: StripRenderMethod,
     stats: StripRenderMetrics,
+    shade?: readonly number[],
   ): void;
 }
+
+/** A row with no shaded pixels. */
+const NO_SHADE: readonly number[] = Object.freeze([]);
 
 export function createStripRenderMetrics(): StripRenderMetrics {
   return { activeStrips: 0, outputPixels: 0 };
@@ -118,6 +127,7 @@ export function createStripGroundSampler(intervals: readonly StripFieldSpan[]) {
       deltaS: number,
       method: StripRenderMethod,
       stats: StripRenderMetrics,
+      shade: readonly number[] = NO_SHADE,
     ) {
       let field: StripLateralField;
       const span = spanAt(s);
@@ -152,14 +162,14 @@ export function createStripGroundSampler(intervals: readonly StripFieldSpan[]) {
           const distance = stepL > 0 ? boundary - l : l - boundary;
           const run = Math.min(count - x, Math.max(1, Math.ceil(distance / width)));
           for (let c = 0; c < 4; c++) sample[c] = node < 0 ? field.base[c]! : field.data[at + 1 + c]!;
-          writeStripPixels(pixels, offset + x, run, sample, threshold, colorCache, stats);
+          writeStripPixels(pixels, offset, x, run, sample, threshold, colorCache, stats, shade);
           x += run;
           l += stepL * run;
           continue;
         }
         sample.fill(0);
         point(field, l, sample);
-        writeStripPixels(pixels, offset + x, 1, sample, threshold, colorCache, stats);
+        writeStripPixels(pixels, offset, x, 1, sample, threshold, colorCache, stats, shade);
         x++;
         l += stepL;
       }
@@ -167,15 +177,20 @@ export function createStripGroundSampler(intervals: readonly StripFieldSpan[]) {
   });
 }
 
-/** Premultiplied channels are divided by opacity only when a pixel is written. */
+/**
+ * Premultiplied channels are divided by opacity only when a pixel is written; pixels `x` to `x + count` of the row at
+ * `offset` within its `shade` spans take the color at half brightness.
+ */
 function writeStripPixels(
   pixels: Uint16Array,
   offset: number,
+  x: number,
   count: number,
   sample: Float64Array,
   threshold: number,
   cache: Float64Array,
   stats: StripRenderMetrics,
+  shade: readonly number[],
 ) {
   const a = sample[3]!;
   if (a < threshold) return;
@@ -189,6 +204,13 @@ function writeStripPixels(
     cache[2] = b;
     cache[3] = a;
   }
-  pixels.fill(cache[4]!, offset, offset + count);
+  const color = cache[4]!,
+    end = x + count;
+  pixels.fill(color, offset + x, offset + end);
+  for (let i = 0; i < shade.length && shade[i]! < end; i += 2) {
+    const from = Math.max(x, shade[i]!),
+      to = Math.min(end, shade[i + 1]!);
+    if (from < to) pixels.fill(halveRgb555(color), offset + from, offset + to);
+  }
   stats.outputPixels += count;
 }

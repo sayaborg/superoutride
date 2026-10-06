@@ -16,6 +16,7 @@ import { createCourseWorld } from '../race/course-world.js';
 import type { CourseLoadingWindow } from '../race/loading-coverage.js';
 import type { KnockedObjectObservation } from '../race/object-contacts.js';
 import { createPlanCoordinateSample } from '../course/geometry/plan-coordinate.js';
+import { createVehicleShadows, type ShadowedVehicle } from './vehicle-shadow.js';
 
 /** The current camera's loading window; reference driving and scenarios load the same Route. */
 const COURSE_LOADING_WINDOW: CourseLoadingWindow = Object.freeze({
@@ -37,6 +38,7 @@ export function createCourseScene(
   const renderWorkspace = createRenderWorkspace();
   const worldSprites: CourseSprite[] = [];
   const sample = createPlanCoordinateSample();
+  const shadows = createVehicleShadows(vehicles);
   let lastRenderData: ReturnType<typeof rendering.read> | null = null;
   let lastSelection: typeof runtime.route.occurrences | null = null;
   let staticSpriteCount = 0;
@@ -52,6 +54,8 @@ export function createCourseScene(
       camera: CameraState,
       playerSet: VehicleSpriteSet,
       others: readonly CourseSprite[],
+      /** Every vehicle whose shadow the frame draws, the player included. */
+      shadowed: readonly ShadowedVehicle[],
       /** The race's knocked movable objects; every other movable placement stands. */
       knocked: readonly KnockedObjectObservation[],
       /** DEV and tools only: receives the frame's measurements. */
@@ -111,6 +115,7 @@ export function createCourseScene(
           worldSprites,
           walls: renderData.walls,
           playerSet,
+          shadows: shadows(shadowed),
         },
         { ground: renderData.ground, workspace: renderWorkspace, stripMethod: displaySettings.stripMethod },
         measurements,

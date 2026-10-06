@@ -146,7 +146,8 @@ export function createCourseFrameRenderer(
       const camera = updateCamera(createCameraRig(), scene.world, vehicle, CAMERA_DEFINITION),
         target = createLogicalFrame();
       const stats = createRenderMeasurements();
-      scene.render(target, vehicle, camera, sprites.off, [], [], stats);
+      const shadowed = [{ vehicleId: entry.compiledVehicle.id, course: vehicle.course }];
+      scene.render(target, vehicle, camera, sprites.off, [], shadowed, [], stats);
       return {
         width: target.width,
         height: target.height,
