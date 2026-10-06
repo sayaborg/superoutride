@@ -1,4 +1,5 @@
 import { rgb555ToRgba, unpackRgba } from '../../src/image/rgb555.js';
+import type { UnderlayAlignment } from '../authoring/course-underlays.js';
 import type { CourseElement, ResolvedLine, SectionPlan, SectionStructure } from '../authoring/course-structure.js';
 
 /** Element layers an author shows or hides. */
@@ -95,6 +96,12 @@ export function createPlanView(
   let layers = new Set<PlanLayer>(PLAN_LAYERS);
   let style: PlanStyle = { colorOf: () => null, marks: () => {} };
   let problems = new Set<string>();
+  // An image under the plan, where its alignment lays it.
+  let underlay: {
+    image: CanvasImageSource;
+    alignment: Omit<UnderlayAlignment, 'image' | 'sha256'>;
+    opacity: number;
+  } | null = null;
   // The view: plan point at the canvas centre and pixels per metre.
   let centre = { x: 0, z: 0 },
     scale = 1;
@@ -183,6 +190,16 @@ export function createPlanView(
     );
     const pixel = 1 / scale;
     const drawn: PlanDraw = { context, pixel, world };
+    if (underlay) {
+      const { image, alignment, opacity } = underlay;
+      context.save();
+      context.globalAlpha = opacity;
+      context.translate(alignment.x, alignment.z);
+      context.rotate((alignment.rotation * Math.PI) / 180);
+      context.scale(alignment.scale, -alignment.scale);
+      context.drawImage(image, 0, 0);
+      context.restore();
+    }
     // The PI polygon: the plan as written.
     const pis = section.elements.filter((e) => e.kind === 'pi' && Number.isFinite(e.x) && Number.isFinite(e.z));
     if (layers.has('pis')) {
@@ -367,6 +384,11 @@ export function createPlanView(
     /** Pointers of elements with diagnostics. */
     setProblems(pointers: Iterable<string>) {
       problems = new Set(pointers);
+      draw();
+    },
+    /** An image under the plan, or none. */
+    setUnderlay(next: typeof underlay) {
+      underlay = next;
       draw();
     },
     /** Centre the view on a plan point. */

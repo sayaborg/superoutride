@@ -610,6 +610,14 @@ laterals exactly on a Boundary's line (`referable`, join), runs that combine int
 colours (`near-color`, merge), and Boundaries no other value of their Section names or images no value of the course
 names (`unused`, no operation).
 
+**Underlay alignments** ([`course-underlays.ts`](../tools/authoring/course-underlays.ts)) are production-only numbers
+in `content/course-underlays/<course>.json`, which the core neither reads nor delivers:
+`{ "format": "superoutride.course-underlays", "version": 1, "sections": { "<Section id>": { image, sha256, scale, x, z,
+rotation } } }`. Each Section names the image it was aligned with (its file name and SHA-256; the image is never
+saved), and image pixel (u, v), v down, lies at (x, z) + R(rotation) · (scale · u, −scale · v): (x, z) is the image's
+top-left corner in metres, `scale` metres per pixel (positive) and `rotation` the counter-clockwise turn of the u axis
+from +x in degrees, from −360 to 360.
+
 ## Compiled identity and project publication
 
 CompiledCourse contains canonical Section, plan segment, Boundary, Carriageway, Link,

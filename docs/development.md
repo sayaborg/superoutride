@@ -314,6 +314,14 @@ counted by kind above the views. The compile worker works them out after each ch
 compiled or not (a `findings` query), with the chosen step and tolerances. A kind lists its findings; choosing one
 selects its element and opens its cleaning operation's candidates for that element.
 
+"Underlay" lays a PNG or JPEG opened in the browser under the open Section's plan, to trace a course from; the image
+is never saved, in the store or an archive. It is scaled by picking two points on it and giving their distance in
+metres (the first point stays where it lies), moved by dragging (with "Move by dragging") or by number, turned by
+number and shown at a chosen opacity. "Save alignment" saves the numbers, one step, as the course's
+[underlay alignments](content-and-gameplay.md#course-authoring-operations); opening the same image again lays it
+where it was saved, and an image whose SHA-256 differs from the saved one is named as different and laid with the
+saved numbers.
+
 To apply an archive to the repository, extract it at the repository root, delete the files `workbench-changes.json`
 marks `deleted`, delete `workbench-changes.json`, then run `npm run measure -- generate`, `npm run check` and
 `npm run build`. Authors without a
@@ -348,6 +356,8 @@ extracted frames and pixel-bearing reference data stay in ignored `reference-med
 outside the checkout. This includes pixel arrays, masks and crops stored in JSON or other containers.
 Only numeric observations, scalar calibration and source/edition descriptions are committed as
 reference evidence. Product-renderer previews and reports are generated outputs.
+An underlay image traced in the course module is such a source: it is opened in the browser and never stored, and only
+its alignment numbers are committed, under `content/course-underlays/`.
 
 ## Build outputs
 

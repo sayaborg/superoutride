@@ -17,6 +17,7 @@ import { createGameView } from './course-game-view.js';
 import { createFormPanel } from './course-form-panel.js';
 import { createCleaningPanel, refreshCleaningPanel } from './course-cleaning-panel.js';
 import { createFindingsBar } from './course-findings-bar.js';
+import { createUnderlayControls } from './course-underlay-controls.js';
 import { createPlanEditing, createProfileEditing, writtenNumbers, type CourseEditHost } from './course-editing.js';
 import { addCoursePi, removeCoursePi, setCourseNumbers, type CourseEditResult } from '../authoring/course-edits.js';
 
@@ -111,6 +112,14 @@ export const courseModule: WorkbenchModule = {
       select: (pointer) => context.select(path(), pointer),
       commit: (next, label) => commit(next, label),
     });
+    const underlay = createUnderlayControls({
+      store: () => context.store,
+      course: () => id,
+      section: () => sectionId,
+      centre: () => plan?.toWorld(cursor, 0) ?? { x: 0, z: 0 },
+      show: (next) => view.setUnderlay(next),
+      save: (at, value, label) => context.replace(at, value, label),
+    });
     const findings = createFindingsBar({
       document: () => document as Json | null,
       query: (query) => context.query(query),
@@ -144,6 +153,7 @@ export const courseModule: WorkbenchModule = {
       views,
       legend,
       note,
+      underlay.element,
       cleaning.element,
     );
     const panes = make('div', '', { class: 'side-by-side' });
@@ -193,7 +203,12 @@ export const courseModule: WorkbenchModule = {
         showSelection();
       },
       cursor: (s) => moveCursor(s),
-      grab: createPlanEditing(editing),
+      grab: (() => {
+        const edit = createPlanEditing(editing);
+        // The underlay takes a press first while it is being scaled or moved.
+        return (at: { x: number; z: number }, pixel: number, picked: CourseElement | null) =>
+          underlay.grab(at) ?? edit(at, pixel, picked);
+      })(),
     });
     /**
      * A pending edit on the plan, read again through the product's functions alone (no compile); what moves with it is
@@ -263,6 +278,7 @@ export const courseModule: WorkbenchModule = {
       showCursor();
       showSections();
       showSelection();
+      void underlay.place();
     };
     const moveCursor = (s: number) => {
       cursor = Math.max(0, Math.min(s, plan?.length ?? 0));
