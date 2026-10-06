@@ -194,7 +194,8 @@ authored files ([Build outputs](#build-outputs)) under the session's changes, an
 worker, so the page never waits on a compile, and each compile reuses the unchanged stages of the one before
 ([Architecture](architecture.md#layer-boundaries)); an older compile's result never replaces a newer one's. The
 worker also answers the page's course queries, a Section's report or a frame at a position (the course commands' core
-functions), from the latest compile that succeeded; each answer carries that compile's step. The header
+functions), from the latest compile that succeeded; each answer carries that compile's step. A course document's
+findings are answered from the document sent, compiled or not. The header
 always shows the build's commit, the number of changes and the compile's state; a failed compile lists its
 diagnostics (document, JSON Pointer, code and message) and keeps the last products that compiled, marked stale. The
 products of the last compile are listed with their digests; both lists are in one panel under the module tabs, seen

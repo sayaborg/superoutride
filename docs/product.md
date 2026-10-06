@@ -336,6 +336,10 @@ workbench. The workbench is a browser page served with each build: it edits docu
 reference times, authors sprites and palettes, and starts the game on its own build. Its changes leave as one archive
 of documents. [Development](development.md) owns the commands.
 
+The workbench's course editor shows how a course is written as well as how it looks: repeats and single elements,
+references and absolute values, authored points and derived lines are drawn apart. Edits keep that form; changing it
+is always a named operation an author chooses. Cleaning operations and a list of findings keep course data tidy.
+
 ## 16. Ground
 
 Ground is an ordered list of colored Strips covering the whole plane,
