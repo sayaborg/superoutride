@@ -5,7 +5,7 @@ import {
   unbindCourseLateral,
   type CourseFormResult,
 } from '../authoring/course-forms.js';
-import type { CourseElement, SectionStructure } from '../authoring/course-structure.js';
+import { referableLines, type CourseElement, type SectionStructure } from '../authoring/course-structure.js';
 import type { Json } from '../authoring/json-pointer.js';
 import { make } from './dom.js';
 import { finiteNumber } from './pending-edit.js';
@@ -110,13 +110,15 @@ export function createFormPanel(element: CourseElement, host: FormPanelHost): HT
     make('span', ' Shift-click elements to choose them.', { class: 'hint' }),
   );
   rows.push(combining);
-  // Bind or unbind each lateral.
-  const boundaries = (section?.elements ?? [])
-    .filter((e) => e.kind === 'boundary' && !element.pointer.startsWith(`${e.pointer}/`))
-    .map((e) => String(e.values.id));
+  // Bind or unbind each lateral: a Boundary or a lane line is the target.
+  const lines = section
+    ? referableLines(section).filter(
+        (line) => !('boundary' in line.target && element.pointer.startsWith(`${line.pointer}/`)),
+      )
+    : [];
   for (const [field, lateral] of Object.entries(element.laterals)) {
     const row = make('div');
-    if (lateral.form === 'reference')
+    if (lateral.form !== 'absolute')
       row.append(
         button(
           `Unbind ${field}`,
@@ -125,11 +127,12 @@ export function createFormPanel(element: CourseElement, host: FormPanelHost): HT
         ),
       );
     else {
-      const target = options(boundaries);
+      const target = options(lines.map((line) => line.name));
+      const chosen = () => lines.find((line) => line.name === target.value)!.target;
       row.append(
         button(
           `Bind ${field} to`,
-          () => bindCourseLateral(document(), element.pointer, field, target.value),
+          () => bindCourseLateral(document(), element.pointer, field, chosen()),
           () => `Bind ${element.pointer}/${field} to ${target.value}`,
         ),
         ' ',

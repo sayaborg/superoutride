@@ -1,6 +1,12 @@
 import { courseBoundaryAt } from '../../src/course/course-boundaries.js';
 import type { CourseChange } from './course-edits.js';
-import { readCourseSection, type ResolvedLine, type SectionStructure } from './course-structure.js';
+import {
+  readCourseSection,
+  referableLines,
+  type LateralTarget,
+  type ResolvedLine,
+  type SectionStructure,
+} from './course-structure.js';
 import { valueAt, withValue, type Json } from './json-pointer.js';
 import { computedValue, withNormalizedPositions } from './course-joints.js';
 
@@ -244,21 +250,35 @@ function elementAt(document: Json, pointer: string) {
 }
 
 /**
- * Bind an absolute lateral to a Boundary: it becomes a reference whose offset gives the same lateral at the element's
- * station. Between knots, a bound line follows the Boundary instead of running straight: that is the shift.
+ * Bind an absolute lateral to a line: a Boundary, or a lane's edge or centre, its offset giving the same lateral at the
+ * element's station; between knots the lateral then follows the line.
  */
-export function bindCourseLateral(document: Json, pointer: string, field: string, boundary: string): CourseFormResult {
+export function bindCourseLateral(
+  document: Json,
+  pointer: string,
+  field: string,
+  target: LateralTarget,
+): CourseFormResult {
   const found = elementAt(document, pointer);
   const lateral = found?.element.laterals[field];
   if (!found || !lateral) return { ok: false, reason: `${pointer} has no lateral ${field}` };
   if (lateral.form !== 'absolute') return { ok: false, reason: `${pointer}/${field} is already a reference` };
-  const target = found.read.structure.elements.find((e) => e.kind === 'boundary' && e.values.id === boundary);
-  if (!target) return { ok: false, reason: `No Boundary ${boundary} in this Section` };
-  if (pointer.startsWith(`${target.pointer}/`)) return { ok: false, reason: 'A Boundary cannot refer to itself' };
+  const line = referableLines(found.read.structure).find((candidate) =>
+    'boundary' in target
+      ? 'boundary' in candidate.target && candidate.target.boundary === target.boundary
+      : 'lane' in candidate.target && candidate.target.lane === target.lane && candidate.target.side === target.side,
+  );
+  if (!line)
+    return {
+      ok: false,
+      reason: `No line ${'boundary' in target ? target.boundary : `lane ${target.lane} ${target.side}`} in this Section`,
+    };
+  if ('boundary' in target && pointer.startsWith(`${line.pointer}/`))
+    return { ok: false, reason: 'A Boundary cannot refer to itself' };
   const s = found.element.s;
-  const at = s === null || !target.lines.line ? null : lineAt(target.lines.line, s);
-  if (at === null) return { ok: false, reason: `Boundary ${boundary} does not reach the element's station` };
-  const after = { boundary, offset: computedValue(lateral.value - at) };
+  const at = s === null ? null : lineAt(line.line, s);
+  if (at === null) return { ok: false, reason: `${line.name} does not reach the element's station` };
+  const after = { ...target, offset: computedValue(lateral.value - at) };
   const next = withValue(document, `${pointer}/${field}`, after);
   return measured(document, next, found.section.index, [
     { pointer: `${pointer}/${field}`, before: lateral.value, after },
@@ -273,7 +293,7 @@ export function unbindCourseLateral(document: Json, pointer: string, field: stri
   const found = elementAt(document, pointer);
   const lateral = found?.element.laterals[field];
   if (!found || !lateral) return { ok: false, reason: `${pointer} has no lateral ${field}` };
-  if (lateral.form !== 'reference') return { ok: false, reason: `${pointer}/${field} is already absolute` };
+  if (lateral.form === 'absolute') return { ok: false, reason: `${pointer}/${field} is already absolute` };
   if (lateral.l === null) return { ok: false, reason: `${pointer}/${field} does not resolve` };
   const before = valueAt(document, `${pointer}/${field}`);
   const after = computedValue(lateral.l);

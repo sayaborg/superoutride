@@ -126,13 +126,15 @@ the content, so a document that does not compile still shows; `--section` keeps 
 `set`, `move`, `add-plan`, `remove-plan` and `normalize` make the
 [edits that keep form](content-and-gameplay.md#course-authoring-operations) on the document as saved (`--values` takes
 `/pointer=number` pairs, `--element` an element's Pointer, `--section` a Section's; `add-plan` takes `--index`,
-`--kind` straight or arc, `--length` and an arc's `--radius` and `--turn`), print the
-changed values, and with `--out` write the edited document in the saved layout.
+`--kind` straight or arc, `--length` and an arc's `--radius` and `--turn`), and the lane edits `add-lane` (`--section`,
+`--index`, `--kind` lane or median, `--width`), `remove-lane` and `remove-width` (`--element`), `move-lane`
+(`--element`, `--step` −1 or 1), `center-lane` (`--section`, `--lane`) and `taper` (`--element`, `--start`, `--end`,
+`--width`) print the changed values, and with `--out` write the edited document in the saved layout.
 `explode` (`--repeat`), `combine` (`--elements` as comma-separated Pointers, `--tolerance`), `bind`
-(`--lateral` as the lateral's Pointer, `--boundary`), and `unbind` (`--lateral`) make
+(`--lateral` as the lateral's Pointer, `--boundary`, or `--lane` and `--side` for a lane's line), and `unbind` (`--lateral`) make
 the [operations that change form](content-and-gameplay.md#course-authoring-operations), printing the shift with the
 changed values.
-`round` (`--step`, `--values` from `length,radius,offset,lateral,height,curveLength,every`), `remove-knots`
+`round` (`--step`, `--values` from `length,radius,offset,lateral,width,height,curveLength,every`), `remove-knots`
 (`--tolerance`, default 0), `join` (`--tolerance`, default 0.1 m) and `merge` (`--color-tolerance`, default 0) run the [cleaning operations](content-and-gameplay.md#course-authoring-operations) over the course or
 a scope (`--section` id, `--elements` Pointers, `--kinds`): they print the candidates, and `--apply all` or
 `--apply id,...` applies the chosen ones as one edit, printing the shift and each changed Section's centreline shift
@@ -299,10 +301,15 @@ each written number as a field, including each enclosing repeat's `every` and `c
 step (off, 0.01 to 10 m). A plan element's `length` and `radius` are also fields, an arc's turn a choice, and "Split
 at cursor" splits the element where the cursor is, the two halves held until one changes. "Add plan element at cursor" inserts a straight, or an arc of the chosen radius and turn, of
 the chosen length after the element the cursor is on, and "Remove selected plan element" removes one no Position
-measures from. An edit is committed even when the course then fails to compile; the diagnostics say why.
+measures from. A selected lane or median moves along the order, is removed (a lane only when nothing names it), adds a
+lane or median after it, and tapers its width between two stations to a chosen width; its width, or each value of a
+width written at Positions, is a field, and such a value moves on the plan and is removed by its own button. A lane that
+is not the centre lane is made the centre lane by one button, with a note, before it is pressed, of how far the lanes
+then move against the absolute laterals and how many those are. An edit is committed even when the course then fails
+to compile; the diagnostics say why.
 
 Under "Change form" the selection offers the [operations that change form](content-and-gameplay.md#course-authoring-operations)
-that apply to it: explode the repeat it is or is in, bind an absolute lateral to a chosen Boundary or unbind a
+that apply to it: explode the repeat it is or is in, bind an absolute lateral to a chosen Boundary or lane line or unbind a
 reference, and combine the elements chosen together (the selection and those
 shift-clicked on the plan) within a tolerance. Choosing one previews it on the plan and lists each changed Pointer with
 its value before and after and the shift; Apply makes it one step, and Cancel or another selection drops it.

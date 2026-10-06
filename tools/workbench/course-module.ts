@@ -1,4 +1,13 @@
 import {
+  addCourseLane,
+  centerLaneShift,
+  moveCourseLane,
+  removeCourseLane,
+  removeCourseWidthKnot,
+  setCourseCenterLane,
+  taperCourseWidth,
+} from '../authoring/course-lane-edits.js';
+import {
   createSectionPlan,
   lateralLineName,
   createSectionProfile,
@@ -552,6 +561,82 @@ export const courseModule: WorkbenchModule = {
           if (result) commit(result.document, `Split ${e.pointer}`);
         });
         numbers.append(' ', split);
+      }
+      if (e.kind === 'lane' || e.kind === 'median') {
+        // A lane's or median's place, a taper of its width, a new lane beside it, and choosing the centre lane.
+        const action = (label: string, edit: () => ReturnType<typeof setCourseNumbers>, step: string) => {
+          const b = make('button', label, { type: 'button' });
+          b.addEventListener('click', () => {
+            const result = refuse(edit());
+            if (result?.changes.length) commit(result.document, step);
+          });
+          return b;
+        };
+        const sectionPointer = e.pointer.replace(/\/lanes\/\d+$/, '');
+        const index = Number(e.pointer.split('/').at(-1));
+        const start = make('input', '', { type: 'number', step: 'any', value: String(Math.round(cursor)) });
+        const end = make('input', '', { type: 'number', step: 'any', value: String(Math.round(cursor) + 100) });
+        const to = make('input', '', { type: 'number', step: 'any', min: '0', value: '0' });
+        const lanes = make('div', '', { class: 'course-numbers' });
+        lanes.append(
+          action('◀ Move', () => moveCourseLane(document as Json, e.pointer, -1), `Move ${e.pointer} left`),
+          ' ',
+          action('Move ▶', () => moveCourseLane(document as Json, e.pointer, 1), `Move ${e.pointer} right`),
+          ' ',
+          action('Remove', () => removeCourseLane(document as Json, e.pointer), `Remove ${e.pointer}`),
+          ' ',
+          action(
+            'Add lane after',
+            () => addCourseLane(document as Json, sectionPointer, index + 1, 'lane', 3.5),
+            `Add a lane after ${e.pointer}`,
+          ),
+          ' ',
+          action(
+            'Add median after',
+            () => addCourseLane(document as Json, sectionPointer, index + 1, 'median', 1),
+            `Add a median after ${e.pointer}`,
+          ),
+          make('br'),
+          action(
+            'Taper',
+            () =>
+              taperCourseWidth(
+                document as Json,
+                e.pointer,
+                finiteNumber(start.value) ?? 0,
+                finiteNumber(end.value) ?? 0,
+                finiteNumber(to.value) ?? 0,
+              ),
+            `Taper ${e.pointer}/width`,
+          ),
+          field(' from s', start),
+          field(' to s', end),
+          field(' to width', to),
+        );
+        if (e.kind === 'lane' && e.values.center !== true) {
+          const shift = centerLaneShift(document as Json, sectionPointer, String(e.values.id));
+          const note = shift
+            ? `Making ${String(e.values.id)} the centre lane keeps every absolute lateral's number (${shift.absolutes} of them), so the lanes move ${shift.start.toFixed(2)} m at the start and ${shift.end.toFixed(2)} m at the end against them.`
+            : '';
+          lanes.append(
+            make('br'),
+            action(
+              'Make centre lane',
+              () => setCourseCenterLane(document as Json, sectionPointer, String(e.values.id)),
+              `Make ${String(e.values.id)} the centre lane`,
+            ),
+            make('div', note, { class: 'hint' }),
+          );
+        }
+        numbers.append(lanes);
+      }
+      if (e.kind === 'width-knot') {
+        const remove = make('button', 'Remove this value', { type: 'button' });
+        remove.addEventListener('click', () => {
+          const result = refuse(removeCourseWidthKnot(document as Json, e.pointer));
+          if (result?.changes.length) commit(result.document, `Remove ${e.pointer}`);
+        });
+        numbers.append(' ', remove);
       }
       removePlan.disabled = e.kind !== 'plan';
       selection.replaceChildren(

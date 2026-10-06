@@ -568,6 +568,15 @@ the same point. `addCoursePlanElement` inserts a straight or arc with a new id; 
 while a Position in its Section measures from its joint. `splitCoursePlanElement` splits an element in two of its
 shape, the second with a new id; two straights or two like arcs in a row are a state between edits, which the course
 does not admit until one of them changes.
+Lane edits ([`course-lane-edits.ts`](../tools/authoring/course-lane-edits.ts)) change a Section's lanes the same way: a
+lane's or median's width is set by number where a number is written, and each value of a width written at Positions
+moves and is set like any element; `taperCourseWidth` writes a width's values at two stations, from what it is at the
+first to a chosen width at the second, removing those between and keeping those after (one number when they all
+agree), and `removeCourseWidthKnot` removes a value between the first and the last. `addCourseLane` inserts a lane, with
+a new id, or a median; `removeCourseLane` is refused while anything names the lane (a reference, a grid slot, a Link or
+`centerLane`); `moveCourseLane` moves a lane or median one place along the order. `setCourseCenterLane` chooses the
+centre lane; every absolute lateral keeps its number, so the lanes move across the centreline by the new centre lane's
+centre, which `centerLaneShift` reports, with the number of absolute laterals, before the edit is made.
 `normalizeCoursePositions` measures every Position again from the joint nearest its station, the station kept and the
 offset written to 1e-9 m. Every edit, operation that changes form and applied cleaning ends with it over the Sections it changed, so a
 plan edit, whose joints move, and a move past a midpoint between joints leave each Position written the one way; the
@@ -586,8 +595,9 @@ resolved values are written to 1e-9 m, which drops floating-point noise.
   order, or several in list order) repeated at one spacing, each copy the same but for its Positions. The repeat holds
   the first block, in the first element's place. With tolerance 0 only exact steps combine; with a tolerance the steps
   are evened out and the largest move is the shift. Exploding and combining again gives the same values.
-- `bindCourseLateral` makes an absolute lateral a reference to a chosen Boundary, its offset giving the same lateral at
-  the element's station; between knots the line then follows the Boundary. `unbindCourseLateral` makes a reference the
+- `bindCourseLateral` makes an absolute lateral a reference to a chosen Boundary, or to a lane's left edge, centre or
+  right edge, its offset giving the same lateral at the element's station; between knots the line then follows that
+  line. `unbindCourseLateral` makes a reference the
   number it resolves to at the element's station; between knots the line then runs straight. A Boundary cannot refer
   to itself.
 
@@ -600,18 +610,19 @@ edit, returning the shift and each changed Section's centreline shift (the old c
 new one) and length change. Every applied candidate changes the course's identity, so the measured products become
 stale; the driving changes only when the shift is not 0.
 
-- `roundCandidates` rounds written numbers of chosen kinds (plan lengths, radii, Position offsets, laterals, PVI
-  heights, curve lengths, repeat spacings) to a step: each value off the step is a candidate.
+- `roundCandidates` rounds written numbers of chosen kinds (plan lengths, radii, Position offsets, laterals, lane and
+  median widths, PVI heights, curve lengths, repeat spacings) to a step: each value off the step is a candidate.
 - `unneededKnotCandidates` proposes each middle knot of a Boundary or wall Strip, and each middle PVI, whose
   removal moves nothing beyond a tolerance (0: exactly the same lines and heights). The first and last knots bound a
   line's extent and stay.
 - `joinCandidates` proposes near things, within a distance but not the same, written as one: an absolute lateral near
-  a Boundary at an offset it is already referred to with (or 0) becomes that reference (`join-reference` when exactly
+  a Boundary or lane line at an offset it is already referred to with (or 0) becomes that reference (`join-reference` when exactly
   on it); a Position (of a knot, wall,
   curb, open limit or gate) near another element's Position takes it, either way round; a Position near a joint's station
   is measured from that joint with offset 0; a Strip's left edge near the previous Strip's right edge where it starts
   takes its written value. A join that leaves the Section unreadable is not proposed.
-- `mergeCandidates` proposes, for each list, its runs of three or more elements that combine exactly into repeats,
+- `mergeCandidates` proposes each width written at Positions whose values all agree as that one number (`merge-width`),
+  and, for each list, its runs of three or more elements that combine exactly into repeats,
   and each colour within a tolerance (in 5-bit steps) of a more used colour, which then takes its place everywhere.
   `sameValueGroups` shows, without changing anything, the colours with their uses, the references to a Boundary at
   one offset and the absolute laterals of one value, each with its count.
@@ -621,9 +632,10 @@ apart from diagnostics and without changing anything; a course with findings bui
 build does not read them. `courseFindings` takes a step, a distance tolerance and a colour tolerance, and returns each
 finding's kind, Pointer, description and the cleaning operation that answers it: values off the step (`digits`,
 round), knots nothing needs at tolerance 0 (`unneeded-knot`, remove knots), near things (`near`, join), absolute
-laterals exactly on a Boundary's line (`referable`, join), runs that combine into repeats (`repeatable`, merge), near
-colours (`near-color`, merge), and Boundaries no other value of their Section names or images no value of the course
-names (`unused`, no operation).
+laterals exactly on a Boundary's or lane's line (`referable`, join), runs that combine into repeats (`repeatable`,
+merge), widths whose values all agree (`equal-width`, merge), near colours (`near-color`, merge), Boundaries no other
+value of their Section names or images no value of the course names (`unused`, no operation), and medians zero wide
+throughout (`zero-median`, no operation).
 
 **Underlay alignments** ([`course-underlays.ts`](../tools/authoring/course-underlays.ts)) are production-only numbers
 in `content/course-underlays/<course>.json`, which the core neither reads nor delivers:

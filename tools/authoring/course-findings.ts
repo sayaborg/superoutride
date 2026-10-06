@@ -15,7 +15,9 @@ export const FINDING_KINDS = {
   referable: 'join',
   repeatable: 'merge',
   'near-color': 'merge',
+  'equal-width': 'merge',
   unused: null,
+  'zero-median': null,
 } as const;
 export type FindingKind = keyof typeof FINDING_KINDS;
 
@@ -58,6 +60,20 @@ function unusedDeclarations(document: Json): CourseFinding[] {
       if (typeof id === 'string' && !names.some((n) => n.text === id && n.pointer !== `${pointer}/id`))
         findings.push({ kind: 'unused', pointer, description: `Boundary ${id} is not used`, operation: null });
     });
+    // A median whose width is zero throughout separates nothing.
+    const lanes = record(section).lanes;
+    (Array.isArray(lanes) ? lanes : []).forEach((element, l) => {
+      const v = record(element);
+      const width = v.width;
+      const zero = width === 0 || (Array.isArray(width) && width.every((knot) => record(knot).width === 0));
+      if (v.kind === 'median' && zero)
+        findings.push({
+          kind: 'zero-median',
+          pointer: `/sections/${i}/lanes/${l}`,
+          description: `The median at /sections/${i}/lanes/${l} is zero wide throughout`,
+          operation: null,
+        });
+    });
   });
   return findings;
 }
@@ -79,7 +95,11 @@ export function courseFindings(document: Json, options: FindingOptions): CourseF
   for (const join of joinCandidates(document, { tolerance: options.tolerance }))
     add(join.operation === 'join-reference' ? 'referable' : 'near', join.pointer, join.description);
   for (const merge of mergeCandidates(document, { colorTolerance: options.colorTolerance }))
-    add(merge.operation === 'combine' ? 'repeatable' : 'near-color', merge.pointer, merge.description);
+    add(
+      merge.operation === 'combine' ? 'repeatable' : merge.operation === 'merge-width' ? 'equal-width' : 'near-color',
+      merge.pointer,
+      merge.description,
+    );
   findings.push(...unusedDeclarations(document));
   return findings;
 }

@@ -170,7 +170,7 @@ function lateralAt(element: CourseElement, s: number): number {
 }
 
 /** Numbers of these names written in an element's record are edited as fields. */
-const VALUE_FIELDS = ['length', 'radius', 'y', 'curveLength', 'bottom', 'top', 'every', 'count'];
+const VALUE_FIELDS = ['length', 'radius', 'width', 'y', 'curveLength', 'bottom', 'top', 'every', 'count'];
 
 /**
  * The written numbers of an element, each a field: its Positions' offsets, its laterals (the number, or a reference's

@@ -3,6 +3,8 @@ import { combineCourseElements, sectionShift } from './course-forms.js';
 import {
   readCourseSection,
   readCourseStructure,
+  lateralLineName,
+  referableLines,
   type CourseElement,
   type CourseElementKind,
   type ResolvedLine,
@@ -254,7 +256,16 @@ export function applyCleaning(document: Json, candidates: readonly CleaningCandi
 }
 
 /** The written numbers rounding can change, by name. */
-export const ROUNDED_VALUES = ['length', 'radius', 'offset', 'lateral', 'height', 'curveLength', 'every'] as const;
+export const ROUNDED_VALUES = [
+  'length',
+  'radius',
+  'offset',
+  'lateral',
+  'width',
+  'height',
+  'curveLength',
+  'every',
+] as const;
 export type RoundedValue = (typeof ROUNDED_VALUES)[number];
 
 /** An element's written numbers of the named kinds, each with its Pointer. */
@@ -279,6 +290,12 @@ function roundable(element: CourseElement, document: Json, values: readonly Roun
     if (values.includes('curveLength')) add(`${element.pointer}/curveLength`);
   }
   if (element.kind === 'repeat' && values.includes('every')) add(`${element.pointer}/every`);
+  // A lane's or median's width: its number, or each value of a width written at Positions.
+  if (
+    (element.kind === 'lane' || element.kind === 'median' || element.kind === 'width-knot') &&
+    values.includes('width')
+  )
+    add(`${element.pointer}/width`);
   return found;
 }
 
@@ -375,25 +392,26 @@ export function joinCandidates(
   const sections = readCourseStructure(document).sections;
   for (const [index, section] of sections.entries()) {
     const own = elements.filter((e) => e.index === index).map((e) => e.element);
-    const boundaries = section.elements.filter((e) => e.kind === 'boundary' && e.lines.line);
-    // Offsets each Boundary is already referred to with.
+    // The lines a lateral can refer to (Boundaries and lane lines), and the offsets each is already referred to with.
+    const lines = referableLines(section);
     const used = new Map<string, Set<number>>();
     for (const e of section.elements)
       for (const lateral of Object.values(e.laterals))
-        if (lateral.form === 'reference')
-          used.set(lateral.boundary, (used.get(lateral.boundary) ?? new Set([0])).add(lateral.offset));
+        if (lateral.form !== 'absolute') {
+          const name = lateralLineName(lateral);
+          used.set(name, (used.get(name) ?? new Set([0])).add(lateral.offset));
+        }
     for (const element of own)
       for (const [field, lateral] of Object.entries(element.laterals)) {
         if (lateral.form !== 'absolute' || element.s === null) continue;
-        let best: { boundary: string; offset: number; d: number } | null = null;
-        for (const boundary of boundaries) {
-          if (element.pointer.startsWith(`${boundary.pointer}/`)) continue;
-          const at = lineAt(boundary.lines.line!, element.s);
+        let best: { line: (typeof lines)[number]; offset: number; d: number } | null = null;
+        for (const line of lines) {
+          if ('boundary' in line.target && element.pointer.startsWith(`${line.pointer}/`)) continue;
+          const at = lineAt(line.line, element.s);
           if (at === null) continue;
-          for (const offset of used.get(String(boundary.values.id)) ?? [0]) {
+          for (const offset of used.get(line.name) ?? [0]) {
             const d = lateral.value - (at + offset);
-            if (Math.abs(d) <= tolerance && (!best || Math.abs(d) < Math.abs(best.d)))
-              best = { boundary: String(boundary.values.id), offset, d };
+            if (Math.abs(d) <= tolerance && (!best || Math.abs(d) < Math.abs(best.d))) best = { line, offset, d };
           }
         }
         if (best)
@@ -402,12 +420,12 @@ export function joinCandidates(
             // Exactly on the Boundary's line: the reference writes the same lateral.
             operation: best.d === 0 ? 'join-reference' : 'join-lateral',
             pointer: element.pointer,
-            description: `${element.pointer}/${field}: ${lateral.value} → Boundary ${best.boundary} ${best.offset >= 0 ? '+' : ''}${best.offset} (${best.d.toFixed(3)} m away)`,
+            description: `${element.pointer}/${field}: ${lateral.value} → ${best.line.name} ${best.offset >= 0 ? '+' : ''}${best.offset} (${best.d.toFixed(3)} m away)`,
             changes: [
               {
                 pointer: `${element.pointer}/${field}`,
                 before: lateral.value,
-                after: { boundary: best.boundary, offset: best.offset },
+                after: { ...best.line.target, offset: best.offset },
               },
             ],
           });
@@ -516,6 +534,21 @@ export function mergeCandidates(
       .filter(({ element }) => !element.copies.length && !/knot|vertex|plan|tangent|pvi|curve-end/.test(element.kind))
       .map(({ element }) => element.pointer.slice(0, element.pointer.lastIndexOf('/'))),
   );
+  // A width written at Positions whose values are all the same is that one number.
+  for (const { element } of scoped(document, options.scope ?? {})) {
+    if (element.kind !== 'lane' && element.kind !== 'median') continue;
+    const width = valueAt(document, `${element.pointer}/width`);
+    if (!Array.isArray(width) || width.length < 2) continue;
+    const values = width.map((knot) => (knot && typeof knot === 'object' && !Array.isArray(knot) ? knot.width : null));
+    if (typeof values[0] === 'number' && values.every((value) => value === values[0]))
+      proposals.push({
+        id: `merge ${element.pointer}/width`,
+        operation: 'merge-width',
+        pointer: element.pointer,
+        description: `${element.pointer}/width: ${width.length} values of ${values[0]} → ${values[0]}`,
+        changes: [{ pointer: `${element.pointer}/width`, before: width, after: values[0] }],
+      });
+  }
   for (const parent of lists) {
     const list = valueAt(document, parent);
     if (!Array.isArray(list)) continue;

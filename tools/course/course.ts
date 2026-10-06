@@ -46,8 +46,28 @@ import {
 } from '../authoring/course-forms.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import { normalizeCoursePositions } from '../authoring/course-joints.js';
+import {
+  addCourseLane,
+  moveCourseLane,
+  removeCourseLane,
+  removeCourseWidthKnot,
+  setCourseCenterLane,
+  taperCourseWidth,
+} from '../authoring/course-lane-edits.js';
 
-const EDITS = ['set', 'move', 'add-plan', 'remove-plan', 'normalize'];
+const EDITS = [
+  'set',
+  'move',
+  'add-plan',
+  'remove-plan',
+  'normalize',
+  'add-lane',
+  'remove-lane',
+  'move-lane',
+  'center-lane',
+  'taper',
+  'remove-width',
+];
 const FORMS = ['explode', 'combine', 'bind', 'unbind'];
 const CLEANING = ['round', 'remove-knots', 'join', 'merge', 'same'];
 const FINDINGS = 'findings';
@@ -97,6 +117,12 @@ async function editVerb(file: string) {
     'add-plan': ['--section', '--index', '--kind', '--length', '--radius', '--turn'],
     'remove-plan': ['--element'],
     normalize: [],
+    'add-lane': ['--section', '--index', '--kind', '--width'],
+    'remove-lane': ['--element'],
+    'move-lane': ['--element', '--step'],
+    'center-lane': ['--section', '--lane'],
+    taper: ['--element', '--start', '--end', '--width'],
+    'remove-width': ['--element'],
   }[verb!]!;
   const opts = options(args, [...flags, '--out']);
   const document = (await jsonFile(file)).value as Json;
@@ -142,6 +168,26 @@ async function editVerb(file: string) {
         : { kind, length: number('--length'), radius: number('--radius'), turn: turn as 'left' | 'right' },
     );
   } else if (verb === 'remove-plan') result = removeCoursePlanElement(document, opts.get('--element') ?? '');
+  else if (verb === 'add-lane') {
+    const kind = opts.get('--kind') ?? 'lane';
+    requireInput(kind === 'lane' || kind === 'median', '/kind', 'The kind is lane or median');
+    result = addCourseLane(document, opts.get('--section') ?? '', number('--index'), kind, number('--width'));
+  } else if (verb === 'remove-lane') result = removeCourseLane(document, opts.get('--element') ?? '');
+  else if (verb === 'move-lane') {
+    const step = number('--step');
+    requireInput(step === -1 || step === 1, '/step', 'The step is -1 or 1');
+    result = moveCourseLane(document, opts.get('--element') ?? '', step);
+  } else if (verb === 'center-lane')
+    result = setCourseCenterLane(document, opts.get('--section') ?? '', opts.get('--lane') ?? '');
+  else if (verb === 'taper')
+    result = taperCourseWidth(
+      document,
+      opts.get('--element') ?? '',
+      number('--start'),
+      number('--end'),
+      number('--width'),
+    );
+  else if (verb === 'remove-width') result = removeCourseWidthKnot(document, opts.get('--element') ?? '');
   else result = { ok: true, ...normalizeCoursePositions(document) };
   requireInput(result.ok, '/edit', result.ok ? '' : result.reason);
   if (opts.has('--out'))
@@ -157,7 +203,7 @@ async function formVerb(file: string) {
   const flags = {
     explode: ['--repeat'],
     combine: ['--elements', '--tolerance'],
-    bind: ['--lateral', '--boundary'],
+    bind: ['--lateral', '--boundary', '--lane', '--side'],
     unbind: ['--lateral'],
   }[verb!]!;
   const opts = options(args, [...flags, '--out']);
@@ -174,7 +220,14 @@ async function formVerb(file: string) {
             opts.has('--tolerance') ? finite(Number(opts.get('--tolerance')), '/tolerance', 0) : 0,
           )
         : verb === 'bind'
-          ? bindCourseLateral(document, element, field, opts.get('--boundary') ?? '')
+          ? bindCourseLateral(
+              document,
+              element,
+              field,
+              opts.has('--lane')
+                ? { lane: opts.get('--lane')!, side: (opts.get('--side') ?? 'center') as 'left' | 'center' | 'right' }
+                : { boundary: opts.get('--boundary') ?? '' },
+            )
           : unbindCourseLateral(document, element, field);
   requireInput(result.ok, '/operation', result.ok ? '' : result.reason);
   if (opts.has('--out'))

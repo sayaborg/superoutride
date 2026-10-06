@@ -94,6 +94,41 @@ export type WrittenLateral = (
     }
 ) & { readonly l: number | null };
 
+/** A line a lateral can refer to: a Boundary, or a lane's left edge, centre or right edge. */
+export type LateralTarget =
+  { readonly boundary: string } | { readonly lane: string; readonly side: 'left' | 'center' | 'right' };
+
+/**
+ * The lines of a Section a lateral can refer to, each with its name, its target and its resolved line: every
+ * Boundary, then every lane's left edge, centre and right edge.
+ */
+export function referableLines(section: SectionStructure) {
+  const found: { name: string; target: LateralTarget; line: ResolvedLine; pointer: string }[] = [];
+  for (const e of section.elements)
+    if (e.kind === 'boundary' && e.lines.line)
+      found.push({
+        name: `Boundary ${String(e.values.id)}`,
+        target: { boundary: String(e.values.id) },
+        line: e.lines.line,
+        pointer: e.pointer,
+      });
+  for (const e of section.elements)
+    if (e.kind === 'lane')
+      for (const [side, key] of [
+        ['left', 'edgeLeft'],
+        ['center', 'lane'],
+        ['right', 'edgeRight'],
+      ] as const)
+        if (e.lines[key])
+          found.push({
+            name: `lane ${String(e.values.id)} ${side}`,
+            target: { lane: String(e.values.id), side },
+            line: e.lines[key]!,
+            pointer: e.pointer,
+          });
+  return found;
+}
+
 /** The line a reference lateral reads, for people: `Boundary <id>` or `lane <id> <side>`. */
 export function lateralLineName(lateral: Exclude<WrittenLateral, { form: 'absolute' }>): string {
   return lateral.form === 'reference' ? `Boundary ${lateral.boundary}` : `lane ${lateral.lane} ${lateral.side}`;
