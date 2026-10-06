@@ -137,6 +137,9 @@ a scope (`--section` id, `--elements` Pointers, `--kinds`): they print the candi
 `--apply id,...` applies the chosen ones as one edit, printing the shift and each changed Section's centreline shift
 and length change.
 `same` prints the colours, reference groups and absolute values written alike, with their counts.
+`findings` prints the course's [findings](content-and-gameplay.md#course-authoring-operations) and their counts by
+kind (`--step`, default 0.001 m; `--tolerance`, default 0.1 m; `--color-tolerance`, default 1); findings never make
+it fail.
 [Content and gameplay](content-and-gameplay.md#observation-formats) owns saved tool formats.
 `report` and `render` write what two core functions in
 [`course-views.ts`](../tools/authoring/course-views.ts) return from the compiled course: `courseReport` (a Section's

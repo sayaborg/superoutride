@@ -35,6 +35,7 @@ import {
   type RoundedValue,
 } from '../authoring/course-cleaning.js';
 import type { CourseElementKind } from '../authoring/course-structure.js';
+import { countFindings, courseFindings } from '../authoring/course-findings.js';
 import {
   bindCourseLateral,
   combineCourseElements,
@@ -48,17 +49,29 @@ import { formatSavedJson } from '../../src/content/saved-json.js';
 const EDITS = ['set', 'move', 'add-pi', 'remove-pi'];
 const FORMS = ['explode', 'combine', 'bind', 'unbind', 'reanchor'];
 const CLEANING = ['round', 'remove-knots', 'join', 'merge', 'same'];
+const FINDINGS = 'findings';
 const [verb, file, ...args] = process.argv.slice(2);
 try {
   requireInput(
-    ['compile', 'render', 'report', 'structure', ...EDITS, ...FORMS, ...CLEANING].includes(verb!) && file,
+    ['compile', 'render', 'report', 'structure', ...EDITS, ...FORMS, ...CLEANING, FINDINGS].includes(verb!) && file,
     '/arguments',
-    `Usage: npm run course -- compile|render|report|structure|${[...EDITS, ...FORMS, ...CLEANING].join('|')} course.json [options]`,
+    `Usage: npm run course -- compile|render|report|structure|${[...EDITS, ...FORMS, ...CLEANING, FINDINGS].join('|')} course.json [options]`,
   );
   if (EDITS.includes(verb!)) await editVerb(file);
   else if (FORMS.includes(verb!)) await formVerb(file);
   else if (CLEANING.includes(verb!)) await cleaningVerb(file);
-  else if (verb === 'structure') {
+  else if (verb === FINDINGS) {
+    // Findings never fail the command: they are printed, by kind, and the exit code is 0.
+    const opts = options(args, ['--step', '--tolerance', '--color-tolerance']);
+    const number = (flag: string, otherwise: number, min = 0) =>
+      opts.has(flag) ? finite(Number(opts.get(flag)), `/${flag.slice(2)}`, min) : otherwise;
+    const findings = courseFindings((await jsonFile(file)).value as Json, {
+      step: number('--step', 0.001, 1e-9),
+      tolerance: number('--tolerance', 0.1),
+      colorTolerance: number('--color-tolerance', 1),
+    });
+    console.log(JSON.stringify({ ok: true, counts: countFindings(findings), findings }));
+  } else if (verb === 'structure') {
     // The form of the document as saved, compiled or not: read alone, without the content.
     const opts = options(args, ['--section']);
     const structure = readCourseStructure((await jsonFile(file)).value);

@@ -285,7 +285,15 @@ export function roundCandidates(
   document: Json,
   options: { readonly step: number; readonly values: readonly RoundedValue[]; readonly scope?: CleaningScope },
 ): CleaningCandidate[] {
-  const proposals = scoped(document, options.scope ?? {}).flatMap(({ element }) =>
+  return withShifts(document, offStepValues(document, options));
+}
+
+/** The written numbers of the chosen kinds off a step, each with its rounded value: round's proposals, unmeasured. */
+export function offStepValues(
+  document: Json,
+  options: { readonly step: number; readonly values: readonly RoundedValue[]; readonly scope?: CleaningScope },
+): Omit<CleaningCandidate, 'shift'>[] {
+  return scoped(document, options.scope ?? {}).flatMap(({ element }) =>
     roundable(element, document, options.values).flatMap(({ pointer, value }) => {
       const after = snapCourseValue(value, options.step);
       return after === value
@@ -301,7 +309,6 @@ export function roundCandidates(
           ];
     }),
   );
-  return withShifts(document, proposals);
 }
 
 /** The knots and profile points a line keeps without needing: those whose removal moves nothing beyond `tolerance`. */
@@ -390,7 +397,8 @@ export function joinCandidates(
         if (best)
           proposals.push({
             id: `join ${element.pointer}/${field}`,
-            operation: 'join-lateral',
+            // Exactly on the Boundary's line: the reference writes the same lateral.
+            operation: best.d === 0 ? 'join-reference' : 'join-lateral',
             pointer: element.pointer,
             description: `${element.pointer}/${field}: ${lateral.value} → Boundary ${best.boundary} ${best.offset >= 0 ? '+' : ''}${best.offset} (${best.d.toFixed(3)} m away)`,
             changes: [

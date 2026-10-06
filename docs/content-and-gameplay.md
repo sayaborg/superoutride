@@ -591,7 +591,8 @@ stale; the driving changes only when the shift is not 0.
   removal moves nothing beyond a tolerance (0: exactly the same lines and heights). The first and last knots bound a
   line's extent and stay.
 - `joinCandidates` proposes near things, within a distance but not the same, written as one: an absolute lateral near
-  a Boundary at an offset it is already referred to with (or 0) becomes that reference; a Position (of a knot, wall,
+  a Boundary at an offset it is already referred to with (or 0) becomes that reference (`join-reference` when exactly
+  on it); a Position (of a knot, wall,
   curb, open limit or gate) near another element's Position takes it, either way round; a Position near a PI's station
   is measured from that PI with offset 0; a Strip's left edge near the previous Strip's right edge at the same knot
   station takes its written value. A join that leaves the Section unreadable is not proposed.
@@ -599,6 +600,15 @@ stale; the driving changes only when the shift is not 0.
   and each colour within a tolerance (in 5-bit steps) of a more used colour, which then takes its place everywhere.
   `sameValueGroups` shows, without changing anything, the colours with their uses, the references to a Boundary at
   one offset and the absolute laterals of one value, each with its count.
+
+**Findings** ([`course-findings.ts`](../tools/authoring/course-findings.ts)) list what in a course is worth tidying,
+apart from diagnostics and without changing anything; a course with findings builds and runs as any other, and the
+build does not read them. `courseFindings` takes a step, a distance tolerance and a colour tolerance, and returns each
+finding's kind, Pointer, description and the cleaning operation that answers it: values off the step (`digits`,
+round), knots nothing needs at tolerance 0 (`unneeded-knot`, remove knots), near things (`near`, join), absolute
+laterals exactly on a Boundary's line (`referable`, join), runs that combine into repeats (`repeatable`, merge), near
+colours (`near-color`, merge), and Boundaries no other value of their Section names or images no value of the course
+names (`unused`, no operation).
 
 ## Compiled identity and project publication
 
