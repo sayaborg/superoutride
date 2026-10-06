@@ -35,10 +35,6 @@
               "lateral": -20
             },
             {
-              "at": { "pi": "start", "offset": 2177.3555275509593 },
-              "lateral": -20
-            },
-            {
               "at": { "pi": "end", "offset": 0 },
               "lateral": -20
             }
@@ -213,10 +209,6 @@
             },
             {
               "at": { "pi": "start", "offset": 2000.739702370611 },
-              "lateral": 20
-            },
-            {
-              "at": { "pi": "start", "offset": 2177.3555275509593 },
               "lateral": 20
             },
             {
