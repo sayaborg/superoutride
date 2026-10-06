@@ -6,7 +6,6 @@ import type { createBrowserDrivingShell } from './driving-shell.js';
 import { mountRunDevControls } from './run-controls.js';
 import { createDrivingLifecycle } from './driving-lifecycle.js';
 import { createCameraRig } from '../view/camera.js';
-import type { BrowserCourseSelection } from './course-selection.js';
 import { loadDeliveredCourse } from '../content/load-delivered-course.js';
 import type { loadVehicleDefinitions } from '../content/vehicle-catalog.js';
 import { createCourseRace } from '../race/course-race.js';
@@ -25,9 +24,7 @@ import type { RunRequest } from './run-request.js';
 import { createCourseScene } from '../view/course-scene.js';
 import { createRenderMeasurements } from '../view/renderer.js';
 import type { RunFrame, RunScreenState } from './run-screen.js';
-import { drawVehicleDebugHud } from './vehicle-debug-hud.js';
 import { drawVehicleLeanDebug } from './debug/vehicle-lean-debug.js';
-import { drawVehicleYawDebug } from './debug/vehicle-yaw-debug.js';
 import type { loadSurfaceMaterials } from '../content/surface-material-catalog.js';
 import { compileSessionConfiguration, type SessionConfiguration } from '../race/session-configuration.js';
 import type { DisplaySettings } from '../view/display-settings.js';
@@ -57,9 +54,8 @@ export interface RunPage {
   readonly shell: ReturnType<typeof createBrowserDrivingShell>;
   /** The DEV performance HUD; null without DEV. */
   readonly performanceHud: ReturnType<typeof createCoursePerformanceHud> | null;
-  /** `dev=1`: the run builds its DEV controls and draws the DEV HUDs. */
+  /** `dev=1`: the run builds its DEV controls and draws the bike lean indicator. */
   readonly dev: boolean;
-  readonly courses: readonly BrowserCourseSelection[];
   /** The player record, which a run reaching GOAL updates. */
   readonly player: PlayerRecord;
   /** The camera definition in use. */
@@ -237,7 +233,7 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
   // Rivals and traffic are drawn and voiced by the same rules: one reused list of their observations per frame.
   const otherVehicles: CompetitorObservation[] = [];
   const draw = () => {
-    const { scene, race, tuned } = active;
+    const { scene, race } = active;
     const started = performanceHud ? performance.now() : 0,
       observations = race.observe();
     otherVehicles.length = 0;
@@ -272,32 +268,10 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
         const { player } = observations;
         shell.updateAudio(player, otherVehicles, race.playerContacts.rubs);
         music.update(race, race.outcome.status, state.live);
-        // The DEV vehicle HUD diagnoses mechanics internals through the race's DEV-only diagnostics.
+        // With DEV, the bike lean indicator is drawn over the frame at the player's screen point.
         shell.present(
-          devControls && measurements
-            ? (ctx) => {
-                const { vehicle, model } = race.playerDiagnostics;
-                drawVehicleDebugHud(
-                  ctx,
-                  page.courses,
-                  courseId,
-                  shell.inputManager.lastSample,
-                  vehicle,
-                  model,
-                  devControls.driving,
-                  devControls.definition,
-                  tuned,
-                );
-                if (player.form === 'bike')
-                  drawVehicleLeanDebug(ctx, measurements.playerScreenX, measurements.playerScreenY, player);
-                drawVehicleYawDebug(
-                  ctx,
-                  measurements.playerScreenX,
-                  measurements.playerScreenY,
-                  vehicle,
-                  lifecycle.camera.yaw,
-                );
-              }
+          measurements && player.form === 'bike'
+            ? (ctx) => drawVehicleLeanDebug(ctx, measurements.playerScreenX, measurements.playerScreenY, player)
             : undefined,
         );
         if (performanceHud && measurements)

@@ -7,7 +7,6 @@ import { DEFAULT_RESULT_DELAY_SECONDS, mountResultDelayControls } from './result
 import { mountCameraControls } from './camera-controls.js';
 import { CAMERA_DEFINITION } from '../view/camera-definition.js';
 import { createBrowserDrivingShell } from './driving-shell.js';
-import { browserCourses } from './course-selection.js';
 import { mustGet } from './dom.js';
 import { loadVehicleDefinitions } from '../content/vehicle-catalog.js';
 import { loadEngineSounds } from '../content/engine-sound-catalog.js';
@@ -73,7 +72,6 @@ async function startPage(): Promise<void> {
     // With DEV, a loading run and a failure's reason with Retry also show outside the frame.
     const status = dev ? createStatus() : null;
     const courseIndex = await loadCourseIndex(content);
-    const courses = browserCourses(courseIndex);
     const series = await loadSeriesCatalog(content, vehicles);
     const freePlay = await loadFreePlayRules(content);
     const music = await loadMusic(content, TEXT_COLUMNS);
@@ -122,7 +120,6 @@ async function startPage(): Promise<void> {
       shell,
       performanceHud,
       dev,
-      courses,
       player,
       cameraDefinition: () => cameraDefinition,
       resultDelaySeconds: () => resultDelaySeconds,
@@ -224,7 +221,7 @@ async function startPage(): Promise<void> {
     );
     // A URL that names a delivered course starts that run at once; an invalid URL request fails like an assembly.
     // Otherwise the page starts at TITLE.
-    const named = courses.find((course) => course.id === parameters.get('course')) ?? null;
+    const named = courseIndex.find((course) => course.id === parameters.get('course')) ?? null;
     const urlRequest = (courseId: string) => {
       try {
         void request(

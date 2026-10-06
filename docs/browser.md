@@ -65,7 +65,7 @@ status element outside the frame, which also shows `Loading course…` while a r
 outside the frame, except when the page itself cannot start (its content or text tiles cannot load, so the frame
 cannot draw text): then its reason and a Retry that reloads the page show outside the frame. The run screen holds the run and its state: running, paused (manual PAUSE)
 or finished (the Session reached RESULT). The run runs only while neither holds: paused and finished advance no race,
-and driving input and sound stop, so the DEV vehicle HUD shows neutral input and no touch indicator is drawn. Every
+and driving input and sound stop, so no touch indicator is drawn. Every
 frame still draws the scene. While paused, the PAUSE menu is drawn over the stopped frame, which is first halved to
 half brightness while the text layer, the HUD included, stays at full brightness: the title `PAUSED` and
 RESUME, RETRY and QUIT. RESUME, BACK and PAUSE resume; RETRY requests the same run again, which starts at once with a
@@ -143,7 +143,7 @@ the run, clearing `paused` and `finished`, so it drives at once. A run's start r
 ## Selection and URL parameters
 
 The composition root reads the delivered [course index](content-and-gameplay.md#course-index) once and passes it to
-the selection screens and the DEV HUD's course line, in its order and with its display names.
+the selection screens, in its order and with its display names.
 
 A run is requested as a typed run request: the course, the mode, the vehicle and the player's color, plus the
 rival count, rival pool, traffic and laps in FREE PLAY and the laps in TIME TRIAL. ARCADE takes its laps, field and
@@ -214,7 +214,7 @@ and numeric requests in `[0,1]` have the same canonical meaning.
 
 Each fixed step, `sample()` polls the window's gamepads once and then builds one `DrivingInput` from the
 arbiters: each apply method is the winning owner's, or `RATE_LIMITED` without an owner. The latest final
-sample is a published read-only observation (`lastSample`); the DEV vehicle HUD reads it. The screen host
+sample is a published read-only observation (`lastSample`); the HUD reads it. The screen host
 suspends input whenever driving stops; suspension resets the arbiters, the adapters' held state and the final
 sample to neutral, and while suspended the manager accepts no publication. Window blur, which stops no screen, resets input the same way without suspending it. A run's start resets input once.
 
@@ -410,7 +410,8 @@ stored.
 
 Only a URL with `dev=1` builds DEV: the composition root reads it once and then builds the DEV panel from its
 template in the page, its controls (sound, ground display, camera, RESULT delay and each run's
-driving tuning, export and RECOVER), the performance HUD and the DEV vehicle HUDs drawn over the frame. Without it
+driving tuning, export and RECOVER), the performance and audio timing HUDs, and the bike lean indicator drawn
+over the frame. Without it
 none of these exist, in the DOM or as listeners, and DEV series and courses in no series are not offered. The touch
 indicators and the corner buttons are not DEV. The DEV toggle sits left of the PAUSE corner button.
 
@@ -427,21 +428,18 @@ the player's input only; it reads the Session vehicle for HUD and export and eac
 
 Driving tuning is grouped as STEERING, PEDALS, TIRES F/R, POWERTRAIN, RIVAL PACE, BODY CONTACT and ASSISTS. Each value uses a
 minus/value/plus control in the driving definition's units, wrapping at range endpoints; ASSISTS
-toggles wheel slip protection. The DEV HUD shows one line per group (STEER with the derived automatic
-budget A, PEDAL, TIRE, ENGINE with ASSIST), read from the tuned definition; RIVAL PACE and BODY CONTACT have no HUD
-line. RIVAL PACE drives no vehicle in a tuned Session, which has no rivals: it takes effect once the exported definition
+toggles wheel slip protection. RIVAL PACE drives no vehicle in a tuned Session, which has no rivals: it takes effect once the exported definition
 is adopted as content. BODY CONTACT is the rebuilt Session's own: its walls, course limits and objects push with the
 tuned values at once. An admitted adjustment rebuilds the
 Session through the same assembly as startup: a new Session vehicle with the same vehicle definition and materials
 drives the tuned definition, in a FREE PLAY Session with no rivals, the current lap count, no time limit, start speed 0
-and no envelope or time budgets, on a new Route runtime from the grid. It enters READY → GO at once, the HUD naming its own mode (FREE PLAY), and the DEV vehicle HUD's
-first line starts with `TUNED · `; the product HUD never shows it. The shell, its input, audio, camera device and DEV controls persist, and the shell keeps the
+and no envelope or time budgets, on a new Route runtime from the grid. It enters READY → GO at once, the HUD naming its own mode (FREE PLAY). The shell, its input, audio, camera device and DEV controls persist, and the shell keeps the
 tuned definition for further adjustments and export. Reloading the page restores the product Session. EXPORT saves the tuned
 driving definition (`default.json`) and the Session vehicle's definition (`<vehicle id>.json`) as browser downloads in the saved layout;
 its `audio/default.json` button (titled Export sound settings) saves the DEV sound panels' current values as the
 [audio document](audio.md#audio-document) (`default.json`);
 [Calibration](calibration.md#vehicle-settings) describes adopting them as content. There is one camera, with no
-DEV selection; the DEV overlay above the player shows its travel direction relative to the camera yaw.
+DEV selection.
 [Calibration](calibration.md#vehicle-settings) lists values, units and ranges.
 
 ### Ground display setting

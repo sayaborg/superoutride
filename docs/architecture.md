@@ -500,7 +500,7 @@ Rendering uses nearest sampling, binary alpha and one SINGLE sprite per vehicle;
 
 The product render draws the frame and returns nothing. Measurements of a frame (the Strip ground's metrics, terrain
 and sprite counts, the player's screen point and image choice) go only to a measurement sink the caller passes: DEV
-(the performance HUD and the vehicle overlays, with `dev=1`), the course tool and tests; the product path passes
+(the performance HUD and the bike lean indicator, with `dev=1`), the course tool and tests; the product path passes
 none and carries no DEV value.
 Painter order is the opaque BG, a far-to-near terrain/wall/world-sprite merge, the player, then, under the PAUSE menu or
 RESULT, the whole frame halved to half brightness (`halveRgb555Pixels`: each RGB555 channel halved, flooring, once per
@@ -663,8 +663,7 @@ mechanics, the player's included, from its Session entry: one model per entry ve
 same vehicle, and each competitor's state and recovery state at its grid slot with the Session's start speed; each
 rival's driver comes from its entry's envelope. The shell and other compositions supply the player's input only;
 manual recovery is a race operation, and body contact is a race computation whose force reaches each vehicle as the
-mechanics' one external-force input, so physics never sees another vehicle. A DEV-only diagnostics accessor exposes the player's live state and model
-to the DEV vehicle HUD alone. `SIM_DT` is the only authority for the step length. The race advances in fixed
+mechanics' one external-force input, so physics never sees another vehicle. `SIM_DT` is the only authority for the step length. The race advances in fixed
 steps of it: `advance(input)` takes no step length, and the start phase, the checkpoint clock's race time,
 recovery timing and event times all use `SIM_DT`. The model carries its fixed step, received when
 it is built; vehicle mechanics never import race, so every composition passes `SIM_DT` when it builds a model. The composition shared by
@@ -687,8 +686,7 @@ observations including the selected gear, the fuel-cut latch and the race's simu
 and tire observations)
 and never vehicle state or a model. The race copies them at the end of every advance, including held READY steps,
 once at creation and after a manual recovery. They are borrowed: the race overwrites the same objects on the next
-advance, so consumers read them before then. Display, the camera and audio read only these observations; the DEV
-vehicle HUD alone reads mechanics internals. `observe()` returns the player's observation and those of rivals and,
+advance, so consumers read them before then. Display, the camera and audio read only these observations. `observe()` returns the player's observation and those of rivals and,
 in a separate list, of traffic on the resident window, the one residency decision; displays draw and voice rivals and
 traffic by the same rules. `observe()` also lists the movable objects the race has knocked (Section, placement index,
 flying or landed, position and height); the course scene draws every other movable placement standing and each knocked

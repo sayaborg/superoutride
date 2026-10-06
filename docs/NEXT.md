@@ -68,8 +68,6 @@ Requirements left from the second design audit, by when they are taken up:
   - P7a-01 (content digest): `contentDigest` and `SHA256_TEXT` stay in core. The course layer, below content, derives
     the course build identity and verifies its image digests while compiling; moving the digest to content needs those
     two duties moved to content or the digest passed into the course compiler.
-  - D8c-03: only the DEV vehicle HUD reads the player's vehicle state directly (`playerDiagnostics`); no product path
-    does.
   - D8e-05: the surface sounds and the material catalog must match exactly at startup too, as the documented contract
     says.
   - S12-02: pitch protection guarantees what its documentation states, excluding the road line's own acceleration,

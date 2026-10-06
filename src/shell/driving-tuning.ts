@@ -411,20 +411,6 @@ export function formatDrivingTuningValue(id: string, definition: DrivingDefiniti
   return `${entry.scale >= 1000 && text.endsWith('0') ? text.slice(0, -1) : text}${entry.unit}`;
 }
 
-/** HUD line per group, plus the derived automatic-steering budget M-D. */
-export function formatDrivingTuningLine(group: DrivingTuningGroup, definition: DrivingDefinition): string {
-  const items = DRIVING_TUNING_ITEMS.filter((entry) => entry.group === group)
-    .map((entry) => `${entry.label} ${formatDrivingTuningValue(entry.id, definition)}`)
-    .join(' ');
-  if (group === 'STEERING')
-    return `STEER ${items} A ${definition.maxRoadWheelSteerDegrees - definition.steeringOffsetDegrees}°`;
-  if (group === 'PEDALS') return `PEDAL ${items}`;
-  if (group === 'TIRES') return `TIRE ${items}`;
-  if (group === 'RIVALS') return `RIVAL ${items}`;
-  if (group === 'CONTACT') return `CONTACT ${items}`;
-  return `ENGINE ${items} ASSIST ${definition.wheelSlip ? 'ON' : 'OFF'}`;
-}
-
 export function drivingTuningItems(group: DrivingTuningGroup): readonly NumericTuningItem[] {
   return DRIVING_TUNING_ITEMS.filter((entry) => entry.group === group);
 }

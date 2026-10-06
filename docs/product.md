@@ -183,7 +183,7 @@ its yaw frames with its name; left and right change the vehicle, up and down cha
 enables sound and requests fullscreen where the browser allows it. There is no continue. While the
 title is idle, an attract demo drives a product ARCADE course with the driver at the wheel; any input
 returns to the title. RESULT shows the outcome (GOAL or GAME OVER), rank when two or more competitors are ranked, race
-time, best lap on circuits and new records. DEV controls, DEV HUDs and development series appear only when the URL has `dev=1`.
+time, best lap on circuits and new records. DEV controls, DEV displays and development series appear only when the URL has `dev=1`.
 
 Menu screens are text on a plain background. A mode, series or course that offers nothing to select is shown dimmed and cannot be chosen. While a run loads, the frame shows LOADING; a failed load shows LOAD FAILED with RETRY and BACK. RESULT and the PAUSE menu are drawn over the stopped frame, dimmed to half brightness. A URL that names a course starts that run directly, for development and tests.
 
@@ -235,7 +235,7 @@ redline and wholly red while the limiter cuts fuel; the gear turns yellow briefl
 signal lamps light red one per second and turn green at GO. Text and HUD parts use one original font
 of 8×8 tiles (uppercase and lowercase letters, digits and symbols) in the same indexed format as
 sprites and backgrounds: 15 colors and transparency per palette, one palette per tile. Fork guidance
-is course appearance (signs), not HUD. DEV UI and the DEV HUD stay separate.
+is course appearance (signs), not HUD. DEV UI stays separate from the HUD.
 
 ## 10. Records and settings
 

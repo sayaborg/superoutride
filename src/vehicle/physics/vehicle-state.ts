@@ -21,7 +21,6 @@ interface VehicleControlObservation {
   throttleActuator: number;
   brakeActuator: number;
   actualSteerAngle: number;
-  /** HUD-only handwheel angle derived from road-wheel angle and the vehicle's presentation ratio. */
   /** Signed regularized front contact slip angle. Derived telemetry only. */
   frontSlipAngle: number;
   /** Station drive torques as the powertrain delivers them; protection bounds the opening, never these. */

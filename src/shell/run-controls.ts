@@ -70,11 +70,6 @@ export function mountRunDevControls(sessionVehicle: SessionVehicle, actions: Run
     { signal },
   );
   return Object.freeze({
-    /** The run's driving and vehicle definitions for the DEV vehicle HUD. */
-    get driving() {
-      return driving.source;
-    },
-    definition,
     /** Remove the run's listeners and tuning controls. */
     dispose() {
       listeners.abort();

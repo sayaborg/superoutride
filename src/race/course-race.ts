@@ -731,10 +731,6 @@ export function createCourseRace(options: {
       resync(player);
       publish();
     },
-    /** DEV vehicle HUD only: the player's live mechanics for diagnosis. No other consumer may read it. */
-    get playerDiagnostics(): { readonly vehicle: VehicleState; readonly model: VehicleModel } {
-      return playerActor;
-    },
     observe() {
       observations();
       return observed;

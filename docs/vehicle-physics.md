@@ -346,13 +346,10 @@ with zero capacity holds no lock. The margin keeps a gap
 between locking and releasing at idle, so tire slip recovering after a release cannot relock the
 clutch. A new or recovered powertrain applies the same rule to an engine at idle: it starts locked
 with the wheel-derived RPM when that RPM reaches the clutch lock RPM, and otherwise slips at idle.
-The clutch observation derives from the latch and the transmitted clutch torque: `LOCK` while
-locked; otherwise `SLIP` while the clutch transmits torque above zero and `OPEN` while it transmits
-zero, as it does at rest with the throttle released. The DEV HUD shows this observation.
 
-- `LOCK`: engine RPM equals the wheel-derived RPM, and the signed engine torque reaches the wheels.
+- Locked: engine RPM equals the wheel-derived RPM, and the signed engine torque reaches the wheels.
   Engine braking exists only while locked.
-- Unlocked (`SLIP` or `OPEN`): one law advances engine RPM,
+- Unlocked: one law advances engine RPM,
   `dRPM/dt = (opening*(curveTorque+frictionTorque) - frictionTorque - clutchTorque) / engineInertia`,
   by forward Euler at the RPM of the step's start. The clutch is a friction element with a fixed
   capacity that no controller changes. It transmits the torque that would keep the engine at
@@ -374,7 +371,7 @@ every bound is at or above the capacity.
 The one vehicle update takes a hold constraint. A held vehicle, as in a race's READY phase, is constrained
 explicitly inside that update: its body and wheels keep their pose and motion and its gear holds, while its
 actuators follow the input and its powertrain runs with the step's clutch capacity set to zero, so the clutch
-transmits nothing, the observation is `OPEN` and the engine revs freely with the throttle. Fuel cut and idle holding
+transmits nothing and the engine revs freely with the throttle. Fuel cut and idle holding
 still bound the opening, and the effective opening follows the throttle as it does when driving. The next free update
 uses the fixed capacity again, so the clutch slips from the engine speed the hold left.
 
@@ -494,10 +491,10 @@ order is unchanged. This is a conservative current-contact slip constraint.
 
 ## Observations
 
-HUD observations include input, actuators, automatic steering, requested/delivered offsets, target/actual
-rack, requested/delivered torques, the clutch observation, the selected gear and the last shift. The race copies the
-product HUD's subset into each competitor observation ([Architecture](architecture.md)). The DEV HUD shows handwheel angle at a fixed ratio to the road-wheel steer angle, 18 for cars and 1 for motorcycles, whose bars turn with the wheel (`HANDWHEEL_RATIO` in the [DEV vehicle HUD](../src/shell/vehicle-debug-hud.ts)).
-The mechanical state and compiled mechanics contain neither handwheel angle nor ratio. The bike lean display is
+Vehicle state records observations of input, actuators, automatic steering, requested/delivered offsets, target/actual
+rack, requested/delivered torques, the clutch lock and transmitted clutch torque, the selected gear and the last shift.
+The race copies the product HUD's subset into each competitor observation ([Architecture](architecture.md)). The bike
+lean display is
 `atan2(lateralAcceleration,g)`, the equilibrium lean of the rider-and-machine centre-of-mass line, shown with
 discrete bank images that the sprite set's `bankDegrees` calibrates; physical state contains yaw and pitch.
 

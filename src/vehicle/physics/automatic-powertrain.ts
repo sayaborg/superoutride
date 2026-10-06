@@ -76,9 +76,6 @@ export function resolvePowertrainConstants(
   });
 }
 
-/** Clutch observation: LOCK is the latch; otherwise SLIP while it transmits torque, else OPEN. */
-export type ClutchObservation = 'LOCK' | 'SLIP' | 'OPEN';
-
 /**
  * The last shift, numbered from 1. Sequence 0 with direction NONE means no shift yet; an update
  * without a shift leaves the record unchanged, so each shift is read once by its sequence.
@@ -133,12 +130,6 @@ export function createAutomaticPowertrainState(
     outputDriveTorque: 0,
     shift: { sequence: 0, direction: 'NONE', fromRpm: 0, toRpm: 0 },
   };
-}
-
-/** Derives the clutch observation from the lock latch and the transmitted torque. */
-export function observeClutch(state: Readonly<AutomaticPowertrainState>): ClutchObservation {
-  if (state.clutchLocked) return 'LOCK';
-  return state.clutchTorqueNewtonMeters > 0 ? 'SLIP' : 'OPEN';
 }
 
 /**

@@ -51,8 +51,7 @@ game-wide suspension stiffness at full travel as a multiple of each ride spring 
 least 1; each vehicle model admits it through [suspension stability](vehicle-physics.md#suspension-stability).
 
 PX and PY are dimensionless slips. The defaults give `kX = kY = 31.5` under the
-[tire law](vehicle-physics.md#tire-law). Automatic steering has the budget `A = M-D`, derived once by driving compilation and shown
-on the DEV HUD. The [DEV tuning registry](../src/shell/driving-tuning.ts) owns only these choices and
+[tire law](vehicle-physics.md#tire-law). Automatic steering has the budget `A = M-D`, derived once by driving compilation. The [DEV tuning registry](../src/shell/driving-tuning.ts) owns only these choices and
 step positions. From any finite value, + moves to the smallest grid value above it and − to the largest below
 it, wrapping from the last grid value to the first and back, also from outside the range; values off the grid are
 shown exactly. A DEV adjustment steps the
