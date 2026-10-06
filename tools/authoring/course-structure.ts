@@ -508,18 +508,23 @@ function readSection(
     const from = element.positions.from?.s,
       to = element.positions.to?.s;
     if (boundary && typeof from === 'number' && typeof to === 'number')
-      elements[elements.length - 1] = {
-        ...element,
-        lines: {
-          line: [from, ...boundary.vertices.map((vertex) => vertex.at.s).filter((s) => s > from && s < to), to].map(
-            (s) => ({
-              s,
-              l: resolveCourseLateral({ boundary: boundary.id, offset: 0 }, s, boundaries, at),
-              authored: s === from || s === to,
-            }),
-          ),
-        },
-      };
+      try {
+        elements[elements.length - 1] = {
+          ...element,
+          lines: {
+            line: [from, ...boundary.vertices.map((vertex) => vertex.at.s).filter((s) => s > from && s < to), to].map(
+              (s) => ({
+                s,
+                l: resolveCourseLateral({ boundary: boundary.id, offset: 0 }, s, boundaries, at),
+                authored: s === from || s === to,
+              }),
+            ),
+          },
+        };
+      } catch (error) {
+        // A wall its Boundary does not cover keeps no line, with the problem.
+        elements[elements.length - 1] = { ...element, problem: element.problem ?? problemOf(error, `${at}/boundary`) };
+      }
     repeats(v.strips, `${at}/strips`);
     expand(v.strips, `${at}/strips`, (source, offset, path, copies) => {
       list(source.knots).forEach((knot, k) => {

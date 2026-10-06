@@ -131,11 +131,12 @@ changed values, and with `--out` write the edited document in the saved layout.
 (`--lateral` as the lateral's Pointer, `--boundary`), `unbind` (`--lateral`) and `reanchor` (`--position`, `--pi`) make
 the [operations that change form](content-and-gameplay.md#course-authoring-operations), printing the shift with the
 changed values.
-`round` (`--step`, `--values` from `pi,radius,offset,lateral,height,curveLength,every`) and `remove-knots`
-(`--tolerance`) run the [cleaning operations](content-and-gameplay.md#course-authoring-operations) over the course or
+`round` (`--step`, `--values` from `pi,radius,offset,lateral,height,curveLength,every`), `remove-knots`
+(`--tolerance`, default 0), `join` (`--tolerance`, default 0.1 m) and `merge` (`--color-tolerance`, default 0) run the [cleaning operations](content-and-gameplay.md#course-authoring-operations) over the course or
 a scope (`--section` id, `--elements` Pointers, `--kinds`): they print the candidates, and `--apply all` or
 `--apply id,...` applies the chosen ones as one edit, printing the shift and each changed Section's centreline shift
 and length change.
+`same` prints the colours, reference groups and absolute values written alike, with their counts.
 [Content and gameplay](content-and-gameplay.md#observation-formats) owns saved tool formats.
 `report` and `render` write what two core functions in
 [`course-views.ts`](../tools/authoring/course-views.ts) return from the compiled course: `courseReport` (a Section's

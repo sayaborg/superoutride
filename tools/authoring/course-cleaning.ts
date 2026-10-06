@@ -1,4 +1,5 @@
 import { snapCourseValue, type CourseChange } from './course-edits.js';
+import { combineCourseElements, sectionShift } from './course-forms.js';
 import {
   readCourseSection,
   readCourseStructure,
@@ -192,6 +193,13 @@ function readingShift(before: Reading, after: Reading): number {
   return shift;
 }
 
+/** A Section's move between readings: paired by element, else (when elements were renumbered) in order. */
+function shiftBetween(before: Reading, after: Reading) {
+  const paired = readingShift(before, after);
+  if (Number.isFinite(paired) || !samePlan(before.plan, after.plan)) return paired;
+  return sectionShift(before.structure, after.structure) ?? Infinity;
+}
+
 /** The largest distance from the old centreline, sampled every 2 m, to the new one. */
 function centrelineShift(before: SectionPlan | null, after: SectionPlan | null) {
   if (!before || !after) return before === after ? 0 : Infinity;
@@ -217,7 +225,7 @@ function withShifts(document: Json, proposals: readonly Omit<CleaningCandidate, 
   return proposals.map((proposal) => {
     const index = sectionIndexOf(proposal.pointer);
     const after = readCourseSection(applyCourseChanges(document, proposal.changes), index);
-    return { ...proposal, shift: readingShift(before(index), after) };
+    return { ...proposal, shift: shiftBetween(before(index), after) };
   });
 }
 
@@ -233,7 +241,7 @@ export function applyCleaning(document: Json, candidates: readonly CleaningCandi
   const sections = indexes.map((index) => {
     const before = readCourseSection(document, index),
       after = readCourseSection(next, index);
-    shift = Math.max(shift, readingShift(before, after));
+    shift = Math.max(shift, shiftBetween(before, after));
     return {
       id: before.structure.id,
       centreline: centrelineShift(before.plan, after.plan),
@@ -327,4 +335,267 @@ export function unneededKnotCandidates(
     ];
   });
   return withShifts(document, proposals).filter((candidate) => candidate.shift <= options.tolerance);
+}
+
+/** Kinds whose Positions join with near ones: knots, wall and curb ends, open limits and gates. */
+const JOINED: readonly CourseElementKind[] = [
+  'boundary-knot',
+  'strip-knot',
+  'wall-strip-knot',
+  'wall',
+  'curb',
+  'open-limit',
+  'gate',
+];
+
+/**
+ * Near things that could be one, each within `tolerance` (metres) but not the same: an absolute lateral near a
+ * Boundary at an offset already used with it (or 0) becomes that reference; a Position near another element's Position
+ * takes it (either way round, two candidates); a Position near a PI's station is measured from that PI with offset 0;
+ * a Strip edge near the next Strip's edge at the same knot station takes the earlier one's written value. A join that
+ * leaves the Section unreadable is not proposed.
+ */
+export function joinCandidates(
+  document: Json,
+  options: { readonly tolerance: number; readonly scope?: CleaningScope },
+): CleaningCandidate[] {
+  const tolerance = options.tolerance;
+  const near = (d: number) => d !== 0 && Math.abs(d) <= tolerance;
+  const elements = scoped(document, options.scope ?? {});
+  const proposals: Omit<CleaningCandidate, 'shift'>[] = [];
+  const sections = readCourseStructure(document).sections;
+  for (const [index, section] of sections.entries()) {
+    const own = elements.filter((e) => e.index === index).map((e) => e.element);
+    const boundaries = section.elements.filter((e) => e.kind === 'boundary' && e.lines.line);
+    // Offsets each Boundary is already referred to with.
+    const used = new Map<string, Set<number>>();
+    for (const e of section.elements)
+      for (const lateral of Object.values(e.laterals))
+        if (lateral.form === 'reference')
+          used.set(lateral.boundary, (used.get(lateral.boundary) ?? new Set([0])).add(lateral.offset));
+    for (const element of own)
+      for (const [field, lateral] of Object.entries(element.laterals)) {
+        if (lateral.form !== 'absolute' || element.s === null) continue;
+        let best: { boundary: string; offset: number; d: number } | null = null;
+        for (const boundary of boundaries) {
+          if (element.pointer.startsWith(`${boundary.pointer}/`)) continue;
+          const at = lineAt(boundary.lines.line!, element.s);
+          if (at === null) continue;
+          for (const offset of used.get(String(boundary.values.id)) ?? [0]) {
+            const d = lateral.value - (at + offset);
+            if (Math.abs(d) <= tolerance && (!best || Math.abs(d) < Math.abs(best.d)))
+              best = { boundary: String(boundary.values.id), offset, d };
+          }
+        }
+        if (best)
+          proposals.push({
+            id: `join ${element.pointer}/${field}`,
+            operation: 'join-lateral',
+            pointer: element.pointer,
+            description: `${element.pointer}/${field}: ${lateral.value} → Boundary ${best.boundary} ${best.offset >= 0 ? '+' : ''}${best.offset} (${best.d.toFixed(3)} m away)`,
+            changes: [
+              {
+                pointer: `${element.pointer}/${field}`,
+                before: lateral.value,
+                after: { boundary: best.boundary, offset: best.offset },
+              },
+            ],
+          });
+      }
+    // Positions, in station order: neighbours of different elements, and PI stations.
+    const positions = own
+      .filter((e) => JOINED.includes(e.kind) && !e.copies.some((c) => c.index > 0))
+      .flatMap((e) =>
+        Object.entries(e.positions).flatMap(([field, p]) =>
+          p.s === null ? [] : [{ element: e, field, pointer: `${e.pointer}/${field}`, s: p.s }],
+        ),
+      )
+      .sort((a, b) => a.s - b.s);
+    const parentOf = (pointer: string) => pointer.replace(/\/knots\/\d+$/, '');
+    for (let i = 0; i < positions.length; i++)
+      for (let j = i + 1; j < positions.length && positions[j]!.s - positions[i]!.s <= tolerance; j++) {
+        const a = positions[i]!,
+          b = positions[j]!;
+        if (!near(b.s - a.s) || parentOf(a.element.pointer) === parentOf(b.element.pointer)) continue;
+        for (const [from, to] of [
+          [a, b],
+          [b, a],
+        ] as const)
+          proposals.push({
+            id: `join ${from.pointer} to ${to.pointer}`,
+            operation: 'join-position',
+            pointer: from.element.pointer,
+            description: `${from.pointer} takes ${to.pointer} (${Math.abs(b.s - a.s).toFixed(3)} m apart)`,
+            changes: [
+              { pointer: from.pointer, before: valueAt(document, from.pointer), after: valueAt(document, to.pointer) },
+            ],
+          });
+      }
+    const stations = section.elements.filter((e) => e.kind === 'pi' && e.s !== null);
+    for (const p of positions)
+      for (const pi of stations)
+        if (near(p.s - pi.s!))
+          proposals.push({
+            id: `join ${p.pointer} to PI ${String(pi.values.id)}`,
+            operation: 'join-pi',
+            pointer: p.element.pointer,
+            description: `${p.pointer} → PI ${String(pi.values.id)} + 0 (${Math.abs(p.s - pi.s!).toFixed(3)} m away)`,
+            changes: [
+              {
+                pointer: p.pointer,
+                before: valueAt(document, p.pointer),
+                after: { pi: String(pi.values.id), offset: 0 },
+              },
+            ],
+          });
+    // Strip edges at one knot station: the later Strip's left takes the earlier's right when they nearly meet.
+    const knots = own.filter((e) => e.kind === 'strip-knot' && !e.copies.some((c) => c.index > 0) && e.s !== null);
+    for (const a of knots)
+      for (const b of knots) {
+        if (a.s !== b.s || parentOf(a.pointer) >= parentOf(b.pointer)) continue;
+        const right = a.laterals.right,
+          left = b.laterals.left;
+        if (!right || !left || right.l === null || left.l === null || !near(left.l - right.l)) continue;
+        proposals.push({
+          id: `join ${b.pointer}/left to ${a.pointer}/right`,
+          operation: 'join-edge',
+          pointer: b.pointer,
+          description: `${b.pointer}/left takes ${a.pointer}/right (${Math.abs(left.l - right.l).toFixed(3)} m gap or overlap)`,
+          changes: [
+            {
+              pointer: `${b.pointer}/left`,
+              before: valueAt(document, `${b.pointer}/left`),
+              after: valueAt(document, `${a.pointer}/right`),
+            },
+          ],
+        });
+      }
+  }
+  // A join that leaves the Section unreadable (a Boundary then referring to itself) is no join.
+  return withShifts(document, proposals).filter((candidate) => Number.isFinite(candidate.shift));
+}
+
+/** Every RGB555 `color` written in the document with its Pointer. */
+function colorsOf(value: Json | undefined, pointer = '', found: { pointer: string; color: number }[] = []) {
+  if (Array.isArray(value)) value.forEach((item, i) => colorsOf(item, `${pointer}/${i}`, found));
+  else if (value !== null && typeof value === 'object')
+    for (const [key, item] of Object.entries(value))
+      if (key === 'color' && typeof item === 'number') found.push({ pointer: `${pointer}/${key}`, color: item });
+      else colorsOf(item, `${pointer}/${key}`, found);
+  return found;
+}
+
+/** The largest difference of two RGB555 colours' 5-bit components. */
+const colorDistance = (a: number, b: number) =>
+  Math.max(...[0, 5, 10].map((shift) => Math.abs(((a >> shift) & 31) - ((b >> shift) & 31))));
+
+/**
+ * Equal things that could be written once: each list's runs of three or more elements that combine exactly into a
+ * repeat (one candidate per list), and colours within `colorTolerance` (5-bit steps) of a more used colour, which then
+ * takes its place everywhere.
+ */
+export function mergeCandidates(
+  document: Json,
+  options: { readonly colorTolerance: number; readonly scope?: CleaningScope },
+): CleaningCandidate[] {
+  const proposals: Omit<CleaningCandidate, 'shift'>[] = [];
+  const lists = new Set(
+    scoped(document, options.scope ?? {})
+      .filter(({ element }) => !element.copies.length && !/knot|vertex|pi|arc-end|pvi|curve-end/.test(element.kind))
+      .map(({ element }) => element.pointer.slice(0, element.pointer.lastIndexOf('/'))),
+  );
+  for (const parent of lists) {
+    const list = valueAt(document, parent);
+    if (!Array.isArray(list)) continue;
+    let next: Json = document;
+    let runs = 0;
+    // Longest exact runs from the end, so earlier indexes stay valid as runs collapse.
+    for (let end = list.length; end >= 3;) {
+      let start = end - 3;
+      const combines = (from: number) =>
+        combineCourseElements(
+          next,
+          Array.from({ length: end - from }, (_, k) => `${parent}/${from + k}`),
+        );
+      if (!combines(start).ok) {
+        end--;
+        continue;
+      }
+      while (start > 0 && combines(start - 1).ok) start--;
+      const result = combines(start);
+      if (result.ok) {
+        next = result.document;
+        runs++;
+      }
+      end = start;
+    }
+    if (runs)
+      proposals.push({
+        id: `combine ${parent}`,
+        operation: 'combine',
+        pointer: parent,
+        description: `${parent}: ${runs} run${runs === 1 ? '' : 's'} of equal elements combine into repeats`,
+        changes: [{ pointer: parent, before: list, after: valueAt(next, parent) }],
+      });
+  }
+  // Colours: each near a more used one takes it.
+  const colors = colorsOf(document).filter(
+    (c) => !options.scope?.section || c.pointer.startsWith(sectionPointer(document, options.scope.section)),
+  );
+  const counts = new Map<number, number>();
+  for (const { color } of colors) counts.set(color, (counts.get(color) ?? 0) + 1);
+  for (const [color, count] of counts) {
+    const target = [...counts]
+      .filter(
+        ([other, n]) =>
+          other !== color &&
+          (n > count || (n === count && other < color)) &&
+          colorDistance(color, other) <= options.colorTolerance,
+      )
+      .sort((a, b) => b[1] - a[1])[0];
+    if (!target) continue;
+    proposals.push({
+      id: `color ${color} to ${target[0]}`,
+      operation: 'merge-color',
+      pointer: colors.find((c) => c.color === color)!.pointer,
+      description: `color ${color} (${count} uses) → ${target[0]} (${target[1]} uses)`,
+      changes: colors
+        .filter((c) => c.color === color)
+        .map((c) => ({ pointer: c.pointer, before: color, after: target[0] })),
+    });
+  }
+  return withShifts(document, proposals);
+}
+
+/** A Section's Pointer by its id, or a Pointer nothing starts with. */
+function sectionPointer(document: Json, id: string) {
+  const sections = valueAt(document, '/sections');
+  const index = Array.isArray(sections) ? sections.findIndex((s) => (s as { id?: Json })?.id === id) : -1;
+  return index >= 0 ? `/sections/${index}/` : '\u0000';
+}
+
+/**
+ * What is written alike, shown and not changed: the colours with their uses, references to a Boundary at the same
+ * offset, and absolute laterals of the same value, each with its count.
+ */
+export function sameValueGroups(document: Json) {
+  const colors = new Map<number, number>();
+  for (const { color } of colorsOf(document)) colors.set(color, (colors.get(color) ?? 0) + 1);
+  const references = new Map<string, number>(),
+    absolutes = new Map<number, number>();
+  for (const { element } of scoped(document, {}))
+    for (const lateral of Object.values(element.laterals))
+      if (lateral.form === 'reference') {
+        const key = `${lateral.boundary} ${lateral.offset}`;
+        references.set(key, (references.get(key) ?? 0) + 1);
+      } else absolutes.set(lateral.value, (absolutes.get(lateral.value) ?? 0) + 1);
+  const sorted = <K>(map: Map<K, number>) => [...map].sort((a, b) => b[1] - a[1]);
+  return {
+    colors: sorted(colors).map(([color, count]) => ({ color, count })),
+    references: sorted(references).map(([key, count]) => {
+      const at = key.lastIndexOf(' ');
+      return { boundary: key.slice(0, at), offset: Number(key.slice(at + 1)), count };
+    }),
+    absolutes: sorted(absolutes).map(([value, count]) => ({ value, count })),
+  };
 }

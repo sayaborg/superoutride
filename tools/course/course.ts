@@ -25,7 +25,10 @@ import {
 import type { Json } from '../authoring/json-pointer.js';
 import {
   applyCleaning,
+  joinCandidates,
+  mergeCandidates,
   roundCandidates,
+  sameValueGroups,
   ROUNDED_VALUES,
   unneededKnotCandidates,
   type CleaningScope,
@@ -44,7 +47,7 @@ import { formatSavedJson } from '../../src/content/saved-json.js';
 
 const EDITS = ['set', 'move', 'add-pi', 'remove-pi'];
 const FORMS = ['explode', 'combine', 'bind', 'unbind', 'reanchor'];
-const CLEANING = ['round', 'remove-knots'];
+const CLEANING = ['round', 'remove-knots', 'join', 'merge', 'same'];
 const [verb, file, ...args] = process.argv.slice(2);
 try {
   requireInput(
@@ -163,7 +166,7 @@ async function formVerb(file: string) {
  * Section's centreline shift and length change, and `--out` writes the result.
  */
 async function cleaningVerb(file: string) {
-  const own = verb === 'round' ? ['--step', '--values'] : ['--tolerance'];
+  const own = { round: ['--step', '--values'], merge: ['--color-tolerance'], same: [] }[verb!] ?? ['--tolerance'];
   const opts = options(args, [...own, '--section', '--elements', '--kinds', '--apply', '--out']);
   const document = (await jsonFile(file)).value as Json;
   const list = (flag: string) => (opts.has(flag) ? opts.get(flag)!.split(',') : undefined);
@@ -172,8 +175,17 @@ async function cleaningVerb(file: string) {
     ...(opts.has('--elements') ? { pointers: list('--elements')! } : {}),
     ...(opts.has('--kinds') ? { kinds: list('--kinds')! as CourseElementKind[] } : {}),
   };
+  if (verb === 'same') {
+    console.log(JSON.stringify({ ok: true, ...sameValueGroups(document) }));
+    return;
+  }
+  const tolerance = (flag: string, otherwise: number) =>
+    opts.has(flag) ? finite(Number(opts.get(flag)), `/${flag.slice(2)}`, 0) : otherwise;
   let candidates;
-  if (verb === 'round') {
+  if (verb === 'join') candidates = joinCandidates(document, { tolerance: tolerance('--tolerance', 0.1), scope });
+  else if (verb === 'merge')
+    candidates = mergeCandidates(document, { colorTolerance: tolerance('--color-tolerance', 0), scope });
+  else if (verb === 'round') {
     const values = (list('--values') ?? [...ROUNDED_VALUES]) as RoundedValue[];
     requireInput(
       values.every((v) => ROUNDED_VALUES.includes(v)),
@@ -181,11 +193,7 @@ async function cleaningVerb(file: string) {
       `Values are ${ROUNDED_VALUES.join(', ')}`,
     );
     candidates = roundCandidates(document, { step: finite(Number(opts.get('--step')), '/step', 1e-9), values, scope });
-  } else
-    candidates = unneededKnotCandidates(document, {
-      tolerance: opts.has('--tolerance') ? finite(Number(opts.get('--tolerance')), '/tolerance', 0) : 0,
-      scope,
-    });
+  } else candidates = unneededKnotCandidates(document, { tolerance: tolerance('--tolerance', 0), scope });
   if (!opts.has('--apply')) {
     console.log(JSON.stringify({ ok: true, candidates }));
     return;

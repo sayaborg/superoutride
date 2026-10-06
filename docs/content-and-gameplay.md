@@ -590,6 +590,15 @@ stale; the driving changes only when the shift is not 0.
 - `unneededKnotCandidates` proposes each middle knot of a Boundary, Strip or wall Strip, and each middle PVI, whose
   removal moves nothing beyond a tolerance (0: exactly the same lines and heights). The first and last knots bound a
   line's extent and stay.
+- `joinCandidates` proposes near things, within a distance but not the same, written as one: an absolute lateral near
+  a Boundary at an offset it is already referred to with (or 0) becomes that reference; a Position (of a knot, wall,
+  curb, open limit or gate) near another element's Position takes it, either way round; a Position near a PI's station
+  is measured from that PI with offset 0; a Strip's left edge near the previous Strip's right edge at the same knot
+  station takes its written value. A join that leaves the Section unreadable is not proposed.
+- `mergeCandidates` proposes, for each list, its runs of three or more elements that combine exactly into repeats,
+  and each colour within a tolerance (in 5-bit steps) of a more used colour, which then takes its place everywhere.
+  `sameValueGroups` shows, without changing anything, the colours with their uses, the references to a Boundary at
+  one offset and the absolute laterals of one value, each with its count.
 
 ## Compiled identity and project publication
 
