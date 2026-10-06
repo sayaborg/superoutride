@@ -284,6 +284,12 @@ step (off, 0.01 to 10 m). "Add PI at cursor" inserts a PI with the chosen radius
 PIs before it, and "Remove selected PI" removes one no Position measures from. An edit is committed even when the course
 then fails to compile; the plan still shows the PIs and their polygon, and the diagnostics say why.
 
+Under "Change form" the selection offers the [operations that change form](content-and-gameplay.md#course-authoring-operations)
+that apply to it: explode the repeat it is or is in, bind an absolute lateral to a chosen Boundary or unbind a
+reference, re-anchor a Position to a chosen PI, and combine the elements chosen together (the selection and those
+shift-clicked on the plan) within a tolerance. Choosing one previews it on the plan and lists each changed Pointer with
+its value before and after and the shift; Apply makes it one step, and Cancel or another selection drops it.
+
 To apply an archive to the repository, extract it at the repository root, delete the files `workbench-changes.json`
 marks `deleted`, delete `workbench-changes.json`, then run `npm run measure -- generate`, `npm run check` and
 `npm run build`. Authors without a

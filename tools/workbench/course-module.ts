@@ -14,6 +14,7 @@ import { createPlanView, PLAN_LAYERS, type PlanLayer, type PlanStyle } from './c
 import { createProfileView } from './course-profile-view.js';
 import { createSectionView } from './course-section-view.js';
 import { createGameView } from './course-game-view.js';
+import { createFormPanel } from './course-form-panel.js';
 import { createPlanEditing, createProfileEditing, writtenNumbers, type CourseEditHost } from './course-editing.js';
 import { addCoursePi, removeCoursePi, setCourseNumbers, type CourseEditResult } from '../authoring/course-edits.js';
 
@@ -139,6 +140,8 @@ export const courseModule: WorkbenchModule = {
       profile: ProfileReader | null = null,
       cursor = 0,
       lateral = 0,
+      // The elements chosen together (the selection and shift-clicked ones), for Combine.
+      group: string[] = [],
       selected: CourseElement | null = null;
     const path = () => `courses/${id}.course.json`;
     // Each Strip's knots, by the Strip's Pointer, for its form.
@@ -159,7 +162,12 @@ export const courseModule: WorkbenchModule = {
       commit,
     };
     const view = createPlanView(canvas, {
-      pick: (picked) => select(picked),
+      pick: (picked, additive) => {
+        if (!additive || !picked) return select(picked);
+        group = group.includes(picked.pointer) ? group.filter((p) => p !== picked.pointer) : [...group, picked.pointer];
+        showSelected();
+        showSelection();
+      },
       cursor: (s) => moveCursor(s),
       grab: createPlanEditing(editing),
     });
@@ -245,6 +253,9 @@ export const courseModule: WorkbenchModule = {
     };
     const select = (element: CourseElement | null, announce = true) => {
       selected = element;
+      group = element ? [element.pointer] : [];
+      // A form operation's preview belongs to the selection it was chosen for.
+      showPending(null);
       showSelected();
       showSelection();
       if (element && announce) context.select(path(), element.pointer);
@@ -273,7 +284,7 @@ export const courseModule: WorkbenchModule = {
     };
     /** The selection and its companions in every view. */
     const showSelected = () => {
-      const others = companions(selected).map((e) => e.pointer);
+      const others = [...companions(selected).map((e) => e.pointer), ...group];
       view.setSelection(selected?.pointer ?? null, others);
       profileView.setSelection(selected?.pointer ?? null, others);
       sectionView.setSelection(selected?.pointer ?? null);
@@ -442,6 +453,16 @@ export const courseModule: WorkbenchModule = {
         make('code', e.pointer),
         ...lines.map((line) => make('div', line)),
         numbers,
+        createFormPanel(e, {
+          document: () => document as Json | null,
+          section: () => structure?.sections[sectionIndex] ?? null,
+          group: () => group,
+          preview: (result) => showPending(result),
+          commit: (next, label) => {
+            group = [];
+            commit(next, label);
+          },
+        }),
         open,
         record,
       );

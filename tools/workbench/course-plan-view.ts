@@ -81,7 +81,8 @@ export interface PlanDraw {
 export function createPlanView(
   canvas: HTMLCanvasElement,
   events: {
-    pick(element: CourseElement | null): void;
+    /** A click on an element; `additive` with Shift, to choose it with others. */
+    pick(element: CourseElement | null, additive: boolean): void;
     cursor(s: number): void;
     grab(at: { x: number; z: number }, pixel: number, element: CourseElement | null): PlanDrag | null;
   },
@@ -322,11 +323,11 @@ export function createPlanView(
   addEventListener('keydown', (event) => {
     if (event.key === 'Escape') drop();
   });
-  canvas.addEventListener('pointerup', () => {
+  canvas.addEventListener('pointerup', (event) => {
     press?.drag?.end(press.moved);
     if (press && !press.moved) {
       const element = pickAt(press.x, press.y);
-      if (element) events.pick(element);
+      if (element) events.pick(element, event.shiftKey);
       else if (plan) {
         const p = toPlan(press.x, press.y);
         events.cursor(plan.nearest(p.x, p.z).s);
