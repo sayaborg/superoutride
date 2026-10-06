@@ -348,3 +348,7 @@ input[type='number'] {
 .course-game-status.stale {
   color: #ff7b72;
 }
+.course-numbers label {
+  display: block;
+  margin: 2px 0;
+}

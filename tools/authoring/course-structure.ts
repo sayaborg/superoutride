@@ -136,8 +136,8 @@ function problemOf(error: unknown, pointer: string): Problem {
 export function readCourseStructure(value: unknown): CourseStructure {
   const admitted = readCourseDocument(value);
   const document = record(value);
-  const sections = list(document.sections).map((section, i) =>
-    readSection(record(section) as unknown as SectionDocument, `/sections/${i}`),
+  const sections = list(document.sections).map(
+    (section, i) => readSection(record(section) as unknown as SectionDocument, `/sections/${i}`).structure,
   );
   const first = admitted.ok ? null : admitted.diagnostics[0];
   return {
@@ -156,6 +156,11 @@ export function readCourseStructure(value: unknown): CourseStructure {
       ? { code: first.code, message: first.message, pointer: ('path' in first ? first.path : '') ?? '' }
       : null,
   };
+}
+
+/** One Section's form and plan, read alone: what a view redraws while an edit is pending. */
+export function readCourseSection(value: unknown, index: number) {
+  return readSection(record(list(record(value).sections)[index]) as unknown as SectionDocument, `/sections/${index}`);
 }
 
 /**
@@ -213,7 +218,10 @@ export function createSectionProfile(section: SectionDocument, pointer: string, 
   }
 }
 
-function readSection(section: SectionDocument, pointer: string): SectionStructure {
+function readSection(
+  section: SectionDocument,
+  pointer: string,
+): { structure: SectionStructure; plan: SectionPlan | null } {
   const elements: CourseElement[] = [];
   const id = String(section.id ?? '');
   // The plan: PI stations, the ruler and the coordinate reader that places (s, l) in the plan.
@@ -336,10 +344,18 @@ function readSection(section: SectionDocument, pointer: string): SectionStructur
           : null,
     });
   });
+  // Each arc is its PI's: the PI's station is the arc's middle.
+  const pis = list(section.pis).map((pi) => String(record(pi).id));
   for (const segment of plan?.segments ?? [])
-    if (segment.geometry.kind === 'arc')
+    if (segment.geometry.kind === 'arc') {
+      const index = pis.findIndex((pi) => {
+        const station = plan!.stations.get(pi);
+        return station !== undefined && station > segment.sStart && station < segment.sEnd;
+      });
+      const from = index >= 0 ? `${pointer}/pis/${index}` : `${pointer}/pis`;
       for (const s of [segment.sStart, segment.sEnd])
-        add('arc-end', `${pointer}/pis`, {}, { point: 'derived', derivedFrom: `${pointer}/pis`, station: { s, l: 0 } });
+        add('arc-end', from, {}, { point: 'derived', derivedFrom: from, station: { s, l: 0 } });
+    }
   // The profile: written PVIs and the vertical curve ends they derive.
   list(section.height).forEach((node, i) => {
     const at = `${pointer}/height/${i}`;
@@ -580,7 +596,7 @@ function readSection(section: SectionDocument, pointer: string): SectionStructur
       station,
     });
   });
-  return { id, pointer, length, elements };
+  return { structure: { id, pointer, length, elements }, plan };
 }
 
 /** An element with nothing resolved yet. */

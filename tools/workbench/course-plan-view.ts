@@ -57,6 +57,12 @@ export interface PlanStyle {
   marks(element: CourseElement, draw: PlanDraw): void;
 }
 
+/** An edit dragged on the plan: each movement's plan point, then its end, committed or dropped. */
+export interface PlanDrag {
+  move(at: { x: number; z: number }): void;
+  end(commit: boolean): void;
+}
+
 /** What a style draws with: plan points, lines in metres and screen pixels. */
 export interface PlanDraw {
   readonly context: CanvasRenderingContext2D;
@@ -67,12 +73,18 @@ export interface PlanDraw {
 /**
  * The plan of one Section: its Strips filled in their colours, Boundaries, Carriageway lane centres, walls, open
  * limits, the centreline with its entry and exit cut lines, environments, gates and grid, sprites and objects, PIs and
- * the arc ends they derive, the cursor and the selection; north (+z) up, x right, with a scale bar. The wheel zooms at
- * the pointer, a drag pans, and a click picks the nearest element or, away from any, moves the cursor.
+ * the arc ends they derive, the PI polygon, the cursor and the selection; north (+z) up, x right, with a scale bar.
+ * When the plan does not compile, the PIs and their polygon still show. The wheel zooms at the pointer; a press that
+ * `grab` takes (at a plan point, with the metres of a pixel and the element under it) drags an edit, any other drag
+ * pans, and a click picks the nearest element or, away from any, moves the cursor.
  */
 export function createPlanView(
   canvas: HTMLCanvasElement,
-  events: { pick(element: CourseElement | null): void; cursor(s: number): void },
+  events: {
+    pick(element: CourseElement | null): void;
+    cursor(s: number): void;
+    grab(at: { x: number; z: number }, pixel: number, element: CourseElement | null): PlanDrag | null;
+  },
 ) {
   let section: SectionStructure | null = null,
     plan: SectionPlan | null = null;
@@ -159,7 +171,7 @@ export function createPlanView(
     context.setTransform(1, 0, 0, 1, 0, 0);
     context.fillStyle = '#0b0f14';
     context.fillRect(0, 0, canvas.width, canvas.height);
-    if (!section || !plan) return;
+    if (!section) return;
     context.setTransform(
       scale,
       0,
@@ -170,6 +182,27 @@ export function createPlanView(
     );
     const pixel = 1 / scale;
     const drawn: PlanDraw = { context, pixel, world };
+    // The PI polygon: the plan as written.
+    const pis = section.elements.filter((e) => e.kind === 'pi' && Number.isFinite(e.x) && Number.isFinite(e.z));
+    if (layers.has('pis')) {
+      context.strokeStyle = '#ffd33d';
+      context.globalAlpha = 0.5;
+      context.lineWidth = pixel;
+      context.beginPath();
+      pis.forEach((pi, i) => (i ? context.lineTo(pi.x!, pi.z!) : context.moveTo(pi.x!, pi.z!)));
+      context.stroke();
+      context.globalAlpha = 1;
+    }
+    if (!plan) {
+      for (const pi of pis) {
+        point(drawn, pi, style.colorOf(pi));
+        if (pi.pointer === selected) ring(drawn, pi, '#ffffff', 7);
+      }
+      overlay(context, canvas, scale);
+      context.fillStyle = '#ff7b72';
+      context.fillText(`${section.id}: the plan does not compile`, 16, 20);
+      return;
+    }
     for (const { element, path, fill, dashed } of paths) {
       if (!shown(element)) continue;
       const own = style.colorOf(element);
@@ -264,10 +297,11 @@ export function createPlanView(
     centre = { x: centre.x + before.x - after.x, z: centre.z + before.z - after.z };
     draw();
   });
-  // A press that moves pans the view; one that does not picks or moves the cursor.
-  let press: { x: number; y: number; moved: boolean } | null = null;
+  // A press an edit grabs drags it; another that moves pans the view; one that does not picks or moves the cursor.
+  let press: { x: number; y: number; moved: boolean; drag: PlanDrag | null } | null = null;
   canvas.addEventListener('pointerdown', (event) => {
-    press = { ...local(event), moved: false };
+    const at = local(event);
+    press = { ...at, moved: false, drag: events.grab(toPlan(at.x, at.y), 1 / scale, pickAt(at.x, at.y)) };
     canvas.setPointerCapture(event.pointerId);
   });
   canvas.addEventListener('pointermove', (event) => {
@@ -275,11 +309,21 @@ export function createPlanView(
     const at = local(event);
     if (!press.moved && Math.hypot(at.x - press.x, at.y - press.y) < 3) return;
     press.moved = true;
+    if (press.drag) return press.drag.move(toPlan(at.x, at.y));
     centre = { x: centre.x - (at.x - press.x) / scale, z: centre.z + (at.y - press.y) / scale };
-    press = { ...at, moved: true };
+    press = { ...press, ...at };
     draw();
   });
+  const drop = () => {
+    press?.drag?.end(false);
+    press = null;
+  };
+  canvas.addEventListener('pointercancel', drop);
+  addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') drop();
+  });
   canvas.addEventListener('pointerup', () => {
+    press?.drag?.end(press.moved);
     if (press && !press.moved) {
       const element = pickAt(press.x, press.y);
       if (element) events.pick(element);

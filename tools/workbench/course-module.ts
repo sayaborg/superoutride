@@ -1,6 +1,7 @@
 import {
   createSectionPlan,
   createSectionProfile,
+  readCourseSection,
   readCourseStructure,
   type CourseElement,
   type CourseStructure,
@@ -12,6 +13,8 @@ import { createPlanView, PLAN_LAYERS, type PlanLayer, type PlanStyle } from './c
 import { createProfileView } from './course-profile-view.js';
 import { createSectionView } from './course-section-view.js';
 import { createGameView } from './course-game-view.js';
+import { createPlanEditing, writtenNumbers } from './course-editing.js';
+import { addCoursePi, removeCoursePi, setCourseNumbers, type CourseEditResult } from '../authoring/course-edits.js';
 
 /** The colours of the forms an element is written in. */
 const FORM = {
@@ -35,7 +38,7 @@ function formColor(element: CourseElement, parts: readonly CourseElement[] = [])
 }
 import { make } from './dom.js';
 import { confirmField, finiteNumber } from './pending-edit.js';
-import { valueAt } from '../authoring/json-pointer.js';
+import { valueAt, type Json } from '../authoring/json-pointer.js';
 
 /**
  * The course editor: a course's Sections and Links, and four views of a Section seen together — its plan and profile
@@ -57,6 +60,13 @@ export const courseModule: WorkbenchModule = {
     const gameStatus = make('div', '', { class: 'hint course-game-status', role: 'status' });
     const lateralField = make('input', '', { type: 'number', step: 'any', value: '0' });
     const vehicle = make('select');
+    const snap = make('select');
+    for (const step of ['off', '0.01', '0.1', '0.5', '1', '5', '10'])
+      snap.append(make('option', step === 'off' ? 'off' : `${step} m`, { value: step }));
+    snap.value = '0.1';
+    const newRadius = make('input', '', { type: 'number', step: 'any', min: '0', value: '100' });
+    const addPi = make('button', 'Add PI at cursor', { type: 'button' });
+    const removePi = make('button', 'Remove selected PI', { type: 'button' });
     const selection = make('div', '', { class: 'course-selection' });
     const formColors = make('input', '', { type: 'checkbox' });
     const legend = make('div', '', { class: 'legend' });
@@ -100,6 +110,14 @@ export const courseModule: WorkbenchModule = {
       field('Game lateral l (m)', lateralField),
       ' ',
       field('Vehicle', vehicle),
+      make('br'),
+      field('Snap', snap),
+      ' ',
+      addPi,
+      ' ',
+      field('with radius (m)', newRadius),
+      ' ',
+      removePi,
       views,
       legend,
       note,
@@ -112,8 +130,10 @@ export const courseModule: WorkbenchModule = {
     let id: string | null = null,
       text: string | null = null,
       document: unknown = null,
-      structure: CourseStructure | null = null;
+      structure: CourseStructure | null = null,
+      status = '';
     let sectionId: string | null = null,
+      sectionIndex = -1,
       plan: SectionPlan | null = null,
       cursor = 0,
       lateral = 0,
@@ -121,10 +141,51 @@ export const courseModule: WorkbenchModule = {
     const path = () => `courses/${id}.course.json`;
     // Each Strip's knots, by the Strip's Pointer, for its form.
     let knotsOf = new Map<string, CourseElement[]>();
+    /** One step: the edited document replaces the course's. */
+    const commit = (next: Json, label: string) => context.replace(path(), next, label);
+    const refuse = (result: CourseEditResult) => {
+      if (!result.ok) note.textContent = result.reason;
+      return result.ok ? result : null;
+    };
     const view = createPlanView(canvas, {
       pick: (picked) => select(picked),
       cursor: (s) => moveCursor(s),
+      grab: createPlanEditing({
+        document: () => document as Json | null,
+        selected: () => selected,
+        plan: () => plan,
+        elements: () => structure?.sections[sectionIndex]?.elements ?? [],
+        step: () => (snap.value === 'off' ? null : Number(snap.value)),
+        preview: (result) => showPending(result),
+        commit,
+      }),
     });
+    /**
+     * A pending edit on the plan, read again through the product's functions alone (no compile); what moves with it is
+     * marked. Null ends it and shows the document again.
+     */
+    const showPending = (result: CourseEditResult | null) => {
+      const before = structure?.sections[sectionIndex];
+      if (!before) return;
+      if (!result) {
+        view.setSection(before, plan);
+        showSelected();
+        note.textContent = status;
+        return;
+      }
+      if (!result.ok) {
+        note.textContent = result.reason;
+        return;
+      }
+      const { structure: pending, plan: pendingPlan } = readCourseSection(result.document, sectionIndex);
+      view.setSection(pending, pendingPlan);
+      const moved = pending.elements.filter((e, i) => e.x !== before.elements[i]?.x || e.z !== before.elements[i]?.z);
+      view.setSelection(
+        selected?.pointer ?? null,
+        moved.map((e) => e.pointer),
+      );
+      note.textContent = `Pending: ${result.changes.map((c) => `${c.pointer} ${c.before} → ${c.after}`).join(', ')}`;
+    };
     const profileView = createProfileView(profileCanvas, {
       pick: (picked) => select(picked),
       cursor: (s) => moveCursor(s),
@@ -146,7 +207,7 @@ export const courseModule: WorkbenchModule = {
 
     const openSection = (next: string | null) => {
       sectionId = next;
-      const index = structure?.sections.findIndex((section) => section.id === next) ?? -1;
+      const index = (sectionIndex = structure?.sections.findIndex((section) => section.id === next) ?? -1);
       const section = index >= 0 ? structure!.sections[index]! : null;
       plan = section
         ? createSectionPlan((document as { sections: SectionDocument[] }).sections[index]!, section.pointer).plan
@@ -162,7 +223,8 @@ export const courseModule: WorkbenchModule = {
           : null,
       );
       sectionView.setSection(section);
-      cursor = Math.min(cursor, plan?.length ?? 0);
+      // The cursor stays while the plan does not compile.
+      if (plan) cursor = Math.min(cursor, plan.length);
       showCursor();
       showSections();
       showSelection();
@@ -254,6 +316,32 @@ export const courseModule: WorkbenchModule = {
     });
     view.setStyle(style());
     profileView.setStyle(style());
+    // A PI at the cursor's plan point, after the PIs before it; it moves on the plan like any PI.
+    addPi.addEventListener('click', () => {
+      const section = structure?.sections[sectionIndex];
+      if (!section || !plan) return;
+      const pis = section.elements.filter((e) => e.kind === 'pi');
+      const index = Math.min(pis.length - 1, Math.max(1, pis.filter((e) => e.s !== null && e.s <= cursor).length));
+      const at = plan.toWorld(cursor, 0);
+      const result = refuse(
+        addCoursePi(document as Json, section.pointer, index, {
+          x: Math.round(at.x * 1000) / 1000,
+          z: Math.round(at.z * 1000) / 1000,
+          radius: finiteNumber(newRadius.value) ?? 0,
+        }),
+      );
+      if (result) {
+        // The new PI is the selection once it is read.
+        const pointer = `${section.pointer}/pis/${index}`;
+        context.select(path(), pointer);
+        commit(result.document, `Add PI at ${pointer}`);
+      }
+    });
+    removePi.addEventListener('click', () => {
+      if (selected?.kind !== 'pi') return;
+      const result = refuse(removeCoursePi(document as Json, selected.pointer));
+      if (result) commit(result.document, `Remove ${selected.pointer}`);
+    });
     confirmField(cursorField, finiteNumber, moveCursor);
     confirmField(lateralField, finiteNumber, (l) => {
       lateral = l;
@@ -299,6 +387,7 @@ export const courseModule: WorkbenchModule = {
     /** The selected element: where it is, how it is written, and its record in the document. */
     const showSelection = () => {
       if (!selected) {
+        removePi.disabled = true;
         selection.replaceChildren(make('p', 'Choose an element on the plan.', { class: 'hint' }));
         return;
       }
@@ -334,7 +423,25 @@ export const courseModule: WorkbenchModule = {
           class: 'diff',
         },
       );
-      selection.replaceChildren(make('code', e.pointer), ...lines.map((line) => make('div', line)), open, record);
+      // Each written number, set by its field: one step.
+      const numbers = make('div', '', { class: 'course-numbers' });
+      for (const written of writtenNumbers(e, document as Json)) {
+        const input = make('input', '', { type: 'number', step: 'any', value: String(written.value) });
+        input.dataset.pointer = written.pointer;
+        confirmField(input, finiteNumber, (value) => {
+          const result = refuse(setCourseNumbers(document as Json, [{ pointer: written.pointer, value }]));
+          if (result?.changes.length) commit(result.document, `Set ${written.pointer}`);
+        });
+        numbers.append(field(written.label, input));
+      }
+      removePi.disabled = e.kind !== 'pi';
+      selection.replaceChildren(
+        make('code', e.pointer),
+        ...lines.map((line) => make('div', line)),
+        numbers,
+        open,
+        record,
+      );
     };
 
     const show = async () => {
@@ -372,12 +479,13 @@ export const courseModule: WorkbenchModule = {
             const strip = element.pointer.slice(0, element.pointer.lastIndexOf('/knots/'));
             knotsOf.set(strip, [...(knotsOf.get(strip) ?? []), element]);
           }
-        note.textContent = structure?.admission
+        status = structure?.admission
           ? `The document does not admit: ${structure.admission.code} at ${structure.admission.pointer}: ${structure.admission.message}`
           : '';
+        note.textContent = status;
       } catch (error) {
         document = structure = null;
-        note.textContent = `${path()} is not JSON: ${error instanceof Error ? error.message : error}`;
+        note.textContent = status = `${path()} is not JSON: ${error instanceof Error ? error.message : error}`;
       }
       // Keep the Section and the selection across edits; a new course opens at its entry.
       const keep = !reopened && structure?.sections.some((section) => section.id === sectionId);
