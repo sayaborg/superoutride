@@ -47,7 +47,7 @@ explicitly scheduled in [NEXT](NEXT.md) are replaced with their owning concepts.
 | `Profile` / `profile` | A Section's vertical alignment: height and grade along s, not a parameter record or a general varying attribute.                                                         |
 | `Knot` / `Knots`      | An authored s-position/value record / ordered sequence, including vertical PVIs and Boundary knots; not a derived polyline point. Use `*Knot` and `*Knots` consistently. |
 | `vertex`              | A polyline point derived during compilation, including compiled Boundary vertices and `ProfilePolyline` points; never authored.                                          |
-| `segment`             | A planar straight or circular arc derived from authored PIs during compilation; never authored.                                                                          |
+| `segment`             | A compiled planar straight or circular arc, one per authored plan element.                                                                                               |
 | `Definition`          | An author-written parameter record; vehicle and game-wide driving definitions have versioned JSON documents. Validated immutable products use `Compiled*`.               |
 | `listing`             | A vehicle's non-mechanical document: form, labels and metadata, selection order, sprite set and default color, sound ID and HUD steering ratio.                          |
 | `Compiled*`           | A validated immutable product derived from authored inputs.                                                                                                              |

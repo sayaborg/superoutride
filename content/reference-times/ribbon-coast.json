@@ -1,18 +1,18 @@
 {
   "format": "superoutride.reference-times",
   "version": 1,
-  "courseBuildSha256": "77b8d8c7c298e33e27534d6af8ad28ad7f5badcc551e2bc1c2cb10aea3b19b6b",
+  "courseBuildSha256": "4fa3efd47dcd0e21f6069a90cec81e2cced1e1cd91eda38321f2d8deebdc8df5",
   "procedureSha256": "27682bb793cc0b693158d88d1107ed042a167292ab2b545dfdc130c550adaaa4",
   "vehicles": [
     {
       "vehicleId": "TESTAROSSA",
       "vehicleSha256": "df08101d0f037005f0f5ef1e280561101d6a1cdb050e349c1965356d54d19f00",
-      "initialSeconds": 36.255002837892725,
+      "initialSeconds": 36.25500283789271,
       "after": [
-        ["coast-CP1", [33.373106156680784]],
-        ["coast-CP2", [36.561408976725744]],
-        ["coast-CP3", [37.69304088130683]],
-        ["coast-CP4", [24.004428312225002]]
+        ["coast-CP1", [33.373106156737826]],
+        ["coast-CP2", [36.56140897654177]],
+        ["coast-CP3", [37.69304088126495]],
+        ["coast-CP4", [24.004428312241146]]
       ],
       "schedule": {
         "start": {

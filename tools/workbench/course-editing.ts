@@ -29,9 +29,8 @@ const END_PIXELS = 10;
 
 /**
  * The plan's drags, each an edit that keeps form, made by the core's edit functions on the document as it was at the
- * press. Only the selected element drags: a PI moves its `x` and `z`; an arc end sets its PI's `radius` (the tangent
- * length grows with the radius); a near end of a wall, curb or open limit moves that Position; anything else moves its
- * Positions and laterals along and across the Section. The pending document is previewed and committed on release.
+ * press. Only the selected element drags: a near end of a wall, curb or open limit moves that Position; anything else
+ * with a Position moves its Positions and laterals along and across the Section. The pending document is previewed and committed on release.
  */
 export function createPlanEditing(host: CourseEditHost) {
   const drag = (label: string, edit: (at: { x: number; z: number }) => CourseEditResult) =>
@@ -42,36 +41,9 @@ export function createPlanEditing(host: CourseEditHost) {
       plan = host.plan();
     if (!element || !base) return null;
     const step = host.step();
-    if (element.kind === 'pi' && picked?.pointer === element.pointer) {
-      const x = Number(element.x),
-        z = Number(element.z);
-      return drag(`Move ${element.pointer}`, (p) =>
-        setCourseNumbers(base, [
-          { pointer: `${element.pointer}/x`, value: snapCourseValue(x + p.x - at.x, step) },
-          { pointer: `${element.pointer}/z`, value: snapCourseValue(z + p.z - at.z, step) },
-        ]),
-      );
-    }
     if (!plan) return null;
-    // Either end of the selected PI's arc.
-    if (element.kind === 'arc-end' && picked?.kind === 'arc-end' && picked.pointer === element.pointer) {
-      const pi = host.elements().find((e) => e.kind === 'pi' && e.pointer === element.derivedFrom);
-      const radius = Number(pi?.values.radius);
-      if (!pi || !(radius > 0)) return null;
-      const reach = Math.hypot(picked.x! - pi.x!, picked.z! - pi.z!);
-      const ux = (picked.x! - pi.x!) / reach,
-        uz = (picked.z! - pi.z!) / reach;
-      return drag(`Set ${pi.pointer}/radius`, (p) => {
-        const along = (p.x - pi.x!) * ux + (p.z - pi.z!) * uz;
-        return setCourseNumbers(base, [
-          {
-            pointer: `${pi.pointer}/radius`,
-            value: snapCourseValue(Math.max(radius * 0.01, (radius * along) / reach), step),
-          },
-        ]);
-      });
-    }
-    if (element.point === 'derived') return null;
+    // A plan element's values are set by number.
+    if (element.point === 'derived' || element.kind === 'plan') return null;
     const from = plan.nearest(at.x, at.z);
     // A near end of an element with two Positions moves that end alone.
     const ends = Object.entries(element.positions).filter(([, position]) => position.s !== null);
@@ -164,7 +136,7 @@ function lateralAt(element: CourseElement, s: number): number {
 }
 
 /** Numbers of these names written in an element's record are edited as fields. */
-const VALUE_FIELDS = ['x', 'z', 'radius', 'y', 'curveLength', 'bottom', 'top', 'every', 'count'];
+const VALUE_FIELDS = ['length', 'radius', 'y', 'curveLength', 'bottom', 'top', 'every', 'count'];
 
 /**
  * The written numbers of an element, each a field: its Positions' offsets, its laterals (the number, or a reference's
@@ -177,7 +149,7 @@ export function writtenNumbers(
   if (element.point === 'derived') return [];
   const fields: { label: string; pointer: string }[] = [
     ...Object.keys(element.positions).map((field) => ({
-      label: `${field} offset (from PI ${element.positions[field]!.pi})`,
+      label: `${field} offset (from ${element.positions[field]!.joint})`,
       pointer: `${element.pointer}/${field}/offset`,
     })),
     ...Object.entries(element.laterals).map(([field, lateral]) =>

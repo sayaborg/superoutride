@@ -1,75 +1,55 @@
 import { CourseInputError, requireCourse } from './course-diagnostics.js';
 import { COURSE_DOCUMENT_LIMITS } from './course-limits.js';
-import { type CoursePosition, type SectionDocument } from './course-document.js';
-import { compilePlanPath, PLAN_POSITION_TOLERANCE_METERS, type PlanSegmentGeometry } from './geometry/plan-path.js';
+import { SECTION_END_JOINT, type CoursePosition, type SectionDocument } from './course-document.js';
+import { compilePlanPath, type PlanSegmentGeometry } from './geometry/plan-path.js';
 
 export type { CompiledPlanSegment } from './geometry/plan-path.js';
 export interface CompiledCoursePosition {
   readonly s: number;
 }
 
-/** Compile PIs once; temporary station lookup is discarded before course publication. */
+/**
+ * Compile a Section's plan once, from its origin facing +Z: each element's start is a joint, and so is the Section's
+ * end. The temporary joint lookup is discarded before course publication.
+ */
 export function compileCourseGeometry(section: SectionDocument, path: string) {
-  const pis = section.pis;
+  const elements = section.plan;
   const check = (condition: boolean, index: number, message: string) =>
-    requireCourse(condition, `${path}/pis/${index}`, message, 'invalid_plan');
-  check(pis.length >= 2, 0, 'A Section requires at least two PIs');
-  const edges = pis.slice(1).map((p, i) => {
-    const dx = p.x - pis[i]!.x,
-      dz = p.z - pis[i]!.z;
-    const length = Math.hypot(dx, dz);
-    check(length > 0, i + 1, 'Consecutive PIs must have distinct coordinates');
-    return { length, x: dx / length, z: dz / length };
-  });
-  const turns = pis.map((p, i) => {
-    if (i === 0 || i === pis.length - 1) {
-      check(p.radius === 0, i, 'Endpoint PI radius must be zero');
-      return { turn: 0, tangent: 0 };
-    }
-    check(p.radius > 0, i, 'Interior PI radius must be positive');
-    const a = edges[i - 1]!,
-      b = edges[i]!;
-    const turn = Math.atan2(a.z * b.x - a.x * b.z, a.x * b.x + a.z * b.z);
-    check(
-      Math.abs(turn) > 0 && Math.abs(turn) < Math.PI,
-      i,
-      'PI deflection must be greater than zero and less than 180 degrees',
-    );
-    return { turn, tangent: p.radius * Math.tan(Math.abs(turn) / 2) };
-  });
+    requireCourse(condition, `${path}/plan/${index}`, message, 'invalid_plan');
+  check(elements.length >= 1, 0, 'A Section requires at least one plan element');
   const geometry: PlanSegmentGeometry[] = [];
-  const stations = new Map<string, number>([[pis[0]!.id, 0]]);
-  let s = 0;
-  for (let i = 0; i < edges.length; i++) {
-    const remaining = edges[i]!.length - turns[i]!.tangent - turns[i + 1]!.tangent;
-    // The plan's metre budget absorbs coordinate/trig roundoff for touching arcs.
-    check(remaining >= -PLAN_POSITION_TOLERANCE_METERS, i + 1, 'Adjacent arc tangent lengths must not overlap');
-    const hasArc = turns[i]!.tangent > 0 || turns[i + 1]!.tangent > 0;
-    const straight = hasArc && remaining <= PLAN_POSITION_TOLERANCE_METERS ? 0 : remaining;
-    if (straight > 0) {
-      geometry.push({ kind: 'straight', length: straight });
-      s += straight;
-    }
-    const pi = pis[i + 1]!,
-      turn = turns[i + 1]!.turn;
-    if (pi.radius > 0) {
-      const length = pi.radius * Math.abs(turn);
-      stations.set(pi.id, s + length / 2);
-      geometry.push({ kind: 'arc', radius: pi.radius, turn });
-      s += length;
-    } else stations.set(pi.id, s);
-  }
-  const plan = compilePlanPath({ x: pis[0]!.x, z: pis[0]!.z, heading: Math.atan2(edges[0]!.x, edges[0]!.z) }, geometry);
+  elements.forEach((element, i) => {
+    const before = elements[i - 1];
+    if (before?.kind === 'straight') check(element.kind !== 'straight', i, 'A straight cannot follow a straight');
+    if (before?.kind === 'arc' && element.kind === 'arc')
+      check(
+        element.radius !== before.radius || element.turn !== before.turn,
+        i,
+        'An arc cannot follow an arc of the same radius and turn',
+      );
+    geometry.push(
+      element.kind === 'straight'
+        ? { kind: 'straight', length: element.length }
+        : {
+            kind: 'arc',
+            radius: element.radius,
+            turn: ((element.turn === 'right' ? 1 : -1) * element.length) / element.radius,
+          },
+    );
+  });
+  const plan = compilePlanPath({ x: 0, z: 0, heading: 0 }, geometry);
+  const stations = new Map<string, number>(elements.map((element, i) => [element.id, plan.segments[i]!.sStart]));
+  stations.set(SECTION_END_JOINT, plan.length);
   requireCourse(
     plan.segments.every((segment) => segment.sEnd > segment.sStart && Number.isFinite(segment.curvature)),
-    `${path}/pis`,
+    `${path}/plan`,
     'Plan segments must have positive representable length and finite curvature',
     'invalid_plan',
   );
   if (plan.length > COURSE_DOCUMENT_LIMITS.lengthMeters)
     throw new CourseInputError(
       'resource_limit',
-      `${path}/pis`,
+      `${path}/plan`,
       `Compiled ruler exceeds ${COURSE_DOCUMENT_LIMITS.lengthMeters} m`,
     );
   return { ...plan, stations };
@@ -81,12 +61,12 @@ export function resolveCoursePosition(
   length: number,
   path: string,
 ): CompiledCoursePosition {
-  const station = stations.get(at.pi);
+  const station = stations.get(at.joint);
   if (station === undefined)
     throw new CourseInputError(
       'unresolved_reference',
-      `${path}/pi`,
-      `Unknown PI ${JSON.stringify(at.pi)} in this Section`,
+      `${path}/joint`,
+      `Unknown joint ${JSON.stringify(at.joint)} in this Section`,
     );
   const s = station + at.offset;
   if (s < 0 || s > length)

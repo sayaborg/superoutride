@@ -123,15 +123,16 @@ node --import tsx tools/course/measure.ts request.json --out observations.json
 `structure` prints the document's form as JSON
 ([Course authoring operations](content-and-gameplay.md#course-authoring-operations)), read alone without compiling
 the content, so a document that does not compile still shows; `--section` keeps one Section.
-`set`, `move`, `add-pi` and `remove-pi` make the
+`set`, `move`, `add-plan` and `remove-plan` make the
 [edits that keep form](content-and-gameplay.md#course-authoring-operations) on the document as saved (`--values` takes
-`/pointer=number` pairs, `--element` an element's Pointer, `--section` a Section's and `--pi` a PI's), print the
+`/pointer=number` pairs, `--element` an element's Pointer, `--section` a Section's; `add-plan` takes `--index`,
+`--kind` straight or arc, `--length` and an arc's `--radius` and `--turn`), print the
 changed values, and with `--out` write the edited document in the saved layout.
 `explode` (`--repeat`), `combine` (`--elements` as comma-separated Pointers, `--tolerance`), `bind`
-(`--lateral` as the lateral's Pointer, `--boundary`), `unbind` (`--lateral`) and `reanchor` (`--position`, `--pi`) make
+(`--lateral` as the lateral's Pointer, `--boundary`), `unbind` (`--lateral`) and `reanchor` (`--position`, `--joint`) make
 the [operations that change form](content-and-gameplay.md#course-authoring-operations), printing the shift with the
 changed values.
-`round` (`--step`, `--values` from `pi,radius,offset,lateral,height,curveLength,every`), `remove-knots`
+`round` (`--step`, `--values` from `length,radius,offset,lateral,height,curveLength,every`), `remove-knots`
 (`--tolerance`, default 0), `join` (`--tolerance`, default 0.1 m) and `merge` (`--color-tolerance`, default 0) run the [cleaning operations](content-and-gameplay.md#course-authoring-operations) over the course or
 a scope (`--section` id, `--elements` Pointers, `--kinds`): they print the candidates, and `--apply all` or
 `--apply id,...` applies the chosen ones as one edit, printing the shift and each changed Section's centreline shift
@@ -268,8 +269,8 @@ one Section at a time, with the Sections and their Links (entry, forks, merges) 
 together and share one cursor (the Section and a station s) and one selection:
 
 - the plan, north up, with the Strips, Boundaries, lane centres, walls, limits, centreline, gates, sprites, objects and
-  PIs, zoomed with the wheel and panned by dragging;
-- the profile, the road height across s, with the PVIs and the PI and gate stations;
+  plan joints, zoomed with the wheel and panned by dragging;
+- the profile, the road height across s, with the PVIs and the joint and gate stations;
 - the cross section at the cursor, with the Boundaries, the Strips covering it in order with their materials, walls,
   lane centres and nearby objects;
 - the game's frame at the cursor, at a chosen lateral and vehicle.
@@ -280,24 +281,24 @@ follow every edit at once, and draw written points filled and derived points hol
 game's frame is the compile worker's answer for the latest compile that succeeded, marked stale when that compile is
 older than the document. A click on an element in any view selects it and opens its record in the Documents module's
 tree, which selects it back; a click away from elements moves the cursor. A selected repeat shows what it holds and
-every copy, a reference its line to the Boundary it reads, a Position the centreline from its PI, and the compile's
+every copy, a reference its line to the Boundary it reads, a Position the centreline from its joint, and the compile's
 diagnostics show on the element their Pointer falls in.
 
 The selected element is edited on the plan by the [edits that keep form](content-and-gameplay.md#course-authoring-operations):
-dragging a PI moves its `x` and `z`, dragging an end of its arc sets its `radius`, dragging a near end of a wall, curb or
+a plan element's `length` and `radius` are set by number; dragging a near end of a wall, curb or
 open limit moves that Position, and dragging anything else moves its Positions and laterals along and across the
 Section; a repeat copy drags its original, and every copy with it. On the profile, dragging a PVI moves its Position's
 `offset` and its `y`, and dragging an end of its vertical curve sets its `curveLength`. While dragging, only the plan and
 profile change: they are read again from the pending document through the product's functions, with what moves ringed
 and the changed values listed, and the release replaces the document, one step (Escape drops it). The selection lists
 each written number as a field, including each enclosing repeat's `every` and `count`. Changed values snap to a chosen
-step (off, 0.01 to 10 m). "Add PI at cursor" inserts a PI with the chosen radius at the cursor's plan point, after the
-PIs before it, and "Remove selected PI" removes one no Position measures from. An edit is committed even when the course
-then fails to compile; the plan still shows the PIs and their polygon, and the diagnostics say why.
+step (off, 0.01 to 10 m). "Add plan element at cursor" inserts a straight, or an arc of the chosen radius and turn, of
+the chosen length after the element the cursor is on, and "Remove selected plan element" removes one no Position
+measures from. An edit is committed even when the course then fails to compile; the diagnostics say why.
 
 Under "Change form" the selection offers the [operations that change form](content-and-gameplay.md#course-authoring-operations)
 that apply to it: explode the repeat it is or is in, bind an absolute lateral to a chosen Boundary or unbind a
-reference, re-anchor a Position to a chosen PI, and combine the elements chosen together (the selection and those
+reference, re-anchor a Position to a chosen joint, and combine the elements chosen together (the selection and those
 shift-clicked on the plan) within a tolerance. Choosing one previews it on the plan and lists each changed Pointer with
 its value before and after and the shift; Apply makes it one step, and Cancel or another selection drops it.
 

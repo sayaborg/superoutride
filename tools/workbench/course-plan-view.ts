@@ -12,7 +12,7 @@ export const PLAN_LAYERS = [
   'objects',
   'gates',
   'environments',
-  'pis',
+  'plan',
 ] as const;
 export type PlanLayer = (typeof PLAN_LAYERS)[number];
 
@@ -34,8 +34,8 @@ const LAYER_OF: Partial<Record<CourseElement['kind'], PlanLayer>> = {
   gate: 'gates',
   'grid-slot': 'gates',
   environment: 'environments',
-  pi: 'pis',
-  'arc-end': 'pis',
+  plan: 'plan',
+  'plan-end': 'plan',
 };
 
 /** Metres between plan samples along a line, enough for a curve's radius at plan scale. */
@@ -53,7 +53,7 @@ export function stripColor(value: unknown): string | null {
 export interface PlanStyle {
   /** The colour an element is drawn in, or null for its own. */
   colorOf(element: CourseElement): string | null;
-  /** Extra marks drawn over an element (a reference's line to its Boundary, a selection's PI). */
+  /** Extra marks drawn over an element (a reference's line to its Boundary, a selection's joint). */
   marks(element: CourseElement, draw: PlanDraw): void;
 }
 
@@ -199,22 +199,7 @@ export function createPlanView(
       context.drawImage(image, 0, 0);
       context.restore();
     }
-    // The PI polygon: the plan as written.
-    const pis = section.elements.filter((e) => e.kind === 'pi' && Number.isFinite(e.x) && Number.isFinite(e.z));
-    if (layers.has('pis')) {
-      context.strokeStyle = '#ffd33d';
-      context.globalAlpha = 0.5;
-      context.lineWidth = pixel;
-      context.beginPath();
-      pis.forEach((pi, i) => (i ? context.lineTo(pi.x!, pi.z!) : context.moveTo(pi.x!, pi.z!)));
-      context.stroke();
-      context.globalAlpha = 1;
-    }
     if (!plan) {
-      for (const pi of pis) {
-        point(drawn, pi, style.colorOf(pi));
-        if (pi.pointer === selected) ring(drawn, pi, '#ffffff', 7);
-      }
       overlay(context, canvas, scale);
       context.fillStyle = '#ff7b72';
       context.fillText(`${section.id}: the plan does not compile`, 16, 20);
@@ -430,19 +415,22 @@ function crossLine(draw: PlanDraw, s: number, half: number, color: string) {
 /** An element's point mark: written points filled, derived points hollow; its shape by kind. */
 function point(draw: PlanDraw, element: CourseElement, color: string | null) {
   const { context, pixel } = draw;
-  const size = (element.kind === 'pi' ? 6 : element.kind === 'object' ? 4.5 : 3.5) * pixel;
+  const size = (element.kind === 'plan' ? 6 : element.kind === 'object' ? 4.5 : 3.5) * pixel;
   context.fillStyle = context.strokeStyle =
     color ??
     (
-      { pi: '#ffd33d', 'arc-end': '#ffd33d', sprite: '#7ee787', object: '#ffa657', 'grid-slot': '#7ee787' } as Record<
-        string,
-        string
-      >
+      {
+        plan: '#ffd33d',
+        'plan-end': '#ffd33d',
+        sprite: '#7ee787',
+        object: '#ffa657',
+        'grid-slot': '#7ee787',
+      } as Record<string, string>
     )[element.kind] ??
     '#c9d1d9';
   context.lineWidth = 1.5 * pixel;
   context.beginPath();
-  if (element.kind === 'pi' || element.kind === 'object' || element.kind === 'grid-slot')
+  if (element.kind === 'plan' || element.kind === 'object' || element.kind === 'grid-slot')
     context.rect(element.x! - size, element.z! - size, size * 2, size * 2);
   else context.arc(element.x!, element.z!, size, 0, Math.PI * 2);
   if (element.point === 'derived') context.stroke();

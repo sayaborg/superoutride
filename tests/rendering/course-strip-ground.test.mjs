@@ -60,7 +60,7 @@ test('visual Strips can erase all ground without changing material slabs, suppor
   invalidText.sections[0].strips = [
     {
       kind: 'text',
-      at: { pi: document.sections[0].pis[0].id, offset: 40 },
+      at: { joint: document.sections[0].plan[0].id, offset: 40 },
       lateral: 0,
       height: 7,
       text: 'lowercase',

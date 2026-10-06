@@ -15,20 +15,31 @@ import {
 } from '../core/admission.js';
 import { readRgb555 } from '../image/rgb555.js';
 
-const COURSE_DOCUMENT_VERSION = 43;
+const COURSE_DOCUMENT_VERSION = 44;
 const ID = { maxLength: COURSE_DOCUMENT_LIMITS.idCodeUnits };
 
+/** A station: `offset` metres (negative before) from a joint, the start of the plan element `joint` or `"end"`. */
 export interface CoursePosition {
-  readonly pi: string;
+  readonly joint: string;
   readonly offset: number;
 }
 
-export interface PlanPI {
-  readonly id: string;
-  readonly x: number;
-  readonly z: number;
-  readonly radius: number;
-}
+/** The joint at the end of a Section; no plan element has this id. */
+export const SECTION_END_JOINT = 'end';
+
+/**
+ * One element of a Section's centreline: a straight, or an arc of `radius` turning `left` or `right`, each `length`
+ * metres along the centreline.
+ */
+export type PlanElement =
+  | { readonly kind: 'straight'; readonly id: string; readonly length: number }
+  | {
+      readonly kind: 'arc';
+      readonly id: string;
+      readonly length: number;
+      readonly radius: number;
+      readonly turn: 'left' | 'right';
+    };
 
 export type Lateral = number | { readonly boundary: string; readonly offset: number };
 
@@ -171,14 +182,15 @@ export interface OpenLimitDocument {
 
 export interface SectionDocument {
   readonly id: string;
-  readonly pis: readonly PlanPI[];
+  /** The centreline from the Section's origin, facing +Z. */
+  readonly plan: readonly PlanElement[];
+  readonly profile: readonly { readonly at: CoursePosition; readonly y: number; readonly curveLength: number }[];
+  readonly carriageways: readonly CarriagewayDocument[];
   readonly boundaries: readonly BoundaryDocument[];
   readonly strips: readonly StripElementDocument[];
   readonly walls: readonly WallDocument[];
   readonly openLimits: readonly OpenLimitDocument[];
   readonly sprites: readonly RepeatElement<SpriteDocument>[];
-  readonly profile: readonly { readonly at: CoursePosition; readonly y: number; readonly curveLength: number }[];
-  readonly carriageways: readonly CarriagewayDocument[];
   readonly environments: readonly RepeatElement<EnvironmentDocument>[];
   readonly gates: readonly CourseGateDocument[];
 }
@@ -214,9 +226,9 @@ export interface CourseDocument {
 }
 
 function position(value: unknown, path: string): CoursePosition {
-  const v = readRecord(value, path, ['pi', 'offset']);
+  const v = readRecord(value, path, ['joint', 'offset']);
   return Object.freeze({
-    pi: readString(v.pi, `${path}/pi`, ID),
+    joint: readString(v.joint, `${path}/joint`, ID),
     offset: readNumber(v.offset, `${path}/offset`, {
       min: -COURSE_DOCUMENT_LIMITS.lengthMeters,
       max: COURSE_DOCUMENT_LIMITS.lengthMeters,
@@ -224,14 +236,32 @@ function position(value: unknown, path: string): CoursePosition {
   });
 }
 
-function planPI(value: unknown, path: string): PlanPI {
-  const v = readRecord(value, path, ['id', 'x', 'z', 'radius']);
-  const bound = COURSE_DOCUMENT_LIMITS.coordinateMeters;
+function planElement(value: unknown, path: string): PlanElement {
+  const kind = readEnum((value as { kind?: unknown } | null)?.kind, ['straight', 'arc'], `${path}/kind`);
+  const v = readRecord(
+    value,
+    path,
+    kind === 'arc' ? ['kind', 'id', 'length', 'radius', 'turn'] : ['kind', 'id', 'length'],
+  );
+  const id = readString(v.id, `${path}/id`, ID);
+  if (id === SECTION_END_JOINT)
+    throw new AdmissionError('invalid_value', `${path}/id`, `A plan element cannot be named ${JSON.stringify(id)}`);
+  const length = readNumber(v.length, `${path}/length`, {
+    min: 0,
+    max: COURSE_DOCUMENT_LIMITS.lengthMeters,
+    exclusiveMin: true,
+  });
+  if (kind === 'straight') return Object.freeze({ kind, id, length });
   return Object.freeze({
-    id: readString(v.id, `${path}/id`, ID),
-    x: readNumber(v.x, `${path}/x`, { min: -bound, max: bound }),
-    z: readNumber(v.z, `${path}/z`, { min: -bound, max: bound }),
-    radius: readNumber(v.radius, `${path}/radius`, { min: 0, max: COURSE_DOCUMENT_LIMITS.lengthMeters }),
+    kind,
+    id,
+    length,
+    radius: readNumber(v.radius, `${path}/radius`, {
+      min: 0,
+      max: COURSE_DOCUMENT_LIMITS.lengthMeters,
+      exclusiveMin: true,
+    }),
+    turn: readEnum(v.turn, ['left', 'right'], `${path}/turn`),
   });
 }
 
@@ -534,34 +564,20 @@ function environments(value: unknown, path: string): SectionDocument['environmen
 function section(value: unknown, path: string): SectionDocument {
   const v = readRecord(value, path, [
     'id',
-    'pis',
+    'plan',
+    'profile',
+    'carriageways',
     'boundaries',
     'strips',
     'walls',
     'openLimits',
     'sprites',
-    'profile',
-    'carriageways',
     'environments',
     'gates',
   ]);
   return Object.freeze({
     id: readString(v.id, `${path}/id`, ID),
-    pis: readIdentified(v.pis, `${path}/pis`, planPI, { max: COURSE_DOCUMENT_LIMITS.pis }),
-    boundaries: readIdentified(v.boundaries, `${path}/boundaries`, boundary, {
-      max: COURSE_DOCUMENT_LIMITS.boundaries,
-    }),
-    strips: readArray(v.strips, `${path}/strips`, (item, at) => stripElement(item, at), {
-      max: COURSE_DOCUMENT_LIMITS.stripElements,
-    }),
-    walls: readArray(v.walls, `${path}/walls`, wall, { max: COURSE_DOCUMENT_LIMITS.walls }),
-    openLimits: readArray(v.openLimits, `${path}/openLimits`, openLimit, { max: COURSE_DOCUMENT_LIMITS.openLimits }),
-    sprites: readArray(
-      v.sprites,
-      `${path}/sprites`,
-      (item, at) => repeated(item, at, COURSE_DOCUMENT_LIMITS.spriteElements, sprite),
-      { max: COURSE_DOCUMENT_LIMITS.spriteElements },
-    ),
+    plan: readIdentified(v.plan, `${path}/plan`, planElement, { max: COURSE_DOCUMENT_LIMITS.planElements }),
     profile: readArray(
       v.profile,
       `${path}/profile`,
@@ -584,6 +600,20 @@ function section(value: unknown, path: string): SectionDocument {
     carriageways: readIdentified(v.carriageways, `${path}/carriageways`, carriageway, {
       max: COURSE_DOCUMENT_LIMITS.carriageways,
     }),
+    boundaries: readIdentified(v.boundaries, `${path}/boundaries`, boundary, {
+      max: COURSE_DOCUMENT_LIMITS.boundaries,
+    }),
+    strips: readArray(v.strips, `${path}/strips`, (item, at) => stripElement(item, at), {
+      max: COURSE_DOCUMENT_LIMITS.stripElements,
+    }),
+    walls: readArray(v.walls, `${path}/walls`, wall, { max: COURSE_DOCUMENT_LIMITS.walls }),
+    openLimits: readArray(v.openLimits, `${path}/openLimits`, openLimit, { max: COURSE_DOCUMENT_LIMITS.openLimits }),
+    sprites: readArray(
+      v.sprites,
+      `${path}/sprites`,
+      (item, at) => repeated(item, at, COURSE_DOCUMENT_LIMITS.spriteElements, sprite),
+      { max: COURSE_DOCUMENT_LIMITS.spriteElements },
+    ),
     environments: environments(v.environments, `${path}/environments`),
     gates: readArray(v.gates, `${path}/gates`, gate, { max: COURSE_DOCUMENT_LIMITS.gates }),
   });

@@ -27,26 +27,26 @@ authoring core and its tools save a course document that admits in that order.
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 43,
+  format: "superoutride.course", version: 44,
   name, entry, maxLaps,
   sections, links
 }
 Section {
-  id, pis,
-  boundaries, strips, walls, openLimits, sprites, profile: [{at, y, curveLength}],
-  carriageways, environments, gates
+  id, plan, profile: [{at, y, curveLength}], carriageways,
+  boundaries, strips, walls, openLimits, sprites, environments, gates
 }
 ```
 
 ### Geometry and reference records
 
-| Record      | Fields                                                                                     |
-| ----------- | ------------------------------------------------------------------------------------------ |
-| Plan PI     | `id`, `x`, `z`, `radius`                                                                   |
-| Position    | `at: {pi, offset}`; interval `start`/`end` and gate `at` use the same `{pi, offset}` value |
-| Boundary    | `id`, `knots: [{at,lateral}]`                                                              |
-| Carriageway | `id`, `left`, `right`, `lanes`                                                             |
-| Link        | `id`, `from: {section, carriageway}`, `to` (a Section id)                                  |
+| Record      | Fields                                                                             |
+| ----------- | ---------------------------------------------------------------------------------- |
+| Straight    | `kind: "straight"`, `id`, positive `length`                                        |
+| Arc         | `kind: "arc"`, `id`, positive `length` and `radius`, `turn: "left" \| "right"`     |
+| Position    | `at: {joint, offset}`; interval `start`/`end` use the same `{joint, offset}` value |
+| Boundary    | `id`, `knots: [{at,lateral}]`                                                      |
+| Carriageway | `id`, `left`, `right`, `lanes`                                                     |
+| Link        | `id`, `from: {section, carriageway}`, `to` (a Section id)                          |
 
 A course names its images: each name is the file `content/images/<name>.json` (the image's file name without
 `.json`). The build works out each image's identity from its bytes; the delivery manifest's `image` entry of that
@@ -62,7 +62,7 @@ long, so it fits one line of the frame's text grid. It is shown, never used as a
 IDs are opaque nonblank strings without surrounding whitespace and compare exactly. A course's only
 identifier is its file name without `.course.json`, which is also its manifest ID; the document carries
 none, and the compiled course receives it from its catalog. Section, Link and asset IDs each have a document-wide scope.
-PI, Boundary and Carriageway IDs each have their own Section-local scope. Sprites have no IDs.
+Plan element, Boundary and Carriageway IDs each have their own Section-local scope; no plan element is named `"end"`. Sprites have no IDs.
 Duplicate IDs fail. References
 resolve in their named scopes rather than by array position.
 
@@ -353,7 +353,7 @@ protect compiler resources; they are not rendering, resident-memory or device-pe
 Use 21 km as the planning envelope for the approximately 20.8 km Nordschleife, with a factor of two
 for longitudinal detail and length. One Section can therefore hold nearly the whole circuit; the
 planned circuit representation uses at least two Sections and does not divide the long Section's budget.
-Assume 10 corners/PIs, 20 PVIs/profile knots, 30 authored decoration records and 220 placements per km.
+Assume 10 corners, 20 PVIs/profile knots, 30 authored decoration records and 220 placements per km.
 The latter includes both verges at 10 m spacing (200/km) plus 20/km for signs and other sprites.
 Every corner can receive two curbs, an arrow and lettering: curbs can cover both sides of the entire
 21 km at 1 m stripes, with 100 lane dashes/km and up to 10 two-character markings/km. This is
@@ -372,7 +372,7 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | `nameCodeUnits`                                                         |                 40 | One line of the 40-column text grid                                                                                                                                       |
 | Graph `sections` / `links`                                              |          128 / 384 | 50 positions × 2, rounded up; three outgoing choices per Section                                                                                                          |
 | Images a course names (`images`)                                        |               2048 | (50 × 16 local image types + 128 shared types) × 2, rounded up                                                                                                            |
-| Section `pis`                                                           |                512 | (21 × 10 + 2 endpoints) × 2, rounded up                                                                                                                                   |
+| Section `plan` elements                                                 |                512 | (21 × 10 + 2 endpoints) × 2, rounded up                                                                                                                                   |
 | Section `heightNodes`                                                   |               1024 | (21 × 20 + 2) × 2, rounded up                                                                                                                                             |
 | Each Boundary/wall Strip `knots`                                        |               1024 | Same 20/km knot density and margin                                                                                                                                        |
 | Environment array and expanded Section `environmentKnots`               |                256 | (21 × 4 + 1) × 2, rounded up                                                                                                                                              |
@@ -415,16 +415,17 @@ planning density as Strip arrays, rounded up to 2048; expanded placements retain
 The ceilings are independent admission fences, not a promise to accept their Cartesian product.
 Slab crossings and moving-edge preblend event counts depend on geometry, so input counts alone
 cannot guarantee derived counts; compilation checks the actual products and rejects excess.
-The 21 km density case, a nearly 42 km case reaching PI/PVI/knot/Boundary/Strip/placement ceilings,
+The 21 km density case, a nearly 42 km case reaching plan element/PVI/knot/Boundary/Strip/placement ceilings,
 and 50- and 128-Section three-choice graphs are disposable measured probes; their times, memory and
 compiled counts belong in the PR. Images have their own aggregate bound; each named image is one source. Authored
 JSON size does not include the separately supplied image bytes.
 
-Positions resolve a Section-local PI (arc midpoint for an interior PI, endpoint otherwise) plus signed
-offset. Their stations must lie in the finite Section and intervals must be positively representable.
-Endpoint PI radii are zero; interior radii and deflections are positive, with deflection below 180 degrees.
-Neighboring tangent lengths must fit their shared edge. The touching-tangent roundoff rule belongs to
-[Architecture](architecture.md#plan-authority). Resolved Lateral values also obey the lateral ceiling.
+A Section's plan is its centreline from its origin facing +Z: straights and arcs in order, each `length` metres along
+the centreline, an arc turning `length / radius` radians to its `turn` side. The Section's length is the sum of the
+lengths. A plan has at least one element, no straight follows a straight, and no arc follows an arc of the same
+radius and turn (`invalid_plan`). Its joints are each element's start and the Section's end, `"end"`. A Position
+resolves its joint's station plus signed offset. Stations must lie in the finite Section and intervals must be
+positively representable. Resolved Lateral values also obey the lateral ceiling.
 Palette size, RGB555 range, SHA-256 length, glyph dimensions and angle units
 are format values, not entries in the resource table. Session rival/lap/time-margin rules remain owned by
 `SESSION_RULE_LIMITS`, shared with Session admission and controls rather than copied into document limits.
@@ -442,7 +443,7 @@ use the same enumeration.
 
 ## Geometry and bindings
 
-The saved PI and position fields are listed above. [Architecture](architecture.md#plan-authority)
+The saved plan and position fields are listed above. [Architecture](architecture.md#plan-authority)
 owns their authoritative planar interpretation, coordinate domain and geometric validation.
 Rendering and physics read the same plan; Section length comes from its coordinate Reader domain.
 An overpass is authored as separate Sections for its passages; the coordinate-domain condition
@@ -495,7 +496,7 @@ independent of physical support. Outside material-bearing coverage, point reads 
 
 ## Cut lines, Links and topology
 
-Each Section retains its authored PI coordinates as its native frame and owns its full `[0,L]` ruler.
+Each Section's native frame is its plan's: its origin, facing +Z. It owns its full `[0,L]` ruler.
 The entry Section's native frame is the world frame. Its entry is the cut
 at `s=0`; its outgoing cut is `(s=L, Carriageway)`. The course entry and every Link destination
 have exactly one positive-width Carriageway at `s=0`. Every outgoing Link names a positive-width
@@ -533,13 +534,13 @@ as functions from a document (and arguments) to a document or a result, free of 
 ([`tools/authoring`](../tools/authoring)). The document stays the one source: the editor keeps no model of its own,
 and every result resolves through the course compiler's functions.
 
-**Form.** `readCourseStructure` lists every element of a course an author draws or edits, by Section: PIs and the arc
-ends the plan derives between them, PVIs and their vertical-curve ends, Boundaries (their written knots, and every
+**Form.** `readCourseStructure` lists every element of a course an author draws or edits, by Section: plan elements at
+their joints and the Section's end, PVIs and their vertical-curve ends, Boundaries (their written knots, and every
 vertex the compiler resolves, written or inherited from a referenced Boundary), repeats, Strips,
 arrows, texts, curbs, walls and their Strips and knots, open limits, sprites (an object when it has a body),
 environments, gates, grid slots and Carriageways, and the course's Links. Each element has the JSON Pointer of its
 record (a repeated element's one authored record), whether it is written or derived (and from what), every Position
-as written (`pi`, `offset`) and resolved (`s`), every lateral as written (a number, or a Boundary and offset) and
+as written (`joint`, `offset`) and resolved (`s`), every lateral as written (a number, or a Boundary and offset) and
 resolved at the element's station (`l`), the repetitions enclosing it (each repeat's Pointer, the copy's index (0 the
 original), its `count` and `every`, outermost first), its resolved height and plan `x` and `z`, and resolved lines for
 Boundaries, Strip and curb edges and walls. Repetitions expand with `expandCourseElements`, Positions with
@@ -549,14 +550,14 @@ diagnostic, and each element that does not resolve carries its problem (code, me
 
 **Edits that keep form** ([`course-edits.ts`](../tools/authoring/course-edits.ts)) change written numbers and nothing
 else, returning the new document with each changed value's Pointer, before and after, or the reason the edit cannot
-be made, leaving the document unchanged. `setCourseNumbers` sets values where a number is written (a PI's `x`, `z` or
-`radius`, a PVI's `y` or `curveLength`, a repeat's `every` or `count`), refusing a Pointer that holds anything else.
-`moveCourseElement` moves an element along and across the Section as written: each Position's `offset` (its PI stays)
+be made, leaving the document unchanged. `setCourseNumbers` sets values where a number is written (a plan element's `length`
+or `radius`, a PVI's `y` or `curveLength`, a repeat's `every` or `count`), refusing a Pointer that holds anything else.
+`moveCourseElement` moves an element along and across the Section as written: each Position's `offset` (its joint stays)
 and each lateral's number, or a reference's `offset` (the reference stays); a repeat copy's record is its original's,
-so moving any copy moves the original and every copy, and Positions measured from a moved PI move with it. A move can
+so moving any copy moves the original and every copy. A move can
 be limited to some fields (a wall's `start`, a Strip's `left`) and snapped: each changed value goes to the nearest
-multiple of a step, nothing else. Derived points do not move. `addCoursePi` inserts a PI at a plan point and radius with a new id;
-`removeCoursePi` is refused while a Position in its Section measures from it. An edit may produce a document admission
+multiple of a step, nothing else. Derived points do not move. `addCoursePlanElement` inserts a straight or arc with a new id;
+`removeCoursePlanElement` is refused while a Position in its Section measures from its joint. An edit may produce a document admission
 rejects; the compile's diagnostics then say why.
 
 **Operations that change form** ([`course-forms.ts`](../tools/authoring/course-forms.ts)) are made only when an author
@@ -575,7 +576,7 @@ resolved values are written to 1e-9 m, which drops floating-point noise.
   the element's station; between knots the line then follows the Boundary. `unbindCourseLateral` makes a reference the
   number it resolves to at the element's station; between knots the line then runs straight. A Boundary cannot refer
   to itself.
-- `reanchorCoursePosition` measures a Position from another PI of its Section, its offset chosen so its station stays.
+- `reanchorCoursePosition` measures a Position from another joint of its Section, its offset chosen so its station stays.
 
 **Cleaning operations** ([`course-cleaning.ts`](../tools/authoring/course-cleaning.ts)) work in two phases over a scope
 (the course, a Section, chosen elements and what they hold, or element kinds). The first proposes candidates, each with
@@ -586,7 +587,7 @@ edit, returning the shift and each changed Section's centreline shift (the old c
 new one) and length change. Every applied candidate changes the course's identity, so the measured products become
 stale; the driving changes only when the shift is not 0.
 
-- `roundCandidates` rounds written numbers of chosen kinds (PI coordinates, radii, Position offsets, laterals, PVI
+- `roundCandidates` rounds written numbers of chosen kinds (plan lengths, radii, Position offsets, laterals, PVI
   heights, curve lengths, repeat spacings) to a step: each value off the step is a candidate.
 - `unneededKnotCandidates` proposes each middle knot of a Boundary or wall Strip, and each middle PVI, whose
   removal moves nothing beyond a tolerance (0: exactly the same lines and heights). The first and last knots bound a
@@ -594,8 +595,8 @@ stale; the driving changes only when the shift is not 0.
 - `joinCandidates` proposes near things, within a distance but not the same, written as one: an absolute lateral near
   a Boundary at an offset it is already referred to with (or 0) becomes that reference (`join-reference` when exactly
   on it); a Position (of a knot, wall,
-  curb, open limit or gate) near another element's Position takes it, either way round; a Position near a PI's station
-  is measured from that PI with offset 0; a Strip's left edge near the previous Strip's right edge where it starts
+  curb, open limit or gate) near another element's Position takes it, either way round; a Position near a joint's station
+  is measured from that joint with offset 0; a Strip's left edge near the previous Strip's right edge where it starts
   takes its written value. A join that leaves the Section unreadable is not proposed.
 - `mergeCandidates` proposes, for each list, its runs of three or more elements that combine exactly into repeats,
   and each colour within a tolerance (in 5-bit steps) of a more used colour, which then takes its place everywhere.
@@ -629,7 +630,7 @@ clock state belong to Sessions. Object identity is local to a compilation; cross
 `sourceSha256` and `materialsSha256` are the delivered SHA-256 of the course document and the
 surface-material document, the [document identity](#reference-times-and-clock) the catalog supplies.
 `buildSha256` hashes `{sourceSha256,materialsSha256,compiler}`.
-The compiler is `superoutride.course-compiler` version 43, incorporating Link recipe v3, physical
+The compiler is `superoutride.course-compiler` version 44, incorporating Link recipe v3, physical
 recipe v8, image-source recipe v3 and appearance recipe v14. Source, material or compiler/recipe
 changes invalidate dependent products.
 
@@ -644,7 +645,7 @@ image as its compact JSON; the delivered course document is the admitted one. Re
 [admission contract](architecture.md#content-admission-toolkit); clients use code and path.
 The `plan_coordinate_overlap` variant additionally requires
 `overlap: {section, intervals: [{sStart, sEnd}, ...]}`; ordinary diagnostics have no overlap fields.
-`plan_coordinate_inversion` identifies the Section's PIs and the affected station in metres, never
+`plan_coordinate_inversion` identifies the Section's plan and the affected station in metres, never
 an internal segment number. `invalid_gate` identifies gate-specific rules: gate kind, gate ID uniqueness,
 counts, ordering, Carriageway support, grid, lock/closure and circuit finish conditions.
 Shared shape, numeric, reference and position rules keep their own codes (for example

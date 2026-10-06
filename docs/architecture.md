@@ -71,10 +71,9 @@ t = (sin(psi), cos(psi))
 n = (cos(psi), -sin(psi))
 ```
 
-A Section is authored as PI coordinates and radii. Its native coordinates are the authored PI
-coordinates, without origin or orientation normalization. The entry Section's native frame is the
-world frame. The plan starts at the first PI, with heading `atan2(dx,dz)` of the first edge.
-The derived straight/circular plan is the planar authority; derived arc turns are stored in radians. `s` is true arc length
+A Section is authored as straights and arcs by length. Its native frame starts the plan at the origin facing +Z
+(heading 0). The entry Section's native frame is the world frame.
+The straight/circular plan is the planar authority; derived arc turns are stored in radians. `s` is true arc length
 along that centerline and positive `l` is distance along its right normal. With centerline `C(s)`,
 normal `N(s)` and signed curvature `kappa`, planar coordinates are `C(s) + l*N(s)`; physical
 distance along an offset or sloping path is different.
@@ -256,17 +255,11 @@ A sampling tolerance changes neither point ownership nor earned progress.
 
 ## Plan authority
 
-The ordered PI sequence defines tangent edges and circular fillets. At an interior PI with
-signed deflection `delta` and radius `R`, each tangent setback is `R*tan(abs(delta)/2)`.
-Compilation checks endpoint radii, distinct neighbors, interior deflections and tangent nonoverlap,
-then emits the remaining straight parts and circular arcs in station order. A tangent remainder
-within the plan-position budget (1e-8 m) is treated as zero when an incident arc is present;
-this absorbs coordinate and trigonometric roundoff at touching arcs. Zero-length lines are omitted.
-PI conversion runs only during compilation. Derived segments have no authored record or ID;
-they retain internal geometry, exact s interval, starting pose and signed curvature.
-A straight has `kappa=0`. An arc has `kappa=sign(delta)/R` and length `R*abs(delta)`.
-The temporary PI station table resolves positions, including Session landmarks, and is discarded
-before publication. Compilation preserves the authored native frame without translation, rotation or scaling.
+The ordered plan elements are the segments, laid in order from the origin facing +Z. An arc of length `L` and radius
+`R` turns `delta = L/R` radians, positive to the right. Compiled segments keep internal geometry, exact s interval,
+starting pose and signed curvature. A straight has `kappa=0`. An arc has `kappa=sign(delta)/R`.
+The temporary joint station table (each element's start, and `"end"`) resolves positions, including Session
+landmarks, and is discarded before publication.
 Section projection onto a straight or circular arc uses closed-form geometry.
 The projection window `W = 50 m` is measured in chainage in both native and mapped Readers.
 At the fixed frame step and twelve vehicle substeps, longitudinal travel is a few metres even at

@@ -59,7 +59,7 @@ export function createCleaningPanel(host: CleaningPanelHost) {
   const values = make('span');
   for (const value of ROUNDED_VALUES) {
     const box = make('input', '', { type: 'checkbox', value });
-    box.checked = value === 'pi' || value === 'radius';
+    box.checked = value === 'length' || value === 'radius';
     const label = make('label');
     label.append(box, ` ${value} `);
     values.append(label);

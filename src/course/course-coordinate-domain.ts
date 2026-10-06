@@ -93,7 +93,7 @@ function validatePlanMetric(
       const metric = 1 - segment.curvature * l;
       requireCourse(
         metric > 0,
-        `${sectionPath}/pis`,
+        `${sectionPath}/plan`,
         `Section ${JSON.stringify(sectionId)} has 1 - kappa*l <= 0 at s=${s}`,
         'plan_coordinate_inversion',
       );

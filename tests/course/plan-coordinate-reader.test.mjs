@@ -11,24 +11,13 @@ const near = (actual, expected, tolerance = 1e-8) =>
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected}`);
 
 test('arc projection is independent of accumulated heading winding', () => {
-  const corners = [
-    [0, 100],
-    [200, 100],
-    [200, -100],
-    [0, -100],
-  ];
+  // Twelve right-angle bends between short straights wind the heading three times round.
   const plan = compileCourseGeometry(
     {
-      pis: [
-        { id: 'start', x: 0, z: 0, radius: 0 },
-        ...Array.from({ length: 12 }, (_, i) => ({
-          id: `turn-${i}`,
-          x: corners[i % 4][0],
-          z: corners[i % 4][1],
-          radius: 100,
-        })),
-        { id: 'end', x: 0, z: 0, radius: 0 },
-      ],
+      plan: Array.from({ length: 12 }, (_, i) => [
+        { kind: 'straight', id: `straight-${i}`, length: 10 },
+        { kind: 'arc', id: `turn-${i}`, length: 50 * Math.PI, radius: 100, turn: 'right' },
+      ]).flat(),
     },
     '/section',
   );

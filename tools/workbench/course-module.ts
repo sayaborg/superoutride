@@ -20,8 +20,8 @@ import { createFindingsBar } from './course-findings-bar.js';
 import { createUnderlayControls } from './course-underlay-controls.js';
 import { createPlanEditing, createProfileEditing, writtenNumbers, type CourseEditHost } from './course-editing.js';
 import {
-  addCoursePi,
-  removeCoursePi,
+  addCoursePlanElement,
+  removeCoursePlanElement,
   savedCourseDocument,
   setCourseNumbers,
   type CourseEditResult,
@@ -72,9 +72,14 @@ export const courseModule: WorkbenchModule = {
     for (const step of ['off', '0.01', '0.1', '0.5', '1', '5', '10'])
       snap.append(make('option', step === 'off' ? 'off' : `${step} m`, { value: step }));
     snap.value = '0.1';
+    const newKind = make('select');
+    for (const kind of ['straight', 'arc']) newKind.append(make('option', kind, { value: kind }));
+    const newLength = make('input', '', { type: 'number', step: 'any', min: '0', value: '100' });
     const newRadius = make('input', '', { type: 'number', step: 'any', min: '0', value: '100' });
-    const addPi = make('button', 'Add PI at cursor', { type: 'button' });
-    const removePi = make('button', 'Remove selected PI', { type: 'button' });
+    const newTurn = make('select');
+    for (const turn of ['left', 'right']) newTurn.append(make('option', turn, { value: turn }));
+    const addPlan = make('button', 'Add plan element at cursor', { type: 'button' });
+    const removePlan = make('button', 'Remove selected plan element', { type: 'button' });
     const selection = make('div', '', { class: 'course-selection' });
     const formColors = make('input', '', { type: 'checkbox' });
     const legend = make('div', '', { class: 'legend' });
@@ -147,11 +152,17 @@ export const courseModule: WorkbenchModule = {
       make('br'),
       field('Snap', snap),
       ' ',
-      addPi,
+      addPlan,
       ' ',
-      field('with radius (m)', newRadius),
+      newKind,
       ' ',
-      removePi,
+      field('length (m)', newLength),
+      ' ',
+      field('radius (m)', newRadius),
+      ' ',
+      newTurn,
+      ' ',
+      removePlan,
       findings.element,
       views,
       legend,
@@ -351,10 +362,10 @@ export const courseModule: WorkbenchModule = {
             draw.context.stroke();
             draw.context.setLineDash([]);
           }
-        // The selection's Positions: the centreline from each PI it is measured from to where it resolves.
+        // The selection's Positions: the centreline from each joint it is measured from to where it resolves.
         if (element.pointer === selected?.pointer && element === selected && plan)
           for (const position of Object.values(element.positions)) {
-            const from = plan.stations.get(position.pi);
+            const from = plan.stations.get(position.joint);
             if (from === undefined || position.s === null) continue;
             draw.context.strokeStyle = '#ffd33d';
             draw.context.lineWidth = 4 * draw.pixel;
@@ -371,30 +382,37 @@ export const courseModule: WorkbenchModule = {
     });
     view.setStyle(style());
     profileView.setStyle(style());
-    // A PI at the cursor's plan point, after the PIs before it; it moves on the plan like any PI.
-    addPi.addEventListener('click', () => {
+    // A plan element after the one the cursor is on.
+    addPlan.addEventListener('click', () => {
       const section = structure?.sections[sectionIndex];
       if (!section || !plan) return;
-      const pis = section.elements.filter((e) => e.kind === 'pi');
-      const index = Math.min(pis.length - 1, Math.max(1, pis.filter((e) => e.s !== null && e.s <= cursor).length));
-      const at = plan.toWorld(cursor, 0);
+      const index = section.elements.filter((e) => e.kind === 'plan' && e.s !== null && e.s <= cursor).length;
+      const length = finiteNumber(newLength.value) ?? 0;
       const result = refuse(
-        addCoursePi(document as Json, section.pointer, index, {
-          x: Math.round(at.x * 1000) / 1000,
-          z: Math.round(at.z * 1000) / 1000,
-          radius: finiteNumber(newRadius.value) ?? 0,
-        }),
+        addCoursePlanElement(
+          document as Json,
+          section.pointer,
+          index,
+          newKind.value === 'arc'
+            ? {
+                kind: 'arc',
+                length,
+                radius: finiteNumber(newRadius.value) ?? 0,
+                turn: newTurn.value as 'left' | 'right',
+              }
+            : { kind: 'straight', length },
+        ),
       );
       if (result) {
-        // The new PI is the selection once it is read.
-        const pointer = `${section.pointer}/pis/${index}`;
+        // The new element is the selection once it is read.
+        const pointer = `${section.pointer}/plan/${index}`;
         context.select(path(), pointer);
-        commit(result.document, `Add PI at ${pointer}`);
+        commit(result.document, `Add plan element at ${pointer}`);
       }
     });
-    removePi.addEventListener('click', () => {
-      if (selected?.kind !== 'pi') return;
-      const result = refuse(removeCoursePi(document as Json, selected.pointer));
+    removePlan.addEventListener('click', () => {
+      if (selected?.kind !== 'plan') return;
+      const result = refuse(removeCoursePlanElement(document as Json, selected.pointer));
       if (result) commit(result.document, `Remove ${selected.pointer}`);
     });
     confirmField(cursorField, finiteNumber, moveCursor);
@@ -440,7 +458,7 @@ export const courseModule: WorkbenchModule = {
     /** The selected element: where it is, how it is written, and its record in the document. */
     const showSelection = () => {
       if (!selected) {
-        removePi.disabled = true;
+        removePlan.disabled = true;
         selection.replaceChildren(make('p', 'Choose an element on the plan.', { class: 'hint' }));
         return;
       }
@@ -458,7 +476,7 @@ export const courseModule: WorkbenchModule = {
         e.s === null
           ? 'unresolved'
           : `s ${e.s.toFixed(3)} m${e.l === null ? '' : ` · l ${e.l.toFixed(3)} m`}${e.y === null ? '' : ` · y ${e.y.toFixed(3)} m`}`,
-        ...Object.entries(e.positions).map(([name, p]) => `${name}: ${p.offset} m from PI ${p.pi}`),
+        ...Object.entries(e.positions).map(([name, p]) => `${name}: ${p.offset} m from ${p.joint}`),
         ...Object.entries(e.laterals).map(([name, l]) =>
           l.form === 'absolute'
             ? `${name}: ${l.value} m (absolute)`
@@ -487,7 +505,7 @@ export const courseModule: WorkbenchModule = {
         });
         numbers.append(field(written.label, input));
       }
-      removePi.disabled = e.kind !== 'pi';
+      removePlan.disabled = e.kind !== 'plan';
       selection.replaceChildren(
         make('code', e.pointer),
         ...lines.map((line) => make('div', line)),

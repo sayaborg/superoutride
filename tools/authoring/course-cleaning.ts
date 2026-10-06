@@ -11,6 +11,7 @@ import {
 import { valueAt, withValue, type Json } from './json-pointer.js';
 import type { ProfileReader } from '../../src/course/geometry/profile.js';
 import { courseBoundaryAt } from '../../src/course/course-boundaries.js';
+import { SECTION_END_JOINT } from '../../src/course/course-document.js';
 
 /**
  * One change a cleaning operation proposes: where it is (the element's Pointer, for the figure), what it changes, and
@@ -90,10 +91,10 @@ function lineAt(line: ResolvedLine, s: number): number | null {
   return courseBoundaryAt({ id: '', vertices: line.map((v) => ({ at: { s: v.s }, l: v.l })) }, s);
 }
 
-/** Whether two plans are the same ruler: the same length and PI stations. */
+/** Whether two plans are the same ruler: the same length and joint stations. */
 function samePlan(a: SectionPlan | null, b: SectionPlan | null) {
   if (!a || !b) return a === b;
-  return a.length === b.length && [...a.stations].every(([pi, s]) => b.stations.get(pi) === s);
+  return a.length === b.length && [...a.stations].every(([joint, s]) => b.stations.get(joint) === s);
 }
 
 /** The greatest height difference of two profiles, sampled every 2 m over both. */
@@ -252,7 +253,7 @@ export function applyCleaning(document: Json, candidates: readonly CleaningCandi
 }
 
 /** The written numbers rounding can change, by name. */
-export const ROUNDED_VALUES = ['pi', 'radius', 'offset', 'lateral', 'height', 'curveLength', 'every'] as const;
+export const ROUNDED_VALUES = ['length', 'radius', 'offset', 'lateral', 'height', 'curveLength', 'every'] as const;
 export type RoundedValue = (typeof ROUNDED_VALUES)[number];
 
 /** An element's written numbers of the named kinds, each with its Pointer. */
@@ -262,8 +263,8 @@ function roundable(element: CourseElement, document: Json, values: readonly Roun
     const value = valueAt(document, pointer);
     if (typeof value === 'number') found.push({ pointer, value });
   };
-  if (element.kind === 'pi') {
-    if (values.includes('pi')) for (const key of ['x', 'z']) add(`${element.pointer}/${key}`);
+  if (element.kind === 'plan') {
+    if (values.includes('length')) add(`${element.pointer}/length`);
     if (values.includes('radius')) add(`${element.pointer}/radius`);
     return found;
   }
@@ -439,20 +440,22 @@ export function joinCandidates(
             ],
           });
       }
-    const stations = section.elements.filter((e) => e.kind === 'pi' && e.s !== null);
+    const joints = section.elements
+      .filter((e) => (e.kind === 'plan' || e.kind === 'plan-end') && e.s !== null)
+      .map((e) => ({ id: e.kind === 'plan' ? String(e.values.id) : SECTION_END_JOINT, s: e.s! }));
     for (const p of positions)
-      for (const pi of stations)
-        if (near(p.s - pi.s!))
+      for (const joint of joints)
+        if (near(p.s - joint.s))
           proposals.push({
-            id: `join ${p.pointer} to PI ${String(pi.values.id)}`,
-            operation: 'join-pi',
+            id: `join ${p.pointer} to joint ${joint.id}`,
+            operation: 'join-joint',
             pointer: p.element.pointer,
-            description: `${p.pointer} → PI ${String(pi.values.id)} + 0 (${Math.abs(p.s - pi.s!).toFixed(3)} m away)`,
+            description: `${p.pointer} → ${joint.id} + 0 (${Math.abs(p.s - joint.s).toFixed(3)} m away)`,
             changes: [
               {
                 pointer: p.pointer,
                 before: valueAt(document, p.pointer),
-                after: { pi: String(pi.values.id), offset: 0 },
+                after: { joint: joint.id, offset: 0 },
               },
             ],
           });
@@ -509,7 +512,7 @@ export function mergeCandidates(
   const proposals: Omit<CleaningCandidate, 'shift'>[] = [];
   const lists = new Set(
     scoped(document, options.scope ?? {})
-      .filter(({ element }) => !element.copies.length && !/knot|vertex|pi|arc-end|pvi|curve-end/.test(element.kind))
+      .filter(({ element }) => !element.copies.length && !/knot|vertex|plan|pvi|curve-end/.test(element.kind))
       .map(({ element }) => element.pointer.slice(0, element.pointer.lastIndexOf('/'))),
   );
   for (const parent of lists) {

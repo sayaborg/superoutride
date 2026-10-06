@@ -4,7 +4,8 @@
 
 - One compiled graph scene serves RIBBON COAST, RIBBON FORK, RIBBON RING and RIBBON ROUGH with ARCADE/FREE PLAY Sessions;
   RIBBON ROUGH is an untimed evaluation course.
-- Course documents use PIs, `at` positions, Lateral values, Strips, Carriageways and gates.
+- Course documents use plans of straights and arcs, positions measured from joints, Lateral values, Strips, Carriageways
+  and gates.
   Circuits are closed cycles of two or more Sections.
 - One manifest verifies all delivered content, including vehicle and game-wide driving definitions and surface materials.
   The content build compiles every delivered file from authored documents in one pass.

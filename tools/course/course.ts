@@ -17,9 +17,9 @@ import { options, loadCourse, requireInput, finite, atomicWrite, reportError, js
 import { readCourseStructure } from '../authoring/course-structure.js';
 import {
   savedCourseDocument,
-  addCoursePi,
+  addCoursePlanElement,
   moveCourseElement,
-  removeCoursePi,
+  removeCoursePlanElement,
   setCourseNumbers,
   type CourseEditResult,
 } from '../authoring/course-edits.js';
@@ -47,7 +47,7 @@ import {
 } from '../authoring/course-forms.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
 
-const EDITS = ['set', 'move', 'add-pi', 'remove-pi'];
+const EDITS = ['set', 'move', 'add-plan', 'remove-plan'];
 const FORMS = ['explode', 'combine', 'bind', 'unbind', 'reanchor'];
 const CLEANING = ['round', 'remove-knots', 'join', 'merge', 'same'];
 const FINDINGS = 'findings';
@@ -94,8 +94,8 @@ async function editVerb(file: string) {
   const flags = {
     set: ['--values'],
     move: ['--element', '--ds', '--dl', '--fields', '--step'],
-    'add-pi': ['--section', '--index', '--x', '--z', '--radius'],
-    'remove-pi': ['--pi'],
+    'add-plan': ['--section', '--index', '--kind', '--length', '--radius', '--turn'],
+    'remove-plan': ['--element'],
   }[verb!]!;
   const opts = options(args, [...flags, '--out']);
   const document = (await jsonFile(file)).value as Json;
@@ -127,13 +127,20 @@ async function editVerb(file: string) {
       ...(opts.has('--fields') ? { fields: opts.get('--fields')!.split(',') } : {}),
       step: opts.has('--step') ? number('--step') : null,
     });
-  } else if (verb === 'add-pi')
-    result = addCoursePi(document, opts.get('--section') ?? '', number('--index'), {
-      x: number('--x'),
-      z: number('--z'),
-      radius: opts.has('--radius') ? number('--radius') : 0,
-    });
-  else result = removeCoursePi(document, opts.get('--pi') ?? '');
+  } else if (verb === 'add-plan') {
+    const kind = opts.get('--kind');
+    requireInput(kind === 'straight' || kind === 'arc', '/kind', 'The kind is straight or arc');
+    const turn = opts.get('--turn');
+    requireInput(kind === 'straight' || turn === 'left' || turn === 'right', '/turn', 'An arc turns left or right');
+    result = addCoursePlanElement(
+      document,
+      opts.get('--section') ?? '',
+      number('--index'),
+      kind === 'straight'
+        ? { kind, length: number('--length') }
+        : { kind, length: number('--length'), radius: number('--radius'), turn: turn as 'left' | 'right' },
+    );
+  } else result = removeCoursePlanElement(document, opts.get('--element') ?? '');
   requireInput(result.ok, '/edit', result.ok ? '' : result.reason);
   if (opts.has('--out'))
     await atomicWrite(path.resolve(opts.get('--out')!), formatSavedJson(savedCourseDocument(result.document)));
@@ -150,7 +157,7 @@ async function formVerb(file: string) {
     combine: ['--elements', '--tolerance'],
     bind: ['--lateral', '--boundary'],
     unbind: ['--lateral'],
-    reanchor: ['--position', '--pi'],
+    reanchor: ['--position', '--joint'],
   }[verb!]!;
   const opts = options(args, [...flags, '--out']);
   const document = (await jsonFile(file)).value as Json;
@@ -169,7 +176,7 @@ async function formVerb(file: string) {
           ? bindCourseLateral(document, element, field, opts.get('--boundary') ?? '')
           : verb === 'unbind'
             ? unbindCourseLateral(document, element, field)
-            : reanchorCoursePosition(document, opts.get('--position') ?? '', opts.get('--pi') ?? '');
+            : reanchorCoursePosition(document, opts.get('--position') ?? '', opts.get('--joint') ?? '');
   requireInput(result.ok, '/operation', result.ok ? '' : result.reason);
   if (opts.has('--out'))
     await atomicWrite(path.resolve(opts.get('--out')!), formatSavedJson(savedCourseDocument(result.document)));

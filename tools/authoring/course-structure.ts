@@ -22,7 +22,7 @@ import { compileCoursePhysicalContent } from '../../src/course/compiler/course-p
 
 /**
  * A course's form: every element an author draws or edits, where it is in the document (its JSON Pointer), where it
- * resolves (Section, s, l, height, plan x and z), and how it is written: the PI its position is measured from, whether
+ * resolves (Section, s, l, height, plan x and z), and how it is written: the joint its position is measured from, whether
  * a lateral is a number or a Boundary reference, which repetition of which `repeat` it is, and whether a point is
  * written in the document or derived from it. Positions, repetitions, laterals and Boundaries resolve through the
  * course compiler's own functions. A document admission or compilation rejects is read as far as it goes; an element
@@ -30,8 +30,8 @@ import { compileCoursePhysicalContent } from '../../src/course/compiler/course-p
  */
 
 export type CourseElementKind =
-  | 'pi'
-  | 'arc-end'
+  | 'plan'
+  | 'plan-end'
   | 'pvi'
   | 'curve-end'
   | 'boundary'
@@ -53,9 +53,9 @@ export type CourseElementKind =
   | 'grid-slot'
   | 'carriageway';
 
-/** A Position as written and as resolved: `offset` metres from PI `pi`, at station `s` (null when unresolved). */
+/** A Position as written and as resolved: `offset` metres from joint `joint`, at station `s` (null when unresolved). */
 export interface WrittenPosition {
-  readonly pi: string;
+  readonly joint: string;
   readonly offset: number;
   readonly s: number | null;
 }
@@ -76,7 +76,7 @@ export interface CourseElement {
   readonly section: string;
   /** The repetitions enclosing this copy, outermost first, with each `repeat`'s count and spacing; empty if none. */
   readonly copies: readonly (CourseRepeatCopy & { readonly count: number; readonly every: number })[];
-  /** Written in the document (PI, PVI, knot, placement) or derived from it (arc end, curve end, inherited vertex). */
+  /** Written in the document (plan element, PVI, knot, placement) or derived from it (Section end, curve end, inherited vertex). */
   readonly point: 'authored' | 'derived';
   /** The written element a derived point comes from. */
   readonly derivedFrom: string | null;
@@ -164,7 +164,7 @@ export function readCourseSection(value: unknown, index: number) {
 }
 
 /**
- * A Section's plan as the compiler builds it: its ruler `length`, plan segments and PI stations, the plan point and
+ * A Section's plan as the compiler builds it: its ruler `length`, plan segments and joint stations, the plan point and
  * heading of (s, l), and the station nearest a plan point. Null with the problem when the plan does not compile.
  */
 export function createSectionPlan(section: SectionDocument, pointer: string) {
@@ -172,7 +172,7 @@ export function createSectionPlan(section: SectionDocument, pointer: string) {
   try {
     geometry = compileCourseGeometry(section, pointer);
   } catch (error) {
-    return { plan: null, problem: problemOf(error, `${pointer}/pis`) };
+    return { plan: null, problem: problemOf(error, `${pointer}/plan`) };
   }
   const reader = createPlanCoordinateReader(geometry.segments, geometry.length, (_s, out) => {
     out.left = -COURSE_DOCUMENT_LIMITS.lateralMeters;
@@ -224,7 +224,7 @@ function readSection(
 ): { structure: SectionStructure; plan: SectionPlan | null; profile: ProfileReader | null } {
   const elements: CourseElement[] = [];
   const id = String(section.id ?? '');
-  // The plan: PI stations, the ruler and the coordinate reader that places (s, l) in the plan.
+  // The plan: joint stations, the ruler and the coordinate reader that places (s, l) in the plan.
   const { plan, problem: planProblem } = createSectionPlan(section, pointer);
   const length = plan?.length ?? null;
   const world = (s: number | null, l: number | null) => {
@@ -283,7 +283,7 @@ function readSection(
         problem ??= problemOf(error, `${at}/${field}`);
         s = null;
       }
-      positions[field] = { pi: String(written.pi ?? ''), offset: Number(written.offset), s };
+      positions[field] = { joint: String(written.joint ?? ''), offset: Number(written.offset), s };
     }
     const s = options.station?.s ?? Object.values(positions)[0]?.s ?? null;
     const laterals: Record<string, WrittenLateral> = {};
@@ -326,36 +326,35 @@ function readSection(
     });
   };
 
-  // The plan: written PIs, and the arc ends the plan derives between them.
-  list(section.pis).forEach((pi, i) => {
-    const v = record(pi);
+  // The plan: each written element at its start, its joint, and the Section's end.
+  list(section.plan).forEach((element, i) => {
+    const v = record(element);
     const s = plan?.stations.get(String(v.id)) ?? null;
-    elements.push({
-      ...blank('pi', `${pointer}/pis/${i}`, id),
-      s,
-      l: 0,
-      y: height && s !== null ? height.sample(s) : null,
-      x: Number(v.x),
-      z: Number(v.z),
-      values: { id: v.id, radius: v.radius },
-      problem:
-        s === null
-          ? (planProblem ?? { code: 'invalid_plan', message: 'Unresolved PI', pointer: `${pointer}/pis/${i}` })
-          : null,
-    });
+    add(
+      'plan',
+      `${pointer}/plan/${i}`,
+      {},
+      {
+        values: { id: v.id, kind: v.kind, length: v.length, radius: v.radius, turn: v.turn },
+        ...(s === null
+          ? {
+              problem: planProblem ?? {
+                code: 'invalid_plan',
+                message: 'Unresolved plan element',
+                pointer: `${pointer}/plan/${i}`,
+              },
+            }
+          : { station: { s, l: 0 } }),
+      },
+    );
   });
-  // Each arc is its PI's: the PI's station is the arc's middle.
-  const pis = list(section.pis).map((pi) => String(record(pi).id));
-  for (const segment of plan?.segments ?? [])
-    if (segment.geometry.kind === 'arc') {
-      const index = pis.findIndex((pi) => {
-        const station = plan!.stations.get(pi);
-        return station !== undefined && station > segment.sStart && station < segment.sEnd;
-      });
-      const from = index >= 0 ? `${pointer}/pis/${index}` : `${pointer}/pis`;
-      for (const s of [segment.sStart, segment.sEnd])
-        add('arc-end', from, {}, { point: 'derived', derivedFrom: from, station: { s, l: 0 } });
-    }
+  if (plan)
+    add(
+      'plan-end',
+      `${pointer}/plan`,
+      {},
+      { point: 'derived', derivedFrom: `${pointer}/plan`, station: { s: plan.length, l: 0 } },
+    );
   // The profile: written PVIs and the vertical curve ends they derive.
   list(section.profile).forEach((node, i) => {
     const at = `${pointer}/profile/${i}`;
@@ -590,26 +589,4 @@ function readSection(
     });
   });
   return { structure: { id, pointer, length, elements }, plan, profile: height };
-}
-
-/** An element with nothing resolved yet. */
-function blank(kind: CourseElementKind, pointer: string, section: string): CourseElement {
-  return {
-    kind,
-    pointer,
-    section,
-    copies: [],
-    point: 'authored',
-    derivedFrom: null,
-    positions: {},
-    laterals: {},
-    s: null,
-    l: null,
-    y: null,
-    x: null,
-    z: null,
-    lines: {},
-    values: {},
-    problem: null,
-  };
 }

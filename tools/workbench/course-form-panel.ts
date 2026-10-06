@@ -10,6 +10,7 @@ import type { CourseElement, SectionStructure } from '../authoring/course-struct
 import type { Json } from '../authoring/json-pointer.js';
 import { make } from './dom.js';
 import { finiteNumber } from './pending-edit.js';
+import { SECTION_END_JOINT } from '../../src/course/course-document.js';
 
 /** What the form operations read from the course module, and how a chosen one is previewed and committed. */
 export interface FormPanelHost {
@@ -140,13 +141,16 @@ export function createFormPanel(element: CourseElement, host: FormPanelHost): HT
     rows.push(row);
   }
   // Re-anchor each Position.
-  const pis = (section?.elements ?? []).filter((e) => e.kind === 'pi').map((e) => String(e.values.id));
+  const joints = [
+    ...(section?.elements ?? []).filter((e) => e.kind === 'plan').map((e) => String(e.values.id)),
+    SECTION_END_JOINT,
+  ];
   for (const [field, position] of Object.entries(element.positions)) {
-    const target = options(pis.filter((pi) => pi !== position.pi));
+    const target = options(joints.filter((joint) => joint !== position.joint));
     const row = make('div');
     row.append(
       button(
-        `Re-anchor ${field} to PI`,
+        `Re-anchor ${field} to joint`,
         () => reanchorCoursePosition(document(), `${element.pointer}/${field}`, target.value),
         () => `Re-anchor ${element.pointer}/${field} to ${target.value}`,
       ),

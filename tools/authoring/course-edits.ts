@@ -96,60 +96,69 @@ export function moveCourseElement(
   return setCourseNumbers(document, values);
 }
 
-/** A new PI at a plan point and radius, inserted at `index` of a Section's PIs, with an id the Section lacks. */
-export function addCoursePi(
+/** A plan element as an edit adds it: a straight, or an arc of a radius turning left or right. */
+export type CoursePlanShape =
+  | { readonly kind: 'straight'; readonly length: number }
+  | { readonly kind: 'arc'; readonly length: number; readonly radius: number; readonly turn: 'left' | 'right' };
+
+/** A new plan element inserted at `index` of a Section's plan, with an id the Section lacks. */
+export function addCoursePlanElement(
   document: Json,
   section: string,
   index: number,
-  at: { readonly x: number; readonly z: number; readonly radius: number },
+  shape: CoursePlanShape,
 ): CourseEditResult {
-  const { x, z, radius } = at;
-  const pis = valueAt(document, `${section}/pis`);
-  if (!Array.isArray(pis)) return { ok: false, reason: `${section} has no PI list` };
-  if (!Number.isInteger(index) || index < 0 || index > pis.length)
-    return { ok: false, reason: `A PI index must be 0 to ${pis.length}` };
-  if (![x, z, radius].every(Number.isFinite)) return { ok: false, reason: 'A PI needs a finite x, z and radius' };
-  const ids = new Set(pis.map((pi) => (pi && typeof pi === 'object' && !Array.isArray(pi) ? pi.id : null)));
-  let n = pis.length;
-  while (ids.has(`pi-${String(n).padStart(2, '0')}`)) n++;
-  const pi = { id: `pi-${String(n).padStart(2, '0')}`, x, z, radius };
+  const plan = valueAt(document, `${section}/plan`);
+  if (!Array.isArray(plan)) return { ok: false, reason: `${section} has no plan` };
+  if (!Number.isInteger(index) || index < 0 || index > plan.length)
+    return { ok: false, reason: `A plan index must be 0 to ${plan.length}` };
+  if (!(shape.length > 0) || (shape.kind === 'arc' && !(shape.radius > 0)))
+    return { ok: false, reason: 'A plan element needs a positive length, and an arc a positive radius' };
+  const ids = new Set(plan.map((e) => (e && typeof e === 'object' && !Array.isArray(e) ? e.id : null)));
+  let n = plan.length;
+  while (ids.has(`${shape.kind}-${String(n).padStart(2, '0')}`)) n++;
+  const id = `${shape.kind}-${String(n).padStart(2, '0')}`;
+  const element: Json =
+    shape.kind === 'arc'
+      ? { kind: 'arc', id, length: shape.length, radius: shape.radius, turn: shape.turn }
+      : { kind: 'straight', id, length: shape.length };
   return {
     ok: true,
-    document: withValue(document, `${section}/pis`, [...pis.slice(0, index), pi, ...pis.slice(index)]),
-    changes: [{ pointer: `${section}/pis/${index}`, before: undefined, after: pi }],
+    document: withValue(document, `${section}/plan`, [...plan.slice(0, index), element, ...plan.slice(index)]),
+    changes: [{ pointer: `${section}/plan/${index}`, before: undefined, after: element }],
   };
 }
 
-/** A PI removed from its Section; refused while a Position in the Section measures from it. */
-export function removeCoursePi(document: Json, pointer: string): CourseEditResult {
-  const match = /^(.*)\/pis\/(0|[1-9][0-9]*)$/.exec(pointer);
-  const pi = match ? valueAt(document, pointer) : undefined;
-  if (!match || !pi || typeof pi !== 'object' || Array.isArray(pi))
-    return { ok: false, reason: `${pointer} is not a PI` };
+/** A plan element removed from its Section; refused while a Position in the Section measures from its joint. */
+export function removeCoursePlanElement(document: Json, pointer: string): CourseEditResult {
+  const match = /^(.*)\/plan\/(0|[1-9][0-9]*)$/.exec(pointer);
+  const element = match ? valueAt(document, pointer) : undefined;
+  if (!match || !element || typeof element !== 'object' || Array.isArray(element))
+    return { ok: false, reason: `${pointer} is not a plan element` };
   const section = match[1]!;
-  const users = positionsFrom(valueAt(document, section), section, pi.id);
+  const users = positionsFrom(valueAt(document, section), section, element.id);
   if (users.length)
     return {
       ok: false,
-      reason: `${users.length} Position${users.length === 1 ? '' : 's'} measure from PI ${String(pi.id)}, first ${users[0]}; re-anchor them first`,
+      reason: `${users.length} Position${users.length === 1 ? '' : 's'} measure from ${String(element.id)}, first ${users[0]}; measure them from another joint first`,
     };
-  const pis = valueAt(document, `${section}/pis`) as Json[];
+  const plan = valueAt(document, `${section}/plan`) as Json[];
   return {
     ok: true,
     document: withValue(
       document,
-      `${section}/pis`,
-      pis.filter((_, i) => i !== Number(match[2])),
+      `${section}/plan`,
+      plan.filter((_, i) => i !== Number(match[2])),
     ),
-    changes: [{ pointer, before: pi, after: undefined }],
+    changes: [{ pointer, before: element, after: undefined }],
   };
 }
 
-/** The Pointers of the Positions under `value` measured from PI `id`. */
+/** The Pointers of the Positions under `value` measured from joint `id`. */
 function positionsFrom(value: Json | undefined, pointer: string, id: Json | undefined): string[] {
   if (value === null || typeof value !== 'object') return [];
   const found: string[] = [];
-  if (!Array.isArray(value) && value.pi === id && 'offset' in value) found.push(pointer);
+  if (!Array.isArray(value) && value.joint === id && 'offset' in value) found.push(pointer);
   for (const [key, child] of Object.entries(value)) found.push(...positionsFrom(child, childPointer(pointer, key), id));
   return found;
 }

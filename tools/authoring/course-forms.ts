@@ -21,9 +21,9 @@ export type CourseFormResult =
 type JsonRecord = { [key: string]: Json };
 const isRecord = (value: Json | undefined): value is JsonRecord =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
-const isPosition = (value: Json | undefined): value is { pi: string; offset: number } =>
+const isPosition = (value: Json | undefined): value is { joint: string; offset: number } =>
   isRecord(value) &&
-  typeof value.pi === 'string' &&
+  typeof value.joint === 'string' &&
   typeof value.offset === 'number' &&
   Object.keys(value).length === 2;
 const isRepeat = (value: Json | undefined): value is JsonRecord & { every: number; count: number; elements: Json[] } =>
@@ -37,10 +37,10 @@ const isRepeat = (value: Json | undefined): value is JsonRecord & { every: numbe
 const COMPUTED_STEP = 1e-9;
 const computed = (value: number) => Number((Math.round(value / COMPUTED_STEP) * COMPUTED_STEP).toFixed(9));
 
-/** Every Position in a value moved `ds` along its Section, as a repeat's copy is (`offset` + ds, the PI kept). */
+/** Every Position in a value moved `ds` along its Section, as a repeat's copy is (`offset` + ds, the joint kept). */
 function shiftedPositions(value: Json, ds: number): Json {
   if (ds === 0) return value;
-  if (isPosition(value)) return { pi: value.pi, offset: value.offset + ds };
+  if (isPosition(value)) return { joint: value.joint, offset: value.offset + ds };
   if (Array.isArray(value)) return value.map((item) => shiftedPositions(item, ds));
   if (isRecord(value)) return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, shiftedPositions(v, ds)]));
   return value;
@@ -52,7 +52,7 @@ function positionsOf(value: Json): { offsets: number[]; rest: string } {
   const strip = (v: Json): Json => {
     if (isPosition(v)) {
       offsets.push(v.offset);
-      return { pi: v.pi, offset: 0 };
+      return { joint: v.joint, offset: 0 };
     }
     if (Array.isArray(v)) return v.map(strip);
     if (isRecord(v)) return Object.fromEntries(Object.entries(v).map(([k, item]) => [k, strip(item)]));
@@ -281,8 +281,8 @@ export function unbindCourseLateral(document: Json, pointer: string, field: stri
   return measured(document, next, found.section.index, [{ pointer: `${pointer}/${field}`, before, after }]);
 }
 
-/** Measure a Position from another PI: its offset is chosen so the station stays where it is. */
-export function reanchorCoursePosition(document: Json, pointer: string, pi: string): CourseFormResult {
+/** Measure a Position from another joint: its offset is chosen so the station stays where it is. */
+export function reanchorCoursePosition(document: Json, pointer: string, joint: string): CourseFormResult {
   const position = valueAt(document, pointer);
   const section = sectionOf(pointer);
   if (!isPosition(position) || !section) return { ok: false, reason: `${pointer} is not a Position` };
@@ -290,11 +290,11 @@ export function reanchorCoursePosition(document: Json, pointer: string, pi: stri
     valueAt(document, section.pointer) as unknown as SectionDocument,
     section.pointer,
   ).plan;
-  const from = plan?.stations.get(position.pi),
-    to = plan?.stations.get(pi);
+  const from = plan?.stations.get(position.joint),
+    to = plan?.stations.get(joint);
   if (from === undefined || to === undefined)
-    return { ok: false, reason: plan ? `No PI ${pi} in this Section` : 'The Section plan does not compile' };
-  const after = { pi, offset: computed(position.offset + from - to) };
+    return { ok: false, reason: plan ? `No joint ${joint} in this Section` : 'The Section plan does not compile' };
+  const after = { joint, offset: computed(position.offset + from - to) };
   const next = withValue(document, pointer, after);
   return measured(document, next, section.index, [{ pointer, before: position, after }]);
 }
