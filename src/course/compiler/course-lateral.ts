@@ -3,22 +3,37 @@ import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
 import { type Lateral, type CoursePosition, type SectionDocument } from '../course-document.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
 import { courseBoundaryAt, type CompiledBoundary } from '../course-boundaries.js';
+import { courseLineOf, type CompiledLanes, type CourseLines } from '../course-lanes.js';
 import { requireCourse } from '../course-diagnostics.js';
 
-type BoundaryLookup = (id: string, path: string) => CompiledBoundary | undefined;
+/** The line a Lateral reference reads: a Boundary or a lane's; undefined when the reference names none. */
+export type LineLookup = (reference: Exclude<Lateral, number>, path: string) => CompiledBoundary | undefined;
 
 /** References must cover the whole interval in which their expression is evaluated. */
-function lateralBoundary(lateral: Lateral, start: number, end: number, lookup: BoundaryLookup, path: string) {
+function lateralBoundary(lateral: Lateral, start: number, end: number, lookup: LineLookup, path: string) {
   if (typeof lateral === 'number') return null;
-  const boundary = lookup(lateral.boundary, `${path}/boundary`);
-  requireCourse(boundary !== undefined, `${path}/boundary`, 'Unknown Section Boundary', 'unresolved_reference');
+  const field = 'boundary' in lateral ? `${path}/boundary` : `${path}/lane`;
+  const boundary = lookup(lateral, field);
+  requireCourse(
+    boundary !== undefined,
+    field,
+    'boundary' in lateral ? 'Unknown Section Boundary' : 'Unknown lane',
+    'unresolved_reference',
+  );
   requireCourse(
     boundary.vertices[0]!.at.s <= start && boundary.vertices.at(-1)!.at.s >= end,
-    `${path}/boundary`,
+    field,
     `Boundary must cover the referenced interval [${start}, ${end}]`,
     'invalid_boundary',
   );
   return boundary;
+}
+
+/** Whether two references read the same line at the same offset. */
+function sameReference(a: Lateral, b: Lateral): boolean {
+  if (typeof a === 'number' || typeof b === 'number' || a.offset !== b.offset) return false;
+  if ('boundary' in a) return 'boundary' in b && a.boundary === b.boundary;
+  return 'lane' in b && a.lane === b.lane && a.side === b.side;
 }
 
 function lateralAt(lateral: Lateral, boundary: CompiledBoundary | null, s: number): number {
@@ -35,14 +50,14 @@ function checkedLateral(l: number, path: string): number {
   return l;
 }
 
+/** The lookup of a Section's compiled lines. */
+export function courseLineLookup(lines: CourseLines): LineLookup {
+  return (reference) => courseLineOf(reference, (id) => lines.boundaries.get(id), lines.lanes);
+}
+
 /** Sprites, each expanded row instance and grid slots publish only their resolved l. */
-export function resolveCourseLateral(
-  lateral: Lateral,
-  s: number,
-  boundaries: ReadonlyMap<string, CompiledBoundary>,
-  path: string,
-): number {
-  const boundary = lateralBoundary(lateral, s, s, (id) => boundaries.get(id), path);
+export function resolveCourseLateral(lateral: Lateral, s: number, lines: CourseLines, path: string): number {
+  const boundary = lateralBoundary(lateral, s, s, courseLineLookup(lines), path);
   return checkedLateral(lateralAt(lateral, boundary, s), path);
 }
 
@@ -52,7 +67,7 @@ export function resolveLateralInterval(
   b: Lateral,
   start: number,
   end: number,
-  lookup: BoundaryLookup,
+  lookup: LineLookup,
   path: string,
 ) {
   const left = lateralBoundary(a, start, end, lookup, path);
@@ -71,7 +86,7 @@ export function resolveLateralInterval(
       });
     });
   const lines = vertices.slice(0, -1).map((vertex, i): StripEdgeLine => {
-    if (typeof a !== 'number' && typeof b !== 'number' && a.boundary === b.boundary && a.offset === b.offset) {
+    if (typeof a !== 'number' && sameReference(a, b)) {
       const index = left!.vertices.findIndex((point) => point.at.s > vertex.at.s) - 1;
       const from = left!.vertices[index]!,
         to = left!.vertices[index + 1]!;
@@ -92,14 +107,17 @@ export function resolveLateralInterval(
 /** Resolve the acyclic Section graph before material or rendering compilation. */
 export function compileCourseBoundaries(
   sources: SectionDocument['boundaries'],
+  lanes: CompiledLanes,
   resolve: (at: CoursePosition, path: string) => CompiledCoursePosition,
   path: string,
 ): readonly CompiledBoundary[] {
   const table = new Map(sources.map((source, i) => [source.id, { source, path: `${path}/${i}` }]));
   const compiled = new Map<string, CompiledBoundary>();
   const visiting = new Set<string>();
+  const lookup: LineLookup = (reference, referencePath) =>
+    courseLineOf(reference, (id) => compile(id, referencePath), lanes);
   let vertexCount = 0;
-  const compile: BoundaryLookup = (id, referencePath) => {
+  const compile = (id: string, referencePath: string): CompiledBoundary | undefined => {
     const ready = compiled.get(id);
     if (ready) return ready;
     const entry = table.get(id);
@@ -123,7 +141,7 @@ export function compileCourseBoundaries(
     for (let i = 1; i < authored.length; i++) {
       const a = authored[i - 1]!,
         b = authored[i]!;
-      const resolved = resolveLateralInterval(a.lateral, b.lateral, a.at.s, b.at.s, compile, `${at}/${i}/lateral`);
+      const resolved = resolveLateralInterval(a.lateral, b.lateral, a.at.s, b.at.s, lookup, `${at}/${i}/lateral`);
       const added = resolved.vertices.length - (i === 1 ? 0 : 1);
       requireCourse(
         vertexCount + added <= COURSE_DOCUMENT_LIMITS.boundaryVertices,

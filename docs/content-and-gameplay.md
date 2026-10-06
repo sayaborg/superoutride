@@ -27,12 +27,12 @@ authoring core and its tools save a course document that admits in that order.
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 45,
+  format: "superoutride.course", version: 46,
   name, entry, maxLaps,
   sections, links
 }
 Section {
-  id, plan, profile: [{at, y, curveLength}], carriageways,
+  id, plan, profile: [{at, y, curveLength}], lanes, centerLane, carriageways,
   boundaries, strips, walls, openLimits, sprites, environments, gates
 }
 ```
@@ -44,6 +44,9 @@ Section {
 | Straight    | `kind: "straight"`, `id`, positive `length`                                        |
 | Arc         | `kind: "arc"`, `id`, positive `length` and `radius`, `turn: "left" \| "right"`     |
 | Position    | `at: {joint, offset}`; interval `start`/`end` use the same `{joint, offset}` value |
+| Lane        | `kind: "lane"`, `id`, `width`                                                      |
+| Median      | `kind: "median"`, `width`                                                          |
+| Width       | a number, or `[{at, width}]`                                                       |
 | Boundary    | `id`, `knots: [{at,lateral}]`                                                      |
 | Carriageway | `id`, `left`, `right`, `lanes`                                                     |
 | Link        | `id`, `from: {section, carriageway}`, `to` (a Section id)                          |
@@ -62,7 +65,7 @@ long, so it fits one line of the frame's text grid. It is shown, never used as a
 IDs are opaque nonblank strings without surrounding whitespace and compare exactly. A course's only
 identifier is its file name without `.course.json`, which is also its manifest ID; the document carries
 none, and the compiled course receives it from its catalog. Section, Link and asset IDs each have a document-wide scope.
-Plan element, Boundary and Carriageway IDs each have their own Section-local scope; no plan element is named `"end"`. Sprites have no IDs.
+Plan element, lane, Boundary and Carriageway IDs each have their own Section-local scope; no plan element is named `"end"`. Sprites have no IDs.
 Duplicate IDs fail. References
 resolve in their named scopes rather than by array position.
 
@@ -70,16 +73,35 @@ Schema-valid drafts may contain empty arrays or unresolved references.
 Compilation requires complete semantic input.
 Branching Sections still require lock and closure gates.
 
+### Lanes
+
+`lanes` writes the Section's cross-section left to right as widths: lanes and the medians between them. No centre or
+edge is written. The centre of lane `centerLane` is the centreline (lateral 0); the other lanes and medians lie
+outward from it, each edge the sum of the widths between. A Width is one number, or values at Positions (two or more,
+the first at the Section's start and the last at its end, stations strictly increasing, straight between). A list
+whose values are all the same, which means that number, is not written. Widths are 0 or more. A lane is positive
+somewhere, and where its width is 0 it is absent: lanes appear and end by widening from 0 or narrowing to 0. The
+centre lane is wider than 0 along the whole Section. A median lies between two lanes (not at either end, never two in
+a row) and is positive somewhere. Lane IDs are unique in the Section.
+
+Compilation lays each lane's left edge, centre and right edge, and each median's width, as lines with a vertex
+wherever any width changes slope. A road at a station is the lanes wider than 0 there that touch, with no median
+wider than 0 between them; its edges are its outer lanes' edges. Every lane wider than 0 lies on supported material,
+one continuous supported span covering it through each cell where every edge is affine (`invalid_lane`). An unknown
+`centerLane` is `unresolved_reference`; other lane violations are `invalid_lane`.
+
 ### Lateral positions
 
-`Lateral` is a finite number in metres (positive right), or `{boundary, offset}` with a
-Section-local Boundary ID and a signed metre offset (positive right). The field is named
+`Lateral` is a finite number in metres (positive right), `{boundary, offset}` with a
+Section-local Boundary ID and a signed metre offset (positive right), or `{lane, side, offset}`: lane `lane`'s
+`left` edge, `center` or `right` edge plus a signed offset. A reference to a lane where its width is 0 reads the line
+where its neighbours touch. The field is named
 `lateral` on Boundary knots, sprites and grid slots; grid references
 use the entry Section. Numeric values and offsets lie in `[-1000,1000]`, and every resolved
 l must also lie in that range. Strip edges use the same Lateral values in `left` and `right`.
 
 A point placement evaluates a numeric Lateral directly, or the referenced Boundary at its s
-plus offset. The Boundary must cover that station, including each repeated sprite. References may name any Boundary in the same
+plus offset, or the referenced lane line. The Boundary must cover that station, including each repeated sprite. References may name any Boundary in the same
 Section; declaration order does not constrain references.
 
 Boundary references must be acyclic. For each interval `[a,b]` between the Boundary's own
@@ -377,6 +399,7 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | Each Boundary/wall Strip `knots`                                        |               1024 | Same 20/km knot density and margin                                                                                                                                        |
 | Environment array and expanded Section `environmentKnots`               |                256 | (21 × 4 + 1) × 2, rounded up                                                                                                                                              |
 | Section `boundaries`                                                    |                 32 | 16 road, median, shoulder and outer Boundaries × 2                                                                                                                        |
+| Section `lanes` (lanes and medians)                                     |                 64 | Eight lanes each way with medians, with room for lanes that appear and end                                                                                                |
 | Section `carriageways`                                                  |                 64 | One road activation/km × 21 × 2, rounded up; supports three-way splits                                                                                                    |
 | Carriageway `carriagewayLanes`                                          |                  8 | Four lanes each way on the widest planned roads                                                                                                                           |
 | Non-circuit finite `routes` from the entry                              |                256 | Reference work bound: one continuous reference run per route and vehicle                                                                                                  |
@@ -642,7 +665,7 @@ clock state belong to Sessions. Object identity is local to a compilation; cross
 `sourceSha256` and `materialsSha256` are the delivered SHA-256 of the course document and the
 surface-material document, the [document identity](#reference-times-and-clock) the catalog supplies.
 `buildSha256` hashes `{sourceSha256,materialsSha256,compiler}`.
-The compiler is `superoutride.course-compiler` version 44, incorporating Link recipe v3, physical
+The compiler is `superoutride.course-compiler` version 45, incorporating Link recipe v3, physical
 recipe v8, image-source recipe v3 and appearance recipe v14. Source, material or compiler/recipe
 changes invalidate dependent products.
 

@@ -9,6 +9,7 @@ import {
 import { compileCourseGeometry, resolveCoursePosition } from '../../src/course/course-geometry.js';
 import {
   compileCourseBoundaries,
+  courseLineLookup,
   resolveCourseLateral,
   resolveLateralInterval,
 } from '../../src/course/compiler/course-lateral.js';
@@ -19,6 +20,15 @@ import { createPlanCoordinateSample } from '../../src/course/geometry/plan-coord
 import { valueAt, type Json } from './json-pointer.js';
 import type { ProfileReader } from '../../src/course/geometry/profile.js';
 import { compileCoursePhysicalContent } from '../../src/course/compiler/course-physical-content.js';
+import { compileCourseLanes } from '../../src/course/compiler/course-lanes.js';
+import type { CompiledLane, CompiledLanes, CourseLines } from '../../src/course/course-lanes.js';
+
+/** The lanes of a Section whose lanes do not compile: none, so lane references do not resolve. */
+const NO_LANES: CompiledLanes = Object.freeze({
+  elements: [],
+  byId: new Map(),
+  center: undefined as unknown as CompiledLane,
+});
 
 /**
  * A course's form: every element an author draws or edits, where it is in the document (its JSON Pointer), where it
@@ -61,11 +71,25 @@ export interface WrittenPosition {
   readonly s: number | null;
 }
 
-/** A lateral as written and as resolved at its element's station: a number, or a Boundary reference plus offset. */
+/**
+ * A lateral as written and as resolved at its element's station: a number, a Boundary reference plus offset, or a lane's
+ * line plus offset.
+ */
 export type WrittenLateral = (
   | { readonly form: 'absolute'; readonly value: number }
   | { readonly form: 'reference'; readonly boundary: string; readonly offset: number }
+  | {
+      readonly form: 'lane';
+      readonly lane: string;
+      readonly side: 'left' | 'center' | 'right';
+      readonly offset: number;
+    }
 ) & { readonly l: number | null };
+
+/** The line a reference lateral reads, for people: `Boundary <id>` or `lane <id> <side>`. */
+export function lateralLineName(lateral: Exclude<WrittenLateral, { form: 'absolute' }>): string {
+  return lateral.form === 'reference' ? `Boundary ${lateral.boundary}` : `lane ${lateral.lane} ${lateral.side}`;
+}
 
 /** A resolved line along a Section: its vertices, each written in the document or derived (inherited, interpolated). */
 export type ResolvedLine = readonly { readonly s: number; readonly l: number; readonly authored: boolean }[];
@@ -238,20 +262,29 @@ function readSection(
     if (!plan) throw new CourseInputError('invalid_plan', path, planProblem?.message ?? 'The plan does not compile');
     return resolveCoursePosition(at, plan.joints, path);
   };
-  // Boundaries resolve together, as the compiler resolves them; on failure each knot still reads alone.
+  // The lanes, then the Boundaries, resolve together, as the compiler resolves them; on failure each knot still reads
+  // alone.
+  let lanes: CompiledLanes = NO_LANES;
   let boundaries: ReadonlyMap<string, CompiledBoundary> = new Map();
   let boundaryProblem: Problem | null = null;
+  try {
+    if (plan) lanes = compileCourseLanes(section, resolve, plan.length, `${pointer}/lanes`);
+  } catch (error) {
+    boundaryProblem = problemOf(error, `${pointer}/lanes`);
+  }
   try {
     boundaries = new Map(
       compileCourseBoundaries(
         list(section.boundaries) as SectionDocument['boundaries'],
+        lanes,
         resolve,
         `${pointer}/boundaries`,
       ).map((boundary) => [boundary.id, boundary]),
     );
   } catch (error) {
-    boundaryProblem = problemOf(error, `${pointer}/boundaries`);
+    boundaryProblem ??= problemOf(error, `${pointer}/boundaries`);
   }
+  const courseLines: CourseLines = { boundaries, lanes };
   const height = createSectionProfile(section, pointer, plan).profile;
 
   /** One element: its written positions and laterals resolved at the element's station. */
@@ -297,14 +330,16 @@ function readSection(
       let l: number | null = null;
       if (s !== null)
         try {
-          l = resolveCourseLateral(written, s, boundaries, `${at}/${field}`);
+          l = resolveCourseLateral(written, s, courseLines, `${at}/${field}`);
         } catch (error) {
           problem ??= problemOf(error, `${at}/${field}`);
         }
       laterals[field] =
         typeof written === 'number'
           ? { form: 'absolute', value: written, l }
-          : { form: 'reference', boundary: String(written.boundary), offset: Number(written.offset), l };
+          : 'lane' in written
+            ? { form: 'lane', lane: written.lane, side: written.side, offset: Number(written.offset), l }
+            : { form: 'reference', boundary: String(written.boundary), offset: Number(written.offset), l };
     }
     const l = options.station?.l ?? Object.values(laterals)[0]?.l ?? null;
     const copies = (options.copies ?? []).map((copy) => {
@@ -462,7 +497,7 @@ function readSection(
         if (a === null || b === null || start === null || start === undefined || end === null || end === undefined)
           continue;
         try {
-          const resolved = resolveLateralInterval(a, b, start, end, (id) => boundaries.get(id), `${at}/${side}`);
+          const resolved = resolveLateralInterval(a, b, start, end, courseLineLookup(courseLines), `${at}/${side}`);
           for (const vertex of resolved.vertices.slice(line.length && k > 1 ? 1 : 0))
             line.push({ s: vertex.at.s, l: vertex.l, authored: vertex.at.s === start || vertex.at.s === end });
         } catch {
@@ -527,7 +562,7 @@ function readSection(
             line: [from, ...boundary.vertices.map((vertex) => vertex.at.s).filter((s) => s > from && s < to), to].map(
               (s) => ({
                 s,
-                l: resolveCourseLateral({ boundary: boundary.id, offset: 0 }, s, boundaries, at),
+                l: resolveCourseLateral({ boundary: boundary.id, offset: 0 }, s, courseLines, at),
                 authored: s === from || s === to,
               }),
             ),

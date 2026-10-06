@@ -1,10 +1,10 @@
 import type { CoursePosition, SectionDocument, SpriteDocument } from '../course-document.js';
-import type { CompiledBoundary } from '../course-boundaries.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
 import type { CourseObject } from '../course-objects.js';
 import type { ProfileReader } from '../geometry/profile.js';
 import { expandCourseElements, shiftedCoursePosition } from '../course-repeat.js';
 import { resolveCourseLateral } from './course-lateral.js';
+import type { CourseLines } from '../course-lanes.js';
 import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
 import { CourseInputError, requireCourse } from '../course-diagnostics.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../image/sprite.js';
@@ -30,7 +30,7 @@ export interface CourseSpritePlacement {
 export function compileCourseSpritePlacements(
   section: SectionDocument,
   length: number,
-  boundaries: ReadonlyMap<string, CompiledBoundary>,
+  lines: CourseLines,
   assets: ReadonlyMap<string, CompiledCourseImageSource>,
   resolve: (at: CoursePosition, path: string) => CompiledCoursePosition,
   path: string,
@@ -57,7 +57,7 @@ export function compileCourseSpritePlacements(
           source,
           path: at,
           at: position,
-          l: resolveCourseLateral(source.lateral, position.s, boundaries, `${at}/lateral`),
+          l: resolveCourseLateral(source.lateral, position.s, lines, `${at}/lateral`),
           image,
         }),
       );

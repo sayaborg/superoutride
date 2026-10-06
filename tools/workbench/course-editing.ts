@@ -6,7 +6,7 @@ import {
   snapCourseValue,
   type CourseEditResult,
 } from '../authoring/course-edits.js';
-import type { CourseElement, SectionPlan } from '../authoring/course-structure.js';
+import { lateralLineName, type CourseElement, type SectionPlan } from '../authoring/course-structure.js';
 import { valueAt, type Json } from '../authoring/json-pointer.js';
 import type { PlanDrag } from './course-plan-view.js';
 import type { ProfileDrag } from './course-profile-view.js';
@@ -189,7 +189,10 @@ export function writtenNumbers(
     ...Object.entries(element.laterals).map(([field, lateral]) =>
       lateral.form === 'absolute'
         ? { label: `${field} (absolute)`, pointer: `${element.pointer}/${field}` }
-        : { label: `${field} offset (from ${lateral.boundary})`, pointer: `${element.pointer}/${field}/offset` },
+        : {
+            label: `${field} offset (from ${lateralLineName(lateral)})`,
+            pointer: `${element.pointer}/${field}/offset`,
+          },
     ),
     ...VALUE_FIELDS.map((key) => ({ label: key, pointer: `${element.pointer}/${key}` })),
     ...element.copies.flatMap((copy) =>

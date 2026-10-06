@@ -1,5 +1,6 @@
 import {
   createSectionPlan,
+  lateralLineName,
   createSectionProfile,
   readCourseSection,
   readCourseStructure,
@@ -505,7 +506,7 @@ export const courseModule: WorkbenchModule = {
         ...Object.entries(e.laterals).map(([name, l]) =>
           l.form === 'absolute'
             ? `${name}: ${l.value} m (absolute)`
-            : `${name}: Boundary ${l.boundary} ${l.offset >= 0 ? '+' : ''}${l.offset} m`,
+            : `${name}: ${lateralLineName(l)} ${l.offset >= 0 ? '+' : ''}${l.offset} m`,
         ),
         ...e.copies.map((copy) => `this is copy ${copy.index} (0 is the original) of ${copy.path}`),
         e.problem ? `problem: ${e.problem.code}: ${e.problem.message} (${e.problem.pointer})` : '',

@@ -1,6 +1,8 @@
 import { createStripBudget } from '../strip-budget.js';
 import { compileCourseStrips } from './course-strip-ground.js';
 import { validateCourseCarriageways } from './course-carriageways.js';
+import { compileCourseLanes, validateCourseLanes } from './course-lanes.js';
+import type { CourseLines } from '../course-lanes.js';
 import { createPlanCoordinateReader } from '../geometry/plan-coordinate-reader.js';
 import { contentDigest } from '../../core/content-digest.js';
 import {
@@ -71,7 +73,7 @@ export interface CompiledCourse {
 
 const COURSE_COMPILER = Object.freeze({
   id: 'superoutride.course-compiler',
-  version: 44,
+  version: 45,
   links: COURSE_LINK_RECIPE,
   physical: COURSE_PHYSICAL_RECIPE,
   images: COURSE_IMAGE_SOURCE_RECIPE,
@@ -118,8 +120,10 @@ function compileSection(
   const { segments, length, joints } = compileCourseGeometry(section, path);
   const resolve = (position: Parameters<typeof resolveCoursePosition>[0], at: string) =>
     resolveCoursePosition(position, joints, at);
-  const boundaries = compileCourseBoundaries(section.boundaries, resolve, `${path}/boundaries`);
+  const lanes = compileCourseLanes(section, resolve, length, `${path}/lanes`);
+  const boundaries = compileCourseBoundaries(section.boundaries, lanes, resolve, `${path}/boundaries`);
   const boundaryTable = new Map(boundaries.map((boundary) => [boundary.id, boundary]));
+  const lines: CourseLines = Object.freeze({ boundaries: boundaryTable, lanes });
   const carriageways = compileStage(section.carriageways, (source, index): CompiledCarriageway => {
     const at = `${path}/carriageways/${index}`;
     return Object.freeze({
@@ -131,22 +135,15 @@ function compileSection(
   });
   // The road's and the walls' Strips spend from one Section budget.
   const stripBudget = createStripBudget();
-  const strips = compileCourseStrips(
-    section.strips,
-    length,
-    `${path}/strips`,
-    resolve,
-    boundaryTable,
-    materials,
-    stripBudget,
-  );
+  const strips = compileCourseStrips(section.strips, length, `${path}/strips`, resolve, lines, materials, stripBudget);
   validateMaterialContinuity(strips.material, `${path}/strips`);
   validateCourseCarriageways(carriageways, strips.material, length, `${path}/carriageways`);
-  const walls = compileCourseWalls(section.walls, boundaryTable, resolve, materials, stripBudget, `${path}/walls`);
+  validateCourseLanes(lanes, strips.material, length, `${path}/lanes`);
+  const walls = compileCourseWalls(section.walls, lines, resolve, materials, stripBudget, `${path}/walls`);
   const barriers = compileCourseBarriers(walls, section.openLimits, resolve, strips.material, length, path);
   const physical = compileCoursePhysicalContent(section, length, resolve, path);
   // The Section's sprites expanded once: the placements, and their identities, objects and appearance share.
-  const placements = compileCourseSpritePlacements(section, length, boundaryTable, assets, resolve, path);
+  const placements = compileCourseSpritePlacements(section, length, lines, assets, resolve, path);
   const objects = Object.freeze(
     [
       ...compileCourseSpriteObjects(placements, physical.height),
@@ -159,6 +156,7 @@ function compileSection(
     segments,
     coordinates: createPlanCoordinateReader(segments, length, lateralDomain.lateralAt),
     boundaries: Object.freeze(boundaries),
+    lanes,
     ...physical,
     ...strips,
     barriers,

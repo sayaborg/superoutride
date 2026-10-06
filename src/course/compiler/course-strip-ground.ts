@@ -3,9 +3,9 @@ import { expandCourseElements, shiftedCoursePosition } from '../course-repeat.js
 import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
 import { compileStripMaterial } from '../strip-material.js';
 import type { SurfaceMaterial, SurfaceMaterialCatalog } from '../surface-material.js';
-import type { CompiledBoundary } from '../course-boundaries.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
-import { resolveLateralInterval, resolveCourseLateral } from './course-lateral.js';
+import { courseLineLookup, resolveLateralInterval, resolveCourseLateral } from './course-lateral.js';
+import type { CourseLines } from '../course-lanes.js';
 import type { StripElementDocument, CoursePosition, Lateral, WallStripElementDocument } from '../course-document.js';
 import { requireCourse } from '../course-diagnostics.js';
 import { STRIP_ACTIVE_LIMIT, compileStripGround } from '../strip-ground.js';
@@ -60,7 +60,7 @@ function expandCourseStrips(
   length: number,
   path: string,
   resolve: (at: CoursePosition, path: string) => CompiledCoursePosition,
-  boundaries: ReadonlyMap<string, CompiledBoundary>,
+  lines: CourseLines,
   materialCatalog: SurfaceMaterialCatalog,
   budget: StripBudget,
 ) {
@@ -132,14 +132,7 @@ function expandCourseStrips(
       const edge = (side: 'left' | 'right') =>
         a[side] === null
           ? null
-          : resolveLateralInterval(
-              a[side]!,
-              b[side]!,
-              a.s,
-              b.s,
-              (id) => boundaries.get(id),
-              `${at}/knots/${i}/${side}`,
-            );
+          : resolveLateralInterval(a[side]!, b[side]!, a.s, b.s, courseLineLookup(lines), `${at}/knots/${i}/${side}`);
       const left = edge('left'),
         right = edge('right');
       const stops = [
@@ -223,7 +216,7 @@ function expandCourseStrips(
       }
       case 'text': {
         const station = position(element.at, `${at}/at`).s;
-        const lateral = resolveCourseLateral(element.lateral, station, boundaries, `${at}/lateral`);
+        const lateral = resolveCourseLateral(element.lateral, station, lines, `${at}/lateral`);
         const cell = element.height / 7;
         for (let char = 0; char < element.text.length; char++) {
           if (element.text[char] === ' ') continue;
@@ -247,7 +240,7 @@ function expandCourseStrips(
       }
       case 'arrow': {
         const station = position(element.at, `${at}/at`).s;
-        const lateral = resolveCourseLateral(element.lateral, station, boundaries, `${at}/lateral`);
+        const lateral = resolveCourseLateral(element.lateral, station, lines, `${at}/lateral`);
         const vertices = [
           [-0.18, 0],
           [0.18, 0],
@@ -269,8 +262,13 @@ function expandCourseStrips(
           const edges = vertices
             .map((a, j) => ({ a, b: vertices[(j + 1) % vertices.length]! }))
             .filter(({ a, b }) => middle > Math.min(a.s, b.s) && middle < Math.max(a.s, b.s));
+          // Exact at a vertex, so two edges meeting there read the same lateral.
           const atS = (edge: (typeof edges)[number], s: number) =>
-            edge.a.l + ((edge.b.l - edge.a.l) * (s - edge.a.s)) / (edge.b.s - edge.a.s);
+            s === edge.a.s
+              ? edge.a.l
+              : s === edge.b.s
+                ? edge.b.l
+                : edge.a.l + ((edge.b.l - edge.a.l) * (s - edge.a.s)) / (edge.b.s - edge.a.s);
           edges.sort((a, b) => atS(a, middle) - atS(b, middle));
           for (let j = 0; j + 1 < edges.length; j += 2)
             add({
@@ -310,7 +308,7 @@ export function compileCourseStrips(
   length: number,
   path: string,
   resolve: (at: CoursePosition, path: string) => CompiledCoursePosition,
-  boundaries: ReadonlyMap<string, CompiledBoundary>,
+  lines: CourseLines,
   materials: SurfaceMaterialCatalog,
   budget: StripBudget,
 ) {
@@ -319,7 +317,7 @@ export function compileCourseStrips(
     length,
     path,
     resolve,
-    boundaries,
+    lines,
     materials,
     budget,
   );

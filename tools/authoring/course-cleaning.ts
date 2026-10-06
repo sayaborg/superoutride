@@ -600,7 +600,7 @@ export function sameValueGroups(document: Json) {
       if (lateral.form === 'reference') {
         const key = `${lateral.boundary} ${lateral.offset}`;
         references.set(key, (references.get(key) ?? 0) + 1);
-      } else absolutes.set(lateral.value, (absolutes.get(lateral.value) ?? 0) + 1);
+      } else if (lateral.form === 'absolute') absolutes.set(lateral.value, (absolutes.get(lateral.value) ?? 0) + 1);
   const sorted = <K>(map: Map<K, number>) => [...map].sort((a, b) => b[1] - a[1]);
   return {
     colors: sorted(colors).map(([color, count]) => ({ color, count })),

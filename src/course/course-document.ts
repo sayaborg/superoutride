@@ -15,7 +15,7 @@ import {
 } from '../core/admission.js';
 import { readRgb555 } from '../image/rgb555.js';
 
-const COURSE_DOCUMENT_VERSION = 45;
+const COURSE_DOCUMENT_VERSION = 46;
 const ID = { maxLength: COURSE_DOCUMENT_LIMITS.idCodeUnits };
 
 /** A station: `offset` metres (negative before) from a joint, the start of the plan element `joint` or `"end"`. */
@@ -41,7 +41,22 @@ export type PlanElement =
       readonly turn: 'left' | 'right';
     };
 
-export type Lateral = number | { readonly boundary: string; readonly offset: number };
+/**
+ * A lateral position, metres right of the centreline: a number, or a named line plus `offset` — a Boundary, or a lane's
+ * left edge, centre or right edge.
+ */
+export type Lateral =
+  | number
+  | { readonly boundary: string; readonly offset: number }
+  | { readonly lane: string; readonly side: 'left' | 'center' | 'right'; readonly offset: number };
+
+/** A width in metres: one number, or values at Positions from the Section's start to its end, straight between. */
+export type CourseWidth = number | readonly { readonly at: CoursePosition; readonly width: number }[];
+
+/** One element of a Section's cross-section, left to right: a lane, or a median between two lanes. */
+export type LaneDocument =
+  | { readonly kind: 'lane'; readonly id: string; readonly width: CourseWidth }
+  | { readonly kind: 'median'; readonly width: CourseWidth };
 
 interface BoundaryDocument {
   readonly id: string;
@@ -185,6 +200,9 @@ export interface SectionDocument {
   /** The centreline from the Section's origin, facing +Z. */
   readonly plan: readonly PlanElement[];
   readonly profile: readonly { readonly at: CoursePosition; readonly y: number; readonly curveLength: number }[];
+  /** The cross-section's lanes and medians, left to right; the centre of lane `centerLane` is the centreline. */
+  readonly lanes: readonly LaneDocument[];
+  readonly centerLane: string;
   readonly carriageways: readonly CarriagewayDocument[];
   readonly boundaries: readonly BoundaryDocument[];
   readonly strips: readonly StripElementDocument[];
@@ -268,6 +286,14 @@ function planElement(value: unknown, path: string): PlanElement {
 function lateral(value: unknown, path: string): Lateral {
   const bound = COURSE_DOCUMENT_LIMITS.lateralMeters;
   if (typeof value === 'number') return readNumber(value, path, { min: -bound, max: bound });
+  if (value && typeof value === 'object' && 'lane' in value) {
+    const v = readRecord(value, path, ['lane', 'side', 'offset']);
+    return Object.freeze({
+      lane: readString(v.lane, `${path}/lane`, ID),
+      side: readEnum(v.side, ['left', 'center', 'right'], `${path}/side`),
+      offset: readNumber(v.offset, `${path}/offset`, { min: -bound, max: bound }),
+    });
+  }
   const v = readRecord(value, path, ['boundary', 'offset']);
   return Object.freeze({
     boundary: readString(v.boundary, `${path}/boundary`, ID),
@@ -292,6 +318,55 @@ function boundary(value: unknown, path: string): BoundaryDocument {
       { max: COURSE_DOCUMENT_LIMITS.knots },
     ),
   });
+}
+
+/** A width: zero or more, and positive somewhere; a list of values that are all the same is one number. */
+function width(value: unknown, path: string): CourseWidth {
+  const range = { min: 0, max: COURSE_DOCUMENT_LIMITS.lateralMeters };
+  if (typeof value === 'number') {
+    const w = readNumber(value, path, range);
+    if (w === 0) throw new AdmissionError('invalid_value', path, 'A width that is always zero is not written');
+    return w;
+  }
+  const knots = readArray(
+    value,
+    path,
+    (item, at) => {
+      const knot = readRecord(item, at, ['at', 'width']);
+      return Object.freeze({ at: position(knot.at, `${at}/at`), width: readNumber(knot.width, `${at}/width`, range) });
+    },
+    { min: 2, max: COURSE_DOCUMENT_LIMITS.knots },
+  );
+  if (knots.every((knot) => knot.width === knots[0]!.width))
+    throw new AdmissionError('invalid_value', path, 'A width with one value throughout is written as that number');
+  return knots;
+}
+
+function lanes(value: unknown, path: string): SectionDocument['lanes'] {
+  const ids = new Set<string>();
+  const list = readArray(
+    value,
+    path,
+    (item, at): LaneDocument => {
+      const kind = readEnum((item as { kind?: unknown } | null)?.kind, ['lane', 'median'], `${at}/kind`);
+      if (kind === 'median') {
+        const v = readRecord(item, at, ['kind', 'width']);
+        return Object.freeze({ kind, width: width(v.width, `${at}/width`) });
+      }
+      const v = readRecord(item, at, ['kind', 'id', 'width']);
+      const id = readString(v.id, `${at}/id`, ID);
+      if (ids.has(id)) throw new AdmissionError('duplicate_id', `${at}/id`, `Duplicate lane ID ${JSON.stringify(id)}`);
+      ids.add(id);
+      return Object.freeze({ kind, id, width: width(v.width, `${at}/width`) });
+    },
+    { min: 1, max: COURSE_DOCUMENT_LIMITS.lanes },
+  );
+  list.forEach((element, i) => {
+    if (element.kind !== 'median') return;
+    if (i === 0 || i === list.length - 1 || list[i - 1]!.kind === 'median')
+      throw new AdmissionError('invalid_value', `${path}/${i}`, 'A median lies between two lanes');
+  });
+  return list;
 }
 
 function carriageway(value: unknown, path: string): CarriagewayDocument {
@@ -566,6 +641,8 @@ function section(value: unknown, path: string): SectionDocument {
     'id',
     'plan',
     'profile',
+    'lanes',
+    'centerLane',
     'carriageways',
     'boundaries',
     'strips',
@@ -597,6 +674,8 @@ function section(value: unknown, path: string): SectionDocument {
       },
       { max: COURSE_DOCUMENT_LIMITS.heightNodes },
     ),
+    lanes: lanes(v.lanes, `${path}/lanes`),
+    centerLane: readString(v.centerLane, `${path}/centerLane`, ID),
     carriageways: readIdentified(v.carriageways, `${path}/carriageways`, carriageway, {
       max: COURSE_DOCUMENT_LIMITS.carriageways,
     }),

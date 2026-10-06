@@ -1,4 +1,5 @@
 import type { StripBudget } from '../strip-budget.js';
+import type { CourseLines } from '../course-lanes.js';
 import type { CoursePosition, OpenLimitDocument, WallDocument } from '../course-document.js';
 import { courseBoundaryAt, courseBoundarySlopeAt, type CompiledBoundary } from '../course-boundaries.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
@@ -35,7 +36,7 @@ export interface CompiledWall {
  */
 export function compileCourseWalls(
   walls: readonly WallDocument[],
-  boundaries: ReadonlyMap<string, CompiledBoundary>,
+  lines: CourseLines,
   resolve: (at: CoursePosition, path: string) => CompiledCoursePosition,
   materials: SurfaceMaterialCatalog,
   budget: StripBudget,
@@ -44,7 +45,7 @@ export function compileCourseWalls(
   return Object.freeze(
     walls.map((source, index) => {
       const at = `${path}/${index}`;
-      const boundary = boundaries.get(source.boundary);
+      const boundary = lines.boundaries.get(source.boundary);
       if (!boundary)
         throw new CourseInputError(
           'unresolved_reference',
@@ -77,7 +78,7 @@ export function compileCourseWalls(
                 );
                 return { s: s - start };
               },
-              new Map(),
+              lines,
               materials,
               budget,
             ).color;

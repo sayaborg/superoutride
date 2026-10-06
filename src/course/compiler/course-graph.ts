@@ -6,6 +6,7 @@ import type { CompiledCourseImageSource } from './course-image-source.js';
 import type { CourseAppearance } from '../course-appearance.js';
 import type { CompiledCoursePosition, CompiledPlanSegment } from '../course-geometry.js';
 import type { CompiledBoundary, CompiledCarriageway } from '../course-boundaries.js';
+import type { CompiledLanes } from '../course-lanes.js';
 import type { StripMaterial } from '../strip-material.js';
 import type { CourseBarrierLine } from '../course-barriers.js';
 import type { CourseObject } from '../course-objects.js';
@@ -17,6 +18,8 @@ export interface CompiledSection {
   readonly segments: readonly CompiledPlanSegment[];
   readonly coordinates: SectionPlanCoordinateReader;
   readonly boundaries: readonly CompiledBoundary[];
+  /** The cross-section's lanes and medians. */
+  readonly lanes: CompiledLanes;
   readonly height: ProfileReader;
   readonly renderHeight: ProfilePolylineReader;
   readonly material: StripMaterial;

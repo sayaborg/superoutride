@@ -14,6 +14,7 @@ type CourseDiagnosticCode =
   | 'carriageway_transition_discontinuity'
   | 'plan_coordinate_inversion'
   | 'invalid_carriageway'
+  | 'invalid_lane'
   | 'invalid_height'
   | 'invalid_wall'
   | 'invalid_link'
