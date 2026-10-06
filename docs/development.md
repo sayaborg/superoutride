@@ -268,11 +268,13 @@ The Course module shows a course document as written ([form](content-and-gamepla
 one Section at a time, with the Sections and their Links (entry, forks, merges) beside it. Four views are seen
 together and share one cursor (the Section and a station s) and one selection:
 
-- the plan, north up, with the Strips, Boundaries, lane centres, walls, limits, centreline, gates, sprites, objects and
-  plan joints, zoomed with the wheel and panned by dragging;
+- the plan, north up, with the Strips, Boundaries, lanes, walls, limits, centreline, gates, sprites, objects and
+  plan joints, zoomed with the wheel and panned by dragging; each lane's centre (the centre lane's solid) with its name
+  at the cursor, the lane and median edges and the roads' edges, all derived, and a width written as values at
+  Positions as points at them;
 - the profile, the road height across s, with the PVIs and the joint and gate stations;
 - the cross section at the cursor, with the Boundaries, the Strips covering it in order with their materials, walls,
-  lane centres and nearby objects;
+  the lanes (edges, centres, names and widths), medians, roads and nearby objects;
 - the game's frame at the cursor, at a chosen lateral and vehicle.
 
 The plan, profile and cross section are drawn from the document through the course compiler's own functions, so they

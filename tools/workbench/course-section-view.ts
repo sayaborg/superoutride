@@ -12,7 +12,7 @@ function lateralAt(line: ResolvedLine | undefined, s: number): number | null {
 }
 
 /**
- * The cross section at the cursor's station, to look at: Boundaries with their names, lane centres,
+ * The cross section at the cursor's station, to look at: Boundaries with their names, lanes (edges, centres, names and widths), medians and roads,
  * the Strips covering the station in their order (later rows lie over earlier ones), each with its colour and material,
  * walls from their bottom to their top and objects near the station. A click on a Boundary selects it.
  */
@@ -97,10 +97,36 @@ export function createSectionView(canvas: HTMLCanvasElement, events: { pick(elem
     c.moveTo(MARGIN.left, ground);
     c.lineTo(canvas.width - MARGIN.right, ground);
     c.stroke();
-    c.fillStyle = '#e3b341';
+    // Lanes on the road line: each lane's edges (derived, thin) and centre with its name (the centre lane's in
+    // yellow), its written width below it; medians shaded; each road a green bar under its lanes.
     for (const lane of of('lane')) {
-      const l = lateralAt(lane.lines.lane!, s);
-      if (l !== null) c.fillRect(x(l) - 1, ground - 6, 2, 6);
+      const left = lateralAt(lane.lines.edgeLeft, s),
+        right = lateralAt(lane.lines.edgeRight, s),
+        centre = lateralAt(lane.lines.lane, s);
+      if (left === null || right === null || centre === null) continue;
+      c.fillStyle = '#56d4dd';
+      c.fillRect(x(left), ground - 10, 1, 10);
+      c.fillRect(x(right), ground - 10, 1, 10);
+      c.fillStyle = lane.values.center === true ? '#ffd33d' : '#e3b341';
+      c.fillRect(x(centre) - 1, ground - 6, 2, 6);
+      if (right > left) {
+        c.fillText(String(lane.values.id), x(centre) - 3, ground - 12);
+        c.fillStyle = '#8e9aa6';
+        c.fillText(`${(right - left).toFixed(2)}`, x(centre) - 10, ground + 22);
+      }
+    }
+    for (const median of of('median')) {
+      const left = lateralAt(median.lines.edgeLeft, s),
+        right = lateralAt(median.lines.edgeRight, s);
+      if (left === null || right === null || !(right > left)) continue;
+      c.fillStyle = 'rgba(86, 212, 221, 0.25)';
+      c.fillRect(x(left), ground - 8, x(right) - x(left), 8);
+    }
+    c.fillStyle = '#3fb950';
+    for (const road of of('road')) {
+      const left = lateralAt(road.lines.roadLeft, s),
+        right = lateralAt(road.lines.roadRight, s);
+      if (left !== null && right !== null && right > left) c.fillRect(x(left), ground + 2, x(right) - x(left), 3);
     }
     // Objects within a metre of the station.
     for (const object of of('object'))

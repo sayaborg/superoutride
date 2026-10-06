@@ -24,7 +24,6 @@ const LAYER_OF: Partial<Record<CourseElement['kind'], PlanLayer>> = {
   boundary: 'boundaries',
   'boundary-knot': 'boundaries',
   'boundary-vertex': 'boundaries',
-  lane: 'lanes',
   wall: 'walls',
   'wall-strip': 'walls',
   'wall-strip-knot': 'walls',
@@ -33,6 +32,10 @@ const LAYER_OF: Partial<Record<CourseElement['kind'], PlanLayer>> = {
   object: 'objects',
   gate: 'gates',
   'grid-slot': 'gates',
+  lane: 'lanes',
+  median: 'lanes',
+  'width-knot': 'lanes',
+  road: 'lanes',
   environment: 'environments',
   plan: 'plan',
   'plan-end': 'plan',
@@ -106,7 +109,7 @@ export function createPlanView(
   let centre = { x: 0, z: 0 },
     scale = 1;
   // Plan polylines of the open Section, in metres, built once per Section.
-  let paths: { element: CourseElement; path: Path2D; fill: boolean; dashed?: boolean }[] = [];
+  let paths: { element: CourseElement; path: Path2D; fill: boolean; dashed?: boolean; color?: string }[] = [];
   let centreline = new Path2D();
 
   const world = (s: number, l: number) => plan!.toWorld(s, l);
@@ -146,9 +149,13 @@ export function createPlanView(
       if (left && right) paths.push({ element, path: band(left, right), fill: true });
       else if (left || right) paths.push({ element, path: line((left ?? right)!), fill: false });
       if (own) paths.push({ element, path: line(own), fill: false });
-      // A lane's centre.
-      for (const [key, lane] of Object.entries(element.lines))
-        if (key.startsWith('lane')) paths.push({ element, path: line(lane), fill: false, dashed: true });
+      // Derived lane lines: a lane's centre (the centre lane's solid), its edges, and the roads' edges.
+      for (const [key, derived] of Object.entries(element.lines))
+        if (key === 'lane')
+          paths.push({ element, path: line(derived), fill: false, dashed: element.values.center !== true });
+        else if (key.startsWith('edge'))
+          paths.push({ element, path: line(derived), fill: false, dashed: true, color: '#56d4dd' });
+        else if (key.startsWith('road')) paths.push({ element, path: line(derived), fill: false, color: '#3fb950' });
     }
   };
   const fit = () => {
@@ -206,7 +213,7 @@ export function createPlanView(
       context.fillText(`${section.id}: the plan does not compile`, 16, 20);
       return;
     }
-    for (const { element, path, fill, dashed } of paths) {
+    for (const { element, path, fill, dashed, color: lineColor } of paths) {
       if (!shown(element)) continue;
       const own = style.colorOf(element);
       if (fill) {
@@ -224,8 +231,11 @@ export function createPlanView(
           context.setLineDash([]);
         }
       } else {
-        context.strokeStyle = own ?? (element.kind === 'wall' ? '#d2a8ff' : dashed ? '#e3b341' : '#8e9aa6');
-        context.lineWidth = (element.kind === 'wall' ? 3 : 1.2) * pixel;
+        context.strokeStyle =
+          own ??
+          lineColor ??
+          (element.kind === 'wall' ? '#d2a8ff' : element.kind === 'lane' || dashed ? '#e3b341' : '#8e9aa6');
+        context.lineWidth = (element.kind === 'wall' || element.kind === 'road' ? 2 : 1.2) * pixel;
         if (dashed) context.setLineDash([3 * pixel, 5 * pixel]);
         context.stroke(path);
         context.setLineDash([]);
@@ -267,6 +277,17 @@ export function createPlanView(
     overlay(context, canvas, scale);
     context.fillStyle = '#ff7b72';
     context.fillText(`${section.id} · s ${cursor.toFixed(1)} m`, 16, 20);
+    // Each lane's name at the cursor, on its centre.
+    if (layers.has('lanes'))
+      for (const lane of section.elements)
+        if (lane.kind === 'lane' && lane.lines.lane) {
+          const l = lineLateral(lane.lines.lane, Math.min(Math.max(cursor, 0), plan.length));
+          if (l === null) continue;
+          const p = world(Math.min(Math.max(cursor, 0), plan.length), l),
+            q = toScreen(p.x, p.z);
+          context.fillStyle = lane.values.center === true ? '#ffd33d' : '#e3b341';
+          context.fillText(String(lane.values.id), q.x + 4, q.y - 4);
+        }
   };
 
   /** The element nearest a canvas point, within reach; the selection's points (its handles) come first. */
@@ -415,6 +436,16 @@ function crossLine(draw: PlanDraw, s: number, half: number, color: string) {
   draw.context.moveTo(a.x, a.z);
   draw.context.lineTo(b.x, b.z);
   draw.context.stroke();
+}
+
+/** A resolved line's lateral at `s`, straight between its vertices; null outside it. */
+function lineLateral(line: ResolvedLine, s: number): number | null {
+  if (!line.length || s < line[0]!.s || s > line.at(-1)!.s) return null;
+  let i = 1;
+  while (i < line.length - 1 && line[i]!.s < s) i++;
+  const a = line[i - 1]!,
+    b = line[i] ?? a;
+  return b.s === a.s ? a.l : a.l + ((b.l - a.l) * (s - a.s)) / (b.s - a.s);
 }
 
 /** An element's point mark: written points filled, derived points hollow; its shape by kind. */

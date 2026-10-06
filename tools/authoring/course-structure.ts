@@ -21,7 +21,12 @@ import { valueAt, type Json } from './json-pointer.js';
 import type { ProfileReader } from '../../src/course/geometry/profile.js';
 import { compileCoursePhysicalContent } from '../../src/course/compiler/course-physical-content.js';
 import { compileCourseLanes } from '../../src/course/compiler/course-lanes.js';
-import type { CompiledLane, CompiledLanes, CourseLines } from '../../src/course/course-lanes.js';
+import {
+  courseRoadsAt,
+  type CompiledLane,
+  type CompiledLanes,
+  type CourseLines,
+} from '../../src/course/course-lanes.js';
 
 /** The lanes of a Section whose lanes do not compile: none, so lane references do not resolve. */
 const NO_LANES: CompiledLanes = Object.freeze({
@@ -62,7 +67,10 @@ export type CourseElementKind =
   | 'environment'
   | 'gate'
   | 'grid-slot'
-  | 'lane';
+  | 'lane'
+  | 'median'
+  | 'width-knot'
+  | 'road';
 
 /** A Position as written and as resolved: `offset` metres from joint `joint`, at station `s` (null when unresolved). */
 export interface WrittenPosition {
@@ -630,21 +638,98 @@ function readSection(
       });
     else add('gate', at, v, { positions: ['at'], values: { kind: v.kind, id: v.id } });
   });
-  // Lanes: each lane's centre line, as the race reads it.
-  lanes.elements.forEach((element, i) => {
-    if (element.kind !== 'lane') return;
-    const lane = element.lane;
-    const centre = lane.center.vertices.map((vertex) => ({ s: vertex.at.s, l: vertex.l, authored: false }));
-    add(
-      'lane',
-      `${pointer}/lanes/${i}`,
-      {},
-      {
-        values: { id: lane.id, center: lane === lanes.center },
-        lines: { lane: centre },
-        station: { s: centre[0]!.s, l: centre[0]!.l },
-      },
-    );
+  // Lanes and medians: each lane's edges and centre and each median's edges, derived; their written widths (a list's
+  // values at their Positions); and the roads, derived where the lanes touch.
+  const path = (vertices: CompiledBoundary['vertices']): ResolvedLine =>
+    vertices.map((vertex) => ({ s: vertex.at.s, l: vertex.l, authored: false }));
+  const lineOf = (line: CompiledBoundary) => path(line.vertices);
+  list(section.lanes).forEach((written, i) => {
+    const at = `${pointer}/lanes/${i}`;
+    const v = record(written);
+    const element = lanes.elements[i];
+    if (element?.kind === 'lane') {
+      const lane = element.lane;
+      add('lane', at, v, {
+        values: { id: lane.id, width: v.width, center: lane === lanes.center },
+        lines: { lane: lineOf(lane.center), edgeLeft: lineOf(lane.left), edgeRight: lineOf(lane.right) },
+        station: { s: 0, l: courseBoundaryAt(lane.center, 0) },
+      });
+    } else if (element?.kind === 'median') {
+      const left = (lanes.elements[i - 1] as { lane: CompiledLane }).lane,
+        right = (lanes.elements[i + 1] as { lane: CompiledLane }).lane;
+      add('median', at, v, {
+        values: { width: v.width },
+        lines: { edgeLeft: lineOf(left.right), edgeRight: lineOf(right.left) },
+        station: { s: 0, l: (courseBoundaryAt(left.right, 0) + courseBoundaryAt(right.left, 0)) / 2 },
+      });
+    } else
+      add(v.kind === 'median' ? 'median' : 'lane', at, v, {
+        values: { id: v.id, width: v.width },
+        problem: boundaryProblem,
+      });
+    // A width written as values at Positions: each value, at the middle of what it widens.
+    if (Array.isArray(v.width) && element)
+      list(v.width).forEach((knot, k) => {
+        const kv = record(knot);
+        const middle = (s: number) =>
+          element.kind === 'lane'
+            ? courseBoundaryAt(element.lane.center, s)
+            : (courseBoundaryAt((lanes.elements[i - 1] as { lane: CompiledLane }).lane.right, s) +
+                courseBoundaryAt((lanes.elements[i + 1] as { lane: CompiledLane }).lane.left, s)) /
+              2;
+        let station: { s: number; l: number } | undefined;
+        try {
+          const s = resolve(kv.at as unknown as CoursePosition, `${at}/width/${k}/at`).s;
+          station = { s, l: middle(s) };
+        } catch {
+          // The Position's problem is read with it.
+        }
+        add('width-knot', `${at}/width/${k}`, kv, {
+          positions: ['at'],
+          values: { width: kv.width },
+          ...(station ? { station } : {}),
+        });
+      });
   });
+  // Roads: where the lanes wider than zero touch. Between the stations where any width changes slope the roads stay the
+  // same lanes; a road runs on while the next stretch has a road of the same lanes.
+  if (lanes !== NO_LANES && plan) {
+    const stations = lanes.center.left.vertices.map((vertex) => vertex.at.s);
+    type Point = ResolvedLine[number];
+    type Run = { lanes: readonly CompiledLane[]; left: Point[]; right: Point[] };
+    const point = (line: CompiledBoundary, s: number) => ({ s, l: courseBoundaryAt(line, s), authored: false });
+    const emit = (run: Run) =>
+      add(
+        'road',
+        `${pointer}/lanes`,
+        {},
+        {
+          point: 'derived',
+          derivedFrom: `${pointer}/lanes`,
+          values: { lanes: run.lanes.map((lane) => lane.id).join(' ') },
+          lines: { roadLeft: run.left, roadRight: run.right },
+          station: { s: run.left[0]!.s, l: (run.left[0]!.l + run.right[0]!.l) / 2 },
+        },
+      );
+    let open = new Map<string, Run>();
+    for (let k = 0; k + 1 < stations.length; k++) {
+      const [a, b] = [stations[k]!, stations[k + 1]!];
+      const next = new Map<string, Run>();
+      for (const road of courseRoadsAt(lanes, (a + b) / 2)) {
+        const key = road.lanes.map((lane) => lane.id).join(' ');
+        const run = open.get(key) ?? {
+          lanes: road.lanes,
+          left: [point(road.lanes[0]!.left, a)],
+          right: [point(road.lanes.at(-1)!.right, a)],
+        };
+        run.left.push(point(road.lanes[0]!.left, b));
+        run.right.push(point(road.lanes.at(-1)!.right, b));
+        next.set(key, run);
+      }
+      for (const [key, run] of open) if (!next.has(key)) emit(run);
+      open = next;
+    }
+    for (const run of open.values()) emit(run);
+  }
   return { structure: { id, pointer, length, elements }, plan, profile: height };
 }
