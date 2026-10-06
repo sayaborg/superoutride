@@ -115,6 +115,7 @@ npm run course -- structure content/courses/ribbon-coast.course.json --section c
 npm run course -- move content/courses/ribbon-coast.course.json --element /sections/0/sprites/0/elements/0 --ds 5 --step 0.5
 npm run course -- set content/courses/ribbon-coast.course.json --values /sections/0/pis/1/radius=420 --out content/courses/ribbon-coast.course.json
 npm run course -- unbind content/courses/ribbon-coast.course.json --lateral /sections/0/boundaries/1/knots/0/lateral
+npm run course -- remove-knots content/courses/ribbon-fork.course.json --tolerance 0 --apply all --out content/courses/ribbon-fork.course.json
 node --import tsx tools/course/measure.ts request.json --out observations.json
 ```
 
@@ -130,6 +131,11 @@ changed values, and with `--out` write the edited document in the saved layout.
 (`--lateral` as the lateral's Pointer, `--boundary`), `unbind` (`--lateral`) and `reanchor` (`--position`, `--pi`) make
 the [operations that change form](content-and-gameplay.md#course-authoring-operations), printing the shift with the
 changed values.
+`round` (`--step`, `--values` from `pi,radius,offset,lateral,height,curveLength,every`) and `remove-knots`
+(`--tolerance`) run the [cleaning operations](content-and-gameplay.md#course-authoring-operations) over the course or
+a scope (`--section` id, `--elements` Pointers, `--kinds`): they print the candidates, and `--apply all` or
+`--apply id,...` applies the chosen ones as one edit, printing the shift and each changed Section's centreline shift
+and length change.
 [Content and gameplay](content-and-gameplay.md#observation-formats) owns saved tool formats.
 `report` and `render` write what two core functions in
 [`course-views.ts`](../tools/authoring/course-views.ts) return from the compiled course: `courseReport` (a Section's

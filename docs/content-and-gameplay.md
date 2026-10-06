@@ -576,6 +576,21 @@ resolved values are written to 1e-9 m, which drops floating-point noise.
   to itself.
 - `reanchorCoursePosition` measures a Position from another PI of its Section, its offset chosen so its station stays.
 
+**Cleaning operations** ([`course-cleaning.ts`](../tools/authoring/course-cleaning.ts)) work in two phases over a scope
+(the course, a Section, chosen elements and what they hold, or element kinds). The first proposes candidates, each with
+the element it concerns, its changes and its own shift: the change applied alone and the Section read again, comparing
+lines and wall heights laterally along an unchanged ruler (and vertex by vertex in the plan when the ruler changes),
+other elements by plan point, and the road height. The second, `applyCleaning`, applies the chosen candidates as one
+edit, returning the shift and each changed Section's centreline shift (the old centreline's largest distance from the
+new one) and length change. Every applied candidate changes the course's identity, so the measured products become
+stale; the driving changes only when the shift is not 0.
+
+- `roundCandidates` rounds written numbers of chosen kinds (PI coordinates, radii, Position offsets, laterals, PVI
+  heights, curve lengths, repeat spacings) to a step: each value off the step is a candidate.
+- `unneededKnotCandidates` proposes each middle knot of a Boundary, Strip or wall Strip, and each middle PVI, whose
+  removal moves nothing beyond a tolerance (0: exactly the same lines and heights). The first and last knots bound a
+  line's extent and stay.
+
 ## Compiled identity and project publication
 
 CompiledCourse contains canonical Section, plan segment, Boundary, Carriageway, Link,

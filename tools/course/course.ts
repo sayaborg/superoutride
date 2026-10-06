@@ -24,6 +24,15 @@ import {
 } from '../authoring/course-edits.js';
 import type { Json } from '../authoring/json-pointer.js';
 import {
+  applyCleaning,
+  roundCandidates,
+  ROUNDED_VALUES,
+  unneededKnotCandidates,
+  type CleaningScope,
+  type RoundedValue,
+} from '../authoring/course-cleaning.js';
+import type { CourseElementKind } from '../authoring/course-structure.js';
+import {
   bindCourseLateral,
   combineCourseElements,
   explodeCourseRepeat,
@@ -35,15 +44,17 @@ import { formatSavedJson } from '../../src/content/saved-json.js';
 
 const EDITS = ['set', 'move', 'add-pi', 'remove-pi'];
 const FORMS = ['explode', 'combine', 'bind', 'unbind', 'reanchor'];
+const CLEANING = ['round', 'remove-knots'];
 const [verb, file, ...args] = process.argv.slice(2);
 try {
   requireInput(
-    ['compile', 'render', 'report', 'structure', ...EDITS, ...FORMS].includes(verb!) && file,
+    ['compile', 'render', 'report', 'structure', ...EDITS, ...FORMS, ...CLEANING].includes(verb!) && file,
     '/arguments',
-    `Usage: npm run course -- compile|render|report|structure|${[...EDITS, ...FORMS].join('|')} course.json [options]`,
+    `Usage: npm run course -- compile|render|report|structure|${[...EDITS, ...FORMS, ...CLEANING].join('|')} course.json [options]`,
   );
   if (EDITS.includes(verb!)) await editVerb(file);
   else if (FORMS.includes(verb!)) await formVerb(file);
+  else if (CLEANING.includes(verb!)) await cleaningVerb(file);
   else if (verb === 'structure') {
     // The form of the document as saved, compiled or not: read alone, without the content.
     const opts = options(args, ['--section']);
@@ -144,6 +155,53 @@ async function formVerb(file: string) {
   requireInput(result.ok, '/operation', result.ok ? '' : result.reason);
   if (opts.has('--out')) await atomicWrite(path.resolve(opts.get('--out')!), formatSavedJson(result.document));
   console.log(JSON.stringify({ ok: true, shift: result.shift, changes: result.changes }));
+}
+
+/**
+ * The cleaning operations, in two phases: without `--apply` the candidates are printed (each with its changes and
+ * shift); `--apply all` or `--apply id,id` applies the chosen ones as one edit, printing the shift and each changed
+ * Section's centreline shift and length change, and `--out` writes the result.
+ */
+async function cleaningVerb(file: string) {
+  const own = verb === 'round' ? ['--step', '--values'] : ['--tolerance'];
+  const opts = options(args, [...own, '--section', '--elements', '--kinds', '--apply', '--out']);
+  const document = (await jsonFile(file)).value as Json;
+  const list = (flag: string) => (opts.has(flag) ? opts.get(flag)!.split(',') : undefined);
+  const scope: CleaningScope = {
+    ...(opts.has('--section') ? { section: opts.get('--section')! } : {}),
+    ...(opts.has('--elements') ? { pointers: list('--elements')! } : {}),
+    ...(opts.has('--kinds') ? { kinds: list('--kinds')! as CourseElementKind[] } : {}),
+  };
+  let candidates;
+  if (verb === 'round') {
+    const values = (list('--values') ?? [...ROUNDED_VALUES]) as RoundedValue[];
+    requireInput(
+      values.every((v) => ROUNDED_VALUES.includes(v)),
+      '/values',
+      `Values are ${ROUNDED_VALUES.join(', ')}`,
+    );
+    candidates = roundCandidates(document, { step: finite(Number(opts.get('--step')), '/step', 1e-9), values, scope });
+  } else
+    candidates = unneededKnotCandidates(document, {
+      tolerance: opts.has('--tolerance') ? finite(Number(opts.get('--tolerance')), '/tolerance', 0) : 0,
+      scope,
+    });
+  if (!opts.has('--apply')) {
+    console.log(JSON.stringify({ ok: true, candidates }));
+    return;
+  }
+  const chosen = opts.get('--apply') === 'all' ? candidates : candidates.filter((c) => list('--apply')!.includes(c.id));
+  const result = applyCleaning(document, chosen);
+  if (opts.has('--out')) await atomicWrite(path.resolve(opts.get('--out')!), formatSavedJson(result.document));
+  console.log(
+    JSON.stringify({
+      ok: true,
+      applied: chosen.length,
+      shift: result.shift,
+      sections: result.sections,
+      changes: result.changes,
+    }),
+  );
 }
 
 /** The verbs over the compiled course: compile, render and report. */
