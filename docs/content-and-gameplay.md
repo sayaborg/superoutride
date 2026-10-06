@@ -27,7 +27,7 @@ authoring core and its tools save a course document that admits in that order.
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 42,
+  format: "superoutride.course", version: 43,
   name, entry, maxLaps,
   sections, links
 }
@@ -153,7 +153,7 @@ Strips, sprites and environment lists use one recursive shape:
 including the original occurrence. `elements` is nonempty and contains only elements of its enclosing list, including
 nested repeats. One shared expansion implementation visits declaration order, then repetition index,
 then child order. For index i, it adds `i*every` to every contained Position's resolved s, including
-Strip knot `at`, decorative `at`, and curb `start`/`end`. Nested offsets accumulate. Lateral expressions
+Strip `start`/`end`, wall Strip knot `at`, decorative `at`, and curb `start`/`end`. Nested offsets accumulate. Lateral expressions
 are evaluated at the shifted stations. All resulting Positions must fit the Section.
 Repeated Strips remain color-only. The repeat depth/count and collection/expansion ceilings below
 apply independently; limits reject rather than truncate.
@@ -180,7 +180,7 @@ Section `strips` is an ordered array of these constructs. Each record includes `
 
 | Element  | Fields                                                                                    |
 | -------- | ----------------------------------------------------------------------------------------- |
-| `strip`  | `knots:[{at,left,right}]`, `color`, `material`                                            |
+| `strip`  | Position `start`, `end`, Lateral or null `left`, `right`, `color`, `material`             |
 | `repeat` | positive `every`, integer `count`, `elements`                                             |
 | `arrow`  | `at`, `lateral`, positive `width`, `length`, `direction`, RGB555 `color`                  |
 | `text`   | `at`, `lateral`, `text`, positive `height`, RGB555 `color`                                |
@@ -193,16 +193,16 @@ non-null value. Uncovered color is transparent; uncovered material is no materia
 not a material ID: it has no support, zero grip and zero rolling resistance. Color-only Strips never
 enter the material table, and material-only Strips never enter the color table.
 
-Knots use Position `at` and Lateral or null edges. Null left/right opens that side to infinity;
-each side's open flag must remain constant throughout a Strip. Material-bearing Strips require
-two finite edges. There are at least two knots (the admission ceiling is listed below), whose resolved stations strictly increase inside
-`[0,Section.length]`. The first and last knots determine the active interval. Finite edges obey
-`left <= right`; zero-width taper endpoints are allowed. Ownership is `[left,right)` laterally
-and `[start,end)` longitudinally, including the Section terminal in the last slab.
+A Strip covers `[start,end]`, whose resolved stations strictly increase inside `[0,Section.length]`.
+Each edge is one Lateral or null, the same over the whole Strip. Null left/right opens that side to infinity.
+Material-bearing Strips require two finite edges. Finite edges obey `left <= right`, `invalid_strip`
+otherwise. Ownership is `[left,right)` laterally and `[start,end)` longitudinally, including the
+Section terminal in the last slab. An edge whose width varies along the Strip refers to a
+[Boundary](#plan-profile-and-boundaries) that varies so.
 
 Strip edges use the same interval resolver as Boundary knots: collect the referenced Boundary
-vertices, evaluate both endpoint expressions there, blend, then linearly interpolate.
-When an edge references the same Boundary and offset at both knots, it retains that Boundary's
+vertices, evaluate the edge expression at both ends, blend, then linearly interpolate.
+When an edge references a Boundary, it retains that Boundary's
 original line and adds the offset after evaluating it. With zero offset, every edge read equals
 `courseBoundaryAt` without a rounding gap, even after unrelated slab splits.
 
@@ -243,9 +243,10 @@ editing one keeps them joined; a guardrail so joined to the course limit at both
 `{kind: "strip", color, knots}` and `repeat` elements (`repeat` as for road Strips). `color` is an RGB555 integer or
 `"transparent"`, with the road Strip's meanings; a wall has no material, so a wall Strip cannot leave color unchanged and
 its `color` is never null. Each of at least two knots is `{at, bottom, top}`: Position `at`, and `bottom` and `top`, metres above the
-road height at that station (negative below it), the Strip's lower and upper edges. Knot stations, the edge rule
-(`bottom <= top`, so a Strip may taper to zero height; `invalid_strip` otherwise), edge interpolation, repetition, later Strips overwriting
-earlier ones, and the active-piece ceiling is those of road Strips, and a wall's Strip products count against the
+road height at that station (negative below it), the Strip's lower and upper edges. Knot stations strictly increase, and the
+first and last knots bound the Strip. Between knots each edge is interpolated linearly. The edge rule (`bottom <= top`, so a Strip
+may taper to zero height; `invalid_strip` otherwise), repetition, later Strips overwriting earlier ones, and the active-piece
+ceiling are those of road Strips, and a wall's Strip products count against the
 Section's Strip ceilings together with the road's ([Numeric and resource domains](#numeric-and-resource-domains)); every Strip, repeated ones included,
 lies within `[start, end]` (`invalid_wall` for an authored knot, `invalid_position` or `invalid_strip` for a repeated or
 expanded one). The wall is visible where its Strips are. A wall with no Strips is invisible and must be solid (a wall
@@ -333,7 +334,7 @@ Empty collections are arrays. CourseDocument nulls each have one meaning:
 | -------------------------------- | --------------------------------------------------------- |
 | Strip `color`                    | Leave the earlier color channel unchanged                 |
 | Strip `material`                 | Leave the earlier material channel unchanged              |
-| Strip knot `left` / `right`      | That edge is open to negative / positive lateral infinity |
+| Strip `left` / `right`           | That edge is open to negative / positive lateral infinity |
 | Sprite `unselectedCarriageway`   | Ordinary sprite with no exit-selection condition          |
 | Sprite `body`                    | Scenery: vehicles pass through it                         |
 | Sprite body `movable`            | A fixed object                                            |
@@ -373,7 +374,7 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | Images a course names (`images`)                                        |               2048 | (50 × 16 local image types + 128 shared types) × 2, rounded up                                                                                                            |
 | Section `pis`                                                           |                512 | (21 × 10 + 2 endpoints) × 2, rounded up                                                                                                                                   |
 | Section `heightNodes`                                                   |               1024 | (21 × 20 + 2) × 2, rounded up                                                                                                                                             |
-| Each Boundary/Strip `knots`                                             |               1024 | Same 20/km knot density and margin                                                                                                                                        |
+| Each Boundary/wall Strip `knots`                                        |               1024 | Same 20/km knot density and margin                                                                                                                                        |
 | Environment array and expanded Section `environmentKnots`               |                256 | (21 × 4 + 1) × 2, rounded up                                                                                                                                              |
 | Section `boundaries`                                                    |                 32 | 16 road, median, shoulder and outer Boundaries × 2                                                                                                                        |
 | Section `carriageways`                                                  |                 64 | One road activation/km × 21 × 2, rounded up; supports three-way splits                                                                                                    |
@@ -534,7 +535,7 @@ and every result resolves through the course compiler's functions.
 
 **Form.** `readCourseStructure` lists every element of a course an author draws or edits, by Section: PIs and the arc
 ends the plan derives between them, PVIs and their vertical-curve ends, Boundaries (their written knots, and every
-vertex the compiler resolves, written or inherited from a referenced Boundary), repeats, Strips and their knots,
+vertex the compiler resolves, written or inherited from a referenced Boundary), repeats, Strips,
 arrows, texts, curbs, walls and their Strips and knots, open limits, sprites (an object when it has a body),
 environments, gates, grid slots and Carriageways, and the course's Links. Each element has the JSON Pointer of its
 record (a repeated element's one authored record), whether it is written or derived (and from what), every Position
@@ -587,15 +588,15 @@ stale; the driving changes only when the shift is not 0.
 
 - `roundCandidates` rounds written numbers of chosen kinds (PI coordinates, radii, Position offsets, laterals, PVI
   heights, curve lengths, repeat spacings) to a step: each value off the step is a candidate.
-- `unneededKnotCandidates` proposes each middle knot of a Boundary, Strip or wall Strip, and each middle PVI, whose
+- `unneededKnotCandidates` proposes each middle knot of a Boundary or wall Strip, and each middle PVI, whose
   removal moves nothing beyond a tolerance (0: exactly the same lines and heights). The first and last knots bound a
   line's extent and stay.
 - `joinCandidates` proposes near things, within a distance but not the same, written as one: an absolute lateral near
   a Boundary at an offset it is already referred to with (or 0) becomes that reference (`join-reference` when exactly
   on it); a Position (of a knot, wall,
   curb, open limit or gate) near another element's Position takes it, either way round; a Position near a PI's station
-  is measured from that PI with offset 0; a Strip's left edge near the previous Strip's right edge at the same knot
-  station takes its written value. A join that leaves the Section unreadable is not proposed.
+  is measured from that PI with offset 0; a Strip's left edge near the previous Strip's right edge where it starts
+  takes its written value. A join that leaves the Section unreadable is not proposed.
 - `mergeCandidates` proposes, for each list, its runs of three or more elements that combine exactly into repeats,
   and each colour within a tolerance (in 5-bit steps) of a more used colour, which then takes its place everywhere.
   `sameValueGroups` shows, without changing anything, the colours with their uses, the references to a Boundary at

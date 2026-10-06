@@ -36,13 +36,10 @@ const FORM = {
   other: '#8e9aa6',
 } as const;
 
-/**
- * An element's form: a repeat's original or copy, else a single element by reference, absolute, or neither. A Strip's
- * laterals are its knots'.
- */
-function formColor(element: CourseElement, parts: readonly CourseElement[] = []): string {
+/** An element's form: a repeat's original or copy, else a single element by reference, absolute, or neither. */
+function formColor(element: CourseElement): string {
   if (element.copies.length) return element.copies.every((copy) => copy.index === 0) ? FORM.original : FORM.copy;
-  const laterals = [element, ...parts].flatMap((part) => Object.values(part.laterals));
+  const laterals = Object.values(element.laterals);
   if (laterals.some((lateral) => lateral.form === 'reference')) return FORM.reference;
   if (laterals.length) return FORM.absolute;
   return FORM.other;
@@ -184,8 +181,6 @@ export const courseModule: WorkbenchModule = {
       marked: readonly string[] = [],
       selected: CourseElement | null = null;
     const path = () => `courses/${id}.course.json`;
-    // Each Strip's knots, by the Strip's Pointer, for its form.
-    let knotsOf = new Map<string, CourseElement[]>();
     /** One step: the edited document replaces the course's. */
     const commit = (next: Json, label: string) => context.replace(path(), savedCourseDocument(next), label);
     const refuse = (result: CourseEditResult) => {
@@ -341,7 +336,7 @@ export const courseModule: WorkbenchModule = {
     });
     /** How elements are drawn: by form when asked, with the marks of references and of the selection. */
     const style = (): PlanStyle => ({
-      colorOf: (element) => (formColors.checked ? formColor(element, knotsOf.get(element.pointer)) : null),
+      colorOf: (element) => (formColors.checked ? formColor(element) : null),
       marks: (element, draw) => {
         // A reference: a line to the Boundary it reads, at its station.
         for (const lateral of Object.values(element.laterals))
@@ -541,12 +536,6 @@ export const courseModule: WorkbenchModule = {
       try {
         document = nextText === null ? null : JSON.parse(nextText);
         structure = document === null ? null : readCourseStructure(document);
-        knotsOf = new Map();
-        for (const element of structure?.sections.flatMap((section) => section.elements) ?? [])
-          if (element.kind === 'strip-knot') {
-            const strip = element.pointer.slice(0, element.pointer.lastIndexOf('/knots/'));
-            knotsOf.set(strip, [...(knotsOf.get(strip) ?? []), element]);
-          }
         status = structure?.admission
           ? `The document does not admit: ${structure.admission.code} at ${structure.admission.pointer}: ${structure.admission.message}`
           : '';

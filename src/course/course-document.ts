@@ -15,7 +15,7 @@ import {
 } from '../core/admission.js';
 import { readRgb555 } from '../image/rgb555.js';
 
-const COURSE_DOCUMENT_VERSION = 42;
+const COURSE_DOCUMENT_VERSION = 43;
 const ID = { maxLength: COURSE_DOCUMENT_LIMITS.idCodeUnits };
 
 export interface CoursePosition {
@@ -52,15 +52,18 @@ interface LinkDocument {
   readonly to: string;
 }
 
+/**
+ * A road Strip from `start` to `end` between its `left` and `right` edges (null: open to that side's infinity). Only
+ * Boundaries carry lateral shape: an edge that varies refers to one.
+ */
 interface StripDocument {
   readonly kind: 'strip';
+  readonly start: CoursePosition;
+  readonly end: CoursePosition;
+  readonly left: Lateral | null;
+  readonly right: Lateral | null;
   readonly color: number | 'transparent' | null;
   readonly material: string | null;
-  readonly knots: readonly {
-    readonly at: CoursePosition;
-    readonly left: Lateral | null;
-    readonly right: Lateral | null;
-  }[];
 }
 export type StripElementDocument = RepeatElement<
   | StripDocument
@@ -320,24 +323,15 @@ function stripLeaf(value: unknown, path: string): Exclude<StripElementDocument, 
   const metre = (value: unknown, at: string, positive = false) =>
     readNumber(value, at, { min: 0, max: COURSE_DOCUMENT_LIMITS.lengthMeters, exclusiveMin: positive });
   if (kind === 'strip') {
-    const v = readRecord(value, path, ['kind', 'color', 'material', 'knots']);
+    const v = readRecord(value, path, ['kind', 'start', 'end', 'left', 'right', 'color', 'material']);
     return Object.freeze({
       kind,
+      start: position(v.start, `${path}/start`),
+      end: position(v.end, `${path}/end`),
+      left: v.left === null ? null : lateral(v.left, `${path}/left`),
+      right: v.right === null ? null : lateral(v.right, `${path}/right`),
       color: v.color === null || v.color === 'transparent' ? v.color : readRgb555(v.color, `${path}/color`),
       material: v.material === null ? null : readString(v.material, `${path}/material`, ID),
-      knots: readArray(
-        v.knots,
-        `${path}/knots`,
-        (item, at) => {
-          const knot = readRecord(item, at, ['at', 'left', 'right']);
-          return Object.freeze({
-            at: position(knot.at, `${at}/at`),
-            left: knot.left === null ? null : lateral(knot.left, `${at}/left`),
-            right: knot.right === null ? null : lateral(knot.right, `${at}/right`),
-          });
-        },
-        { max: COURSE_DOCUMENT_LIMITS.knots },
-      ),
     });
   }
   if (kind === 'arrow') {

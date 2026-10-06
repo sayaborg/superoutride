@@ -37,7 +37,7 @@ export function createSectionView(canvas: HTMLCanvasElement, events: { pick(elem
     const strips = of('strip').flatMap((element) => {
       const left = element.lines.left ? lateralAt(element.lines.left, s) : -Infinity,
         right = element.lines.right ? lateralAt(element.lines.right, s) : Infinity;
-      const covers = [element.lines.left, element.lines.right].some((line) => line && lateralAt(line, s) !== null);
+      const covers = (element.positions.start?.s ?? Infinity) <= s && s <= (element.positions.end?.s ?? -Infinity);
       return covers && left !== null && right !== null ? [{ element, left, right }] : [];
     });
     const finite = [...boundaries.map((b) => b.l), ...strips.flatMap((p) => [p.left, p.right]).filter(Number.isFinite)];

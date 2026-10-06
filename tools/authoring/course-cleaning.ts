@@ -312,7 +312,7 @@ export function offStepValues(
 }
 
 /** The knots and profile points a line keeps without needing: those whose removal moves nothing beyond `tolerance`. */
-const KNOTS: readonly CourseElementKind[] = ['boundary-knot', 'strip-knot', 'wall-strip-knot', 'pvi'];
+const KNOTS: readonly CourseElementKind[] = ['boundary-knot', 'wall-strip-knot', 'pvi'];
 
 /**
  * Middle knots (of Boundaries, Strips and wall Strips) and PVIs whose removal leaves every resolved line, wall height
@@ -344,10 +344,10 @@ export function unneededKnotCandidates(
   return withShifts(document, proposals).filter((candidate) => candidate.shift <= options.tolerance);
 }
 
-/** Kinds whose Positions join with near ones: knots, wall and curb ends, open limits and gates. */
+/** Kinds whose Positions join with near ones: knots, Strip, wall and curb ends, open limits and gates. */
 const JOINED: readonly CourseElementKind[] = [
   'boundary-knot',
-  'strip-knot',
+  'strip',
   'wall-strip-knot',
   'wall',
   'curb',
@@ -456,19 +456,19 @@ export function joinCandidates(
               },
             ],
           });
-    // Strip edges at one knot station: the later Strip's left takes the earlier's right when they nearly meet.
-    const knots = own.filter((e) => e.kind === 'strip-knot' && !e.copies.some((c) => c.index > 0) && e.s !== null);
-    for (const a of knots)
-      for (const b of knots) {
-        if (a.s !== b.s || parentOf(a.pointer) >= parentOf(b.pointer)) continue;
-        const right = a.laterals.right,
-          left = b.laterals.left;
-        if (!right || !left || right.l === null || left.l === null || !near(left.l - right.l)) continue;
+    // Strip edges: a later Strip's left takes an earlier one's right when they nearly meet where the later starts.
+    const strips = own.filter((e) => e.kind === 'strip' && !e.copies.some((c) => c.index > 0) && e.s !== null);
+    for (const a of strips)
+      for (const b of strips) {
+        if (a.pointer >= b.pointer || !a.lines.right || !b.lines.left) continue;
+        const right = lineAt(a.lines.right, b.s!),
+          left = lineAt(b.lines.left, b.s!);
+        if (right === null || left === null || !near(left - right)) continue;
         proposals.push({
           id: `join ${b.pointer}/left to ${a.pointer}/right`,
           operation: 'join-edge',
           pointer: b.pointer,
-          description: `${b.pointer}/left takes ${a.pointer}/right (${Math.abs(left.l - right.l).toFixed(3)} m gap or overlap)`,
+          description: `${b.pointer}/left takes ${a.pointer}/right (${Math.abs(left - right).toFixed(3)} m gap or overlap)`,
           changes: [
             {
               pointer: `${b.pointer}/left`,

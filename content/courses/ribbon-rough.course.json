@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 42,
+  "version": 43,
   "name": "RIBBON ROUGH",
   "entry": "rough-bumps",
   "maxLaps": 3,
@@ -221,20 +221,12 @@
       "strips": [
         {
           "kind": "strip",
+          "start": { "pi": "start", "offset": 0 },
+          "end": { "pi": "end", "offset": 0 },
+          "left": null,
+          "right": null,
           "color": 5575,
-          "material": null,
-          "knots": [
-            {
-              "at": { "pi": "start", "offset": 0 },
-              "left": null,
-              "right": null
-            },
-            {
-              "at": { "pi": "end", "offset": 0 },
-              "left": null,
-              "right": null
-            }
-          ]
+          "material": null
         },
         {
           "kind": "curb",
@@ -252,54 +244,30 @@
         },
         {
           "kind": "strip",
+          "start": { "pi": "start", "offset": 0 },
+          "end": { "pi": "end", "offset": 0 },
+          "left": { "boundary": "outer-left", "offset": 0 },
+          "right": { "boundary": "shoulder-left", "offset": 0 },
           "color": null,
-          "material": "GRASS",
-          "knots": [
-            {
-              "at": { "pi": "start", "offset": 0 },
-              "left": { "boundary": "outer-left", "offset": 0 },
-              "right": { "boundary": "shoulder-left", "offset": 0 }
-            },
-            {
-              "at": { "pi": "end", "offset": 0 },
-              "left": { "boundary": "outer-left", "offset": 0 },
-              "right": { "boundary": "shoulder-left", "offset": 0 }
-            }
-          ]
+          "material": "GRASS"
         },
         {
           "kind": "strip",
+          "start": { "pi": "start", "offset": 0 },
+          "end": { "pi": "end", "offset": 0 },
+          "left": { "boundary": "shoulder-right", "offset": 0 },
+          "right": { "boundary": "outer-right", "offset": 0 },
           "color": null,
-          "material": "GRASS",
-          "knots": [
-            {
-              "at": { "pi": "start", "offset": 0 },
-              "left": { "boundary": "shoulder-right", "offset": 0 },
-              "right": { "boundary": "outer-right", "offset": 0 }
-            },
-            {
-              "at": { "pi": "end", "offset": 0 },
-              "left": { "boundary": "shoulder-right", "offset": 0 },
-              "right": { "boundary": "outer-right", "offset": 0 }
-            }
-          ]
+          "material": "GRASS"
         },
         {
           "kind": "strip",
+          "start": { "pi": "start", "offset": 0 },
+          "end": { "pi": "end", "offset": 0 },
+          "left": { "boundary": "shoulder-left", "offset": 0 },
+          "right": { "boundary": "road-left", "offset": 0 },
           "color": 17969,
-          "material": "SHOULDER",
-          "knots": [
-            {
-              "at": { "pi": "start", "offset": 0 },
-              "left": { "boundary": "shoulder-left", "offset": 0 },
-              "right": { "boundary": "road-left", "offset": 0 }
-            },
-            {
-              "at": { "pi": "end", "offset": 0 },
-              "left": { "boundary": "shoulder-left", "offset": 0 },
-              "right": { "boundary": "road-left", "offset": 0 }
-            }
-          ]
+          "material": "SHOULDER"
         },
         {
           "kind": "curb",
@@ -318,20 +286,12 @@
         },
         {
           "kind": "strip",
+          "start": { "pi": "start", "offset": 0 },
+          "end": { "pi": "end", "offset": 0 },
+          "left": { "boundary": "road-right", "offset": 0 },
+          "right": { "boundary": "shoulder-right", "offset": 0 },
           "color": 17969,
-          "material": "SHOULDER",
-          "knots": [
-            {
-              "at": { "pi": "start", "offset": 0 },
-              "left": { "boundary": "road-right", "offset": 0 },
-              "right": { "boundary": "shoulder-right", "offset": 0 }
-            },
-            {
-              "at": { "pi": "end", "offset": 0 },
-              "left": { "boundary": "road-right", "offset": 0 },
-              "right": { "boundary": "shoulder-right", "offset": 0 }
-            }
-          ]
+          "material": "SHOULDER"
         },
         {
           "kind": "curb",
@@ -350,20 +310,12 @@
         },
         {
           "kind": "strip",
+          "start": { "pi": "start", "offset": 0 },
+          "end": { "pi": "end", "offset": 0 },
+          "left": { "boundary": "road-left", "offset": 0 },
+          "right": { "boundary": "road-right", "offset": 0 },
           "color": 9548,
-          "material": "ASPHALT",
-          "knots": [
-            {
-              "at": { "pi": "start", "offset": 0 },
-              "left": { "boundary": "road-left", "offset": 0 },
-              "right": { "boundary": "road-right", "offset": 0 }
-            },
-            {
-              "at": { "pi": "end", "offset": 0 },
-              "left": { "boundary": "road-left", "offset": 0 },
-              "right": { "boundary": "road-right", "offset": 0 }
-            }
-          ]
+          "material": "ASPHALT"
         },
         {
           "kind": "curb",
@@ -381,20 +333,12 @@
         },
         {
           "kind": "strip",
+          "start": { "pi": "start", "offset": 1754.1592653589794 },
+          "end": { "pi": "start", "offset": 1881.991118430775 },
+          "left": { "boundary": "outer-left", "offset": 0 },
+          "right": { "boundary": "shoulder-left", "offset": 0 },
           "color": 28430,
-          "material": "SAND",
-          "knots": [
-            {
-              "at": { "pi": "start", "offset": 1754.1592653589794 },
-              "left": { "boundary": "outer-left", "offset": 0 },
-              "right": { "boundary": "shoulder-left", "offset": 0 }
-            },
-            {
-              "at": { "pi": "start", "offset": 1881.991118430775 },
-              "left": { "boundary": "outer-left", "offset": 0 },
-              "right": { "boundary": "shoulder-left", "offset": 0 }
-            }
-          ]
+          "material": "SAND"
         },
         {
           "kind": "curb",
@@ -1262,20 +1206,12 @@
       "strips": [
         {
           "kind": "strip",
+          "start": { "pi": "start", "offset": 0 },
+          "end": { "pi": "end", "offset": 0 },
+          "left": null,
+          "right": null,
           "color": 5575,
-          "material": null,
-          "knots": [
-            {
-              "at": { "pi": "start", "offset": 0 },
-              "left": null,
-              "right": null
-            },
-            {
-              "at": { "pi": "end", "offset": 0 },
-              "left": null,
-              "right": null
-            }
-          ]
+          "material": null
         },
         {
           "kind": "curb",
@@ -1293,54 +1229,30 @@
         },
         {
           "kind": "strip",
+          "start": { "pi": "start", "offset": 0 },
+          "end": { "pi": "end", "offset": 0 },
+          "left": { "boundary": "outer-left", "offset": 0 },
+          "right": { "boundary": "shoulder-left", "offset": 0 },
           "color": null,
-          "material": "GRASS",
-          "knots": [
-            {
-              "at": { "pi": "start", "offset": 0 },
-              "left": { "boundary": "outer-left", "offset": 0 },
-              "right": { "boundary": "shoulder-left", "offset": 0 }
-            },
-            {
-              "at": { "pi": "end", "offset": 0 },
-              "left": { "boundary": "outer-left", "offset": 0 },
-              "right": { "boundary": "shoulder-left", "offset": 0 }
-            }
-          ]
+          "material": "GRASS"
         },
         {
           "kind": "strip",
+          "start": { "pi": "start", "offset": 0 },
+          "end": { "pi": "end", "offset": 0 },
+          "left": { "boundary": "shoulder-right", "offset": 0 },
+          "right": { "boundary": "outer-right", "offset": 0 },
           "color": null,
-          "material": "GRASS",
-          "knots": [
-            {
-              "at": { "pi": "start", "offset": 0 },
-              "left": { "boundary": "shoulder-right", "offset": 0 },
-              "right": { "boundary": "outer-right", "offset": 0 }
-            },
-            {
-              "at": { "pi": "end", "offset": 0 },
-              "left": { "boundary": "shoulder-right", "offset": 0 },
-              "right": { "boundary": "outer-right", "offset": 0 }
-            }
-          ]
+          "material": "GRASS"
         },
         {
           "kind": "strip",
+          "start": { "pi": "start", "offset": 0 },
+          "end": { "pi": "end", "offset": 0 },
+          "left": { "boundary": "shoulder-left", "offset": 0 },
+          "right": { "boundary": "road-left", "offset": 0 },
           "color": 17969,
-          "material": "SHOULDER",
-          "knots": [
-            {
-              "at": { "pi": "start", "offset": 0 },
-              "left": { "boundary": "shoulder-left", "offset": 0 },
-              "right": { "boundary": "road-left", "offset": 0 }
-            },
-            {
-              "at": { "pi": "end", "offset": 0 },
-              "left": { "boundary": "shoulder-left", "offset": 0 },
-              "right": { "boundary": "road-left", "offset": 0 }
-            }
-          ]
+          "material": "SHOULDER"
         },
         {
           "kind": "curb",
@@ -1359,20 +1271,12 @@
         },
         {
           "kind": "strip",
+          "start": { "pi": "start", "offset": 0 },
+          "end": { "pi": "end", "offset": 0 },
+          "left": { "boundary": "road-right", "offset": 0 },
+          "right": { "boundary": "shoulder-right", "offset": 0 },
           "color": 17969,
-          "material": "SHOULDER",
-          "knots": [
-            {
-              "at": { "pi": "start", "offset": 0 },
-              "left": { "boundary": "road-right", "offset": 0 },
-              "right": { "boundary": "shoulder-right", "offset": 0 }
-            },
-            {
-              "at": { "pi": "end", "offset": 0 },
-              "left": { "boundary": "road-right", "offset": 0 },
-              "right": { "boundary": "shoulder-right", "offset": 0 }
-            }
-          ]
+          "material": "SHOULDER"
         },
         {
           "kind": "curb",
@@ -1391,20 +1295,12 @@
         },
         {
           "kind": "strip",
+          "start": { "pi": "start", "offset": 0 },
+          "end": { "pi": "end", "offset": 0 },
+          "left": { "boundary": "road-left", "offset": 0 },
+          "right": { "boundary": "road-right", "offset": 0 },
           "color": 9548,
-          "material": "ASPHALT",
-          "knots": [
-            {
-              "at": { "pi": "start", "offset": 0 },
-              "left": { "boundary": "road-left", "offset": 0 },
-              "right": { "boundary": "road-right", "offset": 0 }
-            },
-            {
-              "at": { "pi": "end", "offset": 0 },
-              "left": { "boundary": "road-left", "offset": 0 },
-              "right": { "boundary": "road-right", "offset": 0 }
-            }
-          ]
+          "material": "ASPHALT"
         },
         {
           "kind": "curb",
@@ -1422,20 +1318,12 @@
         },
         {
           "kind": "strip",
+          "start": { "pi": "start", "offset": 320 },
+          "end": { "pi": "start", "offset": 640 },
+          "left": { "boundary": "road-left", "offset": 0 },
+          "right": { "boundary": "road-right", "offset": 0 },
           "color": 20902,
-          "material": "DIRT",
-          "knots": [
-            {
-              "at": { "pi": "start", "offset": 320 },
-              "left": { "boundary": "road-left", "offset": 0 },
-              "right": { "boundary": "road-right", "offset": 0 }
-            },
-            {
-              "at": { "pi": "start", "offset": 640 },
-              "left": { "boundary": "road-left", "offset": 0 },
-              "right": { "boundary": "road-right", "offset": 0 }
-            }
-          ]
+          "material": "DIRT"
         },
         {
           "kind": "curb",
@@ -1454,20 +1342,12 @@
         },
         {
           "kind": "strip",
+          "start": { "pi": "start", "offset": 837.469776266572 },
+          "end": { "pi": "start", "offset": 1123.0892252858066 },
+          "left": { "boundary": "outer-left", "offset": 0 },
+          "right": { "boundary": "shoulder-left", "offset": 0 },
           "color": 28430,
-          "material": "SAND",
-          "knots": [
-            {
-              "at": { "pi": "start", "offset": 837.469776266572 },
-              "left": { "boundary": "outer-left", "offset": 0 },
-              "right": { "boundary": "shoulder-left", "offset": 0 }
-            },
-            {
-              "at": { "pi": "start", "offset": 1123.0892252858066 },
-              "left": { "boundary": "outer-left", "offset": 0 },
-              "right": { "boundary": "shoulder-left", "offset": 0 }
-            }
-          ]
+          "material": "SAND"
         },
         {
           "kind": "curb",

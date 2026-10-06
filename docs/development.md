@@ -365,7 +365,7 @@ its alignment numbers are committed, under `content/course-underlays/`.
 `dist/` contains compiled product ESM and bundled browser graphics/audio tools, not Node build-script output. `dist/delivery/` contains every delivered file
 listed below and the content manifest. Product modules compile to `dist/<layer>/`, including the `content`
 layer's modules in `dist/content/`; delivered files stay under `dist/delivery/` so modules and data never share a directory. Course JSON retains authored Strip constructs; the shared compiler expands them and builds immutable
-preblend fields before browser driving or headless rendering. Expanded Strips and their knots are
+preblend fields before browser driving or headless rendering. Expanded Strips are
 in-memory compiler products, not committed files or an additional delivered image format. Build also delivers the
 vehicle envelopes, game time budgets and pace schedules from the [measured products](#measured-products) saved under
 `content/`; it runs no driving. Browsers load these products.

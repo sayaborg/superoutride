@@ -1,11 +1,5 @@
 import type { StripBudget } from '../strip-budget.js';
-import type {
-  CoursePosition,
-  OpenLimitDocument,
-  StripElementDocument,
-  WallDocument,
-  WallStripElementDocument,
-} from '../course-document.js';
+import type { CoursePosition, OpenLimitDocument, WallDocument } from '../course-document.js';
 import { courseBoundaryAt, courseBoundarySlopeAt, type CompiledBoundary } from '../course-boundaries.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
 import type { CourseBarrierLine } from '../course-barriers.js';
@@ -33,20 +27,6 @@ export interface CompiledWall {
   readonly start: number;
   readonly end: number;
   readonly color: StripGround | null;
-}
-
-/** A wall's Strips as road Strips: each knot's bottom and top are the left and right edges. */
-function roadStrips(elements: readonly WallStripElementDocument[]): StripElementDocument[] {
-  return elements.map((element) =>
-    element.kind === 'repeat'
-      ? { ...element, elements: roadStrips(element.elements) }
-      : {
-          kind: 'strip',
-          color: element.color,
-          material: null,
-          knots: element.knots.map((knot) => ({ at: knot.at, left: knot.bottom, right: knot.top })),
-        },
-  );
 }
 
 /**
@@ -84,7 +64,7 @@ export function compileCourseWalls(
         source.strips.length === 0
           ? null
           : compileCourseStrips(
-              roadStrips(source.strips),
+              source.strips,
               end - start,
               `${at}/strips`,
               (position, positionPath) => {

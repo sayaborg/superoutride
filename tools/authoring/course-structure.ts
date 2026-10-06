@@ -39,7 +39,6 @@ export type CourseElementKind =
   | 'boundary-vertex'
   | 'repeat'
   | 'strip'
-  | 'strip-knot'
   | 'arrow'
   | 'text'
   | 'curb'
@@ -425,7 +424,7 @@ function readSection(
       add('repeat', at, {}, { problem: problemOf(error, at) });
     }
   };
-  /** The two edges of a knot interval list, resolved as the Strip compiler resolves them. */
+  /** The two edges of a Strip (its edges at its start and end), resolved as the Strip compiler resolves them. */
   const edges = (knots: readonly Record<string, unknown>[], stations: readonly (number | null)[], at: string) => {
     const lines: Record<string, ResolvedLine> = {};
     for (const side of ['left', 'right'] as const) {
@@ -438,14 +437,7 @@ function readSection(
         if (a === null || b === null || start === null || start === undefined || end === null || end === undefined)
           continue;
         try {
-          const resolved = resolveLateralInterval(
-            a,
-            b,
-            start,
-            end,
-            (id) => boundaries.get(id),
-            `${at}/knots/${k}/${side}`,
-          );
+          const resolved = resolveLateralInterval(a, b, start, end, (id) => boundaries.get(id), `${at}/${side}`);
           for (const vertex of resolved.vertices.slice(line.length && k > 1 ? 1 : 0))
             line.push({ s: vertex.at.s, l: vertex.l, authored: vertex.at.s === start || vertex.at.s === end });
         } catch {
@@ -460,24 +452,19 @@ function readSection(
   expand(section.strips, `${pointer}/strips`, (source, offset, path, copies) => {
     const kind = String(source.kind);
     if (kind === 'strip') {
-      const knots = list(source.knots).map(record);
       const before = elements.length;
-      knots.forEach((knot, k) =>
-        add('strip-knot', `${path}/knots/${k}`, knot, {
-          offset,
-          copies,
-          positions: ['at'],
-          laterals: ['left', 'right'],
-        }),
-      );
-      const stations = elements.slice(before).map((element) => element.s);
       add('strip', path, source, {
         offset,
         copies,
+        positions: ['start', 'end'],
+        laterals: ['left', 'right'],
         values: { color: source.color, material: source.material },
-        lines: edges(knots, stations, path),
-        station: typeof stations[0] === 'number' ? { s: stations[0], l: 0 } : undefined,
       });
+      const strip = elements[before]!;
+      elements[before] = {
+        ...strip,
+        lines: edges([source, source], [strip.positions.start?.s ?? null, strip.positions.end?.s ?? null], path),
+      };
     } else if (kind === 'curb') {
       add('curb', path, source, {
         offset,

@@ -6,7 +6,7 @@ import type { SurfaceMaterial, SurfaceMaterialCatalog } from '../surface-materia
 import type { CompiledBoundary } from '../course-boundaries.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
 import { resolveLateralInterval, resolveCourseLateral } from './course-lateral.js';
-import type { StripElementDocument, CoursePosition, Lateral } from '../course-document.js';
+import type { StripElementDocument, CoursePosition, Lateral, WallStripElementDocument } from '../course-document.js';
 import { requireCourse } from '../course-diagnostics.js';
 import { STRIP_ACTIVE_LIMIT, compileStripGround } from '../strip-ground.js';
 import { stripEdgeAt, type StripPiece, type StripEdgeLine } from '../strip-slabs.js';
@@ -51,9 +51,12 @@ const GLYPHS: Readonly<Record<string, string>> = Object.freeze({
   '9': '01110/10001/10001/01111/00001/00001/01110',
 });
 
+/** Road Strip constructs, or a wall's Strips, whose knots give bottom and top as the left and right edges. */
+export type CompiledStripElements = readonly StripElementDocument[] | readonly WallStripElementDocument[];
+
 /** Expand saved constructs in list order; output is a disposable compiler product. */
 function expandCourseStrips(
-  elements: readonly StripElementDocument[],
+  elements: CompiledStripElements,
   length: number,
   path: string,
   resolve: (at: CoursePosition, path: string) => CompiledCoursePosition,
@@ -157,7 +160,7 @@ function expandCourseStrips(
     }
   };
   const expand = (
-    element: Exclude<StripElementDocument, { kind: 'repeat' }>,
+    element: Exclude<StripElementDocument, { kind: 'repeat' }> | Exclude<WallStripElementDocument, { kind: 'repeat' }>,
     offset: number,
     at: string,
     repeated: boolean,
@@ -166,6 +169,19 @@ function expandCourseStrips(
     const position = shiftedCoursePosition(resolve, offset, length);
     switch (element.kind) {
       case 'strip':
+        if ('knots' in element) {
+          strip(
+            element.knots.map((k, i) => ({
+              s: position(k.at, `${at}/knots/${i}/at`).s,
+              left: k.bottom,
+              right: k.top,
+            })),
+            element.color,
+            null,
+            at,
+          );
+          break;
+        }
         requireCourse(
           !repeated || element.material === null,
           at,
@@ -173,11 +189,10 @@ function expandCourseStrips(
           'invalid_strip',
         );
         strip(
-          element.knots.map((k, i) => ({
-            s: position(k.at, `${at}/knots/${i}/at`).s,
-            left: k.left,
-            right: k.right,
-          })),
+          [
+            { s: position(element.start, `${at}/start`).s, left: element.left, right: element.right },
+            { s: position(element.end, `${at}/end`).s, left: element.left, right: element.right },
+          ],
           element.color,
           element.material,
           at,
@@ -270,7 +285,7 @@ function expandCourseStrips(
       }
     }
   };
-  expandCourseElements(elements, path, COURSE_DOCUMENT_LIMITS.stripExpansion, expand);
+  expandCourseElements<Parameters<typeof expand>[0]>(elements, path, COURSE_DOCUMENT_LIMITS.stripExpansion, expand);
   const events = extents
     .flatMap(({ start, end }) => [
       { s: start, delta: 1 },
@@ -291,7 +306,7 @@ function expandCourseStrips(
 }
 
 export function compileCourseStrips(
-  elements: readonly StripElementDocument[],
+  elements: CompiledStripElements,
   length: number,
   path: string,
   resolve: (at: CoursePosition, path: string) => CompiledCoursePosition,
