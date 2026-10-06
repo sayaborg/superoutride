@@ -36,6 +36,7 @@ const LAYER_OF: Partial<Record<CourseElement['kind'], PlanLayer>> = {
   environment: 'environments',
   plan: 'plan',
   'plan-end': 'plan',
+  'tangent-point': 'plan',
 };
 
 /** Metres between plan samples along a line, enough for a curve's radius at plan scale. */
@@ -72,9 +73,9 @@ export interface PlanDraw {
 
 /**
  * The plan of one Section: its Strips filled in their colours, Boundaries, Carriageway lane centres, walls, open
- * limits, the centreline with its entry and exit cut lines, environments, gates and grid, sprites and objects, PIs and
- * the arc ends they derive, the PI polygon, the cursor and the selection; north (+z) up, x right, with a scale bar.
- * When the plan does not compile, the PIs and their polygon still show. The wheel zooms at the pointer; a press that
+ * limits, the centreline with its entry and exit cut lines, environments, gates and grid, sprites and objects, plan joints, the
+ * Section's end and arcs' tangent intersections, the cursor and the selection; north (+z) up, x right, with a scale bar.
+ * When the plan does not compile, the view says so. The wheel zooms at the pointer; a press that
  * `grab` takes (at a plan point, with the metres of a pixel and the element under it) drags an edit, any other drag
  * pans, and a click picks the nearest element or, away from any, moves the cursor.
  */
@@ -268,20 +269,24 @@ export function createPlanView(
     context.fillText(`${section.id} · s ${cursor.toFixed(1)} m`, 16, 20);
   };
 
+  /** The element nearest a canvas point, within reach; the selection's points (its handles) come first. */
   const pickAt = (px: number, py: number): CourseElement | null => {
     if (!section) return null;
-    let best: CourseElement | null = null,
-      distance = PICK_PIXELS;
-    for (const element of section.elements) {
-      if (!shown(element) || element.x === null || element.z === null) continue;
-      const p = toScreen(element.x, element.z);
-      const d = Math.hypot(p.x - px, p.y - py);
-      if (d < distance) {
-        best = element;
-        distance = d;
+    const nearest = (elements: readonly CourseElement[]) => {
+      let best: CourseElement | null = null,
+        distance = PICK_PIXELS;
+      for (const element of elements) {
+        if (!shown(element) || element.x === null || element.z === null) continue;
+        const p = toScreen(element.x, element.z);
+        const d = Math.hypot(p.x - px, p.y - py);
+        if (d < distance) {
+          best = element;
+          distance = d;
+        }
       }
-    }
-    return best;
+      return best;
+    };
+    return nearest(section.elements.filter((e) => e.pointer === selected)) ?? nearest(section.elements);
   };
   const local = (event: MouseEvent) => {
     const box = canvas.getBoundingClientRect();
@@ -422,6 +427,7 @@ function point(draw: PlanDraw, element: CourseElement, color: string | null) {
       {
         plan: '#ffd33d',
         'plan-end': '#ffd33d',
+        'tangent-point': '#ffd33d',
         sprite: '#7ee787',
         object: '#ffa657',
         'grid-slot': '#7ee787',

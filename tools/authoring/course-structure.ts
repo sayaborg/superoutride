@@ -32,6 +32,7 @@ import { compileCoursePhysicalContent } from '../../src/course/compiler/course-p
 export type CourseElementKind =
   | 'plan'
   | 'plan-end'
+  | 'tangent-point'
   | 'pvi'
   | 'curve-end'
   | 'boundary'
@@ -268,6 +269,8 @@ function readSection(
       point?: 'authored' | 'derived';
       derivedFrom?: string;
       station?: { s: number; l: number };
+      /** The plan point, where it is not the station's (s, l). */
+      planPoint?: { x: number; z: number };
       problem?: Problem | null;
     } = {},
   ) => {
@@ -320,7 +323,7 @@ function readSection(
       s,
       l,
       y: height && s !== null ? height.sample(s) : null,
-      ...world(s, l),
+      ...(options.planPoint ?? world(s, l)),
       lines: options.lines ?? {},
       values: options.values ?? {},
       problem,
@@ -349,13 +352,35 @@ function readSection(
       },
     );
   });
-  if (plan)
+  if (plan) {
     add(
       'plan-end',
       `${pointer}/plan`,
       {},
       { point: 'derived', derivedFrom: `${pointer}/plan`, station: { s: plan.length, l: 0 } },
     );
+    // Each arc of less than half a circle: where its tangents meet, a handle for its radius.
+    list(section.plan).forEach((element, i) => {
+      const v = record(element);
+      const start = plan.stations.get(String(v.id));
+      const length = Number(v.length),
+        radius = Number(v.radius);
+      if (v.kind !== 'arc' || start === undefined || !(length / radius < Math.PI)) return;
+      const from = plan.toWorld(start, 0),
+        reach = radius * Math.tan(length / radius / 2);
+      add(
+        'tangent-point',
+        `${pointer}/plan/${i}`,
+        {},
+        {
+          point: 'derived',
+          derivedFrom: `${pointer}/plan/${i}`,
+          station: { s: start + length / 2, l: 0 },
+          planPoint: { x: from.x + reach * Math.sin(from.heading), z: from.z + reach * Math.cos(from.heading) },
+        },
+      );
+    });
+  }
   // The profile: written PVIs and the vertical curve ends they derive.
   list(section.profile).forEach((node, i) => {
     const at = `${pointer}/profile/${i}`;

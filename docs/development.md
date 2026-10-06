@@ -129,7 +129,7 @@ the content, so a document that does not compile still shows; `--section` keeps 
 `--kind` straight or arc, `--length` and an arc's `--radius` and `--turn`), print the
 changed values, and with `--out` write the edited document in the saved layout.
 `explode` (`--repeat`), `combine` (`--elements` as comma-separated Pointers, `--tolerance`), `bind`
-(`--lateral` as the lateral's Pointer, `--boundary`), `unbind` (`--lateral`) and `reanchor` (`--position`, `--joint`) make
+(`--lateral` as the lateral's Pointer, `--boundary`), and `unbind` (`--lateral`) make
 the [operations that change form](content-and-gameplay.md#course-authoring-operations), printing the shift with the
 changed values.
 `round` (`--step`, `--values` from `length,radius,offset,lateral,height,curveLength,every`), `remove-knots`
@@ -285,20 +285,23 @@ every copy, a reference its line to the Boundary it reads, a Position the centre
 diagnostics show on the element their Pointer falls in.
 
 The selected element is edited on the plan by the [edits that keep form](content-and-gameplay.md#course-authoring-operations):
-a plan element's `length` and `radius` are set by number; dragging a near end of a wall, curb or
+dragging a plan element's joint moves it along the Section, the element before it and the element taking up the move;
+dragging where a selected arc's tangents meet (drawn with the tangents) along the line to the arc's middle sets its
+radius, its turning angle and that meeting point kept; dragging a near end of a wall, curb or
 open limit moves that Position, and dragging anything else moves its Positions and laterals along and across the
 Section; a repeat copy drags its original, and every copy with it. On the profile, dragging a PVI moves its Position's
 `offset` and its `y`, and dragging an end of its vertical curve sets its `curveLength`. While dragging, only the plan and
 profile change: they are read again from the pending document through the product's functions, with what moves ringed
 and the changed values listed, and the release replaces the document, one step (Escape drops it). The selection lists
 each written number as a field, including each enclosing repeat's `every` and `count`. Changed values snap to a chosen
-step (off, 0.01 to 10 m). "Add plan element at cursor" inserts a straight, or an arc of the chosen radius and turn, of
+step (off, 0.01 to 10 m). A plan element's `length` and `radius` are also fields, an arc's turn a choice, and "Split
+at cursor" splits the element where the cursor is, the two halves held until one changes. "Add plan element at cursor" inserts a straight, or an arc of the chosen radius and turn, of
 the chosen length after the element the cursor is on, and "Remove selected plan element" removes one no Position
 measures from. An edit is committed even when the course then fails to compile; the diagnostics say why.
 
 Under "Change form" the selection offers the [operations that change form](content-and-gameplay.md#course-authoring-operations)
 that apply to it: explode the repeat it is or is in, bind an absolute lateral to a chosen Boundary or unbind a
-reference, re-anchor a Position to a chosen joint, and combine the elements chosen together (the selection and those
+reference, and combine the elements chosen together (the selection and those
 shift-clicked on the plan) within a tolerance. Choosing one previews it on the plan and lists each changed Pointer with
 its value before and after and the shift; Apply makes it one step, and Cancel or another selection drops it.
 

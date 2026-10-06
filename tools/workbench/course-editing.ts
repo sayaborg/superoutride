@@ -1,5 +1,7 @@
 import {
   moveCourseElement,
+  moveCourseJoint,
+  setCourseArcRadius,
   setCourseNumbers,
   snapCourseValue,
   type CourseEditResult,
@@ -29,8 +31,10 @@ const END_PIXELS = 10;
 
 /**
  * The plan's drags, each an edit that keeps form, made by the core's edit functions on the document as it was at the
- * press. Only the selected element drags: a near end of a wall, curb or open limit moves that Position; anything else
- * with a Position moves its Positions and laterals along and across the Section. The pending document is previewed and committed on release.
+ * press. Only the selected element drags: a plan element's joint moves along the Section, the element before it and
+ * the element taking up the move; where an arc's tangents meet sets its radius, its turning angle and that meeting
+ * point kept; a near end of a wall, curb or open limit moves that Position; anything else with a Position moves its
+ * Positions and laterals along and across the Section. The pending document is previewed and committed on release.
  */
 export function createPlanEditing(host: CourseEditHost) {
   const drag = (label: string, edit: (at: { x: number; z: number }) => CourseEditResult) =>
@@ -42,7 +46,37 @@ export function createPlanEditing(host: CourseEditHost) {
     if (!element || !base) return null;
     const step = host.step();
     if (!plan) return null;
-    // A plan element's values are set by number.
+    // The joint a plan element starts at: the element before it and the element take up the move between them.
+    if (element.kind === 'plan' && picked?.pointer === element.pointer && picked.kind === 'plan') {
+      const from = plan.nearest(at.x, at.z).s;
+      return drag(`Move the joint of ${element.pointer}`, (p) =>
+        moveCourseJoint(base, element.pointer, plan.nearest(p.x, p.z).s - from, step),
+      );
+    }
+    // Where an arc's tangents meet: along the line to the arc's middle, it sets the radius.
+    if (
+      (element.kind === 'tangent-point' || element.kind === 'plan') &&
+      picked?.kind === 'tangent-point' &&
+      picked.pointer === element.pointer
+    ) {
+      const point = picked;
+      const radius = Number(
+        host.elements().find((e) => e.kind === 'plan' && e.pointer === element.pointer)?.values.radius,
+      );
+      const middle = plan.toWorld(point.s!, 0);
+      const reach = Math.hypot(middle.x - point.x!, middle.z - point.z!);
+      if (!(radius > 0 && reach > 0)) return null;
+      const ux = (middle.x - point.x!) / reach,
+        uz = (middle.z - point.z!) / reach;
+      return drag(`Set ${element.pointer}/radius`, (p) => {
+        const along = reach + (p.x - at.x) * ux + (p.z - at.z) * uz;
+        return setCourseArcRadius(
+          base,
+          element.pointer,
+          snapCourseValue(Math.max(radius * 0.01, (radius * along) / reach), step),
+        );
+      });
+    }
     if (element.point === 'derived' || element.kind === 'plan') return null;
     const from = plan.nearest(at.x, at.z);
     // A near end of an element with two Positions moves that end alone.

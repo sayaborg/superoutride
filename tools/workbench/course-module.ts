@@ -22,6 +22,8 @@ import { createPlanEditing, createProfileEditing, writtenNumbers, type CourseEdi
 import {
   addCoursePlanElement,
   removeCoursePlanElement,
+  setCoursePlanTurn,
+  splitCoursePlanElement,
   savedCourseDocument,
   setCourseNumbers,
   type CourseEditResult,
@@ -85,9 +87,11 @@ export const courseModule: WorkbenchModule = {
     const legend = make('div', '', { class: 'legend' });
     legend.append(
       make('span', '■ written point', { style: 'color:#ffd33d' }),
-      make('span', '□ derived point (arc end, curve end, inherited vertex)', { style: 'color:#ffd33d' }),
+      make('span', '□ derived point (Section end, tangent intersection, curve end, inherited vertex)', {
+        style: 'color:#ffd33d',
+      }),
       make('span', '┄ reference: line to its Boundary', { style: 'color:#58a6ff' }),
-      make('span', '━ selected position: measured from its PI', { style: 'color:#ffd33d' }),
+      make('span', '━ selected position: measured from its joint', { style: 'color:#ffd33d' }),
       make('span', 'By form: repeat original', { style: `color:${FORM.original}` }),
       make('span', 'repeat copy', { style: `color:${FORM.copy}` }),
       make('span', 'single, by reference', { style: `color:${FORM.reference}` }),
@@ -248,7 +252,9 @@ export const courseModule: WorkbenchModule = {
         .map((e) => e.pointer);
       view.setSelection(selected?.pointer ?? null, moved);
       profileView.setSelection(selected?.pointer ?? null, moved);
-      note.textContent = `Pending: ${result.changes.map((c) => `${c.pointer} ${c.before} → ${c.after}`).join(', ')}`;
+      const shown = (value: unknown) =>
+        typeof value === 'object' && value !== null ? JSON.stringify(value) : String(value);
+      note.textContent = `Pending: ${result.changes.map((c) => `${c.pointer} ${shown(c.before)} → ${shown(c.after)}`).join(', ')}`;
     };
     const profileView = createProfileView(profileCanvas, {
       pick: (picked) => select(picked),
@@ -362,6 +368,25 @@ export const courseModule: WorkbenchModule = {
             draw.context.stroke();
             draw.context.setLineDash([]);
           }
+        // The selected arc's tangents, from its ends to where they meet.
+        if (element.kind === 'tangent-point' && selected?.pointer === element.pointer && plan) {
+          const arc = structure?.sections[sectionIndex]?.elements.find(
+            (e) => e.kind === 'plan' && e.pointer === element.pointer,
+          );
+          if (arc && arc.s !== null) {
+            draw.context.strokeStyle = '#ffd33d';
+            draw.context.lineWidth = draw.pixel;
+            draw.context.setLineDash([4 * draw.pixel, 3 * draw.pixel]);
+            draw.context.beginPath();
+            const start = draw.world(arc.s, 0),
+              end = draw.world(arc.s + Number(arc.values.length), 0);
+            draw.context.moveTo(start.x, start.z);
+            draw.context.lineTo(element.x!, element.z!);
+            draw.context.lineTo(end.x, end.z);
+            draw.context.stroke();
+            draw.context.setLineDash([]);
+          }
+        }
         // The selection's Positions: the centreline from each joint it is measured from to where it resolves.
         if (element.pointer === selected?.pointer && element === selected && plan)
           for (const position of Object.values(element.positions)) {
@@ -504,6 +529,25 @@ export const courseModule: WorkbenchModule = {
           if (result?.changes.length) commit(result.document, `Set ${written.pointer}`);
         });
         numbers.append(field(written.label, input));
+      }
+      if (e.kind === 'plan' && e.s !== null) {
+        // An arc's turn, and a split of the element at the cursor.
+        if (e.values.kind === 'arc') {
+          const turn = make('select');
+          for (const side of ['left', 'right']) turn.append(make('option', side, { value: side }));
+          turn.value = String(e.values.turn);
+          turn.addEventListener('change', () => {
+            const result = refuse(setCoursePlanTurn(document as Json, e.pointer, turn.value as 'left' | 'right'));
+            if (result?.changes.length) commit(result.document, `Set ${e.pointer}/turn`);
+          });
+          numbers.append(field('turn', turn));
+        }
+        const split = make('button', 'Split at cursor', { type: 'button' });
+        split.addEventListener('click', () => {
+          const result = refuse(splitCoursePlanElement(document as Json, e.pointer, cursor - e.s!));
+          if (result) commit(result.document, `Split ${e.pointer}`);
+        });
+        numbers.append(' ', split);
       }
       removePlan.disabled = e.kind !== 'plan';
       selection.replaceChildren(

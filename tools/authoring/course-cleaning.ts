@@ -512,7 +512,7 @@ export function mergeCandidates(
   const proposals: Omit<CleaningCandidate, 'shift'>[] = [];
   const lists = new Set(
     scoped(document, options.scope ?? {})
-      .filter(({ element }) => !element.copies.length && !/knot|vertex|plan|pvi|curve-end/.test(element.kind))
+      .filter(({ element }) => !element.copies.length && !/knot|vertex|plan|tangent|pvi|curve-end/.test(element.kind))
       .map(({ element }) => element.pointer.slice(0, element.pointer.lastIndexOf('/'))),
   );
   for (const parent of lists) {

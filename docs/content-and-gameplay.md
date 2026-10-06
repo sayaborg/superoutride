@@ -558,8 +558,15 @@ or `radius`, a PVI's `y` or `curveLength`, a repeat's `every` or `count`), refus
 and each lateral's number, or a reference's `offset` (the reference stays); a repeat copy's record is its original's,
 so moving any copy moves the original and every copy. A move can
 be limited to some fields (a wall's `start`, a Strip's `left`) and snapped: each changed value goes to the nearest
-multiple of a step, nothing else. Derived points do not move. `addCoursePlanElement` inserts a straight or arc with a new id;
-`removeCoursePlanElement` is refused while a Position in its Section measures from its joint.
+multiple of a step, nothing else. Derived points do not move. Setting a plan element's `length` moves the joints after it, and what is measured from them, by the change; setting
+an arc's `radius` keeps its length, so what follows keeps its stations and turns. `setCoursePlanTurn` sets an arc's
+turn. `moveCourseJoint` moves the joint an element starts at along the Section, the element before it and the element
+taking up the move, so no other joint moves. `setCourseArcRadius` sets an arc's radius with its turning angle kept:
+its length scales, and a straight either side takes up the change of tangent length, so the arc's tangents meet at
+the same point. `addCoursePlanElement` inserts a straight or arc with a new id; `removeCoursePlanElement` is refused
+while a Position in its Section measures from its joint. `splitCoursePlanElement` splits an element in two of its
+shape, the second with a new id; two straights or two like arcs in a row are a state between edits, which the course
+does not admit until one of them changes.
 `normalizeCoursePositions` measures every Position again from the joint nearest its station, the station kept and the
 offset written to 1e-9 m. Every edit and operation that changes form ends with it over the Sections it changed, so a
 plan edit, whose joints move, and a move past a midpoint between joints leave each Position written the one way; the
@@ -582,8 +589,6 @@ resolved values are written to 1e-9 m, which drops floating-point noise.
   the element's station; between knots the line then follows the Boundary. `unbindCourseLateral` makes a reference the
   number it resolves to at the element's station; between knots the line then runs straight. A Boundary cannot refer
   to itself.
-- `reanchorCoursePosition` measures a Position from another joint of its Section, its offset chosen so its station
-  stays; the normalization that ends it measures it again from the nearest joint.
 
 **Cleaning operations** ([`course-cleaning.ts`](../tools/authoring/course-cleaning.ts)) work in two phases over a scope
 (the course, a Section, chosen elements and what they hold, or element kinds). The first proposes candidates, each with

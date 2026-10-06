@@ -41,7 +41,6 @@ import {
   bindCourseLateral,
   combineCourseElements,
   explodeCourseRepeat,
-  reanchorCoursePosition,
   unbindCourseLateral,
   type CourseFormResult,
 } from '../authoring/course-forms.js';
@@ -49,7 +48,7 @@ import { formatSavedJson } from '../../src/content/saved-json.js';
 import { normalizeCoursePositions } from '../authoring/course-joints.js';
 
 const EDITS = ['set', 'move', 'add-plan', 'remove-plan', 'normalize'];
-const FORMS = ['explode', 'combine', 'bind', 'unbind', 'reanchor'];
+const FORMS = ['explode', 'combine', 'bind', 'unbind'];
 const CLEANING = ['round', 'remove-knots', 'join', 'merge', 'same'];
 const FINDINGS = 'findings';
 const [verb, file, ...args] = process.argv.slice(2);
@@ -160,7 +159,6 @@ async function formVerb(file: string) {
     combine: ['--elements', '--tolerance'],
     bind: ['--lateral', '--boundary'],
     unbind: ['--lateral'],
-    reanchor: ['--position', '--joint'],
   }[verb!]!;
   const opts = options(args, [...flags, '--out']);
   const document = (await jsonFile(file)).value as Json;
@@ -177,9 +175,7 @@ async function formVerb(file: string) {
           )
         : verb === 'bind'
           ? bindCourseLateral(document, element, field, opts.get('--boundary') ?? '')
-          : verb === 'unbind'
-            ? unbindCourseLateral(document, element, field)
-            : reanchorCoursePosition(document, opts.get('--position') ?? '', opts.get('--joint') ?? '');
+          : unbindCourseLateral(document, element, field);
   requireInput(result.ok, '/operation', result.ok ? '' : result.reason);
   if (opts.has('--out'))
     await atomicWrite(path.resolve(opts.get('--out')!), formatSavedJson(savedCourseDocument(result.document)));

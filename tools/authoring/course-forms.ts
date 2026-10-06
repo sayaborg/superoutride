@@ -1,7 +1,6 @@
 import { courseBoundaryAt } from '../../src/course/course-boundaries.js';
-import type { SectionDocument } from '../../src/course/course-document.js';
 import type { CourseChange } from './course-edits.js';
-import { createSectionPlan, readCourseSection, type ResolvedLine, type SectionStructure } from './course-structure.js';
+import { readCourseSection, type ResolvedLine, type SectionStructure } from './course-structure.js';
 import { valueAt, withValue, type Json } from './json-pointer.js';
 import { computedValue, withNormalizedPositions } from './course-joints.js';
 
@@ -280,22 +279,4 @@ export function unbindCourseLateral(document: Json, pointer: string, field: stri
   const after = computedValue(lateral.l);
   const next = withValue(document, `${pointer}/${field}`, after);
   return measured(document, next, found.section.index, [{ pointer: `${pointer}/${field}`, before, after }]);
-}
-
-/** Measure a Position from another joint: its offset is chosen so the station stays where it is. */
-export function reanchorCoursePosition(document: Json, pointer: string, joint: string): CourseFormResult {
-  const position = valueAt(document, pointer);
-  const section = sectionOf(pointer);
-  if (!isPosition(position) || !section) return { ok: false, reason: `${pointer} is not a Position` };
-  const plan = createSectionPlan(
-    valueAt(document, section.pointer) as unknown as SectionDocument,
-    section.pointer,
-  ).plan;
-  const from = plan?.stations.get(position.joint),
-    to = plan?.stations.get(joint);
-  if (from === undefined || to === undefined)
-    return { ok: false, reason: plan ? `No joint ${joint} in this Section` : 'The Section plan does not compile' };
-  const after = { joint, offset: computedValue(position.offset + from - to) };
-  const next = withValue(document, pointer, after);
-  return measured(document, next, section.index, [{ pointer, before: position, after }]);
 }
