@@ -51,7 +51,6 @@ export function courseReport(course: CompiledCourse, section: CompiledSection, s
   if (!(step >= 0.01 && step <= 100000)) throw new RangeError('Report step must be 0.01 to 100000 m');
   const length = section.coordinates.domain.end;
   if (Math.ceil(length / step) > REPORT_STATIONS) throw new RangeError('Report is limited to 4096 regular stations');
-  if (!section.appearance) throw new RangeError('Report needs explicit saved appearance');
   const stations = [
     ...new Set([
       0,

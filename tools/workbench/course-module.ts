@@ -19,7 +19,13 @@ import { createCleaningPanel, refreshCleaningPanel } from './course-cleaning-pan
 import { createFindingsBar } from './course-findings-bar.js';
 import { createUnderlayControls } from './course-underlay-controls.js';
 import { createPlanEditing, createProfileEditing, writtenNumbers, type CourseEditHost } from './course-editing.js';
-import { addCoursePi, removeCoursePi, setCourseNumbers, type CourseEditResult } from '../authoring/course-edits.js';
+import {
+  addCoursePi,
+  removeCoursePi,
+  savedCourseDocument,
+  setCourseNumbers,
+  type CourseEditResult,
+} from '../authoring/course-edits.js';
 
 /** The colours of the forms an element is written in. */
 const FORM = {
@@ -181,7 +187,7 @@ export const courseModule: WorkbenchModule = {
     // Each Strip's knots, by the Strip's Pointer, for its form.
     let knotsOf = new Map<string, CourseElement[]>();
     /** One step: the edited document replaces the course's. */
-    const commit = (next: Json, label: string) => context.replace(path(), next, label);
+    const commit = (next: Json, label: string) => context.replace(path(), savedCourseDocument(next), label);
     const refuse = (result: CourseEditResult) => {
       if (!result.ok) note.textContent = result.reason;
       return result.ok ? result : null;

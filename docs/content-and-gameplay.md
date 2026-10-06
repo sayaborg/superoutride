@@ -22,7 +22,8 @@ Source identity, traversal identity and race credit are distinct.
 
 The saved format is compact UTF-8 JSON. All declared fields are required; explicit null represents
 absent optional content. Unknown fields fail. Arrays preserve saved order; object-property order and
-whitespace do not affect identity. Normalized records use schema field order and convert negative zero to zero.
+whitespace do not affect identity. Normalized records use schema field order and convert negative zero to zero; the
+authoring core and its tools save a course document that admits in that order.
 
 ```text
 CourseDocument {
@@ -133,9 +134,8 @@ names one of that fork's exit Carriageways, and it lies from lock through closur
 an unknown id is `unresolved_reference` at `/unselectedCarriageway`). Lying at or before closure already places
 it before every exit cut; a sprite's image width is not a length along s and does not enter the check.
 
-Section `environments` is an array at the same level as `strips` and `sprites`. An empty array
-means no compiled appearance and requires an empty sprite list, while preserving authored Strips and
-geometry. A nonempty environment list must begin at s=0.
+Section `environments` is an array at the same level as `strips` and `sprites`, with at least one element; every
+Section has a compiled appearance. The environment list must begin at s=0.
 An environment element is `{at,name,background}` or a `repeat`; background is
 `{image,horizonY,yawOrigin}`, naming an image in the course `assets` that uses the tiled
 background format. Sprite and background references are a Section's only relation to images: an
@@ -149,14 +149,14 @@ and positive degrees turn toward +X. Occurrence mapping adds the occurrence rota
 ### Shared repeat
 
 Strips, sprites and environment lists use one recursive shape:
-`{kind:"repeat",every,count,elements}`. `every` is a positive metre spacing; `count` is an integer
-including the original occurrence. `elements` contains only elements of its enclosing list, including
+`{kind:"repeat",every,count,elements}`. `every` is a positive metre spacing; `count` is an integer of at least 2
+including the original occurrence. `elements` is nonempty and contains only elements of its enclosing list, including
 nested repeats. One shared expansion implementation visits declaration order, then repetition index,
 then child order. For index i, it adds `i*every` to every contained Position's resolved s, including
 Strip knot `at`, decorative `at`, and curb `start`/`end`. Nested offsets accumulate. Lateral expressions
 are evaluated at the shifted stations. All resulting Positions must fit the Section.
 Repeated Strips remain color-only. The repeat depth/count and collection/expansion ceilings below
-apply independently; limits reject rather than truncate. Empty repeats also consume bounded work.
+apply independently; limits reject rather than truncate.
 
 ### Tunnels
 
@@ -252,7 +252,7 @@ expanded one). The wall is visible where its Strips are. A wall with no Strips i
 neither seen nor met is rejected); reading rejects this with `invalid_value`. Whether a wall is solid
 does not affect its picture. Compilation turns a visible wall's Strips, with the road's Strip compiler, into a color
 table over the wall's own interval (station `s - start`) and keeps the height range its opaque Strips span;
-[Architecture](architecture.md#walls) owns how it is drawn. A visible wall needs the Section's environments.
+[Architecture](architecture.md#walls) owns how it is drawn.
 
 Solid walls and the course limits are the Section's barrier lines ([Body contact](#barrier-lines)). The course limits
 run along the left and right outer edges of the covered material — the material table's outermost finite covered
@@ -327,8 +327,7 @@ compiled `gates` provide the resolved grid and per-Section landmark intervals to
 
 ### Null meanings
 
-Empty collections are arrays: in particular, `environments: []` means no appearance.
-CourseDocument nulls each have one meaning:
+Empty collections are arrays. CourseDocument nulls each have one meaning:
 
 | Field                            | Meaning of null                                           |
 | -------------------------------- | --------------------------------------------------------- |
@@ -382,7 +381,7 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | Non-circuit finite `routes` from the entry                              |                256 | Reference work bound: one continuous reference run per route and vehicle                                                                                                  |
 | Section `spritePlacements` (expanded)                                   |              16384 | 21 × (200 + 20)/km × 2, rounded up                                                                                                                                        |
 | Each Strip/sprite array `stripElements` / `spriteElements`              |               2048 | 21 × 30/km × 2, rounded up                                                                                                                                                |
-| Section `walls` / each wall's `wallStrips`                              |          1024 / 64 | Both sides × 21 km × 10 wall runs/km × 2, rounded up; 32 Strips or repeats (layers, rails, posts, patches) × 2                                                            |
+| Section `walls` / each wall's Strips (`stripElements`)                  |        1024 / 2048 | Both sides × 21 km × 10 wall runs/km × 2, rounded up; a wall's Strip array has the road's Strip array ceiling                                                             |
 | Section `openLimits`                                                    |                256 | Both sides × 21 km × 3 open stretches/km × 2, rounded up                                                                                                                  |
 | Wall Strip heights `wallHeightMeters` (absolute)                        |               1000 | The Strip lateral ceiling `lateralMeters`: wall heights are read as Strip laterals                                                                                        |
 | `repeatCount`                                                           |              65536 | Whole-length 1 m repetitions: 21000 × 2, rounded up                                                                                                                       |

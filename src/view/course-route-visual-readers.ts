@@ -15,7 +15,6 @@ export function createCourseRouteVisualReaders(route: RouteWindow) {
   const sectionReaders = (section: CompiledSection) => {
     let readers = sections.get(section);
     if (!readers) {
-      if (!section.appearance) throw new Error('Driving Section requires compiled appearance');
       readers = resources.createSectionReaders(section.appearance, section, section.height);
       sections.set(section, readers);
     }
@@ -71,7 +70,7 @@ export function createCourseRouteVisualReaders(route: RouteWindow) {
     // Each occurrence's visible walls on the route ruler; the lateral reads the Boundary in its Section and the color
     // sampler reads the wall's Strips from its route start.
     const walls: RouteWall[] = occurrences.flatMap((occurrence) =>
-      occurrence.section.appearance!.walls.map((picture) => {
+      occurrence.section.appearance.walls.map((picture) => {
         const start = routeS(occurrence, picture.start),
           end = routeS(occurrence, picture.end);
         return Object.freeze({

@@ -369,6 +369,42 @@
         }
       ],
       "openLimits": [],
+      "sprites": [
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 43,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "tree",
+              "palette": "original",
+              "at": { "pi": "start", "offset": 230 },
+              "lateral": { "boundary": "verge-left", "offset": -6 },
+              "groundOffset": 0,
+              "unselectedCarriageway": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 42,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "tree",
+              "palette": "original",
+              "at": { "pi": "start", "offset": 250 },
+              "lateral": { "boundary": "verge-right", "offset": 6 },
+              "groundOffset": 0,
+              "unselectedCarriageway": null,
+              "body": null
+            }
+          ]
+        }
+      ],
       "profile": [
         {
           "at": { "pi": "start", "offset": 0 },
@@ -407,42 +443,6 @@
           "at": { "pi": "start", "offset": 0 },
           "name": "RIBBON COAST",
           "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
-        }
-      ],
-      "sprites": [
-        {
-          "kind": "repeat",
-          "every": 40,
-          "count": 43,
-          "elements": [
-            {
-              "kind": "sprite",
-              "image": "tree",
-              "palette": "original",
-              "at": { "pi": "start", "offset": 230 },
-              "lateral": { "boundary": "verge-left", "offset": -6 },
-              "groundOffset": 0,
-              "unselectedCarriageway": null,
-              "body": null
-            }
-          ]
-        },
-        {
-          "kind": "repeat",
-          "every": 40,
-          "count": 42,
-          "elements": [
-            {
-              "kind": "sprite",
-              "image": "tree",
-              "palette": "original",
-              "at": { "pi": "start", "offset": 250 },
-              "lateral": { "boundary": "verge-right", "offset": 6 },
-              "groundOffset": 0,
-              "unselectedCarriageway": null,
-              "body": null
-            }
-          ]
         }
       ],
       "gates": [
@@ -1180,6 +1180,59 @@
           "end": { "pi": "start", "offset": 1583.028484 }
         }
       ],
+      "sprites": [
+        {
+          "kind": "repeat",
+          "every": 35,
+          "count": 39,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "tree",
+              "palette": "original",
+              "at": { "pi": "start", "offset": 260 },
+              "lateral": { "boundary": "verge-left", "offset": -5 },
+              "groundOffset": 0,
+              "unselectedCarriageway": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 30,
+          "count": 49,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "tree",
+              "palette": "original",
+              "at": { "pi": "start", "offset": 1653.028484 },
+              "lateral": { "boundary": "verge-left", "offset": -5 },
+              "groundOffset": 0,
+              "unselectedCarriageway": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 30,
+          "count": 49,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "tree",
+              "palette": "original",
+              "at": { "pi": "start", "offset": 1668.028484 },
+              "lateral": { "boundary": "verge-right", "offset": 5 },
+              "groundOffset": 0,
+              "unselectedCarriageway": null,
+              "body": null
+            }
+          ]
+        }
+      ],
       "profile": [
         {
           "at": { "pi": "start", "offset": 0 },
@@ -1233,59 +1286,6 @@
           "at": { "pi": "start", "offset": 1633.028484 },
           "name": "RIBBON COAST",
           "background": { "image": "hill-sky", "horizonY": 320, "yawOrigin": 0 }
-        }
-      ],
-      "sprites": [
-        {
-          "kind": "repeat",
-          "every": 35,
-          "count": 39,
-          "elements": [
-            {
-              "kind": "sprite",
-              "image": "tree",
-              "palette": "original",
-              "at": { "pi": "start", "offset": 260 },
-              "lateral": { "boundary": "verge-left", "offset": -5 },
-              "groundOffset": 0,
-              "unselectedCarriageway": null,
-              "body": null
-            }
-          ]
-        },
-        {
-          "kind": "repeat",
-          "every": 30,
-          "count": 49,
-          "elements": [
-            {
-              "kind": "sprite",
-              "image": "tree",
-              "palette": "original",
-              "at": { "pi": "start", "offset": 1653.028484 },
-              "lateral": { "boundary": "verge-left", "offset": -5 },
-              "groundOffset": 0,
-              "unselectedCarriageway": null,
-              "body": null
-            }
-          ]
-        },
-        {
-          "kind": "repeat",
-          "every": 30,
-          "count": 49,
-          "elements": [
-            {
-              "kind": "sprite",
-              "image": "tree",
-              "palette": "original",
-              "at": { "pi": "start", "offset": 1668.028484 },
-              "lateral": { "boundary": "verge-right", "offset": 5 },
-              "groundOffset": 0,
-              "unselectedCarriageway": null,
-              "body": null
-            }
-          ]
         }
       ],
       "gates": [
@@ -1497,6 +1497,42 @@
       ],
       "walls": [],
       "openLimits": [],
+      "sprites": [
+        {
+          "kind": "repeat",
+          "every": 45,
+          "count": 30,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "tree",
+              "palette": "original",
+              "at": { "pi": "start", "offset": 120 },
+              "lateral": { "boundary": "sand-left", "offset": -4 },
+              "groundOffset": 0,
+              "unselectedCarriageway": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 45,
+          "count": 29,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "tree",
+              "palette": "original",
+              "at": { "pi": "start", "offset": 140 },
+              "lateral": { "boundary": "sand-right", "offset": 4 },
+              "groundOffset": 0,
+              "unselectedCarriageway": null,
+              "body": null
+            }
+          ]
+        }
+      ],
       "profile": [
         {
           "at": { "pi": "start", "offset": 0 },
@@ -1772,42 +1808,6 @@
           "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
         }
       ],
-      "sprites": [
-        {
-          "kind": "repeat",
-          "every": 45,
-          "count": 30,
-          "elements": [
-            {
-              "kind": "sprite",
-              "image": "tree",
-              "palette": "original",
-              "at": { "pi": "start", "offset": 120 },
-              "lateral": { "boundary": "sand-left", "offset": -4 },
-              "groundOffset": 0,
-              "unselectedCarriageway": null,
-              "body": null
-            }
-          ]
-        },
-        {
-          "kind": "repeat",
-          "every": 45,
-          "count": 29,
-          "elements": [
-            {
-              "kind": "sprite",
-              "image": "tree",
-              "palette": "original",
-              "at": { "pi": "start", "offset": 140 },
-              "lateral": { "boundary": "sand-right", "offset": 4 },
-              "groundOffset": 0,
-              "unselectedCarriageway": null,
-              "body": null
-            }
-          ]
-        }
-      ],
       "gates": [
         {
           "kind": "checkpoint",
@@ -2077,26 +2077,6 @@
       ],
       "walls": [],
       "openLimits": [],
-      "profile": [
-        {
-          "at": { "pi": "start", "offset": 0 },
-          "y": 0,
-          "curveLength": 0
-        },
-        {
-          "at": { "pi": "end", "offset": 0 },
-          "y": 0,
-          "curveLength": 0
-        }
-      ],
-      "carriageways": [{ "id": "road", "left": "road-left", "right": "road-right", "lanes": 2 }],
-      "environments": [
-        {
-          "at": { "pi": "start", "offset": 0 },
-          "name": "RIBBON COAST",
-          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
-        }
-      ],
       "sprites": [
         {
           "kind": "repeat",
@@ -2148,6 +2128,26 @@
               "body": { "width": 0.4, "movable": null }
             }
           ]
+        }
+      ],
+      "profile": [
+        {
+          "at": { "pi": "start", "offset": 0 },
+          "y": 0,
+          "curveLength": 0
+        },
+        {
+          "at": { "pi": "end", "offset": 0 },
+          "y": 0,
+          "curveLength": 0
+        }
+      ],
+      "carriageways": [{ "id": "road", "left": "road-left", "right": "road-right", "lanes": 2 }],
+      "environments": [
+        {
+          "at": { "pi": "start", "offset": 0 },
+          "name": "RIBBON COAST",
+          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
         }
       ],
       "gates": []
@@ -2477,51 +2477,6 @@
       ],
       "walls": [],
       "openLimits": [],
-      "profile": [
-        {
-          "at": { "pi": "start", "offset": 0 },
-          "y": 0,
-          "curveLength": 0
-        },
-        {
-          "at": { "pi": "start", "offset": 700 },
-          "y": 0,
-          "curveLength": 80
-        },
-        {
-          "at": { "pi": "start", "offset": 1200 },
-          "y": 5,
-          "curveLength": 80
-        },
-        {
-          "at": { "pi": "start", "offset": 1700 },
-          "y": 0,
-          "curveLength": 80
-        },
-        {
-          "at": { "pi": "end", "offset": 0 },
-          "y": 0,
-          "curveLength": 0
-        }
-      ],
-      "carriageways": [{ "id": "road", "left": "road-left", "right": "road-right", "lanes": 4 }],
-      "environments": [
-        {
-          "at": { "pi": "start", "offset": 0 },
-          "name": "RIBBON COAST",
-          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
-        },
-        {
-          "at": { "pi": "start", "offset": 1100 },
-          "name": "RIBBON COAST",
-          "background": { "image": "hill-sky", "horizonY": 320, "yawOrigin": 0 }
-        },
-        {
-          "at": { "pi": "start", "offset": 1900 },
-          "name": "RIBBON COAST",
-          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
-        }
-      ],
       "sprites": [
         {
           "kind": "repeat",
@@ -2597,6 +2552,51 @@
               "knocked": { "airborne": "barricade-flying", "landed": "barricade-down" }
             }
           }
+        }
+      ],
+      "profile": [
+        {
+          "at": { "pi": "start", "offset": 0 },
+          "y": 0,
+          "curveLength": 0
+        },
+        {
+          "at": { "pi": "start", "offset": 700 },
+          "y": 0,
+          "curveLength": 80
+        },
+        {
+          "at": { "pi": "start", "offset": 1200 },
+          "y": 5,
+          "curveLength": 80
+        },
+        {
+          "at": { "pi": "start", "offset": 1700 },
+          "y": 0,
+          "curveLength": 80
+        },
+        {
+          "at": { "pi": "end", "offset": 0 },
+          "y": 0,
+          "curveLength": 0
+        }
+      ],
+      "carriageways": [{ "id": "road", "left": "road-left", "right": "road-right", "lanes": 4 }],
+      "environments": [
+        {
+          "at": { "pi": "start", "offset": 0 },
+          "name": "RIBBON COAST",
+          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
+        },
+        {
+          "at": { "pi": "start", "offset": 1100 },
+          "name": "RIBBON COAST",
+          "background": { "image": "hill-sky", "horizonY": 320, "yawOrigin": 0 }
+        },
+        {
+          "at": { "pi": "start", "offset": 1900 },
+          "name": "RIBBON COAST",
+          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
         }
       ],
       "gates": [

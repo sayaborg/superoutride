@@ -165,7 +165,8 @@ function compileSection(
     objects,
     carriageways: Object.freeze(carriageways),
     assets: Object.freeze([]),
-    appearance: null,
+    // Set by `compileAppearance`, after the fork structure and before anything reads it.
+    appearance: null as unknown as SectionDraft['appearance'],
     incoming: [],
     outgoing: [],
     fork: null,
@@ -186,8 +187,8 @@ function compileSection(
     );
     // A Section's images are exactly those its backgrounds and sprites reference, in course asset order.
     const used = new Set<object>([
-      ...(appearance?.environments.map((environment) => environment.background.asset) ?? []),
-      ...(appearance?.sprites.map((sprite) => sprite.instance.asset) ?? []),
+      ...appearance.environments.map((environment) => environment.background.asset),
+      ...appearance.sprites.map((sprite) => sprite.instance.asset),
     ]);
     result.appearance = appearance;
     result.assets = Object.freeze([...assets.values()].filter((asset) => used.has(asset)));

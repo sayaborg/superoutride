@@ -23,7 +23,6 @@ export const COURSE_DOCUMENT_LIMITS = Object.freeze({
   stripElements: 2048,
   walls: 1024,
   openLimits: 256,
-  wallStrips: 64,
   repeatCount: 65536,
   repeatDepth: 8,
   textCodeUnits: 64,

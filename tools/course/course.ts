@@ -16,6 +16,7 @@ import { writeCourseReport } from './course-report.js';
 import { options, loadCourse, requireInput, finite, atomicWrite, reportError, jsonFile } from './authoring-io.js';
 import { readCourseStructure } from '../authoring/course-structure.js';
 import {
+  savedCourseDocument,
   addCoursePi,
   moveCourseElement,
   removeCoursePi,
@@ -134,7 +135,8 @@ async function editVerb(file: string) {
     });
   else result = removeCoursePi(document, opts.get('--pi') ?? '');
   requireInput(result.ok, '/edit', result.ok ? '' : result.reason);
-  if (opts.has('--out')) await atomicWrite(path.resolve(opts.get('--out')!), formatSavedJson(result.document));
+  if (opts.has('--out'))
+    await atomicWrite(path.resolve(opts.get('--out')!), formatSavedJson(savedCourseDocument(result.document)));
   console.log(JSON.stringify({ ok: true, changes: result.changes }));
 }
 
@@ -169,7 +171,8 @@ async function formVerb(file: string) {
             ? unbindCourseLateral(document, element, field)
             : reanchorCoursePosition(document, opts.get('--position') ?? '', opts.get('--pi') ?? '');
   requireInput(result.ok, '/operation', result.ok ? '' : result.reason);
-  if (opts.has('--out')) await atomicWrite(path.resolve(opts.get('--out')!), formatSavedJson(result.document));
+  if (opts.has('--out'))
+    await atomicWrite(path.resolve(opts.get('--out')!), formatSavedJson(savedCourseDocument(result.document)));
   console.log(JSON.stringify({ ok: true, shift: result.shift, changes: result.changes }));
 }
 
@@ -213,7 +216,8 @@ async function cleaningVerb(file: string) {
   }
   const chosen = opts.get('--apply') === 'all' ? candidates : candidates.filter((c) => list('--apply')!.includes(c.id));
   const result = applyCleaning(document, chosen);
-  if (opts.has('--out')) await atomicWrite(path.resolve(opts.get('--out')!), formatSavedJson(result.document));
+  if (opts.has('--out'))
+    await atomicWrite(path.resolve(opts.get('--out')!), formatSavedJson(savedCourseDocument(result.document)));
   console.log(
     JSON.stringify({
       ok: true,
@@ -253,7 +257,7 @@ async function compiledCourseVerb(file: string) {
     sections: course.sections.map((s) => ({
       id: s.id,
       length: s.coordinates.domain.end,
-      sprites: s.appearance?.sprites.length ?? 0,
+      sprites: s.appearance.sprites.length,
     })),
   };
   const section = opts.has('--section') ? course.sections.find((s) => s.id === opts.get('--section')) : course.entry;
@@ -339,7 +343,6 @@ async function compiledCourseVerb(file: string) {
     }
     result.render = sequence ? { frames } : frames[0];
   } else if (verb === 'report') {
-    requireInput(section.appearance, '/section', 'Report needs explicit saved appearance');
     result.report = await writeCourseReport(
       course,
       section,

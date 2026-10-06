@@ -276,8 +276,8 @@
         },
         {
           "kind": "repeat",
-          "count": 36,
           "every": 25,
+          "count": 36,
           "elements": [
             {
               "kind": "strip",
@@ -379,26 +379,6 @@
       ],
       "walls": [],
       "openLimits": [],
-      "profile": [
-        {
-          "at": { "pi": "start", "offset": 0 },
-          "y": 0,
-          "curveLength": 0
-        },
-        {
-          "at": { "pi": "end", "offset": 0 },
-          "y": 0,
-          "curveLength": 0
-        }
-      ],
-      "carriageways": [{ "id": "road", "left": "road-left", "right": "road-right", "lanes": 4 }],
-      "environments": [
-        {
-          "at": { "pi": "start", "offset": 0 },
-          "name": "RIBBON RING",
-          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
-        }
-      ],
       "sprites": [
         {
           "kind": "repeat",
@@ -433,6 +413,26 @@
               "body": null
             }
           ]
+        }
+      ],
+      "profile": [
+        {
+          "at": { "pi": "start", "offset": 0 },
+          "y": 0,
+          "curveLength": 0
+        },
+        {
+          "at": { "pi": "end", "offset": 0 },
+          "y": 0,
+          "curveLength": 0
+        }
+      ],
+      "carriageways": [{ "id": "road", "left": "road-left", "right": "road-right", "lanes": 4 }],
+      "environments": [
+        {
+          "at": { "pi": "start", "offset": 0 },
+          "name": "RIBBON RING",
+          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
         }
       ],
       "gates": [
@@ -790,8 +790,8 @@
         },
         {
           "kind": "repeat",
-          "count": 36,
           "every": 25,
+          "count": 36,
           "elements": [
             {
               "kind": "strip",
@@ -858,8 +858,8 @@
         },
         {
           "kind": "repeat",
-          "count": 6,
           "every": 4,
+          "count": 6,
           "elements": [
             {
               "kind": "strip",
@@ -900,26 +900,6 @@
       ],
       "walls": [],
       "openLimits": [],
-      "profile": [
-        {
-          "at": { "pi": "start", "offset": 0 },
-          "y": 0,
-          "curveLength": 0
-        },
-        {
-          "at": { "pi": "end", "offset": 0 },
-          "y": 0,
-          "curveLength": 0
-        }
-      ],
-      "carriageways": [{ "id": "road", "left": "road-left", "right": "road-right", "lanes": 4 }],
-      "environments": [
-        {
-          "at": { "pi": "start", "offset": 0 },
-          "name": "RIBBON RING",
-          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 180 }
-        }
-      ],
       "sprites": [
         {
           "kind": "repeat",
@@ -954,6 +934,26 @@
               "body": null
             }
           ]
+        }
+      ],
+      "profile": [
+        {
+          "at": { "pi": "start", "offset": 0 },
+          "y": 0,
+          "curveLength": 0
+        },
+        {
+          "at": { "pi": "end", "offset": 0 },
+          "y": 0,
+          "curveLength": 0
+        }
+      ],
+      "carriageways": [{ "id": "road", "left": "road-left", "right": "road-right", "lanes": 4 }],
+      "environments": [
+        {
+          "at": { "pi": "start", "offset": 0 },
+          "name": "RIBBON RING",
+          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 180 }
         }
       ],
       "gates": [

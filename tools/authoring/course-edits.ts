@@ -1,3 +1,4 @@
+import { readCourseDocument } from '../../src/course/course-document.js';
 import type { CourseElement } from './course-structure.js';
 import { childPointer, valueAt, withValue, type Json } from './json-pointer.js';
 
@@ -12,6 +13,15 @@ export interface CourseChange {
 export type CourseEditResult =
   | { readonly ok: true; readonly document: Json; readonly changes: readonly CourseChange[] }
   | { readonly ok: false; readonly reason: string };
+
+/**
+ * A course document as it is saved: in the format's field order when it admits (the admitted value is the same data
+ * in that order), else as written, so a draft that does not admit is still saved.
+ */
+export function savedCourseDocument(document: Json): Json {
+  const admitted = readCourseDocument(document);
+  return admitted.ok ? (admitted.value as unknown as Json) : document;
+}
 
 /** A value on the nearest multiple of `step`; unchanged without a step. */
 export function snapCourseValue(value: number, step: number | null = null): number {

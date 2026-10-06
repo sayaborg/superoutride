@@ -299,7 +299,7 @@ function repeated<T>(
   if (value && typeof value === 'object' && (value as Record<string, unknown>).kind === 'repeat') {
     const v = readRecord(value, path, ['kind', 'every', 'count', 'elements']);
     const count = readNumber(v.count, `${path}/count`, {
-      min: 1,
+      min: 2,
       max: COURSE_DOCUMENT_LIMITS.repeatCount,
       integer: true,
     });
@@ -312,6 +312,7 @@ function repeated<T>(
       }),
       count,
       elements: readArray(v.elements, `${path}/elements`, (item, at) => repeated(item, at, limit, leaf, depth + 1), {
+        min: 1,
         max: limit,
       }),
     });
@@ -501,8 +502,8 @@ function wall(value: unknown, path: string): WallDocument {
   const strips = readArray(
     v.strips,
     `${path}/strips`,
-    (item, at) => repeated(item, at, COURSE_DOCUMENT_LIMITS.wallStrips, wallStrip),
-    { max: COURSE_DOCUMENT_LIMITS.wallStrips },
+    (item, at) => repeated(item, at, COURSE_DOCUMENT_LIMITS.stripElements, wallStrip),
+    { max: COURSE_DOCUMENT_LIMITS.stripElements },
   );
   if (strips.length === 0 && !solid)
     throw new CourseInputError('invalid_value', `${path}/solid`, 'An invisible wall (no strips) must be solid');
@@ -540,7 +541,7 @@ function environments(value: unknown, path: string): SectionDocument['environmen
     value,
     path,
     (item, at) => repeated(item, at, COURSE_DOCUMENT_LIMITS.environmentKnots, environment),
-    { max: COURSE_DOCUMENT_LIMITS.environmentKnots },
+    { min: 1, max: COURSE_DOCUMENT_LIMITS.environmentKnots },
   );
 }
 

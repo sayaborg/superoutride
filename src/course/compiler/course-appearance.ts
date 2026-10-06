@@ -68,14 +68,9 @@ export function compileCourseAppearance(
   fork: Readonly<CompiledFork> | null,
   walls: readonly CompiledWall[],
   placements: readonly CourseSpritePlacement[],
-): CourseAppearance | null {
+): CourseAppearance {
   const source = section.environments;
   const visible = walls.filter((wall): wall is CompiledWall & { readonly color: StripGround } => wall.color !== null);
-  if (source.length === 0) {
-    requireCourse(section.sprites.length === 0, `${path}/sprites`, 'Sprites require environments', 'invalid_placement');
-    requireCourse(visible.length === 0, `${path}/walls`, 'Visible walls require environments', 'invalid_placement');
-    return null;
-  }
   const image = (id: string, at: string) => {
     const asset = assets.get(id);
     if (!asset) throw new CourseInputError('unresolved_reference', at, 'Unknown course asset');

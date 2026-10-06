@@ -26,7 +26,7 @@ export interface CompiledSection {
   readonly objects: readonly CourseObject[];
   readonly carriageways: readonly CompiledCarriageway[];
   readonly assets: readonly CompiledCourseImageSource[];
-  readonly appearance: CourseAppearance | null;
+  readonly appearance: CourseAppearance;
   readonly incoming: readonly CompiledLink[];
   readonly outgoing: readonly CompiledLink[];
   readonly fork: CompiledFork | null;
