@@ -57,7 +57,7 @@ export interface SeriesEntry {
 /** Where a later entry appears when the player enters its first stage: metres ahead of the player, in its lane. */
 export interface AheadAppearance {
   readonly distance: number;
-  /** Its lane number (0 is the leftmost lane), valid on every Carriageway of the course. */
+  /** Its lane number (0 is the leftmost lane), valid in every Section of the course. */
   readonly lane: number;
 }
 
@@ -360,7 +360,7 @@ function requireUnique(values: readonly string[], path: string, kind: string): v
 
 /**
  * Admit a series course against its compiled course: the laps fit the course's lap maximum, every entry's slot is in
- * the grid, every ahead entry's lane exists on every Carriageway of the course, and each rank limit names a race gate of the course with N below the field size. The build admits every
+ * the grid, every ahead entry's lane exists in every Section of the course, and each rank limit names a race gate of the course with N below the field size. The build admits every
  * series course; a Session admits the course it drives.
  */
 export function admitSeriesCourse(
@@ -398,15 +398,17 @@ export function admitSeriesCourse(
         `Every run of ${course.id} has ${stageCount} stages`,
       ),
     );
-    // A lane number is valid on every route when every Carriageway of the course has that lane.
-    const lanes = Math.min(...course.sections.flatMap((section) => section.carriageways.map((road) => road.lanes)));
+    // A lane number is valid on every route when every Section of the course has that lane.
+    const lanes = Math.min(
+      ...course.sections.map((section) => section.lanes.elements.filter((element) => element.kind === 'lane').length),
+    );
     settings.entries.forEach((entry, i) => {
       if (!entry.ahead) return;
       requireAdmission(
         entry.ahead.lane < lanes,
         'invalid_value',
         `/courses/${index}/entries/${i}/ahead/lane`,
-        `Some Carriageway of ${course.id} has only ${lanes} lanes`,
+        `Some Section of ${course.id} has only ${lanes} lanes`,
       );
       const room = aheadRoom(course, settings.laps, entry.stages!.first);
       requireAdmission(

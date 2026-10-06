@@ -1,6 +1,5 @@
 import { createStripBudget } from '../strip-budget.js';
 import { compileCourseStrips } from './course-strip-ground.js';
-import { validateCourseCarriageways } from './course-carriageways.js';
 import { compileCourseLanes, validateCourseLanes } from './course-lanes.js';
 import type { CourseLines } from '../course-lanes.js';
 import { createPlanCoordinateReader } from '../geometry/plan-coordinate-reader.js';
@@ -17,7 +16,6 @@ import { courseImageNames, type CourseDocument, type CourseRules, type SectionDo
 import { compileCourseGeometry, resolveCoursePosition } from '../course-geometry.js';
 import { compileMaterialCoordinateDomain } from '../course-coordinate-domain.js';
 import { validateMaterialContinuity } from '../strip-material.js';
-import type { CompiledCarriageway } from '../course-boundaries.js';
 import type { CompiledSection, CompiledLink } from './course-graph.js';
 import { COURSE_PHYSICAL_RECIPE, compileCoursePhysicalContent } from './course-physical-content.js';
 import {
@@ -73,7 +71,7 @@ export interface CompiledCourse {
 
 const COURSE_COMPILER = Object.freeze({
   id: 'superoutride.course-compiler',
-  version: 46,
+  version: 47,
   links: COURSE_LINK_RECIPE,
   physical: COURSE_PHYSICAL_RECIPE,
   images: COURSE_IMAGE_SOURCE_RECIPE,
@@ -124,20 +122,10 @@ function compileSection(
   const boundaries = compileCourseBoundaries(section.boundaries, lanes, resolve, `${path}/boundaries`);
   const boundaryTable = new Map(boundaries.map((boundary) => [boundary.id, boundary]));
   const lines: CourseLines = Object.freeze({ boundaries: boundaryTable, lanes });
-  const carriageways = compileStage(section.carriageways, (source, index): CompiledCarriageway => {
-    const at = `${path}/carriageways/${index}`;
-    return Object.freeze({
-      id: source.id,
-      left: reference(boundaryTable, source.left, `${at}/left`),
-      right: reference(boundaryTable, source.right, `${at}/right`),
-      lanes: source.lanes,
-    });
-  });
   // The road's and the walls' Strips spend from one Section budget.
   const stripBudget = createStripBudget();
   const strips = compileCourseStrips(section.strips, length, `${path}/strips`, resolve, lines, materials, stripBudget);
   validateMaterialContinuity(strips.material, `${path}/strips`);
-  validateCourseCarriageways(carriageways, strips.material, length, `${path}/carriageways`);
   validateCourseLanes(lanes, strips.material, length, `${path}/lanes`);
   const walls = compileCourseWalls(section.walls, lines, resolve, materials, stripBudget, `${path}/walls`);
   const barriers = compileCourseBarriers(walls, section.openLimits, resolve, strips.material, length, path);
@@ -161,7 +149,6 @@ function compileSection(
     ...strips,
     barriers,
     objects,
-    carriageways: Object.freeze(carriageways),
     assets: Object.freeze([]),
     // Set by `compileAppearance`, after the fork structure and before anything reads it.
     appearance: null as unknown as SectionDraft['appearance'],
@@ -252,7 +239,7 @@ export async function compileCourseDocument(
       const from = reference(sectionTable, source.from.section, `${path}/from/section`);
       const to = reference(sectionTable, source.to, `${path}/to`);
       const lane = reference(from.lanes.byId, source.from.lane, `${path}/from/lane`);
-      const cut = compileCourseCut(from, lane, from.coordinates.domain.end, `${path}/from`);
+      const cut = compileCourseCut(from, lane, from.coordinates.domain.end);
       const link = compileCourseLink(source.id, cut, entrances.get(to)!, path);
       from.outgoing.push(link);
       to.incoming.push(link);

@@ -5,7 +5,7 @@ import type { PlanarPose, PlanarTransform } from '../../core/planar-transform.js
 import type { CompiledCourseImageSource } from './course-image-source.js';
 import type { CourseAppearance } from '../course-appearance.js';
 import type { CompiledCoursePosition, CompiledPlanSegment } from '../course-geometry.js';
-import type { CompiledBoundary, CompiledCarriageway } from '../course-boundaries.js';
+import type { CompiledBoundary } from '../course-boundaries.js';
 import type { CompiledLane, CompiledLanes } from '../course-lanes.js';
 import type { StripMaterial } from '../strip-material.js';
 import type { CourseBarrierLine } from '../course-barriers.js';
@@ -27,7 +27,6 @@ export interface CompiledSection {
   readonly barriers: readonly CourseBarrierLine[];
   /** Solid objects — solid sprites, fixed or movable, and free wall ends — in station order. */
   readonly objects: readonly CourseObject[];
-  readonly carriageways: readonly CompiledCarriageway[];
   readonly assets: readonly CompiledCourseImageSource[];
   readonly appearance: CourseAppearance;
   readonly incoming: readonly CompiledLink[];
@@ -42,12 +41,10 @@ export interface CompiledCut {
   readonly lane: CompiledLane;
   /** The cut lane's centre, the lateral of the cut's frame. */
   readonly lateralOrigin: number;
-  /** The Carriageway holding the cut lane, until lanes replace Carriageways. */
-  readonly carriageway: CompiledCarriageway;
   readonly pose: PlanarPose;
 }
 
-/** Carriageway geometry proof only; not admission for a driving transition. */
+/** A seam's geometry: the cut it leaves by, the cut it enters by and the frame map between. */
 export interface CompiledLink {
   readonly id: string;
   readonly from: CompiledCut;

@@ -130,7 +130,7 @@ every field added to or removed from the record; a change that leaves every inpu
 driver's record, part of the reference run's procedure record, contains it. It is 10: since version 8, one implementation of the vehicle ahead,
 lane occupancy and stopping followers, the steering path that decides the vehicle ahead, the escape gap (9), the
 surface grip drivers plan with (10), standing objects that end a lane (11), other
-vehicles' route speeds (12), and lanes carried by position across every change of the followed Carriageway (13).
+vehicles' route speeds (12), and lanes carried across every seam as the lanes continue (13).
 
 ## Camera settings
 

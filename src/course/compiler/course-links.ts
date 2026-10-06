@@ -1,6 +1,6 @@
 import { createPlanCoordinateSample } from '../geometry/plan-coordinate.js';
 import { compilePlanarTransform, composePlanarTransforms } from '../../core/planar-transform.js';
-import { courseBoundaryAt, courseCarriagewayExists, type CompiledCarriageway } from '../course-boundaries.js';
+import { courseBoundaryAt } from '../course-boundaries.js';
 import { courseRoadsAt, type CompiledLane } from '../course-lanes.js';
 import { requireCourse } from '../course-diagnostics.js';
 import type { CompiledCut, CompiledLink, CompiledSection } from './course-graph.js';
@@ -29,26 +29,13 @@ function roadOf(section: CompiledSection, lane: CompiledLane, s: number, path: s
   return { road, index: road.lanes.indexOf(lane) };
 }
 
-/** The Carriageway, until lanes replace them, that holds lateral `l` at station `s`. */
-function carriagewayAt(section: CompiledSection, l: number, s: number, path: string): CompiledCarriageway {
-  const road = section.carriageways.find(
-    (candidate) =>
-      courseCarriagewayExists(candidate, s, section.coordinates.domain.end) &&
-      courseBoundaryAt(candidate.left, s) <= l &&
-      l <= courseBoundaryAt(candidate.right, s),
-  );
-  requireCourse(road !== undefined, path, 'A Carriageway must hold the cut lane', 'invalid_carriageway');
-  return road;
-}
-
 /** A cut across a Section at station `s` through lane `lane`'s centre: the frame a Link maps. */
-export function compileCourseCut(section: CompiledSection, lane: CompiledLane, s: number, path: string): CompiledCut {
+export function compileCourseCut(section: CompiledSection, lane: CompiledLane, s: number): CompiledCut {
   const lateralOrigin = courseBoundaryAt(lane.center, s);
   const { x, z, heading } = section.coordinates.toWorld(s, lateralOrigin, createPlanCoordinateSample());
   return Object.freeze({
     section,
     lane,
-    carriageway: carriagewayAt(section, lateralOrigin, s, path),
     lateralOrigin,
     pose: Object.freeze({ x, z, heading }),
   });
@@ -65,7 +52,7 @@ export function entryCut(section: CompiledSection, destination: boolean, path: s
     "A Link's destination Section begins with exactly one road",
     'invalid_link',
   );
-  return compileCourseCut(section, section.lanes.center, 0, path);
+  return compileCourseCut(section, section.lanes.center, 0);
 }
 
 /**

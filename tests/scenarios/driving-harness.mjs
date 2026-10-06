@@ -496,7 +496,7 @@ export async function runScenario({ course, arcade: scenarioArcade, productArcad
   if (scenario.policy === 'closed') {
     assert.ok(
       evidence.recoveries.some((r) => r.reason === 'wrong-course'),
-      'never entered the closed Carriageway',
+      'never entered the closed road',
     );
     // The premise: with this seed the rival locks the opposite exit first; a hash change must not void it silently.
     assert.equal(

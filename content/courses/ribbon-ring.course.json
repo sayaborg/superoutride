@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 47,
+  "version": 48,
   "name": "RIBBON RING",
   "entry": "ring-outward",
   "maxLaps": 3,
@@ -31,7 +31,6 @@
         { "kind": "lane", "id": "d", "width": 3.5 }
       ],
       "centerLane": "b",
-      "carriageways": [{ "id": "road", "left": "road-left", "right": "road-right", "lanes": 4 }],
       "boundaries": [
         {
           "id": "outer-left",
@@ -472,7 +471,6 @@
         { "kind": "lane", "id": "d", "width": 3.5 }
       ],
       "centerLane": "b",
-      "carriageways": [{ "id": "road", "left": "road-left", "right": "road-right", "lanes": 4 }],
       "boundaries": [
         {
           "id": "outer-left",

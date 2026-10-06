@@ -574,7 +574,7 @@ Strip's instantaneous sub-metre read is analogous to sprite master magnification
 
 ## Course frames
 
-The outgoing Carriageway center at `s=L` and incoming center at `s=0` derive the upright transform `toFromFrom`, which maps the `from` Section's frame to the `to` Section's frame. With yaw
+The Link's named lane centre at `s=L` and the destination's centreline at `s=0` derive the upright transform `toFromFrom`, which maps the `from` Section's frame to the `to` Section's frame. With yaw
 rotation `R`:
 
 ```text

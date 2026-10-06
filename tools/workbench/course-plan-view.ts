@@ -6,7 +6,7 @@ import type { CourseElement, ResolvedLine, SectionPlan, SectionStructure } from 
 export const PLAN_LAYERS = [
   'strips',
   'boundaries',
-  'carriageways',
+  'lanes',
   'walls',
   'sprites',
   'objects',
@@ -24,7 +24,7 @@ const LAYER_OF: Partial<Record<CourseElement['kind'], PlanLayer>> = {
   boundary: 'boundaries',
   'boundary-knot': 'boundaries',
   'boundary-vertex': 'boundaries',
-  carriageway: 'carriageways',
+  lane: 'lanes',
   wall: 'walls',
   'wall-strip': 'walls',
   'wall-strip-knot': 'walls',
@@ -72,7 +72,7 @@ export interface PlanDraw {
 }
 
 /**
- * The plan of one Section: its Strips filled in their colours, Boundaries, Carriageway lane centres, walls, open
+ * The plan of one Section: its Strips filled in their colours, Boundaries, lane centres, walls, open
  * limits, the centreline with its entry and exit cut lines, environments, gates and grid, sprites and objects, plan joints, the
  * Section's end and arcs' tangent intersections, the cursor and the selection; north (+z) up, x right, with a scale bar.
  * When the plan does not compile, the view says so. The wheel zooms at the pointer; a press that
@@ -146,7 +146,7 @@ export function createPlanView(
       if (left && right) paths.push({ element, path: band(left, right), fill: true });
       else if (left || right) paths.push({ element, path: line((left ?? right)!), fill: false });
       if (own) paths.push({ element, path: line(own), fill: false });
-      // A Carriageway's lane centres.
+      // A lane's centre.
       for (const [key, lane] of Object.entries(element.lines))
         if (key.startsWith('lane')) paths.push({ element, path: line(lane), fill: false, dashed: true });
     }

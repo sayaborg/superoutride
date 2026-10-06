@@ -12,7 +12,7 @@ function lateralAt(line: ResolvedLine | undefined, s: number): number | null {
 }
 
 /**
- * The cross section at the cursor's station, to look at: Boundaries with their names, Carriageways and their lanes,
+ * The cross section at the cursor's station, to look at: Boundaries with their names, lane centres,
  * the Strips covering the station in their order (later rows lie over earlier ones), each with its colour and material,
  * walls from their bottom to their top and objects near the station. A click on a Boundary selects it.
  */
@@ -91,19 +91,16 @@ export function createSectionView(canvas: HTMLCanvasElement, events: { pick(elem
       c.fillStyle = stripColor(piece.color) ?? '#d2a8ff';
       c.fillRect(x(piece.l) - 3, yOf(piece.top), 6, Math.max(1, yOf(piece.bottom) - yOf(piece.top)));
     }
-    // The road line, Carriageways and their lanes.
+    // The road line and the lane centres.
     c.strokeStyle = '#e8edf2';
     c.beginPath();
     c.moveTo(MARGIN.left, ground);
     c.lineTo(canvas.width - MARGIN.right, ground);
     c.stroke();
-    for (const road of of('carriageway')) {
-      const lanes = Object.entries(road.lines).filter(([key]) => key.startsWith('lane'));
-      c.fillStyle = '#e3b341';
-      for (const [, lane] of lanes) {
-        const l = lateralAt(lane, s);
-        if (l !== null) c.fillRect(x(l) - 1, ground - 6, 2, 6);
-      }
+    c.fillStyle = '#e3b341';
+    for (const lane of of('lane')) {
+      const l = lateralAt(lane.lines.lane!, s);
+      if (l !== null) c.fillRect(x(l) - 1, ground - 6, 2, 6);
     }
     // Objects within a metre of the station.
     for (const object of of('object'))

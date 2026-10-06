@@ -75,7 +75,7 @@ for (const stem of ['ribbon-coast', 'ribbon-fork', 'ribbon-ring']) {
             })),
             // Seed 0 sends the rival to exit 0 while the player approaches exit 1.
             {
-              name: 'closed Carriageway through player finish',
+              name: 'closed road through player finish',
               policy: 'closed',
               finish: true,
               rivals: 1,

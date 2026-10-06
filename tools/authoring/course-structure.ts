@@ -13,7 +13,7 @@ import {
   resolveCourseLateral,
   resolveLateralInterval,
 } from '../../src/course/compiler/course-lateral.js';
-import { courseBoundaryAt, courseLaneCenterAt, type CompiledBoundary } from '../../src/course/course-boundaries.js';
+import { courseBoundaryAt, type CompiledBoundary } from '../../src/course/course-boundaries.js';
 import { expandCourseElements, type CourseRepeatCopy, type RepeatElement } from '../../src/course/course-repeat.js';
 import { createPlanCoordinateReader } from '../../src/course/geometry/plan-coordinate-reader.js';
 import { createPlanCoordinateSample } from '../../src/course/geometry/plan-coordinate.js';
@@ -62,7 +62,7 @@ export type CourseElementKind =
   | 'environment'
   | 'gate'
   | 'grid-slot'
-  | 'carriageway';
+  | 'lane';
 
 /** A Position as written and as resolved: `offset` metres from joint `joint`, at station `s` (null when unresolved). */
 export interface WrittenPosition {
@@ -630,34 +630,21 @@ function readSection(
       });
     else add('gate', at, v, { positions: ['at'], values: { kind: v.kind, id: v.id } });
   });
-  // Carriageways: each lane's centre line over the road's existence, as the race reads it.
-  list(section.carriageways).forEach((road, i) => {
-    const v = record(road);
-    const left = boundaries.get(String(v.left)),
-      right = boundaries.get(String(v.right)),
-      lanes = Number(v.lanes);
-    const lines: Record<string, ResolvedLine> = {};
-    let station: { s: number; l: number } | undefined;
-    if (left && right && Number.isInteger(lanes) && lanes > 0) {
-      const start = Math.max(left.vertices[0]!.at.s, right.vertices[0]!.at.s),
-        end = Math.min(left.vertices.at(-1)!.at.s, right.vertices.at(-1)!.at.s);
-      const stations = [...new Set([start, end, ...[...left.vertices, ...right.vertices].map((vertex) => vertex.at.s)])]
-        .filter((s) => s >= start && s <= end)
-        .sort((a, b) => a - b);
-      const carriageway = { id: String(v.id), left, right, lanes };
-      for (let lane = 0; lane < lanes; lane++)
-        lines[`lane${lane}`] = stations.map((s) => ({
-          s,
-          l: courseLaneCenterAt(carriageway, lane, s),
-          authored: false,
-        }));
-      if (stations.length) station = { s: stations[0]!, l: lines.lane0![0]!.l };
-    }
-    add('carriageway', `${pointer}/carriageways/${i}`, v, {
-      values: { id: v.id, left: v.left, right: v.right, lanes: v.lanes },
-      lines,
-      station,
-    });
+  // Lanes: each lane's centre line, as the race reads it.
+  lanes.elements.forEach((element, i) => {
+    if (element.kind !== 'lane') return;
+    const lane = element.lane;
+    const centre = lane.center.vertices.map((vertex) => ({ s: vertex.at.s, l: vertex.l, authored: false }));
+    add(
+      'lane',
+      `${pointer}/lanes/${i}`,
+      {},
+      {
+        values: { id: lane.id, center: lane === lanes.center },
+        lines: { lane: centre },
+        station: { s: centre[0]!.s, l: centre[0]!.l },
+      },
+    );
   });
   return { structure: { id, pointer, length, elements }, plan, profile: height };
 }

@@ -210,7 +210,7 @@ first four conditions in order; race composition and the player request the last
 | `blocked`             | The race reports a fixed object (a solid sprite or a wall's free end) pushing the vehicle and its speed is below `RECOVERY_POLICY.blockedSpeed`, for 44 consecutive fixed steps |
 | `overturned`          | Body up points at or below the surface plane (`up dot normal <= 0`) and the CG is within `desiredCgHeight` of the surface along its normal                                      |
 | `surface-penetration` | Unsupported, and the CG lies more than 1 mm below the heightfield along its normal (a hole or material-free ground)                                                             |
-| `wrong-course`        | Race composition: the vehicle left the route its locked fork allows; it returns to the selected Carriageway                                                                     |
+| `wrong-course`        | Race composition: the vehicle left the route its locked fork allows; it returns to the selected road                                                                            |
 | `manual`              | The player's request                                                                                                                                                            |
 
 The blocked step count resets when the contact ends or the speed reaches `blockedSpeed`: there is no reverse gear, so a

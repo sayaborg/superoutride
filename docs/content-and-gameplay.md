@@ -6,9 +6,9 @@ owns image formats and compilation; [Browser](browser.md) owns operation and URL
 
 ## Course vocabulary
 
-A Section is a reusable finite road/content chart. A Boundary is a longitudinal lateral edge;
-a Carriageway
-is the road between two Section-local Boundaries. A Link connects one Carriageway at a Section end to another Section start.
+A Section is a reusable finite road/content chart. A Boundary is a longitudinal lateral edge. A Section's cross-section
+is its lanes and the medians between them; a road is lanes touching side by side. A Link leaves a Section end by a lane
+of one road and enters another Section start.
 A RouteOccurrence is a selected Section visit in the shared Route, with its incoming Link and fixed
 route coordinates. CompiledCourse is the immutable reference graph. Every actor uses the same Route.
 
@@ -27,29 +27,28 @@ authoring core and its tools save a course document that admits in that order.
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 47,
+  format: "superoutride.course", version: 48,
   name, entry, maxLaps,
   sections, links
 }
 Section {
-  id, plan, profile: [{at, y, curveLength}], lanes, centerLane, carriageways,
+  id, plan, profile: [{at, y, curveLength}], lanes, centerLane,
   boundaries, strips, walls, openLimits, sprites, environments, gates
 }
 ```
 
 ### Geometry and reference records
 
-| Record      | Fields                                                                             |
-| ----------- | ---------------------------------------------------------------------------------- |
-| Straight    | `kind: "straight"`, `id`, positive `length`                                        |
-| Arc         | `kind: "arc"`, `id`, positive `length` and `radius`, `turn: "left" \| "right"`     |
-| Position    | `at: {joint, offset}`; interval `start`/`end` use the same `{joint, offset}` value |
-| Lane        | `kind: "lane"`, `id`, `width`                                                      |
-| Median      | `kind: "median"`, `width`                                                          |
-| Width       | a number, or `[{at, width}]`                                                       |
-| Boundary    | `id`, `knots: [{at,lateral}]`                                                      |
-| Carriageway | `id`, `left`, `right`, `lanes`                                                     |
-| Link        | `id`, `from: {section, lane}`, `to` (a Section id)                                 |
+| Record   | Fields                                                                             |
+| -------- | ---------------------------------------------------------------------------------- |
+| Straight | `kind: "straight"`, `id`, positive `length`                                        |
+| Arc      | `kind: "arc"`, `id`, positive `length` and `radius`, `turn: "left" \| "right"`     |
+| Position | `at: {joint, offset}`; interval `start`/`end` use the same `{joint, offset}` value |
+| Lane     | `kind: "lane"`, `id`, `width`                                                      |
+| Median   | `kind: "median"`, `width`                                                          |
+| Width    | a number, or `[{at, width}]`                                                       |
+| Boundary | `id`, `knots: [{at,lateral}]`                                                      |
+| Link     | `id`, `from: {section, lane}`, `to` (a Section id)                                 |
 
 A course names its images: each name is the file `content/images/<name>.json` (the image's file name without
 `.json`). The build works out each image's identity from its bytes; the delivery manifest's `image` entry of that
@@ -65,7 +64,7 @@ long, so it fits one line of the frame's text grid. It is shown, never used as a
 IDs are opaque nonblank strings without surrounding whitespace and compare exactly. A course's only
 identifier is its file name without `.course.json`, which is also its manifest ID; the document carries
 none, and the compiled course receives it from its catalog. Section, Link and asset IDs each have a document-wide scope.
-Plan element, lane, Boundary and Carriageway IDs each have their own Section-local scope; no plan element is named `"end"`. Sprites have no IDs.
+Plan element, lane and Boundary IDs each have their own Section-local scope; no plan element is named `"end"`. Sprites have no IDs.
 Duplicate IDs fail. References
 resolve in their named scopes rather than by array position.
 
@@ -398,8 +397,6 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | Environment array and expanded Section `environmentKnots`               |                256 | (21 × 4 + 1) × 2, rounded up                                                                                                                                              |
 | Section `boundaries`                                                    |                 32 | 16 road, median, shoulder and outer Boundaries × 2                                                                                                                        |
 | Section `lanes` (lanes and medians)                                     |                 64 | Eight lanes each way with medians, with room for lanes that appear and end                                                                                                |
-| Section `carriageways`                                                  |                 64 | One road activation/km × 21 × 2, rounded up; supports three-way splits                                                                                                    |
-| Carriageway `carriagewayLanes`                                          |                  8 | Four lanes each way on the widest planned roads                                                                                                                           |
 | Non-circuit finite `routes` from the entry                              |                256 | Reference work bound: one continuous reference run per route and vehicle                                                                                                  |
 | Section `spritePlacements` (expanded)                                   |              16384 | 21 × (200 + 20)/km × 2, rounded up                                                                                                                                        |
 | Each Strip/sprite array `stripElements` / `spriteElements`              |               2048 | 21 × 30/km × 2, rounded up                                                                                                                                                |
@@ -474,28 +471,9 @@ is specified in [Architecture](architecture.md#plan-authority).
 
 Boundary knots strictly increase. Their resolved vertices define affine edges; width and center are derived.
 
-A Carriageway is `{id, left, right, lanes}`; both edge IDs resolve to Boundaries in its Section. `lanes`, an
-integer from 1 through `carriagewayLanes` (8), divides the road between its Boundaries into equal lanes numbered from
-0 at the left: the centre of lane i at station s is `left + (i + 0.5) / lanes × (right − left)`
-(`courseLaneCenterAt`), and the lane nearest a lateral position is the one whose interval holds it, a position on the
-line between two lanes going to the lower-numbered one (`courseLaneAt`), the one tie rule of every nearest-lane choice. The compiled Carriageway publishes `lanes`.
-Its existence interval is the intersection of those Boundary domains, with no separate range field.
-The intersection must have positive length. Membership is `[start,end)`, including the end only
-when it is the Section terminal. Boundary values themselves remain readable at both endpoints.
-Thus a road ending at a split is replaced at that station by the roads beginning there.
-The left edge never exceeds the right edge; zero width is allowed only at isolated stations.
-At any station, distinct existing Carriageways cannot overlap over a positive lateral interval.
-Compilation proves these conditions over affine Boundary cells and at activation changes;
-violations report `invalid_carriageway`, and unknown edge IDs report `unresolved_reference`.
-
-Every Carriageway interior must be covered by supported material throughout its existence;
-violations report `invalid_carriageway`. Cut lines, landmarks, fork exits, driving targets and recovery
-read Carriageway Boundaries directly. Landmark support is checked across the full edge interval.
-
 Every open Section cell must have finite material coverage. At every longitudinal transition, both
-the material-bearing cell union and the Carriageway interior union must have equal side limits.
-No-material space outside that union is not an authored material. Positive-width replacements and zero-width birth/death endpoints follow
-the same rule. Discontinuities report `material_transition_discontinuity` or `carriageway_transition_discontinuity`;
+the material-bearing cell union must have equal side limits. No-material space outside that union is not an authored
+material. Discontinuities report `material_transition_discontinuity`;
 empty material coverage reports `material_coverage_gap`.
 [Architecture](architecture.md#boundary-geometry-and-point-ownership) owns mapped geometry and point ownership.
 
@@ -563,7 +541,7 @@ and every result resolves through the course compiler's functions.
 their joints and the Section's end, PVIs and their vertical-curve ends, Boundaries (their written knots, and every
 vertex the compiler resolves, written or inherited from a referenced Boundary), repeats, Strips,
 arrows, texts, curbs, walls and their Strips and knots, open limits, sprites (an object when it has a body),
-environments, gates, grid slots and Carriageways, and the course's Links. Each element has the JSON Pointer of its
+environments, gates, grid slots and lanes (each lane's centre line), and the course's Links. Each element has the JSON Pointer of its
 record (a repeated element's one authored record), whether it is written or derived (and from what), every Position
 as written (`joint`, `offset`) and resolved (`s`), every lateral as written (a number, or a Boundary and offset) and
 resolved at the element's station (`l`), the repetitions enclosing it (each repeat's Pointer, the copy's index (0 the
@@ -657,7 +635,7 @@ from +x in degrees, from −360 to 360.
 
 ## Compiled identity and project publication
 
-CompiledCourse contains canonical Section, plan segment, Boundary, Carriageway, Link,
+CompiledCourse contains canonical Section, plan segment, Boundary, lane, Link,
 asset and landmark references plus immutable material tables. Merges reuse the same successor; loops refer to the same source.
 Owned records and arrays are immutable, including nested image data. Live actor, route-lock and
 clock state belong to Sessions. Object identity is local to a compilation; cross-build identity uses digests.
@@ -665,7 +643,7 @@ clock state belong to Sessions. Object identity is local to a compilation; cross
 `sourceSha256` and `materialsSha256` are the delivered SHA-256 of the course document and the
 surface-material document, the [document identity](#reference-times-and-clock) the catalog supplies.
 `buildSha256` hashes `{sourceSha256,materialsSha256,compiler}`.
-The compiler is `superoutride.course-compiler` version 46, incorporating Link recipe v4, physical
+The compiler is `superoutride.course-compiler` version 47, incorporating Link recipe v4, physical
 recipe v8, image-source recipe v3 and appearance recipe v14. Source, material or compiler/recipe
 changes invalidate dependent products.
 
@@ -682,13 +660,13 @@ The `plan_coordinate_overlap` variant additionally requires
 `overlap: {section, intervals: [{sStart, sEnd}, ...]}`; ordinary diagnostics have no overlap fields.
 `plan_coordinate_inversion` identifies the Section's plan and the affected station in metres, never
 an internal segment number. `invalid_gate` identifies gate-specific rules: gate kind, gate ID uniqueness,
-counts, ordering, Carriageway support, grid, lock/closure and circuit finish conditions.
+counts, ordering, lane support, grid, lock/closure and circuit finish conditions.
 Shared shape, numeric, reference and position rules keep their own codes (for example
 `invalid_shape`, `unresolved_reference` and `invalid_position`), with a path into the affected gate.
 Each check chooses its code explicitly; paths do not select codes and exceptions are not recoded.
 A missing gate points to its Section's `gates` collection.
 `invalid_rules` is reserved for position-free race settings. Non-gate fork constraints retain
-`invalid_fork`, addressed to the affected sprites, Strips, Boundaries or Carriageways.
+`invalid_fork`, addressed to the affected sprites, Strips, Boundaries or lanes.
 
 Document reading admits `curveLength` in `[0, lengthMeters]`. Compilation checks zero endpoint
 curve lengths and non-overlapping adjacent curves once, reporting `invalid_height` at the causal
@@ -740,7 +718,7 @@ ID for an exact tie. Interpolated route l, shifted by the occurrence's lateral o
 fork interval. The winner appends one successor to the shared Route. That successor occurrence is the only
 stored fork choice: the occurrence after a fork occurrence on the Route (`selectedSuccessor`). A fork occurrence
 with a successor is locked, so each occurrence locks once; its choice is looked up by occurrence, so repeated
-passes of one fork Section are distinct. The lock, the closed Carriageways, the legal recovery targets and state-selected signs all
+passes of one fork Section are distinct. The lock, the closed roads, the legal recovery targets and state-selected signs all
 derive from that successor.
 Checkpoint credit remains per actor.
 
@@ -793,7 +771,7 @@ Crossing times are interpolated within the outer step. `previous` and `current` 
 the start and end of one fixed step, and u and the crossing l interpolate linearly between them; they are not
 the exact crossing of the path the vehicle follows through its 12 mechanics substeps. Event times
 (`stepStart + u*SIM_DT`), acceptance, the deadline, finish times and fork decisions are all decided on this
-approximation. Reverse travel and recovery steps grant no crossing credit. Carriageway width and material
+approximation. Reverse travel and recovery steps grant no crossing credit. Road width and material
 support do not limit a race line's width.
 
 `createRouteProgress` is the single implementation for all course kinds. Each actor retains its next
@@ -943,14 +921,14 @@ whole run, or `{first, last}` with `last` at least `first` and no later than the
 course: its race gates per route, times the laps on a circuit) and one appearance. An entry taking part from STAGE
 1 has a grid `slot` index (0 through 15) and `ahead: null`; grid entries are in grid order with strictly increasing
 slots. An entry whose first stage is later has `slot: null` and `ahead: {distance, lane}`: a positive distance
-in metres ahead of the player and its lane number, which every Carriageway of the course has, so it is a lane on
+in metres ahead of the player and its lane number, which every Section of the course has, so it is a lane on
 every route. On every route the distance
 falls short of the next race gate and the next fork lock after the gate opening that stage. Every candidate vehicle
 has at least one grid entry, which the player can take. `playerSlot` is `own` or `last`. `rankLimits` maps a race gate ID to its rank
 limit N. Admission checks each document once, from the build's files or the delivery manifest alike, against the
 delivered course IDs and the vehicle catalog. Until selection screens choose a series, a course belongs to at most
 one series; a second one is rejected. A series course is admitted against its compiled course: `laps` within
-`maxLaps`, every entry's slot within the grid, every ahead lane below the fewest lanes of the course's Carriageways,
+`maxLaps`, every entry's slot within the grid, every ahead lane below the fewest lanes of the course's Sections,
 and rank limits naming checkpoint or FINISH gates of that course
 with N an integer from 1 to below the field size (the number of entries). The build admits every series course; a
 Session admits the course it drives.

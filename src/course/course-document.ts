@@ -15,7 +15,7 @@ import {
 } from '../core/admission.js';
 import { readRgb555 } from '../image/rgb555.js';
 
-const COURSE_DOCUMENT_VERSION = 47;
+const COURSE_DOCUMENT_VERSION = 48;
 const ID = { maxLength: COURSE_DOCUMENT_LIMITS.idCodeUnits };
 
 /** A station: `offset` metres (negative before) from a joint, the start of the plan element `joint` or `"end"`. */
@@ -61,14 +61,6 @@ export type LaneDocument =
 interface BoundaryDocument {
   readonly id: string;
   readonly knots: readonly { readonly at: CoursePosition; readonly lateral: Lateral }[];
-}
-
-interface CarriagewayDocument {
-  readonly id: string;
-  readonly left: string;
-  readonly right: string;
-  /** The number of lanes dividing the road between its Boundaries equally. */
-  readonly lanes: number;
 }
 
 interface LinkDocument {
@@ -205,7 +197,6 @@ export interface SectionDocument {
   /** The cross-section's lanes and medians, left to right; the centre of lane `centerLane` is the centreline. */
   readonly lanes: readonly LaneDocument[];
   readonly centerLane: string;
-  readonly carriageways: readonly CarriagewayDocument[];
   readonly boundaries: readonly BoundaryDocument[];
   readonly strips: readonly StripElementDocument[];
   readonly walls: readonly WallDocument[];
@@ -369,20 +360,6 @@ function lanes(value: unknown, path: string): SectionDocument['lanes'] {
       throw new AdmissionError('invalid_value', `${path}/${i}`, 'A median lies between two lanes');
   });
   return list;
-}
-
-function carriageway(value: unknown, path: string): CarriagewayDocument {
-  const v = readRecord(value, path, ['id', 'left', 'right', 'lanes']);
-  return Object.freeze({
-    id: readString(v.id, `${path}/id`, ID),
-    left: readString(v.left, `${path}/left`, ID),
-    right: readString(v.right, `${path}/right`, ID),
-    lanes: readNumber(v.lanes, `${path}/lanes`, {
-      min: 1,
-      max: COURSE_DOCUMENT_LIMITS.carriagewayLanes,
-      integer: true,
-    }),
-  });
 }
 
 function repeated<T>(
@@ -642,7 +619,6 @@ function section(value: unknown, path: string): SectionDocument {
     'profile',
     'lanes',
     'centerLane',
-    'carriageways',
     'boundaries',
     'strips',
     'walls',
@@ -675,9 +651,6 @@ function section(value: unknown, path: string): SectionDocument {
     ),
     lanes: lanes(v.lanes, `${path}/lanes`),
     centerLane: readString(v.centerLane, `${path}/centerLane`, ID),
-    carriageways: readIdentified(v.carriageways, `${path}/carriageways`, carriageway, {
-      max: COURSE_DOCUMENT_LIMITS.carriageways,
-    }),
     boundaries: readIdentified(v.boundaries, `${path}/boundaries`, boundary, {
       max: COURSE_DOCUMENT_LIMITS.boundaries,
     }),

@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 47,
+  "version": 48,
   "name": "RIBBON ROUGH",
   "entry": "rough-bumps",
   "maxLaps": 3,
@@ -745,7 +745,6 @@
         }
       ],
       "centerLane": "b",
-      "carriageways": [{ "id": "road", "left": "road-left", "right": "road-right", "lanes": 3 }],
       "boundaries": [
         {
           "id": "outer-left",
@@ -1449,7 +1448,6 @@
         }
       ],
       "centerLane": "b",
-      "carriageways": [{ "id": "road", "left": "road-left", "right": "road-right", "lanes": 3 }],
       "boundaries": [
         {
           "id": "outer-left",

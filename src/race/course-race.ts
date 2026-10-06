@@ -286,7 +286,7 @@ export function createCourseRace(options: {
       const entry = rivalEntries[i]!;
       const s = player.actor.vehicle.course.s + entry.ahead!.distance;
       const { intent, driver } = c.body.driving!;
-      // Its lane number is the one of the Carriageway it follows where it appears.
+      // Its lane number is a lane of the Section where it appears.
       intent.at = s;
       const lane = (station: number) => forks.targetL(station, intent);
       // An appearance on another vehicle's footprint, or one a vehicle behind could not stop for, waits for a later step.

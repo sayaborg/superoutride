@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 47,
+  "version": 48,
   "name": "RIBBON FORK",
   "entry": "junction-road",
   "maxLaps": 1,
@@ -56,11 +56,6 @@
         { "kind": "lane", "id": "d", "width": 3.5 }
       ],
       "centerLane": "b",
-      "carriageways": [
-        { "id": "APPROACH", "left": "approach-left", "right": "approach-right", "lanes": 4 },
-        { "id": "LEFT", "left": "left-outer", "right": "left-inner", "lanes": 2 },
-        { "id": "RIGHT", "left": "right-inner", "right": "right-outer", "lanes": 2 }
-      ],
       "boundaries": [
         {
           "id": "outer-left",
@@ -578,7 +573,6 @@
         { "kind": "lane", "id": "b", "width": 3.5 }
       ],
       "centerLane": "a",
-      "carriageways": [{ "id": "road", "left": "road-left", "right": "road-right", "lanes": 2 }],
       "boundaries": [
         {
           "id": "outer-left",
@@ -804,7 +798,6 @@
         { "kind": "lane", "id": "b", "width": 3.5 }
       ],
       "centerLane": "a",
-      "carriageways": [{ "id": "road", "left": "road-left", "right": "road-right", "lanes": 2 }],
       "boundaries": [
         {
           "id": "outer-left",
@@ -913,8 +906,8 @@
               "kind": "strip",
               "start": { "joint": "straight-1", "offset": 120 },
               "end": { "joint": "straight-1", "offset": 130 },
-              "left": 1.67,
-              "right": 1.83,
+              "left": { "lane": "a", "side": "right", "offset": -0.08 },
+              "right": { "lane": "a", "side": "right", "offset": 0.08 },
               "color": 32765,
               "material": null
             }
@@ -1000,7 +993,6 @@
         { "kind": "lane", "id": "b", "width": 3.5 }
       ],
       "centerLane": "a",
-      "carriageways": [{ "id": "road", "left": "road-left", "right": "road-right", "lanes": 2 }],
       "boundaries": [
         {
           "id": "outer-left",
@@ -1118,8 +1110,8 @@
               "kind": "strip",
               "start": { "joint": "straight-1", "offset": 140 },
               "end": { "joint": "straight-1", "offset": 150 },
-              "left": 1.67,
-              "right": 1.83,
+              "left": { "lane": "a", "side": "right", "offset": -0.08 },
+              "right": { "lane": "a", "side": "right", "offset": 0.08 },
               "color": 32765,
               "material": null
             }
