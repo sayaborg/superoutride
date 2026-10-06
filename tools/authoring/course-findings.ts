@@ -43,7 +43,7 @@ function stringsOf(value: Json | undefined, pointer = '', found: { pointer: stri
   return found;
 }
 
-/** Declarations nothing names: Boundaries no other value of their Section names, images no value of the course names. */
+/** Declarations nothing names: Boundaries no other value of their Section names. */
 function unusedDeclarations(document: Json): CourseFinding[] {
   const record = (value: Json | undefined) =>
     value !== null && typeof value === 'object' && !Array.isArray(value) ? value : {};
@@ -58,14 +58,6 @@ function unusedDeclarations(document: Json): CourseFinding[] {
       if (typeof id === 'string' && !names.some((n) => n.text === id && n.pointer !== `${pointer}/id`))
         findings.push({ kind: 'unused', pointer, description: `Boundary ${id} is not used`, operation: null });
     });
-  });
-  const assets = record(document).assets;
-  const names = stringsOf(document);
-  (Array.isArray(assets) ? assets : []).forEach((asset, a) => {
-    const pointer = `/assets/${a}`;
-    const id = record(asset).id;
-    if (typeof id === 'string' && !names.some((n) => n.text === id && n.pointer !== `${pointer}/id`))
-      findings.push({ kind: 'unused', pointer, description: `Image ${id} is not used`, operation: null });
   });
   return findings;
 }

@@ -254,7 +254,7 @@ step, on three screens chosen by tab. **Import** opens a source of `content/spri
 image); the source shows its crop, mask, lamp rectangles and anchor, and dragging on it with the crop, hide, show, lamp
 or anchor tool edits the recipe, as do its fields. The master is imported as the build would and previewed with the
 product's sprite drawing and LOD at a chosen depth, a vehicle image with its lamp off and on; a course image is written
-as its content-addressed file. **Sets** shows the open set's yaw × bank grid: a chosen cell shows any of the set's
+as its named file, replacing one of that name. **Sets** shows the open set's yaw × bank grid: a chosen cell shows any of the set's
 images, the imported image is added or replaces an image, an image no cell shows is removed, and a new set starts from
 the imported image. The set preview draws the compiled library's set, turned and leaned by cell and moved away by
 depth. **Palettes** lists the open set's named palettes, copied, renamed or removed for every image at once. An
@@ -339,7 +339,7 @@ npm run sprite -- adjust --set coupe --from original --to blue --slots 1,3 --hue
 ```
 
 `import` makes the master of `content/sprite-sources/<name>.png` and its recipe: a course image is written as
-`content/images/<sha256>.json`; a vehicle image replaces the set's image of that name or is added, and fills the given
+`content/images/<name>.json` (replacing one of that name); a vehicle image replaces the set's image of that name or is added, and fills the given
 `yaw:bank` cells. `new-set` starts a set whose every cell shows one imported image. `adjust` derives a named palette
 for every image of a set (`--saturation`, `--lightness`, `--tint-hue` and `--tint-amount` too).
 
@@ -380,26 +380,26 @@ format/version. The delivery layout (`layoutDelivery` in
 [`delivery-layout.ts`](../tools/authoring/delivery-layout.ts)) is the only authority for these kinds, IDs and paths under
 `dist/delivery/`:
 
-| Kind              | ID                                                                                          | Path                                | Content                                                                                                      |
-| ----------------- | ------------------------------------------------------------------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `course`          | Course file name stem (the course selection key)                                            | `courses/<id>.course.json`          | Course document                                                                                              |
-| `course-index`    | `courses`                                                                                   | `course-index.json`                 | Course index ([Content and gameplay](content-and-gameplay.md#course-index))                                  |
-| `series`          | Series file name stem                                                                       | `series/<id>.series.json`           | Series document ([Content and gameplay](content-and-gameplay.md#series-documents))                           |
-| `image`           | Image SHA-256, `vehicles` for the vehicle sprite library or `text-tiles` for the text tiles | `images/<sha256>.json`              | Compiled course images, the vehicle sprite library and the text tiles                                        |
-| `vehicle`         | Vehicle ID                                                                                  | `vehicles/<id>.json`                | Vehicle mechanics document                                                                                   |
-| `vehicle-listing` | Vehicle ID                                                                                  | `vehicle-listings/<id>.json`        | Vehicle listing document                                                                                     |
-| `driving`         | `default`                                                                                   | `driving/<id>.json`                 | Game-wide driving definition                                                                                 |
-| `material`        | `surface`                                                                                   | `materials/<id>.json`               | Surface-material document                                                                                    |
-| `engine-sound`    | Sound ID                                                                                    | `engine-sounds/<id>.json`           | Engine-sound document ([Audio](audio.md#observations-and-engine-sounds))                                     |
-| `surface-sound`   | `default`                                                                                   | `surface-sounds/<id>.json`          | Surface-sound document ([Tire audio](tire-audio.md#surface-sounds))                                          |
-| `audio`           | `default`                                                                                   | `audio/<id>.json`                   | Game-wide sound settings ([Audio](audio.md#audio-document))                                                  |
-| `free-play`       | `default`                                                                                   | `free-play/<id>.json`               | FREE PLAY rules ([Content and gameplay](content-and-gameplay.md#free-play-document))                         |
-| `recording`       | `<group>/<name>`: `music/<id>`, `effects/<name>` or `impacts/<name>`                        | `recordings/<id>.m4a`               | Recording, AAC-LC in MP4 ([Audio](audio.md#recordings-and-music-documents))                                  |
-| `music`           | Track ID                                                                                    | `music/<id>.json`                   | Music document ([Audio](audio.md#recordings-and-music-documents))                                            |
-| `wall-sound`      | `default`                                                                                   | `wall-sounds/<id>.json`             | Wall-sound document ([Tire audio](tire-audio.md#wall-sounds))                                                |
-| `envelope`        | Vehicle ID                                                                                  | `envelopes/<id>.json`               | Rival driving envelope (`superoutride.rival-envelope` v1: vehicle identity, maximum speed and measured rows) |
-| `budget`          | `<course>/<vehicle>`                                                                        | `budgets/<course>/<vehicle>.json`   | Timed Session budgets (`superoutride.course-time-budgets` v1)                                                |
-| `schedule`        | `<course>/<vehicle>`                                                                        | `schedules/<course>/<vehicle>.json` | ARCADE pace schedule (`superoutride.pace-schedule` v1)                                                       |
+| Kind              | ID                                                                                              | Path                                | Content                                                                                                      |
+| ----------------- | ----------------------------------------------------------------------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `course`          | Course file name stem (the course selection key)                                                | `courses/<id>.course.json`          | Course document                                                                                              |
+| `course-index`    | `courses`                                                                                       | `course-index.json`                 | Course index ([Content and gameplay](content-and-gameplay.md#course-index))                                  |
+| `series`          | Series file name stem                                                                           | `series/<id>.series.json`           | Series document ([Content and gameplay](content-and-gameplay.md#series-documents))                           |
+| `image`           | Course image name, `vehicles` for the vehicle sprite library or `text-tiles` for the text tiles | `images/<sha256>.json`              | Compiled course images, the vehicle sprite library and the text tiles                                        |
+| `vehicle`         | Vehicle ID                                                                                      | `vehicles/<id>.json`                | Vehicle mechanics document                                                                                   |
+| `vehicle-listing` | Vehicle ID                                                                                      | `vehicle-listings/<id>.json`        | Vehicle listing document                                                                                     |
+| `driving`         | `default`                                                                                       | `driving/<id>.json`                 | Game-wide driving definition                                                                                 |
+| `material`        | `surface`                                                                                       | `materials/<id>.json`               | Surface-material document                                                                                    |
+| `engine-sound`    | Sound ID                                                                                        | `engine-sounds/<id>.json`           | Engine-sound document ([Audio](audio.md#observations-and-engine-sounds))                                     |
+| `surface-sound`   | `default`                                                                                       | `surface-sounds/<id>.json`          | Surface-sound document ([Tire audio](tire-audio.md#surface-sounds))                                          |
+| `audio`           | `default`                                                                                       | `audio/<id>.json`                   | Game-wide sound settings ([Audio](audio.md#audio-document))                                                  |
+| `free-play`       | `default`                                                                                       | `free-play/<id>.json`               | FREE PLAY rules ([Content and gameplay](content-and-gameplay.md#free-play-document))                         |
+| `recording`       | `<group>/<name>`: `music/<id>`, `effects/<name>` or `impacts/<name>`                            | `recordings/<id>.m4a`               | Recording, AAC-LC in MP4 ([Audio](audio.md#recordings-and-music-documents))                                  |
+| `music`           | Track ID                                                                                        | `music/<id>.json`                   | Music document ([Audio](audio.md#recordings-and-music-documents))                                            |
+| `wall-sound`      | `default`                                                                                       | `wall-sounds/<id>.json`             | Wall-sound document ([Tire audio](tire-audio.md#wall-sounds))                                                |
+| `envelope`        | Vehicle ID                                                                                      | `envelopes/<id>.json`               | Rival driving envelope (`superoutride.rival-envelope` v1: vehicle identity, maximum speed and measured rows) |
+| `budget`          | `<course>/<vehicle>`                                                                            | `budgets/<course>/<vehicle>.json`   | Timed Session budgets (`superoutride.course-time-budgets` v1)                                                |
+| `schedule`        | `<course>/<vehicle>`                                                                            | `schedules/<course>/<vehicle>.json` | ARCADE pace schedule (`superoutride.pace-schedule` v1)                                                       |
 
 The manifest format ([`content-manifest.ts`](../src/content/content-manifest.ts)) admits the index through the
 admission toolkit as document `manifest.json` (format and version first, exact fields, unique kind/id identities and

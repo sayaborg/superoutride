@@ -27,9 +27,9 @@ authoring core and its tools save a course document that admits in that order.
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 41,
+  format: "superoutride.course", version: 42,
   name, entry, maxLaps,
-  sections, links, assets
+  sections, links
 }
 Section {
   id, pis,
@@ -40,20 +40,20 @@ Section {
 
 ### Geometry and reference records
 
-| Record          | Fields                                                                                     |
-| --------------- | ------------------------------------------------------------------------------------------ |
-| Plan PI         | `id`, `x`, `z`, `radius`                                                                   |
-| Position        | `at: {pi, offset}`; interval `start`/`end` and gate `at` use the same `{pi, offset}` value |
-| Boundary        | `id`, `knots: [{at,lateral}]`                                                              |
-| Carriageway     | `id`, `left`, `right`, `lanes`                                                             |
-| Link            | `id`, `from: {section, carriageway}`, `to` (a Section id)                                  |
-| Asset reference | `id`, lowercase `sha256`                                                                   |
+| Record      | Fields                                                                                     |
+| ----------- | ------------------------------------------------------------------------------------------ |
+| Plan PI     | `id`, `x`, `z`, `radius`                                                                   |
+| Position    | `at: {pi, offset}`; interval `start`/`end` and gate `at` use the same `{pi, offset}` value |
+| Boundary    | `id`, `knots: [{at,lateral}]`                                                              |
+| Carriageway | `id`, `left`, `right`, `lanes`                                                             |
+| Link        | `id`, `from: {section, carriageway}`, `to` (a Section id)                                  |
 
-Asset references carry only logical identity and the exact saved-byte digest. Format and version
-belong exclusively to the referenced file. Compilation admits that file and checks its own format
-against each use (sprite or background). A course's relation to its images is this declared digest:
-delivery supplies each reference with the bytes of the manifest `image` entry whose `sha256` equals it,
-never by assuming an entry ID. [Development](development.md#build-outputs) owns the index and output layout.
+A course names its images: each name is the file `content/images/<name>.json` (the image's file name without
+`.json`). The build works out each image's identity from its bytes; the delivery manifest's `image` entry of that
+name delivers them, checked against its digest. A course's images are exactly those it names, at most `images` of
+them; `vehicles` and `text-tiles` are the delivered vehicle sprite library and text tiles and name no course image.
+Course identity does not include its images: they do not change the driving.
+[Development](development.md#build-outputs) owns the index and output layout.
 
 `name` is the course's display name: nonblank printable ASCII (the
 [text tiles'](image-assets.md#text-tiles) characters) without surrounding whitespace, at most `nameCodeUnits`
@@ -105,7 +105,7 @@ resolve authored references.
 
 Section `sprites` is an ordered array of `sprite` or `repeat` elements. A sprite is
 `{kind:"sprite",image,palette,at,lateral,groundOffset,unselectedCarriageway,body}`.
-`image` names a sprite image in the course `assets`; `palette` is a required nonempty name
+`image` names a sprite image; `palette` is a required nonempty name
 without surrounding whitespace, declared by that image. To use its default color, write the image's
 `defaultPalette` name explicitly; arrays, null and omission are invalid. Compilation rejects unknown
 names with `unresolved_reference` at the sprite's `/palette` JSON Pointer.
@@ -120,7 +120,7 @@ index is its identity; the solid objects and the appearance are both compiled fr
 positive width in metres, and `movable` null for a fixed object or `{mass, launchDegrees, knocked: {airborne, landed}}`
 for a movable one ([Roadside objects](#roadside-objects)): `mass` in kilograms (positive, up to `objectMassKilograms`),
 `launchDegrees` the elevation a hit throws it at (0 or more, under 90; one `invalid_numeric_domain` outside), and
-`airborne` and `landed` the sprite images in the course `assets` it shows while
+`airborne` and `landed` the sprite images it shows while
 flying and once landed, drawn in the placement's palette (they may name one image twice). Compilation rejects a width
 wider than the image's world width (its master width at 40 texels/m) and a body on a state-selected sign
 (`invalid_placement`); the appearance compiler resolves the knocked images like the placement's own.
@@ -137,10 +137,10 @@ it before every exit cut; a sprite's image width is not a length along s and doe
 Section `environments` is an array at the same level as `strips` and `sprites`, with at least one element; every
 Section has a compiled appearance. The environment list must begin at s=0.
 An environment element is `{at,name,background}` or a `repeat`; background is
-`{image,horizonY,yawOrigin}`, naming an image in the course `assets` that uses the tiled
+`{image,horizonY,yawOrigin}`, naming an image that uses the tiled
 background format. Sprite and background references are a Section's only relation to images: an
-image outside the course `assets` is `unresolved_reference`, and a Section's images are exactly those
-its sprites and backgrounds reference. After expansion, environment knots must begin at s=0 and strictly increase
+image without a delivered file is `asset_missing`, and a Section's images are exactly those its sprites and
+backgrounds reference. After expansion, environment knots must begin at s=0 and strictly increase
 inside `[0,Section.length)`, in expanded order. The compiler does not sort them.
 Environment changes affect BG and labels independently of ground colors.
 Background `yawOrigin` is an absolute angle in the authored Section coordinate frame: zero faces +Z
@@ -370,7 +370,7 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | `idCodeUnits`                                                           |                128 | 64-character stable paths/names × 2                                                                                                                                       |
 | `nameCodeUnits`                                                         |                 40 | One line of the 40-column text grid                                                                                                                                       |
 | Graph `sections` / `links`                                              |          128 / 384 | 50 positions × 2, rounded up; three outgoing choices per Section                                                                                                          |
-| Document `assets`                                                       |               2048 | (50 × 16 local image types + 128 shared types) × 2, rounded up                                                                                                            |
+| Images a course names (`images`)                                        |               2048 | (50 × 16 local image types + 128 shared types) × 2, rounded up                                                                                                            |
 | Section `pis`                                                           |                512 | (21 × 10 + 2 endpoints) × 2, rounded up                                                                                                                                   |
 | Section `heightNodes`                                                   |               1024 | (21 × 20 + 2) × 2, rounded up                                                                                                                                             |
 | Each Boundary/Strip `knots`                                             |               1024 | Same 20/km knot density and margin                                                                                                                                        |
@@ -416,8 +416,8 @@ Slab crossings and moving-edge preblend event counts depend on geometry, so inpu
 cannot guarantee derived counts; compilation checks the actual products and rejects excess.
 The 21 km density case, a nearly 42 km case reaching PI/PVI/knot/Boundary/Strip/placement ceilings,
 and 50- and 128-Section three-choice graphs are disposable measured probes; their times, memory and
-compiled counts belong in the PR. Images have their own aggregate bound; repeated descriptors of one
-digest share a source. Authored JSON size does not include the separately supplied image bytes.
+compiled counts belong in the PR. Images have their own aggregate bound; each named image is one source. Authored
+JSON size does not include the separately supplied image bytes.
 
 Positions resolve a Section-local PI (arc midpoint for an interior PI, endpoint otherwise) plus signed
 offset. Their stations must lie in the finite Section and intervals must be positively representable.
@@ -628,19 +628,18 @@ clock state belong to Sessions. Object identity is local to a compilation; cross
 `sourceSha256` and `materialsSha256` are the delivered SHA-256 of the course document and the
 surface-material document, the [document identity](#reference-times-and-clock) the catalog supplies.
 `buildSha256` hashes `{sourceSha256,materialsSha256,compiler}`.
-The compiler is `superoutride.course-compiler` version 42, incorporating Link recipe v3, physical
-recipe v8, image-source recipe v2 and appearance recipe v14. Source, material or compiler/recipe
+The compiler is `superoutride.course-compiler` version 43, incorporating Link recipe v3, physical
+recipe v8, image-source recipe v3 and appearance recipe v14. Source, material or compiler/recipe
 changes invalidate dependent products.
 
-Image inputs are explicit saved bytes addressed by each declared SHA-256. Shared digests resolve to
-one immutable source. [Image assets](image-assets.md#course-image-sources) owns source formats and diagnostics.
+Image inputs are explicit saved bytes, one per image the course names. [Image assets](image-assets.md#course-image-sources) owns source formats and diagnostics.
 Draft saving is independent of image-byte availability.
 
 `readCourseDocument` is the only course-document admission. Each caller that admits (delivery, the
 content build, authoring tools) supplies its document path once, and receives a detached, deeply frozen
 `CourseDocument`. `compileCourseDocument` receives that admitted value and does not admit it again.
-Build image compilation derives the delivered document from it by replacing asset digests with its
-own products. Results and input diagnostics follow the shared
+Build image compilation delivers, under each name, a placement's sprite master compiled to its LOD and every other
+image as its compact JSON; the delivered course document is the admitted one. Results and input diagnostics follow the shared
 [admission contract](architecture.md#content-admission-toolkit); clients use code and path.
 The `plan_coordinate_overlap` variant additionally requires
 `overlap: {section, intervals: [{sStart, sEnd}, ...]}`; ordinary diagnostics have no overlap fields.

@@ -74,7 +74,8 @@ splits around its farthest representatives. Representatives are area-weighted mi
 stable input order resolves ties. Color or lamp edits invalidate the generated pyramid.
 
 The vehicle sprite set documents under `content/sprites/` hold normalized masters with yaw/bank bindings.
-Their generated library uses the same `dist/delivery/images/<sha256>.json` location as course images.
+Their generated library uses the same `dist/delivery/images/<sha256>.json` location as course images; its manifest ID,
+`vehicles`, names no course image.
 The content manifest maps the logical image name `vehicles` to its path and exact-byte SHA-256;
 courses find their images by that digest ([Content and gameplay](content-and-gameplay.md#geometry-and-reference-records)).
 All consumers resolve these entries through the manifest
@@ -205,8 +206,9 @@ vehicle image has lamp pixels: those inside a `lamp` rectangle or whose source c
 describes, with the recipe's palette. A vehicle image is normalized with its 15 colors and slot 15 repeating slot 1,
 which the area filter's lower-code tie rule never chooses, so artwork never takes slot 15. Then the lamp mask, as an
 image of the same alpha (lamp pixels white, others black), is normalized the same way, and each opaque texel whose
-lamp sample is white takes slot 15. A course image is written as its content-addressed file,
-`content/images/<sha256>.json` with the master's compact JSON; binding it to a course is the course's edit.
+lamp sample is white takes slot 15. A course image is written as its named file, `content/images/<name>.json` with
+the master in the saved layout, `<name>` being the source's name; it replaces an image of that name, so every course
+naming it shows the new image. Naming it in a course is the course's edit.
 
 **Sets.** An imported image joins a set with every palette name of the set, each starting as its own colors, and the
 set's default palette. Images are added, replaced (every cell showing one shows the new one) and removed (only when
@@ -232,15 +234,15 @@ not return to its code when the adjustment is undone.
 
 ## Course image sources
 
-Each declared digest receives explicit `{sha256,bytes:Uint8Array}` input. Exact bytes must match the
-lowercase SHA-256 and valid UTF-8 JSON for the corresponding sprite/BG format. Admission decodes each
-unique digest once into an immutable reader, a `SpriteAsset` or a tiled background; aliased descriptors
-share it, Section membership resolves to canonical descriptors, and rendering borrows it without decoding.
+Each image a course names receives explicit `{name,bytes:Uint8Array}` input: valid UTF-8 JSON for the sprite or BG
+format. Admission works out each image's SHA-256 from its bytes and decodes each name once into an immutable reader,
+a `SpriteAsset` or a tiled background; Section membership resolves to those, and rendering borrows them without
+decoding. Delivery checks the bytes against the manifest digest before they reach admission.
 
 Course image admission uses the single [document resource table](content-and-gameplay.md#numeric-and-resource-domains)
-for descriptor count, per-image bytes/texels and aggregate unique-source bytes/texels. Missing, duplicate, undeclared,
-corrupt or malformed inputs fail. Asset diagnostics contain `kind:"asset"`, code, digest, referring
-asset indices and supplied input index where applicable; an invalid image also carries the JSON
+for the image count, per-image bytes/texels and aggregate bytes/texels. Missing, duplicate, unused, corrupt or
+malformed inputs fail. Asset diagnostics contain `kind:"asset"`, code, the image's name and the supplied input
+index where applicable; an invalid image also carries the JSON
 Pointer `path` of its failure inside that image; independent failures follow declaration order.
 Failure publishes no graph. The compiled course holds only the readers; build tools that compile a
 master read the admitted, frozen saved document alongside its reader instead of admitting it again.

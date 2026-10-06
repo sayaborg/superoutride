@@ -11,7 +11,7 @@ import {
   requireCourse,
   type CourseResult,
 } from '../course-diagnostics.js';
-import type { CourseDocument, CourseRules, SectionDocument } from '../course-document.js';
+import { courseImageNames, type CourseDocument, type CourseRules, type SectionDocument } from '../course-document.js';
 import { compileCourseGeometry, resolveCoursePosition } from '../course-geometry.js';
 import { compileMaterialCoordinateDomain } from '../course-coordinate-domain.js';
 import { validateMaterialContinuity } from '../strip-material.js';
@@ -28,7 +28,7 @@ import {
 import {
   COURSE_IMAGE_SOURCE_RECIPE,
   compileCourseImageSources,
-  type CourseAssetBytes,
+  type CourseImageBytes,
   type CompiledCourseImageSource,
 } from './course-image-source.js';
 import { COURSE_APPEARANCE_RECIPE, compileCourseAppearance, createCourseSpriteResources } from './course-appearance.js';
@@ -71,7 +71,7 @@ export interface CompiledCourse {
 
 const COURSE_COMPILER = Object.freeze({
   id: 'superoutride.course-compiler',
-  version: 42,
+  version: 43,
   links: COURSE_LINK_RECIPE,
   physical: COURSE_PHYSICAL_RECIPE,
   images: COURSE_IMAGE_SOURCE_RECIPE,
@@ -221,13 +221,13 @@ export async function compileCourseDocument(
   document: CourseDocument,
   id: string,
   sha256: string,
-  assetSources: readonly CourseAssetBytes[],
+  assetSources: readonly CourseImageBytes[],
   materials: SurfaceMaterialCatalog,
   documentPath = '',
 ): Promise<CourseResult<CompiledCourse>> {
   try {
     requireCourse(document.sections.length > 0, '/sections', 'A course requires a Section', 'empty_course');
-    const images = await compileCourseImageSources(document.assets, assetSources);
+    const images = await compileCourseImageSources(courseImageNames(document), assetSources);
     if (!images.ok) return images;
     const assets = new Map(images.value.map((asset) => [asset.id, asset]));
     const resources = createCourseSpriteResources();

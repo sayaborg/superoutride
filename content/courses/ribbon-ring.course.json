@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 41,
+  "version": 42,
   "name": "RIBBON RING",
   "entry": "ring-outward",
   "maxLaps": 3,
@@ -983,9 +983,5 @@
       "from": { "section": "ring-return", "carriageway": "road" },
       "to": "ring-outward"
     }
-  ],
-  "assets": [
-    { "id": "coast-sky", "sha256": "0e4c15f03d93e1202735af76ae62f620d6adb0ae060236670fd58feff95fad00" },
-    { "id": "tree", "sha256": "99304e169e065b4528945b14eac5082a84356ee2218e72e99571a971c64eeb40" }
   ]
 }

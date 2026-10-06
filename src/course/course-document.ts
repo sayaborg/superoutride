@@ -1,6 +1,5 @@
 import type { RepeatElement } from './course-repeat.js';
 import { COURSE_DOCUMENT_LIMITS } from './course-limits.js';
-import { SHA256_TEXT } from '../core/content-digest.js';
 import { SESSION_RULE_LIMITS } from './session-rules.js';
 import { TEXT_CHARACTERS } from '../image/text-tiles.js';
 import { CourseInputError, courseFailure, courseSuccess, type CourseResult } from './course-diagnostics.js';
@@ -16,7 +15,7 @@ import {
 } from '../core/admission.js';
 import { readRgb555 } from '../image/rgb555.js';
 
-const COURSE_DOCUMENT_VERSION = 41;
+const COURSE_DOCUMENT_VERSION = 42;
 const ID = { maxLength: COURSE_DOCUMENT_LIMITS.idCodeUnits };
 
 export interface CoursePosition {
@@ -51,12 +50,6 @@ interface LinkDocument {
   readonly from: { readonly section: string; readonly carriageway: string };
   /** The Section the Link enters. */
   readonly to: string;
-}
-
-/** External content identity only; no I/O or claim of payload readiness at this boundary. */
-export interface CourseAssetReference {
-  readonly id: string;
-  readonly sha256: string;
 }
 
 interface StripDocument {
@@ -215,7 +208,6 @@ export interface CourseDocument {
   readonly maxLaps: number;
   readonly sections: readonly SectionDocument[];
   readonly links: readonly LinkDocument[];
-  readonly assets: readonly CourseAssetReference[];
 }
 
 function position(value: unknown, path: string): CoursePosition {
@@ -645,7 +637,7 @@ export function readCourseDocument(input: unknown, document = ''): CourseResult<
     // Format and version are checked before the current schema's fields.
     const v = readDocument(
       input,
-      ['format', 'version', 'name', 'entry', 'maxLaps', 'sections', 'links', 'assets'],
+      ['format', 'version', 'name', 'entry', 'maxLaps', 'sections', 'links'],
       'superoutride.course',
       COURSE_DOCUMENT_VERSION,
     );
@@ -677,19 +669,6 @@ export function readCourseDocument(input: unknown, document = ''): CourseResult<
         },
         { max: COURSE_DOCUMENT_LIMITS.links },
       ),
-      assets: readIdentified(
-        v.assets,
-        '/assets',
-        (item, at) => {
-          const a = readRecord(item, at, ['id', 'sha256']);
-          const sha256 = readString(a.sha256, `${at}/sha256`, {
-            ...SHA256_TEXT,
-            patternMessage: 'Expected lowercase SHA-256 of saved sprite-lod bytes',
-          });
-          return Object.freeze({ id: readString(a.id, `${at}/id`, ID), sha256 });
-        },
-        { max: COURSE_DOCUMENT_LIMITS.assets },
-      ),
     });
     const gateIds = new Set<string>();
     let gateCount = 0;
@@ -709,11 +688,39 @@ export function readCourseDocument(input: unknown, document = ''): CourseResult<
         }
       });
     });
+    if (courseImageNames(result).length > COURSE_DOCUMENT_LIMITS.images)
+      throw new CourseInputError(
+        'resource_limit',
+        '/sections',
+        `A course uses at most ${COURSE_DOCUMENT_LIMITS.images} images`,
+      );
     return courseSuccess(result);
   } catch (error) {
     if (error instanceof AdmissionError) return courseFailure(error, document);
     throw error;
   }
+}
+
+/**
+ * The images a course uses, by name, each once in order of first use: its environments' backgrounds and its sprites'
+ * images, a movable body's knocked images included. They are the files `content/images/<name>.json`.
+ */
+export function courseImageNames(document: CourseDocument): readonly string[] {
+  const names = new Set<string>();
+  const visit = <T>(elements: readonly RepeatElement<T>[], leaf: (element: T) => void) => {
+    for (const element of elements)
+      if ((element as { kind?: unknown }).kind === 'repeat')
+        visit((element as { elements: RepeatElement<T>[] }).elements, leaf);
+      else leaf(element as T);
+  };
+  for (const section of document.sections) {
+    visit(section.environments, (environment) => names.add(environment.background.image));
+    visit(section.sprites, (sprite) => {
+      names.add(sprite.image);
+      if (sprite.body?.movable) names.add(sprite.body.movable.knocked.airborne).add(sprite.body.movable.knocked.landed);
+    });
+  }
+  return [...names];
 }
 
 /**

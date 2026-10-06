@@ -26,7 +26,7 @@ function diagnosticsByDocument(
   const state = context.compile();
   if (state.status !== 'failed') return result;
   for (const diagnostic of state.diagnostics as readonly WorkbenchDiagnostic[]) {
-    const document = 'document' in diagnostic ? diagnostic.document : `content/images/${diagnostic.sha256}.json`;
+    const document = 'document' in diagnostic ? diagnostic.document : `content/images/${diagnostic.image}.json`;
     if (!document) continue;
     const pointer = ('path' in diagnostic ? diagnostic.path : '') ?? '';
     const path = document.replace(/^content\//, '');

@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 41,
+  "version": 42,
   "name": "RIBBON COAST",
   "entry": "coast-wide",
   "maxLaps": 1,
@@ -2636,17 +2636,5 @@
       "from": { "section": "town", "carriageway": "road" },
       "to": "coast-fast"
     }
-  ],
-  "assets": [
-    { "id": "coast-sky", "sha256": "0e4c15f03d93e1202735af76ae62f620d6adb0ae060236670fd58feff95fad00" },
-    { "id": "hill-sky", "sha256": "ba3335624824ef3af6169e92f832bf4adeb870a5e5f2f7db3dcfa40aab4b635e" },
-    { "id": "tree", "sha256": "99304e169e065b4528945b14eac5082a84356ee2218e72e99571a971c64eeb40" },
-    { "id": "fork-warning", "sha256": "6a9cd48d0640c95bc688e449b58af39f47f110decf96a450959f5da3b05e57f8" },
-    { "id": "cone", "sha256": "bd27a16247f45bcbea25ff341b3b3c33933a6f70ec43afc8d97192344c84ca70" },
-    { "id": "cone-flying", "sha256": "e008814c1bdd4a17048a82304d4e555d9b1e103a2212f69d9896a64bebdcdc1a" },
-    { "id": "cone-down", "sha256": "883f2ce6e92f01916d120b3fbfad7cf4935f6379b63b950f224c77e2a3622620" },
-    { "id": "barricade", "sha256": "865e005afc10f129b320b3f813ab9c104589a6469d39762c607278edd83637aa" },
-    { "id": "barricade-flying", "sha256": "3250ab277f2b484e58b6bf318d221f15ab770451eba92391519866712bc6da04" },
-    { "id": "barricade-down", "sha256": "79f3101a624a540e510765fafc4eb8978e36b6b554046ebdf069f0fd9b01d7f7" }
   ]
 }

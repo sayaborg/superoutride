@@ -344,9 +344,9 @@ export function mountSourceView(
   );
   writeCourse.addEventListener('click', async () => {
     if (!master) return;
-    const file = await courseImageFile(master);
+    const file = courseImageFile(master);
     context.setFile(file.path, file.bytes, `Write course image ${master.name}`);
-    note.textContent = `Wrote content/${file.path}; a course's assets refer to it by sha256 ${file.sha256}.`;
+    note.textContent = `Wrote content/${file.path}; courses use it by its name, ${master.name}.`;
   });
 
   // Dragging on the source with a tool: one recipe edit on release.

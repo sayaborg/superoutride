@@ -1,56 +1,48 @@
+import type { CourseDocument } from '../../src/course/course-document.js';
+import { courseImageNames } from '../../src/course/course-document.js';
 import { expandCourseElements } from '../../src/course/course-repeat.js';
 import { COURSE_DOCUMENT_LIMITS } from '../../src/course/course-limits.js';
-import type { CourseDocument } from '../../src/course/course-document.js';
-import type { CourseAssetBytes } from '../../src/course/compiler/course-image-source.js';
-import { contentDigest } from '../../src/core/content-digest.js';
+import type { CourseImageBytes } from '../../src/course/compiler/course-image-source.js';
 import { readCourseImageSources } from '../../src/course/compiler/course-image-source.js';
+import { CourseAssetError, courseFailures } from '../../src/course/course-diagnostics.js';
+import { encodeContentJson } from '../../src/content/content-manifest.js';
 import { compileSpriteLod } from '../graphics/sprite-lod-compiler.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
 
+/** Delivered image IDs that are not course images: a course cannot name an image so. */
+export const RESERVED_IMAGE_NAMES: readonly string[] = ['vehicles', 'text-tiles'];
+
 /**
- * Build-only image compilation; derived course references bind the exact delivered LOD bytes.
- * Only sprite masters are admitted here, each once; every other input passes through unchanged and
- * is admitted once with the delivered document.
+ * Build-only image compilation: the delivered bytes of each image a course names, by that name. A placement's sprite
+ * master becomes its compiled LOD; every other image (backgrounds, knocked images) is delivered as its compact JSON.
+ * The course document itself is unchanged.
  */
-export async function compileCourseImages(document: CourseDocument, inputs: readonly CourseAssetBytes[]) {
-  const spriteIds = new Set<string>();
+export async function compileCourseImages(document: CourseDocument, inputs: readonly CourseImageBytes[]) {
+  const names = courseImageNames(document);
+  const reserved = names.filter((name) => RESERVED_IMAGE_NAMES.includes(name));
+  if (reserved.length)
+    requireLoaded(
+      courseFailures(
+        reserved.map((name) => new CourseAssetError('asset_invalid_image', name, 'This image name is reserved')),
+      ),
+    );
+  const placed = new Set<string>();
   for (const section of document.sections)
     expandCourseElements(
       section.sprites,
       '/sprites',
       COURSE_DOCUMENT_LIMITS.spritePlacements * (2 * COURSE_DOCUMENT_LIMITS.repeatDepth + 1),
       (sprite) => {
-        spriteIds.add(sprite.image);
+        placed.add(sprite.image);
       },
     );
-  const spriteReferences = document.assets.filter((asset) => spriteIds.has(asset.id));
-  const spriteDigests = new Set(spriteReferences.map((asset) => asset.sha256));
-  const masters = requireLoaded(
-    await readCourseImageSources(
-      spriteReferences,
-      inputs.filter((input) => spriteDigests.has(input.sha256)),
-    ),
-  );
-  const lods = new Map<string, CourseAssetBytes>();
-  for (const master of masters) {
-    if (master.kind !== 'sprite') throw new RangeError('Sprites require a sprite master');
-    if (lods.has(master.sha256)) continue;
-    const bytes = new TextEncoder().encode(
-      JSON.stringify(compileSpriteLod(master.document, [[]], master.image)) + '\n',
-    );
-    lods.set(master.sha256, { sha256: await contentDigest(bytes), bytes });
-  }
-  const original = new Map(inputs.map((input) => [input.sha256, input]));
-  const products = new Map<string, CourseAssetBytes>();
-  const assets = document.assets.map((asset) => {
-    const input = spriteIds.has(asset.id) ? lods.get(asset.sha256) : original.get(asset.sha256);
-    if (input) products.set(input.sha256, input);
-    return Object.freeze({ id: asset.id, sha256: input?.sha256 ?? asset.sha256 });
-  });
-  // Unreferenced inputs pass through so the delivered document's admission reports them.
-  for (const input of inputs)
-    if (!products.has(input.sha256) && !spriteDigests.has(input.sha256)) products.set(input.sha256, input);
-  // Only asset digests change: the replacements are this tool's own products, so the admitted document stays admitted.
-  const derived: CourseDocument = Object.freeze({ ...document, assets: Object.freeze(assets) });
-  return { document: derived, images: [...products.values()] };
+  const admitted = requireLoaded(await readCourseImageSources(names, inputs));
+  const images: CourseImageBytes[] = admitted.map((image) => ({
+    name: image.id,
+    bytes:
+      image.kind === 'sprite' && placed.has(image.id)
+        ? new TextEncoder().encode(JSON.stringify(compileSpriteLod(image.document, [[]], image.image)) + '\n')
+        : encodeContentJson(image.document),
+  }));
+  return { document, images };
 }

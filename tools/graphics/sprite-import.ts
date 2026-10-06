@@ -9,9 +9,8 @@ import {
 } from '../../src/core/admission.js';
 import type { PNG as PngDecoder } from 'pngjs';
 import { admit } from '../../src/core/admission.js';
-import { contentDigest } from '../../src/core/content-digest.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
-import { encodeContentJson } from '../../src/content/content-manifest.js';
+import { formatSavedJson } from '../../src/content/saved-json.js';
 import { readRgb555, rgba, rgbaToRgb555, unpackRgba } from '../../src/image/rgb555.js';
 import type { ContentStore } from '../authoring/content-store.js';
 import { decodeSpritePng } from './sprite-png.js';
@@ -191,9 +190,10 @@ export async function importSpriteSource(
   return { recipe, master: importSprite(await decodeSpritePng(await store.read(`${base}.png`), PNG), recipe, name) };
 }
 
-/** A course image master as its content-addressed file: `images/<sha256>.json` holding its compact JSON. */
-export async function courseImageFile(master: SpriteLodDocument) {
-  const bytes = encodeContentJson(master);
-  const sha256 = await contentDigest(bytes);
-  return { path: `images/${sha256}.json`, sha256, bytes };
+/**
+ * A course image master as its named file, `images/<name>.json` in the saved layout: the source's name, which courses
+ * use. Writing it replaces an image of that name, so every course using the name shows the new image.
+ */
+export function courseImageFile(master: SpriteLodDocument) {
+  return { path: `images/${master.name}.json`, bytes: new TextEncoder().encode(formatSavedJson(master)) };
 }

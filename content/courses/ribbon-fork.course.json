@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 41,
+  "version": 42,
   "name": "RIBBON FORK",
   "entry": "junction-road",
   "maxLaps": 1,
@@ -1349,11 +1349,5 @@
       "from": { "section": "garden-route", "carriageway": "road" },
       "to": "home-road"
     }
-  ],
-  "assets": [
-    { "id": "coast-sky", "sha256": "0e4c15f03d93e1202735af76ae62f620d6adb0ae060236670fd58feff95fad00" },
-    { "id": "tree", "sha256": "99304e169e065b4528945b14eac5082a84356ee2218e72e99571a971c64eeb40" },
-    { "id": "fork-warning", "sha256": "6a9cd48d0640c95bc688e449b58af39f47f110decf96a450959f5da3b05e57f8" },
-    { "id": "fork-closed", "sha256": "4e50983b03f9f3a25dba9cf5fc6f4a35953c9b14173e4019ec2183c6900c3e6b" }
   ]
 }

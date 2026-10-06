@@ -10,7 +10,7 @@ import { authoredDocumentSource, type DocumentSource } from '../../src/content/d
 import { encodeContentJson } from '../../src/content/content-manifest.js';
 import { compileCourseDocument, type CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import { admitSeriesCourse, compileSeriesCatalog, type SeriesCourse } from '../../src/content/series-catalog.js';
-import { readCourseDocumentBytes } from '../../src/course/course-document.js';
+import { courseImageNames, readCourseDocumentBytes } from '../../src/course/course-document.js';
 import { CourseAssetError, courseFailures } from '../../src/course/course-diagnostics.js';
 import type { SurfaceMaterialCatalog } from '../../src/course/surface-material.js';
 import { compileSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
@@ -290,15 +290,15 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
   for (const { name, bytes } of await read('courses', '.course.json')) {
     const path = `content/courses/${name}`;
     const imageBytes = [];
-    for (const sha256 of namedImages(bytes))
-      imageBytes.push(sha256, await store.read(`images/${sha256}.json`).catch(() => sha256));
+    for (const image of namedImages(bytes))
+      imageBytes.push(image, await store.read(`images/${image}.json`).catch(() => image));
     courses.push(
       await stage(`course:${name}`, [materials.key, wallSounds.key, bytes, ...imageBytes], async () => {
         const document = requireLoaded(readCourseDocumentBytes(bytes, path));
         requireLoaded(admitCourseWallSounds(document, wallSounds.value.catalog, path));
         const prepared = await compileCourseImages(
           document,
-          await readCourseImages(document.assets, (file) => store.read(`images/${file}`)),
+          await readCourseImages(courseImageNames(document), (file) => store.read(`images/${file}`)),
         );
         const id = courseFileId(name);
         const compiled = requireLoaded(
@@ -315,7 +315,7 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
           compiled,
           files: [
             deliveredFile('course', id, encodeContentJson(prepared.document)),
-            ...prepared.images.map((image) => deliveredFile('image', image.sha256, new Uint8Array(image.bytes))),
+            ...prepared.images.map((image) => deliveredFile('image', image.name, new Uint8Array(image.bytes))),
           ],
         };
       }),
@@ -383,20 +383,20 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
   });
 }
 
-/** The image digests a course document's bytes name, read leniently: only to key the course's stage. */
+/** The image names a course document's bytes use, read leniently: only to key the course's stage. */
 function namedImages(bytes: Uint8Array): string[] {
+  const names = new Set<string>();
+  const visit = (value: unknown, key: string) => {
+    if (typeof value === 'string' && ['image', 'airborne', 'landed'].includes(key)) names.add(value);
+    else if (Array.isArray(value)) for (const item of value) visit(item, '');
+    else if (value && typeof value === 'object') for (const [k, item] of Object.entries(value)) visit(item, k);
+  };
   try {
-    const assets = (parseJson(bytes) as { assets?: unknown }).assets;
-    if (!Array.isArray(assets)) return [];
-    const digests = assets.map((asset) => (asset as { sha256?: unknown } | null)?.sha256);
-    return [
-      ...new Set(
-        digests.filter((sha256): sha256 is string => typeof sha256 === 'string' && /^[0-9a-f]{64}$/.test(sha256)),
-      ),
-    ];
+    visit(parseJson(bytes), '');
   } catch {
     return [];
   }
+  return [...names].filter((name) => /^[a-zA-Z0-9_-][a-zA-Z0-9_.-]*$/.test(name));
 }
 
 /**

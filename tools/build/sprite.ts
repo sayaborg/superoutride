@@ -43,9 +43,9 @@ try {
     const { recipe, master } = await importSpriteSource(store, subject, PNG);
     if (recipe.target === 'course') {
       requireInput(!opts.size, '/arguments', 'A course image belongs to no set');
-      const file = await courseImageFile(master);
+      const file = courseImageFile(master);
       await store.write(file.path, file.bytes);
-      console.log(JSON.stringify({ ok: true, image: `content/${file.path}`, sha256: file.sha256 }));
+      console.log(JSON.stringify({ ok: true, image: `content/${file.path}`, name: master.name }));
     } else {
       requireInput(opts.has('--set'), '/arguments', 'A vehicle image names its --set');
       const name = opts.get('--set')!;

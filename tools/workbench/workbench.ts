@@ -354,8 +354,8 @@ function showDiagnostics(context: WorkbenchContext) {
   panel.toggleAttribute('data-failed', count > 0);
   if (state.status !== 'failed') return;
   for (const diagnostic of state.diagnostics as readonly WorkbenchDiagnostic[]) {
-    // A course asset diagnostic names its saved image by digest.
-    const documentPath = 'document' in diagnostic ? diagnostic.document : `content/images/${diagnostic.sha256}.json`;
+    // A course image diagnostic names the image's file by its name.
+    const documentPath = 'document' in diagnostic ? diagnostic.document : `content/images/${diagnostic.image}.json`;
     const where = ('path' in diagnostic ? diagnostic.path : '') ?? '';
     const item = document.createElement('li');
     const button = document.createElement('button');

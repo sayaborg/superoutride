@@ -4,7 +4,7 @@ import type { ContentLoadDiagnostic } from '../../src/content/content-load-error
 import { readFile, mkdir, writeFile, rename, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { readCourseDocumentBytes } from '../../src/course/course-document.js';
+import { courseImageNames, readCourseDocumentBytes } from '../../src/course/course-document.js';
 import { compileContent, type CompiledContent, type ContentCompilation } from '../authoring/compile-content.js';
 import type { ContentStore } from '../authoring/content-store.js';
 import { createNodeContentStore } from '../build/node-content-store.js';
@@ -103,7 +103,7 @@ export async function loadCourse(file: string, imagesDirectory?: string) {
   const id = courseFileId(file);
   const document = readCourseDocumentBytes(await store.read(`courses/${id}.course.json`), file);
   if (!document.ok) throw new AuthoringError(document.diagnostics);
-  const images = await readCourseImages(document.value.assets, (name) => store.read(`images/${name}`));
+  const images = await readCourseImages(courseImageNames(document.value), (name) => store.read(`images/${name}`));
   return {
     document: document.value,
     course: content.courses.find((course) => course.id === id)!,
