@@ -115,9 +115,9 @@ function compileSection(
   materials: SurfaceMaterialCatalog,
   path: string,
 ) {
-  const { segments, length, stations } = compileCourseGeometry(section, path);
+  const { segments, length, joints } = compileCourseGeometry(section, path);
   const resolve = (position: Parameters<typeof resolveCoursePosition>[0], at: string) =>
-    resolveCoursePosition(position, stations, length, at);
+    resolveCoursePosition(position, joints, at);
   const boundaries = compileCourseBoundaries(section.boundaries, resolve, `${path}/boundaries`);
   const boundaryTable = new Map(boundaries.map((boundary) => [boundary.id, boundary]));
   const carriageways = compileStage(section.carriageways, (source, index): CompiledCarriageway => {
@@ -195,7 +195,7 @@ function compileSection(
   };
   return {
     section: result,
-    stations,
+    joints,
     compileAppearance,
     controls: section.gates.flatMap((gate, index) =>
       gate.kind === 'lock' || gate.kind === 'closure'
@@ -287,7 +287,7 @@ export async function compileCourseDocument(
       type,
       sections,
       entry,
-      new Map(drafts.map((draft) => [draft.section, draft.stations])),
+      new Map(drafts.map((draft) => [draft.section, draft.joints])),
     );
     // Close every cycle before freezing/publication. No draft or construction table escapes.
     for (const section of sections) {

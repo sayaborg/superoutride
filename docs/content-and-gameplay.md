@@ -27,7 +27,7 @@ authoring core and its tools save a course document that admits in that order.
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 44,
+  format: "superoutride.course", version: 45,
   name, entry, maxLaps,
   sections, links
 }
@@ -424,7 +424,9 @@ A Section's plan is its centreline from its origin facing +Z: straights and arcs
 the centreline, an arc turning `length / radius` radians to its `turn` side. The Section's length is the sum of the
 lengths. A plan has at least one element, no straight follows a straight, and no arc follows an arc of the same
 radius and turn (`invalid_plan`). Its joints are each element's start and the Section's end, `"end"`. A Position
-resolves its joint's station plus signed offset. Stations must lie in the finite Section and intervals must be
+resolves its joint's station plus signed offset, and is measured from the joint nearest that station; of two as near,
+the earlier (`invalid_position` otherwise). So a Position is written one way, and a thing near a curve moves with it
+when the road before it is edited. Stations must lie in the finite Section and intervals must be
 positively representable. Resolved Lateral values also obey the lateral ceiling.
 Palette size, RGB555 range, SHA-256 length, glyph dimensions and angle units
 are format values, not entries in the resource table. Session rival/lap/time-margin rules remain owned by
@@ -557,8 +559,12 @@ and each lateral's number, or a reference's `offset` (the reference stays); a re
 so moving any copy moves the original and every copy. A move can
 be limited to some fields (a wall's `start`, a Strip's `left`) and snapped: each changed value goes to the nearest
 multiple of a step, nothing else. Derived points do not move. `addCoursePlanElement` inserts a straight or arc with a new id;
-`removeCoursePlanElement` is refused while a Position in its Section measures from its joint. An edit may produce a document admission
-rejects; the compile's diagnostics then say why.
+`removeCoursePlanElement` is refused while a Position in its Section measures from its joint.
+`normalizeCoursePositions` measures every Position again from the joint nearest its station, the station kept and the
+offset written to 1e-9 m. Every edit and operation that changes form ends with it over the Sections it changed, so a
+plan edit, whose joints move, and a move past a midpoint between joints leave each Position written the one way; the
+rewritten Positions are among the changes. An edit may produce a document admission rejects; the compile's
+diagnostics then say why.
 
 **Operations that change form** ([`course-forms.ts`](../tools/authoring/course-forms.ts)) are made only when an author
 chooses them. Each returns the new document, each changed value's Pointer, before and after, and the shift: the largest
@@ -576,7 +582,8 @@ resolved values are written to 1e-9 m, which drops floating-point noise.
   the element's station; between knots the line then follows the Boundary. `unbindCourseLateral` makes a reference the
   number it resolves to at the element's station; between knots the line then runs straight. A Boundary cannot refer
   to itself.
-- `reanchorCoursePosition` measures a Position from another joint of its Section, its offset chosen so its station stays.
+- `reanchorCoursePosition` measures a Position from another joint of its Section, its offset chosen so its station
+  stays; the normalization that ends it measures it again from the nearest joint.
 
 **Cleaning operations** ([`course-cleaning.ts`](../tools/authoring/course-cleaning.ts)) work in two phases over a scope
 (the course, a Section, chosen elements and what they hold, or element kinds). The first proposes candidates, each with

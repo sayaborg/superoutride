@@ -123,7 +123,7 @@ node --import tsx tools/course/measure.ts request.json --out observations.json
 `structure` prints the document's form as JSON
 ([Course authoring operations](content-and-gameplay.md#course-authoring-operations)), read alone without compiling
 the content, so a document that does not compile still shows; `--section` keeps one Section.
-`set`, `move`, `add-plan` and `remove-plan` make the
+`set`, `move`, `add-plan`, `remove-plan` and `normalize` make the
 [edits that keep form](content-and-gameplay.md#course-authoring-operations) on the document as saved (`--values` takes
 `/pointer=number` pairs, `--element` an element's Pointer, `--section` a Section's; `add-plan` takes `--index`,
 `--kind` straight or arc, `--length` and an arc's `--radius` and `--turn`), print the

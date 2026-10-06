@@ -46,8 +46,9 @@ import {
   type CourseFormResult,
 } from '../authoring/course-forms.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
+import { normalizeCoursePositions } from '../authoring/course-joints.js';
 
-const EDITS = ['set', 'move', 'add-plan', 'remove-plan'];
+const EDITS = ['set', 'move', 'add-plan', 'remove-plan', 'normalize'];
 const FORMS = ['explode', 'combine', 'bind', 'unbind', 'reanchor'];
 const CLEANING = ['round', 'remove-knots', 'join', 'merge', 'same'];
 const FINDINGS = 'findings';
@@ -96,6 +97,7 @@ async function editVerb(file: string) {
     move: ['--element', '--ds', '--dl', '--fields', '--step'],
     'add-plan': ['--section', '--index', '--kind', '--length', '--radius', '--turn'],
     'remove-plan': ['--element'],
+    normalize: [],
   }[verb!]!;
   const opts = options(args, [...flags, '--out']);
   const document = (await jsonFile(file)).value as Json;
@@ -140,7 +142,8 @@ async function editVerb(file: string) {
         ? { kind, length: number('--length') }
         : { kind, length: number('--length'), radius: number('--radius'), turn: turn as 'left' | 'right' },
     );
-  } else result = removeCoursePlanElement(document, opts.get('--element') ?? '');
+  } else if (verb === 'remove-plan') result = removeCoursePlanElement(document, opts.get('--element') ?? '');
+  else result = { ok: true, ...normalizeCoursePositions(document) };
   requireInput(result.ok, '/edit', result.ok ? '' : result.reason);
   if (opts.has('--out'))
     await atomicWrite(path.resolve(opts.get('--out')!), formatSavedJson(savedCourseDocument(result.document)));

@@ -2,7 +2,7 @@ import type { compileCourseTopology } from './course-links.js';
 import { resolveCourseLateral } from './course-lateral.js';
 import type { CourseDocument, CourseLandmarkDocument } from '../course-document.js';
 import { requireCourse } from '../course-diagnostics.js';
-import { resolveCoursePosition, type CompiledCoursePosition } from '../course-geometry.js';
+import { resolveCoursePosition, type CompiledCoursePosition, type CourseJoints } from '../course-geometry.js';
 import { courseBoundaryAt, courseCarriagewayExists, type CompiledCarriageway } from '../course-boundaries.js';
 import { stripSupportsInterval } from '../strip-material.js';
 import type { CompiledSection } from './course-graph.js';
@@ -22,7 +22,7 @@ export function compileCourseGates(
   type: ReturnType<typeof compileCourseTopology>,
   sections: readonly CompiledSection[],
   entry: CompiledSection,
-  stations: ReadonlyMap<CompiledSection, ReadonlyMap<string, number>>,
+  joints: ReadonlyMap<CompiledSection, CourseJoints>,
 ) {
   const source = { maxLaps: document.maxLaps };
   const check = (condition: boolean, path: string, message: string) =>
@@ -42,7 +42,7 @@ export function compileCourseGates(
   const startGate = start.gate;
 
   const resolve = (section: CompiledSection, position: CourseLandmarkDocument['at'], path: string) =>
-    resolveCoursePosition(position, stations.get(section)!, section.coordinates.domain.end, path);
+    resolveCoursePosition(position, joints.get(section)!, path);
   const endS = (section: CompiledSection) => section.coordinates.domain.end;
   const compile = (g: CourseLandmarkDocument, section: CompiledSection, path: string): CompiledCourseLandmark => {
     const carriageway = section.carriageways.find((c) => c.id === g.carriageway);

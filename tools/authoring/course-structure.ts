@@ -186,7 +186,8 @@ export function createSectionPlan(section: SectionDocument, pointer: string) {
     plan: Object.freeze({
       length: geometry.length,
       segments: geometry.segments,
-      stations: geometry.stations,
+      stations: geometry.joints.stations,
+      joints: geometry.joints,
       toWorld(s: number, l: number) {
         const point = reader.toWorld(s, l, sample);
         return { x: point.x, z: point.z, heading: point.heading };
@@ -211,7 +212,7 @@ export type SectionPlan = NonNullable<ReturnType<typeof createSectionPlan>['plan
 export function createSectionProfile(section: SectionDocument, pointer: string, plan: SectionPlan | null) {
   if (!plan) return { profile: null, problem: null };
   try {
-    const resolve = (at: CoursePosition, path: string) => resolveCoursePosition(at, plan.stations, plan.length, path);
+    const resolve = (at: CoursePosition, path: string) => resolveCoursePosition(at, plan.joints, path);
     return { profile: compileCoursePhysicalContent(section, plan.length, resolve, pointer).height, problem: null };
   } catch (error) {
     return { profile: null, problem: problemOf(error, `${pointer}/profile`) };
@@ -234,7 +235,7 @@ function readSection(
   };
   const resolve = (at: CoursePosition, path: string) => {
     if (!plan) throw new CourseInputError('invalid_plan', path, planProblem?.message ?? 'The plan does not compile');
-    return resolveCoursePosition(at, plan.stations, plan.length, path);
+    return resolveCoursePosition(at, plan.joints, path);
   };
   // Boundaries resolve together, as the compiler resolves them; on failure each knot still reads alone.
   let boundaries: ReadonlyMap<string, CompiledBoundary> = new Map();

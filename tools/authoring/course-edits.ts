@@ -1,6 +1,7 @@
 import { readCourseDocument } from '../../src/course/course-document.js';
 import type { CourseElement } from './course-structure.js';
 import { childPointer, valueAt, withValue, type Json } from './json-pointer.js';
+import { withNormalizedPositions } from './course-joints.js';
 
 /** One written value an edit changes: absent before when added, absent after when removed. */
 export interface CourseChange {
@@ -50,7 +51,7 @@ export function setCourseNumbers(
     next = withValue(next, pointer, value);
     changes.push({ pointer, before, after: value });
   }
-  return { ok: true, document: next, changes };
+  return { ok: true, ...withNormalizedPositions(document, next, changes) };
 }
 
 /**
@@ -124,8 +125,11 @@ export function addCoursePlanElement(
       : { kind: 'straight', id, length: shape.length };
   return {
     ok: true,
-    document: withValue(document, `${section}/plan`, [...plan.slice(0, index), element, ...plan.slice(index)]),
-    changes: [{ pointer: `${section}/plan/${index}`, before: undefined, after: element }],
+    ...withNormalizedPositions(
+      document,
+      withValue(document, `${section}/plan`, [...plan.slice(0, index), element, ...plan.slice(index)]),
+      [{ pointer: `${section}/plan/${index}`, before: undefined, after: element }],
+    ),
   };
 }
 
@@ -145,12 +149,15 @@ export function removeCoursePlanElement(document: Json, pointer: string): Course
   const plan = valueAt(document, `${section}/plan`) as Json[];
   return {
     ok: true,
-    document: withValue(
+    ...withNormalizedPositions(
       document,
-      `${section}/plan`,
-      plan.filter((_, i) => i !== Number(match[2])),
+      withValue(
+        document,
+        `${section}/plan`,
+        plan.filter((_, i) => i !== Number(match[2])),
+      ),
+      [{ pointer, before: element, after: undefined }],
     ),
-    changes: [{ pointer, before: element, after: undefined }],
   };
 }
 

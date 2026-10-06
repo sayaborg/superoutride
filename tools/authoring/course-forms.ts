@@ -3,6 +3,7 @@ import type { SectionDocument } from '../../src/course/course-document.js';
 import type { CourseChange } from './course-edits.js';
 import { createSectionPlan, readCourseSection, type ResolvedLine, type SectionStructure } from './course-structure.js';
 import { valueAt, withValue, type Json } from './json-pointer.js';
+import { computedValue, withNormalizedPositions } from './course-joints.js';
 
 /**
  * An operation that changes how part of a course is written, always one an author chooses: the new document, each
@@ -32,10 +33,6 @@ const isRepeat = (value: Json | undefined): value is JsonRecord & { every: numbe
   typeof value.every === 'number' &&
   typeof value.count === 'number' &&
   Array.isArray(value.elements);
-
-/** Numbers an operation computes from resolved values are written to this step, which drops floating-point noise. */
-const COMPUTED_STEP = 1e-9;
-const computed = (value: number) => Number((Math.round(value / COMPUTED_STEP) * COMPUTED_STEP).toFixed(9));
 
 /** Every Position in a value moved `ds` along its Section, as a repeat's copy is (`offset` + ds, the joint kept). */
 function shiftedPositions(value: Json, ds: number): Json {
@@ -123,8 +120,12 @@ export function sectionShift(before: SectionStructure, after: SectionStructure):
   return shift;
 }
 
-/** A form result whose shift is measured: the Section read before and after. */
-function measured(document: Json, next: Json, section: number, changes: CourseChange[]): CourseFormResult {
+/**
+ * A form result whose shift is measured, the Section read before and after, with its Positions measured from their
+ * nearest joints.
+ */
+function measured(document: Json, edited: Json, section: number, edits: CourseChange[]): CourseFormResult {
+  const { document: next, changes } = withNormalizedPositions(document, edited, edits);
   const shift = sectionShift(
     readCourseSection(document, section).structure,
     readCourseSection(next, section).structure,
@@ -200,7 +201,7 @@ export function combineCourseElements(document: Json, pointers: readonly string[
     // The spacing: the first step as written (its floating-point noise dropped), or the mean step.
     const step = records[size]!.offsets[0]! - block[0]!.offsets[0]!,
       mean = (records[count - size]!.offsets[0]! - block[0]!.offsets[0]!) / (copies - 1);
-    const every = [Number(step.toPrecision(12)), step, computed(mean), mean].reduce((a, b) =>
+    const every = [Number(step.toPrecision(12)), step, computedValue(mean), mean].reduce((a, b) =>
       deviation(b) < deviation(a) ? b : a,
     );
     const shift = deviation(every);
@@ -258,7 +259,7 @@ export function bindCourseLateral(document: Json, pointer: string, field: string
   const s = found.element.s;
   const at = s === null || !target.lines.line ? null : lineAt(target.lines.line, s);
   if (at === null) return { ok: false, reason: `Boundary ${boundary} does not reach the element's station` };
-  const after = { boundary, offset: computed(lateral.value - at) };
+  const after = { boundary, offset: computedValue(lateral.value - at) };
   const next = withValue(document, `${pointer}/${field}`, after);
   return measured(document, next, found.section.index, [
     { pointer: `${pointer}/${field}`, before: lateral.value, after },
@@ -276,7 +277,7 @@ export function unbindCourseLateral(document: Json, pointer: string, field: stri
   if (lateral.form !== 'reference') return { ok: false, reason: `${pointer}/${field} is already absolute` };
   if (lateral.l === null) return { ok: false, reason: `${pointer}/${field} does not resolve` };
   const before = valueAt(document, `${pointer}/${field}`);
-  const after = computed(lateral.l);
+  const after = computedValue(lateral.l);
   const next = withValue(document, `${pointer}/${field}`, after);
   return measured(document, next, found.section.index, [{ pointer: `${pointer}/${field}`, before, after }]);
 }
@@ -294,7 +295,7 @@ export function reanchorCoursePosition(document: Json, pointer: string, joint: s
     to = plan?.stations.get(joint);
   if (from === undefined || to === undefined)
     return { ok: false, reason: plan ? `No joint ${joint} in this Section` : 'The Section plan does not compile' };
-  const after = { joint, offset: computed(position.offset + from - to) };
+  const after = { joint, offset: computedValue(position.offset + from - to) };
   const next = withValue(document, pointer, after);
   return measured(document, next, section.index, [{ pointer, before: position, after }]);
 }
